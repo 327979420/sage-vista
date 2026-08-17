@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "pivot": {"left_bars": 2, "right_bars": 2, "major_move_atr": 1.0},
+  "w_bottom": {"min_separation_bars": 3, "max_separation_bars": 10, "max_second_low_atr_above_first": 1.0},
+  "level_test": {"proximity_atr": 0.25, "min_attempts": 3, "rejection_cluster_bars": 2},
+  "bos": {"min_body_fraction": 0.5, "strong_volume_ratio": 1.5},
+  "volume": {"lookback": 20, "strong": 1.5, "exceptional": 2.0},
+  "retest": {"min_bars_after_bos": 1, "max_bars_after_bos": 5, "proximity_atr": 0.25, "min_reward_risk": 1.5, "hammer_wick_body_ratio": 1.5, "upper_close_fraction": 0.6667, "expansion_body_fraction": 0.6, "doji_body_fraction": 0.1},
+  "entry": {"stop_buffer_atr": 0.25, "minimum_reward_risk": 1.5},
+  "gap": {"small_gap_atr": 0.5},
+  "trend": {"minervini_low_distance": 0.3, "minervini_high_distance": 0.25, "rising_200_lookback": 20, "weinstein_slope_lookback": 5, "flat_slope_atr": 0.15},
+  "time_exit": {"no_expansion_bars": 10, "minimum_progress_r": 0.5, "maximum_daily_bars": 20}
+}
