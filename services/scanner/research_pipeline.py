@@ -4,10 +4,11 @@ from concurrent.futures import ThreadPoolExecutor,as_completed
 from datetime import datetime,timezone
 from pathlib import Path
 from .fetch_nasdaq import fetch
+from .fetch_yahoo import fetch as fetch_long_history
 from .quick_scan import HEAD,universe
 from .technical import atr,ema,macd,rsi
 
-VERSION="research-v0.3.0";HORIZONS=(5,10,20,60);FACTORS=("momentum_12_1","momentum_6_1","momentum_3_1","trend_quality","low_volatility","liquidity","rsi_14","macd_strength","adx_14","volume_expansion","breakout_252","volatility_contraction","relative_strength_6m")
+VERSION="research-v0.4.0";HORIZONS=(5,10,20,60);FACTORS=("momentum_12_1","momentum_6_1","momentum_3_1","trend_quality","low_volatility","liquidity","rsi_14","macd_strength","adx_14","volume_expansion","breakout_252","volatility_contraction","relative_strength_6m")
 SPLIT_BOUNDS={"development":("0000-01-01","2024-12-31"),"validation":("2025-01-01","2025-12-31"),"forward_test":("2026-01-01","9999-12-31")}
 def iso(s):return datetime.strptime(s,"%m/%d/%Y").date().isoformat()
 def stdev_returns(rows,start,end):
@@ -47,17 +48,19 @@ def monthly_indices(rows):
  out={}
  for i,r in enumerate(rows):out[iso(r["date"])[:7]]=i
  return [i for _,i in sorted(out.items()) if i>=252]
-def load_symbol(meta,start="2021-01-01"):
- try:return meta,fetch(meta["symbol"],start)
+def load_symbol(meta,start="2021-01-01",loader=fetch):
+ try:return meta,loader(meta["symbol"],start)
  except Exception:return meta,[]
 def evaluate_report(panel,start="0000-01-01",end="9999-12-31"):
  panel=[x for x in panel if start<=x["date"]<=end]
+ groups={}
+ for x in panel:groups.setdefault(x["date"],[]).append(x)
  records=[]
  for f in FACTORS:
   for h in HORIZONS:
    daily=[];obs=0;top=[];bottom=[]
-   for date in sorted({x["date"] for x in panel}):
-    xs=[x for x in panel if x["date"]==date and x["factors"].get(f) is not None and x["forward"].get(h) is not None]
+   for date in sorted(groups):
+    xs=[x for x in groups[date] if x["factors"].get(f) is not None and x["forward"].get(h) is not None]
     if len(xs)<10:continue
     vals=[x["factors"][f] for x in xs];ys=[x["forward"][h] for x in xs];ic=spearman(vals,ys)
     if ic is not None:daily.append(ic)
@@ -72,40 +75,42 @@ def classify_factor(development,validation,forward,factor,horizon=60):
  if d["mean_ic"]>=.02 and v["mean_ic"]>=.02 and (v["ic_positive_pct"] or 0)>=55:return "promising"
  return "weak"
 def redundancy(panel):
- pairs=[]
+ pairs=[];groups={}
+ for x in panel:groups.setdefault(x["date"],[]).append(x)
  for i,a in enumerate(FACTORS):
   for b in FACTORS[i+1:]:
    cors=[]
-   for date in sorted({x["date"] for x in panel}):
-    xs=[x for x in panel if x["date"]==date and x["factors"].get(a) is not None and x["factors"].get(b) is not None]
+   for date in sorted(groups):
+    xs=[x for x in groups[date] if x["factors"].get(a) is not None and x["factors"].get(b) is not None]
     if len(xs)>=10:
      c=spearman([x["factors"][a] for x in xs],[x["factors"][b] for x in xs])
      if c is not None:cors.append(c)
    pairs.append({"a":a,"b":b,"mean_rank_correlation":round(statistics.mean(cors),3) if cors else None,"dates":len(cors)})
  return sorted(pairs,key=lambda x:abs(x["mean_rank_correlation"] or 0),reverse=True)
-def run(db_path="work/northstar-research.sqlite",report_path="public/research-report.json",limit=500,start="2016-01-01"):
- metas=universe(limit);loaded=[];benchmark_rows=fetch("SPY",start,assetclass="etf");benchmark={x["date"]:x["close"] for x in benchmark_rows}
+def run(db_path="work/northstar-research-v04.sqlite",report_path="public/research-report.json",limit=500,start="2000-01-01",persist_detail=False):
+ metas=universe(limit);loaded=[];benchmark_rows=fetch_long_history("SPY",start);benchmark={x["date"]:x["close"] for x in benchmark_rows}
  with ThreadPoolExecutor(max_workers=12) as pool:
-  fs=[pool.submit(load_symbol,m,start) for m in metas]
+  fs=[pool.submit(load_symbol,m,start,fetch_long_history) for m in metas]
   for f in as_completed(fs):loaded.append(f.result())
- now=datetime.now(timezone.utc).isoformat();db=sqlite3.connect(db_path);db.executescript(Path(__file__).with_name("research_schema.sql").read_text());panel=[];eligible_latest=0
+ now=datetime.now(timezone.utc).isoformat();db=sqlite3.connect(db_path);db.execute("PRAGMA journal_mode=OFF");db.execute("PRAGMA synchronous=OFF");db.execute("PRAGMA temp_store=MEMORY");db.executescript(Path(__file__).with_name("research_schema.sql").read_text());panel=[];eligible_latest=0
  for meta,rows in loaded:
   if not rows:continue
   sym=meta["symbol"];db.execute("INSERT OR REPLACE INTO instruments VALUES(?,?,?,?,?,?,?)",(sym,meta["name"],None,iso(rows[0]["date"]),iso(rows[-1]["date"]),"common_or_adr_screened","Nasdaq screener"))
-  db.executemany("INSERT OR REPLACE INTO bars_daily VALUES(?,?,?,?,?,?,?,?,?)",[(sym,iso(r["date"]),r["open"],r["high"],r["low"],r["close"],r["volume"],"Nasdaq historical API",now) for r in rows])
+  if persist_detail:db.executemany("INSERT OR REPLACE INTO bars_daily VALUES(?,?,?,?,?,?,?,?,?)",[(sym,iso(r["date"]),r["open"],r["high"],r["low"],r["close"],r["volume"],"Yahoo chart API adjusted history",now) for r in rows])
   for i in monthly_indices(rows):
    adv=sum(x["close"]*x["volume"] for x in rows[i-19:i+1])/20;eligible=rows[i]["close"]>=5 and adv>=10_000_000 and i>=252;date=iso(rows[i]["date"])
-   db.execute("INSERT OR REPLACE INTO universe_membership VALUES(?,?,?,?,?,?,?)",(date,sym,int(eligible),"eligible" if eligible else "price_liquidity_or_history",rows[i]["close"],adv,i+1))
+   if persist_detail:db.execute("INSERT OR REPLACE INTO universe_membership VALUES(?,?,?,?,?,?,?)",(date,sym,int(eligible),"eligible" if eligible else "price_liquidity_or_history",rows[i]["close"],adv,i+1))
    if not eligible:continue
    fv=factor_values(rows,i,benchmark);fw={h:(rows[i+h]["close"]/rows[i]["close"]-1 if i+h<len(rows) else None) for h in HORIZONS};panel.append({"date":date,"symbol":sym,"factors":fv,"forward":fw})
-   db.executemany("INSERT OR REPLACE INTO factor_observations VALUES(?,?,?,?,?,?,?)",[(date,sym,k,v,int(v is not None),"Nasdaq OHLCV derived",VERSION) for k,v in fv.items()])
-   db.executemany("INSERT OR REPLACE INTO forward_returns VALUES(?,?,?,?)",[(date,sym,h,v) for h,v in fw.items()])
+   if persist_detail:
+    db.executemany("INSERT OR REPLACE INTO factor_observations VALUES(?,?,?,?,?,?,?)",[(date,sym,k,v,int(v is not None),"Yahoo adjusted OHLCV derived",VERSION) for k,v in fv.items()])
+    db.executemany("INSERT OR REPLACE INTO forward_returns VALUES(?,?,?,?)",[(date,sym,h,v) for h,v in fw.items()])
   i=len(rows)-1;adv=sum(x["close"]*x["volume"] for x in rows[-20:])/20;eligible_latest+=int(rows[i]["close"]>=5 and adv>=10_000_000 and i>=252)
  metrics=evaluate_report(panel);dates=sorted({x["date"] for x in panel});splits={"development":{"start":dates[0] if dates else None,"end":"2024-12-31"},"validation":{"start":"2025-01-01","end":"2025-12-31"},"forward_test":{"start":"2026-01-01","end":dates[-1] if dates else None}}
  split_metrics={k:evaluate_report(panel,*bounds) for k,bounds in SPLIT_BOUNDS.items()};factor_verdicts=[{"factor":f,"horizon":60,"verdict":classify_factor(split_metrics["development"],split_metrics["validation"],split_metrics["forward_test"],f)} for f in FACTORS]
- exp_id=f"{VERSION}-{now[:10]}";spec={"factors":FACTORS,"horizons":HORIZONS,"universe":f"top {limit} market-cap screened, price>=5, ADV20>=10m, history>=252","history_requested_from":start,"splits":splits};summary={"symbols_requested":len(metas),"symbols_loaded":sum(bool(r) for _,r in loaded),"eligible_latest":eligible_latest,"panel_rows":len(panel),"snapshot_dates":len(dates),"earliest_observation":dates[0] if dates else None,"latest_observation":dates[-1] if dates else None}
+ exp_id=f"{VERSION}-{now[:10]}";spec={"factors":FACTORS,"horizons":HORIZONS,"universe":f"top {limit} market-cap screened, price>=5, ADV20>=10m, history>=252","history_requested_from":start,"detail_persisted":persist_detail,"splits":splits};summary={"symbols_requested":len(metas),"symbols_loaded":sum(bool(r) for _,r in loaded),"eligible_latest":eligible_latest,"panel_rows":len(panel),"snapshot_dates":len(dates),"earliest_observation":dates[0] if dates else None,"latest_observation":dates[-1] if dates else None}
  db.execute("INSERT OR REPLACE INTO experiments VALUES(?,?,?,?,?,?,?,?,?)",(exp_id,now,VERSION,dates[0],dates[-1],eligible_latest,"completed",json.dumps(spec),json.dumps(summary)));db.execute("PRAGMA optimize");db.commit()
  implemented=[{"id":"momentum_12_1","plain":"12-month momentum excluding the latest month"},{"id":"momentum_6_1","plain":"6-month momentum excluding the latest month"},{"id":"momentum_3_1","plain":"3-month momentum excluding the latest week"},{"id":"trend_quality","plain":"price and EMA50 alignment relative to EMA200"},{"id":"low_volatility","plain":"negative 60-day annualised volatility"},{"id":"liquidity","plain":"log 20-day average dollar volume"},{"id":"rsi_14","plain":"14-day relative strength index; higher means stronger recent buying"},{"id":"macd_strength","plain":"MACD distance above its signal line, scaled by ATR"},{"id":"adx_14","plain":"14-day directional trend strength, ignoring direction"},{"id":"volume_expansion","plain":"today's volume relative to its prior 20-day average"},{"id":"breakout_252","plain":"distance from the previous 252-day high"},{"id":"volatility_contraction","plain":"20-day volatility contraction relative to 60 days"},{"id":"relative_strength_6m","plain":"six-month return minus the S&P 500 ETF return"}]
- report={"generated_at":now,"version":VERSION,"status":"research_only_not_a_trading_model","coverage":summary,"walk_forward":splits,"factors":{"implemented":implemented,"missing":["Point-in-time SEC quality/profitability","Point-in-time value","Earnings surprise and revisions","Historical sector membership","Delistings and full corporate-action audit"]},"metrics":metrics,"split_metrics":split_metrics,"factor_verdicts":factor_verdicts,"redundancy":redundancy(panel),"data_standard":{"required":["Daily adjusted OHLCV with split and dividend audit","Historical listings and delistings with effective dates","Point-in-time fundamentals with filing availability dates","Historical sector classifications","Trading calendar and corporate-action identifiers"],"quality_gates":["No observation may use data published after its as-of timestamp","Delisted securities remain in historical universes","Prices and returns reconcile across corporate actions","Missing values are explicit, never silently forward-filled","Every dataset, factor and experiment has a version and source"]},"experiment":{"id":exp_id,"specification":spec},"interpretation":"Positive IC means higher factor ranks were associated with higher subsequent returns. A promising label requires development and validation IC of at least 0.02, matching signs, and positive validation IC in at least 55% of dates. The current panel remains too limited for investment conclusions."};Path(report_path).write_text(json.dumps(report,indent=2));return report
+ report={"generated_at":now,"version":VERSION,"status":"research_only_not_a_trading_model","weighting_policy":{"current":"No factor qualifies for increased weight in the full-history test","method":"Future combination weights will be capped and based on out-of-sample strength, stability across eras, drawdown contribution, turnover cost and independence from other factors; no exponential weighting."},"coverage":summary,"walk_forward":splits,"factors":{"implemented":implemented,"missing":["Point-in-time SEC quality/profitability","Point-in-time value","Earnings surprise and revisions","Historical sector membership","Delistings and full corporate-action audit"]},"metrics":metrics,"split_metrics":split_metrics,"factor_verdicts":factor_verdicts,"redundancy":redundancy(panel),"data_standard":{"required":["Daily adjusted OHLCV with split and dividend audit","Historical listings and delistings with effective dates","Point-in-time fundamentals with filing availability dates","Historical sector classifications","Trading calendar and corporate-action identifiers"],"quality_gates":["No observation may use data published after its as-of timestamp","Delisted securities remain in historical universes","Prices and returns reconcile across corporate actions","Missing values are explicit, never silently forward-filled","Every dataset, factor and experiment has a version and source"]},"experiment":{"id":exp_id,"specification":spec},"interpretation":"Positive IC means higher factor ranks were associated with higher subsequent returns. A promising label requires development and validation IC of at least 0.02, matching signs, and positive validation IC in at least 55% of dates. In this current-stock, survivorship-biased 25-year sample, no factor qualifies for increased combination weight."};Path(report_path).write_text(json.dumps(report,indent=2));return report
 if __name__=="__main__":
  r=run();print(json.dumps(r["coverage"],indent=2));print(sorted(r["metrics"],key=lambda x:(x["mean_ic"] is not None,x["mean_ic"] or -9),reverse=True)[:8])
