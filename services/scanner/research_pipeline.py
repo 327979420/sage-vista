@@ -7,7 +7,8 @@ from .fetch_nasdaq import fetch
 from .quick_scan import HEAD,universe
 from .technical import ema
 
-VERSION="research-v0.1.0";HORIZONS=(5,10,20,60);FACTORS=("momentum_12_1","momentum_6_1","momentum_3_1","trend_quality","low_volatility","liquidity")
+VERSION="research-v0.2.0";HORIZONS=(5,10,20,60);FACTORS=("momentum_12_1","momentum_6_1","momentum_3_1","trend_quality","low_volatility","liquidity")
+SPLIT_BOUNDS={"development":("0000-01-01","2024-12-31"),"validation":("2025-01-01","2025-12-31"),"forward_test":("2026-01-01","9999-12-31")}
 def iso(s):return datetime.strptime(s,"%m/%d/%Y").date().isoformat()
 def stdev_returns(rows,start,end):
  r=[rows[i]["close"]/rows[i-1]["close"]-1 for i in range(start,end+1) if i>0]
@@ -36,7 +37,8 @@ def monthly_indices(rows):
 def load_symbol(meta):
  try:return meta,fetch(meta["symbol"],"2021-01-01")
  except Exception:return meta,[]
-def evaluate_report(panel):
+def evaluate_report(panel,start="0000-01-01",end="9999-12-31"):
+ panel=[x for x in panel if start<=x["date"]<=end]
  records=[]
  for f in FACTORS:
   for h in HORIZONS:
@@ -49,6 +51,25 @@ def evaluate_report(panel):
     cut=max(1,len(xs)//5);ordered=sorted(xs,key=lambda x:x["factors"][f]);bottom.extend(x["forward"][h] for x in ordered[:cut]);top.extend(x["forward"][h] for x in ordered[-cut:]);obs+=len(xs)
    records.append({"factor":f,"horizon":h,"dates":len(daily),"observations":obs,"mean_ic":round(statistics.mean(daily),4) if daily else None,"ic_positive_pct":round(sum(x>0 for x in daily)/len(daily)*100,1) if daily else None,"top_quantile_return":round(statistics.mean(top),4) if top else None,"bottom_quantile_return":round(statistics.mean(bottom),4) if bottom else None,"spread":round(statistics.mean(top)-statistics.mean(bottom),4) if top else None})
  return records
+def metric_for(metrics,factor,horizon):return next((x for x in metrics if x["factor"]==factor and x["horizon"]==horizon),None)
+def classify_factor(development,validation,forward,factor,horizon=60):
+ d=metric_for(development,factor,horizon);v=metric_for(validation,factor,horizon);f=metric_for(forward,factor,horizon)
+ if not d or not v or not d["mean_ic"] or not v["mean_ic"]:return "insufficient"
+ if d["mean_ic"]*v["mean_ic"]<=0:return "unstable"
+ if d["mean_ic"]>=.02 and v["mean_ic"]>=.02 and (v["ic_positive_pct"] or 0)>=55:return "promising"
+ return "weak"
+def redundancy(panel):
+ pairs=[]
+ for i,a in enumerate(FACTORS):
+  for b in FACTORS[i+1:]:
+   cors=[]
+   for date in sorted({x["date"] for x in panel}):
+    xs=[x for x in panel if x["date"]==date and x["factors"].get(a) is not None and x["factors"].get(b) is not None]
+    if len(xs)>=10:
+     c=spearman([x["factors"][a] for x in xs],[x["factors"][b] for x in xs])
+     if c is not None:cors.append(c)
+   pairs.append({"a":a,"b":b,"mean_rank_correlation":round(statistics.mean(cors),3) if cors else None,"dates":len(cors)})
+ return sorted(pairs,key=lambda x:abs(x["mean_rank_correlation"] or 0),reverse=True)
 def run(db_path="work/northstar-research.sqlite",report_path="public/research-report.json",limit=150):
  metas=universe(limit);loaded=[]
  with ThreadPoolExecutor(max_workers=12) as pool:
@@ -68,8 +89,9 @@ def run(db_path="work/northstar-research.sqlite",report_path="public/research-re
    db.executemany("INSERT OR REPLACE INTO forward_returns VALUES(?,?,?,?)",[(date,sym,h,v) for h,v in fw.items()])
   i=len(rows)-1;adv=sum(x["close"]*x["volume"] for x in rows[-20:])/20;eligible_latest+=int(rows[i]["close"]>=5 and adv>=10_000_000 and i>=252)
  metrics=evaluate_report(panel);dates=sorted({x["date"] for x in panel});splits={"development":{"start":dates[0] if dates else None,"end":"2024-12-31"},"validation":{"start":"2025-01-01","end":"2025-12-31"},"forward_test":{"start":"2026-01-01","end":dates[-1] if dates else None}}
+ split_metrics={k:evaluate_report(panel,*bounds) for k,bounds in SPLIT_BOUNDS.items()};factor_verdicts=[{"factor":f,"horizon":60,"verdict":classify_factor(split_metrics["development"],split_metrics["validation"],split_metrics["forward_test"],f)} for f in FACTORS]
  exp_id=f"{VERSION}-{now[:10]}";spec={"factors":FACTORS,"horizons":HORIZONS,"universe":"top 150 market-cap screened, price>=5, ADV20>=10m, history>=252","splits":splits};summary={"symbols_requested":len(metas),"symbols_loaded":sum(bool(r) for _,r in loaded),"eligible_latest":eligible_latest,"panel_rows":len(panel),"snapshot_dates":len(dates)}
  db.execute("INSERT OR REPLACE INTO experiments VALUES(?,?,?,?,?,?,?,?,?)",(exp_id,now,VERSION,dates[0],dates[-1],eligible_latest,"completed",json.dumps(spec),json.dumps(summary)));db.execute("PRAGMA optimize");db.commit()
- report={"generated_at":now,"version":VERSION,"status":"research_only_not_a_trading_model","coverage":summary,"walk_forward":splits,"factors":{"implemented":[{"id":"momentum_12_1","plain":"12-month momentum excluding the latest month"},{"id":"momentum_6_1","plain":"6-month momentum excluding the latest month"},{"id":"momentum_3_1","plain":"3-month momentum excluding the latest week"},{"id":"trend_quality","plain":"price and EMA50 alignment relative to EMA200"},{"id":"low_volatility","plain":"negative 60-day annualised volatility"},{"id":"liquidity","plain":"log 20-day average dollar volume"}],"missing":["Point-in-time SEC quality/profitability","Point-in-time value","Earnings surprise and revisions","Historical sector membership","Delistings and full corporate-action audit"]},"metrics":metrics,"experiment":{"id":exp_id,"specification":spec},"interpretation":"Positive IC means higher factor ranks were associated with higher subsequent returns in this limited panel. Small samples and unadjusted data prevent investment conclusions."};Path(report_path).write_text(json.dumps(report,indent=2));return report
+ report={"generated_at":now,"version":VERSION,"status":"research_only_not_a_trading_model","coverage":summary,"walk_forward":splits,"factors":{"implemented":[{"id":"momentum_12_1","plain":"12-month momentum excluding the latest month"},{"id":"momentum_6_1","plain":"6-month momentum excluding the latest month"},{"id":"momentum_3_1","plain":"3-month momentum excluding the latest week"},{"id":"trend_quality","plain":"price and EMA50 alignment relative to EMA200"},{"id":"low_volatility","plain":"negative 60-day annualised volatility"},{"id":"liquidity","plain":"log 20-day average dollar volume"}],"missing":["Point-in-time SEC quality/profitability","Point-in-time value","Earnings surprise and revisions","Historical sector membership","Delistings and full corporate-action audit"]},"metrics":metrics,"split_metrics":split_metrics,"factor_verdicts":factor_verdicts,"redundancy":redundancy(panel),"data_standard":{"required":["Daily adjusted OHLCV with split and dividend audit","Historical listings and delistings with effective dates","Point-in-time fundamentals with filing availability dates","Historical sector classifications","Trading calendar and corporate-action identifiers"],"quality_gates":["No observation may use data published after its as-of timestamp","Delisted securities remain in historical universes","Prices and returns reconcile across corporate actions","Missing values are explicit, never silently forward-filled","Every dataset, factor and experiment has a version and source"]},"experiment":{"id":exp_id,"specification":spec},"interpretation":"Positive IC means higher factor ranks were associated with higher subsequent returns. A promising label requires development and validation IC of at least 0.02, matching signs, and positive validation IC in at least 55% of dates. The current panel remains too limited for investment conclusions."};Path(report_path).write_text(json.dumps(report,indent=2));return report
 if __name__=="__main__":
  r=run();print(json.dumps(r["coverage"],indent=2));print(sorted(r["metrics"],key=lambda x:(x["mean_ic"] is not None,x["mean_ic"] or -9),reverse=True)[:8])
