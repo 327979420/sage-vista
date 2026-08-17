@@ -42,6 +42,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <div className="globalnav"><a href="/">Signal board</a><a href="/technical">Technical lab</a><a href="/research">Factor research</a></div>
         {children}
       </body>
     </html>
