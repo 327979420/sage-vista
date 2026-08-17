@@ -1,17 +1,19 @@
 {
-  "generated_at": "2026-08-17T07:26:39.168045+00:00",
-  "version": "research-v0.2.0",
+  "generated_at": "2026-08-17T07:36:04.225155+00:00",
+  "version": "research-v0.3.0",
   "status": "research_only_not_a_trading_model",
   "coverage": {
-    "symbols_requested": 139,
-    "symbols_loaded": 134,
-    "eligible_latest": 132,
-    "panel_rows": 7189,
-    "snapshot_dates": 56
+    "symbols_requested": 438,
+    "symbols_loaded": 436,
+    "eligible_latest": 428,
+    "panel_rows": 42825,
+    "snapshot_dates": 111,
+    "earliest_observation": "2017-08-31",
+    "latest_observation": "2026-08-14"
   },
   "walk_forward": {
     "development": {
-      "start": "2022-01-31",
+      "start": "2017-08-31",
       "end": "2024-12-31"
     },
     "validation": {
@@ -48,6 +50,34 @@
       {
         "id": "liquidity",
         "plain": "log 20-day average dollar volume"
+      },
+      {
+        "id": "rsi_14",
+        "plain": "14-day relative strength index; higher means stronger recent buying"
+      },
+      {
+        "id": "macd_strength",
+        "plain": "MACD distance above its signal line, scaled by ATR"
+      },
+      {
+        "id": "adx_14",
+        "plain": "14-day directional trend strength, ignoring direction"
+      },
+      {
+        "id": "volume_expansion",
+        "plain": "today's volume relative to its prior 20-day average"
+      },
+      {
+        "id": "breakout_252",
+        "plain": "distance from the previous 252-day high"
+      },
+      {
+        "id": "volatility_contraction",
+        "plain": "20-day volatility contraction relative to 60 days"
+      },
+      {
+        "id": "relative_strength_6m",
+        "plain": "six-month return minus the S&P 500 ETF return"
       }
     ],
     "missing": [
@@ -62,266 +92,574 @@
     {
       "factor": "momentum_12_1",
       "horizon": 5,
-      "dates": 55,
-      "observations": 7057,
-      "mean_ic": 0.0223,
-      "ic_positive_pct": 65.5,
-      "top_quantile_return": 0.0043,
-      "bottom_quantile_return": 0.003,
-      "spread": 0.0013
+      "dates": 108,
+      "observations": 42395,
+      "mean_ic": -0.0032,
+      "ic_positive_pct": 56.5,
+      "top_quantile_return": 0.0077,
+      "bottom_quantile_return": 0.0088,
+      "spread": -0.0011
     },
     {
       "factor": "momentum_12_1",
       "horizon": 10,
-      "dates": 55,
-      "observations": 7057,
-      "mean_ic": 0.0274,
-      "ic_positive_pct": 60.0,
-      "top_quantile_return": 0.0159,
-      "bottom_quantile_return": 0.0095,
-      "spread": 0.0064
-    },
-    {
-      "factor": "momentum_12_1",
-      "horizon": 20,
-      "dates": 54,
-      "observations": 6925,
-      "mean_ic": 0.039,
+      "dates": 108,
+      "observations": 42395,
+      "mean_ic": -0.0002,
       "ic_positive_pct": 53.7,
-      "top_quantile_return": 0.0235,
-      "bottom_quantile_return": 0.0169,
-      "spread": 0.0067
-    },
-    {
-      "factor": "momentum_12_1",
-      "horizon": 60,
-      "dates": 52,
-      "observations": 6661,
-      "mean_ic": 0.0436,
-      "ic_positive_pct": 65.4,
-      "top_quantile_return": 0.0788,
-      "bottom_quantile_return": 0.0569,
-      "spread": 0.022
-    },
-    {
-      "factor": "momentum_6_1",
-      "horizon": 5,
-      "dates": 55,
-      "observations": 7057,
-      "mean_ic": 0.0011,
-      "ic_positive_pct": 52.7,
-      "top_quantile_return": 0.0029,
-      "bottom_quantile_return": 0.0036,
-      "spread": -0.0007
-    },
-    {
-      "factor": "momentum_6_1",
-      "horizon": 10,
-      "dates": 55,
-      "observations": 7057,
-      "mean_ic": 0.021,
-      "ic_positive_pct": 56.4,
       "top_quantile_return": 0.0149,
-      "bottom_quantile_return": 0.0095,
-      "spread": 0.0054
+      "bottom_quantile_return": 0.0121,
+      "spread": 0.0028
+    },
+    {
+      "factor": "momentum_12_1",
+      "horizon": 20,
+      "dates": 107,
+      "observations": 41967,
+      "mean_ic": 0.0196,
+      "ic_positive_pct": 57.0,
+      "top_quantile_return": 0.0217,
+      "bottom_quantile_return": 0.0143,
+      "spread": 0.0075
+    },
+    {
+      "factor": "momentum_12_1",
+      "horizon": 60,
+      "dates": 105,
+      "observations": 41110,
+      "mean_ic": 0.0367,
+      "ic_positive_pct": 63.8,
+      "top_quantile_return": 0.069,
+      "bottom_quantile_return": 0.0414,
+      "spread": 0.0276
+    },
+    {
+      "factor": "momentum_6_1",
+      "horizon": 5,
+      "dates": 108,
+      "observations": 42395,
+      "mean_ic": -0.0037,
+      "ic_positive_pct": 57.4,
+      "top_quantile_return": 0.0066,
+      "bottom_quantile_return": 0.0089,
+      "spread": -0.0023
+    },
+    {
+      "factor": "momentum_6_1",
+      "horizon": 10,
+      "dates": 108,
+      "observations": 42395,
+      "mean_ic": 0.0002,
+      "ic_positive_pct": 51.9,
+      "top_quantile_return": 0.013,
+      "bottom_quantile_return": 0.012,
+      "spread": 0.001
     },
     {
       "factor": "momentum_6_1",
       "horizon": 20,
-      "dates": 54,
-      "observations": 6925,
-      "mean_ic": 0.0191,
+      "dates": 107,
+      "observations": 41967,
+      "mean_ic": 0.0016,
+      "ic_positive_pct": 56.1,
+      "top_quantile_return": 0.019,
+      "bottom_quantile_return": 0.016,
+      "spread": 0.0029
+    },
+    {
+      "factor": "momentum_6_1",
+      "horizon": 60,
+      "dates": 105,
+      "observations": 41110,
+      "mean_ic": 0.0303,
+      "ic_positive_pct": 61.9,
+      "top_quantile_return": 0.062,
+      "bottom_quantile_return": 0.0389,
+      "spread": 0.0231
+    },
+    {
+      "factor": "momentum_3_1",
+      "horizon": 5,
+      "dates": 108,
+      "observations": 42395,
+      "mean_ic": 0.0198,
+      "ic_positive_pct": 55.6,
+      "top_quantile_return": 0.0082,
+      "bottom_quantile_return": 0.007,
+      "spread": 0.0012
+    },
+    {
+      "factor": "momentum_3_1",
+      "horizon": 10,
+      "dates": 108,
+      "observations": 42395,
+      "mean_ic": 0.0105,
       "ic_positive_pct": 53.7,
-      "top_quantile_return": 0.022,
-      "bottom_quantile_return": 0.0175,
-      "spread": 0.0045
-    },
-    {
-      "factor": "momentum_6_1",
-      "horizon": 60,
-      "dates": 52,
-      "observations": 6661,
-      "mean_ic": 0.0527,
-      "ic_positive_pct": 63.5,
-      "top_quantile_return": 0.0819,
-      "bottom_quantile_return": 0.0439,
-      "spread": 0.0381
-    },
-    {
-      "factor": "momentum_3_1",
-      "horizon": 5,
-      "dates": 55,
-      "observations": 7057,
-      "mean_ic": 0.0235,
-      "ic_positive_pct": 56.4,
-      "top_quantile_return": 0.0039,
-      "bottom_quantile_return": 0.0023,
-      "spread": 0.0016
-    },
-    {
-      "factor": "momentum_3_1",
-      "horizon": 10,
-      "dates": 55,
-      "observations": 7057,
-      "mean_ic": 0.0182,
-      "ic_positive_pct": 50.9,
-      "top_quantile_return": 0.0127,
-      "bottom_quantile_return": 0.0091,
-      "spread": 0.0036
+      "top_quantile_return": 0.0136,
+      "bottom_quantile_return": 0.011,
+      "spread": 0.0026
     },
     {
       "factor": "momentum_3_1",
       "horizon": 20,
-      "dates": 54,
-      "observations": 6925,
-      "mean_ic": -0.004,
-      "ic_positive_pct": 50.0,
+      "dates": 107,
+      "observations": 41967,
+      "mean_ic": -0.0077,
+      "ic_positive_pct": 57.9,
       "top_quantile_return": 0.0179,
-      "bottom_quantile_return": 0.0197,
-      "spread": -0.0019
+      "bottom_quantile_return": 0.0182,
+      "spread": -0.0004
     },
     {
       "factor": "momentum_3_1",
       "horizon": 60,
-      "dates": 52,
-      "observations": 6661,
-      "mean_ic": 0.023,
-      "ic_positive_pct": 53.8,
-      "top_quantile_return": 0.0756,
-      "bottom_quantile_return": 0.0524,
-      "spread": 0.0233
+      "dates": 105,
+      "observations": 41110,
+      "mean_ic": 0.0083,
+      "ic_positive_pct": 48.6,
+      "top_quantile_return": 0.0585,
+      "bottom_quantile_return": 0.0485,
+      "spread": 0.01
     },
     {
       "factor": "trend_quality",
       "horizon": 5,
-      "dates": 55,
-      "observations": 7057,
-      "mean_ic": 0.0279,
-      "ic_positive_pct": 60.0,
-      "top_quantile_return": 0.0046,
-      "bottom_quantile_return": 0.0029,
-      "spread": 0.0016
+      "dates": 108,
+      "observations": 42395,
+      "mean_ic": 0.0074,
+      "ic_positive_pct": 54.6,
+      "top_quantile_return": 0.0077,
+      "bottom_quantile_return": 0.008,
+      "spread": -0.0002
     },
     {
       "factor": "trend_quality",
       "horizon": 10,
-      "dates": 55,
-      "observations": 7057,
-      "mean_ic": 0.029,
-      "ic_positive_pct": 63.6,
-      "top_quantile_return": 0.0152,
-      "bottom_quantile_return": 0.0092,
-      "spread": 0.006
+      "dates": 108,
+      "observations": 42395,
+      "mean_ic": 0.0062,
+      "ic_positive_pct": 53.7,
+      "top_quantile_return": 0.0142,
+      "bottom_quantile_return": 0.0115,
+      "spread": 0.0026
     },
     {
       "factor": "trend_quality",
       "horizon": 20,
-      "dates": 54,
-      "observations": 6925,
-      "mean_ic": 0.032,
-      "ic_positive_pct": 64.8,
-      "top_quantile_return": 0.0222,
-      "bottom_quantile_return": 0.0158,
-      "spread": 0.0064
-    },
-    {
-      "factor": "trend_quality",
-      "horizon": 60,
-      "dates": 52,
-      "observations": 6661,
-      "mean_ic": 0.0467,
-      "ic_positive_pct": 65.4,
-      "top_quantile_return": 0.0804,
-      "bottom_quantile_return": 0.0471,
-      "spread": 0.0333
-    },
-    {
-      "factor": "low_volatility",
-      "horizon": 5,
-      "dates": 55,
-      "observations": 7057,
-      "mean_ic": -0.0744,
-      "ic_positive_pct": 34.5,
-      "top_quantile_return": -0.0008,
-      "bottom_quantile_return": 0.0066,
-      "spread": -0.0074
-    },
-    {
-      "factor": "low_volatility",
-      "horizon": 10,
-      "dates": 55,
-      "observations": 7057,
-      "mean_ic": -0.0937,
-      "ic_positive_pct": 36.4,
-      "top_quantile_return": 0.0001,
-      "bottom_quantile_return": 0.022,
-      "spread": -0.022
-    },
-    {
-      "factor": "low_volatility",
-      "horizon": 20,
-      "dates": 54,
-      "observations": 6925,
-      "mean_ic": -0.0629,
-      "ic_positive_pct": 38.9,
-      "top_quantile_return": 0.0055,
-      "bottom_quantile_return": 0.0329,
-      "spread": -0.0274
-    },
-    {
-      "factor": "low_volatility",
-      "horizon": 60,
-      "dates": 52,
-      "observations": 6661,
-      "mean_ic": -0.1231,
-      "ic_positive_pct": 36.5,
-      "top_quantile_return": 0.023,
-      "bottom_quantile_return": 0.1118,
-      "spread": -0.0888
-    },
-    {
-      "factor": "liquidity",
-      "horizon": 5,
-      "dates": 55,
-      "observations": 7057,
-      "mean_ic": 0.0026,
-      "ic_positive_pct": 49.1,
-      "top_quantile_return": 0.0032,
-      "bottom_quantile_return": 0.003,
-      "spread": 0.0002
-    },
-    {
-      "factor": "liquidity",
-      "horizon": 10,
-      "dates": 55,
-      "observations": 7057,
-      "mean_ic": 0.008,
-      "ic_positive_pct": 47.3,
-      "top_quantile_return": 0.0148,
-      "bottom_quantile_return": 0.0101,
+      "dates": 107,
+      "observations": 41967,
+      "mean_ic": 0.0111,
+      "ic_positive_pct": 60.7,
+      "top_quantile_return": 0.0203,
+      "bottom_quantile_return": 0.0156,
       "spread": 0.0047
     },
     {
+      "factor": "trend_quality",
+      "horizon": 60,
+      "dates": 105,
+      "observations": 41110,
+      "mean_ic": 0.0299,
+      "ic_positive_pct": 58.1,
+      "top_quantile_return": 0.0628,
+      "bottom_quantile_return": 0.0416,
+      "spread": 0.0211
+    },
+    {
+      "factor": "low_volatility",
+      "horizon": 5,
+      "dates": 108,
+      "observations": 42395,
+      "mean_ic": -0.056,
+      "ic_positive_pct": 40.7,
+      "top_quantile_return": 0.0032,
+      "bottom_quantile_return": 0.0116,
+      "spread": -0.0084
+    },
+    {
+      "factor": "low_volatility",
+      "horizon": 10,
+      "dates": 108,
+      "observations": 42395,
+      "mean_ic": -0.0637,
+      "ic_positive_pct": 42.6,
+      "top_quantile_return": 0.0045,
+      "bottom_quantile_return": 0.0199,
+      "spread": -0.0154
+    },
+    {
+      "factor": "low_volatility",
+      "horizon": 20,
+      "dates": 107,
+      "observations": 41967,
+      "mean_ic": -0.0435,
+      "ic_positive_pct": 44.9,
+      "top_quantile_return": 0.0086,
+      "bottom_quantile_return": 0.0272,
+      "spread": -0.0186
+    },
+    {
+      "factor": "low_volatility",
+      "horizon": 60,
+      "dates": 105,
+      "observations": 41110,
+      "mean_ic": -0.0769,
+      "ic_positive_pct": 39.0,
+      "top_quantile_return": 0.0254,
+      "bottom_quantile_return": 0.0873,
+      "spread": -0.0619
+    },
+    {
+      "factor": "liquidity",
+      "horizon": 5,
+      "dates": 108,
+      "observations": 42395,
+      "mean_ic": -0.0156,
+      "ic_positive_pct": 42.6,
+      "top_quantile_return": 0.0059,
+      "bottom_quantile_return": 0.0084,
+      "spread": -0.0025
+    },
+    {
+      "factor": "liquidity",
+      "horizon": 10,
+      "dates": 108,
+      "observations": 42395,
+      "mean_ic": -0.0178,
+      "ic_positive_pct": 40.7,
+      "top_quantile_return": 0.0109,
+      "bottom_quantile_return": 0.0137,
+      "spread": -0.0028
+    },
+    {
       "factor": "liquidity",
       "horizon": 20,
-      "dates": 54,
-      "observations": 6925,
-      "mean_ic": -0.0217,
-      "ic_positive_pct": 44.4,
-      "top_quantile_return": 0.0169,
-      "bottom_quantile_return": 0.0181,
-      "spread": -0.0012
+      "dates": 107,
+      "observations": 41967,
+      "mean_ic": -0.0297,
+      "ic_positive_pct": 35.5,
+      "top_quantile_return": 0.0141,
+      "bottom_quantile_return": 0.0204,
+      "spread": -0.0062
     },
     {
       "factor": "liquidity",
       "horizon": 60,
-      "dates": 52,
-      "observations": 6661,
-      "mean_ic": -0.0306,
-      "ic_positive_pct": 50.0,
-      "top_quantile_return": 0.0638,
-      "bottom_quantile_return": 0.061,
+      "dates": 105,
+      "observations": 41110,
+      "mean_ic": -0.0447,
+      "ic_positive_pct": 34.3,
+      "top_quantile_return": 0.0423,
+      "bottom_quantile_return": 0.0605,
+      "spread": -0.0182
+    },
+    {
+      "factor": "rsi_14",
+      "horizon": 5,
+      "dates": 108,
+      "observations": 42395,
+      "mean_ic": 0.0239,
+      "ic_positive_pct": 52.8,
+      "top_quantile_return": 0.0081,
+      "bottom_quantile_return": 0.0047,
+      "spread": 0.0034
+    },
+    {
+      "factor": "rsi_14",
+      "horizon": 10,
+      "dates": 108,
+      "observations": 42395,
+      "mean_ic": 0.0047,
+      "ic_positive_pct": 53.7,
+      "top_quantile_return": 0.0112,
+      "bottom_quantile_return": 0.0096,
+      "spread": 0.0017
+    },
+    {
+      "factor": "rsi_14",
+      "horizon": 20,
+      "dates": 107,
+      "observations": 41967,
+      "mean_ic": -0.0022,
+      "ic_positive_pct": 49.5,
+      "top_quantile_return": 0.0154,
+      "bottom_quantile_return": 0.0151,
+      "spread": 0.0003
+    },
+    {
+      "factor": "rsi_14",
+      "horizon": 60,
+      "dates": 105,
+      "observations": 41110,
+      "mean_ic": -0.008,
+      "ic_positive_pct": 47.6,
+      "top_quantile_return": 0.0427,
+      "bottom_quantile_return": 0.0457,
+      "spread": -0.003
+    },
+    {
+      "factor": "macd_strength",
+      "horizon": 5,
+      "dates": 108,
+      "observations": 42395,
+      "mean_ic": 0.009,
+      "ic_positive_pct": 50.9,
+      "top_quantile_return": 0.0079,
+      "bottom_quantile_return": 0.0055,
+      "spread": 0.0024
+    },
+    {
+      "factor": "macd_strength",
+      "horizon": 10,
+      "dates": 108,
+      "observations": 42395,
+      "mean_ic": 0.0134,
+      "ic_positive_pct": 56.5,
+      "top_quantile_return": 0.0117,
+      "bottom_quantile_return": 0.0091,
+      "spread": 0.0026
+    },
+    {
+      "factor": "macd_strength",
+      "horizon": 20,
+      "dates": 107,
+      "observations": 41967,
+      "mean_ic": 0.0216,
+      "ic_positive_pct": 55.1,
+      "top_quantile_return": 0.0174,
+      "bottom_quantile_return": 0.0136,
+      "spread": 0.0039
+    },
+    {
+      "factor": "macd_strength",
+      "horizon": 60,
+      "dates": 105,
+      "observations": 41110,
+      "mean_ic": 0.0041,
+      "ic_positive_pct": 49.5,
+      "top_quantile_return": 0.0427,
+      "bottom_quantile_return": 0.042,
+      "spread": 0.0007
+    },
+    {
+      "factor": "adx_14",
+      "horizon": 5,
+      "dates": 108,
+      "observations": 42395,
+      "mean_ic": -0.0082,
+      "ic_positive_pct": 45.4,
+      "top_quantile_return": 0.0057,
+      "bottom_quantile_return": 0.0078,
+      "spread": -0.002
+    },
+    {
+      "factor": "adx_14",
+      "horizon": 10,
+      "dates": 108,
+      "observations": 42395,
+      "mean_ic": -0.018,
+      "ic_positive_pct": 40.7,
+      "top_quantile_return": 0.0088,
+      "bottom_quantile_return": 0.0121,
+      "spread": -0.0034
+    },
+    {
+      "factor": "adx_14",
+      "horizon": 20,
+      "dates": 107,
+      "observations": 41967,
+      "mean_ic": -0.0053,
+      "ic_positive_pct": 49.5,
+      "top_quantile_return": 0.0143,
+      "bottom_quantile_return": 0.0154,
+      "spread": -0.0012
+    },
+    {
+      "factor": "adx_14",
+      "horizon": 60,
+      "dates": 105,
+      "observations": 41110,
+      "mean_ic": -0.0113,
+      "ic_positive_pct": 45.7,
+      "top_quantile_return": 0.0406,
+      "bottom_quantile_return": 0.0456,
+      "spread": -0.0051
+    },
+    {
+      "factor": "volume_expansion",
+      "horizon": 5,
+      "dates": 108,
+      "observations": 42395,
+      "mean_ic": -0.0023,
+      "ic_positive_pct": 45.4,
+      "top_quantile_return": 0.0071,
+      "bottom_quantile_return": 0.0068,
+      "spread": 0.0003
+    },
+    {
+      "factor": "volume_expansion",
+      "horizon": 10,
+      "dates": 108,
+      "observations": 42395,
+      "mean_ic": -0.007,
+      "ic_positive_pct": 44.4,
+      "top_quantile_return": 0.011,
+      "bottom_quantile_return": 0.0119,
+      "spread": -0.001
+    },
+    {
+      "factor": "volume_expansion",
+      "horizon": 20,
+      "dates": 107,
+      "observations": 41967,
+      "mean_ic": -0.0024,
+      "ic_positive_pct": 46.7,
+      "top_quantile_return": 0.0161,
+      "bottom_quantile_return": 0.0176,
+      "spread": -0.0015
+    },
+    {
+      "factor": "volume_expansion",
+      "horizon": 60,
+      "dates": 105,
+      "observations": 41110,
+      "mean_ic": -0.0119,
+      "ic_positive_pct": 50.5,
+      "top_quantile_return": 0.0445,
+      "bottom_quantile_return": 0.0553,
+      "spread": -0.0108
+    },
+    {
+      "factor": "breakout_252",
+      "horizon": 5,
+      "dates": 108,
+      "observations": 42395,
+      "mean_ic": -0.0138,
+      "ic_positive_pct": 52.8,
+      "top_quantile_return": 0.0057,
+      "bottom_quantile_return": 0.0091,
+      "spread": -0.0034
+    },
+    {
+      "factor": "breakout_252",
+      "horizon": 10,
+      "dates": 108,
+      "observations": 42395,
+      "mean_ic": -0.0211,
+      "ic_positive_pct": 44.4,
+      "top_quantile_return": 0.008,
+      "bottom_quantile_return": 0.0143,
+      "spread": -0.0062
+    },
+    {
+      "factor": "breakout_252",
+      "horizon": 20,
+      "dates": 107,
+      "observations": 41967,
+      "mean_ic": -0.0076,
+      "ic_positive_pct": 55.1,
+      "top_quantile_return": 0.0119,
+      "bottom_quantile_return": 0.0194,
+      "spread": -0.0075
+    },
+    {
+      "factor": "breakout_252",
+      "horizon": 60,
+      "dates": 105,
+      "observations": 41110,
+      "mean_ic": -0.0138,
+      "ic_positive_pct": 51.4,
+      "top_quantile_return": 0.0352,
+      "bottom_quantile_return": 0.056,
+      "spread": -0.0207
+    },
+    {
+      "factor": "volatility_contraction",
+      "horizon": 5,
+      "dates": 108,
+      "observations": 42395,
+      "mean_ic": 0.0186,
+      "ic_positive_pct": 56.5,
+      "top_quantile_return": 0.0068,
+      "bottom_quantile_return": 0.0051,
+      "spread": 0.0018
+    },
+    {
+      "factor": "volatility_contraction",
+      "horizon": 10,
+      "dates": 108,
+      "observations": 42395,
+      "mean_ic": 0.0023,
+      "ic_positive_pct": 50.9,
+      "top_quantile_return": 0.0097,
+      "bottom_quantile_return": 0.009,
+      "spread": 0.0007
+    },
+    {
+      "factor": "volatility_contraction",
+      "horizon": 20,
+      "dates": 107,
+      "observations": 41967,
+      "mean_ic": 0.0027,
+      "ic_positive_pct": 48.6,
+      "top_quantile_return": 0.0152,
+      "bottom_quantile_return": 0.0133,
+      "spread": 0.002
+    },
+    {
+      "factor": "volatility_contraction",
+      "horizon": 60,
+      "dates": 105,
+      "observations": 41110,
+      "mean_ic": 0.0066,
+      "ic_positive_pct": 50.5,
+      "top_quantile_return": 0.0477,
+      "bottom_quantile_return": 0.0449,
       "spread": 0.0028
+    },
+    {
+      "factor": "relative_strength_6m",
+      "horizon": 5,
+      "dates": 108,
+      "observations": 42395,
+      "mean_ic": 0.0107,
+      "ic_positive_pct": 59.3,
+      "top_quantile_return": 0.008,
+      "bottom_quantile_return": 0.0081,
+      "spread": -0.0001
+    },
+    {
+      "factor": "relative_strength_6m",
+      "horizon": 10,
+      "dates": 108,
+      "observations": 42395,
+      "mean_ic": 0.0131,
+      "ic_positive_pct": 58.3,
+      "top_quantile_return": 0.0149,
+      "bottom_quantile_return": 0.0112,
+      "spread": 0.0037
+    },
+    {
+      "factor": "relative_strength_6m",
+      "horizon": 20,
+      "dates": 107,
+      "observations": 41967,
+      "mean_ic": 0.0098,
+      "ic_positive_pct": 56.1,
+      "top_quantile_return": 0.0208,
+      "bottom_quantile_return": 0.0161,
+      "spread": 0.0047
+    },
+    {
+      "factor": "relative_strength_6m",
+      "horizon": 60,
+      "dates": 105,
+      "observations": 41110,
+      "mean_ic": 0.032,
+      "ic_positive_pct": 61.9,
+      "top_quantile_return": 0.065,
+      "bottom_quantile_return": 0.0411,
+      "spread": 0.0239
     }
   ],
   "split_metrics": {
@@ -329,266 +667,574 @@
       {
         "factor": "momentum_12_1",
         "horizon": 5,
-        "dates": 36,
-        "observations": 4566,
-        "mean_ic": 0.066,
-        "ic_positive_pct": 75.0,
-        "top_quantile_return": 0.0083,
-        "bottom_quantile_return": 0.0012,
-        "spread": 0.0071
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.0069,
+        "ic_positive_pct": 58.4,
+        "top_quantile_return": 0.0095,
+        "bottom_quantile_return": 0.0095,
+        "spread": -0.0
       },
       {
         "factor": "momentum_12_1",
         "horizon": 10,
-        "dates": 36,
-        "observations": 4566,
-        "mean_ic": 0.0525,
-        "ic_positive_pct": 66.7,
-        "top_quantile_return": 0.0137,
-        "bottom_quantile_return": 0.0046,
-        "spread": 0.0091
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.0024,
+        "ic_positive_pct": 56.2,
+        "top_quantile_return": 0.0135,
+        "bottom_quantile_return": 0.0114,
+        "spread": 0.0021
       },
       {
         "factor": "momentum_12_1",
         "horizon": 20,
-        "dates": 36,
-        "observations": 4566,
-        "mean_ic": 0.0597,
-        "ic_positive_pct": 58.3,
-        "top_quantile_return": 0.0196,
-        "bottom_quantile_return": 0.0112,
-        "spread": 0.0083
-      },
-      {
-        "factor": "momentum_12_1",
-        "horizon": 60,
-        "dates": 36,
-        "observations": 4566,
-        "mean_ic": 0.0261,
-        "ic_positive_pct": 66.7,
-        "top_quantile_return": 0.0469,
-        "bottom_quantile_return": 0.0426,
-        "spread": 0.0043
-      },
-      {
-        "factor": "momentum_6_1",
-        "horizon": 5,
-        "dates": 36,
-        "observations": 4566,
-        "mean_ic": 0.0387,
-        "ic_positive_pct": 61.1,
-        "top_quantile_return": 0.0065,
-        "bottom_quantile_return": 0.0019,
-        "spread": 0.0046
-      },
-      {
-        "factor": "momentum_6_1",
-        "horizon": 10,
-        "dates": 36,
-        "observations": 4566,
-        "mean_ic": 0.0428,
-        "ic_positive_pct": 61.1,
-        "top_quantile_return": 0.0134,
-        "bottom_quantile_return": 0.0056,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.025,
+        "ic_positive_pct": 59.6,
+        "top_quantile_return": 0.0205,
+        "bottom_quantile_return": 0.0127,
         "spread": 0.0078
       },
       {
+        "factor": "momentum_12_1",
+        "horizon": 60,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.0299,
+        "ic_positive_pct": 61.8,
+        "top_quantile_return": 0.0554,
+        "bottom_quantile_return": 0.0381,
+        "spread": 0.0173
+      },
+      {
+        "factor": "momentum_6_1",
+        "horizon": 5,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.0118,
+        "ic_positive_pct": 60.7,
+        "top_quantile_return": 0.0089,
+        "bottom_quantile_return": 0.0092,
+        "spread": -0.0003
+      },
+      {
+        "factor": "momentum_6_1",
+        "horizon": 10,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.008,
+        "ic_positive_pct": 51.7,
+        "top_quantile_return": 0.0129,
+        "bottom_quantile_return": 0.0108,
+        "spread": 0.0021
+      },
+      {
         "factor": "momentum_6_1",
         "horizon": 20,
-        "dates": 36,
-        "observations": 4566,
-        "mean_ic": 0.0433,
-        "ic_positive_pct": 58.3,
-        "top_quantile_return": 0.0216,
-        "bottom_quantile_return": 0.0103,
-        "spread": 0.0113
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.0124,
+        "ic_positive_pct": 58.4,
+        "top_quantile_return": 0.0199,
+        "bottom_quantile_return": 0.0136,
+        "spread": 0.0062
       },
       {
         "factor": "momentum_6_1",
         "horizon": 60,
-        "dates": 36,
-        "observations": 4566,
-        "mean_ic": 0.0374,
-        "ic_positive_pct": 61.1,
-        "top_quantile_return": 0.0502,
-        "bottom_quantile_return": 0.0338,
-        "spread": 0.0164
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.0272,
+        "ic_positive_pct": 60.7,
+        "top_quantile_return": 0.0525,
+        "bottom_quantile_return": 0.0346,
+        "spread": 0.0179
       },
       {
         "factor": "momentum_3_1",
         "horizon": 5,
-        "dates": 36,
-        "observations": 4566,
-        "mean_ic": 0.0697,
-        "ic_positive_pct": 61.1,
-        "top_quantile_return": 0.0082,
-        "bottom_quantile_return": 0.0004,
-        "spread": 0.0077
-      },
-      {
-        "factor": "momentum_3_1",
-        "horizon": 10,
-        "dates": 36,
-        "observations": 4566,
-        "mean_ic": 0.0427,
-        "ic_positive_pct": 55.6,
-        "top_quantile_return": 0.013,
-        "bottom_quantile_return": 0.0058,
-        "spread": 0.0073
-      },
-      {
-        "factor": "momentum_3_1",
-        "horizon": 20,
-        "dates": 36,
-        "observations": 4566,
-        "mean_ic": 0.0056,
-        "ic_positive_pct": 52.8,
-        "top_quantile_return": 0.0146,
-        "bottom_quantile_return": 0.0164,
-        "spread": -0.0018
-      },
-      {
-        "factor": "momentum_3_1",
-        "horizon": 60,
-        "dates": 36,
-        "observations": 4566,
-        "mean_ic": 0.0069,
-        "ic_positive_pct": 44.4,
-        "top_quantile_return": 0.0446,
-        "bottom_quantile_return": 0.0412,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.0371,
+        "ic_positive_pct": 60.7,
+        "top_quantile_return": 0.0107,
+        "bottom_quantile_return": 0.0073,
         "spread": 0.0034
       },
       {
+        "factor": "momentum_3_1",
+        "horizon": 10,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.0212,
+        "ic_positive_pct": 56.2,
+        "top_quantile_return": 0.0143,
+        "bottom_quantile_return": 0.0096,
+        "spread": 0.0047
+      },
+      {
+        "factor": "momentum_3_1",
+        "horizon": 20,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": -0.0009,
+        "ic_positive_pct": 57.3,
+        "top_quantile_return": 0.0176,
+        "bottom_quantile_return": 0.0164,
+        "spread": 0.0012
+      },
+      {
+        "factor": "momentum_3_1",
+        "horizon": 60,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.0077,
+        "ic_positive_pct": 46.1,
+        "top_quantile_return": 0.0483,
+        "bottom_quantile_return": 0.0422,
+        "spread": 0.0062
+      },
+      {
         "factor": "trend_quality",
         "horizon": 5,
-        "dates": 36,
-        "observations": 4566,
-        "mean_ic": 0.0716,
-        "ic_positive_pct": 66.7,
-        "top_quantile_return": 0.0077,
-        "bottom_quantile_return": 0.0008,
-        "spread": 0.0069
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.0207,
+        "ic_positive_pct": 57.3,
+        "top_quantile_return": 0.0099,
+        "bottom_quantile_return": 0.0084,
+        "spread": 0.0015
       },
       {
         "factor": "trend_quality",
         "horizon": 10,
-        "dates": 36,
-        "observations": 4566,
-        "mean_ic": 0.0533,
-        "ic_positive_pct": 69.4,
-        "top_quantile_return": 0.0121,
-        "bottom_quantile_return": 0.0056,
-        "spread": 0.0065
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.0129,
+        "ic_positive_pct": 57.3,
+        "top_quantile_return": 0.0136,
+        "bottom_quantile_return": 0.0105,
+        "spread": 0.0031
       },
       {
         "factor": "trend_quality",
         "horizon": 20,
-        "dates": 36,
-        "observations": 4566,
-        "mean_ic": 0.0425,
-        "ic_positive_pct": 66.7,
-        "top_quantile_return": 0.0157,
-        "bottom_quantile_return": 0.0129,
-        "spread": 0.0027
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.0158,
+        "ic_positive_pct": 60.7,
+        "top_quantile_return": 0.0191,
+        "bottom_quantile_return": 0.014,
+        "spread": 0.0051
       },
       {
         "factor": "trend_quality",
         "horizon": 60,
-        "dates": 36,
-        "observations": 4566,
-        "mean_ic": 0.0291,
-        "ic_positive_pct": 63.9,
-        "top_quantile_return": 0.0438,
-        "bottom_quantile_return": 0.0361,
-        "spread": 0.0077
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.0269,
+        "ic_positive_pct": 56.2,
+        "top_quantile_return": 0.0522,
+        "bottom_quantile_return": 0.0367,
+        "spread": 0.0155
       },
       {
         "factor": "low_volatility",
         "horizon": 5,
-        "dates": 36,
-        "observations": 4566,
-        "mean_ic": -0.0655,
-        "ic_positive_pct": 33.3,
-        "top_quantile_return": 0.0006,
-        "bottom_quantile_return": 0.0068,
-        "spread": -0.0062
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": -0.0499,
+        "ic_positive_pct": 39.3,
+        "top_quantile_return": 0.0048,
+        "bottom_quantile_return": 0.0123,
+        "spread": -0.0075
       },
       {
         "factor": "low_volatility",
         "horizon": 10,
-        "dates": 36,
-        "observations": 4566,
-        "mean_ic": -0.0673,
-        "ic_positive_pct": 41.7,
-        "top_quantile_return": 0.0001,
-        "bottom_quantile_return": 0.0141,
-        "spread": -0.0139
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": -0.051,
+        "ic_positive_pct": 43.8,
+        "top_quantile_return": 0.0057,
+        "bottom_quantile_return": 0.0166,
+        "spread": -0.0109
       },
       {
         "factor": "low_volatility",
         "horizon": 20,
-        "dates": 36,
-        "observations": 4566,
-        "mean_ic": -0.0322,
-        "ic_positive_pct": 41.7,
-        "top_quantile_return": 0.0046,
-        "bottom_quantile_return": 0.0214,
-        "spread": -0.0168
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": -0.0324,
+        "ic_positive_pct": 46.1,
+        "top_quantile_return": 0.0088,
+        "bottom_quantile_return": 0.0236,
+        "spread": -0.0148
       },
       {
         "factor": "low_volatility",
         "horizon": 60,
-        "dates": 36,
-        "observations": 4566,
-        "mean_ic": -0.0818,
-        "ic_positive_pct": 38.9,
-        "top_quantile_return": 0.0184,
-        "bottom_quantile_return": 0.0612,
-        "spread": -0.0428
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": -0.0564,
+        "ic_positive_pct": 41.6,
+        "top_quantile_return": 0.026,
+        "bottom_quantile_return": 0.067,
+        "spread": -0.041
       },
       {
         "factor": "liquidity",
         "horizon": 5,
-        "dates": 36,
-        "observations": 4566,
-        "mean_ic": 0.0097,
-        "ic_positive_pct": 44.4,
-        "top_quantile_return": 0.0048,
-        "bottom_quantile_return": 0.0036,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": -0.0112,
+        "ic_positive_pct": 43.8,
+        "top_quantile_return": 0.0072,
+        "bottom_quantile_return": 0.0094,
+        "spread": -0.0021
+      },
+      {
+        "factor": "liquidity",
+        "horizon": 10,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": -0.0129,
+        "ic_positive_pct": 40.4,
+        "top_quantile_return": 0.0102,
+        "bottom_quantile_return": 0.0126,
+        "spread": -0.0024
+      },
+      {
+        "factor": "liquidity",
+        "horizon": 20,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": -0.0217,
+        "ic_positive_pct": 37.1,
+        "top_quantile_return": 0.0129,
+        "bottom_quantile_return": 0.0179,
+        "spread": -0.0049
+      },
+      {
+        "factor": "liquidity",
+        "horizon": 60,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": -0.0351,
+        "ic_positive_pct": 38.2,
+        "top_quantile_return": 0.0337,
+        "bottom_quantile_return": 0.0515,
+        "spread": -0.0178
+      },
+      {
+        "factor": "rsi_14",
+        "horizon": 5,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.0308,
+        "ic_positive_pct": 55.1,
+        "top_quantile_return": 0.0101,
+        "bottom_quantile_return": 0.0056,
+        "spread": 0.0045
+      },
+      {
+        "factor": "rsi_14",
+        "horizon": 10,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.0063,
+        "ic_positive_pct": 53.9,
+        "top_quantile_return": 0.0117,
+        "bottom_quantile_return": 0.0094,
+        "spread": 0.0022
+      },
+      {
+        "factor": "rsi_14",
+        "horizon": 20,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": -0.0078,
+        "ic_positive_pct": 46.1,
+        "top_quantile_return": 0.0136,
+        "bottom_quantile_return": 0.0153,
+        "spread": -0.0017
+      },
+      {
+        "factor": "rsi_14",
+        "horizon": 60,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": -0.0086,
+        "ic_positive_pct": 47.2,
+        "top_quantile_return": 0.0376,
+        "bottom_quantile_return": 0.0416,
+        "spread": -0.004
+      },
+      {
+        "factor": "macd_strength",
+        "horizon": 5,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.0101,
+        "ic_positive_pct": 52.8,
+        "top_quantile_return": 0.0087,
+        "bottom_quantile_return": 0.0066,
+        "spread": 0.0021
+      },
+      {
+        "factor": "macd_strength",
+        "horizon": 10,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.0076,
+        "ic_positive_pct": 57.3,
+        "top_quantile_return": 0.0105,
+        "bottom_quantile_return": 0.0099,
+        "spread": 0.0006
+      },
+      {
+        "factor": "macd_strength",
+        "horizon": 20,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.015,
+        "ic_positive_pct": 57.3,
+        "top_quantile_return": 0.0154,
+        "bottom_quantile_return": 0.0141,
         "spread": 0.0013
       },
       {
-        "factor": "liquidity",
-        "horizon": 10,
-        "dates": 36,
-        "observations": 4566,
-        "mean_ic": 0.0128,
-        "ic_positive_pct": 44.4,
-        "top_quantile_return": 0.0108,
-        "bottom_quantile_return": 0.0065,
-        "spread": 0.0043
-      },
-      {
-        "factor": "liquidity",
-        "horizon": 20,
-        "dates": 36,
-        "observations": 4566,
-        "mean_ic": -0.01,
-        "ic_positive_pct": 47.2,
-        "top_quantile_return": 0.0136,
-        "bottom_quantile_return": 0.0112,
-        "spread": 0.0024
-      },
-      {
-        "factor": "liquidity",
+        "factor": "macd_strength",
         "horizon": 60,
-        "dates": 36,
-        "observations": 4566,
-        "mean_ic": -0.023,
-        "ic_positive_pct": 50.0,
-        "top_quantile_return": 0.0397,
-        "bottom_quantile_return": 0.0394,
-        "spread": 0.0003
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": -0.001,
+        "ic_positive_pct": 51.7,
+        "top_quantile_return": 0.0371,
+        "bottom_quantile_return": 0.039,
+        "spread": -0.0019
+      },
+      {
+        "factor": "adx_14",
+        "horizon": 5,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": -0.0064,
+        "ic_positive_pct": 48.3,
+        "top_quantile_return": 0.0071,
+        "bottom_quantile_return": 0.0089,
+        "spread": -0.0018
+      },
+      {
+        "factor": "adx_14",
+        "horizon": 10,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": -0.0185,
+        "ic_positive_pct": 41.6,
+        "top_quantile_return": 0.0088,
+        "bottom_quantile_return": 0.0121,
+        "spread": -0.0033
+      },
+      {
+        "factor": "adx_14",
+        "horizon": 20,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": -0.0076,
+        "ic_positive_pct": 48.3,
+        "top_quantile_return": 0.0128,
+        "bottom_quantile_return": 0.0152,
+        "spread": -0.0023
+      },
+      {
+        "factor": "adx_14",
+        "horizon": 60,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": -0.0144,
+        "ic_positive_pct": 43.8,
+        "top_quantile_return": 0.0357,
+        "bottom_quantile_return": 0.0416,
+        "spread": -0.0059
+      },
+      {
+        "factor": "volume_expansion",
+        "horizon": 5,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": -0.0031,
+        "ic_positive_pct": 44.9,
+        "top_quantile_return": 0.008,
+        "bottom_quantile_return": 0.008,
+        "spread": -0.0
+      },
+      {
+        "factor": "volume_expansion",
+        "horizon": 10,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": -0.0063,
+        "ic_positive_pct": 42.7,
+        "top_quantile_return": 0.0106,
+        "bottom_quantile_return": 0.0114,
+        "spread": -0.0008
+      },
+      {
+        "factor": "volume_expansion",
+        "horizon": 20,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.0005,
+        "ic_positive_pct": 47.2,
+        "top_quantile_return": 0.0147,
+        "bottom_quantile_return": 0.0161,
+        "spread": -0.0014
+      },
+      {
+        "factor": "volume_expansion",
+        "horizon": 60,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": -0.0079,
+        "ic_positive_pct": 52.8,
+        "top_quantile_return": 0.0387,
+        "bottom_quantile_return": 0.0478,
+        "spread": -0.009
+      },
+      {
+        "factor": "breakout_252",
+        "horizon": 5,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": -0.0021,
+        "ic_positive_pct": 53.9,
+        "top_quantile_return": 0.0079,
+        "bottom_quantile_return": 0.0096,
+        "spread": -0.0017
+      },
+      {
+        "factor": "breakout_252",
+        "horizon": 10,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": -0.0106,
+        "ic_positive_pct": 46.1,
+        "top_quantile_return": 0.0094,
+        "bottom_quantile_return": 0.013,
+        "spread": -0.0036
+      },
+      {
+        "factor": "breakout_252",
+        "horizon": 20,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": -0.0029,
+        "ic_positive_pct": 57.3,
+        "top_quantile_return": 0.0121,
+        "bottom_quantile_return": 0.018,
+        "spread": -0.006
+      },
+      {
+        "factor": "breakout_252",
+        "horizon": 60,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": -0.006,
+        "ic_positive_pct": 52.8,
+        "top_quantile_return": 0.0347,
+        "bottom_quantile_return": 0.0471,
+        "spread": -0.0124
+      },
+      {
+        "factor": "volatility_contraction",
+        "horizon": 5,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.023,
+        "ic_positive_pct": 57.3,
+        "top_quantile_return": 0.0084,
+        "bottom_quantile_return": 0.0057,
+        "spread": 0.0027
+      },
+      {
+        "factor": "volatility_contraction",
+        "horizon": 10,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.0038,
+        "ic_positive_pct": 50.6,
+        "top_quantile_return": 0.0097,
+        "bottom_quantile_return": 0.0081,
+        "spread": 0.0016
+      },
+      {
+        "factor": "volatility_contraction",
+        "horizon": 20,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.0046,
+        "ic_positive_pct": 48.3,
+        "top_quantile_return": 0.0143,
+        "bottom_quantile_return": 0.0122,
+        "spread": 0.0021
+      },
+      {
+        "factor": "volatility_contraction",
+        "horizon": 60,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.0143,
+        "ic_positive_pct": 52.8,
+        "top_quantile_return": 0.0436,
+        "bottom_quantile_return": 0.0358,
+        "spread": 0.0078
+      },
+      {
+        "factor": "relative_strength_6m",
+        "horizon": 5,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.0252,
+        "ic_positive_pct": 61.8,
+        "top_quantile_return": 0.0104,
+        "bottom_quantile_return": 0.0083,
+        "spread": 0.0021
+      },
+      {
+        "factor": "relative_strength_6m",
+        "horizon": 10,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.0195,
+        "ic_positive_pct": 62.9,
+        "top_quantile_return": 0.0146,
+        "bottom_quantile_return": 0.01,
+        "spread": 0.0045
+      },
+      {
+        "factor": "relative_strength_6m",
+        "horizon": 20,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.0157,
+        "ic_positive_pct": 57.3,
+        "top_quantile_return": 0.0203,
+        "bottom_quantile_return": 0.0142,
+        "spread": 0.0061
+      },
+      {
+        "factor": "relative_strength_6m",
+        "horizon": 60,
+        "dates": 89,
+        "observations": 34370,
+        "mean_ic": 0.0284,
+        "ic_positive_pct": 60.7,
+        "top_quantile_return": 0.0549,
+        "bottom_quantile_return": 0.0364,
+        "spread": 0.0184
       }
     ],
     "validation": [
@@ -596,265 +1242,573 @@
         "factor": "momentum_12_1",
         "horizon": 5,
         "dates": 12,
-        "observations": 1568,
-        "mean_ic": -0.0743,
+        "observations": 5033,
+        "mean_ic": -0.06,
         "ic_positive_pct": 50.0,
-        "top_quantile_return": -0.0089,
-        "bottom_quantile_return": -0.001,
-        "spread": -0.0079
+        "top_quantile_return": -0.0035,
+        "bottom_quantile_return": 0.0018,
+        "spread": -0.0053
       },
       {
         "factor": "momentum_12_1",
         "horizon": 10,
         "dates": 12,
-        "observations": 1568,
-        "mean_ic": -0.0877,
-        "ic_positive_pct": 41.7,
-        "top_quantile_return": 0.0055,
-        "bottom_quantile_return": 0.0191,
-        "spread": -0.0136
+        "observations": 5033,
+        "mean_ic": -0.061,
+        "ic_positive_pct": 25.0,
+        "top_quantile_return": 0.0128,
+        "bottom_quantile_return": 0.0168,
+        "spread": -0.004
       },
       {
         "factor": "momentum_12_1",
         "horizon": 20,
         "dates": 12,
-        "observations": 1568,
-        "mean_ic": -0.0225,
+        "observations": 5033,
+        "mean_ic": -0.0129,
         "ic_positive_pct": 33.3,
-        "top_quantile_return": 0.0227,
-        "bottom_quantile_return": 0.0308,
-        "spread": -0.0081
+        "top_quantile_return": 0.0291,
+        "bottom_quantile_return": 0.0239,
+        "spread": 0.0052
       },
       {
         "factor": "momentum_12_1",
         "horizon": 60,
         "dates": 12,
-        "observations": 1568,
-        "mean_ic": 0.0268,
-        "ic_positive_pct": 58.3,
-        "top_quantile_return": 0.0914,
-        "bottom_quantile_return": 0.0874,
-        "spread": 0.0041
-      },
-      {
-        "factor": "momentum_6_1",
-        "horizon": 5,
-        "dates": 12,
-        "observations": 1568,
-        "mean_ic": -0.0562,
-        "ic_positive_pct": 41.7,
-        "top_quantile_return": -0.0031,
-        "bottom_quantile_return": -0.0017,
-        "spread": -0.0014
-      },
-      {
-        "factor": "momentum_6_1",
-        "horizon": 10,
-        "dates": 12,
-        "observations": 1568,
-        "mean_ic": -0.0523,
-        "ic_positive_pct": 33.3,
-        "top_quantile_return": 0.0118,
-        "bottom_quantile_return": 0.0135,
-        "spread": -0.0018
-      },
-      {
-        "factor": "momentum_6_1",
-        "horizon": 20,
-        "dates": 12,
-        "observations": 1568,
-        "mean_ic": -0.0116,
-        "ic_positive_pct": 41.7,
-        "top_quantile_return": 0.0316,
-        "bottom_quantile_return": 0.0262,
-        "spread": 0.0054
-      },
-      {
-        "factor": "momentum_6_1",
-        "horizon": 60,
-        "dates": 12,
-        "observations": 1568,
-        "mean_ic": 0.062,
-        "ic_positive_pct": 66.7,
-        "top_quantile_return": 0.119,
-        "bottom_quantile_return": 0.0632,
-        "spread": 0.0558
-      },
-      {
-        "factor": "momentum_3_1",
-        "horizon": 5,
-        "dates": 12,
-        "observations": 1568,
-        "mean_ic": -0.0221,
-        "ic_positive_pct": 50.0,
-        "top_quantile_return": -0.002,
-        "bottom_quantile_return": -0.0016,
-        "spread": -0.0004
-      },
-      {
-        "factor": "momentum_3_1",
-        "horizon": 10,
-        "dates": 12,
-        "observations": 1568,
-        "mean_ic": -0.0423,
-        "ic_positive_pct": 33.3,
-        "top_quantile_return": 0.0077,
-        "bottom_quantile_return": 0.014,
-        "spread": -0.0063
-      },
-      {
-        "factor": "momentum_3_1",
-        "horizon": 20,
-        "dates": 12,
-        "observations": 1568,
-        "mean_ic": -0.0044,
-        "ic_positive_pct": 41.7,
-        "top_quantile_return": 0.0271,
-        "bottom_quantile_return": 0.0271,
-        "spread": -0.0
-      },
-      {
-        "factor": "momentum_3_1",
-        "horizon": 60,
-        "dates": 12,
-        "observations": 1568,
-        "mean_ic": 0.0649,
+        "observations": 5033,
+        "mean_ic": 0.0518,
         "ic_positive_pct": 75.0,
-        "top_quantile_return": 0.1143,
-        "bottom_quantile_return": 0.0717,
-        "spread": 0.0426
+        "top_quantile_return": 0.1193,
+        "bottom_quantile_return": 0.064,
+        "spread": 0.0553
+      },
+      {
+        "factor": "momentum_6_1",
+        "horizon": 5,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.071,
+        "ic_positive_pct": 41.7,
+        "top_quantile_return": -0.0042,
+        "bottom_quantile_return": 0.0019,
+        "spread": -0.0061
+      },
+      {
+        "factor": "momentum_6_1",
+        "horizon": 10,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.0631,
+        "ic_positive_pct": 41.7,
+        "top_quantile_return": 0.0076,
+        "bottom_quantile_return": 0.0141,
+        "spread": -0.0065
+      },
+      {
+        "factor": "momentum_6_1",
+        "horizon": 20,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.0426,
+        "ic_positive_pct": 41.7,
+        "top_quantile_return": 0.0204,
+        "bottom_quantile_return": 0.023,
+        "spread": -0.0025
+      },
+      {
+        "factor": "momentum_6_1",
+        "horizon": 60,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": 0.0338,
+        "ic_positive_pct": 66.7,
+        "top_quantile_return": 0.0967,
+        "bottom_quantile_return": 0.0641,
+        "spread": 0.0326
+      },
+      {
+        "factor": "momentum_3_1",
+        "horizon": 5,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.0215,
+        "ic_positive_pct": 33.3,
+        "top_quantile_return": -0.0017,
+        "bottom_quantile_return": -0.0015,
+        "spread": -0.0002
+      },
+      {
+        "factor": "momentum_3_1",
+        "horizon": 10,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.0423,
+        "ic_positive_pct": 41.7,
+        "top_quantile_return": 0.0059,
+        "bottom_quantile_return": 0.0149,
+        "spread": -0.0089
+      },
+      {
+        "factor": "momentum_3_1",
+        "horizon": 20,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.0236,
+        "ic_positive_pct": 66.7,
+        "top_quantile_return": 0.0232,
+        "bottom_quantile_return": 0.0248,
+        "spread": -0.0016
+      },
+      {
+        "factor": "momentum_3_1",
+        "horizon": 60,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": 0.0108,
+        "ic_positive_pct": 66.7,
+        "top_quantile_return": 0.1034,
+        "bottom_quantile_return": 0.074,
+        "spread": 0.0293
       },
       {
         "factor": "trend_quality",
         "horizon": 5,
         "dates": 12,
-        "observations": 1568,
-        "mean_ic": -0.0198,
+        "observations": 5033,
+        "mean_ic": -0.0175,
         "ic_positive_pct": 50.0,
-        "top_quantile_return": 0.0006,
-        "bottom_quantile_return": -0.0012,
-        "spread": 0.0018
+        "top_quantile_return": 0.0001,
+        "bottom_quantile_return": -0.0005,
+        "spread": 0.0006
       },
       {
         "factor": "trend_quality",
         "horizon": 10,
         "dates": 12,
-        "observations": 1568,
-        "mean_ic": -0.0493,
-        "ic_positive_pct": 50.0,
-        "top_quantile_return": 0.0141,
-        "bottom_quantile_return": 0.016,
-        "spread": -0.0019
+        "observations": 5033,
+        "mean_ic": -0.0415,
+        "ic_positive_pct": 33.3,
+        "top_quantile_return": 0.0129,
+        "bottom_quantile_return": 0.0145,
+        "spread": -0.0015
       },
       {
         "factor": "trend_quality",
         "horizon": 20,
         "dates": 12,
-        "observations": 1568,
-        "mean_ic": 0.0193,
+        "observations": 5033,
+        "mean_ic": -0.0007,
+        "ic_positive_pct": 50.0,
+        "top_quantile_return": 0.0293,
+        "bottom_quantile_return": 0.0212,
+        "spread": 0.0081
+      },
+      {
+        "factor": "trend_quality",
+        "horizon": 60,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": 0.0416,
+        "ic_positive_pct": 66.7,
+        "top_quantile_return": 0.1094,
+        "bottom_quantile_return": 0.0628,
+        "spread": 0.0466
+      },
+      {
+        "factor": "low_volatility",
+        "horizon": 5,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.1051,
+        "ic_positive_pct": 41.7,
+        "top_quantile_return": -0.0078,
+        "bottom_quantile_return": 0.0051,
+        "spread": -0.013
+      },
+      {
+        "factor": "low_volatility",
+        "horizon": 10,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.1379,
+        "ic_positive_pct": 33.3,
+        "top_quantile_return": -0.0047,
+        "bottom_quantile_return": 0.0296,
+        "spread": -0.0343
+      },
+      {
+        "factor": "low_volatility",
+        "horizon": 20,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.1424,
+        "ic_positive_pct": 25.0,
+        "top_quantile_return": 0.0068,
+        "bottom_quantile_return": 0.0466,
+        "spread": -0.0398
+      },
+      {
+        "factor": "low_volatility",
+        "horizon": 60,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.2015,
+        "ic_positive_pct": 25.0,
+        "top_quantile_return": 0.0207,
+        "bottom_quantile_return": 0.1688,
+        "spread": -0.1481
+      },
+      {
+        "factor": "liquidity",
+        "horizon": 5,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.0457,
+        "ic_positive_pct": 33.3,
+        "top_quantile_return": -0.0038,
+        "bottom_quantile_return": 0.0019,
+        "spread": -0.0057
+      },
+      {
+        "factor": "liquidity",
+        "horizon": 10,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.0581,
+        "ic_positive_pct": 33.3,
+        "top_quantile_return": 0.0083,
+        "bottom_quantile_return": 0.0183,
+        "spread": -0.01
+      },
+      {
+        "factor": "liquidity",
+        "horizon": 20,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.0743,
+        "ic_positive_pct": 16.7,
+        "top_quantile_return": 0.0197,
+        "bottom_quantile_return": 0.0359,
+        "spread": -0.0162
+      },
+      {
+        "factor": "liquidity",
+        "horizon": 60,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.112,
+        "ic_positive_pct": 8.3,
+        "top_quantile_return": 0.0641,
+        "bottom_quantile_return": 0.1084,
+        "spread": -0.0443
+      },
+      {
+        "factor": "rsi_14",
+        "horizon": 5,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": 0.0499,
         "ic_positive_pct": 58.3,
-        "top_quantile_return": 0.0349,
-        "bottom_quantile_return": 0.025,
+        "top_quantile_return": 0.0012,
+        "bottom_quantile_return": -0.005,
+        "spread": 0.0062
+      },
+      {
+        "factor": "rsi_14",
+        "horizon": 10,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": 0.0009,
+        "ic_positive_pct": 58.3,
+        "top_quantile_return": 0.0091,
+        "bottom_quantile_return": 0.0098,
+        "spread": -0.0007
+      },
+      {
+        "factor": "rsi_14",
+        "horizon": 20,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": 0.0228,
+        "ic_positive_pct": 58.3,
+        "top_quantile_return": 0.0265,
+        "bottom_quantile_return": 0.0166,
         "spread": 0.0099
       },
       {
-        "factor": "trend_quality",
+        "factor": "rsi_14",
         "horizon": 60,
         "dates": 12,
-        "observations": 1568,
-        "mean_ic": 0.0615,
-        "ic_positive_pct": 66.7,
-        "top_quantile_return": 0.1228,
-        "bottom_quantile_return": 0.0724,
-        "spread": 0.0505
-      },
-      {
-        "factor": "low_volatility",
-        "horizon": 5,
-        "dates": 12,
-        "observations": 1568,
-        "mean_ic": -0.0994,
-        "ic_positive_pct": 33.3,
-        "top_quantile_return": -0.0082,
-        "bottom_quantile_return": 0.0003,
-        "spread": -0.0085
-      },
-      {
-        "factor": "low_volatility",
-        "horizon": 10,
-        "dates": 12,
-        "observations": 1568,
-        "mean_ic": -0.1439,
-        "ic_positive_pct": 16.7,
-        "top_quantile_return": -0.0043,
-        "bottom_quantile_return": 0.0284,
-        "spread": -0.0327
-      },
-      {
-        "factor": "low_volatility",
-        "horizon": 20,
-        "dates": 12,
-        "observations": 1568,
-        "mean_ic": -0.14,
-        "ic_positive_pct": 33.3,
-        "top_quantile_return": 0.0091,
-        "bottom_quantile_return": 0.0486,
-        "spread": -0.0395
-      },
-      {
-        "factor": "low_volatility",
-        "horizon": 60,
-        "dates": 12,
-        "observations": 1568,
-        "mean_ic": -0.2013,
-        "ic_positive_pct": 33.3,
-        "top_quantile_return": 0.0337,
-        "bottom_quantile_return": 0.1628,
-        "spread": -0.1291
-      },
-      {
-        "factor": "liquidity",
-        "horizon": 5,
-        "dates": 12,
-        "observations": 1568,
-        "mean_ic": -0.0264,
+        "observations": 5033,
+        "mean_ic": -0.0026,
         "ic_positive_pct": 58.3,
-        "top_quantile_return": -0.003,
-        "bottom_quantile_return": -0.0015,
-        "spread": -0.0014
+        "top_quantile_return": 0.075,
+        "bottom_quantile_return": 0.0624,
+        "spread": 0.0126
       },
       {
-        "factor": "liquidity",
+        "factor": "macd_strength",
+        "horizon": 5,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": 0.0132,
+        "ic_positive_pct": 41.7,
+        "top_quantile_return": -0.0004,
+        "bottom_quantile_return": -0.0037,
+        "spread": 0.0034
+      },
+      {
+        "factor": "macd_strength",
         "horizon": 10,
         "dates": 12,
-        "observations": 1568,
-        "mean_ic": -0.0353,
-        "ic_positive_pct": 50.0,
-        "top_quantile_return": 0.0171,
-        "bottom_quantile_return": 0.016,
-        "spread": 0.001
+        "observations": 5033,
+        "mean_ic": 0.0535,
+        "ic_positive_pct": 58.3,
+        "top_quantile_return": 0.0129,
+        "bottom_quantile_return": 0.0001,
+        "spread": 0.0128
       },
       {
-        "factor": "liquidity",
+        "factor": "macd_strength",
         "horizon": 20,
         "dates": 12,
-        "observations": 1568,
-        "mean_ic": -0.0766,
-        "ic_positive_pct": 33.3,
-        "top_quantile_return": 0.0243,
-        "bottom_quantile_return": 0.0395,
-        "spread": -0.0152
+        "observations": 5033,
+        "mean_ic": 0.0546,
+        "ic_positive_pct": 41.7,
+        "top_quantile_return": 0.0254,
+        "bottom_quantile_return": 0.0098,
+        "spread": 0.0156
       },
       {
-        "factor": "liquidity",
+        "factor": "macd_strength",
         "horizon": 60,
         "dates": 12,
-        "observations": 1568,
-        "mean_ic": -0.0892,
+        "observations": 5033,
+        "mean_ic": 0.0371,
         "ic_positive_pct": 41.7,
-        "top_quantile_return": 0.0828,
-        "bottom_quantile_return": 0.1146,
-        "spread": -0.0318
+        "top_quantile_return": 0.0709,
+        "bottom_quantile_return": 0.0488,
+        "spread": 0.0221
+      },
+      {
+        "factor": "adx_14",
+        "horizon": 5,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.0174,
+        "ic_positive_pct": 41.7,
+        "top_quantile_return": -0.0052,
+        "bottom_quantile_return": -0.0018,
+        "spread": -0.0035
+      },
+      {
+        "factor": "adx_14",
+        "horizon": 10,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.0281,
+        "ic_positive_pct": 41.7,
+        "top_quantile_return": 0.0022,
+        "bottom_quantile_return": 0.0088,
+        "spread": -0.0067
+      },
+      {
+        "factor": "adx_14",
+        "horizon": 20,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.0181,
+        "ic_positive_pct": 50.0,
+        "top_quantile_return": 0.0168,
+        "bottom_quantile_return": 0.0189,
+        "spread": -0.0021
+      },
+      {
+        "factor": "adx_14",
+        "horizon": 60,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": 0.0167,
+        "ic_positive_pct": 66.7,
+        "top_quantile_return": 0.0633,
+        "bottom_quantile_return": 0.0563,
+        "spread": 0.007
+      },
+      {
+        "factor": "volume_expansion",
+        "horizon": 5,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.0102,
+        "ic_positive_pct": 41.7,
+        "top_quantile_return": -0.0001,
+        "bottom_quantile_return": -0.0011,
+        "spread": 0.0011
+      },
+      {
+        "factor": "volume_expansion",
+        "horizon": 10,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.0093,
+        "ic_positive_pct": 50.0,
+        "top_quantile_return": 0.0115,
+        "bottom_quantile_return": 0.0115,
+        "spread": -0.0001
+      },
+      {
+        "factor": "volume_expansion",
+        "horizon": 20,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.0277,
+        "ic_positive_pct": 41.7,
+        "top_quantile_return": 0.0239,
+        "bottom_quantile_return": 0.0282,
+        "spread": -0.0042
+      },
+      {
+        "factor": "volume_expansion",
+        "horizon": 60,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.0486,
+        "ic_positive_pct": 33.3,
+        "top_quantile_return": 0.0683,
+        "bottom_quantile_return": 0.0933,
+        "spread": -0.025
+      },
+      {
+        "factor": "breakout_252",
+        "horizon": 5,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.0341,
+        "ic_positive_pct": 58.3,
+        "top_quantile_return": -0.0038,
+        "bottom_quantile_return": -0.0007,
+        "spread": -0.0031
+      },
+      {
+        "factor": "breakout_252",
+        "horizon": 10,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.0803,
+        "ic_positive_pct": 33.3,
+        "top_quantile_return": -0.0009,
+        "bottom_quantile_return": 0.0173,
+        "spread": -0.0182
+      },
+      {
+        "factor": "breakout_252",
+        "horizon": 20,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.0441,
+        "ic_positive_pct": 41.7,
+        "top_quantile_return": 0.0128,
+        "bottom_quantile_return": 0.0288,
+        "spread": -0.0159
+      },
+      {
+        "factor": "breakout_252",
+        "horizon": 60,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.0577,
+        "ic_positive_pct": 50.0,
+        "top_quantile_return": 0.0456,
+        "bottom_quantile_return": 0.0972,
+        "spread": -0.0516
+      },
+      {
+        "factor": "volatility_contraction",
+        "horizon": 5,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.002,
+        "ic_positive_pct": 41.7,
+        "top_quantile_return": -0.0052,
+        "bottom_quantile_return": -0.0019,
+        "spread": -0.0032
+      },
+      {
+        "factor": "volatility_contraction",
+        "horizon": 10,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.027,
+        "ic_positive_pct": 41.7,
+        "top_quantile_return": 0.0029,
+        "bottom_quantile_return": 0.0117,
+        "spread": -0.0087
+      },
+      {
+        "factor": "volatility_contraction",
+        "horizon": 20,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.0301,
+        "ic_positive_pct": 33.3,
+        "top_quantile_return": 0.0159,
+        "bottom_quantile_return": 0.0245,
+        "spread": -0.0086
+      },
+      {
+        "factor": "volatility_contraction",
+        "horizon": 60,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.0498,
+        "ic_positive_pct": 33.3,
+        "top_quantile_return": 0.059,
+        "bottom_quantile_return": 0.0889,
+        "spread": -0.03
+      },
+      {
+        "factor": "relative_strength_6m",
+        "horizon": 5,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.0208,
+        "ic_positive_pct": 58.3,
+        "top_quantile_return": -0.0011,
+        "bottom_quantile_return": -0.0003,
+        "spread": -0.0008
+      },
+      {
+        "factor": "relative_strength_6m",
+        "horizon": 10,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.0311,
+        "ic_positive_pct": 33.3,
+        "top_quantile_return": 0.0129,
+        "bottom_quantile_return": 0.0124,
+        "spread": 0.0005
+      },
+      {
+        "factor": "relative_strength_6m",
+        "horizon": 20,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": -0.0108,
+        "ic_positive_pct": 41.7,
+        "top_quantile_return": 0.0273,
+        "bottom_quantile_return": 0.0228,
+        "spread": 0.0046
+      },
+      {
+        "factor": "relative_strength_6m",
+        "horizon": 60,
+        "dates": 12,
+        "observations": 5033,
+        "mean_ic": 0.0459,
+        "ic_positive_pct": 66.7,
+        "top_quantile_return": 0.1089,
+        "bottom_quantile_return": 0.0652,
+        "spread": 0.0436
       }
     ],
     "forward_test": [
@@ -862,265 +1816,573 @@
         "factor": "momentum_12_1",
         "horizon": 5,
         "dates": 7,
-        "observations": 923,
-        "mean_ic": -0.0373,
+        "observations": 2992,
+        "mean_ic": -0.0351,
         "ic_positive_pct": 42.9,
-        "top_quantile_return": 0.0072,
-        "bottom_quantile_return": 0.0186,
-        "spread": -0.0115
+        "top_quantile_return": 0.006,
+        "bottom_quantile_return": 0.0128,
+        "spread": -0.0068
       },
       {
         "factor": "momentum_12_1",
         "horizon": 10,
         "dates": 7,
-        "observations": 923,
-        "mean_ic": 0.0959,
-        "ic_positive_pct": 57.1,
-        "top_quantile_return": 0.0443,
-        "bottom_quantile_return": 0.0174,
-        "spread": 0.0269
-      },
-      {
-        "factor": "momentum_12_1",
-        "horizon": 20,
-        "dates": 6,
-        "observations": 791,
-        "mean_ic": 0.038,
-        "ic_positive_pct": 66.7,
-        "top_quantile_return": 0.0482,
-        "bottom_quantile_return": 0.0219,
-        "spread": 0.0263
-      },
-      {
-        "factor": "momentum_12_1",
-        "horizon": 60,
-        "dates": 4,
-        "observations": 527,
-        "mean_ic": 0.2515,
-        "ic_positive_pct": 75.0,
-        "top_quantile_return": 0.3175,
-        "bottom_quantile_return": 0.0895,
-        "spread": 0.228
-      },
-      {
-        "factor": "momentum_6_1",
-        "horizon": 5,
-        "dates": 7,
-        "observations": 923,
-        "mean_ic": -0.094,
-        "ic_positive_pct": 28.6,
-        "top_quantile_return": -0.0045,
-        "bottom_quantile_return": 0.0208,
-        "spread": -0.0253
-      },
-      {
-        "factor": "momentum_6_1",
-        "horizon": 10,
-        "dates": 7,
-        "observations": 923,
-        "mean_ic": 0.0348,
+        "observations": 2992,
+        "mean_ic": 0.0719,
         "ic_positive_pct": 71.4,
-        "top_quantile_return": 0.0279,
-        "bottom_quantile_return": 0.0219,
-        "spread": 0.006
+        "top_quantile_return": 0.0357,
+        "bottom_quantile_return": 0.0124,
+        "spread": 0.0233
+      },
+      {
+        "factor": "momentum_12_1",
+        "horizon": 20,
+        "dates": 6,
+        "observations": 2564,
+        "mean_ic": 0.0055,
+        "ic_positive_pct": 66.7,
+        "top_quantile_return": 0.0239,
+        "bottom_quantile_return": 0.0158,
+        "spread": 0.0081
+      },
+      {
+        "factor": "momentum_12_1",
+        "horizon": 60,
+        "dates": 4,
+        "observations": 1707,
+        "mean_ic": 0.1427,
+        "ic_positive_pct": 75.0,
+        "top_quantile_return": 0.195,
+        "bottom_quantile_return": 0.0416,
+        "spread": 0.1534
+      },
+      {
+        "factor": "momentum_6_1",
+        "horizon": 5,
+        "dates": 7,
+        "observations": 2992,
+        "mean_ic": -0.0842,
+        "ic_positive_pct": 42.9,
+        "top_quantile_return": -0.0007,
+        "bottom_quantile_return": 0.0179,
+        "spread": -0.0186
+      },
+      {
+        "factor": "momentum_6_1",
+        "horizon": 10,
+        "dates": 7,
+        "observations": 2992,
+        "mean_ic": 0.0091,
+        "ic_positive_pct": 71.4,
+        "top_quantile_return": 0.0227,
+        "bottom_quantile_return": 0.0222,
+        "spread": 0.0005
       },
       {
         "factor": "momentum_6_1",
         "horizon": 20,
         "dates": 6,
-        "observations": 791,
-        "mean_ic": -0.0645,
+        "observations": 2564,
+        "mean_ic": -0.0706,
         "ic_positive_pct": 50.0,
-        "top_quantile_return": 0.0052,
-        "bottom_quantile_return": 0.0415,
-        "spread": -0.0363
+        "top_quantile_return": 0.004,
+        "bottom_quantile_return": 0.0347,
+        "spread": -0.0307
       },
       {
         "factor": "momentum_6_1",
         "horizon": 60,
         "dates": 4,
-        "observations": 527,
-        "mean_ic": 0.1627,
+        "observations": 1707,
+        "mean_ic": 0.0875,
         "ic_positive_pct": 75.0,
-        "top_quantile_return": 0.2462,
-        "bottom_quantile_return": 0.0733,
-        "spread": 0.1729
+        "top_quantile_return": 0.1523,
+        "bottom_quantile_return": 0.0509,
+        "spread": 0.1014
       },
       {
         "factor": "momentum_3_1",
         "horizon": 5,
         "dates": 7,
-        "observations": 923,
-        "mean_ic": -0.1359,
+        "observations": 2992,
+        "mean_ic": -0.1285,
+        "ic_positive_pct": 28.6,
+        "top_quantile_return": -0.0029,
+        "bottom_quantile_return": 0.0182,
+        "spread": -0.0211
+      },
+      {
+        "factor": "momentum_3_1",
+        "horizon": 10,
+        "dates": 7,
+        "observations": 2992,
+        "mean_ic": -0.0349,
         "ic_positive_pct": 42.9,
-        "top_quantile_return": -0.0074,
+        "top_quantile_return": 0.0187,
+        "bottom_quantile_return": 0.0202,
+        "spread": -0.0016
+      },
+      {
+        "factor": "momentum_3_1",
+        "horizon": 20,
+        "dates": 6,
+        "observations": 2564,
+        "mean_ic": -0.0765,
+        "ic_positive_pct": 50.0,
+        "top_quantile_return": 0.0105,
+        "bottom_quantile_return": 0.0299,
+        "spread": -0.0194
+      },
+      {
+        "factor": "momentum_3_1",
+        "horizon": 60,
+        "dates": 4,
+        "observations": 1707,
+        "mean_ic": 0.0131,
+        "ic_positive_pct": 50.0,
+        "top_quantile_return": 0.1313,
+        "bottom_quantile_return": 0.1003,
+        "spread": 0.031
+      },
+      {
+        "factor": "trend_quality",
+        "horizon": 5,
+        "dates": 7,
+        "observations": 2992,
+        "mean_ic": -0.1197,
+        "ic_positive_pct": 28.6,
+        "top_quantile_return": -0.0038,
         "bottom_quantile_return": 0.018,
-        "spread": -0.0254
+        "spread": -0.0219
       },
       {
-        "factor": "momentum_3_1",
+        "factor": "trend_quality",
         "horizon": 10,
         "dates": 7,
-        "observations": 923,
-        "mean_ic": -0.0047,
-        "ic_positive_pct": 57.1,
-        "top_quantile_return": 0.0198,
-        "bottom_quantile_return": 0.0171,
-        "spread": 0.0027
+        "observations": 2992,
+        "mean_ic": 0.002,
+        "ic_positive_pct": 42.9,
+        "top_quantile_return": 0.023,
+        "bottom_quantile_return": 0.0186,
+        "spread": 0.0044
       },
       {
-        "factor": "momentum_3_1",
+        "factor": "trend_quality",
         "horizon": 20,
         "dates": 6,
-        "observations": 791,
-        "mean_ic": -0.0609,
-        "ic_positive_pct": 50.0,
-        "top_quantile_return": 0.0184,
-        "bottom_quantile_return": 0.0244,
-        "spread": -0.006
+        "observations": 2564,
+        "mean_ic": -0.0345,
+        "ic_positive_pct": 83.3,
+        "top_quantile_return": 0.0188,
+        "bottom_quantile_return": 0.0254,
+        "spread": -0.0066
       },
       {
-        "factor": "momentum_3_1",
+        "factor": "trend_quality",
         "horizon": 60,
         "dates": 4,
-        "observations": 527,
-        "mean_ic": 0.0419,
+        "observations": 1707,
+        "mean_ic": 0.0612,
         "ic_positive_pct": 75.0,
-        "top_quantile_return": 0.229,
-        "bottom_quantile_return": 0.0915,
-        "spread": 0.1375
+        "top_quantile_return": 0.1374,
+        "bottom_quantile_return": 0.0779,
+        "spread": 0.0595
       },
       {
-        "factor": "trend_quality",
+        "factor": "low_volatility",
         "horizon": 5,
         "dates": 7,
-        "observations": 923,
-        "mean_ic": -0.1154,
-        "ic_positive_pct": 42.9,
-        "top_quantile_return": -0.0042,
-        "bottom_quantile_return": 0.0203,
-        "spread": -0.0245
+        "observations": 2992,
+        "mean_ic": -0.0486,
+        "ic_positive_pct": 57.1,
+        "top_quantile_return": 0.0036,
+        "bottom_quantile_return": 0.0143,
+        "spread": -0.0106
       },
       {
-        "factor": "trend_quality",
+        "factor": "low_volatility",
         "horizon": 10,
         "dates": 7,
-        "observations": 923,
-        "mean_ic": 0.0385,
+        "observations": 2992,
+        "mean_ic": -0.098,
+        "ic_positive_pct": 42.9,
+        "top_quantile_return": 0.006,
+        "bottom_quantile_return": 0.0411,
+        "spread": -0.035
+      },
+      {
+        "factor": "low_volatility",
+        "horizon": 20,
+        "dates": 6,
+        "observations": 2564,
+        "mean_ic": -0.0107,
+        "ic_positive_pct": 66.7,
+        "top_quantile_return": 0.0095,
+        "bottom_quantile_return": 0.0374,
+        "spread": -0.0279
+      },
+      {
+        "factor": "low_volatility",
+        "horizon": 60,
+        "dates": 4,
+        "observations": 1707,
+        "mean_ic": -0.1602,
+        "ic_positive_pct": 25.0,
+        "top_quantile_return": 0.0281,
+        "bottom_quantile_return": 0.2561,
+        "spread": -0.228
+      },
+      {
+        "factor": "liquidity",
+        "horizon": 5,
+        "dates": 7,
+        "observations": 2992,
+        "mean_ic": -0.0205,
+        "ic_positive_pct": 42.9,
+        "top_quantile_return": 0.0067,
+        "bottom_quantile_return": 0.0076,
+        "spread": -0.0009
+      },
+      {
+        "factor": "liquidity",
+        "horizon": 10,
+        "dates": 7,
+        "observations": 2992,
+        "mean_ic": -0.0115,
         "ic_positive_pct": 57.1,
-        "top_quantile_return": 0.0322,
-        "bottom_quantile_return": 0.0155,
+        "top_quantile_return": 0.0243,
+        "bottom_quantile_return": 0.0189,
+        "spread": 0.0054
+      },
+      {
+        "factor": "liquidity",
+        "horizon": 20,
+        "dates": 6,
+        "observations": 2564,
+        "mean_ic": -0.0593,
+        "ic_positive_pct": 50.0,
+        "top_quantile_return": 0.0194,
+        "bottom_quantile_return": 0.0232,
+        "spread": -0.0038
+      },
+      {
+        "factor": "liquidity",
+        "horizon": 60,
+        "dates": 4,
+        "observations": 1707,
+        "mean_ic": -0.0563,
+        "ic_positive_pct": 25.0,
+        "top_quantile_return": 0.1506,
+        "bottom_quantile_return": 0.0997,
+        "spread": 0.0509
+      },
+      {
+        "factor": "rsi_14",
+        "horizon": 5,
+        "dates": 7,
+        "observations": 2992,
+        "mean_ic": -0.1085,
+        "ic_positive_pct": 14.3,
+        "top_quantile_return": -0.0029,
+        "bottom_quantile_return": 0.0115,
+        "spread": -0.0144
+      },
+      {
+        "factor": "rsi_14",
+        "horizon": 10,
+        "dates": 7,
+        "observations": 2992,
+        "mean_ic": -0.0095,
+        "ic_positive_pct": 42.9,
+        "top_quantile_return": 0.0098,
+        "bottom_quantile_return": 0.0106,
+        "spread": -0.0008
+      },
+      {
+        "factor": "rsi_14",
+        "horizon": 20,
+        "dates": 6,
+        "observations": 2564,
+        "mean_ic": 0.0315,
+        "ic_positive_pct": 83.3,
+        "top_quantile_return": 0.0181,
+        "bottom_quantile_return": 0.01,
+        "spread": 0.008
+      },
+      {
+        "factor": "rsi_14",
+        "horizon": 60,
+        "dates": 4,
+        "observations": 1707,
+        "mean_ic": -0.0122,
+        "ic_positive_pct": 25.0,
+        "top_quantile_return": 0.0509,
+        "bottom_quantile_return": 0.079,
+        "spread": -0.0282
+      },
+      {
+        "factor": "macd_strength",
+        "horizon": 5,
+        "dates": 7,
+        "observations": 2992,
+        "mean_ic": -0.0117,
+        "ic_positive_pct": 42.9,
+        "top_quantile_return": 0.0124,
+        "bottom_quantile_return": 0.0085,
+        "spread": 0.0039
+      },
+      {
+        "factor": "macd_strength",
+        "horizon": 10,
+        "dates": 7,
+        "observations": 2992,
+        "mean_ic": 0.0182,
+        "ic_positive_pct": 42.9,
+        "top_quantile_return": 0.0226,
+        "bottom_quantile_return": 0.0153,
+        "spread": 0.0074
+      },
+      {
+        "factor": "macd_strength",
+        "horizon": 20,
+        "dates": 6,
+        "observations": 2564,
+        "mean_ic": 0.0532,
+        "ic_positive_pct": 50.0,
+        "top_quantile_return": 0.0293,
+        "bottom_quantile_return": 0.0138,
+        "spread": 0.0156
+      },
+      {
+        "factor": "macd_strength",
+        "horizon": 60,
+        "dates": 4,
+        "observations": 1707,
+        "mean_ic": 0.0203,
+        "ic_positive_pct": 25.0,
+        "top_quantile_return": 0.0734,
+        "bottom_quantile_return": 0.0829,
+        "spread": -0.0096
+      },
+      {
+        "factor": "adx_14",
+        "horizon": 5,
+        "dates": 7,
+        "observations": 2992,
+        "mean_ic": -0.0154,
+        "ic_positive_pct": 14.3,
+        "top_quantile_return": 0.009,
+        "bottom_quantile_return": 0.0109,
+        "spread": -0.002
+      },
+      {
+        "factor": "adx_14",
+        "horizon": 10,
+        "dates": 7,
+        "observations": 2992,
+        "mean_ic": 0.0044,
+        "ic_positive_pct": 28.6,
+        "top_quantile_return": 0.0198,
+        "bottom_quantile_return": 0.0182,
+        "spread": 0.0015
+      },
+      {
+        "factor": "adx_14",
+        "horizon": 20,
+        "dates": 6,
+        "observations": 2564,
+        "mean_ic": 0.0534,
+        "ic_positive_pct": 66.7,
+        "top_quantile_return": 0.0292,
+        "bottom_quantile_return": 0.0124,
         "spread": 0.0167
       },
       {
-        "factor": "trend_quality",
-        "horizon": 20,
-        "dates": 6,
-        "observations": 791,
-        "mean_ic": -0.0053,
-        "ic_positive_pct": 66.7,
-        "top_quantile_return": 0.035,
-        "bottom_quantile_return": 0.014,
-        "spread": 0.021
-      },
-      {
-        "factor": "trend_quality",
+        "factor": "adx_14",
         "horizon": 60,
         "dates": 4,
-        "observations": 527,
-        "mean_ic": 0.1614,
-        "ic_positive_pct": 75.0,
-        "top_quantile_return": 0.2711,
-        "bottom_quantile_return": 0.0672,
-        "spread": 0.2039
-      },
-      {
-        "factor": "low_volatility",
-        "horizon": 5,
-        "dates": 7,
-        "observations": 923,
-        "mean_ic": -0.0771,
-        "ic_positive_pct": 42.9,
-        "top_quantile_return": 0.0048,
-        "bottom_quantile_return": 0.016,
-        "spread": -0.0112
-      },
-      {
-        "factor": "low_volatility",
-        "horizon": 10,
-        "dates": 7,
-        "observations": 923,
-        "mean_ic": -0.1437,
-        "ic_positive_pct": 42.9,
-        "top_quantile_return": 0.0072,
-        "bottom_quantile_return": 0.0507,
-        "spread": -0.0435
-      },
-      {
-        "factor": "low_volatility",
-        "horizon": 20,
-        "dates": 6,
-        "observations": 791,
-        "mean_ic": -0.0931,
-        "ic_positive_pct": 33.3,
-        "top_quantile_return": 0.0036,
-        "bottom_quantile_return": 0.0682,
-        "spread": -0.0646
-      },
-      {
-        "factor": "low_volatility",
-        "horizon": 60,
-        "dates": 4,
-        "observations": 527,
-        "mean_ic": -0.2599,
+        "observations": 1707,
+        "mean_ic": -0.0273,
         "ic_positive_pct": 25.0,
-        "top_quantile_return": 0.0305,
-        "bottom_quantile_return": 0.3977,
-        "spread": -0.3672
+        "top_quantile_return": 0.0708,
+        "bottom_quantile_return": 0.0944,
+        "spread": -0.0236
       },
       {
-        "factor": "liquidity",
+        "factor": "volume_expansion",
         "horizon": 5,
         "dates": 7,
-        "observations": 923,
-        "mean_ic": 0.0155,
+        "observations": 2992,
+        "mean_ic": 0.0217,
         "ic_positive_pct": 57.1,
-        "top_quantile_return": 0.0056,
-        "bottom_quantile_return": 0.0079,
-        "spread": -0.0024
+        "top_quantile_return": 0.0089,
+        "bottom_quantile_return": 0.0061,
+        "spread": 0.0029
       },
       {
-        "factor": "liquidity",
+        "factor": "volume_expansion",
         "horizon": 10,
         "dates": 7,
-        "observations": 923,
-        "mean_ic": 0.0576,
+        "observations": 2992,
+        "mean_ic": -0.0119,
         "ic_positive_pct": 57.1,
-        "top_quantile_return": 0.0305,
-        "bottom_quantile_return": 0.0175,
-        "spread": 0.013
+        "top_quantile_return": 0.0144,
+        "bottom_quantile_return": 0.0187,
+        "spread": -0.0043
       },
       {
-        "factor": "liquidity",
+        "factor": "volume_expansion",
         "horizon": 20,
         "dates": 6,
-        "observations": 791,
-        "mean_ic": 0.0183,
+        "observations": 2564,
+        "mean_ic": 0.0058,
         "ic_positive_pct": 50.0,
-        "top_quantile_return": 0.0213,
-        "bottom_quantile_return": 0.0154,
-        "spread": 0.0059
+        "top_quantile_return": 0.0198,
+        "bottom_quantile_return": 0.0173,
+        "spread": 0.0025
       },
       {
-        "factor": "liquidity",
+        "factor": "volume_expansion",
         "horizon": 60,
         "dates": 4,
-        "observations": 527,
-        "mean_ic": 0.0776,
+        "observations": 1707,
+        "mean_ic": 0.0092,
+        "ic_positive_pct": 50.0,
+        "top_quantile_return": 0.0905,
+        "bottom_quantile_return": 0.0939,
+        "spread": -0.0034
+      },
+      {
+        "factor": "breakout_252",
+        "horizon": 5,
+        "dates": 7,
+        "observations": 2992,
+        "mean_ic": -0.1273,
+        "ic_positive_pct": 28.6,
+        "top_quantile_return": -0.003,
+        "bottom_quantile_return": 0.0202,
+        "spread": -0.0232
+      },
+      {
+        "factor": "breakout_252",
+        "horizon": 10,
+        "dates": 7,
+        "observations": 2992,
+        "mean_ic": -0.0528,
+        "ic_positive_pct": 42.9,
+        "top_quantile_return": 0.0071,
+        "bottom_quantile_return": 0.0237,
+        "spread": -0.0166
+      },
+      {
+        "factor": "breakout_252",
+        "horizon": 20,
+        "dates": 6,
+        "observations": 2564,
+        "mean_ic": -0.0043,
+        "ic_positive_pct": 50.0,
+        "top_quantile_return": 0.0078,
+        "bottom_quantile_return": 0.0188,
+        "spread": -0.011
+      },
+      {
+        "factor": "breakout_252",
+        "horizon": 60,
+        "dates": 4,
+        "observations": 1707,
+        "mean_ic": -0.0559,
+        "ic_positive_pct": 25.0,
+        "top_quantile_return": 0.0148,
+        "bottom_quantile_return": 0.1122,
+        "spread": -0.0974
+      },
+      {
+        "factor": "volatility_contraction",
+        "horizon": 5,
+        "dates": 7,
+        "observations": 2992,
+        "mean_ic": -0.0026,
+        "ic_positive_pct": 71.4,
+        "top_quantile_return": 0.0096,
+        "bottom_quantile_return": 0.0098,
+        "spread": -0.0001
+      },
+      {
+        "factor": "volatility_contraction",
+        "horizon": 10,
+        "dates": 7,
+        "observations": 2992,
+        "mean_ic": 0.0333,
+        "ic_positive_pct": 71.4,
+        "top_quantile_return": 0.0202,
+        "bottom_quantile_return": 0.0137,
+        "spread": 0.0065
+      },
+      {
+        "factor": "volatility_contraction",
+        "horizon": 20,
+        "dates": 6,
+        "observations": 2564,
+        "mean_ic": 0.0391,
+        "ic_positive_pct": 83.3,
+        "top_quantile_return": 0.0269,
+        "bottom_quantile_return": 0.0061,
+        "spread": 0.0208
+      },
+      {
+        "factor": "volatility_contraction",
+        "horizon": 60,
+        "dates": 4,
+        "observations": 1707,
+        "mean_ic": 0.0037,
+        "ic_positive_pct": 50.0,
+        "top_quantile_return": 0.096,
+        "bottom_quantile_return": 0.0985,
+        "spread": -0.0025
+      },
+      {
+        "factor": "relative_strength_6m",
+        "horizon": 5,
+        "dates": 7,
+        "observations": 2992,
+        "mean_ic": -0.1205,
+        "ic_positive_pct": 28.6,
+        "top_quantile_return": -0.0041,
+        "bottom_quantile_return": 0.02,
+        "spread": -0.0242
+      },
+      {
+        "factor": "relative_strength_6m",
+        "horizon": 10,
+        "dates": 7,
+        "observations": 2992,
+        "mean_ic": 0.007,
+        "ic_positive_pct": 42.9,
+        "top_quantile_return": 0.0221,
+        "bottom_quantile_return": 0.0223,
+        "spread": -0.0002
+      },
+      {
+        "factor": "relative_strength_6m",
+        "horizon": 20,
+        "dates": 6,
+        "observations": 2564,
+        "mean_ic": -0.0357,
+        "ic_positive_pct": 66.7,
+        "top_quantile_return": 0.0149,
+        "bottom_quantile_return": 0.0286,
+        "spread": -0.0136
+      },
+      {
+        "factor": "relative_strength_6m",
+        "horizon": 60,
+        "dates": 4,
+        "observations": 1707,
+        "mean_ic": 0.0701,
         "ic_positive_pct": 75.0,
-        "top_quantile_return": 0.2157,
-        "bottom_quantile_return": 0.0878,
-        "spread": 0.1279
+        "top_quantile_return": 0.1392,
+        "bottom_quantile_return": 0.0639,
+        "spread": 0.0753
       }
     ]
   },
@@ -1154,98 +2416,511 @@
       "factor": "liquidity",
       "horizon": 60,
       "verdict": "weak"
+    },
+    {
+      "factor": "rsi_14",
+      "horizon": 60,
+      "verdict": "weak"
+    },
+    {
+      "factor": "macd_strength",
+      "horizon": 60,
+      "verdict": "unstable"
+    },
+    {
+      "factor": "adx_14",
+      "horizon": 60,
+      "verdict": "unstable"
+    },
+    {
+      "factor": "volume_expansion",
+      "horizon": 60,
+      "verdict": "weak"
+    },
+    {
+      "factor": "breakout_252",
+      "horizon": 60,
+      "verdict": "weak"
+    },
+    {
+      "factor": "volatility_contraction",
+      "horizon": 60,
+      "verdict": "unstable"
+    },
+    {
+      "factor": "relative_strength_6m",
+      "horizon": 60,
+      "verdict": "promising"
     }
   ],
   "redundancy": [
     {
       "a": "momentum_6_1",
+      "b": "relative_strength_6m",
+      "mean_rank_correlation": 0.9,
+      "dates": 109
+    },
+    {
+      "a": "trend_quality",
+      "b": "relative_strength_6m",
+      "mean_rank_correlation": 0.9,
+      "dates": 109
+    },
+    {
+      "a": "momentum_6_1",
       "b": "trend_quality",
-      "mean_rank_correlation": 0.782,
-      "dates": 56
+      "mean_rank_correlation": 0.772,
+      "dates": 109
     },
     {
       "a": "momentum_12_1",
       "b": "trend_quality",
-      "mean_rank_correlation": 0.766,
-      "dates": 56
+      "mean_rank_correlation": 0.758,
+      "dates": 109
+    },
+    {
+      "a": "trend_quality",
+      "b": "breakout_252",
+      "mean_rank_correlation": 0.757,
+      "dates": 109
     },
     {
       "a": "momentum_3_1",
       "b": "trend_quality",
-      "mean_rank_correlation": 0.722,
-      "dates": 56
+      "mean_rank_correlation": 0.709,
+      "dates": 109
+    },
+    {
+      "a": "breakout_252",
+      "b": "relative_strength_6m",
+      "mean_rank_correlation": 0.666,
+      "dates": 109
     },
     {
       "a": "momentum_12_1",
       "b": "momentum_6_1",
-      "mean_rank_correlation": 0.683,
-      "dates": 56
+      "mean_rank_correlation": 0.658,
+      "dates": 109
+    },
+    {
+      "a": "momentum_3_1",
+      "b": "relative_strength_6m",
+      "mean_rank_correlation": 0.634,
+      "dates": 109
+    },
+    {
+      "a": "momentum_12_1",
+      "b": "relative_strength_6m",
+      "mean_rank_correlation": 0.615,
+      "dates": 109
+    },
+    {
+      "a": "rsi_14",
+      "b": "breakout_252",
+      "mean_rank_correlation": 0.59,
+      "dates": 109
+    },
+    {
+      "a": "momentum_3_1",
+      "b": "breakout_252",
+      "mean_rank_correlation": 0.552,
+      "dates": 109
+    },
+    {
+      "a": "rsi_14",
+      "b": "macd_strength",
+      "mean_rank_correlation": 0.52,
+      "dates": 109
+    },
+    {
+      "a": "momentum_6_1",
+      "b": "breakout_252",
+      "mean_rank_correlation": 0.517,
+      "dates": 109
+    },
+    {
+      "a": "momentum_12_1",
+      "b": "breakout_252",
+      "mean_rank_correlation": 0.503,
+      "dates": 109
+    },
+    {
+      "a": "trend_quality",
+      "b": "rsi_14",
+      "mean_rank_correlation": 0.5,
+      "dates": 109
     },
     {
       "a": "momentum_6_1",
       "b": "momentum_3_1",
-      "mean_rank_correlation": 0.502,
-      "dates": 56
+      "mean_rank_correlation": 0.496,
+      "dates": 109
+    },
+    {
+      "a": "momentum_3_1",
+      "b": "rsi_14",
+      "mean_rank_correlation": 0.447,
+      "dates": 109
+    },
+    {
+      "a": "rsi_14",
+      "b": "relative_strength_6m",
+      "mean_rank_correlation": 0.441,
+      "dates": 109
+    },
+    {
+      "a": "low_volatility",
+      "b": "breakout_252",
+      "mean_rank_correlation": 0.436,
+      "dates": 109
     },
     {
       "a": "momentum_12_1",
       "b": "momentum_3_1",
-      "mean_rank_correlation": 0.379,
-      "dates": 56
+      "mean_rank_correlation": 0.354,
+      "dates": 109
+    },
+    {
+      "a": "momentum_3_1",
+      "b": "macd_strength",
+      "mean_rank_correlation": -0.225,
+      "dates": 109
+    },
+    {
+      "a": "momentum_6_1",
+      "b": "macd_strength",
+      "mean_rank_correlation": -0.21,
+      "dates": 109
+    },
+    {
+      "a": "low_volatility",
+      "b": "volume_expansion",
+      "mean_rank_correlation": 0.18,
+      "dates": 109
+    },
+    {
+      "a": "momentum_6_1",
+      "b": "rsi_14",
+      "mean_rank_correlation": 0.132,
+      "dates": 109
+    },
+    {
+      "a": "momentum_12_1",
+      "b": "rsi_14",
+      "mean_rank_correlation": 0.123,
+      "dates": 109
+    },
+    {
+      "a": "momentum_12_1",
+      "b": "macd_strength",
+      "mean_rank_correlation": -0.114,
+      "dates": 109
+    },
+    {
+      "a": "volume_expansion",
+      "b": "breakout_252",
+      "mean_rank_correlation": 0.097,
+      "dates": 109
+    },
+    {
+      "a": "rsi_14",
+      "b": "adx_14",
+      "mean_rank_correlation": 0.089,
+      "dates": 109
+    },
+    {
+      "a": "macd_strength",
+      "b": "breakout_252",
+      "mean_rank_correlation": 0.086,
+      "dates": 109
+    },
+    {
+      "a": "rsi_14",
+      "b": "volatility_contraction",
+      "mean_rank_correlation": 0.084,
+      "dates": 109
     },
     {
       "a": "low_volatility",
       "b": "liquidity",
-      "mean_rank_correlation": -0.228,
-      "dates": 56
+      "mean_rank_correlation": -0.072,
+      "dates": 109
     },
     {
-      "a": "momentum_12_1",
-      "b": "liquidity",
-      "mean_rank_correlation": 0.067,
-      "dates": 56
+      "a": "macd_strength",
+      "b": "adx_14",
+      "mean_rank_correlation": 0.064,
+      "dates": 109
     },
     {
-      "a": "momentum_12_1",
-      "b": "low_volatility",
+      "a": "liquidity",
+      "b": "volatility_contraction",
       "mean_rank_correlation": -0.062,
-      "dates": 56
+      "dates": 109
+    },
+    {
+      "a": "low_volatility",
+      "b": "rsi_14",
+      "mean_rank_correlation": 0.061,
+      "dates": 109
+    },
+    {
+      "a": "momentum_12_1",
+      "b": "liquidity",
+      "mean_rank_correlation": 0.057,
+      "dates": 109
+    },
+    {
+      "a": "adx_14",
+      "b": "volume_expansion",
+      "mean_rank_correlation": 0.054,
+      "dates": 109
     },
     {
       "a": "momentum_3_1",
-      "b": "low_volatility",
-      "mean_rank_correlation": -0.044,
-      "dates": 56
+      "b": "volatility_contraction",
+      "mean_rank_correlation": 0.048,
+      "dates": 109
     },
     {
-      "a": "momentum_6_1",
-      "b": "liquidity",
-      "mean_rank_correlation": 0.042,
-      "dates": 56
+      "a": "adx_14",
+      "b": "breakout_252",
+      "mean_rank_correlation": 0.045,
+      "dates": 109
     },
     {
       "a": "trend_quality",
-      "b": "low_volatility",
+      "b": "macd_strength",
+      "mean_rank_correlation": -0.043,
+      "dates": 109
+    },
+    {
+      "a": "trend_quality",
+      "b": "liquidity",
+      "mean_rank_correlation": 0.039,
+      "dates": 109
+    },
+    {
+      "a": "macd_strength",
+      "b": "volume_expansion",
+      "mean_rank_correlation": -0.038,
+      "dates": 109
+    },
+    {
+      "a": "macd_strength",
+      "b": "relative_strength_6m",
       "mean_rank_correlation": -0.036,
-      "dates": 56
+      "dates": 109
+    },
+    {
+      "a": "momentum_6_1",
+      "b": "liquidity",
+      "mean_rank_correlation": 0.035,
+      "dates": 109
+    },
+    {
+      "a": "breakout_252",
+      "b": "volatility_contraction",
+      "mean_rank_correlation": 0.034,
+      "dates": 109
+    },
+    {
+      "a": "low_volatility",
+      "b": "volatility_contraction",
+      "mean_rank_correlation": -0.031,
+      "dates": 109
+    },
+    {
+      "a": "momentum_12_1",
+      "b": "adx_14",
+      "mean_rank_correlation": -0.029,
+      "dates": 109
+    },
+    {
+      "a": "volume_expansion",
+      "b": "volatility_contraction",
+      "mean_rank_correlation": 0.029,
+      "dates": 109
+    },
+    {
+      "a": "liquidity",
+      "b": "adx_14",
+      "mean_rank_correlation": 0.027,
+      "dates": 109
+    },
+    {
+      "a": "liquidity",
+      "b": "relative_strength_6m",
+      "mean_rank_correlation": 0.027,
+      "dates": 109
+    },
+    {
+      "a": "momentum_12_1",
+      "b": "volume_expansion",
+      "mean_rank_correlation": 0.024,
+      "dates": 109
+    },
+    {
+      "a": "momentum_6_1",
+      "b": "volume_expansion",
+      "mean_rank_correlation": 0.023,
+      "dates": 109
+    },
+    {
+      "a": "low_volatility",
+      "b": "macd_strength",
+      "mean_rank_correlation": -0.023,
+      "dates": 109
+    },
+    {
+      "a": "rsi_14",
+      "b": "volume_expansion",
+      "mean_rank_correlation": -0.023,
+      "dates": 109
+    },
+    {
+      "a": "momentum_12_1",
+      "b": "volatility_contraction",
+      "mean_rank_correlation": -0.022,
+      "dates": 109
+    },
+    {
+      "a": "momentum_12_1",
+      "b": "low_volatility",
+      "mean_rank_correlation": -0.021,
+      "dates": 109
+    },
+    {
+      "a": "momentum_6_1",
+      "b": "volatility_contraction",
+      "mean_rank_correlation": -0.02,
+      "dates": 109
+    },
+    {
+      "a": "momentum_6_1",
+      "b": "adx_14",
+      "mean_rank_correlation": -0.019,
+      "dates": 109
+    },
+    {
+      "a": "momentum_3_1",
+      "b": "adx_14",
+      "mean_rank_correlation": 0.019,
+      "dates": 109
     },
     {
       "a": "trend_quality",
-      "b": "liquidity",
-      "mean_rank_correlation": 0.036,
-      "dates": 56
+      "b": "low_volatility",
+      "mean_rank_correlation": 0.019,
+      "dates": 109
+    },
+    {
+      "a": "liquidity",
+      "b": "breakout_252",
+      "mean_rank_correlation": -0.018,
+      "dates": 109
+    },
+    {
+      "a": "trend_quality",
+      "b": "volatility_contraction",
+      "mean_rank_correlation": 0.017,
+      "dates": 109
     },
     {
       "a": "momentum_6_1",
       "b": "low_volatility",
-      "mean_rank_correlation": -0.033,
-      "dates": 56
+      "mean_rank_correlation": 0.015,
+      "dates": 109
     },
     {
       "a": "momentum_3_1",
       "b": "liquidity",
-      "mean_rank_correlation": 0.017,
-      "dates": 56
+      "mean_rank_correlation": 0.015,
+      "dates": 109
+    },
+    {
+      "a": "macd_strength",
+      "b": "volatility_contraction",
+      "mean_rank_correlation": -0.014,
+      "dates": 109
+    },
+    {
+      "a": "trend_quality",
+      "b": "adx_14",
+      "mean_rank_correlation": 0.013,
+      "dates": 109
+    },
+    {
+      "a": "trend_quality",
+      "b": "volume_expansion",
+      "mean_rank_correlation": 0.011,
+      "dates": 109
+    },
+    {
+      "a": "liquidity",
+      "b": "macd_strength",
+      "mean_rank_correlation": -0.011,
+      "dates": 109
+    },
+    {
+      "a": "adx_14",
+      "b": "relative_strength_6m",
+      "mean_rank_correlation": 0.011,
+      "dates": 109
+    },
+    {
+      "a": "momentum_3_1",
+      "b": "volume_expansion",
+      "mean_rank_correlation": -0.009,
+      "dates": 109
+    },
+    {
+      "a": "momentum_3_1",
+      "b": "low_volatility",
+      "mean_rank_correlation": 0.007,
+      "dates": 109
+    },
+    {
+      "a": "low_volatility",
+      "b": "relative_strength_6m",
+      "mean_rank_correlation": 0.007,
+      "dates": 109
+    },
+    {
+      "a": "volatility_contraction",
+      "b": "relative_strength_6m",
+      "mean_rank_correlation": 0.007,
+      "dates": 109
+    },
+    {
+      "a": "low_volatility",
+      "b": "adx_14",
+      "mean_rank_correlation": 0.006,
+      "dates": 109
+    },
+    {
+      "a": "liquidity",
+      "b": "rsi_14",
+      "mean_rank_correlation": -0.006,
+      "dates": 109
+    },
+    {
+      "a": "volume_expansion",
+      "b": "relative_strength_6m",
+      "mean_rank_correlation": 0.006,
+      "dates": 109
+    },
+    {
+      "a": "liquidity",
+      "b": "volume_expansion",
+      "mean_rank_correlation": -0.005,
+      "dates": 109
+    },
+    {
+      "a": "adx_14",
+      "b": "volatility_contraction",
+      "mean_rank_correlation": -0.003,
+      "dates": 109
     }
   ],
   "data_standard": {
@@ -1265,7 +2940,7 @@
     ]
   },
   "experiment": {
-    "id": "research-v0.2.0-2026-08-17",
+    "id": "research-v0.3.0-2026-08-17",
     "specification": {
       "factors": [
         "momentum_12_1",
@@ -1273,7 +2948,14 @@
         "momentum_3_1",
         "trend_quality",
         "low_volatility",
-        "liquidity"
+        "liquidity",
+        "rsi_14",
+        "macd_strength",
+        "adx_14",
+        "volume_expansion",
+        "breakout_252",
+        "volatility_contraction",
+        "relative_strength_6m"
       ],
       "horizons": [
         5,
@@ -1281,10 +2963,11 @@
         20,
         60
       ],
-      "universe": "top 150 market-cap screened, price>=5, ADV20>=10m, history>=252",
+      "universe": "top 500 market-cap screened, price>=5, ADV20>=10m, history>=252",
+      "history_requested_from": "2016-01-01",
       "splits": {
         "development": {
-          "start": "2022-01-31",
+          "start": "2017-08-31",
           "end": "2024-12-31"
         },
         "validation": {

@@ -3,7 +3,7 @@ import {useEffect,useMemo,useState} from "react";
 type Metric={factor:string;horizon:number;dates:number;observations:number;mean_ic:number|null;ic_positive_pct:number|null;spread:number|null};
 type Report={coverage:{symbols_requested:number;symbols_loaded:number;eligible_latest:number;panel_rows:number;snapshot_dates:number};version:string;walk_forward:Record<string,{start:string;end:string}>;factors:{implemented:{id:string;plain:string}[];missing:string[]};split_metrics:Record<string,Metric[]>;factor_verdicts:{factor:string;verdict:string}[];redundancy:{a:string;b:string;mean_rank_correlation:number|null}[];data_standard:{required:string[]};experiment:{id:string};interpretation:string};
 const pct=(x:number|null)=>x===null?"—":`${(x*100).toFixed(2)}%`;
-const names:Record<string,string>={momentum_12_1:"12–1 momentum",momentum_6_1:"6–1 momentum",momentum_3_1:"3–1 momentum",trend_quality:"Trend quality",low_volatility:"Low volatility",liquidity:"Liquidity"};
+const names:Record<string,string>={momentum_12_1:"12–1 momentum",momentum_6_1:"6–1 momentum",momentum_3_1:"3–1 momentum",trend_quality:"Trend quality",low_volatility:"Low volatility",liquidity:"Liquidity",rsi_14:"RSI (14)",macd_strength:"MACD strength",adx_14:"ADX (14)",volume_expansion:"Volume expansion",breakout_252:"52-week breakout",volatility_contraction:"Volatility contraction",relative_strength_6m:"Relative strength vs SPY"};
 export default function ResearchLab(){
  const [r,setR]=useState<Report|null>(null),[h,setH]=useState(60),[sample,setSample]=useState("validation");
  useEffect(()=>{fetch("/research-report.json").then(x=>x.json()).then(setR)},[]);
