@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch
 from services.scanner.audit_eodhd import common
 from services.scanner.eodhd_factor_pilot import stable_sample
-from services.scanner.eodhd_factor_validation import percentile_scores,portfolio_stats
+from services.scanner.eodhd_factor_validation import percentile_scores,portfolio_stats,simulate_atr_trade
 from services.scanner.research_pipeline import factor_values
 class EodhdTests(unittest.TestCase):
  def test_primary_common_stock_filter(self):
@@ -23,4 +23,9 @@ class EodhdTests(unittest.TestCase):
   result=portfolio_stats([.10,-.20,.05])
   self.assertEqual(result["periods"],3)
   self.assertAlmostEqual(result["max_drawdown"],-.2)
+ def test_atr_trade_uses_next_open_and_time_exit(self):
+  rows=[{"date":"01/01/2020","open":10,"high":11,"low":9,"close":10,"volume":100} for _ in range(30)]
+  trade=simulate_atr_trade(rows,20,2,horizon=3,cost_bps=0)
+  self.assertEqual(trade["reason"],"time")
+  self.assertEqual(trade["holding_days"],3)
 if __name__=="__main__":unittest.main()

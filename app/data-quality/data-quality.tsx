@@ -69,6 +69,15 @@ type Portfolio = {
     { absolute: Stats; excess_vs_eligible_universe: Stats }
   >;
 };
+type AtrRisk = {
+  combination: string;
+  atr_multiple: number;
+  median_r: number;
+  trade_win_rate_pct: number;
+  average_holding_days: number;
+  average_position_pct: number;
+  portfolio: Stats;
+};
 type Validation = {
   status: string;
   sample: {
@@ -83,6 +92,7 @@ type Validation = {
   execution: { entry: string; time_stop: string };
   combinations: Record<string, Combo[]>;
   portfolios: Record<string, Portfolio[]>;
+  atr_risk: Record<string, AtrRisk[]>;
   decision: string;
   limitations: string[];
 };
@@ -124,6 +134,9 @@ export default function DataQuality() {
     return <main className="datalab">Loading provider audit…</main>;
   const forward = validation.combinations.forward_test;
   const forwardPortfolio = validation.portfolios.forward_test;
+  const forwardAtr = validation.atr_risk.forward_test.filter(
+    (x) => x.atr_multiple === 2.5,
+  );
   return (
     <main className="datalab">
       <header>
@@ -163,6 +176,37 @@ export default function DataQuality() {
           <b>13 + 3</b>
           <span>individual factors + combinations</span>
         </div>
+      </section>
+      <section className="datagrid">
+        <article>
+          <p className="label">ATR RISK TEST · 2.5× STOP</p>
+          <h2>2026 gap-aware monitor</h2>
+          <div className="pilothead">
+            <span>Combination</span>
+            <span>Return</span>
+            <span>Drawdown</span>
+          </div>
+          {forwardAtr.map((x) => (
+            <div className="pilotrow" key={x.combination}>
+              <b>{x.combination.replaceAll("_", " ")}</b>
+              <span>{(x.portfolio.compounded_return * 100).toFixed(2)}%</span>
+              <span>{(x.portfolio.max_drawdown * 100).toFixed(2)}%</span>
+            </div>
+          ))}
+          <mark>
+            0.5% intended risk per trade, 4% total-risk cap, 10% maximum
+            position, 2R target, and forced exit after 10 candles.
+          </mark>
+        </article>
+        <article>
+          <p className="label">CURRENT FINDING</p>
+          <h2>Wider stops survived better</h2>
+          <p>
+            The 2.5× ATR stop was more robust than 1.5× or 2× in the long
+            development period. It reduced premature exits, but still has not
+            earned live-trading status.
+          </p>
+        </article>
       </section>
       <section className="datagrid">
         <article>

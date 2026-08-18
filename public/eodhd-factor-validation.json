@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-18T04:00:30.423555+00:00",
+  "generated_at": "2026-08-18T04:24:39.288102+00:00",
   "status": "expanded_validation_research_only",
   "provider": "EODHD All World",
   "sample": {
@@ -18,7 +18,8 @@
     "entry": "next trading day's adjusted open",
     "exits": "5, 10, 20, and 60 trading-day closes",
     "time_stop": "10 trading days is the primary strategy evaluation horizon",
-    "cost_scenarios": "0, 20, and 50 basis points round trip"
+    "cost_scenarios": "0, 20, and 50 basis points round trip",
+    "atr_risk": "1.5x, 2.0x, and 2.5x ATR stops; 2R target; gap-aware fills; stop-first on ambiguous daily bars; 0.5% position risk capped at 4% total"
   },
   "split_metrics": {
     "development": [
@@ -2528,11 +2529,857 @@
       }
     ]
   },
+  "atr_risk": {
+    "development": [
+      {
+        "combination": "trend_confluence",
+        "atr_multiple": 1.5,
+        "target_r": 2.0,
+        "cost_bps": 20,
+        "position_risk_pct": 0.5,
+        "total_risk_cap_pct": 4.0,
+        "max_position_pct": 10.0,
+        "trades": 2353,
+        "average_r": -57.814,
+        "median_r": -0.606,
+        "trade_win_rate_pct": 42.6,
+        "average_position_pct": 7.88,
+        "average_holding_days": 6.5,
+        "exit_reasons": {
+          "time": 806,
+          "stop_gap": 117,
+          "stop": 1013,
+          "target_gap": 58,
+          "target": 359
+        },
+        "portfolio": {
+          "periods": 218,
+          "mean_return": -0.0005,
+          "median_return": -0.0,
+          "win_rate_pct": 50.0,
+          "annualized_sharpe": -0.08,
+          "compounded_return": -0.1638,
+          "max_drawdown": -0.298
+        }
+      },
+      {
+        "combination": "trend_confluence",
+        "atr_multiple": 2.0,
+        "target_r": 2.0,
+        "cost_bps": 20,
+        "position_risk_pct": 0.5,
+        "total_risk_cap_pct": 4.0,
+        "max_position_pct": 10.0,
+        "trades": 2353,
+        "average_r": -43.355,
+        "median_r": -0.119,
+        "trade_win_rate_pct": 46.5,
+        "average_position_pct": 6.63,
+        "average_holding_days": 7.8,
+        "exit_reasons": {
+          "time": 1248,
+          "target": 212,
+          "target_gap": 27,
+          "stop": 760,
+          "stop_gap": 106
+        },
+        "portfolio": {
+          "periods": 218,
+          "mean_return": -0.0004,
+          "median_return": 0.0008,
+          "win_rate_pct": 50.9,
+          "annualized_sharpe": -0.06,
+          "compounded_return": -0.1242,
+          "max_drawdown": -0.2564
+        }
+      },
+      {
+        "combination": "trend_confluence",
+        "atr_multiple": 2.5,
+        "target_r": 2.0,
+        "cost_bps": 20,
+        "position_risk_pct": 0.5,
+        "total_risk_cap_pct": 4.0,
+        "max_position_pct": 10.0,
+        "trades": 2353,
+        "average_r": -34.675,
+        "median_r": -0.03,
+        "trade_win_rate_pct": 48.9,
+        "average_position_pct": 5.57,
+        "average_holding_days": 8.6,
+        "exit_reasons": {
+          "time": 1594,
+          "target": 113,
+          "target_gap": 13,
+          "stop": 549,
+          "stop_gap": 84
+        },
+        "portfolio": {
+          "periods": 218,
+          "mean_return": 0.0001,
+          "median_return": 0.0022,
+          "win_rate_pct": 53.2,
+          "annualized_sharpe": 0.02,
+          "compounded_return": -0.0216,
+          "max_drawdown": -0.2531
+        }
+      },
+      {
+        "combination": "breakout_confirmation",
+        "atr_multiple": 1.5,
+        "target_r": 2.0,
+        "cost_bps": 20,
+        "position_risk_pct": 0.5,
+        "total_risk_cap_pct": 4.0,
+        "max_position_pct": 10.0,
+        "trades": 2353,
+        "average_r": -1.084,
+        "median_r": -0.495,
+        "trade_win_rate_pct": 43.2,
+        "average_position_pct": 8.84,
+        "average_holding_days": 6.5,
+        "exit_reasons": {
+          "time": 820,
+          "target_gap": 67,
+          "stop": 979,
+          "target": 351,
+          "stop_gap": 135,
+          "stop_ambiguous": 1
+        },
+        "portfolio": {
+          "periods": 218,
+          "mean_return": -0.0002,
+          "median_return": -0.0017,
+          "win_rate_pct": 45.9,
+          "annualized_sharpe": -0.04,
+          "compounded_return": -0.0892,
+          "max_drawdown": -0.3171
+        }
+      },
+      {
+        "combination": "breakout_confirmation",
+        "atr_multiple": 2.0,
+        "target_r": 2.0,
+        "cost_bps": 20,
+        "position_risk_pct": 0.5,
+        "total_risk_cap_pct": 4.0,
+        "max_position_pct": 10.0,
+        "trades": 2353,
+        "average_r": -0.806,
+        "median_r": -0.121,
+        "trade_win_rate_pct": 46.9,
+        "average_position_pct": 7.78,
+        "average_holding_days": 7.7,
+        "exit_reasons": {
+          "time": 1268,
+          "target": 217,
+          "stop": 730,
+          "stop_gap": 111,
+          "target_gap": 26,
+          "stop_ambiguous": 1
+        },
+        "portfolio": {
+          "periods": 218,
+          "mean_return": -0.0002,
+          "median_return": -0.002,
+          "win_rate_pct": 47.2,
+          "annualized_sharpe": -0.03,
+          "compounded_return": -0.0786,
+          "max_drawdown": -0.3734
+        }
+      },
+      {
+        "combination": "breakout_confirmation",
+        "atr_multiple": 2.5,
+        "target_r": 2.0,
+        "cost_bps": 20,
+        "position_risk_pct": 0.5,
+        "total_risk_cap_pct": 4.0,
+        "max_position_pct": 10.0,
+        "trades": 2353,
+        "average_r": -0.637,
+        "median_r": -0.019,
+        "trade_win_rate_pct": 49.2,
+        "average_position_pct": 6.73,
+        "average_holding_days": 8.5,
+        "exit_reasons": {
+          "time": 1595,
+          "target": 113,
+          "stop": 546,
+          "stop_gap": 84,
+          "target_gap": 15
+        },
+        "portfolio": {
+          "periods": 218,
+          "mean_return": 0.0001,
+          "median_return": -0.0008,
+          "win_rate_pct": 48.2,
+          "annualized_sharpe": 0.02,
+          "compounded_return": -0.0108,
+          "max_drawdown": -0.3488
+        }
+      },
+      {
+        "combination": "balanced_technical",
+        "atr_multiple": 1.5,
+        "target_r": 2.0,
+        "cost_bps": 20,
+        "position_risk_pct": 0.5,
+        "total_risk_cap_pct": 4.0,
+        "max_position_pct": 10.0,
+        "trades": 2353,
+        "average_r": -57.795,
+        "median_r": -0.625,
+        "trade_win_rate_pct": 43.0,
+        "average_position_pct": 8.48,
+        "average_holding_days": 6.4,
+        "exit_reasons": {
+          "time": 777,
+          "target_gap": 65,
+          "stop": 1000,
+          "target": 382,
+          "stop_gap": 129
+        },
+        "portfolio": {
+          "periods": 218,
+          "mean_return": 0.0002,
+          "median_return": -0.0006,
+          "win_rate_pct": 48.6,
+          "annualized_sharpe": 0.03,
+          "compounded_return": -0.0194,
+          "max_drawdown": -0.2794
+        }
+      },
+      {
+        "combination": "balanced_technical",
+        "atr_multiple": 2.0,
+        "target_r": 2.0,
+        "cost_bps": 20,
+        "position_risk_pct": 0.5,
+        "total_risk_cap_pct": 4.0,
+        "max_position_pct": 10.0,
+        "trades": 2353,
+        "average_r": -43.338,
+        "median_r": -0.136,
+        "trade_win_rate_pct": 46.7,
+        "average_position_pct": 7.37,
+        "average_holding_days": 7.7,
+        "exit_reasons": {
+          "time": 1198,
+          "target": 234,
+          "stop": 782,
+          "stop_gap": 105,
+          "target_gap": 34
+        },
+        "portfolio": {
+          "periods": 218,
+          "mean_return": 0.0003,
+          "median_return": 0.0016,
+          "win_rate_pct": 52.3,
+          "annualized_sharpe": 0.05,
+          "compounded_return": 0.0096,
+          "max_drawdown": -0.2715
+        }
+      },
+      {
+        "combination": "balanced_technical",
+        "atr_multiple": 2.5,
+        "target_r": 2.0,
+        "cost_bps": 20,
+        "position_risk_pct": 0.5,
+        "total_risk_cap_pct": 4.0,
+        "max_position_pct": 10.0,
+        "trades": 2353,
+        "average_r": -34.66,
+        "median_r": -0.011,
+        "trade_win_rate_pct": 49.6,
+        "average_position_pct": 6.33,
+        "average_holding_days": 8.5,
+        "exit_reasons": {
+          "time": 1552,
+          "target": 117,
+          "stop": 585,
+          "target_gap": 19,
+          "stop_gap": 80
+        },
+        "portfolio": {
+          "periods": 218,
+          "mean_return": 0.0006,
+          "median_return": 0.0027,
+          "win_rate_pct": 54.6,
+          "annualized_sharpe": 0.11,
+          "compounded_return": 0.1003,
+          "max_drawdown": -0.2729
+        }
+      }
+    ],
+    "validation": [
+      {
+        "combination": "trend_confluence",
+        "atr_multiple": 1.5,
+        "target_r": 2.0,
+        "cost_bps": 20,
+        "position_risk_pct": 0.5,
+        "total_risk_cap_pct": 4.0,
+        "max_position_pct": 10.0,
+        "trades": 141,
+        "average_r": 0.274,
+        "median_r": 0.01,
+        "trade_win_rate_pct": 50.4,
+        "average_position_pct": 6.54,
+        "average_holding_days": 6.4,
+        "exit_reasons": {
+          "target": 35,
+          "time": 47,
+          "stop": 46,
+          "stop_gap": 8,
+          "target_gap": 5
+        },
+        "portfolio": {
+          "periods": 10,
+          "mean_return": 0.0119,
+          "median_return": 0.0148,
+          "win_rate_pct": 70.0,
+          "annualized_sharpe": 1.46,
+          "compounded_return": 0.1214,
+          "max_drawdown": -0.0347
+        }
+      },
+      {
+        "combination": "trend_confluence",
+        "atr_multiple": 2.0,
+        "target_r": 2.0,
+        "cost_bps": 20,
+        "position_risk_pct": 0.5,
+        "total_risk_cap_pct": 4.0,
+        "max_position_pct": 10.0,
+        "trades": 141,
+        "average_r": 0.207,
+        "median_r": 0.032,
+        "trade_win_rate_pct": 52.5,
+        "average_position_pct": 5.19,
+        "average_holding_days": 7.7,
+        "exit_reasons": {
+          "target": 19,
+          "time": 74,
+          "stop": 41,
+          "stop_gap": 4,
+          "target_gap": 3
+        },
+        "portfolio": {
+          "periods": 10,
+          "mean_return": 0.0092,
+          "median_return": 0.0107,
+          "win_rate_pct": 70.0,
+          "annualized_sharpe": 1.37,
+          "compounded_return": 0.0933,
+          "max_drawdown": -0.0316
+        }
+      },
+      {
+        "combination": "trend_confluence",
+        "atr_multiple": 2.5,
+        "target_r": 2.0,
+        "cost_bps": 20,
+        "position_risk_pct": 0.5,
+        "total_risk_cap_pct": 4.0,
+        "max_position_pct": 10.0,
+        "trades": 141,
+        "average_r": 0.162,
+        "median_r": 0.055,
+        "trade_win_rate_pct": 53.9,
+        "average_position_pct": 4.19,
+        "average_holding_days": 8.3,
+        "exit_reasons": {
+          "time": 96,
+          "stop": 32,
+          "target": 7,
+          "stop_gap": 3,
+          "target_gap": 3
+        },
+        "portfolio": {
+          "periods": 10,
+          "mean_return": 0.0073,
+          "median_return": 0.0105,
+          "win_rate_pct": 70.0,
+          "annualized_sharpe": 1.25,
+          "compounded_return": 0.0733,
+          "max_drawdown": -0.0294
+        }
+      },
+      {
+        "combination": "breakout_confirmation",
+        "atr_multiple": 1.5,
+        "target_r": 2.0,
+        "cost_bps": 20,
+        "position_risk_pct": 0.5,
+        "total_risk_cap_pct": 4.0,
+        "max_position_pct": 10.0,
+        "trades": 141,
+        "average_r": 0.231,
+        "median_r": -0.058,
+        "trade_win_rate_pct": 48.9,
+        "average_position_pct": 7.92,
+        "average_holding_days": 5.8,
+        "exit_reasons": {
+          "time": 39,
+          "target": 34,
+          "target_gap": 8,
+          "stop": 53,
+          "stop_gap": 7
+        },
+        "portfolio": {
+          "periods": 10,
+          "mean_return": 0.0084,
+          "median_return": 0.0131,
+          "win_rate_pct": 70.0,
+          "annualized_sharpe": 1.04,
+          "compounded_return": 0.0834,
+          "max_drawdown": -0.048
+        }
+      },
+      {
+        "combination": "breakout_confirmation",
+        "atr_multiple": 2.0,
+        "target_r": 2.0,
+        "cost_bps": 20,
+        "position_risk_pct": 0.5,
+        "total_risk_cap_pct": 4.0,
+        "max_position_pct": 10.0,
+        "trades": 141,
+        "average_r": 0.149,
+        "median_r": -0.014,
+        "trade_win_rate_pct": 49.6,
+        "average_position_pct": 6.45,
+        "average_holding_days": 7.7,
+        "exit_reasons": {
+          "time": 68,
+          "stop": 44,
+          "target": 21,
+          "stop_gap": 5,
+          "target_gap": 3
+        },
+        "portfolio": {
+          "periods": 10,
+          "mean_return": 0.0059,
+          "median_return": 0.0069,
+          "win_rate_pct": 70.0,
+          "annualized_sharpe": 1.01,
+          "compounded_return": 0.0587,
+          "max_drawdown": -0.0314
+        }
+      },
+      {
+        "combination": "breakout_confirmation",
+        "atr_multiple": 2.5,
+        "target_r": 2.0,
+        "cost_bps": 20,
+        "position_risk_pct": 0.5,
+        "total_risk_cap_pct": 4.0,
+        "max_position_pct": 10.0,
+        "trades": 141,
+        "average_r": 0.083,
+        "median_r": -0.011,
+        "trade_win_rate_pct": 49.6,
+        "average_position_pct": 5.26,
+        "average_holding_days": 8.5,
+        "exit_reasons": {
+          "time": 92,
+          "stop": 35,
+          "target": 7,
+          "stop_gap": 3,
+          "target_gap": 4
+        },
+        "portfolio": {
+          "periods": 10,
+          "mean_return": 0.0034,
+          "median_return": 0.007,
+          "win_rate_pct": 60.0,
+          "annualized_sharpe": 0.76,
+          "compounded_return": 0.0338,
+          "max_drawdown": -0.0262
+        }
+      },
+      {
+        "combination": "balanced_technical",
+        "atr_multiple": 1.5,
+        "target_r": 2.0,
+        "cost_bps": 20,
+        "position_risk_pct": 0.5,
+        "total_risk_cap_pct": 4.0,
+        "max_position_pct": 10.0,
+        "trades": 141,
+        "average_r": 0.257,
+        "median_r": 0.042,
+        "trade_win_rate_pct": 51.8,
+        "average_position_pct": 7.45,
+        "average_holding_days": 6.2,
+        "exit_reasons": {
+          "target": 33,
+          "time": 45,
+          "stop": 51,
+          "stop_gap": 5,
+          "target_gap": 7
+        },
+        "portfolio": {
+          "periods": 10,
+          "mean_return": 0.0104,
+          "median_return": 0.011,
+          "win_rate_pct": 60.0,
+          "annualized_sharpe": 1.46,
+          "compounded_return": 0.1064,
+          "max_drawdown": -0.0275
+        }
+      },
+      {
+        "combination": "balanced_technical",
+        "atr_multiple": 2.0,
+        "target_r": 2.0,
+        "cost_bps": 20,
+        "position_risk_pct": 0.5,
+        "total_risk_cap_pct": 4.0,
+        "max_position_pct": 10.0,
+        "trades": 141,
+        "average_r": 0.189,
+        "median_r": 0.055,
+        "trade_win_rate_pct": 53.2,
+        "average_position_pct": 6.09,
+        "average_holding_days": 7.4,
+        "exit_reasons": {
+          "time": 68,
+          "target": 21,
+          "stop": 45,
+          "stop_gap": 3,
+          "target_gap": 4
+        },
+        "portfolio": {
+          "periods": 10,
+          "mean_return": 0.0076,
+          "median_return": 0.0069,
+          "win_rate_pct": 60.0,
+          "annualized_sharpe": 1.27,
+          "compounded_return": 0.0762,
+          "max_drawdown": -0.0317
+        }
+      },
+      {
+        "combination": "balanced_technical",
+        "atr_multiple": 2.5,
+        "target_r": 2.0,
+        "cost_bps": 20,
+        "position_risk_pct": 0.5,
+        "total_risk_cap_pct": 4.0,
+        "max_position_pct": 10.0,
+        "trades": 141,
+        "average_r": 0.156,
+        "median_r": 0.063,
+        "trade_win_rate_pct": 54.6,
+        "average_position_pct": 4.97,
+        "average_holding_days": 8.0,
+        "exit_reasons": {
+          "time": 89,
+          "stop": 37,
+          "target": 11,
+          "stop_gap": 2,
+          "target_gap": 2
+        },
+        "portfolio": {
+          "periods": 10,
+          "mean_return": 0.0063,
+          "median_return": 0.0071,
+          "win_rate_pct": 60.0,
+          "annualized_sharpe": 1.17,
+          "compounded_return": 0.0632,
+          "max_drawdown": -0.0291
+        }
+      }
+    ],
+    "forward_test": [
+      {
+        "combination": "trend_confluence",
+        "atr_multiple": 1.5,
+        "target_r": 2.0,
+        "cost_bps": 20,
+        "position_risk_pct": 0.5,
+        "total_risk_cap_pct": 4.0,
+        "max_position_pct": 10.0,
+        "trades": 96,
+        "average_r": -0.053,
+        "median_r": -0.234,
+        "trade_win_rate_pct": 40.6,
+        "average_position_pct": 4.28,
+        "average_holding_days": 6.4,
+        "exit_reasons": {
+          "time": 36,
+          "target": 16,
+          "stop": 33,
+          "stop_gap": 10,
+          "target_gap": 1
+        },
+        "portfolio": {
+          "periods": 6,
+          "mean_return": -0.0017,
+          "median_return": -0.0047,
+          "win_rate_pct": 50.0,
+          "annualized_sharpe": -0.23,
+          "compounded_return": -0.0116,
+          "max_drawdown": -0.0301
+        }
+      },
+      {
+        "combination": "trend_confluence",
+        "atr_multiple": 2.0,
+        "target_r": 2.0,
+        "cost_bps": 20,
+        "position_risk_pct": 0.5,
+        "total_risk_cap_pct": 4.0,
+        "max_position_pct": 10.0,
+        "trades": 96,
+        "average_r": 0.001,
+        "median_r": -0.067,
+        "trade_win_rate_pct": 43.8,
+        "average_position_pct": 3.22,
+        "average_holding_days": 7.8,
+        "exit_reasons": {
+          "time": 54,
+          "stop": 27,
+          "stop_gap": 5,
+          "target": 8,
+          "target_gap": 2
+        },
+        "portfolio": {
+          "periods": 6,
+          "mean_return": 0.0001,
+          "median_return": -0.0005,
+          "win_rate_pct": 50.0,
+          "annualized_sharpe": 0.01,
+          "compounded_return": -0.0006,
+          "max_drawdown": -0.0243
+        }
+      },
+      {
+        "combination": "trend_confluence",
+        "atr_multiple": 2.5,
+        "target_r": 2.0,
+        "cost_bps": 20,
+        "position_risk_pct": 0.5,
+        "total_risk_cap_pct": 4.0,
+        "max_position_pct": 10.0,
+        "trades": 96,
+        "average_r": 0.026,
+        "median_r": -0.038,
+        "trade_win_rate_pct": 43.8,
+        "average_position_pct": 2.57,
+        "average_holding_days": 8.6,
+        "exit_reasons": {
+          "time": 68,
+          "stop": 16,
+          "stop_gap": 4,
+          "target": 6,
+          "target_gap": 2
+        },
+        "portfolio": {
+          "periods": 6,
+          "mean_return": 0.001,
+          "median_return": 0.0001,
+          "win_rate_pct": 50.0,
+          "annualized_sharpe": 0.19,
+          "compounded_return": 0.0053,
+          "max_drawdown": -0.0198
+        }
+      },
+      {
+        "combination": "breakout_confirmation",
+        "atr_multiple": 1.5,
+        "target_r": 2.0,
+        "cost_bps": 20,
+        "position_risk_pct": 0.5,
+        "total_risk_cap_pct": 4.0,
+        "max_position_pct": 10.0,
+        "trades": 96,
+        "average_r": 0.024,
+        "median_r": -0.07,
+        "trade_win_rate_pct": 46.9,
+        "average_position_pct": 5.74,
+        "average_holding_days": 6.8,
+        "exit_reasons": {
+          "time": 38,
+          "stop_gap": 8,
+          "target": 17,
+          "target_gap": 2,
+          "stop": 31
+        },
+        "portfolio": {
+          "periods": 6,
+          "mean_return": 0.0014,
+          "median_return": 0.0037,
+          "win_rate_pct": 66.7,
+          "annualized_sharpe": 0.33,
+          "compounded_return": 0.0081,
+          "max_drawdown": -0.0261
+        }
+      },
+      {
+        "combination": "breakout_confirmation",
+        "atr_multiple": 2.0,
+        "target_r": 2.0,
+        "cost_bps": 20,
+        "position_risk_pct": 0.5,
+        "total_risk_cap_pct": 4.0,
+        "max_position_pct": 10.0,
+        "trades": 96,
+        "average_r": 0.012,
+        "median_r": -0.023,
+        "trade_win_rate_pct": 49.0,
+        "average_position_pct": 4.44,
+        "average_holding_days": 7.9,
+        "exit_reasons": {
+          "time": 54,
+          "stop_gap": 6,
+          "target": 10,
+          "target_gap": 1,
+          "stop": 25
+        },
+        "portfolio": {
+          "periods": 6,
+          "mean_return": 0.0006,
+          "median_return": 0.0049,
+          "win_rate_pct": 66.7,
+          "annualized_sharpe": 0.17,
+          "compounded_return": 0.0034,
+          "max_drawdown": -0.0224
+        }
+      },
+      {
+        "combination": "breakout_confirmation",
+        "atr_multiple": 2.5,
+        "target_r": 2.0,
+        "cost_bps": 20,
+        "position_risk_pct": 0.5,
+        "total_risk_cap_pct": 4.0,
+        "max_position_pct": 10.0,
+        "trades": 96,
+        "average_r": 0.044,
+        "median_r": 0.003,
+        "trade_win_rate_pct": 50.0,
+        "average_position_pct": 3.66,
+        "average_holding_days": 8.5,
+        "exit_reasons": {
+          "time": 67,
+          "stop_gap": 7,
+          "target": 8,
+          "stop": 14
+        },
+        "portfolio": {
+          "periods": 6,
+          "mean_return": 0.002,
+          "median_return": 0.004,
+          "win_rate_pct": 66.7,
+          "annualized_sharpe": 0.58,
+          "compounded_return": 0.0119,
+          "max_drawdown": -0.0201
+        }
+      },
+      {
+        "combination": "balanced_technical",
+        "atr_multiple": 1.5,
+        "target_r": 2.0,
+        "cost_bps": 20,
+        "position_risk_pct": 0.5,
+        "total_risk_cap_pct": 4.0,
+        "max_position_pct": 10.0,
+        "trades": 96,
+        "average_r": 0.018,
+        "median_r": -0.143,
+        "trade_win_rate_pct": 40.6,
+        "average_position_pct": 5.27,
+        "average_holding_days": 6.8,
+        "exit_reasons": {
+          "stop_gap": 7,
+          "time": 44,
+          "stop": 28,
+          "target": 16,
+          "target_gap": 1
+        },
+        "portfolio": {
+          "periods": 6,
+          "mean_return": 0.0004,
+          "median_return": -0.0067,
+          "win_rate_pct": 33.3,
+          "annualized_sharpe": 0.07,
+          "compounded_return": 0.0015,
+          "max_drawdown": -0.0259
+        }
+      },
+      {
+        "combination": "balanced_technical",
+        "atr_multiple": 2.0,
+        "target_r": 2.0,
+        "cost_bps": 20,
+        "position_risk_pct": 0.5,
+        "total_risk_cap_pct": 4.0,
+        "max_position_pct": 10.0,
+        "trades": 96,
+        "average_r": 0.041,
+        "median_r": -0.062,
+        "trade_win_rate_pct": 42.7,
+        "average_position_pct": 4.06,
+        "average_holding_days": 7.8,
+        "exit_reasons": {
+          "stop_gap": 5,
+          "time": 55,
+          "stop": 25,
+          "target": 9,
+          "target_gap": 2
+        },
+        "portfolio": {
+          "periods": 6,
+          "mean_return": 0.0011,
+          "median_return": -0.0049,
+          "win_rate_pct": 33.3,
+          "annualized_sharpe": 0.29,
+          "compounded_return": 0.0062,
+          "max_drawdown": -0.0162
+        }
+      },
+      {
+        "combination": "balanced_technical",
+        "atr_multiple": 2.5,
+        "target_r": 2.0,
+        "cost_bps": 20,
+        "position_risk_pct": 0.5,
+        "total_risk_cap_pct": 4.0,
+        "max_position_pct": 10.0,
+        "trades": 96,
+        "average_r": 0.073,
+        "median_r": -0.038,
+        "trade_win_rate_pct": 42.7,
+        "average_position_pct": 3.33,
+        "average_holding_days": 8.5,
+        "exit_reasons": {
+          "stop_gap": 4,
+          "time": 68,
+          "stop": 14,
+          "target": 8,
+          "target_gap": 2
+        },
+        "portfolio": {
+          "periods": 6,
+          "mean_return": 0.0024,
+          "median_return": -0.0027,
+          "win_rate_pct": 33.3,
+          "annualized_sharpe": 0.63,
+          "compounded_return": 0.0143,
+          "max_drawdown": -0.0146
+        }
+      }
+    ]
+  },
   "limitations": [
     "Deterministic sample, not yet a complete point-in-time US universe",
     "No historical sector classifications, so results are not sector-neutralized",
     "Roll spread proxy rather than historical quotes",
-    "Cost scenarios are fixed haircuts, not security-specific slippage",
+    "Daily bars cannot reveal intraday path; bars touching stop and target are conservatively counted as stop-first",
     "No fundamentals, options walls, borrow costs, or portfolio beta hedging"
   ],
   "decision": "Use development to form hypotheses, validation to accept or reject them, and forward test only as an untouched monitor. No live capital authorization."
