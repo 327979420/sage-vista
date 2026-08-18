@@ -18,7 +18,14 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Northstar — US Equity Signals",
     description: "Explainable quantitative research for a 1–4 week horizon.",
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Northstar US Equity Signals" }],
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        alt: "Northstar US Equity Signals",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
@@ -42,7 +49,14 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className="globalnav"><a href="/">Signal board</a><a href="/technical">Technical lab</a><a href="/research">Factor research</a><a href="/efficiency">Trade efficiency</a><a href="/data-quality">Data quality</a></div>
+        <div className="globalnav">
+          <a href="/zh">中文交易洞察</a>
+          <a href="/">Signal board</a>
+          <a href="/technical">Technical lab</a>
+          <a href="/research">Factor research</a>
+          <a href="/efficiency">Trade efficiency</a>
+          <a href="/data-quality">Data quality</a>
+        </div>
         {children}
       </body>
     </html>
