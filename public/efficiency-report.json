@@ -1,36 +1,38 @@
 {
   "status": "research_only",
-  "method": "Long entries at next daily open; fixed-horizon scenarios honor the structural stop and ignore the original target",
+  "method": "Signals form at the daily close and enter at the next open; long trades require SPY above its 200-day EMA; fixed-horizon scenarios honor the structural stop and ignore the original target",
   "overall": {
-    "count": 33,
-    "average_realized_r": -0.133,
-    "average_holding_bars": 10.4,
-    "average_entry_gap_bps": -11.0,
-    "average_missed_profit_r": 0.971,
-    "mfe_capture_pct": 83.3,
+    "count": 26,
+    "average_realized_r": -0.148,
+    "average_holding_bars": 10.1,
+    "average_entry_gap_bps": 1.0,
+    "average_missed_profit_r": 0.92,
+    "mfe_capture_pct": 88.5,
     "exit_scenarios": {
-      "5": -0.055,
-      "10": -0.094,
-      "15": -0.116,
-      "20": -0.14
+      "5": -0.153,
+      "10": -0.149,
+      "15": -0.104,
+      "20": -0.142
     }
   },
   "by_symbol": {
     "TSLA": {
-      "count": 6,
-      "average_holding_bars": 11.3,
-      "average_entry_gap_bps": -92.2,
-      "average_missed_profit_r": 1.11,
+      "count": 5,
+      "average_realized_r": -0.375,
+      "average_holding_bars": 11.6,
+      "average_entry_gap_bps": -63.9,
+      "average_missed_profit_r": 0.989,
       "mfe_capture_pct": 85.4,
       "exit_scenarios": {
-        "5": -0.125,
-        "10": -0.452,
-        "15": -0.448,
-        "20": -0.48
+        "5": -0.196,
+        "10": -0.342,
+        "15": -0.337,
+        "20": -0.375
       }
     },
     "MU": {
       "count": 5,
+      "average_realized_r": -0.63,
       "average_holding_bars": 7.0,
       "average_entry_gap_bps": 12.8,
       "average_missed_profit_r": 0.972,
@@ -43,33 +45,36 @@
       }
     },
     "LLY": {
-      "count": 8,
-      "average_holding_bars": 9.9,
-      "average_entry_gap_bps": -73.5,
-      "average_missed_profit_r": 1.271,
-      "mfe_capture_pct": 54.4,
+      "count": 4,
+      "average_realized_r": -0.845,
+      "average_holding_bars": 6.0,
+      "average_entry_gap_bps": -33.9,
+      "average_missed_profit_r": 1.288,
+      "mfe_capture_pct": 0,
       "exit_scenarios": {
-        "5": 0.204,
-        "10": -0.148,
-        "15": -0.558,
-        "20": -0.604
+        "5": -0.348,
+        "10": -0.845,
+        "15": -0.748,
+        "20": -0.848
       }
     },
     "CAT": {
-      "count": 5,
-      "average_holding_bars": 10.8,
-      "average_entry_gap_bps": 113.7,
-      "average_missed_profit_r": 0.689,
+      "count": 3,
+      "average_realized_r": 0.852,
+      "average_holding_bars": 13.0,
+      "average_entry_gap_bps": 90.1,
+      "average_missed_profit_r": 0.676,
       "mfe_capture_pct": 100.0,
       "exit_scenarios": {
-        "5": 0.291,
-        "10": 0.665,
-        "15": 1.414,
-        "20": 1.331
+        "5": 0.849,
+        "10": 1.255,
+        "15": 1.912,
+        "20": 1.718
       }
     },
     "UBER": {
       "count": 6,
+      "average_realized_r": -0.157,
       "average_holding_bars": 11.2,
       "average_entry_gap_bps": 80.7,
       "average_missed_profit_r": 0.917,
@@ -83,6 +88,7 @@
     },
     "CROX": {
       "count": 3,
+      "average_realized_r": 0.981,
       "average_holding_bars": 13.3,
       "average_entry_gap_bps": -112.7,
       "average_missed_profit_r": 0.474,
@@ -210,33 +216,6 @@
         "price at rising EMA50 demand",
         "bullish engulfing candle",
         "bullish RSI price divergence"
-      ]
-    },
-    {
-      "symbol": "TSLA",
-      "date": "10/06/2023",
-      "exit_date": "10/19/2023",
-      "entry": 253.98,
-      "stop": 233.08,
-      "target": 292.23,
-      "exit": 233.08,
-      "r": -1.0,
-      "reason": "structure stop",
-      "bars": 10,
-      "entry_gap_bps": -233.4,
-      "mfe_r": 0.716,
-      "mae_r": -0.569,
-      "missed_profit_r": 1.716,
-      "fixed_horizon_r": {
-        "5": 0.234,
-        "10": -1.0,
-        "15": -1.0,
-        "20": -1.0
-      },
-      "reasons": [
-        "price at rising EMA50 demand",
-        "MACD bullish cross",
-        "bullish engulfing candle"
       ]
     },
     {
@@ -459,137 +438,29 @@
     },
     {
       "symbol": "LLY",
-      "date": "12/31/2018",
-      "exit_date": "01/14/2019",
-      "entry": 114.34,
-      "stop": 105.18,
-      "target": 132.65,
-      "exit": 114.68,
-      "r": 0.037,
+      "date": "08/19/2022",
+      "exit_date": "09/01/2022",
+      "entry": 317.51,
+      "stop": 295.48,
+      "target": 361.57,
+      "exit": 309.13,
+      "r": -0.38,
       "reason": "10-bar no-expansion exit",
       "bars": 10,
-      "entry_gap_bps": 12.3,
-      "mfe_r": 0.424,
-      "mae_r": -0.354,
-      "missed_profit_r": 0.386,
+      "entry_gap_bps": 24.9,
+      "mfe_r": 0.375,
+      "mae_r": -0.772,
+      "missed_profit_r": 0.755,
       "fixed_horizon_r": {
-        "5": 0.103,
-        "10": 0.037,
-        "15": 0.3,
-        "20": 0.15
-      },
-      "reasons": [
-        "price at rising EMA50 demand",
-        "MACD bullish cross",
-        "double-bottom neckline break"
-      ]
-    },
-    {
-      "symbol": "LLY",
-      "date": "03/09/2020",
-      "exit_date": "03/20/2020",
-      "entry": 134.02,
-      "stop": 120.69,
-      "target": 160.68,
-      "exit": 120.69,
-      "r": -1.0,
-      "reason": "structure stop",
-      "bars": 10,
-      "entry_gap_bps": -525.9,
-      "mfe_r": 0.749,
-      "mae_r": -0.607,
-      "missed_profit_r": 1.749,
-      "fixed_horizon_r": {
-        "5": 0.401,
-        "10": -1.0,
-        "15": -1.0,
-        "20": -1.0
+        "5": 0.256,
+        "10": -0.38,
+        "15": 0.009,
+        "20": -0.391
       },
       "reasons": [
         "price at rising EMA50 demand",
         "MACD bullish cross",
         "bullish engulfing candle"
-      ]
-    },
-    {
-      "symbol": "LLY",
-      "date": "05/23/2022",
-      "exit_date": "06/21/2022",
-      "entry": 300.6,
-      "stop": 280.22,
-      "target": 341.36,
-      "exit": 297.34,
-      "r": -0.16,
-      "reason": "20-bar maximum hold",
-      "bars": 20,
-      "entry_gap_bps": 58.6,
-      "mfe_r": 1.152,
-      "mae_r": -0.858,
-      "missed_profit_r": 1.312,
-      "fixed_horizon_r": {
-        "5": 1.123,
-        "10": 0.135,
-        "15": -0.457,
-        "20": -0.16
-      },
-      "reasons": [
-        "price at rising EMA50 demand",
-        "MACD bullish cross",
-        "double-bottom neckline break"
-      ]
-    },
-    {
-      "symbol": "LLY",
-      "date": "08/09/2022",
-      "exit_date": "08/19/2022",
-      "entry": 305.09,
-      "stop": 295.32,
-      "target": 320.98,
-      "exit": 320.98,
-      "r": 1.626,
-      "reason": "target",
-      "bars": 9,
-      "entry_gap_bps": 85.6,
-      "mfe_r": 1.588,
-      "mae_r": -0.559,
-      "missed_profit_r": 0,
-      "fixed_horizon_r": {
-        "5": 0.906,
-        "10": 1.843,
-        "15": 0.518,
-        "20": 0.177
-      },
-      "reasons": [
-        "pullback in 50\u201361.8% retracement zone",
-        "bullish engulfing candle",
-        "high-volume liquidity rejection"
-      ]
-    },
-    {
-      "symbol": "LLY",
-      "date": "12/16/2022",
-      "exit_date": "01/10/2023",
-      "entry": 357.93,
-      "stop": 348.08,
-      "target": 372.74,
-      "exit": 348.08,
-      "r": -1.0,
-      "reason": "structure stop",
-      "bars": 16,
-      "entry_gap_bps": -57.8,
-      "mfe_r": 1.322,
-      "mae_r": -0.928,
-      "missed_profit_r": 2.322,
-      "fixed_horizon_r": {
-        "5": 0.749,
-        "10": 0.803,
-        "15": -0.822,
-        "20": -1.0
-      },
-      "reasons": [
-        "price at rising EMA50 demand",
-        "bullish engulfing candle",
-        "high-volume liquidity rejection"
       ]
     },
     {
@@ -640,33 +511,6 @@
         "10": 1.566,
         "15": 4.18,
         "20": 4.401
-      },
-      "reasons": [
-        "price at rising EMA50 demand",
-        "bullish engulfing candle",
-        "high-volume liquidity rejection"
-      ]
-    },
-    {
-      "symbol": "CAT",
-      "date": "01/26/2022",
-      "exit_date": "01/28/2022",
-      "entry": 215.0,
-      "stop": 205.72,
-      "target": 229.64,
-      "exit": 205.72,
-      "r": -1.0,
-      "reason": "structure stop",
-      "bars": 3,
-      "entry_gap_bps": 32.2,
-      "mfe_r": 0.418,
-      "mae_r": -0.523,
-      "missed_profit_r": 1.418,
-      "fixed_horizon_r": {
-        "5": -1.0,
-        "10": -1.0,
-        "15": -1.0,
-        "20": -1.0
       },
       "reasons": [
         "price at rising EMA50 demand",
@@ -727,33 +571,6 @@
         "price at rising EMA50 demand",
         "MACD bullish cross",
         "bullish RSI price divergence"
-      ]
-    },
-    {
-      "symbol": "CAT",
-      "date": "03/23/2026",
-      "exit_date": "04/08/2026",
-      "entry": 699.0,
-      "stop": 659.26,
-      "target": 762.0,
-      "exit": 762.0,
-      "r": 1.585,
-      "reason": "target",
-      "bars": 12,
-      "entry_gap_bps": 266.1,
-      "mfe_r": 1.032,
-      "mae_r": -0.866,
-      "missed_profit_r": 0,
-      "fixed_horizon_r": {
-        "5": -0.091,
-        "10": 0.56,
-        "15": 2.333,
-        "20": 2.501
-      },
-      "reasons": [
-        "price at rising EMA50 demand",
-        "bullish engulfing candle",
-        "high-volume liquidity rejection"
       ]
     },
     {

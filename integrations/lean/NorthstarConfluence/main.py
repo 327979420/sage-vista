@@ -7,7 +7,7 @@ class NorthstarConfluence(QCAlgorithm):
         ticker=self.get_parameter("symbol") or "SPY";self.symbol=self.add_equity(ticker,Resolution.DAILY).symbol
         self.ema50=self.ema(self.symbol,50,Resolution.DAILY);self.ema200=self.ema(self.symbol,200,Resolution.DAILY)
         self.rsi=self.rsi(self.symbol,14,MovingAverageType.WILDERS,Resolution.DAILY);self.macd=self.macd(self.symbol,12,26,9,MovingAverageType.EXPONENTIAL,Resolution.DAILY);self.atr=self.atr(self.symbol,14,MovingAverageType.WILDERS,Resolution.DAILY)
-        self.set_warm_up(220,Resolution.DAILY);self.entry_bar=None;self.entry_price=None;self.stop_price=None;self.target_price=None;self.max_r=0
+        self.set_warm_up(220,Resolution.DAILY);self.entry_bar=None;self.entry_price=None;self.stop_price=None;self.target_price=None;self.max_r=0;self.pending_stop=None;self.pending_quantity=0
     def on_data(self,data):
         if self.is_warming_up or not data.contains_key(self.symbol):return
         bar=data[self.symbol];invested=self.portfolio[self.symbol].invested
@@ -23,5 +23,13 @@ class NorthstarConfluence(QCAlgorithm):
         if risk<=0 or risk/bar.close>.12:return
         quantity=min(int(self.portfolio.total_portfolio_value*.0075/risk),int(self.portfolio.total_portfolio_value*.20/bar.close))
         if quantity<=0:return
-        ticket=self.market_order(self.symbol,quantity);self.entry_price=bar.close;self.stop_price=stop;self.target_price=bar.close+2*risk;self.entry_bar=self.time.date();self.max_r=0
-        self.stop_market_order(self.symbol,-quantity,stop,"Structure stop");self.limit_order(self.symbol,-quantity,self.target_price,"2R target")
+        self.pending_stop=stop;self.pending_quantity=quantity
+        self.market_on_open_order(self.symbol,quantity,"Signal at close; execute next open")
+    def on_order_event(self,order_event):
+        if order_event.status!=OrderStatus.FILLED or order_event.direction!=OrderDirection.BUY:return
+        self.entry_price=order_event.fill_price;self.stop_price=self.pending_stop;self.entry_bar=self.time.date();self.max_r=0
+        risk=self.entry_price-self.stop_price
+        if risk<=0:self.liquidate(self.symbol,"Invalid next-open gap");return
+        self.target_price=self.entry_price+2*risk
+        self.stop_market_order(self.symbol,-self.pending_quantity,self.stop_price,"Structure stop")
+        self.limit_order(self.symbol,-self.pending_quantity,self.target_price,"2R target")

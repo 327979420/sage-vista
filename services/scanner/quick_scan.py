@@ -1,4 +1,4 @@
-import json,urllib.request
+import json,urllib.parse,urllib.request
 from concurrent.futures import ThreadPoolExecutor,as_completed
 from pathlib import Path
 from .detectors import detect_bos,detect_retest,detect_w_bottom,load_config
@@ -6,11 +6,23 @@ from .fetch_nasdaq import fetch
 from .technical import atr,ema,position_size
 
 HEAD={"User-Agent":"Mozilla/5.0","Accept":"application/json, text/plain, */*"}
+SECTORS=("Technology","Health Care","Financials","Consumer Discretionary","Consumer Staples","Industrials","Energy","Utilities","Real Estate","Telecommunications","Basic Materials")
 def universe(limit=150):
  req=urllib.request.Request(f"https://api.nasdaq.com/api/screener/stocks?tableonly=true&limit={limit}&offset=0",headers=HEAD)
  with urllib.request.urlopen(req,timeout=30) as r:rows=json.load(r)["data"]["table"]["rows"]
  bad=(" ETF"," WARRANT"," Warrant"," Preferred"," Depositary Shares"," Units")
- return [x for x in rows if float(x["lastsale"].replace("$","").replace(",",""))>=5 and not any(k in x["name"] for k in bad)]
+ rows=[x for x in rows if float(x["lastsale"].replace("$","").replace(",",""))>=5 and float((x.get("marketCap") or "0").replace(",",""))>=300_000_000 and not any(k in x["name"] for k in bad)]
+ wanted={x["symbol"] for x in rows};sector_map={}
+ for sector in SECTORS:
+  q=urllib.parse.urlencode({"tableonly":"true","limit":10000,"offset":0,"sector":sector})
+  try:
+   req=urllib.request.Request(f"https://api.nasdaq.com/api/screener/stocks?{q}",headers=HEAD)
+   with urllib.request.urlopen(req,timeout=30) as r:sector_rows=json.load(r)["data"]["table"]["rows"]
+   for x in sector_rows:
+    if x["symbol"] in wanted:sector_map[x["symbol"]]=sector
+  except Exception:continue
+ for x in rows:x["sector"]=sector_map.get(x["symbol"],"Unclassified")
+ return rows
 
 def inspect(meta):
  symbol=meta["symbol"]

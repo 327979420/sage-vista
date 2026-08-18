@@ -1,5 +1,5 @@
 import unittest
-from services.scanner.research_pipeline import classify_factor,factor_values,rank,spearman
+from services.scanner.research_pipeline import classify_factor,factor_values,neutralize_by_sector,rank,spearman
 class ResearchTests(unittest.TestCase):
  def test_rank_ties(self):self.assertEqual(rank([2,1,2]),[2.5,1,2.5])
  def test_spearman(self):self.assertAlmostEqual(spearman([1,2,3],[10,20,30]),1)
@@ -10,4 +10,12 @@ class ResearchTests(unittest.TestCase):
   good=lambda ic,pct:{"factor":"x","horizon":60,"mean_ic":ic,"ic_positive_pct":pct}
   self.assertEqual(classify_factor([good(.04,60)],[good(.03,58)],[],"x"),"promising")
   self.assertEqual(classify_factor([good(.04,60)],[good(-.03,40)],[],"x"),"unstable")
+ def test_sector_neutralization_centers_each_bucket(self):
+  panel=[]
+  for sector,offset in (("Tech",100),("Health",0)):
+   for i in range(5):panel.append({"date":"2025-01-31","sector":sector,"factors":{f:(offset+i) for f in __import__('services.scanner.research_pipeline',fromlist=['FACTORS']).FACTORS}})
+  neutralize_by_sector(panel)
+  for sector in ("Tech","Health"):
+   values=[x["factors"]["momentum_12_1"] for x in panel if x["sector"]==sector]
+   self.assertAlmostEqual(sum(values),0)
 if __name__=="__main__":unittest.main()

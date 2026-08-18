@@ -40,9 +40,9 @@ def _swing_lows(rows,end,window=45):
         if rows[i]["low"]<rows[i-1]["low"] and rows[i]["low"]<=rows[i+1]["low"]: pts.append(i)
     return pts
 
-def evaluate(rows,i,equity=100000,risk_pct=.0075,min_rr=1.5):
+def evaluate(rows,i,equity=100000,risk_pct=.0075,min_rr=1.5,market_regime=None):
     """Evaluate using data through bar i only; execution is next bar open."""
-    if i<220 or i>=len(rows)-1:return None
+    if i<220 or i>=len(rows)-1 or (market_regime is not None and not market_regime.get(rows[i]["date"],False)):return None
     close=[x["close"] for x in rows]; vol=[x["volume"] for x in rows]
     e20,e50,e200=ema(close,20),ema(close,50),ema(close,200); rs=rsi(close); at=atr(rows); ml,ms=macd(close); av=sma(vol,20)
     # Higher-timeframe proxy: strong 200D structure plus rising 50D; never overridden by lower timeframe.
@@ -75,10 +75,10 @@ def evaluate(rows,i,equity=100000,risk_pct=.0075,min_rr=1.5):
     if rr<min_rr:return None
     return Plan(i,round(entry,2),round(stop,2),round(target,2),round(rr,2),"5–20 daily bars; exit at bar 10 if <0.5R progress",position_size(equity,risk_pct,entry,stop),support+list(dict.fromkeys(confirms)),["Options wall unavailable: target uses prior supply/resistance and 2R measured move","Daily-bar research model; 4-hour confirmation deferred"])
 
-def backtest(rows,equity=100000,risk_pct=.0075):
+def backtest(rows,equity=100000,risk_pct=.0075,market_regime=None):
     trades=[]; i=220
     while i<len(rows)-12:
-        p=evaluate(rows,i,equity,risk_pct)
+        p=evaluate(rows,i,equity,risk_pct,market_regime=market_regime)
         if not p:i+=1;continue
         risk=p.entry-p.stop; exit_price=rows[min(i+10,len(rows)-1)]["close"]; reason="10-bar time stop"
         max_r=0;min_r=0
@@ -107,3 +107,7 @@ def trade_efficiency(trades):
     scenarios={h:round(sum(t["fixed_horizon_r"][h] for t in trades)/len(trades),3) for h in ("5","10","15","20")}
     capture=sum(min(1,t["r"]/t["mfe_r"]) for t in winners)/len(winners)*100 if winners else 0
     return {"count":len(trades),"average_realized_r":round(sum(t["r"] for t in trades)/len(trades),3),"average_holding_bars":round(sum(t["bars"] for t in trades)/len(trades),1),"average_entry_gap_bps":round(sum(t["entry_gap_bps"] for t in trades)/len(trades),1),"average_missed_profit_r":round(sum(t["missed_profit_r"] for t in trades)/len(trades),3),"mfe_capture_pct":round(capture,1),"exit_scenarios":scenarios}
+
+def regime_map(market_rows):
+    closes=[x["close"] for x in market_rows];average=ema(closes,200)
+    return {row["date"]:row["close"]>average[i] for i,row in enumerate(market_rows) if i>=199}
