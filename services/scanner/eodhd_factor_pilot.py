@@ -1,4 +1,4 @@
-import hashlib,json,pathlib
+import hashlib,json,pathlib,time
 from concurrent.futures import ThreadPoolExecutor,as_completed
 from datetime import datetime,timezone
 from .audit_eodhd import common
@@ -7,9 +7,13 @@ from .research_pipeline import FACTORS,HORIZONS,evaluate_report,factor_values,is
 from .technical import ema
 
 def stable_sample(rows,n,seed):return sorted(rows,key=lambda x:hashlib.sha256(f"{seed}:{x['Code']}".encode()).hexdigest())[:n]
-def adjusted_rows(code,start="2000-01-01"):
+def adjusted_rows(code,start="2000-01-01",cache_dir="work/eodhd-cache"):
+    cache=pathlib.Path(cache_dir)/f"{code}.json";cache.parent.mkdir(parents=True,exist_ok=True)
+    if cache.exists():raw=json.loads(cache.read_text())
+    else:
+        raw=prices(code,start);cache.write_text(json.dumps(raw));time.sleep(.03)
     out=[]
-    for x in prices(code,start):
+    for x in raw:
         if not x.get("close") or not x.get("adjusted_close") or x.get("volume") is None:continue
         ratio=x["adjusted_close"]/x["close"]
         out.append({"date":datetime.strptime(x["date"],"%Y-%m-%d").strftime("%m/%d/%Y"),"open":x["open"]*ratio,"high":x["high"]*ratio,"low":x["low"]*ratio,"close":x["adjusted_close"],"volume":int(x["volume"])})
@@ -30,7 +34,7 @@ def run(out="public/eodhd-factor-pilot.json",per_group=100):
         for i in monthly_indices(rows):
             adv=sum(x["close"]*x["volume"] for x in rows[i-19:i+1])/20;spread=roll_spread_bps(rows,i)
             if rows[i]["close"]<5 or adv<10_000_000 or spread is None or spread>50 or not regime.get(rows[i]["date"],False):continue
-            fv=factor_values(rows,i,benchmark);fw={h:(rows[i+h]["close"]/rows[i]["close"]-1 if i+h<len(rows) else None) for h in HORIZONS};panel.append({"date":iso(rows[i]["date"]),"symbol":meta["Code"],"listing_status":meta["listing_status"],"factors":fv,"forward":fw});included=True
+            fv=factor_values(rows,i,benchmark);fw={h:(rows[i+h]["close"]/rows[i+1]["open"]-1 if i+1<len(rows) and i+h<len(rows) else None) for h in HORIZONS};panel.append({"date":iso(rows[i]["date"]),"symbol":meta["Code"],"listing_status":meta["listing_status"],"factors":fv,"forward":fw});included=True
         if included:
             if meta["listing_status"]=="active":eligible_active+=1
             else:eligible_delisted+=1

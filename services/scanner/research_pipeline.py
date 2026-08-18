@@ -31,7 +31,8 @@ def factor_values(rows,i,benchmark=None):
  short_vol=stdev_returns(rows,max(1,i-19),i);long_vol=stdev_returns(rows,max(1,i-59),i);prior_high=max(x["high"] for x in rows[i-251:i]) if i>=252 else None
  stock_6m=ret(i-126,i);bench_6m=None
  if benchmark and rows[i-126]["date"] in benchmark and rows[i]["date"] in benchmark:bench_6m=benchmark[rows[i]["date"]]/benchmark[rows[i-126]["date"]]-1
- return {"momentum_12_1":ret(i-252,i-21),"momentum_6_1":ret(i-126,i-21),"momentum_3_1":ret(i-63,i-5),"trend_quality":((rows[i]["close"]/e200[i]-1)+(e50[i]/e200[i]-1)) if i>=200 else None,"low_volatility":-long_vol,"liquidity":math.log(max(adv,1)),"rsi_14":rs[i],"macd_strength":(ml[i]-ms[i])/ats[i] if ats[i] else None,"adx_14":adx(rows[max(0,i-40):i+1]),"volume_expansion":rows[i]["volume"]/(sum(x["volume"] for x in rows[i-20:i])/20) if i>=20 else None,"breakout_252":rows[i]["close"]/prior_high-1 if prior_high else None,"volatility_contraction":-(short_vol/long_vol) if short_vol and long_vol else None,"relative_strength_6m":stock_6m-bench_6m if stock_6m is not None and bench_6m is not None else None}
+ prior_volume=sum(x["volume"] for x in rows[i-20:i])/20 if i>=20 else 0
+ return {"momentum_12_1":ret(i-252,i-21),"momentum_6_1":ret(i-126,i-21),"momentum_3_1":ret(i-63,i-5),"trend_quality":((rows[i]["close"]/e200[i]-1)+(e50[i]/e200[i]-1)) if i>=200 else None,"low_volatility":-long_vol,"liquidity":math.log(max(adv,1)),"rsi_14":rs[i],"macd_strength":(ml[i]-ms[i])/ats[i] if ats[i] else None,"adx_14":adx(rows[max(0,i-40):i+1]),"volume_expansion":rows[i]["volume"]/prior_volume if prior_volume else None,"breakout_252":rows[i]["close"]/prior_high-1 if prior_high else None,"volatility_contraction":-(short_vol/long_vol) if short_vol and long_vol else None,"relative_strength_6m":stock_6m-bench_6m if stock_6m is not None and bench_6m is not None else None}
 def rank(v):
  order=sorted(range(len(v)),key=lambda i:v[i]);out=[0.0]*len(v);i=0
  while i<len(order):

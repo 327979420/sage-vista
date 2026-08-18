@@ -2,6 +2,8 @@ import unittest
 from unittest.mock import patch
 from services.scanner.audit_eodhd import common
 from services.scanner.eodhd_factor_pilot import stable_sample
+from services.scanner.eodhd_factor_validation import percentile_scores
+from services.scanner.research_pipeline import factor_values
 class EodhdTests(unittest.TestCase):
  def test_primary_common_stock_filter(self):
   rows=[{"Code":"A","Type":"Common Stock","Exchange":"NYSE"},{"Code":"P","Type":"Common Stock","Exchange":"PINK"},{"Code":"E","Type":"ETF","Exchange":"NASDAQ"}]
@@ -9,4 +11,12 @@ class EodhdTests(unittest.TestCase):
  def test_sample_is_deterministic(self):
   rows=[{"Code":x} for x in "ABCDE"]
   self.assertEqual(stable_sample(rows,3,"seed"),stable_sample(list(reversed(rows)),3,"seed"))
+ def test_combination_scores_are_cross_sectional(self):
+  rows=[{"symbol":str(i),"factors":{"momentum_12_1":i,"trend_quality":i}} for i in range(10)]
+  scores=percentile_scores(rows,["momentum_12_1","trend_quality"])
+  self.assertEqual(scores["0"],0)
+  self.assertEqual(scores["9"],1)
+ def test_zero_prior_volume_is_missing_not_error(self):
+  rows=[{"date":"01/01/2020","open":10,"high":11,"low":9,"close":10,"volume":0} for _ in range(253)]
+  self.assertIsNone(factor_values(rows,252)["volume_expansion"])
 if __name__=="__main__":unittest.main()
