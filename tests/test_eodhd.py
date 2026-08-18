@@ -4,6 +4,7 @@ from services.scanner.audit_eodhd import common
 from services.scanner.eodhd_factor_pilot import stable_sample
 from services.scanner.eodhd_factor_validation import percentile_scores,portfolio_stats,simulate_atr_trade,rolling_oos
 from services.scanner.research_pipeline import factor_values
+from services.scanner.market_context_factor_test import ratio_signal
 class EodhdTests(unittest.TestCase):
  def test_primary_common_stock_filter(self):
   rows=[{"Code":"A","Type":"Common Stock","Exchange":"NYSE"},{"Code":"P","Type":"Common Stock","Exchange":"PINK"},{"Code":"E","Type":"ETF","Exchange":"NASDAQ"}]
@@ -35,4 +36,10 @@ class EodhdTests(unittest.TestCase):
   result=rolling_oos(panel,5)
   self.assertEqual(result["runs"][0]["training_window"],"2010-2014")
   self.assertEqual(result["runs"][0]["test_year"],2015)
+ def test_ratio_signal_uses_trailing_observations_only(self):
+  dates=[f"2020-01-{i:02d}" for i in range(1,23)]
+  numerator={d:100+i for i,d in enumerate(dates)}
+  denominator={d:100 for d in dates}
+  self.assertIsNone(ratio_signal(numerator,denominator,dates[19]))
+  self.assertAlmostEqual(ratio_signal(numerator,denominator,dates[20]),.2)
 if __name__=="__main__":unittest.main()
