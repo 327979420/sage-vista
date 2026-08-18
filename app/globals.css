@@ -1803,3 +1803,90 @@ nav {
     flex-direction: column;
   }
 }
+.zhprogress {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 18px 0;
+}
+.zhprogress article,
+.zhresearchgrid article {
+  padding: 24px;
+  border: 1px solid #dce5df;
+  border-radius: 18px;
+  background: white;
+}
+.zhprogress small {
+  color: #176b45;
+  font-weight: 700;
+}
+.zhprogress h2 {
+  margin: 9px 0;
+  font-size: 20px;
+}
+.zhprogress p,
+.zhresearchgrid p {
+  color: #66756d;
+  line-height: 1.6;
+}
+.zhresearchgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-top: 18px;
+}
+.zhresearchgrid h2 {
+  font-size: 24px;
+  margin: 6px 0;
+}
+.bigmetric {
+  font-size: 64px;
+  font-weight: 700;
+  color: #176b45;
+}
+.zhresearchgrid mark {
+  display: block;
+  padding: 12px;
+  background: #fff2d6;
+  color: #684f1e;
+  border-radius: 8px;
+}
+.yearrow {
+  display: grid;
+  grid-template-columns: 55px 1fr 60px 55px;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid #e9eeeb;
+  align-items: center;
+}
+.yearrow small {
+  color: #77837d;
+}
+.factorhead,
+.factorline {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid #e9eeeb;
+}
+.factorhead {
+  font-size: 11px;
+  color: #77837d;
+  font-weight: 700;
+}
+.factorline {
+  font-size: 13px;
+}
+@media (max-width: 760px) {
+  .zhprogress,
+  .zhresearchgrid {
+    grid-template-columns: 1fr;
+  }
+  .yearrow {
+    grid-template-columns: 48px 1fr 52px;
+  }
+  .yearrow small {
+    display: none;
+  }
+}

@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch
 from services.scanner.audit_eodhd import common
 from services.scanner.eodhd_factor_pilot import stable_sample
-from services.scanner.eodhd_factor_validation import percentile_scores,portfolio_stats,simulate_atr_trade
+from services.scanner.eodhd_factor_validation import percentile_scores,portfolio_stats,simulate_atr_trade,rolling_oos
 from services.scanner.research_pipeline import factor_values
 class EodhdTests(unittest.TestCase):
  def test_primary_common_stock_filter(self):
@@ -28,4 +28,11 @@ class EodhdTests(unittest.TestCase):
   trade=simulate_atr_trade(rows,20,2,horizon=3,cost_bps=0)
   self.assertEqual(trade["reason"],"time")
   self.assertEqual(trade["holding_days"],3)
+ def test_rolling_oos_never_trains_on_test_year(self):
+  panel=[]
+  for year in range(2010,2016):
+   for i in range(10):panel.append({"date":f"{year}-01-31","symbol":str(i),"factors":{k:i for k in ("momentum_12_1","trend_quality","breakout_252","relative_strength_6m","volume_expansion","volatility_contraction","adx_14","low_volatility")},"forward":{10:i/100}})
+  result=rolling_oos(panel,5)
+  self.assertEqual(result["runs"][0]["training_window"],"2010-2014")
+  self.assertEqual(result["runs"][0]["test_year"],2015)
 if __name__=="__main__":unittest.main()

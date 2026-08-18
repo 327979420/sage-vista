@@ -101,6 +101,20 @@ def evaluate_atr_risk(panel,start="0000-01-01",end="9999-12-31",multiples=(1.5,2
    results.append({"combination":name,"atr_multiple":multiple,"target_r":2.0,"cost_bps":20,"position_risk_pct":position_risk*100,"total_risk_cap_pct":total_risk_cap*100,"max_position_pct":max_position*100,"trades":len(rs),"average_r":round(statistics.mean(rs),3) if rs else None,"median_r":round(statistics.median(rs),3) if rs else None,"trade_win_rate_pct":round(sum(x>0 for x in rs)/len(rs)*100,1) if rs else None,"average_position_pct":round(statistics.mean(weights)*100,2) if weights else None,"average_holding_days":round(statistics.mean(x["holding_days"] for x in all_trades),1) if all_trades else None,"exit_reasons":reasons,"portfolio":stats})
  return results
 
+def rolling_oos(panel,train_years=5):
+ years=sorted({int(x["date"][:4]) for x in panel});runs=[]
+ for year in years:
+  if year<years[0]+train_years:continue
+  train=evaluate_combinations(panel,10,f"{year-train_years}-01-01",f"{year-1}-12-31");valid=[x for x in train if x["mean_ic"] is not None]
+  if not valid:continue
+  selected=max(valid,key=lambda x:x["mean_ic"])
+  if selected["mean_ic"]<=0:
+   runs.append({"test_year":year,"training_window":f"{year-train_years}-{year-1}","selected_combination":"cash","training_ic":selected["mean_ic"],"test_ic":None,"test_spread":None,"test_dates":0,"reason":"No combination had positive training IC"});continue
+  test=evaluate_combinations(panel,10,f"{year}-01-01",f"{year}-12-31");result=next(x for x in test if x["combination"]==selected["combination"])
+  runs.append({"test_year":year,"training_window":f"{year-train_years}-{year-1}","selected_combination":selected["combination"],"training_ic":selected["mean_ic"],"test_ic":result["mean_ic"],"test_spread":result["spread"],"test_dates":result["dates"]})
+ usable=[x for x in runs if x["test_ic"] is not None and x["test_dates"]>=6]
+ return {"method":"Use only the prior five calendar years to select one predefined combination, then evaluate the next year once. Abstain when training IC is non-positive; exclude test years with fewer than six monthly observations from the summary.","runs":runs,"summary":{"years":len(usable),"positive_ic_years":sum(x["test_ic"]>0 for x in usable),"positive_ic_pct":round(sum(x["test_ic"]>0 for x in usable)/len(usable)*100,1) if usable else None,"median_test_ic":round(statistics.median(x["test_ic"] for x in usable),4) if usable else None,"worst_test_ic":min((x["test_ic"] for x in usable),default=None),"abstained_years":sum(x["selected_combination"]=="cash" for x in runs),"low_sample_years_excluded":sum(x["test_ic"] is not None and x["test_dates"]<6 for x in runs)}}
+
 def run(out="public/eodhd-factor-validation.json",per_group=500):
  active=stable_sample(common(symbols(False)),per_group,"northstar-active-v2");dead=stable_sample(common(symbols(True)),per_group,"northstar-delisted-v2")
  selected=[({**x,"listing_status":"active"}) for x in active]+[({**x,"listing_status":"delisted"}) for x in dead]
@@ -109,19 +123,20 @@ def run(out="public/eodhd-factor-validation.json",per_group=500):
  loaded=[]
  with ThreadPoolExecutor(max_workers=10) as pool:
   for future in as_completed([pool.submit(load,x) for x in selected]):loaded.append(future.result())
- panel=[];eligible={"active":0,"delisted":0}
+ all_panel=[];eligible={"active":0,"delisted":0}
  for meta,rows in loaded:
   if len(rows)<253:continue
   included=False
   for i in monthly_indices(rows):
    adv=sum(x["close"]*x["volume"] for x in rows[i-19:i+1])/20;spread=roll_spread_bps(rows,i)
-   if rows[i]["close"]<5 or adv<10_000_000 or spread is None or spread>50 or not regime.get(rows[i]["date"],False):continue
+   if rows[i]["close"]<5 or adv<10_000_000 or spread is None or spread>50:continue
    fw={h:(rows[i+h]["close"]/rows[i+1]["open"]-1 if i+1<len(rows) and i+h<len(rows) else None) for h in HORIZONS};atr_trades={str(m):simulate_atr_trade(rows,i,m) for m in (1.5,2.0,2.5)}
-   panel.append({"date":iso(rows[i]["date"]),"symbol":meta["Code"],"listing_status":meta["listing_status"],"factors":factor_values(rows,i,benchmark),"forward":fw,"atr_trades":atr_trades});included=True
+   all_panel.append({"date":iso(rows[i]["date"]),"symbol":meta["Code"],"listing_status":meta["listing_status"],"regime":"risk_on" if regime.get(rows[i]["date"],False) else "risk_off","factors":factor_values(rows,i,benchmark),"forward":fw,"atr_trades":atr_trades});included=True
   if included:eligible[meta["listing_status"]]+=1
- panel_cache=pathlib.Path("work/eodhd-panel-v3.json");panel_cache.write_text(json.dumps({"panel":panel,"eligible":eligible}))
- dates=sorted({x["date"] for x in panel});split_metrics={k:evaluate_report(panel,*v) for k,v in SPLIT_BOUNDS.items()};combinations={k:evaluate_combinations(panel,10,*v) for k,v in SPLIT_BOUNDS.items()};portfolios={k:evaluate_portfolios(panel,10,*v) for k,v in SPLIT_BOUNDS.items()};atr_risk={k:evaluate_atr_risk(panel,*v) for k,v in SPLIT_BOUNDS.items()}
+ panel=[x for x in all_panel if x["regime"]=="risk_on"];panel_cache=pathlib.Path("work/eodhd-panel-v4.json");panel_cache.write_text(json.dumps({"panel":all_panel,"eligible":eligible}))
+ dates=sorted({x["date"] for x in panel});split_metrics={k:evaluate_report(panel,*v) for k,v in SPLIT_BOUNDS.items()};combinations={k:evaluate_combinations(panel,10,*v) for k,v in SPLIT_BOUNDS.items()};portfolios={k:evaluate_portfolios(panel,10,*v) for k,v in SPLIT_BOUNDS.items()};atr_risk={k:evaluate_atr_risk(panel,*v) for k,v in SPLIT_BOUNDS.items()};regime_metrics={r:evaluate_report([x for x in all_panel if x["regime"]==r]) for r in ("risk_on","risk_off")};rolling=rolling_oos(panel)
  report={"generated_at":datetime.now(timezone.utc).isoformat(),"status":"expanded_validation_research_only","provider":"EODHD All World","sample":{"requested_active":per_group,"requested_delisted":per_group,"loaded":sum(bool(x) for _,x in loaded),"eligible_active":eligible["active"],"eligible_delisted":eligible["delisted"],"stock_months":len(panel),"dates":len(dates),"start":dates[0] if dates else None,"end":dates[-1] if dates else None},"execution":{"signal":"month-end close","entry":"next trading day's adjusted open","exits":"5, 10, 20, and 60 trading-day closes","time_stop":"10 trading days is the primary strategy evaluation horizon","cost_scenarios":"0, 20, and 50 basis points round trip","atr_risk":"1.5x, 2.0x, and 2.5x ATR stops; 2R target; gap-aware fills; stop-first on ambiguous daily bars; 0.5% position risk capped at 4% total"},"split_metrics":split_metrics,"combinations":combinations,"portfolios":portfolios,"atr_risk":atr_risk,"limitations":["Deterministic sample, not yet a complete point-in-time US universe","No historical sector classifications, so results are not sector-neutralized","Roll spread proxy rather than historical quotes","Daily bars cannot reveal intraday path; bars touching stop and target are conservatively counted as stop-first","No fundamentals, options walls, borrow costs, or portfolio beta hedging"],"decision":"Use development to form hypotheses, validation to accept or reject them, and forward test only as an untouched monitor. No live capital authorization."}
+ report["regime_metrics"]=regime_metrics;report["rolling_oos"]=rolling
  pathlib.Path(out).write_text(json.dumps(report,indent=2));return report
 
 if __name__=="__main__":
