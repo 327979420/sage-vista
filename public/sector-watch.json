@@ -1,0 +1,602 @@
+{
+  "generated_at": "2026-08-18T10:35:59.533994+00:00",
+  "as_of": "08/17/2026",
+  "market": {
+    "spy_price": 772.67,
+    "spy_20d": 0.0412,
+    "sector_breadth_above_ema50": 9,
+    "sector_count": 11,
+    "state": "扩散"
+  },
+  "sectors": [
+    {
+      "ticker": "XLK",
+      "sector": "科技",
+      "as_of": "08/17/2026",
+      "price": 190.32,
+      "return_1d": 0.0016,
+      "return_5d": 0.0215,
+      "return_20d": 0.0831,
+      "relative_20d": 0.0419,
+      "above_ema20": true,
+      "above_ema50": true,
+      "volume_ratio": 0.75,
+      "score": 4,
+      "state": "领先",
+      "news": [
+        {
+          "date": "2026-08-17T19:54:17+00:00",
+          "title": "Sector Update: Tech Stocks Rise Late Afternoon",
+          "link": "https://finance.yahoo.com/markets/stocks/articles/sector-tech-stocks-rise-afternoon-195417941.html",
+          "source": null,
+          "sentiment": {
+            "polarity": 0,
+            "neg": 0,
+            "neu": 1,
+            "pos": 0
+          }
+        },
+        {
+          "date": "2026-08-17T16:13:33+00:00",
+          "title": "Stanley Druckenmiller loaded up on Amazon and chip stocks before July rout",
+          "link": "https://www.cnbc.com/2026/08/17/druckenmiller-loaded-up-on-amazon-and-chip-stocks-before-july-rout.html",
+          "source": null,
+          "sentiment": {
+            "polarity": 0.977,
+            "neg": 0.011,
+            "neu": 0.886,
+            "pos": 0.104
+          }
+        },
+        {
+          "date": "2026-08-17T11:37:29+00:00",
+          "title": "Stocks making the biggest moves premarket: Alibaba, Intel, Sandisk &amp; more",
+          "link": "https://www.cnbc.com/2026/08/17/stocks-making-the-biggest-moves-premarket-baba-intc-sndk.html",
+          "source": null,
+          "sentiment": {
+            "polarity": 0.961,
+            "neg": 0.016,
+            "neu": 0.889,
+            "pos": 0.095
+          }
+        }
+      ]
+    },
+    {
+      "ticker": "XLE",
+      "sector": "能源",
+      "as_of": "08/17/2026",
+      "price": 62.58,
+      "return_1d": 0.0108,
+      "return_5d": 0.0399,
+      "return_20d": 0.0801,
+      "relative_20d": 0.0389,
+      "above_ema20": true,
+      "above_ema50": true,
+      "volume_ratio": 0.85,
+      "score": 4,
+      "state": "领先",
+      "news": [
+        {
+          "date": "2026-08-17T23:57:14+00:00",
+          "title": "U.S. energy secretary plans to seek more production from refiners to hold down pump prices",
+          "link": "https://seekingalpha.com/news/4634150-us-energy-secretary-plans-to-seek-more-production-from-refiners-to-hold-down-pump-prices?utm_source=feed_news_all&amp;utm_medium=referral&amp;feed_item_type=news",
+          "source": null,
+          "sentiment": {
+            "polarity": -0.98,
+            "neg": 0.119,
+            "neu": 0.783,
+            "pos": 0.098
+          }
+        },
+        {
+          "date": "2026-08-17T19:53:24+00:00",
+          "title": "Sector Update: Energy Stocks Gain Late Afternoon",
+          "link": "https://finance.yahoo.com/energy/articles/sector-energy-stocks-gain-afternoon-195324148.html",
+          "source": null,
+          "sentiment": {
+            "polarity": 0.649,
+            "neg": 0,
+            "neu": 0.916,
+            "pos": 0.084
+          }
+        },
+        {
+          "date": "2026-08-17T17:44:25+00:00",
+          "title": "Sector Update: Energy Stocks Gain Monday Afternoon",
+          "link": "https://finance.yahoo.com/energy/articles/sector-energy-stocks-gain-monday-174425303.html",
+          "source": null,
+          "sentiment": {
+            "polarity": 0.649,
+            "neg": 0,
+            "neu": 0.915,
+            "pos": 0.085
+          }
+        }
+      ]
+    },
+    {
+      "ticker": "XLI",
+      "sector": "工业",
+      "as_of": "08/17/2026",
+      "price": 186.32,
+      "return_1d": -0.001,
+      "return_5d": 0.0093,
+      "return_20d": 0.046,
+      "relative_20d": 0.0048,
+      "above_ema20": true,
+      "above_ema50": true,
+      "volume_ratio": 0.87,
+      "score": 4,
+      "state": "领先",
+      "news": [
+        {
+          "date": "2026-08-17T10:20:03+00:00",
+          "title": "Should You Invest in the Vanguard Industrials Index Fund ETF Shares (VIS)?",
+          "link": "https://finance.yahoo.com/markets/stocks/articles/invest-vanguard-industrials-index-fund-102003917.html",
+          "source": null,
+          "sentiment": {
+            "polarity": 0.993,
+            "neg": 0.03,
+            "neu": 0.864,
+            "pos": 0.105
+          }
+        },
+        {
+          "date": "2026-08-14T13:13:48+00:00",
+          "title": "Exchange-Traded Funds Higher, Equity Futures Mixed Pre-Bell Friday Amid Retail Sales Data",
+          "link": "https://finance.yahoo.com/markets/stocks/articles/exchange-traded-funds-higher-equity-131348296.html",
+          "source": null,
+          "sentiment": {
+            "polarity": 0.872,
+            "neg": 0,
+            "neu": 0.864,
+            "pos": 0.136
+          }
+        },
+        {
+          "date": "2026-08-14T13:02:31+00:00",
+          "title": "Otis Worldwide Stock: Analyst Estimates &amp; Ratings",
+          "link": "https://finance.yahoo.com/markets/stocks/articles/otis-worldwide-stock-analyst-estimates-130231120.html",
+          "source": null,
+          "sentiment": {
+            "polarity": 0.978,
+            "neg": 0.036,
+            "neu": 0.881,
+            "pos": 0.083
+          }
+        }
+      ]
+    },
+    {
+      "ticker": "XLV",
+      "sector": "医疗保健",
+      "as_of": "08/17/2026",
+      "price": 167.05,
+      "return_1d": -0.0019,
+      "return_5d": -0.0083,
+      "return_20d": 0.049,
+      "relative_20d": 0.0078,
+      "above_ema20": true,
+      "above_ema50": true,
+      "volume_ratio": 0.8,
+      "score": 3,
+      "state": "改善",
+      "news": [
+        {
+          "date": "2026-08-17T17:38:30+00:00",
+          "title": "Sector Update: Healthcare Stocks Mixed Monday Afternoon",
+          "link": "https://finance.yahoo.com/healthcare/articles/sector-healthcare-stocks-mixed-monday-173830644.html",
+          "source": null,
+          "sentiment": {
+            "polarity": 0.66,
+            "neg": 0,
+            "neu": 0.924,
+            "pos": 0.076
+          }
+        },
+        {
+          "date": "2026-08-17T13:38:00+00:00",
+          "title": "Stock Market News for Aug 17, 2026",
+          "link": "https://finance.yahoo.com/markets/stocks/articles/stock-market-news-aug-17-133800376.html",
+          "source": null,
+          "sentiment": {
+            "polarity": 0.94,
+            "neg": 0.085,
+            "neu": 0.808,
+            "pos": 0.106
+          }
+        },
+        {
+          "date": "2026-08-17T13:13:46+00:00",
+          "title": "Exchange-Traded Funds Higher, Equity Futures Mixed Pre-Bell Monday Amid Lower Rate Hike Expectations",
+          "link": "https://finance.yahoo.com/markets/stocks/articles/exchange-traded-funds-higher-equity-131346618.html",
+          "source": null,
+          "sentiment": {
+            "polarity": 0.681,
+            "neg": 0,
+            "neu": 0.894,
+            "pos": 0.106
+          }
+        }
+      ]
+    },
+    {
+      "ticker": "XLB",
+      "sector": "原材料",
+      "as_of": "08/17/2026",
+      "price": 52.24,
+      "return_1d": -0.0057,
+      "return_5d": -0.0177,
+      "return_20d": 0.0442,
+      "relative_20d": 0.003,
+      "above_ema20": true,
+      "above_ema50": true,
+      "volume_ratio": 0.63,
+      "score": 3,
+      "state": "改善",
+      "news": [
+        {
+          "date": "2026-08-13T15:43:28+00:00",
+          "title": "Sherwin-Williams Stock Outlook: Is Wall Street Bullish or Bearish?",
+          "link": "https://finance.yahoo.com/markets/stocks/articles/sherwin-williams-stock-outlook-wall-154328427.html",
+          "source": null,
+          "sentiment": {
+            "polarity": 0.987,
+            "neg": 0.015,
+            "neu": 0.896,
+            "pos": 0.089
+          }
+        },
+        {
+          "date": "2026-08-13T10:51:00+00:00",
+          "title": "Stock Market News for Aug 13, 2026",
+          "link": "https://finance.yahoo.com/markets/stocks/articles/stock-market-news-aug-13-105100260.html",
+          "source": null,
+          "sentiment": {
+            "polarity": 0.991,
+            "neg": 0.049,
+            "neu": 0.831,
+            "pos": 0.119
+          }
+        },
+        {
+          "date": "2026-08-12T11:26:12+00:00",
+          "title": "What Are Wall Street Analysts' Target Price for CF Industries Stock?",
+          "link": "https://finance.yahoo.com/markets/stocks/articles/wall-street-analysts-target-price-112612059.html",
+          "source": null,
+          "sentiment": {
+            "polarity": 0.992,
+            "neg": 0.039,
+            "neu": 0.833,
+            "pos": 0.128
+          }
+        }
+      ]
+    },
+    {
+      "ticker": "XLF",
+      "sector": "金融",
+      "as_of": "08/17/2026",
+      "price": 57.58,
+      "return_1d": -0.01,
+      "return_5d": -0.004,
+      "return_20d": 0.0275,
+      "relative_20d": -0.0137,
+      "above_ema20": true,
+      "above_ema50": true,
+      "volume_ratio": 1.54,
+      "score": 3,
+      "state": "改善",
+      "news": [
+        {
+          "date": "2026-08-17T19:53:53+00:00",
+          "title": "Sector Update: Financial Stocks Decline Late Afternoon",
+          "link": "https://finance.yahoo.com/markets/stocks/articles/sector-financial-stocks-decline-afternoon-195353964.html",
+          "source": null,
+          "sentiment": {
+            "polarity": 0,
+            "neg": 0,
+            "neu": 1,
+            "pos": 0
+          }
+        },
+        {
+          "date": "2026-08-17T14:40:00+00:00",
+          "title": "ETFs to Buy as JPMorgan Races to Become the First $1 Trillion Bank",
+          "link": "https://finance.yahoo.com/markets/stocks/articles/etfs-buy-jpmorgan-races-become-144000478.html",
+          "source": null,
+          "sentiment": {
+            "polarity": 0.999,
+            "neg": 0.023,
+            "neu": 0.827,
+            "pos": 0.15
+          }
+        },
+        {
+          "date": "2026-08-17T13:23:03+00:00",
+          "title": "Sector Update: Financial Stocks Lean Lower Pre-Bell Monday",
+          "link": "https://finance.yahoo.com/markets/stocks/articles/sector-financial-stocks-lean-lower-132303748.html",
+          "source": null,
+          "sentiment": {
+            "polarity": 0,
+            "neg": 0.059,
+            "neu": 0.882,
+            "pos": 0.059
+          }
+        }
+      ]
+    },
+    {
+      "ticker": "XLRE",
+      "sector": "房地产",
+      "as_of": "08/17/2026",
+      "price": 44.83,
+      "return_1d": -0.0097,
+      "return_5d": 0.0097,
+      "return_20d": -0.0088,
+      "relative_20d": -0.0501,
+      "above_ema20": false,
+      "above_ema50": true,
+      "volume_ratio": 1.62,
+      "score": 3,
+      "state": "改善",
+      "news": [
+        {
+          "date": "2026-08-17T19:53:53+00:00",
+          "title": "Sector Update: Financial Stocks Decline Late Afternoon",
+          "link": "https://finance.yahoo.com/markets/stocks/articles/sector-financial-stocks-decline-afternoon-195353964.html",
+          "source": null,
+          "sentiment": {
+            "polarity": 0,
+            "neg": 0,
+            "neu": 1,
+            "pos": 0
+          }
+        },
+        {
+          "date": "2026-08-17T15:30:26+00:00",
+          "title": "These Two ETFs Are the 'No Hike' Scenario Winners",
+          "link": "https://finance.yahoo.com/markets/stocks/articles/two-etfs-no-hike-scenario-153026770.html",
+          "source": null,
+          "sentiment": {
+            "polarity": 0.999,
+            "neg": 0.066,
+            "neu": 0.781,
+            "pos": 0.153
+          }
+        },
+        {
+          "date": "2026-08-15T16:00:03+00:00",
+          "title": "Real estate stocks show mixed performance; data center REITs gain, health care REITs lose",
+          "link": "https://seekingalpha.com/news/4633485-real-estate-stocks-show-mixed-performance-data-center-reits-gain-health-care-reits-lose?utm_source=feed_news_all&amp;utm_medium=referral&amp;feed_item_type=news",
+          "source": null,
+          "sentiment": {
+            "polarity": 0.998,
+            "neg": 0.045,
+            "neu": 0.809,
+            "pos": 0.145
+          }
+        }
+      ]
+    },
+    {
+      "ticker": "XLP",
+      "sector": "必需消费",
+      "as_of": "08/17/2026",
+      "price": 84.68,
+      "return_1d": -0.0164,
+      "return_5d": -0.0032,
+      "return_20d": -0.0021,
+      "relative_20d": -0.0433,
+      "above_ema20": false,
+      "above_ema50": true,
+      "volume_ratio": 1.02,
+      "score": 2,
+      "state": "中性",
+      "news": [
+        {
+          "date": "2026-08-17T19:58:16+00:00",
+          "title": "Sector Update: Consumer Stocks Decline Late Afternoon",
+          "link": "https://finance.yahoo.com/markets/stocks/articles/sector-consumer-stocks-decline-afternoon-195816510.html",
+          "source": null,
+          "sentiment": {
+            "polarity": -0.691,
+            "neg": 0.093,
+            "neu": 0.907,
+            "pos": 0
+          }
+        },
+        {
+          "date": "2026-08-17T17:33:54+00:00",
+          "title": "Sector Update: Consumer Stocks Decline in Afternoon Trading",
+          "link": "https://finance.yahoo.com/markets/stocks/articles/sector-consumer-stocks-decline-afternoon-173354410.html",
+          "source": null,
+          "sentiment": {
+            "polarity": -0.296,
+            "neg": 0.047,
+            "neu": 0.953,
+            "pos": 0
+          }
+        },
+        {
+          "date": "2026-08-14T19:47:26+00:00",
+          "title": "Sector Update: Consumer Stocks Mixed Late Afternoon",
+          "link": "https://finance.yahoo.com/markets/stocks/articles/sector-consumer-stocks-mixed-afternoon-194726434.html",
+          "source": null,
+          "sentiment": {
+            "polarity": 0,
+            "neg": 0,
+            "neu": 1,
+            "pos": 0
+          }
+        }
+      ]
+    },
+    {
+      "ticker": "XLY",
+      "sector": "可选消费",
+      "as_of": "08/17/2026",
+      "price": 116.75,
+      "return_1d": -0.0123,
+      "return_5d": -0.0244,
+      "return_20d": 0.0187,
+      "relative_20d": -0.0225,
+      "above_ema20": false,
+      "above_ema50": true,
+      "volume_ratio": 0.97,
+      "score": 1,
+      "state": "转弱",
+      "news": [
+        {
+          "date": "2026-08-17T19:58:16+00:00",
+          "title": "Sector Update: Consumer Stocks Decline Late Afternoon",
+          "link": "https://finance.yahoo.com/markets/stocks/articles/sector-consumer-stocks-decline-afternoon-195816510.html",
+          "source": null,
+          "sentiment": {
+            "polarity": -0.691,
+            "neg": 0.093,
+            "neu": 0.907,
+            "pos": 0
+          }
+        },
+        {
+          "date": "2026-08-17T17:33:54+00:00",
+          "title": "Sector Update: Consumer Stocks Decline in Afternoon Trading",
+          "link": "https://finance.yahoo.com/markets/stocks/articles/sector-consumer-stocks-decline-afternoon-173354410.html",
+          "source": null,
+          "sentiment": {
+            "polarity": -0.296,
+            "neg": 0.047,
+            "neu": 0.953,
+            "pos": 0
+          }
+        },
+        {
+          "date": "2026-08-17T13:38:00+00:00",
+          "title": "Stock Market News for Aug 17, 2026",
+          "link": "https://finance.yahoo.com/markets/stocks/articles/stock-market-news-aug-17-133800376.html",
+          "source": null,
+          "sentiment": {
+            "polarity": 0.94,
+            "neg": 0.085,
+            "neu": 0.808,
+            "pos": 0.106
+          }
+        }
+      ]
+    },
+    {
+      "ticker": "XLC",
+      "sector": "通信服务",
+      "as_of": "08/17/2026",
+      "price": 110.82,
+      "return_1d": -0.0189,
+      "return_5d": -0.009,
+      "return_20d": 0.0002,
+      "relative_20d": -0.041,
+      "above_ema20": true,
+      "above_ema50": false,
+      "volume_ratio": 0.65,
+      "score": 1,
+      "state": "转弱",
+      "news": [
+        {
+          "date": "2026-08-17T15:30:26+00:00",
+          "title": "These Two ETFs Are the 'No Hike' Scenario Winners",
+          "link": "https://finance.yahoo.com/markets/stocks/articles/two-etfs-no-hike-scenario-153026770.html",
+          "source": null,
+          "sentiment": {
+            "polarity": 0.999,
+            "neg": 0.066,
+            "neu": 0.781,
+            "pos": 0.153
+          }
+        },
+        {
+          "date": "2026-08-14T21:37:30+00:00",
+          "title": "Reddit Stock's Pullback Is Tempting, But Don't Ignore The User Question",
+          "link": "https://finance.yahoo.com/markets/stocks/articles/reddit-stocks-pullback-tempting-dont-213730810.html",
+          "source": null,
+          "sentiment": {
+            "polarity": 0.999,
+            "neg": 0.044,
+            "neu": 0.818,
+            "pos": 0.139
+          }
+        },
+        {
+          "date": "2026-08-11T11:46:44+00:00",
+          "title": "Are Wall Street Analysts Bullish on News Corporation Stock?",
+          "link": "https://finance.yahoo.com/markets/stocks/articles/wall-street-analysts-bullish-news-114644603.html",
+          "source": null,
+          "sentiment": {
+            "polarity": 0.995,
+            "neg": 0.013,
+            "neu": 0.879,
+            "pos": 0.109
+          }
+        }
+      ]
+    },
+    {
+      "ticker": "XLU",
+      "sector": "公用事业",
+      "as_of": "08/17/2026",
+      "price": 44.18,
+      "return_1d": -0.0029,
+      "return_5d": 0.0243,
+      "return_20d": -0.0169,
+      "relative_20d": -0.0581,
+      "above_ema20": false,
+      "above_ema50": false,
+      "volume_ratio": 0.81,
+      "score": 1,
+      "state": "转弱",
+      "news": [
+        {
+          "date": "2026-08-14T21:46:30+00:00",
+          "title": "PCG Passed Our Value-Trap Test. Now What?",
+          "link": "https://finance.yahoo.com/markets/stocks/articles/pcg-passed-value-trap-test-214630909.html",
+          "source": null,
+          "sentiment": {
+            "polarity": 0.974,
+            "neg": 0.075,
+            "neu": 0.81,
+            "pos": 0.115
+          }
+        },
+        {
+          "date": "2026-08-14T20:09:06+00:00",
+          "title": "Utilities Were Supposed to Be the AI Trade. They’re Up 4%. The Electrification Fund Is Up 31%",
+          "link": "https://finance.yahoo.com/markets/stocks/articles/utilities-were-supposed-ai-trade-200906091.html",
+          "source": null,
+          "sentiment": {
+            "polarity": 0.996,
+            "neg": 0.032,
+            "neu": 0.874,
+            "pos": 0.094
+          }
+        },
+        {
+          "date": "2026-08-14T15:27:00+00:00",
+          "title": "Utility ETFs to Buy as Rapid AI Buildout Sparks Energy Crisis",
+          "link": "https://finance.yahoo.com/energy/articles/utility-etfs-buy-rapid-ai-152700941.html",
+          "source": null,
+          "sentiment": {
+            "polarity": 0.999,
+            "neg": 0.035,
+            "neu": 0.807,
+            "pos": 0.159
+          }
+        }
+      ]
+    }
+  ],
+  "rules": [
+    "行业ETF仅用于观察资金风格与相对强弱，不构成买入建议",
+    "领先要求价格趋势、相对强度和成交量出现多项确认",
+    "新闻标题来自数据提供商，情绪字段只作线索，必须打开原文核实",
+    "当前为收盘后版本，不是盘中实时行情"
+  ]
+}

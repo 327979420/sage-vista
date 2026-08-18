@@ -99,6 +99,9 @@ export default function ChineseResearch() {
             不是推荐股票。
           </h1>
           <p>当前阶段：历史回测与滚动样本外验证</p>
+          <a className="watchlink" href="/zh/watch">
+            打开中文行业盯盘助手 →
+          </a>
         </div>
         <aside>
           <small>载入历史</small>

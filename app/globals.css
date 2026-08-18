@@ -1803,6 +1803,158 @@ nav {
     flex-direction: column;
   }
 }
+.watchlink {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #173d2d;
+  color: white;
+  text-decoration: none;
+}
+.watchdash {
+  max-width: 1280px;
+  margin: auto;
+  padding: 70px 28px;
+}
+.watchhero {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  padding: 34px 0;
+}
+.watchhero a {
+  color: #176b4d;
+  text-decoration: none;
+}
+.watchhero h1 {
+  font-size: 48px;
+  margin: 8px 0;
+}
+.watchpulse {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 8px 20px;
+  padding: 20px;
+  border-radius: 16px;
+  background: #173d2d;
+  color: white;
+}
+.watchpulse b {
+  font-size: 24px;
+}
+.watchnote {
+  padding: 16px 20px;
+  background: #fff2d6;
+  border-left: 4px solid #d49836;
+  margin-bottom: 18px;
+}
+.sectortable {
+  background: white;
+  border: 1px solid #dce5df;
+  border-radius: 16px;
+  padding: 8px 18px;
+}
+.sectorrow {
+  display: grid;
+  grid-template-columns: 1.4fr 1.2fr repeat(5, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 12px 4px;
+  border-bottom: 1px solid #e9eeeb;
+}
+.sectorrow.head {
+  font-size: 11px;
+  color: #728078;
+  font-weight: 700;
+}
+.sectorrow b small {
+  display: block;
+  color: #7b8780;
+}
+.sectorrow .state {
+  width: max-content;
+  padding: 5px 8px;
+  border-radius: 12px;
+  background: #eef1ef;
+  font-size: 11px;
+}
+.sectorrow .state.领先 {
+  background: #dff0e7;
+  color: #176b45;
+}
+.sectorrow .state.转弱 {
+  background: #f2dfdc;
+  color: #a14942;
+}
+.newsgrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin: 20px 0;
+}
+.newsgrid article {
+  padding: 22px;
+  border: 1px solid #dce5df;
+  border-radius: 16px;
+  background: white;
+}
+.newsgrid article header {
+  display: flex;
+  justify-content: space-between;
+}
+.newsgrid h2 {
+  margin: 4px 0;
+}
+.newsgrid header > b {
+  color: #176b45;
+}
+.sectorread {
+  font-size: 12px;
+  color: #68756e;
+}
+.newsgrid article > a {
+  display: block;
+  padding: 12px 0;
+  border-top: 1px solid #e9eeeb;
+  color: #263a31;
+  text-decoration: none;
+}
+.newsgrid article > a span {
+  display: block;
+  font-size: 10px;
+  color: #718078;
+  margin-bottom: 5px;
+}
+.newsgrid article > a b {
+  line-height: 1.4;
+}
+@media (max-width: 760px) {
+  .watchdash {
+    padding: 70px 14px 30px;
+  }
+  .watchhero {
+    align-items: start;
+    flex-direction: column;
+  }
+  .watchhero h1 {
+    font-size: 36px;
+  }
+  .watchpulse {
+    margin-top: 18px;
+  }
+  .sectorrow {
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  }
+  .sectorrow > *:nth-child(3),
+  .sectorrow > *:nth-child(4),
+  .sectorrow > *:nth-child(7) {
+    display: none;
+  }
+  .newsgrid {
+    grid-template-columns: 1fr;
+  }
+}
 .zhprogress {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

@@ -20,3 +20,4 @@ def prices(code,start="2000-01-01",end=None):
     if end:params["to"]=end
     return get(f"eod/{code}.US",**params)
 def actions(kind,code,start="2000-01-01"):return get(f"{kind}/{code}.US",**{"from":start})
+def news(code,limit=3):return get("news",s=f"{code}.US",limit=limit,offset=0)
