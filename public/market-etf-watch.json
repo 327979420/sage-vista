@@ -1,0 +1,231 @@
+{
+  "generated_at": "2026-08-18T10:45:20.939833+00:00",
+  "as_of": "08/17/2026",
+  "market_temperature": {
+    "score": 3,
+    "max_score": 5,
+    "state": "分化",
+    "explanation": "综合SPY趋势、成长、小盘、等权广度及信用风险偏好。"
+  },
+  "ratios": {
+    "成长相对大盘": 0.0071,
+    "小盘相对大盘": -0.001,
+    "等权相对市值权重": -0.0017,
+    "高收益债相对投资级债": 0.0134,
+    "价值相对成长": -0.0075,
+    "动量相对大盘": 0.0221
+  },
+  "funds": [
+    {
+      "ticker": "SPY",
+      "name": "标普500",
+      "role": "大盘基准",
+      "as_of": "08/17/2026",
+      "price": 772.67,
+      "return_1d": -0.0047,
+      "return_5d": -0.0005,
+      "return_20d": 0.0412,
+      "above_ema20": true,
+      "above_ema50": true
+    },
+    {
+      "ticker": "QQQ",
+      "name": "纳斯达克100",
+      "role": "成长/科技",
+      "as_of": "08/17/2026",
+      "price": 729.87,
+      "return_1d": -0.0016,
+      "return_5d": 0.0125,
+      "return_20d": 0.0486,
+      "above_ema20": true,
+      "above_ema50": true
+    },
+    {
+      "ticker": "DIA",
+      "name": "道琼斯",
+      "role": "蓝筹价值",
+      "as_of": "08/17/2026",
+      "price": 534.19,
+      "return_1d": -0.0049,
+      "return_5d": -0.0089,
+      "return_20d": 0.0314,
+      "above_ema20": true,
+      "above_ema50": true
+    },
+    {
+      "ticker": "IWM",
+      "name": "罗素2000",
+      "role": "小盘风险偏好",
+      "as_of": "08/17/2026",
+      "price": 304.06,
+      "return_1d": -0.0034,
+      "return_5d": 0.0136,
+      "return_20d": 0.0402,
+      "above_ema20": true,
+      "above_ema50": true
+    },
+    {
+      "ticker": "RSP",
+      "name": "标普500等权",
+      "role": "市场广度",
+      "as_of": "08/17/2026",
+      "price": 220.79,
+      "return_1d": -0.0089,
+      "return_5d": 0.0026,
+      "return_20d": 0.0394,
+      "above_ema20": true,
+      "above_ema50": true
+    },
+    {
+      "ticker": "MDY",
+      "name": "标普中盘400",
+      "role": "中盘股",
+      "as_of": "08/17/2026",
+      "price": 715.35,
+      "return_1d": -0.0022,
+      "return_5d": 0.0118,
+      "return_20d": 0.0468,
+      "above_ema20": true,
+      "above_ema50": true
+    },
+    {
+      "ticker": "VTI",
+      "name": "美国全市场",
+      "role": "整体市场",
+      "as_of": "08/17/2026",
+      "price": 382.13,
+      "return_1d": -0.0045,
+      "return_5d": 0.0013,
+      "return_20d": 0.0434,
+      "above_ema20": true,
+      "above_ema50": true
+    },
+    {
+      "ticker": "IWD",
+      "name": "罗素1000价值",
+      "role": "价值",
+      "as_of": "08/17/2026",
+      "price": 256.62,
+      "return_1d": -0.0075,
+      "return_5d": -0.0065,
+      "return_20d": 0.0391,
+      "above_ema20": true,
+      "above_ema50": true
+    },
+    {
+      "ticker": "IWF",
+      "name": "罗素1000成长",
+      "role": "成长",
+      "as_of": "08/17/2026",
+      "price": 125.08,
+      "return_1d": -0.0017,
+      "return_5d": 0.0073,
+      "return_20d": 0.047,
+      "above_ema20": true,
+      "above_ema50": true
+    },
+    {
+      "ticker": "MTUM",
+      "name": "美国动量",
+      "role": "动量",
+      "as_of": "08/17/2026",
+      "price": 322.07,
+      "return_1d": 0.0153,
+      "return_5d": 0.048,
+      "return_20d": 0.0642,
+      "above_ema20": true,
+      "above_ema50": true
+    },
+    {
+      "ticker": "QUAL",
+      "name": "美国质量",
+      "role": "质量",
+      "as_of": "08/17/2026",
+      "price": 224.63,
+      "return_1d": -0.0054,
+      "return_5d": -0.0049,
+      "return_20d": 0.0354,
+      "above_ema20": true,
+      "above_ema50": true
+    },
+    {
+      "ticker": "USMV",
+      "name": "美国低波动",
+      "role": "防守",
+      "as_of": "08/17/2026",
+      "price": 100.4,
+      "return_1d": -0.0072,
+      "return_5d": -0.0043,
+      "return_20d": 0.0404,
+      "above_ema20": true,
+      "above_ema50": true
+    },
+    {
+      "ticker": "HYG",
+      "name": "高收益债",
+      "role": "信用风险偏好",
+      "as_of": "08/17/2026",
+      "price": 79.61,
+      "return_1d": -0.0013,
+      "return_5d": 0.0016,
+      "return_20d": 0.004,
+      "above_ema20": true,
+      "above_ema50": true
+    },
+    {
+      "ticker": "LQD",
+      "name": "投资级债",
+      "role": "高质量信用",
+      "as_of": "08/17/2026",
+      "price": 105.7,
+      "return_1d": -0.004,
+      "return_5d": -0.0025,
+      "return_20d": -0.0093,
+      "above_ema20": false,
+      "above_ema50": false
+    },
+    {
+      "ticker": "TLT",
+      "name": "长期美债",
+      "role": "利率/防守",
+      "as_of": "08/17/2026",
+      "price": 81.35,
+      "return_1d": -0.0084,
+      "return_5d": -0.0087,
+      "return_20d": -0.0264,
+      "above_ema20": false,
+      "above_ema50": false
+    },
+    {
+      "ticker": "GLD",
+      "name": "黄金",
+      "role": "避险/通胀",
+      "as_of": "08/17/2026",
+      "price": 405.49,
+      "return_1d": 0.01,
+      "return_5d": 0.0073,
+      "return_20d": 0.1031,
+      "above_ema20": true,
+      "above_ema50": true
+    },
+    {
+      "ticker": "UUP",
+      "name": "美元",
+      "role": "美元强弱",
+      "as_of": "08/17/2026",
+      "price": 28.1,
+      "return_1d": -0.0004,
+      "return_5d": -0.0014,
+      "return_20d": -0.0102,
+      "above_ema20": false,
+      "above_ema50": false
+    }
+  ],
+  "interpretation": [
+    "SPY、QQQ、DIA和IWM不是同一类市场：它们分别代表大盘、成长、蓝筹和小盘风格",
+    "RSP强于SPY通常表示上涨更加广泛；RSP弱于SPY表示指数可能依赖少数大型公司",
+    "IWD/IWF用于观察价值与成长轮动；MTUM/SPY用于观察动量风格是否占优",
+    "HYG/LQD走强通常表示信用风险偏好改善；TLT、GLD和UUP用于补充利率、避险与美元环境",
+    "ETF价格关系是市场状态证据，不是单独的买卖信号"
+  ]
+}

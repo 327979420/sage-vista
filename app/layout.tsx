@@ -52,6 +52,7 @@ export default function RootLayout({
         <div className="globalnav">
           <a href="/zh">中文因子研究</a>
           <a href="/zh/watch">中文盯盘助手</a>
+          <a href="/zh/watch/market">ETF温度计</a>
           <a href="/">Signal board</a>
           <a href="/technical">Technical lab</a>
           <a href="/research">Factor research</a>

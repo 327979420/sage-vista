@@ -1803,6 +1803,99 @@ nav {
     flex-direction: column;
   }
 }
+.temperature {
+  width: 280px;
+  padding: 20px;
+  border-radius: 18px;
+  background: #173d2d;
+  color: white;
+}
+.temperature > span,
+.temperature > small {
+  display: block;
+}
+.temperature > b {
+  display: block;
+  font-size: 40px;
+  margin: 6px 0;
+}
+.temperature > i {
+  display: block;
+  height: 7px;
+  background: #ffffff2a;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+.temperature > i em {
+  display: block;
+  height: 100%;
+  background: #e5b762;
+  border-radius: 5px;
+}
+.temperature > small {
+  line-height: 1.4;
+}
+.ratioCards {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.ratioCards article {
+  padding: 16px;
+  border: 1px solid #dce5df;
+  border-radius: 12px;
+  background: white;
+}
+.ratioCards small,
+.ratioCards span {
+  display: block;
+  color: #718078;
+}
+.ratioCards b {
+  display: block;
+  font-size: 24px;
+  margin: 8px 0;
+}
+.fundrow {
+  display: grid;
+  grid-template-columns: 1.1fr 1.5fr repeat(5, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 12px 4px;
+  border-bottom: 1px solid #e9eeeb;
+}
+.fundrow.head {
+  font-size: 11px;
+  color: #728078;
+  font-weight: 700;
+}
+.fundrow b small {
+  display: block;
+  color: #7b8780;
+}
+@media (max-width: 900px) {
+  .ratioCards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 760px) {
+  .temperature {
+    width: 100%;
+    margin-top: 16px;
+  }
+  .ratioCards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .fundrow {
+    grid-template-columns: 1fr 1.3fr 1fr 1fr;
+  }
+  .fundrow > *:nth-child(3),
+  .fundrow > *:nth-child(4),
+  .fundrow > *:nth-child(6) {
+    display: none;
+  }
+}
 .watchlink {
   display: inline-block;
   margin-top: 12px;

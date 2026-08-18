@@ -53,6 +53,9 @@ export default function SectorWatch() {
           <p>
             数据日期 {data.as_of} · 市场结构：<b>{data.market.state}</b>
           </p>
+          <a className="watchlink" href="/zh/watch/market">
+            查看主流ETF市场温度计 →
+          </a>
         </div>
         <div className="watchpulse">
           <small>SPY 20日</small>
