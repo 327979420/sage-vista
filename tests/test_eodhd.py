@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch
 from services.scanner.audit_eodhd import common
 from services.scanner.eodhd_factor_pilot import stable_sample
-from services.scanner.eodhd_factor_validation import percentile_scores
+from services.scanner.eodhd_factor_validation import percentile_scores,portfolio_stats
 from services.scanner.research_pipeline import factor_values
 class EodhdTests(unittest.TestCase):
  def test_primary_common_stock_filter(self):
@@ -19,4 +19,8 @@ class EodhdTests(unittest.TestCase):
  def test_zero_prior_volume_is_missing_not_error(self):
   rows=[{"date":"01/01/2020","open":10,"high":11,"low":9,"close":10,"volume":0} for _ in range(253)]
   self.assertIsNone(factor_values(rows,252)["volume_expansion"])
+ def test_portfolio_stats_include_drawdown(self):
+  result=portfolio_stats([.10,-.20,.05])
+  self.assertEqual(result["periods"],3)
+  self.assertAlmostEqual(result["max_drawdown"],-.2)
 if __name__=="__main__":unittest.main()

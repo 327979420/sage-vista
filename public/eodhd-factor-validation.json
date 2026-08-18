@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-18T03:29:04.578795+00:00",
+  "generated_at": "2026-08-18T04:00:30.423555+00:00",
   "status": "expanded_validation_research_only",
   "provider": "EODHD All World",
   "sample": {
@@ -17,7 +17,8 @@
     "signal": "month-end close",
     "entry": "next trading day's adjusted open",
     "exits": "5, 10, 20, and 60 trading-day closes",
-    "time_stop": "10 trading days is the primary strategy evaluation horizon"
+    "time_stop": "10 trading days is the primary strategy evaluation horizon",
+    "cost_scenarios": "0, 20, and 50 basis points round trip"
   },
   "split_metrics": {
     "development": [
@@ -1889,11 +1890,650 @@
       }
     ]
   },
+  "portfolios": {
+    "development": [
+      {
+        "combination": "trend_confluence",
+        "horizon": 10,
+        "selection": "equal-weight top cross-sectional quintile",
+        "benchmark": "equal-weight eligible universe on the same date",
+        "average_holdings": 10.8,
+        "cost_basis": "round-trip cost deducted from every selected portfolio return",
+        "cost_scenarios_bps": {
+          "0": {
+            "absolute": {
+              "periods": 218,
+              "mean_return": 0.0041,
+              "median_return": 0.0052,
+              "win_rate_pct": 59.2,
+              "annualized_sharpe": 0.29,
+              "compounded_return": 0.8767,
+              "max_drawdown": -0.385
+            },
+            "excess_vs_eligible_universe": {
+              "periods": 218,
+              "mean_return": 0.0015,
+              "median_return": 0.0003,
+              "win_rate_pct": 50.5,
+              "annualized_sharpe": 0.19,
+              "compounded_return": 0.2786,
+              "max_drawdown": -0.344
+            }
+          },
+          "20": {
+            "absolute": {
+              "periods": 218,
+              "mean_return": 0.0021,
+              "median_return": 0.0032,
+              "win_rate_pct": 55.0,
+              "annualized_sharpe": 0.15,
+              "compounded_return": 0.2139,
+              "max_drawdown": -0.4356
+            },
+            "excess_vs_eligible_universe": {
+              "periods": 218,
+              "mean_return": -0.0005,
+              "median_return": -0.0017,
+              "win_rate_pct": 45.9,
+              "annualized_sharpe": -0.06,
+              "compounded_return": -0.1733,
+              "max_drawdown": -0.4199
+            }
+          },
+          "50": {
+            "absolute": {
+              "periods": 218,
+              "mean_return": -0.0009,
+              "median_return": 0.0002,
+              "win_rate_pct": 50.0,
+              "annualized_sharpe": -0.07,
+              "compounded_return": -0.3696,
+              "max_drawdown": -0.6364
+            },
+            "excess_vs_eligible_universe": {
+              "periods": 218,
+              "mean_return": -0.0035,
+              "median_return": -0.0047,
+              "win_rate_pct": 41.3,
+              "annualized_sharpe": -0.42,
+              "compounded_return": -0.5709,
+              "max_drawdown": -0.6576
+            }
+          }
+        }
+      },
+      {
+        "combination": "breakout_confirmation",
+        "horizon": 10,
+        "selection": "equal-weight top cross-sectional quintile",
+        "benchmark": "equal-weight eligible universe on the same date",
+        "average_holdings": 10.8,
+        "cost_basis": "round-trip cost deducted from every selected portfolio return",
+        "cost_scenarios_bps": {
+          "0": {
+            "absolute": {
+              "periods": 218,
+              "mean_return": 0.0022,
+              "median_return": 0.0035,
+              "win_rate_pct": 53.2,
+              "annualized_sharpe": 0.22,
+              "compounded_return": 0.412,
+              "max_drawdown": -0.4992
+            },
+            "excess_vs_eligible_universe": {
+              "periods": 218,
+              "mean_return": -0.0003,
+              "median_return": 0.0012,
+              "win_rate_pct": 53.2,
+              "annualized_sharpe": -0.05,
+              "compounded_return": -0.1046,
+              "max_drawdown": -0.3702
+            }
+          },
+          "20": {
+            "absolute": {
+              "periods": 218,
+              "mean_return": 0.0002,
+              "median_return": 0.0015,
+              "win_rate_pct": 51.8,
+              "annualized_sharpe": 0.02,
+              "compounded_return": -0.087,
+              "max_drawdown": -0.5868
+            },
+            "excess_vs_eligible_universe": {
+              "periods": 218,
+              "mean_return": -0.0023,
+              "median_return": -0.0008,
+              "win_rate_pct": 48.2,
+              "annualized_sharpe": -0.39,
+              "compounded_return": -0.4214,
+              "max_drawdown": -0.5245
+            }
+          },
+          "50": {
+            "absolute": {
+              "periods": 218,
+              "mean_return": -0.0028,
+              "median_return": -0.0015,
+              "win_rate_pct": 46.8,
+              "annualized_sharpe": -0.27,
+              "compounded_return": -0.5261,
+              "max_drawdown": -0.7445
+            },
+            "excess_vs_eligible_universe": {
+              "periods": 218,
+              "mean_return": -0.0053,
+              "median_return": -0.0038,
+              "win_rate_pct": 41.3,
+              "annualized_sharpe": -0.89,
+              "compounded_return": -0.7,
+              "max_drawdown": -0.7254
+            }
+          }
+        }
+      },
+      {
+        "combination": "balanced_technical",
+        "horizon": 10,
+        "selection": "equal-weight top cross-sectional quintile",
+        "benchmark": "equal-weight eligible universe on the same date",
+        "average_holdings": 10.8,
+        "cost_basis": "round-trip cost deducted from every selected portfolio return",
+        "cost_scenarios_bps": {
+          "0": {
+            "absolute": {
+              "periods": 218,
+              "mean_return": 0.006,
+              "median_return": 0.0094,
+              "win_rate_pct": 58.7,
+              "annualized_sharpe": 0.46,
+              "compounded_return": 1.9389,
+              "max_drawdown": -0.3623
+            },
+            "excess_vs_eligible_universe": {
+              "periods": 218,
+              "mean_return": 0.0035,
+              "median_return": 0.0028,
+              "win_rate_pct": 55.5,
+              "annualized_sharpe": 0.43,
+              "compounded_return": 0.9528,
+              "max_drawdown": -0.1846
+            }
+          },
+          "20": {
+            "absolute": {
+              "periods": 218,
+              "mean_return": 0.004,
+              "median_return": 0.0074,
+              "win_rate_pct": 56.0,
+              "annualized_sharpe": 0.3,
+              "compounded_return": 0.9028,
+              "max_drawdown": -0.4136
+            },
+            "excess_vs_eligible_universe": {
+              "periods": 218,
+              "mean_return": 0.0015,
+              "median_return": 0.0008,
+              "win_rate_pct": 52.3,
+              "annualized_sharpe": 0.18,
+              "compounded_return": 0.2637,
+              "max_drawdown": -0.2542
+            }
+          },
+          "50": {
+            "absolute": {
+              "periods": 218,
+              "mean_return": 0.001,
+              "median_return": 0.0044,
+              "win_rate_pct": 54.1,
+              "annualized_sharpe": 0.07,
+              "compounded_return": -0.0103,
+              "max_drawdown": -0.5692
+            },
+            "excess_vs_eligible_universe": {
+              "periods": 218,
+              "mean_return": -0.0015,
+              "median_return": -0.0022,
+              "win_rate_pct": 46.3,
+              "annualized_sharpe": -0.19,
+              "compounded_return": -0.3433,
+              "max_drawdown": -0.4154
+            }
+          }
+        }
+      }
+    ],
+    "validation": [
+      {
+        "combination": "trend_confluence",
+        "horizon": 10,
+        "selection": "equal-weight top cross-sectional quintile",
+        "benchmark": "equal-weight eligible universe on the same date",
+        "average_holdings": 14.1,
+        "cost_basis": "round-trip cost deducted from every selected portfolio return",
+        "cost_scenarios_bps": {
+          "0": {
+            "absolute": {
+              "periods": 10,
+              "mean_return": 0.021,
+              "median_return": 0.0118,
+              "win_rate_pct": 70.0,
+              "annualized_sharpe": 1.45,
+              "compounded_return": 0.2174,
+              "max_drawdown": -0.0526
+            },
+            "excess_vs_eligible_universe": {
+              "periods": 10,
+              "mean_return": 0.0151,
+              "median_return": 0.0191,
+              "win_rate_pct": 70.0,
+              "annualized_sharpe": 1.45,
+              "compounded_return": 0.155,
+              "max_drawdown": -0.0704
+            }
+          },
+          "20": {
+            "absolute": {
+              "periods": 10,
+              "mean_return": 0.019,
+              "median_return": 0.0098,
+              "win_rate_pct": 70.0,
+              "annualized_sharpe": 1.31,
+              "compounded_return": 0.1938,
+              "max_drawdown": -0.0565
+            },
+            "excess_vs_eligible_universe": {
+              "periods": 10,
+              "mean_return": 0.0131,
+              "median_return": 0.0171,
+              "win_rate_pct": 70.0,
+              "annualized_sharpe": 1.26,
+              "compounded_return": 0.1324,
+              "max_drawdown": -0.0742
+            }
+          },
+          "50": {
+            "absolute": {
+              "periods": 10,
+              "mean_return": 0.016,
+              "median_return": 0.0068,
+              "win_rate_pct": 60.0,
+              "annualized_sharpe": 1.1,
+              "compounded_return": 0.159,
+              "max_drawdown": -0.0623
+            },
+            "excess_vs_eligible_universe": {
+              "periods": 10,
+              "mean_return": 0.0101,
+              "median_return": 0.0141,
+              "win_rate_pct": 60.0,
+              "annualized_sharpe": 0.97,
+              "compounded_return": 0.0993,
+              "max_drawdown": -0.0823
+            }
+          }
+        }
+      },
+      {
+        "combination": "breakout_confirmation",
+        "horizon": 10,
+        "selection": "equal-weight top cross-sectional quintile",
+        "benchmark": "equal-weight eligible universe on the same date",
+        "average_holdings": 14.1,
+        "cost_basis": "round-trip cost deducted from every selected portfolio return",
+        "cost_scenarios_bps": {
+          "0": {
+            "absolute": {
+              "periods": 10,
+              "mean_return": 0.0131,
+              "median_return": 0.0152,
+              "win_rate_pct": 60.0,
+              "annualized_sharpe": 1.44,
+              "compounded_return": 0.1342,
+              "max_drawdown": -0.0423
+            },
+            "excess_vs_eligible_universe": {
+              "periods": 10,
+              "mean_return": 0.0072,
+              "median_return": 0.0139,
+              "win_rate_pct": 70.0,
+              "annualized_sharpe": 0.85,
+              "compounded_return": 0.0705,
+              "max_drawdown": -0.09
+            }
+          },
+          "20": {
+            "absolute": {
+              "periods": 10,
+              "mean_return": 0.0111,
+              "median_return": 0.0132,
+              "win_rate_pct": 60.0,
+              "annualized_sharpe": 1.22,
+              "compounded_return": 0.112,
+              "max_drawdown": -0.0462
+            },
+            "excess_vs_eligible_universe": {
+              "periods": 10,
+              "mean_return": 0.0052,
+              "median_return": 0.0119,
+              "win_rate_pct": 70.0,
+              "annualized_sharpe": 0.62,
+              "compounded_return": 0.0494,
+              "max_drawdown": -0.0956
+            }
+          },
+          "50": {
+            "absolute": {
+              "periods": 10,
+              "mean_return": 0.0081,
+              "median_return": 0.0102,
+              "win_rate_pct": 60.0,
+              "annualized_sharpe": 0.89,
+              "compounded_return": 0.0795,
+              "max_drawdown": -0.0521
+            },
+            "excess_vs_eligible_universe": {
+              "periods": 10,
+              "mean_return": 0.0022,
+              "median_return": 0.0089,
+              "win_rate_pct": 70.0,
+              "annualized_sharpe": 0.26,
+              "compounded_return": 0.0185,
+              "max_drawdown": -0.104
+            }
+          }
+        }
+      },
+      {
+        "combination": "balanced_technical",
+        "horizon": 10,
+        "selection": "equal-weight top cross-sectional quintile",
+        "benchmark": "equal-weight eligible universe on the same date",
+        "average_holdings": 14.1,
+        "cost_basis": "round-trip cost deducted from every selected portfolio return",
+        "cost_scenarios_bps": {
+          "0": {
+            "absolute": {
+              "periods": 10,
+              "mean_return": 0.0239,
+              "median_return": 0.0131,
+              "win_rate_pct": 70.0,
+              "annualized_sharpe": 1.85,
+              "compounded_return": 0.2554,
+              "max_drawdown": -0.0515
+            },
+            "excess_vs_eligible_universe": {
+              "periods": 10,
+              "mean_return": 0.018,
+              "median_return": 0.0143,
+              "win_rate_pct": 90.0,
+              "annualized_sharpe": 2.37,
+              "compounded_return": 0.1917,
+              "max_drawdown": -0.0334
+            }
+          },
+          "20": {
+            "absolute": {
+              "periods": 10,
+              "mean_return": 0.0219,
+              "median_return": 0.0111,
+              "win_rate_pct": 70.0,
+              "annualized_sharpe": 1.69,
+              "compounded_return": 0.231,
+              "max_drawdown": -0.0535
+            },
+            "excess_vs_eligible_universe": {
+              "periods": 10,
+              "mean_return": 0.016,
+              "median_return": 0.0123,
+              "win_rate_pct": 90.0,
+              "annualized_sharpe": 2.11,
+              "compounded_return": 0.1685,
+              "max_drawdown": -0.0354
+            }
+          },
+          "50": {
+            "absolute": {
+              "periods": 10,
+              "mean_return": 0.0189,
+              "median_return": 0.0081,
+              "win_rate_pct": 70.0,
+              "annualized_sharpe": 1.46,
+              "compounded_return": 0.1953,
+              "max_drawdown": -0.0619
+            },
+            "excess_vs_eligible_universe": {
+              "periods": 10,
+              "mean_return": 0.013,
+              "median_return": 0.0093,
+              "win_rate_pct": 90.0,
+              "annualized_sharpe": 1.71,
+              "compounded_return": 0.1344,
+              "max_drawdown": -0.0384
+            }
+          }
+        }
+      }
+    ],
+    "forward_test": [
+      {
+        "combination": "trend_confluence",
+        "horizon": 10,
+        "selection": "equal-weight top cross-sectional quintile",
+        "benchmark": "equal-weight eligible universe on the same date",
+        "average_holdings": 16,
+        "cost_basis": "round-trip cost deducted from every selected portfolio return",
+        "cost_scenarios_bps": {
+          "0": {
+            "absolute": {
+              "periods": 6,
+              "mean_return": 0.0122,
+              "median_return": 0.0145,
+              "win_rate_pct": 66.7,
+              "annualized_sharpe": 0.49,
+              "compounded_return": 0.0565,
+              "max_drawdown": -0.0766
+            },
+            "excess_vs_eligible_universe": {
+              "periods": 6,
+              "mean_return": 0.004,
+              "median_return": -0.01,
+              "win_rate_pct": 50.0,
+              "annualized_sharpe": 0.21,
+              "compounded_return": 0.0138,
+              "max_drawdown": -0.093
+            }
+          },
+          "20": {
+            "absolute": {
+              "periods": 6,
+              "mean_return": 0.0102,
+              "median_return": 0.0125,
+              "win_rate_pct": 66.7,
+              "annualized_sharpe": 0.41,
+              "compounded_return": 0.044,
+              "max_drawdown": -0.0786
+            },
+            "excess_vs_eligible_universe": {
+              "periods": 6,
+              "mean_return": 0.002,
+              "median_return": -0.012,
+              "win_rate_pct": 50.0,
+              "annualized_sharpe": 0.1,
+              "compounded_return": 0.0017,
+              "max_drawdown": -0.0968
+            }
+          },
+          "50": {
+            "absolute": {
+              "periods": 6,
+              "mean_return": 0.0072,
+              "median_return": 0.0095,
+              "win_rate_pct": 66.7,
+              "annualized_sharpe": 0.29,
+              "compounded_return": 0.0254,
+              "max_drawdown": -0.0816
+            },
+            "excess_vs_eligible_universe": {
+              "periods": 6,
+              "mean_return": -0.001,
+              "median_return": -0.015,
+              "win_rate_pct": 50.0,
+              "annualized_sharpe": -0.06,
+              "compounded_return": -0.0162,
+              "max_drawdown": -0.1025
+            }
+          }
+        }
+      },
+      {
+        "combination": "breakout_confirmation",
+        "horizon": 10,
+        "selection": "equal-weight top cross-sectional quintile",
+        "benchmark": "equal-weight eligible universe on the same date",
+        "average_holdings": 16,
+        "cost_basis": "round-trip cost deducted from every selected portfolio return",
+        "cost_scenarios_bps": {
+          "0": {
+            "absolute": {
+              "periods": 6,
+              "mean_return": 0.0164,
+              "median_return": 0.0094,
+              "win_rate_pct": 66.7,
+              "annualized_sharpe": 1.01,
+              "compounded_return": 0.094,
+              "max_drawdown": -0.0597
+            },
+            "excess_vs_eligible_universe": {
+              "periods": 6,
+              "mean_return": 0.0081,
+              "median_return": -0.0012,
+              "win_rate_pct": 50.0,
+              "annualized_sharpe": 0.73,
+              "compounded_return": 0.046,
+              "max_drawdown": -0.036
+            }
+          },
+          "20": {
+            "absolute": {
+              "periods": 6,
+              "mean_return": 0.0144,
+              "median_return": 0.0074,
+              "win_rate_pct": 66.7,
+              "annualized_sharpe": 0.88,
+              "compounded_return": 0.0811,
+              "max_drawdown": -0.0617
+            },
+            "excess_vs_eligible_universe": {
+              "periods": 6,
+              "mean_return": 0.0061,
+              "median_return": -0.0032,
+              "win_rate_pct": 50.0,
+              "annualized_sharpe": 0.55,
+              "compounded_return": 0.0336,
+              "max_drawdown": -0.0419
+            }
+          },
+          "50": {
+            "absolute": {
+              "periods": 6,
+              "mean_return": 0.0114,
+              "median_return": 0.0044,
+              "win_rate_pct": 66.7,
+              "annualized_sharpe": 0.7,
+              "compounded_return": 0.062,
+              "max_drawdown": -0.0647
+            },
+            "excess_vs_eligible_universe": {
+              "periods": 6,
+              "mean_return": 0.0031,
+              "median_return": -0.0062,
+              "win_rate_pct": 50.0,
+              "annualized_sharpe": 0.28,
+              "compounded_return": 0.0152,
+              "max_drawdown": -0.0506
+            }
+          }
+        }
+      },
+      {
+        "combination": "balanced_technical",
+        "horizon": 10,
+        "selection": "equal-weight top cross-sectional quintile",
+        "benchmark": "equal-weight eligible universe on the same date",
+        "average_holdings": 16,
+        "cost_basis": "round-trip cost deducted from every selected portfolio return",
+        "cost_scenarios_bps": {
+          "0": {
+            "absolute": {
+              "periods": 6,
+              "mean_return": 0.0065,
+              "median_return": 0.008,
+              "win_rate_pct": 50.0,
+              "annualized_sharpe": 0.51,
+              "compounded_return": 0.0346,
+              "max_drawdown": -0.0524
+            },
+            "excess_vs_eligible_universe": {
+              "periods": 6,
+              "mean_return": -0.0017,
+              "median_return": -0.0053,
+              "win_rate_pct": 33.3,
+              "annualized_sharpe": -0.26,
+              "compounded_return": -0.0117,
+              "max_drawdown": -0.0488
+            }
+          },
+          "20": {
+            "absolute": {
+              "periods": 6,
+              "mean_return": 0.0045,
+              "median_return": 0.006,
+              "win_rate_pct": 50.0,
+              "annualized_sharpe": 0.35,
+              "compounded_return": 0.0223,
+              "max_drawdown": -0.0562
+            },
+            "excess_vs_eligible_universe": {
+              "periods": 6,
+              "mean_return": -0.0037,
+              "median_return": -0.0073,
+              "win_rate_pct": 33.3,
+              "annualized_sharpe": -0.56,
+              "compounded_return": -0.0235,
+              "max_drawdown": -0.0527
+            }
+          },
+          "50": {
+            "absolute": {
+              "periods": 6,
+              "mean_return": 0.0015,
+              "median_return": 0.003,
+              "win_rate_pct": 50.0,
+              "annualized_sharpe": 0.12,
+              "compounded_return": 0.0041,
+              "max_drawdown": -0.0621
+            },
+            "excess_vs_eligible_universe": {
+              "periods": 6,
+              "mean_return": -0.0067,
+              "median_return": -0.0103,
+              "win_rate_pct": 33.3,
+              "annualized_sharpe": -1.01,
+              "compounded_return": -0.0411,
+              "max_drawdown": -0.0586
+            }
+          }
+        }
+      }
+    ]
+  },
   "limitations": [
     "Deterministic sample, not yet a complete point-in-time US universe",
     "No historical sector classifications, so results are not sector-neutralized",
     "Roll spread proxy rather than historical quotes",
-    "No commissions, slippage model, fundamentals, options walls, or borrow costs"
+    "Cost scenarios are fixed haircuts, not security-specific slippage",
+    "No fundamentals, options walls, borrow costs, or portfolio beta hedging"
   ],
   "decision": "Use development to form hypotheses, validation to accept or reject them, and forward test only as an untouched monitor. No live capital authorization."
 }
