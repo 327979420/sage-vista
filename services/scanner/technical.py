@@ -81,15 +81,29 @@ def backtest(rows,equity=100000,risk_pct=.0075):
         p=evaluate(rows,i,equity,risk_pct)
         if not p:i+=1;continue
         risk=p.entry-p.stop; exit_price=rows[min(i+10,len(rows)-1)]["close"]; reason="10-bar time stop"
-        max_r=0
+        max_r=0;min_r=0
         for j in range(i+1,min(i+21,len(rows))):
             # Conservative same-bar assumption: stop is evaluated before target.
             if rows[j]["low"]<=p.stop:exit_price=p.stop;reason="structure stop";break
             if rows[j]["high"]>=p.target:exit_price=p.target;reason="target";break
-            max_r=max(max_r,(rows[j]["high"]-p.entry)/risk)
+            max_r=max(max_r,(rows[j]["high"]-p.entry)/risk);min_r=min(min_r,(rows[j]["low"]-p.entry)/risk)
             if j==i+10 and max_r<.5:exit_price=rows[j]["close"];reason="10-bar no-expansion exit";break
             if j==min(i+20,len(rows)-1):exit_price=rows[j]["close"];reason="20-bar maximum hold"
-        r=(exit_price-p.entry)/risk; trades.append({"date":rows[i+1]["date"],"entry":p.entry,"stop":p.stop,"target":p.target,"exit":round(exit_price,2),"r":round(r,3),"reason":reason,"bars":j-i,"reasons":p.reasons}); i=j+1
+        r=(exit_price-p.entry)/risk;scenarios={}
+        for horizon in (5,10,15,20):
+            fixed=rows[min(i+horizon,len(rows)-1)]["close"]
+            for k in range(i+1,min(i+horizon+1,len(rows))):
+                if rows[k]["low"]<=p.stop:fixed=p.stop;break
+            scenarios[str(horizon)]=round((fixed-p.entry)/risk,3)
+        gap_bps=(p.entry-rows[i]["close"])/rows[i]["close"]*10000
+        trades.append({"date":rows[i+1]["date"],"exit_date":rows[j]["date"],"entry":p.entry,"stop":p.stop,"target":p.target,"exit":round(exit_price,2),"r":round(r,3),"reason":reason,"bars":j-i,"entry_gap_bps":round(gap_bps,1),"mfe_r":round(max_r,3),"mae_r":round(min_r,3),"missed_profit_r":round(max(0,max_r-r),3),"fixed_horizon_r":scenarios,"reasons":p.reasons}); i=j+1
     wins=[t for t in trades if t["r"]>0]; total=sum(t["r"] for t in trades); peak=curve=dd=0
     for t in trades:curve+=t["r"];peak=max(peak,curve);dd=max(dd,peak-curve)
     return {"trades":trades,"summary":{"count":len(trades),"win_rate":round(len(wins)/len(trades)*100,1) if trades else 0,"total_r":round(total,2),"avg_r":round(total/len(trades),2) if trades else 0,"max_drawdown_r":round(dd,2)}}
+
+def trade_efficiency(trades):
+    if not trades:return {"count":0,"average_holding_bars":0,"average_entry_gap_bps":0,"average_missed_profit_r":0,"mfe_capture_pct":0,"exit_scenarios":{}}
+    winners=[t for t in trades if t["r"]>0 and t["mfe_r"]>0]
+    scenarios={h:round(sum(t["fixed_horizon_r"][h] for t in trades)/len(trades),3) for h in ("5","10","15","20")}
+    capture=sum(min(1,t["r"]/t["mfe_r"]) for t in winners)/len(winners)*100 if winners else 0
+    return {"count":len(trades),"average_realized_r":round(sum(t["r"] for t in trades)/len(trades),3),"average_holding_bars":round(sum(t["bars"] for t in trades)/len(trades),1),"average_entry_gap_bps":round(sum(t["entry_gap_bps"] for t in trades)/len(trades),1),"average_missed_profit_r":round(sum(t["missed_profit_r"] for t in trades)/len(trades),3),"mfe_capture_pct":round(capture,1),"exit_scenarios":scenarios}
