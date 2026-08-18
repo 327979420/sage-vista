@@ -1,0 +1,110 @@
+{
+  "generated_at": "2026-08-18T03:13:45.474961+00:00",
+  "provider": "EODHD All World",
+  "status": "passed_initial_audit",
+  "universe": {
+    "raw_active_records": 51282,
+    "raw_delisted_records": 59184,
+    "primary_exchange_common_active": 6308,
+    "primary_exchange_common_delisted": 16464,
+    "active_by_exchange": {
+      "NYSE": 2317,
+      "NASDAQ": 3693,
+      "AMEX": 258,
+      "NYSE ARCA": 27,
+      "NYSE MKT": 13
+    },
+    "delisted_by_exchange": {
+      "NASDAQ": 10543,
+      "NYSE": 5374,
+      "NYSE MKT": 481,
+      "NYSE ARCA": 27,
+      "AMEX": 39
+    },
+    "symbol_collisions": 0
+  },
+  "history_checks": [
+    {
+      "symbol": "AAPL",
+      "rows": 11511,
+      "first": "1980-12-12",
+      "last": "2026-08-17",
+      "sorted": true,
+      "duplicate_dates": 0,
+      "missing_adjusted_close": 0,
+      "nonpositive_ohlc": 0
+    },
+    {
+      "symbol": "MSFT",
+      "rows": 10185,
+      "first": "1986-03-13",
+      "last": "2026-08-17",
+      "sorted": true,
+      "duplicate_dates": 0,
+      "missing_adjusted_close": 0,
+      "nonpositive_ohlc": 0
+    },
+    {
+      "symbol": "GE",
+      "rows": 11751,
+      "first": "1980-01-02",
+      "last": "2026-08-17",
+      "sorted": true,
+      "duplicate_dates": 0,
+      "missing_adjusted_close": 0,
+      "nonpositive_ohlc": 0
+    },
+    {
+      "symbol": "TSLA",
+      "rows": 4058,
+      "first": "2010-06-29",
+      "last": "2026-08-17",
+      "sorted": true,
+      "duplicate_dates": 0,
+      "missing_adjusted_close": 0,
+      "nonpositive_ohlc": 0
+    },
+    {
+      "symbol": "AABA",
+      "rows": 5908,
+      "first": "1996-04-15",
+      "last": "2019-10-02",
+      "sorted": true,
+      "duplicate_dates": 0,
+      "missing_adjusted_close": 0,
+      "nonpositive_ohlc": 0
+    },
+    {
+      "symbol": "TWTR",
+      "rows": 2259,
+      "first": "2013-11-07",
+      "last": "2022-10-27",
+      "sorted": true,
+      "duplicate_dates": 0,
+      "missing_adjusted_close": 0,
+      "nonpositive_ohlc": 0
+    },
+    {
+      "symbol": "AAAP_old",
+      "rows": 531,
+      "first": "2016-01-04",
+      "last": "2018-02-09",
+      "sorted": true,
+      "duplicate_dates": 0,
+      "missing_adjusted_close": 0,
+      "nonpositive_ohlc": 0
+    }
+  ],
+  "corporate_actions": {
+    "AAPL_splits": 5,
+    "AAPL_dividends": 92,
+    "TSLA_splits": 2
+  },
+  "decision": "Use EODHD for the next survivorship-aware price-factor experiment. Preserve listing status and never merge recycled symbols solely by ticker.",
+  "limitations": [
+    "All World provides price and corporate-action data, not the full fundamentals package",
+    "Historical bid-ask quotes are not part of this EOD audit",
+    "Historical sector membership still requires a separate dataset or reconstruction",
+    "Raw symbol lists include foreign and OTC securities; primary-exchange common-stock filtering is mandatory"
+  ]
+}
