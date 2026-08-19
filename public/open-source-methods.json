@@ -1,0 +1,43 @@
+{
+  "reviewed_at": "2026-08-19",
+  "projects": [
+    {
+      "name": "Microsoft Qlib",
+      "url": "https://github.com/microsoft/qlib",
+      "practice": "完整的数据处理、模型训练、回测、实验记录、滚动更新和线上服务流程。",
+      "adoption": "优先引入实验清单、数据版本、滚动训练和模型晋级门槛。"
+    },
+    {
+      "name": "QuantConnect LEAN",
+      "url": "https://github.com/QuantConnect/Lean",
+      "practice": "事件驱动、模块化，并让研究、回测和实盘共享同一套执行模型。",
+      "adoption": "继续分离信号、组合、风险和成交模块，并用LEAN复核最终候选。"
+    },
+    {
+      "name": "VectorBT",
+      "url": "https://github.com/polakowo/vectorbt",
+      "practice": "向量化批量测试大量资产和参数，并支持walk-forward稳健性检查。",
+      "adoption": "批量测试预先登记的参数，但给所有尝试统一施加多重检验处罚。"
+    },
+    {
+      "name": "FinRL / FinRL-X",
+      "url": "https://github.com/AI4Finance-Foundation/FinRL",
+      "practice": "明确区分train、test、trade；新版进一步拆分数据、策略、交易与多层风险控制。",
+      "adoption": "保留严格阶段隔离；当前数据规模不适合直接上强化学习，暂缓DRL。"
+    },
+    {
+      "name": "Zipline Reloaded",
+      "url": "https://github.com/stefan-jansen/zipline-reloaded",
+      "practice": "事件驱动回测和Pipeline式横截面研究。",
+      "adoption": "保留收盘生成信号、次日成交和逐时点可得数据约束。"
+    }
+  ],
+  "priority_changes": [
+    "每次实验先登记因子、窗口、持有期、成本和晋级门槛",
+    "保存数据快照版本与研究结果，保证完全可复现",
+    "采用滚动训练、验证、前瞻监控，而不是一次性切分",
+    "把信号质量与组合构建、成交、风险表现分别评估",
+    "建立候选、纸面交易、可部署三个等级，不允许直接从回测跳到实盘"
+  ],
+  "decision": "吸收工程与验证制度，不复制公开策略收益；当前不引入强化学习。"
+}

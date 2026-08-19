@@ -105,6 +105,9 @@ export default function ChineseResearch() {
           <a className="watchlink secondary" href="/zh/context">
             查看ETF环境因子训练 →
           </a>
+          <a className="watchlink secondary" href="/zh/methods">
+            查看开源系统研究 →
+          </a>
         </div>
         <aside>
           <small>载入历史</small>

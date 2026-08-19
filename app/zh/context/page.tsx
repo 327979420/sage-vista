@@ -28,6 +28,7 @@ type Relation = {
 type ContinuousResult = {
   gate: string;
   pair: string;
+  lookback: number;
   combination: string;
   splits: Record<"development" | "validation" | "forward_test", Relation>;
   development_q_bh: number;
@@ -85,19 +86,22 @@ export default function ContextFactorResearch() {
         </div>
         <div className="contextScore">
           <small>通过严格门槛</small>
-          <b>{passed}/18</b>
+          <b>
+            {passed}/{continuous.length}
+          </b>
           <span>当前不提升任何因子权重</span>
         </div>
       </header>
       <section className="watchnote">
         <b>连续强度结论：</b>
-        目前没有环境因子获得升级资格。开发期最强关系也未通过95%置信区间和18项多重检验修正，且后续阶段并不稳定。
+        目前没有环境因子获得升级资格。开发期最强关系也未通过95%置信区间和
+        {continuous.length}项多重检验修正，且后续阶段并不稳定。
       </section>
       <section className="contextExplain">
         <article>
           <small>环境强度</small>
-          <h2>6组主流ETF连续关系</h2>
-          <p>QQQ/SPY、IWM/SPY、RSP/SPY、HYG/LQD、IWD/IWF、MTUM/SPY。</p>
+          <h2>6组ETF × 3个窗口</h2>
+          <p>预先登记20、60和120日窗口，没有看结果后临时增加参数。</p>
         </article>
         <article>
           <small>技术信号</small>
@@ -120,11 +124,16 @@ export default function ContextFactorResearch() {
           <span>2025 / 2026</span>
           <span>结论</span>
         </div>
-        {continuous.map((x) => (
-          <div className="contextRow" key={`${x.gate}-${x.combination}`}>
+        {continuous.slice(0, 18).map((x) => (
+          <div
+            className="contextRow"
+            key={`${x.gate}-${x.lookback}-${x.combination}`}
+          >
             <b>
               {gateNames[x.gate]}
-              <small>{x.pair} · 20日</small>
+              <small>
+                {x.pair} · {x.lookback}日
+              </small>
             </b>
             <span>{comboNames[x.combination]}</span>
             <span
@@ -157,6 +166,10 @@ export default function ContextFactorResearch() {
           </div>
         ))}
       </section>
+      <p className="contextFootnote">
+        表格显示开发期相关性最高的18项；统计修正和晋级判断使用全部
+        {continuous.length}项，没有隐藏较差结果。
+      </p>
       <section className="zhrules">
         <h2>本轮完成后，下一步怎么训练</h2>
         <p>
@@ -166,7 +179,7 @@ export default function ContextFactorResearch() {
         </p>
         <p>
           <b>2</b>
-          下一轮加入不同观察窗口（60日和120日），但窗口必须预先定义，并继续接受多重检验处罚。
+          20、60和120日窗口已经完成；下一轮加入行业中性化与市场Beta中性化。
         </p>
         <p>
           <b>3</b>

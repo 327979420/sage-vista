@@ -1939,6 +1939,36 @@ nav {
   border-radius: 14px;
   background: white;
 }
+.methodGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+.methodGrid article {
+  padding: 24px;
+  border: 1px solid #dce5df;
+  border-radius: 16px;
+  background: white;
+}
+.methodGrid article > a {
+  color: #176b4d;
+  font-size: 22px;
+  font-weight: 750;
+  text-decoration: none;
+}
+.methodGrid h2 {
+  margin: 20px 0 5px;
+  font-size: 13px;
+  color: #718078;
+}
+.methodGrid p {
+  margin: 0;
+  line-height: 1.6;
+}
+.contextFootnote {
+  color: #718078;
+  font-size: 12px;
+}
 .contextExplain h2 {
   margin: 5px 0 8px;
 }
@@ -1984,6 +2014,9 @@ nav {
     width: 100%;
   }
   .contextExplain {
+    grid-template-columns: 1fr;
+  }
+  .methodGrid {
     grid-template-columns: 1fr;
   }
   .contextRow {
