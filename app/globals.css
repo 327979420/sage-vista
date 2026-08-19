@@ -1969,6 +1969,29 @@ nav {
   color: #718078;
   font-size: 12px;
 }
+.neutralBlock {
+  margin: 18px 0;
+  padding: 18px;
+  border: 1px solid #dce5df;
+  border-radius: 16px;
+  background: white;
+}
+.neutralBlock h2 {
+  margin: 4px 0 14px;
+}
+.neutralRow {
+  display: grid;
+  grid-template-columns: 1.2fr 1.3fr repeat(4, 1fr);
+  gap: 10px;
+  padding: 11px 4px;
+  border-bottom: 1px solid #e9eeeb;
+  align-items: center;
+}
+.neutralRow.head {
+  color: #718078;
+  font-size: 11px;
+  font-weight: 700;
+}
 .contextExplain h2 {
   margin: 5px 0 8px;
 }
@@ -2018,6 +2041,13 @@ nav {
   }
   .methodGrid {
     grid-template-columns: 1fr;
+  }
+  .neutralRow {
+    grid-template-columns: 1.2fr 1.2fr 1fr 1fr;
+  }
+  .neutralRow > *:nth-child(4),
+  .neutralRow > *:nth-child(6) {
+    display: none;
   }
   .contextRow {
     grid-template-columns: 1.2fr 1.2fr 1fr 1.4fr;

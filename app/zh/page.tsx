@@ -108,6 +108,9 @@ export default function ChineseResearch() {
           <a className="watchlink secondary" href="/zh/methods">
             查看开源系统研究 →
           </a>
+          <a className="watchlink secondary" href="/zh/neutralization">
+            查看行业与Beta中性化 →
+          </a>
         </div>
         <aside>
           <small>载入历史</small>

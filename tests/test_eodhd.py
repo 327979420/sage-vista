@@ -5,6 +5,7 @@ from services.scanner.eodhd_factor_pilot import stable_sample
 from services.scanner.eodhd_factor_validation import percentile_scores,portfolio_stats,simulate_atr_trade,rolling_oos
 from services.scanner.research_pipeline import factor_values
 from services.scanner.market_context_factor_test import ratio_signal,bootstrap_relation,bh_adjust
+from services.scanner.neutralization_test import correlation,point_in_time_exposure
 class EodhdTests(unittest.TestCase):
  def test_primary_common_stock_filter(self):
   rows=[{"Code":"A","Type":"Common Stock","Exchange":"NYSE"},{"Code":"P","Type":"Common Stock","Exchange":"PINK"},{"Code":"E","Type":"ETF","Exchange":"NASDAQ"}]
@@ -52,4 +53,12 @@ class EodhdTests(unittest.TestCase):
   self.assertLessEqual(result["a"],result["b"])
   self.assertLessEqual(result["b"],result["c"])
   self.assertLessEqual(result["c"],1)
+ def test_correlation_requires_enough_history(self):
+  self.assertIsNone(correlation({str(i):i for i in range(10)},{str(i):i for i in range(10)}))
+ def test_point_in_time_exposure_does_not_use_future_rows(self):
+  rows=[]
+  for i in range(260):rows.append({"date":f"01/{i%28+1:02d}/2000","close":100+i,"open":100+i})
+  # Duplicate pseudo-dates make this deliberately insufficient rather than allowing future observations.
+  result=point_in_time_exposure(rows,{"SPY":rows,**{x:rows for x in ("XLB","XLC","XLE","XLF","XLI","XLK","XLP","XLRE","XLU","XLV","XLY")}},"2000-01-10")
+  self.assertIsNone(result["beta"])
 if __name__=="__main__":unittest.main()
