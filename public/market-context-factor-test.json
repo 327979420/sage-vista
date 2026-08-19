@@ -1,12 +1,14 @@
 {
-  "generated_at": "2026-08-18T11:08:02.746806+00:00",
+  "generated_at": "2026-08-19T00:48:47.434547+00:00",
   "status": "research_only_multiple_hypothesis_test",
   "design": {
     "base_universe": "Risk-on, liquid US stocks from survivorship-aware active and delisted sample",
-    "signal": "ETF ratio positive over trailing 20 trading days",
+    "binary_signal": "ETF ratio positive over trailing 20 trading days",
+    "continuous_signal": "Magnitude of ETF relative return over trailing 20 trading days",
     "portfolio": "Top quintile of each predefined technical combination",
     "outcome": "10-day next-open excess return versus eligible universe after 20 bps cost",
-    "warning": "Six gates times three combinations creates 18 hypotheses; no result is promoted without further out-of-sample evidence."
+    "inference": "2,000 deterministic paired bootstrap samples; 95% interval; development p-values controlled with Benjamini-Hochberg",
+    "warning": "Six contexts times three combinations creates 18 hypotheses; no result is promoted without corrected development evidence and later-period confirmation."
   },
   "pairs": {
     "growth": "QQQ/SPY",
@@ -1344,6 +1346,656 @@
       "validation_dates": 5,
       "forward_dates": 5,
       "verdict": "not_stable"
+    }
+  ],
+  "continuous_results": [
+    {
+      "gate": "growth",
+      "pair": "QQQ/SPY",
+      "combination": "trend_confluence",
+      "splits": {
+        "development": {
+          "dates": 218,
+          "spearman": 0.0733,
+          "ci_95": [
+            -0.0471,
+            0.1898
+          ],
+          "p_one_sided": 0.1304
+        },
+        "validation": {
+          "dates": 10,
+          "spearman": 0.103,
+          "ci_95": [
+            -0.6364,
+            0.8846
+          ],
+          "p_one_sided": 0.4158
+        },
+        "forward_test": {
+          "dates": 6,
+          "spearman": 0.4286,
+          "ci_95": [
+            -0.7419,
+            1.0
+          ],
+          "p_one_sided": 0.1654
+        }
+      },
+      "development_q_bh": 0.996,
+      "verdict": "not_confirmed"
+    },
+    {
+      "gate": "growth",
+      "pair": "QQQ/SPY",
+      "combination": "breakout_confirmation",
+      "splits": {
+        "development": {
+          "dates": 218,
+          "spearman": -0.0226,
+          "ci_95": [
+            -0.1632,
+            0.1099
+          ],
+          "p_one_sided": 0.6407
+        },
+        "validation": {
+          "dates": 10,
+          "spearman": 0.2848,
+          "ci_95": [
+            -0.6561,
+            0.8701
+          ],
+          "p_one_sided": 0.2344
+        },
+        "forward_test": {
+          "dates": 6,
+          "spearman": 0.6,
+          "ci_95": [
+            -0.8,
+            1.0
+          ],
+          "p_one_sided": 0.1425
+        }
+      },
+      "development_q_bh": 0.996,
+      "verdict": "not_confirmed"
+    },
+    {
+      "gate": "growth",
+      "pair": "QQQ/SPY",
+      "combination": "balanced_technical",
+      "splits": {
+        "development": {
+          "dates": 218,
+          "spearman": 0.1062,
+          "ci_95": [
+            -0.0262,
+            0.2318
+          ],
+          "p_one_sided": 0.061
+        },
+        "validation": {
+          "dates": 10,
+          "spearman": -0.1515,
+          "ci_95": [
+            -0.9623,
+            0.625
+          ],
+          "p_one_sided": 0.6157
+        },
+        "forward_test": {
+          "dates": 6,
+          "spearman": 0.8286,
+          "ci_95": [
+            0.0,
+            1.0
+          ],
+          "p_one_sided": 0.035
+        }
+      },
+      "development_q_bh": 0.996,
+      "verdict": "not_confirmed"
+    },
+    {
+      "gate": "small_cap",
+      "pair": "IWM/SPY",
+      "combination": "trend_confluence",
+      "splits": {
+        "development": {
+          "dates": 218,
+          "spearman": -0.0448,
+          "ci_95": [
+            -0.1855,
+            0.1049
+          ],
+          "p_one_sided": 0.7206
+        },
+        "validation": {
+          "dates": 10,
+          "spearman": -0.0061,
+          "ci_95": [
+            -0.75,
+            0.6276
+          ],
+          "p_one_sided": 0.5032
+        },
+        "forward_test": {
+          "dates": 6,
+          "spearman": 0.0286,
+          "ci_95": [
+            -1.0,
+            1.0
+          ],
+          "p_one_sided": 0.5277
+        }
+      },
+      "development_q_bh": 0.996,
+      "verdict": "not_confirmed"
+    },
+    {
+      "gate": "small_cap",
+      "pair": "IWM/SPY",
+      "combination": "breakout_confirmation",
+      "splits": {
+        "development": {
+          "dates": 218,
+          "spearman": -0.1239,
+          "ci_95": [
+            -0.2514,
+            0.0196
+          ],
+          "p_one_sided": 0.9605
+        },
+        "validation": {
+          "dates": 10,
+          "spearman": -0.2727,
+          "ci_95": [
+            -0.9205,
+            0.4815
+          ],
+          "p_one_sided": 0.7881
+        },
+        "forward_test": {
+          "dates": 6,
+          "spearman": 0.7143,
+          "ci_95": [
+            -0.0909,
+            1.0
+          ],
+          "p_one_sided": 0.1084
+        }
+      },
+      "development_q_bh": 0.996,
+      "verdict": "not_confirmed"
+    },
+    {
+      "gate": "small_cap",
+      "pair": "IWM/SPY",
+      "combination": "balanced_technical",
+      "splits": {
+        "development": {
+          "dates": 218,
+          "spearman": -0.0612,
+          "ci_95": [
+            -0.1986,
+            0.077
+          ],
+          "p_one_sided": 0.8001
+        },
+        "validation": {
+          "dates": 10,
+          "spearman": 0.0061,
+          "ci_95": [
+            -0.8025,
+            0.6364
+          ],
+          "p_one_sided": 0.4883
+        },
+        "forward_test": {
+          "dates": 6,
+          "spearman": 0.0286,
+          "ci_95": [
+            -1.0,
+            1.0
+          ],
+          "p_one_sided": 0.5037
+        }
+      },
+      "development_q_bh": 0.996,
+      "verdict": "not_confirmed"
+    },
+    {
+      "gate": "breadth",
+      "pair": "RSP/SPY",
+      "combination": "trend_confluence",
+      "splits": {
+        "development": {
+          "dates": 217,
+          "spearman": -0.1225,
+          "ci_95": [
+            -0.2527,
+            0.018
+          ],
+          "p_one_sided": 0.9595
+        },
+        "validation": {
+          "dates": 10,
+          "spearman": -0.3455,
+          "ci_95": [
+            -0.9876,
+            0.465
+          ],
+          "p_one_sided": 0.7241
+        },
+        "forward_test": {
+          "dates": 6,
+          "spearman": -0.6,
+          "ci_95": [
+            -1.0,
+            0.5
+          ],
+          "p_one_sided": 0.9345
+        }
+      },
+      "development_q_bh": 0.996,
+      "verdict": "not_confirmed"
+    },
+    {
+      "gate": "breadth",
+      "pair": "RSP/SPY",
+      "combination": "breakout_confirmation",
+      "splits": {
+        "development": {
+          "dates": 217,
+          "spearman": -0.1728,
+          "ci_95": [
+            -0.3048,
+            -0.0352
+          ],
+          "p_one_sided": 0.996
+        },
+        "validation": {
+          "dates": 10,
+          "spearman": -0.3091,
+          "ci_95": [
+            -0.8987,
+            0.6981
+          ],
+          "p_one_sided": 0.7886
+        },
+        "forward_test": {
+          "dates": 6,
+          "spearman": -0.3714,
+          "ci_95": [
+            -1.0,
+            0.8
+          ],
+          "p_one_sided": 0.8111
+        }
+      },
+      "development_q_bh": 0.996,
+      "verdict": "not_confirmed"
+    },
+    {
+      "gate": "breadth",
+      "pair": "RSP/SPY",
+      "combination": "balanced_technical",
+      "splits": {
+        "development": {
+          "dates": 217,
+          "spearman": -0.1134,
+          "ci_95": [
+            -0.2475,
+            0.0202
+          ],
+          "p_one_sided": 0.948
+        },
+        "validation": {
+          "dates": 10,
+          "spearman": -0.0303,
+          "ci_95": [
+            -0.7662,
+            0.8868
+          ],
+          "p_one_sided": 0.5497
+        },
+        "forward_test": {
+          "dates": 6,
+          "spearman": -0.5429,
+          "ci_95": [
+            -1.0,
+            0.92
+          ],
+          "p_one_sided": 0.8926
+        }
+      },
+      "development_q_bh": 0.996,
+      "verdict": "not_confirmed"
+    },
+    {
+      "gate": "credit",
+      "pair": "HYG/LQD",
+      "combination": "trend_confluence",
+      "splits": {
+        "development": {
+          "dates": 169,
+          "spearman": -0.027,
+          "ci_95": [
+            -0.1714,
+            0.1424
+          ],
+          "p_one_sided": 0.6157
+        },
+        "validation": {
+          "dates": 10,
+          "spearman": -0.1394,
+          "ci_95": [
+            -0.6883,
+            0.6076
+          ],
+          "p_one_sided": 0.6637
+        },
+        "forward_test": {
+          "dates": 6,
+          "spearman": 0.1429,
+          "ci_95": [
+            -0.8,
+            1.0
+          ],
+          "p_one_sided": 0.3753
+        }
+      },
+      "development_q_bh": 0.996,
+      "verdict": "not_confirmed"
+    },
+    {
+      "gate": "credit",
+      "pair": "HYG/LQD",
+      "combination": "breakout_confirmation",
+      "splits": {
+        "development": {
+          "dates": 169,
+          "spearman": 0.0632,
+          "ci_95": [
+            -0.0921,
+            0.2213
+          ],
+          "p_one_sided": 0.2204
+        },
+        "validation": {
+          "dates": 10,
+          "spearman": -0.1394,
+          "ci_95": [
+            -0.6981,
+            0.8125
+          ],
+          "p_one_sided": 0.6612
+        },
+        "forward_test": {
+          "dates": 6,
+          "spearman": 0.1429,
+          "ci_95": [
+            -0.8,
+            1.0
+          ],
+          "p_one_sided": 0.301
+        }
+      },
+      "development_q_bh": 0.996,
+      "verdict": "not_confirmed"
+    },
+    {
+      "gate": "credit",
+      "pair": "HYG/LQD",
+      "combination": "balanced_technical",
+      "splits": {
+        "development": {
+          "dates": 169,
+          "spearman": -0.0602,
+          "ci_95": [
+            -0.2226,
+            0.1049
+          ],
+          "p_one_sided": 0.7736
+        },
+        "validation": {
+          "dates": 10,
+          "spearman": -0.0182,
+          "ci_95": [
+            -0.6471,
+            0.6981
+          ],
+          "p_one_sided": 0.5337
+        },
+        "forward_test": {
+          "dates": 6,
+          "spearman": -0.3143,
+          "ci_95": [
+            -1.0,
+            1.0
+          ],
+          "p_one_sided": 0.7171
+        }
+      },
+      "development_q_bh": 0.996,
+      "verdict": "not_confirmed"
+    },
+    {
+      "gate": "value",
+      "pair": "IWD/IWF",
+      "combination": "trend_confluence",
+      "splits": {
+        "development": {
+          "dates": 218,
+          "spearman": -0.0608,
+          "ci_95": [
+            -0.1945,
+            0.065
+          ],
+          "p_one_sided": 0.8201
+        },
+        "validation": {
+          "dates": 10,
+          "spearman": -0.4909,
+          "ci_95": [
+            -0.9255,
+            0.2821
+          ],
+          "p_one_sided": 0.924
+        },
+        "forward_test": {
+          "dates": 6,
+          "spearman": -0.2571,
+          "ci_95": [
+            -1.0,
+            0.8
+          ],
+          "p_one_sided": 0.7581
+        }
+      },
+      "development_q_bh": 0.996,
+      "verdict": "not_confirmed"
+    },
+    {
+      "gate": "value",
+      "pair": "IWD/IWF",
+      "combination": "breakout_confirmation",
+      "splits": {
+        "development": {
+          "dates": 218,
+          "spearman": -0.0121,
+          "ci_95": [
+            -0.1485,
+            0.1252
+          ],
+          "p_one_sided": 0.5612
+        },
+        "validation": {
+          "dates": 10,
+          "spearman": -0.2364,
+          "ci_95": [
+            -0.8571,
+            0.6538
+          ],
+          "p_one_sided": 0.7296
+        },
+        "forward_test": {
+          "dates": 6,
+          "spearman": -0.1429,
+          "ci_95": [
+            -1.0,
+            1.0
+          ],
+          "p_one_sided": 0.638
+        }
+      },
+      "development_q_bh": 0.996,
+      "verdict": "not_confirmed"
+    },
+    {
+      "gate": "value",
+      "pair": "IWD/IWF",
+      "combination": "balanced_technical",
+      "splits": {
+        "development": {
+          "dates": 218,
+          "spearman": -0.0432,
+          "ci_95": [
+            -0.1659,
+            0.0877
+          ],
+          "p_one_sided": 0.7166
+        },
+        "validation": {
+          "dates": 10,
+          "spearman": -0.2121,
+          "ci_95": [
+            -0.7987,
+            0.5975
+          ],
+          "p_one_sided": 0.7246
+        },
+        "forward_test": {
+          "dates": 6,
+          "spearman": -0.4857,
+          "ci_95": [
+            -1.0,
+            1.0
+          ],
+          "p_one_sided": 0.8081
+        }
+      },
+      "development_q_bh": 0.996,
+      "verdict": "not_confirmed"
+    },
+    {
+      "gate": "momentum",
+      "pair": "MTUM/SPY",
+      "combination": "trend_confluence",
+      "splits": {
+        "development": {
+          "dates": 119,
+          "spearman": 0.0738,
+          "ci_95": [
+            -0.1166,
+            0.2544
+          ],
+          "p_one_sided": 0.2254
+        },
+        "validation": {
+          "dates": 10,
+          "spearman": 0.2485,
+          "ci_95": [
+            -0.6806,
+            0.8758
+          ],
+          "p_one_sided": 0.2509
+        },
+        "forward_test": {
+          "dates": 6,
+          "spearman": -0.0286,
+          "ci_95": [
+            -1.0,
+            1.0
+          ],
+          "p_one_sided": 0.5297
+        }
+      },
+      "development_q_bh": 0.996,
+      "verdict": "not_confirmed"
+    },
+    {
+      "gate": "momentum",
+      "pair": "MTUM/SPY",
+      "combination": "breakout_confirmation",
+      "splits": {
+        "development": {
+          "dates": 119,
+          "spearman": -0.0908,
+          "ci_95": [
+            -0.2769,
+            0.092
+          ],
+          "p_one_sided": 0.8111
+        },
+        "validation": {
+          "dates": 10,
+          "spearman": 0.5515,
+          "ci_95": [
+            -0.1698,
+            0.8625
+          ],
+          "p_one_sided": 0.0545
+        },
+        "forward_test": {
+          "dates": 6,
+          "spearman": 0.5429,
+          "ci_95": [
+            -0.6364,
+            1.0
+          ],
+          "p_one_sided": 0.0965
+        }
+      },
+      "development_q_bh": 0.996,
+      "verdict": "not_confirmed"
+    },
+    {
+      "gate": "momentum",
+      "pair": "MTUM/SPY",
+      "combination": "balanced_technical",
+      "splits": {
+        "development": {
+          "dates": 119,
+          "spearman": -0.1252,
+          "ci_95": [
+            -0.3104,
+            0.0516
+          ],
+          "p_one_sided": 0.9115
+        },
+        "validation": {
+          "dates": 10,
+          "spearman": 0.4303,
+          "ci_95": [
+            -0.4231,
+            0.9108
+          ],
+          "p_one_sided": 0.1294
+        },
+        "forward_test": {
+          "dates": 6,
+          "spearman": 0.4286,
+          "ci_95": [
+            -0.8,
+            1.0
+          ],
+          "p_one_sided": 0.1479
+        }
+      },
+      "development_q_bh": 0.996,
+      "verdict": "not_confirmed"
     }
   ]
 }

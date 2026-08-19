@@ -1949,7 +1949,7 @@ nav {
 }
 .contextRow {
   display: grid;
-  grid-template-columns: 1.2fr 1.25fr repeat(3, 1fr) 1.3fr;
+  grid-template-columns: 1.1fr 1.2fr repeat(4, 1fr) 1.2fr;
   gap: 12px;
   align-items: center;
   padding: 13px 4px;

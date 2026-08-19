@@ -4,7 +4,7 @@ from services.scanner.audit_eodhd import common
 from services.scanner.eodhd_factor_pilot import stable_sample
 from services.scanner.eodhd_factor_validation import percentile_scores,portfolio_stats,simulate_atr_trade,rolling_oos
 from services.scanner.research_pipeline import factor_values
-from services.scanner.market_context_factor_test import ratio_signal
+from services.scanner.market_context_factor_test import ratio_signal,bootstrap_relation,bh_adjust
 class EodhdTests(unittest.TestCase):
  def test_primary_common_stock_filter(self):
   rows=[{"Code":"A","Type":"Common Stock","Exchange":"NYSE"},{"Code":"P","Type":"Common Stock","Exchange":"PINK"},{"Code":"E","Type":"ETF","Exchange":"NASDAQ"}]
@@ -42,4 +42,14 @@ class EodhdTests(unittest.TestCase):
   denominator={d:100 for d in dates}
   self.assertIsNone(ratio_signal(numerator,denominator,dates[19]))
   self.assertAlmostEqual(ratio_signal(numerator,denominator,dates[20]),.2)
+ def test_bootstrap_relation_detects_monotonic_relation(self):
+  context={str(i):i for i in range(12)};returns={str(i):i*2 for i in range(12)}
+  result=bootstrap_relation(context,returns,200)
+  self.assertEqual(result["spearman"],1)
+  self.assertGreater(result["ci_95"][0],0)
+ def test_bh_adjustment_is_monotonic_and_bounded(self):
+  result=bh_adjust([("a",.01),("b",.04),("c",.5)])
+  self.assertLessEqual(result["a"],result["b"])
+  self.assertLessEqual(result["b"],result["c"])
+  self.assertLessEqual(result["c"],1)
 if __name__=="__main__":unittest.main()
