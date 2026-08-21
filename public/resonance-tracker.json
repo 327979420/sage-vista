@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-21T12:13:51.453335+00:00",
+  "generated_at": "2026-08-21T13:16:48.862167+00:00",
   "as_of": "2026-08-20",
   "data_mode": "latest_completed_eod",
   "intraday": {
@@ -14,46 +14,12 @@
     "filters": "Price >= $5 and latest dollar volume >= $10m"
   },
   "definitions": {
-    "macd": "Gold cross, near-cross with rising histogram, upward turn, or bullish state on daily/weekly/monthly bars.",
+    "macd": "零轴下新金叉权重大于零轴上；额外奖励日线触发、周线确认、月线空头柱收缩的小带大链条。",
+    "weights": "零轴下新金叉8分起，零轴上4分起；3根K线内保留新鲜度；完整小带大链条另加8分。",
     "rsi": "Oversold <=30, recovery through 30, or bullish price/RSI divergence on daily/weekly/monthly bars.",
     "warning": "The current weekly and monthly bars are still forming and signals may change before period close."
   },
   "macd_top10": [
-    {
-      "symbol": "ASM",
-      "price": 7.6,
-      "dollar_volume": 50311916,
-      "frames": {
-        "日线": {
-          "macd": "向上拐头",
-          "macd_score": 2,
-          "macd_histogram": 0.1196,
-          "rsi": "偏强",
-          "rsi_score": 1,
-          "rsi_value": 64.3
-        },
-        "周线": {
-          "macd": "金叉",
-          "macd_score": 4,
-          "macd_histogram": 0.0652,
-          "rsi": "偏强",
-          "rsi_score": 1,
-          "rsi_value": 56.9
-        },
-        "月线": {
-          "macd": "金叉",
-          "macd_score": 4,
-          "macd_histogram": 0.0081,
-          "rsi": "偏强",
-          "rsi_score": 1,
-          "rsi_value": 62.6
-        }
-      },
-      "macd_score": 10,
-      "rsi_score": 3,
-      "macd_resonance": 3,
-      "rsi_resonance": 0
-    },
     {
       "symbol": "LI",
       "price": 12.92,
@@ -61,30 +27,172 @@
       "frames": {
         "日线": {
           "macd": "金叉",
-          "macd_score": 4,
+          "macd_line": -0.0995,
+          "signal_line": -0.1091,
           "macd_histogram": 0.0096,
+          "zero_zone": "零轴下",
+          "bars_since_cross": 0,
+          "near_cross": false,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": false,
           "rsi": "偏强",
           "rsi_score": 1,
-          "rsi_value": 52.9
+          "rsi_value": 52.9,
+          "macd_score": 11
         },
         "周线": {
           "macd": "金叉",
-          "macd_score": 4,
+          "macd_line": -1.5798,
+          "signal_line": -1.6108,
           "macd_histogram": 0.031,
+          "zero_zone": "零轴下",
+          "bars_since_cross": 0,
+          "near_cross": false,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": false,
           "rsi": "中性",
           "rsi_score": 0,
-          "rsi_value": 38.4
+          "rsi_value": 38.4,
+          "macd_score": 11
         },
         "月线": {
-          "macd": "向上拐头",
-          "macd_score": 2,
+          "macd": "空头柱收缩",
+          "macd_line": -3.4909,
+          "signal_line": -2.7474,
           "macd_histogram": -0.7435,
+          "zero_zone": "零轴下",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": true,
           "rsi": "中性",
           "rsi_score": 0,
-          "rsi_value": 38.3
+          "rsi_value": 38.3,
+          "macd_score": 5
         }
       },
-      "macd_score": 10,
+      "macd_score": 49,
+      "macd_base_score": 27,
+      "chain_score": 22,
+      "chain_reason": "日线零轴下新金叉 · 周线零轴下金叉确认 · 月线零轴下空头柱收缩 · 日线→周线→月线小带大",
+      "rsi_score": 1,
+      "macd_resonance": 3,
+      "rsi_resonance": 0
+    },
+    {
+      "symbol": "MMS",
+      "price": 57.76,
+      "dollar_volume": 25366517,
+      "frames": {
+        "日线": {
+          "macd": "准备金叉",
+          "macd_line": -0.5557,
+          "signal_line": -0.449,
+          "macd_histogram": -0.1067,
+          "zero_zone": "零轴下",
+          "bars_since_cross": null,
+          "near_cross": true,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": true,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 50.3,
+          "macd_score": 6
+        },
+        "周线": {
+          "macd": "金叉后4根",
+          "macd_line": -4.2602,
+          "signal_line": -4.8536,
+          "macd_histogram": 0.5934,
+          "zero_zone": "零轴下",
+          "bars_since_cross": 4,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
+          "rsi": "中性",
+          "rsi_score": 0,
+          "rsi_value": 40.8,
+          "macd_score": 8
+        },
+        "月线": {
+          "macd": "空头柱收缩",
+          "macd_line": -4.3289,
+          "signal_line": -1.6569,
+          "macd_histogram": -2.672,
+          "zero_zone": "零轴下",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": true,
+          "rsi": "中性",
+          "rsi_score": 0,
+          "rsi_value": 40.0,
+          "macd_score": 5
+        }
+      },
+      "macd_score": 37,
+      "macd_base_score": 19,
+      "chain_score": 18,
+      "chain_reason": "周线零轴下金叉确认 · 月线零轴下空头柱收缩 · 日线→周线→月线小带大",
+      "rsi_score": 1,
+      "macd_resonance": 3,
+      "rsi_resonance": 0
+    },
+    {
+      "symbol": "TCOM",
+      "price": 46.43,
+      "dollar_volume": 98341619,
+      "frames": {
+        "日线": {
+          "macd": "准备金叉",
+          "macd_line": 0.3507,
+          "signal_line": 0.3945,
+          "macd_histogram": -0.0438,
+          "zero_zone": "零轴上",
+          "bars_since_cross": null,
+          "near_cross": true,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": true,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 56.8,
+          "macd_score": 3
+        },
+        "周线": {
+          "macd": "金叉后3根",
+          "macd_line": -3.3843,
+          "signal_line": -4.138,
+          "macd_histogram": 0.7537,
+          "zero_zone": "零轴下",
+          "bars_since_cross": 3,
+          "near_cross": false,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": false,
+          "rsi": "中性",
+          "rsi_score": 0,
+          "rsi_value": 43.5,
+          "macd_score": 8
+        },
+        "月线": {
+          "macd": "空头柱收缩",
+          "macd_line": -1.1827,
+          "signal_line": 2.1559,
+          "macd_histogram": -3.3385,
+          "zero_zone": "穿越零轴",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": true,
+          "rsi": "中性",
+          "rsi_score": 0,
+          "rsi_value": 44.0,
+          "macd_score": 5
+        }
+      },
+      "macd_score": 34,
+      "macd_base_score": 16,
+      "chain_score": 18,
+      "chain_reason": "周线零轴下金叉确认 · 月线零轴下空头柱收缩 · 日线→周线→月线小带大",
       "rsi_score": 1,
       "macd_resonance": 3,
       "rsi_resonance": 0
@@ -96,66 +204,114 @@
       "frames": {
         "日线": {
           "macd": "向上拐头",
-          "macd_score": 2,
+          "macd_line": 2.9039,
+          "signal_line": 0.9614,
           "macd_histogram": 1.9426,
+          "zero_zone": "零轴上",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": false,
           "rsi": "偏强",
           "rsi_score": 1,
-          "rsi_value": 75.4
+          "rsi_value": 75.4,
+          "macd_score": 2
         },
         "周线": {
-          "macd": "向上拐头",
-          "macd_score": 2,
+          "macd": "金叉后2根",
+          "macd_line": -0.4328,
+          "signal_line": -1.9862,
           "macd_histogram": 1.5534,
+          "zero_zone": "零轴下",
+          "bars_since_cross": 2,
+          "near_cross": false,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": false,
           "rsi": "底背离",
           "rsi_score": 4,
-          "rsi_value": 62.9
+          "rsi_value": 62.9,
+          "macd_score": 9
         },
         "月线": {
           "macd": "金叉",
-          "macd_score": 4,
+          "macd_line": -3.0515,
+          "signal_line": -3.697,
           "macd_histogram": 0.6455,
+          "zero_zone": "零轴下",
+          "bars_since_cross": 0,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
           "rsi": "偏强",
           "rsi_score": 1,
-          "rsi_value": 52.7
+          "rsi_value": 52.7,
+          "macd_score": 11
         }
       },
-      "macd_score": 8,
+      "macd_score": 27,
+      "macd_base_score": 22,
+      "chain_score": 5,
+      "chain_reason": "周线零轴下金叉确认",
       "rsi_score": 6,
       "macd_resonance": 3,
       "rsi_resonance": 1
     },
     {
-      "symbol": "CART",
-      "price": 51.07,
-      "dollar_volume": 230545812,
+      "symbol": "ARCT",
+      "price": 10.99,
+      "dollar_volume": 25195960,
       "frames": {
         "日线": {
           "macd": "向上拐头",
-          "macd_score": 2,
-          "macd_histogram": 0.3211,
+          "macd_line": 0.8207,
+          "signal_line": 0.366,
+          "macd_histogram": 0.4547,
+          "zero_zone": "零轴上",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": false,
           "rsi": "偏强",
           "rsi_score": 1,
-          "rsi_value": 64.3
+          "rsi_value": 84.5,
+          "macd_score": 2
         },
         "周线": {
-          "macd": "向上拐头",
-          "macd_score": 2,
-          "macd_histogram": 0.7787,
+          "macd": "金叉后2根",
+          "macd_line": -0.1654,
+          "signal_line": -0.5612,
+          "macd_histogram": 0.3958,
+          "zero_zone": "零轴下",
+          "bars_since_cross": 2,
+          "near_cross": false,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": false,
           "rsi": "偏强",
           "rsi_score": 1,
-          "rsi_value": 63.4
+          "rsi_value": 64.0,
+          "macd_score": 9
         },
         "月线": {
           "macd": "金叉",
-          "macd_score": 4,
-          "macd_histogram": 0.4534,
-          "rsi": "偏强",
-          "rsi_score": 1,
-          "rsi_value": 61.4
+          "macd_line": -3.6899,
+          "signal_line": -4.0207,
+          "macd_histogram": 0.3308,
+          "zero_zone": "零轴下",
+          "bars_since_cross": 0,
+          "near_cross": false,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": false,
+          "rsi": "中性",
+          "rsi_score": 0,
+          "rsi_value": 46.7,
+          "macd_score": 11
         }
       },
-      "macd_score": 8,
-      "rsi_score": 3,
+      "macd_score": 27,
+      "macd_base_score": 22,
+      "chain_score": 5,
+      "chain_reason": "周线零轴下金叉确认",
+      "rsi_score": 2,
       "macd_resonance": 3,
       "rsi_resonance": 0
     },
@@ -166,207 +322,292 @@
       "frames": {
         "日线": {
           "macd": "金叉",
-          "macd_score": 4,
+          "macd_line": -0.8216,
+          "signal_line": -1.0173,
           "macd_histogram": 0.1957,
+          "zero_zone": "零轴下",
+          "bars_since_cross": 0,
+          "near_cross": false,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": false,
           "rsi": "偏强",
           "rsi_score": 1,
-          "rsi_value": 52.5
+          "rsi_value": 52.5,
+          "macd_score": 11
         },
         "周线": {
           "macd": "未共振",
-          "macd_score": 0,
+          "macd_line": 0.6295,
+          "signal_line": 1.1493,
           "macd_histogram": -0.5198,
+          "zero_zone": "零轴上",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
           "rsi": "偏强",
           "rsi_score": 1,
-          "rsi_value": 50.9
+          "rsi_value": 50.9,
+          "macd_score": 0
         },
         "月线": {
           "macd": "金叉",
-          "macd_score": 4,
+          "macd_line": -3.9567,
+          "signal_line": -4.2649,
           "macd_histogram": 0.3082,
+          "zero_zone": "零轴下",
+          "bars_since_cross": 0,
+          "near_cross": false,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": false,
           "rsi": "中性",
           "rsi_score": 0,
-          "rsi_value": 47.6
+          "rsi_value": 47.6,
+          "macd_score": 11
         }
       },
-      "macd_score": 8,
+      "macd_score": 26,
+      "macd_base_score": 22,
+      "chain_score": 4,
+      "chain_reason": "日线零轴下新金叉",
       "rsi_score": 2,
       "macd_resonance": 2,
       "rsi_resonance": 0
     },
     {
-      "symbol": "ARCT",
-      "price": 10.99,
-      "dollar_volume": 25195960,
+      "symbol": "VERA",
+      "price": 31.26,
+      "dollar_volume": 48887545,
       "frames": {
         "日线": {
-          "macd": "向上拐头",
-          "macd_score": 2,
-          "macd_histogram": 0.4547,
-          "rsi": "偏强",
-          "rsi_score": 1,
-          "rsi_value": 84.5
+          "macd": "金叉后3根",
+          "macd_line": -1.445,
+          "signal_line": -1.7105,
+          "macd_histogram": 0.2656,
+          "zero_zone": "零轴下",
+          "bars_since_cross": 3,
+          "near_cross": false,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": false,
+          "rsi": "底背离",
+          "rsi_score": 4,
+          "rsi_value": 41.8,
+          "macd_score": 8
         },
         "周线": {
-          "macd": "向上拐头",
-          "macd_score": 2,
-          "macd_histogram": 0.3958,
-          "rsi": "偏强",
-          "rsi_score": 1,
-          "rsi_value": 64.0
-        },
-        "月线": {
-          "macd": "金叉",
-          "macd_score": 4,
-          "macd_histogram": 0.3308,
+          "macd": "金叉后6根",
+          "macd_line": -1.4196,
+          "signal_line": -0.6079,
+          "macd_histogram": -0.8118,
+          "zero_zone": "零轴下",
+          "bars_since_cross": 6,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
           "rsi": "中性",
           "rsi_score": 0,
-          "rsi_value": 46.7
-        }
-      },
-      "macd_score": 8,
-      "rsi_score": 2,
-      "macd_resonance": 3,
-      "rsi_resonance": 0
-    },
-    {
-      "symbol": "FCX",
-      "price": 71.22,
-      "dollar_volume": 1255591935,
-      "frames": {
-        "日线": {
-          "macd": "向上拐头",
-          "macd_score": 2,
-          "macd_histogram": 0.209,
-          "rsi": "偏强",
-          "rsi_score": 1,
-          "rsi_value": 61.6
-        },
-        "周线": {
-          "macd": "金叉",
-          "macd_score": 4,
-          "macd_histogram": 0.1673,
-          "rsi": "偏强",
-          "rsi_score": 1,
-          "rsi_value": 60.7
+          "rsi_value": 40.6,
+          "macd_score": 8
         },
         "月线": {
-          "macd": "多头",
-          "macd_score": 1,
-          "macd_histogram": 2.0324,
-          "rsi": "偏强",
-          "rsi_score": 1,
-          "rsi_value": 67.5
-        }
-      },
-      "macd_score": 7,
-      "rsi_score": 3,
-      "macd_resonance": 2,
-      "rsi_resonance": 0
-    },
-    {
-      "symbol": "ILMN",
-      "price": 213.24,
-      "dollar_volume": 700353301,
-      "frames": {
-        "日线": {
-          "macd": "金叉",
-          "macd_score": 4,
-          "macd_histogram": 0.5354,
-          "rsi": "偏强",
-          "rsi_score": 1,
-          "rsi_value": 66.5
-        },
-        "周线": {
-          "macd": "多头",
-          "macd_score": 1,
-          "macd_histogram": 3.0802,
-          "rsi": "偏强",
-          "rsi_score": 1,
-          "rsi_value": 72.6
-        },
-        "月线": {
-          "macd": "向上拐头",
-          "macd_score": 2,
-          "macd_histogram": 13.9207,
-          "rsi": "偏强",
-          "rsi_score": 1,
-          "rsi_value": 69.0
-        }
-      },
-      "macd_score": 7,
-      "rsi_score": 3,
-      "macd_resonance": 2,
-      "rsi_resonance": 0
-    },
-    {
-      "symbol": "WST",
-      "price": 353.77,
-      "dollar_volume": 208145179,
-      "frames": {
-        "日线": {
-          "macd": "金叉",
-          "macd_score": 4,
-          "macd_histogram": 0.164,
-          "rsi": "偏强",
-          "rsi_score": 1,
-          "rsi_value": 56.2
-        },
-        "周线": {
-          "macd": "多头",
-          "macd_score": 1,
-          "macd_histogram": 0.4218,
-          "rsi": "偏强",
-          "rsi_score": 1,
-          "rsi_value": 62.2
-        },
-        "月线": {
-          "macd": "向上拐头",
-          "macd_score": 2,
-          "macd_histogram": 14.225,
-          "rsi": "偏强",
-          "rsi_score": 1,
-          "rsi_value": 60.7
-        }
-      },
-      "macd_score": 7,
-      "rsi_score": 3,
-      "macd_resonance": 2,
-      "rsi_resonance": 0
-    },
-    {
-      "symbol": "FDS",
-      "price": 300.06,
-      "dollar_volume": 181449583,
-      "frames": {
-        "日线": {
-          "macd": "向上拐头",
-          "macd_score": 2,
-          "macd_histogram": 1.0178,
-          "rsi": "偏强",
-          "rsi_score": 1,
-          "rsi_value": 65.7
-        },
-        "周线": {
-          "macd": "向上拐头",
-          "macd_score": 2,
-          "macd_histogram": 9.2477,
-          "rsi": "偏强",
-          "rsi_score": 1,
-          "rsi_value": 64.3
-        },
-        "月线": {
-          "macd": "准备金叉",
-          "macd_score": 3,
-          "macd_histogram": -1.9027,
+          "macd": "未共振",
+          "macd_line": 2.1212,
+          "signal_line": 2.6355,
+          "macd_histogram": -0.5143,
+          "zero_zone": "零轴上",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
           "rsi": "中性",
           "rsi_score": 0,
-          "rsi_value": 46.0
+          "rsi_value": 48.6,
+          "macd_score": 0
         }
       },
-      "macd_score": 7,
+      "macd_score": 25,
+      "macd_base_score": 16,
+      "chain_score": 9,
+      "chain_reason": "日线零轴下新金叉 · 周线零轴下金叉确认",
+      "rsi_score": 4,
+      "macd_resonance": 2,
+      "rsi_resonance": 1
+    },
+    {
+      "symbol": "PHAT",
+      "price": 8.6,
+      "dollar_volume": 12078992,
+      "frames": {
+        "日线": {
+          "macd": "金叉后4根",
+          "macd_line": -0.4556,
+          "signal_line": -0.5032,
+          "macd_histogram": 0.0475,
+          "zero_zone": "零轴下",
+          "bars_since_cross": 4,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
+          "rsi": "中性",
+          "rsi_score": 0,
+          "rsi_value": 37.8,
+          "macd_score": 8
+        },
+        "周线": {
+          "macd": "金叉后6根",
+          "macd_line": -0.7547,
+          "signal_line": -0.5327,
+          "macd_histogram": -0.222,
+          "zero_zone": "零轴下",
+          "bars_since_cross": 6,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
+          "rsi": "中性",
+          "rsi_score": 0,
+          "rsi_value": 39.9,
+          "macd_score": 8
+        },
+        "月线": {
+          "macd": "未共振",
+          "macd_line": -0.362,
+          "signal_line": -0.1333,
+          "macd_histogram": -0.2287,
+          "zero_zone": "零轴下",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
+          "rsi": "中性",
+          "rsi_score": 0,
+          "rsi_value": 44.5,
+          "macd_score": 0
+        }
+      },
+      "macd_score": 25,
+      "macd_base_score": 16,
+      "chain_score": 9,
+      "chain_reason": "日线零轴下新金叉 · 周线零轴下金叉确认",
+      "rsi_score": 0,
+      "macd_resonance": 2,
+      "rsi_resonance": 0
+    },
+    {
+      "symbol": "COR",
+      "price": 314.69,
+      "dollar_volume": 369998026,
+      "frames": {
+        "日线": {
+          "macd": "未共振",
+          "macd_line": 3.917,
+          "signal_line": 5.1702,
+          "macd_histogram": -1.2532,
+          "zero_zone": "零轴上",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 52.9,
+          "macd_score": 0
+        },
+        "周线": {
+          "macd": "金叉后6根",
+          "macd_line": -1.455,
+          "signal_line": -6.2796,
+          "macd_histogram": 4.8246,
+          "zero_zone": "零轴下",
+          "bars_since_cross": 6,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 53.8,
+          "macd_score": 8
+        },
+        "月线": {
+          "macd": "空头柱收缩",
+          "macd_line": 21.104,
+          "signal_line": 27.9599,
+          "macd_histogram": -6.8559,
+          "zero_zone": "零轴上",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": true,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 56.4,
+          "macd_score": 5
+        }
+      },
+      "macd_score": 23,
+      "macd_base_score": 13,
+      "chain_score": 10,
+      "chain_reason": "周线零轴下金叉确认 · 月线零轴下空头柱收缩",
+      "rsi_score": 3,
+      "macd_resonance": 2,
+      "rsi_resonance": 0
+    },
+    {
+      "symbol": "UHS",
+      "price": 172.87,
+      "dollar_volume": 96032742,
+      "frames": {
+        "日线": {
+          "macd": "未共振",
+          "macd_line": 4.3586,
+          "signal_line": 4.5552,
+          "macd_histogram": -0.1967,
+          "zero_zone": "零轴上",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 61.8,
+          "macd_score": 0
+        },
+        "周线": {
+          "macd": "金叉后4根",
+          "macd_line": -6.0688,
+          "signal_line": -9.9792,
+          "macd_histogram": 3.9104,
+          "zero_zone": "零轴下",
+          "bars_since_cross": 4,
+          "near_cross": false,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": false,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 51.4,
+          "macd_score": 8
+        },
+        "月线": {
+          "macd": "空头柱收缩",
+          "macd_line": -1.8971,
+          "signal_line": 4.0563,
+          "macd_histogram": -5.9534,
+          "zero_zone": "穿越零轴",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": true,
+          "rsi": "中性",
+          "rsi_score": 0,
+          "rsi_value": 48.3,
+          "macd_score": 5
+        }
+      },
+      "macd_score": 23,
+      "macd_base_score": 13,
+      "chain_score": 10,
+      "chain_reason": "周线零轴下金叉确认 · 月线零轴下空头柱收缩",
       "rsi_score": 2,
-      "macd_resonance": 3,
+      "macd_resonance": 2,
       "rsi_resonance": 0
     }
   ],
@@ -378,30 +619,54 @@
       "frames": {
         "日线": {
           "macd": "未共振",
-          "macd_score": 0,
+          "macd_line": 0.709,
+          "signal_line": 2.2521,
           "macd_histogram": -1.5431,
+          "zero_zone": "零轴上",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
           "rsi": "中性",
           "rsi_score": 0,
-          "rsi_value": 41.2
+          "rsi_value": 41.2,
+          "macd_score": 0
         },
         "周线": {
           "macd": "多头",
-          "macd_score": 1,
+          "macd_line": 7.1354,
+          "signal_line": 6.8007,
           "macd_histogram": 0.3347,
+          "zero_zone": "零轴上",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
           "rsi": "底背离",
           "rsi_score": 4,
-          "rsi_value": 52.4
+          "rsi_value": 52.4,
+          "macd_score": 1
         },
         "月线": {
           "macd": "多头",
-          "macd_score": 1,
+          "macd_line": 24.8614,
+          "signal_line": 22.9935,
           "macd_histogram": 1.8679,
+          "zero_zone": "零轴上",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
           "rsi": "底背离",
           "rsi_score": 4,
-          "rsi_value": 66.3
+          "rsi_value": 66.3,
+          "macd_score": 1
         }
       },
       "macd_score": 2,
+      "macd_base_score": 2,
+      "chain_score": 0,
+      "chain_reason": "尚未形成小带大链条",
       "rsi_score": 8,
       "macd_resonance": 0,
       "rsi_resonance": 2
@@ -413,30 +678,54 @@
       "frames": {
         "日线": {
           "macd": "未共振",
-          "macd_score": 0,
+          "macd_line": 0.9491,
+          "signal_line": 1.6679,
           "macd_histogram": -0.7188,
+          "zero_zone": "零轴上",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
           "rsi": "中性",
           "rsi_score": 0,
-          "rsi_value": 48.0
+          "rsi_value": 48.0,
+          "macd_score": 0
         },
         "周线": {
           "macd": "多头",
-          "macd_score": 1,
+          "macd_line": 3.1223,
+          "signal_line": 2.279,
           "macd_histogram": 0.8433,
+          "zero_zone": "零轴上",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
           "rsi": "底背离",
           "rsi_score": 4,
-          "rsi_value": 54.0
+          "rsi_value": 54.0,
+          "macd_score": 1
         },
         "月线": {
           "macd": "未共振",
-          "macd_score": 0,
+          "macd_line": 10.9078,
+          "signal_line": 11.1828,
           "macd_histogram": -0.275,
+          "zero_zone": "零轴上",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
           "rsi": "底背离",
           "rsi_score": 4,
-          "rsi_value": 58.6
+          "rsi_value": 58.6,
+          "macd_score": 0
         }
       },
       "macd_score": 1,
+      "macd_base_score": 1,
+      "chain_score": 0,
+      "chain_reason": "尚未形成小带大链条",
       "rsi_score": 8,
       "macd_resonance": 0,
       "rsi_resonance": 2
@@ -448,30 +737,54 @@
       "frames": {
         "日线": {
           "macd": "未共振",
-          "macd_score": 0,
+          "macd_line": 9.6606,
+          "signal_line": 9.8138,
           "macd_histogram": -0.1532,
+          "zero_zone": "零轴上",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
           "rsi": "偏强",
           "rsi_score": 1,
-          "rsi_value": 56.3
+          "rsi_value": 56.3,
+          "macd_score": 0
         },
         "周线": {
           "macd": "多头",
-          "macd_score": 1,
+          "macd_line": 15.9978,
+          "signal_line": 10.1016,
           "macd_histogram": 5.8961,
+          "zero_zone": "零轴上",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
           "rsi": "底背离",
           "rsi_score": 4,
-          "rsi_value": 61.9
+          "rsi_value": 61.9,
+          "macd_score": 1
         },
         "月线": {
-          "macd": "向上拐头",
-          "macd_score": 2,
+          "macd": "金叉后2根",
+          "macd_line": 11.9891,
+          "signal_line": 7.7481,
           "macd_histogram": 4.241,
+          "zero_zone": "零轴上",
+          "bars_since_cross": 2,
+          "near_cross": false,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": false,
           "rsi": "偏强",
           "rsi_score": 1,
-          "rsi_value": 58.5
+          "rsi_value": 58.5,
+          "macd_score": 5
         }
       },
-      "macd_score": 3,
+      "macd_score": 6,
+      "macd_base_score": 6,
+      "chain_score": 0,
+      "chain_reason": "尚未形成小带大链条",
       "rsi_score": 6,
       "macd_resonance": 1,
       "rsi_resonance": 1
@@ -483,30 +796,54 @@
       "frames": {
         "日线": {
           "macd": "向上拐头",
-          "macd_score": 2,
+          "macd_line": 2.9039,
+          "signal_line": 0.9614,
           "macd_histogram": 1.9426,
+          "zero_zone": "零轴上",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": false,
           "rsi": "偏强",
           "rsi_score": 1,
-          "rsi_value": 75.4
+          "rsi_value": 75.4,
+          "macd_score": 2
         },
         "周线": {
-          "macd": "向上拐头",
-          "macd_score": 2,
+          "macd": "金叉后2根",
+          "macd_line": -0.4328,
+          "signal_line": -1.9862,
           "macd_histogram": 1.5534,
+          "zero_zone": "零轴下",
+          "bars_since_cross": 2,
+          "near_cross": false,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": false,
           "rsi": "底背离",
           "rsi_score": 4,
-          "rsi_value": 62.9
+          "rsi_value": 62.9,
+          "macd_score": 9
         },
         "月线": {
           "macd": "金叉",
-          "macd_score": 4,
+          "macd_line": -3.0515,
+          "signal_line": -3.697,
           "macd_histogram": 0.6455,
+          "zero_zone": "零轴下",
+          "bars_since_cross": 0,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
           "rsi": "偏强",
           "rsi_score": 1,
-          "rsi_value": 52.7
+          "rsi_value": 52.7,
+          "macd_score": 11
         }
       },
-      "macd_score": 8,
+      "macd_score": 27,
+      "macd_base_score": 22,
+      "chain_score": 5,
+      "chain_reason": "周线零轴下金叉确认",
       "rsi_score": 6,
       "macd_resonance": 3,
       "rsi_resonance": 1
@@ -517,31 +854,55 @@
       "dollar_volume": 250696335,
       "frames": {
         "日线": {
-          "macd": "向上拐头",
-          "macd_score": 2,
+          "macd": "空头柱收缩",
+          "macd_line": -0.8369,
+          "signal_line": -0.094,
           "macd_histogram": -0.7429,
+          "zero_zone": "零轴下",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": true,
           "rsi": "底背离",
           "rsi_score": 4,
-          "rsi_value": 44.2
+          "rsi_value": 44.2,
+          "macd_score": 5
         },
         "周线": {
           "macd": "未共振",
-          "macd_score": 0,
+          "macd_line": 9.5484,
+          "signal_line": 9.9663,
           "macd_histogram": -0.4179,
+          "zero_zone": "零轴上",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
           "rsi": "偏强",
           "rsi_score": 1,
-          "rsi_value": 59.1
+          "rsi_value": 59.1,
+          "macd_score": 0
         },
         "月线": {
           "macd": "多头",
-          "macd_score": 1,
+          "macd_line": 21.5819,
+          "signal_line": 18.3828,
           "macd_histogram": 3.1991,
+          "zero_zone": "零轴上",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
           "rsi": "偏强",
           "rsi_score": 1,
-          "rsi_value": 68.3
+          "rsi_value": 68.3,
+          "macd_score": 1
         }
       },
-      "macd_score": 3,
+      "macd_score": 6,
+      "macd_base_score": 6,
+      "chain_score": 0,
+      "chain_reason": "尚未形成小带大链条",
       "rsi_score": 6,
       "macd_resonance": 1,
       "rsi_resonance": 1
@@ -552,33 +913,57 @@
       "dollar_volume": 20602928,
       "frames": {
         "日线": {
-          "macd": "多头",
-          "macd_score": 1,
+          "macd": "金叉后5根",
+          "macd_line": 1.0155,
+          "signal_line": 0.9966,
           "macd_histogram": 0.0189,
+          "zero_zone": "零轴上",
+          "bars_since_cross": 5,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
           "rsi": "偏强",
           "rsi_score": 1,
-          "rsi_value": 57.7
+          "rsi_value": 57.7,
+          "macd_score": 4
         },
         "周线": {
           "macd": "多头",
-          "macd_score": 1,
+          "macd_line": 4.1328,
+          "signal_line": 3.6398,
           "macd_histogram": 0.493,
+          "zero_zone": "零轴上",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
           "rsi": "底背离",
           "rsi_score": 4,
-          "rsi_value": 68.3
+          "rsi_value": 68.3,
+          "macd_score": 1
         },
         "月线": {
           "macd": "向上拐头",
-          "macd_score": 2,
+          "macd_line": -1.265,
+          "signal_line": -4.8878,
           "macd_histogram": 3.6228,
+          "zero_zone": "零轴下",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": false,
           "rsi": "偏强",
           "rsi_score": 1,
-          "rsi_value": 57.2
+          "rsi_value": 57.2,
+          "macd_score": 3
         }
       },
-      "macd_score": 4,
+      "macd_score": 8,
+      "macd_base_score": 8,
+      "chain_score": 0,
+      "chain_reason": "尚未形成小带大链条",
       "rsi_score": 6,
-      "macd_resonance": 1,
+      "macd_resonance": 2,
       "rsi_resonance": 1
     },
     {
@@ -587,31 +972,55 @@
       "dollar_volume": 20308686,
       "frames": {
         "日线": {
-          "macd": "向上拐头",
-          "macd_score": 2,
+          "macd": "空头柱收缩",
+          "macd_line": 1.4466,
+          "signal_line": 1.8668,
           "macd_histogram": -0.4202,
+          "zero_zone": "零轴上",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": true,
           "rsi": "偏强",
           "rsi_score": 1,
-          "rsi_value": 55.9
+          "rsi_value": 55.9,
+          "macd_score": 5
         },
         "周线": {
           "macd": "多头",
-          "macd_score": 1,
+          "macd_line": 4.8478,
+          "signal_line": 2.853,
           "macd_histogram": 1.9948,
+          "zero_zone": "零轴上",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
           "rsi": "偏强",
           "rsi_score": 1,
-          "rsi_value": 69.1
+          "rsi_value": 69.1,
+          "macd_score": 1
         },
         "月线": {
-          "macd": "向上拐头",
-          "macd_score": 2,
+          "macd": "金叉后1根",
+          "macd_line": -9.7902,
+          "signal_line": -12.0972,
           "macd_histogram": 2.307,
+          "zero_zone": "零轴下",
+          "bars_since_cross": 1,
+          "near_cross": false,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": false,
           "rsi": "底背离",
           "rsi_score": 4,
-          "rsi_value": 48.6
+          "rsi_value": 48.6,
+          "macd_score": 10
         }
       },
-      "macd_score": 5,
+      "macd_score": 16,
+      "macd_base_score": 16,
+      "chain_score": 0,
+      "chain_reason": "尚未形成小带大链条",
       "rsi_score": 6,
       "macd_resonance": 2,
       "rsi_resonance": 1
@@ -623,30 +1032,54 @@
       "frames": {
         "日线": {
           "macd": "未共振",
-          "macd_score": 0,
+          "macd_line": 0.9218,
+          "signal_line": 1.0061,
           "macd_histogram": -0.0843,
+          "zero_zone": "零轴上",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
           "rsi": "偏强",
           "rsi_score": 1,
-          "rsi_value": 52.6
+          "rsi_value": 52.6,
+          "macd_score": 0
         },
         "周线": {
-          "macd": "向上拐头",
-          "macd_score": 2,
+          "macd": "金叉后1根",
+          "macd_line": 1.1842,
+          "signal_line": 1.0358,
           "macd_histogram": 0.1485,
+          "zero_zone": "零轴上",
+          "bars_since_cross": 1,
+          "near_cross": false,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": false,
           "rsi": "偏强",
           "rsi_score": 1,
-          "rsi_value": 57.5
+          "rsi_value": 57.5,
+          "macd_score": 6
         },
         "月线": {
           "macd": "多头",
-          "macd_score": 1,
+          "macd_line": 2.0698,
+          "signal_line": 0.9299,
           "macd_histogram": 1.1399,
+          "zero_zone": "零轴上",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
           "rsi": "底背离",
           "rsi_score": 4,
-          "rsi_value": 63.2
+          "rsi_value": 63.2,
+          "macd_score": 1
         }
       },
-      "macd_score": 3,
+      "macd_score": 7,
+      "macd_base_score": 7,
+      "chain_score": 0,
+      "chain_reason": "尚未形成小带大链条",
       "rsi_score": 6,
       "macd_resonance": 1,
       "rsi_resonance": 1
@@ -658,30 +1091,54 @@
       "frames": {
         "日线": {
           "macd": "多头",
-          "macd_score": 1,
+          "macd_line": 0.4502,
+          "signal_line": 0.4267,
           "macd_histogram": 0.0236,
+          "zero_zone": "零轴上",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
           "rsi": "偏强",
           "rsi_score": 1,
-          "rsi_value": 68.3
+          "rsi_value": 68.3,
+          "macd_score": 1
         },
         "周线": {
           "macd": "向上拐头",
-          "macd_score": 2,
+          "macd_line": -0.0405,
+          "signal_line": -0.3515,
           "macd_histogram": 0.311,
+          "zero_zone": "零轴下",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": false,
           "rsi": "偏强",
           "rsi_score": 1,
-          "rsi_value": 59.6
+          "rsi_value": 59.6,
+          "macd_score": 3
         },
         "月线": {
           "macd": "准备金叉",
-          "macd_score": 3,
+          "macd_line": -1.9321,
+          "signal_line": -1.7747,
           "macd_histogram": -0.1574,
+          "zero_zone": "零轴下",
+          "bars_since_cross": null,
+          "near_cross": true,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": true,
           "rsi": "底背离",
           "rsi_score": 4,
-          "rsi_value": 44.0
+          "rsi_value": 44.0,
+          "macd_score": 6
         }
       },
-      "macd_score": 6,
+      "macd_score": 15,
+      "macd_base_score": 10,
+      "chain_score": 5,
+      "chain_reason": "月线零轴下空头柱收缩",
       "rsi_score": 6,
       "macd_resonance": 2,
       "rsi_resonance": 1
@@ -692,31 +1149,55 @@
       "dollar_volume": 583727775,
       "frames": {
         "日线": {
-          "macd": "向上拐头",
-          "macd_score": 2,
+          "macd": "空头柱收缩",
+          "macd_line": -2.4505,
+          "signal_line": -1.8336,
           "macd_histogram": -0.6169,
+          "zero_zone": "零轴下",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": true,
+          "negative_histogram_shrinking": true,
           "rsi": "中性",
           "rsi_score": 0,
-          "rsi_value": 43.8
+          "rsi_value": 43.8,
+          "macd_score": 5
         },
         "周线": {
           "macd": "未共振",
-          "macd_score": 0,
+          "macd_line": 3.9358,
+          "signal_line": 5.3326,
           "macd_histogram": -1.3968,
+          "zero_zone": "零轴上",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
           "rsi": "偏强",
           "rsi_score": 1,
-          "rsi_value": 50.4
+          "rsi_value": 50.4,
+          "macd_score": 0
         },
         "月线": {
           "macd": "多头",
-          "macd_score": 1,
+          "macd_line": 13.3561,
+          "signal_line": 11.716,
           "macd_histogram": 1.6401,
+          "zero_zone": "零轴上",
+          "bars_since_cross": null,
+          "near_cross": false,
+          "histogram_rising": false,
+          "negative_histogram_shrinking": false,
           "rsi": "底背离",
           "rsi_score": 4,
-          "rsi_value": 68.4
+          "rsi_value": 68.4,
+          "macd_score": 1
         }
       },
-      "macd_score": 3,
+      "macd_score": 6,
+      "macd_base_score": 6,
+      "chain_score": 0,
+      "chain_reason": "尚未形成小带大链条",
       "rsi_score": 5,
       "macd_resonance": 1,
       "rsi_resonance": 1

@@ -4,6 +4,8 @@ type Frame = {
   macd: string;
   macd_score: number;
   macd_histogram: number;
+  zero_zone: string;
+  bars_since_cross: number | null;
   rsi: string;
   rsi_score: number;
   rsi_value: number | null;
@@ -14,6 +16,9 @@ type Item = {
   macd_score: number;
   rsi_score: number;
   macd_resonance: number;
+  macd_base_score: number;
+  chain_score: number;
+  chain_reason: string;
   rsi_resonance: number;
   frames: Record<string, Frame>;
 };
@@ -58,7 +63,7 @@ function SignalTable({ items, kind }: { items: Item[]; kind: "macd" | "rsi" }) {
               </strong>
               <small>
                 {kind === "macd"
-                  ? `柱 ${x.frames[f].macd_histogram}`
+                  ? `${x.frames[f].zero_zone} · 柱 ${x.frames[f].macd_histogram}`
                   : `RSI ${x.frames[f].rsi_value ?? "—"}`}
               </small>
             </span>
@@ -66,9 +71,14 @@ function SignalTable({ items, kind }: { items: Item[]; kind: "macd" | "rsi" }) {
           <em>
             {kind === "macd" ? x.macd_score : x.rsi_score}分
             <small>
-              {kind === "macd" ? x.macd_resonance : x.rsi_resonance}/3周期
+              {kind === "macd"
+                ? `链条 +${x.chain_score}`
+                : `${x.rsi_resonance}/3周期`}
             </small>
           </em>
+          {kind === "macd" && (
+            <p className="resonanceReason">{x.chain_reason}</p>
+          )}
         </div>
       ))}
     </div>
@@ -110,9 +120,10 @@ export default function ResonanceTracker() {
       </section>
       <section className="trackerIntro">
         <article>
-          <small>MACD榜首</small>
+          <small>MACD 小带大榜首</small>
           <b>{data.macd_top10[0]?.symbol ?? "—"}</b>
           <span>{data.macd_top10[0]?.macd_score ?? 0}分</span>
+          <p>{data.macd_top10[0]?.chain_reason}</p>
         </article>
         <article>
           <small>RSI榜首</small>
@@ -126,7 +137,7 @@ export default function ResonanceTracker() {
       </section>
       <section className="trackerSection">
         <p className="label">TOP 10 · MACD 共振</p>
-        <h2>金叉、准备金叉与向上拐头</h2>
+        <h2>零轴下优先，寻找日线→周线→月线传导</h2>
         <SignalTable items={data.macd_top10} kind="macd" />
       </section>
       <section className="trackerSection">
@@ -137,13 +148,16 @@ export default function ResonanceTracker() {
       <section className="zhrules">
         <h2>怎样使用</h2>
         <p>
-          <b>1</b>共振只代表多个周期出现相同方向，不自动等于买点。
+          <b>1</b>
+          零轴下新金叉至少8分，零轴上新金叉4分；新信号比已经延伸的信号更重要。
         </p>
         <p>
-          <b>2</b>周线和月线是正在形成的K线，周期结束前信号可能消失。
+          <b>2</b>
+          日线触发、周线确认、月线空头柱收缩的完整“小带大”链条，额外加8分。
         </p>
         <p>
-          <b>3</b>下一步仍需检查价格结构、成交量、止损位置和收益风险比。
+          <b>3</b>
+          周线和月线是正在形成的K线，周期结束前信号可能消失；下一步仍需检查价格结构、成交量、止损和收益风险比。
         </p>
         <mark>
           Tracker 是候选发现工具，不提供自动下单，也不能替代盘中实时行情确认。

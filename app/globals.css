@@ -2085,6 +2085,12 @@ nav {
   font-style: normal;
   font-weight: 750;
 }
+.resonanceReason {
+  grid-column: 2 / -1;
+  margin: -6px 0 0;
+  color: #557267;
+  font-size: 12px;
+}
 .contextExplain h2 {
   margin: 5px 0 8px;
 }
