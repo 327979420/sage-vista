@@ -2150,7 +2150,9 @@ nav {
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   background: transparent;
 }
-body:has(.rtPage) .globalnav { display: none; }
+body:has(.rtPage) .globalnav {
+  display: none;
+}
 .rtHero nav a {
   color: #dce8e1;
   text-decoration: none;
@@ -2246,6 +2248,16 @@ body:has(.rtPage) .globalnav { display: none; }
 .rtVolume {
   margin-top: 44px;
 }
+.rtPriorityOne {
+  padding: 26px;
+  border: 1px solid #b9dcc7;
+  border-radius: 24px;
+  background: #e8f5ed;
+}
+.rtPriorityOne .rtSectionTitle > span {
+  background: #cce9d7;
+  color: #176f4c;
+}
 .rtSectionTitle {
   display: flex;
   justify-content: space-between;
@@ -2331,6 +2343,7 @@ body:has(.rtPage) .globalnav { display: none; }
   border: 1px solid #cdd8d1;
   border-radius: 18px;
   background: #fff;
+  box-shadow: 0 8px 24px rgba(16, 35, 29, 0.05);
 }
 .rtStrictGrid header {
   display: flex;
@@ -2531,6 +2544,10 @@ body:has(.rtPage) .globalnav { display: none; }
   .rtStrictGrid,
   .rtVolumeGrid {
     grid-template-columns: 1fr;
+  }
+  .rtPriorityOne {
+    padding: 18px;
+    border-radius: 18px;
   }
   .rtBoardHead {
     display: none;

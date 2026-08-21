@@ -33,7 +33,7 @@ type Item = {
 };
 type Report = {
   as_of: string;
-  universe: { eligible: number };
+  universe: { cached: number; eligible: number };
   combined_top10: Item[];
   macd_top10: Item[];
   rsi_top10: Item[];
@@ -59,11 +59,11 @@ function PeriodCell({ frame, kind }: { frame: Frame; kind: "macd" | "rsi" }) {
 function SignalBoard({
   items,
   kind,
-  overlap,
+  combined,
 }: {
   items: Item[];
   kind: "macd" | "rsi";
-  overlap: Set<string>;
+  combined: Set<string>;
 }) {
   return (
     <div className="rtBoard">
@@ -82,7 +82,7 @@ function SignalBoard({
               <b>{item.symbol}</b>
               <small>${item.price}</small>
             </div>
-            {overlap.has(item.symbol) && <mark>MACD × RSI</mark>}
+            {combined.has(item.symbol) && <mark>MACD ＋ RSI</mark>}
           </div>
           {periods.map((period) => (
             <PeriodCell key={period} frame={item.frames[period]} kind={kind} />
@@ -109,12 +109,9 @@ export default function ResonanceTracker() {
       .then((x) => x.json())
       .then(setData);
   }, []);
-  const overlap = useMemo(() => {
+  const combined = useMemo(() => {
     if (!data) return new Set<string>();
-    const rsi = new Set(data.rsi_top10.map((x) => x.symbol));
-    return new Set(
-      data.macd_top10.map((x) => x.symbol).filter((x) => rsi.has(x)),
-    );
+    return new Set(data.combined_top10.map((x) => x.symbol));
   }, [data]);
   if (!data)
     return (
@@ -122,7 +119,6 @@ export default function ResonanceTracker() {
         <div className="rtLoading">正在计算多周期共振…</div>
       </main>
     );
-  const overlapItems = data.macd_top10.filter((x) => overlap.has(x.symbol));
   return (
     <main className="rtPage">
       <header className="rtHero">
@@ -133,101 +129,60 @@ export default function ResonanceTracker() {
         <div className="rtHeroBody">
           <div>
             <p>INDICATOR TRACKER</p>
-            <h1>多周期信号雷达</h1>
-            <strong>先看指标交集，再看单项排名。</strong>
+            <h1>多周期指标雷达</h1>
+            <strong>先看多指标同时确认，再逐项核对信号。</strong>
           </div>
           <div className="rtAsOf">
             <small>数据截至</small>
             <b>{data.as_of}</b>
-            <span>{data.universe.eligible} 只流动性合格股票</span>
+            <span>本次实际扫描 {data.universe.eligible} 只股票</span>
           </div>
         </div>
       </header>
 
       <section className="rtSummary">
         <article className="rtSummaryPrimary">
-          <small>MACD × RSI 榜单交集</small>
-          <b>{overlapItems.length}</b>
-          <p>同时进入两个 TOP 10 的股票</p>
-        </article>
-        <article>
-          <small>MACD 榜首</small>
-          <b>{data.macd_top10[0]?.symbol ?? "—"}</b>
-          <p>{data.macd_top10[0]?.macd_score ?? 0} 分</p>
-        </article>
-        <article>
-          <small>RSI 榜首</small>
-          <b>{data.rsi_top10[0]?.symbol ?? "—"}</b>
-          <p>{data.rsi_top10[0]?.rsi_score ?? 0} 分</p>
-        </article>
-        <article>
-          <small>严格双因子</small>
+          <small>MACD ＋ RSI 同时满足</small>
           <b>{data.combined_top10.length}</b>
-          <p>MACD传导 + RSI底背离</p>
+          <p>多周期传导与 RSI 底背离同时出现</p>
+        </article>
+        <article>
+          <small>本次扫描</small>
+          <b>{data.universe.eligible}</b>
+          <p>通过价格、成交额和历史长度过滤</p>
+        </article>
+        <article>
+          <small>历史数据库</small>
+          <b>{data.universe.cached}</b>
+          <p>包含活跃与退市样本，供研究使用</p>
+        </article>
+        <article>
+          <small>数据日期</small>
+          <b>{data.as_of.slice(5)}</b>
+          <p>只使用已完成的美国市场收盘数据</p>
         </article>
       </section>
 
-      <section className="rtFocus">
+      <section className="rtStrict rtPriorityOne">
         <div className="rtSectionTitle">
           <div>
-            <p>01 / 最值得先看</p>
-            <h2>MACD 与 RSI 榜单交集</h2>
+            <p>第一优先级 / 双指标确认</p>
+            <h2>MACD 与 RSI 同时发出信号</h2>
           </div>
-          <span>两个独立指标同时选中</span>
-        </div>
-        {overlapItems.length ? (
-          <div className="rtIntersection">
-            {overlapItems.map((x) => (
-              <article key={x.symbol}>
-                <div className="rtIntersectionTicker">
-                  <mark>双指标共振</mark>
-                  <b>{x.symbol}</b>
-                  <span>${x.price}</span>
-                </div>
-                <div>
-                  <small>MACD</small>
-                  <strong>{x.macd_score} 分</strong>
-                  <p>{x.chain_reason}</p>
-                </div>
-                <div>
-                  <small>RSI</small>
-                  <strong>{x.rsi_score} 分</strong>
-                  <p>
-                    {x.rsi_divergence_frames.length
-                      ? `${x.rsi_divergence_frames.join("、")}底背离`
-                      : "多周期 RSI 入选"}
-                  </p>
-                </div>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <div className="rtEmpty">
-            今天两个 TOP 10 没有交集，不勉强制造共振。
-          </div>
-        )}
-      </section>
-
-      <section className="rtStrict">
-        <div className="rtSectionTitle">
-          <div>
-            <p>02 / 严格组合</p>
-            <h2>MACD传导 + RSI底背离</h2>
-          </div>
-          <span>比榜单交集更严格</span>
+          <span>先从这里开始复核</span>
         </div>
         <div className="rtStrictGrid">
           {data.combined_top10.map((x) => (
             <article key={x.symbol}>
               <header>
-                <mark>严格组合</mark>
+                <mark>MACD ＋ RSI</mark>
                 <b>{x.symbol}</b>
                 <strong>{x.combined_score}分</strong>
               </header>
               <p>{x.chain_reason}</p>
               <footer>
-                <span>RSI：{x.rsi_divergence_frames.join("、")}底背离</span>
-                <span>量能：{x.volume.label}</span>
+                <span>RSI：{x.rsi_divergence_frames.join("、")}出现底背离</span>
+                <span>成交量：{x.volume.label}</span>
               </footer>
             </article>
           ))}
@@ -237,29 +192,29 @@ export default function ResonanceTracker() {
       <section className="rtSignals">
         <div className="rtSectionTitle">
           <div>
-            <p>03 / MACD</p>
-            <h2>零轴下优先 · 小周期带大周期</h2>
+            <p>单项观察 / MACD</p>
+            <h2>零轴下优先，观察小周期向大周期传导</h2>
           </div>
           <span>日线 → 周线 → 月线</span>
         </div>
-        <SignalBoard items={data.macd_top10} kind="macd" overlap={overlap} />
+        <SignalBoard items={data.macd_top10} kind="macd" combined={combined} />
       </section>
       <section className="rtSignals">
         <div className="rtSectionTitle">
           <div>
-            <p>04 / RSI</p>
-            <h2>超卖修复与底背离</h2>
+            <p>单项观察 / RSI</p>
+            <h2>观察超卖修复和价格底背离</h2>
           </div>
           <span>价格新低，RSI低点抬高</span>
         </div>
-        <SignalBoard items={data.rsi_top10} kind="rsi" overlap={overlap} />
+        <SignalBoard items={data.rsi_top10} kind="rsi" combined={combined} />
       </section>
 
       <section className="rtVolume">
         <div className="rtSectionTitle">
           <div>
-            <p>05 / VOLUME</p>
-            <h2>成交量异动</h2>
+            <p>独立提醒 / 成交量</p>
+            <h2>成交量明显高于近期平均水平</h2>
           </div>
           <span>≥ 20日均量的1.8倍</span>
         </div>
@@ -285,8 +240,9 @@ export default function ResonanceTracker() {
       </section>
 
       <footer className="rtDisclaimer">
-        <b>如何理解：</b>
-        双指标交集是优先复核名单，不等于立即买入。放量下跌只做风险提示；周线和月线在周期收盘前仍可能变化。
+        <b>阅读顺序：</b>
+        先检查“双指标确认”，再看 MACD、RSI
+        和成交量的单项证据。入选只表示值得进一步核对，不代表可以立即买入；周线和月线在本周期收盘前仍可能变化。
       </footer>
     </main>
   );
