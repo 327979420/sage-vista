@@ -1992,6 +1992,99 @@ nav {
   font-size: 11px;
   font-weight: 700;
 }
+.intradayNotice {
+  margin-bottom: 18px;
+  padding: 20px;
+  border-left: 4px solid #c15b4e;
+  background: #f8e8e4;
+}
+.intradayNotice b {
+  font-size: 18px;
+}
+.intradayNotice p {
+  margin: 6px 0 0;
+  line-height: 1.6;
+}
+.trackerIntro {
+  display: grid;
+  grid-template-columns: 1fr 1fr 2fr;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.trackerIntro article {
+  padding: 18px;
+  border: 1px solid #dce5df;
+  border-radius: 14px;
+  background: white;
+}
+.trackerIntro small,
+.trackerIntro span {
+  display: block;
+  color: #718078;
+}
+.trackerIntro b {
+  display: block;
+  margin: 5px 0;
+  font-size: 30px;
+}
+.trackerIntro p {
+  margin: 6px 0 0;
+}
+.trackerSection {
+  margin: 24px 0;
+}
+.trackerSection > h2 {
+  margin: 5px 0 14px;
+}
+.resonanceTable {
+  padding: 8px 18px;
+  border: 1px solid #dce5df;
+  border-radius: 16px;
+  background: white;
+}
+.resonanceRow {
+  display: grid;
+  grid-template-columns: 0.8fr repeat(3, 1.4fr) 0.8fr;
+  gap: 12px;
+  align-items: center;
+  padding: 13px 4px;
+  border-bottom: 1px solid #e9eeeb;
+}
+.resonanceRow.head {
+  color: #718078;
+  font-size: 11px;
+  font-weight: 700;
+}
+.resonanceRow b i {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: #e6eee9;
+  color: #176b4d;
+  font-style: normal;
+  font-size: 10px;
+}
+.resonanceRow small {
+  display: block;
+  color: #718078;
+  font-weight: 400;
+}
+.resonanceRow > span {
+  padding: 8px;
+  border-radius: 8px;
+}
+.resonanceRow .signalHot {
+  background: #e5f1e9;
+  color: #176b4d;
+}
+.resonanceRow em {
+  color: #176b4d;
+  font-style: normal;
+  font-weight: 750;
+}
 .contextExplain h2 {
   margin: 5px 0 8px;
 }
@@ -2047,6 +2140,18 @@ nav {
   }
   .neutralRow > *:nth-child(4),
   .neutralRow > *:nth-child(6) {
+    display: none;
+  }
+  .trackerIntro {
+    grid-template-columns: 1fr 1fr;
+  }
+  .trackerIntro article:last-child {
+    grid-column: 1 / -1;
+  }
+  .resonanceRow {
+    grid-template-columns: 0.8fr 1.2fr 1.2fr 0.7fr;
+  }
+  .resonanceRow > *:nth-child(4) {
     display: none;
   }
   .contextRow {

@@ -56,6 +56,9 @@ export default function SectorWatch() {
           <a className="watchlink" href="/zh/watch/market">
             查看主流ETF市场温度计 →
           </a>
+          <a className="watchlink secondary" href="/zh/watch/resonance">
+            打开MACD / RSI共振 Tracker →
+          </a>
         </div>
         <div className="watchpulse">
           <small>SPY 20日</small>

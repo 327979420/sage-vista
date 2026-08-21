@@ -1,0 +1,725 @@
+{
+  "generated_at": "2026-08-21T12:13:51.453335+00:00",
+  "as_of": "2026-08-20",
+  "data_mode": "latest_completed_eod",
+  "intraday": {
+    "available": false,
+    "reason": "Current EODHD token returned HTTP 403 for the 1-hour intraday endpoint.",
+    "required": "EOD + Intraday All World Extended or a real-time WebSocket feed",
+    "four_hour_rule": "When connected, aggregate regular-session 1-hour bars and evaluate completed 4-hour candles only."
+  },
+  "universe": {
+    "source": "Current members of the survivorship-aware research sample present in the latest US bulk close",
+    "eligible": 164,
+    "filters": "Price >= $5 and latest dollar volume >= $10m"
+  },
+  "definitions": {
+    "macd": "Gold cross, near-cross with rising histogram, upward turn, or bullish state on daily/weekly/monthly bars.",
+    "rsi": "Oversold <=30, recovery through 30, or bullish price/RSI divergence on daily/weekly/monthly bars.",
+    "warning": "The current weekly and monthly bars are still forming and signals may change before period close."
+  },
+  "macd_top10": [
+    {
+      "symbol": "ASM",
+      "price": 7.6,
+      "dollar_volume": 50311916,
+      "frames": {
+        "日线": {
+          "macd": "向上拐头",
+          "macd_score": 2,
+          "macd_histogram": 0.1196,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 64.3
+        },
+        "周线": {
+          "macd": "金叉",
+          "macd_score": 4,
+          "macd_histogram": 0.0652,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 56.9
+        },
+        "月线": {
+          "macd": "金叉",
+          "macd_score": 4,
+          "macd_histogram": 0.0081,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 62.6
+        }
+      },
+      "macd_score": 10,
+      "rsi_score": 3,
+      "macd_resonance": 3,
+      "rsi_resonance": 0
+    },
+    {
+      "symbol": "LI",
+      "price": 12.92,
+      "dollar_volume": 27967523,
+      "frames": {
+        "日线": {
+          "macd": "金叉",
+          "macd_score": 4,
+          "macd_histogram": 0.0096,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 52.9
+        },
+        "周线": {
+          "macd": "金叉",
+          "macd_score": 4,
+          "macd_histogram": 0.031,
+          "rsi": "中性",
+          "rsi_score": 0,
+          "rsi_value": 38.4
+        },
+        "月线": {
+          "macd": "向上拐头",
+          "macd_score": 2,
+          "macd_histogram": -0.7435,
+          "rsi": "中性",
+          "rsi_score": 0,
+          "rsi_value": 38.3
+        }
+      },
+      "macd_score": 10,
+      "rsi_score": 1,
+      "macd_resonance": 3,
+      "rsi_resonance": 0
+    },
+    {
+      "symbol": "BNTX",
+      "price": 110.89,
+      "dollar_volume": 391782687,
+      "frames": {
+        "日线": {
+          "macd": "向上拐头",
+          "macd_score": 2,
+          "macd_histogram": 1.9426,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 75.4
+        },
+        "周线": {
+          "macd": "向上拐头",
+          "macd_score": 2,
+          "macd_histogram": 1.5534,
+          "rsi": "底背离",
+          "rsi_score": 4,
+          "rsi_value": 62.9
+        },
+        "月线": {
+          "macd": "金叉",
+          "macd_score": 4,
+          "macd_histogram": 0.6455,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 52.7
+        }
+      },
+      "macd_score": 8,
+      "rsi_score": 6,
+      "macd_resonance": 3,
+      "rsi_resonance": 1
+    },
+    {
+      "symbol": "CART",
+      "price": 51.07,
+      "dollar_volume": 230545812,
+      "frames": {
+        "日线": {
+          "macd": "向上拐头",
+          "macd_score": 2,
+          "macd_histogram": 0.3211,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 64.3
+        },
+        "周线": {
+          "macd": "向上拐头",
+          "macd_score": 2,
+          "macd_histogram": 0.7787,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 63.4
+        },
+        "月线": {
+          "macd": "金叉",
+          "macd_score": 4,
+          "macd_histogram": 0.4534,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 61.4
+        }
+      },
+      "macd_score": 8,
+      "rsi_score": 3,
+      "macd_resonance": 3,
+      "rsi_resonance": 0
+    },
+    {
+      "symbol": "CHH",
+      "price": 109.25,
+      "dollar_volume": 42092823,
+      "frames": {
+        "日线": {
+          "macd": "金叉",
+          "macd_score": 4,
+          "macd_histogram": 0.1957,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 52.5
+        },
+        "周线": {
+          "macd": "未共振",
+          "macd_score": 0,
+          "macd_histogram": -0.5198,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 50.9
+        },
+        "月线": {
+          "macd": "金叉",
+          "macd_score": 4,
+          "macd_histogram": 0.3082,
+          "rsi": "中性",
+          "rsi_score": 0,
+          "rsi_value": 47.6
+        }
+      },
+      "macd_score": 8,
+      "rsi_score": 2,
+      "macd_resonance": 2,
+      "rsi_resonance": 0
+    },
+    {
+      "symbol": "ARCT",
+      "price": 10.99,
+      "dollar_volume": 25195960,
+      "frames": {
+        "日线": {
+          "macd": "向上拐头",
+          "macd_score": 2,
+          "macd_histogram": 0.4547,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 84.5
+        },
+        "周线": {
+          "macd": "向上拐头",
+          "macd_score": 2,
+          "macd_histogram": 0.3958,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 64.0
+        },
+        "月线": {
+          "macd": "金叉",
+          "macd_score": 4,
+          "macd_histogram": 0.3308,
+          "rsi": "中性",
+          "rsi_score": 0,
+          "rsi_value": 46.7
+        }
+      },
+      "macd_score": 8,
+      "rsi_score": 2,
+      "macd_resonance": 3,
+      "rsi_resonance": 0
+    },
+    {
+      "symbol": "FCX",
+      "price": 71.22,
+      "dollar_volume": 1255591935,
+      "frames": {
+        "日线": {
+          "macd": "向上拐头",
+          "macd_score": 2,
+          "macd_histogram": 0.209,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 61.6
+        },
+        "周线": {
+          "macd": "金叉",
+          "macd_score": 4,
+          "macd_histogram": 0.1673,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 60.7
+        },
+        "月线": {
+          "macd": "多头",
+          "macd_score": 1,
+          "macd_histogram": 2.0324,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 67.5
+        }
+      },
+      "macd_score": 7,
+      "rsi_score": 3,
+      "macd_resonance": 2,
+      "rsi_resonance": 0
+    },
+    {
+      "symbol": "ILMN",
+      "price": 213.24,
+      "dollar_volume": 700353301,
+      "frames": {
+        "日线": {
+          "macd": "金叉",
+          "macd_score": 4,
+          "macd_histogram": 0.5354,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 66.5
+        },
+        "周线": {
+          "macd": "多头",
+          "macd_score": 1,
+          "macd_histogram": 3.0802,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 72.6
+        },
+        "月线": {
+          "macd": "向上拐头",
+          "macd_score": 2,
+          "macd_histogram": 13.9207,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 69.0
+        }
+      },
+      "macd_score": 7,
+      "rsi_score": 3,
+      "macd_resonance": 2,
+      "rsi_resonance": 0
+    },
+    {
+      "symbol": "WST",
+      "price": 353.77,
+      "dollar_volume": 208145179,
+      "frames": {
+        "日线": {
+          "macd": "金叉",
+          "macd_score": 4,
+          "macd_histogram": 0.164,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 56.2
+        },
+        "周线": {
+          "macd": "多头",
+          "macd_score": 1,
+          "macd_histogram": 0.4218,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 62.2
+        },
+        "月线": {
+          "macd": "向上拐头",
+          "macd_score": 2,
+          "macd_histogram": 14.225,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 60.7
+        }
+      },
+      "macd_score": 7,
+      "rsi_score": 3,
+      "macd_resonance": 2,
+      "rsi_resonance": 0
+    },
+    {
+      "symbol": "FDS",
+      "price": 300.06,
+      "dollar_volume": 181449583,
+      "frames": {
+        "日线": {
+          "macd": "向上拐头",
+          "macd_score": 2,
+          "macd_histogram": 1.0178,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 65.7
+        },
+        "周线": {
+          "macd": "向上拐头",
+          "macd_score": 2,
+          "macd_histogram": 9.2477,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 64.3
+        },
+        "月线": {
+          "macd": "准备金叉",
+          "macd_score": 3,
+          "macd_histogram": -1.9027,
+          "rsi": "中性",
+          "rsi_score": 0,
+          "rsi_value": 46.0
+        }
+      },
+      "macd_score": 7,
+      "rsi_score": 2,
+      "macd_resonance": 3,
+      "rsi_resonance": 0
+    }
+  ],
+  "rsi_top10": [
+    {
+      "symbol": "APH",
+      "price": 153.11,
+      "dollar_volume": 829660832,
+      "frames": {
+        "日线": {
+          "macd": "未共振",
+          "macd_score": 0,
+          "macd_histogram": -1.5431,
+          "rsi": "中性",
+          "rsi_score": 0,
+          "rsi_value": 41.2
+        },
+        "周线": {
+          "macd": "多头",
+          "macd_score": 1,
+          "macd_histogram": 0.3347,
+          "rsi": "底背离",
+          "rsi_score": 4,
+          "rsi_value": 52.4
+        },
+        "月线": {
+          "macd": "多头",
+          "macd_score": 1,
+          "macd_histogram": 1.8679,
+          "rsi": "底背离",
+          "rsi_score": 4,
+          "rsi_value": 66.3
+        }
+      },
+      "macd_score": 2,
+      "rsi_score": 8,
+      "macd_resonance": 0,
+      "rsi_resonance": 2
+    },
+    {
+      "symbol": "FSS",
+      "price": 121.99,
+      "dollar_volume": 31609439,
+      "frames": {
+        "日线": {
+          "macd": "未共振",
+          "macd_score": 0,
+          "macd_histogram": -0.7188,
+          "rsi": "中性",
+          "rsi_score": 0,
+          "rsi_value": 48.0
+        },
+        "周线": {
+          "macd": "多头",
+          "macd_score": 1,
+          "macd_histogram": 0.8433,
+          "rsi": "底背离",
+          "rsi_score": 4,
+          "rsi_value": 54.0
+        },
+        "月线": {
+          "macd": "未共振",
+          "macd_score": 0,
+          "macd_histogram": -0.275,
+          "rsi": "底背离",
+          "rsi_score": 4,
+          "rsi_value": 58.6
+        }
+      },
+      "macd_score": 1,
+      "rsi_score": 8,
+      "macd_resonance": 0,
+      "rsi_resonance": 2
+    },
+    {
+      "symbol": "WAT",
+      "price": 404.69,
+      "dollar_volume": 499306117,
+      "frames": {
+        "日线": {
+          "macd": "未共振",
+          "macd_score": 0,
+          "macd_histogram": -0.1532,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 56.3
+        },
+        "周线": {
+          "macd": "多头",
+          "macd_score": 1,
+          "macd_histogram": 5.8961,
+          "rsi": "底背离",
+          "rsi_score": 4,
+          "rsi_value": 61.9
+        },
+        "月线": {
+          "macd": "向上拐头",
+          "macd_score": 2,
+          "macd_histogram": 4.241,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 58.5
+        }
+      },
+      "macd_score": 3,
+      "rsi_score": 6,
+      "macd_resonance": 1,
+      "rsi_resonance": 1
+    },
+    {
+      "symbol": "BNTX",
+      "price": 110.89,
+      "dollar_volume": 391782687,
+      "frames": {
+        "日线": {
+          "macd": "向上拐头",
+          "macd_score": 2,
+          "macd_histogram": 1.9426,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 75.4
+        },
+        "周线": {
+          "macd": "向上拐头",
+          "macd_score": 2,
+          "macd_histogram": 1.5534,
+          "rsi": "底背离",
+          "rsi_score": 4,
+          "rsi_value": 62.9
+        },
+        "月线": {
+          "macd": "金叉",
+          "macd_score": 4,
+          "macd_histogram": 0.6455,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 52.7
+        }
+      },
+      "macd_score": 8,
+      "rsi_score": 6,
+      "macd_resonance": 3,
+      "rsi_resonance": 1
+    },
+    {
+      "symbol": "SPG",
+      "price": 219.9,
+      "dollar_volume": 250696335,
+      "frames": {
+        "日线": {
+          "macd": "向上拐头",
+          "macd_score": 2,
+          "macd_histogram": -0.7429,
+          "rsi": "底背离",
+          "rsi_score": 4,
+          "rsi_value": 44.2
+        },
+        "周线": {
+          "macd": "未共振",
+          "macd_score": 0,
+          "macd_histogram": -0.4179,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 59.1
+        },
+        "月线": {
+          "macd": "多头",
+          "macd_score": 1,
+          "macd_histogram": 3.1991,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 68.3
+        }
+      },
+      "macd_score": 3,
+      "rsi_score": 6,
+      "macd_resonance": 1,
+      "rsi_resonance": 1
+    },
+    {
+      "symbol": "ZD",
+      "price": 55.4,
+      "dollar_volume": 20602928,
+      "frames": {
+        "日线": {
+          "macd": "多头",
+          "macd_score": 1,
+          "macd_histogram": 0.0189,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 57.7
+        },
+        "周线": {
+          "macd": "多头",
+          "macd_score": 1,
+          "macd_histogram": 0.493,
+          "rsi": "底背离",
+          "rsi_score": 4,
+          "rsi_value": 68.3
+        },
+        "月线": {
+          "macd": "向上拐头",
+          "macd_score": 2,
+          "macd_histogram": 3.6228,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 57.2
+        }
+      },
+      "macd_score": 4,
+      "rsi_score": 6,
+      "macd_resonance": 1,
+      "rsi_resonance": 1
+    },
+    {
+      "symbol": "NSP",
+      "price": 52.14,
+      "dollar_volume": 20308686,
+      "frames": {
+        "日线": {
+          "macd": "向上拐头",
+          "macd_score": 2,
+          "macd_histogram": -0.4202,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 55.9
+        },
+        "周线": {
+          "macd": "多头",
+          "macd_score": 1,
+          "macd_histogram": 1.9948,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 69.1
+        },
+        "月线": {
+          "macd": "向上拐头",
+          "macd_score": 2,
+          "macd_histogram": 2.307,
+          "rsi": "底背离",
+          "rsi_score": 4,
+          "rsi_value": 48.6
+        }
+      },
+      "macd_score": 5,
+      "rsi_score": 6,
+      "macd_resonance": 2,
+      "rsi_resonance": 1
+    },
+    {
+      "symbol": "INVX",
+      "price": 29.15,
+      "dollar_volume": 13169154,
+      "frames": {
+        "日线": {
+          "macd": "未共振",
+          "macd_score": 0,
+          "macd_histogram": -0.0843,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 52.6
+        },
+        "周线": {
+          "macd": "向上拐头",
+          "macd_score": 2,
+          "macd_histogram": 0.1485,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 57.5
+        },
+        "月线": {
+          "macd": "多头",
+          "macd_score": 1,
+          "macd_histogram": 1.1399,
+          "rsi": "底背离",
+          "rsi_score": 4,
+          "rsi_value": 63.2
+        }
+      },
+      "macd_score": 3,
+      "rsi_score": 6,
+      "macd_resonance": 1,
+      "rsi_resonance": 1
+    },
+    {
+      "symbol": "GDYN",
+      "price": 7.91,
+      "dollar_volume": 10567641,
+      "frames": {
+        "日线": {
+          "macd": "多头",
+          "macd_score": 1,
+          "macd_histogram": 0.0236,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 68.3
+        },
+        "周线": {
+          "macd": "向上拐头",
+          "macd_score": 2,
+          "macd_histogram": 0.311,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 59.6
+        },
+        "月线": {
+          "macd": "准备金叉",
+          "macd_score": 3,
+          "macd_histogram": -0.1574,
+          "rsi": "底背离",
+          "rsi_score": 4,
+          "rsi_value": 44.0
+        }
+      },
+      "macd_score": 6,
+      "rsi_score": 6,
+      "macd_resonance": 2,
+      "rsi_resonance": 1
+    },
+    {
+      "symbol": "EBAY",
+      "price": 104.61,
+      "dollar_volume": 583727775,
+      "frames": {
+        "日线": {
+          "macd": "向上拐头",
+          "macd_score": 2,
+          "macd_histogram": -0.6169,
+          "rsi": "中性",
+          "rsi_score": 0,
+          "rsi_value": 43.8
+        },
+        "周线": {
+          "macd": "未共振",
+          "macd_score": 0,
+          "macd_histogram": -1.3968,
+          "rsi": "偏强",
+          "rsi_score": 1,
+          "rsi_value": 50.4
+        },
+        "月线": {
+          "macd": "多头",
+          "macd_score": 1,
+          "macd_histogram": 1.6401,
+          "rsi": "底背离",
+          "rsi_score": 4,
+          "rsi_value": 68.4
+        }
+      },
+      "macd_score": 3,
+      "rsi_score": 5,
+      "macd_resonance": 1,
+      "rsi_resonance": 1
+    }
+  ]
+}
