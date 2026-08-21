@@ -2091,6 +2091,35 @@ nav {
   color: #557267;
   font-size: 12px;
 }
+.confluenceGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.confluenceGrid article {
+  padding: 16px;
+  border: 1px solid #dce5df;
+  border-radius: 14px;
+  background: white;
+}
+.confluenceGrid header {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.confluenceGrid header span,
+.confluenceGrid small {
+  color: #718078;
+}
+.confluenceGrid header em {
+  margin-left: auto;
+  color: #176b4d;
+  font-style: normal;
+  font-weight: 750;
+}
+.confluenceGrid p {
+  margin: 9px 0 4px;
+}
 .contextExplain h2 {
   margin: 5px 0 8px;
 }
@@ -2153,6 +2182,9 @@ nav {
   }
   .trackerIntro article:last-child {
     grid-column: 1 / -1;
+  }
+  .confluenceGrid {
+    grid-template-columns: 1fr;
   }
   .resonanceRow {
     grid-template-columns: 0.8fr 1.2fr 1.2fr 0.7fr;

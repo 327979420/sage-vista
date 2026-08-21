@@ -19,6 +19,16 @@ type Item = {
   macd_base_score: number;
   chain_score: number;
   chain_reason: string;
+  combined_score: number;
+  confluence_bonus: number;
+  rsi_divergence_frames: string[];
+  volume: {
+    label: string;
+    score: number;
+    ratio: number | null;
+    near_bottom: boolean;
+    direction: string;
+  };
   rsi_resonance: number;
   frames: Record<string, Frame>;
 };
@@ -26,8 +36,10 @@ type Report = {
   as_of: string;
   intraday: { available: boolean; reason: string; required: string };
   universe: { eligible: number; filters: string };
+  combined_top10: Item[];
   macd_top10: Item[];
   rsi_top10: Item[];
+  volume_top10: Item[];
 };
 const frameNames = ["日线", "周线", "月线"];
 function SignalTable({ items, kind }: { items: Item[]; kind: "macd" | "rsi" }) {
@@ -84,6 +96,27 @@ function SignalTable({ items, kind }: { items: Item[]; kind: "macd" | "rsi" }) {
     </div>
   );
 }
+function ConfluenceTable({ items }: { items: Item[] }) {
+  return (
+    <div className="confluenceGrid">
+      {items.map((x, i) => (
+        <article key={x.symbol}>
+          <header>
+            <span>#{i + 1}</span>
+            <b>{x.symbol}</b>
+            <em>{x.combined_score}分</em>
+          </header>
+          <p>{x.chain_reason}</p>
+          <small>
+            RSI底背离：{x.rsi_divergence_frames.join("、") || "无"} · 成交量：
+            {x.volume.label}
+            {x.volume.ratio ? `（${x.volume.ratio}倍）` : ""}
+          </small>
+        </article>
+      ))}
+    </div>
+  );
+}
 export default function ResonanceTracker() {
   const [data, setData] = useState<Report | null>(null);
   useEffect(() => {
@@ -136,6 +169,14 @@ export default function ResonanceTracker() {
         </article>
       </section>
       <section className="trackerSection">
+        <p className="label">严格组合 · 多指标买入候选</p>
+        <h2>MACD传导 + RSI底背离 + 底部放量</h2>
+        <ConfluenceTable items={data.combined_top10} />
+        {data.combined_top10.length === 0 && (
+          <p className="intradayNotice">今天没有股票同时满足 MACD 小带大和 RSI 底背离。</p>
+        )}
+      </section>
+      <section className="trackerSection">
         <p className="label">TOP 10 · MACD 共振</p>
         <h2>零轴下优先，寻找日线→周线→月线传导</h2>
         <SignalTable items={data.macd_top10} kind="macd" />
@@ -144,6 +185,26 @@ export default function ResonanceTracker() {
         <p className="label">TOP 10 · RSI 共振</p>
         <h2>超卖、超卖修复与底背离</h2>
         <SignalTable items={data.rsi_top10} kind="rsi" />
+      </section>
+      <section className="trackerSection">
+        <p className="label">TOP 10 · 成交量异动</p>
+        <h2>底部放量单独提示</h2>
+        <div className="confluenceGrid volumeGrid">
+          {data.volume_top10.map((x, i) => (
+            <article key={x.symbol}>
+              <header>
+                <span>#{i + 1}</span>
+                <b>{x.symbol}</b>
+                <em>{x.volume.ratio ?? "—"}倍</em>
+              </header>
+              <p>{x.volume.label}</p>
+              <small>
+                {x.volume.near_bottom ? "处于底部区域" : "不在底部区域"} · 当日
+                {x.volume.direction}
+              </small>
+            </article>
+          ))}
+        </div>
       </section>
       <section className="zhrules">
         <h2>怎样使用</h2>
@@ -157,7 +218,7 @@ export default function ResonanceTracker() {
         </p>
         <p>
           <b>3</b>
-          周线和月线是正在形成的K线，周期结束前信号可能消失；下一步仍需检查价格结构、成交量、止损和收益风险比。
+          放量下跌可能是恐慌抛售，不会单独当成买点；周线和月线信号也可能在周期结束前消失。
         </p>
         <mark>
           Tracker 是候选发现工具，不提供自动下单，也不能替代盘中实时行情确认。

@@ -6,7 +6,7 @@ from services.scanner.eodhd_factor_validation import percentile_scores,portfolio
 from services.scanner.research_pipeline import factor_values
 from services.scanner.market_context_factor_test import ratio_signal,bootstrap_relation,bh_adjust
 from services.scanner.neutralization_test import correlation,point_in_time_exposure
-from services.scanner.resonance_tracker import macd_state_score,transmission_score
+from services.scanner.resonance_tracker import macd_state_score,transmission_score,volume_state
 class EodhdTests(unittest.TestCase):
  def test_macd_cross_below_zero_has_more_weight(self):
   common={"bars_since_cross":0,"near_cross":False,"negative_histogram_shrinking":False,"histogram_rising":True,"macd_line":-1,"signal_line":-2}
@@ -16,6 +16,11 @@ class EodhdTests(unittest.TestCase):
   monthly={"bars_since_cross":None,"near_cross":False,"negative_histogram_shrinking":True,"zero_zone":"零轴下"}
   score,reason=transmission_score({"日线":cross,"周线":cross,"月线":monthly})
   self.assertEqual(score,22);self.assertIn("小带大",reason)
+ def test_bottom_volume_expansion_is_separate_signal(self):
+  rows=[{"open":10,"high":11,"low":9,"close":10,"volume":100} for _ in range(60)]
+  rows.append({"open":9.2,"high":10,"low":9,"close":9.8,"volume":220})
+  result=volume_state(rows)
+  self.assertEqual(result["label"],"底部放量上涨");self.assertEqual(result["ratio"],2.2)
  def test_primary_common_stock_filter(self):
   rows=[{"Code":"A","Type":"Common Stock","Exchange":"NYSE"},{"Code":"P","Type":"Common Stock","Exchange":"PINK"},{"Code":"E","Type":"ETF","Exchange":"NASDAQ"}]
   self.assertEqual([x["Code"] for x in common(rows)],["A"])
