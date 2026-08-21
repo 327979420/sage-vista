@@ -180,6 +180,14 @@ export default function ResonanceTracker() {
                 <strong>{x.combined_score}分</strong>
               </header>
               <p>{x.chain_reason}</p>
+              <div className="rtAuditStrip">
+                {periods.map((period) => (
+                  <span key={period}>
+                    <small>{period} MACD</small>
+                    <b>{x.frames[period].macd}</b>
+                  </span>
+                ))}
+              </div>
               <footer>
                 <span>RSI：{x.rsi_divergence_frames.join("、")}出现底背离</span>
                 <span>成交量：{x.volume.label}</span>
@@ -243,6 +251,7 @@ export default function ResonanceTracker() {
         <b>阅读顺序：</b>
         先检查“双指标确认”，再看 MACD、RSI
         和成交量的单项证据。入选只表示值得进一步核对，不代表可以立即买入；周线和月线在本周期收盘前仍可能变化。
+        已经死叉或超过有效期的旧金叉不会进入组合榜。
       </footer>
     </main>
   );

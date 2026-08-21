@@ -6,14 +6,14 @@ from services.scanner.eodhd_factor_validation import percentile_scores,portfolio
 from services.scanner.research_pipeline import factor_values
 from services.scanner.market_context_factor_test import ratio_signal,bootstrap_relation,bh_adjust
 from services.scanner.neutralization_test import correlation,point_in_time_exposure
-from services.scanner.resonance_tracker import macd_state_score,transmission_score,volume_state
+from services.scanner.resonance_tracker import macd_buy_gate,macd_state_score,transmission_score,volume_state
 class EodhdTests(unittest.TestCase):
  def test_macd_cross_below_zero_has_more_weight(self):
   common={"bars_since_cross":0,"near_cross":False,"negative_histogram_shrinking":False,"histogram_rising":True,"macd_line":-1,"signal_line":-2}
   self.assertGreater(macd_state_score({**common,"zero_zone":"零轴下"}),macd_state_score({**common,"zero_zone":"零轴上"}))
  def test_small_to_large_transmission_gets_chain_bonus(self):
-  cross={"bars_since_cross":0,"near_cross":False,"negative_histogram_shrinking":False,"zero_zone":"零轴下"}
-  monthly={"bars_since_cross":None,"near_cross":False,"negative_histogram_shrinking":True,"zero_zone":"零轴下"}
+  cross={"bars_since_cross":0,"near_cross":False,"negative_histogram_shrinking":False,"zero_zone":"零轴下","macd_line":-1,"signal_line":-2}
+  monthly={"bars_since_cross":None,"near_cross":False,"negative_histogram_shrinking":True,"zero_zone":"零轴下","macd_line":-2,"signal_line":-1}
   score,reason=transmission_score({"日线":cross,"周线":cross,"月线":monthly})
   self.assertEqual(score,22);self.assertIn("小带大",reason)
  def test_bottom_volume_expansion_is_separate_signal(self):
@@ -21,6 +21,11 @@ class EodhdTests(unittest.TestCase):
   rows.append({"open":9.2,"high":10,"low":9,"close":9.8,"volume":220})
   result=volume_state(rows)
   self.assertEqual(result["label"],"底部放量上涨");self.assertEqual(result["ratio"],2.2)
+ def test_dead_macd_cross_cannot_enter_combined_list(self):
+  dead={"bars_since_cross":None,"macd_line":-2,"signal_line":-1,"macd_histogram":-1,"zero_zone":"零轴下","near_cross":False,"negative_histogram_shrinking":False,"histogram_rising":False}
+  monthly={**dead,"negative_histogram_shrinking":True,"histogram_rising":True}
+  valid,_=macd_buy_gate({"日线":dead,"周线":dead,"月线":monthly})
+  self.assertFalse(valid)
  def test_primary_common_stock_filter(self):
   rows=[{"Code":"A","Type":"Common Stock","Exchange":"NYSE"},{"Code":"P","Type":"Common Stock","Exchange":"PINK"},{"Code":"E","Type":"ETF","Exchange":"NASDAQ"}]
   self.assertEqual([x["Code"] for x in common(rows)],["A"])

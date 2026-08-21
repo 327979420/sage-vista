@@ -2361,6 +2361,29 @@ body:has(.rtPage) .globalnav {
   color: #40574e;
   line-height: 1.55;
 }
+.rtAuditStrip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin: 14px 0;
+}
+.rtAuditStrip span {
+  padding: 9px;
+  border-radius: 9px;
+  background: #f0f4f1;
+}
+.rtAuditStrip small,
+.rtAuditStrip b {
+  display: block;
+}
+.rtAuditStrip small {
+  margin-bottom: 3px;
+  color: #718078;
+  font-size: 9px;
+}
+.rtAuditStrip b {
+  font-size: 11px;
+}
 .rtStrictGrid footer {
   display: flex;
   gap: 8px;
