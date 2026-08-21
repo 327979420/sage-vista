@@ -2120,6 +2120,463 @@ nav {
 .confluenceGrid p {
   margin: 9px 0 4px;
 }
+
+/* Indicator tracker — intentionally self-contained from the legacy dashboard. */
+.rtPage {
+  min-height: 100vh;
+  padding: 28px;
+  background: #f3f5f2;
+  color: #10231d;
+}
+.rtPage > * {
+  max-width: 1220px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.rtHero {
+  overflow: hidden;
+  padding: 26px 30px 32px;
+  border-radius: 24px;
+  background: #10231d;
+  color: #f5f8f4;
+  box-shadow: 0 20px 45px rgba(16, 35, 29, 0.14);
+}
+.rtHero nav {
+  display: flex;
+  height: auto;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 0 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  background: transparent;
+}
+body:has(.rtPage) .globalnav { display: none; }
+.rtHero nav a {
+  color: #dce8e1;
+  text-decoration: none;
+}
+.rtHero nav span {
+  padding: 7px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  color: #a9c0b6;
+  font-size: 12px;
+}
+.rtHeroBody {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 30px;
+  padding-top: 34px;
+}
+.rtHeroBody p,
+.rtSectionTitle p {
+  margin: 0 0 7px;
+  color: #68d49d;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+}
+.rtHero h1 {
+  margin: 0;
+  font-size: clamp(36px, 5vw, 66px);
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+}
+.rtHeroBody strong {
+  display: block;
+  margin-top: 16px;
+  color: #a9c0b6;
+  font-size: 16px;
+  font-weight: 500;
+}
+.rtAsOf {
+  min-width: 225px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+}
+.rtAsOf small,
+.rtAsOf span {
+  display: block;
+  color: #93aa9f;
+}
+.rtAsOf b {
+  display: block;
+  margin: 5px 0 8px;
+  font-size: 25px;
+}
+.rtSummary {
+  display: grid;
+  grid-template-columns: 1.3fr repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 14px;
+}
+.rtSummary article {
+  min-height: 135px;
+  padding: 20px;
+  border: 1px solid #dbe2dd;
+  border-radius: 18px;
+  background: #fff;
+}
+.rtSummary article.rtSummaryPrimary {
+  background: #dff5e8;
+  border-color: #b7dfc7;
+}
+.rtSummary small {
+  display: block;
+  color: #65756e;
+  font-weight: 650;
+}
+.rtSummary b {
+  display: block;
+  margin: 12px 0 2px;
+  font-size: 34px;
+  letter-spacing: -0.03em;
+}
+.rtSummary p {
+  margin: 0;
+  color: #75827c;
+  font-size: 12px;
+}
+.rtFocus,
+.rtStrict,
+.rtSignals,
+.rtVolume {
+  margin-top: 44px;
+}
+.rtSectionTitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 20px;
+  margin-bottom: 14px;
+}
+.rtSectionTitle h2 {
+  margin: 0;
+  font-size: clamp(24px, 3vw, 34px);
+  letter-spacing: -0.035em;
+}
+.rtSectionTitle > span {
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: #e4e9e5;
+  color: #65756e;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.rtIntersection {
+  display: grid;
+  gap: 10px;
+}
+.rtIntersection article {
+  display: grid;
+  grid-template-columns: 0.75fr 1.3fr 1fr;
+  gap: 22px;
+  padding: 22px;
+  border-radius: 18px;
+  background: #16362b;
+  color: #f5f8f4;
+}
+.rtIntersection article > div + div {
+  padding-left: 20px;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+.rtIntersectionTicker mark,
+.rtTicker mark,
+.rtStrict mark {
+  width: max-content;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #65d69a;
+  color: #10231d;
+  font-size: 10px;
+  font-weight: 850;
+}
+.rtIntersectionTicker b {
+  display: block;
+  margin-top: 14px;
+  font-size: 34px;
+}
+.rtIntersectionTicker span,
+.rtIntersection small {
+  color: #9fb5ab;
+}
+.rtIntersection strong {
+  display: block;
+  margin: 7px 0;
+  font-size: 21px;
+}
+.rtIntersection p {
+  margin: 0;
+  color: #c3d1ca;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.rtEmpty {
+  padding: 28px;
+  border: 1px dashed #bdc8c1;
+  border-radius: 18px;
+  color: #65756e;
+  text-align: center;
+}
+.rtStrictGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.rtStrictGrid article {
+  padding: 20px;
+  border: 1px solid #cdd8d1;
+  border-radius: 18px;
+  background: #fff;
+}
+.rtStrictGrid header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.rtStrictGrid header b {
+  font-size: 23px;
+}
+.rtStrictGrid header strong {
+  margin-left: auto;
+  color: #19734f;
+}
+.rtStrictGrid p {
+  color: #40574e;
+  line-height: 1.55;
+}
+.rtStrictGrid footer {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.rtStrictGrid footer span {
+  padding: 6px 9px;
+  border-radius: 8px;
+  background: #edf2ee;
+  color: #587067;
+  font-size: 11px;
+}
+.rtBoard {
+  overflow: hidden;
+  border: 1px solid #d7dfd9;
+  border-radius: 20px;
+  background: #fff;
+}
+.rtBoardHead,
+.rtSignalRow {
+  display: grid;
+  grid-template-columns: 1.15fr repeat(3, 1fr) 0.65fr;
+  gap: 10px;
+  align-items: center;
+}
+.rtBoardHead {
+  padding: 12px 18px;
+  background: #e9eeea;
+  color: #687870;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+.rtSignalRow {
+  position: relative;
+  padding: 14px 18px;
+  border-top: 1px solid #e7ece8;
+}
+.rtTicker {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+}
+.rtTicker i {
+  color: #9ba8a1;
+  font-size: 10px;
+  font-style: normal;
+}
+.rtTicker b {
+  display: block;
+  font-size: 18px;
+}
+.rtTicker small {
+  display: block;
+  color: #819087;
+}
+.rtTicker mark {
+  margin-left: 4px;
+  font-size: 8px;
+  white-space: nowrap;
+}
+.rtPeriod {
+  padding: 10px;
+  border-radius: 12px;
+  background: #f3f5f3;
+}
+.rtPeriod.isHot {
+  background: #e2f3e8;
+}
+.rtPeriod small,
+.rtPeriod span {
+  display: block;
+  color: #75857d;
+  font-size: 10px;
+}
+.rtPeriod b {
+  display: block;
+  margin: 3px 0;
+  font-size: 13px;
+}
+.rtScore b,
+.rtScore small {
+  display: block;
+}
+.rtScore b {
+  color: #176f4c;
+  font-size: 20px;
+}
+.rtScore small {
+  color: #839087;
+  font-size: 10px;
+}
+.rtReason {
+  grid-column: 2/-1;
+  margin: -3px 0 0;
+  color: #60736a;
+  font-size: 11px;
+}
+.rtVolumeGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.rtVolumeGrid article {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 4px 12px;
+  align-items: center;
+  padding: 16px 18px;
+  border-left: 4px solid #34a66f;
+  border-radius: 14px;
+  background: #fff;
+}
+.rtVolumeGrid article.isDown {
+  border-left-color: #d46a5f;
+}
+.rtVolumeGrid i {
+  grid-row: 1/3;
+  color: #a1aaa5;
+  font-size: 10px;
+  font-style: normal;
+}
+.rtVolumeGrid b,
+.rtVolumeGrid small {
+  display: block;
+}
+.rtVolumeGrid small,
+.rtVolumeGrid span {
+  color: #74827b;
+  font-size: 11px;
+}
+.rtVolumeGrid strong {
+  grid-row: 1/3;
+  grid-column: 3;
+  color: #176f4c;
+  font-size: 22px;
+}
+.rtVolumeGrid span {
+  grid-column: 2;
+}
+.rtDisclaimer {
+  margin-top: 38px;
+  padding: 20px;
+  border-radius: 14px;
+  background: #e5e9e6;
+  color: #5b6c64;
+  font-size: 12px;
+  line-height: 1.65;
+}
+.rtLoading {
+  padding: 30vh 20px;
+  text-align: center;
+  color: #60736a;
+}
+@media (max-width: 800px) {
+  .rtPage {
+    padding: 14px;
+  }
+  .rtHero {
+    padding: 20px;
+    border-radius: 18px;
+  }
+  .rtHeroBody {
+    display: block;
+  }
+  .rtAsOf {
+    margin-top: 24px;
+  }
+  .rtSummary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .rtIntersection article {
+    grid-template-columns: 1fr;
+  }
+  .rtIntersection article > div + div {
+    padding: 14px 0 0;
+    border-left: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .rtStrictGrid,
+  .rtVolumeGrid {
+    grid-template-columns: 1fr;
+  }
+  .rtBoardHead {
+    display: none;
+  }
+  .rtSignalRow {
+    grid-template-columns: repeat(3, 1fr);
+    padding: 16px;
+  }
+  .rtTicker {
+    grid-column: 1/-1;
+  }
+  .rtScore {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    text-align: right;
+  }
+  .rtReason {
+    grid-column: 1/-1;
+  }
+  .rtSectionTitle {
+    align-items: start;
+  }
+  .rtSectionTitle > span {
+    display: none;
+  }
+}
+@media (max-width: 480px) {
+  .rtSummary {
+    grid-template-columns: 1fr 1fr;
+  }
+  .rtSummary article {
+    min-height: 115px;
+    padding: 15px;
+  }
+  .rtPeriod {
+    padding: 8px;
+  }
+  .rtPeriod span {
+    display: none;
+  }
+  .rtTicker mark {
+    max-width: 76px;
+    overflow: hidden;
+  }
+}
 .contextExplain h2 {
   margin: 5px 0 8px;
 }
