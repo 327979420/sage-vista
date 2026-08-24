@@ -2412,6 +2412,26 @@ body:has(.rtPage) .globalnav {
 .rtEvidenceTiles small, .rtEvidenceTiles b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rtEvidenceTiles small { margin-bottom: 4px; color: #75847c; font-size: 9px; }
 .rtEvidenceTiles b { font-size: 11px; }
+.rtChartGrid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+.rtChartCard { padding:18px; border:1px solid #dce5df; border-radius:16px; background:#fff; box-shadow:0 8px 24px rgba(31,54,42,.05); }
+.rtChartCard header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.rtChartCard h3 { margin:8px 0 0; font-size:15px; line-height:1.35; }
+.rtChartCard mark { padding:4px 8px; border-radius:999px; background:#e8f4ed; color:#18744e; font-size:10px; }
+.rtChartCard header small,.rtChartCard footer { color:#718078; font-size:10px; }
+.rtChartCard footer { margin-top:18px; padding-top:12px; border-top:1px solid #edf1ee; line-height:1.5; }
+.rtLineChart { margin-top:20px; }
+.rtChartPlot { position:relative; height:190px; margin:0 10px 32px 12px; border-left:1px solid #dfe7e2; border-bottom:1px solid #dfe7e2; background:linear-gradient(to bottom,rgba(219,229,223,.55) 1px,transparent 1px); background-size:100% 50%; }
+.rtChartSeries { position:absolute; inset:0; }
+.rtChartSeries>i { position:absolute; height:2px; transform-origin:0 50%; border-radius:2px; opacity:.75; }
+.rtChartSeries>b { position:absolute; width:9px; height:9px; border:2px solid white; border-radius:50%; transform:translate(-50%,-50%); box-shadow:0 0 0 1px rgba(30,50,40,.16); }
+.rtChartXAxis { position:absolute; left:0; right:0; bottom:-24px; display:flex; justify-content:space-between; color:#7b8981; font-size:9px; }
+.rtChartLegend { display:flex; flex-wrap:wrap; gap:12px; margin-left:12px; color:#68776f; font-size:10px; }
+.rtChartLegend span { display:flex; align-items:center; gap:5px; }
+.rtChartLegend i { width:14px; height:3px; border-radius:3px; }
+.rtResearchVerdict { margin-top:16px; padding:16px 18px; border-left:4px solid #19875a; border-radius:0 12px 12px 0; background:#eff8f3; }
+.rtResearchVerdict b { color:#146d49; }
+.rtResearchVerdict p { margin:6px 0 0; color:#405248; line-height:1.6; }
+@media(max-width:1000px){.rtChartGrid{grid-template-columns:1fr}.rtChartPlot{height:170px}}
 .rtBoard {
   overflow: hidden;
   border: 1px solid #d7dfd9;
