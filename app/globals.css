@@ -2582,7 +2582,7 @@ button.rtTicker:hover b, button.rtTicker:focus-visible b { color: #18714d; text-
 .rtModuleNav a { padding: 9px 13px; border-radius: 9px; color: #64746c; font-size: 12px; font-weight: 650; text-decoration: none; white-space: nowrap; }
 .rtModuleNav a.active { background: #16362b; color: #fff; }
 .rtModuleGrid { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin-top: 30px; }
-.rtModuleGrid a { min-height: 190px; padding: 24px; border: 1px solid #d8e0db; border-radius: 18px; background: #fff; color: #10231d; text-decoration: none; transition: transform .18s ease, box-shadow .18s ease; }
+.rtModuleGrid a, .rtModuleGrid article { min-height: 190px; padding: 24px; border: 1px solid #d8e0db; border-radius: 18px; background: #fff; color: #10231d; text-decoration: none; transition: transform .18s ease, box-shadow .18s ease; }
 .rtModuleGrid a:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(16,35,29,.08); }
 .rtModuleGrid small { color: #24825b; font-weight: 750; }
 .rtModuleGrid h2 { margin: 15px 0 8px; font-size: 28px; }
