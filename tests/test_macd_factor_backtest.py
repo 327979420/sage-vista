@@ -1,5 +1,5 @@
 import unittest
-from services.scanner.macd_factor_backtest import completed_groups,daily_pattern_flags,ema,features,kline_congestion_support,outcome,stats,three_push_breakout
+from services.scanner.macd_factor_backtest import completed_groups,daily_pattern_flags,ema,features,kline_congestion_support,outcome,stats,three_push_breakout,volume_profile_support
 
 class MacdFactorBacktestTests(unittest.TestCase):
  def test_completed_period_excludes_current_bucket(self):
@@ -68,5 +68,16 @@ class MacdFactorBacktestTests(unittest.TestCase):
   rows[220].update(high=110,close=108)
   before=kline_congestion_support(rows,250);rows[260].update(high=999,close=999)
   self.assertEqual(before,kline_congestion_support(rows,250))
+ def test_volume_profile_requires_current_price_near_concentrated_peak(self):
+  rows=[{"date":f"D{i}","open":100,"high":101,"low":99,"close":100,"volume":1000} for i in range(251)]
+  rows[220].update(high=112,close=110);rows[250].update(close=100)
+  self.assertTrue(volume_profile_support(rows,250))
+  rows[250].update(close=120)
+  self.assertFalse(volume_profile_support(rows,250))
+ def test_volume_profile_does_not_read_future_bars(self):
+  rows=[{"date":f"D{i}","open":100,"high":101,"low":99,"close":100,"volume":1000} for i in range(270)]
+  rows[220].update(high=112,close=110)
+  before=volume_profile_support(rows,250);rows[260].update(high=999,low=1,close=500,volume=999999999)
+  self.assertEqual(before,volume_profile_support(rows,250))
 
 if __name__=="__main__":unittest.main()

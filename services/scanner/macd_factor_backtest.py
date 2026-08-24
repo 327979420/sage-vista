@@ -15,7 +15,7 @@ HIGHER_TIMEFRAME_HORIZONS=(5,10,20,40,60,80,100,120)
 REPORT_HORIZONS=tuple(sorted(set(HORIZONS+HIGHER_TIMEFRAME_HORIZONS)))
 SPLITS={"development":("0000-01-01","2024-12-31"),"validation":("2025-01-01","2025-12-31"),"forward":("2026-01-01","9999-12-31")}
 REGIME_LABELS={"both_bull":"SPY与QQQ均在EMA200上","mixed":"SPY与QQQ方向不一致","both_bear":"SPY与QQQ均在EMA200下"}
-PATTERN_FACTORS=("长期趋势合格＋日线金叉＋K线聚集区","长期趋势合格＋日线金叉＋底部Doji","长期趋势合格＋日线金叉＋底部Bullish Engulfing","长期趋势合格＋日线金叉＋双底突破","长期趋势合格＋日线金叉＋趋势线三推突破","长期趋势合格＋日线金叉＋RSI底背离")
+PATTERN_FACTORS=("长期趋势合格＋日线金叉＋Volume Profile筹码峰","长期趋势合格＋日线金叉＋K线聚集区","长期趋势合格＋日线金叉＋底部Doji","长期趋势合格＋日线金叉＋底部Bullish Engulfing","长期趋势合格＋日线金叉＋双底突破","长期趋势合格＋日线金叉＋趋势线三推突破","长期趋势合格＋日线金叉＋RSI底背离")
 TECHNICAL_CONFIG=load_config()
 
 def adjusted_rows(raw):
@@ -91,6 +91,20 @@ def kline_congestion_support(rows,end,lookback=250,band=.03,min_share=.15,min_pu
  recent_high=max(x["high"] for x in rows[max(0,end-60):end])
  return clustered and current<=recent_high*(1-min_pullback)
 
+def volume_profile_support(rows,end,lookback=250,bins=40,band=.03,min_peak_share=.05,min_pullback=.05):
+ """Daily-bar volume-profile proxy: current price revisits the highest-volume historical price bin."""
+ if end<lookback:return False
+ history=rows[end-lookback:end];points=[((x["high"]+x["low"]+x["close"])/3,max(0,x["volume"])) for x in history if x["volume"]>0]
+ if not points:return False
+ low=min(x[0] for x in points);high=max(x[0] for x in points);width=(high-low)/bins
+ if width<=0:return False
+ profile=[0]*bins
+ for price,volume in points:profile[min(bins-1,int((price-low)/width))]+=volume
+ peak=max(range(bins),key=profile.__getitem__);total=sum(profile);poc=low+(peak+.5)*width;current=rows[end]["close"]
+ concentrated=profile[peak]/total>=min_peak_share
+ recent_high=max(x["high"] for x in rows[max(0,end-60):end])
+ return concentrated and abs(current/poc-1)<=band and current<=recent_high*(1-min_pullback)
+
 def long_trend_ok(rows,end):
  closes=[x["close"] for x in rows[:end+1]];long_average=ema(closes,200)
  return end>=260 and closes[end]>=long_average[end]*.90 and long_average[end]>=long_average[end-60]*.97
@@ -107,7 +121,7 @@ def daily_pattern_flags(rows,end):
  for j in range(max(1,end-4),end+1):
   x,prior=rows[j],rows[j-1];bullish=x["close"]>x["open"] and prior["close"]<prior["open"] and x["open"]<=prior["close"] and x["close"]>=prior["open"]
   if bullish and max(x["open"],x["close"])<=bottom_limit:bottom_engulf=True
- return {"日线金叉":True,"长期趋势合格＋日线金叉":trend_ok,"长期趋势合格＋日线金叉＋K线聚集区":trend_ok and kline_congestion_support(rows,end),"长期趋势合格＋日线金叉＋底部Doji":trend_ok and bottom_doji,"长期趋势合格＋日线金叉＋底部Bullish Engulfing":trend_ok and bottom_engulf,"长期趋势合格＋日线金叉＋双底突破":trend_ok and double_bottom,"长期趋势合格＋日线金叉＋趋势线三推突破":trend_ok and three_push_breakout(rows,end),"长期趋势合格＋日线金叉＋RSI底背离":trend_ok and bullish_divergence(window,values)}
+ return {"日线金叉":True,"长期趋势合格＋日线金叉":trend_ok,"长期趋势合格＋日线金叉＋Volume Profile筹码峰":trend_ok and volume_profile_support(rows,end),"长期趋势合格＋日线金叉＋K线聚集区":trend_ok and kline_congestion_support(rows,end),"长期趋势合格＋日线金叉＋底部Doji":trend_ok and bottom_doji,"长期趋势合格＋日线金叉＋底部Bullish Engulfing":trend_ok and bottom_engulf,"长期趋势合格＋日线金叉＋双底突破":trend_ok and double_bottom,"长期趋势合格＋日线金叉＋趋势线三推突破":trend_ok and three_push_breakout(rows,end),"长期趋势合格＋日线金叉＋RSI底背离":trend_ok and bullish_divergence(window,values)}
 
 def features(side,d,w,m):
  bullish=lambda x:x["macd_line"]>x["signal_line"]
