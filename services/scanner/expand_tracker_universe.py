@@ -1,11 +1,23 @@
 """Expand the live tracker toward the most liquid active US common stocks."""
 import argparse,json,pathlib
 from concurrent.futures import ThreadPoolExecutor,as_completed
-from datetime import datetime,timezone
+from datetime import date,datetime,timedelta,timezone
 from .audit_eodhd import common
 from .eodhd import prices,symbols
 
-def run(target=1000,as_of="2026-08-20",cache_dir="work/eodhd-cache",out="public/universe-expansion.json"):
+def latest_bulk_day(as_of=None):
+ from .resonance_tracker import bulk_day
+ target=date.fromisoformat(as_of) if as_of else date.today()
+ for offset in range(8):
+  day=target-timedelta(days=offset)
+  if day.weekday()<5:
+   try:
+    if bulk_day(day.isoformat()):return day.isoformat()
+   except Exception:pass
+ raise RuntimeError("No recent completed US bulk close is available")
+
+def run(target=1000,as_of=None,cache_dir="work/eodhd-cache",out="public/universe-expansion.json"):
+ as_of=latest_bulk_day(as_of)
  cache=pathlib.Path(cache_dir);cache.mkdir(parents=True,exist_ok=True)
  symbol_cache=pathlib.Path("work/eodhd-active-common.json")
  if symbol_cache.exists():active=json.loads(symbol_cache.read_text())
@@ -36,5 +48,5 @@ def run(target=1000,as_of="2026-08-20",cache_dir="work/eodhd-cache",out="public/
  pathlib.Path(out).write_text(json.dumps(report,ensure_ascii=False,indent=2));return report
 
 if __name__=="__main__":
- parser=argparse.ArgumentParser();parser.add_argument("--target",type=int,default=1000);parser.add_argument("--as-of",default="2026-08-20");args=parser.parse_args()
+ parser=argparse.ArgumentParser();parser.add_argument("--target",type=int,default=1000);parser.add_argument("--as-of");args=parser.parse_args()
  print(json.dumps(run(args.target,args.as_of),ensure_ascii=False,indent=2))

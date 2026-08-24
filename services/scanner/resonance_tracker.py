@@ -7,7 +7,9 @@ from .technical import macd,rsi
 
 def bulk_day(day,cache_dir="work/eodhd-bulk"):
  path=pathlib.Path(cache_dir)/f"{day}.json";path.parent.mkdir(parents=True,exist_ok=True)
- if path.exists():return json.loads(path.read_text())
+ if path.exists():
+  cached=json.loads(path.read_text())
+  if cached:return cached
  rows=get("eod-bulk-last-day/US",date=day);path.write_text(json.dumps(rows));return rows
 def aggregate(rows,mode):
  groups={}
@@ -66,7 +68,14 @@ def macd_buy_gate(frames):
  weekly_bull=weekly["zero_zone"]=="零轴下" and weekly["macd_line"]>weekly["signal_line"] and weekly["macd_histogram"]>0
  daily_turn=daily["histogram_rising"] and (daily["macd_line"]>daily["signal_line"] or daily["zero_zone"]=="零轴下")
  valid=((fresh(daily) or early(daily)) and (fresh(weekly) or weekly_bull)) or ((fresh(weekly) or weekly_bull) and early(monthly) and daily_turn)
- return valid,"当前MACD结构有效" if valid else "当前MACD未通过组合榜门槛"
+ reasons=[]
+ if fresh(daily):reasons.append("日线新金叉仍有效")
+ elif early(daily):reasons.append("日线零轴下空头柱收缩")
+ elif daily_turn:reasons.append("日线动能向上")
+ if fresh(weekly):reasons.append("周线新金叉仍有效")
+ elif weekly_bull:reasons.append("周线零轴下保持多头")
+ if early(monthly):reasons.append("月线零轴下空头柱收缩")
+ return valid," · ".join(reasons) if valid else "当前MACD未通过组合榜门槛"
 def timeframe_state(rows):
  if len(rows)<35:return None
  closes=[x["close"] for x in rows];line,signal=macd(closes);hist=[a-b for a,b in zip(line,signal)];rv=rsi(closes);i=len(rows)-1

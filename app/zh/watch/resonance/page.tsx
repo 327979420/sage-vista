@@ -20,6 +20,7 @@ type Item = {
   rsi_resonance: number;
   chain_score: number;
   chain_reason: string;
+  macd_gate_reason: string;
   combined_score: number;
   rsi_divergence_frames: string[];
   volume: {
@@ -179,7 +180,7 @@ export default function ResonanceTracker() {
                 <b>{x.symbol}</b>
                 <strong>{x.combined_score}分</strong>
               </header>
-              <p>{x.chain_reason}</p>
+              <p>{x.macd_gate_reason}</p>
               <div className="rtAuditStrip">
                 {periods.map((period) => (
                   <span key={period}>
