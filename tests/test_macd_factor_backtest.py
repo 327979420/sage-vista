@@ -1,5 +1,5 @@
 import unittest
-from services.scanner.macd_factor_backtest import completed_groups,features,stats
+from services.scanner.macd_factor_backtest import completed_groups,ema,features,stats
 
 class MacdFactorBacktestTests(unittest.TestCase):
  def test_completed_period_excludes_current_bucket(self):
@@ -15,5 +15,8 @@ class MacdFactorBacktestTests(unittest.TestCase):
  def test_stats_reports_robust_mean(self):
   events=[{"forward":{5:x},"mae":{5:-.01}} for x in (.01,.02,.03,5.0)]
   self.assertIn("trimmed_mean_return",stats(events,5))
+ def test_market_ema_uses_only_prior_and_current_values(self):
+  first=ema([1]*200+[2]);second=ema([1]*200+[2,999])
+  self.assertEqual(first[-1],second[-2])
 
 if __name__=="__main__":unittest.main()
