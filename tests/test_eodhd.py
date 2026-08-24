@@ -6,7 +6,7 @@ from services.scanner.eodhd_factor_validation import percentile_scores,portfolio
 from services.scanner.research_pipeline import factor_values
 from services.scanner.market_context_factor_test import ratio_signal,bootstrap_relation,bh_adjust
 from services.scanner.neutralization_test import correlation,point_in_time_exposure
-from services.scanner.resonance_tracker import macd_buy_gate,macd_state_score,price_structure_state,transmission_score,volume_state
+from services.scanner.resonance_tracker import breakout_state,ema_state,macd_buy_gate,macd_state_score,price_structure_state,transmission_score,volume_state
 class EodhdTests(unittest.TestCase):
  def test_macd_cross_below_zero_has_more_weight(self):
   common={"bars_since_cross":0,"near_cross":False,"negative_histogram_shrinking":False,"histogram_rising":True,"macd_line":-1,"signal_line":-2}
@@ -33,6 +33,17 @@ class EodhdTests(unittest.TestCase):
   result=price_structure_state(rows)
   self.assertTrue(result["confirmed"])
   self.assertGreaterEqual(result["score"], 2)
+ def test_ema_layer_requires_price_and_both_averages_to_align(self):
+  rows=[]
+  for i in range(90):
+   close=100+i*.3;rows.append({"open":close,"high":close+.2,"low":close-.2,"close":close,"volume":100})
+  self.assertEqual(ema_state(rows)["direction"],"buy")
+ def test_breakout_uses_prior_completed_bars(self):
+  rows=[{"open":10,"high":11,"low":9,"close":10,"volume":100} for _ in range(25)]
+  rows.append({"open":10,"high":12.5,"low":10,"close":12,"volume":100})
+  result=breakout_state(rows)
+  self.assertEqual(result["direction"],"buy")
+  self.assertEqual(result["level"],11)
  def test_primary_common_stock_filter(self):
   rows=[{"Code":"A","Type":"Common Stock","Exchange":"NYSE"},{"Code":"P","Type":"Common Stock","Exchange":"PINK"},{"Code":"E","Type":"ETF","Exchange":"NASDAQ"}]
   self.assertEqual([x["Code"] for x in common(rows)],["A"])

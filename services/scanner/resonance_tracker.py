@@ -27,6 +27,13 @@ def bullish_divergence(rows,values,window=45):
  if len(lows)<2:return False
  a,b=lows[-2:]
  return end-b<=8 and values[b]<50 and rows[b]["low"]<rows[a]["low"] and values[b]>values[a]+2 and rows[end]["close"]<=rows[b]["low"]*1.15
+def bearish_divergence(rows,values,window=45):
+ end=len(rows)-1;highs=[]
+ for i in range(max(2,end-window),end):
+  if rows[i]["high"]>rows[i-1]["high"] and rows[i]["high"]>=rows[i+1]["high"] and values[i] is not None:highs.append(i)
+ if len(highs)<2:return False
+ a,b=highs[-2:]
+ return end-b<=8 and values[b]>50 and rows[b]["high"]>rows[a]["high"] and values[b]<values[a]-2 and rows[end]["close"]>=rows[b]["high"]*.85
 def volume_state(rows):
  """Detect unusual daily volume and label whether it occurs near a 60-day low."""
  if len(rows)<61:return {"label":"数据不足","score":0,"ratio":None,"near_bottom":False,"direction":"—"}
@@ -55,6 +62,23 @@ def price_structure_state(rows):
  if breakout:evidence.append("突破近20日高点")
  score=sum((trend,support,higher_low,breakout));confirmed=score>=2
  return {"confirmed":confirmed,"score":score,"label":"结构确认" if confirmed else "结构改善" if score==1 else "结构偏弱","evidence":evidence}
+def ema_state(rows):
+ """Daily EMA direction is an independent evidence layer, not a score proxy."""
+ closes=[x["close"] for x in rows];e20,e50=ema(closes,20),ema(closes,50);i=len(rows)-1
+ bull=closes[i]>e20[i]>e50[i] and e20[i]>e20[i-5] and e50[i]>e50[i-10]
+ bear=closes[i]<e20[i]<e50[i] and e20[i]<e20[i-5] and e50[i]<e50[i-10]
+ recent_bull=any(e20[j]>e50[j] and e20[j-1]<=e50[j-1] for j in range(i-5,i+1))
+ recent_bear=any(e20[j]<e50[j] and e20[j-1]>=e50[j-1] for j in range(i-5,i+1))
+ direction="buy" if bull else "sell" if bear else "neutral"
+ label="多头排列" if bull else "空头排列" if bear else "均线纠缠"
+ if recent_bull:label="EMA20上穿EMA50"
+ if recent_bear:label="EMA20下穿EMA50"
+ return {"direction":direction,"label":label,"close":round(closes[i],2),"ema20":round(e20[i],2),"ema50":round(e50[i],2),"fresh_cross":recent_bull or recent_bear}
+def breakout_state(rows):
+ """Confirmed close beyond the prior 20 completed bars; no intraday assumption."""
+ close=rows[-1]["close"];high=max(x["high"] for x in rows[-21:-1]);low=min(x["low"] for x in rows[-21:-1])
+ direction="buy" if close>high else "sell" if close<low else "neutral"
+ return {"direction":direction,"label":"突破20日高点" if direction=="buy" else "跌破20日低点" if direction=="sell" else "区间内","level":round(high if direction!="sell" else low,2),"distance":round(close/(high if direction!="sell" else low)-1,4)}
 def macd_state_score(state):
  """Transparent setup score: depressed/fresh signals outrank extended ones."""
  below=state["zero_zone"]=="零轴下"
@@ -94,23 +118,37 @@ def macd_buy_gate(frames):
  elif weekly_bull:reasons.append("周线零轴下保持多头")
  if early(monthly):reasons.append("月线零轴下空头柱收缩")
  return valid," · ".join(reasons) if valid else "当前MACD未通过组合榜门槛"
+def macd_sell_gate(frames):
+ daily,weekly=(frames[x] for x in ("日线","周线"))
+ fresh=lambda x:x["bars_since_dead_cross"] is not None and x["bars_since_dead_cross"]<=3 and x["macd_line"]<x["signal_line"]
+ weakening=lambda x:x["histogram_falling"] and x["macd_line"]<x["signal_line"]
+ return (fresh(daily) and (fresh(weekly) or weakening(weekly))) or (weakening(daily) and fresh(weekly))
 def timeframe_state(rows):
  if len(rows)<35:return None
  closes=[x["close"] for x in rows];line,signal=macd(closes);hist=[a-b for a,b in zip(line,signal)];rv=rsi(closes);i=len(rows)-1
- rising=hist[i]>hist[i-1] and hist[i-1]>=hist[i-2];cross=line[i]>signal[i] and line[i-1]<=signal[i-1]
+ rising=hist[i]>hist[i-1] and hist[i-1]>=hist[i-2];falling=hist[i]<hist[i-1] and hist[i-1]<=hist[i-2];cross=line[i]>signal[i] and line[i-1]<=signal[i-1]
  scale=statistics.pstdev(hist[-20:]) or 1;near=line[i]<=signal[i] and rising and abs(hist[i])<=scale*.35
- bars_since_cross=None
+ bars_since_cross=None;bars_since_dead_cross=None;cross_zero_zone=None
  if line[i]>signal[i]:
   for ago in range(0,min(8,i)):
    j=i-ago
-   if line[j]>signal[j] and line[j-1]<=signal[j-1]:bars_since_cross=ago;break
+   if line[j]>signal[j] and line[j-1]<=signal[j-1]:
+    bars_since_cross=ago;cross_zero_zone="零轴下" if line[j]<0 and signal[j]<0 else "零轴上" if line[j]>0 and signal[j]>0 else "穿越零轴";break
+ if line[i]<signal[i]:
+  for ago in range(0,min(8,i)):
+   j=i-ago
+   if line[j]<signal[j] and line[j-1]>=signal[j-1]:bars_since_dead_cross=ago;break
  zone="零轴下" if line[i]<0 and signal[i]<0 else "零轴上" if line[i]>0 and signal[i]>0 else "穿越零轴"
  shrinking=hist[i]<0 and rising
  macd_label="金叉" if cross else f"金叉后{bars_since_cross}根" if bars_since_cross is not None else "准备金叉" if near else "空头柱收缩" if shrinking else "向上拐头" if rising else "多头" if line[i]>signal[i] else "未共振"
  recovering=rv[i] is not None and rv[i-1] is not None and rv[i]>30>=rv[i-1]
- divergence=bullish_divergence(rows,rv)
- rsi_label="底背离" if divergence else "超卖修复" if recovering else "超卖" if rv[i] is not None and rv[i]<=30 else "偏强" if rv[i] is not None and rv[i]>=50 else "中性"
- state={"macd":macd_label,"macd_line":round(line[i],4),"signal_line":round(signal[i],4),"macd_histogram":round(hist[i],4),"zero_zone":zone,"bars_since_cross":bars_since_cross,"near_cross":near,"histogram_rising":rising,"negative_histogram_shrinking":shrinking,"rsi":rsi_label,"rsi_score":4 if divergence else 3 if recovering else 2 if rv[i] is not None and rv[i]<=30 else 1 if rv[i] is not None and rv[i]>=50 else 0,"rsi_value":round(rv[i],1) if rv[i] is not None else None}
+ divergence=bullish_divergence(rows,rv);bear_divergence=bearish_divergence(rows,rv)
+ rsi_label="底背离" if divergence else "顶背离" if bear_divergence else "超卖修复" if recovering else "超卖" if rv[i] is not None and rv[i]<=30 else "偏强" if rv[i] is not None and rv[i]>=50 else "中性"
+ energy_streak=1
+ for j in range(i-1,max(i-6,0),-1):
+  if (rising and hist[j]>=hist[j-1]) or (falling and hist[j]<=hist[j-1]):energy_streak+=1
+  else:break
+ state={"macd":macd_label,"macd_line":round(line[i],4),"signal_line":round(signal[i],4),"macd_histogram":round(hist[i],4),"macd_histogram_change":round(hist[i]-hist[i-1],4),"energy":"增强" if rising else "减弱" if falling else "震荡","energy_streak":energy_streak,"zero_zone":zone,"cross_zero_zone":cross_zero_zone,"bars_since_cross":bars_since_cross,"bars_since_dead_cross":bars_since_dead_cross,"near_cross":near,"histogram_rising":rising,"histogram_falling":falling,"negative_histogram_shrinking":shrinking,"rsi":rsi_label,"rsi_bearish_divergence":bear_divergence,"rsi_score":4 if divergence else 3 if recovering else 2 if rv[i] is not None and rv[i]<=30 else 1 if rv[i] is not None and rv[i]>=50 else 0,"rsi_value":round(rv[i],1) if rv[i] is not None else None}
  state["macd_score"]=macd_state_score(state);return state
 def run(out="public/resonance-tracker.json",as_of=None):
  # The live tracker is intentionally broader than the backtest panel: every
@@ -142,13 +180,21 @@ def run(out="public/resonance-tracker.json",as_of=None):
    ratio=x["adjusted_close"]/x["close"];d=x["date"];adjusted.append({"date":f"{d[5:7]}/{d[8:10]}/{d[:4]}","open":x["open"]*ratio,"high":x["high"]*ratio,"low":x["low"]*ratio,"close":x["adjusted_close"],"volume":int(x["volume"])})
   frames={"日线":timeframe_state(adjusted),"周线":timeframe_state(aggregate(adjusted,"weekly")),"月线":timeframe_state(aggregate(adjusted,"monthly"))}
   if any(v is None for v in frames.values()):continue
-  chain_score,chain_reason=transmission_score(frames);macd_buy_valid,macd_gate_reason=macd_buy_gate(frames);base_score=sum(x["macd_score"] for x in frames.values());rsi_score=sum(x["rsi_score"] for x in frames.values());volume=volume_state(adjusted);price_structure=price_structure_state(adjusted)
+  chain_score,chain_reason=transmission_score(frames);macd_buy_valid,macd_gate_reason=macd_buy_gate(frames);macd_sell_valid=macd_sell_gate(frames);base_score=sum(x["macd_score"] for x in frames.values());rsi_score=sum(x["rsi_score"] for x in frames.values());volume=volume_state(adjusted);price_structure=price_structure_state(adjusted);ema_layer=ema_state(adjusted);breakout_layer=breakout_state(adjusted)
   divergence_frames=[name for name,state in frames.items() if state["rsi"]=="底背离"]
+  bearish_divergence_frames=[name for name,state in frames.items() if state["rsi_bearish_divergence"]]
+  rsi_direction="buy" if divergence_frames or frames["日线"]["rsi"]=="超卖修复" else "sell" if bearish_divergence_frames else "neutral"
+  macd_direction="buy" if macd_buy_valid else "sell" if macd_sell_valid else "neutral"
+  layer_directions={"macd":macd_direction,"rsi":rsi_direction,"ema":ema_layer["direction"],"breakout":breakout_layer["direction"]}
+  buy_layers=sum(x=="buy" for x in layer_directions.values());sell_layers=sum(x=="sell" for x in layer_directions.values());active_directions={x for x in layer_directions.values() if x!="neutral"}
+  confluence_direction="buy" if buy_layers==4 else "sell" if sell_layers==4 else "conflict" if len(active_directions)>1 else "watch"
+  confluence_label="四重看涨共振" if confluence_direction=="buy" else "四重看跌共振" if confluence_direction=="sell" else "指标冲突" if confluence_direction=="conflict" else f"{max(buy_layers,sell_layers)}层同向观察"
   confluence_bonus=(8 if divergence_frames and chain_score>=8 else 0)+(4 if volume["near_bottom"] and volume["score"]>=4 and (divergence_frames or chain_score>=8) else 0)
   combined_score=base_score+chain_score+rsi_score+volume["score"]+confluence_bonus
-  candidates.append({"symbol":symbol,"price":round(adjusted[-1]["close"],2),"dollar_volume":round(adjusted[-1]["close"]*adjusted[-1]["volume"]),"frames":frames,"price_structure":price_structure,"macd_score":base_score+chain_score,"macd_base_score":base_score,"chain_score":chain_score,"chain_reason":chain_reason,"macd_buy_valid":macd_buy_valid,"macd_gate_reason":macd_gate_reason,"rsi_score":rsi_score,"rsi_divergence_frames":divergence_frames,"volume":volume,"confluence_bonus":confluence_bonus,"combined_score":combined_score,"signal_count":int(macd_buy_valid)+int(bool(divergence_frames))+int(volume["score"]>=4),"macd_resonance":sum(x["macd_score"]>=2 for x in frames.values()),"rsi_resonance":sum(x["rsi_score"]>=2 for x in frames.values())})
+  candidates.append({"symbol":symbol,"price":round(adjusted[-1]["close"],2),"dollar_volume":round(adjusted[-1]["close"]*adjusted[-1]["volume"]),"frames":frames,"price_structure":price_structure,"ema_layer":ema_layer,"breakout_layer":breakout_layer,"layer_directions":layer_directions,"buy_layers":buy_layers,"sell_layers":sell_layers,"confluence_direction":confluence_direction,"confluence_label":confluence_label,"macd_score":base_score+chain_score,"macd_base_score":base_score,"chain_score":chain_score,"chain_reason":chain_reason,"macd_buy_valid":macd_buy_valid,"macd_sell_valid":macd_sell_valid,"macd_gate_reason":macd_gate_reason,"rsi_score":rsi_score,"rsi_divergence_frames":divergence_frames,"rsi_bearish_divergence_frames":bearish_divergence_frames,"volume":volume,"confluence_bonus":confluence_bonus,"combined_score":combined_score,"signal_count":int(macd_buy_valid)+int(bool(divergence_frames))+int(volume["score"]>=4),"macd_resonance":sum(x["macd_score"]>=2 for x in frames.values()),"rsi_resonance":sum(x["rsi_score"]>=2 for x in frames.values())})
  def ranked(key):return sorted(candidates,key=lambda x:(x[key],x["dollar_volume"]),reverse=True)[:10]
- report={"generated_at":datetime.now(timezone.utc).isoformat(),"as_of":latest,"data_mode":"latest_completed_eod","intraday":{"available":False,"reason":"Current EODHD token returned HTTP 403 for the 1-hour intraday endpoint.","required":"EOD + Intraday All World Extended or a real-time WebSocket feed","four_hour_rule":"When connected, aggregate regular-session 1-hour bars and evaluate completed 4-hour candles only."},"universe":{"source":"所有已有完整历史缓存、且在最新美国市场收盘数据中仍活跃的股票","cached":len(symbols),"eligible":len(candidates),"filters":"股价不低于5美元，最新单日成交额不低于1000万美元，且至少具有35个月历史"},"definitions":{"macd":"零轴下新金叉权重大于零轴上；组合榜只接受当前仍有效且不超过3根K线的新金叉，失效金叉不再计入。","weights":"零轴下新金叉8分起，零轴上4分起；完整小带大链条另加8分。","rsi":"价格创新低、RSI低点却抬高；第二个低点必须在最近8根K线内、当时RSI低于50，且价格仍靠近该低点。","volume":"最新成交量至少为过去20日均量1.8倍；价格距60日低点不超过12%或较60日高点回撤18%，标记为底部放量。","combined":"组合榜必须同时通过当前MACD结构门槛和新鲜RSI底背离；底部放量仅作为第三项增强证据。","warning":"周线和月线尚未收盘，信号可能在周期结束前发生变化。"},"combined_top10":sorted((x for x in candidates if x["macd_buy_valid"] and x["rsi_divergence_frames"]),key=lambda x:(x["combined_score"],x["dollar_volume"]),reverse=True)[:10],"macd_top10":ranked("macd_score"),"rsi_top10":ranked("rsi_score"),"volume_top10":sorted((x for x in candidates if x["volume"]["score"]>0),key=lambda x:(x["volume"]["score"],x["volume"]["ratio"],x["dollar_volume"]),reverse=True)[:10]}
+ multi=sorted(candidates,key=lambda x:(max(x["buy_layers"],x["sell_layers"]),x["confluence_direction"] in ("buy","sell"),x["combined_score"],x["dollar_volume"]),reverse=True)
+ report={"generated_at":datetime.now(timezone.utc).isoformat(),"as_of":latest,"data_mode":"latest_completed_eod","intraday":{"available":False,"reason":"Current EODHD token returned HTTP 403 for the 1-hour intraday endpoint.","required":"EOD + Intraday All World Extended or a real-time WebSocket feed","four_hour_rule":"When connected, aggregate regular-session 1-hour bars and evaluate completed 4-hour candles only."},"universe":{"source":"所有已有完整历史缓存、且在最新美国市场收盘数据中仍活跃的股票","cached":len(symbols),"eligible":len(candidates),"filters":"股价不低于5美元，最新单日成交额不低于1000万美元，且至少具有35个月历史"},"definitions":{"macd":"零轴下新金叉权重大于零轴上；记录金叉所在区域、距今K线数和能量柱连续变化。","rsi":"新鲜底背离/超卖修复为看涨，顶背离为看跌；单纯超买不直接当作卖出。","ema":"收盘价、EMA20、EMA50同向排列且均线斜率一致，才确认趋势方向。","breakout":"只使用完整收盘价突破此前20根K线高低点，盘中刺穿不算。","multi":"四层必须全部同向才发布四重共振；方向相反时明确标记冲突，不用总分互相抵消。","warning":"周线和月线尚未收盘，信号可能在周期结束前发生变化。"},"multi_confluence_top10":multi[:10],"four_layer_bullish":[x for x in multi if x["confluence_direction"]=="buy"][:10],"four_layer_bearish":[x for x in multi if x["confluence_direction"]=="sell"][:10],"combined_top10":sorted((x for x in candidates if x["macd_buy_valid"] and x["rsi_divergence_frames"]),key=lambda x:(x["combined_score"],x["dollar_volume"]),reverse=True)[:10],"macd_top10":ranked("macd_score"),"rsi_top10":ranked("rsi_score"),"volume_top10":sorted((x for x in candidates if x["volume"]["score"]>0),key=lambda x:(x["volume"]["score"],x["volume"]["ratio"],x["dollar_volume"]),reverse=True)[:10]}
  pathlib.Path(out).write_text(json.dumps(report,ensure_ascii=False,indent=2));return report
 if __name__=="__main__":
  r=run();print(json.dumps({"as_of":r["as_of"],"eligible":r["universe"]["eligible"],"macd":[x["symbol"] for x in r["macd_top10"]],"rsi":[x["symbol"] for x in r["rsi_top10"]]},ensure_ascii=False,indent=2))
