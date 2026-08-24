@@ -2546,6 +2546,37 @@ body:has(.rtPage) .globalnav {
 .rtLargeCycleDetail > footer { margin-top:14px; padding-top:14px; border-top:1px solid #dce8e0; }
 .rtLargeCycleDetail > footer b,.rtLargeCycleDetail > footer span { display:block; }
 .rtLargeCycleDetail > footer b { margin-bottom:4px; color:#93463e; }
+.rtMultiSummary { margin:22px auto; padding:24px; border-radius:20px; background:#17241f; color:#f4f8f5; }
+.rtMultiSummary > header,.rtMultiDetail > header { display:flex; justify-content:space-between; gap:18px; align-items:end; }
+.rtMultiSummary header small,.rtMultiDetail header small { color:#68d49d; font-weight:800; }
+.rtMultiSummary header h2,.rtMultiDetail header h2 { margin:5px 0 0; }
+.rtMultiSummary header mark { padding:7px 10px; border-radius:999px; background:#f1ddd7; color:#93463e; font-size:11px; }
+.rtMultiSummary > div { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:18px 0; }
+.rtMultiSummary article { padding:17px; border:1px solid rgba(255,255,255,.12); border-radius:14px; background:rgba(255,255,255,.06); }
+.rtMultiSummary article.watch { border-color:#d8b56f; }
+.rtMultiSummary article small,.rtMultiSummary article b { display:block; }
+.rtMultiSummary article small,.rtMultiSummary article p,.rtMultiSummary > footer { color:#aec1b7; }
+.rtMultiSummary article b { margin:7px 0; color:#fff; font-size:23px; }
+.rtMultiSummary article p { margin:0; line-height:1.55; }
+.rtMultiDetail { margin:16px 0; padding:22px; border:1px solid #d9e4dd; border-radius:18px; background:#fff; }
+.rtMultiDetail > header > span { max-width:380px; color:#718078; text-align:right; }
+.rtScoreTables { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:18px; }
+.rtScoreTables > article { padding:16px; border-radius:14px; background:#f5f7f5; overflow-x:auto; }
+.rtScoreTables h3 { margin-top:0; }
+.rtScoreHead,.rtScoreRow { display:grid; grid-template-columns:.7fr repeat(3,1fr) .8fr; min-width:500px; gap:7px; align-items:center; }
+.rtScoreHead { padding:0 8px 8px; color:#718078; font-size:11px; }
+.rtScoreRow { padding:9px 8px; border-top:1px solid #e1e8e3; }
+.rtScoreRow span strong,.rtScoreRow span small { display:block; }
+.rtScoreRow span small { color:#829087; font-size:10px; }
+.rtScoreRow mark { width:max-content; padding:5px 7px; border-radius:999px; background:#eadfdb; color:#8a4841; font-size:10px; }
+.rtComponentResult { margin-top:18px; }
+.rtComponentResult > article { display:grid; grid-template-columns:1.2fr 1fr 2fr; gap:12px; padding:12px; border-top:1px solid #e1e8e3; align-items:center; }
+.rtComponentResult article span { display:flex; gap:6px; }
+.rtComponentResult article em { padding:5px 7px; border-radius:7px; background:#f3f6f4; font-size:11px; font-style:normal; }
+.rtComponentResult article small { color:#718078; }
+.rtMultiDetail > footer { margin-top:14px; padding-top:14px; border-top:1px solid #dce8e0; color:#50645b; line-height:1.6; }
+.rtMultiDetail > footer b,.rtMultiDetail > footer span { display:block; }
+.rtMultiDetail > footer b { color:#93463e; }
 .rtTestLedger > header,.rtUntestedLedger > header { display:flex; justify-content:space-between; gap:18px; align-items:end; }
 .rtTestLedger header small,.rtUntestedLedger header small { color:#19875a; font-weight:800; }
 .rtTestLedger header h2,.rtUntestedLedger header h2 { margin:5px 0 0; }
@@ -2884,6 +2915,10 @@ button.rtTicker:hover b, button.rtTicker:focus-visible b { color: #18714d; text-
 @media (max-width: 760px) {
   .rtAnswerGrid,.rtHumanNumbers,.rtPatternResults > div,.rtStudyArchive > div { grid-template-columns: 1fr; }
   .rtHigherSummary > header,.rtLargeCycleDetail > header { align-items:flex-start; flex-direction:column; }
+  .rtMultiSummary > header,.rtMultiDetail > header { align-items:flex-start; flex-direction:column; }
+  .rtMultiSummary > div,.rtScoreTables { grid-template-columns:1fr; }
+  .rtMultiDetail > header > span { text-align:left; }
+  .rtComponentResult > article { grid-template-columns:1fr; }
   .rtHigherSummary > div { grid-template-columns:1fr; }
   .rtLargeCycleRows { grid-template-columns:repeat(2,1fr); }
   .rtExperimentOne > header,.rtExperimentOne > footer { align-items:flex-start; flex-direction:column; }

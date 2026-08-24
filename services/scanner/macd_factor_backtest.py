@@ -15,7 +15,7 @@ HIGHER_TIMEFRAME_HORIZONS=(5,10,20,40,60,80,100,120)
 REPORT_HORIZONS=tuple(sorted(set(HORIZONS+HIGHER_TIMEFRAME_HORIZONS)))
 SPLITS={"development":("0000-01-01","2024-12-31"),"validation":("2025-01-01","2025-12-31"),"forward":("2026-01-01","9999-12-31")}
 REGIME_LABELS={"both_bull":"SPY与QQQ均在EMA200上","mixed":"SPY与QQQ方向不一致","both_bear":"SPY与QQQ均在EMA200下"}
-PATTERN_FACTORS=("长期趋势合格＋日线金叉＋完整筹码密集峰","长期趋势合格＋日线金叉＋Volume Profile筹码峰","长期趋势合格＋日线金叉＋K线聚集区","长期趋势合格＋日线金叉＋底部Doji","长期趋势合格＋日线金叉＋底部Bullish Engulfing","长期趋势合格＋日线金叉＋双底突破","长期趋势合格＋日线金叉＋趋势线三推突破","长期趋势合格＋日线金叉＋RSI底背离")
+PATTERN_FACTORS=("长期趋势合格＋日线金叉＋Fibonacci 0.5支撑","长期趋势合格＋日线金叉＋完整筹码密集峰","长期趋势合格＋日线金叉＋Volume Profile筹码峰","长期趋势合格＋日线金叉＋K线聚集区","长期趋势合格＋日线金叉＋底部Doji","长期趋势合格＋日线金叉＋底部Bullish Engulfing","长期趋势合格＋日线金叉＋双底突破","长期趋势合格＋日线金叉＋趋势线三推突破","长期趋势合格＋日线金叉＋RSI底背离")
 TECHNICAL_CONFIG=load_config()
 
 def adjusted_rows(raw):
@@ -109,24 +109,81 @@ def full_chip_congestion_support(rows,end):
  """User-defined double confirmation: many closes gathered and volume peaks at the same current-price area."""
  return kline_congestion_support(rows,end) and volume_profile_support(rows,end)
 
-def long_trend_ok(rows,end):
- closes=[x["close"] for x in rows[:end+1]];long_average=ema(closes,200)
+def fibonacci_half_support(rows,end,lookback=500,tolerance=.02,min_swing=.10):
+ """Current price is near the 0.5 retracement of the latest confirmed meaningful low-to-high swing."""
+ start=max(0,end-lookback);window=rows[start:end+1];points=pivots(window,len(window)-1,TECHNICAL_CONFIG)
+ for high in reversed(points["highs"]):
+  lows=[x for x in points["lows"] if x["index"]<high["index"] and x.get("major")]
+  if not lows:continue
+  low=lows[-1];span=high["index"]-low["index"]
+  if span<10 or high["price"]/low["price"]-1<min_swing:continue
+  current=window[-1]["close"]
+  if not low["price"]<current<high["price"]:continue
+  level=high["price"]-.5*(high["price"]-low["price"])
+  return abs(current/level-1)<=tolerance
+ return False
+
+def fibonacci_support_levels(rows,end,lookback=500,tolerance=.02,min_swing=.10):
+ """Return point-in-time 0.5/0.618 support hits from the latest valid confirmed upswing."""
+ start=max(0,end-lookback);window=rows[start:end+1];points=pivots(window,len(window)-1,TECHNICAL_CONFIG)
+ for high in reversed(points["highs"]):
+  lows=[x for x in points["lows"] if x["index"]<high["index"] and x.get("major")]
+  if not lows:continue
+  low=lows[-1];span=high["index"]-low["index"]
+  if span<10 or high["price"]/low["price"]-1<min_swing:continue
+  current=window[-1]["close"]
+  if not low["price"]<current<high["price"]:continue
+  distance=high["price"]-low["price"]
+  return {level:abs(current/(high["price"]-level*distance)-1)<=tolerance for level in (.5,.618)}
+ return {.5:False,.618:False}
+
+def overhead_unfilled_gap(rows,end,lookback=250,max_distance=.15):
+ """A prior downside gap remains unfilled above current price and is close enough to be relevant."""
+ current=rows[end]["close"]
+ for j in range(end-1,max(0,end-lookback),-1):
+  if rows[j]["high"]>=rows[j-1]["low"]:continue
+  lower,upper=rows[j]["high"],rows[j-1]["low"]
+  subsequent=rows[j+1:end+1]
+  if subsequent and max(x["high"] for x in subsequent)>=upper:continue
+  if current<upper and 0<lower/current-1<=max_distance:return True
+ return False
+
+def bullish_fvg_support(rows,end,lookback=250,max_distance=.05):
+ """A still-open bullish three-candle fair-value gap sits at or just below current price."""
+ current=rows[end]["close"]
+ for j in range(end,max(2,end-lookback),-1):
+  lower,upper=rows[j-2]["high"],rows[j]["low"]
+  if lower>=upper:continue
+  subsequent=rows[j+1:end+1]
+  if subsequent and min(x["low"] for x in subsequent)<=lower:continue
+  if lower<=current and 0<=current/upper-1<=max_distance:return True
+ return False
+
+def long_trend_ok(rows,end,long_average=None):
+ closes=[x["close"] for x in rows[:end+1]];long_average=long_average or ema(closes,200)
  return end>=260 and closes[end]>=long_average[end]*.90 and long_average[end]>=long_average[end-60]*.97
 
-def daily_pattern_flags(rows,end):
+def daily_pattern_flags(rows,end,weekly_state=None,ema_curves=None):
  """Price/RSI confirmations visible at the daily MACD-cross close."""
  start=max(0,end-180);window=rows[start:end+1];w=detect_w_bottom(window,len(window)-1,TECHNICAL_CONFIG)
  double_bottom=w.detected and detect_bos(window,len(window)-1,w.levels["neckline"],TECHNICAL_CONFIG).detected
  values=rsi([x["close"] for x in window])
- trend_ok=long_trend_ok(rows,end)
+ curves=ema_curves or {period:ema([x["close"] for x in rows],period) for period in (21,50,200)}
+ trend_ok=long_trend_ok(rows,end,curves[200])
  recent=rows[max(1,end-4):end+1];range60=rows[max(0,end-59):end+1];low60=min(x["low"] for x in range60);high60=max(x["high"] for x in range60);bottom_limit=low60+(high60-low60)*.30
  bottom_doji=any(max(x["open"],x["close"])<=bottom_limit and abs(x["close"]-x["open"])/max(x["high"]-x["low"],1e-9)<=TECHNICAL_CONFIG["retest"]["doji_body_fraction"] for x in recent)
  bottom_engulf=False
  for j in range(max(1,end-4),end+1):
   x,prior=rows[j],rows[j-1];bullish=x["close"]>x["open"] and prior["close"]<prior["open"] and x["open"]<=prior["close"] and x["close"]>=prior["open"]
   if bullish and max(x["open"],x["close"])<=bottom_limit:bottom_engulf=True
- congestion=kline_congestion_support(rows,end);volume_peak=volume_profile_support(rows,end)
- return {"日线金叉":True,"长期趋势合格＋日线金叉":trend_ok,"长期趋势合格＋日线金叉＋完整筹码密集峰":trend_ok and congestion and volume_peak,"长期趋势合格＋日线金叉＋Volume Profile筹码峰":trend_ok and volume_peak,"长期趋势合格＋日线金叉＋K线聚集区":trend_ok and congestion,"长期趋势合格＋日线金叉＋底部Doji":trend_ok and bottom_doji,"长期趋势合格＋日线金叉＋底部Bullish Engulfing":trend_ok and bottom_engulf,"长期趋势合格＋日线金叉＋双底突破":trend_ok and double_bottom,"长期趋势合格＋日线金叉＋趋势线三推突破":trend_ok and three_push_breakout(rows,end),"长期趋势合格＋日线金叉＋RSI底背离":trend_ok and bullish_divergence(window,values)}
+ congestion=kline_congestion_support(rows,end);volume_peak=volume_profile_support(rows,end);fib=fibonacci_support_levels(rows,end);three_push=three_push_breakout(rows,end)
+ current=rows[end]["close"];pullback=current<=max(x["high"] for x in rows[max(0,end-60):end])*.95
+ ema_support=any(abs(current/curves[p][end]-1)<=.02 for p in (21,50,200));weekly_improving=bool(weekly_state and weekly_state["histogram_rising"])
+ components={"Fibonacci支撑":fib[.5] or fib[.618],"EMA支撑":ema_support,"周线MACD改善":weekly_improving,"三推趋势线突破":three_push,"上方未补跳空缺口":overhead_unfilled_gap(rows,end),"Bullish FVG支撑":bullish_fvg_support(rows,end)}
+ core=trend_ok and pullback;score=sum(components.values());multi={"多因子核心":core}
+ multi.update({f"多因子组件＋{name}":core and hit for name,hit in components.items()})
+ multi.update({f"多因子得分≥{threshold}":core and score>=threshold for threshold in range(1,7)})
+ return {"日线金叉":True,"长期趋势合格＋日线金叉":trend_ok,"长期趋势合格＋日线金叉＋Fibonacci 0.5支撑":trend_ok and fib[.5],"长期趋势合格＋日线金叉＋完整筹码密集峰":trend_ok and congestion and volume_peak,"长期趋势合格＋日线金叉＋Volume Profile筹码峰":trend_ok and volume_peak,"长期趋势合格＋日线金叉＋K线聚集区":trend_ok and congestion,"长期趋势合格＋日线金叉＋底部Doji":trend_ok and bottom_doji,"长期趋势合格＋日线金叉＋底部Bullish Engulfing":trend_ok and bottom_engulf,"长期趋势合格＋日线金叉＋双底突破":trend_ok and double_bottom,"长期趋势合格＋日线金叉＋趋势线三推突破":trend_ok and three_push,"长期趋势合格＋日线金叉＋RSI底背离":trend_ok and bullish_divergence(window,values),**multi}
 
 def features(side,d,w,m):
  bullish=lambda x:x["macd_line"]>x["signal_line"]
@@ -163,7 +220,7 @@ def outcome(rows,i,side,benchmarks=None,horizons=HORIZONS):
 
 def event_rows(symbol,rows,regimes,benchmarks,listing_status="unknown"):
  if len(rows)<300:return []
- weekly=completed_groups(rows,"weekly");monthly=completed_groups(rows,"monthly");closes=[x["close"] for x in rows];line,signal=macd(closes);events=[]
+ weekly=completed_groups(rows,"weekly");monthly=completed_groups(rows,"monthly");closes=[x["close"] for x in rows];line,signal=macd(closes);curves={period:ema(closes,period) for period in (21,50,200)};events=[]
  for i in range(260,len(rows)-max(HORIZONS)-1):
   buy=line[i]>signal[i] and line[i-1]<=signal[i-1];sell=line[i]<signal[i] and line[i-1]>=signal[i-1]
   if not (buy or sell) or rows[i]["date"] not in regimes:continue
@@ -172,7 +229,7 @@ def event_rows(symbol,rows,regimes,benchmarks,listing_status="unknown"):
   wr=available(weekly,wk);mr=available(monthly,mo)
   if len(wr)<35 or len(mr)<35:continue
   d=macd_state(rows[max(0,i-180):i+1]);w=macd_state(wr[-160:]);m=macd_state(mr[-120:]);side="buy" if buy else "sell";forward,mae,excess=outcome(rows,i,side,benchmarks);event_features=features(side,d,w,m)
-  if buy:event_features.update(daily_pattern_flags(rows,i))
+  if buy:event_features.update(daily_pattern_flags(rows,i,w,curves))
   events.append({"symbol":symbol,"listing_status":listing_status,"date":rows[i]["date"],"side":side,"trigger":"日线","regime":regimes[rows[i]["date"]],"features":event_features,"forward":forward,"mae":mae,"excess":excess})
  return events
 
@@ -272,6 +329,34 @@ def pattern_incremental_report(splits):
   out.append({"factor":factor,"label":factor.replace("长期趋势合格＋日线金叉＋",""),"holding_days":20,"verdict":verdict,"baseline":baseline,"stages":stages,"deltas":deltas})
  return out
 
+def multifactor_report(splits):
+ components=("Fibonacci支撑","EMA支撑","周线MACD改善","三推趋势线突破","上方未补跳空缺口","Bullish FVG支撑")
+ def find(split,factor,horizon):
+  row=next((x for x in splits[split] if x["side"]=="buy" and x["regime"]=="all" and x["factor"]==factor and x["horizon"]==horizon),None)
+  return row or {"side":"buy","regime":"all","regime_label":"全部市场","factor":factor,"horizon":horizon,"samples":0,"win_rate":None,"mean_return":None,"trimmed_mean_return":None,"median_return":None,"mean_adverse":None,"spy_excess_return":None,"qqq_excess_return":None,"beat_spy_rate":None,"beat_qqq_rate":None}
+ horizons=[]
+ for horizon in (20,100):
+  levels=[];baseline={split:find(split,"多因子核心",horizon) for split in SPLITS}
+  for score in range(0,7):
+   factor="多因子核心" if score==0 else f"多因子得分≥{score}"
+   stages={split:find(split,factor,horizon) for split in SPLITS};deltas={}
+   for split in SPLITS:
+    stage,base=stages[split],baseline[split]
+    deltas[split]={"win_rate":round(stage["win_rate"]-base["win_rate"],1) if stage["win_rate"] is not None and base["win_rate"] is not None else None,"trimmed_mean_return":round(stage["trimmed_mean_return"]-base["trimmed_mean_return"],2) if stage["trimmed_mean_return"] is not None and base["trimmed_mean_return"] is not None else None}
+   enough=stages["validation"]["samples"]>=100 and stages["forward"]["samples"]>=30
+   stable=score>0 and enough and all((deltas[s]["win_rate"] or 0)>0 and (deltas[s]["trimmed_mean_return"] or 0)>0 for s in SPLITS)
+   levels.append({"minimum_score":score,"stages":stages,"deltas":deltas,"verdict":"有效加分" if stable else "基准" if score==0 else "样本不足" if not enough else "不稳定"})
+  horizons.append({"horizon":horizon,"levels":levels})
+ contributions=[]
+ for component in components:
+  horizons_by_component=[]
+  for horizon in (20,100):
+   stages={split:find(split,f"多因子组件＋{component}",horizon) for split in SPLITS};base={split:find(split,"多因子核心",horizon) for split in SPLITS}
+   deltas={split:{"win_rate":round(stages[split]["win_rate"]-base[split]["win_rate"],1) if stages[split]["win_rate"] is not None else None,"trimmed_mean_return":round(stages[split]["trimmed_mean_return"]-base[split]["trimmed_mean_return"],2) if stages[split]["trimmed_mean_return"] is not None else None} for split in SPLITS}
+   horizons_by_component.append({"horizon":horizon,"stages":stages,"deltas":deltas})
+  contributions.append({"component":component,"horizons":horizons_by_component})
+ return {"core":"长期趋势合格＋近60日高点回调至少5%＋日线MACD金叉","components":components,"horizons":horizons,"contributions":contributions,"score_rule":"每项确认1分；不因子内重复计分；周线只用信号日前已完整收盘的周K"}
+
 def run(out="public/macd-factor-backtest.json",limit=None):
  cache=pathlib.Path("work/eodhd-cache");regimes,benchmarks=market_regimes(cache);statuses=listing_statuses();paths=sorted(cache.glob("*.json"));paths=paths[:limit] if limit else paths;events=[];loaded=0;starts=[];ends=[];row_counts=[];history_status={}
  for path in paths:
@@ -291,7 +376,7 @@ def run(out="public/macd-factor-backtest.json",limit=None):
  candidates.sort(key=lambda x:(x["status"]=="forward_supportive",x["validation"]["win_rate"],x["validation"]["trimmed_mean_return"],x["validation"]["samples"]),reverse=True)
  bearish_comparison=[x for x in splits["validation"] if x["side"]=="sell" and x["factor"]=="日线零轴上死叉" and x["horizon"]==5]
  trigger_counts={name:sum(x["trigger"]==name for x in events) for name in ("日线","周线","月线")}
- event_status={status:sum(x["listing_status"]==status for x in events) for status in ("active","delisted","unknown")};report={"status":"research_only","execution":"日/周/月信号均在对应K线完整收盘后确认，下一交易日复权开盘价进入；5至120日均指交易日（日K），用于统一比较","lookahead":"周线和月线只在周期完整结束后使用；SPY/QQQ环境只使用信号日已收盘数据","market_regime":{"definition":"分别比较SPY、QQQ收盘价与各自EMA200","labels":REGIME_LABELS},"universe":{"history_files":len(paths),"eligible":loaded,"events":len(events),"trigger_counts":trigger_counts,"listing_status_histories":history_status,"listing_status_events":event_status,"event_filter":"信号日股价≥5美元且成交额≥1000万美元","history_earliest":min(starts),"history_latest":max(ends),"median_daily_bars":round(statistics.median(row_counts))},"pattern_trend_gate":{"plain":"只保留信号日当时长期上涨或横盘的股票","rule":"收盘价不低于EMA200的90%，且EMA200过去60个交易日跌幅不超过3%","future_listing_status_used":False},"splits":splits,"validated_combinations":candidates[:30],"incremental_tests":incremental_report(splits),"monthly_horizon_tests":monthly_horizon_report(splits),"higher_timeframe_support_tests":higher_timeframe_support_report(splits),"pattern_incremental_tests":pattern_incremental_report(splits),"bearish_regime_comparison":bearish_comparison,"warning":"长持有期事件会重叠，胜率也会受到美股长期上涨漂移影响，不能直接视为独立交易胜率。形态组合只使用信号日当时已经确认的数据，不改变MACD本身。退市身份只用于覆盖审计，不参与信号筛选。"}
+ event_status={status:sum(x["listing_status"]==status for x in events) for status in ("active","delisted","unknown")};report={"status":"research_only","execution":"日/周/月信号均在对应K线完整收盘后确认，下一交易日复权开盘价进入；5至120日均指交易日（日K），用于统一比较","lookahead":"周线和月线只在周期完整结束后使用；SPY/QQQ环境只使用信号日已收盘数据","market_regime":{"definition":"分别比较SPY、QQQ收盘价与各自EMA200","labels":REGIME_LABELS},"universe":{"history_files":len(paths),"eligible":loaded,"events":len(events),"trigger_counts":trigger_counts,"listing_status_histories":history_status,"listing_status_events":event_status,"event_filter":"信号日股价≥5美元且成交额≥1000万美元","history_earliest":min(starts),"history_latest":max(ends),"median_daily_bars":round(statistics.median(row_counts))},"pattern_trend_gate":{"plain":"只保留信号日当时长期上涨或横盘的股票","rule":"收盘价不低于EMA200的90%，且EMA200过去60个交易日跌幅不超过3%","future_listing_status_used":False},"splits":splits,"validated_combinations":candidates[:30],"incremental_tests":incremental_report(splits),"monthly_horizon_tests":monthly_horizon_report(splits),"higher_timeframe_support_tests":higher_timeframe_support_report(splits),"pattern_incremental_tests":pattern_incremental_report(splits),"multifactor_tests":multifactor_report(splits),"bearish_regime_comparison":bearish_comparison,"warning":"长持有期事件会重叠，胜率也会受到美股长期上涨漂移影响，不能直接视为独立交易胜率。形态组合只使用信号日当时已经确认的数据，不改变MACD本身。退市身份只用于覆盖审计，不参与信号筛选。"}
  pathlib.Path(out).write_text(json.dumps(report,ensure_ascii=False,indent=2));return report
 
 if __name__=="__main__":

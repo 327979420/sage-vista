@@ -1,5 +1,5 @@
 import unittest
-from services.scanner.macd_factor_backtest import completed_groups,daily_pattern_flags,ema,features,full_chip_congestion_support,kline_congestion_support,outcome,stats,three_push_breakout,volume_profile_support
+from services.scanner.macd_factor_backtest import bullish_fvg_support,completed_groups,daily_pattern_flags,ema,features,fibonacci_half_support,full_chip_congestion_support,kline_congestion_support,outcome,overhead_unfilled_gap,stats,three_push_breakout,volume_profile_support
 
 class MacdFactorBacktestTests(unittest.TestCase):
  def test_completed_period_excludes_current_bucket(self):
@@ -85,5 +85,28 @@ class MacdFactorBacktestTests(unittest.TestCase):
   self.assertTrue(full_chip_congestion_support(rows,250))
   for i in range(40):rows[i].update(close=70,high=71,low=69,volume=100000)
   self.assertFalse(full_chip_congestion_support(rows,250))
+ def test_fibonacci_half_uses_confirmed_low_to_high_swing(self):
+  rows=[{"date":f"D{i}","open":100,"high":101,"low":99,"close":100,"volume":1000} for i in range(90)]
+  rows[15].update(low=80,close=82);rows[45].update(high=120,close=118)
+  rows[-1].update(close=100)
+  self.assertTrue(fibonacci_half_support(rows,len(rows)-1))
+ def test_fibonacci_half_does_not_read_future_bars(self):
+  rows=[{"date":f"D{i}","open":100,"high":101,"low":99,"close":100,"volume":1000} for i in range(110)]
+  rows[15].update(low=80,close=82);rows[45].update(high=120,close=118)
+  before=fibonacci_half_support(rows,89);rows[100].update(high=200,close=190)
+  self.assertEqual(before,fibonacci_half_support(rows,89))
+ def test_overhead_gap_must_remain_unfilled(self):
+  rows=[{"date":f"D{i}","open":100,"high":101,"low":99,"close":100,"volume":1000} for i in range(30)]
+  rows[15].update(high=90,low=88,close=89)
+  for i in range(16,30):rows[i].update(high=90,low=88,close=89)
+  self.assertTrue(overhead_unfilled_gap(rows,29))
+  rows[25].update(high=100)
+  self.assertFalse(overhead_unfilled_gap(rows,29))
+ def test_bullish_fvg_sits_below_current_price(self):
+  rows=[{"date":f"D{i}","open":100,"high":101,"low":99,"close":100,"volume":1000} for i in range(30)]
+  rows[10].update(high=90,low=88);rows[12].update(high=96,low=94);rows[-1].update(low=95,close=96)
+  self.assertTrue(bullish_fvg_support(rows,29))
+  rows[20].update(low=89)
+  self.assertFalse(bullish_fvg_support(rows,29))
 
 if __name__=="__main__":unittest.main()
