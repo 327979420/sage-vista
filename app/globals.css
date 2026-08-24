@@ -2396,6 +2396,22 @@ body:has(.rtPage) .globalnav {
   color: #587067;
   font-size: 11px;
 }
+.rtTransmission { position: relative; display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; margin: 18px 0 12px; }
+.rtTransmission::before { content: ""; position: absolute; top: 15px; left: 15%; right: 15%; height: 2px; background: #dce5df; }
+.rtTransmission div { position: relative; text-align: center; }
+.rtTransmission i { position: relative; z-index: 1; display: grid; place-items: center; width: 30px; height: 30px; margin: 0 auto 7px; border: 2px solid #d5dfd9; border-radius: 50%; background: #fff; color: #89958e; font-size: 10px; font-style: normal; }
+.rtTransmission div.active i { border-color: #2b9a68; background: #2b9a68; color: #fff; box-shadow: 0 0 0 4px #e2f3e8; }
+.rtTransmission small, .rtTransmission b { display: block; }
+.rtTransmission small { color: #7a8981; font-size: 9px; }
+.rtTransmission b { margin-top: 2px; font-size: 11px; }
+.rtEvidenceTiles { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; }
+.rtEvidenceTiles span { min-width: 0; padding: 10px; border-radius: 10px; background: #eff3f0; border-top: 3px solid #84948b; }
+.rtEvidenceTiles span.rsi { border-color: #d59b3e; background: #fff7e8; }
+.rtEvidenceTiles span.structure.active { border-color: #2b9a68; background: #e7f5ed; }
+.rtEvidenceTiles span.volume { border-color: #6f89a1; background: #edf3f7; }
+.rtEvidenceTiles small, .rtEvidenceTiles b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rtEvidenceTiles small { margin-bottom: 4px; color: #75847c; font-size: 9px; }
+.rtEvidenceTiles b { font-size: 11px; }
 .rtBoard {
   overflow: hidden;
   border: 1px solid #d7dfd9;
@@ -2465,17 +2481,22 @@ body:has(.rtPage) .globalnav {
   margin: 3px 0;
   font-size: 13px;
 }
+.rtMiniTrack { position: relative; height: 5px; margin-top: 8px; overflow: hidden; border-radius: 999px; background: #dce4df; }
+.rtMiniTrack i { display: block; height: 100%; border-radius: inherit; background: #2b9a68; }
+.rtMiniTrack.negative i { background: #d47468; }
+.rtMiniTrack.rsi i { background: #4c84b8; }
+.rtMiniTrack.oversold i { background: #d59b3e; }
 .rtScore b,
 .rtScore small {
   display: block;
 }
-.rtScore b {
-  color: #176f4c;
-  font-size: 20px;
-}
+.rtScore { display: grid; justify-items: center; gap: 4px; }
+.rtScoreRing { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; background: radial-gradient(circle, #fff 56%, transparent 58%), conic-gradient(#2b9a68 var(--strength), #dfe7e2 0); }
+.rtScoreRing b { color: #176f4c; font-size: 16px; }
 .rtScore small {
   color: #839087;
   font-size: 10px;
+  text-align: center;
 }
 .rtReason {
   grid-column: 2/-1;
