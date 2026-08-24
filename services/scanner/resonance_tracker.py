@@ -1,9 +1,10 @@
 """Multi-timeframe MACD/RSI resonance tracker using latest completed EOD bars."""
-import json,pathlib,statistics
+import hashlib,json,pathlib,statistics
 from datetime import date,datetime,timedelta,timezone
 from .eodhd import get
 from .research_pipeline import iso
 from .technical import ema,macd,rsi
+from .confluence_rules import RULESET,breakout_layer as cycle_breakout_layer,combine,ema_layer as cycle_ema_layer,macd_layer as cycle_macd_layer,rsi_layer as cycle_rsi_layer
 
 def bulk_day(day,cache_dir="work/eodhd-bulk"):
  path=pathlib.Path(cache_dir)/f"{day}.json";path.parent.mkdir(parents=True,exist_ok=True)
@@ -11,7 +12,7 @@ def bulk_day(day,cache_dir="work/eodhd-bulk"):
   cached=json.loads(path.read_text())
   if cached:return cached
  rows=get("eod-bulk-last-day/US",date=day);path.write_text(json.dumps(rows));return rows
-def aggregate(rows,mode):
+def aggregate(rows,mode,completed_only=False):
  groups={}
  for row in rows:
   d=datetime.strptime(row["date"],"%m/%d/%Y").date();key=(d.isocalendar().year,d.isocalendar().week) if mode=="weekly" else (d.year,d.month)
@@ -19,7 +20,7 @@ def aggregate(rows,mode):
  out=[]
  for values in groups.values():
   out.append({"date":values[-1]["date"],"open":values[0]["open"],"high":max(x["high"] for x in values),"low":min(x["low"] for x in values),"close":values[-1]["close"],"volume":sum(x["volume"] for x in values)})
- return out
+ return out[:-1] if completed_only and len(out)>1 else out
 def bullish_divergence(rows,values,window=45):
  end=len(rows)-1;lows=[]
  for i in range(max(2,end-window),end):
@@ -70,10 +71,14 @@ def ema_state(rows):
  recent_bull=any(e20[j]>e50[j] and e20[j-1]<=e50[j-1] for j in range(i-5,i+1))
  recent_bear=any(e20[j]<e50[j] and e20[j-1]>=e50[j-1] for j in range(i-5,i+1))
  direction="buy" if bull else "sell" if bear else "neutral"
+ reclaim_buy=any(closes[j]>e20[j] and closes[j-1]<=e20[j-1] for j in range(i-3,i+1)) and e20[i]>e50[i]
+ reclaim_sell=any(closes[j]<e20[j] and closes[j-1]>=e20[j-1] for j in range(i-3,i+1)) and e20[i]<e50[i]
+ trigger="buy" if recent_bull or reclaim_buy else "sell" if recent_bear or reclaim_sell else "neutral"
+ improving="buy" if e20[i]>e20[i-5] and closes[i]>e20[i] else "sell" if e20[i]<e20[i-5] and closes[i]<e20[i] else "neutral"
  label="多头排列" if bull else "空头排列" if bear else "均线纠缠"
  if recent_bull:label="EMA20上穿EMA50"
  if recent_bear:label="EMA20下穿EMA50"
- return {"direction":direction,"label":label,"close":round(closes[i],2),"ema20":round(e20[i],2),"ema50":round(e50[i],2),"fresh_cross":recent_bull or recent_bear}
+ return {"direction":direction,"trigger":trigger,"improving":improving,"label":label,"close":round(closes[i],2),"ema20":round(e20[i],2),"ema50":round(e50[i],2),"fresh_cross":recent_bull or recent_bear}
 def breakout_state(rows):
  """Confirmed close beyond the prior 20 completed bars; no intraday assumption."""
  close=rows[-1]["close"];high=max(x["high"] for x in rows[-21:-1]);low=min(x["low"] for x in rows[-21:-1])
@@ -179,7 +184,10 @@ def timeframe_state(rows):
 def run(out="public/resonance-tracker.json",as_of=None):
  # The live tracker is intentionally broader than the backtest panel: every
  # locally cached active symbol may be scanned when it also trades today.
- symbols={x.stem for x in pathlib.Path("work/eodhd-cache").glob("*.json")}
+ cached_symbols={x.stem for x in pathlib.Path("work/eodhd-cache").glob("*.json")}
+ common_path=pathlib.Path("work/eodhd-active-common.json")
+ common_symbols={x["Code"] for x in json.loads(common_path.read_text())} if common_path.exists() else cached_symbols
+ symbols=cached_symbols&common_symbols
  target=date.fromisoformat(as_of) if as_of else date.today();days=[]
  for offset in range(10):
   day=target-timedelta(days=offset)
@@ -204,31 +212,41 @@ def run(out="public/resonance-tracker.json",as_of=None):
   for x in raw:
    if not x.get("close") or not x.get("adjusted_close"):continue
    ratio=x["adjusted_close"]/x["close"];d=x["date"];adjusted.append({"date":f"{d[5:7]}/{d[8:10]}/{d[:4]}","open":x["open"]*ratio,"high":x["high"]*ratio,"low":x["low"]*ratio,"close":x["adjusted_close"],"volume":int(x["volume"])})
-  frames={"日线":timeframe_state(adjusted),"周线":timeframe_state(aggregate(adjusted,"weekly")),"月线":timeframe_state(aggregate(adjusted,"monthly"))}
+  frame_rows={"日线":adjusted,"周线":aggregate(adjusted,"weekly",True),"月线":aggregate(adjusted,"monthly",True)}
+  frames={name:timeframe_state(rows) for name,rows in frame_rows.items()}
   if any(v is None for v in frames.values()):continue
-  chain_score,chain_reason=transmission_score(frames);macd_buy_valid,macd_gate_reason=macd_buy_gate(frames);macd_sell_valid=macd_sell_gate(frames);base_score=sum(x["macd_score"] for x in frames.values());rsi_score=sum(x["rsi_score"] for x in frames.values());volume=volume_state(adjusted);price_structure=price_structure_state(adjusted);ema_layer=ema_state(adjusted);breakout_layer=breakout_state(adjusted)
+  chain_score,chain_reason=transmission_score(frames);macd_buy_valid,macd_gate_reason=macd_buy_gate(frames);macd_sell_valid=macd_sell_gate(frames);base_score=sum(x["macd_score"] for x in frames.values());rsi_score=sum(x["rsi_score"] for x in frames.values());volume=volume_state(adjusted);price_structure=price_structure_state(adjusted);ema_states={name:ema_state(rows) for name,rows in frame_rows.items()};ema_layer=ema_states["日线"];breakout_layer=breakout_state(adjusted)
   divergence_frames=[name for name,state in frames.items() if state["rsi"]=="底背离"]
   bearish_divergence_frames=[name for name,state in frames.items() if state["rsi_bearish_divergence"]]
-  rsi_direction=rsi_layer_direction(frames)
-  macd_direction="buy" if macd_buy_valid else "sell" if macd_sell_valid else "neutral"
-  layer_directions={"macd":macd_direction,"rsi":rsi_direction,"ema":ema_layer["direction"],"breakout":breakout_layer["direction"]}
-  buy_layers=sum(x=="buy" for x in layer_directions.values());sell_layers=sum(x=="sell" for x in layer_directions.values());active_directions={x for x in layer_directions.values() if x!="neutral"}
-  confluence_direction="buy" if buy_layers==4 else "sell" if sell_layers==4 else "conflict" if "conflict" in active_directions or len(active_directions)>1 else "watch"
-  confluence_label="四重看涨共振" if confluence_direction=="buy" else "四重看跌共振" if confluence_direction=="sell" else "指标冲突" if confluence_direction=="conflict" else f"{max(buy_layers,sell_layers)}层同向观察"
-  ranking_score,ranking_breakdown,ranking_direction=ranking_evidence(frames,layer_directions,buy_layers,sell_layers,ema_layer,breakout_layer,confluence_direction=="conflict")
+  indicator_layers={"macd":cycle_macd_layer(frames),"rsi":cycle_rsi_layer(frames),"ema":cycle_ema_layer(ema_states),"breakout":cycle_breakout_layer(breakout_layer,ema_states)};summary=combine(indicator_layers)
+  layer_directions={key:value["direction"] for key,value in indicator_layers.items()};buy_layers=sum(x=="buy" for x in layer_directions.values());sell_layers=sum(x=="sell" for x in layer_directions.values())
+  confluence_direction=summary["direction"] if summary["direction"]!="neutral" else "watch";confluence_label=summary["label"];ranking_score=summary["score"];ranking_direction=summary["direction"] if summary["direction"] in ("buy","sell") else "neutral";ranking_breakdown={f"{key.upper()}证据":value["score"] for key,value in indicator_layers.items()}
   confluence_bonus=(8 if divergence_frames and chain_score>=8 else 0)+(4 if volume["near_bottom"] and volume["score"]>=4 and (divergence_frames or chain_score>=8) else 0)
   combined_score=base_score+chain_score+rsi_score+volume["score"]+confluence_bonus
   candidates.append({"symbol":symbol,"price":round(adjusted[-1]["close"],2),"dollar_volume":round(adjusted[-1]["close"]*adjusted[-1]["volume"]),"frames":frames,"price_structure":price_structure,"ema_layer":ema_layer,"breakout_layer":breakout_layer,"layer_directions":layer_directions,"buy_layers":buy_layers,"sell_layers":sell_layers,"confluence_direction":confluence_direction,"confluence_label":confluence_label,"ranking_score":ranking_score,"ranking_direction":ranking_direction,"ranking_breakdown":ranking_breakdown,"rank_reason":f"{max(buy_layers,sell_layers)}层同向；规则匹配度{ranking_score}/100","macd_score":base_score+chain_score,"macd_base_score":base_score,"chain_score":chain_score,"chain_reason":chain_reason,"macd_buy_valid":macd_buy_valid,"macd_sell_valid":macd_sell_valid,"macd_gate_reason":macd_gate_reason,"rsi_score":rsi_score,"rsi_divergence_frames":divergence_frames,"rsi_bearish_divergence_frames":bearish_divergence_frames,"volume":volume,"confluence_bonus":confluence_bonus,"combined_score":combined_score,"signal_count":int(macd_buy_valid)+int(bool(divergence_frames))+int(volume["score"]>=4),"macd_resonance":sum(x["macd_score"]>=2 for x in frames.values()),"rsi_resonance":sum(x["rsi_score"]>=2 for x in frames.values()),"_detail":{"chart":chart_points(adjusted),"audit":{"latest_bar":raw[-1]["date"],"history_rows":len(adjusted),"adjusted_prices":True,"future_rows_used":False,"latest_close":round(adjusted[-1]["close"],2)}}})
+  candidates[-1]["indicator_layers"]=indicator_layers;candidates[-1]["ema_states"]=ema_states;candidates[-1]["strict_confluence"]=summary["strict"]
+  candidates[-1]["macd_score"]=indicator_layers["macd"]["score"];candidates[-1]["rsi_score"]=indicator_layers["rsi"]["score"];candidates[-1]["combined_score"]=indicator_layers["macd"]["score"]+indicator_layers["rsi"]["score"]
+  candidates[-1]["chain_score"]=15 if indicator_layers["macd"]["stage"]=="大周期→小周期" else 8 if indicator_layers["macd"]["stage"]=="小周期→大周期" else 0;candidates[-1]["chain_reason"]=" · ".join(indicator_layers["macd"]["evidence"])
  def ranked(key):return sorted(candidates,key=lambda x:(x[key],x["dollar_volume"]),reverse=True)[:10]
  multi=sorted(candidates,key=lambda x:(x["confluence_direction"] in ("buy","sell"),max(x["buy_layers"],x["sell_layers"]),x["ranking_score"],x["dollar_volume"],x["symbol"]),reverse=True)
  report={"generated_at":datetime.now(timezone.utc).isoformat(),"as_of":latest,"data_mode":"latest_completed_eod","intraday":{"available":False,"reason":"Current EODHD token returned HTTP 403 for the 1-hour intraday endpoint.","required":"EOD + Intraday All World Extended or a real-time WebSocket feed","four_hour_rule":"When connected, aggregate regular-session 1-hour bars and evaluate completed 4-hour candles only."},"universe":{"source":"所有已有完整历史缓存、且在最新美国市场收盘数据中仍活跃的股票","cached":len(symbols),"eligible":len(candidates),"filters":"股价不低于5美元，最新单日成交额不低于1000万美元，且至少具有35个月历史"},"definitions":{"macd":"零轴下新金叉权重大于零轴上；记录金叉所在区域、距今K线数和能量柱连续变化。","rsi":"新鲜底背离/超卖修复为看涨，顶背离为看跌；单纯超买不直接当作卖出。","ema":"收盘价、EMA20、EMA50同向排列且均线斜率一致，才确认趋势方向。","breakout":"只使用完整收盘价突破此前20根K线高低点，盘中刺穿不算。","multi":"四层必须全部同向才发布四重共振；方向相反时明确标记冲突，不用总分互相抵消。","warning":"周线和月线尚未收盘，信号可能在周期结束前发生变化。"},"multi_confluence_top10":multi[:10],"four_layer_bullish":[x for x in multi if x["confluence_direction"]=="buy"][:10],"four_layer_bearish":[x for x in multi if x["confluence_direction"]=="sell"][:10],"combined_top10":sorted((x for x in candidates if x["macd_buy_valid"] and x["rsi_divergence_frames"]),key=lambda x:(x["combined_score"],x["dollar_volume"]),reverse=True)[:10],"macd_top10":ranked("macd_score"),"rsi_top10":ranked("rsi_score"),"volume_top10":sorted((x for x in candidates if x["volume"]["score"]>0),key=lambda x:(x["volume"]["score"],x["volume"]["ratio"],x["dollar_volume"]),reverse=True)[:10]}
  report["definitions"]["macd"]="看涨优先零轴下新金叉；看跌只接受当前仍在零轴上、且零轴上形成的新死叉。零轴下死叉不作为强看跌证据。"
  report["definitions"]["rsi"]="底背离、超卖或超卖修复属于反弹证据；顶背离或超买回落属于看跌证据。两者并存必须标记冲突，不得发布纯看跌。"
+ report["definitions"]["multi"]=RULESET["policy"]
+ report["definitions"]["warning"]="方向只使用上一个完整周线和上一个完整月线；时机只使用最新完整日线，避免未完成大周期重绘。"
+ report["ruleset"]=RULESET
+ report["four_layer_bullish"]=[x for x in multi if x["strict_confluence"] and x["confluence_direction"]=="buy"][:10]
+ report["four_layer_bearish"]=[x for x in multi if x["strict_confluence"] and x["confluence_direction"]=="sell"][:10]
+ report["macd_top10"]=sorted((x for x in candidates if x["indicator_layers"]["macd"]["direction"]!="neutral"),key=lambda x:(x["indicator_layers"]["macd"]["score"],x["dollar_volume"],x["symbol"]),reverse=True)[:10]
+ report["rsi_top10"]=sorted((x for x in candidates if x["indicator_layers"]["rsi"]["direction"]!="neutral"),key=lambda x:(x["indicator_layers"]["rsi"]["score"],x["dollar_volume"],x["symbol"]),reverse=True)[:10]
+ report["combined_top10"]=sorted((x for x in candidates if x["indicator_layers"]["macd"]["direction"]==x["indicator_layers"]["rsi"]["direction"] and x["indicator_layers"]["macd"]["direction"]!="neutral"),key=lambda x:(x["indicator_layers"]["macd"]["score"]+x["indicator_layers"]["rsi"]["score"],x["dollar_volume"],x["symbol"]),reverse=True)[:10]
  report["bullish_watch_top10"]=[x for x in multi if x["ranking_direction"]=="buy" and x["confluence_direction"]!="conflict"][:10]
  report["bearish_watch_top10"]=[x for x in multi if x["ranking_direction"]=="sell" and x["confluence_direction"]!="conflict"][:10]
  published={x["symbol"] for key in ("multi_confluence_top10","bullish_watch_top10","bearish_watch_top10","four_layer_bullish","four_layer_bearish","combined_top10","macd_top10","rsi_top10","volume_top10") for x in report[key]}
  report["details"]={x["symbol"]:x["_detail"] for x in candidates if x["symbol"] in published}
- report["ranking_method"]={"name":"四层规则匹配度","version":"1.0","order":["四层严格同向优先","同向层数","规则匹配度","最新成交额","股票代码"],"score":"同向层数60分＋MACD 15分＋RSI 10分＋EMA 10分＋突破10分－冲突20分；最高100分","warning":"这是规则匹配度，不是上涨或下跌概率；盈利潜力仍需样本外回测验证。"}
+ report["ranking_method"]={"name":"多周期四层共振","version":RULESET["version"],"order":["四层严格同向优先","同向层数","固定规则分","最新成交额","股票代码"],"score":"每层固定25分：日线触发10分、完整周线方向8分、完整月线方向7分；四层合计100分。","warning":"这是规则匹配度，不是上涨或下跌概率；盈利潜力仍需样本外回测验证。"}
+ digest_rows=[(x["symbol"],x["ranking_score"],x["ranking_direction"],x["layer_directions"]) for x in multi]
+ report["consistency_audit"]={"ruleset_version":RULESET["version"],"ranking_digest":hashlib.sha256(json.dumps(digest_rows,sort_keys=True).encode()).hexdigest()[:16],"overview_uses_same_candidates":True,"sub_rankings_use_layer_scores":True,"details_cover_all_published":published==set(report["details"]),"duplicate_symbols":any(len(report[key])!=len({x["symbol"] for x in report[key]}) for key in ("bullish_watch_top10","bearish_watch_top10","macd_top10","rsi_top10")),"completed_higher_timeframes_only":True}
  for x in candidates:x.pop("_detail",None)
  pathlib.Path(out).write_text(json.dumps(report,ensure_ascii=False,indent=2));return report
 if __name__=="__main__":

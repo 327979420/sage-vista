@@ -6,7 +6,7 @@ from services.scanner.eodhd_factor_validation import percentile_scores,portfolio
 from services.scanner.research_pipeline import factor_values
 from services.scanner.market_context_factor_test import ratio_signal,bootstrap_relation,bh_adjust
 from services.scanner.neutralization_test import correlation,point_in_time_exposure
-from services.scanner.resonance_tracker import breakout_state,ema_state,macd_buy_gate,macd_sell_gate,macd_state_score,price_structure_state,ranking_evidence,rsi_layer_direction,transmission_score,volume_state
+from services.scanner.resonance_tracker import aggregate,breakout_state,ema_state,macd_buy_gate,macd_sell_gate,macd_state_score,price_structure_state,ranking_evidence,rsi_layer_direction,transmission_score,volume_state
 class EodhdTests(unittest.TestCase):
  def test_macd_cross_below_zero_has_more_weight(self):
   common={"bars_since_cross":0,"near_cross":False,"negative_histogram_shrinking":False,"histogram_rising":True,"macd_line":-1,"signal_line":-2}
@@ -65,6 +65,9 @@ class EodhdTests(unittest.TestCase):
   neutral={"rsi":"中性","rsi_bearish_divergence":False,"rsi_overbought_reversal":False}
   frames={"日线":{**neutral,"rsi":"超卖"},"周线":{**neutral,"rsi":"顶背离","rsi_bearish_divergence":True},"月线":neutral}
   self.assertEqual(rsi_layer_direction(frames),"conflict")
+ def test_higher_timeframe_direction_excludes_current_partial_bucket(self):
+  rows=[{"date":"08/18/2026","open":1,"high":2,"low":1,"close":2,"volume":1},{"date":"08/19/2026","open":2,"high":3,"low":2,"close":3,"volume":1},{"date":"08/24/2026","open":3,"high":4,"low":3,"close":4,"volume":1}]
+  self.assertEqual(len(aggregate(rows,"weekly",True)),1)
  def test_primary_common_stock_filter(self):
   rows=[{"Code":"A","Type":"Common Stock","Exchange":"NYSE"},{"Code":"P","Type":"Common Stock","Exchange":"PINK"},{"Code":"E","Type":"ETF","Exchange":"NASDAQ"}]
   self.assertEqual([x["Code"] for x in common(rows)],["A"])

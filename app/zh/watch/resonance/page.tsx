@@ -13,6 +13,7 @@ export default function Overview(){
     <article><small>本次扫描</small><b>{data.universe.eligible}</b><p>严格流动性与历史过滤</p></article>
     <article><small>看涨观察榜首</small><b>{data.bullish_watch_top10[0]?.symbol??"—"}</b><p>{data.bullish_watch_top10[0]?.ranking_score??0}分 · 可点击核验</p></article>
    </section>
+   <section className="rtSystemAudit"><span><small>固定规则</small><b>v{data.ruleset.version}</b></span><span><small>方向确认</small><b>完整月线＋完整周线</b></span><span><small>时机确认</small><b>最新完整日线</b></span><span><small>一致性指纹</small><b>{data.consistency_audit.ranking_digest}</b></span><mark>{data.consistency_audit.details_cover_all_published&&!data.consistency_audit.duplicate_symbols?"数据与榜单一致":"审计异常，停止使用"}</mark></section>
    <section className="rtSignals">
     <div className="rtSectionTitle"><div><p>四层一致性矩阵</p><h2>看涨与看跌分开排名</h2></div><div className="rtDirectionTabs"><button className={direction==="buy"?"active":""} onClick={()=>setDirection("buy")}>看涨观察</button><button className={direction==="sell"?"active":""} onClick={()=>setDirection("sell")}>看跌观察</button></div></div>
     <p className="rtRankNote">看涨默认展示；看跌必须使用镜像逻辑。零轴下死叉不作强看跌，超卖或底背离会触发反弹风险。</p>

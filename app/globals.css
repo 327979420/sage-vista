@@ -3026,6 +3026,11 @@ button.rtTicker:hover b, button.rtTicker:focus-visible b { color: #18714d; text-
 .rtDirectionTabs button { padding: 8px 12px; border: 0; border-radius: 9px; background: transparent; color: #65756d; font-weight: 700; cursor: pointer; }
 .rtDirectionTabs button.active { background: #173d2d; color: #fff; }
 .rtRankNote { margin: -4px 0 12px; color: #6c7a73; font-size: 11px; }
+.rtSystemAudit { display: grid; grid-template-columns: repeat(4,1fr) auto; gap: 8px; margin-top: 12px; }
+.rtSystemAudit span, .rtSystemAudit mark { display: flex; flex-direction: column; justify-content: center; padding: 10px 12px; border-radius: 11px; background: #fff; }
+.rtSystemAudit small { color: #76847d; font-size: 9px; }
+.rtSystemAudit b { margin-top: 2px; font-size: 11px; }
+.rtSystemAudit mark { background: #e1f2e8; color: #176b45; font-size: 10px; font-weight: 800; }
 .rtMatrixHead, .rtMatrixRow { display: grid; grid-template-columns: .8fr repeat(4,1fr) 1.15fr; gap: 8px; align-items: stretch; }
 .rtMatrixHead { padding: 11px 16px; background: #e9eeea; color: #687870; font-size: 10px; font-weight: 800; }
 .rtMatrixRow { width: 100%; padding: 11px 16px; border: 0; border-top: 1px solid #e7ece8; background: #fff; color: inherit; font: inherit; text-align: left; cursor: pointer; }
@@ -3086,6 +3091,7 @@ button.rtTicker:hover b, button.rtTicker:focus-visible b { color: #18714d; text-
   .rtLegend, .rtCompactLinks { flex-direction: column; }
   .rtMatrix { overflow-x: auto; }
   .rtMatrixHead, .rtMatrixRow { min-width: 760px; }
+  .rtSystemAudit { grid-template-columns: repeat(2,1fr); }
   .rtDrawer { padding: 18px; }
   .rtAuditFacts, .rtDetailLayers { grid-template-columns: repeat(2,1fr); }
   .rtScoreBreakdown { grid-template-columns: 1fr 1fr; }
