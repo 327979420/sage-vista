@@ -3022,6 +3022,10 @@ button.rtTicker:hover b, button.rtTicker:focus-visible b { color: #18714d; text-
 .rtCompactLinks { display: flex; gap: 12px; margin-top: 20px; }
 .rtCompactLinks a { padding: 10px 13px; border-radius: 10px; background: #eef4f0; color: #315846; text-decoration: none; font-size: 13px; font-weight: 700; }
 .rtMatrix { overflow: hidden; border: 1px solid #d7dfd9; border-radius: 20px; background: #fff; }
+.rtDirectionTabs { display: flex; gap: 5px; padding: 4px; border-radius: 12px; background: #e5ebe7; }
+.rtDirectionTabs button { padding: 8px 12px; border: 0; border-radius: 9px; background: transparent; color: #65756d; font-weight: 700; cursor: pointer; }
+.rtDirectionTabs button.active { background: #173d2d; color: #fff; }
+.rtRankNote { margin: -4px 0 12px; color: #6c7a73; font-size: 11px; }
 .rtMatrixHead, .rtMatrixRow { display: grid; grid-template-columns: .8fr repeat(4,1fr) 1.15fr; gap: 8px; align-items: stretch; }
 .rtMatrixHead { padding: 11px 16px; background: #e9eeea; color: #687870; font-size: 10px; font-weight: 800; }
 .rtMatrixRow { width: 100%; padding: 11px 16px; border: 0; border-top: 1px solid #e7ece8; background: #fff; color: inherit; font: inherit; text-align: left; cursor: pointer; }
@@ -3038,6 +3042,8 @@ button.rtTicker:hover b, button.rtTicker:focus-visible b { color: #18714d; text-
 .rtLayerCell.buy i { background: #2aa26b; box-shadow: 0 0 0 3px #cce8d8; }
 .rtLayerCell.sell { background: #f9eae7; color: #a14f46; }
 .rtLayerCell.sell i { background: #cf6d61; box-shadow: 0 0 0 3px #f1d2cd; }
+.rtLayerCell.conflict { background: #fff1d9; color: #78591f; }
+.rtLayerCell.conflict i { background: #d49a38; box-shadow: 0 0 0 3px #f4dfb8; }
 .rtMatrixVerdict { background: #eef2ef; }
 .rtMatrixVerdict.buy { background: #173d2d; color: #fff; }
 .rtMatrixVerdict.sell { background: #713c37; color: #fff; }

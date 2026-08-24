@@ -6,7 +6,7 @@ from services.scanner.eodhd_factor_validation import percentile_scores,portfolio
 from services.scanner.research_pipeline import factor_values
 from services.scanner.market_context_factor_test import ratio_signal,bootstrap_relation,bh_adjust
 from services.scanner.neutralization_test import correlation,point_in_time_exposure
-from services.scanner.resonance_tracker import breakout_state,ema_state,macd_buy_gate,macd_state_score,price_structure_state,ranking_evidence,transmission_score,volume_state
+from services.scanner.resonance_tracker import breakout_state,ema_state,macd_buy_gate,macd_sell_gate,macd_state_score,price_structure_state,ranking_evidence,rsi_layer_direction,transmission_score,volume_state
 class EodhdTests(unittest.TestCase):
  def test_macd_cross_below_zero_has_more_weight(self):
   common={"bars_since_cross":0,"near_cross":False,"negative_histogram_shrinking":False,"histogram_rising":True,"macd_line":-1,"signal_line":-2}
@@ -53,6 +53,18 @@ class EodhdTests(unittest.TestCase):
   conflict=ranking_evidence(frames,{"macd":"buy"},3,1,ema_layer,breakout,True)
   self.assertEqual(clean,repeated)
   self.assertGreater(clean[0],conflict[0])
+ def test_bearish_macd_requires_death_cross_above_zero(self):
+  base={"bars_since_dead_cross":0,"macd_line":1,"signal_line":2,"histogram_falling":True}
+  above={**base,"dead_cross_zero_zone":"零轴上","zero_zone":"零轴上"}
+  below={**base,"macd_line":-2,"signal_line":-1,"dead_cross_zero_zone":"零轴下","zero_zone":"零轴下"}
+  fallen_below={**base,"macd_line":-.2,"signal_line":.1,"dead_cross_zero_zone":"零轴上","zero_zone":"穿越零轴"}
+  self.assertTrue(macd_sell_gate({"日线":above,"周线":above,"月线":above}))
+  self.assertFalse(macd_sell_gate({"日线":below,"周线":below,"月线":below}))
+  self.assertFalse(macd_sell_gate({"日线":fallen_below,"周线":above,"月线":above}))
+ def test_oversold_rsi_cannot_be_published_as_pure_bearish(self):
+  neutral={"rsi":"中性","rsi_bearish_divergence":False,"rsi_overbought_reversal":False}
+  frames={"日线":{**neutral,"rsi":"超卖"},"周线":{**neutral,"rsi":"顶背离","rsi_bearish_divergence":True},"月线":neutral}
+  self.assertEqual(rsi_layer_direction(frames),"conflict")
  def test_primary_common_stock_filter(self):
   rows=[{"Code":"A","Type":"Common Stock","Exchange":"NYSE"},{"Code":"P","Type":"Common Stock","Exchange":"PINK"},{"Code":"E","Type":"ETF","Exchange":"NASDAQ"}]
   self.assertEqual([x["Code"] for x in common(rows)],["A"])
