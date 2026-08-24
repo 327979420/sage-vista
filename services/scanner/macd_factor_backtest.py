@@ -62,9 +62,9 @@ def features(side,d,w,m):
  below=lambda x:x["zero_zone"]=="零轴下"
  above=lambda x:x["zero_zone"]=="零轴上"
  if side=="buy":
-  flags={"日线零轴下金叉":d["cross_zero_zone"]=="零轴下","周线MACD多头":bullish(w),"周线零轴下多头":bullish(w) and below(w),"月线MACD多头":bullish(m),"月线零轴下改善":below(m) and (m["negative_histogram_shrinking"] or m["near_cross"]),"周月同时支持":bullish(w) and (bullish(m) or (below(m) and m["histogram_rising"]))}
+  flags={"日线零轴下金叉":d["cross_zero_zone"]=="零轴下","日线金叉＋周线MACD多头":bullish(w),"日线金叉＋周线零轴下多头":bullish(w) and below(w),"日线金叉＋月线MACD多头":bullish(m),"日线金叉＋月线零轴下改善":below(m) and (m["negative_histogram_shrinking"] or m["near_cross"]),"日线金叉＋周月同时支持":bullish(w) and (bullish(m) or (below(m) and m["histogram_rising"]))}
  else:
-  flags={"日线零轴上死叉":d["dead_cross_zero_zone"]=="零轴上","周线MACD空头":not bullish(w),"周线零轴上空头":not bullish(w) and above(w),"月线MACD空头":not bullish(m),"月线零轴上转弱":above(m) and m["histogram_falling"],"周月同时转弱":not bullish(w) and (not bullish(m) or (above(m) and m["histogram_falling"]))}
+  flags={"日线零轴上死叉":d["dead_cross_zero_zone"]=="零轴上","日线死叉＋周线MACD空头":not bullish(w),"日线死叉＋周线零轴上空头":not bullish(w) and above(w),"日线死叉＋月线MACD空头":not bullish(m),"日线死叉＋月线零轴上转弱":above(m) and m["histogram_falling"],"日线死叉＋周月同时转弱":not bullish(w) and (not bullish(m) or (above(m) and m["histogram_falling"]))}
  keys=list(flags)
  flags["日线位置＋周线方向"]=flags[keys[0]] and flags[keys[1]]
  flags["日线位置＋周线同区域"]=flags[keys[0]] and flags[keys[2]]
@@ -135,11 +135,11 @@ def summarize(events):
  return rows
 
 def run(out="public/macd-factor-backtest.json",limit=None):
- cache=pathlib.Path("work/eodhd-cache");regimes=market_regimes(cache);paths=sorted(cache.glob("*.json"));paths=paths[:limit] if limit else paths;events=[];loaded=0
+ cache=pathlib.Path("work/eodhd-cache");regimes=market_regimes(cache);paths=sorted(cache.glob("*.json"));paths=paths[:limit] if limit else paths;events=[];loaded=0;starts=[];ends=[];row_counts=[]
  for path in paths:
   if path.stem in ("SPY","QQQ"):continue
   rows=adjusted_rows(json.loads(path.read_text()))
-  if len(rows)>=420:events.extend(event_rows(path.stem,rows,regimes));events.extend(higher_timeframe_events(path.stem,rows,regimes));loaded+=1
+  if len(rows)>=420:events.extend(event_rows(path.stem,rows,regimes));events.extend(higher_timeframe_events(path.stem,rows,regimes));loaded+=1;starts.append(rows[0]["date"]);ends.append(rows[-1]["date"]);row_counts.append(len(rows))
  splits={name:summarize([x for x in events if start<=x["date"]<=end]) for name,(start,end) in SPLITS.items()}
  candidates=[]
  for row in splits["development"]:
@@ -152,7 +152,7 @@ def run(out="public/macd-factor-backtest.json",limit=None):
  candidates.sort(key=lambda x:(x["status"]=="forward_supportive",x["validation"]["win_rate"],x["validation"]["trimmed_mean_return"],x["validation"]["samples"]),reverse=True)
  bearish_comparison=[x for x in splits["validation"] if x["side"]=="sell" and x["factor"]=="日线零轴上死叉" and x["horizon"]==5]
  trigger_counts={name:sum(x["trigger"]==name for x in events) for name in ("日线","周线","月线")}
- report={"status":"research_only","execution":"日/周/月信号均在对应K线完整收盘后确认，下一交易日复权开盘价进入；5/10/20日收盘退出","lookahead":"周线和月线只在周期完整结束后使用；SPY/QQQ环境只使用信号日已收盘数据","market_regime":{"definition":"分别比较SPY、QQQ收盘价与各自EMA200","labels":REGIME_LABELS},"universe":{"history_files":len(paths),"eligible":loaded,"events":len(events),"trigger_counts":trigger_counts,"event_filter":"信号日股价≥5美元且成交额≥1000万美元"},"splits":splits,"validated_combinations":candidates[:30],"bearish_regime_comparison":bearish_comparison,"warning":"只研究MACD周期结构与SPY/QQQ市场环境；不混入其他指标。"}
+ report={"status":"research_only","execution":"日/周/月信号均在对应K线完整收盘后确认，下一交易日复权开盘价进入；5/10/20日均指交易日（日K），用于统一比较","lookahead":"周线和月线只在周期完整结束后使用；SPY/QQQ环境只使用信号日已收盘数据","market_regime":{"definition":"分别比较SPY、QQQ收盘价与各自EMA200","labels":REGIME_LABELS},"universe":{"history_files":len(paths),"eligible":loaded,"events":len(events),"trigger_counts":trigger_counts,"event_filter":"信号日股价≥5美元且成交额≥1000万美元","history_earliest":min(starts),"history_latest":max(ends),"median_daily_bars":round(statistics.median(row_counts))},"splits":splits,"validated_combinations":candidates[:30],"bearish_regime_comparison":bearish_comparison,"warning":"只研究MACD周期结构与SPY/QQQ市场环境；不混入其他指标。"}
  pathlib.Path(out).write_text(json.dumps(report,ensure_ascii=False,indent=2));return report
 
 if __name__=="__main__":
