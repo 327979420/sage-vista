@@ -2976,3 +2976,29 @@ body:has(.rtPage) .globalnav {
     display: none;
   }
 }
+
+/* Focused watch hub and optional price-structure confirmation. */
+.watchFocus { max-width: 1060px; margin: 0 auto; }
+.watchFocusGrid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 18px; margin: 22px 0 16px; }
+.watchFocusCard { display: block; padding: 30px; border: 1px solid #dce5df; border-radius: 20px; background: #fff; color: #263a31; text-decoration: none; }
+.watchFocusCard.primary { background: #173d2d; color: #fff; }
+.watchFocusCard small { color: #68776f; font-weight: 700; }
+.watchFocusCard.primary small, .watchFocusCard.primary p { color: #bfd3c8; }
+.watchFocusCard h2 { margin: 8px 0; font-size: 28px; }
+.watchFocusCard p { min-height: 48px; color: #637169; line-height: 1.6; }
+.watchFocusCard b { color: #2a7a5a; }
+.watchFocusCard.primary b { color: #8dd6b1; }
+.watchFocusNote { color: #718078; font-size: 13px; }
+.rtTicker mark.structureOn { background: #dff2e8; color: #176b45; }
+.rtTicker mark.structureOff { background: #eef1ef; color: #738078; }
+.rtReason span { display: block; margin-top: 5px; color: #637169; }
+.rtStructureToggle { display: inline-flex; align-items: center; gap: 9px; padding: 10px 14px; border: 1px solid #d4dfd8; border-radius: 999px; background: #fff; color: #31463b; font-size: 13px; font-weight: 700; cursor: pointer; }
+.rtStructureToggle input { accent-color: #176b45; }
+.rtLegend { display: flex; gap: 18px; margin: 14px 0 4px; padding: 12px 15px; border: 1px solid #e1e8e3; border-radius: 12px; background: #f8faf8; color: #66756d; font-size: 12px; }
+.rtLegend b { color: #176b45; }
+.rtCompactLinks { display: flex; gap: 12px; margin-top: 20px; }
+.rtCompactLinks a { padding: 10px 13px; border-radius: 10px; background: #eef4f0; color: #315846; text-decoration: none; font-size: 13px; font-weight: 700; }
+@media (max-width: 760px) {
+  .watchFocusGrid { grid-template-columns: 1fr; }
+  .rtLegend, .rtCompactLinks { flex-direction: column; }
+}

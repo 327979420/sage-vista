@@ -50,18 +50,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <div className="globalnav">
-          <a href="/zh">中文因子研究</a>
-          <a href="/zh/watch">中文盯盘助手</a>
-          <a href="/zh/watch/market">ETF温度计</a>
           <a href="/zh/watch/resonance">指标共振</a>
-          <a href="/zh/context">环境因子训练</a>
-          <a href="/zh/methods">开源系统研究</a>
-          <a href="/zh/neutralization">中性化测试</a>
-          <a href="/">Signal board</a>
-          <a href="/technical">Technical lab</a>
-          <a href="/research">Factor research</a>
-          <a href="/efficiency">Trade efficiency</a>
-          <a href="/data-quality">Data quality</a>
+          <a href="/zh/watch/market">ETF温度计</a>
+          <a href="/zh/watch">盯盘助手</a>
         </div>
         {children}
       </body>

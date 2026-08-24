@@ -3,7 +3,7 @@ import json,pathlib,statistics
 from datetime import date,datetime,timedelta,timezone
 from .eodhd import get
 from .research_pipeline import iso
-from .technical import macd,rsi
+from .technical import ema,macd,rsi
 
 def bulk_day(day,cache_dir="work/eodhd-bulk"):
  path=pathlib.Path(cache_dir)/f"{day}.json";path.parent.mkdir(parents=True,exist_ok=True)
@@ -37,6 +37,24 @@ def volume_state(rows):
  unusual=ratio>=1.8;up=current["close"]>=current["open"]
  label="底部放量上涨" if unusual and near_bottom and up else "底部放量" if unusual and near_bottom else "异常放量" if unusual else "正常"
  return {"label":label,"score":6 if unusual and near_bottom and up else 4 if unusual and near_bottom else 2 if unusual else 0,"ratio":round(ratio,2),"near_bottom":near_bottom,"direction":"上涨" if up else "下跌","distance_from_60d_low":round(current["close"]/low60-1,3)}
+def price_structure_state(rows):
+ """Optional daily price-structure confirmation; never changes MACD itself."""
+ if len(rows)<70:return {"confirmed":False,"score":0,"label":"历史不足","evidence":[]}
+ closes=[x["close"] for x in rows];e20,e50=ema(closes,20),ema(closes,50);i=len(rows)-1;close=closes[i]
+ pivots=[]
+ for j in range(i-60,i):
+  if rows[j]["low"]<rows[j-1]["low"] and rows[j]["low"]<=rows[j+1]["low"]:pivots.append(j)
+ higher_low=len(pivots)>=2 and rows[pivots[-1]]["low"]>rows[pivots[-2]]["low"]*1.005
+ trend=close>e50[i] and e50[i]>e50[i-20]
+ support=(abs(close-e20[i])/close<=.03 and e20[i]>=e20[i-5]) or (abs(close-e50[i])/close<=.04 and e50[i]>=e50[i-5])
+ breakout=close>max(x["high"] for x in rows[i-20:i])
+ evidence=[]
+ if trend:evidence.append("站上上升中的50日均线")
+ if support:evidence.append("接近上升均线支撑")
+ if higher_low:evidence.append("最近两个波段低点抬高")
+ if breakout:evidence.append("突破近20日高点")
+ score=sum((trend,support,higher_low,breakout));confirmed=score>=2
+ return {"confirmed":confirmed,"score":score,"label":"结构确认" if confirmed else "结构改善" if score==1 else "结构偏弱","evidence":evidence}
 def macd_state_score(state):
  """Transparent setup score: depressed/fresh signals outrank extended ones."""
  below=state["zero_zone"]=="零轴下"
@@ -124,11 +142,11 @@ def run(out="public/resonance-tracker.json",as_of=None):
    ratio=x["adjusted_close"]/x["close"];d=x["date"];adjusted.append({"date":f"{d[5:7]}/{d[8:10]}/{d[:4]}","open":x["open"]*ratio,"high":x["high"]*ratio,"low":x["low"]*ratio,"close":x["adjusted_close"],"volume":int(x["volume"])})
   frames={"日线":timeframe_state(adjusted),"周线":timeframe_state(aggregate(adjusted,"weekly")),"月线":timeframe_state(aggregate(adjusted,"monthly"))}
   if any(v is None for v in frames.values()):continue
-  chain_score,chain_reason=transmission_score(frames);macd_buy_valid,macd_gate_reason=macd_buy_gate(frames);base_score=sum(x["macd_score"] for x in frames.values());rsi_score=sum(x["rsi_score"] for x in frames.values());volume=volume_state(adjusted)
+  chain_score,chain_reason=transmission_score(frames);macd_buy_valid,macd_gate_reason=macd_buy_gate(frames);base_score=sum(x["macd_score"] for x in frames.values());rsi_score=sum(x["rsi_score"] for x in frames.values());volume=volume_state(adjusted);price_structure=price_structure_state(adjusted)
   divergence_frames=[name for name,state in frames.items() if state["rsi"]=="底背离"]
   confluence_bonus=(8 if divergence_frames and chain_score>=8 else 0)+(4 if volume["near_bottom"] and volume["score"]>=4 and (divergence_frames or chain_score>=8) else 0)
   combined_score=base_score+chain_score+rsi_score+volume["score"]+confluence_bonus
-  candidates.append({"symbol":symbol,"price":round(adjusted[-1]["close"],2),"dollar_volume":round(adjusted[-1]["close"]*adjusted[-1]["volume"]),"frames":frames,"macd_score":base_score+chain_score,"macd_base_score":base_score,"chain_score":chain_score,"chain_reason":chain_reason,"macd_buy_valid":macd_buy_valid,"macd_gate_reason":macd_gate_reason,"rsi_score":rsi_score,"rsi_divergence_frames":divergence_frames,"volume":volume,"confluence_bonus":confluence_bonus,"combined_score":combined_score,"signal_count":int(macd_buy_valid)+int(bool(divergence_frames))+int(volume["score"]>=4),"macd_resonance":sum(x["macd_score"]>=2 for x in frames.values()),"rsi_resonance":sum(x["rsi_score"]>=2 for x in frames.values())})
+  candidates.append({"symbol":symbol,"price":round(adjusted[-1]["close"],2),"dollar_volume":round(adjusted[-1]["close"]*adjusted[-1]["volume"]),"frames":frames,"price_structure":price_structure,"macd_score":base_score+chain_score,"macd_base_score":base_score,"chain_score":chain_score,"chain_reason":chain_reason,"macd_buy_valid":macd_buy_valid,"macd_gate_reason":macd_gate_reason,"rsi_score":rsi_score,"rsi_divergence_frames":divergence_frames,"volume":volume,"confluence_bonus":confluence_bonus,"combined_score":combined_score,"signal_count":int(macd_buy_valid)+int(bool(divergence_frames))+int(volume["score"]>=4),"macd_resonance":sum(x["macd_score"]>=2 for x in frames.values()),"rsi_resonance":sum(x["rsi_score"]>=2 for x in frames.values())})
  def ranked(key):return sorted(candidates,key=lambda x:(x[key],x["dollar_volume"]),reverse=True)[:10]
  report={"generated_at":datetime.now(timezone.utc).isoformat(),"as_of":latest,"data_mode":"latest_completed_eod","intraday":{"available":False,"reason":"Current EODHD token returned HTTP 403 for the 1-hour intraday endpoint.","required":"EOD + Intraday All World Extended or a real-time WebSocket feed","four_hour_rule":"When connected, aggregate regular-session 1-hour bars and evaluate completed 4-hour candles only."},"universe":{"source":"所有已有完整历史缓存、且在最新美国市场收盘数据中仍活跃的股票","cached":len(symbols),"eligible":len(candidates),"filters":"股价不低于5美元，最新单日成交额不低于1000万美元，且至少具有35个月历史"},"definitions":{"macd":"零轴下新金叉权重大于零轴上；组合榜只接受当前仍有效且不超过3根K线的新金叉，失效金叉不再计入。","weights":"零轴下新金叉8分起，零轴上4分起；完整小带大链条另加8分。","rsi":"价格创新低、RSI低点却抬高；第二个低点必须在最近8根K线内、当时RSI低于50，且价格仍靠近该低点。","volume":"最新成交量至少为过去20日均量1.8倍；价格距60日低点不超过12%或较60日高点回撤18%，标记为底部放量。","combined":"组合榜必须同时通过当前MACD结构门槛和新鲜RSI底背离；底部放量仅作为第三项增强证据。","warning":"周线和月线尚未收盘，信号可能在周期结束前发生变化。"},"combined_top10":sorted((x for x in candidates if x["macd_buy_valid"] and x["rsi_divergence_frames"]),key=lambda x:(x["combined_score"],x["dollar_volume"]),reverse=True)[:10],"macd_top10":ranked("macd_score"),"rsi_top10":ranked("rsi_score"),"volume_top10":sorted((x for x in candidates if x["volume"]["score"]>0),key=lambda x:(x["volume"]["score"],x["volume"]["ratio"],x["dollar_volume"]),reverse=True)[:10]}
  pathlib.Path(out).write_text(json.dumps(report,ensure_ascii=False,indent=2));return report
