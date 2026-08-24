@@ -13,7 +13,7 @@ from .technical import atr,rsi
 HORIZONS=(5,10,20,40,60,100)
 SPLITS={"development":("0000-01-01","2024-12-31"),"validation":("2025-01-01","2025-12-31"),"forward":("2026-01-01","9999-12-31")}
 REGIME_LABELS={"both_bull":"SPY与QQQ均在EMA200上","mixed":"SPY与QQQ方向不一致","both_bear":"SPY与QQQ均在EMA200下"}
-PATTERN_FACTORS=("长期趋势合格＋日线金叉＋底部Doji","长期趋势合格＋日线金叉＋底部Bullish Engulfing","长期趋势合格＋日线金叉＋双底突破","长期趋势合格＋日线金叉＋趋势线三推突破","长期趋势合格＋日线金叉＋RSI底背离")
+PATTERN_FACTORS=("长期趋势合格＋日线金叉＋K线聚集区","长期趋势合格＋日线金叉＋底部Doji","长期趋势合格＋日线金叉＋底部Bullish Engulfing","长期趋势合格＋日线金叉＋双底突破","长期趋势合格＋日线金叉＋趋势线三推突破","长期趋势合格＋日线金叉＋RSI底背离")
 TECHNICAL_CONFIG=load_config()
 
 def adjusted_rows(raw):
@@ -81,6 +81,14 @@ def three_push_breakout(rows,end):
  separated=b["index"]-a["index"]>TECHNICAL_CONFIG["level_test"]["rejection_cluster_bars"] and c["index"]-b["index"]>TECHNICAL_CONFIG["level_test"]["rejection_cluster_bars"]
  return touches and separated and detect_bos(window,local_end,projected,TECHNICAL_CONFIG).detected
 
+def kline_congestion_support(rows,end,lookback=250,band=.03,min_share=.15,min_pullback=.05):
+ """Current price revisits a point-in-time area where many prior daily closes gathered."""
+ if end<lookback:return False
+ current=rows[end]["close"];history=rows[end-lookback:end]
+ clustered=sum(current*(1-band)<=x["close"]<=current*(1+band) for x in history)/lookback>=min_share
+ recent_high=max(x["high"] for x in rows[max(0,end-60):end])
+ return clustered and current<=recent_high*(1-min_pullback)
+
 def daily_pattern_flags(rows,end):
  """Price/RSI confirmations visible at the daily MACD-cross close."""
  start=max(0,end-180);window=rows[start:end+1];w=detect_w_bottom(window,len(window)-1,TECHNICAL_CONFIG)
@@ -93,7 +101,7 @@ def daily_pattern_flags(rows,end):
  for j in range(max(1,end-4),end+1):
   x,prior=rows[j],rows[j-1];bullish=x["close"]>x["open"] and prior["close"]<prior["open"] and x["open"]<=prior["close"] and x["close"]>=prior["open"]
   if bullish and max(x["open"],x["close"])<=bottom_limit:bottom_engulf=True
- return {"日线金叉":True,"长期趋势合格＋日线金叉":trend_ok,"长期趋势合格＋日线金叉＋底部Doji":trend_ok and bottom_doji,"长期趋势合格＋日线金叉＋底部Bullish Engulfing":trend_ok and bottom_engulf,"长期趋势合格＋日线金叉＋双底突破":trend_ok and double_bottom,"长期趋势合格＋日线金叉＋趋势线三推突破":trend_ok and three_push_breakout(rows,end),"长期趋势合格＋日线金叉＋RSI底背离":trend_ok and bullish_divergence(window,values)}
+ return {"日线金叉":True,"长期趋势合格＋日线金叉":trend_ok,"长期趋势合格＋日线金叉＋K线聚集区":trend_ok and kline_congestion_support(rows,end),"长期趋势合格＋日线金叉＋底部Doji":trend_ok and bottom_doji,"长期趋势合格＋日线金叉＋底部Bullish Engulfing":trend_ok and bottom_engulf,"长期趋势合格＋日线金叉＋双底突破":trend_ok and double_bottom,"长期趋势合格＋日线金叉＋趋势线三推突破":trend_ok and three_push_breakout(rows,end),"长期趋势合格＋日线金叉＋RSI底背离":trend_ok and bullish_divergence(window,values)}
 
 def features(side,d,w,m):
  bullish=lambda x:x["macd_line"]>x["signal_line"]

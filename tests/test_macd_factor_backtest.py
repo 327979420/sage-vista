@@ -1,5 +1,5 @@
 import unittest
-from services.scanner.macd_factor_backtest import completed_groups,daily_pattern_flags,ema,features,outcome,stats,three_push_breakout
+from services.scanner.macd_factor_backtest import completed_groups,daily_pattern_flags,ema,features,kline_congestion_support,outcome,stats,three_push_breakout
 
 class MacdFactorBacktestTests(unittest.TestCase):
  def test_completed_period_excludes_current_bucket(self):
@@ -53,5 +53,16 @@ class MacdFactorBacktestTests(unittest.TestCase):
   for i,p in ((20,110),(35,106),(50,102)):rows[i].update(high=p,close=p-2,open=p-3,low=p-4)
   rows[55].update(open=98,high=103,low=97,close=102.5)
   self.assertTrue(three_push_breakout(rows,55))
+ def test_kline_congestion_requires_density_and_pullback(self):
+  rows=[{"date":f"D{i}","open":100,"high":103,"low":97,"close":100,"volume":1000} for i in range(251)]
+  rows[220].update(high=110,close=108);rows[250].update(close=100)
+  self.assertTrue(kline_congestion_support(rows,250))
+  for i in range(250):rows[i]["close"]=50+i
+  self.assertFalse(kline_congestion_support(rows,250))
+ def test_kline_congestion_does_not_read_future_bars(self):
+  rows=[{"date":f"D{i}","open":100,"high":103,"low":97,"close":100,"volume":1000} for i in range(270)]
+  rows[220].update(high=110,close=108)
+  before=kline_congestion_support(rows,250);rows[260].update(high=999,close=999)
+  self.assertEqual(before,kline_congestion_support(rows,250))
 
 if __name__=="__main__":unittest.main()
