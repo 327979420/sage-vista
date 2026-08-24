@@ -73,6 +73,14 @@ def features(side,d,w,m):
  flags["日周月完整组合"]=flags[keys[0]] and flags[keys[2]] and flags[keys[4]]
  return flags
 
+def outcome(rows,i,side):
+ entry=rows[i+1]["open"];forward={};mae={}
+ for h in HORIZONS:
+  ret=rows[i+h]["close"]/entry-1;path=rows[i+1:i+h+1]
+  adverse=min(x["low"]/entry-1 for x in path) if side=="buy" else min(entry/x["high"]-1 for x in path)
+  forward[h]=ret if side=="buy" else -ret;mae[h]=adverse
+ return forward,mae
+
 def event_rows(symbol,rows,regimes):
  if len(rows)<300:return []
  weekly=completed_groups(rows,"weekly");monthly=completed_groups(rows,"monthly");closes=[x["close"] for x in rows];line,signal=macd(closes);events=[]
@@ -83,14 +91,30 @@ def event_rows(symbol,rows,regimes):
   day=datetime.strptime(rows[i]["date"],"%Y-%m-%d").date();wk=(day.isocalendar().year,day.isocalendar().week);mo=(day.year,day.month)
   wr=available(weekly,wk);mr=available(monthly,mo)
   if len(wr)<35 or len(mr)<35:continue
-  d=macd_state(rows[max(0,i-180):i+1]);w=macd_state(wr[-160:]);m=macd_state(mr[-120:]);side="buy" if buy else "sell";entry=rows[i+1]["open"]
-  forward={};mae={}
-  for h in HORIZONS:
-   ret=rows[i+h]["close"]/entry-1
-   path=rows[i+1:i+h+1]
-   adverse=min(x["low"]/entry-1 for x in path) if side=="buy" else min(entry/x["high"]-1 for x in path)
-   forward[h]=ret if side=="buy" else -ret;mae[h]=adverse
-  events.append({"symbol":symbol,"date":rows[i]["date"],"side":side,"regime":regimes[rows[i]["date"]],"features":features(side,d,w,m),"forward":forward,"mae":mae})
+  d=macd_state(rows[max(0,i-180):i+1]);w=macd_state(wr[-160:]);m=macd_state(mr[-120:]);side="buy" if buy else "sell";forward,mae=outcome(rows,i,side)
+  events.append({"symbol":symbol,"date":rows[i]["date"],"side":side,"trigger":"日线","regime":regimes[rows[i]["date"]],"features":features(side,d,w,m),"forward":forward,"mae":mae})
+ return events
+
+def higher_timeframe_events(symbol,rows,regimes):
+ """Weekly/monthly crosses become usable only after that period closes."""
+ date_index={x["date"]:i for i,x in enumerate(rows)};weekly=completed_groups(rows,"weekly");monthly=completed_groups(rows,"monthly");events=[]
+ for trigger,groups in (("周线",weekly),("月线",monthly)):
+  closes=[x[1]["close"] for x in groups];line,signal=macd(closes)
+  for j in range(35,len(groups)-1):
+   if not (line[j]>signal[j] and line[j-1]<=signal[j-1]):continue
+   bar=groups[j][1];i=date_index.get(bar["date"])
+   if i is None or i+max(HORIZONS)>=len(rows) or bar["date"] not in regimes:continue
+   if rows[i]["close"]<5 or rows[i]["close"]*rows[i]["volume"]<10_000_000:continue
+   state=macd_state([x[1] for x in groups[max(0,j-120):j+1]]);below=state["cross_zero_zone"]=="零轴下";d=macd_state(rows[max(0,i-180):i+1])
+   if trigger=="周线":
+    day=datetime.strptime(bar["date"],"%Y-%m-%d").date();mr=available(monthly,(day.year,day.month))
+    if len(mr)<35:continue
+    m=macd_state(mr[-120:]);monthly_bull=m["macd_line"]>m["signal_line"]
+    flags={"周线零轴下金叉":below,"周线金叉＋月线多头":monthly_bull,"周线零轴下金叉＋月线改善":below and m["zero_zone"]=="零轴下" and (m["negative_histogram_shrinking"] or m["near_cross"])}
+   else:
+    completed_weekly=[x[1] for x in weekly if x[1]["date"]<=bar["date"]];w=macd_state(completed_weekly[-160:]);weekly_bull=w["macd_line"]>w["signal_line"];daily_bull=d["macd_line"]>d["signal_line"]
+    flags={"月线零轴下金叉":below,"月线金叉＋周线多头":weekly_bull,"月线金叉＋日周多头":weekly_bull and daily_bull}
+   forward,mae=outcome(rows,i,"buy");events.append({"symbol":symbol,"date":bar["date"],"side":"buy","trigger":trigger,"regime":regimes[bar["date"]],"features":flags,"forward":forward,"mae":mae})
  return events
 
 def stats(events,horizon):
@@ -115,7 +139,7 @@ def run(out="public/macd-factor-backtest.json",limit=None):
  for path in paths:
   if path.stem in ("SPY","QQQ"):continue
   rows=adjusted_rows(json.loads(path.read_text()))
-  if len(rows)>=420:events.extend(event_rows(path.stem,rows,regimes));loaded+=1
+  if len(rows)>=420:events.extend(event_rows(path.stem,rows,regimes));events.extend(higher_timeframe_events(path.stem,rows,regimes));loaded+=1
  splits={name:summarize([x for x in events if start<=x["date"]<=end]) for name,(start,end) in SPLITS.items()}
  candidates=[]
  for row in splits["development"]:
@@ -127,7 +151,8 @@ def run(out="public/macd-factor-backtest.json",limit=None):
    candidates.append({"side":row["side"],"factor":row["factor"],"horizon":row["horizon"],"development":row,"validation":val,"forward":forward,"status":status})
  candidates.sort(key=lambda x:(x["status"]=="forward_supportive",x["validation"]["win_rate"],x["validation"]["trimmed_mean_return"],x["validation"]["samples"]),reverse=True)
  bearish_comparison=[x for x in splits["validation"] if x["side"]=="sell" and x["factor"]=="日线零轴上死叉" and x["horizon"]==5]
- report={"status":"research_only","execution":"信号收盘后，下一交易日复权开盘价进入；5/10/20日收盘退出","lookahead":"周线和月线只使用信号日前已经结束的完整周期；SPY/QQQ环境只使用信号日已收盘数据","market_regime":{"definition":"分别比较SPY、QQQ收盘价与各自EMA200","labels":REGIME_LABELS},"universe":{"history_files":len(paths),"eligible":loaded,"events":len(events),"event_filter":"信号日股价≥5美元且成交额≥1000万美元"},"splits":splits,"validated_combinations":candidates[:30],"bearish_regime_comparison":bearish_comparison,"warning":"只研究MACD周期结构与SPY/QQQ市场环境；胜率未扣交易成本，也未处理同一股票重叠信号。"}
+ trigger_counts={name:sum(x["trigger"]==name for x in events) for name in ("日线","周线","月线")}
+ report={"status":"research_only","execution":"日/周/月信号均在对应K线完整收盘后确认，下一交易日复权开盘价进入；5/10/20日收盘退出","lookahead":"周线和月线只在周期完整结束后使用；SPY/QQQ环境只使用信号日已收盘数据","market_regime":{"definition":"分别比较SPY、QQQ收盘价与各自EMA200","labels":REGIME_LABELS},"universe":{"history_files":len(paths),"eligible":loaded,"events":len(events),"trigger_counts":trigger_counts,"event_filter":"信号日股价≥5美元且成交额≥1000万美元"},"splits":splits,"validated_combinations":candidates[:30],"bearish_regime_comparison":bearish_comparison,"warning":"只研究MACD周期结构与SPY/QQQ市场环境；不混入其他指标。"}
  pathlib.Path(out).write_text(json.dumps(report,ensure_ascii=False,indent=2));return report
 
 if __name__=="__main__":

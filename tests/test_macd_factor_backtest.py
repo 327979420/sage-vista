@@ -1,5 +1,5 @@
 import unittest
-from services.scanner.macd_factor_backtest import completed_groups,ema,features,stats
+from services.scanner.macd_factor_backtest import completed_groups,ema,features,outcome,stats
 
 class MacdFactorBacktestTests(unittest.TestCase):
  def test_completed_period_excludes_current_bucket(self):
@@ -18,5 +18,9 @@ class MacdFactorBacktestTests(unittest.TestCase):
  def test_market_ema_uses_only_prior_and_current_values(self):
   first=ema([1]*200+[2]);second=ema([1]*200+[2,999])
   self.assertEqual(first[-1],second[-2])
+ def test_signal_executes_at_next_open(self):
+  rows=[{"open":10,"high":11,"low":9,"close":10}]+[{"open":20,"high":26,"low":19,"close":25} for _ in range(20)]
+  forward,_=outcome(rows,0,"buy")
+  self.assertAlmostEqual(forward[5],.25)
 
 if __name__=="__main__":unittest.main()
