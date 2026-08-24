@@ -22,7 +22,7 @@ class MacdFactorBacktestTests(unittest.TestCase):
   first=ema([1]*200+[2]);second=ema([1]*200+[2,999])
   self.assertEqual(first[-1],second[-2])
  def test_signal_executes_at_next_open(self):
-  rows=[{"open":10,"high":11,"low":9,"close":10}]+[{"open":20,"high":26,"low":19,"close":25} for _ in range(20)]
+  rows=[{"open":10,"high":11,"low":9,"close":10}]+[{"open":20,"high":26,"low":19,"close":25} for _ in range(100)]
   forward,_=outcome(rows,0,"buy")
   self.assertAlmostEqual(forward[5],.25)
 

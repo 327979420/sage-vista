@@ -8,7 +8,7 @@ from collections import defaultdict
 from datetime import datetime
 from .resonance_tracker import macd
 
-HORIZONS=(5,10,20)
+HORIZONS=(5,10,20,40,60,100)
 SPLITS={"development":("0000-01-01","2024-12-31"),"validation":("2025-01-01","2025-12-31"),"forward":("2026-01-01","9999-12-31")}
 REGIME_LABELS={"both_bull":"SPY与QQQ均在EMA200上","mixed":"SPY与QQQ方向不一致","both_bear":"SPY与QQQ均在EMA200下"}
 
@@ -121,7 +121,7 @@ def higher_timeframe_events(symbol,rows,regimes):
 
 def stats(events,horizon):
  vals=[x["forward"][horizon] for x in events];mae=[x["mae"][horizon] for x in events]
- if not vals:return {"samples":0,"win_rate":None,"mean_return":None,"median_return":None,"mean_adverse":None}
+ if not vals:return {"samples":0,"win_rate":None,"mean_return":None,"trimmed_mean_return":None,"median_return":None,"mean_adverse":None}
  ordered=sorted(vals);trim=max(1,len(vals)//100);trimmed=ordered[trim:-trim] if len(vals)>2*trim else ordered
  return {"samples":len(vals),"win_rate":round(sum(x>0 for x in vals)/len(vals)*100,1),"mean_return":round(statistics.mean(vals)*100,2),"trimmed_mean_return":round(statistics.mean(trimmed)*100,2),"median_return":round(statistics.median(vals)*100,2),"mean_adverse":round(statistics.mean(mae)*100,2)}
 
@@ -141,12 +141,23 @@ def incremental_report(splits):
  def find(split,factor):return next(x for x in splits[split] if x["side"]=="buy" and x["regime"]=="both_bear" and x["factor"]==factor and x["horizon"]==20)
  baseline={split:find(split,"日线零轴下金叉") for split in SPLITS};out=[]
  for factor in factors:
-  stages={split:find(split,factor) for split in SPLITS};deltas={split:{"win_rate":round(stages[split]["win_rate"]-baseline[split]["win_rate"],1),"trimmed_mean_return":round(stages[split]["trimmed_mean_return"]-baseline[split]["trimmed_mean_return"],2),"sample_retention":round(stages[split]["samples"]/baseline[split]["samples"]*100,1)} for split in SPLITS}
-  positive=sum(deltas[x]["win_rate"]>0 and deltas[x]["trimmed_mean_return"]>0 for x in SPLITS)
+  stages={split:find(split,factor) for split in SPLITS};deltas={split:{"win_rate":round(stages[split]["win_rate"]-baseline[split]["win_rate"],1) if stages[split]["win_rate"] is not None else None,"trimmed_mean_return":round(stages[split]["trimmed_mean_return"]-baseline[split]["trimmed_mean_return"],2) if stages[split]["trimmed_mean_return"] is not None else None,"sample_retention":round(stages[split]["samples"]/baseline[split]["samples"]*100,1)} for split in SPLITS}
+  positive=sum((deltas[x]["win_rate"] or 0)>0 and (deltas[x]["trimmed_mean_return"] or 0)>0 for x in SPLITS)
   enough=stages["validation"]["samples"]>=100 and stages["forward"]["samples"]>=30
-  verdict="样本不足" if not enough else "有效加分" if positive==3 else "可能有效，继续观察" if positive>=2 and deltas["development"]["win_rate"]>=0 else "没有提升" if positive>=1 else "反而削弱"
+  verdict="样本不足" if not enough else "有效加分" if positive==3 else "可能有效，继续观察" if positive>=2 and (deltas["development"]["win_rate"] or 0)>=0 else "没有提升" if positive>=1 else "反而削弱"
   out.append({"factor":factor,"baseline":baseline,"stages":stages,"deltas":deltas,"verdict":verdict})
- out.sort(key=lambda x:(x["verdict"]=="有效加分",min(x["deltas"][s]["win_rate"] for s in SPLITS),x["stages"]["validation"]["samples"]),reverse=True);return out
+ out.sort(key=lambda x:(x["verdict"]=="有效加分",min((x["deltas"][s]["win_rate"] or -999) for s in SPLITS),x["stages"]["validation"]["samples"]),reverse=True);return out
+
+def monthly_horizon_report(splits):
+ specs=(("基准＋月线准备金叉","both_bear","弱市日线零轴下金叉＋月线准备金叉"),("基准＋月线已经多头","both_bear","弱市日线零轴下金叉＋月线已经多头"),("月线零轴下金叉","all","月线零轴下刚金叉"))
+ out=[]
+ for factor,regime,label in specs:
+  horizons=[]
+  for horizon in (20,40,60,100):
+   stages={split:next(x for x in splits[split] if x["side"]=="buy" and x["regime"]==regime and x["factor"]==factor and x["horizon"]==horizon) for split in SPLITS}
+   horizons.append({"horizon":horizon,"stages":stages})
+  out.append({"factor":factor,"label":label,"regime":regime,"horizons":horizons})
+ return out
 
 def run(out="public/macd-factor-backtest.json",limit=None):
  cache=pathlib.Path("work/eodhd-cache");regimes=market_regimes(cache);paths=sorted(cache.glob("*.json"));paths=paths[:limit] if limit else paths;events=[];loaded=0;starts=[];ends=[];row_counts=[]
@@ -166,7 +177,7 @@ def run(out="public/macd-factor-backtest.json",limit=None):
  candidates.sort(key=lambda x:(x["status"]=="forward_supportive",x["validation"]["win_rate"],x["validation"]["trimmed_mean_return"],x["validation"]["samples"]),reverse=True)
  bearish_comparison=[x for x in splits["validation"] if x["side"]=="sell" and x["factor"]=="日线零轴上死叉" and x["horizon"]==5]
  trigger_counts={name:sum(x["trigger"]==name for x in events) for name in ("日线","周线","月线")}
- report={"status":"research_only","execution":"日/周/月信号均在对应K线完整收盘后确认，下一交易日复权开盘价进入；5/10/20日均指交易日（日K），用于统一比较","lookahead":"周线和月线只在周期完整结束后使用；SPY/QQQ环境只使用信号日已收盘数据","market_regime":{"definition":"分别比较SPY、QQQ收盘价与各自EMA200","labels":REGIME_LABELS},"universe":{"history_files":len(paths),"eligible":loaded,"events":len(events),"trigger_counts":trigger_counts,"event_filter":"信号日股价≥5美元且成交额≥1000万美元","history_earliest":min(starts),"history_latest":max(ends),"median_daily_bars":round(statistics.median(row_counts))},"splits":splits,"validated_combinations":candidates[:30],"incremental_tests":incremental_report(splits),"bearish_regime_comparison":bearish_comparison,"warning":"只研究MACD周期结构与SPY/QQQ市场环境；不混入其他指标。"}
+ report={"status":"research_only","execution":"日/周/月信号均在对应K线完整收盘后确认，下一交易日复权开盘价进入；5/10/20/40/60/100日均指交易日（日K），用于统一比较","lookahead":"周线和月线只在周期完整结束后使用；SPY/QQQ环境只使用信号日已收盘数据","market_regime":{"definition":"分别比较SPY、QQQ收盘价与各自EMA200","labels":REGIME_LABELS},"universe":{"history_files":len(paths),"eligible":loaded,"events":len(events),"trigger_counts":trigger_counts,"event_filter":"信号日股价≥5美元且成交额≥1000万美元","history_earliest":min(starts),"history_latest":max(ends),"median_daily_bars":round(statistics.median(row_counts))},"splits":splits,"validated_combinations":candidates[:30],"incremental_tests":incremental_report(splits),"monthly_horizon_tests":monthly_horizon_report(splits),"bearish_regime_comparison":bearish_comparison,"warning":"只研究MACD周期结构与SPY/QQQ市场环境；不混入其他指标。长持有期事件会重叠，胜率也会受到美股长期上涨漂移影响，不能直接视为独立交易胜率。"}
  pathlib.Path(out).write_text(json.dumps(report,ensure_ascii=False,indent=2));return report
 
 if __name__=="__main__":
