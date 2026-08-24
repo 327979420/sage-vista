@@ -2491,6 +2491,24 @@ body:has(.rtPage) .globalnav {
 .rtResearchDetails>summary { padding:16px 20px; border:1px solid #d9e4dd; border-radius:14px; background:#f5f8f6; color:#53645b; cursor:pointer; font-weight:750; }
 .rtResearchDetails[open]>summary { margin-bottom:16px; }
 .rtTestLedger,.rtUntestedLedger { margin:16px 0; padding:22px; border:1px solid #d9e4dd; border-radius:18px; background:#fff; }
+.rtExperimentOne { margin:16px 0; padding:22px; border:1px solid #cfe1d6; border-radius:18px; background:linear-gradient(145deg,#f6fbf7,#fff); }
+.rtExperimentOne > header { display:flex; justify-content:space-between; gap:18px; align-items:end; }
+.rtExperimentOne > header small { color:#19875a; font-weight:800; }
+.rtExperimentOne > header h2 { margin:5px 0 0; }
+.rtExperimentOne > header mark { padding:7px 10px; border-radius:999px; background:#d9eee2; color:#176b45; font-size:11px; }
+.rtExperimentPlain { margin:16px 0; padding:13px 15px; border-left:4px solid #19875a; border-radius:8px; background:#edf6f0; color:#344d40; line-height:1.65; }
+.rtExperimentHorizons { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+.rtExperimentHorizons article { padding:17px; border:1px solid #dce8e0; border-radius:14px; background:#fff; }
+.rtExperimentHorizons article > header { display:flex; justify-content:space-between; gap:10px; }
+.rtExperimentHorizons article > header span { color:#718078; font-size:12px; }
+.rtExperimentHorizons article > div { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:15px 0; }
+.rtExperimentHorizons article > div span { padding:10px; border-radius:10px; background:#f3f6f4; }
+.rtExperimentHorizons article small,.rtExperimentHorizons article strong,.rtExperimentHorizons article em { display:block; }
+.rtExperimentHorizons article strong { margin:4px 0; color:#176b45; font-size:22px; }
+.rtExperimentHorizons article em { color:#718078; font-size:11px; font-style:normal; }
+.rtExperimentHorizons article p { margin-bottom:0; color:#50645b; line-height:1.55; }
+.rtExperimentOne > footer { display:flex; gap:10px; margin-top:14px; padding-top:14px; border-top:1px solid #dce8e0; color:#50645b; }
+.rtExperimentOne > footer b { flex:none; color:#176b45; }
 .rtTestLedger > header,.rtUntestedLedger > header { display:flex; justify-content:space-between; gap:18px; align-items:end; }
 .rtTestLedger header small,.rtUntestedLedger header small { color:#19875a; font-weight:800; }
 .rtTestLedger header h2,.rtUntestedLedger header h2 { margin:5px 0 0; }
@@ -2828,6 +2846,8 @@ button.rtTicker:hover b, button.rtTicker:focus-visible b { color: #18714d; text-
 }
 @media (max-width: 760px) {
   .rtAnswerGrid,.rtHumanNumbers,.rtPatternResults > div,.rtStudyArchive > div { grid-template-columns: 1fr; }
+  .rtExperimentOne > header,.rtExperimentOne > footer { align-items:flex-start; flex-direction:column; }
+  .rtExperimentHorizons { grid-template-columns:1fr; }
   .rtLedgerHead { display:none; }
   .rtTestLedger > article { grid-template-columns:1fr auto; }
   .rtTestLedger article p,.rtTestLedger article aside { grid-column:1/-1; }
