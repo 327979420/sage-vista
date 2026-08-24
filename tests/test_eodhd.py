@@ -6,7 +6,7 @@ from services.scanner.eodhd_factor_validation import percentile_scores,portfolio
 from services.scanner.research_pipeline import factor_values
 from services.scanner.market_context_factor_test import ratio_signal,bootstrap_relation,bh_adjust
 from services.scanner.neutralization_test import correlation,point_in_time_exposure
-from services.scanner.resonance_tracker import breakout_state,ema_state,macd_buy_gate,macd_state_score,price_structure_state,transmission_score,volume_state
+from services.scanner.resonance_tracker import breakout_state,ema_state,macd_buy_gate,macd_state_score,price_structure_state,ranking_evidence,transmission_score,volume_state
 class EodhdTests(unittest.TestCase):
  def test_macd_cross_below_zero_has_more_weight(self):
   common={"bars_since_cross":0,"near_cross":False,"negative_histogram_shrinking":False,"histogram_rising":True,"macd_line":-1,"signal_line":-2}
@@ -44,6 +44,15 @@ class EodhdTests(unittest.TestCase):
   result=breakout_state(rows)
   self.assertEqual(result["direction"],"buy")
   self.assertEqual(result["level"],11)
+ def test_ranking_evidence_is_deterministic_and_penalizes_conflict(self):
+  frame={"macd_score":8,"bars_since_dead_cross":None,"histogram_falling":False,"rsi":"底背离"}
+  frames={x:frame for x in ("日线","周线","月线")}
+  ema_layer={"direction":"buy","fresh_cross":False};breakout={"direction":"buy","distance":.02}
+  clean=ranking_evidence(frames,{"macd":"buy"},4,0,ema_layer,breakout,False)
+  repeated=ranking_evidence(frames,{"macd":"buy"},4,0,ema_layer,breakout,False)
+  conflict=ranking_evidence(frames,{"macd":"buy"},3,1,ema_layer,breakout,True)
+  self.assertEqual(clean,repeated)
+  self.assertGreater(clean[0],conflict[0])
  def test_primary_common_stock_filter(self):
   rows=[{"Code":"A","Type":"Common Stock","Exchange":"NYSE"},{"Code":"P","Type":"Common Stock","Exchange":"PINK"},{"Code":"E","Type":"ETF","Exchange":"NASDAQ"}]
   self.assertEqual([x["Code"] for x in common(rows)],["A"])

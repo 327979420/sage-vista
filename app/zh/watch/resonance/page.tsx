@@ -1,3 +1,27 @@
 "use client";
 import {ConfluenceMatrix,TrackerShell,useTracker} from "./tracker-ui";
-export default function Overview(){const data=useTracker();return <TrackerShell active="总览" title="指标共振" subtitle="MACD、RSI、EMA与价格突破分别验证，只有同向才叫共振。">{data&&<><section className="rtSummary"><article className="rtSummaryPrimary"><small>四重看涨共振</small><b>{data.four_layer_bullish.length}</b><p>四层全部发出看涨信息</p></article><article><small>四重看跌共振</small><b>{data.four_layer_bearish.length}</b><p>四层全部发出看跌信息</p></article><article><small>本次扫描</small><b>{data.universe.eligible}</b><p>严格流动性与历史过滤</p></article><article><small>MACD榜首</small><b>{data.macd_top10[0]?.symbol??"—"}</b><p>{data.macd_top10[0]?.frames["日线"].cross_zero_zone??"观察中"}金叉优先</p></article></section><section className="rtSignals"><div className="rtSectionTitle"><div><p>四层一致性矩阵</p><h2>先找同向，再看强弱</h2></div><span>冲突不会被总分掩盖</span></div><ConfluenceMatrix items={data.multi_confluence_top10}/></section><section className="rtModuleGrid"><a href="/zh/watch/resonance/confluence"><small>严格复核</small><h2>MACD＋RSI</h2><p>核对新鲜金叉、能量变化与新鲜RSI背离。</p><strong>{data.combined_top10.length}只 →</strong></a><a href="/zh/watch/resonance/macd"><small>金叉位置＋能量</small><h2>MACD</h2><p>零轴下金叉优先，并展示能量柱增强或衰减。</p><strong>查看TOP 10 →</strong></a><a href="/zh/watch/resonance/rsi"><small>超卖与背离</small><h2>RSI</h2><p>查看底背离、顶背离与修复状态。</p><strong>查看TOP 10 →</strong></a><a href="/zh/watch/resonance/volume"><small>独立增强证据</small><h2>成交量</h2><p>放量只作确认，不单独称为买点。</p><strong>{data.volume_top10.length}个提醒 →</strong></a></section><footer className="rtCompactLinks"><a href="/zh/watch/market">ETF市场环境 →</a><a href="/zh/watch/resonance/requirements">查看规则</a></footer></>}</TrackerShell>}
+
+export default function Overview(){
+ const data=useTracker();
+ return <TrackerShell active="总览" title="指标共振" subtitle="MACD、RSI、EMA与价格突破分别验证；点击任何标的可查看完整证据。">
+  {data&&<>
+   <section className="rtSummary">
+    <article className="rtSummaryPrimary"><small>四重看涨共振</small><b>{data.four_layer_bullish.length}</b><p>四层全部发出看涨信息</p></article>
+    <article><small>四重看跌共振</small><b>{data.four_layer_bearish.length}</b><p>四层全部发出看跌信息</p></article>
+    <article><small>本次扫描</small><b>{data.universe.eligible}</b><p>严格流动性与历史过滤</p></article>
+    <article><small>规则榜首</small><b>{data.multi_confluence_top10[0]?.symbol??"—"}</b><p>{data.multi_confluence_top10[0]?.ranking_score??0}分 · 可点击核验</p></article>
+   </section>
+   <section className="rtSignals">
+    <div className="rtSectionTitle"><div><p>四层一致性矩阵</p><h2>先找同向，再看强弱</h2></div><span>同一数据可重复得到相同名次</span></div>
+    <ConfluenceMatrix items={data.multi_confluence_top10} details={data.details} method={data.ranking_method}/>
+   </section>
+   <section className="rtModuleGrid">
+    <a href="/zh/watch/resonance/confluence"><small>严格复核</small><h2>MACD＋RSI</h2><p>核对新鲜金叉、能量变化与新鲜RSI背离。</p><strong>{data.combined_top10.length}只 →</strong></a>
+    <a href="/zh/watch/resonance/macd"><small>金叉位置＋能量</small><h2>MACD</h2><p>零轴下金叉优先，并展示能量柱增强或衰减。</p><strong>查看TOP 10 →</strong></a>
+    <a href="/zh/watch/resonance/rsi"><small>超卖与背离</small><h2>RSI</h2><p>查看底背离、顶背离与修复状态。</p><strong>查看TOP 10 →</strong></a>
+    <a href="/zh/watch/resonance/volume"><small>独立增强证据</small><h2>成交量</h2><p>放量只作确认，不单独称为买点。</p><strong>{data.volume_top10.length}个提醒 →</strong></a>
+   </section>
+   <footer className="rtCompactLinks"><a href="/zh/watch/market">ETF市场环境 →</a><a href="/zh/watch/resonance/requirements">查看规则</a></footer>
+  </>}
+ </TrackerShell>
+}
