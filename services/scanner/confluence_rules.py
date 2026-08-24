@@ -5,29 +5,33 @@ The same directional contract is used by every indicator layer.
 """
 
 RULESET={
- "version":"2.0.0",
+ "version":"2.1.0",
  "timeframes":{"direction":["上个完整月线","上个完整周线"],"timing":"最新完整日线"},
  "layer_max":25,
  "weights":{"daily_trigger":10,"weekly_direction":8,"monthly_direction":7},
- "policy":"大周期确认方向，小周期确认时机；允许小周期先启动，但月线不得反向、周线必须同向改善。",
+ "policy":"MACD允许小周期先启动并带动大周期，也允许大周期先确认、小周期给时机；看涨偏重零轴下金叉，看跌偏重零轴上死叉。",
 }
 
-def _result(direction="neutral",score=0,stage="等待",evidence=None):
- return {"direction":direction,"score":score,"stage":stage,"evidence":evidence or []}
+def _result(direction="neutral",score=0,stage="等待",evidence=None,**extra):
+ return {"direction":direction,"score":score,"stage":stage,"evidence":evidence or [],**extra}
 
 def macd_layer(frames):
  d,w,m=(frames[x] for x in ("日线","周线","月线"))
- buy_trigger=d["bars_since_cross"] is not None and d["bars_since_cross"]<=3 and d["cross_zero_zone"]=="零轴下" and d["macd_line"]>d["signal_line"]
- sell_trigger=d["bars_since_dead_cross"] is not None and d["bars_since_dead_cross"]<=3 and d["dead_cross_zero_zone"]=="零轴上" and d["zero_zone"]=="零轴上" and d["macd_line"]<d["signal_line"]
- bull=lambda x:x["macd_line"]>x["signal_line"]
- bear=lambda x:x["macd_line"]<x["signal_line"]
- improve=lambda x:x["histogram_rising"] or x["near_cross"]
- weaken=lambda x:x["histogram_falling"] and x["zero_zone"]=="零轴上"
- if buy_trigger and bull(w) and bull(m):return _result("buy",25,"大周期→小周期",["完整月线多头","完整周线多头","日线零轴下新金叉"])
- if sell_trigger and bear(w) and bear(m):return _result("sell",25,"大周期→小周期",["完整月线空头","完整周线空头","日线零轴上新死叉"])
- if buy_trigger and improve(w) and not bear(m):return _result("buy",18,"小周期→大周期",["日线零轴下新金叉","完整周线动能改善","完整月线未反向"])
- if sell_trigger and weaken(w) and not bull(m):return _result("sell",18,"小周期→大周期",["日线零轴上新死叉","完整周线动能转弱","完整月线未反向"])
- return _result(evidence=["缺少日线有效触发，或完整周/月方向未确认"])
+ fresh_buy=lambda x:x["bars_since_cross"] is not None and x["bars_since_cross"]<=3 and x["macd_line"]>x["signal_line"]
+ fresh_sell=lambda x:x["bars_since_dead_cross"] is not None and x["bars_since_dead_cross"]<=3 and x["dead_cross_zero_zone"]=="零轴上" and x["zero_zone"]=="零轴上"
+ d_buy=35 if fresh_buy(d) and d["cross_zero_zone"]=="零轴下" else 25 if fresh_buy(d) and d["cross_zero_zone"]=="穿越零轴" else 18 if fresh_buy(d) else 16 if d["zero_zone"]=="零轴下" and (d["near_cross"] or d["negative_histogram_shrinking"]) else 0
+ w_buy=25 if fresh_buy(w) and w["cross_zero_zone"]=="零轴下" else 20 if w["macd_line"]>w["signal_line"] and w["zero_zone"]=="零轴下" else 16 if w["zero_zone"]=="零轴下" and (w["near_cross"] or w["negative_histogram_shrinking"]) else 12 if w["macd_line"]>w["signal_line"] else 0
+ m_buy=20 if m["zero_zone"]=="零轴下" and (m["near_cross"] or m["negative_histogram_shrinking"]) else 18 if m["macd_line"]>m["signal_line"] and m["zero_zone"]=="零轴下" else 12 if m["macd_line"]>m["signal_line"] else 10 if m["zero_zone"]=="零轴下" and m["histogram_rising"] else 0
+ buy_rank=d_buy+w_buy+m_buy+(10 if d_buy and w_buy and m_buy else 0)
+ d_sell=35 if fresh_sell(d) else 18 if d["zero_zone"]=="零轴上" and d["histogram_falling"] and d["macd_line"]<d["signal_line"] else 0
+ w_sell=25 if fresh_sell(w) else 18 if w["zero_zone"]=="零轴上" and w["histogram_falling"] else 12 if w["zero_zone"]=="零轴上" and w["macd_line"]<w["signal_line"] else 0
+ m_sell=20 if m["zero_zone"]=="零轴上" and m["histogram_falling"] else 12 if m["zero_zone"]=="零轴上" and m["macd_line"]<m["signal_line"] else 0
+ sell_rank=d_sell+w_sell+m_sell+(10 if d_sell and w_sell and m_sell else 0)
+ if buy_rank>=44 and d_buy>=16:
+  stage="小周期→大周期" if (w["zero_zone"]=="零轴下" and w["macd_line"]<=w["signal_line"]) or (m["zero_zone"]=="零轴下" and m["macd_line"]<=m["signal_line"]) else "大周期→小周期"
+  return _result("buy",min(25,round(buy_rank/4)),stage,[f"日线触发 {d_buy}分",f"周线确认 {w_buy}分",f"月线环境 {m_buy}分"],rank_score=buy_rank)
+ if sell_rank>=44 and d_sell>=18:return _result("sell",min(25,round(sell_rank/4)),"大周期→小周期",[f"日线触发 {d_sell}分",f"周线确认 {w_sell}分",f"月线环境 {m_sell}分"],rank_score=sell_rank)
+ return _result(evidence=["尚未达到MACD方向＋时机最低门槛"],rank_score=max(buy_rank,sell_rank))
 
 def rsi_layer(frames):
  d,w,m=(frames[x] for x in ("日线","周线","月线"))
