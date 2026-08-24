@@ -1,5 +1,5 @@
 import unittest
-from services.scanner.macd_factor_backtest import completed_groups,daily_pattern_flags,ema,features,kline_congestion_support,outcome,stats,three_push_breakout,volume_profile_support
+from services.scanner.macd_factor_backtest import completed_groups,daily_pattern_flags,ema,features,full_chip_congestion_support,kline_congestion_support,outcome,stats,three_push_breakout,volume_profile_support
 
 class MacdFactorBacktestTests(unittest.TestCase):
  def test_completed_period_excludes_current_bucket(self):
@@ -79,5 +79,11 @@ class MacdFactorBacktestTests(unittest.TestCase):
   rows[220].update(high=112,close=110)
   before=volume_profile_support(rows,250);rows[260].update(high=999,low=1,close=500,volume=999999999)
   self.assertEqual(before,volume_profile_support(rows,250))
+ def test_full_chip_congestion_requires_both_confirmations(self):
+  rows=[{"date":f"D{i}","open":100,"high":101,"low":99,"close":100,"volume":1000} for i in range(251)]
+  rows[220].update(high=112,close=110);rows[250].update(close=100)
+  self.assertTrue(full_chip_congestion_support(rows,250))
+  for i in range(40):rows[i].update(close=70,high=71,low=69,volume=100000)
+  self.assertFalse(full_chip_congestion_support(rows,250))
 
 if __name__=="__main__":unittest.main()
