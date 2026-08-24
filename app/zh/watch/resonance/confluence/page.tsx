@@ -1,0 +1,4 @@
+"use client";
+import {periods,TrackerShell,useTracker} from "../tracker-ui";
+export default function Confluence(){const data=useTracker();return <TrackerShell active="双指标确认" title="双指标确认" subtitle="当前MACD结构有效，并同时出现新鲜RSI底背离。">{data&&<section className="rtStrict rtPriorityOne"><div className="rtSectionTitle"><div><p>优先复核</p><h2>当前共 {data.combined_top10.length} 只候选</h2></div><span>不是自动买入信号</span></div><div className="rtStrictGrid">{data.combined_top10.map(x=><article key={x.symbol}><header><mark>MACD ＋ RSI</mark><b>{x.symbol}</b><strong>{x.combined_score}分</strong></header><p>{x.macd_gate_reason}</p><div className="rtAuditStrip">{periods.map(period=><span key={period}><small>{period} MACD</small><b>{x.frames[period].macd}</b></span>)}</div><footer><span>RSI：{x.rsi_divergence_frames.join("、")}出现底背离</span><span>成交量：{x.volume.label}</span></footer></article>)}</div></section>}</TrackerShell>}
+
