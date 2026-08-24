@@ -63,6 +63,8 @@ def features(side,d,w,m):
  above=lambda x:x["zero_zone"]=="零轴上"
  if side=="buy":
   flags={"日线零轴下金叉":d["cross_zero_zone"]=="零轴下","日线金叉＋周线MACD多头":bullish(w),"日线金叉＋周线零轴下多头":bullish(w) and below(w),"日线金叉＋月线MACD多头":bullish(m),"日线金叉＋月线零轴下改善":below(m) and (m["negative_histogram_shrinking"] or m["near_cross"]),"日线金叉＋周月同时支持":bullish(w) and (bullish(m) or (below(m) and m["histogram_rising"]))}
+  base=flags["日线零轴下金叉"]
+  flags.update({"基准＋周线能量改善":base and w["histogram_rising"],"基准＋周线准备金叉":base and w["near_cross"],"基准＋周线已经多头":base and bullish(w),"基准＋月线能量改善":base and m["histogram_rising"],"基准＋月线准备金叉":base and m["near_cross"],"基准＋月线已经多头":base and bullish(m)})
  else:
   flags={"日线零轴上死叉":d["dead_cross_zero_zone"]=="零轴上","日线死叉＋周线MACD空头":not bullish(w),"日线死叉＋周线零轴上空头":not bullish(w) and above(w),"日线死叉＋月线MACD空头":not bullish(m),"日线死叉＋月线零轴上转弱":above(m) and m["histogram_falling"],"日线死叉＋周月同时转弱":not bullish(w) and (not bullish(m) or (above(m) and m["histogram_falling"]))}
  keys=list(flags)
@@ -134,6 +136,18 @@ def summarize(events):
     for h in HORIZONS:rows.append({"side":side,"regime":regime,"regime_label":"全部市场" if regime=="all" else REGIME_LABELS[regime],"factor":name,"horizon":h,**stats(selected,h)})
  return rows
 
+def incremental_report(splits):
+ factors=("基准＋周线能量改善","基准＋周线准备金叉","基准＋周线已经多头","基准＋月线能量改善","基准＋月线准备金叉","基准＋月线已经多头")
+ def find(split,factor):return next(x for x in splits[split] if x["side"]=="buy" and x["regime"]=="both_bear" and x["factor"]==factor and x["horizon"]==20)
+ baseline={split:find(split,"日线零轴下金叉") for split in SPLITS};out=[]
+ for factor in factors:
+  stages={split:find(split,factor) for split in SPLITS};deltas={split:{"win_rate":round(stages[split]["win_rate"]-baseline[split]["win_rate"],1),"trimmed_mean_return":round(stages[split]["trimmed_mean_return"]-baseline[split]["trimmed_mean_return"],2),"sample_retention":round(stages[split]["samples"]/baseline[split]["samples"]*100,1)} for split in SPLITS}
+  positive=sum(deltas[x]["win_rate"]>0 and deltas[x]["trimmed_mean_return"]>0 for x in SPLITS)
+  enough=stages["validation"]["samples"]>=100 and stages["forward"]["samples"]>=30
+  verdict="样本不足" if not enough else "有效加分" if positive==3 else "可能有效，继续观察" if positive>=2 and deltas["development"]["win_rate"]>=0 else "没有提升" if positive>=1 else "反而削弱"
+  out.append({"factor":factor,"baseline":baseline,"stages":stages,"deltas":deltas,"verdict":verdict})
+ out.sort(key=lambda x:(x["verdict"]=="有效加分",min(x["deltas"][s]["win_rate"] for s in SPLITS),x["stages"]["validation"]["samples"]),reverse=True);return out
+
 def run(out="public/macd-factor-backtest.json",limit=None):
  cache=pathlib.Path("work/eodhd-cache");regimes=market_regimes(cache);paths=sorted(cache.glob("*.json"));paths=paths[:limit] if limit else paths;events=[];loaded=0;starts=[];ends=[];row_counts=[]
  for path in paths:
@@ -152,7 +166,7 @@ def run(out="public/macd-factor-backtest.json",limit=None):
  candidates.sort(key=lambda x:(x["status"]=="forward_supportive",x["validation"]["win_rate"],x["validation"]["trimmed_mean_return"],x["validation"]["samples"]),reverse=True)
  bearish_comparison=[x for x in splits["validation"] if x["side"]=="sell" and x["factor"]=="日线零轴上死叉" and x["horizon"]==5]
  trigger_counts={name:sum(x["trigger"]==name for x in events) for name in ("日线","周线","月线")}
- report={"status":"research_only","execution":"日/周/月信号均在对应K线完整收盘后确认，下一交易日复权开盘价进入；5/10/20日均指交易日（日K），用于统一比较","lookahead":"周线和月线只在周期完整结束后使用；SPY/QQQ环境只使用信号日已收盘数据","market_regime":{"definition":"分别比较SPY、QQQ收盘价与各自EMA200","labels":REGIME_LABELS},"universe":{"history_files":len(paths),"eligible":loaded,"events":len(events),"trigger_counts":trigger_counts,"event_filter":"信号日股价≥5美元且成交额≥1000万美元","history_earliest":min(starts),"history_latest":max(ends),"median_daily_bars":round(statistics.median(row_counts))},"splits":splits,"validated_combinations":candidates[:30],"bearish_regime_comparison":bearish_comparison,"warning":"只研究MACD周期结构与SPY/QQQ市场环境；不混入其他指标。"}
+ report={"status":"research_only","execution":"日/周/月信号均在对应K线完整收盘后确认，下一交易日复权开盘价进入；5/10/20日均指交易日（日K），用于统一比较","lookahead":"周线和月线只在周期完整结束后使用；SPY/QQQ环境只使用信号日已收盘数据","market_regime":{"definition":"分别比较SPY、QQQ收盘价与各自EMA200","labels":REGIME_LABELS},"universe":{"history_files":len(paths),"eligible":loaded,"events":len(events),"trigger_counts":trigger_counts,"event_filter":"信号日股价≥5美元且成交额≥1000万美元","history_earliest":min(starts),"history_latest":max(ends),"median_daily_bars":round(statistics.median(row_counts))},"splits":splits,"validated_combinations":candidates[:30],"incremental_tests":incremental_report(splits),"bearish_regime_comparison":bearish_comparison,"warning":"只研究MACD周期结构与SPY/QQQ市场环境；不混入其他指标。"}
  pathlib.Path(out).write_text(json.dumps(report,ensure_ascii=False,indent=2));return report
 
 if __name__=="__main__":
