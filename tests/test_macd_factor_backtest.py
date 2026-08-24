@@ -31,6 +31,10 @@ class MacdFactorBacktestTests(unittest.TestCase):
   forward,_,excess=outcome(rows,0,"buy",{"SPY":spy,"QQQ":spy})
   self.assertAlmostEqual(forward[5],.25)
   self.assertAlmostEqual(excess["SPY"][5],.15)
+ def test_long_horizon_outcome_keeps_available_months(self):
+  rows=[{"date":f"D{i}","open":10,"high":11,"low":9,"close":10+i*.1} for i in range(101)]
+  forward,_,_=outcome(rows,0,"buy",horizons=(20,60,120))
+  self.assertEqual(set(forward),{20,60})
  def test_pattern_flags_do_not_read_future_bars(self):
   rows=[{"date":f"D{i}","open":100,"high":101,"low":99,"close":100.2,"volume":1000} for i in range(220)]
   first=daily_pattern_flags(rows,180);rows[210].update(high=999,low=1,close=500)

@@ -11,6 +11,8 @@ from .resonance_tracker import bullish_divergence,macd
 from .technical import atr,rsi
 
 HORIZONS=(5,10,20,40,60,100)
+HIGHER_TIMEFRAME_HORIZONS=(5,10,20,40,60,80,100,120)
+REPORT_HORIZONS=tuple(sorted(set(HORIZONS+HIGHER_TIMEFRAME_HORIZONS)))
 SPLITS={"development":("0000-01-01","2024-12-31"),"validation":("2025-01-01","2025-12-31"),"forward":("2026-01-01","9999-12-31")}
 REGIME_LABELS={"both_bull":"SPY与QQQ均在EMA200上","mixed":"SPY与QQQ方向不一致","both_bear":"SPY与QQQ均在EMA200下"}
 PATTERN_FACTORS=("长期趋势合格＋日线金叉＋K线聚集区","长期趋势合格＋日线金叉＋底部Doji","长期趋势合格＋日线金叉＋底部Bullish Engulfing","长期趋势合格＋日线金叉＋双底突破","长期趋势合格＋日线金叉＋趋势线三推突破","长期趋势合格＋日线金叉＋RSI底背离")
@@ -89,12 +91,16 @@ def kline_congestion_support(rows,end,lookback=250,band=.03,min_share=.15,min_pu
  recent_high=max(x["high"] for x in rows[max(0,end-60):end])
  return clustered and current<=recent_high*(1-min_pullback)
 
+def long_trend_ok(rows,end):
+ closes=[x["close"] for x in rows[:end+1]];long_average=ema(closes,200)
+ return end>=260 and closes[end]>=long_average[end]*.90 and long_average[end]>=long_average[end-60]*.97
+
 def daily_pattern_flags(rows,end):
  """Price/RSI confirmations visible at the daily MACD-cross close."""
  start=max(0,end-180);window=rows[start:end+1];w=detect_w_bottom(window,len(window)-1,TECHNICAL_CONFIG)
  double_bottom=w.detected and detect_bos(window,len(window)-1,w.levels["neckline"],TECHNICAL_CONFIG).detected
  values=rsi([x["close"] for x in window])
- closes=[x["close"] for x in rows[:end+1]];long_average=ema(closes,200);trend_ok=end>=260 and closes[end]>=long_average[end]*.90 and long_average[end]>=long_average[end-60]*.97
+ trend_ok=long_trend_ok(rows,end)
  recent=rows[max(1,end-4):end+1];range60=rows[max(0,end-59):end+1];low60=min(x["low"] for x in range60);high60=max(x["high"] for x in range60);bottom_limit=low60+(high60-low60)*.30
  bottom_doji=any(max(x["open"],x["close"])<=bottom_limit and abs(x["close"]-x["open"])/max(x["high"]-x["low"],1e-9)<=TECHNICAL_CONFIG["retest"]["doji_body_fraction"] for x in recent)
  bottom_engulf=False
@@ -121,9 +127,10 @@ def features(side,d,w,m):
  flags["日周月完整组合"]=flags[keys[0]] and flags[keys[2]] and flags[keys[4]]
  return flags
 
-def outcome(rows,i,side,benchmarks=None):
+def outcome(rows,i,side,benchmarks=None,horizons=HORIZONS):
  entry=rows[i+1]["open"];forward={};mae={};excess={"SPY":{},"QQQ":{}}
- for h in HORIZONS:
+ for h in horizons:
+  if i+h>=len(rows):continue
   ret=rows[i+h]["close"]/entry-1;path=rows[i+1:i+h+1]
   adverse=min(x["low"]/entry-1 for x in path) if side=="buy" else min(entry/x["high"]-1 for x in path)
   forward[h]=ret if side=="buy" else -ret;mae[h]=adverse
@@ -158,22 +165,24 @@ def higher_timeframe_events(symbol,rows,regimes,benchmarks,listing_status="unkno
   for j in range(35,len(groups)-1):
    if not (line[j]>signal[j] and line[j-1]<=signal[j-1]):continue
    bar=groups[j][1];i=date_index.get(bar["date"])
-   if i is None or i+max(HORIZONS)>=len(rows) or bar["date"] not in regimes:continue
+   if i is None or i+20>=len(rows) or bar["date"] not in regimes:continue
    if rows[i]["close"]<5 or rows[i]["close"]*rows[i]["volume"]<10_000_000:continue
    state=macd_state([x[1] for x in groups[max(0,j-120):j+1]]);below=state["cross_zero_zone"]=="零轴下";d=macd_state(rows[max(0,i-180):i+1])
    if trigger=="周线":
     day=datetime.strptime(bar["date"],"%Y-%m-%d").date();mr=available(monthly,(day.year,day.month))
     if len(mr)<35:continue
     m=macd_state(mr[-120:]);monthly_bull=m["macd_line"]>m["signal_line"]
-    flags={"周线零轴下金叉":below,"周线金叉＋月线多头":monthly_bull,"周线零轴下金叉＋月线改善":below and m["zero_zone"]=="零轴下" and (m["negative_histogram_shrinking"] or m["near_cross"])}
+    trend_ok=long_trend_ok(rows,i);congestion=kline_congestion_support(rows,i)
+    flags={"周线金叉":True,"长期趋势合格＋周线金叉":trend_ok,"长期趋势合格＋周线金叉＋K线聚集区":trend_ok and congestion,"周线零轴下金叉":below,"周线金叉＋月线多头":monthly_bull,"周线零轴下金叉＋月线改善":below and m["zero_zone"]=="零轴下" and (m["negative_histogram_shrinking"] or m["near_cross"])}
    else:
     completed_weekly=[x[1] for x in weekly if x[1]["date"]<=bar["date"]];w=macd_state(completed_weekly[-160:]);weekly_bull=w["macd_line"]>w["signal_line"];daily_bull=d["macd_line"]>d["signal_line"]
-    flags={"月线零轴下金叉":below,"月线金叉＋周线多头":weekly_bull,"月线金叉＋日周多头":weekly_bull and daily_bull}
-   forward,mae,excess=outcome(rows,i,"buy",benchmarks);events.append({"symbol":symbol,"listing_status":listing_status,"date":bar["date"],"side":"buy","trigger":trigger,"regime":regimes[bar["date"]],"features":flags,"forward":forward,"mae":mae,"excess":excess})
+    trend_ok=long_trend_ok(rows,i);congestion=kline_congestion_support(rows,i)
+    flags={"月线金叉":True,"长期趋势合格＋月线金叉":trend_ok,"长期趋势合格＋月线金叉＋K线聚集区":trend_ok and congestion,"月线零轴下金叉":below,"月线金叉＋周线多头":weekly_bull,"月线金叉＋日周多头":weekly_bull and daily_bull}
+   forward,mae,excess=outcome(rows,i,"buy",benchmarks,HIGHER_TIMEFRAME_HORIZONS);events.append({"symbol":symbol,"listing_status":listing_status,"date":bar["date"],"side":"buy","trigger":trigger,"regime":regimes[bar["date"]],"features":flags,"forward":forward,"mae":mae,"excess":excess})
  return events
 
 def stats(events,horizon):
- vals=[x["forward"][horizon] for x in events];mae=[x["mae"][horizon] for x in events]
+ events=[x for x in events if horizon in x["forward"]];vals=[x["forward"][horizon] for x in events];mae=[x["mae"][horizon] for x in events]
  if not vals:return {"samples":0,"win_rate":None,"mean_return":None,"trimmed_mean_return":None,"median_return":None,"mean_adverse":None,"spy_excess_return":None,"qqq_excess_return":None,"beat_spy_rate":None,"beat_qqq_rate":None}
  ordered=sorted(vals);trim=max(1,len(vals)//100);trimmed=ordered[trim:-trim] if len(vals)>2*trim else ordered
  benchmark_stats={}
@@ -191,7 +200,7 @@ def summarize(events):
    base=side_events if regime=="all" else [x for x in side_events if x["regime"]==regime]
    for name in ["全部交叉",*names]:
     selected=base if name=="全部交叉" else [x for x in base if x["features"].get(name)]
-    for h in HORIZONS:rows.append({"side":side,"regime":regime,"regime_label":"全部市场" if regime=="all" else REGIME_LABELS[regime],"factor":name,"horizon":h,**stats(selected,h)})
+    for h in REPORT_HORIZONS:rows.append({"side":side,"regime":regime,"regime_label":"全部市场" if regime=="all" else REGIME_LABELS[regime],"factor":name,"horizon":h,**stats(selected,h)})
  return rows
 
 def incremental_report(splits):
@@ -215,6 +224,18 @@ def monthly_horizon_report(splits):
    stages={split:next(x for x in splits[split] if x["side"]=="buy" and x["regime"]==regime and x["factor"]==factor and x["horizon"]==horizon) for split in SPLITS}
    horizons.append({"horizon":horizon,"stages":stages})
   out.append({"factor":factor,"label":label,"regime":regime,"horizons":horizons})
+ return out
+
+def higher_timeframe_support_report(splits):
+ """Weekly/monthly bullish crosses with the same daily long-trend and congestion gates."""
+ out=[]
+ for trigger in ("周线","月线"):
+  factors=(f"{trigger}金叉",f"长期趋势合格＋{trigger}金叉",f"长期趋势合格＋{trigger}金叉＋K线聚集区")
+  horizons=[]
+  for horizon in (20,40,60,80,100,120):
+   stages={split:{factor:next(x for x in splits[split] if x["side"]=="buy" and x["regime"]=="all" and x["factor"]==factor and x["horizon"]==horizon) for factor in factors} for split in SPLITS}
+   horizons.append({"horizon":horizon,"stages":stages})
+  out.append({"trigger":trigger,"factors":factors,"horizons":horizons})
  return out
 
 def pattern_incremental_report(splits):
@@ -251,7 +272,7 @@ def run(out="public/macd-factor-backtest.json",limit=None):
  candidates.sort(key=lambda x:(x["status"]=="forward_supportive",x["validation"]["win_rate"],x["validation"]["trimmed_mean_return"],x["validation"]["samples"]),reverse=True)
  bearish_comparison=[x for x in splits["validation"] if x["side"]=="sell" and x["factor"]=="日线零轴上死叉" and x["horizon"]==5]
  trigger_counts={name:sum(x["trigger"]==name for x in events) for name in ("日线","周线","月线")}
- event_status={status:sum(x["listing_status"]==status for x in events) for status in ("active","delisted","unknown")};report={"status":"research_only","execution":"日/周/月信号均在对应K线完整收盘后确认，下一交易日复权开盘价进入；5/10/20/40/60/100日均指交易日（日K），用于统一比较","lookahead":"周线和月线只在周期完整结束后使用；SPY/QQQ环境只使用信号日已收盘数据","market_regime":{"definition":"分别比较SPY、QQQ收盘价与各自EMA200","labels":REGIME_LABELS},"universe":{"history_files":len(paths),"eligible":loaded,"events":len(events),"trigger_counts":trigger_counts,"listing_status_histories":history_status,"listing_status_events":event_status,"event_filter":"信号日股价≥5美元且成交额≥1000万美元","history_earliest":min(starts),"history_latest":max(ends),"median_daily_bars":round(statistics.median(row_counts))},"pattern_trend_gate":{"plain":"只保留信号日当时长期上涨或横盘的股票","rule":"收盘价不低于EMA200的90%，且EMA200过去60个交易日跌幅不超过3%","future_listing_status_used":False},"splits":splits,"validated_combinations":candidates[:30],"incremental_tests":incremental_report(splits),"monthly_horizon_tests":monthly_horizon_report(splits),"pattern_incremental_tests":pattern_incremental_report(splits),"bearish_regime_comparison":bearish_comparison,"warning":"长持有期事件会重叠，胜率也会受到美股长期上涨漂移影响，不能直接视为独立交易胜率。形态组合只使用信号日当时已经确认的数据，不改变MACD本身。退市身份只用于覆盖审计，不参与信号筛选。"}
+ event_status={status:sum(x["listing_status"]==status for x in events) for status in ("active","delisted","unknown")};report={"status":"research_only","execution":"日/周/月信号均在对应K线完整收盘后确认，下一交易日复权开盘价进入；5至120日均指交易日（日K），用于统一比较","lookahead":"周线和月线只在周期完整结束后使用；SPY/QQQ环境只使用信号日已收盘数据","market_regime":{"definition":"分别比较SPY、QQQ收盘价与各自EMA200","labels":REGIME_LABELS},"universe":{"history_files":len(paths),"eligible":loaded,"events":len(events),"trigger_counts":trigger_counts,"listing_status_histories":history_status,"listing_status_events":event_status,"event_filter":"信号日股价≥5美元且成交额≥1000万美元","history_earliest":min(starts),"history_latest":max(ends),"median_daily_bars":round(statistics.median(row_counts))},"pattern_trend_gate":{"plain":"只保留信号日当时长期上涨或横盘的股票","rule":"收盘价不低于EMA200的90%，且EMA200过去60个交易日跌幅不超过3%","future_listing_status_used":False},"splits":splits,"validated_combinations":candidates[:30],"incremental_tests":incremental_report(splits),"monthly_horizon_tests":monthly_horizon_report(splits),"higher_timeframe_support_tests":higher_timeframe_support_report(splits),"pattern_incremental_tests":pattern_incremental_report(splits),"bearish_regime_comparison":bearish_comparison,"warning":"长持有期事件会重叠，胜率也会受到美股长期上涨漂移影响，不能直接视为独立交易胜率。形态组合只使用信号日当时已经确认的数据，不改变MACD本身。退市身份只用于覆盖审计，不参与信号筛选。"}
  pathlib.Path(out).write_text(json.dumps(report,ensure_ascii=False,indent=2));return report
 
 if __name__=="__main__":
