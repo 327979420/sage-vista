@@ -208,7 +208,8 @@ def run(out="public/resonance-tracker.json",as_of=None):
   if new[-1]["adjusted_close"]<5 or new[-1]["adjusted_close"]*new[-1]["volume"]<10_000_000:continue
   cache=pathlib.Path("work/eodhd-cache")/f"{symbol}.json"
   if not cache.exists():continue
-  raw=json.loads(cache.read_text());known={x["date"] for x in raw};raw.extend(x for x in new if x["date"] not in known);raw.sort(key=lambda x:x["date"]);raw=[x for x in raw if x["date"]<=latest][-2200:]
+  raw=json.loads(cache.read_text());known={x["date"] for x in raw};added=[x for x in new if x["date"] not in known];raw.extend(added);raw.sort(key=lambda x:x["date"]);raw=[x for x in raw if x["date"]<=latest][-2200:]
+  if added:cache.write_text(json.dumps(raw))
   adjusted=[]
   for x in raw:
    if not x.get("close") or not x.get("adjusted_close"):continue

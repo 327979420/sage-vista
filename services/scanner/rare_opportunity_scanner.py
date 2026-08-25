@@ -48,7 +48,7 @@ def run(out="public/rare-opportunity-radar.json",as_of=None):
   if symbol not in active or symbol not in bulk_map:continue
   raw=json.loads(path.read_text());today=bulk_map[symbol]
   if today.get("adjusted_close") and today.get("close") and today.get("open") and today.get("volume") is not None:
-   if not any(x.get("date")==today.get("date") for x in raw):raw.append(today)
+   if not any(x.get("date")==today.get("date") for x in raw):raw.append(today);raw.sort(key=lambda x:x["date"]);path.write_text(json.dumps(raw))
   rows=adjusted_rows(raw);scanned+=1
   if len(rows)<420 or rows[-1]["date"]!=latest:continue
   current=rows[-1]

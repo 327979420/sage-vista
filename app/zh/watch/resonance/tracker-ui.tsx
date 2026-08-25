@@ -10,7 +10,7 @@ type RankingMethod={name:string;version:string;order:string[];score:string;warni
 export type Report={as_of:string;universe:{cached:number;eligible:number};ruleset:{version:string;timeframes:{direction:string[];timing:string};policy:string};consistency_audit:{ranking_digest:string;details_cover_all_published:boolean;duplicate_symbols:boolean;completed_higher_timeframes_only:boolean};details:Record<string,Detail>;ranking_method:RankingMethod;multi_confluence_top10:Item[];bullish_watch_top10:Item[];bearish_watch_top10:Item[];four_layer_bullish:Item[];four_layer_bearish:Item[];combined_top10:Item[];macd_top10:Item[];macd_buy_top10:Item[];macd_sell_top10:Item[];rsi_top10:Item[];volume_top10:Item[]};
 export const periods=["日线","周线","月线"];
 export const modules=[
- ["总览","/zh/watch/resonance"],["MACD","/zh/watch/resonance/macd"],["MACD研究","/zh/watch/resonance/research"],["双指标确认","/zh/watch/resonance/confluence"],["RSI","/zh/watch/resonance/rsi"],["成交量","/zh/watch/resonance/volume"],
+ ["总览","/zh/watch/resonance"],["MACD","/zh/watch/resonance/macd"],["多因子雷达","/zh/watch/resonance/rare-opportunities"],["MACD研究","/zh/watch/resonance/research"],["双指标确认","/zh/watch/resonance/confluence"],["RSI","/zh/watch/resonance/rsi"],["成交量","/zh/watch/resonance/volume"],
 ] as const;
 export function useTracker(){const [data,setData]=useState<Report|null>(null);useEffect(()=>{fetch("/resonance-tracker.json").then(x=>x.json()).then(setData)},[]);return data}
 export function TrackerShell({active,title,subtitle,children}:{active:string;title:string;subtitle:string;children:ReactNode}){
