@@ -34,6 +34,24 @@ class TrackerOutputContractTests(unittest.TestCase):
         self.assertEqual(tracker["as_of"], radar["as_of"])
         self.assertFalse(radar["scan"]["future_data_used"])
 
+    def test_factor_registry_is_versioned_and_safe(self):
+        from services.scanner.factor_registry import FACTORS, validate_registry
+
+        self.assertTrue(validate_registry())
+        self.assertGreaterEqual(len(FACTORS), 20)
+        self.assertEqual(len({factor.id for factor in FACTORS}), len(FACTORS))
+        self.assertFalse(any(factor.score_mode == "official" and factor.status != "validated" for factor in FACTORS))
+
+    def test_transitional_radar_score_is_observational_only(self):
+        from services.scanner.rare_opportunity_scanner import COMPONENTS, score_observation
+
+        result = score_observation(COMPONENTS[:5])
+        self.assertEqual(result["official_score"], 0)
+        self.assertEqual(result["observational_score"], 5)
+        self.assertEqual(result["total_score"], 5)
+        self.assertEqual(len(result["important_misses"]), 1)
+        self.assertEqual(len(result["factor_ids"]), 5)
+
 
 if __name__ == "__main__":
     unittest.main()
