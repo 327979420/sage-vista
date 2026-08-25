@@ -7,10 +7,10 @@ const sections=[
 ];
 
 export default function About(){
- return <TrackerShell active="功能介绍" title="如何使用 Northstar" subtitle="一个可解释、可人工复核的美股 MACD 日终研究工具。">
+ return <TrackerShell active="功能介绍" title="如何使用 Sage Vista" subtitle="一个可解释、可人工复核的美股 MACD 日终研究工具。">
   <section className="rtAboutLead">
    <div><small>使用原则</small><h2>先确认数据，再看机会；先核验证据，再谈结论。</h2></div>
-   <p>Northstar 不自动下单，也不把规则匹配分数包装成胜率。所有信号只使用当时已经完整收盘的数据；历史回测按下一交易日复权开盘价进入。</p>
+   <p>Sage Vista 不自动下单，也不把规则匹配分数包装成胜率。所有信号只使用当时已经完整收盘的数据；历史回测按下一交易日复权开盘价进入。</p>
   </section>
   <section className="rtAboutSteps">{sections.map(x=><article key={x.number}><small>{x.number}</small><h2>{x.title}</h2><p>{x.body}</p></article>)}</section>
   <section className="rtAboutGrid">

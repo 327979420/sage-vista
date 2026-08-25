@@ -2,7 +2,7 @@ import json,os,time,urllib.error,urllib.parse,urllib.request
 from datetime import date,timedelta
 from pathlib import Path
 
-BASE="https://eodhd.com/api";HEAD={"User-Agent":"NorthstarResearch/0.1","Accept":"application/json"}
+BASE="https://eodhd.com/api";HEAD={"User-Agent":"SageVistaResearch/0.1","Accept":"application/json"}
 def token():
     value=os.environ.get("EODHD_API_TOKEN","")
     if not value:

@@ -1,1 +1,1 @@
-"""Deterministic Northstar technical research engine."""
+"""Deterministic Sage Vista technical research engine."""

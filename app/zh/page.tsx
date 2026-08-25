@@ -92,7 +92,7 @@ export default function ChineseResearch() {
     <main className="zhdash">
       <header className="zhhero">
         <div>
-          <p className="label">NORTHSTAR / 中文因子研究</p>
+          <p className="label">SAGE VISTA / 中文因子研究</p>
           <h1>
             我们在验证规则，
             <br />

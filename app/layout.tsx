@@ -13,23 +13,23 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Northstar — Quantitative Equity Research",
+  title: "Sage Vista — Quantitative Equity Research",
   description: "A private, explainable US equity signal board.",
   openGraph: {
-    title: "Northstar — US Equity Signals",
+    title: "Sage Vista — US Equity Signals",
     description: "Explainable quantitative research for a 1–4 week horizon.",
     images: [
       {
         url: "/og.png",
         width: 1200,
         height: 630,
-        alt: "Northstar US Equity Signals",
+        alt: "Sage Vista US Equity Signals",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Northstar — US Equity Signals",
+    title: "Sage Vista — US Equity Signals",
     description: "Explainable quantitative research.",
     images: ["/og.png"],
   },

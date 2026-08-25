@@ -1,4 +1,4 @@
-# Northstar technical strategy v0.1
+# Sage Vista technical strategy v0.1
 
 This is a deterministic research specification, not investment advice and not an execution system.
 

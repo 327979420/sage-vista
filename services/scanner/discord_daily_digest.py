@@ -36,7 +36,7 @@ def build_payload(tracker,radar,site=DEFAULT_SITE,minimum_rare_score=5):
  rare=[x for x in radar.get("signals",[]) if x.get("total_score",x.get("score",0))>=minimum_rare_score]
  embeds=[rare_embed(x,site) for x in rare[:8]]
  embeds.append({"title":f"MACD 日榜 · {tracker['as_of']}","url":f"{site}/zh/watch/resonance/macd","color":5263264,"description":"每日完整收盘后的同源榜单；旧信号和失效信号不会重新包装。","fields":[{"name":"看涨榜","value":compact_list(tracker.get("macd_buy_top10",[]))[:1024],"inline":True},{"name":"看跌榜","value":compact_list(tracker.get("macd_sell_top10",[]))[:1024],"inline":True}],"footer":{"text":"研究提醒，不是自动买入"}})
- return {"content":f"**Northstar 日终研究播报 · {tracker['as_of']}**","embeds":embeds,"allowed_mentions":{"parse":[]}},rare
+ return {"content":f"**Sage Vista 日终研究播报 · {tracker['as_of']}**","embeds":embeds,"allowed_mentions":{"parse":[]}},rare
 
 def digest(value):return hashlib.sha256(json.dumps(value,ensure_ascii=False,sort_keys=True).encode()).hexdigest()[:16]
 
@@ -46,7 +46,7 @@ def notification_keys(tracker,rare):
  return keys
 
 def post(webhook,payload):
- request=urllib.request.Request(webhook,data=json.dumps(payload,ensure_ascii=False).encode(),headers={"Content-Type":"application/json","User-Agent":"NorthstarResearch/0.2"},method="POST")
+ request=urllib.request.Request(webhook,data=json.dumps(payload,ensure_ascii=False).encode(),headers={"Content-Type":"application/json","User-Agent":"SageVistaResearch/0.2"},method="POST")
  with urllib.request.urlopen(request,timeout=30) as response:
   if response.status not in (200,204):raise RuntimeError(f"Discord returned HTTP {response.status}")
 

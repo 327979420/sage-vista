@@ -1807,7 +1807,7 @@ nav {
   }
 }
 
-/* Northstar information architecture: concise first viewport and one shared guide. */
+/* Sage Vista information architecture: concise first viewport and one shared guide. */
 .rtTodayBrief { display: grid; grid-template-columns: .8fr .8fr 1.4fr 1fr; gap: 10px; margin: 24px 0 14px; }
 .rtTodayBrief article { min-width: 0; padding: 18px; border: 1px solid #dce5df; border-radius: 16px; background: #fff; }
 .rtTodayBrief article.isHealthy { border-color: #c9dfd2; background: #edf7f1; }
@@ -3433,3 +3433,15 @@ body:has(.rtPage) { background:#f3f5f8; color:#172033; }
 .rareScoreDial strong,.rareScoreDial small { grid-area:auto; transform:none; }
 .rareScoreDial strong { margin:0; font-size:32px; line-height:.95; letter-spacing:-.06em; }
 .rareScoreDial small { margin-top:5px; color:#b8c3d4; font-size:10px; font-weight:750; letter-spacing:.08em; }
+
+/* Sage Vista contrast pass: compact research text stays readable on pale surfaces. */
+.rareFactorLibrary>header p,.rareExamples>header p { color:#4e5b70; }
+.rareFactorFamilies article p { color:#46536a; font-size:12px; line-height:1.6; }
+.rareFactorFamilies article footer span { background:#e9edf3; color:#46536a; font-size:10px; }
+.rareLegacy summary { color:#3f4d63; }
+.rareLegacy div { color:#4b586d; font-size:12px; }
+.rareExampleCard header small { color:#536077; font-size:10px; }
+.rareExampleCard header mark small { color:#52627a; font-size:9px; }
+.rareExamplePrice span { color:#526077; font-size:10px!important; }
+.rareExampleReturns small { color:#526077; font-size:10px; }
+.rareExampleTags span { background:#e8edf3!important; color:#46536a; font-size:9px!important; font-weight:700; }

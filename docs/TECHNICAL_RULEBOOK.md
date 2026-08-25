@@ -1,4 +1,4 @@
-# Northstar Technical Rulebook
+# Sage Vista Technical Rulebook
 
 **Version:** 0.2.0  
 **Status:** Authoritative  

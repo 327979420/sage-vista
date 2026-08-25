@@ -140,7 +140,7 @@ export default function DataQuality() {
   return (
     <main className="datalab">
       <header>
-        <p className="label">NORTHSTAR / DATA QUALITY</p>
+        <p className="label">SAGE VISTA / DATA QUALITY</p>
         <h1>Trust the history before the result.</h1>
         <span>
           EODHD is now the candidate source for survivorship-aware price
