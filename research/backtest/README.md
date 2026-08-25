@@ -21,3 +21,7 @@
 运行：`python3 -m research.backtest.tracker_backtest_v1 --start 2010-01-01`。
 
 V1 使用378只确定性 survivorship-aware 研究样本，其中包含111只退市股票，但仍不是完整历史美股 universe。所有结果只属于 Research/Strategy 层，不得进入 production 权重、排行榜或 Discord。
+
+## Tracker Backtest V2
+
+V2 直接读取冻结的 V1 信号账本，只研究 Stop Loss / Risk-Reward，不重新扫描，也不改变生产 Tracker、因子、Ranking、Entry、Discord 或网站生产数据。运行 `python3 -m research.backtest.tracker_backtest_v2`，汇总输出为 `output/v2-summary.json`。

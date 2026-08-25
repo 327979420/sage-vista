@@ -50,3 +50,13 @@ test("server-renders the isolated Strategy Backtest research page", async () => 
   assert.match(html, /不进入生产排名/);
   assert.doesNotMatch(html, /DISCORD_WEBHOOK_URL|EODHD_API_TOKEN/i);
 });
+
+test("server-renders Tracker Backtest V2 risk research", async () => {
+  const response = await render("/zh/watch/resonance/strategy-backtest-v2");
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.match(html, /Backtest V2/);
+  assert.match(html, /Stop &amp; Risk-Reward/);
+  assert.match(html, /不进入 production/);
+  assert.doesNotMatch(html, /DISCORD_WEBHOOK_URL|EODHD_API_TOKEN/i);
+});
