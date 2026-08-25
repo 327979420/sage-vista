@@ -11,3 +11,7 @@ The local SQLite research database is reproducible from `services/scanner/resear
 Before a strategy can become a paper champion, its test data must include adjusted daily OHLCV, historical listings and delistings, point-in-time fundamentals keyed to public availability dates, historical classifications, and auditable corporate actions. Missing values stay missing; no future value may be silently carried backward. Every source and transformation receives a version.
 
 Individual factors are tested first. Combination testing starts only after validation-period stability and redundancy analysis: highly correlated indicators count as one family, not multiple confirmations.
+
+## Tracker Backtest V1
+
+当前 Tracker 的独立 point-in-time 历史重放位于 `research/backtest/`。它使用下一交易日 Open、严格长期趋势过滤与 control group、support buffer、固定 R 止盈和完整历史信号账本；输出不进入 production Tracker、评分或 Discord。
