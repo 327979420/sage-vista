@@ -3,18 +3,13 @@ import argparse,json,pathlib
 from concurrent.futures import ThreadPoolExecutor,as_completed
 from datetime import date,datetime,timedelta,timezone
 from .audit_eodhd import common
-from .eodhd import prices,symbols
+from .eodhd import latest_reference_day,prices,symbols
 
 def latest_bulk_day(as_of=None):
  from .resonance_tracker import bulk_day
- target=date.fromisoformat(as_of) if as_of else date.today()
- for offset in range(8):
-  day=target-timedelta(days=offset)
-  if day.weekday()<5:
-   try:
-    if bulk_day(day.isoformat()):return day.isoformat()
-   except Exception:pass
- raise RuntimeError("No recent completed US bulk close is available")
+ expected=as_of or latest_reference_day()
+ bulk_day(expected,strict=True)
+ return expected
 
 def run(target=1000,as_of=None,cache_dir="work/eodhd-cache",out="public/universe-expansion.json"):
  as_of=latest_bulk_day(as_of)

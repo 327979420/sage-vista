@@ -2,6 +2,7 @@
 import json,pathlib
 from datetime import date,datetime,timedelta,timezone
 from .macd_factor_backtest import adjusted_rows,available,completed_groups,daily_pattern_flags,ema,outcome
+from .eodhd import latest_reference_day
 from .resonance_tracker import bulk_day,macd
 from .factor_registry import CURRENT_COMPONENT_IDS,REGISTRY_VERSION
 
@@ -33,15 +34,8 @@ def historical_examples(start="2025-01-01",limit=20):
  examples.sort(key=lambda x:(x["date"],x["score"],x["symbol"]),reverse=True);return examples[:limit]
 
 def latest_completed_day(as_of=None):
- target=date.fromisoformat(as_of) if as_of else date.today()
- for offset in range(10):
-  day=target-timedelta(days=offset)
-  if day.weekday()>=5:continue
-  try:
-   rows=bulk_day(day.isoformat())
-   if rows:return day.isoformat(),rows
-  except Exception:pass
- raise RuntimeError("No recent completed US bulk close is available")
+ expected=as_of or latest_reference_day()
+ return expected,bulk_day(expected,strict=True)
 
 def run(out="public/rare-opportunity-radar.json",as_of=None):
  latest,bulk=latest_completed_day(as_of);bulk_map={x.get("code"):x for x in bulk}

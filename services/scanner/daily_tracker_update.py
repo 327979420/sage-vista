@@ -1,0 +1,43 @@
+"""Fail-closed daily updater shared by the website and future Discord alerts."""
+import argparse,json,os,pathlib,tempfile
+from datetime import datetime,timezone
+from .eodhd import latest_reference_day
+from .expand_tracker_universe import run as expand_universe
+from .rare_opportunity_scanner import run as run_radar
+from .resonance_tracker import run as run_tracker
+
+PUBLIC=pathlib.Path("public")
+
+def read_json(path):
+ path=pathlib.Path(path)
+ return json.loads(path.read_text()) if path.exists() else {}
+
+def validate(authoritative,tracker,radar):
+ if tracker.get("as_of")!=authoritative or radar.get("as_of")!=authoritative:
+  raise RuntimeError(f"Output dates do not match provider date {authoritative}")
+ if radar.get("scan",{}).get("future_data_used") is not False:
+  raise RuntimeError("Radar future-data audit failed")
+ details=tracker.get("details",{})
+ if any(x.get("audit",{}).get("future_rows_used") or x.get("audit",{}).get("latest_bar")!=authoritative for x in details.values()):
+  raise RuntimeError("Tracker bar-date or future-data audit failed")
+
+def run(target=1000,as_of=None):
+ authoritative=as_of or latest_reference_day()
+ current_tracker=read_json(PUBLIC/"resonance-tracker.json");current_radar=read_json(PUBLIC/"rare-opportunity-radar.json")
+ if current_tracker.get("as_of")==authoritative and current_radar.get("as_of")==authoritative:
+  return {"result":"already_current","as_of":authoritative}
+ pathlib.Path("work").mkdir(exist_ok=True)
+ with tempfile.TemporaryDirectory(prefix="daily-update-",dir="work") as folder:
+  folder=pathlib.Path(folder)
+  # The expansion report remains temporary so an existing uncommitted public file is never overwritten.
+  expand_universe(target,authoritative,out=folder/"universe-expansion.json")
+  tracker=run_tracker(folder/"resonance-tracker.json",authoritative);radar=run_radar(folder/"rare-opportunity-radar.json",authoritative)
+  validate(authoritative,tracker,radar);now=datetime.now(timezone.utc).isoformat()
+  status={"status":"up_to_date","market":"US","provider":"EODHD","source_latest_complete_date":authoritative,"tracker_as_of":tracker["as_of"],"radar_as_of":radar["as_of"],"data_dates_match":True,"future_data_used":False,"last_successful_update_at":now,"checks":{"provider_date_exact":True,"tracker_radar_same_date":True,"completed_bars_only":True,"production_outputs_published_atomically":True}}
+  (folder/"update-status.json").write_text(json.dumps(status,ensure_ascii=False,indent=2))
+  for name in ("resonance-tracker.json","rare-opportunity-radar.json","update-status.json"):os.replace(folder/name,PUBLIC/name)
+ return {"result":"updated","as_of":authoritative,"eligible":tracker["universe"]["eligible"],"radar_signals":len(radar["signals"])}
+
+if __name__=="__main__":
+ parser=argparse.ArgumentParser();parser.add_argument("--target",type=int,default=1000);parser.add_argument("--as-of")
+ args=parser.parse_args();print(json.dumps(run(args.target,args.as_of),ensure_ascii=False,indent=2))

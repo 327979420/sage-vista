@@ -1,6 +1,8 @@
 import json
+import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).parents[1]
@@ -33,6 +35,25 @@ class TrackerOutputContractTests(unittest.TestCase):
         radar = json.loads((ROOT / "public/rare-opportunity-radar.json").read_text())
         self.assertEqual(tracker["as_of"], radar["as_of"])
         self.assertFalse(radar["scan"]["future_data_used"])
+
+    def test_published_update_status_proves_freshness(self):
+        tracker = json.loads((ROOT / "public/resonance-tracker.json").read_text())
+        radar = json.loads((ROOT / "public/rare-opportunity-radar.json").read_text())
+        status = json.loads((ROOT / "public/update-status.json").read_text())
+        self.assertEqual(status["status"], "up_to_date")
+        self.assertEqual(status["source_latest_complete_date"], tracker["as_of"])
+        self.assertEqual(status["tracker_as_of"], tracker["as_of"])
+        self.assertEqual(status["radar_as_of"], radar["as_of"])
+        self.assertTrue(status["data_dates_match"])
+        self.assertFalse(status["future_data_used"])
+
+    def test_strict_bulk_day_never_accepts_an_empty_fallback(self):
+        from services.scanner.resonance_tracker import bulk_day
+
+        with tempfile.TemporaryDirectory() as folder, patch("services.scanner.resonance_tracker.get", return_value=[]):
+            with self.assertRaisesRegex(RuntimeError, "not ready"):
+                bulk_day("2026-08-24", cache_dir=folder, strict=True)
+            self.assertFalse((Path(folder) / "2026-08-24.json").exists())
 
     def test_factor_registry_is_versioned_and_safe(self):
         from services.scanner.factor_registry import FACTORS, validate_registry

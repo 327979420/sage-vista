@@ -1,7 +1,13 @@
 {
-  "generated_at": "2026-08-25T04:07:54.539636+00:00",
-  "as_of": "2026-08-21",
+  "generated_at": "2026-08-25T07:56:15.225147+00:00",
+  "as_of": "2026-08-24",
   "status": "research_observation_only",
+  "registry_version": "0.1.0",
+  "score_policy": {
+    "official": "只有已验证因子可进入正式分；当前为0",
+    "observational": "现有六因子继续作为观察分",
+    "risk_deduction": "冲突扣分接口已保留，当前尚未启用"
+  },
   "policy": "5分播报为稀有观察，6分播报为极稀有观察；不是买入信号，不显示为已验证胜率。",
   "scan": {
     "frequency": "每个美国交易日收盘后",
@@ -10,7 +16,46 @@
     "minimum_dollar_volume": 10000000,
     "future_data_used": false
   },
-  "signals": [],
+  "signals": [
+    {
+      "symbol": "UDR",
+      "date": "2026-08-24",
+      "price": 38.39,
+      "level": "稀有",
+      "components": [
+        "Fibonacci支撑",
+        "EMA支撑",
+        "三推趋势线突破",
+        "上方未补跳空缺口",
+        "Bullish FVG支撑"
+      ],
+      "dollar_volume": 104711412,
+      "score": 5,
+      "official_score": 0,
+      "observational_score": 5,
+      "risk_deduction": 0,
+      "total_score": 5,
+      "factor_ids": [
+        "support.fibonacci_half",
+        "support.ema_proximity",
+        "structure.trendline_three_push",
+        "risk.overhead_unfilled_gap",
+        "structure.bullish_fvg_support"
+      ],
+      "important_misses": [
+        "周线MACD改善"
+      ],
+      "category_scores": {
+        "MACD": 0,
+        "支撑": 2,
+        "价格结构": 2,
+        "风险／供给": 1
+      },
+      "risks": [
+        "当前六因子等权模型尚未通过跨时期验证"
+      ]
+    }
+  ],
   "historical_examples": [
     {
       "symbol": "TPC",
@@ -243,7 +288,7 @@
         "Bullish FVG支撑"
       ],
       "return_20d": 1.97,
-      "return_100d": null,
+      "return_100d": 5.8,
       "listing_status": "unknown"
     },
     {

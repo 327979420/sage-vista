@@ -2819,6 +2819,11 @@ button.rtTicker:hover b, button.rtTicker:focus-visible b { color: #18714d; text-
 .rtSubHero aside { align-self: end; min-width: 205px; padding: 16px; border: 1px solid rgba(255,255,255,.14); border-radius: 14px; background: rgba(255,255,255,.05); }
 .rtSubHero aside small, .rtSubHero aside span { display: block; color: #93aa9f; }
 .rtSubHero aside b { display: block; margin: 4px 0; font-size: 22px; }
+.rtSubHero aside.isCurrent { border-color: rgba(104,212,157,.46); background: rgba(104,212,157,.08); }
+.rtSubHero aside.needsCheck { border-color: rgba(236,178,94,.55); background: rgba(236,178,94,.08); }
+.rtSubHero aside .rtSyncState { margin: 7px 0 4px; color: #7de0ab; font-weight: 750; }
+.rtSubHero aside.needsCheck .rtSyncState { color: #f0bd72; }
+.rtSubHero aside time { display: block; margin-top: 8px; color: #93aa9f; font-size: 10px; }
 .rtModuleNav { display: flex; height: auto; gap: 5px; overflow-x: auto; margin-top: 12px; padding: 7px; border: 1px solid #d9e1dc; border-radius: 14px; background: #fff; }
 .rtModuleNav a { padding: 9px 13px; border-radius: 9px; color: #64746c; font-size: 12px; font-weight: 650; text-decoration: none; white-space: nowrap; }
 .rtModuleNav a.active { background: #16362b; color: #fff; }

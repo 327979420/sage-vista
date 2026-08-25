@@ -1,17 +1,23 @@
 """Multi-timeframe MACD/RSI resonance tracker using latest completed EOD bars."""
 import hashlib,json,pathlib,statistics
 from datetime import date,datetime,timedelta,timezone
-from .eodhd import get
+from .eodhd import get,latest_reference_day
 from .research_pipeline import iso
 from .technical import ema,macd,rsi
 from .confluence_rules import RULESET,breakout_layer as cycle_breakout_layer,combine,ema_layer as cycle_ema_layer,macd_layer as cycle_macd_layer,rsi_layer as cycle_rsi_layer
 
-def bulk_day(day,cache_dir="work/eodhd-bulk"):
+def bulk_day(day,cache_dir="work/eodhd-bulk",strict=False):
  path=pathlib.Path(cache_dir)/f"{day}.json";path.parent.mkdir(parents=True,exist_ok=True)
  if path.exists():
   cached=json.loads(path.read_text())
-  if cached:return cached
- rows=get("eod-bulk-last-day/US",date=day);path.write_text(json.dumps(rows));return rows
+  if cached:
+   rows=cached
+  else:rows=get("eod-bulk-last-day/US",date=day,_timeout=300,_attempts=3)
+ else:rows=get("eod-bulk-last-day/US",date=day,_timeout=300,_attempts=3)
+ valid=[row for row in rows if row.get("date")==day]
+ if strict and (not valid or len(valid)!=len(rows)):raise RuntimeError(f"Bulk EOD data for {day} is not ready or has a mismatched date")
+ if valid and (not path.exists() or not json.loads(path.read_text())):path.write_text(json.dumps(valid))
+ return valid
 def aggregate(rows,mode,completed_only=False):
  groups={}
  for row in rows:
@@ -189,17 +195,18 @@ def run(out="public/resonance-tracker.json",as_of=None):
  common_path=pathlib.Path("work/eodhd-active-common.json")
  common_symbols={x["Code"] for x in json.loads(common_path.read_text())} if common_path.exists() else cached_symbols
  symbols=cached_symbols&common_symbols
- target=date.fromisoformat(as_of) if as_of else date.today();days=[]
+ authoritative=as_of or latest_reference_day();target=date.fromisoformat(authoritative);days=[(target,bulk_day(authoritative,strict=True))]
  for offset in range(10):
   day=target-timedelta(days=offset)
+  if day==target:continue
   if day.weekday()<5:
    try:
     rows=bulk_day(day.isoformat())
     if rows:days.append((day,rows))
    except Exception:pass
   if len(days)>=3:break
- if not days:raise RuntimeError("No recent bulk EOD data available")
  days.sort();latest=days[-1][0].isoformat();updates={}
+ if latest!=authoritative:raise RuntimeError(f"Refusing stale tracker output: expected {authoritative}, got {latest}")
  for _,rows in days:
   for x in rows:
    if x.get("code") in symbols and x.get("adjusted_close") and x.get("close") and x.get("volume") is not None:updates.setdefault(x["code"],[]).append(x)
