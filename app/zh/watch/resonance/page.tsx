@@ -13,7 +13,7 @@ export default function Overview(){
    </section>
    <section className="rtSystemAudit"><span><small>固定规则</small><b>v{data.ruleset.version}</b></span><span><small>大周期</small><b>完整月线＋完整周线</b></span><span><small>入场时机</small><b>最新完整日线</b></span><span><small>一致性指纹</small><b>{data.consistency_audit.ranking_digest}</b></span><mark>{data.consistency_audit.details_cover_all_published&&!data.consistency_audit.duplicate_symbols?"数据与榜单一致":"审计异常，停止使用"}</mark></section>
    <section className="rtSignals"><div className="rtSectionTitle"><div><p>当前个股</p><h2>MACD 看涨排行榜</h2></div><a href="/zh/watch/resonance/macd">查看看涨 / 看跌完整分榜 →</a></div><p className="rtRankNote">这里只放当前股票候选，不混入历史策略表现。</p><SignalBoard items={data.macd_buy_top10} kind="macd" combined={new Set()}/></section>
-   <footer className="rtCompactLinks"><a href="/zh/watch/resonance/research">查看独立MACD研究与策略表现 →</a><a href="/zh/watch/resonance/requirements">查看MACD规则</a></footer>
+   <footer className="rtCompactLinks"><a href="/zh/watch/resonance/rare-opportunities">查看5—6分稀有机会雷达 →</a><a href="/zh/watch/resonance/research">查看独立MACD研究与策略表现</a><a href="/zh/watch/resonance/requirements">查看MACD规则</a></footer>
   </>}
  </TrackerShell>
 }

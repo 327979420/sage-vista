@@ -1,0 +1,376 @@
+{
+  "generated_at": "2026-08-25T04:07:54.539636+00:00",
+  "as_of": "2026-08-21",
+  "status": "research_observation_only",
+  "policy": "5分播报为稀有观察，6分播报为极稀有观察；不是买入信号，不显示为已验证胜率。",
+  "scan": {
+    "frequency": "每个美国交易日收盘后",
+    "universe_scanned": 2246,
+    "minimum_price": 5,
+    "minimum_dollar_volume": 10000000,
+    "future_data_used": false
+  },
+  "signals": [],
+  "historical_examples": [
+    {
+      "symbol": "TPC",
+      "date": "2026-07-16",
+      "entry_date": "2026-07-17",
+      "signal_close": 78.81,
+      "entry_open": 76.03,
+      "score": 5,
+      "components": [
+        "Fibonacci支撑",
+        "EMA支撑",
+        "周线MACD改善",
+        "上方未补跳空缺口",
+        "Bullish FVG支撑"
+      ],
+      "return_20d": 24.4,
+      "return_100d": null,
+      "listing_status": "unknown"
+    },
+    {
+      "symbol": "HLN",
+      "date": "2026-06-09",
+      "entry_date": "2026-06-10",
+      "signal_close": 9.06,
+      "entry_open": 9.0,
+      "score": 5,
+      "components": [
+        "Fibonacci支撑",
+        "EMA支撑",
+        "周线MACD改善",
+        "上方未补跳空缺口",
+        "Bullish FVG支撑"
+      ],
+      "return_20d": 7.17,
+      "return_100d": null,
+      "listing_status": "unknown"
+    },
+    {
+      "symbol": "HLN",
+      "date": "2026-06-05",
+      "entry_date": "2026-06-08",
+      "signal_close": 9.06,
+      "entry_open": 8.93,
+      "score": 5,
+      "components": [
+        "Fibonacci支撑",
+        "EMA支撑",
+        "周线MACD改善",
+        "上方未补跳空缺口",
+        "Bullish FVG支撑"
+      ],
+      "return_20d": 9.46,
+      "return_100d": null,
+      "listing_status": "unknown"
+    },
+    {
+      "symbol": "FBK",
+      "date": "2026-05-26",
+      "entry_date": "2026-05-27",
+      "signal_close": 53.31,
+      "entry_open": 53.71,
+      "score": 5,
+      "components": [
+        "Fibonacci支撑",
+        "EMA支撑",
+        "三推趋势线突破",
+        "上方未补跳空缺口",
+        "Bullish FVG支撑"
+      ],
+      "return_20d": 1.45,
+      "return_100d": null,
+      "listing_status": "unknown"
+    },
+    {
+      "symbol": "T",
+      "date": "2026-05-21",
+      "entry_date": "2026-05-22",
+      "signal_close": 25.01,
+      "entry_open": 25.01,
+      "score": 5,
+      "components": [
+        "Fibonacci支撑",
+        "EMA支撑",
+        "三推趋势线突破",
+        "上方未补跳空缺口",
+        "Bullish FVG支撑"
+      ],
+      "return_20d": -12.79,
+      "return_100d": null,
+      "listing_status": "unknown"
+    },
+    {
+      "symbol": "GMAB",
+      "date": "2026-05-21",
+      "entry_date": "2026-05-22",
+      "signal_close": 27.05,
+      "entry_open": 26.88,
+      "score": 5,
+      "components": [
+        "Fibonacci支撑",
+        "EMA支撑",
+        "周线MACD改善",
+        "上方未补跳空缺口",
+        "Bullish FVG支撑"
+      ],
+      "return_20d": -4.72,
+      "return_100d": null,
+      "listing_status": "unknown"
+    },
+    {
+      "symbol": "XLV",
+      "date": "2026-05-12",
+      "entry_date": "2026-05-13",
+      "signal_close": 145.21,
+      "entry_open": 144.68,
+      "score": 5,
+      "components": [
+        "EMA支撑",
+        "周线MACD改善",
+        "三推趋势线突破",
+        "上方未补跳空缺口",
+        "Bullish FVG支撑"
+      ],
+      "return_20d": 5.18,
+      "return_100d": null,
+      "listing_status": "unknown"
+    },
+    {
+      "symbol": "CNM",
+      "date": "2026-05-07",
+      "entry_date": "2026-05-08",
+      "signal_close": 49.66,
+      "entry_open": 49.79,
+      "score": 5,
+      "components": [
+        "Fibonacci支撑",
+        "EMA支撑",
+        "周线MACD改善",
+        "三推趋势线突破",
+        "上方未补跳空缺口"
+      ],
+      "return_20d": 4.38,
+      "return_100d": null,
+      "listing_status": "unknown"
+    },
+    {
+      "symbol": "GMAB",
+      "date": "2026-05-06",
+      "entry_date": "2026-05-07",
+      "signal_close": 27.89,
+      "entry_open": 28.23,
+      "score": 5,
+      "components": [
+        "Fibonacci支撑",
+        "EMA支撑",
+        "周线MACD改善",
+        "上方未补跳空缺口",
+        "Bullish FVG支撑"
+      ],
+      "return_20d": -12.4,
+      "return_100d": null,
+      "listing_status": "unknown"
+    },
+    {
+      "symbol": "SUPN",
+      "date": "2026-04-17",
+      "entry_date": "2026-04-20",
+      "signal_close": 51.39,
+      "entry_open": 51.1,
+      "score": 5,
+      "components": [
+        "Fibonacci支撑",
+        "EMA支撑",
+        "周线MACD改善",
+        "三推趋势线突破",
+        "上方未补跳空缺口"
+      ],
+      "return_20d": -3.27,
+      "return_100d": null,
+      "listing_status": "unknown"
+    },
+    {
+      "symbol": "TAL",
+      "date": "2026-04-13",
+      "entry_date": "2026-04-14",
+      "signal_close": 11.28,
+      "entry_open": 11.3,
+      "score": 5,
+      "components": [
+        "Fibonacci支撑",
+        "EMA支撑",
+        "周线MACD改善",
+        "上方未补跳空缺口",
+        "Bullish FVG支撑"
+      ],
+      "return_20d": 0.53,
+      "return_100d": null,
+      "listing_status": "unknown"
+    },
+    {
+      "symbol": "ZBH",
+      "date": "2026-04-01",
+      "entry_date": "2026-04-02",
+      "signal_close": 90.79,
+      "entry_open": 90.05,
+      "score": 5,
+      "components": [
+        "Fibonacci支撑",
+        "EMA支撑",
+        "三推趋势线突破",
+        "上方未补跳空缺口",
+        "Bullish FVG支撑"
+      ],
+      "return_20d": -8.71,
+      "return_100d": null,
+      "listing_status": "unknown"
+    },
+    {
+      "symbol": "EMN",
+      "date": "2026-03-25",
+      "entry_date": "2026-03-26",
+      "signal_close": 70.6,
+      "entry_open": 69.74,
+      "score": 5,
+      "components": [
+        "Fibonacci支撑",
+        "EMA支撑",
+        "三推趋势线突破",
+        "上方未补跳空缺口",
+        "Bullish FVG支撑"
+      ],
+      "return_20d": 1.97,
+      "return_100d": null,
+      "listing_status": "unknown"
+    },
+    {
+      "symbol": "GBCI",
+      "date": "2026-03-23",
+      "entry_date": "2026-03-24",
+      "signal_close": 43.72,
+      "entry_open": 43.2,
+      "score": 5,
+      "components": [
+        "Fibonacci支撑",
+        "EMA支撑",
+        "三推趋势线突破",
+        "上方未补跳空缺口",
+        "Bullish FVG支撑"
+      ],
+      "return_20d": 12.84,
+      "return_100d": 15.59,
+      "listing_status": "unknown"
+    },
+    {
+      "symbol": "MO",
+      "date": "2026-01-12",
+      "entry_date": "2026-01-13",
+      "signal_close": 56.73,
+      "entry_open": 56.74,
+      "score": 5,
+      "components": [
+        "EMA支撑",
+        "周线MACD改善",
+        "三推趋势线突破",
+        "上方未补跳空缺口",
+        "Bullish FVG支撑"
+      ],
+      "return_20d": 9.99,
+      "return_100d": 25.36,
+      "listing_status": "unknown"
+    },
+    {
+      "symbol": "WRLD",
+      "date": "2026-01-06",
+      "entry_date": "2026-01-07",
+      "signal_close": 150.8,
+      "entry_open": 150.74,
+      "score": 5,
+      "components": [
+        "Fibonacci支撑",
+        "EMA支撑",
+        "周线MACD改善",
+        "上方未补跳空缺口",
+        "Bullish FVG支撑"
+      ],
+      "return_20d": -21.48,
+      "return_100d": 11.26,
+      "listing_status": "unknown"
+    },
+    {
+      "symbol": "ADT",
+      "date": "2026-01-05",
+      "entry_date": "2026-01-06",
+      "signal_close": 8.01,
+      "entry_open": 7.99,
+      "score": 5,
+      "components": [
+        "Fibonacci支撑",
+        "EMA支撑",
+        "周线MACD改善",
+        "上方未补跳空缺口",
+        "Bullish FVG支撑"
+      ],
+      "return_20d": -4.31,
+      "return_100d": -16.67,
+      "listing_status": "unknown"
+    },
+    {
+      "symbol": "PJT",
+      "date": "2025-12-24",
+      "entry_date": "2025-12-26",
+      "signal_close": 170.92,
+      "entry_open": 170.66,
+      "score": 5,
+      "components": [
+        "Fibonacci支撑",
+        "EMA支撑",
+        "周线MACD改善",
+        "上方未补跳空缺口",
+        "Bullish FVG支撑"
+      ],
+      "return_20d": 4.44,
+      "return_100d": -9.15,
+      "listing_status": "unknown"
+    },
+    {
+      "symbol": "NTES",
+      "date": "2025-12-22",
+      "entry_date": "2025-12-23",
+      "signal_close": 136.1,
+      "entry_open": 134.93,
+      "score": 5,
+      "components": [
+        "Fibonacci支撑",
+        "EMA支撑",
+        "周线MACD改善",
+        "上方未补跳空缺口",
+        "Bullish FVG支撑"
+      ],
+      "return_20d": -3.09,
+      "return_100d": -16.3,
+      "listing_status": "unknown"
+    },
+    {
+      "symbol": "UL",
+      "date": "2025-11-28",
+      "entry_date": "2025-12-01",
+      "signal_close": 66.51,
+      "entry_open": 67.01,
+      "score": 5,
+      "components": [
+        "Fibonacci支撑",
+        "EMA支撑",
+        "三推趋势线突破",
+        "上方未补跳空缺口",
+        "Bullish FVG支撑"
+      ],
+      "return_20d": -4.32,
+      "return_100d": -14.79,
+      "listing_status": "unknown"
+    }
+  ]
+}
