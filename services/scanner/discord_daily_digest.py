@@ -33,8 +33,8 @@ def rare_embed(signal,site):
  return {"title":f"稀有机会 · {signal['symbol']} · {signal.get('total_score',signal['score'])}分","url":f"{site}/zh/watch/resonance/rare-opportunities","color":14197855,"description":f"${signal['price']} · {signal['date']}\n**正式分** {signal.get('official_score',0)}　**观察分** {signal.get('observational_score',signal['score'])}　**风险扣分** −{signal.get('risk_deduction',0)}","fields":[{"name":"分类得分","value":categories,"inline":False},{"name":"命中证据","value":evidence[:1024],"inline":False},{"name":"风险","value":risks[:1024],"inline":False}],"footer":{"text":"研究提醒，不是自动买入"}}
 
 def build_payload(tracker,radar,site=DEFAULT_SITE,minimum_rare_score=5):
- rare=[x for x in radar.get("signals",[]) if x.get("total_score",x.get("score",0))>=minimum_rare_score]
- embeds=[rare_embed(x,site) for x in rare[:8]]
+ rare=[x for x in radar.get("signals",[]) if x.get("total_score",x.get("score",0))>=minimum_rare_score][:8]
+ embeds=[rare_embed(x,site) for x in rare]
  embeds.append({"title":f"MACD 日榜 · {tracker['as_of']}","url":f"{site}/zh/watch/resonance/macd","color":5263264,"description":"每日完整收盘后的同源榜单；旧信号和失效信号不会重新包装。","fields":[{"name":"看涨榜","value":compact_list(tracker.get("macd_buy_top10",[]))[:1024],"inline":True},{"name":"看跌榜","value":compact_list(tracker.get("macd_sell_top10",[]))[:1024],"inline":True}],"footer":{"text":"研究提醒，不是自动买入"}})
  return {"content":f"**Sage Vista 日终研究播报 · {tracker['as_of']}**","embeds":embeds,"allowed_mentions":{"parse":[]}},rare
 

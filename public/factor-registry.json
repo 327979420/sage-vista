@@ -1,5 +1,5 @@
 {
-  "registry_version": "0.2.0",
+  "registry_version": "0.3.0",
   "factor_count": 26,
   "factors": [
     {
@@ -39,19 +39,20 @@
     {
       "id": "macd.daily_bull_cross",
       "version": "1.0.0",
-      "name_zh": "日线MACD金叉",
-      "explanation": "日线MACD金叉",
-      "machine_rule": "daily MACD crosses above signal at completed close",
+      "name_zh": "日线MACD近5日金叉",
+      "explanation": "日线MACD在最近五个完整交易日内金叉，且当前仍维持多头状态。",
+      "machine_rule": "a completed daily MACD bullish cross occurred in the latest 5 sessions, including the trigger session, and MACD remains above signal",
       "evidence_family": "macd",
       "timeframe": "daily",
       "lookahead_safe": true,
       "confirmation_delay_bars": 0,
       "status": "candidate",
-      "score_mode": "display_only",
-      "weight": 0.0,
+      "score_mode": "observational",
+      "weight": 1,
       "redundancy_group": "macd_daily",
       "research_refs": [
-        "macd-rollout-01-baseline-2026-08-24"
+        "macd-rollout-01-baseline-2026-08-24",
+        "macd-five-session-freshness-2026-08-25"
       ],
       "depends_on": []
     },

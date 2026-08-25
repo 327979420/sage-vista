@@ -9,11 +9,13 @@
 
 ## 本地配置
 
-用户提供 Webhook 后，只写入项目根目录已被 Git 忽略的 `.env.local`：
+最简单的接入方式：在 Discord 目标频道打开“编辑频道 → 整合 → Webhooks → 新建 Webhook → 复制 Webhook URL”，然后把项目根目录的 `.env.local` 文件交给 Codex，或自行加入下面这一行：
 
 ```text
 DISCORD_WEBHOOK_URL=用户提供的完整Webhook地址
 ```
+
+保存后不需要修改代码。`.env.local` 已被 Git 忽略，播报程序会自动读取；不要把 Webhook 粘贴到聊天、代码、文档或 Git 提交中。
 
 不得把 Webhook 写入代码、文档、测试、提交记录或 Sites 环境。先运行预览并人工核对：
 

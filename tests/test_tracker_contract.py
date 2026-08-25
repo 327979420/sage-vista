@@ -85,6 +85,25 @@ class TrackerOutputContractTests(unittest.TestCase):
         self.assertEqual(retest.depends_on, (parent.id,))
         self.assertIn("10 completed sessions", retest.machine_rule)
 
+    def test_daily_macd_cross_stays_fresh_for_five_completed_sessions(self):
+        from services.scanner.rare_opportunity_scanner import recent_bull_cross
+
+        line = [-2, -1, 1, 2, 3, 4, 5, 6]
+        signal = [0] * len(line)
+        self.assertTrue(recent_bull_cross(line, signal, 6))
+        self.assertFalse(recent_bull_cross(line, signal, 7))
+        lost = line.copy()
+        lost[6] = -1
+        self.assertFalse(recent_bull_cross(lost, signal, 6))
+
+    def test_daily_macd_freshness_is_an_observational_factor(self):
+        from services.scanner.factor_registry import FACTORS
+
+        factor = {x.id: x for x in FACTORS}["macd.daily_bull_cross"]
+        self.assertEqual(factor.score_mode, "observational")
+        self.assertEqual(factor.weight, 1)
+        self.assertIn("latest 5 sessions", factor.machine_rule)
+
 
 if __name__ == "__main__":
     unittest.main()

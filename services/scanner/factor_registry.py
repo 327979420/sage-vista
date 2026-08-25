@@ -10,7 +10,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 
-REGISTRY_VERSION = "0.2.0"
+REGISTRY_VERSION = "0.3.0"
 VALID_STATUSES = {"pending", "testing", "rejected", "unstable", "insufficient_sample", "candidate", "validated", "paused"}
 VALID_SCORE_MODES = {"official", "observational", "display_only", "disabled"}
 
@@ -41,7 +41,7 @@ def factor(id, name, rule, family, timeframe="daily", status="pending", score_mo
 FACTORS = (
     factor("qualification.long_trend", "长期趋势资格", "close >= 0.9*EMA200 and EMA200_60d_change >= -3%", "qualification", status="candidate", score_mode="display_only", redundancy="trend_qualification"),
     factor("qualification.pullback_60d", "距60日高点回调", "close <= prior_60d_high*0.95", "qualification", status="candidate", score_mode="display_only", redundancy="pullback"),
-    factor("macd.daily_bull_cross", "日线MACD金叉", "daily MACD crosses above signal at completed close", "macd", status="candidate", score_mode="display_only", redundancy="macd_daily", refs=("macd-rollout-01-baseline-2026-08-24",)),
+    factor("macd.daily_bull_cross", "日线MACD近5日金叉", "a completed daily MACD bullish cross occurred in the latest 5 sessions, including the trigger session, and MACD remains above signal", "macd", status="candidate", score_mode="observational", weight=1, redundancy="macd_daily", refs=("macd-rollout-01-baseline-2026-08-24","macd-five-session-freshness-2026-08-25"), explanation="日线MACD在最近五个完整交易日内金叉，且当前仍维持多头状态。"),
     factor("macd.weekly_histogram_improving", "完整周线MACD柱改善", "latest completed weekly histogram > prior completed weekly histogram", "macd", "weekly_completed", "candidate", "observational", 1, "macd_weekly", ("macd-multifactor-score-v1-2026-08-25",)),
     factor("macd.monthly_bull_cross", "完整月线MACD金叉", "MACD bullish cross on completed month", "macd", "monthly_completed", "candidate", "display_only", 0, "macd_monthly", ("macd-large-cycle-weekly-monthly-2026-08-25",)),
     factor("support.ema_proximity", "EMA21/50/200支撑", "close is within registered tolerance of EMA21, EMA50 or EMA200", "support", status="candidate", score_mode="observational", weight=1, redundancy="moving_average_support", refs=("macd-multifactor-score-v1-2026-08-25",)),
@@ -69,6 +69,7 @@ FACTORS = (
 
 
 CURRENT_COMPONENT_IDS = {
+    "日线MACD近5日金叉": "macd.daily_bull_cross",
     "Fibonacci支撑": "support.fibonacci_half",
     "EMA支撑": "support.ema_proximity",
     "周线MACD改善": "macd.weekly_histogram_improving",
