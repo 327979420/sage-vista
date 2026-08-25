@@ -11,18 +11,18 @@
 
 - 正式自动化从 GitHub Repository Secret 读取 `DISCORD_WEBHOOK_URL`；兼容现有旧名称 `DISCORD_OPPORTUNITY`。workflow 不打印、上传或写回 Secret。
 - EODHD 自动扫描需要独立的 Repository Secret：`EODHD_API_TOKEN`。
-- 定时 update job 永远先生成 Discord preview；它本身不发送。只有 Sites 已发布并且线上 `update-status.json` 精确匹配本次完整收盘日后，部署任务才以 `notify` 模式触发 workflow 正式发送。
+- 定时 update job 永远先生成 Discord preview；它本身不发送。Sage Vista 是私有 Sites，GitHub Runner 无法匿名读取线上文件；因此部署协调任务只有在 Sites API 明确返回成功后，才创建带 EOD 日期与站点 URL 的 GitHub Deployment success 记录，并把其 ID 交给 `notify`。notify 核对该不可变记录、仓库日期与 future-data 状态，任一不一致即停止。
 - Early Watch 和 Confirmed 状态保存在 `automation/discord-state.json`。同一股票相同状态不重复；Early Watch 升级 Confirmed 可以再次提醒；Confirmed 不会降级重发 Early Watch。
 
-## 本地配置
+## 密钥与人工配置
 
-最简单的接入方式：在 Discord 目标频道打开“编辑频道 → 整合 → Webhooks → 新建 Webhook → 复制 Webhook URL”，然后把项目根目录的 `.env.local` 文件交给 Codex，或自行加入下面这一行：
+生产环境只从 GitHub Repository Secrets 读取。Discord 支持 `DISCORD_WEBHOOK_URL`，也兼容已有的 `DISCORD_OPPORTUNITY`；EODHD 扫描读取 `EODHD_API_TOKEN`。
 
 ```text
 DISCORD_WEBHOOK_URL=用户提供的完整Webhook地址
 ```
 
-`.env.local` 只用于本地人工运行且已被 Git 忽略；GitHub Actions 只读取 Repository Secrets。不要把 Webhook 粘贴到聊天、代码、文档或 Git 提交中。
+`.env.local` 只用于本地人工运行且已被 Git 忽略；不要把 Webhook 粘贴到聊天、代码、文档、日志或 Git 提交中。
 
 不得把 Webhook 写入代码、文档、测试、提交记录或 Sites 环境。先运行预览并人工核对：
 

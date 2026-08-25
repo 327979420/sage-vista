@@ -15,6 +15,10 @@ on:
         description: Required completed EOD date for notify mode
         required: false
         type: string
+      deployment_id:
+        description: Successful sage-vista-sites GitHub deployment ID
+        required: false
+        type: string
       confirm_send:
         description: Allow a real Discord send after live-site verification
         required: false
@@ -23,6 +27,7 @@ on:
 
 permissions:
   contents: write
+  deployments: read
 
 concurrency:
   group: sage-vista-eod
@@ -146,9 +151,38 @@ jobs:
         run: |
           test "${{ inputs.confirm_send }}" = "true" || { echo "Real Discord send not authorized"; exit 1; }
           test -n "${{ inputs.expected_as_of }}" || { echo "expected_as_of is required"; exit 1; }
+          test -n "${{ inputs.deployment_id }}" || { echo "deployment_id is required"; exit 1; }
           test -n "$DISCORD_WEBHOOK_URL" || { echo "Discord webhook secret is not configured"; exit 1; }
-      - name: Verify live website is published and synchronized
-        run: python3 -m services.scanner.verify_live_deployment --site "$LIVE_SITE_URL" --expected "${{ inputs.expected_as_of }}"
+      - name: Verify successful private-site deployment attestation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOYMENT_ID: ${{ inputs.deployment_id }}
+          EXPECTED_AS_OF: ${{ inputs.expected_as_of }}
+        shell: bash
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/deployments/${DEPLOYMENT_ID}" > deployment.json
+          gh api "repos/${GITHUB_REPOSITORY}/deployments/${DEPLOYMENT_ID}/statuses?per_page=1" > deployment-status.json
+          python3 - <<'PY'
+          import json, os
+          deployment = json.load(open("deployment.json"))
+          statuses = json.load(open("deployment-status.json"))
+          expected = os.environ["EXPECTED_AS_OF"]
+          payload = deployment.get("payload") or {}
+          if deployment.get("environment") != "sage-vista-sites":
+              raise SystemExit("deployment environment mismatch")
+          if payload.get("as_of") != expected:
+              raise SystemExit("deployment EOD date mismatch")
+          if not statuses or statuses[0].get("state") != "success":
+              raise SystemExit("private site deployment is not successful")
+          if statuses[0].get("environment_url") != os.environ["LIVE_SITE_URL"]:
+              raise SystemExit("deployment site URL mismatch")
+          status = json.load(open("public/update-status.json"))
+          dates = {status.get("source_latest_complete_date"), status.get("tracker_as_of"), status.get("radar_as_of")}
+          if status.get("status") != "up_to_date" or status.get("data_dates_match") is not True or dates != {expected}:
+              raise SystemExit("repository data is not synchronized to deployment")
+          if status.get("future_data_used") is not False:
+              raise SystemExit("future-data audit failed")
+          PY
       - name: Re-run notification and contract tests
         run: python3 -m unittest tests.test_discord_digest tests.test_tracker_contract
       - name: Preview exact pending payload
