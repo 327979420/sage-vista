@@ -1,6 +1,6 @@
 {
-  "registry_version": "0.1.0",
-  "factor_count": 25,
+  "registry_version": "0.2.0",
+  "factor_count": 26,
   "factors": [
     {
       "id": "qualification.long_trend",
@@ -16,7 +16,8 @@
       "score_mode": "display_only",
       "weight": 0.0,
       "redundancy_group": "trend_qualification",
-      "research_refs": []
+      "research_refs": [],
+      "depends_on": []
     },
     {
       "id": "qualification.pullback_60d",
@@ -32,7 +33,8 @@
       "score_mode": "display_only",
       "weight": 0.0,
       "redundancy_group": "pullback",
-      "research_refs": []
+      "research_refs": [],
+      "depends_on": []
     },
     {
       "id": "macd.daily_bull_cross",
@@ -50,7 +52,8 @@
       "redundancy_group": "macd_daily",
       "research_refs": [
         "macd-rollout-01-baseline-2026-08-24"
-      ]
+      ],
+      "depends_on": []
     },
     {
       "id": "macd.weekly_histogram_improving",
@@ -68,7 +71,8 @@
       "redundancy_group": "macd_weekly",
       "research_refs": [
         "macd-multifactor-score-v1-2026-08-25"
-      ]
+      ],
+      "depends_on": []
     },
     {
       "id": "macd.monthly_bull_cross",
@@ -86,7 +90,8 @@
       "redundancy_group": "macd_monthly",
       "research_refs": [
         "macd-large-cycle-weekly-monthly-2026-08-25"
-      ]
+      ],
+      "depends_on": []
     },
     {
       "id": "support.ema_proximity",
@@ -104,7 +109,8 @@
       "redundancy_group": "moving_average_support",
       "research_refs": [
         "macd-multifactor-score-v1-2026-08-25"
-      ]
+      ],
+      "depends_on": []
     },
     {
       "id": "support.fibonacci_half",
@@ -122,7 +128,8 @@
       "redundancy_group": "fibonacci_support",
       "research_refs": [
         "macd-rollout-05-fibonacci-half-2026-08-25"
-      ]
+      ],
+      "depends_on": []
     },
     {
       "id": "support.fibonacci_618",
@@ -138,7 +145,8 @@
       "score_mode": "observational",
       "weight": 1,
       "redundancy_group": "fibonacci_support",
-      "research_refs": []
+      "research_refs": [],
+      "depends_on": []
     },
     {
       "id": "support.golden_pocket",
@@ -154,7 +162,8 @@
       "score_mode": "display_only",
       "weight": 0.0,
       "redundancy_group": "fibonacci_support",
-      "research_refs": []
+      "research_refs": [],
+      "depends_on": []
     },
     {
       "id": "structure.trendline_three_push",
@@ -172,7 +181,8 @@
       "redundancy_group": "trendline_breakout",
       "research_refs": [
         "macd-pattern-v0.6.0-2026-08-24"
-      ]
+      ],
+      "depends_on": []
     },
     {
       "id": "structure.double_bottom",
@@ -190,7 +200,8 @@
       "redundancy_group": "bottom_structure",
       "research_refs": [
         "macd-pattern-v0.6.0-2026-08-24"
-      ]
+      ],
+      "depends_on": []
     },
     {
       "id": "structure.higher_low",
@@ -206,14 +217,15 @@
       "score_mode": "display_only",
       "weight": 0.0,
       "redundancy_group": "bottom_structure",
-      "research_refs": []
+      "research_refs": [],
+      "depends_on": []
     },
     {
       "id": "structure.breakout_retest",
       "version": "1.0.0",
-      "name_zh": "突破回踩",
-      "explanation": "突破回踩",
-      "machine_rule": "completed close breakout followed by valid held retest",
+      "name_zh": "通用突破回踩",
+      "explanation": "通用突破回踩",
+      "machine_rule": "completed close breakout of a registered structure followed by a valid held retest",
       "evidence_family": "price_structure",
       "timeframe": "daily",
       "lookahead_safe": true,
@@ -222,7 +234,27 @@
       "score_mode": "display_only",
       "weight": 0.0,
       "redundancy_group": "breakout_retest",
-      "research_refs": []
+      "research_refs": [],
+      "depends_on": []
+    },
+    {
+      "id": "structure.trendline_three_push_retest",
+      "version": "1.0.0",
+      "name_zh": "三推突破后回踩确认",
+      "explanation": "三推下降趋势线突破后十个交易日内回踩原趋势线并收盘守住，作为突破证据链的附加确认。",
+      "machine_rule": "within 10 completed sessions after a confirmed three-push descending-trendline breakout, price touches the projected line within max(2%, 0.5 ATR), does not materially pierce it, and closes on or above it",
+      "evidence_family": "price_structure",
+      "timeframe": "daily",
+      "lookahead_safe": true,
+      "confirmation_delay_bars": 0,
+      "status": "candidate",
+      "score_mode": "observational",
+      "weight": 1,
+      "redundancy_group": "trendline_breakout",
+      "research_refs": [],
+      "depends_on": [
+        "structure.trendline_three_push"
+      ]
     },
     {
       "id": "structure.bullish_fvg_support",
@@ -240,7 +272,8 @@
       "redundancy_group": "imbalance_support",
       "research_refs": [
         "macd-multifactor-score-v1-2026-08-25"
-      ]
+      ],
+      "depends_on": []
     },
     {
       "id": "risk.overhead_unfilled_gap",
@@ -258,7 +291,8 @@
       "redundancy_group": "overhead_supply",
       "research_refs": [
         "macd-multifactor-score-v1-2026-08-25"
-      ]
+      ],
+      "depends_on": []
     },
     {
       "id": "rsi.oversold_repair",
@@ -274,7 +308,8 @@
       "score_mode": "display_only",
       "weight": 0.0,
       "redundancy_group": "rsi_reversal",
-      "research_refs": []
+      "research_refs": [],
+      "depends_on": []
     },
     {
       "id": "rsi.bullish_divergence",
@@ -292,7 +327,8 @@
       "redundancy_group": "rsi_reversal",
       "research_refs": [
         "macd-pattern-v0.6.0-2026-08-24"
-      ]
+      ],
+      "depends_on": []
     },
     {
       "id": "volume.relative_expansion",
@@ -308,7 +344,8 @@
       "score_mode": "display_only",
       "weight": 0.0,
       "redundancy_group": "volume_expansion",
-      "research_refs": []
+      "research_refs": [],
+      "depends_on": []
     },
     {
       "id": "volume.bottom_expansion",
@@ -324,7 +361,8 @@
       "score_mode": "display_only",
       "weight": 0.0,
       "redundancy_group": "volume_expansion",
-      "research_refs": []
+      "research_refs": [],
+      "depends_on": []
     },
     {
       "id": "volume.pullback_contraction",
@@ -340,7 +378,8 @@
       "score_mode": "display_only",
       "weight": 0.0,
       "redundancy_group": "volume_contraction",
-      "research_refs": []
+      "research_refs": [],
+      "depends_on": []
     },
     {
       "id": "structure.bottom_doji",
@@ -358,7 +397,8 @@
       "redundancy_group": "bottom_candle",
       "research_refs": [
         "macd-candle-v0.7.0-2026-08-24"
-      ]
+      ],
+      "depends_on": []
     },
     {
       "id": "structure.bottom_bullish_engulfing",
@@ -376,7 +416,8 @@
       "redundancy_group": "bottom_candle",
       "research_refs": [
         "macd-candle-v0.7.0-2026-08-24"
-      ]
+      ],
+      "depends_on": []
     },
     {
       "id": "structure.hammer",
@@ -392,7 +433,8 @@
       "score_mode": "display_only",
       "weight": 0.0,
       "redundancy_group": "bottom_candle",
-      "research_refs": []
+      "research_refs": [],
+      "depends_on": []
     },
     {
       "id": "support.close_congestion",
@@ -410,7 +452,8 @@
       "redundancy_group": "chip_density",
       "research_refs": [
         "macd-rollout-02-kline-congestion-2026-08-24"
-      ]
+      ],
+      "depends_on": []
     },
     {
       "id": "support.volume_profile_proxy",
@@ -428,7 +471,8 @@
       "redundancy_group": "chip_density",
       "research_refs": [
         "macd-rollout-03-volume-profile-2026-08-25"
-      ]
+      ],
+      "depends_on": []
     }
   ]
 }

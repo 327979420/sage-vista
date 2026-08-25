@@ -6,11 +6,11 @@ from .eodhd import latest_reference_day
 from .resonance_tracker import bulk_day,macd
 from .factor_registry import CURRENT_COMPONENT_IDS,REGISTRY_VERSION
 
-COMPONENTS=("Fibonacci支撑","EMA支撑","周线MACD改善","三推趋势线突破","上方未补跳空缺口","Bullish FVG支撑")
+COMPONENTS=("Fibonacci支撑","EMA支撑","周线MACD改善","三推趋势线突破","三推突破后回踩确认","上方未补跳空缺口","Bullish FVG支撑")
 
 def score_observation(hits):
  hits=list(hits);misses=[name for name in COMPONENTS if name not in hits]
- return {"score":len(hits),"official_score":0,"observational_score":len(hits),"risk_deduction":0,"total_score":len(hits),"factor_ids":[CURRENT_COMPONENT_IDS[x] for x in hits],"important_misses":misses,"category_scores":{"MACD":int("周线MACD改善" in hits),"支撑":sum(x in hits for x in ("Fibonacci支撑","EMA支撑")),"价格结构":sum(x in hits for x in ("三推趋势线突破","Bullish FVG支撑")),"风险／供给":int("上方未补跳空缺口" in hits)},"risks":["当前六因子等权模型尚未通过跨时期验证"]}
+ return {"score":len(hits),"official_score":0,"observational_score":len(hits),"risk_deduction":0,"total_score":len(hits),"factor_ids":[CURRENT_COMPONENT_IDS[x] for x in hits],"important_misses":misses,"category_scores":{"MACD":int("周线MACD改善" in hits),"支撑":sum(x in hits for x in ("Fibonacci支撑","EMA支撑")),"价格结构":sum(x in hits for x in ("三推趋势线突破","三推突破后回踩确认","Bullish FVG支撑")),"风险／供给":int("上方未补跳空缺口" in hits)},"risks":["当前动态观察因子尚未完成跨时期组合验证"]}
 
 def historical_examples(start="2025-01-01",limit=20):
  """Recent point-in-time cases for human chart review; outcomes never affect selection."""
@@ -61,12 +61,12 @@ def run(out="public/rare-opportunity-radar.json",as_of=None):
   if not flags.get("多因子核心"):continue
   hits=[name for name in COMPONENTS if flags.get(f"多因子组件＋{name}")];score=len(hits)
   if score>=5:
-   signals.append({"symbol":symbol,"date":latest,"price":round(current["close"],2),"level":"极稀有" if score==6 else "稀有","components":hits,"dollar_volume":round(current["close"]*current["volume"]),**score_observation(hits)})
+   signals.append({"symbol":symbol,"date":latest,"price":round(current["close"],2),"level":"极稀有" if score>=6 else "稀有","components":hits,"dollar_volume":round(current["close"]*current["volume"]),**score_observation(hits)})
  signals.sort(key=lambda x:(x["score"],x["dollar_volume"],x["symbol"]),reverse=True)
  history_path=pathlib.Path("public/macd-factor-backtest.json");examples=[]
  if history_path.exists():examples=json.loads(history_path.read_text()).get("multifactor_tests",{}).get("rare_examples",[])[:20]
  if not examples:examples=historical_examples()
- report={"generated_at":datetime.now(timezone.utc).isoformat(),"as_of":latest,"status":"research_observation_only","registry_version":REGISTRY_VERSION,"score_policy":{"official":"只有已验证因子可进入正式分；当前为0","observational":"现有六因子继续作为观察分","risk_deduction":"冲突扣分接口已保留，当前尚未启用"},"policy":"5分播报为稀有观察，6分播报为极稀有观察；不是买入信号，不显示为已验证胜率。","scan":{"frequency":"每个美国交易日收盘后","universe_scanned":scanned,"minimum_price":5,"minimum_dollar_volume":10_000_000,"future_data_used":False},"signals":signals,"historical_examples":examples}
+ report={"generated_at":datetime.now(timezone.utc).isoformat(),"as_of":latest,"status":"research_observation_only","registry_version":REGISTRY_VERSION,"score_policy":{"official":"只有已验证因子可进入正式分；当前为0","observational":"候选因子按命中自由组合；强依赖因子必须满足父因子","risk_deduction":"冲突扣分接口已保留，当前尚未启用"},"policy":"5分为稀有观察，6分或以上为极稀有观察；不是买入信号，不显示为已验证胜率。","scan":{"frequency":"每个美国交易日收盘后","universe_scanned":scanned,"minimum_price":5,"minimum_dollar_volume":10_000_000,"future_data_used":False},"signals":signals,"historical_examples":examples}
  pathlib.Path(out).write_text(json.dumps(report,ensure_ascii=False,indent=2));return report
 
 if __name__=="__main__":print(json.dumps(run(),ensure_ascii=False,indent=2))

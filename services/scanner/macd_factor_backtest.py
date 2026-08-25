@@ -71,17 +71,37 @@ def macd_state(rows):
  scale=statistics.pstdev(hist[-20:]) or 1;near=line[i]<=signal[i] and rising and abs(hist[i])<=scale*.35
  return {"macd_line":line[i],"signal_line":signal[i],"zero_zone":zone,"cross_zero_zone":cross_zone,"dead_cross_zero_zone":dead_zone,"histogram_rising":rising,"histogram_falling":falling,"negative_histogram_shrinking":hist[i]<0 and rising,"near_cross":near}
 
-def three_push_breakout(rows,end):
- """Three confirmed descending swing-high attempts followed by a solid close above their trendline."""
+def three_push_breakout_setup(rows,end):
+ """Return the point-in-time trendline geometry when a three-push breakout is confirmed."""
  start=max(0,end-120);window=rows[start:end+1];local_end=len(window)-1
  points=pivots(window,local_end,TECHNICAL_CONFIG)["highs"]
- if len(points)<3:return False
+ if len(points)<3:return None
  a,b,c=points[-3:]
- if not (a["price"]>b["price"]>c["price"]):return False
+ if not (a["price"]>b["price"]>c["price"]):return None
  slope=(c["price"]-a["price"])/(c["index"]-a["index"]);projected=c["price"]+slope*(local_end-c["index"]);volatility=atr(window)[local_end]
  touches=all(abs(p["price"]-(a["price"]+slope*(p["index"]-a["index"])))<=TECHNICAL_CONFIG["level_test"]["proximity_atr"]*volatility for p in (a,b,c))
  separated=b["index"]-a["index"]>TECHNICAL_CONFIG["level_test"]["rejection_cluster_bars"] and c["index"]-b["index"]>TECHNICAL_CONFIG["level_test"]["rejection_cluster_bars"]
- return touches and separated and detect_bos(window,local_end,projected,TECHNICAL_CONFIG).detected
+ if not (touches and separated and detect_bos(window,local_end,projected,TECHNICAL_CONFIG).detected):return None
+ return {"breakout_index":end,"level":projected,"slope":slope,"atr":volatility}
+
+def three_push_breakout(rows,end):
+ """Three confirmed descending swing-high attempts followed by a solid close above their trendline."""
+ return three_push_breakout_setup(rows,end) is not None
+
+def three_push_retest(rows,end,lookback=10):
+ """A held retest of the same three-push trendline within ten completed sessions."""
+ for breakout_index in range(end-1,max(-1,end-lookback-1),-1):
+  setup=three_push_breakout_setup(rows,breakout_index)
+  if not setup:continue
+  level=setup["level"]+setup["slope"]*(end-breakout_index);current=rows[end]
+  tolerance=max(level*.02,setup["atr"]*.5)
+  touched=current["low"]<=level+tolerance and current["high"]>=level-tolerance
+  held=current["close"]>=level and current["low"]>=level-tolerance
+  if touched and held:return True
+ return False
+
+def recent_three_push_breakout(rows,end,lookback=10):
+ return any(three_push_breakout(rows,i) for i in range(max(0,end-lookback),end+1))
 
 def kline_congestion_support(rows,end,lookback=250,band=.03,min_share=.15,min_pullback=.05):
  """Current price revisits a point-in-time area where many prior daily closes gathered."""
@@ -176,13 +196,13 @@ def daily_pattern_flags(rows,end,weekly_state=None,ema_curves=None):
  for j in range(max(1,end-4),end+1):
   x,prior=rows[j],rows[j-1];bullish=x["close"]>x["open"] and prior["close"]<prior["open"] and x["open"]<=prior["close"] and x["close"]>=prior["open"]
   if bullish and max(x["open"],x["close"])<=bottom_limit:bottom_engulf=True
- congestion=kline_congestion_support(rows,end);volume_peak=volume_profile_support(rows,end);fib=fibonacci_support_levels(rows,end);three_push=three_push_breakout(rows,end)
+ congestion=kline_congestion_support(rows,end);volume_peak=volume_profile_support(rows,end);fib=fibonacci_support_levels(rows,end);three_push=recent_three_push_breakout(rows,end);three_push_retest_hit=three_push and three_push_retest(rows,end)
  current=rows[end]["close"];pullback=current<=max(x["high"] for x in rows[max(0,end-60):end])*.95
  ema_support=any(abs(current/curves[p][end]-1)<=.02 for p in (21,50,200));weekly_improving=bool(weekly_state and weekly_state["histogram_rising"])
- components={"Fibonacci支撑":fib[.5] or fib[.618],"EMA支撑":ema_support,"周线MACD改善":weekly_improving,"三推趋势线突破":three_push,"上方未补跳空缺口":overhead_unfilled_gap(rows,end),"Bullish FVG支撑":bullish_fvg_support(rows,end)}
+ components={"Fibonacci支撑":fib[.5] or fib[.618],"EMA支撑":ema_support,"周线MACD改善":weekly_improving,"三推趋势线突破":three_push,"三推突破后回踩确认":three_push_retest_hit,"上方未补跳空缺口":overhead_unfilled_gap(rows,end),"Bullish FVG支撑":bullish_fvg_support(rows,end)}
  core=trend_ok and pullback;score=sum(components.values());multi={"多因子核心":core}
  multi.update({f"多因子组件＋{name}":core and hit for name,hit in components.items()})
- multi.update({f"多因子得分≥{threshold}":core and score>=threshold for threshold in range(1,7)})
+ multi.update({f"多因子得分≥{threshold}":core and score>=threshold for threshold in range(1,len(components)+1)})
  return {"日线金叉":True,"长期趋势合格＋日线金叉":trend_ok,"长期趋势合格＋日线金叉＋Fibonacci 0.5支撑":trend_ok and fib[.5],"长期趋势合格＋日线金叉＋完整筹码密集峰":trend_ok and congestion and volume_peak,"长期趋势合格＋日线金叉＋Volume Profile筹码峰":trend_ok and volume_peak,"长期趋势合格＋日线金叉＋K线聚集区":trend_ok and congestion,"长期趋势合格＋日线金叉＋底部Doji":trend_ok and bottom_doji,"长期趋势合格＋日线金叉＋底部Bullish Engulfing":trend_ok and bottom_engulf,"长期趋势合格＋日线金叉＋双底突破":trend_ok and double_bottom,"长期趋势合格＋日线金叉＋趋势线三推突破":trend_ok and three_push,"长期趋势合格＋日线金叉＋RSI底背离":trend_ok and bullish_divergence(window,values),**multi}
 
 def features(side,d,w,m):
@@ -330,7 +350,7 @@ def pattern_incremental_report(splits):
  return out
 
 def multifactor_report(splits):
- components=("Fibonacci支撑","EMA支撑","周线MACD改善","三推趋势线突破","上方未补跳空缺口","Bullish FVG支撑")
+ components=("Fibonacci支撑","EMA支撑","周线MACD改善","三推趋势线突破","三推突破后回踩确认","上方未补跳空缺口","Bullish FVG支撑")
  def find(split,factor,horizon):
   row=next((x for x in splits[split] if x["side"]=="buy" and x["regime"]=="all" and x["factor"]==factor and x["horizon"]==horizon),None)
   return row or {"side":"buy","regime":"all","regime_label":"全部市场","factor":factor,"horizon":horizon,"samples":0,"win_rate":None,"mean_return":None,"trimmed_mean_return":None,"median_return":None,"mean_adverse":None,"spy_excess_return":None,"qqq_excess_return":None,"beat_spy_rate":None,"beat_qqq_rate":None}

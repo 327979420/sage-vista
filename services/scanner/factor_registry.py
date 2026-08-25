@@ -10,7 +10,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 
-REGISTRY_VERSION = "0.1.0"
+REGISTRY_VERSION = "0.2.0"
 VALID_STATUSES = {"pending", "testing", "rejected", "unstable", "insufficient_sample", "candidate", "validated", "paused"}
 VALID_SCORE_MODES = {"official", "observational", "display_only", "disabled"}
 
@@ -31,10 +31,11 @@ class Factor:
     weight: float
     redundancy_group: str
     research_refs: tuple[str, ...] = ()
+    depends_on: tuple[str, ...] = ()
 
 
-def factor(id, name, rule, family, timeframe="daily", status="pending", score_mode="display_only", weight=0.0, redundancy=None, refs=(), explanation=None, delay=0):
-    return Factor(id, "1.0.0", name, explanation or name, rule, family, timeframe, True, delay, status, score_mode, weight, redundancy or id, tuple(refs))
+def factor(id, name, rule, family, timeframe="daily", status="pending", score_mode="display_only", weight=0.0, redundancy=None, refs=(), explanation=None, delay=0, depends_on=()):
+    return Factor(id, "1.0.0", name, explanation or name, rule, family, timeframe, True, delay, status, score_mode, weight, redundancy or id, tuple(refs), tuple(depends_on))
 
 
 FACTORS = (
@@ -50,7 +51,8 @@ FACTORS = (
     factor("structure.trendline_three_push", "三推趋势线突破", "confirmed three-push descending trendline close breakout", "price_structure", status="unstable", score_mode="observational", weight=1, redundancy="trendline_breakout", refs=("macd-pattern-v0.6.0-2026-08-24",)),
     factor("structure.double_bottom", "双底", "two confirmed swing lows and objective neckline breakout", "price_structure", status="rejected", redundancy="bottom_structure", refs=("macd-pattern-v0.6.0-2026-08-24",), delay=2),
     factor("structure.higher_low", "更高低点", "latest confirmed swing low exceeds prior confirmed swing low", "price_structure", status="pending", redundancy="bottom_structure", delay=2),
-    factor("structure.breakout_retest", "突破回踩", "completed close breakout followed by valid held retest", "price_structure", status="pending", redundancy="breakout_retest"),
+    factor("structure.breakout_retest", "通用突破回踩", "completed close breakout of a registered structure followed by a valid held retest", "price_structure", status="pending", redundancy="breakout_retest"),
+    factor("structure.trendline_three_push_retest", "三推突破后回踩确认", "within 10 completed sessions after a confirmed three-push descending-trendline breakout, price touches the projected line within max(2%, 0.5 ATR), does not materially pierce it, and closes on or above it", "price_structure", status="candidate", score_mode="observational", weight=1, redundancy="trendline_breakout", explanation="三推下降趋势线突破后十个交易日内回踩原趋势线并收盘守住，作为突破证据链的附加确认。", depends_on=("structure.trendline_three_push",)),
     factor("structure.bullish_fvg_support", "Bullish FVG支撑", "open daily bullish fair-value gap remains below price as support", "price_structure", status="candidate", score_mode="observational", weight=1, redundancy="imbalance_support", refs=("macd-multifactor-score-v1-2026-08-25",)),
     factor("risk.overhead_unfilled_gap", "上方未补跳空缺口", "unfilled downside gap remains overhead", "risk", status="candidate", score_mode="observational", weight=1, redundancy="overhead_supply", refs=("macd-multifactor-score-v1-2026-08-25",)),
     factor("rsi.oversold_repair", "RSI超卖修复", "RSI exits registered oversold zone on completed close", "rsi", status="pending", redundancy="rsi_reversal"),
@@ -71,6 +73,7 @@ CURRENT_COMPONENT_IDS = {
     "EMA支撑": "support.ema_proximity",
     "周线MACD改善": "macd.weekly_histogram_improving",
     "三推趋势线突破": "structure.trendline_three_push",
+    "三推突破后回踩确认": "structure.trendline_three_push_retest",
     "上方未补跳空缺口": "risk.overhead_unfilled_gap",
     "Bullish FVG支撑": "structure.bullish_fvg_support",
 }
@@ -87,6 +90,8 @@ def validate_registry():
             raise ValueError(f"Only validated factors may receive official score: {item.id}")
         if not item.lookahead_safe:
             raise ValueError(f"Unsafe factor cannot enter the registry: {item.id}")
+        if any(parent not in ids for parent in item.depends_on):
+            raise ValueError(f"Unknown factor dependency: {item.id}")
     return True
 
 

@@ -1,5 +1,5 @@
 import unittest
-from services.scanner.macd_factor_backtest import bullish_fvg_support,completed_groups,daily_pattern_flags,ema,features,fibonacci_half_support,full_chip_congestion_support,kline_congestion_support,outcome,overhead_unfilled_gap,stats,three_push_breakout,volume_profile_support
+from services.scanner.macd_factor_backtest import bullish_fvg_support,completed_groups,daily_pattern_flags,ema,features,fibonacci_half_support,full_chip_congestion_support,kline_congestion_support,outcome,overhead_unfilled_gap,stats,three_push_breakout,three_push_retest,volume_profile_support
 
 class MacdFactorBacktestTests(unittest.TestCase):
  def test_completed_period_excludes_current_bucket(self):
@@ -57,6 +57,17 @@ class MacdFactorBacktestTests(unittest.TestCase):
   for i,p in ((20,110),(35,106),(50,102)):rows[i].update(high=p,close=p-2,open=p-3,low=p-4)
   rows[55].update(open=98,high=103,low=97,close=102.5)
   self.assertTrue(three_push_breakout(rows,55))
+ def test_three_push_retest_requires_parent_breakout_within_ten_days(self):
+  rows=[{"date":f"D{i}","open":95,"high":96,"low":94,"close":95,"volume":1000} for i in range(80)]
+  for i,p in ((20,110),(35,106),(50,102)):rows[i].update(high=p,close=p-2,open=p-3,low=p-4)
+  rows[55].update(open=98,high=103,low=97,close=102.5);rows[60].update(open=100,high=101,low=99,close=100)
+  self.assertTrue(three_push_retest(rows,60))
+  before=three_push_retest(rows,60);rows[70].update(high=999,low=1,close=500)
+  self.assertEqual(before,three_push_retest(rows,60))
+  self.assertFalse(three_push_retest(rows,66))
+ def test_three_push_retest_does_not_exist_without_three_push(self):
+  rows=[{"date":f"D{i}","open":100,"high":102,"low":98,"close":101,"volume":1000} for i in range(80)]
+  self.assertFalse(three_push_retest(rows,70))
  def test_kline_congestion_requires_density_and_pullback(self):
   rows=[{"date":f"D{i}","open":100,"high":103,"low":97,"close":100,"volume":1000} for i in range(251)]
   rows[220].update(high=110,close=108);rows[250].update(close=100)

@@ -63,15 +63,27 @@ class TrackerOutputContractTests(unittest.TestCase):
         self.assertEqual(len({factor.id for factor in FACTORS}), len(FACTORS))
         self.assertFalse(any(factor.score_mode == "official" and factor.status != "validated" for factor in FACTORS))
 
-    def test_transitional_radar_score_is_observational_only(self):
+    def test_dynamic_radar_score_is_observational_only(self):
         from services.scanner.rare_opportunity_scanner import COMPONENTS, score_observation
 
         result = score_observation(COMPONENTS[:5])
         self.assertEqual(result["official_score"], 0)
         self.assertEqual(result["observational_score"], 5)
         self.assertEqual(result["total_score"], 5)
-        self.assertEqual(len(result["important_misses"]), 1)
+        self.assertEqual(len(result["important_misses"]), len(COMPONENTS) - 5)
         self.assertEqual(len(result["factor_ids"]), 5)
+
+    def test_trendline_retest_is_registered_as_parent_bound_observation(self):
+        from services.scanner.factor_registry import FACTORS
+
+        factors = {factor.id: factor for factor in FACTORS}
+        retest = factors["structure.trendline_three_push_retest"]
+        parent = factors["structure.trendline_three_push"]
+        self.assertEqual(retest.score_mode, "observational")
+        self.assertEqual(retest.weight, 1)
+        self.assertEqual(retest.redundancy_group, parent.redundancy_group)
+        self.assertEqual(retest.depends_on, (parent.id,))
+        self.assertIn("10 completed sessions", retest.machine_rule)
 
 
 if __name__ == "__main__":

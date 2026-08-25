@@ -1844,6 +1844,25 @@ nav {
 .rareFirstView p { margin: 6px 0 0; color: #68776f; font-size: 11px; line-height: 1.45; }
 .rareRegistryLine { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
 .rareRegistryLine span { padding: 7px 10px; border-radius: 999px; background: #e8efe9; color: #466156; font-size: 10px; font-weight: 800; }
+.rareFactorLibrary { margin: 18px 0; padding: 26px; border: 1px solid #dce5df; border-radius: 20px; background: #fff; }
+.rareFactorLibrary>header { display: flex; justify-content: space-between; gap: 24px; align-items: flex-start; }
+.rareFactorLibrary>header small { color: #718078; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; }
+.rareFactorLibrary>header h2 { margin: 6px 0; font-size: 25px; }
+.rareFactorLibrary>header p { max-width: 720px; margin: 0; color: #68776f; font-size: 12px; line-height: 1.65; }
+.rareFactorLibrary>header>div:last-child { min-width: 78px; padding: 12px; border-radius: 14px; background: #173d2d; color: #fff; text-align: center; }
+.rareFactorLibrary>header>div:last-child b,.rareFactorLibrary>header>div:last-child span { display: block; }
+.rareFactorLibrary>header>div:last-child b { font-size: 25px; }.rareFactorLibrary>header>div:last-child span { color: #b9d0c6; font-size: 10px; }
+.rareFactorFamilies { display: grid; grid-template-columns: repeat(2,1fr); gap: 9px; margin-top: 20px; }
+.rareFactorFamilies details { border: 1px solid #e0e7e3; border-radius: 13px; background: #f8faf8; }
+.rareFactorFamilies summary { display: flex; justify-content: space-between; padding: 13px 15px; color: #334f43; font-size: 12px; font-weight: 800; cursor: pointer; }
+.rareFactorFamilies summary b { display: grid; place-items: center; min-width: 23px; height: 20px; border-radius: 999px; background: #e1ece6; color: #176b45; }
+.rareFactorFamilies details>div { display: grid; gap: 7px; padding: 0 9px 9px; }
+.rareFactorFamilies article { padding: 13px; border: 1px solid #e3e9e5; border-radius: 10px; background: #fff; }
+.rareFactorFamilies article.isNew { border-color: #75b894; box-shadow: inset 3px 0 #23835b; }
+.rareFactorFamilies article header { display: flex; justify-content: space-between; gap: 10px; }.rareFactorFamilies article header mark { padding: 3px 6px; border-radius: 999px; background: #daf1e5; color: #176b45; font-size: 9px; }
+.rareFactorFamilies article p { margin: 6px 0 10px; color: #68776f; font-size: 11px; line-height: 1.55; }
+.rareFactorFamilies article footer { display: flex; gap: 5px; flex-wrap: wrap; }.rareFactorFamilies article footer span { padding: 4px 7px; border-radius: 999px; background: #edf2ef; color: #5e7167; font-size: 9px; font-weight: 750; }
+.rareFactorFamilies article footer .status-candidate,.rareFactorFamilies article footer .status-validated { background: #ddf1e6; color: #176b45; }.rareFactorFamilies article footer .status-rejected,.rareFactorFamilies article footer .status-unstable { background: #f6e8e3; color: #975b4c; }
 .rareScoreSplit { display: grid!important; grid-template-columns: repeat(3,1fr); gap: 6px!important; margin: 14px 0; }
 .rareScoreSplit span { padding: 9px!important; border-radius: 10px!important; background: #eef4f1!important; font-size: 11px!important; }
 .rareScoreSplit small, .rareScoreSplit b { display: block; }
@@ -1857,7 +1876,7 @@ nav {
 .rareLegacy { margin: 18px 0; border: 1px solid #dce5df; border-radius: 14px; background: #fff; }
 .rareLegacy summary { padding: 14px 18px; color: #51665b; font-size: 12px; font-weight: 800; cursor: pointer; }
 .rareLegacy div { padding: 0 18px 12px; color: #65756d; font-size: 12px; line-height: 1.65; }
-@media (max-width: 760px) { .rareFirstView { grid-template-columns: 1fr; } }
+@media (max-width: 760px) { .rareFirstView,.rareFactorFamilies { grid-template-columns: 1fr; }.rareFactorLibrary { padding: 20px 15px; }.rareFactorLibrary>header { display: block; }.rareFactorLibrary>header>div:last-child { display: inline-block; margin-top: 14px; } }
 .temperature {
   width: 280px;
   padding: 20px;
