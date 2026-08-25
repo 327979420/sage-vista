@@ -6,7 +6,7 @@ from .eodhd import latest_reference_day
 from .resonance_tracker import bulk_day,macd
 from .factor_registry import CURRENT_COMPONENT_IDS,REGISTRY_VERSION
 
-COMPONENTS=("日线MACD近5日金叉","Fibonacci支撑","EMA支撑","周线MACD改善","三推趋势线突破","三推突破后回踩确认","上方未补跳空缺口","Bullish FVG支撑")
+COMPONENTS=("日线MACD近5日金叉","Fibonacci支撑","EMA支撑","支撑位底部放量","支撑位看涨吞没","周线MACD改善","三推趋势线突破","三推突破后回踩确认","上方未补跳空缺口","Bullish FVG支撑")
 
 def recent_bull_cross(line,signal,end,window=5):
  """Keep a completed daily bull cross fresh for five sessions including its trigger day."""
@@ -15,7 +15,7 @@ def recent_bull_cross(line,signal,end,window=5):
 
 def score_observation(hits):
  hits=list(hits);misses=[name for name in COMPONENTS if name not in hits]
- return {"score":len(hits),"official_score":0,"observational_score":len(hits),"risk_deduction":0,"total_score":len(hits),"factor_ids":[CURRENT_COMPONENT_IDS[x] for x in hits],"important_misses":misses,"category_scores":{"MACD":sum(x in hits for x in ("日线MACD近5日金叉","周线MACD改善")),"支撑":sum(x in hits for x in ("Fibonacci支撑","EMA支撑")),"价格结构":sum(x in hits for x in ("三推趋势线突破","三推突破后回踩确认","Bullish FVG支撑")),"风险／供给":int("上方未补跳空缺口" in hits)},"risks":["当前动态观察因子尚未完成跨时期组合验证"]}
+ return {"score":len(hits),"official_score":0,"observational_score":len(hits),"risk_deduction":0,"total_score":len(hits),"factor_ids":[CURRENT_COMPONENT_IDS[x] for x in hits],"important_misses":misses,"category_scores":{"MACD":sum(x in hits for x in ("日线MACD近5日金叉","周线MACD改善")),"支撑":sum(x in hits for x in ("Fibonacci支撑","EMA支撑")),"价格结构":sum(x in hits for x in ("三推趋势线突破","三推突破后回踩确认","支撑位看涨吞没","Bullish FVG支撑")),"量能":int("支撑位底部放量" in hits),"风险／供给":int("上方未补跳空缺口" in hits)},"risks":["当前动态观察因子尚未完成跨时期组合验证"]}
 
 def historical_examples(start="2025-01-01",limit=20):
  """Recent point-in-time cases for human chart review; outcomes never affect selection."""

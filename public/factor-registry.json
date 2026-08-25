@@ -1,6 +1,6 @@
 {
-  "registry_version": "0.3.0",
-  "factor_count": 26,
+  "registry_version": "0.4.0",
+  "factor_count": 27,
   "factors": [
     {
       "id": "qualification.long_trend",
@@ -351,18 +351,20 @@
     {
       "id": "volume.bottom_expansion",
       "version": "1.0.0",
-      "name_zh": "底部放量",
-      "explanation": "底部放量",
-      "machine_rule": "relative volume expansion while price is in registered bottom zone",
+      "name_zh": "支撑位底部放量",
+      "explanation": "价格处于底部并命中已登记支撑时，当日成交量显著高于此前20日均量和前一日，作为支撑获得资金响应的观察确认。",
+      "machine_rule": "close is in the lower 45% of its trailing 60-session range, at least one registered support context is active, and completed-session volume is at least 1.5 times the prior 20-session average and above prior-session volume",
       "evidence_family": "volume",
       "timeframe": "daily",
       "lookahead_safe": true,
       "confirmation_delay_bars": 0,
-      "status": "pending",
-      "score_mode": "display_only",
-      "weight": 0.0,
-      "redundancy_group": "volume_expansion",
-      "research_refs": [],
+      "status": "candidate",
+      "score_mode": "observational",
+      "weight": 1,
+      "redundancy_group": "support_volume_confirmation",
+      "research_refs": [
+        "support-confirmation-hypothesis-2026-08-25"
+      ],
       "depends_on": []
     },
     {
@@ -417,6 +419,25 @@
       "redundancy_group": "bottom_candle",
       "research_refs": [
         "macd-candle-v0.7.0-2026-08-24"
+      ],
+      "depends_on": []
+    },
+    {
+      "id": "structure.support_bullish_engulfing",
+      "version": "1.0.0",
+      "name_zh": "支撑位看涨吞没",
+      "explanation": "在已登记支撑附近，后一根阳线实体完整包住前一根阴线实体，作为支撑获得价格响应的观察确认。",
+      "machine_rule": "the latest completed candle is bullish, the prior candle is bearish, the bullish real body fully engulfs the prior bearish real body, and at least one registered support context is active",
+      "evidence_family": "price_structure",
+      "timeframe": "daily",
+      "lookahead_safe": true,
+      "confirmation_delay_bars": 0,
+      "status": "candidate",
+      "score_mode": "observational",
+      "weight": 1,
+      "redundancy_group": "support_candle_confirmation",
+      "research_refs": [
+        "support-confirmation-hypothesis-2026-08-25"
       ],
       "depends_on": []
     },

@@ -104,6 +104,26 @@ class TrackerOutputContractTests(unittest.TestCase):
         self.assertEqual(factor.weight, 1)
         self.assertIn("latest 5 sessions", factor.machine_rule)
 
+    def test_support_confirmations_cannot_score_without_support(self):
+        from services.scanner.macd_factor_backtest import support_bottom_volume, support_bullish_engulfing
+
+        rows = [{"open":10,"high":20,"low":9,"close":10,"volume":100} for _ in range(20)]
+        rows.append({"open":10,"high":10.2,"low":9.5,"close":9.7,"volume":100})
+        rows.append({"open":9.6,"high":10.8,"low":9.5,"close":10.5,"volume":200})
+        self.assertFalse(support_bottom_volume(rows,21,False))
+        self.assertFalse(support_bullish_engulfing(rows,21,False))
+        self.assertTrue(support_bottom_volume(rows,21,True))
+        self.assertTrue(support_bullish_engulfing(rows,21,True))
+
+    def test_support_confirmations_are_observational_factors(self):
+        from services.scanner.factor_registry import FACTORS
+
+        factors = {x.id:x for x in FACTORS}
+        for factor_id in ("volume.bottom_expansion","structure.support_bullish_engulfing"):
+            self.assertEqual(factors[factor_id].status,"candidate")
+            self.assertEqual(factors[factor_id].score_mode,"observational")
+            self.assertEqual(factors[factor_id].weight,1)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -10,7 +10,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 
-REGISTRY_VERSION = "0.3.0"
+REGISTRY_VERSION = "0.4.0"
 VALID_STATUSES = {"pending", "testing", "rejected", "unstable", "insufficient_sample", "candidate", "validated", "paused"}
 VALID_SCORE_MODES = {"official", "observational", "display_only", "disabled"}
 
@@ -58,10 +58,11 @@ FACTORS = (
     factor("rsi.oversold_repair", "RSI超卖修复", "RSI exits registered oversold zone on completed close", "rsi", status="pending", redundancy="rsi_reversal"),
     factor("rsi.bullish_divergence", "RSI底背离", "price lower low with confirmed RSI higher low using only known pivots", "rsi", status="unstable", redundancy="rsi_reversal", refs=("macd-pattern-v0.6.0-2026-08-24",), delay=2),
     factor("volume.relative_expansion", "成交量突然放大", "volume / prior completed 20-day average >= configured threshold", "volume", status="testing", redundancy="volume_expansion"),
-    factor("volume.bottom_expansion", "底部放量", "relative volume expansion while price is in registered bottom zone", "volume", status="pending", redundancy="volume_expansion"),
+    factor("volume.bottom_expansion", "支撑位底部放量", "close is in the lower 45% of its trailing 60-session range, at least one registered support context is active, and completed-session volume is at least 1.5 times the prior 20-session average and above prior-session volume", "volume", status="candidate", score_mode="observational", weight=1, redundancy="support_volume_confirmation", refs=("support-confirmation-hypothesis-2026-08-25",), explanation="价格处于底部并命中已登记支撑时，当日成交量显著高于此前20日均量和前一日，作为支撑获得资金响应的观察确认。"),
     factor("volume.pullback_contraction", "缩量回调", "pullback volume contracts versus prior completed average", "volume", status="pending", redundancy="volume_contraction"),
     factor("structure.bottom_doji", "底部Doji", "Doji in lower 30% of trailing 60-day range within four bars before cross", "price_structure", status="rejected", redundancy="bottom_candle", refs=("macd-candle-v0.7.0-2026-08-24",)),
     factor("structure.bottom_bullish_engulfing", "底部看涨吞没", "bullish engulfing in lower 30% of trailing range within four bars before cross", "price_structure", status="rejected", redundancy="bottom_candle", refs=("macd-candle-v0.7.0-2026-08-24",)),
+    factor("structure.support_bullish_engulfing", "支撑位看涨吞没", "the latest completed candle is bullish, the prior candle is bearish, the bullish real body fully engulfs the prior bearish real body, and at least one registered support context is active", "price_structure", status="candidate", score_mode="observational", weight=1, redundancy="support_candle_confirmation", refs=("support-confirmation-hypothesis-2026-08-25",), explanation="在已登记支撑附近，后一根阳线实体完整包住前一根阴线实体，作为支撑获得价格响应的观察确认。"),
     factor("structure.hammer", "锤头线", "registered lower-wick/body rejection rule", "price_structure", status="pending", redundancy="bottom_candle"),
     factor("support.close_congestion", "K线聚集区", "at least 15% of prior 250 closes within +/-3%", "support", status="rejected", redundancy="chip_density", refs=("macd-rollout-02-kline-congestion-2026-08-24",)),
     factor("support.volume_profile_proxy", "Volume Profile近似筹码峰", "largest of 40 daily typical-price volume bins is near current price", "support", status="rejected", redundancy="chip_density", refs=("macd-rollout-03-volume-profile-2026-08-25",)),
@@ -72,6 +73,8 @@ CURRENT_COMPONENT_IDS = {
     "日线MACD近5日金叉": "macd.daily_bull_cross",
     "Fibonacci支撑": "support.fibonacci_half",
     "EMA支撑": "support.ema_proximity",
+    "支撑位底部放量": "volume.bottom_expansion",
+    "支撑位看涨吞没": "structure.support_bullish_engulfing",
     "周线MACD改善": "macd.weekly_histogram_improving",
     "三推趋势线突破": "structure.trendline_three_push",
     "三推突破后回踩确认": "structure.trendline_three_push_retest",

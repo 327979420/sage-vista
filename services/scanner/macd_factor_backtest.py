@@ -183,6 +183,20 @@ def long_trend_ok(rows,end,long_average=None):
  closes=[x["close"] for x in rows[:end+1]];long_average=long_average or ema(closes,200)
  return end>=260 and closes[end]>=long_average[end]*.90 and long_average[end]>=long_average[end-60]*.97
 
+def support_bottom_volume(rows,end,support_context,ratio_threshold=1.5):
+ """Volume expansion only counts when price is low in its range and a support context exists."""
+ if not support_context or end<20:return False
+ range60=rows[max(0,end-59):end+1];low=min(x["low"] for x in range60);high=max(x["high"] for x in range60)
+ in_bottom_zone=rows[end]["close"]<=low+(high-low)*.45
+ prior_average=sum(x["volume"] for x in rows[end-20:end])/20
+ return in_bottom_zone and prior_average>0 and rows[end]["volume"]>=prior_average*ratio_threshold and rows[end]["volume"]>rows[end-1]["volume"]
+
+def support_bullish_engulfing(rows,end,support_context):
+ """A completed bullish body must engulf the immediately prior bearish body at support."""
+ if not support_context or end<1:return False
+ current,prior=rows[end],rows[end-1]
+ return prior["close"]<prior["open"] and current["close"]>current["open"] and current["open"]<=prior["close"] and current["close"]>=prior["open"]
+
 def daily_pattern_flags(rows,end,weekly_state=None,ema_curves=None):
  """Price/RSI confirmations visible at the daily MACD-cross close."""
  start=max(0,end-180);window=rows[start:end+1];w=detect_w_bottom(window,len(window)-1,TECHNICAL_CONFIG)
@@ -198,8 +212,9 @@ def daily_pattern_flags(rows,end,weekly_state=None,ema_curves=None):
   if bullish and max(x["open"],x["close"])<=bottom_limit:bottom_engulf=True
  congestion=kline_congestion_support(rows,end);volume_peak=volume_profile_support(rows,end);fib=fibonacci_support_levels(rows,end);three_push=recent_three_push_breakout(rows,end);three_push_retest_hit=three_push and three_push_retest(rows,end)
  current=rows[end]["close"];pullback=current<=max(x["high"] for x in rows[max(0,end-60):end])*.95
- ema_support=any(abs(current/curves[p][end]-1)<=.02 for p in (21,50,200));weekly_improving=bool(weekly_state and weekly_state["histogram_rising"])
- components={"Fibonacci支撑":fib[.5] or fib[.618],"EMA支撑":ema_support,"周线MACD改善":weekly_improving,"三推趋势线突破":three_push,"三推突破后回踩确认":three_push_retest_hit,"上方未补跳空缺口":overhead_unfilled_gap(rows,end),"Bullish FVG支撑":bullish_fvg_support(rows,end)}
+ ema_support=any(abs(current/curves[p][end]-1)<=.02 for p in (21,50,200));weekly_improving=bool(weekly_state and weekly_state["histogram_rising"]);fvg_support=bullish_fvg_support(rows,end)
+ support_context=bool(fib[.5] or fib[.618] or ema_support or fvg_support or three_push_retest_hit or volume_peak or congestion)
+ components={"Fibonacci支撑":fib[.5] or fib[.618],"EMA支撑":ema_support,"支撑位底部放量":support_bottom_volume(rows,end,support_context),"支撑位看涨吞没":support_bullish_engulfing(rows,end,support_context),"周线MACD改善":weekly_improving,"三推趋势线突破":three_push,"三推突破后回踩确认":three_push_retest_hit,"上方未补跳空缺口":overhead_unfilled_gap(rows,end),"Bullish FVG支撑":fvg_support}
  core=trend_ok and pullback;score=sum(components.values());multi={"多因子核心":core}
  multi.update({f"多因子组件＋{name}":core and hit for name,hit in components.items()})
  multi.update({f"多因子得分≥{threshold}":core and score>=threshold for threshold in range(1,len(components)+1)})
