@@ -2,6 +2,14 @@
 
 本文件记录产品方向与用户要求。实验数字和因子结论仍以 `research/experiments.jsonl` 为机器账本。
 
+## 2026-08-25：Early Watch 与 GitHub Actions 自动化
+
+- Early Watch 只接受尚未金叉、日线负 MACD 柱至少连续两根收缩、MACD/Signal 差距单日缩小至少15%、已经进入 near-cross 区域，并至少获得两项独立证据支持的股票。
+- Confirmed 接受随后五个交易日内完成且仍有效的日线金叉并通过现有 MACD 买入门槛，或达到多因子雷达5分门槛的股票。
+- Discord 状态按股票持久化：相同状态不重复，Early Watch → Confirmed 允许再提醒，Confirmed 不允许降级回 Early Watch 重发。
+- GitHub Actions 在美股交易日后的三个 UTC 时段重试 EODHD；数据未准备好、日期不一致、扫描失败、future-data 异常、测试失败或构建失败均停止，不提交公开 JSON。
+- 定时 update job 只做 preview，不直接发送。现有私有 Sites 部署成功并通过线上日期核验后，才触发 notify job；网站未更新时 Discord 必须停止。
+
 ## 2026-08-25：支撑位量价确认因子
 
 - 新增两个候选观察因子：支撑位底部放量、支撑位看涨吞没，各记观察分 +1，不进入正式分。

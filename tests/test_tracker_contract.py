@@ -124,6 +124,17 @@ class TrackerOutputContractTests(unittest.TestCase):
             self.assertEqual(factors[factor_id].score_mode,"observational")
             self.assertEqual(factors[factor_id].weight,1)
 
+    def test_early_watch_requires_pre_cross_shrinking_gap_and_two_supports(self):
+        from services.scanner.resonance_tracker import early_watch_evidence
+
+        daily={"macd_line":-.2,"signal_line":-.1,"macd_histogram":-.1,"macd_histogram_change":.03,"negative_histogram_shrinking":True,"energy_streak":3,"near_cross":True,"rsi_score":2,"rsi":"超卖修复"}
+        higher={"histogram_rising":True,"macd_line":-.4,"signal_line":-.3,"negative_histogram_shrinking":True}
+        item={"frames":{"日线":daily,"周线":higher,"月线":higher},"ema_layer":{"direction":"buy"},"price_structure":{"confirmed":False},"volume":{"near_bottom":False,"score":0}}
+        evidence=early_watch_evidence(item)
+        self.assertIn("日线负柱连续收缩3根",evidence)
+        self.assertTrue(any("差距单日缩小" in x for x in evidence))
+        self.assertEqual(early_watch_evidence({**item,"frames":{**item["frames"],"日线":{**daily,"macd_line":0}}}),[])
+
 
 if __name__ == "__main__":
     unittest.main()

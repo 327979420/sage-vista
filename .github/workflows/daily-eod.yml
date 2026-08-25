@@ -1,0 +1,167 @@
+name: Sage Vista EOD Update
+
+on:
+  schedule:
+    - cron: "15 0,1,2 * * 2-6"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Safe pipeline stage
+        required: true
+        default: preview
+        type: choice
+        options: [preview, update, notify]
+      expected_as_of:
+        description: Required completed EOD date for notify mode
+        required: false
+        type: string
+      confirm_send:
+        description: Allow a real Discord send after live-site verification
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sage-vista-eod
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: "22.13.0"
+  LIVE_SITE_URL: https://northstar-equity-signals.rachelzhanzst.chatgpt.site
+
+jobs:
+  update:
+    if: github.event_name == 'schedule' || inputs.mode == 'update'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      EODHD_API_TOKEN: ${{ secrets.EODHD_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Require EODHD secret
+        shell: bash
+        run: test -n "$EODHD_API_TOKEN" || { echo "EODHD_API_TOKEN secret is not configured"; exit 1; }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13" }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - name: Restore historical EOD cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            work/eodhd-cache
+            work/eodhd-active-common.json
+          key: eodhd-history-v1-${{ github.run_id }}
+          restore-keys: eodhd-history-v1-
+      - run: npm ci
+      - name: Run fail-closed daily update
+        run: python3 -m services.scanner.daily_tracker_update > update-result.json
+      - name: Validate update result
+        id: update_result
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json,os
+          result=json.load(open("update-result.json"))
+          if result.get("result") not in ("updated","already_current"):raise SystemExit("unexpected update result")
+          with open(os.environ["GITHUB_OUTPUT"],"a") as out:
+              out.write(f"result={result['result']}\n")
+              out.write(f"as_of={result['as_of']}\n")
+          PY
+      - name: Run all Python tests
+        run: python3 -m unittest discover -s tests -p 'test_*.py'
+      - name: Run production build and rendered tests
+        run: npm test
+      - name: Dry-run Discord payload
+        run: python3 -m services.scanner.discord_daily_digest --preview --state-path automation/discord-state.json > discord-preview.json
+      - name: Validate dry-run did not send
+        run: |
+          python3 - <<'PY'
+          import json
+          result=json.load(open("discord-preview.json"))
+          if result.get("result") not in ("preview","duplicate_skipped"):raise SystemExit("Discord dry-run validation failed")
+          PY
+      - name: Commit audited website data
+        if: steps.update_result.outputs.result == 'updated'
+        shell: bash
+        run: |
+          git config user.name "sage-vista-bot"
+          git config user.email "sage-vista-bot@users.noreply.github.com"
+          git add public/resonance-tracker.json public/rare-opportunity-radar.json public/update-status.json
+          git diff --cached --quiet && exit 0
+          git commit -m "data: EOD update ${{ steps.update_result.outputs.as_of }}"
+          git push origin HEAD:main
+      - name: Upload safe preview artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: discord-preview-${{ steps.update_result.outputs.as_of }}
+          path: |
+            update-result.json
+            discord-preview.json
+          retention-days: 7
+
+  preview:
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'preview'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13" }
+      - name: Run notification tests
+        run: python3 -m unittest tests.test_discord_digest tests.test_tracker_contract
+      - name: Build payload without Discord Secret
+        run: python3 -m services.scanner.discord_daily_digest --preview --state-path automation/discord-state.json > discord-preview.json
+      - name: Verify preview mode
+        run: |
+          python3 - <<'PY'
+          import json
+          result=json.load(open("discord-preview.json"))
+          if result.get("result") not in ("preview","duplicate_skipped"):raise SystemExit("preview failed")
+          if "payload" in result and not result["payload"].get("embeds"):raise SystemExit("empty payload")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: manual-discord-preview
+          path: discord-preview.json
+          retention-days: 3
+
+  notify:
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'notify'
+    runs-on: ubuntu-latest
+    env:
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL || secrets.DISCORD_OPPORTUNITY }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13" }
+      - name: Require explicit send authorization and secrets
+        shell: bash
+        run: |
+          test "${{ inputs.confirm_send }}" = "true" || { echo "Real Discord send not authorized"; exit 1; }
+          test -n "${{ inputs.expected_as_of }}" || { echo "expected_as_of is required"; exit 1; }
+          test -n "$DISCORD_WEBHOOK_URL" || { echo "Discord webhook secret is not configured"; exit 1; }
+      - name: Verify live website is published and synchronized
+        run: python3 -m services.scanner.verify_live_deployment --site "$LIVE_SITE_URL" --expected "${{ inputs.expected_as_of }}"
+      - name: Re-run notification and contract tests
+        run: python3 -m unittest tests.test_discord_digest tests.test_tracker_contract
+      - name: Preview exact pending payload
+        run: python3 -m services.scanner.discord_daily_digest --preview --state-path automation/discord-state.json > discord-preview.json
+      - name: Send Discord notification
+        run: python3 -m services.scanner.discord_daily_digest --state-path automation/discord-state.json
+      - name: Persist transition state
+        shell: bash
+        run: |
+          git config user.name "sage-vista-bot"
+          git config user.email "sage-vista-bot@users.noreply.github.com"
+          git add automation/discord-state.json
+          git diff --cached --quiet && exit 0
+          git commit -m "state: Discord transitions ${{ inputs.expected_as_of }}"
+          git pull --rebase origin main
+          git push origin HEAD:main

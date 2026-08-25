@@ -188,6 +188,26 @@ def timeframe_state(rows):
   else:break
  state={"macd":macd_label,"macd_line":round(line[i],4),"signal_line":round(signal[i],4),"macd_histogram":round(hist[i],4),"macd_histogram_change":round(hist[i]-hist[i-1],4),"energy":"增强" if rising else "减弱" if falling else "震荡","energy_streak":energy_streak,"zero_zone":zone,"cross_zero_zone":cross_zero_zone,"dead_cross_zero_zone":dead_cross_zero_zone,"bars_since_cross":bars_since_cross,"bars_since_dead_cross":bars_since_dead_cross,"near_cross":near,"histogram_rising":rising,"histogram_falling":falling,"negative_histogram_shrinking":shrinking,"rsi":rsi_label,"rsi_bearish_divergence":bear_divergence,"rsi_overbought_reversal":overbought_reversal,"rsi_score":4 if divergence else 3 if recovering else 2 if rv[i] is not None and rv[i]<=30 else 1 if rv[i] is not None and rv[i]>=50 else 0,"rsi_value":round(rv[i],1) if rv[i] is not None else None}
  state["macd_score"]=macd_state_score(state);return state
+
+def early_watch_evidence(item):
+ """Return independent support for a pre-cross daily MACD setup, or an empty list."""
+ daily=item["frames"]["日线"]
+ gap=daily["signal_line"]-daily["macd_line"]
+ previous_gap=gap+daily["macd_histogram_change"]
+ shrink_ratio=1-gap/previous_gap if previous_gap>0 else 0
+ pre_cross=(daily["macd_line"]<daily["signal_line"] and daily["macd_histogram"]<0 and daily["negative_histogram_shrinking"] and daily["energy_streak"]>=2 and daily["near_cross"] and shrink_ratio>=.15)
+ if not pre_cross:return []
+ weekly=item["frames"]["周线"];monthly=item["frames"]["月线"];evidence=[]
+ if weekly["histogram_rising"] or weekly["macd_line"]>weekly["signal_line"]:evidence.append("完整周线MACD支持")
+ if monthly["negative_histogram_shrinking"] or monthly["macd_line"]>monthly["signal_line"]:evidence.append("完整月线MACD支持")
+ if item["ema_layer"]["direction"]=="buy" or item["ema_layer"].get("improving")=="buy":evidence.append("日线EMA结构改善")
+ if item["price_structure"]["confirmed"]:evidence.append("价格结构确认")
+ if daily["rsi_score"]>=2:evidence.append(daily["rsi"])
+ if item["volume"]["near_bottom"] and item["volume"]["score"]>=4:evidence.append(item["volume"]["label"])
+ if len(evidence)<2:return []
+ evidence.insert(0,f"日线负柱连续收缩{daily['energy_streak']}根")
+ evidence.insert(1,f"MACD/Signal差距单日缩小{round(shrink_ratio*100)}%")
+ return evidence
 def run(out="public/resonance-tracker.json",as_of=None):
  # The live tracker is intentionally broader than the backtest panel: every
  # locally cached active symbol may be scanned when it also trades today.
@@ -255,7 +275,12 @@ def run(out="public/resonance-tracker.json",as_of=None):
  report["combined_top10"]=sorted((x for x in candidates if x["indicator_layers"]["macd"]["direction"]==x["indicator_layers"]["rsi"]["direction"] and x["indicator_layers"]["macd"]["direction"]!="neutral"),key=lambda x:(x["indicator_layers"]["macd"]["score"]+x["indicator_layers"]["rsi"]["score"],x["dollar_volume"],x["symbol"]),reverse=True)[:10]
  report["bullish_watch_top10"]=[x for x in multi if x["ranking_direction"]=="buy" and x["confluence_direction"]!="conflict"][:10]
  report["bearish_watch_top10"]=[x for x in multi if x["ranking_direction"]=="sell" and x["confluence_direction"]!="conflict"][:10]
- published={x["symbol"] for key in ("multi_confluence_top10","bullish_watch_top10","bearish_watch_top10","four_layer_bullish","four_layer_bearish","combined_top10","macd_buy_top10","macd_sell_top10","rsi_top10","volume_top10") for x in report[key]}
+ early=[]
+ for x in candidates:
+  evidence=early_watch_evidence(x)
+  if evidence:early.append({**x,"alert_status":"early_watch","early_watch_evidence":evidence})
+ report["early_watch_top10"]=sorted(early,key=lambda x:(len(x["early_watch_evidence"]),x["macd_rank_score"],x["dollar_volume"],x["symbol"]),reverse=True)[:10]
+ published={x["symbol"] for key in ("multi_confluence_top10","bullish_watch_top10","bearish_watch_top10","early_watch_top10","four_layer_bullish","four_layer_bearish","combined_top10","macd_buy_top10","macd_sell_top10","rsi_top10","volume_top10") for x in report[key]}
  report["details"]={x["symbol"]:x["_detail"] for x in candidates if x["symbol"] in published}
  report["ranking_method"]={"name":"多周期四层共振","version":RULESET["version"],"order":["四层严格同向优先","同向层数","固定规则分","最新成交额","股票代码"],"score":"每层固定25分：日线触发10分、完整周线方向8分、完整月线方向7分；四层合计100分。","warning":"这是规则匹配度，不是上涨或下跌概率；盈利潜力仍需样本外回测验证。"}
  digest_rows=[(x["symbol"],x["ranking_score"],x["ranking_direction"],x["layer_directions"]) for x in multi]
