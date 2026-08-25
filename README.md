@@ -28,6 +28,7 @@ RSI、RSI 底背离、成交量放大等不再需要各自占用独立功能页�
 
 - [项目蓝图与产品框架](docs/PROJECT_BLUEPRINT_ZH.md)
 - [产品决策日志](docs/DECISION_LOG_ZH.md)
+- [下一对话交接说明](docs/NEXT_SESSION_HANDOFF_ZH.md)
 - [Tracker 产品要求](docs/TRACKER_PRODUCT_REQUIREMENTS_ZH.md)
 - [技术规则手册](docs/TECHNICAL_RULEBOOK.md)
 - [研究账本说明](research/README.md)
