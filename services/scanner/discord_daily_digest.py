@@ -1,5 +1,5 @@
 """Configurable Discord EOD digest using the exact website tracker outputs."""
-import argparse,hashlib,json,os,pathlib,tempfile,urllib.request
+import argparse,json,os,pathlib,tempfile,urllib.request
 
 PUBLIC=pathlib.Path("public")
 STATE_PATH=pathlib.Path("automation/discord-state.json")
@@ -23,8 +23,13 @@ def validate_inputs(status,tracker,radar):
   raise RuntimeError("Discord blocked: future-data audit failed")
  return tracker["as_of"]
 
-def compact_list(items,score_key="macd_rank_score"):
- return "\n".join(f"`{i+1:02}` **{x['symbol']}**  ${x['price']}  ·  {x.get(score_key,0)}分" for i,x in enumerate(items)) or "本日没有候选"
+def ranking_list(items):
+ return "\n".join(f"{i+1}. {x['symbol']}" for i,x in enumerate(items[:10])) or "No candidates"
+
+def ranking_items(tracker,radar):
+ macd=sorted(tracker.get("macd_top10",tracker.get("macd_buy_top10",[])),key=lambda x:x.get("macd_rank_score",0),reverse=True)[:10]
+ multi=sorted(radar.get("signals",[]),key=lambda x:x.get("total_score",x.get("score",0)),reverse=True)[:10]
+ return macd,multi
 
 def rare_embed(signal,site):
  categories=" · ".join(f"{k} {v}" for k,v in signal.get("category_scores",{}).items()) or "暂无分类分"
@@ -57,14 +62,16 @@ def alert_embed(alert,site):
 def build_payload(tracker,radar,site=DEFAULT_SITE,minimum_rare_score=5):
  alerts=collect_alerts(tracker,radar)[:8]
  embeds=[alert_embed(x,site) for x in alerts]
- embeds.append({"title":f"MACD 日榜 · {tracker['as_of']}","url":f"{site}/zh/watch/resonance/macd","color":5263264,"description":"每日完整收盘后的同源榜单；旧信号和失效信号不会重新包装。","fields":[{"name":"看涨榜","value":compact_list(tracker.get("macd_buy_top10",[]))[:1024],"inline":True},{"name":"看跌榜","value":compact_list(tracker.get("macd_sell_top10",[]))[:1024],"inline":True}],"footer":{"text":"研究提醒，不是自动买入"}})
- return {"content":f"**Sage Vista 日终研究播报 · {tracker['as_of']}**","embeds":embeds,"allowed_mentions":{"parse":[]}},alerts
+ macd,multi=ranking_items(tracker,radar)
+ embeds.extend([
+  {"title":f"MACD Ranking — {tracker['as_of']}","color":5263264,"description":ranking_list(macd)},
+  {"title":f"Multi-Factor Ranking — {tracker['as_of']}","color":5263264,"description":ranking_list(multi)},
+ ])
+ return {"embeds":embeds,"allowed_mentions":{"parse":[]}},alerts
 
-def digest(value):return hashlib.sha256(json.dumps(value,ensure_ascii=False,sort_keys=True).encode()).hexdigest()[:16]
-
-def notification_keys(tracker,alerts):
+def notification_keys(tracker,radar,alerts):
  keys=[f"status:{x['symbol']}:{x['status']}" for x in alerts]
- keys.append(f"macd:{tracker['as_of']}:{tracker.get('consistency_audit',{}).get('ranking_digest',digest([tracker.get('macd_buy_top10',[]),tracker.get('macd_sell_top10',[])]))}")
+ keys.extend([f"ranking:macd:{tracker['as_of']}",f"ranking:multi-factor:{radar['as_of']}"])
  return keys
 
 def pending_plan(alerts,keys,state):
@@ -74,7 +81,7 @@ def pending_plan(alerts,keys,state):
   if alert["status"]=="early_watch" and previous in ("early_watch","confirmed"):continue
   if alert["status"]=="confirmed" and previous=="confirmed":continue
   indices.append(index)
- return indices,keys[-1] not in state["sent"]
+ return indices,[key not in state["sent"] for key in keys[len(alerts):]]
 
 def post(webhook,payload):
  request=urllib.request.Request(webhook,data=json.dumps(payload,ensure_ascii=False).encode(),headers={"Content-Type":"application/json","User-Agent":"SageVistaResearch/0.2"},method="POST")
@@ -89,18 +96,20 @@ def save_state(path,state):
 def run(preview=False,state_path=STATE_PATH):
  load_local_env();status=read_json(PUBLIC/"update-status.json");tracker=read_json(PUBLIC/"resonance-tracker.json");radar=read_json(PUBLIC/"rare-opportunity-radar.json")
  as_of=validate_inputs(status,tracker,radar);site=os.environ.get("NORTHSTAR_SITE_URL",DEFAULT_SITE).rstrip("/")
- payload,alerts=build_payload(tracker,radar,site);keys=notification_keys(tracker,alerts)
+ payload,alerts=build_payload(tracker,radar,site);keys=notification_keys(tracker,radar,alerts)
  state=read_json(state_path) if pathlib.Path(state_path).exists() else {"sent":[],"symbol_status":{}}
- pending_alerts,macd_pending=pending_plan(alerts,keys,state);pending=[keys[i] for i in pending_alerts]+([keys[-1]] if macd_pending else [])
+ pending_alerts,ranking_pending=pending_plan(alerts,keys,state);ranking_keys=keys[len(alerts):]
+ pending=[keys[i] for i in pending_alerts]+[key for key,is_pending in zip(ranking_keys,ranking_pending) if is_pending]
  if not pending:return {"result":"duplicate_skipped","as_of":as_of,"keys":keys}
- payload["embeds"]=[payload["embeds"][i] for i in pending_alerts]+([payload["embeds"][-1]] if macd_pending else [])
+ ranking_embeds=payload["embeds"][len(alerts):]
+ payload["embeds"]=[payload["embeds"][i] for i in pending_alerts]+[embed for embed,is_pending in zip(ranking_embeds,ranking_pending) if is_pending]
  if preview:return {"result":"preview","as_of":as_of,"pending":pending,"payload":payload}
  webhook=os.environ.get("DISCORD_WEBHOOK_URL")
  if not webhook:return {"result":"not_configured","as_of":as_of,"pending":pending}
  post(webhook,payload)
  for i in pending_alerts:state["symbol_status"][alerts[i]["symbol"]]=alerts[i]["status"]
  state["sent"]=(state["sent"]+pending)[-500:];state["last_successful_date"]=as_of;save_state(state_path,state)
- return {"result":"sent","as_of":as_of,"alerts":len(pending_alerts),"macd_buy":len(tracker.get("macd_buy_top10",[])),"macd_sell":len(tracker.get("macd_sell_top10",[]))}
+ return {"result":"sent","as_of":as_of,"alerts":len(pending_alerts),"rankings":sum(ranking_pending)}
 
 if __name__=="__main__":
  parser=argparse.ArgumentParser();parser.add_argument("--preview",action="store_true");parser.add_argument("--state-path",default=str(STATE_PATH));args=parser.parse_args()

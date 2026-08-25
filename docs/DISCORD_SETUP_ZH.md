@@ -3,7 +3,7 @@
 ## 当前范围
 
 - 直接读取网站同源的 `resonance-tracker.json`、`rare-opportunity-radar.json` 和 `update-status.json`，不维护第二套评分。
-- 5分或以上的多因子稀有机会排在消息最前；随后发送每日 MACD 看涨与看跌榜。
+- Early Watch／Confirmed 特殊提醒保持原有详情。每个完整 EOD 日期另发送两份极简榜单：按现有 `macd_rank_score` 排序的 MACD Top 10，以及按现有多因子总分排序的 Multi-Factor Top 10；榜单只显示日期、排名和股票代码，不显示分数、价格或解释。
 - 日期不同步、防前视检查失败时停止；同一日期、股票、证据与分数去重；消息模板集中在一个模块中，后续可以替换。
 - 当前使用 Discord Webhook。Webhook 未配置时只返回“未配置”，不会误发。
 
@@ -12,7 +12,7 @@
 - 正式自动化从 GitHub Repository Secret 读取 `DISCORD_WEBHOOK_URL`；兼容现有旧名称 `DISCORD_OPPORTUNITY`。workflow 不打印、上传或写回 Secret。
 - EODHD 自动扫描需要独立的 Repository Secret：`EODHD_API_TOKEN`。
 - 定时 update job 永远先生成 Discord preview；它本身不发送。Sage Vista 是私有 Sites，GitHub Runner 无法匿名读取线上文件；因此部署协调任务只有在 Sites API 明确返回成功后，才创建带 EOD 日期与站点 URL 的 GitHub Deployment success 记录，并把其 ID 交给 `notify`。notify 核对该不可变记录、仓库日期与 future-data 状态，任一不一致即停止。
-- Early Watch 和 Confirmed 状态保存在 `automation/discord-state.json`。同一股票相同状态不重复；Early Watch 升级 Confirmed 可以再次提醒；Confirmed 不会降级重发 Early Watch。
+- Early Watch 和 Confirmed 状态保存在 `automation/discord-state.json`。同一股票相同状态不重复；Early Watch 升级 Confirmed 可以再次提醒；Confirmed 不会降级重发 Early Watch。两份排行榜分别以“榜单类型 + EOD 日期”去重，每日各发送一次，互不影响。
 
 ## 密钥与人工配置
 
