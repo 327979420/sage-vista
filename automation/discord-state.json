@@ -1,4 +1,24 @@
 {
-  "sent": [],
-  "symbol_status": {}
+  "sent": [
+    "status:VRSK:confirmed",
+    "status:FOUR:confirmed",
+    "status:FMC:confirmed",
+    "status:FLUT:confirmed",
+    "status:FLO:confirmed",
+    "status:CWST:confirmed",
+    "status:BMI:confirmed",
+    "status:BBWI:confirmed",
+    "macd:2026-08-24:cb1433abc7ee6539"
+  ],
+  "symbol_status": {
+    "VRSK": "confirmed",
+    "FOUR": "confirmed",
+    "FMC": "confirmed",
+    "FLUT": "confirmed",
+    "FLO": "confirmed",
+    "CWST": "confirmed",
+    "BMI": "confirmed",
+    "BBWI": "confirmed"
+  },
+  "last_successful_date": "2026-08-24"
 }
