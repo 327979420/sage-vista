@@ -25,3 +25,7 @@ V1 使用378只确定性 survivorship-aware 研究样本，其中包含111只退
 ## Tracker Backtest V2
 
 V2 直接读取冻结的 V1 信号账本，只研究 Stop Loss / Risk-Reward，不重新扫描，也不改变生产 Tracker、因子、Ranking、Entry、Discord 或网站生产数据。运行 `python3 -m research.backtest.tracker_backtest_v2`，汇总输出为 `output/v2-summary.json`。
+
+## Market Regime V1
+
+Market Regime V1 仅把固定、未调参的 SPY/QQQ 趋势、MACD 动能和历史 breadth 作为研究变量，附加到冻结的 `Confirmed + strict trend + next Open + Support −5% + 2R` benchmark。它不自动过滤 production 信号或改变仓位。运行 `python3 -m research.backtest.market_regime_v1`，输出为 `output/market-regime-v1.json`。

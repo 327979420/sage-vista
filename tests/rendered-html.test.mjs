@@ -60,3 +60,13 @@ test("server-renders Tracker Backtest V2 risk research", async () => {
   assert.match(html, /不进入 production/);
   assert.doesNotMatch(html, /DISCORD_WEBHOOK_URL|EODHD_API_TOKEN/i);
 });
+
+test("server-renders the point-in-time Market Regime research page", async () => {
+  const response = await render("/zh/watch/resonance/market-regime");
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.match(html, /Market Regime/);
+  assert.match(html, /不参与 production/);
+  assert.match(html, /验证市场环境能否改善冻结的 Long benchmark/);
+  assert.doesNotMatch(html, /DISCORD_WEBHOOK_URL|EODHD_API_TOKEN/i);
+});
