@@ -1806,6 +1806,36 @@ nav {
     flex-direction: column;
   }
 }
+
+/* Northstar information architecture: concise first viewport and one shared guide. */
+.rtTodayBrief { display: grid; grid-template-columns: .8fr .8fr 1.4fr 1fr; gap: 10px; margin: 24px 0 14px; }
+.rtTodayBrief article { min-width: 0; padding: 18px; border: 1px solid #dce5df; border-radius: 16px; background: #fff; }
+.rtTodayBrief article.isHealthy { border-color: #c9dfd2; background: #edf7f1; }
+.rtTodayBrief article.isBlocked { border-color: #ebc9c4; background: #fff0ed; }
+.rtTodayBrief small, .rtTodayBrief b, .rtTodayBrief p { display: block; }
+.rtTodayBrief small { color: #718078; font-size: 10px; font-weight: 800; }
+.rtTodayBrief b { overflow: hidden; margin-top: 8px; color: #173d2d; font-size: 17px; text-overflow: ellipsis; }
+.rtTodayBrief p { margin: 6px 0 0; color: #68776f; font-size: 11px; line-height: 1.45; }
+.rtTechnicalDetails, .rtAboutDetails { margin-top: 12px; border: 1px solid #dce5df; border-radius: 14px; background: #f8faf8; }
+.rtTechnicalDetails summary, .rtAboutDetails summary { padding: 13px 16px; color: #54675d; font-size: 12px; font-weight: 800; cursor: pointer; }
+.rtTechnicalDetails[open] summary, .rtAboutDetails[open] summary { border-bottom: 1px solid #dce5df; }
+.rtTechnicalDetails .rtSystemAudit { margin: 0; padding: 12px; }
+.rtAboutLead { display: grid; grid-template-columns: 1.15fr 1fr; gap: 24px; margin-top: 28px; padding: 30px; border-radius: 22px; background: #173d2d; color: #fff; }
+.rtAboutLead small, .rtAboutGrid small { color: #8ed0ad; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.rtAboutLead h2 { max-width: 620px; margin: 9px 0 0; font-size: clamp(26px,4vw,42px); line-height: 1.12; }
+.rtAboutLead p { margin: 0; color: #c9dbd2; line-height: 1.75; }
+.rtAboutSteps, .rtAboutGrid { display: grid; gap: 12px; margin-top: 14px; }
+.rtAboutSteps { grid-template-columns: repeat(3,1fr); }
+.rtAboutGrid { grid-template-columns: repeat(2,1fr); }
+.rtAboutSteps article, .rtAboutGrid article { padding: 23px; border: 1px solid #dce5df; border-radius: 17px; background: #fff; }
+.rtAboutSteps small { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: #e7f3ec; color: #176b45; font-weight: 800; }
+.rtAboutSteps h2, .rtAboutGrid h2 { margin: 13px 0 7px; font-size: 19px; }
+.rtAboutSteps p, .rtAboutGrid p, .rtAboutDetails div { color: #64736b; font-size: 13px; line-height: 1.7; }
+.rtAboutDetails div { padding: 8px 20px 16px; }
+@media (max-width: 760px) {
+  .rtTodayBrief, .rtAboutLead, .rtAboutSteps, .rtAboutGrid { grid-template-columns: 1fr; }
+  .rtAboutLead { padding: 24px 20px; }
+}
 .temperature {
   width: 280px;
   padding: 20px;
