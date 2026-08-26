@@ -3,7 +3,7 @@ from datetime import date,timedelta
 from pathlib import Path
 
 from services.scanner.industry_radar import calculate,classify_state,member_metrics,rows_as_of,run,select_snapshot
-from services.scanner.industry_membership import parse_global_x
+from services.scanner.industry_membership import configured_themes,parse_global_x
 
 def series(rate=0.001,count=90,start="2026-01-01"):
  day=date.fromisoformat(start);price=100;rows=[]
@@ -18,6 +18,11 @@ class IndustryRadarTests(unittest.TestCase):
  def test_foreign_market_identifier_is_preserved_for_unavailable_audit(self):
   csv_text="Fund\n% of Net Assets,Ticker,Name\n1.0,BMN AU,Bannerman\n1.0,NVDA,Nvidia\n"
   self.assertEqual(parse_global_x(csv_text),["BMN AU","NVDA"])
+
+ def test_theme_source_configuration_is_data_driven(self):
+  with tempfile.TemporaryDirectory() as folder:
+   registry=Path(folder,"registry.json");registry.write_text(json.dumps({"themes":[{"theme_id":"configured","name":"Configured","membership_source":{"provider":"global_x","fund":"TEST"}},{"theme_id":"manual","name":"Manual","status":"manual_curated_required"}]}))
+   self.assertEqual([x["theme_id"] for x in configured_themes(registry)],["configured"])
  def test_no_price_row_after_as_of(self):
   rows=[{"date":"2026-01-01","close":1},{"date":"2026-01-03","close":99}]
   self.assertEqual([x["date"] for x in rows_as_of(rows,"2026-01-02")],["2026-01-01"])

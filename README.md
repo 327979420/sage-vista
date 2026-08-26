@@ -26,6 +26,7 @@ RSI、RSI 底背离、成交量放大等不再需要各自占用独立功能页�
 
 ## 文档
 
+- [Industry Radar V1 架构、数据与 Theme Universe 说明](research/INDUSTRY_RADAR.md)
 - [项目蓝图与产品框架](docs/PROJECT_BLUEPRINT_ZH.md)
 - [产品决策日志](docs/DECISION_LOG_ZH.md)
 - [下一对话交接说明](docs/NEXT_SESSION_HANDOFF_ZH.md)
