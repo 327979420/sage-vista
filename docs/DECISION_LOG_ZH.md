@@ -2,6 +2,13 @@
 
 本文件记录产品方向与用户要求。实验数字和因子结论仍以 `research/experiments.jsonl` 为机器账本。
 
+## 2026-08-26：Cloudflare parallel production 自动发布
+
+- 保留现有 ChatGPT Sites，不删除、不覆盖、不迁移域名。
+- GitHub scheduled EOD 只有在产生新数据，或检测到尚未完成的 production state 时，才执行测试、vinext build、Cloudflare Workers 发布、线上日期/未来数据审计与 Discord send。
+- Cloudflare 使用 `sage-vista-parallel` 的 `workers.dev` 地址。线上验证未通过时禁止 Discord；成功后持久化 `automation/production-state.json` 与现有 Discord 去重状态。
+- 正常 `already_current` 且 production state 同步时，发布与通知全部跳过。失败中断则由后续 retry 继续完成，不修改任何交易规则。
+
 ## 2026-08-25：Early Watch 与 GitHub Actions 自动化
 
 - Early Watch 只接受尚未金叉、日线负 MACD 柱至少连续两根收缩、MACD/Signal 差距单日缩小至少15%、已经进入 near-cross 区域，并至少获得两项独立证据支持的股票。

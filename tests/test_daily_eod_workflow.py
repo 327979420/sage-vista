@@ -11,4 +11,6 @@ class DailyEodWorkflowTests(unittest.TestCase):
   self.assertIn("already_current",text)
   self.assertIn("GITHUB_STEP_SUMMARY",text)
   self.assertIn("eod-freshness-${{ github.run_id }}",text)
-  self.assertIn("if: steps.update_result.outputs.result == 'updated'",text)
+  self.assertIn("needs_release",text)
+  self.assertIn("automation/production-state.json",text)
+  self.assertIn("services.scanner.verify_live_deployment",text)

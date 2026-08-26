@@ -18,7 +18,7 @@ on:
         required: true
         default: preview
         type: choice
-        options: [preview, update, notify]
+        options: [preview, update, deploy, notify]
       expected_as_of:
         description: Required completed EOD date for notify mode
         required: false
@@ -44,14 +44,16 @@ concurrency:
 env:
   NODE_VERSION: "22.13.0"
   LIVE_SITE_URL: https://northstar-equity-signals.rachelzhanzst.chatgpt.site
+  CLOUDFLARE_WORKER_NAME: sage-vista-parallel
 
 jobs:
   update:
-    if: github.event_name == 'schedule' || inputs.mode == 'update'
+    if: github.event_name == 'schedule' || inputs.mode == 'update' || inputs.mode == 'deploy'
     runs-on: ubuntu-latest
     timeout-minutes: 180
     env:
       EODHD_API_TOKEN: ${{ secrets.EODHD_API_TOKEN }}
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_OPPORTUNITY }}
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
@@ -78,52 +80,40 @@ jobs:
           import json,os
           result=json.load(open("update-result.json"))
           if result.get("result") not in ("updated","already_current"):raise SystemExit("unexpected update result")
+          state={}
+          try:state=json.load(open("automation/production-state.json"))
+          except FileNotFoundError:pass
+          manual_deploy=os.environ.get("MANUAL_DEPLOY")=="true"
+          needs_release=result["result"]=="updated" or state.get("as_of")!=result["as_of"] or manual_deploy
           with open(os.environ["GITHUB_OUTPUT"],"a") as out:
               out.write(f"result={result['result']}\n")
               out.write(f"as_of={result['as_of']}\n")
+              out.write(f"needs_release={str(needs_release).lower()}\n")
           PY
-      - name: Record freshness status
-        if: always()
-        shell: bash
-        run: |
-          python3 - <<'PY'
-          import json, os
-          result = {}
-          try:
-              result = json.load(open("update-result.json"))
-          except Exception:
-              pass
-          status = json.load(open("public/update-status.json"))
-          as_of = result.get("as_of") or status.get("tracker_as_of") or "unknown"
-          outcome = result.get("result") or "failed_closed"
-          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as out:
-              out.write("# Sage Vista EOD freshness\n\n")
-              out.write(f"- Pipeline result: **{outcome}**\n")
-              out.write(f"- Latest synchronized EOD: **{as_of}**\n")
-              out.write(f"- Tracker / radar match: **{status.get('data_dates_match')}**\n")
-              out.write(f"- Future data used: **{status.get('future_data_used')}**\n")
-              out.write(f"- Last successful update: **{status.get('last_successful_update_at')}**\n")
-              out.write("- Repeated schedules are safe: `already_current` performs no commit or notification.\n")
-          PY
+        env:
+          MANUAL_DEPLOY: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'deploy' }}
       - uses: actions/setup-node@v4
-        if: steps.update_result.outputs.result == 'updated'
+        if: steps.update_result.outputs.needs_release == 'true'
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - name: Install website dependencies
-        if: steps.update_result.outputs.result == 'updated'
+        if: steps.update_result.outputs.needs_release == 'true'
         run: npm ci
       - name: Run all Python tests
-        if: steps.update_result.outputs.result == 'updated'
+        id: python_tests
+        if: steps.update_result.outputs.needs_release == 'true'
         run: python3 -m unittest discover -s tests -p 'test_*.py'
       - name: Run production build and rendered tests
-        if: steps.update_result.outputs.result == 'updated'
+        id: production_build
+        if: steps.update_result.outputs.needs_release == 'true'
         run: npm test
       - name: Dry-run Discord payload
-        if: steps.update_result.outputs.result == 'updated'
+        if: steps.update_result.outputs.needs_release == 'true'
         run: python3 -m services.scanner.discord_daily_digest --preview --state-path automation/discord-state.json > discord-preview.json
       - name: Validate dry-run did not send
-        if: steps.update_result.outputs.result == 'updated'
+        id: payload_validation
+        if: steps.update_result.outputs.needs_release == 'true'
         run: |
           python3 - <<'PY'
           import json
@@ -141,7 +131,7 @@ jobs:
           git commit -m "data: EOD update ${{ steps.update_result.outputs.as_of }}"
           git push origin HEAD:main
       - name: Upload safe preview artifact
-        if: steps.update_result.outputs.result == 'updated'
+        if: steps.update_result.outputs.needs_release == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: discord-preview-${{ steps.update_result.outputs.as_of }}
@@ -159,6 +149,97 @@ jobs:
             public/update-status.json
           if-no-files-found: warn
           retention-days: 14
+      - name: Require deployment and notification secrets
+        if: steps.update_result.outputs.needs_release == 'true'
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN secret is not configured"; exit 1; }
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "CLOUDFLARE_ACCOUNT_ID secret is not configured"; exit 1; }
+          test -n "$DISCORD_WEBHOOK_URL" || { echo "DISCORD_OPPORTUNITY secret is not configured"; exit 1; }
+      - name: Deploy parallel production to Cloudflare Workers
+        id: cloudflare_deploy
+        if: steps.update_result.outputs.needs_release == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        shell: bash
+        run: |
+          npm run deploy:cloudflare 2>&1 | tee cloudflare-deploy.log
+          python3 - <<'PY'
+          import os,re
+          text=open("cloudflare-deploy.log").read()
+          urls=re.findall(r"https://[a-z0-9.-]+\.workers\.dev",text,re.I)
+          if not urls:raise SystemExit("Wrangler did not return a workers.dev production URL")
+          with open(os.environ["GITHUB_OUTPUT"],"a") as out:out.write(f"site_url={urls[-1]}\n")
+          PY
+      - name: Verify live Cloudflare dates and audits
+        id: live_verify
+        if: steps.cloudflare_deploy.outcome == 'success'
+        run: python3 -m services.scanner.verify_live_deployment --url "${{ steps.cloudflare_deploy.outputs.site_url }}" --expected-as-of "${{ steps.update_result.outputs.as_of }}" > live-verification.json
+      - name: Send deduplicated Discord daily digest
+        id: discord_send
+        if: steps.live_verify.outcome == 'success'
+        env:
+          NORTHSTAR_SITE_URL: ${{ steps.cloudflare_deploy.outputs.site_url }}
+        run: python3 -m services.scanner.discord_daily_digest --state-path automation/discord-state.json > discord-result.json
+      - name: Validate Discord send result
+        id: discord_validation
+        if: steps.discord_send.outcome == 'success'
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json,os
+          result=json.load(open("discord-result.json"))
+          if result.get("result") not in ("sent","duplicate_skipped"):raise SystemExit("unexpected Discord result")
+          with open(os.environ["GITHUB_OUTPUT"],"a") as out:out.write(f"result={result['result']}\n")
+          PY
+      - name: Persist Discord duplicate state
+        if: steps.discord_validation.outcome == 'success'
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json,os
+          state={"as_of":os.environ["AS_OF"],"cloudflare_url":os.environ["SITE_URL"],"live_verified":True,"discord_result":os.environ["DISCORD_RESULT"]}
+          open("automation/production-state.json","w").write(json.dumps(state,indent=2)+"\n")
+          PY
+          git config user.name "sage-vista-bot"
+          git config user.email "sage-vista-bot@users.noreply.github.com"
+          git add automation/discord-state.json automation/production-state.json
+          git diff --cached --quiet && exit 0
+          git commit -m "state: Discord daily digest ${{ steps.update_result.outputs.as_of }}"
+          git pull --rebase origin main
+          git push origin HEAD:main
+        env:
+          AS_OF: ${{ steps.update_result.outputs.as_of }}
+          SITE_URL: ${{ steps.cloudflare_deploy.outputs.site_url }}
+          DISCORD_RESULT: ${{ steps.discord_validation.outputs.result }}
+      - name: Write pipeline summary
+        if: always()
+        shell: bash
+        env:
+          UPDATE_RESULT: ${{ steps.update_result.outputs.result }}
+          AS_OF: ${{ steps.update_result.outputs.as_of }}
+          PYTHON_TESTS: ${{ steps.python_tests.outcome }}
+          PRODUCTION_BUILD: ${{ steps.production_build.outcome }}
+          DEPLOYMENT: ${{ steps.cloudflare_deploy.outcome }}
+          LIVE_VERIFICATION: ${{ steps.live_verify.outcome }}
+          DISCORD: ${{ steps.discord_validation.outputs.result || steps.discord_send.outcome }}
+          SITE_URL: ${{ steps.cloudflare_deploy.outputs.site_url }}
+        run: |
+          {
+            echo "# Sage Vista Production Pipeline"
+            echo
+            echo "- ① Data Update: **${UPDATE_RESULT:-failed_closed}**"
+            echo "- ② Tests / Audit: **Python ${PYTHON_TESTS:-skipped} · Build ${PRODUCTION_BUILD:-skipped}**"
+            echo "- ③ Cloudflare Deployment: **${DEPLOYMENT:-skipped}**"
+            echo "- ④ Live Verification: **${LIVE_VERIFICATION:-skipped}**"
+            echo "- ⑤ Discord Notification: **${DISCORD:-skipped}**"
+            echo "- Final as_of: **${AS_OF:-unknown}**"
+            if [ -n "$SITE_URL" ]; then echo "- Parallel production: $SITE_URL"; fi
+          } >> "$GITHUB_STEP_SUMMARY"
 
   preview:
     if: github.event_name == 'workflow_dispatch' && inputs.mode == 'preview'

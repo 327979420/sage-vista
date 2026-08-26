@@ -1,5 +1,9 @@
 # Discord 日终播报入口
 
+## Cloudflare 自动发布链
+
+生产 scheduled workflow 使用 Repository Secrets `CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID`、`DISCORD_OPPORTUNITY` 和 `EODHD_API_TOKEN`。新 EOD 数据通过全部测试后发布到平行的 Cloudflare Workers production；只有线上 `update-status.json`、Tracker、Radar 日期完全一致且 future-data audit 安全，才调用现有 Discord digest。`already_current` 且 production state 已同步时不会重复发布或发送。
+
 ## 当前范围
 
 - 直接读取网站同源的 `resonance-tracker.json`、`rare-opportunity-radar.json` 和 `update-status.json`，不维护第二套评分。
