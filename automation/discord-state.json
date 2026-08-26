@@ -8,7 +8,14 @@
     "status:CWST:confirmed",
     "status:BMI:confirmed",
     "status:BBWI:confirmed",
-    "macd:2026-08-24:cb1433abc7ee6539"
+    "macd:2026-08-24:cb1433abc7ee6539",
+    "status:ARE:confirmed",
+    "status:CMG:confirmed",
+    "status:SNAP:confirmed",
+    "status:UDR:confirmed",
+    "status:PG:confirmed",
+    "ranking:macd:2026-08-25",
+    "ranking:multi-factor:2026-08-25"
   ],
   "symbol_status": {
     "VRSK": "confirmed",
@@ -18,7 +25,12 @@
     "FLO": "confirmed",
     "CWST": "confirmed",
     "BMI": "confirmed",
-    "BBWI": "confirmed"
+    "BBWI": "confirmed",
+    "ARE": "confirmed",
+    "CMG": "confirmed",
+    "SNAP": "confirmed",
+    "UDR": "confirmed",
+    "PG": "confirmed"
   },
-  "last_successful_date": "2026-08-24"
+  "last_successful_date": "2026-08-25"
 }
