@@ -2,7 +2,15 @@ name: Sage Vista EOD Update
 
 on:
   schedule:
-    - cron: "15 0,1,2 * * 2-6"
+    # Independent UTC retries. Together they cover US EDT/EST and Melbourne
+    # AEST/AEDT without assuming either timezone has a fixed offset.
+    - cron: "47 23 * * 1-5"
+    - cron: "17 0 * * 2-6"
+    - cron: "47 0 * * 2-6"
+    - cron: "17 1 * * 2-6"
+    - cron: "47 1 * * 2-6"
+    - cron: "17 2 * * 2-6"
+    - cron: "17 3 * * 2-6"
   workflow_dispatch:
     inputs:
       mode:
@@ -52,10 +60,6 @@ jobs:
         run: test -n "$EODHD_API_TOKEN" || { echo "EODHD_API_TOKEN secret is not configured"; exit 1; }
       - uses: actions/setup-python@v5
         with: { python-version: "3.13" }
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
       - name: Restore historical EOD cache
         uses: actions/cache@v4
         with:
@@ -64,7 +68,6 @@ jobs:
             work/eodhd-active-common.json
           key: eodhd-history-v1-${{ github.run_id }}
           restore-keys: eodhd-history-v1-
-      - run: npm ci
       - name: Run fail-closed daily update
         run: python3 -m services.scanner.daily_tracker_update > update-result.json
       - name: Validate update result
@@ -79,13 +82,48 @@ jobs:
               out.write(f"result={result['result']}\n")
               out.write(f"as_of={result['as_of']}\n")
           PY
+      - name: Record freshness status
+        if: always()
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, os
+          result = {}
+          try:
+              result = json.load(open("update-result.json"))
+          except Exception:
+              pass
+          status = json.load(open("public/update-status.json"))
+          as_of = result.get("as_of") or status.get("tracker_as_of") or "unknown"
+          outcome = result.get("result") or "failed_closed"
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as out:
+              out.write("# Sage Vista EOD freshness\n\n")
+              out.write(f"- Pipeline result: **{outcome}**\n")
+              out.write(f"- Latest synchronized EOD: **{as_of}**\n")
+              out.write(f"- Tracker / radar match: **{status.get('data_dates_match')}**\n")
+              out.write(f"- Future data used: **{status.get('future_data_used')}**\n")
+              out.write(f"- Last successful update: **{status.get('last_successful_update_at')}**\n")
+              out.write("- Repeated schedules are safe: `already_current` performs no commit or notification.\n")
+          PY
+      - uses: actions/setup-node@v4
+        if: steps.update_result.outputs.result == 'updated'
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - name: Install website dependencies
+        if: steps.update_result.outputs.result == 'updated'
+        run: npm ci
       - name: Run all Python tests
+        if: steps.update_result.outputs.result == 'updated'
         run: python3 -m unittest discover -s tests -p 'test_*.py'
       - name: Run production build and rendered tests
+        if: steps.update_result.outputs.result == 'updated'
         run: npm test
       - name: Dry-run Discord payload
+        if: steps.update_result.outputs.result == 'updated'
         run: python3 -m services.scanner.discord_daily_digest --preview --state-path automation/discord-state.json > discord-preview.json
       - name: Validate dry-run did not send
+        if: steps.update_result.outputs.result == 'updated'
         run: |
           python3 - <<'PY'
           import json
@@ -103,6 +141,7 @@ jobs:
           git commit -m "data: EOD update ${{ steps.update_result.outputs.as_of }}"
           git push origin HEAD:main
       - name: Upload safe preview artifact
+        if: steps.update_result.outputs.result == 'updated'
         uses: actions/upload-artifact@v4
         with:
           name: discord-preview-${{ steps.update_result.outputs.as_of }}
@@ -110,6 +149,16 @@ jobs:
             update-result.json
             discord-preview.json
           retention-days: 7
+      - name: Upload freshness evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eod-freshness-${{ github.run_id }}
+          path: |
+            update-result.json
+            public/update-status.json
+          if-no-files-found: warn
+          retention-days: 14
 
   preview:
     if: github.event_name == 'workflow_dispatch' && inputs.mode == 'preview'
