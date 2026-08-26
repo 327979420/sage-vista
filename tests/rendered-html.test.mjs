@@ -79,3 +79,12 @@ test("server-renders Factor Attribution research without production secrets", as
   assert.match(html, /不改变 production 权重/);
   assert.doesNotMatch(html, /DISCORD_WEBHOOK_URL|EODHD_API_TOKEN/i);
 });
+
+test("server-renders Ranking Research controls safely", async () => {
+  const response = await render("/zh/watch/resonance/ranking-research");
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.match(html, /Ranking Research/);
+  assert.match(html, /同一 point-in-time 候选池/);
+  assert.doesNotMatch(html, /DISCORD_WEBHOOK_URL|EODHD_API_TOKEN/i);
+});

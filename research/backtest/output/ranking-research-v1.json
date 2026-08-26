@@ -1,0 +1,1048 @@
+{
+  "version": "1.0.0",
+  "generated_at": "2026-08-26T00:42:58.060524+00:00",
+  "research_only": true,
+  "benchmark": {
+    "definition": "Confirmed + strict long trend + next adjusted Open + Support −5% + 2R TP",
+    "candidate_pool_signals": 3019,
+    "candidate_days": 1647,
+    "days_with_4_plus": 151,
+    "days_with_7_plus": 23,
+    "days_with_10_plus": 5,
+    "maximum_daily_candidates": 12
+  },
+  "rules": {
+    "A": "Sort by existing MACD ranking score only.",
+    "B": "MACD admits candidates; sort by existing Multi-Factor total score only.",
+    "C": "Fixed 50/50 average of within-day MACD-score percentile and Multi-Factor-score percentile.",
+    "D": "SHA-256 deterministic random order with fixed seed sage-vista-ranking-v1-seed-2026.",
+    "E": "All eligible candidates; no rank or Top 10 selection."
+  },
+  "methods": [
+    {
+      "method": "A",
+      "minimum_daily_candidates": 1,
+      "selected_signals": 3016,
+      "buckets": [
+        {
+          "bucket": "Rank 1–3",
+          "overall": {
+            "samples": 2691,
+            "win_rate": 46.49,
+            "profit_factor": 1.219,
+            "expectancy_pct": 0.979,
+            "average_r": 0.099,
+            "max_drawdown_pct": -47.476
+          },
+          "periods": {
+            "development": {
+              "samples": 2154,
+              "win_rate": 46.1,
+              "profit_factor": 1.132,
+              "expectancy_pct": 0.589,
+              "average_r": 0.076,
+              "max_drawdown_pct": -40.83
+            },
+            "validation_2025": {
+              "samples": 339,
+              "win_rate": 45.13,
+              "profit_factor": 1.471,
+              "expectancy_pct": 1.955,
+              "average_r": 0.132,
+              "max_drawdown_pct": -14.862
+            },
+            "forward_2026": {
+              "samples": 198,
+              "win_rate": 53.03,
+              "profit_factor": 1.705,
+              "expectancy_pct": 3.541,
+              "average_r": 0.29,
+              "max_drawdown_pct": 0.0
+            }
+          }
+        },
+        {
+          "bucket": "Rank 4–6",
+          "overall": {
+            "samples": 278,
+            "win_rate": 46.4,
+            "profit_factor": 1.119,
+            "expectancy_pct": 0.502,
+            "average_r": 0.075,
+            "max_drawdown_pct": -10.598
+          },
+          "periods": {
+            "development": {
+              "samples": 197,
+              "win_rate": 44.67,
+              "profit_factor": 0.963,
+              "expectancy_pct": -0.159,
+              "average_r": 0.01,
+              "max_drawdown_pct": -10.598
+            },
+            "validation_2025": {
+              "samples": 30,
+              "win_rate": 46.67,
+              "profit_factor": 1.399,
+              "expectancy_pct": 1.739,
+              "average_r": 0.215,
+              "max_drawdown_pct": -3.748
+            },
+            "forward_2026": {
+              "samples": 51,
+              "win_rate": 52.94,
+              "profit_factor": 1.588,
+              "expectancy_pct": 2.326,
+              "average_r": 0.246,
+              "max_drawdown_pct": -9.971
+            }
+          }
+        },
+        {
+          "bucket": "Rank 7–10",
+          "overall": {
+            "samples": 47,
+            "win_rate": 29.79,
+            "profit_factor": 0.513,
+            "expectancy_pct": -2.723,
+            "average_r": -0.253,
+            "max_drawdown_pct": 0.0
+          },
+          "periods": {
+            "development": {
+              "samples": 43,
+              "win_rate": 27.91,
+              "profit_factor": 0.447,
+              "expectancy_pct": -3.025,
+              "average_r": -0.323,
+              "max_drawdown_pct": 0.0
+            },
+            "validation_2025": {
+              "samples": 1,
+              "win_rate": 100.0,
+              "profit_factor": null,
+              "expectancy_pct": 13.057,
+              "average_r": 2.0,
+              "max_drawdown_pct": 0.0
+            },
+            "forward_2026": {
+              "samples": 3,
+              "win_rate": 33.33,
+              "profit_factor": 0.6,
+              "expectancy_pct": -3.664,
+              "average_r": 0.0,
+              "max_drawdown_pct": 0.0
+            }
+          }
+        }
+      ],
+      "monotonic_expectancy": true,
+      "monotonic_profit_factor": true,
+      "label": "MACD Ranking"
+    },
+    {
+      "method": "B",
+      "minimum_daily_candidates": 1,
+      "selected_signals": 3016,
+      "buckets": [
+        {
+          "bucket": "Rank 1–3",
+          "overall": {
+            "samples": 2691,
+            "win_rate": 46.01,
+            "profit_factor": 1.201,
+            "expectancy_pct": 0.887,
+            "average_r": 0.094,
+            "max_drawdown_pct": -48.467
+          },
+          "periods": {
+            "development": {
+              "samples": 2154,
+              "win_rate": 45.31,
+              "profit_factor": 1.111,
+              "expectancy_pct": 0.494,
+              "average_r": 0.065,
+              "max_drawdown_pct": -42.262
+            },
+            "validation_2025": {
+              "samples": 339,
+              "win_rate": 45.72,
+              "profit_factor": 1.511,
+              "expectancy_pct": 2.097,
+              "average_r": 0.153,
+              "max_drawdown_pct": -14.862
+            },
+            "forward_2026": {
+              "samples": 198,
+              "win_rate": 54.04,
+              "profit_factor": 1.704,
+              "expectancy_pct": 3.097,
+              "average_r": 0.306,
+              "max_drawdown_pct": 0.0
+            }
+          }
+        },
+        {
+          "bucket": "Rank 4–6",
+          "overall": {
+            "samples": 278,
+            "win_rate": 49.64,
+            "profit_factor": 1.116,
+            "expectancy_pct": 0.567,
+            "average_r": 0.079,
+            "max_drawdown_pct": -13.195
+          },
+          "periods": {
+            "development": {
+              "samples": 197,
+              "win_rate": 51.78,
+              "profit_factor": 1.103,
+              "expectancy_pct": 0.457,
+              "average_r": 0.08,
+              "max_drawdown_pct": -7.025
+            },
+            "validation_2025": {
+              "samples": 30,
+              "win_rate": 40.0,
+              "profit_factor": 1.007,
+              "expectancy_pct": 0.032,
+              "average_r": -0.006,
+              "max_drawdown_pct": -3.748
+            },
+            "forward_2026": {
+              "samples": 51,
+              "win_rate": 47.06,
+              "profit_factor": 1.196,
+              "expectancy_pct": 1.308,
+              "average_r": 0.124,
+              "max_drawdown_pct": -10.833
+            }
+          }
+        },
+        {
+          "bucket": "Rank 7–10",
+          "overall": {
+            "samples": 47,
+            "win_rate": 36.17,
+            "profit_factor": 1.306,
+            "expectancy_pct": 1.567,
+            "average_r": -0.048,
+            "max_drawdown_pct": 0.0
+          },
+          "periods": {
+            "development": {
+              "samples": 43,
+              "win_rate": 32.56,
+              "profit_factor": 0.689,
+              "expectancy_pct": -1.659,
+              "average_r": -0.159,
+              "max_drawdown_pct": 0.0
+            },
+            "validation_2025": {
+              "samples": 1,
+              "win_rate": 100.0,
+              "profit_factor": null,
+              "expectancy_pct": 16.164,
+              "average_r": 1.6,
+              "max_drawdown_pct": 0.0
+            },
+            "forward_2026": {
+              "samples": 3,
+              "win_rate": 66.67,
+              "profit_factor": 12.165,
+              "expectancy_pct": 42.945,
+              "average_r": 1.0,
+              "max_drawdown_pct": 0.0
+            }
+          }
+        }
+      ],
+      "monotonic_expectancy": false,
+      "monotonic_profit_factor": false,
+      "label": "Multi-Factor Ranking"
+    },
+    {
+      "method": "C",
+      "minimum_daily_candidates": 1,
+      "selected_signals": 3016,
+      "buckets": [
+        {
+          "bucket": "Rank 1–3",
+          "overall": {
+            "samples": 2691,
+            "win_rate": 46.23,
+            "profit_factor": 1.215,
+            "expectancy_pct": 0.949,
+            "average_r": 0.098,
+            "max_drawdown_pct": -47.973
+          },
+          "periods": {
+            "development": {
+              "samples": 2154,
+              "win_rate": 45.78,
+              "profit_factor": 1.126,
+              "expectancy_pct": 0.559,
+              "average_r": 0.074,
+              "max_drawdown_pct": -41.708
+            },
+            "validation_2025": {
+              "samples": 339,
+              "win_rate": 44.84,
+              "profit_factor": 1.461,
+              "expectancy_pct": 1.914,
+              "average_r": 0.128,
+              "max_drawdown_pct": -14.862
+            },
+            "forward_2026": {
+              "samples": 198,
+              "win_rate": 53.54,
+              "profit_factor": 1.772,
+              "expectancy_pct": 3.548,
+              "average_r": 0.31,
+              "max_drawdown_pct": 0.0
+            }
+          }
+        },
+        {
+          "bucket": "Rank 4–6",
+          "overall": {
+            "samples": 278,
+            "win_rate": 48.92,
+            "profit_factor": 1.147,
+            "expectancy_pct": 0.685,
+            "average_r": 0.082,
+            "max_drawdown_pct": -13.158
+          },
+          "periods": {
+            "development": {
+              "samples": 197,
+              "win_rate": 48.73,
+              "profit_factor": 1.036,
+              "expectancy_pct": 0.159,
+              "average_r": 0.039,
+              "max_drawdown_pct": -10.016
+            },
+            "validation_2025": {
+              "samples": 30,
+              "win_rate": 50.0,
+              "profit_factor": 1.484,
+              "expectancy_pct": 2.098,
+              "average_r": 0.28,
+              "max_drawdown_pct": -3.748
+            },
+            "forward_2026": {
+              "samples": 51,
+              "win_rate": 49.02,
+              "profit_factor": 1.331,
+              "expectancy_pct": 1.884,
+              "average_r": 0.134,
+              "max_drawdown_pct": -10.833
+            }
+          }
+        },
+        {
+          "bucket": "Rank 7–10",
+          "overall": {
+            "samples": 47,
+            "win_rate": 31.91,
+            "profit_factor": 0.664,
+            "expectancy_pct": -1.826,
+            "average_r": -0.209,
+            "max_drawdown_pct": 0.0
+          },
+          "periods": {
+            "development": {
+              "samples": 43,
+              "win_rate": 27.91,
+              "profit_factor": 0.518,
+              "expectancy_pct": -2.609,
+              "average_r": -0.304,
+              "max_drawdown_pct": 0.0
+            },
+            "validation_2025": {
+              "samples": 1,
+              "win_rate": 100.0,
+              "profit_factor": null,
+              "expectancy_pct": 16.164,
+              "average_r": 1.6,
+              "max_drawdown_pct": 0.0
+            },
+            "forward_2026": {
+              "samples": 3,
+              "win_rate": 66.67,
+              "profit_factor": 1.452,
+              "expectancy_pct": 3.4,
+              "average_r": 0.554,
+              "max_drawdown_pct": 0.0
+            }
+          }
+        }
+      ],
+      "monotonic_expectancy": true,
+      "monotonic_profit_factor": true,
+      "label": "Hybrid Ranking"
+    },
+    {
+      "method": "D",
+      "minimum_daily_candidates": 1,
+      "selected_signals": 3016,
+      "buckets": [
+        {
+          "bucket": "Rank 1–3",
+          "overall": {
+            "samples": 2691,
+            "win_rate": 46.38,
+            "profit_factor": 1.202,
+            "expectancy_pct": 0.894,
+            "average_r": 0.097,
+            "max_drawdown_pct": -37.788
+          },
+          "periods": {
+            "development": {
+              "samples": 2154,
+              "win_rate": 45.87,
+              "profit_factor": 1.121,
+              "expectancy_pct": 0.538,
+              "average_r": 0.07,
+              "max_drawdown_pct": -35.35
+            },
+            "validation_2025": {
+              "samples": 339,
+              "win_rate": 44.54,
+              "profit_factor": 1.448,
+              "expectancy_pct": 1.873,
+              "average_r": 0.124,
+              "max_drawdown_pct": -14.862
+            },
+            "forward_2026": {
+              "samples": 198,
+              "win_rate": 55.05,
+              "profit_factor": 1.686,
+              "expectancy_pct": 3.09,
+              "average_r": 0.341,
+              "max_drawdown_pct": 0.0
+            }
+          }
+        },
+        {
+          "bucket": "Rank 4–6",
+          "overall": {
+            "samples": 278,
+            "win_rate": 44.96,
+            "profit_factor": 1.17,
+            "expectancy_pct": 0.802,
+            "average_r": 0.051,
+            "max_drawdown_pct": -13.989
+          },
+          "periods": {
+            "development": {
+              "samples": 197,
+              "win_rate": 44.67,
+              "profit_factor": 1.002,
+              "expectancy_pct": 0.009,
+              "average_r": 0.03,
+              "max_drawdown_pct": -7.511
+            },
+            "validation_2025": {
+              "samples": 30,
+              "win_rate": 53.33,
+              "profit_factor": 1.645,
+              "expectancy_pct": 2.571,
+              "average_r": 0.323,
+              "max_drawdown_pct": -3.748
+            },
+            "forward_2026": {
+              "samples": 51,
+              "win_rate": 41.18,
+              "profit_factor": 1.435,
+              "expectancy_pct": 2.825,
+              "average_r": -0.027,
+              "max_drawdown_pct": -10.833
+            }
+          }
+        },
+        {
+          "bucket": "Rank 7–10",
+          "overall": {
+            "samples": 47,
+            "win_rate": 42.55,
+            "profit_factor": 0.939,
+            "expectancy_pct": -0.315,
+            "average_r": -0.072,
+            "max_drawdown_pct": 0.0
+          },
+          "periods": {
+            "development": {
+              "samples": 43,
+              "win_rate": 37.21,
+              "profit_factor": 0.655,
+              "expectancy_pct": -1.946,
+              "average_r": -0.203,
+              "max_drawdown_pct": 0.0
+            },
+            "validation_2025": {
+              "samples": 1,
+              "win_rate": 100.0,
+              "profit_factor": null,
+              "expectancy_pct": 16.164,
+              "average_r": 1.6,
+              "max_drawdown_pct": 0.0
+            },
+            "forward_2026": {
+              "samples": 3,
+              "win_rate": 100.0,
+              "profit_factor": null,
+              "expectancy_pct": 17.575,
+              "average_r": 1.255,
+              "max_drawdown_pct": 0.0
+            }
+          }
+        }
+      ],
+      "monotonic_expectancy": true,
+      "monotonic_profit_factor": true,
+      "label": "Random Control"
+    }
+  ],
+  "common_10_candidate_days": [
+    {
+      "method": "A",
+      "minimum_daily_candidates": 10,
+      "selected_signals": 50,
+      "buckets": [
+        {
+          "bucket": "Rank 1–3",
+          "overall": {
+            "samples": 15,
+            "win_rate": 33.33,
+            "profit_factor": 0.623,
+            "expectancy_pct": -2.795,
+            "average_r": -0.193,
+            "max_drawdown_pct": 0.0
+          },
+          "periods": {
+            "development": {
+              "samples": 15,
+              "win_rate": 33.33,
+              "profit_factor": 0.623,
+              "expectancy_pct": -2.795,
+              "average_r": -0.193,
+              "max_drawdown_pct": 0.0
+            },
+            "validation_2025": {
+              "samples": 0,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_pct": null,
+              "average_r": null,
+              "max_drawdown_pct": null
+            },
+            "forward_2026": {
+              "samples": 0,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_pct": null,
+              "average_r": null,
+              "max_drawdown_pct": null
+            }
+          }
+        },
+        {
+          "bucket": "Rank 4–6",
+          "overall": {
+            "samples": 15,
+            "win_rate": 26.67,
+            "profit_factor": 0.585,
+            "expectancy_pct": -2.62,
+            "average_r": -0.121,
+            "max_drawdown_pct": 0.0
+          },
+          "periods": {
+            "development": {
+              "samples": 15,
+              "win_rate": 26.67,
+              "profit_factor": 0.585,
+              "expectancy_pct": -2.62,
+              "average_r": -0.121,
+              "max_drawdown_pct": 0.0
+            },
+            "validation_2025": {
+              "samples": 0,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_pct": null,
+              "average_r": null,
+              "max_drawdown_pct": null
+            },
+            "forward_2026": {
+              "samples": 0,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_pct": null,
+              "average_r": null,
+              "max_drawdown_pct": null
+            }
+          }
+        },
+        {
+          "bucket": "Rank 7–10",
+          "overall": {
+            "samples": 20,
+            "win_rate": 15.0,
+            "profit_factor": 0.367,
+            "expectancy_pct": -3.503,
+            "average_r": -0.449,
+            "max_drawdown_pct": 0.0
+          },
+          "periods": {
+            "development": {
+              "samples": 20,
+              "win_rate": 15.0,
+              "profit_factor": 0.367,
+              "expectancy_pct": -3.503,
+              "average_r": -0.449,
+              "max_drawdown_pct": 0.0
+            },
+            "validation_2025": {
+              "samples": 0,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_pct": null,
+              "average_r": null,
+              "max_drawdown_pct": null
+            },
+            "forward_2026": {
+              "samples": 0,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_pct": null,
+              "average_r": null,
+              "max_drawdown_pct": null
+            }
+          }
+        }
+      ],
+      "monotonic_expectancy": false,
+      "monotonic_profit_factor": true,
+      "label": "MACD Ranking"
+    },
+    {
+      "method": "B",
+      "minimum_daily_candidates": 10,
+      "selected_signals": 50,
+      "buckets": [
+        {
+          "bucket": "Rank 1–3",
+          "overall": {
+            "samples": 15,
+            "win_rate": 26.67,
+            "profit_factor": 0.611,
+            "expectancy_pct": -2.117,
+            "average_r": -0.195,
+            "max_drawdown_pct": 0.0
+          },
+          "periods": {
+            "development": {
+              "samples": 15,
+              "win_rate": 26.67,
+              "profit_factor": 0.611,
+              "expectancy_pct": -2.117,
+              "average_r": -0.195,
+              "max_drawdown_pct": 0.0
+            },
+            "validation_2025": {
+              "samples": 0,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_pct": null,
+              "average_r": null,
+              "max_drawdown_pct": null
+            },
+            "forward_2026": {
+              "samples": 0,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_pct": null,
+              "average_r": null,
+              "max_drawdown_pct": null
+            }
+          }
+        },
+        {
+          "bucket": "Rank 4–6",
+          "overall": {
+            "samples": 15,
+            "win_rate": 26.67,
+            "profit_factor": 0.498,
+            "expectancy_pct": -3.574,
+            "average_r": -0.269,
+            "max_drawdown_pct": 0.0
+          },
+          "periods": {
+            "development": {
+              "samples": 15,
+              "win_rate": 26.67,
+              "profit_factor": 0.498,
+              "expectancy_pct": -3.574,
+              "average_r": -0.269,
+              "max_drawdown_pct": 0.0
+            },
+            "validation_2025": {
+              "samples": 0,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_pct": null,
+              "average_r": null,
+              "max_drawdown_pct": null
+            },
+            "forward_2026": {
+              "samples": 0,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_pct": null,
+              "average_r": null,
+              "max_drawdown_pct": null
+            }
+          }
+        },
+        {
+          "bucket": "Rank 7–10",
+          "overall": {
+            "samples": 20,
+            "win_rate": 15.0,
+            "profit_factor": 0.335,
+            "expectancy_pct": -4.614,
+            "average_r": -0.42,
+            "max_drawdown_pct": 0.0
+          },
+          "periods": {
+            "development": {
+              "samples": 20,
+              "win_rate": 15.0,
+              "profit_factor": 0.335,
+              "expectancy_pct": -4.614,
+              "average_r": -0.42,
+              "max_drawdown_pct": 0.0
+            },
+            "validation_2025": {
+              "samples": 0,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_pct": null,
+              "average_r": null,
+              "max_drawdown_pct": null
+            },
+            "forward_2026": {
+              "samples": 0,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_pct": null,
+              "average_r": null,
+              "max_drawdown_pct": null
+            }
+          }
+        }
+      ],
+      "monotonic_expectancy": true,
+      "monotonic_profit_factor": true,
+      "label": "Multi-Factor Ranking"
+    },
+    {
+      "method": "C",
+      "minimum_daily_candidates": 10,
+      "selected_signals": 50,
+      "buckets": [
+        {
+          "bucket": "Rank 1–3",
+          "overall": {
+            "samples": 15,
+            "win_rate": 33.33,
+            "profit_factor": 0.664,
+            "expectancy_pct": -2.35,
+            "average_r": -0.101,
+            "max_drawdown_pct": 0.0
+          },
+          "periods": {
+            "development": {
+              "samples": 15,
+              "win_rate": 33.33,
+              "profit_factor": 0.664,
+              "expectancy_pct": -2.35,
+              "average_r": -0.101,
+              "max_drawdown_pct": 0.0
+            },
+            "validation_2025": {
+              "samples": 0,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_pct": null,
+              "average_r": null,
+              "max_drawdown_pct": null
+            },
+            "forward_2026": {
+              "samples": 0,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_pct": null,
+              "average_r": null,
+              "max_drawdown_pct": null
+            }
+          }
+        },
+        {
+          "bucket": "Rank 4–6",
+          "overall": {
+            "samples": 15,
+            "win_rate": 26.67,
+            "profit_factor": 0.503,
+            "expectancy_pct": -3.332,
+            "average_r": -0.298,
+            "max_drawdown_pct": 0.0
+          },
+          "periods": {
+            "development": {
+              "samples": 15,
+              "win_rate": 26.67,
+              "profit_factor": 0.503,
+              "expectancy_pct": -3.332,
+              "average_r": -0.298,
+              "max_drawdown_pct": 0.0
+            },
+            "validation_2025": {
+              "samples": 0,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_pct": null,
+              "average_r": null,
+              "max_drawdown_pct": null
+            },
+            "forward_2026": {
+              "samples": 0,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_pct": null,
+              "average_r": null,
+              "max_drawdown_pct": null
+            }
+          }
+        },
+        {
+          "bucket": "Rank 7–10",
+          "overall": {
+            "samples": 20,
+            "win_rate": 20.0,
+            "profit_factor": 0.521,
+            "expectancy_pct": -2.584,
+            "average_r": -0.274,
+            "max_drawdown_pct": 0.0
+          },
+          "periods": {
+            "development": {
+              "samples": 20,
+              "win_rate": 20.0,
+              "profit_factor": 0.521,
+              "expectancy_pct": -2.584,
+              "average_r": -0.274,
+              "max_drawdown_pct": 0.0
+            },
+            "validation_2025": {
+              "samples": 0,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_pct": null,
+              "average_r": null,
+              "max_drawdown_pct": null
+            },
+            "forward_2026": {
+              "samples": 0,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_pct": null,
+              "average_r": null,
+              "max_drawdown_pct": null
+            }
+          }
+        }
+      ],
+      "monotonic_expectancy": false,
+      "monotonic_profit_factor": false,
+      "label": "Hybrid Ranking"
+    },
+    {
+      "method": "D",
+      "minimum_daily_candidates": 10,
+      "selected_signals": 50,
+      "buckets": [
+        {
+          "bucket": "Rank 1–3",
+          "overall": {
+            "samples": 15,
+            "win_rate": 33.33,
+            "profit_factor": 0.665,
+            "expectancy_pct": -1.933,
+            "average_r": -0.163,
+            "max_drawdown_pct": -0.023
+          },
+          "periods": {
+            "development": {
+              "samples": 15,
+              "win_rate": 33.33,
+              "profit_factor": 0.665,
+              "expectancy_pct": -1.933,
+              "average_r": -0.163,
+              "max_drawdown_pct": -0.023
+            },
+            "validation_2025": {
+              "samples": 0,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_pct": null,
+              "average_r": null,
+              "max_drawdown_pct": null
+            },
+            "forward_2026": {
+              "samples": 0,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_pct": null,
+              "average_r": null,
+              "max_drawdown_pct": null
+            }
+          }
+        },
+        {
+          "bucket": "Rank 4–6",
+          "overall": {
+            "samples": 15,
+            "win_rate": 13.33,
+            "profit_factor": 0.39,
+            "expectancy_pct": -3.314,
+            "average_r": -0.318,
+            "max_drawdown_pct": 0.0
+          },
+          "periods": {
+            "development": {
+              "samples": 15,
+              "win_rate": 13.33,
+              "profit_factor": 0.39,
+              "expectancy_pct": -3.314,
+              "average_r": -0.318,
+              "max_drawdown_pct": 0.0
+            },
+            "validation_2025": {
+              "samples": 0,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_pct": null,
+              "average_r": null,
+              "max_drawdown_pct": null
+            },
+            "forward_2026": {
+              "samples": 0,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_pct": null,
+              "average_r": null,
+              "max_drawdown_pct": null
+            }
+          }
+        },
+        {
+          "bucket": "Rank 7–10",
+          "overall": {
+            "samples": 20,
+            "win_rate": 20.0,
+            "profit_factor": 0.35,
+            "expectancy_pct": -5.248,
+            "average_r": -0.459,
+            "max_drawdown_pct": 0.0
+          },
+          "periods": {
+            "development": {
+              "samples": 20,
+              "win_rate": 20.0,
+              "profit_factor": 0.35,
+              "expectancy_pct": -5.248,
+              "average_r": -0.459,
+              "max_drawdown_pct": 0.0
+            },
+            "validation_2025": {
+              "samples": 0,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_pct": null,
+              "average_r": null,
+              "max_drawdown_pct": null
+            },
+            "forward_2026": {
+              "samples": 0,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_pct": null,
+              "average_r": null,
+              "max_drawdown_pct": null
+            }
+          }
+        }
+      ],
+      "monotonic_expectancy": true,
+      "monotonic_profit_factor": true,
+      "label": "Random Control"
+    }
+  ],
+  "no_ranking": {
+    "method": "E",
+    "label": "No Ranking Control",
+    "overall": {
+      "samples": 3019,
+      "win_rate": 46.21,
+      "profit_factor": 1.196,
+      "expectancy_pct": 0.875,
+      "average_r": 0.091,
+      "max_drawdown_pct": -48.668
+    },
+    "periods": {
+      "development": {
+        "samples": 2397,
+        "win_rate": 45.64,
+        "profit_factor": 1.103,
+        "expectancy_pct": 0.46,
+        "average_r": 0.063,
+        "max_drawdown_pct": -40.135
+      },
+      "validation_2025": {
+        "samples": 370,
+        "win_rate": 45.41,
+        "profit_factor": 1.474,
+        "expectancy_pct": 1.968,
+        "average_r": 0.144,
+        "max_drawdown_pct": -14.862
+      },
+      "forward_2026": {
+        "samples": 252,
+        "win_rate": 52.78,
+        "profit_factor": 1.661,
+        "expectancy_pct": 3.209,
+        "average_r": 0.278,
+        "max_drawdown_pct": 0.0
+      }
+    }
+  },
+  "audit": {
+    "point_in_time_candidate_replay": true,
+    "completed_weekly_monthly_only": true,
+    "entry_and_exit_unchanged": true,
+    "future_data_for_ranking": false,
+    "automatic_weight_optimization": false,
+    "combination_search": false,
+    "production_outputs_written": false
+  },
+  "limitations": [
+    "Random Control is one prespecified reproducible ordering, not a distribution over many seeds.",
+    "Daily candidate counts vary; lower rank buckets contain fewer observations on sparse days.",
+    "The >=10-candidate common-day diagnostic is the fair bucket comparison but may be too small for inference.",
+    "Rank bucket comparisons are observational and signals overlap.",
+    "Historical universe retains partial delisted coverage and survivorship limitations.",
+    "No production rank, factor weight, scanner, Discord or daily automation is changed."
+  ]
+}
