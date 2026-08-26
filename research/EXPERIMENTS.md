@@ -51,3 +51,14 @@
 - **Key Results:** A/C 表面单调，但 Random 也单调；B 不单调。只有5天同时拥有至少10个候选，公平三档样本不足。No Ranking PF 1.196、Expectancy +0.875%。
 - **Conclusion:** 没有 Ranking 被可靠验证；MACD 更适合候选发现，决定优先级仍需更多独立和更宽候选池样本。
 - **Commit SHA:** `c5457c3`
+
+## 6. Selection Research V1 — Leadership vs Strong-Trend Pullback
+
+- **Purpose:** 在冻结的 Long benchmark 中，分别验证“长期与近期都强”以及“长期强、短期回调后确认反转”两种选股 hypothesis。
+- **Hypothesis:** Leadership 或 Strong-Trend Pullback 至少一组能够跨开发期、独立验证期和前向期稳定超过当前 Long benchmark。
+- **Method:** Leadership 固定使用长期趋势、20D/60D 相对 SPY、252日区间位置和相对成交量；Pullback 固定使用长期趋势、126D/252D 相对 SPY、10D/20D短期走弱、60D高点回撤至少10%及信号时支撑/EMA接近度。阈值不按收益优化，两组不合并评分。
+- **Dataset:** 冻结的2,817条 Confirmed + strict trend benchmark 交易；2010–2026；SPY及个股特征均 point-in-time 重建。行业历史分类不可可靠获得，V1明确缺省。
+- **Benchmark:** Confirmed + Long-Term Trend + Next-Day Open + Support −5% + 2R；PF 1.178，Expectancy +0.801%。
+- **Results:** Leadership 454样本，PF 1.039、Expectancy +0.229%，未超过基准。Pullback 39样本，整体PF 2.543、Expectancy +4.136%，但2025仅4样本且全部止损；2026仅3样本。两组重叠0个。Early Watch Pullback PF 0.582、止损率72.34%。
+- **Conclusion:** Leadership V1未验证；Pullback有值得继续预注册验证的信号，但样本少且独立验证失败，不能视为已证明 edge，也不进入 production。
+- **Commit SHA:** `PENDING_SELECTION_RESEARCH_COMMIT`

@@ -1,0 +1,210 @@
+{
+  "version": "1.0.0",
+  "generated_at": "2026-08-26T01:33:03.208982+00:00",
+  "research_only": true,
+  "benchmark": {
+    "definition": "Confirmed + long-term trend + next adjusted Open + Support −5% + 2R TP",
+    "metrics": {
+      "samples": 2817,
+      "win_rate": 46.08,
+      "profit_factor": 1.178,
+      "expectancy_pct": 0.801,
+      "average_r": 0.084,
+      "stop_out_rate": 43.17,
+      "max_drawdown_pct": -40.758,
+      "average_holding_bars": 25.8
+    }
+  },
+  "rules": {
+    "leadership": [
+      "Price > existing 200-day trend curve and positive 20-session slope",
+      "60D and 20D stock return minus SPY return > 0",
+      "Position in trailing 252-session high-low range >= 70%",
+      "Current volume / prior 20-session average volume >= 1.20"
+    ],
+    "pullback": [
+      "Positive 200-day trend slope and Price > 200-day curve",
+      "126D and 252D relative return vs SPY > 0",
+      "10D return < 0 and 20D return at least 5 percentage points below 126D return / 6",
+      "Drawdown from trailing 60D high >= 10%",
+      "Within 5% of signal-time Support or within 3% of EMA50/EMA200"
+    ],
+    "industry_relative_strength": "unavailable: no reliable point-in-time historical industry classification in V1 inputs"
+  },
+  "leadership": {
+    "overall": {
+      "samples": 454,
+      "win_rate": 43.61,
+      "profit_factor": 1.039,
+      "expectancy_pct": 0.229,
+      "average_r": 0.001,
+      "stop_out_rate": 35.68,
+      "max_drawdown_pct": -41.813,
+      "average_holding_bars": 29.95
+    },
+    "periods": {
+      "development": {
+        "samples": 367,
+        "win_rate": 44.14,
+        "profit_factor": 1.034,
+        "expectancy_pct": 0.188,
+        "average_r": -0.004,
+        "stop_out_rate": 33.24,
+        "max_drawdown_pct": -35.527,
+        "average_holding_bars": 31.21
+      },
+      "validation_2025": {
+        "samples": 43,
+        "win_rate": 39.53,
+        "profit_factor": 0.971,
+        "expectancy_pct": -0.165,
+        "average_r": -0.029,
+        "stop_out_rate": 44.19,
+        "max_drawdown_pct": 0.0,
+        "average_holding_bars": 23.26
+      },
+      "forward_2026": {
+        "samples": 44,
+        "win_rate": 43.18,
+        "profit_factor": 1.12,
+        "expectancy_pct": 0.958,
+        "average_r": 0.071,
+        "stop_out_rate": 47.73,
+        "max_drawdown_pct": 0.0,
+        "average_holding_bars": 25.98
+      }
+    },
+    "diagnostics": {
+      "histogram_contraction_pct": 0.0,
+      "selling_volume_decay_pct": 25.55,
+      "average_drawdown_60d_pct": -2.7,
+      "average_rs_126_spy_pct": 25.8
+    }
+  },
+  "strong_trend_pullback": {
+    "overall": {
+      "samples": 39,
+      "win_rate": 61.54,
+      "profit_factor": 2.543,
+      "expectancy_pct": 4.136,
+      "average_r": 0.535,
+      "stop_out_rate": 35.9,
+      "max_drawdown_pct": 0.0,
+      "average_holding_bars": 18.97
+    },
+    "periods": {
+      "development": {
+        "samples": 32,
+        "win_rate": 65.62,
+        "profit_factor": 2.949,
+        "expectancy_pct": 4.637,
+        "average_r": 0.64,
+        "stop_out_rate": 31.25,
+        "max_drawdown_pct": 0.0,
+        "average_holding_bars": 19.66
+      },
+      "validation_2025": {
+        "samples": 4,
+        "win_rate": 0.0,
+        "profit_factor": 0.0,
+        "expectancy_pct": -7.103,
+        "average_r": -1.009,
+        "stop_out_rate": 100.0,
+        "max_drawdown_pct": -11.977,
+        "average_holding_bars": 11.75
+      },
+      "forward_2026": {
+        "samples": 3,
+        "win_rate": 100.0,
+        "profit_factor": null,
+        "expectancy_pct": 13.774,
+        "average_r": 1.474,
+        "stop_out_rate": 0.0,
+        "max_drawdown_pct": 0.0,
+        "average_holding_bars": 21.33
+      }
+    },
+    "diagnostics": {
+      "histogram_contraction_pct": 0.0,
+      "selling_volume_decay_pct": 58.97,
+      "average_drawdown_60d_pct": -15.78,
+      "average_rs_126_spy_pct": 56.7
+    }
+  },
+  "early_watch": {
+    "all": {
+      "samples": 2900,
+      "win_rate": 44.66,
+      "profit_factor": 1.139,
+      "expectancy_pct": 0.591,
+      "average_r": 0.095,
+      "stop_out_rate": 47.1,
+      "max_drawdown_pct": -46.051,
+      "average_holding_bars": 23.29
+    },
+    "leadership": {
+      "samples": 297,
+      "win_rate": 45.45,
+      "profit_factor": 0.988,
+      "expectancy_pct": -0.068,
+      "average_r": 0.076,
+      "stop_out_rate": 46.46,
+      "max_drawdown_pct": -54.348,
+      "average_holding_bars": 24.35
+    },
+    "strong_trend_pullback": {
+      "samples": 47,
+      "win_rate": 23.4,
+      "profit_factor": 0.582,
+      "expectancy_pct": -2.149,
+      "average_r": -0.337,
+      "stop_out_rate": 72.34,
+      "max_drawdown_pct": -3.997,
+      "average_holding_bars": 14.28
+    }
+  },
+  "overlap": {
+    "samples": 0,
+    "leadership_overlap_pct": 0.0,
+    "pullback_overlap_pct": 0.0,
+    "explanation": "Overlap requires long-term relative strength plus a still-high 252D range position, while the stock is simultaneously in a >=10% short-term pullback near support."
+  },
+  "leadership_market_context": {
+    "spy_long_trend": {
+      "samples": 414,
+      "win_rate": 43.0,
+      "profit_factor": 1.027,
+      "expectancy_pct": 0.16,
+      "average_r": 0.007,
+      "stop_out_rate": 35.51,
+      "max_drawdown_pct": -26.086,
+      "average_holding_bars": 30.12
+    },
+    "spy_not_long_trend": {
+      "samples": 40,
+      "win_rate": 50.0,
+      "profit_factor": 1.206,
+      "expectancy_pct": 0.94,
+      "average_r": -0.069,
+      "stop_out_rate": 37.5,
+      "max_drawdown_pct": -8.761,
+      "average_holding_bars": 28.23
+    }
+  },
+  "audit": {
+    "signals_reused": true,
+    "point_in_time_features": true,
+    "future_rows_for_selection": false,
+    "entry_stop_tp_unchanged": true,
+    "threshold_optimization": false,
+    "industry_data_fabricated": false,
+    "production_outputs_written": false
+  },
+  "limitations": [
+    "The 200-day curve follows the existing V1 EMA implementation despite the UI shorthand DMA.",
+    "Industry Relative Strength is omitted rather than backfilled from current classifications.",
+    "With-group comparisons are observational and signals overlap.",
+    "Historical universe retains V1 survivorship and partial delisted coverage limitations.",
+    "No production scanner, Ranking, factor weight, Discord or automation is changed."
+  ]
+}

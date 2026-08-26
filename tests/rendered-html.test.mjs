@@ -88,3 +88,13 @@ test("server-renders Ranking Research controls safely", async () => {
   assert.match(html, /同一 point-in-time 候选池/);
   assert.doesNotMatch(html, /DISCORD_WEBHOOK_URL|EODHD_API_TOKEN/i);
 });
+
+test("server-renders Selection Research as an isolated experiment", async () => {
+  const response = await render("/zh/watch/resonance/selection-research");
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.match(html, /Stock Selection/);
+  assert.match(html, /Leadership 与 Strong-Trend Pullback/);
+  assert.match(html, /不改变 production/);
+  assert.doesNotMatch(html, /DISCORD_WEBHOOK_URL|EODHD_API_TOKEN/i);
+});

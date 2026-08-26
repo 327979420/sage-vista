@@ -15,3 +15,7 @@ Individual factors are tested first. Combination testing starts only after valid
 ## Tracker Backtest V1
 
 当前 Tracker 的独立 point-in-time 历史重放位于 `research/backtest/`。它使用下一交易日 Open、严格长期趋势过滤与 control group、support buffer、固定 R 止盈和完整历史信号账本；输出不进入 production Tracker、评分或 Discord。
+
+## Selection Research V1
+
+`backtest/selection_research_v1.py` 在冻结的 Long benchmark 上独立比较 Leadership 与 Strong-Trend Pullback。所有选股阈值预先固定，特征只读取信号日及之前的数据；结果写入 `backtest/output/selection-research-v1.json`，不会进入 production ranking、Discord 或每日扫描。
