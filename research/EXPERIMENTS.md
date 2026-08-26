@@ -61,4 +61,4 @@
 - **Benchmark:** Confirmed + Long-Term Trend + Next-Day Open + Support −5% + 2R；PF 1.178，Expectancy +0.801%。
 - **Results:** Leadership 454样本，PF 1.039、Expectancy +0.229%，未超过基准。Pullback 39样本，整体PF 2.543、Expectancy +4.136%，但2025仅4样本且全部止损；2026仅3样本。两组重叠0个。Early Watch Pullback PF 0.582、止损率72.34%。
 - **Conclusion:** Leadership V1未验证；Pullback有值得继续预注册验证的信号，但样本少且独立验证失败，不能视为已证明 edge，也不进入 production。
-- **Commit SHA:** `PENDING_SELECTION_RESEARCH_COMMIT`
+- **Commit SHA:** `f1c3556`
