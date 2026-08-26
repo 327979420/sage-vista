@@ -29,3 +29,7 @@ V2 直接读取冻结的 V1 信号账本，只研究 Stop Loss / Risk-Reward，�
 ## Market Regime V1
 
 Market Regime V1 仅把固定、未调参的 SPY/QQQ 趋势、MACD 动能和历史 breadth 作为研究变量，附加到冻结的 `Confirmed + strict trend + next Open + Support −5% + 2R` benchmark。它不自动过滤 production 信号或改变仓位。运行 `python3 -m research.backtest.market_regime_v1`，输出为 `output/market-regime-v1.json`。
+
+## Factor Attribution V1
+
+Factor Attribution V1 在同一个冻结 benchmark 上逐项比较“有因子”和“无因子”，并分开发期、2025验证期与2026前向期诊断。仅检查三组预定义语义组合，不进行自动组合搜索，不改 production 权重或 Ranking。运行 `python3 -m research.backtest.factor_attribution_v1`，输出为 `output/factor-attribution-v1.json`。

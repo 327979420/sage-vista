@@ -1,0 +1,1278 @@
+{
+  "version": "1.0.0",
+  "generated_at": "2026-08-26T00:07:36.405000+00:00",
+  "research_only": true,
+  "benchmark": {
+    "definition": "Confirmed + strict long trend + next adjusted Open + Support −5% + 2R TP",
+    "metrics": {
+      "samples": 2817,
+      "win_rate": 46.08,
+      "profit_factor": 1.178,
+      "expectancy_pct": 0.801,
+      "average_r": 0.084,
+      "average_return_pct": 0.801
+    }
+  },
+  "audit": {
+    "signals_reused": true,
+    "point_in_time_entries": true,
+    "future_rows_for_factor_selection": false,
+    "production_outputs_written": false,
+    "factors_tested": 10,
+    "automatic_combination_search": false
+  },
+  "factor_attribution": [
+    {
+      "factor": "日线MACD近5日金叉",
+      "status": "基础资格（无法对照）",
+      "overall": {
+        "with": {
+          "samples": 2817,
+          "win_rate": 46.08,
+          "profit_factor": 1.178,
+          "expectancy_pct": 0.801,
+          "average_r": 0.084,
+          "average_return_pct": 0.801
+        },
+        "without": {
+          "samples": 0,
+          "win_rate": null,
+          "profit_factor": null,
+          "expectancy_pct": null,
+          "average_r": null,
+          "average_return_pct": null
+        },
+        "delta": {
+          "win_rate": 46.08,
+          "profit_factor": 1.178,
+          "expectancy_pct": 0.801,
+          "average_return_pct": 0.801
+        }
+      },
+      "periods": {
+        "development": {
+          "with": {
+            "samples": 2257,
+            "win_rate": 45.68,
+            "profit_factor": 1.106,
+            "expectancy_pct": 0.475,
+            "average_r": 0.063,
+            "average_return_pct": 0.475
+          },
+          "without": {
+            "samples": 0,
+            "win_rate": null,
+            "profit_factor": null,
+            "expectancy_pct": null,
+            "average_r": null,
+            "average_return_pct": null
+          },
+          "delta": {
+            "win_rate": 45.68,
+            "profit_factor": 1.106,
+            "expectancy_pct": 0.475,
+            "average_return_pct": 0.475
+          }
+        },
+        "validation_2025": {
+          "with": {
+            "samples": 331,
+            "win_rate": 43.5,
+            "profit_factor": 1.322,
+            "expectancy_pct": 1.404,
+            "average_r": 0.073,
+            "average_return_pct": 1.404
+          },
+          "without": {
+            "samples": 0,
+            "win_rate": null,
+            "profit_factor": null,
+            "expectancy_pct": null,
+            "average_r": null,
+            "average_return_pct": null
+          },
+          "delta": {
+            "win_rate": 43.5,
+            "profit_factor": 1.322,
+            "expectancy_pct": 1.404,
+            "average_return_pct": 1.404
+          }
+        },
+        "forward_2026": {
+          "with": {
+            "samples": 229,
+            "win_rate": 53.71,
+            "profit_factor": 1.651,
+            "expectancy_pct": 3.139,
+            "average_r": 0.3,
+            "average_return_pct": 3.139
+          },
+          "without": {
+            "samples": 0,
+            "win_rate": null,
+            "profit_factor": null,
+            "expectancy_pct": null,
+            "average_r": null,
+            "average_return_pct": null
+          },
+          "delta": {
+            "win_rate": 53.71,
+            "profit_factor": 1.651,
+            "expectancy_pct": 3.139,
+            "average_return_pct": 3.139
+          }
+        }
+      }
+    },
+    {
+      "factor": "Fibonacci支撑",
+      "status": "没有明显贡献",
+      "overall": {
+        "with": {
+          "samples": 527,
+          "win_rate": 44.59,
+          "profit_factor": 1.501,
+          "expectancy_pct": 1.775,
+          "average_r": 0.158,
+          "average_return_pct": 1.775
+        },
+        "without": {
+          "samples": 2290,
+          "win_rate": 46.42,
+          "profit_factor": 1.122,
+          "expectancy_pct": 0.576,
+          "average_r": 0.067,
+          "average_return_pct": 0.576
+        },
+        "delta": {
+          "win_rate": -1.83,
+          "profit_factor": 0.379,
+          "expectancy_pct": 1.199,
+          "average_return_pct": 1.199
+        }
+      },
+      "periods": {
+        "development": {
+          "with": {
+            "samples": 420,
+            "win_rate": 46.43,
+            "profit_factor": 1.669,
+            "expectancy_pct": 2.26,
+            "average_r": 0.216,
+            "average_return_pct": 2.26
+          },
+          "without": {
+            "samples": 1837,
+            "win_rate": 45.51,
+            "profit_factor": 1.014,
+            "expectancy_pct": 0.067,
+            "average_r": 0.028,
+            "average_return_pct": 0.067
+          },
+          "delta": {
+            "win_rate": 0.92,
+            "profit_factor": 0.655,
+            "expectancy_pct": 2.193,
+            "average_return_pct": 2.193
+          }
+        },
+        "validation_2025": {
+          "with": {
+            "samples": 64,
+            "win_rate": 31.25,
+            "profit_factor": 0.761,
+            "expectancy_pct": -1.161,
+            "average_r": -0.212,
+            "average_return_pct": -1.161
+          },
+          "without": {
+            "samples": 267,
+            "win_rate": 46.44,
+            "profit_factor": 1.477,
+            "expectancy_pct": 2.019,
+            "average_r": 0.141,
+            "average_return_pct": 2.019
+          },
+          "delta": {
+            "win_rate": -15.19,
+            "profit_factor": -0.716,
+            "expectancy_pct": -3.18,
+            "average_return_pct": -3.18
+          }
+        },
+        "forward_2026": {
+          "with": {
+            "samples": 43,
+            "win_rate": 46.51,
+            "profit_factor": 1.444,
+            "expectancy_pct": 1.409,
+            "average_r": 0.135,
+            "average_return_pct": 1.409
+          },
+          "without": {
+            "samples": 186,
+            "win_rate": 55.38,
+            "profit_factor": 1.68,
+            "expectancy_pct": 3.539,
+            "average_r": 0.338,
+            "average_return_pct": 3.539
+          },
+          "delta": {
+            "win_rate": -8.87,
+            "profit_factor": -0.236,
+            "expectancy_pct": -2.13,
+            "average_return_pct": -2.13
+          }
+        }
+      }
+    },
+    {
+      "factor": "EMA支撑",
+      "status": "没有明显贡献",
+      "overall": {
+        "with": {
+          "samples": 894,
+          "win_rate": 44.85,
+          "profit_factor": 1.329,
+          "expectancy_pct": 1.113,
+          "average_r": 0.158,
+          "average_return_pct": 1.113
+        },
+        "without": {
+          "samples": 1923,
+          "win_rate": 46.65,
+          "profit_factor": 1.13,
+          "expectancy_pct": 0.655,
+          "average_r": 0.049,
+          "average_return_pct": 0.655
+        },
+        "delta": {
+          "win_rate": -1.8,
+          "profit_factor": 0.199,
+          "expectancy_pct": 0.458,
+          "average_return_pct": 0.458
+        }
+      },
+      "periods": {
+        "development": {
+          "with": {
+            "samples": 729,
+            "win_rate": 45.95,
+            "profit_factor": 1.381,
+            "expectancy_pct": 1.254,
+            "average_r": 0.189,
+            "average_return_pct": 1.254
+          },
+          "without": {
+            "samples": 1528,
+            "win_rate": 45.55,
+            "profit_factor": 1.02,
+            "expectancy_pct": 0.103,
+            "average_r": 0.003,
+            "average_return_pct": 0.103
+          },
+          "delta": {
+            "win_rate": 0.4,
+            "profit_factor": 0.361,
+            "expectancy_pct": 1.151,
+            "average_return_pct": 1.151
+          }
+        },
+        "validation_2025": {
+          "with": {
+            "samples": 108,
+            "win_rate": 33.33,
+            "profit_factor": 0.81,
+            "expectancy_pct": -0.846,
+            "average_r": -0.157,
+            "average_return_pct": -0.846
+          },
+          "without": {
+            "samples": 223,
+            "win_rate": 48.43,
+            "profit_factor": 1.579,
+            "expectancy_pct": 2.494,
+            "average_r": 0.184,
+            "average_return_pct": 2.494
+          },
+          "delta": {
+            "win_rate": -15.1,
+            "profit_factor": -0.769,
+            "expectancy_pct": -3.34,
+            "average_return_pct": -3.34
+          }
+        },
+        "forward_2026": {
+          "with": {
+            "samples": 57,
+            "win_rate": 52.63,
+            "profit_factor": 2.182,
+            "expectancy_pct": 3.018,
+            "average_r": 0.371,
+            "average_return_pct": 3.018
+          },
+          "without": {
+            "samples": 172,
+            "win_rate": 54.07,
+            "profit_factor": 1.57,
+            "expectancy_pct": 3.179,
+            "average_r": 0.276,
+            "average_return_pct": 3.179
+          },
+          "delta": {
+            "win_rate": -1.44,
+            "profit_factor": 0.612,
+            "expectancy_pct": -0.161,
+            "average_return_pct": -0.161
+          }
+        }
+      }
+    },
+    {
+      "factor": "支撑位底部放量",
+      "status": "可能拖累",
+      "overall": {
+        "with": {
+          "samples": 128,
+          "win_rate": 39.06,
+          "profit_factor": 1.088,
+          "expectancy_pct": 0.332,
+          "average_r": 0.068,
+          "average_return_pct": 0.332
+        },
+        "without": {
+          "samples": 2689,
+          "win_rate": 46.41,
+          "profit_factor": 1.181,
+          "expectancy_pct": 0.823,
+          "average_r": 0.084,
+          "average_return_pct": 0.823
+        },
+        "delta": {
+          "win_rate": -7.35,
+          "profit_factor": -0.093,
+          "expectancy_pct": -0.491,
+          "average_return_pct": -0.491
+        }
+      },
+      "periods": {
+        "development": {
+          "with": {
+            "samples": 109,
+            "win_rate": 39.45,
+            "profit_factor": 1.065,
+            "expectancy_pct": 0.241,
+            "average_r": 0.069,
+            "average_return_pct": 0.241
+          },
+          "without": {
+            "samples": 2148,
+            "win_rate": 46.0,
+            "profit_factor": 1.107,
+            "expectancy_pct": 0.487,
+            "average_r": 0.063,
+            "average_return_pct": 0.487
+          },
+          "delta": {
+            "win_rate": -6.55,
+            "profit_factor": -0.042,
+            "expectancy_pct": -0.246,
+            "average_return_pct": -0.246
+          }
+        },
+        "validation_2025": {
+          "with": {
+            "samples": 14,
+            "win_rate": 35.71,
+            "profit_factor": 1.072,
+            "expectancy_pct": 0.334,
+            "average_r": 0.102,
+            "average_return_pct": 0.334
+          },
+          "without": {
+            "samples": 317,
+            "win_rate": 43.85,
+            "profit_factor": 1.334,
+            "expectancy_pct": 1.451,
+            "average_r": 0.072,
+            "average_return_pct": 1.451
+          },
+          "delta": {
+            "win_rate": -8.14,
+            "profit_factor": -0.262,
+            "expectancy_pct": -1.117,
+            "average_return_pct": -1.117
+          }
+        },
+        "forward_2026": {
+          "with": {
+            "samples": 5,
+            "win_rate": 40.0,
+            "profit_factor": 1.748,
+            "expectancy_pct": 2.307,
+            "average_r": -0.06,
+            "average_return_pct": 2.307
+          },
+          "without": {
+            "samples": 224,
+            "win_rate": 54.02,
+            "profit_factor": 1.65,
+            "expectancy_pct": 3.157,
+            "average_r": 0.308,
+            "average_return_pct": 3.157
+          },
+          "delta": {
+            "win_rate": -14.02,
+            "profit_factor": 0.098,
+            "expectancy_pct": -0.85,
+            "average_return_pct": -0.85
+          }
+        }
+      }
+    },
+    {
+      "factor": "支撑位看涨吞没",
+      "status": "候选正贡献（样本不足）",
+      "overall": {
+        "with": {
+          "samples": 105,
+          "win_rate": 52.38,
+          "profit_factor": 1.97,
+          "expectancy_pct": 2.743,
+          "average_r": 0.412,
+          "average_return_pct": 2.743
+        },
+        "without": {
+          "samples": 2712,
+          "win_rate": 45.83,
+          "profit_factor": 1.159,
+          "expectancy_pct": 0.725,
+          "average_r": 0.071,
+          "average_return_pct": 0.725
+        },
+        "delta": {
+          "win_rate": 6.55,
+          "profit_factor": 0.811,
+          "expectancy_pct": 2.018,
+          "average_return_pct": 2.018
+        }
+      },
+      "periods": {
+        "development": {
+          "with": {
+            "samples": 79,
+            "win_rate": 50.63,
+            "profit_factor": 1.934,
+            "expectancy_pct": 2.659,
+            "average_r": 0.384,
+            "average_return_pct": 2.659
+          },
+          "without": {
+            "samples": 2178,
+            "win_rate": 45.5,
+            "profit_factor": 1.087,
+            "expectancy_pct": 0.396,
+            "average_r": 0.052,
+            "average_return_pct": 0.396
+          },
+          "delta": {
+            "win_rate": 5.13,
+            "profit_factor": 0.847,
+            "expectancy_pct": 2.263,
+            "average_return_pct": 2.263
+          }
+        },
+        "validation_2025": {
+          "with": {
+            "samples": 18,
+            "win_rate": 50.0,
+            "profit_factor": 1.602,
+            "expectancy_pct": 1.936,
+            "average_r": 0.34,
+            "average_return_pct": 1.936
+          },
+          "without": {
+            "samples": 313,
+            "win_rate": 43.13,
+            "profit_factor": 1.311,
+            "expectancy_pct": 1.374,
+            "average_r": 0.057,
+            "average_return_pct": 1.374
+          },
+          "delta": {
+            "win_rate": 6.87,
+            "profit_factor": 0.291,
+            "expectancy_pct": 0.562,
+            "average_return_pct": 0.562
+          }
+        },
+        "forward_2026": {
+          "with": {
+            "samples": 8,
+            "win_rate": 75.0,
+            "profit_factor": 4.043,
+            "expectancy_pct": 5.382,
+            "average_r": 0.851,
+            "average_return_pct": 5.382
+          },
+          "without": {
+            "samples": 221,
+            "win_rate": 52.94,
+            "profit_factor": 1.62,
+            "expectancy_pct": 3.058,
+            "average_r": 0.28,
+            "average_return_pct": 3.058
+          },
+          "delta": {
+            "win_rate": 22.06,
+            "profit_factor": 2.423,
+            "expectancy_pct": 2.324,
+            "average_return_pct": 2.324
+          }
+        }
+      }
+    },
+    {
+      "factor": "周线MACD改善",
+      "status": "没有明显贡献",
+      "overall": {
+        "with": {
+          "samples": 218,
+          "win_rate": 42.66,
+          "profit_factor": 1.711,
+          "expectancy_pct": 3.113,
+          "average_r": 0.129,
+          "average_return_pct": 3.113
+        },
+        "without": {
+          "samples": 2599,
+          "win_rate": 46.36,
+          "profit_factor": 1.134,
+          "expectancy_pct": 0.607,
+          "average_r": 0.08,
+          "average_return_pct": 0.607
+        },
+        "delta": {
+          "win_rate": -3.7,
+          "profit_factor": 0.577,
+          "expectancy_pct": 2.506,
+          "average_return_pct": 2.506
+        }
+      },
+      "periods": {
+        "development": {
+          "with": {
+            "samples": 174,
+            "win_rate": 46.55,
+            "profit_factor": 2.031,
+            "expectancy_pct": 4.046,
+            "average_r": 0.215,
+            "average_return_pct": 4.046
+          },
+          "without": {
+            "samples": 2083,
+            "win_rate": 45.61,
+            "profit_factor": 1.039,
+            "expectancy_pct": 0.177,
+            "average_r": 0.051,
+            "average_return_pct": 0.177
+          },
+          "delta": {
+            "win_rate": 0.94,
+            "profit_factor": 0.992,
+            "expectancy_pct": 3.869,
+            "average_return_pct": 3.869
+          }
+        },
+        "validation_2025": {
+          "with": {
+            "samples": 19,
+            "win_rate": 21.05,
+            "profit_factor": 0.36,
+            "expectancy_pct": -3.704,
+            "average_r": -0.437,
+            "average_return_pct": -3.704
+          },
+          "without": {
+            "samples": 312,
+            "win_rate": 44.87,
+            "profit_factor": 1.402,
+            "expectancy_pct": 1.715,
+            "average_r": 0.104,
+            "average_return_pct": 1.715
+          },
+          "delta": {
+            "win_rate": -23.82,
+            "profit_factor": -1.042,
+            "expectancy_pct": -5.419,
+            "average_return_pct": -5.419
+          }
+        },
+        "forward_2026": {
+          "with": {
+            "samples": 25,
+            "win_rate": 32.0,
+            "profit_factor": 1.278,
+            "expectancy_pct": 1.8,
+            "average_r": -0.041,
+            "average_return_pct": 1.8
+          },
+          "without": {
+            "samples": 204,
+            "win_rate": 56.37,
+            "profit_factor": 1.715,
+            "expectancy_pct": 3.303,
+            "average_r": 0.342,
+            "average_return_pct": 3.303
+          },
+          "delta": {
+            "win_rate": -24.37,
+            "profit_factor": -0.437,
+            "expectancy_pct": -1.503,
+            "average_return_pct": -1.503
+          }
+        }
+      }
+    },
+    {
+      "factor": "三推趋势线突破",
+      "status": "没有明显贡献",
+      "overall": {
+        "with": {
+          "samples": 444,
+          "win_rate": 44.37,
+          "profit_factor": 1.297,
+          "expectancy_pct": 1.067,
+          "average_r": 0.1,
+          "average_return_pct": 1.067
+        },
+        "without": {
+          "samples": 2373,
+          "win_rate": 46.4,
+          "profit_factor": 1.161,
+          "expectancy_pct": 0.751,
+          "average_r": 0.081,
+          "average_return_pct": 0.751
+        },
+        "delta": {
+          "win_rate": -2.03,
+          "profit_factor": 0.136,
+          "expectancy_pct": 0.316,
+          "average_return_pct": 0.316
+        }
+      },
+      "periods": {
+        "development": {
+          "with": {
+            "samples": 366,
+            "win_rate": 44.54,
+            "profit_factor": 1.32,
+            "expectancy_pct": 1.148,
+            "average_r": 0.096,
+            "average_return_pct": 1.148
+          },
+          "without": {
+            "samples": 1891,
+            "win_rate": 45.9,
+            "profit_factor": 1.074,
+            "expectancy_pct": 0.345,
+            "average_r": 0.057,
+            "average_return_pct": 0.345
+          },
+          "delta": {
+            "win_rate": -1.36,
+            "profit_factor": 0.246,
+            "expectancy_pct": 0.803,
+            "average_return_pct": 0.803
+          }
+        },
+        "validation_2025": {
+          "with": {
+            "samples": 50,
+            "win_rate": 42.0,
+            "profit_factor": 1.171,
+            "expectancy_pct": 0.651,
+            "average_r": 0.112,
+            "average_return_pct": 0.651
+          },
+          "without": {
+            "samples": 281,
+            "win_rate": 43.77,
+            "profit_factor": 1.345,
+            "expectancy_pct": 1.538,
+            "average_r": 0.066,
+            "average_return_pct": 1.538
+          },
+          "delta": {
+            "win_rate": -1.77,
+            "profit_factor": -0.174,
+            "expectancy_pct": -0.887,
+            "average_return_pct": -0.887
+          }
+        },
+        "forward_2026": {
+          "with": {
+            "samples": 28,
+            "win_rate": 46.43,
+            "profit_factor": 1.223,
+            "expectancy_pct": 0.748,
+            "average_r": 0.124,
+            "average_return_pct": 0.748
+          },
+          "without": {
+            "samples": 201,
+            "win_rate": 54.73,
+            "profit_factor": 1.691,
+            "expectancy_pct": 3.472,
+            "average_r": 0.324,
+            "average_return_pct": 3.472
+          },
+          "delta": {
+            "win_rate": -8.3,
+            "profit_factor": -0.468,
+            "expectancy_pct": -2.724,
+            "average_return_pct": -2.724
+          }
+        }
+      }
+    },
+    {
+      "factor": "三推突破后回踩确认",
+      "status": "可能拖累",
+      "overall": {
+        "with": {
+          "samples": 217,
+          "win_rate": 41.01,
+          "profit_factor": 1.09,
+          "expectancy_pct": 0.358,
+          "average_r": 0.025,
+          "average_return_pct": 0.358
+        },
+        "without": {
+          "samples": 2600,
+          "win_rate": 46.5,
+          "profit_factor": 1.184,
+          "expectancy_pct": 0.837,
+          "average_r": 0.089,
+          "average_return_pct": 0.837
+        },
+        "delta": {
+          "win_rate": -5.49,
+          "profit_factor": -0.094,
+          "expectancy_pct": -0.479,
+          "average_return_pct": -0.479
+        }
+      },
+      "periods": {
+        "development": {
+          "with": {
+            "samples": 184,
+            "win_rate": 39.67,
+            "profit_factor": 1.011,
+            "expectancy_pct": 0.047,
+            "average_r": -0.024,
+            "average_return_pct": 0.047
+          },
+          "without": {
+            "samples": 2073,
+            "win_rate": 46.21,
+            "profit_factor": 1.113,
+            "expectancy_pct": 0.513,
+            "average_r": 0.071,
+            "average_return_pct": 0.513
+          },
+          "delta": {
+            "win_rate": -6.54,
+            "profit_factor": -0.102,
+            "expectancy_pct": -0.466,
+            "average_return_pct": -0.466
+          }
+        },
+        "validation_2025": {
+          "with": {
+            "samples": 23,
+            "win_rate": 39.13,
+            "profit_factor": 1.185,
+            "expectancy_pct": 0.694,
+            "average_r": 0.057,
+            "average_return_pct": 0.694
+          },
+          "without": {
+            "samples": 308,
+            "win_rate": 43.83,
+            "profit_factor": 1.331,
+            "expectancy_pct": 1.457,
+            "average_r": 0.074,
+            "average_return_pct": 1.457
+          },
+          "delta": {
+            "win_rate": -4.7,
+            "profit_factor": -0.146,
+            "expectancy_pct": -0.763,
+            "average_return_pct": -0.763
+          }
+        },
+        "forward_2026": {
+          "with": {
+            "samples": 10,
+            "win_rate": 70.0,
+            "profit_factor": 3.856,
+            "expectancy_pct": 5.324,
+            "average_r": 0.843,
+            "average_return_pct": 5.324
+          },
+          "without": {
+            "samples": 219,
+            "win_rate": 52.97,
+            "profit_factor": 1.613,
+            "expectancy_pct": 3.039,
+            "average_r": 0.275,
+            "average_return_pct": 3.039
+          },
+          "delta": {
+            "win_rate": 17.03,
+            "profit_factor": 2.243,
+            "expectancy_pct": 2.285,
+            "average_return_pct": 2.285
+          }
+        }
+      }
+    },
+    {
+      "factor": "上方未补跳空缺口",
+      "status": "没有明显贡献",
+      "overall": {
+        "with": {
+          "samples": 642,
+          "win_rate": 47.82,
+          "profit_factor": 1.32,
+          "expectancy_pct": 1.17,
+          "average_r": 0.223,
+          "average_return_pct": 1.17
+        },
+        "without": {
+          "samples": 2175,
+          "win_rate": 45.56,
+          "profit_factor": 1.145,
+          "expectancy_pct": 0.691,
+          "average_r": 0.042,
+          "average_return_pct": 0.691
+        },
+        "delta": {
+          "win_rate": 2.26,
+          "profit_factor": 0.175,
+          "expectancy_pct": 0.479,
+          "average_return_pct": 0.479
+        }
+      },
+      "periods": {
+        "development": {
+          "with": {
+            "samples": 523,
+            "win_rate": 48.76,
+            "profit_factor": 1.354,
+            "expectancy_pct": 1.279,
+            "average_r": 0.259,
+            "average_return_pct": 1.279
+          },
+          "without": {
+            "samples": 1734,
+            "win_rate": 44.75,
+            "profit_factor": 1.049,
+            "expectancy_pct": 0.232,
+            "average_r": 0.004,
+            "average_return_pct": 0.232
+          },
+          "delta": {
+            "win_rate": 4.01,
+            "profit_factor": 0.305,
+            "expectancy_pct": 1.047,
+            "average_return_pct": 1.047
+          }
+        },
+        "validation_2025": {
+          "with": {
+            "samples": 80,
+            "win_rate": 36.25,
+            "profit_factor": 0.842,
+            "expectancy_pct": -0.731,
+            "average_r": -0.111,
+            "average_return_pct": -0.731
+          },
+          "without": {
+            "samples": 251,
+            "win_rate": 45.82,
+            "profit_factor": 1.488,
+            "expectancy_pct": 2.085,
+            "average_r": 0.131,
+            "average_return_pct": 2.085
+          },
+          "delta": {
+            "win_rate": -9.57,
+            "profit_factor": -0.646,
+            "expectancy_pct": -2.816,
+            "average_return_pct": -2.816
+          }
+        },
+        "forward_2026": {
+          "with": {
+            "samples": 39,
+            "win_rate": 58.97,
+            "profit_factor": 2.6,
+            "expectancy_pct": 3.61,
+            "average_r": 0.428,
+            "average_return_pct": 3.61
+          },
+          "without": {
+            "samples": 190,
+            "win_rate": 52.63,
+            "profit_factor": 1.569,
+            "expectancy_pct": 3.042,
+            "average_r": 0.274,
+            "average_return_pct": 3.042
+          },
+          "delta": {
+            "win_rate": 6.34,
+            "profit_factor": 1.031,
+            "expectancy_pct": 0.568,
+            "average_return_pct": 0.568
+          }
+        }
+      }
+    },
+    {
+      "factor": "Bullish FVG支撑",
+      "status": "没有明显贡献",
+      "overall": {
+        "with": {
+          "samples": 927,
+          "win_rate": 44.01,
+          "profit_factor": 1.26,
+          "expectancy_pct": 0.996,
+          "average_r": 0.122,
+          "average_return_pct": 0.996
+        },
+        "without": {
+          "samples": 1890,
+          "win_rate": 47.09,
+          "profit_factor": 1.146,
+          "expectancy_pct": 0.705,
+          "average_r": 0.065,
+          "average_return_pct": 0.705
+        },
+        "delta": {
+          "win_rate": -3.08,
+          "profit_factor": 0.114,
+          "expectancy_pct": 0.291,
+          "average_return_pct": 0.291
+        }
+      },
+      "periods": {
+        "development": {
+          "with": {
+            "samples": 749,
+            "win_rate": 44.59,
+            "profit_factor": 1.218,
+            "expectancy_pct": 0.832,
+            "average_r": 0.135,
+            "average_return_pct": 0.832
+          },
+          "without": {
+            "samples": 1508,
+            "win_rate": 46.22,
+            "profit_factor": 1.062,
+            "expectancy_pct": 0.297,
+            "average_r": 0.028,
+            "average_return_pct": 0.297
+          },
+          "delta": {
+            "win_rate": -1.63,
+            "profit_factor": 0.156,
+            "expectancy_pct": 0.535,
+            "average_return_pct": 0.535
+          }
+        },
+        "validation_2025": {
+          "with": {
+            "samples": 116,
+            "win_rate": 33.62,
+            "profit_factor": 0.805,
+            "expectancy_pct": -0.891,
+            "average_r": -0.161,
+            "average_return_pct": -0.891
+          },
+          "without": {
+            "samples": 215,
+            "win_rate": 48.84,
+            "profit_factor": 1.623,
+            "expectancy_pct": 2.642,
+            "average_r": 0.199,
+            "average_return_pct": 2.642
+          },
+          "delta": {
+            "win_rate": -15.22,
+            "profit_factor": -0.818,
+            "expectancy_pct": -3.533,
+            "average_return_pct": -3.533
+          }
+        },
+        "forward_2026": {
+          "with": {
+            "samples": 62,
+            "win_rate": 56.45,
+            "profit_factor": 3.503,
+            "expectancy_pct": 6.51,
+            "average_r": 0.493,
+            "average_return_pct": 6.51
+          },
+          "without": {
+            "samples": 167,
+            "win_rate": 52.69,
+            "profit_factor": 1.334,
+            "expectancy_pct": 1.887,
+            "average_r": 0.228,
+            "average_return_pct": 1.887
+          },
+          "delta": {
+            "win_rate": 3.76,
+            "profit_factor": 2.169,
+            "expectancy_pct": 4.623,
+            "average_return_pct": 4.623
+          }
+        }
+      }
+    }
+  ],
+  "rank_diagnosis": [
+    {
+      "bucket": "Rank 1–3",
+      "metrics": {
+        "samples": 1847,
+        "win_rate": 44.99,
+        "profit_factor": 1.086,
+        "expectancy_pct": 0.41,
+        "average_r": 0.044,
+        "average_return_pct": 0.41
+      },
+      "mean_multifactor_score": 2.223,
+      "mean_tracker_score": 25.136,
+      "mean_aligned_long_layers": 1.414,
+      "factor_rates": {
+        "日线MACD近5日金叉": 100.0,
+        "Fibonacci支撑": 15.32,
+        "EMA支撑": 26.1,
+        "支撑位底部放量": 3.84,
+        "支撑位看涨吞没": 3.63,
+        "周线MACD改善": 6.82,
+        "三推趋势线突破": 13.75,
+        "三推突破后回踩确认": 6.98,
+        "上方未补跳空缺口": 17.87,
+        "Bullish FVG支撑": 27.99
+      }
+    },
+    {
+      "bucket": "Rank 4–6",
+      "metrics": {
+        "samples": 620,
+        "win_rate": 46.61,
+        "profit_factor": 1.282,
+        "expectancy_pct": 1.177,
+        "average_r": 0.138,
+        "average_return_pct": 1.177
+      },
+      "mean_multifactor_score": 2.944,
+      "mean_tracker_score": 11.64,
+      "mean_aligned_long_layers": 0.835,
+      "factor_rates": {
+        "日线MACD近5日金叉": 100.0,
+        "Fibonacci支撑": 24.52,
+        "EMA支撑": 44.19,
+        "支撑位底部放量": 6.45,
+        "支撑位看涨吞没": 3.55,
+        "周线MACD改善": 9.52,
+        "三推趋势线突破": 19.68,
+        "三推突破后回踩确认": 9.35,
+        "上方未补跳空缺口": 33.71,
+        "Bullish FVG支撑": 43.39
+      }
+    },
+    {
+      "bucket": "Rank 7–10",
+      "metrics": {
+        "samples": 350,
+        "win_rate": 50.86,
+        "profit_factor": 1.584,
+        "expectancy_pct": 2.197,
+        "average_r": 0.197,
+        "average_return_pct": 2.197
+      },
+      "mean_multifactor_score": 2.823,
+      "mean_tracker_score": 8.523,
+      "mean_aligned_long_layers": 0.64,
+      "factor_rates": {
+        "日线MACD近5日金叉": 100.0,
+        "Fibonacci支撑": 26.29,
+        "EMA支撑": 39.43,
+        "支撑位底部放量": 4.86,
+        "支撑位看涨吞没": 4.57,
+        "周线MACD改善": 9.43,
+        "三推趋势线突破": 19.43,
+        "三推突破后回踩确认": 8.57,
+        "上方未补跳空缺口": 29.43,
+        "Bullish FVG支撑": 40.29
+      }
+    }
+  ],
+  "score_diagnosis": [
+    {
+      "bucket": "Score 0–2",
+      "metrics": {
+        "samples": 1810,
+        "win_rate": 46.8,
+        "profit_factor": 1.078,
+        "expectancy_pct": 0.393,
+        "average_r": 0.044,
+        "average_return_pct": 0.393
+      },
+      "mean_rank": 2.889
+    },
+    {
+      "bucket": "Score 3–4",
+      "metrics": {
+        "samples": 110,
+        "win_rate": 42.73,
+        "profit_factor": 2.151,
+        "expectancy_pct": 4.802,
+        "average_r": 0.111,
+        "average_return_pct": 4.802
+      },
+      "mean_rank": 3.155
+    },
+    {
+      "bucket": "Score 5+",
+      "metrics": {
+        "samples": 897,
+        "win_rate": 45.04,
+        "profit_factor": 1.325,
+        "expectancy_pct": 1.132,
+        "average_r": 0.159,
+        "average_return_pct": 1.132
+      },
+      "mean_rank": 3.75
+    }
+  ],
+  "predefined_combinations": [
+    {
+      "name": "双支撑确认",
+      "factors": [
+        "Fibonacci支撑",
+        "EMA支撑"
+      ],
+      "comparison": {
+        "with": {
+          "samples": 472,
+          "win_rate": 43.64,
+          "profit_factor": 1.309,
+          "expectancy_pct": 1.081,
+          "average_r": 0.144,
+          "average_return_pct": 1.081
+        },
+        "without": {
+          "samples": 2345,
+          "win_rate": 46.57,
+          "profit_factor": 1.158,
+          "expectancy_pct": 0.744,
+          "average_r": 0.071,
+          "average_return_pct": 0.744
+        },
+        "delta": {
+          "win_rate": -2.93,
+          "profit_factor": 0.151,
+          "expectancy_pct": 0.337,
+          "average_return_pct": 0.337
+        }
+      },
+      "note": "预定义关系，仅作候选诊断；未进行组合搜索"
+    },
+    {
+      "name": "突破回踩结构",
+      "factors": [
+        "三推趋势线突破",
+        "三推突破后回踩确认"
+      ],
+      "comparison": {
+        "with": {
+          "samples": 217,
+          "win_rate": 41.01,
+          "profit_factor": 1.09,
+          "expectancy_pct": 0.358,
+          "average_r": 0.025,
+          "average_return_pct": 0.358
+        },
+        "without": {
+          "samples": 2600,
+          "win_rate": 46.5,
+          "profit_factor": 1.184,
+          "expectancy_pct": 0.837,
+          "average_r": 0.089,
+          "average_return_pct": 0.837
+        },
+        "delta": {
+          "win_rate": -5.49,
+          "profit_factor": -0.094,
+          "expectancy_pct": -0.479,
+          "average_return_pct": -0.479
+        }
+      },
+      "note": "预定义关系，仅作候选诊断；未进行组合搜索"
+    },
+    {
+      "name": "支撑位价格量能确认",
+      "factors": [
+        "支撑位底部放量",
+        "支撑位看涨吞没"
+      ],
+      "comparison": {
+        "with": {
+          "samples": 7,
+          "win_rate": 42.86,
+          "profit_factor": 1.211,
+          "expectancy_pct": 0.708,
+          "average_r": 0.153,
+          "average_return_pct": 0.708
+        },
+        "without": {
+          "samples": 2810,
+          "win_rate": 46.09,
+          "profit_factor": 1.178,
+          "expectancy_pct": 0.801,
+          "average_r": 0.083,
+          "average_return_pct": 0.801
+        },
+        "delta": {
+          "win_rate": -3.23,
+          "profit_factor": 0.033,
+          "expectancy_pct": -0.093,
+          "average_return_pct": -0.093
+        }
+      },
+      "note": "预定义关系，仅作候选诊断；未进行组合搜索"
+    }
+  ],
+  "answers": {
+    "stable_positive": [],
+    "possible_drag": [
+      "支撑位底部放量",
+      "三推突破后回踩确认"
+    ],
+    "rank_vs_score": "Tracker rank is driven by aligned layer and MACD ranking fields, not solely by the multi-factor evidence count. Factor prevalence and outcome differences are shown by rank bucket.",
+    "combination_policy": "Only three semantically predefined pairs were checked; no exhaustive search or best-combination selection."
+  },
+  "limitations": [
+    "With/without comparisons are observational attribution, not causal estimates.",
+    "Factors overlap and their deltas cannot be added together.",
+    "Small 2025/2026 with-factor samples remain labeled rather than optimized away.",
+    "Historical universe retains the V1 partial delisted and survivorship limitations.",
+    "No weights, rankings, signals, production files or Discord behavior are changed."
+  ]
+}

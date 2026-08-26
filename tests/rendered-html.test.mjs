@@ -70,3 +70,12 @@ test("server-renders the point-in-time Market Regime research page", async () =>
   assert.match(html, /验证市场环境能否改善冻结的 Long benchmark/);
   assert.doesNotMatch(html, /DISCORD_WEBHOOK_URL|EODHD_API_TOKEN/i);
 });
+
+test("server-renders Factor Attribution research without production secrets", async () => {
+  const response = await render("/zh/watch/resonance/factor-attribution");
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.match(html, /Factor Attribution/);
+  assert.match(html, /不改变 production 权重/);
+  assert.doesNotMatch(html, /DISCORD_WEBHOOK_URL|EODHD_API_TOKEN/i);
+});
