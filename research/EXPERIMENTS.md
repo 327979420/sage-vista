@@ -50,4 +50,4 @@
 - **Benchmark:** Confirmed + strict trend + next Open + Support −5% + 2R。
 - **Key Results:** A/C 表面单调，但 Random 也单调；B 不单调。只有5天同时拥有至少10个候选，公平三档样本不足。No Ranking PF 1.196、Expectancy +0.875%。
 - **Conclusion:** 没有 Ranking 被可靠验证；MACD 更适合候选发现，决定优先级仍需更多独立和更宽候选池样本。
-- **Commit SHA:** `PENDING_RANKING_RESEARCH_COMMIT`
+- **Commit SHA:** `c5457c3`
