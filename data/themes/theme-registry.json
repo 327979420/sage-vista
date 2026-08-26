@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "themes": [
+    {"theme_id": "fintech", "name": "Fintech", "preferred_source": "FINX"},
+    {"theme_id": "robotics-ai", "name": "Robotics & AI", "preferred_source": "BOTZ"},
+    {"theme_id": "uranium", "name": "Uranium", "preferred_source": "URA"},
+    {"theme_id": "copper-miners", "name": "Copper Miners", "preferred_source": "COPX"},
+    {"theme_id": "ai-infrastructure", "name": "AI Infrastructure", "status": "manual_curated_required"},
+    {"theme_id": "semiconductor-equipment", "name": "Semiconductor Equipment", "status": "manual_curated_required"},
+    {"theme_id": "data-center-power", "name": "Data Center Power", "status": "manual_curated_required"}
+  ]
+}

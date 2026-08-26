@@ -1,0 +1,870 @@
+{
+  "as_of": "2026-08-25",
+  "generated_at": "2026-08-26T06:18:18.428975+00:00",
+  "membership_version": "themes-2026-08-25",
+  "membership_effective_from": "2026-08-25",
+  "future_data_used": false,
+  "historical_membership_safe": true,
+  "status": "market_data_unavailable_safe",
+  "config": {
+    "min_valid_members": 5,
+    "leadership_percentile": 70.0,
+    "healthy_breadth": 0.6,
+    "meaningful_breadth_decline": -0.1,
+    "recovery_breadth_improvement": 0.05
+  },
+  "price_data_audit": {
+    "provider": "EODHD",
+    "requested_tickers": [
+      "ABTC",
+      "ACIW",
+      "AFRM",
+      "APPN",
+      "AUR",
+      "AVAV",
+      "BIDU",
+      "BILL",
+      "BKKT",
+      "BLND",
+      "BLSH",
+      "BULL",
+      "CD",
+      "CGNX",
+      "CIFR",
+      "COIN",
+      "CORZ",
+      "CRCL",
+      "CRNC",
+      "DLO",
+      "EH",
+      "ETOR",
+      "EXOD",
+      "FCX",
+      "FIS",
+      "FISV",
+      "FLYW",
+      "FOUR",
+      "GEMI",
+      "GLXY",
+      "GOOGL",
+      "GPN",
+      "GWRE",
+      "HAPN",
+      "HOOD",
+      "HQY",
+      "HSAI",
+      "IE",
+      "IMSR",
+      "INTU",
+      "ISRG",
+      "JBTM",
+      "JKHY",
+      "KEEL",
+      "KLAR",
+      "LEU",
+      "LMND",
+      "LTBR",
+      "LU",
+      "MARA",
+      "MITK",
+      "NCNO",
+      "NKLR",
+      "NNE",
+      "NUCL",
+      "NVDA",
+      "OKLO",
+      "OMCL",
+      "OUST",
+      "PAGS",
+      "PATH",
+      "PAY",
+      "PAYO",
+      "PGY",
+      "PONY",
+      "PRCT",
+      "PRTH",
+      "PSFE",
+      "PYPL",
+      "RIOT",
+      "RPAY",
+      "RR",
+      "SCCO",
+      "SERV",
+      "SEZL",
+      "SMR",
+      "SOFI",
+      "SSNC",
+      "STNE",
+      "SYM",
+      "TGB",
+      "TOST",
+      "TREE",
+      "TSLA",
+      "UEC",
+      "UPST",
+      "URG",
+      "UROY",
+      "VERX",
+      "VIRT",
+      "WRD",
+      "XE",
+      "XPEV",
+      "XYZ"
+    ],
+    "fetched_tickers": [],
+    "unavailable_tickers": [
+      "ABTC",
+      "ACIW",
+      "AFRM",
+      "APPN",
+      "AUR",
+      "AVAV",
+      "BIDU",
+      "BILL",
+      "BKKT",
+      "BLND",
+      "BLSH",
+      "BULL",
+      "CD",
+      "CGNX",
+      "CIFR",
+      "COIN",
+      "CORZ",
+      "CRCL",
+      "CRNC",
+      "DLO",
+      "EH",
+      "ETOR",
+      "EXOD",
+      "FCX",
+      "FIS",
+      "FISV",
+      "FLYW",
+      "FOUR",
+      "GEMI",
+      "GLXY",
+      "GOOGL",
+      "GPN",
+      "GWRE",
+      "HAPN",
+      "HOOD",
+      "HQY",
+      "HSAI",
+      "IE",
+      "IMSR",
+      "INTU",
+      "ISRG",
+      "JBTM",
+      "JKHY",
+      "KEEL",
+      "KLAR",
+      "LEU",
+      "LMND",
+      "LTBR",
+      "LU",
+      "MARA",
+      "MITK",
+      "NCNO",
+      "NKLR",
+      "NNE",
+      "NUCL",
+      "NVDA",
+      "OKLO",
+      "OMCL",
+      "OUST",
+      "PAGS",
+      "PATH",
+      "PAY",
+      "PAYO",
+      "PGY",
+      "PONY",
+      "PRCT",
+      "PRTH",
+      "PSFE",
+      "PYPL",
+      "RIOT",
+      "RPAY",
+      "RR",
+      "SCCO",
+      "SERV",
+      "SEZL",
+      "SMR",
+      "SOFI",
+      "SSNC",
+      "STNE",
+      "SYM",
+      "TGB",
+      "TOST",
+      "TREE",
+      "TSLA",
+      "UEC",
+      "UPST",
+      "URG",
+      "UROY",
+      "VERX",
+      "VIRT",
+      "WRD",
+      "XE",
+      "XPEV",
+      "XYZ"
+    ],
+    "insufficient_history_tickers": [],
+    "errors_redacted": true
+  },
+  "themes": [
+    {
+      "theme_id": "copper-miners",
+      "name": "Copper Miners",
+      "source_type": "official_etf_holdings",
+      "source": "COPX",
+      "source_url": "https://assets.globalxetfs.com/funds/holdings/copx_full-holdings_20260825.csv",
+      "source_date": "2026-08-25",
+      "effective_from": "2026-08-25",
+      "member_count": 4,
+      "valid_member_count": 0,
+      "return_20d": null,
+      "return_60d": null,
+      "relative_20d": null,
+      "relative_60d": null,
+      "breadth_above_sma50": null,
+      "breadth_positive_20d": null,
+      "relative_5d": null,
+      "breadth_change_10d": null,
+      "strength_percentile": null,
+      "state": "Unavailable",
+      "context": "Only 0 constituents have sufficient data; metrics withheld."
+    },
+    {
+      "theme_id": "fintech",
+      "name": "Fintech",
+      "source_type": "official_etf_holdings",
+      "source": "FINX",
+      "source_url": "https://assets.globalxetfs.com/funds/holdings/finx_full-holdings_20260825.csv",
+      "source_date": "2026-08-25",
+      "effective_from": "2026-08-25",
+      "member_count": 55,
+      "valid_member_count": 0,
+      "return_20d": null,
+      "return_60d": null,
+      "relative_20d": null,
+      "relative_60d": null,
+      "breadth_above_sma50": null,
+      "breadth_positive_20d": null,
+      "relative_5d": null,
+      "breadth_change_10d": null,
+      "strength_percentile": null,
+      "state": "Unavailable",
+      "context": "Only 0 constituents have sufficient data; metrics withheld."
+    },
+    {
+      "theme_id": "robotics-ai",
+      "name": "Robotics & AI",
+      "source_type": "official_etf_holdings",
+      "source": "BOTZ",
+      "source_url": "https://assets.globalxetfs.com/funds/holdings/botz_full-holdings_20260825.csv",
+      "source_date": "2026-08-25",
+      "effective_from": "2026-08-25",
+      "member_count": 23,
+      "valid_member_count": 0,
+      "return_20d": null,
+      "return_60d": null,
+      "relative_20d": null,
+      "relative_60d": null,
+      "breadth_above_sma50": null,
+      "breadth_positive_20d": null,
+      "relative_5d": null,
+      "breadth_change_10d": null,
+      "strength_percentile": null,
+      "state": "Unavailable",
+      "context": "Only 0 constituents have sufficient data; metrics withheld."
+    },
+    {
+      "theme_id": "uranium",
+      "name": "Uranium",
+      "source_type": "official_etf_holdings",
+      "source": "URA",
+      "source_url": "https://assets.globalxetfs.com/funds/holdings/ura_full-holdings_20260825.csv",
+      "source_date": "2026-08-25",
+      "effective_from": "2026-08-25",
+      "member_count": 12,
+      "valid_member_count": 0,
+      "return_20d": null,
+      "return_60d": null,
+      "relative_20d": null,
+      "relative_60d": null,
+      "breadth_above_sma50": null,
+      "breadth_positive_20d": null,
+      "relative_5d": null,
+      "breadth_change_10d": null,
+      "strength_percentile": null,
+      "state": "Unavailable",
+      "context": "Only 0 constituents have sufficient data; metrics withheld."
+    }
+  ],
+  "ticker_context": {
+    "ABTC": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "ACIW": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "AFRM": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "APPN": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "AUR": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "AVAV": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "BIDU": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "BILL": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "BKKT": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "BLND": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "BLSH": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "BULL": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "CD": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "CGNX": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "CIFR": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "COIN": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "CORZ": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "CRCL": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "CRNC": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "DLO": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "EH": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "ETOR": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "EXOD": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "FCX": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
+    "FIS": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "FISV": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "FLYW": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "FOUR": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "GEMI": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "GLXY": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "GOOGL": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "GPN": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "GWRE": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "HAPN": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "HOOD": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "HQY": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "HSAI": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "IE": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
+    "IMSR": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "INTU": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "ISRG": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "JBTM": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "JKHY": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "KEEL": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "KLAR": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "LEU": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "LMND": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "LTBR": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "LU": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "MARA": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "MITK": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "NCNO": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "NKLR": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "NNE": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "NUCL": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "NVDA": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "OKLO": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "OMCL": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "OUST": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "PAGS": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "PATH": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "PAY": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "PAYO": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "PGY": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "PONY": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "PRCT": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "PRTH": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "PSFE": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "PYPL": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "RIOT": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "RPAY": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "RR": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "SCCO": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
+    "SERV": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "SEZL": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "SMR": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "SOFI": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "SSNC": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "STNE": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "SYM": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "TGB": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
+    "TOST": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "TREE": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "TSLA": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "UEC": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "UPST": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "URG": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "UROY": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "VERX": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "VIRT": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "WRD": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "XE": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "XPEV": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "XYZ": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ]
+  }
+}
