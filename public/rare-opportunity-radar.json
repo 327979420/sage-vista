@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-25T10:56:39.286838+00:00",
-  "as_of": "2026-08-24",
+  "generated_at": "2026-08-26T02:07:30.367634+00:00",
+  "as_of": "2026-08-25",
   "status": "research_observation_only",
   "registry_version": "0.4.0",
   "score_policy": {
@@ -11,26 +11,26 @@
   "policy": "5分为稀有观察，6分或以上为极稀有观察；不是买入信号，不显示为已验证胜率。",
   "scan": {
     "frequency": "每个美国交易日收盘后",
-    "universe_scanned": 2246,
+    "universe_scanned": 966,
     "minimum_price": 5,
     "minimum_dollar_volume": 10000000,
     "future_data_used": false
   },
   "signals": [
     {
-      "symbol": "VICI",
-      "date": "2026-08-24",
-      "price": 26.78,
+      "symbol": "PG",
+      "date": "2026-08-25",
+      "price": 145.4,
       "level": "极稀有",
       "components": [
         "日线MACD近5日金叉",
+        "Fibonacci支撑",
         "EMA支撑",
         "三推趋势线突破",
-        "三推突破后回踩确认",
         "上方未补跳空缺口",
         "Bullish FVG支撑"
       ],
-      "dollar_volume": 297530245,
+      "dollar_volume": 1283504251,
       "score": 6,
       "official_score": 0,
       "observational_score": 6,
@@ -38,22 +38,66 @@
       "total_score": 6,
       "factor_ids": [
         "macd.daily_bull_cross",
+        "support.fibonacci_half",
         "support.ema_proximity",
         "structure.trendline_three_push",
-        "structure.trendline_three_push_retest",
         "risk.overhead_unfilled_gap",
         "structure.bullish_fvg_support"
       ],
       "important_misses": [
-        "Fibonacci支撑",
         "支撑位底部放量",
         "支撑位看涨吞没",
-        "周线MACD改善"
+        "周线MACD改善",
+        "三推突破后回踩确认"
       ],
       "category_scores": {
         "MACD": 1,
-        "支撑": 1,
-        "价格结构": 3,
+        "支撑": 2,
+        "价格结构": 2,
+        "量能": 0,
+        "风险／供给": 1
+      },
+      "risks": [
+        "当前动态观察因子尚未完成跨时期组合验证"
+      ]
+    },
+    {
+      "symbol": "PBR",
+      "date": "2026-08-25",
+      "price": 17.85,
+      "level": "极稀有",
+      "components": [
+        "日线MACD近5日金叉",
+        "Fibonacci支撑",
+        "EMA支撑",
+        "周线MACD改善",
+        "上方未补跳空缺口",
+        "Bullish FVG支撑"
+      ],
+      "dollar_volume": 513163081,
+      "score": 6,
+      "official_score": 0,
+      "observational_score": 6,
+      "risk_deduction": 0,
+      "total_score": 6,
+      "factor_ids": [
+        "macd.daily_bull_cross",
+        "support.fibonacci_half",
+        "support.ema_proximity",
+        "macd.weekly_histogram_improving",
+        "risk.overhead_unfilled_gap",
+        "structure.bullish_fvg_support"
+      ],
+      "important_misses": [
+        "支撑位底部放量",
+        "支撑位看涨吞没",
+        "三推趋势线突破",
+        "三推突破后回踩确认"
+      ],
+      "category_scores": {
+        "MACD": 2,
+        "支撑": 2,
+        "价格结构": 1,
         "量能": 0,
         "风险／供给": 1
       },
@@ -63,8 +107,8 @@
     },
     {
       "symbol": "UDR",
-      "date": "2026-08-24",
-      "price": 38.39,
+      "date": "2026-08-25",
+      "price": 38.17,
       "level": "极稀有",
       "components": [
         "日线MACD近5日金叉",
@@ -74,7 +118,7 @@
         "上方未补跳空缺口",
         "Bullish FVG支撑"
       ],
-      "dollar_volume": 104711412,
+      "dollar_volume": 89297761,
       "score": 6,
       "official_score": 0,
       "observational_score": 6,
@@ -107,8 +151,8 @@
     },
     {
       "symbol": "SPGI",
-      "date": "2026-08-24",
-      "price": 435.42,
+      "date": "2026-08-25",
+      "price": 432.99,
       "level": "稀有",
       "components": [
         "日线MACD近5日金叉",
@@ -117,7 +161,7 @@
         "上方未补跳空缺口",
         "Bullish FVG支撑"
       ],
-      "dollar_volume": 831826368,
+      "dollar_volume": 555391077,
       "score": 5,
       "official_score": 0,
       "observational_score": 5,
@@ -143,49 +187,6 @@
         "价格结构": 1,
         "量能": 0,
         "风险／供给": 1
-      },
-      "risks": [
-        "当前动态观察因子尚未完成跨时期组合验证"
-      ]
-    },
-    {
-      "symbol": "F",
-      "date": "2026-08-24",
-      "price": 13.93,
-      "level": "稀有",
-      "components": [
-        "日线MACD近5日金叉",
-        "Fibonacci支撑",
-        "EMA支撑",
-        "周线MACD改善",
-        "Bullish FVG支撑"
-      ],
-      "dollar_volume": 741685187,
-      "score": 5,
-      "official_score": 0,
-      "observational_score": 5,
-      "risk_deduction": 0,
-      "total_score": 5,
-      "factor_ids": [
-        "macd.daily_bull_cross",
-        "support.fibonacci_half",
-        "support.ema_proximity",
-        "macd.weekly_histogram_improving",
-        "structure.bullish_fvg_support"
-      ],
-      "important_misses": [
-        "支撑位底部放量",
-        "支撑位看涨吞没",
-        "三推趋势线突破",
-        "三推突破后回踩确认",
-        "上方未补跳空缺口"
-      ],
-      "category_scores": {
-        "MACD": 2,
-        "支撑": 2,
-        "价格结构": 1,
-        "量能": 0,
-        "风险／供给": 0
       },
       "risks": [
         "当前动态观察因子尚未完成跨时期组合验证"
@@ -193,8 +194,8 @@
     },
     {
       "symbol": "MO",
-      "date": "2026-08-24",
-      "price": 68.47,
+      "date": "2026-08-25",
+      "price": 68.07,
       "level": "稀有",
       "components": [
         "日线MACD近5日金叉",
@@ -203,7 +204,7 @@
         "上方未补跳空缺口",
         "Bullish FVG支撑"
       ],
-      "dollar_volume": 692859364,
+      "dollar_volume": 397873234,
       "score": 5,
       "official_score": 0,
       "observational_score": 5,
@@ -235,52 +236,9 @@
       ]
     },
     {
-      "symbol": "PBR",
-      "date": "2026-08-24",
-      "price": 18.07,
-      "level": "稀有",
-      "components": [
-        "日线MACD近5日金叉",
-        "Fibonacci支撑",
-        "EMA支撑",
-        "周线MACD改善",
-        "Bullish FVG支撑"
-      ],
-      "dollar_volume": 359557043,
-      "score": 5,
-      "official_score": 0,
-      "observational_score": 5,
-      "risk_deduction": 0,
-      "total_score": 5,
-      "factor_ids": [
-        "macd.daily_bull_cross",
-        "support.fibonacci_half",
-        "support.ema_proximity",
-        "macd.weekly_histogram_improving",
-        "structure.bullish_fvg_support"
-      ],
-      "important_misses": [
-        "支撑位底部放量",
-        "支撑位看涨吞没",
-        "三推趋势线突破",
-        "三推突破后回踩确认",
-        "上方未补跳空缺口"
-      ],
-      "category_scores": {
-        "MACD": 2,
-        "支撑": 2,
-        "价格结构": 1,
-        "量能": 0,
-        "风险／供给": 0
-      },
-      "risks": [
-        "当前动态观察因子尚未完成跨时期组合验证"
-      ]
-    },
-    {
-      "symbol": "MAR",
-      "date": "2026-08-24",
-      "price": 360.2,
+      "symbol": "NYT",
+      "date": "2026-08-25",
+      "price": 68.61,
       "level": "稀有",
       "components": [
         "日线MACD近5日金叉",
@@ -289,7 +247,7 @@
         "上方未补跳空缺口",
         "Bullish FVG支撑"
       ],
-      "dollar_volume": 343794331,
+      "dollar_volume": 120181050,
       "score": 5,
       "official_score": 0,
       "observational_score": 5,
@@ -322,8 +280,8 @@
     },
     {
       "symbol": "TSN",
-      "date": "2026-08-24",
-      "price": 57.87,
+      "date": "2026-08-25",
+      "price": 57.17,
       "level": "稀有",
       "components": [
         "日线MACD近5日金叉",
@@ -332,7 +290,7 @@
         "上方未补跳空缺口",
         "Bullish FVG支撑"
       ],
-      "dollar_volume": 133877847,
+      "dollar_volume": 117009610,
       "score": 5,
       "official_score": 0,
       "observational_score": 5,
@@ -358,92 +316,6 @@
         "价格结构": 1,
         "量能": 0,
         "风险／供给": 1
-      },
-      "risks": [
-        "当前动态观察因子尚未完成跨时期组合验证"
-      ]
-    },
-    {
-      "symbol": "MUSA",
-      "date": "2026-08-24",
-      "price": 567.9,
-      "level": "稀有",
-      "components": [
-        "日线MACD近5日金叉",
-        "Fibonacci支撑",
-        "EMA支撑",
-        "上方未补跳空缺口",
-        "Bullish FVG支撑"
-      ],
-      "dollar_volume": 107617050,
-      "score": 5,
-      "official_score": 0,
-      "observational_score": 5,
-      "risk_deduction": 0,
-      "total_score": 5,
-      "factor_ids": [
-        "macd.daily_bull_cross",
-        "support.fibonacci_half",
-        "support.ema_proximity",
-        "risk.overhead_unfilled_gap",
-        "structure.bullish_fvg_support"
-      ],
-      "important_misses": [
-        "支撑位底部放量",
-        "支撑位看涨吞没",
-        "周线MACD改善",
-        "三推趋势线突破",
-        "三推突破后回踩确认"
-      ],
-      "category_scores": {
-        "MACD": 1,
-        "支撑": 2,
-        "价格结构": 1,
-        "量能": 0,
-        "风险／供给": 1
-      },
-      "risks": [
-        "当前动态观察因子尚未完成跨时期组合验证"
-      ]
-    },
-    {
-      "symbol": "FRHC",
-      "date": "2026-08-24",
-      "price": 157.41,
-      "level": "稀有",
-      "components": [
-        "日线MACD近5日金叉",
-        "Fibonacci支撑",
-        "EMA支撑",
-        "三推趋势线突破",
-        "Bullish FVG支撑"
-      ],
-      "dollar_volume": 25986974,
-      "score": 5,
-      "official_score": 0,
-      "observational_score": 5,
-      "risk_deduction": 0,
-      "total_score": 5,
-      "factor_ids": [
-        "macd.daily_bull_cross",
-        "support.fibonacci_half",
-        "support.ema_proximity",
-        "structure.trendline_three_push",
-        "structure.bullish_fvg_support"
-      ],
-      "important_misses": [
-        "支撑位底部放量",
-        "支撑位看涨吞没",
-        "周线MACD改善",
-        "三推突破后回踩确认",
-        "上方未补跳空缺口"
-      ],
-      "category_scores": {
-        "MACD": 1,
-        "支撑": 2,
-        "价格结构": 2,
-        "量能": 0,
-        "风险／供给": 0
       },
       "risks": [
         "当前动态观察因子尚未完成跨时期组合验证"
