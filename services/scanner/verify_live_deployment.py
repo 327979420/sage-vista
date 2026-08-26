@@ -1,12 +1,19 @@
 """Fail-closed verification for the public Cloudflare production deployment."""
-import argparse,json,urllib.parse,urllib.request
+import argparse,json,time,urllib.error,urllib.parse,urllib.request
 
-def fetch(base,path,cache_key):
+def fetch(base,path,cache_key,attempts=12,delay_seconds=5):
  url=f"{base.rstrip('/')}/{path}?deployment={urllib.parse.quote(cache_key)}"
  request=urllib.request.Request(url,headers={"Accept":"application/json","User-Agent":"SageVistaDeploymentAudit/1.0"})
- with urllib.request.urlopen(request,timeout=30) as response:
-  if response.status!=200:raise RuntimeError(f"Live {path} returned HTTP {response.status}")
-  return json.load(response)
+ last_error=None
+ for attempt in range(attempts):
+  try:
+   with urllib.request.urlopen(request,timeout=30) as response:
+    if response.status!=200:raise RuntimeError(f"Live {path} returned HTTP {response.status}")
+    return json.load(response)
+  except (urllib.error.HTTPError,urllib.error.URLError,json.JSONDecodeError,RuntimeError) as error:
+   last_error=error
+   if attempt+1<attempts:time.sleep(delay_seconds)
+ raise RuntimeError(f"Live {path} was not ready after {attempts} attempts: {last_error}") from last_error
 
 def verify(base,expected):
  status=fetch(base,"update-status.json",expected);tracker=fetch(base,"resonance-tracker.json",expected);radar=fetch(base,"rare-opportunity-radar.json",expected)
