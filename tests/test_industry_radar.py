@@ -3,6 +3,7 @@ from datetime import date,timedelta
 from pathlib import Path
 
 from services.scanner.industry_radar import calculate,classify_state,member_metrics,rows_as_of,run,select_snapshot
+from services.scanner.industry_membership import parse_global_x
 
 def series(rate=0.001,count=90,start="2026-01-01"):
  day=date.fromisoformat(start);price=100;rows=[]
@@ -14,6 +15,9 @@ def theme(theme_id="one",members=None,effective="2026-01-01"):
  return {"theme_id":theme_id,"name":theme_id.title(),"source_type":"official_etf_holdings","source":"ETF","source_url":"https://example.test","source_date":effective,"effective_from":effective,"members":members or ["A","B","C","D","E"]}
 
 class IndustryRadarTests(unittest.TestCase):
+ def test_foreign_market_identifier_is_preserved_for_unavailable_audit(self):
+  csv_text="Fund\n% of Net Assets,Ticker,Name\n1.0,BMN AU,Bannerman\n1.0,NVDA,Nvidia\n"
+  self.assertEqual(parse_global_x(csv_text),["BMN AU","NVDA"])
  def test_no_price_row_after_as_of(self):
   rows=[{"date":"2026-01-01","close":1},{"date":"2026-01-03","close":99}]
   self.assertEqual([x["date"] for x in rows_as_of(rows,"2026-01-02")],["2026-01-01"])
@@ -27,6 +31,12 @@ class IndustryRadarTests(unittest.TestCase):
   with tempfile.TemporaryDirectory() as folder:
    for day in ("2026-01-01","2026-02-01","2026-03-01"):Path(folder,f"{day}.json").write_text(json.dumps({"effective_from":day,"version":day}))
    self.assertEqual(select_snapshot("2026-02-10",folder)["version"],"2026-02-01")
+
+ def test_higher_snapshot_revision_wins_on_same_effective_date(self):
+  with tempfile.TemporaryDirectory() as folder:
+   Path(folder,"base.json").write_text(json.dumps({"effective_from":"2026-02-01","version":"v1"}))
+   Path(folder,"corrected.json").write_text(json.dumps({"effective_from":"2026-02-01","snapshot_revision":2,"version":"v2"}))
+   self.assertEqual(select_snapshot("2026-02-01",folder)["version"],"v2")
 
  def test_theme_basket_is_equal_weighted(self):
   spy=series(0);data={"A":series(.01),"B":series(0),"C":series(0),"D":series(0),"E":series(0)}

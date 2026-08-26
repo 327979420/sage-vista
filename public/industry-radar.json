@@ -1,7 +1,7 @@
 {
   "as_of": "2026-08-25",
-  "generated_at": "2026-08-26T06:18:18.428975+00:00",
-  "membership_version": "themes-2026-08-25",
+  "generated_at": "2026-08-26T06:23:06.971122+00:00",
+  "membership_version": "themes-2026-08-25-v2",
   "membership_effective_from": "2026-08-25",
   "future_data_used": false,
   "historical_membership_safe": true,
@@ -16,69 +16,191 @@
   "price_data_audit": {
     "provider": "EODHD",
     "requested_tickers": [
+      "000720 KS",
+      "002747 C2",
+      "006360 KS",
+      "028260 KS",
+      "034020 KS",
+      "047040 KS",
+      "052690 KS",
+      "060250 KS",
+      "090360 KS",
+      "108490 KS",
+      "1164 HK",
+      "1208 HK",
+      "1258 HK",
+      "1515 JP",
+      "1810 HK",
+      "2099 HK",
+      "2121 HK",
+      "2252 HK",
+      "2431 HK",
+      "2432 HK",
+      "2498 HK",
+      "2598 HK",
+      "277810 KS",
+      "2899 HK",
+      "300024 C2",
+      "300124 C2",
+      "300757 C2",
+      "358 HK",
+      "377300 KS",
+      "388720 KS",
+      "3939 HK",
+      "454910 KS",
+      "455900 KS",
+      "5711 JP",
+      "5713 JP",
+      "6104 JP",
+      "6258 JP",
+      "6273 JP",
+      "6383 JP",
+      "6506 JP",
+      "6600 HK",
+      "6645 JP",
+      "6763 TT",
+      "6861 JP",
+      "688165 C1",
+      "688169 C1",
+      "688297 C1",
+      "6954 JP",
+      "7011 JP",
+      "7722 TT",
+      "8001 JP",
+      "863 HK",
+      "9660 HK",
+      "9880 HK",
+      "9923 HK",
+      "9959 HK",
+      "ABBN SW",
       "ABTC",
       "ACIW",
+      "ADYEN NA",
+      "AEC CN",
+      "AEE AU",
+      "AEU AU",
       "AFRM",
+      "AGE AU",
+      "ALS CN",
+      "AMAK AB",
+      "ANTO LN",
       "APPN",
+      "ARE CN",
+      "ARG CN",
+      "ARN CN",
+      "ASN AU",
+      "ATS CN",
+      "ATYM LN",
       "AUR",
+      "AUTO NO",
       "AVAV",
+      "BHP AU",
       "BIDU",
       "BILL",
       "BKKT",
+      "BKY SM",
       "BLND",
       "BLSH",
+      "BMN AU",
+      "BOE AU",
+      "BOL SS",
       "BULL",
+      "BVR AU",
+      "CCO CN",
       "CD",
       "CGNX",
       "CIFR",
+      "CNL CN",
       "COIN",
       "CORZ",
       "CRCL",
       "CRNC",
+      "CS CN",
+      "CVV CN",
+      "CXU AU",
       "DLO",
+      "DML CN",
+      "DVP AU",
+      "DYL AU",
+      "EFR CN",
       "EH",
+      "EL8 AU",
+      "ERO CN",
       "ETOR",
+      "EU CN",
+      "EXA FP",
       "EXOD",
       "FCX",
+      "FDY CN",
+      "FFM AU",
       "FIS",
       "FISV",
       "FLYW",
+      "FM CN",
       "FOUR",
+      "FUU CN",
       "GEMI",
+      "GLEN LN",
+      "GLO CN",
       "GLXY",
       "GOOGL",
       "GPN",
       "GWRE",
       "HAPN",
+      "HBM CN",
+      "HIAB FH",
       "HOOD",
       "HQY",
       "HSAI",
+      "HUB AU",
+      "HUT CN",
+      "HYQ GR",
       "IE",
       "IMSR",
       "INTU",
+      "IRE AU",
+      "ISO CN",
       "ISRG",
+      "IVN CN",
       "JBTM",
       "JKHY",
+      "KAP LI",
       "KEEL",
+      "KGH PW",
       "KLAR",
+      "LAM CN",
       "LEU",
+      "LI CN",
       "LMND",
+      "LOT AU",
       "LTBR",
       "LU",
+      "LUN CN",
       "MARA",
+      "MGA CN",
       "MITK",
       "NCNO",
+      "NDA GR",
+      "NDM CN",
+      "NEXI IM",
+      "NGEX CN",
       "NKLR",
       "NNE",
+      "NQU6 INDEX",
       "NUCL",
       "NVDA",
+      "NXE CN",
+      "NYAX IT",
       "OKLO",
+      "OM CN",
       "OMCL",
       "OUST",
       "PAGS",
       "PATH",
       "PAY",
       "PAYO",
+      "PDN AU",
+      "PEN AU",
       "PGY",
       "PONY",
       "PRCT",
@@ -88,94 +210,231 @@
       "RIOT",
       "RPAY",
       "RR",
+      "RSW LN",
+      "SASK CN",
       "SCCO",
       "SERV",
       "SEZL",
+      "SFR AU",
+      "SLS CN",
+      "SLX AU",
       "SMR",
       "SOFI",
       "SSNC",
+      "SSW SJ",
       "STNE",
+      "SYH CN",
       "SYM",
+      "TECK/B CN",
+      "TECN SW",
+      "TEMN SW",
       "TGB",
       "TOST",
       "TREE",
       "TSLA",
+      "U-U CN",
       "UEC",
       "UPST",
       "URG",
       "UROY",
       "VERX",
       "VIRT",
+      "WISE LN",
       "WRD",
       "XE",
       "XPEV",
-      "XYZ"
+      "XRO AU",
+      "XYZ",
+      "YCA LN",
+      "ZIP AU"
     ],
     "fetched_tickers": [],
     "unavailable_tickers": [
+      "000720 KS",
+      "002747 C2",
+      "006360 KS",
+      "028260 KS",
+      "034020 KS",
+      "047040 KS",
+      "052690 KS",
+      "060250 KS",
+      "090360 KS",
+      "108490 KS",
+      "1164 HK",
+      "1208 HK",
+      "1258 HK",
+      "1515 JP",
+      "1810 HK",
+      "2099 HK",
+      "2121 HK",
+      "2252 HK",
+      "2431 HK",
+      "2432 HK",
+      "2498 HK",
+      "2598 HK",
+      "277810 KS",
+      "2899 HK",
+      "300024 C2",
+      "300124 C2",
+      "300757 C2",
+      "358 HK",
+      "377300 KS",
+      "388720 KS",
+      "3939 HK",
+      "454910 KS",
+      "455900 KS",
+      "5711 JP",
+      "5713 JP",
+      "6104 JP",
+      "6258 JP",
+      "6273 JP",
+      "6383 JP",
+      "6506 JP",
+      "6600 HK",
+      "6645 JP",
+      "6763 TT",
+      "6861 JP",
+      "688165 C1",
+      "688169 C1",
+      "688297 C1",
+      "6954 JP",
+      "7011 JP",
+      "7722 TT",
+      "8001 JP",
+      "863 HK",
+      "9660 HK",
+      "9880 HK",
+      "9923 HK",
+      "9959 HK",
+      "ABBN SW",
       "ABTC",
       "ACIW",
+      "ADYEN NA",
+      "AEC CN",
+      "AEE AU",
+      "AEU AU",
       "AFRM",
+      "AGE AU",
+      "ALS CN",
+      "AMAK AB",
+      "ANTO LN",
       "APPN",
+      "ARE CN",
+      "ARG CN",
+      "ARN CN",
+      "ASN AU",
+      "ATS CN",
+      "ATYM LN",
       "AUR",
+      "AUTO NO",
       "AVAV",
+      "BHP AU",
       "BIDU",
       "BILL",
       "BKKT",
+      "BKY SM",
       "BLND",
       "BLSH",
+      "BMN AU",
+      "BOE AU",
+      "BOL SS",
       "BULL",
+      "BVR AU",
+      "CCO CN",
       "CD",
       "CGNX",
       "CIFR",
+      "CNL CN",
       "COIN",
       "CORZ",
       "CRCL",
       "CRNC",
+      "CS CN",
+      "CVV CN",
+      "CXU AU",
       "DLO",
+      "DML CN",
+      "DVP AU",
+      "DYL AU",
+      "EFR CN",
       "EH",
+      "EL8 AU",
+      "ERO CN",
       "ETOR",
+      "EU CN",
+      "EXA FP",
       "EXOD",
       "FCX",
+      "FDY CN",
+      "FFM AU",
       "FIS",
       "FISV",
       "FLYW",
+      "FM CN",
       "FOUR",
+      "FUU CN",
       "GEMI",
+      "GLEN LN",
+      "GLO CN",
       "GLXY",
       "GOOGL",
       "GPN",
       "GWRE",
       "HAPN",
+      "HBM CN",
+      "HIAB FH",
       "HOOD",
       "HQY",
       "HSAI",
+      "HUB AU",
+      "HUT CN",
+      "HYQ GR",
       "IE",
       "IMSR",
       "INTU",
+      "IRE AU",
+      "ISO CN",
       "ISRG",
+      "IVN CN",
       "JBTM",
       "JKHY",
+      "KAP LI",
       "KEEL",
+      "KGH PW",
       "KLAR",
+      "LAM CN",
       "LEU",
+      "LI CN",
       "LMND",
+      "LOT AU",
       "LTBR",
       "LU",
+      "LUN CN",
       "MARA",
+      "MGA CN",
       "MITK",
       "NCNO",
+      "NDA GR",
+      "NDM CN",
+      "NEXI IM",
+      "NGEX CN",
       "NKLR",
       "NNE",
+      "NQU6 INDEX",
       "NUCL",
       "NVDA",
+      "NXE CN",
+      "NYAX IT",
       "OKLO",
+      "OM CN",
       "OMCL",
       "OUST",
       "PAGS",
       "PATH",
       "PAY",
       "PAYO",
+      "PDN AU",
+      "PEN AU",
       "PGY",
       "PONY",
       "PRCT",
@@ -185,28 +444,43 @@
       "RIOT",
       "RPAY",
       "RR",
+      "RSW LN",
+      "SASK CN",
       "SCCO",
       "SERV",
       "SEZL",
+      "SFR AU",
+      "SLS CN",
+      "SLX AU",
       "SMR",
       "SOFI",
       "SSNC",
+      "SSW SJ",
       "STNE",
+      "SYH CN",
       "SYM",
+      "TECK/B CN",
+      "TECN SW",
+      "TEMN SW",
       "TGB",
       "TOST",
       "TREE",
       "TSLA",
+      "U-U CN",
       "UEC",
       "UPST",
       "URG",
       "UROY",
       "VERX",
       "VIRT",
+      "WISE LN",
       "WRD",
       "XE",
       "XPEV",
-      "XYZ"
+      "XRO AU",
+      "XYZ",
+      "YCA LN",
+      "ZIP AU"
     ],
     "insufficient_history_tickers": [],
     "errors_redacted": true
@@ -220,7 +494,7 @@
       "source_url": "https://assets.globalxetfs.com/funds/holdings/copx_full-holdings_20260825.csv",
       "source_date": "2026-08-25",
       "effective_from": "2026-08-25",
-      "member_count": 4,
+      "member_count": 40,
       "valid_member_count": 0,
       "return_20d": null,
       "return_60d": null,
@@ -242,7 +516,7 @@
       "source_url": "https://assets.globalxetfs.com/funds/holdings/finx_full-holdings_20260825.csv",
       "source_date": "2026-08-25",
       "effective_from": "2026-08-25",
-      "member_count": 55,
+      "member_count": 74,
       "valid_member_count": 0,
       "return_20d": null,
       "return_60d": null,
@@ -264,7 +538,7 @@
       "source_url": "https://assets.globalxetfs.com/funds/holdings/botz_full-holdings_20260825.csv",
       "source_date": "2026-08-25",
       "effective_from": "2026-08-25",
-      "member_count": 23,
+      "member_count": 61,
       "valid_member_count": 0,
       "return_20d": null,
       "return_60d": null,
@@ -286,7 +560,7 @@
       "source_url": "https://assets.globalxetfs.com/funds/holdings/ura_full-holdings_20260825.csv",
       "source_date": "2026-08-25",
       "effective_from": "2026-08-25",
-      "member_count": 12,
+      "member_count": 57,
       "valid_member_count": 0,
       "return_20d": null,
       "return_60d": null,
@@ -302,6 +576,348 @@
     }
   ],
   "ticker_context": {
+    "000720 KS": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "002747 C2": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "006360 KS": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "028260 KS": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "034020 KS": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "047040 KS": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "052690 KS": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "060250 KS": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "090360 KS": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "108490 KS": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "1164 HK": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "1208 HK": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
+    "1258 HK": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
+    "1515 JP": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
+    "1810 HK": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "2099 HK": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
+    "2121 HK": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "2252 HK": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "2431 HK": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "2432 HK": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "2498 HK": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "2598 HK": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "277810 KS": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "2899 HK": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
+    "300024 C2": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "300124 C2": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "300757 C2": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "358 HK": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
+    "377300 KS": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "388720 KS": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "3939 HK": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
+    "454910 KS": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "455900 KS": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "5711 JP": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
+    "5713 JP": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
+    "6104 JP": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "6258 JP": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "6273 JP": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "6383 JP": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "6506 JP": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "6600 HK": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "6645 JP": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "6763 TT": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "6861 JP": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "688165 C1": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "688169 C1": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "688297 C1": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "6954 JP": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "7011 JP": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "7722 TT": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "8001 JP": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "863 HK": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "9660 HK": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "9880 HK": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "9923 HK": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "9959 HK": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "ABBN SW": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
     "ABTC": [
       {
         "theme_id": "fintech",
@@ -314,9 +930,57 @@
         "state": "Unavailable"
       }
     ],
+    "ADYEN NA": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "AEC CN": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "AEE AU": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "AEU AU": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
     "AFRM": [
       {
         "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "AGE AU": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "ALS CN": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
+    "AMAK AB": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
+    "ANTO LN": [
+      {
+        "theme_id": "copper-miners",
         "state": "Unavailable"
       }
     ],
@@ -326,7 +990,49 @@
         "state": "Unavailable"
       }
     ],
+    "ARE CN": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "ARG CN": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
+    "ARN CN": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "ASN AU": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "ATS CN": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "ATYM LN": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
     "AUR": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "AUTO NO": [
       {
         "theme_id": "robotics-ai",
         "state": "Unavailable"
@@ -335,6 +1041,16 @@
     "AVAV": [
       {
         "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "BHP AU": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      },
+      {
+        "theme_id": "uranium",
         "state": "Unavailable"
       }
     ],
@@ -356,6 +1072,12 @@
         "state": "Unavailable"
       }
     ],
+    "BKY SM": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
     "BLND": [
       {
         "theme_id": "fintech",
@@ -368,9 +1090,39 @@
         "state": "Unavailable"
       }
     ],
+    "BMN AU": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "BOE AU": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "BOL SS": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
     "BULL": [
       {
         "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "BVR AU": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
+    "CCO CN": [
+      {
+        "theme_id": "uranium",
         "state": "Unavailable"
       }
     ],
@@ -389,6 +1141,12 @@
     "CIFR": [
       {
         "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "CNL CN": [
+      {
+        "theme_id": "copper-miners",
         "state": "Unavailable"
       }
     ],
@@ -416,9 +1174,51 @@
         "state": "Unavailable"
       }
     ],
+    "CS CN": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
+    "CVV CN": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "CXU AU": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
     "DLO": [
       {
         "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "DML CN": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "DVP AU": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
+    "DYL AU": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "EFR CN": [
+      {
+        "theme_id": "uranium",
         "state": "Unavailable"
       }
     ],
@@ -428,9 +1228,33 @@
         "state": "Unavailable"
       }
     ],
+    "EL8 AU": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "ERO CN": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
     "ETOR": [
       {
         "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "EU CN": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "EXA FP": [
+      {
+        "theme_id": "robotics-ai",
         "state": "Unavailable"
       }
     ],
@@ -441,6 +1265,18 @@
       }
     ],
     "FCX": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
+    "FDY CN": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
+    "FFM AU": [
       {
         "theme_id": "copper-miners",
         "state": "Unavailable"
@@ -464,15 +1300,39 @@
         "state": "Unavailable"
       }
     ],
+    "FM CN": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
     "FOUR": [
       {
         "theme_id": "fintech",
         "state": "Unavailable"
       }
     ],
+    "FUU CN": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
     "GEMI": [
       {
         "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "GLEN LN": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
+    "GLO CN": [
+      {
+        "theme_id": "uranium",
         "state": "Unavailable"
       }
     ],
@@ -506,6 +1366,18 @@
         "state": "Unavailable"
       }
     ],
+    "HBM CN": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
+    "HIAB FH": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
     "HOOD": [
       {
         "theme_id": "fintech",
@@ -521,6 +1393,24 @@
     "HSAI": [
       {
         "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "HUB AU": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "HUT CN": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "HYQ GR": [
+      {
+        "theme_id": "fintech",
         "state": "Unavailable"
       }
     ],
@@ -542,9 +1432,27 @@
         "state": "Unavailable"
       }
     ],
+    "IRE AU": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "ISO CN": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
     "ISRG": [
       {
         "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "IVN CN": [
+      {
+        "theme_id": "copper-miners",
         "state": "Unavailable"
       }
     ],
@@ -560,9 +1468,21 @@
         "state": "Unavailable"
       }
     ],
+    "KAP LI": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
     "KEEL": [
       {
         "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "KGH PW": [
+      {
+        "theme_id": "copper-miners",
         "state": "Unavailable"
       }
     ],
@@ -572,7 +1492,19 @@
         "state": "Unavailable"
       }
     ],
+    "LAM CN": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
     "LEU": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "LI CN": [
       {
         "theme_id": "uranium",
         "state": "Unavailable"
@@ -581,6 +1513,12 @@
     "LMND": [
       {
         "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "LOT AU": [
+      {
+        "theme_id": "uranium",
         "state": "Unavailable"
       }
     ],
@@ -596,9 +1534,21 @@
         "state": "Unavailable"
       }
     ],
+    "LUN CN": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
     "MARA": [
       {
         "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "MGA CN": [
+      {
+        "theme_id": "uranium",
         "state": "Unavailable"
       }
     ],
@@ -614,6 +1564,30 @@
         "state": "Unavailable"
       }
     ],
+    "NDA GR": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
+    "NDM CN": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
+    "NEXI IM": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "NGEX CN": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
     "NKLR": [
       {
         "theme_id": "uranium",
@@ -623,6 +1597,12 @@
     "NNE": [
       {
         "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "NQU6 INDEX": [
+      {
+        "theme_id": "robotics-ai",
         "state": "Unavailable"
       }
     ],
@@ -638,9 +1618,27 @@
         "state": "Unavailable"
       }
     ],
+    "NXE CN": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "NYAX IT": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
     "OKLO": [
       {
         "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "OM CN": [
+      {
+        "theme_id": "copper-miners",
         "state": "Unavailable"
       }
     ],
@@ -677,6 +1675,18 @@
     "PAYO": [
       {
         "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "PDN AU": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "PEN AU": [
+      {
+        "theme_id": "uranium",
         "state": "Unavailable"
       }
     ],
@@ -734,6 +1744,18 @@
         "state": "Unavailable"
       }
     ],
+    "RSW LN": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "SASK CN": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
     "SCCO": [
       {
         "theme_id": "copper-miners",
@@ -749,6 +1771,24 @@
     "SEZL": [
       {
         "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "SFR AU": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
+    "SLS CN": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
+    "SLX AU": [
+      {
+        "theme_id": "uranium",
         "state": "Unavailable"
       }
     ],
@@ -770,15 +1810,45 @@
         "state": "Unavailable"
       }
     ],
+    "SSW SJ": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
     "STNE": [
       {
         "theme_id": "fintech",
         "state": "Unavailable"
       }
     ],
+    "SYH CN": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
     "SYM": [
       {
         "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "TECK/B CN": [
+      {
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
+      }
+    ],
+    "TECN SW": [
+      {
+        "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "TEMN SW": [
+      {
+        "theme_id": "fintech",
         "state": "Unavailable"
       }
     ],
@@ -803,6 +1873,12 @@
     "TSLA": [
       {
         "theme_id": "robotics-ai",
+        "state": "Unavailable"
+      }
+    ],
+    "U-U CN": [
+      {
+        "theme_id": "uranium",
         "state": "Unavailable"
       }
     ],
@@ -842,6 +1918,12 @@
         "state": "Unavailable"
       }
     ],
+    "WISE LN": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
     "WRD": [
       {
         "theme_id": "robotics-ai",
@@ -860,7 +1942,25 @@
         "state": "Unavailable"
       }
     ],
+    "XRO AU": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
     "XYZ": [
+      {
+        "theme_id": "fintech",
+        "state": "Unavailable"
+      }
+    ],
+    "YCA LN": [
+      {
+        "theme_id": "uranium",
+        "state": "Unavailable"
+      }
+    ],
+    "ZIP AU": [
       {
         "theme_id": "fintech",
         "state": "Unavailable"

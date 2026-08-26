@@ -33,9 +33,9 @@ def select_snapshot(as_of,snapshot_dir=DEFAULT_SNAPSHOT_DIR):
  for path in pathlib.Path(snapshot_dir).glob("*.json"):
   payload=json.loads(path.read_text())
   effective=payload.get("effective_from")
-  if effective and effective<=as_of:eligible.append((effective,path.name,payload))
+  if effective and effective<=as_of:eligible.append((effective,payload.get("snapshot_revision",1),path.name,payload))
  if not eligible:return None
- return max(eligible,key=lambda x:(x[0],x[1]))[2]
+ return max(eligible,key=lambda x:(x[0],x[1],x[2]))[3]
 
 def member_metrics(rows,spy,as_of):
  rows=rows_as_of(rows,as_of);spy=rows_as_of(spy,as_of)
