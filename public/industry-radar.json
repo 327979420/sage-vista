@@ -1,13 +1,16 @@
 {
+  "schema_version": "2.0.0",
   "as_of": "2026-08-26",
-  "generated_at": "2026-08-27T04:53:16.587728+00:00",
+  "generated_at": "2026-08-27T08:20:53.303689+00:00",
   "membership_version": "themes-2026-08-26-v2",
   "membership_effective_from": "2026-08-26",
   "future_data_used": false,
   "historical_membership_safe": true,
+  "mode": "decision_context_not_technical_score",
   "status": "research_prototype_not_validated_alpha",
   "config": {
     "min_valid_members": 5,
+    "min_valid_member_ratio": 0.5,
     "leadership_percentile": 70.0,
     "healthy_breadth": 0.6,
     "meaningful_breadth_decline": -0.1,
@@ -2160,9 +2163,27 @@
       "ZOREN.E"
     ],
     "insufficient_history_tickers": [
+      "ANE",
+      "BRL",
       "CAD",
+      "CEN",
+      "CLP",
       "CNY",
-      "GRE"
+      "EDP",
+      "ENRG",
+      "ERG",
+      "EUR",
+      "GBP",
+      "GRE",
+      "HOLX",
+      "MEL",
+      "NZD",
+      "SEK",
+      "SLR",
+      "TRY",
+      "TWD",
+      "VER",
+      "VWS"
     ],
     "errors_redacted": true
   },
@@ -2183,16 +2204,17 @@
       "raw_holdings_count": 50,
       "us_resolvable_count": 50,
       "foreign_or_unmapped_count": 0,
-      "valid_member_count": 46,
-      "return_20d": 0.06027548710288887,
-      "return_60d": 0.21790962855715926,
-      "relative_20d": 0.011718172239271397,
-      "relative_60d": 0.20653911935938127,
-      "breadth_above_sma50": 0.7608695652173914,
-      "breadth_positive_20d": 0.6956521739130435,
-      "relative_5d": -0.017502748720297882,
-      "breadth_change_10d": -0.04347826086956519,
-      "strength_percentile": 94.44444444444444,
+      "valid_member_count": 45,
+      "valid_member_ratio": 0.9,
+      "return_20d": 0.061491469249294876,
+      "return_60d": 0.22241671337030028,
+      "relative_20d": 0.011289950317482304,
+      "relative_60d": 0.2098753320459314,
+      "breadth_above_sma50": 0.7555555555555555,
+      "breadth_positive_20d": 0.6888888888888889,
+      "relative_5d": -0.017068799611336224,
+      "breadth_change_10d": -0.04444444444444451,
+      "strength_percentile": 91.66666666666667,
       "state": "Pullback Watch",
       "context": "20D/60D relative strength both strong; 76% of constituents above SMA50; breadth stable."
     },
@@ -2213,6 +2235,7 @@
       "us_resolvable_count": 63,
       "foreign_or_unmapped_count": 0,
       "valid_member_count": 63,
+      "valid_member_ratio": 1.0,
       "return_20d": 0.13026805169077543,
       "return_60d": 0.0732104831053395,
       "relative_20d": 0.08006653275896287,
@@ -2242,6 +2265,7 @@
       "us_resolvable_count": 22,
       "foreign_or_unmapped_count": 0,
       "valid_member_count": 21,
+      "valid_member_ratio": 0.9545454545454546,
       "return_20d": 0.0705497537351477,
       "return_60d": 0.09124325837491577,
       "relative_20d": 0.020348234803335124,
@@ -2250,7 +2274,7 @@
       "breadth_positive_20d": 0.9047619047619048,
       "relative_5d": -0.009459315702758148,
       "breadth_change_10d": 0.04761904761904756,
-      "strength_percentile": 77.77777777777777,
+      "strength_percentile": 75.0,
       "state": "Pullback Watch",
       "context": "20D/60D relative strength both strong; 95% of constituents above SMA50; breadth stable."
     },
@@ -2271,6 +2295,7 @@
       "us_resolvable_count": 147,
       "foreign_or_unmapped_count": 2,
       "valid_member_count": 147,
+      "valid_member_ratio": 0.9865771812080537,
       "return_20d": 0.15520721498897094,
       "return_60d": 0.2438310896275182,
       "relative_20d": 0.10500569605715837,
@@ -2300,6 +2325,7 @@
       "us_resolvable_count": 55,
       "foreign_or_unmapped_count": 19,
       "valid_member_count": 55,
+      "valid_member_ratio": 0.7432432432432432,
       "return_20d": 0.06777263422702486,
       "return_60d": -0.0050915042267202755,
       "relative_20d": 0.017571115295212287,
@@ -2308,7 +2334,7 @@
       "breadth_positive_20d": 0.6545454545454545,
       "relative_5d": 0.03750815227337413,
       "breadth_change_10d": 0.05454545454545451,
-      "strength_percentile": 61.111111111111114,
+      "strength_percentile": 50.0,
       "state": "Recovery",
       "context": "20D/60D relative strength mixed; 55% of constituents above SMA50; breadth improving."
     },
@@ -2329,6 +2355,7 @@
       "us_resolvable_count": 26,
       "foreign_or_unmapped_count": 7,
       "valid_member_count": 26,
+      "valid_member_ratio": 0.7878787878787878,
       "return_20d": 0.25146704737570974,
       "return_60d": -0.23519859782674782,
       "relative_20d": 0.20126552844389717,
@@ -2337,67 +2364,9 @@
       "breadth_positive_20d": 0.8846153846153846,
       "relative_5d": 0.11559000817036448,
       "breadth_change_10d": 0.3076923076923077,
-      "strength_percentile": 44.44444444444444,
+      "strength_percentile": 33.333333333333336,
       "state": "Recovery",
       "context": "20D/60D relative strength mixed; 46% of constituents above SMA50; breadth improving."
-    },
-    {
-      "theme_id": "battery-materials",
-      "name": "Battery Materials",
-      "source_type": "official_etf_holdings",
-      "source_provider": "global_x",
-      "source": "LIT",
-      "source_url": "https://assets.globalxetfs.com/funds/holdings/lit_full-holdings_20260826.csv",
-      "source_date": "2026-08-26",
-      "effective_from": "2026-08-26",
-      "source_status": "available",
-      "parse_status": "parsed",
-      "error_reason": null,
-      "member_count": 41,
-      "raw_holdings_count": 41,
-      "us_resolvable_count": 7,
-      "foreign_or_unmapped_count": 34,
-      "valid_member_count": 7,
-      "return_20d": 0.09415807342941283,
-      "return_60d": -0.16033089622309618,
-      "relative_20d": 0.04395655449760026,
-      "relative_60d": -0.17287227754746506,
-      "breadth_above_sma50": 0.5714285714285714,
-      "breadth_positive_20d": 0.8571428571428571,
-      "relative_5d": 0.005827683614867122,
-      "breadth_change_10d": 0.2857142857142857,
-      "strength_percentile": 16.666666666666668,
-      "state": "Recovery",
-      "context": "20D/60D relative strength mixed; 57% of constituents above SMA50; breadth improving."
-    },
-    {
-      "theme_id": "solar",
-      "name": "Solar",
-      "source_type": "official_etf_holdings",
-      "source_provider": "invesco",
-      "source": "TAN",
-      "source_url": "https://dng-api.invesco.com/cache/v1/accounts/en_US/shareclasses/46138G706/holdings/fund?idType=cusip&productType=ETF",
-      "source_date": "2026-08-26",
-      "effective_from": "2026-08-26",
-      "source_status": "available",
-      "parse_status": "parsed",
-      "error_reason": null,
-      "member_count": 43,
-      "raw_holdings_count": 43,
-      "us_resolvable_count": 32,
-      "foreign_or_unmapped_count": 11,
-      "valid_member_count": 22,
-      "return_20d": 0.061878834408268094,
-      "return_60d": 0.20604897283595314,
-      "relative_20d": 0.016543474954125868,
-      "relative_60d": 0.18631078719604002,
-      "breadth_above_sma50": 0.3181818181818182,
-      "breadth_positive_20d": 0.6363636363636364,
-      "relative_5d": -0.034824596081533196,
-      "breadth_change_10d": -0.04545454545454547,
-      "strength_percentile": 88.88888888888889,
-      "state": "Neutral",
-      "context": "20D/60D relative strength both strong; 32% of constituents above SMA50; breadth stable."
     },
     {
       "theme_id": "cybersecurity",
@@ -2416,6 +2385,7 @@
       "us_resolvable_count": 38,
       "foreign_or_unmapped_count": 4,
       "valid_member_count": 38,
+      "valid_member_ratio": 0.9047619047619048,
       "return_20d": 0.08143237375026723,
       "return_60d": 0.022239388569634016,
       "relative_20d": 0.031230854818454657,
@@ -2424,7 +2394,7 @@
       "breadth_positive_20d": 0.7631578947368421,
       "relative_5d": -0.011368019314281634,
       "breadth_change_10d": -0.26315789473684215,
-      "strength_percentile": 72.22222222222223,
+      "strength_percentile": 66.66666666666667,
       "state": "Neutral",
       "context": "20D/60D relative strength both strong; 53% of constituents above SMA50; breadth weakening."
     },
@@ -2445,6 +2415,7 @@
       "us_resolvable_count": 42,
       "foreign_or_unmapped_count": 0,
       "valid_member_count": 41,
+      "valid_member_ratio": 0.9761904761904762,
       "return_20d": 0.006722252792505268,
       "return_60d": 0.06376941643131048,
       "relative_20d": -0.043479266139307304,
@@ -2453,38 +2424,9 @@
       "breadth_positive_20d": 0.5853658536585366,
       "relative_5d": 0.0030886569064295655,
       "breadth_change_10d": -0.14634146341463417,
-      "strength_percentile": 66.66666666666667,
+      "strength_percentile": 58.333333333333336,
       "state": "Neutral",
       "context": "20D/60D relative strength mixed; 54% of constituents above SMA50; breadth weakening."
-    },
-    {
-      "theme_id": "uranium",
-      "name": "Uranium",
-      "source_type": "official_etf_holdings",
-      "source_provider": "global_x",
-      "source": "URA",
-      "source_url": "https://assets.globalxetfs.com/funds/holdings/ura_full-holdings_20260826.csv",
-      "source_date": "2026-08-26",
-      "effective_from": "2026-08-26",
-      "source_status": "available",
-      "parse_status": "parsed",
-      "error_reason": null,
-      "member_count": 57,
-      "raw_holdings_count": 57,
-      "us_resolvable_count": 12,
-      "foreign_or_unmapped_count": 45,
-      "valid_member_count": 12,
-      "return_20d": 0.22838667888764766,
-      "return_60d": -0.20481283824316002,
-      "relative_20d": 0.1781851599558351,
-      "relative_60d": -0.2173542195675289,
-      "breadth_above_sma50": 0.5833333333333334,
-      "breadth_positive_20d": 1.0,
-      "relative_5d": -0.004711900394599307,
-      "breadth_change_10d": 0.0,
-      "strength_percentile": 55.55555555555556,
-      "state": "Neutral",
-      "context": "20D/60D relative strength mixed; 58% of constituents above SMA50; breadth stable."
     },
     {
       "theme_id": "infrastructure",
@@ -2503,6 +2445,7 @@
       "us_resolvable_count": 100,
       "foreign_or_unmapped_count": 0,
       "valid_member_count": 100,
+      "valid_member_ratio": 1.0,
       "return_20d": 0.026345500839755964,
       "return_60d": -0.00903312932376044,
       "relative_20d": -0.02385601809205661,
@@ -2511,7 +2454,7 @@
       "breadth_positive_20d": 0.61,
       "relative_5d": -0.011319598715426453,
       "breadth_change_10d": -0.20000000000000007,
-      "strength_percentile": 50.0,
+      "strength_percentile": 41.666666666666664,
       "state": "Neutral",
       "context": "20D/60D relative strength both weak; 36% of constituents above SMA50; breadth weakening."
     },
@@ -2532,6 +2475,7 @@
       "us_resolvable_count": 47,
       "foreign_or_unmapped_count": 0,
       "valid_member_count": 46,
+      "valid_member_ratio": 0.9787234042553191,
       "return_20d": 0.07920556674452453,
       "return_60d": -0.08087800507132753,
       "relative_20d": 0.029004047812711955,
@@ -2540,7 +2484,7 @@
       "breadth_positive_20d": 0.5869565217391305,
       "relative_5d": -0.06379682844230135,
       "breadth_change_10d": -0.2608695652173913,
-      "strength_percentile": 38.888888888888886,
+      "strength_percentile": 25.0,
       "state": "Neutral",
       "context": "20D/60D relative strength mixed; 43% of constituents above SMA50; breadth weakening."
     },
@@ -2561,6 +2505,7 @@
       "us_resolvable_count": 33,
       "foreign_or_unmapped_count": 0,
       "valid_member_count": 30,
+      "valid_member_ratio": 0.9090909090909091,
       "return_20d": 0.1145054179066492,
       "return_60d": -0.1280077088881347,
       "relative_20d": 0.06430389897483663,
@@ -2569,67 +2514,9 @@
       "breadth_positive_20d": 0.8333333333333334,
       "relative_5d": -0.00404156927434054,
       "breadth_change_10d": -0.2333333333333333,
-      "strength_percentile": 33.333333333333336,
+      "strength_percentile": 16.666666666666668,
       "state": "Neutral",
       "context": "20D/60D relative strength mixed; 10% of constituents above SMA50; breadth weakening."
-    },
-    {
-      "theme_id": "clean-energy",
-      "name": "Clean Energy",
-      "source_type": "official_etf_holdings",
-      "source_provider": "ishares",
-      "source": "ICLN",
-      "source_url": "https://www.ishares.com/us/products/239738/ishares-global-clean-energy-etf/latest-holdings.csv",
-      "source_date": "2026-08-26",
-      "effective_from": "2026-08-26",
-      "source_status": "available",
-      "parse_status": "parsed",
-      "error_reason": null,
-      "member_count": 130,
-      "raw_holdings_count": 130,
-      "us_resolvable_count": 75,
-      "foreign_or_unmapped_count": 55,
-      "valid_member_count": 42,
-      "return_20d": -0.025538538714587507,
-      "return_60d": -0.0017941654958661534,
-      "relative_20d": -0.06794994952035363,
-      "relative_60d": -0.01834472545510349,
-      "breadth_above_sma50": 0.2857142857142857,
-      "breadth_positive_20d": 0.5714285714285714,
-      "relative_5d": -0.09952701376809085,
-      "breadth_change_10d": -0.023809523809523836,
-      "strength_percentile": 27.77777777777778,
-      "state": "Neutral",
-      "context": "20D/60D relative strength both weak; 29% of constituents above SMA50; breadth stable."
-    },
-    {
-      "theme_id": "grid-modernization",
-      "name": "Grid Modernization",
-      "source_type": "official_etf_holdings",
-      "source_provider": "first_trust",
-      "source": "GRID",
-      "source_url": "https://www.ftportfolios.com/Retail/Etf/EtfHoldings.aspx?Ticker=GRID",
-      "source_date": "2026-08-26",
-      "effective_from": "2026-08-26",
-      "source_status": "available",
-      "parse_status": "parsed",
-      "error_reason": null,
-      "member_count": 119,
-      "raw_holdings_count": 119,
-      "us_resolvable_count": 43,
-      "foreign_or_unmapped_count": 76,
-      "valid_member_count": 43,
-      "return_20d": 0.059047739565098394,
-      "return_60d": -0.11923590961128792,
-      "relative_20d": 0.008846220633285816,
-      "relative_60d": -0.1317772909356568,
-      "breadth_above_sma50": 0.32558139534883723,
-      "breadth_positive_20d": 0.7209302325581395,
-      "relative_5d": -0.01457029949139204,
-      "breadth_change_10d": -0.20930232558139528,
-      "strength_percentile": 22.22222222222222,
-      "state": "Neutral",
-      "context": "20D/60D relative strength mixed; 33% of constituents above SMA50; breadth weakening."
     },
     {
       "theme_id": "ev-battery",
@@ -2648,6 +2535,7 @@
       "us_resolvable_count": 39,
       "foreign_or_unmapped_count": 35,
       "valid_member_count": 39,
+      "valid_member_ratio": 0.527027027027027,
       "return_20d": 0.075214198736332,
       "return_60d": -0.15611220207996376,
       "relative_20d": 0.025012679804519433,
@@ -2656,38 +2544,69 @@
       "breadth_positive_20d": 0.6666666666666666,
       "relative_5d": -0.021329836269152466,
       "breadth_change_10d": -0.10256410256410253,
-      "strength_percentile": 11.11111111111111,
+      "strength_percentile": 8.333333333333334,
       "state": "Neutral",
       "context": "20D/60D relative strength mixed; 31% of constituents above SMA50; breadth weakening."
     },
     {
-      "theme_id": "robotics-automation",
-      "name": "Robotics & Automation",
+      "theme_id": "battery-materials",
+      "name": "Battery Materials",
       "source_type": "official_etf_holdings",
       "source_provider": "global_x",
-      "source": "BOTZ",
-      "source_url": "https://assets.globalxetfs.com/funds/holdings/botz_full-holdings_20260826.csv",
+      "source": "LIT",
+      "source_url": "https://assets.globalxetfs.com/funds/holdings/lit_full-holdings_20260826.csv",
       "source_date": "2026-08-26",
       "effective_from": "2026-08-26",
       "source_status": "available",
       "parse_status": "parsed",
       "error_reason": null,
-      "member_count": 61,
-      "raw_holdings_count": 61,
-      "us_resolvable_count": 23,
-      "foreign_or_unmapped_count": 38,
-      "valid_member_count": 23,
-      "return_20d": 0.056953127591114684,
-      "return_60d": -0.1879721954073552,
-      "relative_20d": 0.006751608659302109,
-      "relative_60d": -0.20051357673172407,
-      "breadth_above_sma50": 0.30434782608695654,
-      "breadth_positive_20d": 0.6956521739130435,
-      "relative_5d": -0.02419087438777206,
-      "breadth_change_10d": -0.08695652173913043,
-      "strength_percentile": 5.555555555555555,
-      "state": "Neutral",
-      "context": "20D/60D relative strength mixed; 30% of constituents above SMA50; breadth stable."
+      "member_count": 41,
+      "raw_holdings_count": 41,
+      "us_resolvable_count": 7,
+      "foreign_or_unmapped_count": 34,
+      "valid_member_count": 7,
+      "valid_member_ratio": 0.17073170731707318,
+      "return_20d": null,
+      "return_60d": null,
+      "relative_20d": null,
+      "relative_60d": null,
+      "breadth_above_sma50": null,
+      "breadth_positive_20d": null,
+      "relative_5d": null,
+      "breadth_change_10d": null,
+      "strength_percentile": null,
+      "state": "Unavailable",
+      "context": "Only 7 constituents have sufficient data; metrics withheld."
+    },
+    {
+      "theme_id": "clean-energy",
+      "name": "Clean Energy",
+      "source_type": "official_etf_holdings",
+      "source_provider": "ishares",
+      "source": "ICLN",
+      "source_url": "https://www.ishares.com/us/products/239738/ishares-global-clean-energy-etf/latest-holdings.csv",
+      "source_date": "2026-08-26",
+      "effective_from": "2026-08-26",
+      "source_status": "available",
+      "parse_status": "parsed",
+      "error_reason": null,
+      "member_count": 130,
+      "raw_holdings_count": 130,
+      "us_resolvable_count": 75,
+      "foreign_or_unmapped_count": 55,
+      "valid_member_count": 25,
+      "valid_member_ratio": 0.19230769230769232,
+      "return_20d": null,
+      "return_60d": null,
+      "relative_20d": null,
+      "relative_60d": null,
+      "breadth_above_sma50": null,
+      "breadth_positive_20d": null,
+      "relative_5d": null,
+      "breadth_change_10d": null,
+      "strength_percentile": null,
+      "state": "Unavailable",
+      "context": "Only 25 constituents have sufficient data; metrics withheld."
     },
     {
       "theme_id": "copper-miners",
@@ -2706,6 +2625,7 @@
       "us_resolvable_count": 4,
       "foreign_or_unmapped_count": 36,
       "valid_member_count": 4,
+      "valid_member_ratio": 0.1,
       "return_20d": null,
       "return_60d": null,
       "relative_20d": null,
@@ -2735,6 +2655,7 @@
       "us_resolvable_count": 0,
       "foreign_or_unmapped_count": 0,
       "valid_member_count": 0,
+      "valid_member_ratio": 0,
       "return_20d": null,
       "return_60d": null,
       "relative_20d": null,
@@ -2746,155 +2667,275 @@
       "strength_percentile": null,
       "state": "Unavailable",
       "context": "Only 0 constituents have sufficient data; metrics withheld."
+    },
+    {
+      "theme_id": "grid-modernization",
+      "name": "Grid Modernization",
+      "source_type": "official_etf_holdings",
+      "source_provider": "first_trust",
+      "source": "GRID",
+      "source_url": "https://www.ftportfolios.com/Retail/Etf/EtfHoldings.aspx?Ticker=GRID",
+      "source_date": "2026-08-26",
+      "effective_from": "2026-08-26",
+      "source_status": "available",
+      "parse_status": "parsed",
+      "error_reason": null,
+      "member_count": 119,
+      "raw_holdings_count": 119,
+      "us_resolvable_count": 43,
+      "foreign_or_unmapped_count": 76,
+      "valid_member_count": 43,
+      "valid_member_ratio": 0.36134453781512604,
+      "return_20d": null,
+      "return_60d": null,
+      "relative_20d": null,
+      "relative_60d": null,
+      "breadth_above_sma50": null,
+      "breadth_positive_20d": null,
+      "relative_5d": null,
+      "breadth_change_10d": null,
+      "strength_percentile": null,
+      "state": "Unavailable",
+      "context": "Only 43 constituents have sufficient data; metrics withheld."
+    },
+    {
+      "theme_id": "robotics-automation",
+      "name": "Robotics & Automation",
+      "source_type": "official_etf_holdings",
+      "source_provider": "global_x",
+      "source": "BOTZ",
+      "source_url": "https://assets.globalxetfs.com/funds/holdings/botz_full-holdings_20260826.csv",
+      "source_date": "2026-08-26",
+      "effective_from": "2026-08-26",
+      "source_status": "available",
+      "parse_status": "parsed",
+      "error_reason": null,
+      "member_count": 61,
+      "raw_holdings_count": 61,
+      "us_resolvable_count": 23,
+      "foreign_or_unmapped_count": 38,
+      "valid_member_count": 23,
+      "valid_member_ratio": 0.3770491803278688,
+      "return_20d": null,
+      "return_60d": null,
+      "relative_20d": null,
+      "relative_60d": null,
+      "breadth_above_sma50": null,
+      "breadth_positive_20d": null,
+      "relative_5d": null,
+      "breadth_change_10d": null,
+      "strength_percentile": null,
+      "state": "Unavailable",
+      "context": "Only 23 constituents have sufficient data; metrics withheld."
+    },
+    {
+      "theme_id": "solar",
+      "name": "Solar",
+      "source_type": "official_etf_holdings",
+      "source_provider": "invesco",
+      "source": "TAN",
+      "source_url": "https://dng-api.invesco.com/cache/v1/accounts/en_US/shareclasses/46138G706/holdings/fund?idType=cusip&productType=ETF",
+      "source_date": "2026-08-26",
+      "effective_from": "2026-08-26",
+      "source_status": "available",
+      "parse_status": "parsed",
+      "error_reason": null,
+      "member_count": 43,
+      "raw_holdings_count": 43,
+      "us_resolvable_count": 32,
+      "foreign_or_unmapped_count": 11,
+      "valid_member_count": 19,
+      "valid_member_ratio": 0.4418604651162791,
+      "return_20d": null,
+      "return_60d": null,
+      "relative_20d": null,
+      "relative_60d": null,
+      "breadth_above_sma50": null,
+      "breadth_positive_20d": null,
+      "relative_5d": null,
+      "breadth_change_10d": null,
+      "strength_percentile": null,
+      "state": "Unavailable",
+      "context": "Only 19 constituents have sufficient data; metrics withheld."
+    },
+    {
+      "theme_id": "uranium",
+      "name": "Uranium",
+      "source_type": "official_etf_holdings",
+      "source_provider": "global_x",
+      "source": "URA",
+      "source_url": "https://assets.globalxetfs.com/funds/holdings/ura_full-holdings_20260826.csv",
+      "source_date": "2026-08-26",
+      "effective_from": "2026-08-26",
+      "source_status": "available",
+      "parse_status": "parsed",
+      "error_reason": null,
+      "member_count": 57,
+      "raw_holdings_count": 57,
+      "us_resolvable_count": 12,
+      "foreign_or_unmapped_count": 45,
+      "valid_member_count": 12,
+      "valid_member_ratio": 0.21052631578947367,
+      "return_20d": null,
+      "return_60d": null,
+      "relative_20d": null,
+      "relative_60d": null,
+      "breadth_above_sma50": null,
+      "breadth_positive_20d": null,
+      "relative_5d": null,
+      "breadth_change_10d": null,
+      "strength_percentile": null,
+      "state": "Unavailable",
+      "context": "Only 12 constituents have sufficient data; metrics withheld."
     }
   ],
   "ticker_context": {
     "000155": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "000537": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "000591": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "000720 KS": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "001440.KS": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "002129": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "002176 C2": [
       {
         "theme_id": "battery-materials",
-        "state": "Recovery"
+        "state": "Unavailable"
       }
     ],
     "002371 C2": [
       {
         "theme_id": "battery-materials",
-        "state": "Recovery"
+        "state": "Unavailable"
       }
     ],
     "002459": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "002460 C2": [
       {
         "theme_id": "battery-materials",
-        "state": "Recovery"
+        "state": "Unavailable"
       }
     ],
     "002466 C2": [
       {
         "theme_id": "battery-materials",
-        "state": "Recovery"
+        "state": "Unavailable"
       }
     ],
     "002487": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "002506": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "002531": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "002610": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "002709 C2": [
       {
         "theme_id": "battery-materials",
-        "state": "Recovery"
+        "state": "Unavailable"
       }
     ],
     "002738 C2": [
       {
         "theme_id": "battery-materials",
-        "state": "Recovery"
+        "state": "Unavailable"
       }
     ],
     "002747 C2": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "002812 C2": [
       {
         "theme_id": "battery-materials",
-        "state": "Recovery"
+        "state": "Unavailable"
       }
     ],
     "002865": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "006360 KS": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "006400 KS": [
       {
-        "theme_id": "battery-materials",
-        "state": "Recovery"
-      },
-      {
         "theme_id": "ev-battery",
         "state": "Neutral"
+      },
+      {
+        "theme_id": "battery-materials",
+        "state": "Unavailable"
       }
     ],
     "006400.KS": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "010120.KS": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "011790 KS": [
@@ -2906,25 +2947,25 @@
     "028260 KS": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "034020 KS": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "047040 KS": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "052690 KS": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "060250 KS": [
@@ -2936,43 +2977,43 @@
     "062040.KS": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "066970 KS": [
       {
         "theme_id": "battery-materials",
-        "state": "Recovery"
+        "state": "Unavailable"
       }
     ],
     "090360 KS": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "103590.KS": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "108490 KS": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "112610": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "1164 HK": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "1208 HK": [
@@ -2983,18 +3024,18 @@
     ],
     "1211 HK": [
       {
-        "theme_id": "battery-materials",
-        "state": "Recovery"
-      },
-      {
         "theme_id": "ev-battery",
         "state": "Neutral"
+      },
+      {
+        "theme_id": "battery-materials",
+        "state": "Unavailable"
       }
     ],
     "1211.HK": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "1258 HK": [
@@ -3012,25 +3053,25 @@
     "1407": [
       {
         "theme_id": "solar",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "1503.TT": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "1513.TT": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "1514.TT": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "1515 JP": [
@@ -3042,13 +3083,13 @@
     "1519.TT": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "1609.TT": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "1611 HK": [
@@ -3072,13 +3113,13 @@
     "1798": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "1810 HK": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "2015 HK": [
@@ -3102,7 +3143,7 @@
     "2121 HK": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "2200963D": [
@@ -3120,61 +3161,61 @@
     "2208": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "2252 HK": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "229640.KS": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "2324825D AU": [
       {
         "theme_id": "battery-materials",
-        "state": "Recovery"
+        "state": "Unavailable"
       }
     ],
     "2371.TT": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "2395.TT": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "2406": [
       {
         "theme_id": "solar",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "2431 HK": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "2432 HK": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "247540 KS": [
       {
         "theme_id": "battery-materials",
-        "state": "Recovery"
+        "state": "Unavailable"
       }
     ],
     "2498 HK": [
@@ -3184,7 +3225,7 @@
       },
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "2533 HK": [
@@ -3202,13 +3243,13 @@
     "267260.KS": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "277810 KS": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "2899 HK": [
@@ -3220,131 +3261,131 @@
     "298040.KS": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "300014 C2": [
       {
         "theme_id": "battery-materials",
-        "state": "Recovery"
+        "state": "Unavailable"
       }
     ],
     "300024 C2": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "300118": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "300124 C2": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "300140": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "300207 C2": [
       {
         "theme_id": "battery-materials",
-        "state": "Recovery"
+        "state": "Unavailable"
       }
     ],
     "300393": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "300443": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "300450 C2": [
       {
         "theme_id": "battery-materials",
-        "state": "Recovery"
+        "state": "Unavailable"
       }
     ],
     "300724": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "300750 C2": [
       {
         "theme_id": "battery-materials",
-        "state": "Recovery"
+        "state": "Unavailable"
       }
     ],
     "300751": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "300757 C2": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "300763": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "300772": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "301155": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "322000": [
       {
         "theme_id": "solar",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "336260": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "3393.HK": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "3576": [
       {
-        "theme_id": "solar",
-        "state": "Neutral"
+        "theme_id": "clean-energy",
+        "state": "Unavailable"
       },
       {
-        "theme_id": "clean-energy",
-        "state": "Neutral"
+        "theme_id": "solar",
+        "state": "Unavailable"
       }
     ],
     "358 HK": [
@@ -3355,18 +3396,18 @@
     ],
     "373220 KS": [
       {
-        "theme_id": "battery-materials",
-        "state": "Recovery"
-      },
-      {
         "theme_id": "ev-battery",
         "state": "Neutral"
+      },
+      {
+        "theme_id": "battery-materials",
+        "state": "Unavailable"
       }
     ],
     "3750.HK": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "377300 KS": [
@@ -3378,19 +3419,19 @@
     "3800": [
       {
         "theme_id": "solar",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "3868": [
       {
         "theme_id": "solar",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "388720 KS": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "3939 HK": [
@@ -3402,13 +3443,13 @@
     "454910 KS": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "455900 KS": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "4704.JP": [
@@ -3420,7 +3461,7 @@
     "5074": [
       {
         "theme_id": "solar",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "5301 JP": [
@@ -3432,7 +3473,7 @@
     "5333.JP": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "5711 JP": [
@@ -3450,137 +3491,137 @@
     "5801.JP": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "5802.JP": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "5803.JP": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "600025": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "600032": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "600116": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "600236": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "600674": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "600732": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "600821": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "600900": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "600905": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "600995": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "601012": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "601016": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "601615": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "601619": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "603659 C1": [
       {
         "theme_id": "battery-materials",
-        "state": "Recovery"
+        "state": "Unavailable"
       }
     ],
     "6104 JP": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "6244": [
       {
-        "theme_id": "solar",
-        "state": "Neutral"
+        "theme_id": "clean-energy",
+        "state": "Unavailable"
       },
       {
-        "theme_id": "clean-energy",
-        "state": "Neutral"
+        "theme_id": "solar",
+        "state": "Unavailable"
       }
     ],
     "6258 JP": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "6273 JP": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "6285 TT": [
@@ -3592,53 +3633,53 @@
     "6383 JP": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "6409.TT": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "6443": [
       {
-        "theme_id": "solar",
-        "state": "Neutral"
+        "theme_id": "clean-energy",
+        "state": "Unavailable"
       },
       {
-        "theme_id": "clean-energy",
-        "state": "Neutral"
+        "theme_id": "solar",
+        "state": "Unavailable"
       }
     ],
     "6501.JP": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "6503.JP": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "6504.JP": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "6506 JP": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "6508.JP": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "6526 JP": [
@@ -3650,31 +3691,31 @@
     "6600 HK": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "6617.JP": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "6622.JP": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "6644.JP": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "6645 JP": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "666 HK": [
@@ -3692,31 +3733,31 @@
     "6674.JP": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "6723.JP": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "6752 JP": [
       {
         "theme_id": "battery-materials",
-        "state": "Recovery"
+        "state": "Unavailable"
       }
     ],
     "6752.JP": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "6762 JP": [
       {
         "theme_id": "battery-materials",
-        "state": "Recovery"
+        "state": "Unavailable"
       }
     ],
     "6763 TT": [
@@ -3734,79 +3775,79 @@
     "6845.JP": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "6861 JP": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "6865": [
       {
         "theme_id": "solar",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "688032": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "688165 C1": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "688169 C1": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "688223": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "688297 C1": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "688349": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "688390": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "688472": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "688516": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "688599": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "6902 JP": [
@@ -3818,13 +3859,13 @@
     "6954 JP": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "7011 JP": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "7201 JP": [
@@ -3848,7 +3889,7 @@
     "8001 JP": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "863 HK": [
@@ -3864,31 +3905,31 @@
     "916": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "9502": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "9519": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "9660 HK": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "968": [
       {
         "theme_id": "solar",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "9696 HK": [
@@ -3900,7 +3941,7 @@
     "9880 HK": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "9923 HK": [
@@ -3918,7 +3959,7 @@
     "9958": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "9959 HK": [
@@ -3942,13 +3983,13 @@
     "ABBN SW": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ABBN.SW": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ABBV": [
@@ -3992,7 +4033,7 @@
       },
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ACAD": [
@@ -4054,7 +4095,7 @@
       },
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ADMA": [
@@ -4072,31 +4113,31 @@
     "AEC CN": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "AEE AU": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "AEIS": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "AES": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "AEU AU": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "AEVA": [
@@ -4114,7 +4155,7 @@
     "AGE AU": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "AGIO": [
@@ -4159,18 +4200,18 @@
     ],
     "ALB": [
       {
-        "theme_id": "battery-materials",
-        "state": "Recovery"
-      },
-      {
         "theme_id": "ev-battery",
         "state": "Neutral"
+      },
+      {
+        "theme_id": "battery-materials",
+        "state": "Unavailable"
       }
     ],
     "ALFEN.NA": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ALGM": [
@@ -4212,7 +4253,7 @@
     "ALUP11.BZ": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "AMAK AB": [
@@ -4242,7 +4283,7 @@
     "AMG NA": [
       {
         "theme_id": "battery-materials",
-        "state": "Recovery"
+        "state": "Unavailable"
       }
     ],
     "AMGN": [
@@ -4266,7 +4307,7 @@
     "AMSC": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "AMZN": [
@@ -4284,7 +4325,7 @@
     "ANE": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ANET": [
@@ -4364,13 +4405,13 @@
       },
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "APTV": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ARDX": [
@@ -4382,7 +4423,7 @@
     "ARE CN": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ARG CN": [
@@ -4400,7 +4441,7 @@
     "ARN CN": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ARQT": [
@@ -4411,12 +4452,12 @@
     ],
     "ARRY": [
       {
-        "theme_id": "solar",
-        "state": "Neutral"
+        "theme_id": "clean-energy",
+        "state": "Unavailable"
       },
       {
-        "theme_id": "clean-energy",
-        "state": "Neutral"
+        "theme_id": "solar",
+        "state": "Unavailable"
       }
     ],
     "ARWR": [
@@ -4440,7 +4481,7 @@
     "ASN AU": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ASTE": [
@@ -4452,7 +4493,7 @@
     "ASTOR.TI": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ASX": [
@@ -4494,7 +4535,7 @@
       },
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ATO.FP": [
@@ -4518,7 +4559,7 @@
     "ATS CN": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ATYM LN": [
@@ -4530,19 +4571,19 @@
     "AUR": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "AURE3": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "AUTO NO": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "AVAV": [
@@ -4552,7 +4593,7 @@
       },
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "AVBP": [
@@ -4610,7 +4651,7 @@
     "AZZ": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "BA": [
@@ -4668,7 +4709,7 @@
     "BCPG-R": [
       {
         "theme_id": "solar",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "BCRX": [
@@ -4680,7 +4721,7 @@
     "BDC": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "BDX": [
@@ -4691,12 +4732,12 @@
     ],
     "BE": [
       {
-        "theme_id": "clean-energy",
+        "theme_id": "ev-battery",
         "state": "Neutral"
       },
       {
-        "theme_id": "ev-battery",
-        "state": "Neutral"
+        "theme_id": "clean-energy",
+        "state": "Unavailable"
       }
     ],
     "BEAM": [
@@ -4708,13 +4749,13 @@
     "BEAN.SE": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "BEPC": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "BETA": [
@@ -4731,11 +4772,11 @@
     ],
     "BHP AU": [
       {
-        "theme_id": "uranium",
-        "state": "Neutral"
+        "theme_id": "copper-miners",
+        "state": "Unavailable"
       },
       {
-        "theme_id": "copper-miners",
+        "theme_id": "uranium",
         "state": "Unavailable"
       }
     ],
@@ -4752,7 +4793,7 @@
       },
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "BIIB": [
@@ -4786,13 +4827,13 @@
     "BKW.SW": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "BKY SM": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "BL": [
@@ -4842,7 +4883,7 @@
     "BMN AU": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "BMNR": [
@@ -4860,7 +4901,7 @@
     "BOE AU": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "BOL SS": [
@@ -4878,13 +4919,13 @@
     "BREN": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "BRL": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "BSX": [
@@ -4944,7 +4985,7 @@
     "CAD": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "CADL": [
@@ -4992,7 +5033,7 @@
     "CCO CN": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "CD": [
@@ -5026,13 +5067,13 @@
     "CEN": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "CENER.GA": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "CENX": [
@@ -5050,7 +5091,7 @@
     "CGNX": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "CGON": [
@@ -5061,12 +5102,12 @@
     ],
     "CHF": [
       {
-        "theme_id": "solar",
-        "state": "Neutral"
+        "theme_id": "clean-energy",
+        "state": "Unavailable"
       },
       {
-        "theme_id": "clean-energy",
-        "state": "Neutral"
+        "theme_id": "solar",
+        "state": "Unavailable"
       }
     ],
     "CHKP": [
@@ -5100,7 +5141,7 @@
     "CLP": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "CLSK": [
@@ -5130,7 +5171,7 @@
     "CNH": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "CNL CN": [
@@ -5154,7 +5195,7 @@
     "CNY": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "COGT": [
@@ -5198,13 +5239,13 @@
     "CPFE3": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "CPLE3.BZ": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "CR": [
@@ -5244,7 +5285,7 @@
     "CRNC": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "CRS": [
@@ -5302,17 +5343,17 @@
       },
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "CSIQ": [
       {
-        "theme_id": "solar",
-        "state": "Neutral"
+        "theme_id": "clean-energy",
+        "state": "Unavailable"
       },
       {
-        "theme_id": "clean-energy",
-        "state": "Neutral"
+        "theme_id": "solar",
+        "state": "Unavailable"
       }
     ],
     "CSL": [
@@ -5360,7 +5401,7 @@
     "CVV CN": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "CVX": [
@@ -5383,30 +5424,30 @@
     ],
     "CWEN": [
       {
-        "theme_id": "solar",
-        "state": "Neutral"
+        "theme_id": "clean-energy",
+        "state": "Unavailable"
       },
       {
-        "theme_id": "clean-energy",
-        "state": "Neutral"
+        "theme_id": "solar",
+        "state": "Unavailable"
       }
     ],
     "CWENE": [
       {
         "theme_id": "solar",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "CWENE.E": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "CWR": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "CWT": [
@@ -5418,7 +5459,7 @@
     "CXU AU": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "CYTK": [
@@ -5470,13 +5511,13 @@
     "DGII": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "DKK": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "DLO": [
@@ -5488,7 +5529,7 @@
     "DML CN": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "DMRA": [
@@ -5529,18 +5570,18 @@
     ],
     "DORL": [
       {
-        "theme_id": "solar",
-        "state": "Neutral"
+        "theme_id": "clean-energy",
+        "state": "Unavailable"
       },
       {
-        "theme_id": "clean-energy",
-        "state": "Neutral"
+        "theme_id": "solar",
+        "state": "Unavailable"
       }
     ],
     "DQ": [
       {
         "theme_id": "solar",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "DRS": [
@@ -5588,7 +5629,7 @@
     "DYL AU": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "DYN": [
@@ -5600,7 +5641,7 @@
     "EA.R": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "EBS": [
@@ -5624,55 +5665,55 @@
     "EDP": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "EDP.PL": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "EDPR": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "EFR CN": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "EGIE3": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "EH": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "EL8 AU": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ELI.BB": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ELV AU": [
       {
         "theme_id": "battery-materials",
-        "state": "Recovery"
+        "state": "Unavailable"
       }
     ],
     "EME": [
@@ -5688,47 +5729,47 @@
       },
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ENEL.IM": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ENELAM": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ENGI.FP": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ENGI11": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ENGI11.BZ": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ENLT": [
       {
-        "theme_id": "solar",
-        "state": "Neutral"
+        "theme_id": "clean-energy",
+        "state": "Unavailable"
       },
       {
-        "theme_id": "clean-energy",
-        "state": "Neutral"
+        "theme_id": "solar",
+        "state": "Unavailable"
       }
     ],
     "ENOV": [
@@ -5739,40 +5780,40 @@
     ],
     "ENPH": [
       {
-        "theme_id": "solar",
-        "state": "Neutral"
-      },
-      {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       },
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
+      },
+      {
+        "theme_id": "solar",
+        "state": "Unavailable"
       }
     ],
     "ENRG": [
       {
-        "theme_id": "solar",
-        "state": "Neutral"
+        "theme_id": "clean-energy",
+        "state": "Unavailable"
       },
       {
-        "theme_id": "clean-energy",
-        "state": "Neutral"
+        "theme_id": "solar",
+        "state": "Unavailable"
       }
     ],
     "ENS": [
       {
+        "theme_id": "ev-battery",
+        "state": "Neutral"
+      },
+      {
         "theme_id": "battery-materials",
-        "state": "Recovery"
+        "state": "Unavailable"
       },
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
-      },
-      {
-        "theme_id": "ev-battery",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ENTG": [
@@ -5784,7 +5825,7 @@
     "EOAN.GY": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "EOG": [
@@ -5802,23 +5843,23 @@
     "EQTL3": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "EQTL3.BZ": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ERA FP": [
       {
-        "theme_id": "battery-materials",
-        "state": "Recovery"
-      },
-      {
         "theme_id": "ev-battery",
         "state": "Neutral"
+      },
+      {
+        "theme_id": "battery-materials",
+        "state": "Unavailable"
       }
     ],
     "ERAS": [
@@ -5830,7 +5871,7 @@
     "ERG": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ERII": [
@@ -5848,7 +5889,7 @@
     "ESE": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ESTC": [
@@ -5864,7 +5905,7 @@
     "ESU6": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ETN": [
@@ -5874,7 +5915,7 @@
       },
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ETOR": [
@@ -5890,23 +5931,23 @@
     "EU CN": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "EUR": [
       {
-        "theme_id": "solar",
-        "state": "Neutral"
+        "theme_id": "clean-energy",
+        "state": "Unavailable"
       },
       {
-        "theme_id": "clean-energy",
-        "state": "Neutral"
+        "theme_id": "solar",
+        "state": "Unavailable"
       }
     ],
     "EUR AU": [
       {
         "theme_id": "battery-materials",
-        "state": "Recovery"
+        "state": "Unavailable"
       }
     ],
     "EW": [
@@ -5918,7 +5959,7 @@
     "EXA FP": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "EXE": [
@@ -6042,7 +6083,7 @@
     "FLNC": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "FLY": [
@@ -6089,12 +6130,12 @@
     ],
     "FSLR": [
       {
-        "theme_id": "solar",
-        "state": "Neutral"
+        "theme_id": "clean-energy",
+        "state": "Unavailable"
       },
       {
-        "theme_id": "clean-energy",
-        "state": "Neutral"
+        "theme_id": "solar",
+        "state": "Unavailable"
       }
     ],
     "FSLY": [
@@ -6122,7 +6163,7 @@
     "FTS.CN": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "FTV": [
@@ -6140,13 +6181,13 @@
     "FUU CN": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "GBP": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "GBX": [
@@ -6198,7 +6239,7 @@
     "GEV": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "GGG": [
@@ -6228,7 +6269,7 @@
     "GLO CN": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "GLUE": [
@@ -6262,7 +6303,7 @@
     "GNRC": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "GOOGL": [
@@ -6280,7 +6321,7 @@
       },
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "GPN": [
@@ -6292,7 +6333,7 @@
     "GPRE": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "GRAL": [
@@ -6314,7 +6355,7 @@
     "GRE": [
       {
         "theme_id": "solar",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "GTLB": [
@@ -6338,7 +6379,7 @@
     "H.CT": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "HAL": [
@@ -6362,13 +6403,13 @@
     "HASI": [
       {
         "theme_id": "solar",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "HBCFT": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "HBM CN": [
@@ -6386,7 +6427,7 @@
     "HIAB FH": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "HII": [
@@ -6403,12 +6444,12 @@
     ],
     "HKD": [
       {
-        "theme_id": "solar",
-        "state": "Neutral"
+        "theme_id": "clean-energy",
+        "state": "Unavailable"
       },
       {
-        "theme_id": "clean-energy",
-        "state": "Neutral"
+        "theme_id": "solar",
+        "state": "Unavailable"
       }
     ],
     "HO.FP": [
@@ -6426,7 +6467,7 @@
     "HON": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "HOOD": [
@@ -6444,7 +6485,7 @@
     "HPS/A.CT": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "HQY": [
@@ -6462,7 +6503,7 @@
     "HSAI": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "HTO": [
@@ -6484,7 +6525,7 @@
       },
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "HUBS": [
@@ -6546,7 +6587,7 @@
     "IBE.SM": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "IBM": [
@@ -6560,7 +6601,7 @@
       },
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "IBRX": [
@@ -6572,7 +6613,7 @@
     "IDR": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "IDXX": [
@@ -6616,17 +6657,17 @@
     "IFX.GY": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "IGO AU": [
       {
-        "theme_id": "battery-materials",
-        "state": "Recovery"
-      },
-      {
         "theme_id": "ev-battery",
         "state": "Neutral"
+      },
+      {
+        "theme_id": "battery-materials",
+        "state": "Unavailable"
       }
     ],
     "IIIN": [
@@ -6637,12 +6678,12 @@
     ],
     "ILS": [
       {
-        "theme_id": "solar",
-        "state": "Neutral"
+        "theme_id": "clean-energy",
+        "state": "Unavailable"
       },
       {
-        "theme_id": "clean-energy",
-        "state": "Neutral"
+        "theme_id": "solar",
+        "state": "Unavailable"
       }
     ],
     "IMMX": [
@@ -6660,7 +6701,7 @@
     "IMSR": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "IMVT": [
@@ -6696,19 +6737,19 @@
     "INOXWIND": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "INR": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "INR AU": [
       {
         "theme_id": "battery-materials",
-        "state": "Recovery"
+        "state": "Unavailable"
       }
     ],
     "INSM": [
@@ -6794,13 +6835,13 @@
     "ISAE4.BZ": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ISO CN": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ISRG": [
@@ -6810,7 +6851,7 @@
       },
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ITGR": [
@@ -6826,7 +6867,7 @@
       },
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ITT": [
@@ -6888,13 +6929,13 @@
     "JBTM": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "JCI": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "JKHY": [
@@ -6905,28 +6946,28 @@
     ],
     "JKS": [
       {
-        "theme_id": "solar",
-        "state": "Neutral"
+        "theme_id": "clean-energy",
+        "state": "Unavailable"
       },
       {
-        "theme_id": "clean-energy",
-        "state": "Neutral"
+        "theme_id": "solar",
+        "state": "Unavailable"
       }
     ],
     "JPY": [
       {
-        "theme_id": "solar",
-        "state": "Neutral"
+        "theme_id": "clean-energy",
+        "state": "Unavailable"
       },
       {
-        "theme_id": "clean-energy",
-        "state": "Neutral"
+        "theme_id": "solar",
+        "state": "Unavailable"
       }
     ],
     "KAP LI": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "KEEL": [
@@ -6985,12 +7026,12 @@
     ],
     "KRW": [
       {
-        "theme_id": "solar",
-        "state": "Neutral"
+        "theme_id": "clean-energy",
+        "state": "Unavailable"
       },
       {
-        "theme_id": "clean-energy",
-        "state": "Neutral"
+        "theme_id": "solar",
+        "state": "Unavailable"
       }
     ],
     "KRYS": [
@@ -7025,44 +7066,44 @@
     ],
     "LAC CN": [
       {
-        "theme_id": "battery-materials",
-        "state": "Recovery"
-      },
-      {
         "theme_id": "ev-battery",
         "state": "Neutral"
+      },
+      {
+        "theme_id": "battery-materials",
+        "state": "Unavailable"
       }
     ],
     "LAM CN": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "LAND.SE": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "LAR CN": [
       {
-        "theme_id": "battery-materials",
-        "state": "Recovery"
-      },
-      {
         "theme_id": "ev-battery",
         "state": "Neutral"
+      },
+      {
+        "theme_id": "battery-materials",
+        "state": "Unavailable"
       }
     ],
     "LCID": [
       {
-        "theme_id": "battery-materials",
-        "state": "Recovery"
-      },
-      {
         "theme_id": "ev-battery",
         "state": "Neutral"
+      },
+      {
+        "theme_id": "battery-materials",
+        "state": "Unavailable"
       }
     ],
     "LDOS": [
@@ -7080,13 +7121,13 @@
     "LEU": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "LFUS": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "LGN": [
@@ -7104,7 +7145,7 @@
     "LI CN": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "LIVN": [
@@ -7146,7 +7187,7 @@
     "LOT AU": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "LPX": [
@@ -7158,7 +7199,7 @@
     "LR.FP": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "LRCX": [
@@ -7170,17 +7211,17 @@
     "LTBR": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "LTR AU": [
       {
-        "theme_id": "battery-materials",
-        "state": "Recovery"
-      },
-      {
         "theme_id": "ev-battery",
         "state": "Neutral"
+      },
+      {
+        "theme_id": "battery-materials",
+        "state": "Unavailable"
       }
     ],
     "LU": [
@@ -7216,7 +7257,7 @@
     "MAGEN.E": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "MARA": [
@@ -7274,25 +7315,25 @@
     "MEL": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "MESU6": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "MGA CN": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "MIN AU": [
       {
         "theme_id": "battery-materials",
-        "state": "Recovery"
+        "state": "Unavailable"
       }
     ],
     "MIRM": [
@@ -7320,7 +7361,7 @@
     "MLISW": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "MLM": [
@@ -7428,7 +7469,7 @@
       },
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "MU": [
@@ -7466,7 +7507,7 @@
       },
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "NBIS": [
@@ -7508,7 +7549,7 @@
     "NDX1": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "NET": [
@@ -7524,7 +7565,7 @@
     "NEX.FP": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "NEXI IM": [
@@ -7536,7 +7577,7 @@
     "NG/.LN": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "NGEX CN": [
@@ -7548,7 +7589,7 @@
     "NHPC": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "NIO": [
@@ -7560,19 +7601,19 @@
     "NKLR": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "NKT.DC": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "NNE": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "NOC": [
@@ -7583,22 +7624,22 @@
     ],
     "NOFR": [
       {
-        "theme_id": "solar",
-        "state": "Neutral"
+        "theme_id": "clean-energy",
+        "state": "Unavailable"
       },
       {
-        "theme_id": "clean-energy",
-        "state": "Neutral"
+        "theme_id": "solar",
+        "state": "Unavailable"
       }
     ],
     "NOK": [
       {
-        "theme_id": "solar",
-        "state": "Neutral"
+        "theme_id": "clean-energy",
+        "state": "Unavailable"
       },
       {
-        "theme_id": "clean-energy",
-        "state": "Neutral"
+        "theme_id": "solar",
+        "state": "Unavailable"
       }
     ],
     "NOW": [
@@ -7616,7 +7657,7 @@
     "NQU6 INDEX": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "NRIX": [
@@ -7662,7 +7703,7 @@
     "NTPCGREEN": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "NTRA": [
@@ -7680,7 +7721,7 @@
     "NUCL": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "NUE": [
@@ -7707,16 +7748,16 @@
         "state": "Neutral"
       },
       {
-        "theme_id": "grid-modernization",
-        "state": "Neutral"
-      },
-      {
         "theme_id": "ev-battery",
         "state": "Neutral"
       },
       {
+        "theme_id": "grid-modernization",
+        "state": "Unavailable"
+      },
+      {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "NVMI": [
@@ -7734,7 +7775,7 @@
     "NVT": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "NWPX": [
@@ -7750,7 +7791,7 @@
     "NXE CN": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "NXPI": [
@@ -7759,22 +7800,22 @@
         "state": "Neutral"
       },
       {
-        "theme_id": "grid-modernization",
+        "theme_id": "ev-battery",
         "state": "Neutral"
       },
       {
-        "theme_id": "ev-battery",
-        "state": "Neutral"
+        "theme_id": "grid-modernization",
+        "state": "Unavailable"
       }
     ],
     "NXT": [
       {
-        "theme_id": "solar",
-        "state": "Neutral"
+        "theme_id": "clean-energy",
+        "state": "Unavailable"
       },
       {
-        "theme_id": "clean-energy",
-        "state": "Neutral"
+        "theme_id": "solar",
+        "state": "Unavailable"
       }
     ],
     "NYAX IT": [
@@ -7786,7 +7827,7 @@
     "NZD": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "OCGN": [
@@ -7810,7 +7851,7 @@
     "OKLO": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "OKTA": [
@@ -7838,7 +7879,7 @@
       },
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ON": [
@@ -7858,7 +7899,7 @@
       },
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ORIC": [
@@ -7876,7 +7917,7 @@
     "ORSTED": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "OTEX": [
@@ -7894,7 +7935,7 @@
     "OUST": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "OVID": [
@@ -7934,13 +7975,13 @@
     "PARSW": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "PATH": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "PAY": [
@@ -7976,7 +8017,7 @@
     "PDN AU": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "PEN": [
@@ -7988,13 +8029,13 @@
     "PEN AU": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "PFSE.GY": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "PGEN": [
@@ -8028,33 +8069,33 @@
       },
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "PLS AU": [
       {
-        "theme_id": "battery-materials",
-        "state": "Recovery"
-      },
-      {
         "theme_id": "ev-battery",
         "state": "Neutral"
+      },
+      {
+        "theme_id": "battery-materials",
+        "state": "Unavailable"
       }
     ],
     "PLUG": [
       {
-        "theme_id": "clean-energy",
+        "theme_id": "ev-battery",
         "state": "Neutral"
       },
       {
-        "theme_id": "ev-battery",
-        "state": "Neutral"
+        "theme_id": "clean-energy",
+        "state": "Unavailable"
       }
     ],
     "PMET CN": [
       {
         "theme_id": "battery-materials",
-        "state": "Recovery"
+        "state": "Unavailable"
       }
     ],
     "PNR": [
@@ -8076,7 +8117,7 @@
     "PONY": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "POWL": [
@@ -8098,13 +8139,13 @@
       },
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "PREMIERENE": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "PRIM": [
@@ -8114,7 +8155,7 @@
       },
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "PRME": [
@@ -8138,7 +8179,7 @@
     "PRY.IM": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "PSFE": [
@@ -8184,7 +8225,7 @@
       },
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "PYPL": [
@@ -8199,12 +8240,12 @@
         "state": "Neutral"
       },
       {
-        "theme_id": "grid-modernization",
+        "theme_id": "ev-battery",
         "state": "Neutral"
       },
       {
-        "theme_id": "ev-battery",
-        "state": "Neutral"
+        "theme_id": "grid-modernization",
+        "state": "Unavailable"
       }
     ],
     "QDEL": [
@@ -8290,7 +8331,7 @@
     "RED.SM": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "REGN": [
@@ -8302,7 +8343,7 @@
     "RENE.PL": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "REPL": [
@@ -8314,7 +8355,7 @@
     "REX": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "RGNX": [
@@ -8332,7 +8373,7 @@
     "RIO": [
       {
         "theme_id": "battery-materials",
-        "state": "Recovery"
+        "state": "Unavailable"
       }
     ],
     "RIO LN": [
@@ -8389,12 +8430,12 @@
     ],
     "RNW": [
       {
-        "theme_id": "solar",
-        "state": "Neutral"
+        "theme_id": "clean-energy",
+        "state": "Unavailable"
       },
       {
-        "theme_id": "clean-energy",
-        "state": "Neutral"
+        "theme_id": "solar",
+        "state": "Unavailable"
       }
     ],
     "ROAD": [
@@ -8442,7 +8483,7 @@
     "RR": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "RRX": [
@@ -8460,13 +8501,13 @@
     "RSGN.SE": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "RSW LN": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "RTX": [
@@ -8478,7 +8519,7 @@
     "RUN": [
       {
         "theme_id": "solar",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "RVMD": [
@@ -8513,18 +8554,18 @@
     ],
     "S92": [
       {
-        "theme_id": "solar",
-        "state": "Neutral"
+        "theme_id": "clean-energy",
+        "state": "Unavailable"
       },
       {
-        "theme_id": "clean-energy",
-        "state": "Neutral"
+        "theme_id": "solar",
+        "state": "Unavailable"
       }
     ],
     "S92.GR": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "SAIC": [
@@ -8548,7 +8589,7 @@
     "SAP.GY": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "SARO": [
@@ -8560,7 +8601,7 @@
     "SASK CN": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "SATL": [
@@ -8578,7 +8619,7 @@
     "SCATC": [
       {
         "theme_id": "solar",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "SCCO": [
@@ -8589,28 +8630,28 @@
     ],
     "SEDG": [
       {
-        "theme_id": "solar",
-        "state": "Neutral"
-      },
-      {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       },
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
+      },
+      {
+        "theme_id": "solar",
+        "state": "Unavailable"
       }
     ],
     "SEK": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "SERV": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "SEZL": [
@@ -8628,7 +8669,7 @@
     "SGML": [
       {
         "theme_id": "battery-materials",
-        "state": "Recovery"
+        "state": "Unavailable"
       }
     ],
     "SGMT": [
@@ -8639,12 +8680,12 @@
     ],
     "SHLS": [
       {
-        "theme_id": "solar",
-        "state": "Neutral"
+        "theme_id": "clean-energy",
+        "state": "Unavailable"
       },
       {
-        "theme_id": "clean-energy",
-        "state": "Neutral"
+        "theme_id": "solar",
+        "state": "Unavailable"
       }
     ],
     "SHOP": [
@@ -8662,7 +8703,7 @@
     "SIE.GY": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "SION": [
@@ -8680,13 +8721,13 @@
     "SJ.CT": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "SJVN": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "SLB": [
@@ -8704,7 +8745,7 @@
     "SLI CN": [
       {
         "theme_id": "battery-materials",
-        "state": "Recovery"
+        "state": "Unavailable"
       }
     ],
     "SLNH": [
@@ -8715,12 +8756,12 @@
     ],
     "SLR": [
       {
-        "theme_id": "solar",
-        "state": "Neutral"
+        "theme_id": "clean-energy",
+        "state": "Unavailable"
       },
       {
-        "theme_id": "clean-energy",
-        "state": "Neutral"
+        "theme_id": "solar",
+        "state": "Unavailable"
       }
     ],
     "SLS": [
@@ -8738,7 +8779,7 @@
     "SLX AU": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "SMMT": [
@@ -8750,7 +8791,7 @@
     "SMR": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "SNDX": [
@@ -8780,7 +8821,7 @@
     "SPIE.FP": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "SPRY": [
@@ -8797,12 +8838,12 @@
     ],
     "SQM": [
       {
-        "theme_id": "battery-materials",
-        "state": "Recovery"
-      },
-      {
         "theme_id": "ev-battery",
         "state": "Neutral"
+      },
+      {
+        "theme_id": "battery-materials",
+        "state": "Unavailable"
       }
     ],
     "SRE": [
@@ -8826,7 +8867,7 @@
     "SSE.LN": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "SSNC": [
@@ -8838,7 +8879,7 @@
     "SSW SJ": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "STE": [
@@ -8866,7 +8907,7 @@
       },
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "STMPA FP": [
@@ -8902,13 +8943,13 @@
     "SU.FP": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "SUZLON": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "SVRA": [
@@ -8930,7 +8971,7 @@
     "SYH CN": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "SYK": [
@@ -8942,7 +8983,7 @@
     "SYM": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "SYRE": [
@@ -8954,7 +8995,7 @@
     "TAEE11.BZ": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "TDG": [
@@ -8965,12 +9006,12 @@
     ],
     "TE": [
       {
-        "theme_id": "solar",
-        "state": "Neutral"
+        "theme_id": "clean-energy",
+        "state": "Unavailable"
       },
       {
-        "theme_id": "clean-energy",
-        "state": "Neutral"
+        "theme_id": "solar",
+        "state": "Unavailable"
       }
     ],
     "TEAM": [
@@ -8988,7 +9029,7 @@
     "TECN SW": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "TEMN SW": [
@@ -9114,7 +9155,7 @@
       },
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "TRN": [
@@ -9126,13 +9167,13 @@
     "TRN.IM": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "TRY": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "TSHA": [
@@ -9143,20 +9184,20 @@
     ],
     "TSLA": [
       {
-        "theme_id": "battery-materials",
-        "state": "Recovery"
-      },
-      {
-        "theme_id": "grid-modernization",
-        "state": "Neutral"
-      },
-      {
         "theme_id": "ev-battery",
         "state": "Neutral"
       },
       {
+        "theme_id": "battery-materials",
+        "state": "Unavailable"
+      },
+      {
+        "theme_id": "grid-modernization",
+        "state": "Unavailable"
+      },
+      {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "TSM": [
@@ -9208,7 +9249,7 @@
     "TWD": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "TWLO": [
@@ -9230,7 +9271,7 @@
       },
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "TXT": [
@@ -9248,13 +9289,13 @@
     "U-U CN": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "UEC": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "UMC": [
@@ -9278,7 +9319,7 @@
     "URG": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "URI": [
@@ -9290,17 +9331,17 @@
     "UROY": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "USDPDV": [
       {
-        "theme_id": "solar",
+        "theme_id": "water-infrastructure",
         "state": "Neutral"
       },
       {
-        "theme_id": "water-infrastructure",
-        "state": "Neutral"
+        "theme_id": "solar",
+        "state": "Unavailable"
       }
     ],
     "USLM": [
@@ -9318,7 +9359,7 @@
     "VBK": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "VC": [
@@ -9348,13 +9389,13 @@
     "VER": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "VER.AV": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "VERA": [
@@ -9372,7 +9413,7 @@
     "VGU6": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "VIR": [
@@ -9422,7 +9463,7 @@
       },
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "VNDA": [
@@ -9488,7 +9529,7 @@
     "VUL AU": [
       {
         "theme_id": "battery-materials",
-        "state": "Recovery"
+        "state": "Unavailable"
       }
     ],
     "VVX": [
@@ -9500,13 +9541,13 @@
     "VWS": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "WAAREEENER": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "WAB": [
@@ -9528,7 +9569,7 @@
       },
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "WDAY": [
@@ -9540,7 +9581,7 @@
     "WEGE3.BZ": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "WFFUT": [
@@ -9574,7 +9615,7 @@
     "WLDN": [
       {
         "theme_id": "grid-modernization",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "WLK": [
@@ -9608,7 +9649,7 @@
     "WRD": [
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "WTS": [
@@ -9636,7 +9677,7 @@
     "XE": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "XNCR": [
@@ -9658,7 +9699,7 @@
       },
       {
         "theme_id": "robotics-automation",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "XRO AU": [
@@ -9678,7 +9719,7 @@
       },
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "XYL": [
@@ -9696,7 +9737,7 @@
     "YCA LN": [
       {
         "theme_id": "uranium",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "YORW": [
@@ -9744,7 +9785,7 @@
     "ZOREN.E": [
       {
         "theme_id": "clean-energy",
-        "state": "Neutral"
+        "state": "Unavailable"
       }
     ],
     "ZS": [
@@ -11688,5 +11729,11 @@
       "jaccard": 0.0,
       "review": "normal"
     }
-  ]
+  ],
+  "audit": {
+    "exact_as_of_required": true,
+    "minimum_valid_member_ratio": 0.5,
+    "future_rows_used": false,
+    "state_model": "industry-state-v2"
+  }
 }
