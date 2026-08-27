@@ -14,6 +14,8 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const UI_VERSION = "UI v3.1";
+
 export const metadata: Metadata = {
   title: "Sage Vista — 今日研究总览",
   description: "市场、行业、技术机会与多因子证据的每日研究摘要。",
@@ -51,6 +53,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <div className="siteVersionBar">
+          <b>{`Sage Vista ${UI_VERSION}`}</b>
+          <span>{`Build ${(process.env.GITHUB_SHA ?? "local").slice(0, 7)}`}</span>
+        </div>
         <div className="globalnav">
           <a href="/">今日市场与机会</a>
           <a href="/zh/watch/resonance/macd">个股研究</a>
