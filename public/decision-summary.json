@@ -1,0 +1,85 @@
+{
+  "version": "production-evidence-v1.0.0",
+  "generated_at": "2026-08-27T16:42:51.946258+00:00",
+  "production_status": "awaiting_v2_rescan",
+  "plain_summary": "可用主线是长期趋势＋MACD改善＋等待回撤；避免在上涨但未回撤时追高。行业与大盘仅调整优先级，不单独触发买入。",
+  "usable": [
+    {
+      "name": "日线MACD改善",
+      "role": "核心时机",
+      "verdict": "保留",
+      "metrics": {
+        "samples": 229,
+        "win_rate": 53.71,
+        "profit_factor": 1.651,
+        "expectancy_pct": 3.139,
+        "median_return_pct": null
+      },
+      "note": "2026样本为正，但需与长期趋势和位置同用。"
+    },
+    {
+      "name": "大盘回撤＋MACD修复",
+      "role": "市场优先级",
+      "verdict": "候选使用",
+      "metrics": {
+        "samples": 459,
+        "win_rate": 43.36,
+        "profit_factor": 1.342,
+        "expectancy_pct": 1.725,
+        "median_return_pct": -5.318
+      },
+      "note": "整体有效，2026胜率较低但PF仍大于1；不作硬门槛。"
+    },
+    {
+      "name": "行业ETF回撤到支撑",
+      "role": "行业加分",
+      "verdict": "弱支持",
+      "metrics": {
+        "samples": 104,
+        "win_rate": 42.31,
+        "profit_factor": 1.136,
+        "expectancy_pct": 0.506,
+        "median_return_pct": -4.467
+      },
+      "note": "可用于排序和解释，不能单独决定买入。"
+    }
+  ],
+  "avoid": [
+    {
+      "name": "长期上涨但未回撤",
+      "verdict": "不追高",
+      "metrics": {
+        "samples": 2049,
+        "win_rate": 41.04,
+        "profit_factor": 0.92,
+        "expectancy_pct": -0.48,
+        "median_return_pct": -5.91
+      },
+      "note": "2026利润因子小于1，期望为负。"
+    },
+    {
+      "name": "行业回撤后强制要求MACD修复",
+      "verdict": "不作硬门槛",
+      "metrics": {
+        "samples": 53,
+        "win_rate": 28.3,
+        "profit_factor": 0.604,
+        "expectancy_pct": -1.797,
+        "median_return_pct": -5.465
+      },
+      "note": "2026样本中PF小于1，会过度筛选。"
+    },
+    {
+      "name": "成交量恢复必须命中",
+      "verdict": "样本不足",
+      "metrics": {
+        "samples": 18,
+        "win_rate": 44.44,
+        "profit_factor": 1.216,
+        "expectancy_pct": 0.746,
+        "median_return_pct": -4.449
+      },
+      "note": "只有18个2026样本，仅展示，不影响生产排名。"
+    }
+  ]
+}
