@@ -16,6 +16,7 @@ REPORT_HORIZONS=tuple(sorted(set(HORIZONS+HIGHER_TIMEFRAME_HORIZONS)))
 SPLITS={"development":("0000-01-01","2024-12-31"),"validation":("2025-01-01","2025-12-31"),"forward":("2026-01-01","9999-12-31")}
 REGIME_LABELS={"both_bull":"SPY与QQQ均在EMA200上","mixed":"SPY与QQQ方向不一致","both_bear":"SPY与QQQ均在EMA200下"}
 PATTERN_FACTORS=("长期趋势合格＋日线金叉＋Fibonacci 0.5支撑","长期趋势合格＋日线金叉＋完整筹码密集峰","长期趋势合格＋日线金叉＋Volume Profile筹码峰","长期趋势合格＋日线金叉＋K线聚集区","长期趋势合格＋日线金叉＋底部Doji","长期趋势合格＋日线金叉＋底部Bullish Engulfing","长期趋势合格＋日线金叉＋双底突破","长期趋势合格＋日线金叉＋趋势线三推突破","长期趋势合格＋日线金叉＋RSI底背离")
+CORE_V1_FACTORS=("核心v1：长期趋势＋日线金叉＋有效筹码支撑","核心v1＋双底","核心v1＋更高低点","核心v1＋底部Doji","核心v1＋支撑位看涨吞没","长期趋势＋日线金叉＋FVG50%守住")
 TECHNICAL_CONFIG=load_config()
 
 def adjusted_rows(raw):
@@ -179,6 +180,20 @@ def bullish_fvg_support(rows,end,lookback=250,max_distance=.05):
   if lower<=current and 0<=current/upper-1<=max_distance:return True
  return False
 
+def bullish_fvg_half_sweep_hold(rows,end,lookback=250,tolerance=.02):
+ """Prior bullish FVG is swept to its midpoint, but remains open and closes above 50%."""
+ for j in range(max(2,end-lookback),end-1):
+  lower,upper=rows[j-2]["high"],rows[j]["low"]
+  if lower>=upper:continue
+  midpoint=(lower+upper)/2;subsequent=rows[j+1:end+1]
+  if not subsequent or min(x["low"] for x in subsequent)<=lower:continue
+  current=rows[end];prior=subsequent[:-1]
+  first_midpoint_test=not prior or min(x["low"] for x in prior)>midpoint
+  swept=current["low"]<=midpoint*(1+tolerance) and current["low"]>lower
+  held=current["close"]>=midpoint
+  if first_midpoint_test and swept and held:return True
+ return False
+
 def long_trend_ok(rows,end,long_average=None):
  closes=[x["close"] for x in rows[:end+1]];long_average=long_average or ema(closes,200)
  return end>=260 and closes[end]>=long_average[end]*.90 and long_average[end]>=long_average[end-60]*.97
@@ -211,6 +226,8 @@ def daily_pattern_flags(rows,end,weekly_state=None,ema_curves=None):
   x,prior=rows[j],rows[j-1];bullish=x["close"]>x["open"] and prior["close"]<prior["open"] and x["open"]<=prior["close"] and x["close"]>=prior["open"]
   if bullish and max(x["open"],x["close"])<=bottom_limit:bottom_engulf=True
  congestion=kline_congestion_support(rows,end);volume_peak=volume_profile_support(rows,end);fib=fibonacci_support_levels(rows,end);three_push=recent_three_push_breakout(rows,end);three_push_retest_hit=three_push and three_push_retest(rows,end)
+ confirmed_lows=pivots(window,len(window)-1,TECHNICAL_CONFIG)["lows"]
+ higher_low=len(confirmed_lows)>=2 and confirmed_lows[-1]["price"]>confirmed_lows[-2]["price"]
  current=rows[end]["close"];pullback=current<=max(x["high"] for x in rows[max(0,end-60):end])*.95
  ema_support=any(abs(current/curves[p][end]-1)<=.02 for p in (21,50,200));weekly_improving=bool(weekly_state and weekly_state["histogram_rising"]);fvg_support=bullish_fvg_support(rows,end)
  support_context=bool(fib[.5] or fib[.618] or ema_support or fvg_support or three_push_retest_hit or volume_peak or congestion)
@@ -218,7 +235,9 @@ def daily_pattern_flags(rows,end,weekly_state=None,ema_curves=None):
  core=trend_ok and pullback;score=sum(components.values());multi={"多因子核心":core}
  multi.update({f"多因子组件＋{name}":core and hit for name,hit in components.items()})
  multi.update({f"多因子得分≥{threshold}":core and score>=threshold for threshold in range(1,len(components)+1)})
- return {"日线金叉":True,"长期趋势合格＋日线金叉":trend_ok,"长期趋势合格＋日线金叉＋Fibonacci 0.5支撑":trend_ok and fib[.5],"长期趋势合格＋日线金叉＋完整筹码密集峰":trend_ok and congestion and volume_peak,"长期趋势合格＋日线金叉＋Volume Profile筹码峰":trend_ok and volume_peak,"长期趋势合格＋日线金叉＋K线聚集区":trend_ok and congestion,"长期趋势合格＋日线金叉＋底部Doji":trend_ok and bottom_doji,"长期趋势合格＋日线金叉＋底部Bullish Engulfing":trend_ok and bottom_engulf,"长期趋势合格＋日线金叉＋双底突破":trend_ok and double_bottom,"长期趋势合格＋日线金叉＋趋势线三推突破":trend_ok and three_push,"长期趋势合格＋日线金叉＋RSI底背离":trend_ok and bullish_divergence(window,values),**multi}
+ anchor_support=volume_peak or congestion
+ core_v1=trend_ok and anchor_support
+ return {"日线金叉":True,"长期趋势合格＋日线金叉":trend_ok,"长期趋势合格＋日线金叉＋Fibonacci 0.5支撑":trend_ok and fib[.5],"长期趋势合格＋日线金叉＋完整筹码密集峰":trend_ok and congestion and volume_peak,"长期趋势合格＋日线金叉＋Volume Profile筹码峰":trend_ok and volume_peak,"长期趋势合格＋日线金叉＋K线聚集区":trend_ok and congestion,"长期趋势合格＋日线金叉＋底部Doji":trend_ok and bottom_doji,"长期趋势合格＋日线金叉＋底部Bullish Engulfing":trend_ok and bottom_engulf,"长期趋势合格＋日线金叉＋双底突破":trend_ok and double_bottom,"长期趋势合格＋日线金叉＋趋势线三推突破":trend_ok and three_push,"长期趋势合格＋日线金叉＋RSI底背离":trend_ok and bullish_divergence(window,values),"核心v1：长期趋势＋日线金叉＋有效筹码支撑":core_v1,"核心v1＋双底":core_v1 and double_bottom,"核心v1＋更高低点":core_v1 and higher_low,"核心v1＋底部Doji":core_v1 and bottom_doji,"核心v1＋支撑位看涨吞没":core_v1 and support_bullish_engulfing(rows,end,anchor_support),"长期趋势＋日线金叉＋FVG50%守住":trend_ok and bullish_fvg_half_sweep_hold(rows,end),**multi}
 
 def features(side,d,w,m):
  bullish=lambda x:x["macd_line"]>x["signal_line"]
@@ -364,6 +383,21 @@ def pattern_incremental_report(splits):
   out.append({"factor":factor,"label":factor.replace("长期趋势合格＋日线金叉＋",""),"holding_days":20,"verdict":verdict,"baseline":baseline,"stages":stages,"deltas":deltas})
  return out
 
+def core_model_v1_report(splits):
+ """User-approved hierarchy: trend + MACD event, then chip support, then dependent confirmations."""
+ def find(split,factor,horizon):
+  return next(x for x in splits[split] if x["side"]=="buy" and x["regime"]=="all" and x["factor"]==factor and x["horizon"]==horizon)
+ out=[]
+ for factor in CORE_V1_FACTORS:
+  horizons=[]
+  for horizon in (5,10,20,40):
+   stages={split:find(split,factor,horizon) for split in SPLITS}
+   baseline={split:find(split,"长期趋势合格＋日线金叉",horizon) for split in SPLITS}
+   deltas={split:{"win_rate":round(stages[split]["win_rate"]-baseline[split]["win_rate"],1) if stages[split]["win_rate"] is not None else None,"trimmed_mean_return":round(stages[split]["trimmed_mean_return"]-baseline[split]["trimmed_mean_return"],2) if stages[split]["trimmed_mean_return"] is not None else None,"sample_retention":round(stages[split]["samples"]/baseline[split]["samples"]*100,1)} for split in SPLITS}
+   horizons.append({"horizon":horizon,"stages":stages,"deltas_vs_trend_macd":deltas})
+  out.append({"factor":factor,"horizons":horizons})
+ return {"version":"core-factor-backtest-v1.0.0","baseline":"长期趋势合格＋日线MACD金叉","support_gate":"Volume Profile近似筹码峰 OR K线聚集区","dependency_rule":"双底、更高低点、底部Doji和看涨吞没只有在支撑门成立后才进入统计；底部看涨吞没已合并为支撑位看涨吞没","independent_signal":"Bullish FVG首次回扫50%、未完整回补且收盘守住中线","tests":out}
+
 def multifactor_report(splits):
  components=("Fibonacci支撑","EMA支撑","周线MACD改善","三推趋势线突破","三推突破后回踩确认","上方未补跳空缺口","Bullish FVG支撑")
  def find(split,factor,horizon):
@@ -411,7 +445,7 @@ def run(out="public/macd-factor-backtest.json",limit=None):
  candidates.sort(key=lambda x:(x["status"]=="forward_supportive",x["validation"]["win_rate"],x["validation"]["trimmed_mean_return"],x["validation"]["samples"]),reverse=True)
  bearish_comparison=[x for x in splits["validation"] if x["side"]=="sell" and x["factor"]=="日线零轴上死叉" and x["horizon"]==5]
  trigger_counts={name:sum(x["trigger"]==name for x in events) for name in ("日线","周线","月线")}
- event_status={status:sum(x["listing_status"]==status for x in events) for status in ("active","delisted","unknown")};report={"status":"research_only","execution":"日/周/月信号均在对应K线完整收盘后确认，下一交易日复权开盘价进入；5至120日均指交易日（日K），用于统一比较","lookahead":"周线和月线只在周期完整结束后使用；SPY/QQQ环境只使用信号日已收盘数据","market_regime":{"definition":"分别比较SPY、QQQ收盘价与各自EMA200","labels":REGIME_LABELS},"universe":{"history_files":len(paths),"eligible":loaded,"events":len(events),"trigger_counts":trigger_counts,"listing_status_histories":history_status,"listing_status_events":event_status,"event_filter":"信号日股价≥5美元且成交额≥1000万美元","history_earliest":min(starts),"history_latest":max(ends),"median_daily_bars":round(statistics.median(row_counts))},"pattern_trend_gate":{"plain":"只保留信号日当时长期上涨或横盘的股票","rule":"收盘价不低于EMA200的90%，且EMA200过去60个交易日跌幅不超过3%","future_listing_status_used":False},"splits":splits,"validated_combinations":candidates[:30],"incremental_tests":incremental_report(splits),"monthly_horizon_tests":monthly_horizon_report(splits),"higher_timeframe_support_tests":higher_timeframe_support_report(splits),"pattern_incremental_tests":pattern_incremental_report(splits),"multifactor_tests":multifactor_report(splits),"bearish_regime_comparison":bearish_comparison,"warning":"长持有期事件会重叠，胜率也会受到美股长期上涨漂移影响，不能直接视为独立交易胜率。形态组合只使用信号日当时已经确认的数据，不改变MACD本身。退市身份只用于覆盖审计，不参与信号筛选。"}
+ event_status={status:sum(x["listing_status"]==status for x in events) for status in ("active","delisted","unknown")};report={"status":"research_only","execution":"日/周/月信号均在对应K线完整收盘后确认，下一交易日复权开盘价进入；5至120日均指交易日（日K），用于统一比较","lookahead":"周线和月线只在周期完整结束后使用；SPY/QQQ环境只使用信号日已收盘数据","market_regime":{"definition":"分别比较SPY、QQQ收盘价与各自EMA200","labels":REGIME_LABELS},"universe":{"history_files":len(paths),"eligible":loaded,"events":len(events),"trigger_counts":trigger_counts,"listing_status_histories":history_status,"listing_status_events":event_status,"event_filter":"信号日股价≥5美元且成交额≥1000万美元","history_earliest":min(starts),"history_latest":max(ends),"median_daily_bars":round(statistics.median(row_counts))},"pattern_trend_gate":{"plain":"只保留信号日当时长期上涨或横盘的股票","rule":"收盘价不低于EMA200的90%，且EMA200过去60个交易日跌幅不超过3%","future_listing_status_used":False},"splits":splits,"validated_combinations":candidates[:30],"incremental_tests":incremental_report(splits),"monthly_horizon_tests":monthly_horizon_report(splits),"higher_timeframe_support_tests":higher_timeframe_support_report(splits),"pattern_incremental_tests":pattern_incremental_report(splits),"core_model_v1_tests":core_model_v1_report(splits),"multifactor_tests":multifactor_report(splits),"bearish_regime_comparison":bearish_comparison,"warning":"长持有期事件会重叠，胜率也会受到美股长期上涨漂移影响，不能直接视为独立交易胜率。形态组合只使用信号日当时已经确认的数据，不改变MACD本身。退市身份只用于覆盖审计，不参与信号筛选。"}
  pathlib.Path(out).write_text(json.dumps(report,ensure_ascii=False,indent=2));return report
 
 if __name__=="__main__":
