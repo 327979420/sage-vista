@@ -10,7 +10,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 
-REGISTRY_VERSION = "0.5.0"
+REGISTRY_VERSION = "0.6.0"
 VALID_STATUSES = {"pending", "testing", "rejected", "unstable", "insufficient_sample", "candidate", "validated", "paused"}
 VALID_SCORE_MODES = {"official", "observational", "display_only", "disabled"}
 
@@ -51,6 +51,9 @@ FACTORS = (
     factor("macd.weekly_histogram_improving", "完整周线MACD柱改善", "latest completed weekly histogram > prior completed weekly histogram and prior histogram >= second-prior histogram", "macd", "weekly_completed", "candidate", "observational", 1, "macd_weekly", ("macd-multifactor-score-v1-2026-08-25",), version="1.0.1", factor_type="state", tier="core", experimental_weight=2),
     factor("macd.monthly_bull_cross", "完整月线MACD金叉", "MACD bullish cross on completed month", "macd", "monthly_completed", "candidate", "display_only", 0, "macd_monthly", ("macd-large-cycle-weekly-monthly-2026-08-25",), factor_type="state", tier="auxiliary", experimental_weight=1),
     factor("support.ema_proximity", "EMA21/50/200支撑", "close is within registered tolerance of EMA21, EMA50 or EMA200", "support", status="candidate", score_mode="observational", weight=1, redundancy="moving_average_support", refs=("macd-multifactor-score-v1-2026-08-25",), factor_type="state", tier="core", experimental_weight=2),
+    factor("trend.dual_ma_alignment", "双均线多头排列", "EMA21 > EMA50 and both completed-session moving-average slopes are positive", "trend", status="testing", score_mode="display_only", redundancy="dual_ma_trend", explanation="EMA21位于EMA50上方且两条均线同向上行，仅作为趋势状态记录，暂不计分。", factor_type="state", runtime="definition_required"),
+    factor("trend.dual_ma_fresh_cross", "双均线近期金叉", "EMA21 crossed above EMA50 within the latest 5 completed sessions and remains above", "trend", status="testing", score_mode="display_only", redundancy="dual_ma_trend", explanation="EMA21在最近5个完整交易日内上穿EMA50且当前仍保持在上方，用于研究交叉事件的时效性。", window=5, runtime="definition_required"),
+    factor("structure.dual_ma_pullback_hold", "双均线转多后回踩守住", "after bullish EMA21/EMA50 alignment, price pulls back to EMA21 or EMA50 within registered tolerance and completes a close without losing the tested average", "price_structure", status="testing", score_mode="display_only", redundancy="dual_ma_pullback", explanation="双均线转多后，价格回踩EMA21或EMA50并以完整收盘守住；这是与当前‘长期上涨＋回撤支撑＋MACD改善’主线最匹配的候选。", depends_on=("trend.dual_ma_alignment",), factor_type="event", window=10, runtime="definition_required"),
     factor("support.fibonacci_half", "Fibonacci 0.5支撑", "close within 2% of confirmed swing 0.5 retracement", "support", status="rejected", score_mode="display_only", weight=0, redundancy="fibonacci_support", refs=("macd-rollout-05-fibonacci-half-2026-08-25",), factor_type="state"),
     factor("support.fibonacci_618", "Fibonacci 0.618支撑", "close near confirmed swing 0.618 retracement", "support", status="candidate", score_mode="observational", weight=1, redundancy="fibonacci_support", factor_type="state", tier="auxiliary", experimental_weight=1),
     factor("support.golden_pocket", "Golden Pocket", "close in confirmed swing 0.5 to 0.6182 retracement zone", "support", status="pending", redundancy="fibonacci_support", factor_type="state"),

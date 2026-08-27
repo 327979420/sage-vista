@@ -31,7 +31,7 @@ test("server-renders the Sage Vista application", async () => {
   assert.match(html, /<title>Sage Vista — 今日研究总览<\/title>/i);
   assert.match(html, /SAGE VISTA/i);
   assert.match(html, /今日研究总览/i);
-  assert.match(html, /Sage Vista UI v3\.1/);
+  assert.match(html, /Sage Vista UI v4\.0/);
   assert.match(html, /Build (?:local|[0-9a-f]{7})/);
   assert.doesNotMatch(html, /US Equity Signals|SIGNAL BOARD/i);
   assert.doesNotMatch(html, /DISCORD_WEBHOOK_URL|EODHD_API_TOKEN/i);
