@@ -5,8 +5,8 @@ ROOT=pathlib.Path(__file__).parents[1]
 class UiV2ContractTests(unittest.TestCase):
  def test_home_puts_market_risk_before_stock_research(self):
   text=(ROOT/"app/zh/watch/resonance/page.tsx").read_text()
-  self.assertLess(text.index("marketRiskHero"),text.index("opportunityWorkspace"))
-  for label in ("今天先看风险，再找机会","今日操作倾向","今日多因子机会","个股研究详情","多因子测试排行榜"):
+  self.assertLess(text.index("overviewHero"),text.index("opportunityWorkspace"))
+  for label in ("TODAY&apos;S DECISION","精选机会，不追高","今日先看这些机会","WHY IT RANKS HERE","热点与研究"):
    self.assertIn(label,text)
 
  def test_research_separates_three_evidence_modes(self):

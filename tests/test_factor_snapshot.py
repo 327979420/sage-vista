@@ -29,14 +29,14 @@ class FactorSnapshotTests(unittest.TestCase):
   self.assertEqual(report["eligible_count"],1)
   states=report["symbols"][0]["factors"]
   self.assertEqual([state["factor_id"] for state in states],list(MONITORED_FACTOR_IDS))
-  self.assertEqual(len(states),27)
+  self.assertEqual(len(states),30)
   self.assertTrue(any(not state["hit"] for state in states))
   for state in states:
    self.assertEqual(state["factor_version"],FACTORS_BY_ID[state["factor_id"]].version)
    self.assertEqual(state["as_of"],as_of)
    self.assertFalse(state["lookahead_audit"]["future_data_used"])
   unavailable={state["factor_id"] for state in states if not state["available"]}
-  self.assertEqual(unavailable,{"structure.breakout_retest","volume.pullback_contraction"})
+  self.assertEqual(unavailable,{"structure.breakout_retest","volume.pullback_contraction","trend.dual_ma_alignment","trend.dual_ma_fresh_cross","structure.dual_ma_pullback_hold"})
   self.assertTrue(all(next(state for state in states if state["factor_id"]==factor_id)["runtime_status"]=="definition_required" for factor_id in unavailable))
 
  def test_recent_event_memory_records_actual_date_and_age(self):
