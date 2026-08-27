@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-27T01:08:39.655567+00:00",
+  "generated_at": "2026-08-27T01:21:01.549902+00:00",
   "as_of": "2026-08-26",
   "data_mode": "latest_completed_eod",
   "intraday": {
@@ -10,8 +10,8 @@
   },
   "universe": {
     "source": "所有已有完整历史缓存、且在最新美国市场收盘数据中仍活跃的股票",
-    "cached": 1058,
-    "eligible": 1037,
+    "cached": 1056,
+    "eligible": 1035,
     "filters": "股价不低于5美元，最新单日成交额不低于1000万美元，且至少具有35个月历史"
   },
   "definitions": {
@@ -65589,7 +65589,7 @@
   },
   "consistency_audit": {
     "ruleset_version": "2.1.0",
-    "ranking_digest": "edb16e32e5fa5ae4",
+    "ranking_digest": "e99f408608b68448",
     "overview_uses_same_candidates": true,
     "sub_rankings_use_layer_scores": true,
     "details_cover_all_published": true,

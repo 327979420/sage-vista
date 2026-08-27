@@ -4,13 +4,14 @@
   "provider": "EODHD",
   "source_latest_complete_date": "2026-08-26",
   "tracker_as_of": "2026-08-26",
+  "factor_snapshot_as_of": "2026-08-26",
   "radar_as_of": "2026-08-26",
   "data_dates_match": true,
   "future_data_used": false,
-  "last_successful_update_at": "2026-08-27T01:08:50.585929+00:00",
+  "last_successful_update_at": "2026-08-27T01:30:10.896550+00:00",
   "checks": {
     "provider_date_exact": true,
-    "tracker_radar_same_date": true,
+    "tracker_snapshot_radar_same_date": true,
     "completed_bars_only": true,
     "production_outputs_published_atomically": true
   }

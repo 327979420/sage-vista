@@ -1,8 +1,9 @@
 {
-  "generated_at": "2026-08-27T01:08:50.570262+00:00",
+  "generated_at": "2026-08-27T01:30:10.872701+00:00",
   "as_of": "2026-08-26",
   "status": "research_observation_only",
-  "registry_version": "0.4.0",
+  "registry_version": "0.5.0",
+  "factor_source": "canonical_daily_snapshot",
   "score_policy": {
     "official": "只有已验证因子可进入正式分；当前为0",
     "observational": "候选因子按命中自由组合；强依赖因子必须满足父因子",
@@ -11,7 +12,7 @@
   "policy": "5分为稀有观察，6分或以上为极稀有观察；不是买入信号，不显示为已验证胜率。",
   "scan": {
     "frequency": "每个美国交易日收盘后",
-    "universe_scanned": 1057,
+    "universe_scanned": 1056,
     "minimum_price": 5,
     "minimum_dollar_volume": 10000000,
     "future_data_used": false
@@ -21,28 +22,202 @@
       "symbol": "KMB",
       "date": "2026-08-26",
       "price": 110.34,
-      "level": "极稀有",
+      "level": "稀有",
       "components": [
         "日线MACD近5日金叉",
         "EMA支撑",
-        "三推趋势线突破",
         "三推突破后回踩确认",
         "上方未补跳空缺口",
         "Bullish FVG支撑"
       ],
       "dollar_volume": 435851165,
-      "score": 6,
+      "recent_observations": [
+        {
+          "factor_id": "qualification.long_trend",
+          "name": "长期趋势资格",
+          "presence": "active_now",
+          "bars_since_hit": 0,
+          "latest_hit_date": "2026-08-26",
+          "score_tier": "auxiliary",
+          "contributed_score": true,
+          "evidence": {
+            "close": 110.34,
+            "ema200": 105.93244195810558
+          }
+        },
+        {
+          "factor_id": "qualification.pullback_60d",
+          "name": "距60日高点回调",
+          "presence": "active_now",
+          "bars_since_hit": 0,
+          "latest_hit_date": "2026-08-26",
+          "score_tier": "auxiliary",
+          "contributed_score": true,
+          "evidence": {
+            "prior_60d_high": 116.82
+          }
+        },
+        {
+          "factor_id": "macd.daily_bull_cross",
+          "name": "日线MACD近5日金叉",
+          "presence": "active_now",
+          "bars_since_hit": 1,
+          "latest_hit_date": "2026-08-25",
+          "score_tier": "core",
+          "contributed_score": true,
+          "evidence": {
+            "macd": 0.41073217867156586,
+            "signal": 0.3722196306125467,
+            "freshness_sessions": 5
+          }
+        },
+        {
+          "factor_id": "support.ema_proximity",
+          "name": "EMA21/50/200支撑",
+          "presence": "active_now",
+          "bars_since_hit": 0,
+          "latest_hit_date": "2026-08-26",
+          "score_tier": "core",
+          "contributed_score": true,
+          "evidence": {
+            "distance_by_period": {
+              "21": 0.006283260865490581,
+              "50": 0.022032958278371373,
+              "200": 0.04160725421243039
+            },
+            "tolerance": 0.02
+          }
+        },
+        {
+          "factor_id": "structure.trendline_three_push",
+          "name": "三推趋势线突破",
+          "presence": "recent",
+          "bars_since_hit": 2,
+          "latest_hit_date": "2026-08-24",
+          "score_tier": "display_only",
+          "contributed_score": false,
+          "evidence": {
+            "confirmation": "completed close BOS"
+          }
+        },
+        {
+          "factor_id": "structure.double_bottom",
+          "name": "双底",
+          "presence": "active_now",
+          "bars_since_hit": 0,
+          "latest_hit_date": "2026-08-26",
+          "score_tier": "display_only",
+          "contributed_score": false,
+          "evidence": {
+            "neckline": 110.1
+          }
+        },
+        {
+          "factor_id": "structure.higher_low",
+          "name": "更高低点",
+          "presence": "active_now",
+          "bars_since_hit": 0,
+          "latest_hit_date": "2026-08-26",
+          "score_tier": "display_only",
+          "contributed_score": false,
+          "evidence": {
+            "confirmed_lows": [
+              {
+                "index": 2192,
+                "price": 107.39,
+                "confirmed_index": 2194,
+                "major": true
+              },
+              {
+                "index": 2196,
+                "price": 108.07,
+                "confirmed_index": 2198,
+                "major": true
+              }
+            ]
+          }
+        },
+        {
+          "factor_id": "structure.trendline_three_push_retest",
+          "name": "三推突破后回踩确认",
+          "presence": "active_now",
+          "bars_since_hit": 0,
+          "latest_hit_date": "2026-08-26",
+          "score_tier": "core",
+          "contributed_score": true,
+          "evidence": {
+            "dependency_hits": [
+              "structure.trendline_three_push"
+            ],
+            "lookback_sessions": 10
+          }
+        },
+        {
+          "factor_id": "structure.bullish_fvg_support",
+          "name": "Bullish FVG支撑",
+          "presence": "active_now",
+          "bars_since_hit": 0,
+          "latest_hit_date": "2026-08-26",
+          "score_tier": "core",
+          "contributed_score": true,
+          "evidence": {
+            "lookback_sessions": 250,
+            "max_distance": 0.05
+          }
+        },
+        {
+          "factor_id": "risk.overhead_unfilled_gap",
+          "name": "上方未补跳空缺口",
+          "presence": "active_now",
+          "bars_since_hit": 0,
+          "latest_hit_date": "2026-08-26",
+          "score_tier": "core",
+          "contributed_score": true,
+          "evidence": {
+            "lookback_sessions": 250,
+            "max_distance": 0.15
+          }
+        },
+        {
+          "factor_id": "structure.hammer",
+          "name": "锤头线",
+          "presence": "recent",
+          "bars_since_hit": 1,
+          "latest_hit_date": "2026-08-25",
+          "score_tier": "display_only",
+          "contributed_score": false,
+          "evidence": {
+            "lower_wick_body_ratio": 0.057142857142856274,
+            "close_fraction": 0.050632911392404036
+          }
+        },
+        {
+          "factor_id": "support.close_congestion",
+          "name": "K线聚集区",
+          "presence": "active_now",
+          "bars_since_hit": 0,
+          "latest_hit_date": "2026-08-26",
+          "score_tier": "display_only",
+          "contributed_score": false,
+          "evidence": {
+            "lookback_sessions": 250
+          }
+        }
+      ],
+      "score": 5,
       "official_score": 0,
-      "observational_score": 6,
+      "observational_score": 5,
       "risk_deduction": 0,
-      "total_score": 6,
+      "total_score": 5,
       "factor_ids": [
         "macd.daily_bull_cross",
         "support.ema_proximity",
-        "structure.trendline_three_push",
         "structure.trendline_three_push_retest",
         "risk.overhead_unfilled_gap",
         "structure.bullish_fvg_support"
+      ],
+      "non_scoring_hits": [
+        "三推趋势线突破"
       ],
       "important_misses": [
         "Fibonacci支撑",
@@ -53,357 +228,83 @@
       "category_scores": {
         "MACD": 1,
         "支撑": 1,
-        "价格结构": 3,
-        "量能": 0,
-        "风险／供给": 1
-      },
-      "risks": [
-        "当前动态观察因子尚未完成跨时期组合验证"
-      ]
-    },
-    {
-      "symbol": "GS",
-      "date": "2026-08-26",
-      "price": 1040.46,
-      "level": "稀有",
-      "components": [
-        "日线MACD近5日金叉",
-        "Fibonacci支撑",
-        "EMA支撑",
-        "三推趋势线突破",
-        "Bullish FVG支撑"
-      ],
-      "dollar_volume": 1542173974,
-      "score": 5,
-      "official_score": 0,
-      "observational_score": 5,
-      "risk_deduction": 0,
-      "total_score": 5,
-      "factor_ids": [
-        "macd.daily_bull_cross",
-        "support.fibonacci_half",
-        "support.ema_proximity",
-        "structure.trendline_three_push",
-        "structure.bullish_fvg_support"
-      ],
-      "important_misses": [
-        "支撑位底部放量",
-        "支撑位看涨吞没",
-        "周线MACD改善",
-        "三推突破后回踩确认",
-        "上方未补跳空缺口"
-      ],
-      "category_scores": {
-        "MACD": 1,
-        "支撑": 2,
-        "价格结构": 2,
-        "量能": 0,
-        "风险／供给": 0
-      },
-      "risks": [
-        "当前动态观察因子尚未完成跨时期组合验证"
-      ]
-    },
-    {
-      "symbol": "PG",
-      "date": "2026-08-26",
-      "price": 145,
-      "level": "稀有",
-      "components": [
-        "日线MACD近5日金叉",
-        "Fibonacci支撑",
-        "EMA支撑",
-        "三推趋势线突破",
-        "上方未补跳空缺口"
-      ],
-      "dollar_volume": 1032078825,
-      "score": 5,
-      "official_score": 0,
-      "observational_score": 5,
-      "risk_deduction": 0,
-      "total_score": 5,
-      "factor_ids": [
-        "macd.daily_bull_cross",
-        "support.fibonacci_half",
-        "support.ema_proximity",
-        "structure.trendline_three_push",
-        "risk.overhead_unfilled_gap"
-      ],
-      "important_misses": [
-        "支撑位底部放量",
-        "支撑位看涨吞没",
-        "周线MACD改善",
-        "三推突破后回踩确认",
-        "Bullish FVG支撑"
-      ],
-      "category_scores": {
-        "MACD": 1,
-        "支撑": 2,
-        "价格结构": 1,
-        "量能": 0,
-        "风险／供给": 1
-      },
-      "risks": [
-        "当前动态观察因子尚未完成跨时期组合验证"
-      ]
-    },
-    {
-      "symbol": "MO",
-      "date": "2026-08-26",
-      "price": 69.12,
-      "level": "稀有",
-      "components": [
-        "日线MACD近5日金叉",
-        "Fibonacci支撑",
-        "EMA支撑",
-        "上方未补跳空缺口",
-        "Bullish FVG支撑"
-      ],
-      "dollar_volume": 428858220,
-      "score": 5,
-      "official_score": 0,
-      "observational_score": 5,
-      "risk_deduction": 0,
-      "total_score": 5,
-      "factor_ids": [
-        "macd.daily_bull_cross",
-        "support.fibonacci_half",
-        "support.ema_proximity",
-        "risk.overhead_unfilled_gap",
-        "structure.bullish_fvg_support"
-      ],
-      "important_misses": [
-        "支撑位底部放量",
-        "支撑位看涨吞没",
-        "周线MACD改善",
-        "三推趋势线突破",
-        "三推突破后回踩确认"
-      ],
-      "category_scores": {
-        "MACD": 1,
-        "支撑": 2,
-        "价格结构": 1,
-        "量能": 0,
-        "风险／供给": 1
-      },
-      "risks": [
-        "当前动态观察因子尚未完成跨时期组合验证"
-      ]
-    },
-    {
-      "symbol": "RIVN",
-      "date": "2026-08-26",
-      "price": 16.33,
-      "level": "稀有",
-      "components": [
-        "日线MACD近5日金叉",
-        "EMA支撑",
-        "三推趋势线突破",
-        "三推突破后回踩确认",
-        "Bullish FVG支撑"
-      ],
-      "dollar_volume": 311075951,
-      "score": 5,
-      "official_score": 0,
-      "observational_score": 5,
-      "risk_deduction": 0,
-      "total_score": 5,
-      "factor_ids": [
-        "macd.daily_bull_cross",
-        "support.ema_proximity",
-        "structure.trendline_three_push",
-        "structure.trendline_three_push_retest",
-        "structure.bullish_fvg_support"
-      ],
-      "important_misses": [
-        "Fibonacci支撑",
-        "支撑位底部放量",
-        "支撑位看涨吞没",
-        "周线MACD改善",
-        "上方未补跳空缺口"
-      ],
-      "category_scores": {
-        "MACD": 1,
-        "支撑": 1,
-        "价格结构": 3,
-        "量能": 0,
-        "风险／供给": 0
-      },
-      "risks": [
-        "当前动态观察因子尚未完成跨时期组合验证"
-      ]
-    },
-    {
-      "symbol": "BTI",
-      "date": "2026-08-26",
-      "price": 57.44,
-      "level": "稀有",
-      "components": [
-        "日线MACD近5日金叉",
-        "Fibonacci支撑",
-        "EMA支撑",
-        "上方未补跳空缺口",
-        "Bullish FVG支撑"
-      ],
-      "dollar_volume": 207997650,
-      "score": 5,
-      "official_score": 0,
-      "observational_score": 5,
-      "risk_deduction": 0,
-      "total_score": 5,
-      "factor_ids": [
-        "macd.daily_bull_cross",
-        "support.fibonacci_half",
-        "support.ema_proximity",
-        "risk.overhead_unfilled_gap",
-        "structure.bullish_fvg_support"
-      ],
-      "important_misses": [
-        "支撑位底部放量",
-        "支撑位看涨吞没",
-        "周线MACD改善",
-        "三推趋势线突破",
-        "三推突破后回踩确认"
-      ],
-      "category_scores": {
-        "MACD": 1,
-        "支撑": 2,
-        "价格结构": 1,
-        "量能": 0,
-        "风险／供给": 1
-      },
-      "risks": [
-        "当前动态观察因子尚未完成跨时期组合验证"
-      ]
-    },
-    {
-      "symbol": "BTSG",
-      "date": "2026-08-26",
-      "price": 61.35,
-      "level": "稀有",
-      "components": [
-        "日线MACD近5日金叉",
-        "Fibonacci支撑",
-        "EMA支撑",
-        "支撑位看涨吞没",
-        "三推趋势线突破"
-      ],
-      "dollar_volume": 156431641,
-      "score": 5,
-      "official_score": 0,
-      "observational_score": 5,
-      "risk_deduction": 0,
-      "total_score": 5,
-      "factor_ids": [
-        "macd.daily_bull_cross",
-        "support.fibonacci_half",
-        "support.ema_proximity",
-        "structure.support_bullish_engulfing",
-        "structure.trendline_three_push"
-      ],
-      "important_misses": [
-        "支撑位底部放量",
-        "周线MACD改善",
-        "三推突破后回踩确认",
-        "上方未补跳空缺口",
-        "Bullish FVG支撑"
-      ],
-      "category_scores": {
-        "MACD": 1,
-        "支撑": 2,
-        "价格结构": 2,
-        "量能": 0,
-        "风险／供给": 0
-      },
-      "risks": [
-        "当前动态观察因子尚未完成跨时期组合验证"
-      ]
-    },
-    {
-      "symbol": "UDR",
-      "date": "2026-08-26",
-      "price": 37.93,
-      "level": "稀有",
-      "components": [
-        "日线MACD近5日金叉",
-        "EMA支撑",
-        "三推趋势线突破",
-        "上方未补跳空缺口",
-        "Bullish FVG支撑"
-      ],
-      "dollar_volume": 143618797,
-      "score": 5,
-      "official_score": 0,
-      "observational_score": 5,
-      "risk_deduction": 0,
-      "total_score": 5,
-      "factor_ids": [
-        "macd.daily_bull_cross",
-        "support.ema_proximity",
-        "structure.trendline_three_push",
-        "risk.overhead_unfilled_gap",
-        "structure.bullish_fvg_support"
-      ],
-      "important_misses": [
-        "Fibonacci支撑",
-        "支撑位底部放量",
-        "支撑位看涨吞没",
-        "周线MACD改善",
-        "三推突破后回踩确认"
-      ],
-      "category_scores": {
-        "MACD": 1,
-        "支撑": 1,
         "价格结构": 2,
         "量能": 0,
         "风险／供给": 1
       },
       "risks": [
         "当前动态观察因子尚未完成跨时期组合验证"
-      ]
-    },
-    {
-      "symbol": "NYT",
-      "date": "2026-08-26",
-      "price": 68.42,
-      "level": "稀有",
-      "components": [
-        "日线MACD近5日金叉",
-        "Fibonacci支撑",
-        "EMA支撑",
-        "上方未补跳空缺口",
-        "Bullish FVG支撑"
       ],
-      "dollar_volume": 131615449,
-      "score": 5,
-      "official_score": 0,
-      "observational_score": 5,
-      "risk_deduction": 0,
-      "total_score": 5,
-      "factor_ids": [
-        "macd.daily_bull_cross",
-        "support.fibonacci_half",
-        "support.ema_proximity",
-        "risk.overhead_unfilled_gap",
-        "structure.bullish_fvg_support"
+      "experimental_observational_score": 12,
+      "experimental_core_score": 10,
+      "experimental_auxiliary_score": 2,
+      "score_contributions": [
+        {
+          "factor_id": "macd.daily_bull_cross",
+          "tier": "core",
+          "weight": 2,
+          "redundancy_group": "macd_daily"
+        },
+        {
+          "factor_id": "qualification.long_trend",
+          "tier": "auxiliary",
+          "weight": 1,
+          "redundancy_group": "trend_qualification"
+        },
+        {
+          "factor_id": "qualification.pullback_60d",
+          "tier": "auxiliary",
+          "weight": 1,
+          "redundancy_group": "pullback"
+        },
+        {
+          "factor_id": "risk.overhead_unfilled_gap",
+          "tier": "core",
+          "weight": 2,
+          "redundancy_group": "overhead_supply"
+        },
+        {
+          "factor_id": "structure.bullish_fvg_support",
+          "tier": "core",
+          "weight": 2,
+          "redundancy_group": "imbalance_support"
+        },
+        {
+          "factor_id": "structure.trendline_three_push_retest",
+          "tier": "core",
+          "weight": 2,
+          "redundancy_group": "trendline_breakout"
+        },
+        {
+          "factor_id": "support.ema_proximity",
+          "tier": "core",
+          "weight": 2,
+          "redundancy_group": "moving_average_support"
+        }
       ],
-      "important_misses": [
-        "支撑位底部放量",
-        "支撑位看涨吞没",
-        "周线MACD改善",
-        "三推趋势线突破",
-        "三推突破后回踩确认"
+      "non_scoring_observations": [
+        {
+          "factor_id": "structure.double_bottom",
+          "reason": "rejected"
+        },
+        {
+          "factor_id": "structure.hammer",
+          "reason": "display_only"
+        },
+        {
+          "factor_id": "structure.higher_low",
+          "reason": "display_only"
+        },
+        {
+          "factor_id": "structure.trendline_three_push",
+          "reason": "unstable"
+        },
+        {
+          "factor_id": "support.close_congestion",
+          "reason": "rejected"
+        }
       ],
-      "category_scores": {
-        "MACD": 1,
-        "支撑": 2,
-        "价格结构": 1,
-        "量能": 0,
-        "风险／供给": 1
-      },
-      "risks": [
-        "当前动态观察因子尚未完成跨时期组合验证"
-      ]
+      "redundancy_policy": "maximum contribution per redundancy_group"
     },
     {
       "symbol": "AGCO",
@@ -418,6 +319,180 @@
         "Bullish FVG支撑"
       ],
       "dollar_volume": 98188865,
+      "recent_observations": [
+        {
+          "factor_id": "qualification.long_trend",
+          "name": "长期趋势资格",
+          "presence": "active_now",
+          "bars_since_hit": 0,
+          "latest_hit_date": "2026-08-26",
+          "score_tier": "auxiliary",
+          "contributed_score": true,
+          "evidence": {
+            "close": 111.56,
+            "ema200": 111.94428207203156
+          }
+        },
+        {
+          "factor_id": "qualification.pullback_60d",
+          "name": "距60日高点回调",
+          "presence": "active_now",
+          "bars_since_hit": 0,
+          "latest_hit_date": "2026-08-26",
+          "score_tier": "auxiliary",
+          "contributed_score": true,
+          "evidence": {
+            "prior_60d_high": 124.15432627920137
+          }
+        },
+        {
+          "factor_id": "macd.daily_bull_cross",
+          "name": "日线MACD近5日金叉",
+          "presence": "active_now",
+          "bars_since_hit": 4,
+          "latest_hit_date": "2026-08-20",
+          "score_tier": "core",
+          "contributed_score": true,
+          "evidence": {
+            "macd": -0.7598569087722638,
+            "signal": -2.3691023832517746,
+            "freshness_sessions": 5
+          }
+        },
+        {
+          "factor_id": "support.ema_proximity",
+          "name": "EMA21/50/200支撑",
+          "presence": "active_now",
+          "bars_since_hit": 0,
+          "latest_hit_date": "2026-08-26",
+          "score_tier": "core",
+          "contributed_score": true,
+          "evidence": {
+            "distance_by_period": {
+              "21": 0.048881164027339,
+              "50": 0.02139757589501423,
+              "200": -0.00343279768219229
+            },
+            "tolerance": 0.02
+          }
+        },
+        {
+          "factor_id": "structure.bullish_fvg_support",
+          "name": "Bullish FVG支撑",
+          "presence": "active_now",
+          "bars_since_hit": 0,
+          "latest_hit_date": "2026-08-26",
+          "score_tier": "core",
+          "contributed_score": true,
+          "evidence": {
+            "lookback_sessions": 250,
+            "max_distance": 0.05
+          }
+        },
+        {
+          "factor_id": "risk.overhead_unfilled_gap",
+          "name": "上方未补跳空缺口",
+          "presence": "active_now",
+          "bars_since_hit": 0,
+          "latest_hit_date": "2026-08-26",
+          "score_tier": "core",
+          "contributed_score": true,
+          "evidence": {
+            "lookback_sessions": 250,
+            "max_distance": 0.15
+          }
+        },
+        {
+          "factor_id": "rsi.bullish_divergence",
+          "name": "RSI底背离",
+          "presence": "active_now",
+          "bars_since_hit": 0,
+          "latest_hit_date": "2026-08-26",
+          "score_tier": "display_only",
+          "contributed_score": false,
+          "evidence": {
+            "confirmed_lows": [
+              {
+                "index": 2187,
+                "price": 99.11010446118766,
+                "confirmed_index": 2189,
+                "major": true
+              },
+              {
+                "index": 2194,
+                "price": 98.22,
+                "confirmed_index": 2196,
+                "major": true
+              }
+            ],
+            "rsi": 58.20572280907621
+          }
+        },
+        {
+          "factor_id": "volume.relative_expansion",
+          "name": "成交量突然放大",
+          "presence": "recent",
+          "bars_since_hit": 1,
+          "latest_hit_date": "2026-08-25",
+          "score_tier": "display_only",
+          "contributed_score": false,
+          "evidence": {
+            "ratio": 0.859592056500727,
+            "threshold": 1.5
+          }
+        },
+        {
+          "factor_id": "structure.bottom_bullish_engulfing",
+          "name": "底部看涨吞没",
+          "presence": "recent",
+          "bars_since_hit": 4,
+          "latest_hit_date": "2026-08-20",
+          "score_tier": "display_only",
+          "contributed_score": false,
+          "evidence": {
+            "bottom_limit": 106.00029788376041,
+            "macd_cross_required": true,
+            "candle_lookback": 5
+          }
+        },
+        {
+          "factor_id": "structure.support_bullish_engulfing",
+          "name": "支撑位看涨吞没",
+          "presence": "active_now",
+          "bars_since_hit": 0,
+          "latest_hit_date": "2026-08-26",
+          "score_tier": "core",
+          "contributed_score": true,
+          "evidence": {
+            "support_context": true
+          }
+        },
+        {
+          "factor_id": "structure.hammer",
+          "name": "锤头线",
+          "presence": "active_now",
+          "bars_since_hit": 0,
+          "latest_hit_date": "2026-08-26",
+          "score_tier": "display_only",
+          "contributed_score": false,
+          "evidence": {
+            "lower_wick_body_ratio": 2.099999999999974,
+            "close_fraction": 0.6900684931506847
+          }
+        },
+        {
+          "factor_id": "support.close_congestion",
+          "name": "K线聚集区",
+          "presence": "active_now",
+          "bars_since_hit": 0,
+          "latest_hit_date": "2026-08-26",
+          "score_tier": "display_only",
+          "contributed_score": false,
+          "evidence": {
+            "lookback_sessions": 250
+          }
+        }
+      ],
       "score": 5,
       "official_score": 0,
       "observational_score": 5,
@@ -430,6 +505,7 @@
         "risk.overhead_unfilled_gap",
         "structure.bullish_fvg_support"
       ],
+      "non_scoring_hits": [],
       "important_misses": [
         "Fibonacci支撑",
         "支撑位底部放量",
@@ -446,7 +522,77 @@
       },
       "risks": [
         "当前动态观察因子尚未完成跨时期组合验证"
-      ]
+      ],
+      "experimental_observational_score": 12,
+      "experimental_core_score": 10,
+      "experimental_auxiliary_score": 2,
+      "score_contributions": [
+        {
+          "factor_id": "macd.daily_bull_cross",
+          "tier": "core",
+          "weight": 2,
+          "redundancy_group": "macd_daily"
+        },
+        {
+          "factor_id": "qualification.long_trend",
+          "tier": "auxiliary",
+          "weight": 1,
+          "redundancy_group": "trend_qualification"
+        },
+        {
+          "factor_id": "qualification.pullback_60d",
+          "tier": "auxiliary",
+          "weight": 1,
+          "redundancy_group": "pullback"
+        },
+        {
+          "factor_id": "risk.overhead_unfilled_gap",
+          "tier": "core",
+          "weight": 2,
+          "redundancy_group": "overhead_supply"
+        },
+        {
+          "factor_id": "structure.bullish_fvg_support",
+          "tier": "core",
+          "weight": 2,
+          "redundancy_group": "imbalance_support"
+        },
+        {
+          "factor_id": "structure.support_bullish_engulfing",
+          "tier": "core",
+          "weight": 2,
+          "redundancy_group": "support_candle_confirmation"
+        },
+        {
+          "factor_id": "support.ema_proximity",
+          "tier": "core",
+          "weight": 2,
+          "redundancy_group": "moving_average_support"
+        }
+      ],
+      "non_scoring_observations": [
+        {
+          "factor_id": "rsi.bullish_divergence",
+          "reason": "unstable"
+        },
+        {
+          "factor_id": "structure.bottom_bullish_engulfing",
+          "reason": "rejected"
+        },
+        {
+          "factor_id": "structure.hammer",
+          "reason": "display_only"
+        },
+        {
+          "factor_id": "support.close_congestion",
+          "reason": "rejected"
+        },
+        {
+          "factor_id": "volume.relative_expansion",
+          "reason": "display_only"
+        }
+      ],
+      "redundancy_policy": "maximum contribution per redundancy_group"
     }
   ],
   "historical_examples": [
