@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0.0",
-  "generated_at": "2026-08-27T13:44:32.124509+00:00",
+  "generated_at": "2026-08-27T14:26:46.173739+00:00",
   "source": "research/experiments.jsonl",
-  "experiment_count": 16,
+  "experiment_count": 17,
   "policy": {
     "append_only": true,
     "failed_results_preserved": true,
@@ -387,6 +387,31 @@
         "no fees or quote-level slippage",
         "stop-loss and take-profit grid is not included in this first event-study stage"
       ]
+    },
+    {
+      "experiment_id": "full-line-backtest-v1.0.2-2026-08-28",
+      "created_at": "2026-08-28T00:45:00+10:00",
+      "status": "completed_research_only",
+      "change": "Run full P/L replay for strict rising long trend plus completed daily MACD bullish crosses; compare support minus 5%/10% stops, 1.5R/2R targets, market regimes, relative and cross-sectional volume heat, Magnificent 7, chip support, and direct theme-ETF price/volume hotspots.",
+      "coverage": "1,454 cached histories; 52,569 stock events and 208,966 stop/target scenarios; 1,380 non-clustered theme ETF hotspot events; development through 2024, 2025 validation, 2026 forward observation",
+      "specification": {
+        "entry": "next adjusted open",
+        "stock_exit": "support minus 5% or 10%; 1.5R or 2R target; 40-session time exit; same-bar stop first",
+        "market": "SPY and QQQ point-in-time trend plus MACD",
+        "heat": "signal-day dollar-volume percentile and volume versus prior 20 sessions",
+        "industry_hotspot": "ETF close above EMA20 above EMA50 above EMA200, rising EMA200, relative volume at least 1.5, and 20-day return above SPY",
+        "membership_policy": "current ETF constituents were not backfilled historically"
+      },
+      "result": "All four stock exit grids had positive profit factor and 1% trimmed expectancy overall and in each time split, but 2026 win rates and medians weakened. The 10%-buffer/2R grid returned PF 1.366/1.455/1.231 and trimmed expectancy 1.435%/2.085%/1.206% across development/2025/2026, while 2026 median was -0.707%. Risk-Off was near flat in development; Neutral outperformed the fixed Risk-On definition, so the market label is informative but not a validated hard gate. Relative volume >=2x improved development and 2025, but 2026 median was -2.339%, so it is a visibility candidate, not a score. Top-dollar-volume signal buckets underperformed the remaining signals and do not constitute alpha. Magnificent 7 was strong in development and 2025 but failed in 2026 with only 22 samples. Chip support stayed positive by trimmed expectancy in all three periods, though 2025 median was slightly negative. Theme ETF hotspots were positive in development and 2025 but failed in 2026: PF 0.630, trimmed expectancy -2.362%, median -2.214% on 70 events. Semiconductors and grid modernization were positive in all periods, but recent samples were too small to validate.",
+      "decision": "Do not change production weights. Retain 5% and 10% support buffers plus 1.5R/2R as research grids; do not select a winner post hoc. Use Risk-Off as a caution flag rather than requiring Risk-On. Show high dollar volume for liquidity/attention only. Continue relative-volume >=2x, chip support, semiconductors and grid modernization as research candidates. Redesign industry heat to include constituent volume breadth and pullback/support position before retesting; begin forward stock-theme linkage from the dated 2026-08-26 membership snapshot.",
+      "known_limitations": [
+        "signals overlap and this is not a capital-constrained portfolio",
+        "partial delisted coverage and data-provider corporate-action anomalies remain",
+        "raw MFE is not used for decisions; median and 1% trimmed realised returns are reported",
+        "historical stock-theme linkage is omitted because reliable point-in-time ETF membership is unavailable",
+        "fees, spread and quote-level slippage are excluded",
+        "recent per-theme samples are small"
+      ]
     }
   ],
   "factor_experiments": {
@@ -448,6 +473,7 @@
   },
   "unlinked_experiment_ids": [
     "core-factor-backtest-v1.0.0-2026-08-27",
+    "full-line-backtest-v1.0.2-2026-08-28",
     "macd-rollout-04-double-chip-confirmation-2026-08-25",
     "research-v0.1.0-2026-08-17",
     "research-v0.2.0-2026-08-17",
