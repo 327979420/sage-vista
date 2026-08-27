@@ -1,7 +1,7 @@
 {
   "as_of": "2026-08-26",
-  "generated_at": "2026-08-27T04:04:45.665259+00:00",
-  "membership_version": "themes-2026-08-26",
+  "generated_at": "2026-08-27T04:53:16.587728+00:00",
+  "membership_version": "themes-2026-08-26-v2",
   "membership_effective_from": "2026-08-26",
   "future_data_used": false,
   "historical_membership_safe": true,
@@ -16,35 +16,59 @@
   "price_data_audit": {
     "provider": "EODHD",
     "requested_tickers": [
+      "000155",
+      "000537",
+      "000591",
       "000720 KS",
+      "001440.KS",
+      "002129",
       "002176 C2",
       "002371 C2",
+      "002459",
       "002460 C2",
       "002466 C2",
+      "002487",
+      "002506",
+      "002531",
+      "002610",
       "002709 C2",
       "002738 C2",
       "002747 C2",
       "002812 C2",
+      "002865",
       "006360 KS",
       "006400 KS",
+      "006400.KS",
+      "010120.KS",
       "011790 KS",
       "028260 KS",
       "034020 KS",
       "047040 KS",
       "052690 KS",
       "060250 KS",
+      "062040.KS",
       "066970 KS",
       "090360 KS",
+      "103590.KS",
       "108490 KS",
+      "112610",
       "1164 HK",
       "1208 HK",
       "1211 HK",
+      "1211.HK",
       "1258 HK",
       "1316 HK",
+      "1407",
+      "1503.TT",
+      "1513.TT",
+      "1514.TT",
       "1515 JP",
+      "1519.TT",
+      "1609.TT",
       "1611 HK",
       "175 HK",
       "1772 HK",
+      "1798",
       "1810 HK",
       "2015 HK",
       "204320 KS",
@@ -52,53 +76,118 @@
       "2121 HK",
       "2200963D",
       "2200964D",
+      "2208",
       "2252 HK",
+      "229640.KS",
       "2324825D AU",
+      "2371.TT",
+      "2395.TT",
+      "2406",
       "2431 HK",
       "2432 HK",
       "247540 KS",
       "2498 HK",
       "2533 HK",
       "2598 HK",
+      "267260.KS",
       "277810 KS",
       "2899 HK",
+      "298040.KS",
       "300014 C2",
       "300024 C2",
+      "300118",
       "300124 C2",
+      "300140",
       "300207 C2",
+      "300393",
+      "300443",
       "300450 C2",
+      "300724",
       "300750 C2",
+      "300751",
       "300757 C2",
+      "300763",
+      "300772",
+      "301155",
+      "322000",
+      "336260",
+      "3393.HK",
+      "3576",
       "358 HK",
       "373220 KS",
+      "3750.HK",
       "377300 KS",
+      "3800",
+      "3868",
       "388720 KS",
       "3939 HK",
       "454910 KS",
       "455900 KS",
+      "4704.JP",
+      "5074",
       "5301 JP",
+      "5333.JP",
       "5711 JP",
       "5713 JP",
+      "5801.JP",
+      "5802.JP",
+      "5803.JP",
+      "600025",
+      "600032",
+      "600116",
+      "600236",
+      "600674",
+      "600732",
+      "600821",
+      "600900",
+      "600905",
+      "600995",
+      "601012",
+      "601016",
+      "601615",
+      "601619",
       "603659 C1",
       "6104 JP",
+      "6244",
       "6258 JP",
       "6273 JP",
       "6285 TT",
       "6383 JP",
+      "6409.TT",
+      "6443",
+      "6501.JP",
+      "6503.JP",
+      "6504.JP",
       "6506 JP",
+      "6508.JP",
       "6526 JP",
       "6600 HK",
+      "6617.JP",
+      "6622.JP",
+      "6644.JP",
       "6645 JP",
       "666 HK",
       "6674 JP",
+      "6674.JP",
+      "6723.JP",
       "6752 JP",
+      "6752.JP",
       "6762 JP",
       "6763 TT",
       "6781 TT",
+      "6845.JP",
       "6861 JP",
+      "6865",
+      "688032",
       "688165 C1",
       "688169 C1",
+      "688223",
       "688297 C1",
+      "688349",
+      "688390",
+      "688472",
+      "688516",
+      "688599",
       "6902 JP",
       "6954 JP",
       "7011 JP",
@@ -107,16 +196,24 @@
       "7722 TT",
       "8001 JP",
       "863 HK",
+      "916",
+      "9502",
+      "9519",
       "9660 HK",
+      "968",
       "9696 HK",
       "9880 HK",
       "9923 HK",
       "9927 HK",
+      "9958",
       "9959 HK",
+      "A",
       "AA",
       "ABBN SW",
+      "ABBN.SW",
       "ABBV",
       "ABSI",
+      "ABT",
       "ABTC",
       "ABUS",
       "ACA",
@@ -125,67 +222,114 @@
       "ACHV",
       "ACIW",
       "ACM",
+      "ACN",
+      "ADBE",
       "ADE GR",
+      "ADI",
       "ADMA",
       "ADYEN NA",
       "AEC CN",
       "AEE AU",
+      "AEIS",
+      "AES",
       "AEU AU",
       "AEVA",
       "AFRM",
       "AGE AU",
       "AGIO",
+      "AGPXX",
       "AGX",
       "AIR",
+      "AKAM",
+      "ALAB",
       "ALB",
+      "ALFEN.NA",
       "ALGM",
       "ALKS",
       "ALLO",
       "ALNY",
       "ALS CN",
       "ALT",
+      "ALUP11.BZ",
       "AMAK AB",
+      "AMAT",
       "AMBA",
+      "AMD",
       "AMG NA",
       "AMGN",
       "AMPX",
       "AMRZ",
+      "AMSC",
+      "AMZN",
       "ANAB",
+      "ANE",
+      "ANET",
+      "ANGO",
       "ANNX",
       "ANTO LN",
+      "AORT",
+      "AOS",
       "APA",
       "APGE",
       "APLD",
+      "APP",
+      "APPF",
       "APPN",
+      "APTV",
       "ARDX",
       "ARE CN",
       "ARG CN",
+      "ARM",
       "ARN CN",
       "ARQT",
+      "ARRY",
       "ARWR",
+      "ASAN",
+      "ASML",
       "ASN AU",
       "ASTE",
+      "ASTOR.TI",
+      "ASX",
+      "ATEC",
+      "ATEN",
       "ATI",
       "ATKR",
+      "ATO.FP",
+      "ATRC",
       "ATRO",
       "ATS CN",
       "ATYM LN",
       "AUR",
+      "AURE3",
       "AUTO NO",
       "AVAV",
       "AVBP",
+      "AVGO",
       "AVTX",
+      "AWK",
+      "AWR",
+      "AXGN",
       "AXON",
       "AYI",
+      "AZZ",
       "BA",
+      "BAH",
+      "BAX",
       "BB",
       "BBIO",
+      "BBNX",
       "BBOT",
       "BCAX",
+      "BCPG-R",
       "BCRX",
+      "BDC",
+      "BDX",
       "BE",
       "BEAM",
+      "BEAN.SE",
+      "BEPC",
       "BETA",
+      "BFLY",
       "BHP AU",
       "BHVN",
       "BIDU",
@@ -193,8 +337,11 @@
       "BILL",
       "BKKT",
       "BKR",
+      "BKW.SW",
       "BKY SM",
+      "BL",
       "BLDR",
+      "BLKB",
       "BLND",
       "BLSH",
       "BMI",
@@ -203,6 +350,11 @@
       "BMRN",
       "BOE AU",
       "BOL SS",
+      "BOX",
+      "BREN",
+      "BRL",
+      "BSX",
+      "BSY",
       "BTBT",
       "BTCS",
       "BTDR",
@@ -210,6 +362,7 @@
       "BVR AU",
       "BWXT",
       "CABA",
+      "CAD",
       "CADL",
       "CALX",
       "CAN",
@@ -222,76 +375,138 @@
       "CDNA",
       "CDRE",
       "CELC",
+      "CEN",
+      "CENER.GA",
       "CENX",
       "CGEM",
       "CGNX",
       "CGON",
+      "CHF",
+      "CHKP",
       "CIFR",
       "CLDX",
       "CLF",
+      "CLP",
       "CLSK",
       "CMC",
       "CMCO",
       "CMPX",
+      "CNH",
       "CNL CN",
+      "CNM",
+      "CNMD",
+      "CNY",
       "COGT",
       "COHR",
       "COIN",
       "COP",
       "CORZ",
+      "CPFE3",
+      "CPLE3.BZ",
       "CR",
       "CRCL",
+      "CRDO",
       "CRH",
+      "CRM",
       "CRNC",
       "CRS",
       "CRSP",
       "CRVS",
+      "CRWD",
+      "CRWV",
       "CS CN",
+      "CSCO",
+      "CSIQ",
       "CSL",
       "CSW",
       "CSX",
       "CTMX",
       "CTOS",
       "CTRI",
+      "CVLT",
       "CVV CN",
       "CVX",
       "CW",
+      "CWCO",
+      "CWEN",
+      "CWENE",
+      "CWENE.E",
+      "CWR",
+      "CWT",
       "CXU AU",
       "CYTK",
+      "DBX",
       "DCH",
       "DCO",
+      "DDOG",
       "DE",
+      "DELL",
+      "DGII",
+      "DKK",
       "DLO",
       "DML CN",
       "DMRA",
       "DNLI",
       "DNOW",
       "DNTH",
+      "DOCN",
+      "DOCU",
+      "DORL",
+      "DQ",
       "DRS",
+      "DT",
       "DVN",
       "DVP AU",
+      "DXCM",
       "DXPE",
       "DY",
       "DYL AU",
       "DYN",
+      "EA.R",
       "EBS",
       "ECG",
+      "ECL",
+      "EDP",
+      "EDP.PL",
+      "EDPR",
       "EFR CN",
+      "EGIE3",
       "EH",
       "EL8 AU",
+      "ELI.BB",
       "ELV AU",
       "EME",
       "EMR",
+      "ENEL.IM",
+      "ENELAM",
+      "ENGI.FP",
+      "ENGI11",
+      "ENGI11.BZ",
+      "ENLT",
+      "ENOV",
+      "ENPH",
+      "ENRG",
       "ENS",
+      "ENTG",
+      "EOAN.GY",
       "EOG",
       "EQT",
+      "EQTL3",
+      "EQTL3.BZ",
       "ERA FP",
       "ERAS",
+      "ERG",
+      "ERII",
       "ERO CN",
+      "ESE",
+      "ESTC",
+      "ESU6",
       "ETN",
       "ETOR",
       "EU CN",
+      "EUR",
       "EUR AU",
+      "EW",
       "EXA FP",
       "EXE",
       "EXEL",
@@ -304,63 +519,103 @@
       "FCX",
       "FDMT",
       "FDY CN",
+      "FELE",
+      "FERG",
+      "FFIV",
       "FFM AU",
+      "FIG",
       "FIS",
       "FISV",
+      "FIVN",
+      "FLNC",
       "FLY",
       "FLYW",
       "FM CN",
       "FOUR",
       "FPS",
+      "FROG",
       "FRVIA FP",
+      "FSLR",
+      "FSLY",
       "FTAI",
+      "FTNT",
+      "FTS.CN",
       "FTV",
       "FUFU",
       "FUU CN",
+      "GBP",
       "GBX",
       "GD",
       "GE",
+      "GEHC",
       "GEMI",
+      "GEN",
       "GERN",
+      "GEV",
       "GGG",
       "GILD",
+      "GKOS",
       "GLEN LN",
       "GLO CN",
       "GLUE",
       "GLXY",
       "GM",
+      "GMED",
+      "GNRC",
       "GOOGL",
       "GPN",
+      "GPRE",
       "GRAL",
       "GRC",
+      "GRE",
+      "GTLB",
       "GVA",
       "GWRE",
+      "H.CT",
       "HAL",
       "HALO",
       "HAPN",
+      "HASI",
+      "HBCFT",
       "HBM CN",
       "HEI",
       "HIAB FH",
       "HII",
       "HIVE CN",
+      "HKD",
+      "HO.FP",
+      "HOLX",
+      "HON",
       "HOOD",
+      "HPE",
+      "HPS/A.CT",
       "HQY",
       "HRI",
       "HSAI",
+      "HTO",
       "HUB AU",
       "HUBB",
+      "HUBS",
       "HUT CN",
+      "HWKN",
       "HWM",
       "HXL",
       "HY",
       "HYQ GR",
+      "IART",
+      "IBE.SM",
+      "IBM",
       "IBRX",
+      "IDR",
+      "IDXX",
       "IDYA",
       "IE",
       "IEX",
       "IFX GR",
+      "IFX.GY",
       "IGO AU",
       "IIIN",
+      "ILS",
       "IMMX",
       "IMNM",
       "IMSR",
@@ -368,81 +623,119 @@
       "INBX",
       "INCY",
       "INDI",
+      "INFY",
+      "INOXWIND",
+      "INR",
       "INR AU",
       "INSM",
+      "INSP",
       "INTC",
       "INTU",
       "IONS",
       "IOVA",
       "IRE AU",
       "IREN",
+      "IRMD",
       "IRON",
+      "IRTC",
       "IRWD",
+      "ISAE4.BZ",
       "ISO CN",
       "ISRG",
+      "ITGR",
+      "ITRI",
       "ITT",
       "IVN CN",
+      "IXCU6",
       "IXPU6",
+      "IXTU6",
       "J",
       "JANX",
       "JBIO",
       "JBTM",
+      "JCI",
       "JKHY",
+      "JKS",
+      "JPY",
       "KAP LI",
       "KEEL",
       "KEEL CN",
       "KGH PW",
+      "KLAC",
       "KLAR",
       "KMI",
       "KNF",
       "KOD",
       "KRMN",
+      "KRW",
       "KRYS",
       "KTOS",
       "KURA",
+      "KVYO",
       "KYMR",
       "LAC CN",
       "LAM CN",
+      "LAND.SE",
       "LAR CN",
       "LCID",
+      "LDOS",
       "LECO",
       "LEU",
+      "LFUS",
       "LGN",
       "LHX",
       "LI CN",
+      "LIVN",
+      "LMAT",
       "LMND",
       "LMT",
+      "LNN",
       "LOAR",
       "LOT AU",
       "LPX",
+      "LR.FP",
+      "LRCX",
       "LTBR",
       "LTR AU",
       "LU",
+      "LUMN",
       "LUN CN",
       "LUNR",
       "LXEO",
+      "MAGEN.E",
       "MARA",
       "MBLY",
+      "MCHP",
+      "MDB",
       "MDGL",
+      "MDT",
       "MDU",
       "MDXG",
+      "MEL",
+      "MESU6",
       "MGA CN",
       "MIN AU",
       "MIRM",
       "MITK",
       "MLI",
+      "MLISW",
       "MLM",
       "MLYS",
       "MNKD",
       "MOG.A",
       "MPC",
       "MPLT",
+      "MPWR",
       "MRCY",
       "MRNA",
+      "MRVL",
+      "MSEX",
       "MSFT",
+      "MTSI",
       "MTUS",
       "MTX",
       "MTZ",
+      "MU",
       "MWA",
       "MWH",
       "MYGN",
@@ -453,45 +746,78 @@
       "NDA CN",
       "NDA GR",
       "NDM CN",
+      "NDX1",
+      "NET",
+      "NEX.FP",
       "NEXI IM",
+      "NG/.LN",
       "NGEX CN",
+      "NHPC",
       "NIO",
       "NKLR",
+      "NKT.DC",
       "NNE",
       "NOC",
+      "NOFR",
+      "NOK",
+      "NOW",
       "NPK",
       "NQU6 INDEX",
       "NRIX",
       "NSC",
+      "NTAP",
+      "NTCT",
       "NTLA",
+      "NTNX",
+      "NTPCGREEN",
       "NTRA",
+      "NTSK",
       "NUCL",
       "NUE",
       "NVAX",
+      "NVCR",
       "NVDA",
+      "NVMI",
+      "NVST",
+      "NVT",
       "NWPX",
       "NXE CN",
       "NXPI",
+      "NXT",
       "NYAX IT",
+      "NZD",
       "OCGN",
+      "OFIX",
       "OKE",
       "OKLO",
+      "OKTA",
       "OLMA",
       "OM CN",
       "OMCL",
       "ON",
+      "ORCL",
       "ORIC",
       "ORKA",
+      "ORSTED",
+      "OTEX",
+      "OTEX.CN",
       "OUST",
       "OVID",
       "OXY",
+      "P",
       "PAGS",
+      "PANW",
+      "PARSW",
       "PATH",
       "PAY",
+      "PAYC",
       "PAYO",
+      "PCTY",
       "PCVX",
       "PDN AU",
+      "PEN",
       "PEN AU",
+      "PFSE.GY",
       "PGEN",
       "PGY",
       "PH",
@@ -501,14 +827,17 @@
       "PLUG",
       "PMET CN",
       "PNR",
+      "PODD",
       "PONY",
       "POWL",
       "PRAX",
       "PRCT",
+      "PREMIERENE",
       "PRIM",
       "PRME",
       "PRTA",
       "PRTH",
+      "PRY.IM",
       "PSFE",
       "PSX",
       "PTCT",
@@ -518,15 +847,23 @@
       "PWR",
       "PYPL",
       "QCOM",
+      "QDEL",
+      "QLYS",
       "QS",
+      "QTWO",
       "QURE",
       "RARE",
       "RBC",
+      "RBRK",
       "RCAT",
       "RCUS",
       "RDW",
+      "RDWR",
+      "RED.SM",
       "REGN",
+      "RENE.PL",
       "REPL",
+      "REX",
       "RGNX",
       "RIGL",
       "RIO",
@@ -534,74 +871,115 @@
       "RIOT",
       "RKLB",
       "RLAY",
+      "RMBS",
+      "RMD",
+      "RNG",
       "RNO FP",
+      "RNW",
       "ROAD",
       "ROCK",
       "ROIV",
       "ROK",
+      "ROP",
       "RPAY",
       "RPM",
       "RR",
       "RRX",
       "RS",
+      "RSGN.SE",
       "RSW LN",
       "RTX",
+      "RUN",
       "RVMD",
       "RXRX",
       "RYTM",
       "RYZ",
+      "S",
+      "S92",
+      "S92.GR",
+      "SAIC",
       "SANA",
+      "SAP",
+      "SAP.GY",
       "SARO",
       "SASK CN",
       "SATL",
+      "SBS",
+      "SCATC",
       "SCCO",
+      "SEDG",
+      "SEK",
       "SERV",
       "SEZL",
       "SFR AU",
       "SGML",
       "SGMT",
+      "SHLS",
+      "SHOP",
+      "SIBN",
+      "SIE.GY",
       "SION",
       "SITM",
+      "SJ.CT",
+      "SJVN",
       "SLB",
       "SLDB",
       "SLI CN",
       "SLNH",
+      "SLR",
       "SLS",
       "SLS CN",
       "SLX AU",
       "SMMT",
       "SMR",
       "SNDX",
+      "SNOW",
       "SOFI",
       "SPCE",
+      "SPIE.FP",
       "SPRY",
       "SPXC",
       "SQM",
       "SRE",
       "SRPT",
       "SRRK",
+      "SSE.LN",
       "SSNC",
       "SSW SJ",
+      "STE",
       "STLAM IM",
       "STLD",
+      "STM",
       "STMPA FP",
+      "STN",
       "STNE",
       "STOK",
       "STRL",
+      "SU.FP",
+      "SUZLON",
       "SVRA",
       "SWKS",
       "SYH CN",
+      "SYK",
       "SYM",
       "SYRE",
+      "TAEE11.BZ",
       "TDG",
+      "TE",
+      "TEAM",
       "TECK/B CN",
       "TECN SW",
       "TEMN SW",
+      "TENB",
+      "TER",
       "TEX",
+      "TFX",
       "TGB",
       "TGTX",
       "THRM",
       "TITN",
+      "TMDX",
+      "TNDM",
       "TNGX",
       "TOST",
       "TPC",
@@ -611,33 +989,49 @@
       "TRGP",
       "TRMB",
       "TRN",
+      "TRN.IM",
+      "TRY",
       "TSHA",
       "TSLA",
+      "TSM",
       "TT",
       "TTAM",
+      "TTAN",
+      "TTD",
       "TTEK",
       "TVTX",
+      "TWD",
+      "TWLO",
       "TWST",
+      "TXN",
       "TXT",
       "TYRA",
       "U-U CN",
       "UEC",
+      "UMC",
       "UNP",
       "UPST",
       "URG",
       "URI",
       "UROY",
+      "USDPDV",
       "USLM",
       "UTHR",
+      "VBK",
       "VC",
       "VCEL",
       "VCYT",
+      "VEEV",
+      "VER",
+      "VER.AV",
       "VERA",
       "VERX",
+      "VGU6",
       "VIR",
       "VIRT",
       "VKTX",
       "VLO",
+      "VLTO",
       "VMC",
       "VMI",
       "VNDA",
@@ -645,19 +1039,31 @@
       "VOW3 GR",
       "VOYG",
       "VRDN",
+      "VREX",
+      "VRNS",
       "VRTX",
       "VSEC",
       "VSTM",
       "VUL AU",
       "VVX",
+      "VWS",
+      "WAAREEENER",
       "WAB",
+      "WAT",
       "WCC",
+      "WDAY",
+      "WEGE3.BZ",
+      "WFFUT",
       "WISE LN",
+      "WIX",
+      "WK",
+      "WLDN",
       "WLK",
       "WMB",
       "WMS",
       "WNC",
       "WRD",
+      "WTS",
       "WULF",
       "WWD",
       "XE",
@@ -665,17 +1071,27 @@
       "XOM",
       "XPEV",
       "XRO AU",
+      "XTSLA",
+      "XYL",
       "XYZ",
       "YCA LN",
+      "YORW",
       "YSS",
+      "ZBH",
       "ZBIO",
+      "ZD",
       "ZIP AU",
+      "ZM",
+      "ZOREN.E",
+      "ZS",
       "ZWS"
     ],
     "fetched_tickers": [
+      "A",
       "AA",
       "ABBV",
       "ABSI",
+      "ABT",
       "ABTC",
       "ABUS",
       "ACA",
@@ -684,68 +1100,115 @@
       "ACHV",
       "ACIW",
       "ACM",
+      "ACN",
+      "ADBE",
+      "ADI",
       "ADMA",
+      "AEIS",
+      "AES",
       "AEVA",
       "AFRM",
       "AGIO",
+      "AGPXX",
       "AGX",
       "AIR",
+      "AKAM",
+      "ALAB",
       "ALB",
       "ALGM",
       "ALKS",
       "ALLO",
       "ALNY",
       "ALT",
+      "AMAT",
       "AMBA",
+      "AMD",
       "AMGN",
       "AMPX",
       "AMRZ",
+      "AMSC",
+      "AMZN",
       "ANAB",
+      "ANE",
+      "ANET",
+      "ANGO",
       "ANNX",
+      "AORT",
+      "AOS",
       "APA",
       "APGE",
       "APLD",
+      "APP",
+      "APPF",
       "APPN",
+      "APTV",
       "ARDX",
+      "ARM",
       "ARQT",
+      "ARRY",
       "ARWR",
+      "ASAN",
+      "ASML",
       "ASTE",
+      "ASX",
+      "ATEC",
+      "ATEN",
       "ATI",
       "ATKR",
+      "ATRC",
       "ATRO",
       "AUR",
       "AVAV",
       "AVBP",
+      "AVGO",
       "AVTX",
+      "AWK",
+      "AWR",
+      "AXGN",
       "AXON",
       "AYI",
+      "AZZ",
       "BA",
+      "BAH",
+      "BAX",
       "BB",
       "BBIO",
+      "BBNX",
       "BBOT",
       "BCAX",
       "BCRX",
+      "BDC",
+      "BDX",
       "BE",
       "BEAM",
+      "BEPC",
       "BETA",
+      "BFLY",
       "BHVN",
       "BIDU",
       "BIIB",
       "BILL",
       "BKKT",
       "BKR",
+      "BL",
       "BLDR",
+      "BLKB",
       "BLND",
       "BLSH",
       "BMI",
       "BMNR",
       "BMRN",
+      "BOX",
+      "BRL",
+      "BSX",
+      "BSY",
       "BTBT",
       "BTCS",
       "BTDR",
       "BULL",
       "BWXT",
       "CABA",
+      "CAD",
       "CADL",
       "CALX",
       "CAN",
@@ -757,17 +1220,24 @@
       "CDNA",
       "CDRE",
       "CELC",
+      "CEN",
       "CENX",
       "CGEM",
       "CGNX",
       "CGON",
+      "CHKP",
       "CIFR",
       "CLDX",
       "CLF",
+      "CLP",
       "CLSK",
       "CMC",
       "CMCO",
       "CMPX",
+      "CNH",
+      "CNM",
+      "CNMD",
+      "CNY",
       "COGT",
       "COHR",
       "COIN",
@@ -775,44 +1245,76 @@
       "CORZ",
       "CR",
       "CRCL",
+      "CRDO",
       "CRH",
+      "CRM",
       "CRNC",
       "CRS",
       "CRSP",
       "CRVS",
+      "CRWD",
+      "CRWV",
+      "CSCO",
+      "CSIQ",
       "CSL",
       "CSW",
       "CSX",
       "CTMX",
       "CTOS",
       "CTRI",
+      "CVLT",
       "CVX",
       "CW",
+      "CWCO",
+      "CWEN",
+      "CWT",
       "CYTK",
+      "DBX",
       "DCH",
       "DCO",
+      "DDOG",
       "DE",
+      "DELL",
+      "DGII",
       "DLO",
       "DMRA",
       "DNLI",
       "DNOW",
       "DNTH",
+      "DOCN",
+      "DOCU",
+      "DQ",
       "DRS",
+      "DT",
       "DVN",
+      "DXCM",
       "DXPE",
       "DY",
       "DYN",
       "EBS",
       "ECG",
+      "ECL",
+      "EDP",
       "EH",
       "EME",
       "EMR",
+      "ENLT",
+      "ENOV",
+      "ENPH",
+      "ENRG",
       "ENS",
+      "ENTG",
       "EOG",
       "EQT",
       "ERAS",
+      "ERG",
+      "ERII",
+      "ESE",
+      "ESTC",
       "ETN",
       "ETOR",
+      "EUR",
+      "EW",
       "EXE",
       "EXEL",
       "EXOD",
@@ -823,49 +1325,82 @@
       "FAST",
       "FCX",
       "FDMT",
+      "FELE",
+      "FERG",
+      "FFIV",
+      "FIG",
       "FIS",
       "FISV",
+      "FIVN",
+      "FLNC",
       "FLY",
       "FLYW",
       "FOUR",
       "FPS",
+      "FROG",
+      "FSLR",
+      "FSLY",
       "FTAI",
+      "FTNT",
       "FTV",
       "FUFU",
+      "GBP",
       "GBX",
       "GD",
       "GE",
+      "GEHC",
       "GEMI",
+      "GEN",
       "GERN",
+      "GEV",
       "GGG",
       "GILD",
+      "GKOS",
       "GLUE",
       "GLXY",
       "GM",
+      "GMED",
+      "GNRC",
       "GOOGL",
       "GPN",
+      "GPRE",
       "GRAL",
       "GRC",
+      "GRE",
+      "GTLB",
       "GVA",
       "GWRE",
       "HAL",
       "HALO",
       "HAPN",
+      "HASI",
       "HEI",
       "HII",
+      "HKD",
+      "HOLX",
+      "HON",
       "HOOD",
+      "HPE",
       "HQY",
       "HRI",
       "HSAI",
+      "HTO",
       "HUBB",
+      "HUBS",
+      "HWKN",
       "HWM",
       "HXL",
       "HY",
+      "IART",
+      "IBM",
       "IBRX",
+      "IDR",
+      "IDXX",
       "IDYA",
       "IE",
       "IEX",
       "IIIN",
+      "ILS",
       "IMMX",
       "IMNM",
       "IMSR",
@@ -873,22 +1408,33 @@
       "INBX",
       "INCY",
       "INDI",
+      "INFY",
+      "INR",
       "INSM",
+      "INSP",
       "INTC",
       "INTU",
       "IONS",
       "IOVA",
       "IREN",
+      "IRMD",
       "IRON",
+      "IRTC",
       "IRWD",
       "ISRG",
+      "ITGR",
+      "ITRI",
       "ITT",
       "J",
       "JANX",
       "JBIO",
       "JBTM",
+      "JCI",
       "JKHY",
+      "JKS",
+      "JPY",
       "KEEL",
+      "KLAC",
       "KLAR",
       "KMI",
       "KNF",
@@ -897,25 +1443,37 @@
       "KRYS",
       "KTOS",
       "KURA",
+      "KVYO",
       "KYMR",
       "LCID",
+      "LDOS",
       "LECO",
       "LEU",
+      "LFUS",
       "LGN",
       "LHX",
+      "LIVN",
+      "LMAT",
       "LMND",
       "LMT",
+      "LNN",
       "LOAR",
       "LPX",
+      "LRCX",
       "LTBR",
       "LU",
+      "LUMN",
       "LUNR",
       "LXEO",
       "MARA",
       "MBLY",
+      "MCHP",
+      "MDB",
       "MDGL",
+      "MDT",
       "MDU",
       "MDXG",
+      "MEL",
       "MIRM",
       "MITK",
       "MLI",
@@ -924,12 +1482,17 @@
       "MNKD",
       "MPC",
       "MPLT",
+      "MPWR",
       "MRCY",
       "MRNA",
+      "MRVL",
+      "MSEX",
       "MSFT",
+      "MTSI",
       "MTUS",
       "MTX",
       "MTZ",
+      "MU",
       "MWA",
       "MWH",
       "MYGN",
@@ -937,37 +1500,59 @@
       "NBIS",
       "NBIX",
       "NCNO",
+      "NET",
       "NIO",
       "NKLR",
       "NNE",
       "NOC",
+      "NOK",
+      "NOW",
       "NPK",
       "NRIX",
       "NSC",
+      "NTAP",
+      "NTCT",
       "NTLA",
+      "NTNX",
       "NTRA",
+      "NTSK",
       "NUCL",
       "NUE",
       "NVAX",
+      "NVCR",
       "NVDA",
+      "NVMI",
+      "NVST",
+      "NVT",
       "NWPX",
       "NXPI",
+      "NXT",
+      "NZD",
       "OCGN",
+      "OFIX",
       "OKE",
       "OKLO",
+      "OKTA",
       "OLMA",
       "OMCL",
       "ON",
+      "ORCL",
       "ORIC",
       "ORKA",
+      "OTEX",
       "OUST",
       "OVID",
       "OXY",
+      "P",
       "PAGS",
+      "PANW",
       "PATH",
       "PAY",
+      "PAYC",
       "PAYO",
+      "PCTY",
       "PCVX",
+      "PEN",
       "PGEN",
       "PGY",
       "PH",
@@ -975,6 +1560,7 @@
       "PLPC",
       "PLUG",
       "PNR",
+      "PODD",
       "PONY",
       "POWL",
       "PRAX",
@@ -992,52 +1578,75 @@
       "PWR",
       "PYPL",
       "QCOM",
+      "QDEL",
+      "QLYS",
       "QS",
+      "QTWO",
       "QURE",
       "RARE",
       "RBC",
+      "RBRK",
       "RCAT",
       "RCUS",
       "RDW",
+      "RDWR",
       "REGN",
       "REPL",
+      "REX",
       "RGNX",
       "RIGL",
       "RIO",
       "RIOT",
       "RKLB",
       "RLAY",
+      "RMBS",
+      "RMD",
+      "RNG",
+      "RNW",
       "ROAD",
       "ROCK",
       "ROIV",
       "ROK",
+      "ROP",
       "RPAY",
       "RPM",
       "RR",
       "RRX",
       "RS",
       "RTX",
+      "RUN",
       "RVMD",
       "RXRX",
       "RYTM",
       "RYZ",
+      "S",
+      "SAIC",
       "SANA",
+      "SAP",
       "SARO",
       "SATL",
+      "SBS",
       "SCCO",
+      "SEDG",
+      "SEK",
       "SERV",
       "SEZL",
       "SGML",
       "SGMT",
+      "SHLS",
+      "SHOP",
+      "SIBN",
       "SION",
       "SITM",
       "SLB",
       "SLDB",
       "SLNH",
+      "SLR",
       "SLS",
       "SMMT",
       "SMR",
       "SNDX",
+      "SNOW",
       "SOFI",
       "SPCE",
       "SPRY",
@@ -1047,20 +1656,31 @@
       "SRPT",
       "SRRK",
       "SSNC",
+      "STE",
       "STLD",
+      "STM",
+      "STN",
       "STNE",
       "STOK",
       "STRL",
       "SVRA",
       "SWKS",
+      "SYK",
       "SYM",
       "SYRE",
       "TDG",
+      "TE",
+      "TEAM",
+      "TENB",
+      "TER",
       "TEX",
+      "TFX",
       "TGB",
       "TGTX",
       "THRM",
       "TITN",
+      "TMDX",
+      "TNDM",
       "TNGX",
       "TOST",
       "TPC",
@@ -1070,16 +1690,24 @@
       "TRGP",
       "TRMB",
       "TRN",
+      "TRY",
       "TSHA",
       "TSLA",
+      "TSM",
       "TT",
       "TTAM",
+      "TTAN",
+      "TTD",
       "TTEK",
       "TVTX",
+      "TWD",
+      "TWLO",
       "TWST",
+      "TXN",
       "TXT",
       "TYRA",
       "UEC",
+      "UMC",
       "UNP",
       "UPST",
       "URG",
@@ -1087,73 +1715,116 @@
       "UROY",
       "USLM",
       "UTHR",
+      "VBK",
       "VC",
       "VCEL",
       "VCYT",
+      "VEEV",
+      "VER",
       "VERA",
       "VERX",
       "VIR",
       "VIRT",
       "VKTX",
       "VLO",
+      "VLTO",
       "VMC",
       "VMI",
       "VNDA",
       "VOR",
       "VOYG",
       "VRDN",
+      "VREX",
+      "VRNS",
       "VRTX",
       "VSEC",
       "VSTM",
       "VVX",
+      "VWS",
       "WAB",
+      "WAT",
       "WCC",
+      "WDAY",
+      "WIX",
+      "WK",
+      "WLDN",
       "WLK",
       "WMB",
       "WMS",
       "WNC",
       "WRD",
+      "WTS",
       "WULF",
       "WWD",
       "XE",
       "XNCR",
       "XOM",
       "XPEV",
+      "XYL",
       "XYZ",
+      "YORW",
       "YSS",
+      "ZBH",
       "ZBIO",
+      "ZD",
+      "ZM",
+      "ZS",
       "ZWS"
     ],
     "unavailable_tickers": [
+      "000155",
+      "000537",
+      "000591",
       "000720 KS",
+      "001440.KS",
+      "002129",
       "002176 C2",
       "002371 C2",
+      "002459",
       "002460 C2",
       "002466 C2",
+      "002487",
+      "002506",
+      "002531",
+      "002610",
       "002709 C2",
       "002738 C2",
       "002747 C2",
       "002812 C2",
+      "002865",
       "006360 KS",
       "006400 KS",
+      "006400.KS",
+      "010120.KS",
       "011790 KS",
       "028260 KS",
       "034020 KS",
       "047040 KS",
       "052690 KS",
       "060250 KS",
+      "062040.KS",
       "066970 KS",
       "090360 KS",
+      "103590.KS",
       "108490 KS",
+      "112610",
       "1164 HK",
       "1208 HK",
       "1211 HK",
+      "1211.HK",
       "1258 HK",
       "1316 HK",
+      "1407",
+      "1503.TT",
+      "1513.TT",
+      "1514.TT",
       "1515 JP",
+      "1519.TT",
+      "1609.TT",
       "1611 HK",
       "175 HK",
       "1772 HK",
+      "1798",
       "1810 HK",
       "2015 HK",
       "204320 KS",
@@ -1161,53 +1832,118 @@
       "2121 HK",
       "2200963D",
       "2200964D",
+      "2208",
       "2252 HK",
+      "229640.KS",
       "2324825D AU",
+      "2371.TT",
+      "2395.TT",
+      "2406",
       "2431 HK",
       "2432 HK",
       "247540 KS",
       "2498 HK",
       "2533 HK",
       "2598 HK",
+      "267260.KS",
       "277810 KS",
       "2899 HK",
+      "298040.KS",
       "300014 C2",
       "300024 C2",
+      "300118",
       "300124 C2",
+      "300140",
       "300207 C2",
+      "300393",
+      "300443",
       "300450 C2",
+      "300724",
       "300750 C2",
+      "300751",
       "300757 C2",
+      "300763",
+      "300772",
+      "301155",
+      "322000",
+      "336260",
+      "3393.HK",
+      "3576",
       "358 HK",
       "373220 KS",
+      "3750.HK",
       "377300 KS",
+      "3800",
+      "3868",
       "388720 KS",
       "3939 HK",
       "454910 KS",
       "455900 KS",
+      "4704.JP",
+      "5074",
       "5301 JP",
+      "5333.JP",
       "5711 JP",
       "5713 JP",
+      "5801.JP",
+      "5802.JP",
+      "5803.JP",
+      "600025",
+      "600032",
+      "600116",
+      "600236",
+      "600674",
+      "600732",
+      "600821",
+      "600900",
+      "600905",
+      "600995",
+      "601012",
+      "601016",
+      "601615",
+      "601619",
       "603659 C1",
       "6104 JP",
+      "6244",
       "6258 JP",
       "6273 JP",
       "6285 TT",
       "6383 JP",
+      "6409.TT",
+      "6443",
+      "6501.JP",
+      "6503.JP",
+      "6504.JP",
       "6506 JP",
+      "6508.JP",
       "6526 JP",
       "6600 HK",
+      "6617.JP",
+      "6622.JP",
+      "6644.JP",
       "6645 JP",
       "666 HK",
       "6674 JP",
+      "6674.JP",
+      "6723.JP",
       "6752 JP",
+      "6752.JP",
       "6762 JP",
       "6763 TT",
       "6781 TT",
+      "6845.JP",
       "6861 JP",
+      "6865",
+      "688032",
       "688165 C1",
       "688169 C1",
+      "688223",
       "688297 C1",
+      "688349",
+      "688390",
+      "688472",
+      "688516",
+      "688599",
       "6902 JP",
       "6954 JP",
       "7011 JP",
@@ -1216,20 +1952,28 @@
       "7722 TT",
       "8001 JP",
       "863 HK",
+      "916",
+      "9502",
+      "9519",
       "9660 HK",
+      "968",
       "9696 HK",
       "9880 HK",
       "9923 HK",
       "9927 HK",
+      "9958",
       "9959 HK",
       "ABBN SW",
+      "ABBN.SW",
       "ADE GR",
       "ADYEN NA",
       "AEC CN",
       "AEE AU",
       "AEU AU",
       "AGE AU",
+      "ALFEN.NA",
       "ALS CN",
+      "ALUP11.BZ",
       "AMAK AB",
       "AMG NA",
       "ANTO LN",
@@ -1237,28 +1981,58 @@
       "ARG CN",
       "ARN CN",
       "ASN AU",
+      "ASTOR.TI",
+      "ATO.FP",
       "ATS CN",
       "ATYM LN",
+      "AURE3",
       "AUTO NO",
+      "BCPG-R",
+      "BEAN.SE",
       "BHP AU",
+      "BKW.SW",
       "BKY SM",
       "BMN AU",
       "BOE AU",
       "BOL SS",
+      "BREN",
       "BVR AU",
       "CCO CN",
+      "CENER.GA",
+      "CHF",
       "CNL CN",
+      "CPFE3",
+      "CPLE3.BZ",
       "CS CN",
       "CVV CN",
+      "CWENE",
+      "CWENE.E",
+      "CWR",
       "CXU AU",
+      "DKK",
       "DML CN",
+      "DORL",
       "DVP AU",
       "DYL AU",
+      "EA.R",
+      "EDP.PL",
+      "EDPR",
       "EFR CN",
+      "EGIE3",
       "EL8 AU",
+      "ELI.BB",
       "ELV AU",
+      "ENEL.IM",
+      "ENELAM",
+      "ENGI.FP",
+      "ENGI11",
+      "ENGI11.BZ",
+      "EOAN.GY",
+      "EQTL3",
+      "EQTL3.BZ",
       "ERA FP",
       "ERO CN",
+      "ESU6",
       "EU CN",
       "EUR AU",
       "EXA FP",
@@ -1266,84 +2040,207 @@
       "FFM AU",
       "FM CN",
       "FRVIA FP",
+      "FTS.CN",
       "FUU CN",
       "GLEN LN",
       "GLO CN",
+      "H.CT",
+      "HBCFT",
       "HBM CN",
       "HIAB FH",
       "HIVE CN",
+      "HO.FP",
+      "HPS/A.CT",
       "HUB AU",
       "HUT CN",
       "HYQ GR",
+      "IBE.SM",
       "IFX GR",
+      "IFX.GY",
       "IGO AU",
+      "INOXWIND",
       "INR AU",
       "IRE AU",
+      "ISAE4.BZ",
       "ISO CN",
       "IVN CN",
+      "IXCU6",
       "IXPU6",
+      "IXTU6",
       "KAP LI",
       "KEEL CN",
       "KGH PW",
+      "KRW",
       "LAC CN",
       "LAM CN",
+      "LAND.SE",
       "LAR CN",
       "LI CN",
       "LOT AU",
+      "LR.FP",
       "LTR AU",
       "LUN CN",
+      "MAGEN.E",
+      "MESU6",
       "MGA CN",
       "MIN AU",
+      "MLISW",
       "MOG.A",
       "NDA CN",
       "NDA GR",
       "NDM CN",
+      "NDX1",
+      "NEX.FP",
       "NEXI IM",
+      "NG/.LN",
       "NGEX CN",
+      "NHPC",
+      "NKT.DC",
+      "NOFR",
       "NQU6 INDEX",
+      "NTPCGREEN",
       "NXE CN",
       "NYAX IT",
       "OM CN",
+      "ORSTED",
+      "OTEX.CN",
+      "PARSW",
       "PDN AU",
       "PEN AU",
+      "PFSE.GY",
       "PLS AU",
       "PMET CN",
+      "PREMIERENE",
+      "PRY.IM",
+      "RED.SM",
+      "RENE.PL",
       "RIO LN",
       "RNO FP",
+      "RSGN.SE",
       "RSW LN",
+      "S92",
+      "S92.GR",
+      "SAP.GY",
       "SASK CN",
+      "SCATC",
       "SFR AU",
+      "SIE.GY",
+      "SJ.CT",
+      "SJVN",
       "SLI CN",
       "SLS CN",
       "SLX AU",
+      "SPIE.FP",
+      "SSE.LN",
       "SSW SJ",
       "STLAM IM",
       "STMPA FP",
+      "SU.FP",
+      "SUZLON",
       "SYH CN",
+      "TAEE11.BZ",
       "TECK/B CN",
       "TECN SW",
       "TEMN SW",
+      "TRN.IM",
       "U-U CN",
+      "USDPDV",
+      "VER.AV",
+      "VGU6",
       "VOW3 GR",
       "VUL AU",
+      "WAAREEENER",
+      "WEGE3.BZ",
+      "WFFUT",
       "WISE LN",
       "XRO AU",
+      "XTSLA",
       "YCA LN",
-      "ZIP AU"
+      "ZIP AU",
+      "ZOREN.E"
     ],
-    "insufficient_history_tickers": [],
+    "insufficient_history_tickers": [
+      "CAD",
+      "CNY",
+      "GRE"
+    ],
     "errors_redacted": true
   },
   "themes": [
     {
+      "theme_id": "medical-devices",
+      "name": "Medical Devices",
+      "source_type": "official_etf_holdings",
+      "source_provider": "ishares",
+      "source": "IHI",
+      "source_url": "https://www.ishares.com/us/products/239516/ishares-u-s-medical-devices-etf/latest-holdings.csv",
+      "source_date": "2026-08-26",
+      "effective_from": "2026-08-26",
+      "source_status": "available",
+      "parse_status": "parsed",
+      "error_reason": null,
+      "member_count": 50,
+      "raw_holdings_count": 50,
+      "us_resolvable_count": 50,
+      "foreign_or_unmapped_count": 0,
+      "valid_member_count": 46,
+      "return_20d": 0.06027548710288887,
+      "return_60d": 0.21790962855715926,
+      "relative_20d": 0.011718172239271397,
+      "relative_60d": 0.20653911935938127,
+      "breadth_above_sma50": 0.7608695652173914,
+      "breadth_positive_20d": 0.6956521739130435,
+      "relative_5d": -0.017502748720297882,
+      "breadth_change_10d": -0.04347826086956519,
+      "strength_percentile": 94.44444444444444,
+      "state": "Pullback Watch",
+      "context": "20D/60D relative strength both strong; 76% of constituents above SMA50; breadth stable."
+    },
+    {
+      "theme_id": "cloud-computing",
+      "name": "Cloud Computing",
+      "source_type": "official_etf_holdings",
+      "source_provider": "first_trust",
+      "source": "SKYY",
+      "source_url": "https://www.ftportfolios.com/Retail/Etf/EtfHoldings.aspx?Ticker=SKYY",
+      "source_date": "2026-08-26",
+      "effective_from": "2026-08-26",
+      "source_status": "available",
+      "parse_status": "parsed",
+      "error_reason": null,
+      "member_count": 63,
+      "raw_holdings_count": 63,
+      "us_resolvable_count": 63,
+      "foreign_or_unmapped_count": 0,
+      "valid_member_count": 63,
+      "return_20d": 0.13026805169077543,
+      "return_60d": 0.0732104831053395,
+      "relative_20d": 0.08006653275896287,
+      "relative_60d": 0.06066910178097062,
+      "breadth_above_sma50": 0.7936507936507936,
+      "breadth_positive_20d": 0.8571428571428571,
+      "relative_5d": -0.007419665614504576,
+      "breadth_change_10d": -0.04761904761904767,
+      "strength_percentile": 83.33333333333333,
+      "state": "Pullback Watch",
+      "context": "20D/60D relative strength both strong; 79% of constituents above SMA50; breadth stable."
+    },
+    {
       "theme_id": "oil-gas",
       "name": "Oil & Gas / Energy",
       "source_type": "official_etf_holdings",
+      "source_provider": "state_street",
       "source": "XLE",
       "source_url": "https://www.ssga.com/us/en/intermediary/library-content/products/fund-data/etfs/us/holdings-daily-us-en-xle.xlsx",
       "source_date": "2026-08-26",
       "effective_from": "2026-08-26",
+      "source_status": "available",
+      "parse_status": "parsed",
+      "error_reason": null,
       "member_count": 22,
+      "raw_holdings_count": 22,
+      "us_resolvable_count": 22,
+      "foreign_or_unmapped_count": 0,
       "valid_member_count": 21,
       "return_20d": 0.0705497537351477,
       "return_60d": 0.09124325837491577,
@@ -1353,7 +2250,7 @@
       "breadth_positive_20d": 0.9047619047619048,
       "relative_5d": -0.009459315702758148,
       "breadth_change_10d": 0.04761904761904756,
-      "strength_percentile": 90.0,
+      "strength_percentile": 77.77777777777777,
       "state": "Pullback Watch",
       "context": "20D/60D relative strength both strong; 95% of constituents above SMA50; breadth stable."
     },
@@ -1361,11 +2258,18 @@
       "theme_id": "biotechnology",
       "name": "Biotechnology",
       "source_type": "official_etf_holdings",
+      "source_provider": "state_street",
       "source": "XBI",
       "source_url": "https://www.ssga.com/us/en/intermediary/library-content/products/fund-data/etfs/us/holdings-daily-us-en-xbi.xlsx",
       "source_date": "2026-08-26",
       "effective_from": "2026-08-26",
+      "source_status": "available",
+      "parse_status": "parsed",
+      "error_reason": null,
       "member_count": 149,
+      "raw_holdings_count": 149,
+      "us_resolvable_count": 147,
+      "foreign_or_unmapped_count": 2,
       "valid_member_count": 147,
       "return_20d": 0.15520721498897094,
       "return_60d": 0.2438310896275182,
@@ -1380,58 +2284,21 @@
       "context": "20D/60D relative strength both strong; 72% of constituents above SMA50; breadth stable."
     },
     {
-      "theme_id": "digital-assets",
-      "name": "Digital Assets",
-      "source_type": "official_etf_holdings",
-      "source": "BKCH",
-      "source_url": "https://assets.globalxetfs.com/funds/holdings/bkch_full-holdings_20260826.csv",
-      "source_date": "2026-08-26",
-      "effective_from": "2026-08-26",
-      "member_count": 33,
-      "valid_member_count": 26,
-      "return_20d": 0.25146704737570974,
-      "return_60d": -0.23519859782674782,
-      "relative_20d": 0.20126552844389717,
-      "relative_60d": -0.24773997915111673,
-      "breadth_above_sma50": 0.46153846153846156,
-      "breadth_positive_20d": 0.8846153846153846,
-      "relative_5d": 0.11559000817036448,
-      "breadth_change_10d": 0.3076923076923077,
-      "strength_percentile": 50.0,
-      "state": "Recovery",
-      "context": "20D/60D relative strength mixed; 46% of constituents above SMA50; breadth improving."
-    },
-    {
-      "theme_id": "battery-materials",
-      "name": "Battery Materials",
-      "source_type": "official_etf_holdings",
-      "source": "LIT",
-      "source_url": "https://assets.globalxetfs.com/funds/holdings/lit_full-holdings_20260826.csv",
-      "source_date": "2026-08-26",
-      "effective_from": "2026-08-26",
-      "member_count": 41,
-      "valid_member_count": 7,
-      "return_20d": 0.09415807342941283,
-      "return_60d": -0.16033089622309618,
-      "relative_20d": 0.04395655449760026,
-      "relative_60d": -0.17287227754746506,
-      "breadth_above_sma50": 0.5714285714285714,
-      "breadth_positive_20d": 0.8571428571428571,
-      "relative_5d": 0.005827683614867122,
-      "breadth_change_10d": 0.2857142857142857,
-      "strength_percentile": 30.0,
-      "state": "Recovery",
-      "context": "20D/60D relative strength mixed; 57% of constituents above SMA50; breadth improving."
-    },
-    {
       "theme_id": "fintech",
       "name": "Fintech",
       "source_type": "official_etf_holdings",
+      "source_provider": "global_x",
       "source": "FINX",
       "source_url": "https://assets.globalxetfs.com/funds/holdings/finx_full-holdings_20260826.csv",
       "source_date": "2026-08-26",
       "effective_from": "2026-08-26",
+      "source_status": "available",
+      "parse_status": "parsed",
+      "error_reason": null,
       "member_count": 74,
+      "raw_holdings_count": 74,
+      "us_resolvable_count": 55,
+      "foreign_or_unmapped_count": 19,
       "valid_member_count": 55,
       "return_20d": 0.06777263422702486,
       "return_60d": -0.0050915042267202755,
@@ -1441,19 +2308,171 @@
       "breadth_positive_20d": 0.6545454545454545,
       "relative_5d": 0.03750815227337413,
       "breadth_change_10d": 0.05454545454545451,
-      "strength_percentile": 80.0,
-      "state": "Neutral",
+      "strength_percentile": 61.111111111111114,
+      "state": "Recovery",
       "context": "20D/60D relative strength mixed; 55% of constituents above SMA50; breadth improving."
+    },
+    {
+      "theme_id": "digital-assets",
+      "name": "Digital Assets",
+      "source_type": "official_etf_holdings",
+      "source_provider": "global_x",
+      "source": "BKCH",
+      "source_url": "https://assets.globalxetfs.com/funds/holdings/bkch_full-holdings_20260826.csv",
+      "source_date": "2026-08-26",
+      "effective_from": "2026-08-26",
+      "source_status": "available",
+      "parse_status": "parsed",
+      "error_reason": null,
+      "member_count": 33,
+      "raw_holdings_count": 33,
+      "us_resolvable_count": 26,
+      "foreign_or_unmapped_count": 7,
+      "valid_member_count": 26,
+      "return_20d": 0.25146704737570974,
+      "return_60d": -0.23519859782674782,
+      "relative_20d": 0.20126552844389717,
+      "relative_60d": -0.24773997915111673,
+      "breadth_above_sma50": 0.46153846153846156,
+      "breadth_positive_20d": 0.8846153846153846,
+      "relative_5d": 0.11559000817036448,
+      "breadth_change_10d": 0.3076923076923077,
+      "strength_percentile": 44.44444444444444,
+      "state": "Recovery",
+      "context": "20D/60D relative strength mixed; 46% of constituents above SMA50; breadth improving."
+    },
+    {
+      "theme_id": "battery-materials",
+      "name": "Battery Materials",
+      "source_type": "official_etf_holdings",
+      "source_provider": "global_x",
+      "source": "LIT",
+      "source_url": "https://assets.globalxetfs.com/funds/holdings/lit_full-holdings_20260826.csv",
+      "source_date": "2026-08-26",
+      "effective_from": "2026-08-26",
+      "source_status": "available",
+      "parse_status": "parsed",
+      "error_reason": null,
+      "member_count": 41,
+      "raw_holdings_count": 41,
+      "us_resolvable_count": 7,
+      "foreign_or_unmapped_count": 34,
+      "valid_member_count": 7,
+      "return_20d": 0.09415807342941283,
+      "return_60d": -0.16033089622309618,
+      "relative_20d": 0.04395655449760026,
+      "relative_60d": -0.17287227754746506,
+      "breadth_above_sma50": 0.5714285714285714,
+      "breadth_positive_20d": 0.8571428571428571,
+      "relative_5d": 0.005827683614867122,
+      "breadth_change_10d": 0.2857142857142857,
+      "strength_percentile": 16.666666666666668,
+      "state": "Recovery",
+      "context": "20D/60D relative strength mixed; 57% of constituents above SMA50; breadth improving."
+    },
+    {
+      "theme_id": "solar",
+      "name": "Solar",
+      "source_type": "official_etf_holdings",
+      "source_provider": "invesco",
+      "source": "TAN",
+      "source_url": "https://dng-api.invesco.com/cache/v1/accounts/en_US/shareclasses/46138G706/holdings/fund?idType=cusip&productType=ETF",
+      "source_date": "2026-08-26",
+      "effective_from": "2026-08-26",
+      "source_status": "available",
+      "parse_status": "parsed",
+      "error_reason": null,
+      "member_count": 43,
+      "raw_holdings_count": 43,
+      "us_resolvable_count": 32,
+      "foreign_or_unmapped_count": 11,
+      "valid_member_count": 22,
+      "return_20d": 0.061878834408268094,
+      "return_60d": 0.20604897283595314,
+      "relative_20d": 0.016543474954125868,
+      "relative_60d": 0.18631078719604002,
+      "breadth_above_sma50": 0.3181818181818182,
+      "breadth_positive_20d": 0.6363636363636364,
+      "relative_5d": -0.034824596081533196,
+      "breadth_change_10d": -0.04545454545454547,
+      "strength_percentile": 88.88888888888889,
+      "state": "Neutral",
+      "context": "20D/60D relative strength both strong; 32% of constituents above SMA50; breadth stable."
+    },
+    {
+      "theme_id": "cybersecurity",
+      "name": "Cybersecurity",
+      "source_type": "official_etf_holdings",
+      "source_provider": "first_trust",
+      "source": "CIBR",
+      "source_url": "https://www.ftportfolios.com/Retail/Etf/EtfHoldings.aspx?Ticker=CIBR",
+      "source_date": "2026-08-26",
+      "effective_from": "2026-08-26",
+      "source_status": "available",
+      "parse_status": "parsed",
+      "error_reason": null,
+      "member_count": 42,
+      "raw_holdings_count": 42,
+      "us_resolvable_count": 38,
+      "foreign_or_unmapped_count": 4,
+      "valid_member_count": 38,
+      "return_20d": 0.08143237375026723,
+      "return_60d": 0.022239388569634016,
+      "relative_20d": 0.031230854818454657,
+      "relative_60d": 0.009698007245265133,
+      "breadth_above_sma50": 0.5263157894736842,
+      "breadth_positive_20d": 0.7631578947368421,
+      "relative_5d": -0.011368019314281634,
+      "breadth_change_10d": -0.26315789473684215,
+      "strength_percentile": 72.22222222222223,
+      "state": "Neutral",
+      "context": "20D/60D relative strength both strong; 53% of constituents above SMA50; breadth weakening."
+    },
+    {
+      "theme_id": "water-infrastructure",
+      "name": "Water Infrastructure",
+      "source_type": "official_etf_holdings",
+      "source_provider": "invesco",
+      "source": "PHO",
+      "source_url": "https://dng-api.invesco.com/cache/v1/accounts/en_US/shareclasses/46137V142/holdings/fund?idType=cusip&productType=ETF",
+      "source_date": "2026-08-26",
+      "effective_from": "2026-08-26",
+      "source_status": "available",
+      "parse_status": "parsed",
+      "error_reason": null,
+      "member_count": 42,
+      "raw_holdings_count": 42,
+      "us_resolvable_count": 42,
+      "foreign_or_unmapped_count": 0,
+      "valid_member_count": 41,
+      "return_20d": 0.006722252792505268,
+      "return_60d": 0.06376941643131048,
+      "relative_20d": -0.043479266139307304,
+      "relative_60d": 0.05122803510694161,
+      "breadth_above_sma50": 0.5365853658536586,
+      "breadth_positive_20d": 0.5853658536585366,
+      "relative_5d": 0.0030886569064295655,
+      "breadth_change_10d": -0.14634146341463417,
+      "strength_percentile": 66.66666666666667,
+      "state": "Neutral",
+      "context": "20D/60D relative strength mixed; 54% of constituents above SMA50; breadth weakening."
     },
     {
       "theme_id": "uranium",
       "name": "Uranium",
       "source_type": "official_etf_holdings",
+      "source_provider": "global_x",
       "source": "URA",
       "source_url": "https://assets.globalxetfs.com/funds/holdings/ura_full-holdings_20260826.csv",
       "source_date": "2026-08-26",
       "effective_from": "2026-08-26",
+      "source_status": "available",
+      "parse_status": "parsed",
+      "error_reason": null,
       "member_count": 57,
+      "raw_holdings_count": 57,
+      "us_resolvable_count": 12,
+      "foreign_or_unmapped_count": 45,
       "valid_member_count": 12,
       "return_20d": 0.22838667888764766,
       "return_60d": -0.20481283824316002,
@@ -1463,7 +2482,7 @@
       "breadth_positive_20d": 1.0,
       "relative_5d": -0.004711900394599307,
       "breadth_change_10d": 0.0,
-      "strength_percentile": 70.0,
+      "strength_percentile": 55.55555555555556,
       "state": "Neutral",
       "context": "20D/60D relative strength mixed; 58% of constituents above SMA50; breadth stable."
     },
@@ -1471,11 +2490,18 @@
       "theme_id": "infrastructure",
       "name": "Infrastructure",
       "source_type": "official_etf_holdings",
+      "source_provider": "global_x",
       "source": "PAVE",
       "source_url": "https://assets.globalxetfs.com/funds/holdings/pave_full-holdings_20260826.csv",
       "source_date": "2026-08-26",
       "effective_from": "2026-08-26",
+      "source_status": "available",
+      "parse_status": "parsed",
+      "error_reason": null,
       "member_count": 100,
+      "raw_holdings_count": 100,
+      "us_resolvable_count": 100,
+      "foreign_or_unmapped_count": 0,
       "valid_member_count": 100,
       "return_20d": 0.026345500839755964,
       "return_60d": -0.00903312932376044,
@@ -1485,7 +2511,7 @@
       "breadth_positive_20d": 0.61,
       "relative_5d": -0.011319598715426453,
       "breadth_change_10d": -0.20000000000000007,
-      "strength_percentile": 60.0,
+      "strength_percentile": 50.0,
       "state": "Neutral",
       "context": "20D/60D relative strength both weak; 36% of constituents above SMA50; breadth weakening."
     },
@@ -1493,11 +2519,18 @@
       "theme_id": "defense-aerospace",
       "name": "Defense & Aerospace",
       "source_type": "official_etf_holdings",
+      "source_provider": "state_street",
       "source": "XAR",
       "source_url": "https://www.ssga.com/us/en/intermediary/library-content/products/fund-data/etfs/us/holdings-daily-us-en-xar.xlsx",
       "source_date": "2026-08-26",
       "effective_from": "2026-08-26",
+      "source_status": "available",
+      "parse_status": "parsed",
+      "error_reason": null,
       "member_count": 47,
+      "raw_holdings_count": 47,
+      "us_resolvable_count": 47,
+      "foreign_or_unmapped_count": 0,
       "valid_member_count": 46,
       "return_20d": 0.07920556674452453,
       "return_60d": -0.08087800507132753,
@@ -1507,19 +2540,113 @@
       "breadth_positive_20d": 0.5869565217391305,
       "relative_5d": -0.06379682844230135,
       "breadth_change_10d": -0.2608695652173913,
-      "strength_percentile": 40.0,
+      "strength_percentile": 38.888888888888886,
       "state": "Neutral",
       "context": "20D/60D relative strength mixed; 43% of constituents above SMA50; breadth weakening."
+    },
+    {
+      "theme_id": "semiconductors",
+      "name": "Semiconductors",
+      "source_type": "official_etf_holdings",
+      "source_provider": "ishares",
+      "source": "SOXX",
+      "source_url": "https://www.ishares.com/us/products/239705/ishares-semiconductor-etf/latest-holdings.csv",
+      "source_date": "2026-08-26",
+      "effective_from": "2026-08-26",
+      "source_status": "available",
+      "parse_status": "parsed",
+      "error_reason": null,
+      "member_count": 33,
+      "raw_holdings_count": 33,
+      "us_resolvable_count": 33,
+      "foreign_or_unmapped_count": 0,
+      "valid_member_count": 30,
+      "return_20d": 0.1145054179066492,
+      "return_60d": -0.1280077088881347,
+      "relative_20d": 0.06430389897483663,
+      "relative_60d": -0.14054909021250359,
+      "breadth_above_sma50": 0.1,
+      "breadth_positive_20d": 0.8333333333333334,
+      "relative_5d": -0.00404156927434054,
+      "breadth_change_10d": -0.2333333333333333,
+      "strength_percentile": 33.333333333333336,
+      "state": "Neutral",
+      "context": "20D/60D relative strength mixed; 10% of constituents above SMA50; breadth weakening."
+    },
+    {
+      "theme_id": "clean-energy",
+      "name": "Clean Energy",
+      "source_type": "official_etf_holdings",
+      "source_provider": "ishares",
+      "source": "ICLN",
+      "source_url": "https://www.ishares.com/us/products/239738/ishares-global-clean-energy-etf/latest-holdings.csv",
+      "source_date": "2026-08-26",
+      "effective_from": "2026-08-26",
+      "source_status": "available",
+      "parse_status": "parsed",
+      "error_reason": null,
+      "member_count": 130,
+      "raw_holdings_count": 130,
+      "us_resolvable_count": 75,
+      "foreign_or_unmapped_count": 55,
+      "valid_member_count": 42,
+      "return_20d": -0.025538538714587507,
+      "return_60d": -0.0017941654958661534,
+      "relative_20d": -0.06794994952035363,
+      "relative_60d": -0.01834472545510349,
+      "breadth_above_sma50": 0.2857142857142857,
+      "breadth_positive_20d": 0.5714285714285714,
+      "relative_5d": -0.09952701376809085,
+      "breadth_change_10d": -0.023809523809523836,
+      "strength_percentile": 27.77777777777778,
+      "state": "Neutral",
+      "context": "20D/60D relative strength both weak; 29% of constituents above SMA50; breadth stable."
+    },
+    {
+      "theme_id": "grid-modernization",
+      "name": "Grid Modernization",
+      "source_type": "official_etf_holdings",
+      "source_provider": "first_trust",
+      "source": "GRID",
+      "source_url": "https://www.ftportfolios.com/Retail/Etf/EtfHoldings.aspx?Ticker=GRID",
+      "source_date": "2026-08-26",
+      "effective_from": "2026-08-26",
+      "source_status": "available",
+      "parse_status": "parsed",
+      "error_reason": null,
+      "member_count": 119,
+      "raw_holdings_count": 119,
+      "us_resolvable_count": 43,
+      "foreign_or_unmapped_count": 76,
+      "valid_member_count": 43,
+      "return_20d": 0.059047739565098394,
+      "return_60d": -0.11923590961128792,
+      "relative_20d": 0.008846220633285816,
+      "relative_60d": -0.1317772909356568,
+      "breadth_above_sma50": 0.32558139534883723,
+      "breadth_positive_20d": 0.7209302325581395,
+      "relative_5d": -0.01457029949139204,
+      "breadth_change_10d": -0.20930232558139528,
+      "strength_percentile": 22.22222222222222,
+      "state": "Neutral",
+      "context": "20D/60D relative strength mixed; 33% of constituents above SMA50; breadth weakening."
     },
     {
       "theme_id": "ev-battery",
       "name": "EV / Battery",
       "source_type": "official_etf_holdings",
+      "source_provider": "global_x",
       "source": "DRIV",
       "source_url": "https://assets.globalxetfs.com/funds/holdings/driv_full-holdings_20260826.csv",
       "source_date": "2026-08-26",
       "effective_from": "2026-08-26",
+      "source_status": "available",
+      "parse_status": "parsed",
+      "error_reason": null,
       "member_count": 74,
+      "raw_holdings_count": 74,
+      "us_resolvable_count": 39,
+      "foreign_or_unmapped_count": 35,
       "valid_member_count": 39,
       "return_20d": 0.075214198736332,
       "return_60d": -0.15611220207996376,
@@ -1529,7 +2656,7 @@
       "breadth_positive_20d": 0.6666666666666666,
       "relative_5d": -0.021329836269152466,
       "breadth_change_10d": -0.10256410256410253,
-      "strength_percentile": 20.0,
+      "strength_percentile": 11.11111111111111,
       "state": "Neutral",
       "context": "20D/60D relative strength mixed; 31% of constituents above SMA50; breadth weakening."
     },
@@ -1537,11 +2664,18 @@
       "theme_id": "robotics-automation",
       "name": "Robotics & Automation",
       "source_type": "official_etf_holdings",
+      "source_provider": "global_x",
       "source": "BOTZ",
       "source_url": "https://assets.globalxetfs.com/funds/holdings/botz_full-holdings_20260826.csv",
       "source_date": "2026-08-26",
       "effective_from": "2026-08-26",
+      "source_status": "available",
+      "parse_status": "parsed",
+      "error_reason": null,
       "member_count": 61,
+      "raw_holdings_count": 61,
+      "us_resolvable_count": 23,
+      "foreign_or_unmapped_count": 38,
       "valid_member_count": 23,
       "return_20d": 0.056953127591114684,
       "return_60d": -0.1879721954073552,
@@ -1551,63 +2685,26 @@
       "breadth_positive_20d": 0.6956521739130435,
       "relative_5d": -0.02419087438777206,
       "breadth_change_10d": -0.08695652173913043,
-      "strength_percentile": 10.0,
+      "strength_percentile": 5.555555555555555,
       "state": "Neutral",
       "context": "20D/60D relative strength mixed; 30% of constituents above SMA50; breadth stable."
-    },
-    {
-      "theme_id": "clean-energy",
-      "name": "Clean Energy",
-      "source_type": "official_etf_holdings",
-      "source": "ICLN",
-      "source_url": "https://www.ishares.com/us/products/239738/ishares-global-clean-energy-etf/1467271812596.ajax?fileType=csv&fileName=ICLN_holdings&dataType=fund",
-      "source_date": "2026-08-26",
-      "effective_from": "2026-08-26",
-      "member_count": 0,
-      "valid_member_count": 0,
-      "return_20d": null,
-      "return_60d": null,
-      "relative_20d": null,
-      "relative_60d": null,
-      "breadth_above_sma50": null,
-      "breadth_positive_20d": null,
-      "relative_5d": null,
-      "breadth_change_10d": null,
-      "strength_percentile": null,
-      "state": "Unavailable",
-      "context": "Only 0 constituents have sufficient data; metrics withheld."
-    },
-    {
-      "theme_id": "cloud-computing",
-      "name": "Cloud Computing",
-      "source_type": "official_etf_holdings",
-      "source": "SKYY",
-      "source_url": "https://www.ftportfolios.com/Retail/Etf/EtfHoldings.aspx?Ticker=SKYY",
-      "source_date": "2026-08-26",
-      "effective_from": "2026-08-26",
-      "member_count": 0,
-      "valid_member_count": 0,
-      "return_20d": null,
-      "return_60d": null,
-      "relative_20d": null,
-      "relative_60d": null,
-      "breadth_above_sma50": null,
-      "breadth_positive_20d": null,
-      "relative_5d": null,
-      "breadth_change_10d": null,
-      "strength_percentile": null,
-      "state": "Unavailable",
-      "context": "Only 0 constituents have sufficient data; metrics withheld."
     },
     {
       "theme_id": "copper-miners",
       "name": "Copper Miners",
       "source_type": "official_etf_holdings",
+      "source_provider": "global_x",
       "source": "COPX",
       "source_url": "https://assets.globalxetfs.com/funds/holdings/copx_full-holdings_20260826.csv",
       "source_date": "2026-08-26",
       "effective_from": "2026-08-26",
+      "source_status": "available",
+      "parse_status": "parsed",
+      "error_reason": null,
       "member_count": 40,
+      "raw_holdings_count": 40,
+      "us_resolvable_count": 4,
+      "foreign_or_unmapped_count": 36,
       "valid_member_count": 4,
       "return_20d": null,
       "return_60d": null,
@@ -1625,143 +2722,18 @@
       "theme_id": "critical-minerals",
       "name": "Critical Minerals",
       "source_type": "official_etf_holdings",
+      "source_provider": "vaneck",
       "source": "REMX",
-      "source_url": "https://www.vaneck.com/us/en/investments/rare-earth-strategic-metals-etf-remx/holdings/?download=csv",
+      "source_url": "https://www.vaneck.com/us/en/investments/rare-earth-strategic-metals-etf-remx/holdings/",
       "source_date": "2026-08-26",
       "effective_from": "2026-08-26",
+      "source_status": "unavailable",
+      "parse_status": "source_error",
+      "error_reason": "provider_transport_or_format_error",
       "member_count": 0,
-      "valid_member_count": 0,
-      "return_20d": null,
-      "return_60d": null,
-      "relative_20d": null,
-      "relative_60d": null,
-      "breadth_above_sma50": null,
-      "breadth_positive_20d": null,
-      "relative_5d": null,
-      "breadth_change_10d": null,
-      "strength_percentile": null,
-      "state": "Unavailable",
-      "context": "Only 0 constituents have sufficient data; metrics withheld."
-    },
-    {
-      "theme_id": "cybersecurity",
-      "name": "Cybersecurity",
-      "source_type": "official_etf_holdings",
-      "source": "CIBR",
-      "source_url": "https://www.ftportfolios.com/Retail/Etf/EtfHoldings.aspx?Ticker=CIBR",
-      "source_date": "2026-08-26",
-      "effective_from": "2026-08-26",
-      "member_count": 0,
-      "valid_member_count": 0,
-      "return_20d": null,
-      "return_60d": null,
-      "relative_20d": null,
-      "relative_60d": null,
-      "breadth_above_sma50": null,
-      "breadth_positive_20d": null,
-      "relative_5d": null,
-      "breadth_change_10d": null,
-      "strength_percentile": null,
-      "state": "Unavailable",
-      "context": "Only 0 constituents have sufficient data; metrics withheld."
-    },
-    {
-      "theme_id": "grid-modernization",
-      "name": "Grid Modernization",
-      "source_type": "official_etf_holdings",
-      "source": "GRID",
-      "source_url": "https://www.ftportfolios.com/Retail/Etf/EtfHoldings.aspx?Ticker=GRID",
-      "source_date": "2026-08-26",
-      "effective_from": "2026-08-26",
-      "member_count": 0,
-      "valid_member_count": 0,
-      "return_20d": null,
-      "return_60d": null,
-      "relative_20d": null,
-      "relative_60d": null,
-      "breadth_above_sma50": null,
-      "breadth_positive_20d": null,
-      "relative_5d": null,
-      "breadth_change_10d": null,
-      "strength_percentile": null,
-      "state": "Unavailable",
-      "context": "Only 0 constituents have sufficient data; metrics withheld."
-    },
-    {
-      "theme_id": "medical-devices",
-      "name": "Medical Devices",
-      "source_type": "official_etf_holdings",
-      "source": "IHI",
-      "source_url": "https://www.ishares.com/us/products/239748/ishares-us-medical-devices-etf/1467271812596.ajax?fileType=csv&fileName=IHI_holdings&dataType=fund",
-      "source_date": "2026-08-26",
-      "effective_from": "2026-08-26",
-      "member_count": 0,
-      "valid_member_count": 0,
-      "return_20d": null,
-      "return_60d": null,
-      "relative_20d": null,
-      "relative_60d": null,
-      "breadth_above_sma50": null,
-      "breadth_positive_20d": null,
-      "relative_5d": null,
-      "breadth_change_10d": null,
-      "strength_percentile": null,
-      "state": "Unavailable",
-      "context": "Only 0 constituents have sufficient data; metrics withheld."
-    },
-    {
-      "theme_id": "semiconductors",
-      "name": "Semiconductors",
-      "source_type": "official_etf_holdings",
-      "source": "SOXX",
-      "source_url": "https://www.ishares.com/us/products/239705/ishares-semiconductor-etf/1467271812596.ajax?fileType=csv&fileName=SOXX_holdings&dataType=fund",
-      "source_date": "2026-08-26",
-      "effective_from": "2026-08-26",
-      "member_count": 0,
-      "valid_member_count": 0,
-      "return_20d": null,
-      "return_60d": null,
-      "relative_20d": null,
-      "relative_60d": null,
-      "breadth_above_sma50": null,
-      "breadth_positive_20d": null,
-      "relative_5d": null,
-      "breadth_change_10d": null,
-      "strength_percentile": null,
-      "state": "Unavailable",
-      "context": "Only 0 constituents have sufficient data; metrics withheld."
-    },
-    {
-      "theme_id": "solar",
-      "name": "Solar",
-      "source_type": "official_etf_holdings",
-      "source": "TAN",
-      "source_url": "https://www.invesco.com/us/financial-products/etfs/holdings?audienceType=Investor&ticker=TAN",
-      "source_date": "2026-08-26",
-      "effective_from": "2026-08-26",
-      "member_count": 0,
-      "valid_member_count": 0,
-      "return_20d": null,
-      "return_60d": null,
-      "relative_20d": null,
-      "relative_60d": null,
-      "breadth_above_sma50": null,
-      "breadth_positive_20d": null,
-      "relative_5d": null,
-      "breadth_change_10d": null,
-      "strength_percentile": null,
-      "state": "Unavailable",
-      "context": "Only 0 constituents have sufficient data; metrics withheld."
-    },
-    {
-      "theme_id": "water-infrastructure",
-      "name": "Water Infrastructure",
-      "source_type": "official_etf_holdings",
-      "source": "PHO",
-      "source_url": "https://www.invesco.com/us/financial-products/etfs/holdings?audienceType=Investor&ticker=PHO",
-      "source_date": "2026-08-26",
-      "effective_from": "2026-08-26",
-      "member_count": 0,
+      "raw_holdings_count": 0,
+      "us_resolvable_count": 0,
+      "foreign_or_unmapped_count": 0,
       "valid_member_count": 0,
       "return_20d": null,
       "return_60d": null,
@@ -1777,9 +2749,39 @@
     }
   ],
   "ticker_context": {
+    "000155": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "000537": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "000591": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
     "000720 KS": [
       {
         "theme_id": "uranium",
+        "state": "Neutral"
+      }
+    ],
+    "001440.KS": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "002129": [
+      {
+        "theme_id": "clean-energy",
         "state": "Neutral"
       }
     ],
@@ -1795,6 +2797,12 @@
         "state": "Recovery"
       }
     ],
+    "002459": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
     "002460 C2": [
       {
         "theme_id": "battery-materials",
@@ -1805,6 +2813,30 @@
       {
         "theme_id": "battery-materials",
         "state": "Recovery"
+      }
+    ],
+    "002487": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "002506": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "002531": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "002610": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
       }
     ],
     "002709 C2": [
@@ -1831,6 +2863,12 @@
         "state": "Recovery"
       }
     ],
+    "002865": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
     "006360 KS": [
       {
         "theme_id": "uranium",
@@ -1844,6 +2882,18 @@
       },
       {
         "theme_id": "ev-battery",
+        "state": "Neutral"
+      }
+    ],
+    "006400.KS": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "010120.KS": [
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
@@ -1880,6 +2930,12 @@
     "060250 KS": [
       {
         "theme_id": "fintech",
+        "state": "Recovery"
+      }
+    ],
+    "062040.KS": [
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
@@ -1895,9 +2951,21 @@
         "state": "Neutral"
       }
     ],
+    "103590.KS": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
     "108490 KS": [
       {
         "theme_id": "robotics-automation",
+        "state": "Neutral"
+      }
+    ],
+    "112610": [
+      {
+        "theme_id": "clean-energy",
         "state": "Neutral"
       }
     ],
@@ -1923,6 +2991,12 @@
         "state": "Neutral"
       }
     ],
+    "1211.HK": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
     "1258 HK": [
       {
         "theme_id": "copper-miners",
@@ -1935,10 +3009,46 @@
         "state": "Neutral"
       }
     ],
+    "1407": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      }
+    ],
+    "1503.TT": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "1513.TT": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "1514.TT": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
     "1515 JP": [
       {
         "theme_id": "copper-miners",
         "state": "Unavailable"
+      }
+    ],
+    "1519.TT": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "1609.TT": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
       }
     ],
     "1611 HK": [
@@ -1956,6 +3066,12 @@
     "1772 HK": [
       {
         "theme_id": "ev-battery",
+        "state": "Neutral"
+      }
+    ],
+    "1798": [
+      {
+        "theme_id": "clean-energy",
         "state": "Neutral"
       }
     ],
@@ -2001,9 +3117,21 @@
         "state": "Leadership"
       }
     ],
+    "2208": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
     "2252 HK": [
       {
         "theme_id": "robotics-automation",
+        "state": "Neutral"
+      }
+    ],
+    "229640.KS": [
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
@@ -2011,6 +3139,24 @@
       {
         "theme_id": "battery-materials",
         "state": "Recovery"
+      }
+    ],
+    "2371.TT": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "2395.TT": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "2406": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
       }
     ],
     "2431 HK": [
@@ -2050,6 +3196,12 @@
     "2598 HK": [
       {
         "theme_id": "fintech",
+        "state": "Recovery"
+      }
+    ],
+    "267260.KS": [
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
@@ -2065,6 +3217,12 @@
         "state": "Unavailable"
       }
     ],
+    "298040.KS": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
     "300014 C2": [
       {
         "theme_id": "battery-materials",
@@ -2077,9 +3235,21 @@
         "state": "Neutral"
       }
     ],
+    "300118": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
     "300124 C2": [
       {
         "theme_id": "robotics-automation",
+        "state": "Neutral"
+      }
+    ],
+    "300140": [
+      {
+        "theme_id": "clean-energy",
         "state": "Neutral"
       }
     ],
@@ -2089,10 +3259,28 @@
         "state": "Recovery"
       }
     ],
+    "300393": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "300443": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
     "300450 C2": [
       {
         "theme_id": "battery-materials",
         "state": "Recovery"
+      }
+    ],
+    "300724": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
       }
     ],
     "300750 C2": [
@@ -2101,9 +3289,61 @@
         "state": "Recovery"
       }
     ],
+    "300751": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
     "300757 C2": [
       {
         "theme_id": "robotics-automation",
+        "state": "Neutral"
+      }
+    ],
+    "300763": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "300772": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "301155": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "322000": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      }
+    ],
+    "336260": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "3393.HK": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "3576": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "clean-energy",
         "state": "Neutral"
       }
     ],
@@ -2123,9 +3363,27 @@
         "state": "Neutral"
       }
     ],
+    "3750.HK": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
     "377300 KS": [
       {
         "theme_id": "fintech",
+        "state": "Recovery"
+      }
+    ],
+    "3800": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      }
+    ],
+    "3868": [
+      {
+        "theme_id": "solar",
         "state": "Neutral"
       }
     ],
@@ -2153,9 +3411,27 @@
         "state": "Neutral"
       }
     ],
+    "4704.JP": [
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      }
+    ],
+    "5074": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      }
+    ],
     "5301 JP": [
       {
         "theme_id": "ev-battery",
+        "state": "Neutral"
+      }
+    ],
+    "5333.JP": [
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
@@ -2171,6 +3447,108 @@
         "state": "Unavailable"
       }
     ],
+    "5801.JP": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "5802.JP": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "5803.JP": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "600025": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "600032": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "600116": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "600236": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "600674": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "600732": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "600821": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "600900": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "600905": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "600995": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "601012": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "601016": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "601615": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "601619": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
     "603659 C1": [
       {
         "theme_id": "battery-materials",
@@ -2180,6 +3558,16 @@
     "6104 JP": [
       {
         "theme_id": "robotics-automation",
+        "state": "Neutral"
+      }
+    ],
+    "6244": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "clean-energy",
         "state": "Neutral"
       }
     ],
@@ -2207,9 +3595,49 @@
         "state": "Neutral"
       }
     ],
+    "6409.TT": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "6443": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "6501.JP": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "6503.JP": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "6504.JP": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
     "6506 JP": [
       {
         "theme_id": "robotics-automation",
+        "state": "Neutral"
+      }
+    ],
+    "6508.JP": [
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
@@ -2222,6 +3650,24 @@
     "6600 HK": [
       {
         "theme_id": "robotics-automation",
+        "state": "Neutral"
+      }
+    ],
+    "6617.JP": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "6622.JP": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "6644.JP": [
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
@@ -2243,10 +3689,28 @@
         "state": "Neutral"
       }
     ],
+    "6674.JP": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "6723.JP": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
     "6752 JP": [
       {
         "theme_id": "battery-materials",
         "state": "Recovery"
+      }
+    ],
+    "6752.JP": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
       }
     ],
     "6762 JP": [
@@ -2258,7 +3722,7 @@
     "6763 TT": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "6781 TT": [
@@ -2267,9 +3731,27 @@
         "state": "Neutral"
       }
     ],
+    "6845.JP": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
     "6861 JP": [
       {
         "theme_id": "robotics-automation",
+        "state": "Neutral"
+      }
+    ],
+    "6865": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      }
+    ],
+    "688032": [
+      {
+        "theme_id": "clean-energy",
         "state": "Neutral"
       }
     ],
@@ -2285,9 +3767,45 @@
         "state": "Neutral"
       }
     ],
+    "688223": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
     "688297 C1": [
       {
         "theme_id": "robotics-automation",
+        "state": "Neutral"
+      }
+    ],
+    "688349": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "688390": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "688472": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "688516": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "688599": [
+      {
+        "theme_id": "clean-energy",
         "state": "Neutral"
       }
     ],
@@ -2324,7 +3842,7 @@
     "7722 TT": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "8001 JP": [
@@ -2335,17 +3853,41 @@
     ],
     "863 HK": [
       {
-        "theme_id": "digital-assets",
+        "theme_id": "fintech",
         "state": "Recovery"
       },
       {
-        "theme_id": "fintech",
+        "theme_id": "digital-assets",
+        "state": "Recovery"
+      }
+    ],
+    "916": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "9502": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "9519": [
+      {
+        "theme_id": "clean-energy",
         "state": "Neutral"
       }
     ],
     "9660 HK": [
       {
         "theme_id": "robotics-automation",
+        "state": "Neutral"
+      }
+    ],
+    "968": [
+      {
+        "theme_id": "solar",
         "state": "Neutral"
       }
     ],
@@ -2364,7 +3906,7 @@
     "9923 HK": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "9927 HK": [
@@ -2373,9 +3915,21 @@
         "state": "Neutral"
       }
     ],
+    "9958": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
     "9959 HK": [
       {
         "theme_id": "fintech",
+        "state": "Recovery"
+      }
+    ],
+    "A": [
+      {
+        "theme_id": "water-infrastructure",
         "state": "Neutral"
       }
     ],
@@ -2391,6 +3945,12 @@
         "state": "Neutral"
       }
     ],
+    "ABBN.SW": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
     "ABBV": [
       {
         "theme_id": "biotechnology",
@@ -2403,14 +3963,20 @@
         "state": "Leadership"
       }
     ],
+    "ABT": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
     "ABTC": [
       {
-        "theme_id": "digital-assets",
+        "theme_id": "fintech",
         "state": "Recovery"
       },
       {
-        "theme_id": "fintech",
-        "state": "Neutral"
+        "theme_id": "digital-assets",
+        "state": "Recovery"
       }
     ],
     "ABUS": [
@@ -2422,6 +3988,10 @@
     "ACA": [
       {
         "theme_id": "infrastructure",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
@@ -2446,19 +4016,45 @@
     "ACIW": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "ACM": [
       {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      },
+      {
         "theme_id": "infrastructure",
         "state": "Neutral"
+      }
+    ],
+    "ACN": [
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      }
+    ],
+    "ADBE": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
       }
     ],
     "ADE GR": [
       {
         "theme_id": "digital-assets",
         "state": "Recovery"
+      }
+    ],
+    "ADI": [
+      {
+        "theme_id": "semiconductors",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
       }
     ],
     "ADMA": [
@@ -2470,7 +4066,7 @@
     "ADYEN NA": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "AEC CN": [
@@ -2482,6 +4078,18 @@
     "AEE AU": [
       {
         "theme_id": "uranium",
+        "state": "Neutral"
+      }
+    ],
+    "AEIS": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "AES": [
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
@@ -2500,7 +4108,7 @@
     "AFRM": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "AGE AU": [
@@ -2515,6 +4123,12 @@
         "state": "Leadership"
       }
     ],
+    "AGPXX": [
+      {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      }
+    ],
     "AGX": [
       {
         "theme_id": "infrastructure",
@@ -2527,6 +4141,22 @@
         "state": "Neutral"
       }
     ],
+    "AKAM": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      },
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      }
+    ],
+    "ALAB": [
+      {
+        "theme_id": "semiconductors",
+        "state": "Neutral"
+      }
+    ],
     "ALB": [
       {
         "theme_id": "battery-materials",
@@ -2534,6 +4164,12 @@
       },
       {
         "theme_id": "ev-battery",
+        "state": "Neutral"
+      }
+    ],
+    "ALFEN.NA": [
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
@@ -2573,15 +4209,33 @@
         "state": "Leadership"
       }
     ],
+    "ALUP11.BZ": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
     "AMAK AB": [
       {
         "theme_id": "copper-miners",
         "state": "Unavailable"
       }
     ],
+    "AMAT": [
+      {
+        "theme_id": "semiconductors",
+        "state": "Neutral"
+      }
+    ],
     "AMBA": [
       {
         "theme_id": "ev-battery",
+        "state": "Neutral"
+      }
+    ],
+    "AMD": [
+      {
+        "theme_id": "semiconductors",
         "state": "Neutral"
       }
     ],
@@ -2609,10 +4263,44 @@
         "state": "Neutral"
       }
     ],
+    "AMSC": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "AMZN": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
     "ANAB": [
       {
         "theme_id": "biotechnology",
         "state": "Leadership"
+      }
+    ],
+    "ANE": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "ANET": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      },
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      }
+    ],
+    "ANGO": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
       }
     ],
     "ANNX": [
@@ -2625,6 +4313,18 @@
       {
         "theme_id": "copper-miners",
         "state": "Unavailable"
+      }
+    ],
+    "AORT": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
+    "AOS": [
+      {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
       }
     ],
     "APA": [
@@ -2645,9 +4345,31 @@
         "state": "Recovery"
       }
     ],
+    "APP": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
+    "APPF": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
     "APPN": [
       {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      },
+      {
         "theme_id": "robotics-automation",
+        "state": "Neutral"
+      }
+    ],
+    "APTV": [
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
@@ -2669,6 +4391,12 @@
         "state": "Unavailable"
       }
     ],
+    "ARM": [
+      {
+        "theme_id": "semiconductors",
+        "state": "Neutral"
+      }
+    ],
     "ARN CN": [
       {
         "theme_id": "uranium",
@@ -2681,10 +4409,32 @@
         "state": "Leadership"
       }
     ],
+    "ARRY": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
     "ARWR": [
       {
         "theme_id": "biotechnology",
         "state": "Leadership"
+      }
+    ],
+    "ASAN": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
+    "ASML": [
+      {
+        "theme_id": "semiconductors",
+        "state": "Neutral"
       }
     ],
     "ASN AU": [
@@ -2696,6 +4446,30 @@
     "ASTE": [
       {
         "theme_id": "infrastructure",
+        "state": "Neutral"
+      }
+    ],
+    "ASTOR.TI": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "ASX": [
+      {
+        "theme_id": "semiconductors",
+        "state": "Neutral"
+      }
+    ],
+    "ATEC": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
+    "ATEN": [
+      {
+        "theme_id": "cybersecurity",
         "state": "Neutral"
       }
     ],
@@ -2717,6 +4491,22 @@
       {
         "theme_id": "infrastructure",
         "state": "Neutral"
+      },
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "ATO.FP": [
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      }
+    ],
+    "ATRC": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
       }
     ],
     "ATRO": [
@@ -2743,6 +4533,12 @@
         "state": "Neutral"
       }
     ],
+    "AURE3": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
     "AUTO NO": [
       {
         "theme_id": "robotics-automation",
@@ -2765,10 +4561,38 @@
         "state": "Leadership"
       }
     ],
+    "AVGO": [
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "semiconductors",
+        "state": "Neutral"
+      }
+    ],
     "AVTX": [
       {
         "theme_id": "biotechnology",
         "state": "Leadership"
+      }
+    ],
+    "AWK": [
+      {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      }
+    ],
+    "AWR": [
+      {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      }
+    ],
+    "AXGN": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
       }
     ],
     "AXON": [
@@ -2783,13 +4607,35 @@
         "state": "Neutral"
       }
     ],
+    "AZZ": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
     "BA": [
       {
         "theme_id": "defense-aerospace",
         "state": "Neutral"
       }
     ],
+    "BAH": [
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      }
+    ],
+    "BAX": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
     "BB": [
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      },
       {
         "theme_id": "ev-battery",
         "state": "Neutral"
@@ -2799,6 +4645,12 @@
       {
         "theme_id": "biotechnology",
         "state": "Leadership"
+      }
+    ],
+    "BBNX": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
       }
     ],
     "BBOT": [
@@ -2813,13 +4665,35 @@
         "state": "Leadership"
       }
     ],
+    "BCPG-R": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      }
+    ],
     "BCRX": [
       {
         "theme_id": "biotechnology",
         "state": "Leadership"
       }
     ],
+    "BDC": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "BDX": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
     "BE": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      },
       {
         "theme_id": "ev-battery",
         "state": "Neutral"
@@ -2831,10 +4705,28 @@
         "state": "Leadership"
       }
     ],
+    "BEAN.SE": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "BEPC": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
     "BETA": [
       {
         "theme_id": "defense-aerospace",
         "state": "Neutral"
+      }
+    ],
+    "BFLY": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
       }
     ],
     "BHP AU": [
@@ -2872,17 +4764,17 @@
     "BILL": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "BKKT": [
       {
-        "theme_id": "digital-assets",
+        "theme_id": "fintech",
         "state": "Recovery"
       },
       {
-        "theme_id": "fintech",
-        "state": "Neutral"
+        "theme_id": "digital-assets",
+        "state": "Recovery"
       }
     ],
     "BKR": [
@@ -2891,10 +4783,22 @@
         "state": "Pullback Watch"
       }
     ],
+    "BKW.SW": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
     "BKY SM": [
       {
         "theme_id": "uranium",
         "state": "Neutral"
+      }
+    ],
+    "BL": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
       }
     ],
     "BLDR": [
@@ -2903,23 +4807,33 @@
         "state": "Neutral"
       }
     ],
+    "BLKB": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
     "BLND": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "BLSH": [
       {
-        "theme_id": "digital-assets",
+        "theme_id": "fintech",
         "state": "Recovery"
       },
       {
-        "theme_id": "fintech",
-        "state": "Neutral"
+        "theme_id": "digital-assets",
+        "state": "Recovery"
       }
     ],
     "BMI": [
+      {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      },
       {
         "theme_id": "infrastructure",
         "state": "Neutral"
@@ -2955,6 +4869,36 @@
         "state": "Unavailable"
       }
     ],
+    "BOX": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
+    "BREN": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "BRL": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "BSX": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
+    "BSY": [
+      {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      }
+    ],
     "BTBT": [
       {
         "theme_id": "digital-assets",
@@ -2976,7 +4920,7 @@
     "BULL": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "BVR AU": [
@@ -2995,6 +4939,12 @@
       {
         "theme_id": "biotechnology",
         "state": "Leadership"
+      }
+    ],
+    "CAD": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
       }
     ],
     "CADL": [
@@ -3047,12 +4997,12 @@
     ],
     "CD": [
       {
-        "theme_id": "digital-assets",
+        "theme_id": "fintech",
         "state": "Recovery"
       },
       {
-        "theme_id": "fintech",
-        "state": "Neutral"
+        "theme_id": "digital-assets",
+        "state": "Recovery"
       }
     ],
     "CDNA": [
@@ -3071,6 +5021,18 @@
       {
         "theme_id": "biotechnology",
         "state": "Leadership"
+      }
+    ],
+    "CEN": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "CENER.GA": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
       }
     ],
     "CENX": [
@@ -3097,14 +5059,30 @@
         "state": "Leadership"
       }
     ],
+    "CHF": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "CHKP": [
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      }
+    ],
     "CIFR": [
       {
-        "theme_id": "digital-assets",
+        "theme_id": "fintech",
         "state": "Recovery"
       },
       {
-        "theme_id": "fintech",
-        "state": "Neutral"
+        "theme_id": "digital-assets",
+        "state": "Recovery"
       }
     ],
     "CLDX": [
@@ -3116,6 +5094,12 @@
     "CLF": [
       {
         "theme_id": "infrastructure",
+        "state": "Neutral"
+      }
+    ],
+    "CLP": [
+      {
+        "theme_id": "clean-energy",
         "state": "Neutral"
       }
     ],
@@ -3143,10 +5127,34 @@
         "state": "Leadership"
       }
     ],
+    "CNH": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
     "CNL CN": [
       {
         "theme_id": "copper-miners",
         "state": "Unavailable"
+      }
+    ],
+    "CNM": [
+      {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      }
+    ],
+    "CNMD": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
+    "CNY": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
       }
     ],
     "COGT": [
@@ -3163,12 +5171,12 @@
     ],
     "COIN": [
       {
-        "theme_id": "digital-assets",
+        "theme_id": "fintech",
         "state": "Recovery"
       },
       {
-        "theme_id": "fintech",
-        "state": "Neutral"
+        "theme_id": "digital-assets",
+        "state": "Recovery"
       }
     ],
     "COP": [
@@ -3179,11 +5187,23 @@
     ],
     "CORZ": [
       {
-        "theme_id": "digital-assets",
+        "theme_id": "fintech",
         "state": "Recovery"
       },
       {
-        "theme_id": "fintech",
+        "theme_id": "digital-assets",
+        "state": "Recovery"
+      }
+    ],
+    "CPFE3": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "CPLE3.BZ": [
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
@@ -3195,11 +5215,17 @@
     ],
     "CRCL": [
       {
-        "theme_id": "digital-assets",
+        "theme_id": "fintech",
         "state": "Recovery"
       },
       {
-        "theme_id": "fintech",
+        "theme_id": "digital-assets",
+        "state": "Recovery"
+      }
+    ],
+    "CRDO": [
+      {
+        "theme_id": "semiconductors",
         "state": "Neutral"
       }
     ],
@@ -3207,6 +5233,12 @@
       {
         "theme_id": "infrastructure",
         "state": "Neutral"
+      }
+    ],
+    "CRM": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
       }
     ],
     "CRNC": [
@@ -3237,10 +5269,50 @@
         "state": "Leadership"
       }
     ],
+    "CRWD": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      },
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      }
+    ],
+    "CRWV": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
     "CS CN": [
       {
         "theme_id": "copper-miners",
         "state": "Unavailable"
+      }
+    ],
+    "CSCO": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      },
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "CSIQ": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
       }
     ],
     "CSL": [
@@ -3279,6 +5351,12 @@
         "state": "Neutral"
       }
     ],
+    "CVLT": [
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      }
+    ],
     "CVV CN": [
       {
         "theme_id": "uranium",
@@ -3297,6 +5375,46 @@
         "state": "Neutral"
       }
     ],
+    "CWCO": [
+      {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      }
+    ],
+    "CWEN": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "CWENE": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      }
+    ],
+    "CWENE.E": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "CWR": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "CWT": [
+      {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      }
+    ],
     "CXU AU": [
       {
         "theme_id": "uranium",
@@ -3307,6 +5425,12 @@
       {
         "theme_id": "biotechnology",
         "state": "Leadership"
+      }
+    ],
+    "DBX": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
       }
     ],
     "DCH": [
@@ -3321,16 +5445,44 @@
         "state": "Neutral"
       }
     ],
+    "DDOG": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      },
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      }
+    ],
     "DE": [
       {
         "theme_id": "infrastructure",
         "state": "Neutral"
       }
     ],
+    "DELL": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
+    "DGII": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "DKK": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
     "DLO": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "DML CN": [
@@ -3363,9 +5515,43 @@
         "state": "Leadership"
       }
     ],
+    "DOCN": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
+    "DOCU": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
+    "DORL": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "DQ": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      }
+    ],
     "DRS": [
       {
         "theme_id": "defense-aerospace",
+        "state": "Neutral"
+      }
+    ],
+    "DT": [
+      {
+        "theme_id": "cybersecurity",
         "state": "Neutral"
       }
     ],
@@ -3379,6 +5565,12 @@
       {
         "theme_id": "copper-miners",
         "state": "Unavailable"
+      }
+    ],
+    "DXCM": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
       }
     ],
     "DXPE": [
@@ -3405,6 +5597,12 @@
         "state": "Leadership"
       }
     ],
+    "EA.R": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
     "EBS": [
       {
         "theme_id": "biotechnology",
@@ -3417,9 +5615,39 @@
         "state": "Neutral"
       }
     ],
+    "ECL": [
+      {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      }
+    ],
+    "EDP": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "EDP.PL": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "EDPR": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
     "EFR CN": [
       {
         "theme_id": "uranium",
+        "state": "Neutral"
+      }
+    ],
+    "EGIE3": [
+      {
+        "theme_id": "clean-energy",
         "state": "Neutral"
       }
     ],
@@ -3432,6 +5660,12 @@
     "EL8 AU": [
       {
         "theme_id": "uranium",
+        "state": "Neutral"
+      }
+    ],
+    "ELI.BB": [
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
@@ -3451,6 +5685,80 @@
       {
         "theme_id": "infrastructure",
         "state": "Neutral"
+      },
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "ENEL.IM": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "ENELAM": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "ENGI.FP": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "ENGI11": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "ENGI11.BZ": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "ENLT": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "ENOV": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
+    "ENPH": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "ENRG": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
       }
     ],
     "ENS": [
@@ -3459,7 +5767,23 @@
         "state": "Recovery"
       },
       {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      },
+      {
         "theme_id": "ev-battery",
+        "state": "Neutral"
+      }
+    ],
+    "ENTG": [
+      {
+        "theme_id": "semiconductors",
+        "state": "Neutral"
+      }
+    ],
+    "EOAN.GY": [
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
@@ -3473,6 +5797,18 @@
       {
         "theme_id": "oil-gas",
         "state": "Pullback Watch"
+      }
+    ],
+    "EQTL3": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "EQTL3.BZ": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
       }
     ],
     "ERA FP": [
@@ -3491,26 +5827,64 @@
         "state": "Leadership"
       }
     ],
+    "ERG": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "ERII": [
+      {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      }
+    ],
     "ERO CN": [
       {
         "theme_id": "copper-miners",
         "state": "Unavailable"
       }
     ],
+    "ESE": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "ESTC": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      },
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      }
+    ],
+    "ESU6": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
     "ETN": [
       {
         "theme_id": "infrastructure",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
     "ETOR": [
       {
-        "theme_id": "digital-assets",
+        "theme_id": "fintech",
         "state": "Recovery"
       },
       {
-        "theme_id": "fintech",
-        "state": "Neutral"
+        "theme_id": "digital-assets",
+        "state": "Recovery"
       }
     ],
     "EU CN": [
@@ -3519,10 +5893,26 @@
         "state": "Neutral"
       }
     ],
+    "EUR": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
     "EUR AU": [
       {
         "theme_id": "battery-materials",
         "state": "Recovery"
+      }
+    ],
+    "EW": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
       }
     ],
     "EXA FP": [
@@ -3545,12 +5935,12 @@
     ],
     "EXOD": [
       {
-        "theme_id": "digital-assets",
+        "theme_id": "fintech",
         "state": "Recovery"
       },
       {
-        "theme_id": "fintech",
-        "state": "Neutral"
+        "theme_id": "digital-assets",
+        "state": "Recovery"
       }
     ],
     "EXP": [
@@ -3601,21 +5991,57 @@
         "state": "Unavailable"
       }
     ],
+    "FELE": [
+      {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      }
+    ],
+    "FERG": [
+      {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      }
+    ],
+    "FFIV": [
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      }
+    ],
     "FFM AU": [
       {
         "theme_id": "copper-miners",
         "state": "Unavailable"
       }
     ],
+    "FIG": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
     "FIS": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "FISV": [
       {
         "theme_id": "fintech",
+        "state": "Recovery"
+      }
+    ],
+    "FIVN": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
+    "FLNC": [
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
@@ -3628,7 +6054,7 @@
     "FLYW": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "FM CN": [
@@ -3640,12 +6066,18 @@
     "FOUR": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "FPS": [
       {
         "theme_id": "infrastructure",
+        "state": "Neutral"
+      }
+    ],
+    "FROG": [
+      {
+        "theme_id": "cybersecurity",
         "state": "Neutral"
       }
     ],
@@ -3655,9 +6087,41 @@
         "state": "Neutral"
       }
     ],
+    "FSLR": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "FSLY": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      },
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      }
+    ],
     "FTAI": [
       {
         "theme_id": "defense-aerospace",
+        "state": "Neutral"
+      }
+    ],
+    "FTNT": [
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      }
+    ],
+    "FTS.CN": [
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
@@ -3679,6 +6143,12 @@
         "state": "Neutral"
       }
     ],
+    "GBP": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
     "GBX": [
       {
         "theme_id": "infrastructure",
@@ -3697,13 +6167,25 @@
         "state": "Neutral"
       }
     ],
+    "GEHC": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
     "GEMI": [
       {
-        "theme_id": "digital-assets",
+        "theme_id": "fintech",
         "state": "Recovery"
       },
       {
-        "theme_id": "fintech",
+        "theme_id": "digital-assets",
+        "state": "Recovery"
+      }
+    ],
+    "GEN": [
+      {
+        "theme_id": "cybersecurity",
         "state": "Neutral"
       }
     ],
@@ -3711,6 +6193,12 @@
       {
         "theme_id": "biotechnology",
         "state": "Leadership"
+      }
+    ],
+    "GEV": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
       }
     ],
     "GGG": [
@@ -3723,6 +6211,12 @@
       {
         "theme_id": "biotechnology",
         "state": "Leadership"
+      }
+    ],
+    "GKOS": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
       }
     ],
     "GLEN LN": [
@@ -3745,12 +6239,12 @@
     ],
     "GLXY": [
       {
-        "theme_id": "digital-assets",
+        "theme_id": "fintech",
         "state": "Recovery"
       },
       {
-        "theme_id": "fintech",
-        "state": "Neutral"
+        "theme_id": "digital-assets",
+        "state": "Recovery"
       }
     ],
     "GM": [
@@ -3759,7 +6253,27 @@
         "state": "Neutral"
       }
     ],
+    "GMED": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
+    "GNRC": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
     "GOOGL": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      },
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      },
       {
         "theme_id": "ev-battery",
         "state": "Neutral"
@@ -3772,6 +6286,12 @@
     "GPN": [
       {
         "theme_id": "fintech",
+        "state": "Recovery"
+      }
+    ],
+    "GPRE": [
+      {
+        "theme_id": "clean-energy",
         "state": "Neutral"
       }
     ],
@@ -3783,8 +6303,24 @@
     ],
     "GRC": [
       {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      },
+      {
         "theme_id": "infrastructure",
         "state": "Neutral"
+      }
+    ],
+    "GRE": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      }
+    ],
+    "GTLB": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
       }
     ],
     "GVA": [
@@ -3796,6 +6332,12 @@
     "GWRE": [
       {
         "theme_id": "fintech",
+        "state": "Recovery"
+      }
+    ],
+    "H.CT": [
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
@@ -3814,6 +6356,18 @@
     "HAPN": [
       {
         "theme_id": "fintech",
+        "state": "Recovery"
+      }
+    ],
+    "HASI": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      }
+    ],
+    "HBCFT": [
+      {
+        "theme_id": "clean-energy",
         "state": "Neutral"
       }
     ],
@@ -3847,16 +6401,56 @@
         "state": "Recovery"
       }
     ],
+    "HKD": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "HO.FP": [
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      }
+    ],
+    "HOLX": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
+    "HON": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
     "HOOD": [
       {
         "theme_id": "fintech",
+        "state": "Recovery"
+      }
+    ],
+    "HPE": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
+    "HPS/A.CT": [
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
     "HQY": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "HRI": [
@@ -3871,25 +6465,47 @@
         "state": "Neutral"
       }
     ],
+    "HTO": [
+      {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      }
+    ],
     "HUB AU": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "HUBB": [
       {
         "theme_id": "infrastructure",
         "state": "Neutral"
+      },
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "HUBS": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
       }
     ],
     "HUT CN": [
       {
-        "theme_id": "digital-assets",
+        "theme_id": "fintech",
         "state": "Recovery"
       },
       {
-        "theme_id": "fintech",
+        "theme_id": "digital-assets",
+        "state": "Recovery"
+      }
+    ],
+    "HWKN": [
+      {
+        "theme_id": "water-infrastructure",
         "state": "Neutral"
       }
     ],
@@ -3918,6 +6534,32 @@
     "HYQ GR": [
       {
         "theme_id": "fintech",
+        "state": "Recovery"
+      }
+    ],
+    "IART": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
+    "IBE.SM": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "IBM": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      },
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
@@ -3925,6 +6567,22 @@
       {
         "theme_id": "biotechnology",
         "state": "Leadership"
+      }
+    ],
+    "IDR": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "IDXX": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      },
+      {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
       }
     ],
     "IDYA": [
@@ -3941,6 +6599,10 @@
     ],
     "IEX": [
       {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      },
+      {
         "theme_id": "infrastructure",
         "state": "Neutral"
       }
@@ -3948,6 +6610,12 @@
     "IFX GR": [
       {
         "theme_id": "ev-battery",
+        "state": "Neutral"
+      }
+    ],
+    "IFX.GY": [
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
@@ -3964,6 +6632,16 @@
     "IIIN": [
       {
         "theme_id": "infrastructure",
+        "state": "Neutral"
+      }
+    ],
+    "ILS": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "clean-energy",
         "state": "Neutral"
       }
     ],
@@ -4009,6 +6687,24 @@
         "state": "Neutral"
       }
     ],
+    "INFY": [
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      }
+    ],
+    "INOXWIND": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "INR": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
     "INR AU": [
       {
         "theme_id": "battery-materials",
@@ -4021,7 +6717,17 @@
         "state": "Leadership"
       }
     ],
+    "INSP": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
     "INTC": [
+      {
+        "theme_id": "semiconductors",
+        "state": "Neutral"
+      },
       {
         "theme_id": "ev-battery",
         "state": "Neutral"
@@ -4029,8 +6735,12 @@
     ],
     "INTU": [
       {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      },
+      {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "IONS": [
@@ -4048,7 +6758,7 @@
     "IRE AU": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "IREN": [
@@ -4057,16 +6767,34 @@
         "state": "Recovery"
       }
     ],
+    "IRMD": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
     "IRON": [
       {
         "theme_id": "biotechnology",
         "state": "Leadership"
       }
     ],
+    "IRTC": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
     "IRWD": [
       {
         "theme_id": "biotechnology",
         "state": "Leadership"
+      }
+    ],
+    "ISAE4.BZ": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
       }
     ],
     "ISO CN": [
@@ -4077,7 +6805,27 @@
     ],
     "ISRG": [
       {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      },
+      {
         "theme_id": "robotics-automation",
+        "state": "Neutral"
+      }
+    ],
+    "ITGR": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
+    "ITRI": [
+      {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
@@ -4093,13 +6841,33 @@
         "state": "Unavailable"
       }
     ],
+    "IXCU6": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
     "IXPU6": [
       {
         "theme_id": "oil-gas",
         "state": "Pullback Watch"
       }
     ],
+    "IXTU6": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      },
+      {
+        "theme_id": "semiconductors",
+        "state": "Neutral"
+      }
+    ],
     "J": [
+      {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      },
       {
         "theme_id": "infrastructure",
         "state": "Neutral"
@@ -4123,9 +6891,35 @@
         "state": "Neutral"
       }
     ],
+    "JCI": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
     "JKHY": [
       {
         "theme_id": "fintech",
+        "state": "Recovery"
+      }
+    ],
+    "JKS": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "JPY": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "clean-energy",
         "state": "Neutral"
       }
     ],
@@ -4138,7 +6932,7 @@
     "KEEL": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "KEEL CN": [
@@ -4153,10 +6947,16 @@
         "state": "Unavailable"
       }
     ],
+    "KLAC": [
+      {
+        "theme_id": "semiconductors",
+        "state": "Neutral"
+      }
+    ],
     "KLAR": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "KMI": [
@@ -4183,6 +6983,16 @@
         "state": "Neutral"
       }
     ],
+    "KRW": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
     "KRYS": [
       {
         "theme_id": "biotechnology",
@@ -4199,6 +7009,12 @@
       {
         "theme_id": "biotechnology",
         "state": "Leadership"
+      }
+    ],
+    "KVYO": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
       }
     ],
     "KYMR": [
@@ -4223,6 +7039,12 @@
         "state": "Neutral"
       }
     ],
+    "LAND.SE": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
     "LAR CN": [
       {
         "theme_id": "battery-materials",
@@ -4243,6 +7065,12 @@
         "state": "Neutral"
       }
     ],
+    "LDOS": [
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      }
+    ],
     "LECO": [
       {
         "theme_id": "infrastructure",
@@ -4252,6 +7080,12 @@
     "LEU": [
       {
         "theme_id": "uranium",
+        "state": "Neutral"
+      }
+    ],
+    "LFUS": [
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
@@ -4273,15 +7107,33 @@
         "state": "Neutral"
       }
     ],
+    "LIVN": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
+    "LMAT": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
     "LMND": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "LMT": [
       {
         "theme_id": "defense-aerospace",
+        "state": "Neutral"
+      }
+    ],
+    "LNN": [
+      {
+        "theme_id": "water-infrastructure",
         "state": "Neutral"
       }
     ],
@@ -4300,6 +7152,18 @@
     "LPX": [
       {
         "theme_id": "infrastructure",
+        "state": "Neutral"
+      }
+    ],
+    "LR.FP": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "LRCX": [
+      {
+        "theme_id": "semiconductors",
         "state": "Neutral"
       }
     ],
@@ -4322,7 +7186,13 @@
     "LU": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
+      }
+    ],
+    "LUMN": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
       }
     ],
     "LUN CN": [
@@ -4343,14 +7213,20 @@
         "state": "Leadership"
       }
     ],
+    "MAGEN.E": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
     "MARA": [
       {
-        "theme_id": "digital-assets",
+        "theme_id": "fintech",
         "state": "Recovery"
       },
       {
-        "theme_id": "fintech",
-        "state": "Neutral"
+        "theme_id": "digital-assets",
+        "state": "Recovery"
       }
     ],
     "MBLY": [
@@ -4359,10 +7235,28 @@
         "state": "Neutral"
       }
     ],
+    "MCHP": [
+      {
+        "theme_id": "semiconductors",
+        "state": "Neutral"
+      }
+    ],
+    "MDB": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
     "MDGL": [
       {
         "theme_id": "biotechnology",
         "state": "Leadership"
+      }
+    ],
+    "MDT": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
       }
     ],
     "MDU": [
@@ -4375,6 +7269,18 @@
       {
         "theme_id": "biotechnology",
         "state": "Leadership"
+      }
+    ],
+    "MEL": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "MESU6": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
       }
     ],
     "MGA CN": [
@@ -4398,12 +7304,22 @@
     "MITK": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "MLI": [
       {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      },
+      {
         "theme_id": "infrastructure",
+        "state": "Neutral"
+      }
+    ],
+    "MLISW": [
+      {
+        "theme_id": "clean-energy",
         "state": "Neutral"
       }
     ],
@@ -4443,6 +7359,12 @@
         "state": "Leadership"
       }
     ],
+    "MPWR": [
+      {
+        "theme_id": "semiconductors",
+        "state": "Neutral"
+      }
+    ],
     "MRCY": [
       {
         "theme_id": "defense-aerospace",
@@ -4455,9 +7377,35 @@
         "state": "Leadership"
       }
     ],
+    "MRVL": [
+      {
+        "theme_id": "semiconductors",
+        "state": "Neutral"
+      }
+    ],
+    "MSEX": [
+      {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      }
+    ],
     "MSFT": [
       {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      },
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      },
+      {
         "theme_id": "ev-battery",
+        "state": "Neutral"
+      }
+    ],
+    "MTSI": [
+      {
+        "theme_id": "semiconductors",
         "state": "Neutral"
       }
     ],
@@ -4477,9 +7425,23 @@
       {
         "theme_id": "infrastructure",
         "state": "Neutral"
+      },
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "MU": [
+      {
+        "theme_id": "semiconductors",
+        "state": "Neutral"
       }
     ],
     "MWA": [
+      {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      },
       {
         "theme_id": "infrastructure",
         "state": "Neutral"
@@ -4501,6 +7463,10 @@
       {
         "theme_id": "infrastructure",
         "state": "Neutral"
+      },
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
       }
     ],
     "NBIS": [
@@ -4518,7 +7484,7 @@
     "NCNO": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "NDA CN": [
@@ -4539,9 +7505,37 @@
         "state": "Unavailable"
       }
     ],
+    "NDX1": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "NET": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      },
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      }
+    ],
+    "NEX.FP": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
     "NEXI IM": [
       {
         "theme_id": "fintech",
+        "state": "Recovery"
+      }
+    ],
+    "NG/.LN": [
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
@@ -4549,6 +7543,12 @@
       {
         "theme_id": "copper-miners",
         "state": "Unavailable"
+      }
+    ],
+    "NHPC": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
       }
     ],
     "NIO": [
@@ -4563,6 +7563,12 @@
         "state": "Neutral"
       }
     ],
+    "NKT.DC": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
     "NNE": [
       {
         "theme_id": "uranium",
@@ -4573,6 +7579,32 @@
       {
         "theme_id": "defense-aerospace",
         "state": "Neutral"
+      }
+    ],
+    "NOFR": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "NOK": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "NOW": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
       }
     ],
     "NPK": [
@@ -4599,16 +7631,50 @@
         "state": "Neutral"
       }
     ],
+    "NTAP": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      },
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      }
+    ],
+    "NTCT": [
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      }
+    ],
     "NTLA": [
       {
         "theme_id": "biotechnology",
         "state": "Leadership"
       }
     ],
+    "NTNX": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
+    "NTPCGREEN": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
     "NTRA": [
       {
         "theme_id": "biotechnology",
         "state": "Leadership"
+      }
+    ],
+    "NTSK": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
       }
     ],
     "NUCL": [
@@ -4629,7 +7695,21 @@
         "state": "Leadership"
       }
     ],
+    "NVCR": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
     "NVDA": [
+      {
+        "theme_id": "semiconductors",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      },
       {
         "theme_id": "ev-battery",
         "state": "Neutral"
@@ -4639,7 +7719,29 @@
         "state": "Neutral"
       }
     ],
+    "NVMI": [
+      {
+        "theme_id": "semiconductors",
+        "state": "Neutral"
+      }
+    ],
+    "NVST": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
+    "NVT": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
     "NWPX": [
+      {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      },
       {
         "theme_id": "infrastructure",
         "state": "Neutral"
@@ -4653,13 +7755,37 @@
     ],
     "NXPI": [
       {
+        "theme_id": "semiconductors",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      },
+      {
         "theme_id": "ev-battery",
+        "state": "Neutral"
+      }
+    ],
+    "NXT": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "clean-energy",
         "state": "Neutral"
       }
     ],
     "NYAX IT": [
       {
         "theme_id": "fintech",
+        "state": "Recovery"
+      }
+    ],
+    "NZD": [
+      {
+        "theme_id": "clean-energy",
         "state": "Neutral"
       }
     ],
@@ -4667,6 +7793,12 @@
       {
         "theme_id": "biotechnology",
         "state": "Leadership"
+      }
+    ],
+    "OFIX": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
       }
     ],
     "OKE": [
@@ -4678,6 +7810,12 @@
     "OKLO": [
       {
         "theme_id": "uranium",
+        "state": "Neutral"
+      }
+    ],
+    "OKTA": [
+      {
+        "theme_id": "cybersecurity",
         "state": "Neutral"
       }
     ],
@@ -4695,13 +7833,31 @@
     ],
     "OMCL": [
       {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      },
+      {
         "theme_id": "robotics-automation",
         "state": "Neutral"
       }
     ],
     "ON": [
       {
+        "theme_id": "semiconductors",
+        "state": "Neutral"
+      },
+      {
         "theme_id": "ev-battery",
+        "state": "Neutral"
+      }
+    ],
+    "ORCL": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      },
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
@@ -4715,6 +7871,24 @@
       {
         "theme_id": "biotechnology",
         "state": "Leadership"
+      }
+    ],
+    "ORSTED": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "OTEX": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
+    "OTEX.CN": [
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
       }
     ],
     "OUST": [
@@ -4735,9 +7909,31 @@
         "state": "Pullback Watch"
       }
     ],
+    "P": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
     "PAGS": [
       {
         "theme_id": "fintech",
+        "state": "Recovery"
+      }
+    ],
+    "PANW": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      },
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      }
+    ],
+    "PARSW": [
+      {
+        "theme_id": "clean-energy",
         "state": "Neutral"
       }
     ],
@@ -4750,13 +7946,25 @@
     "PAY": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
+      }
+    ],
+    "PAYC": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
       }
     ],
     "PAYO": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
+      }
+    ],
+    "PCTY": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
       }
     ],
     "PCVX": [
@@ -4771,9 +7979,21 @@
         "state": "Neutral"
       }
     ],
+    "PEN": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
     "PEN AU": [
       {
         "theme_id": "uranium",
+        "state": "Neutral"
+      }
+    ],
+    "PFSE.GY": [
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
@@ -4786,7 +8006,7 @@
     "PGY": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "PH": [
@@ -4805,6 +8025,10 @@
       {
         "theme_id": "infrastructure",
         "state": "Neutral"
+      },
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
       }
     ],
     "PLS AU": [
@@ -4819,6 +8043,10 @@
     ],
     "PLUG": [
       {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      },
+      {
         "theme_id": "ev-battery",
         "state": "Neutral"
       }
@@ -4831,8 +8059,18 @@
     ],
     "PNR": [
       {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      },
+      {
         "theme_id": "infrastructure",
         "state": "Neutral"
+      }
+    ],
+    "PODD": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
       }
     ],
     "PONY": [
@@ -4855,13 +8093,27 @@
     ],
     "PRCT": [
       {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      },
+      {
         "theme_id": "robotics-automation",
+        "state": "Neutral"
+      }
+    ],
+    "PREMIERENE": [
+      {
+        "theme_id": "clean-energy",
         "state": "Neutral"
       }
     ],
     "PRIM": [
       {
         "theme_id": "infrastructure",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
@@ -4880,13 +8132,19 @@
     "PRTH": [
       {
         "theme_id": "fintech",
+        "state": "Recovery"
+      }
+    ],
+    "PRY.IM": [
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
     "PSFE": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "PSX": [
@@ -4923,17 +8181,45 @@
       {
         "theme_id": "infrastructure",
         "state": "Neutral"
+      },
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
       }
     ],
     "PYPL": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "QCOM": [
       {
+        "theme_id": "semiconductors",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      },
+      {
         "theme_id": "ev-battery",
+        "state": "Neutral"
+      }
+    ],
+    "QDEL": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
+    "QLYS": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      },
+      {
+        "theme_id": "cybersecurity",
         "state": "Neutral"
       }
     ],
@@ -4941,6 +8227,12 @@
       {
         "theme_id": "ev-battery",
         "state": "Neutral"
+      }
+    ],
+    "QTWO": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
       }
     ],
     "QURE": [
@@ -4958,6 +8250,16 @@
     "RBC": [
       {
         "theme_id": "infrastructure",
+        "state": "Neutral"
+      }
+    ],
+    "RBRK": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      },
+      {
+        "theme_id": "cybersecurity",
         "state": "Neutral"
       }
     ],
@@ -4979,16 +8281,40 @@
         "state": "Neutral"
       }
     ],
+    "RDWR": [
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      }
+    ],
+    "RED.SM": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
     "REGN": [
       {
         "theme_id": "biotechnology",
         "state": "Leadership"
       }
     ],
+    "RENE.PL": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
     "REPL": [
       {
         "theme_id": "biotechnology",
         "state": "Leadership"
+      }
+    ],
+    "REX": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
       }
     ],
     "RGNX": [
@@ -5017,12 +8343,12 @@
     ],
     "RIOT": [
       {
-        "theme_id": "digital-assets",
+        "theme_id": "fintech",
         "state": "Recovery"
       },
       {
-        "theme_id": "fintech",
-        "state": "Neutral"
+        "theme_id": "digital-assets",
+        "state": "Recovery"
       }
     ],
     "RKLB": [
@@ -5037,9 +8363,37 @@
         "state": "Leadership"
       }
     ],
+    "RMBS": [
+      {
+        "theme_id": "semiconductors",
+        "state": "Neutral"
+      }
+    ],
+    "RMD": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
+    "RNG": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
     "RNO FP": [
       {
         "theme_id": "ev-battery",
+        "state": "Neutral"
+      }
+    ],
+    "RNW": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "clean-energy",
         "state": "Neutral"
       }
     ],
@@ -5067,10 +8421,16 @@
         "state": "Neutral"
       }
     ],
+    "ROP": [
+      {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      }
+    ],
     "RPAY": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "RPM": [
@@ -5097,6 +8457,12 @@
         "state": "Neutral"
       }
     ],
+    "RSGN.SE": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
     "RSW LN": [
       {
         "theme_id": "robotics-automation",
@@ -5106,6 +8472,12 @@
     "RTX": [
       {
         "theme_id": "defense-aerospace",
+        "state": "Neutral"
+      }
+    ],
+    "RUN": [
+      {
+        "theme_id": "solar",
         "state": "Neutral"
       }
     ],
@@ -5133,10 +8505,50 @@
         "state": "Neutral"
       }
     ],
+    "S": [
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      }
+    ],
+    "S92": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "S92.GR": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "SAIC": [
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      }
+    ],
     "SANA": [
       {
         "theme_id": "biotechnology",
         "state": "Leadership"
+      }
+    ],
+    "SAP": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
+    "SAP.GY": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
       }
     ],
     "SARO": [
@@ -5157,10 +8569,42 @@
         "state": "Neutral"
       }
     ],
+    "SBS": [
+      {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      }
+    ],
+    "SCATC": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      }
+    ],
     "SCCO": [
       {
         "theme_id": "copper-miners",
         "state": "Unavailable"
+      }
+    ],
+    "SEDG": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "SEK": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
       }
     ],
     "SERV": [
@@ -5172,7 +8616,7 @@
     "SEZL": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "SFR AU": [
@@ -5193,6 +8637,34 @@
         "state": "Leadership"
       }
     ],
+    "SHLS": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "SHOP": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
+    "SIBN": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
+    "SIE.GY": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
     "SION": [
       {
         "theme_id": "biotechnology",
@@ -5202,6 +8674,18 @@
     "SITM": [
       {
         "theme_id": "ev-battery",
+        "state": "Neutral"
+      }
+    ],
+    "SJ.CT": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "SJVN": [
+      {
+        "theme_id": "clean-energy",
         "state": "Neutral"
       }
     ],
@@ -5227,6 +8711,16 @@
       {
         "theme_id": "digital-assets",
         "state": "Recovery"
+      }
+    ],
+    "SLR": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
       }
     ],
     "SLS": [
@@ -5265,15 +8759,27 @@
         "state": "Leadership"
       }
     ],
+    "SNOW": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
     "SOFI": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "SPCE": [
       {
         "theme_id": "defense-aerospace",
+        "state": "Neutral"
+      }
+    ],
+    "SPIE.FP": [
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
@@ -5317,16 +8823,28 @@
         "state": "Leadership"
       }
     ],
+    "SSE.LN": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
     "SSNC": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "SSW SJ": [
       {
         "theme_id": "uranium",
         "state": "Neutral"
+      }
+    ],
+    "STE": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
       }
     ],
     "STLAM IM": [
@@ -5341,16 +8859,32 @@
         "state": "Neutral"
       }
     ],
+    "STM": [
+      {
+        "theme_id": "semiconductors",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
     "STMPA FP": [
       {
         "theme_id": "ev-battery",
         "state": "Neutral"
       }
     ],
+    "STN": [
+      {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      }
+    ],
     "STNE": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "STOK": [
@@ -5365,6 +8899,18 @@
         "state": "Neutral"
       }
     ],
+    "SU.FP": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "SUZLON": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
     "SVRA": [
       {
         "theme_id": "biotechnology",
@@ -5372,6 +8918,10 @@
       }
     ],
     "SWKS": [
+      {
+        "theme_id": "semiconductors",
+        "state": "Neutral"
+      },
       {
         "theme_id": "ev-battery",
         "state": "Neutral"
@@ -5381,6 +8931,12 @@
       {
         "theme_id": "uranium",
         "state": "Neutral"
+      }
+    ],
+    "SYK": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
       }
     ],
     "SYM": [
@@ -5395,10 +8951,32 @@
         "state": "Leadership"
       }
     ],
+    "TAEE11.BZ": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
     "TDG": [
       {
         "theme_id": "defense-aerospace",
         "state": "Neutral"
+      }
+    ],
+    "TE": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "TEAM": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
       }
     ],
     "TECK/B CN": [
@@ -5416,6 +8994,18 @@
     "TEMN SW": [
       {
         "theme_id": "fintech",
+        "state": "Recovery"
+      }
+    ],
+    "TENB": [
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      }
+    ],
+    "TER": [
+      {
+        "theme_id": "semiconductors",
         "state": "Neutral"
       }
     ],
@@ -5423,6 +9013,12 @@
       {
         "theme_id": "infrastructure",
         "state": "Neutral"
+      }
+    ],
+    "TFX": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
       }
     ],
     "TGB": [
@@ -5449,6 +9045,18 @@
         "state": "Neutral"
       }
     ],
+    "TMDX": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
+    "TNDM": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
     "TNGX": [
       {
         "theme_id": "biotechnology",
@@ -5457,8 +9065,12 @@
     ],
     "TOST": [
       {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      },
+      {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "TPC": [
@@ -5482,7 +9094,7 @@
     "TREE": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "TRGP": [
@@ -5493,13 +9105,33 @@
     ],
     "TRMB": [
       {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      },
+      {
         "theme_id": "infrastructure",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
     "TRN": [
       {
         "theme_id": "infrastructure",
+        "state": "Neutral"
+      }
+    ],
+    "TRN.IM": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "TRY": [
+      {
+        "theme_id": "clean-energy",
         "state": "Neutral"
       }
     ],
@@ -5515,11 +9147,21 @@
         "state": "Recovery"
       },
       {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      },
+      {
         "theme_id": "ev-battery",
         "state": "Neutral"
       },
       {
         "theme_id": "robotics-automation",
+        "state": "Neutral"
+      }
+    ],
+    "TSM": [
+      {
+        "theme_id": "semiconductors",
         "state": "Neutral"
       }
     ],
@@ -5535,7 +9177,23 @@
         "state": "Neutral"
       }
     ],
+    "TTAN": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
+    "TTD": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
     "TTEK": [
+      {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      },
       {
         "theme_id": "infrastructure",
         "state": "Neutral"
@@ -5547,10 +9205,32 @@
         "state": "Leadership"
       }
     ],
+    "TWD": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "TWLO": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
     "TWST": [
       {
         "theme_id": "biotechnology",
         "state": "Leadership"
+      }
+    ],
+    "TXN": [
+      {
+        "theme_id": "semiconductors",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
       }
     ],
     "TXT": [
@@ -5577,6 +9257,12 @@
         "state": "Neutral"
       }
     ],
+    "UMC": [
+      {
+        "theme_id": "semiconductors",
+        "state": "Neutral"
+      }
+    ],
     "UNP": [
       {
         "theme_id": "infrastructure",
@@ -5586,7 +9272,7 @@
     "UPST": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "URG": [
@@ -5607,6 +9293,16 @@
         "state": "Neutral"
       }
     ],
+    "USDPDV": [
+      {
+        "theme_id": "solar",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      }
+    ],
     "USLM": [
       {
         "theme_id": "infrastructure",
@@ -5617,6 +9313,12 @@
       {
         "theme_id": "biotechnology",
         "state": "Leadership"
+      }
+    ],
+    "VBK": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
       }
     ],
     "VC": [
@@ -5637,6 +9339,24 @@
         "state": "Leadership"
       }
     ],
+    "VEEV": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
+    "VER": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "VER.AV": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
     "VERA": [
       {
         "theme_id": "biotechnology",
@@ -5646,6 +9366,12 @@
     "VERX": [
       {
         "theme_id": "fintech",
+        "state": "Recovery"
+      }
+    ],
+    "VGU6": [
+      {
+        "theme_id": "clean-energy",
         "state": "Neutral"
       }
     ],
@@ -5658,7 +9384,7 @@
     "VIRT": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "VKTX": [
@@ -5673,6 +9399,12 @@
         "state": "Pullback Watch"
       }
     ],
+    "VLTO": [
+      {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      }
+    ],
     "VMC": [
       {
         "theme_id": "infrastructure",
@@ -5681,7 +9413,15 @@
     ],
     "VMI": [
       {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      },
+      {
         "theme_id": "infrastructure",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
@@ -5715,6 +9455,18 @@
         "state": "Leadership"
       }
     ],
+    "VREX": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
+    "VRNS": [
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      }
+    ],
     "VRTX": [
       {
         "theme_id": "biotechnology",
@@ -5745,9 +9497,27 @@
         "state": "Neutral"
       }
     ],
+    "VWS": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "WAAREEENER": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
     "WAB": [
       {
         "theme_id": "ev-battery",
+        "state": "Neutral"
+      }
+    ],
+    "WAT": [
+      {
+        "theme_id": "water-infrastructure",
         "state": "Neutral"
       }
     ],
@@ -5755,11 +9525,55 @@
       {
         "theme_id": "infrastructure",
         "state": "Neutral"
+      },
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "WDAY": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
+    "WEGE3.BZ": [
+      {
+        "theme_id": "grid-modernization",
+        "state": "Neutral"
+      }
+    ],
+    "WFFUT": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      },
+      {
+        "theme_id": "semiconductors",
+        "state": "Neutral"
       }
     ],
     "WISE LN": [
       {
         "theme_id": "fintech",
+        "state": "Recovery"
+      }
+    ],
+    "WIX": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
+    "WK": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
+    "WLDN": [
+      {
+        "theme_id": "grid-modernization",
         "state": "Neutral"
       }
     ],
@@ -5777,6 +9591,10 @@
     ],
     "WMS": [
       {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      },
+      {
         "theme_id": "infrastructure",
         "state": "Neutral"
       }
@@ -5790,6 +9608,12 @@
     "WRD": [
       {
         "theme_id": "robotics-automation",
+        "state": "Neutral"
+      }
+    ],
+    "WTS": [
+      {
+        "theme_id": "water-infrastructure",
         "state": "Neutral"
       }
     ],
@@ -5840,18 +9664,44 @@
     "XRO AU": [
       {
         "theme_id": "fintech",
+        "state": "Recovery"
+      }
+    ],
+    "XTSLA": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      },
+      {
+        "theme_id": "semiconductors",
+        "state": "Neutral"
+      },
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "XYL": [
+      {
+        "theme_id": "water-infrastructure",
         "state": "Neutral"
       }
     ],
     "XYZ": [
       {
         "theme_id": "fintech",
-        "state": "Neutral"
+        "state": "Recovery"
       }
     ],
     "YCA LN": [
       {
         "theme_id": "uranium",
+        "state": "Neutral"
+      }
+    ],
+    "YORW": [
+      {
+        "theme_id": "water-infrastructure",
         "state": "Neutral"
       }
     ],
@@ -5861,19 +9711,57 @@
         "state": "Neutral"
       }
     ],
+    "ZBH": [
+      {
+        "theme_id": "medical-devices",
+        "state": "Pullback Watch"
+      }
+    ],
     "ZBIO": [
       {
         "theme_id": "biotechnology",
         "state": "Leadership"
       }
     ],
+    "ZD": [
+      {
+        "theme_id": "cybersecurity",
+        "state": "Neutral"
+      }
+    ],
     "ZIP AU": [
       {
         "theme_id": "fintech",
+        "state": "Recovery"
+      }
+    ],
+    "ZM": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      }
+    ],
+    "ZOREN.E": [
+      {
+        "theme_id": "clean-energy",
+        "state": "Neutral"
+      }
+    ],
+    "ZS": [
+      {
+        "theme_id": "cloud-computing",
+        "state": "Pullback Watch"
+      },
+      {
+        "theme_id": "cybersecurity",
         "state": "Neutral"
       }
     ],
     "ZWS": [
+      {
+        "theme_id": "water-infrastructure",
+        "state": "Neutral"
+      },
       {
         "theme_id": "infrastructure",
         "state": "Neutral"
@@ -5881,6 +9769,43 @@
     ]
   },
   "membership_overlap": [
+    {
+      "theme_a": "clean-energy",
+      "theme_b": "solar",
+      "shared_count": 27,
+      "shared_members": [
+        "3576",
+        "6244",
+        "6443",
+        "ARRY",
+        "CHF",
+        "CSIQ",
+        "CWEN",
+        "DORL",
+        "ENLT",
+        "ENPH",
+        "ENRG",
+        "EUR",
+        "FSLR",
+        "HKD",
+        "ILS",
+        "JKS",
+        "JPY",
+        "KRW",
+        "NOFR",
+        "NOK",
+        "NXT",
+        "RNW",
+        "S92",
+        "SEDG",
+        "SHLS",
+        "SLR",
+        "TE"
+      ],
+      "overlap_pct": 0.6279,
+      "jaccard": 0.1849,
+      "review": "differentiate"
+    },
     {
       "theme_a": "fintech",
       "theme_b": "digital-assets",
@@ -5908,6 +9833,32 @@
       "review": "normal"
     },
     {
+      "theme_a": "cybersecurity",
+      "theme_b": "cloud-computing",
+      "shared_count": 16,
+      "shared_members": [
+        "AKAM",
+        "ANET",
+        "CRWD",
+        "CSCO",
+        "DDOG",
+        "ESTC",
+        "FSLY",
+        "GOOGL",
+        "IBM",
+        "MSFT",
+        "NET",
+        "NTAP",
+        "PANW",
+        "QLYS",
+        "RBRK",
+        "ZS"
+      ],
+      "overlap_pct": 0.381,
+      "jaccard": 0.1798,
+      "review": "normal"
+    },
+    {
       "theme_a": "battery-materials",
       "theme_b": "ev-battery",
       "shared_count": 14,
@@ -5932,6 +9883,85 @@
       "review": "normal"
     },
     {
+      "theme_a": "infrastructure",
+      "theme_b": "water-infrastructure",
+      "shared_count": 14,
+      "shared_members": [
+        "ACM",
+        "BMI",
+        "GRC",
+        "IEX",
+        "J",
+        "MLI",
+        "MWA",
+        "NWPX",
+        "PNR",
+        "TRMB",
+        "TTEK",
+        "VMI",
+        "WMS",
+        "ZWS"
+      ],
+      "overlap_pct": 0.3333,
+      "jaccard": 0.1094,
+      "review": "normal"
+    },
+    {
+      "theme_a": "semiconductors",
+      "theme_b": "ev-battery",
+      "shared_count": 6,
+      "shared_members": [
+        "INTC",
+        "NVDA",
+        "NXPI",
+        "ON",
+        "QCOM",
+        "SWKS"
+      ],
+      "overlap_pct": 0.1818,
+      "jaccard": 0.0594,
+      "review": "normal"
+    },
+    {
+      "theme_a": "semiconductors",
+      "theme_b": "grid-modernization",
+      "shared_count": 6,
+      "shared_members": [
+        "ADI",
+        "NVDA",
+        "NXPI",
+        "QCOM",
+        "STM",
+        "TXN"
+      ],
+      "overlap_pct": 0.1818,
+      "jaccard": 0.0411,
+      "review": "normal"
+    },
+    {
+      "theme_a": "infrastructure",
+      "theme_b": "grid-modernization",
+      "shared_count": 13,
+      "shared_members": [
+        "ACA",
+        "ATKR",
+        "EMR",
+        "ETN",
+        "HUBB",
+        "MTZ",
+        "MYRG",
+        "PLPC",
+        "PRIM",
+        "PWR",
+        "TRMB",
+        "VMI",
+        "WCC"
+      ],
+      "overlap_pct": 0.13,
+      "jaccard": 0.0631,
+      "review": "normal"
+    },
+    {
       "theme_a": "robotics-automation",
       "theme_b": "ev-battery",
       "shared_count": 6,
@@ -5948,6 +9978,19 @@
       "review": "normal"
     },
     {
+      "theme_a": "semiconductors",
+      "theme_b": "medical-devices",
+      "shared_count": 3,
+      "shared_members": [
+        "IXTU6",
+        "WFFUT",
+        "XTSLA"
+      ],
+      "overlap_pct": 0.0909,
+      "jaccard": 0.0375,
+      "review": "normal"
+    },
+    {
       "theme_a": "defense-aerospace",
       "theme_b": "infrastructure",
       "shared_count": 4,
@@ -5959,6 +10002,202 @@
       ],
       "overlap_pct": 0.0851,
       "jaccard": 0.028,
+      "review": "normal"
+    },
+    {
+      "theme_a": "cybersecurity",
+      "theme_b": "ev-battery",
+      "shared_count": 3,
+      "shared_members": [
+        "BB",
+        "GOOGL",
+        "MSFT"
+      ],
+      "overlap_pct": 0.0714,
+      "jaccard": 0.0265,
+      "review": "normal"
+    },
+    {
+      "theme_a": "grid-modernization",
+      "theme_b": "water-infrastructure",
+      "shared_count": 3,
+      "shared_members": [
+        "ITRI",
+        "TRMB",
+        "VMI"
+      ],
+      "overlap_pct": 0.0714,
+      "jaccard": 0.019,
+      "review": "normal"
+    },
+    {
+      "theme_a": "grid-modernization",
+      "theme_b": "ev-battery",
+      "shared_count": 5,
+      "shared_members": [
+        "ENS",
+        "NVDA",
+        "NXPI",
+        "QCOM",
+        "TSLA"
+      ],
+      "overlap_pct": 0.0676,
+      "jaccard": 0.0266,
+      "review": "normal"
+    },
+    {
+      "theme_a": "robotics-automation",
+      "theme_b": "medical-devices",
+      "shared_count": 3,
+      "shared_members": [
+        "ISRG",
+        "OMCL",
+        "PRCT"
+      ],
+      "overlap_pct": 0.06,
+      "jaccard": 0.0278,
+      "review": "normal"
+    },
+    {
+      "theme_a": "battery-materials",
+      "theme_b": "grid-modernization",
+      "shared_count": 2,
+      "shared_members": [
+        "ENS",
+        "TSLA"
+      ],
+      "overlap_pct": 0.0488,
+      "jaccard": 0.0127,
+      "review": "normal"
+    },
+    {
+      "theme_a": "cloud-computing",
+      "theme_b": "grid-modernization",
+      "shared_count": 3,
+      "shared_members": [
+        "CSCO",
+        "IBM",
+        "ORCL"
+      ],
+      "overlap_pct": 0.0476,
+      "jaccard": 0.0168,
+      "review": "normal"
+    },
+    {
+      "theme_a": "cybersecurity",
+      "theme_b": "grid-modernization",
+      "shared_count": 2,
+      "shared_members": [
+        "CSCO",
+        "IBM"
+      ],
+      "overlap_pct": 0.0476,
+      "jaccard": 0.0126,
+      "review": "normal"
+    },
+    {
+      "theme_a": "solar",
+      "theme_b": "grid-modernization",
+      "shared_count": 2,
+      "shared_members": [
+        "ENPH",
+        "SEDG"
+      ],
+      "overlap_pct": 0.0465,
+      "jaccard": 0.0125,
+      "review": "normal"
+    },
+    {
+      "theme_a": "cloud-computing",
+      "theme_b": "robotics-automation",
+      "shared_count": 2,
+      "shared_members": [
+        "APPN",
+        "GOOGL"
+      ],
+      "overlap_pct": 0.0328,
+      "jaccard": 0.0164,
+      "review": "normal"
+    },
+    {
+      "theme_a": "robotics-automation",
+      "theme_b": "grid-modernization",
+      "shared_count": 2,
+      "shared_members": [
+        "NVDA",
+        "TSLA"
+      ],
+      "overlap_pct": 0.0328,
+      "jaccard": 0.0112,
+      "review": "normal"
+    },
+    {
+      "theme_a": "cloud-computing",
+      "theme_b": "ev-battery",
+      "shared_count": 2,
+      "shared_members": [
+        "GOOGL",
+        "MSFT"
+      ],
+      "overlap_pct": 0.0317,
+      "jaccard": 0.0148,
+      "review": "normal"
+    },
+    {
+      "theme_a": "cloud-computing",
+      "theme_b": "fintech",
+      "shared_count": 2,
+      "shared_members": [
+        "INTU",
+        "TOST"
+      ],
+      "overlap_pct": 0.0317,
+      "jaccard": 0.0148,
+      "review": "normal"
+    },
+    {
+      "theme_a": "semiconductors",
+      "theme_b": "clean-energy",
+      "shared_count": 1,
+      "shared_members": [
+        "XTSLA"
+      ],
+      "overlap_pct": 0.0303,
+      "jaccard": 0.0062,
+      "review": "normal"
+    },
+    {
+      "theme_a": "semiconductors",
+      "theme_b": "cybersecurity",
+      "shared_count": 1,
+      "shared_members": [
+        "AVGO"
+      ],
+      "overlap_pct": 0.0303,
+      "jaccard": 0.0135,
+      "review": "normal"
+    },
+    {
+      "theme_a": "semiconductors",
+      "theme_b": "robotics-automation",
+      "shared_count": 1,
+      "shared_members": [
+        "NVDA"
+      ],
+      "overlap_pct": 0.0303,
+      "jaccard": 0.0108,
+      "review": "normal"
+    },
+    {
+      "theme_a": "clean-energy",
+      "theme_b": "ev-battery",
+      "shared_count": 2,
+      "shared_members": [
+        "BE",
+        "PLUG"
+      ],
+      "overlap_pct": 0.027,
+      "jaccard": 0.0099,
       "review": "normal"
     },
     {
@@ -5984,6 +10223,39 @@
       "review": "normal"
     },
     {
+      "theme_a": "cybersecurity",
+      "theme_b": "robotics-automation",
+      "shared_count": 1,
+      "shared_members": [
+        "GOOGL"
+      ],
+      "overlap_pct": 0.0238,
+      "jaccard": 0.0098,
+      "review": "normal"
+    },
+    {
+      "theme_a": "medical-devices",
+      "theme_b": "water-infrastructure",
+      "shared_count": 1,
+      "shared_members": [
+        "IDXX"
+      ],
+      "overlap_pct": 0.0238,
+      "jaccard": 0.011,
+      "review": "normal"
+    },
+    {
+      "theme_a": "solar",
+      "theme_b": "water-infrastructure",
+      "shared_count": 1,
+      "shared_members": [
+        "USDPDV"
+      ],
+      "overlap_pct": 0.0238,
+      "jaccard": 0.0119,
+      "review": "normal"
+    },
+    {
       "theme_a": "defense-aerospace",
       "theme_b": "ev-battery",
       "shared_count": 1,
@@ -6003,6 +10275,29 @@
       ],
       "overlap_pct": 0.0213,
       "jaccard": 0.0093,
+      "review": "normal"
+    },
+    {
+      "theme_a": "clean-energy",
+      "theme_b": "medical-devices",
+      "shared_count": 1,
+      "shared_members": [
+        "XTSLA"
+      ],
+      "overlap_pct": 0.02,
+      "jaccard": 0.0056,
+      "review": "normal"
+    },
+    {
+      "theme_a": "clean-energy",
+      "theme_b": "grid-modernization",
+      "shared_count": 2,
+      "shared_members": [
+        "ENPH",
+        "SEDG"
+      ],
+      "overlap_pct": 0.0168,
+      "jaccard": 0.0081,
       "review": "normal"
     },
     {
@@ -6054,15 +10349,6 @@
     },
     {
       "theme_a": "battery-materials",
-      "theme_b": "grid-modernization",
-      "shared_count": 0,
-      "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0.0,
-      "review": "normal"
-    },
-    {
-      "theme_a": "battery-materials",
       "theme_b": "infrastructure",
       "shared_count": 0,
       "shared_members": [],
@@ -6075,7 +10361,7 @@
       "theme_b": "medical-devices",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6084,7 +10370,7 @@
       "theme_b": "water-infrastructure",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6102,7 +10388,7 @@
       "theme_b": "medical-devices",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6111,7 +10397,7 @@
       "theme_b": "water-infrastructure",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6120,7 +10406,7 @@
       "theme_b": "battery-materials",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6129,7 +10415,7 @@
       "theme_b": "biotechnology",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6139,7 +10425,7 @@
       "shared_count": 0,
       "shared_members": [],
       "overlap_pct": 0,
-      "jaccard": 0,
+      "jaccard": 0.0,
       "review": "normal"
     },
     {
@@ -6147,7 +10433,7 @@
       "theme_b": "defense-aerospace",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6156,16 +10442,7 @@
       "theme_b": "digital-assets",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0.0,
-      "review": "normal"
-    },
-    {
-      "theme_a": "clean-energy",
-      "theme_b": "ev-battery",
-      "shared_count": 0,
-      "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6174,17 +10451,8 @@
       "theme_b": "fintech",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
-      "review": "normal"
-    },
-    {
-      "theme_a": "clean-energy",
-      "theme_b": "grid-modernization",
-      "shared_count": 0,
-      "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0,
       "review": "normal"
     },
     {
@@ -6192,17 +10460,8 @@
       "theme_b": "infrastructure",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
-      "review": "normal"
-    },
-    {
-      "theme_a": "clean-energy",
-      "theme_b": "medical-devices",
-      "shared_count": 0,
-      "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0,
       "review": "normal"
     },
     {
@@ -6210,17 +10469,8 @@
       "theme_b": "oil-gas",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
-      "review": "normal"
-    },
-    {
-      "theme_a": "clean-energy",
-      "theme_b": "solar",
-      "shared_count": 0,
-      "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0,
       "review": "normal"
     },
     {
@@ -6228,8 +10478,8 @@
       "theme_b": "water-infrastructure",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0,
+      "overlap_pct": 0.0,
+      "jaccard": 0.0,
       "review": "normal"
     },
     {
@@ -6237,7 +10487,7 @@
       "theme_b": "battery-materials",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6246,7 +10496,7 @@
       "theme_b": "biotechnology",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6255,8 +10505,8 @@
       "theme_b": "clean-energy",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0,
+      "overlap_pct": 0.0,
+      "jaccard": 0.0,
       "review": "normal"
     },
     {
@@ -6264,7 +10514,7 @@
       "theme_b": "copper-miners",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6274,7 +10524,7 @@
       "shared_count": 0,
       "shared_members": [],
       "overlap_pct": 0,
-      "jaccard": 0,
+      "jaccard": 0.0,
       "review": "normal"
     },
     {
@@ -6282,7 +10532,7 @@
       "theme_b": "defense-aerospace",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6291,35 +10541,8 @@
       "theme_b": "digital-assets",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
-      "review": "normal"
-    },
-    {
-      "theme_a": "cloud-computing",
-      "theme_b": "ev-battery",
-      "shared_count": 0,
-      "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0.0,
-      "review": "normal"
-    },
-    {
-      "theme_a": "cloud-computing",
-      "theme_b": "fintech",
-      "shared_count": 0,
-      "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0.0,
-      "review": "normal"
-    },
-    {
-      "theme_a": "cloud-computing",
-      "theme_b": "grid-modernization",
-      "shared_count": 0,
-      "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0,
       "review": "normal"
     },
     {
@@ -6327,7 +10550,7 @@
       "theme_b": "infrastructure",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6336,8 +10559,8 @@
       "theme_b": "medical-devices",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0,
+      "overlap_pct": 0.0,
+      "jaccard": 0.0,
       "review": "normal"
     },
     {
@@ -6345,16 +10568,7 @@
       "theme_b": "oil-gas",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0.0,
-      "review": "normal"
-    },
-    {
-      "theme_a": "cloud-computing",
-      "theme_b": "robotics-automation",
-      "shared_count": 0,
-      "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6363,8 +10577,8 @@
       "theme_b": "solar",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0,
+      "overlap_pct": 0.0,
+      "jaccard": 0.0,
       "review": "normal"
     },
     {
@@ -6372,7 +10586,7 @@
       "theme_b": "uranium",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6381,8 +10595,8 @@
       "theme_b": "water-infrastructure",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0,
+      "overlap_pct": 0.0,
+      "jaccard": 0.0,
       "review": "normal"
     },
     {
@@ -6408,7 +10622,7 @@
       "theme_b": "clean-energy",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6462,7 +10676,7 @@
       "theme_b": "grid-modernization",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6480,7 +10694,7 @@
       "theme_b": "medical-devices",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6498,7 +10712,7 @@
       "theme_b": "solar",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6507,7 +10721,7 @@
       "theme_b": "water-infrastructure",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6571,7 +10785,7 @@
       "shared_count": 0,
       "shared_members": [],
       "overlap_pct": 0,
-      "jaccard": 0,
+      "jaccard": 0.0,
       "review": "normal"
     },
     {
@@ -6589,7 +10803,7 @@
       "shared_count": 0,
       "shared_members": [],
       "overlap_pct": 0,
-      "jaccard": 0,
+      "jaccard": 0.0,
       "review": "normal"
     },
     {
@@ -6598,7 +10812,7 @@
       "shared_count": 0,
       "shared_members": [],
       "overlap_pct": 0,
-      "jaccard": 0,
+      "jaccard": 0.0,
       "review": "normal"
     },
     {
@@ -6606,7 +10820,7 @@
       "theme_b": "battery-materials",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6615,7 +10829,7 @@
       "theme_b": "biotechnology",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6624,17 +10838,8 @@
       "theme_b": "clean-energy",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0,
-      "review": "normal"
-    },
-    {
-      "theme_a": "cybersecurity",
-      "theme_b": "cloud-computing",
-      "shared_count": 0,
-      "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0,
+      "overlap_pct": 0.0,
+      "jaccard": 0.0,
       "review": "normal"
     },
     {
@@ -6642,7 +10847,7 @@
       "theme_b": "copper-miners",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6652,7 +10857,7 @@
       "shared_count": 0,
       "shared_members": [],
       "overlap_pct": 0,
-      "jaccard": 0,
+      "jaccard": 0.0,
       "review": "normal"
     },
     {
@@ -6660,7 +10865,7 @@
       "theme_b": "defense-aerospace",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6669,16 +10874,7 @@
       "theme_b": "digital-assets",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0.0,
-      "review": "normal"
-    },
-    {
-      "theme_a": "cybersecurity",
-      "theme_b": "ev-battery",
-      "shared_count": 0,
-      "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6687,17 +10883,8 @@
       "theme_b": "fintech",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
-      "review": "normal"
-    },
-    {
-      "theme_a": "cybersecurity",
-      "theme_b": "grid-modernization",
-      "shared_count": 0,
-      "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0,
       "review": "normal"
     },
     {
@@ -6705,7 +10892,7 @@
       "theme_b": "infrastructure",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6714,8 +10901,8 @@
       "theme_b": "medical-devices",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0,
+      "overlap_pct": 0.0,
+      "jaccard": 0.0,
       "review": "normal"
     },
     {
@@ -6723,16 +10910,7 @@
       "theme_b": "oil-gas",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0.0,
-      "review": "normal"
-    },
-    {
-      "theme_a": "cybersecurity",
-      "theme_b": "robotics-automation",
-      "shared_count": 0,
-      "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6741,8 +10919,8 @@
       "theme_b": "solar",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0,
+      "overlap_pct": 0.0,
+      "jaccard": 0.0,
       "review": "normal"
     },
     {
@@ -6750,7 +10928,7 @@
       "theme_b": "uranium",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6759,8 +10937,8 @@
       "theme_b": "water-infrastructure",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0,
+      "overlap_pct": 0.0,
+      "jaccard": 0.0,
       "review": "normal"
     },
     {
@@ -6795,7 +10973,7 @@
       "theme_b": "grid-modernization",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6804,7 +10982,7 @@
       "theme_b": "medical-devices",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6813,7 +10991,7 @@
       "theme_b": "water-infrastructure",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6840,7 +11018,7 @@
       "theme_b": "medical-devices",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6849,7 +11027,7 @@
       "theme_b": "water-infrastructure",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6858,7 +11036,7 @@
       "theme_b": "water-infrastructure",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6885,7 +11063,7 @@
       "theme_b": "medical-devices",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6894,7 +11072,7 @@
       "theme_b": "water-infrastructure",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6903,7 +11081,7 @@
       "theme_b": "biotechnology",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6912,16 +11090,7 @@
       "theme_b": "digital-assets",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0.0,
-      "review": "normal"
-    },
-    {
-      "theme_a": "grid-modernization",
-      "theme_b": "ev-battery",
-      "shared_count": 0,
-      "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6930,7 +11099,7 @@
       "theme_b": "fintech",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -6939,17 +11108,8 @@
       "theme_b": "medical-devices",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0,
-      "review": "normal"
-    },
-    {
-      "theme_a": "grid-modernization",
-      "theme_b": "water-infrastructure",
-      "shared_count": 0,
-      "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0,
+      "overlap_pct": 0.0,
+      "jaccard": 0.0,
       "review": "normal"
     },
     {
@@ -6981,28 +11141,10 @@
     },
     {
       "theme_a": "infrastructure",
-      "theme_b": "grid-modernization",
-      "shared_count": 0,
-      "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0.0,
-      "review": "normal"
-    },
-    {
-      "theme_a": "infrastructure",
       "theme_b": "medical-devices",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0.0,
-      "review": "normal"
-    },
-    {
-      "theme_a": "infrastructure",
-      "theme_b": "water-infrastructure",
-      "shared_count": 0,
-      "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -7011,17 +11153,8 @@
       "theme_b": "ev-battery",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
-      "review": "normal"
-    },
-    {
-      "theme_a": "medical-devices",
-      "theme_b": "water-infrastructure",
-      "shared_count": 0,
-      "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0,
       "review": "normal"
     },
     {
@@ -7092,7 +11225,7 @@
       "theme_b": "grid-modernization",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -7110,7 +11243,7 @@
       "theme_b": "medical-devices",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -7119,7 +11252,7 @@
       "theme_b": "water-infrastructure",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -7137,7 +11270,7 @@
       "theme_b": "clean-energy",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -7179,28 +11312,10 @@
     },
     {
       "theme_a": "robotics-automation",
-      "theme_b": "grid-modernization",
-      "shared_count": 0,
-      "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0.0,
-      "review": "normal"
-    },
-    {
-      "theme_a": "robotics-automation",
       "theme_b": "infrastructure",
       "shared_count": 0,
       "shared_members": [],
       "overlap_pct": 0.0,
-      "jaccard": 0.0,
-      "review": "normal"
-    },
-    {
-      "theme_a": "robotics-automation",
-      "theme_b": "medical-devices",
-      "shared_count": 0,
-      "shared_members": [],
-      "overlap_pct": 0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -7218,7 +11333,7 @@
       "theme_b": "solar",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -7236,7 +11351,7 @@
       "theme_b": "water-infrastructure",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -7245,7 +11360,7 @@
       "theme_b": "battery-materials",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -7254,17 +11369,8 @@
       "theme_b": "biotechnology",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
-      "review": "normal"
-    },
-    {
-      "theme_a": "semiconductors",
-      "theme_b": "clean-energy",
-      "shared_count": 0,
-      "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0,
       "review": "normal"
     },
     {
@@ -7272,8 +11378,8 @@
       "theme_b": "cloud-computing",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0,
+      "overlap_pct": 0.0,
+      "jaccard": 0.0,
       "review": "normal"
     },
     {
@@ -7281,7 +11387,7 @@
       "theme_b": "copper-miners",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -7291,16 +11397,7 @@
       "shared_count": 0,
       "shared_members": [],
       "overlap_pct": 0,
-      "jaccard": 0,
-      "review": "normal"
-    },
-    {
-      "theme_a": "semiconductors",
-      "theme_b": "cybersecurity",
-      "shared_count": 0,
-      "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0,
+      "jaccard": 0.0,
       "review": "normal"
     },
     {
@@ -7308,7 +11405,7 @@
       "theme_b": "defense-aerospace",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -7317,16 +11414,7 @@
       "theme_b": "digital-assets",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0.0,
-      "review": "normal"
-    },
-    {
-      "theme_a": "semiconductors",
-      "theme_b": "ev-battery",
-      "shared_count": 0,
-      "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -7335,17 +11423,8 @@
       "theme_b": "fintech",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
-      "review": "normal"
-    },
-    {
-      "theme_a": "semiconductors",
-      "theme_b": "grid-modernization",
-      "shared_count": 0,
-      "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0,
       "review": "normal"
     },
     {
@@ -7353,17 +11432,8 @@
       "theme_b": "infrastructure",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
-      "review": "normal"
-    },
-    {
-      "theme_a": "semiconductors",
-      "theme_b": "medical-devices",
-      "shared_count": 0,
-      "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0,
       "review": "normal"
     },
     {
@@ -7371,16 +11441,7 @@
       "theme_b": "oil-gas",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0.0,
-      "review": "normal"
-    },
-    {
-      "theme_a": "semiconductors",
-      "theme_b": "robotics-automation",
-      "shared_count": 0,
-      "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -7389,8 +11450,8 @@
       "theme_b": "solar",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0,
+      "overlap_pct": 0.0,
+      "jaccard": 0.0,
       "review": "normal"
     },
     {
@@ -7398,7 +11459,7 @@
       "theme_b": "uranium",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -7407,8 +11468,8 @@
       "theme_b": "water-infrastructure",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0,
+      "overlap_pct": 0.0,
+      "jaccard": 0.0,
       "review": "normal"
     },
     {
@@ -7416,7 +11477,7 @@
       "theme_b": "battery-materials",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -7425,7 +11486,7 @@
       "theme_b": "biotechnology",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -7435,7 +11496,7 @@
       "shared_count": 0,
       "shared_members": [],
       "overlap_pct": 0,
-      "jaccard": 0,
+      "jaccard": 0.0,
       "review": "normal"
     },
     {
@@ -7443,7 +11504,7 @@
       "theme_b": "defense-aerospace",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -7452,7 +11513,7 @@
       "theme_b": "digital-assets",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -7461,7 +11522,7 @@
       "theme_b": "ev-battery",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -7470,17 +11531,8 @@
       "theme_b": "fintech",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
-      "review": "normal"
-    },
-    {
-      "theme_a": "solar",
-      "theme_b": "grid-modernization",
-      "shared_count": 0,
-      "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0,
       "review": "normal"
     },
     {
@@ -7488,7 +11540,7 @@
       "theme_b": "infrastructure",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -7497,8 +11549,8 @@
       "theme_b": "medical-devices",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0,
+      "overlap_pct": 0.0,
+      "jaccard": 0.0,
       "review": "normal"
     },
     {
@@ -7506,17 +11558,8 @@
       "theme_b": "oil-gas",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
-      "review": "normal"
-    },
-    {
-      "theme_a": "solar",
-      "theme_b": "water-infrastructure",
-      "shared_count": 0,
-      "shared_members": [],
-      "overlap_pct": 0,
-      "jaccard": 0,
       "review": "normal"
     },
     {
@@ -7542,7 +11585,7 @@
       "theme_b": "clean-energy",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -7596,7 +11639,7 @@
       "theme_b": "grid-modernization",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -7614,7 +11657,7 @@
       "theme_b": "medical-devices",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -7632,7 +11675,7 @@
       "theme_b": "solar",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     },
@@ -7641,7 +11684,7 @@
       "theme_b": "water-infrastructure",
       "shared_count": 0,
       "shared_members": [],
-      "overlap_pct": 0,
+      "overlap_pct": 0.0,
       "jaccard": 0.0,
       "review": "normal"
     }
