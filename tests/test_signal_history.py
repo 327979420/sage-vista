@@ -8,7 +8,7 @@ def inputs(day="2026-08-26",symbols=("PG",),rare=()):
  tracker={"as_of":day,"macd_buy_top10":rows}
  radar={"as_of":day,"signals":[{"symbol":s} for s in rare]}
  factors={"as_of":day,"registry_version":"1.0","symbols":[{"symbol":s,"scoring":{"official_score":0,"experimental_observational_score":3,"score_contributions":[]},"factors":[{"factor_id":"risk.test","available":True,"hit":False,"recent_hit":False,"score_role":"display_only"}]} for s in set(symbols)|set(rare)]}
- industry={"as_of":day,"membership_version":"themes-v1","themes":[{"theme_id":"staples","name":"Staples","state":"Neutral","relative_20d":.01,"relative_60d":.02,"breadth_above_sma50":.6,"breadth_change_10d":0}],"ticker_context":{s:[{"theme_id":"staples"}] for s in set(symbols)|set(rare)}}
+ industry={"as_of":day,"membership_version":"themes-v1","classification_snapshot":{"effective_from":day},"classification_by_ticker":{s:{"sector":"Consumer Staples","industry":"Household Products"} for s in set(symbols)|set(rare)},"themes":[{"theme_id":"staples","name":"Staples","state":"Neutral","relative_20d":.01,"relative_60d":.02,"breadth_above_sma50":.6,"breadth_change_10d":0}],"ticker_context":{s:[{"theme_id":"staples"}] for s in set(symbols)|set(rare)}}
  return tracker,radar,factors,industry,{"as_of":day,"market_temperature":{"state":"normal"}}
 
 def rows_through(days):
@@ -32,7 +32,8 @@ class SignalHistoryTests(unittest.TestCase):
   first=self.make(rare=("PG",));case=first["cases"][0]
   self.assertEqual(case["daily_states"][0]["date"],"2026-08-26")
   self.assertEqual(case["daily_states"][0]["legacy_production_score"],None)
-  self.assertEqual(case["daily_states"][0]["industry_context"][0]["theme_id"],"staples")
+  self.assertEqual(case["daily_states"][0]["industry_context"]["themes"][0]["theme_id"],"staples")
+  self.assertEqual(case["daily_states"][0]["industry_context"]["classification"]["industry"],"Household Products")
   self.assertEqual(case["daily_states"][0]["market_context"]["market_temperature"]["state"],"normal")
   dropped=self.make(first,"2026-08-27",symbols=(),rows=2);case=dropped["cases"][0]
   self.assertEqual([x["date"] for x in case["daily_states"]],["2026-08-26","2026-08-27"])

@@ -22,6 +22,9 @@ def _industry_by_symbol(industry):
   out[symbol]=[{**{k:item.get(k) for k in ("theme_id","name","state","relative_20d","relative_60d","breadth_above_sma50","breadth_change_10d")},"etf_context":copy.deepcopy(item.get("etf_context"))} for link in links if (item:=themes.get(link["theme_id"]))]
  return out
 
+def _industry_snapshot_for_symbol(industry,symbol):
+ return {"classification":copy.deepcopy(industry.get("classification_by_ticker",{}).get(symbol)),"themes":copy.deepcopy(_industry_by_symbol(industry).get(symbol,[]))}
+
 def _signal_id(symbol,day):return f"SVP1-{symbol}-{day}"
 
 def _immutable_fingerprint(case):
@@ -44,7 +47,7 @@ def _new_case(symbol,day,sources,tracker_row,factor_row,industry,market):
   "initial_source_systems":sorted(sources),"source_systems":sorted(sources),"latest_current_status":"current","entry":{"convention":"next_trading_day_adjusted_open","date":None,"price":None},
   "signal_time_snapshot":{"technical":{"tracker_rank":rank,"technical_score":technical.get("ranking_score") if technical else None,"combined_score":technical.get("combined_score") if technical else None,"setup":technical.get("confluence_label") if technical else None,"status":technical.get("ranking_direction") if technical else None,"rank_reason":technical.get("rank_reason") if technical else None},
    "multi_factor":{"factor_registry_version":factor.get("registry_version") if factor else None,"official_score":factor.get("scoring",{}).get("official_score") if factor else None,"experimental_observational_score":factor.get("scoring",{}).get("experimental_observational_score") if factor else None,"score_contributions":factor.get("scoring",{}).get("score_contributions",[]) if factor else [],"factor_states":factor.get("factors",[]) if factor else [],"non_scoring_evidence":[x for x in factor.get("factors",[]) if x.get("available") and (x.get("hit") or x.get("recent_hit")) and x.get("score_role") in ("display_only","disabled")] if factor else [],"risks":[x for x in factor.get("factors",[]) if x.get("factor_id","").startswith("risk.") and x.get("hit")] if factor else []},
-   "industry":{"industry_radar_as_of":industry.get("as_of"),"membership_version":industry.get("membership_version"),"rule_version":"industry-radar-v2","themes":copy.deepcopy(_industry_by_symbol(industry).get(symbol,[]))},"market":_market_snapshot(market,day)},
+   "industry":{"industry_radar_as_of":industry.get("as_of"),"membership_version":industry.get("membership_version"),"classification_effective_from":industry.get("classification_snapshot",{}).get("effective_from"),"rule_version":"industry-radar-v2",**_industry_snapshot_for_symbol(industry,symbol)},"market":_market_snapshot(market,day)},
   "versions":{"code_version":PRODUCT_VERSION,"factor_registry_version":factor.get("registry_version") if factor else None,"industry_membership_version":industry.get("membership_version")},
   "forward":{"returns":{str(x):None for x in HORIZONS},"mfe":None,"mae":None,"elapsed_sessions":0,"status":"pending","data_status":"pending"},
   "audit":{"future_data_used":False,"created_as_of":day,"last_updated_as_of":day}}
@@ -104,7 +107,7 @@ def _append_daily_state(case,as_of,sources,factor_row,radar_row,industry,market,
   "in_current_opportunities":bool(is_current),"legacy_production_score":radar_row.get("total_score",radar_row.get("score")) if radar_row else None,
   "official_score":scoring.get("official_score"),"experimental_observational_score":scoring.get("experimental_observational_score"),
   "factor_states":_factor_temporal_states(case,factor_row),
-  "industry_context":copy.deepcopy(_industry_by_symbol(industry).get(case["symbol"],[])),
+  "industry_context":_industry_snapshot_for_symbol(industry,case["symbol"]),
   "market_context":_market_snapshot(market,as_of)
  })
 

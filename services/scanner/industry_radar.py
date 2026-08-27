@@ -5,6 +5,7 @@ from datetime import date,datetime,timezone
 from .eodhd import latest_reference_day
 from .eodhd_factor_pilot import adjusted_rows
 from .theme_etf_context import DEFAULT_REGISTRY,evaluate_theme,reference_funds
+from .open_source_industry import classification_by_ticker,select_finance_database_snapshot
 
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 DEFAULT_SNAPSHOT_DIR=ROOT/"data/themes/snapshots"
@@ -123,10 +124,11 @@ def run(out="public/industry-radar.json",as_of=None,snapshot_dir=DEFAULT_SNAPSHO
   try:spy=loader("SPY")
   except Exception:spy=[]
   themes,ticker_context=calculate(snapshot,data,spy,as_of,funds)
+  taxonomy=select_finance_database_snapshot(as_of);classifications=classification_by_ticker(taxonomy)
   sufficient={symbol for symbol in symbols if member_metrics(data[symbol],spy,as_of)} if spy else set()
   report={"schema_version":"2.1.0","as_of":as_of,"generated_at":datetime.now(timezone.utc).isoformat(),"membership_version":snapshot["version"],"membership_effective_from":snapshot["effective_from"],"future_data_used":False,"historical_membership_safe":True,"mode":"decision_context_not_technical_score","status":"research_prototype_not_validated_alpha" if spy else "market_data_unavailable_safe","config":CONFIG,
    "price_data_audit":{"provider":"EODHD","requested_tickers":symbols,"fetched_tickers":fetched,"unavailable_tickers":unavailable,"insufficient_history_tickers":sorted(set(fetched)-sufficient),"errors_redacted":True},
-   "themes":themes,"ticker_context":ticker_context,"membership_overlap":snapshot.get("overlap_analysis",[]),"audit":{"exact_as_of_required":True,"minimum_valid_member_ratio":CONFIG["min_valid_member_ratio"],"future_rows_used":False,"state_model":"industry-state-v2","etf_position_model":"theme-etf-position-v1","industry_candidate_weight_cap":1,"production_score_changed":False}}
+   "themes":themes,"ticker_context":ticker_context,"classification_by_ticker":classifications,"classification_snapshot":{"source":"FinanceDatabase" if taxonomy else None,"effective_from":taxonomy.get("effective_from") if taxonomy else None,"matched_symbols":taxonomy.get("matched_symbols") if taxonomy else 0,"historical_backfill_allowed":False},"membership_overlap":snapshot.get("overlap_analysis",[]),"audit":{"exact_as_of_required":True,"minimum_valid_member_ratio":CONFIG["min_valid_member_ratio"],"future_rows_used":False,"state_model":"industry-state-v2","etf_position_model":"theme-etf-position-v1","industry_candidate_weight_cap":1,"production_score_changed":False}}
  pathlib.Path(out).parent.mkdir(parents=True,exist_ok=True);pathlib.Path(out).write_text(json.dumps(report,indent=2)+"\n")
  return report
 
