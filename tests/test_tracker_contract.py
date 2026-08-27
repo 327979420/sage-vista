@@ -68,10 +68,21 @@ class TrackerOutputContractTests(unittest.TestCase):
 
         result = score_observation(COMPONENTS[:5])
         self.assertEqual(result["official_score"], 0)
-        self.assertEqual(result["observational_score"], 5)
-        self.assertEqual(result["total_score"], 5)
+        self.assertEqual(result["observational_score"], 4)
+        self.assertEqual(result["total_score"], 4)
         self.assertEqual(len(result["important_misses"]), len(COMPONENTS) - 5)
-        self.assertEqual(len(result["factor_ids"]), 5)
+        self.assertNotIn("support.fibonacci_half",result["factor_ids"])
+        self.assertIn("Fibonacci支撑",result["non_scoring_hits"])
+
+    def test_rejected_and_unstable_registry_factors_cannot_score(self):
+        from services.scanner.factor_registry import FACTORS, validate_registry
+        from services.scanner.rare_opportunity_scanner import score_observation
+
+        validate_registry()
+        blocked={x.id for x in FACTORS if x.status in ("rejected","unstable")}
+        result=score_observation(["Fibonacci支撑","三推趋势线突破"])
+        self.assertFalse(blocked & set(result["factor_ids"]))
+        self.assertEqual(result["total_score"],0)
 
     def test_trendline_retest_is_registered_as_parent_bound_observation(self):
         from services.scanner.factor_registry import FACTORS
@@ -84,6 +95,17 @@ class TrackerOutputContractTests(unittest.TestCase):
         self.assertEqual(retest.redundancy_group, parent.redundancy_group)
         self.assertEqual(retest.depends_on, (parent.id,))
         self.assertIn("10 completed sessions", retest.machine_rule)
+
+    def test_runtime_enforces_dependency_and_redundancy(self):
+        from services.scanner.rare_opportunity_scanner import score_observation
+
+        missing_parent=score_observation(["三推突破后回踩确认"])
+        with_parent=score_observation(["三推趋势线突破","三推突破后回踩确认"])
+        deduplicated=score_observation(["EMA支撑","EMA支撑"])
+        self.assertEqual(missing_parent["total_score"],0)
+        self.assertEqual(with_parent["total_score"],1)
+        self.assertEqual(with_parent["factor_ids"],["structure.trendline_three_push_retest"])
+        self.assertEqual(deduplicated["total_score"],1)
 
     def test_daily_macd_cross_stays_fresh_for_five_completed_sessions(self):
         from services.scanner.rare_opportunity_scanner import recent_bull_cross

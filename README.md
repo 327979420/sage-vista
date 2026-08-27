@@ -26,6 +26,7 @@ RSI、RSI 底背离、成交量放大等不再需要各自占用独立功能页�
 
 ## 文档
 
+- [Factor Architecture：权威 inventory、生命周期与系统边界](docs/FACTOR_ARCHITECTURE.md)
 - [Industry Radar V1 架构、数据与 Theme Universe 说明](research/INDUSTRY_RADAR.md)
 - [项目蓝图与产品框架](docs/PROJECT_BLUEPRINT_ZH.md)
 - [产品决策日志](docs/DECISION_LOG_ZH.md)

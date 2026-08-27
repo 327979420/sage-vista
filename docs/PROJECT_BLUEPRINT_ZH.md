@@ -86,13 +86,15 @@ Sage Vista 要成为一个清楚、可信、能长期积累实验结果的 MACD 
 
 1. 获取并写回最新完整日 K；
 2. 更新 MACD Tracker；
-3. 更新动态多因子雷达；
-4. 检查两个输出日期一致、历史没有缺口、没有未来数据；
+3. 生成固定 27 因子的 daily factor snapshot，并更新动态多因子雷达；
+4. 检查 Tracker、factor snapshot、Radar 与 provider 日期一致、历史没有缺口、没有未来数据；
 5. 运行测试和生产构建；
 6. 只有全部通过才发布网站；
 7. 没有新交易日数据时不重复发布。
 
 网页显示的数据日期必须是实际使用的完整收盘日，不能只显示任务运行时间。
+
+Daily EOD workflow 之外另有独立 freshness monitor：在正常重试窗口之后重新查询 EODHD 最新完整交易日，并核对仓库四项日期。漏跑时它以失败检查、artifact 和去重 issue 报警；也提供 `repository_dispatch` 给独立外部调度。部署后的 live verification 必须按整组静态文件重试跨文件日期一致性，以容忍 CDN/Workers 的短暂 mixed-date propagation；只有整组日期与防前视审计一致才进入 Discord。
 
 ## 7. Discord 稀有机会播报
 
@@ -172,6 +174,12 @@ UI 的目标是专业、克制、清楚，而不只是简单。
 实施进度（2026-08-25）：第一批信息架构已完成。四项主导航和统一功能介绍页已经落地，总览首屏已开始按日期、机会、理由和风险组织。三个旧指标页暂时保留 URL 作为迁移保护，待统一因子库完成字段迁移和并行验证后再删除页面与专属样式。
 
 ### B. 统一因子库与动态雷达
+
+权威现状、27 项 inventory、Active Monitoring 定义、Tracker/Research 边界与最小迁移规格见 `docs/FACTOR_ARCHITECTURE.md`。注册表是研究目录而不是生产活跃清单；研究状态、运行状态和计分角色必须分开，Technical Tracker 在迁移共享 primitive 时保持既有排名契约。
+
+Core migration（2026-08-26）：首批 8 个 canonical detectors、包含 hit/non-hit 与 factor version 的 deterministic daily snapshot、以及 Rare Radar snapshot consumer 已落地。它们是 shadow monitoring，不修改 Tracker ranking、official score、UI 或 Discord。Snapshot 已加入正常 daily workflow 的生成、验证、持久化、提交和 live verification contract；真实 operational activation 由持有 EODHD secret 的 GitHub Actions 运行确认。旧 multi-factor scoring 相关研究只在创建新 experiment version 后重跑，历史结果不得覆盖。
+
+27-factor monitoring expansion（2026-08-26）：采用 **MONITOR BROADLY, SCORE CONSERVATIVELY**。Snapshot 现在固定覆盖 27 个注册 ID，其中 25 项 objective monitored、2 项 `definition_required`；event factors 保存 recent hit 日期与 session age。实验观察分分为 Core 2、谨慎 Auxiliary 1、Display-only 0，并按 redundancy group 取最大贡献；official score 仍为 0，Rare/Discord 兼容门槛与 Technical Tracker ranking 均不变。
 
 - 设计因子注册表、证据家族、状态、版本、结果和权重接口。
 - 迁移现有检测能力，先保留旧结果，再逐步增加新因子。

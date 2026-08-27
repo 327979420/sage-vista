@@ -1,5 +1,5 @@
 {
-  "registry_version": "0.4.0",
+  "registry_version": "0.5.0",
   "factor_count": 27,
   "factors": [
     {
@@ -17,7 +17,13 @@
       "weight": 0.0,
       "redundancy_group": "trend_qualification",
       "research_refs": [],
-      "depends_on": []
+      "depends_on": [],
+      "factor_type": "qualification",
+      "observation_window_sessions": 0,
+      "runtime_status": "ready",
+      "score_tier": "auxiliary",
+      "experimental_weight": 1,
+      "dependency_policy": "all"
     },
     {
       "id": "qualification.pullback_60d",
@@ -34,7 +40,13 @@
       "weight": 0.0,
       "redundancy_group": "pullback",
       "research_refs": [],
-      "depends_on": []
+      "depends_on": [],
+      "factor_type": "qualification",
+      "observation_window_sessions": 0,
+      "runtime_status": "ready",
+      "score_tier": "auxiliary",
+      "experimental_weight": 1,
+      "dependency_policy": "all"
     },
     {
       "id": "macd.daily_bull_cross",
@@ -54,14 +66,20 @@
         "macd-rollout-01-baseline-2026-08-24",
         "macd-five-session-freshness-2026-08-25"
       ],
-      "depends_on": []
+      "depends_on": [],
+      "factor_type": "event",
+      "observation_window_sessions": 5,
+      "runtime_status": "ready",
+      "score_tier": "core",
+      "experimental_weight": 2,
+      "dependency_policy": "all"
     },
     {
       "id": "macd.weekly_histogram_improving",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "name_zh": "完整周线MACD柱改善",
       "explanation": "完整周线MACD柱改善",
-      "machine_rule": "latest completed weekly histogram > prior completed weekly histogram",
+      "machine_rule": "latest completed weekly histogram > prior completed weekly histogram and prior histogram >= second-prior histogram",
       "evidence_family": "macd",
       "timeframe": "weekly_completed",
       "lookahead_safe": true,
@@ -73,7 +91,13 @@
       "research_refs": [
         "macd-multifactor-score-v1-2026-08-25"
       ],
-      "depends_on": []
+      "depends_on": [],
+      "factor_type": "state",
+      "observation_window_sessions": 0,
+      "runtime_status": "ready",
+      "score_tier": "core",
+      "experimental_weight": 2,
+      "dependency_policy": "all"
     },
     {
       "id": "macd.monthly_bull_cross",
@@ -92,7 +116,13 @@
       "research_refs": [
         "macd-large-cycle-weekly-monthly-2026-08-25"
       ],
-      "depends_on": []
+      "depends_on": [],
+      "factor_type": "state",
+      "observation_window_sessions": 0,
+      "runtime_status": "ready",
+      "score_tier": "auxiliary",
+      "experimental_weight": 1,
+      "dependency_policy": "all"
     },
     {
       "id": "support.ema_proximity",
@@ -111,7 +141,13 @@
       "research_refs": [
         "macd-multifactor-score-v1-2026-08-25"
       ],
-      "depends_on": []
+      "depends_on": [],
+      "factor_type": "state",
+      "observation_window_sessions": 0,
+      "runtime_status": "ready",
+      "score_tier": "core",
+      "experimental_weight": 2,
+      "dependency_policy": "all"
     },
     {
       "id": "support.fibonacci_half",
@@ -124,13 +160,19 @@
       "lookahead_safe": true,
       "confirmation_delay_bars": 0,
       "status": "rejected",
-      "score_mode": "observational",
-      "weight": 1,
+      "score_mode": "display_only",
+      "weight": 0,
       "redundancy_group": "fibonacci_support",
       "research_refs": [
         "macd-rollout-05-fibonacci-half-2026-08-25"
       ],
-      "depends_on": []
+      "depends_on": [],
+      "factor_type": "state",
+      "observation_window_sessions": 0,
+      "runtime_status": "ready",
+      "score_tier": "display_only",
+      "experimental_weight": 0.0,
+      "dependency_policy": "all"
     },
     {
       "id": "support.fibonacci_618",
@@ -147,7 +189,13 @@
       "weight": 1,
       "redundancy_group": "fibonacci_support",
       "research_refs": [],
-      "depends_on": []
+      "depends_on": [],
+      "factor_type": "state",
+      "observation_window_sessions": 0,
+      "runtime_status": "ready",
+      "score_tier": "auxiliary",
+      "experimental_weight": 1,
+      "dependency_policy": "all"
     },
     {
       "id": "support.golden_pocket",
@@ -164,7 +212,13 @@
       "weight": 0.0,
       "redundancy_group": "fibonacci_support",
       "research_refs": [],
-      "depends_on": []
+      "depends_on": [],
+      "factor_type": "state",
+      "observation_window_sessions": 0,
+      "runtime_status": "ready",
+      "score_tier": "display_only",
+      "experimental_weight": 0.0,
+      "dependency_policy": "all"
     },
     {
       "id": "structure.trendline_three_push",
@@ -177,13 +231,19 @@
       "lookahead_safe": true,
       "confirmation_delay_bars": 0,
       "status": "unstable",
-      "score_mode": "observational",
-      "weight": 1,
+      "score_mode": "display_only",
+      "weight": 0,
       "redundancy_group": "trendline_breakout",
       "research_refs": [
         "macd-pattern-v0.6.0-2026-08-24"
       ],
-      "depends_on": []
+      "depends_on": [],
+      "factor_type": "event",
+      "observation_window_sessions": 10,
+      "runtime_status": "ready",
+      "score_tier": "display_only",
+      "experimental_weight": 0.0,
+      "dependency_policy": "all"
     },
     {
       "id": "structure.double_bottom",
@@ -202,7 +262,13 @@
       "research_refs": [
         "macd-pattern-v0.6.0-2026-08-24"
       ],
-      "depends_on": []
+      "depends_on": [],
+      "factor_type": "event",
+      "observation_window_sessions": 10,
+      "runtime_status": "ready",
+      "score_tier": "display_only",
+      "experimental_weight": 0.0,
+      "dependency_policy": "all"
     },
     {
       "id": "structure.higher_low",
@@ -219,7 +285,13 @@
       "weight": 0.0,
       "redundancy_group": "bottom_structure",
       "research_refs": [],
-      "depends_on": []
+      "depends_on": [],
+      "factor_type": "state",
+      "observation_window_sessions": 0,
+      "runtime_status": "ready",
+      "score_tier": "display_only",
+      "experimental_weight": 0.0,
+      "dependency_policy": "all"
     },
     {
       "id": "structure.breakout_retest",
@@ -236,7 +308,13 @@
       "weight": 0.0,
       "redundancy_group": "breakout_retest",
       "research_refs": [],
-      "depends_on": []
+      "depends_on": [],
+      "factor_type": "event",
+      "observation_window_sessions": 5,
+      "runtime_status": "definition_required",
+      "score_tier": "display_only",
+      "experimental_weight": 0.0,
+      "dependency_policy": "all"
     },
     {
       "id": "structure.trendline_three_push_retest",
@@ -255,7 +333,13 @@
       "research_refs": [],
       "depends_on": [
         "structure.trendline_three_push"
-      ]
+      ],
+      "factor_type": "event",
+      "observation_window_sessions": 10,
+      "runtime_status": "ready",
+      "score_tier": "core",
+      "experimental_weight": 2,
+      "dependency_policy": "all"
     },
     {
       "id": "structure.bullish_fvg_support",
@@ -274,7 +358,13 @@
       "research_refs": [
         "macd-multifactor-score-v1-2026-08-25"
       ],
-      "depends_on": []
+      "depends_on": [],
+      "factor_type": "state",
+      "observation_window_sessions": 0,
+      "runtime_status": "ready",
+      "score_tier": "core",
+      "experimental_weight": 2,
+      "dependency_policy": "all"
     },
     {
       "id": "risk.overhead_unfilled_gap",
@@ -293,7 +383,13 @@
       "research_refs": [
         "macd-multifactor-score-v1-2026-08-25"
       ],
-      "depends_on": []
+      "depends_on": [],
+      "factor_type": "risk",
+      "observation_window_sessions": 0,
+      "runtime_status": "ready",
+      "score_tier": "core",
+      "experimental_weight": 2,
+      "dependency_policy": "all"
     },
     {
       "id": "rsi.oversold_repair",
@@ -310,7 +406,13 @@
       "weight": 0.0,
       "redundancy_group": "rsi_reversal",
       "research_refs": [],
-      "depends_on": []
+      "depends_on": [],
+      "factor_type": "event",
+      "observation_window_sessions": 5,
+      "runtime_status": "ready",
+      "score_tier": "display_only",
+      "experimental_weight": 0.0,
+      "dependency_policy": "all"
     },
     {
       "id": "rsi.bullish_divergence",
@@ -329,7 +431,13 @@
       "research_refs": [
         "macd-pattern-v0.6.0-2026-08-24"
       ],
-      "depends_on": []
+      "depends_on": [],
+      "factor_type": "event",
+      "observation_window_sessions": 10,
+      "runtime_status": "ready",
+      "score_tier": "display_only",
+      "experimental_weight": 0.0,
+      "dependency_policy": "all"
     },
     {
       "id": "volume.relative_expansion",
@@ -346,7 +454,13 @@
       "weight": 0.0,
       "redundancy_group": "volume_expansion",
       "research_refs": [],
-      "depends_on": []
+      "depends_on": [],
+      "factor_type": "event",
+      "observation_window_sessions": 5,
+      "runtime_status": "ready",
+      "score_tier": "display_only",
+      "experimental_weight": 0.0,
+      "dependency_policy": "all"
     },
     {
       "id": "volume.bottom_expansion",
@@ -365,7 +479,13 @@
       "research_refs": [
         "support-confirmation-hypothesis-2026-08-25"
       ],
-      "depends_on": []
+      "depends_on": [],
+      "factor_type": "event",
+      "observation_window_sessions": 5,
+      "runtime_status": "ready",
+      "score_tier": "core",
+      "experimental_weight": 2,
+      "dependency_policy": "support_context"
     },
     {
       "id": "volume.pullback_contraction",
@@ -382,7 +502,13 @@
       "weight": 0.0,
       "redundancy_group": "volume_contraction",
       "research_refs": [],
-      "depends_on": []
+      "depends_on": [],
+      "factor_type": "state",
+      "observation_window_sessions": 0,
+      "runtime_status": "definition_required",
+      "score_tier": "display_only",
+      "experimental_weight": 0.0,
+      "dependency_policy": "all"
     },
     {
       "id": "structure.bottom_doji",
@@ -401,7 +527,13 @@
       "research_refs": [
         "macd-candle-v0.7.0-2026-08-24"
       ],
-      "depends_on": []
+      "depends_on": [],
+      "factor_type": "event",
+      "observation_window_sessions": 3,
+      "runtime_status": "ready",
+      "score_tier": "display_only",
+      "experimental_weight": 0.0,
+      "dependency_policy": "all"
     },
     {
       "id": "structure.bottom_bullish_engulfing",
@@ -420,7 +552,13 @@
       "research_refs": [
         "macd-candle-v0.7.0-2026-08-24"
       ],
-      "depends_on": []
+      "depends_on": [],
+      "factor_type": "event",
+      "observation_window_sessions": 5,
+      "runtime_status": "ready",
+      "score_tier": "display_only",
+      "experimental_weight": 0.0,
+      "dependency_policy": "all"
     },
     {
       "id": "structure.support_bullish_engulfing",
@@ -439,7 +577,13 @@
       "research_refs": [
         "support-confirmation-hypothesis-2026-08-25"
       ],
-      "depends_on": []
+      "depends_on": [],
+      "factor_type": "event",
+      "observation_window_sessions": 5,
+      "runtime_status": "ready",
+      "score_tier": "core",
+      "experimental_weight": 2,
+      "dependency_policy": "support_context"
     },
     {
       "id": "structure.hammer",
@@ -456,7 +600,13 @@
       "weight": 0.0,
       "redundancy_group": "bottom_candle",
       "research_refs": [],
-      "depends_on": []
+      "depends_on": [],
+      "factor_type": "event",
+      "observation_window_sessions": 3,
+      "runtime_status": "ready",
+      "score_tier": "display_only",
+      "experimental_weight": 0.0,
+      "dependency_policy": "all"
     },
     {
       "id": "support.close_congestion",
@@ -475,7 +625,13 @@
       "research_refs": [
         "macd-rollout-02-kline-congestion-2026-08-24"
       ],
-      "depends_on": []
+      "depends_on": [],
+      "factor_type": "state",
+      "observation_window_sessions": 0,
+      "runtime_status": "ready",
+      "score_tier": "display_only",
+      "experimental_weight": 0.0,
+      "dependency_policy": "all"
     },
     {
       "id": "support.volume_profile_proxy",
@@ -494,7 +650,13 @@
       "research_refs": [
         "macd-rollout-03-volume-profile-2026-08-25"
       ],
-      "depends_on": []
+      "depends_on": [],
+      "factor_type": "state",
+      "observation_window_sessions": 0,
+      "runtime_status": "ready",
+      "score_tier": "display_only",
+      "experimental_weight": 0.0,
+      "dependency_policy": "all"
     }
   ]
 }

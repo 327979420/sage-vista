@@ -1,0 +1,62 @@
+name: Sage Vista EOD Freshness Monitor
+
+on:
+  # Separate late check after all normal EOD retry windows. repository_dispatch
+  # also permits an external scheduler to invoke the same audit in the future.
+  schedule:
+    - cron: "30 4 * * 2-6"
+  workflow_dispatch:
+  repository_dispatch:
+    types: [eod-freshness-check]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  freshness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      EODHD_API_TOKEN: ${{ secrets.EODHD_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13" }
+      - name: Require provider secret
+        run: test -n "$EODHD_API_TOKEN" || { echo "EODHD_API_TOKEN secret is not configured"; exit 1; }
+      - name: Compare repository with provider
+        id: freshness
+        shell: bash
+        run: |
+          python3 -m services.scanner.freshness_monitor > freshness-result.json
+          python3 - <<'PY'
+          import json,os
+          result=json.load(open("freshness-result.json"))
+          with open(os.environ["GITHUB_OUTPUT"],"a") as out:
+              out.write(f"result={result['result']}\n")
+              out.write(f"provider_latest={result['provider_latest']}\n")
+          PY
+      - name: Open one deduplicated stale-data issue
+        if: steps.freshness.outputs.result == 'stale'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROVIDER_LATEST: ${{ steps.freshness.outputs.provider_latest }}
+        shell: bash
+        run: |
+          title="EOD freshness stale: provider ${PROVIDER_LATEST}"
+          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "$title in:title" --json number --jq length)
+          if [ "$existing" = "0" ]; then
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file freshness-result.json
+          fi
+      - name: Upload freshness evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: independent-freshness-${{ github.run_id }}
+          path: freshness-result.json
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Fail visibly when stale
+        if: steps.freshness.outputs.result == 'stale'
+        run: exit 1
