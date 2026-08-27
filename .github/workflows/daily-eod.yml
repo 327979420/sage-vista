@@ -71,7 +71,7 @@ jobs:
           try:state=json.load(open("automation/production-state.json"))
           except FileNotFoundError:pass
           manual_deploy=os.environ.get("MANUAL_DEPLOY")=="true"
-          needs_release=result["result"]=="updated" or state.get("as_of")!=result["as_of"] or manual_deploy
+          needs_release=result["result"]=="updated" or state.get("as_of")!=result["as_of"] or manual_deploy or not os.path.exists("public/unified-v2-rankings.json")
           with open(os.environ["GITHUB_OUTPUT"],"a") as out:
               out.write(f"result={result['result']}\n")
               out.write(f"as_of={result['as_of']}\n")
@@ -79,6 +79,9 @@ jobs:
           PY
         env:
           MANUAL_DEPLOY: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'deploy' }}
+      - name: Rebuild July, August and latest unified V2 rankings
+        if: steps.update_result.outputs.needs_release == 'true'
+        run: python3 -m services.scanner.unified_v2_scan --start 2026-07-01 --end "${{ steps.update_result.outputs.as_of }}"
       - uses: actions/setup-node@v4
         if: steps.update_result.outputs.needs_release == 'true'
         with:
@@ -113,7 +116,7 @@ jobs:
         run: |
           git config user.name "sage-vista-bot"
           git config user.email "sage-vista-bot@users.noreply.github.com"
-          git add public/resonance-tracker.json public/daily-factor-snapshot.json public/rare-opportunity-radar.json public/industry-radar.json public/market-etf-watch.json public/signal-history.json public/update-status.json
+          git add public/resonance-tracker.json public/daily-factor-snapshot.json public/rare-opportunity-radar.json public/industry-radar.json public/market-etf-watch.json public/signal-history.json public/update-status.json public/unified-v2-rankings.json
           git diff --cached --quiet && exit 0
           git commit -m "data: EOD update ${{ steps.update_result.outputs.as_of }}"
           git push origin HEAD:main
