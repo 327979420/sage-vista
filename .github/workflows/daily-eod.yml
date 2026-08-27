@@ -79,9 +79,9 @@ jobs:
           PY
         env:
           MANUAL_DEPLOY: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'deploy' }}
-      - name: Rebuild July, August and latest unified V2 rankings
+      - name: Update latest unified V2 ranking
         if: steps.update_result.outputs.needs_release == 'true'
-        run: python3 -m services.scanner.unified_v2_scan --start 2026-07-01 --end "${{ steps.update_result.outputs.as_of }}"
+        run: python3 -m services.scanner.unified_v2_scan --start "${{ steps.update_result.outputs.as_of }}" --end "${{ steps.update_result.outputs.as_of }}"
       - uses: actions/setup-node@v4
         if: steps.update_result.outputs.needs_release == 'true'
         with:
@@ -111,7 +111,7 @@ jobs:
           if result.get("result") not in ("preview","duplicate_skipped"):raise SystemExit("Discord dry-run validation failed")
           PY
       - name: Commit audited website data
-        if: steps.update_result.outputs.result == 'updated'
+        if: steps.update_result.outputs.needs_release == 'true'
         shell: bash
         run: |
           git config user.name "sage-vista-bot"

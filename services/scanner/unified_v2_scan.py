@@ -56,7 +56,7 @@ def _candidate(row,market,industry):
  reasons=[name for key,name in (("qualification.long_trend","长期趋势"),("macd.daily_bull_cross","MACD改善"),("support.ema_proximity","均线支撑"),("qualification.pullback_60d","从高位回撤"),("structure.bullish_fvg_support","Bullish FVG")) if key in hits]
  return {"symbol":row["symbol"],"price":row["price"],"technical_score":technical,"market_adjustment":market_adjustment,"industry_adjustment":industry_adjustment,"final_priority":final,"reasons":reasons,"industry_states":states_seen,"experimental_score":row["scoring"]["experimental_observational_score"]}
 
-def run(start="2026-07-01",end=None,out=OUT,cache_dir="work/eodhd-cache"):
+def run(start="2026-07-01",end=None,out=OUT,cache_dir="work/eodhd-cache",merge_existing=True):
  data=_load_cache(cache_dir);dates=_dates(data,start,end or "9999-12-31")
  if not dates:raise RuntimeError("No cached SPY sessions in requested range")
  results=[]
@@ -66,9 +66,13 @@ def run(start="2026-07-01",end=None,out=OUT,cache_dir="work/eodhd-cache"):
   candidates.sort(key=lambda x:(-x["final_priority"],-x["technical_score"],-x["experimental_score"],x["symbol"]))
   for rank,item in enumerate(candidates[:30],1):item["rank"]=rank
   results.append({"date":day,"market":{"state":market["market_temperature"]["state"],"score":market["market_temperature"]["score"]} if market else None,"industry_status":industry.get("status"),"historical_membership_safe":bool(industry.get("historical_membership_safe")),"eligible_count":snapshot["eligible_count"],"candidate_count":len(candidates),"ranking":candidates[:30]})
- report={"version":"unified-v2-shadow-1.0.0","generated_at":datetime.now(timezone.utc).isoformat(),"coverage":{"start":dates[0],"end":dates[-1],"sessions":len(dates)},"production_status":"shadow_not_yet_validated","future_data_used":False,"model":{"technical":"长期趋势2 + MACD改善3 + EMA支撑2 + 回撤1 + FVG1 + 支撑确认最多1 - 上方缺口1","industry":"有当日有效成员快照时：Leadership +1；Recovery/Pullback Watch +0.5","market":"市场温度4-5加1；2-3不变；0-1减1","entry_gate":"必须长期趋势，且MACD改善或EMA支撑至少一个命中；技术分至少4"},"limitations":["当前股票池来自现存缓存，正式胜率研究仍需纳入退市股票以消除幸存者偏差","没有当日有效行业成员快照的日期不做行业加分，绝不使用未来分类回填","这是新模型候选榜，不等于已验证买入信号"],"days":results}
+ if merge_existing and pathlib.Path(out).exists():
+  existing=json.loads(pathlib.Path(out).read_text())
+  if existing.get("version")=="unified-v2-shadow-1.0.0":
+   by_date={x["date"]:x for x in existing.get("days",[])};by_date.update({x["date"]:x for x in results});results=[by_date[x] for x in sorted(by_date)]
+ report={"version":"unified-v2-shadow-1.0.0","generated_at":datetime.now(timezone.utc).isoformat(),"coverage":{"start":results[0]["date"],"end":results[-1]["date"],"sessions":len(results)},"production_status":"shadow_not_yet_validated","future_data_used":False,"model":{"technical":"长期趋势2 + MACD改善3 + EMA支撑2 + 回撤1 + FVG1 + 支撑确认最多1 - 上方缺口1","industry":"有当日有效成员快照时：Leadership +1；Recovery/Pullback Watch +0.5","market":"市场温度4-5加1；2-3不变；0-1减1","entry_gate":"必须长期趋势，且MACD改善或EMA支撑至少一个命中；技术分至少4"},"limitations":["当前股票池来自现存缓存，正式胜率研究仍需纳入退市股票以消除幸存者偏差","没有当日有效行业成员快照的日期不做行业加分，绝不使用未来分类回填","这是新模型候选榜，不等于已验证买入信号"],"days":results}
  pathlib.Path(out).write_text(json.dumps(report,ensure_ascii=False,separators=(",",":"))+"\n");return report
 
 if __name__=="__main__":
- parser=argparse.ArgumentParser();parser.add_argument("--start",default="2026-07-01");parser.add_argument("--end");parser.add_argument("--out",default=OUT);parser.add_argument("--cache-dir",default="work/eodhd-cache")
- args=parser.parse_args();report=run(args.start,args.end,args.out,args.cache_dir);print(json.dumps({"coverage":report["coverage"],"latest_candidates":report["days"][-1]["candidate_count"]},ensure_ascii=False))
+ parser=argparse.ArgumentParser();parser.add_argument("--start",default="2026-07-01");parser.add_argument("--end");parser.add_argument("--out",default=OUT);parser.add_argument("--cache-dir",default="work/eodhd-cache");parser.add_argument("--replace",action="store_true")
+ args=parser.parse_args();report=run(args.start,args.end,args.out,args.cache_dir,not args.replace);print(json.dumps({"coverage":report["coverage"],"latest_candidates":report["days"][-1]["candidate_count"]},ensure_ascii=False))
