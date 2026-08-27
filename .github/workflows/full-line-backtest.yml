@@ -1,0 +1,64 @@
+name: Full Line Backtest
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sage-vista-full-line-backtest
+  cancel-in-progress: false
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13" }
+      - name: Restore historical EOD cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            work/eodhd-cache
+            work/eodhd-active-common.json
+          key: eodhd-history-v1-${{ github.run_id }}
+          restore-keys: eodhd-history-v1-
+      - name: Require full research inputs
+        shell: bash
+        run: |
+          test "$(find work/eodhd-cache -type f -name '*.json' | wc -l)" -ge 1000
+          test -f work/eodhd-cache/SPY.json
+          test -f work/eodhd-cache/QQQ.json
+      - name: Run all Python tests
+        run: python3 -m unittest discover -s tests -p 'test_*.py'
+      - name: Run full-line backtest
+        run: python3 -m research.backtest.full_line_backtest_v1
+      - name: Validate report contract
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          report=json.load(open("research/backtest/output/full-line-v1.json"))
+          if report.get("version")!="full-line-backtest-v1.0.0":raise SystemExit("wrong report version")
+          if report.get("audit",{}).get("stock_events",0)<1000:raise SystemExit("stock sample too small")
+          if report.get("audit",{}).get("current_theme_membership_backfilled"):raise SystemExit("unsafe membership backfill")
+          if not report.get("stock_combinations"):raise SystemExit("missing P/L combinations")
+          PY
+      - name: Commit research report
+        shell: bash
+        run: |
+          git config user.name "sage-vista-research-bot"
+          git config user.email "sage-vista-research-bot@users.noreply.github.com"
+          git add research/backtest/output/full-line-v1.json
+          git commit -m "research: full line backtest v1"
+          git pull --rebase origin main
+          git push origin HEAD:main
+      - uses: actions/upload-artifact@v4
+        with:
+          name: full-line-backtest-${{ github.run_id }}
+          path: research/backtest/output/full-line-v1.json
+          retention-days: 30
