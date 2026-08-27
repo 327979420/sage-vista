@@ -4,7 +4,7 @@ from datetime import datetime,timezone
 
 from .eodhd_factor_pilot import adjusted_rows
 
-SCHEMA_VERSION="1.1.0"
+SCHEMA_VERSION="1.2.0"
 PRODUCT_VERSION="SV-PRODUCT-V1"
 SIGNAL_DEFINITION_VERSION="signal-history-v1"
 RESET_SESSIONS=5
@@ -19,7 +19,7 @@ def _factor_by_symbol(snapshot):return {x["symbol"]:{**x,"registry_version":snap
 def _industry_by_symbol(industry):
  themes={x["theme_id"]:x for x in industry.get("themes",[])};out={}
  for symbol,links in industry.get("ticker_context",{}).items():
-  out[symbol]=[{k:item.get(k) for k in ("theme_id","name","state","relative_20d","relative_60d","breadth_above_sma50","breadth_change_10d")} for link in links if (item:=themes.get(link["theme_id"]))]
+  out[symbol]=[{**{k:item.get(k) for k in ("theme_id","name","state","relative_20d","relative_60d","breadth_above_sma50","breadth_change_10d")},"etf_context":copy.deepcopy(item.get("etf_context"))} for link in links if (item:=themes.get(link["theme_id"]))]
  return out
 
 def _signal_id(symbol,day):return f"SVP1-{symbol}-{day}"
@@ -44,7 +44,7 @@ def _new_case(symbol,day,sources,tracker_row,factor_row,industry,market):
   "initial_source_systems":sorted(sources),"source_systems":sorted(sources),"latest_current_status":"current","entry":{"convention":"next_trading_day_adjusted_open","date":None,"price":None},
   "signal_time_snapshot":{"technical":{"tracker_rank":rank,"technical_score":technical.get("ranking_score") if technical else None,"combined_score":technical.get("combined_score") if technical else None,"setup":technical.get("confluence_label") if technical else None,"status":technical.get("ranking_direction") if technical else None,"rank_reason":technical.get("rank_reason") if technical else None},
    "multi_factor":{"factor_registry_version":factor.get("registry_version") if factor else None,"official_score":factor.get("scoring",{}).get("official_score") if factor else None,"experimental_observational_score":factor.get("scoring",{}).get("experimental_observational_score") if factor else None,"score_contributions":factor.get("scoring",{}).get("score_contributions",[]) if factor else [],"factor_states":factor.get("factors",[]) if factor else [],"non_scoring_evidence":[x for x in factor.get("factors",[]) if x.get("available") and (x.get("hit") or x.get("recent_hit")) and x.get("score_role") in ("display_only","disabled")] if factor else [],"risks":[x for x in factor.get("factors",[]) if x.get("factor_id","").startswith("risk.") and x.get("hit")] if factor else []},
-   "industry":{"industry_radar_as_of":industry.get("as_of"),"membership_version":industry.get("membership_version"),"rule_version":"industry-radar-v1","themes":copy.deepcopy(_industry_by_symbol(industry).get(symbol,[]))},"market":_market_snapshot(market,day)},
+   "industry":{"industry_radar_as_of":industry.get("as_of"),"membership_version":industry.get("membership_version"),"rule_version":"industry-radar-v2","themes":copy.deepcopy(_industry_by_symbol(industry).get(symbol,[]))},"market":_market_snapshot(market,day)},
   "versions":{"code_version":PRODUCT_VERSION,"factor_registry_version":factor.get("registry_version") if factor else None,"industry_membership_version":industry.get("membership_version")},
   "forward":{"returns":{str(x):None for x in HORIZONS},"mfe":None,"mae":None,"elapsed_sessions":0,"status":"pending","data_status":"pending"},
   "audit":{"future_data_used":False,"created_as_of":day,"last_updated_as_of":day}}
@@ -95,7 +95,7 @@ def _factor_temporal_states(case,factor_row):
   out.append({"factor_id":state["factor_id"],"factor_version":state.get("factor_version"),"temporal_status":temporal,"hit":bool(state.get("hit")),"recent_hit":bool(state.get("recent_hit")),"latest_hit_date":state.get("latest_hit_date"),"bars_since_hit":state.get("bars_since_hit"),"research_status":state.get("research_status"),"score_role":state.get("score_role")})
  return out
 
-def _append_daily_state(case,as_of,sources,factor_row,radar_row,is_current):
+def _append_daily_state(case,as_of,sources,factor_row,radar_row,industry,market,is_current):
  """Append one point-in-time state per production session without rewriting earlier days."""
  if any(x.get("date")==as_of for x in case.get("daily_states",[])):return
  scoring=(factor_row or {}).get("scoring",{})
@@ -103,7 +103,9 @@ def _append_daily_state(case,as_of,sources,factor_row,radar_row,is_current):
   "date":as_of,"price":(factor_row or {}).get("price"),"source_systems":sorted(sources),
   "in_current_opportunities":bool(is_current),"legacy_production_score":radar_row.get("total_score",radar_row.get("score")) if radar_row else None,
   "official_score":scoring.get("official_score"),"experimental_observational_score":scoring.get("experimental_observational_score"),
-  "factor_states":_factor_temporal_states(case,factor_row)
+  "factor_states":_factor_temporal_states(case,factor_row),
+  "industry_context":copy.deepcopy(_industry_by_symbol(industry).get(case["symbol"],[])),
+  "market_context":_market_snapshot(market,as_of)
  })
 
 def build(previous,tracker,radar,snapshot,industry,market,as_of,loader=adjusted_rows):
@@ -128,7 +130,7 @@ def build(previous,tracker,radar,snapshot,industry,market,as_of,loader=adjusted_
   sources=[]
   if case["symbol"] in tracker_map:sources.append("technical_tracker")
   if case["symbol"] in rare:sources.append("multi_factor_radar")
-  _append_daily_state(case,as_of,sources,factors.get(case["symbol"]),rare.get(case["symbol"]),case["symbol"] in current)
+  _append_daily_state(case,as_of,sources,factors.get(case["symbol"]),rare.get(case["symbol"]),industry,market,case["symbol"] in current)
   _update_forward(case,as_of,loader);case["audit"]["last_updated_as_of"]=as_of
   if case["entry"].get("date") and case["entry"]["date"]>as_of:raise ValueError("Future entry leakage")
  cases.sort(key=lambda x:(x["first_seen_date"],x["symbol"],x["signal_id"]))

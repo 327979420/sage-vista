@@ -4,7 +4,7 @@
     {"theme_id":"semiconductors","name":"Semiconductors","membership_source":{"provider":"ishares","fund":"SOXX","url":"https://www.ishares.com/us/products/239705/ishares-semiconductor-etf"}},
     {"theme_id":"cybersecurity","name":"Cybersecurity","membership_source":{"provider":"first_trust","fund":"CIBR","url":"https://www.ftportfolios.com/Retail/Etf/EtfHoldings.aspx?Ticker=CIBR"}},
     {"theme_id":"cloud-computing","name":"Cloud Computing","membership_source":{"provider":"first_trust","fund":"SKYY","url":"https://www.ftportfolios.com/Retail/Etf/EtfHoldings.aspx?Ticker=SKYY"}},
-    {"theme_id":"robotics-automation","name":"Robotics & Automation","membership_source":{"provider":"global_x","fund":"BOTZ"}},
+    {"theme_id":"robotics-automation","name":"Robotics & Automation","membership_source":{"provider":"global_x","fund":"BOTZ"},"context_funds":["BOTZ","BOTT"]},
     {"theme_id":"uranium","name":"Uranium","membership_source":{"provider":"global_x","fund":"URA"}},
     {"theme_id":"copper-miners","name":"Copper Miners","membership_source":{"provider":"global_x","fund":"COPX"}},
     {"theme_id":"clean-energy","name":"Clean Energy","membership_source":{"provider":"ishares","fund":"ICLN","url":"https://www.ishares.com/us/products/239738/ishares-global-clean-energy-etf"}},

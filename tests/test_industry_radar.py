@@ -3,6 +3,7 @@ from datetime import date,timedelta
 from pathlib import Path
 
 from services.scanner.industry_radar import calculate,classify_state,member_metrics,rows_as_of,run,select_snapshot
+from services.scanner.theme_etf_context import evaluate_fund,evaluate_theme,reference_funds
 from unittest.mock import patch
 from services.scanner.industry_membership import analyze_overlap,configured_themes,parse_first_trust,parse_global_x,parse_invesco,parse_ishares,parse_state_street,parse_vaneck,snapshot_themes
 
@@ -16,6 +17,31 @@ def theme(theme_id="one",members=None,effective="2026-01-01"):
  return {"theme_id":theme_id,"name":theme_id.title(),"source_type":"official_etf_holdings","source":"ETF","source_url":"https://example.test","source_date":effective,"effective_from":effective,"members":members or ["A","B","C","D","E"]}
 
 class IndustryRadarTests(unittest.TestCase):
+ def test_robotics_membership_and_context_funds_are_separate(self):
+  root=Path(__file__).parents[1];snapshot=json.loads((root/"data/themes/snapshots/2026-08-26-v2.json").read_text())
+  robotics=next(x for x in snapshot["themes"] if x["theme_id"]=="robotics-automation")
+  self.assertIn("RR",robotics["members"])
+  self.assertEqual(reference_funds(snapshot)["robotics-automation"],["BOTZ","BOTT"])
+
+ def test_etf_pullback_at_support_is_point_in_time_shadow_evidence(self):
+  rows=[];price=50;day=date(2025,1,1)
+  for i in range(240):
+   price*=1.003 if i<225 else .995
+   rows.append({"date":(day+timedelta(days=i)).isoformat(),"close":price})
+  as_of=rows[-1]["date"]
+  result=evaluate_fund("BOTT",rows+[{"date":"2027-01-01","close":1}],as_of)
+  self.assertEqual(result["state"],"Rising Pullback At Support");self.assertTrue(result["favorable_setup"])
+  self.assertEqual(result["candidate_weight"],1);self.assertLess(result["close"],100)
+
+ def test_multiple_confirming_etfs_never_double_count_theme_weight(self):
+  rows=[];price=50;day=date(2025,1,1)
+  for i in range(240):
+   price*=1.003 if i<225 else .995
+   rows.append({"date":(day+timedelta(days=i)).isoformat(),"close":price})
+  result=evaluate_theme(["BOTZ","BOTT"],{"BOTZ":rows,"BOTT":rows},rows[-1]["date"])
+  self.assertEqual(result["confirming_funds"],["BOTZ","BOTT"]);self.assertEqual(result["candidate_weight"],1)
+  self.assertFalse(result["production_score_changed"])
+
  def test_provider_adapters_parse_ticker_columns_without_guessing(self):
   generic="Name,Ticker,Weight\nNvidia,NVDA,10\nForeign,BMN AU,2\nCash,USD,1\n"
   self.assertEqual(parse_ishares(generic),["NVDA","BMN AU"])

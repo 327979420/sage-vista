@@ -32,6 +32,8 @@ class SignalHistoryTests(unittest.TestCase):
   first=self.make(rare=("PG",));case=first["cases"][0]
   self.assertEqual(case["daily_states"][0]["date"],"2026-08-26")
   self.assertEqual(case["daily_states"][0]["legacy_production_score"],None)
+  self.assertEqual(case["daily_states"][0]["industry_context"][0]["theme_id"],"staples")
+  self.assertEqual(case["daily_states"][0]["market_context"]["market_temperature"]["state"],"normal")
   dropped=self.make(first,"2026-08-27",symbols=(),rows=2);case=dropped["cases"][0]
   self.assertEqual([x["date"] for x in case["daily_states"]],["2026-08-26","2026-08-27"])
   self.assertFalse(case["daily_states"][-1]["in_current_opportunities"])
