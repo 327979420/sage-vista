@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0.0",
-  "generated_at": "2026-08-27T07:49:25.690327+00:00",
+  "generated_at": "2026-08-27T13:44:32.124509+00:00",
   "source": "research/experiments.jsonl",
-  "experiment_count": 15,
+  "experiment_count": 16,
   "policy": {
     "append_only": true,
     "failed_results_preserved": true,
@@ -353,6 +353,40 @@
         "overlapping events are not independent",
         "no fees or quote-level slippage"
       ]
+    },
+    {
+      "experiment_id": "core-factor-backtest-v1.0.0-2026-08-27",
+      "created_at": "2026-08-27T23:30:00+10:00",
+      "status": "completed_research_only",
+      "change": "Test the clarified hierarchy: long trend plus daily MACD bullish cross; Volume Profile proxy or close congestion as the support gate; double bottom, higher low, bottom Doji and bullish engulfing only as support-dependent confirmations; independently test first bullish-FVG midpoint sweep that remains open and closes above 50%.",
+      "coverage": "1,388 eligible cached histories; 163,774 daily/weekly/monthly events; 2000 through 2026-08-21; development through 2024, 2025 validation, 2026 forward observation",
+      "specification": {
+        "entry": "next adjusted open",
+        "holding_days": [
+          5,
+          10,
+          20,
+          40
+        ],
+        "core_support": "Volume Profile proxy OR K-line close congestion",
+        "dependent_confirmations": [
+          "double bottom",
+          "higher low",
+          "bottom Doji",
+          "support bullish engulfing"
+        ],
+        "merged_alias": "bottom bullish engulfing is not a separate v1 factor",
+        "independent_signal": "bullish FVG first sweeps midpoint, remains unfilled, and closes above midpoint"
+      },
+      "result": "The support gate did not consistently improve the trend-plus-MACD baseline at 20 days: win-rate deltas were +1.1, -1.7 and +0.4 points in development, 2025 validation and 2026 forward; robust-return deltas were +0.20, -0.53 and -0.11 points. Double bottom weakened development and validation. Higher low was near neutral and inconsistent. Bottom Doji was unstable. Support bullish engulfing was directionally interesting but not validated: 20-day win-rate deltas +0.1, +0.6 and +11.9 with only 38 forward samples and mixed robust-return deltas. FVG 50% hold was also a candidate only: win-rate deltas +0.8, +0.4 and +11.7, while robust-return deltas were -0.24, -0.65 and +0.59. No production weights changed.",
+      "decision": "Keep legacy production scoring unchanged. Preserve support-dependent hierarchy in research. Reject promotion of double bottom; continue observing higher low and Doji without score; retain support bullish engulfing and FVG 50% hold as candidates requiring larger forward samples and refined support/FVG definitions.",
+      "known_limitations": [
+        "restored cache contained 1,388 eligible histories versus 2,518 in older studies, so compare within-run deltas rather than raw cross-study totals",
+        "daily OHLCV approximates Volume Profile and FVG traversal",
+        "overlapping events are not independent",
+        "no fees or quote-level slippage",
+        "stop-loss and take-profit grid is not included in this first event-study stage"
+      ]
     }
   ],
   "factor_experiments": {
@@ -413,6 +447,7 @@
     ]
   },
   "unlinked_experiment_ids": [
+    "core-factor-backtest-v1.0.0-2026-08-27",
     "macd-rollout-04-double-chip-confirmation-2026-08-25",
     "research-v0.1.0-2026-08-17",
     "research-v0.2.0-2026-08-17",
