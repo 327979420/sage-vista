@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "./product-v2.css";
+import "./home-v3.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -51,11 +52,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <div className="globalnav">
-          <a href="/">今日研究总览</a>
-          <a href="/zh/watch/resonance/macd">指标共振</a>
-          <a href="/zh/watch/resonance/rare-opportunities">多因子</a>
-          <a href="/zh/watch/industry-radar">行业雷达</a>
-          <a href="/zh/watch/resonance/research">研究 / 实验</a>
+          <a href="/">今日市场与机会</a>
+          <a href="/zh/watch/resonance/macd">个股研究</a>
+          <a href="/zh/watch/resonance/rare-opportunities">多因子机会</a>
+          <a href="/zh/watch/industry-radar">行业与大盘</a>
+          <a href="/zh/watch/resonance/research">历史与实验</a>
         </div>
         {children}
       </body>

@@ -37,10 +37,10 @@ test("server-renders the Sage Vista application", async () => {
 
 test("server-renders the consolidated research navigation", async () => {
   const html = await (await render()).text();
-  assert.match(html, /指标共振/);
-  assert.match(html, /多因子/);
-  assert.match(html, /行业雷达/);
-  assert.match(html, /研究 \/ 实验/);
+  assert.match(html, /个股研究/);
+  assert.match(html, /多因子机会/);
+  assert.match(html, /行业与大盘/);
+  assert.match(html, /历史与实验/);
 });
 
 test("server-renders the isolated Strategy Backtest research page", async () => {

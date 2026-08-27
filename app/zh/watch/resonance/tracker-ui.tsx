@@ -11,7 +11,7 @@ export type Report={as_of:string;universe:{cached:number;eligible:number};rulese
 type UpdateStatus={status:"up_to_date"|"stale"|"failed";source_latest_complete_date:string;tracker_as_of:string;radar_as_of:string;data_dates_match:boolean;last_successful_update_at:string};
 export const periods=["日线","周线","月线"];
 export const modules=[
- ["今日研究总览","/"],["指标共振","/zh/watch/resonance/macd"],["多因子","/zh/watch/resonance/rare-opportunities"],["行业雷达","/zh/watch/industry-radar"],["研究 / 实验","/zh/watch/resonance/research"],
+ ["今日研究总览","/"],["个股研究","/zh/watch/resonance/macd"],["多因子机会","/zh/watch/resonance/rare-opportunities"],["行业与大盘","/zh/watch/industry-radar"],["历史与实验","/zh/watch/resonance/research"],
 ] as const;
 export function useTracker(){const [data,setData]=useState<Report|null>(null);useEffect(()=>{fetch("/resonance-tracker.json",{cache:"no-store"}).then(x=>x.json()).then(setData)},[]);return data}
 function useUpdateStatus(){const [status,setStatus]=useState<UpdateStatus|null>(null);useEffect(()=>{fetch("/update-status.json",{cache:"no-store"}).then(x=>x.ok?x.json():null).then(setStatus).catch(()=>setStatus(null))},[]);return status}

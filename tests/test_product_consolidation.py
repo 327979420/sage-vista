@@ -12,7 +12,7 @@ class ProductConsolidationTests(unittest.TestCase):
  def test_navigation_has_no_legacy_signal_board(self):
   nav=(ROOT/"app/zh/watch/resonance/tracker-ui.tsx").read_text()
   self.assertNotRegex(nav,re.compile(r"US Equity Signals|Signal Board",re.I))
-  for label in ("今日研究总览","指标共振","多因子","行业雷达","研究 / 实验"):self.assertIn(label,nav)
+  for label in ("今日研究总览","个股研究","多因子机会","行业与大盘","历史与实验"):self.assertIn(label,nav)
 
  def test_fast_production_json_fetches_are_no_store(self):
   consumers={
