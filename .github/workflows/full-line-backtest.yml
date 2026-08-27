@@ -47,7 +47,7 @@ jobs:
           python3 - <<'PY'
           import json
           report=json.load(open("research/backtest/output/full-line-v1.json"))
-          if report.get("version")!="full-line-backtest-v1.0.1":raise SystemExit("wrong report version")
+          if report.get("version")!="full-line-backtest-v1.0.2":raise SystemExit("wrong report version")
           if report.get("audit",{}).get("stock_events",0)<1000:raise SystemExit("stock sample too small")
           if report.get("audit",{}).get("current_theme_membership_backfilled"):raise SystemExit("unsafe membership backfill")
           if not report.get("stock_combinations"):raise SystemExit("missing P/L combinations")
