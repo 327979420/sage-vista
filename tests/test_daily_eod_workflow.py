@@ -16,7 +16,7 @@ class DailyEodWorkflowTests(unittest.TestCase):
   self.assertIn("services.scanner.verify_live_deployment",text)
   self.assertIn("public/signal-history.json",text)
   self.assertIn("public/market-etf-watch.json",text)
-  self.assertIn('unified_v2_scan --start "${{ steps.update_result.outputs.as_of }}" --end "${{ steps.update_result.outputs.as_of }}"',text)
+  self.assertIn("unified_v2_scan --published-latest",text)
   self.assertNotIn("--start 2026-07-01",text)
  def test_historical_backfill_is_isolated_from_daily_delivery(self):
   backfill=(WORKFLOW.parent/"unified-v2-backfill.yml").read_text()

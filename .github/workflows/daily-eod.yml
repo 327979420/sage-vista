@@ -81,7 +81,7 @@ jobs:
           MANUAL_DEPLOY: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'deploy' }}
       - name: Update latest unified V2 ranking
         if: steps.update_result.outputs.needs_release == 'true'
-        run: python3 -m services.scanner.unified_v2_scan --start "${{ steps.update_result.outputs.as_of }}" --end "${{ steps.update_result.outputs.as_of }}"
+        run: python3 -m services.scanner.unified_v2_scan --published-latest
       - uses: actions/setup-node@v4
         if: steps.update_result.outputs.needs_release == 'true'
         with:
