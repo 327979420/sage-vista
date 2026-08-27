@@ -19,14 +19,14 @@ def verify_once(base,expected):
  # Fetch the whole published bundle on every attempt. A deployment can briefly
  # expose a mix of old and new static assets even when every individual request
  # succeeds, so transport-only retries are insufficient.
- status=fetch(base,"update-status.json",expected,attempts=1);tracker=fetch(base,"resonance-tracker.json",expected,attempts=1);snapshot=fetch(base,"daily-factor-snapshot.json",expected,attempts=1);radar=fetch(base,"rare-opportunity-radar.json",expected,attempts=1);industry=fetch(base,"industry-radar.json",expected,attempts=1)
- dates={status.get("source_latest_complete_date"),status.get("tracker_as_of"),status.get("factor_snapshot_as_of"),status.get("radar_as_of"),status.get("industry_radar_as_of"),tracker.get("as_of"),snapshot.get("as_of"),radar.get("as_of"),industry.get("as_of")}
+ status=fetch(base,"update-status.json",expected,attempts=1);tracker=fetch(base,"resonance-tracker.json",expected,attempts=1);snapshot=fetch(base,"daily-factor-snapshot.json",expected,attempts=1);radar=fetch(base,"rare-opportunity-radar.json",expected,attempts=1);industry=fetch(base,"industry-radar.json",expected,attempts=1);history=fetch(base,"signal-history.json",expected,attempts=1)
+ dates={status.get("source_latest_complete_date"),status.get("tracker_as_of"),status.get("factor_snapshot_as_of"),status.get("radar_as_of"),status.get("industry_radar_as_of"),status.get("signal_history_as_of"),tracker.get("as_of"),snapshot.get("as_of"),radar.get("as_of"),industry.get("as_of"),history.get("as_of")}
  if dates!={expected}:raise RuntimeError(f"Live deployment date mismatch: {sorted(str(x) for x in dates)}")
  if status.get("status")!="up_to_date" or status.get("data_dates_match") is not True:raise RuntimeError("Live status integrity check failed")
- if status.get("future_data_used") is not False or snapshot.get("future_data_used") is not False or radar.get("scan",{}).get("future_data_used") is not False or industry.get("future_data_used") is not False:raise RuntimeError("Live future-data audit failed")
+ if status.get("future_data_used") is not False or snapshot.get("future_data_used") is not False or radar.get("scan",{}).get("future_data_used") is not False or industry.get("future_data_used") is not False or history.get("future_data_used") is not False:raise RuntimeError("Live future-data audit failed")
  details=tracker.get("details",{})
  if any(x.get("audit",{}).get("future_rows_used") or x.get("audit",{}).get("latest_bar")!=expected for x in details.values()):raise RuntimeError("Live tracker completeness audit failed")
- return {"result":"verified","as_of":expected,"site_url":base,"tracker_details":len(details),"factor_symbols":snapshot.get("eligible_count")}
+ return {"result":"verified","as_of":expected,"site_url":base,"tracker_details":len(details),"factor_symbols":snapshot.get("eligible_count"),"forward_cases":len(history.get("cases",[]))}
 
 def verify(base,expected,attempts=12,delay_seconds=5):
  last_error=None

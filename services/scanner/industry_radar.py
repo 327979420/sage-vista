@@ -82,8 +82,8 @@ def calculate(snapshot,price_data,spy_rows,as_of):
   for symbol in theme["members"]:
    metric=member_metrics(price_data.get(symbol,[]),spy_rows,as_of)
    if metric:observations.append(metric)
-  valid=len(observations);item={k:theme[k] for k in ("theme_id","name","source_type","source","source_url","source_date","effective_from")}
-  item.update({"member_count":len(theme["members"]),"valid_member_count":valid})
+  valid=len(observations);item={k:theme.get(k) for k in ("theme_id","name","source_type","source_provider","source","source_url","source_date","effective_from","source_status","parse_status","error_reason")}
+  audit=theme.get("membership_audit",{});item.update({"member_count":len(theme["members"]),"raw_holdings_count":audit.get("total_holdings",len(theme["members"])),"us_resolvable_count":audit.get("us_tradeable_members",0),"foreign_or_unmapped_count":audit.get("foreign_or_unmapped_count",len(audit.get("foreign_or_unmapped_members",[]))),"valid_member_count":valid})
   if valid>=CONFIG["min_valid_members"]:
    avg=lambda key:sum(x[key] for x in observations)/valid
    item.update({"return_20d":avg("return_20d"),"return_60d":avg("return_60d"),"relative_20d":avg("relative_20d"),"relative_60d":avg("relative_60d"),"breadth_above_sma50":avg("above_sma50"),"breadth_positive_20d":avg("positive_20d"),"relative_5d":avg("relative_5d"),"breadth_change_10d":avg("above_sma50")-avg("above_sma50_10d_ago")})

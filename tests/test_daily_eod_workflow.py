@@ -14,3 +14,4 @@ class DailyEodWorkflowTests(unittest.TestCase):
   self.assertIn("needs_release",text)
   self.assertIn("automation/production-state.json",text)
   self.assertIn("services.scanner.verify_live_deployment",text)
+  self.assertIn("public/signal-history.json",text)

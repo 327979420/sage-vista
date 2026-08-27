@@ -3,7 +3,8 @@ from datetime import date,timedelta
 from pathlib import Path
 
 from services.scanner.industry_radar import calculate,classify_state,member_metrics,rows_as_of,run,select_snapshot
-from services.scanner.industry_membership import analyze_overlap,configured_themes,parse_first_trust,parse_global_x,parse_invesco,parse_ishares,parse_state_street,parse_vaneck
+from unittest.mock import patch
+from services.scanner.industry_membership import analyze_overlap,configured_themes,parse_first_trust,parse_global_x,parse_invesco,parse_ishares,parse_state_street,parse_vaneck,snapshot_themes
 
 def series(rate=0.001,count=90,start="2026-01-01"):
  day=date.fromisoformat(start);price=100;rows=[]
@@ -22,6 +23,18 @@ class IndustryRadarTests(unittest.TestCase):
   self.assertEqual(parse_invesco("Name,Holding Ticker\nNvidia,NVDA\n"),["NVDA"])
   self.assertEqual(parse_vaneck(generic),["NVDA","BMN AU"])
   self.assertEqual(parse_state_street(generic.encode()),["NVDA","BMN AU"])
+
+ def test_provider_json_and_html_parsers_are_provider_level(self):
+  self.assertEqual(parse_invesco('{"holdings":[{"ticker":"FSLR"},{"ticker":"NXT"}]}'),["FSLR","NXT"])
+  html="<table><tr><td>Company</td><td>TICK</td><td>123456789</td><td>Sector</td><td>1</td><td>2</td><td>3</td></tr></table>"
+  self.assertEqual(parse_first_trust(html),["TICK"])
+
+ def test_parser_failure_is_explicit_source_error_not_fake_empty_theme(self):
+  with tempfile.TemporaryDirectory() as folder:
+   registry=Path(folder,"registry.json");out=Path(folder,"snapshot.json")
+   registry.write_text(json.dumps({"themes":[{"theme_id":"broken","name":"Broken","membership_source":{"provider":"ishares","fund":"BAD","url":"https://example.test"}}]}))
+   with patch("services.scanner.industry_membership.PROVIDER_ADAPTERS",{"ishares":lambda *_:(_ for _ in ()).throw(ValueError("format changed"))}):payload=snapshot_themes("2026-08-26",out,registry=registry)
+   item=payload["themes"][0];self.assertEqual(item["source_status"],"unavailable");self.assertEqual(item["parse_status"],"source_error");self.assertEqual(item["error_reason"],"provider_transport_or_format_error");self.assertEqual(item["holdings_count"],0)
 
  def test_overlap_analysis_flags_near_duplicates(self):
   rows=[theme("clean",["A","B","C","D"]),theme("solar",["A","B","C"]),theme("water",["X","Y"])]

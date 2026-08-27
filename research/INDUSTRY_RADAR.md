@@ -202,3 +202,16 @@ Known limitations:
 - 这只是 membership/data-quality candidate，不是 alpha experiment，因此没有更新 `research/EXPERIMENTS.md`。
 
 下一步：修复/确认四类当前 unavailable 官方下载格式，生成新 revision 而不覆盖本 snapshot；用 GitHub EODHD production run 填充每 Theme valid member count 与 state。只有 membership quality 被接受后，才可另行预注册历史验证。
+
+## 12. 2026-08-26 provider repair revision
+
+`themes-2026-08-26-v2` 是新的 immutable correction，不覆盖 base snapshot。Provider-level 修复如下：
+
+- iShares：从官方产品页发现 `latest-holdings.csv`，并修正 IHI 的官方 product ID；SOXX 33、ICLN 130、IHI 50 raw holdings。
+- First Trust：只解析 Holdings 表的七列 security rows，不把导航文字当 ticker；CIBR 42、SKYY 63、GRID 119 raw holdings，外国标识原样保留。
+- Invesco：从官方产品页读取公开 CUSIP，再调用官网公开 holdings API；TAN 43、PHO 42 raw holdings。
+- VanEck：官方 REMX 页面可见 holdings，但下载入口在无登录 runner 中发生循环重定向；保持 `source_status=unavailable`、`parse_status=source_error`，不复制网页搜索结果、不猜 membership。
+
+每个 Theme snapshot 现在明确保存 `source_status`、`parse_status`、`holdings_count`、categorical `error_reason`、raw/US-resolvable/foreign-or-unmapped counts。Radar 输出再加入 valid price-history count。Parser/transport failure 必须是 `Unavailable / source_error`，不能表现为正常的零成员 Theme。
+
+本 revision 仍是 data coverage / quality work，不是 alpha experiment；没有修改 V1 thresholds，也没有向 `research/EXPERIMENTS.md` 添加结论。下一步只能先用 production EODHD run 验证新增 baskets 的 valid counts 与状态，再预注册 Industry-context forward comparison。

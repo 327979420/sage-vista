@@ -91,14 +91,22 @@ Sage Vista 要成为一个清楚、可信、能长期积累实验结果的 MACD 
 1. 获取并写回最新完整日 K；
 2. 更新 MACD Tracker；
 3. 生成固定 27 因子的 daily factor snapshot，并更新动态多因子雷达；
-4. 检查 Tracker、factor snapshot、Radar 与 provider 日期一致、历史没有缺口、没有未来数据；
-5. 运行测试和生产构建；
-6. 只有全部通过才发布网站；
-7. 没有新交易日数据时不重复发布。
+4. 在当前机会输出成功后追加/更新 canonical Signal History，只填已经到期的 forward outcome；
+5. 检查 Tracker、factor snapshot、Radar、Industry、Signal History 与 provider 日期一致、历史没有缺口、没有未来数据；
+6. 运行测试和生产构建；
+7. 只有全部通过才发布网站；
+8. 没有新交易日数据时不重复发布。
 
 网页显示的数据日期必须是实际使用的完整收盘日，不能只显示任务运行时间。
 
-Daily EOD workflow 之外另有独立 freshness monitor：在正常重试窗口之后重新查询 EODHD 最新完整交易日，并核对 source、Tracker、factor snapshot、Rare Radar、Industry Radar 五项日期。漏跑时它以失败检查、artifact 和去重 issue 报警；也提供 `repository_dispatch` 给独立外部调度。部署后的 live verification 必须按整组静态文件重试跨文件日期一致性，以容忍 CDN/Workers 的短暂 mixed-date propagation；只有整组日期与防前视审计一致才进入 Discord。快速变化的 production JSON consumer 使用 `cache: no-store`，不全局关闭静态资源缓存。
+Daily EOD workflow 之外另有独立 freshness monitor：在正常重试窗口之后重新查询 EODHD 最新完整交易日，并核对 source、Tracker、factor snapshot、Rare Radar、Industry Radar、Signal History 六项日期。漏跑时它以失败检查、artifact 和去重 issue 报警；也提供 `repository_dispatch` 给独立外部调度。部署后的 live verification 必须按整组静态文件重试跨文件日期一致性，以容忍 CDN/Workers 的短暂 mixed-date propagation；只有整组日期与防前视审计一致才进入 Discord。快速变化的 production JSON consumer 使用 `cache: no-store`，不全局关闭静态资源缓存。
+
+## 6.1 Current、Forward 与 Backtest
+
+- Current Opportunities 回答今天看什么，不负责保存历史。
+- `public/signal-history.json` 是真实生产提醒的 append-only ledger；离榜不删除，信号时 Tracker、27-factor、Industry 和版本证据不可变。
+- Historical Backtest / case review 仍在 research branch，不能与 production forward 样本合并。
+- 生产账本按下一交易日复权开盘进入，只随真实到来的交易 session 填充 1/5/10/20/60/100D、MFE、MAE。完整规则见 `docs/SIGNAL_HISTORY.md`。
 
 ## 7. Discord 稀有机会播报
 
@@ -161,7 +169,7 @@ UI 的目标是专业、克制、清楚，而不只是简单。
 - 用户定义的筹码密集区域既包括大量 K 线聚集，也包括 Volume Profile 成交量峰。日 K 成交量只能近似真实 Volume Profile，不能冒充逐笔筹码分布。
 - 用户定义的 Golden Pocket 来自已经确认的 swing low 到后续 swing high，重点关注 0.5、0.618/0.6182 回撤区域。
 - 当前六项多因子评分只是第一轮实验，不是最终模型。5 分以上机会可作为稀有人工复查提醒，但样本不足，不能宣传为已验证高胜率。
-- 稀有机会历史案例要同时保留成功与失败，展示触发日期、下一日开盘、命中条件和已经走完的 20/100 日结果。
+- 旧 Rare Radar `historical_examples` 只属于 historical backtest/case review；真实生产提醒统一进入 Signal History，同时保留成功、失败、离榜、unavailable 与 pending，并展示触发日期、下一日开盘、当时证据和已经到期的 forward 结果。
 - 所有回测按完整收盘确认、下一交易日复权开盘进入；不得用未来价格选择因子，不得只展示有利案例。
 
 ## 12. 接下来三条工作主线

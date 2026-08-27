@@ -16,6 +16,8 @@ Sage Vista 是一个私有、可解释、可人工复核的美股技术研究与
 4. **行业雷达**：行业与 Theme 上下文，不进入 Technical Score。
 5. **研究 / 实验**：历史实验、失败记录、样本和 20/100 日结论。
 
+生产提醒另有一份 append-only `signal-history.json`：它保存当时真实显示的 Technical / Multi-Factor opportunity、冻结当时的因子与 Industry 上下文，并只随未来交易日逐步填写 forward outcome。它不等于历史回测，也不会因股票离开今日榜单而消失。
+
 旧根路径 `US Equity Signals / Signal Board` 及其 mock candidates 已移除；根路径现在就是使用 production JSON 的今日研究总览。
 
 RSI、RSI 底背离、成交量放大等不再需要各自占用独立功能页，但其检测能力必须保留并逐步迁移到统一因子库。
@@ -33,6 +35,7 @@ RSI、RSI 底背离、成交量放大等不再需要各自占用独立功能页�
 
 - [Factor Architecture：权威 inventory、生命周期与系统边界](docs/FACTOR_ARCHITECTURE.md)
 - [Industry Radar V1 架构、数据与 Theme Universe 说明](research/INDUSTRY_RADAR.md)
+- [Signal History 与 Production Forward Observation 权威说明](docs/SIGNAL_HISTORY.md)
 - [项目蓝图与产品框架](docs/PROJECT_BLUEPRINT_ZH.md)
 - [产品决策日志](docs/DECISION_LOG_ZH.md)
 - [下一对话交接说明](docs/NEXT_SESSION_HANDOFF_ZH.md)

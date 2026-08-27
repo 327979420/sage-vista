@@ -1,5 +1,5 @@
 """Explicit, versioned public membership ingestion for Industry Radar."""
-import argparse,csv,html,io,json,pathlib,re,urllib.request,zipfile
+import argparse,csv,html,io,json,pathlib,re,urllib.error,urllib.parse,urllib.request,zipfile
 
 HEADERS={"User-Agent":"Mozilla/5.0 SageVistaResearch/1.0","Accept":"application/json,text/csv,*/*"}
 NASDAQ_URL="https://api.nasdaq.com/api/screener/stocks?tableonly=true&limit=25&offset=0&download=true"
@@ -62,12 +62,24 @@ def parse_global_x(text):
 def parse_ishares(text):return parse_table_csv(text,("ticker",))
 def parse_first_trust(text):
  try:return parse_table_csv(text,("ticker","symbol"))
- except ValueError:
-  cells=[html.unescape(re.sub("<[^>]+>","",x)).strip() for x in re.findall(r"<td[^>]*>.*?</td>",text,flags=re.I|re.S)]
-  return clean_tickers(x for x in cells if re.fullmatch(r"[A-Z][A-Z0-9.\-]{0,9}",x.upper()))
+ except (ValueError,csv.Error):
+  values=[]
+  for row in re.findall(r"<tr[^>]*>.*?</tr>",text,flags=re.I|re.S):
+   cells=[html.unescape(re.sub("<[^>]+>","",x)).strip() for x in re.findall(r"<td[^>]*>.*?</td>",row,flags=re.I|re.S)]
+   if len(cells)==7 and re.fullmatch(r"[A-Z0-9]{9}",cells[2]):values.append(cells[1])
+  return clean_tickers(values)
 def parse_state_street(payload):return parse_xlsx_tickers(payload,("ticker","symbol")) if payload[:2]==b"PK" else parse_table_csv(payload.decode("utf-8-sig"),("ticker","symbol"))
-def parse_invesco(text):return parse_table_csv(text,("holding ticker","ticker","symbol"))
-def parse_vaneck(text):return parse_table_csv(text,("ticker","symbol"))
+def parse_invesco(text):
+ try:return clean_tickers(x.get("ticker") for x in json.loads(text).get("holdings",[]))
+ except json.JSONDecodeError:return parse_table_csv(text,("holding ticker","ticker","symbol"))
+def parse_vaneck(text):
+ try:return parse_table_csv(text,("ticker","symbol"))
+ except (ValueError,csv.Error):
+  values=[]
+  for row in re.findall(r"<tr[^>]*>.*?</tr>",text,flags=re.I|re.S):
+   cells=[html.unescape(re.sub("<[^>]+>","",x)).strip() for x in re.findall(r"<td[^>]*>.*?</td>",row,flags=re.I|re.S)]
+   if cells:values.append(cells[0])
+  return clean_tickers(values)
 
 def configured_adapter(source,effective_from,parser,binary=False):
  url=source["url"].format(fund=source["fund"].lower(),FUND=source["fund"].upper(),date=effective_from.replace("-",""))
@@ -82,15 +94,25 @@ def global_x_adapter(source,effective_from):
  fund=source["fund"].upper();url=f"https://assets.globalxetfs.com/funds/holdings/{fund.lower()}_full-holdings_{effective_from.replace('-','')}.csv"
  return {"source":fund,"source_url":url,"members":parse_global_x(download(url))}
 
-def ishares_adapter(source,effective_from):return configured_adapter(source,effective_from,parse_ishares)
+def ishares_adapter(source,effective_from):
+ page=download(source["url"]);match=re.search(r'href="([^"]+/latest-holdings\.csv)"',page,re.I)
+ if not match:raise ValueError("official_download_link_missing")
+ url=urllib.parse.urljoin(source["url"],html.unescape(match.group(1)))
+ return {"source":source["fund"].upper(),"source_url":url,"members":parse_ishares(download(url))}
 def first_trust_adapter(source,effective_from):return configured_adapter(source,effective_from,parse_first_trust)
 def state_street_adapter(source,effective_from):return configured_adapter(source,effective_from,parse_state_street,True)
-def invesco_adapter(source,effective_from):return configured_adapter(source,effective_from,parse_invesco)
-def vaneck_adapter(source,effective_from):return configured_adapter(source,effective_from,parse_vaneck)
+def invesco_adapter(source,effective_from):
+ page=download(source["url"]);cusip=re.search(r'<meta name="cusip" content="([^"]+)"',page)
+ if not cusip:raise ValueError("official_fund_identifier_missing")
+ url=f"https://dng-api.invesco.com/cache/v1/accounts/en_US/shareclasses/{cusip.group(1)}/holdings/fund?idType=cusip&productType=ETF"
+ return {"source":source["fund"].upper(),"source_url":url,"members":parse_invesco(download(url))}
+def vaneck_adapter(source,effective_from):
+ base=re.sub(r"/holdings/?$","",source["url"]);url=base.rstrip("/")+"/downloads/holdings/";payload=download_bytes(url)
+ return {"source":source["fund"].upper(),"source_url":url,"members":parse_xlsx_tickers(payload,("ticker","symbol"))}
 
 PROVIDER_ADAPTERS={"global_x":global_x_adapter,"ishares":ishares_adapter,"first_trust":first_trust_adapter,"state_street":state_street_adapter,"invesco":invesco_adapter,"vaneck":vaneck_adapter}
 
-def is_us_tradeable_identifier(ticker):return bool(re.fullmatch(r"[A-Z][A-Z0-9.\-]{0,9}",ticker))
+def is_us_tradeable_identifier(ticker):return bool(re.fullmatch(r"[A-Z][A-Z0-9\-]{0,9}|[A-Z]{1,6}\.[AB]",ticker))
 
 def analyze_overlap(themes):
  pairs=[]
@@ -123,13 +145,15 @@ def snapshot_themes(effective_from,out,revision=None,registry=DEFAULT_REGISTRY):
   source=config["membership_source"];provider=source["provider"]
   if provider not in PROVIDER_ADAPTERS:raise ValueError(f"Unsupported holdings provider: {provider}")
   try:
-   result=PROVIDER_ADAPTERS[provider](source,effective_from);source_status="available"
+   result=PROVIDER_ADAPTERS[provider](source,effective_from)
+   if not result.get("members"):raise ValueError("no_normalized_holdings")
+   source_status="available";parse_status="parsed";error_reason=None
   except Exception:
    # One provider format change must not erase other defensible themes. Keep a
    # zero-member unavailable record and redact transport/parser details.
-   result={"source":source["fund"].upper(),"source_url":configured_source_url(source,effective_from),"members":[]};source_status="unavailable"
+   result={"source":source["fund"].upper(),"source_url":configured_source_url(source,effective_from),"members":[]};source_status="unavailable";parse_status="source_error";error_reason="provider_transport_or_format_error"
   members=result["members"];us=[x for x in members if is_us_tradeable_identifier(x)];foreign=sorted(set(members)-set(us))
-  themes.append({"theme_id":config["theme_id"],"name":config["name"],"source_type":"official_etf_holdings","source_provider":provider,"source":result["source"],"source_url":result["source_url"],"source_date":effective_from,"effective_from":effective_from,"source_status":source_status,"members":members,"membership_audit":{"total_holdings":len(members),"us_tradeable_members":len(us),"foreign_or_unmapped_members":foreign,"errors_redacted":True}})
+  themes.append({"theme_id":config["theme_id"],"name":config["name"],"source_type":"official_etf_holdings","source_provider":provider,"source":result["source"],"source_url":result["source_url"],"source_date":effective_from,"effective_from":effective_from,"source_status":source_status,"parse_status":parse_status,"holdings_count":len(members),"error_reason":error_reason,"members":members,"membership_audit":{"total_holdings":len(members),"us_tradeable_members":len(us),"foreign_or_unmapped_members":foreign,"foreign_or_unmapped_count":len(foreign),"errors_redacted":True}})
  suffix=f"-{revision}" if revision else ""
  revision_number=int(revision.removeprefix("v")) if revision else 1
  payload={"version":f"themes-{effective_from}{suffix}","snapshot_revision":revision_number,"source_date":effective_from,"effective_from":effective_from,"themes":themes,"overlap_analysis":analyze_overlap(themes)}

@@ -1,0 +1,12 @@
+{
+  "signal_schema_version": "1.0.0",
+  "as_of": null,
+  "generated_at": null,
+  "observation_mode": "production_forward",
+  "future_data_used": false,
+  "reset_rule": {"completed_absent_sessions": 5},
+  "entry_convention": "next_trading_day_adjusted_open",
+  "forward_horizons_sessions": [1, 5, 10, 20, 60, 100],
+  "cases": [],
+  "status": "awaiting_first_atomic_eod_recording"
+}

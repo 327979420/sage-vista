@@ -5,7 +5,7 @@ from datetime import datetime,timezone
 from .eodhd import latest_reference_day
 
 def evaluate(provider_latest,status):
- dates={"source":status.get("source_latest_complete_date"),"tracker":status.get("tracker_as_of"),"radar":status.get("radar_as_of"),"factor_snapshot":status.get("factor_snapshot_as_of"),"industry_radar":status.get("industry_radar_as_of")}
+ dates={"source":status.get("source_latest_complete_date"),"tracker":status.get("tracker_as_of"),"radar":status.get("radar_as_of"),"factor_snapshot":status.get("factor_snapshot_as_of"),"industry_radar":status.get("industry_radar_as_of"),"signal_history":status.get("signal_history_as_of")}
  # Older production states may not have the snapshot field; that is itself stale
  # after the snapshot integration is deployed.
  synchronized=all(value==provider_latest for value in dates.values())
