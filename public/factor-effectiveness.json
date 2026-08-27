@@ -1,0 +1,112 @@
+{
+  "version": "factor-effectiveness-v1.0.0",
+  "generated_at": "2026-08-27T16:53:26.740395+00:00",
+  "coverage": {
+    "period": "forward_2026",
+    "factors": 10,
+    "source_signals_end": "2026-06-24"
+  },
+  "warning": "这是因子归因而非因果证明；因子存在重叠，不能把胜率直接相加。",
+  "factors": [
+    {
+      "factor": "日线MACD近5日金叉",
+      "research_status": "基础资格（无法对照）",
+      "action": "保留为核心时机",
+      "tone": "keep",
+      "samples_2026": 229,
+      "win_rate_2026": 53.71,
+      "profit_factor_2026": 1.651,
+      "expectancy_2026": 3.139
+    },
+    {
+      "factor": "Fibonacci支撑",
+      "research_status": "没有明显贡献",
+      "action": "只展示，不作独立加分",
+      "tone": "neutral",
+      "samples_2026": 43,
+      "win_rate_2026": 46.51,
+      "profit_factor_2026": 1.444,
+      "expectancy_2026": 1.409
+    },
+    {
+      "factor": "EMA支撑",
+      "research_status": "没有明显贡献",
+      "action": "只展示，不作独立加分",
+      "tone": "neutral",
+      "samples_2026": 57,
+      "win_rate_2026": 52.63,
+      "profit_factor_2026": 2.182,
+      "expectancy_2026": 3.018
+    },
+    {
+      "factor": "支撑位底部放量",
+      "research_status": "可能拖累",
+      "action": "不进入生产加分",
+      "tone": "avoid",
+      "samples_2026": 5,
+      "win_rate_2026": 40.0,
+      "profit_factor_2026": 1.748,
+      "expectancy_2026": 2.307
+    },
+    {
+      "factor": "支撑位看涨吞没",
+      "research_status": "候选正贡献（样本不足）",
+      "action": "继续观察，样本不足",
+      "tone": "watch",
+      "samples_2026": 8,
+      "win_rate_2026": 75.0,
+      "profit_factor_2026": 4.043,
+      "expectancy_2026": 5.382
+    },
+    {
+      "factor": "周线MACD改善",
+      "research_status": "没有明显贡献",
+      "action": "只展示，不作独立加分",
+      "tone": "neutral",
+      "samples_2026": 25,
+      "win_rate_2026": 32.0,
+      "profit_factor_2026": 1.278,
+      "expectancy_2026": 1.8
+    },
+    {
+      "factor": "三推趋势线突破",
+      "research_status": "没有明显贡献",
+      "action": "只展示，不作独立加分",
+      "tone": "neutral",
+      "samples_2026": 28,
+      "win_rate_2026": 46.43,
+      "profit_factor_2026": 1.223,
+      "expectancy_2026": 0.748
+    },
+    {
+      "factor": "三推突破后回踩确认",
+      "research_status": "可能拖累",
+      "action": "不进入生产加分",
+      "tone": "avoid",
+      "samples_2026": 10,
+      "win_rate_2026": 70.0,
+      "profit_factor_2026": 3.856,
+      "expectancy_2026": 5.324
+    },
+    {
+      "factor": "上方未补跳空缺口",
+      "research_status": "没有明显贡献",
+      "action": "只展示，不作独立加分",
+      "tone": "neutral",
+      "samples_2026": 39,
+      "win_rate_2026": 58.97,
+      "profit_factor_2026": 2.6,
+      "expectancy_2026": 3.61
+    },
+    {
+      "factor": "Bullish FVG支撑",
+      "research_status": "没有明显贡献",
+      "action": "只展示，不作独立加分",
+      "tone": "neutral",
+      "samples_2026": 62,
+      "win_rate_2026": 56.45,
+      "profit_factor_2026": 3.503,
+      "expectancy_2026": 6.51
+    }
+  ]
+}

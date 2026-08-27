@@ -43,7 +43,7 @@ jobs:
         run: |
           for attempt in 1 2 3 4 5; do
             page=$(curl --fail --silent --show-error "$PRODUCTION_SITE_URL")
-            if printf '%s' "$page" | grep -q 'Sage Vista UI v5.0'; then exit 0; fi
+            if printf '%s' "$page" | grep -q 'Sage Vista UI v5.1'; then exit 0; fi
             sleep 6
           done
           exit 1
