@@ -3,7 +3,7 @@ import argparse,json,os,pathlib,tempfile,urllib.request
 
 PUBLIC=pathlib.Path("public")
 STATE_PATH=pathlib.Path("automation/discord-state.json")
-DEFAULT_SITE="https://northstar-equity-signals.rachelzhanzst.chatgpt.site"
+DEFAULT_SITE="https://sage-vista-parallel.gizmo-allied-0s.workers.dev"
 
 def load_local_env():
  path=pathlib.Path(".env.local")

@@ -18,20 +18,7 @@ on:
         required: true
         default: preview
         type: choice
-        options: [preview, update, deploy, notify]
-      expected_as_of:
-        description: Required completed EOD date for notify mode
-        required: false
-        type: string
-      deployment_id:
-        description: Successful sage-vista-sites GitHub deployment ID
-        required: false
-        type: string
-      confirm_send:
-        description: Allow a real Discord send after live-site verification
-        required: false
-        default: false
-        type: boolean
+        options: [preview, update, deploy]
 
 permissions:
   contents: write
@@ -43,7 +30,7 @@ concurrency:
 
 env:
   NODE_VERSION: "22.13.0"
-  LIVE_SITE_URL: https://northstar-equity-signals.rachelzhanzst.chatgpt.site
+  PRODUCTION_SITE_URL: https://sage-vista-parallel.gizmo-allied-0s.workers.dev
   CLOUDFLARE_WORKER_NAME: sage-vista-parallel
 
 jobs:
@@ -159,7 +146,7 @@ jobs:
           test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN secret is not configured"; exit 1; }
           test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "CLOUDFLARE_ACCOUNT_ID secret is not configured"; exit 1; }
           test -n "$DISCORD_WEBHOOK_URL" || { echo "DISCORD_OPPORTUNITY secret is not configured"; exit 1; }
-      - name: Deploy parallel production to Cloudflare Workers
+      - name: Deploy production to Cloudflare Workers
         id: cloudflare_deploy
         if: steps.update_result.outputs.needs_release == 'true'
         env:
@@ -173,7 +160,9 @@ jobs:
           text=open("cloudflare-deploy.log").read()
           urls=re.findall(r"https://[a-z0-9.-]+\.workers\.dev",text,re.I)
           if not urls:raise SystemExit("Wrangler did not return a workers.dev production URL")
-          with open(os.environ["GITHUB_OUTPUT"],"a") as out:out.write(f"site_url={urls[-1]}\n")
+          actual=urls[-1].rstrip("/");expected=os.environ["PRODUCTION_SITE_URL"].rstrip("/")
+          if actual!=expected:raise SystemExit(f"Unexpected production URL: {actual}")
+          with open(os.environ["GITHUB_OUTPUT"],"a") as out:out.write(f"site_url={expected}\n")
           PY
       - name: Verify live Cloudflare dates and audits
         id: live_verify
@@ -202,7 +191,7 @@ jobs:
         run: |
           python3 - <<'PY'
           import json,os
-          state={"as_of":os.environ["AS_OF"],"cloudflare_url":os.environ["SITE_URL"],"live_verified":True,"discord_result":os.environ["DISCORD_RESULT"]}
+          state={"as_of":os.environ["AS_OF"],"site_url":os.environ["SITE_URL"],"live_verified":True,"discord_result":os.environ["DISCORD_RESULT"]}
           open("automation/production-state.json","w").write(json.dumps(state,indent=2)+"\n")
           PY
           git config user.name "sage-vista-bot"
@@ -238,7 +227,7 @@ jobs:
             echo "- ④ Live Verification: **${LIVE_VERIFICATION:-skipped}**"
             echo "- ⑤ Discord Notification: **${DISCORD:-skipped}**"
             echo "- Final as_of: **${AS_OF:-unknown}**"
-            if [ -n "$SITE_URL" ]; then echo "- Parallel production: $SITE_URL"; fi
+            if [ -n "$SITE_URL" ]; then echo "- Production site: $SITE_URL"; fi
           } >> "$GITHUB_STEP_SUMMARY"
 
   preview:
@@ -265,67 +254,3 @@ jobs:
           name: manual-discord-preview
           path: discord-preview.json
           retention-days: 3
-
-  notify:
-    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'notify'
-    runs-on: ubuntu-latest
-    env:
-      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL || secrets.DISCORD_OPPORTUNITY }}
-    steps:
-      - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
-      - uses: actions/setup-python@v5
-        with: { python-version: "3.13" }
-      - name: Require explicit send authorization and secrets
-        shell: bash
-        run: |
-          test "${{ inputs.confirm_send }}" = "true" || { echo "Real Discord send not authorized"; exit 1; }
-          test -n "${{ inputs.expected_as_of }}" || { echo "expected_as_of is required"; exit 1; }
-          test -n "${{ inputs.deployment_id }}" || { echo "deployment_id is required"; exit 1; }
-          test -n "$DISCORD_WEBHOOK_URL" || { echo "Discord webhook secret is not configured"; exit 1; }
-      - name: Verify successful private-site deployment attestation
-        env:
-          GH_TOKEN: ${{ github.token }}
-          DEPLOYMENT_ID: ${{ inputs.deployment_id }}
-          EXPECTED_AS_OF: ${{ inputs.expected_as_of }}
-        shell: bash
-        run: |
-          gh api "repos/${GITHUB_REPOSITORY}/deployments/${DEPLOYMENT_ID}" > deployment.json
-          gh api "repos/${GITHUB_REPOSITORY}/deployments/${DEPLOYMENT_ID}/statuses?per_page=1" > deployment-status.json
-          python3 - <<'PY'
-          import json, os
-          deployment = json.load(open("deployment.json"))
-          statuses = json.load(open("deployment-status.json"))
-          expected = os.environ["EXPECTED_AS_OF"]
-          payload = deployment.get("payload") or {}
-          if deployment.get("environment") != "sage-vista-sites":
-              raise SystemExit("deployment environment mismatch")
-          if payload.get("as_of") != expected:
-              raise SystemExit("deployment EOD date mismatch")
-          if not statuses or statuses[0].get("state") != "success":
-              raise SystemExit("private site deployment is not successful")
-          if statuses[0].get("environment_url") != os.environ["LIVE_SITE_URL"]:
-              raise SystemExit("deployment site URL mismatch")
-          status = json.load(open("public/update-status.json"))
-          dates = {status.get("source_latest_complete_date"), status.get("tracker_as_of"), status.get("radar_as_of")}
-          if status.get("status") != "up_to_date" or status.get("data_dates_match") is not True or dates != {expected}:
-              raise SystemExit("repository data is not synchronized to deployment")
-          if status.get("future_data_used") is not False:
-              raise SystemExit("future-data audit failed")
-          PY
-      - name: Re-run notification and contract tests
-        run: python3 -m unittest tests.test_discord_digest tests.test_tracker_contract
-      - name: Preview exact pending payload
-        run: python3 -m services.scanner.discord_daily_digest --preview --state-path automation/discord-state.json > discord-preview.json
-      - name: Send Discord notification
-        run: python3 -m services.scanner.discord_daily_digest --state-path automation/discord-state.json
-      - name: Persist transition state
-        shell: bash
-        run: |
-          git config user.name "sage-vista-bot"
-          git config user.email "sage-vista-bot@users.noreply.github.com"
-          git add automation/discord-state.json
-          git diff --cached --quiet && exit 0
-          git commit -m "state: Discord transitions ${{ inputs.expected_as_of }}"
-          git pull --rebase origin main
-          git push origin HEAD:main

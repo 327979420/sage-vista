@@ -2,6 +2,13 @@
 
 本文件记录产品方向与用户要求。实验数字和因子结论仍以 `research/experiments.jsonl` 为机器账本。
 
+## 2026-08-27：统一为单一 Cloudflare production
+
+- 唯一生产站点固定为 `https://sage-vista-parallel.gizmo-allied-0s.workers.dev`；名称中的 `parallel` 只是既有 Worker 资源名，不再表示平行生产环境。
+- `chatgpt.site` 不会从 GitHub main 自动拉取或发布，因而曾长期保留旧 JSON。它现已退出生产定义；删除仓库 Sites hosting binding，不再把其状态用于 freshness、live verification 或 Discord URL。
+- 正常 daily workflow 是唯一发布链：EODHD → 原子生成并提交 public JSON → tests/build → Cloudflare Worker deploy → 对同一 Worker 执行整组 live verification → Discord。
+- 删除旧 `sage-vista-sites` deployment attestation 与人工 `notify` job，避免出现两个互相独立的“线上成功”来源。下述 2026-08-25/26 Sites/parallel 记录只保留为历史，已由本决定取代。
+
 ## 2026-08-26：Cloudflare parallel production 自动发布
 
 - 保留现有 ChatGPT Sites，不删除、不覆盖、不迁移域名。

@@ -199,6 +199,6 @@ Core migration（2026-08-26）：首批 8 个 canonical detectors、包含 hit/n
 
 实施进度（2026-08-25）：已选择第一版使用 Discord Webhook，并建立可替换模板的同源通知入口。5分或以上雷达机会优先，随后为每日 MACD 看涨／看跌榜；日期、防前视、发布顺序和去重均为失败关闭。正式密钥保存在 GitHub Repository Secrets，本地 `.env.local` 只用于人工运行，二者都不得进入代码、日志或提交。
 
-自动化升级（2026-08-25）：新增 Early Watch／Confirmed 两级状态。GitHub Actions 负责 EODHD 更新、测试、生产构建、preview 与网站 JSON 提交；私有 Sites 发布任务只有在 Sites API 明确确认成功后才创建包含 EOD 日期和站点 URL 的 GitHub Deployment success 证明，再触发 notify job 使用 Repository Secret 发送。notify 同时复核该证明、仓库日期同步和 future-data 状态；任何前置环节失败都不更新网站、不发送 Discord。
+自动化升级（2026-08-27）：新增 Early Watch／Confirmed 两级状态。GitHub Actions 负责 EODHD 更新、测试、生产构建、JSON 提交、Cloudflare Worker 发布、整组 live verification 与 Discord 去重发送。Cloudflare Worker 是唯一 production；旧 ChatGPT Sites 与独立 deployment-attestation/notify 路径已退出生产。任何前置环节失败都不发送 Discord。
 
 三个工作流的推荐顺序是：先做 UI 与依赖审计，同时设计因子注册表；再改造动态雷达；最后让 Discord 使用稳定的雷达输出。每日 MACD 与现有多因子扫描在整个改造期间不得中断。
