@@ -15,7 +15,14 @@
     "status:UDR:confirmed",
     "status:PG:confirmed",
     "ranking:macd:2026-08-25",
-    "ranking:multi-factor:2026-08-25"
+    "ranking:multi-factor:2026-08-25",
+    "status:AEO:confirmed",
+    "status:EDU:confirmed",
+    "status:MNDY:confirmed",
+    "status:VRSN:confirmed",
+    "status:SBUX:confirmed",
+    "ranking:macd:2026-08-26",
+    "ranking:multi-factor:2026-08-26"
   ],
   "symbol_status": {
     "VRSK": "confirmed",
@@ -30,7 +37,12 @@
     "CMG": "confirmed",
     "SNAP": "confirmed",
     "UDR": "confirmed",
-    "PG": "confirmed"
+    "PG": "confirmed",
+    "AEO": "confirmed",
+    "EDU": "confirmed",
+    "MNDY": "confirmed",
+    "VRSN": "confirmed",
+    "SBUX": "confirmed"
   },
-  "last_successful_date": "2026-08-25"
+  "last_successful_date": "2026-08-26"
 }
