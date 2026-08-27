@@ -3,7 +3,7 @@ from datetime import date,timedelta
 from pathlib import Path
 
 from services.scanner.industry_radar import calculate,classify_state,member_metrics,rows_as_of,run,select_snapshot
-from services.scanner.industry_membership import configured_themes,parse_global_x
+from services.scanner.industry_membership import analyze_overlap,configured_themes,parse_first_trust,parse_global_x,parse_invesco,parse_ishares,parse_state_street,parse_vaneck
 
 def series(rate=0.001,count=90,start="2026-01-01"):
  day=date.fromisoformat(start);price=100;rows=[]
@@ -15,6 +15,20 @@ def theme(theme_id="one",members=None,effective="2026-01-01"):
  return {"theme_id":theme_id,"name":theme_id.title(),"source_type":"official_etf_holdings","source":"ETF","source_url":"https://example.test","source_date":effective,"effective_from":effective,"members":members or ["A","B","C","D","E"]}
 
 class IndustryRadarTests(unittest.TestCase):
+ def test_provider_adapters_parse_ticker_columns_without_guessing(self):
+  generic="Name,Ticker,Weight\nNvidia,NVDA,10\nForeign,BMN AU,2\nCash,USD,1\n"
+  self.assertEqual(parse_ishares(generic),["NVDA","BMN AU"])
+  self.assertEqual(parse_first_trust(generic),["NVDA","BMN AU"])
+  self.assertEqual(parse_invesco("Name,Holding Ticker\nNvidia,NVDA\n"),["NVDA"])
+  self.assertEqual(parse_vaneck(generic),["NVDA","BMN AU"])
+  self.assertEqual(parse_state_street(generic.encode()),["NVDA","BMN AU"])
+
+ def test_overlap_analysis_flags_near_duplicates(self):
+  rows=[theme("clean",["A","B","C","D"]),theme("solar",["A","B","C"]),theme("water",["X","Y"])]
+  pairs=analyze_overlap(rows)
+  pair=next(x for x in pairs if {x["theme_a"],x["theme_b"]}=={"clean","solar"})
+  self.assertEqual(pair["shared_count"],3);self.assertEqual(pair["overlap_pct"],1);self.assertEqual(pair["review"],"near_duplicate")
+
  def test_foreign_market_identifier_is_preserved_for_unavailable_audit(self):
   csv_text="Fund\n% of Net Assets,Ticker,Name\n1.0,BMN AU,Bannerman\n1.0,NVDA,Nvidia\n"
   self.assertEqual(parse_global_x(csv_text),["BMN AU","NVDA"])

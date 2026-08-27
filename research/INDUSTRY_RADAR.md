@@ -1,6 +1,6 @@
 # Industry Radar V1 — Architecture and Theme Universe Manual
 
-Last reviewed: 2026-08-26. This document is the entry point for future Industry Radar work. `research/EXPERIMENTS.md` remains the authoritative registry for completed experiments; Industry Radar has not yet produced a validated alpha result.
+Last reviewed: 2026-08-27. This document is the entry point for future Industry Radar work. `research/EXPERIMENTS.md` remains the authoritative registry for completed experiments; Industry Radar has not yet produced a validated alpha result.
 
 ## 1. Business purpose and boundary
 
@@ -55,6 +55,8 @@ No paid subscription, new login, EODHD Fundamentals, or AI-guessed membership is
 - `app/zh/watch/industry-radar/page.tsx`: standalone presentation.
 - `.github/workflows/industry-radar-validation.yml`: manual real-data validation only; no schedule or deployment integration.
 - `tests/test_industry_radar.py`: membership, leakage, equal weighting, breadth, state precedence, failure handling, and Tracker-isolation contracts.
+
+Production consolidation（2026-08-27）：Industry Radar 仍有独立手动验证入口，但 daily EOD 现会使用同一个 dated membership snapshot 生成 `public/industry-radar.json`，并与 Tracker、27-factor snapshot、Rare Radar 一起提交、部署和执行 live date/leakage verification。它仍不进入 Tracker ranking 或 Discord threshold。
 
 ### Adding a theme
 
@@ -189,4 +191,14 @@ Known limitations:
 - Public provider URLs and file formats can change, so adapter fixtures and fail-closed tests are required.
 - Nasdaq/FinanceDatabase traditional industry labels complement themes but do not replace them.
 
-Minimal next step: approve the proposed universe, implement provider-level adapters for iShares/First Trust/State Street/VanEck/Invesco, then generate one same-date candidate snapshot and overlap report. Only after membership quality is accepted should a separately preregistered historical validation begin.
+## 11. 2026-08-26 same-date candidate snapshot
+
+`themes-2026-08-26` 包含 20 个 configured Themes；另有 AI Infrastructure、Semiconductor Equipment、Data Center Power 三项继续为 `manual_curated_required`，未猜 membership。
+
+- Provider adapters：Global X、iShares、First Trust、State Street、Invesco、VanEck。Adapter 只负责将 provider 格式转为 generic snapshot；registry 配置 fund/URL，core Radar 无 theme branch。
+- 成功来源 11/20，合计 698 个原始 holdings。Global X 与 State Street 在该日成功；iShares、First Trust、Invesco、VanEck 当前响应/格式未通过 parser contract，9 个 Theme 明确记录 `source_status=unavailable` 和零成员，而不是猜数据。
+- US-tradeable identifier audit：Robotics 23/61、Uranium 12/57、Copper 4/40、XLE 22/22、Battery 7/41、XAR 47/47、PAVE 100/100、Fintech 55/74、Digital Assets 26/33、XBI 147/149、EV 39/74。外国或未映射 identifier 原样保留。
+- Overlap 使用 `shared/min(size)` 与 Jaccard。当前没有达到 75% near-duplicate；Fintech/Digital Assets 共享 16，min-set overlap 48.48%；Battery/EV 共享 14，34.15%。预定高风险 pair 中，Clean Energy/Solar、Cloud/AI、AI/Semis 等因 source unavailable 或 custom unresolved 尚不能下结论。
+- 这只是 membership/data-quality candidate，不是 alpha experiment，因此没有更新 `research/EXPERIMENTS.md`。
+
+下一步：修复/确认四类当前 unavailable 官方下载格式，生成新 revision 而不覆盖本 snapshot；用 GitHub EODHD production run 填充每 Theme valid member count 与 state。只有 membership quality 被接受后，才可另行预注册历史验证。

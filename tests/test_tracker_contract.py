@@ -9,10 +9,10 @@ ROOT = Path(__file__).parents[1]
 
 
 class TrackerOutputContractTests(unittest.TestCase):
-    def test_primary_navigation_has_only_four_product_entries(self):
+    def test_primary_navigation_matches_daily_research_flow(self):
         source = (ROOT / "app/zh/watch/resonance/tracker-ui.tsx").read_text()
         navigation = source.split("export const modules=[", 1)[1].split("] as const;", 1)[0]
-        for label in ("总览", "MACD", "多因子雷达", "MACD研究"):
+        for label in ("今日研究总览", "指标共振", "多因子", "行业雷达", "研究 / 实验"):
             self.assertIn(f'["{label}"', navigation)
         for legacy_route in ("/confluence", "/rsi", "/volume"):
             self.assertNotIn(legacy_route, navigation)

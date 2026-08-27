@@ -18,9 +18,9 @@ const scoreNames:Record<string,string>={official:"正式分",observational:"观�
 
 export default function RareOpportunities(){
  const [data,setData]=useState<Radar|null>(null),[registry,setRegistry]=useState<Registry|null>(null),[snapshot,setSnapshot]=useState<Snapshot|null>(null),[lookup,setLookup]=useState("PG");
- useEffect(()=>{fetch("/rare-opportunity-radar.json").then(x=>x.json()).then(setData);fetch("/factor-registry.json").then(x=>x.json()).then(setRegistry);fetch("/daily-factor-snapshot.json").then(x=>x.ok?x.json():null).then(setSnapshot).catch(()=>setSnapshot(null))},[]);
+ useEffect(()=>{fetch("/rare-opportunity-radar.json",{cache:"no-store"}).then(x=>x.json()).then(setData);fetch("/factor-registry.json").then(x=>x.json()).then(setRegistry);fetch("/daily-factor-snapshot.json",{cache:"no-store"}).then(x=>x.ok?x.json():null).then(setSnapshot).catch(()=>setSnapshot(null))},[]);
  const selected=snapshot?.symbols.find(x=>x.symbol===lookup.trim().toUpperCase()),factorNames=Object.fromEntries((registry?.factors??[]).map(x=>[x.id,x.name_zh]));
- return <TrackerShell active="多因子雷达" title="多因子雷达" subtitle="把分散证据组织成可复核的机会地图。">
+ return <TrackerShell active="多因子" title="多因子" subtitle="用 27 项状态解释技术机会，不创建第二套股票排名。">
   <div className="rareRadar">{data&&<>
    <section className="rareFirstView">
     <article className="tone-blue"><i className="rareMetricIcon">D</i><small>数据更新到</small><b>{data.as_of}</b><p>{data.scan.future_data_used?"数据异常，停止使用":"完整收盘 · 防前视通过"}</p></article>

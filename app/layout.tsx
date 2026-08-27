@@ -13,24 +13,24 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sage Vista — Quantitative Equity Research",
-  description: "A private, explainable US equity signal board.",
+  title: "Sage Vista — 今日研究总览",
+  description: "市场、行业、技术机会与多因子证据的每日研究摘要。",
   openGraph: {
-    title: "Sage Vista — US Equity Signals",
-    description: "Explainable quantitative research for a 1–4 week horizon.",
+    title: "Sage Vista — 今日研究总览",
+    description: "市场、行业、技术机会与多因子证据的可复核研究摘要。",
     images: [
       {
         url: "/og.png",
         width: 1200,
         height: 630,
-        alt: "Sage Vista US Equity Signals",
+        alt: "Sage Vista 今日研究总览",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Sage Vista — US Equity Signals",
-    description: "Explainable quantitative research.",
+    title: "Sage Vista — 今日研究总览",
+    description: "市场、行业、技术机会与多因子证据的可复核研究摘要。",
     images: ["/og.png"],
   },
   icons: {
@@ -50,9 +50,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <div className="globalnav">
-          <a href="/zh/watch/resonance">指标共振</a>
-          <a href="/zh/watch/market">ETF温度计</a>
-          <a href="/zh/watch">盯盘助手</a>
+          <a href="/">今日研究总览</a>
+          <a href="/zh/watch/resonance/macd">指标共振</a>
+          <a href="/zh/watch/resonance/rare-opportunities">多因子</a>
+          <a href="/zh/watch/industry-radar">行业雷达</a>
+          <a href="/zh/watch/resonance/research">研究 / 实验</a>
         </div>
         {children}
       </body>

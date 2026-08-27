@@ -1,12 +1,28 @@
 {
-  "version": 1,
+  "version": 2,
   "themes": [
-    {"theme_id": "fintech", "name": "Fintech", "membership_source": {"provider": "global_x", "fund": "FINX"}},
-    {"theme_id": "robotics-ai", "name": "Robotics & AI", "membership_source": {"provider": "global_x", "fund": "BOTZ"}},
-    {"theme_id": "uranium", "name": "Uranium", "membership_source": {"provider": "global_x", "fund": "URA"}},
-    {"theme_id": "copper-miners", "name": "Copper Miners", "membership_source": {"provider": "global_x", "fund": "COPX"}},
-    {"theme_id": "ai-infrastructure", "name": "AI Infrastructure", "status": "manual_curated_required"},
-    {"theme_id": "semiconductor-equipment", "name": "Semiconductor Equipment", "status": "manual_curated_required"},
-    {"theme_id": "data-center-power", "name": "Data Center Power", "status": "manual_curated_required"}
+    {"theme_id":"semiconductors","name":"Semiconductors","membership_source":{"provider":"ishares","fund":"SOXX","url":"https://www.ishares.com/us/products/239705/ishares-semiconductor-etf/1467271812596.ajax?fileType=csv&fileName=SOXX_holdings&dataType=fund"}},
+    {"theme_id":"cybersecurity","name":"Cybersecurity","membership_source":{"provider":"first_trust","fund":"CIBR","url":"https://www.ftportfolios.com/Retail/Etf/EtfHoldings.aspx?Ticker=CIBR"}},
+    {"theme_id":"cloud-computing","name":"Cloud Computing","membership_source":{"provider":"first_trust","fund":"SKYY","url":"https://www.ftportfolios.com/Retail/Etf/EtfHoldings.aspx?Ticker=SKYY"}},
+    {"theme_id":"robotics-automation","name":"Robotics & Automation","membership_source":{"provider":"global_x","fund":"BOTZ"}},
+    {"theme_id":"uranium","name":"Uranium","membership_source":{"provider":"global_x","fund":"URA"}},
+    {"theme_id":"copper-miners","name":"Copper Miners","membership_source":{"provider":"global_x","fund":"COPX"}},
+    {"theme_id":"clean-energy","name":"Clean Energy","membership_source":{"provider":"ishares","fund":"ICLN","url":"https://www.ishares.com/us/products/239738/ishares-global-clean-energy-etf/1467271812596.ajax?fileType=csv&fileName=ICLN_holdings&dataType=fund"}},
+    {"theme_id":"solar","name":"Solar","membership_source":{"provider":"invesco","fund":"TAN","url":"https://www.invesco.com/us/financial-products/etfs/holdings?audienceType=Investor&ticker=TAN"}},
+    {"theme_id":"oil-gas","name":"Oil & Gas / Energy","membership_source":{"provider":"state_street","fund":"XLE","url":"https://www.ssga.com/us/en/intermediary/library-content/products/fund-data/etfs/us/holdings-daily-us-en-xle.xlsx"}},
+    {"theme_id":"critical-minerals","name":"Critical Minerals","membership_source":{"provider":"vaneck","fund":"REMX","url":"https://www.vaneck.com/us/en/investments/rare-earth-strategic-metals-etf-remx/holdings/?download=csv"}},
+    {"theme_id":"battery-materials","name":"Battery Materials","membership_source":{"provider":"global_x","fund":"LIT"}},
+    {"theme_id":"defense-aerospace","name":"Defense & Aerospace","membership_source":{"provider":"state_street","fund":"XAR","url":"https://www.ssga.com/us/en/intermediary/library-content/products/fund-data/etfs/us/holdings-daily-us-en-xar.xlsx"}},
+    {"theme_id":"infrastructure","name":"Infrastructure","membership_source":{"provider":"global_x","fund":"PAVE"}},
+    {"theme_id":"grid-modernization","name":"Grid Modernization","membership_source":{"provider":"first_trust","fund":"GRID","url":"https://www.ftportfolios.com/Retail/Etf/EtfHoldings.aspx?Ticker=GRID"}},
+    {"theme_id":"fintech","name":"Fintech","membership_source":{"provider":"global_x","fund":"FINX"}},
+    {"theme_id":"digital-assets","name":"Digital Assets","membership_source":{"provider":"global_x","fund":"BKCH"}},
+    {"theme_id":"biotechnology","name":"Biotechnology","membership_source":{"provider":"state_street","fund":"XBI","url":"https://www.ssga.com/us/en/intermediary/library-content/products/fund-data/etfs/us/holdings-daily-us-en-xbi.xlsx"}},
+    {"theme_id":"medical-devices","name":"Medical Devices","membership_source":{"provider":"ishares","fund":"IHI","url":"https://www.ishares.com/us/products/239748/ishares-us-medical-devices-etf/1467271812596.ajax?fileType=csv&fileName=IHI_holdings&dataType=fund"}},
+    {"theme_id":"ev-battery","name":"EV / Battery","membership_source":{"provider":"global_x","fund":"DRIV"}},
+    {"theme_id":"water-infrastructure","name":"Water Infrastructure","membership_source":{"provider":"invesco","fund":"PHO","url":"https://www.invesco.com/us/financial-products/etfs/holdings?audienceType=Investor&ticker=PHO"}},
+    {"theme_id":"ai-infrastructure","name":"AI Infrastructure","status":"manual_curated_required"},
+    {"theme_id":"semiconductor-equipment","name":"Semiconductor Equipment","status":"manual_curated_required"},
+    {"theme_id":"data-center-power","name":"Data Center Power","status":"manual_curated_required"}
   ]
 }

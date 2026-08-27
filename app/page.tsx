@@ -1,4 +1,4 @@
 import type { Metadata } from "next";
-import StockBoard from "./stock-board";
-export const metadata: Metadata={title:"Sage Vista — Quantitative Equity Research",description:"A private, explainable US equity signal board."};
-export default function Home(){return <StockBoard/>}
+import Overview from "./zh/watch/resonance/page";
+export const metadata: Metadata={title:"Sage Vista — 今日研究总览",description:"市场、行业、技术机会与多因子证据的每日研究摘要。"};
+export default function Home(){return <Overview/>}

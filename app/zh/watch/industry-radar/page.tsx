@@ -8,7 +8,7 @@ const pct=(value:number|null)=>value===null?"—":`${value>=0?"+":""}${(value*10
 
 export default function IndustryRadar(){
  const [data,setData]=useState<Report|null>(null);
- useEffect(()=>{fetch("/industry-radar.json").then(x=>x.json()).then(setData)},[]);
+ useEffect(()=>{fetch("/industry-radar.json",{cache:"no-store"}).then(x=>x.json()).then(setData)},[]);
  return <main className="irPage"><header className="irHero"><a href="/zh/watch/resonance">← 技术追踪器</a><p>RESEARCH PROTOTYPE · 独立上下文</p><h1>Industry Radar</h1><span>行业雷达不筛选个股、不改变技术分数与排名。状态仅供人工决策参考，不是交易信号。</span></header>
  {data&&<><section className="irAudit"><div><small>数据截至</small><b>{data.as_of}</b></div><div><small>成员版本</small><b>{data.membership_version??"无可用版本"}</b></div><div><small>未来数据</small><b>{data.future_data_used?"异常":"未使用"}</b></div><div><small>研究状态</small><b>{data.status==="market_data_unavailable_safe"?"行情未配置，安全停用":"未验证研究原型"}</b></div></section>
  <section className="irTable" aria-label="行业雷达主题表"><div className="irRow irHead"><span>主题</span><span>状态</span><span>20D RS vs SPY</span><span>60D RS vs SPY</span><span>广度 &gt; SMA50</span><span>广度趋势</span><span>成员</span></div>{data.themes.map(theme=><article className="irRow" key={theme.theme_id}><div><b>{theme.name}</b><small>{theme.context}</small></div><span><mark data-state={theme.state}>{stateLabel[theme.state]??theme.state}</mark></span><span>{pct(theme.relative_20d)}</span><span>{pct(theme.relative_60d)}</span><span>{theme.breadth_above_sma50===null?"—":`${(theme.breadth_above_sma50*100).toFixed(0)}%`}</span><span>{pct(theme.breadth_change_10d)}</span><span>{theme.valid_member_count}/{theme.member_count}</span></article>)}</section>

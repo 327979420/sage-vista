@@ -28,17 +28,19 @@ test("server-renders the Sage Vista application", async () => {
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /<title>Sage Vista — Quantitative Equity Research<\/title>/i);
+  assert.match(html, /<title>Sage Vista — 今日研究总览<\/title>/i);
   assert.match(html, /SAGE VISTA/i);
-  assert.match(html, /US Equity Signals/i);
+  assert.match(html, /今日研究总览/i);
+  assert.doesNotMatch(html, /US Equity Signals|SIGNAL BOARD/i);
   assert.doesNotMatch(html, /DISCORD_WEBHOOK_URL|EODHD_API_TOKEN/i);
 });
 
-test("server-renders the private research navigation", async () => {
+test("server-renders the consolidated research navigation", async () => {
   const html = await (await render()).text();
   assert.match(html, /指标共振/);
-  assert.match(html, /PRIVATE RESEARCH/);
-  assert.match(html, /QUANTITATIVE EQUITY RESEARCH/);
+  assert.match(html, /多因子/);
+  assert.match(html, /行业雷达/);
+  assert.match(html, /研究 \/ 实验/);
 });
 
 test("server-renders the isolated Strategy Backtest research page", async () => {

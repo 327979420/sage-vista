@@ -1,7 +1,7 @@
 # Sage Vista 项目蓝图
 
 状态：当前产品与研究总纲  
-最后更新：2026-08-25
+最后更新：2026-08-27
 
 ## 1. 产品目标
 
@@ -11,14 +11,18 @@ Sage Vista 要成为一个清楚、可信、能长期积累实验结果的 MACD 
 
 ## 2. 固定产品入口
 
-最终主导航只保留：
+最终主导航与职责固定为：
 
-1. 总览
-2. MACD Tracker
-3. 多因子雷达
-4. MACD 研究
+1. 今日研究总览：决策摘要，不复制完整详情页；
+2. 指标共振：Technical Tracker 的唯一股票机会排名；
+3. 多因子：27-factor technical evidence/context，不创建新排名；
+4. 行业雷达：Theme strength/breadth/direction 上下文；
+5. 研究 / 实验：验证、失败结论与方法；
+6. 市场环境可作为 secondary context。
 
 双指标确认、RSI、成交量等旧独立功能页可以在依赖审计后移除。删除的是页面与重复展示，不是底层因子能力。
+
+2026-08-27 依赖审计确认旧根路径 Signal Board 只消费 `app/data.ts` mock candidates，不被 Tracker、Multi-Factor、Industry Radar、Market Context、workflow 或 Discord 使用，因此页面与样例数据已退役。根路径改为今日研究总览。
 
 ## 3. 统一因子库
 
@@ -94,7 +98,7 @@ Sage Vista 要成为一个清楚、可信、能长期积累实验结果的 MACD 
 
 网页显示的数据日期必须是实际使用的完整收盘日，不能只显示任务运行时间。
 
-Daily EOD workflow 之外另有独立 freshness monitor：在正常重试窗口之后重新查询 EODHD 最新完整交易日，并核对仓库四项日期。漏跑时它以失败检查、artifact 和去重 issue 报警；也提供 `repository_dispatch` 给独立外部调度。部署后的 live verification 必须按整组静态文件重试跨文件日期一致性，以容忍 CDN/Workers 的短暂 mixed-date propagation；只有整组日期与防前视审计一致才进入 Discord。
+Daily EOD workflow 之外另有独立 freshness monitor：在正常重试窗口之后重新查询 EODHD 最新完整交易日，并核对 source、Tracker、factor snapshot、Rare Radar、Industry Radar 五项日期。漏跑时它以失败检查、artifact 和去重 issue 报警；也提供 `repository_dispatch` 给独立外部调度。部署后的 live verification 必须按整组静态文件重试跨文件日期一致性，以容忍 CDN/Workers 的短暂 mixed-date propagation；只有整组日期与防前视审计一致才进入 Discord。快速变化的 production JSON consumer 使用 `cache: no-store`，不全局关闭静态资源缓存。
 
 ## 7. Discord 稀有机会播报
 

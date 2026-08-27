@@ -37,7 +37,7 @@ export default function Research(){
  const weeklyLarge=data?.higher_timeframe_support_tests.find(x=>x.trigger==="周线");
  const monthlyLarge=data?.higher_timeframe_support_tests.find(x=>x.trigger==="月线");
  const largeAt=(test:HigherTimeframeTest|undefined,horizon:number,factor:number,stage:keyof typeof stageMeta)=>test?.horizons.find(x=>x.horizon===horizon)?.stages[stage][test.factors[factor]];
- return <TrackerShell active="MACD研究" title="MACD 因子研究" subtitle="研究样本、周期结论和策略表现与当前个股排行榜完全分开。">
+ return <TrackerShell active="研究 / 实验" title="MACD 因子研究" subtitle="研究样本、周期结论和策略表现与当前个股排行榜完全分开。">
   {data&&<>
    <section className="researchDashboard"><header><div><small>RESEARCH DASHBOARD</small><h2>研究模块</h2><p>每项研究独立验证一个问题，失败结果也永久保留。</p></div><aside><small>CURRENT BENCHMARK</small><b>Confirmed + Long-Term Trend + Support −5% + 2R</b><strong>PF 1.178 <i/> Expectancy +0.801%</strong><span>Research benchmark · 不是 production trading recommendation</span></aside></header><div>{[
     ["Signal Validation","Tracker Backtest","V1","验证 Tracker 历史信号、排名和长期趋势","/zh/watch/resonance/strategy-backtest","已完成"],

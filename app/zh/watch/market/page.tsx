@@ -27,7 +27,7 @@ const pct = (x: number) => `${x >= 0 ? "+" : ""}${(x * 100).toFixed(2)}%`;
 export default function MarketETFWatch() {
   const [data, setData] = useState<Report | null>(null);
   useEffect(() => {
-    fetch("/market-etf-watch.json")
+    fetch("/market-etf-watch.json", { cache: "no-store" })
       .then((x) => x.json())
       .then(setData);
   }, []);

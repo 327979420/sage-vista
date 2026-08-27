@@ -121,7 +121,7 @@ def run(out="public/industry-radar.json",as_of=None,snapshot_dir=DEFAULT_SNAPSHO
   sufficient={symbol for symbol in symbols if member_metrics(data[symbol],spy,as_of)} if spy else set()
   report={"as_of":as_of,"generated_at":datetime.now(timezone.utc).isoformat(),"membership_version":snapshot["version"],"membership_effective_from":snapshot["effective_from"],"future_data_used":False,"historical_membership_safe":True,"status":"research_prototype_not_validated_alpha" if spy else "market_data_unavailable_safe","config":CONFIG,
    "price_data_audit":{"provider":"EODHD","requested_tickers":symbols,"fetched_tickers":fetched,"unavailable_tickers":unavailable,"insufficient_history_tickers":sorted(set(fetched)-sufficient),"errors_redacted":True},
-   "themes":themes,"ticker_context":ticker_context}
+   "themes":themes,"ticker_context":ticker_context,"membership_overlap":snapshot.get("overlap_analysis",[])}
  pathlib.Path(out).parent.mkdir(parents=True,exist_ok=True);pathlib.Path(out).write_text(json.dumps(report,indent=2)+"\n")
  return report
 

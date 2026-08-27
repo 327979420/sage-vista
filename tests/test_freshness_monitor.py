@@ -3,7 +3,7 @@ from services.scanner.freshness_monitor import evaluate
 
 class FreshnessMonitorTests(unittest.TestCase):
  def status(self,date="2026-08-26"):
-  return {"source_latest_complete_date":date,"tracker_as_of":date,"radar_as_of":date,"factor_snapshot_as_of":date,"data_dates_match":True,"future_data_used":False}
+  return {"source_latest_complete_date":date,"tracker_as_of":date,"radar_as_of":date,"factor_snapshot_as_of":date,"industry_radar_as_of":date,"data_dates_match":True,"future_data_used":False}
 
  def test_fresh_repository_passes(self):
   result=evaluate("2026-08-26",self.status())
