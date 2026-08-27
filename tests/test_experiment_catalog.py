@@ -3,8 +3,8 @@ from services.scanner.experiment_catalog import build
 
 class ExperimentCatalogTests(unittest.TestCase):
  def test_all_old_experiments_are_preserved_and_ids_are_unique(self):
-  catalog=build();self.assertEqual(catalog["experiment_count"],17)
-  self.assertEqual(len({x["experiment_id"] for x in catalog["experiments"]}),17)
+  catalog=build();self.assertEqual(catalog["experiment_count"],18)
+  self.assertEqual(len({x["experiment_id"] for x in catalog["experiments"]}),18)
   self.assertTrue(catalog["policy"]["append_only"]);self.assertTrue(catalog["policy"]["failed_results_preserved"])
 
  def test_factor_references_link_to_lossless_ledger(self):

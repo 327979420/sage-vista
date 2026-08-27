@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0.0",
-  "generated_at": "2026-08-27T14:26:46.173739+00:00",
+  "generated_at": "2026-08-27T14:50:32.319976+00:00",
   "source": "research/experiments.jsonl",
-  "experiment_count": 17,
+  "experiment_count": 18,
   "policy": {
     "append_only": true,
     "failed_results_preserved": true,
@@ -412,6 +412,29 @@
         "fees, spread and quote-level slippage are excluded",
         "recent per-theme samples are small"
       ]
+    },
+    {
+      "experiment_id": "pullback-context-backtest-v2.0.0-2026-08-28",
+      "created_at": "2026-08-28T01:55:00+10:00",
+      "status": "completed_research_only",
+      "change": "Replace breakout-chasing market and industry contexts with predeclared pullback-at-support states; separately test MACD repair and volume recovery without changing the underlying stock signal or trade execution.",
+      "coverage": "52,327 fixed stock trades and 2,387 non-clustered industry ETF pullback scenarios; development through 2024, 2025 validation, 2026 forward observation",
+      "specification": {
+        "stock_trade": "strict rising long trend plus completed daily MACD cross; next Open; structural support minus 5%; 2R; 40 sessions; stop first",
+        "market_pullback": "SPY and QQQ long trends intact; either index 3%-12% below prior 60D high and within 3% of EMA20/50",
+        "industry_pullback": "ETF long trend intact; 5%-20% below prior 60D high and within 3% of an EMA below price",
+        "macd_repair": "histogram rises for two completed sessions",
+        "volume_recovery": "ETF volume at least 1.2 times prior 20-session average"
+      },
+      "result": "Market pullback plus MACD repair was the strongest interpretable context overall: PF 1.753 and trimmed expectancy 2.491%; development/2025/2026 trimmed expectancy was 2.540%/3.435%/1.535%. The 2026 median remained -5.318%, so it is not a hard gate. Uptrend without pullback failed in 2026 with PF 0.920 and trimmed expectancy -0.656%. For industry ETFs, pullback at support produced PF 1.317 and trimmed expectancy 0.928% overall, remaining positive in development/2025/2026 at 0.944%/1.158%/0.460%. Adding MACD repair reduced overall results and failed in 2026; additionally requiring volume recovery was sample-thin and inconsistent. Compared with V1 trend-volume hotspots, whose 2026 trimmed expectancy was -2.362%, the pullback-at-support state was materially less fragile. Industry-level results remain mixed: semiconductor pullbacks with MACD and volume were positive overall, while digital assets and robotics pullbacks were weak.",
+      "decision": "Promote pullback location to the primary research context for market and industry displays, but keep it outside official production score. Treat market pullback plus MACD repair as a candidate priority flag, not a buy gate. For industry, use long-trend pullback at support as the base state; show MACD and volume as descriptive evidence rather than mandatory additive factors. Continue dated forward stock-theme tracking before testing stock-level industry uplift.",
+      "known_limitations": [
+        "2026 medians remain weak even where trimmed means are positive",
+        "historical stock-theme membership is unavailable, so industry trades use ETF proxies",
+        "signals overlap and are not a capital-constrained portfolio",
+        "recent theme samples are small",
+        "fees and quote-level slippage are excluded"
+      ]
     }
   ],
   "factor_experiments": {
@@ -475,6 +498,7 @@
     "core-factor-backtest-v1.0.0-2026-08-27",
     "full-line-backtest-v1.0.2-2026-08-28",
     "macd-rollout-04-double-chip-confirmation-2026-08-25",
+    "pullback-context-backtest-v2.0.0-2026-08-28",
     "research-v0.1.0-2026-08-17",
     "research-v0.2.0-2026-08-17",
     "research-v0.3.0-2026-08-17",
