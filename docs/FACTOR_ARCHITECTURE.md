@@ -195,7 +195,7 @@ Detector 不读取 status/weight，不做 scoring，也不决定 Rare threshold�
 
 ### Daily snapshot contract
 
-`python3 -m services.scanner.factor_snapshot --as-of YYYY-MM-DD` 生成 `public/daily-factor-snapshot.json`。顶层包含 `as_of`、`registry_version`、`mode=shadow_monitoring`、`future_data_used=false`、27 个固定 `factor_ids`、`eligible_count` 和按 symbol 排序的 records；每个 eligible symbol 必须恰好包含 27 条状态，包括 25 条可用状态和 2 条 `definition_required`。输出不含 wall-clock timestamp，因此相同输入 byte-deterministic。
+`python3 -m services.scanner.factor_snapshot --as-of YYYY-MM-DD` 生成 `public/daily-factor-snapshot.json`。顶层包含 `as_of`、`registry_version`、`mode=shadow_monitoring`、`future_data_used=false`、27 个固定 `factor_ids`、`eligible_count` 和按 symbol 排序的 records；每个 eligible symbol 必须恰好包含 27 条状态，包括 25 条可用状态和 2 条 `definition_required`。输出不含 wall-clock timestamp，因此相同输入 byte-deterministic；持久化使用稳定 key order 的紧凑 JSON，以满足 Cloudflare Workers 25 MiB 单资源限制，不改变数据 contract。
 
 Daily updater 以临时目录依次生成 Tracker、snapshot、Rare，完成日期、27-ID completeness 与 leakage validation 后才原子发布。Snapshot 不进入 Tracker ranking 或 Discord；Rare UI 只展示已进入 Rare signal 的当前/近期 canonical evidence。
 

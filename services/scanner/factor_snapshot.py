@@ -38,7 +38,10 @@ def load_symbol_rows(as_of,cache_dir="work/eodhd-cache",active_path="work/eodhd-
 
 def run(out=DEFAULT_OUT,as_of=None):
  authoritative=as_of or latest_reference_day();report=build_snapshot(load_symbol_rows(authoritative),authoritative)
- if out:pathlib.Path(out).write_text(json.dumps(report,ensure_ascii=False,indent=2,sort_keys=True)+"\n")
+ # The full-universe snapshot must remain below Cloudflare Workers' 25 MiB
+ # per-asset limit. Whitespace is not part of the contract; stable key ordering
+ # preserves byte determinism while compact separators avoid deployment bloat.
+ if out:pathlib.Path(out).write_text(json.dumps(report,ensure_ascii=False,sort_keys=True,separators=(",",":"))+"\n")
  return report
 
 def state_map(snapshot):
