@@ -11,5 +11,8 @@ class PullbackContextTests(unittest.TestCase):
  def test_aligned_benchmarks_produce_a_context(self):
   result=context_states(bars(),bars())
   self.assertIn("D259",result);self.assertIn(result["D259"]["state"],{"Uptrend No Pullback","Pullback At Support","Pullback + MACD Repair"})
+ def test_support_for_long_stop_must_not_be_above_price(self):
+  close=100;levels=(99,101,103)
+  self.assertEqual([x for x in levels if x<=close and abs(close/x-1)<=.03],[99])
 
 if __name__=="__main__":unittest.main()

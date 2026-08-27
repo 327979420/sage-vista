@@ -58,13 +58,13 @@ def etf_pullback_events(spy):
   for i in range(220,len(rows)-40):
    if rows[i]["date"] not in spy_dates:continue
    close=closes[i];drawdown=1-close/max(closes[i-60:i]);long_trend=close>e200[i] and e200[i]>e200[i-20]
-   supports=[x for x in (e20[i],e50[i],e200[i]) if x and abs(close/x-1)<=.03]
+   supports=[x for x in (e20[i],e50[i],e200[i]) if x and x<=close and abs(close/x-1)<=.03]
    base=long_trend and .05<=drawdown<=.20 and bool(supports)
    improving=hist[i]>hist[i-1]>=hist[i-2];rv=relative_volume(rows,i);volume_recovery=rv is not None and rv>=1.2
    variants={"Pullback At Support":base,"Pullback + MACD Repair":base and improving,"Pullback + MACD + Volume Recovery":base and improving and volume_recovery}
    for variant,hit in variants.items():
     if not hit or i-last_by_variant.get(variant,-999)<10:continue
-    support=max(x for x in supports if x<close*1.03);entry=rows[i+1]["open"];stop=support*.95;risk=entry-stop
+    support=max(supports);entry=rows[i+1]["open"];stop=support*.95;risk=entry-stop
     if stop<=0 or risk<=0 or risk/entry>.30:continue
     fill,bars,reason,mfe,mae=simulate(entry,stop,entry+2*risk,rows[i+1:i+41]);last_by_variant[variant]=i
     trades.append({"theme":theme,"theme_name":name,"fund":fund,"variant":variant,"date":rows[i]["date"],"drawdown":drawdown,"relative_volume":rv,"return":fill/entry-1,"r":(fill-entry)/risk,"reason":reason,"bars":bars,"mfe":mfe,"mae":mae,"risk_pct":risk/entry})
