@@ -17,11 +17,11 @@ def theme(theme_id="one",members=None,effective="2026-01-01"):
  return {"theme_id":theme_id,"name":theme_id.title(),"source_type":"official_etf_holdings","source":"ETF","source_url":"https://example.test","source_date":effective,"effective_from":effective,"members":members or ["A","B","C","D","E"]}
 
 class IndustryRadarTests(unittest.TestCase):
- def test_robotics_membership_and_context_funds_are_separate(self):
+ def test_every_published_theme_gets_reference_fund_without_stock_special_cases(self):
   root=Path(__file__).parents[1];snapshot=json.loads((root/"data/themes/snapshots/2026-08-26-v2.json").read_text())
-  robotics=next(x for x in snapshot["themes"] if x["theme_id"]=="robotics-automation")
-  self.assertIn("RR",robotics["members"])
-  self.assertEqual(reference_funds(snapshot)["robotics-automation"],["BOTZ","BOTT"])
+  funds=reference_funds(snapshot)
+  self.assertEqual(set(funds),{x["theme_id"] for x in snapshot["themes"]})
+  self.assertTrue(all(len(items)==1 for items in funds.values()))
 
  def test_etf_pullback_at_support_is_point_in_time_shadow_evidence(self):
   rows=[];price=50;day=date(2025,1,1)

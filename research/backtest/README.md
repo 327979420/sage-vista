@@ -34,6 +34,10 @@ Market Regime V1 仅把固定、未调参的 SPY/QQQ 趋势、MACD 动能和历�
 
 Factor Attribution V1 在同一个冻结 benchmark 上逐项比较“有因子”和“无因子”，并分开发期、2025验证期与2026前向期诊断。仅检查三组预定义语义组合，不进行自动组合搜索，不改 production 权重或 Ranking。运行 `python3 -m research.backtest.factor_attribution_v1`，输出为 `output/factor-attribution-v1.json`。
 
+## Context Comparison V1
+
+Context Comparison V1 固定比较四组：旧技术基准、技术+行业、技术+大盘、技术+行业+大盘。所有组共享同一批技术信号和入场定义，不搜索最佳权重；行业成员关系和上下文必须在信号日已有带日期快照，否则记为 unavailable，不允许用今天的成员表回填历史。统一输出 5/20/60/100 日胜率、均值/中位数收益、相对 SPY、MFE、MAE、最大回撤和年度稳定性。历史回测与 production-forward 分开报告。
+
 ## Ranking Research V1
 
 Ranking Research V1 重放完整 point-in-time 固定 benchmark 候选池，比较 MACD、Multi-Factor、固定50/50 percentile Hybrid、固定 seed Random 与 No Ranking。候选账本和汇总分别保存在 `output/ranking-research-v1-candidates.jsonl` 与 `output/ranking-research-v1.json`。不调参、不改 production Ranking。
