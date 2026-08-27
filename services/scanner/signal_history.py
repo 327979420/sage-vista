@@ -4,7 +4,7 @@ from datetime import datetime,timezone
 
 from .eodhd_factor_pilot import adjusted_rows
 
-SCHEMA_VERSION="1.0.0"
+SCHEMA_VERSION="1.1.0"
 PRODUCT_VERSION="SV-PRODUCT-V1"
 SIGNAL_DEFINITION_VERSION="signal-history-v1"
 RESET_SESSIONS=5
@@ -26,6 +26,7 @@ def _signal_id(symbol,day):return f"SVP1-{symbol}-{day}"
 
 def _immutable_fingerprint(case):
  frozen={k:case.get(k) for k in ("signal_id","signal_schema_version","observation_mode","product_version","signal_definition_version","symbol","first_seen_date","initial_source_systems","signal_time_snapshot","versions")}
+ if "recovery" in case:frozen["recovery"]=case["recovery"]
  return hashlib.sha256(json.dumps(frozen,sort_keys=True,separators=(",",":"),ensure_ascii=False).encode()).hexdigest()
 
 def _market_snapshot(market,day):
@@ -80,6 +81,31 @@ def _active_case(cases,symbol):
  candidates=[x for x in cases if x["symbol"]==symbol]
  return max(candidates,key=lambda x:x["first_seen_date"]) if candidates else None
 
+def _factor_temporal_states(case,factor_row):
+ previous={}
+ for daily in case.get("daily_states",[]):
+  for state in daily.get("factor_states",[]):previous[state["factor_id"]]=state["temporal_status"]
+ out=[]
+ for state in (factor_row or {}).get("factors",[]):
+  if not state.get("available"):temporal="UNAVAILABLE"
+  elif state.get("hit"):temporal="ACTIVE"
+  elif state.get("recent_hit"):temporal="RECENT"
+  elif previous.get(state["factor_id"]) in {"ACTIVE","RECENT","EXPIRED"}:temporal="EXPIRED"
+  else:temporal="NEVER"
+  out.append({"factor_id":state["factor_id"],"factor_version":state.get("factor_version"),"temporal_status":temporal,"hit":bool(state.get("hit")),"recent_hit":bool(state.get("recent_hit")),"latest_hit_date":state.get("latest_hit_date"),"bars_since_hit":state.get("bars_since_hit"),"research_status":state.get("research_status"),"score_role":state.get("score_role")})
+ return out
+
+def _append_daily_state(case,as_of,sources,factor_row,radar_row,is_current):
+ """Append one point-in-time state per production session without rewriting earlier days."""
+ if any(x.get("date")==as_of for x in case.get("daily_states",[])):return
+ scoring=(factor_row or {}).get("scoring",{})
+ case.setdefault("daily_states",[]).append({
+  "date":as_of,"price":(factor_row or {}).get("price"),"source_systems":sorted(sources),
+  "in_current_opportunities":bool(is_current),"legacy_production_score":radar_row.get("total_score",radar_row.get("score")) if radar_row else None,
+  "official_score":scoring.get("official_score"),"experimental_observational_score":scoring.get("experimental_observational_score"),
+  "factor_states":_factor_temporal_states(case,factor_row)
+ })
+
 def build(previous,tracker,radar,snapshot,industry,market,as_of,loader=adjusted_rows):
  if any(x.get("as_of")!=as_of for x in (tracker,radar,snapshot,industry)):raise ValueError("Signal inputs must share as_of")
  if previous.get("cases"):validate(previous,previous.get("as_of"))
@@ -99,6 +125,10 @@ def build(previous,tracker,radar,snapshot,industry,market,as_of,loader=adjusted_
    active["last_seen_date"]=as_of;active["days_active"]+=1;active["absent_sessions"]=0;active["latest_current_status"]="current";active["lifecycle"]="MATURED" if active.get("forward",{}).get("status")=="matured" else "ACTIVE";active["source_systems"]=sorted(set(active["source_systems"])|set(sources))
   else:cases.append(_new_case(symbol,as_of,sources,(tracker,tracker_map.get(symbol)),factors.get(symbol),industry,market))
  for case in cases:
+  sources=[]
+  if case["symbol"] in tracker_map:sources.append("technical_tracker")
+  if case["symbol"] in rare:sources.append("multi_factor_radar")
+  _append_daily_state(case,as_of,sources,factors.get(case["symbol"]),rare.get(case["symbol"]),case["symbol"] in current)
   _update_forward(case,as_of,loader);case["audit"]["last_updated_as_of"]=as_of
   if case["entry"].get("date") and case["entry"]["date"]>as_of:raise ValueError("Future entry leakage")
  cases.sort(key=lambda x:(x["first_seen_date"],x["symbol"],x["signal_id"]))
@@ -114,4 +144,6 @@ def validate(payload,as_of):
   if case.get("observation_mode")!="production_forward" or case.get("audit",{}).get("future_data_used") is not False:raise ValueError("Invalid production-forward case")
   if case.get("immutable_fingerprint")!=_immutable_fingerprint(case):raise ValueError("Immutable signal-time snapshot changed")
   if case["first_seen_date"]>as_of or case["last_seen_date"]>as_of:raise ValueError("Future case date")
+  days=[x.get("date") for x in case.get("daily_states",[])]
+  if len(days)!=len(set(days)) or days!=sorted(days) or any(not x or x>as_of for x in days):raise ValueError("Invalid case daily-state timeline")
  return True

@@ -1,7 +1,7 @@
 {
-  "signal_schema_version": "1.0.0",
+  "signal_schema_version": "1.1.0",
   "as_of": "2026-08-26",
-  "generated_at": "2026-08-27T04:53:17.577235+00:00",
+  "generated_at": "2026-08-27T07:55:49.191911+00:00",
   "observation_mode": "production_forward",
   "future_data_used": false,
   "reset_rule": {
@@ -17,6 +17,3475 @@
     100
   ],
   "cases": [
+    {
+      "signal_id": "SVP1-F-2026-08-24",
+      "signal_schema_version": "1.1.0",
+      "observation_mode": "production_forward",
+      "product_version": "SV-PRODUCT-LEGACY-RECOVERED-V1",
+      "signal_definition_version": "legacy-rare-score-v1",
+      "symbol": "F",
+      "first_seen_date": "2026-08-24",
+      "last_seen_date": "2026-08-24",
+      "days_active": 1,
+      "absent_sessions": 0,
+      "lifecycle": "MONITORING",
+      "initial_source_systems": [
+        "multi_factor_radar"
+      ],
+      "source_systems": [
+        "multi_factor_radar"
+      ],
+      "latest_current_status": "historical_recovered",
+      "entry": {
+        "convention": "next_trading_day_adjusted_open",
+        "date": null,
+        "price": null
+      },
+      "signal_time_snapshot": {
+        "technical": {
+          "tracker_rank": null,
+          "technical_score": null,
+          "combined_score": null,
+          "setup": null,
+          "status": null,
+          "rank_reason": null
+        },
+        "multi_factor": {
+          "factor_registry_version": "0.3.0",
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "score_contributions": [
+            "macd.daily_bull_cross",
+            "support.fibonacci_half",
+            "support.ema_proximity",
+            "macd.weekly_histogram_improving",
+            "structure.bullish_fvg_support"
+          ],
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "macd.weekly_histogram_improving",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ],
+          "non_scoring_evidence": [],
+          "risks": [
+            "当前动态观察因子尚未完成跨时期组合验证"
+          ]
+        },
+        "industry": {
+          "industry_radar_as_of": null,
+          "membership_version": null,
+          "rule_version": null,
+          "themes": []
+        },
+        "market": {
+          "status": "unavailable_at_recovery"
+        }
+      },
+      "versions": {
+        "code_version": "SV-PRODUCT-V1",
+        "factor_registry_version": "0.3.0",
+        "industry_membership_version": null
+      },
+      "forward": {
+        "returns": {
+          "1": null,
+          "5": null,
+          "10": null,
+          "20": null,
+          "60": null,
+          "100": null
+        },
+        "mfe": null,
+        "mae": null,
+        "elapsed_sessions": 0,
+        "status": "pending",
+        "data_status": "unavailable"
+      },
+      "daily_states": [
+        {
+          "date": "2026-08-24",
+          "price": 13.93,
+          "source_systems": [
+            "multi_factor_radar"
+          ],
+          "in_current_opportunities": true,
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "macd.weekly_histogram_improving",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ]
+        }
+      ],
+      "recovery": {
+        "recovered_from_git": true,
+        "recovery_version": "git-rare-radar-recovery-v1",
+        "source_commits": [
+          "55393d0541f2867b1708063a0f63683accd49e87"
+        ],
+        "original_signal_days": [
+          "2026-08-24"
+        ],
+        "limitations": [
+          "Recorder did not exist at original signal time",
+          "Unavailable original context is not reconstructed from current definitions"
+        ]
+      },
+      "audit": {
+        "future_data_used": false,
+        "created_as_of": "2026-08-26",
+        "last_updated_as_of": "2026-08-26",
+        "recovered_at": "2026-08-27T07:55:49.189783+00:00"
+      },
+      "immutable_fingerprint": "f2f4ec73ccdc67ab3d8b6a394d89a2823982248a968277aef28171e9dfa800cf"
+    },
+    {
+      "signal_id": "SVP1-FRHC-2026-08-24",
+      "signal_schema_version": "1.1.0",
+      "observation_mode": "production_forward",
+      "product_version": "SV-PRODUCT-LEGACY-RECOVERED-V1",
+      "signal_definition_version": "legacy-rare-score-v1",
+      "symbol": "FRHC",
+      "first_seen_date": "2026-08-24",
+      "last_seen_date": "2026-08-24",
+      "days_active": 1,
+      "absent_sessions": 0,
+      "lifecycle": "MONITORING",
+      "initial_source_systems": [
+        "multi_factor_radar"
+      ],
+      "source_systems": [
+        "multi_factor_radar"
+      ],
+      "latest_current_status": "historical_recovered",
+      "entry": {
+        "convention": "next_trading_day_adjusted_open",
+        "date": null,
+        "price": null
+      },
+      "signal_time_snapshot": {
+        "technical": {
+          "tracker_rank": null,
+          "technical_score": null,
+          "combined_score": null,
+          "setup": null,
+          "status": null,
+          "rank_reason": null
+        },
+        "multi_factor": {
+          "factor_registry_version": "0.3.0",
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "score_contributions": [
+            "macd.daily_bull_cross",
+            "support.fibonacci_half",
+            "support.ema_proximity",
+            "structure.trendline_three_push",
+            "structure.bullish_fvg_support"
+          ],
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.trendline_three_push",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ],
+          "non_scoring_evidence": [],
+          "risks": [
+            "当前动态观察因子尚未完成跨时期组合验证"
+          ]
+        },
+        "industry": {
+          "industry_radar_as_of": null,
+          "membership_version": null,
+          "rule_version": null,
+          "themes": []
+        },
+        "market": {
+          "status": "unavailable_at_recovery"
+        }
+      },
+      "versions": {
+        "code_version": "SV-PRODUCT-V1",
+        "factor_registry_version": "0.3.0",
+        "industry_membership_version": null
+      },
+      "forward": {
+        "returns": {
+          "1": null,
+          "5": null,
+          "10": null,
+          "20": null,
+          "60": null,
+          "100": null
+        },
+        "mfe": null,
+        "mae": null,
+        "elapsed_sessions": 0,
+        "status": "pending",
+        "data_status": "unavailable"
+      },
+      "daily_states": [
+        {
+          "date": "2026-08-24",
+          "price": 157.41,
+          "source_systems": [
+            "multi_factor_radar"
+          ],
+          "in_current_opportunities": true,
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.trendline_three_push",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ]
+        }
+      ],
+      "recovery": {
+        "recovered_from_git": true,
+        "recovery_version": "git-rare-radar-recovery-v1",
+        "source_commits": [
+          "55393d0541f2867b1708063a0f63683accd49e87"
+        ],
+        "original_signal_days": [
+          "2026-08-24"
+        ],
+        "limitations": [
+          "Recorder did not exist at original signal time",
+          "Unavailable original context is not reconstructed from current definitions"
+        ]
+      },
+      "audit": {
+        "future_data_used": false,
+        "created_as_of": "2026-08-26",
+        "last_updated_as_of": "2026-08-26",
+        "recovered_at": "2026-08-27T07:55:49.189811+00:00"
+      },
+      "immutable_fingerprint": "97bddbdf8f4f3f37b27e329acd9e6aaab17486b103b57b9250649fe98e684a22"
+    },
+    {
+      "signal_id": "SVP1-MAR-2026-08-24",
+      "signal_schema_version": "1.1.0",
+      "observation_mode": "production_forward",
+      "product_version": "SV-PRODUCT-LEGACY-RECOVERED-V1",
+      "signal_definition_version": "legacy-rare-score-v1",
+      "symbol": "MAR",
+      "first_seen_date": "2026-08-24",
+      "last_seen_date": "2026-08-24",
+      "days_active": 1,
+      "absent_sessions": 0,
+      "lifecycle": "MONITORING",
+      "initial_source_systems": [
+        "multi_factor_radar"
+      ],
+      "source_systems": [
+        "multi_factor_radar"
+      ],
+      "latest_current_status": "historical_recovered",
+      "entry": {
+        "convention": "next_trading_day_adjusted_open",
+        "date": null,
+        "price": null
+      },
+      "signal_time_snapshot": {
+        "technical": {
+          "tracker_rank": null,
+          "technical_score": null,
+          "combined_score": null,
+          "setup": null,
+          "status": null,
+          "rank_reason": null
+        },
+        "multi_factor": {
+          "factor_registry_version": "0.3.0",
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "score_contributions": [
+            "macd.daily_bull_cross",
+            "support.fibonacci_half",
+            "support.ema_proximity",
+            "risk.overhead_unfilled_gap",
+            "structure.bullish_fvg_support"
+          ],
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ],
+          "non_scoring_evidence": [],
+          "risks": [
+            "当前动态观察因子尚未完成跨时期组合验证"
+          ]
+        },
+        "industry": {
+          "industry_radar_as_of": null,
+          "membership_version": null,
+          "rule_version": null,
+          "themes": []
+        },
+        "market": {
+          "status": "unavailable_at_recovery"
+        }
+      },
+      "versions": {
+        "code_version": "SV-PRODUCT-V1",
+        "factor_registry_version": "0.3.0",
+        "industry_membership_version": null
+      },
+      "forward": {
+        "returns": {
+          "1": null,
+          "5": null,
+          "10": null,
+          "20": null,
+          "60": null,
+          "100": null
+        },
+        "mfe": null,
+        "mae": null,
+        "elapsed_sessions": 0,
+        "status": "pending",
+        "data_status": "unavailable"
+      },
+      "daily_states": [
+        {
+          "date": "2026-08-24",
+          "price": 360.2,
+          "source_systems": [
+            "multi_factor_radar"
+          ],
+          "in_current_opportunities": true,
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ]
+        }
+      ],
+      "recovery": {
+        "recovered_from_git": true,
+        "recovery_version": "git-rare-radar-recovery-v1",
+        "source_commits": [
+          "55393d0541f2867b1708063a0f63683accd49e87"
+        ],
+        "original_signal_days": [
+          "2026-08-24"
+        ],
+        "limitations": [
+          "Recorder did not exist at original signal time",
+          "Unavailable original context is not reconstructed from current definitions"
+        ]
+      },
+      "audit": {
+        "future_data_used": false,
+        "created_as_of": "2026-08-26",
+        "last_updated_as_of": "2026-08-26",
+        "recovered_at": "2026-08-27T07:55:49.190027+00:00"
+      },
+      "immutable_fingerprint": "bc09aea772e1f5b7801d0b752bb05acdff1153dc7d22ac80ef9195324d34f05b"
+    },
+    {
+      "signal_id": "SVP1-MO-2026-08-24",
+      "signal_schema_version": "1.1.0",
+      "observation_mode": "production_forward",
+      "product_version": "SV-PRODUCT-LEGACY-RECOVERED-V1",
+      "signal_definition_version": "legacy-rare-score-v1",
+      "symbol": "MO",
+      "first_seen_date": "2026-08-24",
+      "last_seen_date": "2026-08-26",
+      "days_active": 3,
+      "absent_sessions": 0,
+      "lifecycle": "MONITORING",
+      "initial_source_systems": [
+        "multi_factor_radar"
+      ],
+      "source_systems": [
+        "multi_factor_radar"
+      ],
+      "latest_current_status": "historical_recovered",
+      "entry": {
+        "convention": "next_trading_day_adjusted_open",
+        "date": null,
+        "price": null
+      },
+      "signal_time_snapshot": {
+        "technical": {
+          "tracker_rank": null,
+          "technical_score": null,
+          "combined_score": null,
+          "setup": null,
+          "status": null,
+          "rank_reason": null
+        },
+        "multi_factor": {
+          "factor_registry_version": "0.3.0",
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "score_contributions": [
+            "macd.daily_bull_cross",
+            "support.fibonacci_half",
+            "support.ema_proximity",
+            "risk.overhead_unfilled_gap",
+            "structure.bullish_fvg_support"
+          ],
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ],
+          "non_scoring_evidence": [],
+          "risks": [
+            "当前动态观察因子尚未完成跨时期组合验证"
+          ]
+        },
+        "industry": {
+          "industry_radar_as_of": null,
+          "membership_version": null,
+          "rule_version": null,
+          "themes": []
+        },
+        "market": {
+          "status": "unavailable_at_recovery"
+        }
+      },
+      "versions": {
+        "code_version": "SV-PRODUCT-V1",
+        "factor_registry_version": "0.3.0",
+        "industry_membership_version": null
+      },
+      "forward": {
+        "returns": {
+          "1": null,
+          "5": null,
+          "10": null,
+          "20": null,
+          "60": null,
+          "100": null
+        },
+        "mfe": null,
+        "mae": null,
+        "elapsed_sessions": 0,
+        "status": "pending",
+        "data_status": "unavailable"
+      },
+      "daily_states": [
+        {
+          "date": "2026-08-24",
+          "price": 68.47,
+          "source_systems": [
+            "multi_factor_radar"
+          ],
+          "in_current_opportunities": true,
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ]
+        },
+        {
+          "date": "2026-08-25",
+          "price": 68.07,
+          "source_systems": [
+            "multi_factor_radar"
+          ],
+          "in_current_opportunities": true,
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ]
+        },
+        {
+          "date": "2026-08-26",
+          "price": 69.12,
+          "source_systems": [
+            "multi_factor_radar"
+          ],
+          "in_current_opportunities": true,
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ]
+        }
+      ],
+      "recovery": {
+        "recovered_from_git": true,
+        "recovery_version": "git-rare-radar-recovery-v1",
+        "source_commits": [
+          "3bafc0585af9c2b788d07752c278960fb2a82f55",
+          "55393d0541f2867b1708063a0f63683accd49e87",
+          "a84f39d1d42ed45ff2129793c1caa5d0118d486c"
+        ],
+        "original_signal_days": [
+          "2026-08-24",
+          "2026-08-25",
+          "2026-08-26"
+        ],
+        "limitations": [
+          "Recorder did not exist at original signal time",
+          "Unavailable original context is not reconstructed from current definitions"
+        ]
+      },
+      "audit": {
+        "future_data_used": false,
+        "created_as_of": "2026-08-26",
+        "last_updated_as_of": "2026-08-26",
+        "recovered_at": "2026-08-27T07:55:49.190058+00:00"
+      },
+      "immutable_fingerprint": "5756d4c6be5f8cf5e173109369e777277eff4e526df93845988919436f9386cd"
+    },
+    {
+      "signal_id": "SVP1-MUSA-2026-08-24",
+      "signal_schema_version": "1.1.0",
+      "observation_mode": "production_forward",
+      "product_version": "SV-PRODUCT-LEGACY-RECOVERED-V1",
+      "signal_definition_version": "legacy-rare-score-v1",
+      "symbol": "MUSA",
+      "first_seen_date": "2026-08-24",
+      "last_seen_date": "2026-08-24",
+      "days_active": 1,
+      "absent_sessions": 0,
+      "lifecycle": "MONITORING",
+      "initial_source_systems": [
+        "multi_factor_radar"
+      ],
+      "source_systems": [
+        "multi_factor_radar"
+      ],
+      "latest_current_status": "historical_recovered",
+      "entry": {
+        "convention": "next_trading_day_adjusted_open",
+        "date": null,
+        "price": null
+      },
+      "signal_time_snapshot": {
+        "technical": {
+          "tracker_rank": null,
+          "technical_score": null,
+          "combined_score": null,
+          "setup": null,
+          "status": null,
+          "rank_reason": null
+        },
+        "multi_factor": {
+          "factor_registry_version": "0.3.0",
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "score_contributions": [
+            "macd.daily_bull_cross",
+            "support.fibonacci_half",
+            "support.ema_proximity",
+            "risk.overhead_unfilled_gap",
+            "structure.bullish_fvg_support"
+          ],
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ],
+          "non_scoring_evidence": [],
+          "risks": [
+            "当前动态观察因子尚未完成跨时期组合验证"
+          ]
+        },
+        "industry": {
+          "industry_radar_as_of": null,
+          "membership_version": null,
+          "rule_version": null,
+          "themes": []
+        },
+        "market": {
+          "status": "unavailable_at_recovery"
+        }
+      },
+      "versions": {
+        "code_version": "SV-PRODUCT-V1",
+        "factor_registry_version": "0.3.0",
+        "industry_membership_version": null
+      },
+      "forward": {
+        "returns": {
+          "1": null,
+          "5": null,
+          "10": null,
+          "20": null,
+          "60": null,
+          "100": null
+        },
+        "mfe": null,
+        "mae": null,
+        "elapsed_sessions": 0,
+        "status": "pending",
+        "data_status": "unavailable"
+      },
+      "daily_states": [
+        {
+          "date": "2026-08-24",
+          "price": 567.9,
+          "source_systems": [
+            "multi_factor_radar"
+          ],
+          "in_current_opportunities": true,
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ]
+        }
+      ],
+      "recovery": {
+        "recovered_from_git": true,
+        "recovery_version": "git-rare-radar-recovery-v1",
+        "source_commits": [
+          "55393d0541f2867b1708063a0f63683accd49e87"
+        ],
+        "original_signal_days": [
+          "2026-08-24"
+        ],
+        "limitations": [
+          "Recorder did not exist at original signal time",
+          "Unavailable original context is not reconstructed from current definitions"
+        ]
+      },
+      "audit": {
+        "future_data_used": false,
+        "created_as_of": "2026-08-26",
+        "last_updated_as_of": "2026-08-26",
+        "recovered_at": "2026-08-27T07:55:49.190086+00:00"
+      },
+      "immutable_fingerprint": "9657e3852df76f08440bc837a862b50f279fcdae07995e5bc413ff3586d2103a"
+    },
+    {
+      "signal_id": "SVP1-PBR-2026-08-24",
+      "signal_schema_version": "1.1.0",
+      "observation_mode": "production_forward",
+      "product_version": "SV-PRODUCT-LEGACY-RECOVERED-V1",
+      "signal_definition_version": "legacy-rare-score-v1",
+      "symbol": "PBR",
+      "first_seen_date": "2026-08-24",
+      "last_seen_date": "2026-08-25",
+      "days_active": 2,
+      "absent_sessions": 0,
+      "lifecycle": "MONITORING",
+      "initial_source_systems": [
+        "multi_factor_radar"
+      ],
+      "source_systems": [
+        "multi_factor_radar"
+      ],
+      "latest_current_status": "historical_recovered",
+      "entry": {
+        "convention": "next_trading_day_adjusted_open",
+        "date": null,
+        "price": null
+      },
+      "signal_time_snapshot": {
+        "technical": {
+          "tracker_rank": null,
+          "technical_score": null,
+          "combined_score": null,
+          "setup": null,
+          "status": null,
+          "rank_reason": null
+        },
+        "multi_factor": {
+          "factor_registry_version": "0.3.0",
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "score_contributions": [
+            "macd.daily_bull_cross",
+            "support.fibonacci_half",
+            "support.ema_proximity",
+            "macd.weekly_histogram_improving",
+            "structure.bullish_fvg_support"
+          ],
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "macd.weekly_histogram_improving",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ],
+          "non_scoring_evidence": [],
+          "risks": [
+            "当前动态观察因子尚未完成跨时期组合验证"
+          ]
+        },
+        "industry": {
+          "industry_radar_as_of": null,
+          "membership_version": null,
+          "rule_version": null,
+          "themes": []
+        },
+        "market": {
+          "status": "unavailable_at_recovery"
+        }
+      },
+      "versions": {
+        "code_version": "SV-PRODUCT-V1",
+        "factor_registry_version": "0.3.0",
+        "industry_membership_version": null
+      },
+      "forward": {
+        "returns": {
+          "1": null,
+          "5": null,
+          "10": null,
+          "20": null,
+          "60": null,
+          "100": null
+        },
+        "mfe": null,
+        "mae": null,
+        "elapsed_sessions": 0,
+        "status": "pending",
+        "data_status": "unavailable"
+      },
+      "daily_states": [
+        {
+          "date": "2026-08-24",
+          "price": 18.07,
+          "source_systems": [
+            "multi_factor_radar"
+          ],
+          "in_current_opportunities": true,
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "macd.weekly_histogram_improving",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ]
+        },
+        {
+          "date": "2026-08-25",
+          "price": 17.85,
+          "source_systems": [
+            "multi_factor_radar"
+          ],
+          "in_current_opportunities": true,
+          "legacy_production_score": 6,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "macd.weekly_histogram_improving",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ]
+        }
+      ],
+      "recovery": {
+        "recovered_from_git": true,
+        "recovery_version": "git-rare-radar-recovery-v1",
+        "source_commits": [
+          "3bafc0585af9c2b788d07752c278960fb2a82f55",
+          "55393d0541f2867b1708063a0f63683accd49e87"
+        ],
+        "original_signal_days": [
+          "2026-08-24",
+          "2026-08-25"
+        ],
+        "limitations": [
+          "Recorder did not exist at original signal time",
+          "Unavailable original context is not reconstructed from current definitions"
+        ]
+      },
+      "audit": {
+        "future_data_used": false,
+        "created_as_of": "2026-08-26",
+        "last_updated_as_of": "2026-08-26",
+        "recovered_at": "2026-08-27T07:55:49.190147+00:00"
+      },
+      "immutable_fingerprint": "34757417492e73a562b990741aca12bde0fe708754dc9d4ec0d48de4f9ae488a"
+    },
+    {
+      "signal_id": "SVP1-SPGI-2026-08-24",
+      "signal_schema_version": "1.1.0",
+      "observation_mode": "production_forward",
+      "product_version": "SV-PRODUCT-LEGACY-RECOVERED-V1",
+      "signal_definition_version": "legacy-rare-score-v1",
+      "symbol": "SPGI",
+      "first_seen_date": "2026-08-24",
+      "last_seen_date": "2026-08-25",
+      "days_active": 2,
+      "absent_sessions": 0,
+      "lifecycle": "MONITORING",
+      "initial_source_systems": [
+        "multi_factor_radar"
+      ],
+      "source_systems": [
+        "multi_factor_radar"
+      ],
+      "latest_current_status": "historical_recovered",
+      "entry": {
+        "convention": "next_trading_day_adjusted_open",
+        "date": null,
+        "price": null
+      },
+      "signal_time_snapshot": {
+        "technical": {
+          "tracker_rank": null,
+          "technical_score": null,
+          "combined_score": null,
+          "setup": null,
+          "status": null,
+          "rank_reason": null
+        },
+        "multi_factor": {
+          "factor_registry_version": "0.3.0",
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "score_contributions": [
+            "macd.daily_bull_cross",
+            "support.fibonacci_half",
+            "support.ema_proximity",
+            "risk.overhead_unfilled_gap",
+            "structure.bullish_fvg_support"
+          ],
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ],
+          "non_scoring_evidence": [],
+          "risks": [
+            "当前动态观察因子尚未完成跨时期组合验证"
+          ]
+        },
+        "industry": {
+          "industry_radar_as_of": null,
+          "membership_version": null,
+          "rule_version": null,
+          "themes": []
+        },
+        "market": {
+          "status": "unavailable_at_recovery"
+        }
+      },
+      "versions": {
+        "code_version": "SV-PRODUCT-V1",
+        "factor_registry_version": "0.3.0",
+        "industry_membership_version": null
+      },
+      "forward": {
+        "returns": {
+          "1": null,
+          "5": null,
+          "10": null,
+          "20": null,
+          "60": null,
+          "100": null
+        },
+        "mfe": null,
+        "mae": null,
+        "elapsed_sessions": 0,
+        "status": "pending",
+        "data_status": "unavailable"
+      },
+      "daily_states": [
+        {
+          "date": "2026-08-24",
+          "price": 435.42,
+          "source_systems": [
+            "multi_factor_radar"
+          ],
+          "in_current_opportunities": true,
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ]
+        },
+        {
+          "date": "2026-08-25",
+          "price": 432.99,
+          "source_systems": [
+            "multi_factor_radar"
+          ],
+          "in_current_opportunities": true,
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ]
+        }
+      ],
+      "recovery": {
+        "recovered_from_git": true,
+        "recovery_version": "git-rare-radar-recovery-v1",
+        "source_commits": [
+          "3bafc0585af9c2b788d07752c278960fb2a82f55",
+          "55393d0541f2867b1708063a0f63683accd49e87"
+        ],
+        "original_signal_days": [
+          "2026-08-24",
+          "2026-08-25"
+        ],
+        "limitations": [
+          "Recorder did not exist at original signal time",
+          "Unavailable original context is not reconstructed from current definitions"
+        ]
+      },
+      "audit": {
+        "future_data_used": false,
+        "created_as_of": "2026-08-26",
+        "last_updated_as_of": "2026-08-26",
+        "recovered_at": "2026-08-27T07:55:49.190233+00:00"
+      },
+      "immutable_fingerprint": "dbd3b3f176916b7bfaf0670083dd026d9edf3036bfda405e7f98f5b1b0d71152"
+    },
+    {
+      "signal_id": "SVP1-TSN-2026-08-24",
+      "signal_schema_version": "1.1.0",
+      "observation_mode": "production_forward",
+      "product_version": "SV-PRODUCT-LEGACY-RECOVERED-V1",
+      "signal_definition_version": "legacy-rare-score-v1",
+      "symbol": "TSN",
+      "first_seen_date": "2026-08-24",
+      "last_seen_date": "2026-08-25",
+      "days_active": 2,
+      "absent_sessions": 0,
+      "lifecycle": "MONITORING",
+      "initial_source_systems": [
+        "multi_factor_radar"
+      ],
+      "source_systems": [
+        "multi_factor_radar"
+      ],
+      "latest_current_status": "historical_recovered",
+      "entry": {
+        "convention": "next_trading_day_adjusted_open",
+        "date": null,
+        "price": null
+      },
+      "signal_time_snapshot": {
+        "technical": {
+          "tracker_rank": null,
+          "technical_score": null,
+          "combined_score": null,
+          "setup": null,
+          "status": null,
+          "rank_reason": null
+        },
+        "multi_factor": {
+          "factor_registry_version": "0.3.0",
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "score_contributions": [
+            "macd.daily_bull_cross",
+            "support.ema_proximity",
+            "macd.weekly_histogram_improving",
+            "risk.overhead_unfilled_gap",
+            "structure.bullish_fvg_support"
+          ],
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "macd.weekly_histogram_improving",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ],
+          "non_scoring_evidence": [],
+          "risks": [
+            "当前动态观察因子尚未完成跨时期组合验证"
+          ]
+        },
+        "industry": {
+          "industry_radar_as_of": null,
+          "membership_version": null,
+          "rule_version": null,
+          "themes": []
+        },
+        "market": {
+          "status": "unavailable_at_recovery"
+        }
+      },
+      "versions": {
+        "code_version": "SV-PRODUCT-V1",
+        "factor_registry_version": "0.3.0",
+        "industry_membership_version": null
+      },
+      "forward": {
+        "returns": {
+          "1": null,
+          "5": null,
+          "10": null,
+          "20": null,
+          "60": null,
+          "100": null
+        },
+        "mfe": null,
+        "mae": null,
+        "elapsed_sessions": 0,
+        "status": "pending",
+        "data_status": "unavailable"
+      },
+      "daily_states": [
+        {
+          "date": "2026-08-24",
+          "price": 57.87,
+          "source_systems": [
+            "multi_factor_radar"
+          ],
+          "in_current_opportunities": true,
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "macd.weekly_histogram_improving",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ]
+        },
+        {
+          "date": "2026-08-25",
+          "price": 57.17,
+          "source_systems": [
+            "multi_factor_radar"
+          ],
+          "in_current_opportunities": true,
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "macd.weekly_histogram_improving",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ]
+        }
+      ],
+      "recovery": {
+        "recovered_from_git": true,
+        "recovery_version": "git-rare-radar-recovery-v1",
+        "source_commits": [
+          "3bafc0585af9c2b788d07752c278960fb2a82f55",
+          "55393d0541f2867b1708063a0f63683accd49e87"
+        ],
+        "original_signal_days": [
+          "2026-08-24",
+          "2026-08-25"
+        ],
+        "limitations": [
+          "Recorder did not exist at original signal time",
+          "Unavailable original context is not reconstructed from current definitions"
+        ]
+      },
+      "audit": {
+        "future_data_used": false,
+        "created_as_of": "2026-08-26",
+        "last_updated_as_of": "2026-08-26",
+        "recovered_at": "2026-08-27T07:55:49.190324+00:00"
+      },
+      "immutable_fingerprint": "acf1951aadd1fbb4a3161442ed354be83d6af82dcbeed88b3a923eb93b510c6c"
+    },
+    {
+      "signal_id": "SVP1-UDR-2026-08-24",
+      "signal_schema_version": "1.1.0",
+      "observation_mode": "production_forward",
+      "product_version": "SV-PRODUCT-LEGACY-RECOVERED-V1",
+      "signal_definition_version": "legacy-rare-score-v1",
+      "symbol": "UDR",
+      "first_seen_date": "2026-08-24",
+      "last_seen_date": "2026-08-26",
+      "days_active": 3,
+      "absent_sessions": 0,
+      "lifecycle": "MONITORING",
+      "initial_source_systems": [
+        "multi_factor_radar"
+      ],
+      "source_systems": [
+        "multi_factor_radar"
+      ],
+      "latest_current_status": "historical_recovered",
+      "entry": {
+        "convention": "next_trading_day_adjusted_open",
+        "date": null,
+        "price": null
+      },
+      "signal_time_snapshot": {
+        "technical": {
+          "tracker_rank": null,
+          "technical_score": null,
+          "combined_score": null,
+          "setup": null,
+          "status": null,
+          "rank_reason": null
+        },
+        "multi_factor": {
+          "factor_registry_version": "0.3.0",
+          "legacy_production_score": 6,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "score_contributions": [
+            "macd.daily_bull_cross",
+            "support.fibonacci_half",
+            "support.ema_proximity",
+            "structure.trendline_three_push",
+            "risk.overhead_unfilled_gap",
+            "structure.bullish_fvg_support"
+          ],
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.trendline_three_push",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ],
+          "non_scoring_evidence": [],
+          "risks": [
+            "当前动态观察因子尚未完成跨时期组合验证"
+          ]
+        },
+        "industry": {
+          "industry_radar_as_of": null,
+          "membership_version": null,
+          "rule_version": null,
+          "themes": []
+        },
+        "market": {
+          "status": "unavailable_at_recovery"
+        }
+      },
+      "versions": {
+        "code_version": "SV-PRODUCT-V1",
+        "factor_registry_version": "0.3.0",
+        "industry_membership_version": null
+      },
+      "forward": {
+        "returns": {
+          "1": null,
+          "5": null,
+          "10": null,
+          "20": null,
+          "60": null,
+          "100": null
+        },
+        "mfe": null,
+        "mae": null,
+        "elapsed_sessions": 0,
+        "status": "pending",
+        "data_status": "unavailable"
+      },
+      "daily_states": [
+        {
+          "date": "2026-08-24",
+          "price": 38.39,
+          "source_systems": [
+            "multi_factor_radar"
+          ],
+          "in_current_opportunities": true,
+          "legacy_production_score": 6,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.trendline_three_push",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ]
+        },
+        {
+          "date": "2026-08-25",
+          "price": 38.17,
+          "source_systems": [
+            "multi_factor_radar"
+          ],
+          "in_current_opportunities": true,
+          "legacy_production_score": 6,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.trendline_three_push",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ]
+        },
+        {
+          "date": "2026-08-26",
+          "price": 37.93,
+          "source_systems": [
+            "multi_factor_radar"
+          ],
+          "in_current_opportunities": true,
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.trendline_three_push",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ]
+        }
+      ],
+      "recovery": {
+        "recovered_from_git": true,
+        "recovery_version": "git-rare-radar-recovery-v1",
+        "source_commits": [
+          "3bafc0585af9c2b788d07752c278960fb2a82f55",
+          "55393d0541f2867b1708063a0f63683accd49e87",
+          "a84f39d1d42ed45ff2129793c1caa5d0118d486c"
+        ],
+        "original_signal_days": [
+          "2026-08-24",
+          "2026-08-25",
+          "2026-08-26"
+        ],
+        "limitations": [
+          "Recorder did not exist at original signal time",
+          "Unavailable original context is not reconstructed from current definitions"
+        ]
+      },
+      "audit": {
+        "future_data_used": false,
+        "created_as_of": "2026-08-26",
+        "last_updated_as_of": "2026-08-26",
+        "recovered_at": "2026-08-27T07:55:49.190353+00:00"
+      },
+      "immutable_fingerprint": "c74fd917ac033fc178a8410201b172a4dffe4c5fe5e4b2d1fe55d719e8eda992"
+    },
+    {
+      "signal_id": "SVP1-VICI-2026-08-24",
+      "signal_schema_version": "1.1.0",
+      "observation_mode": "production_forward",
+      "product_version": "SV-PRODUCT-LEGACY-RECOVERED-V1",
+      "signal_definition_version": "legacy-rare-score-v1",
+      "symbol": "VICI",
+      "first_seen_date": "2026-08-24",
+      "last_seen_date": "2026-08-24",
+      "days_active": 1,
+      "absent_sessions": 0,
+      "lifecycle": "MONITORING",
+      "initial_source_systems": [
+        "multi_factor_radar"
+      ],
+      "source_systems": [
+        "multi_factor_radar"
+      ],
+      "latest_current_status": "historical_recovered",
+      "entry": {
+        "convention": "next_trading_day_adjusted_open",
+        "date": null,
+        "price": null
+      },
+      "signal_time_snapshot": {
+        "technical": {
+          "tracker_rank": null,
+          "technical_score": null,
+          "combined_score": null,
+          "setup": null,
+          "status": null,
+          "rank_reason": null
+        },
+        "multi_factor": {
+          "factor_registry_version": "0.3.0",
+          "legacy_production_score": 6,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "score_contributions": [
+            "macd.daily_bull_cross",
+            "support.ema_proximity",
+            "structure.trendline_three_push",
+            "structure.trendline_three_push_retest",
+            "risk.overhead_unfilled_gap",
+            "structure.bullish_fvg_support"
+          ],
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.trendline_three_push",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.trendline_three_push_retest",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ],
+          "non_scoring_evidence": [],
+          "risks": [
+            "当前动态观察因子尚未完成跨时期组合验证"
+          ]
+        },
+        "industry": {
+          "industry_radar_as_of": null,
+          "membership_version": null,
+          "rule_version": null,
+          "themes": []
+        },
+        "market": {
+          "status": "unavailable_at_recovery"
+        }
+      },
+      "versions": {
+        "code_version": "SV-PRODUCT-V1",
+        "factor_registry_version": "0.3.0",
+        "industry_membership_version": null
+      },
+      "forward": {
+        "returns": {
+          "1": null,
+          "5": null,
+          "10": null,
+          "20": null,
+          "60": null,
+          "100": null
+        },
+        "mfe": null,
+        "mae": null,
+        "elapsed_sessions": 0,
+        "status": "pending",
+        "data_status": "unavailable"
+      },
+      "daily_states": [
+        {
+          "date": "2026-08-24",
+          "price": 26.78,
+          "source_systems": [
+            "multi_factor_radar"
+          ],
+          "in_current_opportunities": true,
+          "legacy_production_score": 6,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.trendline_three_push",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.trendline_three_push_retest",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-24",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ]
+        }
+      ],
+      "recovery": {
+        "recovered_from_git": true,
+        "recovery_version": "git-rare-radar-recovery-v1",
+        "source_commits": [
+          "55393d0541f2867b1708063a0f63683accd49e87"
+        ],
+        "original_signal_days": [
+          "2026-08-24"
+        ],
+        "limitations": [
+          "Recorder did not exist at original signal time",
+          "Unavailable original context is not reconstructed from current definitions"
+        ]
+      },
+      "audit": {
+        "future_data_used": false,
+        "created_as_of": "2026-08-26",
+        "last_updated_as_of": "2026-08-26",
+        "recovered_at": "2026-08-27T07:55:49.190381+00:00"
+      },
+      "immutable_fingerprint": "cdf85a9142e83f443fc8cabd4c31371cce8398fb8fc1cdec7f5daf0f15f00258"
+    },
+    {
+      "signal_id": "SVP1-NYT-2026-08-25",
+      "signal_schema_version": "1.1.0",
+      "observation_mode": "production_forward",
+      "product_version": "SV-PRODUCT-LEGACY-RECOVERED-V1",
+      "signal_definition_version": "legacy-rare-score-v1",
+      "symbol": "NYT",
+      "first_seen_date": "2026-08-25",
+      "last_seen_date": "2026-08-26",
+      "days_active": 2,
+      "absent_sessions": 0,
+      "lifecycle": "MONITORING",
+      "initial_source_systems": [
+        "multi_factor_radar"
+      ],
+      "source_systems": [
+        "multi_factor_radar"
+      ],
+      "latest_current_status": "historical_recovered",
+      "entry": {
+        "convention": "next_trading_day_adjusted_open",
+        "date": null,
+        "price": null
+      },
+      "signal_time_snapshot": {
+        "technical": {
+          "tracker_rank": null,
+          "technical_score": null,
+          "combined_score": null,
+          "setup": null,
+          "status": null,
+          "rank_reason": null
+        },
+        "multi_factor": {
+          "factor_registry_version": "0.4.0",
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "score_contributions": [
+            "macd.daily_bull_cross",
+            "support.fibonacci_half",
+            "support.ema_proximity",
+            "risk.overhead_unfilled_gap",
+            "structure.bullish_fvg_support"
+          ],
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ],
+          "non_scoring_evidence": [],
+          "risks": [
+            "当前动态观察因子尚未完成跨时期组合验证"
+          ]
+        },
+        "industry": {
+          "industry_radar_as_of": null,
+          "membership_version": null,
+          "rule_version": null,
+          "themes": []
+        },
+        "market": {
+          "status": "unavailable_at_recovery"
+        }
+      },
+      "versions": {
+        "code_version": "SV-PRODUCT-V1",
+        "factor_registry_version": "0.4.0",
+        "industry_membership_version": null
+      },
+      "forward": {
+        "returns": {
+          "1": null,
+          "5": null,
+          "10": null,
+          "20": null,
+          "60": null,
+          "100": null
+        },
+        "mfe": null,
+        "mae": null,
+        "elapsed_sessions": 0,
+        "status": "pending",
+        "data_status": "unavailable"
+      },
+      "daily_states": [
+        {
+          "date": "2026-08-25",
+          "price": 68.61,
+          "source_systems": [
+            "multi_factor_radar"
+          ],
+          "in_current_opportunities": true,
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ]
+        },
+        {
+          "date": "2026-08-26",
+          "price": 68.42,
+          "source_systems": [
+            "multi_factor_radar"
+          ],
+          "in_current_opportunities": true,
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ]
+        }
+      ],
+      "recovery": {
+        "recovered_from_git": true,
+        "recovery_version": "git-rare-radar-recovery-v1",
+        "source_commits": [
+          "3bafc0585af9c2b788d07752c278960fb2a82f55",
+          "a84f39d1d42ed45ff2129793c1caa5d0118d486c"
+        ],
+        "original_signal_days": [
+          "2026-08-25",
+          "2026-08-26"
+        ],
+        "limitations": [
+          "Recorder did not exist at original signal time",
+          "Unavailable original context is not reconstructed from current definitions"
+        ]
+      },
+      "audit": {
+        "future_data_used": false,
+        "created_as_of": "2026-08-26",
+        "last_updated_as_of": "2026-08-26",
+        "recovered_at": "2026-08-27T07:55:49.190114+00:00"
+      },
+      "immutable_fingerprint": "bbd06fad15be72a4eb2a0919417203ec0af27f9fa0142324c34a10d14989c920"
+    },
+    {
+      "signal_id": "SVP1-PG-2026-08-25",
+      "signal_schema_version": "1.1.0",
+      "observation_mode": "production_forward",
+      "product_version": "SV-PRODUCT-LEGACY-RECOVERED-V1",
+      "signal_definition_version": "legacy-rare-score-v1",
+      "symbol": "PG",
+      "first_seen_date": "2026-08-25",
+      "last_seen_date": "2026-08-26",
+      "days_active": 2,
+      "absent_sessions": 0,
+      "lifecycle": "MONITORING",
+      "initial_source_systems": [
+        "multi_factor_radar"
+      ],
+      "source_systems": [
+        "multi_factor_radar"
+      ],
+      "latest_current_status": "historical_recovered",
+      "entry": {
+        "convention": "next_trading_day_adjusted_open",
+        "date": null,
+        "price": null
+      },
+      "signal_time_snapshot": {
+        "technical": {
+          "tracker_rank": null,
+          "technical_score": null,
+          "combined_score": null,
+          "setup": null,
+          "status": null,
+          "rank_reason": null
+        },
+        "multi_factor": {
+          "factor_registry_version": "0.4.0",
+          "legacy_production_score": 6,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "score_contributions": [
+            "macd.daily_bull_cross",
+            "support.fibonacci_half",
+            "support.ema_proximity",
+            "structure.trendline_three_push",
+            "risk.overhead_unfilled_gap",
+            "structure.bullish_fvg_support"
+          ],
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.trendline_three_push",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ],
+          "non_scoring_evidence": [],
+          "risks": [
+            "当前动态观察因子尚未完成跨时期组合验证"
+          ]
+        },
+        "industry": {
+          "industry_radar_as_of": null,
+          "membership_version": null,
+          "rule_version": null,
+          "themes": []
+        },
+        "market": {
+          "status": "unavailable_at_recovery"
+        }
+      },
+      "versions": {
+        "code_version": "SV-PRODUCT-V1",
+        "factor_registry_version": "0.4.0",
+        "industry_membership_version": null
+      },
+      "forward": {
+        "returns": {
+          "1": null,
+          "5": null,
+          "10": null,
+          "20": null,
+          "60": null,
+          "100": null
+        },
+        "mfe": null,
+        "mae": null,
+        "elapsed_sessions": 0,
+        "status": "pending",
+        "data_status": "unavailable"
+      },
+      "daily_states": [
+        {
+          "date": "2026-08-25",
+          "price": 145.4,
+          "source_systems": [
+            "multi_factor_radar"
+          ],
+          "in_current_opportunities": true,
+          "legacy_production_score": 6,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.trendline_three_push",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-25",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ]
+        },
+        {
+          "date": "2026-08-26",
+          "price": 145,
+          "source_systems": [
+            "multi_factor_radar"
+          ],
+          "in_current_opportunities": true,
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.trendline_three_push",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ]
+        }
+      ],
+      "recovery": {
+        "recovered_from_git": true,
+        "recovery_version": "git-rare-radar-recovery-v1",
+        "source_commits": [
+          "3bafc0585af9c2b788d07752c278960fb2a82f55",
+          "a84f39d1d42ed45ff2129793c1caa5d0118d486c"
+        ],
+        "original_signal_days": [
+          "2026-08-25",
+          "2026-08-26"
+        ],
+        "limitations": [
+          "Recorder did not exist at original signal time",
+          "Unavailable original context is not reconstructed from current definitions"
+        ]
+      },
+      "audit": {
+        "future_data_used": false,
+        "created_as_of": "2026-08-26",
+        "last_updated_as_of": "2026-08-26",
+        "recovered_at": "2026-08-27T07:55:49.190179+00:00"
+      },
+      "immutable_fingerprint": "3a3524d32acd2e63602d534d8e1b19b7e3466dd262f5f00ff3b470b4176a5619"
+    },
     {
       "signal_id": "SVP1-AEO-2026-08-26",
       "signal_schema_version": "1.0.0",
@@ -2072,7 +5541,8 @@
                 "confirmation_delay_bars": 0
               }
             }
-          ]
+          ],
+          "legacy_production_score": 5
         },
         "industry": {
           "industry_radar_as_of": "2026-08-26",
@@ -2108,9 +5578,94 @@
       "audit": {
         "future_data_used": false,
         "created_as_of": "2026-08-26",
-        "last_updated_as_of": "2026-08-26"
+        "last_updated_as_of": "2026-08-26",
+        "recovery_migrated_as_of": "2026-08-26"
       },
-      "immutable_fingerprint": "2d7d18f945b50297ce96a7b6d3d15c22d19504459190c8a139ecb4609671b668"
+      "immutable_fingerprint": "20e321692cf5620f7dbea1894344fa6746edfdcdce41f49babf23ae7d678b7d0",
+      "recovery": {
+        "recovered_from_git": true,
+        "recovery_version": "git-rare-radar-recovery-v1",
+        "source_commits": [
+          "a84f39d1d42ed45ff2129793c1caa5d0118d486c"
+        ],
+        "original_signal_days": [
+          "2026-08-26"
+        ],
+        "limitations": [
+          "Recorder did not exist at original signal time",
+          "Unavailable original context is not reconstructed from current definitions"
+        ]
+      },
+      "daily_states": [
+        {
+          "date": "2026-08-26",
+          "price": 111.56,
+          "source_systems": [
+            "multi_factor_radar"
+          ],
+          "in_current_opportunities": true,
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.support_bullish_engulfing",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ]
+        }
+      ]
     },
     {
       "signal_id": "SVP1-BMI-2026-08-26",
@@ -3038,6 +6593,464 @@
         "last_updated_as_of": "2026-08-26"
       },
       "immutable_fingerprint": "91c5de3944b9bbde98f28d74881fcc8f21e30466081290a7da8488e42a72f915"
+    },
+    {
+      "signal_id": "SVP1-BTI-2026-08-26",
+      "signal_schema_version": "1.1.0",
+      "observation_mode": "production_forward",
+      "product_version": "SV-PRODUCT-LEGACY-RECOVERED-V1",
+      "signal_definition_version": "legacy-rare-score-v1",
+      "symbol": "BTI",
+      "first_seen_date": "2026-08-26",
+      "last_seen_date": "2026-08-26",
+      "days_active": 1,
+      "absent_sessions": 0,
+      "lifecycle": "MONITORING",
+      "initial_source_systems": [
+        "multi_factor_radar"
+      ],
+      "source_systems": [
+        "multi_factor_radar"
+      ],
+      "latest_current_status": "historical_recovered",
+      "entry": {
+        "convention": "next_trading_day_adjusted_open",
+        "date": null,
+        "price": null
+      },
+      "signal_time_snapshot": {
+        "technical": {
+          "tracker_rank": null,
+          "technical_score": null,
+          "combined_score": null,
+          "setup": null,
+          "status": null,
+          "rank_reason": null
+        },
+        "multi_factor": {
+          "factor_registry_version": "0.4.0",
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "score_contributions": [
+            "macd.daily_bull_cross",
+            "support.fibonacci_half",
+            "support.ema_proximity",
+            "risk.overhead_unfilled_gap",
+            "structure.bullish_fvg_support"
+          ],
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ],
+          "non_scoring_evidence": [],
+          "risks": [
+            "当前动态观察因子尚未完成跨时期组合验证"
+          ]
+        },
+        "industry": {
+          "industry_radar_as_of": null,
+          "membership_version": null,
+          "rule_version": null,
+          "themes": []
+        },
+        "market": {
+          "status": "unavailable_at_recovery"
+        }
+      },
+      "versions": {
+        "code_version": "SV-PRODUCT-V1",
+        "factor_registry_version": "0.4.0",
+        "industry_membership_version": null
+      },
+      "forward": {
+        "returns": {
+          "1": null,
+          "5": null,
+          "10": null,
+          "20": null,
+          "60": null,
+          "100": null
+        },
+        "mfe": null,
+        "mae": null,
+        "elapsed_sessions": 0,
+        "status": "pending",
+        "data_status": "unavailable"
+      },
+      "daily_states": [
+        {
+          "date": "2026-08-26",
+          "price": 57.44,
+          "source_systems": [
+            "multi_factor_radar"
+          ],
+          "in_current_opportunities": true,
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ]
+        }
+      ],
+      "recovery": {
+        "recovered_from_git": true,
+        "recovery_version": "git-rare-radar-recovery-v1",
+        "source_commits": [
+          "a84f39d1d42ed45ff2129793c1caa5d0118d486c"
+        ],
+        "original_signal_days": [
+          "2026-08-26"
+        ],
+        "limitations": [
+          "Recorder did not exist at original signal time",
+          "Unavailable original context is not reconstructed from current definitions"
+        ]
+      },
+      "audit": {
+        "future_data_used": false,
+        "created_as_of": "2026-08-26",
+        "last_updated_as_of": "2026-08-26",
+        "recovered_at": "2026-08-27T07:55:49.189707+00:00"
+      },
+      "immutable_fingerprint": "254647c5ccc377fdac7f0a581eeea7af3d7eef1c62d2a54426a78431a3d978db"
+    },
+    {
+      "signal_id": "SVP1-BTSG-2026-08-26",
+      "signal_schema_version": "1.1.0",
+      "observation_mode": "production_forward",
+      "product_version": "SV-PRODUCT-LEGACY-RECOVERED-V1",
+      "signal_definition_version": "legacy-rare-score-v1",
+      "symbol": "BTSG",
+      "first_seen_date": "2026-08-26",
+      "last_seen_date": "2026-08-26",
+      "days_active": 1,
+      "absent_sessions": 0,
+      "lifecycle": "MONITORING",
+      "initial_source_systems": [
+        "multi_factor_radar"
+      ],
+      "source_systems": [
+        "multi_factor_radar"
+      ],
+      "latest_current_status": "historical_recovered",
+      "entry": {
+        "convention": "next_trading_day_adjusted_open",
+        "date": null,
+        "price": null
+      },
+      "signal_time_snapshot": {
+        "technical": {
+          "tracker_rank": null,
+          "technical_score": null,
+          "combined_score": null,
+          "setup": null,
+          "status": null,
+          "rank_reason": null
+        },
+        "multi_factor": {
+          "factor_registry_version": "0.4.0",
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "score_contributions": [
+            "macd.daily_bull_cross",
+            "support.fibonacci_half",
+            "support.ema_proximity",
+            "structure.support_bullish_engulfing",
+            "structure.trendline_three_push"
+          ],
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.support_bullish_engulfing",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.trendline_three_push",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ],
+          "non_scoring_evidence": [],
+          "risks": [
+            "当前动态观察因子尚未完成跨时期组合验证"
+          ]
+        },
+        "industry": {
+          "industry_radar_as_of": null,
+          "membership_version": null,
+          "rule_version": null,
+          "themes": []
+        },
+        "market": {
+          "status": "unavailable_at_recovery"
+        }
+      },
+      "versions": {
+        "code_version": "SV-PRODUCT-V1",
+        "factor_registry_version": "0.4.0",
+        "industry_membership_version": null
+      },
+      "forward": {
+        "returns": {
+          "1": null,
+          "5": null,
+          "10": null,
+          "20": null,
+          "60": null,
+          "100": null
+        },
+        "mfe": null,
+        "mae": null,
+        "elapsed_sessions": 0,
+        "status": "pending",
+        "data_status": "unavailable"
+      },
+      "daily_states": [
+        {
+          "date": "2026-08-26",
+          "price": 61.35,
+          "source_systems": [
+            "multi_factor_radar"
+          ],
+          "in_current_opportunities": true,
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.support_bullish_engulfing",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.trendline_three_push",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ]
+        }
+      ],
+      "recovery": {
+        "recovered_from_git": true,
+        "recovery_version": "git-rare-radar-recovery-v1",
+        "source_commits": [
+          "a84f39d1d42ed45ff2129793c1caa5d0118d486c"
+        ],
+        "original_signal_days": [
+          "2026-08-26"
+        ],
+        "limitations": [
+          "Recorder did not exist at original signal time",
+          "Unavailable original context is not reconstructed from current definitions"
+        ]
+      },
+      "audit": {
+        "future_data_used": false,
+        "created_as_of": "2026-08-26",
+        "last_updated_as_of": "2026-08-26",
+        "recovered_at": "2026-08-27T07:55:49.189752+00:00"
+      },
+      "immutable_fingerprint": "3dd4cbc2b5770b38599768718e3712bd74829d0f133399094af78f88de5c7b06"
     },
     {
       "signal_id": "SVP1-DOC-2026-08-26",
@@ -6844,6 +10857,235 @@
       "immutable_fingerprint": "ebf76ebd7e9556e78360b3860fd4da1df370fc3b6c6d95f6ecd81c95802de426"
     },
     {
+      "signal_id": "SVP1-GS-2026-08-26",
+      "signal_schema_version": "1.1.0",
+      "observation_mode": "production_forward",
+      "product_version": "SV-PRODUCT-LEGACY-RECOVERED-V1",
+      "signal_definition_version": "legacy-rare-score-v1",
+      "symbol": "GS",
+      "first_seen_date": "2026-08-26",
+      "last_seen_date": "2026-08-26",
+      "days_active": 1,
+      "absent_sessions": 0,
+      "lifecycle": "MONITORING",
+      "initial_source_systems": [
+        "multi_factor_radar"
+      ],
+      "source_systems": [
+        "multi_factor_radar"
+      ],
+      "latest_current_status": "historical_recovered",
+      "entry": {
+        "convention": "next_trading_day_adjusted_open",
+        "date": null,
+        "price": null
+      },
+      "signal_time_snapshot": {
+        "technical": {
+          "tracker_rank": null,
+          "technical_score": null,
+          "combined_score": null,
+          "setup": null,
+          "status": null,
+          "rank_reason": null
+        },
+        "multi_factor": {
+          "factor_registry_version": "0.4.0",
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "score_contributions": [
+            "macd.daily_bull_cross",
+            "support.fibonacci_half",
+            "support.ema_proximity",
+            "structure.trendline_three_push",
+            "structure.bullish_fvg_support"
+          ],
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.trendline_three_push",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ],
+          "non_scoring_evidence": [],
+          "risks": [
+            "当前动态观察因子尚未完成跨时期组合验证"
+          ]
+        },
+        "industry": {
+          "industry_radar_as_of": null,
+          "membership_version": null,
+          "rule_version": null,
+          "themes": []
+        },
+        "market": {
+          "status": "unavailable_at_recovery"
+        }
+      },
+      "versions": {
+        "code_version": "SV-PRODUCT-V1",
+        "factor_registry_version": "0.4.0",
+        "industry_membership_version": null
+      },
+      "forward": {
+        "returns": {
+          "1": null,
+          "5": null,
+          "10": null,
+          "20": null,
+          "60": null,
+          "100": null
+        },
+        "mfe": null,
+        "mae": null,
+        "elapsed_sessions": 0,
+        "status": "pending",
+        "data_status": "unavailable"
+      },
+      "daily_states": [
+        {
+          "date": "2026-08-26",
+          "price": 1040.46,
+          "source_systems": [
+            "multi_factor_radar"
+          ],
+          "in_current_opportunities": true,
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.fibonacci_half",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.trendline_three_push",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ]
+        }
+      ],
+      "recovery": {
+        "recovered_from_git": true,
+        "recovery_version": "git-rare-radar-recovery-v1",
+        "source_commits": [
+          "a84f39d1d42ed45ff2129793c1caa5d0118d486c"
+        ],
+        "original_signal_days": [
+          "2026-08-26"
+        ],
+        "limitations": [
+          "Recorder did not exist at original signal time",
+          "Unavailable original context is not reconstructed from current definitions"
+        ]
+      },
+      "audit": {
+        "future_data_used": false,
+        "created_as_of": "2026-08-26",
+        "last_updated_as_of": "2026-08-26",
+        "recovered_at": "2026-08-27T07:55:49.189839+00:00"
+      },
+      "immutable_fingerprint": "7d01dc917768504ceea27d4c056fbb0da2922b725cac67e8eaef25075272a767"
+    },
+    {
       "signal_id": "SVP1-KMB-2026-08-26",
       "signal_schema_version": "1.0.0",
       "observation_mode": "production_forward",
@@ -7870,7 +12112,8 @@
                 "confirmation_delay_bars": 0
               }
             }
-          ]
+          ],
+          "legacy_production_score": 6
         },
         "industry": {
           "industry_radar_as_of": "2026-08-26",
@@ -7906,9 +12149,105 @@
       "audit": {
         "future_data_used": false,
         "created_as_of": "2026-08-26",
-        "last_updated_as_of": "2026-08-26"
+        "last_updated_as_of": "2026-08-26",
+        "recovery_migrated_as_of": "2026-08-26"
       },
-      "immutable_fingerprint": "e5ad39e35a6974e372d3f18b5f35b51d675effcdcf8c9ef21b14f2aacc4e7609"
+      "immutable_fingerprint": "07269c4b9fcdd49c0c6990b364f647bc2c58da5da944a14285aeae3e25c7cc37",
+      "recovery": {
+        "recovered_from_git": true,
+        "recovery_version": "git-rare-radar-recovery-v1",
+        "source_commits": [
+          "a84f39d1d42ed45ff2129793c1caa5d0118d486c"
+        ],
+        "original_signal_days": [
+          "2026-08-26"
+        ],
+        "limitations": [
+          "Recorder did not exist at original signal time",
+          "Unavailable original context is not reconstructed from current definitions"
+        ]
+      },
+      "daily_states": [
+        {
+          "date": "2026-08-26",
+          "price": 110.34,
+          "source_systems": [
+            "multi_factor_radar"
+          ],
+          "in_current_opportunities": true,
+          "legacy_production_score": 6,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.trendline_three_push",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.trendline_three_push_retest",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "risk.overhead_unfilled_gap",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ]
+        }
+      ]
     },
     {
       "signal_id": "SVP1-NVO-2026-08-26",
@@ -8828,6 +13167,235 @@
         "last_updated_as_of": "2026-08-26"
       },
       "immutable_fingerprint": "62bfe11505321435c8bac9d5856906ff74b86f77692758f488bf9a780a68eb26"
+    },
+    {
+      "signal_id": "SVP1-RIVN-2026-08-26",
+      "signal_schema_version": "1.1.0",
+      "observation_mode": "production_forward",
+      "product_version": "SV-PRODUCT-LEGACY-RECOVERED-V1",
+      "signal_definition_version": "legacy-rare-score-v1",
+      "symbol": "RIVN",
+      "first_seen_date": "2026-08-26",
+      "last_seen_date": "2026-08-26",
+      "days_active": 1,
+      "absent_sessions": 0,
+      "lifecycle": "MONITORING",
+      "initial_source_systems": [
+        "multi_factor_radar"
+      ],
+      "source_systems": [
+        "multi_factor_radar"
+      ],
+      "latest_current_status": "historical_recovered",
+      "entry": {
+        "convention": "next_trading_day_adjusted_open",
+        "date": null,
+        "price": null
+      },
+      "signal_time_snapshot": {
+        "technical": {
+          "tracker_rank": null,
+          "technical_score": null,
+          "combined_score": null,
+          "setup": null,
+          "status": null,
+          "rank_reason": null
+        },
+        "multi_factor": {
+          "factor_registry_version": "0.4.0",
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "score_contributions": [
+            "macd.daily_bull_cross",
+            "support.ema_proximity",
+            "structure.trendline_three_push",
+            "structure.trendline_three_push_retest",
+            "structure.bullish_fvg_support"
+          ],
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.trendline_three_push",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.trendline_three_push_retest",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ],
+          "non_scoring_evidence": [],
+          "risks": [
+            "当前动态观察因子尚未完成跨时期组合验证"
+          ]
+        },
+        "industry": {
+          "industry_radar_as_of": null,
+          "membership_version": null,
+          "rule_version": null,
+          "themes": []
+        },
+        "market": {
+          "status": "unavailable_at_recovery"
+        }
+      },
+      "versions": {
+        "code_version": "SV-PRODUCT-V1",
+        "factor_registry_version": "0.4.0",
+        "industry_membership_version": null
+      },
+      "forward": {
+        "returns": {
+          "1": null,
+          "5": null,
+          "10": null,
+          "20": null,
+          "60": null,
+          "100": null
+        },
+        "mfe": null,
+        "mae": null,
+        "elapsed_sessions": 0,
+        "status": "pending",
+        "data_status": "unavailable"
+      },
+      "daily_states": [
+        {
+          "date": "2026-08-26",
+          "price": 16.33,
+          "source_systems": [
+            "multi_factor_radar"
+          ],
+          "in_current_opportunities": true,
+          "legacy_production_score": 5,
+          "official_score": 0,
+          "experimental_observational_score": null,
+          "factor_states": [
+            {
+              "factor_id": "macd.daily_bull_cross",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "support.ema_proximity",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.trendline_three_push",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.trendline_three_push_retest",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            },
+            {
+              "factor_id": "structure.bullish_fvg_support",
+              "factor_version": null,
+              "temporal_status": "ACTIVE",
+              "hit": true,
+              "recent_hit": true,
+              "latest_hit_date": "2026-08-26",
+              "bars_since_hit": 0,
+              "research_status": "historical_original",
+              "score_role": "legacy_production"
+            }
+          ]
+        }
+      ],
+      "recovery": {
+        "recovered_from_git": true,
+        "recovery_version": "git-rare-radar-recovery-v1",
+        "source_commits": [
+          "a84f39d1d42ed45ff2129793c1caa5d0118d486c"
+        ],
+        "original_signal_days": [
+          "2026-08-26"
+        ],
+        "limitations": [
+          "Recorder did not exist at original signal time",
+          "Unavailable original context is not reconstructed from current definitions"
+        ]
+      },
+      "audit": {
+        "future_data_used": false,
+        "created_as_of": "2026-08-26",
+        "last_updated_as_of": "2026-08-26",
+        "recovered_at": "2026-08-27T07:55:49.190205+00:00"
+      },
+      "immutable_fingerprint": "321f7a5e586f22b256ab45c335f3132a94a1604e962f4d9cad5e404d51afd02c"
     },
     {
       "signal_id": "SVP1-SNAP-2026-08-26",
@@ -11701,6 +16269,5 @@
       },
       "immutable_fingerprint": "925210244d3fc75cdd19fdb81bbc9da70527fe9f1044787cb20db98eaad3c077"
     }
-  ],
-  "content_hash": "648e3caf35288abddcb5a049735a9a6d2d76fadd718f1ab9636e42e4bfbdcb26"
+  ]
 }

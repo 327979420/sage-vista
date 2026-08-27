@@ -1,7 +1,7 @@
 # Signal History / Forward Observation
 
 状态：生产架构权威说明  
-版本：1.0.0  
+版本：1.1.0
 最后更新：2026-08-27
 
 ## Purpose and system boundary
@@ -26,7 +26,9 @@ Industry Radar 不独立创建股票案例，只冻结为信号发生时的上�
 
 ## Immutable signal-time evidence
 
-创建时冻结：Tracker rank/score/setup、完整 27-factor states、正式与实验观察分、贡献、non-scoring evidence、risks、Industry membership/state/RS/breadth、可用的 market regime，以及 code/product、factor registry、Industry membership/rule 和 signal definition versions。后续更新不得用新定义回写这部分。
+创建时冻结：Tracker rank/score/setup、完整 27-factor states、正式与实验观察分、贡献、non-scoring evidence、risks，以及当时可用的 context 与版本。后续更新不得用新定义回写这部分。当前生产入池继续服从旧生产评分门槛；27-factor experimental score 只 shadow observation，直到新 signal definition 经验证后正式替换。
+
+每个案例另有 append-only `daily_states`：按交易日保存价格、是否仍在 Current、旧生产分、正式分、27-factor 实验观察分和因子 `ACTIVE / RECENT / EXPIRED / NEVER / UNAVAILABLE` 状态。第一阶段不把 Industry/Market 写入逐日状态；两个 context 模块完成优化后再以新 schema version 接入。
 
 V2/V3 必须创建新 `product_version` / `signal_definition_version`；V1 case 永远保留 V1。未来实验可以只读取版本、Industry state、market regime 和 frozen factor states，不改变生产记录。
 

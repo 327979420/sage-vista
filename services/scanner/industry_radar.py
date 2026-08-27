@@ -9,6 +9,7 @@ ROOT=pathlib.Path(__file__).resolve().parents[2]
 DEFAULT_SNAPSHOT_DIR=ROOT/"data/themes/snapshots"
 CONFIG={
  "min_valid_members":5,
+ "min_valid_member_ratio":0.50,
  "leadership_percentile":70.0,
  "healthy_breadth":0.60,
  "meaningful_breadth_decline":-0.10,
@@ -40,6 +41,7 @@ def select_snapshot(as_of,snapshot_dir=DEFAULT_SNAPSHOT_DIR):
 def member_metrics(rows,spy,as_of):
  rows=rows_as_of(rows,as_of);spy=rows_as_of(spy,as_of)
  if len(rows)<61 or len(spy)<61:return None
+ if rows[-1]["date"]!=as_of or spy[-1]["date"]!=as_of:return None
  spy_by_date={x["date"]:x["close"] for x in spy};aligned=[x for x in rows if x["date"] in spy_by_date]
  if len(aligned)<61:return None
  end=aligned[-1]
@@ -61,7 +63,7 @@ def percentile(values,value):
  return 100*sum(x<=value for x in values)/len(values)
 
 def classify_state(item,config=CONFIG):
- if item["valid_member_count"]<config["min_valid_members"] or item["strength_percentile"] is None:return "Unavailable"
+ if item["valid_member_count"]<config["min_valid_members"] or item.get("valid_member_ratio",1)<config["min_valid_member_ratio"] or item["strength_percentile"] is None:return "Unavailable"
  strong=item["strength_percentile"]>=config["leadership_percentile"] and item["breadth_above_sma50"]>=config["healthy_breadth"]
  weakening=item["relative_5d"]<0 or item["breadth_change_10d"]<=config["meaningful_breadth_decline"]
  if strong and weakening:return "Pullback Watch"
@@ -83,8 +85,9 @@ def calculate(snapshot,price_data,spy_rows,as_of):
    metric=member_metrics(price_data.get(symbol,[]),spy_rows,as_of)
    if metric:observations.append(metric)
   valid=len(observations);item={k:theme.get(k) for k in ("theme_id","name","source_type","source_provider","source","source_url","source_date","effective_from","source_status","parse_status","error_reason")}
-  audit=theme.get("membership_audit",{});item.update({"member_count":len(theme["members"]),"raw_holdings_count":audit.get("total_holdings",len(theme["members"])),"us_resolvable_count":audit.get("us_tradeable_members",0),"foreign_or_unmapped_count":audit.get("foreign_or_unmapped_count",len(audit.get("foreign_or_unmapped_members",[]))),"valid_member_count":valid})
-  if valid>=CONFIG["min_valid_members"]:
+  audit=theme.get("membership_audit",{});member_count=len(theme["members"]);valid_ratio=valid/member_count if member_count else 0
+  item.update({"member_count":member_count,"raw_holdings_count":audit.get("total_holdings",member_count),"us_resolvable_count":audit.get("us_tradeable_members",0),"foreign_or_unmapped_count":audit.get("foreign_or_unmapped_count",len(audit.get("foreign_or_unmapped_members",[]))),"valid_member_count":valid,"valid_member_ratio":valid_ratio})
+  if valid>=CONFIG["min_valid_members"] and valid_ratio>=CONFIG["min_valid_member_ratio"]:
    avg=lambda key:sum(x[key] for x in observations)/valid
    item.update({"return_20d":avg("return_20d"),"return_60d":avg("return_60d"),"relative_20d":avg("relative_20d"),"relative_60d":avg("relative_60d"),"breadth_above_sma50":avg("above_sma50"),"breadth_positive_20d":avg("positive_20d"),"relative_5d":avg("relative_5d"),"breadth_change_10d":avg("above_sma50")-avg("above_sma50_10d_ago")})
   else:
@@ -119,9 +122,9 @@ def run(out="public/industry-radar.json",as_of=None,snapshot_dir=DEFAULT_SNAPSHO
   except Exception:spy=[]
   themes,ticker_context=calculate(snapshot,data,spy,as_of)
   sufficient={symbol for symbol in symbols if member_metrics(data[symbol],spy,as_of)} if spy else set()
-  report={"as_of":as_of,"generated_at":datetime.now(timezone.utc).isoformat(),"membership_version":snapshot["version"],"membership_effective_from":snapshot["effective_from"],"future_data_used":False,"historical_membership_safe":True,"status":"research_prototype_not_validated_alpha" if spy else "market_data_unavailable_safe","config":CONFIG,
+  report={"schema_version":"2.0.0","as_of":as_of,"generated_at":datetime.now(timezone.utc).isoformat(),"membership_version":snapshot["version"],"membership_effective_from":snapshot["effective_from"],"future_data_used":False,"historical_membership_safe":True,"mode":"decision_context_not_technical_score","status":"research_prototype_not_validated_alpha" if spy else "market_data_unavailable_safe","config":CONFIG,
    "price_data_audit":{"provider":"EODHD","requested_tickers":symbols,"fetched_tickers":fetched,"unavailable_tickers":unavailable,"insufficient_history_tickers":sorted(set(fetched)-sufficient),"errors_redacted":True},
-   "themes":themes,"ticker_context":ticker_context,"membership_overlap":snapshot.get("overlap_analysis",[])}
+   "themes":themes,"ticker_context":ticker_context,"membership_overlap":snapshot.get("overlap_analysis",[]),"audit":{"exact_as_of_required":True,"minimum_valid_member_ratio":CONFIG["min_valid_member_ratio"],"future_rows_used":False,"state_model":"industry-state-v2"}}
  pathlib.Path(out).parent.mkdir(parents=True,exist_ok=True);pathlib.Path(out).write_text(json.dumps(report,indent=2)+"\n")
  return report
 

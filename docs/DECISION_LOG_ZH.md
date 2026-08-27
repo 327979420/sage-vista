@@ -2,6 +2,29 @@
 
 本文件记录产品方向与用户要求。实验数字和因子结论仍以 `research/experiments.jsonl` 为机器账本。
 
+## 2026-08-27：旧评分过渡、永久追踪池与实验保全
+
+- 当前生产继续使用旧观察评分和既有门槛；27 因子实验观察分先 shadow monitoring，完成历史回测、独立验证和前向观察后才能以新 signal definition 替代旧评分。
+- 达到当时生产门槛即永久进入 Tracking Pool，不要求当前 `official_score > 0`。掉榜只改变状态，不删除；reset 后重新触发建立新案例。
+- 因子技术时效与研究状态分开：`ACTIVE / RECENT / EXPIRED / NEVER / UNAVAILABLE` 不得被“不计正式权重”替代。
+- Signal History 逐日保存价格、旧生产分、正式分、27 因子实验分和因子时效；Industry/Market 待模块优化后再接入逐日案例。
+- Git 历史审计找到 27 个旧 Rare signal-day、18 只股票，PG 于 2026-08-25 以旧分6首次触发。恢复必须保留原始提交证据，不能用当前规则重算。
+- 历史实验全部进入永久机器目录；成功、失败、不稳定和样本不足均保留。Historical Backtest 与 Production Forward 同页对照、分别统计。
+
+## 2026-08-27：Market Context 纳入统一生产日更
+
+- `market-etf-watch.json` 不再是独立、可滞后的静态文件；它与 Tracker、factor snapshot、Rare、Industry 和 Signal History 使用同一个权威交易日并原子发布。
+- 17只必需 ETF 任一缺少权威日期的完整 bar，整次发布失败关闭；所有输入先裁切到 `as_of`，输出记录 `future_data_used=false` 与完整审计。
+- 当前五项旧市场温度评分保持不变，避免未经回测修改生产语义；新增趋势、广度、风险偏好三层结构，只作为决策 context，不回写股票技术分。
+- freshness monitor、线上整组验证和 GitHub 日更提交全部纳入 Market Context 文件与日期。
+
+## 2026-08-27：Industry Context V2 数据完整性门槛
+
+- 成分股必须有与 Radar `as_of` 完全一致的完整日 bar；旧价格不得冒充当日行业状态，未来行继续在计算前裁切。
+- Theme 除至少5只有效成员外，还必须达到50%有效成员覆盖率；大型篮子不能再由少数可用股票代表整体行业。
+- 输出新增 `valid_member_ratio`、`state_model=industry-state-v2`、完整审计和 `decision_context_not_technical_score` 边界。
+- Leadership、Pullback、Recovery 阈值暂不按收益优化；先保证 membership 和价格样本可信，再进入预注册分层回测。
+
 ## 2026-08-27：统一为单一 Cloudflare production
 
 - 唯一生产站点固定为 `https://sage-vista-parallel.gizmo-allied-0s.workers.dev`；名称中的 `parallel` 只是既有 Worker 资源名，不再表示平行生产环境。

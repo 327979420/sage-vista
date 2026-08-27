@@ -91,6 +91,17 @@ class IndustryRadarTests(unittest.TestCase):
   themes,_=calculate({"themes":[theme(members=["A","B","C","D","E","Z"])]},data,spy,"2026-03-31")
   self.assertEqual(themes[0]["valid_member_count"],5)
 
+ def test_stale_member_is_not_used_as_current_industry_evidence(self):
+  stale=series();stale[-1]["date"]="2026-03-30"
+  self.assertIsNone(member_metrics(stale,series(0),"2026-03-31"))
+
+ def test_large_theme_requires_representative_coverage_not_just_five_members(self):
+  members=[chr(65+i) for i in range(10)];data={x:series(.001) if i<5 else [] for i,x in enumerate(members)}
+  themes,_=calculate({"themes":[theme(members=members)]},data,series(0),"2026-03-31")
+  self.assertEqual(themes[0]["valid_member_ratio"],.5);self.assertNotEqual(themes[0]["state"],"Unavailable")
+  data[members[4]]=[];themes,_=calculate({"themes":[theme(members=members)]},data,series(0),"2026-03-31")
+  self.assertEqual(themes[0]["state"],"Unavailable")
+
  def test_insufficient_theme_is_safe(self):
   themes,_=calculate({"themes":[theme(members=["A","B"])]},{"A":series(),"B":series()},series(0),"2026-03-31")
   self.assertEqual(themes[0]["state"],"Unavailable");self.assertIsNone(themes[0]["relative_20d"])

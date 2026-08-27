@@ -28,6 +28,18 @@ class SignalHistoryTests(unittest.TestCase):
   self.assertEqual(len(history["cases"]),1);self.assertEqual(history["cases"][0]["latest_current_status"],"dropped")
   history=self.make(history,"2026-09-01",rows=7);self.assertEqual(len(history["cases"]),2)
 
+ def test_daily_timeline_keeps_dropped_cases_and_separates_factor_temporality(self):
+  first=self.make(rare=("PG",));case=first["cases"][0]
+  self.assertEqual(case["daily_states"][0]["date"],"2026-08-26")
+  self.assertEqual(case["daily_states"][0]["legacy_production_score"],None)
+  dropped=self.make(first,"2026-08-27",symbols=(),rows=2);case=dropped["cases"][0]
+  self.assertEqual([x["date"] for x in case["daily_states"]],["2026-08-26","2026-08-27"])
+  self.assertFalse(case["daily_states"][-1]["in_current_opportunities"])
+
+ def test_repeated_build_for_same_day_does_not_duplicate_daily_state(self):
+  first=self.make();again=self.make(first)
+  self.assertEqual(len(again["cases"][0]["daily_states"]),1)
+
  def test_original_evidence_and_industry_are_immutable(self):
   first=self.make();original=copy.deepcopy(first["cases"][0]["signal_time_snapshot"])
   second=self.make(first,"2026-08-27",rows=2)

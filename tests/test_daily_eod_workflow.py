@@ -15,3 +15,4 @@ class DailyEodWorkflowTests(unittest.TestCase):
   self.assertIn("automation/production-state.json",text)
   self.assertIn("services.scanner.verify_live_deployment",text)
   self.assertIn("public/signal-history.json",text)
+  self.assertIn("public/market-etf-watch.json",text)
