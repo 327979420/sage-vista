@@ -14,6 +14,8 @@ jobs:
   backtest:
     runs-on: ubuntu-latest
     timeout-minutes: 180
+    env:
+      EODHD_API_TOKEN: ${{ secrets.EODHD_API_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
@@ -33,6 +35,8 @@ jobs:
           test "$(find work/eodhd-cache -type f -name '*.json' | wc -l)" -ge 1000
           test -f work/eodhd-cache/SPY.json
           test -f work/eodhd-cache/QQQ.json
+      - name: Fetch missing industry ETF histories
+        run: python3 -m services.scanner.cache_theme_etfs
       - name: Run all Python tests
         run: python3 -m unittest discover -s tests -p 'test_*.py'
       - name: Run full-line backtest
@@ -43,10 +47,11 @@ jobs:
           python3 - <<'PY'
           import json
           report=json.load(open("research/backtest/output/full-line-v1.json"))
-          if report.get("version")!="full-line-backtest-v1.0.0":raise SystemExit("wrong report version")
+          if report.get("version")!="full-line-backtest-v1.0.1":raise SystemExit("wrong report version")
           if report.get("audit",{}).get("stock_events",0)<1000:raise SystemExit("stock sample too small")
           if report.get("audit",{}).get("current_theme_membership_backfilled"):raise SystemExit("unsafe membership backfill")
           if not report.get("stock_combinations"):raise SystemExit("missing P/L combinations")
+          if report.get("industry_etf_hotspots",{}).get("events",0)<20:raise SystemExit("industry ETF sample too small")
           PY
       - name: Commit research report
         shell: bash
