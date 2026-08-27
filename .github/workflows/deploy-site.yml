@@ -1,0 +1,49 @@
+name: Deploy Website Only
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sage-vista-site-deploy
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: "22.13.0"
+  PRODUCTION_SITE_URL: https://sage-vista-parallel.gizmo-allied-0s.workers.dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Build and test website
+        run: npm test
+      - name: Require deployment secrets
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          test -n "$CLOUDFLARE_API_TOKEN"
+          test -n "$CLOUDFLARE_ACCOUNT_ID"
+      - name: Deploy existing audited data and website
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npm run deploy:cloudflare
+      - name: Verify the published UI version
+        run: |
+          for attempt in 1 2 3 4 5; do
+            page=$(curl --fail --silent --show-error "$PRODUCTION_SITE_URL")
+            if printf '%s' "$page" | grep -q 'Sage Vista UI v4.0'; then exit 0; fi
+            sleep 6
+          done
+          exit 1
