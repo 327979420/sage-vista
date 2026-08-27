@@ -133,6 +133,10 @@ UI 的目标是专业、克制、清楚，而不只是简单。
 - 原始技术定义和深灰色研究细节放在折叠区或专门研究页。
 - 默认使用短句、图表、分类得分和可点击证据，减少重复段落。
 - 四个主页面使用同一导航、状态颜色、日期格式、间距和卡片系统。
+
+UI V2（2026-08-27）固定为五项主导航，Market Context 降为 secondary navigation。每页只有一个首要问题：Home 回答今天看什么；Technical Tracker 回答哪些股票值得注意；Multi-Factor 解释 27 项证据；Industry Radar 解释 Theme 位置；Research 回答历史或真实 forward 是否有效。桌面正文最低 16px，主要表格/卡片 15–16px，section heading 20–24px，page title 28–34px，只有审计元数据允许 13px；不再使用 10/11px 承载可读内容。
+
+Technical Tracker 采用左侧冻结排名 screener、右侧 selected-stock research panel；Multi-Factor 和 Industry 只做 presentation join，不能回写排名。Industry 主表排除 Unavailable，后者进入 Data Quality 折叠区。Research 使用 Backtesting / Forward Testing / Experiments 三段切换；canonical Signal History 只在 Forward Testing 展示完整表，Multi-Factor 不再重复该表。共享组件限于 status badge、metric card、section header、empty state 和 audit details，不建立大型设计框架。
 - 手机端优先显示股票、总分、核心证据和风险，长解释延后。
 - 不为已经移除的旧页面继续维护重复说明和专属视觉组件。
 

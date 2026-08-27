@@ -215,3 +215,17 @@ Known limitations:
 每个 Theme snapshot 现在明确保存 `source_status`、`parse_status`、`holdings_count`、categorical `error_reason`、raw/US-resolvable/foreign-or-unmapped counts。Radar 输出再加入 valid price-history count。Parser/transport failure 必须是 `Unavailable / source_error`，不能表现为正常的零成员 Theme。
 
 本 revision 仍是 data coverage / quality work，不是 alpha experiment；没有修改 V1 thresholds，也没有向 `research/EXPERIMENTS.md` 添加结论。下一步只能先用 production EODHD run 验证新增 baskets 的 valid counts 与状态，再预注册 Industry-context forward comparison。
+
+## 13. 2026-08-27 targeted source audit
+
+### Semiconductors — KEEP / supported
+
+Primary membership remains the official [iShares SOXX holdings](https://www.ishares.com/us/products/239705/ishares-semiconductor-etf). The official page describes a US semiconductor value-chain index, publishes a holdings download, and reports about 30 portfolio holdings. The immutable `themes-2026-08-26-v2` snapshot contains 33 raw identifiers (including cash/future-like rows retained for audit), 33 US-resolvable identifiers by the existing conservative syntax check, and the production EODHD run produced 30 valid price histories. The resulting 2026-08-26 Radar state is **Neutral** (20D RS +6.4%, 60D RS −14.1%, 10% above SMA50, breadth change −23.3%). No theme-specific scraper, mapping guess, threshold, or ranking change was required. SMH remains fallback/cross-check evidence only.
+
+### AI Infrastructure — MANUAL_CURATED_REQUIRED
+
+The official [iShares AINF holdings](https://www.ishares.com/uk/professionals/en/products/338777/ishares-ai-infrastructure-ucits-etf) are useful candidate evidence, but not an automatic Sage Vista membership source. The basket is UCITS/global, includes foreign primary listings such as Taiwan `2330`, and mixes infrastructure enablers with broad platforms/software such as PLTR, MSFT, PANW, AMZN and AAPL. [Global X AIQ](https://www.globalxetfs.com/funds/aiq) is explicitly a broad Artificial Intelligence & Technology ETF and is only secondary cross-check evidence. Neither source alone defines the narrower economic exposure required by Sage Vista.
+
+Decision: **MANUAL_CURATED_REQUIRED**. Do not add `membership_source` or publish the Theme until a separate task approves an exact inclusion rule, second-source company evidence, review cadence, overlap audit, and dated immutable membership. Semiconductor Equipment also remains unresolved; this audit did not guess a production subset.
+
+This was a source/data-quality audit, not an alpha experiment. `research/EXPERIMENTS.md` and V1 thresholds remain unchanged.

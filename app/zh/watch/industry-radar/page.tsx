@@ -1,17 +1,19 @@
 "use client";
-import {useEffect,useState} from "react";
-
-type Theme={theme_id:string;name:string;state:string;source_provider?:string;source_status?:string;parse_status?:string;error_reason?:string|null;relative_20d:number|null;relative_60d:number|null;strength_percentile:number|null;breadth_above_sma50:number|null;breadth_change_10d:number|null;member_count:number;raw_holdings_count?:number;us_resolvable_count?:number;foreign_or_unmapped_count?:number;valid_member_count:number;context:string};
-type Report={as_of:string;status:string;membership_version:string|null;future_data_used:boolean;historical_membership_safe:boolean;themes:Theme[]};
-const stateLabel:Record<string,string>={"Leadership":"领先","Pullback Watch":"回调观察","Recovery":"修复","Neutral":"中性","Unavailable":"数据不足"};
-const pct=(value:number|null)=>value===null?"—":`${value>=0?"+":""}${(value*100).toFixed(1)}%`;
-
+import {useEffect,useMemo,useState} from "react";
+import {TrackerShell} from "../resonance/tracker-ui";
+import {EmptyState,SectionHeader,StatusBadge} from "../resonance/product-ui";
+type Theme={theme_id:string;name:string;state:string;source_provider?:string;source?:string;error_reason?:string|null;relative_20d:number|null;relative_60d:number|null;breadth_above_sma50:number|null;breadth_change_10d:number|null;member_count:number;raw_holdings_count?:number;us_resolvable_count?:number;valid_member_count:number;context:string};
+type Report={as_of:string;membership_version:string|null;future_data_used:boolean;themes:Theme[]};
+const labels:Record<string,string>={Leadership:"领先","Pullback Watch":"回调观察",Recovery:"修复",Neutral:"中性",Unavailable:"数据不足"};
+const pct=(v:number|null)=>v===null?"—":`${v>=0?"+":""}${(v*100).toFixed(1)}%`;
 export default function IndustryRadar(){
- const [data,setData]=useState<Report|null>(null);
+ const [data,setData]=useState<Report|null>(null),[sort,setSort]=useState<"state"|"relative_20d"|"breadth_above_sma50">("state");
  useEffect(()=>{fetch("/industry-radar.json",{cache:"no-store"}).then(x=>x.json()).then(setData)},[]);
- return <main className="irPage"><header className="irHero"><a href="/zh/watch/resonance">← 技术追踪器</a><p>RESEARCH PROTOTYPE · 独立上下文</p><h1>Industry Radar</h1><span>行业雷达不筛选个股、不改变技术分数与排名。状态仅供人工决策参考，不是交易信号。</span></header>
- {data&&<><section className="irAudit"><div><small>数据截至</small><b>{data.as_of}</b></div><div><small>成员版本</small><b>{data.membership_version??"无可用版本"}</b></div><div><small>未来数据</small><b>{data.future_data_used?"异常":"未使用"}</b></div><div><small>研究状态</small><b>{data.status==="market_data_unavailable_safe"?"行情未配置，安全停用":"未验证研究原型"}</b></div></section>
- <section className="irTable" aria-label="行业雷达主题表"><div className="irRow irHead"><span>主题</span><span>状态</span><span>20D RS vs SPY</span><span>60D RS vs SPY</span><span>广度 &gt; SMA50</span><span>广度趋势</span><span>数据质量</span></div>{data.themes.map(theme=><article className="irRow" key={theme.theme_id}><div><b>{theme.name}</b><small>{theme.context}{theme.error_reason?` · ${theme.error_reason}`:""}</small></div><span><mark data-state={theme.state}>{stateLabel[theme.state]??theme.state}</mark></span><span>{pct(theme.relative_20d)}</span><span>{pct(theme.relative_60d)}</span><span>{theme.breadth_above_sma50===null?"—":`${(theme.breadth_above_sma50*100).toFixed(0)}%`}</span><span>{pct(theme.breadth_change_10d)}</span><span><b>{theme.valid_member_count} valid</b><small>{theme.source_provider??"—"} · raw {theme.raw_holdings_count??theme.member_count} · US {theme.us_resolvable_count??"—"} · foreign/unmapped {theme.foreign_or_unmapped_count??"—"}</small></span></article>)}</section>
- <footer className="irNote">强度使用主题间百分位；主题篮子为成分股等权收益。阈值是 V1 研究参数，尚未证明任何预测能力。</footer></>}
- </main>
+ const ranked=useMemo(()=>{const order:Record<string,number>={Leadership:0,"Pullback Watch":1,Recovery:2,Neutral:3};return (data?.themes??[]).filter(x=>x.state!=="Unavailable").slice().sort((a,b)=>sort==="state"?(order[a.state]-order[b.state])||((b.relative_20d??-99)-(a.relative_20d??-99)):((b[sort]??-99)-(a[sort]??-99)))},[data,sort]);
+ const unavailable=(data?.themes??[]).filter(x=>x.state==="Unavailable"),group=(state:string)=>(data?.themes??[]).filter(x=>x.state===state);
+ return <TrackerShell active="行业雷达" title="行业雷达" subtitle="找出领先、回调与修复中的 Theme；只提供行业上下文，不改变个股排名。">{data&&<div className="irV2">
+  <section className="irStateSummary">{(["Leadership","Pullback Watch","Recovery"] as const).map(state=><article key={state} data-state={state}><small>{labels[state]}</small><strong>{group(state).length}</strong><p>{group(state).slice(0,4).map(x=>x.name).join(" · ")||"当前暂无"}</p></article>)}</section>
+  <section className="svPanel"><SectionHeader eyebrow="THEME RANKING" title="Theme 状态表" description="所有数值直接读取生产 Industry Radar，不在页面重新计算。" action={<label className="irSort">排序 <select value={sort} onChange={e=>setSort(e.target.value as typeof sort)}><option value="state">状态</option><option value="relative_20d">20D RS</option><option value="breadth_above_sma50">Breadth</option></select></label>}/><div className="irTableV2" role="table" aria-label="行业雷达主题表"><div className="irRowV2 irHeadV2" role="row"><span>Theme</span><span>State</span><span>20D RS</span><span>60D RS</span><span>Breadth</span><span>变化</span><span>有效成员</span><span>数据质量</span></div>{ranked.map(t=><article className="irRowV2" role="row" key={t.theme_id}><div><b>{t.name}</b><small>{t.context}</small></div><span><StatusBadge state={t.state}>{labels[t.state]}</StatusBadge></span><strong>{pct(t.relative_20d)}</strong><span>{pct(t.relative_60d)}</span><span>{t.breadth_above_sma50===null?"—":`${(t.breadth_above_sma50*100).toFixed(0)}%`}</span><span>{pct(t.breadth_change_10d)}</span><span><b>{t.valid_member_count}</b> / {t.member_count}</span><span><b>{t.source??t.source_provider??"—"}</b><small>raw {t.raw_holdings_count??t.member_count} · US {t.us_resolvable_count??"—"}</small></span></article>)}</div></section>
+  <details className="svAuditDetails"><summary>数据质量与不可用 Theme（{unavailable.length}）</summary>{unavailable.length?<div className="irUnavailable">{unavailable.map(t=><article key={t.theme_id}><StatusBadge state="Unavailable">数据不足</StatusBadge><b>{t.name}</b><span>{t.valid_member_count}/{t.member_count} valid · {t.source??t.source_provider??"—"}</span><p>{t.error_reason??t.context}</p></article>)}</div>:<EmptyState title="没有不可用 Theme"/>}<footer>数据截至 {data.as_of} · membership {data.membership_version??"—"} · future_data_used={String(data.future_data_used)}</footer></details>
+ </div>}</TrackerShell>
 }

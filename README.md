@@ -10,11 +10,11 @@ Sage Vista 是一个私有、可解释、可人工复核的美股技术研究与
 
 每日产品流固定为五层，不再维护平行 Signal Board：
 
-1. **今日研究总览**：市场状态、行业位置、技术机会、多因子上下文与数据审计。
-2. **指标共振 / Technical Tracker**：唯一的股票技术机会排名。
+1. **今日研究总览**：市场状态、行业位置、Top 5 技术机会、Forward Observation 与数据审计。
+2. **指标共振 / Technical Tracker**：唯一的股票技术机会排名；桌面端使用 screener + selected-stock detail 工作台。
 3. **多因子**：27 项技术证据层，不建立第二套排名。
 4. **行业雷达**：行业与 Theme 上下文，不进入 Technical Score。
-5. **研究 / 实验**：历史实验、失败记录、样本和 20/100 日结论。
+5. **研究 / 实验**：明确分开 Backtesting、Forward Testing 和 Experiments；Signal History 的 canonical UI 在 Forward Testing。
 
 生产提醒另有一份 append-only `signal-history.json`：它保存当时真实显示的 Technical / Multi-Factor opportunity、冻结当时的因子与 Industry 上下文，并只随未来交易日逐步填写 forward outcome。它不等于历史回测，也不会因股票离开今日榜单而消失。
 
@@ -29,7 +29,7 @@ RSI、RSI 底背离、成交量放大等不再需要各自占用独立功能页�
 - 多因子雷达不长期固定为当前六项一分制，而是读取因子库，区分正式验证分、观察分和冲突扣分。
 - 美国市场完整收盘后自动更新 MACD Tracker 与多因子雷达。
 - 未来接入 Discord Bot，只在达到门槛的稀有机会出现时播报，并提供网站复查链接。
-- 在信息结构稳定后统一升级为简洁、专业、适合桌面与手机复查的金融研究 UI。
+- 持续维护简洁、专业、适合桌面与手机复查的金融研究 UI；正文不低于 15–16px，工程审计元数据不与决策信息竞争。
 
 ## 文档
 
