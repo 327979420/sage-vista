@@ -85,6 +85,8 @@ jobs:
           pattern: unified-v2-*
           path: work/v2-parts
           merge-multiple: true
+      - name: Synchronize latest main before merging generated data
+        run: git pull --rebase origin main
       - name: Merge saved months with any newer published day
         run: python3 -m services.scanner.merge_unified_v2_reports public/unified-v2-rankings.json work/v2-parts/*.json --out public/unified-v2-rankings.json
       - name: Preserve every merged signal and calculate elapsed outcomes
@@ -98,7 +100,6 @@ jobs:
           git add public/unified-v2-rankings.json public/opportunity-ledger.json
           git diff --cached --quiet && exit 0
           git commit -m "data: unified V2 backfill ${{ inputs.start }} to ${{ inputs.end }}"
-          git pull --rebase origin main
           git push origin HEAD:main
       - name: Hand off publication to the website deploy workflow
         env:

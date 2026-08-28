@@ -23,3 +23,9 @@ class DailyEodWorkflowTests(unittest.TestCase):
   self.assertIn("workflow_dispatch",backfill)
   self.assertNotIn("schedule:",backfill)
   self.assertIn("--replace",backfill)
+  self.assertLess(backfill.index("git pull --rebase origin main"),backfill.index("merge_unified_v2_reports"))
+ def test_saved_week_recovery_does_not_recalculate_history(self):
+  recovery=(WORKFLOW.parent/"recover-unified-v2-backfill.yml").read_text()
+  self.assertIn("gh run download",recovery)
+  self.assertIn("merge_unified_v2_reports",recovery)
+  self.assertNotIn("unified_v2_scan --start",recovery)
