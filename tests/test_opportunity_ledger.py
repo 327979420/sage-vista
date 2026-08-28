@@ -19,6 +19,7 @@ class OpportunityLedgerTests(unittest.TestCase):
         report = build(unified(), {"as_of": "2026-08-27", "cases": []}, lambda _: ROWS)
         event = report["events"][0]
         self.assertEqual(event["selection"]["rank"], 1)
+        self.assertTrue(event["selection"]["rare_selected"])
         self.assertEqual(event["evaluation"]["entry_date"], "2026-08-26")
         self.assertAlmostEqual(event["evaluation"]["returns"]["1"], 11.5 / 11 - 1)
         self.assertEqual(event["selection"]["observed_factor_ids"], ["structure.test"])

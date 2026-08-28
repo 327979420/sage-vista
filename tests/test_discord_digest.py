@@ -7,6 +7,9 @@ class DiscordDigestTests(unittest.TestCase):
   item={"symbol":"ABC","price":10,"macd_rank_score":8};tracker={"as_of":"2026-08-24","macd_top10":[item],"macd_buy_top10":[item],"macd_sell_top10":[],"consistency_audit":{"ranking_digest":"abc123"}}
   signal={"symbol":"ABC","date":"2026-08-24","price":10,"score":5,"total_score":5,"components":["EMA支撑"],"factor_ids":["support.ema_proximity"],"risks":["研究观察"]};radar={"as_of":"2026-08-24","scan":{"future_data_used":False},"signals":[signal]}
   return status,tracker,radar
+ def unified(self):
+  row={"rank":1,"symbol":"XYZ","price":20,"technical_score":8,"industry_adjustment":1,"market_adjustment":0,"final_priority":9,"reasons":["长期趋势","MACD改善"]}
+  return {"future_data_used":False,"days":[{"date":"2026-08-24","ranking":[row],"rare_opportunities":[row]}]}
  def test_payload_keeps_alerts_and_adds_two_minimal_rankings(self):
   _,tracker,radar=self.fixtures();payload,alerts=build_payload(tracker,radar)
   self.assertEqual(alerts[0]["symbol"],"ABC");self.assertTrue(payload["embeds"][0]["title"].startswith("Confirmed"))
@@ -16,6 +19,12 @@ class DiscordDigestTests(unittest.TestCase):
   self.assertEqual(payload["embeds"][-1]["description"],"1. ABC")
   self.assertNotIn("$",payload["embeds"][-2]["description"]);self.assertNotIn("分",payload["embeds"][-1]["description"])
   self.assertIn("不是自动买入",payload["embeds"][0]["footer"]["text"])
+ def test_unified_v2_replaces_legacy_multifactor_ranking_and_rare_alerts(self):
+  _,tracker,radar=self.fixtures();unified=self.unified();payload,alerts=build_payload(tracker,radar,unified=unified)
+  self.assertEqual(payload["embeds"][-1]["description"],"1. XYZ")
+  self.assertIn("XYZ",[x["symbol"] for x in alerts]);self.assertNotIn("ABC",[x["symbol"] for x in alerts if x["score"]==5])
+  self.assertTrue(payload["embeds"][0]["url"].endswith("/rare-opportunities"))
+  self.assertEqual(validate_inputs(self.fixtures()[0],tracker,radar,unified),"2026-08-24")
  def test_five_points_meets_rare_threshold(self):
   _,tracker,radar=self.fixtures();_,alerts=build_payload(tracker,radar,minimum_rare_score=5);self.assertEqual(len(alerts),1)
  def test_notification_keys_are_stable_for_dedup(self):

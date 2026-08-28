@@ -63,6 +63,7 @@ def _evaluation(symbol, signal_date, loader):
 
 def _v2_event(day, row, loader):
     ledger = row.get("factor_ledger", [])
+    rare_symbols = {x["symbol"] for x in day.get("rare_opportunities", [])} or {x["symbol"] for x in day.get("ranking", [])[:5] if x.get("final_priority", 0) >= 9}
     return {
         "event_id": f"V2-{row['symbol']}-{day['date']}",
         "symbol": row["symbol"],
@@ -77,6 +78,7 @@ def _v2_event(day, row, loader):
             "industry_adjustment": row.get("industry_adjustment"),
             "market_adjustment": row.get("market_adjustment"),
             "final_priority": row.get("final_priority"),
+            "rare_selected": row["symbol"] in rare_symbols,
             "score_equation": row.get("score_equation"),
             "reasons": row.get("reasons", []),
             "scored_factor_ids": [x["factor_id"] for x in ledger if x.get("points", 0) > 0],
@@ -121,6 +123,7 @@ def _legacy_event(case):
             "industry_adjustment": None,
             "market_adjustment": None,
             "final_priority": multifactor.get("experimental_observational_score"),
+            "rare_selected": False,
             "score_equation": None,
             "reasons": [],
             "scored_factor_ids": factor_ids(multifactor.get("score_contributions", [])),

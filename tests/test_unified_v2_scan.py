@@ -1,6 +1,6 @@
 import unittest
 
-from services.scanner.unified_v2_scan import _candidate
+from services.scanner.unified_v2_scan import _candidate,_rank_day
 
 
 def state(factor_id, hit=False, recent=False):
@@ -18,6 +18,15 @@ class UnifiedV2ScanTests(unittest.TestCase):
   self.assertEqual(sum(x["points"] for x in result["factor_ledger"]),result["technical_score"])
   self.assertIn("rsi.oversold_repair",[x["factor_id"] for x in result["factor_ledger"] if x["hit"] and x["points"]==0])
   self.assertEqual(result["score_equation"],"8 技术 +1 大盘 +1 行业 = 10")
+
+ def test_rare_opportunities_are_an_ordered_subset_of_published_ranking(self):
+  rows=[]
+  for symbol in ("AAA","BBB","CCC","DDD","EEE","FFF"):
+   rows.append({"symbol":symbol,"price":10,"factors":[state("qualification.long_trend",True),state("macd.daily_bull_cross",True,True),state("support.ema_proximity",True),state("qualification.pullback_60d",True),state("structure.bullish_fvg_support",True),state("structure.support_bullish_engulfing",True,True),state("volume.bottom_expansion",False),state("risk.overhead_unfilled_gap",False)],"scoring":{"experimental_observational_score":5}})
+  snapshot={"as_of":"2026-08-27","eligible_count":len(rows),"symbols":rows};market={"as_of":"2026-08-27","market_temperature":{"state":"normal","score":3}};industry={"as_of":"2026-08-27","status":"available","historical_membership_safe":False,"ticker_context":{}}
+  day=_rank_day(snapshot,market,industry)
+  self.assertEqual([x["symbol"] for x in day["rare_opportunities"]],[x["symbol"] for x in day["ranking"][:5]])
+  self.assertLessEqual(len(day["rare_opportunities"]),5)
 
 
 if __name__=="__main__":unittest.main()
