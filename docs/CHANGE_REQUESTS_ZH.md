@@ -63,7 +63,7 @@
 ### CR-2026-08-28-004｜全仓库无用与冗余代码清理
 
 - 用户原意：检查代码和功能整洁性，删除真正无用、重复和会增加新对话检索成本的内容，让项目更容易接手。
-- 状态：`ready_for_release`
+- 状态：`implemented`
 - 主模块：`docs/rules/01_GOVERNANCE.md`，属于不改变业务语义的结构治理。
 - 联动模块：若清理页面或自动化入口则联动 `docs/rules/10_UI_AND_OPERATIONS.md`；若触及业务逻辑则先停止并改走对应业务模块。
 - 规则先行：沿用治理规则 `1.1.0` 的“纯修错 / 重构先记录且不改变业务语义”；本轮不改变评分、触发、历史数据或实验结论。
@@ -75,4 +75,6 @@
   - 历史实验、失败结果、研究脚本、行业数据、回测工作流和永久追踪数据全部保留。
   - 新增 `docs/CODEBASE_MAP_ZH.md`，按用户问题直接定位页面、生成器、工作流和机器数据。
   - `npm test` 现在固定包含 lint、TypeScript、生产构建和服务端渲染测试；新增旧路径跳转回归测试。
-- 验证：本地 `npm test` 通过（10/10 服务端/路由测试）；Python 全量测试通过（252/252）；`npm ci --ignore-scripts` 通过且安装树不再包含 Drizzle。待补提交与生产核验。
+- 验证：本地 `npm test` 通过（10/10 服务端/路由测试）；Python 全量测试通过（252/252）；`npm ci --ignore-scripts` 通过且安装树不再包含 Drizzle。
+- 提交：`1419995`（`refactor: remove retired UI and unused scaffolding`），已推送 `main`。
+- 生产：GitHub Actions `Deploy Website Only` 运行 `33172729251` 成功；2026-08-28 22:52 AEST 线上复核到 `Build 1419995`，旧路径返回 307 到维护中的模块。`verify_live_deployment` 通过：数据日 `2026-08-27`、1295 个 eligible、33 个 forward cases、2452 个 opportunity events。
