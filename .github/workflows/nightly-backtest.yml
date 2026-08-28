@@ -1,0 +1,94 @@
+name: Nightly Resumable Backtest
+
+on:
+  schedule:
+    # 21:30 Melbourne in AEST and 22:30 in AEDT; one older natural week per night.
+    - cron: "30 11 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: sage-vista-nightly-backtest
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    env:
+      EODHD_API_TOKEN: ${{ secrets.EODHD_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13" }
+      - name: Check whether the data token is available
+        id: token
+        shell: bash
+        run: |
+          if [ -n "$EODHD_API_TOKEN" ]; then echo "available=true" >> "$GITHUB_OUTPUT"; else echo "available=false" >> "$GITHUB_OUTPUT"; fi
+      - name: Read the last saved progress and plan exactly one older week
+        id: plan
+        run: python3 -m services.scanner.backtest_progress plan --github-output "$GITHUB_OUTPUT" > backtest-plan.json
+      - name: Restore audited historical price cache
+        if: steps.token.outputs.available == 'true' && steps.plan.outputs.enabled == 'true' && steps.plan.outputs.status == 'scheduled'
+        uses: actions/cache@v4
+        with:
+          path: |
+            work/eodhd-cache
+            work/eodhd-active-common.json
+          key: eodhd-history-v1-${{ github.run_id }}
+          restore-keys: eodhd-history-v1-
+      - name: Replay the planned week with the rules currently on main
+        if: steps.token.outputs.available == 'true' && steps.plan.outputs.enabled == 'true' && steps.plan.outputs.status == 'scheduled'
+        run: python3 -m services.scanner.unified_v2_scan --start "${{ steps.plan.outputs.start }}" --end "${{ steps.plan.outputs.end }}" --out "work/nightly-${{ steps.plan.outputs.label }}.json" --replace
+      - name: Validate the saved week before publication
+        if: steps.token.outputs.available == 'true' && steps.plan.outputs.enabled == 'true' && steps.plan.outputs.status == 'scheduled'
+        run: python3 -m unittest tests.test_backtest_progress tests.test_unified_v2_scan tests.test_merge_unified_v2_reports tests.test_opportunity_ledger tests.test_factor_snapshot
+      - name: Save the completed weekly checkpoint before any merge
+        if: steps.token.outputs.available == 'true' && steps.plan.outputs.enabled == 'true' && steps.plan.outputs.status == 'scheduled'
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-backtest-${{ steps.plan.outputs.label }}-${{ github.run_id }}
+          path: work/nightly-${{ steps.plan.outputs.label }}.json
+          retention-days: 90
+      - name: Merge without recalculating previously completed weeks
+        if: steps.token.outputs.available == 'true' && steps.plan.outputs.enabled == 'true' && steps.plan.outputs.status == 'scheduled'
+        run: |
+          git pull --rebase origin main
+          python3 -m services.scanner.merge_unified_v2_reports public/unified-v2-rankings.json "work/nightly-${{ steps.plan.outputs.label }}.json" --out public/unified-v2-rankings.json
+          python3 -m services.scanner.opportunity_ledger
+          python3 -m services.scanner.backtest_progress complete --start "${{ steps.plan.outputs.start }}" --end "${{ steps.plan.outputs.end }}" --completed-at "$(date -u +%FT%TZ)" > backtest-complete.json
+      - name: Validate progress, permanent history and repository
+        if: steps.token.outputs.available == 'true' && steps.plan.outputs.enabled == 'true' && steps.plan.outputs.status == 'scheduled'
+        run: python3 -m unittest discover -s tests -p 'test_*.py'
+      - name: Commit the successful week and its next cursor
+        if: steps.token.outputs.available == 'true' && steps.plan.outputs.enabled == 'true' && steps.plan.outputs.status == 'scheduled'
+        run: |
+          git config user.name "sage-vista-bot"
+          git config user.email "sage-vista-bot@users.noreply.github.com"
+          git add public/unified-v2-rankings.json public/opportunity-ledger.json public/backtest-progress.json automation/backtest-state.json
+          git diff --cached --quiet && exit 0
+          git commit -m "data: nightly backtest ${{ steps.plan.outputs.start }} to ${{ steps.plan.outputs.end }}"
+          git pull --rebase origin main
+          git push origin HEAD:main
+      - name: Publish the updated progress and historical results
+        if: steps.token.outputs.available == 'true' && steps.plan.outputs.enabled == 'true' && steps.plan.outputs.status == 'scheduled'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy-site.yml --ref main
+      - name: Write a plain progress summary
+        if: always()
+        run: |
+          {
+            echo "# Sage Vista Nightly Backtest"
+            echo
+            echo "- Token available: **${{ steps.token.outputs.available || 'false' }}**"
+            echo "- Scheduler: **${{ steps.plan.outputs.status || 'not_planned' }}**"
+            echo "- Planned week: **${{ steps.plan.outputs.start || '—' }} to ${{ steps.plan.outputs.end || '—' }}**"
+            echo "- Rule policy: completed weeks stay frozen; current rules apply only to this new week."
+            echo "- Resume policy: progress advances only after merge, tests and commit succeed."
+            echo "- Safety: failure does not advance progress; the same week is retried next night."
+          } >> "$GITHUB_STEP_SUMMARY"

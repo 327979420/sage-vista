@@ -11,7 +11,7 @@ class UiV2ContractTests(unittest.TestCase):
 
  def test_research_separates_three_evidence_modes(self):
   text=(ROOT/"app/zh/watch/resonance/research/page.tsx").read_text()
-  for label in ("历史回测","真实跟踪","实验档案","全部实验时间线","最早记录","开始","结束","现在怎么用","/signal-history.json"):
+  for label in ("历史回测","真实跟踪","实验档案","全部实验时间线","最早记录","开始","结束","现在怎么用","夜间回测会从断点自动继续","旧周冻结，新规则向前生效","/signal-history.json","/backtest-progress.json"):
    self.assertIn(label,text)
   self.assertIn('cache:"no-store"',text)
 

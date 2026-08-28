@@ -14,11 +14,14 @@ class MergeUnifiedV2ReportsTests(unittest.TestCase):
    self.assertEqual(result["coverage"],{"start":"2026-07-01","end":"2026-08-03","sessions":3})
    self.assertTrue(result["days"][1]["new"])
 
- def test_rejects_mixed_versions(self):
+ def test_preserves_mixed_versions_without_recalculating_old_days(self):
   with tempfile.TemporaryDirectory() as folder:
    root=Path(folder);a=root/"a.json";b=root/"b.json"
    a.write_text(json.dumps({"version":"a","future_data_used":False,"days":[{"date":"2026-01-01"}]}));b.write_text(json.dumps({"version":"b","future_data_used":False,"days":[{"date":"2026-01-02"}]}))
-   with self.assertRaisesRegex(RuntimeError,"versions"):merge([a,b],root/"out.json")
+   result=merge([a,b],root/"out.json")
+   self.assertEqual(result["model_versions"],["a","b"])
+   self.assertEqual(result["days"][0]["model_version"],"a")
+   self.assertEqual(result["days"][1]["model_version"],"b")
 
 
 if __name__=="__main__":unittest.main()

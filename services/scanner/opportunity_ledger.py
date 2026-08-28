@@ -74,7 +74,9 @@ def _v2_event(day, row, loader, model_version):
         "origins": ["historical_replay"],
         "source_systems": ["unified_v2"],
         "selection": {
-            "model_version": model_version,
+            "model_version": day.get("model_version", model_version),
+            "factor_registry_version": day.get("factor_registry_version"),
+            "ruleset_id": day.get("ruleset_id"),
             "rank": row.get("rank"),
             "signal_price": row.get("price"),
             "technical_score": row.get("technical_score"),

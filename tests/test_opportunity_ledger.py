@@ -12,7 +12,7 @@ ROWS = [
 
 def unified():
     profile = {"version": "timeframe-profile-v0.1.0", "label": "周线主导", "dominant_timeframe": "weekly"}
-    return {"version": "model-test-v2", "coverage": {"end": "2026-08-27"}, "days": [{"date": "2026-08-25", "market": {"state": "Risk-On", "score": 4}, "ranking": [{"rank": 1, "symbol": "PG", "price": 10, "technical_score": 7, "industry_adjustment": 1, "market_adjustment": 1, "final_priority": 9, "score_equation": "7 + 1 + 1 = 9", "reasons": ["长期趋势"], "industry_states": ["Leadership"], "timeframe_profile": profile, "factor_ledger": [{"factor_id": "qualification.long_trend", "hit": True, "points": 2}, {"factor_id": "structure.test", "hit": True, "points": 0}]}]}]}
+    return {"version": "model-test-v2", "coverage": {"end": "2026-08-27"}, "days": [{"date": "2026-08-25", "model_version":"frozen-v1","factor_registry_version":"factors-7","ruleset_id":"frozen-v1+factors-7","market": {"state": "Risk-On", "score": 4}, "ranking": [{"rank": 1, "symbol": "PG", "price": 10, "technical_score": 7, "industry_adjustment": 1, "market_adjustment": 1, "final_priority": 9, "score_equation": "7 + 1 + 1 = 9", "reasons": ["长期趋势"], "industry_states": ["Leadership"], "timeframe_profile": profile, "factor_ledger": [{"factor_id": "qualification.long_trend", "hit": True, "points": 2}, {"factor_id": "structure.test", "hit": True, "points": 0}]}]}]}
 
 
 class OpportunityLedgerTests(unittest.TestCase):
@@ -20,7 +20,8 @@ class OpportunityLedgerTests(unittest.TestCase):
         report = build(unified(), {"as_of": "2026-08-27", "cases": []}, lambda _: ROWS)
         event = report["events"][0]
         self.assertEqual(event["selection"]["rank"], 1)
-        self.assertEqual(event["selection"]["model_version"], "model-test-v2")
+        self.assertEqual(event["selection"]["model_version"], "frozen-v1")
+        self.assertEqual(event["selection"]["factor_registry_version"], "factors-7")
         self.assertTrue(event["selection"]["rare_selected"])
         self.assertEqual(event["evaluation"]["entry_date"], "2026-08-26")
         self.assertAlmostEqual(event["evaluation"]["returns"]["1"], 11.5 / 11 - 1)

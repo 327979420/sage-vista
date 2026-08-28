@@ -7,16 +7,15 @@ from .unified_v2_scan import _compact_day
 def merge(paths,out):
  reports=[json.loads(pathlib.Path(path).read_text()) for path in paths]
  if not reports:raise RuntimeError("No V2 reports supplied")
- versions={x.get("version") for x in reports}
- if len(versions)!=1:raise RuntimeError("Cannot merge different V2 model versions")
  if any(x.get("future_data_used") is not False for x in reports):raise RuntimeError("Future-data audit failed")
  by_date={}
  for report in reports:
-  for day in report.get("days",[]):by_date[day["date"]]=day
+  registry=report.get("model",{}).get("factor_registry_version","legacy_unrecorded")
+  for day in report.get("days",[]):by_date[day["date"]]={"model_version":report.get("version","legacy_unrecorded"),"factor_registry_version":registry,"ruleset_id":f"{report.get('version','legacy_unrecorded')}+factors-{registry}",**day}
  days=[_compact_day(by_date[x]) for x in sorted(by_date)]
  if not days:raise RuntimeError("No V2 sessions supplied")
  base=reports[-1]
- result={**base,"generated_at":datetime.now(timezone.utc).isoformat(),"coverage":{"start":days[0]["date"],"end":days[-1]["date"],"sessions":len(days)},"days":days}
+ result={**base,"generated_at":datetime.now(timezone.utc).isoformat(),"coverage":{"start":days[0]["date"],"end":days[-1]["date"],"sessions":len(days)},"version_policy":"每个历史日冻结其首次回放时的模型与因子库版本；新规则只用于后续批次，除非另开重算实验","model_versions":sorted({x.get("model_version","legacy_unrecorded") for x in days}),"factor_registry_versions":sorted({x.get("factor_registry_version","legacy_unrecorded") for x in days}),"days":days}
  pathlib.Path(out).write_text(json.dumps(result,ensure_ascii=False,separators=(",",":"))+"\n")
  return result
 

@@ -8,13 +8,14 @@ import argparse,json,pathlib,tempfile
 from datetime import datetime,timezone
 
 from .factor_snapshot import build_snapshot
-from .factor_registry import FACTORS_BY_ID
+from .factor_registry import FACTORS_BY_ID,REGISTRY_VERSION
 from .industry_radar import run as industry_run
 from .macd_factor_backtest import adjusted_rows
 from .market_etf_watch import FUNDS,build as market_build
 
 OUT="public/unified-v2-rankings.json"
-MODEL_VERSION="unified-v2-macd-trigger-1.1.0"
+MODEL_VERSION="unified-v2-macd-trigger-1.2.0"
+RULESET_ID=f"{MODEL_VERSION}+factors-{REGISTRY_VERSION}"
 RARE_MIN_PRIORITY=9
 RARE_LIMIT=5
 REMAINING_FACTOR_COUNT=len(FACTORS_BY_ID)-1
@@ -119,7 +120,7 @@ def _rank_day(snapshot,market,industry):
  rare=[x for x in candidates[:RARE_LIMIT] if x["final_priority"]>=RARE_MIN_PRIORITY]
  pool=[{"symbol":x["symbol"],"price":x["price"],"technical_score":x["technical_score"],"market_adjustment":x["market_adjustment"],"industry_adjustment":x["industry_adjustment"],"base_priority":x["final_priority"],"experimental_score":x["experimental_score"],"timeframe_profile":x["timeframe_profile"],"hit_factor_ids":[f["factor_id"] for f in x["factor_ledger"] if f["hit"]]} for x in candidates]
  rare_rows=[{k:v for k,v in x.items() if k not in {"factor_ledger","factor_summary"}} for x in rare]
- return {"date":day,"market":{"state":market["market_temperature"]["state"],"score":market["market_temperature"]["score"]},"industry_status":industry.get("status"),"historical_membership_safe":bool(industry.get("historical_membership_safe")),"eligible_count":snapshot["eligible_count"],"triggered_count":snapshot.get("triggered_count",len(snapshot["symbols"])),"candidate_count":len(candidates),"rare_policy":f"统一排行榜前{RARE_LIMIT}名且最终优先级至少{RARE_MIN_PRIORITY}；顺序与排行榜完全一致","rare_symbols":[x["symbol"] for x in rare],"rare_opportunities":rare_rows,"candidate_pool_policy":f"当日完整收盘MACD金叉先触发；触发后完整检测其余{REMAINING_FACTOR_COUNT}个登记因子，用于筛选、解释和重排，不能独立触发","candidate_pool":pool,"ranking":candidates[:30]}
+ return {"date":day,"model_version":MODEL_VERSION,"factor_registry_version":REGISTRY_VERSION,"ruleset_id":RULESET_ID,"market":{"state":market["market_temperature"]["state"],"score":market["market_temperature"]["score"]},"industry_status":industry.get("status"),"historical_membership_safe":bool(industry.get("historical_membership_safe")),"eligible_count":snapshot["eligible_count"],"triggered_count":snapshot.get("triggered_count",len(snapshot["symbols"])),"candidate_count":len(candidates),"rare_policy":f"统一排行榜前{RARE_LIMIT}名且最终优先级至少{RARE_MIN_PRIORITY}；顺序与排行榜完全一致","rare_symbols":[x["symbol"] for x in rare],"rare_opportunities":rare_rows,"candidate_pool_policy":f"当日完整收盘MACD金叉先触发；触发后完整检测其余{REMAINING_FACTOR_COUNT}个登记因子，用于筛选、解释和重排，不能独立触发","candidate_pool":pool,"ranking":candidates[:30]}
 
 def _compact_factor(item):
  """Keep every audit decision while removing repeated labels and raw evidence."""
@@ -144,10 +145,13 @@ def _compact_day(day):
 def _write_report(results,out,merge_existing):
  if merge_existing and pathlib.Path(out).exists():
   existing=json.loads(pathlib.Path(out).read_text())
-  if existing.get("version")==MODEL_VERSION:
-   by_date={x["date"]:x for x in existing.get("days",[])};by_date.update({x["date"]:x for x in results});results=[by_date[x] for x in sorted(by_date)]
+  existing_registry=existing.get("model",{}).get("factor_registry_version","legacy_unrecorded")
+  previous=[]
+  for day in existing.get("days",[]):previous.append({"model_version":existing.get("version","legacy_unrecorded"),"factor_registry_version":existing_registry,"ruleset_id":f"{existing.get('version','legacy_unrecorded')}+factors-{existing_registry}",**day})
+  by_date={x["date"]:x for x in previous};by_date.update({x["date"]:x for x in results});results=[by_date[x] for x in sorted(by_date)]
  results=[_compact_day(day) for day in results]
- report={"version":MODEL_VERSION,"generated_at":datetime.now(timezone.utc).isoformat(),"coverage":{"start":results[0]["date"],"end":results[-1]["date"],"sessions":len(results)},"production_status":"shadow_not_yet_validated","future_data_used":False,"model":{"trigger":"当日完整收盘日线MACD刚发生金叉；MACD只负责触发，不是唯一测试因子","technical":f"触发后完整检测其余{REMAINING_FACTOR_COUNT}个因子；当前正式候选计分仍为长期趋势2 + MACD改善3 + 日线EMA支撑2 + 回撤1 + FVG1 + 支撑确认最多1 - 上方缺口1；新增周/月EMA与周/月吞没进入实验观察分，完成回测前不改正式权重","timeframe_profile":"日/周/月去重后的实验观察贡献；周/月标签至少两个独立证据组且含方向、MACD质量或结构锚点。只作描述，不改变V2排名或承诺持仓时间","industry":"有当日有效成员快照时：Leadership +1；Recovery/Pullback Watch +0.5","market":"市场温度4-5加1；2-3不变；0-1减1","entry_gate":"必须当日MACD金叉触发、长期趋势有效且技术分至少4；其余因子仍全部检测、解释与排序；新增高周期因子本轮只进入实验观察分","execution":"新批次按下一交易日复权开盘入场；止损为信号日支撑下5%，最大计划亏损10%；2R止盈、40日到期、同日触发先算止损"},"limitations":["当前股票池来自现存缓存，正式胜率研究仍需纳入退市股票以消除幸存者偏差","没有当日有效行业成员快照的日期不做行业加分，绝不使用未来分类回填","这是新模型候选榜，不等于已验证买入信号"],"days":results}
+ versions=sorted({x.get("model_version","legacy_unrecorded") for x in results});registries=sorted({x.get("factor_registry_version","legacy_unrecorded") for x in results})
+ report={"version":MODEL_VERSION,"generated_at":datetime.now(timezone.utc).isoformat(),"coverage":{"start":results[0]["date"],"end":results[-1]["date"],"sessions":len(results)},"production_status":"shadow_not_yet_validated","future_data_used":False,"version_policy":"每个历史日冻结其首次回放时的模型与因子库版本；新规则只用于后续批次，除非另开重算实验","model_versions":versions,"factor_registry_versions":registries,"model":{"ruleset_id":RULESET_ID,"factor_registry_version":REGISTRY_VERSION,"trigger":"当日完整收盘日线MACD刚发生金叉；MACD只负责触发，不是唯一测试因子","technical":f"触发后完整检测其余{REMAINING_FACTOR_COUNT}个因子；当前正式候选计分仍为长期趋势2 + MACD改善3 + 日线EMA支撑2 + 回撤1 + FVG1 + 支撑确认最多1 - 上方缺口1；新增周/月EMA与周/月吞没进入实验观察分，完成回测前不改正式权重","timeframe_profile":"日/周/月去重后的实验观察贡献；周/月标签至少两个独立证据组且含方向、MACD质量或结构锚点。只作描述，不改变V2排名或承诺持仓时间","industry":"有当日有效成员快照时：Leadership +1；Recovery/Pullback Watch +0.5","market":"市场温度4-5加1；2-3不变；0-1减1","entry_gate":"必须当日MACD金叉触发、长期趋势有效且技术分至少4；其余因子仍全部检测、解释与排序；新增高周期因子本轮只进入实验观察分","execution":"新批次按下一交易日复权开盘入场；止损为信号日支撑下5%，最大计划亏损10%；2R止盈、40日到期、同日触发先算止损"},"limitations":["当前股票池来自现存缓存，正式胜率研究仍需纳入退市股票以消除幸存者偏差","没有当日有效行业成员快照的日期不做行业加分，绝不使用未来分类回填","这是新模型候选榜，不等于已验证买入信号"],"days":results}
  pathlib.Path(out).write_text(json.dumps(report,ensure_ascii=False,separators=(",",":"))+"\n");return report
 
 def run_published(out=OUT,public_dir="public"):

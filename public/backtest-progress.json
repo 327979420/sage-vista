@@ -1,0 +1,65 @@
+{
+  "schema_version": "nightly-backtest-progress-v1.0.0",
+  "enabled": true,
+  "status": "scheduled",
+  "mode": "backward_one_natural_week_per_night",
+  "timezone": "Australia/Melbourne",
+  "schedule": "21:30 AEST / 22:30 AEDT",
+  "direction": "backward",
+  "step": "natural_week",
+  "target_start": "2000-01-01",
+  "coverage": {
+    "start": "2026-05-01",
+    "end": "2026-08-27",
+    "sessions": 82
+  },
+  "next_window": {
+    "label": "2026-04-27_to_2026-04-30",
+    "start": "2026-04-27",
+    "end": "2026-04-30"
+  },
+  "last_successful_batch": {
+    "batch_id": "imported-2026-05-01-to-2026-08-27",
+    "start": "2026-05-01",
+    "end": "2026-08-27",
+    "sessions": 82,
+    "model_versions": [
+      "unified-v2-macd-trigger-1.1.0"
+    ],
+    "factor_registry_versions": [
+      "legacy_unrecorded"
+    ],
+    "source": "existing_published_history",
+    "time_source": "repository_snapshot"
+  },
+  "completed_batches": [
+    {
+      "batch_id": "imported-2026-05-01-to-2026-08-27",
+      "start": "2026-05-01",
+      "end": "2026-08-27",
+      "sessions": 82,
+      "model_versions": [
+        "unified-v2-macd-trigger-1.1.0"
+      ],
+      "factor_registry_versions": [
+        "legacy_unrecorded"
+      ],
+      "source": "existing_published_history",
+      "time_source": "repository_snapshot"
+    }
+  ],
+  "active_rules": {
+    "model_version": "unified-v2-macd-trigger-1.2.0",
+    "factor_registry_version": "0.8.0",
+    "ruleset_id": "unified-v2-macd-trigger-1.2.0+factors-0.8.0"
+  },
+  "policy": {
+    "resume_from_published_coverage": true,
+    "completed_weeks_never_recomputed_automatically": true,
+    "new_rules_apply_to_future_batches_only": true,
+    "old_rules_can_be_replayed_only_as_a_separate_explicit_experiment": true,
+    "weekly_artifact_saved_before_merge": true,
+    "failure_does_not_advance_progress": true
+  },
+  "updated_at": "2026-08-28T10:10:00Z"
+}
