@@ -117,15 +117,38 @@ jobs:
     needs: backfill
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v7
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-python@v7
+        with: { python-version: "3.13" }
+      - name: Restore historical prices for annual outcomes
+        uses: actions/cache@v4
+        with:
+          path: |
+            work/eodhd-cache
+            work/eodhd-active-common.json
+          key: eodhd-history-v1-${{ github.run_id }}
+          restore-keys: eodhd-history-v1-
       - uses: actions/download-artifact@v4
         with:
           pattern: unified-v2-*
           path: work/v2-parts
           merge-multiple: true
       - name: Pack weekly point-in-time checkpoints without publishing them
-        run: tar -czf "unified-v2-research-${{ inputs.start }}-${{ inputs.end }}.tar.gz" -C work/v2-parts .
+        run: |
+          tar -czf "unified-v2-research-${{ inputs.start }}-${{ inputs.end }}.tar.gz" -C work/v2-parts .
+          python3 -m research.backtest.annual_factor_summary_v1 --parts-dir work/v2-parts --year "${{ inputs.start }}" --out "research/backtest/output/annual/${{ inputs.start }}.json"
       - uses: actions/upload-artifact@v4
         with:
           name: unified-v2-research-${{ inputs.start }}-${{ inputs.end }}
           path: unified-v2-research-${{ inputs.start }}-${{ inputs.end }}.tar.gz
           retention-days: 90
+      - name: Permanently save the compact annual research result
+        run: |
+          git config user.name "sage-vista-bot"
+          git config user.email "sage-vista-bot@users.noreply.github.com"
+          git add research/backtest/output/annual
+          git diff --cached --quiet && exit 0
+          git commit -m "research: archive annual factor summary ${{ inputs.start }}"
+          git pull --rebase origin main
+          git push origin HEAD:main
