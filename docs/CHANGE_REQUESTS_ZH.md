@@ -75,6 +75,8 @@
   - 历史实验、失败结果、研究脚本、行业数据、回测工作流和永久追踪数据全部保留。
   - 新增 `docs/CODEBASE_MAP_ZH.md`，按用户问题直接定位页面、生成器、工作流和机器数据。
   - `npm test` 现在固定包含 lint、TypeScript、生产构建和服务端渲染测试；新增旧路径跳转回归测试。
+  - 根据 GitHub 官方 release，将 12 份工作流中的 `checkout`、`setup-node`、`setup-python` 统一升级到 v7，清除 Node 20 弃用风险；工作流步骤、权限和业务逻辑不变。
 - 验证：本地 `npm test` 通过（10/10 服务端/路由测试）；Python 全量测试通过（252/252）；`npm ci --ignore-scripts` 通过且安装树不再包含 Drizzle。
 - 提交：`1419995`（`refactor: remove retired UI and unused scaffolding`），已推送 `main`。
 - 生产：GitHub Actions `Deploy Website Only` 运行 `33172729251` 成功；2026-08-28 22:52 AEST 线上复核到 `Build 1419995`，旧路径返回 307 到维护中的模块。`verify_live_deployment` 通过：数据日 `2026-08-27`、1295 个 eligible、33 个 forward cases、2452 个 opportunity events。
+- 自动化复核：提交 `6d56995`（`ci: upgrade official GitHub actions to v7`）已推送；部署运行 `33173085937` 使用三个 v7 Action 全程成功且不再产生 Node 20 弃用警告，线上构建号为 `6d56995`。
