@@ -15,6 +15,33 @@ def metric(block):
 
 
 def run(out=OUT):
+    long_path = ROOT / "long-history-v1.json"
+    if long_path.exists():
+        long = json.loads(long_path.read_text())
+        factors = {row["factor_id"]: row for row in long["factors"]}
+        exits = long["exit_comparison"]
+        def forward_metric(factor_id):
+            block = factors[factor_id]["forward_2026"]["hit"]
+            return {"samples":block["samples"],"win_rate":block["win_rate_pct"],"profit_factor":block["profit_factor"],"expectancy_pct":block["mean_return_pct"],"median_return_pct":block["median_return_pct"]}
+        trail = exits["forward_2026"]["trail_8pct"]
+        payload = {
+            "version":"production-evidence-v2.0.0",
+            "generated_at":datetime.now(timezone.utc).isoformat(),
+            "production_status":"long_history_completed_research_only",
+            "plain_summary":"2001—2024开发、2025独立验证和2026前向已分开。没有单因子达到A级正式加权；底部放量和底部看涨吞没可优先观察。8%移动止损提高胜率和中位数，但长期平均收益略低于固定止损。",
+            "usable":[
+                {"name":"+1R后8%移动止损","role":"风险管理候选","verdict":"有条件使用","metrics":{"samples":trail["samples"],"win_rate":trail["win_rate_pct"],"profit_factor":trail["profit_factor"],"expectancy_pct":trail["mean_return_pct"],"median_return_pct":trail["median_return_pct"]},"note":"适合减少盈利回吐；长期开发期和2025的平均收益/PF略低，不能宣称全面优于固定止损。"},
+                {"name":"底部放量","role":"B级技术确认","verdict":"优先观察","metrics":forward_metric("volume.bottom_expansion"),"note":"长期多数年份偏正、2025近中性、2026明显偏正；保留但暂不提高正式权重。"},
+                {"name":"底部看涨吞没","role":"B级技术确认","verdict":"优先观察","metrics":forward_metric("structure.bottom_bullish_engulfing"),"note":"开发期、2025和2026的稳健方向较一致，但历史可用年份仍少，不单独触发买入。"},
+            ],
+            "avoid":[
+                {"name":"双底","verdict":"停权","metrics":forward_metric("structure.double_bottom"),"note":"长期与2026胜率增量偏弱，不能因视觉形态重复加分。"},
+                {"name":"更高低点","verdict":"停权","metrics":forward_metric("structure.higher_low"),"note":"长期多数年份未带来正增量，2025和2026也没有改善。"},
+                {"name":"周线双看涨吞没","verdict":"停权","metrics":forward_metric("structure.weekly_double_bullish_engulfing"),"note":"2025与2026均明显偏弱，且样本有限。"},
+            ],
+        }
+        Path(out).write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n")
+        return payload
     pullback = json.loads((ROOT / "pullback-context-v2.json").read_text())
     attribution = json.loads((ROOT / "factor-attribution-v1.json").read_text())
     market = pullback["stock_by_market_context"]

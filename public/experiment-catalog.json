@@ -1,16 +1,16 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-08-29T02:10:00+10:00",
+  "generated_at": "2026-08-29T02:15:00+10:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 22,
+  "experiment_count": 23,
   "summary": {
-    "completed": 19,
+    "completed": 20,
     "in_progress": 3,
-    "candidate": 8,
+    "candidate": 9,
     "not_validated_or_unstable": 8
   },
   "policy": {
@@ -21,6 +21,107 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "macd-factor-history-v2.0.0-2026-08-29",
+      "created_at": "2026-08-29T02:15:00+10:00",
+      "status": "completed_research_only",
+      "change": "Replay every calendar year from 2000 through 2025 using the exact completed daily MACD bullish-cross gate, compare all registered technical factor hits with same-pool non-hits, archive natural-week checkpoints, and compare fixed versus +1R activated 8% completed-close trailing stops without publishing row-level history to the website.",
+      "coverage": "2000 warmup; 2001-2024 development; 2025 independent validation; 2026 forward comparison; 6,539 historical sessions, 57,271 historical candidates and 1,379 natural-week checkpoints.",
+      "specification": {
+        "event_gate": "exact completed daily MACD bullish cross",
+        "technical_primary": "market and industry unavailable or separately stratified; never mixed into technical factor attribution",
+        "horizons": [
+          5,
+          20,
+          40,
+          100
+        ],
+        "primary_factor_outcome": "20-day hit versus same-pool non-hit annual win-rate and median-return deltas",
+        "periods": [
+          "2001-2005",
+          "2006-2010",
+          "2011-2015",
+          "2016-2020",
+          "2021-2024",
+          "2025 validation",
+          "2026 forward"
+        ],
+        "execution": [
+          "fixed support/cap stop + original 2R + 40 sessions",
+          "same baseline plus +1R activated highest completed close minus 8% trail effective next session"
+        ],
+        "archive": "weekly GitHub checkpoints, annual compressed artifacts, permanent annual summaries; website receives summary only"
+      },
+      "success_criteria": "No factor receives A-level production weight unless robust direction is consistent in development, 2025 validation and 2026 forward with adequate samples; extreme raw means cannot override win-rate, median and period consistency.",
+      "result": "No factor reached A-level unconditional weighting. Bottom volume expansion and bottom bullish engulfing are priority B candidates; overhead unfilled gap has positive robust association but conflicting mean evidence and should be reconsidered as a risk deduction. Double bottom, higher low, relative volume expansion and weekly engulfing variants are D-level. The 8% trail raises win rate and median in all periods but slightly lowers mean return and annual PF in development and 2025; only 2026 improves across all reported metrics.",
+      "known_limitations": [
+        "2019 onward cached universe coverage expands sharply",
+        "historical delisted and ticker-change coverage remains partial",
+        "overlapping MACD events are not independent",
+        "some raw mean returns contain corporate-action or data outliers",
+        "annual PF aggregation is descriptive rather than a portfolio equity-curve PF"
+      ],
+      "human_summary": {
+        "title_zh": "2000—2026全技术因子长期复核",
+        "family": "scoring",
+        "family_zh": "评分与因子",
+        "question_zh": "三十个可对照技术因子和8%移动止损能否跨开发期、2025独立验证和2026前向期保持稳定？",
+        "result_zh": "完成6,539个历史交易日、57,271个候选和1,379个自然周检查点。没有因子达到A级正式加权；底部放量、底部看涨吞没等进入B级，双底、更高低点、相对放量和周线吞没进入D级。移动止损稳定提高胜率与中位数，但长期平均收益略低。",
+        "use_zh": "MACD继续作门票；暂不提高单因子正式权重。优先观察底部放量和底部看涨吞没，停止给D级因子加权；移动止损按风险偏好有条件使用。",
+        "next_zh": "只对B级跨家族因子预登记少量组合，并继续独立前向追踪排行榜和稀有机会。",
+        "verdict": "candidate"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-29T02:15:00+10:00",
+        "started_at": "2026-08-28T16:15:49Z",
+        "completed_at": "2026-08-28T18:05:09Z",
+        "latest_event": "registered",
+        "latest_event_at": "2026-08-29T02:15:00+10:00",
+        "time_source": "user_approval",
+        "event_count": 4,
+        "events": [
+          {
+            "experiment_id": "macd-factor-history-v2.0.0-2026-08-29",
+            "event": "started",
+            "event_at": "2026-08-28T16:15:49Z",
+            "time_source": "github_actions",
+            "source_ref": "33189126443"
+          },
+          {
+            "experiment_id": "macd-factor-history-v2.0.0-2026-08-29",
+            "event": "checkpoint",
+            "event_at": "2026-08-28T17:50:00Z",
+            "time_source": "github_actions",
+            "source_ref": "research/backtest/output/annual",
+            "coverage": {
+              "years": "2000-2024",
+              "weekly_checkpoints": 1326
+            }
+          },
+          {
+            "experiment_id": "macd-factor-history-v2.0.0-2026-08-29",
+            "event": "completed",
+            "event_at": "2026-08-28T18:05:09Z",
+            "time_source": "github_actions",
+            "source_ref": "33196979886",
+            "coverage": {
+              "years": "2000-2025",
+              "historical_sessions": 6539,
+              "historical_candidates": 57271,
+              "weekly_checkpoints": 1379
+            },
+            "result": "No A-level factor. B candidates and D removals archived; fixed versus 8% trail compared across development, validation and forward periods."
+          },
+          {
+            "experiment_id": "macd-factor-history-v2.0.0-2026-08-29",
+            "event": "registered",
+            "event_at": "2026-08-29T02:15:00+10:00",
+            "time_source": "user_approval",
+            "source_ref": "CR-2026-08-29-002"
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "trailing-stop-v0.1.0-2026-08-29",
       "created_at": "2026-08-29T02:00:00+10:00",
@@ -1355,6 +1456,7 @@
     "core-factor-backtest-v1.0.0-2026-08-27",
     "exit-score-v0.1.0-2026-08-28",
     "full-line-backtest-v1.0.2-2026-08-28",
+    "macd-factor-history-v2.0.0-2026-08-29",
     "macd-rollout-04-double-chip-confirmation-2026-08-25",
     "pullback-context-backtest-v2.0.0-2026-08-28",
     "research-v0.1.0-2026-08-17",

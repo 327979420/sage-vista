@@ -1,85 +1,85 @@
 {
-  "version": "production-evidence-v1.0.0",
-  "generated_at": "2026-08-27T16:42:51.946258+00:00",
-  "production_status": "awaiting_v2_rescan",
-  "plain_summary": "可用主线是长期趋势＋MACD改善＋等待回撤；避免在上涨但未回撤时追高。行业与大盘仅调整优先级，不单独触发买入。",
+  "version": "production-evidence-v2.0.0",
+  "generated_at": "2026-08-28T18:09:25.899323+00:00",
+  "production_status": "long_history_completed_research_only",
+  "plain_summary": "2001—2024开发、2025独立验证和2026前向已分开。没有单因子达到A级正式加权；底部放量和底部看涨吞没可优先观察。8%移动止损提高胜率和中位数，但长期平均收益略低于固定止损。",
   "usable": [
     {
-      "name": "日线MACD改善",
-      "role": "核心时机",
-      "verdict": "保留",
+      "name": "+1R后8%移动止损",
+      "role": "风险管理候选",
+      "verdict": "有条件使用",
       "metrics": {
-        "samples": 229,
-        "win_rate": 53.71,
-        "profit_factor": 1.651,
-        "expectancy_pct": 3.139,
-        "median_return_pct": null
+        "samples": 1992,
+        "win_rate": 43.22,
+        "profit_factor": 1.056,
+        "expectancy_pct": 0.228,
+        "median_return_pct": -3.379
       },
-      "note": "2026样本为正，但需与长期趋势和位置同用。"
+      "note": "适合减少盈利回吐；长期开发期和2025的平均收益/PF略低，不能宣称全面优于固定止损。"
     },
     {
-      "name": "大盘回撤＋MACD修复",
-      "role": "市场优先级",
-      "verdict": "候选使用",
+      "name": "底部放量",
+      "role": "B级技术确认",
+      "verdict": "优先观察",
       "metrics": {
-        "samples": 459,
-        "win_rate": 43.36,
-        "profit_factor": 1.342,
-        "expectancy_pct": 1.725,
-        "median_return_pct": -5.318
+        "samples": 610,
+        "win_rate": 57.7,
+        "profit_factor": 1.551,
+        "expectancy_pct": 2.331,
+        "median_return_pct": 1.921
       },
-      "note": "整体有效，2026胜率较低但PF仍大于1；不作硬门槛。"
+      "note": "长期多数年份偏正、2025近中性、2026明显偏正；保留但暂不提高正式权重。"
     },
     {
-      "name": "行业ETF回撤到支撑",
-      "role": "行业加分",
-      "verdict": "弱支持",
+      "name": "底部看涨吞没",
+      "role": "B级技术确认",
+      "verdict": "优先观察",
       "metrics": {
-        "samples": 104,
-        "win_rate": 42.31,
-        "profit_factor": 1.136,
-        "expectancy_pct": 0.506,
-        "median_return_pct": -4.467
+        "samples": 265,
+        "win_rate": 54.34,
+        "profit_factor": 1.218,
+        "expectancy_pct": 1.03,
+        "median_return_pct": 1.364
       },
-      "note": "可用于排序和解释，不能单独决定买入。"
+      "note": "开发期、2025和2026的稳健方向较一致，但历史可用年份仍少，不单独触发买入。"
     }
   ],
   "avoid": [
     {
-      "name": "长期上涨但未回撤",
-      "verdict": "不追高",
+      "name": "双底",
+      "verdict": "停权",
       "metrics": {
-        "samples": 2049,
-        "win_rate": 41.04,
-        "profit_factor": 0.92,
-        "expectancy_pct": -0.48,
-        "median_return_pct": -5.91
+        "samples": 301,
+        "win_rate": 50.17,
+        "profit_factor": 1.262,
+        "expectancy_pct": 1.214,
+        "median_return_pct": 0.251
       },
-      "note": "2026利润因子小于1，期望为负。"
+      "note": "长期与2026胜率增量偏弱，不能因视觉形态重复加分。"
     },
     {
-      "name": "行业回撤后强制要求MACD修复",
-      "verdict": "不作硬门槛",
+      "name": "更高低点",
+      "verdict": "停权",
       "metrics": {
-        "samples": 53,
-        "win_rate": 28.3,
-        "profit_factor": 0.604,
-        "expectancy_pct": -1.797,
-        "median_return_pct": -5.465
+        "samples": 1429,
+        "win_rate": 51.15,
+        "profit_factor": 1.273,
+        "expectancy_pct": 1.223,
+        "median_return_pct": 0.344
       },
-      "note": "2026样本中PF小于1，会过度筛选。"
+      "note": "长期多数年份未带来正增量，2025和2026也没有改善。"
     },
     {
-      "name": "成交量恢复必须命中",
-      "verdict": "样本不足",
+      "name": "周线双看涨吞没",
+      "verdict": "停权",
       "metrics": {
-        "samples": 18,
-        "win_rate": 44.44,
-        "profit_factor": 1.216,
-        "expectancy_pct": 0.746,
-        "median_return_pct": -4.449
+        "samples": 58,
+        "win_rate": 39.66,
+        "profit_factor": 1.196,
+        "expectancy_pct": 0.842,
+        "median_return_pct": -3.115
       },
-      "note": "只有18个2026样本，仅展示，不影响生产排名。"
+      "note": "2025与2026均明显偏弱，且样本有限。"
     }
   ]
 }

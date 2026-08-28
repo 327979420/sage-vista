@@ -1,0 +1,2329 @@
+{
+  "schema_version": "long-history-factor-study-v1.0.0",
+  "generated_at": "2026-08-28T18:09:25.867876+00:00",
+  "coverage": {
+    "years": "2000—2026",
+    "warmup_year": 2000,
+    "development": "2001—2024",
+    "validation": 2025,
+    "forward": 2026,
+    "historical_sessions": 6539,
+    "historical_candidates": 57271,
+    "weekly_checkpoints": 1379,
+    "factors_compared": 30
+  },
+  "event_gate": "exact completed daily MACD bullish cross",
+  "technical_only_primary_test": true,
+  "factor_method": "20-day hit versus same-pool non-hit; robust conclusions use annual win-rate and median-return deltas because raw means contain corporate-action/data outliers",
+  "factors": [
+    {
+      "factor_id": "volume.bottom_expansion",
+      "name_zh": "支撑位底部放量",
+      "tier": "B",
+      "research_status": "跨阶段候选，尚未达到正式验证",
+      "action": "保留观察；不得单独触发或重复加分",
+      "development_2001_2024": {
+        "eligible_years": 18,
+        "hit_samples": 5773,
+        "median_annual_win_delta_pct": 3.77,
+        "median_annual_return_delta_pct": 0.557,
+        "positive_both_years": 12
+      },
+      "validation_2025": {
+        "samples": 1263,
+        "win_delta_pct": -0.05,
+        "median_delta_pct": 0.054
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 610,
+          "win_rate_pct": 57.7,
+          "mean_return_pct": 2.331,
+          "median_return_pct": 1.921,
+          "profit_factor": 1.551
+        },
+        "non_hit": {
+          "samples": 3130,
+          "win_rate_pct": 51.82,
+          "mean_return_pct": 0.963,
+          "median_return_pct": 0.452,
+          "profit_factor": 1.221
+        },
+        "win_delta_pct": 5.88,
+        "median_delta_pct": 1.469
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 1,
+          "hit_samples": 38,
+          "median_annual_win_delta_pct": -1.54,
+          "median_annual_return_delta_pct": 0.135,
+          "positive_both_years": 0
+        },
+        "2006_2010": {
+          "eligible_years": 3,
+          "hit_samples": 111,
+          "median_annual_win_delta_pct": -2.45,
+          "median_annual_return_delta_pct": 0.051,
+          "positive_both_years": 1
+        },
+        "2011_2015": {
+          "eligible_years": 5,
+          "hit_samples": 248,
+          "median_annual_win_delta_pct": 10.69,
+          "median_annual_return_delta_pct": 1.584,
+          "positive_both_years": 5
+        },
+        "2016_2020": {
+          "eligible_years": 5,
+          "hit_samples": 1139,
+          "median_annual_win_delta_pct": 4.05,
+          "median_annual_return_delta_pct": 0.501,
+          "positive_both_years": 3
+        },
+        "2021_2024": {
+          "eligible_years": 4,
+          "hit_samples": 4237,
+          "median_annual_win_delta_pct": 3.085,
+          "median_annual_return_delta_pct": 0.621,
+          "positive_both_years": 3
+        }
+      }
+    },
+    {
+      "factor_id": "structure.support_bullish_engulfing",
+      "name_zh": "支撑位看涨吞没",
+      "tier": "B",
+      "research_status": "2025和2026同向，长期仍混合",
+      "action": "继续影子观察，不提高生产权重",
+      "development_2001_2024": {
+        "eligible_years": 19,
+        "hit_samples": 8388,
+        "median_annual_win_delta_pct": -0.74,
+        "median_annual_return_delta_pct": -0.08,
+        "positive_both_years": 7
+      },
+      "validation_2025": {
+        "samples": 1766,
+        "win_delta_pct": 5.26,
+        "median_delta_pct": 1.13
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 844,
+          "win_rate_pct": 55.45,
+          "mean_return_pct": 1.558,
+          "median_return_pct": 1.538,
+          "profit_factor": 1.385
+        },
+        "non_hit": {
+          "samples": 2896,
+          "win_rate_pct": 52.0,
+          "mean_return_pct": 1.078,
+          "median_return_pct": 0.473,
+          "profit_factor": 1.243
+        },
+        "win_delta_pct": 3.45,
+        "median_delta_pct": 1.065
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 1,
+          "hit_samples": 46,
+          "median_annual_win_delta_pct": -2.79,
+          "median_annual_return_delta_pct": -0.009,
+          "positive_both_years": 0
+        },
+        "2006_2010": {
+          "eligible_years": 4,
+          "hit_samples": 188,
+          "median_annual_win_delta_pct": 0.445,
+          "median_annual_return_delta_pct": -0.11,
+          "positive_both_years": 2
+        },
+        "2011_2015": {
+          "eligible_years": 5,
+          "hit_samples": 369,
+          "median_annual_win_delta_pct": 1.13,
+          "median_annual_return_delta_pct": 0.526,
+          "positive_both_years": 3
+        },
+        "2016_2020": {
+          "eligible_years": 5,
+          "hit_samples": 1940,
+          "median_annual_win_delta_pct": -2.16,
+          "median_annual_return_delta_pct": -0.651,
+          "positive_both_years": 2
+        },
+        "2021_2024": {
+          "eligible_years": 4,
+          "hit_samples": 5845,
+          "median_annual_win_delta_pct": -0.73,
+          "median_annual_return_delta_pct": -0.171,
+          "positive_both_years": 0
+        }
+      }
+    },
+    {
+      "factor_id": "structure.trendline_three_push",
+      "name_zh": "三推趋势线突破",
+      "tier": "B",
+      "research_status": "2025和2026同向，长期仍混合",
+      "action": "继续影子观察，不提高生产权重",
+      "development_2001_2024": {
+        "eligible_years": 6,
+        "hit_samples": 2005,
+        "median_annual_win_delta_pct": -0.815,
+        "median_annual_return_delta_pct": 0.0,
+        "positive_both_years": 2
+      },
+      "validation_2025": {
+        "samples": 454,
+        "win_delta_pct": 2.19,
+        "median_delta_pct": 0.215
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 170,
+          "win_rate_pct": 55.29,
+          "mean_return_pct": 0.685,
+          "median_return_pct": 1.217,
+          "profit_factor": 1.165
+        },
+        "non_hit": {
+          "samples": 3570,
+          "win_rate_pct": 52.66,
+          "mean_return_pct": 1.21,
+          "median_return_pct": 0.658,
+          "profit_factor": 1.278
+        },
+        "win_delta_pct": 2.63,
+        "median_delta_pct": 0.559
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2006_2010": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2011_2015": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2016_2020": {
+          "eligible_years": 2,
+          "hit_samples": 452,
+          "median_annual_win_delta_pct": 4.56,
+          "median_annual_return_delta_pct": 1.634,
+          "positive_both_years": 2
+        },
+        "2021_2024": {
+          "eligible_years": 4,
+          "hit_samples": 1553,
+          "median_annual_win_delta_pct": -1.465,
+          "median_annual_return_delta_pct": -0.277,
+          "positive_both_years": 0
+        }
+      }
+    },
+    {
+      "factor_id": "structure.bottom_bullish_engulfing",
+      "name_zh": "底部看涨吞没",
+      "tier": "B",
+      "research_status": "跨阶段候选，尚未达到正式验证",
+      "action": "保留观察；不得单独触发或重复加分",
+      "development_2001_2024": {
+        "eligible_years": 6,
+        "hit_samples": 2216,
+        "median_annual_win_delta_pct": 0.795,
+        "median_annual_return_delta_pct": 0.191,
+        "positive_both_years": 4
+      },
+      "validation_2025": {
+        "samples": 587,
+        "win_delta_pct": 2.74,
+        "median_delta_pct": 0.618
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 265,
+          "win_rate_pct": 54.34,
+          "mean_return_pct": 1.03,
+          "median_return_pct": 1.364,
+          "profit_factor": 1.218
+        },
+        "non_hit": {
+          "samples": 3475,
+          "win_rate_pct": 52.66,
+          "mean_return_pct": 1.198,
+          "median_return_pct": 0.645,
+          "profit_factor": 1.278
+        },
+        "win_delta_pct": 1.68,
+        "median_delta_pct": 0.719
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2006_2010": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2011_2015": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2016_2020": {
+          "eligible_years": 2,
+          "hit_samples": 347,
+          "median_annual_win_delta_pct": 3.59,
+          "median_annual_return_delta_pct": 0.623,
+          "positive_both_years": 2
+        },
+        "2021_2024": {
+          "eligible_years": 4,
+          "hit_samples": 1869,
+          "median_annual_win_delta_pct": -0.785,
+          "median_annual_return_delta_pct": -0.25,
+          "positive_both_years": 2
+        }
+      }
+    },
+    {
+      "factor_id": "macd.weekly_histogram_improving",
+      "name_zh": "完整周线MACD柱改善",
+      "tier": "B",
+      "research_status": "2025和2026同向，长期仍混合",
+      "action": "继续影子观察，不提高生产权重",
+      "development_2001_2024": {
+        "eligible_years": 19,
+        "hit_samples": 6556,
+        "median_annual_win_delta_pct": -1.48,
+        "median_annual_return_delta_pct": -0.465,
+        "positive_both_years": 7
+      },
+      "validation_2025": {
+        "samples": 1375,
+        "win_delta_pct": 1.9,
+        "median_delta_pct": 0.316
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 534,
+          "win_rate_pct": 53.75,
+          "mean_return_pct": 1.322,
+          "median_return_pct": 0.742,
+          "profit_factor": 1.313
+        },
+        "non_hit": {
+          "samples": 3206,
+          "win_rate_pct": 52.62,
+          "mean_return_pct": 1.164,
+          "median_return_pct": 0.66,
+          "profit_factor": 1.267
+        },
+        "win_delta_pct": 1.13,
+        "median_delta_pct": 0.082
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 2,
+          "hit_samples": 61,
+          "median_annual_win_delta_pct": -7.42,
+          "median_annual_return_delta_pct": -0.938,
+          "positive_both_years": 0
+        },
+        "2006_2010": {
+          "eligible_years": 3,
+          "hit_samples": 181,
+          "median_annual_win_delta_pct": -3.44,
+          "median_annual_return_delta_pct": -0.473,
+          "positive_both_years": 1
+        },
+        "2011_2015": {
+          "eligible_years": 5,
+          "hit_samples": 300,
+          "median_annual_win_delta_pct": 0.13,
+          "median_annual_return_delta_pct": -0.729,
+          "positive_both_years": 2
+        },
+        "2016_2020": {
+          "eligible_years": 5,
+          "hit_samples": 1634,
+          "median_annual_win_delta_pct": 5.12,
+          "median_annual_return_delta_pct": 0.645,
+          "positive_both_years": 3
+        },
+        "2021_2024": {
+          "eligible_years": 4,
+          "hit_samples": 4380,
+          "median_annual_win_delta_pct": -3.025,
+          "median_annual_return_delta_pct": -0.591,
+          "positive_both_years": 1
+        }
+      }
+    },
+    {
+      "factor_id": "risk.overhead_unfilled_gap",
+      "name_zh": "上方未补跳空缺口",
+      "tier": "B",
+      "research_status": "稳健胜率偏正，但均值结论冲突",
+      "action": "候选取消风险扣分；先保持展示，不直接加分",
+      "development_2001_2024": {
+        "eligible_years": 21,
+        "hit_samples": 13005,
+        "median_annual_win_delta_pct": 5.36,
+        "median_annual_return_delta_pct": 0.912,
+        "positive_both_years": 15
+      },
+      "validation_2025": {
+        "samples": 2565,
+        "win_delta_pct": 2.29,
+        "median_delta_pct": 0.368
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 918,
+          "win_rate_pct": 52.94,
+          "mean_return_pct": 1.037,
+          "median_return_pct": 0.805,
+          "profit_factor": 1.262
+        },
+        "non_hit": {
+          "samples": 2822,
+          "win_rate_pct": 52.73,
+          "mean_return_pct": 1.235,
+          "median_return_pct": 0.658,
+          "profit_factor": 1.276
+        },
+        "win_delta_pct": 0.21,
+        "median_delta_pct": 0.147
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 2,
+          "hit_samples": 84,
+          "median_annual_win_delta_pct": 9.22,
+          "median_annual_return_delta_pct": 1.268,
+          "positive_both_years": 2
+        },
+        "2006_2010": {
+          "eligible_years": 5,
+          "hit_samples": 371,
+          "median_annual_win_delta_pct": 7.37,
+          "median_annual_return_delta_pct": 1.553,
+          "positive_both_years": 4
+        },
+        "2011_2015": {
+          "eligible_years": 5,
+          "hit_samples": 595,
+          "median_annual_win_delta_pct": 5.36,
+          "median_annual_return_delta_pct": 0.609,
+          "positive_both_years": 3
+        },
+        "2016_2020": {
+          "eligible_years": 5,
+          "hit_samples": 2867,
+          "median_annual_win_delta_pct": 1.67,
+          "median_annual_return_delta_pct": 0.634,
+          "positive_both_years": 3
+        },
+        "2021_2024": {
+          "eligible_years": 4,
+          "hit_samples": 9088,
+          "median_annual_win_delta_pct": 5.5,
+          "median_annual_return_delta_pct": 0.977,
+          "positive_both_years": 3
+        }
+      }
+    },
+    {
+      "factor_id": "structure.monthly_double_bullish_engulfing",
+      "name_zh": "完整月线双看涨吞没",
+      "tier": "C",
+      "research_status": "长期有方向、独立期不稳定",
+      "action": "按市场阶段展示，不作固定加分",
+      "development_2001_2024": {
+        "eligible_years": 4,
+        "hit_samples": 237,
+        "median_annual_win_delta_pct": 12.925,
+        "median_annual_return_delta_pct": 2.011,
+        "positive_both_years": 4
+      },
+      "validation_2025": {
+        "samples": 109,
+        "win_delta_pct": -3.22,
+        "median_delta_pct": -0.622
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 23,
+          "win_rate_pct": 65.22,
+          "mean_return_pct": 1.909,
+          "median_return_pct": 3.033,
+          "profit_factor": 1.756
+        },
+        "non_hit": {
+          "samples": 3717,
+          "win_rate_pct": 52.7,
+          "mean_return_pct": 1.182,
+          "median_return_pct": 0.66,
+          "profit_factor": 1.271
+        },
+        "win_delta_pct": 12.52,
+        "median_delta_pct": 2.373
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2006_2010": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2011_2015": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2016_2020": {
+          "eligible_years": 2,
+          "hit_samples": 85,
+          "median_annual_win_delta_pct": 16.8,
+          "median_annual_return_delta_pct": 2.011,
+          "positive_both_years": 2
+        },
+        "2021_2024": {
+          "eligible_years": 2,
+          "hit_samples": 152,
+          "median_annual_win_delta_pct": 10.89,
+          "median_annual_return_delta_pct": 1.978,
+          "positive_both_years": 2
+        }
+      }
+    },
+    {
+      "factor_id": "rsi.bullish_divergence",
+      "name_zh": "RSI底背离",
+      "tier": "C",
+      "research_status": "长期有方向、独立期不稳定",
+      "action": "按市场阶段展示，不作固定加分",
+      "development_2001_2024": {
+        "eligible_years": 8,
+        "hit_samples": 2480,
+        "median_annual_win_delta_pct": 0.48,
+        "median_annual_return_delta_pct": -0.168,
+        "positive_both_years": 3
+      },
+      "validation_2025": {
+        "samples": 510,
+        "win_delta_pct": -3.85,
+        "median_delta_pct": -0.855
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 230,
+          "win_rate_pct": 61.3,
+          "mean_return_pct": 2.6,
+          "median_return_pct": 2.919,
+          "profit_factor": 1.849
+        },
+        "non_hit": {
+          "samples": 3510,
+          "win_rate_pct": 52.22,
+          "mean_return_pct": 1.094,
+          "median_return_pct": 0.542,
+          "profit_factor": 1.247
+        },
+        "win_delta_pct": 9.08,
+        "median_delta_pct": 2.377
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2006_2010": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2011_2015": {
+          "eligible_years": 1,
+          "hit_samples": 44,
+          "median_annual_win_delta_pct": 0.43,
+          "median_annual_return_delta_pct": -0.671,
+          "positive_both_years": 0
+        },
+        "2016_2020": {
+          "eligible_years": 3,
+          "hit_samples": 469,
+          "median_annual_win_delta_pct": -0.76,
+          "median_annual_return_delta_pct": -0.104,
+          "positive_both_years": 1
+        },
+        "2021_2024": {
+          "eligible_years": 4,
+          "hit_samples": 1967,
+          "median_annual_win_delta_pct": 2.635,
+          "median_annual_return_delta_pct": 0.098,
+          "positive_both_years": 2
+        }
+      }
+    },
+    {
+      "factor_id": "macd.monthly_bull_cross",
+      "name_zh": "完整月线MACD金叉",
+      "tier": "C",
+      "research_status": "没有稳定的跨时期增量",
+      "action": "只展示或停权，不作为买入依据",
+      "development_2001_2024": {
+        "eligible_years": 7,
+        "hit_samples": 1912,
+        "median_annual_win_delta_pct": -2.25,
+        "median_annual_return_delta_pct": -0.479,
+        "positive_both_years": 2
+      },
+      "validation_2025": {
+        "samples": 384,
+        "win_delta_pct": 0.0,
+        "median_delta_pct": 0.42
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 164,
+          "win_rate_pct": 60.37,
+          "mean_return_pct": 3.512,
+          "median_return_pct": 1.722,
+          "profit_factor": 2.338
+        },
+        "non_hit": {
+          "samples": 3576,
+          "win_rate_pct": 52.43,
+          "mean_return_pct": 1.08,
+          "median_return_pct": 0.59,
+          "profit_factor": 1.244
+        },
+        "win_delta_pct": 7.94,
+        "median_delta_pct": 1.132
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2006_2010": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2011_2015": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2016_2020": {
+          "eligible_years": 3,
+          "hit_samples": 628,
+          "median_annual_win_delta_pct": -2.25,
+          "median_annual_return_delta_pct": -0.479,
+          "positive_both_years": 1
+        },
+        "2021_2024": {
+          "eligible_years": 4,
+          "hit_samples": 1284,
+          "median_annual_win_delta_pct": -3.125,
+          "median_annual_return_delta_pct": -0.634,
+          "positive_both_years": 1
+        }
+      }
+    },
+    {
+      "factor_id": "rsi.oversold_repair",
+      "name_zh": "RSI超卖修复",
+      "tier": "C",
+      "research_status": "长期有方向、独立期不稳定",
+      "action": "按市场阶段展示，不作固定加分",
+      "development_2001_2024": {
+        "eligible_years": 2,
+        "hit_samples": 65,
+        "median_annual_win_delta_pct": 1.645,
+        "median_annual_return_delta_pct": 0.777,
+        "positive_both_years": 1
+      },
+      "validation_2025": {
+        "samples": 48,
+        "win_delta_pct": 4.71,
+        "median_delta_pct": 2.026
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 10,
+          "win_rate_pct": 60.0,
+          "mean_return_pct": 4.279,
+          "median_return_pct": 3.202,
+          "profit_factor": 1.791
+        },
+        "non_hit": {
+          "samples": 3730,
+          "win_rate_pct": 52.76,
+          "mean_return_pct": 1.178,
+          "median_return_pct": 0.665,
+          "profit_factor": 1.271
+        },
+        "win_delta_pct": 7.24,
+        "median_delta_pct": 2.537
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2006_2010": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2011_2015": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2016_2020": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2021_2024": {
+          "eligible_years": 2,
+          "hit_samples": 65,
+          "median_annual_win_delta_pct": 1.645,
+          "median_annual_return_delta_pct": 0.777,
+          "positive_both_years": 1
+        }
+      }
+    },
+    {
+      "factor_id": "support.ema_proximity",
+      "name_zh": "日线 EMA21/50/200支撑",
+      "tier": "C",
+      "research_status": "长期有方向、独立期不稳定",
+      "action": "按市场阶段展示，不作固定加分",
+      "development_2001_2024": {
+        "eligible_years": 22,
+        "hit_samples": 23212,
+        "median_annual_win_delta_pct": 6.015,
+        "median_annual_return_delta_pct": 0.704,
+        "positive_both_years": 17
+      },
+      "validation_2025": {
+        "samples": 4601,
+        "win_delta_pct": -1.23,
+        "median_delta_pct": -0.322
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 2054,
+          "win_rate_pct": 55.84,
+          "mean_return_pct": 1.909,
+          "median_return_pct": 1.168,
+          "profit_factor": 1.523
+        },
+        "non_hit": {
+          "samples": 1686,
+          "win_rate_pct": 49.05,
+          "mean_return_pct": 0.306,
+          "median_return_pct": -0.206,
+          "profit_factor": 1.059
+        },
+        "win_delta_pct": 6.79,
+        "median_delta_pct": 1.374
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 3,
+          "hit_samples": 272,
+          "median_annual_win_delta_pct": 12.34,
+          "median_annual_return_delta_pct": 0.551,
+          "positive_both_years": 2
+        },
+        "2006_2010": {
+          "eligible_years": 5,
+          "hit_samples": 714,
+          "median_annual_win_delta_pct": 5.71,
+          "median_annual_return_delta_pct": 0.667,
+          "positive_both_years": 4
+        },
+        "2011_2015": {
+          "eligible_years": 5,
+          "hit_samples": 1181,
+          "median_annual_win_delta_pct": 10.93,
+          "median_annual_return_delta_pct": 0.957,
+          "positive_both_years": 4
+        },
+        "2016_2020": {
+          "eligible_years": 5,
+          "hit_samples": 5156,
+          "median_annual_win_delta_pct": 4.5,
+          "median_annual_return_delta_pct": 0.459,
+          "positive_both_years": 4
+        },
+        "2021_2024": {
+          "eligible_years": 4,
+          "hit_samples": 15889,
+          "median_annual_win_delta_pct": 4.06,
+          "median_annual_return_delta_pct": 0.816,
+          "positive_both_years": 3
+        }
+      }
+    },
+    {
+      "factor_id": "support.fibonacci_618",
+      "name_zh": "Fibonacci 0.618支撑",
+      "tier": "C",
+      "research_status": "长期有方向、独立期不稳定",
+      "action": "按市场阶段展示，不作固定加分",
+      "development_2001_2024": {
+        "eligible_years": 7,
+        "hit_samples": 4207,
+        "median_annual_win_delta_pct": 2.2,
+        "median_annual_return_delta_pct": 0.389,
+        "positive_both_years": 5
+      },
+      "validation_2025": {
+        "samples": 974,
+        "win_delta_pct": -2.46,
+        "median_delta_pct": -0.472
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 390,
+          "win_rate_pct": 58.21,
+          "mean_return_pct": 2.032,
+          "median_return_pct": 1.349,
+          "profit_factor": 1.586
+        },
+        "non_hit": {
+          "samples": 3350,
+          "win_rate_pct": 52.15,
+          "mean_return_pct": 1.088,
+          "median_return_pct": 0.575,
+          "profit_factor": 1.245
+        },
+        "win_delta_pct": 6.06,
+        "median_delta_pct": 0.774
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2006_2010": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2011_2015": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2016_2020": {
+          "eligible_years": 3,
+          "hit_samples": 924,
+          "median_annual_win_delta_pct": 1.73,
+          "median_annual_return_delta_pct": 0.326,
+          "positive_both_years": 2
+        },
+        "2021_2024": {
+          "eligible_years": 4,
+          "hit_samples": 3283,
+          "median_annual_win_delta_pct": 3.105,
+          "median_annual_return_delta_pct": 0.389,
+          "positive_both_years": 3
+        }
+      }
+    },
+    {
+      "factor_id": "support.close_congestion",
+      "name_zh": "K线聚集区",
+      "tier": "C",
+      "research_status": "长期有方向、独立期不稳定",
+      "action": "按市场阶段展示，不作固定加分",
+      "development_2001_2024": {
+        "eligible_years": 20,
+        "hit_samples": 13561,
+        "median_annual_win_delta_pct": 3.33,
+        "median_annual_return_delta_pct": 0.902,
+        "positive_both_years": 13
+      },
+      "validation_2025": {
+        "samples": 2902,
+        "win_delta_pct": -2.47,
+        "median_delta_pct": -0.464
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 1095,
+          "win_rate_pct": 56.89,
+          "mean_return_pct": 1.789,
+          "median_return_pct": 1.485,
+          "profit_factor": 1.543
+        },
+        "non_hit": {
+          "samples": 2645,
+          "win_rate_pct": 51.08,
+          "mean_return_pct": 0.937,
+          "median_return_pct": 0.285,
+          "profit_factor": 1.196
+        },
+        "win_delta_pct": 5.81,
+        "median_delta_pct": 1.2
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 2,
+          "hit_samples": 79,
+          "median_annual_win_delta_pct": 18.205,
+          "median_annual_return_delta_pct": 3.771,
+          "positive_both_years": 2
+        },
+        "2006_2010": {
+          "eligible_years": 4,
+          "hit_samples": 276,
+          "median_annual_win_delta_pct": -2.975,
+          "median_annual_return_delta_pct": 0.046,
+          "positive_both_years": 2
+        },
+        "2011_2015": {
+          "eligible_years": 5,
+          "hit_samples": 392,
+          "median_annual_win_delta_pct": 8.32,
+          "median_annual_return_delta_pct": 2.042,
+          "positive_both_years": 4
+        },
+        "2016_2020": {
+          "eligible_years": 5,
+          "hit_samples": 2886,
+          "median_annual_win_delta_pct": -1.26,
+          "median_annual_return_delta_pct": 0.428,
+          "positive_both_years": 2
+        },
+        "2021_2024": {
+          "eligible_years": 4,
+          "hit_samples": 9928,
+          "median_annual_win_delta_pct": 3.225,
+          "median_annual_return_delta_pct": 0.609,
+          "positive_both_years": 3
+        }
+      }
+    },
+    {
+      "factor_id": "structure.bottom_doji",
+      "name_zh": "底部Doji",
+      "tier": "C",
+      "research_status": "长期有方向、独立期不稳定",
+      "action": "按市场阶段展示，不作固定加分",
+      "development_2001_2024": {
+        "eligible_years": 15,
+        "hit_samples": 5475,
+        "median_annual_win_delta_pct": 3.01,
+        "median_annual_return_delta_pct": 0.399,
+        "positive_both_years": 10
+      },
+      "validation_2025": {
+        "samples": 1223,
+        "win_delta_pct": -2.92,
+        "median_delta_pct": -0.64
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 609,
+          "win_rate_pct": 56.65,
+          "mean_return_pct": 1.958,
+          "median_return_pct": 1.667,
+          "profit_factor": 1.519
+        },
+        "non_hit": {
+          "samples": 3131,
+          "win_rate_pct": 52.03,
+          "mean_return_pct": 1.036,
+          "median_return_pct": 0.531,
+          "profit_factor": 1.232
+        },
+        "win_delta_pct": 4.62,
+        "median_delta_pct": 1.136
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2006_2010": {
+          "eligible_years": 1,
+          "hit_samples": 31,
+          "median_annual_win_delta_pct": 3.01,
+          "median_annual_return_delta_pct": 0.399,
+          "positive_both_years": 1
+        },
+        "2011_2015": {
+          "eligible_years": 5,
+          "hit_samples": 213,
+          "median_annual_win_delta_pct": -0.9,
+          "median_annual_return_delta_pct": 0.599,
+          "positive_both_years": 2
+        },
+        "2016_2020": {
+          "eligible_years": 5,
+          "hit_samples": 1094,
+          "median_annual_win_delta_pct": 4.07,
+          "median_annual_return_delta_pct": 0.919,
+          "positive_both_years": 4
+        },
+        "2021_2024": {
+          "eligible_years": 4,
+          "hit_samples": 4137,
+          "median_annual_win_delta_pct": 1.16,
+          "median_annual_return_delta_pct": 0.379,
+          "positive_both_years": 3
+        }
+      }
+    },
+    {
+      "factor_id": "structure.trendline_three_push_retest",
+      "name_zh": "三推突破后回踩确认",
+      "tier": "C",
+      "research_status": "没有稳定的跨时期增量",
+      "action": "只展示或停权，不作为买入依据",
+      "development_2001_2024": {
+        "eligible_years": 6,
+        "hit_samples": 1247,
+        "median_annual_win_delta_pct": -0.95,
+        "median_annual_return_delta_pct": -0.134,
+        "positive_both_years": 3
+      },
+      "validation_2025": {
+        "samples": 274,
+        "win_delta_pct": 0.0,
+        "median_delta_pct": -0.143
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 101,
+          "win_rate_pct": 56.44,
+          "mean_return_pct": 2.547,
+          "median_return_pct": 1.265,
+          "profit_factor": 1.686
+        },
+        "non_hit": {
+          "samples": 3639,
+          "win_rate_pct": 52.68,
+          "mean_return_pct": 1.149,
+          "median_return_pct": 0.66,
+          "profit_factor": 1.263
+        },
+        "win_delta_pct": 3.76,
+        "median_delta_pct": 0.605
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2006_2010": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2011_2015": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2016_2020": {
+          "eligible_years": 2,
+          "hit_samples": 272,
+          "median_annual_win_delta_pct": 0.84,
+          "median_annual_return_delta_pct": 0.279,
+          "positive_both_years": 1
+        },
+        "2021_2024": {
+          "eligible_years": 4,
+          "hit_samples": 975,
+          "median_annual_win_delta_pct": -0.95,
+          "median_annual_return_delta_pct": -0.134,
+          "positive_both_years": 2
+        }
+      }
+    },
+    {
+      "factor_id": "support.fibonacci_half",
+      "name_zh": "Fibonacci 0.5支撑",
+      "tier": "C",
+      "research_status": "长期有方向、独立期不稳定",
+      "action": "按市场阶段展示，不作固定加分",
+      "development_2001_2024": {
+        "eligible_years": 7,
+        "hit_samples": 4538,
+        "median_annual_win_delta_pct": 1.85,
+        "median_annual_return_delta_pct": 0.283,
+        "positive_both_years": 6
+      },
+      "validation_2025": {
+        "samples": 1095,
+        "win_delta_pct": -2.52,
+        "median_delta_pct": -0.573
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 422,
+          "win_rate_pct": 55.92,
+          "mean_return_pct": 2.065,
+          "median_return_pct": 1.415,
+          "profit_factor": 1.566
+        },
+        "non_hit": {
+          "samples": 3318,
+          "win_rate_pct": 52.38,
+          "mean_return_pct": 1.075,
+          "median_return_pct": 0.575,
+          "profit_factor": 1.242
+        },
+        "win_delta_pct": 3.54,
+        "median_delta_pct": 0.84
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2006_2010": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2011_2015": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2016_2020": {
+          "eligible_years": 3,
+          "hit_samples": 978,
+          "median_annual_win_delta_pct": 0.87,
+          "median_annual_return_delta_pct": 0.005,
+          "positive_both_years": 2
+        },
+        "2021_2024": {
+          "eligible_years": 4,
+          "hit_samples": 3560,
+          "median_annual_win_delta_pct": 2.04,
+          "median_annual_return_delta_pct": 0.37,
+          "positive_both_years": 4
+        }
+      }
+    },
+    {
+      "factor_id": "structure.hammer",
+      "name_zh": "锤头线",
+      "tier": "C",
+      "research_status": "没有稳定的跨时期增量",
+      "action": "只展示或停权，不作为买入依据",
+      "development_2001_2024": {
+        "eligible_years": 14,
+        "hit_samples": 3965,
+        "median_annual_win_delta_pct": -1.135,
+        "median_annual_return_delta_pct": -0.269,
+        "positive_both_years": 5
+      },
+      "validation_2025": {
+        "samples": 806,
+        "win_delta_pct": -0.05,
+        "median_delta_pct": -0.023
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 269,
+          "win_rate_pct": 55.39,
+          "mean_return_pct": 1.798,
+          "median_return_pct": 0.803,
+          "profit_factor": 1.478
+        },
+        "non_hit": {
+          "samples": 3471,
+          "win_rate_pct": 52.58,
+          "mean_return_pct": 1.139,
+          "median_return_pct": 0.66,
+          "profit_factor": 1.259
+        },
+        "win_delta_pct": 2.81,
+        "median_delta_pct": 0.143
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2006_2010": {
+          "eligible_years": 1,
+          "hit_samples": 33,
+          "median_annual_win_delta_pct": -23.69,
+          "median_annual_return_delta_pct": -1.65,
+          "positive_both_years": 0
+        },
+        "2011_2015": {
+          "eligible_years": 4,
+          "hit_samples": 163,
+          "median_annual_win_delta_pct": -1.14,
+          "median_annual_return_delta_pct": -0.169,
+          "positive_both_years": 1
+        },
+        "2016_2020": {
+          "eligible_years": 5,
+          "hit_samples": 978,
+          "median_annual_win_delta_pct": -0.82,
+          "median_annual_return_delta_pct": -0.306,
+          "positive_both_years": 2
+        },
+        "2021_2024": {
+          "eligible_years": 4,
+          "hit_samples": 2791,
+          "median_annual_win_delta_pct": -0.185,
+          "median_annual_return_delta_pct": 0.007,
+          "positive_both_years": 2
+        }
+      }
+    },
+    {
+      "factor_id": "support.weekly_ema_proximity",
+      "name_zh": "完整周线 EMA20/50/200支撑",
+      "tier": "C",
+      "research_status": "长期有方向、独立期不稳定",
+      "action": "按市场阶段展示，不作固定加分",
+      "development_2001_2024": {
+        "eligible_years": 21,
+        "hit_samples": 14778,
+        "median_annual_win_delta_pct": 4.02,
+        "median_annual_return_delta_pct": 0.474,
+        "positive_both_years": 12
+      },
+      "validation_2025": {
+        "samples": 3100,
+        "win_delta_pct": -1.87,
+        "median_delta_pct": -0.456
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 681,
+          "win_rate_pct": 55.07,
+          "mean_return_pct": 2.212,
+          "median_return_pct": 1.247,
+          "profit_factor": 1.556
+        },
+        "non_hit": {
+          "samples": 3059,
+          "win_rate_pct": 52.27,
+          "mean_return_pct": 0.958,
+          "median_return_pct": 0.522,
+          "profit_factor": 1.216
+        },
+        "win_delta_pct": 2.8,
+        "median_delta_pct": 0.725
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 2,
+          "hit_samples": 150,
+          "median_annual_win_delta_pct": 10.55,
+          "median_annual_return_delta_pct": 1.165,
+          "positive_both_years": 1
+        },
+        "2006_2010": {
+          "eligible_years": 5,
+          "hit_samples": 463,
+          "median_annual_win_delta_pct": 3.79,
+          "median_annual_return_delta_pct": 0.509,
+          "positive_both_years": 3
+        },
+        "2011_2015": {
+          "eligible_years": 5,
+          "hit_samples": 746,
+          "median_annual_win_delta_pct": 8.99,
+          "median_annual_return_delta_pct": 1.139,
+          "positive_both_years": 3
+        },
+        "2016_2020": {
+          "eligible_years": 5,
+          "hit_samples": 3121,
+          "median_annual_win_delta_pct": -0.33,
+          "median_annual_return_delta_pct": 0.036,
+          "positive_both_years": 2
+        },
+        "2021_2024": {
+          "eligible_years": 4,
+          "hit_samples": 10298,
+          "median_annual_win_delta_pct": 2.81,
+          "median_annual_return_delta_pct": 0.515,
+          "positive_both_years": 3
+        }
+      }
+    },
+    {
+      "factor_id": "support.golden_pocket",
+      "name_zh": "Golden Pocket",
+      "tier": "C",
+      "research_status": "长期有方向、独立期不稳定",
+      "action": "按市场阶段展示，不作固定加分",
+      "development_2001_2024": {
+        "eligible_years": 6,
+        "hit_samples": 2052,
+        "median_annual_win_delta_pct": 4.36,
+        "median_annual_return_delta_pct": 0.758,
+        "positive_both_years": 4
+      },
+      "validation_2025": {
+        "samples": 497,
+        "win_delta_pct": -5.23,
+        "median_delta_pct": -1.117
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 217,
+          "win_rate_pct": 55.3,
+          "mean_return_pct": 2.048,
+          "median_return_pct": 1.014,
+          "profit_factor": 1.527
+        },
+        "non_hit": {
+          "samples": 3523,
+          "win_rate_pct": 52.63,
+          "mean_return_pct": 1.133,
+          "median_return_pct": 0.66,
+          "profit_factor": 1.259
+        },
+        "win_delta_pct": 2.67,
+        "median_delta_pct": 0.354
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2006_2010": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2011_2015": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2016_2020": {
+          "eligible_years": 2,
+          "hit_samples": 423,
+          "median_annual_win_delta_pct": 1.09,
+          "median_annual_return_delta_pct": 0.712,
+          "positive_both_years": 1
+        },
+        "2021_2024": {
+          "eligible_years": 4,
+          "hit_samples": 1629,
+          "median_annual_win_delta_pct": 4.36,
+          "median_annual_return_delta_pct": 0.758,
+          "positive_both_years": 3
+        }
+      }
+    },
+    {
+      "factor_id": "structure.bullish_fvg_support",
+      "name_zh": "Bullish FVG支撑",
+      "tier": "C",
+      "research_status": "长期有方向、独立期不稳定",
+      "action": "按市场阶段展示，不作固定加分",
+      "development_2001_2024": {
+        "eligible_years": 20,
+        "hit_samples": 34245,
+        "median_annual_win_delta_pct": 2.735,
+        "median_annual_return_delta_pct": 0.263,
+        "positive_both_years": 13
+      },
+      "validation_2025": {
+        "samples": 6322,
+        "win_delta_pct": -0.64,
+        "median_delta_pct": -0.396
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 2518,
+          "win_rate_pct": 53.42,
+          "mean_return_pct": 1.154,
+          "median_return_pct": 0.754,
+          "profit_factor": 1.297
+        },
+        "non_hit": {
+          "samples": 1222,
+          "win_rate_pct": 51.47,
+          "mean_return_pct": 1.252,
+          "median_return_pct": 0.458,
+          "profit_factor": 1.237
+        },
+        "win_delta_pct": 1.95,
+        "median_delta_pct": 0.296
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 1,
+          "hit_samples": 165,
+          "median_annual_win_delta_pct": 2.21,
+          "median_annual_return_delta_pct": 0.34,
+          "positive_both_years": 1
+        },
+        "2006_2010": {
+          "eligible_years": 5,
+          "hit_samples": 978,
+          "median_annual_win_delta_pct": 3.36,
+          "median_annual_return_delta_pct": 1.215,
+          "positive_both_years": 4
+        },
+        "2011_2015": {
+          "eligible_years": 5,
+          "hit_samples": 1570,
+          "median_annual_win_delta_pct": 7.46,
+          "median_annual_return_delta_pct": 0.852,
+          "positive_both_years": 3
+        },
+        "2016_2020": {
+          "eligible_years": 5,
+          "hit_samples": 8088,
+          "median_annual_win_delta_pct": -1.24,
+          "median_annual_return_delta_pct": -0.301,
+          "positive_both_years": 2
+        },
+        "2021_2024": {
+          "eligible_years": 4,
+          "hit_samples": 23444,
+          "median_annual_win_delta_pct": 0.6,
+          "median_annual_return_delta_pct": 0.005,
+          "positive_both_years": 3
+        }
+      }
+    },
+    {
+      "factor_id": "support.volume_profile_proxy",
+      "name_zh": "Volume Profile近似筹码峰",
+      "tier": "C",
+      "research_status": "长期有方向、独立期不稳定",
+      "action": "按市场阶段展示，不作固定加分",
+      "development_2001_2024": {
+        "eligible_years": 15,
+        "hit_samples": 5540,
+        "median_annual_win_delta_pct": 2.38,
+        "median_annual_return_delta_pct": 0.251,
+        "positive_both_years": 10
+      },
+      "validation_2025": {
+        "samples": 1224,
+        "win_delta_pct": -2.68,
+        "median_delta_pct": -0.616
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 483,
+          "win_rate_pct": 54.45,
+          "mean_return_pct": 2.152,
+          "median_return_pct": 1.146,
+          "profit_factor": 1.596
+        },
+        "non_hit": {
+          "samples": 3257,
+          "win_rate_pct": 52.53,
+          "mean_return_pct": 1.043,
+          "median_return_pct": 0.596,
+          "profit_factor": 1.234
+        },
+        "win_delta_pct": 1.92,
+        "median_delta_pct": 0.55
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2006_2010": {
+          "eligible_years": 2,
+          "hit_samples": 76,
+          "median_annual_win_delta_pct": -5.59,
+          "median_annual_return_delta_pct": -0.626,
+          "positive_both_years": 1
+        },
+        "2011_2015": {
+          "eligible_years": 4,
+          "hit_samples": 149,
+          "median_annual_win_delta_pct": 8.18,
+          "median_annual_return_delta_pct": 2.089,
+          "positive_both_years": 3
+        },
+        "2016_2020": {
+          "eligible_years": 5,
+          "hit_samples": 1149,
+          "median_annual_win_delta_pct": -1.59,
+          "median_annual_return_delta_pct": -0.237,
+          "positive_both_years": 2
+        },
+        "2021_2024": {
+          "eligible_years": 4,
+          "hit_samples": 4166,
+          "median_annual_win_delta_pct": 2.98,
+          "median_annual_return_delta_pct": 0.48,
+          "positive_both_years": 4
+        }
+      }
+    },
+    {
+      "factor_id": "structure.engulfing_bullish_follow_through",
+      "name_zh": "看涨吞没后K线跟随",
+      "tier": "C",
+      "research_status": "没有稳定的跨时期增量",
+      "action": "只展示或停权，不作为买入依据",
+      "development_2001_2024": {
+        "eligible_years": 16,
+        "hit_samples": 5000,
+        "median_annual_win_delta_pct": -0.99,
+        "median_annual_return_delta_pct": -0.075,
+        "positive_both_years": 7
+      },
+      "validation_2025": {
+        "samples": 1005,
+        "win_delta_pct": 0.09,
+        "median_delta_pct": -0.03
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 467,
+          "win_rate_pct": 53.96,
+          "mean_return_pct": 0.836,
+          "median_return_pct": 1.007,
+          "profit_factor": 1.194
+        },
+        "non_hit": {
+          "samples": 3273,
+          "win_rate_pct": 52.61,
+          "mean_return_pct": 1.236,
+          "median_return_pct": 0.601,
+          "profit_factor": 1.284
+        },
+        "win_delta_pct": 1.35,
+        "median_delta_pct": 0.406
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2006_2010": {
+          "eligible_years": 2,
+          "hit_samples": 67,
+          "median_annual_win_delta_pct": 3.705,
+          "median_annual_return_delta_pct": 1.141,
+          "positive_both_years": 1
+        },
+        "2011_2015": {
+          "eligible_years": 5,
+          "hit_samples": 230,
+          "median_annual_win_delta_pct": 1.05,
+          "median_annual_return_delta_pct": 0.304,
+          "positive_both_years": 3
+        },
+        "2016_2020": {
+          "eligible_years": 5,
+          "hit_samples": 1179,
+          "median_annual_win_delta_pct": -1.47,
+          "median_annual_return_delta_pct": -0.365,
+          "positive_both_years": 2
+        },
+        "2021_2024": {
+          "eligible_years": 4,
+          "hit_samples": 3524,
+          "median_annual_win_delta_pct": -2.035,
+          "median_annual_return_delta_pct": -0.455,
+          "positive_both_years": 1
+        }
+      }
+    },
+    {
+      "factor_id": "support.monthly_ema_proximity",
+      "name_zh": "完整月线 EMA20/50/200支撑",
+      "tier": "C",
+      "research_status": "长期有方向、独立期不稳定",
+      "action": "按市场阶段展示，不作固定加分",
+      "development_2001_2024": {
+        "eligible_years": 20,
+        "hit_samples": 8170,
+        "median_annual_win_delta_pct": 3.995,
+        "median_annual_return_delta_pct": 0.543,
+        "positive_both_years": 12
+      },
+      "validation_2025": {
+        "samples": 1880,
+        "win_delta_pct": -0.37,
+        "median_delta_pct": -0.206
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 399,
+          "win_rate_pct": 52.38,
+          "mean_return_pct": 0.953,
+          "median_return_pct": 0.541,
+          "profit_factor": 1.23
+        },
+        "non_hit": {
+          "samples": 3341,
+          "win_rate_pct": 52.83,
+          "mean_return_pct": 1.214,
+          "median_return_pct": 0.681,
+          "profit_factor": 1.278
+        },
+        "win_delta_pct": -0.45,
+        "median_delta_pct": -0.14
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 1,
+          "hit_samples": 46,
+          "median_annual_win_delta_pct": 11.18,
+          "median_annual_return_delta_pct": 1.926,
+          "positive_both_years": 1
+        },
+        "2006_2010": {
+          "eligible_years": 5,
+          "hit_samples": 324,
+          "median_annual_win_delta_pct": 1.47,
+          "median_annual_return_delta_pct": -0.261,
+          "positive_both_years": 2
+        },
+        "2011_2015": {
+          "eligible_years": 5,
+          "hit_samples": 326,
+          "median_annual_win_delta_pct": 5.7,
+          "median_annual_return_delta_pct": 0.576,
+          "positive_both_years": 3
+        },
+        "2016_2020": {
+          "eligible_years": 5,
+          "hit_samples": 1662,
+          "median_annual_win_delta_pct": 3.27,
+          "median_annual_return_delta_pct": 0.51,
+          "positive_both_years": 3
+        },
+        "2021_2024": {
+          "eligible_years": 4,
+          "hit_samples": 5812,
+          "median_annual_win_delta_pct": 6.0,
+          "median_annual_return_delta_pct": 1.018,
+          "positive_both_years": 3
+        }
+      }
+    },
+    {
+      "factor_id": "structure.monthly_bullish_engulfing",
+      "name_zh": "完整月线看涨吞没",
+      "tier": "C",
+      "research_status": "长期有方向、独立期不稳定",
+      "action": "按市场阶段展示，不作固定加分",
+      "development_2001_2024": {
+        "eligible_years": 7,
+        "hit_samples": 1509,
+        "median_annual_win_delta_pct": 1.58,
+        "median_annual_return_delta_pct": 0.807,
+        "positive_both_years": 4
+      },
+      "validation_2025": {
+        "samples": 467,
+        "win_delta_pct": -1.7,
+        "median_delta_pct": -0.576
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 90,
+          "win_rate_pct": 52.22,
+          "mean_return_pct": 3.064,
+          "median_return_pct": 0.44,
+          "profit_factor": 1.839
+        },
+        "non_hit": {
+          "samples": 3650,
+          "win_rate_pct": 52.79,
+          "mean_return_pct": 1.14,
+          "median_return_pct": 0.667,
+          "profit_factor": 1.261
+        },
+        "win_delta_pct": -0.57,
+        "median_delta_pct": -0.227
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2006_2010": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2011_2015": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2016_2020": {
+          "eligible_years": 3,
+          "hit_samples": 482,
+          "median_annual_win_delta_pct": 7.04,
+          "median_annual_return_delta_pct": 1.627,
+          "positive_both_years": 3
+        },
+        "2021_2024": {
+          "eligible_years": 4,
+          "hit_samples": 1027,
+          "median_annual_win_delta_pct": -5.77,
+          "median_annual_return_delta_pct": -1.446,
+          "positive_both_years": 1
+        }
+      }
+    },
+    {
+      "factor_id": "qualification.pullback_60d",
+      "name_zh": "距60日高点回调",
+      "tier": "C",
+      "research_status": "长期有方向、独立期不稳定",
+      "action": "按市场阶段展示，不作固定加分",
+      "development_2001_2024": {
+        "eligible_years": 21,
+        "hit_samples": 22242,
+        "median_annual_win_delta_pct": 2.38,
+        "median_annual_return_delta_pct": 1.051,
+        "positive_both_years": 12
+      },
+      "validation_2025": {
+        "samples": 5082,
+        "win_delta_pct": -1.79,
+        "median_delta_pct": -0.076
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 2411,
+          "win_rate_pct": 51.97,
+          "mean_return_pct": 1.244,
+          "median_return_pct": 0.601,
+          "profit_factor": 1.26
+        },
+        "non_hit": {
+          "samples": 1329,
+          "win_rate_pct": 54.25,
+          "mean_return_pct": 1.082,
+          "median_return_pct": 0.751,
+          "profit_factor": 1.305
+        },
+        "win_delta_pct": -2.28,
+        "median_delta_pct": -0.15
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 2,
+          "hit_samples": 112,
+          "median_annual_win_delta_pct": 12.465,
+          "median_annual_return_delta_pct": 3.609,
+          "positive_both_years": 2
+        },
+        "2006_2010": {
+          "eligible_years": 5,
+          "hit_samples": 486,
+          "median_annual_win_delta_pct": -5.48,
+          "median_annual_return_delta_pct": 1.077,
+          "positive_both_years": 2
+        },
+        "2011_2015": {
+          "eligible_years": 5,
+          "hit_samples": 565,
+          "median_annual_win_delta_pct": -2.63,
+          "median_annual_return_delta_pct": 0.691,
+          "positive_both_years": 2
+        },
+        "2016_2020": {
+          "eligible_years": 5,
+          "hit_samples": 4571,
+          "median_annual_win_delta_pct": 3.23,
+          "median_annual_return_delta_pct": 1.051,
+          "positive_both_years": 3
+        },
+        "2021_2024": {
+          "eligible_years": 4,
+          "hit_samples": 16508,
+          "median_annual_win_delta_pct": 2.375,
+          "median_annual_return_delta_pct": 0.587,
+          "positive_both_years": 3
+        }
+      }
+    },
+    {
+      "factor_id": "structure.higher_low",
+      "name_zh": "更高低点",
+      "tier": "D",
+      "research_status": "长期偏弱或近期恶化",
+      "action": "停止加权；只保留审计记录",
+      "development_2001_2024": {
+        "eligible_years": 22,
+        "hit_samples": 20287,
+        "median_annual_win_delta_pct": -2.19,
+        "median_annual_return_delta_pct": -0.473,
+        "positive_both_years": 4
+      },
+      "validation_2025": {
+        "samples": 4019,
+        "win_delta_pct": -0.22,
+        "median_delta_pct": -0.214
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 1429,
+          "win_rate_pct": 51.15,
+          "mean_return_pct": 1.223,
+          "median_return_pct": 0.344,
+          "profit_factor": 1.273
+        },
+        "non_hit": {
+          "samples": 2311,
+          "win_rate_pct": 53.79,
+          "mean_return_pct": 1.163,
+          "median_return_pct": 0.861,
+          "profit_factor": 1.273
+        },
+        "win_delta_pct": -2.64,
+        "median_delta_pct": -0.517
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 3,
+          "hit_samples": 205,
+          "median_annual_win_delta_pct": 1.04,
+          "median_annual_return_delta_pct": -0.026,
+          "positive_both_years": 1
+        },
+        "2006_2010": {
+          "eligible_years": 5,
+          "hit_samples": 539,
+          "median_annual_win_delta_pct": -1.84,
+          "median_annual_return_delta_pct": -1.713,
+          "positive_both_years": 2
+        },
+        "2011_2015": {
+          "eligible_years": 5,
+          "hit_samples": 802,
+          "median_annual_win_delta_pct": -4.86,
+          "median_annual_return_delta_pct": -0.559,
+          "positive_both_years": 1
+        },
+        "2016_2020": {
+          "eligible_years": 5,
+          "hit_samples": 5339,
+          "median_annual_win_delta_pct": -5.03,
+          "median_annual_return_delta_pct": -0.606,
+          "positive_both_years": 0
+        },
+        "2021_2024": {
+          "eligible_years": 4,
+          "hit_samples": 13402,
+          "median_annual_win_delta_pct": -2.025,
+          "median_annual_return_delta_pct": -0.415,
+          "positive_both_years": 0
+        }
+      }
+    },
+    {
+      "factor_id": "structure.double_bottom",
+      "name_zh": "双底",
+      "tier": "D",
+      "research_status": "长期偏弱或近期恶化",
+      "action": "停止加权；只保留审计记录",
+      "development_2001_2024": {
+        "eligible_years": 15,
+        "hit_samples": 4649,
+        "median_annual_win_delta_pct": -3.5,
+        "median_annual_return_delta_pct": -0.596,
+        "positive_both_years": 3
+      },
+      "validation_2025": {
+        "samples": 941,
+        "win_delta_pct": -0.1,
+        "median_delta_pct": 0.172
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 301,
+          "win_rate_pct": 50.17,
+          "mean_return_pct": 1.214,
+          "median_return_pct": 0.251,
+          "profit_factor": 1.262
+        },
+        "non_hit": {
+          "samples": 3439,
+          "win_rate_pct": 53.01,
+          "mean_return_pct": 1.184,
+          "median_return_pct": 0.753,
+          "profit_factor": 1.274
+        },
+        "win_delta_pct": -2.84,
+        "median_delta_pct": -0.502
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2006_2010": {
+          "eligible_years": 2,
+          "hit_samples": 87,
+          "median_annual_win_delta_pct": 0.205,
+          "median_annual_return_delta_pct": 0.229,
+          "positive_both_years": 1
+        },
+        "2011_2015": {
+          "eligible_years": 4,
+          "hit_samples": 182,
+          "median_annual_win_delta_pct": -3.725,
+          "median_annual_return_delta_pct": -0.205,
+          "positive_both_years": 2
+        },
+        "2016_2020": {
+          "eligible_years": 5,
+          "hit_samples": 1245,
+          "median_annual_win_delta_pct": -2.8,
+          "median_annual_return_delta_pct": -0.507,
+          "positive_both_years": 0
+        },
+        "2021_2024": {
+          "eligible_years": 4,
+          "hit_samples": 3135,
+          "median_annual_win_delta_pct": -3.735,
+          "median_annual_return_delta_pct": -0.668,
+          "positive_both_years": 0
+        }
+      }
+    },
+    {
+      "factor_id": "volume.relative_expansion",
+      "name_zh": "成交量突然放大",
+      "tier": "D",
+      "research_status": "长期偏弱或近期恶化",
+      "action": "停止加权；只保留审计记录",
+      "development_2001_2024": {
+        "eligible_years": 21,
+        "hit_samples": 8293,
+        "median_annual_win_delta_pct": -0.53,
+        "median_annual_return_delta_pct": -0.139,
+        "positive_both_years": 8
+      },
+      "validation_2025": {
+        "samples": 1648,
+        "win_delta_pct": 1.24,
+        "median_delta_pct": 0.488
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 572,
+          "win_rate_pct": 49.65,
+          "mean_return_pct": 1.274,
+          "median_return_pct": -0.103,
+          "profit_factor": 1.262
+        },
+        "non_hit": {
+          "samples": 3168,
+          "win_rate_pct": 53.35,
+          "mean_return_pct": 1.17,
+          "median_return_pct": 0.789,
+          "profit_factor": 1.275
+        },
+        "win_delta_pct": -3.7,
+        "median_delta_pct": -0.892
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 2,
+          "hit_samples": 108,
+          "median_annual_win_delta_pct": -3.695,
+          "median_annual_return_delta_pct": -0.617,
+          "positive_both_years": 0
+        },
+        "2006_2010": {
+          "eligible_years": 5,
+          "hit_samples": 275,
+          "median_annual_win_delta_pct": -0.91,
+          "median_annual_return_delta_pct": -0.643,
+          "positive_both_years": 2
+        },
+        "2011_2015": {
+          "eligible_years": 5,
+          "hit_samples": 367,
+          "median_annual_win_delta_pct": -2.84,
+          "median_annual_return_delta_pct": -0.102,
+          "positive_both_years": 2
+        },
+        "2016_2020": {
+          "eligible_years": 5,
+          "hit_samples": 2051,
+          "median_annual_win_delta_pct": 3.6,
+          "median_annual_return_delta_pct": 0.644,
+          "positive_both_years": 3
+        },
+        "2021_2024": {
+          "eligible_years": 4,
+          "hit_samples": 5492,
+          "median_annual_win_delta_pct": -0.44,
+          "median_annual_return_delta_pct": -0.192,
+          "positive_both_years": 1
+        }
+      }
+    },
+    {
+      "factor_id": "structure.weekly_bullish_engulfing",
+      "name_zh": "完整周线看涨吞没",
+      "tier": "D",
+      "research_status": "长期偏弱或近期恶化",
+      "action": "停止加权；只保留审计记录",
+      "development_2001_2024": {
+        "eligible_years": 7,
+        "hit_samples": 2075,
+        "median_annual_win_delta_pct": 2.28,
+        "median_annual_return_delta_pct": 0.076,
+        "positive_both_years": 5
+      },
+      "validation_2025": {
+        "samples": 503,
+        "win_delta_pct": -2.07,
+        "median_delta_pct": -0.293
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 132,
+          "win_rate_pct": 46.21,
+          "mean_return_pct": 0.251,
+          "median_return_pct": -1.686,
+          "profit_factor": 1.052
+        },
+        "non_hit": {
+          "samples": 3608,
+          "win_rate_pct": 53.02,
+          "mean_return_pct": 1.22,
+          "median_return_pct": 0.729,
+          "profit_factor": 1.282
+        },
+        "win_delta_pct": -6.81,
+        "median_delta_pct": -2.415
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2006_2010": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2011_2015": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2016_2020": {
+          "eligible_years": 3,
+          "hit_samples": 534,
+          "median_annual_win_delta_pct": 3.48,
+          "median_annual_return_delta_pct": 0.769,
+          "positive_both_years": 3
+        },
+        "2021_2024": {
+          "eligible_years": 4,
+          "hit_samples": 1541,
+          "median_annual_win_delta_pct": -1.38,
+          "median_annual_return_delta_pct": -0.185,
+          "positive_both_years": 2
+        }
+      }
+    },
+    {
+      "factor_id": "structure.weekly_double_bullish_engulfing",
+      "name_zh": "完整周线双看涨吞没",
+      "tier": "D",
+      "research_status": "长期偏弱或近期恶化",
+      "action": "停止加权；只保留审计记录",
+      "development_2001_2024": {
+        "eligible_years": 6,
+        "hit_samples": 827,
+        "median_annual_win_delta_pct": 0.315,
+        "median_annual_return_delta_pct": 0.207,
+        "positive_both_years": 3
+      },
+      "validation_2025": {
+        "samples": 247,
+        "win_delta_pct": -2.71,
+        "median_delta_pct": -0.483
+      },
+      "forward_2026": {
+        "hit": {
+          "samples": 58,
+          "win_rate_pct": 39.66,
+          "mean_return_pct": 0.842,
+          "median_return_pct": -3.115,
+          "profit_factor": 1.196
+        },
+        "non_hit": {
+          "samples": 3682,
+          "win_rate_pct": 52.99,
+          "mean_return_pct": 1.192,
+          "median_return_pct": 0.711,
+          "profit_factor": 1.274
+        },
+        "win_delta_pct": -13.33,
+        "median_delta_pct": -3.826
+      },
+      "five_year_blocks": {
+        "2001_2005": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2006_2010": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2011_2015": {
+          "eligible_years": 0,
+          "hit_samples": 0,
+          "median_annual_win_delta_pct": null,
+          "median_annual_return_delta_pct": null,
+          "positive_both_years": 0
+        },
+        "2016_2020": {
+          "eligible_years": 2,
+          "hit_samples": 182,
+          "median_annual_win_delta_pct": 5.98,
+          "median_annual_return_delta_pct": 1.022,
+          "positive_both_years": 2
+        },
+        "2021_2024": {
+          "eligible_years": 4,
+          "hit_samples": 645,
+          "median_annual_win_delta_pct": -2.995,
+          "median_annual_return_delta_pct": -0.49,
+          "positive_both_years": 1
+        }
+      }
+    }
+  ],
+  "exit_comparison": {
+    "development_2001_2024": {
+      "fixed": {
+        "samples": 33454,
+        "win_rate_pct": 47.638,
+        "mean_return_pct": 0.875,
+        "median_annual_return_pct": -1.478,
+        "sample_weighted_annual_profit_factor": 1.292,
+        "mean_r": 0.122
+      },
+      "trail_8pct": {
+        "samples": 33454,
+        "win_rate_pct": 48.874,
+        "mean_return_pct": 0.792,
+        "median_annual_return_pct": -0.689,
+        "sample_weighted_annual_profit_factor": 1.287,
+        "mean_r": 0.113
+      }
+    },
+    "validation_2025": {
+      "fixed": {
+        "samples": 6162,
+        "win_rate_pct": 44.77,
+        "mean_return_pct": 0.89,
+        "median_annual_return_pct": -2.843,
+        "sample_weighted_annual_profit_factor": 1.235,
+        "mean_r": 0.114
+      },
+      "trail_8pct": {
+        "samples": 6162,
+        "win_rate_pct": 46.06,
+        "mean_return_pct": 0.807,
+        "median_annual_return_pct": -1.46,
+        "sample_weighted_annual_profit_factor": 1.227,
+        "mean_r": 0.104
+      }
+    },
+    "forward_2026": {
+      "fixed": {
+        "samples": 1992,
+        "win_rate_pct": 38.86,
+        "mean_return_pct": 0.016,
+        "median_return_pct": -5.137,
+        "profit_factor": 1.003,
+        "mean_r": 0.0194,
+        "stop_rate_pct": 54.72,
+        "target_rate_pct": 26.81,
+        "mean_holding_sessions": 18.34
+      },
+      "trail_8pct": {
+        "samples": 1992,
+        "win_rate_pct": 43.22,
+        "mean_return_pct": 0.228,
+        "median_return_pct": -3.379,
+        "profit_factor": 1.056,
+        "mean_r": 0.0441,
+        "stop_rate_pct": 63.05,
+        "target_rate_pct": 24.5,
+        "mean_holding_sessions": 16.87
+      }
+    },
+    "decision": "8%移动止损在三个阶段都提高胜率和中位数，但在2001—2024及2025略微降低平均收益和PF，只在2026全面胜出；因此它是降低盈利回吐的风险管理候选，不是长期收益已验证的无条件替代。"
+  },
+  "conclusion": {
+    "tier_a": [],
+    "tier_b": [
+      "volume.bottom_expansion",
+      "structure.support_bullish_engulfing",
+      "structure.trendline_three_push",
+      "structure.bottom_bullish_engulfing",
+      "macd.weekly_histogram_improving",
+      "risk.overhead_unfilled_gap"
+    ],
+    "tier_d": [
+      "structure.higher_low",
+      "structure.double_bottom",
+      "volume.relative_expansion",
+      "structure.weekly_bullish_engulfing",
+      "structure.weekly_double_bullish_engulfing"
+    ],
+    "plain_zh": "没有单因子达到可无条件正式加权的A级标准。底部看涨吞没、底部放量和上方未填补缺口进入B级复核；双底、更高低点、周线吞没与相对放量应停权。EMA、斐波那契、筹码密集和FVG表现受阶段影响，只作位置证据。"
+  },
+  "limitations": [
+    "2019年后缓存股票覆盖明显扩大，已按年度和五年阶段报告而非直接混算",
+    "历史退市和更名覆盖仍不完整",
+    "重叠MACD事件不是独立交易",
+    "原始平均收益受少量公司行动或数据极值污染，因此因子定级以胜率和中位数增量为主",
+    "年度PF为年度统计的样本加权描述，不等于逐笔资金曲线PF"
+  ]
+}
