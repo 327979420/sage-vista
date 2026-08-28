@@ -44,7 +44,7 @@ def validate(authoritative,tracker,radar,snapshot,industry,market,history):
 def run(target=1000,as_of=None):
  authoritative=as_of or latest_reference_day()
  current_tracker=read_json(PUBLIC/"resonance-tracker.json");current_radar=read_json(PUBLIC/"rare-opportunity-radar.json");current_snapshot=read_json(PUBLIC/"daily-factor-snapshot.json");current_industry=read_json(PUBLIC/"industry-radar.json");current_market=read_json(PUBLIC/"market-etf-watch.json");current_history=read_json(PUBLIC/"signal-history.json")
- if current_tracker.get("as_of")==authoritative and current_radar.get("as_of")==authoritative and current_snapshot.get("as_of")==authoritative and current_industry.get("as_of")==authoritative and current_market.get("as_of")==authoritative and current_history.get("as_of")==authoritative:
+ if current_tracker.get("as_of")==authoritative and current_radar.get("as_of")==authoritative and current_snapshot.get("as_of")==authoritative and current_snapshot.get("registry_version")==REGISTRY_VERSION and current_radar.get("registry_version")==REGISTRY_VERSION and current_industry.get("as_of")==authoritative and current_market.get("as_of")==authoritative and current_history.get("as_of")==authoritative:
   return {"result":"already_current","as_of":authoritative}
  pathlib.Path("work").mkdir(exist_ok=True)
  with tempfile.TemporaryDirectory(prefix="daily-update-",dir="work") as folder:
