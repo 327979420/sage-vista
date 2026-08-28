@@ -79,7 +79,8 @@ def _rank_day(snapshot,market,industry):
  candidates=[x for row in snapshot["symbols"] if (x:=_candidate(row,market,industry))]
  candidates.sort(key=lambda x:(-x["final_priority"],-x["technical_score"],-x["experimental_score"],x["symbol"]))
  for rank,item in enumerate(candidates[:30],1):item["rank"]=rank
- return {"date":day,"market":{"state":market["market_temperature"]["state"],"score":market["market_temperature"]["score"]},"industry_status":industry.get("status"),"historical_membership_safe":bool(industry.get("historical_membership_safe")),"eligible_count":snapshot["eligible_count"],"candidate_count":len(candidates),"ranking":candidates[:30]}
+ pool=[{"symbol":x["symbol"],"price":x["price"],"technical_score":x["technical_score"],"market_adjustment":x["market_adjustment"],"industry_adjustment":x["industry_adjustment"],"base_priority":x["final_priority"],"experimental_score":x["experimental_score"],"hit_factor_ids":[f["factor_id"] for f in x["factor_ledger"] if f["hit"]]} for x in candidates]
+ return {"date":day,"market":{"state":market["market_temperature"]["state"],"score":market["market_temperature"]["score"]},"industry_status":industry.get("status"),"historical_membership_safe":bool(industry.get("historical_membership_safe")),"eligible_count":snapshot["eligible_count"],"candidate_count":len(candidates),"candidate_pool_policy":"通过基准入场门槛的完整候选池；辅助因子只能在池内重排，不能独立触发","candidate_pool":pool,"ranking":candidates[:30]}
 
 def _write_report(results,out,merge_existing):
  if merge_existing and pathlib.Path(out).exists():
