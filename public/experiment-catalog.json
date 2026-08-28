@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0.0",
-  "generated_at": "2026-08-28T08:52:45.362373+00:00",
+  "generated_at": "2026-08-28T09:12:02.165564+00:00",
   "source": "research/experiments.jsonl",
-  "experiment_count": 19,
+  "experiment_count": 20,
   "policy": {
     "append_only": true,
     "failed_results_preserved": true,
@@ -493,6 +493,47 @@
         "daily OHLCV approximates intraday support and execution",
         "overlapping MACD events are not independent"
       ]
+    },
+    {
+      "experiment_id": "exit-score-v0.1.0-2026-08-28",
+      "created_at": "2026-08-28T19:30:00+10:00",
+      "status": "pre_registered",
+      "change": "Add a separate post-entry shadow exit-risk score using completed daily bearish body engulfing, dependent bearish follow-through, confirmed three-peak RSI bearish divergence, and weakening positive MACD histogram; do not change entry ranking or production exits.",
+      "coverage": "Reuse saved point-in-time MACD entry events; development through 2024, 2025 independent validation, 2026 forward observation; natural-week resumable checkpoints.",
+      "specification": {
+        "score": {
+          "bearish_body_engulfing": 2,
+          "bearish_follow_through": 1,
+          "triple_rsi_bearish_divergence": 1,
+          "positive_macd_histogram_weakening": 1,
+          "maximum": 5
+        },
+        "definitions": {
+          "bearish_follow_through": "immediately following completed bearish candle closes below the engulfing candle close",
+          "triple_rsi_bearish_divergence": "three confirmed strictly higher price pivots; first RSI14 >=70; RSI peaks non-increasing; event only after third pivot confirmation",
+          "positive_macd_histogram_weakening": "histogram remains positive and contracts on two consecutive completed sessions"
+        },
+        "controls": [
+          "existing support stop / maximum 10% planned loss / 2R / time exit",
+          "same baseline plus exit_score >=2 at next adjusted open",
+          "same baseline plus exit_score >=3 at next adjusted open"
+        ],
+        "hard_stop_priority": true,
+        "cost_bps": [
+          0,
+          20,
+          50
+        ],
+        "checkpoint": "natural week; resume from last successful checkpoint"
+      },
+      "success_criteria": "An exit threshold must improve 2025 validation net expectancy or maximum drawdown without a material directional collapse in 2026, while reporting foregone post-exit upside and robustness against extreme observations.",
+      "result": "Not run. All weights and thresholds are subjective priors frozen before testing; production execution remains unchanged.",
+      "known_limitations": [
+        "confirmed RSI pivots create deliberate delay",
+        "daily OHLCV cannot model intraday exit ordering beyond the existing conservative stop-first rule",
+        "overlapping entry events are not independent",
+        "partial delisted coverage remains"
+      ]
     }
   ],
   "factor_experiments": {
@@ -564,6 +605,7 @@
   },
   "unlinked_experiment_ids": [
     "core-factor-backtest-v1.0.0-2026-08-27",
+    "exit-score-v0.1.0-2026-08-28",
     "full-line-backtest-v1.0.2-2026-08-28",
     "macd-rollout-04-double-chip-confirmation-2026-08-25",
     "pullback-context-backtest-v2.0.0-2026-08-28",
