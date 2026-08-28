@@ -52,13 +52,6 @@ def simulate(entry, stop, target, path, variant):
 def metrics(results):
     vals = [x["return"] for x in results]
     wins, losses = [x for x in vals if x > 0], [x for x in vals if x < 0]
-    ordered = sorted(results, key=lambda x: (x["entry_date"], x["event_id"]))
-    equity = peak = 1.0
-    max_dd = 0.0
-    for row in ordered:
-        equity *= 1 + row["return"]
-        peak = max(peak, equity)
-        max_dd = min(max_dd, equity / peak - 1)
     return {
         "samples": len(vals),
         "win_rate_pct": round(100 * len(wins) / len(vals), 2),
@@ -69,7 +62,6 @@ def metrics(results):
         "stop_rate_pct": round(100 * sum(x["reason"].startswith("stop") for x in results) / len(vals), 2),
         "target_rate_pct": round(100 * sum(x["reason"] == "target" for x in results) / len(vals), 2),
         "mean_holding_sessions": round(statistics.mean(x["held"] for x in results), 2),
-        "sequential_trade_max_drawdown_pct": round(100 * max_dd, 2),
     }
 
 
@@ -110,6 +102,7 @@ def run(ledger_path, cache_dir, out):
                   "close_trail_8pct_after_1r": "stop raised to 92% of highest completed close",
                   "common": "original fixed 2R target; 40 sessions; gap-aware; stop-first"},
         "metrics": {name: metrics(rows) for name, rows in grouped.items()},
+        "drawdown_note": "Portfolio maximum drawdown is unavailable until a non-overlapping portfolio sizing and capital allocation rule is frozen.",
     }
     base = report["metrics"]["fixed"]
     report["deltas_vs_fixed"] = {name: {k: round(value - base[k], 3) for k, value in vals.items()

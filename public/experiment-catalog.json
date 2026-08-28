@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-08-29T02:00:00+10:00",
+  "generated_at": "2026-08-29T02:10:00+10:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
@@ -8,9 +8,9 @@
   ],
   "experiment_count": 22,
   "summary": {
-    "completed": 18,
-    "in_progress": 4,
-    "candidate": 7,
+    "completed": 19,
+    "in_progress": 3,
+    "candidate": 8,
     "not_validated_or_unstable": 8
   },
   "policy": {
@@ -24,9 +24,9 @@
     {
       "experiment_id": "trailing-stop-v0.1.0-2026-08-29",
       "created_at": "2026-08-29T02:00:00+10:00",
-      "status": "pre_registered",
+      "status": "completed_research_only",
       "change": "Compare the current fixed support/cap stop with two completed-close trailing challengers on the frozen 2026 daily-MACD event pool without changing production execution.",
-      "coverage": "Unified V2 2026 events with at least 40 completed post-entry sessions and restored audited daily history.",
+      "coverage": "1,992 Unified V2 2026 events with at least 40 completed post-entry sessions and restored audited daily history; one immature event excluded.",
       "specification": {
         "entry": "next adjusted open",
         "baseline": "frozen signal support minus 5%, capped at 10% planned loss",
@@ -38,31 +38,31 @@
         "common": "original fixed 2R target, 40 sessions, gap-aware fills, same-bar stop-first"
       },
       "success_criteria": "A challenger is better only if expectancy and Profit Factor improve without an unacceptable deterioration in win rate or drawdown; 2026 alone is directional evidence and cannot change production execution.",
-      "result": "Not run. Production stop remains unchanged.",
+      "result": "The 8% completed-close trail was the stronger 2026 challenger: win rate 43.22%, mean return 0.228%, PF 1.056 versus fixed 38.86%, 0.016%, and 1.003. Breakeven improved mean return to 0.121% and PF to 1.030 but reduced win rate to 34.34%. Production execution remains unchanged pending earlier-period validation.",
       "known_limitations": [
         "2026 is a forward-period snapshot rather than independent development plus validation",
         "daily OHLCV cannot resolve intraday ordering beyond conservative stop-first",
         "overlapping signals are not independent",
-        "sequential-trade drawdown is descriptive because trades overlap"
+        "portfolio drawdown is unavailable without a frozen sizing and capital allocation rule"
       ],
       "human_summary": {
         "title_zh": "2026移动止损影子对照",
         "family": "exit",
         "family_zh": "离场机制",
         "question_zh": "达到原始+1R后保本或按最高收盘价下方8%追踪，能否优于固定支撑止损？",
-        "result_zh": "已预登记，等待逐日价格路径回放；生产止损不变。",
-        "use_zh": "结果出来前继续使用现有固定支撑止损，不据此改变实盘。",
-        "next_zh": "在冻结的2026事件上比较胜率、期望、PF、回撤和持有时间。",
-        "verdict": "pre_registered"
+        "result_zh": "在1,992个成熟事件中，8%追踪胜率43.22%、平均每笔+0.228%、PF 1.056，均高于固定止损的38.86%、+0.016%和1.003；单纯保本胜率降至34.34%。",
+        "use_zh": "8%追踪可进入跨年份复核，但2026的绝对增量仍小，生产止损暂不改变。",
+        "next_zh": "在2025独立验证和开发期按完全相同规则复核，并冻结组合仓位后再报告组合最大回撤。",
+        "verdict": "candidate"
       },
       "lifecycle": {
         "registered_at": "2026-08-29T02:00:00+10:00",
-        "started_at": null,
-        "completed_at": null,
-        "latest_event": "registered",
-        "latest_event_at": "2026-08-29T02:00:00+10:00",
-        "time_source": "user_approval",
-        "event_count": 1,
+        "started_at": "2026-08-29T02:09:00+10:00",
+        "completed_at": "2026-08-29T02:10:00+10:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-08-29T02:10:00+10:00",
+        "time_source": "github_actions",
+        "event_count": 3,
         "events": [
           {
             "experiment_id": "trailing-stop-v0.1.0-2026-08-29",
@@ -70,6 +70,26 @@
             "event_at": "2026-08-29T02:00:00+10:00",
             "time_source": "user_approval",
             "source_ref": "CR-2026-08-29-001"
+          },
+          {
+            "experiment_id": "trailing-stop-v0.1.0-2026-08-29",
+            "event": "started",
+            "event_at": "2026-08-29T02:09:00+10:00",
+            "time_source": "github_actions",
+            "source_ref": "33187334970"
+          },
+          {
+            "experiment_id": "trailing-stop-v0.1.0-2026-08-29",
+            "event": "completed",
+            "event_at": "2026-08-29T02:10:00+10:00",
+            "time_source": "github_actions",
+            "source_ref": "33187334970",
+            "coverage": {
+              "year": 2026,
+              "resolved_samples": 1992,
+              "immature": 1
+            },
+            "result": "8% completed-close trail: win 43.22%, mean 0.228%, PF 1.056; fixed: win 38.86%, mean 0.016%, PF 1.003. Research only."
           }
         ]
       }

@@ -1,0 +1,23 @@
+{
+  "experiment_id": "trailing-stop-v0.1.0-2026-08-29",
+  "status": "completed_research_only",
+  "coverage": {"year": 2026, "samples": 1992, "missing_price_path": 0, "immature_40d": 1},
+  "rules": {
+    "activation": "completed close >= original entry + 1R; new stop effective next session",
+    "fixed": "original support/cap stop",
+    "breakeven_1r": "stop raised to entry",
+    "close_trail_8pct_after_1r": "stop raised to 92% of highest completed close",
+    "common": "original fixed 2R target; 40 sessions; gap-aware; stop-first"
+  },
+  "metrics": {
+    "fixed": {"samples":1992,"win_rate_pct":38.86,"mean_return_pct":0.016,"median_return_pct":-5.137,"profit_factor":1.003,"mean_r":0.0194,"stop_rate_pct":54.72,"target_rate_pct":26.81,"mean_holding_sessions":18.34},
+    "breakeven_1r": {"samples":1992,"win_rate_pct":34.34,"mean_return_pct":0.121,"median_return_pct":-3.231,"profit_factor":1.03,"mean_r":0.0354,"stop_rate_pct":61.09,"target_rate_pct":25.0,"mean_holding_sessions":17.21},
+    "close_trail_8pct_after_1r": {"samples":1992,"win_rate_pct":43.22,"mean_return_pct":0.228,"median_return_pct":-3.379,"profit_factor":1.056,"mean_r":0.0441,"stop_rate_pct":63.05,"target_rate_pct":24.5,"mean_holding_sessions":16.87}
+  },
+  "deltas_vs_fixed": {
+    "breakeven_1r": {"win_rate_pct":-4.52,"mean_return_pct":0.105,"median_return_pct":1.906,"profit_factor":0.027,"mean_r":0.016,"stop_rate_pct":6.37,"target_rate_pct":-1.81,"mean_holding_sessions":-1.13},
+    "close_trail_8pct_after_1r": {"win_rate_pct":4.36,"mean_return_pct":0.212,"median_return_pct":1.758,"profit_factor":0.053,"mean_r":0.0247,"stop_rate_pct":8.33,"target_rate_pct":-2.31,"mean_holding_sessions":-1.47}
+  },
+  "interpretation": "The 8% completed-close trail is the stronger 2026 challenger, but the absolute edge remains small and requires 2025 and development-period confirmation before any production change.",
+  "drawdown_note": "Portfolio maximum drawdown is not reported because these events overlap and no portfolio sizing/capital allocation rule is frozen. Sequential compounding of overlapping trades is invalid."
+}
