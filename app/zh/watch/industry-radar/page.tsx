@@ -1,5 +1,5 @@
 "use client";
-import {useEffect,useMemo,useState} from "react";
+import {useEffect,useState} from "react";
 import {TrackerShell} from "../resonance/tracker-ui";
 import {EmptyState,SectionHeader,StatusBadge} from "../resonance/product-ui";
 
@@ -28,7 +28,8 @@ export default function IndustryRadar(){
  const pullbacks=available.filter(x=>x.state==="Pullback Watch").sort((a,b)=>(b.relative_60d??-99)-(a.relative_60d??-99));
  const recoveries=available.filter(x=>x.state==="Recovery").sort((a,b)=>(b.relative_20d??-99)-(a.relative_20d??-99));
  const risks=available.filter(x=>x.state==="Neutral").sort((a,b)=>(a.relative_60d??99)-(b.relative_60d??99)).slice(0,4);
- const ranked=useMemo(()=>{const order:Record<string,number>={Leadership:0,"Pullback Watch":1,Recovery:2,Neutral:3};return available.slice().sort((a,b)=>sort==="state"?(order[a.state]-order[b.state])||((b.relative_20d??-99)-(a.relative_20d??-99)):((b[sort]??-99)-(a[sort]??-99)))},[available,sort]);
+ const order:Record<string,number>={Leadership:0,"Pullback Watch":1,Recovery:2,Neutral:3};
+ const ranked=available.slice().sort((a,b)=>sort==="state"?(order[a.state]-order[b.state])||((b.relative_20d??-99)-(a.relative_20d??-99)):((b[sort]??-99)-(a[sort]??-99)));
  const marketFunds=(market?.funds??[]).filter(x=>["SPY","QQQ","IWM","RSP"].includes(x.ticker));
  const trend=market?.layers.trend.state==="supportive",mixed=market?.layers.breadth.state==="narrow_or_mixed",riskOn=market?.layers.risk_appetite.state==="risk_seeking";
  const marketTitle=trend&&riskOn?mixed?"趋势支持，但上涨集中":"趋势与风险偏好支持":"市场需要防守";
@@ -42,7 +43,7 @@ export default function IndustryRadar(){
 
   <section className="svPanel"><SectionHeader eyebrow="WEAK CONTEXT" title="当前偏弱的行业背景" description="这不是自动卖出或一票否决，只提醒个股缺少行业顺风。"/><div className="industryRiskGrid">{risks.map(theme=><ThemeCard key={theme.theme_id} theme={theme} kind="risk"/>)}</div></section>
 
-  <section className="svPanel"><SectionHeader eyebrow="FULL AUDIT TABLE" title="完整行业状态表" description="数值直接读取生产数据，不在页面重新计算。相对强弱均相对SPY。" action={<label className="irSort">排序 <select value={sort} onChange={e=>setSort(e.target.value as typeof sort)}><option value="state">实用状态</option><option value="relative_20d">20日相对强弱</option><option value="breadth_above_sma50">成员广度</option></select></label>}/><div className="irTableV2" role="table" aria-label="行业雷达主题表"><div className="irRowV2 irHeadV2" role="row"><span>行业 / 参考ETF</span><span>状态</span><span>20日相对</span><span>60日相对</span><span>成员广度</span><span>10日变化</span><span>有效成员</span><span>数据质量</span></div>{ranked.map(t=><article className="irRowV2" role="row" key={t.theme_id}><div><b>{cn(t)}</b><small>{t.source??"—"} · {t.name}</small></div><span><StatusBadge state={t.state}>{stateLabels[t.state]}</StatusBadge></span><strong>{pct(t.relative_20d)}</strong><span>{pct(t.relative_60d)}</span><span>{breadth(t)}</span><span>{pct(t.breadth_change_10d)}</span><span><b>{t.valid_member_count}</b> / {t.member_count}</span><span><b>{t.source_provider??"—"}</b><small>原始 {t.raw_holdings_count??t.member_count} · 美股可识别 {t.us_resolvable_count??"—"}</small></span></article>)}</div></section>
+  <section className="svPanel"><SectionHeader eyebrow="FULL AUDIT TABLE" title="完整行业状态表" description="数值直接读取生产数据，不在页面重新计算。相对强弱均相对SPY。" action={<label className="irSort">排序 <select value={sort} onChange={e=>setSort(e.target.value as typeof sort)}><option value="state">实用状态</option><option value="relative_20d">20日相对强弱</option><option value="breadth_above_sma50">成员广度</option></select></label>}/><div className="irTableV2" role="table" aria-label="行业雷达主题表"><div className="irRowV2 irHeadV2" role="row"><span>行业 / 参考ETF</span><span>状态</span><span>20日相对</span><span>60日相对</span><span>成员广度</span><span>10日变化</span><span>有效成员</span><span>数据质量</span></div>{ranked.map(t=><div className="irRowV2" role="row" key={t.theme_id}><div><b>{cn(t)}</b><small>{t.source??"—"} · {t.name}</small></div><span><StatusBadge state={t.state}>{stateLabels[t.state]}</StatusBadge></span><strong>{pct(t.relative_20d)}</strong><span>{pct(t.relative_60d)}</span><span>{breadth(t)}</span><span>{pct(t.breadth_change_10d)}</span><span><b>{t.valid_member_count}</b> / {t.member_count}</span><span><b>{t.source_provider??"—"}</b><small>原始 {t.raw_holdings_count??t.member_count} · 美股可识别 {t.us_resolvable_count??"—"}</small></span></div>)}</div></section>
 
   <details className="svAuditDetails"><summary>数据质量与暂不可用行业（{unavailable.length}）</summary>{unavailable.length?<div className="irUnavailable">{unavailable.map(t=><article key={t.theme_id}><StatusBadge state="Unavailable">数据不足</StatusBadge><b>{cn(t)}</b><span>{t.valid_member_count}/{t.member_count} 有效 · {t.source??t.source_provider??"—"}</span><p>{t.error_reason??t.context}</p></article>)}</div>:<EmptyState title="没有不可用行业"/>}<footer>行业数据截至 {industry?.as_of??"—"} · 大盘数据截至 {market?.as_of??"—"} · 成分版本 {industry?.membership_version??"—"} · 未使用未来数据：{String(Boolean(industry&&!industry.future_data_used&&market&&!market.future_data_used))}</footer></details>
   <p className="contextOnlyNotice">研究边界：行业与大盘目前只调整观察优先级，不改变个股正式技术分。回测通过并更新规则手册前，不会偷偷加权。</p>

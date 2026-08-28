@@ -1,2 +1,3 @@
-import DataQuality from "./data-quality";
-export default function Page(){return <DataQuality/>}
+import {redirect} from "next/navigation";
+
+export default function Page(){redirect("/zh/watch/resonance/research?tab=experiments")}

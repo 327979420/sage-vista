@@ -50,6 +50,22 @@ test("the retired MACD Tracker product page is gone", async () => {
   assert.equal(response.status, 404);
 });
 
+test("retired product routes redirect to the four maintained modules", async () => {
+  const routes = [
+    ["/technical", "/zh/watch/resonance/rare-opportunities"],
+    ["/data-quality", "/zh/watch/resonance/research?tab=experiments"],
+    ["/zh", "/zh/watch/resonance/research?tab=experiments"],
+    ["/zh/watch/market", "/zh/watch/industry-radar"],
+    ["/zh/watch/resonance/rsi", "/zh/watch/resonance/rare-opportunities"],
+  ];
+
+  for (const [path, expected] of routes) {
+    const response = await render(path);
+    assert.ok([307, 308].includes(response.status), `${path} returned ${response.status}`);
+    assert.equal(new URL(response.headers.get("location"), "http://localhost").pathname + new URL(response.headers.get("location"), "http://localhost").search, expected);
+  }
+});
+
 test("server-renders the isolated Strategy Backtest research page", async () => {
   const response = await render("/zh/watch/resonance/strategy-backtest");
   assert.equal(response.status, 200);

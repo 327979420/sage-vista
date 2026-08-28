@@ -5,10 +5,11 @@
 Before proposing work or changing files:
 
 1. Read `docs/NEXT_SESSION_HANDOFF_ZH.md` and `docs/CURRENT_STATUS_ZH.md` completely.
-2. Read `docs/SAGE_VISTA_RULEBOOK_ZH.md` completely.
-3. Use `docs/rules/README.md` to select the smallest affected module.
-4. Check `git status`, the latest `main` commit, and the machine state files named by `docs/CURRENT_STATUS_ZH.md`. Never trust an old chat summary over repository state.
-5. In the first update to the user, state the current production date, historical replay coverage and next checkpoint, then name the exact module being changed.
+2. Use `docs/CODEBASE_MAP_ZH.md` to locate the smallest code surface; do not scan the whole repository first.
+3. Read `docs/SAGE_VISTA_RULEBOOK_ZH.md` completely.
+4. Use `docs/rules/README.md` to select the smallest affected business module.
+5. Check `git status`, the latest `main` commit, and the machine state files named by `docs/CURRENT_STATUS_ZH.md`. Never trust an old chat summary over repository state.
+6. In the first update to the user, state the current production date, historical replay coverage and next checkpoint, then name the exact module being changed.
 
 Before changing any strategy, score, factor, detector, ranking, market/industry adjustment, holding rule, backtest, experiment, production explanation, or related UI:
 

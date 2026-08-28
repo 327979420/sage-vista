@@ -1,3 +1,3 @@
-"use client";
-import {periods,TrackerShell,useTracker} from "../tracker-ui";
-export default function Confluence(){const data=useTracker();return <TrackerShell active="双指标确认" title="双指标确认" subtitle="当前MACD结构有效，并同时出现新鲜RSI底背离。">{data&&<section className="rtStrict rtPriorityOne"><div className="rtSectionTitle"><div><p>优先复核</p><h2>当前共 {data.combined_top10.length} 只候选</h2></div><span>不是自动买入信号</span></div><div className="rtStrictGrid">{data.combined_top10.map(x=><article key={x.symbol}><header><mark>MACD ＋ RSI</mark><b>{x.symbol}</b><strong>{x.combined_score}分</strong></header><div className="rtTransmission" aria-label="MACD多周期传导">{periods.map((period,i)=><div className={x.frames[period].macd_score>=2?"active":""} key={period}><i>{i+1}</i><small>{period}</small><b>{x.frames[period].macd}</b></div>)}</div><p>{x.macd_gate_reason}</p><div className="rtEvidenceTiles"><span className="rsi"><small>RSI 背离</small><b>{x.rsi_divergence_frames.join("、")||"未出现"}</b></span><span className={x.price_structure.confirmed?"structure active":"structure"}><small>价格结构</small><b>{x.price_structure.label}</b></span><span className="volume"><small>成交量</small><b>{x.volume.label}</b></span></div></article>)}</div></section>}</TrackerShell>}
+import {redirect} from "next/navigation";
+
+export default function Page(){redirect("/zh/watch/resonance/rare-opportunities")}

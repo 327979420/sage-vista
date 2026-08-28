@@ -1,2 +1,3 @@
-import EfficiencyLab from "./efficiency-lab";
-export default function Page(){return <EfficiencyLab/>}
+import {redirect} from "next/navigation";
+
+export default function Page(){redirect("/zh/watch/resonance/research?tab=experiments")}

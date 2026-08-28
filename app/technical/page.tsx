@@ -1,3 +1,3 @@
-import type {Metadata} from "next";import TechnicalLab from "./technical-lab";
-export const metadata:Metadata={title:"Technical Lab — Sage Vista"};
-export default function Page(){return <TechnicalLab/>}
+import {redirect} from "next/navigation";
+
+export default function Page(){redirect("/zh/watch/resonance/rare-opportunities")}

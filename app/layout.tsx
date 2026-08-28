@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Link from "next/link";
 import "./globals.css";
 import "./product-v2.css";
 import "./home-v3.css";
@@ -58,10 +59,10 @@ export default function RootLayout({
           <span>{`Build ${(process.env.GITHUB_SHA ?? "local").slice(0, 7)}`}</span>
         </div>
         <div className="globalnav">
-          <a href="/">今日市场与机会</a>
-          <a href="/zh/watch/resonance/rare-opportunities">多因子机会</a>
-          <a href="/zh/watch/industry-radar">行业与大盘</a>
-          <a href="/zh/watch/resonance/research">历史与实验</a>
+          <Link href="/">今日市场与机会</Link>
+          <Link href="/zh/watch/resonance/rare-opportunities">多因子机会</Link>
+          <Link href="/zh/watch/industry-radar">行业与大盘</Link>
+          <Link href="/zh/watch/resonance/research">历史与实验</Link>
         </div>
         {children}
       </body>

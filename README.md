@@ -34,6 +34,7 @@ RSI、RSI 底背离、成交量放大等不再需要各自占用独立功能页�
 
 - [新对话三分钟接手入口](docs/NEXT_SESSION_HANDOFF_ZH.md)
 - [机器状态生成的当前进度](docs/CURRENT_STATUS_ZH.md)
+- [代码地图：页面、数据生成器、工作流与最小阅读路径](docs/CODEBASE_MAP_ZH.md)
 - [碎片需求与改动交付账本](docs/CHANGE_REQUESTS_ZH.md)
 - [Sage Vista 总规则手册：项目宗旨、全局流程和模块地图](docs/SAGE_VISTA_RULEBOOK_ZH.md)
 - [模块规则索引：精准定位评分、因子、实验、回测、红线等规则](docs/rules/README.md)
@@ -60,5 +61,5 @@ npm run dev
 
 ```bash
 python3 -m unittest discover -s tests
-npm run build
+npm test
 ```

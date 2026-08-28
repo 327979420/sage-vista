@@ -47,7 +47,8 @@ export default function Overview(){
  const risk=market?.market_temperature.state==="防守"?{label:"高风险",tone:"high",action:"保护仓位，暂缓新建仓"}:market?.market_temperature.state==="风险偏好"?{label:"风险较低",tone:"low",action:"可正常研究，仍等回撤入场"}:{label:"中等风险",tone:"medium",action:"精选机会，不追高"};
  const marketStory=!market?"正在载入市场数据。":market.layers.trend.state!=="supportive"?"指数趋势转弱，今天优先保护仓位。":market.layers.breadth.state!=="broad"?"大盘趋势还在，但上涨集中在少数股票：能做，但要精选。":"指数趋势与市场广度同步，环境对多头研究较友好。";
  const synced=!!tracker&&!!industry&&!!snapshot&&!!market&&tracker.as_of===snapshot.as_of&&tracker.as_of===market.as_of&&!snapshot.future_data_used&&!industry.future_data_used;
- const segmentCards=[["大盘股","SPY",funds.SPY?.above_ema50?"支持":"谨慎",funds.SPY?.above_ema50?"positive":"negative"],["科技成长","QQQ",funds.QQQ?.above_ema50?"偏强":"谨慎",funds.QQQ?.above_ema50?"positive":"negative"],["小盘股","IWM",market?.ratios?.["小盘相对大盘"]>0?"参与":"落后",market?.ratios?.["小盘相对大盘"]>0?"positive":"negative"],["市场广度","RSP",market?.layers.breadth.state==="broad"?"广泛":"分化",market?.layers.breadth.state==="broad"?"positive":"warning"]] as const;
+ const smallCapLeading=(market?.ratios?.["小盘相对大盘"]??0)>0;
+ const segmentCards=[["大盘股","SPY",funds.SPY?.above_ema50?"支持":"谨慎",funds.SPY?.above_ema50?"positive":"negative"],["科技成长","QQQ",funds.QQQ?.above_ema50?"偏强":"谨慎",funds.QQQ?.above_ema50?"positive":"negative"],["小盘股","IWM",smallCapLeading?"参与":"落后",smallCapLeading?"positive":"negative"],["市场广度","RSP",market?.layers.breadth.state==="broad"?"广泛":"分化",market?.layers.breadth.state==="broad"?"positive":"warning"]] as const;
  const hotThemes=(industry?.themes??[]).filter(x=>x.state==="Leadership"||x.state==="Recovery").slice(0,3);
 
  return <TrackerShell active="今日研究总览" title="今日总览" subtitle="市场、行业与个股机会" overview>{tracker&&<div className="marketFirstHome">
