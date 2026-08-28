@@ -9,28 +9,29 @@
   "step": "natural_week",
   "target_start": "2000-01-01",
   "coverage": {
-    "start": "2026-05-01",
+    "start": "2026-04-27",
     "end": "2026-08-27",
-    "sessions": 82
+    "sessions": 86
   },
   "next_window": {
-    "label": "2026-04-27_to_2026-04-30",
-    "start": "2026-04-27",
-    "end": "2026-04-30"
+    "label": "2026-04-20_to_2026-04-26",
+    "start": "2026-04-20",
+    "end": "2026-04-26"
   },
   "last_successful_batch": {
-    "batch_id": "imported-2026-05-01-to-2026-08-27",
-    "start": "2026-05-01",
-    "end": "2026-08-27",
-    "sessions": 82,
+    "batch_id": "2026-04-27_to_2026-04-30",
+    "start": "2026-04-27",
+    "end": "2026-04-30",
+    "sessions": 4,
+    "completed_at": "2026-08-28T11:44:03Z",
     "model_versions": [
-      "unified-v2-macd-trigger-1.1.0"
+      "unified-v2-macd-trigger-1.2.0"
     ],
     "factor_registry_versions": [
-      "legacy_unrecorded"
+      "0.8.0"
     ],
-    "source": "existing_published_history",
-    "time_source": "repository_snapshot"
+    "source": "nightly_resumable_week",
+    "time_source": "workflow_completion"
   },
   "completed_batches": [
     {
@@ -46,6 +47,21 @@
       ],
       "source": "existing_published_history",
       "time_source": "repository_snapshot"
+    },
+    {
+      "batch_id": "2026-04-27_to_2026-04-30",
+      "start": "2026-04-27",
+      "end": "2026-04-30",
+      "sessions": 4,
+      "completed_at": "2026-08-28T11:44:03Z",
+      "model_versions": [
+        "unified-v2-macd-trigger-1.2.0"
+      ],
+      "factor_registry_versions": [
+        "0.8.0"
+      ],
+      "source": "nightly_resumable_week",
+      "time_source": "workflow_completion"
     }
   ],
   "active_rules": {
@@ -61,5 +77,5 @@
     "weekly_artifact_saved_before_merge": true,
     "failure_does_not_advance_progress": true
   },
-  "updated_at": "2026-08-28T10:10:00Z"
+  "updated_at": "2026-08-28T11:44:03Z"
 }
