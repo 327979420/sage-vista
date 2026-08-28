@@ -1,15 +1,15 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-08-28T19:12:47+10:00",
+  "generated_at": "2026-08-29T00:10:00+10:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 20,
+  "experiment_count": 21,
   "summary": {
     "completed": 18,
-    "in_progress": 2,
+    "in_progress": 3,
     "candidate": 7,
     "not_validated_or_unstable": 8
   },
@@ -21,6 +21,109 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "score-monotonicity-factor-attribution-v1.0.0-2026-08-29",
+      "created_at": "2026-08-29T00:00:00+10:00",
+      "status": "in_progress",
+      "change": "Audit whether the frozen current technical score is monotonic, compare each technical factor against its same-pool non-hit baseline, and test only development-qualified cross-family two-factor combinations without changing production scoring.",
+      "coverage": "Reuse research/backtest/output/signals.jsonl (11,896 frozen point-in-time events, 2010-01-05 through 2026-06-24); development through 2024, 2025 independent validation, 2026 forward observation; natural-week checkpoints.",
+      "specification": {
+        "event_gate": "frozen completed daily MACD event surface; no market or industry contribution in technical score validation",
+        "score_groups": [
+          "each exact score",
+          "0-2",
+          "3-4",
+          ">=5"
+        ],
+        "high_score": ">=5",
+        "winner": "fixed-horizon raw return >0; strategy winner reported separately",
+        "high_return": "top decile within period and horizon; absolute >=10% sensitivity",
+        "holding_days": [
+          5,
+          20,
+          40,
+          100
+        ],
+        "entry": "next adjusted open",
+        "cost_bps": [
+          0,
+          20,
+          50
+        ],
+        "overlap_primary": "first event per ticker within longest available outcome window",
+        "overlap_sensitivity": "all frozen events",
+        "factor_minimum_samples": {
+          "development": 300,
+          "validation_2025": 100
+        },
+        "pair_minimum_samples": {
+          "development": 200,
+          "validation_2025": 75
+        },
+        "multiple_testing": "Benjamini-Hochberg FDR",
+        "pair_policy": "development-qualified cross-family factors only; freeze before validation",
+        "checkpoint": "natural week; append-only lifecycle events and versioned checkpoint files",
+        "missing_data_policy": "100-day event outcome is unavailable in the frozen pool and must remain explicitly pending until the historical cache is restored; do not substitute aggregate legacy results"
+      },
+      "success_criteria": "A factor is effective only if its return/expectancy increment keeps the same direction in development, 2025 validation and 2026 forward observation, meets frozen sample thresholds, survives multiplicity and outlier checks, and remains positive after 20/50bps costs. Pair uplift must exceed the overall baseline and each constituent alone.",
+      "result": "Running. Production score, ranking, market/industry adjustments and notifications remain unchanged.",
+      "known_limitations": [
+        "the reusable frozen pool is the earlier Tracker selection surface rather than every neutral current-model candidate",
+        "100-day point-level outcomes are absent from the frozen event rows",
+        "overlapping signals are handled by a frozen primary deduplication plus all-event sensitivity",
+        "partial survivorship and delisted coverage remains"
+      ],
+      "human_summary": {
+        "title_zh": "评分单调性与因子归因V1",
+        "family": "scoring",
+        "family_zh": "评分与因子",
+        "question_zh": "现行技术分是否越高越好，哪些单因子和两因子组合有跨时期增量？",
+        "result_zh": "已保存562个自然周检查点和5/20/40日结果。20日高分组在开发期较好，但2025和2026没有保持；没有单因子通过冻结样本与多重比较门槛，因此未强行生成组合。",
+        "use_zh": "当前证据不支持把高分解释为更高胜率，也不支持上调单因子权重；生产评分保持不变。",
+        "next_zh": "恢复完整历史缓存后补100日逐事件结果，并换用包含全部当时合格候选的完整事件池复核。",
+        "verdict": "in_progress"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-29T00:00:00+10:00",
+        "started_at": "2026-08-29T00:01:00+10:00",
+        "completed_at": null,
+        "latest_event": "checkpoint",
+        "latest_event_at": "2026-08-29T00:10:00+10:00",
+        "time_source": "local_run",
+        "event_count": 3,
+        "events": [
+          {
+            "experiment_id": "score-monotonicity-factor-attribution-v1.0.0-2026-08-29",
+            "event": "registered",
+            "event_at": "2026-08-29T00:00:00+10:00",
+            "time_source": "user_approval",
+            "source_ref": "CR-2026-08-28-005"
+          },
+          {
+            "experiment_id": "score-monotonicity-factor-attribution-v1.0.0-2026-08-29",
+            "event": "started",
+            "event_at": "2026-08-29T00:01:00+10:00",
+            "time_source": "local_run",
+            "source_ref": "research/backtest/score_factor_study_v1.py"
+          },
+          {
+            "experiment_id": "score-monotonicity-factor-attribution-v1.0.0-2026-08-29",
+            "event": "checkpoint",
+            "event_at": "2026-08-29T00:10:00+10:00",
+            "time_source": "local_run",
+            "source_ref": "research/backtest/output/score-factor-study-v1.json",
+            "coverage": {
+              "start": "2010-01-13",
+              "end": "2026-06-24",
+              "eligible_events": 2824,
+              "primary_deduplicated_events": 1050,
+              "successful_natural_weeks": 562
+            },
+            "result": "5/20/40-day event-level analysis saved. No factor met the frozen development and 2025 minimum-sample plus BH criteria, so no pair was promoted into frozen validation. The 100-day event-level outcome remains pending cache restoration."
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "exit-score-v0.1.0-2026-08-28",
       "created_at": "2026-08-28T19:30:00+10:00",
@@ -1186,6 +1289,7 @@
     "research-v0.3.0-2026-08-17",
     "research-v0.4.0-2026-08-17",
     "research-v0.5.0-2026-08-18",
+    "score-monotonicity-factor-attribution-v1.0.0-2026-08-29",
     "timeframe-score-v3.0.0-2026-08-28",
     "tracker-backtest-v1-2026-08-25"
   ],
