@@ -31,7 +31,8 @@ class FactorScoringTests(unittest.TestCase):
   missing=experimental_score([state("structure.engulfing_bullish_follow_through")])
   present=experimental_score([state("structure.support_bullish_engulfing",evidence={"support_context":True}),state("structure.engulfing_bullish_follow_through")])
   self.assertEqual(missing["experimental_observational_score"],0)
-  self.assertEqual(present["experimental_observational_score"],3)
+  self.assertEqual(present["experimental_observational_score"],2)
+  self.assertIn("display_only",{x["reason"] for x in present["non_scoring_observations"]})
 
  def test_redundancy_group_takes_one_max_contribution(self):
   golden=replace(FACTORS_BY_ID["support.golden_pocket"],score_tier="auxiliary",experimental_weight=1)

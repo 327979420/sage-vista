@@ -14,7 +14,7 @@ from .macd_factor_backtest import adjusted_rows
 from .market_etf_watch import FUNDS,build as market_build
 
 OUT="public/unified-v2-rankings.json"
-CORE={"qualification.long_trend":2,"macd.daily_bull_cross":3,"support.ema_proximity":2,"qualification.pullback_60d":1,"structure.bullish_fvg_support":1,"structure.engulfing_bullish_follow_through":1}
+CORE={"qualification.long_trend":2,"macd.daily_bull_cross":3,"support.ema_proximity":2,"qualification.pullback_60d":1,"structure.bullish_fvg_support":1}
 SUPPORT_CONFIRMATIONS={"structure.support_bullish_engulfing","volume.bottom_expansion"}
 
 def _factor_ledger(states,hits):
@@ -86,7 +86,7 @@ def _write_report(results,out,merge_existing):
   existing=json.loads(pathlib.Path(out).read_text())
   if existing.get("version")=="unified-v2-shadow-1.0.0":
    by_date={x["date"]:x for x in existing.get("days",[])};by_date.update({x["date"]:x for x in results});results=[by_date[x] for x in sorted(by_date)]
- report={"version":"unified-v2-shadow-1.0.0","generated_at":datetime.now(timezone.utc).isoformat(),"coverage":{"start":results[0]["date"],"end":results[-1]["date"],"sessions":len(results)},"production_status":"shadow_not_yet_validated","future_data_used":False,"model":{"technical":"长期趋势2 + MACD改善3 + EMA支撑2 + 回撤1 + FVG1 + 支撑确认最多1 + 吞没后阳线跟随1 - 上方缺口1","industry":"有当日有效成员快照时：Leadership +1；Recovery/Pullback Watch +0.5","market":"市场温度4-5加1；2-3不变；0-1减1","entry_gate":"必须长期趋势，且MACD改善或EMA支撑至少一个命中；技术分至少4；K线跟随不能独立触发"},"limitations":["当前股票池来自现存缓存，正式胜率研究仍需纳入退市股票以消除幸存者偏差","没有当日有效行业成员快照的日期不做行业加分，绝不使用未来分类回填","这是新模型候选榜，不等于已验证买入信号"],"days":results}
+ report={"version":"unified-v2-shadow-1.0.0","generated_at":datetime.now(timezone.utc).isoformat(),"coverage":{"start":results[0]["date"],"end":results[-1]["date"],"sessions":len(results)},"production_status":"shadow_not_yet_validated","future_data_used":False,"model":{"technical":"长期趋势2 + MACD改善3 + EMA支撑2 + 回撤1 + FVG1 + 支撑确认最多1 - 上方缺口1","industry":"有当日有效成员快照时：Leadership +1；Recovery/Pullback Watch +0.5","market":"市场温度4-5加1；2-3不变；0-1减1","entry_gate":"必须长期趋势，且MACD改善或EMA支撑至少一个命中；技术分至少4；K线跟随本轮只记录不计分"},"limitations":["当前股票池来自现存缓存，正式胜率研究仍需纳入退市股票以消除幸存者偏差","没有当日有效行业成员快照的日期不做行业加分，绝不使用未来分类回填","这是新模型候选榜，不等于已验证买入信号"],"days":results}
  pathlib.Path(out).write_text(json.dumps(report,ensure_ascii=False,separators=(",",":"))+"\n");return report
 
 def run_published(out=OUT,public_dir="public"):
