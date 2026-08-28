@@ -1,10 +1,20 @@
 import unittest
 from unittest.mock import patch
+import json
+import tempfile
+from pathlib import Path
 
 from services.scanner import unified_v2_scan
 
 
 class HistoricalMarketOptionalTest(unittest.TestCase):
+    def test_non_trading_calendar_partition_is_valid_empty_checkpoint(self):
+        with tempfile.TemporaryDirectory() as folder, patch.object(unified_v2_scan, "_load_cache", return_value={"SPY": []}):
+            out = Path(folder) / "empty.json"
+            report = unified_v2_scan.run("2000-01-01", "2000-01-02", out, merge_existing=False)
+            self.assertEqual(report["coverage"]["sessions"], 0)
+            self.assertEqual(json.loads(out.read_text())["days"], [])
+
     def test_rank_day_records_unavailable_market_without_adjustment(self):
         snapshot = {"as_of":"2000-01-03","eligible_count":0,"triggered_count":0,"symbols":[]}
         industry = {"as_of":"2000-01-03","historical_membership_safe":False,"status":"unavailable"}

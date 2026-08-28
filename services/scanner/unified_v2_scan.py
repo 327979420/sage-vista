@@ -163,7 +163,10 @@ def run_published(out=OUT,public_dir="public"):
 
 def run(start="2026-07-01",end=None,out=OUT,cache_dir="work/eodhd-cache",merge_existing=True):
  data=_load_cache(cache_dir);dates=_dates(data,start,end or "9999-12-31")
- if not dates:raise RuntimeError("No cached SPY sessions in requested range")
+ if not dates:
+  report={"version":MODEL_VERSION,"generated_at":datetime.now(timezone.utc).isoformat(),"coverage":{"start":None,"end":None,"sessions":0},"production_status":"shadow_not_yet_validated","future_data_used":False,"model":{"ruleset_id":RULESET_ID,"factor_registry_version":REGISTRY_VERSION},"limitations":["Requested calendar partition contains no SPY trading session; preserved as a valid empty weekly checkpoint."],"days":[]}
+  pathlib.Path(out).write_text(json.dumps(report,ensure_ascii=False,separators=(",",":"))+"\n")
+  return report
  results=[]
  for day in dates:
   snapshot=build_snapshot(data,day);market=_market(data,day);industry=_industry(day)
@@ -175,4 +178,4 @@ def run(start="2026-07-01",end=None,out=OUT,cache_dir="work/eodhd-cache",merge_e
 
 if __name__=="__main__":
  parser=argparse.ArgumentParser();parser.add_argument("--start",default="2026-07-01");parser.add_argument("--end");parser.add_argument("--out",default=OUT);parser.add_argument("--cache-dir",default="work/eodhd-cache");parser.add_argument("--replace",action="store_true");parser.add_argument("--published-latest",action="store_true")
- args=parser.parse_args();report=run_published(args.out) if args.published_latest else run(args.start,args.end,args.out,args.cache_dir,not args.replace);print(json.dumps({"coverage":report["coverage"],"latest_candidates":report["days"][-1]["candidate_count"]},ensure_ascii=False))
+ args=parser.parse_args();report=run_published(args.out) if args.published_latest else run(args.start,args.end,args.out,args.cache_dir,not args.replace);print(json.dumps({"coverage":report["coverage"],"latest_candidates":report["days"][-1]["candidate_count"] if report["days"] else None},ensure_ascii=False))
