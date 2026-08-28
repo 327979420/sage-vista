@@ -62,7 +62,7 @@ jobs:
         with:
           name: unified-v2-${{ matrix.partition.label }}
           path: work/v2-${{ matrix.partition.label }}.json
-          retention-days: 30
+          retention-days: 90
 
   aggregate:
     needs: backfill

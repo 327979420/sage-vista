@@ -23,5 +23,16 @@ class MergeUnifiedV2ReportsTests(unittest.TestCase):
    self.assertEqual(result["days"][0]["model_version"],"a")
    self.assertEqual(result["days"][1]["model_version"],"b")
 
+ def test_public_history_keeps_full_recent_audit_and_only_hits_on_older_days(self):
+  with tempfile.TemporaryDirectory() as folder:
+   root=Path(folder);source=root/"source.json"
+   days=[]
+   for index in range(31):
+    days.append({"date":f"2026-01-{index+1:02d}","ranking":[{"factor_ledger":[{"factor_id":"hit","hit":True,"points":0},{"factor_id":"miss","hit":False,"points":0}]}]})
+   source.write_text(json.dumps({"version":"v","future_data_used":False,"days":days}))
+   result=merge([source],root/"out.json")
+   self.assertEqual([item["factor_id"] for item in result["days"][0]["ranking"][0]["factor_ledger"]],["hit"])
+   self.assertEqual(len(result["days"][-1]["ranking"][0]["factor_ledger"]),2)
+
 
 if __name__=="__main__":unittest.main()
