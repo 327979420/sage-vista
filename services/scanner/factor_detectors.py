@@ -50,6 +50,14 @@ def _raw(rows,i):
  fib,golden,fib_levels=_fib_context(view,i);ema_distances={str(period):current["close"]/curves[period][i]-1 for period in (21,50,200)};ema_hit=any(abs(value)<=.02 for value in ema_distances.values())
  fvg=bullish_fvg_support(view,i);three_push_recent=recent_three_push_breakout(view,i);retest=three_push_recent and three_push_retest(view,i);volume_peak=volume_profile_support(view,i);congestion=kline_congestion_support(view,i)
  support_context=bool(fib[.5] or fib[.618] or ema_hit or fvg or retest or volume_peak or congestion)
+ prior_engulf=False
+ if i>=2:
+  prior_view=view[:-1];prior_i=i-1;prior_closes=[row["close"] for row in prior_view];prior_curves={period:ema(prior_closes,period) for period in (21,50,200)}
+  prior_fib,_,_=_fib_context(prior_view,prior_i);prior_ema=any(abs(prior_view[-1]["close"]/prior_curves[period][prior_i]-1)<=.02 for period in (21,50,200))
+  prior_fvg=bullish_fvg_support(prior_view,prior_i);prior_three=recent_three_push_breakout(prior_view,prior_i);prior_retest=prior_three and three_push_retest(prior_view,prior_i)
+  prior_support=bool(prior_fib[.5] or prior_fib[.618] or prior_ema or prior_fvg or prior_retest or volume_profile_support(prior_view,prior_i) or kline_congestion_support(prior_view,prior_i))
+  prior_engulf=support_bullish_engulfing(prior_view,prior_i,prior_support)
+ bullish_follow=prior_engulf and current["close"]>current["open"]
  prior_volume=view[max(0,i-20):i];volume_average=sum(row["volume"] for row in prior_volume)/len(prior_volume) if prior_volume else 0;volume_ratio=current["volume"]/volume_average if volume_average else None
  range60=view[max(0,i-59):i+1];low60=min(row["low"] for row in range60);high60=max(row["high"] for row in range60);bottom30=low60+(high60-low60)*.30
  bullish_engulf=i>=1 and view[i-1]["close"]<view[i-1]["open"] and current["close"]>current["open"] and current["open"]<=view[i-1]["close"] and current["close"]>=view[i-1]["open"]
@@ -88,6 +96,7 @@ def _raw(rows,i):
   "volume.bottom_expansion":(support_bottom_volume(view,i,support_context),{"support_context":support_context,"ratio":volume_ratio,"ratio_threshold":1.5}),
   "structure.bottom_doji":(doji,{"bottom_limit":bottom30,"macd_cross_required":True,"candle_lookback":5}),"structure.bottom_bullish_engulfing":(bottom_engulf,{"bottom_limit":bottom30,"macd_cross_required":True,"candle_lookback":5}),
   "structure.support_bullish_engulfing":(support_bullish_engulfing(view,i,support_context),{"support_context":support_context}),"structure.hammer":(hammer,{"lower_wick_body_ratio":lower/max(body,1e-9),"close_fraction":(current["close"]-current["low"])/rng}),
+  "structure.engulfing_bullish_follow_through":(bullish_follow,{"dependency_hits":["structure.support_bullish_engulfing"] if prior_engulf else [],"engulfing_date":view[i-1]["date"] if prior_engulf else None,"confirmation_date":current["date"] if bullish_follow else None}),
   "support.close_congestion":(congestion,{"lookback_sessions":250}),"support.volume_profile_proxy":(volume_peak,{"lookback_sessions":250,"bins":40}),
  }
 
@@ -114,5 +123,5 @@ def evaluate_all_factors(rows,as_of):
  return states
 
 def evaluate_initial_factors(rows,as_of):
- initial={"macd.daily_bull_cross","macd.weekly_histogram_improving","support.ema_proximity","structure.trendline_three_push_retest","structure.bullish_fvg_support","risk.overhead_unfilled_gap","volume.bottom_expansion","structure.support_bullish_engulfing"}
+ initial={"macd.daily_bull_cross","macd.weekly_histogram_improving","support.ema_proximity","structure.trendline_three_push_retest","structure.bullish_fvg_support","risk.overhead_unfilled_gap","volume.bottom_expansion","structure.support_bullish_engulfing","structure.engulfing_bullish_follow_through"}
  return [state for state in evaluate_all_factors(rows,as_of) if state.factor_id in initial]

@@ -29,7 +29,7 @@ class FactorSnapshotTests(unittest.TestCase):
   self.assertEqual(report["eligible_count"],1)
   states=report["symbols"][0]["factors"]
   self.assertEqual([state["factor_id"] for state in states],list(MONITORED_FACTOR_IDS))
-  self.assertEqual(len(states),30)
+  self.assertEqual(len(states),31)
   self.assertTrue(any(not state["hit"] for state in states))
   for state in states:
    self.assertEqual(state["factor_version"],FACTORS_BY_ID[state["factor_id"]].version)
@@ -81,8 +81,20 @@ class FactorSnapshotTests(unittest.TestCase):
    "risk.overhead_unfilled_gap":overhead_unfilled_gap(rows,i),
    "volume.bottom_expansion":support_bottom_volume(rows,i,support),
    "structure.support_bullish_engulfing":support_bullish_engulfing(rows,i,support),
+   "structure.engulfing_bullish_follow_through":False,
   }
   self.assertEqual(states,expected)
+
+ def test_bullish_follow_through_requires_immediately_prior_support_engulfing(self):
+  rows=sample_rows();rows[-3].update(open=121,close=119,high=122,low=118);rows[-2].update(open=118.5,close=121.5,high=122,low=118);rows[-1].update(open=121,close=122,high=123,low=120)
+  from services.scanner.factor_detectors import evaluate_all_factors
+  states={state.factor_id:state for state in evaluate_all_factors(rows,rows[-1]["date"])}
+  follow=states["structure.engulfing_bullish_follow_through"]
+  self.assertTrue(follow.hit)
+  self.assertEqual(follow.evidence["dependency_hits"],["structure.support_bullish_engulfing"])
+  rows[-1].update(open=122,close=121)
+  states={state.factor_id:state for state in evaluate_all_factors(rows,rows[-1]["date"])}
+  self.assertFalse(states["structure.engulfing_bullish_follow_through"].hit)
 
  def test_weekly_state_uses_only_prior_completed_week(self):
   rows=sample_rows();as_of=rows[-1]["date"]
