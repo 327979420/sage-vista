@@ -1,0 +1,32 @@
+name: Trailing Stop Shadow Backtest
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with: { python-version: "3.13" }
+      - name: Restore audited historical prices
+        uses: actions/cache@v4
+        with:
+          path: |
+            work/eodhd-cache
+            work/eodhd-active-common.json
+          key: eodhd-history-v1-${{ github.run_id }}
+          restore-keys: eodhd-history-v1-
+      - name: Verify cache and replay only frozen 2026 exits
+        run: |
+          test "$(find work/eodhd-cache -type f -name '*.json' | wc -l)" -ge 1000
+          python3 -m research.backtest.trailing_stop_v1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trailing-stop-v1-2026
+          path: research/backtest/output/trailing-stop-v1-2026.json
+          retention-days: 90
