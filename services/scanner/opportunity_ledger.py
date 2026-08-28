@@ -89,6 +89,7 @@ def _v2_event(day, row, loader, model_version):
             "observed_factor_ids": [x["factor_id"] for x in ledger if x.get("hit") and x.get("points", 0) == 0],
             "market": day.get("market"),
             "industry_states": row.get("industry_states", []),
+            "timeframe_profile": row.get("timeframe_profile"),
             "execution_policy_version": row.get("execution_policy_version"),
             "support_plan": row.get("support_plan"),
         },
@@ -136,6 +137,7 @@ def _legacy_event(case):
             "observed_factor_ids": factor_ids(multifactor.get("non_scoring_evidence", [])),
             "market": compact_market,
             "industry_states": [x.get("state") for x in case.get("signal_time_snapshot", {}).get("industry", {}).get("themes", []) if x.get("state")],
+            "timeframe_profile": None,
             "execution_policy_version": None,
             "support_plan": None,
         },
@@ -210,6 +212,34 @@ def _factor_metrics(events):
     return rows
 
 
+def _finalize(payload):
+    events = payload["events"]
+    payload["summary"] = {
+        "unified_v2_events": sum("unified_v2" in x["source_systems"] for x in events),
+        "production_forward_events": sum("production_forward" in x["origins"] for x in events),
+        "pending_or_observing": sum(x["evaluation"]["status"] in {"pending", "observing", "data_unavailable"} for x in events),
+        "by_horizon": {str(h): _horizon_metrics(events, h) for h in HORIZONS},
+        "support_stop_2r": _strategy_metrics(events),
+        "factor_hits_20d": _factor_metrics(events),
+    }
+    payload["content_hash"] = hashlib.sha256(json.dumps({k: v for k, v in payload.items() if k not in {"generated_at", "content_hash"}}, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()
+    validate(payload)
+    return payload
+
+
+def preserve_mature_evaluations(payload, previous):
+    """Keep saved outcomes when the current runner only has a partial price cache."""
+    saved = {x["event_id"]: x["evaluation"] for x in previous.get("events", [])}
+    for event in payload["events"]:
+        old = saved.get(event["event_id"])
+        current = event["evaluation"]
+        if not old or old.get("elapsed_sessions", 0) <= current.get("elapsed_sessions", 0):
+            continue
+        strategy_test = current.get("strategy_test") or old.get("strategy_test")
+        event["evaluation"] = {**old, "strategy_test": strategy_test}
+    return _finalize(payload)
+
+
 def build(unified, forward, loader):
     by_key = {}
     for day in unified.get("days", []):
@@ -232,14 +262,7 @@ def build(unified, forward, loader):
         "ranking_policy": "selection-time scores only; later outcomes never change historical rank",
         "retention_policy": "append all published V2 rankings and production alerts; never delete losers, dropped names, or expired factors",
         "coverage": {"first": min(dates) if dates else None, "last": max(dates) if dates else None, "events": len(events)},
-        "summary": {
-            "unified_v2_events": sum("unified_v2" in x["source_systems"] for x in events),
-            "production_forward_events": sum("production_forward" in x["origins"] for x in events),
-            "pending_or_observing": sum(x["evaluation"]["status"] in {"pending", "observing", "data_unavailable"} for x in events),
-            "by_horizon": {str(h): _horizon_metrics(events, h) for h in HORIZONS},
-            "support_stop_2r": _strategy_metrics(events),
-            "factor_hits_20d": _factor_metrics(events),
-        },
+        "summary": {},
         "limitations": [
             "Consecutive daily rankings can contain overlapping signals and are not independent trades.",
             "Raw horizon returns and the support-stop execution experiment are reported separately; old saved batches remain raw-return baselines.",
@@ -247,9 +270,7 @@ def build(unified, forward, loader):
         ],
         "events": events,
     }
-    payload["content_hash"] = hashlib.sha256(json.dumps({k: v for k, v in payload.items() if k not in {"generated_at", "content_hash"}}, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()
-    validate(payload)
-    return payload
+    return _finalize(payload)
 
 
 def validate(payload):
@@ -268,7 +289,10 @@ def validate(payload):
 def run(unified_path=DEFAULT_UNIFIED, forward_path=DEFAULT_FORWARD, out=DEFAULT_OUT, cache_dir=DEFAULT_CACHE):
     unified = json.loads(pathlib.Path(unified_path).read_text())
     forward = json.loads(pathlib.Path(forward_path).read_text())
+    previous = json.loads(pathlib.Path(out).read_text()) if pathlib.Path(out).exists() else None
     payload = build(unified, forward, _cached_loader(cache_dir))
+    if previous:
+        payload = preserve_mature_evaluations(payload, previous)
     pathlib.Path(out).write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n")
     return payload
 

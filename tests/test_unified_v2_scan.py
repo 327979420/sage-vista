@@ -18,6 +18,15 @@ class UnifiedV2ScanTests(unittest.TestCase):
   self.assertEqual(sum(x["points"] for x in result["factor_ledger"]),result["technical_score"])
   self.assertIn("rsi.oversold_repair",[x["factor_id"] for x in result["factor_ledger"] if x["hit"] and x["points"]==0])
   self.assertEqual(result["score_equation"],"8 技术 +1 大盘 +1 行业 = 10")
+  self.assertEqual(result["timeframe_profile"]["status"],"experimental_descriptive_only")
+
+ def test_weekly_profile_requires_independent_evidence_and_does_not_change_score(self):
+  row={"symbol":"WEEK","price":20,"trigger":{"factor_id":"macd.daily_bull_cross","exact_completed_cross":True},"factors":[state("qualification.long_trend",True),state("qualification.pullback_60d",True),state("macd.daily_bull_cross",True,True),state("support.ema_proximity",True),state("macd.weekly_histogram_improving",True),state("support.weekly_ema_proximity",True),state("structure.weekly_bullish_engulfing",True)],"scoring":{"experimental_observational_score":10}}
+  result=_candidate(row,{"market_temperature":{"score":3}},{"historical_membership_safe":False})
+  self.assertEqual(result["technical_score"],8)
+  self.assertEqual(result["timeframe_profile"]["label"],"周线主导")
+  self.assertEqual(result["timeframe_profile"]["independent_groups"]["weekly"],3)
+  self.assertGreater(result["timeframe_profile"]["points"]["weekly"],result["timeframe_profile"]["points"]["daily"])
 
  def test_rare_opportunities_are_an_ordered_subset_of_published_ranking(self):
   rows=[]

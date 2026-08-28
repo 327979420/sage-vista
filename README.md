@@ -8,13 +8,12 @@ Sage Vista 是一个开源、可解释、可人工复核的美股技术研究与
 
 ## 当前产品结构
 
-每日产品流固定为五层，不再维护平行 Signal Board：
+每日产品流固定为四层，不再维护平行 Signal Board 或旧 MACD Tracker 页面：
 
 1. **今日研究总览**：市场状态、行业位置、Top 5 技术机会、Forward Observation 与数据审计。
-2. **个股研究 / Technical Tracker**：统一排行榜的筛选器与 selected-stock detail 工作台，不另建一套评分。
-3. **多因子机会**：当前 37 项统一技术证据层；日线 MACD 触发后检测其余 36 项，并维护唯一权威排行榜与精选子集。
-4. **行业雷达**：行业与 Theme 上下文，不进入 Technical Score。
-5. **研究 / 实验**：明确分开 Backtesting、Forward Testing 和 Experiments；Signal History 的 canonical UI 在 Forward Testing。
+2. **多因子机会**：当前 37 项统一技术证据层；日线 MACD 触发后检测其余 36 项，并维护唯一权威排行榜、精选子集和个股详情。
+3. **行业雷达**：行业与 Theme 上下文，不进入 Technical Score。
+4. **研究 / 实验**：明确分开 Backtesting、Forward Testing 和 Experiments；Signal History 的 canonical UI 在 Forward Testing。
 
 生产提醒另有一份 append-only `signal-history.json`：它保存当时真实显示的 Technical / Multi-Factor opportunity、冻结当时的因子与 Industry 上下文，并只随未来交易日逐步填写 forward outcome。它不等于历史回测，也不会因股票离开今日榜单而消失。
 

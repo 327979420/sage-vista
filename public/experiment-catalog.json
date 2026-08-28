@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0.0",
-  "generated_at": "2026-08-27T14:50:32.319976+00:00",
+  "generated_at": "2026-08-28T08:52:45.362373+00:00",
   "source": "research/experiments.jsonl",
-  "experiment_count": 18,
+  "experiment_count": 19,
   "policy": {
     "append_only": true,
     "failed_results_preserved": true,
@@ -435,6 +435,64 @@
         "recent theme samples are small",
         "fees and quote-level slippage are excluded"
       ]
+    },
+    {
+      "experiment_id": "timeframe-score-v3.0.0-2026-08-28",
+      "created_at": "2026-08-28T20:30:00+10:00",
+      "status": "pre_registered",
+      "change": "Compare current Unified V2, equal-timeframe weighting, and a category-capped V3 challenger where completed weekly evidence outranks daily and completed monthly outranks weekly; classify dominant timeframe and test timeframe-specific holding windows without changing production ranking.",
+      "coverage": "Reuse the saved point-in-time daily-MACD trigger event pool; development through 2024, 2025 independent validation, 2026 forward observation; weekly checkpoints are resumable.",
+      "specification": {
+        "trigger": "exact completed daily MACD bullish cross; trigger is an eligibility ticket and does not create cross-sectional ranking differences",
+        "challengers": [
+          "current Unified V2",
+          "same factors with equal timeframe weights",
+          "V3 daily 1.0 / completed weekly 1.5 / completed monthly 2.0 with category caps"
+        ],
+        "category_caps": {
+          "direction": 30,
+          "support_location": 30,
+          "macd_momentum_quality": 20,
+          "structure_candles": 15,
+          "volume": 5,
+          "maximum_risk_deduction": 20
+        },
+        "dominant_timeframe": "at least two independent groups and one direction, MACD-quality or price-structure anchor for weekly/monthly; top share >=50% and lead >=10 percentage points, otherwise multi-timeframe resonance",
+        "holding_days": {
+          "daily": [
+            5,
+            10,
+            20
+          ],
+          "weekly": [
+            15,
+            20,
+            40,
+            60
+          ],
+          "monthly": [
+            60,
+            100,
+            120
+          ]
+        },
+        "entry": "next adjusted open",
+        "strategy_exit": "signal-date frozen support minus 5%, maximum planned loss 10%, 2R target, same-bar stop first",
+        "cost_bps": [
+          0,
+          20,
+          50
+        ],
+        "checkpoint": "natural week; resume from the last successful checkpoint"
+      },
+      "success_criteria": "V3 top-ranked groups must improve on current V2 and equal-timeframe controls in development and 2025 validation without a material directional collapse in 2026; select the shortest holding window reaching at least 90% of the best validation net expectancy only when samples are mature and stable.",
+      "result": "Not run. Production V2 scores and holding guidance remain unchanged; the website may show an explicitly experimental descriptive timeframe profile only.",
+      "known_limitations": [
+        "monthly 60/100/120-day outcomes may be immature in 2026",
+        "available cached universe has partial delisted coverage",
+        "daily OHLCV approximates intraday support and execution",
+        "overlapping MACD events are not independent"
+      ]
     }
   ],
   "factor_experiments": {
@@ -452,6 +510,11 @@
     "support.ema_proximity": [
       "macd-multifactor-score-v1-2026-08-25"
     ],
+    "support.weekly_ema_proximity": [],
+    "support.monthly_ema_proximity": [],
+    "trend.dual_ma_alignment": [],
+    "trend.dual_ma_fresh_cross": [],
+    "structure.dual_ma_pullback_hold": [],
     "support.fibonacci_half": [
       "macd-rollout-05-fibonacci-half-2026-08-25"
     ],
@@ -486,6 +549,11 @@
       "macd-candle-v0.7.0-2026-08-24"
     ],
     "structure.support_bullish_engulfing": [],
+    "structure.weekly_bullish_engulfing": [],
+    "structure.monthly_bullish_engulfing": [],
+    "structure.weekly_double_bullish_engulfing": [],
+    "structure.monthly_double_bullish_engulfing": [],
+    "structure.engulfing_bullish_follow_through": [],
     "structure.hammer": [],
     "support.close_congestion": [
       "macd-rollout-02-kline-congestion-2026-08-24"
@@ -504,6 +572,7 @@
     "research-v0.3.0-2026-08-17",
     "research-v0.4.0-2026-08-17",
     "research-v0.5.0-2026-08-18",
+    "timeframe-score-v3.0.0-2026-08-28",
     "tracker-backtest-v1-2026-08-25"
   ],
   "missing_registry_references": [

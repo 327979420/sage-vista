@@ -31,7 +31,7 @@ test("server-renders the Sage Vista application", async () => {
   assert.match(html, /<title>Sage Vista — 今日研究总览<\/title>/i);
   assert.match(html, /SAGE VISTA/i);
   assert.match(html, /今日研究总览/i);
-  assert.match(html, /Sage Vista UI v5\.4/);
+  assert.match(html, /Sage Vista UI v5\.5/);
   assert.match(html, /Build (?:local|[0-9a-f]{7})/);
   assert.doesNotMatch(html, /US Equity Signals|SIGNAL BOARD/i);
   assert.doesNotMatch(html, /DISCORD_WEBHOOK_URL|EODHD_API_TOKEN/i);
@@ -39,10 +39,15 @@ test("server-renders the Sage Vista application", async () => {
 
 test("server-renders the consolidated research navigation", async () => {
   const html = await (await render()).text();
-  assert.match(html, /个股研究/);
+  assert.doesNotMatch(html, /个股研究/);
   assert.match(html, /多因子机会/);
   assert.match(html, /行业与大盘/);
   assert.match(html, /历史与实验/);
+});
+
+test("the retired MACD Tracker product page is gone", async () => {
+  const response = await render("/zh/watch/resonance/macd");
+  assert.equal(response.status, 404);
 });
 
 test("server-renders the isolated Strategy Backtest research page", async () => {

@@ -13,14 +13,15 @@ Sage Vista 要成为一个清楚、可信、能长期积累实验结果的 MACD 
 
 ## 2. 固定产品入口
 
-最终主导航与职责固定为：
+最终主导航与职责固定为四项：
 
 1. 今日研究总览：决策摘要，不复制完整详情页；
-2. 指标共振：Technical Tracker 的唯一股票机会排名；
-3. 多因子：当前 37-factor technical evidence、唯一审计排行榜与精选子集；
-4. 行业雷达：Theme strength/breadth/direction 上下文；
-5. 研究 / 实验：验证、失败结论与方法；
-6. 市场环境可作为 secondary context。
+2. 多因子：当前 37-factor technical evidence、唯一审计排行榜、精选子集和个股详情；
+3. 行业雷达：Theme strength/breadth/direction 上下文；
+4. 研究 / 实验：验证、失败结论与方法；
+5. 市场环境可作为 secondary context。
+
+旧“个股研究 / Technical Tracker”页面已退役；可用的个股证据与风险解释合并进多因子机会，避免保留两套排名。
 
 双指标确认、RSI、成交量等旧独立功能页可以在依赖审计后移除。删除的是页面与重复展示，不是底层因子能力。
 

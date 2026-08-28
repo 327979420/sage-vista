@@ -15,11 +15,14 @@ class UiV2ContractTests(unittest.TestCase):
    self.assertIn(label,text)
   self.assertIn('cache:"no-store"',text)
 
- def test_tracker_is_presentation_join_only(self):
-  text=(ROOT/"app/zh/watch/resonance/macd/page.tsx").read_text()
-  for label in ("OPPORTUNITY SCREENER","Technical Summary","Multi-Factor Evidence","Industry Context","Risks","Signal History"):
+ def test_multifactor_absorbs_stock_research_and_timeframe_profile(self):
+  self.assertFalse((ROOT/"app/zh/watch/resonance/macd/page.tsx").exists())
+  text=(ROOT/"app/zh/watch/resonance/rare-opportunities/page.tsx").read_text()
+  profile=(ROOT/"app/zh/watch/resonance/rare-opportunities/timeframe-profile.tsx").read_text()
+  for label in ("WHY IT RANKS HERE","股票技术证据查询","RISK PLAN","TimeframeProfilePanel"):
    self.assertIn(label,text)
-  self.assertNotRegex(text,re.compile(r"ranking_score\s*=|macd_rank_score\s*="))
+  for label in ("周线","月线","不是建议持仓天数","不改变当前 V2 排名"):
+   self.assertIn(label,profile)
 
  def test_semiconductors_is_supported_and_ai_infrastructure_is_not_published(self):
   registry=json.loads((ROOT/"data/themes/theme-registry.json").read_text())

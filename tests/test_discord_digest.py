@@ -19,6 +19,7 @@ class DiscordDigestTests(unittest.TestCase):
   self.assertEqual(payload["embeds"][-1]["description"],"1. ABC")
   self.assertNotIn("$",payload["embeds"][-2]["description"]);self.assertNotIn("分",payload["embeds"][-1]["description"])
   self.assertIn("不是自动买入",payload["embeds"][0]["footer"]["text"])
+  self.assertTrue(payload["embeds"][0]["url"].endswith("/rare-opportunities"))
  def test_unified_v2_replaces_legacy_multifactor_ranking_and_rare_alerts(self):
   _,tracker,radar=self.fixtures();unified=self.unified();payload,alerts=build_payload(tracker,radar,unified=unified)
   self.assertEqual(payload["embeds"][-1]["description"],"1. XYZ")

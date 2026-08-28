@@ -70,7 +70,7 @@ def collect_alerts(tracker,radar,unified=None):
 def alert_embed(alert,site):
  confirmed=alert["status"]=="confirmed";label="Confirmed" if confirmed else "Early Watch"
  evidence="\n".join(f"✓ {x}" for x in alert["evidence"]) or "暂无";risks="；".join(alert["risks"]) or "无额外风险记录"
- return {"title":f"{label} · {alert['symbol']}","url":f"{site}{alert.get('url_path','/zh/watch/resonance/macd')}","color":5763719 if confirmed else 14197855,"description":f"${alert['price']} · {alert['date']} · 规则分 {alert['score']}","fields":[{"name":"为什么进入这一状态","value":evidence[:1024],"inline":False},{"name":"风险","value":risks[:1024],"inline":False}],"footer":{"text":"研究提醒，不是自动买入"}}
+ return {"title":f"{label} · {alert['symbol']}","url":f"{site}{alert.get('url_path','/zh/watch/resonance/rare-opportunities')}","color":5763719 if confirmed else 14197855,"description":f"${alert['price']} · {alert['date']} · 规则分 {alert['score']}","fields":[{"name":"为什么进入这一状态","value":evidence[:1024],"inline":False},{"name":"风险","value":risks[:1024],"inline":False}],"footer":{"text":"研究提醒，不是自动买入"}}
 
 def build_payload(tracker,radar,site=DEFAULT_SITE,minimum_rare_score=5,unified=None):
  alerts=collect_alerts(tracker,radar,unified)[:8]
