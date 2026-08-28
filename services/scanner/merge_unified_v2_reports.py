@@ -1,6 +1,7 @@
 """Merge independently saved V2 date partitions without recalculating them."""
 import argparse,json,pathlib
 from datetime import datetime,timezone
+from .unified_v2_scan import _compact_day
 
 
 def merge(paths,out):
@@ -12,7 +13,7 @@ def merge(paths,out):
  by_date={}
  for report in reports:
   for day in report.get("days",[]):by_date[day["date"]]=day
- days=[by_date[x] for x in sorted(by_date)]
+ days=[_compact_day(by_date[x]) for x in sorted(by_date)]
  if not days:raise RuntimeError("No V2 sessions supplied")
  base=reports[-1]
  result={**base,"generated_at":datetime.now(timezone.utc).isoformat(),"coverage":{"start":days[0]["date"],"end":days[-1]["date"],"sessions":len(days)},"days":days}

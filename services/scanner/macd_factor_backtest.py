@@ -112,19 +112,29 @@ def kline_congestion_support(rows,end,lookback=250,band=.03,min_share=.15,min_pu
  recent_high=max(x["high"] for x in rows[max(0,end-60):end])
  return clustered and current<=recent_high*(1-min_pullback)
 
-def volume_profile_support(rows,end,lookback=250,bins=40,band=.03,min_peak_share=.05,min_pullback=.05):
- """Daily-bar volume-profile proxy: current price revisits the highest-volume historical price bin."""
- if end<lookback:return False
+def volume_profile_level(rows,end,lookback=250,bins=40,band=.03,min_peak_share=.05,min_pullback=.05):
+ """Return the signal-time volume-profile POC and its support qualification.
+
+ The history deliberately ends before ``end`` so the level is reproducible
+ without looking at a later bar.  Keeping the price level (rather than only a
+ boolean) makes the downstream stop calculation auditable.
+ """
+ if end<lookback:return {"available":False,"hit":False,"level":None,"reason":"insufficient_history"}
  history=rows[end-lookback:end];points=[((x["high"]+x["low"]+x["close"])/3,max(0,x["volume"])) for x in history if x["volume"]>0]
- if not points:return False
+ if not points:return {"available":False,"hit":False,"level":None,"reason":"volume_unavailable"}
  low=min(x[0] for x in points);high=max(x[0] for x in points);width=(high-low)/bins
- if width<=0:return False
+ if width<=0:return {"available":False,"hit":False,"level":None,"reason":"flat_price_range"}
  profile=[0]*bins
  for price,volume in points:profile[min(bins-1,int((price-low)/width))]+=volume
  peak=max(range(bins),key=profile.__getitem__);total=sum(profile);poc=low+(peak+.5)*width;current=rows[end]["close"]
- concentrated=profile[peak]/total>=min_peak_share
+ peak_share=profile[peak]/total if total else 0;concentrated=peak_share>=min_peak_share
  recent_high=max(x["high"] for x in rows[max(0,end-60):end])
- return concentrated and abs(current/poc-1)<=band and current<=recent_high*(1-min_pullback)
+ near=abs(current/poc-1)<=band;pulled_back=current<=recent_high*(1-min_pullback)
+ return {"available":True,"hit":bool(concentrated and near and pulled_back),"level":round(poc,6),"peak_share":round(peak_share,6),"distance_pct":round((current/poc-1)*100,4),"concentrated":concentrated,"near_price":near,"pulled_back":pulled_back,"lookback_sessions":lookback,"bins":bins}
+
+def volume_profile_support(rows,end,lookback=250,bins=40,band=.03,min_peak_share=.05,min_pullback=.05):
+ """Daily-bar volume-profile proxy: current price revisits the historical POC."""
+ return volume_profile_level(rows,end,lookback,bins,band,min_peak_share,min_pullback)["hit"]
 
 def full_chip_congestion_support(rows,end):
  """User-defined double confirmation: many closes gathered and volume peaks at the same current-price area."""

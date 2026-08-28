@@ -1,6 +1,6 @@
 {
-  "registry_version": "0.6.0",
-  "factor_count": 30,
+  "registry_version": "0.7.0",
+  "factor_count": 31,
   "factors": [
     {
       "id": "qualification.long_trend",
@@ -655,6 +655,31 @@
       "score_tier": "core",
       "experimental_weight": 2,
       "dependency_policy": "support_context"
+    },
+    {
+      "id": "structure.engulfing_bullish_follow_through",
+      "version": "1.0.0",
+      "name_zh": "看涨吞没后K线跟随",
+      "explanation": "支撑位看涨吞没后的下一根完整日K线继续收阳，确认短期上涨动能；必须依赖前一日吞没，不能独立触发。本轮仅记录，基准回测完成后再做加分对照。",
+      "machine_rule": "the immediately following completed daily candle closes bullish after a registered support bullish engulfing",
+      "evidence_family": "price_structure",
+      "timeframe": "daily",
+      "lookahead_safe": true,
+      "confirmation_delay_bars": 0,
+      "status": "testing",
+      "score_mode": "display_only",
+      "weight": 0,
+      "redundancy_group": "engulfing_follow_through",
+      "research_refs": [],
+      "depends_on": [
+        "structure.support_bullish_engulfing"
+      ],
+      "factor_type": "event",
+      "observation_window_sessions": 5,
+      "runtime_status": "ready",
+      "score_tier": "display_only",
+      "experimental_weight": 0.0,
+      "dependency_policy": "all"
     },
     {
       "id": "structure.hammer",

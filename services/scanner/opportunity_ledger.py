@@ -13,9 +13,10 @@ import statistics
 from datetime import datetime, timezone
 
 from .macd_factor_backtest import adjusted_rows
+from .support_risk import simulate_execution
 
 
-SCHEMA_VERSION = "opportunity-ledger-v1.0.0"
+SCHEMA_VERSION = "opportunity-ledger-v1.1.0"
 HORIZONS = (1, 5, 10, 20, 40, 60, 100)
 DEFAULT_UNIFIED = pathlib.Path("public/unified-v2-rankings.json")
 DEFAULT_FORWARD = pathlib.Path("public/signal-history.json")
@@ -35,13 +36,13 @@ def _cached_loader(cache_dir):
     return load
 
 
-def _evaluation(symbol, signal_date, loader):
+def _evaluation(symbol, signal_date, loader, support_plan=None, execution_policy_version=None):
     try:
         rows = [row for row in loader(symbol) if row.get("date") and row["date"] >= signal_date]
     except (OSError, ValueError, KeyError, json.JSONDecodeError):
         rows = []
     signal_index = next((i for i, row in enumerate(rows) if row["date"] == signal_date), None)
-    empty = {"entry_date": None, "entry_price": None, "elapsed_sessions": 0, "returns": {str(h): None for h in HORIZONS}, "mfe": None, "mae": None, "status": "data_unavailable"}
+    empty = {"entry_date": None, "entry_price": None, "elapsed_sessions": 0, "returns": {str(h): None for h in HORIZONS}, "mfe": None, "mae": None, "status": "data_unavailable", "strategy_test": None}
     if signal_index is None:
         return empty
     elapsed = rows[signal_index + 1 :]
@@ -50,6 +51,7 @@ def _evaluation(symbol, signal_date, loader):
     entry = float(elapsed[0]["open"])
     returns = {str(h): round(float(elapsed[h - 1]["close"]) / entry - 1, 8) if len(elapsed) >= h else None for h in HORIZONS}
     window = elapsed[: max(HORIZONS)]
+    strategy_test = simulate_execution(entry, support_plan or {}, elapsed) if execution_policy_version else None
     return {
         "entry_date": elapsed[0]["date"],
         "entry_price": round(entry, 6),
@@ -58,12 +60,13 @@ def _evaluation(symbol, signal_date, loader):
         "mfe": round(max(float(row["high"]) for row in window) / entry - 1, 8),
         "mae": round(min(float(row["low"]) for row in window) / entry - 1, 8),
         "status": "matured" if len(elapsed) >= max(HORIZONS) else "observing",
+        "strategy_test": strategy_test,
     }
 
 
 def _v2_event(day, row, loader, model_version):
     ledger = row.get("factor_ledger", [])
-    rare_symbols = {x["symbol"] for x in day.get("rare_opportunities", [])} or {x["symbol"] for x in day.get("ranking", [])[:5] if x.get("final_priority", 0) >= 9}
+    rare_symbols = set(day.get("rare_symbols", [])) or {x["symbol"] for x in day.get("rare_opportunities", [])} or {x["symbol"] for x in day.get("ranking", [])[:5] if x.get("final_priority", 0) >= 9}
     return {
         "event_id": f"V2-{row['symbol']}-{day['date']}",
         "symbol": row["symbol"],
@@ -86,9 +89,11 @@ def _v2_event(day, row, loader, model_version):
             "observed_factor_ids": [x["factor_id"] for x in ledger if x.get("hit") and x.get("points", 0) == 0],
             "market": day.get("market"),
             "industry_states": row.get("industry_states", []),
+            "execution_policy_version": row.get("execution_policy_version"),
+            "support_plan": row.get("support_plan"),
         },
         "production_forward": None,
-        "evaluation": _evaluation(row["symbol"], day["date"], loader),
+        "evaluation": _evaluation(row["symbol"], day["date"], loader, row.get("support_plan"), row.get("execution_policy_version")),
     }
 
 
@@ -131,6 +136,8 @@ def _legacy_event(case):
             "observed_factor_ids": factor_ids(multifactor.get("non_scoring_evidence", [])),
             "market": compact_market,
             "industry_states": [x.get("state") for x in case.get("signal_time_snapshot", {}).get("industry", {}).get("themes", []) if x.get("state")],
+            "execution_policy_version": None,
+            "support_plan": None,
         },
         "production_forward": {
             "lifecycle": case.get("lifecycle"),
@@ -145,6 +152,7 @@ def _legacy_event(case):
             "mfe": forward.get("mfe"),
             "mae": forward.get("mae"),
             "status": forward.get("status", "pending"),
+            "strategy_test": None,
         },
     }
 
@@ -155,7 +163,7 @@ def _merge_event(v2, production):
     result["source_systems"] = sorted(set(v2["source_systems"] + production["source_systems"]))
     result["production_forward"] = production["production_forward"]
     if production["evaluation"].get("entry_date"):
-        result["evaluation"] = production["evaluation"]
+        result["evaluation"] = {**production["evaluation"], "strategy_test": v2["evaluation"].get("strategy_test")}
     return result
 
 
@@ -168,6 +176,38 @@ def _horizon_metrics(events, horizon):
         "mean_return_pct": round(statistics.mean(values) * 100, 3) if values else None,
         "median_return_pct": round(statistics.median(values) * 100, 3) if values else None,
     }
+
+
+def _strategy_metrics(events):
+    tests = [x["evaluation"].get("strategy_test") for x in events]
+    tests = [x for x in tests if x]
+    resolved = [x for x in tests if x.get("status") == "resolved" and x.get("return") is not None]
+    values = [x["return"] for x in resolved]
+    wins = [x for x in values if x > 0]
+    losses = [x for x in values if x < 0]
+    return {
+        "policy_events": len(tests),
+        "resolved_samples": len(resolved),
+        "observing": sum(x.get("status") in {"pending", "observing"} for x in tests),
+        "skipped": sum(x.get("status") == "skipped" for x in tests),
+        "win_rate_pct": round(len(wins) / len(values) * 100, 2) if values else None,
+        "mean_return_pct": round(statistics.mean(values) * 100, 3) if values else None,
+        "median_return_pct": round(statistics.median(values) * 100, 3) if values else None,
+        "profit_factor": round(sum(wins) / abs(sum(losses)), 3) if losses else None,
+        "stop_out_rate_pct": round(sum(str(x.get("exit_reason", "")).startswith("stop") for x in resolved) / len(resolved) * 100, 2) if resolved else None,
+        "target_hit_rate_pct": round(sum(x.get("exit_reason") == "target" for x in resolved) / len(resolved) * 100, 2) if resolved else None,
+    }
+
+
+def _factor_metrics(events):
+    ids = sorted({factor_id for event in events for factor_id in event["selection"].get("scored_factor_ids", []) + event["selection"].get("observed_factor_ids", []) + event["selection"].get("risk_factor_ids", [])})
+    rows = []
+    for factor_id in ids:
+        subset = [event for event in events if factor_id in event["selection"].get("scored_factor_ids", []) + event["selection"].get("observed_factor_ids", []) + event["selection"].get("risk_factor_ids", [])]
+        metric = _horizon_metrics(subset, 20)
+        role = "risk" if any(factor_id in event["selection"].get("risk_factor_ids", []) for event in subset) else "scored" if any(factor_id in event["selection"].get("scored_factor_ids", []) for event in subset) else "observed"
+        rows.append({"factor_id": factor_id, "role": role, **metric})
+    return rows
 
 
 def build(unified, forward, loader):
@@ -197,10 +237,12 @@ def build(unified, forward, loader):
             "production_forward_events": sum("production_forward" in x["origins"] for x in events),
             "pending_or_observing": sum(x["evaluation"]["status"] in {"pending", "observing", "data_unavailable"} for x in events),
             "by_horizon": {str(h): _horizon_metrics(events, h) for h in HORIZONS},
+            "support_stop_2r": _strategy_metrics(events),
+            "factor_hits_20d": _factor_metrics(events),
         },
         "limitations": [
             "Consecutive daily rankings can contain overlapping signals and are not independent trades.",
-            "These are next-open forward returns; stop-loss, take-profit, costs and capital constraints are evaluated in separate strategy experiments.",
+            "Raw horizon returns and the support-stop execution experiment are reported separately; old saved batches remain raw-return baselines.",
             "Historical stock-universe and delisting coverage remain incomplete and must be reported before promotion to production weights.",
         ],
         "events": events,

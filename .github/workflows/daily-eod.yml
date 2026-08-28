@@ -81,7 +81,9 @@ jobs:
           MANUAL_DEPLOY: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'deploy' }}
       - name: Update latest unified V2 ranking
         if: steps.update_result.outputs.needs_release == 'true'
-        run: python3 -m services.scanner.unified_v2_scan --published-latest
+        run: |
+          python3 -m services.scanner.factor_registry > /dev/null
+          python3 -m services.scanner.unified_v2_scan --published-latest
       - name: Update permanent opportunity ledger and elapsed outcomes
         if: steps.update_result.outputs.needs_release == 'true'
         run: python3 -m services.scanner.opportunity_ledger
@@ -119,7 +121,7 @@ jobs:
         run: |
           git config user.name "sage-vista-bot"
           git config user.email "sage-vista-bot@users.noreply.github.com"
-          git add public/resonance-tracker.json public/daily-factor-snapshot.json public/rare-opportunity-radar.json public/industry-radar.json public/market-etf-watch.json public/signal-history.json public/update-status.json public/unified-v2-rankings.json public/opportunity-ledger.json
+          git add public/resonance-tracker.json public/daily-factor-snapshot.json public/rare-opportunity-radar.json public/industry-radar.json public/market-etf-watch.json public/signal-history.json public/update-status.json public/factor-registry.json public/unified-v2-rankings.json public/opportunity-ledger.json
           git diff --cached --quiet && exit 0
           git commit -m "data: EOD update ${{ steps.update_result.outputs.as_of }}"
           git push origin HEAD:main
