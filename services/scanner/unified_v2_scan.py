@@ -113,14 +113,16 @@ def _candidate(row,market,industry):
 
 def _rank_day(snapshot,market,industry):
  day=snapshot["as_of"]
- if market.get("as_of")!=day or industry.get("as_of")!=day:raise RuntimeError("Published V2 inputs are not synchronized")
+ if market is not None and market.get("as_of")!=day:raise RuntimeError("Published V2 market input is not synchronized")
+ if industry.get("as_of")!=day:raise RuntimeError("Published V2 industry input is not synchronized")
  candidates=[x for row in snapshot["symbols"] if (x:=_candidate(row,market,industry))]
  candidates.sort(key=lambda x:(-x["final_priority"],-x["technical_score"],-x["experimental_score"],x["symbol"]))
  for rank,item in enumerate(candidates[:30],1):item["rank"]=rank
  rare=[x for x in candidates[:RARE_LIMIT] if x["final_priority"]>=RARE_MIN_PRIORITY]
  pool=[{"symbol":x["symbol"],"price":x["price"],"technical_score":x["technical_score"],"market_adjustment":x["market_adjustment"],"industry_adjustment":x["industry_adjustment"],"base_priority":x["final_priority"],"experimental_score":x["experimental_score"],"timeframe_profile":x["timeframe_profile"],"hit_factor_ids":[f["factor_id"] for f in x["factor_ledger"] if f["hit"]]} for x in candidates]
  rare_rows=[{k:v for k,v in x.items() if k not in {"factor_ledger","factor_summary"}} for x in rare]
- return {"date":day,"model_version":MODEL_VERSION,"factor_registry_version":REGISTRY_VERSION,"ruleset_id":RULESET_ID,"market":{"state":market["market_temperature"]["state"],"score":market["market_temperature"]["score"]},"industry_status":industry.get("status"),"historical_membership_safe":bool(industry.get("historical_membership_safe")),"eligible_count":snapshot["eligible_count"],"triggered_count":snapshot.get("triggered_count",len(snapshot["symbols"])),"candidate_count":len(candidates),"rare_policy":f"统一排行榜前{RARE_LIMIT}名且最终优先级至少{RARE_MIN_PRIORITY}；顺序与排行榜完全一致","rare_symbols":[x["symbol"] for x in rare],"rare_opportunities":rare_rows,"candidate_pool_policy":f"当日完整收盘MACD金叉先触发；触发后完整检测其余{REMAINING_FACTOR_COUNT}个登记因子，用于筛选、解释和重排，不能独立触发","candidate_pool":pool,"ranking":candidates[:30]}
+ market_view={"state":market["market_temperature"]["state"],"score":market["market_temperature"]["score"]} if market else {"state":"unavailable","score":None}
+ return {"date":day,"model_version":MODEL_VERSION,"factor_registry_version":REGISTRY_VERSION,"ruleset_id":RULESET_ID,"market":market_view,"industry_status":industry.get("status"),"historical_membership_safe":bool(industry.get("historical_membership_safe")),"eligible_count":snapshot["eligible_count"],"triggered_count":snapshot.get("triggered_count",len(snapshot["symbols"])),"candidate_count":len(candidates),"rare_policy":f"统一排行榜前{RARE_LIMIT}名且最终优先级至少{RARE_MIN_PRIORITY}；顺序与排行榜完全一致","rare_symbols":[x["symbol"] for x in rare],"rare_opportunities":rare_rows,"candidate_pool_policy":f"当日完整收盘MACD金叉先触发；触发后完整检测其余{REMAINING_FACTOR_COUNT}个登记因子，用于筛选、解释和重排，不能独立触发","candidate_pool":pool,"ranking":candidates[:30]}
 
 def _compact_factor(item):
  """Keep every audit decision while removing repeated labels and raw evidence."""
