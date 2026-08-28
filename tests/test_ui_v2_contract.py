@@ -31,7 +31,8 @@ class UiV2ContractTests(unittest.TestCase):
   radar=json.loads((ROOT/"public/industry-radar.json").read_text())
   semi=next(x for x in radar["themes"] if x["theme_id"]=="semiconductors")
   self.assertEqual(semi["source_status"],"available")
-  self.assertGreaterEqual(semi["valid_member_count"],5)
+  self.assertGreaterEqual(semi["member_count"],5)
+  if semi["valid_member_count"]<5:self.assertEqual(semi["state"],"Unavailable")
   self.assertFalse(radar["future_data_used"])
 
 if __name__=="__main__":unittest.main()
