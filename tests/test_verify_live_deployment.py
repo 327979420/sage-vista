@@ -15,6 +15,7 @@ def bundle(tracker_date=DATE):
   {"as_of":DATE,"future_data_used":False},
   {"as_of":DATE,"future_data_used":False},
   {"as_of":DATE,"future_data_used":False,"cases":[]},
+  {"as_of":DATE,"selection_future_data_used":False,"events":[]},
  ]
 
 class LiveDeploymentVerificationTests(unittest.TestCase):

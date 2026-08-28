@@ -1,0 +1,50 @@
+name: Refresh Opportunity Ledger
+
+on:
+  workflow_run:
+    workflows: ["Unified V2 Historical Backfill"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: sage-vista-opportunity-ledger
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: main, fetch-depth: 0 }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13" }
+      - name: Restore historical prices for elapsed outcomes
+        uses: actions/cache@v4
+        with:
+          path: |
+            work/eodhd-cache
+            work/eodhd-active-common.json
+          key: eodhd-history-v1-${{ github.run_id }}
+          restore-keys: eodhd-history-v1-
+      - name: Rebuild compact ledger from immutable signal-time rankings
+        run: python3 -m services.scanner.opportunity_ledger
+      - name: Validate ledger and repository
+        run: python3 -m unittest discover -s tests -p 'test_*.py'
+      - name: Commit only when elapsed results changed
+        run: |
+          git config user.name "sage-vista-bot"
+          git config user.email "sage-vista-bot@users.noreply.github.com"
+          git add public/opportunity-ledger.json
+          git diff --cached --quiet && exit 0
+          git commit -m "data: refresh permanent opportunity ledger"
+          git pull --rebase origin main
+          git push origin HEAD:main
+      - name: Publish refreshed ledger
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy-site.yml --ref main

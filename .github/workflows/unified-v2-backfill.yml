@@ -21,38 +21,24 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  partitions:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.weeks.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13" }
+      - name: Turn requested dates into recoverable weekly checkpoints
+        id: weeks
+        run: python3 -m services.scanner.date_partitions --start "${{ inputs.start }}" --end "${{ inputs.end }}" --github-output "$GITHUB_OUTPUT"
+
   backfill:
+    needs: partitions
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - label: "2026-07-w1"
-            start: "2026-07-01"
-            end: "2026-07-03"
-          - label: "2026-07-w2"
-            start: "2026-07-06"
-            end: "2026-07-10"
-          - label: "2026-07-w3"
-            start: "2026-07-13"
-            end: "2026-07-17"
-          - label: "2026-07-w4"
-            start: "2026-07-20"
-            end: "2026-07-24"
-          - label: "2026-07-w5"
-            start: "2026-07-27"
-            end: "2026-07-31"
-          - label: "2026-08-w1"
-            start: "2026-08-03"
-            end: "2026-08-07"
-          - label: "2026-08-w2"
-            start: "2026-08-10"
-            end: "2026-08-14"
-          - label: "2026-08-w3"
-            start: "2026-08-17"
-            end: "2026-08-21"
-          - label: "2026-08-w4"
-            start: "2026-08-24"
-            end: "2026-08-27"
+        partition: ${{ fromJSON(needs.partitions.outputs.matrix) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -68,14 +54,14 @@ jobs:
           key: eodhd-history-v1-${{ github.run_id }}
           restore-keys: eodhd-history-v1-
       - name: Rebuild requested history without future classifications
-        run: python3 -m services.scanner.unified_v2_scan --start "${{ matrix.start }}" --end "${{ matrix.end }}" --out "work/v2-${{ matrix.label }}.json" --replace
+        run: python3 -m services.scanner.unified_v2_scan --start "${{ matrix.partition.start }}" --end "${{ matrix.partition.end }}" --out "work/v2-${{ matrix.partition.label }}.json" --replace
       - name: Validate scanner and repository
         run: python3 -m unittest discover -s tests -p 'test_*.py'
       - name: Save completed week before aggregation
         uses: actions/upload-artifact@v4
         with:
-          name: unified-v2-${{ matrix.label }}
-          path: work/v2-${{ matrix.label }}.json
+          name: unified-v2-${{ matrix.partition.label }}
+          path: work/v2-${{ matrix.partition.label }}.json
           retention-days: 30
 
   aggregate:
@@ -86,6 +72,14 @@ jobs:
         with: { fetch-depth: 0 }
       - uses: actions/setup-python@v5
         with: { python-version: "3.13" }
+      - name: Restore historical EOD cache for elapsed outcomes
+        uses: actions/cache@v4
+        with:
+          path: |
+            work/eodhd-cache
+            work/eodhd-active-common.json
+          key: eodhd-history-v1-${{ github.run_id }}
+          restore-keys: eodhd-history-v1-
       - uses: actions/download-artifact@v4
         with:
           pattern: unified-v2-*
@@ -93,13 +87,15 @@ jobs:
           merge-multiple: true
       - name: Merge saved months with any newer published day
         run: python3 -m services.scanner.merge_unified_v2_reports public/unified-v2-rankings.json work/v2-parts/*.json --out public/unified-v2-rankings.json
+      - name: Preserve every merged signal and calculate elapsed outcomes
+        run: python3 -m services.scanner.opportunity_ledger
       - name: Validate merged historical output
         run: python3 -m unittest discover -s tests -p 'test_*.py'
       - name: Commit historical research output
         run: |
           git config user.name "sage-vista-bot"
           git config user.email "sage-vista-bot@users.noreply.github.com"
-          git add public/unified-v2-rankings.json
+          git add public/unified-v2-rankings.json public/opportunity-ledger.json
           git diff --cached --quiet && exit 0
           git commit -m "data: unified V2 backfill ${{ inputs.start }} to ${{ inputs.end }}"
           git pull --rebase origin main
