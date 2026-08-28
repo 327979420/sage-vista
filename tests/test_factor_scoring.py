@@ -42,4 +42,12 @@ class FactorScoringTests(unittest.TestCase):
   self.assertEqual(len(result["score_contributions"]),1)
   self.assertIn("redundancy_capped",{item["reason"] for item in result["non_scoring_observations"]})
 
+ def test_double_engulfing_replaces_single_and_monthly_has_more_weight(self):
+  result=experimental_score([
+   state("structure.weekly_bullish_engulfing"),state("structure.weekly_double_bullish_engulfing"),
+   state("structure.monthly_bullish_engulfing"),state("structure.monthly_double_bullish_engulfing"),
+  ])
+  self.assertEqual(result["experimental_auxiliary_score"],9)
+  self.assertEqual({item["factor_id"] for item in result["score_contributions"]},{"structure.weekly_double_bullish_engulfing","structure.monthly_double_bullish_engulfing"})
+
 if __name__=="__main__":unittest.main()

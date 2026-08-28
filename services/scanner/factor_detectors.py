@@ -44,6 +44,38 @@ def _fib_context(rows,i):
  golden=bool(levels and levels["618"]<=window[-1]["close"]<=levels["half"])
  return hits,golden,levels
 
+def higher_timeframe_ema_support(current,bars,timeframe,tolerance):
+ """Evaluate support against EMAs built only from completed higher-timeframe bars."""
+ periods=(20,50,200);closes=[row["close"] for row in bars];available_periods=[period for period in periods if len(closes)>=period]
+ evidence={"timeframe":timeframe,"completed_period_end":bars[-1]["date"] if bars else None,"periods":list(periods),"available_periods":available_periods,"tolerance_below":.02,"tolerance_above":tolerance,"detector_available":bool(available_periods)}
+ if not available_periods:return False,evidence
+ levels={str(period):ema(closes,period)[-1] for period in available_periods};distances={period:current["close"]/level-1 for period,level in levels.items()}
+ hits=[period for period,distance in distances.items() if -.02<=distance<=tolerance];closest=min(distances,key=lambda period:abs(distances[period]))
+ evidence.update({"levels":levels,"distance_by_period":distances,"matched_periods":hits,"closest_period":closest,"closest_level":levels[closest]})
+ return bool(hits),evidence
+
+def _bullish_engulfing_at(bars,index):
+ if index<1 or index>=len(bars):return False
+ prior,current=bars[index-1],bars[index]
+ return prior["close"]<prior["open"] and current["close"]>current["open"] and current["open"]<=prior["close"] and current["close"]>=prior["open"]
+
+def higher_timeframe_bullish_engulfing(bars,timeframe):
+ available=len(bars)>=2;hit=available and _bullish_engulfing_at(bars,len(bars)-1)
+ return hit,{"timeframe":timeframe,"completed_period_end":bars[-1]["date"] if bars else None,"prior_completed_period_end":bars[-2]["date"] if len(bars)>=2 else None,"detector_available":available,"real_body_engulfing":bool(hit)}
+
+def higher_timeframe_double_engulfing(bars,timeframe,lookback,low_tolerance=.10):
+ available=len(bars)>=4;latest=len(bars)-1
+ evidence={"timeframe":timeframe,"completed_period_end":bars[-1]["date"] if bars else None,"lookback_periods":lookback,"low_tolerance":low_tolerance,"detector_available":available,"engulfing_dates":[],"engulfing_lows":[]}
+ if not available or not _bullish_engulfing_at(bars,latest):return False,evidence
+ start=max(1,len(bars)-lookback)
+ for prior_index in range(latest-2,start-1,-1):
+  if not _bullish_engulfing_at(bars,prior_index):continue
+  first_low=bars[prior_index]["low"];second_low=bars[latest]["low"]
+  if first_low and abs(second_low/first_low-1)<=low_tolerance:
+   evidence.update({"engulfing_dates":[bars[prior_index]["date"],bars[latest]["date"]],"engulfing_lows":[first_low,second_low],"low_distance":second_low/first_low-1})
+   return True,evidence
+ return False,evidence
+
 def _raw(rows,i):
  """Objective current-bar states using only rows through i."""
  view=rows[:i+1];current=view[-1];closes=[row["close"] for row in view];line,signal=macd(closes);curves={period:ema(closes,period) for period in (21,50,200)}
@@ -80,6 +112,12 @@ def _raw(rows,i):
  day=date.fromisoformat(current["date"]);weekly_rows=available(completed_groups(view,"weekly"),(day.isocalendar().year,day.isocalendar().week));monthly_rows=available(completed_groups(view,"monthly"),(day.year,day.month))
  weekly_state=macd_state(weekly_rows[-160:]) if len(weekly_rows)>=3 else None
  monthly_line,monthly_signal=macd([row["close"] for row in monthly_rows]) if len(monthly_rows)>=2 else ([],[]);monthly_cross=bool(monthly_line and monthly_line[-1]>monthly_signal[-1] and monthly_line[-2]<=monthly_signal[-2])
+ weekly_ema_hit,weekly_ema_evidence=higher_timeframe_ema_support(current,weekly_rows,"weekly_completed",.03)
+ monthly_ema_hit,monthly_ema_evidence=higher_timeframe_ema_support(current,monthly_rows,"monthly_completed",.05)
+ weekly_engulf,weekly_engulf_evidence=higher_timeframe_bullish_engulfing(weekly_rows,"weekly_completed")
+ monthly_engulf,monthly_engulf_evidence=higher_timeframe_bullish_engulfing(monthly_rows,"monthly_completed")
+ weekly_double,weekly_double_evidence=higher_timeframe_double_engulfing(weekly_rows,"weekly_completed",26)
+ monthly_double,monthly_double_evidence=higher_timeframe_double_engulfing(monthly_rows,"monthly_completed",12)
  return {
   "qualification.long_trend":(long_trend_ok(view,i,curves[200]),{"close":current["close"],"ema200":curves[200][i]}),
   "qualification.pullback_60d":(pullback,{"prior_60d_high":max(row["high"] for row in view[max(0,i-60):i]) if i else None}),
@@ -87,6 +125,7 @@ def _raw(rows,i):
   "macd.weekly_histogram_improving":(bool(weekly_state and weekly_state["histogram_rising"]),{"completed_week_end":weekly_rows[-1]["date"] if weekly_rows else None,"histogram":weekly_state["macd_line"]-weekly_state["signal_line"] if weekly_state else None}),
   "macd.monthly_bull_cross":(monthly_cross,{"completed_month_end":monthly_rows[-1]["date"] if monthly_rows else None}),
   "support.ema_proximity":(ema_hit,{"distance_by_period":ema_distances,"tolerance":.02}),
+  "support.weekly_ema_proximity":(weekly_ema_hit,weekly_ema_evidence),"support.monthly_ema_proximity":(monthly_ema_hit,monthly_ema_evidence),
   "support.fibonacci_half":(fib[.5],{"levels":fib_levels,"tolerance":.02}),"support.fibonacci_618":(fib[.618],{"levels":fib_levels,"tolerance":.02}),"support.golden_pocket":(golden,{"levels":fib_levels}),
   "structure.trendline_three_push":(three_push_breakout(view,i),{"confirmation":"completed close BOS"}),"structure.double_bottom":(double_bottom,{"neckline":w.levels.get("neckline")}),"structure.higher_low":(higher_low,{"confirmed_lows":lows[-2:]}),
   "structure.trendline_three_push_retest":(retest,{"dependency_hits":["structure.trendline_three_push"] if three_push_recent else [],"lookback_sessions":10}),
@@ -96,6 +135,8 @@ def _raw(rows,i):
   "volume.bottom_expansion":(support_bottom_volume(view,i,support_context),{"support_context":support_context,"ratio":volume_ratio,"ratio_threshold":1.5}),
   "structure.bottom_doji":(doji,{"bottom_limit":bottom30,"macd_cross_required":True,"candle_lookback":5}),"structure.bottom_bullish_engulfing":(bottom_engulf,{"bottom_limit":bottom30,"macd_cross_required":True,"candle_lookback":5}),
   "structure.support_bullish_engulfing":(support_bullish_engulfing(view,i,support_context),{"support_context":support_context}),"structure.hammer":(hammer,{"lower_wick_body_ratio":lower/max(body,1e-9),"close_fraction":(current["close"]-current["low"])/rng}),
+  "structure.weekly_bullish_engulfing":(weekly_engulf,weekly_engulf_evidence),"structure.monthly_bullish_engulfing":(monthly_engulf,monthly_engulf_evidence),
+  "structure.weekly_double_bullish_engulfing":(weekly_double,weekly_double_evidence),"structure.monthly_double_bullish_engulfing":(monthly_double,monthly_double_evidence),
   "structure.engulfing_bullish_follow_through":(bullish_follow,{"dependency_hits":["structure.support_bullish_engulfing"] if prior_engulf else [],"engulfing_date":view[i-1]["date"] if prior_engulf else None,"confirmation_date":current["date"] if bullish_follow else None}),
   "support.close_congestion":(congestion,{"lookback_sessions":250}),"support.volume_profile_proxy":(volume_peak,{"lookback_sessions":250,"bins":40}),
  }
@@ -109,7 +150,7 @@ def evaluate_all_factors(rows,as_of):
  for factor in FACTORS:
   if factor.runtime_status=="definition_required":
    states.append(_base(factor.id,as_of,None,False,{"reason":"registry definition is not precise enough for an objective detector"},False,latest,"definition_required"));continue
-  hit,evidence=cache[i][factor.id];state=_base(factor.id,as_of,evidence.get("ratio",evidence.get("rsi",hit)),hit,evidence,True,latest,"monitored")
+  hit,evidence=cache[i][factor.id];detector_available=evidence.get("detector_available",True);state=_base(factor.id,as_of,evidence.get("ratio",evidence.get("rsi",hit)),hit,evidence,detector_available,latest,"monitored" if detector_available else "insufficient_history")
   recent=bool(hit);latest_hit=as_of if hit else None;bars_since=0 if hit else None
   if factor.factor_type=="event" and factor.observation_window_sessions:
    for ago in range(0,min(factor.observation_window_sessions,i+1)):

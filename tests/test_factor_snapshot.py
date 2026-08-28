@@ -3,7 +3,9 @@ import unittest
 from datetime import date,timedelta
 
 from services.scanner.detectors import load_config,pivots
-from services.scanner.factor_detectors import MONITORED_FACTOR_IDS,evaluate_initial_factors,recent_bull_cross
+from services.scanner.factor_detectors import (MONITORED_FACTOR_IDS,evaluate_initial_factors,
+ higher_timeframe_bullish_engulfing,higher_timeframe_double_engulfing,
+ higher_timeframe_ema_support,recent_bull_cross)
 from services.scanner.factor_registry import FACTORS_BY_ID,REGISTRY_VERSION
 from services.scanner.factor_snapshot import SNAPSHOT_MODE_VERSION,build_snapshot,exact_daily_macd_bull_cross
 from services.scanner.macd_factor_backtest import (available,bullish_fvg_support,completed_groups,ema,
@@ -40,15 +42,17 @@ class FactorSnapshotTests(unittest.TestCase):
   self.assertTrue(report["symbols"][0]["trigger"]["exact_completed_cross"])
   states=report["symbols"][0]["factors"]
   self.assertEqual([state["factor_id"] for state in states],list(MONITORED_FACTOR_IDS))
-  self.assertEqual(len(states),31)
+  self.assertEqual(len(states),len(MONITORED_FACTOR_IDS))
   self.assertTrue(any(not state["hit"] for state in states))
   for state in states:
    self.assertEqual(state["factor_version"],FACTORS_BY_ID[state["factor_id"]].version)
    self.assertEqual(state["as_of"],as_of)
    self.assertFalse(state["lookahead_audit"]["future_data_used"])
   unavailable={state["factor_id"] for state in states if not state["available"]}
-  self.assertEqual(unavailable,{"structure.breakout_retest","volume.pullback_contraction","trend.dual_ma_alignment","trend.dual_ma_fresh_cross","structure.dual_ma_pullback_hold"})
-  self.assertTrue(all(next(state for state in states if state["factor_id"]==factor_id)["runtime_status"]=="definition_required" for factor_id in unavailable))
+  definition_required={"structure.breakout_retest","volume.pullback_contraction","trend.dual_ma_alignment","trend.dual_ma_fresh_cross","structure.dual_ma_pullback_hold"}
+  self.assertEqual(unavailable,definition_required|{"support.monthly_ema_proximity"})
+  self.assertTrue(all(next(state for state in states if state["factor_id"]==factor_id)["runtime_status"]=="definition_required" for factor_id in definition_required))
+  self.assertEqual(next(state for state in states if state["factor_id"]=="support.monthly_ema_proximity")["runtime_status"],"insufficient_history")
 
  def test_recent_event_memory_records_actual_date_and_age(self):
   rows=sample_rows();as_of=rows[-1]["date"]
@@ -118,6 +122,29 @@ class FactorSnapshotTests(unittest.TestCase):
   rows=sample_rows();as_of=rows[-1]["date"]
   weekly=next(state for state in evaluate_initial_factors(rows,as_of) if state.factor_id=="macd.weekly_histogram_improving")
   self.assertLess(weekly.evidence["completed_week_end"],as_of)
+
+ def test_higher_timeframe_ema_support_names_period_and_completed_bar(self):
+  bars=[{"date":f"W{i:03d}","open":100,"high":101,"low":99,"close":100,"volume":1} for i in range(210)]
+  weekly,evidence=higher_timeframe_ema_support({"close":102},bars,"weekly_completed",.03)
+  monthly,monthly_evidence=higher_timeframe_ema_support({"close":104},bars,"monthly_completed",.05)
+  self.assertTrue(weekly);self.assertTrue(monthly)
+  self.assertEqual(evidence["available_periods"],[20,50,200])
+  self.assertEqual(evidence["completed_period_end"],"W209")
+  self.assertEqual(monthly_evidence["timeframe"],"monthly_completed")
+
+ def test_higher_timeframe_double_engulfing_requires_two_similar_lows(self):
+  bars=[
+   {"date":"1","open":100,"close":90,"high":101,"low":85},
+   {"date":"2","open":89,"close":101,"high":102,"low":86},
+   {"date":"3","open":102,"close":91,"high":103,"low":87},
+   {"date":"4","open":90,"close":103,"high":104,"low":86.5},
+  ]
+  single,_=higher_timeframe_bullish_engulfing(bars,"weekly_completed")
+  double,evidence=higher_timeframe_double_engulfing(bars,"weekly_completed",26)
+  self.assertTrue(single);self.assertTrue(double)
+  self.assertEqual(evidence["engulfing_dates"],["2","4"])
+  far_apart=[*bars[:3],{**bars[3],"low":60}]
+  self.assertFalse(higher_timeframe_double_engulfing(far_apart,"weekly_completed",26)[0])
 
  def test_pivot_requires_configured_right_bars(self):
   rows=sample_rows(40);cfg=load_config();right=cfg["pivot"]["right_bars"]
