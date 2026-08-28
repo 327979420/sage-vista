@@ -80,3 +80,14 @@
 - 提交：`1419995`（`refactor: remove retired UI and unused scaffolding`），已推送 `main`。
 - 生产：GitHub Actions `Deploy Website Only` 运行 `33172729251` 成功；2026-08-28 22:52 AEST 线上复核到 `Build 1419995`，旧路径返回 307 到维护中的模块。`verify_live_deployment` 通过：数据日 `2026-08-27`、1295 个 eligible、33 个 forward cases、2452 个 opportunity events。
 - 自动化复核：提交 `6d56995`（`ci: upgrade official GitHub actions to v7`）已推送；部署运行 `33173085937` 使用三个 v7 Action 全程成功且不再产生 Node 20 弃用警告，线上构建号为 `6d56995`。
+
+### CR-2026-08-28-005｜高分单调性、赢家共同因子与组合发现回测
+
+- 用户原意：下一对话先定义清楚实验，再研究当前评分是否分数越高收益越高；找出高收益股票共同因子，并比较单因子与因子组合的胜率和收益增量，逐步优化评分。
+- 状态：`captured`，尚未预登记、尚未运行。
+- 主模块：`docs/rules/08_BACKTEST_AND_EXPERIMENTS.md`。
+- 联动模块：`docs/rules/04_SCORING.md`、`03_FACTOR_MODEL.md`；行业和大盘只作独立分层，不混入第一阶段技术归因。
+- 规则先行：留待下一对话先确认实验定义，再更新规则版本和预登记；当前生产评分不变。
+- 实验：尚无 ID；不得在用户确认前自行运行或穷举组合。
+- 实现与产物：已保存下一对话专用 Prompt：`docs/NEXT_BACKTEST_PROMPT_ZH.md`。
+- 验证：仅完成需求留档，没有运行回测、没有改代码、没有改生产数据或网站。
