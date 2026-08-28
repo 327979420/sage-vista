@@ -23,7 +23,10 @@
     "status:SBUX:confirmed",
     "ranking:macd:2026-08-26",
     "ranking:multi-factor:2026-08-26",
-    "status:QDEL:confirmed"
+    "status:QDEL:confirmed",
+    "status:TTD:confirmed",
+    "ranking:macd:2026-08-27",
+    "ranking:multi-factor:2026-08-27"
   ],
   "symbol_status": {
     "VRSK": "confirmed",
@@ -44,7 +47,8 @@
     "MNDY": "confirmed",
     "VRSN": "confirmed",
     "SBUX": "confirmed",
-    "QDEL": "confirmed"
+    "QDEL": "confirmed",
+    "TTD": "confirmed"
   },
-  "last_successful_date": "2026-08-26"
+  "last_successful_date": "2026-08-27"
 }
