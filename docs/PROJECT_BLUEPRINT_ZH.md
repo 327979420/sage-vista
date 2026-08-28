@@ -1,7 +1,9 @@
 # Sage Vista 项目蓝图
 
 状态：当前产品与研究总纲  
-最后更新：2026-08-27
+最后更新：2026-08-28
+
+> 评分、周期、持仓、回测、实验留档和“先改规则再改代码”的当前权威要求，统一见 [`SAGE_VISTA_RULEBOOK_ZH.md`](SAGE_VISTA_RULEBOOK_ZH.md)。本文保留产品蓝图；两者冲突时，总规则手册优先。
 
 ## 1. 产品目标
 
@@ -15,7 +17,7 @@ Sage Vista 要成为一个清楚、可信、能长期积累实验结果的 MACD 
 
 1. 今日研究总览：决策摘要，不复制完整详情页；
 2. 指标共振：Technical Tracker 的唯一股票机会排名；
-3. 多因子：27-factor technical evidence/context，不创建新排名；
+3. 多因子：当前 37-factor technical evidence、唯一审计排行榜与精选子集；
 4. 行业雷达：Theme strength/breadth/direction 上下文；
 5. 研究 / 实验：验证、失败结论与方法；
 6. 市场环境可作为 secondary context。

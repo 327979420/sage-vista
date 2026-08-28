@@ -1,5 +1,7 @@
 # Sage Vista Factor Architecture
 
+> **历史审计说明**：本文主体冻结在 2026-08-26 的 27 因子迁移审计，用于保留当时事实。当前因子库已为 37 项；当前业务、周期权重和实验纪律以 [`SAGE_VISTA_RULEBOOK_ZH.md`](SAGE_VISTA_RULEBOOK_ZH.md) 与生成的 `public/factor-registry.json` 为准。后续不得根据本文旧数量回退当前实现。
+
 最后审计：2026-08-26。Core migration 状态：27 个注册 ID 全部进入 deterministic daily snapshot；25 个有 objective canonical detector，2 个明确为 `definition_required`。本文是因子系统现实、边界与迁移规则的权威说明；已完成实验及结论仍以 `research/EXPERIMENTS.md` 为准。
 
 > **MONITOR BROADLY, SCORE CONSERVATIVELY.** 监控表示系统保存可复核的技术状态，不表示因子有效、已验证或应进入正式分。

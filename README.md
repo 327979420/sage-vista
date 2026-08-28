@@ -1,6 +1,6 @@
 # Sage Vista
 
-Sage Vista 是一个私有、可解释、可人工复核的美股技术研究与日终扫描项目。当前研究主线是 MACD：使用长期趋势、价格位置、支撑、结构、RSI、成交量等独立证据，检验它们能否提高日线 MACD 金叉后 20 个与 100 个交易日的结果。
+Sage Vista 是一个开源、可解释、可人工复核的美股技术研究与日终扫描项目。当前主线是以日线 MACD 触发的多因子模型：使用月线、周线、日线的趋势、价格位置、支撑、结构、RSI、成交量，以及大盘和行业上下文，持续检验哪些组合真正有帮助。
 
 项目不是自动荐股或自动下单系统。所有信号只使用当时已经完整收盘的数据；回测按下一交易日复权开盘价进入；失败、不稳定和样本不足的实验也永久保留。
 
@@ -11,8 +11,8 @@ Sage Vista 是一个私有、可解释、可人工复核的美股技术研究与
 每日产品流固定为五层，不再维护平行 Signal Board：
 
 1. **今日研究总览**：市场状态、行业位置、Top 5 技术机会、Forward Observation 与数据审计。
-2. **指标共振 / Technical Tracker**：唯一的股票技术机会排名；桌面端使用 screener + selected-stock detail 工作台。
-3. **多因子**：27 项技术证据层，不建立第二套排名。
+2. **个股研究 / Technical Tracker**：统一排行榜的筛选器与 selected-stock detail 工作台，不另建一套评分。
+3. **多因子机会**：当前 37 项统一技术证据层；日线 MACD 触发后检测其余 36 项，并维护唯一权威排行榜与精选子集。
 4. **行业雷达**：行业与 Theme 上下文，不进入 Technical Score。
 5. **研究 / 实验**：明确分开 Backtesting、Forward Testing 和 Experiments；Signal History 的 canonical UI 在 Forward Testing。
 
@@ -24,15 +24,17 @@ RSI、RSI 底背离、成交量放大等不再需要各自占用独立功能页�
 
 ## 长期方向
 
-- 建立约 20 个或更多可扩展因子的统一因子库。
+- 在当前 37 因子库上继续扩展可验证、可审计的多周期因子。
 - 每个因子记录定义、类别、周期、状态、样本、20/100 日结果、版本和防前视审计。
-- 多因子雷达不长期固定为当前六项一分制，而是读取因子库，区分正式验证分、观察分和冲突扣分。
+- 多因子雷达读取统一因子库，区分技术候选分、实验观察分、正式验证分和风险扣分。
 - 美国市场完整收盘后自动更新 MACD Tracker 与多因子雷达。
 - 未来接入 Discord Bot，只在达到门槛的稀有机会出现时播报，并提供网站复查链接。
 - 持续维护简洁、专业、适合桌面与手机复查的金融研究 UI；正文不低于 15–16px，工程审计元数据不与决策信息竞争。
 
 ## 文档
 
+- [Sage Vista 总规则手册：项目宗旨、全局流程和模块地图](docs/SAGE_VISTA_RULEBOOK_ZH.md)
+- [模块规则索引：精准定位评分、因子、实验、回测、红线等规则](docs/rules/README.md)
 - [Factor Architecture：权威 inventory、生命周期与系统边界](docs/FACTOR_ARCHITECTURE.md)
 - [Industry Radar V1 架构、数据与 Theme Universe 说明](research/INDUSTRY_RADAR.md)
 - [Signal History 与 Production Forward Observation 权威说明](docs/SIGNAL_HISTORY.md)
@@ -44,7 +46,7 @@ RSI、RSI 底背离、成交量放大等不再需要各自占用独立功能页�
 - [研究账本说明](research/README.md)
 - 实验机器记录：`research/experiments.jsonl`
 
-出现文档冲突时，以 `docs/PROJECT_BLUEPRINT_ZH.md` 中最新注明日期的决定为准；实现完成后必须同步更新 README、蓝图和决策日志。
+出现文档冲突时，具体业务含义以对应的 `docs/rules/*.md` 模块规则为准；总手册负责项目宗旨、模块边界和全系统流程；实验数字以机器账本和版本化产物为准。任何语义改动必须先更新对应模块规则，再改代码、测试和生产页面。
 
 ## 本地运行与验证
 
