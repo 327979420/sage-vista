@@ -1,0 +1,86 @@
+{
+  "schema_version": "annual-factor-summary-v1.0.0",
+  "year": 2000,
+  "future_data_used_for_selection": false,
+  "market_and_industry_mixed_into_technical_factor_test": false,
+  "event_gate": "exact completed daily MACD bullish cross",
+  "coverage": {
+    "start": "2000-01-03",
+    "end": "2000-12-29",
+    "sessions": 252,
+    "weekly_checkpoints": 53,
+    "all_candidates": 0,
+    "ranked_execution_events": 0
+  },
+  "baseline": {
+    "5": {
+      "samples": 0,
+      "win_rate_pct": null,
+      "mean_return_pct": null,
+      "median_return_pct": null,
+      "profit_factor": null,
+      "mean_net_20bps_pct": null,
+      "mean_net_50bps_pct": null
+    },
+    "20": {
+      "samples": 0,
+      "win_rate_pct": null,
+      "mean_return_pct": null,
+      "median_return_pct": null,
+      "profit_factor": null,
+      "mean_net_20bps_pct": null,
+      "mean_net_50bps_pct": null
+    },
+    "40": {
+      "samples": 0,
+      "win_rate_pct": null,
+      "mean_return_pct": null,
+      "median_return_pct": null,
+      "profit_factor": null,
+      "mean_net_20bps_pct": null,
+      "mean_net_50bps_pct": null
+    },
+    "100": {
+      "samples": 0,
+      "win_rate_pct": null,
+      "mean_return_pct": null,
+      "median_return_pct": null,
+      "profit_factor": null,
+      "mean_net_20bps_pct": null,
+      "mean_net_50bps_pct": null
+    }
+  },
+  "factors": [],
+  "exit_comparison": {
+    "fixed": {
+      "samples": 0,
+      "win_rate_pct": null,
+      "mean_return_pct": null,
+      "median_return_pct": null,
+      "profit_factor": null,
+      "mean_net_20bps_pct": null,
+      "mean_net_50bps_pct": null,
+      "mean_r": null,
+      "stop_rate_pct": null,
+      "target_rate_pct": null
+    },
+    "close_trail_8pct_after_1r": {
+      "samples": 0,
+      "win_rate_pct": null,
+      "mean_return_pct": null,
+      "median_return_pct": null,
+      "profit_factor": null,
+      "mean_net_20bps_pct": null,
+      "mean_net_50bps_pct": null,
+      "mean_r": null,
+      "stop_rate_pct": null,
+      "target_rate_pct": null
+    }
+  },
+  "limitations": [
+    "overlapping signals are not independent",
+    "historical listing and delisting coverage remains partial",
+    "daily OHLCV uses conservative stop-first ordering",
+    "annual results are evidence inputs, not production weight changes"
+  ]
+}
