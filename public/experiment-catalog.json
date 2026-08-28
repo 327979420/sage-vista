@@ -1,440 +1,94 @@
 {
-  "schema_version": "1.0.0",
-  "generated_at": "2026-08-28T09:12:02.165564+00:00",
-  "source": "research/experiments.jsonl",
+  "schema_version": "2.0.0",
+  "generated_at": "2026-08-28T19:12:47+10:00",
+  "sources": [
+    "research/experiments.jsonl",
+    "research/experiment-events.jsonl",
+    "research/experiment-summaries.zh.json"
+  ],
   "experiment_count": 20,
+  "summary": {
+    "completed": 18,
+    "in_progress": 2,
+    "candidate": 7,
+    "not_validated_or_unstable": 8
+  },
   "policy": {
     "append_only": true,
     "failed_results_preserved": true,
+    "lifecycle_events_required": true,
+    "human_summary_required": true,
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
     {
-      "experiment_id": "research-v0.1.0-2026-08-17",
-      "created_at": "2026-08-17T06:35:39.802238+00:00",
-      "status": "completed_research_only",
-      "universe": "Nasdaq screener top 150 market-cap names; point-in-time price>=5, ADV20>=10m, history>=252",
-      "factors": [
-        "momentum_12_1",
-        "momentum_6_1",
-        "momentum_3_1",
-        "trend_quality",
-        "low_volatility",
-        "liquidity"
+      "experiment_id": "exit-score-v0.1.0-2026-08-28",
+      "created_at": "2026-08-28T19:30:00+10:00",
+      "status": "pre_registered",
+      "change": "Add a separate post-entry shadow exit-risk score using completed daily bearish body engulfing, dependent bearish follow-through, confirmed three-peak RSI bearish divergence, and weakening positive MACD histogram; do not change entry ranking or production exits.",
+      "coverage": "Reuse saved point-in-time MACD entry events; development through 2024, 2025 independent validation, 2026 forward observation; natural-week resumable checkpoints.",
+      "specification": {
+        "score": {
+          "bearish_body_engulfing": 2,
+          "bearish_follow_through": 1,
+          "triple_rsi_bearish_divergence": 1,
+          "positive_macd_histogram_weakening": 1,
+          "maximum": 5
+        },
+        "definitions": {
+          "bearish_follow_through": "immediately following completed bearish candle closes below the engulfing candle close",
+          "triple_rsi_bearish_divergence": "three confirmed strictly higher price pivots; first RSI14 >=70; RSI peaks non-increasing; event only after third pivot confirmation",
+          "positive_macd_histogram_weakening": "histogram remains positive and contracts on two consecutive completed sessions"
+        },
+        "controls": [
+          "existing support stop / maximum 10% planned loss / 2R / time exit",
+          "same baseline plus exit_score >=2 at next adjusted open",
+          "same baseline plus exit_score >=3 at next adjusted open"
+        ],
+        "hard_stop_priority": true,
+        "cost_bps": [
+          0,
+          20,
+          50
+        ],
+        "checkpoint": "natural week; resume from last successful checkpoint"
+      },
+      "success_criteria": "An exit threshold must improve 2025 validation net expectancy or maximum drawdown without a material directional collapse in 2026, while reporting foregone post-exit upside and robustness against extreme observations.",
+      "result": "Not run. All weights and thresholds are subjective priors frozen before testing; production execution remains unchanged.",
+      "known_limitations": [
+        "confirmed RSI pivots create deliberate delay",
+        "daily OHLCV cannot model intraday exit ordering beyond the existing conservative stop-first rule",
+        "overlapping entry events are not independent",
+        "partial delisted coverage remains"
       ],
-      "horizons": [
-        5,
-        10,
-        20,
-        60
-      ],
-      "development_end": "2024-12-31",
-      "validation": "2025",
-      "forward_test": "2026-01-01 through 2026-08-14",
-      "known_limitations": [
-        "survivorship-biased present-day large-cap seed universe",
-        "unadjusted corporate-action audit incomplete",
-        "no fundamentals",
-        "no sector neutralisation",
-        "no trading costs"
-      ]
-    },
-    {
-      "experiment_id": "tracker-backtest-v1-2026-08-25",
-      "created_at": "2026-08-25T22:30:00+10:00",
-      "status": "completed_research_only",
-      "change": "Point-in-time replay of current Long Early Watch and Confirmed Tracker selection surface with daily cross-sectional Top 10",
-      "coverage": "378 survivorship-aware sample symbols including 111 delisted; 2010-01-05 through 2026-06-24; 11,896 signals",
-      "specification": {
-        "trend_filter": "Close > EMA200 and EMA200 20-session slope > 0",
-        "control": "no trend filter",
-        "entry": "next adjusted open",
-        "forward_days": [
-          1,
-          3,
-          5,
-          10,
-          20,
-          40
-        ],
-        "support_buffers_pct": [
-          1,
-          2,
-          3,
-          5
-        ],
-        "fixed_targets_r": [
-          1,
-          2,
-          3
+      "human_summary": {
+        "title_zh": "独立离场风险分V0.1",
+        "family": "exit",
+        "family_zh": "离场机制",
+        "question_zh": "看跌吞没、阴线跟随、三峰RSI背离和MACD柱减弱能否更早提示离场？",
+        "result_zh": "尚未运行；所有分值只是测试前主观假设，不改变生产离场。",
+        "use_zh": "作为独立影子风险分研究，不能和入场分混在一起。",
+        "next_zh": "比较风险分≥2、≥3与现有止损止盈，并记录错过的反弹。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-28T19:12:47+10:00",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-08-28T19:12:47+10:00",
+        "time_source": "git_commit",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "exit-score-v0.1.0-2026-08-28",
+            "event": "registered",
+            "event_at": "2026-08-28T19:12:47+10:00",
+            "time_source": "git_commit",
+            "source_ref": "33134b4180a2f7407e3a96ce89a54a5055e3d436"
+          }
         ]
-      },
-      "result": "Twenty-day control win rate 51.34%, average return 0.388%, PF 1.085. Strict trend win rate 52.95%, average return 0.465%, PF 1.122. Confirmed exceeded Early Watch overall. Tracker rank buckets were not monotonic; multifactor score buckets were monotonic overall. Support minus 1% stopped 68.32% of strict-trend samples.",
-      "decision": "Research only; no optimization and no production weight, Tracker or Discord change",
-      "known_limitations": [
-        "not a complete historical US universe",
-        "partial delisted and ticker-change coverage",
-        "overlapping signals",
-        "daily stop-target ambiguity uses stop-first"
-      ]
-    },
-    {
-      "experiment_id": "research-v0.2.0-2026-08-17",
-      "created_at": "2026-08-17T07:25:42.601772+00:00",
-      "status": "completed_research_only",
-      "change": "Separate development, validation and forward evidence; classify 60-day factor stability; measure pairwise factor redundancy; formalize minimum market-data contract",
-      "result": "12-1 momentum, 6-1 momentum and trend quality pass the preliminary development/validation rule; all remain research-only",
-      "known_limitations": [
-        "survivorship-biased present-day large-cap seed universe",
-        "forward sample has only four completed month-end observations",
-        "unadjusted corporate-action audit incomplete",
-        "no fundamentals",
-        "no sector neutralisation",
-        "no trading costs"
-      ]
-    },
-    {
-      "experiment_id": "research-v0.3.0-2026-08-17",
-      "created_at": "2026-08-17T07:36:04.225155+00:00",
-      "status": "completed_research_only",
-      "change": "Expand current-stock universe and history; add RSI, MACD strength, ADX, volume expansion, 52-week breakout, volatility contraction, and relative strength versus SPY",
-      "coverage": "436 stocks loaded, 42,825 eligible month-end observations, August 2017 through August 2026",
-      "result": "12-1 momentum, 6-1 momentum, trend quality and six-month relative strength pass the preliminary 60-day rule; relative strength overlaps heavily with trend and momentum",
-      "known_limitations": [
-        "survivorship-biased present-day large-cap seed universe",
-        "historical window remains under ten years",
-        "public feed is not a licensed institutional backtest dataset",
-        "unadjusted corporate-action audit incomplete",
-        "no fundamentals",
-        "no sector neutralisation",
-        "no trading costs"
-      ]
-    },
-    {
-      "experiment_id": "research-v0.4.0-2026-08-17",
-      "created_at": "2026-08-17T08:18:39.560092+00:00",
-      "status": "completed_research_only",
-      "change": "Extend adjusted price history to January 2000 and explicitly test whether recent factor conclusions persist across the longer sample",
-      "coverage": "436 stocks loaded, 96,814 eligible month-end observations, January 2001 through August 2026",
-      "result": "No factor meets the current higher-weight rule over the full development and validation test; the apparent recent strength of momentum and trend does not remain strong enough over the full sample",
-      "known_limitations": [
-        "survivorship-biased present-day stock universe",
-        "delisted stocks absent",
-        "free chart feed is exploratory rather than institutional research data",
-        "no historical sector neutralisation",
-        "no trading costs"
-      ]
-    },
-    {
-      "experiment_id": "research-v0.5.0-2026-08-18",
-      "created_at": "2026-08-18T02:20:16.541651+00:00",
-      "status": "completed_research_only",
-      "change": "Apply tradability filters before ranking, SPY EMA200 long-regime gate, next-open execution contract, and within-sector factor ranking",
-      "coverage": "435 stocks loaded, 40,523 eligible stock-month observations, April 2003 through August 2026",
-      "result": "No factor meets the higher-weight rule after safeguards; 12-month momentum and volatility contraction remain weak positive associations, not validated trading factors",
-      "known_limitations": [
-        "Roll spread estimate is not a true bid-ask spread",
-        "sector labels are current rather than point-in-time",
-        "survivorship-biased present-day universe",
-        "delisted stocks absent",
-        "no commissions or historical quote-level slippage"
-      ]
-    },
-    {
-      "experiment_id": "macd-pattern-v0.6.0-2026-08-24",
-      "created_at": "2026-08-24T00:00:00+10:00",
-      "status": "completed_research_only",
-      "change": "Test double-bottom breakout, descending-trendline three-push breakout and RSI bullish divergence on long-term rising-or-sideways stocks at daily MACD crosses with next-open entry and 20-day hold",
-      "coverage": "January 2000 through August 2026; active, delisted and unmatched-status cached histories retained",
-      "result": "Double-bottom breakout did not validate; three-push breakout and RSI bullish divergence were unstable across development, 2025 validation and 2026 forward observation",
-      "known_limitations": [
-        "2,138 cached histories still lack reliable active/delisted identity matching",
-        "overlapping events are not independent",
-        "no fees or historical quote-level slippage"
-      ]
-    },
-    {
-      "experiment_id": "macd-candle-v0.7.0-2026-08-24",
-      "created_at": "2026-08-24T00:00:00+10:00",
-      "status": "completed_research_only",
-      "change": "Test bottom Doji and bottom bullish engulfing within zero to four bars before a daily MACD bullish cross",
-      "specification": {
-        "universe": "Signal-date long-term trend passes: close at least 90% of EMA200 and EMA200 60-day decline no worse than 3%",
-        "bottom": "Candle body top lies in lower 30% of the trailing 60-day high-low range",
-        "doji": "Body is no more than 10% of candle range",
-        "bullish_engulfing": "Bull candle opens at or below prior bear close and closes at or above prior bear open",
-        "entry": "next adjusted open",
-        "holding_days": 20,
-        "splits": "2000-2024 development; 2025 validation; 2026 forward observation"
-      },
-      "result": "Neither candle factor validated. Bottom Doji win-rate deltas were +1.0, -2.5 and +6.3 percentage points; bottom bullish engulfing deltas were +0.7, -0.4 and +7.1 across development, 2025 validation and 2026 forward observation.",
-      "known_limitations": [
-        "overlapping events are not independent",
-        "listing identity remains unmatched for part of cache",
-        "no fees or historical quote-level slippage"
-      ]
-    },
-    {
-      "experiment_id": "macd-rollout-01-baseline-2026-08-24",
-      "created_at": "2026-08-24T00:00:00+10:00",
-      "status": "completed_research_only",
-      "change": "Establish the fixed baseline for the ten-experiment rollout: signal-date long-term trend passes and daily MACD bullish cross, next-adjusted-open entry, evaluated at 20 and 100 trading days",
-      "coverage": "2,518 eligible histories; 2000-01-03 through 2026-08-21; active, delisted and unmatched-status histories retained",
-      "specification": {
-        "trend_gate": "close at least 90% of EMA200 and EMA200 60-day decline no worse than 3%",
-        "entry": "next adjusted open",
-        "splits": "2000-2024 development; 2025 validation; 2026 forward observation"
-      },
-      "result": "At 20 days, win rates were 55.9%, 53.5% and 53.5%; trimmed mean returns were 0.83%, 1.15% and 1.46%. At 100 days, win rates were 60.3%, 62.2% and 63.3%; trimmed mean returns were 4.02%, 8.88% and 11.71%. The 20-day edge is modest. The higher 100-day raw win rate comes with mean adverse excursions of -12.86%, -14.68% and -15.68% and is partly exposed to long-run market drift.",
-      "known_limitations": [
-        "overlapping events are not independent",
-        "2,138 cached histories still lack reliable active/delisted identity matching",
-        "no fees or historical quote-level slippage",
-        "raw 100-day win rate is influenced by long-run equity-market drift"
-      ]
-    },
-    {
-      "experiment_id": "macd-rollout-02-kline-congestion-2026-08-24",
-      "created_at": "2026-08-24T00:00:00+10:00",
-      "status": "completed_research_only",
-      "change": "Test whether a point-in-time daily-close congestion area adds value to the fixed long-trend plus daily-MACD-cross baseline",
-      "coverage": "2,518 eligible histories; 2000-01-03 through 2026-08-21; active, delisted and unmatched-status histories retained",
-      "specification": {
-        "lookback_days": 250,
-        "price_band": "current close plus or minus 3%",
-        "minimum_close_share": "15% of prior closes",
-        "minimum_pullback": "current close at least 5% below prior 60-day high",
-        "volume_used": false,
-        "entry": "next adjusted open",
-        "holding_days": [
-          20,
-          100
-        ]
-      },
-      "result": "Did not validate. At 20 days, win-rate deltas versus baseline were +1.0, -1.0 and +0.9 percentage points; trimmed-return deltas were +0.23, -0.54 and -0.21. At 100 days, win-rate deltas were 0.0, -2.5 and -2.0. Price congestion alone is not promoted to tracker weight.",
-      "known_limitations": [
-        "close-density is a simplified proxy for visual candle congestion",
-        "volume profile is deliberately excluded and will be tested separately",
-        "overlapping events are not independent",
-        "no fees or historical quote-level slippage"
-      ]
-    },
-    {
-      "experiment_id": "macd-large-cycle-weekly-monthly-2026-08-25",
-      "created_at": "2026-08-25T00:00:00+10:00",
-      "status": "completed_research_only",
-      "change": "Move the long-trend and K-line-congestion comparison from daily MACD crosses to completed weekly and monthly bullish MACD crosses, with one-to-six-month holding windows",
-      "coverage": "2,518 eligible histories; 2000-01-03 through 2026-08-21; 48,859 weekly and 10,993 monthly cross events before factor filtering",
-      "specification": {
-        "signal": "weekly or monthly MACD bullish cross confirmed only after the full period closes",
-        "entry": "next adjusted daily open",
-        "holding_days": [
-          20,
-          40,
-          60,
-          80,
-          100,
-          120
-        ],
-        "comparisons": [
-          "cross only",
-          "signal-date long trend plus cross",
-          "signal-date long trend plus cross plus daily-close congestion"
-        ]
-      },
-      "result": "Monthly crosses were materially more consistent at longer horizons than weekly crosses. Six-month raw win rates were 64.5%, 68.1% and 70.3% for monthly crosses versus 59.6%, 60.9% and 56.2% for weekly crosses. The long-trend gate changed monthly six-month win rates by only +0.4, +0.6 and -0.4 percentage points. K-line congestion did not validate as an add-on: monthly six-month deltas versus the long-trend monthly baseline were -0.3, -10.5 and -41.3 points, with only seven completed 2026 congestion samples at six months; weekly deltas were -1.1, -3.0 and +3.5 points.",
-      "known_limitations": [
-        "weekly and monthly events overlap across holding windows",
-        "raw long-horizon win rates include equity-market drift",
-        "the 2026 six-month congestion subset is incomplete and too small",
-        "no fees or historical quote-level slippage"
-      ]
-    },
-    {
-      "experiment_id": "macd-rollout-03-volume-profile-2026-08-25",
-      "created_at": "2026-08-25T00:00:00+10:00",
-      "status": "completed_research_only",
-      "change": "Test a point-in-time daily-bar Volume Profile proxy as an add-on to the fixed long-trend plus daily-MACD-cross baseline",
-      "coverage": "2,518 eligible histories; 2000-01-03 through 2026-08-21; active, delisted and unmatched-status histories retained",
-      "specification": {
-        "lookback_days": 250,
-        "price_bins": 40,
-        "price_assignment": "daily typical price weighted by daily volume",
-        "minimum_peak_share": "5% of total lookback volume",
-        "maximum_distance_to_peak": "3%",
-        "minimum_pullback": "current close at least 5% below prior 60-day high",
-        "entry": "next adjusted open",
-        "holding_days": [
-          20,
-          100
-        ]
-      },
-      "result": "Did not validate. At 20 days, win-rate deltas versus the fixed baseline were +1.2, -1.2 and -3.1 percentage points; trimmed-return deltas were +0.32, -0.29 and -0.74. At 100 days, win-rate deltas were 0.0, -4.1 and -5.5 points. The 2026 20-day subset won 50.4% of 282 events and beat SPY 42.9% of the time.",
-      "known_limitations": [
-        "daily OHLCV only approximates Volume Profile and cannot recover intraday price-by-volume distribution",
-        "overlapping events are not independent",
-        "2,138 histories remain unmatched for listing status",
-        "no fees or historical quote-level slippage"
-      ]
-    },
-    {
-      "experiment_id": "macd-rollout-04-double-chip-confirmation-2026-08-25",
-      "created_at": "2026-08-25T00:00:00+10:00",
-      "status": "completed_research_only",
-      "change": "Require both prior-close congestion and the daily-bar Volume Profile peak at the current price as a double chip-density confirmation for the fixed long-trend plus daily-MACD-cross baseline",
-      "coverage": "2,518 eligible histories; 2000-01-03 through 2026-08-21; active, delisted and unmatched-status histories retained",
-      "specification": {
-        "kline_congestion": "at least 15% of prior 250 closes within plus or minus 3% of current close",
-        "volume_profile": "highest of 40 typical-price volume bins holds at least 5% of volume and lies within 3% of current close",
-        "minimum_pullback": "current close at least 5% below prior 60-day high",
-        "entry": "next adjusted open",
-        "holding_days": [
-          20,
-          100
-        ]
-      },
-      "result": "Did not validate. At 20 days, win-rate deltas were +1.3, -1.8 and -2.1 percentage points; trimmed-return deltas were +0.31, -0.50 and -0.82. At 100 days, win-rate deltas were +0.2, -3.6 and -5.7 points. The 2026 100-day subset won 57.6% of 245 events, but its robust return trailed baseline by 4.86 points and only 33.2% beat SPY.",
-      "known_limitations": [
-        "daily OHLCV only approximates true intraday Volume Profile",
-        "overlapping events are not independent",
-        "2,138 histories remain unmatched for listing status",
-        "no fees or historical quote-level slippage"
-      ]
-    },
-    {
-      "experiment_id": "macd-rollout-05-fibonacci-half-2026-08-25",
-      "created_at": "2026-08-25T00:00:00+10:00",
-      "status": "completed_research_only",
-      "change": "Test signal-date proximity to the 0.5 retracement of the latest confirmed meaningful low-to-high swing as an add-on to long trend plus daily MACD bullish cross",
-      "coverage": "2,518 eligible histories; 2000-01-03 through 2026-08-21",
-      "specification": {
-        "swing": "confirmed major pivot low followed by confirmed pivot high, at least 10 bars apart and at least 10% amplitude",
-        "level_tolerance": "2%",
-        "entry": "next adjusted open",
-        "holding_days": [
-          20,
-          100
-        ]
-      },
-      "result": "Did not validate. Twenty-day win-rate deltas were -0.1, -1.7 and +1.7 percentage points. One-hundred-day deltas were -0.7, -1.5 and +4.6 points. Recent strength was not supported by development or 2025 validation.",
-      "known_limitations": [
-        "automated pivots approximate discretionary swing selection",
-        "overlapping events are not independent",
-        "no fees or quote-level slippage"
-      ]
-    },
-    {
-      "experiment_id": "macd-multifactor-score-v1-2026-08-25",
-      "created_at": "2026-08-25T00:00:00+10:00",
-      "status": "completed_research_only",
-      "change": "Score six independent confirmations on top of long trend, at least 5% pullback from the prior 60-day high, and a daily MACD bullish cross",
-      "coverage": "2,518 eligible histories; 2000-01-03 through 2026-08-21; 69,265 development, 7,018 validation and 1,465 forward core events",
-      "specification": {
-        "components": [
-          "Fibonacci 0.5 or 0.618 support",
-          "EMA21/50/200 proximity",
-          "completed-week MACD histogram improvement",
-          "confirmed three-push trendline breakout",
-          "nearby overhead unfilled downside gap",
-          "open bullish fair-value-gap support"
-        ],
-        "scoring": "one point per component, thresholds zero through six",
-        "entry": "next adjusted open",
-        "holding_days": [
-          20,
-          100
-        ]
-      },
-      "result": "Equal-weight scoring did not validate. At 20 days, the core won 56.0%, 53.1% and 55.0%; requiring at least four confirmations produced 58.0%, 51.6% and 54.3%. At 100 days, the core won 59.1%, 60.0% and 63.5%; at least four confirmations produced 61.1%, 60.4% and 57.1%. Five- and six-point groups were too small. The overhead unfilled-gap component increased win rate in all three 20-day stages by +1.1, +2.0 and +3.6 points, but robust-return deltas were +0.07, +0.38 and -0.12, so it remains a candidate rather than a validated weight.",
-      "known_limitations": [
-        "equal weighting may dilute useful components with weak ones",
-        "five- and six-point samples are insufficient",
-        "gap and FVG rules use daily OHLC rather than intraday data",
-        "overlapping events are not independent",
-        "no fees or quote-level slippage"
-      ]
-    },
-    {
-      "experiment_id": "core-factor-backtest-v1.0.0-2026-08-27",
-      "created_at": "2026-08-27T23:30:00+10:00",
-      "status": "completed_research_only",
-      "change": "Test the clarified hierarchy: long trend plus daily MACD bullish cross; Volume Profile proxy or close congestion as the support gate; double bottom, higher low, bottom Doji and bullish engulfing only as support-dependent confirmations; independently test first bullish-FVG midpoint sweep that remains open and closes above 50%.",
-      "coverage": "1,388 eligible cached histories; 163,774 daily/weekly/monthly events; 2000 through 2026-08-21; development through 2024, 2025 validation, 2026 forward observation",
-      "specification": {
-        "entry": "next adjusted open",
-        "holding_days": [
-          5,
-          10,
-          20,
-          40
-        ],
-        "core_support": "Volume Profile proxy OR K-line close congestion",
-        "dependent_confirmations": [
-          "double bottom",
-          "higher low",
-          "bottom Doji",
-          "support bullish engulfing"
-        ],
-        "merged_alias": "bottom bullish engulfing is not a separate v1 factor",
-        "independent_signal": "bullish FVG first sweeps midpoint, remains unfilled, and closes above midpoint"
-      },
-      "result": "The support gate did not consistently improve the trend-plus-MACD baseline at 20 days: win-rate deltas were +1.1, -1.7 and +0.4 points in development, 2025 validation and 2026 forward; robust-return deltas were +0.20, -0.53 and -0.11 points. Double bottom weakened development and validation. Higher low was near neutral and inconsistent. Bottom Doji was unstable. Support bullish engulfing was directionally interesting but not validated: 20-day win-rate deltas +0.1, +0.6 and +11.9 with only 38 forward samples and mixed robust-return deltas. FVG 50% hold was also a candidate only: win-rate deltas +0.8, +0.4 and +11.7, while robust-return deltas were -0.24, -0.65 and +0.59. No production weights changed.",
-      "decision": "Keep legacy production scoring unchanged. Preserve support-dependent hierarchy in research. Reject promotion of double bottom; continue observing higher low and Doji without score; retain support bullish engulfing and FVG 50% hold as candidates requiring larger forward samples and refined support/FVG definitions.",
-      "known_limitations": [
-        "restored cache contained 1,388 eligible histories versus 2,518 in older studies, so compare within-run deltas rather than raw cross-study totals",
-        "daily OHLCV approximates Volume Profile and FVG traversal",
-        "overlapping events are not independent",
-        "no fees or quote-level slippage",
-        "stop-loss and take-profit grid is not included in this first event-study stage"
-      ]
-    },
-    {
-      "experiment_id": "full-line-backtest-v1.0.2-2026-08-28",
-      "created_at": "2026-08-28T00:45:00+10:00",
-      "status": "completed_research_only",
-      "change": "Run full P/L replay for strict rising long trend plus completed daily MACD bullish crosses; compare support minus 5%/10% stops, 1.5R/2R targets, market regimes, relative and cross-sectional volume heat, Magnificent 7, chip support, and direct theme-ETF price/volume hotspots.",
-      "coverage": "1,454 cached histories; 52,569 stock events and 208,966 stop/target scenarios; 1,380 non-clustered theme ETF hotspot events; development through 2024, 2025 validation, 2026 forward observation",
-      "specification": {
-        "entry": "next adjusted open",
-        "stock_exit": "support minus 5% or 10%; 1.5R or 2R target; 40-session time exit; same-bar stop first",
-        "market": "SPY and QQQ point-in-time trend plus MACD",
-        "heat": "signal-day dollar-volume percentile and volume versus prior 20 sessions",
-        "industry_hotspot": "ETF close above EMA20 above EMA50 above EMA200, rising EMA200, relative volume at least 1.5, and 20-day return above SPY",
-        "membership_policy": "current ETF constituents were not backfilled historically"
-      },
-      "result": "All four stock exit grids had positive profit factor and 1% trimmed expectancy overall and in each time split, but 2026 win rates and medians weakened. The 10%-buffer/2R grid returned PF 1.366/1.455/1.231 and trimmed expectancy 1.435%/2.085%/1.206% across development/2025/2026, while 2026 median was -0.707%. Risk-Off was near flat in development; Neutral outperformed the fixed Risk-On definition, so the market label is informative but not a validated hard gate. Relative volume >=2x improved development and 2025, but 2026 median was -2.339%, so it is a visibility candidate, not a score. Top-dollar-volume signal buckets underperformed the remaining signals and do not constitute alpha. Magnificent 7 was strong in development and 2025 but failed in 2026 with only 22 samples. Chip support stayed positive by trimmed expectancy in all three periods, though 2025 median was slightly negative. Theme ETF hotspots were positive in development and 2025 but failed in 2026: PF 0.630, trimmed expectancy -2.362%, median -2.214% on 70 events. Semiconductors and grid modernization were positive in all periods, but recent samples were too small to validate.",
-      "decision": "Do not change production weights. Retain 5% and 10% support buffers plus 1.5R/2R as research grids; do not select a winner post hoc. Use Risk-Off as a caution flag rather than requiring Risk-On. Show high dollar volume for liquidity/attention only. Continue relative-volume >=2x, chip support, semiconductors and grid modernization as research candidates. Redesign industry heat to include constituent volume breadth and pullback/support position before retesting; begin forward stock-theme linkage from the dated 2026-08-26 membership snapshot.",
-      "known_limitations": [
-        "signals overlap and this is not a capital-constrained portfolio",
-        "partial delisted coverage and data-provider corporate-action anomalies remain",
-        "raw MFE is not used for decisions; median and 1% trimmed realised returns are reported",
-        "historical stock-theme linkage is omitted because reliable point-in-time ETF membership is unavailable",
-        "fees, spread and quote-level slippage are excluded",
-        "recent per-theme samples are small"
-      ]
-    },
-    {
-      "experiment_id": "pullback-context-backtest-v2.0.0-2026-08-28",
-      "created_at": "2026-08-28T01:55:00+10:00",
-      "status": "completed_research_only",
-      "change": "Replace breakout-chasing market and industry contexts with predeclared pullback-at-support states; separately test MACD repair and volume recovery without changing the underlying stock signal or trade execution.",
-      "coverage": "52,327 fixed stock trades and 2,387 non-clustered industry ETF pullback scenarios; development through 2024, 2025 validation, 2026 forward observation",
-      "specification": {
-        "stock_trade": "strict rising long trend plus completed daily MACD cross; next Open; structural support minus 5%; 2R; 40 sessions; stop first",
-        "market_pullback": "SPY and QQQ long trends intact; either index 3%-12% below prior 60D high and within 3% of EMA20/50",
-        "industry_pullback": "ETF long trend intact; 5%-20% below prior 60D high and within 3% of an EMA below price",
-        "macd_repair": "histogram rises for two completed sessions",
-        "volume_recovery": "ETF volume at least 1.2 times prior 20-session average"
-      },
-      "result": "Market pullback plus MACD repair was the strongest interpretable context overall: PF 1.753 and trimmed expectancy 2.491%; development/2025/2026 trimmed expectancy was 2.540%/3.435%/1.535%. The 2026 median remained -5.318%, so it is not a hard gate. Uptrend without pullback failed in 2026 with PF 0.920 and trimmed expectancy -0.656%. For industry ETFs, pullback at support produced PF 1.317 and trimmed expectancy 0.928% overall, remaining positive in development/2025/2026 at 0.944%/1.158%/0.460%. Adding MACD repair reduced overall results and failed in 2026; additionally requiring volume recovery was sample-thin and inconsistent. Compared with V1 trend-volume hotspots, whose 2026 trimmed expectancy was -2.362%, the pullback-at-support state was materially less fragile. Industry-level results remain mixed: semiconductor pullbacks with MACD and volume were positive overall, while digital assets and robotics pullbacks were weak.",
-      "decision": "Promote pullback location to the primary research context for market and industry displays, but keep it outside official production score. Treat market pullback plus MACD repair as a candidate priority flag, not a buy gate. For industry, use long-trend pullback at support as the base state; show MACD and volume as descriptive evidence rather than mandatory additive factors. Continue dated forward stock-theme tracking before testing stock-level industry uplift.",
-      "known_limitations": [
-        "2026 medians remain weak even where trimmed means are positive",
-        "historical stock-theme membership is unavailable, so industry trades use ETF proxies",
-        "signals overlap and are not a capital-constrained portfolio",
-        "recent theme samples are small",
-        "fees and quote-level slippage are excluded"
-      ]
+      }
     },
     {
       "experiment_id": "timeframe-score-v3.0.0-2026-08-28",
@@ -492,48 +146,966 @@
         "available cached universe has partial delisted coverage",
         "daily OHLCV approximates intraday support and execution",
         "overlapping MACD events are not independent"
-      ]
+      ],
+      "human_summary": {
+        "title_zh": "大周期优先评分V3",
+        "family": "timeframe",
+        "family_zh": "大周期",
+        "question_zh": "月线高于周线、周线高于日线，并按主导周期匹配持仓窗口，能否优于现行V2？",
+        "result_zh": "尚未运行；当前V2排名和持仓提示不变。",
+        "use_zh": "今晚回测的预注册方案，结果出来前只显示实验性周期画像。",
+        "next_zh": "按自然周保存检查点，比较V2、等权和V3。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-28T18:58:12+10:00",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-08-28T18:58:12+10:00",
+        "time_source": "git_commit",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "timeframe-score-v3.0.0-2026-08-28",
+            "event": "registered",
+            "event_at": "2026-08-28T18:58:12+10:00",
+            "time_source": "git_commit",
+            "source_ref": "c89b455afa34ee9c20b4c25fe07b997b06cb6e96"
+          }
+        ]
+      }
     },
     {
-      "experiment_id": "exit-score-v0.1.0-2026-08-28",
-      "created_at": "2026-08-28T19:30:00+10:00",
-      "status": "pre_registered",
-      "change": "Add a separate post-entry shadow exit-risk score using completed daily bearish body engulfing, dependent bearish follow-through, confirmed three-peak RSI bearish divergence, and weakening positive MACD histogram; do not change entry ranking or production exits.",
-      "coverage": "Reuse saved point-in-time MACD entry events; development through 2024, 2025 independent validation, 2026 forward observation; natural-week resumable checkpoints.",
+      "experiment_id": "pullback-context-backtest-v2.0.0-2026-08-28",
+      "created_at": "2026-08-28T01:55:00+10:00",
+      "status": "completed_research_only",
+      "change": "Replace breakout-chasing market and industry contexts with predeclared pullback-at-support states; separately test MACD repair and volume recovery without changing the underlying stock signal or trade execution.",
+      "coverage": "52,327 fixed stock trades and 2,387 non-clustered industry ETF pullback scenarios; development through 2024, 2025 validation, 2026 forward observation",
       "specification": {
-        "score": {
-          "bearish_body_engulfing": 2,
-          "bearish_follow_through": 1,
-          "triple_rsi_bearish_divergence": 1,
-          "positive_macd_histogram_weakening": 1,
-          "maximum": 5
-        },
-        "definitions": {
-          "bearish_follow_through": "immediately following completed bearish candle closes below the engulfing candle close",
-          "triple_rsi_bearish_divergence": "three confirmed strictly higher price pivots; first RSI14 >=70; RSI peaks non-increasing; event only after third pivot confirmation",
-          "positive_macd_histogram_weakening": "histogram remains positive and contracts on two consecutive completed sessions"
-        },
-        "controls": [
-          "existing support stop / maximum 10% planned loss / 2R / time exit",
-          "same baseline plus exit_score >=2 at next adjusted open",
-          "same baseline plus exit_score >=3 at next adjusted open"
-        ],
-        "hard_stop_priority": true,
-        "cost_bps": [
-          0,
-          20,
-          50
-        ],
-        "checkpoint": "natural week; resume from last successful checkpoint"
+        "stock_trade": "strict rising long trend plus completed daily MACD cross; next Open; structural support minus 5%; 2R; 40 sessions; stop first",
+        "market_pullback": "SPY and QQQ long trends intact; either index 3%-12% below prior 60D high and within 3% of EMA20/50",
+        "industry_pullback": "ETF long trend intact; 5%-20% below prior 60D high and within 3% of an EMA below price",
+        "macd_repair": "histogram rises for two completed sessions",
+        "volume_recovery": "ETF volume at least 1.2 times prior 20-session average"
       },
-      "success_criteria": "An exit threshold must improve 2025 validation net expectancy or maximum drawdown without a material directional collapse in 2026, while reporting foregone post-exit upside and robustness against extreme observations.",
-      "result": "Not run. All weights and thresholds are subjective priors frozen before testing; production execution remains unchanged.",
+      "result": "Market pullback plus MACD repair was the strongest interpretable context overall: PF 1.753 and trimmed expectancy 2.491%; development/2025/2026 trimmed expectancy was 2.540%/3.435%/1.535%. The 2026 median remained -5.318%, so it is not a hard gate. Uptrend without pullback failed in 2026 with PF 0.920 and trimmed expectancy -0.656%. For industry ETFs, pullback at support produced PF 1.317 and trimmed expectancy 0.928% overall, remaining positive in development/2025/2026 at 0.944%/1.158%/0.460%. Adding MACD repair reduced overall results and failed in 2026; additionally requiring volume recovery was sample-thin and inconsistent. Compared with V1 trend-volume hotspots, whose 2026 trimmed expectancy was -2.362%, the pullback-at-support state was materially less fragile. Industry-level results remain mixed: semiconductor pullbacks with MACD and volume were positive overall, while digital assets and robotics pullbacks were weak.",
+      "decision": "Promote pullback location to the primary research context for market and industry displays, but keep it outside official production score. Treat market pullback plus MACD repair as a candidate priority flag, not a buy gate. For industry, use long-trend pullback at support as the base state; show MACD and volume as descriptive evidence rather than mandatory additive factors. Continue dated forward stock-theme tracking before testing stock-level industry uplift.",
       "known_limitations": [
-        "confirmed RSI pivots create deliberate delay",
-        "daily OHLCV cannot model intraday exit ordering beyond the existing conservative stop-first rule",
-        "overlapping entry events are not independent",
-        "partial delisted coverage remains"
-      ]
+        "2026 medians remain weak even where trimmed means are positive",
+        "historical stock-theme membership is unavailable, so industry trades use ETF proxies",
+        "signals overlap and are not a capital-constrained portfolio",
+        "recent theme samples are small",
+        "fees and quote-level slippage are excluded"
+      ],
+      "human_summary": {
+        "title_zh": "大盘与行业回撤环境回测",
+        "family": "context",
+        "family_zh": "大盘与行业",
+        "question_zh": "等待大盘和行业回撤到支撑，是否比追突破更稳？",
+        "result_zh": "回撤位置明显优于追热点；大盘回撤＋MACD修复最有方向性，行业长期趋势内回撤也较稳，但2026中位数仍弱。",
+        "use_zh": "把回撤位置作为行业与大盘的优先背景提示，不作为买入硬门槛或正式加分。",
+        "next_zh": "继续按日期跟踪个股与行业关系，扩大2026样本。",
+        "verdict": "candidate"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-28T00:50:32+10:00",
+        "started_at": null,
+        "completed_at": "2026-08-28T00:50:32+10:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-08-28T00:50:32+10:00",
+        "time_source": "git_commit",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "pullback-context-backtest-v2.0.0-2026-08-28",
+            "event": "completed",
+            "event_at": "2026-08-28T00:50:32+10:00",
+            "time_source": "git_commit",
+            "source_ref": "b30a3e927f3c1b05aac039d29c6bd8b56c93e754"
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "full-line-backtest-v1.0.2-2026-08-28",
+      "created_at": "2026-08-28T00:45:00+10:00",
+      "status": "completed_research_only",
+      "change": "Run full P/L replay for strict rising long trend plus completed daily MACD bullish crosses; compare support minus 5%/10% stops, 1.5R/2R targets, market regimes, relative and cross-sectional volume heat, Magnificent 7, chip support, and direct theme-ETF price/volume hotspots.",
+      "coverage": "1,454 cached histories; 52,569 stock events and 208,966 stop/target scenarios; 1,380 non-clustered theme ETF hotspot events; development through 2024, 2025 validation, 2026 forward observation",
+      "specification": {
+        "entry": "next adjusted open",
+        "stock_exit": "support minus 5% or 10%; 1.5R or 2R target; 40-session time exit; same-bar stop first",
+        "market": "SPY and QQQ point-in-time trend plus MACD",
+        "heat": "signal-day dollar-volume percentile and volume versus prior 20 sessions",
+        "industry_hotspot": "ETF close above EMA20 above EMA50 above EMA200, rising EMA200, relative volume at least 1.5, and 20-day return above SPY",
+        "membership_policy": "current ETF constituents were not backfilled historically"
+      },
+      "result": "All four stock exit grids had positive profit factor and 1% trimmed expectancy overall and in each time split, but 2026 win rates and medians weakened. The 10%-buffer/2R grid returned PF 1.366/1.455/1.231 and trimmed expectancy 1.435%/2.085%/1.206% across development/2025/2026, while 2026 median was -0.707%. Risk-Off was near flat in development; Neutral outperformed the fixed Risk-On definition, so the market label is informative but not a validated hard gate. Relative volume >=2x improved development and 2025, but 2026 median was -2.339%, so it is a visibility candidate, not a score. Top-dollar-volume signal buckets underperformed the remaining signals and do not constitute alpha. Magnificent 7 was strong in development and 2025 but failed in 2026 with only 22 samples. Chip support stayed positive by trimmed expectancy in all three periods, though 2025 median was slightly negative. Theme ETF hotspots were positive in development and 2025 but failed in 2026: PF 0.630, trimmed expectancy -2.362%, median -2.214% on 70 events. Semiconductors and grid modernization were positive in all periods, but recent samples were too small to validate.",
+      "decision": "Do not change production weights. Retain 5% and 10% support buffers plus 1.5R/2R as research grids; do not select a winner post hoc. Use Risk-Off as a caution flag rather than requiring Risk-On. Show high dollar volume for liquidity/attention only. Continue relative-volume >=2x, chip support, semiconductors and grid modernization as research candidates. Redesign industry heat to include constituent volume breadth and pullback/support position before retesting; begin forward stock-theme linkage from the dated 2026-08-26 membership snapshot.",
+      "known_limitations": [
+        "signals overlap and this is not a capital-constrained portfolio",
+        "partial delisted coverage and data-provider corporate-action anomalies remain",
+        "raw MFE is not used for decisions; median and 1% trimmed realised returns are reported",
+        "historical stock-theme linkage is omitted because reliable point-in-time ETF membership is unavailable",
+        "fees, spread and quote-level slippage are excluded",
+        "recent per-theme samples are small"
+      ],
+      "human_summary": {
+        "title_zh": "全流程盈亏与行业热点回测",
+        "family": "execution",
+        "family_zh": "盈亏执行",
+        "question_zh": "加入止损止盈、大盘、成交量和行业热点后，完整盈亏如何？",
+        "result_zh": "四组止损止盈整体PF为正，但2026变弱；10%支撑缓冲＋2R仅是候选。高成交额不是超额收益，突破型行业热点在2026失败。",
+        "use_zh": "保留5%/10%止损与1.5R/2R研究网格；大盘只作风险提示，不把成交量热度直接加分。",
+        "next_zh": "行业改测回撤到支撑，并继续股票—行业前瞻关联。",
+        "verdict": "candidate"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-28T00:26:46+10:00",
+        "started_at": null,
+        "completed_at": "2026-08-28T00:26:46+10:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-08-28T00:26:46+10:00",
+        "time_source": "git_commit",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "full-line-backtest-v1.0.2-2026-08-28",
+            "event": "completed",
+            "event_at": "2026-08-28T00:26:46+10:00",
+            "time_source": "git_commit",
+            "source_ref": "2232fa65a017ecb3cb515d2e288c3094970ccc29"
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "core-factor-backtest-v1.0.0-2026-08-27",
+      "created_at": "2026-08-27T23:30:00+10:00",
+      "status": "completed_research_only",
+      "change": "Test the clarified hierarchy: long trend plus daily MACD bullish cross; Volume Profile proxy or close congestion as the support gate; double bottom, higher low, bottom Doji and bullish engulfing only as support-dependent confirmations; independently test first bullish-FVG midpoint sweep that remains open and closes above 50%.",
+      "coverage": "1,388 eligible cached histories; 163,774 daily/weekly/monthly events; 2000 through 2026-08-21; development through 2024, 2025 validation, 2026 forward observation",
+      "specification": {
+        "entry": "next adjusted open",
+        "holding_days": [
+          5,
+          10,
+          20,
+          40
+        ],
+        "core_support": "Volume Profile proxy OR K-line close congestion",
+        "dependent_confirmations": [
+          "double bottom",
+          "higher low",
+          "bottom Doji",
+          "support bullish engulfing"
+        ],
+        "merged_alias": "bottom bullish engulfing is not a separate v1 factor",
+        "independent_signal": "bullish FVG first sweeps midpoint, remains unfilled, and closes above midpoint"
+      },
+      "result": "The support gate did not consistently improve the trend-plus-MACD baseline at 20 days: win-rate deltas were +1.1, -1.7 and +0.4 points in development, 2025 validation and 2026 forward; robust-return deltas were +0.20, -0.53 and -0.11 points. Double bottom weakened development and validation. Higher low was near neutral and inconsistent. Bottom Doji was unstable. Support bullish engulfing was directionally interesting but not validated: 20-day win-rate deltas +0.1, +0.6 and +11.9 with only 38 forward samples and mixed robust-return deltas. FVG 50% hold was also a candidate only: win-rate deltas +0.8, +0.4 and +11.7, while robust-return deltas were -0.24, -0.65 and +0.59. No production weights changed.",
+      "decision": "Keep legacy production scoring unchanged. Preserve support-dependent hierarchy in research. Reject promotion of double bottom; continue observing higher low and Doji without score; retain support bullish engulfing and FVG 50% hold as candidates requiring larger forward samples and refined support/FVG definitions.",
+      "known_limitations": [
+        "restored cache contained 1,388 eligible histories versus 2,518 in older studies, so compare within-run deltas rather than raw cross-study totals",
+        "daily OHLCV approximates Volume Profile and FVG traversal",
+        "overlapping events are not independent",
+        "no fees or quote-level slippage",
+        "stop-loss and take-profit grid is not included in this first event-study stage"
+      ],
+      "human_summary": {
+        "title_zh": "核心支撑与底部形态回测",
+        "family": "support",
+        "family_zh": "支撑与形态",
+        "question_zh": "支撑门槛、支撑依赖形态和FVG半扫能否增强基准？",
+        "result_zh": "支撑门槛不稳定；双底应剔除；更高低点和十字星继续观察；支撑看涨吞没与FVG半扫有方向性但样本不足。",
+        "use_zh": "不改正式分；只保留支撑看涨吞没和FVG半扫为候选。",
+        "next_zh": "扩大前瞻样本，并改进支撑与FVG定义。",
+        "verdict": "candidate"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-27T23:30:00+10:00",
+        "started_at": null,
+        "completed_at": "2026-08-27T23:44:32+10:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-08-27T23:44:32+10:00",
+        "time_source": "git_commit",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "core-factor-backtest-v1.0.0-2026-08-27",
+            "event": "completed",
+            "event_at": "2026-08-27T23:44:32+10:00",
+            "time_source": "git_commit",
+            "source_ref": "aba26491861fc95ba98741283886c6941f67f9f5"
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "tracker-backtest-v1-2026-08-25",
+      "created_at": "2026-08-25T22:30:00+10:00",
+      "status": "completed_research_only",
+      "change": "Point-in-time replay of current Long Early Watch and Confirmed Tracker selection surface with daily cross-sectional Top 10",
+      "coverage": "378 survivorship-aware sample symbols including 111 delisted; 2010-01-05 through 2026-06-24; 11,896 signals",
+      "specification": {
+        "trend_filter": "Close > EMA200 and EMA200 20-session slope > 0",
+        "control": "no trend filter",
+        "entry": "next adjusted open",
+        "forward_days": [
+          1,
+          3,
+          5,
+          10,
+          20,
+          40
+        ],
+        "support_buffers_pct": [
+          1,
+          2,
+          3,
+          5
+        ],
+        "fixed_targets_r": [
+          1,
+          2,
+          3
+        ]
+      },
+      "result": "Twenty-day control win rate 51.34%, average return 0.388%, PF 1.085. Strict trend win rate 52.95%, average return 0.465%, PF 1.122. Confirmed exceeded Early Watch overall. Tracker rank buckets were not monotonic; multifactor score buckets were monotonic overall. Support minus 1% stopped 68.32% of strict-trend samples.",
+      "decision": "Research only; no optimization and no production weight, Tracker or Discord change",
+      "known_limitations": [
+        "not a complete historical US universe",
+        "partial delisted and ticker-change coverage",
+        "overlapping signals",
+        "daily stop-target ambiguity uses stop-first"
+      ],
+      "human_summary": {
+        "title_zh": "旧 Tracker 历史基准",
+        "family": "tracker",
+        "family_zh": "旧系统基准",
+        "question_zh": "旧 Tracker 的趋势过滤和排名是否有历史参考价值？",
+        "result_zh": "长期趋势过滤略有改善：20日胜率52.95%、PF 1.122；但排名分组并不稳定，多因子分组更有顺序性。",
+        "use_zh": "保留为比较新策略的历史基准，不直接照搬排名。",
+        "next_zh": "新策略必须与这条基准在相同样本上比较。",
+        "verdict": "candidate"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-25T22:30:00+10:00",
+        "started_at": null,
+        "completed_at": "2026-08-25T22:54:19+10:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-08-25T22:54:19+10:00",
+        "time_source": "git_commit",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "tracker-backtest-v1-2026-08-25",
+            "event": "completed",
+            "event_at": "2026-08-25T22:54:19+10:00",
+            "time_source": "git_commit",
+            "source_ref": "6f8f8a2ebccfeda02ddaccd98b93a6d0c4fe7ec0"
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "macd-rollout-05-fibonacci-half-2026-08-25",
+      "created_at": "2026-08-25T00:00:00+10:00",
+      "status": "completed_research_only",
+      "change": "Test signal-date proximity to the 0.5 retracement of the latest confirmed meaningful low-to-high swing as an add-on to long trend plus daily MACD bullish cross",
+      "coverage": "2,518 eligible histories; 2000-01-03 through 2026-08-21",
+      "specification": {
+        "swing": "confirmed major pivot low followed by confirmed pivot high, at least 10 bars apart and at least 10% amplitude",
+        "level_tolerance": "2%",
+        "entry": "next adjusted open",
+        "holding_days": [
+          20,
+          100
+        ]
+      },
+      "result": "Did not validate. Twenty-day win-rate deltas were -0.1, -1.7 and +1.7 percentage points. One-hundred-day deltas were -0.7, -1.5 and +4.6 points. Recent strength was not supported by development or 2025 validation.",
+      "known_limitations": [
+        "automated pivots approximate discretionary swing selection",
+        "overlapping events are not independent",
+        "no fees or quote-level slippage"
+      ],
+      "human_summary": {
+        "title_zh": "斐波那契0.5支撑",
+        "family": "support",
+        "family_zh": "支撑位置",
+        "question_zh": "回撤到0.5关键位能否稳定增强MACD信号？",
+        "result_zh": "跨时期结果不稳定，没有通过验证。",
+        "use_zh": "即使当天命中，也只记录为曾触发，不计正式分。",
+        "next_zh": "可在更明确趋势和支撑背景下重新定义后再测。",
+        "verdict": "unstable"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-25T00:00:00+10:00",
+        "started_at": null,
+        "completed_at": "2026-08-25T04:16:52+10:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-08-25T04:16:52+10:00",
+        "time_source": "git_commit",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "macd-rollout-05-fibonacci-half-2026-08-25",
+            "event": "completed",
+            "event_at": "2026-08-25T04:16:52+10:00",
+            "time_source": "git_commit",
+            "source_ref": "ecfe6eed7fb67136f0162b2a7759006cb2bf064a"
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "macd-multifactor-score-v1-2026-08-25",
+      "created_at": "2026-08-25T00:00:00+10:00",
+      "status": "completed_research_only",
+      "change": "Score six independent confirmations on top of long trend, at least 5% pullback from the prior 60-day high, and a daily MACD bullish cross",
+      "coverage": "2,518 eligible histories; 2000-01-03 through 2026-08-21; 69,265 development, 7,018 validation and 1,465 forward core events",
+      "specification": {
+        "components": [
+          "Fibonacci 0.5 or 0.618 support",
+          "EMA21/50/200 proximity",
+          "completed-week MACD histogram improvement",
+          "confirmed three-push trendline breakout",
+          "nearby overhead unfilled downside gap",
+          "open bullish fair-value-gap support"
+        ],
+        "scoring": "one point per component, thresholds zero through six",
+        "entry": "next adjusted open",
+        "holding_days": [
+          20,
+          100
+        ]
+      },
+      "result": "Equal-weight scoring did not validate. At 20 days, the core won 56.0%, 53.1% and 55.0%; requiring at least four confirmations produced 58.0%, 51.6% and 54.3%. At 100 days, the core won 59.1%, 60.0% and 63.5%; at least four confirmations produced 61.1%, 60.4% and 57.1%. Five- and six-point groups were too small. The overhead unfilled-gap component increased win rate in all three 20-day stages by +1.1, +2.0 and +3.6 points, but robust-return deltas were +0.07, +0.38 and -0.12, so it remains a candidate rather than a validated weight.",
+      "known_limitations": [
+        "equal weighting may dilute useful components with weak ones",
+        "five- and six-point samples are insufficient",
+        "gap and FVG rules use daily OHLC rather than intraday data",
+        "overlapping events are not independent",
+        "no fees or quote-level slippage"
+      ],
+      "human_summary": {
+        "title_zh": "第一版等权多因子评分",
+        "family": "scoring",
+        "family_zh": "评分系统",
+        "question_zh": "把多个候选因子等权相加能否形成稳定排名？",
+        "result_zh": "整体没有通过验证；上方套牢缺口仍可作为候选风险项。",
+        "use_zh": "不要把“命中因子多”直接等同于更好，旧V1只保留作历史对照。",
+        "next_zh": "按类别去重、限制上限并用样本外数据验证。",
+        "verdict": "not_validated"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-25T00:00:00+10:00",
+        "started_at": null,
+        "completed_at": "2026-08-25T04:16:52+10:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-08-25T04:16:52+10:00",
+        "time_source": "git_commit",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "macd-multifactor-score-v1-2026-08-25",
+            "event": "completed",
+            "event_at": "2026-08-25T04:16:52+10:00",
+            "time_source": "git_commit",
+            "source_ref": "ecfe6eed7fb67136f0162b2a7759006cb2bf064a"
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "macd-rollout-04-double-chip-confirmation-2026-08-25",
+      "created_at": "2026-08-25T00:00:00+10:00",
+      "status": "completed_research_only",
+      "change": "Require both prior-close congestion and the daily-bar Volume Profile peak at the current price as a double chip-density confirmation for the fixed long-trend plus daily-MACD-cross baseline",
+      "coverage": "2,518 eligible histories; 2000-01-03 through 2026-08-21; active, delisted and unmatched-status histories retained",
+      "specification": {
+        "kline_congestion": "at least 15% of prior 250 closes within plus or minus 3% of current close",
+        "volume_profile": "highest of 40 typical-price volume bins holds at least 5% of volume and lies within 3% of current close",
+        "minimum_pullback": "current close at least 5% below prior 60-day high",
+        "entry": "next adjusted open",
+        "holding_days": [
+          20,
+          100
+        ]
+      },
+      "result": "Did not validate. At 20 days, win-rate deltas were +1.3, -1.8 and -2.1 percentage points; trimmed-return deltas were +0.31, -0.50 and -0.82. At 100 days, win-rate deltas were +0.2, -3.6 and -5.7 points. The 2026 100-day subset won 57.6% of 245 events, but its robust return trailed baseline by 4.86 points and only 33.2% beat SPY.",
+      "known_limitations": [
+        "daily OHLCV only approximates true intraday Volume Profile",
+        "overlapping events are not independent",
+        "2,138 histories remain unmatched for listing status",
+        "no fees or historical quote-level slippage"
+      ],
+      "human_summary": {
+        "title_zh": "双筹码支撑确认",
+        "family": "support",
+        "family_zh": "支撑位置",
+        "question_zh": "两类筹码支撑同时出现是否更可靠？",
+        "result_zh": "没有通过验证。",
+        "use_zh": "暂不用于正式排名或硬门槛。",
+        "next_zh": "停止叠加未经验证的支撑代理，先改善底层定义。",
+        "verdict": "not_validated"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-25T00:00:00+10:00",
+        "started_at": null,
+        "completed_at": "2026-08-25T03:03:20+10:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-08-25T03:03:20+10:00",
+        "time_source": "git_commit",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "macd-rollout-04-double-chip-confirmation-2026-08-25",
+            "event": "completed",
+            "event_at": "2026-08-25T03:03:20+10:00",
+            "time_source": "git_commit",
+            "source_ref": "2738cd93eec20045b2eaceeb17c60ff54bda0fd0"
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "macd-rollout-03-volume-profile-2026-08-25",
+      "created_at": "2026-08-25T00:00:00+10:00",
+      "status": "completed_research_only",
+      "change": "Test a point-in-time daily-bar Volume Profile proxy as an add-on to the fixed long-trend plus daily-MACD-cross baseline",
+      "coverage": "2,518 eligible histories; 2000-01-03 through 2026-08-21; active, delisted and unmatched-status histories retained",
+      "specification": {
+        "lookback_days": 250,
+        "price_bins": 40,
+        "price_assignment": "daily typical price weighted by daily volume",
+        "minimum_peak_share": "5% of total lookback volume",
+        "maximum_distance_to_peak": "3%",
+        "minimum_pullback": "current close at least 5% below prior 60-day high",
+        "entry": "next adjusted open",
+        "holding_days": [
+          20,
+          100
+        ]
+      },
+      "result": "Did not validate. At 20 days, win-rate deltas versus the fixed baseline were +1.2, -1.2 and -3.1 percentage points; trimmed-return deltas were +0.32, -0.29 and -0.74. At 100 days, win-rate deltas were 0.0, -4.1 and -5.5 points. The 2026 20-day subset won 50.4% of 282 events and beat SPY 42.9% of the time.",
+      "known_limitations": [
+        "daily OHLCV only approximates Volume Profile and cannot recover intraday price-by-volume distribution",
+        "overlapping events are not independent",
+        "2,138 histories remain unmatched for listing status",
+        "no fees or historical quote-level slippage"
+      ],
+      "human_summary": {
+        "title_zh": "Volume Profile支撑代理",
+        "family": "support",
+        "family_zh": "支撑位置",
+        "question_zh": "日线价格成交分布代理能否增强MACD信号？",
+        "result_zh": "该代理定义未通过验证。",
+        "use_zh": "保留支撑概念，但不能把当前代理单独计入正式分。",
+        "next_zh": "改进点时可得的支撑定义，并测试止损距离。",
+        "verdict": "not_validated"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-25T00:00:00+10:00",
+        "started_at": null,
+        "completed_at": "2026-08-25T01:09:28+10:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-08-25T01:09:28+10:00",
+        "time_source": "git_commit",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "macd-rollout-03-volume-profile-2026-08-25",
+            "event": "completed",
+            "event_at": "2026-08-25T01:09:28+10:00",
+            "time_source": "git_commit",
+            "source_ref": "94bca06e9512db3bf2a150a90e2e21716b9d7f34"
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "macd-large-cycle-weekly-monthly-2026-08-25",
+      "created_at": "2026-08-25T00:00:00+10:00",
+      "status": "completed_research_only",
+      "change": "Move the long-trend and K-line-congestion comparison from daily MACD crosses to completed weekly and monthly bullish MACD crosses, with one-to-six-month holding windows",
+      "coverage": "2,518 eligible histories; 2000-01-03 through 2026-08-21; 48,859 weekly and 10,993 monthly cross events before factor filtering",
+      "specification": {
+        "signal": "weekly or monthly MACD bullish cross confirmed only after the full period closes",
+        "entry": "next adjusted daily open",
+        "holding_days": [
+          20,
+          40,
+          60,
+          80,
+          100,
+          120
+        ],
+        "comparisons": [
+          "cross only",
+          "signal-date long trend plus cross",
+          "signal-date long trend plus cross plus daily-close congestion"
+        ]
+      },
+      "result": "Monthly crosses were materially more consistent at longer horizons than weekly crosses. Six-month raw win rates were 64.5%, 68.1% and 70.3% for monthly crosses versus 59.6%, 60.9% and 56.2% for weekly crosses. The long-trend gate changed monthly six-month win rates by only +0.4, +0.6 and -0.4 percentage points. K-line congestion did not validate as an add-on: monthly six-month deltas versus the long-trend monthly baseline were -0.3, -10.5 and -41.3 points, with only seven completed 2026 congestion samples at six months; weekly deltas were -1.1, -3.0 and +3.5 points.",
+      "known_limitations": [
+        "weekly and monthly events overlap across holding windows",
+        "raw long-horizon win rates include equity-market drift",
+        "the 2026 six-month congestion subset is incomplete and too small",
+        "no fees or historical quote-level slippage"
+      ],
+      "human_summary": {
+        "title_zh": "周线与月线大周期信号",
+        "family": "timeframe",
+        "family_zh": "大周期",
+        "question_zh": "周线和月线证据是否比日线更适合判断方向？",
+        "result_zh": "月线交叉在较长持有窗口更一致；周线结果较弱，K线聚集区仍失败。",
+        "use_zh": "支持继续研究“大周期看方向”，但尚不能直接确定倍数权重。",
+        "next_zh": "用预注册V3比较日、周、月权重和持仓窗口。",
+        "verdict": "candidate"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-25T00:00:00+10:00",
+        "started_at": null,
+        "completed_at": "2026-08-25T00:35:11+10:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-08-25T00:35:11+10:00",
+        "time_source": "git_commit",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "macd-large-cycle-weekly-monthly-2026-08-25",
+            "event": "completed",
+            "event_at": "2026-08-25T00:35:11+10:00",
+            "time_source": "git_commit",
+            "source_ref": "d931e7e820e95ec340b44a8f2df8b17f5f68eb81"
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "macd-rollout-02-kline-congestion-2026-08-24",
+      "created_at": "2026-08-24T00:00:00+10:00",
+      "status": "completed_research_only",
+      "change": "Test whether a point-in-time daily-close congestion area adds value to the fixed long-trend plus daily-MACD-cross baseline",
+      "coverage": "2,518 eligible histories; 2000-01-03 through 2026-08-21; active, delisted and unmatched-status histories retained",
+      "specification": {
+        "lookback_days": 250,
+        "price_band": "current close plus or minus 3%",
+        "minimum_close_share": "15% of prior closes",
+        "minimum_pullback": "current close at least 5% below prior 60-day high",
+        "volume_used": false,
+        "entry": "next adjusted open",
+        "holding_days": [
+          20,
+          100
+        ]
+      },
+      "result": "Did not validate. At 20 days, win-rate deltas versus baseline were +1.0, -1.0 and +0.9 percentage points; trimmed-return deltas were +0.23, -0.54 and -0.21. At 100 days, win-rate deltas were 0.0, -2.5 and -2.0. Price congestion alone is not promoted to tracker weight.",
+      "known_limitations": [
+        "close-density is a simplified proxy for visual candle congestion",
+        "volume profile is deliberately excluded and will be tested separately",
+        "overlapping events are not independent",
+        "no fees or historical quote-level slippage"
+      ],
+      "human_summary": {
+        "title_zh": "K线聚集区支撑",
+        "family": "support",
+        "family_zh": "支撑位置",
+        "question_zh": "K线收盘密集区能否独立增强MACD入场？",
+        "result_zh": "没有通过验证。",
+        "use_zh": "可作为支撑位置描述，暂不单独加正式分。",
+        "next_zh": "与Volume Profile及其他底部确认联合测试。",
+        "verdict": "not_validated"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-24T00:00:00+10:00",
+        "started_at": null,
+        "completed_at": "2026-08-24T23:37:17+10:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-08-24T23:37:17+10:00",
+        "time_source": "git_commit",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "macd-rollout-02-kline-congestion-2026-08-24",
+            "event": "completed",
+            "event_at": "2026-08-24T23:37:17+10:00",
+            "time_source": "git_commit",
+            "source_ref": "bd3baaa396f8570c573e4e98e4a3b5935e81fe90"
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "macd-rollout-01-baseline-2026-08-24",
+      "created_at": "2026-08-24T00:00:00+10:00",
+      "status": "completed_research_only",
+      "change": "Establish the fixed baseline for the ten-experiment rollout: signal-date long-term trend passes and daily MACD bullish cross, next-adjusted-open entry, evaluated at 20 and 100 trading days",
+      "coverage": "2,518 eligible histories; 2000-01-03 through 2026-08-21; active, delisted and unmatched-status histories retained",
+      "specification": {
+        "trend_gate": "close at least 90% of EMA200 and EMA200 60-day decline no worse than 3%",
+        "entry": "next adjusted open",
+        "splits": "2000-2024 development; 2025 validation; 2026 forward observation"
+      },
+      "result": "At 20 days, win rates were 55.9%, 53.5% and 53.5%; trimmed mean returns were 0.83%, 1.15% and 1.46%. At 100 days, win rates were 60.3%, 62.2% and 63.3%; trimmed mean returns were 4.02%, 8.88% and 11.71%. The 20-day edge is modest. The higher 100-day raw win rate comes with mean adverse excursions of -12.86%, -14.68% and -15.68% and is partly exposed to long-run market drift.",
+      "known_limitations": [
+        "overlapping events are not independent",
+        "2,138 cached histories still lack reliable active/delisted identity matching",
+        "no fees or historical quote-level slippage",
+        "raw 100-day win rate is influenced by long-run equity-market drift"
+      ],
+      "human_summary": {
+        "title_zh": "长期上涨＋日线MACD基准",
+        "family": "scoring",
+        "family_zh": "入场基准",
+        "question_zh": "以长期上涨和日线MACD金叉作为门票，基础表现如何？",
+        "result_zh": "20日表现小幅为正，100日更高但伴随更大漂移和不利波动。",
+        "use_zh": "作为所有新因子必须超越的固定基准，不代表最佳持仓期。",
+        "next_zh": "逐个添加候选因子并保持同样本比较。",
+        "verdict": "candidate"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-24T00:00:00+10:00",
+        "started_at": null,
+        "completed_at": "2026-08-24T23:13:51+10:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-08-24T23:13:51+10:00",
+        "time_source": "git_commit",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "macd-rollout-01-baseline-2026-08-24",
+            "event": "completed",
+            "event_at": "2026-08-24T23:13:51+10:00",
+            "time_source": "git_commit",
+            "source_ref": "419b3e49d60f5715a54eeba15dd686d04604601c"
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "macd-pattern-v0.6.0-2026-08-24",
+      "created_at": "2026-08-24T00:00:00+10:00",
+      "status": "completed_research_only",
+      "change": "Test double-bottom breakout, descending-trendline three-push breakout and RSI bullish divergence on long-term rising-or-sideways stocks at daily MACD crosses with next-open entry and 20-day hold",
+      "coverage": "January 2000 through August 2026; active, delisted and unmatched-status cached histories retained",
+      "result": "Double-bottom breakout did not validate; three-push breakout and RSI bullish divergence were unstable across development, 2025 validation and 2026 forward observation",
+      "known_limitations": [
+        "2,138 cached histories still lack reliable active/delisted identity matching",
+        "overlapping events are not independent",
+        "no fees or historical quote-level slippage"
+      ],
+      "human_summary": {
+        "title_zh": "MACD后的底部结构形态",
+        "family": "pattern",
+        "family_zh": "形态因子",
+        "question_zh": "双底、三推和RSI底背离能否增强日线MACD信号？",
+        "result_zh": "双底应剔除；三推和RSI底背离跨时期不稳定。",
+        "use_zh": "这些形态暂不单独加正式分，只保留观察记录。",
+        "next_zh": "依附真实支撑位置并改进定义后再测。",
+        "verdict": "not_validated"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-24T00:00:00+10:00",
+        "started_at": null,
+        "completed_at": "2026-08-24T22:33:14+10:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-08-24T22:33:14+10:00",
+        "time_source": "git_commit",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "macd-pattern-v0.6.0-2026-08-24",
+            "event": "completed",
+            "event_at": "2026-08-24T22:33:14+10:00",
+            "time_source": "git_commit",
+            "source_ref": "4adc3638c72ecaac54dfb87e9cbf27aecf3cd60f"
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "macd-candle-v0.7.0-2026-08-24",
+      "created_at": "2026-08-24T00:00:00+10:00",
+      "status": "completed_research_only",
+      "change": "Test bottom Doji and bottom bullish engulfing within zero to four bars before a daily MACD bullish cross",
+      "specification": {
+        "universe": "Signal-date long-term trend passes: close at least 90% of EMA200 and EMA200 60-day decline no worse than 3%",
+        "bottom": "Candle body top lies in lower 30% of the trailing 60-day high-low range",
+        "doji": "Body is no more than 10% of candle range",
+        "bullish_engulfing": "Bull candle opens at or below prior bear close and closes at or above prior bear open",
+        "entry": "next adjusted open",
+        "holding_days": 20,
+        "splits": "2000-2024 development; 2025 validation; 2026 forward observation"
+      },
+      "result": "Neither candle factor validated. Bottom Doji win-rate deltas were +1.0, -2.5 and +6.3 percentage points; bottom bullish engulfing deltas were +0.7, -0.4 and +7.1 across development, 2025 validation and 2026 forward observation.",
+      "known_limitations": [
+        "overlapping events are not independent",
+        "listing identity remains unmatched for part of cache",
+        "no fees or historical quote-level slippage"
+      ],
+      "human_summary": {
+        "title_zh": "底部K线反转形态",
+        "family": "pattern",
+        "family_zh": "形态因子",
+        "question_zh": "底部十字星和看涨吞没能否增强MACD信号？",
+        "result_zh": "底部十字星和看涨吞没均未独立验证。",
+        "use_zh": "不能脱离支撑单独计分；看涨吞没只作为支撑确认候选。",
+        "next_zh": "按支撑依赖关系重新测试，并增加K线跟随。",
+        "verdict": "not_validated"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-24T00:00:00+10:00",
+        "started_at": null,
+        "completed_at": "2026-08-24T22:33:14+10:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-08-24T22:33:14+10:00",
+        "time_source": "git_commit",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "macd-candle-v0.7.0-2026-08-24",
+            "event": "completed",
+            "event_at": "2026-08-24T22:33:14+10:00",
+            "time_source": "git_commit",
+            "source_ref": "4adc3638c72ecaac54dfb87e9cbf27aecf3cd60f"
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "research-v0.5.0-2026-08-18",
+      "created_at": "2026-08-18T02:20:16.541651+00:00",
+      "status": "completed_research_only",
+      "change": "Apply tradability filters before ranking, SPY EMA200 long-regime gate, next-open execution contract, and within-sector factor ranking",
+      "coverage": "435 stocks loaded, 40,523 eligible stock-month observations, April 2003 through August 2026",
+      "result": "No factor meets the higher-weight rule after safeguards; 12-month momentum and volatility contraction remain weak positive associations, not validated trading factors",
+      "known_limitations": [
+        "Roll spread estimate is not a true bid-ask spread",
+        "sector labels are current rather than point-in-time",
+        "survivorship-biased present-day universe",
+        "delisted stocks absent",
+        "no commissions or historical quote-level slippage"
+      ],
+      "human_summary": {
+        "title_zh": "可交易性与市场阶段护栏",
+        "family": "general",
+        "family_zh": "通用研究",
+        "question_zh": "加入流动性、市场阶段和行业护栏后，通用因子能否稳定？",
+        "result_zh": "仍没有因子通过完整验证，但这些护栏能减少研究偏差。",
+        "use_zh": "保留护栏作为实验方法，不把它误称为有效策略。",
+        "next_zh": "在具体交易形态回测中继续使用这些审计规则。",
+        "verdict": "infrastructure"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-18T02:20:16.541651+00:00",
+        "started_at": null,
+        "completed_at": "2026-08-18T12:28:57+10:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-08-18T12:28:57+10:00",
+        "time_source": "git_commit",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "research-v0.5.0-2026-08-18",
+            "event": "completed",
+            "event_at": "2026-08-18T12:28:57+10:00",
+            "time_source": "git_commit",
+            "source_ref": "93fc1857b9209c252fa70e89982241ab4b596c01"
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "research-v0.4.0-2026-08-17",
+      "created_at": "2026-08-17T08:18:39.560092+00:00",
+      "status": "completed_research_only",
+      "change": "Extend adjusted price history to January 2000 and explicitly test whether recent factor conclusions persist across the longer sample",
+      "coverage": "436 stocks loaded, 96,814 eligible month-end observations, January 2001 through August 2026",
+      "result": "No factor meets the current higher-weight rule over the full development and validation test; the apparent recent strength of momentum and trend does not remain strong enough over the full sample",
+      "known_limitations": [
+        "survivorship-biased present-day stock universe",
+        "delisted stocks absent",
+        "free chart feed is exploratory rather than institutional research data",
+        "no historical sector neutralisation",
+        "no trading costs"
+      ],
+      "human_summary": {
+        "title_zh": "25年因子稳定性复核",
+        "family": "general",
+        "family_zh": "通用研究",
+        "question_zh": "近期看起来有效的通用因子能否跨越25年保持稳定？",
+        "result_zh": "没有因子通过完整时期的稳定性要求，说明近期强势不能直接外推。",
+        "use_zh": "不要把近期因子胜率当成长期规律。",
+        "next_zh": "以市场阶段、样本外验证和组合研究代替单段结论。",
+        "verdict": "unstable"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-17T08:18:39.560092+00:00",
+        "started_at": null,
+        "completed_at": "2026-08-17T18:25:28+10:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-08-17T18:25:28+10:00",
+        "time_source": "git_commit",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "research-v0.4.0-2026-08-17",
+            "event": "completed",
+            "event_at": "2026-08-17T18:25:28+10:00",
+            "time_source": "git_commit",
+            "source_ref": "f3d2af7c8887ebf7efc6839743c2e9dab5b9190b"
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "research-v0.3.0-2026-08-17",
+      "created_at": "2026-08-17T07:36:04.225155+00:00",
+      "status": "completed_research_only",
+      "change": "Expand current-stock universe and history; add RSI, MACD strength, ADX, volume expansion, 52-week breakout, volatility contraction, and relative strength versus SPY",
+      "coverage": "436 stocks loaded, 42,825 eligible month-end observations, August 2017 through August 2026",
+      "result": "12-1 momentum, 6-1 momentum, trend quality and six-month relative strength pass the preliminary 60-day rule; relative strength overlaps heavily with trend and momentum",
+      "known_limitations": [
+        "survivorship-biased present-day large-cap seed universe",
+        "historical window remains under ten years",
+        "public feed is not a licensed institutional backtest dataset",
+        "unadjusted corporate-action audit incomplete",
+        "no fundamentals",
+        "no sector neutralisation",
+        "no trading costs"
+      ],
+      "human_summary": {
+        "title_zh": "扩大股票池与技术因子",
+        "family": "general",
+        "family_zh": "通用研究",
+        "question_zh": "扩大股票池后，动量、趋势和相对强弱是否仍有效？",
+        "result_zh": "近年样本中动量、趋势质量和相对强弱表现偏正，但彼此高度重复，且历史不足十年。",
+        "use_zh": "只用于提出候选，不可据此提升生产权重。",
+        "next_zh": "用更长历史检验跨时期稳定性。",
+        "verdict": "candidate"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-17T07:36:04.225155+00:00",
+        "started_at": null,
+        "completed_at": "2026-08-17T17:38:29+10:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-08-17T17:38:29+10:00",
+        "time_source": "git_commit",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "research-v0.3.0-2026-08-17",
+            "event": "completed",
+            "event_at": "2026-08-17T17:38:29+10:00",
+            "time_source": "git_commit",
+            "source_ref": "3af37fbb13d660bcd372acee67d6ce8aeeedbb01"
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "research-v0.2.0-2026-08-17",
+      "created_at": "2026-08-17T07:25:42.601772+00:00",
+      "status": "completed_research_only",
+      "change": "Separate development, validation and forward evidence; classify 60-day factor stability; measure pairwise factor redundancy; formalize minimum market-data contract",
+      "result": "12-1 momentum, 6-1 momentum and trend quality pass the preliminary development/validation rule; all remain research-only",
+      "known_limitations": [
+        "survivorship-biased present-day large-cap seed universe",
+        "forward sample has only four completed month-end observations",
+        "unadjusted corporate-action audit incomplete",
+        "no fundamentals",
+        "no sector neutralisation",
+        "no trading costs"
+      ],
+      "human_summary": {
+        "title_zh": "开发、验证与前瞻分离",
+        "family": "general",
+        "family_zh": "通用研究",
+        "question_zh": "怎样避免把同一段数据既用于发现又用于证明？",
+        "result_zh": "明确分开开发期、验证期和2026前瞻观察，并加入因子冗余检查；早期通过的因子仍只属研究。",
+        "use_zh": "所有后续回测必须沿用独立验证规则。",
+        "next_zh": "扩大历史和股票覆盖后再验证。",
+        "verdict": "infrastructure"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-17T07:25:42.601772+00:00",
+        "started_at": null,
+        "completed_at": "2026-08-17T17:27:10+10:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-08-17T17:27:10+10:00",
+        "time_source": "git_commit",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "research-v0.2.0-2026-08-17",
+            "event": "completed",
+            "event_at": "2026-08-17T17:27:10+10:00",
+            "time_source": "git_commit",
+            "source_ref": "1a0a590fdb5761e05d43665568760085e6c2feb6"
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "research-v0.1.0-2026-08-17",
+      "created_at": "2026-08-17T06:35:39.802238+00:00",
+      "status": "completed_research_only",
+      "universe": "Nasdaq screener top 150 market-cap names; point-in-time price>=5, ADV20>=10m, history>=252",
+      "factors": [
+        "momentum_12_1",
+        "momentum_6_1",
+        "momentum_3_1",
+        "trend_quality",
+        "low_volatility",
+        "liquidity"
+      ],
+      "horizons": [
+        5,
+        10,
+        20,
+        60
+      ],
+      "development_end": "2024-12-31",
+      "validation": "2025",
+      "forward_test": "2026-01-01 through 2026-08-14",
+      "known_limitations": [
+        "survivorship-biased present-day large-cap seed universe",
+        "unadjusted corporate-action audit incomplete",
+        "no fundamentals",
+        "no sector neutralisation",
+        "no trading costs"
+      ],
+      "human_summary": {
+        "title_zh": "通用因子研究底座",
+        "family": "general",
+        "family_zh": "通用研究",
+        "question_zh": "能否先建立不使用未来数据的通用因子研究流程？",
+        "result_zh": "建立了基础研究数据和流程，但没有得出可以直接交易的策略结论。",
+        "use_zh": "保留为研究基础设施，不作为买入依据。",
+        "next_zh": "后续实验沿用同一份数据契约和时间切分。",
+        "verdict": "infrastructure"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-17T06:35:39.802238+00:00",
+        "started_at": null,
+        "completed_at": "2026-08-17T16:38:44+10:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-08-17T16:38:44+10:00",
+        "time_source": "git_commit",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "research-v0.1.0-2026-08-17",
+            "event": "completed",
+            "event_at": "2026-08-17T16:38:44+10:00",
+            "time_source": "git_commit",
+            "source_ref": "7ed57963269cad41f627a9a63429df85e9a7f8cc"
+          }
+        ]
+      }
     }
   ],
   "factor_experiments": {

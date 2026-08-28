@@ -87,6 +87,11 @@ jobs:
       - name: Update permanent opportunity ledger and elapsed outcomes
         if: steps.update_result.outputs.needs_release == 'true'
         run: python3 -m services.scanner.opportunity_ledger
+      - name: Regenerate reusable experiment catalog and GitHub summary
+        if: steps.update_result.outputs.needs_release == 'true'
+        run: |
+          python3 -m services.scanner.experiment_catalog > /dev/null
+          git diff --exit-code -- public/experiment-catalog.json docs/EXPERIMENT_SUMMARY_ZH.md
       - uses: actions/setup-node@v4
         if: steps.update_result.outputs.needs_release == 'true'
         with:

@@ -11,9 +11,15 @@ class UiV2ContractTests(unittest.TestCase):
 
  def test_research_separates_three_evidence_modes(self):
   text=(ROOT/"app/zh/watch/resonance/research/page.tsx").read_text()
-  for label in ("Backtesting","Forward Testing","Experiments","/signal-history.json"):
+  for label in ("历史回测","真实跟踪","实验档案","全部实验时间线","最早记录","开始","结束","现在怎么用","/signal-history.json"):
    self.assertIn(label,text)
   self.assertIn('cache:"no-store"',text)
+
+ def test_industry_page_starts_with_market_decision_and_practical_groups(self):
+  text=(ROOT/"app/zh/watch/industry-radar/page.tsx").read_text()
+  for label in ("/market-etf-watch.json","今天怎么用","趋势主线","回调与修复","当前偏弱的行业背景","只调整观察优先级"):
+   self.assertIn(label,text)
+  self.assertLess(text.index("marketDecisionHero"),text.index("TODAY&apos;S INDUSTRY MAP"))
 
  def test_multifactor_absorbs_stock_research_and_timeframe_profile(self):
   self.assertFalse((ROOT/"app/zh/watch/resonance/macd/page.tsx").exists())
