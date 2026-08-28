@@ -1,7 +1,7 @@
 {
   "signal_schema_version": "1.2.0",
   "as_of": "2026-08-27",
-  "generated_at": "2026-08-28T03:22:44.864764+00:00",
+  "generated_at": "2026-08-28T05:35:39.755919+00:00",
   "observation_mode": "production_forward",
   "future_data_used": false,
   "reset_rule": {
@@ -27,7 +27,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-24",
       "days_active": 1,
-      "absent_sessions": 2,
+      "absent_sessions": 3,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -1214,7 +1214,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-24",
       "days_active": 1,
-      "absent_sessions": 2,
+      "absent_sessions": 3,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -2067,7 +2067,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-24",
       "days_active": 1,
-      "absent_sessions": 2,
+      "absent_sessions": 3,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -3223,7 +3223,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-26",
       "days_active": 3,
-      "absent_sessions": 2,
+      "absent_sessions": 3,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -4211,7 +4211,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-24",
       "days_active": 1,
-      "absent_sessions": 2,
+      "absent_sessions": 3,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -5367,7 +5367,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-25",
       "days_active": 2,
-      "absent_sessions": 2,
+      "absent_sessions": 3,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -6604,7 +6604,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-25",
       "days_active": 2,
-      "absent_sessions": 2,
+      "absent_sessions": 3,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -7830,7 +7830,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-25",
       "days_active": 2,
-      "absent_sessions": 2,
+      "absent_sessions": 3,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -9056,15 +9056,15 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-27",
       "days_active": 4,
-      "absent_sessions": 0,
-      "lifecycle": "ACTIVE",
+      "absent_sessions": 1,
+      "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
       ],
       "source_systems": [
         "multi_factor_radar"
       ],
-      "latest_current_status": "current",
+      "latest_current_status": "dropped",
       "entry": {
         "convention": "next_trading_day_adjusted_open",
         "date": "2026-08-25",
@@ -10080,7 +10080,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-24",
       "days_active": 1,
-      "absent_sessions": 2,
+      "absent_sessions": 3,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -11259,7 +11259,7 @@
       "first_seen_date": "2026-08-25",
       "last_seen_date": "2026-08-26",
       "days_active": 2,
-      "absent_sessions": 2,
+      "absent_sessions": 3,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -12177,7 +12177,7 @@
       "first_seen_date": "2026-08-25",
       "last_seen_date": "2026-08-26",
       "days_active": 2,
-      "absent_sessions": 2,
+      "absent_sessions": 3,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -13117,7 +13117,7 @@
       "symbol": "AEO",
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-27",
-      "days_active": 3,
+      "days_active": 4,
       "absent_sessions": 0,
       "lifecycle": "ACTIVE",
       "initial_source_systems": [
@@ -15077,7 +15077,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-26",
       "days_active": 2,
-      "absent_sessions": 1,
+      "absent_sessions": 2,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -16850,7 +16850,7 @@
       "symbol": "BMI",
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-27",
-      "days_active": 3,
+      "days_active": 4,
       "absent_sessions": 0,
       "lifecycle": "ACTIVE",
       "initial_source_systems": [
@@ -18772,7 +18772,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-26",
       "days_active": 1,
-      "absent_sessions": 2,
+      "absent_sessions": 3,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -19620,7 +19620,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-26",
       "days_active": 1,
-      "absent_sessions": 2,
+      "absent_sessions": 3,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -20468,7 +20468,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-26",
       "days_active": 1,
-      "absent_sessions": 2,
+      "absent_sessions": 3,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "technical_tracker"
@@ -22261,7 +22261,7 @@
       "symbol": "EDU",
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-27",
-      "days_active": 3,
+      "days_active": 4,
       "absent_sessions": 0,
       "lifecycle": "ACTIVE",
       "initial_source_systems": [
@@ -24166,7 +24166,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-26",
       "days_active": 2,
-      "absent_sessions": 1,
+      "absent_sessions": 2,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "technical_tracker"
@@ -26128,7 +26128,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-26",
       "days_active": 2,
-      "absent_sessions": 1,
+      "absent_sessions": 2,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "technical_tracker"
@@ -28027,7 +28027,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-26",
       "days_active": 1,
-      "absent_sessions": 2,
+      "absent_sessions": 3,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -28875,15 +28875,15 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-27",
       "days_active": 3,
-      "absent_sessions": 0,
-      "lifecycle": "ACTIVE",
+      "absent_sessions": 1,
+      "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
       ],
       "source_systems": [
         "multi_factor_radar"
       ],
-      "latest_current_status": "current",
+      "latest_current_status": "dropped",
       "entry": {
         "convention": "next_trading_day_adjusted_open",
         "date": "2026-08-27",
@@ -30660,7 +30660,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-26",
       "days_active": 2,
-      "absent_sessions": 1,
+      "absent_sessions": 2,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "technical_tracker"
@@ -32509,7 +32509,7 @@
       "symbol": "QDEL",
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-27",
-      "days_active": 2,
+      "days_active": 3,
       "absent_sessions": 0,
       "lifecycle": "ACTIVE",
       "initial_source_systems": [
@@ -34675,7 +34675,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-26",
       "days_active": 1,
-      "absent_sessions": 2,
+      "absent_sessions": 3,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -35522,7 +35522,7 @@
       "symbol": "SNAP",
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-27",
-      "days_active": 3,
+      "days_active": 4,
       "absent_sessions": 0,
       "lifecycle": "ACTIVE",
       "initial_source_systems": [
@@ -37382,7 +37382,7 @@
       "symbol": "VRSK",
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-27",
-      "days_active": 3,
+      "days_active": 4,
       "absent_sessions": 0,
       "lifecycle": "ACTIVE",
       "initial_source_systems": [
@@ -39374,7 +39374,7 @@
       "symbol": "VTR",
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-27",
-      "days_active": 3,
+      "days_active": 4,
       "absent_sessions": 0,
       "lifecycle": "ACTIVE",
       "initial_source_systems": [
@@ -41193,9 +41193,9 @@
       "symbol": "BRKR",
       "first_seen_date": "2026-08-27",
       "last_seen_date": "2026-08-27",
-      "days_active": 1,
+      "days_active": 2,
       "absent_sessions": 0,
-      "lifecycle": "NEW",
+      "lifecycle": "ACTIVE",
       "initial_source_systems": [
         "technical_tracker"
       ],
@@ -43034,9 +43034,9 @@
       "symbol": "CINF",
       "first_seen_date": "2026-08-27",
       "last_seen_date": "2026-08-27",
-      "days_active": 1,
+      "days_active": 2,
       "absent_sessions": 0,
-      "lifecycle": "NEW",
+      "lifecycle": "ACTIVE",
       "initial_source_systems": [
         "multi_factor_radar"
       ],
@@ -44973,9 +44973,9 @@
       "symbol": "LUMN",
       "first_seen_date": "2026-08-27",
       "last_seen_date": "2026-08-27",
-      "days_active": 1,
+      "days_active": 2,
       "absent_sessions": 0,
-      "lifecycle": "NEW",
+      "lifecycle": "ACTIVE",
       "initial_source_systems": [
         "technical_tracker"
       ],
@@ -46917,9 +46917,9 @@
       "symbol": "TTD",
       "first_seen_date": "2026-08-27",
       "last_seen_date": "2026-08-27",
-      "days_active": 1,
+      "days_active": 2,
       "absent_sessions": 0,
-      "lifecycle": "NEW",
+      "lifecycle": "ACTIVE",
       "initial_source_systems": [
         "technical_tracker"
       ],
@@ -48892,5 +48892,5 @@
       ]
     }
   ],
-  "content_hash": "27b96856b2d75a18061f4e94308fe8fb11f612d8de9928c433a2a2a077fe61af"
+  "content_hash": "fd9005a5b86975c1024213d9e2b136a0b0ad09af9870cc1109d283cfb5e4489e"
 }
