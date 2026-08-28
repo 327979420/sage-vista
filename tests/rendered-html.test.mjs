@@ -38,11 +38,15 @@ test("server-renders the Sage Vista application", async () => {
 });
 
 test("server-renders the consolidated research navigation", async () => {
-  const html = await (await render()).text();
+  const html = await (await render("/zh/watch/resonance/research")).text();
   assert.doesNotMatch(html, /个股研究/);
   assert.match(html, /多因子机会/);
   assert.match(html, /行业与大盘/);
   assert.match(html, /历史与实验/);
+  assert.match(html, /href="\/zh\/watch\/resonance\/rare-opportunities"/);
+  assert.match(html, /href="\/zh\/watch\/industry-radar"/);
+  assert.match(html, /HISTORICAL BACKTESTS/);
+  assert.match(html, /行情状态载入中，页面功能可以正常使用/);
 });
 
 test("the retired MACD Tracker product page is gone", async () => {

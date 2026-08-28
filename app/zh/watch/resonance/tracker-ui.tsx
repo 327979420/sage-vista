@@ -1,5 +1,4 @@
 "use client";
-import Link from "next/link";
 import {ReactNode,useEffect,useState} from "react";
 
 type TrackerOpportunity={symbol:string;price:number};
@@ -38,8 +37,9 @@ export function TrackerShell({active,title,subtitle,children,overview=false}:{ac
  const data=useTracker(),status=useUpdateStatus();
  const synced=!!data&&status?.status==="up_to_date"&&status.data_dates_match&&status.source_latest_complete_date===data.as_of;
  return <main className={`rtPage ${overview?"rtOverviewPage":""}`}>
-  {!overview&&<header className="rtSubHero"><div><Link href="/zh/watch/resonance/about">Sage Vista · 功能介绍</Link><p>QUANTITATIVE RESEARCH WORKSPACE</p><h1>{title}</h1><strong>{subtitle}</strong></div>{data&&<aside className={synced?"isCurrent":"needsCheck"}><small>最新完整美股收盘</small><b>{data.as_of}</b><span className="rtSyncState">{synced?"✓ 已与数据源同步":"! 更新状态待核验"}</span><span>Tracker / 数据审计同日 · 扫描 {data.universe.eligible} 只</span>{status?.last_successful_update_at&&<time dateTime={status.last_successful_update_at}>成功更新 {new Date(status.last_successful_update_at).toLocaleString("zh-CN",{timeZone:"Australia/Melbourne",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false})}（墨尔本）</time>}</aside>}</header>}
-  <nav className="rtModuleNav" aria-label="主要功能">{modules.map(([label,url])=><Link key={url} className={active===label?"active":""} href={url}>{label}</Link>)}</nav>
-  {!data&&active!=="功能介绍"?<div className="rtLoading">正在载入最新数据…</div>:children}
+  {!overview&&<header className="rtSubHero"><div><a href="/zh/watch/resonance/about">Sage Vista · 功能介绍</a><p>QUANTITATIVE RESEARCH WORKSPACE</p><h1>{title}</h1><strong>{subtitle}</strong></div>{data&&<aside className={synced?"isCurrent":"needsCheck"}><small>最新完整美股收盘</small><b>{data.as_of}</b><span className="rtSyncState">{synced?"✓ 已与数据源同步":"! 更新状态待核验"}</span><span>Tracker / 数据审计同日 · 扫描 {data.universe.eligible} 只</span>{status?.last_successful_update_at&&<time dateTime={status.last_successful_update_at}>成功更新 {new Date(status.last_successful_update_at).toLocaleString("zh-CN",{timeZone:"Australia/Melbourne",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false})}（墨尔本）</time>}</aside>}</header>}
+  <nav className="rtModuleNav" aria-label="主要功能">{modules.map(([label,url])=><a key={url} className={active===label?"active":""} href={url}>{label}</a>)}</nav>
+  {!data&&active!=="功能介绍"&&<div className="rtLoading">行情状态载入中，页面功能可以正常使用。</div>}
+  {children}
  </main>;
 }
