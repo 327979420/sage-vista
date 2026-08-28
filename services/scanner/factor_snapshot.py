@@ -7,20 +7,33 @@ from .factor_registry import REGISTRY_VERSION
 from .factor_scoring import experimental_score
 from .macd_factor_backtest import adjusted_rows
 from .resonance_tracker import bulk_day
+from .technical import macd
 
 DEFAULT_OUT="public/daily-factor-snapshot.json"
+SNAPSHOT_MODE_VERSION="macd-trigger-first-v1"
+TRIGGER_FACTOR_ID="macd.daily_bull_cross"
+
+def exact_daily_macd_bull_cross(rows):
+ """Return true only on the completed session where MACD crosses above signal."""
+ if len(rows)<2:return False
+ line,signal=macd([row["close"] for row in rows])
+ return line[-1]>signal[-1] and line[-2]<=signal[-2]
 
 def build_snapshot(symbol_rows,as_of):
- symbols=[]
+ symbols=[];universe_eligible_count=0
  for symbol,rows in sorted(symbol_rows.items()):
   rows=sorted((row for row in rows if row.get("date")<=as_of),key=lambda row:row["date"])
   if not rows or rows[-1]["date"]!=as_of or len(rows)<420:continue
   current=rows[-1]
   if current["close"]<5 or current["close"]*current["volume"]<10_000_000:continue
+  universe_eligible_count+=1
+  # Evaluate the expensive factor library only after today's exact MACD cross.
+  # Recent-cross memory remains evidence and never becomes a repeated trigger.
+  if not exact_daily_macd_bull_cross(rows):continue
   states=evaluate_all_factors(rows,as_of)
   serialized=[state.dict() for state in states]
-  symbols.append({"symbol":symbol,"price":round(current["close"],4),"dollar_volume":round(current["close"]*current["volume"]),"scoring":experimental_score(serialized),"factors":serialized})
- return {"as_of":as_of,"registry_version":REGISTRY_VERSION,"mode":"shadow_monitoring","future_data_used":False,"factor_ids":list(MONITORED_FACTOR_IDS),"eligible_count":len(symbols),"symbols":symbols}
+  symbols.append({"symbol":symbol,"price":round(current["close"],4),"dollar_volume":round(current["close"]*current["volume"]),"trigger":{"factor_id":TRIGGER_FACTOR_ID,"date":as_of,"exact_completed_cross":True},"scoring":experimental_score(serialized),"factors":serialized})
+ return {"as_of":as_of,"registry_version":REGISTRY_VERSION,"mode":"macd_trigger_first","snapshot_mode_version":SNAPSHOT_MODE_VERSION,"trigger_policy":{"factor_id":TRIGGER_FACTOR_ID,"event":"exact_completed_daily_bull_cross","remaining_factors_evaluated_after_trigger":True,"recent_state_does_not_retrigger":True},"future_data_used":False,"factor_ids":list(MONITORED_FACTOR_IDS),"universe_eligible_count":universe_eligible_count,"eligible_count":universe_eligible_count,"triggered_count":len(symbols),"symbols":symbols}
 
 def load_symbol_rows(as_of,cache_dir="work/eodhd-cache",active_path="work/eodhd-active-common.json"):
  bulk=bulk_day(as_of,strict=True);bulk_map={row.get("code"):row for row in bulk}

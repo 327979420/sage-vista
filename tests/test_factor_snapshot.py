@@ -5,7 +5,7 @@ from datetime import date,timedelta
 from services.scanner.detectors import load_config,pivots
 from services.scanner.factor_detectors import MONITORED_FACTOR_IDS,evaluate_initial_factors,recent_bull_cross
 from services.scanner.factor_registry import FACTORS_BY_ID,REGISTRY_VERSION
-from services.scanner.factor_snapshot import build_snapshot
+from services.scanner.factor_snapshot import SNAPSHOT_MODE_VERSION,build_snapshot,exact_daily_macd_bull_cross
 from services.scanner.macd_factor_backtest import (available,bullish_fvg_support,completed_groups,ema,
  fibonacci_support_levels,kline_congestion_support,macd_state,overhead_unfilled_gap,
  recent_three_push_breakout,support_bottom_volume,support_bullish_engulfing,
@@ -20,13 +20,24 @@ def sample_rows(count=500):
   rows.append({"date":day.isoformat(),"open":close-.2,"high":close+1,"low":close-1,"close":close,"volume":1_000_000+i*100})
  return rows
 
+def trigger_rows():
+ rows=sample_rows();base=rows[-31]["close"]
+ for offset in range(30):
+  close=base-.5*(offset+1)
+  rows[-30+offset].update(open=close-.2,high=close+1,low=close-1,close=close)
+ prior=rows[-2]["close"];rows[-1].update(open=prior,high=prior+11,low=prior-1,close=prior+10)
+ return rows
+
 
 class FactorSnapshotTests(unittest.TestCase):
  def test_snapshot_contains_hits_and_misses_with_versions(self):
-  rows=sample_rows();as_of=rows[-1]["date"];report=build_snapshot({"XYZ":rows},as_of)
+  rows=trigger_rows();as_of=rows[-1]["date"];report=build_snapshot({"XYZ":rows},as_of)
   self.assertEqual(report["registry_version"],REGISTRY_VERSION)
   self.assertFalse(report["future_data_used"])
   self.assertEqual(report["eligible_count"],1)
+  self.assertEqual(report["triggered_count"],1)
+  self.assertEqual(report["snapshot_mode_version"],SNAPSHOT_MODE_VERSION)
+  self.assertTrue(report["symbols"][0]["trigger"]["exact_completed_cross"])
   states=report["symbols"][0]["factors"]
   self.assertEqual([state["factor_id"] for state in states],list(MONITORED_FACTOR_IDS))
   self.assertEqual(len(states),31)
@@ -52,10 +63,17 @@ class FactorSnapshotTests(unittest.TestCase):
   self.assertEqual(volume.bars_since_hit,1)
 
  def test_snapshot_is_deterministic_and_symbol_sorted(self):
-  rows=sample_rows();as_of=rows[-1]["date"]
+  rows=trigger_rows();as_of=rows[-1]["date"]
   first=build_snapshot({"ZZZ":rows,"AAA":rows},as_of);second=build_snapshot({"AAA":rows,"ZZZ":rows},as_of)
   self.assertEqual(json.dumps(first,sort_keys=True),json.dumps(second,sort_keys=True))
   self.assertEqual([row["symbol"] for row in first["symbols"]],["AAA","ZZZ"])
+
+ def test_non_triggered_symbol_skips_full_factor_evaluation(self):
+  rows=sample_rows();as_of=rows[-1]["date"];report=build_snapshot({"XYZ":rows},as_of)
+  self.assertFalse(exact_daily_macd_bull_cross(rows))
+  self.assertEqual(report["eligible_count"],1)
+  self.assertEqual(report["triggered_count"],0)
+  self.assertEqual(report["symbols"],[])
 
  def test_as_of_trimming_ignores_future_mutation(self):
   rows=sample_rows();as_of=rows[450]["date"]

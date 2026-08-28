@@ -1,5 +1,6 @@
 """Fail-closed verification for the public Cloudflare production deployment."""
 import argparse,json,time,urllib.error,urllib.parse,urllib.request
+from .factor_snapshot import SNAPSHOT_MODE_VERSION
 
 def fetch(base,path,cache_key,attempts=12,delay_seconds=5):
  url=f"{base.rstrip('/')}/{path}?deployment={urllib.parse.quote(cache_key)}"
@@ -24,10 +25,11 @@ def verify_once(base,expected):
  if dates!={expected}:raise RuntimeError(f"Live deployment date mismatch: {sorted(str(x) for x in dates)}")
  if status.get("status")!="up_to_date" or status.get("data_dates_match") is not True:raise RuntimeError("Live status integrity check failed")
  if status.get("future_data_used") is not False or snapshot.get("future_data_used") is not False or radar.get("scan",{}).get("future_data_used") is not False or industry.get("future_data_used") is not False or market.get("future_data_used") is not False or history.get("future_data_used") is not False:raise RuntimeError("Live future-data audit failed")
+ if snapshot.get("snapshot_mode_version")!=SNAPSHOT_MODE_VERSION or status.get("checks",{}).get("macd_trigger_first") is not True:raise RuntimeError("Live MACD trigger-first contract failed")
  if ledger.get("as_of")!=expected or ledger.get("selection_future_data_used") is not False:raise RuntimeError("Live opportunity ledger audit failed")
  details=tracker.get("details",{})
  if any(x.get("audit",{}).get("future_rows_used") or x.get("audit",{}).get("latest_bar")!=expected for x in details.values()):raise RuntimeError("Live tracker completeness audit failed")
- return {"result":"verified","as_of":expected,"site_url":base,"tracker_details":len(details),"factor_symbols":snapshot.get("eligible_count"),"forward_cases":len(history.get("cases",[])),"opportunity_events":len(ledger.get("events",[]))}
+ return {"result":"verified","as_of":expected,"site_url":base,"tracker_details":len(details),"factor_symbols":snapshot.get("triggered_count"),"eligible_universe":snapshot.get("eligible_count"),"forward_cases":len(history.get("cases",[])),"opportunity_events":len(ledger.get("events",[]))}
 
 def verify(base,expected,attempts=12,delay_seconds=5):
  last_error=None

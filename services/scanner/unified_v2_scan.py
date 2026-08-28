@@ -64,7 +64,9 @@ def _candidate(row,market,industry):
  technical=sum(weight for key,weight in CORE.items() if key in hits)
  if hits&SUPPORT_CONFIRMATIONS:technical+=1
  if "risk.overhead_unfilled_gap" in hits:technical-=1
- if "qualification.long_trend" not in hits or not ({"macd.daily_bull_cross","support.ema_proximity"}&hits) or technical<4:return None
+ trigger=row.get("trigger",{})
+ if trigger.get("factor_id")!="macd.daily_bull_cross" or trigger.get("exact_completed_cross") is not True:return None
+ if "qualification.long_trend" not in hits or "macd.daily_bull_cross" not in hits or technical<4:return None
  market_score=market["market_temperature"]["score"] if market else None
  market_adjustment=1 if market_score is not None and market_score>=4 else -1 if market_score is not None and market_score<=1 else 0
  contexts=industry.get("ticker_context",{}).get(row["symbol"],[]) if industry.get("historical_membership_safe") else []
@@ -83,14 +85,14 @@ def _rank_day(snapshot,market,industry):
  for rank,item in enumerate(candidates[:30],1):item["rank"]=rank
  rare=[x for x in candidates[:RARE_LIMIT] if x["final_priority"]>=RARE_MIN_PRIORITY]
  pool=[{"symbol":x["symbol"],"price":x["price"],"technical_score":x["technical_score"],"market_adjustment":x["market_adjustment"],"industry_adjustment":x["industry_adjustment"],"base_priority":x["final_priority"],"experimental_score":x["experimental_score"],"hit_factor_ids":[f["factor_id"] for f in x["factor_ledger"] if f["hit"]]} for x in candidates]
- return {"date":day,"market":{"state":market["market_temperature"]["state"],"score":market["market_temperature"]["score"]},"industry_status":industry.get("status"),"historical_membership_safe":bool(industry.get("historical_membership_safe")),"eligible_count":snapshot["eligible_count"],"candidate_count":len(candidates),"rare_policy":f"统一排行榜前{RARE_LIMIT}名且最终优先级至少{RARE_MIN_PRIORITY}；顺序与排行榜完全一致","rare_opportunities":rare,"candidate_pool_policy":"通过基准入场门槛的完整候选池；辅助因子只能在池内重排，不能独立触发","candidate_pool":pool,"ranking":candidates[:30]}
+ return {"date":day,"market":{"state":market["market_temperature"]["state"],"score":market["market_temperature"]["score"]},"industry_status":industry.get("status"),"historical_membership_safe":bool(industry.get("historical_membership_safe")),"eligible_count":snapshot["eligible_count"],"triggered_count":snapshot.get("triggered_count",len(snapshot["symbols"])),"candidate_count":len(candidates),"rare_policy":f"统一排行榜前{RARE_LIMIT}名且最终优先级至少{RARE_MIN_PRIORITY}；顺序与排行榜完全一致","rare_opportunities":rare,"candidate_pool_policy":"当日完整收盘MACD金叉先触发；其余因子只在触发池内筛选和重排，不能独立触发","candidate_pool":pool,"ranking":candidates[:30]}
 
 def _write_report(results,out,merge_existing):
  if merge_existing and pathlib.Path(out).exists():
   existing=json.loads(pathlib.Path(out).read_text())
   if existing.get("version")=="unified-v2-shadow-1.0.0":
    by_date={x["date"]:x for x in existing.get("days",[])};by_date.update({x["date"]:x for x in results});results=[by_date[x] for x in sorted(by_date)]
- report={"version":"unified-v2-shadow-1.0.0","generated_at":datetime.now(timezone.utc).isoformat(),"coverage":{"start":results[0]["date"],"end":results[-1]["date"],"sessions":len(results)},"production_status":"shadow_not_yet_validated","future_data_used":False,"model":{"technical":"长期趋势2 + MACD改善3 + EMA支撑2 + 回撤1 + FVG1 + 支撑确认最多1 - 上方缺口1","industry":"有当日有效成员快照时：Leadership +1；Recovery/Pullback Watch +0.5","market":"市场温度4-5加1；2-3不变；0-1减1","entry_gate":"必须长期趋势，且MACD改善或EMA支撑至少一个命中；技术分至少4；K线跟随本轮只记录不计分"},"limitations":["当前股票池来自现存缓存，正式胜率研究仍需纳入退市股票以消除幸存者偏差","没有当日有效行业成员快照的日期不做行业加分，绝不使用未来分类回填","这是新模型候选榜，不等于已验证买入信号"],"days":results}
+ report={"version":"unified-v2-shadow-1.0.0","generated_at":datetime.now(timezone.utc).isoformat(),"coverage":{"start":results[0]["date"],"end":results[-1]["date"],"sessions":len(results)},"production_status":"shadow_not_yet_validated","future_data_used":False,"model":{"trigger":"当日完整收盘日线MACD刚发生金叉；近5日状态只作证据，不重复触发","technical":"触发后再检查：长期趋势2 + MACD改善3 + EMA支撑2 + 回撤1 + FVG1 + 支撑确认最多1 - 上方缺口1","industry":"有当日有效成员快照时：Leadership +1；Recovery/Pullback Watch +0.5","market":"市场温度4-5加1；2-3不变；0-1减1","entry_gate":"必须当日MACD金叉触发、长期趋势有效且技术分至少4；其余因子只解释与排序；K线跟随本轮只记录不计分"},"limitations":["当前股票池来自现存缓存，正式胜率研究仍需纳入退市股票以消除幸存者偏差","没有当日有效行业成员快照的日期不做行业加分，绝不使用未来分类回填","这是新模型候选榜，不等于已验证买入信号"],"days":results}
  pathlib.Path(out).write_text(json.dumps(report,ensure_ascii=False,separators=(",",":"))+"\n");return report
 
 def run_published(out=OUT,public_dir="public"):
