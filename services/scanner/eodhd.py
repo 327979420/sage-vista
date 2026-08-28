@@ -18,8 +18,12 @@ def get(path,**params):
     for attempt in range(attempts):
         try:
             with urllib.request.urlopen(urllib.request.Request(url,headers=HEAD),timeout=timeout) as response:return json.load(response)
-        except (TimeoutError,urllib.error.URLError):
-            if attempt+1>=attempts:raise
+        except (TimeoutError,urllib.error.URLError) as error:
+            if attempt+1>=attempts:
+                status=getattr(error,"code",None)
+                detail=f" (HTTP {status})" if status is not None else ""
+                # Never expose the request URL: it contains EODHD_API_TOKEN.
+                raise RuntimeError(f"EODHD request failed for {path}{detail}") from None
             time.sleep(2**attempt)
 def symbols(delisted=False):return get("exchange-symbol-list/US",delisted=int(delisted))
 def prices(code,start="2000-01-01",end=None):
