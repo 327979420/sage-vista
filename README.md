@@ -32,6 +32,9 @@ RSI、RSI 底背离、成交量放大等不再需要各自占用独立功能页�
 
 ## 文档
 
+- [新对话三分钟接手入口](docs/NEXT_SESSION_HANDOFF_ZH.md)
+- [机器状态生成的当前进度](docs/CURRENT_STATUS_ZH.md)
+- [碎片需求与改动交付账本](docs/CHANGE_REQUESTS_ZH.md)
 - [Sage Vista 总规则手册：项目宗旨、全局流程和模块地图](docs/SAGE_VISTA_RULEBOOK_ZH.md)
 - [模块规则索引：精准定位评分、因子、实验、回测、红线等规则](docs/rules/README.md)
 - [Factor Architecture：权威 inventory、生命周期与系统边界](docs/FACTOR_ARCHITECTURE.md)
@@ -39,13 +42,14 @@ RSI、RSI 底背离、成交量放大等不再需要各自占用独立功能页�
 - [Signal History 与 Production Forward Observation 权威说明](docs/SIGNAL_HISTORY.md)
 - [项目蓝图与产品框架](docs/PROJECT_BLUEPRINT_ZH.md)
 - [产品决策日志](docs/DECISION_LOG_ZH.md)
-- [下一对话交接说明](docs/NEXT_SESSION_HANDOFF_ZH.md)
 - [Tracker 产品要求](docs/TRACKER_PRODUCT_REQUIREMENTS_ZH.md)
 - [技术规则手册](docs/TECHNICAL_RULEBOOK.md)
 - [研究账本说明](research/README.md)
 - 实验机器记录：`research/experiments.jsonl`
 
 出现文档冲突时，具体业务含义以对应的 `docs/rules/*.md` 模块规则为准；总手册负责项目宗旨、模块边界和全系统流程；实验数字以机器账本和版本化产物为准。任何语义改动必须先更新对应模块规则，再改代码、测试和生产页面。
+
+新对话不需要复制旧聊天：从仓库根目录开始，Codex 会读取 `AGENTS.md`；随后按“接手入口 → 当前状态 → 总手册 → 唯一相关模块”的顺序即可。当前日期、回测断点和实验数量以生成状态及其列出的机器源为准，不以聊天中的旧数字为准。
 
 ## 本地运行与验证
 

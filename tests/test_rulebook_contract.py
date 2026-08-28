@@ -53,10 +53,23 @@ class RulebookContractTests(unittest.TestCase):
 
     def test_future_codex_uses_overview_then_exact_module(self):
         instructions = (ROOT / "AGENTS.md").read_text()
+        self.assertIn("docs/NEXT_SESSION_HANDOFF_ZH.md", instructions)
+        self.assertIn("docs/CURRENT_STATUS_ZH.md", instructions)
+        self.assertIn("docs/CHANGE_REQUESTS_ZH.md", instructions)
         self.assertIn("docs/SAGE_VISTA_RULEBOOK_ZH.md", instructions)
         self.assertIn("docs/rules/README.md", instructions)
         self.assertIn("docs/rules/04_SCORING.md", instructions)
         self.assertIn("Do not load every module for a single-module change", instructions)
+
+    def test_documentation_precedes_code_and_fragments_are_preserved(self):
+        governance = (RULES / "01_GOVERNANCE.md").read_text()
+        for phrase in (
+            "这一步必须发生在代码编辑之前",
+            "碎片想法标为 `captured`",
+            "纯修错、重构或性能优化",
+            "测试、提交、网站证据写回需求账本",
+        ):
+            self.assertIn(phrase, governance)
 
     def test_playbook_and_hard_rules_have_evidence_gates(self):
         playbook = (RULES / "11_VALIDATED_PLAYBOOK.md").read_text()

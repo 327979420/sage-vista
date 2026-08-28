@@ -8,7 +8,6 @@ on:
 
 permissions:
   contents: write
-  actions: write
 
 concurrency:
   group: sage-vista-nightly-backtest
@@ -61,6 +60,7 @@ jobs:
           python3 -m services.scanner.merge_unified_v2_reports public/unified-v2-rankings.json "work/nightly-${{ steps.plan.outputs.label }}.json" --out public/unified-v2-rankings.json
           python3 -m services.scanner.opportunity_ledger
           python3 -m services.scanner.backtest_progress complete --start "${{ steps.plan.outputs.start }}" --end "${{ steps.plan.outputs.end }}" --completed-at "$(date -u +%FT%TZ)" > backtest-complete.json
+          python3 -m services.scanner.project_status > /dev/null
       - name: Validate progress, permanent history and repository
         if: steps.token.outputs.available == 'true' && steps.plan.outputs.enabled == 'true' && steps.plan.outputs.status == 'scheduled'
         run: python3 -m unittest discover -s tests -p 'test_*.py'
@@ -69,16 +69,14 @@ jobs:
         run: |
           git config user.name "sage-vista-bot"
           git config user.email "sage-vista-bot@users.noreply.github.com"
-          git add public/unified-v2-rankings.json public/opportunity-ledger.json public/backtest-progress.json automation/backtest-state.json
+          git add public/unified-v2-rankings.json public/opportunity-ledger.json public/backtest-progress.json automation/backtest-state.json docs/CURRENT_STATUS_ZH.md
           git diff --cached --quiet && exit 0
           git commit -m "data: nightly backtest ${{ steps.plan.outputs.start }} to ${{ steps.plan.outputs.end }}"
           git pull --rebase origin main
+          python3 -m services.scanner.project_status > /dev/null
+          git add docs/CURRENT_STATUS_ZH.md
+          git diff --cached --quiet || git commit --amend --no-edit
           git push origin HEAD:main
-      - name: Publish the updated progress and historical results
-        if: steps.token.outputs.available == 'true' && steps.plan.outputs.enabled == 'true' && steps.plan.outputs.status == 'scheduled'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh workflow run deploy-site.yml --ref main
       - name: Write a plain progress summary
         if: always()
         run: |

@@ -8,8 +8,10 @@ on:
       - "app/**"
       - "research/**"
       - "services/scanner/experiment_catalog.py"
+      - "services/scanner/project_status.py"
       - "public/experiment-catalog.json"
       - "public/backtest-progress.json"
+      - "docs/CURRENT_STATUS_ZH.md"
       - "package.json"
       - "package-lock.json"
       - "vite.config.*"
@@ -37,7 +39,8 @@ jobs:
       - name: Verify reusable experiment artifacts are current
         run: |
           python3 -m services.scanner.experiment_catalog > /dev/null
-          git diff --exit-code -- public/experiment-catalog.json docs/EXPERIMENT_SUMMARY_ZH.md
+          python3 -m services.scanner.project_status > /dev/null
+          git diff --exit-code -- public/experiment-catalog.json docs/EXPERIMENT_SUMMARY_ZH.md docs/CURRENT_STATUS_ZH.md
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}

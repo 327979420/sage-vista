@@ -207,12 +207,16 @@ jobs:
           state={"as_of":os.environ["AS_OF"],"site_url":os.environ["SITE_URL"],"live_verified":True,"discord_result":os.environ["DISCORD_RESULT"]}
           open("automation/production-state.json","w").write(json.dumps(state,indent=2)+"\n")
           PY
+          python3 -m services.scanner.project_status > /dev/null
           git config user.name "sage-vista-bot"
           git config user.email "sage-vista-bot@users.noreply.github.com"
-          git add automation/discord-state.json automation/production-state.json
+          git add automation/discord-state.json automation/production-state.json docs/CURRENT_STATUS_ZH.md
           git diff --cached --quiet && exit 0
           git commit -m "state: Discord daily digest ${{ steps.update_result.outputs.as_of }}"
           git pull --rebase origin main
+          python3 -m services.scanner.project_status > /dev/null
+          git add docs/CURRENT_STATUS_ZH.md
+          git diff --cached --quiet || git commit --amend --no-edit
           git push origin HEAD:main
         env:
           AS_OF: ${{ steps.update_result.outputs.as_of }}
