@@ -22,11 +22,11 @@ jobs:
     env:
       EODHD_API_TOKEN: ${{ secrets.EODHD_API_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Require existing EODHD secret
         shell: bash
         run: test -n "$EODHD_API_TOKEN" || { echo "EODHD_API_TOKEN secret is not configured"; exit 1; }
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
       - name: Restore Industry Radar EOD cache

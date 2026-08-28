@@ -26,8 +26,8 @@ jobs:
     outputs:
       matrix: ${{ steps.weeks.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with: { python-version: "3.13" }
       - name: Turn requested dates into recoverable weekly checkpoints
         id: weeks
@@ -41,9 +41,9 @@ jobs:
         partition: ${{ fromJSON(needs.partitions.outputs.matrix) }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with: { fetch-depth: 0 }
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with: { python-version: "3.13" }
       - name: Restore audited historical price cache
         uses: actions/cache@v4
@@ -68,9 +68,9 @@ jobs:
     needs: backfill
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with: { fetch-depth: 0 }
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with: { python-version: "3.13" }
       - name: Restore historical EOD cache for elapsed outcomes
         uses: actions/cache@v4

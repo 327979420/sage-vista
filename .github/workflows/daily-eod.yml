@@ -42,12 +42,12 @@ jobs:
       EODHD_API_TOKEN: ${{ secrets.EODHD_API_TOKEN }}
       DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_OPPORTUNITY }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with: { fetch-depth: 0 }
       - name: Require EODHD secret
         shell: bash
         run: test -n "$EODHD_API_TOKEN" || { echo "EODHD_API_TOKEN secret is not configured"; exit 1; }
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with: { python-version: "3.13" }
       - name: Restore historical EOD cache
         uses: actions/cache@v4
@@ -92,7 +92,7 @@ jobs:
         run: |
           python3 -m services.scanner.experiment_catalog > /dev/null
           git diff --exit-code -- public/experiment-catalog.json docs/EXPERIMENT_SUMMARY_ZH.md
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: steps.update_result.outputs.needs_release == 'true'
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -251,8 +251,8 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && inputs.mode == 'preview'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with: { python-version: "3.13" }
       - name: Run notification tests
         run: python3 -m unittest tests.test_discord_digest tests.test_tracker_contract
