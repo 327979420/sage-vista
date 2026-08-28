@@ -38,8 +38,8 @@ def validate(authoritative,tracker,radar,snapshot,industry,market,history):
  if any(state.get("as_of")!=authoritative or state.get("lookahead_audit",{}).get("future_data_used") is not False or not state.get("factor_version") for state in factor_states):
   raise RuntimeError("Factor snapshot state version/date/leakage audit failed")
  details=tracker.get("details",{})
- if any(x.get("audit",{}).get("future_rows_used") or x.get("audit",{}).get("latest_bar")!=authoritative for x in details.values()):
-  raise RuntimeError("Tracker bar-date or future-data audit failed")
+ invalid_details=[symbol for symbol,x in details.items() if x.get("audit",{}).get("future_rows_used") or x.get("audit",{}).get("latest_bar")!=authoritative]
+ if invalid_details:raise RuntimeError(f"Tracker bar-date or future-data audit failed: {','.join(invalid_details)}")
 
 def run(target=1000,as_of=None):
  authoritative=as_of or latest_reference_day()

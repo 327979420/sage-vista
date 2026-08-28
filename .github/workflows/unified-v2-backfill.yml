@@ -22,6 +22,16 @@ concurrency:
 
 jobs:
   backfill:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: "2026-07"
+            start: "2026-07-01"
+            end: "2026-07-31"
+          - label: "2026-08"
+            start: "2026-08-01"
+            end: "2026-08-27"
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
@@ -38,8 +48,32 @@ jobs:
           key: eodhd-history-v1-${{ github.run_id }}
           restore-keys: eodhd-history-v1-
       - name: Rebuild requested history without future classifications
-        run: python3 -m services.scanner.unified_v2_scan --start "${{ inputs.start }}" --end "${{ inputs.end }}" --replace
+        run: python3 -m services.scanner.unified_v2_scan --start "${{ matrix.start }}" --end "${{ matrix.end }}" --out "work/v2-${{ matrix.label }}.json" --replace
       - name: Validate scanner and repository
+        run: python3 -m unittest discover -s tests -p 'test_*.py'
+      - name: Save completed month before aggregation
+        uses: actions/upload-artifact@v4
+        with:
+          name: unified-v2-${{ matrix.label }}
+          path: work/v2-${{ matrix.label }}.json
+          retention-days: 30
+
+  aggregate:
+    needs: backfill
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13" }
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: unified-v2-*
+          path: work/v2-parts
+          merge-multiple: true
+      - name: Merge saved months with any newer published day
+        run: python3 -m services.scanner.merge_unified_v2_reports public/unified-v2-rankings.json work/v2-parts/*.json --out public/unified-v2-rankings.json
+      - name: Validate merged historical output
         run: python3 -m unittest discover -s tests -p 'test_*.py'
       - name: Commit historical research output
         run: |
@@ -48,6 +82,7 @@ jobs:
           git add public/unified-v2-rankings.json
           git diff --cached --quiet && exit 0
           git commit -m "data: unified V2 backfill ${{ inputs.start }} to ${{ inputs.end }}"
+          git pull --rebase origin main
           git push origin HEAD:main
       - name: Hand off publication to the website deploy workflow
         env:

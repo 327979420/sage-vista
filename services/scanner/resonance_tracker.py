@@ -237,6 +237,9 @@ def run(out="public/resonance-tracker.json",as_of=None):
   if not cache.exists():continue
   raw=json.loads(cache.read_text());known={x["date"] for x in raw};added=[x for x in new if x["date"] not in known];raw.extend(added);raw.sort(key=lambda x:x["date"]);raw=[x for x in raw if x["date"]<=latest][-2200:]
   if added:cache.write_text(json.dumps(raw))
+  # A symbol may appear in the bulk file while its cached daily series still
+  # lacks a usable same-day row. Never publish a stale detail under a new date.
+  if not raw or raw[-1].get("date")!=latest:continue
   adjusted=[]
   for x in raw:
    if not x.get("close") or not x.get("adjusted_close"):continue
