@@ -14,6 +14,7 @@ from .macd_factor_backtest import adjusted_rows
 from .market_etf_watch import FUNDS,build as market_build
 
 OUT="public/unified-v2-rankings.json"
+MODEL_VERSION="unified-v2-macd-trigger-1.1.0"
 RARE_MIN_PRIORITY=9
 RARE_LIMIT=5
 CORE={"qualification.long_trend":2,"macd.daily_bull_cross":3,"support.ema_proximity":2,"qualification.pullback_60d":1,"structure.bullish_fvg_support":1}
@@ -90,9 +91,9 @@ def _rank_day(snapshot,market,industry):
 def _write_report(results,out,merge_existing):
  if merge_existing and pathlib.Path(out).exists():
   existing=json.loads(pathlib.Path(out).read_text())
-  if existing.get("version")=="unified-v2-shadow-1.0.0":
+  if existing.get("version")==MODEL_VERSION:
    by_date={x["date"]:x for x in existing.get("days",[])};by_date.update({x["date"]:x for x in results});results=[by_date[x] for x in sorted(by_date)]
- report={"version":"unified-v2-shadow-1.0.0","generated_at":datetime.now(timezone.utc).isoformat(),"coverage":{"start":results[0]["date"],"end":results[-1]["date"],"sessions":len(results)},"production_status":"shadow_not_yet_validated","future_data_used":False,"model":{"trigger":"当日完整收盘日线MACD刚发生金叉；近5日状态只作证据，不重复触发","technical":"触发后再检查：长期趋势2 + MACD改善3 + EMA支撑2 + 回撤1 + FVG1 + 支撑确认最多1 - 上方缺口1","industry":"有当日有效成员快照时：Leadership +1；Recovery/Pullback Watch +0.5","market":"市场温度4-5加1；2-3不变；0-1减1","entry_gate":"必须当日MACD金叉触发、长期趋势有效且技术分至少4；其余因子只解释与排序；K线跟随本轮只记录不计分"},"limitations":["当前股票池来自现存缓存，正式胜率研究仍需纳入退市股票以消除幸存者偏差","没有当日有效行业成员快照的日期不做行业加分，绝不使用未来分类回填","这是新模型候选榜，不等于已验证买入信号"],"days":results}
+ report={"version":MODEL_VERSION,"generated_at":datetime.now(timezone.utc).isoformat(),"coverage":{"start":results[0]["date"],"end":results[-1]["date"],"sessions":len(results)},"production_status":"shadow_not_yet_validated","future_data_used":False,"model":{"trigger":"当日完整收盘日线MACD刚发生金叉；近5日状态只作证据，不重复触发","technical":"触发后再检查：长期趋势2 + MACD改善3 + EMA支撑2 + 回撤1 + FVG1 + 支撑确认最多1 - 上方缺口1","industry":"有当日有效成员快照时：Leadership +1；Recovery/Pullback Watch +0.5","market":"市场温度4-5加1；2-3不变；0-1减1","entry_gate":"必须当日MACD金叉触发、长期趋势有效且技术分至少4；其余因子只解释与排序；K线跟随本轮只记录不计分"},"limitations":["当前股票池来自现存缓存，正式胜率研究仍需纳入退市股票以消除幸存者偏差","没有当日有效行业成员快照的日期不做行业加分，绝不使用未来分类回填","这是新模型候选榜，不等于已验证买入信号"],"days":results}
  pathlib.Path(out).write_text(json.dumps(report,ensure_ascii=False,separators=(",",":"))+"\n");return report
 
 def run_published(out=OUT,public_dir="public"):

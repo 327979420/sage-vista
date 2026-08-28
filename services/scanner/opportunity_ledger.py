@@ -61,7 +61,7 @@ def _evaluation(symbol, signal_date, loader):
     }
 
 
-def _v2_event(day, row, loader):
+def _v2_event(day, row, loader, model_version):
     ledger = row.get("factor_ledger", [])
     rare_symbols = {x["symbol"] for x in day.get("rare_opportunities", [])} or {x["symbol"] for x in day.get("ranking", [])[:5] if x.get("final_priority", 0) >= 9}
     return {
@@ -71,7 +71,7 @@ def _v2_event(day, row, loader):
         "origins": ["historical_replay"],
         "source_systems": ["unified_v2"],
         "selection": {
-            "model_version": "unified-v2-shadow-1.0.0",
+            "model_version": model_version,
             "rank": row.get("rank"),
             "signal_price": row.get("price"),
             "technical_score": row.get("technical_score"),
@@ -174,7 +174,7 @@ def build(unified, forward, loader):
     by_key = {}
     for day in unified.get("days", []):
         for row in day.get("ranking", []):
-            event = _v2_event(day, row, loader)
+            event = _v2_event(day, row, loader, unified.get("version"))
             by_key[(event["symbol"], event["signal_date"])] = event
     for case in forward.get("cases", []):
         event = _legacy_event(case)
