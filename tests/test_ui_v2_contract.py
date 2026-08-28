@@ -6,7 +6,7 @@ class UiV2ContractTests(unittest.TestCase):
  def test_home_puts_market_risk_before_stock_research(self):
   text=(ROOT/"app/zh/watch/resonance/page.tsx").read_text()
   self.assertLess(text.index("overviewHero"),text.index("opportunityWorkspace"))
-  for label in ("TODAY&apos;S DECISION","精选机会，不追高","现在能用什么","旧模型当日观察","WHY IT RANKS HERE"):
+  for label in ("TODAY&apos;S DECISION","精选机会，不追高","现在能用什么","今日 V2 技术机会","WHY IT RANKS HERE"):
    self.assertIn(label,text)
 
  def test_research_separates_three_evidence_modes(self):
