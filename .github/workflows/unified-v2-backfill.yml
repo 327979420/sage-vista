@@ -11,6 +11,11 @@ on:
         description: Last trading date
         required: true
         default: "2026-08-27"
+      publish_to_site:
+        description: Merge into the public website ledger (use false for long historical research)
+        required: true
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -65,6 +70,7 @@ jobs:
           retention-days: 90
 
   aggregate:
+    if: inputs.publish_to_site
     needs: backfill
     runs-on: ubuntu-latest
     steps:
@@ -105,3 +111,21 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run deploy-site.yml --ref main
+
+  archive-research:
+    if: ${{ inputs.publish_to_site == false }}
+    needs: backfill
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: unified-v2-*
+          path: work/v2-parts
+          merge-multiple: true
+      - name: Pack weekly point-in-time checkpoints without publishing them
+        run: tar -czf "unified-v2-research-${{ inputs.start }}-${{ inputs.end }}.tar.gz" -C work/v2-parts .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unified-v2-research-${{ inputs.start }}-${{ inputs.end }}
+          path: unified-v2-research-${{ inputs.start }}-${{ inputs.end }}.tar.gz
+          retention-days: 90

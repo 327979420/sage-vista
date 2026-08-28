@@ -165,7 +165,10 @@ def run(start="2026-07-01",end=None,out=OUT,cache_dir="work/eodhd-cache",merge_e
  results=[]
  for day in dates:
   snapshot=build_snapshot(data,day);market=_market(data,day);industry=_industry(day)
-  if market is not None:results.append(_rank_day(snapshot,market,industry))
+  # Historical technical research must not disappear merely because one of
+  # the separately stratified market ETFs did not yet exist.  Missing market
+  # context is recorded as unavailable and contributes zero adjustment.
+  results.append(_rank_day(snapshot,market,industry))
  return _write_report(results,out,merge_existing)
 
 if __name__=="__main__":
