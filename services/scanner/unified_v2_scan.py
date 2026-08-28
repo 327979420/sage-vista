@@ -8,6 +8,7 @@ import argparse,json,pathlib,tempfile
 from datetime import datetime,timezone
 
 from .factor_snapshot import build_snapshot
+from .factor_registry import FACTORS_BY_ID
 from .industry_radar import run as industry_run
 from .macd_factor_backtest import adjusted_rows
 from .market_etf_watch import FUNDS,build as market_build
@@ -15,6 +16,21 @@ from .market_etf_watch import FUNDS,build as market_build
 OUT="public/unified-v2-rankings.json"
 CORE={"qualification.long_trend":2,"macd.daily_bull_cross":3,"support.ema_proximity":2,"qualification.pullback_60d":1,"structure.bullish_fvg_support":1}
 SUPPORT_CONFIRMATIONS={"structure.support_bullish_engulfing","volume.bottom_expansion"}
+
+def _factor_ledger(states,hits):
+ ledger=[];confirmation_awarded=False
+ for factor_id,state in states.items():
+  factor=FACTORS_BY_ID.get(factor_id);points=0;rule="观察，不进入V2分数"
+  if factor_id in CORE:
+   points=CORE[factor_id] if factor_id in hits else 0;rule=f"命中 +{CORE[factor_id]}" if points else "未命中 +0"
+  elif factor_id in SUPPORT_CONFIRMATIONS:
+   if factor_id in hits and not confirmation_awarded:points=1;confirmation_awarded=True;rule="支撑确认组 +1"
+   elif factor_id in hits:rule="命中，但支撑确认组封顶 +0"
+   else:rule="未命中 +0"
+  elif factor_id=="risk.overhead_unfilled_gap":
+   points=-1 if factor_id in hits else 0;rule="存在上方缺口 -1" if points else "未发现该风险 0"
+  ledger.append({"factor_id":factor_id,"name":factor.name_zh if factor else factor_id,"available":bool(state.get("available")),"hit":factor_id in hits,"active_now":bool(state.get("hit")),"recent_hit":bool(state.get("recent_hit")),"bars_since_hit":state.get("bars_since_hit"),"latest_hit_date":state.get("latest_hit_date"),"points":points,"score_rule":rule,"evidence":state.get("evidence",{})})
+ return ledger
 
 def _present(state):
  return bool(state.get("recent_hit") if state.get("factor_id") in {"macd.daily_bull_cross","structure.support_bullish_engulfing","volume.bottom_expansion"} else state.get("hit"))
@@ -54,7 +70,8 @@ def _candidate(row,market,industry):
  industry_adjustment=1 if "Leadership" in states_seen else .5 if set(states_seen)&{"Recovery","Pullback Watch"} else 0
  final=technical+market_adjustment+industry_adjustment
  reasons=[name for key,name in (("qualification.long_trend","长期趋势"),("macd.daily_bull_cross","MACD改善"),("support.ema_proximity","均线支撑"),("qualification.pullback_60d","从高位回撤"),("structure.bullish_fvg_support","Bullish FVG")) if key in hits]
- return {"symbol":row["symbol"],"price":row["price"],"technical_score":technical,"market_adjustment":market_adjustment,"industry_adjustment":industry_adjustment,"final_priority":final,"reasons":reasons,"industry_states":states_seen,"experimental_score":row["scoring"]["experimental_observational_score"]}
+ ledger=_factor_ledger(states,hits)
+ return {"symbol":row["symbol"],"price":row["price"],"technical_score":technical,"market_adjustment":market_adjustment,"industry_adjustment":industry_adjustment,"final_priority":final,"score_equation":f"{technical} 技术 {market_adjustment:+g} 大盘 {industry_adjustment:+g} 行业 = {final:g}","reasons":reasons,"industry_states":states_seen,"factor_ledger":ledger,"factor_summary":{"scored_hits":[x["name"] for x in ledger if x["points"]>0],"risk_hits":[x["name"] for x in ledger if x["points"]<0],"observed_not_scored":[x["name"] for x in ledger if x["hit"] and x["points"]==0],"misses":[x["name"] for x in ledger if x["available"] and not x["hit"]],"unavailable":[x["name"] for x in ledger if not x["available"]]},"experimental_score":row["scoring"]["experimental_observational_score"]}
 
 def _rank_day(snapshot,market,industry):
  day=snapshot["as_of"]

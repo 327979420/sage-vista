@@ -1,11 +1,22 @@
 """Point-in-time ETF market context published with the canonical EOD bundle."""
 import json,pathlib
-from datetime import datetime,timezone
-from .eodhd_factor_pilot import adjusted_rows
+from datetime import datetime,timedelta,timezone
+from .eodhd import prices
+from .macd_factor_backtest import adjusted_rows as normalize_rows
 from .technical import ema
 
 SCHEMA_VERSION="2.0.0"
 FUNDS={"SPY":("标普500","大盘基准"),"QQQ":("纳斯达克100","成长/科技"),"DIA":("道琼斯","蓝筹价值"),"IWM":("罗素2000","小盘风险偏好"),"RSP":("标普500等权","市场广度"),"MDY":("标普中盘400","中盘股"),"VTI":("美国全市场","整体市场"),"IWD":("罗素1000价值","价值"),"IWF":("罗素1000成长","成长"),"MTUM":("美国动量","动量"),"QUAL":("美国质量","质量"),"USMV":("美国低波动","防守"),"HYG":("高收益债","信用风险偏好"),"LQD":("投资级债","高质量信用"),"TLT":("长期美债","利率/防守"),"GLD":("黄金","避险/通胀"),"UUP":("美元","美元强弱")}
+
+def refreshed_rows(code,cache_dir="work/eodhd-cache"):
+ """Refresh the recent tail before using an ETF cache for the daily regime."""
+ path=pathlib.Path(cache_dir)/f"{code}.json";path.parent.mkdir(parents=True,exist_ok=True)
+ cached=json.loads(path.read_text()) if path.exists() else []
+ start=(datetime.now(timezone.utc).date()-timedelta(days=400)).isoformat()
+ fresh=prices(code,start=start)
+ merged={x["date"]:x for x in cached if x.get("date")};merged.update({x["date"]:x for x in fresh if x.get("date")})
+ raw=[merged[day] for day in sorted(merged)];path.write_text(json.dumps(raw))
+ return normalize_rows(raw)
 
 def _iso(raw):return datetime.strptime(raw,"%m/%d/%Y").date().isoformat() if "/" in raw else raw
 def _trim(rows,as_of):return sorted([{**x,"date":_iso(x["date"])} for x in rows if x.get("date") and _iso(x["date"])<=as_of],key=lambda x:x["date"])
@@ -26,7 +37,7 @@ def build(raw_data,as_of):
  layers={"trend":{"state":"supportive" if signals["spy_above_ema50"] else "defensive","signals":{"spy_above_ema20":trend_flags["SPY"]["above_ema20"],"spy_above_ema50":signals["spy_above_ema50"],"qqq_above_ema50":trend_flags["QQQ"]["above_ema50"]}},"breadth":{"state":"broad" if signals["equal_weight_breadth"] and signals["small_cap_participation"] else "narrow_or_mixed","signals":{"equal_weight_leading":signals["equal_weight_breadth"],"small_cap_leading":signals["small_cap_participation"]}},"risk_appetite":{"state":"risk_seeking" if signals["growth_leadership"] and signals["credit_risk_appetite"] else "mixed_or_defensive","signals":{"growth_leading":signals["growth_leadership"],"credit_leading":signals["credit_risk_appetite"]}}}
  return {"schema_version":SCHEMA_VERSION,"generated_at":datetime.now(timezone.utc).isoformat(),"as_of":as_of,"future_data_used":False,"mode":"decision_context_not_technical_score","market_temperature":{"score":score,"max_score":5,"state":state,"explanation":"沿用旧生产5项市场温度；趋势、广度和风险偏好另行分层，暂不修改股票技术分。"},"layers":layers,"legacy_score_signals":signals,"ratios":{k:round(v,4) for k,v in ratios.items()},"funds":items,"audit":{"required_funds":len(FUNDS),"funds_exact_as_of":len(items),"completed_bars_only":True,"future_rows_used":False},"interpretation":["市场环境是独立决策层，不回写股票技术分","趋势、广度和信用风险偏好分开保存，便于后续逐层回测","V1五项评分暂时保持不变，研究验证后才允许建立新版本"]}
 
-def run(out="public/market-etf-watch.json",as_of=None,loader=adjusted_rows):
+def run(out="public/market-etf-watch.json",as_of=None,loader=refreshed_rows):
  raw={code:loader(code) for code in FUNDS}
  if as_of is None:
   spy=_trim(raw["SPY"],"9999-12-31")
