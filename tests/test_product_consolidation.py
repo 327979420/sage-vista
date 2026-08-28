@@ -18,6 +18,7 @@ class ProductConsolidationTests(unittest.TestCase):
   consumers={
    "resonance-tracker.json":"app/zh/watch/resonance/tracker-ui.tsx",
    "daily-factor-snapshot.json":"app/zh/watch/resonance/rare-opportunities/page.tsx",
+   "factor-registry.json":"app/zh/watch/resonance/rare-opportunities/page.tsx",
    "rare-opportunity-radar.json":"app/zh/watch/resonance/rare-opportunities/page.tsx",
    "signal-history.json":"app/zh/watch/resonance/rare-opportunities/page.tsx",
    "opportunity-ledger.json":"app/zh/watch/resonance/rare-opportunities/page.tsx",
