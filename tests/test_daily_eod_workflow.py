@@ -1,6 +1,7 @@
 import pathlib,re,unittest
 
 WORKFLOW=pathlib.Path(__file__).parents[1]/".github/workflows/daily-eod.yml"
+ROOT=WORKFLOW.parents[2]
 
 class DailyEodWorkflowTests(unittest.TestCase):
  def test_retry_window_uses_independent_crons(self):
@@ -18,7 +19,22 @@ class DailyEodWorkflowTests(unittest.TestCase):
   self.assertIn("public/market-etf-watch.json",text)
   self.assertIn("unified_v2_scan --published-latest",text)
   self.assertIn("services.scanner.experiment_catalog",text)
+  self.assertIn("UPDATE_TRIGGER_SOURCE",text)
+  self.assertIn("cloudflare_cron",text)
+  self.assertIn("freshness_recovery",text)
   self.assertNotIn("--start 2026-07-01",text)
+ def test_cloudflare_is_independent_primary_scheduler_and_monitor_recovers(self):
+  config=(ROOT/"wrangler.eod-scheduler.jsonc").read_text()
+  worker=(ROOT/"services/automation/eod_scheduler_worker.mjs").read_text()
+  monitor=(WORKFLOW.parent/"eod-freshness-monitor.yml").read_text()
+  deploy=(WORKFLOW.parent/"deploy-eod-scheduler.yml").read_text()
+  self.assertIn('"name": "sage-vista-eod-scheduler"',config)
+  self.assertIn('"37 4 * * 2-6"',config)
+  self.assertIn("GITHUB_ACTIONS_TOKEN",worker)
+  self.assertNotIn("test-token-must-not-leak",worker)
+  self.assertIn("actions: write",monitor)
+  self.assertIn("trigger_source=freshness_recovery",monitor)
+  self.assertIn("SAGE_VISTA_SCHEDULER_GITHUB_TOKEN",deploy)
  def test_code_and_experiment_changes_auto_deploy(self):
   text=(WORKFLOW.parent/"deploy-site.yml").read_text()
   self.assertIn("push:",text);self.assertIn('"app/**"',text);self.assertIn('"research/**"',text)

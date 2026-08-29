@@ -19,6 +19,12 @@ on:
         default: preview
         type: choice
         options: [preview, update, deploy]
+      trigger_source:
+        description: Audited source of an update dispatch
+        required: true
+        default: manual
+        type: choice
+        options: [manual, cloudflare_cron, freshness_recovery]
 
 permissions:
   contents: write
@@ -41,6 +47,7 @@ jobs:
     env:
       EODHD_API_TOKEN: ${{ secrets.EODHD_API_TOKEN }}
       DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_OPPORTUNITY }}
+      UPDATE_TRIGGER_SOURCE: ${{ github.event_name == 'schedule' && 'github_schedule' || inputs.trigger_source || 'manual' }}
     steps:
       - uses: actions/checkout@v7
         with: { fetch-depth: 0 }
@@ -58,7 +65,7 @@ jobs:
           key: eodhd-history-v1-${{ github.run_id }}
           restore-keys: eodhd-history-v1-
       - name: Run fail-closed daily update
-        run: python3 -m services.scanner.daily_tracker_update > update-result.json
+        run: python3 -m services.scanner.daily_tracker_update --trigger-source "$UPDATE_TRIGGER_SOURCE" > update-result.json
       - name: Validate update result
         id: update_result
         shell: bash
@@ -204,7 +211,7 @@ jobs:
         run: |
           python3 - <<'PY'
           import json,os
-          state={"as_of":os.environ["AS_OF"],"site_url":os.environ["SITE_URL"],"live_verified":True,"discord_result":os.environ["DISCORD_RESULT"]}
+          state={"as_of":os.environ["AS_OF"],"site_url":os.environ["SITE_URL"],"live_verified":True,"discord_result":os.environ["DISCORD_RESULT"],"trigger_source":os.environ["TRIGGER_SOURCE"]}
           open("automation/production-state.json","w").write(json.dumps(state,indent=2)+"\n")
           PY
           python3 -m services.scanner.project_status > /dev/null
@@ -222,6 +229,7 @@ jobs:
           AS_OF: ${{ steps.update_result.outputs.as_of }}
           SITE_URL: ${{ steps.cloudflare_deploy.outputs.site_url }}
           DISCORD_RESULT: ${{ steps.discord_validation.outputs.result }}
+          TRIGGER_SOURCE: ${{ env.UPDATE_TRIGGER_SOURCE }}
       - name: Write pipeline summary
         if: always()
         shell: bash
@@ -244,6 +252,7 @@ jobs:
             echo "- ④ Live Verification: **${LIVE_VERIFICATION:-skipped}**"
             echo "- ⑤ Discord Notification: **${DISCORD:-skipped}**"
             echo "- Final as_of: **${AS_OF:-unknown}**"
+            echo "- Trigger source: **${UPDATE_TRIGGER_SOURCE:-unknown}**"
             if [ -n "$SITE_URL" ]; then echo "- Production site: $SITE_URL"; fi
           } >> "$GITHUB_STEP_SUMMARY"
 

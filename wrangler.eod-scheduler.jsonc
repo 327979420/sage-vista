@@ -1,0 +1,32 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sage-vista-eod-scheduler",
+  "main": "services/automation/eod_scheduler_worker.mjs",
+  "compatibility_date": "2026-08-29",
+  "workers_dev": false,
+  "triggers": {
+    "crons": [
+      "47 23 * * 1-5",
+      "17 0 * * 2-6",
+      "47 0 * * 2-6",
+      "17 1 * * 2-6",
+      "47 1 * * 2-6",
+      "17 2 * * 2-6",
+      "17 3 * * 2-6",
+      "37 4 * * 2-6"
+    ]
+  },
+  "vars": {
+    "GITHUB_OWNER": "327979420",
+    "GITHUB_REPO": "sage-vista",
+    "GITHUB_REF": "main",
+    "EOD_WORKFLOW": "daily-eod.yml",
+    "FRESHNESS_WORKFLOW": "eod-freshness-monitor.yml"
+  },
+  "secrets": {
+    "required": ["GITHUB_ACTIONS_TOKEN"]
+  },
+  "observability": {
+    "enabled": true
+  }
+}

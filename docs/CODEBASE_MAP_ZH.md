@@ -16,6 +16,7 @@
 | 行业分类与 ETF 上下文 | `services/scanner/industry_membership.py`、`industry_radar.py`、`theme_etf_context.py` | `data/industry/`、`data/themes/` |
 | 市场环境 | `services/scanner/market_etf_watch.py` | `public/market-etf-watch.json` |
 | 自动化/上线 | `.github/workflows/`、`services/scanner/daily_tracker_update.py`、`verify_live_deployment.py` | `automation/production-state.json`、`public/update-status.json` |
+| 每日独立定时与恢复 | `services/automation/eod_scheduler_worker.mjs`、`wrangler.eod-scheduler.jsonc`、`eod-freshness-monitor.yml` | Cloudflare Cron 日志、EOD Actions 运行与新鲜度告警 |
 
 ## 正式产品只有四个入口
 

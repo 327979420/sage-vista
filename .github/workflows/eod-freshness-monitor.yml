@@ -10,6 +10,7 @@ on:
     types: [eod-freshness-check]
 
 permissions:
+  actions: write
   contents: read
   issues: write
 
@@ -37,6 +38,11 @@ jobs:
               out.write(f"result={result['result']}\n")
               out.write(f"provider_latest={result['provider_latest']}\n")
           PY
+      - name: Dispatch one idempotent recovery update
+        if: steps.freshness.outputs.result == 'stale'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run daily-eod.yml --ref main -f mode=update -f trigger_source=freshness_recovery
       - name: Open one deduplicated stale-data issue
         if: steps.freshness.outputs.result == 'stale'
         env:
