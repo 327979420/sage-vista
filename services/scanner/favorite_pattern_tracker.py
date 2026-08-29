@@ -14,7 +14,7 @@ from .technical import ema, macd
 LEGACY_PATTERN_VERSION = "favorite-pattern-v1.0.1"
 PATTERN_VERSION = "favorite-pattern-v2.0.0"
 EXPERIMENT_ID = "favorite-pattern-sequence-v2.0.0-2026-08-30"
-GENERALIZATION_VERSION = "favorite-pattern-generalization-v1.0.0"
+GENERALIZATION_VERSION = "favorite-pattern-generalization-v1.0.1"
 REFERENCE_CASES = {
     "ADBE": "时序教学：3月先完成趋势转变，5月真实回调后再由新结构、MACD和EMA转强确认；教顺序，不要求复制外形。",
     "BABA": "形态语言教学：位置、底部结构、趋势线突破和均线转强可以共振，但不是其他股票必须照抄的模板。",

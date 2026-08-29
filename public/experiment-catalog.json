@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-08-30T04:30:00+10:00",
+  "generated_at": "2026-08-30T04:55:00+10:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
@@ -81,10 +81,10 @@
         "registered_at": "2026-08-30T04:30:00+10:00",
         "started_at": null,
         "completed_at": null,
-        "latest_event": "registered",
-        "latest_event_at": "2026-08-30T04:30:00+10:00",
-        "time_source": "user_approved_local_preregistration",
-        "event_count": 1,
+        "latest_event": "checkpoint",
+        "latest_event_at": "2026-08-30T04:55:00+10:00",
+        "time_source": "first_full_market_output_audit",
+        "event_count": 2,
         "events": [
           {
             "experiment_id": "favorite-pattern-generalization-v1.0.0-2026-08-30",
@@ -93,6 +93,14 @@
             "time_source": "user_approved_local_preregistration",
             "source_ref": "research/preregistrations/favorite-pattern-generalization-v1.md",
             "result": "Frozen an observation-only mechanism map, five-of-seven near-match floor, separate risk-blocked near matches, fixed missed-winner/accepted-loser/boundary reviews, and a strict no-change boundary for V2 signals, production score, alerts and ledger entries."
+          },
+          {
+            "experiment_id": "favorite-pattern-generalization-v1.0.0-2026-08-30",
+            "event": "checkpoint",
+            "event_at": "2026-08-30T04:55:00+10:00",
+            "time_source": "first_full_market_output_audit",
+            "source_ref": "33266251051",
+            "result": "The first full-market report preserved the exact 24 V2 entry-ready symbols and removed PG from V2 references, but all 18 displayed near-match slots were occupied by blocked risk examples. Display contract 1.0.1 reserves 12 slots for clear near matches and six for blocked regressions without changing the seven-stage detector, formal signals, ledger or score."
           }
         ]
       }
