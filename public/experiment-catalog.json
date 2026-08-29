@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-08-29T16:53:09+10:00",
+  "generated_at": "2026-08-29T17:24:44+10:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
@@ -8,10 +8,10 @@
   ],
   "experiment_count": 26,
   "summary": {
-    "completed": 21,
-    "in_progress": 5,
+    "completed": 22,
+    "in_progress": 4,
     "candidate": 9,
-    "not_validated_or_unstable": 9
+    "not_validated_or_unstable": 10
   },
   "policy": {
     "append_only": true,
@@ -24,9 +24,9 @@
     {
       "experiment_id": "winner-loser-strategy-optimization-v1.0.0-2026-08-29",
       "created_at": "2026-08-29T16:53:09+10:00",
-      "status": "pre_registered",
+      "status": "completed_not_validated",
       "change": "Mine the largest winners and losers from the saved exact daily-MACD event pool, discover a bounded set of new point-in-time technical features, and freeze a family-capped integer-weight challenger before 2025/2026 evaluation.",
-      "coverage": "Reuse 2000-2026 audited V2 events and Actions price cache; 2001-2018 discovery, 2019-2024 internal calibration, 2025 validation, 2026 forward observation.",
+      "coverage": "62,040 feature events from 2001-10-01 through 2026-08-28; 13,270 primary 120-session-deduplicated events; 786 discovery, 9,227 calibration, 1,895 validation-2025 and 1,166 forward-2026 events.",
       "specification": {
         "event_gate": "exact completed daily MACD bullish cross plus long-trend eligibility",
         "primary_horizon_sessions": 20,
@@ -47,11 +47,19 @@
         "validation_lock": "2025 and 2026 cannot select features, thresholds or weights"
       },
       "success_criteria": "The frozen challenger must improve 2025 50bps expectancy and PF versus the common gate with positive score rank correlation, retain direction in 2026, meet sample and robust-metric checks, and not depend on extreme observations.",
-      "result": "Not run. Production model 1.3.0 and all historical events remain unchanged.",
+      "result": "The development/calibration filter froze five provisional +/-1 candidates, but the combined score failed both held-out periods. In 2025 the top group had 472 samples, negative Spearman rank correlation, -0.7065 percentage-point net-expectancy uplift and -0.1665 PF uplift versus the gate; in 2026 it had 283 samples and positive but weak rank correlation, while net-expectancy/PF uplift remained -0.7115 percentage points/-0.1332. Extreme-100 cohorts were regime-concentrated: 59 of the bottom 100 were in 2020, and near-total-loss legacy ticker events require anomaly flags. Production model 1.3.0, factor registry and historical events remain unchanged.",
+      "artifacts": {
+        "compact_result": "research/backtest/output/winner-loser-strategy-optimization-v1.json",
+        "detail_artifact": "GitHub Actions winner-loser-optimization-v1-complete/top-bottom-100-detail.json.gz",
+        "workflow_run": "https://github.com/327979420/sage-vista/actions/runs/33240681366",
+        "implementation_commit": "d5554c2",
+        "result_commit": "07d7ee6"
+      },
       "known_limitations": [
         "historical point-in-time stock-industry membership is unavailable",
         "candidate universe expands materially from 2019 onward",
-        "partial delisted coverage",
+        "partial delisted and ticker-change coverage",
+        "extreme-100 cohorts are regime-concentrated and include possible corporate-action or delisting anomalies",
         "event-level results are not a capital-constrained portfolio"
       ],
       "human_summary": {
@@ -59,19 +67,19 @@
         "family": "scoring",
         "family_zh": "策略优化",
         "question_zh": "最大赢家与最大输家有哪些现有或新技术共性，能否据此形成比当前排序更好的冻结权重？",
-        "result_zh": "已预登记，尚未运行；将保存最大100赢家／输家，并从连续技术特征中形成家族去重的整数权重挑战者。",
-        "use_zh": "当前生产1.3.0不变；本实验先用于发现和验证新的因子、方向与权重。",
-        "next_zh": "复用已保存事件和价格缓存，完成开发发现、内部校准、2025验证和2026前向比较。",
-        "verdict": "pre_registered"
+        "result_zh": "已分析62,040个事件和13,270个120交易日去重样本，并永久保存最高／最低100。极端赢家常伴随高ATR、MACD柱加速和远离长期均线，但这些更像双向尾部强度，不是稳定胜率因子。开发期冻结的5项±1挑战者在2025和2026的成本后期望与PF均低于共同门票，未通过验证。",
+        "use_zh": "不改生产1.3.0，也不把高波动或远离均线直接加分。最大赢家共性只作为“爆发潜力”标签；选股可靠性仍需独立、跨期稳定的质量分。",
+        "next_zh": "把下一版拆成“上涨概率／可靠性分”和“收益弹性／尾部潜力标签”两轴；极端样本先做退市、代码变更和公司行动审计。历史行业优化需先补带日期的成分关系，不能回填今天的行业。",
+        "verdict": "not_validated"
       },
       "lifecycle": {
         "registered_at": "2026-08-29T16:53:09+10:00",
-        "started_at": null,
-        "completed_at": null,
-        "latest_event": "registered",
-        "latest_event_at": "2026-08-29T16:53:09+10:00",
-        "time_source": "user_approved_local_preregistration",
-        "event_count": 1,
+        "started_at": "2026-08-29T17:22:20+10:00",
+        "completed_at": "2026-08-29T17:24:44+10:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-08-29T17:24:44+10:00",
+        "time_source": "github_actions",
+        "event_count": 3,
         "events": [
           {
             "experiment_id": "winner-loser-strategy-optimization-v1.0.0-2026-08-29",
@@ -80,6 +88,31 @@
             "time_source": "user_approved_local_preregistration",
             "source_ref": "research/preregistrations/winner-loser-strategy-optimization-v1.md",
             "result": "Freeze top/bottom cohorts, bounded continuous features, internal calibration, integer weights, family caps and validation locks before implementation."
+          },
+          {
+            "experiment_id": "winner-loser-strategy-optimization-v1.0.0-2026-08-29",
+            "event": "started",
+            "event_at": "2026-08-29T17:22:20+10:00",
+            "time_source": "github_actions",
+            "source_ref": "33240681366",
+            "result": "Started 27 parallel annual feature jobs using the preserved audited event artifacts and restored price cache."
+          },
+          {
+            "experiment_id": "winner-loser-strategy-optimization-v1.0.0-2026-08-29",
+            "event": "completed",
+            "event_at": "2026-08-29T17:24:44+10:00",
+            "time_source": "github_actions",
+            "source_ref": "33240681366",
+            "coverage": {
+              "feature_events": 62040,
+              "primary_deduplicated_events": 13270,
+              "discovery": 786,
+              "calibration": 9227,
+              "validation_2025": 1895,
+              "forward_2026": 1166,
+              "annual_jobs": 27
+            },
+            "result": "The frozen five-factor integer-weight challenger did not validate. Both held-out periods had lower 50bps net expectancy and PF than the common gate; production scoring remains 1.3.0. The top/bottom 100 detail and compact result are preserved."
           }
         ]
       }

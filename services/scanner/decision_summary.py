@@ -32,6 +32,7 @@ def _score_metric(block):
 
 def run(out=OUT):
     report = json.loads((ROOT / "score-timeframe-attribution-v2.json").read_text())
+    optimization = json.loads((ROOT / "winner-loser-strategy-optimization-v1.json").read_text())
     primary = report["primary_deduplicated"]
     baselines = {
         period: _metric(values["20"])
@@ -40,12 +41,16 @@ def run(out=OUT):
     forward_quintiles = primary["score_monotonicity"]["current"]["forward_2026"]["daily_midrank_quintiles"]
     low_score = _score_metric(forward_quintiles["1"]["20"])
     high_score = _score_metric(forward_quintiles["5"]["20"])
+    optimization_2025 = _score_metric(
+        optimization["score_comparison"]["validation_2025"]["winner_loser_challenger"]["daily_midrank_quintiles"]["5"]
+    )
     payload = {
-        "version": "production-evidence-v3.0.0",
-        "generated_at": report["generated_at"],
-        "source_experiment": report["experiment_id"],
+        "version": "production-evidence-v4.0.0",
+        "generated_at": optimization["generated_at"],
+        "source_experiment": optimization["experiment_id"],
+        "supporting_experiment": report["experiment_id"],
         "production_status": "latest_research_synced_production_unchanged",
-        "plain_summary": "最新完整审计已同步：共同门票的20日原始持有在开发期、2025和2026均为正，但分数越高并没有带来更高胜率或收益；31个附加因子和3个冻结组合都没有达到升级标准，因此不提高任何正式因子权重。",
+        "plain_summary": "已从最高／最低100和全体尾部样本反向优化权重：大赢家常见高波动、MACD柱加速和强趋势，但这些更像收益弹性，不是稳定胜率因子。开发期冻结的5项挑战者在2025和2026都降低了成本后期望和PF，因此生产1.3.0不变。",
         "coverage": {
             "start": report["coverage"]["start"],
             "end": report["coverage"]["end"],
@@ -60,6 +65,10 @@ def run(out=OUT):
             "studied_add_on_factors": 31,
             "validated_pairs": 0,
             "studied_pairs": 3,
+            "optimization_feature_events": optimization["coverage"]["all_feature_events"],
+            "optimization_primary_events": optimization["coverage"]["primary_120_session_deduplicated_events"],
+            "frozen_optimization_weights": len(optimization["selected_challenger"]),
+            "validated_optimization_weights": 0,
         },
         "usable": [{
             "name": "长期趋势＋完整日线MACD刚金叉",
@@ -70,6 +79,12 @@ def run(out=OUT):
             "note": "20日原始持有在开发 / 2025 / 2026三段胜率为54.39% / 50.98% / 54.29%，PF为1.228 / 1.356 / 1.513。它说明共同事件池值得继续研究，不等于实盘组合收益。",
         }],
         "watch": [
+            {
+                "name": "高ATR＋MACD柱加速＋强趋势距离",
+                "role": "收益弹性／爆发潜力标签",
+                "verdict": "只作第二轴标签",
+                "note": "这些特征在最大赢家中最突出，但高波动和远离均线也会放大损失，不能直接增加可靠性分。网站后续应把“更可能赚钱”和“赚对时可能赚多少”分开显示。",
+            },
             {
                 "name": "相对放量与60日回撤",
                 "role": "高收益尾部标签",
@@ -84,6 +99,12 @@ def run(out=OUT):
             },
         ],
         "avoid": [
+            {
+                "name": "直接采用最大赢家／输家推导的5项权重",
+                "verdict": "独立验证失败",
+                "metrics": optimization_2025,
+                "note": "2025最高组相对共同门票的50bps后期望低0.7065个百分点、PF低0.1665；2026分别低0.7115个百分点和0.1332。极端100还明显集中于2020等特殊年份，不能强行上线。",
+            },
             {
                 "name": "把高分解释成更高胜率",
                 "verdict": "不成立",
@@ -101,7 +122,7 @@ def run(out=OUT):
                 "note": "3个预先冻结组合都没有同时超过总体基线和两个组成单因子，不能进入生产。",
             },
         ],
-        "method_note": "口径：120交易日内每只股票只保留首个事件；20日为单因子主窗口；开发期、2025独立验证和2026前向分开；20/50bps成本、1%去极值、BH多重比较均已检查。行业与大盘保持独立分层。",
+        "method_note": "口径：完整日线MACD刚金叉＋长期趋势门票；120交易日内每只股票只保留首个事件；20日主窗口；2001—2018发现、2019—2024校准、2025验证、2026前向。最高／最低100只用于找线索，并与全体前后10%、稳健收益和年份分布共同检查。行业与大盘保持独立分层；历史行业成员关系缺失，不用今天分类回填。",
     }
     Path(out).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n")
     return payload

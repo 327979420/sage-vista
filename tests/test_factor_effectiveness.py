@@ -35,11 +35,12 @@ class FactorEffectivenessTests(unittest.TestCase):
     def test_decision_summary_replaces_old_b_factor_claims(self):
         with tempfile.TemporaryDirectory() as folder:
             result = decision_summary(Path(folder) / "decision.json")
-        self.assertEqual(result["version"], "production-evidence-v3.0.0")
-        self.assertEqual(result["source_experiment"], "score-timeframe-attribution-v2.0.0-2026-08-29")
+        self.assertEqual(result["version"], "production-evidence-v4.0.0")
+        self.assertEqual(result["source_experiment"], "winner-loser-strategy-optimization-v1.0.0-2026-08-29")
         self.assertEqual(result["counts"]["validated_add_on_factors"], 0)
         self.assertEqual(result["usable"][0]["name"], "长期趋势＋完整日线MACD刚金叉")
         self.assertIn("把高分解释成更高胜率", {row["name"] for row in result["avoid"]})
+        self.assertIn("直接采用最大赢家／输家推导的5项权重", {row["name"] for row in result["avoid"]})
         self.assertNotIn("底部放量", {row["name"] for row in result["usable"]})
 
 
