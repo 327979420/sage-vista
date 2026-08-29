@@ -22,8 +22,7 @@
 
 ## 实验
 
-- 总数 29；已完成 24；待运行 / 进行中 5。
-- `choppiness-state-mechanism-v1.0.0-2026-08-29`：Choppiness震荡释放机制实验。
+- 总数 29；已完成 25；待运行 / 进行中 4。
 - `evidence-calibrated-daily-score-v1.0.0-2026-08-29`：长期证据校准每日评分V1。
 - `score-monotonicity-factor-attribution-v1.0.0-2026-08-29`：评分单调性与因子归因V1。
 - `exit-score-v0.1.0-2026-08-28`：独立离场风险分V0.1。
@@ -52,4 +51,4 @@
 - `public/factor-registry.json`
 - `public/experiment-catalog.json`
 
-来源时间：生产数据更新 2026-08-29T00:58:35.269626+00:00；实验目录生成 2026-08-29T20:07:00+10:00。
+来源时间：生产数据更新 2026-08-29T00:58:35.269626+00:00；实验目录生成 2026-08-29T20:19:07+10:00。

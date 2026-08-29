@@ -17,6 +17,13 @@
       "choppiness": "forward_observe_at_weight_0",
       "combination": "sample_insufficient_no_weight"
     },
+    "choppiness_state_followup": {
+      "experiment_id": "choppiness-state-mechanism-v1.0.0-2026-08-29",
+      "release_candidate": "reject_do_not_add",
+      "high_and_rising": "directional_only_under_existing_choppiness_candidate",
+      "production_weight": 0,
+      "true_unseen_valid_after": "2026-08-29"
+    },
     "future_risk_penalty_shadow": {
       "candidate_id": "volatility.squeeze_ratio_20",
       "condition": ">= 1.6751",
@@ -181,7 +188,13 @@
       "direction_locked": false,
       "redundancy_group": "noise_regime",
       "production_weight": 0,
-      "status": "research_candidate"
+      "status": "research_candidate",
+      "latest_evidence": {
+        "experiment_id": "choppiness-state-mechanism-v1.0.0-2026-08-29",
+        "high_falling_release": "rejected",
+        "high_rising": "directional_only_not_multiplicity_significant",
+        "production_action": "keep_weight_zero"
+      }
     },
     {
       "candidate_id": "volatility.squeeze_ratio_20",

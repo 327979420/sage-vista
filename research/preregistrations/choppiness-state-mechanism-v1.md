@@ -2,9 +2,13 @@
 
 实验 ID：`choppiness-state-mechanism-v1.0.0-2026-08-29`
 
-状态：`pre_registered`
+状态：`completed_research_only`
 
 登记时间：2026-08-29 20:07（Australia/Melbourne）
+
+完成时间：2026-08-29 20:19（Australia/Melbourne）
+
+完成结论：预登记的震荡释放候选跨三段方向失败且样本不足，不加入因子库。高位且5日Choppiness继续上升三段方向偏正，但BH未通过，只保留为现有Choppiness项下零权重前向观察；冻结定义没有因结果改写。
 
 生产影响：无。生产模型1.3.0、37项生产因子、日线MACD门票、长期趋势资格、行业、大盘、止损和退出均不改变。
 

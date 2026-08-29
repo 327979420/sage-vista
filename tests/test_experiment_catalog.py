@@ -17,10 +17,11 @@ class ExperimentCatalogTests(unittest.TestCase):
   paired=next(x for x in catalog["experiments"] if x["experiment_id"]=="connors-choppiness-paired-ab-v1.0.0-2026-08-29")
   self.assertEqual(paired["status"],"completed_research_only");self.assertIn("B-only",paired["result"])
   mechanism=next(x for x in catalog["experiments"] if x["experiment_id"]=="choppiness-state-mechanism-v1.0.0-2026-08-29")
-  self.assertEqual(mechanism["status"],"pre_registered");self.assertEqual(mechanism["specification"]["primary_change"],"current Choppiness14 minus five trading sessions earlier")
+  self.assertEqual(mechanism["status"],"completed_research_only");self.assertEqual(mechanism["specification"]["primary_change"],"current Choppiness14 minus five trading sessions earlier")
+  self.assertIn("high-falling/release candidate failed",mechanism["result"])
 
  def test_every_experiment_has_lifecycle_and_plain_chinese_summary(self):
-  catalog=build();self.assertEqual(catalog["summary"]["completed"],24);self.assertEqual(catalog["summary"]["in_progress"],5)
+  catalog=build();self.assertEqual(catalog["summary"]["completed"],25);self.assertEqual(catalog["summary"]["in_progress"],4)
   for row in catalog["experiments"]:
    self.assertTrue(row["human_summary"]["title_zh"]);self.assertTrue(row["human_summary"]["use_zh"])
    self.assertTrue(row["lifecycle"]["registered_at"]);self.assertGreaterEqual(row["lifecycle"]["event_count"],1)

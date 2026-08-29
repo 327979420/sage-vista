@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-08-29T20:07:00+10:00",
+  "generated_at": "2026-08-29T20:19:07+10:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
@@ -8,10 +8,10 @@
   ],
   "experiment_count": 29,
   "summary": {
-    "completed": 24,
-    "in_progress": 5,
+    "completed": 25,
+    "in_progress": 4,
     "candidate": 10,
-    "not_validated_or_unstable": 10
+    "not_validated_or_unstable": 11
   },
   "policy": {
     "append_only": true,
@@ -24,9 +24,9 @@
     {
       "experiment_id": "choppiness-state-mechanism-v1.0.0-2026-08-29",
       "created_at": "2026-08-29T20:07:00+10:00",
-      "status": "pre_registered",
+      "status": "completed_research_only",
       "change": "Replace the broad high-Choppiness observation with a frozen point-in-time mechanism test that distinguishes high-and-rising, high-and-flat, and high-and-falling/releasing states before deciding whether a release factor belongs in the zero-weight research catalog.",
-      "coverage": "Reuse 27 Factor Strategy Lab V2 annual checkpoints and the audited historical price cache; 2001-2024 mechanism development, seen-2025 and seen-2026 rechecks; true unseen forward starts after 2026-08-29.",
+      "coverage": "62,040 point-in-time events across 27 annual checkpoints from 2001-10-01 through 2026-08-28; zero missing changes and zero archived/current Choppiness mismatches; 13,074 mature 120-session-deduplicated events, split 10,013 development, 1,895 seen-2025 and 1,166 seen-2026.",
       "specification": {
         "event_gate": "exact completed daily MACD bullish cross plus archived long-trend qualification",
         "high_threshold": 58.814226,
@@ -70,7 +70,16 @@
         "industry_market": "separate and excluded from the technical test"
       },
       "success_criteria": "Add regime.choppiness_release_14_5 to the zero-weight research candidate catalog only if high_falling beats high_nonfalling on 20-session trimmed return and PF in all three seen periods, matched trimmed-return differences align and BH q<=0.10, treatment/pair samples meet 300/100/100, and high_falling remains positive after 50bps. Historical passage cannot change production scoring because the hypothesis and all periods were already seen.",
-      "result": "Not run. Production model 1.3.0 and the 37-factor production registry remain unchanged.",
+      "result": "The preregistered high-falling/release candidate failed. Versus high non-falling states, its 20-session trimmed-return deltas were -0.804/-2.999/-1.166 percentage points and PF deltas were -0.315/-0.858/-0.553 in development/seen-2025/seen-2026; treatment and matched samples were only 148/25/24, matched directions were inconsistent, BH did not pass and 50bps expectancy was negative in development and 2025. The three-session sensitivity was also directionally unstable. High-and-rising versus low/mid Choppiness was directionally positive in all three periods: trimmed-return deltas +0.479/+1.806/+0.873 and PF deltas +0.151/+0.575/+0.289, with positive matched differences, but BH q values 0.344/0.116/0.856 did not pass the frozen 0.10 threshold.",
+      "decision": "Reject regime.choppiness_release_14_5 and do not add it to the factor catalog. Keep high-and-rising only as a zero-weight forward observation under the existing regime.choppiness_14 research candidate; do not create a new production factor or score. Production model 1.3.0 and the 37-factor registry remain unchanged.",
+      "artifacts": {
+        "compact_result": "research/backtest/output/choppiness-state-mechanism-v1.json",
+        "annual_artifacts": "GitHub Actions choppiness-state-v1-2000 through choppiness-state-v1-2026",
+        "detail_artifact": "GitHub Actions choppiness-state-mechanism-v1-complete/matched-pairs-detail.json.gz",
+        "workflow_run": "https://github.com/327979420/sage-vista/actions/runs/33247395537",
+        "preregistration_commit": "7f880e1",
+        "result_commit": "92375e7"
+      },
       "known_limitations": [
         "the threshold and mechanism question were proposed after reviewing historical, 2025 and 2026 results",
         "matching reduces measured imbalance but cannot prove causality",
@@ -83,19 +92,19 @@
         "family": "scoring",
         "family_zh": "策略优化",
         "question_zh": "高Choppiness出现方向性优势，是震荡仍在增强、维持横盘，还是高位下降并开始释放？",
-        "result_zh": "已预登记，尚未运行；将复用历史事件和价格缓存计算信号日以前的3/5交易日变化。",
-        "use_zh": "结果出来前继续把Choppiness保持0分观察，不加入生产因子库或评分。",
-        "next_zh": "完成五组配对、成本和BH检验后，明确登记为零权重研究候选、仅观察或不成立。",
-        "verdict": "pre_registered"
+        "result_zh": "震荡释放候选失败：相对同为高位但未下降，开发/已见2025/已见2026的20日稳健收益少0.80/3.00/1.17个百分点，且样本仅148/25/24。高位继续上升三段方向偏正，但BH未通过。",
+        "use_zh": "不新增“震荡释放”因子。现有Choppiness继续0分；只把高位且5日继续上升作为真正未见前向观察条件，不能据此加分买入。",
+        "next_zh": "从2026-08-29之后累计高位上升事件；达到样本门槛后用完全冻结条件复核，不再修改历史阈值。",
+        "verdict": "not_validated"
       },
       "lifecycle": {
         "registered_at": "2026-08-29T20:07:00+10:00",
-        "started_at": null,
-        "completed_at": null,
-        "latest_event": "registered",
-        "latest_event_at": "2026-08-29T20:07:00+10:00",
-        "time_source": "user_approved_local_preregistration",
-        "event_count": 1,
+        "started_at": "2026-08-29T20:15:23+10:00",
+        "completed_at": "2026-08-29T20:19:07+10:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-08-29T20:19:07+10:00",
+        "time_source": "github_actions",
+        "event_count": 3,
         "events": [
           {
             "experiment_id": "choppiness-state-mechanism-v1.0.0-2026-08-29",
@@ -104,6 +113,32 @@
             "time_source": "user_approved_local_preregistration",
             "source_ref": "research/preregistrations/choppiness-state-mechanism-v1.md",
             "result": "Frozen high/rising, high/flat and high/falling states, five contrasts, point-in-time five-session change, matched covariates, sample/cost/BH gates and a zero-production-weight ceiling before calculation."
+          },
+          {
+            "experiment_id": "choppiness-state-mechanism-v1.0.0-2026-08-29",
+            "event": "started",
+            "event_at": "2026-08-29T20:15:23+10:00",
+            "time_source": "github_actions",
+            "source_ref": "33247395537",
+            "result": "Started 27 annual point-in-time Choppiness state jobs from reused Factor Strategy Lab events and the restored historical price cache; no market download or production score change."
+          },
+          {
+            "experiment_id": "choppiness-state-mechanism-v1.0.0-2026-08-29",
+            "event": "completed",
+            "event_at": "2026-08-29T20:19:07+10:00",
+            "time_source": "github_actions",
+            "source_ref": "33247395537",
+            "coverage": {
+              "feature_events": 62040,
+              "primary_events": 13074,
+              "development": 10013,
+              "seen_2025": 1895,
+              "seen_2026": 1166,
+              "annual_checkpoints": 27,
+              "missing_changes": 0,
+              "level_mismatches": 0
+            },
+            "result": "The high-falling/release candidate failed across the frozen period and matched-control requirements and was not added. High-and-rising stayed directionally positive but failed BH, so it remains zero-weight under the existing Choppiness candidate. Production scoring did not change."
           }
         ]
       }
