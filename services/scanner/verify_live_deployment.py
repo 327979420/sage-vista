@@ -1,6 +1,7 @@
 """Fail-closed verification for the public Cloudflare production deployment."""
 import argparse,json,time,urllib.error,urllib.parse,urllib.request
 from .factor_snapshot import SNAPSHOT_MODE_VERSION
+from .favorite_pattern_tracker import PATTERN_VERSION
 
 def fetch(base,path,cache_key,attempts=12,delay_seconds=5):
  url=f"{base.rstrip('/')}/{path}?deployment={urllib.parse.quote(cache_key)}"
@@ -27,7 +28,7 @@ def verify_once(base,expected):
  if status.get("future_data_used") is not False or snapshot.get("future_data_used") is not False or radar.get("scan",{}).get("future_data_used") is not False or industry.get("future_data_used") is not False or market.get("future_data_used") is not False or history.get("future_data_used") is not False:raise RuntimeError("Live future-data audit failed")
  if snapshot.get("snapshot_mode_version")!=SNAPSHOT_MODE_VERSION or status.get("checks",{}).get("macd_trigger_first") is not True:raise RuntimeError("Live MACD trigger-first contract failed")
  favorite=tracker.get("favorite_pattern_tracker",{})
- if favorite.get("as_of")!=expected or favorite.get("pattern_version")!="favorite-pattern-v1.0.0" or favorite.get("production_scoring_changed") is not False or status.get("checks",{}).get("favorite_pattern_tracker") is not True:raise RuntimeError("Live favorite-pattern Tracker contract failed")
+ if favorite.get("as_of")!=expected or favorite.get("pattern_version")!=PATTERN_VERSION or favorite.get("production_scoring_changed") is not False or status.get("checks",{}).get("favorite_pattern_tracker") is not True:raise RuntimeError("Live favorite-pattern Tracker contract failed")
  if ledger.get("as_of")!=expected or ledger.get("selection_future_data_used") is not False:raise RuntimeError("Live opportunity ledger audit failed")
  details=tracker.get("details",{})
  if any(x.get("audit",{}).get("future_rows_used") or x.get("audit",{}).get("latest_bar")!=expected for x in details.values()):raise RuntimeError("Live tracker completeness audit failed")

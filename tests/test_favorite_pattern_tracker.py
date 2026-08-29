@@ -63,12 +63,13 @@ class FavoritePatternTrackerTests(unittest.TestCase):
     def test_report_keeps_reference_cases_without_promoting_them(self):
         base = {"available": True, "pattern_version": PATTERN_VERSION, "match_count": 4, "total_conditions": 7, "stage": "waiting_breakout", "stage_zh": "等待突破"}
         candidates = [
-            {"symbol": "XYZ", "price": 10, "dollar_volume": 20_000_000, "favorite_pattern": {**base, "match_count": 6, "stage": "entry_ready", "stage_zh": "入场就绪"}},
+            {"symbol": "XYZ", "price": 10, "dollar_volume": 20_000_000, "favorite_pattern": {**base, "match_count": 6, "stage": "breakout_incomplete", "stage_zh": "已突破但条件不完整"}},
             {"symbol": "BABA", "price": 120, "dollar_volume": 200_000_000, "favorite_pattern": {**base, "match_count": 2, "stage": "discovery", "stage_zh": "早期发现"}},
         ]
         report = build_report(candidates, "2026-08-28")
         self.assertEqual(report["candidates"][0]["symbol"], "XYZ")
-        self.assertEqual(report["summary"]["entry_ready"], 1)
+        self.assertEqual(report["summary"]["entry_ready"], 0)
+        self.assertEqual(report["summary"]["breakout_incomplete"], 1)
         references = {row["symbol"]: row for row in report["reference_cases"]}
         self.assertIn("BABA", references)
         self.assertIn("PG", references)

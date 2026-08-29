@@ -35,7 +35,7 @@ class TrackerOutputContractTests(unittest.TestCase):
         source = (ROOT / "services/scanner/favorite_pattern_tracker.py").read_text()
         rules = (ROOT / "docs/rules/03_FACTOR_MODEL.md").read_text()
         page = (ROOT / "app/zh/watch/resonance/favorite-pattern/page.tsx").read_text()
-        self.assertIn("favorite-pattern-v1.0.0", source)
+        self.assertIn("favorite-pattern-v1.0.1", source)
         self.assertIn("不登记为第40个因子", rules)
         self.assertIn("生产权重 0", page)
         self.assertIn("匹配度不是胜率", page)

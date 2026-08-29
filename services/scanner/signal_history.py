@@ -3,6 +3,7 @@ import copy,hashlib,json,pathlib
 from datetime import datetime,timezone
 
 from .eodhd_factor_pilot import adjusted_rows
+from .favorite_pattern_tracker import PATTERN_VERSION as FAVORITE_PATTERN_VERSION
 
 SCHEMA_VERSION="1.3.0"
 PRODUCT_VERSION="SV-PRODUCT-V1"
@@ -15,8 +16,15 @@ def _ranked_tracker_rows(tracker):
  return list(tracker.get("macd_buy_top10",[]))
 
 def _favorite_entry_rows(tracker):
- """Only a completed-close entry-ready state becomes a forward signal."""
- return [x for x in tracker.get("favorite_pattern_tracker",{}).get("candidates",[]) if x.get("stage")=="entry_ready"]
+ """Only a strict seven-of-seven completed-close state becomes a forward signal."""
+ rows=[]
+ for row in tracker.get("favorite_pattern_tracker",{}).get("candidates",[]):
+  conditions=row.get("conditions",[])
+  if row.get("stage")!="entry_ready" or row.get("pattern_version")!=FAVORITE_PATTERN_VERSION:continue
+  if row.get("match_count")!=7 or row.get("total_conditions")!=7 or len(conditions)!=7:continue
+  if not all(item.get("hit") is True for item in conditions):continue
+  rows.append(row)
+ return rows
 
 def _factor_by_symbol(snapshot):return {x["symbol"]:{**x,"registry_version":snapshot.get("registry_version")} for x in snapshot.get("symbols",[])}
 
@@ -69,6 +77,8 @@ def _load_rows(symbol,as_of,loader):
  return sorted(out,key=lambda x:x["date"])
 
 def _update_forward(case,as_of,loader):
+ if case.get("audit",{}).get("definition_correction",{}).get("exclude_from_effectiveness"):
+  case["forward"]["status"]="excluded_definition_correction";case["forward"]["data_status"]="excluded_definition_correction";return
  try:rows=_load_rows(case["symbol"],as_of,loader)
  except Exception:
   case["forward"]["data_status"]="unavailable";return
@@ -86,8 +96,20 @@ def _update_forward(case,as_of,loader):
  if len(elapsed)>=max(HORIZONS):case["lifecycle"]="MATURED"
 
 def _active_case(cases,symbol):
- candidates=[x for x in cases if x["symbol"]==symbol]
+ candidates=[x for x in cases if x["symbol"]==symbol and not x.get("audit",{}).get("definition_correction",{}).get("exclude_from_effectiveness")]
  return max(candidates,key=lambda x:x["first_seen_date"]) if candidates else None
+
+def _apply_favorite_definition_correction(case):
+ """Preserve the first live scan while excluding v1.0.0 false entry states."""
+ snapshot=case.get("signal_time_snapshot",{}).get("favorite_pattern") or {}
+ if "favorite_pattern_tracker" not in case.get("initial_source_systems",[]) or snapshot.get("pattern_version")!="favorite-pattern-v1.0.0":return
+ conditions=snapshot.get("conditions",[])
+ compatible=snapshot.get("match_count")==7 and len(conditions)==7 and all(item.get("hit") is True for item in conditions)
+ favorite_only=case.get("initial_source_systems")==["favorite_pattern_tracker"]
+ correction={"corrected_by":FAVORITE_PATTERN_VERSION,"reason":"v1.0.0 mistakenly allowed a 5/7 or 6/7 breakout to become entry_ready","compatible_with_corrected_definition":compatible,"exclude_from_effectiveness":bool(favorite_only and not compatible)}
+ case.setdefault("audit",{})["definition_correction"]=correction
+ if correction["exclude_from_effectiveness"]:
+  case["latest_current_status"]="definition_corrected";case["lifecycle"]="RETIRED_INVALID_DEFINITION"
 
 def _factor_temporal_states(case,factor_row):
  previous={}
@@ -121,9 +143,11 @@ def build(previous,tracker,radar,snapshot,industry,market,as_of,loader=adjusted_
  if any(x.get("as_of")!=as_of for x in (tracker,radar,snapshot,industry)):raise ValueError("Signal inputs must share as_of")
  if previous.get("cases"):validate(previous,previous.get("as_of"))
  cases=copy.deepcopy(previous.get("cases",[]));tracker_rows=_ranked_tracker_rows(tracker);tracker_map={x["symbol"]:x for x in tracker_rows};favorite={x["symbol"]:x for x in _favorite_entry_rows(tracker)};rare={x["symbol"]:x for x in radar.get("signals",[])};factors=_factor_by_symbol(snapshot)
+ for case in cases:_apply_favorite_definition_correction(case)
  current=set(tracker_map)|set(rare)|set(favorite)
  for case in cases:
   if case["observation_mode"]!="production_forward":raise ValueError("Non-forward case in production ledger")
+  if case.get("audit",{}).get("definition_correction",{}).get("exclude_from_effectiveness"):continue
   if case["latest_current_status"]=="current" and case["symbol"] not in current:
    case["absent_sessions"]+=1;case["latest_current_status"]="dropped";case["lifecycle"]="MONITORING"
   elif case["symbol"] not in current:case["absent_sessions"]+=1

@@ -117,6 +117,8 @@ def _legacy_event(case):
     temperature = market.get("market_temperature", {}) or {}
     compact_market = {"state": temperature.get("state"), "score": temperature.get("score"), "as_of": market.get("as_of")}
 
+    definition_correction = case.get("audit", {}).get("definition_correction", {})
+    excluded = bool(definition_correction.get("exclude_from_effectiveness"))
     return {
         "event_id": case["signal_id"],
         "symbol": case["symbol"],
@@ -142,6 +144,8 @@ def _legacy_event(case):
             "timeframe_profile": None,
             "execution_policy_version": None,
             "support_plan": None,
+            "exclude_from_effectiveness": excluded,
+            "definition_correction": definition_correction or None,
         },
         "production_forward": {
             "lifecycle": case.get("lifecycle"),
@@ -155,7 +159,7 @@ def _legacy_event(case):
             "returns": returns,
             "mfe": forward.get("mfe"),
             "mae": forward.get("mae"),
-            "status": forward.get("status", "pending"),
+            "status": "excluded_definition_correction" if excluded else forward.get("status", "pending"),
             "strategy_test": None,
         },
     }
@@ -216,13 +220,15 @@ def _factor_metrics(events):
 
 def _finalize(payload):
     events = payload["events"]
+    eligible_events = [event for event in events if not event["selection"].get("exclude_from_effectiveness")]
     payload["summary"] = {
         "unified_v2_events": sum("unified_v2" in x["source_systems"] for x in events),
         "production_forward_events": sum("production_forward" in x["origins"] for x in events),
-        "pending_or_observing": sum(x["evaluation"]["status"] in {"pending", "observing", "data_unavailable"} for x in events),
-        "by_horizon": {str(h): _horizon_metrics(events, h) for h in HORIZONS},
-        "support_stop_2r": _strategy_metrics(events),
-        "factor_hits_20d": _factor_metrics(events),
+        "excluded_definition_corrections": len(events) - len(eligible_events),
+        "pending_or_observing": sum(x["evaluation"]["status"] in {"pending", "observing", "data_unavailable"} for x in eligible_events),
+        "by_horizon": {str(h): _horizon_metrics(eligible_events, h) for h in HORIZONS},
+        "support_stop_2r": _strategy_metrics(eligible_events),
+        "factor_hits_20d": _factor_metrics(eligible_events),
     }
     payload["content_hash"] = hashlib.sha256(json.dumps({k: v for k, v in payload.items() if k not in {"generated_at", "content_hash"}}, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()
     validate(payload)
@@ -269,6 +275,7 @@ def build(unified, forward, loader):
             "Consecutive daily rankings can contain overlapping signals and are not independent trades.",
             "Raw horizon returns and the support-stop execution experiment are reported separately; old saved batches remain raw-return baselines.",
             "Historical stock-universe and delisting coverage remain incomplete and must be reported before promotion to production weights.",
+            "Events marked exclude_from_effectiveness are retained for audit but omitted from every performance aggregate.",
         ],
         "events": events,
     }

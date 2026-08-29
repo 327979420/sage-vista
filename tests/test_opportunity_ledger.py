@@ -51,6 +51,13 @@ class OpportunityLedgerTests(unittest.TestCase):
         self.assertEqual(event["evaluation"]["entry_date"], "2026-08-26")
         self.assertEqual(restored["summary"]["by_horizon"]["1"]["samples"], 1)
 
+    def test_definition_corrected_event_is_retained_but_excluded_from_metrics(self):
+        case = {"signal_id":"SVP1-BABA-2026-08-26","symbol":"BABA","first_seen_date":"2026-08-26","last_seen_date":"2026-08-26","source_systems":["favorite_pattern_tracker"],"lifecycle":"RETIRED_INVALID_DEFINITION","latest_current_status":"definition_corrected","product_version":"SV-PRODUCT-V1","entry":{"date":"2026-08-27","price":12},"signal_time_snapshot":{"technical":{},"multi_factor":{},"industry":{"themes":[]},"market":{}},"forward":{"elapsed_sessions":1,"returns":{"1":.2},"mfe":.2,"mae":0,"status":"excluded_definition_correction"},"audit":{"definition_correction":{"exclude_from_effectiveness":True}}}
+        report=build({"version":"empty","coverage":{"end":"2026-08-27"},"days":[]},{"as_of":"2026-08-27","cases":[case]},lambda _:ROWS)
+        self.assertEqual(len(report["events"]),1)
+        self.assertEqual(report["summary"]["excluded_definition_corrections"],1)
+        self.assertEqual(report["summary"]["by_horizon"]["1"]["samples"],0)
+
 
 if __name__ == "__main__":
     unittest.main()

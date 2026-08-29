@@ -1,7 +1,7 @@
 import copy,json,unittest
 from datetime import date,timedelta
 
-from services.scanner.signal_history import RESET_SESSIONS,build
+from services.scanner.signal_history import RESET_SESSIONS,_immutable_fingerprint,build
 
 def inputs(day="2026-08-26",symbols=("PG",),rare=()):
  rows=[{"symbol":s,"ranking_score":70,"combined_score":10,"confluence_label":"机会","ranking_direction":"buy","rank_reason":"existing rank"} for s in symbols]
@@ -82,7 +82,8 @@ class SignalHistoryTests(unittest.TestCase):
 
  def test_only_entry_ready_favorite_pattern_enters_forward_history(self):
   tracker,radar,factors,industry,market=inputs(symbols=())
-  tracker["favorite_pattern_tracker"]={"candidates":[{"symbol":"BABA","stage":"entry_ready","pattern_version":"favorite-pattern-v1.0.0","match_count":7,"conditions":[],"trade_map":{"target_previous_high":145},"prior_advance":{},"pullback":{},"double_bottom":{},"second_bottom_macd":{},"three_push":{},"ema_realign":{}}]}
+  conditions=[{"id":str(index),"hit":True} for index in range(7)]
+  tracker["favorite_pattern_tracker"]={"candidates":[{"symbol":"BABA","stage":"entry_ready","pattern_version":"favorite-pattern-v1.0.1","match_count":7,"total_conditions":7,"conditions":conditions,"trade_map":{"target_previous_high":145},"prior_advance":{},"pullback":{},"double_bottom":{},"second_bottom_macd":{},"three_push":{},"ema_realign":{}}]}
   factors["symbols"].append({"symbol":"BABA","scoring":{"official_score":0,"experimental_observational_score":0,"score_contributions":[]},"factors":[]})
   result=build({},tracker,radar,factors,industry,market,"2026-08-26",loader=lambda _:rows_through(1))
   self.assertEqual(len(result["cases"]),1)
@@ -92,5 +93,25 @@ class SignalHistoryTests(unittest.TestCase):
   tracker["favorite_pattern_tracker"]["candidates"][0]["stage"]="waiting_breakout"
   second=build({},tracker,radar,factors,industry,market,"2026-08-26",loader=lambda _:rows_through(1))
   self.assertEqual(second["cases"],[])
+
+ def test_incomplete_old_favorite_signal_is_retained_but_excluded(self):
+  tracker,radar,factors,industry,market=inputs(symbols=())
+  conditions=[{"id":str(index),"hit":index<6} for index in range(7)]
+  tracker["favorite_pattern_tracker"]={"candidates":[{"symbol":"BABA","stage":"entry_ready","pattern_version":"favorite-pattern-v1.0.0","match_count":6,"total_conditions":7,"conditions":conditions,"trade_map":{},"prior_advance":{},"pullback":{},"double_bottom":{},"second_bottom_macd":{},"three_push":{},"ema_realign":{}}]}
+  factors["symbols"].append({"symbol":"BABA","scoring":{"official_score":0,"experimental_observational_score":0,"score_contributions":[]},"factors":[]})
+  tracker["favorite_pattern_tracker"]["candidates"][0]["pattern_version"]="favorite-pattern-v1.0.1"
+  tracker["favorite_pattern_tracker"]["candidates"][0]["match_count"]=7
+  tracker["favorite_pattern_tracker"]["candidates"][0]["conditions"]=[{"id":str(index),"hit":True} for index in range(7)]
+  old=build({},tracker,radar,factors,industry,market,"2026-08-26",loader=lambda _:rows_through(1))
+  snapshot=old["cases"][0]["signal_time_snapshot"]["favorite_pattern"]
+  snapshot["pattern_version"]="favorite-pattern-v1.0.0";snapshot["match_count"]=6;snapshot["conditions"]=conditions
+  old["cases"][0]["immutable_fingerprint"]=_immutable_fingerprint(old["cases"][0])
+  strict_tracker={"as_of":"2026-08-27","macd_buy_top10":[],"favorite_pattern_tracker":{"candidates":[]}}
+  strict_radar={"as_of":"2026-08-27","signals":[]};strict_factors={"as_of":"2026-08-27","registry_version":"1.0","symbols":[]};strict_industry={"as_of":"2026-08-27","membership_version":"themes-v1","classification_snapshot":{"effective_from":"2026-08-27"},"classification_by_ticker":{},"themes":[],"ticker_context":{}}
+  corrected=build(old,strict_tracker,strict_radar,strict_factors,strict_industry,{"as_of":"2026-08-27","market_temperature":{"state":"normal"}},"2026-08-27",loader=lambda _:rows_through(2))
+  case=corrected["cases"][0]
+  self.assertEqual(case["latest_current_status"],"definition_corrected")
+  self.assertTrue(case["audit"]["definition_correction"]["exclude_from_effectiveness"])
+  self.assertEqual(case["forward"]["status"],"excluded_definition_correction")
 
 if __name__=="__main__":unittest.main()

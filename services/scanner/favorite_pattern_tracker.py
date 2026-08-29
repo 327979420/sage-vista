@@ -11,7 +11,7 @@ from collections import Counter
 from .technical import ema, macd
 
 
-PATTERN_VERSION = "favorite-pattern-v1.0.0"
+PATTERN_VERSION = "favorite-pattern-v1.0.1"
 EXPERIMENT_ID = "favorite-pattern-tracker-v1.0.0-2026-08-29"
 REFERENCE_CASES = {
     "BABA": "定义案例：前段上涨后深回调，在Golden Pocket／EMA200附近形成宽双底，再由二底MACD、三推突破和EMA重排共振。",
@@ -22,6 +22,7 @@ STAGE_ORDER = {
     "launched": 6,
     "target_reached": 5,
     "waiting_breakout": 4,
+    "breakout_incomplete": 3,
     "bottom_confirmed": 3,
     "pullback_forming": 2,
     "discovery": 1,
@@ -33,6 +34,7 @@ STAGE_ZH = {
     "launched": "突破后跟踪",
     "target_reached": "已到前高目标",
     "waiting_breakout": "等待突破",
+    "breakout_incomplete": "已突破但条件不完整",
     "bottom_confirmed": "双底已确认",
     "pullback_forming": "回调形成中",
     "discovery": "早期发现",
@@ -264,17 +266,21 @@ def evaluate(rows, include_chart=False):
     invalidated = bool(bottom and bottom["invalidated"])
     bars_since_breakout = three_push["bars_since_breakout"] if breakout else None
     current_above_breakout = bool(breakout and closes[end] >= three_push["current_line"])
+    complete = all(item["hit"] for item in conditions)
+    structure_waiting = bool(impulse and location_support and bottom and macd_cross_index is not None and three_push)
     if invalidated:
         stage = "invalidated"
-    elif target_reached:
+    elif complete and target_reached:
         stage = "target_reached"
-    elif breakout and ema_realigned and macd_cross_index is not None and bars_since_breakout is not None and bars_since_breakout <= 5:
+    elif complete and bars_since_breakout is not None and bars_since_breakout <= 5:
         stage = "entry_ready"
-    elif breakout and current_above_breakout and bars_since_breakout is not None and bars_since_breakout <= 60:
+    elif complete and current_above_breakout:
         stage = "launched"
-    elif bottom and three_push and macd_cross_index is not None:
+    elif breakout:
+        stage = "breakout_incomplete"
+    elif structure_waiting:
         stage = "waiting_breakout"
-    elif bottom:
+    elif impulse and location_support and bottom:
         stage = "bottom_confirmed"
     elif impulse and location_support:
         stage = "pullback_forming"
@@ -291,6 +297,7 @@ def evaluate(rows, include_chart=False):
         "launched": "已经突破，继续跟踪是否守住趋势线；不是追高提示。",
         "target_reached": "已经触及前段高点目标，记录结果，不再当作新入场。",
         "waiting_breakout": "双底和二底MACD已有，只等待完整收盘突破；盘中刺穿不行动。",
+        "breakout_incomplete": "价格已经突破，但至少缺少一项核心位置或结构条件；不归入场就绪，也不进入前向信号。",
         "bottom_confirmed": "双底已确认，但三推／MACD／均线证据尚未齐，不急着买。",
         "pullback_forming": "回调位置接近模板，等待第二底和动能确认。",
         "discovery": "只命中少量早期条件，暂不行动。",
@@ -342,7 +349,7 @@ def evaluate(rows, include_chart=False):
 
 
 def should_publish(pattern, symbol=None):
-    return bool(pattern.get("available") and (pattern.get("match_count", 0) >= 4 or symbol in REFERENCE_CASES))
+    return bool(pattern.get("available") and (pattern.get("stage") not in {"discovery", "invalidated"} or symbol in REFERENCE_CASES))
 
 
 def build_report(candidates, as_of):
@@ -377,10 +384,11 @@ def build_report(candidates, as_of):
             "watchlist": len(rows),
             "entry_ready": watch_counts["entry_ready"],
             "waiting_breakout": watch_counts["waiting_breakout"],
+            "breakout_incomplete": watch_counts["breakout_incomplete"],
             "forming": watch_counts["pullback_forming"] + watch_counts["bottom_confirmed"],
             "launched": watch_counts["launched"],
         },
-        "stage_order": ["pullback_forming", "bottom_confirmed", "waiting_breakout", "entry_ready", "launched", "target_reached"],
+        "stage_order": ["pullback_forming", "bottom_confirmed", "waiting_breakout", "breakout_incomplete", "entry_ready", "launched", "target_reached"],
         "stage_labels": STAGE_ZH,
         "candidates": selected,
         "reference_cases": [reference_map[symbol] for symbol in REFERENCE_CASES],
@@ -393,5 +401,5 @@ def build_report(candidates, as_of):
             "minimum_months": 6,
             "minimum_market_states": 3,
         },
-        "warning_zh": "7项匹配度只表示形态完成度，不是上涨概率；形成中和等待突破都不是买入信号。",
+        "warning_zh": "只有7/7才是入场就绪；6/7即使已突破也只观察。匹配度只表示形态完成度，不是上涨概率。",
     }
