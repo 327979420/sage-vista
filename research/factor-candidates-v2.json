@@ -9,9 +9,14 @@
     "status": "completed_research_only",
     "retain_for_shadow": [],
     "future_zero_weight_observations": [
-      "momentum.connors_rsi_3_2_100",
       "regime.choppiness_14"
     ],
+    "paired_ab_followup": {
+      "experiment_id": "connors-choppiness-paired-ab-v1.0.0-2026-08-29",
+      "connors_rsi": "drop_positive_candidate",
+      "choppiness": "forward_observe_at_weight_0",
+      "combination": "sample_insufficient_no_weight"
+    },
     "future_risk_penalty_shadow": {
       "candidate_id": "volatility.squeeze_ratio_20",
       "condition": ">= 1.6751",

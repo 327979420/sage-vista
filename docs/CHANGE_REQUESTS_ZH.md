@@ -27,6 +27,18 @@
 
 ## 当前条目
 
+### CR-2026-08-29-011｜把Connors RSI与Choppiness继续做配对四组实验
+
+- 用户原意：不要反复复述“因子不行”；候选因子应继续逐步优化，用对照实验判断两个候选单独和组合是否真有增量。
+- 状态：`implemented`；四组、五个对照、点时匹配、全样本指标、BH校正与永久结果均已完成，生产权重不变。
+- 主模块：`docs/rules/08_BACKTEST_AND_EXPERIMENTS.md`。
+- 联动模块：`docs/rules/03_FACTOR_MODEL.md`；若未来真正未见前向通过，再另行联动`04_SCORING.md`。
+- 规则先行：因子规则`1.4.2`、回测规则`1.8.2`；预登记为`research/preregistrations/connors-choppiness-paired-ab-v1.md`。
+- 实验：`connors-choppiness-paired-ab-v1.0.0-2026-08-29`。A为Connors RSI低尾，B为Choppiness高尾；比较none、A-only、B-only、both，并做处理—对照点时匹配。
+- 科学边界：阈值由已见数据产生，本轮历史结果只检验交互结构；2025/2026不得冒充独立验证，生产权重不自动改变。
+- 结果：A-only不稳定，取消Connors RSI正向候选；B-only在三段的稳健收益、PF和配对收益差均为正，但BH未通过，Choppiness继续0分前向观察。both原始结果较强，但2025/2026仅88/51例，且配对后没有稳定超过B-only，因此不增加组合权重。
+- 产物：`research/backtest/output/connors-choppiness-paired-ab-v1.json`；可复用计算器为`research/backtest/connors_choppiness_paired_ab_v1.py`。
+
 ### CR-2026-08-29-010｜建立可复用的外部因子与配对对照实验室
 
 - 用户原意：不要只记录零散灵感或重复“赢家涨得多、输家跌得多”；参考成熟开源量化项目，结合“长期上涨后回调、日线MACD金叉确认”的实际需求找到新因子，并用赢家与相似失败样本的对照实验判断哪些因子有用、哪些无用，最终服务因子与权重优化。

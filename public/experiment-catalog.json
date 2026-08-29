@@ -1,16 +1,16 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-08-29T18:38:09+10:00",
+  "generated_at": "2026-08-29T18:46:54+10:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 27,
+  "experiment_count": 28,
   "summary": {
-    "completed": 23,
+    "completed": 24,
     "in_progress": 4,
-    "candidate": 9,
+    "candidate": 10,
     "not_validated_or_unstable": 10
   },
   "policy": {
@@ -21,6 +21,116 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "connors-choppiness-paired-ab-v1.0.0-2026-08-29",
+      "created_at": "2026-08-29T18:42:40+10:00",
+      "status": "completed_research_only",
+      "change": "Continue optimization instead of repeating the broad null result: test low Connors RSI and high Choppiness as a frozen 2x2 design with point-in-time matched controls.",
+      "coverage": "13,074 mature 120-session-deduplicated events from 2001-10-01 through 2026-07-31; 10,013 development, 1,895 seen-2025 and 1,166 seen-2026 events; reused 27 annual feature checkpoints without downloading market data.",
+      "specification": {
+        "A": "momentum.connors_rsi_3_2_100 <= 67.719304",
+        "B": "regime.choppiness_14 >= 58.814226",
+        "groups": [
+          "none",
+          "A_only",
+          "B_only",
+          "both"
+        ],
+        "contrasts": [
+          "A_only vs none",
+          "B_only vs none",
+          "both vs none",
+          "both vs A_only",
+          "both vs B_only"
+        ],
+        "matching_covariates": [
+          "archived current technical score",
+          "pre-signal 20-session return",
+          "60-session pullback",
+          "ATR14 as percentage of price"
+        ],
+        "primary_horizon_sessions": 20,
+        "sensitivity_horizons": [
+          5,
+          10,
+          40,
+          60
+        ],
+        "periods": [
+          "development_2001_2024",
+          "seen_2025",
+          "seen_2026"
+        ],
+        "minimum_group_samples": 100,
+        "multiple_testing": "Benjamini-Hochberg across five contrasts"
+      },
+      "success_criteria": "A single factor must beat none on trimmed mean and PF in every period with aligned matched-return differences. The both group must also beat none, A-only and B-only in every period. Because thresholds and 2025/2026 were already seen, any historical pass remains shadow-only until new events after 2026-08-29.",
+      "result": "Connors RSI A-only failed: development PF delta was -0.024 and 2025 trimmed-return delta was -0.032 percentage points, so it is removed from the positive candidate queue. Choppiness B-only kept positive trimmed-return/PF deltas in development, seen-2025 and seen-2026: +0.087/+0.013, +1.154/+0.327 and +1.148/+0.305; matched trimmed-return differences were also positive, but BH-adjusted evidence did not pass, so B remains a zero-weight forward observation. The both group looked stronger than none in raw results but had only 88/51 events in 2025/2026 and did not consistently beat B-only after matching; no combination weight is justified.",
+      "decision": "Drop A as a standalone positive candidate; keep B at research weight 0 for new forward events; keep the A+B combination unweighted until adequate unseen samples exist. Production model 1.3.0 remains unchanged.",
+      "artifacts": {
+        "compact_result": "research/backtest/output/connors-choppiness-paired-ab-v1.json",
+        "implementation": "research/backtest/connors_choppiness_paired_ab_v1.py",
+        "preregistration": "research/preregistrations/connors-choppiness-paired-ab-v1.md"
+      },
+      "known_limitations": [
+        "thresholds were generated after reviewing historical and seen-period data",
+        "2019 onward universe coverage expands materially",
+        "matching cannot prove causality",
+        "both-group seen-period samples are below 100",
+        "event-level results are not a capital-constrained portfolio"
+      ],
+      "human_summary": {
+        "title_zh": "Connors RSI × Choppiness配对四组实验",
+        "family": "scoring",
+        "family_zh": "策略优化",
+        "question_zh": "两个方向性候选各自有用，还是只有同时命中才有额外价值？",
+        "result_zh": "Connors RSI单独组不稳定，取消正向候选。Choppiness单独组在开发/2025/2026的20日稳健收益增量为+0.09/+1.15/+1.15个百分点，PF增量+0.013/+0.327/+0.305，配对方向也为正，但多重比较未通过。两者同时命中原始表现更强，不过2025/2026仅88/51例，配对后没有稳定超过Choppiness单因子。",
+        "use_zh": "Connors RSI不加分；Choppiness保留0分前向观察；组合不加权。生产模型1.3.0不变。",
+        "next_zh": "只追踪2026-08-29之后Choppiness命中与none的真实前向差异；A+B至少积累每段100例后再复核。",
+        "verdict": "candidate"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-29T18:42:40+10:00",
+        "started_at": "2026-08-29T18:45:49+10:00",
+        "completed_at": "2026-08-29T18:46:54+10:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-08-29T18:46:54+10:00",
+        "time_source": "local_reuse_of_archived_annual_features",
+        "event_count": 3,
+        "events": [
+          {
+            "experiment_id": "connors-choppiness-paired-ab-v1.0.0-2026-08-29",
+            "event": "registered",
+            "event_at": "2026-08-29T18:42:40+10:00",
+            "time_source": "user_approved_local_preregistration",
+            "source_ref": "research/preregistrations/connors-choppiness-paired-ab-v1.md",
+            "result": "Frozen two candidate thresholds, four mutually exclusive groups, five contrasts, matched-control covariates, minimum samples and no-production-change boundary before calculation."
+          },
+          {
+            "experiment_id": "connors-choppiness-paired-ab-v1.0.0-2026-08-29",
+            "event": "started",
+            "event_at": "2026-08-29T18:45:49+10:00",
+            "time_source": "local_reuse_of_archived_annual_features",
+            "source_ref": "research/backtest/connors_choppiness_paired_ab_v1.py",
+            "result": "Started the frozen four-group and five-contrast calculation from 27 already archived annual point-in-time feature checkpoints."
+          },
+          {
+            "experiment_id": "connors-choppiness-paired-ab-v1.0.0-2026-08-29",
+            "event": "completed",
+            "event_at": "2026-08-29T18:46:54+10:00",
+            "time_source": "local_reuse_of_archived_annual_features",
+            "source_ref": "research/backtest/output/connors-choppiness-paired-ab-v1.json",
+            "coverage": {
+              "primary_events": 13074,
+              "development": 10013,
+              "seen_2025": 1895,
+              "seen_2026": 1166
+            },
+            "result": "A-only was rejected, B-only retained directional but multiplicity-insufficient evidence, and A+B was sample-insufficient and failed to consistently beat B-only after matching. No production weight changed."
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "factor-strategy-lab-v2.0.0-2026-08-29",
       "created_at": "2026-08-29T18:17:04+10:00",
@@ -1926,6 +2036,7 @@
     ]
   },
   "unlinked_experiment_ids": [
+    "connors-choppiness-paired-ab-v1.0.0-2026-08-29",
     "core-factor-backtest-v1.0.0-2026-08-27",
     "evidence-calibrated-daily-score-v1.0.0-2026-08-29",
     "exit-score-v0.1.0-2026-08-28",
