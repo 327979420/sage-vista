@@ -155,6 +155,28 @@ class CandidateSeries:
         percent_rank = 100 * sum(value < current for value in returns) / len(returns)
         return statistics.fmean((self.close_rsi3[index], self.streak_rsi2[index], percent_rank))
 
+    def choppiness_at_index(self, index: int, period: int = 14) -> float | None:
+        """Return point-in-time Choppiness using only rows through ``index``."""
+        if index < period - 1 or index >= len(self.rows):
+            return None
+        start = index - period + 1
+        highest = max(self.highs[start:index + 1])
+        lowest = min(self.lows[start:index + 1])
+        true_range = sum(self.true_ranges[start:index + 1])
+        return (
+            100 * math.log10(true_range / (highest - lowest)) / math.log10(period)
+            if highest > lowest and true_range > 0 else None
+        )
+
+    def choppiness_change(self, signal_date: str, sessions: int, period: int = 14) -> float | None:
+        """Current Choppiness minus its value ``sessions`` completed rows ago."""
+        index = self.index.get(signal_date)
+        if index is None or index < sessions:
+            return None
+        current = self.choppiness_at_index(index, period)
+        prior = self.choppiness_at_index(index - sessions, period)
+        return current - prior if finite(current) and finite(prior) else None
+
     def technical(self, signal_date: str) -> tuple[dict[str, float | None], dict[str, float | None], dict[str, float | None]]:
         index = self.index.get(signal_date)
         empty = {candidate_id: None for candidate_id in CANDIDATES}
@@ -196,13 +218,7 @@ class CandidateSeries:
             total_volume += volume
         cmf = money_flow / total_volume if total_volume else None
 
-        high14 = max(self.highs[index - 13:index + 1])
-        low14 = min(self.lows[index - 13:index + 1])
-        tr14 = sum(self.true_ranges[index - 13:index + 1])
-        choppiness = (
-            100 * math.log10(tr14 / (high14 - low14)) / math.log10(14)
-            if high14 > low14 and tr14 > 0 else None
-        )
+        choppiness = self.choppiness_at_index(index)
 
         standard_deviation = statistics.pstdev(closes20)
         bollinger_width = 4 * standard_deviation
