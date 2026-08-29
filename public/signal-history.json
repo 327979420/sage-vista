@@ -1,7 +1,7 @@
 {
-  "signal_schema_version": "1.3.1",
+  "signal_schema_version": "1.3.2",
   "as_of": "2026-08-28",
-  "generated_at": "2026-08-29T17:07:01.541472+00:00",
+  "generated_at": "2026-08-29T17:21:54.266588+00:00",
   "observation_mode": "production_forward",
   "future_data_used": false,
   "reset_rule": {
@@ -27,7 +27,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-24",
       "days_active": 1,
-      "absent_sessions": 9,
+      "absent_sessions": 10,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -1533,7 +1533,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-24",
       "days_active": 1,
-      "absent_sessions": 9,
+      "absent_sessions": 10,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -2669,7 +2669,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-24",
       "days_active": 1,
-      "absent_sessions": 9,
+      "absent_sessions": 10,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -4113,7 +4113,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-26",
       "days_active": 3,
-      "absent_sessions": 9,
+      "absent_sessions": 10,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -5389,7 +5389,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-24",
       "days_active": 1,
-      "absent_sessions": 9,
+      "absent_sessions": 10,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -6833,7 +6833,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-25",
       "days_active": 2,
-      "absent_sessions": 9,
+      "absent_sessions": 10,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -8358,7 +8358,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-25",
       "days_active": 2,
-      "absent_sessions": 9,
+      "absent_sessions": 10,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -9872,7 +9872,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-25",
       "days_active": 2,
-      "absent_sessions": 9,
+      "absent_sessions": 10,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -11386,7 +11386,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-27",
       "days_active": 4,
-      "absent_sessions": 7,
+      "absent_sessions": 8,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -12698,7 +12698,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-24",
       "days_active": 1,
-      "absent_sessions": 9,
+      "absent_sessions": 10,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -14165,7 +14165,7 @@
       "first_seen_date": "2026-08-25",
       "last_seen_date": "2026-08-26",
       "days_active": 2,
-      "absent_sessions": 9,
+      "absent_sessions": 10,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -15371,7 +15371,7 @@
       "first_seen_date": "2026-08-25",
       "last_seen_date": "2026-08-26",
       "days_active": 2,
-      "absent_sessions": 9,
+      "absent_sessions": 10,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -16599,7 +16599,7 @@
       "symbol": "AEO",
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-28",
-      "days_active": 10,
+      "days_active": 11,
       "absent_sessions": 0,
       "lifecycle": "ACTIVE",
       "initial_source_systems": [
@@ -18849,7 +18849,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-26",
       "days_active": 2,
-      "absent_sessions": 8,
+      "absent_sessions": 9,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -20911,7 +20911,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-27",
       "days_active": 5,
-      "absent_sessions": 5,
+      "absent_sessions": 6,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "technical_tracker"
@@ -23181,7 +23181,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-26",
       "days_active": 1,
-      "absent_sessions": 9,
+      "absent_sessions": 10,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -24317,7 +24317,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-26",
       "days_active": 1,
-      "absent_sessions": 9,
+      "absent_sessions": 10,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -25453,7 +25453,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-26",
       "days_active": 1,
-      "absent_sessions": 9,
+      "absent_sessions": 10,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "technical_tracker"
@@ -27534,7 +27534,7 @@
       "symbol": "EDU",
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-28",
-      "days_active": 10,
+      "days_active": 11,
       "absent_sessions": 0,
       "lifecycle": "ACTIVE",
       "initial_source_systems": [
@@ -29729,7 +29729,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-26",
       "days_active": 2,
-      "absent_sessions": 8,
+      "absent_sessions": 9,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "technical_tracker"
@@ -31979,7 +31979,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-26",
       "days_active": 2,
-      "absent_sessions": 8,
+      "absent_sessions": 9,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "technical_tracker"
@@ -34197,7 +34197,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-26",
       "days_active": 1,
-      "absent_sessions": 9,
+      "absent_sessions": 10,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -35333,7 +35333,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-27",
       "days_active": 3,
-      "absent_sessions": 7,
+      "absent_sessions": 8,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -37406,7 +37406,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-26",
       "days_active": 2,
-      "absent_sessions": 8,
+      "absent_sessions": 9,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "technical_tracker"
@@ -39543,7 +39543,7 @@
       "symbol": "QDEL",
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-28",
-      "days_active": 9,
+      "days_active": 10,
       "absent_sessions": 0,
       "lifecycle": "ACTIVE",
       "initial_source_systems": [
@@ -42030,7 +42030,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-26",
       "days_active": 1,
-      "absent_sessions": 9,
+      "absent_sessions": 10,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -43166,7 +43166,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-27",
       "days_active": 5,
-      "absent_sessions": 5,
+      "absent_sessions": 6,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "technical_tracker"
@@ -45314,7 +45314,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-27",
       "days_active": 5,
-      "absent_sessions": 5,
+      "absent_sessions": 6,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "technical_tracker"
@@ -47594,7 +47594,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-27",
       "days_active": 5,
-      "absent_sessions": 5,
+      "absent_sessions": 6,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "technical_tracker"
@@ -49700,7 +49700,7 @@
       "symbol": "BRKR",
       "first_seen_date": "2026-08-27",
       "last_seen_date": "2026-08-28",
-      "days_active": 8,
+      "days_active": 9,
       "absent_sessions": 0,
       "lifecycle": "ACTIVE",
       "initial_source_systems": [
@@ -51832,7 +51832,7 @@
       "first_seen_date": "2026-08-27",
       "last_seen_date": "2026-08-27",
       "days_active": 3,
-      "absent_sessions": 5,
+      "absent_sessions": 6,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -54053,7 +54053,7 @@
       "symbol": "LUMN",
       "first_seen_date": "2026-08-27",
       "last_seen_date": "2026-08-28",
-      "days_active": 8,
+      "days_active": 9,
       "absent_sessions": 0,
       "lifecycle": "ACTIVE",
       "initial_source_systems": [
@@ -56318,7 +56318,7 @@
       "symbol": "TTD",
       "first_seen_date": "2026-08-27",
       "last_seen_date": "2026-08-28",
-      "days_active": 8,
+      "days_active": 9,
       "absent_sessions": 0,
       "lifecycle": "ACTIVE",
       "initial_source_systems": [
@@ -58622,7 +58622,7 @@
       "symbol": "ASAN",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 5,
+      "days_active": 6,
       "absent_sessions": 0,
       "lifecycle": "ACTIVE",
       "initial_source_systems": [
@@ -59316,7 +59316,209 @@
               "趋势、广度和信用风险偏好分开保存，便于后续逐层回测",
               "V1五项评分暂时保持不变，研究验证后才允许建立新版本"
             ]
+          },
+          "favorite_pattern": {
+            "stage": "entry_ready",
+            "match_count": 7,
+            "pattern_version": "favorite-pattern-v2.0.0"
           }
+        }
+      ],
+      "source_activations": [
+        {
+          "activation_id": "favorite_pattern_tracker:favorite-pattern-v2.0.0",
+          "source_system": "favorite_pattern_tracker",
+          "activation_date": "2026-08-28",
+          "definition_version": "favorite-pattern-v2.0.0",
+          "snapshot": {
+            "pattern_version": "favorite-pattern-v2.0.0",
+            "stage": "entry_ready",
+            "match_count": 7,
+            "conditions": [
+              {
+                "id": "prior_advance_or_turn",
+                "label": "前段上涨／日线转强背景",
+                "hit": true
+              },
+              {
+                "id": "first_bottom_structure",
+                "label": "第一段局部双底／三底",
+                "hit": true
+              },
+              {
+                "id": "first_three_push_breakout",
+                "label": "第一段三推收盘突破",
+                "hit": true
+              },
+              {
+                "id": "first_momentum_trend_turn",
+                "label": "第一段MACD＋EMA趋势转变",
+                "hit": true
+              },
+              {
+                "id": "independent_reset",
+                "label": "真实回调与动能重置",
+                "hit": true
+              },
+              {
+                "id": "second_bottom_or_retest",
+                "label": "新的W底／回踩确认",
+                "hit": true
+              },
+              {
+                "id": "second_reacceleration",
+                "label": "二次突破＋MACD＋EMA转强",
+                "hit": true
+              }
+            ],
+            "prior_advance": {
+              "low_index": 1290,
+              "high_index": 1304,
+              "low_date": "11/18/2025",
+              "high_date": "12/09/2025",
+              "low": 11.59,
+              "high": 15.28,
+              "advance_pct": 31.84,
+              "span_sessions": 14
+            },
+            "pullback": {
+              "retracement_pct": 58.08,
+              "golden_pocket": true,
+              "ema200_support": false,
+              "ema200_nearest_distance_pct": 15.9
+            },
+            "double_bottom": {
+              "first_index": 1475,
+              "second_index": 1482,
+              "first_date": "08/17/2026",
+              "second_date": "08/26/2026",
+              "first_price": 8.71,
+              "second_price": 9.01,
+              "separation_sessions": 7,
+              "spread_pct": 3.33,
+              "neckline": 9.89,
+              "invalidation": 8.44,
+              "invalidated": false
+            },
+            "second_bottom_macd": {
+              "hit": true,
+              "cross_date": "08/27/2026",
+              "distance_from_second_bottom_sessions": 1
+            },
+            "three_push": {
+              "high_indices": [
+                1363,
+                1433,
+                1443
+              ],
+              "high_dates": [
+                "03/06/2026",
+                "06/16/2026",
+                "07/01/2026"
+              ],
+              "high_prices": [
+                8.2,
+                7.7,
+                7.58
+              ],
+              "slope_per_session": -0.007687,
+              "current_line": 7.39,
+              "breakout_index": 1450,
+              "breakout_date": "07/13/2026",
+              "breakout_close": 7.69,
+              "breakout_level": 7.53,
+              "bars_since_breakout": 19
+            },
+            "ema_realign": {
+              "hit": true,
+              "cross_date": null,
+              "strength_date": "08/27/2026",
+              "full_alignment": true,
+              "ema20": 9.25,
+              "ema50": 8.48,
+              "ema200": 9.13
+            },
+            "sequence": {
+              "first_confirmation_date": "07/13/2026",
+              "first_bottom": {
+                "first_index": 1401,
+                "second_index": 1439,
+                "first_date": "04/30/2026",
+                "second_date": "06/25/2026",
+                "first_price": 6.08,
+                "second_price": 6.21,
+                "separation_sessions": 38,
+                "spread_pct": 2.12,
+                "neckline": 9.34,
+                "invalidation": 5.85,
+                "invalidated": false
+              },
+              "first_macd_date": "07/06/2026",
+              "first_ema_cross_date": "07/01/2026",
+              "reset_drawdown_pct": 11.93,
+              "macd_reset": true,
+              "second_bottom": {
+                "first_index": 1475,
+                "second_index": 1482,
+                "first_date": "08/17/2026",
+                "second_date": "08/26/2026",
+                "first_price": 8.71,
+                "second_price": 9.01,
+                "separation_sessions": 7,
+                "spread_pct": 3.33,
+                "neckline": 9.89,
+                "invalidation": 8.44,
+                "invalidated": false
+              },
+              "second_breakout_date": "08/27/2026",
+              "second_macd_date": "08/27/2026",
+              "ema_strength_date": "08/27/2026",
+              "full_alignment_date": null,
+              "completion_date": "08/27/2026"
+            },
+            "risk_gate": {
+              "clear": true,
+              "blocked": false,
+              "reasons_zh": [],
+              "unresolved_pressure_rounds": 0,
+              "pressure_events": [],
+              "multi_top": {
+                "dates": [
+                  "08/13/2026",
+                  "08/14/2026",
+                  "08/24/2026"
+                ],
+                "prices": [
+                  9.88,
+                  9.88,
+                  9.89
+                ],
+                "zone_low": 9.88,
+                "zone_high": 9.89
+              },
+              "top_exhaustion": [
+                {
+                  "doji_date": "07/21/2026",
+                  "confirmation_date": "07/22/2026"
+                }
+              ],
+              "ema_weak": false
+            },
+            "legacy_v1": {
+              "pattern_version": "favorite-pattern-v1.0.1",
+              "stage": "bottom_confirmed",
+              "match_count": 4,
+              "total_conditions": 7
+            },
+            "trade_map": {
+              "signal_close": 10.17,
+              "earliest_entry": "next_trading_day_adjusted_open",
+              "target_previous_high": 9.88,
+              "invalidation_second_bottom": 8.44,
+              "estimated_reward_risk": null
+            }
+          },
+          "immutable_fingerprint": "cc8682ec52b6d2fd31688ea77a193956b04cf34c60e953367ea6b9597a90f6a3"
         }
       ]
     },
@@ -59329,9 +59531,9 @@
       "symbol": "AZN",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 1,
+      "days_active": 2,
       "absent_sessions": 0,
-      "lifecycle": "NEW",
+      "lifecycle": "ACTIVE",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
@@ -60150,6 +60352,198 @@
             ]
           }
         }
+      ],
+      "source_activations": [
+        {
+          "activation_id": "favorite_pattern_tracker:favorite-pattern-v2.0.0",
+          "source_system": "favorite_pattern_tracker",
+          "activation_date": "2026-08-28",
+          "definition_version": "favorite-pattern-v2.0.0",
+          "snapshot": {
+            "pattern_version": "favorite-pattern-v2.0.0",
+            "stage": "entry_ready",
+            "match_count": 7,
+            "conditions": [
+              {
+                "id": "prior_advance_or_turn",
+                "label": "前段上涨／日线转强背景",
+                "hit": true
+              },
+              {
+                "id": "first_bottom_structure",
+                "label": "第一段局部双底／三底",
+                "hit": true
+              },
+              {
+                "id": "first_three_push_breakout",
+                "label": "第一段三推收盘突破",
+                "hit": true
+              },
+              {
+                "id": "first_momentum_trend_turn",
+                "label": "第一段MACD＋EMA趋势转变",
+                "hit": true
+              },
+              {
+                "id": "independent_reset",
+                "label": "真实回调与动能重置",
+                "hit": true
+              },
+              {
+                "id": "second_bottom_or_retest",
+                "label": "新的W底／回踩确认",
+                "hit": true
+              },
+              {
+                "id": "second_reacceleration",
+                "label": "二次突破＋MACD＋EMA转强",
+                "hit": true
+              }
+            ],
+            "prior_advance": {
+              "low_index": 1920,
+              "high_index": 2066,
+              "low_date": "07/21/2025",
+              "high_date": "02/18/2026",
+              "low": 133.97,
+              "high": 209.11,
+              "advance_pct": 56.09,
+              "span_sessions": 146
+            },
+            "pullback": {
+              "retracement_pct": 72.64,
+              "golden_pocket": false,
+              "ema200_support": false,
+              "ema200_nearest_distance_pct": 8.7
+            },
+            "double_bottom": {
+              "first_index": 2180,
+              "second_index": 2189,
+              "first_date": "08/03/2026",
+              "second_date": "08/14/2026",
+              "first_price": 152.4,
+              "second_price": 154.53,
+              "separation_sessions": 9,
+              "spread_pct": 1.39,
+              "neckline": 163.37,
+              "invalidation": 150.28,
+              "invalidated": false
+            },
+            "second_bottom_macd": {
+              "hit": true,
+              "cross_date": "08/18/2026",
+              "distance_from_second_bottom_sessions": 2
+            },
+            "three_push": {
+              "high_indices": [
+                2085,
+                2116,
+                2172
+              ],
+              "high_dates": [
+                "03/17/2026",
+                "04/30/2026",
+                "07/22/2026"
+              ],
+              "high_prices": [
+                192.68,
+                188.75,
+                169.77
+              ],
+              "slope_per_session": -0.263427,
+              "current_line": 167.66,
+              "breakout_index": 2176,
+              "breakout_date": "07/28/2026",
+              "breakout_close": 171.34,
+              "breakout_level": 168.71,
+              "bars_since_breakout": 4
+            },
+            "ema_realign": {
+              "hit": true,
+              "cross_date": null,
+              "strength_date": "08/25/2026",
+              "full_alignment": false,
+              "ema20": 164.23,
+              "ema50": 168.78,
+              "ema200": 174.79
+            },
+            "sequence": {
+              "first_confirmation_date": "07/28/2026",
+              "first_bottom": {
+                "first_index": 2115,
+                "second_index": 2150,
+                "first_date": "04/29/2026",
+                "second_date": "06/18/2026",
+                "first_price": 180.53,
+                "second_price": 172.52,
+                "separation_sessions": 35,
+                "spread_pct": 4.54,
+                "neckline": 190.24,
+                "invalidation": 170.46,
+                "invalidated": true
+              },
+              "first_macd_date": "06/23/2026",
+              "first_ema_cross_date": "07/08/2026",
+              "reset_drawdown_pct": 12.36,
+              "macd_reset": true,
+              "second_bottom": {
+                "first_index": 2180,
+                "second_index": 2189,
+                "first_date": "08/03/2026",
+                "second_date": "08/14/2026",
+                "first_price": 152.4,
+                "second_price": 154.53,
+                "separation_sessions": 9,
+                "spread_pct": 1.39,
+                "neckline": 163.37,
+                "invalidation": 150.28,
+                "invalidated": false
+              },
+              "second_breakout_date": "08/21/2026",
+              "second_macd_date": "08/18/2026",
+              "ema_strength_date": "08/25/2026",
+              "full_alignment_date": null,
+              "completion_date": "08/25/2026"
+            },
+            "risk_gate": {
+              "clear": true,
+              "blocked": false,
+              "reasons_zh": [],
+              "unresolved_pressure_rounds": 0,
+              "pressure_events": [],
+              "multi_top": {
+                "dates": [
+                  "07/29/2026",
+                  "08/05/2026",
+                  "08/25/2026"
+                ],
+                "prices": [
+                  173.89,
+                  163.37,
+                  170.18
+                ],
+                "zone_low": 163.37,
+                "zone_high": 173.89
+              },
+              "top_exhaustion": [],
+              "ema_weak": true
+            },
+            "legacy_v1": {
+              "pattern_version": "favorite-pattern-v1.0.1",
+              "stage": "breakout_incomplete",
+              "match_count": 5,
+              "total_conditions": 7
+            },
+            "trade_map": {
+              "signal_close": 169.66,
+              "earliest_entry": "next_trading_day_adjusted_open",
+              "target_previous_high": 173.89,
+              "invalidation_second_bottom": 150.28,
+              "estimated_reward_risk": 0.22
+            }
+          },
+          "immutable_fingerprint": "29712342f8301a7160be12a8db9a84267c78feb91b2026694d33c1ca949038fd"
+        }
       ]
     },
     {
@@ -60161,9 +60555,9 @@
       "symbol": "BHVN",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 1,
+      "days_active": 2,
       "absent_sessions": 0,
-      "lifecycle": "NEW",
+      "lifecycle": "ACTIVE",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
@@ -61049,6 +61443,203 @@
             ]
           }
         }
+      ],
+      "source_activations": [
+        {
+          "activation_id": "favorite_pattern_tracker:favorite-pattern-v2.0.0",
+          "source_system": "favorite_pattern_tracker",
+          "activation_date": "2026-08-28",
+          "definition_version": "favorite-pattern-v2.0.0",
+          "snapshot": {
+            "pattern_version": "favorite-pattern-v2.0.0",
+            "stage": "entry_ready",
+            "match_count": 7,
+            "conditions": [
+              {
+                "id": "prior_advance_or_turn",
+                "label": "前段上涨／日线转强背景",
+                "hit": true
+              },
+              {
+                "id": "first_bottom_structure",
+                "label": "第一段局部双底／三底",
+                "hit": true
+              },
+              {
+                "id": "first_three_push_breakout",
+                "label": "第一段三推收盘突破",
+                "hit": true
+              },
+              {
+                "id": "first_momentum_trend_turn",
+                "label": "第一段MACD＋EMA趋势转变",
+                "hit": true
+              },
+              {
+                "id": "independent_reset",
+                "label": "真实回调与动能重置",
+                "hit": true
+              },
+              {
+                "id": "second_bottom_or_retest",
+                "label": "新的W底／回踩确认",
+                "hit": true
+              },
+              {
+                "id": "second_reacceleration",
+                "label": "二次突破＋MACD＋EMA转强",
+                "hit": true
+              }
+            ],
+            "prior_advance": {
+              "low_index": 786,
+              "high_index": 835,
+              "low_date": "11/11/2025",
+              "high_date": "01/23/2026",
+              "low": 7.48,
+              "high": 14.01,
+              "advance_pct": 87.26,
+              "span_sessions": 49
+            },
+            "pullback": {
+              "retracement_pct": 15.16,
+              "golden_pocket": false,
+              "ema200_support": true,
+              "ema200_nearest_distance_pct": 2.83
+            },
+            "double_bottom": {
+              "first_index": 972,
+              "second_index": 979,
+              "first_date": "08/11/2026",
+              "second_date": "08/20/2026",
+              "first_price": 13.73,
+              "second_price": 13.26,
+              "separation_sessions": 7,
+              "spread_pct": 3.48,
+              "neckline": 15.04,
+              "invalidation": 12.91,
+              "invalidated": false
+            },
+            "second_bottom_macd": {
+              "hit": true,
+              "cross_date": "08/13/2026",
+              "distance_from_second_bottom_sessions": -5
+            },
+            "three_push": {
+              "high_indices": [
+                847,
+                865,
+                930
+              ],
+              "high_dates": [
+                "02/10/2026",
+                "03/09/2026",
+                "06/10/2026"
+              ],
+              "high_prices": [
+                13.08,
+                12.1,
+                12.02
+              ],
+              "slope_per_session": -0.012771,
+              "current_line": 11.83,
+              "breakout_index": 933,
+              "breakout_date": "06/15/2026",
+              "breakout_close": 12.14,
+              "breakout_level": 11.98,
+              "bars_since_breakout": 12
+            },
+            "ema_realign": {
+              "hit": true,
+              "cross_date": null,
+              "strength_date": "08/25/2026",
+              "full_alignment": true,
+              "ema20": 14.66,
+              "ema50": 14.09,
+              "ema200": 13.45
+            },
+            "sequence": {
+              "first_confirmation_date": "06/15/2026",
+              "first_bottom": {
+                "first_index": 876,
+                "second_index": 915,
+                "first_date": "03/24/2026",
+                "second_date": "05/19/2026",
+                "first_price": 8.28,
+                "second_price": 8.22,
+                "separation_sessions": 39,
+                "spread_pct": 0.73,
+                "neckline": 11.06,
+                "invalidation": 7.9,
+                "invalidated": false
+              },
+              "first_macd_date": "05/26/2026",
+              "first_ema_cross_date": "06/01/2026",
+              "reset_drawdown_pct": 23.26,
+              "macd_reset": true,
+              "second_bottom": {
+                "first_index": 972,
+                "second_index": 979,
+                "first_date": "08/11/2026",
+                "second_date": "08/20/2026",
+                "first_price": 13.73,
+                "second_price": 13.26,
+                "separation_sessions": 7,
+                "spread_pct": 3.48,
+                "neckline": 15.04,
+                "invalidation": 12.91,
+                "invalidated": false
+              },
+              "second_breakout_date": "08/26/2026",
+              "second_macd_date": "08/13/2026",
+              "ema_strength_date": "08/25/2026",
+              "full_alignment_date": null,
+              "completion_date": "08/26/2026"
+            },
+            "risk_gate": {
+              "clear": true,
+              "blocked": false,
+              "reasons_zh": [],
+              "unresolved_pressure_rounds": 0,
+              "pressure_events": [],
+              "multi_top": {
+                "dates": [
+                  "08/07/2026",
+                  "08/13/2026",
+                  "08/20/2026"
+                ],
+                "prices": [
+                  14.93,
+                  15.04,
+                  14.52
+                ],
+                "zone_low": 14.52,
+                "zone_high": 15.04
+              },
+              "top_exhaustion": [
+                {
+                  "doji_date": "08/17/2026",
+                  "confirmation_date": "08/18/2026"
+                }
+              ],
+              "ema_weak": false
+            },
+            "legacy_v1": {
+              "pattern_version": "favorite-pattern-v1.0.1",
+              "stage": "breakout_incomplete",
+              "match_count": 6,
+              "total_conditions": 7
+            },
+            "trade_map": {
+              "signal_close": 16.95,
+              "earliest_entry": "next_trading_day_adjusted_open",
+              "target_previous_high": 17.28,
+              "invalidation_second_bottom": 12.91,
+              "estimated_reward_risk": 0.08
+            }
+          },
+          "immutable_fingerprint": "69430aa3cbd9ed8b7f3ca590667d18c4040733250b390ca5f71aa2db12838f08"
+        }
       ]
     },
     {
@@ -61060,9 +61651,9 @@
       "symbol": "BZ",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 1,
+      "days_active": 2,
       "absent_sessions": 0,
-      "lifecycle": "NEW",
+      "lifecycle": "ACTIVE",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
@@ -61886,6 +62477,203 @@
             ]
           }
         }
+      ],
+      "source_activations": [
+        {
+          "activation_id": "favorite_pattern_tracker:favorite-pattern-v2.0.0",
+          "source_system": "favorite_pattern_tracker",
+          "activation_date": "2026-08-28",
+          "definition_version": "favorite-pattern-v2.0.0",
+          "snapshot": {
+            "pattern_version": "favorite-pattern-v2.0.0",
+            "stage": "entry_ready",
+            "match_count": 7,
+            "conditions": [
+              {
+                "id": "prior_advance_or_turn",
+                "label": "前段上涨／日线转强背景",
+                "hit": true
+              },
+              {
+                "id": "first_bottom_structure",
+                "label": "第一段局部双底／三底",
+                "hit": true
+              },
+              {
+                "id": "first_three_push_breakout",
+                "label": "第一段三推收盘突破",
+                "hit": true
+              },
+              {
+                "id": "first_momentum_trend_turn",
+                "label": "第一段MACD＋EMA趋势转变",
+                "hit": true
+              },
+              {
+                "id": "independent_reset",
+                "label": "真实回调与动能重置",
+                "hit": true
+              },
+              {
+                "id": "second_bottom_or_retest",
+                "label": "新的W底／回踩确认",
+                "hit": true
+              },
+              {
+                "id": "second_reacceleration",
+                "label": "二次突破＋MACD＋EMA转强",
+                "hit": true
+              }
+            ],
+            "prior_advance": {
+              "low_index": 991,
+              "high_index": 1070,
+              "low_date": "05/22/2025",
+              "high_date": "09/16/2025",
+              "low": 16.43,
+              "high": 25.08,
+              "advance_pct": 52.63,
+              "span_sessions": 79
+            },
+            "pullback": {
+              "retracement_pct": 92.77,
+              "golden_pocket": false,
+              "ema200_support": true,
+              "ema200_nearest_distance_pct": 5.91
+            },
+            "double_bottom": {
+              "first_index": 1299,
+              "second_index": 1305,
+              "first_date": "08/14/2026",
+              "second_date": "08/24/2026",
+              "first_price": 14.8,
+              "second_price": 15.07,
+              "separation_sessions": 6,
+              "spread_pct": 1.81,
+              "neckline": 16.13,
+              "invalidation": 14.46,
+              "invalidated": false
+            },
+            "second_bottom_macd": {
+              "hit": true,
+              "cross_date": "08/26/2026",
+              "distance_from_second_bottom_sessions": 2
+            },
+            "three_push": {
+              "high_indices": [
+                1231,
+                1239,
+                1257
+              ],
+              "high_dates": [
+                "05/07/2026",
+                "05/19/2026",
+                "06/15/2026"
+              ],
+              "high_prices": [
+                14.51,
+                14.41,
+                14.23
+              ],
+              "slope_per_session": -0.010577,
+              "current_line": 13.73,
+              "breakout_index": 1272,
+              "breakout_date": "07/08/2026",
+              "breakout_close": 14.29,
+              "breakout_level": 14.07,
+              "bars_since_breakout": 32
+            },
+            "ema_realign": {
+              "hit": true,
+              "cross_date": null,
+              "strength_date": "08/25/2026",
+              "full_alignment": true,
+              "ema20": 16.45,
+              "ema50": 15.63,
+              "ema200": 16.08
+            },
+            "sequence": {
+              "first_confirmation_date": "07/16/2026",
+              "first_bottom": {
+                "first_index": 1237,
+                "second_index": 1274,
+                "first_date": "05/15/2026",
+                "second_date": "07/10/2026",
+                "first_price": 13.84,
+                "second_price": 13.76,
+                "separation_sessions": 37,
+                "spread_pct": 0.58,
+                "neckline": 14.71,
+                "invalidation": 13.49,
+                "invalidated": false
+              },
+              "first_macd_date": "07/06/2026",
+              "first_ema_cross_date": "07/16/2026",
+              "reset_drawdown_pct": 15.28,
+              "macd_reset": true,
+              "second_bottom": {
+                "first_index": 1299,
+                "second_index": 1305,
+                "first_date": "08/14/2026",
+                "second_date": "08/24/2026",
+                "first_price": 14.8,
+                "second_price": 15.07,
+                "separation_sessions": 6,
+                "spread_pct": 1.81,
+                "neckline": 16.13,
+                "invalidation": 14.46,
+                "invalidated": false
+              },
+              "second_breakout_date": "08/26/2026",
+              "second_macd_date": "08/26/2026",
+              "ema_strength_date": "08/25/2026",
+              "full_alignment_date": null,
+              "completion_date": "08/26/2026"
+            },
+            "risk_gate": {
+              "clear": true,
+              "blocked": false,
+              "reasons_zh": [],
+              "unresolved_pressure_rounds": 0,
+              "pressure_events": [],
+              "multi_top": {
+                "dates": [
+                  "07/29/2026",
+                  "08/05/2026",
+                  "08/19/2026"
+                ],
+                "prices": [
+                  16.47,
+                  16.63,
+                  16.13
+                ],
+                "zone_low": 16.13,
+                "zone_high": 16.63
+              },
+              "top_exhaustion": [
+                {
+                  "doji_date": "06/24/2026",
+                  "confirmation_date": "06/25/2026"
+                }
+              ],
+              "ema_weak": false
+            },
+            "legacy_v1": {
+              "pattern_version": "favorite-pattern-v1.0.1",
+              "stage": "waiting_breakout",
+              "match_count": 5,
+              "total_conditions": 7
+            },
+            "trade_map": {
+              "signal_close": 18.84,
+              "earliest_entry": "next_trading_day_adjusted_open",
+              "target_previous_high": 17.47,
+              "invalidation_second_bottom": 14.46,
+              "estimated_reward_risk": null
+            }
+          },
+          "immutable_fingerprint": "df59b95e28fcd2faa1a9f780013becc025e8b6552a03d76838c1318a420d22ca"
+        }
       ]
     },
     {
@@ -61897,9 +62685,9 @@
       "symbol": "CF",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 1,
+      "days_active": 2,
       "absent_sessions": 0,
-      "lifecycle": "NEW",
+      "lifecycle": "ACTIVE",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
@@ -62717,6 +63505,198 @@
               "V1五项评分暂时保持不变，研究验证后才允许建立新版本"
             ]
           }
+        }
+      ],
+      "source_activations": [
+        {
+          "activation_id": "favorite_pattern_tracker:favorite-pattern-v2.0.0",
+          "source_system": "favorite_pattern_tracker",
+          "activation_date": "2026-08-28",
+          "definition_version": "favorite-pattern-v2.0.0",
+          "snapshot": {
+            "pattern_version": "favorite-pattern-v2.0.0",
+            "stage": "entry_ready",
+            "match_count": 7,
+            "conditions": [
+              {
+                "id": "prior_advance_or_turn",
+                "label": "前段上涨／日线转强背景",
+                "hit": true
+              },
+              {
+                "id": "first_bottom_structure",
+                "label": "第一段局部双底／三底",
+                "hit": true
+              },
+              {
+                "id": "first_three_push_breakout",
+                "label": "第一段三推收盘突破",
+                "hit": true
+              },
+              {
+                "id": "first_momentum_trend_turn",
+                "label": "第一段MACD＋EMA趋势转变",
+                "hit": true
+              },
+              {
+                "id": "independent_reset",
+                "label": "真实回调与动能重置",
+                "hit": true
+              },
+              {
+                "id": "second_bottom_or_retest",
+                "label": "新的W底／回踩确认",
+                "hit": true
+              },
+              {
+                "id": "second_reacceleration",
+                "label": "二次突破＋MACD＋EMA转强",
+                "hit": true
+              }
+            ],
+            "prior_advance": {
+              "low_index": 2020,
+              "high_index": 2094,
+              "low_date": "12/10/2025",
+              "high_date": "03/30/2026",
+              "low": 74.33,
+              "high": 140.66,
+              "advance_pct": 89.23,
+              "span_sessions": 74
+            },
+            "pullback": {
+              "retracement_pct": -28.27,
+              "golden_pocket": false,
+              "ema200_support": true,
+              "ema200_nearest_distance_pct": 5.7
+            },
+            "double_bottom": {
+              "first_index": 2175,
+              "second_index": 2187,
+              "first_date": "07/27/2026",
+              "second_date": "08/12/2026",
+              "first_price": 118.53,
+              "second_price": 113.23,
+              "separation_sessions": 12,
+              "spread_pct": 4.58,
+              "neckline": 127.17,
+              "invalidation": 110.77,
+              "invalidated": false
+            },
+            "second_bottom_macd": {
+              "hit": true,
+              "cross_date": "08/20/2026",
+              "distance_from_second_bottom_sessions": 6
+            },
+            "three_push": {
+              "high_indices": [
+                2099,
+                2111,
+                2166
+              ],
+              "high_dates": [
+                "04/07/2026",
+                "04/23/2026",
+                "07/14/2026"
+              ],
+              "high_prices": [
+                138.17,
+                126.32,
+                121.78
+              ],
+              "slope_per_session": -0.244606,
+              "current_line": 117.62,
+              "breakout_index": 2170,
+              "breakout_date": "07/20/2026",
+              "breakout_close": 122.94,
+              "breakout_level": 120.8,
+              "bars_since_breakout": 13
+            },
+            "ema_realign": {
+              "hit": true,
+              "cross_date": null,
+              "strength_date": "08/18/2026",
+              "full_alignment": true,
+              "ema20": 122.76,
+              "ema50": 119.67,
+              "ema200": 108.97
+            },
+            "sequence": {
+              "first_confirmation_date": "07/20/2026",
+              "first_bottom": {
+                "first_index": 2147,
+                "second_index": 2153,
+                "first_date": "06/15/2026",
+                "second_date": "06/24/2026",
+                "first_price": 100.99,
+                "second_price": 100.18,
+                "separation_sessions": 6,
+                "spread_pct": 0.8,
+                "neckline": 108.23,
+                "invalidation": 98.21,
+                "invalidated": false
+              },
+              "first_macd_date": "06/26/2026",
+              "first_ema_cross_date": "07/17/2026",
+              "reset_drawdown_pct": 12.48,
+              "macd_reset": true,
+              "second_bottom": {
+                "first_index": 2175,
+                "second_index": 2187,
+                "first_date": "07/27/2026",
+                "second_date": "08/12/2026",
+                "first_price": 118.53,
+                "second_price": 113.23,
+                "separation_sessions": 12,
+                "spread_pct": 4.58,
+                "neckline": 127.17,
+                "invalidation": 110.77,
+                "invalidated": false
+              },
+              "second_breakout_date": "08/21/2026",
+              "second_macd_date": "08/20/2026",
+              "ema_strength_date": "08/18/2026",
+              "full_alignment_date": null,
+              "completion_date": "08/21/2026"
+            },
+            "risk_gate": {
+              "clear": true,
+              "blocked": false,
+              "reasons_zh": [],
+              "unresolved_pressure_rounds": 0,
+              "pressure_events": [],
+              "multi_top": {
+                "dates": [
+                  "07/23/2026",
+                  "07/29/2026",
+                  "08/24/2026"
+                ],
+                "prices": [
+                  129.38,
+                  127.17,
+                  132.55
+                ],
+                "zone_low": 127.17,
+                "zone_high": 132.55
+              },
+              "top_exhaustion": [],
+              "ema_weak": false
+            },
+            "legacy_v1": {
+              "pattern_version": "favorite-pattern-v1.0.1",
+              "stage": "breakout_incomplete",
+              "match_count": 6,
+              "total_conditions": 7
+            },
+            "trade_map": {
+              "signal_close": 129.6,
+              "earliest_entry": "next_trading_day_adjusted_open",
+              "target_previous_high": 129.38,
+              "invalidation_second_bottom": 110.77,
+              "estimated_reward_risk": null
+            }
+          },
+          "immutable_fingerprint": "13a1d1fbbe0ff2b3a0e42f4aadacd385d27cd01bfd9fa42284b739ebb504e85c"
         }
       ]
     },
@@ -64453,7 +65433,7 @@
       "symbol": "DOCS",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 5,
+      "days_active": 6,
       "absent_sessions": 0,
       "lifecycle": "ACTIVE",
       "initial_source_systems": [
@@ -66715,9 +67695,9 @@
       "symbol": "FUTU",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 1,
+      "days_active": 2,
       "absent_sessions": 0,
-      "lifecycle": "NEW",
+      "lifecycle": "ACTIVE",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
@@ -67545,6 +68525,207 @@
             ]
           }
         }
+      ],
+      "source_activations": [
+        {
+          "activation_id": "favorite_pattern_tracker:favorite-pattern-v2.0.0",
+          "source_system": "favorite_pattern_tracker",
+          "activation_date": "2026-08-28",
+          "definition_version": "favorite-pattern-v2.0.0",
+          "snapshot": {
+            "pattern_version": "favorite-pattern-v2.0.0",
+            "stage": "entry_ready",
+            "match_count": 7,
+            "conditions": [
+              {
+                "id": "prior_advance_or_turn",
+                "label": "前段上涨／日线转强背景",
+                "hit": true
+              },
+              {
+                "id": "first_bottom_structure",
+                "label": "第一段局部双底／三底",
+                "hit": true
+              },
+              {
+                "id": "first_three_push_breakout",
+                "label": "第一段三推收盘突破",
+                "hit": true
+              },
+              {
+                "id": "first_momentum_trend_turn",
+                "label": "第一段MACD＋EMA趋势转变",
+                "hit": true
+              },
+              {
+                "id": "independent_reset",
+                "label": "真实回调与动能重置",
+                "hit": true
+              },
+              {
+                "id": "second_bottom_or_retest",
+                "label": "新的W底／回踩确认",
+                "hit": true
+              },
+              {
+                "id": "second_reacceleration",
+                "label": "二次突破＋MACD＋EMA转强",
+                "hit": true
+              }
+            ],
+            "prior_advance": {
+              "low_index": 1531,
+              "high_index": 1674,
+              "low_date": "04/09/2025",
+              "high_date": "11/03/2025",
+              "low": 69.49,
+              "high": 199.33,
+              "advance_pct": 186.87,
+              "span_sessions": 143
+            },
+            "pullback": {
+              "retracement_pct": 116.13,
+              "golden_pocket": false,
+              "ema200_support": false,
+              "ema200_nearest_distance_pct": 19.47
+            },
+            "double_bottom": {
+              "first_index": 1863,
+              "second_index": 1868,
+              "first_date": "08/06/2026",
+              "second_date": "08/13/2026",
+              "first_price": 104.3,
+              "second_price": 102.85,
+              "separation_sessions": 5,
+              "spread_pct": 1.4,
+              "neckline": 112.33,
+              "invalidation": 100.98,
+              "invalidated": false
+            },
+            "second_bottom_macd": {
+              "hit": true,
+              "cross_date": "08/17/2026",
+              "distance_from_second_bottom_sessions": 2
+            },
+            "three_push": {
+              "high_indices": [
+                1708,
+                1741,
+                1780
+              ],
+              "high_dates": [
+                "12/22/2025",
+                "02/10/2026",
+                "04/08/2026"
+              ],
+              "high_prices": [
+                164.91,
+                158.36,
+                157.01
+              ],
+              "slope_per_session": -0.109699,
+              "current_line": 154.37,
+              "breakout_index": 1784,
+              "breakout_date": "04/14/2026",
+              "breakout_close": 159.29,
+              "breakout_level": 156.57,
+              "bars_since_breakout": 20
+            },
+            "ema_realign": {
+              "hit": true,
+              "cross_date": "08/21/2026",
+              "strength_date": "08/17/2026",
+              "full_alignment": true,
+              "ema20": 114.21,
+              "ema50": 110.46,
+              "ema200": 126.61
+            },
+            "sequence": {
+              "first_confirmation_date": "04/17/2026",
+              "first_bottom": {
+                "first_index": 1750,
+                "second_index": 1774,
+                "first_date": "02/24/2026",
+                "second_date": "03/30/2026",
+                "first_price": 136.49,
+                "second_price": 128.26,
+                "separation_sessions": 24,
+                "spread_pct": 6.22,
+                "neckline": 152.57,
+                "invalidation": 125.4,
+                "invalidated": true
+              },
+              "first_macd_date": "04/01/2026",
+              "first_ema_cross_date": "04/17/2026",
+              "reset_drawdown_pct": 39.13,
+              "macd_reset": true,
+              "second_bottom": {
+                "first_index": 1863,
+                "second_index": 1868,
+                "first_date": "08/06/2026",
+                "second_date": "08/13/2026",
+                "first_price": 104.3,
+                "second_price": 102.85,
+                "separation_sessions": 5,
+                "spread_pct": 1.4,
+                "neckline": 112.33,
+                "invalidation": 100.98,
+                "invalidated": false
+              },
+              "second_breakout_date": "08/21/2026",
+              "second_macd_date": "08/17/2026",
+              "ema_strength_date": "08/17/2026",
+              "full_alignment_date": "08/21/2026",
+              "completion_date": "08/21/2026"
+            },
+            "risk_gate": {
+              "clear": true,
+              "blocked": false,
+              "reasons_zh": [],
+              "unresolved_pressure_rounds": 0,
+              "pressure_events": [],
+              "multi_top": {
+                "dates": [
+                  "07/27/2026",
+                  "08/05/2026",
+                  "08/10/2026"
+                ],
+                "prices": [
+                  105.5,
+                  111.84,
+                  112.33
+                ],
+                "zone_low": 105.5,
+                "zone_high": 112.33
+              },
+              "top_exhaustion": [
+                {
+                  "doji_date": "07/15/2026",
+                  "confirmation_date": "07/16/2026"
+                },
+                {
+                  "doji_date": "08/05/2026",
+                  "confirmation_date": "08/06/2026"
+                }
+              ],
+              "ema_weak": false
+            },
+            "legacy_v1": {
+              "pattern_version": "favorite-pattern-v1.0.1",
+              "stage": "discovery",
+              "match_count": 5,
+              "total_conditions": 7
+            },
+            "trade_map": {
+              "signal_close": 123.64,
+              "earliest_entry": "next_trading_day_adjusted_open",
+              "target_previous_high": 168.96,
+              "invalidation_second_bottom": 100.98,
+              "estimated_reward_risk": 2.0
+            }
+          },
+          "immutable_fingerprint": "9a3df974a25db5ea9ae92749269e56dab048f73203d2c527c82aab6111c67b2e"
+        }
       ]
     },
     {
@@ -68326,9 +69507,9 @@
       "symbol": "GAP",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 1,
+      "days_active": 2,
       "absent_sessions": 0,
-      "lifecycle": "NEW",
+      "lifecycle": "ACTIVE",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
@@ -69152,6 +70333,203 @@
             ]
           }
         }
+      ],
+      "source_activations": [
+        {
+          "activation_id": "favorite_pattern_tracker:favorite-pattern-v2.0.0",
+          "source_system": "favorite_pattern_tracker",
+          "activation_date": "2026-08-28",
+          "definition_version": "favorite-pattern-v2.0.0",
+          "snapshot": {
+            "pattern_version": "favorite-pattern-v2.0.0",
+            "stage": "entry_ready",
+            "match_count": 7,
+            "conditions": [
+              {
+                "id": "prior_advance_or_turn",
+                "label": "前段上涨／日线转强背景",
+                "hit": true
+              },
+              {
+                "id": "first_bottom_structure",
+                "label": "第一段局部双底／三底",
+                "hit": true
+              },
+              {
+                "id": "first_three_push_breakout",
+                "label": "第一段三推收盘突破",
+                "hit": true
+              },
+              {
+                "id": "first_momentum_trend_turn",
+                "label": "第一段MACD＋EMA趋势转变",
+                "hit": true
+              },
+              {
+                "id": "independent_reset",
+                "label": "真实回调与动能重置",
+                "hit": true
+              },
+              {
+                "id": "second_bottom_or_retest",
+                "label": "新的W底／回踩确认",
+                "hit": true
+              },
+              {
+                "id": "second_reacceleration",
+                "label": "二次突破＋MACD＋EMA转强",
+                "hit": true
+              }
+            ],
+            "prior_advance": {
+              "low_index": 1848,
+              "high_index": 2028,
+              "low_date": "04/04/2025",
+              "high_date": "12/22/2025",
+              "low": 16.21,
+              "high": 27.69,
+              "advance_pct": 70.83,
+              "span_sessions": 180
+            },
+            "pullback": {
+              "retracement_pct": 87.07,
+              "golden_pocket": false,
+              "ema200_support": false,
+              "ema200_nearest_distance_pct": 12.54
+            },
+            "double_bottom": {
+              "first_index": 2188,
+              "second_index": 2193,
+              "first_date": "08/13/2026",
+              "second_date": "08/20/2026",
+              "first_price": 19.98,
+              "second_price": 19.52,
+              "separation_sessions": 5,
+              "spread_pct": 2.33,
+              "neckline": 20.73,
+              "invalidation": 19.22,
+              "invalidated": false
+            },
+            "second_bottom_macd": {
+              "hit": true,
+              "cross_date": "08/26/2026",
+              "distance_from_second_bottom_sessions": 4
+            },
+            "three_push": {
+              "high_indices": [
+                2028,
+                2048,
+                2101
+              ],
+              "high_dates": [
+                "12/22/2025",
+                "01/22/2026",
+                "04/09/2026"
+              ],
+              "high_prices": [
+                27.69,
+                27.5,
+                26.43
+              ],
+              "slope_per_session": -0.017348,
+              "current_line": 26.03,
+              "breakout_index": 2107,
+              "breakout_date": "04/17/2026",
+              "breakout_close": 26.77,
+              "breakout_level": 26.32,
+              "bars_since_breakout": 17
+            },
+            "ema_realign": {
+              "hit": true,
+              "cross_date": "08/28/2026",
+              "strength_date": "08/26/2026",
+              "full_alignment": true,
+              "ema20": 20.64,
+              "ema50": 20.64,
+              "ema200": 22.24
+            },
+            "sequence": {
+              "first_confirmation_date": "04/20/2026",
+              "first_bottom": {
+                "first_index": 2079,
+                "second_index": 2094,
+                "first_date": "03/09/2026",
+                "second_date": "03/30/2026",
+                "first_price": 21.67,
+                "second_price": 23.04,
+                "separation_sessions": 15,
+                "spread_pct": 6.12,
+                "neckline": 25.42,
+                "invalidation": 21.2,
+                "invalidated": true
+              },
+              "first_macd_date": "03/23/2026",
+              "first_ema_cross_date": "04/20/2026",
+              "reset_drawdown_pct": 29.51,
+              "macd_reset": true,
+              "second_bottom": {
+                "first_index": 2188,
+                "second_index": 2193,
+                "first_date": "08/13/2026",
+                "second_date": "08/20/2026",
+                "first_price": 19.98,
+                "second_price": 19.52,
+                "separation_sessions": 5,
+                "spread_pct": 2.33,
+                "neckline": 20.73,
+                "invalidation": 19.22,
+                "invalidated": false
+              },
+              "second_breakout_date": "08/26/2026",
+              "second_macd_date": "08/26/2026",
+              "ema_strength_date": "08/26/2026",
+              "full_alignment_date": "08/28/2026",
+              "completion_date": "08/26/2026"
+            },
+            "risk_gate": {
+              "clear": true,
+              "blocked": false,
+              "reasons_zh": [],
+              "unresolved_pressure_rounds": 0,
+              "pressure_events": [],
+              "multi_top": {
+                "dates": [
+                  "08/05/2026",
+                  "08/10/2026",
+                  "08/14/2026"
+                ],
+                "prices": [
+                  20.98,
+                  21.64,
+                  20.73
+                ],
+                "zone_low": 20.73,
+                "zone_high": 21.64
+              },
+              "top_exhaustion": [
+                {
+                  "doji_date": "06/18/2026",
+                  "confirmation_date": "06/22/2026"
+                }
+              ],
+              "ema_weak": false
+            },
+            "legacy_v1": {
+              "pattern_version": "favorite-pattern-v1.0.1",
+              "stage": "breakout_incomplete",
+              "match_count": 6,
+              "total_conditions": 7
+            },
+            "trade_map": {
+              "signal_close": 21.15,
+              "earliest_entry": "next_trading_day_adjusted_open",
+              "target_previous_high": 27.69,
+              "invalidation_second_bottom": 19.22,
+              "estimated_reward_risk": 3.39
+            }
+          },
+          "immutable_fingerprint": "c468e0954e5503ac3937d099df4398c92b270f5edb6c83e5541a5285ff0b88c4"
+        }
       ]
     },
     {
@@ -69163,9 +70541,9 @@
       "symbol": "GLXY",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 1,
+      "days_active": 2,
       "absent_sessions": 0,
-      "lifecycle": "NEW",
+      "lifecycle": "ACTIVE",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
@@ -70112,6 +71490,204 @@
             ]
           }
         }
+      ],
+      "source_activations": [
+        {
+          "activation_id": "favorite_pattern_tracker:favorite-pattern-v2.0.0",
+          "source_system": "favorite_pattern_tracker",
+          "activation_date": "2026-08-28",
+          "definition_version": "favorite-pattern-v2.0.0",
+          "snapshot": {
+            "pattern_version": "favorite-pattern-v2.0.0",
+            "stage": "entry_ready",
+            "match_count": 7,
+            "conditions": [
+              {
+                "id": "prior_advance_or_turn",
+                "label": "前段上涨／日线转强背景",
+                "hit": true
+              },
+              {
+                "id": "first_bottom_structure",
+                "label": "第一段局部双底／三底",
+                "hit": true
+              },
+              {
+                "id": "first_three_push_breakout",
+                "label": "第一段三推收盘突破",
+                "hit": true
+              },
+              {
+                "id": "first_momentum_trend_turn",
+                "label": "第一段MACD＋EMA趋势转变",
+                "hit": true
+              },
+              {
+                "id": "independent_reset",
+                "label": "真实回调与动能重置",
+                "hit": true
+              },
+              {
+                "id": "second_bottom_or_retest",
+                "label": "新的W底／回踩确认",
+                "hit": true
+              },
+              {
+                "id": "second_reacceleration",
+                "label": "二次突破＋MACD＋EMA转强",
+                "hit": true
+              }
+            ],
+            "prior_advance": {
+              "low_index": 1849,
+              "high_index": 1985,
+              "low_date": "04/07/2025",
+              "high_date": "10/21/2025",
+              "low": 8.2,
+              "high": 45.92,
+              "advance_pct": 460.0,
+              "span_sessions": 136
+            },
+            "pullback": {
+              "retracement_pct": 82.01,
+              "golden_pocket": false,
+              "ema200_support": true,
+              "ema200_nearest_distance_pct": 1.49
+            },
+            "double_bottom": {
+              "first_index": 2177,
+              "second_index": 2183,
+              "first_date": "07/29/2026",
+              "second_date": "08/06/2026",
+              "first_price": 18.22,
+              "second_price": 18.65,
+              "separation_sessions": 6,
+              "spread_pct": 2.33,
+              "neckline": 22.64,
+              "invalidation": 17.1,
+              "invalidated": false
+            },
+            "second_bottom_macd": {
+              "hit": true,
+              "cross_date": "08/04/2026",
+              "distance_from_second_bottom_sessions": -2
+            },
+            "three_push": {
+              "high_indices": [
+                2045,
+                2052,
+                2120
+              ],
+              "high_dates": [
+                "01/16/2026",
+                "01/28/2026",
+                "05/06/2026"
+              ],
+              "high_prices": [
+                34.73,
+                33.7,
+                31.55
+              ],
+              "slope_per_session": -0.042333,
+              "current_line": 31.26,
+              "breakout_index": 2126,
+              "breakout_date": "05/14/2026",
+              "breakout_close": 32.04,
+              "breakout_level": 31.3,
+              "bars_since_breakout": 1
+            },
+            "ema_realign": {
+              "hit": true,
+              "cross_date": null,
+              "strength_date": "08/21/2026",
+              "full_alignment": false,
+              "ema20": 22.83,
+              "ema50": 23.73,
+              "ema200": 25.03
+            },
+            "sequence": {
+              "first_confirmation_date": "05/14/2026",
+              "first_bottom": {
+                "first_index": 2058,
+                "second_index": 2097,
+                "first_date": "02/05/2026",
+                "second_date": "04/02/2026",
+                "first_price": 16.67,
+                "second_price": 16.43,
+                "separation_sessions": 39,
+                "spread_pct": 1.45,
+                "neckline": 24.59,
+                "invalidation": 15.66,
+                "invalidated": false
+              },
+              "first_macd_date": "04/09/2026",
+              "first_ema_cross_date": "04/21/2026",
+              "reset_drawdown_pct": 49.53,
+              "macd_reset": true,
+              "second_bottom": {
+                "first_index": 2177,
+                "second_index": 2183,
+                "first_date": "07/29/2026",
+                "second_date": "08/06/2026",
+                "first_price": 18.22,
+                "second_price": 18.65,
+                "separation_sessions": 6,
+                "spread_pct": 2.33,
+                "neckline": 22.64,
+                "invalidation": 17.1,
+                "invalidated": false
+              },
+              "second_breakout_date": "08/20/2026",
+              "second_macd_date": "08/04/2026",
+              "ema_strength_date": "08/21/2026",
+              "full_alignment_date": null,
+              "completion_date": "08/21/2026"
+            },
+            "risk_gate": {
+              "clear": true,
+              "blocked": false,
+              "reasons_zh": [],
+              "unresolved_pressure_rounds": 1,
+              "pressure_events": [
+                {
+                  "date": "06/24/2026",
+                  "near_engulf": true,
+                  "follow_through": true
+                }
+              ],
+              "multi_top": {
+                "dates": [
+                  "07/15/2026",
+                  "08/04/2026",
+                  "08/17/2026"
+                ],
+                "prices": [
+                  25.2,
+                  22.64,
+                  22.59
+                ],
+                "zone_low": 22.59,
+                "zone_high": 25.2
+              },
+              "top_exhaustion": [],
+              "ema_weak": true
+            },
+            "legacy_v1": {
+              "pattern_version": "favorite-pattern-v1.0.1",
+              "stage": "breakout_incomplete",
+              "match_count": 5,
+              "total_conditions": 7
+            },
+            "trade_map": {
+              "signal_close": 23.64,
+              "earliest_entry": "next_trading_day_adjusted_open",
+              "target_previous_high": 36.1,
+              "invalidation_second_bottom": 17.1,
+              "estimated_reward_risk": 1.91
+            }
+          },
+          "immutable_fingerprint": "8c07bfc4e3a199bec98ac02c03d7ea6e3cdc46fcde0f7d46a8cfcaf7702fb856"
+        }
       ]
     },
     {
@@ -70123,9 +71699,9 @@
       "symbol": "HLN",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 1,
+      "days_active": 2,
       "absent_sessions": 0,
-      "lifecycle": "NEW",
+      "lifecycle": "ACTIVE",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
@@ -70934,6 +72510,198 @@
             ]
           }
         }
+      ],
+      "source_activations": [
+        {
+          "activation_id": "favorite_pattern_tracker:favorite-pattern-v2.0.0",
+          "source_system": "favorite_pattern_tracker",
+          "activation_date": "2026-08-28",
+          "definition_version": "favorite-pattern-v2.0.0",
+          "snapshot": {
+            "pattern_version": "favorite-pattern-v2.0.0",
+            "stage": "entry_ready",
+            "match_count": 7,
+            "conditions": [
+              {
+                "id": "prior_advance_or_turn",
+                "label": "前段上涨／日线转强背景",
+                "hit": true
+              },
+              {
+                "id": "first_bottom_structure",
+                "label": "第一段局部双底／三底",
+                "hit": true
+              },
+              {
+                "id": "first_three_push_breakout",
+                "label": "第一段三推收盘突破",
+                "hit": true
+              },
+              {
+                "id": "first_momentum_trend_turn",
+                "label": "第一段MACD＋EMA趋势转变",
+                "hit": true
+              },
+              {
+                "id": "independent_reset",
+                "label": "真实回调与动能重置",
+                "hit": true
+              },
+              {
+                "id": "second_bottom_or_retest",
+                "label": "新的W底／回踩确认",
+                "hit": true
+              },
+              {
+                "id": "second_reacceleration",
+                "label": "二次突破＋MACD＋EMA转强",
+                "hit": true
+              }
+            ],
+            "prior_advance": {
+              "low_index": 801,
+              "high_index": 900,
+              "low_date": "09/25/2025",
+              "high_date": "02/18/2026",
+              "low": 8.54,
+              "high": 11.06,
+              "advance_pct": 29.51,
+              "span_sessions": 99
+            },
+            "pullback": {
+              "retracement_pct": 59.52,
+              "golden_pocket": true,
+              "ema200_support": true,
+              "ema200_nearest_distance_pct": 0.36
+            },
+            "double_bottom": {
+              "first_index": 1015,
+              "second_index": 1024,
+              "first_date": "08/04/2026",
+              "second_date": "08/17/2026",
+              "first_price": 9.57,
+              "second_price": 9.56,
+              "separation_sessions": 9,
+              "spread_pct": 0.07,
+              "neckline": 10.04,
+              "invalidation": 9.47,
+              "invalidated": false
+            },
+            "second_bottom_macd": {
+              "hit": true,
+              "cross_date": "08/24/2026",
+              "distance_from_second_bottom_sessions": 5
+            },
+            "three_push": {
+              "high_indices": [
+                907,
+                919,
+                999
+              ],
+              "high_dates": [
+                "02/27/2026",
+                "03/17/2026",
+                "07/13/2026"
+              ],
+              "high_prices": [
+                10.87,
+                10.43,
+                9.84
+              ],
+              "slope_per_session": -0.011197,
+              "current_line": 9.8,
+              "breakout_index": 1002,
+              "breakout_date": "07/16/2026",
+              "breakout_close": 10.04,
+              "breakout_level": 9.81,
+              "bars_since_breakout": 1
+            },
+            "ema_realign": {
+              "hit": true,
+              "cross_date": null,
+              "strength_date": "08/19/2026",
+              "full_alignment": true,
+              "ema20": 9.94,
+              "ema50": 9.76,
+              "ema200": 9.64
+            },
+            "sequence": {
+              "first_confirmation_date": "07/16/2026",
+              "first_bottom": {
+                "first_index": 944,
+                "second_index": 973,
+                "first_date": "04/22/2026",
+                "second_date": "06/03/2026",
+                "first_price": 9.29,
+                "second_price": 8.59,
+                "separation_sessions": 29,
+                "spread_pct": 7.78,
+                "neckline": 9.6,
+                "invalidation": 8.52,
+                "invalidated": false
+              },
+              "first_macd_date": "06/05/2026",
+              "first_ema_cross_date": "07/07/2026",
+              "reset_drawdown_pct": 6.71,
+              "macd_reset": true,
+              "second_bottom": {
+                "first_index": 1015,
+                "second_index": 1024,
+                "first_date": "08/04/2026",
+                "second_date": "08/17/2026",
+                "first_price": 9.57,
+                "second_price": 9.56,
+                "separation_sessions": 9,
+                "spread_pct": 0.07,
+                "neckline": 10.04,
+                "invalidation": 9.47,
+                "invalidated": false
+              },
+              "second_breakout_date": "08/24/2026",
+              "second_macd_date": "08/24/2026",
+              "ema_strength_date": "08/19/2026",
+              "full_alignment_date": null,
+              "completion_date": "08/24/2026"
+            },
+            "risk_gate": {
+              "clear": true,
+              "blocked": false,
+              "reasons_zh": [],
+              "unresolved_pressure_rounds": 0,
+              "pressure_events": [],
+              "multi_top": {
+                "dates": [
+                  "07/28/2026",
+                  "08/06/2026",
+                  "08/26/2026"
+                ],
+                "prices": [
+                  10.25,
+                  10.04,
+                  10.26
+                ],
+                "zone_low": 10.04,
+                "zone_high": 10.26
+              },
+              "top_exhaustion": [],
+              "ema_weak": false
+            },
+            "legacy_v1": {
+              "pattern_version": "favorite-pattern-v1.0.1",
+              "stage": "waiting_breakout",
+              "match_count": 5,
+              "total_conditions": 7
+            },
+            "trade_map": {
+              "signal_close": 10.16,
+              "earliest_entry": "next_trading_day_adjusted_open",
+              "target_previous_high": 10.25,
+              "invalidation_second_bottom": 9.47,
+              "estimated_reward_risk": 0.13
+            }
+          },
+          "immutable_fingerprint": "d61cafc11d90cff46b7b55637587d888a088aeaca5d31c817fc6d74c4e5041ff"
+        }
       ]
     },
     {
@@ -70946,7 +72714,7 @@
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
       "days_active": 2,
-      "absent_sessions": 1,
+      "absent_sessions": 2,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "favorite_pattern_tracker"
@@ -71777,9 +73545,9 @@
       "symbol": "KVYO",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 1,
+      "days_active": 2,
       "absent_sessions": 0,
-      "lifecycle": "NEW",
+      "lifecycle": "ACTIVE",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
@@ -72660,6 +74428,198 @@
             ]
           }
         }
+      ],
+      "source_activations": [
+        {
+          "activation_id": "favorite_pattern_tracker:favorite-pattern-v2.0.0",
+          "source_system": "favorite_pattern_tracker",
+          "activation_date": "2026-08-28",
+          "definition_version": "favorite-pattern-v2.0.0",
+          "snapshot": {
+            "pattern_version": "favorite-pattern-v2.0.0",
+            "stage": "entry_ready",
+            "match_count": 7,
+            "conditions": [
+              {
+                "id": "prior_advance_or_turn",
+                "label": "前段上涨／日线转强背景",
+                "hit": true
+              },
+              {
+                "id": "first_bottom_structure",
+                "label": "第一段局部双底／三底",
+                "hit": true
+              },
+              {
+                "id": "first_three_push_breakout",
+                "label": "第一段三推收盘突破",
+                "hit": true
+              },
+              {
+                "id": "first_momentum_trend_turn",
+                "label": "第一段MACD＋EMA趋势转变",
+                "hit": true
+              },
+              {
+                "id": "independent_reset",
+                "label": "真实回调与动能重置",
+                "hit": true
+              },
+              {
+                "id": "second_bottom_or_retest",
+                "label": "新的W底／回踩确认",
+                "hit": true
+              },
+              {
+                "id": "second_reacceleration",
+                "label": "二次突破＋MACD＋EMA转强",
+                "hit": true
+              }
+            ],
+            "prior_advance": {
+              "low_index": 607,
+              "high_index": 657,
+              "low_date": "02/23/2026",
+              "high_date": "05/05/2026",
+              "low": 15.53,
+              "high": 23.52,
+              "advance_pct": 51.45,
+              "span_sessions": 50
+            },
+            "pullback": {
+              "retracement_pct": 158.51,
+              "golden_pocket": false,
+              "ema200_support": false,
+              "ema200_nearest_distance_pct": 14.92
+            },
+            "double_bottom": {
+              "first_index": 726,
+              "second_index": 735,
+              "first_date": "08/13/2026",
+              "second_date": "08/26/2026",
+              "first_price": 17.0,
+              "second_price": 17.35,
+              "separation_sessions": 9,
+              "spread_pct": 2.04,
+              "neckline": 19.33,
+              "invalidation": 16.43,
+              "invalidated": false
+            },
+            "second_bottom_macd": {
+              "hit": true,
+              "cross_date": "08/27/2026",
+              "distance_from_second_bottom_sessions": 1
+            },
+            "three_push": {
+              "high_indices": [
+                623,
+                634,
+                708
+              ],
+              "high_dates": [
+                "03/17/2026",
+                "04/01/2026",
+                "07/20/2026"
+              ],
+              "high_prices": [
+                20.41,
+                20.15,
+                18.54
+              ],
+              "slope_per_session": -0.021941,
+              "current_line": 18.3,
+              "breakout_index": 714,
+              "breakout_date": "07/28/2026",
+              "breakout_close": 18.89,
+              "breakout_level": 18.41,
+              "bars_since_breakout": 5
+            },
+            "ema_realign": {
+              "hit": true,
+              "cross_date": null,
+              "strength_date": "08/27/2026",
+              "full_alignment": true,
+              "ema20": 18.25,
+              "ema50": 17.62,
+              "ema200": 20.38
+            },
+            "sequence": {
+              "first_confirmation_date": "07/28/2026",
+              "first_bottom": {
+                "first_index": 663,
+                "second_index": 689,
+                "first_date": "05/13/2026",
+                "second_date": "06/22/2026",
+                "first_price": 13.53,
+                "second_price": 12.53,
+                "separation_sessions": 26,
+                "spread_pct": 7.67,
+                "neckline": 18.55,
+                "invalidation": 12.1,
+                "invalidated": false
+              },
+              "first_macd_date": "06/25/2026",
+              "first_ema_cross_date": "07/16/2026",
+              "reset_drawdown_pct": 14.14,
+              "macd_reset": true,
+              "second_bottom": {
+                "first_index": 726,
+                "second_index": 735,
+                "first_date": "08/13/2026",
+                "second_date": "08/26/2026",
+                "first_price": 17.0,
+                "second_price": 17.35,
+                "separation_sessions": 9,
+                "spread_pct": 2.04,
+                "neckline": 19.33,
+                "invalidation": 16.43,
+                "invalidated": false
+              },
+              "second_breakout_date": "08/27/2026",
+              "second_macd_date": "08/27/2026",
+              "ema_strength_date": "08/27/2026",
+              "full_alignment_date": null,
+              "completion_date": "08/27/2026"
+            },
+            "risk_gate": {
+              "clear": true,
+              "blocked": false,
+              "reasons_zh": [],
+              "unresolved_pressure_rounds": 0,
+              "pressure_events": [],
+              "multi_top": {
+                "dates": [
+                  "08/05/2026",
+                  "08/13/2026",
+                  "08/24/2026"
+                ],
+                "prices": [
+                  19.75,
+                  19.56,
+                  18.78
+                ],
+                "zone_low": 18.78,
+                "zone_high": 19.75
+              },
+              "top_exhaustion": [],
+              "ema_weak": false
+            },
+            "legacy_v1": {
+              "pattern_version": "favorite-pattern-v1.0.1",
+              "stage": "breakout_incomplete",
+              "match_count": 5,
+              "total_conditions": 7
+            },
+            "trade_map": {
+              "signal_close": 19.61,
+              "earliest_entry": "next_trading_day_adjusted_open",
+              "target_previous_high": 19.8,
+              "invalidation_second_bottom": 16.43,
+              "estimated_reward_risk": 0.06
+            }
+          },
+          "immutable_fingerprint": "ee8df2bf3c22e77f782e201492ac9a391011f8041bca0c3d5368beb8820f08e7"
+        }
       ]
     },
     {
@@ -72672,7 +74632,7 @@
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
       "days_active": 2,
-      "absent_sessions": 1,
+      "absent_sessions": 2,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "favorite_pattern_tracker"
@@ -73503,9 +75463,9 @@
       "symbol": "MARA",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 1,
+      "days_active": 2,
       "absent_sessions": 0,
-      "lifecycle": "NEW",
+      "lifecycle": "ACTIVE",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
@@ -74452,6 +76412,204 @@
             ]
           }
         }
+      ],
+      "source_activations": [
+        {
+          "activation_id": "favorite_pattern_tracker:favorite-pattern-v2.0.0",
+          "source_system": "favorite_pattern_tracker",
+          "activation_date": "2026-08-28",
+          "definition_version": "favorite-pattern-v2.0.0",
+          "snapshot": {
+            "pattern_version": "favorite-pattern-v2.0.0",
+            "stage": "entry_ready",
+            "match_count": 7,
+            "conditions": [
+              {
+                "id": "prior_advance_or_turn",
+                "label": "前段上涨／日线转强背景",
+                "hit": true
+              },
+              {
+                "id": "first_bottom_structure",
+                "label": "第一段局部双底／三底",
+                "hit": true
+              },
+              {
+                "id": "first_three_push_breakout",
+                "label": "第一段三推收盘突破",
+                "hit": true
+              },
+              {
+                "id": "first_momentum_trend_turn",
+                "label": "第一段MACD＋EMA趋势转变",
+                "hit": true
+              },
+              {
+                "id": "independent_reset",
+                "label": "真实回调与动能重置",
+                "hit": true
+              },
+              {
+                "id": "second_bottom_or_retest",
+                "label": "新的W底／回踩确认",
+                "hit": true
+              },
+              {
+                "id": "second_reacceleration",
+                "label": "二次突破＋MACD＋EMA转强",
+                "hit": true
+              }
+            ],
+            "prior_advance": {
+              "low_index": 1848,
+              "high_index": 1981,
+              "low_date": "04/04/2025",
+              "high_date": "10/15/2025",
+              "low": 9.81,
+              "high": 23.45,
+              "advance_pct": 139.04,
+              "span_sessions": 133
+            },
+            "pullback": {
+              "retracement_pct": 121.81,
+              "golden_pocket": false,
+              "ema200_support": false,
+              "ema200_nearest_distance_pct": 9.94
+            },
+            "double_bottom": {
+              "first_index": 2185,
+              "second_index": 2192,
+              "first_date": "08/10/2026",
+              "second_date": "08/19/2026",
+              "first_price": 9.4,
+              "second_price": 8.68,
+              "separation_sessions": 7,
+              "spread_pct": 7.96,
+              "neckline": 10.28,
+              "invalidation": 8.3,
+              "invalidated": false
+            },
+            "second_bottom_macd": {
+              "hit": true,
+              "cross_date": "08/20/2026",
+              "distance_from_second_bottom_sessions": 1
+            },
+            "three_push": {
+              "high_indices": [
+                2052,
+                2073,
+                2092
+              ],
+              "high_dates": [
+                "01/28/2026",
+                "02/27/2026",
+                "03/26/2026"
+              ],
+              "high_prices": [
+                10.79,
+                9.84,
+                9.4
+              ],
+              "slope_per_session": -0.03475,
+              "current_line": 7.98,
+              "breakout_index": 2100,
+              "breakout_date": "04/08/2026",
+              "breakout_close": 9.5,
+              "breakout_level": 9.12,
+              "bars_since_breakout": 33
+            },
+            "ema_realign": {
+              "hit": true,
+              "cross_date": null,
+              "strength_date": "08/25/2026",
+              "full_alignment": false,
+              "ema20": 10.86,
+              "ema50": 11.39,
+              "ema200": 12.11
+            },
+            "sequence": {
+              "first_confirmation_date": "04/15/2026",
+              "first_bottom": {
+                "first_index": 2087,
+                "second_index": 2103,
+                "first_date": "03/19/2026",
+                "second_date": "04/13/2026",
+                "first_price": 8.37,
+                "second_price": 9.18,
+                "separation_sessions": 16,
+                "spread_pct": 9.23,
+                "neckline": 10.02,
+                "invalidation": 7.99,
+                "invalidated": false
+              },
+              "first_macd_date": "04/06/2026",
+              "first_ema_cross_date": "04/15/2026",
+              "reset_drawdown_pct": 47.17,
+              "macd_reset": true,
+              "second_bottom": {
+                "first_index": 2185,
+                "second_index": 2192,
+                "first_date": "08/10/2026",
+                "second_date": "08/19/2026",
+                "first_price": 9.4,
+                "second_price": 8.68,
+                "separation_sessions": 7,
+                "spread_pct": 7.96,
+                "neckline": 10.28,
+                "invalidation": 8.3,
+                "invalidated": false
+              },
+              "second_breakout_date": "08/20/2026",
+              "second_macd_date": "08/20/2026",
+              "ema_strength_date": "08/25/2026",
+              "full_alignment_date": null,
+              "completion_date": "08/25/2026"
+            },
+            "risk_gate": {
+              "clear": true,
+              "blocked": false,
+              "reasons_zh": [],
+              "unresolved_pressure_rounds": 1,
+              "pressure_events": [
+                {
+                  "date": "08/28/2026",
+                  "near_engulf": true,
+                  "follow_through": false
+                }
+              ],
+              "multi_top": {
+                "dates": [
+                  "07/31/2026",
+                  "08/05/2026",
+                  "08/21/2026"
+                ],
+                "prices": [
+                  12.07,
+                  12.02,
+                  12.47
+                ],
+                "zone_low": 12.02,
+                "zone_high": 12.47
+              },
+              "top_exhaustion": [],
+              "ema_weak": true
+            },
+            "legacy_v1": {
+              "pattern_version": "favorite-pattern-v1.0.1",
+              "stage": "breakout_incomplete",
+              "match_count": 5,
+              "total_conditions": 7
+            },
+            "trade_map": {
+              "signal_close": 11.83,
+              "earliest_entry": "next_trading_day_adjusted_open",
+              "target_previous_high": 16.43,
+              "invalidation_second_bottom": 8.3,
+              "estimated_reward_risk": 1.3
+            }
+          },
+          "immutable_fingerprint": "910d1e9be9042210acefb6b5a6caf690b222059279272f03aa15bff804d5d720"
+        }
       ]
     },
     {
@@ -74463,9 +76621,9 @@
       "symbol": "MCK",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 1,
+      "days_active": 2,
       "absent_sessions": 0,
-      "lifecycle": "NEW",
+      "lifecycle": "ACTIVE",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
@@ -75284,6 +77442,198 @@
             ]
           }
         }
+      ],
+      "source_activations": [
+        {
+          "activation_id": "favorite_pattern_tracker:favorite-pattern-v2.0.0",
+          "source_system": "favorite_pattern_tracker",
+          "activation_date": "2026-08-28",
+          "definition_version": "favorite-pattern-v2.0.0",
+          "snapshot": {
+            "pattern_version": "favorite-pattern-v2.0.0",
+            "stage": "entry_ready",
+            "match_count": 7,
+            "conditions": [
+              {
+                "id": "prior_advance_or_turn",
+                "label": "前段上涨／日线转强背景",
+                "hit": true
+              },
+              {
+                "id": "first_bottom_structure",
+                "label": "第一段局部双底／三底",
+                "hit": true
+              },
+              {
+                "id": "first_three_push_breakout",
+                "label": "第一段三推收盘突破",
+                "hit": true
+              },
+              {
+                "id": "first_momentum_trend_turn",
+                "label": "第一段MACD＋EMA趋势转变",
+                "hit": true
+              },
+              {
+                "id": "independent_reset",
+                "label": "真实回调与动能重置",
+                "hit": true
+              },
+              {
+                "id": "second_bottom_or_retest",
+                "label": "新的W底／回踩确认",
+                "hit": true
+              },
+              {
+                "id": "second_reacceleration",
+                "label": "二次突破＋MACD＋EMA转强",
+                "hit": true
+              }
+            ],
+            "prior_advance": {
+              "low_index": 1936,
+              "high_index": 2075,
+              "low_date": "08/12/2025",
+              "high_date": "03/03/2026",
+              "low": 634.42,
+              "high": 997.9,
+              "advance_pct": 57.29,
+              "span_sessions": 139
+            },
+            "pullback": {
+              "retracement_pct": 58.07,
+              "golden_pocket": true,
+              "ema200_support": true,
+              "ema200_nearest_distance_pct": 1.51
+            },
+            "double_bottom": {
+              "first_index": 2189,
+              "second_index": 2194,
+              "first_date": "08/14/2026",
+              "second_date": "08/21/2026",
+              "first_price": 852.99,
+              "second_price": 837.88,
+              "separation_sessions": 5,
+              "spread_pct": 1.79,
+              "neckline": 886.14,
+              "invalidation": 823.27,
+              "invalidated": false
+            },
+            "second_bottom_macd": {
+              "hit": true,
+              "cross_date": "08/26/2026",
+              "distance_from_second_bottom_sessions": 3
+            },
+            "three_push": {
+              "high_indices": [
+                2101,
+                2108,
+                2169
+              ],
+              "high_dates": [
+                "04/09/2026",
+                "04/20/2026",
+                "07/17/2026"
+              ],
+              "high_prices": [
+                878.13,
+                872.07,
+                861.0
+              ],
+              "slope_per_session": -0.251898,
+              "current_line": 856.47,
+              "breakout_index": 2176,
+              "breakout_date": "07/28/2026",
+              "breakout_close": 889.5,
+              "breakout_level": 859.24,
+              "bars_since_breakout": 11
+            },
+            "ema_realign": {
+              "hit": true,
+              "cross_date": null,
+              "strength_date": "08/24/2026",
+              "full_alignment": true,
+              "ema20": 870.07,
+              "ema50": 845.12,
+              "ema200": 816.58
+            },
+            "sequence": {
+              "first_confirmation_date": "07/28/2026",
+              "first_bottom": {
+                "first_index": 2123,
+                "second_index": 2157,
+                "first_date": "05/11/2026",
+                "second_date": "06/30/2026",
+                "first_price": 722.88,
+                "second_price": 744.58,
+                "separation_sessions": 34,
+                "spread_pct": 2.96,
+                "neckline": 800.36,
+                "invalidation": 713.19,
+                "invalidated": false
+              },
+              "first_macd_date": "07/01/2026",
+              "first_ema_cross_date": "07/16/2026",
+              "reset_drawdown_pct": 8.18,
+              "macd_reset": true,
+              "second_bottom": {
+                "first_index": 2189,
+                "second_index": 2194,
+                "first_date": "08/14/2026",
+                "second_date": "08/21/2026",
+                "first_price": 852.99,
+                "second_price": 837.88,
+                "separation_sessions": 5,
+                "spread_pct": 1.79,
+                "neckline": 886.14,
+                "invalidation": 823.27,
+                "invalidated": false
+              },
+              "second_breakout_date": "08/25/2026",
+              "second_macd_date": "08/26/2026",
+              "ema_strength_date": "08/24/2026",
+              "full_alignment_date": null,
+              "completion_date": "08/26/2026"
+            },
+            "risk_gate": {
+              "clear": true,
+              "blocked": false,
+              "reasons_zh": [],
+              "unresolved_pressure_rounds": 0,
+              "pressure_events": [],
+              "multi_top": {
+                "dates": [
+                  "08/11/2026",
+                  "08/18/2026",
+                  "08/26/2026"
+                ],
+                "prices": [
+                  902.05,
+                  886.14,
+                  918.0
+                ],
+                "zone_low": 886.14,
+                "zone_high": 918.0
+              },
+              "top_exhaustion": [],
+              "ema_weak": false
+            },
+            "legacy_v1": {
+              "pattern_version": "favorite-pattern-v1.0.1",
+              "stage": "breakout_incomplete",
+              "match_count": 6,
+              "total_conditions": 7
+            },
+            "trade_map": {
+              "signal_close": 896.65,
+              "earliest_entry": "next_trading_day_adjusted_open",
+              "target_previous_high": 912.5,
+              "invalidation_second_bottom": 823.27,
+              "estimated_reward_risk": 0.22
+            }
+          },
+          "immutable_fingerprint": "f30d25b6e189755e88bf0c3569180fd2d7619283424554635dc64c2bbf400e1e"
+        }
       ]
     },
     {
@@ -76065,7 +78415,7 @@
       "symbol": "NOW",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 5,
+      "days_active": 6,
       "absent_sessions": 0,
       "lifecycle": "ACTIVE",
       "initial_source_systems": [
@@ -76759,7 +79109,213 @@
               "趋势、广度和信用风险偏好分开保存，便于后续逐层回测",
               "V1五项评分暂时保持不变，研究验证后才允许建立新版本"
             ]
+          },
+          "favorite_pattern": {
+            "stage": "entry_ready",
+            "match_count": 7,
+            "pattern_version": "favorite-pattern-v2.0.0"
           }
+        }
+      ],
+      "source_activations": [
+        {
+          "activation_id": "favorite_pattern_tracker:favorite-pattern-v2.0.0",
+          "source_system": "favorite_pattern_tracker",
+          "activation_date": "2026-08-28",
+          "definition_version": "favorite-pattern-v2.0.0",
+          "snapshot": {
+            "pattern_version": "favorite-pattern-v2.0.0",
+            "stage": "entry_ready",
+            "match_count": 7,
+            "conditions": [
+              {
+                "id": "prior_advance_or_turn",
+                "label": "前段上涨／日线转强背景",
+                "hit": true
+              },
+              {
+                "id": "first_bottom_structure",
+                "label": "第一段局部双底／三底",
+                "hit": true
+              },
+              {
+                "id": "first_three_push_breakout",
+                "label": "第一段三推收盘突破",
+                "hit": true
+              },
+              {
+                "id": "first_momentum_trend_turn",
+                "label": "第一段MACD＋EMA趋势转变",
+                "hit": true
+              },
+              {
+                "id": "independent_reset",
+                "label": "真实回调与动能重置",
+                "hit": true
+              },
+              {
+                "id": "second_bottom_or_retest",
+                "label": "新的W底／回踩确认",
+                "hit": true
+              },
+              {
+                "id": "second_reacceleration",
+                "label": "二次突破＋MACD＋EMA转强",
+                "hit": true
+              }
+            ],
+            "prior_advance": {
+              "low_index": 2060,
+              "high_index": 2079,
+              "low_date": "02/09/2026",
+              "high_date": "03/09/2026",
+              "low": 98.0,
+              "high": 126.67,
+              "advance_pct": 29.26,
+              "span_sessions": 19
+            },
+            "pullback": {
+              "retracement_pct": 131.71,
+              "golden_pocket": false,
+              "ema200_support": true,
+              "ema200_nearest_distance_pct": 4.02
+            },
+            "double_bottom": {
+              "first_index": 2190,
+              "second_index": 2197,
+              "first_date": "08/17/2026",
+              "second_date": "08/26/2026",
+              "first_price": 117.58,
+              "second_price": 121.88,
+              "separation_sessions": 7,
+              "spread_pct": 3.59,
+              "neckline": 131.18,
+              "invalidation": 114.76,
+              "invalidated": false
+            },
+            "second_bottom_macd": {
+              "hit": true,
+              "cross_date": "08/27/2026",
+              "distance_from_second_bottom_sessions": 1
+            },
+            "three_push": {
+              "high_indices": [
+                2085,
+                2129,
+                2147
+              ],
+              "high_dates": [
+                "03/17/2026",
+                "05/19/2026",
+                "06/15/2026"
+              ],
+              "high_prices": [
+                118.99,
+                110.83,
+                107.18
+              ],
+              "slope_per_session": -0.190484,
+              "current_line": 100.13,
+              "breakout_index": 2159,
+              "breakout_date": "07/02/2026",
+              "breakout_close": 106.32,
+              "breakout_level": 104.89,
+              "bars_since_breakout": 25
+            },
+            "ema_realign": {
+              "hit": true,
+              "cross_date": null,
+              "strength_date": "08/27/2026",
+              "full_alignment": true,
+              "ema20": 125.45,
+              "ema50": 116.67,
+              "ema200": 123.15
+            },
+            "sequence": {
+              "first_confirmation_date": "07/08/2026",
+              "first_bottom": {
+                "first_index": 2116,
+                "second_index": 2154,
+                "first_date": "04/30/2026",
+                "second_date": "06/25/2026",
+                "first_price": 85.88,
+                "second_price": 89.39,
+                "separation_sessions": 38,
+                "spread_pct": 4.01,
+                "neckline": 139.2,
+                "invalidation": 83.05,
+                "invalidated": false
+              },
+              "first_macd_date": "07/02/2026",
+              "first_ema_cross_date": "07/08/2026",
+              "reset_drawdown_pct": 10.37,
+              "macd_reset": true,
+              "second_bottom": {
+                "first_index": 2190,
+                "second_index": 2197,
+                "first_date": "08/17/2026",
+                "second_date": "08/26/2026",
+                "first_price": 117.58,
+                "second_price": 121.88,
+                "separation_sessions": 7,
+                "spread_pct": 3.59,
+                "neckline": 131.18,
+                "invalidation": 114.76,
+                "invalidated": false
+              },
+              "second_breakout_date": "08/27/2026",
+              "second_macd_date": "08/27/2026",
+              "ema_strength_date": "08/27/2026",
+              "full_alignment_date": null,
+              "completion_date": "08/27/2026"
+            },
+            "risk_gate": {
+              "clear": true,
+              "blocked": false,
+              "reasons_zh": [],
+              "unresolved_pressure_rounds": 0,
+              "pressure_events": [],
+              "multi_top": {
+                "dates": [
+                  "07/07/2026",
+                  "07/13/2026",
+                  "07/29/2026"
+                ],
+                "prices": [
+                  113.79,
+                  113.03,
+                  118.36
+                ],
+                "zone_low": 113.03,
+                "zone_high": 118.36
+              },
+              "top_exhaustion": [
+                {
+                  "doji_date": "06/24/2026",
+                  "confirmation_date": "06/25/2026"
+                },
+                {
+                  "doji_date": "07/21/2026",
+                  "confirmation_date": "07/22/2026"
+                }
+              ],
+              "ema_weak": false
+            },
+            "legacy_v1": {
+              "pattern_version": "favorite-pattern-v1.0.1",
+              "stage": "waiting_breakout",
+              "match_count": 5,
+              "total_conditions": 7
+            },
+            "trade_map": {
+              "signal_close": 138.43,
+              "earliest_entry": "next_trading_day_adjusted_open",
+              "target_previous_high": 129.75,
+              "invalidation_second_bottom": 114.76,
+              "estimated_reward_risk": null
+            }
+          },
+          "immutable_fingerprint": "c2fbe822d3d5acd2f2da385f11f6fb98782cc57cc117ac61b44b531927d2684f"
         }
       ]
     },
@@ -76772,9 +79328,9 @@
       "symbol": "OKTA",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 1,
+      "days_active": 2,
       "absent_sessions": 0,
-      "lifecycle": "NEW",
+      "lifecycle": "ACTIVE",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
@@ -77655,6 +80211,198 @@
             ]
           }
         }
+      ],
+      "source_activations": [
+        {
+          "activation_id": "favorite_pattern_tracker:favorite-pattern-v2.0.0",
+          "source_system": "favorite_pattern_tracker",
+          "activation_date": "2026-08-28",
+          "definition_version": "favorite-pattern-v2.0.0",
+          "snapshot": {
+            "pattern_version": "favorite-pattern-v2.0.0",
+            "stage": "entry_ready",
+            "match_count": 7,
+            "conditions": [
+              {
+                "id": "prior_advance_or_turn",
+                "label": "前段上涨／日线转强背景",
+                "hit": true
+              },
+              {
+                "id": "first_bottom_structure",
+                "label": "第一段局部双底／三底",
+                "hit": true
+              },
+              {
+                "id": "first_three_push_breakout",
+                "label": "第一段三推收盘突破",
+                "hit": true
+              },
+              {
+                "id": "first_momentum_trend_turn",
+                "label": "第一段MACD＋EMA趋势转变",
+                "hit": true
+              },
+              {
+                "id": "independent_reset",
+                "label": "真实回调与动能重置",
+                "hit": true
+              },
+              {
+                "id": "second_bottom_or_retest",
+                "label": "新的W底／回踩确认",
+                "hit": true
+              },
+              {
+                "id": "second_reacceleration",
+                "label": "二次突破＋MACD＋EMA转强",
+                "hit": true
+              }
+            ],
+            "prior_advance": {
+              "low_index": 2015,
+              "high_index": 2044,
+              "low_date": "12/03/2025",
+              "high_date": "01/15/2026",
+              "low": 75.05,
+              "high": 97.45,
+              "advance_pct": 29.85,
+              "span_sessions": 29
+            },
+            "pullback": {
+              "retracement_pct": 31.15,
+              "golden_pocket": false,
+              "ema200_support": false,
+              "ema200_nearest_distance_pct": 17.33
+            },
+            "double_bottom": {
+              "first_index": 2176,
+              "second_index": 2197,
+              "first_date": "07/28/2026",
+              "second_date": "08/26/2026",
+              "first_price": 129.02,
+              "second_price": 127.61,
+              "separation_sessions": 21,
+              "spread_pct": 1.1,
+              "neckline": 156.39,
+              "invalidation": 124.19,
+              "invalidated": false
+            },
+            "second_bottom_macd": {
+              "hit": true,
+              "cross_date": "08/27/2026",
+              "distance_from_second_bottom_sessions": 1
+            },
+            "three_push": {
+              "high_indices": [
+                2038,
+                2049,
+                2123
+              ],
+              "high_dates": [
+                "01/07/2026",
+                "01/23/2026",
+                "05/11/2026"
+              ],
+              "high_prices": [
+                94.65,
+                92.88,
+                84.7
+              ],
+              "slope_per_session": -0.117059,
+              "current_line": 82.48,
+              "breakout_index": 2128,
+              "breakout_date": "05/18/2026",
+              "breakout_close": 87.04,
+              "breakout_level": 84.11,
+              "bars_since_breakout": 14
+            },
+            "ema_realign": {
+              "hit": true,
+              "cross_date": null,
+              "strength_date": "08/27/2026",
+              "full_alignment": true,
+              "ema20": 145.25,
+              "ema50": 137.27,
+              "ema200": 109.96
+            },
+            "sequence": {
+              "first_confirmation_date": "05/18/2026",
+              "first_bottom": {
+                "first_index": 2075,
+                "second_index": 2112,
+                "first_date": "03/03/2026",
+                "second_date": "04/24/2026",
+                "first_price": 70.16,
+                "second_price": 73.24,
+                "separation_sessions": 37,
+                "spread_pct": 4.3,
+                "neckline": 82.49,
+                "invalidation": 68.01,
+                "invalidated": false
+              },
+              "first_macd_date": "04/20/2026",
+              "first_ema_cross_date": "05/14/2026",
+              "reset_drawdown_pct": 18.72,
+              "macd_reset": true,
+              "second_bottom": {
+                "first_index": 2176,
+                "second_index": 2197,
+                "first_date": "07/28/2026",
+                "second_date": "08/26/2026",
+                "first_price": 129.02,
+                "second_price": 127.61,
+                "separation_sessions": 21,
+                "spread_pct": 1.1,
+                "neckline": 156.39,
+                "invalidation": 124.19,
+                "invalidated": false
+              },
+              "second_breakout_date": "08/27/2026",
+              "second_macd_date": "08/27/2026",
+              "ema_strength_date": "08/27/2026",
+              "full_alignment_date": null,
+              "completion_date": "08/27/2026"
+            },
+            "risk_gate": {
+              "clear": true,
+              "blocked": false,
+              "reasons_zh": [],
+              "unresolved_pressure_rounds": 0,
+              "pressure_events": [],
+              "multi_top": {
+                "dates": [
+                  "08/05/2026",
+                  "08/10/2026",
+                  "08/14/2026"
+                ],
+                "prices": [
+                  151.57,
+                  153.68,
+                  156.39
+                ],
+                "zone_low": 151.57,
+                "zone_high": 156.39
+              },
+              "top_exhaustion": [],
+              "ema_weak": false
+            },
+            "legacy_v1": {
+              "pattern_version": "favorite-pattern-v1.0.1",
+              "stage": "discovery",
+              "match_count": 3,
+              "total_conditions": 7
+            },
+            "trade_map": {
+              "signal_close": 172.91,
+              "earliest_entry": "next_trading_day_adjusted_open",
+              "target_previous_high": 157.0,
+              "invalidation_second_bottom": 124.19,
+              "estimated_reward_risk": null
+            }
+          },
+          "immutable_fingerprint": "12c44477e512854b4c600b1f597200bd9fe9e504c9dadeec951142aae27e8358"
+        }
       ]
     },
     {
@@ -77666,9 +80414,9 @@
       "symbol": "PLTR",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 1,
+      "days_active": 2,
       "absent_sessions": 0,
-      "lifecycle": "NEW",
+      "lifecycle": "ACTIVE",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
@@ -78492,6 +81240,203 @@
             ]
           }
         }
+      ],
+      "source_activations": [
+        {
+          "activation_id": "favorite_pattern_tracker:favorite-pattern-v2.0.0",
+          "source_system": "favorite_pattern_tracker",
+          "activation_date": "2026-08-28",
+          "definition_version": "favorite-pattern-v2.0.0",
+          "snapshot": {
+            "pattern_version": "favorite-pattern-v2.0.0",
+            "stage": "entry_ready",
+            "match_count": 7,
+            "conditions": [
+              {
+                "id": "prior_advance_or_turn",
+                "label": "前段上涨／日线转强背景",
+                "hit": true
+              },
+              {
+                "id": "first_bottom_structure",
+                "label": "第一段局部双底／三底",
+                "hit": true
+              },
+              {
+                "id": "first_three_push_breakout",
+                "label": "第一段三推收盘突破",
+                "hit": true
+              },
+              {
+                "id": "first_momentum_trend_turn",
+                "label": "第一段MACD＋EMA趋势转变",
+                "hit": true
+              },
+              {
+                "id": "independent_reset",
+                "label": "真实回调与动能重置",
+                "hit": true
+              },
+              {
+                "id": "second_bottom_or_retest",
+                "label": "新的W底／回踩确认",
+                "hit": true
+              },
+              {
+                "id": "second_reacceleration",
+                "label": "二次突破＋MACD＋EMA转强",
+                "hit": true
+              }
+            ],
+            "prior_advance": {
+              "low_index": 1192,
+              "high_index": 1279,
+              "low_date": "07/01/2025",
+              "high_date": "11/03/2025",
+              "low": 128.51,
+              "high": 207.52,
+              "advance_pct": 61.48,
+              "span_sessions": 87
+            },
+            "pullback": {
+              "retracement_pct": 74.36,
+              "golden_pocket": false,
+              "ema200_support": false,
+              "ema200_nearest_distance_pct": 15.14
+            },
+            "double_bottom": {
+              "first_index": 1477,
+              "second_index": 1482,
+              "first_date": "08/19/2026",
+              "second_date": "08/26/2026",
+              "first_price": 169.77,
+              "second_price": 168.9,
+              "separation_sessions": 5,
+              "spread_pct": 0.51,
+              "neckline": 182.44,
+              "invalidation": 165.04,
+              "invalidated": false
+            },
+            "second_bottom_macd": {
+              "hit": true,
+              "cross_date": "08/27/2026",
+              "distance_from_second_bottom_sessions": 1
+            },
+            "three_push": {
+              "high_indices": [
+                1375,
+                1385,
+                1460
+              ],
+              "high_dates": [
+                "03/24/2026",
+                "04/08/2026",
+                "07/27/2026"
+              ],
+              "high_prices": [
+                162.4,
+                156.28,
+                132.41
+              ],
+              "slope_per_session": -0.352824,
+              "current_line": 123.94,
+              "breakout_index": 1466,
+              "breakout_date": "08/04/2026",
+              "breakout_close": 162.66,
+              "breakout_level": 130.29,
+              "bars_since_breakout": 18
+            },
+            "ema_realign": {
+              "hit": true,
+              "cross_date": null,
+              "strength_date": "08/26/2026",
+              "full_alignment": true,
+              "ema20": 168.98,
+              "ema50": 153.84,
+              "ema200": 146.51
+            },
+            "sequence": {
+              "first_confirmation_date": "08/05/2026",
+              "first_bottom": {
+                "first_index": 1431,
+                "second_index": 1464,
+                "first_date": "06/12/2026",
+                "second_date": "07/31/2026",
+                "first_price": 126.65,
+                "second_price": 119.62,
+                "separation_sessions": 33,
+                "spread_pct": 5.71,
+                "neckline": 138.9,
+                "invalidation": 116.33,
+                "invalidated": false
+              },
+              "first_macd_date": "08/04/2026",
+              "first_ema_cross_date": "08/05/2026",
+              "reset_drawdown_pct": 7.42,
+              "macd_reset": true,
+              "second_bottom": {
+                "first_index": 1477,
+                "second_index": 1482,
+                "first_date": "08/19/2026",
+                "second_date": "08/26/2026",
+                "first_price": 169.77,
+                "second_price": 168.9,
+                "separation_sessions": 5,
+                "spread_pct": 0.51,
+                "neckline": 182.44,
+                "invalidation": 165.04,
+                "invalidated": false
+              },
+              "second_breakout_date": "08/27/2026",
+              "second_macd_date": "08/27/2026",
+              "ema_strength_date": "08/26/2026",
+              "full_alignment_date": null,
+              "completion_date": "08/27/2026"
+            },
+            "risk_gate": {
+              "clear": true,
+              "blocked": false,
+              "reasons_zh": [],
+              "unresolved_pressure_rounds": 0,
+              "pressure_events": [],
+              "multi_top": {
+                "dates": [
+                  "08/10/2026",
+                  "08/14/2026",
+                  "08/21/2026"
+                ],
+                "prices": [
+                  179.6,
+                  180.18,
+                  182.44
+                ],
+                "zone_low": 179.6,
+                "zone_high": 182.44
+              },
+              "top_exhaustion": [
+                {
+                  "doji_date": "06/24/2026",
+                  "confirmation_date": "06/25/2026"
+                }
+              ],
+              "ema_weak": false
+            },
+            "legacy_v1": {
+              "pattern_version": "favorite-pattern-v1.0.1",
+              "stage": "breakout_incomplete",
+              "match_count": 6,
+              "total_conditions": 7
+            },
+            "trade_map": {
+              "signal_close": 185.93,
+              "earliest_entry": "next_trading_day_adjusted_open",
+              "target_previous_high": 180.18,
+              "invalidation_second_bottom": 165.04,
+              "estimated_reward_risk": null
+            }
+          },
+          "immutable_fingerprint": "aa2c82d62208262d6e7f069629b5c78276e9fee42c3bc228bf46aa9f81551521"
+        }
       ]
     },
     {
@@ -78503,7 +81448,7 @@
       "symbol": "QNRX",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 5,
+      "days_active": 6,
       "absent_sessions": 0,
       "lifecycle": "ACTIVE",
       "initial_source_systems": [
@@ -80807,9 +83752,9 @@
       "symbol": "REXR",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 1,
+      "days_active": 2,
       "absent_sessions": 0,
-      "lifecycle": "NEW",
+      "lifecycle": "ACTIVE",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
@@ -81617,6 +84562,198 @@
               "V1五项评分暂时保持不变，研究验证后才允许建立新版本"
             ]
           }
+        }
+      ],
+      "source_activations": [
+        {
+          "activation_id": "favorite_pattern_tracker:favorite-pattern-v2.0.0",
+          "source_system": "favorite_pattern_tracker",
+          "activation_date": "2026-08-28",
+          "definition_version": "favorite-pattern-v2.0.0",
+          "snapshot": {
+            "pattern_version": "favorite-pattern-v2.0.0",
+            "stage": "entry_ready",
+            "match_count": 7,
+            "conditions": [
+              {
+                "id": "prior_advance_or_turn",
+                "label": "前段上涨／日线转强背景",
+                "hit": true
+              },
+              {
+                "id": "first_bottom_structure",
+                "label": "第一段局部双底／三底",
+                "hit": true
+              },
+              {
+                "id": "first_three_push_breakout",
+                "label": "第一段三推收盘突破",
+                "hit": true
+              },
+              {
+                "id": "first_momentum_trend_turn",
+                "label": "第一段MACD＋EMA趋势转变",
+                "hit": true
+              },
+              {
+                "id": "independent_reset",
+                "label": "真实回调与动能重置",
+                "hit": true
+              },
+              {
+                "id": "second_bottom_or_retest",
+                "label": "新的W底／回踩确认",
+                "hit": true
+              },
+              {
+                "id": "second_reacceleration",
+                "label": "二次突破＋MACD＋EMA转强",
+                "hit": true
+              }
+            ],
+            "prior_advance": {
+              "low_index": 1865,
+              "high_index": 1984,
+              "low_date": "04/30/2025",
+              "high_date": "10/20/2025",
+              "low": 30.42,
+              "high": 42.76,
+              "advance_pct": 40.59,
+              "span_sessions": 119
+            },
+            "pullback": {
+              "retracement_pct": 68.56,
+              "golden_pocket": true,
+              "ema200_support": true,
+              "ema200_nearest_distance_pct": 2.26
+            },
+            "double_bottom": {
+              "first_index": 2185,
+              "second_index": 2190,
+              "first_date": "08/10/2026",
+              "second_date": "08/17/2026",
+              "first_price": 35.91,
+              "second_price": 35.68,
+              "separation_sessions": 5,
+              "spread_pct": 0.64,
+              "neckline": 37.03,
+              "invalidation": 35.32,
+              "invalidated": false
+            },
+            "second_bottom_macd": {
+              "hit": true,
+              "cross_date": "08/25/2026",
+              "distance_from_second_bottom_sessions": 6
+            },
+            "three_push": {
+              "high_indices": [
+                2108,
+                2117,
+                2161
+              ],
+              "high_dates": [
+                "04/20/2026",
+                "05/01/2026",
+                "07/07/2026"
+              ],
+              "high_prices": [
+                37.07,
+                35.54,
+                35.11
+              ],
+              "slope_per_session": -0.037026,
+              "current_line": 34.26,
+              "breakout_index": 2166,
+              "breakout_date": "07/14/2026",
+              "breakout_close": 35.51,
+              "breakout_level": 34.92,
+              "bars_since_breakout": 18
+            },
+            "ema_realign": {
+              "hit": true,
+              "cross_date": null,
+              "strength_date": "08/18/2026",
+              "full_alignment": true,
+              "ema20": 37.0,
+              "ema50": 36.38,
+              "ema200": 36.24
+            },
+            "sequence": {
+              "first_confirmation_date": "07/16/2026",
+              "first_bottom": {
+                "first_index": 2115,
+                "second_index": 2154,
+                "first_date": "04/29/2026",
+                "second_date": "06/25/2026",
+                "first_price": 34.71,
+                "second_price": 32.5,
+                "separation_sessions": 39,
+                "spread_pct": 6.58,
+                "neckline": 36.24,
+                "invalidation": 32.06,
+                "invalidated": false
+              },
+              "first_macd_date": "06/29/2026",
+              "first_ema_cross_date": "07/16/2026",
+              "reset_drawdown_pct": 10.06,
+              "macd_reset": true,
+              "second_bottom": {
+                "first_index": 2185,
+                "second_index": 2190,
+                "first_date": "08/10/2026",
+                "second_date": "08/17/2026",
+                "first_price": 35.91,
+                "second_price": 35.68,
+                "separation_sessions": 5,
+                "spread_pct": 0.64,
+                "neckline": 37.03,
+                "invalidation": 35.32,
+                "invalidated": false
+              },
+              "second_breakout_date": "08/19/2026",
+              "second_macd_date": "08/25/2026",
+              "ema_strength_date": "08/18/2026",
+              "full_alignment_date": null,
+              "completion_date": "08/25/2026"
+            },
+            "risk_gate": {
+              "clear": true,
+              "blocked": false,
+              "reasons_zh": [],
+              "unresolved_pressure_rounds": 0,
+              "pressure_events": [],
+              "multi_top": {
+                "dates": [
+                  "08/13/2026",
+                  "08/19/2026",
+                  "08/24/2026"
+                ],
+                "prices": [
+                  37.03,
+                  38.16,
+                  37.94
+                ],
+                "zone_low": 37.03,
+                "zone_high": 38.16
+              },
+              "top_exhaustion": [],
+              "ema_weak": false
+            },
+            "legacy_v1": {
+              "pattern_version": "favorite-pattern-v1.0.1",
+              "stage": "waiting_breakout",
+              "match_count": 5,
+              "total_conditions": 7
+            },
+            "trade_map": {
+              "signal_close": 37.62,
+              "earliest_entry": "next_trading_day_adjusted_open",
+              "target_previous_high": 39.67,
+              "invalidation_second_bottom": 35.32,
+              "estimated_reward_risk": 0.89
+            }
+          },
+          "immutable_fingerprint": "7c778ca1861e77321b36530b7d465079f648de110681e754be59175fa331d7b9"
         }
       ]
     },
@@ -83213,9 +86350,9 @@
       "symbol": "TRI",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 1,
+      "days_active": 2,
       "absent_sessions": 0,
-      "lifecycle": "NEW",
+      "lifecycle": "ACTIVE",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
@@ -84040,6 +87177,204 @@
             ]
           }
         }
+      ],
+      "source_activations": [
+        {
+          "activation_id": "favorite_pattern_tracker:favorite-pattern-v2.0.0",
+          "source_system": "favorite_pattern_tracker",
+          "activation_date": "2026-08-28",
+          "definition_version": "favorite-pattern-v2.0.0",
+          "snapshot": {
+            "pattern_version": "favorite-pattern-v2.0.0",
+            "stage": "entry_ready",
+            "match_count": 7,
+            "conditions": [
+              {
+                "id": "prior_advance_or_turn",
+                "label": "前段上涨／日线转强背景",
+                "hit": true
+              },
+              {
+                "id": "first_bottom_structure",
+                "label": "第一段局部双底／三底",
+                "hit": true
+              },
+              {
+                "id": "first_three_push_breakout",
+                "label": "第一段三推收盘突破",
+                "hit": true
+              },
+              {
+                "id": "first_momentum_trend_turn",
+                "label": "第一段MACD＋EMA趋势转变",
+                "hit": true
+              },
+              {
+                "id": "independent_reset",
+                "label": "真实回调与动能重置",
+                "hit": true
+              },
+              {
+                "id": "second_bottom_or_retest",
+                "label": "新的W底／回踩确认",
+                "hit": true
+              },
+              {
+                "id": "second_reacceleration",
+                "label": "二次突破＋MACD＋EMA转强",
+                "hit": true
+              }
+            ],
+            "prior_advance": {
+              "low_index": 2069,
+              "high_index": 2079,
+              "low_date": "02/23/2026",
+              "high_date": "03/09/2026",
+              "low": 77.47,
+              "high": 110.16,
+              "advance_pct": 42.2,
+              "span_sessions": 10
+            },
+            "pullback": {
+              "retracement_pct": 45.92,
+              "golden_pocket": false,
+              "ema200_support": true,
+              "ema200_nearest_distance_pct": 2.84
+            },
+            "double_bottom": {
+              "first_index": 2183,
+              "second_index": 2190,
+              "first_date": "08/06/2026",
+              "second_date": "08/17/2026",
+              "first_price": 95.7,
+              "second_price": 98.15,
+              "separation_sessions": 7,
+              "spread_pct": 2.52,
+              "neckline": 105.98,
+              "invalidation": 92.67,
+              "invalidated": false
+            },
+            "second_bottom_macd": {
+              "hit": true,
+              "cross_date": "08/24/2026",
+              "distance_from_second_bottom_sessions": 5
+            },
+            "three_push": {
+              "high_indices": [
+                2109,
+                2137,
+                2161
+              ],
+              "high_dates": [
+                "04/21/2026",
+                "06/01/2026",
+                "07/07/2026"
+              ],
+              "high_prices": [
+                95.46,
+                93.49,
+                92.65
+              ],
+              "slope_per_session": -0.053864,
+              "current_line": 90.93,
+              "breakout_index": 2165,
+              "breakout_date": "07/13/2026",
+              "breakout_close": 93.68,
+              "breakout_level": 92.44,
+              "bars_since_breakout": 28
+            },
+            "ema_realign": {
+              "hit": true,
+              "cross_date": null,
+              "strength_date": "08/19/2026",
+              "full_alignment": true,
+              "ema20": 102.61,
+              "ema50": 97.45,
+              "ema200": 105.07
+            },
+            "sequence": {
+              "first_confirmation_date": "07/28/2026",
+              "first_bottom": {
+                "first_index": 2131,
+                "second_index": 2163,
+                "first_date": "05/21/2026",
+                "second_date": "07/09/2026",
+                "first_price": 82.31,
+                "second_price": 86.04,
+                "separation_sessions": 32,
+                "spread_pct": 4.43,
+                "neckline": 93.49,
+                "invalidation": 80.53,
+                "invalidated": false
+              },
+              "first_macd_date": "07/28/2026",
+              "first_ema_cross_date": "07/14/2026",
+              "reset_drawdown_pct": 15.1,
+              "macd_reset": true,
+              "second_bottom": {
+                "first_index": 2183,
+                "second_index": 2190,
+                "first_date": "08/06/2026",
+                "second_date": "08/17/2026",
+                "first_price": 95.7,
+                "second_price": 98.15,
+                "separation_sessions": 7,
+                "spread_pct": 2.52,
+                "neckline": 105.98,
+                "invalidation": 92.67,
+                "invalidated": false
+              },
+              "second_breakout_date": "08/24/2026",
+              "second_macd_date": "08/24/2026",
+              "ema_strength_date": "08/19/2026",
+              "full_alignment_date": null,
+              "completion_date": "08/24/2026"
+            },
+            "risk_gate": {
+              "clear": true,
+              "blocked": false,
+              "reasons_zh": [],
+              "unresolved_pressure_rounds": 1,
+              "pressure_events": [
+                {
+                  "date": "08/05/2026",
+                  "near_engulf": true,
+                  "follow_through": false
+                }
+              ],
+              "multi_top": {
+                "dates": [
+                  "08/05/2026",
+                  "08/14/2026",
+                  "08/24/2026"
+                ],
+                "prices": [
+                  112.72,
+                  105.98,
+                  109.46
+                ],
+                "zone_low": 105.98,
+                "zone_high": 112.72
+              },
+              "top_exhaustion": [],
+              "ema_weak": false
+            },
+            "legacy_v1": {
+              "pattern_version": "favorite-pattern-v1.0.1",
+              "stage": "bottom_confirmed",
+              "match_count": 4,
+              "total_conditions": 7
+            },
+            "trade_map": {
+              "signal_close": 108.62,
+              "earliest_entry": "next_trading_day_adjusted_open",
+              "target_previous_high": 112.72,
+              "invalidation_second_bottom": 92.67,
+              "estimated_reward_risk": 0.26
+            }
+          },
+          "immutable_fingerprint": "9b029cf632527210ea16a438525e65176173e3dfe05d07a929a6333fcddcac4e"
+        }
       ]
     },
     {
@@ -84821,9 +88156,9 @@
       "symbol": "UPS",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 1,
+      "days_active": 2,
       "absent_sessions": 0,
-      "lifecycle": "NEW",
+      "lifecycle": "ACTIVE",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
@@ -85648,6 +88983,204 @@
             ]
           }
         }
+      ],
+      "source_activations": [
+        {
+          "activation_id": "favorite_pattern_tracker:favorite-pattern-v2.0.0",
+          "source_system": "favorite_pattern_tracker",
+          "activation_date": "2026-08-28",
+          "definition_version": "favorite-pattern-v2.0.0",
+          "snapshot": {
+            "pattern_version": "favorite-pattern-v2.0.0",
+            "stage": "entry_ready",
+            "match_count": 7,
+            "conditions": [
+              {
+                "id": "prior_advance_or_turn",
+                "label": "前段上涨／日线转强背景",
+                "hit": true
+              },
+              {
+                "id": "first_bottom_structure",
+                "label": "第一段局部双底／三底",
+                "hit": true
+              },
+              {
+                "id": "first_three_push_breakout",
+                "label": "第一段三推收盘突破",
+                "hit": true
+              },
+              {
+                "id": "first_momentum_trend_turn",
+                "label": "第一段MACD＋EMA趋势转变",
+                "hit": true
+              },
+              {
+                "id": "independent_reset",
+                "label": "真实回调与动能重置",
+                "hit": true
+              },
+              {
+                "id": "second_bottom_or_retest",
+                "label": "新的W底／回踩确认",
+                "hit": true
+              },
+              {
+                "id": "second_reacceleration",
+                "label": "二次突破＋MACD＋EMA转强",
+                "hit": true
+              }
+            ],
+            "prior_advance": {
+              "low_index": 1957,
+              "high_index": 2063,
+              "low_date": "09/11/2025",
+              "high_date": "02/12/2026",
+              "low": 76.95,
+              "high": 116.86,
+              "advance_pct": 51.88,
+              "span_sessions": 106
+            },
+            "pullback": {
+              "retracement_pct": 57.63,
+              "golden_pocket": true,
+              "ema200_support": true,
+              "ema200_nearest_distance_pct": 0.14
+            },
+            "double_bottom": {
+              "first_index": 2184,
+              "second_index": 2191,
+              "first_date": "08/07/2026",
+              "second_date": "08/18/2026",
+              "first_price": 100.83,
+              "second_price": 101.34,
+              "separation_sessions": 7,
+              "spread_pct": 0.5,
+              "neckline": 104.24,
+              "invalidation": 99.69,
+              "invalidated": false
+            },
+            "second_bottom_macd": {
+              "hit": true,
+              "cross_date": "08/25/2026",
+              "distance_from_second_bottom_sessions": 5
+            },
+            "three_push": {
+              "high_indices": [
+                2063,
+                2068,
+                2154
+              ],
+              "high_dates": [
+                "02/12/2026",
+                "02/20/2026",
+                "06/25/2026"
+              ],
+              "high_prices": [
+                116.86,
+                113.39,
+                107.68
+              ],
+              "slope_per_session": -0.100865,
+              "current_line": 107.18,
+              "breakout_index": 2159,
+              "breakout_date": "07/02/2026",
+              "breakout_close": 108.92,
+              "breakout_level": 107.18,
+              "bars_since_breakout": 0
+            },
+            "ema_realign": {
+              "hit": true,
+              "cross_date": null,
+              "strength_date": "08/25/2026",
+              "full_alignment": false,
+              "ema20": 104.47,
+              "ema50": 105.14,
+              "ema200": 101.67
+            },
+            "sequence": {
+              "first_confirmation_date": "07/02/2026",
+              "first_bottom": {
+                "first_index": 2093,
+                "second_index": 2129,
+                "first_date": "03/27/2026",
+                "second_date": "05/19/2026",
+                "first_price": 91.05,
+                "second_price": 92.39,
+                "separation_sessions": 36,
+                "spread_pct": 1.46,
+                "neckline": 106.32,
+                "invalidation": 89.66,
+                "invalidated": false
+              },
+              "first_macd_date": "05/22/2026",
+              "first_ema_cross_date": "05/29/2026",
+              "reset_drawdown_pct": 13.5,
+              "macd_reset": true,
+              "second_bottom": {
+                "first_index": 2184,
+                "second_index": 2191,
+                "first_date": "08/07/2026",
+                "second_date": "08/18/2026",
+                "first_price": 100.83,
+                "second_price": 101.34,
+                "separation_sessions": 7,
+                "spread_pct": 0.5,
+                "neckline": 104.24,
+                "invalidation": 99.69,
+                "invalidated": false
+              },
+              "second_breakout_date": "08/26/2026",
+              "second_macd_date": "08/25/2026",
+              "ema_strength_date": "08/25/2026",
+              "full_alignment_date": null,
+              "completion_date": "08/26/2026"
+            },
+            "risk_gate": {
+              "clear": true,
+              "blocked": false,
+              "reasons_zh": [],
+              "unresolved_pressure_rounds": 1,
+              "pressure_events": [
+                {
+                  "date": "07/20/2026",
+                  "near_engulf": true,
+                  "follow_through": false
+                }
+              ],
+              "multi_top": {
+                "dates": [
+                  "08/14/2026",
+                  "08/19/2026",
+                  "08/26/2026"
+                ],
+                "prices": [
+                  104.24,
+                  104.13,
+                  107.11
+                ],
+                "zone_low": 104.13,
+                "zone_high": 107.11
+              },
+              "top_exhaustion": [],
+              "ema_weak": true
+            },
+            "legacy_v1": {
+              "pattern_version": "favorite-pattern-v1.0.1",
+              "stage": "breakout_incomplete",
+              "match_count": 6,
+              "total_conditions": 7
+            },
+            "trade_map": {
+              "signal_close": 105.65,
+              "earliest_entry": "next_trading_day_adjusted_open",
+              "target_previous_high": 116.56,
+              "invalidation_second_bottom": 99.69,
+              "estimated_reward_risk": 1.83
+            }
+          },
+          "immutable_fingerprint": "94bf4c77643318612f03424851e0d5fed222e4d076a4f59f5fb4f2bb5c750486"
+        }
       ]
     },
     {
@@ -85659,9 +89192,9 @@
       "symbol": "URBN",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 1,
+      "days_active": 2,
       "absent_sessions": 0,
-      "lifecycle": "NEW",
+      "lifecycle": "ACTIVE",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
@@ -86485,6 +90018,203 @@
             ]
           }
         }
+      ],
+      "source_activations": [
+        {
+          "activation_id": "favorite_pattern_tracker:favorite-pattern-v2.0.0",
+          "source_system": "favorite_pattern_tracker",
+          "activation_date": "2026-08-28",
+          "definition_version": "favorite-pattern-v2.0.0",
+          "snapshot": {
+            "pattern_version": "favorite-pattern-v2.0.0",
+            "stage": "entry_ready",
+            "match_count": 7,
+            "conditions": [
+              {
+                "id": "prior_advance_or_turn",
+                "label": "前段上涨／日线转强背景",
+                "hit": true
+              },
+              {
+                "id": "first_bottom_structure",
+                "label": "第一段局部双底／三底",
+                "hit": true
+              },
+              {
+                "id": "first_three_push_breakout",
+                "label": "第一段三推收盘突破",
+                "hit": true
+              },
+              {
+                "id": "first_momentum_trend_turn",
+                "label": "第一段MACD＋EMA趋势转变",
+                "hit": true
+              },
+              {
+                "id": "independent_reset",
+                "label": "真实回调与动能重置",
+                "hit": true
+              },
+              {
+                "id": "second_bottom_or_retest",
+                "label": "新的W底／回踩确认",
+                "hit": true
+              },
+              {
+                "id": "second_reacceleration",
+                "label": "二次突破＋MACD＋EMA转强",
+                "hit": true
+              }
+            ],
+            "prior_advance": {
+              "low_index": 1880,
+              "high_index": 2039,
+              "low_date": "05/21/2025",
+              "high_date": "01/08/2026",
+              "low": 59.15,
+              "high": 84.35,
+              "advance_pct": 42.6,
+              "span_sessions": 159
+            },
+            "pullback": {
+              "retracement_pct": 50.54,
+              "golden_pocket": true,
+              "ema200_support": true,
+              "ema200_nearest_distance_pct": 0.6
+            },
+            "double_bottom": {
+              "first_index": 2188,
+              "second_index": 2193,
+              "first_date": "08/13/2026",
+              "second_date": "08/20/2026",
+              "first_price": 75.27,
+              "second_price": 71.85,
+              "separation_sessions": 5,
+              "spread_pct": 4.65,
+              "neckline": 78.39,
+              "invalidation": 70.54,
+              "invalidated": false
+            },
+            "second_bottom_macd": {
+              "hit": true,
+              "cross_date": "08/26/2026",
+              "distance_from_second_bottom_sessions": 4
+            },
+            "three_push": {
+              "high_indices": [
+                2109,
+                2140,
+                2155
+              ],
+              "high_dates": [
+                "04/21/2026",
+                "06/04/2026",
+                "06/26/2026"
+              ],
+              "high_prices": [
+                77.0,
+                74.27,
+                73.65
+              ],
+              "slope_per_session": -0.072826,
+              "current_line": 70.96,
+              "breakout_index": 2168,
+              "breakout_date": "07/16/2026",
+              "breakout_close": 75.42,
+              "breakout_level": 72.7,
+              "bars_since_breakout": 24
+            },
+            "ema_realign": {
+              "hit": true,
+              "cross_date": null,
+              "strength_date": "08/26/2026",
+              "full_alignment": true,
+              "ema20": 76.89,
+              "ema50": 75.01,
+              "ema200": 71.23
+            },
+            "sequence": {
+              "first_confirmation_date": "07/16/2026",
+              "first_bottom": {
+                "first_index": 2124,
+                "second_index": 2162,
+                "first_date": "05/12/2026",
+                "second_date": "07/08/2026",
+                "first_price": 64.73,
+                "second_price": 65.7,
+                "separation_sessions": 38,
+                "spread_pct": 1.49,
+                "neckline": 79.42,
+                "invalidation": 63.27,
+                "invalidated": false
+              },
+              "first_macd_date": "07/15/2026",
+              "first_ema_cross_date": "07/16/2026",
+              "reset_drawdown_pct": 10.75,
+              "macd_reset": true,
+              "second_bottom": {
+                "first_index": 2188,
+                "second_index": 2193,
+                "first_date": "08/13/2026",
+                "second_date": "08/20/2026",
+                "first_price": 75.27,
+                "second_price": 71.85,
+                "separation_sessions": 5,
+                "spread_pct": 4.65,
+                "neckline": 78.39,
+                "invalidation": 70.54,
+                "invalidated": false
+              },
+              "second_breakout_date": "08/26/2026",
+              "second_macd_date": "08/26/2026",
+              "ema_strength_date": "08/26/2026",
+              "full_alignment_date": null,
+              "completion_date": "08/26/2026"
+            },
+            "risk_gate": {
+              "clear": true,
+              "blocked": false,
+              "reasons_zh": [],
+              "unresolved_pressure_rounds": 0,
+              "pressure_events": [],
+              "multi_top": {
+                "dates": [
+                  "07/16/2026",
+                  "08/05/2026",
+                  "08/10/2026"
+                ],
+                "prices": [
+                  77.33,
+                  80.5,
+                  79.99
+                ],
+                "zone_low": 77.33,
+                "zone_high": 80.5
+              },
+              "top_exhaustion": [
+                {
+                  "doji_date": "07/02/2026",
+                  "confirmation_date": "07/06/2026"
+                }
+              ],
+              "ema_weak": false
+            },
+            "legacy_v1": {
+              "pattern_version": "favorite-pattern-v1.0.1",
+              "stage": "waiting_breakout",
+              "match_count": 5,
+              "total_conditions": 7
+            },
+            "trade_map": {
+              "signal_close": 82.95,
+              "earliest_entry": "next_trading_day_adjusted_open",
+              "target_previous_high": 80.5,
+              "invalidation_second_bottom": 70.54,
+              "estimated_reward_risk": null
+            }
+          },
+          "immutable_fingerprint": "b9f9e5a723c3f6857b9a4f5b5d9ee1ce9bcea86b164de300745e77e289b60230"
+        }
       ]
     },
     {
@@ -86496,9 +90226,9 @@
       "symbol": "WELL",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 1,
+      "days_active": 2,
       "absent_sessions": 0,
-      "lifecycle": "NEW",
+      "lifecycle": "ACTIVE",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
@@ -87323,6 +91053,204 @@
             ]
           }
         }
+      ],
+      "source_activations": [
+        {
+          "activation_id": "favorite_pattern_tracker:favorite-pattern-v2.0.0",
+          "source_system": "favorite_pattern_tracker",
+          "activation_date": "2026-08-28",
+          "definition_version": "favorite-pattern-v2.0.0",
+          "snapshot": {
+            "pattern_version": "favorite-pattern-v2.0.0",
+            "stage": "entry_ready",
+            "match_count": 7,
+            "conditions": [
+              {
+                "id": "prior_advance_or_turn",
+                "label": "前段上涨／日线转强背景",
+                "hit": true
+              },
+              {
+                "id": "first_bottom_structure",
+                "label": "第一段局部双底／三底",
+                "hit": true
+              },
+              {
+                "id": "first_three_push_breakout",
+                "label": "第一段三推收盘突破",
+                "hit": true
+              },
+              {
+                "id": "first_momentum_trend_turn",
+                "label": "第一段MACD＋EMA趋势转变",
+                "hit": true
+              },
+              {
+                "id": "independent_reset",
+                "label": "真实回调与动能重置",
+                "hit": true
+              },
+              {
+                "id": "second_bottom_or_retest",
+                "label": "新的W底／回踩确认",
+                "hit": true
+              },
+              {
+                "id": "second_reacceleration",
+                "label": "二次突破＋MACD＋EMA转强",
+                "hit": true
+              }
+            ],
+            "prior_advance": {
+              "low_index": 1858,
+              "high_index": 2012,
+              "low_date": "04/21/2025",
+              "high_date": "11/28/2025",
+              "low": 138.24,
+              "high": 206.82,
+              "advance_pct": 49.61,
+              "span_sessions": 154
+            },
+            "pullback": {
+              "retracement_pct": 4.6,
+              "golden_pocket": false,
+              "ema200_support": false,
+              "ema200_nearest_distance_pct": 9.59
+            },
+            "double_bottom": {
+              "first_index": 2181,
+              "second_index": 2186,
+              "first_date": "08/04/2026",
+              "second_date": "08/11/2026",
+              "first_price": 225.63,
+              "second_price": 224.7,
+              "separation_sessions": 5,
+              "spread_pct": 0.41,
+              "neckline": 238.3,
+              "invalidation": 221.57,
+              "invalidated": false
+            },
+            "second_bottom_macd": {
+              "hit": true,
+              "cross_date": "08/21/2026",
+              "distance_from_second_bottom_sessions": 8
+            },
+            "three_push": {
+              "high_indices": [
+                2125,
+                2130,
+                2148
+              ],
+              "high_dates": [
+                "05/13/2026",
+                "05/20/2026",
+                "06/16/2026"
+              ],
+              "high_prices": [
+                220.84,
+                219.67,
+                214.92
+              ],
+              "slope_per_session": -0.257509,
+              "current_line": 209.77,
+              "breakout_index": 2152,
+              "breakout_date": "06/23/2026",
+              "breakout_close": 216.85,
+              "breakout_level": 213.89,
+              "bars_since_breakout": 16
+            },
+            "ema_realign": {
+              "hit": true,
+              "cross_date": null,
+              "strength_date": "08/21/2026",
+              "full_alignment": true,
+              "ema20": 237.21,
+              "ema50": 232.35,
+              "ema200": 208.97
+            },
+            "sequence": {
+              "first_confirmation_date": "06/23/2026",
+              "first_bottom": {
+                "first_index": 2104,
+                "second_index": 2138,
+                "first_date": "04/14/2026",
+                "second_date": "06/02/2026",
+                "first_price": 203.33,
+                "second_price": 193.94,
+                "separation_sessions": 34,
+                "spread_pct": 4.72,
+                "neckline": 220.84,
+                "invalidation": 191.38,
+                "invalidated": false
+              },
+              "first_macd_date": "06/11/2026",
+              "first_ema_cross_date": "06/11/2026",
+              "reset_drawdown_pct": 11.62,
+              "macd_reset": true,
+              "second_bottom": {
+                "first_index": 2181,
+                "second_index": 2186,
+                "first_date": "08/04/2026",
+                "second_date": "08/11/2026",
+                "first_price": 225.63,
+                "second_price": 224.7,
+                "separation_sessions": 5,
+                "spread_pct": 0.41,
+                "neckline": 238.3,
+                "invalidation": 221.57,
+                "invalidated": false
+              },
+              "second_breakout_date": "08/25/2026",
+              "second_macd_date": "08/21/2026",
+              "ema_strength_date": "08/21/2026",
+              "full_alignment_date": null,
+              "completion_date": "08/25/2026"
+            },
+            "risk_gate": {
+              "clear": true,
+              "blocked": false,
+              "reasons_zh": [],
+              "unresolved_pressure_rounds": 1,
+              "pressure_events": [
+                {
+                  "date": "07/28/2026",
+                  "near_engulf": false,
+                  "follow_through": true
+                }
+              ],
+              "multi_top": {
+                "dates": [
+                  "08/06/2026",
+                  "08/18/2026",
+                  "08/26/2026"
+                ],
+                "prices": [
+                  238.3,
+                  238.85,
+                  243.04
+                ],
+                "zone_low": 238.3,
+                "zone_high": 243.04
+              },
+              "top_exhaustion": [],
+              "ema_weak": false
+            },
+            "legacy_v1": {
+              "pattern_version": "favorite-pattern-v1.0.1",
+              "stage": "discovery",
+              "match_count": 4,
+              "total_conditions": 7
+            },
+            "trade_map": {
+              "signal_close": 241.15,
+              "earliest_entry": "next_trading_day_adjusted_open",
+              "target_previous_high": 254.24,
+              "invalidation_second_bottom": 221.57,
+              "estimated_reward_risk": 0.67
+            }
+          },
+          "immutable_fingerprint": "efe46249d53199e081d657b5ed166da781edfbc4b9ead7762d8d225a132cb843"
+        }
       ]
     },
     {
@@ -87334,9 +91262,9 @@
       "symbol": "WEX",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 1,
+      "days_active": 2,
       "absent_sessions": 0,
-      "lifecycle": "NEW",
+      "lifecycle": "ACTIVE",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
@@ -88155,6 +92083,198 @@
             ]
           }
         }
+      ],
+      "source_activations": [
+        {
+          "activation_id": "favorite_pattern_tracker:favorite-pattern-v2.0.0",
+          "source_system": "favorite_pattern_tracker",
+          "activation_date": "2026-08-28",
+          "definition_version": "favorite-pattern-v2.0.0",
+          "snapshot": {
+            "pattern_version": "favorite-pattern-v2.0.0",
+            "stage": "entry_ready",
+            "match_count": 7,
+            "conditions": [
+              {
+                "id": "prior_advance_or_turn",
+                "label": "前段上涨／日线转强背景",
+                "hit": true
+              },
+              {
+                "id": "first_bottom_structure",
+                "label": "第一段局部双底／三底",
+                "hit": true
+              },
+              {
+                "id": "first_three_push_breakout",
+                "label": "第一段三推收盘突破",
+                "hit": true
+              },
+              {
+                "id": "first_momentum_trend_turn",
+                "label": "第一段MACD＋EMA趋势转变",
+                "hit": true
+              },
+              {
+                "id": "independent_reset",
+                "label": "真实回调与动能重置",
+                "hit": true
+              },
+              {
+                "id": "second_bottom_or_retest",
+                "label": "新的W底／回踩确认",
+                "hit": true
+              },
+              {
+                "id": "second_reacceleration",
+                "label": "二次突破＋MACD＋EMA转强",
+                "hit": true
+              }
+            ],
+            "prior_advance": {
+              "low_index": 2005,
+              "high_index": 2110,
+              "low_date": "11/18/2025",
+              "high_date": "04/22/2026",
+              "low": 133.65,
+              "high": 186.85,
+              "advance_pct": 39.81,
+              "span_sessions": 105
+            },
+            "pullback": {
+              "retracement_pct": 55.32,
+              "golden_pocket": true,
+              "ema200_support": true,
+              "ema200_nearest_distance_pct": 0.22
+            },
+            "double_bottom": {
+              "first_index": 2185,
+              "second_index": 2190,
+              "first_date": "08/10/2026",
+              "second_date": "08/17/2026",
+              "first_price": 181.87,
+              "second_price": 188.02,
+              "separation_sessions": 5,
+              "spread_pct": 3.32,
+              "neckline": 199.69,
+              "invalidation": 178.73,
+              "invalidated": false
+            },
+            "second_bottom_macd": {
+              "hit": true,
+              "cross_date": "08/13/2026",
+              "distance_from_second_bottom_sessions": -2
+            },
+            "three_push": {
+              "high_indices": [
+                2078,
+                2089,
+                2162
+              ],
+              "high_dates": [
+                "03/06/2026",
+                "03/23/2026",
+                "07/08/2026"
+              ],
+              "high_prices": [
+                167.54,
+                159.15,
+                157.64
+              ],
+              "slope_per_session": -0.117857,
+              "current_line": 155.52,
+              "breakout_index": 2165,
+              "breakout_date": "07/13/2026",
+              "breakout_close": 160.07,
+              "breakout_level": 157.29,
+              "bars_since_breakout": 15
+            },
+            "ema_realign": {
+              "hit": true,
+              "cross_date": null,
+              "strength_date": "08/19/2026",
+              "full_alignment": true,
+              "ema20": 191.96,
+              "ema50": 177.62,
+              "ema200": 161.42
+            },
+            "sequence": {
+              "first_confirmation_date": "07/13/2026",
+              "first_bottom": {
+                "first_index": 2125,
+                "second_index": 2150,
+                "first_date": "05/13/2026",
+                "second_date": "06/18/2026",
+                "first_price": 132.34,
+                "second_price": 125.29,
+                "separation_sessions": 25,
+                "spread_pct": 5.48,
+                "neckline": 151.14,
+                "invalidation": 122.62,
+                "invalidated": false
+              },
+              "first_macd_date": "06/26/2026",
+              "first_ema_cross_date": "07/13/2026",
+              "reset_drawdown_pct": 8.92,
+              "macd_reset": true,
+              "second_bottom": {
+                "first_index": 2185,
+                "second_index": 2190,
+                "first_date": "08/10/2026",
+                "second_date": "08/17/2026",
+                "first_price": 181.87,
+                "second_price": 188.02,
+                "separation_sessions": 5,
+                "spread_pct": 3.32,
+                "neckline": 199.69,
+                "invalidation": 178.73,
+                "invalidated": false
+              },
+              "second_breakout_date": "08/24/2026",
+              "second_macd_date": "08/13/2026",
+              "ema_strength_date": "08/19/2026",
+              "full_alignment_date": null,
+              "completion_date": "08/24/2026"
+            },
+            "risk_gate": {
+              "clear": true,
+              "blocked": false,
+              "reasons_zh": [],
+              "unresolved_pressure_rounds": 0,
+              "pressure_events": [],
+              "multi_top": {
+                "dates": [
+                  "08/05/2026",
+                  "08/13/2026",
+                  "08/25/2026"
+                ],
+                "prices": [
+                  192.37,
+                  199.69,
+                  203.99
+                ],
+                "zone_low": 192.37,
+                "zone_high": 203.99
+              },
+              "top_exhaustion": [],
+              "ema_weak": false
+            },
+            "legacy_v1": {
+              "pattern_version": "favorite-pattern-v1.0.1",
+              "stage": "bottom_confirmed",
+              "match_count": 4,
+              "total_conditions": 7
+            },
+            "trade_map": {
+              "signal_close": 203.25,
+              "earliest_entry": "next_trading_day_adjusted_open",
+              "target_previous_high": 192.37,
+              "invalidation_second_bottom": 178.73,
+              "estimated_reward_risk": null
+            }
+          },
+          "immutable_fingerprint": "8fb480be3a748dbe7dd68c84ac5c28bc4e955a8ee1f622564ded5ca3e43ecf0d"
+        }
       ]
     },
     {
@@ -88166,9 +92286,9 @@
       "symbol": "WH",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 1,
+      "days_active": 2,
       "absent_sessions": 0,
-      "lifecycle": "NEW",
+      "lifecycle": "ACTIVE",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
@@ -88987,6 +93107,198 @@
             ]
           }
         }
+      ],
+      "source_activations": [
+        {
+          "activation_id": "favorite_pattern_tracker:favorite-pattern-v2.0.0",
+          "source_system": "favorite_pattern_tracker",
+          "activation_date": "2026-08-28",
+          "definition_version": "favorite-pattern-v2.0.0",
+          "snapshot": {
+            "pattern_version": "favorite-pattern-v2.0.0",
+            "stage": "entry_ready",
+            "match_count": 7,
+            "conditions": [
+              {
+                "id": "prior_advance_or_turn",
+                "label": "前段上涨／日线转强背景",
+                "hit": true
+              },
+              {
+                "id": "first_bottom_structure",
+                "label": "第一段局部双底／三底",
+                "hit": true
+              },
+              {
+                "id": "first_three_push_breakout",
+                "label": "第一段三推收盘突破",
+                "hit": true
+              },
+              {
+                "id": "first_momentum_trend_turn",
+                "label": "第一段MACD＋EMA趋势转变",
+                "hit": true
+              },
+              {
+                "id": "independent_reset",
+                "label": "真实回调与动能重置",
+                "hit": true
+              },
+              {
+                "id": "second_bottom_or_retest",
+                "label": "新的W底／回踩确认",
+                "hit": true
+              },
+              {
+                "id": "second_reacceleration",
+                "label": "二次突破＋MACD＋EMA转强",
+                "hit": true
+              }
+            ],
+            "prior_advance": {
+              "low_index": 1888,
+              "high_index": 1990,
+              "low_date": "11/20/2025",
+              "high_date": "04/21/2026",
+              "low": 68.1,
+              "high": 89.86,
+              "advance_pct": 31.96,
+              "span_sessions": 102
+            },
+            "pullback": {
+              "retracement_pct": 82.28,
+              "golden_pocket": false,
+              "ema200_support": false,
+              "ema200_nearest_distance_pct": 6.83
+            },
+            "double_bottom": {
+              "first_index": 2066,
+              "second_index": 2072,
+              "first_date": "08/10/2026",
+              "second_date": "08/18/2026",
+              "first_price": 71.25,
+              "second_price": 72.14,
+              "separation_sessions": 6,
+              "spread_pct": 1.24,
+              "neckline": 75.25,
+              "invalidation": 70.26,
+              "invalidated": false
+            },
+            "second_bottom_macd": {
+              "hit": true,
+              "cross_date": "08/13/2026",
+              "distance_from_second_bottom_sessions": -3
+            },
+            "three_push": {
+              "high_indices": [
+                1953,
+                2006,
+                2024
+              ],
+              "high_dates": [
+                "02/26/2026",
+                "05/13/2026",
+                "06/09/2026"
+              ],
+              "high_prices": [
+                84.44,
+                83.16,
+                82.16
+              ],
+              "slope_per_session": -0.03202,
+              "current_line": 81.14,
+              "breakout_index": 2029,
+              "breakout_date": "06/16/2026",
+              "breakout_close": 85.36,
+              "breakout_level": 82.0,
+              "bars_since_breakout": 27
+            },
+            "ema_realign": {
+              "hit": true,
+              "cross_date": null,
+              "strength_date": "08/26/2026",
+              "full_alignment": false,
+              "ema20": 75.35,
+              "ema50": 76.74,
+              "ema200": 78.93
+            },
+            "sequence": {
+              "first_confirmation_date": "06/18/2026",
+              "first_bottom": {
+                "first_index": 2000,
+                "second_index": 2026,
+                "first_date": "05/05/2026",
+                "second_date": "06/11/2026",
+                "first_price": 79.26,
+                "second_price": 74.15,
+                "separation_sessions": 26,
+                "spread_pct": 6.66,
+                "neckline": 85.53,
+                "invalidation": 72.78,
+                "invalidated": true
+              },
+              "first_macd_date": "06/15/2026",
+              "first_ema_cross_date": "06/18/2026",
+              "reset_drawdown_pct": 19.36,
+              "macd_reset": true,
+              "second_bottom": {
+                "first_index": 2066,
+                "second_index": 2072,
+                "first_date": "08/10/2026",
+                "second_date": "08/18/2026",
+                "first_price": 71.25,
+                "second_price": 72.14,
+                "separation_sessions": 6,
+                "spread_pct": 1.24,
+                "neckline": 75.25,
+                "invalidation": 70.26,
+                "invalidated": false
+              },
+              "second_breakout_date": "08/26/2026",
+              "second_macd_date": "08/13/2026",
+              "ema_strength_date": "08/26/2026",
+              "full_alignment_date": null,
+              "completion_date": "08/26/2026"
+            },
+            "risk_gate": {
+              "clear": true,
+              "blocked": false,
+              "reasons_zh": [],
+              "unresolved_pressure_rounds": 0,
+              "pressure_events": [],
+              "multi_top": {
+                "dates": [
+                  "08/05/2026",
+                  "08/13/2026",
+                  "08/19/2026"
+                ],
+                "prices": [
+                  77.89,
+                  75.25,
+                  76.58
+                ],
+                "zone_low": 75.25,
+                "zone_high": 77.89
+              },
+              "top_exhaustion": [],
+              "ema_weak": true
+            },
+            "legacy_v1": {
+              "pattern_version": "favorite-pattern-v1.0.1",
+              "stage": "breakout_incomplete",
+              "match_count": 4,
+              "total_conditions": 7
+            },
+            "trade_map": {
+              "signal_close": 76.84,
+              "earliest_entry": "next_trading_day_adjusted_open",
+              "target_previous_high": 88.36,
+              "invalidation_second_bottom": 70.26,
+              "estimated_reward_risk": 1.75
+            }
+          },
+          "immutable_fingerprint": "e3981d9acf7bd97f45b068fee6dcdb3b17be38bdd1d97fb67b4a3a95f77a3d29"
+        }
       ]
     },
     {
@@ -88998,9 +93310,9 @@
       "symbol": "WILC",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 1,
+      "days_active": 2,
       "absent_sessions": 0,
-      "lifecycle": "NEW",
+      "lifecycle": "ACTIVE",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
@@ -89809,6 +94121,198 @@
             ]
           }
         }
+      ],
+      "source_activations": [
+        {
+          "activation_id": "favorite_pattern_tracker:favorite-pattern-v2.0.0",
+          "source_system": "favorite_pattern_tracker",
+          "activation_date": "2026-08-28",
+          "definition_version": "favorite-pattern-v2.0.0",
+          "snapshot": {
+            "pattern_version": "favorite-pattern-v2.0.0",
+            "stage": "entry_ready",
+            "match_count": 7,
+            "conditions": [
+              {
+                "id": "prior_advance_or_turn",
+                "label": "前段上涨／日线转强背景",
+                "hit": true
+              },
+              {
+                "id": "first_bottom_structure",
+                "label": "第一段局部双底／三底",
+                "hit": true
+              },
+              {
+                "id": "first_three_push_breakout",
+                "label": "第一段三推收盘突破",
+                "hit": true
+              },
+              {
+                "id": "first_momentum_trend_turn",
+                "label": "第一段MACD＋EMA趋势转变",
+                "hit": true
+              },
+              {
+                "id": "independent_reset",
+                "label": "真实回调与动能重置",
+                "hit": true
+              },
+              {
+                "id": "second_bottom_or_retest",
+                "label": "新的W底／回踩确认",
+                "hit": true
+              },
+              {
+                "id": "second_reacceleration",
+                "label": "二次突破＋MACD＋EMA转强",
+                "hit": true
+              }
+            ],
+            "prior_advance": {
+              "low_index": 1855,
+              "high_index": 2033,
+              "low_date": "04/14/2025",
+              "high_date": "12/29/2025",
+              "low": 12.7,
+              "high": 29.85,
+              "advance_pct": 135.0,
+              "span_sessions": 178
+            },
+            "pullback": {
+              "retracement_pct": 15.63,
+              "golden_pocket": false,
+              "ema200_support": true,
+              "ema200_nearest_distance_pct": 0.09
+            },
+            "double_bottom": {
+              "first_index": 2177,
+              "second_index": 2186,
+              "first_date": "07/29/2026",
+              "second_date": "08/11/2026",
+              "first_price": 25.72,
+              "second_price": 26.66,
+              "separation_sessions": 9,
+              "spread_pct": 3.57,
+              "neckline": 29.9,
+              "invalidation": 24.67,
+              "invalidated": false
+            },
+            "second_bottom_macd": {
+              "hit": true,
+              "cross_date": "08/05/2026",
+              "distance_from_second_bottom_sessions": -4
+            },
+            "three_push": {
+              "high_indices": [
+                2033,
+                2039,
+                2104
+              ],
+              "high_dates": [
+                "12/29/2025",
+                "01/07/2026",
+                "04/14/2026"
+              ],
+              "high_prices": [
+                29.85,
+                28.57,
+                28.07
+              ],
+              "slope_per_session": -0.024953,
+              "current_line": 27.43,
+              "breakout_index": 2107,
+              "breakout_date": "04/17/2026",
+              "breakout_close": 29.07,
+              "breakout_level": 28.0,
+              "bars_since_breakout": 23
+            },
+            "ema_realign": {
+              "hit": true,
+              "cross_date": "08/24/2026",
+              "strength_date": "08/24/2026",
+              "full_alignment": true,
+              "ema20": 3519.01,
+              "ema50": 1632.05,
+              "ema200": 458.36
+            },
+            "sequence": {
+              "first_confirmation_date": "04/17/2026",
+              "first_bottom": {
+                "first_index": 2074,
+                "second_index": 2100,
+                "first_date": "02/27/2026",
+                "second_date": "04/08/2026",
+                "first_price": 24.39,
+                "second_price": 24.3,
+                "separation_sessions": 26,
+                "spread_pct": 0.36,
+                "neckline": 27.71,
+                "invalidation": 23.78,
+                "invalidated": false
+              },
+              "first_macd_date": "04/01/2026",
+              "first_ema_cross_date": "04/16/2026",
+              "reset_drawdown_pct": 31.17,
+              "macd_reset": true,
+              "second_bottom": {
+                "first_index": 2177,
+                "second_index": 2186,
+                "first_date": "07/29/2026",
+                "second_date": "08/11/2026",
+                "first_price": 25.72,
+                "second_price": 26.66,
+                "separation_sessions": 9,
+                "spread_pct": 3.57,
+                "neckline": 29.9,
+                "invalidation": 24.67,
+                "invalidated": false
+              },
+              "second_breakout_date": "08/24/2026",
+              "second_macd_date": "08/05/2026",
+              "ema_strength_date": "08/24/2026",
+              "full_alignment_date": "08/24/2026",
+              "completion_date": "08/24/2026"
+            },
+            "risk_gate": {
+              "clear": true,
+              "blocked": false,
+              "reasons_zh": [],
+              "unresolved_pressure_rounds": 0,
+              "pressure_events": [],
+              "multi_top": {
+                "dates": [
+                  "07/21/2026",
+                  "08/04/2026",
+                  "08/19/2026"
+                ],
+                "prices": [
+                  32.17,
+                  29.9,
+                  29.79
+                ],
+                "zone_low": 29.79,
+                "zone_high": 32.17
+              },
+              "top_exhaustion": [],
+              "ema_weak": false
+            },
+            "legacy_v1": {
+              "pattern_version": "favorite-pattern-v1.0.1",
+              "stage": "breakout_incomplete",
+              "match_count": 6,
+              "total_conditions": 7
+            },
+            "trade_map": {
+              "signal_close": 8361,
+              "earliest_entry": "next_trading_day_adjusted_open",
+              "target_previous_high": 37.37,
+              "invalidation_second_bottom": 24.67,
+              "estimated_reward_risk": null
+            }
+          },
+          "immutable_fingerprint": "77f56716828d91c1a2d573a59310f08fff9c3cdd57a6aefdce0feef48e35f3fa"
+        }
       ]
     },
     {
@@ -90590,9 +95094,9 @@
       "symbol": "XP",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 1,
+      "days_active": 2,
       "absent_sessions": 0,
-      "lifecycle": "NEW",
+      "lifecycle": "ACTIVE",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
@@ -91411,8 +95915,200 @@
             ]
           }
         }
+      ],
+      "source_activations": [
+        {
+          "activation_id": "favorite_pattern_tracker:favorite-pattern-v2.0.0",
+          "source_system": "favorite_pattern_tracker",
+          "activation_date": "2026-08-28",
+          "definition_version": "favorite-pattern-v2.0.0",
+          "snapshot": {
+            "pattern_version": "favorite-pattern-v2.0.0",
+            "stage": "entry_ready",
+            "match_count": 7,
+            "conditions": [
+              {
+                "id": "prior_advance_or_turn",
+                "label": "前段上涨／日线转强背景",
+                "hit": true
+              },
+              {
+                "id": "first_bottom_structure",
+                "label": "第一段局部双底／三底",
+                "hit": true
+              },
+              {
+                "id": "first_three_push_breakout",
+                "label": "第一段三推收盘突破",
+                "hit": true
+              },
+              {
+                "id": "first_momentum_trend_turn",
+                "label": "第一段MACD＋EMA趋势转变",
+                "hit": true
+              },
+              {
+                "id": "independent_reset",
+                "label": "真实回调与动能重置",
+                "hit": true
+              },
+              {
+                "id": "second_bottom_or_retest",
+                "label": "新的W底／回踩确认",
+                "hit": true
+              },
+              {
+                "id": "second_reacceleration",
+                "label": "二次突破＋MACD＋EMA转强",
+                "hit": true
+              }
+            ],
+            "prior_advance": {
+              "low_index": 1336,
+              "high_index": 1381,
+              "low_date": "04/07/2025",
+              "high_date": "06/11/2025",
+              "low": 11.92,
+              "high": 20.17,
+              "advance_pct": 69.18,
+              "span_sessions": 45
+            },
+            "pullback": {
+              "retracement_pct": 106.08,
+              "golden_pocket": false,
+              "ema200_support": false,
+              "ema200_nearest_distance_pct": 11.58
+            },
+            "double_bottom": {
+              "first_index": 1664,
+              "second_index": 1674,
+              "first_date": "07/29/2026",
+              "second_date": "08/12/2026",
+              "first_price": 16.18,
+              "second_price": 15.39,
+              "separation_sessions": 10,
+              "spread_pct": 4.94,
+              "neckline": 17.45,
+              "invalidation": 15.14,
+              "invalidated": false
+            },
+            "second_bottom_macd": {
+              "hit": true,
+              "cross_date": "08/21/2026",
+              "distance_from_second_bottom_sessions": 7
+            },
+            "three_push": {
+              "high_indices": [
+                1539,
+                1549,
+                1604
+              ],
+              "high_dates": [
+                "01/28/2026",
+                "02/11/2026",
+                "05/01/2026"
+              ],
+              "high_prices": [
+                20.71,
+                20.53,
+                19.08
+              ],
+              "slope_per_session": -0.024983,
+              "current_line": 18.68,
+              "breakout_index": 1607,
+              "breakout_date": "05/06/2026",
+              "breakout_close": 19.32,
+              "breakout_level": 19.01,
+              "bars_since_breakout": 13
+            },
+            "ema_realign": {
+              "hit": true,
+              "cross_date": "08/27/2026",
+              "strength_date": "08/19/2026",
+              "full_alignment": true,
+              "ema20": 16.81,
+              "ema50": 16.7,
+              "ema200": 17.34
+            },
+            "sequence": {
+              "first_confirmation_date": "05/06/2026",
+              "first_bottom": {
+                "first_index": 1551,
+                "second_index": 1590,
+                "first_date": "02/13/2026",
+                "second_date": "04/13/2026",
+                "first_price": 18.42,
+                "second_price": 19.05,
+                "separation_sessions": 39,
+                "spread_pct": 3.37,
+                "neckline": 22.83,
+                "invalidation": 17.95,
+                "invalidated": true
+              },
+              "first_macd_date": "04/06/2026",
+              "first_ema_cross_date": "04/13/2026",
+              "reset_drawdown_pct": 21.6,
+              "macd_reset": true,
+              "second_bottom": {
+                "first_index": 1664,
+                "second_index": 1674,
+                "first_date": "07/29/2026",
+                "second_date": "08/12/2026",
+                "first_price": 16.18,
+                "second_price": 15.39,
+                "separation_sessions": 10,
+                "spread_pct": 4.94,
+                "neckline": 17.45,
+                "invalidation": 15.14,
+                "invalidated": false
+              },
+              "second_breakout_date": "08/25/2026",
+              "second_macd_date": "08/21/2026",
+              "ema_strength_date": "08/19/2026",
+              "full_alignment_date": "08/27/2026",
+              "completion_date": "08/25/2026"
+            },
+            "risk_gate": {
+              "clear": true,
+              "blocked": false,
+              "reasons_zh": [],
+              "unresolved_pressure_rounds": 0,
+              "pressure_events": [],
+              "multi_top": {
+                "dates": [
+                  "07/31/2026",
+                  "08/04/2026",
+                  "08/26/2026"
+                ],
+                "prices": [
+                  17.45,
+                  17.45,
+                  18.33
+                ],
+                "zone_low": 17.45,
+                "zone_high": 18.33
+              },
+              "top_exhaustion": [],
+              "ema_weak": false
+            },
+            "legacy_v1": {
+              "pattern_version": "favorite-pattern-v1.0.1",
+              "stage": "breakout_incomplete",
+              "match_count": 6,
+              "total_conditions": 7
+            },
+            "trade_map": {
+              "signal_close": 17.8,
+              "earliest_entry": "next_trading_day_adjusted_open",
+              "target_previous_high": 19.63,
+              "invalidation_second_bottom": 15.14,
+              "estimated_reward_risk": 0.69
+            }
+          },
+          "immutable_fingerprint": "48b95143ae5ad4b6d1aac96e58689f1042a03244aa934a0f259a33b3489f0556"
+        }
       ]
     }
   ],
-  "content_hash": "3ae1c8c9f7491003f0df41c9452fe5e8895d1c87c9b6672068feceea38f4413e"
+  "content_hash": "d24de6dc0b235cc99c40adb6a172883faf6bdded0e2328f63d94b6b31b601196"
 }
