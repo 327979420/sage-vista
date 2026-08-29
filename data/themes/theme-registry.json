@@ -1,7 +1,8 @@
 {
-  "version": 2,
+  "version": 3,
   "themes": [
     {"theme_id":"semiconductors","name":"Semiconductors","membership_source":{"provider":"ishares","fund":"SOXX","url":"https://www.ishares.com/us/products/239705/ishares-semiconductor-etf"}},
+    {"theme_id":"software-applications","name":"Software & Applications","membership_source":{"provider":"ishares","fund":"IGV","url":"https://www.ishares.com/us/products/239771/ishares-expanded-techsoftware-sector-etf"}},
     {"theme_id":"cybersecurity","name":"Cybersecurity","membership_source":{"provider":"first_trust","fund":"CIBR","url":"https://www.ftportfolios.com/Retail/Etf/EtfHoldings.aspx?Ticker=CIBR"}},
     {"theme_id":"cloud-computing","name":"Cloud Computing","membership_source":{"provider":"first_trust","fund":"SKYY","url":"https://www.ftportfolios.com/Retail/Etf/EtfHoldings.aspx?Ticker=SKYY"}},
     {"theme_id":"robotics-automation","name":"Robotics & Automation","membership_source":{"provider":"global_x","fund":"BOTZ"}},
@@ -22,6 +23,8 @@
     {"theme_id":"ev-battery","name":"EV / Battery","membership_source":{"provider":"global_x","fund":"DRIV"}},
     {"theme_id":"water-infrastructure","name":"Water Infrastructure","membership_source":{"provider":"invesco","fund":"PHO","url":"https://www.invesco.com/us/financial-products/etfs/holdings?audienceType=Investor&ticker=PHO"}},
     {"theme_id":"ai-infrastructure","name":"AI Infrastructure","status":"manual_curated_required"},
+    {"theme_id":"ai-software-applications","name":"AI Software & Applications","status":"manual_curated_required"},
+    {"theme_id":"memory-storage","name":"Memory & Data Storage","status":"manual_curated_required"},
     {"theme_id":"semiconductor-equipment","name":"Semiconductor Equipment","status":"manual_curated_required"},
     {"theme_id":"data-center-power","name":"Data Center Power","status":"manual_curated_required"}
   ]

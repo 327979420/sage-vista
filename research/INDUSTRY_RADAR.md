@@ -1,6 +1,6 @@
 # Industry Radar V1 — Architecture and Theme Universe Manual
 
-Last reviewed: 2026-08-27. This document is the entry point for future Industry Radar work. `research/EXPERIMENTS.md` remains the authoritative registry for completed experiments; Industry Radar has not yet produced a validated alpha result.
+Last reviewed: 2026-08-29. The Chinese universe and study entry point is `docs/INDUSTRY_RESEARCH_UNIVERSE_ZH.md`; this document retains the detailed architecture and source audit. `research/EXPERIMENTS.md` remains the authoritative registry for completed experiments; Industry Radar has not yet produced a validated alpha result.
 
 ## 1. Business purpose and boundary
 
@@ -87,11 +87,14 @@ Counts below are current published ETF holdings or the latest verified US-resolv
 | Theme | Category | Primary source | US-tradeable planning count | Overlap risk | Maintenance | Decision |
 |---|---|---|---:|---|---|---|
 | Semiconductors | Technology | SOXX (iShares) | 30 | High vs AI/Semi Equipment | Low | KEEP |
+| Software & Applications | Technology | IGV (iShares) | source audit pending | Medium/high vs Cloud/AI Software | Low | KEEP, next dated snapshot |
 | Cybersecurity | Technology | CIBR (First Trust) | ~42 | Low/medium vs Cloud | Medium | KEEP |
 | Cloud Computing | Technology | SKYY (First Trust) | ~60 | Medium/high vs AI Infra | Medium | KEEP |
 | Robotics & Automation | Technology | BOTZ (Global X) | 23 verified | Medium vs AI Infra | Low | KEEP |
 | Quantum Computing | Technology | QTUM (Defiance) | source audit pending | Medium vs Semis | Medium/high | REVIEW |
 | AI Infrastructure | Technology | custom, two-source evidence | unresolved | High | High | REVIEW |
+| AI Software & Applications | Technology | AIQ/IGV/SKYY candidates + revenue evidence | unresolved | High vs Software/Cloud | High | REVIEW |
+| Memory & Data Storage | Technology | SOXX/classification candidates + revenue evidence | unresolved | High vs Semiconductors | High | REVIEW |
 | Semiconductor Equipment | Technology | SOXX/SMH subset + revenue evidence | unresolved | Very high vs Semis | High | REVIEW |
 | Data Center Power | Technology/Industrial | GRID/PAVE + revenue evidence | unresolved | High vs AI/Grid | High | REVIEW |
 | Uranium | Energy/Materials | URA (Global X) | 12 verified | High vs Nuclear | Low | KEEP |
@@ -113,7 +116,7 @@ Counts below are current published ETF holdings or the latest verified US-resolv
 | EV / Battery | Consumer/Industrial | DRIV (Global X) | 74 published; US subset TBD | High vs Battery/Semis | Low | KEEP |
 | Water Infrastructure | Industrials/Utilities | PHO (Invesco) | US-listed basket; count TBD | Medium vs Infrastructure | Medium | KEEP |
 
-Recommended V1 expansion set is the 20 KEEP rows. This is a source-ready proposal, not authorization to publish memberships. REVIEW themes stay out until their source and overlap tests pass. No candidate is rejected permanently yet; undifferentiated “Healthcare Innovation,” broad “Renewables,” and combined “AI & Robotics” aliases should be rejected if they merely duplicate a KEEP basket.
+The configured automatic-source universe is now the original 20 KEEP rows plus Software & Applications, for 21 themes. The five custom themes remain REVIEW/manual until evidence and overlap checks pass. This is a source-ready proposal, not authorization to backfill memberships. No candidate is rejected permanently yet; undifferentiated “Healthcare Innovation,” broad “Renewables,” and combined “AI & Robotics” aliases should be rejected if they merely duplicate a KEEP basket.
 
 ### Public repository assessment
 
@@ -129,6 +132,7 @@ All sources are free/no-login for public holdings downloads at the time of revie
 | Theme | Primary | Fallback | Mode | Login/Paid | Historical membership | Stability |
 |---|---|---|---|---|---|---|
 | Semiconductors | SOXX/iShares | SMH/VanEck | Auto | No/No | Limited dates only | High |
+| Software & Applications | IGV/iShares | XSW/State Street | Auto | No/No | No complete series | High |
 | Cybersecurity | CIBR/First Trust | HACK provider holdings | Auto | No/No | No complete series | High |
 | Cloud Computing | SKYY/First Trust | CLOU/Global X | Auto | No/No | No complete series | High |
 | Robotics & Automation | BOTZ/Global X | ROBO official holdings | Auto | No/No | No complete series | High |
@@ -152,10 +156,12 @@ All sources are free/no-login for public holdings downloads at the time of revie
 ## 8. Custom/unresolved themes
 
 - **AI Infrastructure:** semi-automatic, manually reviewed. Candidate pool is the union of official AI/semiconductor/cloud/grid ETFs; include only companies with a documented role in compute, networking, data-center systems, or enabling power and a second source such as 10-K segment/revenue evidence. Review quarterly. Record evidence per member and create a new effective-dated version.
+- **AI Software & Applications:** manually reviewed. Use official AIQ, IGV, and SKYY holdings only as a candidate union; require documented software/application revenue or product evidence. Popularity, price performance, or an AI marketing claim is not membership evidence.
+- **Memory & Data Storage:** manually reviewed. Start from SOXX and current industry classifications, then require documented primary exposure to DRAM, NAND, SSD, HDD, controllers, enterprise storage, or closely related memory/storage systems. Keep it separate from the broad semiconductor basket.
 - **Semiconductor Equipment:** derive candidates from SOXX/SMH, then include only companies whose documented primary business is wafer-fab, process, inspection/metrology, test, or semiconductor-design equipment/software. This is a subset theme, so publish only if its overlap and differentiated behavior justify coexistence with Semiconductors.
 - **Data Center Power:** candidate union from GRID/PAVE and official data-center/digital-infrastructure ETFs where available; require documented revenue exposure to switchgear, UPS, cooling, power distribution, generation, or grid connection for data centers. Do not include a company merely because AI demand may benefit it.
 
-All three remain `manual_curated_required`. Required fields are inclusion rule, evidence URLs/date, reviewer decision, review cadence (quarterly), `effective_from`, and immutable version. SEC/NLP output can propose candidates but never auto-admit them.
+All five remain `manual_curated_required`. Required fields are inclusion rule, evidence URLs/date, reviewer decision, review cadence (quarterly), `effective_from`, and immutable version. SEC/NLP output can propose candidates but never auto-admit them.
 
 ## 9. Overlap policy and current audit
 
@@ -193,7 +199,7 @@ Known limitations:
 
 ## 11. 2026-08-26 same-date candidate snapshot
 
-`themes-2026-08-26` 包含 20 个 configured Themes；另有 AI Infrastructure、Semiconductor Equipment、Data Center Power 三项继续为 `manual_curated_required`，未猜 membership。
+`themes-2026-08-26` 是不可覆盖的历史快照，只包含当日已配置的20个ETF主题；当时另有AI Infrastructure、Semiconductor Equipment、Data Center Power三项为 `manual_curated_required`。注册表v3后来增加IGV综合软件，并补记AI Software & Applications、Memory & Data Storage；这些新增项只能从后续新快照开始，不能倒写本快照。
 
 - Provider adapters：Global X、iShares、First Trust、State Street、Invesco、VanEck。Adapter 只负责将 provider 格式转为 generic snapshot；registry 配置 fund/URL，core Radar 无 theme branch。
 - 成功来源 11/20，合计 698 个原始 holdings。Global X 与 State Street 在该日成功；iShares、First Trust、Invesco、VanEck 当前响应/格式未通过 parser contract，9 个 Theme 明确记录 `source_status=unavailable` 和零成员，而不是猜数据。
