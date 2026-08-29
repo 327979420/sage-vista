@@ -3,8 +3,8 @@ from services.scanner.experiment_catalog import build,render_summary
 
 class ExperimentCatalogTests(unittest.TestCase):
  def test_all_old_experiments_are_preserved_and_ids_are_unique(self):
-  catalog=build();self.assertEqual(catalog["experiment_count"],32)
-  self.assertEqual(len({x["experiment_id"] for x in catalog["experiments"]}),32)
+  catalog=build();self.assertEqual(catalog["experiment_count"],33)
+  self.assertEqual(len({x["experiment_id"] for x in catalog["experiments"]}),33)
   self.assertTrue(catalog["policy"]["append_only"]);self.assertTrue(catalog["policy"]["failed_results_preserved"])
   challenger=next(x for x in catalog["experiments"] if x["experiment_id"]=="timeframe-score-v3.0.0-2026-08-28")
   self.assertEqual(challenger["status"],"pre_registered")
@@ -27,9 +27,11 @@ class ExperimentCatalogTests(unittest.TestCase):
   self.assertEqual(bottom_retest["status"],"pre_registered");self.assertEqual(len(bottom_retest["specification"]["new_factors"]),2)
   favorite=next(x for x in catalog["experiments"] if x["experiment_id"]=="favorite-pattern-tracker-v1.0.0-2026-08-29")
   self.assertEqual(favorite["status"],"pre_registered_forward_only");self.assertFalse(favorite["specification"]["main_multifactor_macd_gate_changed"])
+  favorite_v2=next(x for x in catalog["experiments"] if x["experiment_id"]=="favorite-pattern-sequence-v2.0.0-2026-08-30")
+  self.assertEqual(favorite_v2["status"],"pre_registered_calibration_then_forward");self.assertTrue(favorite_v2["specification"]["known_cases_excluded_from_effectiveness"])
 
  def test_every_experiment_has_lifecycle_and_plain_chinese_summary(self):
-  catalog=build();self.assertEqual(catalog["summary"]["completed"],26);self.assertEqual(catalog["summary"]["in_progress"],6)
+  catalog=build();self.assertEqual(catalog["summary"]["completed"],26);self.assertEqual(catalog["summary"]["in_progress"],7)
   for row in catalog["experiments"]:
    self.assertTrue(row["human_summary"]["title_zh"]);self.assertTrue(row["human_summary"]["use_zh"])
    self.assertTrue(row["lifecycle"]["registered_at"]);self.assertGreaterEqual(row["lifecycle"]["event_count"],1)

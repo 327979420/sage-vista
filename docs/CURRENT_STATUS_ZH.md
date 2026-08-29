@@ -22,7 +22,8 @@
 
 ## 实验
 
-- 总数 32；已完成 26；待运行 / 进行中 6。
+- 总数 33；已完成 26；待运行 / 进行中 7。
+- `favorite-pattern-sequence-v2.0.0-2026-08-30`：个人交易系统两段确认Tracker V2。
 - `favorite-pattern-tracker-v1.0.0-2026-08-29`：我最喜欢形态前向Tracker V1。
 - `triple-bottom-neckline-retest-v1.0.0-2026-08-29`：三底与W底颈线回踩V1。
 - `evidence-calibrated-daily-score-v1.0.0-2026-08-29`：长期证据校准每日评分V1。
@@ -53,4 +54,4 @@
 - `public/factor-registry.json`
 - `public/experiment-catalog.json`
 
-来源时间：生产数据更新 2026-08-29T13:03:51.799845+00:00；实验目录生成 2026-08-29T22:56:00+10:00。
+来源时间：生产数据更新 2026-08-29T13:03:51.799845+00:00；实验目录生成 2026-08-30T02:40:00+10:00。

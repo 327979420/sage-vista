@@ -12,22 +12,25 @@ type PatternRow={
  double_bottom?:{first_date:string;second_date:string;first_price:number;second_price:number;neckline:number;invalidation:number}|null;
  second_bottom_macd?:{hit:boolean;cross_date:string|null;distance_from_second_bottom_sessions:number|null};
  three_push?:{high_dates:string[];high_prices:number[];breakout_date:string|null;breakout_close:number|null;breakout_level:number|null;current_line:number}|null;
- ema_realign?:{hit:boolean;cross_date:string|null;ema20:number;ema50:number;ema200:number};
+ ema_realign?:{hit:boolean;cross_date:string|null;strength_date?:string|null;full_alignment?:boolean;ema20:number;ema50:number;ema200:number};
+ sequence?:{first_confirmation_date:string|null;first_bottom?:{first_date:string;second_date:string}|null;first_macd_date:string|null;first_ema_cross_date:string|null;reset_drawdown_pct:number|null;macd_reset:boolean;second_bottom?:{first_date:string;second_date:string;neckline:number}|null;second_breakout_date:string|null;second_macd_date:string|null;ema_strength_date:string|null;full_alignment_date:string|null;completion_date:string|null};
+ risk_gate?:{clear:boolean;blocked:boolean;reasons_zh:string[];unresolved_pressure_rounds:number;multi_top?:{dates:string[];prices:number[];zone_low:number;zone_high:number}|null;top_exhaustion?:{doji_date:string;confirmation_date:string}[]};
+ legacy_v1?:{pattern_version:string;stage:string;match_count:number;total_conditions:number};
  trade_map?:{signal_close:number|null;earliest_entry:string|null;target_previous_high:number|null;invalidation_second_bottom:number|null;estimated_reward_risk:number|null};
 };
-type Favorite={as_of:string;pattern_version:string;production_scoring_changed:boolean;summary:{watchlist:number;entry_ready:number;waiting_breakout:number;breakout_incomplete:number;forming:number;launched:number};candidates:PatternRow[];reference_cases:PatternRow[];warning_zh:string;forward_tracking:{minimum_conclusion_sample:number;minimum_months:number;minimum_market_states:number}};
+type Favorite={as_of:string;pattern_version:string;production_scoring_changed:boolean;summary:{watchlist:number;entry_ready:number;risk_blocked?:number;waiting_breakout:number;breakout_incomplete:number;forming:number;launched:number};candidates:PatternRow[];reference_cases:PatternRow[];warning_zh:string;forward_tracking:{minimum_conclusion_sample:number;minimum_months:number;minimum_market_states:number}};
 type Root={favorite_pattern_tracker?:Favorite};
 
 const stages=[
- ["01","前段上涨","先有可测量的上涨段"],
- ["02","回调到位","Golden Pocket 或 EMA200"],
- ["03","宽双底","两个确认低点＋中间反弹"],
- ["04","二底 MACD","第二底附近完整日线金叉"],
- ["05","三推突破","完整收盘越过下降趋势线"],
- ["06","EMA 重排","EMA20 重新高于 EMA50"],
- ["07","前高目标","突破后先看上一段高点"],
+ ["01","上涨／转强","先证明多头曾经出现"],
+ ["02","第一底部","双底／三底必须确认"],
+ ["03","第一突破","三推趋势线收盘突破"],
+ ["04","趋势转变","MACD＋EMA先完成修复"],
+ ["05","真实重置","新回调、MACD重置、新pivot"],
+ ["06","第二底部","新的W底或回踩守住"],
+ ["07","二次启动","突破＋MACD＋EMA再次转强"],
 ] as const;
-const stageTone:Record<string,string>={entry_ready:"ready",waiting_breakout:"waiting",breakout_incomplete:"incomplete",bottom_confirmed:"forming",pullback_forming:"forming",launched:"launched",target_reached:"reached",invalidated:"invalid"};
+const stageTone:Record<string,string>={entry_ready:"ready",risk_blocked:"invalid",waiting_breakout:"waiting",breakout_incomplete:"incomplete",bottom_confirmed:"forming",pullback_forming:"forming",launched:"launched",target_reached:"reached",invalidated:"invalid"};
 const money=(value:number|null|undefined)=>value==null?"—":`$${value.toFixed(2)}`;
 
 function PriceChart({row}:{row:PatternRow}){
@@ -41,10 +44,13 @@ function PriceChart({row}:{row:PatternRow}){
  const path=(key:"close"|"ema20"|"ema50"|"ema200")=>points.map((point,index)=>`${index?"L":"M"}${x(index).toFixed(1)},${y(point[key]).toFixed(1)}`).join(" ");
  const indexOf=(date?:string|null)=>date?points.findIndex(point=>point.date===date):-1;
  const markers=[
-  [row.double_bottom?.first_date,"底1","bottom"],
-  [row.double_bottom?.second_date,"底2","bottom"],
-  [row.second_bottom_macd?.cross_date,"MACD","macd"],
-  [row.three_push?.breakout_date,"突破","breakout"],
+  [row.sequence?.first_bottom?.first_date??row.double_bottom?.first_date,"第一底1","bottom"],
+  [row.sequence?.first_bottom?.second_date??row.double_bottom?.second_date,"第一底2","bottom"],
+  [row.sequence?.first_confirmation_date??row.three_push?.breakout_date,"第一次确认","breakout"],
+  [row.sequence?.second_bottom?.first_date,"第二底1","bottom"],
+  [row.sequence?.second_bottom?.second_date,"第二底2","bottom"],
+  [row.sequence?.second_macd_date??row.second_bottom_macd?.cross_date,"二次MACD","macd"],
+  [row.sequence?.completion_date,"二次启动","breakout"],
  ] as const;
  const target=row.trade_map?.target_previous_high;
  return <div className="favoriteChart"><svg role="img" aria-label={`${row.symbol} 日线形态图`} viewBox={`0 0 ${width} ${height}`}>
@@ -68,16 +74,16 @@ export default function FavoritePatternPage(){
  const selected=useMemo(()=>data?.candidates.find(row=>row.symbol===symbol)??data?.candidates[0],[data,symbol]);
  return <TrackerShell active="我最喜欢形态" title="我最喜欢形态" subtitle="每天追踪你真正愿意做的日线共振，而不是再堆一套评分。">
   <div className="favoritePage">
-   <section className="favoriteIntro"><div><small>MY FAVORITE DAILY SETUP · FORWARD TRACKER</small><h2>先有一段上涨，再等深回调后的结构重新启动</h2><p>这页不要求旧的长期趋势门票，也不替代多因子排行榜。它只回答：今天有没有股票走到你喜欢的那一段。匹配度不是胜率。</p><p className="favoriteReferenceLine">BABA 定义形态 · PG 保留反例</p></div><mark>生产权重 0 · 独立观察</mark></section>
+   <section className="favoriteIntro"><div><small>MY FAVORITE DAILY SETUP · SEQUENCE TRACKER V2</small><h2>先确认趋势转变，再等真实回调后的第二次启动</h2><p>这页按发生顺序学习你的系统，不再要求七个条件挤在同一天。它不替代多因子排行榜；匹配度不是胜率。</p><p className="favoriteReferenceLine">ADBE 标准正例 · TTD / AEVA 风险反例 · BABA / PG 长期参考</p></div><mark>生产权重 0 · 独立观察</mark></section>
    <section className="favoriteFunnel" aria-label="形态七步流程">{stages.map(([index,title,note])=><article key={index}><i>{index}</i><b>{title}</b><span>{note}</span></article>)}</section>
    {data?<>
-    <section className="favoriteMetrics"><article><small>数据日</small><b>{data.as_of}</b><span>{data.pattern_version}</span></article><article><small>7/7 入场就绪</small><b>{data.summary.entry_ready}</b><span>完整共振＋收盘突破</span></article><article><small>已突破但不完整</small><b>{data.summary.breakout_incomplete}</b><span>6/7及以下，只观察</span></article><article><small>等待突破</small><b>{data.summary.waiting_breakout}</b><span>只观察，不行动</span></article><article><small>回调／双底形成中</small><b>{data.summary.forming}</b><span>提前放进视野</span></article><article><small>当前观察表</small><b>{data.summary.watchlist}</b><span>全市场同日扫描</span></article></section>
+    <section className="favoriteMetrics"><article><small>数据日</small><b>{data.as_of}</b><span>{data.pattern_version}</span></article><article><small>二次启动就绪</small><b>{data.summary.entry_ready}</b><span>7阶段完成＋风险清除</span></article><article><small>风险否决</small><b>{data.summary.risk_blocked??0}</b><span>正面进度不能覆盖供给</span></article><article><small>只差一项</small><b>{data.summary.breakout_incomplete}</b><span>6/7只观察</span></article><article><small>等待第二次确认</small><b>{data.summary.waiting_breakout}</b><span>有重置但未重启</span></article><article><small>当前观察表</small><b>{data.summary.watchlist}</b><span>全市场同日扫描</span></article></section>
     <div className="favoriteWarning"><b>先说清楚：</b>{data.warning_zh}</div>
     <section className="favoriteWorkspace"><aside><header><small>TODAY&apos;S SETUPS</small><h3>今天走到哪一步</h3></header>{data.candidates.length?data.candidates.map(row=><button type="button" key={row.symbol} onClick={()=>setSymbol(row.symbol)} className={selected?.symbol===row.symbol?"active":""}><span><b>{row.symbol}</b><small>{row.stage_zh}</small></span><strong>{row.match_count}/{row.total_conditions}<small>条件</small></strong><i className={stageTone[row.stage]??"forming"}/></button>):<div className="favoriteNone"><b>今天没有4项以上匹配</b><p>不会用旧候选填充。</p></div>}</aside>
-     <div className="favoriteDetail">{selected?<><header><div><small>POINT-IN-TIME PATTERN AUDIT</small><h3>{selected.symbol} · {selected.stage_zh}</h3><p>{selected.action_zh}</p></div><strong>{selected.match_count}/{selected.total_conditions}<small>形态完成度</small></strong></header><PriceChart row={selected}/><Evidence row={selected}/><div className="favoriteFacts"><article><small>前段上涨</small><b>{selected.prior_advance?`+${selected.prior_advance.advance_pct.toFixed(1)}%`:"未确认"}</b><span>{selected.prior_advance?`${selected.prior_advance.low_date} → ${selected.prior_advance.high_date}`:"需要已确认低点到高点"}</span></article><article><small>回调位置</small><b>{selected.pullback?.retracement_pct!=null?`${selected.pullback.retracement_pct.toFixed(1)}%`:"—"}</b><span>{selected.pullback?.golden_pocket?"✓ Golden Pocket":"Golden Pocket未命中"} · {selected.pullback?.ema200_support?"✓ EMA200":"EMA200未命中"}</span></article><article><small>第二底 / MACD</small><b>{selected.double_bottom?.second_date??"—"}</b><span>{selected.second_bottom_macd?.cross_date?`金叉 ${selected.second_bottom_macd.cross_date}`:"附近没有金叉"}</span></article><article><small>突破 / 均线</small><b>{selected.three_push?.breakout_date??"等待"}</b><span>{selected.ema_realign?.hit?`EMA20 ${money(selected.ema_realign.ema20)} ＞ EMA50 ${money(selected.ema_realign.ema50)}`:"EMA20/50尚未重排"}</span></article></div><div className="favoriteTradeMap"><span>研究入场 <b>{selected.trade_map?.earliest_entry?"突破后下一交易日开盘":"未触发"}</b></span><span>前高目标 <b>{money(selected.trade_map?.target_previous_high)}</b></span><span>二底失效位 <b>{money(selected.trade_map?.invalidation_second_bottom)}</b></span><span>估算盈亏比 <b>{selected.trade_map?.estimated_reward_risk?`${selected.trade_map.estimated_reward_risk.toFixed(2)}R` :"—"}</b></span></div></>:<div className="favoriteNone"><b>等待当日扫描结果</b></div>}</div>
+     <div className="favoriteDetail">{selected?<><header><div><small>POINT-IN-TIME SEQUENCE AUDIT</small><h3>{selected.symbol} · {selected.stage_zh}</h3><p>{selected.action_zh}</p></div><strong>{selected.match_count}/{selected.total_conditions}<small>系统进度</small></strong></header><PriceChart row={selected}/><Evidence row={selected}/><div className="favoriteFacts"><article><small>第一次确认</small><b>{selected.sequence?.first_confirmation_date??"等待"}</b><span>{selected.sequence?.first_bottom?`${selected.sequence.first_bottom.first_date} / ${selected.sequence.first_bottom.second_date} 两底`:"第一底部尚未完成"}</span></article><article><small>真实重置</small><b>{selected.sequence?.reset_drawdown_pct!=null?`-${selected.sequence.reset_drawdown_pct.toFixed(1)}%`:"等待"}</b><span>{selected.sequence?.macd_reset?"✓ MACD已经重置":"MACD尚未重置"}</span></article><article><small>第二次启动</small><b>{selected.sequence?.completion_date??"等待"}</b><span>突破 {selected.sequence?.second_breakout_date??"—"} · MACD {selected.sequence?.second_macd_date??"—"} · EMA {selected.sequence?.ema_strength_date??"—"}</span></article><article><small>EMA完整排列</small><b>{selected.sequence?.full_alignment_date??"尚未"}</b><span>{selected.ema_realign?.full_alignment?`EMA20 ${money(selected.ema_realign.ema20)} ＞ EMA50 ${money(selected.ema_realign.ema50)}`:"先记录转强，不等待完美排列"}</span></article></div>{selected.risk_gate?.blocked?<div className="favoriteWarning"><b>风险否决：</b>{selected.risk_gate.reasons_zh.join("；")}</div>:<div className="favoriteWarning"><b>风险闸门：</b>当前没有命中已登记的多轮空头压力或顶部耗竭否决。</div>}<div className="favoriteTradeMap"><span>研究入场 <b>{selected.trade_map?.earliest_entry?"二次确认后下一交易日开盘":"未触发"}</b></span><span>前高目标 <b>{money(selected.trade_map?.target_previous_high)}</b></span><span>新底失效位 <b>{money(selected.trade_map?.invalidation_second_bottom)}</b></span><span>旧V1对照 <b>{selected.legacy_v1?`${selected.legacy_v1.match_count}/${selected.legacy_v1.total_conditions}`:"—"}</b></span></div></>:<div className="favoriteNone"><b>等待当日扫描结果</b></div>}</div>
     </section>
-    <section className="favoriteReferences"><header><div><small>FIXED REFERENCE CASES</small><h2>BABA 定义形态，PG 保留反例</h2><p>参考案例不会因为现在不匹配或成绩一般而消失，也不会被强行判成命中。</p></div></header><div>{data.reference_cases.map(row=><article key={row.symbol} data-stage={row.stage}><header><b>{row.symbol}</b><mark>{row.stage_zh}</mark></header><p>{row.reference_note_zh}</p><footer>{row.available?`当前机器匹配 ${row.match_count}/${row.total_conditions}`:row.reason}</footer></article>)}</div></section>
-    <section className="favoriteForward"><div><small>TRUE UNSEEN FORWARD</small><h2>从现在开始积累，不拿BABA已知走势冒充验证</h2><p>只有“入场就绪”进入永久账本，按下一交易日复权开盘记录5/10/20/40/60/100日、MFE和MAE。</p></div><div><strong>{data.forward_tracking.minimum_conclusion_sample}<small>至少入场案例</small></strong><strong>{data.forward_tracking.minimum_months}<small>至少月份</small></strong><strong>{data.forward_tracking.minimum_market_states}<small>至少市场状态</small></strong></div></section>
+    <section className="favoriteReferences"><header><div><small>FIXED ACCEPTANCE CASES</small><h2>正例和反例一起锁住，不能只迁就赢家</h2><p>ADBE负责验收两段确认；TTD与AEVA负责验收风险否决；BABA和PG继续保留原始参考。</p></div></header><div>{data.reference_cases.map(row=><article key={row.symbol} data-stage={row.stage}><header><b>{row.symbol}</b><mark>{row.stage_zh}</mark></header><p>{row.reference_note_zh}</p><footer>{row.available?`当前机器匹配 ${row.match_count}/${row.total_conditions}`:row.reason}</footer></article>)}</div></section>
+    <section className="favoriteForward"><div><small>TRUE UNSEEN FORWARD</small><h2>ADBE教规则，不拿ADBE的涨幅证明规则</h2><p>只有V2首次“二次启动就绪”进入永久账本；ADBE、TTD、AEVA均标为已见验收案例并排除有效率统计。</p></div><div><strong>{data.forward_tracking.minimum_conclusion_sample}<small>至少入场案例</small></strong><strong>{data.forward_tracking.minimum_months}<small>至少月份</small></strong><strong>{data.forward_tracking.minimum_market_states}<small>至少市场状态</small></strong></div></section>
    </>:<div className="favoriteLoading"><b>正在读取今天的形态状态</b><p>首次上线后的完整交易日会开始真实前向留档。</p></div>}
   </div>
  </TrackerShell>;

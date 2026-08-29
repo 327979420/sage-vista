@@ -83,7 +83,7 @@ class SignalHistoryTests(unittest.TestCase):
  def test_only_entry_ready_favorite_pattern_enters_forward_history(self):
   tracker,radar,factors,industry,market=inputs(symbols=())
   conditions=[{"id":str(index),"hit":True} for index in range(7)]
-  tracker["favorite_pattern_tracker"]={"candidates":[{"symbol":"BABA","stage":"entry_ready","pattern_version":"favorite-pattern-v1.0.1","match_count":7,"total_conditions":7,"conditions":conditions,"trade_map":{"target_previous_high":145},"prior_advance":{},"pullback":{},"double_bottom":{},"second_bottom_macd":{},"three_push":{},"ema_realign":{}}]}
+  tracker["favorite_pattern_tracker"]={"candidates":[{"symbol":"BABA","stage":"entry_ready","pattern_version":"favorite-pattern-v2.0.0","match_count":7,"total_conditions":7,"conditions":conditions,"trade_map":{"target_previous_high":145},"prior_advance":{},"pullback":{},"double_bottom":{},"second_bottom_macd":{},"three_push":{},"ema_realign":{},"sequence":{},"risk_gate":{"clear":True,"blocked":False}}]}
   factors["symbols"].append({"symbol":"BABA","scoring":{"official_score":0,"experimental_observational_score":0,"score_contributions":[]},"factors":[]})
   result=build({},tracker,radar,factors,industry,market,"2026-08-26",loader=lambda _:rows_through(1))
   self.assertEqual(len(result["cases"]),1)
@@ -99,7 +99,7 @@ class SignalHistoryTests(unittest.TestCase):
   conditions=[{"id":str(index),"hit":index<6} for index in range(7)]
   tracker["favorite_pattern_tracker"]={"candidates":[{"symbol":"BABA","stage":"entry_ready","pattern_version":"favorite-pattern-v1.0.0","match_count":6,"total_conditions":7,"conditions":conditions,"trade_map":{},"prior_advance":{},"pullback":{},"double_bottom":{},"second_bottom_macd":{},"three_push":{},"ema_realign":{}}]}
   factors["symbols"].append({"symbol":"BABA","scoring":{"official_score":0,"experimental_observational_score":0,"score_contributions":[]},"factors":[]})
-  tracker["favorite_pattern_tracker"]["candidates"][0]["pattern_version"]="favorite-pattern-v1.0.1"
+  tracker["favorite_pattern_tracker"]["candidates"][0]["pattern_version"]="favorite-pattern-v2.0.0"
   tracker["favorite_pattern_tracker"]["candidates"][0]["match_count"]=7
   tracker["favorite_pattern_tracker"]["candidates"][0]["conditions"]=[{"id":str(index),"hit":True} for index in range(7)]
   old=build({},tracker,radar,factors,industry,market,"2026-08-26",loader=lambda _:rows_through(1))

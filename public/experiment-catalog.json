@@ -1,15 +1,15 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-08-29T22:56:00+10:00",
+  "generated_at": "2026-08-30T02:40:00+10:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 32,
+  "experiment_count": 33,
   "summary": {
     "completed": 26,
-    "in_progress": 6,
+    "in_progress": 7,
     "candidate": 10,
     "not_validated_or_unstable": 11
   },
@@ -21,6 +21,96 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "favorite-pattern-sequence-v2.0.0-2026-08-30",
+      "created_at": "2026-08-30T02:25:00+10:00",
+      "status": "pre_registered_calibration_then_forward",
+      "change": "Persist the user's personal trading system and replace the same-day seven-condition snapshot with a point-in-time first-confirmation, genuine-reset and second-reacceleration sequence without changing production scoring.",
+      "coverage": "Known-case calibration on ADBE 2023 with TTD 2025-01 and AEVA 2026-07 risk regressions; true unseen forward events only after V2 deployment.",
+      "specification": {
+        "pattern_version": "favorite-pattern-v2.0.0",
+        "components": [
+          "prior advance or objective daily turn",
+          "first confirmed local W or triple bottom",
+          "first three-push completed-close breakout",
+          "first bottom MACD plus EMA trend turn",
+          "genuine drawdown and MACD reset with new pivots",
+          "new W/triple bottom or retest hold",
+          "second neckline breakout plus MACD and EMA strengthening"
+        ],
+        "ema_states": [
+          "price reclaims EMA20 and EMA50 while EMA20 turns up and closes the gap",
+          "later EMA20 above EMA50 full alignment"
+        ],
+        "risk_gate": [
+          "two or more unresolved bearish-pressure rounds with weak EMA",
+          "multi-top supply plus top-exhaustion confirmation"
+        ],
+        "known_acceptance_cases": [
+          "ADBE",
+          "TTD",
+          "AEVA"
+        ],
+        "known_cases_excluded_from_effectiveness": true,
+        "production_score_changed": false,
+        "entry": "next adjusted open after first risk-cleared 7/7 completion",
+        "primary_horizon_sessions": 20,
+        "sensitivity_horizons": [
+          5,
+          10,
+          40,
+          60,
+          100
+        ],
+        "industry_market": "separate stratification only"
+      },
+      "success_criteria": "Known cases must pass deterministic point-in-time regression without being counted as evidence. Do not claim effectiveness until at least 100 new first-completion events span six months and three market states and improve 20-session 50bps outcomes versus one-stage controls and the main MACD gate.",
+      "result": "Pre-registered after the user's ADBE/TTD/AEVA manual reviews. V1 records remain immutable; V2 is zero weight until true unseen evidence accumulates.",
+      "known_limitations": [
+        "ADBE, TTD and AEVA were inspected before freezing V2",
+        "automated pivots and trendlines can differ from hand drawings",
+        "risk gates are calibration hypotheses rather than validated alpha",
+        "current active-cache universe can create survivorship bias",
+        "event outcomes will not be a capital-constrained portfolio"
+      ],
+      "human_summary": {
+        "title_zh": "个人交易系统两段确认Tracker V2",
+        "family": "pattern",
+        "family_zh": "个人形态",
+        "question_zh": "第一次底部与趋势转变后，经过真实回调再完成第二次W底、突破、MACD和EMA转强，能否比单次确认更可靠？",
+        "result_zh": "已按用户复盘固化七阶段时序：ADBE用于验收正例，TTD和AEVA用于验收风险否决；已见案例不进入收益证明，生产权重仍为0。",
+        "use_zh": "每天优先看第一次确认、真实重置、第二次启动和风险闸门各自日期；7/7且风险清除才进入人工复核。",
+        "next_zh": "部署后只记录新的首次二次启动事件；至少100例、6个月和3种市场状态后再比较20日扣成本收益。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-30T02:25:00+10:00",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "checkpoint",
+        "latest_event_at": "2026-08-30T02:40:00+10:00",
+        "time_source": "known_case_regression",
+        "event_count": 2,
+        "events": [
+          {
+            "experiment_id": "favorite-pattern-sequence-v2.0.0-2026-08-30",
+            "event": "registered",
+            "event_at": "2026-08-30T02:25:00+10:00",
+            "time_source": "user_approved_local_preregistration",
+            "source_ref": "research/preregistrations/favorite-pattern-tracker-v2.md",
+            "result": "Frozen the user's first-confirmation, genuine-reset and second-reacceleration sequence; separated EMA strengthening from full alignment; fixed ADBE as a positive acceptance case and TTD/AEVA as risk regressions; all known cases are excluded from effectiveness and production weight remains zero."
+          },
+          {
+            "experiment_id": "favorite-pattern-sequence-v2.0.0-2026-08-30",
+            "event": "checkpoint",
+            "event_at": "2026-08-30T02:40:00+10:00",
+            "time_source": "known_case_regression",
+            "source_ref": "tests/fixtures/favorite-pattern-v2-known-cases.json",
+            "result": "Point-in-time regression passed: ADBE stayed 6/7 through 2023-05-17 and first reached risk-cleared 7/7 on 2023-05-18, with full EMA20/50 alignment separately recorded on 2023-05-25; TTD 2025-01-17 retained two-plus unresolved bearish-pressure rounds, and AEVA 2026-07-01 was vetoed by multi-top supply plus top exhaustion. These seen cases remain excluded from effectiveness."
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "favorite-pattern-tracker-v1.0.0-2026-08-29",
       "created_at": "2026-08-29T22:20:00+10:00",
@@ -70,8 +160,8 @@
         "family_zh": "个人形态",
         "question_zh": "BABA式的上涨后深回调、宽双底、二底MACD、三推突破和EMA重排共振，能否在真正未见前向中提高收益质量？",
         "result_zh": "已冻结7项机器定义并接入独立每日页面；首次扫描发现并修正状态标签，只有7/7才算入场就绪，不完整旧记录保留但排除统计。目前没有历史有效性结论，生产权重和主排行均未改变。",
-        "use_zh": "用来提前查看形成中、等待突破和入场就绪的个人偏好形态；6/7即使突破也只观察，匹配度不是胜率。",
-        "next_zh": "只从上线后的严格7/7入场就绪事件开始永久跟踪；至少100例、6个月和3种市场状态后再评价。",
+        "use_zh": "V1作为静态七项历史对照继续只读保留，不再用它覆盖V2时序判断。",
+        "next_zh": "保留既有前向事件与定义修正审计，不重写旧结果。",
         "verdict": "pre_registered"
       },
       "lifecycle": {
@@ -2450,6 +2540,7 @@
     "exit-score-v0.1.0-2026-08-28",
     "factor-family-return-combination-v1.0.0-2026-08-29",
     "factor-strategy-lab-v2.0.0-2026-08-29",
+    "favorite-pattern-sequence-v2.0.0-2026-08-30",
     "favorite-pattern-tracker-v1.0.0-2026-08-29",
     "full-line-backtest-v1.0.2-2026-08-28",
     "macd-rollout-04-double-chip-confirmation-2026-08-25",

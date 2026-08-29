@@ -1,4 +1,6 @@
+import json
 import unittest
+from pathlib import Path
 
 from services.scanner.favorite_pattern_tracker import (
     PATTERN_VERSION,
@@ -23,6 +25,12 @@ def rows(count=180, price=100.0):
         }
         for index in range(count)
     ]
+
+
+def known_case(symbol):
+    payload = json.loads((Path(__file__).parent / "fixtures/favorite-pattern-v2-known-cases.json").read_text())
+    columns = payload["columns"]
+    return [dict(zip(columns, values)) for values in payload["symbols"][symbol]["rows"]]
 
 
 class FavoritePatternTrackerTests(unittest.TestCase):
@@ -56,9 +64,45 @@ class FavoritePatternTrackerTests(unittest.TestCase):
         self.assertEqual(result["breakout_date"], "D110")
 
     def test_insufficient_history_fails_closed(self):
-        result = evaluate(rows(259))
+        result = evaluate(rows(119))
         self.assertFalse(result["available"])
         self.assertEqual(result["stage"], "unavailable")
+
+    def test_adbe_known_case_reaches_two_stage_confirmation_on_macd_day(self):
+        case_rows = known_case("ADBE")
+        before = evaluate([row for row in case_rows if row["date"] <= "2023-05-17"])
+        signal_day = evaluate([row for row in case_rows if row["date"] <= "2023-05-18"])
+        result = evaluate(case_rows)
+        self.assertEqual(PATTERN_VERSION, "favorite-pattern-v2.0.0")
+        self.assertEqual(before["match_count"], 6)
+        self.assertNotEqual(before["stage"], "entry_ready")
+        self.assertEqual(signal_day["stage"], "entry_ready")
+        self.assertEqual(signal_day["sequence"]["completion_date"], "2023-05-18")
+        self.assertEqual(result["stage"], "entry_ready")
+        self.assertEqual(result["match_count"], 7)
+        self.assertEqual(result["sequence"]["first_bottom"]["first_date"], "2023-02-24")
+        self.assertEqual(result["sequence"]["first_bottom"]["second_date"], "2023-03-13")
+        self.assertEqual(result["sequence"]["first_confirmation_date"], "2023-03-30")
+        self.assertEqual(result["sequence"]["second_bottom"]["first_date"], "2023-05-04")
+        self.assertEqual(result["sequence"]["second_bottom"]["second_date"], "2023-05-12")
+        self.assertEqual(result["sequence"]["second_breakout_date"], "2023-05-17")
+        self.assertEqual(result["sequence"]["second_macd_date"], "2023-05-18")
+        self.assertEqual(result["sequence"]["completion_date"], "2023-05-18")
+        self.assertEqual(result["sequence"]["full_alignment_date"], "2023-05-25")
+        self.assertFalse(result["risk_gate"]["blocked"])
+
+    def test_ttd_known_case_keeps_unresolved_bearish_pressure_visible(self):
+        result = evaluate(known_case("TTD"))
+        self.assertNotEqual(result["stage"], "entry_ready")
+        self.assertTrue(result["risk_gate"]["blocked"])
+        self.assertGreaterEqual(result["risk_gate"]["unresolved_pressure_rounds"], 2)
+
+    def test_aeva_known_case_is_vetoed_by_top_supply_and_exhaustion(self):
+        result = evaluate(known_case("AEVA"))
+        self.assertEqual(result["stage"], "risk_blocked")
+        self.assertTrue(result["risk_gate"]["blocked"])
+        self.assertIsNotNone(result["risk_gate"]["multi_top"])
+        self.assertTrue(result["risk_gate"]["top_exhaustion"])
 
     def test_report_keeps_reference_cases_without_promoting_them(self):
         base = {"available": True, "pattern_version": PATTERN_VERSION, "match_count": 4, "total_conditions": 7, "stage": "waiting_breakout", "stage_zh": "等待突破"}

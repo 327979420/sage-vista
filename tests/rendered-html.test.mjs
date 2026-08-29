@@ -75,9 +75,9 @@ test("server-renders the independent favorite-pattern tracker", async () => {
   assert.equal(response.status, 200);
   const html = await response.text();
   assert.match(html, /我最喜欢形态/);
-  assert.match(html, /先有一段上涨/);
+  assert.match(html, /先确认趋势转变/);
   assert.match(html, /生产权重 0/);
-  assert.match(html, /BABA 定义形态/);
+  assert.match(html, /ADBE 标准正例/);
   assert.match(html, /匹配度不是胜率/);
 });
 
