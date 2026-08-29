@@ -11,6 +11,7 @@
 | 行业与大盘 | `app/zh/watch/industry-radar/page.tsx` | `public/industry-radar.json`、`public/market-etf-watch.json` |
 | 历史、实验、回测断点 | `app/zh/watch/resonance/research/page.tsx` | `public/experiment-catalog.json`、`public/signal-history.json`、`public/backtest-progress.json` |
 | 因子定义/检测/评分 | `services/scanner/factor_registry.py`、`factor_detectors.py`、`factor_snapshot.py`、`factor_scoring.py` | `public/factor-registry.json` |
+| 外部候选因子、赢家配对和走步实验 | `research/factor-candidates-v2.json`、`research/factor_lab/features.py`、`research/backtest/factor_strategy_lab_v2.py` | `research/backtest/output/factor-strategy-lab-v2.json` |
 | V2 历史回放与排名 | `services/scanner/unified_v2_scan.py` | `public/unified-v2-rankings.json` |
 | 永久追踪池 | `services/scanner/opportunity_ledger.py`、`signal_history.py` | `public/opportunity-ledger.json`、`public/signal-history.json` |
 | 行业分类与 ETF 上下文 | `services/scanner/industry_membership.py`、`industry_radar.py`、`theme_etf_context.py` | `data/industry/`、`data/themes/` |

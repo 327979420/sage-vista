@@ -42,6 +42,8 @@ Context Comparison V1 固定比较四组：旧技术基准、技术+行业、技
 
 Winner / Loser Strategy Optimization V1 复用完整V2事件产物与Actions价格缓存，保存开发期最大100赢家／输家，增加冻结的连续技术特征，并只用2001—2018发现、2019—2024内部校准形成家族去重整数权重。2025与2026只验收、不调参；详细100名单保存在压缩Actions产物，仓库只保存紧凑挑战者与三时期结论。运行入口为 `python3 -m research.backtest.winner_loser_optimization_v1`，工作流为 `winner-loser-strategy-optimization.yml`。
 
+Factor Strategy Lab V2 是可扩展的候选因子实验室。新因子只在 `research/factor-candidates-v2.json` 登记一次，由年度任务从既有V2事件与价格缓存计算；聚合任务同时输出全样本命中/未命中、历史扩展窗走步、年度内前10%赢家与相似失败样本配对，以及最大赢家/输家案例卡。2025/2026明确标为已见期复核，任何结果都不自动修改生产评分。运行入口为 `python3 -m research.backtest.factor_strategy_lab_v2`，工作流为 `factor-strategy-lab-v2.yml`。
+
 ## Ranking Research V1
 
 Ranking Research V1 重放完整 point-in-time 固定 benchmark 候选池，比较 MACD、Multi-Factor、固定50/50 percentile Hybrid、固定 seed Random 与 No Ranking。候选账本和汇总分别保存在 `output/ranking-research-v1-candidates.jsonl` 与 `output/ranking-research-v1.json`。不调参、不改 production Ranking。

@@ -3,17 +3,19 @@ from services.scanner.experiment_catalog import build,render_summary
 
 class ExperimentCatalogTests(unittest.TestCase):
  def test_all_old_experiments_are_preserved_and_ids_are_unique(self):
-  catalog=build();self.assertEqual(catalog["experiment_count"],26)
-  self.assertEqual(len({x["experiment_id"] for x in catalog["experiments"]}),26)
+  catalog=build();self.assertEqual(catalog["experiment_count"],27)
+  self.assertEqual(len({x["experiment_id"] for x in catalog["experiments"]}),27)
   self.assertTrue(catalog["policy"]["append_only"]);self.assertTrue(catalog["policy"]["failed_results_preserved"])
   challenger=next(x for x in catalog["experiments"] if x["experiment_id"]=="timeframe-score-v3.0.0-2026-08-28")
   self.assertEqual(challenger["status"],"pre_registered")
   exit_score=next(x for x in catalog["experiments"] if x["experiment_id"]=="exit-score-v0.1.0-2026-08-28")
   self.assertEqual(exit_score["status"],"pre_registered")
   self.assertEqual(exit_score["specification"]["score"]["bearish_body_engulfing"],2)
+  factor_lab=next(x for x in catalog["experiments"] if x["experiment_id"]=="factor-strategy-lab-v2.0.0-2026-08-29")
+  self.assertEqual(factor_lab["status"],"pre_registered");self.assertEqual(factor_lab["specification"]["new_candidates"],12)
 
  def test_every_experiment_has_lifecycle_and_plain_chinese_summary(self):
-  catalog=build();self.assertEqual(catalog["summary"]["completed"],22);self.assertEqual(catalog["summary"]["in_progress"],4)
+  catalog=build();self.assertEqual(catalog["summary"]["completed"],22);self.assertEqual(catalog["summary"]["in_progress"],5)
   for row in catalog["experiments"]:
    self.assertTrue(row["human_summary"]["title_zh"]);self.assertTrue(row["human_summary"]["use_zh"])
    self.assertTrue(row["lifecycle"]["registered_at"]);self.assertGreaterEqual(row["lifecycle"]["event_count"],1)

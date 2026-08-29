@@ -1,15 +1,15 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-08-29T17:24:44+10:00",
+  "generated_at": "2026-08-29T18:17:04+10:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 26,
+  "experiment_count": 27,
   "summary": {
     "completed": 22,
-    "in_progress": 4,
+    "in_progress": 5,
     "candidate": 9,
     "not_validated_or_unstable": 10
   },
@@ -21,6 +21,84 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "factor-strategy-lab-v2.0.0-2026-08-29",
+      "created_at": "2026-08-29T18:17:04+10:00",
+      "status": "pre_registered",
+      "change": "Build a reusable factor laboratory that translates externally sourced factor formulas into Sage Vista pullback questions, evaluates existing and new factors against matched winner/loser controls, and proposes only family-capped shadow candidates without changing production scoring.",
+      "coverage": "Reused exact daily-MACD V2 annual events and restored historical price cache for 2000 warmup through 2026 seen-period review; future unseen forward begins after the 2026-08-29 candidate lock.",
+      "specification": {
+        "event_gate": "exact completed daily MACD bullish cross plus archived long-trend qualification",
+        "candidate_registry": "research/factor-candidates-v2.json",
+        "new_candidates": 12,
+        "primary_horizon_sessions": 20,
+        "sensitivity_horizons": [
+          5,
+          10,
+          40,
+          60
+        ],
+        "overlap_primary": "first event per ticker within 120 trading sessions",
+        "matched_winner": "annual top-decile 20-session raw return",
+        "matched_loser": "20-session raw return <= 0; same quarter preferred",
+        "matching_covariates": [
+          "archived current technical score",
+          "pre-signal 20-session return",
+          "60-session pullback",
+          "ATR14 as percentage of price"
+        ],
+        "walkforward": [
+          "train through 2012/test 2013-2015",
+          "train through 2015/test 2016-2018",
+          "train through 2018/test 2019-2021",
+          "train through 2021/test 2022-2024"
+        ],
+        "seen_periods": [
+          2025,
+          2026
+        ],
+        "multiple_testing": "Benjamini-Hochberg",
+        "family_cap": 1,
+        "industry": "unavailable historically without dated membership and never imputed"
+      },
+      "success_criteria": "A candidate can enter a separately approved shadow challenger only when at least three walk-forward windows align, matched-control direction agrees, BH-adjusted discovery evidence passes, 50bps outcomes remain useful, sample minimums pass and it wins its redundancy family. Historical results remain retrospective; production promotion requires newly accumulated unseen forward evidence.",
+      "result": "Pre-registered and implementation started. No factor conclusion or production weight change exists until the archived run completes.",
+      "known_limitations": [
+        "candidate definitions follow prior inspection of 2025/2026, so neither period is fresh validation",
+        "matched controls reduce confounding but do not establish causality",
+        "historical industry membership and complete delisted coverage are unavailable",
+        "event results are not a capital-constrained portfolio"
+      ],
+      "human_summary": {
+        "title_zh": "外部候选因子与配对对照实验室V2",
+        "family": "scoring",
+        "family_zh": "策略优化",
+        "question_zh": "成熟量化项目中的哪些趋势质量、回调伤害、价量和动能修复因子，能在Sage Vista的长期上涨＋MACD金叉门票后区分赢家与相似失败样本？",
+        "result_zh": "已预登记并完成可复用实现；历史运行尚未完成，因此目前没有因子可加权结论。",
+        "use_zh": "当前只把12个候选作为研究字段，生产37因子和模型1.3.0不变。",
+        "next_zh": "复用历史事件与价格缓存运行27个年度任务，生成配对对照、走步验证、案例卡和保留/观察/淘汰结论。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-29T18:17:04+10:00",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-08-29T18:17:04+10:00",
+        "time_source": "user_approved_local_preregistration",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "factor-strategy-lab-v2.0.0-2026-08-29",
+            "event": "registered",
+            "event_at": "2026-08-29T18:17:04+10:00",
+            "time_source": "user_approved_local_preregistration",
+            "source_ref": "research/preregistrations/factor-strategy-lab-v2.md",
+            "result": "Locked 12 externally sourced point-in-time candidates, matched-control covariates, retrospective walk-forward windows, seen-period labels, family caps and no-production-change boundary before the historical run."
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "winner-loser-strategy-optimization-v1.0.0-2026-08-29",
       "created_at": "2026-08-29T16:53:09+10:00",
@@ -1810,6 +1888,7 @@
     "core-factor-backtest-v1.0.0-2026-08-27",
     "evidence-calibrated-daily-score-v1.0.0-2026-08-29",
     "exit-score-v0.1.0-2026-08-28",
+    "factor-strategy-lab-v2.0.0-2026-08-29",
     "full-line-backtest-v1.0.2-2026-08-28",
     "macd-rollout-04-double-chip-confirmation-2026-08-25",
     "pullback-context-backtest-v2.0.0-2026-08-28",

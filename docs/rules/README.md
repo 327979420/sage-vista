@@ -1,6 +1,6 @@
 # Sage Vista 模块规则索引
 
-最后更新：2026-08-28
+最后更新：2026-08-29
 
 ## 使用方法
 
@@ -33,7 +33,7 @@
 |---|---|---|---|
 | 01 治理 | `AGENTS.md`、`docs/*.md` | `CURRENT_STATUS_ZH.md`、`CHANGE_REQUESTS_ZH.md` | `test_rulebook_contract.py`、`test_project_status.py` |
 | 02 数据扫描 | `daily_tracker_update.py`、`eodhd.py`、`factor_snapshot.py` | `update-status.json`、`daily-factor-snapshot.json` | `test_eodhd.py`、`test_factor_snapshot.py` |
-| 03 因子模型 | `factor_registry.py`、`factor_detectors.py` | `factor-registry.json` | `test_factor_snapshot.py`、`test_factor_scoring.py` |
+| 03 因子模型 | `factor_registry.py`、`factor_detectors.py`；研究候选另见`research/factor_lab/` | `factor-registry.json`、`research/factor-candidates-v2.json` | `test_factor_snapshot.py`、`test_factor_scoring.py`、`test_factor_strategy_lab_v2.py` |
 | 04 评分 | `factor_scoring.py`、`unified_v2_scan.py` | `unified-v2-rankings.json` | `test_factor_scoring.py`、`test_unified_v2_scan.py` |
 | 05 大盘 | `market_etf_watch.py` | `market-etf-watch.json` | `test_market_etf_watch.py` |
 | 06 行业 | `industry_radar.py`、`industry_membership.py` | `industry-radar.json` | `test_industry_radar.py` |
