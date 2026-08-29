@@ -48,6 +48,9 @@ class RulebookContractTests(unittest.TestCase):
             "成功、失败、负结果、样本不足和中断都只追加、不删除、不覆盖",
             "research/experiments.jsonl",
             "可以使用 / 候选观察 / 样本不足 / 不稳定 / 不成立",
+            "2个代表赢家、2个代表输家和1个边界／反例",
+            "post_hoc_hypothesis",
+            "案例是人工审计和发现规则漏洞的工具，不是统计证明",
         ):
             self.assertIn(phrase, experiments)
 
