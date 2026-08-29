@@ -30,13 +30,14 @@
 ### CR-2026-08-29-004｜每日行情改用独立定时触发与自动补救
 
 - 用户原意：连续多日不能依靠人工启动每日行情；先解决自动更新，再继续下一轮回测。
-- 状态：`approved`；用户于 2026-08-29 批准优先修复。
+- 状态：`approved`；用户于 2026-08-29 批准优先修复。代码和当日人工恢复已完成，独立主触发仍待最小权限专用密钥与生产部署，未冒充 `implemented`。
 - 主模块：`docs/rules/10_UI_AND_OPERATIONS.md`。
 - 联动模块：`docs/rules/02_DATA_AND_SCAN.md`；不改变权威交易日、行情内容、MACD门票、因子定义或生产评分。
 - 规则先行：UI / 运维规则 `1.7.0`；时间敏感的日终生产不能只依赖 GitHub best-effort schedule。Cloudflare Cron 作为独立主触发，GitHub schedule 保留为备用；独立新鲜度检查发现落后时自动补跑一次，再失败才告警。
 - 实验：不需要；属于行为保持的生产可靠性修复。
-- 目标实现：新增最小权限的 Cloudflare 调度 Worker；日终流程记录触发来源；新鲜度监控具备一次性恢复；任何重复触发继续由 `already_current` 幂等退出。
-- 验证：待补充单元测试、工作流契约、Cloudflare 部署、自动 dispatch 证据、最新完整美股收盘上线时间和生产网站。
+- 实现与产物：提交 `6215361` 新增 Cloudflare Cron 调度 Worker、部署工作流、独立新鲜度触发、自动 `freshness_recovery`、触发来源留档和运维手册；提交 `2758b8a` 修复真实 EOD 在完整测试前未刷新机器状态的问题，仍保持失败关闭。生产数据提交 `c162aa4`，生产/Discord 状态提交 `dc6de5a`。
+- 验证：264项Python测试及完整 `npm test`（lint、类型、生产构建、13项页面/自动化测试）通过；真实日终运行 `33224868854` 于6分19秒内完成扫描、审计、测试、部署、线上核验和去重通知。线上所有生产文件一致推进至2026-08-28，`future_data_used=false`，本次人工恢复记录 `trigger_source=manual`。
+- 待完成：仓库尚无 `SAGE_VISTA_SCHEDULER_GITHUB_TOKEN`。创建仅限 `327979420/sage-vista` 且只授予 `Actions: Read and write` 的专用令牌后，运行 `Deploy EOD Scheduler`，再以真实 `trigger_source=cloudflare_cron` 和连续5个交易日无人工介入作为最终 `implemented` 验收。
 
 ### CR-2026-08-29-003｜按长期实验结论校准每日评分
 
