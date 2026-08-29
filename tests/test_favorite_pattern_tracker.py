@@ -3,6 +3,7 @@ import unittest
 from pathlib import Path
 
 from services.scanner.favorite_pattern_tracker import (
+    GENERALIZATION_VERSION,
     PATTERN_VERSION,
     _atr,
     _confirmed_pivots,
@@ -105,18 +106,30 @@ class FavoritePatternTrackerTests(unittest.TestCase):
         self.assertTrue(result["risk_gate"]["top_exhaustion"])
 
     def test_report_keeps_reference_cases_without_promoting_them(self):
-        base = {"available": True, "pattern_version": PATTERN_VERSION, "match_count": 4, "total_conditions": 7, "stage": "waiting_breakout", "stage_zh": "等待突破"}
+        conditions = [
+            {"id": f"step_{index}", "label": f"机制{index}", "hit": index <= 6}
+            for index in range(1, 8)
+        ]
+        base = {"available": True, "pattern_version": PATTERN_VERSION, "match_count": 4, "total_conditions": 7, "stage": "waiting_breakout", "stage_zh": "等待突破", "conditions": conditions}
         candidates = [
             {"symbol": "XYZ", "price": 10, "dollar_volume": 20_000_000, "favorite_pattern": {**base, "match_count": 6, "stage": "breakout_incomplete", "stage_zh": "已突破但条件不完整"}},
+            {"symbol": "READY", "price": 20, "dollar_volume": 30_000_000, "favorite_pattern": {**base, "match_count": 7, "stage": "entry_ready", "stage_zh": "入场就绪", "conditions": [{**item, "hit": True} for item in conditions]}},
             {"symbol": "BABA", "price": 120, "dollar_volume": 200_000_000, "favorite_pattern": {**base, "match_count": 2, "stage": "discovery", "stage_zh": "早期发现"}},
         ]
         report = build_report(candidates, "2026-08-28")
-        self.assertEqual(report["candidates"][0]["symbol"], "XYZ")
-        self.assertEqual(report["summary"]["entry_ready"], 0)
+        self.assertEqual(report["candidates"][0]["symbol"], "READY")
+        self.assertEqual(report["summary"]["entry_ready"], 1)
         self.assertEqual(report["summary"]["breakout_incomplete"], 1)
+        self.assertEqual(report["generalization_version"], GENERALIZATION_VERSION)
+        self.assertEqual([row["symbol"] for row in report["entry_ready_candidates"]], ["READY"])
+        self.assertEqual([row["symbol"] for row in report["near_matches"]], ["XYZ"])
+        self.assertEqual(report["near_matches"][0]["mechanism_profile"]["status"], "near_match")
+        self.assertEqual(report["near_matches"][0]["mechanism_profile"]["missing"][0]["label"], "机制7")
+        self.assertFalse(report["generalization_policy"]["examples_are_templates"])
+        self.assertEqual(report["generalization_policy"]["legacy_only_cases"], ["PG"])
         references = {row["symbol"]: row for row in report["reference_cases"]}
         self.assertIn("BABA", references)
-        self.assertIn("PG", references)
+        self.assertNotIn("PG", references)
         self.assertFalse(report["production_scoring_changed"])
 
 

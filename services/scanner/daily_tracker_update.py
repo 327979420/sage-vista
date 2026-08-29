@@ -6,7 +6,7 @@ from .expand_tracker_universe import run as expand_universe
 from .factor_snapshot import SNAPSHOT_MODE_VERSION,TRIGGER_FACTOR_ID,run as run_factor_snapshot
 from .factor_registry import REGISTRY_VERSION
 from .factor_detectors import MONITORED_FACTOR_IDS
-from .favorite_pattern_tracker import PATTERN_VERSION
+from .favorite_pattern_tracker import GENERALIZATION_VERSION, PATTERN_VERSION
 from .industry_radar import run as run_industry_radar
 from .market_etf_watch import run as run_market_context
 from .rare_opportunity_scanner import run as run_radar
@@ -33,7 +33,7 @@ def validate(authoritative,tracker,radar,snapshot,industry,market,history):
   raise RuntimeError("Market Context future-data audit failed")
  validate_signal_history(history,authoritative)
  favorite=tracker.get("favorite_pattern_tracker",{})
- if favorite.get("as_of")!=authoritative or favorite.get("pattern_version")!=PATTERN_VERSION or favorite.get("production_scoring_changed") is not False:
+ if favorite.get("as_of")!=authoritative or favorite.get("pattern_version")!=PATTERN_VERSION or favorite.get("generalization_version")!=GENERALIZATION_VERSION or favorite.get("production_scoring_changed") is not False:
   raise RuntimeError("Favorite-pattern Tracker version/date boundary failed")
  if any(row.get("audit",{}).get("future_data_used") is not False for row in favorite.get("candidates",[]) if row.get("available")):
   raise RuntimeError("Favorite-pattern Tracker future-data audit failed")
@@ -58,7 +58,7 @@ def run(target=1000,as_of=None,trigger_source="manual"):
  if trigger_source not in TRIGGER_SOURCES:raise ValueError(f"Unsupported trigger source: {trigger_source}")
  authoritative=as_of or latest_reference_day()
  current_tracker=read_json(PUBLIC/"resonance-tracker.json");current_radar=read_json(PUBLIC/"rare-opportunity-radar.json");current_snapshot=read_json(PUBLIC/"daily-factor-snapshot.json");current_industry=read_json(PUBLIC/"industry-radar.json");current_market=read_json(PUBLIC/"market-etf-watch.json");current_history=read_json(PUBLIC/"signal-history.json")
- if current_tracker.get("as_of")==authoritative and current_tracker.get("favorite_pattern_tracker",{}).get("pattern_version")==PATTERN_VERSION and current_radar.get("as_of")==authoritative and current_snapshot.get("as_of")==authoritative and current_snapshot.get("registry_version")==REGISTRY_VERSION and current_snapshot.get("snapshot_mode_version")==SNAPSHOT_MODE_VERSION and current_radar.get("registry_version")==REGISTRY_VERSION and current_industry.get("as_of")==authoritative and current_market.get("as_of")==authoritative and current_history.get("as_of")==authoritative and current_history.get("signal_schema_version")==SIGNAL_HISTORY_SCHEMA_VERSION:
+ if current_tracker.get("as_of")==authoritative and current_tracker.get("favorite_pattern_tracker",{}).get("pattern_version")==PATTERN_VERSION and current_tracker.get("favorite_pattern_tracker",{}).get("generalization_version")==GENERALIZATION_VERSION and current_radar.get("as_of")==authoritative and current_snapshot.get("as_of")==authoritative and current_snapshot.get("registry_version")==REGISTRY_VERSION and current_snapshot.get("snapshot_mode_version")==SNAPSHOT_MODE_VERSION and current_radar.get("registry_version")==REGISTRY_VERSION and current_industry.get("as_of")==authoritative and current_market.get("as_of")==authoritative and current_history.get("as_of")==authoritative and current_history.get("signal_schema_version")==SIGNAL_HISTORY_SCHEMA_VERSION:
   return {"result":"already_current","as_of":authoritative,"trigger_source":trigger_source}
  pathlib.Path("work").mkdir(exist_ok=True)
  with tempfile.TemporaryDirectory(prefix="daily-update-",dir="work") as folder:

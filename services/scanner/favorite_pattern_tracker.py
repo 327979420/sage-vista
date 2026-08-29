@@ -14,13 +14,14 @@ from .technical import ema, macd
 LEGACY_PATTERN_VERSION = "favorite-pattern-v1.0.1"
 PATTERN_VERSION = "favorite-pattern-v2.0.0"
 EXPERIMENT_ID = "favorite-pattern-sequence-v2.0.0-2026-08-30"
+GENERALIZATION_VERSION = "favorite-pattern-generalization-v1.0.0"
 REFERENCE_CASES = {
-    "ADBE": "标准正例：3月先完成双底、三推突破与趋势转变，5月真实回调后由新W底、MACD和EMA转强完成第二次启动。",
-    "TTD": "固定反例：底部正面证据不能覆盖多轮空头压力、弱EMA和上方未修复供给。",
-    "AEVA": "固定反例：多重顶部供给与顶部耗竭没有修复时，不得把MACD金叉升级为完整做多序列。",
-    "BABA": "定义案例：前段上涨后深回调，在Golden Pocket／EMA200附近形成宽双底，再由二底MACD、三推突破和EMA重排共振。",
-    "PG": "保留观察案例：即使当前成绩一般也不删除，用来检查规则是否只偏爱最好看的走势。",
+    "ADBE": "时序教学：3月先完成趋势转变，5月真实回调后再由新结构、MACD和EMA转强确认；教顺序，不要求复制外形。",
+    "BABA": "形态语言教学：位置、底部结构、趋势线突破和均线转强可以共振，但不是其他股票必须照抄的模板。",
+    "TTD": "风险回归：底部正面证据不能覆盖多轮空头压力、弱EMA和上方未修复供给。",
+    "AEVA": "风险回归：多重顶部供给与顶部耗竭没有修复时，不得把MACD金叉升级为完整做多序列。",
 }
+LEGACY_ONLY_CASES = ["PG"]
 STAGE_ORDER = {
     "entry_ready": 7,
     "risk_blocked": 6,
@@ -724,18 +725,48 @@ def should_publish(pattern, symbol=None):
     return bool(pattern.get("available") and (pattern.get("stage") not in {"discovery", "invalidated"} or symbol in REFERENCE_CASES))
 
 
+def _mechanism_profile(pattern):
+    conditions = pattern.get("conditions") or []
+    completed = [{"id": item.get("id"), "label": item.get("label")} for item in conditions if item.get("hit")]
+    missing = [{"id": item.get("id"), "label": item.get("label")} for item in conditions if not item.get("hit")]
+    risk_gate = pattern.get("risk_gate") or {}
+    stage = pattern.get("stage")
+    match_count = int(pattern.get("match_count") or 0)
+    if stage == "entry_ready":
+        status = "formal_signal"
+    elif match_count >= 5 and stage not in {"launched", "target_reached", "invalidated"}:
+        status = "blocked_near_match" if risk_gate.get("blocked") else "near_match"
+    else:
+        status = "early_observation"
+    return {
+        "status": status,
+        "completed": completed,
+        "missing": missing,
+        "risk_reasons_zh": list(risk_gate.get("reasons_zh") or []),
+        "examples_are_templates": False,
+    }
+
+
 def build_report(candidates, as_of):
     rows = []
     references = []
     for candidate in candidates:
         pattern = candidate.get("favorite_pattern") or {}
         row = {"symbol": candidate["symbol"], "price": candidate["price"], "dollar_volume": candidate["dollar_volume"], **pattern}
+        row["mechanism_profile"] = _mechanism_profile(pattern)
         if should_publish(pattern, candidate["symbol"]) and pattern.get("stage") != "invalidated":
             rows.append(row)
         if candidate["symbol"] in REFERENCE_CASES:
             references.append({**row, "reference_note_zh": REFERENCE_CASES[candidate["symbol"]]})
     rows.sort(key=lambda item: (STAGE_ORDER.get(item["stage"], -1), item["match_count"], item["dollar_volume"], item["symbol"]), reverse=True)
     selected = rows[:24]
+    entry_ready_candidates = [item for item in rows if item.get("stage") == "entry_ready"][:24]
+    near_match_rows = [
+        item
+        for item in rows
+        if item.get("mechanism_profile", {}).get("status") in {"near_match", "blocked_near_match"}
+    ]
+    near_matches = near_match_rows[:18]
     selected_symbols = {item["symbol"] for item in selected}
     for reference in references:
         if reference["symbol"] not in selected_symbols:
@@ -749,6 +780,7 @@ def build_report(candidates, as_of):
     return {
         "pattern_version": PATTERN_VERSION,
         "experiment_id": EXPERIMENT_ID,
+        "generalization_version": GENERALIZATION_VERSION,
         "as_of": as_of,
         "production_scoring_changed": False,
         "primary_ranking_changed": False,
@@ -760,11 +792,26 @@ def build_report(candidates, as_of):
             "breakout_incomplete": watch_counts["breakout_incomplete"],
             "forming": watch_counts["pullback_forming"] + watch_counts["bottom_confirmed"],
             "launched": watch_counts["launched"],
+            "near_match": sum(item["mechanism_profile"]["status"] == "near_match" for item in near_match_rows),
+            "blocked_near_match": sum(item["mechanism_profile"]["status"] == "blocked_near_match" for item in near_match_rows),
         },
         "stage_order": ["pullback_forming", "bottom_confirmed", "waiting_breakout", "breakout_incomplete", "risk_blocked", "entry_ready", "launched", "target_reached"],
         "stage_labels": STAGE_ZH,
         "candidates": selected,
+        "entry_ready_candidates": entry_ready_candidates,
+        "near_matches": near_matches,
         "reference_cases": [reference_map[symbol] for symbol in REFERENCE_CASES],
+        "generalization_policy": {
+            "version": GENERALIZATION_VERSION,
+            "examples_are_templates": False,
+            "mechanism_roles_zh": ["背景", "位置", "结构", "趋势转变", "真实重置", "再次启动", "供给风险"],
+            "near_match_minimum_conditions": 5,
+            "near_matches_are_signals": False,
+            "legacy_only_cases": LEGACY_ONLY_CASES,
+            "teaching_cases": ["ADBE", "BABA"],
+            "risk_regression_cases": ["TTD", "AEVA"],
+            "review_loop": ["漏检赢家", "误收输家", "门槛边界"],
+        },
         "forward_tracking": {
             "starts_after_deployment": True,
             "ledger_source": "favorite_pattern_tracker",
@@ -774,5 +821,5 @@ def build_report(candidates, as_of):
             "minimum_months": 6,
             "minimum_market_states": 3,
         },
-        "warning_zh": "只有两段七阶段全部完成且风险闸门清除才是入场就绪；6/7及以下只观察。匹配度只表示个人系统进度，不是上涨概率。",
+        "warning_zh": "案例只教机制，不要求复制形状。只有两段七阶段全部完成且风险闸门清除才是入场就绪；近似机会只用于人工复核，不是买入信号或上涨概率。",
     }

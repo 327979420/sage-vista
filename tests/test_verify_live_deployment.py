@@ -9,7 +9,7 @@ DATE="2026-08-26"
 def bundle(tracker_date=DATE):
  return [
   {"status":"up_to_date","source_latest_complete_date":DATE,"tracker_as_of":DATE,"factor_snapshot_as_of":DATE,"radar_as_of":DATE,"industry_radar_as_of":DATE,"market_context_as_of":DATE,"signal_history_as_of":DATE,"data_dates_match":True,"future_data_used":False,"checks":{"macd_trigger_first":True,"favorite_pattern_tracker":True}},
-  {"as_of":tracker_date,"favorite_pattern_tracker":{"as_of":tracker_date,"pattern_version":"favorite-pattern-v2.0.0","production_scoring_changed":False,"summary":{"watchlist":8,"entry_ready":2}},"details":{"AAPL":{"audit":{"latest_bar":DATE,"future_rows_used":False}}}},
+  {"as_of":tracker_date,"favorite_pattern_tracker":{"as_of":tracker_date,"pattern_version":"favorite-pattern-v2.0.0","generalization_version":"favorite-pattern-generalization-v1.0.0","production_scoring_changed":False,"summary":{"watchlist":8,"entry_ready":2}},"details":{"AAPL":{"audit":{"latest_bar":DATE,"future_rows_used":False}}}},
   {"as_of":DATE,"eligible_count":10,"triggered_count":1,"snapshot_mode_version":"macd-trigger-first-v1","future_data_used":False},
   {"as_of":DATE,"scan":{"future_data_used":False}},
   {"as_of":DATE,"future_data_used":False},

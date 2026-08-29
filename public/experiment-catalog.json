@@ -1,15 +1,15 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-08-30T03:13:07+10:00",
+  "generated_at": "2026-08-30T04:30:00+10:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 33,
+  "experiment_count": 34,
   "summary": {
     "completed": 26,
-    "in_progress": 7,
+    "in_progress": 8,
     "candidate": 10,
     "not_validated_or_unstable": 11
   },
@@ -21,6 +21,82 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "favorite-pattern-generalization-v1.0.0-2026-08-30",
+      "created_at": "2026-08-30T04:30:00+10:00",
+      "status": "pre_registered_observation_only",
+      "change": "Add a mechanism-based near-match and missed-opportunity review layer without changing favorite-pattern V2 entry-ready selection, production scoring or the forward trade ledger.",
+      "coverage": "Same-day point-in-time favorite-pattern V2 scan plus fixed missed-winner, accepted-loser and boundary-case reviews after each future backtest.",
+      "specification": {
+        "pattern_version_unchanged": "favorite-pattern-v2.0.0",
+        "generalization_version": "favorite-pattern-generalization-v1.0.0",
+        "mechanism_roles": [
+          "context",
+          "location",
+          "structure",
+          "trend_turn",
+          "genuine_reset",
+          "reacceleration",
+          "supply_risk"
+        ],
+        "near_match": "at least five of seven V2 stages complete and not entry_ready",
+        "near_match_states": [
+          "near_match",
+          "blocked_near_match"
+        ],
+        "formal_signal_changed": false,
+        "production_score_changed": false,
+        "ledger_changed": false,
+        "legacy_only_cases": [
+          "PG"
+        ],
+        "teaching_cases": [
+          "ADBE",
+          "BABA"
+        ],
+        "risk_regression_cases": [
+          "TTD",
+          "AEVA"
+        ]
+      },
+      "success_criteria": "Publish point-in-time near matches with explicit completed and missing mechanisms while preserving the exact V2 entry-ready set and signal IDs. Near matches must remain excluded from ranking, alerts, trades and effectiveness statistics.",
+      "result": "Pre-registered before implementation. This experiment can improve observability and generate post-hoc hypotheses only; it cannot claim return improvement or change weights.",
+      "known_limitations": [
+        "mechanism alternatives are not validated alpha",
+        "all named teaching and risk cases have already been inspected",
+        "human review can generate hypotheses but not proof",
+        "near-match counts are not return probabilities"
+      ],
+      "human_summary": {
+        "title_zh": "个人形态举一反三与漏检复盘V1",
+        "family": "pattern",
+        "family_zh": "个人形态",
+        "question_zh": "能否不把ADBE当固定模板，而是展示机制相近机会、明确缺项，并用每轮人工复盘持续发现系统漏洞？",
+        "result_zh": "已预登记观察层：V2正式7/7信号不变，另列完成至少5项的近似机会与风险阻断近似；PG退回V1历史。尚无收益结论。",
+        "use_zh": "用于发现值得人工复核但尚未完成的机会，并看清机器为什么没有升级；不能当买入信号、胜率或加分依据。",
+        "next_zh": "每轮回测固定审查漏检赢家、误收输家和边界样本；重复缺口另开V3做对照和真正未见前向验证。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-30T04:30:00+10:00",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-08-30T04:30:00+10:00",
+        "time_source": "user_approved_local_preregistration",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "favorite-pattern-generalization-v1.0.0-2026-08-30",
+            "event": "registered",
+            "event_at": "2026-08-30T04:30:00+10:00",
+            "time_source": "user_approved_local_preregistration",
+            "source_ref": "research/preregistrations/favorite-pattern-generalization-v1.md",
+            "result": "Frozen an observation-only mechanism map, five-of-seven near-match floor, separate risk-blocked near matches, fixed missed-winner/accepted-loser/boundary reviews, and a strict no-change boundary for V2 signals, production score, alerts and ledger entries."
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "favorite-pattern-sequence-v2.0.0-2026-08-30",
       "created_at": "2026-08-30T02:25:00+10:00",
@@ -2556,6 +2632,7 @@
     "exit-score-v0.1.0-2026-08-28",
     "factor-family-return-combination-v1.0.0-2026-08-29",
     "factor-strategy-lab-v2.0.0-2026-08-29",
+    "favorite-pattern-generalization-v1.0.0-2026-08-30",
     "favorite-pattern-sequence-v2.0.0-2026-08-30",
     "favorite-pattern-tracker-v1.0.0-2026-08-29",
     "full-line-backtest-v1.0.2-2026-08-28",
