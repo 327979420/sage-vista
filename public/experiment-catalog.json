@@ -73,7 +73,9 @@
         "implementation": "research/backtest/factor_family_return_combination_v1.py",
         "compact_result": "research/backtest/output/factor-family-return-combination-v1.json",
         "website_payload": "public/factor-family-combination.json",
-        "implementation_commit": "1ca6449"
+        "implementation_commit": "1ca6449",
+        "result_and_website_commit": "07dac19",
+        "website_deploy": "https://github.com/327979420/sage-vista/actions/runs/33249560929"
       },
       "known_limitations": [
         "2025 and 2026 are already seen and cannot validate selection",
