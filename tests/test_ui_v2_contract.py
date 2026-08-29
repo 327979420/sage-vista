@@ -21,12 +21,17 @@ class UiV2ContractTests(unittest.TestCase):
    self.assertIn(label,text)
   self.assertLess(text.index("marketDecisionHero"),text.index("TODAY&apos;S INDUSTRY MAP"))
 
- def test_multifactor_absorbs_stock_research_and_timeframe_profile(self):
+ def test_multifactor_keeps_only_the_current_decision_surface(self):
   self.assertFalse((ROOT/"app/zh/watch/resonance/macd/page.tsx").exists())
   text=(ROOT/"app/zh/watch/resonance/rare-opportunities/page.tsx").read_text()
   profile=(ROOT/"app/zh/watch/resonance/rare-opportunities/timeframe-profile.tsx").read_text()
-  for label in ("WHY IT RANKS HERE","股票技术证据查询","RISK PLAN","TimeframeProfilePanel","37个因子，现在分别怎么处理","factorFamilyLegend"):
+  for label in ("WHY IT RANKS HERE","RISK PLAN","TimeframeProfilePanel","37个因子，现在分别怎么处理","factorFamilyLegend","统一机会账本"):
    self.assertIn(label,text)
+  for retired in ("旧系统历史机会参考","统一因子库","股票技术证据查询","旧评分兼容观察","查看当前动态观察评分规则","/research-opportunity-pool.json","/rare-opportunity-radar.json","/signal-history.json","/factor-registry.json"):
+   self.assertNotIn(retired,text)
+  styles=(ROOT/"app/globals.css").read_text()+(ROOT/"app/product-v2.css").read_text()
+  for retired_selector in ("rareFactorLibrary","rareCurrent","rareLegacy","rareExamples","rareScoreDial"):
+   self.assertNotIn(retired_selector,styles)
   factor_view=json.loads((ROOT/"public/factor-effectiveness.json").read_text())
   self.assertEqual([factor_view["quadrants"][key]["label_zh"] for key in factor_view["quadrant_order"]],["正在使用","候选观察","暂停加权","准备弃用"])
   self.assertNotIn("旧系统因子实验",text)

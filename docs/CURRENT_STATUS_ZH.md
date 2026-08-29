@@ -6,7 +6,7 @@
 
 - 生产网站：<https://sage-vista-parallel.gizmo-allied-0s.workers.dev>
 - 最新完整美股收盘：2026-08-28；生产状态已核验。
-- UI：v5.8。
+- UI：v5.9。
 - 因子库：0.9.0，共 37 项。
 - 当前夜间新批次模型：`unified-v2-macd-trigger-1.3.0`；因子注册表代码版本 `0.9.0`。
 - 数据审计：日期一致 `true`；未来数据 `false`。
