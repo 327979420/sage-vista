@@ -2,7 +2,11 @@
 
 实验 ID：`factor-strategy-lab-v2.0.0-2026-08-29`
 
-状态：`pre_registered`
+状态：`completed_research_only`
+
+完成时间：2026-08-29 18:27（Australia/Melbourne）；运行 `33243068600`
+
+冻结规则没有因结果改写。完整结果为 `research/backtest/output/factor-strategy-lab-v2.json`：严格门槛下新旧因子均无影子晋级项，生产权重不变。完成后的后验假设生成另有明确标签，不能回写为本预登记的成功。
 
 生产影响：无。日线MACD刚金叉、长期趋势资格、37因子、模型1.3.0、行业/大盘、止损和退出均不改变。
 

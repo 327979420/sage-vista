@@ -4,6 +4,22 @@
   "event_gate": "exact completed daily MACD bullish cross plus archived long-trend qualification",
   "production_weight_changed": false,
   "default_status": "research_candidate",
+  "latest_result": {
+    "experiment_id": "factor-strategy-lab-v2.0.0-2026-08-29",
+    "status": "completed_research_only",
+    "retain_for_shadow": [],
+    "future_zero_weight_observations": [
+      "momentum.connors_rsi_3_2_100",
+      "regime.choppiness_14"
+    ],
+    "future_risk_penalty_shadow": {
+      "candidate_id": "volatility.squeeze_ratio_20",
+      "condition": ">= 1.6751",
+      "shadow_weight": -1,
+      "production_weight": 0,
+      "valid_after": "2026-08-29"
+    }
+  },
   "sources": [
     {
       "project": "Microsoft Qlib Alpha158",

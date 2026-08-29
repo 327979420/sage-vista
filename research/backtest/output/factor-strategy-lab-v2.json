@@ -1,7 +1,7 @@
 {
-  "schema_version": "factor-strategy-lab-v2.0.0",
+  "schema_version": "factor-strategy-lab-v2.0.1",
   "experiment_id": "factor-strategy-lab-v2.0.0-2026-08-29",
-  "generated_at": "2026-08-29T08:27:22.704142+00:00",
+  "generated_at": "2026-08-29T18:35:55.870631+10:00",
   "event_gate": "exact completed daily MACD bullish cross plus archived long-trend qualification",
   "production_scoring_changed": false,
   "candidate_catalog": "research/factor-candidates-v2.json",
@@ -16989,7 +16989,7 @@
       },
       "discovery_bh_q": 0.744744,
       "walkforward_positive_windows": 2,
-      "verdict": "observe",
+      "verdict": "reject",
       "provisional_condition_weight": 0
     },
     {
@@ -36813,7 +36813,7 @@
       },
       "discovery_bh_q": 0.744744,
       "walkforward_positive_windows": 1,
-      "verdict": "observe",
+      "verdict": "reject",
       "provisional_condition_weight": 0
     },
     {
@@ -51124,7 +51124,7 @@
       },
       "discovery_bh_q": 0.449306,
       "walkforward_positive_windows": 3,
-      "verdict": "observe",
+      "verdict": "reject",
       "provisional_weight": 0
     },
     {
@@ -62183,7 +62183,7 @@
       },
       "discovery_bh_q": 0.556129,
       "walkforward_positive_windows": 2,
-      "verdict": "observe",
+      "verdict": "reject",
       "provisional_weight": 0
     },
     {
@@ -71059,7 +71059,7 @@
       },
       "discovery_bh_q": 0.971293,
       "walkforward_positive_windows": 4,
-      "verdict": "observe",
+      "verdict": "reject",
       "provisional_weight": 0
     },
     {
@@ -90940,7 +90940,7 @@
       },
       "discovery_bh_q": 0.449306,
       "walkforward_positive_windows": 4,
-      "verdict": "observe",
+      "verdict": "reject",
       "provisional_weight": 0
     },
     {
@@ -104254,7 +104254,7 @@
       },
       "discovery_bh_q": 0.192723,
       "walkforward_positive_windows": 3,
-      "verdict": "observe",
+      "verdict": "reject",
       "provisional_weight": 0
     },
     {
@@ -108696,6 +108696,2880 @@
       "provisional_weight": 0
     }
   ],
+  "unseen_forward_hypotheses": {
+    "role": "hypothesis_generation_only",
+    "selection_rule": "enumerate both development-fitted 20% tails; require same-sign trimmed-mean and PF deltas in development, seen-2025 and seen-2026; minimum 100 hits per period",
+    "selection_used_seen_periods": true,
+    "true_unseen_forward_starts_after": "2026-08-29",
+    "production_action": "none",
+    "items": [
+      {
+        "candidate_id": "momentum.connors_rsi_3_2_100",
+        "name_zh": "Connors RSI短期回调耗尽",
+        "tail": "low",
+        "development_fitted_threshold": 67.719304,
+        "direction": "positive",
+        "periods": {
+          "development_2001_2024": {
+            "with": {
+              "samples": 2003,
+              "win_rate_pct": 55.866,
+              "median_pct": 1.1394,
+              "trimmed_mean_pct": 0.9166,
+              "profit_factor": 1.2513,
+              "expectancy_pct": 0.8487,
+              "cost_sensitivity": {
+                "20": {
+                  "samples": 2003,
+                  "win_rate_pct": 55.067,
+                  "median_pct": 0.9394,
+                  "trimmed_mean_pct": 0.7166,
+                  "profit_factor": 1.1872,
+                  "expectancy_pct": 0.6487
+                },
+                "50": {
+                  "samples": 2003,
+                  "win_rate_pct": 53.52,
+                  "median_pct": 0.6394,
+                  "trimmed_mean_pct": 0.4166,
+                  "profit_factor": 1.0968,
+                  "expectancy_pct": 0.3487
+                }
+              }
+            },
+            "without": {
+              "samples": 8010,
+              "win_rate_pct": 53.958,
+              "median_pct": 0.7755,
+              "trimmed_mean_pct": 0.674,
+              "profit_factor": 1.2197,
+              "expectancy_pct": 0.7779,
+              "cost_sensitivity": {
+                "20": {
+                  "samples": 8010,
+                  "win_rate_pct": 53.034,
+                  "median_pct": 0.5755,
+                  "trimmed_mean_pct": 0.474,
+                  "profit_factor": 1.159,
+                  "expectancy_pct": 0.5779
+                },
+                "50": {
+                  "samples": 8010,
+                  "win_rate_pct": 51.486,
+                  "median_pct": 0.2755,
+                  "trimmed_mean_pct": 0.174,
+                  "profit_factor": 1.0736,
+                  "expectancy_pct": 0.2779
+                }
+              }
+            },
+            "delta": {
+              "win_rate_pct": 1.908,
+              "median_pct": 0.3639,
+              "trimmed_mean_pct": 0.2426,
+              "profit_factor": 0.0316,
+              "expectancy_pct": 0.0708
+            },
+            "mean_difference_p": 0.7996937,
+            "factor_base_rates": {
+              "all": 0.20004,
+              "winners": 0.205661,
+              "top_decile": 0.206587,
+              "losers": 0.193351
+            },
+            "horizon_sensitivity": {
+              "5": {
+                "with": {
+                  "samples": 2003,
+                  "win_rate_pct": 51.173,
+                  "median_pct": 0.1236,
+                  "trimmed_mean_pct": 0.0823,
+                  "profit_factor": 1.0614,
+                  "expectancy_pct": 0.1041,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 2003,
+                      "win_rate_pct": 49.076,
+                      "median_pct": -0.0764,
+                      "trimmed_mean_pct": -0.1177,
+                      "profit_factor": 0.9466,
+                      "expectancy_pct": -0.0959
+                    },
+                    "50": {
+                      "samples": 2003,
+                      "win_rate_pct": 45.632,
+                      "median_pct": -0.3764,
+                      "trimmed_mean_pct": -0.4177,
+                      "profit_factor": 0.7973,
+                      "expectancy_pct": -0.3959
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 8010,
+                  "win_rate_pct": 51.248,
+                  "median_pct": 0.1175,
+                  "trimmed_mean_pct": -0.0126,
+                  "profit_factor": 1.0188,
+                  "expectancy_pct": 0.0349,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 8010,
+                      "win_rate_pct": 49.064,
+                      "median_pct": -0.0825,
+                      "trimmed_mean_pct": -0.2126,
+                      "profit_factor": 0.9155,
+                      "expectancy_pct": -0.1651
+                    },
+                    "50": {
+                      "samples": 8010,
+                      "win_rate_pct": 45.156,
+                      "median_pct": -0.3825,
+                      "trimmed_mean_pct": -0.5126,
+                      "profit_factor": 0.78,
+                      "expectancy_pct": -0.4651
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": -0.075,
+                  "median_pct": 0.0061,
+                  "trimmed_mean_pct": 0.0949,
+                  "profit_factor": 0.0426,
+                  "expectancy_pct": 0.0692
+                }
+              },
+              "10": {
+                "with": {
+                  "samples": 2003,
+                  "win_rate_pct": 53.32,
+                  "median_pct": 0.4596,
+                  "trimmed_mean_pct": 0.4561,
+                  "profit_factor": 1.2539,
+                  "expectancy_pct": 0.5733,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 2003,
+                      "win_rate_pct": 52.072,
+                      "median_pct": 0.2596,
+                      "trimmed_mean_pct": 0.2561,
+                      "profit_factor": 1.1587,
+                      "expectancy_pct": 0.3733
+                    },
+                    "50": {
+                      "samples": 2003,
+                      "win_rate_pct": 49.626,
+                      "median_pct": -0.0404,
+                      "trimmed_mean_pct": -0.0439,
+                      "profit_factor": 1.0293,
+                      "expectancy_pct": 0.0733
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 8010,
+                  "win_rate_pct": 53.633,
+                  "median_pct": 0.5048,
+                  "trimmed_mean_pct": 0.2874,
+                  "profit_factor": 1.1629,
+                  "expectancy_pct": 0.3999,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 8010,
+                      "win_rate_pct": 52.21,
+                      "median_pct": 0.3048,
+                      "trimmed_mean_pct": 0.0874,
+                      "profit_factor": 1.0784,
+                      "expectancy_pct": 0.1999
+                    },
+                    "50": {
+                      "samples": 8010,
+                      "win_rate_pct": 50.037,
+                      "median_pct": 0.0048,
+                      "trimmed_mean_pct": -0.2126,
+                      "profit_factor": 0.9629,
+                      "expectancy_pct": -0.1001
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": -0.313,
+                  "median_pct": -0.0452,
+                  "trimmed_mean_pct": 0.1687,
+                  "profit_factor": 0.091,
+                  "expectancy_pct": 0.1734
+                }
+              },
+              "40": {
+                "with": {
+                  "samples": 2003,
+                  "win_rate_pct": 57.913,
+                  "median_pct": 2.2358,
+                  "trimmed_mean_pct": 2.1749,
+                  "profit_factor": 1.5318,
+                  "expectancy_pct": 2.2955,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 2003,
+                      "win_rate_pct": 57.164,
+                      "median_pct": 2.0358,
+                      "trimmed_mean_pct": 1.9749,
+                      "profit_factor": 1.4761,
+                      "expectancy_pct": 2.0955
+                    },
+                    "50": {
+                      "samples": 2003,
+                      "win_rate_pct": 56.515,
+                      "median_pct": 1.7358,
+                      "trimmed_mean_pct": 1.6749,
+                      "profit_factor": 1.3963,
+                      "expectancy_pct": 1.7955
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 8010,
+                  "win_rate_pct": 55.668,
+                  "median_pct": 1.5525,
+                  "trimmed_mean_pct": 1.6523,
+                  "profit_factor": 1.4369,
+                  "expectancy_pct": 2.0423,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 8010,
+                      "win_rate_pct": 54.881,
+                      "median_pct": 1.3525,
+                      "trimmed_mean_pct": 1.4523,
+                      "profit_factor": 1.3867,
+                      "expectancy_pct": 1.8423
+                    },
+                    "50": {
+                      "samples": 8010,
+                      "win_rate_pct": 53.808,
+                      "median_pct": 1.0525,
+                      "trimmed_mean_pct": 1.1523,
+                      "profit_factor": 1.3147,
+                      "expectancy_pct": 1.5423
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": 2.245,
+                  "median_pct": 0.6833,
+                  "trimmed_mean_pct": 0.5226,
+                  "profit_factor": 0.0949,
+                  "expectancy_pct": 0.2532
+                }
+              },
+              "60": {
+                "with": {
+                  "samples": 2003,
+                  "win_rate_pct": 60.809,
+                  "median_pct": 3.6591,
+                  "trimmed_mean_pct": 4.0576,
+                  "profit_factor": 1.9501,
+                  "expectancy_pct": 4.3545,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 2003,
+                      "win_rate_pct": 60.16,
+                      "median_pct": 3.4591,
+                      "trimmed_mean_pct": 3.8576,
+                      "profit_factor": 1.891,
+                      "expectancy_pct": 4.1545
+                    },
+                    "50": {
+                      "samples": 2003,
+                      "win_rate_pct": 59.461,
+                      "median_pct": 3.1591,
+                      "trimmed_mean_pct": 3.5576,
+                      "profit_factor": 1.8059,
+                      "expectancy_pct": 3.8545
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 8009,
+                  "win_rate_pct": 58.16,
+                  "median_pct": 2.8718,
+                  "trimmed_mean_pct": 2.9522,
+                  "profit_factor": 1.657,
+                  "expectancy_pct": 3.4542,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 8009,
+                      "win_rate_pct": 57.61,
+                      "median_pct": 2.6718,
+                      "trimmed_mean_pct": 2.7522,
+                      "profit_factor": 1.6092,
+                      "expectancy_pct": 3.2542
+                    },
+                    "50": {
+                      "samples": 8009,
+                      "win_rate_pct": 56.849,
+                      "median_pct": 2.3718,
+                      "trimmed_mean_pct": 2.4522,
+                      "profit_factor": 1.5401,
+                      "expectancy_pct": 2.9542
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": 2.649,
+                  "median_pct": 0.7873,
+                  "trimmed_mean_pct": 1.1054,
+                  "profit_factor": 0.2931,
+                  "expectancy_pct": 0.9003
+                }
+              }
+            }
+          },
+          "seen_2025": {
+            "with": {
+              "samples": 410,
+              "win_rate_pct": 50.732,
+              "median_pct": 0.2281,
+              "trimmed_mean_pct": 1.0641,
+              "profit_factor": 1.3812,
+              "expectancy_pct": 1.4926,
+              "cost_sensitivity": {
+                "20": {
+                  "samples": 410,
+                  "win_rate_pct": 50.0,
+                  "median_pct": 0.0281,
+                  "trimmed_mean_pct": 0.8641,
+                  "profit_factor": 1.322,
+                  "expectancy_pct": 1.2926
+                },
+                "50": {
+                  "samples": 410,
+                  "win_rate_pct": 48.537,
+                  "median_pct": -0.2719,
+                  "trimmed_mean_pct": 0.5641,
+                  "profit_factor": 1.2382,
+                  "expectancy_pct": 0.9926
+                }
+              }
+            },
+            "without": {
+              "samples": 1485,
+              "win_rate_pct": 51.044,
+              "median_pct": 0.3175,
+              "trimmed_mean_pct": 0.9371,
+              "profit_factor": 1.3486,
+              "expectancy_pct": 1.3531,
+              "cost_sensitivity": {
+                "20": {
+                  "samples": 1485,
+                  "win_rate_pct": 50.303,
+                  "median_pct": 0.1175,
+                  "trimmed_mean_pct": 0.7371,
+                  "profit_factor": 1.2897,
+                  "expectancy_pct": 1.1531
+                },
+                "50": {
+                  "samples": 1485,
+                  "win_rate_pct": 49.226,
+                  "median_pct": -0.1825,
+                  "trimmed_mean_pct": 0.4371,
+                  "profit_factor": 1.2065,
+                  "expectancy_pct": 0.8531
+                }
+              }
+            },
+            "delta": {
+              "win_rate_pct": -0.312,
+              "median_pct": -0.0894,
+              "trimmed_mean_pct": 0.127,
+              "profit_factor": 0.0326,
+              "expectancy_pct": 0.1395
+            },
+            "mean_difference_p": 0.8704859,
+            "factor_base_rates": {
+              "all": 0.216359,
+              "winners": 0.215321,
+              "top_decile": 0.231579,
+              "losers": 0.217438
+            },
+            "horizon_sensitivity": {
+              "5": {
+                "with": {
+                  "samples": 410,
+                  "win_rate_pct": 53.171,
+                  "median_pct": 0.4845,
+                  "trimmed_mean_pct": 0.4939,
+                  "profit_factor": 1.3282,
+                  "expectancy_pct": 0.5967,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 410,
+                      "win_rate_pct": 51.22,
+                      "median_pct": 0.2845,
+                      "trimmed_mean_pct": 0.2939,
+                      "profit_factor": 1.2073,
+                      "expectancy_pct": 0.3967
+                    },
+                    "50": {
+                      "samples": 410,
+                      "win_rate_pct": 49.512,
+                      "median_pct": -0.0155,
+                      "trimmed_mean_pct": -0.0061,
+                      "profit_factor": 1.0469,
+                      "expectancy_pct": 0.0967
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 1485,
+                  "win_rate_pct": 50.976,
+                  "median_pct": 0.0693,
+                  "trimmed_mean_pct": 0.1049,
+                  "profit_factor": 1.1417,
+                  "expectancy_pct": 0.2677,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 1485,
+                      "win_rate_pct": 48.283,
+                      "median_pct": -0.1307,
+                      "trimmed_mean_pct": -0.0951,
+                      "profit_factor": 1.034,
+                      "expectancy_pct": 0.0677
+                    },
+                    "50": {
+                      "samples": 1485,
+                      "win_rate_pct": 44.983,
+                      "median_pct": -0.4307,
+                      "trimmed_mean_pct": -0.3951,
+                      "profit_factor": 0.892,
+                      "expectancy_pct": -0.2323
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": 2.195,
+                  "median_pct": 0.4152,
+                  "trimmed_mean_pct": 0.389,
+                  "profit_factor": 0.1865,
+                  "expectancy_pct": 0.329
+                }
+              },
+              "10": {
+                "with": {
+                  "samples": 410,
+                  "win_rate_pct": 50.732,
+                  "median_pct": 0.0729,
+                  "trimmed_mean_pct": 0.1614,
+                  "profit_factor": 1.129,
+                  "expectancy_pct": 0.383,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 410,
+                      "win_rate_pct": 49.512,
+                      "median_pct": -0.1271,
+                      "trimmed_mean_pct": -0.0386,
+                      "profit_factor": 1.0596,
+                      "expectancy_pct": 0.183
+                    },
+                    "50": {
+                      "samples": 410,
+                      "win_rate_pct": 47.561,
+                      "median_pct": -0.4271,
+                      "trimmed_mean_pct": -0.3386,
+                      "profit_factor": 0.9637,
+                      "expectancy_pct": -0.117
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 1485,
+                  "win_rate_pct": 49.832,
+                  "median_pct": -0.0512,
+                  "trimmed_mean_pct": -0.0558,
+                  "profit_factor": 1.016,
+                  "expectancy_pct": 0.0483,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 1485,
+                      "win_rate_pct": 48.822,
+                      "median_pct": -0.2512,
+                      "trimmed_mean_pct": -0.2558,
+                      "profit_factor": 0.9512,
+                      "expectancy_pct": -0.1517
+                    },
+                    "50": {
+                      "samples": 1485,
+                      "win_rate_pct": 46.195,
+                      "median_pct": -0.5512,
+                      "trimmed_mean_pct": -0.5558,
+                      "profit_factor": 0.8617,
+                      "expectancy_pct": -0.4517
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": 0.9,
+                  "median_pct": 0.1241,
+                  "trimmed_mean_pct": 0.2172,
+                  "profit_factor": 0.113,
+                  "expectancy_pct": 0.3347
+                }
+              },
+              "40": {
+                "with": {
+                  "samples": 410,
+                  "win_rate_pct": 59.268,
+                  "median_pct": 3.0014,
+                  "trimmed_mean_pct": 4.682,
+                  "profit_factor": 2.3526,
+                  "expectancy_pct": 5.8665,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 410,
+                      "win_rate_pct": 58.78,
+                      "median_pct": 2.8014,
+                      "trimmed_mean_pct": 4.482,
+                      "profit_factor": 2.2823,
+                      "expectancy_pct": 5.6665
+                    },
+                    "50": {
+                      "samples": 410,
+                      "win_rate_pct": 57.561,
+                      "median_pct": 2.5014,
+                      "trimmed_mean_pct": 4.182,
+                      "profit_factor": 2.181,
+                      "expectancy_pct": 5.3665
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 1485,
+                  "win_rate_pct": 55.758,
+                  "median_pct": 1.848,
+                  "trimmed_mean_pct": 3.0977,
+                  "profit_factor": 1.8263,
+                  "expectancy_pct": 3.9255,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 1485,
+                      "win_rate_pct": 55.488,
+                      "median_pct": 1.648,
+                      "trimmed_mean_pct": 2.8977,
+                      "profit_factor": 1.7699,
+                      "expectancy_pct": 3.7255
+                    },
+                    "50": {
+                      "samples": 1485,
+                      "win_rate_pct": 54.545,
+                      "median_pct": 1.348,
+                      "trimmed_mean_pct": 2.5977,
+                      "profit_factor": 1.6887,
+                      "expectancy_pct": 3.4255
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": 3.51,
+                  "median_pct": 1.1534,
+                  "trimmed_mean_pct": 1.5843,
+                  "profit_factor": 0.5263,
+                  "expectancy_pct": 1.941
+                }
+              },
+              "60": {
+                "with": {
+                  "samples": 410,
+                  "win_rate_pct": 58.537,
+                  "median_pct": 3.0888,
+                  "trimmed_mean_pct": 6.0888,
+                  "profit_factor": 2.3658,
+                  "expectancy_pct": 7.3094,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 410,
+                      "win_rate_pct": 57.561,
+                      "median_pct": 2.8888,
+                      "trimmed_mean_pct": 5.8888,
+                      "profit_factor": 2.308,
+                      "expectancy_pct": 7.1094
+                    },
+                    "50": {
+                      "samples": 410,
+                      "win_rate_pct": 57.073,
+                      "median_pct": 2.5888,
+                      "trimmed_mean_pct": 5.5888,
+                      "profit_factor": 2.2239,
+                      "expectancy_pct": 6.8094
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 1485,
+                  "win_rate_pct": 57.374,
+                  "median_pct": 2.7947,
+                  "trimmed_mean_pct": 5.4675,
+                  "profit_factor": 2.2352,
+                  "expectancy_pct": 6.4844,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 1485,
+                      "win_rate_pct": 56.902,
+                      "median_pct": 2.5947,
+                      "trimmed_mean_pct": 5.2675,
+                      "profit_factor": 2.1779,
+                      "expectancy_pct": 6.2844
+                    },
+                    "50": {
+                      "samples": 1485,
+                      "win_rate_pct": 56.566,
+                      "median_pct": 2.2947,
+                      "trimmed_mean_pct": 4.9675,
+                      "profit_factor": 2.095,
+                      "expectancy_pct": 5.9844
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": 1.163,
+                  "median_pct": 0.2941,
+                  "trimmed_mean_pct": 0.6213,
+                  "profit_factor": 0.1306,
+                  "expectancy_pct": 0.825
+                }
+              }
+            }
+          },
+          "seen_2026": {
+            "with": {
+              "samples": 220,
+              "win_rate_pct": 59.091,
+              "median_pct": 2.1763,
+              "trimmed_mean_pct": 2.2131,
+              "profit_factor": 1.6508,
+              "expectancy_pct": 2.3224,
+              "cost_sensitivity": {
+                "20": {
+                  "samples": 220,
+                  "win_rate_pct": 58.182,
+                  "median_pct": 1.9763,
+                  "trimmed_mean_pct": 2.0131,
+                  "profit_factor": 1.5813,
+                  "expectancy_pct": 2.1224
+                },
+                "50": {
+                  "samples": 220,
+                  "win_rate_pct": 57.273,
+                  "median_pct": 1.6763,
+                  "trimmed_mean_pct": 1.7131,
+                  "profit_factor": 1.4824,
+                  "expectancy_pct": 1.8224
+                }
+              }
+            },
+            "without": {
+              "samples": 946,
+              "win_rate_pct": 53.171,
+              "median_pct": 0.891,
+              "trimmed_mean_pct": 1.6062,
+              "profit_factor": 1.4857,
+              "expectancy_pct": 2.0512,
+              "cost_sensitivity": {
+                "20": {
+                  "samples": 946,
+                  "win_rate_pct": 52.854,
+                  "median_pct": 0.691,
+                  "trimmed_mean_pct": 1.4062,
+                  "profit_factor": 1.4288,
+                  "expectancy_pct": 1.8512
+                },
+                "50": {
+                  "samples": 946,
+                  "win_rate_pct": 52.114,
+                  "median_pct": 0.391,
+                  "trimmed_mean_pct": 1.1062,
+                  "profit_factor": 1.3478,
+                  "expectancy_pct": 1.5512
+                }
+              }
+            },
+            "delta": {
+              "win_rate_pct": 5.92,
+              "median_pct": 1.2853,
+              "trimmed_mean_pct": 0.6069,
+              "profit_factor": 0.1651,
+              "expectancy_pct": 0.2712
+            },
+            "mean_difference_p": 0.7828974,
+            "factor_base_rates": {
+              "all": 0.188679,
+              "winners": 0.205371,
+              "top_decile": 0.17094,
+              "losers": 0.168856
+            },
+            "horizon_sensitivity": {
+              "5": {
+                "with": {
+                  "samples": 220,
+                  "win_rate_pct": 50.455,
+                  "median_pct": 0.1167,
+                  "trimmed_mean_pct": 0.0979,
+                  "profit_factor": 1.0381,
+                  "expectancy_pct": 0.084,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 220,
+                      "win_rate_pct": 50.0,
+                      "median_pct": -0.0833,
+                      "trimmed_mean_pct": -0.1021,
+                      "profit_factor": 0.9496,
+                      "expectancy_pct": -0.116
+                    },
+                    "50": {
+                      "samples": 220,
+                      "win_rate_pct": 47.273,
+                      "median_pct": -0.3833,
+                      "trimmed_mean_pct": -0.4021,
+                      "profit_factor": 0.8308,
+                      "expectancy_pct": -0.416
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 946,
+                  "win_rate_pct": 54.334,
+                  "median_pct": 0.524,
+                  "trimmed_mean_pct": 0.847,
+                  "profit_factor": 1.4974,
+                  "expectancy_pct": 1.0177,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 946,
+                      "win_rate_pct": 52.431,
+                      "median_pct": 0.324,
+                      "trimmed_mean_pct": 0.647,
+                      "profit_factor": 1.3822,
+                      "expectancy_pct": 0.8177
+                    },
+                    "50": {
+                      "samples": 946,
+                      "win_rate_pct": 50.106,
+                      "median_pct": 0.024,
+                      "trimmed_mean_pct": 0.347,
+                      "profit_factor": 1.2265,
+                      "expectancy_pct": 0.5177
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": -3.879,
+                  "median_pct": -0.4073,
+                  "trimmed_mean_pct": -0.7491,
+                  "profit_factor": -0.4593,
+                  "expectancy_pct": -0.9337
+                }
+              },
+              "10": {
+                "with": {
+                  "samples": 220,
+                  "win_rate_pct": 57.727,
+                  "median_pct": 1.162,
+                  "trimmed_mean_pct": 1.2758,
+                  "profit_factor": 1.6184,
+                  "expectancy_pct": 1.6221,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 220,
+                      "win_rate_pct": 57.273,
+                      "median_pct": 0.962,
+                      "trimmed_mean_pct": 1.0758,
+                      "profit_factor": 1.5251,
+                      "expectancy_pct": 1.4221
+                    },
+                    "50": {
+                      "samples": 220,
+                      "win_rate_pct": 55.909,
+                      "median_pct": 0.662,
+                      "trimmed_mean_pct": 0.7758,
+                      "profit_factor": 1.3952,
+                      "expectancy_pct": 1.1221
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 946,
+                  "win_rate_pct": 55.814,
+                  "median_pct": 1.2126,
+                  "trimmed_mean_pct": 1.4749,
+                  "profit_factor": 1.6311,
+                  "expectancy_pct": 1.7548,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 946,
+                      "win_rate_pct": 55.391,
+                      "median_pct": 1.0126,
+                      "trimmed_mean_pct": 1.2749,
+                      "profit_factor": 1.5419,
+                      "expectancy_pct": 1.5548
+                    },
+                    "50": {
+                      "samples": 946,
+                      "win_rate_pct": 53.171,
+                      "median_pct": 0.7126,
+                      "trimmed_mean_pct": 0.9749,
+                      "profit_factor": 1.4174,
+                      "expectancy_pct": 1.2548
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": 1.913,
+                  "median_pct": -0.0506,
+                  "trimmed_mean_pct": -0.1991,
+                  "profit_factor": -0.0127,
+                  "expectancy_pct": -0.1327
+                }
+              },
+              "40": {
+                "with": {
+                  "samples": 194,
+                  "win_rate_pct": 54.124,
+                  "median_pct": 1.857,
+                  "trimmed_mean_pct": 4.0116,
+                  "profit_factor": 2.3916,
+                  "expectancy_pct": 5.9281,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 194,
+                      "win_rate_pct": 54.124,
+                      "median_pct": 1.657,
+                      "trimmed_mean_pct": 3.8116,
+                      "profit_factor": 2.3163,
+                      "expectancy_pct": 5.7281
+                    },
+                    "50": {
+                      "samples": 194,
+                      "win_rate_pct": 53.608,
+                      "median_pct": 1.357,
+                      "trimmed_mean_pct": 3.5116,
+                      "profit_factor": 2.2089,
+                      "expectancy_pct": 5.4281
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 822,
+                  "win_rate_pct": 51.825,
+                  "median_pct": 0.8771,
+                  "trimmed_mean_pct": 3.0117,
+                  "profit_factor": 1.6728,
+                  "expectancy_pct": 3.8708,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 822,
+                      "win_rate_pct": 51.703,
+                      "median_pct": 0.6771,
+                      "trimmed_mean_pct": 2.8117,
+                      "profit_factor": 1.6275,
+                      "expectancy_pct": 3.6708
+                    },
+                    "50": {
+                      "samples": 822,
+                      "win_rate_pct": 51.095,
+                      "median_pct": 0.3771,
+                      "trimmed_mean_pct": 2.5117,
+                      "profit_factor": 1.5622,
+                      "expectancy_pct": 3.3708
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": 2.299,
+                  "median_pct": 0.9799,
+                  "trimmed_mean_pct": 0.9999,
+                  "profit_factor": 0.7188,
+                  "expectancy_pct": 2.0573
+                }
+              },
+              "60": {
+                "with": {
+                  "samples": 172,
+                  "win_rate_pct": 59.884,
+                  "median_pct": 4.3846,
+                  "trimmed_mean_pct": 8.089,
+                  "profit_factor": 3.1102,
+                  "expectancy_pct": 9.98,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 172,
+                      "win_rate_pct": 59.884,
+                      "median_pct": 4.1846,
+                      "trimmed_mean_pct": 7.889,
+                      "profit_factor": 3.0334,
+                      "expectancy_pct": 9.78
+                    },
+                    "50": {
+                      "samples": 172,
+                      "win_rate_pct": 59.884,
+                      "median_pct": 3.8846,
+                      "trimmed_mean_pct": 7.589,
+                      "profit_factor": 2.9229,
+                      "expectancy_pct": 9.48
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 707,
+                  "win_rate_pct": 57.284,
+                  "median_pct": 3.2213,
+                  "trimmed_mean_pct": 7.2296,
+                  "profit_factor": 2.5757,
+                  "expectancy_pct": 8.7148,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 707,
+                      "win_rate_pct": 56.294,
+                      "median_pct": 3.0213,
+                      "trimmed_mean_pct": 7.0296,
+                      "profit_factor": 2.5158,
+                      "expectancy_pct": 8.5148
+                    },
+                    "50": {
+                      "samples": 707,
+                      "win_rate_pct": 55.446,
+                      "median_pct": 2.7213,
+                      "trimmed_mean_pct": 6.7296,
+                      "profit_factor": 2.4287,
+                      "expectancy_pct": 8.2148
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": 2.6,
+                  "median_pct": 1.1633,
+                  "trimmed_mean_pct": 0.8594,
+                  "profit_factor": 0.5345,
+                  "expectancy_pct": 1.2652
+                }
+              }
+            }
+          }
+        },
+        "production_weight": 0,
+        "shadow_weight": 0,
+        "status": "freeze_for_unseen_forward",
+        "why_not_production": "selected after reviewing development and already-seen 2025/2026; requires events after 2026-08-29"
+      },
+      {
+        "candidate_id": "regime.choppiness_14",
+        "name_zh": "14日震荡噪音指数",
+        "tail": "high",
+        "development_fitted_threshold": 58.814226,
+        "direction": "positive",
+        "periods": {
+          "development_2001_2024": {
+            "with": {
+              "samples": 2003,
+              "win_rate_pct": 55.517,
+              "median_pct": 1.1571,
+              "trimmed_mean_pct": 0.9447,
+              "profit_factor": 1.2827,
+              "expectancy_pct": 0.9221,
+              "cost_sensitivity": {
+                "20": {
+                  "samples": 2003,
+                  "win_rate_pct": 54.568,
+                  "median_pct": 0.9571,
+                  "trimmed_mean_pct": 0.7447,
+                  "profit_factor": 1.2154,
+                  "expectancy_pct": 0.7221
+                },
+                "50": {
+                  "samples": 2003,
+                  "win_rate_pct": 53.37,
+                  "median_pct": 0.6571,
+                  "trimmed_mean_pct": 0.4447,
+                  "profit_factor": 1.1209,
+                  "expectancy_pct": 0.4221
+                }
+              }
+            },
+            "without": {
+              "samples": 8010,
+              "win_rate_pct": 54.045,
+              "median_pct": 0.7985,
+              "trimmed_mean_pct": 0.6681,
+              "profit_factor": 1.2128,
+              "expectancy_pct": 0.7595,
+              "cost_sensitivity": {
+                "20": {
+                  "samples": 8010,
+                  "win_rate_pct": 53.159,
+                  "median_pct": 0.5985,
+                  "trimmed_mean_pct": 0.4681,
+                  "profit_factor": 1.1528,
+                  "expectancy_pct": 0.5595
+                },
+                "50": {
+                  "samples": 8010,
+                  "win_rate_pct": 51.523,
+                  "median_pct": 0.2985,
+                  "trimmed_mean_pct": 0.1681,
+                  "profit_factor": 1.0682,
+                  "expectancy_pct": 0.2595
+                }
+              }
+            },
+            "delta": {
+              "win_rate_pct": 1.472,
+              "median_pct": 0.3586,
+              "trimmed_mean_pct": 0.2766,
+              "profit_factor": 0.0699,
+              "expectancy_pct": 0.1626
+            },
+            "mean_difference_p": 0.5524655,
+            "factor_base_rates": {
+              "all": 0.20004,
+              "winners": 0.204374,
+              "top_decile": 0.191617,
+              "losers": 0.194882
+            },
+            "horizon_sensitivity": {
+              "5": {
+                "with": {
+                  "samples": 2003,
+                  "win_rate_pct": 51.373,
+                  "median_pct": 0.1426,
+                  "trimmed_mean_pct": -0.0967,
+                  "profit_factor": 0.9564,
+                  "expectancy_pct": -0.078,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 2003,
+                      "win_rate_pct": 49.426,
+                      "median_pct": -0.0574,
+                      "trimmed_mean_pct": -0.2967,
+                      "profit_factor": 0.8527,
+                      "expectancy_pct": -0.278
+                    },
+                    "50": {
+                      "samples": 2003,
+                      "win_rate_pct": 45.781,
+                      "median_pct": -0.3574,
+                      "trimmed_mean_pct": -0.5967,
+                      "profit_factor": 0.7173,
+                      "expectancy_pct": -0.578
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 8010,
+                  "win_rate_pct": 51.199,
+                  "median_pct": 0.1059,
+                  "trimmed_mean_pct": 0.0311,
+                  "profit_factor": 1.0439,
+                  "expectancy_pct": 0.0804,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 8010,
+                      "win_rate_pct": 48.976,
+                      "median_pct": -0.0941,
+                      "trimmed_mean_pct": -0.1689,
+                      "profit_factor": 0.9381,
+                      "expectancy_pct": -0.1196
+                    },
+                    "50": {
+                      "samples": 8010,
+                      "win_rate_pct": 45.119,
+                      "median_pct": -0.3941,
+                      "trimmed_mean_pct": -0.4689,
+                      "profit_factor": 0.7993,
+                      "expectancy_pct": -0.4196
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": 0.174,
+                  "median_pct": 0.0367,
+                  "trimmed_mean_pct": -0.1278,
+                  "profit_factor": -0.0875,
+                  "expectancy_pct": -0.1584
+                }
+              },
+              "10": {
+                "with": {
+                  "samples": 2003,
+                  "win_rate_pct": 55.017,
+                  "median_pct": 0.7323,
+                  "trimmed_mean_pct": 0.5535,
+                  "profit_factor": 1.2734,
+                  "expectancy_pct": 0.5977,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 2003,
+                      "win_rate_pct": 53.869,
+                      "median_pct": 0.5323,
+                      "trimmed_mean_pct": 0.3535,
+                      "profit_factor": 1.1746,
+                      "expectancy_pct": 0.3977
+                    },
+                    "50": {
+                      "samples": 2003,
+                      "win_rate_pct": 51.672,
+                      "median_pct": 0.2323,
+                      "trimmed_mean_pct": 0.0535,
+                      "profit_factor": 1.0404,
+                      "expectancy_pct": 0.0977
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 8010,
+                  "win_rate_pct": 53.208,
+                  "median_pct": 0.4328,
+                  "trimmed_mean_pct": 0.263,
+                  "profit_factor": 1.1592,
+                  "expectancy_pct": 0.3938,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 8010,
+                      "win_rate_pct": 51.76,
+                      "median_pct": 0.2328,
+                      "trimmed_mean_pct": 0.063,
+                      "profit_factor": 1.0754,
+                      "expectancy_pct": 0.1938
+                    },
+                    "50": {
+                      "samples": 8010,
+                      "win_rate_pct": 49.526,
+                      "median_pct": -0.0672,
+                      "trimmed_mean_pct": -0.237,
+                      "profit_factor": 0.9609,
+                      "expectancy_pct": -0.1062
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": 1.809,
+                  "median_pct": 0.2995,
+                  "trimmed_mean_pct": 0.2905,
+                  "profit_factor": 0.1142,
+                  "expectancy_pct": 0.2039
+                }
+              },
+              "40": {
+                "with": {
+                  "samples": 2003,
+                  "win_rate_pct": 57.114,
+                  "median_pct": 1.9322,
+                  "trimmed_mean_pct": 2.0459,
+                  "profit_factor": 1.4961,
+                  "expectancy_pct": 2.082,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 2003,
+                      "win_rate_pct": 56.365,
+                      "median_pct": 1.7322,
+                      "trimmed_mean_pct": 1.8459,
+                      "profit_factor": 1.4394,
+                      "expectancy_pct": 1.882
+                    },
+                    "50": {
+                      "samples": 2003,
+                      "win_rate_pct": 55.467,
+                      "median_pct": 1.4322,
+                      "trimmed_mean_pct": 1.5459,
+                      "profit_factor": 1.3583,
+                      "expectancy_pct": 1.582
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 8010,
+                  "win_rate_pct": 55.868,
+                  "median_pct": 1.6264,
+                  "trimmed_mean_pct": 1.6867,
+                  "profit_factor": 1.4454,
+                  "expectancy_pct": 2.0956,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 8010,
+                      "win_rate_pct": 55.081,
+                      "median_pct": 1.4264,
+                      "trimmed_mean_pct": 1.4867,
+                      "profit_factor": 1.3954,
+                      "expectancy_pct": 1.8956
+                    },
+                    "50": {
+                      "samples": 8010,
+                      "win_rate_pct": 54.07,
+                      "median_pct": 1.1264,
+                      "trimmed_mean_pct": 1.1867,
+                      "profit_factor": 1.3237,
+                      "expectancy_pct": 1.5956
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": 1.246,
+                  "median_pct": 0.3058,
+                  "trimmed_mean_pct": 0.3592,
+                  "profit_factor": 0.0507,
+                  "expectancy_pct": -0.0136
+                }
+              },
+              "60": {
+                "with": {
+                  "samples": 2003,
+                  "win_rate_pct": 61.508,
+                  "median_pct": 3.9933,
+                  "trimmed_mean_pct": 3.9637,
+                  "profit_factor": 1.9597,
+                  "expectancy_pct": 4.1357,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 2003,
+                      "win_rate_pct": 60.959,
+                      "median_pct": 3.7933,
+                      "trimmed_mean_pct": 3.7637,
+                      "profit_factor": 1.8971,
+                      "expectancy_pct": 3.9357
+                    },
+                    "50": {
+                      "samples": 2003,
+                      "win_rate_pct": 60.11,
+                      "median_pct": 3.4933,
+                      "trimmed_mean_pct": 3.4637,
+                      "profit_factor": 1.807,
+                      "expectancy_pct": 3.6357
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 8009,
+                  "win_rate_pct": 57.985,
+                  "median_pct": 2.8345,
+                  "trimmed_mean_pct": 2.9819,
+                  "profit_factor": 1.6589,
+                  "expectancy_pct": 3.5089,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 8009,
+                      "win_rate_pct": 57.41,
+                      "median_pct": 2.6345,
+                      "trimmed_mean_pct": 2.7819,
+                      "profit_factor": 1.6116,
+                      "expectancy_pct": 3.3089
+                    },
+                    "50": {
+                      "samples": 8009,
+                      "win_rate_pct": 56.686,
+                      "median_pct": 2.3345,
+                      "trimmed_mean_pct": 2.4819,
+                      "profit_factor": 1.5432,
+                      "expectancy_pct": 3.0089
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": 3.523,
+                  "median_pct": 1.1588,
+                  "trimmed_mean_pct": 0.9818,
+                  "profit_factor": 0.3008,
+                  "expectancy_pct": 0.6268
+                }
+              }
+            }
+          },
+          "seen_2025": {
+            "with": {
+              "samples": 356,
+              "win_rate_pct": 53.933,
+              "median_pct": 1.0377,
+              "trimmed_mean_pct": 2.0019,
+              "profit_factor": 1.6258,
+              "expectancy_pct": 2.3653,
+              "cost_sensitivity": {
+                "20": {
+                  "samples": 356,
+                  "win_rate_pct": 53.09,
+                  "median_pct": 0.8377,
+                  "trimmed_mean_pct": 1.8019,
+                  "profit_factor": 1.5592,
+                  "expectancy_pct": 2.1653
+                },
+                "50": {
+                  "samples": 356,
+                  "win_rate_pct": 52.247,
+                  "median_pct": 0.5377,
+                  "trimmed_mean_pct": 1.5019,
+                  "profit_factor": 1.4648,
+                  "expectancy_pct": 1.8653
+                }
+              }
+            },
+            "without": {
+              "samples": 1539,
+              "win_rate_pct": 50.292,
+              "median_pct": 0.0697,
+              "trimmed_mean_pct": 0.7346,
+              "profit_factor": 1.2953,
+              "expectancy_pct": 1.1561,
+              "cost_sensitivity": {
+                "20": {
+                  "samples": 1539,
+                  "win_rate_pct": 49.578,
+                  "median_pct": -0.1303,
+                  "trimmed_mean_pct": 0.5346,
+                  "profit_factor": 1.2382,
+                  "expectancy_pct": 0.9561
+                },
+                "50": {
+                  "samples": 1539,
+                  "win_rate_pct": 48.343,
+                  "median_pct": -0.4303,
+                  "trimmed_mean_pct": 0.2346,
+                  "profit_factor": 1.1574,
+                  "expectancy_pct": 0.6561
+                }
+              }
+            },
+            "delta": {
+              "win_rate_pct": 3.641,
+              "median_pct": 0.968,
+              "trimmed_mean_pct": 1.2673,
+              "profit_factor": 0.3305,
+              "expectancy_pct": 1.2092
+            },
+            "mean_difference_p": 0.1833041,
+            "factor_base_rates": {
+              "all": 0.187863,
+              "winners": 0.198758,
+              "top_decile": 0.236842,
+              "losers": 0.176534
+            },
+            "horizon_sensitivity": {
+              "5": {
+                "with": {
+                  "samples": 356,
+                  "win_rate_pct": 56.18,
+                  "median_pct": 0.5506,
+                  "trimmed_mean_pct": 0.8692,
+                  "profit_factor": 1.4873,
+                  "expectancy_pct": 0.8292,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 356,
+                      "win_rate_pct": 53.09,
+                      "median_pct": 0.3506,
+                      "trimmed_mean_pct": 0.6692,
+                      "profit_factor": 1.351,
+                      "expectancy_pct": 0.6292
+                    },
+                    "50": {
+                      "samples": 356,
+                      "win_rate_pct": 50.843,
+                      "median_pct": 0.0506,
+                      "trimmed_mean_pct": 0.3692,
+                      "profit_factor": 1.1699,
+                      "expectancy_pct": 0.3292
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 1539,
+                  "win_rate_pct": 50.357,
+                  "median_pct": 0.0351,
+                  "trimmed_mean_pct": 0.0308,
+                  "profit_factor": 1.1178,
+                  "expectancy_pct": 0.2255,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 1539,
+                      "win_rate_pct": 47.953,
+                      "median_pct": -0.1649,
+                      "trimmed_mean_pct": -0.1692,
+                      "profit_factor": 1.0126,
+                      "expectancy_pct": 0.0255
+                    },
+                    "50": {
+                      "samples": 1539,
+                      "win_rate_pct": 44.834,
+                      "median_pct": -0.4649,
+                      "trimmed_mean_pct": -0.4692,
+                      "profit_factor": 0.8739,
+                      "expectancy_pct": -0.2745
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": 5.823,
+                  "median_pct": 0.5155,
+                  "trimmed_mean_pct": 0.8384,
+                  "profit_factor": 0.3695,
+                  "expectancy_pct": 0.6037
+                }
+              },
+              "10": {
+                "with": {
+                  "samples": 356,
+                  "win_rate_pct": 52.809,
+                  "median_pct": 0.3647,
+                  "trimmed_mean_pct": 0.697,
+                  "profit_factor": 1.3074,
+                  "expectancy_pct": 0.882,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 356,
+                      "win_rate_pct": 51.404,
+                      "median_pct": 0.1647,
+                      "trimmed_mean_pct": 0.497,
+                      "profit_factor": 1.23,
+                      "expectancy_pct": 0.682
+                    },
+                    "50": {
+                      "samples": 356,
+                      "win_rate_pct": 49.157,
+                      "median_pct": -0.1353,
+                      "trimmed_mean_pct": 0.197,
+                      "profit_factor": 1.1227,
+                      "expectancy_pct": 0.382
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 1539,
+                  "win_rate_pct": 49.383,
+                  "median_pct": -0.1103,
+                  "trimmed_mean_pct": -0.16,
+                  "profit_factor": 0.9817,
+                  "expectancy_pct": -0.0554,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 1539,
+                      "win_rate_pct": 48.408,
+                      "median_pct": -0.3103,
+                      "trimmed_mean_pct": -0.36,
+                      "profit_factor": 0.9185,
+                      "expectancy_pct": -0.2554
+                    },
+                    "50": {
+                      "samples": 1539,
+                      "win_rate_pct": 45.874,
+                      "median_pct": -0.6103,
+                      "trimmed_mean_pct": -0.66,
+                      "profit_factor": 0.8312,
+                      "expectancy_pct": -0.5554
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": 3.426,
+                  "median_pct": 0.475,
+                  "trimmed_mean_pct": 0.857,
+                  "profit_factor": 0.3257,
+                  "expectancy_pct": 0.9374
+                }
+              },
+              "40": {
+                "with": {
+                  "samples": 356,
+                  "win_rate_pct": 55.056,
+                  "median_pct": 1.4475,
+                  "trimmed_mean_pct": 4.4911,
+                  "profit_factor": 2.2445,
+                  "expectancy_pct": 5.7158,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 356,
+                      "win_rate_pct": 54.213,
+                      "median_pct": 1.2475,
+                      "trimmed_mean_pct": 4.2911,
+                      "profit_factor": 2.1778,
+                      "expectancy_pct": 5.5158
+                    },
+                    "50": {
+                      "samples": 356,
+                      "win_rate_pct": 53.371,
+                      "median_pct": 0.9475,
+                      "trimmed_mean_pct": 3.9911,
+                      "profit_factor": 2.0819,
+                      "expectancy_pct": 5.2158
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 1539,
+                  "win_rate_pct": 56.855,
+                  "median_pct": 2.2474,
+                  "trimmed_mean_pct": 3.2654,
+                  "profit_factor": 1.8614,
+                  "expectancy_pct": 4.0285,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 1539,
+                      "win_rate_pct": 56.66,
+                      "median_pct": 2.0474,
+                      "trimmed_mean_pct": 3.0654,
+                      "profit_factor": 1.8037,
+                      "expectancy_pct": 3.8285
+                    },
+                    "50": {
+                      "samples": 1539,
+                      "win_rate_pct": 55.621,
+                      "median_pct": 1.7474,
+                      "trimmed_mean_pct": 2.7654,
+                      "profit_factor": 1.7208,
+                      "expectancy_pct": 3.5285
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": -1.799,
+                  "median_pct": -0.7999,
+                  "trimmed_mean_pct": 1.2257,
+                  "profit_factor": 0.3831,
+                  "expectancy_pct": 1.6873
+                }
+              },
+              "60": {
+                "with": {
+                  "samples": 356,
+                  "win_rate_pct": 59.27,
+                  "median_pct": 3.1313,
+                  "trimmed_mean_pct": 6.019,
+                  "profit_factor": 2.4078,
+                  "expectancy_pct": 7.4022,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 356,
+                      "win_rate_pct": 58.427,
+                      "median_pct": 2.9313,
+                      "trimmed_mean_pct": 5.819,
+                      "profit_factor": 2.3487,
+                      "expectancy_pct": 7.2022
+                    },
+                    "50": {
+                      "samples": 356,
+                      "win_rate_pct": 57.584,
+                      "median_pct": 2.6313,
+                      "trimmed_mean_pct": 5.519,
+                      "profit_factor": 2.2628,
+                      "expectancy_pct": 6.9022
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 1539,
+                  "win_rate_pct": 57.245,
+                  "median_pct": 2.7947,
+                  "trimmed_mean_pct": 5.5278,
+                  "profit_factor": 2.2307,
+                  "expectancy_pct": 6.4919,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 1539,
+                      "win_rate_pct": 56.725,
+                      "median_pct": 2.5947,
+                      "trimmed_mean_pct": 5.3278,
+                      "profit_factor": 2.1737,
+                      "expectancy_pct": 6.2919
+                    },
+                    "50": {
+                      "samples": 1539,
+                      "win_rate_pct": 56.465,
+                      "median_pct": 2.2947,
+                      "trimmed_mean_pct": 5.0278,
+                      "profit_factor": 2.0912,
+                      "expectancy_pct": 5.9919
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": 2.025,
+                  "median_pct": 0.3366,
+                  "trimmed_mean_pct": 0.4912,
+                  "profit_factor": 0.1771,
+                  "expectancy_pct": 0.9103
+                }
+              }
+            }
+          },
+          "seen_2026": {
+            "with": {
+              "samples": 275,
+              "win_rate_pct": 56.0,
+              "median_pct": 1.8468,
+              "trimmed_mean_pct": 2.6569,
+              "profit_factor": 1.8002,
+              "expectancy_pct": 2.7829,
+              "cost_sensitivity": {
+                "20": {
+                  "samples": 275,
+                  "win_rate_pct": 55.636,
+                  "median_pct": 1.6468,
+                  "trimmed_mean_pct": 2.4569,
+                  "profit_factor": 1.7243,
+                  "expectancy_pct": 2.5829
+                },
+                "50": {
+                  "samples": 275,
+                  "win_rate_pct": 54.909,
+                  "median_pct": 1.3468,
+                  "trimmed_mean_pct": 2.1569,
+                  "profit_factor": 1.6169,
+                  "expectancy_pct": 2.2829
+                }
+              }
+            },
+            "without": {
+              "samples": 891,
+              "win_rate_pct": 53.76,
+              "median_pct": 0.9335,
+              "trimmed_mean_pct": 1.441,
+              "profit_factor": 1.441,
+              "expectancy_pct": 1.8924,
+              "cost_sensitivity": {
+                "20": {
+                  "samples": 891,
+                  "win_rate_pct": 53.311,
+                  "median_pct": 0.7335,
+                  "trimmed_mean_pct": 1.241,
+                  "profit_factor": 1.386,
+                  "expectancy_pct": 1.6924
+                },
+                "50": {
+                  "samples": 891,
+                  "win_rate_pct": 52.525,
+                  "median_pct": 0.4335,
+                  "trimmed_mean_pct": 0.941,
+                  "profit_factor": 1.3076,
+                  "expectancy_pct": 1.3924
+                }
+              }
+            },
+            "delta": {
+              "win_rate_pct": 2.24,
+              "median_pct": 0.9133,
+              "trimmed_mean_pct": 1.2159,
+              "profit_factor": 0.3592,
+              "expectancy_pct": 0.8905
+            },
+            "mean_difference_p": 0.3519156,
+            "factor_base_rates": {
+              "all": 0.235849,
+              "winners": 0.243286,
+              "top_decile": 0.230769,
+              "losers": 0.227017
+            },
+            "horizon_sensitivity": {
+              "5": {
+                "with": {
+                  "samples": 275,
+                  "win_rate_pct": 55.273,
+                  "median_pct": 0.4339,
+                  "trimmed_mean_pct": 0.913,
+                  "profit_factor": 1.479,
+                  "expectancy_pct": 0.8841,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 275,
+                      "win_rate_pct": 53.818,
+                      "median_pct": 0.2339,
+                      "trimmed_mean_pct": 0.713,
+                      "profit_factor": 1.3533,
+                      "expectancy_pct": 0.6841
+                    },
+                    "50": {
+                      "samples": 275,
+                      "win_rate_pct": 49.818,
+                      "median_pct": -0.0661,
+                      "trimmed_mean_pct": 0.413,
+                      "profit_factor": 1.1845,
+                      "expectancy_pct": 0.3841
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 891,
+                  "win_rate_pct": 53.086,
+                  "median_pct": 0.451,
+                  "trimmed_mean_pct": 0.6398,
+                  "profit_factor": 1.3859,
+                  "expectancy_pct": 0.8284,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 891,
+                      "win_rate_pct": 51.403,
+                      "median_pct": 0.251,
+                      "trimmed_mean_pct": 0.4398,
+                      "profit_factor": 1.2802,
+                      "expectancy_pct": 0.6284
+                    },
+                    "50": {
+                      "samples": 891,
+                      "win_rate_pct": 49.495,
+                      "median_pct": -0.049,
+                      "trimmed_mean_pct": 0.1398,
+                      "profit_factor": 1.1374,
+                      "expectancy_pct": 0.3284
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": 2.187,
+                  "median_pct": -0.0171,
+                  "trimmed_mean_pct": 0.2732,
+                  "profit_factor": 0.0931,
+                  "expectancy_pct": 0.0557
+                }
+              },
+              "10": {
+                "with": {
+                  "samples": 275,
+                  "win_rate_pct": 60.727,
+                  "median_pct": 2.2237,
+                  "trimmed_mean_pct": 2.0926,
+                  "profit_factor": 1.9099,
+                  "expectancy_pct": 2.3004,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 275,
+                      "win_rate_pct": 60.364,
+                      "median_pct": 2.0237,
+                      "trimmed_mean_pct": 1.8926,
+                      "profit_factor": 1.8056,
+                      "expectancy_pct": 2.1004
+                    },
+                    "50": {
+                      "samples": 275,
+                      "win_rate_pct": 57.091,
+                      "median_pct": 1.7237,
+                      "trimmed_mean_pct": 1.5926,
+                      "profit_factor": 1.6593,
+                      "expectancy_pct": 1.8004
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 891,
+                  "win_rate_pct": 54.77,
+                  "median_pct": 1.0838,
+                  "trimmed_mean_pct": 1.2568,
+                  "profit_factor": 1.551,
+                  "expectancy_pct": 1.5536,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 891,
+                      "win_rate_pct": 54.321,
+                      "median_pct": 0.8838,
+                      "trimmed_mean_pct": 1.0568,
+                      "profit_factor": 1.4651,
+                      "expectancy_pct": 1.3536
+                    },
+                    "50": {
+                      "samples": 891,
+                      "win_rate_pct": 52.637,
+                      "median_pct": 0.5838,
+                      "trimmed_mean_pct": 0.7568,
+                      "profit_factor": 1.3455,
+                      "expectancy_pct": 1.0536
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": 5.957,
+                  "median_pct": 1.1399,
+                  "trimmed_mean_pct": 0.8358,
+                  "profit_factor": 0.3589,
+                  "expectancy_pct": 0.7468
+                }
+              },
+              "40": {
+                "with": {
+                  "samples": 251,
+                  "win_rate_pct": 59.363,
+                  "median_pct": 4.9533,
+                  "trimmed_mean_pct": 5.7387,
+                  "profit_factor": 2.4516,
+                  "expectancy_pct": 6.2949,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 251,
+                      "win_rate_pct": 59.363,
+                      "median_pct": 4.7533,
+                      "trimmed_mean_pct": 5.5387,
+                      "profit_factor": 2.3796,
+                      "expectancy_pct": 6.0949
+                    },
+                    "50": {
+                      "samples": 251,
+                      "win_rate_pct": 58.964,
+                      "median_pct": 4.4533,
+                      "trimmed_mean_pct": 5.2387,
+                      "profit_factor": 2.2764,
+                      "expectancy_pct": 5.7949
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 765,
+                  "win_rate_pct": 49.935,
+                  "median_pct": -0.025,
+                  "trimmed_mean_pct": 2.3638,
+                  "profit_factor": 1.616,
+                  "expectancy_pct": 3.5972,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 765,
+                      "win_rate_pct": 49.804,
+                      "median_pct": -0.225,
+                      "trimmed_mean_pct": 2.1638,
+                      "profit_factor": 1.5719,
+                      "expectancy_pct": 3.3972
+                    },
+                    "50": {
+                      "samples": 765,
+                      "win_rate_pct": 49.15,
+                      "median_pct": -0.525,
+                      "trimmed_mean_pct": 1.8638,
+                      "profit_factor": 1.5084,
+                      "expectancy_pct": 3.0972
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": 9.428,
+                  "median_pct": 4.9783,
+                  "trimmed_mean_pct": 3.3749,
+                  "profit_factor": 0.8356,
+                  "expectancy_pct": 2.6977
+                }
+              },
+              "60": {
+                "with": {
+                  "samples": 222,
+                  "win_rate_pct": 66.667,
+                  "median_pct": 6.7405,
+                  "trimmed_mean_pct": 12.9362,
+                  "profit_factor": 4.8363,
+                  "expectancy_pct": 13.9381,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 222,
+                      "win_rate_pct": 65.766,
+                      "median_pct": 6.5405,
+                      "trimmed_mean_pct": 12.7362,
+                      "profit_factor": 4.7115,
+                      "expectancy_pct": 13.7381
+                    },
+                    "50": {
+                      "samples": 222,
+                      "win_rate_pct": 65.315,
+                      "median_pct": 6.2405,
+                      "trimmed_mean_pct": 12.4362,
+                      "profit_factor": 4.5323,
+                      "expectancy_pct": 13.4381
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 657,
+                  "win_rate_pct": 54.795,
+                  "median_pct": 2.1973,
+                  "trimmed_mean_pct": 5.5178,
+                  "profit_factor": 2.2212,
+                  "expectancy_pct": 7.2811,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 657,
+                      "win_rate_pct": 54.033,
+                      "median_pct": 1.9973,
+                      "trimmed_mean_pct": 5.3178,
+                      "profit_factor": 2.1698,
+                      "expectancy_pct": 7.0811
+                    },
+                    "50": {
+                      "samples": 657,
+                      "win_rate_pct": 53.272,
+                      "median_pct": 1.6973,
+                      "trimmed_mean_pct": 5.0178,
+                      "profit_factor": 2.095,
+                      "expectancy_pct": 6.7811
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": 11.872,
+                  "median_pct": 4.5432,
+                  "trimmed_mean_pct": 7.4184,
+                  "profit_factor": 2.6151,
+                  "expectancy_pct": 6.657
+                }
+              }
+            }
+          }
+        },
+        "production_weight": 0,
+        "shadow_weight": 0,
+        "status": "freeze_for_unseen_forward",
+        "why_not_production": "selected after reviewing development and already-seen 2025/2026; requires events after 2026-08-29"
+      },
+      {
+        "candidate_id": "volatility.squeeze_ratio_20",
+        "name_zh": "20日收缩释放比",
+        "tail": "high",
+        "development_fitted_threshold": 1.6751,
+        "direction": "negative",
+        "periods": {
+          "development_2001_2024": {
+            "with": {
+              "samples": 2003,
+              "win_rate_pct": 53.769,
+              "median_pct": 0.7432,
+              "trimmed_mean_pct": 0.5474,
+              "profit_factor": 1.1602,
+              "expectancy_pct": 0.5881,
+              "cost_sensitivity": {
+                "20": {
+                  "samples": 2003,
+                  "win_rate_pct": 52.921,
+                  "median_pct": 0.5432,
+                  "trimmed_mean_pct": 0.3474,
+                  "profit_factor": 1.1031,
+                  "expectancy_pct": 0.3881
+                },
+                "50": {
+                  "samples": 2003,
+                  "win_rate_pct": 51.423,
+                  "median_pct": 0.2432,
+                  "trimmed_mean_pct": 0.0474,
+                  "profit_factor": 1.0225,
+                  "expectancy_pct": 0.0881
+                }
+              }
+            },
+            "without": {
+              "samples": 8010,
+              "win_rate_pct": 54.482,
+              "median_pct": 0.8859,
+              "trimmed_mean_pct": 0.7629,
+              "profit_factor": 1.2431,
+              "expectancy_pct": 0.8431,
+              "cost_sensitivity": {
+                "20": {
+                  "samples": 8010,
+                  "win_rate_pct": 53.571,
+                  "median_pct": 0.6859,
+                  "trimmed_mean_pct": 0.5629,
+                  "profit_factor": 1.1807,
+                  "expectancy_pct": 0.6431
+                },
+                "50": {
+                  "samples": 8010,
+                  "win_rate_pct": 52.01,
+                  "median_pct": 0.3859,
+                  "trimmed_mean_pct": 0.2629,
+                  "profit_factor": 1.0927,
+                  "expectancy_pct": 0.3431
+                }
+              }
+            },
+            "delta": {
+              "win_rate_pct": -0.713,
+              "median_pct": -0.1427,
+              "trimmed_mean_pct": -0.2155,
+              "profit_factor": -0.0829,
+              "expectancy_pct": -0.255
+            },
+            "mean_difference_p": 0.4223936,
+            "factor_base_rates": {
+              "all": 0.20004,
+              "winners": 0.197942,
+              "top_decile": 0.189621,
+              "losers": 0.202537
+            },
+            "horizon_sensitivity": {
+              "5": {
+                "with": {
+                  "samples": 2003,
+                  "win_rate_pct": 48.178,
+                  "median_pct": -0.1035,
+                  "trimmed_mean_pct": -0.2704,
+                  "profit_factor": 0.8778,
+                  "expectancy_pct": -0.2254,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 2003,
+                      "win_rate_pct": 45.632,
+                      "median_pct": -0.3035,
+                      "trimmed_mean_pct": -0.4704,
+                      "profit_factor": 0.7819,
+                      "expectancy_pct": -0.4254
+                    },
+                    "50": {
+                      "samples": 2003,
+                      "win_rate_pct": 42.287,
+                      "median_pct": -0.6035,
+                      "trimmed_mean_pct": -0.7704,
+                      "profit_factor": 0.6576,
+                      "expectancy_pct": -0.7254
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 8010,
+                  "win_rate_pct": 51.998,
+                  "median_pct": 0.1927,
+                  "trimmed_mean_pct": 0.0734,
+                  "profit_factor": 1.0645,
+                  "expectancy_pct": 0.1173,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 8010,
+                      "win_rate_pct": 49.925,
+                      "median_pct": -0.0073,
+                      "trimmed_mean_pct": -0.1266,
+                      "profit_factor": 0.9568,
+                      "expectancy_pct": -0.0827
+                    },
+                    "50": {
+                      "samples": 8010,
+                      "win_rate_pct": 45.993,
+                      "median_pct": -0.3073,
+                      "trimmed_mean_pct": -0.4266,
+                      "profit_factor": 0.8153,
+                      "expectancy_pct": -0.3827
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": -3.82,
+                  "median_pct": -0.2962,
+                  "trimmed_mean_pct": -0.3438,
+                  "profit_factor": -0.1867,
+                  "expectancy_pct": -0.3427
+                }
+              },
+              "10": {
+                "with": {
+                  "samples": 2003,
+                  "win_rate_pct": 52.671,
+                  "median_pct": 0.3044,
+                  "trimmed_mean_pct": 0.3836,
+                  "profit_factor": 1.2268,
+                  "expectancy_pct": 0.5201,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 2003,
+                      "win_rate_pct": 50.874,
+                      "median_pct": 0.1044,
+                      "trimmed_mean_pct": 0.1836,
+                      "profit_factor": 1.1339,
+                      "expectancy_pct": 0.3201
+                    },
+                    "50": {
+                      "samples": 2003,
+                      "win_rate_pct": 48.377,
+                      "median_pct": -0.1956,
+                      "trimmed_mean_pct": -0.1164,
+                      "profit_factor": 1.0079,
+                      "expectancy_pct": 0.0201
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 8010,
+                  "win_rate_pct": 53.795,
+                  "median_pct": 0.5402,
+                  "trimmed_mean_pct": 0.3045,
+                  "profit_factor": 1.1689,
+                  "expectancy_pct": 0.4132,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 8010,
+                      "win_rate_pct": 52.509,
+                      "median_pct": 0.3402,
+                      "trimmed_mean_pct": 0.1045,
+                      "profit_factor": 1.0839,
+                      "expectancy_pct": 0.2132
+                    },
+                    "50": {
+                      "samples": 8010,
+                      "win_rate_pct": 50.35,
+                      "median_pct": 0.0402,
+                      "trimmed_mean_pct": -0.1955,
+                      "profit_factor": 0.9677,
+                      "expectancy_pct": -0.0868
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": -1.124,
+                  "median_pct": -0.2358,
+                  "trimmed_mean_pct": 0.0791,
+                  "profit_factor": 0.0579,
+                  "expectancy_pct": 0.1069
+                }
+              },
+              "40": {
+                "with": {
+                  "samples": 2003,
+                  "win_rate_pct": 55.267,
+                  "median_pct": 1.5442,
+                  "trimmed_mean_pct": 1.799,
+                  "profit_factor": 1.4717,
+                  "expectancy_pct": 2.1795,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 2003,
+                      "win_rate_pct": 54.418,
+                      "median_pct": 1.3442,
+                      "trimmed_mean_pct": 1.599,
+                      "profit_factor": 1.4202,
+                      "expectancy_pct": 1.9795
+                    },
+                    "50": {
+                      "samples": 2003,
+                      "win_rate_pct": 53.47,
+                      "median_pct": 1.0442,
+                      "trimmed_mean_pct": 1.299,
+                      "profit_factor": 1.3464,
+                      "expectancy_pct": 1.6795
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 8010,
+                  "win_rate_pct": 56.33,
+                  "median_pct": 1.7404,
+                  "trimmed_mean_pct": 1.7457,
+                  "profit_factor": 1.4504,
+                  "expectancy_pct": 2.0713,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 8010,
+                      "win_rate_pct": 55.568,
+                      "median_pct": 1.5404,
+                      "trimmed_mean_pct": 1.5457,
+                      "profit_factor": 1.3993,
+                      "expectancy_pct": 1.8713
+                    },
+                    "50": {
+                      "samples": 8010,
+                      "win_rate_pct": 54.569,
+                      "median_pct": 1.2404,
+                      "trimmed_mean_pct": 1.2457,
+                      "profit_factor": 1.3259,
+                      "expectancy_pct": 1.5713
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": -1.063,
+                  "median_pct": -0.1962,
+                  "trimmed_mean_pct": 0.0533,
+                  "profit_factor": 0.0213,
+                  "expectancy_pct": 0.1082
+                }
+              },
+              "60": {
+                "with": {
+                  "samples": 2003,
+                  "win_rate_pct": 60.01,
+                  "median_pct": 3.4716,
+                  "trimmed_mean_pct": 3.6142,
+                  "profit_factor": 1.8341,
+                  "expectancy_pct": 4.1466,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 2003,
+                      "win_rate_pct": 59.561,
+                      "median_pct": 3.2716,
+                      "trimmed_mean_pct": 3.4142,
+                      "profit_factor": 1.7812,
+                      "expectancy_pct": 3.9466
+                    },
+                    "50": {
+                      "samples": 2003,
+                      "win_rate_pct": 58.862,
+                      "median_pct": 2.9716,
+                      "trimmed_mean_pct": 3.1142,
+                      "profit_factor": 1.7047,
+                      "expectancy_pct": 3.6466
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 8009,
+                  "win_rate_pct": 58.359,
+                  "median_pct": 2.9134,
+                  "trimmed_mean_pct": 3.0633,
+                  "profit_factor": 1.6795,
+                  "expectancy_pct": 3.5061,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 8009,
+                      "win_rate_pct": 57.76,
+                      "median_pct": 2.7134,
+                      "trimmed_mean_pct": 2.8633,
+                      "profit_factor": 1.6305,
+                      "expectancy_pct": 3.3061
+                    },
+                    "50": {
+                      "samples": 8009,
+                      "win_rate_pct": 56.998,
+                      "median_pct": 2.4134,
+                      "trimmed_mean_pct": 2.5633,
+                      "profit_factor": 1.5596,
+                      "expectancy_pct": 3.0061
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": 1.651,
+                  "median_pct": 0.5582,
+                  "trimmed_mean_pct": 0.5509,
+                  "profit_factor": 0.1546,
+                  "expectancy_pct": 0.6405
+                }
+              }
+            }
+          },
+          "seen_2025": {
+            "with": {
+              "samples": 392,
+              "win_rate_pct": 44.388,
+              "median_pct": -0.7247,
+              "trimmed_mean_pct": -0.3561,
+              "profit_factor": 0.9765,
+              "expectancy_pct": -0.1029,
+              "cost_sensitivity": {
+                "20": {
+                  "samples": 392,
+                  "win_rate_pct": 43.112,
+                  "median_pct": -0.9247,
+                  "trimmed_mean_pct": -0.5561,
+                  "profit_factor": 0.9326,
+                  "expectancy_pct": -0.3029
+                },
+                "50": {
+                  "samples": 392,
+                  "win_rate_pct": 42.347,
+                  "median_pct": -1.2247,
+                  "trimmed_mean_pct": -0.8561,
+                  "profit_factor": 0.8708,
+                  "expectancy_pct": -0.6029
+                }
+              }
+            },
+            "without": {
+              "samples": 1503,
+              "win_rate_pct": 52.695,
+              "median_pct": 0.659,
+              "trimmed_mean_pct": 1.3098,
+              "profit_factor": 1.4709,
+              "expectancy_pct": 1.7709,
+              "cost_sensitivity": {
+                "20": {
+                  "samples": 1503,
+                  "win_rate_pct": 52.096,
+                  "median_pct": 0.459,
+                  "trimmed_mean_pct": 1.1098,
+                  "profit_factor": 1.4074,
+                  "expectancy_pct": 1.5709
+                },
+                "50": {
+                  "samples": 1503,
+                  "win_rate_pct": 50.832,
+                  "median_pct": 0.159,
+                  "trimmed_mean_pct": 0.8098,
+                  "profit_factor": 1.3176,
+                  "expectancy_pct": 1.2709
+                }
+              }
+            },
+            "delta": {
+              "win_rate_pct": -8.307,
+              "median_pct": -1.3837,
+              "trimmed_mean_pct": -1.6659,
+              "profit_factor": -0.4944,
+              "expectancy_pct": -1.8738
+            },
+            "mean_difference_p": 0.0136045,
+            "factor_base_rates": {
+              "all": 0.20686,
+              "winners": 0.180124,
+              "top_decile": 0.157895,
+              "losers": 0.234661
+            },
+            "horizon_sensitivity": {
+              "5": {
+                "with": {
+                  "samples": 392,
+                  "win_rate_pct": 55.102,
+                  "median_pct": 0.5194,
+                  "trimmed_mean_pct": 0.5643,
+                  "profit_factor": 1.5872,
+                  "expectancy_pct": 1.0304,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 392,
+                      "win_rate_pct": 53.316,
+                      "median_pct": 0.3194,
+                      "trimmed_mean_pct": 0.3643,
+                      "profit_factor": 1.4497,
+                      "expectancy_pct": 0.8304
+                    },
+                    "50": {
+                      "samples": 392,
+                      "win_rate_pct": 50.51,
+                      "median_pct": 0.0194,
+                      "trimmed_mean_pct": 0.0643,
+                      "profit_factor": 1.2666,
+                      "expectancy_pct": 0.5304
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 1503,
+                  "win_rate_pct": 50.499,
+                  "median_pct": 0.0519,
+                  "trimmed_mean_pct": 0.0898,
+                  "profit_factor": 1.0832,
+                  "expectancy_pct": 0.1585,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 1503,
+                      "win_rate_pct": 47.771,
+                      "median_pct": -0.1481,
+                      "trimmed_mean_pct": -0.1102,
+                      "profit_factor": 0.9793,
+                      "expectancy_pct": -0.0415
+                    },
+                    "50": {
+                      "samples": 1503,
+                      "win_rate_pct": 44.777,
+                      "median_pct": -0.4481,
+                      "trimmed_mean_pct": -0.4102,
+                      "profit_factor": 0.8425,
+                      "expectancy_pct": -0.3415
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": 4.603,
+                  "median_pct": 0.4675,
+                  "trimmed_mean_pct": 0.4745,
+                  "profit_factor": 0.504,
+                  "expectancy_pct": 0.8719
+                }
+              },
+              "10": {
+                "with": {
+                  "samples": 392,
+                  "win_rate_pct": 46.429,
+                  "median_pct": -0.6457,
+                  "trimmed_mean_pct": -0.9479,
+                  "profit_factor": 0.764,
+                  "expectancy_pct": -0.8689,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 392,
+                      "win_rate_pct": 45.408,
+                      "median_pct": -0.8457,
+                      "trimmed_mean_pct": -1.1479,
+                      "profit_factor": 0.718,
+                      "expectancy_pct": -1.0689
+                    },
+                    "50": {
+                      "samples": 392,
+                      "win_rate_pct": 44.643,
+                      "median_pct": -1.1457,
+                      "trimmed_mean_pct": -1.4479,
+                      "profit_factor": 0.6539,
+                      "expectancy_pct": -1.3689
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 1503,
+                  "win_rate_pct": 50.965,
+                  "median_pct": 0.1903,
+                  "trimmed_mean_pct": 0.2329,
+                  "profit_factor": 1.1342,
+                  "expectancy_pct": 0.3788,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 1503,
+                      "win_rate_pct": 49.9,
+                      "median_pct": -0.0097,
+                      "trimmed_mean_pct": 0.0329,
+                      "profit_factor": 1.0612,
+                      "expectancy_pct": 0.1788
+                    },
+                    "50": {
+                      "samples": 1503,
+                      "win_rate_pct": 46.973,
+                      "median_pct": -0.3097,
+                      "trimmed_mean_pct": -0.2671,
+                      "profit_factor": 0.9606,
+                      "expectancy_pct": -0.1212
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": -4.536,
+                  "median_pct": -0.836,
+                  "trimmed_mean_pct": -1.1808,
+                  "profit_factor": -0.3702,
+                  "expectancy_pct": -1.2477
+                }
+              },
+              "40": {
+                "with": {
+                  "samples": 392,
+                  "win_rate_pct": 64.541,
+                  "median_pct": 3.4808,
+                  "trimmed_mean_pct": 4.5406,
+                  "profit_factor": 2.3913,
+                  "expectancy_pct": 5.5078,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 392,
+                      "win_rate_pct": 64.031,
+                      "median_pct": 3.2808,
+                      "trimmed_mean_pct": 4.3406,
+                      "profit_factor": 2.3169,
+                      "expectancy_pct": 5.3078
+                    },
+                    "50": {
+                      "samples": 392,
+                      "win_rate_pct": 63.265,
+                      "median_pct": 2.9808,
+                      "trimmed_mean_pct": 4.0406,
+                      "profit_factor": 2.2098,
+                      "expectancy_pct": 5.0078
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 1503,
+                  "win_rate_pct": 54.424,
+                  "median_pct": 1.5824,
+                  "trimmed_mean_pct": 3.1722,
+                  "profit_factor": 1.8345,
+                  "expectancy_pct": 4.0423,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 1503,
+                      "win_rate_pct": 54.158,
+                      "median_pct": 1.3824,
+                      "trimmed_mean_pct": 2.9722,
+                      "profit_factor": 1.7785,
+                      "expectancy_pct": 3.8423
+                    },
+                    "50": {
+                      "samples": 1503,
+                      "win_rate_pct": 53.094,
+                      "median_pct": 1.0824,
+                      "trimmed_mean_pct": 2.6722,
+                      "profit_factor": 1.698,
+                      "expectancy_pct": 3.5423
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": 10.117,
+                  "median_pct": 1.8984,
+                  "trimmed_mean_pct": 1.3684,
+                  "profit_factor": 0.5568,
+                  "expectancy_pct": 1.4655
+                }
+              },
+              "60": {
+                "with": {
+                  "samples": 392,
+                  "win_rate_pct": 57.908,
+                  "median_pct": 2.8933,
+                  "trimmed_mean_pct": 6.3274,
+                  "profit_factor": 2.5978,
+                  "expectancy_pct": 7.403,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 392,
+                      "win_rate_pct": 56.888,
+                      "median_pct": 2.6933,
+                      "trimmed_mean_pct": 6.1274,
+                      "profit_factor": 2.5267,
+                      "expectancy_pct": 7.203
+                    },
+                    "50": {
+                      "samples": 392,
+                      "win_rate_pct": 56.378,
+                      "median_pct": 2.3933,
+                      "trimmed_mean_pct": 5.8274,
+                      "profit_factor": 2.4239,
+                      "expectancy_pct": 6.903
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 1503,
+                  "win_rate_pct": 57.552,
+                  "median_pct": 2.9083,
+                  "trimmed_mean_pct": 5.4698,
+                  "profit_factor": 2.1897,
+                  "expectancy_pct": 6.4699,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 1503,
+                      "win_rate_pct": 57.086,
+                      "median_pct": 2.7083,
+                      "trimmed_mean_pct": 5.2698,
+                      "profit_factor": 2.1351,
+                      "expectancy_pct": 6.2699
+                    },
+                    "50": {
+                      "samples": 1503,
+                      "win_rate_pct": 56.753,
+                      "median_pct": 2.4083,
+                      "trimmed_mean_pct": 4.9698,
+                      "profit_factor": 2.0561,
+                      "expectancy_pct": 5.9699
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": 0.356,
+                  "median_pct": -0.015,
+                  "trimmed_mean_pct": 0.8576,
+                  "profit_factor": 0.4081,
+                  "expectancy_pct": 0.9331
+                }
+              }
+            }
+          },
+          "seen_2026": {
+            "with": {
+              "samples": 205,
+              "win_rate_pct": 48.78,
+              "median_pct": -0.3104,
+              "trimmed_mean_pct": -0.6213,
+              "profit_factor": 0.8858,
+              "expectancy_pct": -0.5476,
+              "cost_sensitivity": {
+                "20": {
+                  "samples": 205,
+                  "win_rate_pct": 48.293,
+                  "median_pct": -0.5104,
+                  "trimmed_mean_pct": -0.8213,
+                  "profit_factor": 0.8474,
+                  "expectancy_pct": -0.7476
+                },
+                "50": {
+                  "samples": 205,
+                  "win_rate_pct": 46.341,
+                  "median_pct": -0.8104,
+                  "trimmed_mean_pct": -1.1213,
+                  "profit_factor": 0.7928,
+                  "expectancy_pct": -1.0476
+                }
+              }
+            },
+            "without": {
+              "samples": 961,
+              "win_rate_pct": 55.463,
+              "median_pct": 1.4833,
+              "trimmed_mean_pct": 2.2487,
+              "profit_factor": 1.6752,
+              "expectancy_pct": 2.6677,
+              "cost_sensitivity": {
+                "20": {
+                  "samples": 961,
+                  "win_rate_pct": 55.047,
+                  "median_pct": 1.2833,
+                  "trimmed_mean_pct": 2.0487,
+                  "profit_factor": 1.6107,
+                  "expectancy_pct": 2.4677
+                },
+                "50": {
+                  "samples": 961,
+                  "win_rate_pct": 54.527,
+                  "median_pct": 0.9833,
+                  "trimmed_mean_pct": 1.7487,
+                  "profit_factor": 1.519,
+                  "expectancy_pct": 2.1677
+                }
+              }
+            },
+            "delta": {
+              "win_rate_pct": -6.683,
+              "median_pct": -1.7937,
+              "trimmed_mean_pct": -2.87,
+              "profit_factor": -0.7894,
+              "expectancy_pct": -3.2153
+            },
+            "mean_difference_p": 0.0006107,
+            "factor_base_rates": {
+              "all": 0.175815,
+              "winners": 0.157978,
+              "top_decile": 0.068376,
+              "losers": 0.196998
+            },
+            "horizon_sensitivity": {
+              "5": {
+                "with": {
+                  "samples": 205,
+                  "win_rate_pct": 47.805,
+                  "median_pct": -0.3098,
+                  "trimmed_mean_pct": -0.0748,
+                  "profit_factor": 1.0075,
+                  "expectancy_pct": 0.0168,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 205,
+                      "win_rate_pct": 47.805,
+                      "median_pct": -0.5098,
+                      "trimmed_mean_pct": -0.2748,
+                      "profit_factor": 0.9212,
+                      "expectancy_pct": -0.1832
+                    },
+                    "50": {
+                      "samples": 205,
+                      "win_rate_pct": 44.878,
+                      "median_pct": -0.8098,
+                      "trimmed_mean_pct": -0.5748,
+                      "profit_factor": 0.8057,
+                      "expectancy_pct": -0.4832
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 961,
+                  "win_rate_pct": 54.839,
+                  "median_pct": 0.604,
+                  "trimmed_mean_pct": 0.8619,
+                  "profit_factor": 1.4977,
+                  "expectancy_pct": 1.0175,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 961,
+                      "win_rate_pct": 52.862,
+                      "median_pct": 0.404,
+                      "trimmed_mean_pct": 0.6619,
+                      "profit_factor": 1.3825,
+                      "expectancy_pct": 0.8175
+                    },
+                    "50": {
+                      "samples": 961,
+                      "win_rate_pct": 50.572,
+                      "median_pct": 0.104,
+                      "trimmed_mean_pct": 0.3619,
+                      "profit_factor": 1.2268,
+                      "expectancy_pct": 0.5175
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": -7.034,
+                  "median_pct": -0.9138,
+                  "trimmed_mean_pct": -0.9367,
+                  "profit_factor": -0.4902,
+                  "expectancy_pct": -1.0007
+                }
+              },
+              "10": {
+                "with": {
+                  "samples": 205,
+                  "win_rate_pct": 49.756,
+                  "median_pct": -0.0467,
+                  "trimmed_mean_pct": -0.106,
+                  "profit_factor": 0.9768,
+                  "expectancy_pct": -0.0764,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 205,
+                      "win_rate_pct": 49.268,
+                      "median_pct": -0.2467,
+                      "trimmed_mean_pct": -0.306,
+                      "profit_factor": 0.9184,
+                      "expectancy_pct": -0.2764
+                    },
+                    "50": {
+                      "samples": 205,
+                      "win_rate_pct": 47.805,
+                      "median_pct": -0.5467,
+                      "trimmed_mean_pct": -0.606,
+                      "profit_factor": 0.8373,
+                      "expectancy_pct": -0.5764
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 961,
+                  "win_rate_pct": 57.544,
+                  "median_pct": 1.3514,
+                  "trimmed_mean_pct": 1.7856,
+                  "profit_factor": 1.8023,
+                  "expectancy_pct": 2.115,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 961,
+                      "win_rate_pct": 57.128,
+                      "median_pct": 1.1514,
+                      "trimmed_mean_pct": 1.5856,
+                      "profit_factor": 1.7037,
+                      "expectancy_pct": 1.915
+                    },
+                    "50": {
+                      "samples": 961,
+                      "win_rate_pct": 54.943,
+                      "median_pct": 0.8514,
+                      "trimmed_mean_pct": 1.2856,
+                      "profit_factor": 1.566,
+                      "expectancy_pct": 1.615
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": -7.788,
+                  "median_pct": -1.3981,
+                  "trimmed_mean_pct": -1.8916,
+                  "profit_factor": -0.8255,
+                  "expectancy_pct": -2.1914
+                }
+              },
+              "40": {
+                "with": {
+                  "samples": 174,
+                  "win_rate_pct": 47.701,
+                  "median_pct": -0.3732,
+                  "trimmed_mean_pct": 1.0426,
+                  "profit_factor": 1.2266,
+                  "expectancy_pct": 1.2776,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 174,
+                      "win_rate_pct": 47.701,
+                      "median_pct": -0.5732,
+                      "trimmed_mean_pct": 0.8426,
+                      "profit_factor": 1.1876,
+                      "expectancy_pct": 1.0776
+                    },
+                    "50": {
+                      "samples": 174,
+                      "win_rate_pct": 46.552,
+                      "median_pct": -0.8732,
+                      "trimmed_mean_pct": 0.5426,
+                      "profit_factor": 1.1317,
+                      "expectancy_pct": 0.7776
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 842,
+                  "win_rate_pct": 53.207,
+                  "median_pct": 1.7096,
+                  "trimmed_mean_pct": 3.6555,
+                  "profit_factor": 1.8983,
+                  "expectancy_pct": 4.8807,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 842,
+                      "win_rate_pct": 53.088,
+                      "median_pct": 1.5096,
+                      "trimmed_mean_pct": 3.4555,
+                      "profit_factor": 1.8469,
+                      "expectancy_pct": 4.6807
+                    },
+                    "50": {
+                      "samples": 842,
+                      "win_rate_pct": 52.613,
+                      "median_pct": 1.2096,
+                      "trimmed_mean_pct": 3.1555,
+                      "profit_factor": 1.7728,
+                      "expectancy_pct": 4.3807
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": -5.506,
+                  "median_pct": -2.0828,
+                  "trimmed_mean_pct": -2.6129,
+                  "profit_factor": -0.6717,
+                  "expectancy_pct": -3.6031
+                }
+              },
+              "60": {
+                "with": {
+                  "samples": 152,
+                  "win_rate_pct": 54.605,
+                  "median_pct": 4.1784,
+                  "trimmed_mean_pct": 4.5339,
+                  "profit_factor": 1.8012,
+                  "expectancy_pct": 4.8154,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 152,
+                      "win_rate_pct": 54.605,
+                      "median_pct": 3.9784,
+                      "trimmed_mean_pct": 4.3339,
+                      "profit_factor": 1.7565,
+                      "expectancy_pct": 4.6154
+                    },
+                    "50": {
+                      "samples": 152,
+                      "win_rate_pct": 54.605,
+                      "median_pct": 3.6784,
+                      "trimmed_mean_pct": 4.0339,
+                      "profit_factor": 1.6919,
+                      "expectancy_pct": 4.3154
+                    }
+                  }
+                },
+                "without": {
+                  "samples": 727,
+                  "win_rate_pct": 58.459,
+                  "median_pct": 3.3798,
+                  "trimmed_mean_pct": 8.0711,
+                  "profit_factor": 2.8755,
+                  "expectancy_pct": 9.8294,
+                  "cost_sensitivity": {
+                    "20": {
+                      "samples": 727,
+                      "win_rate_pct": 57.497,
+                      "median_pct": 3.1798,
+                      "trimmed_mean_pct": 7.8711,
+                      "profit_factor": 2.8082,
+                      "expectancy_pct": 9.6294
+                    },
+                    "50": {
+                      "samples": 727,
+                      "win_rate_pct": 56.671,
+                      "median_pct": 2.8798,
+                      "trimmed_mean_pct": 7.5711,
+                      "profit_factor": 2.7105,
+                      "expectancy_pct": 9.3294
+                    }
+                  }
+                },
+                "delta": {
+                  "win_rate_pct": -3.854,
+                  "median_pct": 0.7986,
+                  "trimmed_mean_pct": -3.5372,
+                  "profit_factor": -1.0743,
+                  "expectancy_pct": -5.014
+                }
+              }
+            }
+          }
+        },
+        "production_weight": 0,
+        "shadow_weight": -1,
+        "status": "freeze_for_unseen_forward",
+        "why_not_production": "selected after reviewing development and already-seen 2025/2026; requires events after 2026-08-29"
+      }
+    ]
+  },
   "case_cards": {
     "top_winners": [
       {
@@ -112698,11 +115572,11 @@
   "actions": {
     "new_candidates": {
       "retain_for_shadow": [],
-      "observe": [
+      "observe": [],
+      "reject": [
         "risk.ulcer_index_20",
         "volatility.squeeze_ratio_20"
       ],
-      "reject": [],
       "sample_insufficient": [
         "trend.kaufman_efficiency_20",
         "trend.regression_r2_60",
@@ -112718,15 +115592,14 @@
     },
     "existing_factors": {
       "retain_for_shadow": [],
-      "observe": [
+      "observe": [],
+      "reject": [
+        "qualification.pullback_60d",
         "risk.overhead_unfilled_gap",
         "structure.bullish_fvg_support",
         "structure.higher_low",
         "support.ema_proximity",
         "support.weekly_ema_proximity"
-      ],
-      "reject": [
-        "qualification.pullback_60d"
       ],
       "sample_insufficient": [
         "macd.monthly_bull_cross",
@@ -112754,6 +115627,15 @@
         "support.volume_profile_proxy",
         "volume.bottom_expansion",
         "volume.relative_expansion"
+      ]
+    },
+    "unseen_forward_hypotheses": {
+      "positive_observation": [
+        "momentum.connors_rsi_3_2_100",
+        "regime.choppiness_14"
+      ],
+      "risk_penalty_shadow": [
+        "volatility.squeeze_ratio_20"
       ]
     },
     "production_action": "none; any shadow challenger requires separate approval and model version"

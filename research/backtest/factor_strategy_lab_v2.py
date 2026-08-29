@@ -372,9 +372,9 @@ def candidate_study(rows: list[dict], pair_summary: dict) -> list[dict]:
         )
         enough = all(item["with"]["samples"] >= 50 for item in walkforward)
         matched = report.get("matched_control") or {}
-        matched_gap = matched.get("median_winner_minus_loser")
-        matched_aligned = _finite(matched_gap) and (
-            matched_gap > 0 if report["direction_from_discovery"] == "high" else matched_gap < 0
+        matched_rate = matched.get("winner_higher_rate")
+        matched_aligned = _finite(matched_rate) and (
+            matched_rate >= 0.55 if report["direction_from_discovery"] == "high" else matched_rate <= 0.45
         )
         cost_positive = sum(
             (item["with"].get("cost_sensitivity", {}).get("50", {}).get("expectancy_pct") or 0) > 0
@@ -384,7 +384,7 @@ def candidate_study(rows: list[dict], pair_summary: dict) -> list[dict]:
             verdict = "sample_insufficient"
         elif positive_windows >= 3 and matched_aligned and cost_positive and qvalue <= 0.10:
             verdict = "retain_for_shadow"
-        elif positive_windows >= 2 or matched_aligned:
+        elif positive_windows >= 3 and matched_aligned and qvalue <= 0.25:
             verdict = "observe"
         else:
             verdict = "reject"
@@ -445,11 +445,12 @@ def existing_factor_study(rows: list[dict], pair_summary: dict) -> list[dict]:
         )
         samples = [item["with"]["samples"] for item in walkforward]
         pair_gap = (report.get("matched_control") or {}).get("net_pair_rate_gap")
+        matched_aligned = _finite(pair_gap) and abs(pair_gap) >= 0.03 and pair_gap * sign > 0
         if any(sample < 50 for sample in samples):
             verdict = "sample_insufficient"
-        elif positive >= 3 and (pair_gap or 0) * sign > 0 and qvalue <= 0.10:
+        elif positive >= 3 and matched_aligned and qvalue <= 0.10:
             verdict = "retain_for_shadow"
-        elif positive >= 2 or (pair_gap or 0) * sign > 0:
+        elif positive >= 3 and matched_aligned and qvalue <= 0.25:
             verdict = "observe"
         else:
             verdict = "reject"
@@ -472,6 +473,68 @@ def existing_factor_study(rows: list[dict], pair_summary: dict) -> list[dict]:
             duplicate["provisional_weight"] = 0
             duplicate["verdict_note"] = "same-family factor lost the frozen one-per-family comparison"
     return output
+
+
+def unseen_forward_hypotheses(rows: list[dict]) -> dict:
+    """Generate bounded post-hoc hypotheses without relabeling them validation.
+
+    Both development-fitted tails are enumerated for every continuous candidate.
+    A tail is retained only when trimmed-mean and Profit-Factor deltas keep the
+    same sign in development, seen-2025 and seen-2026, with at least 100 hits in
+    every period.  The output is a future test queue, never a production action.
+    """
+    development = [row for row in rows if row["date"] <= "2024-12-31"]
+    seen_2025 = [row for row in rows if row["date"].startswith("2025-")]
+    seen_2026 = [row for row in rows if row["date"] >= "2026-01-01"]
+    period_rows = {
+        "development_2001_2024": development,
+        "seen_2025": seen_2025,
+        "seen_2026": seen_2026,
+    }
+    hypotheses = []
+    for candidate_id, meta in CANDIDATES.items():
+        values = [row["candidate_features"].get(candidate_id) for row in development]
+        values = [value for value in values if _finite(value)]
+        for tail, quantile in (("low", 0.20), ("high", 0.80)):
+            threshold = percentile(values, quantile)
+            if threshold is None:
+                continue
+            condition = lambda row, candidate_id=candidate_id, tail=tail, threshold=threshold: (
+                _finite(row["candidate_features"].get(candidate_id)) and
+                (row["candidate_features"][candidate_id] <= threshold if tail == "low"
+                 else row["candidate_features"][candidate_id] >= threshold)
+            )
+            periods = {name: _delta(period, condition) for name, period in period_rows.items()}
+            enough = all(item["with"]["samples"] >= 100 for item in periods.values())
+            trimmed = [item["delta"]["trimmed_mean_pct"] for item in periods.values()]
+            profit_factor = [item["delta"]["profit_factor"] for item in periods.values()]
+            direction = (
+                "positive" if enough and all(value > 0 for value in trimmed + profit_factor)
+                else "negative" if enough and all(value < 0 for value in trimmed + profit_factor)
+                else None
+            )
+            if direction is None:
+                continue
+            hypotheses.append({
+                "candidate_id": candidate_id,
+                "name_zh": meta["name_zh"],
+                "tail": tail,
+                "development_fitted_threshold": round(threshold, 6),
+                "direction": direction,
+                "periods": periods,
+                "production_weight": 0,
+                "shadow_weight": -1 if direction == "negative" else 0,
+                "status": "freeze_for_unseen_forward",
+                "why_not_production": "selected after reviewing development and already-seen 2025/2026; requires events after 2026-08-29",
+            })
+    return {
+        "role": "hypothesis_generation_only",
+        "selection_rule": "enumerate both development-fitted 20% tails; require same-sign trimmed-mean and PF deltas in development, seen-2025 and seen-2026; minimum 100 hits per period",
+        "selection_used_seen_periods": True,
+        "true_unseen_forward_starts_after": "2026-08-29",
+        "production_action": "none",
+        "items": hypotheses,
+    }
 
 
 def _percent_rank(values: list[float], current: float) -> float | None:
@@ -532,8 +595,9 @@ def aggregate(input_dir, out, detail_out=None) -> dict:
     candidates = candidate_study(primary, pair_report)
     existing = existing_factor_study(primary, pair_report)
     annual = [json.loads(path.read_text()) for path in sorted(pathlib.Path(input_dir).rglob("annual-*.json"))]
+    forward_hypotheses = unseen_forward_hypotheses(primary)
     report = {
-        "schema_version": "factor-strategy-lab-v2.0.0",
+        "schema_version": "factor-strategy-lab-v2.0.1",
         "experiment_id": EXPERIMENT_ID,
         "generated_at": datetime.now().astimezone().isoformat(),
         "event_gate": "exact completed daily MACD bullish cross plus archived long-trend qualification",
@@ -563,6 +627,7 @@ def aggregate(input_dir, out, detail_out=None) -> dict:
         "matched_control_summary": pair_report,
         "new_candidate_results": candidates,
         "existing_factor_results": existing,
+        "unseen_forward_hypotheses": forward_hypotheses,
         "case_cards": case_cards(primary, pairs),
         "actions": {
             "new_candidates": {
@@ -572,6 +637,16 @@ def aggregate(input_dir, out, detail_out=None) -> dict:
             "existing_factors": {
                 verdict: [item["factor_id"] for item in existing if item["verdict"] == verdict]
                 for verdict in ("retain_for_shadow", "observe", "reject", "sample_insufficient")
+            },
+            "unseen_forward_hypotheses": {
+                "positive_observation": [
+                    item["candidate_id"] for item in forward_hypotheses["items"]
+                    if item["direction"] == "positive"
+                ],
+                "risk_penalty_shadow": [
+                    item["candidate_id"] for item in forward_hypotheses["items"]
+                    if item["shadow_weight"] < 0
+                ],
             },
             "production_action": "none; any shadow challenger requires separate approval and model version",
         },

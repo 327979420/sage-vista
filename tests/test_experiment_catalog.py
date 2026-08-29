@@ -12,10 +12,11 @@ class ExperimentCatalogTests(unittest.TestCase):
   self.assertEqual(exit_score["status"],"pre_registered")
   self.assertEqual(exit_score["specification"]["score"]["bearish_body_engulfing"],2)
   factor_lab=next(x for x in catalog["experiments"] if x["experiment_id"]=="factor-strategy-lab-v2.0.0-2026-08-29")
-  self.assertEqual(factor_lab["status"],"pre_registered");self.assertEqual(factor_lab["specification"]["new_candidates"],12)
+  self.assertEqual(factor_lab["status"],"completed_research_only");self.assertEqual(factor_lab["specification"]["new_candidates"],12)
+  self.assertIn("No new or existing factor",factor_lab["result"])
 
  def test_every_experiment_has_lifecycle_and_plain_chinese_summary(self):
-  catalog=build();self.assertEqual(catalog["summary"]["completed"],22);self.assertEqual(catalog["summary"]["in_progress"],5)
+  catalog=build();self.assertEqual(catalog["summary"]["completed"],23);self.assertEqual(catalog["summary"]["in_progress"],4)
   for row in catalog["experiments"]:
    self.assertTrue(row["human_summary"]["title_zh"]);self.assertTrue(row["human_summary"]["use_zh"])
    self.assertTrue(row["lifecycle"]["registered_at"]);self.assertGreaterEqual(row["lifecycle"]["event_count"],1)

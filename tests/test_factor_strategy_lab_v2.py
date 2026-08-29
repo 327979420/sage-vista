@@ -85,6 +85,14 @@ class FactorStrategyLabV2Tests(unittest.TestCase):
             self.assertEqual(len(report["new_candidate_results"]), 12)
             self.assertGreater(report["coverage"]["matched_winner_loser_pairs"], 0)
             self.assertIn("new_candidates", report["actions"])
+            self.assertIn("unseen_forward_hypotheses", report)
+            self.assertEqual(report["unseen_forward_hypotheses"]["production_action"], "none")
+            for hypothesis in report["unseen_forward_hypotheses"]["items"]:
+                self.assertEqual(hypothesis["production_weight"], 0)
+                self.assertGreaterEqual(
+                    min(period["with"]["samples"] for period in hypothesis["periods"].values()),
+                    100,
+                )
             self.assertTrue(report["case_cards"]["top_winners"])
             self.assertTrue(output.exists())
             self.assertTrue(detail.exists())

@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-08-29T18:17:04+10:00",
+  "generated_at": "2026-08-29T18:38:09+10:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
@@ -8,8 +8,8 @@
   ],
   "experiment_count": 27,
   "summary": {
-    "completed": 22,
-    "in_progress": 5,
+    "completed": 23,
+    "in_progress": 4,
     "candidate": 9,
     "not_validated_or_unstable": 10
   },
@@ -24,9 +24,9 @@
     {
       "experiment_id": "factor-strategy-lab-v2.0.0-2026-08-29",
       "created_at": "2026-08-29T18:17:04+10:00",
-      "status": "pre_registered",
+      "status": "completed_research_only",
       "change": "Build a reusable factor laboratory that translates externally sourced factor formulas into Sage Vista pullback questions, evaluates existing and new factors against matched winner/loser controls, and proposes only family-capped shadow candidates without changing production scoring.",
-      "coverage": "Reused exact daily-MACD V2 annual events and restored historical price cache for 2000 warmup through 2026 seen-period review; future unseen forward begins after the 2026-08-29 candidate lock.",
+      "coverage": "62,040 point-in-time feature events from 2001-10-01 through 2026-08-28; 13,074 mature 120-session-deduplicated events; 1,013 annual winner/failure matched pairs; 27 annual checkpoints; 12 new candidates and 31 existing add-on factors.",
       "specification": {
         "event_gate": "exact completed daily MACD bullish cross plus archived long-trend qualification",
         "candidate_registry": "research/factor-candidates-v2.json",
@@ -62,11 +62,20 @@
         "industry": "unavailable historically without dated membership and never imputed"
       },
       "success_criteria": "A candidate can enter a separately approved shadow challenger only when at least three walk-forward windows align, matched-control direction agrees, BH-adjusted discovery evidence passes, 50bps outcomes remain useful, sample minimums pass and it wins its redundancy family. Historical results remain retrospective; production promotion requires newly accumulated unseen forward evidence.",
-      "result": "Pre-registered and implementation started. No factor conclusion or production weight change exists until the archived run completes.",
+      "result": "No new or existing factor reached retain_for_shadow under the preregistered joint standard. New candidates: 2 rejected and 10 sample-insufficient in early walk-forward windows; existing add-ons: 6 rejected and 25 sample-insufficient. Winner/failure matching again showed pullback and relative-volume tail enrichment but not stable general uplift. A separately labeled post-hoc queue froze low Connors RSI and high Choppiness as zero-weight observations and squeeze ratio >=1.6751 as a -1 future shadow risk hypothesis; all production weights remain unchanged.",
+      "artifacts": {
+        "compact_result": "research/backtest/output/factor-strategy-lab-v2.json",
+        "annual_artifacts": "GitHub Actions factor-strategy-lab-v2-2000 through factor-strategy-lab-v2-2026",
+        "detail_artifact": "GitHub Actions factor-strategy-lab-v2-complete/matched-pairs-detail.json.gz",
+        "workflow_run": "https://github.com/327979420/sage-vista/actions/runs/33243068600",
+        "implementation_commit": "cac9308",
+        "result_commit": "42f9bc9"
+      },
       "known_limitations": [
         "candidate definitions follow prior inspection of 2025/2026, so neither period is fresh validation",
         "matched controls reduce confounding but do not establish causality",
         "historical industry membership and complete delisted coverage are unavailable",
+        "2019 onward universe coverage expands materially",
         "event results are not a capital-constrained portfolio"
       ],
       "human_summary": {
@@ -74,19 +83,19 @@
         "family": "scoring",
         "family_zh": "策略优化",
         "question_zh": "成熟量化项目中的哪些趋势质量、回调伤害、价量和动能修复因子，能在Sage Vista的长期上涨＋MACD金叉门票后区分赢家与相似失败样本？",
-        "result_zh": "已预登记并完成可复用实现；历史运行尚未完成，因此目前没有因子可加权结论。",
-        "use_zh": "当前只把12个候选作为研究字段，生产37因子和模型1.3.0不变。",
-        "next_zh": "复用历史事件与价格缓存运行27个年度任务，生成配对对照、走步验证、案例卡和保留/观察/淘汰结论。",
-        "verdict": "pre_registered"
+        "result_zh": "62,040个特征事件、13,074个主去重成熟样本和1,013组赢家—失败配对完成。12个新候选和31个旧附加因子均未通过严格影子晋级门槛；最大赢家的回调与相对放量富集仍不能当作普遍加分。",
+        "use_zh": "不增加生产正向权重。未来只冻结一个-1风险影子假设：Squeeze比率>=1.6751；Connors RSI低尾和Choppiness高尾保持0分观察。",
+        "next_zh": "从2026-08-29之后积累真正未见事件，比较共同门票、当前1.3.0和Squeeze风险扣分挑战者；未达门槛则永久保持0。",
+        "verdict": "completed_research_only"
       },
       "lifecycle": {
         "registered_at": "2026-08-29T18:17:04+10:00",
-        "started_at": null,
-        "completed_at": null,
-        "latest_event": "registered",
-        "latest_event_at": "2026-08-29T18:17:04+10:00",
-        "time_source": "user_approved_local_preregistration",
-        "event_count": 1,
+        "started_at": "2026-08-29T18:24:21+10:00",
+        "completed_at": "2026-08-29T18:27:33+10:00",
+        "latest_event": "checkpoint",
+        "latest_event_at": "2026-08-29T18:38:09+10:00",
+        "time_source": "local_result_audit",
+        "event_count": 4,
         "events": [
           {
             "experiment_id": "factor-strategy-lab-v2.0.0-2026-08-29",
@@ -95,6 +104,38 @@
             "time_source": "user_approved_local_preregistration",
             "source_ref": "research/preregistrations/factor-strategy-lab-v2.md",
             "result": "Locked 12 externally sourced point-in-time candidates, matched-control covariates, retrospective walk-forward windows, seen-period labels, family caps and no-production-change boundary before the historical run."
+          },
+          {
+            "experiment_id": "factor-strategy-lab-v2.0.0-2026-08-29",
+            "event": "started",
+            "event_at": "2026-08-29T18:24:21+10:00",
+            "time_source": "github_actions",
+            "source_ref": "33243068600",
+            "result": "Started 27 annual point-in-time feature jobs from reused audited MACD events and the restored price cache; no market download or production score change."
+          },
+          {
+            "experiment_id": "factor-strategy-lab-v2.0.0-2026-08-29",
+            "event": "completed",
+            "event_at": "2026-08-29T18:27:33+10:00",
+            "time_source": "github_actions",
+            "source_ref": "33243068600",
+            "coverage": {
+              "feature_events": 62040,
+              "primary_deduplicated_mature_events": 13074,
+              "matched_winner_loser_pairs": 1013,
+              "annual_jobs": 27,
+              "new_candidates": 12,
+              "existing_factors": 31
+            },
+            "result": "No factor passed the preregistered retain-for-shadow standard. The reusable annual feature checkpoints, matched controls, case cards and compact result were archived; production scoring remains unchanged."
+          },
+          {
+            "experiment_id": "factor-strategy-lab-v2.0.0-2026-08-29",
+            "event": "checkpoint",
+            "event_at": "2026-08-29T18:38:09+10:00",
+            "time_source": "local_result_audit",
+            "source_ref": "research/backtest/output/factor-strategy-lab-v2.json",
+            "result": "Post-completion result audit tightened observation labels so immaterial matched differences cannot create a false positive. Added an explicitly post-hoc unseen-forward queue: low Connors RSI and high Choppiness at weight 0, high squeeze ratio as a -1 shadow risk hypothesis. No feature value or production rule changed."
           }
         ]
       }
