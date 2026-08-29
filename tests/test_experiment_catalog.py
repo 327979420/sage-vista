@@ -3,8 +3,8 @@ from services.scanner.experiment_catalog import build,render_summary
 
 class ExperimentCatalogTests(unittest.TestCase):
  def test_all_old_experiments_are_preserved_and_ids_are_unique(self):
-  catalog=build();self.assertEqual(catalog["experiment_count"],29)
-  self.assertEqual(len({x["experiment_id"] for x in catalog["experiments"]}),29)
+  catalog=build();self.assertEqual(catalog["experiment_count"],30)
+  self.assertEqual(len({x["experiment_id"] for x in catalog["experiments"]}),30)
   self.assertTrue(catalog["policy"]["append_only"]);self.assertTrue(catalog["policy"]["failed_results_preserved"])
   challenger=next(x for x in catalog["experiments"] if x["experiment_id"]=="timeframe-score-v3.0.0-2026-08-28")
   self.assertEqual(challenger["status"],"pre_registered")
@@ -19,9 +19,12 @@ class ExperimentCatalogTests(unittest.TestCase):
   mechanism=next(x for x in catalog["experiments"] if x["experiment_id"]=="choppiness-state-mechanism-v1.0.0-2026-08-29")
   self.assertEqual(mechanism["status"],"completed_research_only");self.assertEqual(mechanism["specification"]["primary_change"],"current Choppiness14 minus five trading sessions earlier")
   self.assertIn("high-falling/release candidate failed",mechanism["result"])
+  family_combo=next(x for x in catalog["experiments"] if x["experiment_id"]=="factor-family-return-combination-v1.0.0-2026-08-29")
+  self.assertEqual(family_combo["status"],"pre_registered");self.assertEqual(len(family_combo["specification"]["families"]),4)
+  self.assertEqual(family_combo["specification"]["primary_objective"],"50bps net 1% trimmed mean return")
 
  def test_every_experiment_has_lifecycle_and_plain_chinese_summary(self):
-  catalog=build();self.assertEqual(catalog["summary"]["completed"],25);self.assertEqual(catalog["summary"]["in_progress"],4)
+  catalog=build();self.assertEqual(catalog["summary"]["completed"],25);self.assertEqual(catalog["summary"]["in_progress"],5)
   for row in catalog["experiments"]:
    self.assertTrue(row["human_summary"]["title_zh"]);self.assertTrue(row["human_summary"]["use_zh"])
    self.assertTrue(row["lifecycle"]["registered_at"]);self.assertGreaterEqual(row["lifecycle"]["event_count"],1)
