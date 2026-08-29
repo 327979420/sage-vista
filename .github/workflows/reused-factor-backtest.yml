@@ -1,0 +1,126 @@
+name: Reused Event Pool Factor Backtest V2
+
+on:
+  workflow_dispatch:
+    inputs:
+      start_year:
+        description: First year; 2000 is indicator warmup only
+        required: true
+        default: "2000"
+      end_year:
+        description: Last year; 2026 is forward observation
+        required: true
+        default: "2026"
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: sage-vista-reused-factor-v2
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.years.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with: { python-version: "3.13" }
+      - name: Freeze inclusive annual work units
+        id: years
+        run: python3 -m research.backtest.reused_event_study_v2 matrix --start-year "${{ inputs.start_year }}" --end-year "${{ inputs.end_year }}" --github-output "$GITHUB_OUTPUT"
+
+  analyze-year:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        period: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-python@v7
+        with: { python-version: "3.13" }
+      - name: Restore the audited historical price cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            work/eodhd-cache
+            work/eodhd-active-common.json
+          key: eodhd-history-v1-${{ github.run_id }}
+          restore-keys: eodhd-history-v1-
+      - name: Require the reused cache; never download prices in this experiment
+        run: |
+          cache_files="$(find work/eodhd-cache -type f -name '*.json' | wc -l | tr -d ' ')"
+          if [ "$cache_files" -lt 1000 ]; then
+            echo "Historical cache is incomplete ($cache_files files); stopping instead of downloading or fabricating outcomes."
+            exit 1
+          fi
+      - name: Restore the archived full candidate pool for this year
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STUDY_YEAR: ${{ matrix.period.year }}
+        run: |
+          mkdir -p "work/reused-source/$STUDY_YEAR/parts"
+          if [ "$STUDY_YEAR" = "2026" ]; then
+            cp public/unified-v2-rankings.json "work/reused-source/$STUDY_YEAR/parts/unified-v2-2026.json"
+          else
+            source_artifact_name="unified-v2-research-$STUDY_YEAR-01-01-$STUDY_YEAR-12-31"
+            source_run_id="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=$source_artifact_name&per_page=100" --jq '.artifacts | map(select(.expired == false)) | sort_by(.created_at) | reverse | .[0].workflow_run.id')"
+            if [ -z "$source_run_id" ] || [ "$source_run_id" = "null" ]; then
+              echo "Missing non-expired source artifact: $source_artifact_name"
+              exit 1
+            fi
+            gh run download "$source_run_id" -n "$source_artifact_name" -D "work/reused-source/$STUDY_YEAR"
+            source_tarball="$(find "work/reused-source/$STUDY_YEAR" -type f -name '*.tar.gz' -print -quit)"
+            if [ -z "$source_tarball" ]; then
+              echo "Downloaded archive did not contain the expected weekly tarball."
+              exit 1
+            fi
+            tar -xzf "$source_tarball" -C "work/reused-source/$STUDY_YEAR/parts"
+          fi
+      - name: Join saved events to saved prices and archive each natural week
+        run: python3 -m research.backtest.reused_event_study_v2 year --parts-dir "work/reused-source/${{ matrix.period.year }}/parts" --cache-dir work/eodhd-cache --year "${{ matrix.period.year }}" --out-dir "work/reused-v2/${{ matrix.period.year }}"
+      - name: Validate the reused-event implementation
+        run: python3 -m unittest tests.test_reused_event_study_v2 tests.test_reused_factor_backtest_workflow
+      - name: Save natural-week checkpoints and annual audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: score-timeframe-attribution-v2-${{ matrix.period.year }}
+          path: work/reused-v2/${{ matrix.period.year }}
+          retention-days: 90
+
+  aggregate:
+    needs: analyze-year
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-python@v7
+        with: { python-version: "3.13" }
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: score-timeframe-attribution-v2-*
+          path: work/reused-v2-results
+      - name: Aggregate only after every requested year succeeds
+        run: python3 -m research.backtest.reused_event_study_v2 aggregate --input-dir work/reused-v2-results --out research/backtest/output/score-timeframe-attribution-v2.json
+      - name: Permanently preserve compact annual audit records
+        run: |
+          mkdir -p research/backtest/output/reused-v2/annual
+          find work/reused-v2-results -type f -name 'annual-*.json' -exec cp {} research/backtest/output/reused-v2/annual/ \;
+      - name: Validate the full repository before archiving results
+        run: python3 -m unittest discover -s tests -p 'test_*.py'
+      - name: Commit the compact complete result; detailed weeks remain artifacts
+        run: |
+          git config user.name "sage-vista-bot"
+          git config user.email "sage-vista-bot@users.noreply.github.com"
+          git pull --rebase origin main
+          git add research/backtest/output/score-timeframe-attribution-v2.json research/backtest/output/reused-v2/annual
+          git diff --cached --quiet && exit 0
+          git commit -m "research: archive reused event-pool factor study v2"
+          git push origin HEAD:main

@@ -1,15 +1,15 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-08-29T10:06:00+10:00",
+  "generated_at": "2026-08-29T12:16:00+10:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 24,
+  "experiment_count": 25,
   "summary": {
     "completed": 20,
-    "in_progress": 4,
+    "in_progress": 5,
     "candidate": 9,
     "not_validated_or_unstable": 8
   },
@@ -21,6 +21,107 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "score-timeframe-attribution-v2.0.0-2026-08-29",
+      "created_at": "2026-08-29T12:15:00+10:00",
+      "status": "in_progress",
+      "change": "Reuse the complete saved daily-MACD candidate pool and historical price cache to test score monotonicity, full technical-factor base-rate attribution, exact completed-week MACD crosses, frozen timeframe scorers and three predeclared cross-family B-factor pairs without changing production scoring.",
+      "coverage": "2000 warmup; 2001-2024 development; 2025 independent validation; 2026 forward observation; reuse 57,271 archived 2000-2025 candidates, 1,379 natural-week checkpoints and the saved 2026 candidate pool.",
+      "specification": {
+        "event_gate": "exact completed daily MACD bullish cross",
+        "technical_primary": "market and industry remain separate stratification layers",
+        "entry": "next adjusted open",
+        "holding_days": [
+          5,
+          10,
+          15,
+          20,
+          40,
+          60,
+          100,
+          120
+        ],
+        "primary_factor_horizon_sessions": 20,
+        "score_controls": [
+          "archived current technical score",
+          "equal timeframe points",
+          "V3 daily 1.0 / completed weekly 1.5 / completed monthly 2.0"
+        ],
+        "high_score": "daily midrank quintiles, with exact score sensitivity",
+        "winner": "fixed-horizon raw return >0",
+        "high_return": "top decile within period and horizon; absolute >=10% sensitivity",
+        "overlap_primary": "first event per ticker within 120 trading sessions",
+        "overlap_sensitivity": "all events",
+        "factor_minimum_samples": {
+          "development": 300,
+          "validation_2025": 100
+        },
+        "pair_minimum_samples": {
+          "development": 200,
+          "validation_2025": 75
+        },
+        "multiple_testing": "Benjamini-Hochberg FDR",
+        "frozen_pairs": [
+          [
+            "volume.bottom_expansion",
+            "structure.bottom_bullish_engulfing"
+          ],
+          [
+            "volume.bottom_expansion",
+            "risk.overhead_unfilled_gap"
+          ],
+          [
+            "structure.bottom_bullish_engulfing",
+            "risk.overhead_unfilled_gap"
+          ]
+        ],
+        "checkpoint": "natural week plus annual compressed artifact"
+      },
+      "success_criteria": "Effective factors must show same-direction robust uplift in development, 2025 and 2026, meet frozen samples and BH control, remain positive after 20/50bps and not depend on outliers. A pair must beat the total baseline and both constituent factors.",
+      "result": "Running from reused archived events and cache. Production score and execution remain unchanged.",
+      "known_limitations": [
+        "historical delisted and ticker-change coverage remains partial",
+        "2019 onward universe coverage expands materially",
+        "2026 60/100/120-session outcomes may be immature",
+        "daily OHLCV and corporate-action adjustments require outlier audits",
+        "overlapping events are handled by frozen primary deduplication and all-event sensitivity"
+      ],
+      "human_summary": {
+        "title_zh": "完整事件池评分、周期与因子归因V2",
+        "family": "scoring",
+        "family_zh": "评分与因子",
+        "question_zh": "完整MACD候选池中，分数是否单调，哪些技术因子、完整周月线证据和少量B级组合能跨时期增加收益？",
+        "result_zh": "正在复用57,271个历史候选、1,379个周检查点、逐日2026候选池和既有价格缓存运行；尚无新结论，生产评分不变。",
+        "use_zh": "等待完整开发、2025独立验证和2026前向结果，不使用运行中的临时赢家调整权重。",
+        "next_zh": "逐年并行补齐八个持有窗口，按周留档后统一执行去重、基础出现率、BH校正和组合增量检验。",
+        "verdict": "in_progress"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-29T12:15:00+10:00",
+        "started_at": "2026-08-29T12:16:00+10:00",
+        "completed_at": null,
+        "latest_event": "started",
+        "latest_event_at": "2026-08-29T12:16:00+10:00",
+        "time_source": "implementation",
+        "event_count": 2,
+        "events": [
+          {
+            "experiment_id": "score-timeframe-attribution-v2.0.0-2026-08-29",
+            "event": "registered",
+            "event_at": "2026-08-29T12:15:00+10:00",
+            "time_source": "user_approval",
+            "source_ref": "CR-2026-08-28-005"
+          },
+          {
+            "experiment_id": "score-timeframe-attribution-v2.0.0-2026-08-29",
+            "event": "started",
+            "event_at": "2026-08-29T12:16:00+10:00",
+            "time_source": "implementation",
+            "source_ref": "research/preregistrations/score-timeframe-attribution-v2.md"
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "evidence-calibrated-daily-score-v1.0.0-2026-08-29",
       "created_at": "2026-08-29T10:00:00+10:00",
@@ -1562,6 +1663,7 @@
     "research-v0.4.0-2026-08-17",
     "research-v0.5.0-2026-08-18",
     "score-monotonicity-factor-attribution-v1.0.0-2026-08-29",
+    "score-timeframe-attribution-v2.0.0-2026-08-29",
     "timeframe-score-v3.0.0-2026-08-28",
     "tracker-backtest-v1-2026-08-25",
     "trailing-stop-v0.1.0-2026-08-29"
