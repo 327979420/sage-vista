@@ -766,7 +766,9 @@ def build_report(candidates, as_of):
         for item in rows
         if item.get("mechanism_profile", {}).get("status") in {"near_match", "blocked_near_match"}
     ]
-    near_matches = near_match_rows[:18]
+    clear_near_matches = [item for item in near_match_rows if item["mechanism_profile"]["status"] == "near_match"]
+    blocked_near_matches = [item for item in near_match_rows if item["mechanism_profile"]["status"] == "blocked_near_match"]
+    near_matches = clear_near_matches[:12] + blocked_near_matches[:6]
     selected_symbols = {item["symbol"] for item in selected}
     for reference in references:
         if reference["symbol"] not in selected_symbols:

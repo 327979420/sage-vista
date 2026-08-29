@@ -113,6 +113,7 @@ class FavoritePatternTrackerTests(unittest.TestCase):
         base = {"available": True, "pattern_version": PATTERN_VERSION, "match_count": 4, "total_conditions": 7, "stage": "waiting_breakout", "stage_zh": "等待突破", "conditions": conditions}
         candidates = [
             {"symbol": "XYZ", "price": 10, "dollar_volume": 20_000_000, "favorite_pattern": {**base, "match_count": 6, "stage": "breakout_incomplete", "stage_zh": "已突破但条件不完整"}},
+            {"symbol": "BLOCK", "price": 15, "dollar_volume": 25_000_000, "favorite_pattern": {**base, "match_count": 7, "stage": "risk_blocked", "stage_zh": "风险否决", "conditions": [{**item, "hit": True} for item in conditions], "risk_gate": {"blocked": True, "reasons_zh": ["测试风险"]}}},
             {"symbol": "READY", "price": 20, "dollar_volume": 30_000_000, "favorite_pattern": {**base, "match_count": 7, "stage": "entry_ready", "stage_zh": "入场就绪", "conditions": [{**item, "hit": True} for item in conditions]}},
             {"symbol": "BABA", "price": 120, "dollar_volume": 200_000_000, "favorite_pattern": {**base, "match_count": 2, "stage": "discovery", "stage_zh": "早期发现"}},
         ]
@@ -122,9 +123,10 @@ class FavoritePatternTrackerTests(unittest.TestCase):
         self.assertEqual(report["summary"]["breakout_incomplete"], 1)
         self.assertEqual(report["generalization_version"], GENERALIZATION_VERSION)
         self.assertEqual([row["symbol"] for row in report["entry_ready_candidates"]], ["READY"])
-        self.assertEqual([row["symbol"] for row in report["near_matches"]], ["XYZ"])
+        self.assertEqual([row["symbol"] for row in report["near_matches"]], ["XYZ", "BLOCK"])
         self.assertEqual(report["near_matches"][0]["mechanism_profile"]["status"], "near_match")
         self.assertEqual(report["near_matches"][0]["mechanism_profile"]["missing"][0]["label"], "机制7")
+        self.assertEqual(report["near_matches"][1]["mechanism_profile"]["status"], "blocked_near_match")
         self.assertFalse(report["generalization_policy"]["examples_are_templates"])
         self.assertEqual(report["generalization_policy"]["legacy_only_cases"], ["PG"])
         references = {row["symbol"]: row for row in report["reference_cases"]}
