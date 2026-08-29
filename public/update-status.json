@@ -11,7 +11,7 @@
   "signal_history_as_of": "2026-08-28",
   "data_dates_match": true,
   "future_data_used": false,
-  "last_successful_update_at": "2026-08-29T12:11:28.516964+00:00",
+  "last_successful_update_at": "2026-08-29T12:45:01.307515+00:00",
   "trigger_source": "manual",
   "checks": {
     "provider_date_exact": true,
@@ -19,6 +19,7 @@
     "completed_bars_only": true,
     "production_outputs_published_atomically": true,
     "signal_history_append_only": true,
-    "macd_trigger_first": true
+    "macd_trigger_first": true,
+    "favorite_pattern_tracker": true
   }
 }
