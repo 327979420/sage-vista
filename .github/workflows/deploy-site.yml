@@ -64,7 +64,7 @@ jobs:
         run: |
           for attempt in 1 2 3 4 5; do
             page=$(curl --fail --silent --show-error "$PRODUCTION_SITE_URL?deployment=$GITHUB_SHA" || true)
-            if printf '%s' "$page" | grep -q 'Sage Vista UI v5.7'; then break; fi
+            if printf '%s' "$page" | grep -Fq "Build ${GITHUB_SHA:0:7}"; then break; fi
             if [ "$attempt" = "5" ]; then exit 1; fi
             sleep 6
           done

@@ -42,7 +42,7 @@ class DailyEodWorkflowTests(unittest.TestCase):
   self.assertIn("push:",text);self.assertIn('"app/**"',text);self.assertIn('"research/**"',text)
   self.assertIn("services.scanner.experiment_catalog",text);self.assertIn("docs/EXPERIMENT_SUMMARY_ZH.md",text)
   self.assertIn("services.scanner.project_status",text);self.assertIn("docs/CURRENT_STATUS_ZH.md",text)
-  self.assertIn("Sage Vista UI v5.7",text)
+  self.assertIn('Build ${GITHUB_SHA:0:7}',text)
   self.assertIn("live experiment catalog mismatch",text)
   self.assertIn("live backtest progress mismatch",text)
  def test_historical_backfill_is_isolated_from_daily_delivery(self):
