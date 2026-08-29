@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-08-29T20:51:40+10:00",
+  "generated_at": "2026-08-29T21:06:38+10:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
@@ -8,8 +8,8 @@
   ],
   "experiment_count": 30,
   "summary": {
-    "completed": 25,
-    "in_progress": 5,
+    "completed": 26,
+    "in_progress": 4,
     "candidate": 10,
     "not_validated_or_unstable": 11
   },
@@ -24,9 +24,9 @@
     {
       "experiment_id": "factor-family-return-combination-v1.0.0-2026-08-29",
       "created_at": "2026-08-29T20:51:40+10:00",
-      "status": "pre_registered",
+      "status": "completed_research_only",
       "change": "Reuse existing technical evidence by consolidating it into four non-duplicative role families, then search a frozen 15-combination surface for the highest 20-session cost-adjusted return while testing the selection process out of sample inside development history.",
-      "coverage": "Planned reuse of 62,040 point-in-time feature events and 27 annual checkpoints from 2001-10-01 through 2026-08-28; no market download or gate rebuild.",
+      "coverage": "62,040 point-in-time feature events from 27 annual checkpoints; 13,074 mature 120-session-deduplicated events split into 10,013 development, 1,895 seen-2025 and 1,166 seen-2026 events; no market download or gate rebuild.",
       "specification": {
         "event_gate": "exact completed daily MACD bullish cross plus archived long-trend qualification",
         "families": [
@@ -66,10 +66,14 @@
         "industry_market": "separate and excluded"
       },
       "success_criteria": "A robust historical candidate needs at least 300 pooled walk-forward test events, positive return uplift in at least three folds, no year above 30% of its sample, BH q<=0.10, and higher 20-session 50bps trimmed return and PF than the common gate, the miss group and every constituent single family. A simple return champion that misses any gate is historical_return_winner_only and cannot change scoring.",
-      "decision": "Pending run. Production model 1.3.0 and the 37-factor registry remain unchanged.",
+      "result": "The highest sufficiently sampled historical-return combination was support_location+controlled_pullback. Across pooled 2013-2024 rolling tests it had 2,556 events, 53.834% win rate, 0.8066% median return, 0.6433% 1%-trimmed return, 1.192 PF and 0.6527% expectancy after 50bps, versus the common gate's 51.837%, 0.3600%, 0.2303%, 1.0823 and 0.3112%. It beat the gate on trimmed return in three of four folds and max-year share was 23.94%, but BH q was 0.527429 and it did not meet the constituent-single-family requirement. In seen-2025 its trimmed return/PF were -0.1320%/1.0629 versus the gate's +0.4647%/1.2134; seen-2026 was mixed and not superior across win rate, median and expectancy.",
+      "decision": "Classify support_location+controlled_pullback as historical_return_winner_only and an optional human observation label. Production weight remains 0; do not add it to scoring, expand positions, modify the 37-factor registry, or alter stops/exits.",
       "artifacts": {
         "preregistration": "research/preregistrations/factor-family-return-combination-v1.md",
-        "planned_result": "research/backtest/output/factor-family-return-combination-v1.json"
+        "implementation": "research/backtest/factor_family_return_combination_v1.py",
+        "compact_result": "research/backtest/output/factor-family-return-combination-v1.json",
+        "website_payload": "public/factor-family-combination.json",
+        "implementation_commit": "1ca6449"
       },
       "known_limitations": [
         "2025 and 2026 are already seen and cannot validate selection",
@@ -83,19 +87,19 @@
         "family": "scoring",
         "family_zh": "策略优化",
         "question_zh": "把重复技术指标合并成职责家族后，哪个单家族或组合的20日扣成本收益最高，并能在滚动留出中保持？",
-        "result_zh": "已预登记，正在复用历史事件池计算；当前还没有可以加入评分的组合结论。",
-        "use_zh": "结果完成前继续使用共同门票与现有生产模型，不按临时历史冠军买入。",
-        "next_zh": "运行15个冻结组合，比较门票、未命中、组成单家族和匹配对照，再决定是否建立零权重前向候选。",
-        "verdict": "pre_registered"
+        "result_zh": "历史收益冠军是支撑位置＋可控回调：2013—2024滚动测试20日扣50bps去极值收益0.64%，共同门票0.23%，但BH q=0.527且已见2025为-0.13%而门票为+0.46%，未通过稳健门槛。",
+        "use_zh": "只把回落到支撑且回调可控当人工观察标签；生产权重0，不能自动加分、扩大仓位或称为已验证策略。",
+        "next_zh": "保留完整15组合与年度档案；若继续研究须新建机制实验，真正未见数据不得沿用本轮历史冠军反复调参。",
+        "verdict": "historical_return_winner_only"
       },
       "lifecycle": {
         "registered_at": "2026-08-29T20:51:40+10:00",
-        "started_at": null,
-        "completed_at": null,
-        "latest_event": "registered",
-        "latest_event_at": "2026-08-29T20:51:40+10:00",
-        "time_source": "user_approved_local_preregistration",
-        "event_count": 1,
+        "started_at": "2026-08-29T21:00:11+10:00",
+        "completed_at": "2026-08-29T21:06:38+10:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-08-29T21:06:38+10:00",
+        "time_source": "local_reuse_of_archived_annual_features",
+        "event_count": 3,
         "events": [
           {
             "experiment_id": "factor-family-return-combination-v1.0.0-2026-08-29",
@@ -104,6 +108,30 @@
             "time_source": "user_approved_local_preregistration",
             "source_ref": "research/preregistrations/factor-family-return-combination-v1.md",
             "result": "Frozen four role families, all 15 non-empty combinations, a 20-session 50bps trimmed-return objective, rolling train/test windows, sample and annual concentration guards, BH correction, constituent-family controls and a zero-production-weight ceiling before calculation."
+          },
+          {
+            "experiment_id": "factor-family-return-combination-v1.0.0-2026-08-29",
+            "event": "started",
+            "event_at": "2026-08-29T21:00:11+10:00",
+            "time_source": "local_reuse_of_archived_annual_features",
+            "source_ref": "research/backtest/factor_family_return_combination_v1.py",
+            "result": "Started the frozen 15-combination calculation from 27 already archived annual point-in-time feature checkpoints; no market download, gate rebuild or production score change."
+          },
+          {
+            "experiment_id": "factor-family-return-combination-v1.0.0-2026-08-29",
+            "event": "completed",
+            "event_at": "2026-08-29T21:06:38+10:00",
+            "time_source": "local_reuse_of_archived_annual_features",
+            "source_ref": "research/backtest/output/factor-family-return-combination-v1.json",
+            "coverage": {
+              "feature_events": 62040,
+              "primary_events": 13074,
+              "development": 10013,
+              "seen_2025": 1895,
+              "seen_2026": 1166,
+              "annual_checkpoints": 27
+            },
+            "result": "Support location plus controlled pullback was the adequately sampled historical return winner, but it failed BH and constituent-family robustness and underperformed the common gate in seen-2025. It remains a human observation label with production weight 0; scoring, factor registry, stops and exits did not change."
           }
         ]
       }

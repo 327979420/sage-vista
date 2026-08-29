@@ -5,6 +5,7 @@ from research.backtest.factor_family_return_combination_v1 import (
     analyze_rows,
     family_flags,
     fit_thresholds,
+    public_payload,
 )
 
 
@@ -99,6 +100,10 @@ class FactorFamilyReturnCombinationTests(unittest.TestCase):
         self.assertEqual(report["decision"]["production_weight"], 0)
         self.assertFalse(report["audit"]["2025_2026_used_for_selection"])
         self.assertIsNone(report["not_applicable_execution_metrics"]["mfe"])
+        public = public_payload(report)
+        self.assertFalse(public["production_scoring_changed"])
+        self.assertEqual(public["candidate"]["production_weight"], 0)
+        self.assertIn("rolling_test", public["candidate"])
 
 
 if __name__ == "__main__":

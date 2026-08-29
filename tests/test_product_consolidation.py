@@ -21,6 +21,7 @@ class ProductConsolidationTests(unittest.TestCase):
    "resonance-tracker.json":"app/zh/watch/resonance/tracker-ui.tsx",
    "daily-factor-snapshot.json":"app/zh/watch/resonance/rare-opportunities/page.tsx",
    "factor-effectiveness.json":"app/zh/watch/resonance/rare-opportunities/page.tsx",
+   "factor-family-combination.json":"app/zh/watch/resonance/rare-opportunities/page.tsx",
    "unified-v2-rankings.json":"app/zh/watch/resonance/rare-opportunities/page.tsx",
    "opportunity-ledger.json":"app/zh/watch/resonance/rare-opportunities/page.tsx",
    "industry-radar.json":"app/zh/watch/industry-radar/page.tsx",

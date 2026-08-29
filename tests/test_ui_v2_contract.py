@@ -25,7 +25,7 @@ class UiV2ContractTests(unittest.TestCase):
   self.assertFalse((ROOT/"app/zh/watch/resonance/macd/page.tsx").exists())
   text=(ROOT/"app/zh/watch/resonance/rare-opportunities/page.tsx").read_text()
   profile=(ROOT/"app/zh/watch/resonance/rare-opportunities/timeframe-profile.tsx").read_text()
-  for label in ("WHY IT RANKS HERE","RISK PLAN","TimeframeProfilePanel","37个因子，现在分别怎么处理","factorFamilyLegend","统一机会账本"):
+  for label in ("WHY IT RANKS HERE","RISK PLAN","TimeframeProfilePanel","37个因子，现在分别怎么处理","factorFamilyLegend","统一机会账本","ROLE-FAMILY RETURN TEST","生产权重"):
    self.assertIn(label,text)
   for retired in ("旧系统历史机会参考","统一因子库","股票技术证据查询","旧评分兼容观察","查看当前动态观察评分规则","/research-opportunity-pool.json","/rare-opportunity-radar.json","/signal-history.json","/factor-registry.json"):
    self.assertNotIn(retired,text)
@@ -34,6 +34,11 @@ class UiV2ContractTests(unittest.TestCase):
    self.assertNotIn(retired_selector,styles)
   factor_view=json.loads((ROOT/"public/factor-effectiveness.json").read_text())
   self.assertEqual([factor_view["quadrants"][key]["label_zh"] for key in factor_view["quadrant_order"]],["正在使用","候选观察","暂停加权","准备弃用"])
+  family_combo=json.loads((ROOT/"public/factor-family-combination.json").read_text())
+  self.assertFalse(family_combo["production_scoring_changed"])
+  self.assertEqual(family_combo["candidate"]["production_weight"],0)
+  self.assertEqual(family_combo["candidate"]["verdict"],"historical_return_winner_only")
+  self.assertLess(family_combo["candidate"]["periods"]["seen_2025"]["hit"]["trimmed_mean_pct"],family_combo["candidate"]["periods"]["seen_2025"]["baseline"]["trimmed_mean_pct"])
   self.assertNotIn("旧系统因子实验",text)
   for label in ("周线","月线","不是建议持仓天数","不改变当前 V2 排名"):
    self.assertIn(label,profile)

@@ -374,9 +374,11 @@ def analyze_rows(rows: list[dict]) -> dict:
             result["training_eligible"] = _eligible_training(result, hit)
             train_candidates.append(result)
         eligible_candidates = [row for row in train_candidates if row["training_eligible"]]
-        selected = max(eligible_candidates or train_candidates, key=_sort_key)
-        selected_combo = tuple(selected["families"])
-        selected_test, _, _ = evaluate_combo(tagged_test, selected_combo)
+        selected = max(eligible_candidates, key=_sort_key) if eligible_candidates else None
+        selected_test = None
+        if selected:
+            selected_combo = tuple(selected["families"])
+            selected_test, _, _ = evaluate_combo(tagged_test, selected_combo)
 
         test_results = {}
         for combo in COMBINATIONS:
@@ -396,6 +398,7 @@ def analyze_rows(rows: list[dict]) -> dict:
             "thresholds": thresholds,
             "selected_training_winner": selected,
             "selected_test_result": selected_test,
+            "selection_status": "selected" if selected else "no_training_combination_passed",
         })
 
     pooled_table = []
@@ -485,13 +488,24 @@ def analyze_rows(rows: list[dict]) -> dict:
     }
     adaptive_test_rows = []
     for fold in fold_reports:
-        adaptive_test_rows.append({
-            "fold_id": fold["fold_id"],
-            "selected_combination_id": fold["selected_training_winner"]["combination_id"],
-            "selected_test_hit": fold["selected_test_result"]["hit"],
-            "selected_test_baseline": fold["selected_test_result"]["baseline"],
-            "selected_test_delta": fold["selected_test_result"]["net_50bps_delta_vs_baseline"],
-        })
+        if fold["selected_training_winner"]:
+            adaptive_test_rows.append({
+                "fold_id": fold["fold_id"],
+                "selection_status": "selected",
+                "selected_combination_id": fold["selected_training_winner"]["combination_id"],
+                "selected_test_hit": fold["selected_test_result"]["hit"],
+                "selected_test_baseline": fold["selected_test_result"]["baseline"],
+                "selected_test_delta": fold["selected_test_result"]["net_50bps_delta_vs_baseline"],
+            })
+        else:
+            adaptive_test_rows.append({
+                "fold_id": fold["fold_id"],
+                "selection_status": "no_training_combination_passed",
+                "selected_combination_id": None,
+                "selected_test_hit": None,
+                "selected_test_baseline": None,
+                "selected_test_delta": None,
+            })
 
     verdict = "zero_weight_forward_candidate" if robust else "historical_return_winner_only"
     return {
@@ -508,6 +522,7 @@ def analyze_rows(rows: list[dict]) -> dict:
             "development_events": len(period_rows["retrospective_development_2001_2024"]),
             "seen_2025_events": len(period_rows["seen_2025"]),
             "seen_2026_events": len(period_rows["seen_2026"]),
+            "annual_event_years": len({row["date"][:4] for row in rows}),
             "annual_checkpoints_reused": len({row["date"][:4] for row in rows}),
         },
         "family_definitions": {
@@ -581,11 +596,69 @@ def analyze_rows(rows: list[dict]) -> dict:
     }
 
 
-def run(input_dir: str, out: str) -> dict:
+def public_payload(report: dict) -> dict:
+    winner = report["historical_return_winner"]
+    rolling = winner["rolling_test_result"]
+    periods = {}
+    for period, item in report["final_candidate_periods"].items():
+        periods[period] = {
+            "hit": item["hit"]["net_50bps"],
+            "baseline": item["baseline"]["net_50bps"],
+            "miss": item["miss"]["net_50bps"],
+            "delta_vs_baseline": item["net_50bps_delta_vs_baseline"],
+            "matched_trimmed_mean_delta_pct": item["matched_control_20d"]["trimmed_mean_return_difference_pct"],
+            "matched_p": item["matched_control_20d"]["mean_return_difference_p"],
+        }
+    return {
+        "schema_version": "factor-family-combination-public-v1.0.0",
+        "experiment_id": report["experiment_id"],
+        "generated_at": report["generated_at"],
+        "production_scoring_changed": False,
+        "coverage": report["coverage"],
+        "candidate": {
+            "combination_id": winner["combination_id"],
+            "family_labels_zh": winner["family_labels_zh"],
+            "verdict": report["decision"]["verdict"],
+            "verdict_zh": (
+                "通过历史门槛，等待真正前向"
+                if report["decision"]["eligible_for_true_unseen_forward"]
+                else "仅是历史收益冠军，不能加入评分"
+            ),
+            "production_weight": 0,
+            "rolling_test": {
+                "samples": rolling["hit"]["net_50bps"]["samples"],
+                "hit": rolling["hit"]["net_50bps"],
+                "baseline": rolling["baseline"]["net_50bps"],
+                "delta_vs_baseline": rolling["net_50bps_delta_vs_baseline"],
+                "positive_folds": rolling["positive_test_folds_vs_baseline"],
+                "total_folds": len(FOLDS),
+                "bh_q": rolling["hit_vs_miss_bh_q"],
+                "max_year_share": rolling["year_concentration"]["max_year_share"],
+                "passes_robust_gate": rolling["passes_robust_gate"],
+            },
+            "periods": periods,
+        },
+        "plain_conclusion_zh": (
+            "“支撑位置＋可控回调”是本轮20日扣50bps收益最高且样本充足的组合；"
+            "滚动测试稳健收益比共同门票高，但多重比较未通过，且2025已见期明显落后，"
+            "所以只记录为历史收益冠军，生产权重仍为0。"
+        ),
+        "how_to_use_zh": "继续把长期趋势＋日线MACD刚金叉作为门票；支撑＋可控回调可作人工观察标签，但不能据此自动加分或扩大仓位。",
+        "true_unseen_forward_starts_after": "2026-08-29",
+    }
+
+
+def run(input_dir: str, out: str, public_out: str | None = None) -> dict:
+    source_paths = sorted(pathlib.Path(input_dir).rglob("factor-lab-events-*.jsonl.gz"))
     report = analyze_rows(_load_rows(input_dir))
+    report["coverage"]["annual_checkpoints_reused"] = len(source_paths)
     target = pathlib.Path(out)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
+    if public_out:
+        public_target = pathlib.Path(public_out)
+        public_target.parent.mkdir(parents=True, exist_ok=True)
+        public_target.write_text(json.dumps(public_payload(report), ensure_ascii=False, indent=2) + "\n")
     return report
 
 
@@ -593,8 +666,9 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input-dir", required=True)
     parser.add_argument("--out", required=True)
+    parser.add_argument("--public-out")
     args = parser.parse_args()
-    report = run(args.input_dir, args.out)
+    report = run(args.input_dir, args.out, args.public_out)
     print(json.dumps({
         "coverage": report["coverage"],
         "historical_return_winner": report["historical_return_winner"]["combination_id"],
