@@ -120,6 +120,8 @@ class ReusedEventStudyV2Tests(unittest.TestCase):
             result = aggregate(folder, out)
             self.assertEqual(result["coverage"]["all_events"], 1)
             self.assertEqual(result["coverage"]["period_events"]["validation_2025"], 1)
+            self.assertEqual(result["coverage"]["natural_week_checkpoints"], 0)
+            self.assertEqual(result["coverage"]["natural_weeks_with_events"], 1)
             self.assertTrue(out.exists())
 
 

@@ -177,6 +177,8 @@ def enrich_year(parts_dir, cache_dir, year, out_dir):
     model_versions, registry_versions = set(), set()
 
     for day in days:
+        # Preserve every source natural week, including weeks with zero events.
+        weeks.setdefault(_week(day["date"]), [])
         model_versions.add(day.get("model_version"))
         registry_versions.add(day.get("factor_registry_version"))
         for candidate in day.get("candidate_pool", []):
@@ -192,6 +194,10 @@ def enrich_year(parts_dir, cache_dir, year, out_dir):
             exact_daily = day["date"] in series.daily_cross_dates
             if not exact_daily:
                 daily_gate_mismatches += 1
+                # The pre-registered ticket is an exact completed daily cross.
+                # Cache revisions can reveal an old archived event that no
+                # longer reproduces; retain its audit count but never analyse it.
+                continue
             weekly_cross, monthly_cross = series.higher_timeframe_crosses(day["date"])
             archived_factors = _dependency_safe_factors(candidate.get("hit_factor_ids", []))
             if weekly_cross:
@@ -199,6 +205,11 @@ def enrich_year(parts_dir, cache_dir, year, out_dir):
             archived_monthly = "macd.monthly_bull_cross" in archived_factors
             if archived_monthly != monthly_cross:
                 monthly_audit_mismatches += 1
+            # The exact completed-month calculation is authoritative for this
+            # migration experiment; the archived bit remains in the audit.
+            archived_factors = [factor for factor in archived_factors if factor != "macd.monthly_bull_cross"]
+            if monthly_cross:
+                archived_factors.append("macd.monthly_bull_cross")
             factors = sorted(set(archived_factors))
             for factor in factors:
                 factor_counts[factor] += 1
@@ -256,6 +267,7 @@ def enrich_year(parts_dir, cache_dir, year, out_dir):
             "natural_week_checkpoints": len(weeks),
             "source_candidates": source_candidates,
             "events_joined_to_price_cache": with_price,
+            "audited_gate_events": with_price - daily_gate_mismatches,
             "missing_price_events": source_candidates - with_price,
             "mature_outcomes": mature,
         },
@@ -569,7 +581,8 @@ def aggregate(input_dir, out):
             "end": max(row["date"] for row in all_events),
             "all_events": len(all_events),
             "primary_120_session_deduplicated_events": len(primary),
-            "natural_week_checkpoints": len({_week(row["date"]) for row in all_events}),
+            "natural_week_checkpoints": sum(item["coverage"]["natural_week_checkpoints"] for item in annual),
+            "natural_weeks_with_events": len({_week(row["date"]) for row in all_events}),
             "annual_summaries": len(annual),
             "period_events": {period: sum(row["period"] == period for row in all_events) for period, _, _ in PERIODS},
             "primary_period_events": {period: sum(row["period"] == period for row in primary) for period, _, _ in PERIODS},
