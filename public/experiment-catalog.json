@@ -6,10 +6,10 @@
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 34,
+  "experiment_count": 35,
   "summary": {
     "completed": 26,
-    "in_progress": 8,
+    "in_progress": 9,
     "candidate": 10,
     "not_validated_or_unstable": 11
   },
@@ -101,6 +101,78 @@
             "time_source": "first_full_market_output_audit",
             "source_ref": "33266251051",
             "result": "The first full-market report preserved the exact 24 V2 entry-ready symbols and removed PG from V2 references, but all 18 displayed near-match slots were occupied by blocked risk examples. Display contract 1.0.1 reserves 12 slots for clear near matches and six for blocked regressions without changing the seven-stage detector, formal signals, ledger or score."
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "top10-winner-loser-case-audit-v1.0.0-2026-08-31",
+      "created_at": "2026-08-30T04:06:27+10:00",
+      "status": "pre_registered",
+      "change": "Audit the ten best and ten worst realised trades under the frozen current execution, with point-in-time entry reasons, support, stop, target, exit path and human review before any strategy or score change.",
+      "coverage": "Planned reuse of the complete 2001-2026 daily-MACD event pool, 120-session primary deduplication, archived price cache and exit simulation; no market-data download.",
+      "specification": {
+        "event_gate": "exact completed daily MACD bullish cross plus current eligibility",
+        "entry": "next adjusted open",
+        "support": "frozen on signal day",
+        "stop": "higher of support minus 5% and entry minus 10%",
+        "target": "2R",
+        "maximum_holding_sessions": 40,
+        "same_bar": "stop first",
+        "primary_ranking": "realised strategy return with R multiple audit",
+        "path_context_sessions": [
+          5,
+          10,
+          20,
+          40,
+          60
+        ],
+        "case_counts": {
+          "winners": 10,
+          "losers": 10
+        },
+        "cause_timing": [
+          "entry_known_risk",
+          "post_entry_exit_evidence",
+          "gap_or_unavoidable",
+          "data_quality"
+        ],
+        "industry_market": "reported separately from technical score"
+      },
+      "success_criteria": "Deliver twenty reproducible case cards and an anomaly list; any proposed filter, factor, stop or exit remains a post-hoc hypothesis until it is tested on the full comparable event pool and similar controls.",
+      "result": "Pre-registered for 2026-08-31 execution. Production scoring, weights, stops, targets, exits and notifications remain unchanged.",
+      "known_limitations": [
+        "extreme cases are descriptive and cannot establish factor effectiveness",
+        "historical delisted and ticker-change coverage remains partial",
+        "daily OHLCV requires conservative same-bar ordering",
+        "event-level trades are not a capital-constrained portfolio"
+      ],
+      "human_summary": {
+        "title_zh": "当前策略最大10赢／10输案例审计V1",
+        "family": "execution",
+        "family_zh": "交易案例审计",
+        "question_zh": "按当前入场、支撑止损、2R和40日规则，最赚钱与最亏损的各10笔为什么形成，系统能怎样改进？",
+        "result_zh": "已冻结选样和20张案例卡字段，尚未运行。主排序按策略实际实现收益，不拿20日裸收益代替止盈止损结果。",
+        "use_zh": "明天先逐笔看赢家机制，更重点检查输家的入场前风险、入场后退出证据、跳空和数据问题；目前不改变评分或执行。",
+        "next_zh": "复用现有事件池与缓存生成20笔总表、逐笔交易地图和异常清单；人工复核后再把重复问题预登记为全样本对照实验。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-30T04:06:27+10:00",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-08-30T04:06:27+10:00",
+        "time_source": "user_approved_local_preregistration",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "top10-winner-loser-case-audit-v1.0.0-2026-08-31",
+            "event": "registered",
+            "event_at": "2026-08-30T04:06:27+10:00",
+            "time_source": "user_approved_local_preregistration",
+            "source_ref": "research/preregistrations/top10-winner-loser-case-audit-v1.md",
+            "result": "Frozen a 20-case audit ranked by realised results under the current support/cap stop, 2R target and 40-session execution. Each case must separate entry-time known risks, post-entry exit evidence, unavoidable gaps and data quality; human findings cannot directly change weights or exits."
           }
         ]
       }
@@ -2654,6 +2726,7 @@
     "score-monotonicity-factor-attribution-v1.0.0-2026-08-29",
     "score-timeframe-attribution-v2.0.0-2026-08-29",
     "timeframe-score-v3.0.0-2026-08-28",
+    "top10-winner-loser-case-audit-v1.0.0-2026-08-31",
     "tracker-backtest-v1-2026-08-25",
     "trailing-stop-v0.1.0-2026-08-29",
     "winner-loser-strategy-optimization-v1.0.0-2026-08-29"

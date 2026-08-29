@@ -3,8 +3,8 @@ from services.scanner.experiment_catalog import build,render_summary
 
 class ExperimentCatalogTests(unittest.TestCase):
  def test_all_old_experiments_are_preserved_and_ids_are_unique(self):
-  catalog=build();self.assertEqual(catalog["experiment_count"],34)
-  self.assertEqual(len({x["experiment_id"] for x in catalog["experiments"]}),34)
+  catalog=build();self.assertEqual(catalog["experiment_count"],35)
+  self.assertEqual(len({x["experiment_id"] for x in catalog["experiments"]}),35)
   self.assertTrue(catalog["policy"]["append_only"]);self.assertTrue(catalog["policy"]["failed_results_preserved"])
   challenger=next(x for x in catalog["experiments"] if x["experiment_id"]=="timeframe-score-v3.0.0-2026-08-28")
   self.assertEqual(challenger["status"],"pre_registered")
@@ -31,9 +31,12 @@ class ExperimentCatalogTests(unittest.TestCase):
   self.assertEqual(favorite_v2["status"],"pre_registered_calibration_then_forward");self.assertTrue(favorite_v2["specification"]["known_cases_excluded_from_effectiveness"])
   generalization=next(x for x in catalog["experiments"] if x["experiment_id"]=="favorite-pattern-generalization-v1.0.0-2026-08-30")
   self.assertEqual(generalization["status"],"pre_registered_observation_only");self.assertFalse(generalization["specification"]["formal_signal_changed"])
+  case_audit=next(x for x in catalog["experiments"] if x["experiment_id"]=="top10-winner-loser-case-audit-v1.0.0-2026-08-31")
+  self.assertEqual(case_audit["status"],"pre_registered");self.assertEqual(case_audit["specification"]["case_counts"],{"winners":10,"losers":10})
+  self.assertEqual(case_audit["specification"]["primary_ranking"],"realised strategy return with R multiple audit")
 
  def test_every_experiment_has_lifecycle_and_plain_chinese_summary(self):
-  catalog=build();self.assertEqual(catalog["summary"]["completed"],26);self.assertEqual(catalog["summary"]["in_progress"],8)
+  catalog=build();self.assertEqual(catalog["summary"]["completed"],26);self.assertEqual(catalog["summary"]["in_progress"],9)
   for row in catalog["experiments"]:
    self.assertTrue(row["human_summary"]["title_zh"]);self.assertTrue(row["human_summary"]["use_zh"])
    self.assertTrue(row["lifecycle"]["registered_at"]);self.assertGreaterEqual(row["lifecycle"]["event_count"],1)

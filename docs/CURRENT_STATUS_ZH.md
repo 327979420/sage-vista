@@ -22,8 +22,9 @@
 
 ## 实验
 
-- 总数 34；已完成 26；待运行 / 进行中 8。
+- 总数 35；已完成 26；待运行 / 进行中 9。
 - `favorite-pattern-generalization-v1.0.0-2026-08-30`：个人形态举一反三与漏检复盘V1。
+- `top10-winner-loser-case-audit-v1.0.0-2026-08-31`：当前策略最大10赢／10输案例审计V1。
 - `favorite-pattern-sequence-v2.0.0-2026-08-30`：个人交易系统两段确认Tracker V2。
 - `favorite-pattern-tracker-v1.0.0-2026-08-29`：我最喜欢形态前向Tracker V1。
 - `triple-bottom-neckline-retest-v1.0.0-2026-08-29`：三底与W底颈线回踩V1。
