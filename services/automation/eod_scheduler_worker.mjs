@@ -1,14 +1,14 @@
-const EOD_CRONS = new Set([
-  "47 23 * * 1-5",
-  "17 0 * * 2-6",
-  "47 0 * * 2-6",
-  "17 1 * * 2-6",
-  "47 1 * * 2-6",
-  "17 2 * * 2-6",
-  "17 3 * * 2-6",
-]);
-
+export const EOD_WINDOW_CRON = "17,47 0-3,23 * * 1-6";
 export const FRESHNESS_CRON = "37 4 * * 2-6";
+
+const NEXT_DAY_EOD_TIMES = new Set([
+  "00:17",
+  "00:47",
+  "01:17",
+  "01:47",
+  "02:17",
+  "03:17",
+]);
 
 function required(env, name) {
   const value = env[name];
@@ -16,8 +16,20 @@ function required(env, name) {
   return value;
 }
 
-export function planForCron(cron, env) {
-  if (EOD_CRONS.has(cron)) {
+export function isEodDispatchTime(scheduledTime) {
+  if (!Number.isFinite(scheduledTime)) {
+    throw new Error("Missing valid scheduledTime for EOD window");
+  }
+  const date = new Date(scheduledTime);
+  const weekday = date.getUTCDay();
+  const time = `${String(date.getUTCHours()).padStart(2, "0")}:${String(date.getUTCMinutes()).padStart(2, "0")}`;
+  if (weekday >= 1 && weekday <= 5 && time === "23:47") return true;
+  return weekday >= 2 && weekday <= 6 && NEXT_DAY_EOD_TIMES.has(time);
+}
+
+export function planForCron(cron, env, scheduledTime) {
+  if (cron === EOD_WINDOW_CRON) {
+    if (!isEodDispatchTime(scheduledTime)) return null;
     return {
       workflow: required(env, "EOD_WORKFLOW"),
       inputs: { mode: "update", trigger_source: "cloudflare_cron" },
@@ -63,7 +75,8 @@ export async function dispatchWorkflow(plan, env, fetchImpl = fetch) {
 
 export default {
   async scheduled(controller, env, ctx) {
-    const plan = planForCron(controller.cron, env);
+    const plan = planForCron(controller.cron, env, controller.scheduledTime);
+    if (!plan) return;
     ctx.waitUntil(dispatchWorkflow(plan, env));
   },
 };

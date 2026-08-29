@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
+  EOD_WINDOW_CRON,
   FRESHNESS_CRON,
   dispatchWorkflow,
+  isEodDispatchTime,
   planForCron,
 } from "../services/automation/eod_scheduler_worker.mjs";
 
@@ -16,11 +19,43 @@ const env = {
   GITHUB_ACTIONS_TOKEN: "test-token-must-not-leak",
 };
 
+const monday2347 = Date.UTC(2026, 7, 31, 23, 47);
+const tuesday0017 = Date.UTC(2026, 8, 1, 0, 17);
+
+test("two Cloudflare crons stay within the free-plan trigger limit", () => {
+  const config = JSON.parse(readFileSync(new URL("../wrangler.eod-scheduler.jsonc", import.meta.url), "utf8"));
+  assert.deepEqual(config.triggers.crons, [EOD_WINDOW_CRON, FRESHNESS_CRON]);
+  assert.equal(config.triggers.crons.length, 2);
+});
+
+test("the consolidated EOD window preserves only the seven exact dispatch times", () => {
+  const allowed = [
+    monday2347,
+    tuesday0017,
+    Date.UTC(2026, 8, 1, 0, 47),
+    Date.UTC(2026, 8, 1, 1, 17),
+    Date.UTC(2026, 8, 1, 1, 47),
+    Date.UTC(2026, 8, 1, 2, 17),
+    Date.UTC(2026, 8, 1, 3, 17),
+  ];
+  for (const scheduledTime of allowed) assert.equal(isEodDispatchTime(scheduledTime), true);
+
+  const ignored = [
+    Date.UTC(2026, 7, 31, 0, 17),
+    Date.UTC(2026, 7, 31, 23, 17),
+    Date.UTC(2026, 8, 1, 2, 47),
+    Date.UTC(2026, 8, 1, 3, 47),
+    Date.UTC(2026, 8, 5, 23, 47),
+  ];
+  for (const scheduledTime of ignored) assert.equal(isEodDispatchTime(scheduledTime), false);
+});
+
 test("EOD and freshness crons dispatch separate workflows", () => {
-  assert.deepEqual(planForCron("47 23 * * 1-5", env), {
+  assert.deepEqual(planForCron(EOD_WINDOW_CRON, env, monday2347), {
     workflow: "daily-eod.yml",
     inputs: { mode: "update", trigger_source: "cloudflare_cron" },
   });
+  assert.equal(planForCron(EOD_WINDOW_CRON, env, Date.UTC(2026, 7, 31, 23, 17)), null);
   assert.deepEqual(planForCron(FRESHNESS_CRON, env), {
     workflow: "eod-freshness-monitor.yml",
     inputs: {},
@@ -37,7 +72,7 @@ test("dispatch uses the GitHub workflow endpoint without putting the token in th
       headers: { "content-type": "application/json" },
     });
   };
-  const result = await dispatchWorkflow(planForCron("17 0 * * 2-6", env), env, fakeFetch);
+  const result = await dispatchWorkflow(planForCron(EOD_WINDOW_CRON, env, tuesday0017), env, fakeFetch);
   assert.equal(result.dispatched, true);
   assert.equal(captured.url, "https://api.github.com/repos/owner/repo/actions/workflows/daily-eod.yml/dispatches");
   assert.equal(captured.url.includes(env.GITHUB_ACTIONS_TOKEN), false);
