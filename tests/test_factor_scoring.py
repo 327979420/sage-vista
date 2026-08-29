@@ -12,12 +12,12 @@ class FactorScoringTests(unittest.TestCase):
  def test_core_auxiliary_and_official_scores_are_separate(self):
   result=experimental_score([state("macd.weekly_histogram_improving"),state("qualification.long_trend")])
   self.assertEqual(result["official_score"],0)
-  self.assertEqual(result["experimental_core_score"],2)
+  self.assertEqual(result["experimental_core_score"],1)
   self.assertEqual(result["experimental_auxiliary_score"],1)
-  self.assertEqual(result["experimental_observational_score"],3)
+  self.assertEqual(result["experimental_observational_score"],2)
 
  def test_rejected_and_unstable_are_zero_score_but_remain_observations(self):
-  result=experimental_score([state("support.fibonacci_half"),state("structure.trendline_three_push")])
+  result=experimental_score([state("support.fibonacci_half"),state("rsi.bullish_divergence")])
   self.assertEqual(result["experimental_observational_score"],0)
   self.assertEqual({item["reason"] for item in result["non_scoring_observations"]},{"rejected","unstable"})
 
@@ -31,23 +31,25 @@ class FactorScoringTests(unittest.TestCase):
   missing=experimental_score([state("structure.engulfing_bullish_follow_through")])
   present=experimental_score([state("structure.support_bullish_engulfing",evidence={"support_context":True}),state("structure.engulfing_bullish_follow_through")])
   self.assertEqual(missing["experimental_observational_score"],0)
-  self.assertEqual(present["experimental_observational_score"],2)
+  self.assertEqual(present["experimental_observational_score"],1)
   self.assertIn("display_only",{x["reason"] for x in present["non_scoring_observations"]})
 
  def test_redundancy_group_takes_one_max_contribution(self):
+  fib=replace(FACTORS_BY_ID["support.fibonacci_618"],score_tier="auxiliary",experimental_weight=1)
   golden=replace(FACTORS_BY_ID["support.golden_pocket"],score_tier="auxiliary",experimental_weight=1)
-  with patch.dict("services.scanner.factor_scoring.FACTORS_BY_ID",{"support.golden_pocket":golden}):
+  with patch.dict("services.scanner.factor_scoring.FACTORS_BY_ID",{"support.fibonacci_618":fib,"support.golden_pocket":golden}):
    result=experimental_score([state("support.fibonacci_618"),state("support.golden_pocket")])
   self.assertEqual(result["experimental_observational_score"],1)
   self.assertEqual(len(result["score_contributions"]),1)
   self.assertIn("redundancy_capped",{item["reason"] for item in result["non_scoring_observations"]})
 
- def test_double_engulfing_replaces_single_and_monthly_has_more_weight(self):
+ def test_c_and_d_engulfing_variants_are_zero_weight(self):
   result=experimental_score([
    state("structure.weekly_bullish_engulfing"),state("structure.weekly_double_bullish_engulfing"),
    state("structure.monthly_bullish_engulfing"),state("structure.monthly_double_bullish_engulfing"),
   ])
-  self.assertEqual(result["experimental_auxiliary_score"],9)
-  self.assertEqual({item["factor_id"] for item in result["score_contributions"]},{"structure.weekly_double_bullish_engulfing","structure.monthly_double_bullish_engulfing"})
+  self.assertEqual(result["experimental_auxiliary_score"],0)
+  self.assertEqual(result["score_contributions"],[])
+  self.assertEqual({item["reason"] for item in result["non_scoring_observations"]},{"rejected","display_only"})
 
 if __name__=="__main__":unittest.main()

@@ -13,25 +13,27 @@ class UnifiedV2ScanTests(unittest.TestCase):
   market={"market_temperature":{"score":4}}
   industry={"historical_membership_safe":True,"ticker_context":{"MARA":[{"state":"Leadership"}]}}
   result=_candidate(row,market,industry)
-  self.assertEqual(result["technical_score"],8)
-  self.assertEqual(result["final_priority"],10)
+  self.assertEqual(result["technical_score"],5)
+  self.assertEqual(result["b_shadow_score"],2)
+  self.assertEqual(result["final_priority"],7)
   self.assertEqual(sum(x["points"] for x in result["factor_ledger"]),result["technical_score"])
+  self.assertEqual(sum(x["shadow_points"] for x in result["factor_ledger"]),result["b_shadow_score"])
   self.assertIn("rsi.oversold_repair",[x["factor_id"] for x in result["factor_ledger"] if x["hit"] and x["points"]==0])
-  self.assertEqual(result["score_equation"],"8 技术 +1 大盘 +1 行业 = 10")
+  self.assertEqual(result["score_equation"],"5 技术基线 +1 大盘 +1 行业 = 7；B级影子 2")
   self.assertEqual(result["timeframe_profile"]["status"],"experimental_descriptive_only")
 
  def test_weekly_profile_requires_independent_evidence_and_does_not_change_score(self):
   row={"symbol":"WEEK","price":20,"trigger":{"factor_id":"macd.daily_bull_cross","exact_completed_cross":True},"factors":[state("qualification.long_trend",True),state("qualification.pullback_60d",True),state("macd.daily_bull_cross",True,True),state("support.ema_proximity",True),state("macd.weekly_histogram_improving",True),state("support.weekly_ema_proximity",True),state("structure.weekly_bullish_engulfing",True)],"scoring":{"experimental_observational_score":10}}
   result=_candidate(row,{"market_temperature":{"score":3}},{"historical_membership_safe":False})
-  self.assertEqual(result["technical_score"],8)
-  self.assertEqual(result["timeframe_profile"]["label"],"周线主导")
-  self.assertEqual(result["timeframe_profile"]["independent_groups"]["weekly"],3)
-  self.assertGreater(result["timeframe_profile"]["points"]["weekly"],result["timeframe_profile"]["points"]["daily"])
+  self.assertEqual(result["technical_score"],5)
+  self.assertEqual(result["b_shadow_score"],1)
+  self.assertEqual(result["timeframe_profile"]["label"],"日线主导")
+  self.assertEqual(result["timeframe_profile"]["independent_groups"]["weekly"],1)
 
  def test_rare_opportunities_are_an_ordered_subset_of_published_ranking(self):
   rows=[]
   for symbol in ("AAA","BBB","CCC","DDD","EEE","FFF"):
-   rows.append({"symbol":symbol,"price":10,"trigger":{"factor_id":"macd.daily_bull_cross","exact_completed_cross":True},"factors":[state("qualification.long_trend",True),state("macd.daily_bull_cross",True,True),state("support.ema_proximity",True),state("qualification.pullback_60d",True),state("structure.bullish_fvg_support",True),state("structure.support_bullish_engulfing",True,True),state("volume.bottom_expansion",False),state("risk.overhead_unfilled_gap",False)],"scoring":{"experimental_observational_score":5}})
+   rows.append({"symbol":symbol,"price":10,"trigger":{"factor_id":"macd.daily_bull_cross","exact_completed_cross":True},"factors":[state("qualification.long_trend",True),state("macd.daily_bull_cross",True,True),state("support.ema_proximity",True),state("qualification.pullback_60d",True),state("structure.bullish_fvg_support",True),state("structure.support_bullish_engulfing",True,True),state("volume.bottom_expansion",True,True),state("risk.overhead_unfilled_gap",False)],"scoring":{"experimental_observational_score":5}})
   snapshot={"as_of":"2026-08-27","eligible_count":len(rows),"symbols":rows};market={"as_of":"2026-08-27","market_temperature":{"state":"normal","score":3}};industry={"as_of":"2026-08-27","status":"available","historical_membership_safe":False,"ticker_context":{}}
   day=_rank_day(snapshot,market,industry)
   self.assertEqual([x["symbol"] for x in day["rare_opportunities"]],[x["symbol"] for x in day["ranking"][:5]])

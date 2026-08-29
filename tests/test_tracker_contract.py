@@ -69,8 +69,8 @@ class TrackerOutputContractTests(unittest.TestCase):
 
         result = score_observation(COMPONENTS[:5])
         self.assertEqual(result["official_score"], 0)
-        self.assertEqual(result["observational_score"], 4)
-        self.assertEqual(result["total_score"], 4)
+        self.assertEqual(result["observational_score"], 1)
+        self.assertEqual(result["total_score"], 1)
         self.assertEqual(len(result["important_misses"]), len(COMPONENTS) - 5)
         self.assertNotIn("support.fibonacci_half",result["factor_ids"])
         self.assertIn("Fibonacci支撑",result["non_scoring_hits"])
@@ -81,7 +81,7 @@ class TrackerOutputContractTests(unittest.TestCase):
 
         validate_registry()
         blocked={x.id for x in FACTORS if x.status in ("rejected","unstable")}
-        result=score_observation(["Fibonacci支撑","三推趋势线突破"])
+        result=score_observation(["Fibonacci支撑"])
         self.assertFalse(blocked & set(result["factor_ids"]))
         self.assertEqual(result["total_score"],0)
 
@@ -91,8 +91,8 @@ class TrackerOutputContractTests(unittest.TestCase):
         factors = {factor.id: factor for factor in FACTORS}
         retest = factors["structure.trendline_three_push_retest"]
         parent = factors["structure.trendline_three_push"]
-        self.assertEqual(retest.score_mode, "observational")
-        self.assertEqual(retest.weight, 1)
+        self.assertEqual(retest.score_mode, "display_only")
+        self.assertEqual(retest.weight, 0)
         self.assertEqual(retest.redundancy_group, parent.redundancy_group)
         self.assertEqual(retest.depends_on, (parent.id,))
         self.assertIn("10 completed sessions", retest.machine_rule)
@@ -104,9 +104,9 @@ class TrackerOutputContractTests(unittest.TestCase):
         with_parent=score_observation(["三推趋势线突破","三推突破后回踩确认"])
         deduplicated=score_observation(["EMA支撑","EMA支撑"])
         self.assertEqual(missing_parent["total_score"],0)
-        self.assertEqual(with_parent["total_score"],1)
-        self.assertEqual(with_parent["factor_ids"],["structure.trendline_three_push_retest"])
-        self.assertEqual(deduplicated["total_score"],1)
+        self.assertEqual(with_parent["total_score"],0)
+        self.assertEqual(with_parent["factor_ids"],[])
+        self.assertEqual(deduplicated["total_score"],0)
 
     def test_daily_macd_cross_stays_fresh_for_five_completed_sessions(self):
         from services.scanner.rare_opportunity_scanner import recent_bull_cross
@@ -145,7 +145,8 @@ class TrackerOutputContractTests(unittest.TestCase):
         for factor_id in ("volume.bottom_expansion","structure.support_bullish_engulfing"):
             self.assertEqual(factors[factor_id].status,"candidate")
             self.assertEqual(factors[factor_id].score_mode,"observational")
-            self.assertEqual(factors[factor_id].weight,1)
+            self.assertEqual(factors[factor_id].weight,0)
+            self.assertEqual(factors[factor_id].experimental_weight,1)
 
     def test_early_watch_requires_pre_cross_shrinking_gap_and_two_supports(self):
         from services.scanner.resonance_tracker import early_watch_evidence
