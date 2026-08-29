@@ -1,85 +1,103 @@
 {
-  "version": "production-evidence-v2.0.0",
-  "generated_at": "2026-08-28T18:09:25.899323+00:00",
-  "production_status": "long_history_completed_research_only",
-  "plain_summary": "2001—2024开发、2025独立验证和2026前向已分开。没有单因子达到A级正式加权；底部放量和底部看涨吞没可优先观察。8%移动止损提高胜率和中位数，但长期平均收益略低于固定止损。",
+  "version": "production-evidence-v3.0.0",
+  "generated_at": "2026-08-29T12:48:02.328608+10:00",
+  "source_experiment": "score-timeframe-attribution-v2.0.0-2026-08-29",
+  "production_status": "latest_research_synced_production_unchanged",
+  "plain_summary": "最新完整审计已同步：共同门票的20日原始持有在开发期、2025和2026均为正，但分数越高并没有带来更高胜率或收益；31个附加因子和3个冻结组合都没有达到升级标准，因此不提高任何正式因子权重。",
+  "coverage": {
+    "start": "2001-10-01",
+    "end": "2026-08-28",
+    "audited_events": 62170,
+    "primary_events": 13296,
+    "development": "2001—2024",
+    "validation": "2025",
+    "forward": "2026"
+  },
+  "counts": {
+    "validated_add_on_factors": 0,
+    "studied_add_on_factors": 31,
+    "validated_pairs": 0,
+    "studied_pairs": 3
+  },
   "usable": [
     {
-      "name": "+1R后8%移动止损",
-      "role": "风险管理候选",
-      "verdict": "有条件使用",
+      "name": "长期趋势＋完整日线MACD刚金叉",
+      "role": "共同门票",
+      "verdict": "继续使用",
       "metrics": {
-        "samples": 1992,
-        "win_rate": 43.22,
-        "profit_factor": 1.056,
-        "expectancy_pct": 0.228,
-        "median_return_pct": -3.379
+        "samples": 1166,
+        "win_rate": 54.288,
+        "profit_factor": 1.5128,
+        "expectancy_pct": 2.1024,
+        "median_return_pct": 1.1361,
+        "net_50bps_expectancy_pct": 1.6024
       },
-      "note": "适合减少盈利回吐；长期开发期和2025的平均收益/PF略低，不能宣称全面优于固定止损。"
+      "periods": {
+        "development": {
+          "samples": 10039,
+          "win_rate": 54.388,
+          "profit_factor": 1.228,
+          "expectancy_pct": 0.7983,
+          "median_return_pct": 0.8686,
+          "net_50bps_expectancy_pct": 0.2983
+        },
+        "validation_2025": {
+          "samples": 1895,
+          "win_rate": 50.976,
+          "profit_factor": 1.3557,
+          "expectancy_pct": 1.3832,
+          "median_return_pct": 0.3022,
+          "net_50bps_expectancy_pct": 0.8832
+        },
+        "forward_2026": {
+          "samples": 1166,
+          "win_rate": 54.288,
+          "profit_factor": 1.5128,
+          "expectancy_pct": 2.1024,
+          "median_return_pct": 1.1361,
+          "net_50bps_expectancy_pct": 1.6024
+        }
+      },
+      "note": "20日原始持有在开发 / 2025 / 2026三段胜率为54.39% / 50.98% / 54.29%，PF为1.228 / 1.356 / 1.513。它说明共同事件池值得继续研究，不等于实盘组合收益。"
+    }
+  ],
+  "watch": [
+    {
+      "name": "相对放量与60日回撤",
+      "role": "高收益尾部标签",
+      "verdict": "只观察",
+      "note": "两项在三段高收益前10%样本中的出现率均高于基础率，但胜率和稳健平均收益没有一致改善，不能加分。"
     },
     {
-      "name": "底部放量",
-      "role": "B级技术确认",
-      "verdict": "优先观察",
-      "metrics": {
-        "samples": 610,
-        "win_rate": 57.7,
-        "profit_factor": 1.551,
-        "expectancy_pct": 2.331,
-        "median_return_pct": 1.921
-      },
-      "note": "长期多数年份偏正、2025近中性、2026明显偏正；保留但暂不提高正式权重。"
-    },
-    {
-      "name": "底部看涨吞没",
-      "role": "B级技术确认",
-      "verdict": "优先观察",
-      "metrics": {
-        "samples": 265,
-        "win_rate": 54.34,
-        "profit_factor": 1.218,
-        "expectancy_pct": 1.03,
-        "median_return_pct": 1.364
-      },
-      "note": "开发期、2025和2026的稳健方向较一致，但历史可用年份仍少，不单独触发买入。"
+      "name": "完整周线／月线MACD金叉",
+      "role": "高周期研究",
+      "verdict": "继续积累",
+      "note": "完整周线20日样本只有65 / 10 / 8；月线长窗的2026成熟样本也不足且相对增量反向，不能作为买入门槛。"
     }
   ],
   "avoid": [
     {
-      "name": "双底",
-      "verdict": "停权",
+      "name": "把高分解释成更高胜率",
+      "verdict": "不成立",
       "metrics": {
-        "samples": 301,
-        "win_rate": 50.17,
-        "profit_factor": 1.262,
-        "expectancy_pct": 1.214,
-        "median_return_pct": 0.251
+        "samples": 285,
+        "win_rate": 52.982,
+        "profit_factor": 1.2953,
+        "expectancy_pct": 1.2016,
+        "median_return_pct": 0.6639
       },
-      "note": "长期与2026胜率增量偏弱，不能因视觉形态重复加分。"
+      "note": "2026最高分组20日胜率52.98%、PF 1.295，反而低于最低分组的56.80%和PF 2.545；开发期和2025也不单调。"
     },
     {
-      "name": "更高低点",
-      "verdict": "停权",
-      "metrics": {
-        "samples": 1429,
-        "win_rate": 51.15,
-        "profit_factor": 1.273,
-        "expectancy_pct": 1.223,
-        "median_return_pct": 0.344
-      },
-      "note": "长期多数年份未带来正增量，2025和2026也没有改善。"
+      "name": "提高任一附加因子权重",
+      "verdict": "暂不允许",
+      "note": "31个附加因子中23个跨时期不稳定、8个样本不足，验证通过数为0。当前5个B级项若仍用于影子同分排序，也不能当作已验证买入依据。"
     },
     {
-      "name": "周线双看涨吞没",
-      "verdict": "停权",
-      "metrics": {
-        "samples": 58,
-        "win_rate": 39.66,
-        "profit_factor": 1.196,
-        "expectancy_pct": 0.842,
-        "median_return_pct": -3.115
-      },
-      "note": "2025与2026均明显偏弱，且样本有限。"
+      "name": "直接采用两因子组合",
+      "verdict": "样本不足",
+      "note": "3个预先冻结组合都没有同时超过总体基线和两个组成单因子，不能进入生产。"
     }
-  ]
+  ],
+  "method_note": "口径：120交易日内每只股票只保留首个事件；20日为单因子主窗口；开发期、2025独立验证和2026前向分开；20/50bps成本、1%去极值、BH多重比较均已检查。行业与大盘保持独立分层。"
 }

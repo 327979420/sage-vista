@@ -1,8 +1,7 @@
-"""Turn completed research into a concise website decision contract."""
+"""Turn the latest completed audited study into concise website conclusions."""
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -10,59 +9,99 @@ ROOT = Path("research/backtest/output")
 OUT = Path("public/decision-summary.json")
 
 
-def metric(block):
-    return {key: block.get(key) for key in ("samples", "win_rate", "profit_factor", "expectancy_pct", "median_return_pct")}
+def _metric(block):
+    return {
+        "samples": block["samples"],
+        "win_rate": block["win_rate_pct"],
+        "profit_factor": block["profit_factor"],
+        "expectancy_pct": block["expectancy_pct"],
+        "median_return_pct": block["median_pct"],
+        "net_50bps_expectancy_pct": block["cost_sensitivity"]["50"]["expectancy_pct"],
+    }
+
+
+def _score_metric(block):
+    return {
+        "samples": block["samples"],
+        "win_rate": block["win_rate_pct"],
+        "profit_factor": block["profit_factor"],
+        "expectancy_pct": block["expectancy_pct"],
+        "median_return_pct": block["median_pct"],
+    }
 
 
 def run(out=OUT):
-    long_path = ROOT / "long-history-v1.json"
-    if long_path.exists():
-        long = json.loads(long_path.read_text())
-        factors = {row["factor_id"]: row for row in long["factors"]}
-        exits = long["exit_comparison"]
-        def forward_metric(factor_id):
-            block = factors[factor_id]["forward_2026"]["hit"]
-            return {"samples":block["samples"],"win_rate":block["win_rate_pct"],"profit_factor":block["profit_factor"],"expectancy_pct":block["mean_return_pct"],"median_return_pct":block["median_return_pct"]}
-        trail = exits["forward_2026"]["trail_8pct"]
-        payload = {
-            "version":"production-evidence-v2.0.0",
-            "generated_at":datetime.now(timezone.utc).isoformat(),
-            "production_status":"long_history_completed_research_only",
-            "plain_summary":"2001—2024开发、2025独立验证和2026前向已分开。没有单因子达到A级正式加权；底部放量和底部看涨吞没可优先观察。8%移动止损提高胜率和中位数，但长期平均收益略低于固定止损。",
-            "usable":[
-                {"name":"+1R后8%移动止损","role":"风险管理候选","verdict":"有条件使用","metrics":{"samples":trail["samples"],"win_rate":trail["win_rate_pct"],"profit_factor":trail["profit_factor"],"expectancy_pct":trail["mean_return_pct"],"median_return_pct":trail["median_return_pct"]},"note":"适合减少盈利回吐；长期开发期和2025的平均收益/PF略低，不能宣称全面优于固定止损。"},
-                {"name":"底部放量","role":"B级技术确认","verdict":"优先观察","metrics":forward_metric("volume.bottom_expansion"),"note":"长期多数年份偏正、2025近中性、2026明显偏正；保留但暂不提高正式权重。"},
-                {"name":"底部看涨吞没","role":"B级技术确认","verdict":"优先观察","metrics":forward_metric("structure.bottom_bullish_engulfing"),"note":"开发期、2025和2026的稳健方向较一致，但历史可用年份仍少，不单独触发买入。"},
-            ],
-            "avoid":[
-                {"name":"双底","verdict":"停权","metrics":forward_metric("structure.double_bottom"),"note":"长期与2026胜率增量偏弱，不能因视觉形态重复加分。"},
-                {"name":"更高低点","verdict":"停权","metrics":forward_metric("structure.higher_low"),"note":"长期多数年份未带来正增量，2025和2026也没有改善。"},
-                {"name":"周线双看涨吞没","verdict":"停权","metrics":forward_metric("structure.weekly_double_bullish_engulfing"),"note":"2025与2026均明显偏弱，且样本有限。"},
-            ],
-        }
-        Path(out).write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n")
-        return payload
-    pullback = json.loads((ROOT / "pullback-context-v2.json").read_text())
-    attribution = json.loads((ROOT / "factor-attribution-v1.json").read_text())
-    market = pullback["stock_by_market_context"]
-    industry = pullback["industry_pullback"]["variants"]
-    factor = {row["factor"]: row for row in attribution["factor_attribution"]}
-    macd_2026 = factor["日线MACD近5日金叉"]["periods"]["forward_2026"]["with"]
+    report = json.loads((ROOT / "score-timeframe-attribution-v2.json").read_text())
+    primary = report["primary_deduplicated"]
+    baselines = {
+        period: _metric(values["20"])
+        for period, values in primary["baseline_fixed_horizon"].items()
+    }
+    forward_quintiles = primary["score_monotonicity"]["current"]["forward_2026"]["daily_midrank_quintiles"]
+    low_score = _score_metric(forward_quintiles["1"]["20"])
+    high_score = _score_metric(forward_quintiles["5"]["20"])
     payload = {
-        "version": "production-evidence-v1.0.0",
-        "generated_at": datetime.now(timezone.utc).isoformat(),
-        "production_status": "awaiting_v2_rescan",
-        "plain_summary": "可用主线是长期趋势＋MACD改善＋等待回撤；避免在上涨但未回撤时追高。行业与大盘仅调整优先级，不单独触发买入。",
-        "usable": [
-            {"name": "日线MACD改善", "role": "核心时机", "verdict": "保留", "metrics": metric(macd_2026), "note": "2026样本为正，但需与长期趋势和位置同用。"},
-            {"name": "大盘回撤＋MACD修复", "role": "市场优先级", "verdict": "候选使用", "metrics": metric(market["Pullback + MACD Repair"]["periods"]["forward_2026"]), "note": "整体有效，2026胜率较低但PF仍大于1；不作硬门槛。"},
-            {"name": "行业ETF回撤到支撑", "role": "行业加分", "verdict": "弱支持", "metrics": metric(industry["Pullback At Support"]["periods"]["forward_2026"]), "note": "可用于排序和解释，不能单独决定买入。"},
+        "version": "production-evidence-v3.0.0",
+        "generated_at": report["generated_at"],
+        "source_experiment": report["experiment_id"],
+        "production_status": "latest_research_synced_production_unchanged",
+        "plain_summary": "最新完整审计已同步：共同门票的20日原始持有在开发期、2025和2026均为正，但分数越高并没有带来更高胜率或收益；31个附加因子和3个冻结组合都没有达到升级标准，因此不提高任何正式因子权重。",
+        "coverage": {
+            "start": report["coverage"]["start"],
+            "end": report["coverage"]["end"],
+            "audited_events": report["coverage"]["all_events"],
+            "primary_events": report["coverage"]["primary_120_session_deduplicated_events"],
+            "development": "2001—2024",
+            "validation": "2025",
+            "forward": "2026",
+        },
+        "counts": {
+            "validated_add_on_factors": 0,
+            "studied_add_on_factors": 31,
+            "validated_pairs": 0,
+            "studied_pairs": 3,
+        },
+        "usable": [{
+            "name": "长期趋势＋完整日线MACD刚金叉",
+            "role": "共同门票",
+            "verdict": "继续使用",
+            "metrics": baselines["forward_2026"],
+            "periods": baselines,
+            "note": "20日原始持有在开发 / 2025 / 2026三段胜率为54.39% / 50.98% / 54.29%，PF为1.228 / 1.356 / 1.513。它说明共同事件池值得继续研究，不等于实盘组合收益。",
+        }],
+        "watch": [
+            {
+                "name": "相对放量与60日回撤",
+                "role": "高收益尾部标签",
+                "verdict": "只观察",
+                "note": "两项在三段高收益前10%样本中的出现率均高于基础率，但胜率和稳健平均收益没有一致改善，不能加分。",
+            },
+            {
+                "name": "完整周线／月线MACD金叉",
+                "role": "高周期研究",
+                "verdict": "继续积累",
+                "note": "完整周线20日样本只有65 / 10 / 8；月线长窗的2026成熟样本也不足且相对增量反向，不能作为买入门槛。",
+            },
         ],
         "avoid": [
-            {"name": "长期上涨但未回撤", "verdict": "不追高", "metrics": metric(market["Uptrend No Pullback"]["periods"]["forward_2026"]), "note": "2026利润因子小于1，期望为负。"},
-            {"name": "行业回撤后强制要求MACD修复", "verdict": "不作硬门槛", "metrics": metric(industry["Pullback + MACD Repair"]["periods"]["forward_2026"]), "note": "2026样本中PF小于1，会过度筛选。"},
-            {"name": "成交量恢复必须命中", "verdict": "样本不足", "metrics": metric(industry["Pullback + MACD + Volume Recovery"]["periods"]["forward_2026"]), "note": "只有18个2026样本，仅展示，不影响生产排名。"},
+            {
+                "name": "把高分解释成更高胜率",
+                "verdict": "不成立",
+                "metrics": high_score,
+                "note": f'2026最高分组20日胜率{high_score["win_rate"]:.2f}%、PF {high_score["profit_factor"]:.3f}，反而低于最低分组的{low_score["win_rate"]:.2f}%和PF {low_score["profit_factor"]:.3f}；开发期和2025也不单调。',
+            },
+            {
+                "name": "提高任一附加因子权重",
+                "verdict": "暂不允许",
+                "note": "31个附加因子中23个跨时期不稳定、8个样本不足，验证通过数为0。当前5个B级项若仍用于影子同分排序，也不能当作已验证买入依据。",
+            },
+            {
+                "name": "直接采用两因子组合",
+                "verdict": "样本不足",
+                "note": "3个预先冻结组合都没有同时超过总体基线和两个组成单因子，不能进入生产。",
+            },
         ],
+        "method_note": "口径：120交易日内每只股票只保留首个事件；20日为单因子主窗口；开发期、2025独立验证和2026前向分开；20/50bps成本、1%去极值、BH多重比较均已检查。行业与大盘保持独立分层。",
     }
     Path(out).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n")
     return payload

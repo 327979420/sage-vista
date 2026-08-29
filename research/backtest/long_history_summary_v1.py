@@ -129,12 +129,10 @@ def run(out=OUT, public=PUBLIC):
     }
     payload = {"schema_version":"long-history-factor-study-v1.0.0","generated_at":datetime.now(timezone.utc).isoformat(),"coverage":{"years":"2000—2026","warmup_year":2000,"development":"2001—2024","validation":2025,"forward":2026,"historical_sessions":sum(x["coverage"]["sessions"] for x in annual.values()),"historical_candidates":sum(x["coverage"]["all_candidates"] for x in annual.values()),"weekly_checkpoints":sum(x["coverage"]["weekly_checkpoints"] for x in annual.values()),"factors_compared":len(factors)},"event_gate":"exact completed daily MACD bullish cross","technical_only_primary_test":True,"factor_method":"20-day hit versus same-pool non-hit; robust conclusions use annual win-rate and median-return deltas because raw means contain corporate-action/data outliers","factors":factors,"exit_comparison":exit_comparison,"conclusion":{"tier_a":[],"tier_b":[row["factor_id"] for row in factors if row["tier"]=="B"],"tier_d":[row["factor_id"] for row in factors if row["tier"]=="D"],"plain_zh":"没有单因子达到可无条件正式加权的A级标准。底部看涨吞没、底部放量和上方未填补缺口进入B级复核；双底、更高低点、周线吞没与相对放量应停权。EMA、斐波那契、筹码密集和FVG表现受阶段影响，只作位置证据。"},"limitations":["2019年后缓存股票覆盖明显扩大，已按年度和五年阶段报告而非直接混算","历史退市和更名覆盖仍不完整","重叠MACD事件不是独立交易","原始平均收益受少量公司行动或数据极值污染，因此因子定级以胜率和中位数增量为主","年度PF为年度统计的样本加权描述，不等于逐笔资金曲线PF"]}
     pathlib.Path(out).write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n")
-    website=[]
-    for row in factors:
-        hit=row["forward_2026"]["hit"]
-        website.append({"factor":row["name_zh"],"factor_id":row["factor_id"],"tier":row["tier"],"research_status":row["research_status"],"action":row["action"],"tone":"watch" if row["tier"]=="B" else "avoid" if row["tier"]=="D" else "neutral","samples_2026":hit["samples"],"win_rate_2026":hit["win_rate_pct"] or 0,"profit_factor_2026":hit["profit_factor"] or 0,"expectancy_2026":hit["mean_return_pct"] or 0})
-    public_payload={"version":"factor-effectiveness-v2.0.0","generated_at":payload["generated_at"],"coverage":{"period":"2000—2026","development":"2001—2024","validation":2025,"forward":2026,"source_signals_end":ledger["coverage"]["last"],"factors":len(website),"historical_candidates":payload["coverage"]["historical_candidates"]},"warning":"没有因子获A级正式加权；2026胜率/PF只是前向栏，实际处理同时依据2001—2024、2025和2026。行业与大盘未混入技术因子结论。","factors":website}
-    pathlib.Path(public).write_text(json.dumps(public_payload,ensure_ascii=False,indent=2)+"\n")
+    # The website contract is owned by the newest completed audited study.  Do
+    # not let rerunning this older annual summary overwrite the V2 conclusions.
+    from services.scanner.factor_effectiveness import run as publish_factor_quadrants
+    publish_factor_quadrants(out=public)
     return payload
 
 

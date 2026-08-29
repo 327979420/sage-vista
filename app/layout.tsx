@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const UI_VERSION = "UI v5.7";
+const UI_VERSION = "UI v5.8";
 
 export const metadata: Metadata = {
   title: "Sage Vista — 今日研究总览",

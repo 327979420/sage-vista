@@ -25,8 +25,11 @@ class UiV2ContractTests(unittest.TestCase):
   self.assertFalse((ROOT/"app/zh/watch/resonance/macd/page.tsx").exists())
   text=(ROOT/"app/zh/watch/resonance/rare-opportunities/page.tsx").read_text()
   profile=(ROOT/"app/zh/watch/resonance/rare-opportunities/timeframe-profile.tsx").read_text()
-  for label in ("WHY IT RANKS HERE","股票技术证据查询","RISK PLAN","TimeframeProfilePanel"):
+  for label in ("WHY IT RANKS HERE","股票技术证据查询","RISK PLAN","TimeframeProfilePanel","37个因子，现在分别怎么处理","factorFamilyLegend"):
    self.assertIn(label,text)
+  factor_view=json.loads((ROOT/"public/factor-effectiveness.json").read_text())
+  self.assertEqual([factor_view["quadrants"][key]["label_zh"] for key in factor_view["quadrant_order"]],["正在使用","候选观察","暂停加权","准备弃用"])
+  self.assertNotIn("旧系统因子实验",text)
   for label in ("周线","月线","不是建议持仓天数","不改变当前 V2 排名"):
    self.assertIn(label,profile)
 
