@@ -27,7 +27,13 @@
     "status:TTD:confirmed",
     "ranking:macd:2026-08-27",
     "ranking:multi-factor:2026-08-27",
-    "status:NTCT:confirmed"
+    "status:NTCT:confirmed",
+    "status:NOW:confirmed",
+    "status:DOCS:confirmed",
+    "status:ASAN:confirmed",
+    "status:QNRX:confirmed",
+    "ranking:macd:2026-08-28",
+    "ranking:multi-factor:2026-08-28"
   ],
   "symbol_status": {
     "VRSK": "confirmed",
@@ -50,7 +56,11 @@
     "SBUX": "confirmed",
     "QDEL": "confirmed",
     "TTD": "confirmed",
-    "NTCT": "confirmed"
+    "NTCT": "confirmed",
+    "NOW": "confirmed",
+    "DOCS": "confirmed",
+    "ASAN": "confirmed",
+    "QNRX": "confirmed"
   },
-  "last_successful_date": "2026-08-27"
+  "last_successful_date": "2026-08-28"
 }
