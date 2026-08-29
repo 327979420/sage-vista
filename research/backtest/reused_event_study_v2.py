@@ -641,7 +641,8 @@ def main():
         result = enrich_year(args.parts_dir, args.cache_dir, args.year, args.out_dir)
     else:
         result = aggregate(args.input_dir, args.out)
-    print(json.dumps(result.get("coverage", result), ensure_ascii=False))
+    printable = result.get("coverage", result) if isinstance(result, dict) else result
+    print(json.dumps(printable, ensure_ascii=False))
 
 
 if __name__ == "__main__":

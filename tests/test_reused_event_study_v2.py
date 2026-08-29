@@ -1,5 +1,7 @@
 import gzip
 import json
+import subprocess
+import sys
 import tempfile
 import unittest
 from datetime import date, timedelta
@@ -81,6 +83,24 @@ class ReusedEventStudyV2Tests(unittest.TestCase):
 
     def test_matrix_is_inclusive(self):
         self.assertEqual(matrix(2024, 2026), [{"year": 2024}, {"year": 2025}, {"year": 2026}])
+
+    def test_matrix_command_prints_and_writes_github_output(self):
+        with tempfile.TemporaryDirectory() as folder:
+            output = Path(folder) / "github-output.txt"
+            result = subprocess.run([
+                sys.executable,
+                "-m",
+                "research.backtest.reused_event_study_v2",
+                "matrix",
+                "--start-year",
+                "2025",
+                "--end-year",
+                "2026",
+                "--github-output",
+                str(output),
+            ], check=True, capture_output=True, text=True)
+            self.assertEqual(json.loads(result.stdout), [{"year": 2025}, {"year": 2026}])
+            self.assertIn('matrix=[{"year":2025},{"year":2026}]', output.read_text())
 
     def test_aggregate_reads_weekly_gzip_and_keeps_period_split(self):
         with tempfile.TemporaryDirectory() as folder:

@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-08-29T12:16:00+10:00",
+  "generated_at": "2026-08-29T12:21:00+10:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
@@ -100,10 +100,10 @@
         "registered_at": "2026-08-29T12:15:00+10:00",
         "started_at": "2026-08-29T12:16:00+10:00",
         "completed_at": null,
-        "latest_event": "started",
-        "latest_event_at": "2026-08-29T12:16:00+10:00",
-        "time_source": "implementation",
-        "event_count": 2,
+        "latest_event": "checkpoint",
+        "latest_event_at": "2026-08-29T12:21:00+10:00",
+        "time_source": "github_actions",
+        "event_count": 3,
         "events": [
           {
             "experiment_id": "score-timeframe-attribution-v2.0.0-2026-08-29",
@@ -118,6 +118,18 @@
             "event_at": "2026-08-29T12:16:00+10:00",
             "time_source": "implementation",
             "source_ref": "research/preregistrations/score-timeframe-attribution-v2.md"
+          },
+          {
+            "experiment_id": "score-timeframe-attribution-v2.0.0-2026-08-29",
+            "event": "checkpoint",
+            "event_at": "2026-08-29T12:21:00+10:00",
+            "time_source": "github_actions",
+            "source_ref": "33228715235",
+            "coverage": {
+              "years_completed": 0,
+              "events_processed": 0
+            },
+            "result": "Preparation stopped before any data processing because the matrix CLI tried to call dict.get on a list. The CLI contract was corrected and regression-tested; no archived event or result was lost."
           }
         ]
       }
