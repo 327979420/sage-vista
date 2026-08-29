@@ -76,12 +76,12 @@
       },
       "lifecycle": {
         "registered_at": "2026-08-29T22:20:00+10:00",
-        "started_at": null,
+        "started_at": "2026-08-29T22:46:00+10:00",
         "completed_at": null,
         "latest_event": "checkpoint",
         "latest_event_at": "2026-08-29T22:56:00+10:00",
         "time_source": "live_first_scan_audit",
-        "event_count": 2,
+        "event_count": 3,
         "events": [
           {
             "experiment_id": "favorite-pattern-tracker-v1.0.0-2026-08-29",
@@ -90,6 +90,14 @@
             "time_source": "user_approved_local_preregistration",
             "source_ref": "research/preregistrations/favorite-pattern-tracker-v1.md",
             "result": "Frozen a zero-weight seven-condition BABA-like daily setup state machine, separate BABA/PG reference cases, completed-close entry-ready trigger, next-open forward convention and minimum 100-event/six-month/three-market-state conclusion gate."
+          },
+          {
+            "experiment_id": "favorite-pattern-tracker-v1.0.0-2026-08-29",
+            "event": "started",
+            "event_at": "2026-08-29T22:46:00+10:00",
+            "time_source": "github_actions",
+            "source_ref": "33253072166",
+            "result": "Started true unseen daily tracking from the 2026-08-28 completed US session. The first production scan was retained as the audit baseline; no production score, main MACD gate, stop, exit or alert threshold changed."
           },
           {
             "experiment_id": "favorite-pattern-tracker-v1.0.0-2026-08-29",
