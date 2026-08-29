@@ -1,0 +1,290 @@
+{
+  "schema_version": "score-timeframe-attribution-year-v2.0.0",
+  "experiment_id": "score-timeframe-attribution-v2.0.0-2026-08-29",
+  "year": 2017,
+  "event_gate": "exact completed daily MACD bullish cross",
+  "future_data_used_for_selection": false,
+  "market_and_industry_mixed_into_technical_test": false,
+  "coverage": {
+    "start": "2017-01-03",
+    "end": "2017-12-29",
+    "sessions": 251,
+    "natural_week_checkpoints": 50,
+    "source_candidates": 501,
+    "events_joined_to_price_cache": 339,
+    "missing_price_events": 162,
+    "mature_outcomes": {
+      "5": 339,
+      "10": 339,
+      "15": 339,
+      "20": 339,
+      "40": 339,
+      "60": 339,
+      "100": 339,
+      "120": 339
+    }
+  },
+  "audits": {
+    "daily_gate_mismatches": 16,
+    "monthly_cross_mismatches": 0
+  },
+  "model_versions": [
+    "unified-v2-macd-trigger-1.2.0"
+  ],
+  "factor_registry_versions": [
+    "0.8.0"
+  ],
+  "factor_hit_counts": {
+    "macd.daily_bull_cross": 339,
+    "macd.monthly_bull_cross": 11,
+    "macd.weekly_bull_cross": 7,
+    "macd.weekly_histogram_improving": 55,
+    "qualification.long_trend": 339,
+    "qualification.pullback_60d": 80,
+    "risk.overhead_unfilled_gap": 79,
+    "rsi.bullish_divergence": 15,
+    "rsi.oversold_repair": 3,
+    "structure.bottom_bullish_engulfing": 8,
+    "structure.bottom_doji": 25,
+    "structure.bullish_fvg_support": 302,
+    "structure.double_bottom": 41,
+    "structure.engulfing_bullish_follow_through": 18,
+    "structure.hammer": 36,
+    "structure.higher_low": 150,
+    "structure.monthly_bullish_engulfing": 3,
+    "structure.support_bullish_engulfing": 39,
+    "structure.trendline_three_push": 17,
+    "structure.trendline_three_push_retest": 4,
+    "structure.weekly_bullish_engulfing": 17,
+    "structure.weekly_double_bullish_engulfing": 7,
+    "support.close_congestion": 55,
+    "support.ema_proximity": 250,
+    "support.fibonacci_618": 15,
+    "support.fibonacci_half": 8,
+    "support.golden_pocket": 5,
+    "support.monthly_ema_proximity": 64,
+    "support.volume_profile_proxy": 25,
+    "support.weekly_ema_proximity": 130,
+    "volume.bottom_expansion": 33,
+    "volume.relative_expansion": 67
+  },
+  "source_files": [
+    {
+      "name": "v2-2017-01-01_to_2017-01-01.json",
+      "sha256": "c7d4a7d07cc78a90bba45ad1657e6c88d9835730bad7e4e9620561f894d6a492"
+    },
+    {
+      "name": "v2-2017-01-02_to_2017-01-08.json",
+      "sha256": "1a8fbdf2e466fe2b1878f310b69439a982cd56294b44b5fd1c148c1c81e02812"
+    },
+    {
+      "name": "v2-2017-01-09_to_2017-01-15.json",
+      "sha256": "952f3a32ec00fbfc0e60da2571232d3d0bbb6c24b3c9493134c8466551e3e38e"
+    },
+    {
+      "name": "v2-2017-01-16_to_2017-01-22.json",
+      "sha256": "507c46776b038d4870e87d8b087c87cd613973cb358d8fa94bb4b8ce8ba46153"
+    },
+    {
+      "name": "v2-2017-01-23_to_2017-01-29.json",
+      "sha256": "c052cffb21e9cade3ca7d2c1c50196f5e60f26f963598d39462d28d8c655d06e"
+    },
+    {
+      "name": "v2-2017-01-30_to_2017-02-05.json",
+      "sha256": "0fcc6569aa74105f2f7b1fee8acfea331528feff9a84841d0490fd18da0ecd1e"
+    },
+    {
+      "name": "v2-2017-02-06_to_2017-02-12.json",
+      "sha256": "b379b795a9f5ea18fb3723f3dd8e8481859ddd8084076e2bd1b38dd49b4e018b"
+    },
+    {
+      "name": "v2-2017-02-13_to_2017-02-19.json",
+      "sha256": "e60b7a136ad2f558245b3cd1952f93bf5fdbf536bd4d82238b2209bdea612d5c"
+    },
+    {
+      "name": "v2-2017-02-20_to_2017-02-26.json",
+      "sha256": "7c6f1134f8656719ae741683d1f2a12e4ba5c1be72097e3cdeff6388897f82df"
+    },
+    {
+      "name": "v2-2017-02-27_to_2017-03-05.json",
+      "sha256": "c514dad560042b66b39fc538ddf40c2b629dad32b8efc82c50dadea5902c8095"
+    },
+    {
+      "name": "v2-2017-03-06_to_2017-03-12.json",
+      "sha256": "ee996acff17f15c068c844d9824eb6ac24d110c16262afd74476cf5310d3842c"
+    },
+    {
+      "name": "v2-2017-03-13_to_2017-03-19.json",
+      "sha256": "425d275fb55d9a887f6099ed3dc9b0c94edc25b50ff270391d17153da94d598e"
+    },
+    {
+      "name": "v2-2017-03-20_to_2017-03-26.json",
+      "sha256": "3f4309ba4e3db5da2d187f6d986e21d3296caeda048bd3aaeee8b9bfe24d205c"
+    },
+    {
+      "name": "v2-2017-03-27_to_2017-04-02.json",
+      "sha256": "0b210530df0ebf45f81952927fd18b8e8979a9b5525df65eacc89b1be132c499"
+    },
+    {
+      "name": "v2-2017-04-03_to_2017-04-09.json",
+      "sha256": "caaeaa051b31c1544274753f47e0004e7f07fb2b4fb998bf277282ea64538b75"
+    },
+    {
+      "name": "v2-2017-04-10_to_2017-04-16.json",
+      "sha256": "7f50c81d42221846bee1d49b378a835c7854dcfb84e9568f9bf2328e1624986c"
+    },
+    {
+      "name": "v2-2017-04-17_to_2017-04-23.json",
+      "sha256": "4e05db2ed6ce347a2360e3c42c550699d106ce47553b28df64623082defcdc90"
+    },
+    {
+      "name": "v2-2017-04-24_to_2017-04-30.json",
+      "sha256": "deb8ffd4b667ec8388d2d2acbdb770ff1650b0cce2d4f4ff5161b469db475d85"
+    },
+    {
+      "name": "v2-2017-05-01_to_2017-05-07.json",
+      "sha256": "44dae3829236ca4cf63fa5b666c9fa8a552cfd98487ec82af09818a9e1a14bdb"
+    },
+    {
+      "name": "v2-2017-05-08_to_2017-05-14.json",
+      "sha256": "2da93800674b2d1e0ccd313310f3033c10825a52cb83f87dc7a018868b76c7d6"
+    },
+    {
+      "name": "v2-2017-05-15_to_2017-05-21.json",
+      "sha256": "514e907a79706cd4bf98dd8e926d178e6a698cf5496b593098993f340481f340"
+    },
+    {
+      "name": "v2-2017-05-22_to_2017-05-28.json",
+      "sha256": "542cfb624fd3c9828b4bfe4a30688ba32312a8a0f20b52b009d046a9ff79bf4e"
+    },
+    {
+      "name": "v2-2017-05-29_to_2017-06-04.json",
+      "sha256": "44caf5d15db48f1d6c799aa5c9d8ab6a2161c61c07887fbb0ede1d01f2b91635"
+    },
+    {
+      "name": "v2-2017-06-05_to_2017-06-11.json",
+      "sha256": "08b100fb4db7ef8b08d086943c1576034c6cf1ddf11295837db767f99523ac21"
+    },
+    {
+      "name": "v2-2017-06-12_to_2017-06-18.json",
+      "sha256": "bacf747c4073ad9a6a14b19546fc30f9a7405e1d7fb47d72c1f4a76508bb6160"
+    },
+    {
+      "name": "v2-2017-06-19_to_2017-06-25.json",
+      "sha256": "8d7d30396518c788bdeeb2334a246ff3a550c539c6c882753317886416c9c545"
+    },
+    {
+      "name": "v2-2017-06-26_to_2017-07-02.json",
+      "sha256": "211dd0315fccaf3830a40f4a81a145d5929b884a45daeb3e3388a47fdfea5261"
+    },
+    {
+      "name": "v2-2017-07-03_to_2017-07-09.json",
+      "sha256": "06fac5347e25e77a2799bdfe8fbd6a6be9764687681e6d57bb72fc92c5948f28"
+    },
+    {
+      "name": "v2-2017-07-10_to_2017-07-16.json",
+      "sha256": "dd915cee0896795a9c6e6b36a833bd6742b107c296dc658501964b2ff82e85c5"
+    },
+    {
+      "name": "v2-2017-07-17_to_2017-07-23.json",
+      "sha256": "30a431fb3d284095ba2fbefb1a35a521e69367308c69e646d38c876248f20a4b"
+    },
+    {
+      "name": "v2-2017-07-24_to_2017-07-30.json",
+      "sha256": "5b12796b6bac7817461ef32b3e31d48baf8c04392effd172902a4c64643333d5"
+    },
+    {
+      "name": "v2-2017-07-31_to_2017-08-06.json",
+      "sha256": "94871c6dc7d29366f9baaafa6a0246a1773ce83053e1ccbdf6a4a7f0f991b3c0"
+    },
+    {
+      "name": "v2-2017-08-07_to_2017-08-13.json",
+      "sha256": "9c47ec0e5a8234832204adc0257f275d2e7404125c7bc8195e5c112216702edc"
+    },
+    {
+      "name": "v2-2017-08-14_to_2017-08-20.json",
+      "sha256": "a98bcfcf40efed2a3b29fea22ce4a81632d7a246bc031d459e7b319c6bc183ef"
+    },
+    {
+      "name": "v2-2017-08-21_to_2017-08-27.json",
+      "sha256": "5c92222f49992969cff066eb7c80836103fcb95898e70560c72ad97a0fff844f"
+    },
+    {
+      "name": "v2-2017-08-28_to_2017-09-03.json",
+      "sha256": "08d7ed87563761a4d9258d468e8e264240b6a57ca87e012c37a8d5d1119fb1ee"
+    },
+    {
+      "name": "v2-2017-09-04_to_2017-09-10.json",
+      "sha256": "cd663c95f1fe0b85d4ba869b81361ca4f5d9ff74c01be7d78a59528cdc8f6074"
+    },
+    {
+      "name": "v2-2017-09-11_to_2017-09-17.json",
+      "sha256": "ca65cc215e6c5f2f5b0cd4e544bec39d2fd104eaad3358891d5a3cfe32566a55"
+    },
+    {
+      "name": "v2-2017-09-18_to_2017-09-24.json",
+      "sha256": "671b79d6b40e1af92589602d80cc895c41dc6b4f138f6f300f684ed6d825f041"
+    },
+    {
+      "name": "v2-2017-09-25_to_2017-10-01.json",
+      "sha256": "cf86ae234a2d640dad46fbbff52e0ecb689d92c22c8d70e01cfd5a3bb0c6b1b9"
+    },
+    {
+      "name": "v2-2017-10-02_to_2017-10-08.json",
+      "sha256": "ffac1b64e152ba26bf5f9ec92b7fb5d2c265a2800489f5e4049d7e56ea95b881"
+    },
+    {
+      "name": "v2-2017-10-09_to_2017-10-15.json",
+      "sha256": "b6182cdc3efd41149c08a0d46c825c919329551c2c3c996825a6db9051059167"
+    },
+    {
+      "name": "v2-2017-10-16_to_2017-10-22.json",
+      "sha256": "b16bee30aac7f047e0aeb54db9e2b6b5a1d378a8b96b9947366434e89fce9d7e"
+    },
+    {
+      "name": "v2-2017-10-23_to_2017-10-29.json",
+      "sha256": "48c244cfaf8d501463bf2dbd799e4407c0f1d5cf47d7a3be1c20acf144fe3167"
+    },
+    {
+      "name": "v2-2017-10-30_to_2017-11-05.json",
+      "sha256": "07a67cdc558f73a54d2094c68624c1ec7ce0ec3ea7b1cf826737a76bd2897a7e"
+    },
+    {
+      "name": "v2-2017-11-06_to_2017-11-12.json",
+      "sha256": "aa4ff706dac0b824ea55598fb6ced5e2464328b4e3ea924a98cfab7ad9a670ce"
+    },
+    {
+      "name": "v2-2017-11-13_to_2017-11-19.json",
+      "sha256": "592771aa614ec0fd8b9d56e51ee8334d2d67bb9262ff66c2dbea2f1c79163305"
+    },
+    {
+      "name": "v2-2017-11-20_to_2017-11-26.json",
+      "sha256": "f320fb7fa8b1bb39b6b094934fc39582eee480e4b8b0af7931cc5cd3d3223d43"
+    },
+    {
+      "name": "v2-2017-11-27_to_2017-12-03.json",
+      "sha256": "908cc4f857c69e3d2e5d40ef86964fa5739b0e4bde5130654cdf2848045e85b3"
+    },
+    {
+      "name": "v2-2017-12-04_to_2017-12-10.json",
+      "sha256": "367dfb5dc8c3580d591c2b3fe6c2be8674fe4700169f4f377b1a2b0e25f0b3db"
+    },
+    {
+      "name": "v2-2017-12-11_to_2017-12-17.json",
+      "sha256": "c8a93b92d68c13c143f8ec87145693f5c4a7344fc2cb2603cd49e079b5d67fb1"
+    },
+    {
+      "name": "v2-2017-12-18_to_2017-12-24.json",
+      "sha256": "fd9ddffffa6f2ea0a08d2dbd9a23ce9a59c082e0d21b2d908510d30c395afa90"
+    },
+    {
+      "name": "v2-2017-12-25_to_2017-12-31.json",
+      "sha256": "7a3cc92411ed06cb149148450ec51bd3b2f3be47eb996c59c28c463088083182"
+    }
+  ],
+  "limitations": [
+    "historical delisted and ticker-change coverage remains partial",
+    "the candidate universe expands materially from 2019 onward",
+    "immature horizons remain null and are never imputed"
+  ]
+}

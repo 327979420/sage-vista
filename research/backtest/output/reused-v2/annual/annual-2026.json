@@ -1,0 +1,87 @@
+{
+  "schema_version": "score-timeframe-attribution-year-v2.0.0",
+  "experiment_id": "score-timeframe-attribution-v2.0.0-2026-08-29",
+  "year": 2026,
+  "event_gate": "exact completed daily MACD bullish cross",
+  "future_data_used_for_selection": false,
+  "market_and_industry_mixed_into_technical_test": false,
+  "coverage": {
+    "start": "2026-01-02",
+    "end": "2026-08-28",
+    "sessions": 165,
+    "natural_week_checkpoints": 35,
+    "source_candidates": 6546,
+    "events_joined_to_price_cache": 6546,
+    "missing_price_events": 0,
+    "mature_outcomes": {
+      "5": 6379,
+      "10": 6232,
+      "15": 6049,
+      "20": 5718,
+      "40": 5019,
+      "60": 4148,
+      "100": 2811,
+      "120": 1884
+    }
+  },
+  "audits": {
+    "daily_gate_mismatches": 0,
+    "monthly_cross_mismatches": 0
+  },
+  "model_versions": [
+    "unified-v2-macd-trigger-1.1.0",
+    "unified-v2-macd-trigger-1.2.0",
+    "unified-v2-macd-trigger-1.3.0"
+  ],
+  "factor_registry_versions": [
+    "0.8.0",
+    "0.9.0",
+    "legacy_unrecorded"
+  ],
+  "factor_hit_counts": {
+    "macd.daily_bull_cross": 6546,
+    "macd.monthly_bull_cross": 293,
+    "macd.weekly_bull_cross": 44,
+    "macd.weekly_histogram_improving": 1009,
+    "qualification.long_trend": 6546,
+    "qualification.pullback_60d": 3517,
+    "risk.overhead_unfilled_gap": 1465,
+    "rsi.bullish_divergence": 320,
+    "rsi.oversold_repair": 16,
+    "structure.bottom_bullish_engulfing": 350,
+    "structure.bottom_doji": 817,
+    "structure.bullish_fvg_support": 3976,
+    "structure.double_bottom": 689,
+    "structure.engulfing_bullish_follow_through": 578,
+    "structure.hammer": 470,
+    "structure.higher_low": 2746,
+    "structure.monthly_bullish_engulfing": 144,
+    "structure.monthly_double_bullish_engulfing": 30,
+    "structure.support_bullish_engulfing": 1130,
+    "structure.trendline_three_push": 298,
+    "structure.trendline_three_push_retest": 40,
+    "structure.weekly_bullish_engulfing": 212,
+    "structure.weekly_double_bullish_engulfing": 85,
+    "support.close_congestion": 1378,
+    "support.ema_proximity": 2596,
+    "support.fibonacci_618": 551,
+    "support.fibonacci_half": 618,
+    "support.golden_pocket": 323,
+    "support.monthly_ema_proximity": 520,
+    "support.volume_profile_proxy": 621,
+    "support.weekly_ema_proximity": 829,
+    "volume.bottom_expansion": 780,
+    "volume.relative_expansion": 1123
+  },
+  "source_files": [
+    {
+      "name": "unified-v2-2026.json",
+      "sha256": "025b01e8480b8463b5e5fa808d11d17c44f72fb5aa33f47f8bdd9eb243387e71"
+    }
+  ],
+  "limitations": [
+    "historical delisted and ticker-change coverage remains partial",
+    "the candidate universe expands materially from 2019 onward",
+    "immature horizons remain null and are never imputed"
+  ]
+}

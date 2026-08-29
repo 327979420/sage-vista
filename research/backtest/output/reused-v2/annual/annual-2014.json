@@ -1,0 +1,291 @@
+{
+  "schema_version": "score-timeframe-attribution-year-v2.0.0",
+  "experiment_id": "score-timeframe-attribution-v2.0.0-2026-08-29",
+  "year": 2014,
+  "event_gate": "exact completed daily MACD bullish cross",
+  "future_data_used_for_selection": false,
+  "market_and_industry_mixed_into_technical_test": false,
+  "coverage": {
+    "start": "2014-01-02",
+    "end": "2014-12-31",
+    "sessions": 252,
+    "natural_week_checkpoints": 51,
+    "source_candidates": 432,
+    "events_joined_to_price_cache": 282,
+    "missing_price_events": 150,
+    "mature_outcomes": {
+      "5": 282,
+      "10": 282,
+      "15": 282,
+      "20": 282,
+      "40": 282,
+      "60": 282,
+      "100": 282,
+      "120": 282
+    }
+  },
+  "audits": {
+    "daily_gate_mismatches": 0,
+    "monthly_cross_mismatches": 0
+  },
+  "model_versions": [
+    "unified-v2-macd-trigger-1.2.0"
+  ],
+  "factor_registry_versions": [
+    "0.8.0"
+  ],
+  "factor_hit_counts": {
+    "macd.daily_bull_cross": 282,
+    "macd.monthly_bull_cross": 13,
+    "macd.weekly_bull_cross": 5,
+    "macd.weekly_histogram_improving": 49,
+    "qualification.long_trend": 282,
+    "qualification.pullback_60d": 67,
+    "risk.overhead_unfilled_gap": 68,
+    "rsi.bullish_divergence": 11,
+    "rsi.oversold_repair": 2,
+    "structure.bottom_bullish_engulfing": 7,
+    "structure.bottom_doji": 32,
+    "structure.bullish_fvg_support": 229,
+    "structure.double_bottom": 29,
+    "structure.engulfing_bullish_follow_through": 34,
+    "structure.hammer": 25,
+    "structure.higher_low": 111,
+    "structure.monthly_bullish_engulfing": 12,
+    "structure.monthly_double_bullish_engulfing": 7,
+    "structure.support_bullish_engulfing": 48,
+    "structure.trendline_three_push": 11,
+    "structure.trendline_three_push_retest": 2,
+    "structure.weekly_bullish_engulfing": 16,
+    "structure.weekly_double_bullish_engulfing": 7,
+    "support.close_congestion": 40,
+    "support.ema_proximity": 191,
+    "support.fibonacci_618": 14,
+    "support.fibonacci_half": 12,
+    "support.golden_pocket": 10,
+    "support.monthly_ema_proximity": 39,
+    "support.volume_profile_proxy": 23,
+    "support.weekly_ema_proximity": 115,
+    "volume.bottom_expansion": 40,
+    "volume.relative_expansion": 57
+  },
+  "source_files": [
+    {
+      "name": "v2-2014-01-01_to_2014-01-05.json",
+      "sha256": "df8cb0bc6924bec8ab94d5f7a13906760c32bc9765f5673b295d531ac5c1fdb5"
+    },
+    {
+      "name": "v2-2014-01-06_to_2014-01-12.json",
+      "sha256": "309cf8b6f51ad1620b8b8dc7b08fa056b31cf8792f6906610d9f9c2aae44ed29"
+    },
+    {
+      "name": "v2-2014-01-13_to_2014-01-19.json",
+      "sha256": "520f56109699dd0ba657f1259c4af544a04fd0eda5a121520e3afe67c2559ed9"
+    },
+    {
+      "name": "v2-2014-01-20_to_2014-01-26.json",
+      "sha256": "885eb82aaf0f8f739910f019a25ac68e6fdf3559f89bda185238b0129e444bf6"
+    },
+    {
+      "name": "v2-2014-01-27_to_2014-02-02.json",
+      "sha256": "a25487d2306c2bf2294fafc6a6ca55d6b52588000839d3f2d7fde43fccd7ec2d"
+    },
+    {
+      "name": "v2-2014-02-03_to_2014-02-09.json",
+      "sha256": "85251152b5ae10f4ffb40449eb46630f7c6bde9c03eb75e58ecbe5b3c17a560a"
+    },
+    {
+      "name": "v2-2014-02-10_to_2014-02-16.json",
+      "sha256": "a67c0277568603372ff89fb95a29e171329b9d244ce394350ebd890c9e955be7"
+    },
+    {
+      "name": "v2-2014-02-17_to_2014-02-23.json",
+      "sha256": "9d367383efc347c431c2e81c8b0775e7a3a17df5819917194bf961a1a81fdf1d"
+    },
+    {
+      "name": "v2-2014-02-24_to_2014-03-02.json",
+      "sha256": "c0c7bdab3d76b3168a2030376678a967162c9681abb3107f45d65dd31a6b2e84"
+    },
+    {
+      "name": "v2-2014-03-03_to_2014-03-09.json",
+      "sha256": "827c523fffa80b2a8df55ce9a1356161079b3fa5f073b768a8a6c0fac4930fe8"
+    },
+    {
+      "name": "v2-2014-03-10_to_2014-03-16.json",
+      "sha256": "ad21eb6d10977c9c5f5f3c1a2fde75299097e545db9e2f1c48974ebb06fc2f09"
+    },
+    {
+      "name": "v2-2014-03-17_to_2014-03-23.json",
+      "sha256": "d00d65dd7efa67905b7593140d41f72c9707e607758259d2f59dbb2c301e7de6"
+    },
+    {
+      "name": "v2-2014-03-24_to_2014-03-30.json",
+      "sha256": "deec61c98e0791040dfbba3b9cf98a0abaedc48c1ecf9c4f18f0b1e77975d8ab"
+    },
+    {
+      "name": "v2-2014-03-31_to_2014-04-06.json",
+      "sha256": "bbda0bfcae907cee04fbf578cd4417d41ba7e7270d36cfa00af13e9a0f2a4c89"
+    },
+    {
+      "name": "v2-2014-04-07_to_2014-04-13.json",
+      "sha256": "5170e32f356899eda8c974f6317cea0ce8f4fa1e723758ce6a91e2458644e440"
+    },
+    {
+      "name": "v2-2014-04-14_to_2014-04-20.json",
+      "sha256": "84b172d665dd9610730bd68322f963cf8056f6e1d07f564aab194c7135622cbd"
+    },
+    {
+      "name": "v2-2014-04-21_to_2014-04-27.json",
+      "sha256": "322e8299aac324bc5c5e318a99d14626ca1749c668e82f4dc3751a51cb497e33"
+    },
+    {
+      "name": "v2-2014-04-28_to_2014-05-04.json",
+      "sha256": "d252dc1f8fd580a839835ba50694ee1151d3c94b2051a5fec49bdaede4a16223"
+    },
+    {
+      "name": "v2-2014-05-05_to_2014-05-11.json",
+      "sha256": "5effeabd635a6da490261a3e8e81f0342a8ca41a87e7839c5fd890cac7aa6bb7"
+    },
+    {
+      "name": "v2-2014-05-12_to_2014-05-18.json",
+      "sha256": "2646360e2ef915ef9990f7c334c88a7fb76f279acd52eb08b6cd0ac479417032"
+    },
+    {
+      "name": "v2-2014-05-19_to_2014-05-25.json",
+      "sha256": "3e5157d8e6f47674e8433280fce4d41c2a6f208d85e9f04ec55190cbbc758963"
+    },
+    {
+      "name": "v2-2014-05-26_to_2014-06-01.json",
+      "sha256": "be1b8b0bda0ed29dec6500fe745f8c64dd74302f3aa0981e13be5f2546254cdd"
+    },
+    {
+      "name": "v2-2014-06-02_to_2014-06-08.json",
+      "sha256": "81776fbc78497aab674aafec67f0ee67a7bab7e3045d53330807f9f3e86d5040"
+    },
+    {
+      "name": "v2-2014-06-09_to_2014-06-15.json",
+      "sha256": "d276042c61c9bd42b9abc004cda674b05875b3305b2ed2bc9166ba36fb6671a9"
+    },
+    {
+      "name": "v2-2014-06-16_to_2014-06-22.json",
+      "sha256": "4823d013a70eff10b593a104df8096595b663b5b8e681766f0270773d6a7f996"
+    },
+    {
+      "name": "v2-2014-06-23_to_2014-06-29.json",
+      "sha256": "c19bd504b85bc69adea06762730ba909d642a9ca18b2e002415a2987a4e3df79"
+    },
+    {
+      "name": "v2-2014-06-30_to_2014-07-06.json",
+      "sha256": "ffd764548f50e2f56fe726edc575c61f96dfc41efcf94f1d8adf852e97cd3113"
+    },
+    {
+      "name": "v2-2014-07-07_to_2014-07-13.json",
+      "sha256": "5a84bffb00ec9251877559e57eda8ff009ade69d2bd38c8a1e24b138fb232694"
+    },
+    {
+      "name": "v2-2014-07-14_to_2014-07-20.json",
+      "sha256": "6e4085c534ebc1cfb0ccfaa214fcaa95b255d18b7fd98fb684036b9de2f29c9c"
+    },
+    {
+      "name": "v2-2014-07-21_to_2014-07-27.json",
+      "sha256": "406d53563485f3dee462a37e92fc19d8f61da69d5c451535a803012bd73c91f9"
+    },
+    {
+      "name": "v2-2014-07-28_to_2014-08-03.json",
+      "sha256": "550ae7193f1d047214872598dbda5b97e8cad4097e14871154540f3a6ecc0651"
+    },
+    {
+      "name": "v2-2014-08-04_to_2014-08-10.json",
+      "sha256": "846bed5680249d8179598dc5b7b9a7050d8ceae0e4165ec9957dc9b97270bb3d"
+    },
+    {
+      "name": "v2-2014-08-11_to_2014-08-17.json",
+      "sha256": "3dcf727dcf2a8cdcea04e704cb80dd7b3ec3fba4829e6d3efead6de704dfd88e"
+    },
+    {
+      "name": "v2-2014-08-18_to_2014-08-24.json",
+      "sha256": "88a08c5115a57546befe65256b3069e2c86e8861fb2d17878d6fdbbfcafa7ef5"
+    },
+    {
+      "name": "v2-2014-08-25_to_2014-08-31.json",
+      "sha256": "3a231ec3bd8aba4bc412a01b4129755f412288c650974fffc635f99e09a00495"
+    },
+    {
+      "name": "v2-2014-09-01_to_2014-09-07.json",
+      "sha256": "7c3090e96bf50c6097c17fc88aa353a7e4fcdc0b048bfea2daf656ca6ad0440e"
+    },
+    {
+      "name": "v2-2014-09-08_to_2014-09-14.json",
+      "sha256": "0cea47fbd41c26dd81da3375fb1df2cdb78b2bc57295aa51763094af325d0b6e"
+    },
+    {
+      "name": "v2-2014-09-15_to_2014-09-21.json",
+      "sha256": "180da3d00879433936a2e4f5e998cf5f4e90cfb785a8e3bffd20c49a1f466446"
+    },
+    {
+      "name": "v2-2014-09-22_to_2014-09-28.json",
+      "sha256": "ebe1542a13fdbc9c3239d4bc7c6221a173bd43c4ce0887600cbeb4b5b87c8d73"
+    },
+    {
+      "name": "v2-2014-09-29_to_2014-10-05.json",
+      "sha256": "6392309bb93234ddf027595c41ac3a72253ad8e2de79e051f95bea12ccaebe25"
+    },
+    {
+      "name": "v2-2014-10-06_to_2014-10-12.json",
+      "sha256": "feb87cb9ec3bc9a0b9bee40bf7b2a67477a512e39e90b1073ed3e285ee47f66d"
+    },
+    {
+      "name": "v2-2014-10-13_to_2014-10-19.json",
+      "sha256": "20021eda784387b2b75173e3541c881390b273cb59ceae9de806a67538630530"
+    },
+    {
+      "name": "v2-2014-10-20_to_2014-10-26.json",
+      "sha256": "4bc0c4d43c6995cca85a373bb17c3d36e1fa7d663d80e60c3feb5831603820f4"
+    },
+    {
+      "name": "v2-2014-10-27_to_2014-11-02.json",
+      "sha256": "144dd0baf50c147d2463e91816d3d3e326b0208da2b2a61ac80b6364a5f09d27"
+    },
+    {
+      "name": "v2-2014-11-03_to_2014-11-09.json",
+      "sha256": "3e86564b9fe8191956a62685e1f92965366f5109995e7674103b5c40150f320f"
+    },
+    {
+      "name": "v2-2014-11-10_to_2014-11-16.json",
+      "sha256": "5d013108ba3f4a5e532423162386a01f18c45782fad34f1dd6fe0a0e85706c71"
+    },
+    {
+      "name": "v2-2014-11-17_to_2014-11-23.json",
+      "sha256": "cc02b2fdf7d647aed2bf144c679f7f3d65d85326d62b53e6549ef66e93b02a83"
+    },
+    {
+      "name": "v2-2014-11-24_to_2014-11-30.json",
+      "sha256": "d91d816c42a193b6db282e959f9358b198d50a8b4c69536cdee1326b6b0ff635"
+    },
+    {
+      "name": "v2-2014-12-01_to_2014-12-07.json",
+      "sha256": "d116288d90fb604933f0c0fb0d0f3b037693f86bef36aaa2d51ba6c8e978c9f9"
+    },
+    {
+      "name": "v2-2014-12-08_to_2014-12-14.json",
+      "sha256": "c91d40e05af64e0e0d0e7f659e46f1531e76e7a124668677b6c02ea0c70eaf55"
+    },
+    {
+      "name": "v2-2014-12-15_to_2014-12-21.json",
+      "sha256": "2e5e7134dd92c117da111696845fbb007243022b673899b82ee4dbcaff4c3034"
+    },
+    {
+      "name": "v2-2014-12-22_to_2014-12-28.json",
+      "sha256": "12d885100cb2b33e3496789f0403d5a6cca2d591fd7d3ecca1a1890c66d3d4dc"
+    },
+    {
+      "name": "v2-2014-12-29_to_2014-12-31.json",
+      "sha256": "483d283d0e36d85499210e86a597b4956807bd526d60513fc2823091356832eb"
+    }
+  ],
+  "limitations": [
+    "historical delisted and ticker-change coverage remains partial",
+    "the candidate universe expands materially from 2019 onward",
+    "immature horizons remain null and are never imputed"
+  ]
+}

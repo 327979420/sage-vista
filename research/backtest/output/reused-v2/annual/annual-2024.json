@@ -1,0 +1,291 @@
+{
+  "schema_version": "score-timeframe-attribution-year-v2.0.0",
+  "experiment_id": "score-timeframe-attribution-v2.0.0-2026-08-29",
+  "year": 2024,
+  "event_gate": "exact completed daily MACD bullish cross",
+  "future_data_used_for_selection": false,
+  "market_and_industry_mixed_into_technical_test": false,
+  "coverage": {
+    "start": "2024-01-02",
+    "end": "2024-12-31",
+    "sessions": 252,
+    "natural_week_checkpoints": 53,
+    "source_candidates": 9677,
+    "events_joined_to_price_cache": 9677,
+    "missing_price_events": 0,
+    "mature_outcomes": {
+      "5": 9677,
+      "10": 9677,
+      "15": 9677,
+      "20": 9677,
+      "40": 9677,
+      "60": 9677,
+      "100": 9677,
+      "120": 9677
+    }
+  },
+  "audits": {
+    "daily_gate_mismatches": 0,
+    "monthly_cross_mismatches": 0
+  },
+  "model_versions": [
+    "unified-v2-macd-trigger-1.2.0"
+  ],
+  "factor_registry_versions": [
+    "0.8.0"
+  ],
+  "factor_hit_counts": {
+    "macd.daily_bull_cross": 9677,
+    "macd.monthly_bull_cross": 424,
+    "macd.weekly_bull_cross": 60,
+    "macd.weekly_histogram_improving": 1334,
+    "qualification.long_trend": 9677,
+    "qualification.pullback_60d": 4108,
+    "risk.overhead_unfilled_gap": 2431,
+    "rsi.bullish_divergence": 422,
+    "rsi.oversold_repair": 26,
+    "structure.bottom_bullish_engulfing": 442,
+    "structure.bottom_doji": 1058,
+    "structure.bullish_fvg_support": 7329,
+    "structure.double_bottom": 951,
+    "structure.engulfing_bullish_follow_through": 978,
+    "structure.hammer": 881,
+    "structure.higher_low": 4215,
+    "structure.monthly_bullish_engulfing": 439,
+    "structure.monthly_double_bullish_engulfing": 72,
+    "structure.support_bullish_engulfing": 1714,
+    "structure.trendline_three_push": 417,
+    "structure.trendline_three_push_retest": 67,
+    "structure.weekly_bullish_engulfing": 573,
+    "structure.weekly_double_bullish_engulfing": 239,
+    "support.close_congestion": 2360,
+    "support.ema_proximity": 4150,
+    "support.fibonacci_618": 832,
+    "support.fibonacci_half": 919,
+    "support.golden_pocket": 407,
+    "support.monthly_ema_proximity": 1619,
+    "support.volume_profile_proxy": 979,
+    "support.weekly_ema_proximity": 2667,
+    "volume.bottom_expansion": 1122,
+    "volume.relative_expansion": 1948
+  },
+  "source_files": [
+    {
+      "name": "v2-2024-01-01_to_2024-01-07.json",
+      "sha256": "13f6876086d0b22b5465dd0129dc5209946b9acb388b82489534ec90a8510bcd"
+    },
+    {
+      "name": "v2-2024-01-08_to_2024-01-14.json",
+      "sha256": "e1e0a6043d4fb22b5460bcef1b1e93e842bca971085556e9fde6794fae72b63a"
+    },
+    {
+      "name": "v2-2024-01-15_to_2024-01-21.json",
+      "sha256": "95fd319917f77390fcca2472fa5951ca02d2c45ccbf5558b4abd9685ab1b2b56"
+    },
+    {
+      "name": "v2-2024-01-22_to_2024-01-28.json",
+      "sha256": "86b4635386652e542d6b4cef2bd993abe270dd4dbc4776cc87bf85e4b0d39aa6"
+    },
+    {
+      "name": "v2-2024-01-29_to_2024-02-04.json",
+      "sha256": "c278ae6a4aead93cb1a18e30878448b8a43d99fe28070aa41658449837b025d4"
+    },
+    {
+      "name": "v2-2024-02-05_to_2024-02-11.json",
+      "sha256": "05629a552e0b11b6d048b5f3749cb23e80f4b453a380ed31a5cd9f48e5912827"
+    },
+    {
+      "name": "v2-2024-02-12_to_2024-02-18.json",
+      "sha256": "7b5b85814e86a05d80f51bd97920b80a1df72e93ebcfed36dc56ebf5bc647b0e"
+    },
+    {
+      "name": "v2-2024-02-19_to_2024-02-25.json",
+      "sha256": "5a370298d81462135cc759e2dd30f98ee8593ce3aa4b8a154b88d777aa654db8"
+    },
+    {
+      "name": "v2-2024-02-26_to_2024-03-03.json",
+      "sha256": "ce52b8aad405743bb82003f967fc68348f27ed5b0d6dfd59509b51731533894d"
+    },
+    {
+      "name": "v2-2024-03-04_to_2024-03-10.json",
+      "sha256": "319d6ba9c313707ab9bb0c0655cb8a9f32bef48e69b5a11dfb6c2c9a45332d25"
+    },
+    {
+      "name": "v2-2024-03-11_to_2024-03-17.json",
+      "sha256": "363d1c3f818aee8b16017000f8f900b57f27ec929611e17f90636aaaca8a2fbe"
+    },
+    {
+      "name": "v2-2024-03-18_to_2024-03-24.json",
+      "sha256": "f210c279bf9e92ecc4ce50a26c0c218fa00036b3b411446ec7fc536bb3608a18"
+    },
+    {
+      "name": "v2-2024-03-25_to_2024-03-31.json",
+      "sha256": "8458017faf52cb8e97cac24bbb8ccb1f624dcedf4a937702978c1910ee8ba341"
+    },
+    {
+      "name": "v2-2024-04-01_to_2024-04-07.json",
+      "sha256": "11d79e244a1afef90887a3badbc2ec427f34ef84d0df89873b61549bc4c34482"
+    },
+    {
+      "name": "v2-2024-04-08_to_2024-04-14.json",
+      "sha256": "2909e486cfbf27a59b308a7d1e2e33e983c9c2b726aad26855eef6edb594a805"
+    },
+    {
+      "name": "v2-2024-04-15_to_2024-04-21.json",
+      "sha256": "b08db56265cb73ec318f5728afb1a2b53c04b0fdcdb31650c2adba0de83f9695"
+    },
+    {
+      "name": "v2-2024-04-22_to_2024-04-28.json",
+      "sha256": "3fdd8cf9b57ebbdbd54ab968dd78cdd672d09ddad0c86b8db0b0d6b44df850cf"
+    },
+    {
+      "name": "v2-2024-04-29_to_2024-05-05.json",
+      "sha256": "60ebedff72682cca4e1c80236b64fc007f5f53cf75187db05bd1b33a59bc7dc7"
+    },
+    {
+      "name": "v2-2024-05-06_to_2024-05-12.json",
+      "sha256": "c03eeb477b3486e86e5d8d428ee72b7f5b7bd0df3b7ad34e927a1e2fee23f4a4"
+    },
+    {
+      "name": "v2-2024-05-13_to_2024-05-19.json",
+      "sha256": "a7000aa02f5a9ffe9e096563a308d28df196e1be14477cfae08f736804975929"
+    },
+    {
+      "name": "v2-2024-05-20_to_2024-05-26.json",
+      "sha256": "870bc1368ed3b00939a48d55dcdffbeec2ea4f360a3b8b732d04a94b42391252"
+    },
+    {
+      "name": "v2-2024-05-27_to_2024-06-02.json",
+      "sha256": "bfbd48fc13e9ddbae64815030f32812822f91218d0d90ff631d7c6e531a7e910"
+    },
+    {
+      "name": "v2-2024-06-03_to_2024-06-09.json",
+      "sha256": "ea005499786c95da122e9f9a7c61dba83054ce17467f74d4b4712d8f987b1704"
+    },
+    {
+      "name": "v2-2024-06-10_to_2024-06-16.json",
+      "sha256": "46702449342219dcabd0bd8448655a9b301adfa3b32d531db1cb77d35cc12f3c"
+    },
+    {
+      "name": "v2-2024-06-17_to_2024-06-23.json",
+      "sha256": "bf3daa5b33f1e2c47d0604df969d83c9086e5b42ed6ffa238d795680ed0bffd8"
+    },
+    {
+      "name": "v2-2024-06-24_to_2024-06-30.json",
+      "sha256": "f337eb4fed93cd7036423243c96af3da26cef60e985ec37def4cc9985582bac7"
+    },
+    {
+      "name": "v2-2024-07-01_to_2024-07-07.json",
+      "sha256": "1cddc380a117d1cbf2052a3b9df05a0d793578f0e4baa4aa46314c8d5505ed25"
+    },
+    {
+      "name": "v2-2024-07-08_to_2024-07-14.json",
+      "sha256": "caf9d3f9a4f40ff2290c8d049be138681acb8c9b9060e13095d90706be86dfc9"
+    },
+    {
+      "name": "v2-2024-07-15_to_2024-07-21.json",
+      "sha256": "631afb91907940e630c5534e1b74b7662d9690a211dd23f041947713517ba888"
+    },
+    {
+      "name": "v2-2024-07-22_to_2024-07-28.json",
+      "sha256": "7736ced5110764f290a2496800c94b00d1ee36e8a9d30f8dc9ae296288cf9f78"
+    },
+    {
+      "name": "v2-2024-07-29_to_2024-08-04.json",
+      "sha256": "9c0767722adcdde1f6d6704214794239b268f64a224d5801d6ddf08b411d6a5d"
+    },
+    {
+      "name": "v2-2024-08-05_to_2024-08-11.json",
+      "sha256": "4280c47d425acaa47b4f97ff3d5917a843fedd735020aff39f2d38289def1b67"
+    },
+    {
+      "name": "v2-2024-08-12_to_2024-08-18.json",
+      "sha256": "e3a4b6134d20203719b56160c04c8e98867ee428172b58dea0872ea68f892cea"
+    },
+    {
+      "name": "v2-2024-08-19_to_2024-08-25.json",
+      "sha256": "9d00e5fbe5c413c949637cc902dd9e4b338c4d15fae1e755d4df672c84ff33ae"
+    },
+    {
+      "name": "v2-2024-08-26_to_2024-09-01.json",
+      "sha256": "5cd8f0a7ae5a056ddceadf22e5748d738773c95315c0bdbac76b2988e226c6ee"
+    },
+    {
+      "name": "v2-2024-09-02_to_2024-09-08.json",
+      "sha256": "e0bc7d5ee4b04a9162f7cbfc237311ad3f091782fde542771f55a850fc752ba2"
+    },
+    {
+      "name": "v2-2024-09-09_to_2024-09-15.json",
+      "sha256": "2f820a2fd8ed7b1df92ed580cf07faa098f3e3fa8f1cb1794ec0fbc650a313f2"
+    },
+    {
+      "name": "v2-2024-09-16_to_2024-09-22.json",
+      "sha256": "4e32dcedb2ec26f47ade19848c539bb9f32c09df541ea985f4c512bb5d11441c"
+    },
+    {
+      "name": "v2-2024-09-23_to_2024-09-29.json",
+      "sha256": "e59ebe88771fc39bd8ab90d968bb74f621d2f3b43417f2cfed4fbba5339ceddb"
+    },
+    {
+      "name": "v2-2024-09-30_to_2024-10-06.json",
+      "sha256": "4b53a0a6530e6e90ca34ed0042336b3fe2ce3771adb5b42e41780fec6e78df90"
+    },
+    {
+      "name": "v2-2024-10-07_to_2024-10-13.json",
+      "sha256": "a5dda209a332297961061836517d58d669034b1f34c8f3d458c5e305df6c1ebf"
+    },
+    {
+      "name": "v2-2024-10-14_to_2024-10-20.json",
+      "sha256": "f5156ab1b98cb5d53ca5a1ad0c92cfdc21d7d5cc94b46b25e68aa50cd6a11454"
+    },
+    {
+      "name": "v2-2024-10-21_to_2024-10-27.json",
+      "sha256": "0f97cae9045556d961a252801afb029e553532742c9377080c7d925fc31323ab"
+    },
+    {
+      "name": "v2-2024-10-28_to_2024-11-03.json",
+      "sha256": "f9cf2cae365a36d7b3f2d4b27daf455432f35463384126d8e2561fac1677076f"
+    },
+    {
+      "name": "v2-2024-11-04_to_2024-11-10.json",
+      "sha256": "06c5d77131d98023835055bb513d936e0480eb80fd9a6a1f792051da07963943"
+    },
+    {
+      "name": "v2-2024-11-11_to_2024-11-17.json",
+      "sha256": "49dd5025a98a7d32563b831db1108cba19a8fb6bb586c8af48f69d5f64285a00"
+    },
+    {
+      "name": "v2-2024-11-18_to_2024-11-24.json",
+      "sha256": "8d3c29c02edda013657ef47fbf84956db5001f363d8148df03881f23bbd566c0"
+    },
+    {
+      "name": "v2-2024-11-25_to_2024-12-01.json",
+      "sha256": "b758ac90562be223740c70c6233079630c9d4da750e6f84090f390ee2e0db190"
+    },
+    {
+      "name": "v2-2024-12-02_to_2024-12-08.json",
+      "sha256": "0e301137ca4ee57289ca80b88a52f37d633157fdab1d86bdd1c62d5d7e013264"
+    },
+    {
+      "name": "v2-2024-12-09_to_2024-12-15.json",
+      "sha256": "bdd5b2bbba5295a621056aae883866801e3020a4f63a06f9b7e6715e97a42ac3"
+    },
+    {
+      "name": "v2-2024-12-16_to_2024-12-22.json",
+      "sha256": "33f0d8f40a61eb859d34e1ca6b808f4c01ec22f7f43d05eda044da243883fd09"
+    },
+    {
+      "name": "v2-2024-12-23_to_2024-12-29.json",
+      "sha256": "625da35078a920c5de7e75ea6661488683afa91f489f943b94eccc5517aa4af1"
+    },
+    {
+      "name": "v2-2024-12-30_to_2024-12-31.json",
+      "sha256": "2f2defa692f2a5bf0b61d8e92ea0e0c58266f3abee1f5ee7d5ce39beca86639a"
+    }
+  ],
+  "limitations": [
+    "historical delisted and ticker-change coverage remains partial",
+    "the candidate universe expands materially from 2019 onward",
+    "immature horizons remain null and are never imputed"
+  ]
+}

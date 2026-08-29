@@ -1,0 +1,291 @@
+{
+  "schema_version": "score-timeframe-attribution-year-v2.0.0",
+  "experiment_id": "score-timeframe-attribution-v2.0.0-2026-08-29",
+  "year": 2025,
+  "event_gate": "exact completed daily MACD bullish cross",
+  "future_data_used_for_selection": false,
+  "market_and_industry_mixed_into_technical_test": false,
+  "coverage": {
+    "start": "2025-01-02",
+    "end": "2025-12-31",
+    "sessions": 250,
+    "natural_week_checkpoints": 53,
+    "source_candidates": 9514,
+    "events_joined_to_price_cache": 9514,
+    "missing_price_events": 0,
+    "mature_outcomes": {
+      "5": 9514,
+      "10": 9514,
+      "15": 9514,
+      "20": 9514,
+      "40": 9514,
+      "60": 9514,
+      "100": 9514,
+      "120": 9513
+    }
+  },
+  "audits": {
+    "daily_gate_mismatches": 0,
+    "monthly_cross_mismatches": 1
+  },
+  "model_versions": [
+    "unified-v2-macd-trigger-1.2.0"
+  ],
+  "factor_registry_versions": [
+    "0.8.0"
+  ],
+  "factor_hit_counts": {
+    "macd.daily_bull_cross": 9514,
+    "macd.monthly_bull_cross": 384,
+    "macd.weekly_bull_cross": 78,
+    "macd.weekly_histogram_improving": 1375,
+    "qualification.long_trend": 9514,
+    "qualification.pullback_60d": 5082,
+    "risk.overhead_unfilled_gap": 2565,
+    "rsi.bullish_divergence": 510,
+    "rsi.oversold_repair": 48,
+    "structure.bottom_bullish_engulfing": 587,
+    "structure.bottom_doji": 1223,
+    "structure.bullish_fvg_support": 6322,
+    "structure.double_bottom": 941,
+    "structure.engulfing_bullish_follow_through": 896,
+    "structure.hammer": 806,
+    "structure.higher_low": 4019,
+    "structure.monthly_bullish_engulfing": 467,
+    "structure.monthly_double_bullish_engulfing": 109,
+    "structure.support_bullish_engulfing": 1766,
+    "structure.trendline_three_push": 454,
+    "structure.trendline_three_push_retest": 90,
+    "structure.weekly_bullish_engulfing": 503,
+    "structure.weekly_double_bullish_engulfing": 247,
+    "support.close_congestion": 2902,
+    "support.ema_proximity": 4601,
+    "support.fibonacci_618": 974,
+    "support.fibonacci_half": 1095,
+    "support.golden_pocket": 497,
+    "support.monthly_ema_proximity": 1880,
+    "support.volume_profile_proxy": 1224,
+    "support.weekly_ema_proximity": 3100,
+    "volume.bottom_expansion": 1263,
+    "volume.relative_expansion": 1648
+  },
+  "source_files": [
+    {
+      "name": "v2-2025-01-01_to_2025-01-05.json",
+      "sha256": "9f3ba8f5f19b214197f5a3961db2e618921502a8914ba14b7b994aa7b3b00e81"
+    },
+    {
+      "name": "v2-2025-01-06_to_2025-01-12.json",
+      "sha256": "e75dd5ef6e8c36eabb9bda9dff91456c32e4d2686b5d5de6e06d6881925fa381"
+    },
+    {
+      "name": "v2-2025-01-13_to_2025-01-19.json",
+      "sha256": "6cb86fee91e6c9812a0fb83532d94768b213fa30e41b8bbd26a75fa093288fcf"
+    },
+    {
+      "name": "v2-2025-01-20_to_2025-01-26.json",
+      "sha256": "2cc6396e0730aec88aed3f2a178ea065ff3f748795efb5e094c0be42d95aa113"
+    },
+    {
+      "name": "v2-2025-01-27_to_2025-02-02.json",
+      "sha256": "5a2489fdbc52dab8f7d13a8f72050e18a3ca3e1ad564ad8bdc26b1064aa255e0"
+    },
+    {
+      "name": "v2-2025-02-03_to_2025-02-09.json",
+      "sha256": "67b207ff971ecc3f25715b8d8ad6520021e23b52e48fb995e005c103dee58e42"
+    },
+    {
+      "name": "v2-2025-02-10_to_2025-02-16.json",
+      "sha256": "f83c5b09ec76acd59185de681eb6c0a23f0d1ce2922040213d5994d90c9ffb66"
+    },
+    {
+      "name": "v2-2025-02-17_to_2025-02-23.json",
+      "sha256": "eaf80ce8289a03ac5d5e505a84bdff44c0bddfe36de9a8568ca3dcb3c65e1f6b"
+    },
+    {
+      "name": "v2-2025-02-24_to_2025-03-02.json",
+      "sha256": "90adc953943ec1290dad8e181c33fe65abae5e6bb5dc16d0d16aa7cd40bedc16"
+    },
+    {
+      "name": "v2-2025-03-03_to_2025-03-09.json",
+      "sha256": "54f5a8f264873592444a7f2e6a65929f4a93a3cf7b109e344582ae13e502cd36"
+    },
+    {
+      "name": "v2-2025-03-10_to_2025-03-16.json",
+      "sha256": "206f3a8b14afabc93f2491b9d13c276ffefff2c401588971c9cbe15211fbfa77"
+    },
+    {
+      "name": "v2-2025-03-17_to_2025-03-23.json",
+      "sha256": "aad465cc7c08c33199fdf4352f8ec778820e1b0ba598a180e7474389ff2e8846"
+    },
+    {
+      "name": "v2-2025-03-24_to_2025-03-30.json",
+      "sha256": "a761e9f7d318beaa6dd030fbcb548a84434fd7265e52c4a7f3b3a2a6dbddd454"
+    },
+    {
+      "name": "v2-2025-03-31_to_2025-04-06.json",
+      "sha256": "b071a01e5f12eb540256b804c42c42c68e48d1f88ed204bc3ece087b79faded6"
+    },
+    {
+      "name": "v2-2025-04-07_to_2025-04-13.json",
+      "sha256": "682b3262f9864e310cb84ce8a95e706ac8e3607a7e6d1d323345abe5222ee1d5"
+    },
+    {
+      "name": "v2-2025-04-14_to_2025-04-20.json",
+      "sha256": "75dc7924c916f973d157db3e54dcb4b157c39ea8f24db6535be1d7fe4027f748"
+    },
+    {
+      "name": "v2-2025-04-21_to_2025-04-27.json",
+      "sha256": "5a914c92e67440a1427a5f3bfeabf93448aaebe4c88786c42073123fd2ae9957"
+    },
+    {
+      "name": "v2-2025-04-28_to_2025-05-04.json",
+      "sha256": "0a3e735d26cfbf41910b7b2e62a1ab5f82acea850d82a11787fb554bed4337f6"
+    },
+    {
+      "name": "v2-2025-05-05_to_2025-05-11.json",
+      "sha256": "42aa1949f66a618e6ea1a1649e4169f17a2eab7e698ccd1d5283107386bcad71"
+    },
+    {
+      "name": "v2-2025-05-12_to_2025-05-18.json",
+      "sha256": "304d442ba9ed5884cd240a6a64746e81750bbe7433f2350d0fa736e249e30d70"
+    },
+    {
+      "name": "v2-2025-05-19_to_2025-05-25.json",
+      "sha256": "3eb1231cae4c77d3c25e109c858019ded2567e0287b349891d2b4e49d531574b"
+    },
+    {
+      "name": "v2-2025-05-26_to_2025-06-01.json",
+      "sha256": "0d851db2c1175ed7dc67c2226de1faa73e676860b7b1887e9a227f4ae3b80f07"
+    },
+    {
+      "name": "v2-2025-06-02_to_2025-06-08.json",
+      "sha256": "04a8e1293afbaaa0f5e1d8ca4cf2ca2e747839717f9aaa0a08ed73537c5b54d3"
+    },
+    {
+      "name": "v2-2025-06-09_to_2025-06-15.json",
+      "sha256": "48931a3935a8d0456c156bc4274a2014699310b8bab24db8d0c4a378bcbbd842"
+    },
+    {
+      "name": "v2-2025-06-16_to_2025-06-22.json",
+      "sha256": "322b7993dcf6dcbb3a2be5bb6b6f52aaf19f801cba6d4461ffd651e80bccd878"
+    },
+    {
+      "name": "v2-2025-06-23_to_2025-06-29.json",
+      "sha256": "0acbc02aecf1eaa0b09cfb42a7a6e9c59f175adce0148cb83b9ff72e569e02d9"
+    },
+    {
+      "name": "v2-2025-06-30_to_2025-07-06.json",
+      "sha256": "c90914b8b9a3d3c3a176cece9536848bddcc3288c3694d5cd122f4a2ed3420e1"
+    },
+    {
+      "name": "v2-2025-07-07_to_2025-07-13.json",
+      "sha256": "ae1660badfdaaeeb22b8ea978bb08aa99d467dd13446814f65b6d879b0fde0ac"
+    },
+    {
+      "name": "v2-2025-07-14_to_2025-07-20.json",
+      "sha256": "0297a6489807c47ab149c00246cf7f35cfc9bb61722b0d81acbaca218dd13ae8"
+    },
+    {
+      "name": "v2-2025-07-21_to_2025-07-27.json",
+      "sha256": "b6859508bd6b511e92e8062e5c2e6813546bc566c8ad3e004408dc6a9d51cfe1"
+    },
+    {
+      "name": "v2-2025-07-28_to_2025-08-03.json",
+      "sha256": "6ede4acc53fb3e77544bea2c6fc0740726a1c6bb90a510248c44bf097b8034b4"
+    },
+    {
+      "name": "v2-2025-08-04_to_2025-08-10.json",
+      "sha256": "7a324f987600daa331f49f45836c0528fa8f46365ea54a056f1cc43a60cf294d"
+    },
+    {
+      "name": "v2-2025-08-11_to_2025-08-17.json",
+      "sha256": "b03f3dc697ee02a51cb7707fbe4c0ed017306b52d005976336e05359b24db671"
+    },
+    {
+      "name": "v2-2025-08-18_to_2025-08-24.json",
+      "sha256": "c7ce3698acd72df5d181486f1851f91ebffe4f8dc344bb3afa5d3f39805676a1"
+    },
+    {
+      "name": "v2-2025-08-25_to_2025-08-31.json",
+      "sha256": "4118c458e5b77d62d37651f2da65e59314a831d5cefff7b534dfe2a4082b4fd3"
+    },
+    {
+      "name": "v2-2025-09-01_to_2025-09-07.json",
+      "sha256": "04e7347cefbe266d88fd68b79856982762f62eb76f5f75a00292d1072e0bbc9c"
+    },
+    {
+      "name": "v2-2025-09-08_to_2025-09-14.json",
+      "sha256": "e93ac094fd117b6a390383afa301f3c36e3c6bd6ad85e6c02b1a33dc0df916e8"
+    },
+    {
+      "name": "v2-2025-09-15_to_2025-09-21.json",
+      "sha256": "27ef88329c40ca4155d67e518c103e26f461a7d6014d0107361a7b61334ea22c"
+    },
+    {
+      "name": "v2-2025-09-22_to_2025-09-28.json",
+      "sha256": "5992fbb5250d5668c013045fca5de959b50be8d0f27e453fd407d2ff213e5c79"
+    },
+    {
+      "name": "v2-2025-09-29_to_2025-10-05.json",
+      "sha256": "f58ddafcedcfac557fce9c0850a019e55ca408c25e23d55aff1cbec017588e6c"
+    },
+    {
+      "name": "v2-2025-10-06_to_2025-10-12.json",
+      "sha256": "f31a2761065569fae7b4fcd61169371843590ec75f6880dbfa8007fc327e7e3e"
+    },
+    {
+      "name": "v2-2025-10-13_to_2025-10-19.json",
+      "sha256": "9a340dd92cd6dc432dd92f87aa6e63bea9c4d0f776f20fa7f7daed443b2d7437"
+    },
+    {
+      "name": "v2-2025-10-20_to_2025-10-26.json",
+      "sha256": "aed9d050fb965e53b3304c7e9c778a472a0bee5e2b820f24f8cc0b75ec14e7e6"
+    },
+    {
+      "name": "v2-2025-10-27_to_2025-11-02.json",
+      "sha256": "7e315f41470d7c38af416e05b6113f2f6e9d63b83d9bbc50903c100104e86d26"
+    },
+    {
+      "name": "v2-2025-11-03_to_2025-11-09.json",
+      "sha256": "46f467440879cb4ad8e1647aefbcba135fc038ccca61ba0663ac12c50e131e03"
+    },
+    {
+      "name": "v2-2025-11-10_to_2025-11-16.json",
+      "sha256": "298053e17c13bdc67ea936a9e72723ac5a205bd44a4a5cbb5d8456ce58c4a52c"
+    },
+    {
+      "name": "v2-2025-11-17_to_2025-11-23.json",
+      "sha256": "dda9385f8b48036edc297e76e5e21c2f1acacf34d35b11d455a74a14945bc338"
+    },
+    {
+      "name": "v2-2025-11-24_to_2025-11-30.json",
+      "sha256": "aaa3e679402d64e2ea03597574a4c530e27096b52b743e9ab04f81cfd4006c9e"
+    },
+    {
+      "name": "v2-2025-12-01_to_2025-12-07.json",
+      "sha256": "4253371367a0919530b2cba5a731863b54657daf159fdb7c6d8243fefbb0b072"
+    },
+    {
+      "name": "v2-2025-12-08_to_2025-12-14.json",
+      "sha256": "090da3c80662d6e8fad6191086afadd9a1bb6a1a2e8f518303a9c5d4d07ed2bc"
+    },
+    {
+      "name": "v2-2025-12-15_to_2025-12-21.json",
+      "sha256": "776a7b5c38647f68f13c731d96bac8c671240a7a7a9a4696bdc4d4b1c5f4d6fb"
+    },
+    {
+      "name": "v2-2025-12-22_to_2025-12-28.json",
+      "sha256": "9ee3e2431351e7ee6a5710c208196a4613beeb755988b084e462063b1b470665"
+    },
+    {
+      "name": "v2-2025-12-29_to_2025-12-31.json",
+      "sha256": "5006e5d35dbc3c877a126a26c5a117abc663c2258ef027fcdff9b8d6ee90b1d0"
+    }
+  ],
+  "limitations": [
+    "historical delisted and ticker-change coverage remains partial",
+    "the candidate universe expands materially from 2019 onward",
+    "immature horizons remain null and are never imputed"
+  ]
+}

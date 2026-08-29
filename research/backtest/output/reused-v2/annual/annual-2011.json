@@ -1,0 +1,290 @@
+{
+  "schema_version": "score-timeframe-attribution-year-v2.0.0",
+  "experiment_id": "score-timeframe-attribution-v2.0.0-2026-08-29",
+  "year": 2011,
+  "event_gate": "exact completed daily MACD bullish cross",
+  "future_data_used_for_selection": false,
+  "market_and_industry_mixed_into_technical_test": false,
+  "coverage": {
+    "start": "2011-01-03",
+    "end": "2011-12-30",
+    "sessions": 252,
+    "natural_week_checkpoints": 45,
+    "source_candidates": 314,
+    "events_joined_to_price_cache": 225,
+    "missing_price_events": 89,
+    "mature_outcomes": {
+      "5": 225,
+      "10": 225,
+      "15": 225,
+      "20": 225,
+      "40": 225,
+      "60": 225,
+      "100": 225,
+      "120": 225
+    }
+  },
+  "audits": {
+    "daily_gate_mismatches": 0,
+    "monthly_cross_mismatches": 0
+  },
+  "model_versions": [
+    "unified-v2-macd-trigger-1.2.0"
+  ],
+  "factor_registry_versions": [
+    "0.8.0"
+  ],
+  "factor_hit_counts": {
+    "macd.daily_bull_cross": 225,
+    "macd.monthly_bull_cross": 6,
+    "macd.weekly_bull_cross": 1,
+    "macd.weekly_histogram_improving": 25,
+    "qualification.long_trend": 225,
+    "qualification.pullback_60d": 68,
+    "risk.overhead_unfilled_gap": 93,
+    "rsi.bullish_divergence": 16,
+    "rsi.oversold_repair": 1,
+    "structure.bottom_bullish_engulfing": 16,
+    "structure.bottom_doji": 29,
+    "structure.bullish_fvg_support": 193,
+    "structure.double_bottom": 18,
+    "structure.engulfing_bullish_follow_through": 34,
+    "structure.hammer": 38,
+    "structure.higher_low": 95,
+    "structure.monthly_bullish_engulfing": 3,
+    "structure.support_bullish_engulfing": 59,
+    "structure.trendline_three_push": 7,
+    "structure.trendline_three_push_retest": 3,
+    "structure.weekly_bullish_engulfing": 15,
+    "structure.weekly_double_bullish_engulfing": 7,
+    "support.close_congestion": 53,
+    "support.ema_proximity": 149,
+    "support.fibonacci_618": 9,
+    "support.fibonacci_half": 12,
+    "support.golden_pocket": 6,
+    "support.monthly_ema_proximity": 48,
+    "support.volume_profile_proxy": 27,
+    "support.weekly_ema_proximity": 88,
+    "volume.bottom_expansion": 26,
+    "volume.relative_expansion": 37
+  },
+  "source_files": [
+    {
+      "name": "v2-2011-01-01_to_2011-01-02.json",
+      "sha256": "baa25a28b903ee3937fd862d580320a440edb7c82b5c0ae76a9c0cca4021cddb"
+    },
+    {
+      "name": "v2-2011-01-03_to_2011-01-09.json",
+      "sha256": "b04a08495f7022598557b1b427e706553eb3f82751ac4d3997fee7c90096cb06"
+    },
+    {
+      "name": "v2-2011-01-10_to_2011-01-16.json",
+      "sha256": "a5fdc0b460739fa6447026c455159717d2f1b82bd8730eddd088b2b324f19481"
+    },
+    {
+      "name": "v2-2011-01-17_to_2011-01-23.json",
+      "sha256": "fe5f50f16a01979171bd9d7d308b8acc33fe56985d20581c7ac6fe7adaea32ba"
+    },
+    {
+      "name": "v2-2011-01-24_to_2011-01-30.json",
+      "sha256": "93f190aa7753106a32386619e0f4bcec8986113d6b2d1052598c952a50e64b4d"
+    },
+    {
+      "name": "v2-2011-01-31_to_2011-02-06.json",
+      "sha256": "b050cf39b856078f0aefb975ffaaad900798ee0ff4d94261cbe9be19318aa3bb"
+    },
+    {
+      "name": "v2-2011-02-07_to_2011-02-13.json",
+      "sha256": "2cb6c8af6b914ec557b77850107aa7081f3e2f5f3931411a77738f936d54b648"
+    },
+    {
+      "name": "v2-2011-02-14_to_2011-02-20.json",
+      "sha256": "8973cd533a125479e691b3ce28b37ef91ac4f2995af9d032cd178d00803d2e09"
+    },
+    {
+      "name": "v2-2011-02-21_to_2011-02-27.json",
+      "sha256": "e84f3b2172c914c1edd8c78e344f10fb91d69aa5f844125f848cde9d51a8f0c0"
+    },
+    {
+      "name": "v2-2011-02-28_to_2011-03-06.json",
+      "sha256": "43ff8e7c6504e3490f065fd6f22ace3c14c4f4504208daf12553d29f4deb979e"
+    },
+    {
+      "name": "v2-2011-03-07_to_2011-03-13.json",
+      "sha256": "b3cfa32888be6c77440ff96e84c07e666a66d27b3d2b3c7d2bb2cf02337ece7d"
+    },
+    {
+      "name": "v2-2011-03-14_to_2011-03-20.json",
+      "sha256": "f1f221c51494e091d6772c27c591b66d6745a3b77a0ea7825e8010271e636465"
+    },
+    {
+      "name": "v2-2011-03-21_to_2011-03-27.json",
+      "sha256": "7a4c3f94985c71d8503493acc26b649d09c8a7bf73fe9d4e4854e9a1aef70411"
+    },
+    {
+      "name": "v2-2011-03-28_to_2011-04-03.json",
+      "sha256": "1d4b393ffed3deb2a28b6c4c3ace8fd34002712bdf38573fd1bb7de635c972ac"
+    },
+    {
+      "name": "v2-2011-04-04_to_2011-04-10.json",
+      "sha256": "6a7c4f796c98822f6210c7113c2052ba35aa27bdf309a125d668d7f868b54209"
+    },
+    {
+      "name": "v2-2011-04-11_to_2011-04-17.json",
+      "sha256": "313d358a79ca3bc2405857535338504be83fa8179450f07c90666df88a543e51"
+    },
+    {
+      "name": "v2-2011-04-18_to_2011-04-24.json",
+      "sha256": "b90b78238aa98ff3611ca286a5f41d230e4b550c105f5df0345b07def00cc0ba"
+    },
+    {
+      "name": "v2-2011-04-25_to_2011-05-01.json",
+      "sha256": "4a89ea09fe1da7197b38167e37062e1fa20dd0ee2bf80144c74813eea24a1fff"
+    },
+    {
+      "name": "v2-2011-05-02_to_2011-05-08.json",
+      "sha256": "90e45cd3ce094b53f4074ecd5b93e15f30f2812ba58fbcdec51eba77f1f39338"
+    },
+    {
+      "name": "v2-2011-05-09_to_2011-05-15.json",
+      "sha256": "2009a463a43e4fa40a7a560dba730bab7593a601b417812ece2012f4c6aecbbb"
+    },
+    {
+      "name": "v2-2011-05-16_to_2011-05-22.json",
+      "sha256": "4d7bd0f06dfaca9489aadaa9271e5eadf8775a831815aced7aa903eef7dfa29f"
+    },
+    {
+      "name": "v2-2011-05-23_to_2011-05-29.json",
+      "sha256": "2ff1c1cfdd9d4c109c826596be361713ba2a48eb60764bc35838fc403ff4761f"
+    },
+    {
+      "name": "v2-2011-05-30_to_2011-06-05.json",
+      "sha256": "b70d2d482c022de3c1b741bd9c840426bdd59cc3207221758c8a9c3f0b73a71a"
+    },
+    {
+      "name": "v2-2011-06-06_to_2011-06-12.json",
+      "sha256": "1daf2d9543c87a3bf9033dc806641bc5ee21b567e9bb529a912a3ca58b37b148"
+    },
+    {
+      "name": "v2-2011-06-13_to_2011-06-19.json",
+      "sha256": "100b4b3699fa402c5ca32a2419b9003abe58218723a10c303013195f53478e28"
+    },
+    {
+      "name": "v2-2011-06-20_to_2011-06-26.json",
+      "sha256": "86f9ae241ebacdd38c7e1c7e1acd9e56d2a24c532ef41ec35466bdd02fcf21e7"
+    },
+    {
+      "name": "v2-2011-06-27_to_2011-07-03.json",
+      "sha256": "a0c6f43013623dbfe73b5368394e2b2433e46f16b55adf9f84ad722a06b0491b"
+    },
+    {
+      "name": "v2-2011-07-04_to_2011-07-10.json",
+      "sha256": "0f99a7994cb41051588471bceb382708003043dc0c72aac08dadf453944a7393"
+    },
+    {
+      "name": "v2-2011-07-11_to_2011-07-17.json",
+      "sha256": "dcc5526fe991e713f185aad462e9a61211f67b3085de4d34b87308d8d5f9f108"
+    },
+    {
+      "name": "v2-2011-07-18_to_2011-07-24.json",
+      "sha256": "ae5c9268c6f1b2047f7343f1ea947e4549ca003d6752021e5b118f9e6dcbaf9a"
+    },
+    {
+      "name": "v2-2011-07-25_to_2011-07-31.json",
+      "sha256": "bf9ea2ca30cbbed7bf41aeefa4244c1cea5aac902931b2c59f0932f753da777b"
+    },
+    {
+      "name": "v2-2011-08-01_to_2011-08-07.json",
+      "sha256": "6b38b4cc1ad5260ae441cf40542fae41e47aa99da1de29d9516c9c94916ddee7"
+    },
+    {
+      "name": "v2-2011-08-08_to_2011-08-14.json",
+      "sha256": "685f3a40eecf6bc9d64eb0945163111ad28f69782fe6ae535b96675259b3acbe"
+    },
+    {
+      "name": "v2-2011-08-15_to_2011-08-21.json",
+      "sha256": "068acc1fcc7233502773e0c9b21c460430c2bbbcdef82deb16438be4fc70538f"
+    },
+    {
+      "name": "v2-2011-08-22_to_2011-08-28.json",
+      "sha256": "6cd7d470c736afda94e604e6f9a650150bb9237fbf160c20cd50fd476b2a7176"
+    },
+    {
+      "name": "v2-2011-08-29_to_2011-09-04.json",
+      "sha256": "b1d8bb338d92b0b0054478211d352a3e652ea7400030ae50d1123cbc37d6e3e2"
+    },
+    {
+      "name": "v2-2011-09-05_to_2011-09-11.json",
+      "sha256": "86d63f3f6a74cb7087f38b1046f2e1d467c3309495263170cd5d6d345d9cebf5"
+    },
+    {
+      "name": "v2-2011-09-12_to_2011-09-18.json",
+      "sha256": "1c5c8ff34dd5b1e06710bf4cc12e15c178700c25a1c82f908fd8ddbd84df1507"
+    },
+    {
+      "name": "v2-2011-09-19_to_2011-09-25.json",
+      "sha256": "1803bedd9571daef7ed99233e3fe13f3243f7791c14f5c54a0b709b39eefafd8"
+    },
+    {
+      "name": "v2-2011-09-26_to_2011-10-02.json",
+      "sha256": "a29aef6b9a23dbf5da78cbcc044b23841011eeefe0dd5edbb540b2fa7400f214"
+    },
+    {
+      "name": "v2-2011-10-03_to_2011-10-09.json",
+      "sha256": "a15cc66233acef76ad462cefc8ddb6ff0ce511e209db0c100a78962275eb8c2f"
+    },
+    {
+      "name": "v2-2011-10-10_to_2011-10-16.json",
+      "sha256": "814acd3d3ca1965936da50d24476652b73be952e6029cc135f5e41e24e8706f0"
+    },
+    {
+      "name": "v2-2011-10-17_to_2011-10-23.json",
+      "sha256": "25f215870ca8f99976bed386a43e126f2b4018fa37f5233a334f8bd1f177e38c"
+    },
+    {
+      "name": "v2-2011-10-24_to_2011-10-30.json",
+      "sha256": "aac713b75629bd38a6c52cd7425e8af4864a65f185f5b58572a90b503418b7a7"
+    },
+    {
+      "name": "v2-2011-10-31_to_2011-11-06.json",
+      "sha256": "bc7c7e0579684c84d860729c29cdccc6bb3478c9781b4bf917b21bc1c26c9eac"
+    },
+    {
+      "name": "v2-2011-11-07_to_2011-11-13.json",
+      "sha256": "feec8b32107ff82a0f226a5dc8301869968ea2b9d4ccbbc1ed400232098fa573"
+    },
+    {
+      "name": "v2-2011-11-14_to_2011-11-20.json",
+      "sha256": "94404529aed08a1a7d8cf023ac17310793defeae55a2eff81f27c9bc3f3a6eb1"
+    },
+    {
+      "name": "v2-2011-11-21_to_2011-11-27.json",
+      "sha256": "3e22024c1337e20146241515688902fea9951541d494f24abdb3245d14c6c025"
+    },
+    {
+      "name": "v2-2011-11-28_to_2011-12-04.json",
+      "sha256": "f3e7852075b13d2f6f3c48b3b066d9c2155b7e54bdbbe78774729de686431cf7"
+    },
+    {
+      "name": "v2-2011-12-05_to_2011-12-11.json",
+      "sha256": "d8c07478295ef292fb34fd43eb3721b822ada947d6ec36a88ba8bc9fbaee53b2"
+    },
+    {
+      "name": "v2-2011-12-12_to_2011-12-18.json",
+      "sha256": "505e5b205a078853773c8df8c8443af7a593a8631bb33249546ac60cc68945c0"
+    },
+    {
+      "name": "v2-2011-12-19_to_2011-12-25.json",
+      "sha256": "bca84014eb89635df75976a9d2bb8115831fe73cfc9222bd501655eed85102e7"
+    },
+    {
+      "name": "v2-2011-12-26_to_2011-12-31.json",
+      "sha256": "82206a3c251e0cc9b6ddb2e99cf986541db32b336a7a5c5d8d1fc53475635afd"
+    }
+  ],
+  "limitations": [
+    "historical delisted and ticker-change coverage remains partial",
+    "the candidate universe expands materially from 2019 onward",
+    "immature horizons remain null and are never imputed"
+  ]
+}
