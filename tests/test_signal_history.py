@@ -115,6 +115,8 @@ class SignalHistoryTests(unittest.TestCase):
   )
   self.assertTrue(same_day["cases"][0]["audit"]["definition_correction"]["exclude_from_effectiveness"])
   self.assertEqual(same_day["cases"][1]["signal_time_snapshot"]["favorite_pattern"]["pattern_version"],"favorite-pattern-v2.0.0")
+  self.assertEqual(len(same_day["cases"][1]["source_activations"]),1)
+  self.assertEqual(same_day["cases"][1]["source_activations"][0]["snapshot"]["match_count"],7)
   strict_tracker={"as_of":"2026-08-27","macd_buy_top10":[],"favorite_pattern_tracker":{"candidates":[]}}
   strict_radar={"as_of":"2026-08-27","signals":[]};strict_factors={"as_of":"2026-08-27","registry_version":"1.0","symbols":[]};strict_industry={"as_of":"2026-08-27","membership_version":"themes-v1","classification_snapshot":{"effective_from":"2026-08-27"},"classification_by_ticker":{},"themes":[],"ticker_context":{}}
   corrected=build(same_day,strict_tracker,strict_radar,strict_factors,strict_industry,{"as_of":"2026-08-27","market_temperature":{"state":"normal"}},"2026-08-27",loader=lambda _:rows_through(2))
@@ -122,5 +124,18 @@ class SignalHistoryTests(unittest.TestCase):
   self.assertEqual(case["latest_current_status"],"definition_corrected")
   self.assertTrue(case["audit"]["definition_correction"]["exclude_from_effectiveness"])
   self.assertEqual(case["forward"]["status"],"excluded_definition_correction")
+
+ def test_favorite_activation_is_saved_when_it_joins_an_existing_same_day_case(self):
+  first=self.make()
+  tracker,radar,factors,industry,market=inputs()
+  conditions=[{"id":str(index),"hit":True} for index in range(7)]
+  favorite={"symbol":"PG","stage":"entry_ready","pattern_version":"favorite-pattern-v2.0.0","match_count":7,"total_conditions":7,"conditions":conditions,"trade_map":{},"prior_advance":{},"pullback":{},"double_bottom":{},"second_bottom_macd":{},"three_push":{},"ema_realign":{},"sequence":{"completion_date":"2026-08-26"},"risk_gate":{"clear":True,"blocked":False}}
+  tracker["favorite_pattern_tracker"]={"candidates":[favorite]}
+  joined=build(first,tracker,radar,factors,industry,market,"2026-08-26",loader=lambda _:rows_through(1))
+  self.assertEqual(len(joined["cases"]),1)
+  case=joined["cases"][0]
+  self.assertEqual(case["source_systems"],["favorite_pattern_tracker","technical_tracker"])
+  self.assertEqual(case["source_activations"][0]["snapshot"]["sequence"]["completion_date"],"2026-08-26")
+  self.assertEqual(case["daily_states"][0]["favorite_pattern"]["pattern_version"],"favorite-pattern-v2.0.0")
 
 if __name__=="__main__":unittest.main()

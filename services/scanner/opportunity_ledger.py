@@ -16,7 +16,7 @@ from .macd_factor_backtest import adjusted_rows
 from .support_risk import simulate_execution
 
 
-SCHEMA_VERSION = "opportunity-ledger-v1.1.0"
+SCHEMA_VERSION = "opportunity-ledger-v1.1.1"
 HORIZONS = (1, 5, 10, 20, 40, 60, 100)
 DEFAULT_UNIFIED = pathlib.Path("public/unified-v2-rankings.json")
 DEFAULT_FORWARD = pathlib.Path("public/signal-history.json")
@@ -119,6 +119,7 @@ def _legacy_event(case):
 
     definition_correction = case.get("audit", {}).get("definition_correction", {})
     excluded = bool(definition_correction.get("exclude_from_effectiveness"))
+    favorite_activations = [x for x in case.get("source_activations", []) if x.get("source_system") == "favorite_pattern_tracker"]
     return {
         "event_id": case["signal_id"],
         "symbol": case["symbol"],
@@ -146,6 +147,7 @@ def _legacy_event(case):
             "support_plan": None,
             "exclude_from_effectiveness": excluded,
             "definition_correction": definition_correction or None,
+            "favorite_pattern_activation": favorite_activations[-1] if favorite_activations else None,
         },
         "production_forward": {
             "lifecycle": case.get("lifecycle"),

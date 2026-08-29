@@ -11,7 +11,7 @@ from .industry_radar import run as run_industry_radar
 from .market_etf_watch import run as run_market_context
 from .rare_opportunity_scanner import run as run_radar
 from .resonance_tracker import run as run_tracker
-from .signal_history import build as build_signal_history,validate as validate_signal_history
+from .signal_history import SCHEMA_VERSION as SIGNAL_HISTORY_SCHEMA_VERSION,build as build_signal_history,validate as validate_signal_history
 
 PUBLIC=pathlib.Path("public")
 TRIGGER_SOURCES={"manual","cloudflare_cron","freshness_recovery","github_schedule"}
@@ -58,7 +58,7 @@ def run(target=1000,as_of=None,trigger_source="manual"):
  if trigger_source not in TRIGGER_SOURCES:raise ValueError(f"Unsupported trigger source: {trigger_source}")
  authoritative=as_of or latest_reference_day()
  current_tracker=read_json(PUBLIC/"resonance-tracker.json");current_radar=read_json(PUBLIC/"rare-opportunity-radar.json");current_snapshot=read_json(PUBLIC/"daily-factor-snapshot.json");current_industry=read_json(PUBLIC/"industry-radar.json");current_market=read_json(PUBLIC/"market-etf-watch.json");current_history=read_json(PUBLIC/"signal-history.json")
- if current_tracker.get("as_of")==authoritative and current_tracker.get("favorite_pattern_tracker",{}).get("pattern_version")==PATTERN_VERSION and current_radar.get("as_of")==authoritative and current_snapshot.get("as_of")==authoritative and current_snapshot.get("registry_version")==REGISTRY_VERSION and current_snapshot.get("snapshot_mode_version")==SNAPSHOT_MODE_VERSION and current_radar.get("registry_version")==REGISTRY_VERSION and current_industry.get("as_of")==authoritative and current_market.get("as_of")==authoritative and current_history.get("as_of")==authoritative:
+ if current_tracker.get("as_of")==authoritative and current_tracker.get("favorite_pattern_tracker",{}).get("pattern_version")==PATTERN_VERSION and current_radar.get("as_of")==authoritative and current_snapshot.get("as_of")==authoritative and current_snapshot.get("registry_version")==REGISTRY_VERSION and current_snapshot.get("snapshot_mode_version")==SNAPSHOT_MODE_VERSION and current_radar.get("registry_version")==REGISTRY_VERSION and current_industry.get("as_of")==authoritative and current_market.get("as_of")==authoritative and current_history.get("as_of")==authoritative and current_history.get("signal_schema_version")==SIGNAL_HISTORY_SCHEMA_VERSION:
   return {"result":"already_current","as_of":authoritative,"trigger_source":trigger_source}
  pathlib.Path("work").mkdir(exist_ok=True)
  with tempfile.TemporaryDirectory(prefix="daily-update-",dir="work") as folder:

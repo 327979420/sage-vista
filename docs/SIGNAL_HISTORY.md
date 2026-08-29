@@ -21,6 +21,7 @@ Industry Radar 不独立创建股票案例，只冻结为信号发生时的上�
 - 同一 ticker 同一信号周期只有一个 stock case；两套系统同日出现时写入一个 case 的多个 `source_systems`。
 - 普通信号沿用 `signal_id = SVP1-{symbol}-{first_seen_date}`，数组位置不是身份。
 - 若旧版“我最喜欢形态”因定义修正而被永久保留、同一标的同日又通过新版规则，新记录使用 `SVP1-{symbol}-{first_seen_date}-FP-{pattern_version}` 的版本隔离编号。旧记录不覆盖，新记录不冒充旧定义。
+- 若新版形态加入一个已存在的技术信号周期，不重复开单，但在 `source_activations` 追加不可改的首次触发快照，完整冻结七阶段日期、风险闸门和交易地图；同日 `daily_states.favorite_pattern` 只允许从空缺补齐，不替换旧证据。
 - 连续出现只更新 `last_seen_date`、`days_active`、current status；原始 snapshot 不变。
 - 完全离榜后累计 **5 个已完成生产会话** 才视为 reset；之后重入建立新 case。此前重入属于同一周期。
 - 案例离榜、亏损、持平、数据不可用或仍 pending 都永久保留。

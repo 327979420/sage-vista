@@ -5,9 +5,9 @@ from datetime import datetime,timezone
 from .eodhd_factor_pilot import adjusted_rows
 from .favorite_pattern_tracker import PATTERN_VERSION as FAVORITE_PATTERN_VERSION
 
-SCHEMA_VERSION="1.3.1"
+SCHEMA_VERSION="1.3.2"
 PRODUCT_VERSION="SV-PRODUCT-V1"
-SIGNAL_DEFINITION_VERSION="signal-history-v1.2"
+SIGNAL_DEFINITION_VERSION="signal-history-v1.3"
 RESET_SESSIONS=5
 HORIZONS=(1,5,10,20,60,100)
 
@@ -51,6 +51,24 @@ def _signal_id(symbol,day,favorite_row=None):
  short=re.sub(r"[^A-Z0-9]+","_",short).strip("_") or "UNKNOWN"
  return f"{base}-FP-{short}"
 
+def _favorite_snapshot(row):
+ if not row:return None
+ return {"pattern_version":row.get("pattern_version"),"stage":row.get("stage"),"match_count":row.get("match_count"),"conditions":copy.deepcopy(row.get("conditions",[])),"prior_advance":copy.deepcopy(row.get("prior_advance")),"pullback":copy.deepcopy(row.get("pullback")),"double_bottom":copy.deepcopy(row.get("double_bottom")),"second_bottom_macd":copy.deepcopy(row.get("second_bottom_macd")),"three_push":copy.deepcopy(row.get("three_push")),"ema_realign":copy.deepcopy(row.get("ema_realign")),"sequence":copy.deepcopy(row.get("sequence")),"risk_gate":copy.deepcopy(row.get("risk_gate")),"legacy_v1":copy.deepcopy(row.get("legacy_v1")),"trade_map":copy.deepcopy(row.get("trade_map"))}
+
+def _activation_fingerprint(activation):
+ frozen={k:activation.get(k) for k in ("activation_id","source_system","activation_date","definition_version","snapshot")}
+ return hashlib.sha256(json.dumps(frozen,sort_keys=True,separators=(",",":"),ensure_ascii=False).encode()).hexdigest()
+
+def _append_favorite_activation(case,day,favorite_row):
+ """Persist first V2 evidence even when it joins an already-active technical case."""
+ if not favorite_row or case.get("latest_current_status")!="current" or case.get("audit",{}).get("definition_correction",{}).get("exclude_from_effectiveness"):return
+ version=str(favorite_row.get("pattern_version") or "unknown")
+ activation_id=f"favorite_pattern_tracker:{version}"
+ if any(x.get("activation_id")==activation_id for x in case.get("source_activations",[])):return
+ activation={"activation_id":activation_id,"source_system":"favorite_pattern_tracker","activation_date":day,"definition_version":version,"snapshot":_favorite_snapshot(favorite_row)}
+ activation["immutable_fingerprint"]=_activation_fingerprint(activation)
+ case.setdefault("source_activations",[]).append(activation)
+
 def _immutable_fingerprint(case):
  frozen={k:case.get(k) for k in ("signal_id","signal_schema_version","observation_mode","product_version","signal_definition_version","symbol","first_seen_date","initial_source_systems","signal_time_snapshot","versions")}
  if "recovery" in case:frozen["recovery"]=case["recovery"]
@@ -68,9 +86,9 @@ def _new_case(symbol,day,sources,tracker_row,factor_row,industry,market,favorite
   "signal_id":_signal_id(symbol,day,favorite_row),"signal_schema_version":SCHEMA_VERSION,"observation_mode":"production_forward",
   "product_version":PRODUCT_VERSION,"signal_definition_version":SIGNAL_DEFINITION_VERSION,"symbol":symbol,
   "first_seen_date":day,"last_seen_date":day,"days_active":1,"absent_sessions":0,"lifecycle":"NEW",
-  "initial_source_systems":sorted(sources),"source_systems":sorted(sources),"latest_current_status":"current","entry":{"convention":"next_trading_day_adjusted_open","date":None,"price":None},
+  "initial_source_systems":sorted(sources),"source_systems":sorted(sources),"source_activations":[],"latest_current_status":"current","entry":{"convention":"next_trading_day_adjusted_open","date":None,"price":None},
   "signal_time_snapshot":{"technical":{"tracker_rank":rank,"technical_score":technical.get("ranking_score") if technical else None,"combined_score":technical.get("combined_score") if technical else None,"setup":technical.get("confluence_label") if technical else None,"status":technical.get("ranking_direction") if technical else None,"rank_reason":technical.get("rank_reason") if technical else None},
-   "favorite_pattern":{"pattern_version":favorite_row.get("pattern_version"),"stage":favorite_row.get("stage"),"match_count":favorite_row.get("match_count"),"conditions":copy.deepcopy(favorite_row.get("conditions",[])),"prior_advance":copy.deepcopy(favorite_row.get("prior_advance")),"pullback":copy.deepcopy(favorite_row.get("pullback")),"double_bottom":copy.deepcopy(favorite_row.get("double_bottom")),"second_bottom_macd":copy.deepcopy(favorite_row.get("second_bottom_macd")),"three_push":copy.deepcopy(favorite_row.get("three_push")),"ema_realign":copy.deepcopy(favorite_row.get("ema_realign")),"sequence":copy.deepcopy(favorite_row.get("sequence")),"risk_gate":copy.deepcopy(favorite_row.get("risk_gate")),"legacy_v1":copy.deepcopy(favorite_row.get("legacy_v1")),"trade_map":copy.deepcopy(favorite_row.get("trade_map"))} if favorite_row else None,
+   "favorite_pattern":_favorite_snapshot(favorite_row),
    "multi_factor":{"factor_registry_version":factor.get("registry_version") if factor else None,"official_score":factor.get("scoring",{}).get("official_score") if factor else None,"experimental_observational_score":factor.get("scoring",{}).get("experimental_observational_score") if factor else None,"score_contributions":factor.get("scoring",{}).get("score_contributions",[]) if factor else [],"factor_states":factor.get("factors",[]) if factor else [],"non_scoring_evidence":[x for x in factor.get("factors",[]) if x.get("available") and (x.get("hit") or x.get("recent_hit")) and x.get("score_role") in ("display_only","disabled")] if factor else [],"risks":[x for x in factor.get("factors",[]) if x.get("factor_id","").startswith("risk.") and x.get("hit")] if factor else []},
    "industry":{"industry_radar_as_of":industry.get("as_of"),"membership_version":industry.get("membership_version"),"classification_effective_from":industry.get("classification_snapshot",{}).get("effective_from"),"rule_version":"industry-radar-v2",**_industry_snapshot_for_symbol(industry,symbol)},"market":_market_snapshot(market,day)},
   "versions":{"code_version":PRODUCT_VERSION,"factor_registry_version":factor.get("registry_version") if factor else None,"industry_membership_version":industry.get("membership_version")},
@@ -139,13 +157,19 @@ def _factor_temporal_states(case,factor_row):
 
 def _append_daily_state(case,as_of,sources,factor_row,radar_row,industry,market,is_current,favorite_row=None):
  """Append one point-in-time state per production session without rewriting earlier days."""
- if any(x.get("date")==as_of for x in case.get("daily_states",[])):return
+ favorite_state={"stage":favorite_row.get("stage"),"match_count":favorite_row.get("match_count"),"pattern_version":favorite_row.get("pattern_version")} if favorite_row else None
+ existing=next((x for x in case.get("daily_states",[]) if x.get("date")==as_of),None)
+ if existing:
+  # A new source definition can be deployed after the day's original state was saved.
+  # Fill only the previously absent same-day slot; never replace earlier evidence.
+  if favorite_state and not existing.get("favorite_pattern"):existing["favorite_pattern"]=favorite_state
+  return
  scoring=(factor_row or {}).get("scoring",{})
  case.setdefault("daily_states",[]).append({
   "date":as_of,"price":(factor_row or {}).get("price"),"source_systems":sorted(sources),
   "in_current_opportunities":bool(is_current),"legacy_production_score":radar_row.get("total_score",radar_row.get("score")) if radar_row else None,
   "official_score":scoring.get("official_score"),"experimental_observational_score":scoring.get("experimental_observational_score"),
-  "favorite_pattern":{"stage":favorite_row.get("stage"),"match_count":favorite_row.get("match_count"),"pattern_version":favorite_row.get("pattern_version")} if favorite_row else None,
+  "favorite_pattern":favorite_state,
   "factor_states":_factor_temporal_states(case,factor_row),
   "industry_context":_industry_snapshot_for_symbol(industry,case["symbol"]),
   "market_context":_market_snapshot(market,as_of)
@@ -177,6 +201,7 @@ def build(previous,tracker,radar,snapshot,industry,market,as_of,loader=adjusted_
   if case["symbol"] in tracker_map:sources.append("technical_tracker")
   if case["symbol"] in rare:sources.append("multi_factor_radar")
   if case["symbol"] in favorite:sources.append("favorite_pattern_tracker")
+  _append_favorite_activation(case,as_of,favorite.get(case["symbol"]))
   _append_daily_state(case,as_of,sources,factors.get(case["symbol"]),rare.get(case["symbol"]),industry,market,case["symbol"] in current,favorite.get(case["symbol"]))
   _update_forward(case,as_of,loader);case["audit"]["last_updated_as_of"]=as_of
   if case["entry"].get("date") and case["entry"]["date"]>as_of:raise ValueError("Future entry leakage")
@@ -195,4 +220,7 @@ def validate(payload,as_of):
   if case["first_seen_date"]>as_of or case["last_seen_date"]>as_of:raise ValueError("Future case date")
   days=[x.get("date") for x in case.get("daily_states",[])]
   if len(days)!=len(set(days)) or days!=sorted(days) or any(not x or x>as_of for x in days):raise ValueError("Invalid case daily-state timeline")
+  activations=case.get("source_activations",[]);activation_ids=[x.get("activation_id") for x in activations]
+  if len(activation_ids)!=len(set(activation_ids)) or any(not x.get("activation_date") or x["activation_date"]>as_of for x in activations):raise ValueError("Invalid source activation timeline")
+  if any(x.get("immutable_fingerprint")!=_activation_fingerprint(x) for x in activations):raise ValueError("Source activation snapshot changed")
  return True

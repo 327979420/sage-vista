@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-08-30T02:50:41+10:00",
+  "generated_at": "2026-08-30T03:13:07+10:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
@@ -88,9 +88,9 @@
         "started_at": null,
         "completed_at": null,
         "latest_event": "checkpoint",
-        "latest_event_at": "2026-08-30T02:50:41+10:00",
-        "time_source": "github_actions_and_local_regression",
-        "event_count": 3,
+        "latest_event_at": "2026-08-30T03:13:07+10:00",
+        "time_source": "first_live_v2_ledger_audit",
+        "event_count": 4,
         "events": [
           {
             "experiment_id": "favorite-pattern-sequence-v2.0.0-2026-08-30",
@@ -115,6 +115,14 @@
             "time_source": "github_actions_and_local_regression",
             "source_ref": "33263561333",
             "result": "Deployment guard: the first V2 daily run failed closed before publication because retained same-day V1 definition-correction rows and new V2 rows shared a signal_id. signal-history-v1.2 now gives favorite-pattern definitions a deterministic FP-version namespace while preserving V1 rows unchanged and excluded. The exact migration regression and all 308 Python tests passed; no failed-run output reached production."
+          },
+          {
+            "experiment_id": "favorite-pattern-sequence-v2.0.0-2026-08-30",
+            "event": "checkpoint",
+            "event_at": "2026-08-30T03:13:07+10:00",
+            "time_source": "first_live_v2_ledger_audit",
+            "source_ref": "33264487974",
+            "result": "The first successful V2 scan on 2026-08-28 found 24 risk-cleared 7/7 entry-ready observations across 1,180 watchlist symbols. Twenty-two created versioned V2 cases; NOW and ASAN joined already-active technical cases. signal-history-v1.3 adds immutable source_activations so merged cases retain the same full sequence, risk and trade-map evidence. These are pending forward observations, not effectiveness results; production score remains unchanged."
           }
         ]
       }
