@@ -1,5 +1,5 @@
 import unittest
-from services.scanner.macd_factor_backtest import bullish_fvg_half_sweep_hold,bullish_fvg_support,completed_groups,daily_pattern_flags,ema,features,fibonacci_half_support,full_chip_congestion_support,kline_congestion_support,outcome,overhead_unfilled_gap,stats,three_push_breakout,three_push_retest,volume_profile_support
+from services.scanner.macd_factor_backtest import bullish_fvg_half_sweep_hold,bullish_fvg_support,completed_groups,daily_pattern_flags,double_bottom_breakout_setup,double_bottom_neckline_retest,ema,features,fibonacci_half_support,full_chip_congestion_support,kline_congestion_support,outcome,overhead_unfilled_gap,stats,three_push_breakout,three_push_retest,volume_profile_support
 
 class MacdFactorBacktestTests(unittest.TestCase):
  def test_completed_period_excludes_current_bucket(self):
@@ -74,6 +74,11 @@ class MacdFactorBacktestTests(unittest.TestCase):
  def test_three_push_retest_does_not_exist_without_three_push(self):
   rows=[{"date":f"D{i}","open":100,"high":102,"low":98,"close":101,"volume":1000} for i in range(80)]
   self.assertFalse(three_push_retest(rows,70))
+ def test_w_neckline_retest_requires_prior_objective_breakout(self):
+  rows=[{"date":f"D{i}","open":100,"high":101,"low":99,"close":100.2,"volume":1000} for i in range(40)]
+  rows[10]["low"]=90;rows[15]["low"]=91;rows[18].update(open=100,high=104,low=99,close=103);rows[20].update(open=102,high=102.5,low=100.5,close=101.5)
+  self.assertIsNotNone(double_bottom_breakout_setup(rows,18));self.assertTrue(double_bottom_neckline_retest(rows,20))
+  rows[18].update(open=100,high=101,low=99,close=100.2);self.assertFalse(double_bottom_neckline_retest(rows,20))
  def test_kline_congestion_requires_density_and_pullback(self):
   rows=[{"date":f"D{i}","open":100,"high":103,"low":97,"close":100,"volume":1000} for i in range(251)]
   rows[220].update(high=110,close=108);rows[250].update(close=100)

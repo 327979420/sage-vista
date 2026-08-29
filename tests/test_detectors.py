@@ -1,6 +1,6 @@
 import unittest
 from copy import deepcopy
-from services.scanner.detectors import detect_bos,detect_retest,detect_w_bottom,evaluate_gap,pivots,relative_volume,count_level_tests,load_config
+from services.scanner.detectors import detect_bos,detect_retest,detect_triple_bottom,detect_w_bottom,evaluate_gap,pivots,relative_volume,count_level_tests,load_config
 
 def bars(n=50,price=100,volume=1000):return [{"date":f"D{i}","open":price,"high":price+1,"low":price-1,"close":price+.2,"volume":volume} for i in range(n)]
 
@@ -18,6 +18,13 @@ class DetectorTests(unittest.TestCase):
  def test_high_second_low_is_not_w(self):
   x=bars(20);x[4]["low"]=85;x[9]["low"]=95
   d=detect_w_bottom(x,11,self.cfg);self.assertFalse(d.detected);self.assertEqual(d.classification,"ordinary_higher_low")
+ def test_triple_bottom_requires_three_confirmed_separated_lows(self):
+  x=bars(40);x[5]["low"]=90;x[15]["low"]=91;x[25]["low"]=90.5
+  d=detect_triple_bottom(x,27,self.cfg);self.assertTrue(d.detected);self.assertEqual(d.classification,"triple_bottom");self.assertEqual(d.measurements["separation_bars"],[10,10])
+  self.assertFalse(detect_triple_bottom(x,26,self.cfg).detected)
+ def test_triple_bottom_is_point_in_time_safe(self):
+  x=bars(40);x[5]["low"]=90;x[15]["low"]=91;x[25]["low"]=90.5
+  before=detect_triple_bottom(x,27,self.cfg).dict();x[35].update(low=1,high=999,close=500);self.assertEqual(before,detect_triple_bottom(x,27,self.cfg).dict())
  def test_bos_vs_wick_swipe(self):
   x=bars(30);x[25].update(open=99,high=105,low=98,close=104,volume=2000);self.assertTrue(detect_bos(x,25,102,self.cfg).detected)
   x[26].update(open=101,high=105,low=99,close=101,volume=2000);self.assertEqual(detect_bos(x,26,102,self.cfg).classification,"liquidity_swipe")

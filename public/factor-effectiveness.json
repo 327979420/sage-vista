@@ -12,7 +12,7 @@
     "source_candidates": 63817,
     "audited_events": 62170,
     "primary_events": 13296,
-    "factors": 37
+    "factors": 39
   },
   "headline": {
     "common_gate": "长期趋势＋完整日线MACD刚金叉的20日原始持有在三段均为正。",
@@ -58,7 +58,7 @@
   },
   "quadrant_counts": {
     "in_use": 7,
-    "watch": 13,
+    "watch": 15,
     "paused": 9,
     "retire": 8
   },
@@ -642,6 +642,31 @@
       }
     },
     {
+      "factor_id": "structure.triple_bottom_pullback",
+      "name_zh": "三底回调位置",
+      "family": "support",
+      "family_zh": "支撑",
+      "family_color": "#2F855A",
+      "timeframe": "daily",
+      "timeframe_zh": "日线",
+      "quadrant": "watch",
+      "quadrant_zh": "候选观察",
+      "production_role": "zero_weight",
+      "production_role_zh": "当前0权重",
+      "current_use": false,
+      "official_weight": 0,
+      "shadow_weight": 0.0,
+      "latest_verdict": "not_in_v2",
+      "latest_verdict_zh": "尚未进入本轮可比归因",
+      "action": "完成机器定义和可比归因后再决定",
+      "evidence_note_zh": "本轮完整事件池没有可比结果，当前只保留登记与0权重。",
+      "periods_20d": {
+        "development": null,
+        "validation_2025": null,
+        "forward_2026": null
+      }
+    },
+    {
       "factor_id": "structure.breakout_retest",
       "name_zh": "通用突破回踩",
       "family": "price_structure",
@@ -719,6 +744,31 @@
           "expectancy_delta_pct": -0.5887,
           "top_decile_enrichment_ratio": 0.0
         }
+      }
+    },
+    {
+      "factor_id": "structure.double_bottom_neckline_retest",
+      "name_zh": "W底突破后颈线回踩",
+      "family": "price_structure",
+      "family_zh": "价格结构",
+      "family_color": "#7C3AED",
+      "timeframe": "daily",
+      "timeframe_zh": "日线",
+      "quadrant": "watch",
+      "quadrant_zh": "候选观察",
+      "production_role": "zero_weight",
+      "production_role_zh": "当前0权重",
+      "current_use": false,
+      "official_weight": 0,
+      "shadow_weight": 0.0,
+      "latest_verdict": "not_in_v2",
+      "latest_verdict_zh": "尚未进入本轮可比归因",
+      "action": "完成机器定义和可比归因后再决定",
+      "evidence_note_zh": "本轮完整事件池没有可比结果，当前只保留登记与0权重。",
+      "periods_20d": {
+        "development": null,
+        "validation_2025": null,
+        "forward_2026": null
       }
     },
     {

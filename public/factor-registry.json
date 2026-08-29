@@ -1,6 +1,6 @@
 {
-  "registry_version": "0.9.0",
-  "factor_count": 37,
+  "registry_version": "0.10.0",
+  "factor_count": 39,
   "factors": [
     {
       "id": "qualification.long_trend",
@@ -390,6 +390,34 @@
       "dependency_policy": "all"
     },
     {
+      "id": "structure.triple_bottom_pullback",
+      "version": "1.0.0",
+      "name_zh": "三底回调位置",
+      "explanation": "长期趋势回调中出现三个相近、彼此有明确反弹分隔的已确认低点；只在第三底右侧确认后记录。",
+      "machine_rule": "within the latest 120 completed sessions, three confirmed swing lows are 5 to 60 sessions apart, remain within max(3% of their median price, 1 ATR14 at the third low), have at least 1 ATR14 intervening rebound between each pair, and the third confirmed floor holds within a 0.5 ATR buffer",
+      "evidence_family": "support",
+      "timeframe": "daily",
+      "lookahead_safe": true,
+      "confirmation_delay_bars": 2,
+      "status": "testing",
+      "score_mode": "display_only",
+      "weight": 0,
+      "redundancy_group": "pullback_location",
+      "research_refs": [
+        "triple-bottom-neckline-retest-v1.0.0-2026-08-29"
+      ],
+      "depends_on": [
+        "qualification.long_trend",
+        "qualification.pullback_60d"
+      ],
+      "factor_type": "event",
+      "observation_window_sessions": 10,
+      "runtime_status": "ready",
+      "score_tier": "display_only",
+      "experimental_weight": 0.0,
+      "dependency_policy": "all"
+    },
+    {
       "id": "structure.higher_low",
       "version": "1.0.0",
       "name_zh": "更高低点",
@@ -454,6 +482,33 @@
       "research_refs": [],
       "depends_on": [
         "structure.trendline_three_push"
+      ],
+      "factor_type": "event",
+      "observation_window_sessions": 10,
+      "runtime_status": "ready",
+      "score_tier": "display_only",
+      "experimental_weight": 0.0,
+      "dependency_policy": "all"
+    },
+    {
+      "id": "structure.double_bottom_neckline_retest",
+      "version": "1.0.0",
+      "name_zh": "W底突破后颈线回踩",
+      "explanation": "W底先完成颈线收盘突破，随后十个交易日内回踩颈线并以完整日K收盘守住；与三推突破回踩同家族。",
+      "machine_rule": "within 10 completed sessions after an objective double-bottom neckline close breakout, price touches the neckline within max(2%, 0.5 ATR14 at breakout), does not pierce the lower tolerance boundary, and closes on or above the neckline",
+      "evidence_family": "price_structure",
+      "timeframe": "daily",
+      "lookahead_safe": true,
+      "confirmation_delay_bars": 0,
+      "status": "testing",
+      "score_mode": "display_only",
+      "weight": 0,
+      "redundancy_group": "trendline_breakout",
+      "research_refs": [
+        "triple-bottom-neckline-retest-v1.0.0-2026-08-29"
+      ],
+      "depends_on": [
+        "structure.double_bottom"
       ],
       "factor_type": "event",
       "observation_window_sessions": 10,

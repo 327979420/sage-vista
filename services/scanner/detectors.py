@@ -36,6 +36,19 @@ def detect_w_bottom(rows,end=None,cfg=None,timeframe="daily"):
  classification="w_bottom" if valid else ("ordinary_higher_low" if first["price"]<second["price"] else "invalid_w")
  return result(valid,rows,end,timeframe,levels={"first_low":first["price"],"second_low":second["price"],"neckline":neck},measurements={"separation_bars":sep,"second_low_delta_atr":round(delta/a[second["index"]],3)},confidence=.8 if valid and first["major"] else .65 if valid else .2,explanation="Two confirmed swing lows form a higher-second-low W with an objective neckline" if valid else f"Pair classified as {classification}",data_used={"first_index":first["index"],"last_index":second["confirmed_index"]},confirmation_delay=cfg["pivot"]["right_bars"],classification=classification)
 
+def detect_triple_bottom(rows,end=None,cfg=None,timeframe="daily"):
+ """Detect a fresh, confirmed three-test pullback floor without future bars."""
+ cfg=cfg or load_config();end=len(rows)-1 if end is None else min(end,len(rows)-1);tc=cfg["triple_bottom"];a=atr(rows);confirmed=pivots(rows,end,cfg,timeframe)["lows"]
+ confirmed=[point for point in confirmed if point["index"]>=max(0,end-tc["lookback_bars"])]
+ if len(confirmed)<3:return result(False,rows,end,timeframe,confirmation_delay=cfg["pivot"]["right_bars"],explanation="Fewer than three confirmed swing lows in the registered lookback",classification="insufficient_lows")
+ first,second,third=confirmed[-3:];separations=(second["index"]-first["index"],third["index"]-second["index"]);prices=(first["price"],second["price"],third["price"]);middle_price=sorted(prices)[1]
+ tolerance=max(middle_price*tc["max_low_spread_pct"],a[third["index"]]*tc["max_low_spread_atr"]);spread=max(prices)-min(prices)
+ first_peak=max((rows[j]["high"] for j in range(first["index"]+1,second["index"])),default=max(first["price"],second["price"]));second_peak=max((rows[j]["high"] for j in range(second["index"]+1,third["index"])),default=max(second["price"],third["price"]))
+ bounces=((first_peak-max(first["price"],second["price"]))/max(a[third["index"]],1e-9),(second_peak-max(second["price"],third["price"]))/max(a[third["index"]],1e-9));fresh=third["confirmed_index"]==end
+ separated=all(tc["min_separation_bars"]<=value<=tc["max_separation_bars"] for value in separations);distinct=all(value>=tc["min_intervening_bounce_atr"] for value in bounces);held=rows[end]["close"]>=min(prices)-tc["hold_buffer_atr"]*a[end];valid=fresh and separated and spread<=tolerance and distinct and held
+ classification="triple_bottom" if valid else "stale_third_bottom" if not fresh else "unqualified_three_lows"
+ return result(valid,rows,end,timeframe,levels={"first_low":prices[0],"second_low":prices[1],"third_low":prices[2],"support_mid":middle_price,"support_lower":min(prices)-tolerance},measurements={"separation_bars":list(separations),"low_spread":round(spread,6),"allowed_spread":round(tolerance,6),"intervening_bounce_atr":[round(value,3) for value in bounces]},confidence=.85 if valid else .2,explanation="Three confirmed, separated swing lows held one volatility-adjusted pullback floor" if valid else "Three lows did not satisfy the frozen spacing, similarity, rebound, freshness and hold rules",data_used={"first_index":first["index"],"last_index":third["confirmed_index"]},confirmation_delay=cfg["pivot"]["right_bars"],classification=classification)
+
 def relative_volume(rows,i,cfg=None,timeframe="daily"):
  cfg=cfg or load_config();n=cfg["volume"]["lookback"]
  if i<n:return result(False,rows,i,timeframe,explanation="Insufficient completed volume bars",confirmation_delay=0)

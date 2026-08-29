@@ -1,15 +1,15 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-08-29T21:06:38+10:00",
+  "generated_at": "2026-08-29T22:15:00+10:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 30,
+  "experiment_count": 31,
   "summary": {
     "completed": 26,
-    "in_progress": 4,
+    "in_progress": 5,
     "candidate": 10,
     "not_validated_or_unstable": 11
   },
@@ -21,6 +21,79 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "triple-bottom-neckline-retest-v1.0.0-2026-08-29",
+      "created_at": "2026-08-29T22:15:00+10:00",
+      "status": "pre_registered",
+      "change": "Add point-in-time triple-bottom pullback-location and W-bottom neckline-breakout retest factors, then compare them with the common gate, their misses, parent structures and the existing three-push retest family without changing production scoring.",
+      "coverage": "Planned reuse of the complete exact daily-MACD event pool and archived point-in-time price cache; 2001-2024 retrospective development, seen-2025 and seen-2026 rechecks, and true unseen forward only after 2026-08-29.",
+      "specification": {
+        "event_gate": "exact completed daily MACD bullish cross plus long-trend qualification",
+        "new_factors": [
+          "structure.triple_bottom_pullback",
+          "structure.double_bottom_neckline_retest"
+        ],
+        "triple_bottom": "three confirmed swing lows in 120 sessions, 5-60 sessions apart, max(3% median-bottom price, 1 ATR14) spread, two >=1 ATR14 rebounds, third-bottom 0.5 ATR hold and 10-session freshness",
+        "w_neckline_retest": "objective W bottom and completed-close neckline breakout followed within 10 sessions by a max(2%, 0.5 ATR14) touch and completed close hold",
+        "comparators": [
+          "common gate",
+          "factor miss",
+          "ordinary double bottom",
+          "double-bottom breakout only",
+          "three-push breakout retest"
+        ],
+        "primary_horizon_sessions": 20,
+        "sensitivity_horizons": [
+          5,
+          10,
+          40,
+          60
+        ],
+        "entry": "next adjusted open",
+        "cost_bps": 50,
+        "overlap_primary": "first event per ticker within 120 trading sessions",
+        "multiple_testing": "Benjamini-Hochberg",
+        "industry_market": "separate and excluded from technical attribution"
+      },
+      "success_criteria": "A factor must improve 20-session 50bps 1%-trimmed return and PF versus the common gate, its miss group and the frozen parent or same-family comparator across rolling development tests, satisfy sample and annual dispersion gates, pass BH control and remain useful in seen-period rechecks. Historical passage can only create a zero-weight forward candidate and still requires separate approval for scoring.",
+      "result": "Pre-registered and implemented as point-in-time zero-weight daily observations. Historical attribution has not been run, so neither factor is claimed to improve win rate, return, PF or expectancy.",
+      "known_limitations": [
+        "2025 and 2026 have already been inspected",
+        "historical delisted and ticker-change coverage remains partial",
+        "2019 onward universe coverage expands materially",
+        "pattern thresholds are user-approved hypotheses and not validated alpha",
+        "event-level results will not be a capital-constrained portfolio"
+      ],
+      "human_summary": {
+        "title_zh": "三底与W底颈线回踩V1",
+        "family": "pattern",
+        "family_zh": "回调与突破回踩",
+        "question_zh": "三底回调位置和W底突破后颈线回踩，能否比共同门票、父形态和三推回踩稳定增加后续收益？",
+        "result_zh": "已冻结机器定义并接入0权重点时检测，历史对照尚未运行，因此目前没有有效性结论。",
+        "use_zh": "每天只在日线MACD门票后记录命中；不改变正式排名、通知、仓位、止损或退出。",
+        "next_zh": "复用完整历史事件池做命中／未命中、父因子和同家族对照，并交付真实赢家、输家与边界案例。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-29T22:15:00+10:00",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-08-29T22:15:00+10:00",
+        "time_source": "user_approved_local_preregistration",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "triple-bottom-neckline-retest-v1.0.0-2026-08-29",
+            "event": "registered",
+            "event_at": "2026-08-29T22:15:00+10:00",
+            "time_source": "user_approved_local_preregistration",
+            "source_ref": "research/preregistrations/triple-bottom-neckline-retest-v1.md",
+            "result": "Frozen point-in-time triple-bottom and W-neckline-retest definitions, parent and family comparators, 20-session cost-adjusted objective, sample/overlap/BH guards, case-card requirement and a zero-production-weight ceiling before historical attribution."
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "factor-family-return-combination-v1.0.0-2026-08-29",
       "created_at": "2026-08-29T20:51:40+10:00",
@@ -2224,11 +2297,17 @@
     "structure.double_bottom": [
       "macd-pattern-v0.6.0-2026-08-24"
     ],
+    "structure.triple_bottom_pullback": [
+      "triple-bottom-neckline-retest-v1.0.0-2026-08-29"
+    ],
     "structure.higher_low": [
       "macd-factor-history-v2.0.0-2026-08-29"
     ],
     "structure.breakout_retest": [],
     "structure.trendline_three_push_retest": [],
+    "structure.double_bottom_neckline_retest": [
+      "triple-bottom-neckline-retest-v1.0.0-2026-08-29"
+    ],
     "structure.bullish_fvg_support": [
       "macd-multifactor-score-v1-2026-08-25"
     ],

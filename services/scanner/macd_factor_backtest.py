@@ -101,6 +101,27 @@ def three_push_retest(rows,end,lookback=10):
   if touched and held:return True
  return False
 
+def double_bottom_breakout_setup(rows,end):
+ """Return an objective W-bottom neckline breakout known on ``end``."""
+ start=max(0,end-120);window=rows[start:end+1];local_end=len(window)-1;setup=detect_w_bottom(window,local_end,TECHNICAL_CONFIG)
+ if not setup.detected:return None
+ neckline=setup.levels["neckline"]
+ if not detect_bos(window,local_end,neckline,TECHNICAL_CONFIG).detected:return None
+ return {"breakout_index":end,"level":neckline,"atr":atr(window)[local_end],"first_low":setup.levels["first_low"],"second_low":setup.levels["second_low"]}
+
+def double_bottom_neckline_retest(rows,end,lookback=10):
+ """A completed-session W-neckline retest using the three-push hold rule."""
+ for breakout_index in range(end-1,max(-1,end-lookback-1),-1):
+  setup=double_bottom_breakout_setup(rows,breakout_index)
+  if not setup:continue
+  level=setup["level"];current=rows[end];tolerance=max(level*.02,setup["atr"]*.5)
+  touched=current["low"]<=level+tolerance and current["high"]>=level-tolerance;held=current["close"]>=level and current["low"]>=level-tolerance
+  if touched and held:return True
+ return False
+
+def recent_double_bottom_breakout(rows,end,lookback=10):
+ return any(double_bottom_breakout_setup(rows,i) for i in range(max(0,end-lookback),end+1))
+
 def recent_three_push_breakout(rows,end,lookback=10):
  return any(three_push_breakout(rows,i) for i in range(max(0,end-lookback),end+1))
 

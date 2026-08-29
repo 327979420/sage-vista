@@ -2,6 +2,7 @@
   "version": "0.2.0",
   "pivot": {"left_bars": 2, "right_bars": 2, "major_move_atr": 1.0},
   "w_bottom": {"min_separation_bars": 3, "max_separation_bars": 10, "max_second_low_atr_above_first": 1.0},
+  "triple_bottom": {"lookback_bars": 120, "min_separation_bars": 5, "max_separation_bars": 60, "max_low_spread_pct": 0.03, "max_low_spread_atr": 1.0, "min_intervening_bounce_atr": 1.0, "hold_buffer_atr": 0.5},
   "level_test": {"proximity_atr": 0.25, "min_attempts": 3, "rejection_cluster_bars": 2},
   "bos": {"min_body_fraction": 0.5, "strong_volume_ratio": 1.5},
   "volume": {"lookback": 20, "strong": 1.5, "exceptional": 2.0},

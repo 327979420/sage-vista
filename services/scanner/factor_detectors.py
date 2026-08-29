@@ -2,12 +2,12 @@
 from dataclasses import asdict,dataclass
 from datetime import date
 
-from .detectors import detect_bos,detect_w_bottom,load_config,pivots
+from .detectors import detect_bos,detect_triple_bottom,detect_w_bottom,load_config,pivots
 from .factor_registry import FACTORS,FACTORS_BY_ID
 from .macd_factor_backtest import (available,bullish_fvg_support,completed_groups,
  ema,kline_congestion_support,long_trend_ok,macd_state,overhead_unfilled_gap,
- recent_three_push_breakout,support_bottom_volume,support_bullish_engulfing,
- three_push_breakout,three_push_retest,volume_profile_support,fibonacci_support_levels)
+ recent_double_bottom_breakout,recent_three_push_breakout,support_bottom_volume,support_bullish_engulfing,
+ three_push_breakout,three_push_retest,double_bottom_neckline_retest,volume_profile_support,fibonacci_support_levels)
 from .technical import macd,rsi
 
 MONITORED_FACTOR_IDS=tuple(factor.id for factor in FACTORS)
@@ -107,8 +107,10 @@ def _raw(rows,i):
  divergence=False
  if len(lows)>=2:
   a,b=lows[-2:];divergence=i-b["confirmed_index"]<=8 and rv[b["index"]] is not None and rv[a["index"]] is not None and rv[b["index"]]<50 and b["price"]<a["price"] and rv[b["index"]]>rv[a["index"]]+2 and current["close"]<=b["price"]*1.15
- w=detect_w_bottom(view,i,TECHNICAL_CONFIG);double_bottom=w.detected and detect_bos(view,i,w.levels["neckline"],TECHNICAL_CONFIG).detected
  pullback=current["close"]<=max(row["high"] for row in view[max(0,i-60):i])*.95 if i else False
+ w=detect_w_bottom(view,i,TECHNICAL_CONFIG);double_bottom=w.detected and detect_bos(view,i,w.levels["neckline"],TECHNICAL_CONFIG).detected
+ triple=detect_triple_bottom(view,i,TECHNICAL_CONFIG);trend_ok=long_trend_ok(view,i,curves[200]);triple_pullback=triple.detected and trend_ok and pullback
+ double_bottom_recent=recent_double_bottom_breakout(view,i);double_bottom_retest=double_bottom_recent and double_bottom_neckline_retest(view,i)
  day=date.fromisoformat(current["date"]);weekly_rows=available(completed_groups(view,"weekly"),(day.isocalendar().year,day.isocalendar().week));monthly_rows=available(completed_groups(view,"monthly"),(day.year,day.month))
  weekly_state=macd_state(weekly_rows[-160:]) if len(weekly_rows)>=3 else None
  monthly_line,monthly_signal=macd([row["close"] for row in monthly_rows]) if len(monthly_rows)>=2 else ([],[]);monthly_cross=bool(monthly_line and monthly_line[-1]>monthly_signal[-1] and monthly_line[-2]<=monthly_signal[-2])
@@ -127,8 +129,10 @@ def _raw(rows,i):
   "support.ema_proximity":(ema_hit,{"distance_by_period":ema_distances,"tolerance":.02}),
   "support.weekly_ema_proximity":(weekly_ema_hit,weekly_ema_evidence),"support.monthly_ema_proximity":(monthly_ema_hit,monthly_ema_evidence),
   "support.fibonacci_half":(fib[.5],{"levels":fib_levels,"tolerance":.02}),"support.fibonacci_618":(fib[.618],{"levels":fib_levels,"tolerance":.02}),"support.golden_pocket":(golden,{"levels":fib_levels}),
-  "structure.trendline_three_push":(three_push_breakout(view,i),{"confirmation":"completed close BOS"}),"structure.double_bottom":(double_bottom,{"neckline":w.levels.get("neckline")}),"structure.higher_low":(higher_low,{"confirmed_lows":lows[-2:]}),
+  "structure.trendline_three_push":(three_push_breakout(view,i),{"confirmation":"completed close BOS"}),"structure.double_bottom":(double_bottom,{"neckline":w.levels.get("neckline")}),
+  "structure.triple_bottom_pullback":(triple_pullback,{"dependency_hits":[factor_id for factor_id,hit in (("qualification.long_trend",trend_ok),("qualification.pullback_60d",pullback)) if hit],"pattern":triple.dict()}),"structure.higher_low":(higher_low,{"confirmed_lows":lows[-2:]}),
   "structure.trendline_three_push_retest":(retest,{"dependency_hits":["structure.trendline_three_push"] if three_push_recent else [],"lookback_sessions":10}),
+  "structure.double_bottom_neckline_retest":(double_bottom_retest,{"dependency_hits":["structure.double_bottom"] if double_bottom_recent else [],"lookback_sessions":10}),
   "structure.bullish_fvg_support":(fvg,{"lookback_sessions":250,"max_distance":.05}),"risk.overhead_unfilled_gap":(overhead_unfilled_gap(view,i),{"lookback_sessions":250,"max_distance":.15}),
   "rsi.oversold_repair":(repair,{"rsi":rv[i],"prior_rsi":rv[i-1] if i else None}),"rsi.bullish_divergence":(divergence,{"confirmed_lows":lows[-2:],"rsi":rv[i]}),
   "volume.relative_expansion":(bool(volume_ratio is not None and volume_ratio>=TECHNICAL_CONFIG["volume"]["strong"]),{"ratio":volume_ratio,"threshold":TECHNICAL_CONFIG["volume"]["strong"]}),

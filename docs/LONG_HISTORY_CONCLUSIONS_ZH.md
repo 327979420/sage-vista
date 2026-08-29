@@ -25,7 +25,7 @@
 | 暂停加权 | 9 | 三段收益增量方向不一致 | 仅保留位置和审计证据，不参与加权 |
 | 准备弃用 | 8 | 旧登记已拒绝、证据重复或最新仍未证明稳定增量 | 保持0权重；保留历史，完成迁移后再决定是否停止日常检测 |
 
-完整37因子四象限见 `public/factor-effectiveness.json`；完整审计结果见 `research/backtest/output/score-timeframe-attribution-v2.json`。完整周线MACD刚金叉是研究专用因子，20日主样本只有开发65 / 2025年10 / 2026年8，不进入生产因子库。
+因子库当前共39项；其中原37项的完整四象限与历史审计见 `public/factor-effectiveness.json` 和 `research/backtest/output/score-timeframe-attribution-v2.json`，新增三底与W颈线回踩只列为候选观察、尚无历史有效性结论。完整周线MACD刚金叉是研究专用因子，20日主样本只有开发65 / 2025年10 / 2026年8，不进入生产因子库。
 
 ## 固定止损和8%移动止损
 

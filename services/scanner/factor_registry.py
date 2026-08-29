@@ -10,7 +10,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 
-REGISTRY_VERSION = "0.9.0"
+REGISTRY_VERSION = "0.10.0"
 VALID_STATUSES = {"pending", "testing", "rejected", "unstable", "insufficient_sample", "candidate", "validated", "paused"}
 VALID_SCORE_MODES = {"official", "observational", "display_only", "disabled"}
 
@@ -61,9 +61,11 @@ FACTORS = (
     factor("support.golden_pocket", "Golden Pocket", "close in confirmed swing 0.5 to 0.6182 retracement zone", "support", status="pending", redundancy="fibonacci_support", factor_type="state"),
     factor("structure.trendline_three_push", "三推趋势线突破", "confirmed three-push descending trendline close breakout", "price_structure", status="candidate", score_mode="observational", weight=0, redundancy="trendline_breakout", refs=("macd-pattern-v0.6.0-2026-08-24","macd-factor-history-v2.0.0-2026-08-29"), window=10, tier="core", experimental_weight=1),
     factor("structure.double_bottom", "双底", "two confirmed swing lows and objective neckline breakout", "price_structure", status="rejected", redundancy="bottom_structure", refs=("macd-pattern-v0.6.0-2026-08-24",), delay=2, window=10),
+    factor("structure.triple_bottom_pullback", "三底回调位置", "within the latest 120 completed sessions, three confirmed swing lows are 5 to 60 sessions apart, remain within max(3% of their median price, 1 ATR14 at the third low), have at least 1 ATR14 intervening rebound between each pair, and the third confirmed floor holds within a 0.5 ATR buffer", "support", status="testing", score_mode="display_only", weight=0, redundancy="pullback_location", refs=("triple-bottom-neckline-retest-v1.0.0-2026-08-29",), explanation="长期趋势回调中出现三个相近、彼此有明确反弹分隔的已确认低点；只在第三底右侧确认后记录。", delay=2, depends_on=("qualification.long_trend","qualification.pullback_60d"), window=10),
     factor("structure.higher_low", "更高低点", "latest confirmed swing low exceeds prior confirmed swing low", "price_structure", status="rejected", redundancy="bottom_structure", refs=("macd-factor-history-v2.0.0-2026-08-29",), delay=2, factor_type="state"),
     factor("structure.breakout_retest", "通用突破回踩", "completed close breakout of a registered structure followed by a valid held retest", "price_structure", status="pending", redundancy="breakout_retest", window=5, runtime="definition_required"),
     factor("structure.trendline_three_push_retest", "三推突破后回踩确认", "within 10 completed sessions after a confirmed three-push descending-trendline breakout, price touches the projected line within max(2%, 0.5 ATR), does not materially pierce it, and closes on or above it", "price_structure", status="candidate", score_mode="display_only", weight=0, redundancy="trendline_breakout", explanation="三推下降趋势线突破后十个交易日内回踩原趋势线并收盘守住，作为突破证据链的附加确认。", depends_on=("structure.trendline_three_push",), window=10),
+    factor("structure.double_bottom_neckline_retest", "W底突破后颈线回踩", "within 10 completed sessions after an objective double-bottom neckline close breakout, price touches the neckline within max(2%, 0.5 ATR14 at breakout), does not pierce the lower tolerance boundary, and closes on or above the neckline", "price_structure", status="testing", score_mode="display_only", weight=0, redundancy="trendline_breakout", refs=("triple-bottom-neckline-retest-v1.0.0-2026-08-29",), explanation="W底先完成颈线收盘突破，随后十个交易日内回踩颈线并以完整日K收盘守住；与三推突破回踩同家族。", depends_on=("structure.double_bottom",), window=10),
     factor("structure.bullish_fvg_support", "Bullish FVG支撑", "open daily bullish fair-value gap remains below price as support", "price_structure", status="candidate", score_mode="display_only", weight=0, redundancy="imbalance_support", refs=("macd-multifactor-score-v1-2026-08-25",), factor_type="state"),
     factor("risk.overhead_unfilled_gap", "上方未补跳空缺口", "unfilled downside gap remains overhead", "risk", status="candidate", score_mode="display_only", weight=0, redundancy="overhead_supply", refs=("macd-multifactor-score-v1-2026-08-25","macd-factor-history-v2.0.0-2026-08-29"), factor_type="risk"),
     factor("rsi.oversold_repair", "RSI超卖修复", "RSI exits registered oversold zone on completed close", "rsi", status="pending", redundancy="rsi_reversal", window=5),
@@ -94,6 +96,8 @@ CURRENT_COMPONENT_IDS = {
     "周线MACD改善": "macd.weekly_histogram_improving",
     "三推趋势线突破": "structure.trendline_three_push",
     "三推突破后回踩确认": "structure.trendline_three_push_retest",
+    "三底回调位置": "structure.triple_bottom_pullback",
+    "W底突破后颈线回踩": "structure.double_bottom_neckline_retest",
     "上方未补跳空缺口": "risk.overhead_unfilled_gap",
     "Bullish FVG支撑": "structure.bullish_fvg_support",
 }

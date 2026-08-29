@@ -97,6 +97,20 @@ class TrackerOutputContractTests(unittest.TestCase):
         self.assertEqual(retest.depends_on, (parent.id,))
         self.assertIn("10 completed sessions", retest.machine_rule)
 
+    def test_new_bottom_factors_are_zero_weight_and_family_bound(self):
+        from services.scanner.factor_registry import FACTORS
+
+        factors = {factor.id: factor for factor in FACTORS}
+        triple = factors["structure.triple_bottom_pullback"]
+        w_retest = factors["structure.double_bottom_neckline_retest"]
+        three_push_retest = factors["structure.trendline_three_push_retest"]
+        self.assertEqual((triple.status, triple.score_mode, triple.weight, triple.experimental_weight), ("testing", "display_only", 0, 0))
+        self.assertEqual(triple.redundancy_group, "pullback_location")
+        self.assertEqual(triple.depends_on, ("qualification.long_trend", "qualification.pullback_60d"))
+        self.assertEqual((w_retest.status, w_retest.score_mode, w_retest.weight, w_retest.experimental_weight), ("testing", "display_only", 0, 0))
+        self.assertEqual(w_retest.depends_on, ("structure.double_bottom",))
+        self.assertEqual(w_retest.redundancy_group, three_push_retest.redundancy_group)
+
     def test_runtime_enforces_dependency_and_redundancy(self):
         from services.scanner.rare_opportunity_scanner import score_observation
 
