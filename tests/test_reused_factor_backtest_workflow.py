@@ -19,6 +19,7 @@ class ReusedFactorBacktestWorkflowTests(unittest.TestCase):
         self.assertIn("natural-week checkpoints and annual audit", text)
         self.assertIn("retention-days: 90", text)
         self.assertIn("research/backtest/output/reused-v2/annual", text)
+        self.assertLess(text.index("git pull --ff-only origin main"), text.index(" aggregate --input-dir"))
 
 
 if __name__ == "__main__":

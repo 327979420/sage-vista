@@ -17,6 +17,9 @@ from research.backtest.reused_event_study_v2 import (
 )
 
 
+ROOT = Path(__file__).parents[1]
+
+
 def raw_rows(count=180, start=date(2025, 1, 1)):
     rows = []
     current = start
@@ -38,6 +41,22 @@ def raw_rows(count=180, start=date(2025, 1, 1)):
 
 
 class ReusedEventStudyV2Tests(unittest.TestCase):
+    def test_committed_result_matches_the_audited_completion_record(self):
+        result = json.loads((ROOT / "research/backtest/output/score-timeframe-attribution-v2.json").read_text())
+        self.assertFalse(result["production_scoring_changed"])
+        self.assertTrue(result["technical_only_primary_test"])
+        self.assertEqual(result["coverage"]["all_events"], 62_170)
+        self.assertEqual(result["coverage"]["primary_120_session_deduplicated_events"], 13_296)
+        self.assertEqual(result["coverage"]["natural_week_checkpoints"], 1_414)
+        annual = result["annual_coverage"]
+        self.assertEqual(sum(item["coverage"]["source_candidates"] for item in annual), 63_817)
+        self.assertEqual(sum(item["coverage"]["missing_price_events"] for item in annual), 1_615)
+        self.assertEqual(sum(item["audits"]["daily_gate_mismatches"] for item in annual), 32)
+        factors = result["primary_deduplicated"]["single_factors"]
+        self.assertEqual(len(factors), 31)
+        self.assertFalse(any(item["verdict"] == "validated" for item in factors))
+        self.assertFalse(any(item["verdict"] == "validated" for item in result["primary_deduplicated"]["frozen_pairs"]))
+
     def test_outcomes_enter_at_next_open_and_use_requested_session(self):
         rows = raw_rows()
         series = PriceSeries(rows)
@@ -111,18 +130,23 @@ class ReusedEventStudyV2Tests(unittest.TestCase):
                 "period": "validation_2025",
                 "signal_index": 100,
                 "scores": {"current": 5.0, "timeframe_equal": 5.0, "timeframe_v3": 5.0},
-                "factors": ["volume.bottom_expansion"],
+                "factors": ["qualification.long_trend", "volume.bottom_expansion"],
                 "returns": {str(horizon): 0.02 for horizon in (5, 10, 15, 20, 40, 60, 100, 120)},
             }
             with gzip.open(path, "wt", encoding="utf-8") as handle:
                 handle.write(json.dumps(event) + "\n")
             out = Path(folder) / "result.json"
-            result = aggregate(folder, out)
+            annual_dir = Path(folder) / "annual"
+            result = aggregate(folder, out, annual_dir)
             self.assertEqual(result["coverage"]["all_events"], 1)
             self.assertEqual(result["coverage"]["period_events"]["validation_2025"], 1)
+            self.assertEqual(result["primary_deduplicated"]["baseline_fixed_horizon"]["validation_2025"]["20"]["samples"], 1)
             self.assertEqual(result["coverage"]["natural_week_checkpoints"], 0)
             self.assertEqual(result["coverage"]["natural_weeks_with_events"], 1)
             self.assertTrue(out.exists())
+            self.assertTrue(annual_dir.exists())
+            factors = result["primary_deduplicated"]["single_factors"]
+            self.assertNotIn("qualification.long_trend", {item["factor_id"] for item in factors})
 
 
 if __name__ == "__main__":

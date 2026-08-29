@@ -9,9 +9,10 @@
     "start": "2000-01-03",
     "end": "2000-12-29",
     "sessions": 252,
-    "natural_week_checkpoints": 0,
+    "natural_week_checkpoints": 53,
     "source_candidates": 0,
     "events_joined_to_price_cache": 0,
+    "audited_gate_events": 0,
     "missing_price_events": 0,
     "mature_outcomes": {
       "5": 0,
@@ -22,7 +23,8 @@
       "60": 0,
       "100": 0,
       "120": 0
-    }
+    },
+    "source_natural_week_checkpoints": 53
   },
   "audits": {
     "daily_gate_mismatches": 0,

@@ -481,8 +481,19 @@ def score_study(rows: list[dict]) -> dict:
     return output
 
 
+def baseline_study(rows: list[dict]) -> dict:
+    return {
+        period: {
+            str(horizon): metrics([row for row in rows if row["period"] == period], horizon)
+            for horizon in HORIZONS
+        }
+        for period, _, _ in PERIODS
+    }
+
+
 def factor_study(rows: list[dict]) -> list[dict]:
-    factors = sorted({factor for row in rows for factor in row["factors"] if factor != "macd.daily_bull_cross"})
+    common_gate_factors = {"macd.daily_bull_cross", "qualification.long_trend"}
+    factors = sorted({factor for row in rows for factor in row["factors"] if factor not in common_gate_factors})
     output, pvalues = [], []
     for factor in factors:
         periods = {}
@@ -560,14 +571,33 @@ def pair_study(rows: list[dict]) -> list[dict]:
     return output
 
 
-def aggregate(input_dir, out):
+def _normalized_annual_summary(summary: dict) -> dict:
+    coverage = summary.setdefault("coverage", {})
+    source_files = summary.get("source_files", [])
+    observed = int(coverage.get("natural_week_checkpoints") or 0)
+    # Historical inputs are one archived file per requested natural-week
+    # partition, including an occasional zero-session edge partition.  The
+    # 2026 forward input is one consolidated report, so its observed ISO weeks
+    # remain authoritative.
+    source_checkpoints = len(source_files) if len(source_files) > 1 else observed
+    coverage["source_natural_week_checkpoints"] = source_checkpoints
+    coverage["natural_week_checkpoints"] = max(observed, source_checkpoints)
+    return summary
+
+
+def aggregate(input_dir, out, annual_out_dir=None):
     all_events = _load_enriched(input_dir)
     if not all_events:
         raise RuntimeError("No enriched natural-week checkpoints found")
     primary = deduplicate(all_events, 120)
     annual = []
     for path in sorted(pathlib.Path(input_dir).rglob("annual-*.json")):
-        annual.append(json.loads(path.read_text()))
+        annual.append(_normalized_annual_summary(json.loads(path.read_text())))
+    if annual_out_dir:
+        annual_target = pathlib.Path(annual_out_dir)
+        annual_target.mkdir(parents=True, exist_ok=True)
+        for item in annual:
+            (annual_target / f"annual-{item['year']}.json").write_text(json.dumps(item, ensure_ascii=False, indent=2) + "\n")
     report = {
         "schema_version": "score-timeframe-attribution-v2.0.0",
         "experiment_id": "score-timeframe-attribution-v2.0.0-2026-08-29",
@@ -597,11 +627,13 @@ def aggregate(input_dir, out):
             "primary_factor_horizon_sessions": PRIMARY_HORIZON,
         },
         "primary_deduplicated": {
+            "baseline_fixed_horizon": baseline_study(primary),
             "score_monotonicity": score_study(primary),
             "single_factors": factor_study(primary),
             "frozen_pairs": pair_study(primary),
         },
         "all_event_sensitivity": {
+            "baseline_fixed_horizon": baseline_study(all_events),
             "score_monotonicity": score_study(all_events),
             "single_factors": factor_study(all_events),
             "frozen_pairs": pair_study(all_events),
@@ -647,13 +679,14 @@ def main():
     combined = subparsers.add_parser("aggregate")
     combined.add_argument("--input-dir", required=True)
     combined.add_argument("--out", required=True)
+    combined.add_argument("--annual-out-dir")
     args = parser.parse_args()
     if args.command == "matrix":
         result = matrix(args.start_year, args.end_year, args.github_output)
     elif args.command == "year":
         result = enrich_year(args.parts_dir, args.cache_dir, args.year, args.out_dir)
     else:
-        result = aggregate(args.input_dir, args.out)
+        result = aggregate(args.input_dir, args.out, args.annual_out_dir)
     printable = result.get("coverage", result) if isinstance(result, dict) else result
     print(json.dumps(printable, ensure_ascii=False))
 

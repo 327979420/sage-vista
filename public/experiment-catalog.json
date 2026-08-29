@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-08-29T12:29:00+10:00",
+  "generated_at": "2026-08-29T12:47:00+10:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
@@ -8,10 +8,10 @@
   ],
   "experiment_count": 25,
   "summary": {
-    "completed": 20,
-    "in_progress": 5,
+    "completed": 21,
+    "in_progress": 4,
     "candidate": 9,
-    "not_validated_or_unstable": 8
+    "not_validated_or_unstable": 9
   },
   "policy": {
     "append_only": true,
@@ -24,9 +24,9 @@
     {
       "experiment_id": "score-timeframe-attribution-v2.0.0-2026-08-29",
       "created_at": "2026-08-29T12:15:00+10:00",
-      "status": "in_progress",
+      "status": "completed_research_only",
       "change": "Reuse the complete saved daily-MACD candidate pool and historical price cache to test score monotonicity, full technical-factor base-rate attribution, exact completed-week MACD crosses, frozen timeframe scorers and three predeclared cross-family B-factor pairs without changing production scoring.",
-      "coverage": "2000 warmup; 2001-2024 development; 2025 independent validation; 2026 forward observation; reuse 57,271 archived 2000-2025 candidates, 1,379 natural-week checkpoints and the saved 2026 candidate pool.",
+      "coverage": "2000 warmup; 2001-2024 development; 2025 independent validation; 2026 forward observation; 63,817 source candidates, 62,170 audited events after 1,615 missing-price exclusions and 32 exact-gate audit exclusions; 13,296 primary 120-session-deduplicated events; 1,414 source/forward natural-week checkpoints.",
       "specification": {
         "event_gate": "exact completed daily MACD bullish cross",
         "technical_primary": "market and industry remain separate stratification layers",
@@ -78,32 +78,35 @@
         "checkpoint": "natural week plus annual compressed artifact"
       },
       "success_criteria": "Effective factors must show same-direction robust uplift in development, 2025 and 2026, meet frozen samples and BH control, remain positive after 20/50bps and not depend on outliers. A pair must beat the total baseline and both constituent factors.",
-      "result": "Running from reused archived events and cache. Production score and execution remain unchanged.",
+      "result": "The common long-trend plus exact daily-MACD ticket had positive 20-session event-level results after 120-session ticker deduplication: development/2025/2026 win rates 54.388%/50.976%/54.288%, PF 1.228/1.356/1.513, medians 0.869%/0.302%/1.136%, and 50bps net expectancy 0.298%/0.883%/1.602%. Higher archived scores were not monotonic; equal-timeframe and V3 weighting also failed 2025 validation. None of 31 add-on factors validated: 23 were directionally unstable and 8 sample-insufficient. Exact weekly crosses had only 65/10/8 primary 20-day samples and failed forward direction. Exact monthly crosses were strong at long windows in development and 2025 but reversed with only 39/26/17 mature 2026 samples at 60/100/120 days. All three frozen pairs were sample-insufficient and failed strict constituent uplift. Relative volume and pullback were enriched in the top return decile across all periods but did not consistently improve win rate or robust average return.",
+      "decision": "Keep the exact daily MACD plus long-trend ticket. Do not raise any production factor weight, do not promote V3, and do not treat weekly/monthly crosses as buy gates. Relative volume and pullback may remain descriptive tail-opportunity tags only. Raw fixed-horizon evidence is not a capital-constrained portfolio or an exit-system result.",
       "known_limitations": [
+        "1,615 early archived candidates lack current point-level price-cache joins and are excluded rather than imputed",
         "historical delisted and ticker-change coverage remains partial",
         "2019 onward universe coverage expands materially",
-        "2026 60/100/120-session outcomes may be immature",
-        "daily OHLCV and corporate-action adjustments require outlier audits",
-        "overlapping events are handled by frozen primary deduplication and all-event sensitivity"
+        "2026 60/100/120-session outcomes are immature",
+        "32 archived triggers no longer reproduce under the audited adjusted series and were excluded",
+        "signals are not a capital-constrained portfolio",
+        "stop-loss, trailing-stop and active exits remain separate experiments"
       ],
       "human_summary": {
         "title_zh": "完整事件池评分、周期与因子归因V2",
         "family": "scoring",
         "family_zh": "评分与因子",
         "question_zh": "完整MACD候选池中，分数是否单调，哪些技术因子、完整周月线证据和少量B级组合能跨时期增加收益？",
-        "result_zh": "正在复用57,271个历史候选、1,379个周检查点、逐日2026候选池和既有价格缓存运行；尚无新结论，生产评分不变。",
-        "use_zh": "等待完整开发、2025独立验证和2026前向结果，不使用运行中的临时赢家调整权重。",
-        "next_zh": "逐年并行补齐八个持有窗口，按周留档后统一执行去重、基础出现率、BH校正和组合增量检验。",
-        "verdict": "in_progress"
+        "result_zh": "共同门票的20日原始持有在开发/2025/2026均为正：胜率54.39%/50.98%/54.29%，PF 1.228/1.356/1.513，扣50bps期望0.30%/0.88%/1.60%。但高分不单调，等权和V3也未通过2025；31个附加因子零个验证通过，三个冻结组合均样本不足。月线长窗只在开发和2025强，2026成熟样本少且相对增量反向。",
+        "use_zh": "继续把日线MACD刚金叉＋长期趋势作为门票；不要提高任何附加因子正式权重，不把V3、周线或月线金叉当买入门槛。相对放量和回撤只可作为高收益尾部观察标签。",
+        "next_zh": "生产评分保持不变；继续积累证据校准模型的真实前向样本。止损、8%追踪和主动退出按独立实验评估，不拿本轮原始持有结果替代。",
+        "verdict": "not_validated"
       },
       "lifecycle": {
         "registered_at": "2026-08-29T12:15:00+10:00",
         "started_at": "2026-08-29T12:16:00+10:00",
-        "completed_at": null,
-        "latest_event": "checkpoint",
-        "latest_event_at": "2026-08-29T12:29:00+10:00",
-        "time_source": "github_actions",
-        "event_count": 4,
+        "completed_at": "2026-08-29T12:47:00+10:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-08-29T12:47:00+10:00",
+        "time_source": "local_aggregation_of_github_artifacts",
+        "event_count": 6,
         "events": [
           {
             "experiment_id": "score-timeframe-attribution-v2.0.0-2026-08-29",
@@ -146,6 +149,35 @@
               "monthly_cross_audit_mismatches": 50
             },
             "result": "All year jobs and aggregation succeeded, but the pre-final audit found 32 archived events that do not reproduce the exact daily gate and 50 archived monthly-cross bits that differ from the completed-month recalculation. The final pass excludes the 32 gate mismatches, normalizes monthly crosses to the audited calculation, and archives zero-event weeks instead of publishing provisional conclusions."
+          },
+          {
+            "experiment_id": "score-timeframe-attribution-v2.0.0-2026-08-29",
+            "event": "checkpoint",
+            "event_at": "2026-08-29T12:36:00+10:00",
+            "time_source": "github_actions",
+            "source_ref": "33229090022",
+            "coverage": {
+              "years_completed": 27,
+              "year_jobs_failed": 0,
+              "aggregate_and_tests": "passed"
+            },
+            "result": "The audited calculation and repository tests passed. Only the final git step failed because it attempted to pull after creating tracked output. All 27 year artifacts were preserved; final aggregation will reuse them without rerunning the years, and future workflow runs now synchronize before generation."
+          },
+          {
+            "experiment_id": "score-timeframe-attribution-v2.0.0-2026-08-29",
+            "event": "completed",
+            "event_at": "2026-08-29T12:47:00+10:00",
+            "time_source": "local_aggregation_of_github_artifacts",
+            "source_ref": "33229090022",
+            "coverage": {
+              "source_candidates": 63817,
+              "audited_events": 62170,
+              "primary_deduplicated_events": 13296,
+              "mature_20d_primary_events": 13100,
+              "natural_week_checkpoints": 1414,
+              "annual_summaries": 27
+            },
+            "result": "No score monotonicity, single factor or frozen pair validated across development, 2025 and 2026. The common daily-MACD plus long-trend ticket remained positive at 20 sessions in all three periods, but it is event-level raw-hold evidence rather than a portfolio or exit-system profit claim."
           }
         ]
       }

@@ -9,9 +9,10 @@
     "start": "2009-01-02",
     "end": "2009-12-31",
     "sessions": 252,
-    "natural_week_checkpoints": 39,
+    "natural_week_checkpoints": 53,
     "source_candidates": 204,
     "events_joined_to_price_cache": 137,
+    "audited_gate_events": 137,
     "missing_price_events": 67,
     "mature_outcomes": {
       "5": 137,
@@ -22,7 +23,8 @@
       "60": 137,
       "100": 137,
       "120": 137
-    }
+    },
+    "source_natural_week_checkpoints": 53
   },
   "audits": {
     "daily_gate_mismatches": 0,

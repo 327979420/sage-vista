@@ -12,6 +12,7 @@
     "natural_week_checkpoints": 35,
     "source_candidates": 6546,
     "events_joined_to_price_cache": 6546,
+    "audited_gate_events": 6546,
     "missing_price_events": 0,
     "mature_outcomes": {
       "5": 6379,
@@ -22,7 +23,8 @@
       "60": 4148,
       "100": 2811,
       "120": 1884
-    }
+    },
+    "source_natural_week_checkpoints": 35
   },
   "audits": {
     "daily_gate_mismatches": 0,

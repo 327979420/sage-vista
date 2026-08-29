@@ -9,9 +9,10 @@
     "start": "2022-01-03",
     "end": "2022-12-30",
     "sessions": 251,
-    "natural_week_checkpoints": 52,
+    "natural_week_checkpoints": 53,
     "source_candidates": 5174,
     "events_joined_to_price_cache": 5174,
+    "audited_gate_events": 5174,
     "missing_price_events": 0,
     "mature_outcomes": {
       "5": 5174,
@@ -22,7 +23,8 @@
       "60": 5174,
       "100": 5174,
       "120": 5174
-    }
+    },
+    "source_natural_week_checkpoints": 53
   },
   "audits": {
     "daily_gate_mismatches": 0,
@@ -36,7 +38,7 @@
   ],
   "factor_hit_counts": {
     "macd.daily_bull_cross": 5174,
-    "macd.monthly_bull_cross": 121,
+    "macd.monthly_bull_cross": 122,
     "macd.weekly_bull_cross": 54,
     "macd.weekly_histogram_improving": 718,
     "qualification.long_trend": 5174,

@@ -103,23 +103,22 @@ jobs:
         with: { fetch-depth: 0 }
       - uses: actions/setup-python@v7
         with: { python-version: "3.13" }
+      - name: Synchronize main before generating tracked results
+        run: git pull --ff-only origin main
       - uses: actions/download-artifact@v4
         with:
           pattern: score-timeframe-attribution-v2-*
           path: work/reused-v2-results
       - name: Aggregate only after every requested year succeeds
-        run: python3 -m research.backtest.reused_event_study_v2 aggregate --input-dir work/reused-v2-results --out research/backtest/output/score-timeframe-attribution-v2.json
-      - name: Permanently preserve compact annual audit records
-        run: |
-          mkdir -p research/backtest/output/reused-v2/annual
-          find work/reused-v2-results -type f -name 'annual-*.json' -exec cp {} research/backtest/output/reused-v2/annual/ \;
+        run: python3 -m research.backtest.reused_event_study_v2 aggregate --input-dir work/reused-v2-results --out research/backtest/output/score-timeframe-attribution-v2.json --annual-out-dir research/backtest/output/reused-v2/annual
+      - name: Confirm compact annual audit records
+        run: test "$(find research/backtest/output/reused-v2/annual -type f -name 'annual-*.json' | wc -l | tr -d ' ')" = "27"
       - name: Validate the full repository before archiving results
         run: python3 -m unittest discover -s tests -p 'test_*.py'
       - name: Commit the compact complete result; detailed weeks remain artifacts
         run: |
           git config user.name "sage-vista-bot"
           git config user.email "sage-vista-bot@users.noreply.github.com"
-          git pull --rebase origin main
           git add research/backtest/output/score-timeframe-attribution-v2.json research/backtest/output/reused-v2/annual
           git diff --cached --quiet && exit 0
           git commit -m "research: archive reused event-pool factor study v2"

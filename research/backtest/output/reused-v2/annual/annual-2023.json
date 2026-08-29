@@ -9,9 +9,10 @@
     "start": "2023-01-03",
     "end": "2023-12-29",
     "sessions": 250,
-    "natural_week_checkpoints": 52,
+    "natural_week_checkpoints": 53,
     "source_candidates": 7980,
     "events_joined_to_price_cache": 7980,
+    "audited_gate_events": 7980,
     "missing_price_events": 0,
     "mature_outcomes": {
       "5": 7980,
@@ -22,7 +23,8 @@
       "60": 7980,
       "100": 7980,
       "120": 7980
-    }
+    },
+    "source_natural_week_checkpoints": 53
   },
   "audits": {
     "daily_gate_mismatches": 0,
@@ -36,7 +38,7 @@
   ],
   "factor_hit_counts": {
     "macd.daily_bull_cross": 7980,
-    "macd.monthly_bull_cross": 480,
+    "macd.monthly_bull_cross": 481,
     "macd.weekly_bull_cross": 43,
     "macd.weekly_histogram_improving": 1007,
     "qualification.long_trend": 7980,
