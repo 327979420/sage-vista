@@ -19,6 +19,8 @@ class DailyEodWorkflowTests(unittest.TestCase):
   self.assertIn("public/market-etf-watch.json",text)
   self.assertIn("unified_v2_scan --published-latest",text)
   self.assertIn("services.scanner.experiment_catalog",text)
+  self.assertIn("Refresh pre-deployment machine status",text)
+  self.assertIn("docs/CURRENT_STATUS_ZH.md",text)
   self.assertIn("UPDATE_TRIGGER_SOURCE",text)
   self.assertIn("cloudflare_cron",text)
   self.assertIn("freshness_recovery",text)

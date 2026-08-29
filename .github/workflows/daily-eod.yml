@@ -99,6 +99,9 @@ jobs:
         run: |
           python3 -m services.scanner.experiment_catalog > /dev/null
           git diff --exit-code -- public/experiment-catalog.json docs/EXPERIMENT_SUMMARY_ZH.md
+      - name: Refresh pre-deployment machine status
+        if: steps.update_result.outputs.needs_release == 'true'
+        run: python3 -m services.scanner.project_status > /dev/null
       - uses: actions/setup-node@v7
         if: steps.update_result.outputs.needs_release == 'true'
         with:
@@ -133,7 +136,7 @@ jobs:
         run: |
           git config user.name "sage-vista-bot"
           git config user.email "sage-vista-bot@users.noreply.github.com"
-          git add public/resonance-tracker.json public/daily-factor-snapshot.json public/rare-opportunity-radar.json public/industry-radar.json public/market-etf-watch.json public/signal-history.json public/update-status.json public/factor-registry.json public/unified-v2-rankings.json public/opportunity-ledger.json
+          git add public/resonance-tracker.json public/daily-factor-snapshot.json public/rare-opportunity-radar.json public/industry-radar.json public/market-etf-watch.json public/signal-history.json public/update-status.json public/factor-registry.json public/unified-v2-rankings.json public/opportunity-ledger.json docs/CURRENT_STATUS_ZH.md
           git diff --cached --quiet && exit 0
           git commit -m "data: EOD update ${{ steps.update_result.outputs.as_of }}"
           git push origin HEAD:main
