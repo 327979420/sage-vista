@@ -6,6 +6,7 @@ from .expand_tracker_universe import run as expand_universe
 from .factor_snapshot import SNAPSHOT_MODE_VERSION,TRIGGER_FACTOR_ID,run as run_factor_snapshot
 from .factor_registry import REGISTRY_VERSION
 from .factor_detectors import MONITORED_FACTOR_IDS
+from .favorite_pattern_tracker import PATTERN_VERSION
 from .industry_radar import run as run_industry_radar
 from .market_etf_watch import run as run_market_context
 from .rare_opportunity_scanner import run as run_radar
@@ -31,6 +32,11 @@ def validate(authoritative,tracker,radar,snapshot,industry,market,history):
  if market.get("future_data_used") is not False or market.get("audit",{}).get("future_rows_used") is not False:
   raise RuntimeError("Market Context future-data audit failed")
  validate_signal_history(history,authoritative)
+ favorite=tracker.get("favorite_pattern_tracker",{})
+ if favorite.get("as_of")!=authoritative or favorite.get("pattern_version")!=PATTERN_VERSION or favorite.get("production_scoring_changed") is not False:
+  raise RuntimeError("Favorite-pattern Tracker version/date boundary failed")
+ if any(row.get("audit",{}).get("future_data_used") is not False for row in favorite.get("candidates",[]) if row.get("available")):
+  raise RuntimeError("Favorite-pattern Tracker future-data audit failed")
  if snapshot.get("registry_version")!=REGISTRY_VERSION:
   raise RuntimeError("Factor snapshot registry version mismatch")
  if snapshot.get("snapshot_mode_version")!=SNAPSHOT_MODE_VERSION or snapshot.get("trigger_policy",{}).get("factor_id")!=TRIGGER_FACTOR_ID:
@@ -52,7 +58,7 @@ def run(target=1000,as_of=None,trigger_source="manual"):
  if trigger_source not in TRIGGER_SOURCES:raise ValueError(f"Unsupported trigger source: {trigger_source}")
  authoritative=as_of or latest_reference_day()
  current_tracker=read_json(PUBLIC/"resonance-tracker.json");current_radar=read_json(PUBLIC/"rare-opportunity-radar.json");current_snapshot=read_json(PUBLIC/"daily-factor-snapshot.json");current_industry=read_json(PUBLIC/"industry-radar.json");current_market=read_json(PUBLIC/"market-etf-watch.json");current_history=read_json(PUBLIC/"signal-history.json")
- if current_tracker.get("as_of")==authoritative and current_radar.get("as_of")==authoritative and current_snapshot.get("as_of")==authoritative and current_snapshot.get("registry_version")==REGISTRY_VERSION and current_snapshot.get("snapshot_mode_version")==SNAPSHOT_MODE_VERSION and current_radar.get("registry_version")==REGISTRY_VERSION and current_industry.get("as_of")==authoritative and current_market.get("as_of")==authoritative and current_history.get("as_of")==authoritative:
+ if current_tracker.get("as_of")==authoritative and current_tracker.get("favorite_pattern_tracker",{}).get("pattern_version")==PATTERN_VERSION and current_radar.get("as_of")==authoritative and current_snapshot.get("as_of")==authoritative and current_snapshot.get("registry_version")==REGISTRY_VERSION and current_snapshot.get("snapshot_mode_version")==SNAPSHOT_MODE_VERSION and current_radar.get("registry_version")==REGISTRY_VERSION and current_industry.get("as_of")==authoritative and current_market.get("as_of")==authoritative and current_history.get("as_of")==authoritative:
   return {"result":"already_current","as_of":authoritative,"trigger_source":trigger_source}
  pathlib.Path("work").mkdir(exist_ok=True)
  with tempfile.TemporaryDirectory(prefix="daily-update-",dir="work") as folder:
@@ -63,7 +69,7 @@ def run(target=1000,as_of=None,trigger_source="manual"):
   history=build_signal_history(current_history,tracker,radar,snapshot,industry,market,authoritative)
   (folder/"signal-history.json").write_text(json.dumps(history,ensure_ascii=False,indent=2))
   validate(authoritative,tracker,radar,snapshot,industry,market,history);now=datetime.now(timezone.utc).isoformat()
-  status={"status":"up_to_date","market":"US","provider":"EODHD","source_latest_complete_date":authoritative,"tracker_as_of":tracker["as_of"],"factor_snapshot_as_of":snapshot["as_of"],"radar_as_of":radar["as_of"],"industry_radar_as_of":industry["as_of"],"market_context_as_of":market["as_of"],"signal_history_as_of":history["as_of"],"data_dates_match":True,"future_data_used":False,"last_successful_update_at":now,"trigger_source":trigger_source,"checks":{"provider_date_exact":True,"all_production_json_same_date":True,"completed_bars_only":True,"production_outputs_published_atomically":True,"signal_history_append_only":True,"macd_trigger_first":True}}
+  status={"status":"up_to_date","market":"US","provider":"EODHD","source_latest_complete_date":authoritative,"tracker_as_of":tracker["as_of"],"factor_snapshot_as_of":snapshot["as_of"],"radar_as_of":radar["as_of"],"industry_radar_as_of":industry["as_of"],"market_context_as_of":market["as_of"],"signal_history_as_of":history["as_of"],"data_dates_match":True,"future_data_used":False,"last_successful_update_at":now,"trigger_source":trigger_source,"checks":{"provider_date_exact":True,"all_production_json_same_date":True,"completed_bars_only":True,"production_outputs_published_atomically":True,"signal_history_append_only":True,"macd_trigger_first":True,"favorite_pattern_tracker":True}}
   (folder/"update-status.json").write_text(json.dumps(status,ensure_ascii=False,indent=2))
   for name in ("resonance-tracker.json","daily-factor-snapshot.json","rare-opportunity-radar.json","industry-radar.json","market-etf-watch.json","signal-history.json","update-status.json"):os.replace(folder/name,PUBLIC/name)
  return {"result":"updated","as_of":authoritative,"eligible":tracker["universe"]["eligible"],"radar_signals":len(radar["signals"]),"trigger_source":trigger_source}

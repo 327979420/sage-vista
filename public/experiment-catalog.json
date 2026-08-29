@@ -1,15 +1,15 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-08-29T22:15:00+10:00",
+  "generated_at": "2026-08-29T22:20:00+10:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 31,
+  "experiment_count": 32,
   "summary": {
     "completed": 26,
-    "in_progress": 5,
+    "in_progress": 6,
     "candidate": 10,
     "not_validated_or_unstable": 11
   },
@@ -21,6 +21,79 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "favorite-pattern-tracker-v1.0.0-2026-08-29",
+      "created_at": "2026-08-29T22:20:00+10:00",
+      "status": "pre_registered_forward_only",
+      "change": "Add a separate daily state-machine tracker for the user's preferred BABA-like setup without restoring the retired legacy ranking product or changing production scoring.",
+      "coverage": "All active cached US symbols with same-day completed EOD data; true unseen entry-ready events only after production deployment.",
+      "specification": {
+        "pattern_version": "favorite-pattern-v1.0.0",
+        "components": [
+          "prior confirmed 25% advance",
+          "50-70% retracement or EMA200 support",
+          "15-120-session confirmed broad double bottom",
+          "daily MACD bullish cross within -5/+15 sessions of second bottom",
+          "three confirmed descending swing highs",
+          "completed close 1% above projected trendline",
+          "EMA20 above EMA50 after a post-second-bottom cross"
+        ],
+        "long_trend_gate_required": false,
+        "main_multifactor_macd_gate_changed": false,
+        "entry_ready": "first completed-close breakout with MACD and EMA realignment",
+        "entry": "next adjusted open",
+        "primary_horizon_sessions": 20,
+        "sensitivity_horizons": [
+          5,
+          10,
+          40,
+          60,
+          100
+        ],
+        "reference_cases": [
+          "BABA",
+          "PG"
+        ],
+        "industry_market": "separate stratification only"
+      },
+      "success_criteria": "Do not claim effectiveness until at least 100 entry-ready events span six months and three market states and improve 20-session 50bps outcomes versus both partial-pattern controls and the main MACD event gate. Any threshold change requires a new version.",
+      "result": "Pre-registered and implemented as a zero-weight daily observation surface. No historical effectiveness claim is made; BABA and PG are fixed human-audit references, not validation samples.",
+      "known_limitations": [
+        "BABA and PG paths are already seen",
+        "automated trendlines can differ from hand-drawn lines",
+        "current active-cache universe can create survivorship bias",
+        "event outcomes will not be a capital-constrained portfolio"
+      ],
+      "human_summary": {
+        "title_zh": "我最喜欢形态前向Tracker V1",
+        "family": "pattern",
+        "family_zh": "个人形态",
+        "question_zh": "BABA式的上涨后深回调、宽双底、二底MACD、三推突破和EMA重排共振，能否在真正未见前向中提高收益质量？",
+        "result_zh": "已冻结7项机器定义并接入独立每日页面；目前没有历史有效性结论，生产权重和主排行均未改变。",
+        "use_zh": "用来提前查看形成中、等待突破和入场就绪的个人偏好形态；匹配度只表示完成度，不是胜率。",
+        "next_zh": "只从上线后的入场就绪事件开始永久跟踪；至少100例、6个月和3种市场状态后再评价。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-29T22:20:00+10:00",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-08-29T22:20:00+10:00",
+        "time_source": "user_approved_local_preregistration",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "favorite-pattern-tracker-v1.0.0-2026-08-29",
+            "event": "registered",
+            "event_at": "2026-08-29T22:20:00+10:00",
+            "time_source": "user_approved_local_preregistration",
+            "source_ref": "research/preregistrations/favorite-pattern-tracker-v1.md",
+            "result": "Frozen a zero-weight seven-condition BABA-like daily setup state machine, separate BABA/PG reference cases, completed-close entry-ready trigger, next-open forward convention and minimum 100-event/six-month/three-market-state conclusion gate."
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "triple-bottom-neckline-retest-v1.0.0-2026-08-29",
       "created_at": "2026-08-29T22:15:00+10:00",
@@ -2361,6 +2434,7 @@
     "exit-score-v0.1.0-2026-08-28",
     "factor-family-return-combination-v1.0.0-2026-08-29",
     "factor-strategy-lab-v2.0.0-2026-08-29",
+    "favorite-pattern-tracker-v1.0.0-2026-08-29",
     "full-line-backtest-v1.0.2-2026-08-28",
     "macd-rollout-04-double-chip-confirmation-2026-08-25",
     "pullback-context-backtest-v2.0.0-2026-08-28",

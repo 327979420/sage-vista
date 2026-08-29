@@ -24,7 +24,7 @@ type Metric={samples:number;win_rate_pct:number|null;mean_return_pct:number|null
 type StrategyMetric={policy_events:number;resolved_samples:number;observing:number;skipped:number;win_rate_pct:number|null;mean_return_pct:number|null;median_return_pct:number|null;profit_factor:number|null;stop_out_rate_pct:number|null;target_hit_rate_pct:number|null};
 type Ledger={as_of:string;selection_future_data_used:boolean;coverage:{first:string|null;last:string|null;events:number};summary:{unified_v2_events:number;production_forward_events:number;pending_or_observing:number;by_horizon:Record<string,Metric>;support_stop_2r?:StrategyMetric};ranking_policy:string;retention_policy:string;events:LedgerEvent[]};
 const evaluationNames:Record<string,string>={data_unavailable:"等待行情数据",pending:"等待下一交易日",observing:"持续跟踪",matured:"已满100日"};
-const sourceNames:Record<string,string>={unified_v2:"Unified V2",technical_tracker:"技术榜",multi_factor_radar:"旧稀有机会"};
+const sourceNames:Record<string,string>={unified_v2:"Unified V2",technical_tracker:"技术榜",multi_factor_radar:"旧稀有机会",favorite_pattern_tracker:"我最喜欢形态"};
 const periodNames:Record<string,string>={development:"2001—2024 开发",validation_2025:"2025 验证",forward_2026:"2026 前向"};
 const signed=(value:number)=>`${value>0?"+":""}${value.toFixed(1)}%`;
 const precise=(value:number|null)=>value===null?"—":`${value>0?"+":""}${value.toFixed(2)}%`;

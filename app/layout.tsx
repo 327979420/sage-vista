@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "./product-v2.css";
 import "./home-v3.css";
+import "./favorite-pattern.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,7 +16,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const UI_VERSION = "UI v5.9";
+const UI_VERSION = "UI v6.0";
 
 export const metadata: Metadata = {
   title: "Sage Vista — 今日研究总览",
@@ -61,6 +62,7 @@ export default function RootLayout({
         <div className="globalnav">
           <a href="/">今日市场与机会</a>
           <a href="/zh/watch/resonance/rare-opportunities">多因子机会</a>
+          <a href="/zh/watch/resonance/favorite-pattern">我最喜欢形态</a>
           <a href="/zh/watch/industry-radar">行业与大盘</a>
           <a href="/zh/watch/resonance/research">历史与实验</a>
         </div>

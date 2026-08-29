@@ -8,8 +8,8 @@ DATE="2026-08-26"
 
 def bundle(tracker_date=DATE):
  return [
-  {"status":"up_to_date","source_latest_complete_date":DATE,"tracker_as_of":DATE,"factor_snapshot_as_of":DATE,"radar_as_of":DATE,"industry_radar_as_of":DATE,"market_context_as_of":DATE,"signal_history_as_of":DATE,"data_dates_match":True,"future_data_used":False,"checks":{"macd_trigger_first":True}},
-  {"as_of":tracker_date,"details":{"AAPL":{"audit":{"latest_bar":DATE,"future_rows_used":False}}}},
+  {"status":"up_to_date","source_latest_complete_date":DATE,"tracker_as_of":DATE,"factor_snapshot_as_of":DATE,"radar_as_of":DATE,"industry_radar_as_of":DATE,"market_context_as_of":DATE,"signal_history_as_of":DATE,"data_dates_match":True,"future_data_used":False,"checks":{"macd_trigger_first":True,"favorite_pattern_tracker":True}},
+  {"as_of":tracker_date,"favorite_pattern_tracker":{"as_of":tracker_date,"pattern_version":"favorite-pattern-v1.0.0","production_scoring_changed":False,"summary":{"watchlist":8,"entry_ready":2}},"details":{"AAPL":{"audit":{"latest_bar":DATE,"future_rows_used":False}}}},
   {"as_of":DATE,"eligible_count":10,"triggered_count":1,"snapshot_mode_version":"macd-trigger-first-v1","future_data_used":False},
   {"as_of":DATE,"scan":{"future_data_used":False}},
   {"as_of":DATE,"future_data_used":False},
@@ -24,6 +24,7 @@ class LiveDeploymentVerificationTests(unittest.TestCase):
    result=verify("https://example.test",DATE,attempts=2,delay_seconds=0)
   self.assertEqual(result["result"],"verified")
   self.assertEqual(result["factor_symbols"],1)
+  self.assertEqual(result["favorite_pattern_entry_ready"],2)
   sleep.assert_called_once_with(0)
 
  def test_fails_closed_when_bundle_never_converges(self):

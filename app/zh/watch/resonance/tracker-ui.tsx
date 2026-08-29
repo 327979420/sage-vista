@@ -17,6 +17,7 @@ type UpdateStatus={
 export const modules=[
  ["今日研究总览","/"],
  ["多因子机会","/zh/watch/resonance/rare-opportunities"],
+ ["我最喜欢形态","/zh/watch/resonance/favorite-pattern"],
  ["行业与大盘","/zh/watch/industry-radar"],
  ["历史与实验","/zh/watch/resonance/research"],
 ] as const;

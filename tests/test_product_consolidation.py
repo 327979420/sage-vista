@@ -9,12 +9,13 @@ class ProductConsolidationTests(unittest.TestCase):
   root=(ROOT/"app/page.tsx").read_text()
   self.assertNotIn("StockBoard",root);self.assertIn("Overview",root)
 
- def test_navigation_has_only_the_four_current_products(self):
+ def test_navigation_has_the_five_current_products(self):
   nav=(ROOT/"app/zh/watch/resonance/tracker-ui.tsx").read_text()
   self.assertNotRegex(nav,re.compile(r"US Equity Signals|Signal Board|个股研究",re.I))
-  for label in ("今日研究总览","多因子机会","行业与大盘","历史与实验"):self.assertIn(label,nav)
+  for label in ("今日研究总览","多因子机会","我最喜欢形态","行业与大盘","历史与实验"):self.assertIn(label,nav)
   self.assertFalse((ROOT/"app/zh/watch/resonance/macd/page.tsx").exists())
   self.assertNotIn("/zh/watch/resonance/macd",(ROOT/"app/layout.tsx").read_text())
+  self.assertIn("/zh/watch/resonance/favorite-pattern",(ROOT/"app/layout.tsx").read_text())
 
  def test_fast_production_json_fetches_are_no_store(self):
   consumers={

@@ -6,7 +6,7 @@
 
 - 生产网站：<https://sage-vista-parallel.gizmo-allied-0s.workers.dev>
 - 最新完整美股收盘：2026-08-28；生产状态已核验。
-- UI：v5.9。
+- UI：v6.0。
 - 因子库：0.10.0，共 39 项。
 - 当前夜间新批次模型：`unified-v2-macd-trigger-1.3.0`；因子注册表代码版本 `0.10.0`。
 - 数据审计：日期一致 `true`；未来数据 `false`。
@@ -22,7 +22,8 @@
 
 ## 实验
 
-- 总数 31；已完成 26；待运行 / 进行中 5。
+- 总数 32；已完成 26；待运行 / 进行中 6。
+- `favorite-pattern-tracker-v1.0.0-2026-08-29`：我最喜欢形态前向Tracker V1。
 - `triple-bottom-neckline-retest-v1.0.0-2026-08-29`：三底与W底颈线回踩V1。
 - `evidence-calibrated-daily-score-v1.0.0-2026-08-29`：长期证据校准每日评分V1。
 - `score-monotonicity-factor-attribution-v1.0.0-2026-08-29`：评分单调性与因子归因V1。
@@ -52,4 +53,4 @@
 - `public/factor-registry.json`
 - `public/experiment-catalog.json`
 
-来源时间：生产数据更新 2026-08-29T12:11:28.516964+00:00；实验目录生成 2026-08-29T22:15:00+10:00。
+来源时间：生产数据更新 2026-08-29T12:11:28.516964+00:00；实验目录生成 2026-08-29T22:20:00+10:00。

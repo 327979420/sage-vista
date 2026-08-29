@@ -80,4 +80,17 @@ class SignalHistoryTests(unittest.TestCase):
   history=self.make();updated=build(history,*inputs("2026-08-27",symbols=()),"2026-08-27",loader=lambda _:(_ for _ in ()).throw(RuntimeError("delisted")))
   self.assertEqual(len(updated["cases"]),1);self.assertEqual(updated["cases"][0]["forward"]["data_status"],"unavailable")
 
+ def test_only_entry_ready_favorite_pattern_enters_forward_history(self):
+  tracker,radar,factors,industry,market=inputs(symbols=())
+  tracker["favorite_pattern_tracker"]={"candidates":[{"symbol":"BABA","stage":"entry_ready","pattern_version":"favorite-pattern-v1.0.0","match_count":7,"conditions":[],"trade_map":{"target_previous_high":145},"prior_advance":{},"pullback":{},"double_bottom":{},"second_bottom_macd":{},"three_push":{},"ema_realign":{}}]}
+  factors["symbols"].append({"symbol":"BABA","scoring":{"official_score":0,"experimental_observational_score":0,"score_contributions":[]},"factors":[]})
+  result=build({},tracker,radar,factors,industry,market,"2026-08-26",loader=lambda _:rows_through(1))
+  self.assertEqual(len(result["cases"]),1)
+  case=result["cases"][0]
+  self.assertEqual(case["source_systems"],["favorite_pattern_tracker"])
+  self.assertEqual(case["signal_time_snapshot"]["favorite_pattern"]["match_count"],7)
+  tracker["favorite_pattern_tracker"]["candidates"][0]["stage"]="waiting_breakout"
+  second=build({},tracker,radar,factors,industry,market,"2026-08-26",loader=lambda _:rows_through(1))
+  self.assertEqual(second["cases"],[])
+
 if __name__=="__main__":unittest.main()

@@ -12,7 +12,7 @@ class TrackerOutputContractTests(unittest.TestCase):
     def test_primary_navigation_matches_daily_research_flow(self):
         source = (ROOT / "app/zh/watch/resonance/tracker-ui.tsx").read_text()
         navigation = source.split("export const modules=[", 1)[1].split("] as const;", 1)[0]
-        for label in ("今日研究总览", "多因子机会", "行业与大盘", "历史与实验"):
+        for label in ("今日研究总览", "多因子机会", "我最喜欢形态", "行业与大盘", "历史与实验"):
             self.assertIn(f'["{label}"', navigation)
         self.assertNotIn("个股研究", navigation)
         for legacy_route in ("/macd", "/confluence", "/rsi", "/volume"):
@@ -30,6 +30,15 @@ class TrackerOutputContractTests(unittest.TestCase):
         self.assertTrue(audit["details_cover_all_published"])
         self.assertFalse(audit["duplicate_symbols"])
         self.assertTrue(audit["completed_higher_timeframes_only"])
+
+    def test_favorite_pattern_is_independent_and_zero_weight(self):
+        source = (ROOT / "services/scanner/favorite_pattern_tracker.py").read_text()
+        rules = (ROOT / "docs/rules/03_FACTOR_MODEL.md").read_text()
+        page = (ROOT / "app/zh/watch/resonance/favorite-pattern/page.tsx").read_text()
+        self.assertIn("favorite-pattern-v1.0.0", source)
+        self.assertIn("不登记为第40个因子", rules)
+        self.assertIn("生产权重 0", page)
+        self.assertIn("匹配度不是胜率", page)
 
     def test_tracker_and_radar_dates_match(self):
         tracker = json.loads((ROOT / "public/resonance-tracker.json").read_text())

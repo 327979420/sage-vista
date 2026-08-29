@@ -31,7 +31,7 @@ test("server-renders the Sage Vista application", async () => {
   assert.match(html, /<title>Sage Vista — 今日研究总览<\/title>/i);
   assert.match(html, /SAGE VISTA/i);
   assert.match(html, /今日研究总览/i);
-  assert.match(html, /Sage Vista UI v5\.9/);
+  assert.match(html, /Sage Vista UI v6\.0/);
   assert.match(html, /Build (?:local|[0-9a-f]{7})/);
   assert.doesNotMatch(html, /US Equity Signals|SIGNAL BOARD/i);
   assert.doesNotMatch(html, /DISCORD_WEBHOOK_URL|EODHD_API_TOKEN/i);
@@ -54,7 +54,7 @@ test("the retired MACD Tracker product page is gone", async () => {
   assert.equal(response.status, 404);
 });
 
-test("retired product routes redirect to the four maintained modules", async () => {
+test("retired product routes redirect to maintained modules", async () => {
   const routes = [
     ["/technical", "/zh/watch/resonance/rare-opportunities"],
     ["/data-quality", "/zh/watch/resonance/research?tab=experiments"],
@@ -68,6 +68,17 @@ test("retired product routes redirect to the four maintained modules", async () 
     assert.ok([307, 308].includes(response.status), `${path} returned ${response.status}`);
     assert.equal(new URL(response.headers.get("location"), "http://localhost").pathname + new URL(response.headers.get("location"), "http://localhost").search, expected);
   }
+});
+
+test("server-renders the independent favorite-pattern tracker", async () => {
+  const response = await render("/zh/watch/resonance/favorite-pattern");
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.match(html, /我最喜欢形态/);
+  assert.match(html, /先有一段上涨/);
+  assert.match(html, /生产权重 0/);
+  assert.match(html, /BABA 定义形态/);
+  assert.match(html, /匹配度不是胜率/);
 });
 
 test("server-renders the isolated Strategy Backtest research page", async () => {
