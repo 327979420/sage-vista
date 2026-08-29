@@ -22,7 +22,8 @@
 
 ## 实验
 
-- 总数 25；已完成 21；待运行 / 进行中 4。
+- 总数 26；已完成 21；待运行 / 进行中 5。
+- `winner-loser-strategy-optimization-v1.0.0-2026-08-29`：最大赢家／输家驱动策略优化V1。
 - `evidence-calibrated-daily-score-v1.0.0-2026-08-29`：长期证据校准每日评分V1。
 - `score-monotonicity-factor-attribution-v1.0.0-2026-08-29`：评分单调性与因子归因V1。
 - `exit-score-v0.1.0-2026-08-28`：独立离场风险分V0.1。
@@ -51,4 +52,4 @@
 - `public/factor-registry.json`
 - `public/experiment-catalog.json`
 
-来源时间：生产数据更新 2026-08-29T00:58:35.269626+00:00；实验目录生成 2026-08-29T12:47:00+10:00。
+来源时间：生产数据更新 2026-08-29T00:58:35.269626+00:00；实验目录生成 2026-08-29T16:53:09+10:00。

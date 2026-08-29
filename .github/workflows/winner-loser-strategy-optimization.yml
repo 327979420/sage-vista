@@ -1,0 +1,120 @@
+name: Winner Loser Strategy Optimization V1
+
+on:
+  workflow_dispatch:
+    inputs:
+      start_year:
+        description: First year; 2000 is indicator warmup
+        required: true
+        default: "2000"
+      end_year:
+        description: Last year; 2026 is forward observation
+        required: true
+        default: "2026"
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: sage-vista-winner-loser-optimization-v1
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.years.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with: { python-version: "3.13" }
+      - name: Freeze annual work units
+        id: years
+        run: python3 -m research.backtest.reused_event_study_v2 matrix --start-year "${{ inputs.start_year }}" --end-year "${{ inputs.end_year }}" --github-output "$GITHUB_OUTPUT"
+
+  enrich-year:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        period: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with: { python-version: "3.13" }
+      - name: Restore audited historical prices
+        uses: actions/cache@v4
+        with:
+          path: |
+            work/eodhd-cache
+            work/eodhd-active-common.json
+          key: eodhd-history-v1-${{ github.run_id }}
+          restore-keys: eodhd-history-v1-
+      - name: Require the reused price cache
+        run: |
+          cache_files="$(find work/eodhd-cache -type f -name '*.json' | wc -l | tr -d ' ')"
+          if [ "$cache_files" -lt 1000 ]; then
+            echo "Historical price cache is incomplete ($cache_files files)."
+            exit 1
+          fi
+      - name: Restore the audited V2 events for this year
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STUDY_YEAR: ${{ matrix.period.year }}
+        run: |
+          artifact_name="score-timeframe-attribution-v2-$STUDY_YEAR"
+          source_run_id="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=$artifact_name&per_page=100" --jq '.artifacts | map(select(.expired == false)) | sort_by(.created_at) | reverse | .[0].workflow_run.id')"
+          if [ -z "$source_run_id" ] || [ "$source_run_id" = "null" ]; then
+            echo "Missing non-expired source artifact: $artifact_name"
+            exit 1
+          fi
+          mkdir -p "work/winner-loser-source/$STUDY_YEAR"
+          gh run download "$source_run_id" -n "$artifact_name" -D "work/winner-loser-source/$STUDY_YEAR"
+      - name: Add point-in-time continuous features
+        run: python3 -m research.backtest.winner_loser_optimization_v1 year --input-dir "work/winner-loser-source/${{ matrix.period.year }}" --cache-dir work/eodhd-cache --year "${{ matrix.period.year }}" --out-dir "work/winner-loser-v1/${{ matrix.period.year }}"
+      - name: Validate implementation
+        run: python3 -m unittest tests.test_winner_loser_optimization_v1 tests.test_winner_loser_optimization_workflow
+      - name: Save annual feature checkpoint
+        uses: actions/upload-artifact@v4
+        with:
+          name: winner-loser-optimization-v1-${{ matrix.period.year }}
+          path: work/winner-loser-v1/${{ matrix.period.year }}
+          retention-days: 90
+
+  aggregate:
+    needs: enrich-year
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-python@v7
+        with: { python-version: "3.13" }
+      - name: Synchronize main before generating tracked output
+        run: git pull --ff-only origin main
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: winner-loser-optimization-v1-*
+          path: work/winner-loser-v1-results
+      - name: Freeze challenger and evaluate held-out periods
+        run: python3 -m research.backtest.winner_loser_optimization_v1 aggregate --input-dir work/winner-loser-v1-results --out research/backtest/output/winner-loser-strategy-optimization-v1.json --detail-out work/winner-loser-v1-results/top-bottom-100-detail.json.gz
+      - name: Run repository tests
+        run: python3 -m unittest discover -s tests -p 'test_*.py'
+      - name: Save detailed cohorts separately
+        uses: actions/upload-artifact@v4
+        with:
+          name: winner-loser-optimization-v1-complete
+          path: |
+            work/winner-loser-v1-results/top-bottom-100-detail.json.gz
+            research/backtest/output/winner-loser-strategy-optimization-v1.json
+          retention-days: 90
+      - name: Commit compact strategy result
+        run: |
+          git config user.name "sage-vista-bot"
+          git config user.email "sage-vista-bot@users.noreply.github.com"
+          git add research/backtest/output/winner-loser-strategy-optimization-v1.json
+          git diff --cached --quiet && exit 0
+          git commit -m "research: archive winner loser strategy optimization v1"
+          git push origin HEAD:main

@@ -40,6 +40,8 @@ Score / Factor Study V1 复用冻结事件池，按预登记口径检查评分�
 
 Context Comparison V1 固定比较四组：旧技术基准、技术+行业、技术+大盘、技术+行业+大盘。所有组共享同一批技术信号和入场定义，不搜索最佳权重；行业成员关系和上下文必须在信号日已有带日期快照，否则记为 unavailable，不允许用今天的成员表回填历史。统一输出 5/20/60/100 日胜率、均值/中位数收益、相对 SPY、MFE、MAE、最大回撤和年度稳定性。历史回测与 production-forward 分开报告。
 
+Winner / Loser Strategy Optimization V1 复用完整V2事件产物与Actions价格缓存，保存开发期最大100赢家／输家，增加冻结的连续技术特征，并只用2001—2018发现、2019—2024内部校准形成家族去重整数权重。2025与2026只验收、不调参；详细100名单保存在压缩Actions产物，仓库只保存紧凑挑战者与三时期结论。运行入口为 `python3 -m research.backtest.winner_loser_optimization_v1`，工作流为 `winner-loser-strategy-optimization.yml`。
+
 ## Ranking Research V1
 
 Ranking Research V1 重放完整 point-in-time 固定 benchmark 候选池，比较 MACD、Multi-Factor、固定50/50 percentile Hybrid、固定 seed Random 与 No Ranking。候选账本和汇总分别保存在 `output/ranking-research-v1-candidates.jsonl` 与 `output/ranking-research-v1.json`。不调参、不改 production Ranking。
