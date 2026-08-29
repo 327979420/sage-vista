@@ -1,13 +1,13 @@
 """Append-only production signal ledger and strictly elapsed forward outcomes."""
-import copy,hashlib,json,pathlib
+import copy,hashlib,json,pathlib,re
 from datetime import datetime,timezone
 
 from .eodhd_factor_pilot import adjusted_rows
 from .favorite_pattern_tracker import PATTERN_VERSION as FAVORITE_PATTERN_VERSION
 
-SCHEMA_VERSION="1.3.0"
+SCHEMA_VERSION="1.3.1"
 PRODUCT_VERSION="SV-PRODUCT-V1"
-SIGNAL_DEFINITION_VERSION="signal-history-v1.1"
+SIGNAL_DEFINITION_VERSION="signal-history-v1.2"
 RESET_SESSIONS=5
 HORIZONS=(1,5,10,20,60,100)
 
@@ -37,7 +37,19 @@ def _industry_by_symbol(industry):
 def _industry_snapshot_for_symbol(industry,symbol):
  return {"classification":copy.deepcopy(industry.get("classification_by_ticker",{}).get(symbol)),"themes":copy.deepcopy(_industry_by_symbol(industry).get(symbol,[]))}
 
-def _signal_id(symbol,day):return f"SVP1-{symbol}-{day}"
+def _signal_id(symbol,day,favorite_row=None):
+ """Keep ordinary episode IDs stable while namespacing a new favorite-pattern definition.
+
+ A corrected V1 favorite-only case can legitimately coexist with a V2 case for the
+ same symbol and day.  The version suffix preserves both append-only records instead
+ of overwriting history or producing a duplicate ID.
+ """
+ base=f"SVP1-{symbol}-{day}"
+ if not favorite_row:return base
+ version=str(favorite_row.get("pattern_version") or "unknown")
+ short=version.removeprefix("favorite-pattern-").upper()
+ short=re.sub(r"[^A-Z0-9]+","_",short).strip("_") or "UNKNOWN"
+ return f"{base}-FP-{short}"
 
 def _immutable_fingerprint(case):
  frozen={k:case.get(k) for k in ("signal_id","signal_schema_version","observation_mode","product_version","signal_definition_version","symbol","first_seen_date","initial_source_systems","signal_time_snapshot","versions")}
@@ -53,7 +65,7 @@ def _new_case(symbol,day,sources,tracker_row,factor_row,industry,market,favorite
  technical=tracker_row[1]
  factor=copy.deepcopy(factor_row) if factor_row else None
  case={
-  "signal_id":_signal_id(symbol,day),"signal_schema_version":SCHEMA_VERSION,"observation_mode":"production_forward",
+  "signal_id":_signal_id(symbol,day,favorite_row),"signal_schema_version":SCHEMA_VERSION,"observation_mode":"production_forward",
   "product_version":PRODUCT_VERSION,"signal_definition_version":SIGNAL_DEFINITION_VERSION,"symbol":symbol,
   "first_seen_date":day,"last_seen_date":day,"days_active":1,"absent_sessions":0,"lifecycle":"NEW",
   "initial_source_systems":sorted(sources),"source_systems":sorted(sources),"latest_current_status":"current","entry":{"convention":"next_trading_day_adjusted_open","date":None,"price":None},

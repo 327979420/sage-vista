@@ -105,10 +105,19 @@ class SignalHistoryTests(unittest.TestCase):
   old=build({},tracker,radar,factors,industry,market,"2026-08-26",loader=lambda _:rows_through(1))
   snapshot=old["cases"][0]["signal_time_snapshot"]["favorite_pattern"]
   snapshot["pattern_version"]="favorite-pattern-v1.0.0";snapshot["match_count"]=6;snapshot["conditions"]=conditions
+  old["cases"][0]["signal_id"]="SVP1-BABA-2026-08-26"
   old["cases"][0]["immutable_fingerprint"]=_immutable_fingerprint(old["cases"][0])
+  same_day=build(old,tracker,radar,factors,industry,market,"2026-08-26",loader=lambda _:rows_through(1))
+  self.assertEqual(len(same_day["cases"]),2)
+  self.assertEqual(
+   [case["signal_id"] for case in same_day["cases"]],
+   ["SVP1-BABA-2026-08-26","SVP1-BABA-2026-08-26-FP-V2_0_0"],
+  )
+  self.assertTrue(same_day["cases"][0]["audit"]["definition_correction"]["exclude_from_effectiveness"])
+  self.assertEqual(same_day["cases"][1]["signal_time_snapshot"]["favorite_pattern"]["pattern_version"],"favorite-pattern-v2.0.0")
   strict_tracker={"as_of":"2026-08-27","macd_buy_top10":[],"favorite_pattern_tracker":{"candidates":[]}}
   strict_radar={"as_of":"2026-08-27","signals":[]};strict_factors={"as_of":"2026-08-27","registry_version":"1.0","symbols":[]};strict_industry={"as_of":"2026-08-27","membership_version":"themes-v1","classification_snapshot":{"effective_from":"2026-08-27"},"classification_by_ticker":{},"themes":[],"ticker_context":{}}
-  corrected=build(old,strict_tracker,strict_radar,strict_factors,strict_industry,{"as_of":"2026-08-27","market_temperature":{"state":"normal"}},"2026-08-27",loader=lambda _:rows_through(2))
+  corrected=build(same_day,strict_tracker,strict_radar,strict_factors,strict_industry,{"as_of":"2026-08-27","market_temperature":{"state":"normal"}},"2026-08-27",loader=lambda _:rows_through(2))
   case=corrected["cases"][0]
   self.assertEqual(case["latest_current_status"],"definition_corrected")
   self.assertTrue(case["audit"]["definition_correction"]["exclude_from_effectiveness"])
