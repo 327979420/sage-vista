@@ -11,7 +11,7 @@
   "signal_history_as_of": "2026-08-28",
   "data_dates_match": true,
   "future_data_used": false,
-  "last_successful_update_at": "2026-08-29T12:45:01.307515+00:00",
+  "last_successful_update_at": "2026-08-29T13:03:51.799845+00:00",
   "trigger_source": "manual",
   "checks": {
     "provider_date_exact": true,
