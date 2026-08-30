@@ -39,7 +39,7 @@ jobs:
         run: |
           git config user.name "sage-vista-bot"
           git config user.email "sage-vista-bot@users.noreply.github.com"
-          git add public/opportunity-ledger.json
+          git add research/production-history/opportunity-ledger.json public/opportunity-ledger-latest.json
           git diff --cached --quiet && exit 0
           git commit -m "data: refresh permanent opportunity ledger"
           git pull --rebase origin main

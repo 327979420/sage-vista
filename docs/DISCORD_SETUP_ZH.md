@@ -6,7 +6,7 @@
 
 ## 当前范围
 
-- 直接读取网站同源的 `resonance-tracker.json`、`rare-opportunity-radar.json` 和 `update-status.json`，不维护第二套评分。
+- 直接读取网站同源的`unified-v2-latest.json`、`favorite-pattern.json`、`rare-opportunity-radar.json`和`update-status.json`，不维护第二套评分，也不再读取旧整市场Tracker。
 - Early Watch／Confirmed 特殊提醒保持原有详情。每个完整 EOD 日期另发送两份极简榜单：按现有 `macd_rank_score` 排序的 MACD Top 10，以及按现有多因子总分排序的 Multi-Factor Top 10；榜单只显示日期、排名和股票代码，不显示分数、价格或解释。
 - 日期不同步、防前视检查失败时停止；同一日期、股票、证据与分数去重；消息模板集中在一个模块中，后续可以替换。
 - 当前使用 Discord Webhook。Webhook 未配置时只返回“未配置”，不会误发。

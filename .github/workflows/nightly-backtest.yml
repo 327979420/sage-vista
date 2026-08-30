@@ -57,7 +57,7 @@ jobs:
         if: steps.token.outputs.available == 'true' && steps.plan.outputs.enabled == 'true' && steps.plan.outputs.status == 'scheduled'
         run: |
           git pull --rebase origin main
-          python3 -m services.scanner.merge_unified_v2_reports public/unified-v2-rankings.json "work/nightly-${{ steps.plan.outputs.label }}.json" --out public/unified-v2-rankings.json
+          python3 -m services.scanner.merge_unified_v2_reports research/production-history/unified-v2-rankings.json "work/nightly-${{ steps.plan.outputs.label }}.json" --out research/production-history/unified-v2-rankings.json
           python3 -m services.scanner.opportunity_ledger
           python3 -m services.scanner.backtest_progress complete --start "${{ steps.plan.outputs.start }}" --end "${{ steps.plan.outputs.end }}" --completed-at "$(date -u +%FT%TZ)" > backtest-complete.json
           python3 -m services.scanner.project_status > /dev/null
@@ -69,7 +69,7 @@ jobs:
         run: |
           git config user.name "sage-vista-bot"
           git config user.email "sage-vista-bot@users.noreply.github.com"
-          git add public/unified-v2-rankings.json public/opportunity-ledger.json automation/backtest-state.json automation/backtest-progress.json docs/CURRENT_STATUS_ZH.md
+          git add research/production-history/unified-v2-rankings.json research/production-history/opportunity-ledger.json public/opportunity-ledger-latest.json automation/backtest-state.json automation/backtest-progress.json docs/CURRENT_STATUS_ZH.md
           git diff --cached --quiet && exit 0
           git commit -m "data: nightly backtest ${{ steps.plan.outputs.start }} to ${{ steps.plan.outputs.end }}"
           git pull --rebase origin main

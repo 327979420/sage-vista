@@ -68,7 +68,7 @@ jobs:
         run: |
           mkdir -p "work/reused-source/$STUDY_YEAR/parts"
           if [ "$STUDY_YEAR" = "2026" ]; then
-            cp public/unified-v2-rankings.json "work/reused-source/$STUDY_YEAR/parts/unified-v2-2026.json"
+            cp research/production-history/unified-v2-rankings.json "work/reused-source/$STUDY_YEAR/parts/unified-v2-2026.json"
           else
             source_artifact_name="unified-v2-research-$STUDY_YEAR-01-01-$STUDY_YEAR-12-31"
             source_run_id="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=$source_artifact_name&per_page=100" --jq '.artifacts | map(select(.expired == false)) | sort_by(.created_at) | reverse | .[0].workflow_run.id')"

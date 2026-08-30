@@ -32,6 +32,8 @@ RSI、RSI 底背离、成交量放大等不再需要各自占用独立功能页�
 
 ## 文档
 
+- [跨六阶段对话整理的项目总需求](docs/PROJECT_REQUIREMENTS_MASTER_ZH.md)
+- [BABA、ADBE、TTD、AEVA、POWL、PG 人工案例复盘总账](docs/CASE_REVIEW_LEDGER_ZH.md)
 - [新对话三分钟接手入口](docs/NEXT_SESSION_HANDOFF_ZH.md)
 - [机器状态生成的当前进度](docs/CURRENT_STATUS_ZH.md)
 - [代码地图：页面、数据生成器、工作流与最小阅读路径](docs/CODEBASE_MAP_ZH.md)

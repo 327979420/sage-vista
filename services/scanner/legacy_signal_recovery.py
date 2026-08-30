@@ -59,10 +59,10 @@ def git_versions():
   out.append({"commit":commit,"radar":radar})
  return out
 
-def run(history_path="public/signal-history.json",out=None):
+def run(history_path="research/production-history/signal-history.json",out=None):
  path=pathlib.Path(history_path);previous=json.loads(path.read_text());payload=recover(previous,git_versions(),previous["as_of"])
  target=pathlib.Path(out) if out else path;target.write_text(json.dumps(payload,ensure_ascii=False,indent=2));return payload
 
 if __name__=="__main__":
- parser=argparse.ArgumentParser();parser.add_argument("--history",default="public/signal-history.json");parser.add_argument("--out")
+ parser=argparse.ArgumentParser();parser.add_argument("--history",default="research/production-history/signal-history.json");parser.add_argument("--out")
  args=parser.parse_args();result=run(args.history,args.out);print(json.dumps({"cases":len(result["cases"]),"as_of":result["as_of"]},ensure_ascii=False))

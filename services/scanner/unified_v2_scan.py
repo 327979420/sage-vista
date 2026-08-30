@@ -15,7 +15,7 @@ from .industry_radar import run as industry_run
 from .macd_factor_backtest import adjusted_rows
 from .market_etf_watch import FUNDS,build as market_build
 
-OUT="public/unified-v2-rankings.json"
+OUT="research/production-history/unified-v2-rankings.json"
 LATEST_OUT="public/unified-v2-latest.json"
 MODEL_VERSION="unified-v2-macd-trigger-1.4.0"
 RULESET_ID=f"{MODEL_VERSION}+factors-{REGISTRY_VERSION}"

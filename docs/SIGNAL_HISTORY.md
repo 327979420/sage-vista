@@ -9,7 +9,7 @@
 Sage Vista 永久区分三类数据：
 
 1. **Current Opportunities**：今天值得看什么；来自 Technical Tracker 和 Multi-Factor Radar。
-2. **Production Forward Observation**：系统当时真实展示过什么，以及之后实际发生什么；权威数据是 `public/signal-history.json`。
+2. **Production Forward Observation**：系统当时真实展示过什么，以及之后实际发生什么；权威数据是 `research/production-history/signal-history.json`，网页只读取紧凑摘要。
 3. **Historical Backtest / Case Review**：在受控历史实验中重建的信号；只属于 research，不得进入生产 forward aggregates。
 
 Industry Radar 不独立创建股票案例，只冻结为信号发生时的上下文。Signal History 不修改 Technical Tracker ranking、factor score/weight、Industry state 或 Discord threshold。

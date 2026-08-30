@@ -94,7 +94,7 @@ jobs:
       - name: Synchronize latest main before merging generated data
         run: git pull --rebase origin main
       - name: Merge saved months with any newer published day
-        run: python3 -m services.scanner.merge_unified_v2_reports public/unified-v2-rankings.json work/v2-parts/*.json --out public/unified-v2-rankings.json
+        run: python3 -m services.scanner.merge_unified_v2_reports research/production-history/unified-v2-rankings.json work/v2-parts/*.json --out research/production-history/unified-v2-rankings.json
       - name: Preserve every merged signal and calculate elapsed outcomes
         run: python3 -m services.scanner.opportunity_ledger
       - name: Validate merged historical output
@@ -103,7 +103,7 @@ jobs:
         run: |
           git config user.name "sage-vista-bot"
           git config user.email "sage-vista-bot@users.noreply.github.com"
-          git add public/unified-v2-rankings.json public/opportunity-ledger.json
+          git add research/production-history/unified-v2-rankings.json research/production-history/opportunity-ledger.json public/opportunity-ledger-latest.json
           git diff --cached --quiet && exit 0
           git commit -m "data: unified V2 backfill ${{ inputs.start }} to ${{ inputs.end }}"
           git push origin HEAD:main

@@ -14,8 +14,8 @@ from .technical import ema, macd
 LEGACY_PATTERN_VERSION = "favorite-pattern-v1.0.1"
 V2_PATTERN_VERSION = "favorite-pattern-v2.0.0"
 V2_EXPERIMENT_ID = "favorite-pattern-sequence-v2.0.0-2026-08-30"
-PATTERN_VERSION = "favorite-pattern-v3.0.0"
-EXPERIMENT_ID = "favorite-pattern-simple-v3.0.0-2026-08-30"
+PATTERN_VERSION = "favorite-pattern-v3.1.0"
+EXPERIMENT_ID = "favorite-pattern-macd-gated-v3.1.0-2026-08-30"
 GENERALIZATION_VERSION = "favorite-pattern-generalization-v1.0.1"
 REFERENCE_CASES = {
     "ADBE": "时序教学：3月先完成趋势转变，5月真实回调后再由新结构、MACD和EMA转强确认；教顺序，不要求复制外形。",
@@ -853,7 +853,7 @@ def _mechanism_profile(pattern):
     }
 
 
-def build_report(candidates, as_of):
+def build_report(candidates, as_of, gate=None):
     rows = []
     references = []
     for candidate in candidates:
@@ -865,7 +865,6 @@ def build_report(candidates, as_of):
         if candidate["symbol"] in REFERENCE_CASES:
             references.append({**row, "reference_note_zh": REFERENCE_CASES[candidate["symbol"]]})
     rows.sort(key=lambda item: (STAGE_ORDER.get(item["stage"], -1), item["match_count"], item["dollar_volume"], item["symbol"]), reverse=True)
-    selected = rows[:24]
     entry_ready_candidates = [item for item in rows if item.get("stage") == "entry_ready"][:24]
     near_match_rows = [
         item
@@ -875,17 +874,12 @@ def build_report(candidates, as_of):
     clear_near_matches = [item for item in near_match_rows if item["mechanism_profile"]["status"] == "near_match"]
     blocked_near_matches = [item for item in near_match_rows if item["mechanism_profile"]["status"] == "blocked_near_match"]
     near_matches = clear_near_matches[:12] + blocked_near_matches[:6]
-    selected_symbols = {item["symbol"] for item in selected}
-    for reference in references:
-        if reference["symbol"] not in selected_symbols:
-            selected.append(reference)
-            selected_symbols.add(reference["symbol"])
     watch_counts = Counter(item["stage"] for item in rows)
     reference_map = {item["symbol"]: item for item in references}
     for symbol, note in REFERENCE_CASES.items():
         if symbol not in reference_map:
             reference_map[symbol] = {"symbol": symbol, "available": False, "stage": "unavailable", "stage_zh": STAGE_ZH["unavailable"], "reference_note_zh": note, "reason": "当前活跃缓存中没有可用同日数据"}
-    return {
+    report = {
         "pattern_version": PATTERN_VERSION,
         "experiment_id": EXPERIMENT_ID,
         "generalization_version": GENERALIZATION_VERSION,
@@ -905,7 +899,9 @@ def build_report(candidates, as_of):
         },
         "stage_order": ["pullback_forming", "bottom_confirmed", "waiting_breakout", "breakout_incomplete", "risk_blocked", "entry_ready", "launched", "target_reached"],
         "stage_labels": STAGE_ZH,
-        "candidates": selected,
+        # The internal ledger receives every publishable gated row. The public
+        # page removes this field and uses only the bounded lists below.
+        "candidates": rows,
         "entry_ready_candidates": entry_ready_candidates,
         "near_matches": near_matches,
         "reference_cases": [reference_map[symbol] for symbol in REFERENCE_CASES],
@@ -931,3 +927,57 @@ def build_report(candidates, as_of):
         },
         "warning_zh": "4/4只表示回调、双底、三推收盘突破和Golden Pocket／EMA承接齐全；风险闸门仍可否决。颗数用于人工复核，不是胜率或自动买入。",
     }
+    if gate is not None:
+        report["gate"] = gate
+    return report
+
+
+def build_gated_report(snapshot, symbol_rows, as_of):
+    """Deep-check the canonical MACD pool without another market-wide pass."""
+    if snapshot.get("as_of") != as_of or snapshot.get("future_data_used") is not False:
+        raise ValueError("Favorite-pattern gate must be the same safe completed session")
+    source_rows = snapshot.get("symbols", [])
+    source_symbols = [row.get("symbol") for row in source_rows]
+    if None in source_symbols or len(source_symbols) != len(set(source_symbols)):
+        raise ValueError("Favorite-pattern gate contains missing or duplicate symbols")
+    if snapshot.get("triggered_count") != len(source_symbols):
+        raise ValueError("Favorite-pattern gate count does not match its symbols")
+
+    candidates = []
+    for source in source_rows:
+        trigger = source.get("trigger", {})
+        if trigger.get("exact_completed_cross") is not True or trigger.get("date") != as_of:
+            raise ValueError("Favorite-pattern received a non-MACD-gated symbol")
+        rows = sorted(
+            (row for row in symbol_rows.get(source["symbol"], []) if row.get("date") <= as_of),
+            key=lambda row: row["date"],
+        )
+        if not rows or rows[-1].get("date") != as_of:
+            raise ValueError(f"Favorite-pattern rows are missing the gate day for {source['symbol']}")
+        pattern = evaluate(rows)
+        if should_publish(pattern, source["symbol"]):
+            # Charting is presentation evidence, so attach it without running
+            # the full V1/V2/V3 detector a second time.
+            pattern["chart"] = _favorite_chart(rows)
+        candidates.append(
+            {
+                "symbol": source["symbol"],
+                "price": source["price"],
+                "dollar_volume": source["dollar_volume"],
+                "favorite_pattern": pattern,
+            }
+        )
+
+    gate = {
+        "source": "daily-factor-snapshot",
+        "source_snapshot_version": snapshot.get("snapshot_mode_version"),
+        "factor_id": snapshot.get("trigger_policy", {}).get("factor_id"),
+        "event": "exact_completed_daily_bull_cross",
+        "source_candidate_count": len(source_symbols),
+        "deep_checked_count": len(candidates),
+        "deep_checked_symbols": source_symbols,
+        "selection_order": "completed_session_dollar_volume_desc",
+        "full_market_deep_scan": False,
+        "future_data_used": False,
+    }
+    return build_report(candidates, as_of, gate=gate)

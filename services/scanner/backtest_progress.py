@@ -14,7 +14,7 @@ from .unified_v2_scan import MODEL_VERSION, RULESET_ID
 
 
 SCHEMA_VERSION = "nightly-backtest-progress-v1.0.0"
-DEFAULT_REPORT = pathlib.Path("public/unified-v2-rankings.json")
+DEFAULT_REPORT = pathlib.Path("research/production-history/unified-v2-rankings.json")
 DEFAULT_STATE = pathlib.Path("automation/backtest-state.json")
 DEFAULT_MIRROR = pathlib.Path("automation/backtest-progress.json")
 TARGET_START = "2000-01-01"

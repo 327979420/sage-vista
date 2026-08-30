@@ -4,7 +4,6 @@ import React,{useEffect,useState} from "react";
 import {TrackerShell} from "../tracker-ui";
 import {TimeframeProfile,TimeframeProfilePanel} from "./timeframe-profile";
 
-type Snapshot={as_of:string;triggered_count?:number};
 type FactorPeriod={samples:number;win_rate_pct:number;profit_factor:number;expectancy_pct:number;win_delta_pct:number;median_delta_pct:number;trimmed_mean_delta_pct:number;expectancy_delta_pct:number;top_decile_enrichment_ratio:number};
 type BaselinePeriod={samples:number;win_rate_pct:number;median_pct:number;profit_factor:number;expectancy_pct:number;net_50bps_expectancy_pct:number};
 type EffectivenessFactor={factor_id:string;name_zh:string;family:string;family_zh:string;family_color:string;timeframe_zh:string;quadrant:string;production_role_zh:string;official_weight:number;shadow_weight:number;latest_verdict_zh:string;action:string;evidence_note_zh:string;periods_20d:Record<string,FactorPeriod|null>};
@@ -14,7 +13,7 @@ type V2Factor={factor_id:string;name?:string;available:boolean;hit:boolean;activ
 type TechnicalResonance={positive_hit_count:number;family_count:number;families:string[];parent_child_confirmation_bonus:number;timeframe_resonance_bonus:number;risk_hit_count:number;formula:string};
 type SupportPlan={available:boolean;level:number|null;source:string;structural_stop?:number};
 type V2Row={rank:number;symbol:string;price:number;technical_score:number;technical_resonance?:TechnicalResonance;market_adjustment:number;industry_adjustment:number;final_priority:number;score_equation:string;reasons:string[];industry_states:string[];factor_ledger:V2Factor[];timeframe_profile?:TimeframeProfile;execution_policy_version?:string;support_plan?:SupportPlan};
-type V2Day={date:string;market:{state:string;score:number}|null;historical_membership_safe:boolean;candidate_count:number;rare_policy?:string;rare_symbols?:string[];ranking:V2Row[]};
+type V2Day={date:string;market:{state:string;score:number}|null;historical_membership_safe:boolean;triggered_count:number;candidate_count:number;rare_policy?:string;rare_symbols?:string[];ranking:V2Row[]};
 type UnifiedV2={coverage:{start:string;end:string;sessions:number};days:V2Day[]};
 type LedgerEvent={event_id:string;symbol:string;signal_date:string;source_systems:string[];selection:{rank:number|null;technical_score:number|null;final_priority:number|null;score_equation:string|null;reasons:string[]};evaluation:{elapsed_sessions:number;returns:Record<string,number|null>;mfe:number|null;mae:number|null;status:string}};
 type Ledger={selection_future_data_used:boolean;coverage:{events:number};summary:{unified_v2_events:number;production_forward_events:number;support_stop_2r?:{resolved_samples:number}};events:LedgerEvent[]};
@@ -25,33 +24,19 @@ const evaluationNames:Record<string,string>={data_unavailable:"等待行情",pen
 const signed=(value:number)=>`${value>0?"+":""}${value.toFixed(1)}%`;
 
 export default function RareOpportunities(){
- const [snapshot,setSnapshot]=useState<Snapshot|null>(null);
  const [effectiveness,setEffectiveness]=useState<Effectiveness|null>(null);
  const [unified,setUnified]=useState<UnifiedV2|null>(null);
  const [ledger,setLedger]=useState<Ledger|null>(null);
- const [v2Date,setV2Date]=useState("");
  const [v2Symbol,setV2Symbol]=useState("");
  const [ledgerMonth,setLedgerMonth]=useState("2026-08");
- const [historyLoaded,setHistoryLoaded]=useState(false);
- const [historyLoading,setHistoryLoading]=useState(false);
 
  useEffect(()=>{
-  fetch("/daily-factor-snapshot.json",{cache:"no-store"}).then(x=>x.ok?x.json():null).then(setSnapshot).catch(()=>setSnapshot(null));
   fetch("/factor-effectiveness.json",{cache:"no-store"}).then(x=>x.ok?x.json():null).then(setEffectiveness).catch(()=>setEffectiveness(null));
-  fetch("/unified-v2-latest.json",{cache:"no-store"}).then(x=>x.ok?x.json():null).then(x=>{setUnified(x);if(x?.days?.length)setV2Date(x.days.at(-1).date)}).catch(()=>setUnified(null));
+  fetch("/unified-v2-latest.json",{cache:"no-store"}).then(x=>x.ok?x.json():null).then(setUnified).catch(()=>setUnified(null));
   fetch("/opportunity-ledger-latest.json",{cache:"no-store"}).then(x=>x.ok?x.json():null).then(x=>{setLedger(x);if(x?.events?.length)setLedgerMonth(x.events.at(-1).signal_date.slice(0,7))}).catch(()=>setLedger(null));
  },[]);
 
- const loadFullHistory=()=>{
-  if(historyLoaded||historyLoading)return;
-  setHistoryLoading(true);
-  Promise.all([
-   fetch("/unified-v2-rankings.json",{cache:"no-store"}).then(x=>x.ok?x.json():null),
-   fetch("/opportunity-ledger.json",{cache:"no-store"}).then(x=>x.ok?x.json():null),
-  ]).then(([ranking,fullLedger])=>{if(ranking)setUnified(ranking);if(fullLedger)setLedger(fullLedger);setHistoryLoaded(true)}).finally(()=>setHistoryLoading(false));
- };
-
- const day=unified?.days.find(item=>item.date===v2Date)??unified?.days.at(-1);
+ const day=unified?.days.at(-1);
  const selected=day?.ranking.find(item=>item.symbol===v2Symbol)??day?.ranking[0];
  const rareSymbols=new Set(day?.rare_symbols??[]);
  const rare=day?.ranking.filter(item=>rareSymbols.size?rareSymbols.has(item.symbol):true).slice(0,5)??[];
@@ -62,7 +47,7 @@ export default function RareOpportunities(){
  return <TrackerShell active="多因子机会" title="多因子" subtitle="复杂版：技术颗数、家族、重复确认和跨周期共振，一页看清。">
   <div className="rareRadar">{unified&&<>
    <section className="rareFirstView">
-    <article className="tone-blue"><i className="rareMetricIcon">1</i><small>今天更新到</small><b>{day?.date??snapshot?.as_of??"—"}</b><p>{snapshot?.triggered_count??"—"}只MACD刚金叉 → {day?.candidate_count??"—"}只通过门票</p></article>
+    <article className="tone-blue"><i className="rareMetricIcon">1</i><small>今天更新到</small><b>{day?.date??"—"}</b><p>{day?.triggered_count??"—"}只MACD刚金叉 → {day?.candidate_count??"—"}只通过长期趋势</p></article>
     <article className="tone-amber"><i className="rareMetricIcon">2</i><small>现在先看</small><b>{rare.length}只精选</b><p>{rare[0]?`第一名 ${rare[0].symbol} · ${rare[0].technical_resonance?.positive_hit_count??0}颗 · ${rare[0].technical_resonance?.family_count??0}家族`:"今天没有候选"}</p></article>
     <article className="tone-violet"><i className="rareMetricIcon">3</i><small>旧实验事实</small><b>{latest20?`${latest20.win_rate_pct.toFixed(1)}%`:"等待结论"}</b><p>{latest20?`共同门票 ${latest20.samples}个样本 · PF ${latest20.profit_factor.toFixed(2)}`:"旧高分没有验证单调性"}</p></article>
     <article className="tone-rose"><i className="rareMetricIcon">4</i><small>风险执行仍不变</small><b>支撑 −5%</b><p>最大计划亏损10% · 2R止盈 · {ledger?.summary.support_stop_2r?.resolved_samples??0}笔完成</p></article>
@@ -84,10 +69,8 @@ export default function RareOpportunities(){
     <footer>{effectiveness.warning}</footer>
    </section>}
 
-   <div className="archiveLoadBar"><span>默认只加载最新结果；需要旧日期再读Git留档。</span>{!historyLoaded&&<button type="button" onClick={loadFullHistory} disabled={historyLoading}>{historyLoading?"正在加载…":"加载完整历史"}</button>}{historyLoaded&&<b>完整历史已加载</b>}</div>
-
    <section className="researchReplay">
-    <header><div><small>MULTI-FACTOR · COUNTED RESONANCE</small><h2>复杂多因子共振排行榜</h2><p>先看技术命中颗数、家族覆盖、重复确认和跨周期共振；行业与大盘不会盖过技术。</p></div>{unified&&<select aria-label="榜单日期" value={day?.date??""} onChange={event=>{setV2Date(event.target.value);setV2Symbol("")}}>{unified.days.slice().reverse().map(item=><option key={item.date}>{item.date}</option>)}</select>}</header>
+    <header><div><small>MULTI-FACTOR · COUNTED RESONANCE</small><h2>复杂多因子共振排行榜</h2><p>先看技术命中颗数、家族覆盖、重复确认和跨周期共振；行业与大盘不会盖过技术。</p></div><mark>只显示最新 · 历史在Git留档</mark></header>
     {day?<>
      <div className="replayCoverage"><span>当日候选 <b>{day.candidate_count}</b>只</span><span>精选 <b>{rare.length}</b>只</span><span>大盘 {day.market?.state??"不可用"}</span><mark>{day.historical_membership_safe?"行业按当日成员关系":"没有安全行业映射"}</mark></div>
      <div className="replayTable">
@@ -98,7 +81,7 @@ export default function RareOpportunities(){
       <div className="v2Equation"><span>命中 <b>{selected.technical_resonance?.positive_hit_count??0}颗</b></span><i>＋</i><span>家族 <b>{selected.technical_resonance?.family_count??0}</b></span><i>＋</i><span>重复确认 <b>{selected.technical_resonance?.parent_child_confirmation_bonus??0}</b></span><i>＋</i><span>周期 <b>{selected.technical_resonance?.timeframe_resonance_bonus??0}</b></span></div>
       <div className="v2Ledger"><section><h4>命中并计入颗数</h4>{selected.factor_ledger?.filter(item=>item.counted_in_resonance).map(item=><p key={item.factor_id}><i>✓</i><span>{item.name}<small>{item.factor_family} · {item.timeframe} · {item.research_status}{item.confirmation_bonus?" · double confirmation":""}</small></span><b>+1</b></p>)}</section><section><h4>共同门票与风险单列</h4>{selected.factor_ledger?.filter(item=>item.hit&&!item.counted_in_resonance).map(item=><p key={item.factor_id}><i>△</i><span>{item.name}<small>{item.score_rule}</small></span><b>—</b></p>)}</section><section><h4>可检测但未命中</h4>{selected.factor_ledger?.filter(item=>item.available&&!item.hit).map(item=><p key={item.factor_id}><i>○</i><span>{item.name}<small>{item.research_status}</small></span><b>0</b></p>)}</section><section><h4>当前无法客观检测</h4>{selected.factor_ledger?.filter(item=>!item.available).map(item=><p key={item.factor_id}><i>—</i><span>{item.name}<small>规则仍需定义</small></span><b>—</b></p>)}</section></div>
      </article>}
-     <footer>{day.rare_policy}。覆盖 {unified.coverage.start} 至 {unified.coverage.end}，共 {unified.coverage.sessions}个交易日。</footer>
+     <footer>{day.rare_policy}。页面只读取{day.date}紧凑快照；完整历史覆盖 {unified.coverage.start} 至 {unified.coverage.end}，保存在Git后台。</footer>
     </>:<div className="rareEmpty"><b>新共振榜正在生成</b><p>旧1.3榜保留在历史，但不冒充今天的新排名。</p></div>}
    </section>
 

@@ -60,7 +60,7 @@ jobs:
         run: git pull --rebase origin main
       - name: Merge saved weeks and rebuild the permanent ledger
         run: |
-          python3 -m services.scanner.merge_unified_v2_reports public/unified-v2-rankings.json work/v2-parts/*.json --out public/unified-v2-rankings.json
+          python3 -m services.scanner.merge_unified_v2_reports research/production-history/unified-v2-rankings.json work/v2-parts/*.json --out research/production-history/unified-v2-rankings.json
           python3 -m services.scanner.opportunity_ledger
       - name: Validate recovered output
         run: python3 -m unittest discover -s tests -p 'test_*.py'
@@ -68,7 +68,7 @@ jobs:
         run: |
           git config user.name "sage-vista-bot"
           git config user.email "sage-vista-bot@users.noreply.github.com"
-          git add public/unified-v2-rankings.json public/opportunity-ledger.json
+          git add research/production-history/unified-v2-rankings.json research/production-history/opportunity-ledger.json public/opportunity-ledger-latest.json
           git diff --cached --quiet && exit 0
           git commit -m "data: recover Unified V2 backfill ${{ inputs.start }} to ${{ inputs.end }}"
           git push origin HEAD:main

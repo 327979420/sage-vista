@@ -78,7 +78,7 @@ jobs:
           try:state=json.load(open("automation/production-state.json"))
           except FileNotFoundError:pass
           manual_deploy=os.environ.get("MANUAL_DEPLOY")=="true"
-          needs_release=result["result"]=="updated" or state.get("as_of")!=result["as_of"] or manual_deploy or not os.path.exists("public/unified-v2-rankings.json") or not os.path.exists("public/unified-v2-latest.json") or not os.path.exists("public/opportunity-ledger-latest.json")
+          needs_release=result["result"]=="updated" or state.get("as_of")!=result["as_of"] or manual_deploy or not os.path.exists("research/production-history/unified-v2-rankings.json") or not os.path.exists("public/unified-v2-latest.json") or not os.path.exists("public/opportunity-ledger-latest.json")
           with open(os.environ["GITHUB_OUTPUT"],"a") as out:
               out.write(f"result={result['result']}\n")
               out.write(f"as_of={result['as_of']}\n")
@@ -131,7 +131,7 @@ jobs:
         run: |
           git config user.name "sage-vista-bot"
           git config user.email "sage-vista-bot@users.noreply.github.com"
-          git add public/resonance-tracker.json public/favorite-pattern.json public/daily-factor-snapshot.json public/rare-opportunity-radar.json public/industry-radar.json public/market-etf-watch.json public/signal-history.json public/signal-history-summary.json public/update-status.json public/factor-registry.json public/unified-v2-rankings.json public/unified-v2-latest.json public/opportunity-ledger.json public/opportunity-ledger-latest.json docs/CURRENT_STATUS_ZH.md
+          git add public/favorite-pattern.json public/daily-factor-snapshot.json public/rare-opportunity-radar.json public/industry-radar.json public/market-etf-watch.json public/signal-history-summary.json public/update-status.json public/factor-registry.json public/unified-v2-latest.json public/opportunity-ledger-latest.json research/production-history/unified-v2-rankings.json research/production-history/opportunity-ledger.json research/production-history/signal-history.json docs/CURRENT_STATUS_ZH.md
           git diff --cached --quiet && exit 0
           git commit -m "data: EOD update ${{ steps.update_result.outputs.as_of }}"
           git push origin HEAD:main

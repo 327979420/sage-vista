@@ -74,6 +74,30 @@ class RulebookContractTests(unittest.TestCase):
         ):
             self.assertIn(phrase, governance)
 
+    def test_framework_review_requires_explicit_approval_before_code(self):
+        governance = (RULES / "01_GOVERNANCE.md").read_text()
+        workflow = (ROOT / "docs" / "CHANGE_WORKFLOW_ZH.md").read_text()
+        instructions = (ROOT / "AGENTS.md").read_text()
+        for phrase in (
+            "架构评审闸门",
+            "design_review",
+            "明确批准",
+            "不超过20分钟",
+            "退回`design_review`",
+        ):
+            self.assertIn(phrase, governance)
+        for phrase in (
+            "当前链路",
+            "目标接入方式",
+            "影响矩阵",
+            "明确禁止修改",
+            "回退点",
+            "范围蔓延",
+        ):
+            self.assertIn(phrase, workflow)
+        self.assertIn("Framework-first approval gate", instructions)
+        self.assertIn("wait for explicit user approval", instructions)
+
     def test_playbook_and_hard_rules_have_evidence_gates(self):
         playbook = (RULES / "11_VALIDATED_PLAYBOOK.md").read_text()
         hard_rules = (RULES / "12_HARD_RULES.md").read_text()

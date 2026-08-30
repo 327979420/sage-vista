@@ -8,8 +8,9 @@
 2. [`CURRENT_STATUS_ZH.md`](CURRENT_STATUS_ZH.md)：生产日期、回测断点、模型版本、实验数量和下一批次。
 3. [`CODEBASE_MAP_ZH.md`](CODEBASE_MAP_ZH.md)：先定位页面、数据生成器和自动化，不再全仓库搜索。
 4. [`SAGE_VISTA_RULEBOOK_ZH.md`](SAGE_VISTA_RULEBOOK_ZH.md)：项目宗旨、全系统流程和 12 个模块地图。
-5. [`rules/README.md`](rules/README.md)：根据用户本次要求只选一个主模块，再读取它的联动文件。
-6. [`CHANGE_REQUESTS_ZH.md`](CHANGE_REQUESTS_ZH.md)：确认本次需求是否已经记录、批准、实现或暂缓。
+5. [`PROJECT_REQUIREMENTS_MASTER_ZH.md`](PROJECT_REQUIREMENTS_MASTER_ZH.md)：先理解用户最终要做成什么，以及哪些人工经验已经被提炼成长期要求。
+6. [`rules/README.md`](rules/README.md)：根据用户本次要求只选一个主模块，再读取它的联动文件。
+7. [`CHANGE_REQUESTS_ZH.md`](CHANGE_REQUESTS_ZH.md)：确认本次需求是否已经记录、批准、实现或暂缓。
 
 不要先通读所有旧文档，不要把旧聊天里的日期、分数、页面数量、因子数量或运行状态当成当前事实。
 
@@ -36,13 +37,13 @@
 - 生产交付状态：`automation/production-state.json` 与 `public/update-status.json`
 - 当前因子库：`public/factor-registry.json`
 - 实验状态：`research/generated/experiment-catalog.json`、`research/experiments.jsonl`、`research/experiment-events.jsonl`
-- 真实历史机会：`public/opportunity-ledger.json` 与 `public/signal-history.json`
+- 真实历史机会：`research/production-history/opportunity-ledger.json` 与 `research/production-history/signal-history.json`
 - 生产网站：<https://sage-vista-parallel.gizmo-allied-0s.workers.dev>
 
 [`CURRENT_STATUS_ZH.md`](CURRENT_STATUS_ZH.md) 是上述机器源的人话快照；若它与机器源不一致，停止改代码，先修复状态生成器。
 
 ## 可直接复制到新对话的开场词
 
-> 请接手 Sage Vista。先完整读取仓库根目录 `AGENTS.md`、`docs/NEXT_SESSION_HANDOFF_ZH.md`、`docs/CURRENT_STATUS_ZH.md` 和 `docs/CODEBASE_MAP_ZH.md`，再读总手册并用 `docs/rules/README.md` 只定位本次受影响模块。先用人话告诉我生产数据日、回测覆盖与下一断点、当前模型 / 因子版本、待运行实验和本次模块边界。不要依赖旧聊天，不要先改代码；先把我的新要求写入 `docs/CHANGE_REQUESTS_ZH.md`，更新对应规则文字后再实施。保护历史版本、失败实验和现有自动化。每次交付都给我测试、提交、线上验证和生产网站。
+> 请接手 Sage Vista。先完整读取仓库根目录 `AGENTS.md`、`docs/NEXT_SESSION_HANDOFF_ZH.md`、`docs/CURRENT_STATUS_ZH.md`、`docs/CODEBASE_MAP_ZH.md` 和 `docs/PROJECT_REQUIREMENTS_MASTER_ZH.md`，再读总手册并用 `docs/rules/README.md` 只定位本次受影响模块。先用人话告诉我生产数据日、回测覆盖与下一断点、当前模型 / 因子版本、待运行实验和本次模块边界。不要依赖旧聊天，不要先改代码；先把我的新要求写入 `docs/CHANGE_REQUESTS_ZH.md`，更新对应规则文字后再实施。保护历史版本、失败实验和现有自动化。每次交付都给我测试、提交、线上验证和生产网站。
 
 实际上，只要新对话直接打开本仓库并提出具体需求，根目录 `AGENTS.md` 会自动提供这些要求；上面的开场词用于人工复核或对话没有正确加载仓库时。

@@ -266,7 +266,7 @@ Rerun 顺序：冻结原 universe/entry/outcome → 用 versioned canonical stat
 ### Production freshness and deployment verification
 
 - `.github/workflows/eod-freshness-monitor.yml` 是独立于 daily EOD workflow 的迟到检查入口。它重新向 EODHD 查询最新完整交易日，再比较 repository status 中的 source、Tracker、factor snapshot、Radar 四个日期；stale 时上传证据、创建按 provider date 去重的 GitHub issue 并使检查失败。`repository_dispatch: eod-freshness-check` 保留给外部调度器，避免未来只能依赖 GitHub cron。
-- Live verification 每一轮都重新获取 `update-status.json`、`resonance-tracker.json`、`daily-factor-snapshot.json` 和 `rare-opportunity-radar.json`，并重新执行完整跨文件日期与防前视检查。静态资源短暂出现 mixed-date propagation 时继续重试；只有整组文件一致才允许 Discord，重试耗尽则失败关闭。
+- Live verification 每一轮都重新获取`update-status.json`、`favorite-pattern.json`、`daily-factor-snapshot.json`、`rare-opportunity-radar.json`和最新紧凑排行／账本，并重新执行完整跨文件日期、共享MACD门票与防前视检查。静态资源短暂出现mixed-date propagation时继续重试；只有整组文件一致才允许Discord，重试耗尽则失败关闭。
 - Freshness monitor 不负责修改数据，live verifier 不改变 EODHD market-date detection；两者只做独立检测和发布后审计。
 
 ## 12. Industry Radar 的独立下一步

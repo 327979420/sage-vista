@@ -7,14 +7,14 @@
 | 用户问题 | 首要代码 | 必要数据 |
 | --- | --- | --- |
 | 今日总览、推荐理由 | `app/zh/watch/resonance/page.tsx` | `public/unified-v2-latest.json`、`public/signal-history-summary.json`、市场/行业 JSON |
-| 多因子排行榜、个股命中明细 | `app/zh/watch/resonance/rare-opportunities/page.tsx` | 最新快照默认加载；`public/unified-v2-rankings.json`、`public/opportunity-ledger.json` 只在主动复盘时加载 |
+| 多因子排行榜、个股命中明细 | `app/zh/watch/resonance/rare-opportunities/page.tsx` | 只加载`public/unified-v2-latest.json`与`public/opportunity-ledger-latest.json`；完整历史在Git后台 |
 | 我最喜欢形态 | `app/zh/watch/resonance/favorite-pattern/page.tsx` | `public/favorite-pattern.json` |
 | 行业与大盘 | `app/zh/watch/industry-radar/page.tsx` | `public/industry-radar.json`、`public/market-etf-watch.json` |
 | 历史、实验、回测断点（Git 后台） | `research/backtest/`、`services/scanner/experiment_catalog.py` | `research/generated/experiment-catalog.json`、`research/experiments.jsonl`、`automation/backtest-state.json`、`automation/backtest-progress.json` |
 | 因子定义/检测/评分 | `services/scanner/factor_registry.py`、`factor_detectors.py`、`factor_snapshot.py`、`factor_scoring.py` | `public/factor-registry.json` |
 | 外部候选因子、赢家配对和走步实验 | `research/factor-candidates-v2.json`、`research/factor_lab/features.py`、`research/backtest/factor_strategy_lab_v2.py` | `research/backtest/output/factor-strategy-lab-v2.json` |
-| V2 历史回放与排名 | `services/scanner/unified_v2_scan.py` | `public/unified-v2-rankings.json` |
-| 永久追踪池 | `services/scanner/opportunity_ledger.py`、`signal_history.py` | `public/opportunity-ledger.json`、`public/signal-history.json` |
+| V2 历史回放与排名 | `services/scanner/unified_v2_scan.py` | `research/production-history/unified-v2-rankings.json`；网站只读最新派生文件 |
+| 永久追踪池 | `services/scanner/opportunity_ledger.py`、`signal_history.py` | `research/production-history/opportunity-ledger.json`、`signal-history.json`；网站只读紧凑摘要 |
 | 行业分类与 ETF 上下文 | `services/scanner/industry_membership.py`、`industry_radar.py`、`theme_etf_context.py` | `data/industry/`、`data/themes/` |
 | 市场环境 | `services/scanner/market_etf_watch.py` | `public/market-etf-watch.json` |
 | 自动化/上线 | `.github/workflows/`、`services/scanner/daily_tracker_update.py`、`verify_live_deployment.py` | `automation/production-state.json`、`public/update-status.json` |

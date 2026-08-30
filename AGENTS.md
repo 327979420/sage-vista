@@ -1,5 +1,18 @@
 # Sage Vista repository instructions
 
+## Framework-first approval gate
+
+When the user proposes any modification to code, data contracts, scanning, strategy, experiments, workflows, website behavior, or Discord behavior, do not implement it in the intake turn.
+
+1. Read `docs/SYSTEM_ARCHITECTURE_ZH.md` and follow `docs/CHANGE_WORKFLOW_ZH.md`.
+2. Register one bounded CR, identify the current flow and exact architecture insertion point, and produce the fixed design packet: inputs, outputs, owner module, affected and explicitly unaffected modules, migration, tests, examples, rollback and work packages.
+3. Mark the CR `design_review` and wait for explicit user approval of that packet. A new idea, positive reaction, investigation request, or approval of a similar earlier change is not implementation approval.
+4. Only after the user says to implement the reviewed design may the CR become `approved` / `implementing` and business code be edited.
+5. Keep each implementation work package reviewable and estimated at no more than 20 minutes. If scope expands, stop, return the CR to design review, and ask for renewed approval.
+6. Do not bundle unrelated requests or make opportunistic cleanup, scoring, UI, dependency or workflow changes outside the approved packet.
+
+Read-only diagnosis and governance/design documentation are allowed before approval. An emergency production fix still requires a short architecture/impact card and explicit authorization; a protective production pause must be reported and recorded.
+
 ## Start every new conversation here
 
 Before proposing work or changing files:

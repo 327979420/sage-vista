@@ -107,7 +107,7 @@ Daily EOD workflow 之外另有独立 freshness monitor：在正常重试窗口�
 ## 6.1 Current、Forward 与 Backtest
 
 - Current Opportunities 回答今天看什么，不负责保存历史。
-- `public/signal-history.json` 是真实生产提醒的 append-only ledger；离榜不删除，信号时 Tracker、27-factor、Industry 和版本证据不可变。
+- `research/production-history/signal-history.json` 是真实生产提醒的 append-only ledger；离榜不删除，信号时因子、行业和版本证据不可变；网站只发布紧凑摘要。
 - Historical Backtest / case review 仍在 research branch，不能与 production forward 样本合并。
 - 生产账本按下一交易日复权开盘进入，只随真实到来的交易 session 填充 1/5/10/20/60/100D、MFE、MAE。完整规则见 `docs/SIGNAL_HISTORY.md`。
 

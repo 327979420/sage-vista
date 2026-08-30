@@ -16,7 +16,7 @@ from .support_risk import EXECUTION_POLICY_VERSION,signal_support_plan
 from .technical import macd
 
 DEFAULT_OUT="public/daily-factor-snapshot.json"
-SNAPSHOT_MODE_VERSION="macd-trigger-first-v1"
+SNAPSHOT_MODE_VERSION="macd-trigger-first-v1.1"
 TRIGGER_FACTOR_ID="macd.daily_bull_cross"
 
 def exact_daily_macd_bull_cross(rows):
@@ -26,20 +26,27 @@ def exact_daily_macd_bull_cross(rows):
  return line[-1]>signal[-1] and line[-2]<=signal[-2]
 
 def build_snapshot(symbol_rows,as_of):
- symbols=[];universe_eligible_count=0
+ eligible=[]
  for symbol,rows in sorted(symbol_rows.items()):
   rows=sorted((row for row in rows if row.get("date")<=as_of),key=lambda row:row["date"])
   if not rows or rows[-1]["date"]!=as_of or len(rows)<420:continue
   current=rows[-1]
-  if current["close"]<5 or current["close"]*current["volume"]<10_000_000:continue
-  universe_eligible_count+=1
+  dollar_volume=current["close"]*current["volume"]
+  if current["close"]<5 or dollar_volume<10_000_000:continue
+  eligible.append((dollar_volume,symbol,rows,current))
+ # Liquidity-first ordering is deterministic and uses only the completed bar.
+ # Market cap is deliberately absent until a reliable point-in-time source exists.
+ eligible.sort(key=lambda item:(-item[0],item[1]))
+ symbols=[]
+ for universe_liquidity_rank,(dollar_volume,symbol,rows,current) in enumerate(eligible,1):
   # Evaluate the expensive factor library only after today's exact MACD cross.
   # Recent-cross memory remains evidence and never becomes a repeated trigger.
   if not exact_daily_macd_bull_cross(rows):continue
   states=evaluate_all_factors(rows,as_of)
   serialized=[state.dict() for state in states]
-  symbols.append({"symbol":symbol,"price":round(current["close"],4),"dollar_volume":round(current["close"]*current["volume"]),"trigger":{"factor_id":TRIGGER_FACTOR_ID,"date":as_of,"exact_completed_cross":True},"execution_policy_version":EXECUTION_POLICY_VERSION,"support_plan":signal_support_plan(rows),"scoring":experimental_score(serialized),"factors":serialized})
- return {"as_of":as_of,"registry_version":REGISTRY_VERSION,"mode":"macd_trigger_first","snapshot_mode_version":SNAPSHOT_MODE_VERSION,"trigger_policy":{"factor_id":TRIGGER_FACTOR_ID,"event":"exact_completed_daily_bull_cross","remaining_factors_evaluated_after_trigger":True,"remaining_factor_count":len(MONITORED_FACTOR_IDS)-1,"recent_state_does_not_retrigger":True},"execution_policy":{"version":EXECUTION_POLICY_VERSION,"entry":"next_adjusted_open","stop":"highest of signal-time support minus 5% and entry minus 10%","target":"2R","max_hold_sessions":40,"same_bar":"stop_first"},"future_data_used":False,"factor_ids":list(MONITORED_FACTOR_IDS),"universe_eligible_count":universe_eligible_count,"eligible_count":universe_eligible_count,"triggered_count":len(symbols),"symbols":symbols}
+  symbols.append({"symbol":symbol,"price":round(current["close"],4),"dollar_volume":round(dollar_volume),"universe_liquidity_rank":universe_liquidity_rank,"trigger":{"factor_id":TRIGGER_FACTOR_ID,"date":as_of,"exact_completed_cross":True},"execution_policy_version":EXECUTION_POLICY_VERSION,"support_plan":signal_support_plan(rows),"scoring":experimental_score(serialized),"factors":serialized})
+ for candidate_liquidity_rank,row in enumerate(symbols,1):row["candidate_liquidity_rank"]=candidate_liquidity_rank
+ return {"as_of":as_of,"registry_version":REGISTRY_VERSION,"mode":"macd_trigger_first","snapshot_mode_version":SNAPSHOT_MODE_VERSION,"trigger_policy":{"factor_id":TRIGGER_FACTOR_ID,"event":"exact_completed_daily_bull_cross","remaining_factors_evaluated_after_trigger":True,"remaining_factor_count":len(MONITORED_FACTOR_IDS)-1,"recent_state_does_not_retrigger":True,"canonical_candidate_pool":True},"liquidity_policy":{"order":"completed_session_dollar_volume_desc","minimum_dollar_volume":10_000_000,"minimum_price":5,"point_in_time_market_cap_available":False},"execution_policy":{"version":EXECUTION_POLICY_VERSION,"entry":"next_adjusted_open","stop":"highest of signal-time support minus 5% and entry minus 10%","target":"2R","max_hold_sessions":40,"same_bar":"stop_first"},"future_data_used":False,"factor_ids":list(MONITORED_FACTOR_IDS),"universe_eligible_count":len(eligible),"eligible_count":len(eligible),"triggered_count":len(symbols),"symbols":symbols}
 
 def load_symbol_rows(as_of,cache_dir="work/eodhd-cache",active_path="work/eodhd-active-common.json"):
  bulk=bulk_day(as_of,strict=True);bulk_map={row.get("code"):row for row in bulk}
@@ -55,8 +62,9 @@ def load_symbol_rows(as_of,cache_dir="work/eodhd-cache",active_path="work/eodhd-
   result[symbol]=adjusted_rows(raw)
  return result
 
-def run(out=DEFAULT_OUT,as_of=None):
- authoritative=as_of or latest_reference_day();report=build_snapshot(load_symbol_rows(authoritative),authoritative)
+def run(out=DEFAULT_OUT,as_of=None,symbol_rows=None):
+ """Build the one daily gate, optionally reusing already-loaded price rows."""
+ authoritative=as_of or latest_reference_day();report=build_snapshot(symbol_rows if symbol_rows is not None else load_symbol_rows(authoritative),authoritative)
  # The full-universe snapshot must remain below Cloudflare Workers' 25 MiB
  # per-asset limit. Whitespace is not part of the contract; stable key ordering
  # preserves byte determinism while compact separators avoid deployment bloat.

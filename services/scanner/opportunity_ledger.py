@@ -18,9 +18,9 @@ from .support_risk import simulate_execution
 
 SCHEMA_VERSION = "opportunity-ledger-v1.1.1"
 HORIZONS = (1, 5, 10, 20, 40, 60, 100)
-DEFAULT_UNIFIED = pathlib.Path("public/unified-v2-rankings.json")
-DEFAULT_FORWARD = pathlib.Path("public/signal-history.json")
-DEFAULT_OUT = pathlib.Path("public/opportunity-ledger.json")
+DEFAULT_UNIFIED = pathlib.Path("research/production-history/unified-v2-rankings.json")
+DEFAULT_FORWARD = pathlib.Path("research/production-history/signal-history.json")
+DEFAULT_OUT = pathlib.Path("research/production-history/opportunity-ledger.json")
 DEFAULT_LATEST_OUT = pathlib.Path("public/opportunity-ledger-latest.json")
 DEFAULT_CACHE = pathlib.Path("work/eodhd-cache")
 
@@ -299,7 +299,7 @@ def validate(payload):
 
 
 def write_latest(payload, out=DEFAULT_LATEST_OUT, event_limit=200):
-    """Publish recent rows and all aggregate metrics; the full append-only ledger remains available on demand."""
+    """Publish recent rows and aggregates; full history remains Git-only."""
     compact = {**payload, "events": payload.get("events", [])[-event_limit:]}
     compact["view"] = {"scope": "latest", "event_limit": event_limit, "full_event_count": len(payload.get("events", []))}
     pathlib.Path(out).write_text(json.dumps(compact, ensure_ascii=False, separators=(",", ":")) + "\n")

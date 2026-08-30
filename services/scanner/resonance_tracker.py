@@ -209,7 +209,7 @@ def early_watch_evidence(item):
  evidence.insert(0,f"日线负柱连续收缩{daily['energy_streak']}根")
  evidence.insert(1,f"MACD/Signal差距单日缩小{round(shrink_ratio*100)}%")
  return evidence
-def run(out="public/resonance-tracker.json",as_of=None):
+def run(out="research/backtest/output/legacy-foundation/resonance-tracker-latest-research.json",as_of=None):
  # The live tracker is intentionally broader than the backtest panel: every
  # locally cached active symbol may be scanned when it also trades today.
  cached_symbols={x.stem for x in pathlib.Path("work/eodhd-cache").glob("*.json")}
