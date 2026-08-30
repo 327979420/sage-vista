@@ -1,15 +1,15 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-08-30T04:55:00+10:00",
+  "generated_at": "2026-08-30T14:41:18+10:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 35,
+  "experiment_count": 37,
   "summary": {
     "completed": 26,
-    "in_progress": 9,
+    "in_progress": 11,
     "candidate": 10,
     "not_validated_or_unstable": 11
   },
@@ -21,6 +21,171 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "multi-factor-count-resonance-v1.0.0-2026-08-30",
+      "created_at": "2026-08-30T12:00:00+10:00",
+      "status": "pre_registered_forward_comparison",
+      "change": "Replace the user-facing technical priority with an auditable count of all point-in-time positive factor hits, family breadth, parent-child confirmation and cross-timeframe resonance while retaining old evidence status and keeping market/industry subordinate.",
+      "coverage": "New daily MACD-gated candidates after model 1.4.0 deployment; historical 2001-2026 may be reused only as retrospective recheck and never relabelled unseen.",
+      "specification": {
+        "baseline_model": "unified-v2-macd-trigger-1.3.0",
+        "challenger_model": "unified-v2-macd-trigger-1.4.0",
+        "event_gate": "exact completed daily MACD bullish cross plus long-trend qualification",
+        "formula": "positive non-gate non-risk hit count + evidence-family breadth + parent-child confirmation bonus + cross-timeframe resonance bonus",
+        "timeframe_bonus": {
+          "daily_weekly": 2,
+          "weekly_monthly": 2,
+          "daily_monthly": 1,
+          "all_three_extra": 2
+        },
+        "ranking_order": [
+          "technical_resonance_score",
+          "timeframe_bonus",
+          "family_count",
+          "positive_hit_count",
+          "market_and_industry_context",
+          "symbol"
+        ],
+        "ablations": [
+          "raw count",
+          "count plus family breadth",
+          "count plus family and confirmation",
+          "full resonance"
+        ],
+        "industry_market": "separate; technical ties only",
+        "production_execution_changed": false
+      },
+      "success_criteria": "Treat the score only as manual-review priority until unseen grouped monotonicity and weekly 5/20/40/60-session outcomes show the full model improving on both raw count and baseline 1.3.0 after costs, with human-audited winners, losers and boundary cases.",
+      "result": "Pre-registered before implementation. Prior zero-weight and failed factors retain their research labels but no longer disappear from the observed-evidence count when they objectively hit.",
+      "known_limitations": [
+        "the heuristic is user-prioritized rather than validated alpha",
+        "all historical periods through 2026-08-28 have been seen",
+        "correlated factors can inflate raw counts even when family breadth is shown separately",
+        "active-cache history remains vulnerable to survivorship bias"
+      ],
+      "human_summary": {
+        "title_zh": "全因子计数与周期共振排行V1",
+        "family": "scoring",
+        "family_zh": "评分与因子",
+        "question_zh": "把所有真实技术命中按颗数、家族、重复确认和跨周期共振排序，是否比旧B级影子榜更适合人工找机会？",
+        "result_zh": "已冻结1.4.0挑战者公式和与1.3.0、纯颗数的前向对照，正在实施；现在没有收益有效性结论。",
+        "use_zh": "新榜用于决定先人工看谁；0权重因子可算客观证据，但不能因此称为验证有效。行业和大盘只处理技术同分。",
+        "next_zh": "上线后每日双轨保存，按周比较5/20/40/60日结果并提供具体赢家、输家和边界案例。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-30T12:00:00+10:00",
+        "started_at": "2026-08-30T14:00:00+10:00",
+        "completed_at": null,
+        "latest_event": "checkpoint",
+        "latest_event_at": "2026-08-30T14:41:18+10:00",
+        "time_source": "local_test_suite",
+        "event_count": 3,
+        "events": [
+          {
+            "experiment_id": "multi-factor-count-resonance-v1.0.0-2026-08-30",
+            "event": "registered",
+            "event_at": "2026-08-30T12:00:00+10:00",
+            "time_source": "user_approved_local_preregistration",
+            "source_ref": "research/preregistrations/multi-factor-count-resonance-v1.md",
+            "result": "Frozen an all-hit count, family breadth, parent-child confirmation and cross-timeframe resonance ranking with market and industry limited to technical ties. The heuristic is manual-review priority, not validated win probability; baseline 1.3.0 stays reproducible."
+          },
+          {
+            "experiment_id": "multi-factor-count-resonance-v1.0.0-2026-08-30",
+            "event": "started",
+            "event_at": "2026-08-30T14:00:00+10:00",
+            "time_source": "local_implementation",
+            "source_ref": "services/scanner/unified_v2_scan.py",
+            "result": "Implemented model 1.4.0 with full positive-hit count, family breadth, dependency confirmation, cross-timeframe resonance and technical-first ordering. Historical same-day rankings remain immutable while the latest calibration view can use the new model."
+          },
+          {
+            "experiment_id": "multi-factor-count-resonance-v1.0.0-2026-08-30",
+            "event": "checkpoint",
+            "event_at": "2026-08-30T14:41:18+10:00",
+            "time_source": "local_test_suite",
+            "source_ref": "tests/test_unified_v2_scan.py",
+            "result": "The complete 318-test Python suite, typecheck, lint, production build and 11 rendered/automation tests passed before cloud calibration. Latest-only refresh and immutable same-day history are both covered by contract tests."
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "favorite-pattern-simple-v3.0.0-2026-08-30",
+      "created_at": "2026-08-30T12:00:00+10:00",
+      "status": "pre_registered_forward_only",
+      "change": "Make the primary favorite-pattern tracker a simple four-condition shape detector while preserving V1 and V2 outputs as immutable read-only comparisons.",
+      "coverage": "All active cached US symbols with same-day completed adjusted daily bars; unseen V3 entry-ready events only after deployment.",
+      "specification": {
+        "pattern_version": "favorite-pattern-v3.0.0",
+        "conditions": [
+          "at least 5 percent objective pullback into the two-bottom structure",
+          "confirmed broad double bottom",
+          "completed-close break above a confirmed three-push descending trendline",
+          "50-70 percent retracement or a bottom within 6 percent of EMA20, EMA50 or EMA200"
+        ],
+        "entry_ready": "four of four, structure valid, breakout no more than five sessions old and risk gate clear",
+        "risk_gate": "separate and never counted as a positive condition",
+        "legacy_versions_preserved": [
+          "favorite-pattern-v1.0.1",
+          "favorite-pattern-v2.0.0"
+        ],
+        "production_multifactor_changed": false,
+        "entry": "next adjusted open"
+      },
+      "success_criteria": "First verify point-in-time detection and append-only versioned signals. Do not claim return effectiveness until at least 100 unseen V3 first events span six months and three market states and beat 3/4, double-bottom-only, three-push-only and MACD-gate controls at the 20-session 50bps objective, with concrete case audits.",
+      "result": "Pre-registered before implementation. Named ADBE, BABA, TTD and AEVA cases are acceptance aids only and excluded from effectiveness.",
+      "known_limitations": [
+        "named examples and all prior history have been seen",
+        "automatic pivots and trendlines can differ from hand drawings",
+        "EMA proximity is descriptive support rather than proven alpha",
+        "active-cache universe can create survivorship bias"
+      ],
+      "human_summary": {
+        "title_zh": "我最喜欢形态四项简化V3",
+        "family": "pattern",
+        "family_zh": "个人形态",
+        "question_zh": "只看回调、双底、三推突破和Golden Pocket／EMA承接，能否更直接地找到用户喜欢的形态？",
+        "result_zh": "已冻结四项与独立风险闸门，正在实施；V1/V2旧记录保持不变，尚无收益结论。",
+        "use_zh": "4/4只表示形态完整并进入人工复核；风险未清除仍否决，不能当作自动买入或胜率。",
+        "next_zh": "先验证每日点时检测和版本化账本；100个新事件、6个月和3种市场状态后再评估收益。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-08-30T12:00:00+10:00",
+        "started_at": "2026-08-30T14:00:00+10:00",
+        "completed_at": null,
+        "latest_event": "checkpoint",
+        "latest_event_at": "2026-08-30T14:41:18+10:00",
+        "time_source": "local_test_suite",
+        "event_count": 3,
+        "events": [
+          {
+            "experiment_id": "favorite-pattern-simple-v3.0.0-2026-08-30",
+            "event": "registered",
+            "event_at": "2026-08-30T12:00:00+10:00",
+            "time_source": "user_approved_local_preregistration",
+            "source_ref": "research/preregistrations/favorite-pattern-simple-v3.md",
+            "result": "Frozen a four-condition pullback, broad double-bottom, three-push completed-close breakout and Golden-Pocket-or-EMA support tracker. V1/V2 records remain immutable and V3 uses a separate forward signal namespace."
+          },
+          {
+            "experiment_id": "favorite-pattern-simple-v3.0.0-2026-08-30",
+            "event": "started",
+            "event_at": "2026-08-30T14:00:00+10:00",
+            "time_source": "local_implementation",
+            "source_ref": "services/scanner/favorite_pattern_tracker.py",
+            "result": "Implemented the four-condition V3 detector, independent risk gate, V1/V2 read-only snapshots and V3 signal namespace. A same-day version migration is excluded from forward-signal creation until the next completed session."
+          },
+          {
+            "experiment_id": "favorite-pattern-simple-v3.0.0-2026-08-30",
+            "event": "checkpoint",
+            "event_at": "2026-08-30T14:41:18+10:00",
+            "time_source": "local_test_suite",
+            "source_ref": "tests/test_favorite_pattern_tracker.py",
+            "result": "ADBE positive acceptance and TTD/AEVA risk boundaries pass under V3 while legacy V2 remains available. The complete 318-test Python suite and full website tests passed before cloud calibration."
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "favorite-pattern-generalization-v1.0.0-2026-08-30",
       "created_at": "2026-08-30T04:30:00+10:00",
@@ -2714,9 +2879,11 @@
     "factor-strategy-lab-v2.0.0-2026-08-29",
     "favorite-pattern-generalization-v1.0.0-2026-08-30",
     "favorite-pattern-sequence-v2.0.0-2026-08-30",
+    "favorite-pattern-simple-v3.0.0-2026-08-30",
     "favorite-pattern-tracker-v1.0.0-2026-08-29",
     "full-line-backtest-v1.0.2-2026-08-28",
     "macd-rollout-04-double-chip-confirmation-2026-08-25",
+    "multi-factor-count-resonance-v1.0.0-2026-08-30",
     "pullback-context-backtest-v2.0.0-2026-08-28",
     "research-v0.1.0-2026-08-17",
     "research-v0.2.0-2026-08-17",

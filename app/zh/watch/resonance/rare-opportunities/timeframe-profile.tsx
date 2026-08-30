@@ -1,4 +1,4 @@
-export type TimeframeProfile={version:string;status:"experimental_descriptive_only";label:string;dominant_timeframe:"daily"|"weekly"|"monthly"|null;is_resonance:boolean;points:Record<"daily"|"weekly"|"monthly",number>;shares:Record<"daily"|"weekly"|"monthly",number>;independent_groups:Record<"daily"|"weekly"|"monthly",number>;anchor_present:Record<"daily"|"weekly"|"monthly",boolean>;evidence:Record<"daily"|"weekly"|"monthly",string[]>};
+export type TimeframeProfile={version:string;status:"count_based_research_priority"|"experimental_descriptive_only";label:string;dominant_timeframe:"daily"|"weekly"|"monthly"|null;is_resonance:boolean;points:Record<"daily"|"weekly"|"monthly",number>;shares:Record<"daily"|"weekly"|"monthly",number>;independent_groups:Record<"daily"|"weekly"|"monthly",number>;anchor_present:Record<"daily"|"weekly"|"monthly",boolean>;evidence:Record<"daily"|"weekly"|"monthly",string[]>;resonance_bonus?:number;resonances?:{family:string;timeframes:string[];bonus:number}[]};
 
 const frames=[
  ["daily","日线"],
@@ -8,8 +8,8 @@ const frames=[
 
 export function TimeframeProfilePanel({profile}:{profile:TimeframeProfile}){
  return <section className="timeframePanel">
-  <header><div><small>TIMEFRAME PROFILE · EXPERIMENTAL</small><h2>{profile.label}机会</h2><p>根据去重后的日、周、月技术证据判断机会主要来自哪个周期。</p></div><mark>不改变当前 V2 排名</mark></header>
-  <div>{frames.map(([key,label])=><article key={key} className={profile.dominant_timeframe===key?"isDominant":""}><span>{label}</span><b>{profile.points[key]}<small>实验贡献</small></b><p>{profile.independent_groups[key]} 组独立证据 · {(profile.shares[key]*100).toFixed(0)}%</p></article>)}</div>
-  <footer>当前标签只解释“这是哪一个周期的机会”，不是建议持仓天数。日线、周线、月线的持仓窗口将在 V3 回测完成后分别确定。</footer>
+  <header><div><small>TIMEFRAME RESONANCE · COUNTED</small><h2>{profile.label}机会</h2><p>把实际命中的日、周、月技术证据拆开，跨周期同家族会获得共振优先级。</p></div><mark>周期共振 +{profile.resonance_bonus??0}</mark></header>
+  <div>{frames.map(([key,label])=><article key={key} className={profile.dominant_timeframe===key?"isDominant":""}><span>{label}</span><b>{profile.points[key]}<small>命中颗数</small></b><p>{profile.independent_groups[key]} 个家族 · {(profile.shares[key]*100).toFixed(0)}%</p></article>)}</div>
+  <footer>这些颗数直接参与“先看谁”的排序，但仍不是建议持仓天数或已验证胜率。</footer>
  </section>
 }

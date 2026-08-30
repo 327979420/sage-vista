@@ -12,8 +12,10 @@ from .technical import ema, macd
 
 
 LEGACY_PATTERN_VERSION = "favorite-pattern-v1.0.1"
-PATTERN_VERSION = "favorite-pattern-v2.0.0"
-EXPERIMENT_ID = "favorite-pattern-sequence-v2.0.0-2026-08-30"
+V2_PATTERN_VERSION = "favorite-pattern-v2.0.0"
+V2_EXPERIMENT_ID = "favorite-pattern-sequence-v2.0.0-2026-08-30"
+PATTERN_VERSION = "favorite-pattern-v3.0.0"
+EXPERIMENT_ID = "favorite-pattern-simple-v3.0.0-2026-08-30"
 GENERALIZATION_VERSION = "favorite-pattern-generalization-v1.0.1"
 REFERENCE_CASES = {
     "ADBE": "时序教学：3月先完成趋势转变，5月真实回调后再由新结构、MACD和EMA转强确认；教顺序，不要求复制外形。",
@@ -645,8 +647,8 @@ def _evaluate_sequence_v2(rows, legacy):
     if entry_price and invalidation and target and entry_price > invalidation and target > entry_price:
         reward_risk = round((target - entry_price) / (entry_price - invalidation), 2)
     return {
-        "pattern_version": PATTERN_VERSION,
-        "experiment_id": EXPERIMENT_ID,
+        "pattern_version": V2_PATTERN_VERSION,
+        "experiment_id": V2_EXPERIMENT_ID,
         "stage": stage,
         "stage_zh": STAGE_ZH[stage],
         "match_count": match_count,
@@ -702,22 +704,126 @@ def _evaluate_sequence_v2(rows, legacy):
     }
 
 
-def evaluate(rows, include_chart=False):
-    """Evaluate V2 without rewriting the frozen V1 interpretation."""
-    if len(rows) < 120:
-        return {"available": False, "stage": "unavailable", "stage_zh": STAGE_ZH["unavailable"], "match_count": 0, "total_conditions": 7, "reason": "V2至少需要120个完整日K", "pattern_version": PATTERN_VERSION, "experiment_id": EXPERIMENT_ID}
-    legacy = _evaluate_v1(rows, include_chart=include_chart)
-    sequence = _evaluate_sequence_v2(rows, legacy)
-    result = {**legacy, **sequence, "available": True}
-    result["pullback"] = legacy.get("pullback")
-    result["audit"] = {
-        **legacy.get("audit", {}),
-        "sequence_version": PATTERN_VERSION,
-        "legacy_v1_preserved": True,
-        "known_calibration_cases_excluded_from_effectiveness": ["ADBE", "TTD", "AEVA"],
+def _evaluate_simple_v3(rows, legacy_v1, legacy_v2):
+    """Evaluate the four-condition shape the user wants to review first."""
+    end = len(rows) - 1
+    closes = [row["close"] for row in rows]
+    atr_values = _atr(rows)
+    low_pivots = _confirmed_pivots(rows, "low", "low")
+    high_pivots = _confirmed_pivots(rows, "high", "high")
+    bottom = _find_double_bottom(rows, atr_values, low_pivots)
+    impulse = _find_impulse(rows, low_pivots, high_pivots, bottom["first_index"]) if bottom else None
+    three_push = _find_three_push(rows, high_pivots, bottom)
+    breakout = bool(three_push and three_push.get("breakout_index") is not None)
+
+    # Measure the pullback before the first bottom. Later recovery bars cannot
+    # manufacture this condition retroactively.
+    prior_high = None
+    pullback_pct = None
+    if bottom:
+        start = max(0, bottom["first_index"] - 60)
+        prior_high = max((row["high"] for row in rows[start : bottom["first_index"] + 1]), default=None)
+        lower_bottom = min(bottom["first_price"], bottom["second_price"])
+        if prior_high and prior_high > 0:
+            pullback_pct = (prior_high - lower_bottom) / prior_high * 100
+    objective_pullback = pullback_pct is not None and pullback_pct >= 5
+
+    retracement_pct = None
+    golden_pocket = False
+    if impulse and bottom and impulse["high"] > impulse["low"]:
+        retracement_pct = (impulse["high"] - min(bottom["first_price"], bottom["second_price"])) / (impulse["high"] - impulse["low"]) * 100
+        golden_pocket = 50 <= retracement_pct <= 70
+
+    e20, e50, e200 = ema(closes, 20), ema(closes, 50), ema(closes, 200)
+    ema_matches = []
+    if bottom:
+        for bottom_name, index in (("第一底", bottom["first_index"]), ("第二底", bottom["second_index"])):
+            for period, values in ((20, e20), (50, e50), (200, e200)):
+                value = values[index]
+                if not value:
+                    continue
+                distance = abs(rows[index]["low"] / value - 1) * 100
+                if distance <= 6:
+                    ema_matches.append({"bottom": bottom_name, "bottom_date": rows[index]["date"], "ema": f"EMA{period}", "ema_value": round(value, 2), "distance_pct": round(distance, 2)})
+    location_support = golden_pocket or bool(ema_matches)
+    conditions = [
+        {"id": "objective_pullback", "label": "客观回调至少5%", "hit": objective_pullback},
+        {"id": "broad_double_bottom", "label": "宽口径双底", "hit": bool(bottom)},
+        {"id": "three_push_close_breakout", "label": "三推趋势线收盘突破", "hit": breakout},
+        {"id": "golden_pocket_or_ema", "label": "Golden Pocket／EMA承接", "hit": location_support},
+    ]
+    match_count = sum(item["hit"] for item in conditions)
+    complete = match_count == len(conditions)
+    invalidated = bool(bottom and bottom.get("invalidated"))
+    bars_since_breakout = three_push.get("bars_since_breakout") if breakout else None
+    risk_gate = _bearish_risk_gate(rows, atr_values, e20, e50, high_pivots)
+    if invalidated:
+        stage = "invalidated"
+    elif complete and risk_gate["blocked"]:
+        stage = "risk_blocked"
+    elif complete and bars_since_breakout is not None and bars_since_breakout <= 5:
+        stage = "entry_ready"
+    elif complete:
+        stage = "launched"
+    elif match_count >= 3:
+        stage = "waiting_breakout" if not breakout else "breakout_incomplete"
+    elif bottom:
+        stage = "bottom_confirmed"
+    elif objective_pullback:
+        stage = "pullback_forming"
+    else:
+        stage = "discovery"
+    actions = {
+        "entry_ready": "四项简化形态已完成且风险闸门清除；列入人工复核，研究口径最早下一交易日开盘进入。",
+        "risk_blocked": "四项形态已完成，但空头压力或顶部供给仍在；不建立可行动信号。",
+        "launched": "四项形态曾完成，但已离开最初五日突破窗口；继续跟踪，不作追高提示。",
+        "waiting_breakout": "回调、双底和位置已接近完成，等待三推趋势线的完整收盘突破。",
+        "breakout_incomplete": "价格已突破，但回调、双底或支撑位置仍缺一项；只观察。",
+        "bottom_confirmed": "已看到双底，但四项形态尚未齐全。",
+        "pullback_forming": "已经发生客观回调，等待双底、三推突破和位置承接。",
+        "discovery": "只命中少量早期形态，暂不行动。",
+        "invalidated": "收盘已破坏双底失效位，本轮形态结束。",
     }
+    signal_close = three_push.get("breakout_close") if breakout else None
+    target = round(prior_high, 2) if prior_high else None
+    invalidation = bottom.get("invalidation") if bottom else None
+    reward_risk = None
+    if signal_close and invalidation and target and signal_close > invalidation and target > signal_close:
+        reward_risk = round((target - signal_close) / (signal_close - invalidation), 2)
+    return {
+        "available": True,
+        "pattern_version": PATTERN_VERSION,
+        "experiment_id": EXPERIMENT_ID,
+        "stage": stage,
+        "stage_zh": STAGE_ZH[stage],
+        "match_count": match_count,
+        "total_conditions": len(conditions),
+        "match_pct": round(match_count / len(conditions) * 100),
+        "conditions": conditions,
+        "action_zh": actions[stage],
+        "prior_advance": impulse,
+        "pullback": {"objective_pullback_pct": round(pullback_pct, 2) if pullback_pct is not None else None, "prior_60_session_high": round(prior_high, 2) if prior_high else None, "retracement_pct": round(retracement_pct, 2) if retracement_pct is not None else None, "golden_pocket": golden_pocket, "ema_support": bool(ema_matches), "ema_matches": ema_matches},
+        "double_bottom": bottom,
+        "three_push": three_push,
+        "ema_realign": {"ema20": round(e20[end], 2), "ema50": round(e50[end], 2), "ema200": round(e200[end], 2), "full_alignment": e20[end] > e50[end]},
+        "sequence": {"double_bottom_first_date": bottom.get("first_date") if bottom else None, "double_bottom_second_date": bottom.get("second_date") if bottom else None, "breakout_date": three_push.get("breakout_date") if three_push else None, "completion_date": three_push.get("breakout_date") if complete and three_push else None},
+        "risk_gate": risk_gate,
+        "trade_map": {"signal_close": signal_close, "earliest_entry": "next_trading_day_adjusted_open" if stage == "entry_ready" else None, "target_previous_high": target, "invalidation_second_bottom": invalidation, "estimated_reward_risk": reward_risk},
+        "legacy_v1": {"pattern_version": legacy_v1.get("pattern_version"), "stage": legacy_v1.get("stage"), "match_count": legacy_v1.get("match_count"), "total_conditions": legacy_v1.get("total_conditions")},
+        "legacy_v2": {"pattern_version": legacy_v2.get("pattern_version"), "stage": legacy_v2.get("stage"), "match_count": legacy_v2.get("match_count"), "total_conditions": legacy_v2.get("total_conditions"), "sequence": legacy_v2.get("sequence")},
+        "audit": {"future_data_used": False, "completed_daily_bars_only": True, "confirmed_pivot_right_bars": 2, "legacy_v1_preserved": True, "legacy_v2_preserved": True, "known_cases_excluded_from_effectiveness": ["ADBE", "BABA", "TTD", "AEVA"]},
+    }
+
+
+def evaluate(rows, include_chart=False):
+    """Evaluate simple V3 while retaining immutable V1 and V2 comparisons."""
+    if len(rows) < 120:
+        return {"available": False, "stage": "unavailable", "stage_zh": STAGE_ZH["unavailable"], "match_count": 0, "total_conditions": 4, "reason": "V3至少需要120个完整日K", "pattern_version": PATTERN_VERSION, "experiment_id": EXPERIMENT_ID}
+    legacy_v1 = _evaluate_v1(rows, include_chart=include_chart)
+    legacy_v2 = _evaluate_sequence_v2(rows, legacy_v1)
+    result = _evaluate_simple_v3(rows, legacy_v1, legacy_v2)
     if include_chart:
-        result["chart"] = legacy.get("chart") or _favorite_chart(rows)
+        result["chart"] = legacy_v1.get("chart") or _favorite_chart(rows)
     return result
 
 
@@ -734,7 +840,7 @@ def _mechanism_profile(pattern):
     match_count = int(pattern.get("match_count") or 0)
     if stage == "entry_ready":
         status = "formal_signal"
-    elif match_count >= 5 and stage not in {"launched", "target_reached", "invalidated"}:
+    elif match_count >= max(1, int(pattern.get("total_conditions") or 4) - 1) and stage not in {"launched", "target_reached", "invalidated"}:
         status = "blocked_near_match" if risk_gate.get("blocked") else "near_match"
     else:
         status = "early_observation"
@@ -806,8 +912,8 @@ def build_report(candidates, as_of):
         "generalization_policy": {
             "version": GENERALIZATION_VERSION,
             "examples_are_templates": False,
-            "mechanism_roles_zh": ["背景", "位置", "结构", "趋势转变", "真实重置", "再次启动", "供给风险"],
-            "near_match_minimum_conditions": 5,
+            "mechanism_roles_zh": ["回调", "双底", "三推突破", "Golden Pocket／EMA承接", "供给风险"],
+            "near_match_minimum_conditions": 3,
             "near_matches_are_signals": False,
             "legacy_only_cases": LEGACY_ONLY_CASES,
             "teaching_cases": ["ADBE", "BABA"],
@@ -823,5 +929,5 @@ def build_report(candidates, as_of):
             "minimum_months": 6,
             "minimum_market_states": 3,
         },
-        "warning_zh": "案例只教机制，不要求复制形状。只有两段七阶段全部完成且风险闸门清除才是入场就绪；近似机会只用于人工复核，不是买入信号或上涨概率。",
+        "warning_zh": "4/4只表示回调、双底、三推收盘突破和Golden Pocket／EMA承接齐全；风险闸门仍可否决。颗数用于人工复核，不是胜率或自动买入。",
     }

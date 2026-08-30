@@ -1,7 +1,7 @@
 import json,tempfile,unittest
 from pathlib import Path
 
-from services.scanner.unified_v2_scan import _candidate,_rank_day,write_latest
+from services.scanner.unified_v2_scan import _candidate,_rank_day,_write_report,write_latest
 
 
 def state(factor_id, hit=False, recent=False):
@@ -14,22 +14,26 @@ class UnifiedV2ScanTests(unittest.TestCase):
   market={"market_temperature":{"score":4}}
   industry={"historical_membership_safe":True,"ticker_context":{"MARA":[{"state":"Leadership"}]}}
   result=_candidate(row,market,industry)
-  self.assertEqual(result["technical_score"],5)
+  self.assertEqual(result["technical_score"],10)
+  self.assertEqual(result["technical_resonance"]["positive_hit_count"],5)
+  self.assertEqual(result["technical_resonance"]["family_count"],5)
+  self.assertEqual(result["technical_resonance"]["risk_hit_count"],1)
   self.assertEqual(result["b_shadow_score"],2)
-  self.assertEqual(result["final_priority"],7)
-  self.assertEqual(sum(x["points"] for x in result["factor_ledger"]),result["technical_score"])
+  self.assertEqual(result["final_priority"],12)
+  self.assertEqual(sum(x["points"] for x in result["factor_ledger"]),result["technical_resonance"]["positive_hit_count"])
   self.assertEqual(sum(x["shadow_points"] for x in result["factor_ledger"]),result["b_shadow_score"])
-  self.assertIn("rsi.oversold_repair",[x["factor_id"] for x in result["factor_ledger"] if x["hit"] and x["points"]==0])
-  self.assertEqual(result["score_equation"],"5 技术基线 +1 大盘 +1 行业 = 7；B级影子 2")
-  self.assertEqual(result["timeframe_profile"]["status"],"experimental_descriptive_only")
+  self.assertIn("rsi.oversold_repair",[x["factor_id"] for x in result["factor_ledger"] if x["counted_in_resonance"]])
+  self.assertIn("5颗 + 5家族",result["score_equation"])
+  self.assertEqual(result["timeframe_profile"]["status"],"count_based_research_priority")
 
- def test_weekly_profile_requires_independent_evidence_and_does_not_change_score(self):
+ def test_weekly_profile_counts_all_evidence_and_adds_same_family_resonance(self):
   row={"symbol":"WEEK","price":20,"trigger":{"factor_id":"macd.daily_bull_cross","exact_completed_cross":True},"factors":[state("qualification.long_trend",True),state("qualification.pullback_60d",True),state("macd.daily_bull_cross",True,True),state("support.ema_proximity",True),state("macd.weekly_histogram_improving",True),state("support.weekly_ema_proximity",True),state("structure.weekly_bullish_engulfing",True)],"scoring":{"experimental_observational_score":10}}
   result=_candidate(row,{"market_temperature":{"score":3}},{"historical_membership_safe":False})
-  self.assertEqual(result["technical_score"],5)
+  self.assertEqual(result["technical_score"],11)
   self.assertEqual(result["b_shadow_score"],1)
-  self.assertEqual(result["timeframe_profile"]["label"],"日线主导")
-  self.assertEqual(result["timeframe_profile"]["independent_groups"]["weekly"],1)
+  self.assertEqual(result["technical_resonance"]["timeframe_resonance_bonus"],2)
+  self.assertEqual(result["timeframe_profile"]["label"],"周线主导")
+  self.assertEqual(result["timeframe_profile"]["independent_groups"]["weekly"],3)
 
  def test_rare_opportunities_are_an_ordered_subset_of_published_ranking(self):
   rows=[]
@@ -50,6 +54,16 @@ class UnifiedV2ScanTests(unittest.TestCase):
    out=Path(folder)/"latest.json";latest=write_latest(report,out)
    self.assertEqual(latest["days"],[{"date":"2026-08-27"}])
    self.assertEqual(json.loads(out.read_text())["coverage"]["sessions"],2)
+
+ def test_new_model_can_refresh_latest_without_rewriting_same_day_history(self):
+  with tempfile.TemporaryDirectory() as folder:
+   archive=Path(folder)/"archive.json";latest_path=Path(folder)/"latest.json"
+   archive.write_text(json.dumps({"version":"old-v1","model":{"factor_registry_version":"old-registry"},"days":[{"date":"2026-08-28","model_version":"old-v1","ranking":[{"symbol":"OLD"}]}]}))
+   fresh={"date":"2026-08-28","model_version":"new-v2","factor_registry_version":"new-registry","ranking":[{"symbol":"NEW","factor_ledger":[]}]}
+   report=_write_report([fresh],archive,True)
+   latest=write_latest(report,latest_path,day=fresh)
+   self.assertEqual(report["days"][0]["ranking"][0]["symbol"],"OLD")
+   self.assertEqual(latest["days"][0]["ranking"][0]["symbol"],"NEW")
 
 
 if __name__=="__main__":unittest.main()

@@ -6,7 +6,7 @@ class UiV2ContractTests(unittest.TestCase):
  def test_home_puts_market_risk_before_stock_research(self):
   text=(ROOT/"app/zh/watch/resonance/page.tsx").read_text()
   self.assertLess(text.index("overviewHero"),text.index("opportunityWorkspace"))
-  for label in ("TODAY&apos;S DECISION","精选机会，不追高","现在能用什么","今日 V2 技术机会","WHY IT RANKS HERE"):
+  for label in ("TODAY&apos;S DECISION","精选机会，不追高","现在能用什么","今日多因子共振机会","WHY IT RANKS HERE"):
    self.assertIn(label,text)
 
  def test_experiment_archive_is_git_only(self):
@@ -26,7 +26,7 @@ class UiV2ContractTests(unittest.TestCase):
   self.assertFalse((ROOT/"app/zh/watch/resonance/macd/page.tsx").exists())
   text=(ROOT/"app/zh/watch/resonance/rare-opportunities/page.tsx").read_text()
   profile=(ROOT/"app/zh/watch/resonance/rare-opportunities/timeframe-profile.tsx").read_text()
-  for label in ("WHY IT RANKS HERE","RISK PLAN","TimeframeProfilePanel","37个因子，现在分别怎么处理","factorFamilyLegend","统一机会账本"):
+  for label in ("WHY IT RANKS HERE","RISK PLAN","TimeframeProfilePanel","effectiveness.coverage.factors","factorFamilyLegend","统一机会账本"):
    self.assertIn(label,text)
   for retired in ("旧系统历史机会参考","统一因子库","股票技术证据查询","旧评分兼容观察","查看当前动态观察评分规则","/research-opportunity-pool.json","/rare-opportunity-radar.json","/signal-history.json","/factor-registry.json"):
    self.assertNotIn(retired,text)
@@ -40,7 +40,7 @@ class UiV2ContractTests(unittest.TestCase):
   family_combo=json.loads((ROOT/"research/backtest/output/factor-family-return-combination-v1.json").read_text())
   self.assertFalse(family_combo["production_scoring_changed"])
   self.assertNotIn("旧系统因子实验",text)
-  for label in ("周线","月线","不是建议持仓天数","不改变当前 V2 排名"):
+  for label in ("周线","月线","不是建议持仓天数","直接参与"):
    self.assertIn(label,profile)
 
  def test_semiconductors_is_supported_and_ai_infrastructure_is_not_published(self):

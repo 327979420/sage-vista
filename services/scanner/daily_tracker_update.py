@@ -5,7 +5,7 @@ Outputs: the synchronized JSON bundle consumed by the four website pages and
 the notification job. All expensive work happens in a temporary directory;
 ``public/`` is replaced only after date, factor-version and lookahead checks.
 """
-import argparse,json,os,pathlib,tempfile
+import argparse,copy,json,os,pathlib,tempfile
 from datetime import datetime,timezone
 from .eodhd import latest_reference_day
 from .expand_tracker_universe import run as expand_universe
@@ -32,6 +32,21 @@ def compact_favorite_pattern(tracker):
 
 def compact_signal_history(history):
  return {"as_of":history.get("as_of"),"future_data_used":history.get("future_data_used"),"cases":[{"symbol":row.get("symbol"),"first_seen_date":row.get("first_seen_date"),"lifecycle":row.get("lifecycle"),"latest_current_status":row.get("latest_current_status"),"forward":{"elapsed_sessions":row.get("forward",{}).get("elapsed_sessions",0),"status":row.get("forward",{}).get("status","pending")}} for row in history.get("cases",[])]}
+
+def tracker_for_forward_history(current_tracker,current_history,tracker,authoritative):
+ """Keep a new pattern definition out of an already saved forward day.
+
+ The website may show a newly deployed definition against the latest completed
+ bar for calibration. True forward signals begin on the next completed session.
+ """
+ old_favorite=current_tracker.get("favorite_pattern_tracker",{})
+ new_favorite=tracker.get("favorite_pattern_tracker",{})
+ same_saved_day=current_tracker.get("as_of")==authoritative and current_history.get("as_of")==authoritative
+ definition_changed=old_favorite.get("pattern_version")!=new_favorite.get("pattern_version")
+ if not (same_saved_day and definition_changed):return tracker,False
+ forward_tracker=copy.deepcopy(tracker)
+ forward_tracker.setdefault("favorite_pattern_tracker",{})["candidates"]=[]
+ return forward_tracker,True
 
 def validate(authoritative,tracker,radar,snapshot,industry,market,history):
  if tracker.get("as_of")!=authoritative or radar.get("as_of")!=authoritative or snapshot.get("as_of")!=authoritative or industry.get("as_of")!=authoritative or market.get("as_of")!=authoritative:
@@ -82,13 +97,14 @@ def run(target=1000,as_of=None,trigger_source="manual"):
   expand_universe(target,authoritative,out=folder/"universe-expansion.json")
   tracker=run_tracker(folder/"resonance-tracker.json",authoritative);snapshot=run_factor_snapshot(folder/"daily-factor-snapshot.json",authoritative);radar=run_radar(folder/"rare-opportunity-radar.json",authoritative,snapshot);industry=run_industry_radar(folder/"industry-radar.json",authoritative);market=run_market_context(folder/"market-etf-watch.json",authoritative)
   (folder/"favorite-pattern.json").write_text(json.dumps(compact_favorite_pattern(tracker),ensure_ascii=False,separators=(",",":"))+"\n")
-  history=build_signal_history(current_history,tracker,radar,snapshot,industry,market,authoritative)
+  history_tracker,favorite_forward_deferred=tracker_for_forward_history(current_tracker,current_history,tracker,authoritative)
+  history=build_signal_history(current_history,history_tracker,radar,snapshot,industry,market,authoritative)
   (folder/"signal-history.json").write_text(json.dumps(history,ensure_ascii=False,indent=2))
   (folder/"signal-history-summary.json").write_text(json.dumps(compact_signal_history(history),ensure_ascii=False,separators=(",",":"))+"\n")
   # This is the publish gate: no file crosses into public/ until all datasets
   # agree on the same completed session and prove they used no future rows.
   validate(authoritative,tracker,radar,snapshot,industry,market,history);now=datetime.now(timezone.utc).isoformat()
-  status={"status":"up_to_date","market":"US","provider":"EODHD","source_latest_complete_date":authoritative,"tracker_as_of":tracker["as_of"],"factor_snapshot_as_of":snapshot["as_of"],"radar_as_of":radar["as_of"],"industry_radar_as_of":industry["as_of"],"market_context_as_of":market["as_of"],"signal_history_as_of":history["as_of"],"data_dates_match":True,"future_data_used":False,"last_successful_update_at":now,"trigger_source":trigger_source,"checks":{"provider_date_exact":True,"all_production_json_same_date":True,"completed_bars_only":True,"production_outputs_published_atomically":True,"signal_history_append_only":True,"macd_trigger_first":True,"favorite_pattern_tracker":True}}
+  status={"status":"up_to_date","market":"US","provider":"EODHD","source_latest_complete_date":authoritative,"tracker_as_of":tracker["as_of"],"factor_snapshot_as_of":snapshot["as_of"],"radar_as_of":radar["as_of"],"industry_radar_as_of":industry["as_of"],"market_context_as_of":market["as_of"],"signal_history_as_of":history["as_of"],"data_dates_match":True,"future_data_used":False,"last_successful_update_at":now,"trigger_source":trigger_source,"checks":{"provider_date_exact":True,"all_production_json_same_date":True,"completed_bars_only":True,"production_outputs_published_atomically":True,"signal_history_append_only":True,"macd_trigger_first":True,"favorite_pattern_tracker":True,"favorite_pattern_forward_deferred_on_same_date":favorite_forward_deferred}}
   (folder/"update-status.json").write_text(json.dumps(status,ensure_ascii=False,indent=2))
   for name in ("resonance-tracker.json","favorite-pattern.json","daily-factor-snapshot.json","rare-opportunity-radar.json","industry-radar.json","market-etf-watch.json","signal-history.json","signal-history-summary.json","update-status.json"):os.replace(folder/name,PUBLIC/name)
  return {"result":"updated","as_of":authoritative,"eligible":tracker["universe"]["eligible"],"radar_signals":len(radar["signals"]),"trigger_source":trigger_source}

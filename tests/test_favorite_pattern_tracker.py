@@ -5,6 +5,7 @@ from pathlib import Path
 from services.scanner.favorite_pattern_tracker import (
     GENERALIZATION_VERSION,
     PATTERN_VERSION,
+    V2_PATTERN_VERSION,
     _atr,
     _confirmed_pivots,
     _find_double_bottom,
@@ -69,27 +70,31 @@ class FavoritePatternTrackerTests(unittest.TestCase):
         self.assertFalse(result["available"])
         self.assertEqual(result["stage"], "unavailable")
 
-    def test_adbe_known_case_reaches_two_stage_confirmation_on_macd_day(self):
+    def test_adbe_v3_is_simple_while_v2_sequence_stays_frozen(self):
         case_rows = known_case("ADBE")
         before = evaluate([row for row in case_rows if row["date"] <= "2023-05-17"])
         signal_day = evaluate([row for row in case_rows if row["date"] <= "2023-05-18"])
         result = evaluate(case_rows)
-        self.assertEqual(PATTERN_VERSION, "favorite-pattern-v2.0.0")
-        self.assertEqual(before["match_count"], 6)
-        self.assertNotEqual(before["stage"], "entry_ready")
+        self.assertEqual(PATTERN_VERSION, "favorite-pattern-v3.0.0")
+        self.assertEqual(V2_PATTERN_VERSION, "favorite-pattern-v2.0.0")
+        self.assertEqual(before["legacy_v2"]["match_count"], 6)
+        self.assertNotEqual(before["legacy_v2"]["stage"], "entry_ready")
         self.assertEqual(signal_day["stage"], "entry_ready")
-        self.assertEqual(signal_day["sequence"]["completion_date"], "2023-05-18")
+        self.assertEqual(signal_day["match_count"], 4)
+        self.assertEqual(signal_day["total_conditions"], 4)
+        self.assertEqual(signal_day["legacy_v2"]["sequence"]["completion_date"], "2023-05-18")
         self.assertEqual(result["stage"], "entry_ready")
-        self.assertEqual(result["match_count"], 7)
-        self.assertEqual(result["sequence"]["first_bottom"]["first_date"], "2023-02-24")
-        self.assertEqual(result["sequence"]["first_bottom"]["second_date"], "2023-03-13")
-        self.assertEqual(result["sequence"]["first_confirmation_date"], "2023-03-30")
-        self.assertEqual(result["sequence"]["second_bottom"]["first_date"], "2023-05-04")
-        self.assertEqual(result["sequence"]["second_bottom"]["second_date"], "2023-05-12")
-        self.assertEqual(result["sequence"]["second_breakout_date"], "2023-05-17")
-        self.assertEqual(result["sequence"]["second_macd_date"], "2023-05-18")
-        self.assertEqual(result["sequence"]["completion_date"], "2023-05-18")
-        self.assertEqual(result["sequence"]["full_alignment_date"], "2023-05-25")
+        self.assertEqual(result["match_count"], 4)
+        legacy_sequence = result["legacy_v2"]["sequence"]
+        self.assertEqual(legacy_sequence["first_bottom"]["first_date"], "2023-02-24")
+        self.assertEqual(legacy_sequence["first_bottom"]["second_date"], "2023-03-13")
+        self.assertEqual(legacy_sequence["first_confirmation_date"], "2023-03-30")
+        self.assertEqual(legacy_sequence["second_bottom"]["first_date"], "2023-05-04")
+        self.assertEqual(legacy_sequence["second_bottom"]["second_date"], "2023-05-12")
+        self.assertEqual(legacy_sequence["second_breakout_date"], "2023-05-17")
+        self.assertEqual(legacy_sequence["second_macd_date"], "2023-05-18")
+        self.assertEqual(legacy_sequence["completion_date"], "2023-05-18")
+        self.assertEqual(legacy_sequence["full_alignment_date"], "2023-05-25")
         self.assertFalse(result["risk_gate"]["blocked"])
 
     def test_ttd_known_case_keeps_unresolved_bearish_pressure_visible(self):
@@ -100,21 +105,19 @@ class FavoritePatternTrackerTests(unittest.TestCase):
 
     def test_aeva_known_case_is_vetoed_by_top_supply_and_exhaustion(self):
         result = evaluate(known_case("AEVA"))
-        self.assertEqual(result["stage"], "risk_blocked")
+        self.assertEqual(result["legacy_v2"]["stage"], "risk_blocked")
+        self.assertEqual(result["stage"], "waiting_breakout")
         self.assertTrue(result["risk_gate"]["blocked"])
         self.assertIsNotNone(result["risk_gate"]["multi_top"])
         self.assertTrue(result["risk_gate"]["top_exhaustion"])
 
     def test_report_keeps_reference_cases_without_promoting_them(self):
-        conditions = [
-            {"id": f"step_{index}", "label": f"机制{index}", "hit": index <= 6}
-            for index in range(1, 8)
-        ]
-        base = {"available": True, "pattern_version": PATTERN_VERSION, "match_count": 4, "total_conditions": 7, "stage": "waiting_breakout", "stage_zh": "等待突破", "conditions": conditions}
+        conditions = [{"id": f"step_{index}", "label": f"形态{index}", "hit": index <= 3} for index in range(1, 5)]
+        base = {"available": True, "pattern_version": PATTERN_VERSION, "match_count": 3, "total_conditions": 4, "stage": "waiting_breakout", "stage_zh": "等待突破", "conditions": conditions}
         candidates = [
-            {"symbol": "XYZ", "price": 10, "dollar_volume": 20_000_000, "favorite_pattern": {**base, "match_count": 6, "stage": "breakout_incomplete", "stage_zh": "已突破但条件不完整"}},
-            {"symbol": "BLOCK", "price": 15, "dollar_volume": 25_000_000, "favorite_pattern": {**base, "match_count": 7, "stage": "risk_blocked", "stage_zh": "风险否决", "conditions": [{**item, "hit": True} for item in conditions], "risk_gate": {"blocked": True, "reasons_zh": ["测试风险"]}}},
-            {"symbol": "READY", "price": 20, "dollar_volume": 30_000_000, "favorite_pattern": {**base, "match_count": 7, "stage": "entry_ready", "stage_zh": "入场就绪", "conditions": [{**item, "hit": True} for item in conditions]}},
+            {"symbol": "XYZ", "price": 10, "dollar_volume": 20_000_000, "favorite_pattern": {**base, "stage": "breakout_incomplete", "stage_zh": "已突破但条件不完整"}},
+            {"symbol": "BLOCK", "price": 15, "dollar_volume": 25_000_000, "favorite_pattern": {**base, "match_count": 4, "stage": "risk_blocked", "stage_zh": "风险否决", "conditions": [{**item, "hit": True} for item in conditions], "risk_gate": {"blocked": True, "reasons_zh": ["测试风险"]}}},
+            {"symbol": "READY", "price": 20, "dollar_volume": 30_000_000, "favorite_pattern": {**base, "match_count": 4, "stage": "entry_ready", "stage_zh": "入场就绪", "conditions": [{**item, "hit": True} for item in conditions]}},
             {"symbol": "BABA", "price": 120, "dollar_volume": 200_000_000, "favorite_pattern": {**base, "match_count": 2, "stage": "discovery", "stage_zh": "早期发现"}},
         ]
         report = build_report(candidates, "2026-08-28")
@@ -125,7 +128,7 @@ class FavoritePatternTrackerTests(unittest.TestCase):
         self.assertEqual([row["symbol"] for row in report["entry_ready_candidates"]], ["READY"])
         self.assertEqual([row["symbol"] for row in report["near_matches"]], ["XYZ", "BLOCK"])
         self.assertEqual(report["near_matches"][0]["mechanism_profile"]["status"], "near_match")
-        self.assertEqual(report["near_matches"][0]["mechanism_profile"]["missing"][0]["label"], "机制7")
+        self.assertEqual(report["near_matches"][0]["mechanism_profile"]["missing"][0]["label"], "形态4")
         self.assertEqual(report["near_matches"][1]["mechanism_profile"]["status"], "blocked_near_match")
         self.assertFalse(report["generalization_policy"]["examples_are_templates"])
         self.assertEqual(report["generalization_policy"]["legacy_only_cases"], ["PG"])

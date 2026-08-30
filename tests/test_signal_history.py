@@ -1,6 +1,7 @@
 import copy,json,unittest
 from datetime import date,timedelta
 
+from services.scanner.daily_tracker_update import tracker_for_forward_history
 from services.scanner.signal_history import RESET_SESSIONS,_immutable_fingerprint,build
 
 def inputs(day="2026-08-26",symbols=("PG",),rare=()):
@@ -82,14 +83,14 @@ class SignalHistoryTests(unittest.TestCase):
 
  def test_only_entry_ready_favorite_pattern_enters_forward_history(self):
   tracker,radar,factors,industry,market=inputs(symbols=())
-  conditions=[{"id":str(index),"hit":True} for index in range(7)]
-  tracker["favorite_pattern_tracker"]={"candidates":[{"symbol":"BABA","stage":"entry_ready","pattern_version":"favorite-pattern-v2.0.0","match_count":7,"total_conditions":7,"conditions":conditions,"trade_map":{"target_previous_high":145},"prior_advance":{},"pullback":{},"double_bottom":{},"second_bottom_macd":{},"three_push":{},"ema_realign":{},"sequence":{},"risk_gate":{"clear":True,"blocked":False}}]}
+  conditions=[{"id":str(index),"hit":True} for index in range(4)]
+  tracker["favorite_pattern_tracker"]={"candidates":[{"symbol":"BABA","stage":"entry_ready","pattern_version":"favorite-pattern-v3.0.0","match_count":4,"total_conditions":4,"conditions":conditions,"trade_map":{"target_previous_high":145},"prior_advance":{},"pullback":{},"double_bottom":{},"three_push":{},"ema_realign":{},"sequence":{},"risk_gate":{"clear":True,"blocked":False},"legacy_v2":{}}]}
   factors["symbols"].append({"symbol":"BABA","scoring":{"official_score":0,"experimental_observational_score":0,"score_contributions":[]},"factors":[]})
   result=build({},tracker,radar,factors,industry,market,"2026-08-26",loader=lambda _:rows_through(1))
   self.assertEqual(len(result["cases"]),1)
   case=result["cases"][0]
   self.assertEqual(case["source_systems"],["favorite_pattern_tracker"])
-  self.assertEqual(case["signal_time_snapshot"]["favorite_pattern"]["match_count"],7)
+  self.assertEqual(case["signal_time_snapshot"]["favorite_pattern"]["match_count"],4)
   tracker["favorite_pattern_tracker"]["candidates"][0]["stage"]="waiting_breakout"
   second=build({},tracker,radar,factors,industry,market,"2026-08-26",loader=lambda _:rows_through(1))
   self.assertEqual(second["cases"],[])
@@ -99,9 +100,10 @@ class SignalHistoryTests(unittest.TestCase):
   conditions=[{"id":str(index),"hit":index<6} for index in range(7)]
   tracker["favorite_pattern_tracker"]={"candidates":[{"symbol":"BABA","stage":"entry_ready","pattern_version":"favorite-pattern-v1.0.0","match_count":6,"total_conditions":7,"conditions":conditions,"trade_map":{},"prior_advance":{},"pullback":{},"double_bottom":{},"second_bottom_macd":{},"three_push":{},"ema_realign":{}}]}
   factors["symbols"].append({"symbol":"BABA","scoring":{"official_score":0,"experimental_observational_score":0,"score_contributions":[]},"factors":[]})
-  tracker["favorite_pattern_tracker"]["candidates"][0]["pattern_version"]="favorite-pattern-v2.0.0"
-  tracker["favorite_pattern_tracker"]["candidates"][0]["match_count"]=7
-  tracker["favorite_pattern_tracker"]["candidates"][0]["conditions"]=[{"id":str(index),"hit":True} for index in range(7)]
+  tracker["favorite_pattern_tracker"]["candidates"][0]["pattern_version"]="favorite-pattern-v3.0.0"
+  tracker["favorite_pattern_tracker"]["candidates"][0]["match_count"]=4
+  tracker["favorite_pattern_tracker"]["candidates"][0]["total_conditions"]=4
+  tracker["favorite_pattern_tracker"]["candidates"][0]["conditions"]=[{"id":str(index),"hit":True} for index in range(4)]
   old=build({},tracker,radar,factors,industry,market,"2026-08-26",loader=lambda _:rows_through(1))
   snapshot=old["cases"][0]["signal_time_snapshot"]["favorite_pattern"]
   snapshot["pattern_version"]="favorite-pattern-v1.0.0";snapshot["match_count"]=6;snapshot["conditions"]=conditions
@@ -111,12 +113,12 @@ class SignalHistoryTests(unittest.TestCase):
   self.assertEqual(len(same_day["cases"]),2)
   self.assertEqual(
    [case["signal_id"] for case in same_day["cases"]],
-   ["SVP1-BABA-2026-08-26","SVP1-BABA-2026-08-26-FP-V2_0_0"],
+   ["SVP1-BABA-2026-08-26","SVP1-BABA-2026-08-26-FP-V3_0_0"],
   )
   self.assertTrue(same_day["cases"][0]["audit"]["definition_correction"]["exclude_from_effectiveness"])
-  self.assertEqual(same_day["cases"][1]["signal_time_snapshot"]["favorite_pattern"]["pattern_version"],"favorite-pattern-v2.0.0")
+  self.assertEqual(same_day["cases"][1]["signal_time_snapshot"]["favorite_pattern"]["pattern_version"],"favorite-pattern-v3.0.0")
   self.assertEqual(len(same_day["cases"][1]["source_activations"]),1)
-  self.assertEqual(same_day["cases"][1]["source_activations"][0]["snapshot"]["match_count"],7)
+  self.assertEqual(same_day["cases"][1]["source_activations"][0]["snapshot"]["match_count"],4)
   strict_tracker={"as_of":"2026-08-27","macd_buy_top10":[],"favorite_pattern_tracker":{"candidates":[]}}
   strict_radar={"as_of":"2026-08-27","signals":[]};strict_factors={"as_of":"2026-08-27","registry_version":"1.0","symbols":[]};strict_industry={"as_of":"2026-08-27","membership_version":"themes-v1","classification_snapshot":{"effective_from":"2026-08-27"},"classification_by_ticker":{},"themes":[],"ticker_context":{}}
   corrected=build(same_day,strict_tracker,strict_radar,strict_factors,strict_industry,{"as_of":"2026-08-27","market_temperature":{"state":"normal"}},"2026-08-27",loader=lambda _:rows_through(2))
@@ -128,14 +130,23 @@ class SignalHistoryTests(unittest.TestCase):
  def test_favorite_activation_is_saved_when_it_joins_an_existing_same_day_case(self):
   first=self.make()
   tracker,radar,factors,industry,market=inputs()
-  conditions=[{"id":str(index),"hit":True} for index in range(7)]
-  favorite={"symbol":"PG","stage":"entry_ready","pattern_version":"favorite-pattern-v2.0.0","match_count":7,"total_conditions":7,"conditions":conditions,"trade_map":{},"prior_advance":{},"pullback":{},"double_bottom":{},"second_bottom_macd":{},"three_push":{},"ema_realign":{},"sequence":{"completion_date":"2026-08-26"},"risk_gate":{"clear":True,"blocked":False}}
+  conditions=[{"id":str(index),"hit":True} for index in range(4)]
+  favorite={"symbol":"PG","stage":"entry_ready","pattern_version":"favorite-pattern-v3.0.0","match_count":4,"total_conditions":4,"conditions":conditions,"trade_map":{},"prior_advance":{},"pullback":{},"double_bottom":{},"three_push":{},"ema_realign":{},"sequence":{"completion_date":"2026-08-26"},"risk_gate":{"clear":True,"blocked":False},"legacy_v2":{}}
   tracker["favorite_pattern_tracker"]={"candidates":[favorite]}
   joined=build(first,tracker,radar,factors,industry,market,"2026-08-26",loader=lambda _:rows_through(1))
   self.assertEqual(len(joined["cases"]),1)
   case=joined["cases"][0]
   self.assertEqual(case["source_systems"],["favorite_pattern_tracker","technical_tracker"])
   self.assertEqual(case["source_activations"][0]["snapshot"]["sequence"]["completion_date"],"2026-08-26")
-  self.assertEqual(case["daily_states"][0]["favorite_pattern"]["pattern_version"],"favorite-pattern-v2.0.0")
+  self.assertEqual(case["daily_states"][0]["favorite_pattern"]["pattern_version"],"favorite-pattern-v3.0.0")
+
+ def test_same_day_pattern_migration_is_displayed_but_deferred_from_forward_history(self):
+  old={"as_of":"2026-08-28","favorite_pattern_tracker":{"pattern_version":"favorite-pattern-v2.0.0"}}
+  current_history={"as_of":"2026-08-28"}
+  new={"as_of":"2026-08-28","favorite_pattern_tracker":{"pattern_version":"favorite-pattern-v3.0.0","candidates":[{"symbol":"BABA"}]}}
+  forward,deferred=tracker_for_forward_history(old,current_history,new,"2026-08-28")
+  self.assertTrue(deferred)
+  self.assertEqual(forward["favorite_pattern_tracker"]["candidates"],[])
+  self.assertEqual(new["favorite_pattern_tracker"]["candidates"],[{"symbol":"BABA"}])
 
 if __name__=="__main__":unittest.main()

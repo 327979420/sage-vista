@@ -5,9 +5,9 @@ from datetime import datetime,timezone
 from .eodhd_factor_pilot import adjusted_rows
 from .favorite_pattern_tracker import PATTERN_VERSION as FAVORITE_PATTERN_VERSION
 
-SCHEMA_VERSION="1.3.2"
+SCHEMA_VERSION="1.4.0"
 PRODUCT_VERSION="SV-PRODUCT-V1"
-SIGNAL_DEFINITION_VERSION="signal-history-v1.3"
+SIGNAL_DEFINITION_VERSION="signal-history-v1.4"
 RESET_SESSIONS=5
 HORIZONS=(1,5,10,20,60,100)
 
@@ -16,12 +16,13 @@ def _ranked_tracker_rows(tracker):
  return list(tracker.get("macd_buy_top10",[]))
 
 def _favorite_entry_rows(tracker):
- """Only a risk-cleared V2 seven-stage completion becomes a forward signal."""
+ """Only a complete current-version shape becomes a forward signal."""
  rows=[]
  for row in tracker.get("favorite_pattern_tracker",{}).get("candidates",[]):
   conditions=row.get("conditions",[])
   if row.get("stage")!="entry_ready" or row.get("pattern_version")!=FAVORITE_PATTERN_VERSION:continue
-  if row.get("match_count")!=7 or row.get("total_conditions")!=7 or len(conditions)!=7:continue
+  total=row.get("total_conditions")
+  if not isinstance(total,int) or total<=0 or row.get("match_count")!=total or len(conditions)!=total:continue
   if not all(item.get("hit") is True for item in conditions):continue
   rows.append(row)
  return rows
@@ -53,14 +54,14 @@ def _signal_id(symbol,day,favorite_row=None):
 
 def _favorite_snapshot(row):
  if not row:return None
- return {"pattern_version":row.get("pattern_version"),"stage":row.get("stage"),"match_count":row.get("match_count"),"conditions":copy.deepcopy(row.get("conditions",[])),"prior_advance":copy.deepcopy(row.get("prior_advance")),"pullback":copy.deepcopy(row.get("pullback")),"double_bottom":copy.deepcopy(row.get("double_bottom")),"second_bottom_macd":copy.deepcopy(row.get("second_bottom_macd")),"three_push":copy.deepcopy(row.get("three_push")),"ema_realign":copy.deepcopy(row.get("ema_realign")),"sequence":copy.deepcopy(row.get("sequence")),"risk_gate":copy.deepcopy(row.get("risk_gate")),"legacy_v1":copy.deepcopy(row.get("legacy_v1")),"trade_map":copy.deepcopy(row.get("trade_map"))}
+ return {"pattern_version":row.get("pattern_version"),"stage":row.get("stage"),"match_count":row.get("match_count"),"total_conditions":row.get("total_conditions"),"conditions":copy.deepcopy(row.get("conditions",[])),"prior_advance":copy.deepcopy(row.get("prior_advance")),"pullback":copy.deepcopy(row.get("pullback")),"double_bottom":copy.deepcopy(row.get("double_bottom")),"second_bottom_macd":copy.deepcopy(row.get("second_bottom_macd")),"three_push":copy.deepcopy(row.get("three_push")),"ema_realign":copy.deepcopy(row.get("ema_realign")),"sequence":copy.deepcopy(row.get("sequence")),"risk_gate":copy.deepcopy(row.get("risk_gate")),"legacy_v1":copy.deepcopy(row.get("legacy_v1")),"legacy_v2":copy.deepcopy(row.get("legacy_v2")),"trade_map":copy.deepcopy(row.get("trade_map"))}
 
 def _activation_fingerprint(activation):
  frozen={k:activation.get(k) for k in ("activation_id","source_system","activation_date","definition_version","snapshot")}
  return hashlib.sha256(json.dumps(frozen,sort_keys=True,separators=(",",":"),ensure_ascii=False).encode()).hexdigest()
 
 def _append_favorite_activation(case,day,favorite_row):
- """Persist first V2 evidence even when it joins an already-active technical case."""
+ """Persist first versioned favorite evidence even when it joins a technical case."""
  if not favorite_row or case.get("latest_current_status")!="current" or case.get("audit",{}).get("definition_correction",{}).get("exclude_from_effectiveness"):return
  version=str(favorite_row.get("pattern_version") or "unknown")
  activation_id=f"favorite_pattern_tracker:{version}"

@@ -1,10 +1,10 @@
-"""Build the point-in-time V2 ranking: technical facts + separate context.
+"""Build the point-in-time multi-factor ranking from auditable evidence.
 
-This is deliberately a shadow ranking until its exact weights have a complete
-out-of-sample result. Historical industry adjustments are only applied when a
-membership snapshot was effective on that date. Technical, industry and market
-contributions remain separate fields so context cannot masquerade as a proven
-technical factor.
+The ranking intentionally answers "which candidate has more technical
+confirmation?" rather than claiming a calibrated win probability.  Every
+objectively detected positive factor remains visible even when its historical
+research weight is zero.  Industry and market context are stored separately and
+can only break a complete technical tie.
 """
 import argparse,json,pathlib,tempfile
 from datetime import datetime,timezone
@@ -17,63 +17,101 @@ from .market_etf_watch import FUNDS,build as market_build
 
 OUT="public/unified-v2-rankings.json"
 LATEST_OUT="public/unified-v2-latest.json"
-MODEL_VERSION="unified-v2-macd-trigger-1.3.0"
+MODEL_VERSION="unified-v2-macd-trigger-1.4.0"
 RULESET_ID=f"{MODEL_VERSION}+factors-{REGISTRY_VERSION}"
-RARE_MIN_PRIORITY=5
-RARE_MIN_B_SHADOW=2
 RARE_LIMIT=5
 REMAINING_FACTOR_COUNT=len(FACTORS_BY_ID)-1
 BASELINE_CORE={"qualification.long_trend":2,"macd.daily_bull_cross":3}
 B_SHADOW_IDS={"volume.bottom_expansion","structure.support_bullish_engulfing","structure.trendline_three_push","structure.bottom_bullish_engulfing","macd.weekly_histogram_improving"}
-TIMEFRAME_PROFILE_VERSION="timeframe-profile-v0.1.0"
+GATE_FACTOR_IDS=set(BASELINE_CORE)
+TIMEFRAME_PROFILE_VERSION="timeframe-profile-v1.0.0"
 TIMEFRAME_KEYS={"daily":"daily","weekly_completed":"weekly","monthly_completed":"monthly"}
 TIMEFRAME_LABELS={"daily":"日线主导","weekly":"周线主导","monthly":"月线主导"}
-TIMEFRAME_ANCHORS={"trend","macd","price_structure"}
 
-def _factor_ledger(states,hits):
+
+def _rankable_positive_hits(hits):
+ """Return positive evidence after gates, risks and dependencies are removed."""
+ positive=set()
+ for factor_id in hits:
+  factor=FACTORS_BY_ID.get(factor_id)
+  if not factor or factor_id in GATE_FACTOR_IDS or factor.evidence_family=="risk":continue
+  if factor.depends_on and not all(parent in hits for parent in factor.depends_on):continue
+  positive.add(factor_id)
+ return positive
+
+
+def _resonance_summary(hits):
+ """Count raw evidence, independent families and explicit confirmations.
+
+ Raw hits are deliberately not deduplicated: the user wants to see every
+ objective confirmation.  Family breadth and dependency/timeframe bonuses sit
+ beside that raw count so correlated evidence remains auditable.
+ """
+ positive=_rankable_positive_hits(hits)
+ families={FACTORS_BY_ID[factor_id].evidence_family for factor_id in positive}
+ timeframe_counts={key:0 for key in TIMEFRAME_LABELS}
+ family_timeframes={family:set() for family in families}
+ for factor_id in positive:
+  factor=FACTORS_BY_ID[factor_id];timeframe=TIMEFRAME_KEYS.get(factor.timeframe)
+  if timeframe:
+   timeframe_counts[timeframe]+=1;family_timeframes[factor.evidence_family].add(timeframe)
+ confirmations=[]
+ for child_id in sorted(positive):
+  child=FACTORS_BY_ID[child_id]
+  for parent_id in child.depends_on:
+   if parent_id in positive:confirmations.append({"parent":parent_id,"child":child_id,"family":child.evidence_family,"bonus":1})
+ resonance=[]
+ for family,frames in sorted(family_timeframes.items()):
+  if {"daily","weekly"}<=frames:resonance.append({"family":family,"timeframes":["daily","weekly"],"bonus":2})
+  if {"weekly","monthly"}<=frames:resonance.append({"family":family,"timeframes":["weekly","monthly"],"bonus":2})
+  if {"daily","monthly"}<=frames:resonance.append({"family":family,"timeframes":["daily","monthly"],"bonus":1})
+  if {"daily","weekly","monthly"}<=frames:resonance.append({"family":family,"timeframes":["daily","weekly","monthly"],"bonus":2})
+ confirmation_bonus=sum(item["bonus"] for item in confirmations)
+ timeframe_bonus=sum(item["bonus"] for item in resonance)
+ score=len(positive)+len(families)+confirmation_bonus+timeframe_bonus
+ risks=sorted(factor_id for factor_id in hits if (factor:=FACTORS_BY_ID.get(factor_id)) and factor.evidence_family=="risk")
+ return {"version":"technical-resonance-count-v1.0.0","positive_hit_count":len(positive),"positive_factor_ids":sorted(positive),"family_count":len(families),"families":sorted(families),"timeframe_counts":timeframe_counts,"parent_child_confirmation_bonus":confirmation_bonus,"parent_child_confirmations":confirmations,"timeframe_resonance_bonus":timeframe_bonus,"timeframe_resonances":resonance,"risk_hit_count":len(risks),"risk_factor_ids":risks,"technical_resonance_score":score,"formula":f"{len(positive)}颗 + {len(families)}家族 + {confirmation_bonus}重复确认 + {timeframe_bonus}周期共振 = {score}"}
+
+def _factor_ledger(states,hits,resonance):
  ledger=[];shadow_groups=set()
+ positive=set(resonance["positive_factor_ids"])
+ confirmation_children={item["child"] for item in resonance["parent_child_confirmations"]}
  for factor_id,state in states.items():
-  factor=FACTORS_BY_ID.get(factor_id);points=0;shadow_points=0;rule="C/D级或待验证：显示，权重 0"
+  factor=FACTORS_BY_ID.get(factor_id);points=0;shadow_points=0;rule="未命中或当前不可检测"
+  counted=factor_id in positive
   if factor_id in BASELINE_CORE:
-   points=BASELINE_CORE[factor_id] if factor_id in hits else 0;rule=f"共同基线 +{BASELINE_CORE[factor_id]}" if points else "共同基线未满足 +0"
-  elif factor_id in B_SHADOW_IDS:
+   rule="共同门票：显示，不参与候选间颗数排序" if factor_id in hits else "共同门票未满足"
+  elif counted:
+   points=1;rule=f"技术证据 +1颗；研究状态 {factor.status}"
+  if factor_id in B_SHADOW_IDS:
    group=factor.redundancy_group if factor else factor_id
-   if factor_id in hits and group not in shadow_groups:shadow_points=1;shadow_groups.add(group);rule="B级影子排序 +1"
-   elif factor_id in hits:rule="B级命中，但同组封顶 +0"
-   else:rule="B级未命中 +0"
-  elif factor_id=="risk.overhead_unfilled_gap":rule="B级方向待复核：停止旧扣分，权重 0"
-  ledger.append({"factor_id":factor_id,"name":factor.name_zh if factor else factor_id,"available":bool(state.get("available")),"hit":factor_id in hits,"active_now":bool(state.get("hit")),"recent_hit":bool(state.get("recent_hit")),"bars_since_hit":state.get("bars_since_hit"),"latest_hit_date":state.get("latest_hit_date"),"points":points,"shadow_points":shadow_points,"score_rule":rule,"evidence":state.get("evidence",{})})
+   if factor_id in hits and group not in shadow_groups:shadow_points=1;shadow_groups.add(group)
+  if factor and factor.evidence_family=="risk" and factor_id in hits:rule="风险证据：单列，不增加技术颗数"
+  ledger.append({"factor_id":factor_id,"name":factor.name_zh if factor else factor_id,"available":bool(state.get("available")),"hit":factor_id in hits,"active_now":bool(state.get("hit")),"recent_hit":bool(state.get("recent_hit")),"bars_since_hit":state.get("bars_since_hit"),"latest_hit_date":state.get("latest_hit_date"),"points":points,"counted_in_resonance":counted,"count_points":points,"confirmation_bonus":1 if factor_id in confirmation_children else 0,"factor_family":factor.evidence_family if factor else None,"timeframe":TIMEFRAME_KEYS.get(factor.timeframe,factor.timeframe) if factor else None,"research_status":factor.status if factor else None,"shadow_points":shadow_points,"score_rule":rule,"evidence":state.get("evidence",{})})
  return ledger
 
 def _present(state):
  return bool(state.get("recent_hit") if state.get("factor_id") in {"macd.daily_bull_cross","structure.support_bullish_engulfing","structure.engulfing_bullish_follow_through","volume.bottom_expansion"} else state.get("hit"))
 
-def _timeframe_profile(states,hits):
- """Describe where experimental evidence lives without changing V2 rank."""
- grouped={}
- for factor_id in hits:
-  factor=FACTORS_BY_ID.get(factor_id)
-  if not factor or factor_id=="macd.daily_bull_cross" or factor.evidence_family=="risk" or factor.experimental_weight<=0:continue
-  timeframe=TIMEFRAME_KEYS.get(factor.timeframe)
+def _timeframe_profile(states,hits,resonance):
+ """Show every counted daily/weekly/monthly hit used by the rank."""
+ evidence={key:[] for key in TIMEFRAME_LABELS};points={key:0.0 for key in TIMEFRAME_LABELS};families={key:set() for key in TIMEFRAME_LABELS}
+ for factor_id in resonance["positive_factor_ids"]:
+  factor=FACTORS_BY_ID[factor_id];timeframe=TIMEFRAME_KEYS.get(factor.timeframe)
   if not timeframe:continue
-  key=(timeframe,factor.redundancy_group)
-  candidate={"factor_id":factor_id,"family":factor.evidence_family,"points":float(factor.experimental_weight)}
-  if key not in grouped or candidate["points"]>grouped[key]["points"]:grouped[key]=candidate
- evidence={key:[] for key in TIMEFRAME_LABELS};points={key:0.0 for key in TIMEFRAME_LABELS};anchors={key:False for key in TIMEFRAME_LABELS}
- for (timeframe,_),item in sorted(grouped.items()):
-  evidence[timeframe].append(item["factor_id"]);points[timeframe]+=item["points"]
-  anchors[timeframe]=anchors[timeframe] or item["family"] in TIMEFRAME_ANCHORS
+  evidence[timeframe].append(factor_id);points[timeframe]+=1;families[timeframe].add(factor.evidence_family)
  total=sum(points.values());shares={key:round(value/total,4) if total else 0.0 for key,value in points.items()};groups={key:len(value) for key,value in evidence.items()}
- eligible={key:(points[key]>0 and (key=="daily" or groups[key]>=2 and anchors[key])) for key in TIMEFRAME_LABELS}
+ anchors={key:bool(families[key]) for key in TIMEFRAME_LABELS}
+ eligible={key:points[key]>0 for key in TIMEFRAME_LABELS}
  choices=[key for key in TIMEFRAME_LABELS if eligible[key]]
  if not choices:
   dominant=None;label="周期证据不足";resonance=False
  else:
   dominant=max(choices,key=lambda key:(points[key],{"daily":0,"weekly":1,"monthly":2}[key]))
   ordered=sorted((shares[key] for key in choices),reverse=True);lead=ordered[0]-(ordered[1] if len(ordered)>1 else 0)
-  resonance=len(choices)>1 and (shares[dominant]<.5 or lead<.1)
-  label=f"多周期共振（{TIMEFRAME_LABELS[dominant]}）" if resonance else TIMEFRAME_LABELS[dominant]
- return {"version":TIMEFRAME_PROFILE_VERSION,"status":"experimental_descriptive_only","label":label,"dominant_timeframe":dominant,"is_resonance":resonance,"points":{key:round(value,2) for key,value in points.items()},"shares":shares,"independent_groups":groups,"anchor_present":anchors,"evidence":evidence}
+  is_resonance=len(choices)>1 and (shares[dominant]<.5 or lead<.1)
+  label=f"多周期共振（{TIMEFRAME_LABELS[dominant]}）" if is_resonance else TIMEFRAME_LABELS[dominant]
+ return {"version":TIMEFRAME_PROFILE_VERSION,"status":"count_based_research_priority","label":label,"dominant_timeframe":dominant,"is_resonance":is_resonance,"points":{key:round(value,2) for key,value in points.items()},"shares":shares,"independent_groups":{key:len(families[key]) for key in TIMEFRAME_LABELS},"anchor_present":anchors,"evidence":evidence,"resonance_bonus":resonance["timeframe_resonance_bonus"],"resonances":resonance["timeframe_resonances"]}
 
 def _load_cache(cache_dir):
  data={}
@@ -99,39 +137,41 @@ def _industry(day):
 
 def _candidate(row,market,industry):
  states={x["factor_id"]:x for x in row["factors"]};hits={key for key,value in states.items() if value.get("available") and _present(value)}
- technical=sum(weight for key,weight in BASELINE_CORE.items() if key in hits)
  trigger=row.get("trigger",{})
  if trigger.get("factor_id")!="macd.daily_bull_cross" or trigger.get("exact_completed_cross") is not True:return None
- if "qualification.long_trend" not in hits or "macd.daily_bull_cross" not in hits or technical<4:return None
+ if "qualification.long_trend" not in hits or "macd.daily_bull_cross" not in hits:return None
+ resonance=_resonance_summary(hits);technical=resonance["technical_resonance_score"]
  market_score=market["market_temperature"]["score"] if market else None
  market_adjustment=1 if market_score is not None and market_score>=4 else -1 if market_score is not None and market_score<=1 else 0
  contexts=industry.get("ticker_context",{}).get(row["symbol"],[]) if industry.get("historical_membership_safe") else []
  states_seen=sorted({x.get("state") for x in contexts if x.get("state")})
  industry_adjustment=1 if "Leadership" in states_seen else .5 if set(states_seen)&{"Recovery","Pullback Watch"} else 0
  final=technical+market_adjustment+industry_adjustment
- ledger=_factor_ledger(states,hits)
+ ledger=_factor_ledger(states,hits,resonance)
  b_shadow_score=sum(item["shadow_points"] for item in ledger)
- reasons=["长期趋势","MACD金叉"]+[item["name"] for item in ledger if item["shadow_points"]]
- return {"symbol":row["symbol"],"price":row["price"],"technical_score":technical,"b_shadow_score":b_shadow_score,"market_adjustment":market_adjustment,"industry_adjustment":industry_adjustment,"final_priority":final,"score_equation":f"{technical} 技术基线 {market_adjustment:+g} 大盘 {industry_adjustment:+g} 行业 = {final:g}；B级影子 {b_shadow_score}","reasons":reasons,"industry_states":states_seen,"factor_ledger":ledger,"timeframe_profile":_timeframe_profile(states,hits),"execution_policy_version":row.get("execution_policy_version"),"support_plan":row.get("support_plan"),"experimental_score":row["scoring"]["experimental_observational_score"]}
+ reasons=[f"{resonance['positive_hit_count']}颗技术证据",f"{resonance['family_count']}个家族"]
+ if resonance["parent_child_confirmation_bonus"]:reasons.append(f"{resonance['parent_child_confirmation_bonus']}次重复确认")
+ if resonance["timeframe_resonance_bonus"]:reasons.append(f"跨周期共振 +{resonance['timeframe_resonance_bonus']}")
+ return {"symbol":row["symbol"],"price":row["price"],"technical_score":technical,"technical_resonance":resonance,"b_shadow_score":b_shadow_score,"market_adjustment":market_adjustment,"industry_adjustment":industry_adjustment,"context_adjustment":market_adjustment+industry_adjustment,"final_priority":final,"score_equation":f"{resonance['formula']}；行业 {industry_adjustment:+g}、大盘 {market_adjustment:+g} 只作同分上下文","reasons":reasons,"industry_states":states_seen,"factor_ledger":ledger,"timeframe_profile":_timeframe_profile(states,hits,resonance),"execution_policy_version":row.get("execution_policy_version"),"support_plan":row.get("support_plan"),"experimental_score":row["scoring"]["experimental_observational_score"]}
 
 def _rank_day(snapshot,market,industry):
  day=snapshot["as_of"]
  if market is not None and market.get("as_of")!=day:raise RuntimeError("Published V2 market input is not synchronized")
  if industry.get("as_of")!=day:raise RuntimeError("Published V2 industry input is not synchronized")
  candidates=[x for row in snapshot["symbols"] if (x:=_candidate(row,market,industry))]
- candidates.sort(key=lambda x:(-x["final_priority"],-x["b_shadow_score"],-x["technical_score"],x["symbol"]))
+ candidates.sort(key=lambda x:(-x["technical_score"],-x["technical_resonance"]["timeframe_resonance_bonus"],-x["technical_resonance"]["family_count"],-x["technical_resonance"]["positive_hit_count"],-x["context_adjustment"],x["symbol"]))
  for rank,item in enumerate(candidates[:30],1):item["rank"]=rank
- rare=[x for x in candidates[:RARE_LIMIT] if x["final_priority"]>=RARE_MIN_PRIORITY and x["b_shadow_score"]>=RARE_MIN_B_SHADOW]
- pool=[{"symbol":x["symbol"],"price":x["price"],"technical_score":x["technical_score"],"b_shadow_score":x["b_shadow_score"],"market_adjustment":x["market_adjustment"],"industry_adjustment":x["industry_adjustment"],"base_priority":x["final_priority"],"experimental_score":x["experimental_score"],"timeframe_profile":x["timeframe_profile"],"hit_factor_ids":[f["factor_id"] for f in x["factor_ledger"] if f["hit"]]} for x in candidates]
+ rare=candidates[:RARE_LIMIT]
+ pool=[{"symbol":x["symbol"],"price":x["price"],"technical_score":x["technical_score"],"technical_resonance":x["technical_resonance"],"b_shadow_score":x["b_shadow_score"],"market_adjustment":x["market_adjustment"],"industry_adjustment":x["industry_adjustment"],"base_priority":x["technical_score"],"context_reference":x["final_priority"],"experimental_score":x["experimental_score"],"timeframe_profile":x["timeframe_profile"],"hit_factor_ids":[f["factor_id"] for f in x["factor_ledger"] if f["hit"]]} for x in candidates]
  rare_rows=[{k:v for k,v in x.items() if k not in {"factor_ledger","factor_summary"}} for x in rare]
  market_view={"state":market["market_temperature"]["state"],"score":market["market_temperature"]["score"]} if market else {"state":"unavailable","score":None}
- return {"date":day,"model_version":MODEL_VERSION,"factor_registry_version":REGISTRY_VERSION,"ruleset_id":RULESET_ID,"market":market_view,"industry_status":industry.get("status"),"historical_membership_safe":bool(industry.get("historical_membership_safe")),"eligible_count":snapshot["eligible_count"],"triggered_count":snapshot.get("triggered_count",len(snapshot["symbols"])),"candidate_count":len(candidates),"rare_policy":f"统一排行榜前{RARE_LIMIT}名、最终优先级至少{RARE_MIN_PRIORITY}且B级影子分至少{RARE_MIN_B_SHADOW}；顺序与排行榜完全一致","rare_symbols":[x["symbol"] for x in rare],"rare_opportunities":rare_rows,"candidate_pool_policy":f"当日完整收盘MACD金叉先触发；触发后完整检测其余{REMAINING_FACTOR_COUNT}个登记因子。A正式加权当前为空；B只作影子排序；C/D权重为0","candidate_pool":pool,"ranking":candidates[:30]}
+ return {"date":day,"model_version":MODEL_VERSION,"factor_registry_version":REGISTRY_VERSION,"ruleset_id":RULESET_ID,"market":market_view,"industry_status":industry.get("status"),"historical_membership_safe":bool(industry.get("historical_membership_safe")),"eligible_count":snapshot["eligible_count"],"triggered_count":snapshot.get("triggered_count",len(snapshot["symbols"])),"candidate_count":len(candidates),"rare_policy":f"复杂多因子排行榜前{RARE_LIMIT}名；先比技术共振分、周期奖金、家族数和颗数，行业与大盘只处理技术完全同分","rare_symbols":[x["symbol"] for x in rare],"rare_opportunities":rare_rows,"candidate_pool_policy":f"当日完整收盘MACD金叉与长期趋势作共同门票；触发后检测其余{REMAINING_FACTOR_COUNT}项，非风险真实命中均计颗数并保留原研究状态","candidate_pool":pool,"ranking":candidates[:30]}
 
 def _compact_factor(item):
  """Keep every audit decision while removing repeated labels and raw evidence."""
  factor_id=item.get("factor_id");factor=FACTORS_BY_ID.get(factor_id);available=bool(item.get("available"));hit=bool(item.get("hit"));points=item.get("points",0)
  rule=item.get("score_rule") or ("规则未客观化" if not available else f"命中 {points:+g}" if points else "命中，暂不计分" if hit else "未命中 +0")
- return {"factor_id":factor_id,"name":item.get("name") or (factor.name_zh if factor else factor_id),"available":available,"hit":hit,"active_now":bool(item.get("active_now")),"bars_since_hit":item.get("bars_since_hit"),"points":points,"shadow_points":item.get("shadow_points",0),"score_rule":rule}
+ return {"factor_id":factor_id,"name":item.get("name") or (factor.name_zh if factor else factor_id),"available":available,"hit":hit,"active_now":bool(item.get("active_now")),"bars_since_hit":item.get("bars_since_hit"),"points":points,"counted_in_resonance":bool(item.get("counted_in_resonance")),"count_points":item.get("count_points",points),"confirmation_bonus":item.get("confirmation_bonus",0),"factor_family":item.get("factor_family") or (factor.evidence_family if factor else None),"timeframe":item.get("timeframe") or (TIMEFRAME_KEYS.get(factor.timeframe,factor.timeframe) if factor else None),"research_status":item.get("research_status") or (factor.status if factor else None),"shadow_points":item.get("shadow_points",0),"score_rule":rule}
 
 def _compact_day(day):
  day={**day}
@@ -153,23 +193,34 @@ def _write_report(results,out,merge_existing):
   existing_registry=existing.get("model",{}).get("factor_registry_version","legacy_unrecorded")
   previous=[]
   for day in existing.get("days",[]):previous.append({"model_version":existing.get("version","legacy_unrecorded"),"factor_registry_version":existing_registry,"ruleset_id":f"{existing.get('version','legacy_unrecorded')}+factors-{existing_registry}",**day})
-  by_date={x["date"]:x for x in previous};by_date.update({x["date"]:x for x in results});results=[by_date[x] for x in sorted(by_date)]
+  by_date={x["date"]:x for x in previous}
+  for result in results:
+   prior=by_date.get(result["date"])
+   # A model migration may recalculate the latest screen for today's website,
+   # but it must not rewrite the immutable historical ranking for that date.
+   if prior and prior.get("model_version")!=result.get("model_version"):continue
+   by_date[result["date"]]=result
+  results=[by_date[x] for x in sorted(by_date)]
  results=[_compact_day(day) for day in results]
  versions=sorted({x.get("model_version","legacy_unrecorded") for x in results});registries=sorted({x.get("factor_registry_version","legacy_unrecorded") for x in results})
- report={"version":MODEL_VERSION,"generated_at":datetime.now(timezone.utc).isoformat(),"coverage":{"start":results[0]["date"],"end":results[-1]["date"],"sessions":len(results)},"production_status":"evidence_calibrated_shadow_challenger","future_data_used":False,"version_policy":"每个历史日冻结其首次回放时的模型与因子库版本；新规则只用于后续批次，除非另开重算实验","model_versions":versions,"factor_registry_versions":registries,"model":{"ruleset_id":RULESET_ID,"factor_registry_version":REGISTRY_VERSION,"trigger":"当日完整收盘日线MACD刚发生金叉；MACD是事件门票，长期趋势是共同资格","technical":f"触发后完整检测其余{REMAINING_FACTOR_COUNT}个因子；共同技术基线为长期趋势2 + MACD门票3。当前无A级正式因子；B级按冗余组每项影子+1，只用于同等基线排序；C/D权重为0；上方未补缺口停止旧固定扣分","timeframe_profile":"日/周/月去重后的实验观察贡献；只作描述，不改变正式技术基线或承诺持仓时间","industry":"有当日有效成员快照时：Leadership +1；Recovery/Pullback Watch +0.5；与技术分分开保存","market":"市场温度4-5加1；2-3不变；0-1减1；与技术分分开保存","entry_gate":"必须当日MACD金叉触发、长期趋势有效且共同技术基线为5；其余因子仍全部检测并按A/B/C/D规则解释","execution":"新批次按下一交易日复权开盘入场；止损为信号日支撑下5%，最大计划亏损10%；2R止盈、40日到期、同日触发先算止损"},"limitations":["当前没有A级正式加权因子，B级影子分不是验证胜率","当前股票池来自现存缓存，正式胜率研究仍需纳入退市股票以消除幸存者偏差","没有当日有效行业成员快照的日期不做行业加分，绝不使用未来分类回填"],"days":results}
+ report={"version":MODEL_VERSION,"generated_at":datetime.now(timezone.utc).isoformat(),"coverage":{"start":results[0]["date"],"end":results[-1]["date"],"sessions":len(results)},"production_status":"count_based_manual_review_challenger","future_data_used":False,"version_policy":"每个历史日冻结其首次回放时的模型与因子库版本；新规则只用于后续批次，除非另开重算实验","model_versions":versions,"factor_registry_versions":registries,"model":{"ruleset_id":RULESET_ID,"factor_registry_version":REGISTRY_VERSION,"trigger":"当日完整收盘日线MACD刚发生金叉；MACD是事件门票，长期趋势是共同资格","technical":f"共同门票不参加候选分差；其余{REMAINING_FACTOR_COUNT}项中每个非风险真实命中计1颗，再加家族覆盖、父子确认和跨周期共振。研究状态继续显示，颗数不代表已验证收益","timeframe_profile":"日/周/月全部计数证据及同家族共振；直接参与人工复核排序，不承诺持仓时间","industry":"有当日有效成员快照时保存Leadership/Recovery/Pullback Watch上下文；只处理技术完全同分","market":"市场温度继续独立保存；只处理技术完全同分","entry_gate":"必须当日MACD金叉触发且长期趋势有效；其余因子按点时定义检测","execution":"新批次按下一交易日复权开盘入场；止损为信号日支撑下5%，最大计划亏损10%；2R止盈、40日到期、同日触发先算止损"},"limitations":["技术共振分是用户指定的人工复核优先级，不是已验证胜率或Alpha","相关因子会提高原始颗数，因此同时公开家族覆盖和重复确认","当前股票池来自现存缓存，正式收益研究仍需处理幸存者偏差","没有当日有效行业成员快照的日期不做行业上下文，绝不使用未来分类回填"],"days":results}
  pathlib.Path(out).write_text(json.dumps(report,ensure_ascii=False,separators=(",",":"))+"\n");return report
 
-def write_latest(report,out=LATEST_OUT):
+def write_latest(report,out=LATEST_OUT,day=None):
  """Publish only the latest ranking day for fast daily pages."""
- latest={**report,"days":report.get("days",[])[-1:]}
+ selected=_compact_day(day) if day is not None else (report.get("days",[]) or [None])[-1]
+ latest={**report,"days":[selected] if selected else []}
+ if selected:
+  latest["model_versions"]=sorted(set(latest.get("model_versions",[]))|{selected.get("model_version","legacy_unrecorded")})
  pathlib.Path(out).write_text(json.dumps(latest,ensure_ascii=False,separators=(",",":"))+"\n")
  return latest
 
 def run_published(out=OUT,public_dir="public"):
  root=pathlib.Path(public_dir)
  snapshot=json.loads((root/"daily-factor-snapshot.json").read_text());market=json.loads((root/"market-etf-watch.json").read_text());industry=json.loads((root/"industry-radar.json").read_text())
- report=_write_report([_rank_day(snapshot,market,industry)],out,True)
- if pathlib.Path(out)==pathlib.Path(OUT):write_latest(report)
+ day=_rank_day(snapshot,market,industry)
+ report=_write_report([day],out,True)
+ if pathlib.Path(out)==pathlib.Path(OUT):write_latest(report,day=day)
  return report
 
 def run(start="2026-07-01",end=None,out=OUT,cache_dir="work/eodhd-cache",merge_existing=True):
