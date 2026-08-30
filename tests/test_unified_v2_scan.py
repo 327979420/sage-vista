@@ -65,5 +65,14 @@ class UnifiedV2ScanTests(unittest.TestCase):
    self.assertEqual(report["days"][0]["ranking"][0]["symbol"],"OLD")
    self.assertEqual(latest["days"][0]["ranking"][0]["symbol"],"NEW")
 
+ def test_web_archive_keeps_full_recent_ledgers_and_only_hits_when_older(self):
+  days=[]
+  for index in range(31):
+   days.append({"date":f"2026-07-{index+1:02d}","model_version":"same","factor_registry_version":"same","ranking":[{"symbol":"AAA","factor_ledger":[{"factor_id":"hit","hit":True},{"factor_id":"miss","hit":False}]}]})
+  with tempfile.TemporaryDirectory() as folder:
+   out=Path(folder)/"archive.json";report=_write_report(days,out,False)
+   self.assertEqual([x["factor_id"] for x in report["days"][0]["ranking"][0]["factor_ledger"]],["hit"])
+   self.assertEqual(len(report["days"][-1]["ranking"][0]["factor_ledger"]),2)
+
 
 if __name__=="__main__":unittest.main()

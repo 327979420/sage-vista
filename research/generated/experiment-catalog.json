@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-08-30T14:41:18+10:00",
+  "generated_at": "2026-08-30T14:55:08+10:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
@@ -78,9 +78,9 @@
         "started_at": "2026-08-30T14:00:00+10:00",
         "completed_at": null,
         "latest_event": "checkpoint",
-        "latest_event_at": "2026-08-30T14:41:18+10:00",
-        "time_source": "local_test_suite",
-        "event_count": 3,
+        "latest_event_at": "2026-08-30T14:55:08+10:00",
+        "time_source": "github_actions_failure_and_local_fix",
+        "event_count": 4,
         "events": [
           {
             "experiment_id": "multi-factor-count-resonance-v1.0.0-2026-08-30",
@@ -105,6 +105,14 @@
             "time_source": "local_test_suite",
             "source_ref": "tests/test_unified_v2_scan.py",
             "result": "The complete 318-test Python suite, typecheck, lint, production build and 11 rendered/automation tests passed before cloud calibration. Latest-only refresh and immutable same-day history are both covered by contract tests."
+          },
+          {
+            "experiment_id": "multi-factor-count-resonance-v1.0.0-2026-08-30",
+            "event": "checkpoint",
+            "event_at": "2026-08-30T14:55:08+10:00",
+            "time_source": "github_actions_failure_and_local_fix",
+            "source_ref": "33293143059",
+            "result": "The first cloud calibration completed the full market scan and new ranking, then failed closed because adding current audit fields to every historical factor row made unified-v2-rankings.json 26,499,779 bytes, above Cloudflare's 25 MiB limit. No data was committed or deployed. The archive writer now keeps complete ledgers for the latest 30 sessions and only actual hits in older website rows, matching the pre-existing retention rule; local replay remains 18,935,955 bytes and 319 Python plus full website tests pass."
           }
         ]
       }

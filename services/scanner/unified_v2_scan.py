@@ -187,7 +187,18 @@ def _compact_day(day):
  day["rare_opportunities"]=rare_rows or [{k:v for k,v in row.items() if k!="factor_ledger"} for row in ranking if row.get("symbol") in rare_symbols]
  return day
 
+def _trim_archived_day(day):
+ """Remove redundant misses from older website history without changing facts."""
+ day={**day};ranking=[]
+ for row in day.get("ranking",[]):
+  row={**row}
+  row["factor_ledger"]=[item for item in row.get("factor_ledger",[]) if item.get("hit")]
+  ranking.append(row)
+ day["ranking"]=ranking
+ return day
+
 def _write_report(results,out,merge_existing):
+ results=[_compact_day(day) for day in results]
  if merge_existing and pathlib.Path(out).exists():
   existing=json.loads(pathlib.Path(out).read_text())
   existing_registry=existing.get("model",{}).get("factor_registry_version","legacy_unrecorded")
@@ -201,7 +212,11 @@ def _write_report(results,out,merge_existing):
    if prior and prior.get("model_version")!=result.get("model_version"):continue
    by_date[result["date"]]=result
   results=[by_date[x] for x in sorted(by_date)]
- results=[_compact_day(day) for day in results]
+ # The website keeps complete factor ledgers for only the latest 30 sessions.
+ # Older rows retain ranking, scores, reasons and every actual hit; full research
+ # checkpoints stay in Git/Actions and are never replaced by this web compaction.
+ recent_dates={day["date"] for day in results[-30:]}
+ results=[day if day["date"] in recent_dates else _trim_archived_day(day) for day in results]
  versions=sorted({x.get("model_version","legacy_unrecorded") for x in results});registries=sorted({x.get("factor_registry_version","legacy_unrecorded") for x in results})
  report={"version":MODEL_VERSION,"generated_at":datetime.now(timezone.utc).isoformat(),"coverage":{"start":results[0]["date"],"end":results[-1]["date"],"sessions":len(results)},"production_status":"count_based_manual_review_challenger","future_data_used":False,"version_policy":"每个历史日冻结其首次回放时的模型与因子库版本；新规则只用于后续批次，除非另开重算实验","model_versions":versions,"factor_registry_versions":registries,"model":{"ruleset_id":RULESET_ID,"factor_registry_version":REGISTRY_VERSION,"trigger":"当日完整收盘日线MACD刚发生金叉；MACD是事件门票，长期趋势是共同资格","technical":f"共同门票不参加候选分差；其余{REMAINING_FACTOR_COUNT}项中每个非风险真实命中计1颗，再加家族覆盖、父子确认和跨周期共振。研究状态继续显示，颗数不代表已验证收益","timeframe_profile":"日/周/月全部计数证据及同家族共振；直接参与人工复核排序，不承诺持仓时间","industry":"有当日有效成员快照时保存Leadership/Recovery/Pullback Watch上下文；只处理技术完全同分","market":"市场温度继续独立保存；只处理技术完全同分","entry_gate":"必须当日MACD金叉触发且长期趋势有效；其余因子按点时定义检测","execution":"新批次按下一交易日复权开盘入场；止损为信号日支撑下5%，最大计划亏损10%；2R止盈、40日到期、同日触发先算止损"},"limitations":["技术共振分是用户指定的人工复核优先级，不是已验证胜率或Alpha","相关因子会提高原始颗数，因此同时公开家族覆盖和重复确认","当前股票池来自现存缓存，正式收益研究仍需处理幸存者偏差","没有当日有效行业成员快照的日期不做行业上下文，绝不使用未来分类回填"],"days":results}
  pathlib.Path(out).write_text(json.dumps(report,ensure_ascii=False,separators=(",",":"))+"\n");return report
