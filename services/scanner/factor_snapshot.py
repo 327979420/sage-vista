@@ -1,4 +1,9 @@
-"""Build the deterministic, shadow-only daily canonical factor snapshot."""
+"""Build the canonical point-in-time factor facts after today's MACD gate.
+
+Input is the eligible cached universe cut at one completed session. Output is
+the full 39-factor audit for exact daily MACD-cross symbols. This file records
+facts and shadow scores; it does not by itself authorize a trade.
+"""
 import argparse,json,pathlib
 
 from .eodhd import latest_reference_day

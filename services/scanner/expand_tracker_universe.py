@@ -1,4 +1,9 @@
-"""Expand the live tracker toward the most liquid active US common stocks."""
+"""Prepare the liquid active-stock cache used by the daily scanner.
+
+The selection audit is an intermediate file. Daily production passes a
+temporary output path, while manual runs default to ``work/`` so this helper
+cannot accidentally add another website product file.
+"""
 import argparse,json,pathlib
 from concurrent.futures import ThreadPoolExecutor,as_completed
 from datetime import date,datetime,timedelta,timezone
@@ -11,7 +16,7 @@ def latest_bulk_day(as_of=None):
  bulk_day(expected,strict=True)
  return expected
 
-def run(target=1000,as_of=None,cache_dir="work/eodhd-cache",out="public/universe-expansion.json"):
+def run(target=1000,as_of=None,cache_dir="work/eodhd-cache",out="work/universe-expansion.json"):
  as_of=latest_bulk_day(as_of)
  cache=pathlib.Path(cache_dir);cache.mkdir(parents=True,exist_ok=True)
  symbol_cache=pathlib.Path("work/eodhd-active-common.json")
@@ -40,7 +45,7 @@ def run(target=1000,as_of=None,cache_dir="work/eodhd-cache",out="public/universe
     _,count=future.result();results["downloaded"].append({"symbol":code,"rows":count})
    except Exception as exc:results["failed"][code]=str(exc)
  report={"generated_at":datetime.now(timezone.utc).isoformat(),"as_of":as_of,"target":target,"selection":"最新收盘日中成交额最高、股价不低于5美元且成交额不低于1000万美元的活跃美国普通股","selected":len(selected),"already_cached":len(selected)-len(missing),"downloaded":len(results["downloaded"]),"failed":len(results["failed"]),"total_cache_files":len(list(cache.glob("*.json"))),"failures":results["failed"]}
- pathlib.Path(out).write_text(json.dumps(report,ensure_ascii=False,indent=2));return report
+ path=pathlib.Path(out);path.parent.mkdir(parents=True,exist_ok=True);path.write_text(json.dumps(report,ensure_ascii=False,indent=2));return report
 
 if __name__=="__main__":
  parser=argparse.ArgumentParser();parser.add_argument("--target",type=int,default=1000);parser.add_argument("--as-of");args=parser.parse_args()

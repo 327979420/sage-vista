@@ -4,11 +4,11 @@
 **Status:** Authoritative  
 **Configuration:** `config/technical_rules.json`
 
-This document is the version-controlled definition of Northstar technical setups. Code, tests and UI explanations must agree with it. If code and prose differ, this rulebook controls until both are changed together. All analysis is deterministic from timestamped OHLCV and connector data; chart-image guessing is prohibited.
+This document is the version-controlled definition of Sage Vista technical setups. Code, tests and UI explanations must agree with it. If code and prose differ, this rulebook controls until both are changed together. All analysis is deterministic from timestamped OHLCV and connector data; chart-image guessing is prohibited.
 
 ## 1. Governing principles
 
-Northstar seeks quality companies in primary uptrends that are undergoing secondary pullbacks. Timeframe priority is monthly, weekly, daily, then four-hour. Monthly and weekly data determine eligibility and context; daily or four-hour data may trigger execution but cannot override weak higher-timeframe structure.
+Sage Vista seeks quality companies in primary uptrends that are undergoing secondary pullbacks. Timeframe priority is monthly, weekly, daily, then four-hour. Monthly and weekly data determine eligibility and context; daily or four-hour data may trigger execution but cannot override weak higher-timeframe structure.
 
 A setup and an entry are different states. Weak markets reduce recommendation strength and add a visible conflict warning; they do not rewrite the underlying setup detection. Missing data is reported, never silently scored. Detection uses only bars available at the stated detection timestamp.
 
@@ -81,7 +81,7 @@ Valid confirming patterns are:
 - Bullish expansion candle with body at least 60% of range.
 - Doji followed by a bullish close above both the doji high and broken level.
 
-A doji alone is never an entry. A solid close back below the level invalidates the retest. No valid retest within five bars is `breakout_without_entry`; Northstar does not automatically chase.
+A doji alone is never an entry. A solid close back below the level invalidates the retest. No valid retest within five bars is `breakout_without_entry`; Sage Vista does not automatically chase.
 
 ## 9. Entry alternatives and structural stop
 

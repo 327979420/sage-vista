@@ -1,8 +1,10 @@
-"""Point-in-time V2 research ranking: technical factors + industry + market.
+"""Build the point-in-time V2 ranking: technical facts + separate context.
 
 This is deliberately a shadow ranking until its exact weights have a complete
 out-of-sample result. Historical industry adjustments are only applied when a
-membership snapshot was effective on that date.
+membership snapshot was effective on that date. Technical, industry and market
+contributions remain separate fields so context cannot masquerade as a proven
+technical factor.
 """
 import argparse,json,pathlib,tempfile
 from datetime import datetime,timezone

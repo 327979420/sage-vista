@@ -76,7 +76,7 @@ def evaluate(panel,spy_forward,start,end,horizon=10,stock_cost_bps=20,hedge_cost
   result[name]={key:portfolio_stats(values) for key,values in streams.items()}
   result[name]["exposure_coverage_pct"]=round(statistics.mean(coverage)*100,1) if coverage else 0
  return result
-def run(cache="work/eodhd-panel-v4.json",out="public/neutralization-test.json"):
+def run(cache="work/eodhd-panel-v4.json",out="research/backtest/output/legacy-foundation/neutralization-test.json"):
  panel=json.loads(pathlib.Path(cache).read_text())["panel"]
  for row in panel:row["forward"]={int(k):v for k,v in row["forward"].items()}
  panel=[x for x in panel if x["regime"]=="risk_on"]
@@ -97,6 +97,6 @@ def run(cache="work/eodhd-panel-v4.json",out="public/neutralization-test.json"):
    stats=[results[x][combo][design] for x in ("development","validation","forward_test")]
    if all((x.get("mean_return") or 0)>0 for x in stats) and stats[0].get("periods",0)>=120 and stats[1].get("periods",0)>=6 and stats[2].get("periods",0)>=3:candidates.append({"combination":combo,"design":design,"status":"candidate_for_significance_test","reason":"Positive mean after modeled costs in development, 2025 validation, and 2026 forward monitoring; not yet tested for statistical significance."})
  report={"generated_at":datetime.now(timezone.utc).isoformat(),"status":"research_only_proxy_neutralization","design":{"sector":"At each signal date, assign the stock to the sector ETF with the highest correlation over the trailing 252 trading days; minimum 126 aligned observations.","sector_ranking":"Rank each predefined technical combination within proxy-sector buckets with at least five eligible stocks.","beta":"Estimate trailing 252-day beta to SPY using only returns available at the signal close.","hedge":"Subtract selected portfolio beta times SPY next-open-to-10-day return; deduct 20 bps stock cost plus 5 bps times absolute hedge beta.","warning":"ETF-correlated sector is a point-in-time statistical proxy, not historical issuer classification. Daily bars and an equal-weight hedge remain approximations."},"coverage_pct":round(coverage,1),"sector_etfs":SECTOR_ETFS,"results":results,"candidates":candidates,"decision":"A candidate advances only to bootstrap significance and rolling-year stability tests; it is not promoted to paper trading from this screen."}
- pathlib.Path(out).write_text(json.dumps(report,indent=2));return report
+ path=pathlib.Path(out);path.parent.mkdir(parents=True,exist_ok=True);path.write_text(json.dumps(report,indent=2));return report
 if __name__=="__main__":
  report=run();print(json.dumps({"coverage_pct":report["coverage_pct"],"validation":report["results"]["validation"],"forward":report["results"]["forward_test"]},indent=2))

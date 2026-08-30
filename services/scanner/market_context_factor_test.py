@@ -42,7 +42,7 @@ def scenario(panel,gate,start,end):
   for x in evaluate_portfolios(rows,10):result[x["combination"]]=x["cost_scenarios_bps"]["20"]["excess_vs_eligible_universe"]
   return result
  return {"enabled":extract(on),"disabled":extract(off),"enabled_dates":len({x["date"] for x in on}),"disabled_dates":len({x["date"] for x in off})}
-def run(cache="work/eodhd-panel-v4.json",out="public/market-context-factor-test.json"):
+def run(cache="work/eodhd-panel-v4.json",out="research/backtest/output/legacy-foundation/market-context-factor-test.json"):
  panel=json.loads(pathlib.Path(cache).read_text())["panel"]
  for row in panel:row["forward"]={int(k):v for k,v in row["forward"].items()}
  panel=[x for x in panel if x["regime"]=="risk_on"]
@@ -69,6 +69,7 @@ def run(cache="work/eodhd-panel-v4.json",out="public/market-context-factor-test.
  for x in continuous:
   d=x["splits"]["development"];v=x["splits"]["validation"];f=x["splits"]["forward_test"];x["development_q_bh"]=adjusted[(x["gate"],x["lookback"],x["combination"])]
   x["verdict"]="candidate_for_more_testing" if d["ci_95"][0] is not None and d["ci_95"][0]>0 and x["development_q_bh"]<=.1 and (v["spearman"] or 0)>0 and (f["spearman"] or 0)>=0 and v["dates"]>=6 and f["dates"]>=3 else "not_confirmed"
- report={"generated_at":datetime.now(timezone.utc).isoformat(),"status":"research_only_multiple_hypothesis_test","design":{"base_universe":"Risk-on, liquid US stocks from survivorship-aware active and delisted sample","binary_signal":"ETF ratio positive over trailing 20 trading days","continuous_signal":"Magnitude of ETF relative return over pre-registered 20, 60, and 120 trading-day windows","portfolio":"Top quintile of each predefined technical combination","outcome":"10-day next-open excess return versus eligible universe after 20 bps cost","inference":"2,000 deterministic paired bootstrap samples; 95% interval; all 54 development p-values controlled together with Benjamini-Hochberg","warning":"Six contexts times three combinations times three windows creates 54 hypotheses; no result is promoted without corrected development evidence and later-period confirmation."},"pairs":PAIRS,"lookbacks":LOOKBACKS,"tests":tests,"verdicts":verdicts,"continuous_results":continuous};pathlib.Path(out).write_text(json.dumps(report,indent=2));return report
+ report={"generated_at":datetime.now(timezone.utc).isoformat(),"status":"research_only_multiple_hypothesis_test","design":{"base_universe":"Risk-on, liquid US stocks from survivorship-aware active and delisted sample","binary_signal":"ETF ratio positive over trailing 20 trading days","continuous_signal":"Magnitude of ETF relative return over pre-registered 20, 60, and 120 trading-day windows","portfolio":"Top quintile of each predefined technical combination","outcome":"10-day next-open excess return versus eligible universe after 20 bps cost","inference":"2,000 deterministic paired bootstrap samples; 95% interval; all 54 development p-values controlled together with Benjamini-Hochberg","warning":"Six contexts times three combinations times three windows creates 54 hypotheses; no result is promoted without corrected development evidence and later-period confirmation."},"pairs":PAIRS,"lookbacks":LOOKBACKS,"tests":tests,"verdicts":verdicts,"continuous_results":continuous}
+ path=pathlib.Path(out);path.parent.mkdir(parents=True,exist_ok=True);path.write_text(json.dumps(report,indent=2));return report
 if __name__=="__main__":
  r=run();print(json.dumps([x for x in r["verdicts"] if x["verdict"]=="candidate_for_more_testing"],indent=2))

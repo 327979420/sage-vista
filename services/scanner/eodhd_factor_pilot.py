@@ -1,3 +1,9 @@
+"""Run the small survivorship-aware EODHD factor pilot.
+
+This is a reproducibility tool, not the production scanner. Its two seed strings
+are frozen legacy experiment identifiers: renaming them would silently select a
+different historical sample.
+"""
 import hashlib,json,pathlib,time
 from concurrent.futures import ThreadPoolExecutor,as_completed
 from datetime import datetime,timezone
@@ -21,7 +27,7 @@ def adjusted_rows(code,start="2000-01-01",cache_dir="work/eodhd-cache"):
 def load(meta):
     try:return meta,adjusted_rows(meta["Code"])
     except Exception:return meta,[]
-def run(out="public/eodhd-factor-pilot.json",per_group=100):
+def run(out="research/backtest/output/legacy-foundation/eodhd-factor-pilot.json",per_group=100):
     active=stable_sample(common(symbols(False)),per_group,"northstar-active-v1");dead=stable_sample(common(symbols(True)),per_group,"northstar-delisted-v1");selected=[({**x,"listing_status":"active"}) for x in active]+[({**x,"listing_status":"delisted"}) for x in dead]
     spy=adjusted_rows("SPY");benchmark={x["date"]:x["close"] for x in spy};market_ema=ema([x["close"] for x in spy],200);regime={x["date"]:x["close"]>market_ema[i] for i,x in enumerate(spy) if i>=199};loaded=[]
     with ThreadPoolExecutor(max_workers=12) as pool:
@@ -38,6 +44,7 @@ def run(out="public/eodhd-factor-pilot.json",per_group=100):
         if included:
             if meta["listing_status"]=="active":eligible_active+=1
             else:eligible_delisted+=1
-    metrics=evaluate_report(panel);dates=sorted({x["date"] for x in panel});report={"generated_at":datetime.now(timezone.utc).isoformat(),"status":"survivorship_aware_pilot_not_promotable","provider":"EODHD All World","sample":{"requested_active":per_group,"requested_delisted":per_group,"loaded":sum(bool(x) for _,x in loaded),"eligible_active":eligible_active,"eligible_delisted":eligible_delisted,"stock_months":len(panel),"dates":len(dates),"start":dates[0] if dates else None,"end":dates[-1] if dates else None},"design":{"selection":"Deterministic hash sample of primary-exchange common stocks","tradability":"price>=5, ADV20>=10m, Roll spread proxy<=50bps","regime":"SPY above EMA200","ranking":"raw cross-sectional pilot only"},"metrics":metrics,"decision":"Use this run to verify delisted-security ingestion and factor direction only. Do not promote factors until historical sector neutralization and a larger universe are available.","limitations":["200-security pilot sample","No historical sector neutralization","Roll spread proxy instead of quote spread","No fundamentals or transaction costs"]};pathlib.Path(out).write_text(json.dumps(report,indent=2));return report
+    metrics=evaluate_report(panel);dates=sorted({x["date"] for x in panel});report={"generated_at":datetime.now(timezone.utc).isoformat(),"status":"survivorship_aware_pilot_not_promotable","provider":"EODHD All World","sample":{"requested_active":per_group,"requested_delisted":per_group,"loaded":sum(bool(x) for _,x in loaded),"eligible_active":eligible_active,"eligible_delisted":eligible_delisted,"stock_months":len(panel),"dates":len(dates),"start":dates[0] if dates else None,"end":dates[-1] if dates else None},"design":{"selection":"Deterministic hash sample of primary-exchange common stocks","tradability":"price>=5, ADV20>=10m, Roll spread proxy<=50bps","regime":"SPY above EMA200","ranking":"raw cross-sectional pilot only"},"metrics":metrics,"decision":"Use this run to verify delisted-security ingestion and factor direction only. Do not promote factors until historical sector neutralization and a larger universe are available.","limitations":["200-security pilot sample","No historical sector neutralization","Roll spread proxy instead of quote spread","No fundamentals or transaction costs"]}
+    path=pathlib.Path(out);path.parent.mkdir(parents=True,exist_ok=True);path.write_text(json.dumps(report,indent=2));return report
 if __name__=="__main__":
     r=run();print(json.dumps(r["sample"],indent=2));print(sorted(r["metrics"],key=lambda x:x["mean_ic"] if x["mean_ic"] is not None else -9,reverse=True)[:8])

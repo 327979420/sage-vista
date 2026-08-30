@@ -1,4 +1,8 @@
-"""Larger, survivorship-aware EODHD factor validation with honest time splits."""
+"""Run the larger survivorship-aware factor validation with honest time splits.
+
+This research command reuses frozen deterministic sample seeds and writes its
+versioned result under ``research/``. It does not change production scoring.
+"""
 import json,math,pathlib,statistics
 from datetime import datetime,timezone
 from .eodhd import symbols
@@ -115,7 +119,7 @@ def rolling_oos(panel,train_years=5):
  usable=[x for x in runs if x["test_ic"] is not None and x["test_dates"]>=6]
  return {"method":"Use only the prior five calendar years to select one predefined combination, then evaluate the next year once. Abstain when training IC is non-positive; exclude test years with fewer than six monthly observations from the summary.","runs":runs,"summary":{"years":len(usable),"positive_ic_years":sum(x["test_ic"]>0 for x in usable),"positive_ic_pct":round(sum(x["test_ic"]>0 for x in usable)/len(usable)*100,1) if usable else None,"median_test_ic":round(statistics.median(x["test_ic"] for x in usable),4) if usable else None,"worst_test_ic":min((x["test_ic"] for x in usable),default=None),"abstained_years":sum(x["selected_combination"]=="cash" for x in runs),"low_sample_years_excluded":sum(x["test_ic"] is not None and x["test_dates"]<6 for x in runs)}}
 
-def run(out="public/eodhd-factor-validation.json",per_group=500):
+def run(out="research/backtest/output/legacy-foundation/eodhd-factor-validation.json",per_group=500):
  active=stable_sample(common(symbols(False)),per_group,"northstar-active-v2");dead=stable_sample(common(symbols(True)),per_group,"northstar-delisted-v2")
  selected=[({**x,"listing_status":"active"}) for x in active]+[({**x,"listing_status":"delisted"}) for x in dead]
  spy=adjusted_rows("SPY");benchmark={x["date"]:x["close"] for x in spy};market_ema=ema([x["close"] for x in spy],200);regime={x["date"]:x["close"]>market_ema[i] for i,x in enumerate(spy) if i>=199}
@@ -137,7 +141,7 @@ def run(out="public/eodhd-factor-validation.json",per_group=500):
  dates=sorted({x["date"] for x in panel});split_metrics={k:evaluate_report(panel,*v) for k,v in SPLIT_BOUNDS.items()};combinations={k:evaluate_combinations(panel,10,*v) for k,v in SPLIT_BOUNDS.items()};portfolios={k:evaluate_portfolios(panel,10,*v) for k,v in SPLIT_BOUNDS.items()};atr_risk={k:evaluate_atr_risk(panel,*v) for k,v in SPLIT_BOUNDS.items()};regime_metrics={r:evaluate_report([x for x in all_panel if x["regime"]==r]) for r in ("risk_on","risk_off")};rolling=rolling_oos(panel)
  report={"generated_at":datetime.now(timezone.utc).isoformat(),"status":"expanded_validation_research_only","provider":"EODHD All World","sample":{"requested_active":per_group,"requested_delisted":per_group,"loaded":sum(bool(x) for _,x in loaded),"eligible_active":eligible["active"],"eligible_delisted":eligible["delisted"],"stock_months":len(panel),"dates":len(dates),"start":dates[0] if dates else None,"end":dates[-1] if dates else None},"execution":{"signal":"month-end close","entry":"next trading day's adjusted open","exits":"5, 10, 20, and 60 trading-day closes","time_stop":"10 trading days is the primary strategy evaluation horizon","cost_scenarios":"0, 20, and 50 basis points round trip","atr_risk":"1.5x, 2.0x, and 2.5x ATR stops; 2R target; gap-aware fills; stop-first on ambiguous daily bars; 0.5% position risk capped at 4% total"},"split_metrics":split_metrics,"combinations":combinations,"portfolios":portfolios,"atr_risk":atr_risk,"limitations":["Deterministic sample, not yet a complete point-in-time US universe","No historical sector classifications, so results are not sector-neutralized","Roll spread proxy rather than historical quotes","Daily bars cannot reveal intraday path; bars touching stop and target are conservatively counted as stop-first","No fundamentals, options walls, borrow costs, or portfolio beta hedging"],"decision":"Use development to form hypotheses, validation to accept or reject them, and forward test only as an untouched monitor. No live capital authorization."}
  report["regime_metrics"]=regime_metrics;report["rolling_oos"]=rolling
- pathlib.Path(out).write_text(json.dumps(report,indent=2));return report
+ path=pathlib.Path(out);path.parent.mkdir(parents=True,exist_ok=True);path.write_text(json.dumps(report,indent=2));return report
 
 if __name__=="__main__":
  r=run();print(json.dumps(r["sample"],indent=2));print(json.dumps(r["combinations"],indent=2))

@@ -190,7 +190,7 @@ jobs:
         id: discord_send
         if: steps.live_verify.outcome == 'success'
         env:
-          NORTHSTAR_SITE_URL: ${{ steps.cloudflare_deploy.outputs.site_url }}
+          SAGE_VISTA_SITE_URL: ${{ steps.cloudflare_deploy.outputs.site_url }}
         run: python3 -m services.scanner.discord_daily_digest --state-path automation/discord-state.json > discord-result.json
       - name: Validate Discord send result
         id: discord_validation

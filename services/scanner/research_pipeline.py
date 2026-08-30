@@ -1,3 +1,9 @@
+"""Build the early cross-sectional research database and aggregate report.
+
+Inputs are timestamped price histories plus the screened universe. The local
+SQLite database is disposable cache in ``work/``; the compact aggregate report
+is permanent Git research evidence. This module never publishes a live score.
+"""
 from __future__ import annotations
 import json,math,sqlite3,statistics,urllib.request
 from concurrent.futures import ThreadPoolExecutor,as_completed
@@ -105,7 +111,8 @@ def redundancy(panel):
      if c is not None:cors.append(c)
    pairs.append({"a":a,"b":b,"mean_rank_correlation":round(statistics.mean(cors),3) if cors else None,"dates":len(cors)})
  return sorted(pairs,key=lambda x:abs(x["mean_rank_correlation"] or 0),reverse=True)
-def run(db_path="work/northstar-research-v04.sqlite",report_path="public/research-report.json",limit=500,start="2000-01-01",persist_detail=False):
+def run(db_path="work/sage-vista-research-v04.sqlite",report_path="research/backtest/output/legacy-foundation/research-report.json",limit=500,start="2000-01-01",persist_detail=False):
+ Path(db_path).parent.mkdir(parents=True,exist_ok=True);Path(report_path).parent.mkdir(parents=True,exist_ok=True)
  metas=universe(limit);loaded=[];benchmark_rows=fetch_long_history("SPY",start);benchmark={x["date"]:x["close"] for x in benchmark_rows};benchmark_ema=ema([x["close"] for x in benchmark_rows],200);benchmark_regime={x["date"]:x["close"]>benchmark_ema[i] for i,x in enumerate(benchmark_rows) if i>=199}
  with ThreadPoolExecutor(max_workers=12) as pool:
   fs=[pool.submit(load_symbol,m,start,fetch_long_history) for m in metas]

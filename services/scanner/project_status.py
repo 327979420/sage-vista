@@ -1,4 +1,9 @@
-"""Generate the short, repository-first handoff status from canonical state files."""
+"""Regenerate the human handoff from canonical machine state.
+
+This is the only writer for ``docs/CURRENT_STATUS_ZH.md``. It reads production,
+backtest, factor and experiment state so new sessions never copy stale dates or
+versions from chat history.
+"""
 from __future__ import annotations
 
 import argparse

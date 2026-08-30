@@ -69,7 +69,7 @@ jobs:
         run: |
           git config user.name "sage-vista-bot"
           git config user.email "sage-vista-bot@users.noreply.github.com"
-          git add public/unified-v2-rankings.json public/opportunity-ledger.json public/backtest-progress.json automation/backtest-state.json docs/CURRENT_STATUS_ZH.md
+          git add public/unified-v2-rankings.json public/opportunity-ledger.json automation/backtest-state.json automation/backtest-progress.json docs/CURRENT_STATUS_ZH.md
           git diff --cached --quiet && exit 0
           git commit -m "data: nightly backtest ${{ steps.plan.outputs.start }} to ${{ steps.plan.outputs.end }}"
           git pull --rebase origin main

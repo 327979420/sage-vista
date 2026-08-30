@@ -1,4 +1,9 @@
-"""Point-in-time Industry Radar research snapshot (not a trading signal)."""
+"""Build the point-in-time industry and theme context for one completed day.
+
+Inputs are dated membership snapshots and price histories cut at ``as_of``.
+Output feeds the Industry & Market page and remains separate from technical
+factor evidence. Missing or future membership is never backfilled by guesswork.
+"""
 import argparse,json,pathlib
 from datetime import date,datetime,timezone
 

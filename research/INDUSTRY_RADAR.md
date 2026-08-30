@@ -74,7 +74,7 @@ Before cleanup the architecture was **ACCEPTABLE**: Radar already reused `adjust
 Cleanup moved theme/fund configuration into the registry and introduced a small provider-adapter map. The following duplication is intentionally retained:
 
 - Radar as-of trimming and SPY/date alignment are point-in-time safety logic, not generic price formatting.
-- `sector_watch.py` and `market_etf_watch.py` contain tiny ETF-level return/report helpers for separate products; extracting them now would create cross-product coupling without reducing theme expansion cost.
+- `market_etf_watch.py` remains the production ETF-level market context. The retired standalone `sector_watch.py` prototype was removed after `industry_radar.py` became the single industry product.
 - `adjusted_rows` remains in `eodhd_factor_pilot.py` because it is the stable existing cache implementation. Rehousing it would widen the change across scanner modules.
 - JSON writes remain local because report contracts and failure behavior differ.
 

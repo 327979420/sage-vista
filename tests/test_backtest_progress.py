@@ -19,12 +19,12 @@ class BacktestProgressTests(unittest.TestCase):
   self.assertEqual(done["next_window"]["start"],"2026-04-20")
   self.assertTrue(done["policy"]["completed_weeks_never_recomputed_automatically"])
 
- def test_state_and_public_status_are_identical(self):
+ def test_state_and_internal_mirror_are_identical(self):
   with tempfile.TemporaryDirectory() as folder:
-   root=Path(folder);report=root/"report.json";state=root/"state.json";public=root/"public.json"
+   root=Path(folder);report=root/"report.json";state=root/"state.json";mirror=root/"mirror.json"
    import json;report.write_text(json.dumps(self.report()))
-   payload=write_state(report,state,public,completed_at="2026-08-28T00:00:00Z")
-   self.assertEqual(state.read_text(),public.read_text());self.assertEqual(payload["status"],"scheduled")
+   payload=write_state(report,state,mirror,completed_at="2026-08-28T00:00:00Z")
+   self.assertEqual(state.read_text(),mirror.read_text());self.assertEqual(payload["status"],"scheduled")
 
 
 if __name__=="__main__":unittest.main()

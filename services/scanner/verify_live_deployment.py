@@ -1,4 +1,9 @@
-"""Fail-closed verification for the public Cloudflare production deployment."""
+"""Fail closed unless the complete Cloudflare production bundle is consistent.
+
+The verifier fetches every public dataset used by the four pages, checks one
+expected market date, model contracts and lookahead flags, then returns a small
+deployment receipt. Discord runs only after this receipt succeeds.
+"""
 import argparse,json,time,urllib.error,urllib.parse,urllib.request
 from .factor_snapshot import SNAPSHOT_MODE_VERSION
 from .favorite_pattern_tracker import GENERALIZATION_VERSION, PATTERN_VERSION

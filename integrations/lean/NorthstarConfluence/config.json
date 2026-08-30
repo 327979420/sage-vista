@@ -1,5 +1,0 @@
-{
-  "algorithm-language": "Python",
-  "parameters": {"symbol": "SPY"},
-  "description": "Independent LEAN verification implementation of Northstar daily confluence and time-exit rules"
-}

@@ -1,4 +1,9 @@
-"""Plan and persist one resumable, backward historical replay week at a time."""
+"""Plan and persist one resumable, backward historical replay week at a time.
+
+Both the authoritative cursor and its compact mirror live under ``automation/``.
+They are Git-backed machine state, not public website data. A cursor advances
+only after a completed week has been merged and validated.
+"""
 import argparse
 import json
 import pathlib
@@ -11,7 +16,7 @@ from .unified_v2_scan import MODEL_VERSION, RULESET_ID
 SCHEMA_VERSION = "nightly-backtest-progress-v1.0.0"
 DEFAULT_REPORT = pathlib.Path("public/unified-v2-rankings.json")
 DEFAULT_STATE = pathlib.Path("automation/backtest-state.json")
-DEFAULT_PUBLIC = pathlib.Path("public/backtest-progress.json")
+DEFAULT_MIRROR = pathlib.Path("automation/backtest-progress.json")
 TARGET_START = "2000-01-01"
 
 
@@ -103,13 +108,13 @@ def build_state(report, previous=None, completed_window=None, completed_at=None)
  }
 
 
-def write_state(report_path=DEFAULT_REPORT, state_path=DEFAULT_STATE, public_path=DEFAULT_PUBLIC, completed_window=None, completed_at=None):
+def write_state(report_path=DEFAULT_REPORT, state_path=DEFAULT_STATE, mirror_path=DEFAULT_MIRROR, completed_window=None, completed_at=None):
  report = read_json(report_path)
  previous = read_json(state_path)
  payload = build_state(report, previous, completed_window, completed_at)
  text = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
  pathlib.Path(state_path).write_text(text)
- pathlib.Path(public_path).write_text(text)
+ pathlib.Path(mirror_path).write_text(text)
  return payload
 
 
@@ -123,7 +128,7 @@ def github_outputs(payload, path):
 if __name__ == "__main__":
  parser = argparse.ArgumentParser()
  parser.add_argument("command", choices=("plan", "sync", "complete"))
- parser.add_argument("--report", default=str(DEFAULT_REPORT));parser.add_argument("--state", default=str(DEFAULT_STATE));parser.add_argument("--public", default=str(DEFAULT_PUBLIC));parser.add_argument("--github-output")
+ parser.add_argument("--report", default=str(DEFAULT_REPORT));parser.add_argument("--state", default=str(DEFAULT_STATE));parser.add_argument("--mirror", default=str(DEFAULT_MIRROR));parser.add_argument("--github-output")
  parser.add_argument("--start");parser.add_argument("--end");parser.add_argument("--completed-at")
  args = parser.parse_args()
  report = read_json(args.report);previous = read_json(args.state)
@@ -132,6 +137,6 @@ if __name__ == "__main__":
  else:
   window = {"label": f"{args.start}_to_{args.end}", "start": args.start, "end": args.end} if args.command == "complete" else None
   if args.command == "complete" and (not args.start or not args.end):raise SystemExit("complete requires --start and --end")
-  payload = write_state(args.report, args.state, args.public, window, args.completed_at)
+  payload = write_state(args.report, args.state, args.mirror, window, args.completed_at)
  if args.github_output:github_outputs(payload, args.github_output)
  print(json.dumps(payload, ensure_ascii=False, indent=2))

@@ -1,4 +1,8 @@
-"""Configurable Discord EOD digest using the exact website tracker outputs."""
+"""Send a deduplicated Discord digest from already-verified website outputs.
+
+This module never recalculates rankings. It reads the same published JSON as
+the website and persists notification state only after a successful send.
+"""
 import argparse,json,os,pathlib,tempfile,urllib.request
 
 PUBLIC=pathlib.Path("public")
@@ -108,7 +112,7 @@ def save_state(path,state):
 
 def run(preview=False,state_path=STATE_PATH):
  load_local_env();status=read_json(PUBLIC/"update-status.json");tracker=read_json(PUBLIC/"resonance-tracker.json");radar=read_json(PUBLIC/"rare-opportunity-radar.json");unified=read_json(PUBLIC/"unified-v2-rankings.json")
- as_of=validate_inputs(status,tracker,radar,unified);site=os.environ.get("NORTHSTAR_SITE_URL",DEFAULT_SITE).rstrip("/")
+ as_of=validate_inputs(status,tracker,radar,unified);site=os.environ.get("SAGE_VISTA_SITE_URL",DEFAULT_SITE).rstrip("/")
  payload,alerts=build_payload(tracker,radar,site,unified=unified);keys=notification_keys(tracker,radar,alerts)
  state=read_json(state_path) if pathlib.Path(state_path).exists() else {"sent":[],"symbol_status":{}}
  pending_alerts,ranking_pending=pending_plan(alerts,keys,state);ranking_keys=keys[len(alerts):]

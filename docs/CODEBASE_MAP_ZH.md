@@ -10,7 +10,7 @@
 | 多因子排行榜、个股命中明细 | `app/zh/watch/resonance/rare-opportunities/page.tsx` | 最新快照默认加载；`public/unified-v2-rankings.json`、`public/opportunity-ledger.json` 只在主动复盘时加载 |
 | 我最喜欢形态 | `app/zh/watch/resonance/favorite-pattern/page.tsx` | `public/favorite-pattern.json` |
 | 行业与大盘 | `app/zh/watch/industry-radar/page.tsx` | `public/industry-radar.json`、`public/market-etf-watch.json` |
-| 历史、实验、回测断点（Git 后台） | `research/backtest/`、`services/scanner/experiment_catalog.py` | `research/generated/experiment-catalog.json`、`research/experiments.jsonl`、`public/backtest-progress.json` |
+| 历史、实验、回测断点（Git 后台） | `research/backtest/`、`services/scanner/experiment_catalog.py` | `research/generated/experiment-catalog.json`、`research/experiments.jsonl`、`automation/backtest-state.json`、`automation/backtest-progress.json` |
 | 因子定义/检测/评分 | `services/scanner/factor_registry.py`、`factor_detectors.py`、`factor_snapshot.py`、`factor_scoring.py` | `public/factor-registry.json` |
 | 外部候选因子、赢家配对和走步实验 | `research/factor-candidates-v2.json`、`research/factor_lab/features.py`、`research/backtest/factor_strategy_lab_v2.py` | `research/backtest/output/factor-strategy-lab-v2.json` |
 | V2 历史回放与排名 | `services/scanner/unified_v2_scan.py` | `public/unified-v2-rankings.json` |
@@ -58,10 +58,16 @@
 ## 应保留但通常不用先读的目录
 
 - `research/backtest/`：已完成和可复现实验实现。
+- `research/backtest/output/legacy-foundation/`：早期EODHD、市场环境与中性化研究结果；只供Git复现，不发布到网站。
 - `research/experiments.jsonl`、`experiment-events.jsonl`、`preregistrations/`：实验永久记录，包括失败和中断。
-- `integrations/lean/`：外部框架对照/集成研究。
 - `data/`：行业和主题的版本化输入。
 - `work/`：可再生成的本地缓存或批次中间产物；不是产品规则来源。
+
+## 文件去留判断
+
+- 先看`docs/REPOSITORY_AUDIT_ZH.md`的保留、迁移与删除证据；不要仅凭修改时间判断。
+- `public/`是网站发布面，不是实验仓库。没有任何正式页面或生产验证消费者的研究结果应放在`research/`。
+- 当前每日链核心入口都应有模块说明；需要理解某个阶段时先读入口顶部，再沿其显式导入继续，不要从整个仓库猜流程。
 
 ## 快速验证
 
