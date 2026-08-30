@@ -1,7 +1,7 @@
 {
-  "signal_schema_version": "1.3.2",
+  "signal_schema_version": "1.4.0",
   "as_of": "2026-08-28",
-  "generated_at": "2026-08-29T17:59:55.966092+00:00",
+  "generated_at": "2026-08-30T05:03:47.405484+00:00",
   "observation_mode": "production_forward",
   "future_data_used": false,
   "reset_rule": {
@@ -27,7 +27,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-24",
       "days_active": 1,
-      "absent_sessions": 12,
+      "absent_sessions": 13,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -1533,7 +1533,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-24",
       "days_active": 1,
-      "absent_sessions": 12,
+      "absent_sessions": 13,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -2669,7 +2669,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-24",
       "days_active": 1,
-      "absent_sessions": 12,
+      "absent_sessions": 13,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -4113,7 +4113,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-26",
       "days_active": 3,
-      "absent_sessions": 12,
+      "absent_sessions": 13,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -5389,7 +5389,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-24",
       "days_active": 1,
-      "absent_sessions": 12,
+      "absent_sessions": 13,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -6833,7 +6833,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-25",
       "days_active": 2,
-      "absent_sessions": 12,
+      "absent_sessions": 13,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -8358,7 +8358,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-25",
       "days_active": 2,
-      "absent_sessions": 12,
+      "absent_sessions": 13,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -9872,7 +9872,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-25",
       "days_active": 2,
-      "absent_sessions": 12,
+      "absent_sessions": 13,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -11386,7 +11386,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-27",
       "days_active": 4,
-      "absent_sessions": 10,
+      "absent_sessions": 11,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -12698,7 +12698,7 @@
       "first_seen_date": "2026-08-24",
       "last_seen_date": "2026-08-24",
       "days_active": 1,
-      "absent_sessions": 12,
+      "absent_sessions": 13,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -14165,7 +14165,7 @@
       "first_seen_date": "2026-08-25",
       "last_seen_date": "2026-08-26",
       "days_active": 2,
-      "absent_sessions": 12,
+      "absent_sessions": 13,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -15371,7 +15371,7 @@
       "first_seen_date": "2026-08-25",
       "last_seen_date": "2026-08-26",
       "days_active": 2,
-      "absent_sessions": 12,
+      "absent_sessions": 13,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -16599,7 +16599,7 @@
       "symbol": "AEO",
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-28",
-      "days_active": 13,
+      "days_active": 14,
       "absent_sessions": 0,
       "lifecycle": "ACTIVE",
       "initial_source_systems": [
@@ -18849,7 +18849,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-26",
       "days_active": 2,
-      "absent_sessions": 11,
+      "absent_sessions": 12,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -20911,7 +20911,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-27",
       "days_active": 5,
-      "absent_sessions": 8,
+      "absent_sessions": 9,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "technical_tracker"
@@ -23181,7 +23181,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-26",
       "days_active": 1,
-      "absent_sessions": 12,
+      "absent_sessions": 13,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -24317,7 +24317,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-26",
       "days_active": 1,
-      "absent_sessions": 12,
+      "absent_sessions": 13,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -25453,7 +25453,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-26",
       "days_active": 1,
-      "absent_sessions": 12,
+      "absent_sessions": 13,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "technical_tracker"
@@ -27534,7 +27534,7 @@
       "symbol": "EDU",
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-28",
-      "days_active": 13,
+      "days_active": 14,
       "absent_sessions": 0,
       "lifecycle": "ACTIVE",
       "initial_source_systems": [
@@ -29729,7 +29729,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-26",
       "days_active": 2,
-      "absent_sessions": 11,
+      "absent_sessions": 12,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "technical_tracker"
@@ -31979,7 +31979,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-26",
       "days_active": 2,
-      "absent_sessions": 11,
+      "absent_sessions": 12,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "technical_tracker"
@@ -34197,7 +34197,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-26",
       "days_active": 1,
-      "absent_sessions": 12,
+      "absent_sessions": 13,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -35333,7 +35333,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-27",
       "days_active": 3,
-      "absent_sessions": 10,
+      "absent_sessions": 11,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -37406,7 +37406,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-26",
       "days_active": 2,
-      "absent_sessions": 11,
+      "absent_sessions": 12,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "technical_tracker"
@@ -39543,7 +39543,7 @@
       "symbol": "QDEL",
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-28",
-      "days_active": 12,
+      "days_active": 13,
       "absent_sessions": 0,
       "lifecycle": "ACTIVE",
       "initial_source_systems": [
@@ -42030,7 +42030,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-26",
       "days_active": 1,
-      "absent_sessions": 12,
+      "absent_sessions": 13,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -43166,7 +43166,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-27",
       "days_active": 5,
-      "absent_sessions": 8,
+      "absent_sessions": 9,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "technical_tracker"
@@ -45314,7 +45314,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-27",
       "days_active": 5,
-      "absent_sessions": 8,
+      "absent_sessions": 9,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "technical_tracker"
@@ -47594,7 +47594,7 @@
       "first_seen_date": "2026-08-26",
       "last_seen_date": "2026-08-27",
       "days_active": 5,
-      "absent_sessions": 8,
+      "absent_sessions": 9,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "technical_tracker"
@@ -49700,7 +49700,7 @@
       "symbol": "BRKR",
       "first_seen_date": "2026-08-27",
       "last_seen_date": "2026-08-28",
-      "days_active": 11,
+      "days_active": 12,
       "absent_sessions": 0,
       "lifecycle": "ACTIVE",
       "initial_source_systems": [
@@ -51832,7 +51832,7 @@
       "first_seen_date": "2026-08-27",
       "last_seen_date": "2026-08-27",
       "days_active": 3,
-      "absent_sessions": 8,
+      "absent_sessions": 9,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "multi_factor_radar"
@@ -54053,7 +54053,7 @@
       "symbol": "LUMN",
       "first_seen_date": "2026-08-27",
       "last_seen_date": "2026-08-28",
-      "days_active": 11,
+      "days_active": 12,
       "absent_sessions": 0,
       "lifecycle": "ACTIVE",
       "initial_source_systems": [
@@ -56318,7 +56318,7 @@
       "symbol": "TTD",
       "first_seen_date": "2026-08-27",
       "last_seen_date": "2026-08-28",
-      "days_active": 11,
+      "days_active": 12,
       "absent_sessions": 0,
       "lifecycle": "ACTIVE",
       "initial_source_systems": [
@@ -58622,7 +58622,7 @@
       "symbol": "ASAN",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 8,
+      "days_active": 9,
       "absent_sessions": 0,
       "lifecycle": "ACTIVE",
       "initial_source_systems": [
@@ -59532,15 +59532,15 @@
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
       "days_active": 4,
-      "absent_sessions": 0,
-      "lifecycle": "ACTIVE",
+      "absent_sessions": 1,
+      "lifecycle": "MONITORING",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
       "source_systems": [
         "favorite_pattern_tracker"
       ],
-      "latest_current_status": "current",
+      "latest_current_status": "dropped",
       "entry": {
         "convention": "next_trading_day_adjusted_open",
         "date": null,
@@ -60556,15 +60556,15 @@
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
       "days_active": 4,
-      "absent_sessions": 0,
-      "lifecycle": "ACTIVE",
+      "absent_sessions": 1,
+      "lifecycle": "MONITORING",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
       "source_systems": [
         "favorite_pattern_tracker"
       ],
-      "latest_current_status": "current",
+      "latest_current_status": "dropped",
       "entry": {
         "convention": "next_trading_day_adjusted_open",
         "date": null,
@@ -61652,15 +61652,15 @@
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
       "days_active": 4,
-      "absent_sessions": 0,
-      "lifecycle": "ACTIVE",
+      "absent_sessions": 1,
+      "lifecycle": "MONITORING",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
       "source_systems": [
         "favorite_pattern_tracker"
       ],
-      "latest_current_status": "current",
+      "latest_current_status": "dropped",
       "entry": {
         "convention": "next_trading_day_adjusted_open",
         "date": null,
@@ -62686,15 +62686,15 @@
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
       "days_active": 4,
-      "absent_sessions": 0,
-      "lifecycle": "ACTIVE",
+      "absent_sessions": 1,
+      "lifecycle": "MONITORING",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
       "source_systems": [
         "favorite_pattern_tracker"
       ],
-      "latest_current_status": "current",
+      "latest_current_status": "dropped",
       "entry": {
         "convention": "next_trading_day_adjusted_open",
         "date": null,
@@ -64196,7 +64196,7 @@
         "created_as_of": "2026-08-28",
         "last_updated_as_of": "2026-08-28",
         "definition_correction": {
-          "corrected_by": "favorite-pattern-v2.0.0",
+          "corrected_by": "favorite-pattern-v3.0.0",
           "reason": "v1.0.0 mistakenly allowed a 5/7 or 6/7 breakout to become entry_ready",
           "compatible_with_corrected_definition": false,
           "exclude_from_effectiveness": true
@@ -65058,7 +65058,7 @@
         "created_as_of": "2026-08-28",
         "last_updated_as_of": "2026-08-28",
         "definition_correction": {
-          "corrected_by": "favorite-pattern-v2.0.0",
+          "corrected_by": "favorite-pattern-v3.0.0",
           "reason": "v1.0.0 mistakenly allowed a 5/7 or 6/7 breakout to become entry_ready",
           "compatible_with_corrected_definition": false,
           "exclude_from_effectiveness": true
@@ -65433,7 +65433,7 @@
       "symbol": "DOCS",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 8,
+      "days_active": 9,
       "absent_sessions": 0,
       "lifecycle": "ACTIVE",
       "initial_source_systems": [
@@ -67696,15 +67696,15 @@
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
       "days_active": 4,
-      "absent_sessions": 0,
-      "lifecycle": "ACTIVE",
+      "absent_sessions": 1,
+      "lifecycle": "MONITORING",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
       "source_systems": [
         "favorite_pattern_tracker"
       ],
-      "latest_current_status": "current",
+      "latest_current_status": "dropped",
       "entry": {
         "convention": "next_trading_day_adjusted_open",
         "date": null,
@@ -69193,7 +69193,7 @@
         "created_as_of": "2026-08-28",
         "last_updated_as_of": "2026-08-28",
         "definition_correction": {
-          "corrected_by": "favorite-pattern-v2.0.0",
+          "corrected_by": "favorite-pattern-v3.0.0",
           "reason": "v1.0.0 mistakenly allowed a 5/7 or 6/7 breakout to become entry_ready",
           "compatible_with_corrected_definition": false,
           "exclude_from_effectiveness": true
@@ -69508,15 +69508,15 @@
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
       "days_active": 4,
-      "absent_sessions": 0,
-      "lifecycle": "ACTIVE",
+      "absent_sessions": 1,
+      "lifecycle": "MONITORING",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
       "source_systems": [
         "favorite_pattern_tracker"
       ],
-      "latest_current_status": "current",
+      "latest_current_status": "dropped",
       "entry": {
         "convention": "next_trading_day_adjusted_open",
         "date": null,
@@ -70542,15 +70542,15 @@
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
       "days_active": 4,
-      "absent_sessions": 0,
-      "lifecycle": "ACTIVE",
+      "absent_sessions": 1,
+      "lifecycle": "MONITORING",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
       "source_systems": [
         "favorite_pattern_tracker"
       ],
-      "latest_current_status": "current",
+      "latest_current_status": "dropped",
       "entry": {
         "convention": "next_trading_day_adjusted_open",
         "date": null,
@@ -71700,15 +71700,15 @@
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
       "days_active": 4,
-      "absent_sessions": 0,
-      "lifecycle": "ACTIVE",
+      "absent_sessions": 1,
+      "lifecycle": "MONITORING",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
       "source_systems": [
         "favorite_pattern_tracker"
       ],
-      "latest_current_status": "current",
+      "latest_current_status": "dropped",
       "entry": {
         "convention": "next_trading_day_adjusted_open",
         "date": null,
@@ -72714,7 +72714,7 @@
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
       "days_active": 2,
-      "absent_sessions": 4,
+      "absent_sessions": 5,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "favorite_pattern_tracker"
@@ -73200,7 +73200,7 @@
         "created_as_of": "2026-08-28",
         "last_updated_as_of": "2026-08-28",
         "definition_correction": {
-          "corrected_by": "favorite-pattern-v2.0.0",
+          "corrected_by": "favorite-pattern-v3.0.0",
           "reason": "v1.0.0 mistakenly allowed a 5/7 or 6/7 breakout to become entry_ready",
           "compatible_with_corrected_definition": true,
           "exclude_from_effectiveness": false
@@ -73546,15 +73546,15 @@
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
       "days_active": 4,
-      "absent_sessions": 0,
-      "lifecycle": "ACTIVE",
+      "absent_sessions": 1,
+      "lifecycle": "MONITORING",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
       "source_systems": [
         "favorite_pattern_tracker"
       ],
-      "latest_current_status": "current",
+      "latest_current_status": "dropped",
       "entry": {
         "convention": "next_trading_day_adjusted_open",
         "date": null,
@@ -74632,7 +74632,7 @@
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
       "days_active": 2,
-      "absent_sessions": 4,
+      "absent_sessions": 5,
       "lifecycle": "MONITORING",
       "initial_source_systems": [
         "favorite_pattern_tracker"
@@ -75118,7 +75118,7 @@
         "created_as_of": "2026-08-28",
         "last_updated_as_of": "2026-08-28",
         "definition_correction": {
-          "corrected_by": "favorite-pattern-v2.0.0",
+          "corrected_by": "favorite-pattern-v3.0.0",
           "reason": "v1.0.0 mistakenly allowed a 5/7 or 6/7 breakout to become entry_ready",
           "compatible_with_corrected_definition": true,
           "exclude_from_effectiveness": false
@@ -75464,15 +75464,15 @@
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
       "days_active": 4,
-      "absent_sessions": 0,
-      "lifecycle": "ACTIVE",
+      "absent_sessions": 1,
+      "lifecycle": "MONITORING",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
       "source_systems": [
         "favorite_pattern_tracker"
       ],
-      "latest_current_status": "current",
+      "latest_current_status": "dropped",
       "entry": {
         "convention": "next_trading_day_adjusted_open",
         "date": null,
@@ -76622,15 +76622,15 @@
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
       "days_active": 4,
-      "absent_sessions": 0,
-      "lifecycle": "ACTIVE",
+      "absent_sessions": 1,
+      "lifecycle": "MONITORING",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
       "source_systems": [
         "favorite_pattern_tracker"
       ],
-      "latest_current_status": "current",
+      "latest_current_status": "dropped",
       "entry": {
         "convention": "next_trading_day_adjusted_open",
         "date": null,
@@ -78101,7 +78101,7 @@
         "created_as_of": "2026-08-28",
         "last_updated_as_of": "2026-08-28",
         "definition_correction": {
-          "corrected_by": "favorite-pattern-v2.0.0",
+          "corrected_by": "favorite-pattern-v3.0.0",
           "reason": "v1.0.0 mistakenly allowed a 5/7 or 6/7 breakout to become entry_ready",
           "compatible_with_corrected_definition": false,
           "exclude_from_effectiveness": true
@@ -78415,7 +78415,7 @@
       "symbol": "NOW",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 8,
+      "days_active": 9,
       "absent_sessions": 0,
       "lifecycle": "ACTIVE",
       "initial_source_systems": [
@@ -79329,15 +79329,15 @@
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
       "days_active": 4,
-      "absent_sessions": 0,
-      "lifecycle": "ACTIVE",
+      "absent_sessions": 1,
+      "lifecycle": "MONITORING",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
       "source_systems": [
         "favorite_pattern_tracker"
       ],
-      "latest_current_status": "current",
+      "latest_current_status": "dropped",
       "entry": {
         "convention": "next_trading_day_adjusted_open",
         "date": null,
@@ -80415,15 +80415,15 @@
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
       "days_active": 4,
-      "absent_sessions": 0,
-      "lifecycle": "ACTIVE",
+      "absent_sessions": 1,
+      "lifecycle": "MONITORING",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
       "source_systems": [
         "favorite_pattern_tracker"
       ],
-      "latest_current_status": "current",
+      "latest_current_status": "dropped",
       "entry": {
         "convention": "next_trading_day_adjusted_open",
         "date": null,
@@ -81448,7 +81448,7 @@
       "symbol": "QNRX",
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
-      "days_active": 8,
+      "days_active": 9,
       "absent_sessions": 0,
       "lifecycle": "ACTIVE",
       "initial_source_systems": [
@@ -83753,15 +83753,15 @@
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
       "days_active": 4,
-      "absent_sessions": 0,
-      "lifecycle": "ACTIVE",
+      "absent_sessions": 1,
+      "lifecycle": "MONITORING",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
       "source_systems": [
         "favorite_pattern_tracker"
       ],
-      "latest_current_status": "current",
+      "latest_current_status": "dropped",
       "entry": {
         "convention": "next_trading_day_adjusted_open",
         "date": null,
@@ -85244,7 +85244,7 @@
         "created_as_of": "2026-08-28",
         "last_updated_as_of": "2026-08-28",
         "definition_correction": {
-          "corrected_by": "favorite-pattern-v2.0.0",
+          "corrected_by": "favorite-pattern-v3.0.0",
           "reason": "v1.0.0 mistakenly allowed a 5/7 or 6/7 breakout to become entry_ready",
           "compatible_with_corrected_definition": false,
           "exclude_from_effectiveness": true
@@ -86036,7 +86036,7 @@
         "created_as_of": "2026-08-28",
         "last_updated_as_of": "2026-08-28",
         "definition_correction": {
-          "corrected_by": "favorite-pattern-v2.0.0",
+          "corrected_by": "favorite-pattern-v3.0.0",
           "reason": "v1.0.0 mistakenly allowed a 5/7 or 6/7 breakout to become entry_ready",
           "compatible_with_corrected_definition": false,
           "exclude_from_effectiveness": true
@@ -86351,15 +86351,15 @@
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
       "days_active": 4,
-      "absent_sessions": 0,
-      "lifecycle": "ACTIVE",
+      "absent_sessions": 1,
+      "lifecycle": "MONITORING",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
       "source_systems": [
         "favorite_pattern_tracker"
       ],
-      "latest_current_status": "current",
+      "latest_current_status": "dropped",
       "entry": {
         "convention": "next_trading_day_adjusted_open",
         "date": null,
@@ -87842,7 +87842,7 @@
         "created_as_of": "2026-08-28",
         "last_updated_as_of": "2026-08-28",
         "definition_correction": {
-          "corrected_by": "favorite-pattern-v2.0.0",
+          "corrected_by": "favorite-pattern-v3.0.0",
           "reason": "v1.0.0 mistakenly allowed a 5/7 or 6/7 breakout to become entry_ready",
           "compatible_with_corrected_definition": false,
           "exclude_from_effectiveness": true
@@ -88157,15 +88157,15 @@
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
       "days_active": 4,
-      "absent_sessions": 0,
-      "lifecycle": "ACTIVE",
+      "absent_sessions": 1,
+      "lifecycle": "MONITORING",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
       "source_systems": [
         "favorite_pattern_tracker"
       ],
-      "latest_current_status": "current",
+      "latest_current_status": "dropped",
       "entry": {
         "convention": "next_trading_day_adjusted_open",
         "date": null,
@@ -89193,15 +89193,15 @@
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
       "days_active": 4,
-      "absent_sessions": 0,
-      "lifecycle": "ACTIVE",
+      "absent_sessions": 1,
+      "lifecycle": "MONITORING",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
       "source_systems": [
         "favorite_pattern_tracker"
       ],
-      "latest_current_status": "current",
+      "latest_current_status": "dropped",
       "entry": {
         "convention": "next_trading_day_adjusted_open",
         "date": null,
@@ -90227,15 +90227,15 @@
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
       "days_active": 4,
-      "absent_sessions": 0,
-      "lifecycle": "ACTIVE",
+      "absent_sessions": 1,
+      "lifecycle": "MONITORING",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
       "source_systems": [
         "favorite_pattern_tracker"
       ],
-      "latest_current_status": "current",
+      "latest_current_status": "dropped",
       "entry": {
         "convention": "next_trading_day_adjusted_open",
         "date": null,
@@ -91263,15 +91263,15 @@
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
       "days_active": 4,
-      "absent_sessions": 0,
-      "lifecycle": "ACTIVE",
+      "absent_sessions": 1,
+      "lifecycle": "MONITORING",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
       "source_systems": [
         "favorite_pattern_tracker"
       ],
-      "latest_current_status": "current",
+      "latest_current_status": "dropped",
       "entry": {
         "convention": "next_trading_day_adjusted_open",
         "date": null,
@@ -92287,15 +92287,15 @@
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
       "days_active": 4,
-      "absent_sessions": 0,
-      "lifecycle": "ACTIVE",
+      "absent_sessions": 1,
+      "lifecycle": "MONITORING",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
       "source_systems": [
         "favorite_pattern_tracker"
       ],
-      "latest_current_status": "current",
+      "latest_current_status": "dropped",
       "entry": {
         "convention": "next_trading_day_adjusted_open",
         "date": null,
@@ -93311,15 +93311,15 @@
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
       "days_active": 4,
-      "absent_sessions": 0,
-      "lifecycle": "ACTIVE",
+      "absent_sessions": 1,
+      "lifecycle": "MONITORING",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
       "source_systems": [
         "favorite_pattern_tracker"
       ],
-      "latest_current_status": "current",
+      "latest_current_status": "dropped",
       "entry": {
         "convention": "next_trading_day_adjusted_open",
         "date": null,
@@ -94780,7 +94780,7 @@
         "created_as_of": "2026-08-28",
         "last_updated_as_of": "2026-08-28",
         "definition_correction": {
-          "corrected_by": "favorite-pattern-v2.0.0",
+          "corrected_by": "favorite-pattern-v3.0.0",
           "reason": "v1.0.0 mistakenly allowed a 5/7 or 6/7 breakout to become entry_ready",
           "compatible_with_corrected_definition": false,
           "exclude_from_effectiveness": true
@@ -95095,15 +95095,15 @@
       "first_seen_date": "2026-08-28",
       "last_seen_date": "2026-08-28",
       "days_active": 4,
-      "absent_sessions": 0,
-      "lifecycle": "ACTIVE",
+      "absent_sessions": 1,
+      "lifecycle": "MONITORING",
       "initial_source_systems": [
         "favorite_pattern_tracker"
       ],
       "source_systems": [
         "favorite_pattern_tracker"
       ],
-      "latest_current_status": "current",
+      "latest_current_status": "dropped",
       "entry": {
         "convention": "next_trading_day_adjusted_open",
         "date": null,
@@ -96110,5 +96110,5 @@
       ]
     }
   ],
-  "content_hash": "8806d0db4861fc935e82a7930f26c53d54b978304913e3362a78146d4330c302"
+  "content_hash": "3b81bf15fccdfe1e4e42f100ba3aa225c0dc1454daeb202eea963c30de19c1e5"
 }
