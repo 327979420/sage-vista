@@ -14,6 +14,7 @@ from .macd_factor_backtest import adjusted_rows
 from .market_etf_watch import FUNDS,build as market_build
 
 OUT="public/unified-v2-rankings.json"
+LATEST_OUT="public/unified-v2-latest.json"
 MODEL_VERSION="unified-v2-macd-trigger-1.3.0"
 RULESET_ID=f"{MODEL_VERSION}+factors-{REGISTRY_VERSION}"
 RARE_MIN_PRIORITY=5
@@ -156,10 +157,18 @@ def _write_report(results,out,merge_existing):
  report={"version":MODEL_VERSION,"generated_at":datetime.now(timezone.utc).isoformat(),"coverage":{"start":results[0]["date"],"end":results[-1]["date"],"sessions":len(results)},"production_status":"evidence_calibrated_shadow_challenger","future_data_used":False,"version_policy":"每个历史日冻结其首次回放时的模型与因子库版本；新规则只用于后续批次，除非另开重算实验","model_versions":versions,"factor_registry_versions":registries,"model":{"ruleset_id":RULESET_ID,"factor_registry_version":REGISTRY_VERSION,"trigger":"当日完整收盘日线MACD刚发生金叉；MACD是事件门票，长期趋势是共同资格","technical":f"触发后完整检测其余{REMAINING_FACTOR_COUNT}个因子；共同技术基线为长期趋势2 + MACD门票3。当前无A级正式因子；B级按冗余组每项影子+1，只用于同等基线排序；C/D权重为0；上方未补缺口停止旧固定扣分","timeframe_profile":"日/周/月去重后的实验观察贡献；只作描述，不改变正式技术基线或承诺持仓时间","industry":"有当日有效成员快照时：Leadership +1；Recovery/Pullback Watch +0.5；与技术分分开保存","market":"市场温度4-5加1；2-3不变；0-1减1；与技术分分开保存","entry_gate":"必须当日MACD金叉触发、长期趋势有效且共同技术基线为5；其余因子仍全部检测并按A/B/C/D规则解释","execution":"新批次按下一交易日复权开盘入场；止损为信号日支撑下5%，最大计划亏损10%；2R止盈、40日到期、同日触发先算止损"},"limitations":["当前没有A级正式加权因子，B级影子分不是验证胜率","当前股票池来自现存缓存，正式胜率研究仍需纳入退市股票以消除幸存者偏差","没有当日有效行业成员快照的日期不做行业加分，绝不使用未来分类回填"],"days":results}
  pathlib.Path(out).write_text(json.dumps(report,ensure_ascii=False,separators=(",",":"))+"\n");return report
 
+def write_latest(report,out=LATEST_OUT):
+ """Publish only the latest ranking day for fast daily pages."""
+ latest={**report,"days":report.get("days",[])[-1:]}
+ pathlib.Path(out).write_text(json.dumps(latest,ensure_ascii=False,separators=(",",":"))+"\n")
+ return latest
+
 def run_published(out=OUT,public_dir="public"):
  root=pathlib.Path(public_dir)
  snapshot=json.loads((root/"daily-factor-snapshot.json").read_text());market=json.loads((root/"market-etf-watch.json").read_text());industry=json.loads((root/"industry-radar.json").read_text())
- return _write_report([_rank_day(snapshot,market,industry)],out,True)
+ report=_write_report([_rank_day(snapshot,market,industry)],out,True)
+ if pathlib.Path(out)==pathlib.Path(OUT):write_latest(report)
+ return report
 
 def run(start="2026-07-01",end=None,out=OUT,cache_dir="work/eodhd-cache",merge_existing=True):
  data=_load_cache(cache_dir);dates=_dates(data,start,end or "9999-12-31")

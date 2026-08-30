@@ -12,8 +12,9 @@ class TrackerOutputContractTests(unittest.TestCase):
     def test_primary_navigation_matches_daily_research_flow(self):
         source = (ROOT / "app/zh/watch/resonance/tracker-ui.tsx").read_text()
         navigation = source.split("export const modules=[", 1)[1].split("] as const;", 1)[0]
-        for label in ("今日研究总览", "多因子机会", "我最喜欢形态", "行业与大盘", "历史与实验"):
+        for label in ("今日研究总览", "多因子机会", "我最喜欢形态", "行业与大盘"):
             self.assertIn(f'["{label}"', navigation)
+        self.assertNotIn("历史与实验", navigation)
         self.assertNotIn("个股研究", navigation)
         for legacy_route in ("/macd", "/confluence", "/rsi", "/volume"):
             self.assertNotIn(legacy_route, navigation)

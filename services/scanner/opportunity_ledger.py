@@ -21,6 +21,7 @@ HORIZONS = (1, 5, 10, 20, 40, 60, 100)
 DEFAULT_UNIFIED = pathlib.Path("public/unified-v2-rankings.json")
 DEFAULT_FORWARD = pathlib.Path("public/signal-history.json")
 DEFAULT_OUT = pathlib.Path("public/opportunity-ledger.json")
+DEFAULT_LATEST_OUT = pathlib.Path("public/opportunity-ledger-latest.json")
 DEFAULT_CACHE = pathlib.Path("work/eodhd-cache")
 
 
@@ -297,6 +298,14 @@ def validate(payload):
     return True
 
 
+def write_latest(payload, out=DEFAULT_LATEST_OUT, event_limit=200):
+    """Publish recent rows and all aggregate metrics; the full append-only ledger remains available on demand."""
+    compact = {**payload, "events": payload.get("events", [])[-event_limit:]}
+    compact["view"] = {"scope": "latest", "event_limit": event_limit, "full_event_count": len(payload.get("events", []))}
+    pathlib.Path(out).write_text(json.dumps(compact, ensure_ascii=False, separators=(",", ":")) + "\n")
+    return compact
+
+
 def run(unified_path=DEFAULT_UNIFIED, forward_path=DEFAULT_FORWARD, out=DEFAULT_OUT, cache_dir=DEFAULT_CACHE):
     unified = json.loads(pathlib.Path(unified_path).read_text())
     forward = json.loads(pathlib.Path(forward_path).read_text())
@@ -305,6 +314,8 @@ def run(unified_path=DEFAULT_UNIFIED, forward_path=DEFAULT_FORWARD, out=DEFAULT_
     if previous:
         payload = preserve_mature_evaluations(payload, previous)
     pathlib.Path(out).write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n")
+    if pathlib.Path(out) == DEFAULT_OUT:
+        write_latest(payload)
     return payload
 
 

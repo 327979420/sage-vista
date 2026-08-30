@@ -1,6 +1,6 @@
 "use client";
-import {useMemo,useState} from "react";
-import {TrackerShell,useTracker} from "../tracker-ui";
+import {useEffect,useMemo,useState} from "react";
+import {TrackerShell} from "../tracker-ui";
 
 type Condition={id:string;label:string;hit:boolean};
 type ChartPoint={date:string;high:number;low:number;close:number;ema20:number;ema50:number;ema200:number};
@@ -19,8 +19,7 @@ type PatternRow={
  trade_map?:{signal_close:number|null;earliest_entry:string|null;target_previous_high:number|null;invalidation_second_bottom:number|null;estimated_reward_risk:number|null};
  mechanism_profile?:{status:string;completed:{id:string;label:string}[];missing:{id:string;label:string}[];risk_reasons_zh:string[];examples_are_templates:boolean};
 };
-type Favorite={as_of:string;pattern_version:string;generalization_version?:string;production_scoring_changed:boolean;summary:{watchlist:number;entry_ready:number;risk_blocked?:number;waiting_breakout:number;breakout_incomplete:number;forming:number;launched:number;near_match?:number;blocked_near_match?:number};candidates:PatternRow[];entry_ready_candidates?:PatternRow[];near_matches?:PatternRow[];reference_cases:PatternRow[];warning_zh:string;forward_tracking:{minimum_conclusion_sample:number;minimum_months:number;minimum_market_states:number};generalization_policy?:{legacy_only_cases:string[];review_loop:string[]}};
-type Root={favorite_pattern_tracker?:Favorite};
+type Favorite={as_of:string;pattern_version:string;generalization_version?:string;production_scoring_changed:boolean;summary:{watchlist:number;entry_ready:number;risk_blocked?:number;waiting_breakout:number;breakout_incomplete:number;forming:number;launched:number;near_match?:number;blocked_near_match?:number};candidates?:PatternRow[];entry_ready_candidates?:PatternRow[];near_matches?:PatternRow[];reference_cases:PatternRow[];warning_zh:string;forward_tracking:{minimum_conclusion_sample:number;minimum_months:number;minimum_market_states:number};generalization_policy?:{legacy_only_cases:string[];review_loop:string[]}};
 
 const stages=[
  ["01","上涨／转强","先证明多头曾经出现"],
@@ -69,13 +68,13 @@ function Evidence({row}:{row:PatternRow}){
 }
 
 export default function FavoritePatternPage(){
- const root=useTracker() as unknown as Root|null;
- const data=root?.favorite_pattern_tracker;
+ const [data,setData]=useState<Favorite|null>(null);
+ useEffect(()=>{fetch("/favorite-pattern.json",{cache:"no-store"}).then(x=>x.ok?x.json():null).then(setData).catch(()=>setData(null))},[]);
  const [symbol,setSymbol]=useState("");
- const formalRows=useMemo(()=>data?.entry_ready_candidates??data?.candidates.filter(row=>row.stage==="entry_ready")??[],[data]);
- const nearRows=useMemo(()=>data?.near_matches??data?.candidates.filter(row=>row.match_count>=5&&row.stage!=="entry_ready"&&row.stage!=="launched")??[],[data]);
- const visibleRows=useMemo(()=>[...formalRows,...nearRows,...(data?.candidates??[])],[formalRows,nearRows,data]);
- const selected=useMemo(()=>visibleRows.find(row=>row.symbol===symbol)??formalRows[0]??nearRows[0]??data?.candidates[0],[visibleRows,formalRows,nearRows,data,symbol]);
+ const formalRows=useMemo(()=>data?.entry_ready_candidates??data?.candidates?.filter(row=>row.stage==="entry_ready")??[],[data]);
+ const nearRows=useMemo(()=>data?.near_matches??data?.candidates?.filter(row=>row.match_count>=5&&row.stage!=="entry_ready"&&row.stage!=="launched")??[],[data]);
+ const visibleRows=useMemo(()=>[...formalRows,...nearRows],[formalRows,nearRows]);
+ const selected=useMemo(()=>visibleRows.find(row=>row.symbol===symbol)??formalRows[0]??nearRows[0],[visibleRows,formalRows,nearRows,symbol]);
  return <TrackerShell active="我最喜欢形态" title="我最喜欢形态" subtitle="每天追踪你真正愿意做的日线共振，而不是再堆一套评分。">
   <div className="favoritePage">
    <section className="favoriteIntro"><div><small>MY FAVORITE DAILY SETUP · MECHANISM REVIEW</small><h2>案例教机制，不要求复制形状</h2><p>系统先看背景、位置、结构、趋势转变、真实重置、再次启动和供给风险。ADBE只是“先转变、再重置、再确认”的教学案例，不是所有机会必须长成同一张图。匹配度不是胜率。</p><p className="favoriteReferenceLine">ADBE / BABA 机制教学 · TTD / AEVA 风险回归 · PG 仅留V1历史</p></div><mark>生产权重 0 · 独立观察</mark></section>

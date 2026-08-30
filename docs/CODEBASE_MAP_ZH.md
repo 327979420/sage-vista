@@ -6,10 +6,11 @@
 
 | 用户问题 | 首要代码 | 必要数据 |
 | --- | --- | --- |
-| 今日总览、推荐理由 | `app/zh/watch/resonance/page.tsx` | `public/unified-v2-rankings.json`、`public/decision-summary.json`、市场/行业 JSON |
-| 多因子排行榜、个股命中明细 | `app/zh/watch/resonance/rare-opportunities/page.tsx` | `public/daily-factor-snapshot.json`、`public/factor-registry.json`、`public/opportunity-ledger.json` |
+| 今日总览、推荐理由 | `app/zh/watch/resonance/page.tsx` | `public/unified-v2-latest.json`、`public/signal-history-summary.json`、市场/行业 JSON |
+| 多因子排行榜、个股命中明细 | `app/zh/watch/resonance/rare-opportunities/page.tsx` | 最新快照默认加载；`public/unified-v2-rankings.json`、`public/opportunity-ledger.json` 只在主动复盘时加载 |
+| 我最喜欢形态 | `app/zh/watch/resonance/favorite-pattern/page.tsx` | `public/favorite-pattern.json` |
 | 行业与大盘 | `app/zh/watch/industry-radar/page.tsx` | `public/industry-radar.json`、`public/market-etf-watch.json` |
-| 历史、实验、回测断点 | `app/zh/watch/resonance/research/page.tsx` | `public/experiment-catalog.json`、`public/signal-history.json`、`public/backtest-progress.json` |
+| 历史、实验、回测断点（Git 后台） | `research/backtest/`、`services/scanner/experiment_catalog.py` | `research/generated/experiment-catalog.json`、`research/experiments.jsonl`、`public/backtest-progress.json` |
 | 因子定义/检测/评分 | `services/scanner/factor_registry.py`、`factor_detectors.py`、`factor_snapshot.py`、`factor_scoring.py` | `public/factor-registry.json` |
 | 外部候选因子、赢家配对和走步实验 | `research/factor-candidates-v2.json`、`research/factor_lab/features.py`、`research/backtest/factor_strategy_lab_v2.py` | `research/backtest/output/factor-strategy-lab-v2.json` |
 | V2 历史回放与排名 | `services/scanner/unified_v2_scan.py` | `public/unified-v2-rankings.json` |
@@ -23,12 +24,12 @@
 
 1. `/`：今日研究总览。
 2. `/zh/watch/resonance/rare-opportunities`：多因子机会与唯一权威排行榜。
-3. `/zh/watch/industry-radar`：行业与大盘上下文。
-4. `/zh/watch/resonance/research`：历史、Forward Testing 与实验。
+3. `/zh/watch/resonance/favorite-pattern`：独立的“我最喜欢形态”每日追踪。
+4. `/zh/watch/industry-radar`：SPY 等大盘与常用行业 ETF 上下文。
 
-共享外壳在 `app/zh/watch/resonance/tracker-ui.tsx`；正式视觉分别在 `app/home-v3.css`、`app/product-v2.css` 和少量 `app/globals.css`。`about` 与 strategy/factor/market/ranking/selection 等页面是上述研究中心的详细研究页，不是另一套生产产品。
+共享外壳在 `app/zh/watch/resonance/tracker-ui.tsx`；正式视觉分别在 `app/home-v3.css`、`app/product-v2.css`、`app/favorite-pattern.css` 和少量 `app/globals.css`。完整实验、失败结果、逐期产物和回测断点永久保存在 Git 研究目录，不再作为网站产品页发布。
 
-旧路径 `/technical`、`/data-quality`、`/efficiency`、`/research`、`/zh/**` 的旧入口和独立 RSI/Volume/Confluence 页面只保留兼容跳转。不要在这些路径重新建立平行产品。
+旧路径 `/technical`、`/data-quality`、`/efficiency`、`/research`、`/zh/**` 和独立研究详情页只保留兼容跳转。不要在这些路径重新建立平行产品。
 
 ## 每日生产数据流
 

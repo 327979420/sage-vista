@@ -1,3 +1,3 @@
 import {redirect} from "next/navigation";
 
-export default function Page(){redirect("/zh/watch/resonance/research?tab=experiments")}
+export default function Page(){redirect("/")}

@@ -457,7 +457,7 @@ def multifactor_report(splits):
   contributions.append({"component":component,"horizons":horizons_by_component})
  return {"core":"长期趋势合格＋近60日高点回调至少5%＋日线MACD金叉","components":components,"horizons":horizons,"contributions":contributions,"score_rule":"每项确认1分；不因子内重复计分；周线只用信号日前已完整收盘的周K"}
 
-def run(out="public/macd-factor-backtest.json",limit=None):
+def run(out="research/backtest/output/macd-factor-backtest.json",limit=None):
  cache=pathlib.Path("work/eodhd-cache");regimes,benchmarks=market_regimes(cache);statuses=listing_statuses();paths=sorted(cache.glob("*.json"));paths=paths[:limit] if limit else paths;events=[];loaded=0;starts=[];ends=[];row_counts=[];history_status={}
  for path in paths:
   if path.stem in ("SPY","QQQ"):continue

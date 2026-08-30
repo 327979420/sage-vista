@@ -6,11 +6,7 @@ on:
     branches: [main]
     paths:
       - "app/**"
-      - "research/**"
-      - "services/scanner/experiment_catalog.py"
       - "services/scanner/project_status.py"
-      - "public/experiment-catalog.json"
-      - "public/backtest-progress.json"
       - "docs/CURRENT_STATUS_ZH.md"
       - "package.json"
       - "package-lock.json"
@@ -36,11 +32,10 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with: { python-version: "3.13" }
-      - name: Verify reusable experiment artifacts are current
+      - name: Verify repository status snapshot is current
         run: |
-          python3 -m services.scanner.experiment_catalog > /dev/null
           python3 -m services.scanner.project_status > /dev/null
-          git diff --exit-code -- public/experiment-catalog.json docs/EXPERIMENT_SUMMARY_ZH.md docs/CURRENT_STATUS_ZH.md
+          git diff --exit-code -- docs/CURRENT_STATUS_ZH.md
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -60,7 +55,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npm run deploy:cloudflare
-      - name: Verify the published UI and experiment catalog
+      - name: Verify the published UI build
         run: |
           for attempt in 1 2 3 4 5; do
             page=$(curl --fail --silent --show-error "$PRODUCTION_SITE_URL?deployment=$GITHUB_SHA" || true)
@@ -68,14 +63,3 @@ jobs:
             if [ "$attempt" = "5" ]; then exit 1; fi
             sleep 6
           done
-          curl --fail --silent --show-error "$PRODUCTION_SITE_URL/experiment-catalog.json?deployment=$GITHUB_SHA" -o live-experiment-catalog.json
-          curl --fail --silent --show-error "$PRODUCTION_SITE_URL/backtest-progress.json?deployment=$GITHUB_SHA" -o live-backtest-progress.json
-          python3 - <<'PY'
-          import json
-          expected=json.load(open("public/experiment-catalog.json"));live=json.load(open("live-experiment-catalog.json"))
-          for key in ("schema_version","generated_at","experiment_count","summary"):
-              if live.get(key)!=expected.get(key):raise SystemExit(f"live experiment catalog mismatch: {key}")
-          expected=json.load(open("public/backtest-progress.json"));live=json.load(open("live-backtest-progress.json"))
-          for key in ("schema_version","enabled","status","coverage","next_window","active_rules"):
-              if live.get(key)!=expected.get(key):raise SystemExit(f"live backtest progress mismatch: {key}")
-          PY

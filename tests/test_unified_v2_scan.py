@@ -1,6 +1,7 @@
-import unittest
+import json,tempfile,unittest
+from pathlib import Path
 
-from services.scanner.unified_v2_scan import _candidate,_rank_day
+from services.scanner.unified_v2_scan import _candidate,_rank_day,write_latest
 
 
 def state(factor_id, hit=False, recent=False):
@@ -42,6 +43,13 @@ class UnifiedV2ScanTests(unittest.TestCase):
  def test_non_triggered_row_cannot_enter_ranking(self):
   row={"symbol":"OLD","price":10,"factors":[state("qualification.long_trend",True),state("macd.daily_bull_cross",False,True),state("support.ema_proximity",True)],"scoring":{"experimental_observational_score":9}}
   self.assertIsNone(_candidate(row,{"market_temperature":{"score":5}},{"historical_membership_safe":False}))
+
+ def test_latest_view_keeps_only_the_newest_day(self):
+  report={"coverage":{"start":"2026-08-26","end":"2026-08-27","sessions":2},"days":[{"date":"2026-08-26"},{"date":"2026-08-27"}]}
+  with tempfile.TemporaryDirectory() as folder:
+   out=Path(folder)/"latest.json";latest=write_latest(report,out)
+   self.assertEqual(latest["days"],[{"date":"2026-08-27"}])
+   self.assertEqual(json.loads(out.read_text())["coverage"]["sessions"],2)
 
 
 if __name__=="__main__":unittest.main()

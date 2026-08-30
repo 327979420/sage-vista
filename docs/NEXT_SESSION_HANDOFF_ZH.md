@@ -35,7 +35,7 @@
 - 自动回测断点：`automation/backtest-state.json`
 - 生产交付状态：`automation/production-state.json` 与 `public/update-status.json`
 - 当前因子库：`public/factor-registry.json`
-- 实验状态：`public/experiment-catalog.json`、`research/experiments.jsonl`、`research/experiment-events.jsonl`
+- 实验状态：`research/generated/experiment-catalog.json`、`research/experiments.jsonl`、`research/experiment-events.jsonl`
 - 真实历史机会：`public/opportunity-ledger.json` 与 `public/signal-history.json`
 - 生产网站：<https://sage-vista-parallel.gizmo-allied-0s.workers.dev>
 

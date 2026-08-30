@@ -38,7 +38,7 @@
 | 05 大盘 | `market_etf_watch.py` | `market-etf-watch.json` | `test_market_etf_watch.py` |
 | 06 行业 | `industry_radar.py`、`industry_membership.py` | `industry-radar.json` | `test_industry_radar.py` |
 | 07 排行追踪 | `unified_v2_scan.py`、`opportunity_ledger.py`、`signal_history.py` | `unified-v2-rankings.json`、`opportunity-ledger.json`、`signal-history.json` | `test_opportunity_ledger.py`、`test_signal_history.py` |
-| 08 回测实验 | `research/backtest/`、`experiment_catalog.py`、`backtest_progress.py` | `research/experiments.jsonl`、`backtest-state.json`、`experiment-catalog.json` | `test_backtest_progress.py`、`test_experiment_catalog.py` |
+| 08 回测实验 | `research/backtest/`、`experiment_catalog.py`、`backtest_progress.py` | `research/experiments.jsonl`、`backtest-state.json`、`research/generated/experiment-catalog.json` | `test_backtest_progress.py`、`test_experiment_catalog.py` |
 | 09 风险执行 | `support_risk.py`、研究回测脚本 | 风险 / 退出实验产物 | `test_support_risk.py`、对应回测测试 |
 | 10 UI 运维 | `app/`、`.github/workflows/`、`verify_live_deployment.py` | 生产网站、`production-state.json` | `test_ui_v2_contract.py`、`rendered-html.test.mjs` |
 | 11 策略宝典 | 已验证实验引用 | `11_VALIDATED_PLAYBOOK.md` | 规则契约测试 |

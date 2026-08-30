@@ -10,7 +10,7 @@ ROOT = pathlib.Path(__file__).parents[2]
 LEDGER = ROOT / "research/experiments.jsonl"
 EVENTS = ROOT / "research/experiment-events.jsonl"
 SUMMARIES = ROOT / "research/experiment-summaries.zh.json"
-PUBLIC_CATALOG = ROOT / "public/experiment-catalog.json"
+RESEARCH_CATALOG = ROOT / "research/generated/experiment-catalog.json"
 SUMMARY_DOC = ROOT / "docs/EXPERIMENT_SUMMARY_ZH.md"
 EVENT_TYPES = {"registered", "started", "checkpoint", "completed", "blocked"}
 
@@ -133,10 +133,12 @@ def render_summary(catalog):
  return "\n".join(lines)
 
 
-def write(out=PUBLIC_CATALOG, summary_out=SUMMARY_DOC):
+def write(out=RESEARCH_CATALOG, summary_out=SUMMARY_DOC):
  payload = build()
- pathlib.Path(out).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n")
- pathlib.Path(summary_out).write_text(render_summary(payload) + "\n")
+ out_path=pathlib.Path(out);summary_path=pathlib.Path(summary_out)
+ out_path.parent.mkdir(parents=True,exist_ok=True);summary_path.parent.mkdir(parents=True,exist_ok=True)
+ out_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n")
+ summary_path.write_text(render_summary(payload) + "\n")
  return payload
 
 

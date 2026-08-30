@@ -41,7 +41,7 @@ def build() -> str:
     freshness = _read_json("public/update-status.json")
     backtest = _read_json("automation/backtest-state.json")
     registry = _read_json("public/factor-registry.json")
-    catalog = _read_json("public/experiment-catalog.json")
+    catalog = _read_json("research/generated/experiment-catalog.json")
     coverage = backtest["coverage"]
     last_batch = backtest["last_successful_batch"]
     next_window = backtest.get("next_window")
@@ -99,7 +99,7 @@ def build() -> str:
 - `automation/production-state.json`
 - `public/update-status.json`
 - `public/factor-registry.json`
-- `public/experiment-catalog.json`
+- `research/generated/experiment-catalog.json`
 
 来源时间：生产数据更新 {freshness['last_successful_update_at']}；实验目录生成 {catalog['generated_at']}。
 """

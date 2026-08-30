@@ -31,22 +31,21 @@ test("server-renders the Sage Vista application", async () => {
   assert.match(html, /<title>Sage Vista — 今日研究总览<\/title>/i);
   assert.match(html, /SAGE VISTA/i);
   assert.match(html, /今日研究总览/i);
-  assert.match(html, /Sage Vista UI v6\.0/);
+  assert.match(html, /Sage Vista UI v6\.1/);
   assert.match(html, /Build (?:local|[0-9a-f]{7})/);
   assert.doesNotMatch(html, /US Equity Signals|SIGNAL BOARD/i);
   assert.doesNotMatch(html, /DISCORD_WEBHOOK_URL|EODHD_API_TOKEN/i);
 });
 
-test("server-renders the consolidated research navigation", async () => {
-  const html = await (await render("/zh/watch/resonance/research")).text();
+test("server-renders the four-product navigation", async () => {
+  const html = await (await render("/")).text();
   assert.doesNotMatch(html, /个股研究/);
   assert.match(html, /多因子机会/);
+  assert.match(html, /我最喜欢形态/);
   assert.match(html, /行业与大盘/);
-  assert.match(html, /历史与实验/);
+  assert.doesNotMatch(html, /历史与实验/);
   assert.match(html, /href="\/zh\/watch\/resonance\/rare-opportunities"/);
   assert.match(html, /href="\/zh\/watch\/industry-radar"/);
-  assert.match(html, /HISTORICAL BACKTESTS/);
-  assert.match(html, /行情状态载入中，页面功能可以正常使用/);
 });
 
 test("the retired MACD Tracker product page is gone", async () => {
@@ -57,8 +56,8 @@ test("the retired MACD Tracker product page is gone", async () => {
 test("retired product routes redirect to maintained modules", async () => {
   const routes = [
     ["/technical", "/zh/watch/resonance/rare-opportunities"],
-    ["/data-quality", "/zh/watch/resonance/research?tab=experiments"],
-    ["/zh", "/zh/watch/resonance/research?tab=experiments"],
+    ["/data-quality", "/"],
+    ["/zh", "/"],
     ["/zh/watch/market", "/zh/watch/industry-radar"],
     ["/zh/watch/resonance/rsi", "/zh/watch/resonance/rare-opportunities"],
   ];
@@ -82,60 +81,19 @@ test("server-renders the independent favorite-pattern tracker", async () => {
   assert.match(html, /匹配度不是胜率/);
 });
 
-test("server-renders the isolated Strategy Backtest research page", async () => {
-  const response = await render("/zh/watch/resonance/strategy-backtest");
-  assert.equal(response.status, 200);
-  const html = await response.text();
-  assert.match(html, /Strategy Backtest/);
-  assert.match(html, /Tracker Backtest V1/);
-  assert.match(html, /不进入生产排名/);
-  assert.doesNotMatch(html, /DISCORD_WEBHOOK_URL|EODHD_API_TOKEN/i);
-});
-
-test("server-renders Tracker Backtest V2 risk research", async () => {
-  const response = await render("/zh/watch/resonance/strategy-backtest-v2");
-  assert.equal(response.status, 200);
-  const html = await response.text();
-  assert.match(html, /Backtest V2/);
-  assert.match(html, /Stop &amp; Risk-Reward/);
-  assert.match(html, /不进入 production/);
-  assert.doesNotMatch(html, /DISCORD_WEBHOOK_URL|EODHD_API_TOKEN/i);
-});
-
-test("server-renders the point-in-time Market Regime research page", async () => {
-  const response = await render("/zh/watch/resonance/market-regime");
-  assert.equal(response.status, 200);
-  const html = await response.text();
-  assert.match(html, /Market Regime/);
-  assert.match(html, /不参与 production/);
-  assert.match(html, /验证市场环境能否改善冻结的 Long benchmark/);
-  assert.doesNotMatch(html, /DISCORD_WEBHOOK_URL|EODHD_API_TOKEN/i);
-});
-
-test("server-renders Factor Attribution research without production secrets", async () => {
-  const response = await render("/zh/watch/resonance/factor-attribution");
-  assert.equal(response.status, 200);
-  const html = await response.text();
-  assert.match(html, /Factor Attribution/);
-  assert.match(html, /不改变 production 权重/);
-  assert.doesNotMatch(html, /DISCORD_WEBHOOK_URL|EODHD_API_TOKEN/i);
-});
-
-test("server-renders Ranking Research controls safely", async () => {
-  const response = await render("/zh/watch/resonance/ranking-research");
-  assert.equal(response.status, 200);
-  const html = await response.text();
-  assert.match(html, /Ranking Research/);
-  assert.match(html, /同一 point-in-time 候选池/);
-  assert.doesNotMatch(html, /DISCORD_WEBHOOK_URL|EODHD_API_TOKEN/i);
-});
-
-test("server-renders Selection Research as an isolated experiment", async () => {
-  const response = await render("/zh/watch/resonance/selection-research");
-  assert.equal(response.status, 200);
-  const html = await response.text();
-  assert.match(html, /Stock Selection/);
-  assert.match(html, /Leadership 与 Strong-Trend Pullback/);
-  assert.match(html, /不改变 production/);
-  assert.doesNotMatch(html, /DISCORD_WEBHOOK_URL|EODHD_API_TOKEN/i);
+test("experiment pages are retired from the website", async () => {
+  const routes = [
+    "/zh/watch/resonance/research",
+    "/zh/watch/resonance/strategy-backtest",
+    "/zh/watch/resonance/strategy-backtest-v2",
+    "/zh/watch/resonance/market-regime",
+    "/zh/watch/resonance/factor-attribution",
+    "/zh/watch/resonance/ranking-research",
+    "/zh/watch/resonance/selection-research",
+  ];
+  for (const path of routes) {
+    const response = await render(path);
+    assert.ok([307, 308].includes(response.status), `${path} returned ${response.status}`);
+    assert.equal(new URL(response.headers.get("location"), "http://localhost").pathname, "/");
+  }
 });

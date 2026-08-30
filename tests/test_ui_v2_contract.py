@@ -9,23 +9,24 @@ class UiV2ContractTests(unittest.TestCase):
   for label in ("TODAY&apos;S DECISION","精选机会，不追高","现在能用什么","今日 V2 技术机会","WHY IT RANKS HERE"):
    self.assertIn(label,text)
 
- def test_research_separates_three_evidence_modes(self):
+ def test_experiment_archive_is_git_only(self):
   text=(ROOT/"app/zh/watch/resonance/research/page.tsx").read_text()
-  for label in ("历史回测","真实跟踪","实验档案","全部实验时间线","最早记录","开始","结束","现在怎么用","夜间回测会从断点自动继续","旧周冻结，新规则向前生效","/signal-history.json","/backtest-progress.json"):
-   self.assertIn(label,text)
-  self.assertIn('cache:"no-store"',text)
+  self.assertIn('redirect("/")',text)
+  self.assertTrue((ROOT/"research/generated/experiment-catalog.json").exists())
+  self.assertTrue((ROOT/"research/experiments.jsonl").exists())
+  self.assertFalse((ROOT/"public/experiment-catalog.json").exists())
 
  def test_industry_page_starts_with_market_decision_and_practical_groups(self):
   text=(ROOT/"app/zh/watch/industry-radar/page.tsx").read_text()
-  for label in ("/market-etf-watch.json","今天怎么用","趋势主线","回调与修复","当前偏弱的行业背景","只调整观察优先级"):
+  for label in ("/market-etf-watch.json","SPY","QQQ","IWM","RSP","SOXX","常用行业，一张表读完","只影响优先级，不改技术分"):
    self.assertIn(label,text)
-  self.assertLess(text.index("marketDecisionHero"),text.index("TODAY&apos;S INDUSTRY MAP"))
+  self.assertLess(text.index("marketDecisionHero"),text.index("EVERYDAY SECTOR ETFS"))
 
  def test_multifactor_keeps_only_the_current_decision_surface(self):
   self.assertFalse((ROOT/"app/zh/watch/resonance/macd/page.tsx").exists())
   text=(ROOT/"app/zh/watch/resonance/rare-opportunities/page.tsx").read_text()
   profile=(ROOT/"app/zh/watch/resonance/rare-opportunities/timeframe-profile.tsx").read_text()
-  for label in ("WHY IT RANKS HERE","RISK PLAN","TimeframeProfilePanel","37个因子，现在分别怎么处理","factorFamilyLegend","统一机会账本","ROLE-FAMILY RETURN TEST","生产权重"):
+  for label in ("WHY IT RANKS HERE","RISK PLAN","TimeframeProfilePanel","37个因子，现在分别怎么处理","factorFamilyLegend","统一机会账本"):
    self.assertIn(label,text)
   for retired in ("旧系统历史机会参考","统一因子库","股票技术证据查询","旧评分兼容观察","查看当前动态观察评分规则","/research-opportunity-pool.json","/rare-opportunity-radar.json","/signal-history.json","/factor-registry.json"):
    self.assertNotIn(retired,text)
@@ -34,11 +35,10 @@ class UiV2ContractTests(unittest.TestCase):
    self.assertNotIn(retired_selector,styles)
   factor_view=json.loads((ROOT/"public/factor-effectiveness.json").read_text())
   self.assertEqual([factor_view["quadrants"][key]["label_zh"] for key in factor_view["quadrant_order"]],["正在使用","候选观察","暂停加权","准备弃用"])
-  family_combo=json.loads((ROOT/"public/factor-family-combination.json").read_text())
+  self.assertNotIn("factor-family-combination.json",text)
+  self.assertFalse((ROOT/"public/factor-family-combination.json").exists())
+  family_combo=json.loads((ROOT/"research/backtest/output/factor-family-return-combination-v1.json").read_text())
   self.assertFalse(family_combo["production_scoring_changed"])
-  self.assertEqual(family_combo["candidate"]["production_weight"],0)
-  self.assertEqual(family_combo["candidate"]["verdict"],"historical_return_winner_only")
-  self.assertLess(family_combo["candidate"]["periods"]["seen_2025"]["hit"]["trimmed_mean_pct"],family_combo["candidate"]["periods"]["seen_2025"]["baseline"]["trimmed_mean_pct"])
   self.assertNotIn("旧系统因子实验",text)
   for label in ("周线","月线","不是建议持仓天数","不改变当前 V2 排名"):
    self.assertIn(label,profile)

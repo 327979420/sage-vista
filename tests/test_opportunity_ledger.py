@@ -1,6 +1,7 @@
-import unittest
+import json,tempfile,unittest
+from pathlib import Path
 
-from services.scanner.opportunity_ledger import build, preserve_mature_evaluations, validate
+from services.scanner.opportunity_ledger import build, preserve_mature_evaluations, validate, write_latest
 
 
 ROWS = [
@@ -57,6 +58,15 @@ class OpportunityLedgerTests(unittest.TestCase):
         self.assertEqual(len(report["events"]),1)
         self.assertEqual(report["summary"]["excluded_definition_corrections"],1)
         self.assertEqual(report["summary"]["by_horizon"]["1"]["samples"],0)
+
+    def test_latest_ledger_keeps_totals_and_limits_browser_rows(self):
+        report=build(unified(),{"as_of":"2026-08-27","cases":[]},lambda _:ROWS)
+        report["events"]=report["events"]*3
+        with tempfile.TemporaryDirectory() as folder:
+            out=Path(folder)/"latest.json";compact=write_latest(report,out,event_limit=2)
+            self.assertEqual(len(compact["events"]),2)
+            self.assertEqual(compact["view"]["full_event_count"],3)
+            self.assertEqual(json.loads(out.read_text())["coverage"],report["coverage"])
 
 
 if __name__ == "__main__":
