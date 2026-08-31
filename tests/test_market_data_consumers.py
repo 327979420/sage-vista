@@ -150,6 +150,18 @@ def reader_for(rows):
     return read
 
 
+def reader_with_fingerprint(rows, fingerprint):
+    def read(instrument_id, *, as_of):
+        return RepositoryRead(
+            instrument_id=instrument_id,
+            as_of=as_of,
+            rows=tuple(rows),
+            point_in_time_fingerprint=fingerprint,
+        )
+
+    return read
+
+
 def complete_gate_rows():
     end = date.fromisoformat(DAY)
     rows = []
@@ -180,6 +192,67 @@ def prepare(consumer, *, mode="formal", as_of=DAY, snapshots=None, rows=None):
 
 
 class ForwardUniverseAndConsumerTests(unittest.TestCase):
+    def test_consumer_rejects_a_fingerprint_not_derived_from_delivered_rows(self):
+        with self.assertRaisesRegex(ContractError, "fingerprint does not match"):
+            prepare_shadow_consumer_input(
+                consumer="factor_snapshot",
+                mode="formal",
+                as_of=DAY,
+                snapshots=[forward_snapshot()],
+                reader=reader_with_fingerprint(
+                    adjusted_rows(), "sha256:" + "0" * 64
+                ),
+                generated_at=f"{DAY}T23:05:00Z",
+                data_source={
+                    "provider": "fixture",
+                    "dataset": "adjusted-daily",
+                    "market": "US",
+                },
+            )
+
+    def test_consumer_rejects_invalid_adjusted_ohlcv_values(self):
+        cases = {
+            "negative_price": {"close": -1.0},
+            "non_finite_price": {"high": float("inf")},
+            "nan_price": {"low": float("nan")},
+            "negative_volume": {"volume": -1},
+            "non_integer_volume": {"volume": 1.5},
+        }
+        for name, change in cases.items():
+            rows = [dict(row) for row in adjusted_rows()]
+            rows[-1].update(change)
+            with self.subTest(name=name), self.assertRaises(ContractError):
+                prepare("factor_snapshot", rows=rows)
+
+    def test_consumer_rejects_impossible_adjusted_ohlc_relationships(self):
+        cases = {
+            "high_below_close": {"high": 11.0, "close": 11.5},
+            "low_above_open": {"low": 11.5, "open": 11.0},
+        }
+        for name, change in cases.items():
+            rows = [dict(row) for row in adjusted_rows()]
+            rows[-1].update(change)
+            with self.subTest(name=name), self.assertRaisesRegex(
+                ContractError, "OHLC relationship"
+            ):
+                prepare("factor_snapshot", rows=rows)
+
+    def test_delivered_rows_are_detached_and_immutable(self):
+        source_rows = [dict(row) for row in adjusted_rows()]
+        prepared = prepare("factor_snapshot", rows=source_rows)
+        original_snapshot_id = prepared.market_snapshot_id
+        original_close = prepared.symbol_rows["ABC"][-1]["close"]
+
+        source_rows[-1]["close"] = 999.0
+        self.assertEqual(prepared.symbol_rows["ABC"][-1]["close"], original_close)
+        self.assertEqual(prepared.market_snapshot_id, original_snapshot_id)
+        with self.assertRaises(TypeError):
+            prepared.symbol_rows["ABC"][-1]["close"] = 999.0
+        with self.assertRaises(TypeError):
+            prepared.symbol_rows["ABC"] = ()
+        with self.assertRaises(TypeError):
+            prepared.market_snapshot["snapshot_id"] = "changed"
+
     def test_2026_08_28_repository_sample_is_only_count_and_trigger_evidence(self):
         payload = json.loads((ROOT / "public/daily-factor-snapshot.json").read_bytes())
         self.assertEqual(payload["as_of"], "2026-08-28")
