@@ -94,6 +94,7 @@
 - 冻结诚实观察身份`provider + market + exchange + provider_code + observed_listing_epoch`；观察纪元不是IPO日期，重现、换交易所或重上市必须建立新身份。
 - 将新语义升级为`UniverseSnapshot 3.x`，保留`2.x`只读兼容；formal与legacy必须显式选择且不得自动回退。
 - 批准F— I本地影子实施；生产扫描、公开JSON、工作流、网站和Discord继续保持原样。
+- 本地证据：规则、实现与测试分别保存为`a141911`、`e198b0c`、`e1e65e2`与`990ac0b`；M01/M02定向83项与完整Python 425项通过。状态仅为`verified`，默认生产入口尚未切换。
 
 ### 1.6.1 — 2026-08-31
 

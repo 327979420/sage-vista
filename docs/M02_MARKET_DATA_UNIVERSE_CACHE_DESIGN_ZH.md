@@ -1,11 +1,11 @@
 # M02｜行情仓、股票池与缓存设计
 
-- 模块状态：`implementing`；A—C、D与E均由独立提交保存，F0证据恢复已完成并以负结果永久留档，F— I已获本地影子实施批准
+- 模块状态：`verified`；A—E与F0证据均由独立提交保存，F— I本地影子实现和完整验收已完成；尚未合并main、部署或接入生产
 - 对应需求：`CR-2026-08-31-040`
 - 审计基线：`af8ba39f29ea7d9dd37944c0c9cb787a41a4f390`
 - 审计日期：2026-08-31
 - 生产样本数据日：2026-08-28
-- 边界：本文件记录现状审计、获批设计和本地证据；具体实施权限以用户批准与CR账本为准。A—E只建设影子基础设施，不授权修改工作流、生产JSON、真实缓存、扫描／回测消费者、网站或Discord。
+- 边界：本文件记录现状审计、获批设计和本地证据；具体实施权限以用户批准与CR账本为准。A—E建设影子基础设施，F—G只增加未接入默认任务的影子消费者入口；不授权修改工作流、生产JSON、真实缓存、生产网站或Discord。
 
 ## 人话版
 
@@ -29,7 +29,7 @@ M02不会改变MACD、因子、评分、排行榜、形态、持仓或交易结�
 2. **选择2A：新正式历史路径失败关闭。** 缺少当时股票池证据时返回`universe_unavailable`并停止新正式回放，禁止使用今天名单。现有夜间回测在迁移完成前继续原样运行，但必须明确归类为`legacy`；M02影子代码不得中断它。
 3. **选择3A：单份历史加追加修订记录。** 完整价格历史只保存一份；供应商旧数据变化必须逐项保存变化日期、旧值、新值、变更前后完整指纹及修订链身份。若证据不足以重建旧版本，必须记录`not_reconstructible`及原因，不能猜测。
 4. **A—C样本边界。** 本地没有云端行情缓存，A—C只使用测试内固定小样本，不调用行情接口、不伪造完整缓存。线上历史基线`1337`只合格股票和`31`只MACD触发只用于未来影子迁移验收，本轮不声称已经本地复现。
-5. **当前授权。** 包A—E已获批准并完成本地实现；F0只读证据恢复已完成。用户已批准F— I连续本地影子实施、分别提交并在完成后统一审核。该授权不包括合并main、生产消费者切换、工作流、真实缓存、公开产物、部署、每日行情或真实回测。
+5. **当前授权与结果。** 包A—E及F0已完成；F— I已按批准范围完成本地影子实现、分开提交和验收。该结果不包括合并main、生产消费者切换、工作流、真实缓存、公开产物、部署、每日行情或真实回测。
 
 ## A—C本地成果（已审核并提交）
 
@@ -71,7 +71,7 @@ M02不会改变MACD、因子、评分、排行榜、形态、持仓或交易结�
 - Manifest文件条目按其全部`contract_types`共同支持的主版本验证。`UniverseSnapshot 2.x`可作为单独条目，仍为1.x的合同拒绝2.x；混合类型没有共同主版本时失败，不能猜测。
 - 旧`daily-factor-snapshot.json`只有筛选后合格数量和31只触发明细，没有筛选前完整成员来源及全体纳入／排除结果，因此适配器不再给它贴`UniverseSnapshot`标签，只保留它真实能够支持的`GateEvent`和`TechnicalEvidence`范围。15件影子包仍完整通过；本次本地审计ID为`sha256:6a5b4ff8b80d39c6e8e9bc0120d2f6b8152e4f79f2130302dcc528936ad908aa`，不回写M01历史验收ID，也不是生产Manifest。
 - M01/M02定向71项、完整Python 413项、Python编译、前端lint／类型检查／生产构建及11项前端测试、补丁格式检查全部通过。
-- 本地审核通过，已保存为提交`70fba7582a1133ada790d65c9f122da1506e3927`并随M02分支推送备份；尚未合并或部署，F尚未开始。本修复不下载行情、不生成真实股票池、不修改每日扫描、回测、生产JSON、网站、工作流或Discord。
+- 本地审核通过，已保存为提交`70fba7582a1133ada790d65c9f122da1506e3927`并随M02分支推送备份；尚未合并或部署。历史状态：该提交保存时F尚未开始；后续F— I结果见下文。本修复不下载行情、不生成真实股票池、不修改每日扫描、回测、生产JSON、网站、工作流或Discord。
 
 ### F0证据恢复（已完成，负结果永久保存）
 
@@ -89,6 +89,23 @@ M02不会改变MACD、因子、评分、排行榜、形态、持仓或交易结�
 - 消失后重新出现、交易所变化、供应商明确重上市或身份冲突时建立新epoch和新证券ID；旧身份不覆盖。身份依据必须随快照保存为可审计字段，不能只保留一个无法解释的哈希。
 - 既有`UniverseSnapshot 2.0.0`没有上述必填身份依据与完整来源证明。新正式结构因此使用`3.x`主版本，旧`2.x`含义保持不变并继续只读验证，禁止静默升级。
 - 旧每日与回测数据继续归为`legacy`，可用于兼容研究，但必须保存幸存者偏差和成员证据不完整标签。formal与legacy只能显式选择；formal缺失不得自动回退。
+
+### F— I本地成果（已验证，等待分支审核）
+
+- **包F**：新增唯一`services/market_data/consumer.py`影子桥。根目录由仓库内代码位置固定取得，公开入口不接受CLI、环境变量、当前目录或外部调用者注入；每日`factor_snapshot`、Tracker、市场ETF和行业ETF只新增显式影子读取函数，既有`run()`及默认加载器未改变。
+- **包G**：`unified_v2_scan`新增未接入默认夜间任务的影子输入函数。formal与legacy必须显式选择；formal缺失返回`universe_unavailable`，legacy固定返回`survivorship_bias`、`incomplete_membership_evidence`和`not_formal_point_in_time_universe`三项偏差标签。
+- **合同升级**：新formal结构为`UniverseSnapshot 3.0.0`，保存完整来源证明和可解释观察身份；旧`2.x`继续按原字段只读验证。`ReleaseManifest`条目知道2.x和3.x，但与只支持1.x的合同混合时仍失败关闭。
+- **同源证明**：固定小样本中，每日与回测对相同`universe_id + as_of + adjustment_policy`得到相同`market_snapshot_id`、OHLCV、MACD门票判断和因子生成器输入。没有访问网络、真实缓存或生产数据。
+- **提交**：规则冻结`a141911`；前向身份和消费者桥`e198b0c`；每日／回测影子反例`e1e65e2`；旧生产样本证据钉住测试`990ac0b`。包H清单与本段验收证据由最终文档提交保存。
+- **本地验收**：M01/M02定向83项、完整Python 425项、Python编译、前端lint／类型检查／生产构建及11项前端测试全部通过；`PYTHONHASHSEED=0/1/42/12345`下各55项确定性测试通过；`git diff --check`通过。
+
+三个可人工复查的例子：
+
+1. **完整前向formal样本**：2026-09-01的固定来源明确声明完整成员数与内容指纹；成员ABC保存EODHD、US、XNYS、provider code、观察纪元和身份来源，并有同日资格结论。生成3.0.0快照后，每日与回测取得相同数据身份。
+2. **2026-08-28失败样本**：仓库只有1337合格数量、31只触发和缺少listing生命周期的旧缓存盘点，没有完整来源成员及逐只资格。因此formal选择明确返回`universe_unavailable`，测试证明不会取legacy代替。
+3. **同一旧样本的legacy读取**：调用者必须写明`mode=legacy`，才能读取`legacy_observed`样本；返回结果同时携带三项偏差标签。把该样本交给formal选择器会失败。
+
+尚未解决的证据风险：没有未来首个完整生产日快照；没有全市场真实缓存可做逐股OHLCV等价；现有默认每日、夜间与研究消费者仍直读旧入口；2026-08-28及更早日期仍没有formal股票池。它们必须保持显式缺口，不能由M02本地测试推断完成。
 
 ### A—C后续人工审计修复
 
@@ -399,17 +416,37 @@ repository.prepare_snapshot(universe_id, as_of, adjustment_policy)
 
 工作流修改属于M02后续单独批准的小包；本设计不执行。
 
+### 4. 包H直接旧入口清单与M12切换边界
+
+精准搜索确认以下入口仍直接依赖旧缓存、bulk或下载器。它们本轮全部保留，不能因为影子桥存在就写成“已经迁移”：
+
+| 类别 | 仍直接使用旧入口的消费者 |
+| --- | --- |
+| 每日扫描 | `factor_snapshot.load_symbol_rows`、`resonance_tracker.run/bulk_day`、`market_etf_watch.refreshed_rows`、`eodhd_factor_pilot.adjusted_rows`、`rare_opportunity_scanner`、`opportunity_ledger`、`cache_theme_etfs`、`expand_tracker_universe` |
+| 当前回放 | `unified_v2_scan._load_cache/run`、`macd_factor_backtest` |
+| 研究回放 | `tracker_backtest_v1/v2`、`selection_research_v1`、`factor_attribution_v1`、`market_regime_v1`、`pullback_context_backtest_v2`、`full_line_backtest_v1`、`annual_factor_summary_v1`、`ranking_research_v1`、`trailing_stop_v1`、`factor_strategy_lab_v2`、`reused_event_study_v2`、`winner_loser_optimization_v1` |
+| 校验与审计 | `eodhd_factor_validation`、`market_context_factor_test`、`neutralization_test`、`audit_eodhd` |
+| 自动化缓存 | `daily-eod.yml`、`nightly-backtest.yml`、`unified-v2-backfill.yml`、`recover-unified-v2-backfill.yml`、`opportunity-ledger-refresh.yml`、`industry-radar-validation.yml`、`pullback-context-backtest.yml`、`core-factor-backtest.yml`、`full-line-backtest.yml`、`trailing-stop-backtest.yml`、`factor-strategy-lab-v2.yml`、`reused-factor-backtest.yml`、`choppiness-state-mechanism-v1.yml`及`winner-loser-strategy-optimization.yml`中的旧缓存恢复步骤 |
+
+未来候选发布／缓存身份必须显式绑定：数据源与数据集、原始结构版本、复权政策、`universe_id`及股票池合同主版本、覆盖起止日、原始修订指纹和消费者桥代码版本。原始行情仍只保存一份；包含股票池身份的键属于点时准备结果或工作流候选包，不能据此复制整盘原始历史。
+
+迁移顺序冻结为：`factor_snapshot` → Tracker → 市场与行业ETF → `unified_v2_scan`夜间入口 → 其余研究脚本。每个消费者先影子对照，再由M12把一个明确入口切到候选目录和正式Manifest；失败时只把该消费者恢复到旧只读入口，不删除新旧证据，也不移动其他消费者。
+
+旧入口只有同时满足以下条件才可另包删除：所需日期已有formal股票池；相同点时身份的新旧对照通过；生产Manifest与线上核验保存完整证据；仓库精准搜索不再发现该消费者直读；回退入口和原始证据仍可用；用户批准删除。M02不执行这些删除。
+
+M12负责候选目录、真实ReleaseManifest、工作流缓存键切换、网站与Discord读取同一`release_id`、线上逐项核验、受控生产切换和回退演练。M02只提供合同、影子桥和上述清单，不修改任何`.github/workflows/`。
+
 ## 九、影响矩阵
 
 | 模块 | 设计影响 | 本轮实际影响 |
 | --- | --- | --- |
-| 行情与股票池 | 建立唯一仓库、版本化股票池和点时读取 | 仅审计和设计 |
-| M01合同 | 细化`MarketDataSnapshot`、`UniverseSnapshot`的字段和ID | 不改现有合同代码 |
+| 行情与股票池 | 建立唯一仓库、版本化股票池和点时读取 | 本地影子仓库、3.x前向快照与消费者桥；未接生产 |
+| M01合同 | 细化`MarketDataSnapshot`、`UniverseSnapshot`的字段和ID | 新增已知3.x；2.x继续只读 |
 | MACD门票 | 未来改为读取共同快照 | 定义和结果不改 |
 | 39项因子与评分 | 只更换已验证的输入入口 | 定义、权重和结果不改 |
 | 喜爱形态 | 未来读取相同点时日线 | 规则和状态机不改 |
 | 大盘/行业 | 未来复用同一ETF行情仓；行业成员仍独立版本化 | 现有上下文不改 |
-| 历史回测 | 未来使用点时股票池和共同仓库 | 结果、断点和实验不改 |
+| 历史回测 | 未来使用点时股票池和共同仓库 | 只增加未接默认任务的影子输入；结果、断点和实验不改 |
 | 历史账本 | 只新增行情/股票池引用能力 | 不改任何事件 |
 | 网站/Discord | 不直接读取行情仓 | 零变化 |
 | 工作流/部署 | 未来可能统一缓存恢复与保存策略 | 本轮零变化 |
@@ -464,7 +501,7 @@ repository.prepare_snapshot(universe_id, as_of, adjustment_policy)
 
 ## 十二、未来快速实施小包
 
-以下A—E与F0已完成；F— I已由用户批准连续本地影子实施。合并main和生产接入仍须下一道人工审批。
+以下A—E、F0与F— I本地影子实施均已完成。M02状态为`verified`；合并main和生产接入仍须下一道人工审批。
 
 1. **包A｜规则与字段冻结**：更新数据扫描规则，冻结`MarketDataSnapshot`、`UniverseSnapshot`、证券身份、缓存键和防未来接口。
 2. **包B｜纯复权与完整性验证**：把无I/O的标准化、日期裁剪、完整性检查放入中立行情层，并建立失败关闭测试。
@@ -501,4 +538,4 @@ repository.prepare_snapshot(universe_id, as_of, adjustment_policy)
 
 建议3A，符合“历史行情只保存一份”，同时不让供应商修订静默改变实验身份。
 
-三个选择已经批准。A—C已经独立提交；D已在CR-041修复之上无损接回并独立提交；E已完成本地实现、测试并随独立提交保存。M02分支已推送备份，F0证据恢复已完成并永久保存负结果；F— I本地影子实施已经批准，合并main和生产接入仍需后续批准。
+三个选择已经批准。A—C已经独立提交；D已在CR-041修复之上无损接回并独立提交；E已完成本地实现、测试并随独立提交保存。F0证据恢复已完成并永久保存负结果；F— I本地影子实施与验收已完成。M02当前为`verified`，不代表已经进入main或生产；合并main和任何M12生产接入仍需后续批准。
