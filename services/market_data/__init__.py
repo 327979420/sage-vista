@@ -7,11 +7,15 @@ from .normalization import (
     bars_fingerprint,
     validate_raw_rows,
 )
+from .repository import MarketDataRepository, MarketDataSource, RepositoryRead
 
 __all__ = [
     "ADJUSTMENT_POLICY",
     "LEGACY_ADAPTER_VERSION",
     "LegacyCacheRead",
+    "MarketDataRepository",
+    "MarketDataSource",
+    "RepositoryRead",
     "adjusted_point_in_time_rows",
     "bars_fingerprint",
     "read_legacy_cache",

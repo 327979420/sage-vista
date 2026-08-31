@@ -269,22 +269,26 @@ class MarketDataContractTests(unittest.TestCase):
         before = canonical_fingerprint([old])
         after = canonical_fingerprint([new])
         first = revision_record(
+            instrument_id=member()["instrument_id"],
             changed_date=old["date"],
             old_row=old,
             new_row=new,
             before_fingerprint=before,
             after_fingerprint=after,
             previous_revision_id=None,
+            previous_revision_fingerprint=None,
         )
         newer = {**new, "volume": 1001}
         second_after = canonical_fingerprint([newer])
         second = revision_record(
+            instrument_id=member()["instrument_id"],
             changed_date=old["date"],
             old_row=new,
             new_row=newer,
             before_fingerprint=after,
             after_fingerprint=second_after,
             previous_revision_id=first["revision_id"],
+            previous_revision_fingerprint=first["revision_fingerprint"],
         )
         validate_revision_chain([first, second])
         self.assertEqual(first["old_row"], old)
@@ -299,21 +303,25 @@ class MarketDataContractTests(unittest.TestCase):
         new = {**old, "close": 99.0}
         with self.assertRaises(ContractError):
             revision_record(
+                instrument_id=member()["instrument_id"],
                 changed_date=old["date"],
                 old_row=old,
                 new_row=new,
                 before_fingerprint=canonical_fingerprint([old]),
                 after_fingerprint=canonical_fingerprint([new]),
                 previous_revision_id=None,
+                previous_revision_fingerprint=None,
                 reconstruction_status="not_reconstructible",
             )
         record = revision_record(
+            instrument_id=member()["instrument_id"],
             changed_date=old["date"],
             old_row=old,
             new_row=new,
             before_fingerprint=canonical_fingerprint([old]),
             after_fingerprint=canonical_fingerprint([new]),
             previous_revision_id=None,
+            previous_revision_fingerprint=None,
             reconstruction_status="not_reconstructible",
             reconstruction_reason="Earlier full-history fingerprint predates the retained revision chain.",
         )

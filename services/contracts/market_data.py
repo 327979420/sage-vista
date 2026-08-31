@@ -269,17 +269,22 @@ def validate_market_data_snapshot(payload: Mapping[str, Any]) -> None:
 
 def revision_record(
     *,
+    instrument_id: str,
     changed_date: str,
     old_row: Mapping[str, Any],
     new_row: Mapping[str, Any],
     before_fingerprint: str,
     after_fingerprint: str,
     previous_revision_id: str | None,
+    previous_revision_fingerprint: str | None,
     reconstruction_status: str = "reconstructible",
     reconstruction_reason: str | None = None,
 ) -> dict[str, Any]:
     """Build one append-only, row-level supplier revision record."""
 
+    instrument_id = _require_text(instrument_id, "instrument_id")
+    if not re.fullmatch(r"instrument:sha256:[0-9a-f]{64}", instrument_id):
+        raise ContractError("revision instrument_id is not a stable M02 identity")
     require_date(changed_date, "changed_date")
     _require_fingerprint(before_fingerprint, "before_fingerprint")
     _require_fingerprint(after_fingerprint, "after_fingerprint")
@@ -293,45 +298,60 @@ def revision_record(
         raise ContractError("unknown reconstruction_status")
     if reconstruction_status == "not_reconstructible" and not reconstruction_reason:
         raise ContractError("not_reconstructible revisions require an explicit reason")
+    if (previous_revision_id is None) != (previous_revision_fingerprint is None):
+        raise ContractError("previous revision ID and fingerprint must both be present or absent")
+    if previous_revision_fingerprint is not None:
+        _require_fingerprint(previous_revision_fingerprint, "previous_revision_fingerprint")
     evidence = {
+        "instrument_id": instrument_id,
         "changed_date": changed_date,
         "old_row": dict(old_row),
         "new_row": dict(new_row),
         "before_fingerprint": before_fingerprint,
         "after_fingerprint": after_fingerprint,
         "previous_revision_id": previous_revision_id,
+        "previous_revision_fingerprint": previous_revision_fingerprint,
         "reconstruction_status": reconstruction_status,
         "reconstruction_reason": reconstruction_reason,
     }
-    return {"revision_id": "revision:" + canonical_fingerprint(evidence), **evidence}
+    fingerprint = canonical_fingerprint(evidence)
+    return {
+        "revision_id": "revision:" + fingerprint,
+        "revision_fingerprint": fingerprint,
+        **evidence,
+    }
 
 
 def validate_revision_chain(records: Sequence[Mapping[str, Any]]) -> None:
     """Check append order, row evidence and full-history fingerprint continuity."""
 
     previous_id: str | None = None
-    previous_after: str | None = None
+    previous_revision_fingerprint: str | None = None
     seen: set[str] = set()
     for record in records:
         rebuilt = revision_record(
+            instrument_id=record.get("instrument_id"),
             changed_date=record.get("changed_date"),
             old_row=record.get("old_row", {}),
             new_row=record.get("new_row", {}),
             before_fingerprint=record.get("before_fingerprint"),
             after_fingerprint=record.get("after_fingerprint"),
             previous_revision_id=record.get("previous_revision_id"),
+            previous_revision_fingerprint=record.get("previous_revision_fingerprint"),
             reconstruction_status=record.get("reconstruction_status"),
             reconstruction_reason=record.get("reconstruction_reason"),
         )
         revision_id = record.get("revision_id")
         if revision_id != rebuilt["revision_id"]:
             raise ContractError("revision_id does not match revision evidence")
+        if record.get("revision_fingerprint") != rebuilt["revision_fingerprint"]:
+            raise ContractError("revision_fingerprint does not match revision evidence")
         if revision_id in seen:
             raise ContractError("revision log contains a duplicate revision_id")
         seen.add(revision_id)
         if record.get("previous_revision_id") != previous_id:
             raise ContractError("revision chain previous_revision_id is broken")
-        if previous_after is not None and record.get("before_fingerprint") != previous_after:
-            raise ContractError("revision fingerprint chain is broken")
+        if record.get("previous_revision_fingerprint") != previous_revision_fingerprint:
+            raise ContractError("revision chain previous_revision_fingerprint is broken")
         previous_id = revision_id
-        previous_after = record.get("after_fingerprint")
+        previous_revision_fingerprint = record.get("revision_fingerprint")
