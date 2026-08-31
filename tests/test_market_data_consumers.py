@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+import json
 import os
 from pathlib import Path
 import tempfile
@@ -177,6 +178,23 @@ def prepare(consumer, *, mode="formal", as_of=DAY, snapshots=None, rows=None):
 
 
 class ForwardUniverseAndConsumerTests(unittest.TestCase):
+    def test_2026_08_28_repository_sample_is_only_count_and_trigger_evidence(self):
+        payload = json.loads((ROOT / "public/daily-factor-snapshot.json").read_bytes())
+        self.assertEqual(payload["as_of"], "2026-08-28")
+        self.assertEqual(payload["universe_eligible_count"], 1337)
+        self.assertEqual(payload["triggered_count"], 31)
+        self.assertEqual(len(payload["symbols"]), 31)
+        self.assertTrue(all(
+            item["trigger"] == {
+                "date": "2026-08-28",
+                "exact_completed_cross": True,
+                "factor_id": "macd.daily_bull_cross",
+            }
+            for item in payload["symbols"]
+        ))
+        self.assertNotIn("members", payload)
+        self.assertNotIn("qualifications", payload)
+
     def test_forward_3x_and_legacy_2x_are_both_readable_without_redefinition(self):
         forward = forward_snapshot()
         legacy = legacy_snapshot()
