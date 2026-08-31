@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from types import MappingProxyType
 from typing import Any, Callable, Mapping
 
 from services.contracts.market_data import (
@@ -21,7 +22,7 @@ from services.contracts.market_data import (
 )
 from services.contracts.validation import ContractError
 
-from .normalization import ADJUSTMENT_POLICY
+from .normalization import ADJUSTMENT_POLICY, bars_fingerprint, validate_adjusted_rows
 from .repository import MarketDataRepository, MarketDataSource, RepositoryRead
 
 
@@ -39,6 +40,16 @@ LEGACY_BIASES = (
     "incomplete_membership_evidence",
     "not_formal_point_in_time_universe",
 )
+
+
+def _freeze_json(value: Any) -> Any:
+    """Detach and recursively freeze JSON-like evidence before handoff."""
+
+    if isinstance(value, Mapping):
+        return MappingProxyType({key: _freeze_json(item) for key, item in value.items()})
+    if isinstance(value, (list, tuple)):
+        return tuple(_freeze_json(item) for item in value)
+    return value
 
 
 @dataclass(frozen=True)
@@ -128,12 +139,15 @@ def prepare_shadow_consumer_input(
             raise ContractError("shadow reader must return RepositoryRead")
         if result.instrument_id != instrument_id or result.as_of != as_of:
             raise ContractError("shadow reader returned the wrong point-in-time identity")
-        rows = tuple(result.rows)
+        rows = validate_adjusted_rows(result.rows)
         if not rows:
             raise ContractError("eligible member has no point-in-time market rows")
-        dates = [require_date(row.get("date"), "row.date") for row in rows]
-        if dates != sorted(set(dates)) or dates[-1] > as_of:
-            raise ContractError("shadow reader returned duplicate, unordered or future rows")
+        dates = [row["date"] for row in rows]
+        if dates[-1] > as_of:
+            raise ContractError("shadow reader returned future rows")
+        actual_fingerprint = bars_fingerprint(rows)
+        if result.point_in_time_fingerprint != actual_fingerprint:
+            raise ContractError("shadow reader fingerprint does not match delivered rows")
         symbol = member["symbol"]
         if symbol in symbol_rows:
             raise ContractError("selected universe contains duplicate display symbols")
@@ -144,11 +158,11 @@ def prepare_shadow_consumer_input(
             "row_count": len(rows),
             "first_date": dates[0],
             "max_returned_date": dates[-1],
-            "content_fingerprint": result.point_in_time_fingerprint,
+            "content_fingerprint": actual_fingerprint,
         })
         revisions.append({
             "instrument_id": instrument_id,
-            "point_in_time_fingerprint": result.point_in_time_fingerprint,
+            "point_in_time_fingerprint": actual_fingerprint,
         })
 
     raw_revision = canonical_fingerprint(revisions)
@@ -177,8 +191,8 @@ def prepare_shadow_consumer_input(
         as_of=as_of,
         universe_id=universe["universe_id"],
         market_snapshot_id=market_snapshot["snapshot_id"],
-        adjustment_policy=dict(adjustment_policy),
-        symbol_rows=symbol_rows,
+        adjustment_policy=_freeze_json(adjustment_policy),
+        symbol_rows=_freeze_json(symbol_rows),
         bias_labels=() if mode == "formal" else LEGACY_BIASES,
-        market_snapshot=market_snapshot,
+        market_snapshot=_freeze_json(market_snapshot),
     )

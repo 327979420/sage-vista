@@ -11,6 +11,7 @@ from .normalization import (
     ADJUSTMENT_POLICY,
     adjusted_point_in_time_rows,
     bars_fingerprint,
+    validate_adjusted_rows,
     validate_raw_rows,
 )
 from .repository import MarketDataRepository, MarketDataSource, RepositoryRead
@@ -37,5 +38,6 @@ __all__ = [
     "prepare_shadow_consumer_input",
     "require_shadow_rows",
     "read_legacy_cache",
+    "validate_adjusted_rows",
     "validate_raw_rows",
 ]

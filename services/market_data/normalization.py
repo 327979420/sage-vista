@@ -22,6 +22,7 @@ ADJUSTMENT_POLICY = {
     "formula": "ratio=adjusted_close/close; adjusted_ohlc=raw_ohlc*ratio",
 }
 REQUIRED_FIELDS = {"date", "open", "high", "low", "close", "adjusted_close", "volume"}
+ADJUSTED_REQUIRED_FIELDS = {"date", "open", "high", "low", "close", "volume"}
 
 
 def _canonical_date(value: Any, field: str = "date") -> str:
@@ -81,6 +82,52 @@ def validate_raw_rows(raw_rows: Iterable[Mapping[str, Any]]) -> tuple[dict[str, 
             "close": raw["close"],
             "adjusted_close": raw["adjusted_close"],
             "volume": int(volume),
+        })
+        previous = day
+    return tuple(rows)
+
+
+def validate_adjusted_rows(
+    adjusted_rows: Iterable[Mapping[str, Any]],
+) -> tuple[dict[str, Any], ...]:
+    """Validate and detach adjusted OHLCV handed to a consumer.
+
+    Repository ingestion validates the full raw cache.  This validator has a
+    narrower trust boundary: it validates only the already selected point-in-
+    time rows and copies their six contract fields.  A bad future business row
+    therefore cannot invalidate an earlier safe read.
+    """
+
+    if isinstance(adjusted_rows, (str, bytes, Mapping)):
+        raise ContractError("adjusted market rows must be an iterable of objects")
+    rows: list[dict[str, Any]] = []
+    previous: str | None = None
+    for index, raw in enumerate(adjusted_rows):
+        if not isinstance(raw, Mapping):
+            raise ContractError(f"adjusted row {index} must be an object")
+        missing = sorted(ADJUSTED_REQUIRED_FIELDS - raw.keys())
+        if missing:
+            raise ContractError(f"adjusted row {index} missing fields: {', '.join(missing)}")
+        day = _canonical_date(raw["date"])
+        if previous is not None and day <= previous:
+            reason = "duplicate" if day == previous else "unordered"
+            raise ContractError(f"adjusted market dates are {reason}: {day}")
+        open_price = _number(raw["open"], "open")
+        high = _number(raw["high"], "high")
+        low = _number(raw["low"], "low")
+        close = _number(raw["close"], "close")
+        volume = raw["volume"]
+        if isinstance(volume, bool) or not isinstance(volume, int) or volume < 0:
+            raise ContractError("volume must be a non-negative integer count")
+        if low > min(open_price, close) or high < max(open_price, close) or low > high:
+            raise ContractError(f"adjusted OHLC relationship is impossible on {day}")
+        rows.append({
+            "date": day,
+            "open": raw["open"],
+            "high": raw["high"],
+            "low": raw["low"],
+            "close": raw["close"],
+            "volume": volume,
         })
         previous = day
     return tuple(rows)
