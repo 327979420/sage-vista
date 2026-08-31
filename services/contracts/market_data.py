@@ -275,12 +275,18 @@ def validate_universe_snapshot(payload: Mapping[str, Any]) -> None:
 def select_universe_snapshot(
     snapshots: Iterable[Mapping[str, Any]], *, as_of: str, path_status: str = "formal"
 ) -> Mapping[str, Any]:
-    """Select the newest known snapshot without filling history from the future."""
+    """Select same-day qualifications without filling a missing day from history.
+
+    Membership may have an earlier effective date, but qualifications are daily
+    facts.  Reusing yesterday's eligibility would silently invent today's
+    evidence.  Conflicting same-day identities also fail instead of allowing
+    iterable or filesystem order to choose a winner.
+    """
 
     as_of = require_date(as_of, "as_of")
     if path_status not in PATH_STATUSES:
         raise ContractError("path_status must be formal or legacy")
-    eligible: list[Mapping[str, Any]] = []
+    eligible: dict[tuple[str, str, str], Mapping[str, Any]] = {}
     for snapshot in snapshots:
         validate_universe_snapshot(snapshot)
         # A formal replay may never silently consume a legacy-observed list,
@@ -288,12 +294,21 @@ def select_universe_snapshot(
         if (
             snapshot["path_status"] == path_status
             and snapshot["effective_from"] <= as_of
-            and snapshot["as_of"] <= as_of
+            and snapshot["as_of"] == as_of
         ):
-            eligible.append(snapshot)
+            key = (
+                snapshot["as_of"],
+                snapshot["effective_from"],
+                snapshot["path_status"],
+            )
+            existing = eligible.get(key)
+            if existing is not None and existing["universe_id"] != snapshot["universe_id"]:
+                raise ContractError("快照冲突: same date, effective date and path have different IDs")
+            # Repeated evidence with the same canonical identity is harmless.
+            eligible[key] = snapshot
     if not eligible:
         raise ContractError("universe_unavailable")
-    selected = max(eligible, key=lambda item: (item["effective_from"], item["as_of"]))
+    selected = max(eligible.values(), key=lambda item: item["effective_from"])
     if path_status == "formal" and (
         selected["path_status"] != "formal" or selected["coverage_status"] != "complete"
     ):

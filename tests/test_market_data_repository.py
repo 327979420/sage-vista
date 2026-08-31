@@ -10,6 +10,9 @@ from services.contracts import ContractError, stable_instrument_id, validate_rev
 from services.market_data import MarketDataRepository
 
 
+ROOT = Path(__file__).resolve().parents[1]
+
+
 def bar(day, close=100.0, volume=1000):
     return {
         "date": day,
@@ -252,6 +255,37 @@ class MarketDataRepositoryTests(unittest.TestCase):
                     repository.read(value, as_of=self.days[-1], required_dates=(self.days[0],))
             self.assertEqual(source.calls, [])
             self.assertFalse((Path(folder) / "instruments").exists())
+
+    def test_shadow_root_guard_runs_before_provider_calls_or_file_creation(self):
+        source = FakeSource(self.rows)
+        prohibited = (
+            ROOT,
+            ROOT / "public",
+            ROOT / "automation",
+            ROOT / "not-approved-shadow-cache",
+        )
+        children = tuple(
+            child
+            for root in prohibited
+            for child in (root / "instruments", root / ".locks")
+        )
+        before = {path: path.exists() for path in children}
+        for root in prohibited:
+            with self.subTest(root=root), self.assertRaisesRegex(
+                ContractError, "temp or workspace work"
+            ):
+                MarketDataRepository(root, source, workspace_root=ROOT)
+        self.assertEqual(source.calls, [])
+        self.assertEqual({path: path.exists() for path in children}, before)
+
+        with tempfile.TemporaryDirectory(dir=ROOT / "work") as folder:
+            repository = MarketDataRepository(folder, source, workspace_root=ROOT)
+            result = repository.read(
+                self.instrument_id,
+                as_of=self.days[0],
+                required_dates=(self.days[0],),
+            )
+            self.assertEqual([row["date"] for row in result.rows], [self.days[0]])
 
     @classmethod
     def _revision_records(cls, root):

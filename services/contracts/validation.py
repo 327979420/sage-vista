@@ -144,7 +144,7 @@ def _require_semver(
     match = SEMVER.fullmatch(value) if isinstance(value, str) else None
     if not match:
         raise ContractError(f"{field} must be MAJOR.MINOR.PATCH")
-    allowed = supported_majors or {SUPPORTED_MAJOR}
+    allowed = {SUPPORTED_MAJOR} if supported_majors is None else supported_majors
     if int(match.group(1)) not in allowed:
         raise ContractError(f"unknown {field} major version: {match.group(1)}")
     return match
@@ -291,7 +291,18 @@ def validate_contract(
                 or len(set(contract_types)) != len(contract_types)
             ):
                 raise ContractError("manifest entry contract_types are invalid")
-            _require_semver(entry["schema_version"], "manifest entry schema_version")
+            supported_majors = set.intersection(
+                *(set(CONTRACT_SUPPORTED_MAJORS[name]) for name in contract_types)
+            )
+            if not supported_majors:
+                raise ContractError(
+                    "manifest entry contract_types have incompatible schema major versions"
+                )
+            _require_semver(
+                entry["schema_version"],
+                "manifest entry schema_version",
+                supported_majors=supported_majors,
+            )
             entry_adapter = entry.get("adapter_version")
             if entry_adapter is not None and (
                 not isinstance(entry_adapter, str)

@@ -3,7 +3,12 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from services.contracts import ContractError, stable_instrument_id, validate_universe_snapshot
+from services.contracts import (
+    ContractError,
+    select_universe_snapshot,
+    stable_instrument_id,
+    validate_universe_snapshot,
+)
 from services.market_data import UniverseSnapshotStore, build_universe_snapshot
 
 
@@ -142,6 +147,43 @@ class UniverseSnapshotTests(unittest.TestCase):
             store.save(future)
             with self.assertRaisesRegex(ContractError, "universe_unavailable"):
                 store.select(as_of="2026-08-28")
+
+    def test_previous_day_qualifications_cannot_be_reused_for_a_missing_day(self):
+        previous_member = member(effective_from="2026-08-27")
+        previous = snapshot(
+            as_of="2026-08-27",
+            effective_from="2026-08-27",
+            members=[previous_member],
+            qualifications=[
+                qualification(previous_member["instrument_id"], as_of="2026-08-27")
+            ],
+        )
+        with tempfile.TemporaryDirectory() as folder:
+            store = UniverseSnapshotStore(folder)
+            store.save(previous)
+            self.assertEqual(store.select(as_of="2026-08-27")["universe_id"], previous["universe_id"])
+            with self.assertRaisesRegex(ContractError, "universe_unavailable"):
+                store.select(as_of="2026-08-28")
+
+    def test_same_day_conflicts_are_order_independent_and_exact_duplicates_are_safe(self):
+        original = snapshot()
+        excluded = copy.deepcopy(original["qualifications"])
+        excluded[0].update({
+            "price_complete": False,
+            "eligible": False,
+            "inclusion_reasons": [],
+            "exclusion_reasons": ["price-data-incomplete"],
+        })
+        conflict = snapshot(qualifications=excluded)
+        for candidates in ([original, conflict], [conflict, original]):
+            with self.subTest(order=[item["universe_id"] for item in candidates]):
+                with self.assertRaisesRegex(ContractError, "快照冲突"):
+                    select_universe_snapshot(candidates, as_of="2026-08-28")
+
+        selected = select_universe_snapshot(
+            [original, copy.deepcopy(original)], as_of="2026-08-28"
+        )
+        self.assertEqual(selected["universe_id"], original["universe_id"])
 
     def test_later_delisting_and_qualification_cannot_rewrite_the_past(self):
         historical_member = member("OLD", lifecycle="listing-old", listing_status="active")

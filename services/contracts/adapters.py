@@ -134,7 +134,10 @@ def _source(**values: str) -> Callable[[Mapping[str, Any]], Mapping[str, Any]]:
 SPECS: dict[str, Spec] = {
     "update-status.json": (("ReleaseManifest",), lambda p: _date(p, "source_latest_complete_date"), _generated_from_update, _false, _source(provider="provider")),
     "unified-v2-latest.json": (("ModelAssessment", "TradePlan"), _coverage_end, lambda p: _utc(p.get("generated_at")), _false, _source(model="version")),
-    "daily-factor-snapshot.json": (("UniverseSnapshot", "GateEvent", "TechnicalEvidence"), _date, _generated_from_update, _false, _source(registry="registry_version", snapshot="snapshot_mode_version")),
+    # The legacy file contains a universe count and triggered symbols, not the
+    # complete membership plus per-symbol qualification facts required by
+    # UniverseSnapshot 2.x.  Do not upgrade that incomplete evidence by label.
+    "daily-factor-snapshot.json": (("GateEvent", "TechnicalEvidence"), _date, _generated_from_update, _false, _source(registry="registry_version", snapshot="snapshot_mode_version")),
     "favorite-pattern.json": (("ModelAssessment", "TradePlan"), _date, _generated_from_update, _favorite_future, _source(model="pattern_version", generalization="generalization_version")),
     "market-etf-watch.json": (("ContextSnapshot",), _date, lambda p: _utc(p.get("generated_at")), _false, _source(mode="mode")),
     "industry-radar.json": (("ContextSnapshot",), _date, lambda p: _utc(p.get("generated_at")), _false, _source(membership="membership_version", mode="mode")),

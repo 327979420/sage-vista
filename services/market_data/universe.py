@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import re
-import tempfile
 from typing import Any, Callable, Mapping, Sequence
 
 from services.contracts.market_data import (
@@ -18,7 +17,7 @@ from services.contracts.market_data import (
 )
 from services.contracts.validation import ContractError
 
-from .storage import atomic_write_validated_json
+from .storage import atomic_write_validated_json, require_shadow_root
 
 
 UNIVERSE_ID = re.compile(r"^universe:sha256:([0-9a-f]{64})$")
@@ -86,22 +85,9 @@ class UniverseSnapshotStore:
         workspace_root: str | Path | None = None,
         before_replace: Callable[[Path, Path], None] | None = None,
     ) -> None:
-        self._root = Path(root).resolve()
+        self._root = require_shadow_root(root, workspace_root=workspace_root)
         self._before_replace = before_replace
-        self._require_shadow_root(workspace_root)
         self._snapshot_dir = self._root / "snapshots"
-
-    def _require_shadow_root(self, workspace_root: str | Path | None) -> None:
-        """Prevent this shadow store from ever targeting public or production state."""
-
-        temporary_root = Path(tempfile.gettempdir()).resolve()
-        if self._root != temporary_root and temporary_root in self._root.parents:
-            return
-        if workspace_root is not None:
-            allowed = (Path(workspace_root).resolve() / "work").resolve()
-            if self._root == allowed or allowed in self._root.parents:
-                return
-        raise ContractError("universe snapshots may only be stored in temp or workspace work/")
 
     @staticmethod
     def _digest(universe_id: Any) -> str:

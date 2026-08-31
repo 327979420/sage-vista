@@ -11,6 +11,27 @@ from typing import Any, Callable, Mapping
 from services.contracts.validation import ContractError
 
 
+def require_shadow_root(
+    root: str | Path, *, workspace_root: str | Path | None = None
+) -> Path:
+    """Return a resolved root only when it is isolated from production paths.
+
+    M02 is still shadow-only.  This check happens before a repository creates
+    locks, files, or calls an injected provider, so a caller cannot accidentally
+    point either shadow store at public/, automation/, or the repository root.
+    """
+
+    resolved = Path(root).resolve()
+    temporary_root = Path(tempfile.gettempdir()).resolve()
+    if resolved == temporary_root or temporary_root in resolved.parents:
+        return resolved
+    if workspace_root is not None:
+        allowed = (Path(workspace_root).resolve() / "work").resolve()
+        if resolved == allowed or allowed in resolved.parents:
+            return resolved
+    raise ContractError("M02 shadow storage may only use temp or workspace work/")
+
+
 def atomic_write_validated_json(
     path: Path,
     payload: Mapping[str, Any],

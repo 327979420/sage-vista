@@ -26,7 +26,7 @@ from services.contracts.market_data import (
 from services.contracts.validation import ContractError
 
 from .normalization import adjusted_point_in_time_rows, validate_raw_rows
-from .storage import atomic_write_validated_json
+from .storage import atomic_write_validated_json, require_shadow_root
 
 
 REPOSITORY_SCHEMA_VERSION = "1.0.0"
@@ -59,9 +59,11 @@ class MarketDataRepository:
         root: str | Path,
         source: MarketDataSource,
         *,
+        workspace_root: str | Path | None = None,
         before_replace: Callable[[Path, Path], None] | None = None,
     ) -> None:
-        self._root = Path(root).resolve()
+        # Fail before retaining the provider or deriving any writable child.
+        self._root = require_shadow_root(root, workspace_root=workspace_root)
         self._source = source
         self._before_replace = before_replace
         self._instrument_dir = self._root / "instruments"

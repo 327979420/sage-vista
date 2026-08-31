@@ -218,6 +218,33 @@ class SharedContractTests(unittest.TestCase):
         with self.assertRaises(ContractError):
             validate_contract("ReleaseManifest", wrong_boolean, allow_partial_manifest=True)
 
+    def test_manifest_entry_schema_major_follows_every_declared_contract_type(self):
+        manifest = build_shadow_manifest(
+            [ROOT / "public" / "update-status.json"],
+            generated_at="2026-08-30T00:00:00Z",
+            allow_partial=True,
+        )
+        universe = copy.deepcopy(manifest)
+        universe["files"][0]["contract_types"] = ["UniverseSnapshot"]
+        universe["files"][0]["schema_version"] = "2.0.0"
+        universe["release_id"] = release_id(universe)
+        validate_contract("ReleaseManifest", universe, allow_partial_manifest=True)
+
+        gate = copy.deepcopy(universe)
+        gate["files"][0]["contract_types"] = ["GateEvent"]
+        gate["release_id"] = release_id(gate)
+        with self.assertRaisesRegex(ContractError, "unknown manifest entry schema_version"):
+            validate_contract("ReleaseManifest", gate, allow_partial_manifest=True)
+
+        mixed = copy.deepcopy(universe)
+        mixed["files"][0]["contract_types"] = ["UniverseSnapshot", "GateEvent"]
+        for version in ("1.0.0", "2.0.0"):
+            with self.subTest(version=version):
+                mixed["files"][0]["schema_version"] = version
+                mixed["release_id"] = release_id(mixed)
+                with self.assertRaisesRegex(ContractError, "incompatible schema major"):
+                    validate_contract("ReleaseManifest", mixed, allow_partial_manifest=True)
+
     def test_native_manifest_entry_may_omit_legacy_adapter_identity(self):
         manifest = build_shadow_manifest(
             [ROOT / "public" / "update-status.json"],
@@ -351,6 +378,7 @@ class SharedContractTests(unittest.TestCase):
         self.assertEqual(daily["temporal_class"], "daily_snapshot")
         self.assertEqual(daily["as_of"], manifest["as_of"])
         self.assertIs(daily["future_data_used"], False)
+        self.assertNotIn("UniverseSnapshot", daily["contract_types"])
 
     def test_d1_daily_snapshot_wrong_date_or_future_evidence_fails(self):
         manifest = build_shadow_manifest(
