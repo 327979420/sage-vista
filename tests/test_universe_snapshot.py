@@ -245,7 +245,7 @@ class UniverseSnapshotTests(unittest.TestCase):
 
     def test_unknown_contract_major_fails_closed(self):
         payload = snapshot()
-        payload["schema_version"] = "3.0.0"
+        payload["schema_version"] = "4.0.0"
         with self.assertRaisesRegex(ContractError, "unknown schema_version major"):
             validate_universe_snapshot(payload)
 

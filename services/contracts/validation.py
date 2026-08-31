@@ -80,7 +80,7 @@ ID_FIELDS = {
 }
 
 CONTRACT_SUPPORTED_MAJORS = {
-    name: ({2} if name == "UniverseSnapshot" else {SUPPORTED_MAJOR})
+    name: ({2, 3} if name == "UniverseSnapshot" else {SUPPORTED_MAJOR})
     for name in CONTRACT_REQUIRED
 }
 

@@ -209,6 +209,11 @@ def early_watch_evidence(item):
  evidence.insert(0,f"日线负柱连续收缩{daily['energy_streak']}根")
  evidence.insert(1,f"MACD/Signal差距单日缩小{round(shrink_ratio*100)}%")
  return evidence
+def shadow_symbol_rows(prepared):
+ """Expose explicit M02 shadow rows without changing the live tracker path."""
+ from services.market_data.consumer import require_shadow_rows
+ return require_shadow_rows(prepared,consumer="tracker")
+
 def run(out="public/resonance-tracker.json",as_of=None):
  # The live tracker is intentionally broader than the backtest panel: every
  # locally cached active symbol may be scanned when it also trades today.

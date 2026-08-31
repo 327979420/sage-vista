@@ -122,6 +122,11 @@ def _load_cache(cache_dir):
   except Exception:continue
  return data
 
+def shadow_scan_inputs(prepared):
+ """Expose the shared point-in-time input without changing the legacy run path."""
+ from services.market_data.consumer import require_shadow_rows
+ return {"input_audit":prepared.audit(),"symbol_rows":require_shadow_rows(prepared,consumer="unified_v2_backtest")}
+
 def _dates(data,start,end):
  return [x["date"] for x in data.get("SPY",[]) if start<=x["date"]<=end]
 

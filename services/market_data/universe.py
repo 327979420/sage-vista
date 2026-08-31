@@ -8,7 +8,11 @@ import re
 from typing import Any, Callable, Mapping, Sequence
 
 from services.contracts.market_data import (
+    FORWARD_UNIVERSE_SCHEMA_VERSION,
     UNIVERSE_SCHEMA_VERSION,
+    forward_universe_snapshot_id,
+    normalize_forward_membership_evidence,
+    normalize_forward_universe_members,
     normalize_universe_members,
     normalize_universe_qualifications,
     select_universe_snapshot,
@@ -66,6 +70,57 @@ def build_universe_snapshot(
         qualifications=normalized_qualifications,
         path_status=path_status,
         coverage_status=coverage_status,
+    )
+    validate_universe_snapshot(payload)
+    return payload
+
+
+def build_forward_universe_snapshot(
+    *,
+    as_of: str,
+    generated_at: str,
+    source_version: Mapping[str, Any],
+    eligibility_rule_version: str,
+    effective_from: str,
+    membership_evidence: Mapping[str, Any],
+    members: Sequence[Mapping[str, Any]],
+    qualifications: Sequence[Mapping[str, Any]],
+) -> dict[str, Any]:
+    """Build a complete forward-only formal snapshot under the 3.x contract.
+
+    The caller supplies the whole source membership, explainable observed
+    listing identities and one qualification for every member.  Validation
+    rejects the complete day if any fact is missing; this builder never looks
+    at today's active list to repair an older date.
+    """
+
+    normalized_members = normalize_forward_universe_members(members)
+    normalized_qualifications = normalize_universe_qualifications(qualifications)
+    normalized_evidence = normalize_forward_membership_evidence(
+        membership_evidence, as_of=as_of, members=normalized_members
+    )
+    payload: dict[str, Any] = {
+        "schema_version": FORWARD_UNIVERSE_SCHEMA_VERSION,
+        "as_of": as_of,
+        "generated_at": generated_at,
+        "source_version": dict(source_version),
+        "future_data_used": False,
+        "members": normalized_members,
+        "qualifications": normalized_qualifications,
+        "eligibility_rule_version": eligibility_rule_version,
+        "effective_from": effective_from,
+        "path_status": "formal",
+        "coverage_status": "complete",
+        "membership_evidence": normalized_evidence,
+    }
+    payload["universe_id"] = forward_universe_snapshot_id(
+        as_of=as_of,
+        effective_from=effective_from,
+        source_version=source_version,
+        eligibility_rule_version=eligibility_rule_version,
+        membership_evidence=normalized_evidence,
+        members=normalized_members,
+        qualifications=normalized_qualifications,
     )
     validate_universe_snapshot(payload)
     return payload
