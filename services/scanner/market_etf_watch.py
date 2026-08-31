@@ -37,6 +37,14 @@ def build(raw_data,as_of):
  layers={"trend":{"state":"supportive" if signals["spy_above_ema50"] else "defensive","signals":{"spy_above_ema20":trend_flags["SPY"]["above_ema20"],"spy_above_ema50":signals["spy_above_ema50"],"qqq_above_ema50":trend_flags["QQQ"]["above_ema50"]}},"breadth":{"state":"broad" if signals["equal_weight_breadth"] and signals["small_cap_participation"] else "narrow_or_mixed","signals":{"equal_weight_leading":signals["equal_weight_breadth"],"small_cap_leading":signals["small_cap_participation"]}},"risk_appetite":{"state":"risk_seeking" if signals["growth_leadership"] and signals["credit_risk_appetite"] else "mixed_or_defensive","signals":{"growth_leading":signals["growth_leadership"],"credit_leading":signals["credit_risk_appetite"]}}}
  return {"schema_version":SCHEMA_VERSION,"generated_at":datetime.now(timezone.utc).isoformat(),"as_of":as_of,"future_data_used":False,"mode":"decision_context_not_technical_score","market_temperature":{"score":score,"max_score":5,"state":state,"explanation":"沿用旧生产5项市场温度；趋势、广度和风险偏好另行分层，暂不修改股票技术分。"},"layers":layers,"legacy_score_signals":signals,"ratios":{k:round(v,4) for k,v in ratios.items()},"funds":items,"audit":{"required_funds":len(FUNDS),"funds_exact_as_of":len(items),"completed_bars_only":True,"future_rows_used":False},"interpretation":["市场环境是独立决策层，不回写股票技术分","趋势、广度和信用风险偏好分开保存，便于后续逐层回测","V1五项评分暂时保持不变，研究验证后才允许建立新版本"]}
 
+def shadow_fund_rows(prepared):
+ """Require the complete ETF set from the shared shadow bridge."""
+ from services.market_data.consumer import require_shadow_rows
+ rows=require_shadow_rows(prepared,consumer="market_etf")
+ missing=sorted(set(FUNDS)-set(rows))
+ if missing:raise RuntimeError(f"Shadow market ETF input missing: {','.join(missing)}")
+ return rows
+
 def run(out="public/market-etf-watch.json",as_of=None,loader=refreshed_rows):
  raw={code:loader(code) for code in FUNDS}
  if as_of is None:

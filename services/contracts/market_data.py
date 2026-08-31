@@ -1,0 +1,663 @@
+"""M02 field rules for the shared market-data and universe contracts.
+
+This module extends the M01 contract names instead of creating a scanner- or
+backtest-specific schema.  Every function is deterministic and performs no
+file, network, Git, clock, or process I/O.
+"""
+
+from __future__ import annotations
+
+from datetime import date
+import hashlib
+import json
+import re
+from typing import Any, Iterable, Mapping, Sequence
+
+from .validation import ContractError, validate_contract
+
+
+SCHEMA_VERSION = "1.0.0"
+UNIVERSE_SCHEMA_VERSION = "2.0.0"
+FORWARD_UNIVERSE_SCHEMA_VERSION = "3.0.0"
+FORMAL_FORWARD_AFTER = "2026-08-28"
+SHA256 = re.compile(r"^sha256:[0-9a-f]{64}$")
+INSTRUMENT_ID = re.compile(r"^instrument:sha256:[0-9a-f]{64}$")
+TIERS = {"core", "main", "extended", "small_cap", "delisted"}
+PATH_STATUSES = {"formal", "legacy"}
+COVERAGE_STATUSES = {"complete", "legacy_observed"}
+RECONSTRUCTION_STATUSES = {"reconstructible", "not_reconstructible"}
+
+
+def _canonical_bytes(value: Any) -> bytes:
+    try:
+        return json.dumps(
+            value,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+            allow_nan=False,
+        ).encode()
+    except (TypeError, ValueError) as exc:
+        raise ContractError("contract evidence must be canonical JSON") from exc
+
+
+def canonical_fingerprint(value: Any) -> str:
+    """Return the repeatable SHA-256 identity of canonical JSON evidence."""
+
+    return "sha256:" + hashlib.sha256(_canonical_bytes(value)).hexdigest()
+
+
+def require_date(value: Any, field: str) -> str:
+    if not isinstance(value, str):
+        raise ContractError(f"{field} must be YYYY-MM-DD")
+    try:
+        parsed = date.fromisoformat(value)
+    except ValueError as exc:
+        raise ContractError(f"{field} must be YYYY-MM-DD") from exc
+    if parsed.isoformat() != value:
+        raise ContractError(f"{field} must be canonical YYYY-MM-DD")
+    return value
+
+
+def _require_text(value: Any, field: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise ContractError(f"{field} must be a non-empty string")
+    return value
+
+
+def _require_bool(value: Any, field: str) -> bool:
+    if not isinstance(value, bool):
+        raise ContractError(f"{field} must be a boolean")
+    return value
+
+
+def _require_fingerprint(value: Any, field: str) -> str:
+    if not isinstance(value, str) or not SHA256.fullmatch(value):
+        raise ContractError(f"{field} must be sha256:<64 lowercase hex>")
+    return value
+
+
+def stable_instrument_id(
+    *, provider: str, market: str, provider_code: str, listing_lifecycle: str
+) -> str:
+    """Identify one listing without treating a display ticker as sufficient."""
+
+    lifecycle = _require_text(listing_lifecycle, "listing_lifecycle")
+    if lifecycle.lower() in {"unknown", "unavailable"}:
+        raise ContractError("listing_lifecycle evidence is required for a stable instrument ID")
+    evidence = {
+        "provider": _require_text(provider, "provider"),
+        "market": _require_text(market, "market"),
+        "provider_code": _require_text(provider_code, "provider_code"),
+        "listing_lifecycle": lifecycle,
+    }
+    return "instrument:" + canonical_fingerprint(evidence)
+
+
+def observed_instrument_id(
+    *,
+    provider: str,
+    market: str,
+    exchange: str,
+    provider_code: str,
+    observed_listing_epoch: str,
+) -> str:
+    """Identify a forward-observed listing without claiming to know its IPO date."""
+
+    evidence = {
+        "provider": _require_text(provider, "provider"),
+        "market": _require_text(market, "market"),
+        "exchange": _require_text(exchange, "exchange"),
+        "provider_code": _require_text(provider_code, "provider_code"),
+        "observed_listing_epoch": require_date(
+            observed_listing_epoch, "observed_listing_epoch"
+        ),
+    }
+    return "instrument:" + canonical_fingerprint(evidence)
+
+
+def _normalize_reasons(value: Any, field: str) -> list[str]:
+    if not isinstance(value, list):
+        raise ContractError(f"{field} must be a list")
+    reasons = [_require_text(reason, field) for reason in value]
+    if len(reasons) != len(set(reasons)):
+        raise ContractError(f"{field} contains duplicate reasons")
+    return sorted(reasons)
+
+
+def normalize_universe_members(
+    members: Sequence[Mapping[str, Any]],
+) -> list[dict[str, str]]:
+    """Canonicalize point-in-time membership facts without consulting a current list."""
+
+    if not isinstance(members, Sequence) or isinstance(members, (str, bytes)) or not members:
+        raise ContractError("UniverseSnapshot members must be a non-empty list")
+    normalized: list[dict[str, str]] = []
+    seen: set[str] = set()
+    for member in members:
+        if not isinstance(member, Mapping):
+            raise ContractError("universe member must be an object")
+        instrument_id = _require_text(member.get("instrument_id"), "member.instrument_id")
+        if not INSTRUMENT_ID.fullmatch(instrument_id):
+            raise ContractError("member.instrument_id is not a stable M02 identity")
+        if instrument_id in seen:
+            raise ContractError("UniverseSnapshot contains a duplicate instrument_id")
+        seen.add(instrument_id)
+        tier = _require_text(member.get("tier"), "member.tier")
+        if tier not in TIERS:
+            raise ContractError(f"unknown universe tier: {tier}")
+        normalized.append({
+            "instrument_id": instrument_id,
+            "symbol": _require_text(member.get("symbol"), "member.symbol"),
+            "tier": tier,
+            "listing_status": _require_text(member.get("listing_status"), "member.listing_status"),
+            "membership_source": _require_text(
+                member.get("membership_source"), "member.membership_source"
+            ),
+            "membership_effective_from": require_date(
+                member.get("membership_effective_from"), "member.membership_effective_from"
+            ),
+        })
+    return sorted(normalized, key=lambda row: row["instrument_id"])
+
+
+def normalize_forward_universe_members(
+    members: Sequence[Mapping[str, Any]],
+) -> list[dict[str, Any]]:
+    """Preserve the explainable identity evidence required by formal 3.x snapshots."""
+
+    base = normalize_universe_members(members)
+    by_id = {member["instrument_id"]: member for member in members}
+    normalized: list[dict[str, Any]] = []
+    observed_codes: set[tuple[str, str, str, str]] = set()
+    for item in base:
+        source = by_id[item["instrument_id"]]
+        identity = {
+            "provider": _require_text(source.get("provider"), "member.provider"),
+            "market": _require_text(source.get("market"), "member.market"),
+            "exchange": _require_text(source.get("exchange"), "member.exchange"),
+            "provider_code": _require_text(
+                source.get("provider_code"), "member.provider_code"
+            ),
+            "observed_listing_epoch": require_date(
+                source.get("observed_listing_epoch"),
+                "member.observed_listing_epoch",
+            ),
+            "identity_source": _require_text(
+                source.get("identity_source"), "member.identity_source"
+            ),
+        }
+        isin = source.get("isin")
+        if isin is not None:
+            identity["isin"] = _require_text(isin, "member.isin")
+        expected = observed_instrument_id(
+            provider=identity["provider"],
+            market=identity["market"],
+            exchange=identity["exchange"],
+            provider_code=identity["provider_code"],
+            observed_listing_epoch=identity["observed_listing_epoch"],
+        )
+        if item["instrument_id"] != expected:
+            raise ContractError("member.instrument_id does not match observed identity evidence")
+        if identity["observed_listing_epoch"] > item["membership_effective_from"]:
+            raise ContractError("membership cannot predate the observed listing epoch")
+        listing_key = (
+            identity["provider"],
+            identity["market"],
+            identity["exchange"],
+            identity["provider_code"],
+        )
+        if listing_key in observed_codes:
+            raise ContractError("formal source contains conflicting listing epochs")
+        observed_codes.add(listing_key)
+        normalized.append({**item, **identity})
+    return sorted(normalized, key=lambda row: row["instrument_id"])
+
+
+def forward_membership_fingerprint(members: Sequence[Mapping[str, Any]]) -> str:
+    """Fingerprint the complete normalized member evidence supplied by its producer."""
+
+    return canonical_fingerprint(normalize_forward_universe_members(members))
+
+
+def normalize_forward_membership_evidence(
+    evidence: Mapping[str, Any],
+    *,
+    as_of: str,
+    members: Sequence[Mapping[str, Any]],
+) -> dict[str, Any]:
+    if not isinstance(evidence, Mapping):
+        raise ContractError("membership_evidence must be an object")
+    normalized_members = normalize_forward_universe_members(members)
+    normalized = {
+        "source_id": _require_text(evidence.get("source_id"), "membership_evidence.source_id"),
+        "source_as_of": require_date(
+            evidence.get("source_as_of"), "membership_evidence.source_as_of"
+        ),
+        "complete": _require_bool(
+            evidence.get("complete"), "membership_evidence.complete"
+        ),
+        "member_count": evidence.get("member_count"),
+        "content_fingerprint": _require_fingerprint(
+            evidence.get("content_fingerprint"),
+            "membership_evidence.content_fingerprint",
+        ),
+    }
+    if normalized["source_as_of"] != as_of:
+        raise ContractError("formal membership source must be from snapshot as_of")
+    if normalized["complete"] is not True:
+        raise ContractError("formal membership source must explicitly be complete")
+    if not isinstance(normalized["member_count"], int) or isinstance(
+        normalized["member_count"], bool
+    ):
+        raise ContractError("membership_evidence.member_count must be an integer")
+    if normalized["member_count"] != len(normalized_members):
+        raise ContractError("membership source member_count does not match members")
+    if normalized["content_fingerprint"] != canonical_fingerprint(normalized_members):
+        raise ContractError("membership source fingerprint does not match members")
+    return normalized
+
+
+def normalize_universe_qualifications(
+    qualifications: Sequence[Mapping[str, Any]],
+) -> list[dict[str, Any]]:
+    """Canonicalize daily eligibility evidence separately from membership facts."""
+
+    if (
+        not isinstance(qualifications, Sequence)
+        or isinstance(qualifications, (str, bytes))
+        or not qualifications
+    ):
+        raise ContractError("UniverseSnapshot qualifications must be a non-empty list")
+    normalized: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for qualification in qualifications:
+        if not isinstance(qualification, Mapping):
+            raise ContractError("universe qualification must be an object")
+        instrument_id = _require_text(
+            qualification.get("instrument_id"), "qualification.instrument_id"
+        )
+        if not INSTRUMENT_ID.fullmatch(instrument_id):
+            raise ContractError("qualification.instrument_id is not a stable M02 identity")
+        if instrument_id in seen:
+            raise ContractError("UniverseSnapshot contains duplicate qualification evidence")
+        seen.add(instrument_id)
+        facts = {
+            "price_complete": _require_bool(
+                qualification.get("price_complete"), "qualification.price_complete"
+            ),
+            "minimum_price_passed": _require_bool(
+                qualification.get("minimum_price_passed"),
+                "qualification.minimum_price_passed",
+            ),
+            "dollar_volume_passed": _require_bool(
+                qualification.get("dollar_volume_passed"),
+                "qualification.dollar_volume_passed",
+            ),
+            "history_length_passed": _require_bool(
+                qualification.get("history_length_passed"),
+                "qualification.history_length_passed",
+            ),
+        }
+        eligible = _require_bool(qualification.get("eligible"), "qualification.eligible")
+        inclusion_reasons = _normalize_reasons(
+            qualification.get("inclusion_reasons"), "qualification.inclusion_reasons"
+        )
+        exclusion_reasons = _normalize_reasons(
+            qualification.get("exclusion_reasons"), "qualification.exclusion_reasons"
+        )
+        if eligible and (not all(facts.values()) or not inclusion_reasons or exclusion_reasons):
+            raise ContractError("eligible qualification evidence is internally inconsistent")
+        if not eligible and not exclusion_reasons:
+            raise ContractError("excluded qualification requires an explicit reason")
+        normalized.append({
+            "instrument_id": instrument_id,
+            "as_of": require_date(qualification.get("as_of"), "qualification.as_of"),
+            **facts,
+            "eligible": eligible,
+            "inclusion_reasons": inclusion_reasons,
+            "exclusion_reasons": exclusion_reasons,
+        })
+    return sorted(normalized, key=lambda row: row["instrument_id"])
+
+
+def universe_snapshot_id(
+    *,
+    as_of: str,
+    effective_from: str,
+    source_version: Mapping[str, Any],
+    eligibility_rule_version: str,
+    members: Sequence[Mapping[str, Any]],
+    qualifications: Sequence[Mapping[str, Any]],
+    path_status: str,
+    coverage_status: str,
+) -> str:
+    if not isinstance(source_version, Mapping) or not source_version:
+        raise ContractError("source_version must contain explicit source evidence")
+    evidence = {
+        "schema_version": UNIVERSE_SCHEMA_VERSION,
+        "as_of": require_date(as_of, "as_of"),
+        "effective_from": require_date(effective_from, "effective_from"),
+        "source_version": dict(source_version),
+        "eligibility_rule_version": _require_text(
+            eligibility_rule_version, "eligibility_rule_version"
+        ),
+        "path_status": _require_text(path_status, "path_status"),
+        "coverage_status": _require_text(coverage_status, "coverage_status"),
+        "members": normalize_universe_members(members),
+        "qualifications": normalize_universe_qualifications(qualifications),
+    }
+    if evidence["effective_from"] > evidence["as_of"]:
+        raise ContractError("universe effective_from cannot be after as_of")
+    return "universe:" + canonical_fingerprint(evidence)
+
+
+def forward_universe_snapshot_id(
+    *,
+    as_of: str,
+    effective_from: str,
+    source_version: Mapping[str, Any],
+    eligibility_rule_version: str,
+    membership_evidence: Mapping[str, Any],
+    members: Sequence[Mapping[str, Any]],
+    qualifications: Sequence[Mapping[str, Any]],
+) -> str:
+    """Build the 3.x identity from complete source, identity and daily eligibility facts."""
+
+    if not isinstance(source_version, Mapping) or not source_version:
+        raise ContractError("source_version must contain explicit source evidence")
+    normalized_members = normalize_forward_universe_members(members)
+    evidence = {
+        "schema_version": FORWARD_UNIVERSE_SCHEMA_VERSION,
+        "as_of": require_date(as_of, "as_of"),
+        "effective_from": require_date(effective_from, "effective_from"),
+        "source_version": dict(source_version),
+        "eligibility_rule_version": _require_text(
+            eligibility_rule_version, "eligibility_rule_version"
+        ),
+        "path_status": "formal",
+        "coverage_status": "complete",
+        "membership_evidence": normalize_forward_membership_evidence(
+            membership_evidence, as_of=as_of, members=normalized_members
+        ),
+        "members": normalized_members,
+        "qualifications": normalize_universe_qualifications(qualifications),
+    }
+    if evidence["effective_from"] > evidence["as_of"]:
+        raise ContractError("universe effective_from cannot be after as_of")
+    return "universe:" + canonical_fingerprint(evidence)
+
+
+def validate_universe_snapshot(payload: Mapping[str, Any]) -> None:
+    """Validate separate membership/eligibility facts and recompute their identity."""
+
+    validate_contract("UniverseSnapshot", payload)
+    effective_from = require_date(payload["effective_from"], "effective_from")
+    if effective_from > payload["as_of"]:
+        raise ContractError("universe effective_from cannot be after as_of")
+    path_status = payload["path_status"]
+    coverage_status = payload["coverage_status"]
+    if path_status not in PATH_STATUSES:
+        raise ContractError("UniverseSnapshot path_status must be formal or legacy")
+    if coverage_status not in COVERAGE_STATUSES:
+        raise ContractError("UniverseSnapshot coverage_status is unknown")
+    if path_status == "formal" and coverage_status != "complete":
+        raise ContractError("formal historical universe requires complete point-in-time evidence")
+    if path_status == "legacy" and coverage_status != "legacy_observed":
+        raise ContractError("legacy universe may only claim legacy_observed coverage")
+    is_forward = payload["schema_version"].split(".", 1)[0] == "3"
+    if is_forward:
+        if payload["as_of"] <= FORMAL_FORWARD_AFTER:
+            raise ContractError("formal 3.x universe cannot backfill 2026-08-28 or earlier")
+        if path_status != "formal" or coverage_status != "complete":
+            raise ContractError("UniverseSnapshot 3.x is reserved for formal complete evidence")
+        members = normalize_forward_universe_members(payload["members"])
+        membership_evidence = normalize_forward_membership_evidence(
+            payload.get("membership_evidence"),
+            as_of=payload["as_of"],
+            members=members,
+        )
+    else:
+        members = normalize_universe_members(payload["members"])
+        membership_evidence = None
+    qualifications = normalize_universe_qualifications(payload["qualifications"])
+    if any(member["membership_effective_from"] > payload["as_of"] for member in members):
+        raise ContractError("universe membership evidence cannot start after as_of")
+    if any(item["as_of"] != payload["as_of"] for item in qualifications):
+        raise ContractError("universe qualification evidence must match snapshot as_of")
+    member_ids = {member["instrument_id"] for member in members}
+    qualification_ids = {item["instrument_id"] for item in qualifications}
+    if member_ids != qualification_ids:
+        raise ContractError("every universe member requires exactly one daily qualification")
+    if is_forward:
+        expected = forward_universe_snapshot_id(
+            as_of=payload["as_of"],
+            effective_from=effective_from,
+            source_version=payload["source_version"],
+            eligibility_rule_version=payload["eligibility_rule_version"],
+            membership_evidence=membership_evidence,
+            members=members,
+            qualifications=qualifications,
+        )
+    else:
+        expected = universe_snapshot_id(
+            as_of=payload["as_of"],
+            effective_from=effective_from,
+            source_version=payload["source_version"],
+            eligibility_rule_version=payload["eligibility_rule_version"],
+            members=members,
+            qualifications=qualifications,
+            path_status=path_status,
+            coverage_status=coverage_status,
+        )
+    if payload["universe_id"] != expected:
+        raise ContractError("universe_id does not match canonical membership evidence")
+
+
+def select_universe_snapshot(
+    snapshots: Iterable[Mapping[str, Any]], *, as_of: str, path_status: str = "formal"
+) -> Mapping[str, Any]:
+    """Select same-day qualifications without filling a missing day from history.
+
+    Membership may have an earlier effective date, but qualifications are daily
+    facts.  Reusing yesterday's eligibility would silently invent today's
+    evidence.  Conflicting same-day identities also fail instead of allowing
+    iterable or filesystem order to choose a winner.
+    """
+
+    as_of = require_date(as_of, "as_of")
+    if path_status not in PATH_STATUSES:
+        raise ContractError("path_status must be formal or legacy")
+    eligible: dict[tuple[str, str, str], Mapping[str, Any]] = {}
+    for snapshot in snapshots:
+        validate_universe_snapshot(snapshot)
+        # A formal replay may never silently consume a legacy-observed list,
+        # and a legacy replay should stay reproducible on its own evidence.
+        if (
+            snapshot["path_status"] == path_status
+            and snapshot["effective_from"] <= as_of
+            and snapshot["as_of"] == as_of
+        ):
+            key = (
+                snapshot["as_of"],
+                snapshot["effective_from"],
+                snapshot["path_status"],
+            )
+            existing = eligible.get(key)
+            if existing is not None and existing["universe_id"] != snapshot["universe_id"]:
+                raise ContractError("快照冲突: same date, effective date and path have different IDs")
+            # Repeated evidence with the same canonical identity is harmless.
+            eligible[key] = snapshot
+    if not eligible:
+        raise ContractError("universe_unavailable")
+    selected = max(eligible.values(), key=lambda item: item["effective_from"])
+    if path_status == "formal" and (
+        selected["path_status"] != "formal" or selected["coverage_status"] != "complete"
+    ):
+        raise ContractError("universe_unavailable")
+    return selected
+
+
+def market_data_snapshot_id(payload: Mapping[str, Any]) -> str:
+    """Compute a snapshot ID without generated_at or display ordering."""
+
+    symbols = payload.get("symbols")
+    if not isinstance(symbols, list) or not symbols:
+        raise ContractError("MarketDataSnapshot symbols must be a non-empty list")
+    identity_rows = []
+    for row in symbols:
+        if not isinstance(row, Mapping):
+            raise ContractError("market snapshot symbol entry must be an object")
+        identity_rows.append({
+            "instrument_id": _require_text(row.get("instrument_id"), "symbol.instrument_id"),
+            "symbol": _require_text(row.get("symbol"), "symbol.symbol"),
+            "row_count": row.get("row_count"),
+            "first_date": row.get("first_date"),
+            "max_returned_date": row.get("max_returned_date"),
+            "content_fingerprint": row.get("content_fingerprint"),
+        })
+    evidence = {
+        "schema_version": payload.get("schema_version"),
+        "as_of": payload.get("as_of"),
+        "market": payload.get("market"),
+        "data_source": payload.get("data_source"),
+        "adjustment_policy": payload.get("adjustment_policy"),
+        "universe_id": payload.get("universe_id"),
+        "raw_revision": payload.get("raw_revision"),
+        "symbols": sorted(identity_rows, key=lambda row: row["instrument_id"]),
+    }
+    return "market:" + canonical_fingerprint(evidence)
+
+
+def validate_market_data_snapshot(payload: Mapping[str, Any]) -> None:
+    """Validate that a shared market snapshot cannot contain future evidence."""
+
+    validate_contract("MarketDataSnapshot", payload)
+    if not isinstance(payload["data_source"], Mapping):
+        raise ContractError("data_source must be an object")
+    _require_text(payload["data_source"].get("provider"), "data_source.provider")
+    _require_text(payload["data_source"].get("dataset"), "data_source.dataset")
+    if not isinstance(payload["adjustment_policy"], Mapping):
+        raise ContractError("adjustment_policy must be an object")
+    _require_text(payload["adjustment_policy"].get("version"), "adjustment_policy.version")
+    _require_text(payload["adjustment_policy"].get("formula"), "adjustment_policy.formula")
+    _require_text(payload["universe_id"], "universe_id")
+    _require_fingerprint(payload["raw_revision"], "raw_revision")
+    max_returned = require_date(payload["max_returned_date"], "max_returned_date")
+    if max_returned > payload["as_of"]:
+        raise ContractError("MarketDataSnapshot contains data after as_of")
+    if not isinstance(payload["symbols"], list) or not payload["symbols"]:
+        raise ContractError("MarketDataSnapshot symbols must be a non-empty list")
+
+    seen: set[str] = set()
+    symbol_maxima: list[str] = []
+    for row in payload["symbols"]:
+        instrument_id = _require_text(row.get("instrument_id"), "symbol.instrument_id")
+        if instrument_id in seen:
+            raise ContractError("MarketDataSnapshot contains duplicate instrument_id")
+        seen.add(instrument_id)
+        if not INSTRUMENT_ID.fullmatch(instrument_id):
+            raise ContractError("symbol.instrument_id is not a stable M02 identity")
+        _require_text(row.get("symbol"), "symbol.symbol")
+        if not isinstance(row.get("row_count"), int) or row["row_count"] <= 0:
+            raise ContractError("symbol.row_count must be positive")
+        first = require_date(row.get("first_date"), "symbol.first_date")
+        maximum = require_date(row.get("max_returned_date"), "symbol.max_returned_date")
+        if first > maximum or maximum > payload["as_of"]:
+            raise ContractError("symbol date coverage is invalid or contains future rows")
+        _require_fingerprint(row.get("content_fingerprint"), "symbol.content_fingerprint")
+        symbol_maxima.append(maximum)
+    if max(symbol_maxima) != max_returned:
+        raise ContractError("snapshot max_returned_date does not match symbol evidence")
+    if payload["snapshot_id"] != market_data_snapshot_id(payload):
+        raise ContractError("snapshot_id does not match canonical market evidence")
+
+
+def revision_record(
+    *,
+    instrument_id: str,
+    changed_date: str,
+    old_row: Mapping[str, Any],
+    new_row: Mapping[str, Any],
+    before_fingerprint: str,
+    after_fingerprint: str,
+    previous_revision_id: str | None,
+    previous_revision_fingerprint: str | None,
+    reconstruction_status: str = "reconstructible",
+    reconstruction_reason: str | None = None,
+) -> dict[str, Any]:
+    """Build one append-only, row-level supplier revision record."""
+
+    instrument_id = _require_text(instrument_id, "instrument_id")
+    if not re.fullmatch(r"instrument:sha256:[0-9a-f]{64}", instrument_id):
+        raise ContractError("revision instrument_id is not a stable M02 identity")
+    require_date(changed_date, "changed_date")
+    _require_fingerprint(before_fingerprint, "before_fingerprint")
+    _require_fingerprint(after_fingerprint, "after_fingerprint")
+    if before_fingerprint == after_fingerprint:
+        raise ContractError("a revision must change the full-history fingerprint")
+    if dict(old_row) == dict(new_row):
+        raise ContractError("a revision must preserve distinct old and new values")
+    if old_row.get("date") != changed_date or new_row.get("date") != changed_date:
+        raise ContractError("revision rows must identify changed_date")
+    if reconstruction_status not in RECONSTRUCTION_STATUSES:
+        raise ContractError("unknown reconstruction_status")
+    if reconstruction_status == "not_reconstructible" and not reconstruction_reason:
+        raise ContractError("not_reconstructible revisions require an explicit reason")
+    if (previous_revision_id is None) != (previous_revision_fingerprint is None):
+        raise ContractError("previous revision ID and fingerprint must both be present or absent")
+    if previous_revision_fingerprint is not None:
+        _require_fingerprint(previous_revision_fingerprint, "previous_revision_fingerprint")
+    evidence = {
+        "instrument_id": instrument_id,
+        "changed_date": changed_date,
+        "old_row": dict(old_row),
+        "new_row": dict(new_row),
+        "before_fingerprint": before_fingerprint,
+        "after_fingerprint": after_fingerprint,
+        "previous_revision_id": previous_revision_id,
+        "previous_revision_fingerprint": previous_revision_fingerprint,
+        "reconstruction_status": reconstruction_status,
+        "reconstruction_reason": reconstruction_reason,
+    }
+    fingerprint = canonical_fingerprint(evidence)
+    return {
+        "revision_id": "revision:" + fingerprint,
+        "revision_fingerprint": fingerprint,
+        **evidence,
+    }
+
+
+def validate_revision_chain(records: Sequence[Mapping[str, Any]]) -> None:
+    """Check append order, row evidence and full-history fingerprint continuity."""
+
+    previous_id: str | None = None
+    previous_revision_fingerprint: str | None = None
+    seen: set[str] = set()
+    for record in records:
+        rebuilt = revision_record(
+            instrument_id=record.get("instrument_id"),
+            changed_date=record.get("changed_date"),
+            old_row=record.get("old_row", {}),
+            new_row=record.get("new_row", {}),
+            before_fingerprint=record.get("before_fingerprint"),
+            after_fingerprint=record.get("after_fingerprint"),
+            previous_revision_id=record.get("previous_revision_id"),
+            previous_revision_fingerprint=record.get("previous_revision_fingerprint"),
+            reconstruction_status=record.get("reconstruction_status"),
+            reconstruction_reason=record.get("reconstruction_reason"),
+        )
+        revision_id = record.get("revision_id")
+        if revision_id != rebuilt["revision_id"]:
+            raise ContractError("revision_id does not match revision evidence")
+        if record.get("revision_fingerprint") != rebuilt["revision_fingerprint"]:
+            raise ContractError("revision_fingerprint does not match revision evidence")
+        if revision_id in seen:
+            raise ContractError("revision log contains a duplicate revision_id")
+        seen.add(revision_id)
+        if record.get("previous_revision_id") != previous_id:
+            raise ContractError("revision chain previous_revision_id is broken")
+        if record.get("previous_revision_fingerprint") != previous_revision_fingerprint:
+            raise ContractError("revision chain previous_revision_fingerprint is broken")
+        previous_id = revision_id
+        previous_revision_fingerprint = record.get("revision_fingerprint")

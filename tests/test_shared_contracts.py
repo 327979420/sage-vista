@@ -1,4 +1,5 @@
 import copy
+import hashlib
 import json
 from pathlib import Path
 import tempfile
@@ -42,6 +43,20 @@ def gate(**changes):
     }
     payload.update(changes)
     return payload
+
+
+def release_id(manifest):
+    """Recompute the canonical, order-independent manifest identity."""
+
+    files = sorted(manifest["files"], key=lambda item: item["path"])
+    encoded = json.dumps(
+        {"as_of": manifest["as_of"], "files": files},
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    ).encode()
+    return "sha256:" + hashlib.sha256(encoded).hexdigest()
 
 
 class SharedContractTests(unittest.TestCase):
@@ -164,8 +179,179 @@ class SharedContractTests(unittest.TestCase):
             write_shadow_manifest(manifest, ROOT / "public" / "release-manifest.json", ROOT)
         with tempfile.TemporaryDirectory(dir=ROOT / "work") as folder:
             output = Path(folder) / "release-manifest.json"
-            write_shadow_manifest(manifest, output, ROOT)
+            write_shadow_manifest(manifest, output, ROOT, allow_partial=True)
             self.assertEqual(json.loads(output.read_text())["release_id"], manifest["release_id"])
+
+    def test_shadow_writer_rejects_an_invalid_manifest_without_creating_output(self):
+        with tempfile.TemporaryDirectory(dir=ROOT / "work") as folder:
+            output = Path(folder) / "release-manifest.json"
+            output.write_text("existing-safe-content")
+            with self.assertRaises(ContractError):
+                write_shadow_manifest({"shadow_only": True}, output, ROOT, allow_partial=True)
+            self.assertEqual(output.read_text(), "existing-safe-content")
+
+    def test_shadow_verifier_requires_an_explicit_shadow_identity(self):
+        manifest = build_shadow_manifest(
+            [ROOT / "public" / "update-status.json"],
+            generated_at="2026-08-30T00:00:00Z",
+            allow_partial=True,
+        )
+        manifest["shadow_only"] = False
+        with self.assertRaises(ContractError):
+            verify_shadow_manifest(manifest, ROOT / "public", allow_partial=True)
+
+    def test_manifest_entry_major_and_boolean_are_strict(self):
+        manifest = build_shadow_manifest(
+            [ROOT / "public" / "update-status.json"],
+            generated_at="2026-08-30T00:00:00Z",
+            allow_partial=True,
+        )
+        wrong_major = copy.deepcopy(manifest)
+        wrong_major["files"][0]["schema_version"] = "2.0.0"
+        wrong_major["release_id"] = release_id(wrong_major)
+        with self.assertRaises(ContractError):
+            validate_contract("ReleaseManifest", wrong_major, allow_partial_manifest=True)
+
+        wrong_boolean = copy.deepcopy(manifest)
+        wrong_boolean["files"][0]["required"] = "not-a-boolean"
+        wrong_boolean["release_id"] = release_id(wrong_boolean)
+        with self.assertRaises(ContractError):
+            validate_contract("ReleaseManifest", wrong_boolean, allow_partial_manifest=True)
+
+    def test_manifest_entry_schema_major_follows_every_declared_contract_type(self):
+        manifest = build_shadow_manifest(
+            [ROOT / "public" / "update-status.json"],
+            generated_at="2026-08-30T00:00:00Z",
+            allow_partial=True,
+        )
+        universe = copy.deepcopy(manifest)
+        universe["files"][0]["contract_types"] = ["UniverseSnapshot"]
+        universe["files"][0]["schema_version"] = "2.0.0"
+        universe["release_id"] = release_id(universe)
+        validate_contract("ReleaseManifest", universe, allow_partial_manifest=True)
+        universe["files"][0]["schema_version"] = "3.0.0"
+        universe["release_id"] = release_id(universe)
+        validate_contract("ReleaseManifest", universe, allow_partial_manifest=True)
+
+        gate = copy.deepcopy(universe)
+        gate["files"][0]["contract_types"] = ["GateEvent"]
+        gate["release_id"] = release_id(gate)
+        with self.assertRaisesRegex(ContractError, "unknown manifest entry schema_version"):
+            validate_contract("ReleaseManifest", gate, allow_partial_manifest=True)
+
+        mixed = copy.deepcopy(universe)
+        mixed["files"][0]["contract_types"] = ["UniverseSnapshot", "GateEvent"]
+        for version in ("1.0.0", "2.0.0", "3.0.0"):
+            with self.subTest(version=version):
+                mixed["files"][0]["schema_version"] = version
+                mixed["release_id"] = release_id(mixed)
+                with self.assertRaisesRegex(ContractError, "incompatible schema major"):
+                    validate_contract("ReleaseManifest", mixed, allow_partial_manifest=True)
+
+    def test_native_manifest_entry_may_omit_legacy_adapter_identity(self):
+        manifest = build_shadow_manifest(
+            [ROOT / "public" / "update-status.json"],
+            generated_at="2026-08-30T00:00:00Z",
+            allow_partial=True,
+        )
+        del manifest["files"][0]["adapter_version"]
+        manifest["release_id"] = release_id(manifest)
+        validate_contract("ReleaseManifest", manifest, allow_partial_manifest=True)
+
+    def test_technical_evidence_rejects_future_dates_and_non_boolean_availability(self):
+        payload = {
+            "schema_version": "1.0.0",
+            "as_of": "2026-08-28",
+            "generated_at": "2026-08-28T22:00:00Z",
+            "source_version": {"factor_registry": "0.10.0"},
+            "future_data_used": False,
+            "evidence_id": "evidence:ABC:future",
+            "factor_id": "price.ema_support",
+            "factor_version": "1.0.0",
+            "timeframe": "daily",
+            "evidence_date": "2099-01-01",
+            "available": True,
+        }
+        with self.assertRaises(ContractError):
+            validate_contract("TechnicalEvidence", payload)
+        payload["evidence_date"] = "2026-08-28"
+        payload["available"] = "yes"
+        with self.assertRaises(ContractError):
+            validate_contract("TechnicalEvidence", payload)
+
+    def test_manifest_metadata_must_match_the_same_real_file_bytes(self):
+        manifest = build_shadow_manifest(
+            [ROOT / "public" / "update-status.json"],
+            generated_at="2026-08-30T00:00:00Z",
+            allow_partial=True,
+        )
+        manifest["as_of"] = "2026-08-27"
+        manifest["files"][0]["as_of"] = "2026-08-27"
+        manifest["release_id"] = release_id(manifest)
+        # The declaration is internally self-consistent, but it lies about the
+        # actual source file date and must fail byte-backed verification.
+        validate_contract("ReleaseManifest", manifest, allow_partial_manifest=True)
+        with self.assertRaises(ContractError):
+            verify_shadow_manifest(manifest, ROOT / "public", allow_partial=True)
+
+    def test_manifest_identity_is_independent_of_input_and_entry_order(self):
+        paths = [ROOT / "public" / "update-status.json", ROOT / "public" / "signal-history-summary.json"]
+        forward = build_shadow_manifest(
+            paths, generated_at="2026-08-30T00:00:00Z", allow_partial=True
+        )
+        reverse_input = build_shadow_manifest(
+            reversed(paths), generated_at="2026-08-30T00:00:00Z", allow_partial=True
+        )
+        self.assertEqual(forward["release_id"], reverse_input["release_id"])
+        reversed_entries = copy.deepcopy(forward)
+        reversed_entries["files"].reverse()
+        validate_contract("ReleaseManifest", reversed_entries, allow_partial_manifest=True)
+        self.assertEqual(reversed_entries["release_id"], forward["release_id"])
+
+    def test_corrupt_legacy_shapes_and_version_collections_fail(self):
+        with tempfile.TemporaryDirectory() as folder:
+            folder_path = Path(folder)
+            factor = folder_path / "daily-factor-snapshot.json"
+            factor_payload = json.loads((ROOT / "public" / factor.name).read_text())
+            factor_payload["symbols"] = "corrupted-not-a-list"
+            factor.write_text(json.dumps(factor_payload))
+            with self.assertRaises(ContractError):
+                build_shadow_manifest([factor], allow_partial=True)
+
+            unified = folder_path / "unified-v2-latest.json"
+            unified_payload = json.loads((ROOT / "public" / unified.name).read_text())
+            unified_payload["factor_registry_versions"] = "0.10.0"
+            unified.write_text(json.dumps(unified_payload))
+            with self.assertRaises(ContractError):
+                build_shadow_manifest([unified], allow_partial=True)
+
+    def test_operational_research_adapters_require_explicit_future_data_evidence(self):
+        samples = {
+            "production-state.json": {
+                "as_of": "2026-08-28",
+                "last_successful_update_at": "2026-08-28T22:00:00Z",
+                "live_verified": True,
+                "website_version": "1.4.0",
+                "deployment_commit": "abc1234",
+            },
+            "backtest-state.json": {
+                "coverage": {"end": "2026-08-28"},
+                "updated_at": "2026-08-28T22:00:00Z",
+                "schema_version": "1.0.0",
+                "mode": "shadow",
+            },
+            "experiment-catalog.json": {
+                "generated_at": "2026-08-28T22:00:00Z",
+                "schema_version": "1.0.0",
+            },
+        }
+        with tempfile.TemporaryDirectory() as folder:
+            for name, payload in samples.items():
+                with self.subTest(name=name):
+                    path = Path(folder) / name
+                    path.write_text(json.dumps(payload))
+                    with self.assertRaises(ContractError):
+                        adapt_legacy_file(path)
 
     def test_full_2026_08_28_shadow_release_uses_three_temporal_classes(self):
         manifest = build_shadow_manifest(
@@ -195,6 +381,7 @@ class SharedContractTests(unittest.TestCase):
         self.assertEqual(daily["temporal_class"], "daily_snapshot")
         self.assertEqual(daily["as_of"], manifest["as_of"])
         self.assertIs(daily["future_data_used"], False)
+        self.assertNotIn("UniverseSnapshot", daily["contract_types"])
 
     def test_d1_daily_snapshot_wrong_date_or_future_evidence_fails(self):
         manifest = build_shadow_manifest(

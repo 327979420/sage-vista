@@ -27,6 +27,11 @@ STATE_ORDER={"Pullback Watch":0,"Leadership":1,"Recovery":2,"Neutral":3,"Unavail
 def iso_day(value):
  return datetime.strptime(value,"%m/%d/%Y").date().isoformat() if "/" in value else value
 
+def shadow_etf_rows(prepared):
+ """Expose point-in-time ETF rows without changing the production loader."""
+ from services.market_data.consumer import require_shadow_rows
+ return require_shadow_rows(prepared,consumer="industry_etf")
+
 def rows_as_of(rows,as_of):
  """Normalize and strictly discard every future or invalid close."""
  out=[]

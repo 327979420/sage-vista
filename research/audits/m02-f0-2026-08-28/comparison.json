@@ -1,0 +1,14 @@
+{
+  "comparison_schema_version": "1.0.0",
+  "input_cache_key": "eodhd-history-v1-33266737215",
+  "output_cache_key": "eodhd-history-v1-33293559230",
+  "market_files_added": 4,
+  "market_files_deleted": 0,
+  "market_files_changed": 16,
+  "market_files_unchanged": 1513,
+  "active_common_changed": false,
+  "total_files_added": 4,
+  "total_files_deleted": 0,
+  "total_files_changed": 16,
+  "total_files_unchanged": 1514
+}

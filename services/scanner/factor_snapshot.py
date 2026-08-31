@@ -14,6 +14,7 @@ from .macd_factor_backtest import adjusted_rows
 from .resonance_tracker import bulk_day
 from .support_risk import EXECUTION_POLICY_VERSION,signal_support_plan
 from .technical import macd
+from services.market_data.consumer import ShadowConsumerInput, require_shadow_rows
 
 DEFAULT_OUT="public/daily-factor-snapshot.json"
 SNAPSHOT_MODE_VERSION="macd-trigger-first-v1"
@@ -40,6 +41,11 @@ def build_snapshot(symbol_rows,as_of):
   serialized=[state.dict() for state in states]
   symbols.append({"symbol":symbol,"price":round(current["close"],4),"dollar_volume":round(current["close"]*current["volume"]),"trigger":{"factor_id":TRIGGER_FACTOR_ID,"date":as_of,"exact_completed_cross":True},"execution_policy_version":EXECUTION_POLICY_VERSION,"support_plan":signal_support_plan(rows),"scoring":experimental_score(serialized),"factors":serialized})
  return {"as_of":as_of,"registry_version":REGISTRY_VERSION,"mode":"macd_trigger_first","snapshot_mode_version":SNAPSHOT_MODE_VERSION,"trigger_policy":{"factor_id":TRIGGER_FACTOR_ID,"event":"exact_completed_daily_bull_cross","remaining_factors_evaluated_after_trigger":True,"remaining_factor_count":len(MONITORED_FACTOR_IDS)-1,"recent_state_does_not_retrigger":True},"execution_policy":{"version":EXECUTION_POLICY_VERSION,"entry":"next_adjusted_open","stop":"highest of signal-time support minus 5% and entry minus 10%","target":"2R","max_hold_sessions":40,"same_bar":"stop_first"},"future_data_used":False,"factor_ids":list(MONITORED_FACTOR_IDS),"universe_eligible_count":universe_eligible_count,"eligible_count":universe_eligible_count,"triggered_count":len(symbols),"symbols":symbols}
+
+def build_shadow_snapshot(prepared: ShadowConsumerInput):
+ """Run today's unchanged factor builder on explicitly prepared shadow rows."""
+ rows=require_shadow_rows(prepared,consumer="factor_snapshot")
+ return {"input_audit":prepared.audit(),"snapshot":build_snapshot(rows,prepared.as_of)}
 
 def load_symbol_rows(as_of,cache_dir="work/eodhd-cache",active_path="work/eodhd-active-common.json"):
  bulk=bulk_day(as_of,strict=True);bulk_map={row.get("code"):row for row in bulk}

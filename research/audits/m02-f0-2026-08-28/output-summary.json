@@ -1,0 +1,67 @@
+{
+  "audit_schema_version": "1.0.0",
+  "label": "output",
+  "cache_key": "eodhd-history-v1-33293559230",
+  "matched_cache_key": "eodhd-history-v1-33293559230",
+  "cache_hit_exact": true,
+  "github_run_id": "33398109373",
+  "github_run_attempt": "1",
+  "workflow_commit": "2695ef3124e1d373088b65fdc149179b3f573bc5",
+  "total_file_count": 1534,
+  "total_size_bytes": 437623942,
+  "market_file_count": 1533,
+  "market_total_size_bytes": 436614758,
+  "active_common": {
+    "size_bytes": 1009184,
+    "sha256": "9204777c71914c0892fb3ef5b8fb1f5d47a53b040398625bed02164bab9502ba",
+    "physical_line_count": 1,
+    "record_count": 6324,
+    "container": "list",
+    "field_names": [
+      "Code",
+      "Country",
+      "Currency",
+      "Exchange",
+      "Isin",
+      "Name",
+      "Type"
+    ],
+    "field_coverage": {
+      "stable_security_id": {
+        "present_count": 6060,
+        "missing_count": 264,
+        "presence_rate": 0.958254,
+        "matched_fields": [
+          "isin"
+        ]
+      },
+      "exchange": {
+        "present_count": 6324,
+        "missing_count": 0,
+        "presence_rate": 1.0,
+        "matched_fields": [
+          "exchange"
+        ]
+      },
+      "provider_code": {
+        "present_count": 6324,
+        "missing_count": 0,
+        "presence_rate": 1.0,
+        "matched_fields": [
+          "code"
+        ]
+      },
+      "listing_lifecycle": {
+        "present_count": 0,
+        "missing_count": 6324,
+        "presence_rate": 0.0,
+        "matched_fields": []
+      }
+    }
+  },
+  "market_hash_manifest": {
+    "entry_count": 1533,
+    "raw_filenames_in_artifact": false,
+    "path_identifier": "sha256(normalized workspace-relative path)"
+  }
+}
