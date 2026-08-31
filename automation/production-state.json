@@ -3,5 +3,7 @@
   "site_url": "https://sage-vista-parallel.gizmo-allied-0s.workers.dev",
   "live_verified": true,
   "discord_result": "duplicate_skipped",
-  "trigger_source": "manual"
+  "trigger_source": "manual",
+  "website_version": "unified-v2-macd-trigger-1.4.0",
+  "deployment_commit": "c899fbcb5587ff7757e15ed950a7287f2fd11f59"
 }
