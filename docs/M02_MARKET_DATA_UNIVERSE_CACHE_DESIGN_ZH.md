@@ -90,14 +90,15 @@ M02不会改变MACD、因子、评分、排行榜、形态、持仓或交易结�
 - 既有`UniverseSnapshot 2.0.0`没有上述必填身份依据与完整来源证明。新正式结构因此使用`3.x`主版本，旧`2.x`含义保持不变并继续只读验证，禁止静默升级。
 - 旧每日与回测数据继续归为`legacy`，可用于兼容研究，但必须保存幸存者偏差和成员证据不完整标签。formal与legacy只能显式选择；formal缺失不得自动回退。
 
-### F— I本地成果（已验证，等待分支审核）
+### F— I本地成果（独立审核修复完成，等待分支复核）
 
 - **包F**：新增唯一`services/market_data/consumer.py`影子桥。根目录由仓库内代码位置固定取得，公开入口不接受CLI、环境变量、当前目录或外部调用者注入；每日`factor_snapshot`、Tracker、市场ETF和行业ETF只新增显式影子读取函数，既有`run()`及默认加载器未改变。
 - **包G**：`unified_v2_scan`新增未接入默认夜间任务的影子输入函数。formal与legacy必须显式选择；formal缺失返回`universe_unavailable`，legacy固定返回`survivorship_bias`、`incomplete_membership_evidence`和`not_formal_point_in_time_universe`三项偏差标签。
 - **合同升级**：新formal结构为`UniverseSnapshot 3.0.0`，保存完整来源证明和可解释观察身份；旧`2.x`继续按原字段只读验证，但新的formal消费者明确拒绝2.x。`ReleaseManifest`条目知道2.x和3.x，但与只支持1.x的合同混合时仍失败关闭。
 - **同源证明**：固定小样本中，每日与回测对相同`universe_id + as_of + adjustment_policy`得到相同`market_snapshot_id`、OHLCV、MACD门票判断和因子生成器输入。没有访问网络、真实缓存或生产数据。
-- **提交**：规则冻结`a141911`；前向身份和消费者桥`e198b0c`；每日／回测影子反例`e1e65e2`；旧生产样本证据钉住测试`990ac0b`；2.x只读／3.x正式消费边界修复`fb66346`。包H清单与验收证据由文档提交保存。
-- **本地验收**：M01/M02定向84项、完整Python 426项、Python编译、前端lint／类型检查／生产构建及11项前端测试全部通过；`PYTHONHASHSEED=0/1/42/12345`下各56项确定性测试通过；`git diff --check`通过。
+- **提交**：规则冻结`a141911`；前向身份和消费者桥`e198b0c`；每日／回测影子反例`e1e65e2`；旧生产样本证据钉住测试`990ac0b`；2.x只读／3.x正式消费边界修复`fb66346`；独立审核代码修复`5b5acf5`与回归测试`b974e1a`。包H清单与验收证据由文档提交保存。
+- **本地验收**：独立审核修复后，M01/M02定向78项、完整Python 432项、Python编译、前端lint／类型检查／生产构建及11项前端测试全部通过；`PYTHONHASHSEED=0/1/42/12345`下各78项确定性测试通过；`git diff --check`通过。
+- **独立审核修复**：读取器自报的`point_in_time_fingerprint`不再被当成可信替代品；消费者桥验证实际交付的调整后OHLCV、从实际行重算指纹并与自报值相等，返回值递归冻结，不能在保持原快照ID时改写内部行情行。包H清单由源码机械搜索契约守护，防止旧缓存消费者漏登。
 
 三个可人工复查的例子：
 
@@ -422,11 +423,13 @@ repository.prepare_snapshot(universe_id, as_of, adjustment_policy)
 
 | 类别 | 仍直接使用旧入口的消费者 |
 | --- | --- |
-| 每日扫描 | `factor_snapshot.load_symbol_rows`、`resonance_tracker.run/bulk_day`、`market_etf_watch.refreshed_rows`、`eodhd_factor_pilot.adjusted_rows`、`rare_opportunity_scanner`、`opportunity_ledger`、`cache_theme_etfs`、`expand_tracker_universe` |
-| 当前回放 | `unified_v2_scan._load_cache/run`、`macd_factor_backtest` |
-| 研究回放 | `tracker_backtest_v1/v2`、`selection_research_v1`、`factor_attribution_v1`、`market_regime_v1`、`pullback_context_backtest_v2`、`full_line_backtest_v1`、`annual_factor_summary_v1`、`ranking_research_v1`、`trailing_stop_v1`、`factor_strategy_lab_v2`、`reused_event_study_v2`、`winner_loser_optimization_v1` |
-| 校验与审计 | `eodhd_factor_validation`、`market_context_factor_test`、`neutralization_test`、`audit_eodhd` |
-| 自动化缓存 | `daily-eod.yml`、`nightly-backtest.yml`、`unified-v2-backfill.yml`、`recover-unified-v2-backfill.yml`、`opportunity-ledger-refresh.yml`、`industry-radar-validation.yml`、`pullback-context-backtest.yml`、`core-factor-backtest.yml`、`full-line-backtest.yml`、`trailing-stop-backtest.yml`、`factor-strategy-lab-v2.yml`、`reused-factor-backtest.yml`、`choppiness-state-mechanism-v1.yml`及`winner-loser-strategy-optimization.yml`中的旧缓存恢复步骤 |
+| 每日扫描 | `cache_theme_etfs.run`、`eodhd_factor_pilot.adjusted_rows`、`expand_tracker_universe.run`、`factor_snapshot.load_symbol_rows`、`market_etf_watch.refreshed_rows`、`opportunity_ledger.DEFAULT_CACHE`、`rare_opportunity_scanner.run`、`resonance_tracker.bulk_day/run` |
+| 当前回放 | `unified_v2_scan.CACHE/run`、`macd_factor_backtest.listing_statuses/run` |
+| 研究回放 | `annual_factor_summary_v1`CLI默认值、`factor_attribution_v1.CACHE`、`factor_strategy_lab_v2.main`、`full_line_backtest_v1.CACHE`、`market_regime_v1.CACHE/run`、`pullback_context_backtest_v2.stock_context_trades/etf_pullback_events/run`、`ranking_research_v1.CACHE/run`、`reused_event_study_v2.main`、`selection_research_v1.CACHE`、`tracker_backtest_v1.CACHE/run`、`tracker_backtest_v2.CACHE`、`trailing_stop_v1`CLI默认值、`winner_loser_optimization_v1.main` |
+| 校验、上下文与审计 | `eodhd_factor_validation.run`、`market_context_factor_test.run`、`neutralization_test.run`、`open_source_industry.tracked_symbols`、`refresh_validation_analysis.run` |
+| 自动化缓存 | `choppiness-state-mechanism-v1.yml`、`core-factor-backtest.yml`、`daily-eod.yml`、`factor-strategy-lab-v2.yml`、`full-line-backtest.yml`、`industry-radar-validation.yml`、`nightly-backtest.yml`、`opportunity-ledger-refresh.yml`、`pullback-context-backtest.yml`、`recover-unified-v2-backfill.yml`、`reused-factor-backtest.yml`、`trailing-stop-backtest.yml`、`unified-v2-backfill.yml`及`winner-loser-strategy-optimization.yml`中的旧缓存恢复或参数入口 |
+
+`tests/test_m02_legacy_cache_inventory.py`只读解析上述Python目录和工作流：直接出现四类旧路径的函数、模块级常量、从这些常量导入的使用者，以及含旧路径的工作流文件，必须与冻结集合逐项相等。源码新增一个未登记入口，或清单保留一个已经删除的入口，测试都会失败。该守门不执行这些模块、不读取缓存，也不改变任何生产入口。
 
 未来候选发布／缓存身份必须显式绑定：数据源与数据集、原始结构版本、复权政策、`universe_id`及股票池合同主版本、覆盖起止日、原始修订指纹和消费者桥代码版本。原始行情仍只保存一份；包含股票池身份的键属于点时准备结果或工作流候选包，不能据此复制整盘原始历史。
 
