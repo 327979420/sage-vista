@@ -58,13 +58,13 @@
 ### CR-2026-08-30-035｜按总需求制定分模块渐进式重构规划
 
 - 用户原意：采用此前六项推荐架构选择，开始制作覆盖每个模块的完整重构规划书。规划必须写清功能、时间线、交付、验收、回退和隐藏雷点；最终形成从每日扫描、模拟交易、永久总账、回测实验、人工复盘、规则升级、网站到Discord的完整闭环，减少逻辑冲突和重复实现。
-- 状态：整体重构仍为`design_review`；M00治理与状态基线子模块已于2026-08-31达到`verified`。M01—M13仍须分别设计、批准和实施，当前不授权修改门票、因子、评分、长期资格、止损退出、事件账、页面或Discord业务逻辑。
+- 状态：整体重构仍为`design_review`；M00治理与状态基线子模块已于2026-08-31达到`implemented`。M01—M13仍须分别设计、批准和实施，当前不授权修改门票、因子、评分、长期资格、止损退出、事件账、页面或Discord业务逻辑。
 - 主模块：`docs/rules/01_GOVERNANCE.md`。
 - 联动模块：`docs/MODULE_REFACTOR_PLAN_ZH.md`、`docs/PROJECT_REQUIREMENTS_MASTER_ZH.md`、`docs/SYSTEM_ARCHITECTURE_ZH.md`及后续逐个获批的业务模块。
 - 规则先行：本轮不升级业务模块规则；冻结六项设计方向：长期上涨／长期筑底双路径、局部与多年双回撤、月→周→日解释、明显风险阻断完整交易、个人形态先实验20日退出、原仓渐进替换。
 - 实验：本轮规划不运行回测。长期筑底资格、多年深跌例外、大周期有限奖励、风险阻断及复杂多因子20日退出都必须在各自模块实施前另行预登记。
 - 实现与产物：新增`docs/MODULE_REFACTOR_PLAN_ZH.md`，定义M00—M13模块、目标合同、六周相对时间线、每模块交付标准、全项目完成定义和P0／P1／P2雷点。
-- 验证：M00治理文档提交已进入正式`main`；状态口径与部署收据实现保存在分支`m00/status-baseline-6fcedca`，提交为`3de3ba7`和`76f6d3f`。最终指定测试共34项通过：`tests.test_verify_live_deployment` 11项、`tests.test_daily_eod_workflow` 11项、`tests.test_project_status` 12项；`git diff --check`通过。`76f6d3f`已推送到该M00分支，但尚未合并`main`、部署或完成线上核验，因此M00是`verified`而不是`implemented`。
+- 验证：M00的3个提交`3de3ba7`、`76f6d3f`、`c899fbc`已完整快进合并到`main`。最终指定测试共34项通过；网站部署运行`33359327603`成功，收据附件保留30天。线上页面显示`Build c899fbc`；收据、`automation/production-state.json`与生成的`docs/CURRENT_STATUS_ZH.md`一致记录网站版本`unified-v2-macd-trigger-1.4.0`和部署提交`c899fbcb5587ff7757e15ed950a7287f2fd11f59`，状态保存提交为`1fdd144`。未运行每日行情、回测或Discord。
 
 ### CR-2026-08-30-034｜把人工复盘提炼进总需求，并在新对话分模块重整项目
 
