@@ -94,10 +94,10 @@ M02不会改变MACD、因子、评分、排行榜、形态、持仓或交易结�
 
 - **包F**：新增唯一`services/market_data/consumer.py`影子桥。根目录由仓库内代码位置固定取得，公开入口不接受CLI、环境变量、当前目录或外部调用者注入；每日`factor_snapshot`、Tracker、市场ETF和行业ETF只新增显式影子读取函数，既有`run()`及默认加载器未改变。
 - **包G**：`unified_v2_scan`新增未接入默认夜间任务的影子输入函数。formal与legacy必须显式选择；formal缺失返回`universe_unavailable`，legacy固定返回`survivorship_bias`、`incomplete_membership_evidence`和`not_formal_point_in_time_universe`三项偏差标签。
-- **合同升级**：新formal结构为`UniverseSnapshot 3.0.0`，保存完整来源证明和可解释观察身份；旧`2.x`继续按原字段只读验证。`ReleaseManifest`条目知道2.x和3.x，但与只支持1.x的合同混合时仍失败关闭。
+- **合同升级**：新formal结构为`UniverseSnapshot 3.0.0`，保存完整来源证明和可解释观察身份；旧`2.x`继续按原字段只读验证，但新的formal消费者明确拒绝2.x。`ReleaseManifest`条目知道2.x和3.x，但与只支持1.x的合同混合时仍失败关闭。
 - **同源证明**：固定小样本中，每日与回测对相同`universe_id + as_of + adjustment_policy`得到相同`market_snapshot_id`、OHLCV、MACD门票判断和因子生成器输入。没有访问网络、真实缓存或生产数据。
-- **提交**：规则冻结`a141911`；前向身份和消费者桥`e198b0c`；每日／回测影子反例`e1e65e2`；旧生产样本证据钉住测试`990ac0b`。包H清单与本段验收证据由最终文档提交保存。
-- **本地验收**：M01/M02定向83项、完整Python 425项、Python编译、前端lint／类型检查／生产构建及11项前端测试全部通过；`PYTHONHASHSEED=0/1/42/12345`下各55项确定性测试通过；`git diff --check`通过。
+- **提交**：规则冻结`a141911`；前向身份和消费者桥`e198b0c`；每日／回测影子反例`e1e65e2`；旧生产样本证据钉住测试`990ac0b`；2.x只读／3.x正式消费边界修复`fb66346`。包H清单与验收证据由文档提交保存。
+- **本地验收**：M01/M02定向84项、完整Python 426项、Python编译、前端lint／类型检查／生产构建及11项前端测试全部通过；`PYTHONHASHSEED=0/1/42/12345`下各56项确定性测试通过；`git diff --check`通过。
 
 三个可人工复查的例子：
 
