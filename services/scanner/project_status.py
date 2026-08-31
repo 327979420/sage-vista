@@ -11,10 +11,6 @@ import json
 import pathlib
 import re
 
-from .factor_registry import REGISTRY_VERSION
-from .unified_v2_scan import MODEL_VERSION
-
-
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 DEFAULT_OUT = ROOT / "docs" / "CURRENT_STATUS_ZH.md"
 
@@ -41,6 +37,81 @@ def _pending_experiments(catalog: dict) -> list[tuple[str, str]]:
     return pending
 
 
+def _shown(value: object) -> str:
+    """Render absent identity evidence without guessing a replacement."""
+    return str(value) if value not in (None, "", []) else "未知"
+
+
+def render_shared_version_status(website: dict, nightly: dict) -> str:
+    """Render stable deployment and saved-batch evidence for the shared file.
+
+    The caller supplies canonical machine-state dictionaries. This renderer is
+    deliberately unaware of Git HEAD and the working tree, so regenerating the
+    committed status file cannot change merely because local files are dirty.
+    """
+    versions = nightly.get("versions")
+    if versions is None:
+        version = nightly.get("version")
+        versions = [] if version in (None, "") else [version]
+    versions = list(dict.fromkeys(str(item) for item in versions if item not in (None, "")))
+    nightly_version = "、".join(versions) if versions else "未知"
+    version_warning = "；警告：同一批次包含多个模型版本" if len(versions) > 1 else ""
+    return "\n".join(
+        (
+            "## 版本与代码身份",
+            "",
+            f"- 网站实际版本：{_shown(website.get('version'))}",
+            f"- 网站部署提交编号：{_shown(website.get('commit'))}",
+            f"- 夜间最近已保存批次版本：{nightly_version}{version_warning}",
+            f"- 夜间批次编号：{_shown(nightly.get('batch_id'))}",
+            f"- 夜间运行提交编号：{_shown(nightly.get('commit'))}",
+            "- 版本号相同不能自动判断代码相同。",
+            "- 代码一致性：未知（共享状态不读取本地实时证据）。",
+        )
+    )
+
+
+def render_local_version_diagnostic(website: dict, local: dict) -> str:
+    """Explain injected local Git evidence without collecting it here."""
+    website_version = website.get("version")
+    website_commit = website.get("commit")
+    local_version = local.get("version")
+    local_head = local.get("head")
+    dirty = local.get("dirty")
+    if dirty is True:
+        dirty_text = "true"
+    elif dirty is False:
+        dirty_text = "false"
+    else:
+        dirty_text = "未知"
+
+    evidence_complete = (
+        website.get("verified") is True
+        and website_version not in (None, "")
+        and website_commit not in (None, "")
+        and local_version not in (None, "")
+        and local_head not in (None, "")
+        and dirty is not None
+    )
+    if not evidence_complete:
+        equality = "未知"
+    elif website_version == local_version and website_commit == local_head and dirty is False:
+        equality = "是"
+    else:
+        equality = "不能确认代码相同"
+
+    return "\n".join(
+        (
+            f"- 网站实际版本：{_shown(website_version)}",
+            f"- 网站部署提交编号：{_shown(website_commit)}",
+            f"- 本地代码声明版本：{_shown(local_version)}",
+            f"- 本地HEAD：{_shown(local_head)}",
+            f"- 工作区dirty状态：{dirty_text}",
+            f"- 代码一致性：{equality}",
+        )
+    )
+
+
 def build() -> str:
     production = _read_json("automation/production-state.json")
     freshness = _read_json("public/update-status.json")
@@ -56,6 +127,17 @@ def build() -> str:
     enabled_text = "已开启" if backtest.get("enabled") else "已暂停"
     production_verified = production.get("live_verified") and production.get("as_of") == freshness.get("source_latest_complete_date")
     verified_text = "已核验" if production_verified else "尚未核验或日期不一致"
+    website_identity = {
+        "version": production.get("website_version"),
+        "commit": production.get("deployment_commit"),
+        "verified": production_verified,
+    }
+    nightly_identity = {
+        "versions": last_batch.get("model_versions", []),
+        "batch_id": last_batch.get("batch_id"),
+        "commit": last_batch.get("run_commit"),
+    }
+    shared_version_status = render_shared_version_status(website_identity, nightly_identity)
     return f"""# Sage Vista 当前状态
 
 > 本文件由 `python3 -m services.scanner.project_status` 从机器状态生成；不要手工修改数字。若与下方机器源不一致，先修复生成流程再改业务代码。
@@ -66,8 +148,9 @@ def build() -> str:
 - 最新完整美股收盘：{freshness['source_latest_complete_date']}；生产状态{verified_text}。
 - UI：v{_ui_version()}。
 - 因子库：{registry['registry_version']}，共 {registry['factor_count']} 项。
-- 当前夜间新批次模型：`{MODEL_VERSION}`；因子注册表代码版本 `{REGISTRY_VERSION}`。
 - 数据审计：日期一致 `{str(freshness['data_dates_match']).lower()}`；未来数据 `{str(freshness['future_data_used']).lower()}`。
+
+{shared_version_status}
 
 ## 历史回测断点
 
