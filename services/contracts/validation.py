@@ -1,4 +1,4 @@
-"""Pure validation rules for M01 contracts.
+"""Pure validation rules shared by M01 and later data modules.
 
 The functions in this module perform no file, Git, network, or process I/O.  They
 validate injected dictionaries so scanners, research and release preparation do
@@ -48,8 +48,14 @@ COMMON_REQUIRED = {
 }
 
 CONTRACT_REQUIRED = {
-    "MarketDataSnapshot": {"snapshot_id", "market", "symbols", "adjustment_policy", "data_source"},
-    "UniverseSnapshot": {"universe_id", "members", "eligibility_rule_version"},
+    "MarketDataSnapshot": {
+        "snapshot_id", "market", "symbols", "adjustment_policy", "data_source",
+        "universe_id", "raw_revision", "max_returned_date",
+    },
+    "UniverseSnapshot": {
+        "universe_id", "members", "eligibility_rule_version", "effective_from",
+        "path_status", "coverage_status",
+    },
     "GateEvent": {"gate_event_id", "symbol", "signal_date", "gate_policy_version", "passed"},
     "TechnicalEvidence": {"evidence_id", "factor_id", "factor_version", "timeframe", "evidence_date", "available"},
     "ModelAssessment": {"assessment_id", "gate_event_id", "model_id", "model_version", "eligible"},
