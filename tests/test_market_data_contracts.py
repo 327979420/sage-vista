@@ -219,6 +219,36 @@ class MarketDataContractTests(unittest.TestCase):
             select_universe_snapshot([observed], as_of="2026-08-28", path_status="legacy"), observed
         )
 
+    def test_formal_selector_does_not_accept_a_legacy_snapshot_claiming_complete_coverage(self):
+        disguised = universe(path_status="legacy", coverage_status="complete")
+        validate_universe_snapshot(disguised)
+        with self.assertRaisesRegex(ContractError, "universe_unavailable"):
+            select_universe_snapshot([disguised], as_of="2026-08-28", path_status="formal")
+
+    def test_instrument_ids_must_contain_a_complete_sha256_identity(self):
+        malformed = universe()
+        malformed["members"][0]["instrument_id"] = "instrument:sha256:not-a-hash"
+        with self.assertRaises(ContractError):
+            validate_universe_snapshot(malformed)
+
+    def test_future_bad_ohlcv_does_not_change_an_earlier_point_in_time_view(self):
+        rows = raw_rows()
+        del rows[-1]["adjusted_close"]
+        historical = adjusted_point_in_time_rows(rows, as_of="2026-08-28")
+        self.assertEqual([row["date"] for row in historical], ["2026-08-27", "2026-08-28"])
+        with self.assertRaises(ContractError):
+            validate_raw_rows(rows)
+
+    def test_future_date_structure_still_must_be_safe_to_split(self):
+        missing_date = raw_rows()
+        del missing_date[-1]["date"]
+        with self.assertRaises(ContractError):
+            adjusted_point_in_time_rows(missing_date, as_of="2026-08-28")
+        duplicate = raw_rows()
+        duplicate[-1]["date"] = duplicate[-2]["date"]
+        with self.assertRaises(ContractError):
+            adjusted_point_in_time_rows(duplicate, as_of="2026-08-28")
+
     def test_market_snapshot_recomputes_identity_and_rejects_future_evidence(self):
         payload = market_snapshot()
         validate_market_data_snapshot(payload)

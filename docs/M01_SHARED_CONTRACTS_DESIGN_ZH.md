@@ -31,6 +31,12 @@ M01准备做两件事：第一，规定每种数据盒子的标签和验货规�
 - 实施状态：包A规则、包B验证器、包C只读适配器、包D影子Manifest、D1/D1b/D1c安全修复及包E本地验收均已完成。三个提交`6f5fbb0`、`1017490`、`ca52a72`已进入`main`。M01的完成定义不包含生产接入，因此可标为`implemented`；生产尚未采用Manifest。
 - 发布文件按时间语义分三类：`daily_snapshot`必须与发布日相同且防未来明确为`false`；`versioned_config`不伪造`as_of`或`future_data_used`，改查版本引用一致；`research_summary`不要求等于发布日，改查研究覆盖末日不晚于发布日并保留来源实验。
 
+### 2026-08-31人工审计补充
+
+M01进入主线后又用人工构造的反例重新审核，证明原实现的绿灯没有覆盖所有合同边界。修复包`CR-2026-08-31-041`不改变上述设计或生产行为，只把原本已经写在本文件中的规则真正落实：Manifest条目未知主版本和伪布尔值失败；适配器不得凭空生成“未使用未来数据”；文件日期、版本和合同范围必须从用于计算哈希的同一份字节重新取得；文件顺序不改变`release_id`；影子写入前必须完成合同验证；旧文件至少通过已登记的内部结构检查才允许附加合同标签。
+
+原来的`release_id=sha256:72724...`继续作为首次M01验收的历史快照，不回写。由于审计后文件条目新增了明确的验证范围和适配警告字段，同一份2026-08-28样本按新条目合同得到新的本地审计ID；它只用于证明修复后的算法可重复，不是生产Manifest或生产发布身份。
+
 ## 一、现状审计
 
 ### 1. 当前生产链为什么容易分叉
@@ -177,6 +183,7 @@ M01可以冻结M12需要的接口，但不得实施或声称上述生产集成�
   "gate_event_id": "gate:ABC:2026-08-28:existing-policy-id",
   "symbol": "ABC",
   "signal_date": "2026-08-28",
+  "gate_policy_version": "existing-policy-id",
   "passed": true,
   "evidence_refs": ["evidence:gate:ABC:2026-08-28:existing-policy-id:macd:daily:2026-08-28"]
 }
@@ -208,7 +215,7 @@ M01可以冻结M12需要的接口，但不得实施或声称上述生产集成�
 ```json
 {
   "schema_version": "1.0.0",
-  "release_id": "sha256:example-content-derived-id",
+  "release_id": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "as_of": "2026-08-28",
   "generated_at": "2026-08-28T22:10:00Z",
   "source_version": {"generator": "contract-and-generator-version"},
@@ -216,15 +223,19 @@ M01可以冻结M12需要的接口，但不得实施或声称上述生产集成�
   "files": [
     {
       "path": "update-status.json",
-      "contract": "UpdateStatusLegacyView",
+      "contract_types": ["ReleaseManifest"],
       "schema_version": "1.0.0",
       "adapter_version": "legacy-adapter-1.0.0",
       "source_version": {"generator": "existing-generator-version"},
+      "temporal_class": "daily_snapshot",
       "as_of": "2026-08-28",
+      "future_data_used": false,
       "size_bytes": 845,
-      "sha256": "example-lowercase-sha256",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
       "required": true,
-      "roles": ["web", "discord", "audit"]
+      "roles": ["web", "discord", "audit"],
+      "validation_scope": "registered_legacy_shape",
+      "adapter_warnings": []
     }
   ]
 }

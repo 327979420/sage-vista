@@ -18,6 +18,7 @@ from .validation import ContractError, validate_contract
 
 SCHEMA_VERSION = "1.0.0"
 SHA256 = re.compile(r"^sha256:[0-9a-f]{64}$")
+INSTRUMENT_ID = re.compile(r"^instrument:sha256:[0-9a-f]{64}$")
 TIERS = {"core", "main", "extended", "small_cap", "delisted"}
 PATH_STATUSES = {"formal", "legacy"}
 COVERAGE_STATUSES = {"complete", "legacy_observed", "unavailable"}
@@ -93,7 +94,7 @@ def _normalize_members(members: Sequence[Mapping[str, Any]]) -> list[dict[str, s
         if not isinstance(member, Mapping):
             raise ContractError("universe member must be an object")
         instrument_id = _require_text(member.get("instrument_id"), "member.instrument_id")
-        if not instrument_id.startswith("instrument:sha256:"):
+        if not INSTRUMENT_ID.fullmatch(instrument_id):
             raise ContractError("member.instrument_id is not a stable M02 identity")
         if instrument_id in seen:
             raise ContractError("UniverseSnapshot contains a duplicate instrument_id")
@@ -171,14 +172,22 @@ def select_universe_snapshot(
     eligible: list[Mapping[str, Any]] = []
     for snapshot in snapshots:
         validate_universe_snapshot(snapshot)
-        if snapshot["effective_from"] <= as_of and snapshot["as_of"] <= as_of:
+        # A formal replay may never silently consume a legacy-observed list,
+        # and a legacy replay should stay reproducible on its own evidence.
+        if (
+            snapshot["path_status"] == path_status
+            and snapshot["effective_from"] <= as_of
+            and snapshot["as_of"] <= as_of
+        ):
             eligible.append(snapshot)
     if not eligible:
         if path_status == "legacy":
             return None
         raise ContractError("universe_unavailable")
     selected = max(eligible, key=lambda item: (item["effective_from"], item["as_of"]))
-    if path_status == "formal" and selected["coverage_status"] != "complete":
+    if path_status == "formal" and (
+        selected["path_status"] != "formal" or selected["coverage_status"] != "complete"
+    ):
         raise ContractError("universe_unavailable")
     return selected
 
@@ -241,7 +250,7 @@ def validate_market_data_snapshot(payload: Mapping[str, Any]) -> None:
         if instrument_id in seen:
             raise ContractError("MarketDataSnapshot contains duplicate instrument_id")
         seen.add(instrument_id)
-        if not instrument_id.startswith("instrument:sha256:"):
+        if not INSTRUMENT_ID.fullmatch(instrument_id):
             raise ContractError("symbol.instrument_id is not a stable M02 identity")
         _require_text(row.get("symbol"), "symbol.symbol")
         if not isinstance(row.get("row_count"), int) or row["row_count"] <= 0:
