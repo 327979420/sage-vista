@@ -109,6 +109,8 @@ def prepare_shadow_consumer_input(
         raise ContractError("shadow consumer mode must be explicitly formal or legacy")
     as_of = require_date(as_of, "as_of")
     universe = select_universe_snapshot(snapshots, as_of=as_of, path_status=mode)
+    if mode == "formal" and universe["schema_version"].split(".", 1)[0] != "3":
+        raise ContractError("formal shadow consumer requires UniverseSnapshot 3.x")
     members = {item["instrument_id"]: item for item in universe["members"]}
     eligible_ids = [
         item["instrument_id"] for item in universe["qualifications"] if item["eligible"]

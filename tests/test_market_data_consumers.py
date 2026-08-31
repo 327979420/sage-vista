@@ -100,7 +100,9 @@ def forward_snapshot(*, as_of=DAY, members=None, qualifications=None, evidence=N
     )
 
 
-def legacy_snapshot(as_of="2026-08-28"):
+def legacy_snapshot(
+    as_of="2026-08-28", *, path_status="legacy", coverage_status="legacy_observed"
+):
     instrument_id = stable_instrument_id(
         provider="EODHD",
         market="US",
@@ -121,8 +123,8 @@ def legacy_snapshot(as_of="2026-08-28"):
         source_version={"membership": "legacy-observed", "qualification": "legacy"},
         eligibility_rule_version="legacy-v1",
         effective_from=as_of,
-        path_status="legacy",
-        coverage_status="legacy_observed",
+        path_status=path_status,
+        coverage_status=coverage_status,
         members=[member],
         qualifications=[qualification(instrument_id, as_of=as_of)],
     )
@@ -204,6 +206,14 @@ class ForwardUniverseAndConsumerTests(unittest.TestCase):
         validate_universe_snapshot(legacy)
         self.assertIn("observed_listing_epoch", forward["members"][0])
         self.assertNotIn("observed_listing_epoch", legacy["members"][0])
+
+    def test_old_2x_formal_can_be_validated_but_not_used_by_the_new_formal_bridge(self):
+        old_formal = legacy_snapshot(
+            DAY, path_status="formal", coverage_status="complete"
+        )
+        validate_universe_snapshot(old_formal)
+        with self.assertRaisesRegex(ContractError, "requires UniverseSnapshot 3.x"):
+            prepare("factor_snapshot", snapshots=[old_formal])
 
     def test_incomplete_source_or_missing_member_qualification_rejects_whole_day(self):
         member = forward_member()
