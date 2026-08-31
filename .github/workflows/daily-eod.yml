@@ -31,7 +31,7 @@ permissions:
   deployments: read
 
 concurrency:
-  group: sage-vista-eod
+  group: sage-vista-production-deploy
   cancel-in-progress: false
 
 env:
@@ -51,6 +51,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with: { fetch-depth: 0 }
+      - name: Sync latest production main
+        run: |
+          git fetch origin main
+          git switch --detach origin/main
       - name: Require EODHD secret
         shell: bash
         run: test -n "$EODHD_API_TOKEN" || { echo "EODHD_API_TOKEN secret is not configured"; exit 1; }
@@ -126,15 +130,23 @@ jobs:
           if result.get("result") not in ("preview","duplicate_skipped"):raise SystemExit("Discord dry-run validation failed")
           PY
       - name: Commit audited website data
+        id: audited_data_commit
         if: steps.update_result.outputs.needs_release == 'true'
         shell: bash
         run: |
           git config user.name "sage-vista-bot"
           git config user.email "sage-vista-bot@users.noreply.github.com"
           git add public/resonance-tracker.json public/favorite-pattern.json public/daily-factor-snapshot.json public/rare-opportunity-radar.json public/industry-radar.json public/market-etf-watch.json public/signal-history.json public/signal-history-summary.json public/update-status.json public/factor-registry.json public/unified-v2-rankings.json public/unified-v2-latest.json public/opportunity-ledger.json public/opportunity-ledger-latest.json docs/CURRENT_STATUS_ZH.md
-          git diff --cached --quiet && exit 0
-          git commit -m "data: EOD update ${{ steps.update_result.outputs.as_of }}"
-          git push origin HEAD:main
+          if ! git diff --cached --quiet; then
+            git commit -m "data: EOD update ${{ steps.update_result.outputs.as_of }}"
+            git push origin HEAD:main
+          fi
+          echo "deployment_commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Rebuild production website for deployment commit
+        if: steps.update_result.outputs.needs_release == 'true'
+        env:
+          GITHUB_SHA: ${{ steps.audited_data_commit.outputs.deployment_commit }}
+        run: npm run build
       - name: Upload safe preview artifact
         if: steps.update_result.outputs.needs_release == 'true'
         uses: actions/upload-artifact@v4
@@ -185,7 +197,30 @@ jobs:
       - name: Verify live Cloudflare dates and audits
         id: live_verify
         if: steps.cloudflare_deploy.outcome == 'success'
-        run: python3 -m services.scanner.verify_live_deployment --url "${{ steps.cloudflare_deploy.outputs.site_url }}" --expected-as-of "${{ steps.update_result.outputs.as_of }}" > live-verification.json
+        run: python3 -m services.scanner.verify_live_deployment verify --url "${{ steps.cloudflare_deploy.outputs.site_url }}" --expected-as-of "${{ steps.update_result.outputs.as_of }}" --deployment-commit "${{ steps.audited_data_commit.outputs.deployment_commit }}" > live-verification.json
+      - name: Upload deployment receipt
+        if: steps.live_verify.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-deployment-receipt-${{ github.run_id }}
+          path: live-verification.json
+          retention-days: 30
+      - name: Persist verified website deployment receipt
+        if: steps.live_verify.outcome == 'success'
+        shell: bash
+        run: |
+          python3 -m services.scanner.verify_live_deployment persist --receipt-path live-verification.json --state-path automation/production-state.json > /dev/null
+          python3 -m services.scanner.project_status > /dev/null
+          git config user.name "sage-vista-bot"
+          git config user.email "sage-vista-bot@users.noreply.github.com"
+          git add automation/production-state.json docs/CURRENT_STATUS_ZH.md
+          git diff --cached --quiet && exit 0
+          git commit -m "state: record verified website deployment"
+          git pull --rebase origin main
+          python3 -m services.scanner.project_status > /dev/null
+          git add docs/CURRENT_STATUS_ZH.md
+          git diff --cached --quiet || git commit --amend --no-edit
+          git push origin HEAD:main
       - name: Send deduplicated Discord daily digest
         id: discord_send
         if: steps.live_verify.outcome == 'success'
@@ -209,7 +244,9 @@ jobs:
         run: |
           python3 - <<'PY'
           import json,os
-          state={"as_of":os.environ["AS_OF"],"site_url":os.environ["SITE_URL"],"live_verified":True,"discord_result":os.environ["DISCORD_RESULT"],"trigger_source":os.environ["TRIGGER_SOURCE"]}
+          try:state=json.load(open("automation/production-state.json"))
+          except FileNotFoundError:state={}
+          state.update({"as_of":os.environ["AS_OF"],"site_url":os.environ["SITE_URL"],"live_verified":True,"discord_result":os.environ["DISCORD_RESULT"],"trigger_source":os.environ["TRIGGER_SOURCE"]})
           open("automation/production-state.json","w").write(json.dumps(state,indent=2)+"\n")
           PY
           python3 -m services.scanner.project_status > /dev/null

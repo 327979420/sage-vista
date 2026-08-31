@@ -14,10 +14,10 @@ on:
       - ".github/workflows/deploy-site.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
-  group: sage-vista-site-deploy
+  group: sage-vista-production-deploy
   cancel-in-progress: false
 
 env:
@@ -30,6 +30,13 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
+        with: { fetch-depth: 0 }
+      - name: Sync latest production main
+        id: production_head
+        run: |
+          git fetch origin main
+          git switch --detach origin/main
+          echo "deployment_commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-python@v7
         with: { python-version: "3.13" }
       - name: Verify repository status snapshot is current
@@ -42,6 +49,8 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Build and test website
+        env:
+          GITHUB_SHA: ${{ steps.production_head.outputs.deployment_commit }}
         run: npm test
       - name: Require deployment secrets
         env:
@@ -55,11 +64,25 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npm run deploy:cloudflare
-      - name: Verify the published UI build
+      - name: Verify live website and write deployment receipt
         run: |
-          for attempt in 1 2 3 4 5; do
-            page=$(curl --fail --silent --show-error "$PRODUCTION_SITE_URL?deployment=$GITHUB_SHA" || true)
-            if printf '%s' "$page" | grep -Fq "Build ${GITHUB_SHA:0:7}"; then break; fi
-            if [ "$attempt" = "5" ]; then exit 1; fi
-            sleep 6
-          done
+          expected_as_of=$(python3 -c 'import json;print(json.load(open("public/update-status.json"))["source_latest_complete_date"])')
+          python3 -m services.scanner.verify_live_deployment verify --url "$PRODUCTION_SITE_URL" --expected-as-of "$expected_as_of" --deployment-commit "${{ steps.production_head.outputs.deployment_commit }}" > live-verification.json
+      - name: Upload deployment receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-deployment-receipt-${{ github.run_id }}
+          path: live-verification.json
+          retention-days: 30
+      - name: Persist verified website identity
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "sage-vista-bot"
+          git config user.email "sage-vista-bot@users.noreply.github.com"
+          git pull --rebase origin main
+          python3 -m services.scanner.verify_live_deployment persist --receipt-path live-verification.json --state-path automation/production-state.json > /dev/null
+          python3 -m services.scanner.project_status > /dev/null
+          git add automation/production-state.json docs/CURRENT_STATUS_ZH.md
+          git diff --cached --quiet && exit 0
+          git commit -m "state: record verified website deployment [skip ci]"
+          git push origin HEAD:main
