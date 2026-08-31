@@ -229,6 +229,9 @@ class SharedContractTests(unittest.TestCase):
         universe["files"][0]["schema_version"] = "2.0.0"
         universe["release_id"] = release_id(universe)
         validate_contract("ReleaseManifest", universe, allow_partial_manifest=True)
+        universe["files"][0]["schema_version"] = "3.0.0"
+        universe["release_id"] = release_id(universe)
+        validate_contract("ReleaseManifest", universe, allow_partial_manifest=True)
 
         gate = copy.deepcopy(universe)
         gate["files"][0]["contract_types"] = ["GateEvent"]
@@ -238,7 +241,7 @@ class SharedContractTests(unittest.TestCase):
 
         mixed = copy.deepcopy(universe)
         mixed["files"][0]["contract_types"] = ["UniverseSnapshot", "GateEvent"]
-        for version in ("1.0.0", "2.0.0"):
+        for version in ("1.0.0", "2.0.0", "3.0.0"):
             with self.subTest(version=version):
                 mixed["files"][0]["schema_version"] = version
                 mixed["release_id"] = release_id(mixed)
