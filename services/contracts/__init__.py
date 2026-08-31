@@ -5,6 +5,8 @@ from .manifest import build_shadow_manifest, verify_shadow_manifest, write_shado
 from .market_data import (
     canonical_fingerprint,
     market_data_snapshot_id,
+    normalize_universe_members,
+    normalize_universe_qualifications,
     revision_record,
     select_universe_snapshot,
     stable_instrument_id,
@@ -23,6 +25,8 @@ __all__ = [
     "build_shadow_manifest",
     "canonical_fingerprint",
     "market_data_snapshot_id",
+    "normalize_universe_members",
+    "normalize_universe_qualifications",
     "revision_record",
     "select_universe_snapshot",
     "stable_instrument_id",

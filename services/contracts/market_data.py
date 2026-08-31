@@ -17,11 +17,12 @@ from .validation import ContractError, validate_contract
 
 
 SCHEMA_VERSION = "1.0.0"
+UNIVERSE_SCHEMA_VERSION = "2.0.0"
 SHA256 = re.compile(r"^sha256:[0-9a-f]{64}$")
 INSTRUMENT_ID = re.compile(r"^instrument:sha256:[0-9a-f]{64}$")
 TIERS = {"core", "main", "extended", "small_cap", "delisted"}
 PATH_STATUSES = {"formal", "legacy"}
-COVERAGE_STATUSES = {"complete", "legacy_observed", "unavailable"}
+COVERAGE_STATUSES = {"complete", "legacy_observed"}
 RECONSTRUCTION_STATUSES = {"reconstructible", "not_reconstructible"}
 
 
@@ -62,6 +63,12 @@ def _require_text(value: Any, field: str) -> str:
     return value
 
 
+def _require_bool(value: Any, field: str) -> bool:
+    if not isinstance(value, bool):
+        raise ContractError(f"{field} must be a boolean")
+    return value
+
+
 def _require_fingerprint(value: Any, field: str) -> str:
     if not isinstance(value, str) or not SHA256.fullmatch(value):
         raise ContractError(f"{field} must be sha256:<64 lowercase hex>")
@@ -85,7 +92,20 @@ def stable_instrument_id(
     return "instrument:" + canonical_fingerprint(evidence)
 
 
-def _normalize_members(members: Sequence[Mapping[str, Any]]) -> list[dict[str, str]]:
+def _normalize_reasons(value: Any, field: str) -> list[str]:
+    if not isinstance(value, list):
+        raise ContractError(f"{field} must be a list")
+    reasons = [_require_text(reason, field) for reason in value]
+    if len(reasons) != len(set(reasons)):
+        raise ContractError(f"{field} contains duplicate reasons")
+    return sorted(reasons)
+
+
+def normalize_universe_members(
+    members: Sequence[Mapping[str, Any]],
+) -> list[dict[str, str]]:
+    """Canonicalize point-in-time membership facts without consulting a current list."""
+
     if not isinstance(members, Sequence) or isinstance(members, (str, bytes)) or not members:
         raise ContractError("UniverseSnapshot members must be a non-empty list")
     normalized: list[dict[str, str]] = []
@@ -107,6 +127,75 @@ def _normalize_members(members: Sequence[Mapping[str, Any]]) -> list[dict[str, s
             "symbol": _require_text(member.get("symbol"), "member.symbol"),
             "tier": tier,
             "listing_status": _require_text(member.get("listing_status"), "member.listing_status"),
+            "membership_source": _require_text(
+                member.get("membership_source"), "member.membership_source"
+            ),
+            "membership_effective_from": require_date(
+                member.get("membership_effective_from"), "member.membership_effective_from"
+            ),
+        })
+    return sorted(normalized, key=lambda row: row["instrument_id"])
+
+
+def normalize_universe_qualifications(
+    qualifications: Sequence[Mapping[str, Any]],
+) -> list[dict[str, Any]]:
+    """Canonicalize daily eligibility evidence separately from membership facts."""
+
+    if (
+        not isinstance(qualifications, Sequence)
+        or isinstance(qualifications, (str, bytes))
+        or not qualifications
+    ):
+        raise ContractError("UniverseSnapshot qualifications must be a non-empty list")
+    normalized: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for qualification in qualifications:
+        if not isinstance(qualification, Mapping):
+            raise ContractError("universe qualification must be an object")
+        instrument_id = _require_text(
+            qualification.get("instrument_id"), "qualification.instrument_id"
+        )
+        if not INSTRUMENT_ID.fullmatch(instrument_id):
+            raise ContractError("qualification.instrument_id is not a stable M02 identity")
+        if instrument_id in seen:
+            raise ContractError("UniverseSnapshot contains duplicate qualification evidence")
+        seen.add(instrument_id)
+        facts = {
+            "price_complete": _require_bool(
+                qualification.get("price_complete"), "qualification.price_complete"
+            ),
+            "minimum_price_passed": _require_bool(
+                qualification.get("minimum_price_passed"),
+                "qualification.minimum_price_passed",
+            ),
+            "dollar_volume_passed": _require_bool(
+                qualification.get("dollar_volume_passed"),
+                "qualification.dollar_volume_passed",
+            ),
+            "history_length_passed": _require_bool(
+                qualification.get("history_length_passed"),
+                "qualification.history_length_passed",
+            ),
+        }
+        eligible = _require_bool(qualification.get("eligible"), "qualification.eligible")
+        inclusion_reasons = _normalize_reasons(
+            qualification.get("inclusion_reasons"), "qualification.inclusion_reasons"
+        )
+        exclusion_reasons = _normalize_reasons(
+            qualification.get("exclusion_reasons"), "qualification.exclusion_reasons"
+        )
+        if eligible and (not all(facts.values()) or not inclusion_reasons or exclusion_reasons):
+            raise ContractError("eligible qualification evidence is internally inconsistent")
+        if not eligible and not exclusion_reasons:
+            raise ContractError("excluded qualification requires an explicit reason")
+        normalized.append({
+            "instrument_id": instrument_id,
+            "as_of": require_date(qualification.get("as_of"), "qualification.as_of"),
+            **facts,
+            "eligible": eligible,
+            "inclusion_reasons": inclusion_reasons,
+            "exclusion_reasons": exclusion_reasons,
         })
     return sorted(normalized, key=lambda row: row["instrument_id"])
 
@@ -118,18 +207,24 @@ def universe_snapshot_id(
     source_version: Mapping[str, Any],
     eligibility_rule_version: str,
     members: Sequence[Mapping[str, Any]],
+    qualifications: Sequence[Mapping[str, Any]],
+    path_status: str,
+    coverage_status: str,
 ) -> str:
     if not isinstance(source_version, Mapping) or not source_version:
         raise ContractError("source_version must contain explicit source evidence")
     evidence = {
-        "schema_version": SCHEMA_VERSION,
+        "schema_version": UNIVERSE_SCHEMA_VERSION,
         "as_of": require_date(as_of, "as_of"),
         "effective_from": require_date(effective_from, "effective_from"),
         "source_version": dict(source_version),
         "eligibility_rule_version": _require_text(
             eligibility_rule_version, "eligibility_rule_version"
         ),
-        "members": _normalize_members(members),
+        "path_status": _require_text(path_status, "path_status"),
+        "coverage_status": _require_text(coverage_status, "coverage_status"),
+        "members": normalize_universe_members(members),
+        "qualifications": normalize_universe_qualifications(qualifications),
     }
     if evidence["effective_from"] > evidence["as_of"]:
         raise ContractError("universe effective_from cannot be after as_of")
@@ -137,25 +232,41 @@ def universe_snapshot_id(
 
 
 def validate_universe_snapshot(payload: Mapping[str, Any]) -> None:
-    """Validate point-in-time membership and recompute its stable identity."""
+    """Validate separate membership/eligibility facts and recompute their identity."""
 
     validate_contract("UniverseSnapshot", payload)
     effective_from = require_date(payload["effective_from"], "effective_from")
     if effective_from > payload["as_of"]:
         raise ContractError("universe effective_from cannot be after as_of")
-    if payload["path_status"] not in PATH_STATUSES:
+    path_status = payload["path_status"]
+    coverage_status = payload["coverage_status"]
+    if path_status not in PATH_STATUSES:
         raise ContractError("UniverseSnapshot path_status must be formal or legacy")
-    if payload["coverage_status"] not in COVERAGE_STATUSES:
+    if coverage_status not in COVERAGE_STATUSES:
         raise ContractError("UniverseSnapshot coverage_status is unknown")
-    if payload["path_status"] == "formal" and payload["coverage_status"] != "complete":
+    if path_status == "formal" and coverage_status != "complete":
         raise ContractError("formal historical universe requires complete point-in-time evidence")
-    members = _normalize_members(payload["members"])
+    if path_status == "legacy" and coverage_status != "legacy_observed":
+        raise ContractError("legacy universe may only claim legacy_observed coverage")
+    members = normalize_universe_members(payload["members"])
+    qualifications = normalize_universe_qualifications(payload["qualifications"])
+    if any(member["membership_effective_from"] > payload["as_of"] for member in members):
+        raise ContractError("universe membership evidence cannot start after as_of")
+    if any(item["as_of"] != payload["as_of"] for item in qualifications):
+        raise ContractError("universe qualification evidence must match snapshot as_of")
+    member_ids = {member["instrument_id"] for member in members}
+    qualification_ids = {item["instrument_id"] for item in qualifications}
+    if member_ids != qualification_ids:
+        raise ContractError("every universe member requires exactly one daily qualification")
     expected = universe_snapshot_id(
         as_of=payload["as_of"],
         effective_from=effective_from,
         source_version=payload["source_version"],
         eligibility_rule_version=payload["eligibility_rule_version"],
         members=members,
+        qualifications=qualifications,
+        path_status=path_status,
+        coverage_status=coverage_status,
     )
     if payload["universe_id"] != expected:
         raise ContractError("universe_id does not match canonical membership evidence")
@@ -163,7 +274,7 @@ def validate_universe_snapshot(payload: Mapping[str, Any]) -> None:
 
 def select_universe_snapshot(
     snapshots: Iterable[Mapping[str, Any]], *, as_of: str, path_status: str = "formal"
-) -> Mapping[str, Any] | None:
+) -> Mapping[str, Any]:
     """Select the newest known snapshot without filling history from the future."""
 
     as_of = require_date(as_of, "as_of")
@@ -181,8 +292,6 @@ def select_universe_snapshot(
         ):
             eligible.append(snapshot)
     if not eligible:
-        if path_status == "legacy":
-            return None
         raise ContractError("universe_unavailable")
     selected = max(eligible, key=lambda item: (item["effective_from"], item["as_of"]))
     if path_status == "formal" and (

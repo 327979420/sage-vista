@@ -69,13 +69,30 @@ def member(symbol="ABC", lifecycle="listing-1", tier="main"):
         "symbol": symbol,
         "tier": tier,
         "listing_status": "active",
+        "membership_source": "fixed-test-membership",
+        "membership_effective_from": "2026-08-28",
+    }
+
+
+def qualification(instrument_id, *, as_of="2026-08-28", eligible=True):
+    return {
+        "instrument_id": instrument_id,
+        "as_of": as_of,
+        "price_complete": True,
+        "minimum_price_passed": True,
+        "dollar_volume_passed": True,
+        "history_length_passed": True,
+        "eligible": eligible,
+        "inclusion_reasons": ["fixed-test-eligible"] if eligible else [],
+        "exclusion_reasons": [] if eligible else ["fixed-test-excluded"],
     }
 
 
 def universe(**changes):
     members = changes.pop("members", [member()])
+    qualifications = changes.pop("qualifications", None)
     payload = {
-        "schema_version": "1.0.0",
+        "schema_version": "2.0.0",
         "as_of": "2026-08-28",
         "generated_at": "2026-08-28T23:00:00Z",
         "source_version": {"provider": "EODHD-symbol-list", "policy": "m02-shadow-1"},
@@ -87,12 +104,20 @@ def universe(**changes):
         "coverage_status": "complete",
     }
     payload.update(changes)
+    payload["qualifications"] = (
+        qualifications
+        if qualifications is not None
+        else [qualification(item["instrument_id"], as_of=payload["as_of"]) for item in members]
+    )
     payload["universe_id"] = universe_snapshot_id(
         as_of=payload["as_of"],
         effective_from=payload["effective_from"],
         source_version=payload["source_version"],
         eligibility_rule_version=payload["eligibility_rule_version"],
         members=payload["members"],
+        qualifications=payload["qualifications"],
+        path_status=payload["path_status"],
+        coverage_status=payload["coverage_status"],
     )
     return payload
 
@@ -183,6 +208,12 @@ class MarketDataContractTests(unittest.TestCase):
             source_version={"source": "fixed"},
             eligibility_rule_version="v1",
             members=[left, right],
+            qualifications=[
+                qualification(left["instrument_id"]),
+                qualification(right["instrument_id"]),
+            ],
+            path_status="formal",
+            coverage_status="complete",
         )
         second_universe = universe_snapshot_id(
             as_of="2026-08-28",
@@ -190,6 +221,12 @@ class MarketDataContractTests(unittest.TestCase):
             source_version={"source": "fixed"},
             eligibility_rule_version="v1",
             members=[right, left],
+            qualifications=[
+                qualification(right["instrument_id"]),
+                qualification(left["instrument_id"]),
+            ],
+            path_status="formal",
+            coverage_status="complete",
         )
         self.assertEqual(first_universe, second_universe)
 
@@ -206,9 +243,8 @@ class MarketDataContractTests(unittest.TestCase):
         future = universe(as_of="2026-08-31", effective_from="2026-08-31")
         with self.assertRaisesRegex(ContractError, "universe_unavailable"):
             select_universe_snapshot([future], as_of="2026-08-28", path_status="formal")
-        self.assertIsNone(
+        with self.assertRaisesRegex(ContractError, "universe_unavailable"):
             select_universe_snapshot([future], as_of="2026-08-28", path_status="legacy")
-        )
 
     def test_legacy_observed_universe_cannot_become_formal(self):
         observed = universe(path_status="legacy", coverage_status="legacy_observed")
@@ -221,9 +257,8 @@ class MarketDataContractTests(unittest.TestCase):
 
     def test_formal_selector_does_not_accept_a_legacy_snapshot_claiming_complete_coverage(self):
         disguised = universe(path_status="legacy", coverage_status="complete")
-        validate_universe_snapshot(disguised)
-        with self.assertRaisesRegex(ContractError, "universe_unavailable"):
-            select_universe_snapshot([disguised], as_of="2026-08-28", path_status="formal")
+        with self.assertRaisesRegex(ContractError, "legacy universe"):
+            validate_universe_snapshot(disguised)
 
     def test_instrument_ids_must_contain_a_complete_sha256_identity(self):
         malformed = universe()

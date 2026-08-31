@@ -8,6 +8,7 @@ from .normalization import (
     validate_raw_rows,
 )
 from .repository import MarketDataRepository, MarketDataSource, RepositoryRead
+from .universe import UniverseSnapshotStore, build_universe_snapshot
 
 __all__ = [
     "ADJUSTMENT_POLICY",
@@ -16,8 +17,10 @@ __all__ = [
     "MarketDataRepository",
     "MarketDataSource",
     "RepositoryRead",
+    "UniverseSnapshotStore",
     "adjusted_point_in_time_rows",
     "bars_fingerprint",
+    "build_universe_snapshot",
     "read_legacy_cache",
     "validate_raw_rows",
 ]

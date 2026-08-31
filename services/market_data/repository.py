@@ -12,10 +12,8 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 import fcntl
 import json
-import os
 from pathlib import Path
 import re
-import tempfile
 import threading
 from typing import Any, Callable, Iterable, Mapping, Protocol, Sequence
 
@@ -28,6 +26,7 @@ from services.contracts.market_data import (
 from services.contracts.validation import ContractError
 
 from .normalization import adjusted_point_in_time_rows, validate_raw_rows
+from .storage import atomic_write_validated_json
 
 
 REPOSITORY_SCHEMA_VERSION = "1.0.0"
@@ -159,31 +158,14 @@ class MarketDataRepository:
         return tuple(sorted(dates))
 
     def _atomic_write(self, path: Path, payload: Mapping[str, Any]) -> None:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        content = json.dumps(
-            payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False
-        ).encode() + b"\n"
-        descriptor, temporary_name = tempfile.mkstemp(prefix=path.name + ".", suffix=".tmp", dir=path.parent)
-        temporary = Path(temporary_name)
-        try:
-            with os.fdopen(descriptor, "wb") as handle:
-                handle.write(content)
-                handle.flush()
-                os.fsync(handle.fileno())
-            # Re-read and validate the staged bytes before the only replacement.
-            staged = json.loads(temporary.read_bytes())
-            self._load_staged_state(staged, payload["instrument_id"])
-            if self._before_replace is not None:
-                self._before_replace(path, temporary)
-            os.replace(temporary, path)
-            directory_fd = os.open(path.parent, os.O_RDONLY)
-            try:
-                os.fsync(directory_fd)
-            finally:
-                os.close(directory_fd)
-        finally:
-            if temporary.exists():
-                temporary.unlink()
+        atomic_write_validated_json(
+            path,
+            payload,
+            validator=lambda staged: self._load_staged_state(
+                staged, str(payload["instrument_id"])
+            ),
+            before_replace=self._before_replace,
+        )
 
     @staticmethod
     def _load_staged_state(payload: Any, instrument_id: str) -> None:

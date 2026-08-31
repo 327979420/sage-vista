@@ -53,7 +53,7 @@ CONTRACT_REQUIRED = {
         "universe_id", "raw_revision", "max_returned_date",
     },
     "UniverseSnapshot": {
-        "universe_id", "members", "eligibility_rule_version", "effective_from",
+        "universe_id", "members", "qualifications", "eligibility_rule_version", "effective_from",
         "path_status", "coverage_status",
     },
     "GateEvent": {"gate_event_id", "symbol", "signal_date", "gate_policy_version", "passed"},
@@ -77,6 +77,11 @@ ID_FIELDS = {
     "OpportunityEvent": "event_id",
     "ReleaseManifest": "release_id",
     "ExperimentRun": "experiment_id",
+}
+
+CONTRACT_SUPPORTED_MAJORS = {
+    name: ({2} if name == "UniverseSnapshot" else {SUPPORTED_MAJOR})
+    for name in CONTRACT_REQUIRED
 }
 
 
@@ -133,11 +138,14 @@ def _require_mapping(value: Any, field: str) -> Mapping[str, Any]:
     return value
 
 
-def _require_semver(value: Any, field: str) -> re.Match[str]:
+def _require_semver(
+    value: Any, field: str, *, supported_majors: set[int] | None = None
+) -> re.Match[str]:
     match = SEMVER.fullmatch(value) if isinstance(value, str) else None
     if not match:
         raise ContractError(f"{field} must be MAJOR.MINOR.PATCH")
-    if int(match.group(1)) != SUPPORTED_MAJOR:
+    allowed = supported_majors or {SUPPORTED_MAJOR}
+    if int(match.group(1)) not in allowed:
         raise ContractError(f"unknown {field} major version: {match.group(1)}")
     return match
 
@@ -172,7 +180,11 @@ def validate_contract(
     if missing:
         raise ContractError(f"{contract_name} missing required fields: {', '.join(missing)}")
 
-    _require_semver(payload["schema_version"], "schema_version")
+    _require_semver(
+        payload["schema_version"],
+        "schema_version",
+        supported_majors=CONTRACT_SUPPORTED_MAJORS[contract_name],
+    )
 
     _require_date(payload["as_of"], "as_of")
     _require_timestamp(payload["generated_at"])
