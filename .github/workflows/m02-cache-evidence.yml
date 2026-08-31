@@ -1,0 +1,344 @@
+name: M02 Cache Evidence (One-Time)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  inspect-cache:
+    name: Inspect ${{ matrix.label }} cache
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: input
+            cache_key: eodhd-history-v1-33266737215
+          - label: output
+            cache_key: eodhd-history-v1-33293559230
+    steps:
+      - name: Restore exact cache
+        id: restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            work/eodhd-cache
+            work/eodhd-active-common.json
+          key: ${{ matrix.cache_key }}
+
+      - name: Require an exact cache match
+        shell: bash
+        env:
+          CACHE_HIT: ${{ steps.restore.outputs.cache-hit }}
+          EXPECTED_CACHE_KEY: ${{ matrix.cache_key }}
+          MATCHED_CACHE_KEY: ${{ steps.restore.outputs.cache-matched-key }}
+        run: |
+          set -euo pipefail
+          test "$CACHE_HIT" = "true"
+          test "$MATCHED_CACHE_KEY" = "$EXPECTED_CACHE_KEY"
+
+      - name: Audit restored JSON as inert data
+        shell: bash
+        env:
+          AUDIT_LABEL: ${{ matrix.label }}
+          EXPECTED_CACHE_KEY: ${{ matrix.cache_key }}
+          MATCHED_CACHE_KEY: ${{ steps.restore.outputs.cache-matched-key }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          import re
+          import stat
+          from pathlib import Path
+
+
+          workspace = Path(os.environ["GITHUB_WORKSPACE"]).resolve()
+          cache_root = workspace / "work" / "eodhd-cache"
+          active_common = workspace / "work" / "eodhd-active-common.json"
+          label = os.environ["AUDIT_LABEL"]
+          output_dir = workspace / "audit" / label
+          output_dir.mkdir(parents=True, exist_ok=False)
+
+
+          def sha256_file(path: Path) -> str:
+              digest = hashlib.sha256()
+              with path.open("rb") as handle:
+                  for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                      digest.update(chunk)
+              return digest.hexdigest()
+
+
+          def require_safe_relative_path(path: Path) -> str:
+              try:
+                  relative = path.relative_to(workspace)
+              except ValueError as exc:
+                  raise SystemExit("restored path escaped the runner workspace") from exc
+              text = relative.as_posix()
+              if relative.is_absolute() or any(part in ("", ".", "..") for part in relative.parts):
+                  raise SystemExit("restored path is not a normalized relative path")
+              if "\\" in text or re.match(r"^[A-Za-z]:", text):
+                  raise SystemExit("restored path uses a non-canonical path form")
+              return text
+
+
+          def inspect_tree(root: Path) -> list[Path]:
+              if not root.exists():
+                  raise SystemExit(f"required restored path is missing: {root.name}")
+              pending = [root]
+              regular_files = []
+              while pending:
+                  current = pending.pop()
+                  require_safe_relative_path(current)
+                  mode = os.lstat(current).st_mode
+                  if stat.S_ISLNK(mode):
+                      raise SystemExit("symbolic links are forbidden in restored evidence")
+                  if stat.S_ISDIR(mode):
+                      with os.scandir(current) as entries:
+                          pending.extend(Path(entry.path) for entry in entries)
+                      continue
+                  if not stat.S_ISREG(mode):
+                      raise SystemExit("device files, sockets, FIFOs and other special files are forbidden")
+                  if current.suffix.lower() != ".json":
+                      raise SystemExit("only JSON files are allowed in restored evidence")
+                  regular_files.append(current)
+              return sorted(regular_files, key=lambda item: item.as_posix())
+
+
+          market_files = inspect_tree(cache_root)
+          active_files = inspect_tree(active_common)
+          if active_files != [active_common]:
+              raise SystemExit("active-common must be one regular JSON file")
+
+          active_bytes = active_common.read_bytes()
+          try:
+              active_payload = json.loads(active_bytes)
+          except json.JSONDecodeError as exc:
+              raise SystemExit("active-common is not valid JSON") from exc
+
+          if isinstance(active_payload, list):
+              records = active_payload
+              active_container = "list"
+          elif isinstance(active_payload, dict) and isinstance(active_payload.get("data"), list):
+              records = active_payload["data"]
+              active_container = "object.data"
+          else:
+              raise SystemExit("active-common does not contain a recognized record list")
+          if any(not isinstance(record, dict) for record in records):
+              raise SystemExit("active-common member records must be JSON objects")
+
+          def normalized_key(value: str) -> str:
+              return re.sub(r"[^a-z0-9]+", "_", value.lower()).strip("_")
+
+          field_names = sorted({key for record in records for key in record})
+          normalized_records = [
+              {normalized_key(str(key)): value for key, value in record.items()}
+              for record in records
+          ]
+          categories = {
+              "stable_security_id": {
+                  "security_id", "stable_security_id", "isin", "cusip", "cik", "lei", "figi", "sedol"
+              },
+              "exchange": {
+                  "exchange", "exchange_code", "exchange_short_name", "exchange_id", "mic", "mic_code"
+              },
+              "provider_code": {"code", "symbol", "ticker", "provider_code"},
+              "listing_lifecycle": {
+                  "listing_status", "status", "active", "is_active", "delisted", "is_delisted",
+                  "listing_date", "listed_date", "ipo_date", "first_trade_date", "delisting_date",
+                  "delisted_date", "last_trade_date"
+              },
+          }
+          coverage = {}
+          for category, aliases in categories.items():
+              present = 0
+              matched_fields = set()
+              for record in normalized_records:
+                  matches = {
+                      key for key in aliases
+                      if key in record and record[key] not in (None, "", [], {})
+                  }
+                  if matches:
+                      present += 1
+                      matched_fields.update(matches)
+              coverage[category] = {
+                  "present_count": present,
+                  "missing_count": len(records) - present,
+                  "presence_rate": 0 if not records else round(present / len(records), 6),
+                  "matched_fields": sorted(matched_fields),
+              }
+
+          market_hashes = []
+          market_bytes = 0
+          for path in market_files:
+              relative = require_safe_relative_path(path)
+              size = path.stat().st_size
+              market_bytes += size
+              market_hashes.append({
+                  "path_token_sha256": hashlib.sha256(relative.encode("utf-8")).hexdigest(),
+                  "size_bytes": size,
+                  "sha256": sha256_file(path),
+              })
+
+          active_size = len(active_bytes)
+          summary = {
+              "audit_schema_version": "1.0.0",
+              "label": label,
+              "cache_key": os.environ["EXPECTED_CACHE_KEY"],
+              "matched_cache_key": os.environ["MATCHED_CACHE_KEY"],
+              "cache_hit_exact": True,
+              "github_run_id": os.environ["GITHUB_RUN_ID"],
+              "github_run_attempt": os.environ["GITHUB_RUN_ATTEMPT"],
+              "workflow_commit": os.environ["GITHUB_SHA"],
+              "total_file_count": len(market_files) + 1,
+              "total_size_bytes": market_bytes + active_size,
+              "market_file_count": len(market_files),
+              "market_total_size_bytes": market_bytes,
+              "active_common": {
+                  "size_bytes": active_size,
+                  "sha256": hashlib.sha256(active_bytes).hexdigest(),
+                  "physical_line_count": len(active_bytes.splitlines()),
+                  "record_count": len(records),
+                  "container": active_container,
+                  "field_names": field_names,
+                  "field_coverage": coverage,
+              },
+              "market_hash_manifest": {
+                  "entry_count": len(market_hashes),
+                  "raw_filenames_in_artifact": False,
+                  "path_identifier": "sha256(normalized workspace-relative path)",
+              },
+          }
+          (output_dir / "summary.json").write_text(
+              json.dumps(summary, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          with (output_dir / "market-file-hashes.jsonl").open("w", encoding="utf-8") as handle:
+              for item in market_hashes:
+                  handle.write(json.dumps(item, sort_keys=True) + "\n")
+
+          print(json.dumps({
+              "label": label,
+              "cache_hit_exact": True,
+              "total_file_count": summary["total_file_count"],
+              "total_size_bytes": summary["total_size_bytes"],
+              "market_file_count": summary["market_file_count"],
+              "active_common_record_count": len(records),
+              "active_common_field_coverage": coverage,
+          }, indent=2))
+          PY
+
+      - name: Upload small audit evidence only
+        uses: actions/upload-artifact@v4
+        with:
+          name: m02-cache-evidence-${{ matrix.label }}-${{ github.run_id }}
+          path: audit/${{ matrix.label }}
+          if-no-files-found: error
+          retention-days: 1
+
+  compare-caches:
+    name: Compare cache inventories
+    needs: inspect-cache
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Download small audit evidence
+        uses: actions/download-artifact@v4
+        with:
+          pattern: m02-cache-evidence-*-${{ github.run_id }}
+          path: evidence
+
+      - name: Compare input and output inventories
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import shutil
+          from pathlib import Path
+
+
+          evidence_root = Path("evidence")
+          summaries = {}
+          hash_files = {}
+          for summary_path in evidence_root.rglob("summary.json"):
+              summary = json.loads(summary_path.read_text(encoding="utf-8"))
+              label = summary.get("label")
+              if label not in {"input", "output"} or label in summaries:
+                  raise SystemExit("unexpected or duplicate cache audit summary")
+              summaries[label] = summary
+              hash_files[label] = summary_path.with_name("market-file-hashes.jsonl")
+          if set(summaries) != {"input", "output"}:
+              raise SystemExit("both cache audit summaries are required")
+
+          def load_hashes(path: Path) -> dict[str, dict]:
+              items = {}
+              with path.open(encoding="utf-8") as handle:
+                  for line in handle:
+                      item = json.loads(line)
+                      token = item["path_token_sha256"]
+                      if token in items:
+                          raise SystemExit("duplicate path token in hash inventory")
+                      items[token] = item
+              return items
+
+          before = load_hashes(hash_files["input"])
+          after = load_hashes(hash_files["output"])
+          shared = before.keys() & after.keys()
+          comparison = {
+              "comparison_schema_version": "1.0.0",
+              "input_cache_key": summaries["input"]["cache_key"],
+              "output_cache_key": summaries["output"]["cache_key"],
+              "market_files_added": len(after.keys() - before.keys()),
+              "market_files_deleted": len(before.keys() - after.keys()),
+              "market_files_changed": sum(
+                  before[token]["size_bytes"] != after[token]["size_bytes"]
+                  or before[token]["sha256"] != after[token]["sha256"]
+                  for token in shared
+              ),
+              "market_files_unchanged": sum(
+                  before[token]["size_bytes"] == after[token]["size_bytes"]
+                  and before[token]["sha256"] == after[token]["sha256"]
+                  for token in shared
+              ),
+              "active_common_changed": (
+                  summaries["input"]["active_common"]["sha256"]
+                  != summaries["output"]["active_common"]["sha256"]
+              ),
+          }
+          comparison["total_files_added"] = comparison["market_files_added"]
+          comparison["total_files_deleted"] = comparison["market_files_deleted"]
+          comparison["total_files_changed"] = (
+              comparison["market_files_changed"] + int(comparison["active_common_changed"])
+          )
+          comparison["total_files_unchanged"] = (
+              comparison["market_files_unchanged"] + int(not comparison["active_common_changed"])
+          )
+
+          combined = Path("combined")
+          combined.mkdir()
+          for label in ("input", "output"):
+              (combined / f"{label}-summary.json").write_text(
+                  json.dumps(summaries[label], ensure_ascii=False, indent=2) + "\n",
+                  encoding="utf-8",
+              )
+              shutil.copyfile(hash_files[label], combined / f"{label}-market-file-hashes.jsonl")
+          (combined / "comparison.json").write_text(
+              json.dumps(comparison, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(comparison, indent=2))
+          PY
+
+      - name: Upload combined small audit evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: m02-cache-evidence-combined-${{ github.run_id }}
+          path: combined
+          if-no-files-found: error
+          retention-days: 1
