@@ -107,6 +107,37 @@ class TechnicalEvidenceBatch:
     evidence: tuple[Mapping[str, Any], ...]
 
 
+def validate_technical_evidence_batch(batch: TechnicalEvidenceBatch) -> None:
+    """Validate the M04 batch identity once for all later consumers."""
+
+    if not isinstance(batch, TechnicalEvidenceBatch):
+        raise ContractError("expected an M04 TechnicalEvidenceBatch")
+    if batch.registry_version != REGISTRY_VERSION:
+        raise ContractError("TechnicalEvidenceBatch registry version is not current")
+    items = list(batch.evidence)
+    for item in items:
+        validate_technical_evidence(item)
+        if item["as_of"] != batch.as_of or item["path_status"] != batch.path_status:
+            raise ContractError("TechnicalEvidenceBatch contains mixed identities")
+    if items != sorted(items, key=lambda item: (str(item["instrument_id"]), str(item["factor_id"]))):
+        raise ContractError("TechnicalEvidenceBatch evidence must use canonical order")
+    identity = {
+        "as_of": batch.as_of,
+        "path_status": batch.path_status,
+        "registry_version": batch.registry_version,
+        "evidence": [
+            {
+                "evidence_id": item["evidence_id"],
+                "content": item["evidence_content_fingerprint"],
+            }
+            for item in items
+        ],
+    }
+    expected = "technical-evidence-batch:" + canonical_fingerprint(identity)
+    if batch.batch_id != expected:
+        raise ContractError("TechnicalEvidenceBatch identity does not match its evidence")
+
+
 def _gate_references(event: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
     checks = event["baseline_checks"]
     return {
@@ -283,10 +314,12 @@ def produce_technical_evidence(
             for item in output
         ],
     }
-    return TechnicalEvidenceBatch(
+    batch = TechnicalEvidenceBatch(
         batch_id="technical-evidence-batch:" + canonical_fingerprint(batch_identity),
         as_of=prepared.as_of,
         path_status=prepared.mode,
         registry_version=REGISTRY_VERSION,
         evidence=tuple(output),
     )
+    validate_technical_evidence_batch(batch)
+    return batch

@@ -704,7 +704,7 @@ def _evaluate_sequence_v2(rows, legacy):
     }
 
 
-def _evaluate_simple_v3(rows, legacy_v1, legacy_v2):
+def _evaluate_simple_v3(rows, legacy_v1, legacy_v2, *, include_trade_map=True):
     """Evaluate the four-condition shape the user wants to review first."""
     end = len(rows) - 1
     closes = [row["close"] for row in rows]
@@ -784,13 +784,7 @@ def _evaluate_simple_v3(rows, legacy_v1, legacy_v2):
         "discovery": "只命中少量早期形态，暂不行动。",
         "invalidated": "收盘已破坏双底失效位，本轮形态结束。",
     }
-    signal_close = three_push.get("breakout_close") if breakout else None
-    target = round(prior_high, 2) if prior_high else None
-    invalidation = bottom.get("invalidation") if bottom else None
-    reward_risk = None
-    if signal_close and invalidation and target and signal_close > invalidation and target > signal_close:
-        reward_risk = round((target - signal_close) / (signal_close - invalidation), 2)
-    return {
+    payload = {
         "available": True,
         "pattern_version": PATTERN_VERSION,
         "experiment_id": EXPERIMENT_ID,
@@ -808,10 +802,136 @@ def _evaluate_simple_v3(rows, legacy_v1, legacy_v2):
         "ema_realign": {"ema20": round(e20[end], 2), "ema50": round(e50[end], 2), "ema200": round(e200[end], 2), "full_alignment": e20[end] > e50[end]},
         "sequence": {"double_bottom_first_date": bottom.get("first_date") if bottom else None, "double_bottom_second_date": bottom.get("second_date") if bottom else None, "breakout_date": three_push.get("breakout_date") if three_push else None, "completion_date": three_push.get("breakout_date") if complete and three_push else None},
         "risk_gate": risk_gate,
-        "trade_map": {"signal_close": signal_close, "earliest_entry": "next_trading_day_adjusted_open" if stage == "entry_ready" else None, "target_previous_high": target, "invalidation_second_bottom": invalidation, "estimated_reward_risk": reward_risk},
         "legacy_v1": {"pattern_version": legacy_v1.get("pattern_version"), "stage": legacy_v1.get("stage"), "match_count": legacy_v1.get("match_count"), "total_conditions": legacy_v1.get("total_conditions")},
         "legacy_v2": {"pattern_version": legacy_v2.get("pattern_version"), "stage": legacy_v2.get("stage"), "match_count": legacy_v2.get("match_count"), "total_conditions": legacy_v2.get("total_conditions"), "sequence": legacy_v2.get("sequence")},
         "audit": {"future_data_used": False, "completed_daily_bars_only": True, "confirmed_pivot_right_bars": 2, "legacy_v1_preserved": True, "legacy_v2_preserved": True, "known_cases_excluded_from_effectiveness": ["ADBE", "BABA", "TTD", "AEVA"]},
+    }
+    if include_trade_map:
+        signal_close = three_push.get("breakout_close") if breakout else None
+        target = round(prior_high, 2) if prior_high else None
+        invalidation = bottom.get("invalidation") if bottom else None
+        reward_risk = None
+        if signal_close and invalidation and target and signal_close > invalidation and target > signal_close:
+            reward_risk = round((target - signal_close) / (signal_close - invalidation), 2)
+        payload["trade_map"] = {
+            "signal_close": signal_close,
+            "earliest_entry": "next_trading_day_adjusted_open" if stage == "entry_ready" else None,
+            "target_previous_high": target,
+            "invalidation_second_bottom": invalidation,
+            "estimated_reward_risk": reward_risk,
+        }
+    return payload
+
+
+def evaluate_v3_model_facts(rows):
+    """Return only the versioned V3 facts needed by the M05 shadow selector.
+
+    The existing page keeps using ``evaluate`` and its legacy V1/V2 payloads.
+    This smaller view shares the same V3 detector without exposing a score,
+    ranking, trade map, chart or legacy result as a formal M05 fact.
+    """
+    if len(rows) < 120:
+        return {
+            "definition_version": PATTERN_VERSION,
+            "available": False,
+            "status": "unavailable",
+            "completed_conditions": [],
+            "missing_conditions": [
+                "favorite_pattern.v3.objective_pullback",
+                "favorite_pattern.v3.broad_double_bottom",
+                "favorite_pattern.v3.three_push_close_breakout",
+                "favorite_pattern.v3.golden_pocket_or_ema",
+            ],
+            "facts": [],
+            "risk": {
+                "fact_id": "favorite_pattern.v3.supply_risk",
+                "definition_version": PATTERN_VERSION,
+                "available": False,
+                "blocked": False,
+                "reasons": ["insufficient_history"],
+                "evidence": {},
+            },
+            "lookahead_audit": {
+                "future_data_used": False,
+                "completed_daily_bars_only": True,
+                "confirmed_pivot_right_bars": 2,
+            },
+        }
+    result = _evaluate_simple_v3(rows, {}, {}, include_trade_map=False)
+    conditions = {item["id"]: bool(item["hit"]) for item in result["conditions"]}
+    facts = [
+        {
+            "fact_id": "favorite_pattern.v3.objective_pullback",
+            "definition_version": PATTERN_VERSION,
+            "available": True,
+            "hit": conditions["objective_pullback"],
+            "evidence": {
+                "objective_pullback_pct": result["pullback"]["objective_pullback_pct"],
+                "prior_60_session_high": result["pullback"]["prior_60_session_high"],
+            },
+        },
+        {
+            "fact_id": "favorite_pattern.v3.broad_double_bottom",
+            "definition_version": PATTERN_VERSION,
+            "available": True,
+            "hit": conditions["broad_double_bottom"],
+            "evidence": {
+                key: value for key, value in (result["double_bottom"] or {}).items()
+                if key not in {"first_index", "second_index"}
+            },
+        },
+        {
+            "fact_id": "favorite_pattern.v3.three_push_close_breakout",
+            "definition_version": PATTERN_VERSION,
+            "available": True,
+            "hit": conditions["three_push_close_breakout"],
+            "evidence": {
+                key: value for key, value in (result["three_push"] or {}).items()
+                if key not in {"high_indices", "breakout_index"}
+            },
+        },
+        {
+            "fact_id": "favorite_pattern.v3.golden_pocket_or_ema",
+            "definition_version": PATTERN_VERSION,
+            "available": True,
+            "hit": conditions["golden_pocket_or_ema"],
+            "evidence": {
+                "retracement_pct": result["pullback"]["retracement_pct"],
+                "golden_pocket": result["pullback"]["golden_pocket"],
+                "ema_support": result["pullback"]["ema_support"],
+                "ema_matches": result["pullback"]["ema_matches"],
+            },
+        },
+    ]
+    completed = sorted(item["fact_id"] for item in facts if item["hit"])
+    missing = sorted(item["fact_id"] for item in facts if not item["hit"])
+    risk = result["risk_gate"]
+    return {
+        "definition_version": PATTERN_VERSION,
+        "available": True,
+        "status": result["stage"],
+        "completed_conditions": completed,
+        "missing_conditions": missing,
+        "facts": facts,
+        "risk": {
+            "fact_id": "favorite_pattern.v3.supply_risk",
+            "definition_version": PATTERN_VERSION,
+            "available": True,
+            "blocked": bool(risk["blocked"]),
+            "reasons": list(risk["reasons_zh"]),
+            "evidence": {
+                "unresolved_pressure_rounds": risk["unresolved_pressure_rounds"],
+                "pressure_events": risk["pressure_events"],
+                "multi_top": risk["multi_top"],
+                "top_exhaustion": risk["top_exhaustion"],
+                "ema_weak": risk["ema_weak"],
+            },
+        },
+        "lookahead_audit": {
+            "future_data_used": False,
+            "completed_daily_bars_only": True,
+            "confirmed_pivot_right_bars": 2,
+        },
     }
 
 

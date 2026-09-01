@@ -92,7 +92,7 @@ CONTRACT_SUPPORTED_MAJORS = {
     name: (
         {2, 3} if name == "UniverseSnapshot"
         else {1, 2} if name == "GateEvent"
-        else {1, 2} if name == "TechnicalEvidence"
+        else {1, 2} if name in {"TechnicalEvidence", "ModelAssessment"}
         else {SUPPORTED_MAJOR}
     )
     for name in CONTRACT_REQUIRED
@@ -499,6 +499,100 @@ def validate_contract(
         _require_text(payload["model_id"], "model_id")
         _require_text(payload["model_version"], "model_version")
         _require_bool(payload["eligible"], "eligible")
+        major = int(str(payload["schema_version"]).split(".", 1)[0])
+        if major == 2:
+            required_v2 = {
+                "assessment_content_fingerprint", "instrument_id", "path_status",
+                "input_identity", "evidence_batch_id", "technical_evidence_ids",
+                "status", "matched_facts", "missing_facts", "risk_facts",
+                "warnings", "model_specific_facts",
+                "model_specific_facts_fingerprint", "production_effect", "bias_labels",
+            }
+            missing_v2 = sorted(required_v2 - payload.keys())
+            if missing_v2:
+                raise ContractError(
+                    f"ModelAssessment 2.x missing required fields: {', '.join(missing_v2)}"
+                )
+            if not re.fullmatch(r"assessment:sha256:[0-9a-f]{64}", stable_id):
+                raise ContractError("ModelAssessment 2.x assessment_id is invalid")
+            if not re.fullmatch(r"gate:sha256:[0-9a-f]{64}", str(payload["gate_event_id"])):
+                raise ContractError("ModelAssessment gate_event_id is invalid")
+            if not re.fullmatch(r"instrument:sha256:[0-9a-f]{64}", str(payload["instrument_id"])):
+                raise ContractError("ModelAssessment instrument_id is invalid")
+            if not SEMVER.fullmatch(str(payload["model_version"])):
+                raise ContractError("ModelAssessment model_version must be MAJOR.MINOR.PATCH")
+            if payload["path_status"] not in {"formal", "legacy"}:
+                raise ContractError("ModelAssessment path_status is invalid")
+            identity = _require_mapping(payload["input_identity"], "input_identity")
+            for field, pattern in (
+                ("universe_id", r"universe:sha256:[0-9a-f]{64}"),
+                ("market_snapshot_id", r"market:sha256:[0-9a-f]{64}"),
+            ):
+                if not re.fullmatch(pattern, str(identity.get(field))):
+                    raise ContractError(f"ModelAssessment {field} is invalid")
+            if dict(_require_mapping(identity.get("adjustment_policy"), "adjustment_policy")) != ADJUSTMENT_POLICY:
+                raise ContractError("ModelAssessment adjustment_policy must equal the M02 policy")
+            _require_text(payload["evidence_batch_id"], "evidence_batch_id")
+            evidence_ids = payload["technical_evidence_ids"]
+            if (
+                not isinstance(evidence_ids, (list, tuple))
+                or not evidence_ids
+                or any(
+                    not re.fullmatch(r"evidence:sha256:[0-9a-f]{64}", str(item))
+                    for item in evidence_ids
+                )
+                or list(evidence_ids) != sorted(set(evidence_ids))
+            ):
+                raise ContractError("technical_evidence_ids must be sorted unique formal evidence IDs")
+            _require_text(payload["status"], "status")
+            for field in ("matched_facts", "missing_facts", "risk_facts"):
+                values = payload[field]
+                if not isinstance(values, (list, tuple)) or any(
+                    not isinstance(item, Mapping) for item in values
+                ):
+                    raise ContractError(f"ModelAssessment {field} must be a list of evidence references")
+            warnings = payload["warnings"]
+            if not isinstance(warnings, (list, tuple)) or any(
+                not isinstance(item, str) or not item for item in warnings
+            ):
+                raise ContractError("ModelAssessment warnings must be text")
+            model_facts = _require_mapping(payload["model_specific_facts"], "model_specific_facts")
+            expected_model_facts = "sha256:" + hashlib.sha256(_canonical(model_facts)).hexdigest()
+            if payload["model_specific_facts_fingerprint"] != expected_model_facts:
+                raise ContractError("model-specific fact fingerprint does not match facts")
+            if _require_bool(payload["production_effect"], "production_effect") is not False:
+                raise ContractError("ModelAssessment 2.x must remain shadow-only")
+            biases = payload["bias_labels"]
+            if (
+                not isinstance(biases, (list, tuple))
+                or (payload["path_status"] == "formal" and biases)
+                or (payload["path_status"] == "legacy" and not biases)
+            ):
+                raise ContractError("ModelAssessment bias_labels do not match path_status")
+            assessment_identity = {
+                "gate_event_id": payload["gate_event_id"],
+                "instrument_id": payload["instrument_id"],
+                "as_of": payload["as_of"],
+                "path_status": payload["path_status"],
+                "input_identity": dict(identity),
+                "model_id": payload["model_id"],
+                "model_version": payload["model_version"],
+                "evidence_batch_id": payload["evidence_batch_id"],
+                "technical_evidence_ids": list(evidence_ids),
+                "model_specific_facts_fingerprint": payload["model_specific_facts_fingerprint"],
+            }
+            expected_id = "assessment:sha256:" + hashlib.sha256(
+                _canonical(assessment_identity)
+            ).hexdigest()
+            if stable_id != expected_id:
+                raise ContractError("assessment_id does not match canonical M05 identity")
+            semantic = {
+                key: value for key, value in payload.items()
+                if key not in {"generated_at", "assessment_content_fingerprint"}
+            }
+            expected_content = "sha256:" + hashlib.sha256(_canonical(semantic)).hexdigest()
+            if payload["assessment_content_fingerprint"] != expected_content:
+                raise ContractError("ModelAssessment content fingerprint does not match facts")
     elif contract_name == "ContextSnapshot":
         _require_text(payload["context_type"], "context_type")
         _require_text(payload["status"], "status")

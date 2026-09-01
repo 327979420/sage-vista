@@ -7,6 +7,7 @@ from .producer import (
     TECHNICAL_EVIDENCE_SCHEMA_VERSION,
     TechnicalEvidenceBatch,
     produce_technical_evidence,
+    validate_technical_evidence_batch,
     validate_technical_evidence,
 )
 
@@ -17,5 +18,6 @@ __all__ = [
     "TechnicalEvidenceBatch",
     "adapt_legacy_factor_state",
     "produce_technical_evidence",
+    "validate_technical_evidence_batch",
     "validate_technical_evidence",
 ]
