@@ -68,6 +68,15 @@ CONTRACT_REQUIRED = {
     "TechnicalEvidence": {"evidence_id", "factor_id", "factor_version", "timeframe", "evidence_date", "available"},
     "ModelAssessment": {"assessment_id", "gate_event_id", "model_id", "model_version", "eligible"},
     "ContextSnapshot": {"context_id", "context_type", "status", "evidence"},
+    "ScoreResult": {
+        "score_result_id", "instrument_id", "gate_event_id", "model_assessment_id",
+        "context_snapshot_id", "score_policy_version", "total_score", "status",
+    },
+    "RankingSnapshot": {
+        "ranking_snapshot_id", "ranking_role", "score_policy_version",
+        "ranking_policy_version", "authority_policy_version", "ranked_entries",
+        "excluded_entries", "selected_entries",
+    },
     "TradePlan": {"plan_id", "event_id", "entry", "stop", "execution_policy_version", "status"},
     "OpportunityEvent": {"event_id", "symbol", "signal_date", "gate_event_id", "model_assessments"},
     "ReleaseManifest": {"release_id", "files"},
@@ -82,6 +91,8 @@ ID_FIELDS = {
     "TechnicalEvidence": "evidence_id",
     "ModelAssessment": "assessment_id",
     "ContextSnapshot": "context_id",
+    "ScoreResult": "score_result_id",
+    "RankingSnapshot": "ranking_snapshot_id",
     "TradePlan": "plan_id",
     "OpportunityEvent": "event_id",
     "ReleaseManifest": "release_id",
@@ -92,7 +103,10 @@ CONTRACT_SUPPORTED_MAJORS = {
     name: (
         {2, 3} if name == "UniverseSnapshot"
         else {1, 2} if name == "GateEvent"
-        else {1, 2} if name in {"TechnicalEvidence", "ModelAssessment", "ContextSnapshot"}
+        else {1, 2} if name in {
+            "TechnicalEvidence", "ModelAssessment", "ContextSnapshot",
+            "ScoreResult", "RankingSnapshot",
+        }
         else {SUPPORTED_MAJOR}
     )
     for name in CONTRACT_REQUIRED
@@ -231,6 +245,8 @@ def validate_contract(
         "TechnicalEvidence": ("evidence:",),
         "ModelAssessment": ("assessment:",),
         "ContextSnapshot": ("context:",),
+        "ScoreResult": ("score:",),
+        "RankingSnapshot": ("ranking:",),
         "TradePlan": ("plan:",),
         # Older examples used event:, while the target design uses opportunity:.
         "OpportunityEvent": ("event:", "opportunity:"),
@@ -651,6 +667,169 @@ def validate_contract(
             biases = payload["bias_labels"]
             if not isinstance(biases, (list, tuple)) or biases:
                 raise ContractError("formal ContextSnapshot cannot carry legacy bias labels")
+    elif contract_name == "ScoreResult":
+        _require_text(payload["instrument_id"], "instrument_id")
+        _require_text(payload["gate_event_id"], "gate_event_id")
+        _require_text(payload["model_assessment_id"], "model_assessment_id")
+        _require_text(payload["context_snapshot_id"], "context_snapshot_id")
+        _require_text(payload["score_policy_version"], "score_policy_version")
+        _require_text(payload["status"], "status")
+        major = int(str(payload["schema_version"]).split(".", 1)[0])
+        if major == 2:
+            required_v2 = {
+                "score_content_fingerprint", "path_status", "input_identity",
+                "technical_evidence_batch_id", "technical_evidence_ids",
+                "score_policy_fingerprint", "score_input_fingerprint", "components",
+                "metrics", "warnings", "missing_facts", "exclusion_reason",
+                "context_reference",
+            }
+            missing_v2 = sorted(required_v2 - payload.keys())
+            if missing_v2:
+                raise ContractError(
+                    f"ScoreResult 2.x missing required fields: {', '.join(missing_v2)}"
+                )
+            if payload["path_status"] != "formal":
+                raise ContractError("ScoreResult 2.x must use the formal path")
+            for field, pattern in (
+                ("score_result_id", r"score:sha256:[0-9a-f]{64}"),
+                ("score_content_fingerprint", r"sha256:[0-9a-f]{64}"),
+                ("score_input_fingerprint", r"sha256:[0-9a-f]{64}"),
+                ("score_policy_fingerprint", r"sha256:[0-9a-f]{64}"),
+                ("instrument_id", r"instrument:sha256:[0-9a-f]{64}"),
+                ("gate_event_id", r"gate:sha256:[0-9a-f]{64}"),
+                ("model_assessment_id", r"assessment:sha256:[0-9a-f]{64}"),
+                ("context_snapshot_id", r"context:sha256:[0-9a-f]{64}"),
+            ):
+                if not re.fullmatch(pattern, str(payload[field])):
+                    raise ContractError(f"ScoreResult {field} is invalid")
+            _require_semver(payload["score_policy_version"], "score_policy_version", supported_majors={1})
+            identity = _require_mapping(payload["input_identity"], "input_identity")
+            for field, prefix in (
+                ("universe_id", "universe:"),
+                ("market_snapshot_id", "market:"),
+            ):
+                if not _require_text(identity.get(field), f"input_identity.{field}").startswith(prefix):
+                    raise ContractError(f"ScoreResult input_identity.{field} is invalid")
+            if dict(_require_mapping(identity.get("adjustment_policy"), "adjustment_policy")) != ADJUSTMENT_POLICY:
+                raise ContractError("ScoreResult adjustment_policy must equal the M02 policy")
+            evidence_ids = payload["technical_evidence_ids"]
+            if (
+                not isinstance(evidence_ids, (list, tuple))
+                or not evidence_ids
+                or list(evidence_ids) != sorted(set(evidence_ids))
+                or any(not re.fullmatch(r"evidence:sha256:[0-9a-f]{64}", str(item)) for item in evidence_ids)
+            ):
+                raise ContractError("ScoreResult technical_evidence_ids must be sorted unique formal IDs")
+            for field in ("components", "warnings", "missing_facts"):
+                if not isinstance(payload[field], (list, tuple)):
+                    raise ContractError(f"ScoreResult {field} must be a list")
+            if any(not isinstance(item, Mapping) for item in payload["components"]):
+                raise ContractError("ScoreResult components must be objects")
+            if any(not isinstance(item, str) or not item for item in (*payload["warnings"], *payload["missing_facts"])):
+                raise ContractError("ScoreResult warnings and missing_facts must be text")
+            _require_mapping(payload["metrics"], "metrics")
+            _require_mapping(payload["context_reference"], "context_reference")
+            status = payload["status"]
+            if status not in {"scored", "excluded", "unavailable"}:
+                raise ContractError("ScoreResult status is invalid")
+            total = payload["total_score"]
+            if status == "scored":
+                if isinstance(total, bool) or not isinstance(total, (int, float)):
+                    raise ContractError("scored ScoreResult requires a numeric total_score")
+            elif total is not None:
+                raise ContractError("unscored ScoreResult total_score must be null")
+            reason = payload["exclusion_reason"]
+            if status == "scored" and reason is not None:
+                raise ContractError("scored ScoreResult cannot have an exclusion reason")
+            if status != "scored" and (not isinstance(reason, str) or not reason):
+                raise ContractError("unscored ScoreResult requires an exclusion reason")
+    elif contract_name == "RankingSnapshot":
+        _require_text(payload["ranking_role"], "ranking_role")
+        _require_text(payload["score_policy_version"], "score_policy_version")
+        _require_text(payload["ranking_policy_version"], "ranking_policy_version")
+        _require_text(payload["authority_policy_version"], "authority_policy_version")
+        major = int(str(payload["schema_version"]).split(".", 1)[0])
+        if major == 2:
+            required_v2 = {
+                "ranking_content_fingerprint", "path_status", "authority_scope",
+                "input_identity", "score_policy_fingerprint", "ranking_policy_fingerprint",
+                "authority_policy_fingerprint", "score_result_ids", "input_count",
+                "score_results", "activation", "comparison_to_snapshot_id", "future_data_used",
+            }
+            missing_v2 = sorted(required_v2 - payload.keys())
+            if missing_v2:
+                raise ContractError(
+                    f"RankingSnapshot 2.x missing required fields: {', '.join(missing_v2)}"
+                )
+            if payload["path_status"] != "formal":
+                raise ContractError("RankingSnapshot 2.x must use the formal path")
+            if payload["authority_scope"] != "complex_multifactor_main":
+                raise ContractError("RankingSnapshot has an unknown authority scope")
+            for field, pattern in (
+                ("ranking_snapshot_id", r"ranking:sha256:[0-9a-f]{64}"),
+                ("ranking_content_fingerprint", r"sha256:[0-9a-f]{64}"),
+                ("score_policy_fingerprint", r"sha256:[0-9a-f]{64}"),
+                ("ranking_policy_fingerprint", r"sha256:[0-9a-f]{64}"),
+                ("authority_policy_fingerprint", r"sha256:[0-9a-f]{64}"),
+            ):
+                if not re.fullmatch(pattern, str(payload[field])):
+                    raise ContractError(f"RankingSnapshot {field} is invalid")
+            for field in ("score_policy_version", "ranking_policy_version", "authority_policy_version"):
+                _require_semver(payload[field], field, supported_majors={1})
+            role = payload["ranking_role"]
+            if role not in {"shadow", "comparison", "authoritative"}:
+                raise ContractError("RankingSnapshot ranking_role is invalid")
+            activation = payload["activation"]
+            comparison = payload["comparison_to_snapshot_id"]
+            if role == "authoritative":
+                activation = _require_mapping(activation, "activation")
+                _require_date(activation.get("effective_from"), "activation.effective_from")
+                _require_text(activation.get("activation_id"), "activation.activation_id")
+                _require_text(activation.get("approval_ref"), "activation.approval_ref")
+                if payload["as_of"] < activation["effective_from"]:
+                    raise ContractError("authority policy is not effective for this date")
+                if comparison is not None:
+                    raise ContractError("authoritative ranking cannot be a comparison")
+            elif activation is not None:
+                raise ContractError("non-authoritative ranking cannot carry activation")
+            if role == "comparison":
+                if not isinstance(comparison, str) or not re.fullmatch(r"ranking:sha256:[0-9a-f]{64}", comparison):
+                    raise ContractError("comparison ranking requires the original snapshot ID")
+            elif comparison is not None:
+                raise ContractError("only comparison rankings may reference an original snapshot")
+            result_ids = payload["score_result_ids"]
+            if (
+                not isinstance(result_ids, (list, tuple))
+                or list(result_ids) != sorted(set(result_ids))
+                or any(not re.fullmatch(r"score:sha256:[0-9a-f]{64}", str(item)) for item in result_ids)
+            ):
+                raise ContractError("RankingSnapshot score_result_ids must be sorted unique IDs")
+            if isinstance(payload["input_count"], bool) or not isinstance(payload["input_count"], int) or payload["input_count"] < 0:
+                raise ContractError("RankingSnapshot input_count must be a non-negative integer")
+            for field in ("ranked_entries", "excluded_entries", "selected_entries"):
+                if not isinstance(payload[field], (list, tuple)) or any(not isinstance(item, Mapping) for item in payload[field]):
+                    raise ContractError(f"RankingSnapshot {field} must contain objects")
+            score_results = payload["score_results"]
+            if not isinstance(score_results, (list, tuple)) or any(not isinstance(item, Mapping) for item in score_results):
+                raise ContractError("RankingSnapshot score_results must contain objects")
+            embedded_ids = [str(item.get("score_result_id")) for item in score_results]
+            if sorted(embedded_ids) != list(result_ids) or len(embedded_ids) != len(set(embedded_ids)):
+                raise ContractError("RankingSnapshot embedded score results do not match identities")
+            for result in score_results:
+                validate_contract("ScoreResult", result)
+            ranked_ids = [str(item.get("score_result_id")) for item in payload["ranked_entries"]]
+            excluded_ids = [str(item.get("score_result_id")) for item in payload["excluded_entries"]]
+            selected_ids = [str(item.get("score_result_id")) for item in payload["selected_entries"]]
+            if len(ranked_ids) != len(set(ranked_ids)) or len(excluded_ids) != len(set(excluded_ids)):
+                raise ContractError("RankingSnapshot contains duplicate entries")
+            if set(ranked_ids) & set(excluded_ids) or set(ranked_ids) | set(excluded_ids) != set(result_ids):
+                raise ContractError("RankingSnapshot entries do not conserve score results")
+            if len(ranked_ids) + len(excluded_ids) != payload["input_count"]:
+                raise ContractError("RankingSnapshot input_count does not conserve entries")
+            if selected_ids != ranked_ids[:len(selected_ids)]:
+                raise ContractError("selected entries must be a strict ordered ranking prefix")
+            if [item.get("rank") for item in payload["ranked_entries"]] != list(range(1, len(ranked_ids) + 1)):
+                raise ContractError("RankingSnapshot ranks must be contiguous")
     elif contract_name == "TradePlan":
         _require_text(payload["event_id"], "event_id")
         _require_mapping(payload["entry"], "entry")

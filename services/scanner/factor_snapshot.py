@@ -71,7 +71,17 @@ def build_shadow_market_industry_context(stock_prepared: ShadowConsumerInput,etf
   stock_prepared,etf_prepared,gate_events=gate_events,
   technical_evidence=technical_evidence,model_assessments=model_assessments,
   etf_registry=etf_registry,membership_registry=membership_registry,
-  generated_at=generated_at,**kwargs,
+ generated_at=generated_at,**kwargs,
+ )
+
+def build_shadow_versioned_ranking(*,gate_events,technical_evidence,model_assessments,contexts,generated_at,ranking_role="shadow",activation=None,comparison_to_snapshot_id=None):
+ """Run the sole M07 scorer and complex ranking without publishing its output."""
+ from services.ranking import produce_versioned_ranking
+ return produce_versioned_ranking(
+  gate_events=gate_events,technical_evidence=technical_evidence,
+  model_assessments=model_assessments,contexts=contexts,
+  generated_at=generated_at,ranking_role=ranking_role,
+  activation=activation,comparison_to_snapshot_id=comparison_to_snapshot_id,
  )
 
 def load_symbol_rows(as_of,cache_dir="work/eodhd-cache",active_path="work/eodhd-active-common.json"):
