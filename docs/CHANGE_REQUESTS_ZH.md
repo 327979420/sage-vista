@@ -35,13 +35,13 @@
 ### CR-2026-09-01-048｜M08统一模拟交易计划与退出状态
 
 - 用户原意：M08只把现有模拟入场、止损、2R目标、40交易日持仓和保守退出顺序整理为一个干净、版本化、可替换的接口；每个获准建立计划的排行条目最多对应一份同政策计划，每日与回放使用同一生产器。缺少下一交易日开盘价、信号日支撑或风险证据时必须明确`unavailable`，不能凑计划。
-- 状态：`verified`（仅本地影子范围）；用户批准的A—E已实现、测试并分开提交，设计`c00e4e8`、实现`cc42569`、测试`75a4d3c`。尚未完成独立审核、合并、部署或生产启用。设计见`docs/M08_TRADE_PLAN_EXIT_STATE_DESIGN_ZH.md`，本地验收见`docs/M08_ACCEPTANCE_REPORT_ZH.md`。
+- 状态：`implemented`（仅获批影子范围）；用户批准的A—E已实现、测试并分开提交，设计`c00e4e8`、实现`cc42569`、测试`75a4d3c`、验收证据`43ccc22`。独立审核未发现当前业务范围内的可复现阻断缺陷，四个M08提交已纯fast-forward进入`main`。尚未部署或生产启用。设计见`docs/M08_TRADE_PLAN_EXIT_STATE_DESIGN_ZH.md`，验收见`docs/M08_ACCEPTANCE_REPORT_ZH.md`。
 - 主模块：`docs/rules/09_RISK_AND_EXECUTION.md`。
 - 联动模块：只读消费M02不可变调整后行情、M03 `GateEvent 2.x`和M07 `RankingSnapshot 2.x`／`ScoreResult 2.x`。M09负责永久事件总账，M10负责收益、MFE／MAE、回测评价和Excel，M12负责生产接入；均不属于本CR。
 - 规则先行：`docs/rules/09_RISK_AND_EXECUTION.md`版本`1.5.0`冻结`TradePlan 2.x`、`ExitState 2.x`、执行政策身份和唯一生产者。M04另提供只读`SupportEvidenceBatch`，把现有支撑计算绑定M02／M03／M04稳定身份；M08不重新计算Gate、EMA、Fibonacci、pivot、因子、模型、上下文、评分或排行。
 - 实验：不启动。30→60→126日升级、2R卖90%留10%、剩余10%的8%收盘追踪、双日线／高周期退出及其他挑战者继续为`deferred_experiment`，首版政策必须固定为关闭。
 - 实现与产物：`services/execution/`是唯一formal计划／退出状态身份生产层；M04 `SupportEvidenceBatch`把旧支撑计算绑定稳定证据ID；每日与回放只新增同源影子入口；legacy适配和只追加影子存储不接生产。默认每日、夜间、网站、Discord、工作流、公开JSON和旧历史继续原样运行。
-- 验证：M08专项13项、M01—M08主链147项、完整Python531项、四种固定哈希种子每轮13项、治理19项和前端11项通过；Python编译、lint、TypeScript、生产构建和差异格式检查通过。固定样本逐项证明当前下一调整后开盘、止损、2R、40日和同日止损优先行为等价。本地`verified`不等于已独立审核、合并、部署或生产启用。
+- 验证：M08专项13项、M01—M08主链147项、扩大定向175项、完整Python531项、四种固定哈希种子每轮13项、治理19项和前端11项通过；Python编译、lint、TypeScript、生产构建和差异格式检查通过。固定样本逐项证明当前下一调整后开盘、止损、2R、40日和同日止损优先行为等价。`implemented`只表示获批影子基础设施进入主线，不等于部署或生产启用。
 
 ### CR-2026-09-01-047｜M07版本化评分政策与唯一权威排行
 
@@ -180,7 +180,7 @@
 ### CR-2026-08-30-035｜按总需求制定分模块渐进式重构规划
 
 - 用户原意：采用此前六项推荐架构选择，开始制作覆盖每个模块的完整重构规划书。规划必须写清功能、时间线、交付、验收、回退和隐藏雷点；最终形成从每日扫描、模拟交易、永久总账、回测实验、人工复盘、规则升级、网站到Discord的完整闭环，减少逻辑冲突和重复实现。
-- 状态：整体重构仍为`design_review`；M00—M07已在各自获批影子范围达到`implemented`并进入`main`，但M03—M07均未部署或生产启用。M08—M13仍须分别设计、批准和实施。本状态不授权生产切换，也不授权修改持仓退出、事件账、页面或Discord业务逻辑。
+- 状态：整体重构仍为`design_review`；M00—M08已在各自获批影子范围达到`implemented`并进入`main`，但M03—M08均未部署或生产启用。M09—M13仍须分别设计、批准和实施。本状态不授权生产切换，也不授权修改事件账、页面或Discord业务逻辑。
 - 主模块：`docs/rules/01_GOVERNANCE.md`。
 - 联动模块：`docs/MODULE_REFACTOR_PLAN_ZH.md`、`docs/PROJECT_REQUIREMENTS_MASTER_ZH.md`、`docs/SYSTEM_ARCHITECTURE_ZH.md`及后续逐个获批的业务模块。
 - 规则先行：本轮不升级业务模块规则；冻结六项设计方向：长期上涨／长期筑底双路径、局部与多年双回撤、月→周→日解释、明显风险阻断完整交易、个人形态先实验20日退出、原仓渐进替换。

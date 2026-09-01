@@ -1,16 +1,17 @@
-# M08｜统一模拟交易计划与退出状态本地验收报告
+# M08｜统一模拟交易计划与退出状态验收报告
 
 - 日期：2026-09-01
 - 关联CR：`CR-2026-09-01-048`
-- 状态：`verified`（仅本地影子范围）
+- 状态：`implemented`（仅获批影子范围；已独立审核并进入`main`）
 - 设计提交：`c00e4e8`
 - 实现提交：`cc42569`
 - 测试提交：`75a4d3c`
+- 验收证据提交：`43ccc22`
 - 部署、生产启用：均未发生
 
 ## 结论
 
-M08 A—E本地影子实现完成。`services/execution/`是唯一formal `TradePlan 2.x`与`ExitState 2.x`身份生产层。首版只处理M07 `selected_entries`；未精选条目保留`not_selected_for_plan`，缺少下一调整后开盘或支撑证据时保留明确`unavailable`且不创建完整计划。
+M08 A—E影子实现完成并经独立审核通过，四个M08提交已经纯fast-forward进入`main`。`services/execution/`是唯一formal `TradePlan 2.x`与`ExitState 2.x`身份生产层。首版只处理M07 `selected_entries`；未精选条目保留`not_selected_for_plan`，缺少下一调整后开盘或支撑证据时保留明确`unavailable`且不创建完整计划。
 
 支撑由M04 `SupportEvidenceBatch`交付：现有唯一支撑计算结果绑定M02行情／股票池、M03 GateEvent、M04证据批次和三个稳定技术证据ID。M08没有导入或重新运行EMA、Fibonacci、pivot、Gate或因子检测，也不从M07分数或排行文字反推支撑。
 
@@ -33,6 +34,7 @@ M08 A—E本地影子实现完成。`services/execution/`是唯一formal `TradeP
 
 - M08专项：13项通过。
 - M01—M08主链：147项通过。
+- 独立审核扩大定向：175项通过。
 - 完整Python：531项通过。
 - `PYTHONHASHSEED=0/1/42/12345`：每轮13项通过。
 - 治理状态：19项通过。
@@ -44,4 +46,4 @@ M08 A—E本地影子实现完成。`services/execution/`是唯一formal `TradeP
 
 没有修改默认每日或夜间入口、工作流、网站、Discord、公开JSON、真实缓存或历史结果；没有访问EODHD、运行真实每日任务、真实多年回测、部署或发送通知。M09总账、M10评价／Excel、M12生产接入及所有`deferred_experiment`均未开始。
 
-本地`verified`不等于已经独立审核、合并、部署或生产启用。
+`implemented`只表示M08获批影子合同、唯一生产者、测试和验收证据已经进入主线；不表示部署或生产启用。
