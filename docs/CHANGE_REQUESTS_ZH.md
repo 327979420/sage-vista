@@ -40,8 +40,8 @@
 - 联动模块：M01的`services/contracts/`、M02的`services/market_data/`及未来每日／历史门卫消费者。M04—M10只读引用GateEvent并各自负责因子证据、选股、上下文、排行、交易、总账与评价；M12负责生产接入。M03不设计这些下游合同。
 - 规则先行：中立`services/gates/`已确认成为唯一生产者；实施代码前更新因子模块规则。完整事件只在数据完整／可交易／流动性和精确日线MACD刚金叉后创建；前置失败只进批次级`GateScanAudit`。`baseline_passed`只复现当前复杂多因子使用的既有长期趋势基线，`passed`必须与其相等；新增结构和长期事实全部进入`shadow_assessment`并固定`production_effect=false`。旧1.x只读兼容，不得补造M02输入证据进入2.x formal消费者。
 - 实验：本轮不运行实验。长期筑底、多年深跌、宽幅箱体、持续供给和0.618／70%只保存结构化影子事实与解释，固定`production_effect=false`；没有单独批准，不得改变基线资格或当前生产输出。CGEM、MRNA、BTDR、DLTR只作已见点时检测案例，不能证明收益或用于调整生产规则。
-- 实现与产物：规则与唯一合同／生产器提交`10bde71`；每日与回放影子入口提交`f6458b0`；反例、修订链和消费者清单测试提交`f722bf5`；批次审计不可变存储及冲突反例提交`140aa18`、`2150b39`。`services/gates/producer.py`是唯一新`gate_event_id`创建器。当前生产仍由旧默认入口运行；新增入口不写`public/`或`automation/`。
-- 验证：2026-09-01本地完整Python `448`项通过，Python编译通过；前端lint、类型检查、生产构建和`11`项测试通过；`PYTHONHASHSEED=0/1/42/12345`下M03定向`16`项各自通过；`git diff --check`通过。固定本地案例只验证CGEM／BTDR定义不足时诚实`unavailable`、MRNA式深跌事实和DLTR式缺口事实，不使用真实案例调参或声称收益。详见`docs/M03_ACCEPTANCE_REPORT_ZH.md`。
+- 实现与产物：规则与唯一合同／生产器提交`10bde71`；每日与回放影子入口提交`f6458b0`；反例、修订链和消费者清单测试提交`f722bf5`；批次审计不可变存储及冲突反例提交`140aa18`、`2150b39`。独立审核后，提交`170b0a5`让M02完整资格摘要与eligible行情共同进入GateScanAudit并保持Universe总数守恒；提交`9ccc075`让多代GateEvent修订链通过唯一current解析器选择直接前一版本，结果不再依赖输入顺序。`services/gates/producer.py`仍是唯一新`gate_event_id`创建器。当前生产仍由旧默认入口运行；新增入口不写`public/`或`automation/`。
+- 验证：2026-09-01本地M01／M02／M03定向`72`项、完整Python `456`项通过，Python编译通过；前端lint、类型检查、生产构建和`11`项测试通过；`PYTHONHASHSEED=0/1/42/12345`下M03定向`23`项各自通过；`git diff --check`通过。新增固定反例证明6名完整Universe得到5个非事件原因加1个事件，且A→B→C修订不受`[A,B]`或`[B,A]`顺序影响；分叉、断链、跨信号、循环和重复身份均失败关闭。固定本地案例仍只验证CGEM／BTDR定义不足时诚实`unavailable`、MRNA式深跌事实和DLTR式缺口事实，不使用真实案例调参或声称收益。详见`docs/M03_ACCEPTANCE_REPORT_ZH.md`。
 
 ### CR-2026-09-01-043｜排行榜入选后的留档与统一后续评价
 
