@@ -14,6 +14,8 @@ from pathlib import PurePosixPath
 import re
 from typing import AbstractSet, Any, Iterable, Mapping
 
+from .policies import ADJUSTMENT_POLICY
+
 
 class ContractError(ValueError):
     """Raised when evidence cannot satisfy a known contract."""
@@ -57,6 +59,12 @@ CONTRACT_REQUIRED = {
         "path_status", "coverage_status",
     },
     "GateEvent": {"gate_event_id", "symbol", "signal_date", "gate_policy_version", "passed"},
+    "GateScanAudit": {
+        "scan_audit_id", "scan_batch_id", "gate_policy_version", "path_status",
+        "input_identity", "input_count", "gate_event_created_count",
+        "baseline_passed_count", "baseline_failed_count", "non_event_reason_counts",
+        "audit_status", "reason_codes",
+    },
     "TechnicalEvidence": {"evidence_id", "factor_id", "factor_version", "timeframe", "evidence_date", "available"},
     "ModelAssessment": {"assessment_id", "gate_event_id", "model_id", "model_version", "eligible"},
     "ContextSnapshot": {"context_id", "context_type", "status", "evidence"},
@@ -70,6 +78,7 @@ ID_FIELDS = {
     "MarketDataSnapshot": "snapshot_id",
     "UniverseSnapshot": "universe_id",
     "GateEvent": "gate_event_id",
+    "GateScanAudit": "scan_audit_id",
     "TechnicalEvidence": "evidence_id",
     "ModelAssessment": "assessment_id",
     "ContextSnapshot": "context_id",
@@ -80,7 +89,11 @@ ID_FIELDS = {
 }
 
 CONTRACT_SUPPORTED_MAJORS = {
-    name: ({2, 3} if name == "UniverseSnapshot" else {SUPPORTED_MAJOR})
+    name: (
+        {2, 3} if name == "UniverseSnapshot"
+        else {1, 2} if name == "GateEvent"
+        else {SUPPORTED_MAJOR}
+    )
     for name in CONTRACT_REQUIRED
 }
 
@@ -108,9 +121,16 @@ def _require_timestamp(value: Any) -> None:
 def _canonical(value: Mapping[str, object]) -> bytes:
     """Encode contract evidence deterministically and reject JSON non-values."""
 
+    def plain(item: Any) -> Any:
+        if isinstance(item, Mapping):
+            return {key: plain(child) for key, child in item.items()}
+        if isinstance(item, (list, tuple)):
+            return [plain(child) for child in item]
+        return item
+
     try:
         return json.dumps(
-            value,
+            plain(value),
             ensure_ascii=False,
             sort_keys=True,
             separators=(",", ":"),
@@ -206,6 +226,7 @@ def validate_contract(
         "MarketDataSnapshot": ("market:",),
         "UniverseSnapshot": ("universe:",),
         "GateEvent": ("gate:",),
+        "GateScanAudit": ("gate-audit:",),
         "TechnicalEvidence": ("evidence:",),
         "ModelAssessment": ("assessment:",),
         "ContextSnapshot": ("context:",),
@@ -223,12 +244,153 @@ def validate_contract(
             raise ContractError("event signal_date must equal as_of")
 
     if contract_name == "GateEvent":
+        major = int(str(payload["schema_version"]).split(".", 1)[0])
         symbol = _require_text(payload["symbol"], "symbol")
         gate_policy = _require_text(payload["gate_policy_version"], "gate_policy_version")
         _require_bool(payload["passed"], "passed")
-        expected = f"gate:{symbol}:{payload['signal_date']}:{gate_policy}"
-        if stable_id != expected:
-            raise ContractError("gate_event_id does not match symbol/date/gate policy")
+        if major == 1:
+            expected = f"gate:{symbol}:{payload['signal_date']}:{gate_policy}"
+            if stable_id != expected:
+                raise ContractError("gate_event_id does not match symbol/date/gate policy")
+        else:
+            required_v2 = {
+                "event_content_fingerprint", "logical_signal_id", "supersedes_event_id",
+                "instrument_id", "path_status", "input_identity", "baseline_checks",
+                "baseline_passed", "baseline_reason_codes", "shadow_assessment", "bias_labels",
+            }
+            missing_v2 = sorted(required_v2 - payload.keys())
+            if missing_v2:
+                raise ContractError(f"GateEvent 2.x missing required fields: {', '.join(missing_v2)}")
+            if not re.fullmatch(r"gate:sha256:[0-9a-f]{64}", stable_id):
+                raise ContractError("GateEvent 2.x gate_event_id is invalid")
+            if not re.fullmatch(r"gate-signal:sha256:[0-9a-f]{64}", str(payload["logical_signal_id"])):
+                raise ContractError("logical_signal_id is invalid")
+            if not re.fullmatch(r"instrument:sha256:[0-9a-f]{64}", str(payload["instrument_id"])):
+                raise ContractError("instrument_id is invalid")
+            if not re.fullmatch(r"sha256:[0-9a-f]{64}", str(payload["event_content_fingerprint"])):
+                raise ContractError("event_content_fingerprint is invalid")
+            supersedes = payload["supersedes_event_id"]
+            if supersedes is not None and not re.fullmatch(r"gate:sha256:[0-9a-f]{64}", str(supersedes)):
+                raise ContractError("supersedes_event_id is invalid")
+            path_status = payload["path_status"]
+            if path_status not in {"formal", "legacy"}:
+                raise ContractError("GateEvent path_status must be formal or legacy")
+            identity = _require_mapping(payload["input_identity"], "input_identity")
+            for field, prefix in (("universe_id", "universe:"), ("market_snapshot_id", "market:")):
+                if not _require_text(identity.get(field), f"input_identity.{field}").startswith(prefix):
+                    raise ContractError(f"input_identity.{field} has an invalid prefix")
+            if dict(_require_mapping(identity.get("adjustment_policy"), "adjustment_policy")) != ADJUSTMENT_POLICY:
+                raise ContractError("GateEvent adjustment_policy must equal the M02 policy")
+            baseline_passed = _require_bool(payload["baseline_passed"], "baseline_passed")
+            if payload["passed"] != baseline_passed:
+                raise ContractError("passed must equal baseline_passed")
+            checks = _require_mapping(payload["baseline_checks"], "baseline_checks")
+            required_checks = {
+                "data_integrity", "tradability_liquidity", "exact_daily_macd_cross",
+                "legacy_long_trend_equivalence",
+            }
+            if set(checks) != required_checks or any(
+                not isinstance(checks[name], Mapping)
+                or checks[name].get("status") not in {"passed", "failed"}
+                for name in required_checks
+            ):
+                raise ContractError("GateEvent baseline_checks are incomplete or invalid")
+            if not isinstance(payload["baseline_reason_codes"], (list, tuple)):
+                raise ContractError("baseline_reason_codes must be a list")
+            shadow = _require_mapping(payload["shadow_assessment"], "shadow_assessment")
+            if shadow.get("production_effect") is not False:
+                raise ContractError("shadow_assessment.production_effect must be false")
+            for field in (
+                "shadow_fact_schema_version", "local_structure", "multi_year_drawdown",
+                "monthly_state", "weekly_state", "supply_risk",
+            ):
+                if field not in shadow:
+                    raise ContractError(f"shadow_assessment missing {field}")
+            if shadow.get("long_term_state") not in {
+                "uptrend_pullback", "long_base_reversal", "broad_range",
+                "structural_damage", "unavailable",
+            }:
+                raise ContractError("shadow_assessment.long_term_state is invalid")
+            biases = payload["bias_labels"]
+            if (
+                not isinstance(biases, (list, tuple))
+                or (path_status == "formal" and biases)
+                or (path_status == "legacy" and not biases)
+            ):
+                raise ContractError("GateEvent bias_labels do not match path_status")
+            identity_evidence = {
+                "schema_major": 2,
+                "instrument_id": payload["instrument_id"],
+                "signal_date": payload["signal_date"],
+                "gate_policy_version": gate_policy,
+                "path_status": path_status,
+                "universe_id": identity["universe_id"],
+                "market_snapshot_id": identity["market_snapshot_id"],
+                "adjustment_policy": dict(identity["adjustment_policy"]),
+            }
+            expected = "gate:sha256:" + hashlib.sha256(_canonical(identity_evidence)).hexdigest()
+            if stable_id != expected:
+                raise ContractError("gate_event_id does not match canonical M03 identity")
+            logical_evidence = dict(identity_evidence)
+            del logical_evidence["market_snapshot_id"]
+            expected_logical = "gate-signal:sha256:" + hashlib.sha256(
+                _canonical(logical_evidence)
+            ).hexdigest()
+            if payload["logical_signal_id"] != expected_logical:
+                raise ContractError("logical_signal_id does not match canonical M03 identity")
+            semantic = {
+                key: value for key, value in payload.items()
+                if key not in {"generated_at", "event_content_fingerprint"}
+            }
+            expected_content = "sha256:" + hashlib.sha256(_canonical(semantic)).hexdigest()
+            if payload["event_content_fingerprint"] != expected_content:
+                raise ContractError("event_content_fingerprint does not match GateEvent facts")
+            revision = payload.get("market_revision_evidence")
+            if supersedes is not None:
+                revision = _require_mapping(revision, "market_revision_evidence")
+                if revision.get("to_market_snapshot_id") != identity["market_snapshot_id"]:
+                    raise ContractError("market revision evidence does not bind replacement snapshot")
+                if not re.fullmatch(r"sha256:[0-9a-f]{64}", str(revision.get("revision_id"))):
+                    raise ContractError("market revision evidence has an invalid revision_id")
+    elif contract_name == "GateScanAudit":
+        if not re.fullmatch(r"gate-audit:sha256:[0-9a-f]{64}", stable_id):
+            raise ContractError("scan_audit_id is invalid")
+        _require_text(payload["scan_batch_id"], "scan_batch_id")
+        _require_text(payload["gate_policy_version"], "gate_policy_version")
+        if payload["path_status"] not in {"formal", "legacy"}:
+            raise ContractError("GateScanAudit path_status must be formal or legacy")
+        identity = _require_mapping(payload["input_identity"], "input_identity")
+        for field in (
+            "input_count", "gate_event_created_count", "baseline_passed_count",
+            "baseline_failed_count",
+        ):
+            value = payload[field]
+            if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+                raise ContractError(f"{field} must be a non-negative integer")
+        counts = _require_mapping(payload["non_event_reason_counts"], "non_event_reason_counts")
+        if any(isinstance(value, bool) or not isinstance(value, int) or value < 0 for value in counts.values()):
+            raise ContractError("non_event_reason_counts must contain non-negative integers")
+        _require_text(payload["audit_status"], "audit_status")
+        if not isinstance(payload["reason_codes"], (list, tuple)):
+            raise ContractError("reason_codes must be a list")
+        if payload["baseline_passed_count"] + payload["baseline_failed_count"] != payload["gate_event_created_count"]:
+            raise ContractError("GateScanAudit baseline counts do not match created events")
+        if sum(counts.values()) + payload["gate_event_created_count"] != payload["input_count"]:
+            raise ContractError("GateScanAudit event and non-event counts do not match input_count")
+        audit_identity = {
+            "as_of": payload["as_of"],
+            "scan_batch_id": payload["scan_batch_id"],
+            "gate_policy_version": payload["gate_policy_version"],
+            "path_status": payload["path_status"],
+            "universe_id": identity.get("universe_id"),
+            "market_snapshot_id": identity.get("market_snapshot_id"),
+            "adjustment_policy": identity.get("adjustment_policy"),
+        }
+        expected_audit = "gate-audit:sha256:" + hashlib.sha256(
+            _canonical(audit_identity)
+        ).hexdigest()
+        if stable_id != expected_audit:
+            raise ContractError("scan_audit_id does not match canonical M03 identity")
     elif contract_name == "TechnicalEvidence":
         _require_text(payload["factor_id"], "factor_id")
         _require_text(payload["factor_version"], "factor_version")

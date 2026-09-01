@@ -14,13 +14,9 @@ import math
 from typing import Any, Iterable, Mapping
 
 from services.contracts.market_data import canonical_fingerprint
+from services.contracts.policies import ADJUSTMENT_POLICY
 from services.contracts.validation import ContractError
 
-
-ADJUSTMENT_POLICY = {
-    "version": "eodhd-adjusted-ratio-1.0.0",
-    "formula": "ratio=adjusted_close/close; adjusted_ohlc=raw_ohlc*ratio",
-}
 REQUIRED_FIELDS = {"date", "open", "high", "low", "close", "adjusted_close", "volume"}
 ADJUSTED_REQUIRED_FIELDS = {"date", "open", "high", "low", "close", "volume"}
 
