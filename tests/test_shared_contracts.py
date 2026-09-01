@@ -74,7 +74,7 @@ class SharedContractTests(unittest.TestCase):
     def test_unknown_major_fails_but_same_major_optional_field_is_allowed(self):
         validate_contract("GateEvent", gate(optional_note="compatible"))
         with self.assertRaises(ContractError):
-            validate_contract("GateEvent", gate(schema_version="2.0.0"))
+            validate_contract("GateEvent", gate(schema_version="3.0.0"))
 
     def test_schema_version_cannot_contain_adapter_identity(self):
         with self.assertRaises(ContractError):
@@ -235,18 +235,22 @@ class SharedContractTests(unittest.TestCase):
 
         gate = copy.deepcopy(universe)
         gate["files"][0]["contract_types"] = ["GateEvent"]
+        gate["files"][0]["schema_version"] = "3.0.0"
         gate["release_id"] = release_id(gate)
         with self.assertRaisesRegex(ContractError, "unknown manifest entry schema_version"):
             validate_contract("ReleaseManifest", gate, allow_partial_manifest=True)
 
         mixed = copy.deepcopy(universe)
         mixed["files"][0]["contract_types"] = ["UniverseSnapshot", "GateEvent"]
-        for version in ("1.0.0", "2.0.0", "3.0.0"):
-            with self.subTest(version=version):
-                mixed["files"][0]["schema_version"] = version
-                mixed["release_id"] = release_id(mixed)
-                with self.assertRaisesRegex(ContractError, "incompatible schema major"):
-                    validate_contract("ReleaseManifest", mixed, allow_partial_manifest=True)
+        mixed["files"][0]["schema_version"] = "2.0.0"
+        mixed["release_id"] = release_id(mixed)
+        validate_contract("ReleaseManifest", mixed, allow_partial_manifest=True)
+
+        incompatible = copy.deepcopy(universe)
+        incompatible["files"][0]["contract_types"] = ["UniverseSnapshot", "GateScanAudit"]
+        incompatible["release_id"] = release_id(incompatible)
+        with self.assertRaisesRegex(ContractError, "incompatible schema major"):
+            validate_contract("ReleaseManifest", incompatible, allow_partial_manifest=True)
 
     def test_native_manifest_entry_may_omit_legacy_adapter_identity(self):
         manifest = build_shadow_manifest(
