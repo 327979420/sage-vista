@@ -1,7 +1,7 @@
 # 08｜回测与实验规则
 
-版本：`1.19.0`
-最后更新：2026-09-01
+版本：`1.20.0`
+最后更新：2026-09-02
 
 ## 本文件负责
 
@@ -67,6 +67,17 @@
 - M02回测影子入口必须让调用者显式选择`formal`或`legacy`。formal缺少查询日股票池时返回`universe_unavailable`，不得自动退回legacy；legacy只用于兼容研究，并必须在返回证据中保存幸存者偏差和成员证据不完整标签。
 - 每日影子入口与回测影子入口必须对同一`universe_id + as_of + adjustment_policy`得到相同的数据身份。回测选择不能读取`as_of`之后的行情或证券身份元数据；未来收益仍只属于独立结果层。
 - 本次只增加未接入默认夜间任务的影子入口和固定小样本测试；当前断点、已保存结果、工作流和真实缓存均不得改变。
+
+## M10统一评价A—B冻结边界
+
+- M10只读消费M02不可变行情、M07权威排行、M08计划／退出和M09不可变事件；不得重算Gate、因子、评分、排行、计划或退出。
+- `ForwardOutcome`、`TradeOutcome`、`PortfolioRun`和`ResearchAggregate`是四类不同2.x合同；`ExperimentRun 2.x`是运行收据，不是第五类收益结果。
+- 首版Forward窗口固定为`1/5/20/60/100`交易日，以信号日后第一根真实可用调整后开盘为客观观察起点，第N个交易日调整后收盘为终点。调用层必须注入版本化session序列；目标尚未到期为`pending`，目标到期但起点或终点缺失为`unavailable`，起终点存在而中间路径不完整才可为`partial`。
+- formal TradeOutcome允许保存M08事实导出的毛收益。费用和滑点政策未获批准时，formal净收益必须为`unavailable`；零成本净收益只能是明确comparison。
+- TradeOutcome必须消费经过完整验证的M08 ExitState修订链和唯一终态，不得重新运行M08退出状态机。退出日MFE／MAE口径尚未批准，首版保持明确`unavailable`。
+- 每个窗口和交易结果都只追加不可变版本。后来成熟或行情修订产生新结果并指向直接前一版本，不得覆盖早期`pending`、旧结果或M09事件。
+- formal／legacy、authoritative／comparison以及development／validation／forward必须进入身份；相同完整身份与不同内容必须冲突失败。
+- A只建立四类合同、身份、验证、`ExperimentRun 2.x`收据和冲突保护；B只建立唯一内部Forward／Trade基线评价器。C—E、Portfolio／Aggregate计算、Excel、CLI、VectorBT、真实多年回测和生产接入未获批准。
 
 ## 夜间历史续跑
 
@@ -286,6 +297,12 @@
 任何会改变筛选、分数、风险或实际结果的模块改动，都必须联动本文件中的预登记与归档流程。只改页面排版无需新实验。
 
 ## 变更记录
+
+### 1.20.0 — 2026-09-02
+
+- 冻结M10首版Forward窗口、`pending/partial/unavailable`语义及不可覆盖成熟修订链。
+- 冻结formal TradeOutcome毛收益可保存、费用／滑点未批准时净收益不可用、零成本净收益仅comparison。
+- 只批准A—B固定小样本影子实施；C—E、VectorBT和生产接入继续关闭。
 
 ### 1.19.0 — 2026-09-01
 
