@@ -35,14 +35,14 @@
 ### CR-2026-09-01-047｜M07版本化评分政策与唯一权威排行
 
 - 用户原意：M07建立可从V1升级到V2、但永不覆盖旧结果的版本化评分政策和唯一权威复杂多因子排行榜；同一批输入只能产生一份权威排行，逐股结果必须绑定Gate、因子、模型、市场／行业上下文及各自版本，并保存分项、警告、排除原因和确定性排序依据。个人形态继续独立观察，不建立第二张竞争主榜。
-- 状态：`verified`（审核分支影子范围）；用户批准的A—E已经本地实现并通过验收，设计提交`7fa6e59`、实现提交`8a773e8`、测试提交`4c1acdb`。尚未完成独立审核、合并、部署、生产接入或历史迁移。设计见`docs/M07_VERSIONED_SCORING_RANKING_DESIGN_ZH.md`，验收见`docs/M07_ACCEPTANCE_REPORT_ZH.md`。
+- 状态：`verified`（审核分支影子范围）；用户批准的A—E已经本地实现并通过验收，设计提交`7fa6e59`、实现提交`8a773e8`、测试提交`4c1acdb`、首次审核根因修复`405bd3e`。尚未完成独立复核、合并、部署、生产接入或历史迁移。设计见`docs/M07_VERSIONED_SCORING_RANKING_DESIGN_ZH.md`，验收见`docs/M07_ACCEPTANCE_REPORT_ZH.md`。
 - 主模块：`docs/rules/04_SCORING.md`、`docs/rules/07_RANKING_AND_TRACKING.md`。
 - 联动模块：只读消费M02身份、M03 `GateEvent 2.x`、M04 `TechnicalEvidence 2.x`、M05 `ModelAssessment 2.x`和M06 `ContextSnapshot 2.x`。M08交易计划、M09总账、M10回测／前向评价／Excel和M12生产接入均不属于本CR。
 - 规则先行：已冻结`ScorePolicy`、`ScoreResult 2.x`、`RankingPolicy`和`RankingSnapshot 2.x`，并由中立`services/ranking/`成为唯一formal评分与主榜身份生产层。评分公式、缺失值处理、同分顺序和候选截断来自版本化政策，不得散落在消费者。
 - CR-043边界：本CR只接收CR-043中“不可变排行快照、版本绑定、逐股审计和旧版本不覆盖”的M07责任。交易计划、后续收益、人工审核总账、Excel和升级实验仍留在CR-043的M08—M11责任中，继续为`captured`。
 - 实验：设计阶段不运行。首个迁移政策只允许行为等价影子对照；任何新权重、阈值、上下文影响或排序语义必须另行预登记和批准，不能借重构上线。
 - 实现与产物：`services/ranking/`已成为影子范围唯一`ScoreResult 2.x`与`RankingSnapshot 2.x`生产层；每日与回放仅新增同源影子入口，只追加测试使用系统临时目录或受保护的`work/`。旧`unified-v2-rankings.json`保持原样，生产切换留给M12。
-- 验证：M07专项12项、M01—M07定向133项、完整Python 517项、四种固定哈希种子每轮12项、治理19项和前端11项通过；Python编译、lint、TypeScript和生产构建通过。覆盖唯一生产者、formal／legacy隔离、V1／V2并存、同批唯一权威、逐股守恒、确定性排序、每日／回放同源、不可覆盖存储及生产零变化。
+- 验证：首次独立审核复现旧排行`recent_hit`与新影子`qualified_hit`口径不等价；`405bd3e`把旧近期命中清单写入集中评分政策，并只用M04已保存事实复现旧行为。修复后M07专项13项、M01—M07定向162项、完整Python 518项、四种固定哈希种子每轮13项、治理19项和前端11项通过；Python编译、lint、TypeScript和生产构建通过。覆盖唯一生产者、formal／legacy隔离、V1／V2并存、同批唯一权威、逐股守恒、确定性排序、每日／回放同源、不可覆盖存储及生产零变化。
 
 ### CR-2026-09-01-046｜M06市场与行业上下文
 
