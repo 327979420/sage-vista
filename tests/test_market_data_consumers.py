@@ -234,6 +234,45 @@ def gate_boundary_fixture():
     return snapshot, reader
 
 
+def zero_eligible_fixture():
+    """Return five formal members whose complete M02 reasons need no OHLCV."""
+
+    symbols = ("MISSING", "NOTRAD", "SHORT", "CHEAP", "ILLIQ")
+    members = [forward_member(symbol) for symbol in symbols]
+    for member in members:
+        if member["symbol"] == "NOTRAD":
+            member["listing_status"] = "suspended"
+    qualifications = []
+    for member in members:
+        item = qualification(member["instrument_id"])
+        symbol = member["symbol"]
+        item.update(eligible=False, inclusion_reasons=[])
+        if symbol == "MISSING":
+            item.update(
+                price_complete=False,
+                exclusion_reasons=["price-data-incomplete"],
+            )
+        elif symbol == "NOTRAD":
+            item.update(exclusion_reasons=["not_tradable"])
+        elif symbol == "SHORT":
+            item.update(
+                history_length_passed=False,
+                exclusion_reasons=["insufficient_history"],
+            )
+        elif symbol == "CHEAP":
+            item.update(
+                minimum_price_passed=False,
+                exclusion_reasons=["below_price_floor"],
+            )
+        else:
+            item.update(
+                dollar_volume_passed=False,
+                exclusion_reasons=["below_liquidity_floor"],
+            )
+        qualifications.append(item)
+    return forward_snapshot(members=members, qualifications=qualifications)
+
+
 def prepare(consumer, *, mode="formal", as_of=DAY, snapshots=None, rows=None):
     return prepare_shadow_consumer_input(
         consumer=consumer,
@@ -247,6 +286,45 @@ def prepare(consumer, *, mode="formal", as_of=DAY, snapshots=None, rows=None):
 
 
 class ForwardUniverseAndConsumerTests(unittest.TestCase):
+    def test_zero_eligible_formal_prepares_audit_only_input_without_market_reads(self):
+        calls = []
+
+        def forbidden_reader(*args, **kwargs):
+            calls.append((args, kwargs))
+            raise AssertionError("zero-eligible input must not read OHLCV")
+
+        prepared = prepare_shadow_consumer_input(
+            consumer="factor_snapshot",
+            mode="formal",
+            as_of=DAY,
+            snapshots=[zero_eligible_fixture()],
+            reader=forbidden_reader,
+            generated_at=f"{DAY}T23:05:00Z",
+            data_source={
+                "provider": "fixture",
+                "dataset": "adjusted-daily",
+                "market": "US",
+            },
+        )
+        self.assertEqual(calls, [])
+        self.assertEqual(prepared.symbol_rows, {})
+        self.assertIsNone(prepared.market_snapshot_id)
+        self.assertIsNone(prepared.market_snapshot)
+        self.assertEqual(prepared.universe_member_count, 5)
+        self.assertEqual(sum(prepared.upstream_non_event_reason_counts.values()), 5)
+
+    def test_zero_eligible_still_rejects_an_unknown_upstream_reason(self):
+        member = forward_member("UNKNOWN")
+        item = qualification(member["instrument_id"])
+        item.update(
+            eligible=False,
+            inclusion_reasons=[],
+            exclusion_reasons=["unknown_reason"],
+        )
+        snapshot = forward_snapshot(members=[member], qualifications=[item])
+        with self.assertRaisesRegex(ContractError, "no supported M03 audit reason"):
+            prepare("factor_snapshot", snapshots=[snapshot])
+
     def test_consumer_preserves_full_upstream_qualification_audit(self):
         snapshot, reader = gate_boundary_fixture()
         prepared = prepare_shadow_consumer_input(

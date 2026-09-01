@@ -27,6 +27,7 @@ from tests.test_market_data_consumers import (
     forward_snapshot,
     gate_boundary_fixture,
     reader_for,
+    zero_eligible_fixture,
 )
 
 
@@ -98,6 +99,62 @@ def revised_event(
 
 
 class M03GateTests(unittest.TestCase):
+    def test_zero_eligible_formal_universe_produces_same_daily_and_replay_audit(self):
+        snapshot = zero_eligible_fixture()
+
+        def forbidden_reader(*args, **kwargs):
+            raise AssertionError("zero-eligible input must not read OHLCV")
+
+        prepared = {}
+        for consumer in ("factor_snapshot", "unified_v2_backtest"):
+            prepared[consumer] = prepare_shadow_consumer_input(
+                consumer=consumer,
+                mode="formal",
+                as_of=DAY,
+                snapshots=[snapshot],
+                reader=forbidden_reader,
+                generated_at=f"{DAY}T23:05:00Z",
+                data_source={
+                    "provider": "fixture",
+                    "dataset": "adjusted-daily",
+                    "market": "US",
+                },
+            )
+        daily = build_shadow_gate_batch(
+            prepared["factor_snapshot"],
+            generated_at=GENERATED_AT,
+            scan_batch_id="zero-eligible",
+        )
+        replay = shadow_gate_batch(
+            prepared["unified_v2_backtest"],
+            generated_at=GENERATED_AT,
+            scan_batch_id="zero-eligible",
+        )
+        repeated = build_shadow_gate_batch(
+            prepared["factor_snapshot"],
+            generated_at=GENERATED_AT,
+            scan_batch_id="zero-eligible",
+        )
+        self.assertEqual(daily.events, ())
+        self.assertEqual(replay.events, ())
+        self.assertEqual(daily.audit, replay.audit)
+        self.assertEqual(daily.audit, repeated.audit)
+        self.assertEqual(daily.audit["input_count"], 5)
+        self.assertEqual(daily.audit["gate_event_created_count"], 0)
+        self.assertEqual(
+            dict(daily.audit["non_event_reason_counts"]),
+            {
+                "data_unavailable": 1,
+                "not_tradable": 1,
+                "insufficient_history": 1,
+                "below_price_floor": 1,
+                "below_liquidity_floor": 1,
+                "no_exact_daily_macd_cross": 0,
+            },
+        )
+        self.assertEqual(sum(daily.audit["non_event_reason_counts"].values()), 5)
+        validate_contract("GateScanAudit", daily.audit)
+
     def test_gate_scan_audit_conserves_the_complete_universe_boundary(self):
         snapshot, reader = gate_boundary_fixture()
         prepared = prepare_shadow_consumer_input(

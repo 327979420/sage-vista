@@ -234,7 +234,12 @@ def produce_gate_batch(
     if not isinstance(prepared, ShadowConsumerInput):
         raise ContractError("M03 gate producer requires M02 ShadowConsumerInput")
     rows_by_symbol = require_shadow_rows(prepared, consumer=prepared.consumer)
-    symbols = {item["symbol"]: item["instrument_id"] for item in prepared.market_snapshot["symbols"]}
+    if rows_by_symbol and prepared.market_snapshot is None:
+        raise ContractError("M03 event rows require a validated market snapshot")
+    symbols = {
+        item["symbol"]: item["instrument_id"]
+        for item in (prepared.market_snapshot or {}).get("symbols", ())
+    }
     previous_groups: dict[str, list[Mapping[str, Any]]] = {}
     for event in previous_events:
         validate_gate_event(event)

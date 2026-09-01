@@ -67,13 +67,13 @@ class ShadowConsumerInput:
     mode: str
     as_of: str
     universe_id: str
-    market_snapshot_id: str
+    market_snapshot_id: str | None
     adjustment_policy: Mapping[str, Any]
     symbol_rows: Mapping[str, tuple[Mapping[str, Any], ...]]
     universe_member_count: int
     upstream_non_event_reason_counts: Mapping[str, int]
     bias_labels: tuple[str, ...]
-    market_snapshot: Mapping[str, Any]
+    market_snapshot: Mapping[str, Any] | None
 
     def audit(self) -> dict[str, Any]:
         return {
@@ -181,7 +181,22 @@ def prepare_shadow_consumer_input(
         else:
             upstream_counts[reason] += 1
     if not eligible_ids:
-        raise ContractError("selected universe contains no eligible members")
+        # This is a complete formal day with zero qualified members, not a
+        # missing universe.  Preserve M02's reasons for M03 audit without
+        # inventing an empty MarketDataSnapshot or touching the market reader.
+        return ShadowConsumerInput(
+            consumer=consumer,
+            mode=mode,
+            as_of=as_of,
+            universe_id=universe["universe_id"],
+            market_snapshot_id=None,
+            adjustment_policy=_freeze_json(adjustment_policy),
+            symbol_rows=_freeze_json({}),
+            universe_member_count=len(members),
+            upstream_non_event_reason_counts=_freeze_json(upstream_counts),
+            bias_labels=() if mode == "formal" else LEGACY_BIASES,
+            market_snapshot=None,
+        )
 
     symbol_rows: dict[str, tuple[Mapping[str, Any], ...]] = {}
     symbol_evidence: list[dict[str, Any]] = []
