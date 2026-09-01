@@ -185,6 +185,15 @@ def shadow_trade_plans(ranking_snapshot,support_evidence,*,entry_reads,generated
   ranking_snapshot,support_evidence,entry_reads=entry_reads,generated_at=generated_at,
  )
 
+def shadow_event_ledger(*,gate_events,technical_evidence,model_assessments,contexts,ranking_snapshot,generated_at):
+ """Freeze replay evidence through the same sole M09 producer as daily shadow."""
+ from services.ledger import produce_event_ledger_batch
+ return produce_event_ledger_batch(
+  gate_events=gate_events,technical_evidence=technical_evidence,
+  model_assessments=model_assessments,contexts=contexts,
+  ranking_snapshot=ranking_snapshot,generated_at=generated_at,
+ )
+
 def _dates(data,start,end):
  return [x["date"] for x in data.get("SPY",[]) if start<=x["date"]<=end]
 

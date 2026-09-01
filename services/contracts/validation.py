@@ -114,6 +114,7 @@ CONTRACT_SUPPORTED_MAJORS = {
             "ScoreResult", "RankingSnapshot", "TradePlan",
         }
         else {2} if name == "ExitState"
+        else {1, 2} if name == "OpportunityEvent"
         else {SUPPORTED_MAJOR}
     )
     for name in CONTRACT_REQUIRED
@@ -880,6 +881,78 @@ def validate_contract(
         _require_text(payload["symbol"], "symbol")
         _require_text(payload["gate_event_id"], "gate_event_id")
         _require_mapping(payload["model_assessments"], "model_assessments")
+        major = int(str(payload["schema_version"]).split(".", 1)[0])
+        if major == 2:
+            required_v2 = {
+                "event_content_fingerprint", "instrument_id", "path_status",
+                "event_role", "authority_scope", "ranking_snapshot_id",
+                "ranking_content_fingerprint", "score_result_id", "rank",
+                "selected", "input_identity", "gate_reference",
+                "technical_reference", "context_reference", "score_reference",
+                "policy_versions", "frozen_ranking",
+            }
+            missing_v2 = sorted(required_v2 - payload.keys())
+            if missing_v2:
+                raise ContractError(
+                    f"OpportunityEvent 2.x missing required fields: {', '.join(missing_v2)}"
+                )
+            for field, pattern in (
+                ("event_id", r"opportunity:sha256:[0-9a-f]{64}"),
+                ("event_content_fingerprint", r"sha256:[0-9a-f]{64}"),
+                ("instrument_id", r"instrument:sha256:[0-9a-f]{64}"),
+                ("gate_event_id", r"gate:sha256:[0-9a-f]{64}"),
+                ("ranking_snapshot_id", r"ranking:sha256:[0-9a-f]{64}"),
+                ("ranking_content_fingerprint", r"sha256:[0-9a-f]{64}"),
+                ("score_result_id", r"score:sha256:[0-9a-f]{64}"),
+            ):
+                if not re.fullmatch(pattern, str(payload[field])):
+                    raise ContractError(f"OpportunityEvent {field} is invalid")
+            if payload["path_status"] != "formal":
+                raise ContractError("OpportunityEvent 2.x must use the formal path")
+            if payload["event_role"] != "authoritative":
+                raise ContractError("OpportunityEvent 2.x requires an authoritative ranking")
+            if payload["authority_scope"] != "complex_multifactor_main":
+                raise ContractError("OpportunityEvent authority_scope is invalid")
+            if isinstance(payload["rank"], bool) or not isinstance(payload["rank"], int) or payload["rank"] < 1:
+                raise ContractError("OpportunityEvent rank must be a positive integer")
+            _require_bool(payload["selected"], "selected")
+            identity = _require_mapping(payload["input_identity"], "input_identity")
+            for field, prefix in (
+                ("universe_id", "universe:"),
+                ("market_snapshot_id", "market:"),
+                ("technical_evidence_batch_id", "technical-evidence-batch:"),
+                ("model_assessment_batch_id", "model-assessment-batch:"),
+                ("context_batch_id", "context-batch:"),
+                ("score_batch_id", "score-batch:"),
+            ):
+                if not _require_text(identity.get(field), f"input_identity.{field}").startswith(prefix):
+                    raise ContractError(f"OpportunityEvent input_identity.{field} is invalid")
+            if dict(_require_mapping(identity.get("adjustment_policy"), "adjustment_policy")) != ADJUSTMENT_POLICY:
+                raise ContractError("OpportunityEvent adjustment_policy must equal the M02 policy")
+            for field in (
+                "gate_reference", "technical_reference", "model_assessments",
+                "context_reference", "score_reference", "policy_versions",
+                "frozen_ranking",
+            ):
+                _require_mapping(payload[field], field)
+            root_identity = {
+                "schema_major": 2,
+                "authority_scope": payload["authority_scope"],
+                "instrument_id": payload["instrument_id"],
+                "signal_date": payload["signal_date"],
+            }
+            expected_id = "opportunity:" + "sha256:" + hashlib.sha256(
+                _canonical(root_identity)
+            ).hexdigest()
+            if stable_id != expected_id:
+                raise ContractError("OpportunityEvent id does not match its stable root")
+            semantic = {
+                key: value for key, value in payload.items()
+                if key not in {"generated_at", "event_content_fingerprint"}
+            }
+            expected_content = "sha256:" + hashlib.sha256(_canonical(semantic)).hexdigest()
+            if payload["event_content_fingerprint"] != expected_content:
+                raise ContractError("OpportunityEvent content fingerprint does not match its facts")
     elif contract_name == "ExperimentRun":
         _require_text(payload["status"], "status")
         _require_mapping(payload["evidence_window"], "evidence_window")
@@ -1011,8 +1084,14 @@ def validate_contracts(items: Iterable[tuple[str, Mapping[str, Any]]]) -> None:
             raise ContractError(f"duplicate stable ID: {identity[1]}")
         seen_ids.add(identity)
         if contract_name == "OpportunityEvent":
-            gate_version = str(payload.get("gate_policy_version", "unknown"))
-            key = (str(payload["symbol"]), str(payload["signal_date"]), gate_version)
+            if str(payload["schema_version"]).startswith("2."):
+                key = (
+                    str(payload["instrument_id"]), str(payload["signal_date"]),
+                    str(payload["authority_scope"]),
+                )
+            else:
+                gate_version = str(payload.get("gate_policy_version", "unknown"))
+                key = (str(payload["symbol"]), str(payload["signal_date"]), gate_version)
             if key in opportunity_keys:
-                raise ContractError("same symbol/day/gate policy produced two opportunity events")
+                raise ContractError("same event root produced two opportunity events")
             opportunity_keys.add(key)

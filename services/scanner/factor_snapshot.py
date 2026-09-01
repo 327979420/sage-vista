@@ -99,6 +99,15 @@ def build_shadow_trade_plans(ranking_snapshot,support_evidence,*,entry_reads,gen
   ranking_snapshot,support_evidence,entry_reads=entry_reads,generated_at=generated_at,
  )
 
+def build_shadow_event_ledger(*,gate_events,technical_evidence,model_assessments,contexts,ranking_snapshot,generated_at):
+ """Freeze authoritative ranked entries through the sole M09 producer."""
+ from services.ledger import produce_event_ledger_batch
+ return produce_event_ledger_batch(
+  gate_events=gate_events,technical_evidence=technical_evidence,
+  model_assessments=model_assessments,contexts=contexts,
+  ranking_snapshot=ranking_snapshot,generated_at=generated_at,
+ )
+
 def load_symbol_rows(as_of,cache_dir="work/eodhd-cache",active_path="work/eodhd-active-common.json"):
  bulk=bulk_day(as_of,strict=True);bulk_map={row.get("code"):row for row in bulk}
  active_file=pathlib.Path(active_path);active={row["Code"] for row in json.loads(active_file.read_text())} if active_file.exists() else set(bulk_map)

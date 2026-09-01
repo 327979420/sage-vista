@@ -121,6 +121,51 @@ class ModelAssessmentBatch:
     assessments: tuple[Mapping[str, Any], ...]
 
 
+def validate_model_assessment_batch(batch: ModelAssessmentBatch) -> None:
+    """Validate the immutable M05 batch before a later module trusts its ID."""
+
+    if not isinstance(batch, ModelAssessmentBatch):
+        raise ContractError("expected an M05 ModelAssessmentBatch")
+    items = list(batch.assessments)
+    for item in items:
+        validate_model_assessment(item)
+        if item["as_of"] != batch.as_of or item["path_status"] != batch.path_status:
+            raise ContractError("ModelAssessmentBatch contains mixed identities")
+    if items != sorted(
+        items, key=lambda item: (str(item["instrument_id"]), str(item["model_id"]))
+    ):
+        raise ContractError("ModelAssessmentBatch assessments must use canonical order")
+    identities = [str(item["assessment_id"]) for item in items]
+    if len(identities) != len(set(identities)):
+        raise ContractError("ModelAssessmentBatch contains duplicate assessments")
+    logical_keys = [
+        (
+            str(item["gate_event_id"]),
+            str(item["instrument_id"]),
+            str(item["model_id"]),
+        )
+        for item in items
+    ]
+    if len(logical_keys) != len(set(logical_keys)):
+        raise ContractError(
+            "ModelAssessmentBatch contains duplicate model assessments for one GateEvent"
+        )
+    batch_identity = {
+        "as_of": batch.as_of,
+        "path_status": batch.path_status,
+        "selector_policy": SELECTOR_POLICY_VERSION,
+        "assessments": [
+            {
+                "assessment_id": item["assessment_id"],
+                "content": item["assessment_content_fingerprint"],
+            }
+            for item in items
+        ],
+    }
+    if batch.batch_id != "model-assessment-batch:" + canonical_fingerprint(batch_identity):
+        raise ContractError("ModelAssessmentBatch identity does not match its assessments")
+
+
 def _fact_reference(item: Mapping[str, Any]) -> dict[str, Any]:
     return {
         "evidence_id": item["evidence_id"],
@@ -348,9 +393,11 @@ def produce_model_assessments(
             for item in assessments
         ],
     }
-    return ModelAssessmentBatch(
+    batch = ModelAssessmentBatch(
         batch_id="model-assessment-batch:" + canonical_fingerprint(batch_identity),
         as_of=prepared.as_of,
         path_status=prepared.mode,
         assessments=tuple(assessments),
     )
+    validate_model_assessment_batch(batch)
+    return batch

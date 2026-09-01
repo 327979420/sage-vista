@@ -7,6 +7,7 @@ from .producer import (
     ModelAssessmentBatch,
     produce_model_assessments,
     validate_model_assessment,
+    validate_model_assessment_batch,
 )
 
 __all__ = [
@@ -16,4 +17,5 @@ __all__ = [
     "adapt_legacy_model_assessment",
     "produce_model_assessments",
     "validate_model_assessment",
+    "validate_model_assessment_batch",
 ]

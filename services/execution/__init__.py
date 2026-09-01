@@ -10,6 +10,7 @@ from .producer import (
     produce_trade_plans,
     validate_exit_state,
     validate_trade_plan,
+    validate_trade_plan_batch,
 )
 from .storage import ExecutionShadowStore
 
@@ -19,4 +20,5 @@ __all__ = [
     "ExecutionShadowStore", "LegacyExecutionEvidence", "adapt_legacy_support_plan_bytes",
     "build_policy", "produce_trade_plans", "validate_exit_state",
     "validate_policy", "validate_trade_plan",
+    "validate_trade_plan_batch",
 ]

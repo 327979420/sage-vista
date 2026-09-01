@@ -107,6 +107,74 @@ class TradePlanBatch:
     decisions: tuple[Mapping[str, Any], ...]
 
 
+def validate_trade_plan_batch(batch: TradePlanBatch) -> None:
+    """Validate one complete M08 decision batch before M09 links to it."""
+
+    if not isinstance(batch, TradePlanBatch):
+        raise ContractError("expected an M08 TradePlanBatch")
+    plans = list(batch.plans)
+    decisions = list(batch.decisions)
+    plan_by_id: dict[str, Mapping[str, Any]] = {}
+    for plan in plans:
+        validate_trade_plan(plan)
+        plan_id = str(plan["plan_id"])
+        if plan_id in plan_by_id:
+            raise ContractError("TradePlanBatch contains duplicate plans")
+        if plan["signal_date"] != batch.as_of or plan["ranking_snapshot_id"] != batch.ranking_snapshot_id:
+            raise ContractError("TradePlanBatch plan does not match its batch identity")
+        plan_by_id[plan_id] = plan
+    if plans != sorted(plans, key=lambda item: str(item["instrument_id"])):
+        raise ContractError("TradePlanBatch plans must use canonical order")
+    decision_ids: set[str] = set()
+    referenced_plans: set[str] = set()
+    for decision in decisions:
+        required = {
+            "instrument_id", "ranking_snapshot_id", "score_result_id",
+            "gate_event_id", "status", "reason", "plan_id",
+        }
+        if not isinstance(decision, Mapping) or required - decision.keys():
+            raise ContractError("TradePlanBatch decision is incomplete")
+        score_result_id = str(decision["score_result_id"])
+        if score_result_id in decision_ids:
+            raise ContractError("TradePlanBatch contains duplicate decisions")
+        decision_ids.add(score_result_id)
+        if decision["ranking_snapshot_id"] != batch.ranking_snapshot_id:
+            raise ContractError("TradePlanBatch decision references another ranking")
+        status = decision["status"]
+        if status not in {"created", "not_created", "unavailable"}:
+            raise ContractError("TradePlanBatch decision status is invalid")
+        plan_id = decision["plan_id"]
+        if status == "created":
+            if plan_id not in plan_by_id:
+                raise ContractError("created TradePlanBatch decision has no plan")
+            plan = plan_by_id[str(plan_id)]
+            if any(
+                decision[field] != plan[field]
+                for field in ("instrument_id", "score_result_id", "gate_event_id")
+            ):
+                raise ContractError("TradePlanBatch decision does not match its plan")
+            if decision["reason"] is not None:
+                raise ContractError("created TradePlanBatch decision cannot have a reason")
+            referenced_plans.add(str(plan_id))
+        elif plan_id is not None or not isinstance(decision["reason"], str) or not decision["reason"]:
+            raise ContractError("uncreated TradePlanBatch decision requires one explicit reason")
+    if decisions != sorted(decisions, key=lambda item: str(item["instrument_id"])):
+        raise ContractError("TradePlanBatch decisions must use canonical order")
+    if referenced_plans != set(plan_by_id):
+        raise ContractError("TradePlanBatch contains a plan without one created decision")
+    identity = {
+        "as_of": batch.as_of,
+        "ranking_snapshot_id": batch.ranking_snapshot_id,
+        "plans": [
+            {"id": item["plan_id"], "content": item["plan_content_fingerprint"]}
+            for item in plans
+        ],
+        "decisions": [_plain(item) for item in decisions],
+    }
+    if batch.batch_id != "trade-plan-batch:" + canonical_fingerprint(identity):
+        raise ContractError("TradePlanBatch identity does not match its contents")
+
+
 def _validated_entry_read(read: RepositoryRead, *, instrument_id: str, signal_date: str) -> tuple[dict[str, Any], ...]:
     if not isinstance(read, RepositoryRead) or read.instrument_id != instrument_id:
         raise ContractError("entry evidence is not the requested M02 repository read")
@@ -235,13 +303,15 @@ def produce_trade_plans(
         "plans": [{"id": item["plan_id"], "content": item["plan_content_fingerprint"]} for item in plans],
         "decisions": [_plain(item) for item in decisions],
     }
-    return TradePlanBatch(
+    batch = TradePlanBatch(
         batch_id="trade-plan-batch:" + canonical_fingerprint(identity),
         as_of=str(ranking_snapshot["as_of"]),
         ranking_snapshot_id=str(ranking_snapshot["ranking_snapshot_id"]),
         plans=tuple(plans),
         decisions=tuple(decisions),
     )
+    validate_trade_plan_batch(batch)
+    return batch
 
 
 def _exit_identity(payload: Mapping[str, Any]) -> dict[str, Any]:
