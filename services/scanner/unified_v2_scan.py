@@ -127,6 +127,12 @@ def shadow_scan_inputs(prepared):
  from services.market_data.consumer import require_shadow_rows
  return {"input_audit":prepared.audit(),"symbol_rows":require_shadow_rows(prepared,consumer="unified_v2_backtest")}
 
+def shadow_gate_batch(prepared,*,generated_at,scan_batch_id,previous_events=(),market_revision_evidence=None):
+ """Run the same M03 producer in backtest shadow mode; legacy run stays unchanged."""
+ from services.gates.producer import produce_gate_batch
+ shadow_scan_inputs(prepared)
+ return produce_gate_batch(prepared,generated_at=generated_at,scan_batch_id=scan_batch_id,previous_events=previous_events,market_revision_evidence=market_revision_evidence)
+
 def _dates(data,start,end):
  return [x["date"] for x in data.get("SPY",[]) if start<=x["date"]<=end]
 

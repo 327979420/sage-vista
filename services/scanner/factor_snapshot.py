@@ -13,18 +13,12 @@ from .factor_scoring import experimental_score
 from .macd_factor_backtest import adjusted_rows
 from .resonance_tracker import bulk_day
 from .support_risk import EXECUTION_POLICY_VERSION,signal_support_plan
-from .technical import macd
 from services.market_data.consumer import ShadowConsumerInput, require_shadow_rows
+from services.gates.baseline import exact_daily_macd_bull_cross
 
 DEFAULT_OUT="public/daily-factor-snapshot.json"
 SNAPSHOT_MODE_VERSION="macd-trigger-first-v1"
 TRIGGER_FACTOR_ID="macd.daily_bull_cross"
-
-def exact_daily_macd_bull_cross(rows):
- """Return true only on the completed session where MACD crosses above signal."""
- if len(rows)<2:return False
- line,signal=macd([row["close"] for row in rows])
- return line[-1]>signal[-1] and line[-2]<=signal[-2]
 
 def build_snapshot(symbol_rows,as_of):
  symbols=[];universe_eligible_count=0
@@ -46,6 +40,12 @@ def build_shadow_snapshot(prepared: ShadowConsumerInput):
  """Run today's unchanged factor builder on explicitly prepared shadow rows."""
  rows=require_shadow_rows(prepared,consumer="factor_snapshot")
  return {"input_audit":prepared.audit(),"snapshot":build_snapshot(rows,prepared.as_of)}
+
+def build_shadow_gate_batch(prepared: ShadowConsumerInput,*,generated_at,scan_batch_id,previous_events=(),market_revision_evidence=None):
+ """Run M03 beside the unchanged daily snapshot without publishing its output."""
+ from services.gates.producer import produce_gate_batch
+ require_shadow_rows(prepared,consumer="factor_snapshot")
+ return produce_gate_batch(prepared,generated_at=generated_at,scan_batch_id=scan_batch_id,previous_events=previous_events,market_revision_evidence=market_revision_evidence)
 
 def load_symbol_rows(as_of,cache_dir="work/eodhd-cache",active_path="work/eodhd-active-common.json"):
  bulk=bulk_day(as_of,strict=True);bulk_map={row.get("code"):row for row in bulk}
