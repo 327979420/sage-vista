@@ -35,13 +35,13 @@
 ### CR-2026-09-01-046｜M06市场与行业上下文
 
 - 用户原意：使用现有ETF行情和版本化ETF—个股映射，为每只个股生成统一、客观、可追溯的市场／行业技术背景；记录长期趋势、回调、接近突破、确认突破、走弱和个股—ETF同向事实，但不由M06加分、排名或决定交易。
-- 状态：`verified`（仅获批影子范围）；最小设计和A—E影子实施已保存为`c7f072a`、`d97a74f`和`d80744c`，本地验收通过；尚未合并、部署或生产启用。
+- 状态：`verified`（仅获批影子范围）；最小设计和A—E影子实施已保存为`c7f072a`、`d97a74f`和`d80744c`，独立审核发现的formal成分数量守恒漏洞已由`187c0ec`修复；尚未合并、部署或生产启用。
 - 主模块：`docs/rules/05_MARKET_REGIME.md`、`docs/rules/06_INDUSTRY.md`；正式设计见`docs/M06_MARKET_INDUSTRY_CONTEXT_DESIGN_ZH.md`。
 - 联动模块：只读消费M02不可变ETF行情和稳定身份，以及M03 `GateEvent`、M04 `TechnicalEvidence`、M05 `ModelAssessment`引用。M07负责评分与排名，M08交易，M09—M10总账与评价，M12生产接入，均未获本条授权。
-- 规则先行：`services/context/`是唯一formal `ContextSnapshot 2.x`生产层；个股Gate、因子和模型事实只引用不重算。当前成分不得倒填历史，ticker-only证据只能显式legacy并附`current_membership_bias`。
+- 规则先行：`services/context/`是唯一formal `ContextSnapshot 2.x`生产层；个股Gate、因子和模型事实只引用不重算。formal成分必须满足来源总数等于已解析成员数、未解析数为零；当前成分不得倒填历史，ticker-only证据只能显式legacy并附`current_membership_bias`。
 - 实验：不需要收益实验。M06只收敛客观上下文事实；任何“行业共振加分”或交易影响须留待M07另行设计、验证和批准。
 - 实现与产物：计划仅新增精选ETF注册表、不可覆盖成分证据、唯一ETF状态纯函数、唯一上下文生产器、每日／回放同源影子入口及固定样本。不写公开JSON。
-- 验证：M06专项12项、M01—M06定向135项、完整Python 502项、四种固定`PYTHONHASHSEED`每轮12项、治理19项及前端11项通过；Python编译、lint、TypeScript、生产构建、文档链接和`git diff --check`通过。详见`docs/M06_ACCEPTANCE_REPORT_ZH.md`。
+- 验证：审核修复后M06专项15项、M01—M06定向138项、完整Python 505项、四种固定`PYTHONHASHSEED`每轮15项、治理19项及前端11项通过；Python编译、lint、TypeScript、生产构建、文档链接和`git diff --check`通过。当前真实2026-08-26成分仍是legacy；SOXX—AVGO合成样本只证明合同能力，不代表真实连接已完成。详见`docs/M06_ACCEPTANCE_REPORT_ZH.md`。
 
 ### CR-2026-09-01-045｜M05两个选股器与统一模型判断
 
@@ -74,7 +74,7 @@
 - 规则先行：中立`services/gates/`已确认成为唯一生产者；实施代码前更新因子模块规则。完整事件只在数据完整／可交易／流动性和精确日线MACD刚金叉后创建；前置失败只进批次级`GateScanAudit`。`baseline_passed`只复现当前复杂多因子使用的既有长期趋势基线，`passed`必须与其相等；新增结构和长期事实全部进入`shadow_assessment`并固定`production_effect=false`。旧1.x只读兼容，不得补造M02输入证据进入2.x formal消费者。
 - 实验：本轮不运行实验。长期筑底、多年深跌、宽幅箱体、持续供给和0.618／70%只保存结构化影子事实与解释，固定`production_effect=false`；没有单独批准，不得改变基线资格或当前生产输出。CGEM、MRNA、BTDR、DLTR只作已见点时检测案例，不能证明收益或用于调整生产规则。
 - 实现与产物：规则与唯一合同／生产器提交`10bde71`；每日与回放影子入口提交`f6458b0`；反例、修订链和消费者清单测试提交`f722bf5`；批次审计不可变存储及冲突反例提交`140aa18`、`2150b39`。独立审核后，提交`170b0a5`让M02完整资格摘要与eligible行情共同进入GateScanAudit并保持Universe总数守恒；提交`9ccc075`让多代GateEvent修订链通过唯一current解析器选择直接前一版本，结果不再依赖输入顺序。后续集成冒烟修复提交`ae936c7`全局拒绝隐藏修订循环，提交`88ae7da`让完整formal且零eligible的Universe不读取OHLCV也能形成守恒审计。`services/gates/producer.py`仍是唯一新`gate_event_id`创建器。当前生产仍由旧默认入口运行；新增入口不写`public/`或`automation/`。
-- 验证：原M03收口在2026-09-01通过M01／M02／M03定向`72`项、完整Python `456`项、M03确定性`23`项及前端`11`项。随后集成冒烟修复在独立分支通过定向`76`项、完整Python `460`项、`PYTHONHASHSEED=0/1/42/12345`下M03定向`25`项、Python编译、前端lint／TypeScript／生产构建及`11`项测试，`git diff --check`通过。新增反例证明：任何输入排列下，A↔B循环即使旁有独立current也失败；完整formal且五名成员全部不eligible时得到零事件、五个上游原因的同源幂等审计，且不调用行情读取。修复提交尚未合并`main`、未部署或生产启用；没有访问真实行情、运行真实回测或Discord。固定本地案例仍只验证CGEM／BTDR定义不足时诚实`unavailable`、MRNA式深跌事实和DLTR式缺口事实，不使用真实案例调参或声称收益。详见`docs/M03_ACCEPTANCE_REPORT_ZH.md`。
+- 验证：原M03收口在2026-09-01通过M01／M02／M03定向`72`项、完整Python `456`项、M03确定性`23`项及前端`11`项。随后集成冒烟修复在独立分支通过定向`76`项、完整Python `460`项、`PYTHONHASHSEED=0/1/42/12345`下M03定向`25`项、Python编译、前端lint／TypeScript／生产构建及`11`项测试，`git diff --check`通过。新增反例证明：任何输入排列下，A↔B循环即使旁有独立current也失败；完整formal且五名成员全部不eligible时得到零事件、五个上游原因的同源幂等审计，且不调用行情读取。审核修复`ae936c7`、`88ae7da`及验收证据`547949b`已通过纯fast-forward进入`main`，未部署或生产启用；没有访问真实行情、运行真实回测或Discord。固定本地案例仍只验证CGEM／BTDR定义不足时诚实`unavailable`、MRNA式深跌事实和DLTR式缺口事实，不使用真实案例调参或声称收益。详见`docs/M03_ACCEPTANCE_REPORT_ZH.md`。
 
 ### CR-2026-09-01-043｜排行榜入选后的留档与统一后续评价
 
