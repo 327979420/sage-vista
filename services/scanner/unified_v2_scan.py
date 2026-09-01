@@ -139,6 +139,16 @@ def shadow_technical_evidence(prepared,*,gate_events,generated_at):
  shadow_scan_inputs(prepared)
  return produce_technical_evidence(prepared,gate_events=gate_events,generated_at=generated_at)
 
+def shadow_model_assessments(prepared,*,gate_events,technical_evidence,generated_at):
+ """Run the sole M05 producer in replay shadow mode; ranking stays unchanged."""
+ from services.selectors import produce_model_assessments
+ return produce_model_assessments(
+  prepared,
+  gate_events=gate_events,
+  technical_evidence=technical_evidence,
+  generated_at=generated_at,
+ )
+
 def _dates(data,start,end):
  return [x["date"] for x in data.get("SPY",[]) if start<=x["date"]<=end]
 

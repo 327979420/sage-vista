@@ -53,6 +53,16 @@ def build_shadow_technical_evidence(prepared: ShadowConsumerInput,*,gate_events,
  require_shadow_rows(prepared,consumer="factor_snapshot")
  return produce_technical_evidence(prepared,gate_events=gate_events,generated_at=generated_at)
 
+def build_shadow_model_assessments(prepared: ShadowConsumerInput,*,gate_events,technical_evidence,generated_at):
+ """Run the sole M05 selector producer without changing the daily output path."""
+ from services.selectors import produce_model_assessments
+ return produce_model_assessments(
+  prepared,
+  gate_events=gate_events,
+  technical_evidence=technical_evidence,
+  generated_at=generated_at,
+ )
+
 def load_symbol_rows(as_of,cache_dir="work/eodhd-cache",active_path="work/eodhd-active-common.json"):
  bulk=bulk_day(as_of,strict=True);bulk_map={row.get("code"):row for row in bulk}
  active_file=pathlib.Path(active_path);active={row["Code"] for row in json.loads(active_file.read_text())} if active_file.exists() else set(bulk_map)
