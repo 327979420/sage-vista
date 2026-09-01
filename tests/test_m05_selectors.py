@@ -214,6 +214,31 @@ class M05SelectorTests(unittest.TestCase):
         with self.assertRaisesRegex(ContractError, "2.x"):
             validate_model_assessment(adapted)
 
+    def test_v2_cannot_be_reidentified_as_legacy(self):
+        item = plain(self.produce().assessments[0])
+        item["path_status"] = "legacy"
+        item["bias_labels"] = ["forged_legacy_path"]
+        identity = {
+            "gate_event_id": item["gate_event_id"],
+            "instrument_id": item["instrument_id"],
+            "as_of": item["as_of"],
+            "path_status": item["path_status"],
+            "input_identity": item["input_identity"],
+            "model_id": item["model_id"],
+            "model_version": item["model_version"],
+            "evidence_batch_id": item["evidence_batch_id"],
+            "technical_evidence_ids": item["technical_evidence_ids"],
+            "model_specific_facts_fingerprint": item["model_specific_facts_fingerprint"],
+        }
+        item["assessment_id"] = "assessment:" + canonical_fingerprint(identity)
+        semantic = {
+            key: value for key, value in item.items()
+            if key not in {"generated_at", "assessment_content_fingerprint"}
+        }
+        item["assessment_content_fingerprint"] = canonical_fingerprint(semantic)
+        with self.assertRaisesRegex(ContractError, "must use the formal path"):
+            validate_model_assessment(item)
+
     def test_unknown_model_contract_major_fails(self):
         old = {
             "schema_version": "1.0.0",

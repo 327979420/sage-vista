@@ -521,8 +521,8 @@ def validate_contract(
                 raise ContractError("ModelAssessment instrument_id is invalid")
             if not SEMVER.fullmatch(str(payload["model_version"])):
                 raise ContractError("ModelAssessment model_version must be MAJOR.MINOR.PATCH")
-            if payload["path_status"] not in {"formal", "legacy"}:
-                raise ContractError("ModelAssessment path_status is invalid")
+            if payload["path_status"] != "formal":
+                raise ContractError("ModelAssessment 2.x must use the formal path")
             identity = _require_mapping(payload["input_identity"], "input_identity")
             for field, pattern in (
                 ("universe_id", r"universe:sha256:[0-9a-f]{64}"),
@@ -565,10 +565,9 @@ def validate_contract(
             biases = payload["bias_labels"]
             if (
                 not isinstance(biases, (list, tuple))
-                or (payload["path_status"] == "formal" and biases)
-                or (payload["path_status"] == "legacy" and not biases)
+                or biases
             ):
-                raise ContractError("ModelAssessment bias_labels do not match path_status")
+                raise ContractError("formal ModelAssessment cannot carry legacy bias labels")
             assessment_identity = {
                 "gate_event_id": payload["gate_event_id"],
                 "instrument_id": payload["instrument_id"],
