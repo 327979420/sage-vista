@@ -35,7 +35,7 @@
 ### CR-2026-09-01-046｜M06市场与行业上下文
 
 - 用户原意：使用现有ETF行情和版本化ETF—个股映射，为每只个股生成统一、客观、可追溯的市场／行业技术背景；记录长期趋势、回调、接近突破、确认突破、走弱和个股—ETF同向事实，但不由M06加分、排名或决定交易。
-- 状态：`verified`（仅获批影子范围）；最小设计和A—E影子实施已保存为`c7f072a`、`d97a74f`和`d80744c`，独立审核发现的formal成分数量守恒漏洞已由`187c0ec`修复；尚未合并、部署或生产启用。
+- 状态：`implemented`（仅获批影子范围）；最小设计、A—E影子实施和独立审核修复已保存为`c7f072a`、`d97a74f`、`d80744c`、`187c0ec`和`2a3ae00`，并以纯fast-forward进入`main`。这只表示获批影子基础进入主线，尚未部署或生产启用。
 - 主模块：`docs/rules/05_MARKET_REGIME.md`、`docs/rules/06_INDUSTRY.md`；正式设计见`docs/M06_MARKET_INDUSTRY_CONTEXT_DESIGN_ZH.md`。
 - 联动模块：只读消费M02不可变ETF行情和稳定身份，以及M03 `GateEvent`、M04 `TechnicalEvidence`、M05 `ModelAssessment`引用。M07负责评分与排名，M08交易，M09—M10总账与评价，M12生产接入，均未获本条授权。
 - 规则先行：`services/context/`是唯一formal `ContextSnapshot 2.x`生产层；个股Gate、因子和模型事实只引用不重算。formal成分必须满足来源总数等于已解析成员数、未解析数为零；当前成分不得倒填历史，ticker-only证据只能显式legacy并附`current_membership_bias`。
