@@ -92,6 +92,7 @@ CONTRACT_SUPPORTED_MAJORS = {
     name: (
         {2, 3} if name == "UniverseSnapshot"
         else {1, 2} if name == "GateEvent"
+        else {1, 2} if name == "TechnicalEvidence"
         else {SUPPORTED_MAJOR}
     )
     for name in CONTRACT_REQUIRED
@@ -392,13 +393,107 @@ def validate_contract(
         if stable_id != expected_audit:
             raise ContractError("scan_audit_id does not match canonical M03 identity")
     elif contract_name == "TechnicalEvidence":
+        major = int(str(payload["schema_version"]).split(".", 1)[0])
         _require_text(payload["factor_id"], "factor_id")
-        _require_text(payload["factor_version"], "factor_version")
+        if not isinstance(payload["factor_version"], str) or not SEMVER.fullmatch(payload["factor_version"]):
+            raise ContractError("factor_version must be MAJOR.MINOR.PATCH")
         _require_text(payload["timeframe"], "timeframe")
         _require_date(payload["evidence_date"], "evidence_date")
         if payload["evidence_date"] > payload["as_of"]:
             raise ContractError("TechnicalEvidence evidence_date cannot be after as_of")
         _require_bool(payload["available"], "available")
+        if major == 2:
+            required_v2 = {
+                "evidence_content_fingerprint", "gate_event_id", "instrument_id",
+                "path_status", "universe_id", "market_snapshot_id",
+                "adjustment_policy", "registry_version", "detector_policy_version",
+                "family", "source_kind", "raw_hit", "qualified_hit", "blocked_by",
+                "recent_hit", "latest_hit_date", "bars_since_hit", "value",
+                "evidence", "lookahead_audit", "bias_labels",
+            }
+            missing_v2 = sorted(required_v2 - payload.keys())
+            if missing_v2:
+                raise ContractError(
+                    f"TechnicalEvidence 2.x missing required fields: {', '.join(missing_v2)}"
+                )
+            if not re.fullmatch(r"evidence:sha256:[0-9a-f]{64}", stable_id):
+                raise ContractError("TechnicalEvidence 2.x evidence_id is invalid")
+            for field, pattern in (
+                ("gate_event_id", r"gate:sha256:[0-9a-f]{64}"),
+                ("instrument_id", r"instrument:sha256:[0-9a-f]{64}"),
+                ("universe_id", r"universe:sha256:[0-9a-f]{64}"),
+                ("market_snapshot_id", r"market:sha256:[0-9a-f]{64}"),
+            ):
+                if not re.fullmatch(pattern, str(payload[field])):
+                    raise ContractError(f"TechnicalEvidence {field} is invalid")
+            if dict(_require_mapping(payload["adjustment_policy"], "adjustment_policy")) != ADJUSTMENT_POLICY:
+                raise ContractError("TechnicalEvidence adjustment_policy must equal the M02 policy")
+            if not isinstance(payload["registry_version"], str) or not SEMVER.fullmatch(payload["registry_version"]):
+                raise ContractError("registry_version must be MAJOR.MINOR.PATCH")
+            _require_text(payload["detector_policy_version"], "detector_policy_version")
+            _require_text(payload["family"], "family")
+            if payload["path_status"] not in {"formal", "legacy"}:
+                raise ContractError("TechnicalEvidence path_status must be formal or legacy")
+            if payload["source_kind"] not in {"gate_reference", "factor_detector"}:
+                raise ContractError("TechnicalEvidence source_kind is invalid")
+            raw_hit = _require_bool(payload["raw_hit"], "raw_hit")
+            qualified_hit = _require_bool(payload["qualified_hit"], "qualified_hit")
+            _require_bool(payload["recent_hit"], "recent_hit")
+            if qualified_hit and not raw_hit:
+                raise ContractError("qualified_hit cannot be true when raw_hit is false")
+            blocked_by = payload["blocked_by"]
+            if (
+                not isinstance(blocked_by, (list, tuple))
+                or any(not isinstance(item, str) or not item for item in blocked_by)
+                or len(blocked_by) != len(set(blocked_by))
+            ):
+                raise ContractError("blocked_by must contain unique factor IDs")
+            if blocked_by and qualified_hit:
+                raise ContractError("blocked evidence cannot be a qualified hit")
+            latest_hit = payload["latest_hit_date"]
+            if latest_hit is not None:
+                _require_date(latest_hit, "latest_hit_date")
+                if latest_hit > payload["as_of"]:
+                    raise ContractError("latest_hit_date cannot be after as_of")
+            bars_since = payload["bars_since_hit"]
+            if bars_since is not None and (
+                isinstance(bars_since, bool) or not isinstance(bars_since, int) or bars_since < 0
+            ):
+                raise ContractError("bars_since_hit must be a non-negative integer or null")
+            _require_mapping(payload["evidence"], "evidence")
+            audit = _require_mapping(payload["lookahead_audit"], "lookahead_audit")
+            if audit.get("future_data_used") is not False:
+                raise ContractError("TechnicalEvidence lookahead audit must fail closed")
+            biases = payload["bias_labels"]
+            if (
+                not isinstance(biases, (list, tuple))
+                or (payload["path_status"] == "formal" and biases)
+                or (payload["path_status"] == "legacy" and not biases)
+            ):
+                raise ContractError("TechnicalEvidence bias_labels do not match path_status")
+            identity = {
+                "gate_event_id": payload["gate_event_id"],
+                "instrument_id": payload["instrument_id"],
+                "as_of": payload["as_of"],
+                "path_status": payload["path_status"],
+                "universe_id": payload["universe_id"],
+                "market_snapshot_id": payload["market_snapshot_id"],
+                "adjustment_policy": dict(payload["adjustment_policy"]),
+                "registry_version": payload["registry_version"],
+                "detector_policy_version": payload["detector_policy_version"],
+                "factor_id": payload["factor_id"],
+                "factor_version": payload["factor_version"],
+            }
+            expected_id = "evidence:sha256:" + hashlib.sha256(_canonical(identity)).hexdigest()
+            if stable_id != expected_id:
+                raise ContractError("evidence_id does not match canonical M04 identity")
+            semantic = {
+                key: value for key, value in payload.items()
+                if key not in {"generated_at", "evidence_content_fingerprint"}
+            }
+            expected_content = "sha256:" + hashlib.sha256(_canonical(semantic)).hexdigest()
+            if payload["evidence_content_fingerprint"] != expected_content:
+                raise ContractError("TechnicalEvidence content fingerprint does not match facts")
     elif contract_name == "ModelAssessment":
         _require_text(payload["gate_event_id"], "gate_event_id")
         _require_text(payload["model_id"], "model_id")

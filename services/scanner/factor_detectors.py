@@ -76,8 +76,9 @@ def higher_timeframe_double_engulfing(bars,timeframe,lookback,low_tolerance=.10)
    return True,evidence
  return False,evidence
 
-def _raw(rows,i):
+def _raw(rows,i,fact_references=None):
  """Objective current-bar states using only rows through i."""
+ fact_references=fact_references or {}
  view=rows[:i+1];current=view[-1];closes=[row["close"] for row in view];line,signal=macd(closes);curves={period:ema(closes,period) for period in (21,50,200)}
  fib,golden,fib_levels=_fib_context(view,i);ema_distances={str(period):current["close"]/curves[period][i]-1 for period in (21,50,200)};ema_hit=any(abs(value)<=.02 for value in ema_distances.values())
  fvg=bullish_fvg_support(view,i);three_push_recent=recent_three_push_breakout(view,i);retest=three_push_recent and three_push_retest(view,i);volume_peak=volume_profile_support(view,i);congestion=kline_congestion_support(view,i)
@@ -94,7 +95,7 @@ def _raw(rows,i):
  range60=view[max(0,i-59):i+1];low60=min(row["low"] for row in range60);high60=max(row["high"] for row in range60);bottom30=low60+(high60-low60)*.30
  bullish_engulf=i>=1 and view[i-1]["close"]<view[i-1]["open"] and current["close"]>current["open"] and current["open"]<=view[i-1]["close"] and current["close"]>=view[i-1]["open"]
  body=abs(current["close"]-current["open"]);rng=max(current["high"]-current["low"],1e-9);lower=min(current["open"],current["close"])-current["low"]
- exact_cross=i>=1 and line[i]>signal[i] and line[i-1]<=signal[i-1];doji=False;bottom_engulf=False
+ exact_cross=fact_references.get("macd.daily_bull_cross",{}).get("hit") if "macd.daily_bull_cross" in fact_references else i>=1 and line[i]>signal[i] and line[i-1]<=signal[i-1];doji=False;bottom_engulf=False
  if exact_cross:
   for j in range(max(1,i-4),i+1):
    candle=view[j];candle_range=max(candle["high"]-candle["low"],1e-9)
@@ -109,7 +110,7 @@ def _raw(rows,i):
   a,b=lows[-2:];divergence=i-b["confirmed_index"]<=8 and rv[b["index"]] is not None and rv[a["index"]] is not None and rv[b["index"]]<50 and b["price"]<a["price"] and rv[b["index"]]>rv[a["index"]]+2 and current["close"]<=b["price"]*1.15
  pullback=current["close"]<=max(row["high"] for row in view[max(0,i-60):i])*.95 if i else False
  w=detect_w_bottom(view,i,TECHNICAL_CONFIG);double_bottom=w.detected and detect_bos(view,i,w.levels["neckline"],TECHNICAL_CONFIG).detected
- triple=detect_triple_bottom(view,i,TECHNICAL_CONFIG);trend_ok=long_trend_ok(view,i,curves[200]);triple_pullback=triple.detected and trend_ok and pullback
+ triple=detect_triple_bottom(view,i,TECHNICAL_CONFIG);trend_ok=fact_references.get("qualification.long_trend",{}).get("hit") if "qualification.long_trend" in fact_references else long_trend_ok(view,i,curves[200]);triple_pullback=triple.detected and trend_ok and pullback
  double_bottom_recent=recent_double_bottom_breakout(view,i);double_bottom_retest=double_bottom_recent and double_bottom_neckline_retest(view,i)
  day=date.fromisoformat(current["date"]);weekly_rows=available(completed_groups(view,"weekly"),(day.isocalendar().year,day.isocalendar().week));monthly_rows=available(completed_groups(view,"monthly"),(day.year,day.month))
  weekly_state=macd_state(weekly_rows[-160:]) if len(weekly_rows)>=3 else None
@@ -121,9 +122,9 @@ def _raw(rows,i):
  weekly_double,weekly_double_evidence=higher_timeframe_double_engulfing(weekly_rows,"weekly_completed",26)
  monthly_double,monthly_double_evidence=higher_timeframe_double_engulfing(monthly_rows,"monthly_completed",12)
  return {
-  "qualification.long_trend":(long_trend_ok(view,i,curves[200]),{"close":current["close"],"ema200":curves[200][i]}),
+  "qualification.long_trend":(trend_ok,fact_references.get("qualification.long_trend",{}).get("evidence",{"close":current["close"],"ema200":curves[200][i]})),
   "qualification.pullback_60d":(pullback,{"prior_60d_high":max(row["high"] for row in view[max(0,i-60):i]) if i else None}),
-  "macd.daily_bull_cross":(recent_bull_cross(line,signal,i),{"macd":line[i],"signal":signal[i],"freshness_sessions":5}),
+  "macd.daily_bull_cross":(fact_references.get("macd.daily_bull_cross",{}).get("hit") if "macd.daily_bull_cross" in fact_references else recent_bull_cross(line,signal,i),fact_references.get("macd.daily_bull_cross",{}).get("evidence",{"macd":line[i],"signal":signal[i],"freshness_sessions":5})),
   "macd.weekly_histogram_improving":(bool(weekly_state and weekly_state["histogram_rising"]),{"completed_week_end":weekly_rows[-1]["date"] if weekly_rows else None,"histogram":weekly_state["macd_line"]-weekly_state["signal_line"] if weekly_state else None}),
   "macd.monthly_bull_cross":(monthly_cross,{"completed_month_end":monthly_rows[-1]["date"] if monthly_rows else None}),
   "support.ema_proximity":(ema_hit,{"distance_by_period":ema_distances,"tolerance":.02}),
@@ -145,18 +146,19 @@ def _raw(rows,i):
   "support.close_congestion":(congestion,{"lookback_sessions":250}),"support.volume_profile_proxy":(volume_peak,{"lookback_sessions":250,"bins":40}),
  }
 
-def evaluate_all_factors(rows,as_of):
+def evaluate_all_factors(rows,as_of,*,fact_references=None):
+ fact_references=fact_references or {}
  rows=trim_as_of(rows,as_of);latest=rows[-1]["date"] if rows else None
  if not rows or latest!=as_of or len(rows)<260:
   reason="latest bar does not match as_of" if latest!=as_of else "insufficient history"
   return [_base(factor.id,as_of,None,False,{"reason":reason},False,latest,"unavailable") for factor in FACTORS]
- i=len(rows)-1;cache={i:_raw(rows,i)};states=[]
+ i=len(rows)-1;cache={i:_raw(rows,i,fact_references)};states=[]
  for factor in FACTORS:
   if factor.runtime_status=="definition_required":
    states.append(_base(factor.id,as_of,None,False,{"reason":"registry definition is not precise enough for an objective detector"},False,latest,"definition_required"));continue
   hit,evidence=cache[i][factor.id];detector_available=evidence.get("detector_available",True);state=_base(factor.id,as_of,evidence.get("ratio",evidence.get("rsi",hit)),hit,evidence,detector_available,latest,"monitored" if detector_available else "insufficient_history")
   recent=bool(hit);latest_hit=as_of if hit else None;bars_since=0 if hit else None
-  if factor.factor_type=="event" and factor.observation_window_sessions:
+  if factor.factor_type=="event" and factor.observation_window_sessions and factor.id not in fact_references:
    for ago in range(0,min(factor.observation_window_sessions,i+1)):
     j=i-ago
     if j not in cache:cache[j]=_raw(rows,j)

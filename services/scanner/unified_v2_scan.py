@@ -133,6 +133,12 @@ def shadow_gate_batch(prepared,*,generated_at,scan_batch_id,previous_events=(),m
  shadow_scan_inputs(prepared)
  return produce_gate_batch(prepared,generated_at=generated_at,scan_batch_id=scan_batch_id,previous_events=previous_events,market_revision_evidence=market_revision_evidence)
 
+def shadow_technical_evidence(prepared,*,gate_events,generated_at):
+ """Run the same M04 producer in replay shadow mode; ranking stays unchanged."""
+ from services.factors import produce_technical_evidence
+ shadow_scan_inputs(prepared)
+ return produce_technical_evidence(prepared,gate_events=gate_events,generated_at=generated_at)
+
 def _dates(data,start,end):
  return [x["date"] for x in data.get("SPY",[]) if start<=x["date"]<=end]
 

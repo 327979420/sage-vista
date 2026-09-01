@@ -47,6 +47,12 @@ def build_shadow_gate_batch(prepared: ShadowConsumerInput,*,generated_at,scan_ba
  require_shadow_rows(prepared,consumer="factor_snapshot")
  return produce_gate_batch(prepared,generated_at=generated_at,scan_batch_id=scan_batch_id,previous_events=previous_events,market_revision_evidence=market_revision_evidence)
 
+def build_shadow_technical_evidence(prepared: ShadowConsumerInput,*,gate_events,generated_at):
+ """Run the sole M04 producer beside daily output without publishing it."""
+ from services.factors import produce_technical_evidence
+ require_shadow_rows(prepared,consumer="factor_snapshot")
+ return produce_technical_evidence(prepared,gate_events=gate_events,generated_at=generated_at)
+
 def load_symbol_rows(as_of,cache_dir="work/eodhd-cache",active_path="work/eodhd-active-common.json"):
  bulk=bulk_day(as_of,strict=True);bulk_map={row.get("code"):row for row in bulk}
  active_file=pathlib.Path(active_path);active={row["Code"] for row in json.loads(active_file.read_text())} if active_file.exists() else set(bulk_map)
