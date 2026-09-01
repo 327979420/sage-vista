@@ -23,6 +23,8 @@ M03审核成果已经通过纯fast-forward进入`main`，最终main提交为`d02
 | `170b0a5` | M02完整资格摘要进入M03审计，完整Universe成员总数守恒 |
 | `9ccc075` | 多代GateEvent修订链按唯一current解析，不依赖输入顺序 |
 | `d02b032` | 最终验收证据；M03通过纯fast-forward进入main的HEAD |
+| `ae936c7` | 集成冒烟修复：全局拒绝隐藏循环及其全部输入排列 |
+| `88ae7da` | 集成冒烟修复：零eligible formal Universe生成零事件守恒审计 |
 
 ## 机械验收结果
 
@@ -34,6 +36,16 @@ M03审核成果已经通过纯fast-forward进入`main`，最终main提交为`d02
 - 补丁格式：`git diff --check`通过；
 - Git收口：本地`main`、`origin/main`及本地／远端M03分支均为`d02b03295a5e37cebeb788bc780fbede67e574a0`，合并方式为纯fast-forward；该HEAD没有GitHub Actions运行；
 - 生产边界：相对M03开始提交`32ed83f`，`.github/workflows/`、`public/`、`automation/`、网站应用和Worker均零变化。
+
+### 2026-09-01集成冒烟修复复核
+
+- 两项修复当前保存在独立分支，尚未合并`main`、推送或部署；M03既有生产状态没有改变。
+- M01／M02／M03定向：76项通过；完整Python：460项通过。
+- `PYTHONHASHSEED=0/1/42/12345`下M03定向25项每轮通过；Python编译通过。
+- 前端lint、TypeScript检查、生产构建和11项测试通过；治理状态19项、补丁格式检查通过。
+- A↔B循环即使旁边存在独立current，全部输入排列也失败关闭；合法A→B→C语义不变。
+- 完整formal且零eligible时不调用行情读取，仍生成`0`个事件、全部上游原因守恒的GateScanAudit；formal缺失仍为`universe_unavailable`，未知原因仍失败关闭。
+- 修复没有改变GateEvent门槛、formal／legacy隔离、生产默认入口、工作流、公开JSON、网站或Discord；M04和M12均未开始。
 
 ## 关键反例
 
