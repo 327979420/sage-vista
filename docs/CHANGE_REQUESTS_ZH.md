@@ -32,6 +32,17 @@
 
 > 整理边界：CR-2026-08-30-038及其交接Prompt本轮暂不纳入治理文档整理；原始内容完整保存在救援分支`rescue/local-work-2026-08-31-b14ec55`，没有删除。
 
+### CR-2026-09-01-042｜M03唯一门卫与长期状态
+
+- 用户原意：在不改变当前生产结果的前提下，先把数据完整性、可交易性、流动性、精确日线MACD刚金叉、局部0.618／70%结构、多年回撤和完整月线长期状态收敛成一个可追溯的`GateEvent`；复杂多因子与个人形态以后只能引用同一个门卫事实，不能再各自复制门票。
+- 状态：`design_review`；独立审核指出的事件创建边界、行情修订身份和复权政策冲突已经在设计中修正，但这只代表设计重新具备审核条件。尚未批准实施M03代码、测试夹具、生产JSON、工作流、网站或Discord变化，更不代表`verified`、`implemented`、部署或生产启用。
+- 主模块：未来经批准后更新`docs/rules/03_FACTOR_MODEL.md`；正式设计见`docs/M03_GATE_AND_LONG_TERM_STATE_DESIGN_ZH.md`。
+- 联动模块：M01的`services/contracts/`、M02的`services/market_data/`、每日`factor_snapshot`、历史`unified_v2_scan`、个人形态、事件账和后续M04／M05分析器。M12生产接入边界保持不变。
+- 规则先行：本轮不升级业务规则。设计建议由中立`services/gates/`成为唯一生产者。完整事件只在数据完整／可交易／流动性和精确日线MACD刚金叉后创建；前置失败只进批次级`GateScanAudit`。`baseline_passed`只复现当前复杂多因子使用的既有长期趋势基线，`passed`必须与其相等；新增结构和长期事实全部进入`shadow_assessment`并固定`production_effect=false`。旧1.x只读兼容，不得补造M02输入证据进入2.x formal消费者。
+- 实验：本轮不运行实验。长期筑底、多年深跌、宽幅箱体、持续供给和0.618／70%先保存结构化事实与解释，生产权重为零；没有单独预登记和批准，不得改变生产资格、分数或排行。CGEM、MRNA、BTDR、DLTR只作已见检测案例，不能证明收益或用于调权。
+- 实现与产物：仅登记本CR和一份M03设计文档。当前生产仍由`factor_snapshot.build_snapshot()`、`unified_v2_scan._candidate()`、`rare_opportunity_scanner.run()`、`resonance_tracker.macd_buy_gate()`及个人形态链分别判断；尚无唯一`GateEvent`生产者。
+- 验证：设计已经冻结完整周期、pivot右侧确认、formal失败关闭、legacy偏差标签、非事件审计、基线／影子隔离、M02复权政策复用、完整事件身份和不可变修订链。相同完整身份幂等；行情快照合法修订生成新事件并指向旧事件；相同完整身份不同内容失败。未来评分使用独立不可变`ScoreResult`，门卫、特征、评分、排名和发布政策分别版本化，具体权重另立CR。机械验收矩阵同时要求当前生产路径不变。用户批准设计前不得实施；M03当前仍为`design_review`。
+
 ### CR-2026-08-31-041｜M01/M02基础合同审计修复
 
 - 用户原意：随机人工检查已经完成的M01与M02代码，不能因为测试通过就默认没有问题；先修好已经复现的基础合同、防未来和身份漏洞，再继续M02后续包。
