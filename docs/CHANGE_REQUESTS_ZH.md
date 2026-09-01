@@ -35,13 +35,13 @@
 ### CR-2026-09-01-044｜M04统一因子事实与TechnicalEvidence
 
 - 用户原意：M03结束后直接进入M04，把当前散落在因子注册表、检测器、日终快照和回放扫描中的客观因子事实收敛为唯一`TechnicalEvidence`生产接口；只消除重复计算并保存可追溯事实，不改变评分，不做排行榜、交易计划，也不提前实现M05以后内容。
-- 状态：`verified`（仅本地）；用户批准的A—E已经完成本地影子实现和验收。Gate事实只引用不重算、formal只接受`TechnicalEvidence 2.x`、旧格式明确legacy只读、每日／回放调用同一生产器。成果尚未提交、推送、合并或部署，生产入口未启用M04。
+- 状态：`implemented`（M04获批影子范围）；三个审核提交`46c5256`、`2fabbdc`、`545a411`已经通过独立审核并以纯fast-forward进入`main`。Gate事实只引用不重算、formal只接受`TechnicalEvidence 2.x`、旧格式明确legacy只读、每日／回放调用同一生产器。这里的`implemented`不表示部署或生产启用；生产入口仍未启用M04。
 - 主模块：`docs/rules/03_FACTOR_MODEL.md`；正式设计见`docs/M04_FACTOR_EVIDENCE_DESIGN_ZH.md`。
 - 联动模块：只读消费M01共享合同、M02不可变点时行情和M03唯一`GateEvent`。M05以后只读引用M04证据；评分、排序、交易、事件总账、网站与Discord均不属于M04。
 - 规则先行：实施包A获批后，先冻结`TechnicalEvidence 2.x`、唯一生产者、因子版本和父子依赖语义。现有`TechnicalEvidence 1.x`只允许legacy只读；不得补造缺失身份后进入formal消费者。
 - 实验：不需要。M04是行为等价的事实收敛；不新增因子、不调整阈值或权重，不实施CR-033。任何固定样本中的因子命中差异都必须停止并解释，不能当作重构成果。
 - 实现与产物：`services/factors/`是唯一新formal证据身份生产层；共享合同验证器支持严格2.x；旧快照通过唯一legacy适配器只读；`factor_snapshot`和`unified_v2_scan`只增加未接默认流程的影子入口。验收报告见`docs/M04_ACCEPTANCE_REPORT_ZH.md`。
-- 验证：M04专项14项、M01—M04定向101项、完整Python 474项通过；`PYTHONHASHSEED=0/1/42/12345`下每轮14项通过；Python编译、前端lint／TypeScript／生产构建及11项测试、`git diff --check`均通过。当前2026-08-28旧因子快照可全部legacy只读适配且原文件字节不变；固定样本中全部非Gate因子与旧检测器逐项一致。尚未提交、推送、合并、部署或生产启用。
+- 验证：M04专项14项、M01—M04定向101项、完整Python474项通过；`PYTHONHASHSEED=0/1/42/12345`下每轮14项通过；Python编译、前端lint／TypeScript／生产构建及11项测试、`git diff --check`均通过。独立审核另行复核定向90／130项及完整Python474项，未发现可复现阻断缺陷。当前2026-08-28旧因子快照可全部legacy只读适配且原文件字节不变；固定样本中全部非Gate因子与旧检测器逐项一致。审核分支保留，未部署或生产启用。
 
 ### CR-2026-09-01-042｜M03唯一门卫与长期状态
 

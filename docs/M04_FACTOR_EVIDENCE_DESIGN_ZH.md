@@ -1,7 +1,7 @@
 # M04｜统一因子事实与 TechnicalEvidence 设计包
 
 - 关联需求：`CR-2026-09-01-044`
-- 状态：`verified`（本地实现与验收完成，尚未提交、合并或生产启用）
+- 状态：`implemented`（获批影子范围已进入`main`，尚未部署或生产启用）
 - 基线：`547949bad8c3447aeeb7665723ed49178f8050f2`
 - 边界：本文件只设计，不授权实施、提交、合并、部署或生产切换。
 
@@ -179,4 +179,4 @@ A—E只有在用户批准本设计后才能实施；批准M04不自动批准M05
 2. 新formal合同使用`TechnicalEvidence 2.x`；当前1.x保持legacy只读，禁止自动补齐。
 3. M04产物只存在于内存、测试临时目录或被忽略的`work/`影子目录；生产公开JSON切换留给M12。
 
-用户已批准本设计；A—E已完成本地实现和验收。详见`M04_ACCEPTANCE_REPORT_ZH.md`。本地`verified`不等于提交、合并、部署或生产启用。
+用户已批准本设计；A—E已完成实现、验收、独立审核并以纯fast-forward进入`main`。详见`M04_ACCEPTANCE_REPORT_ZH.md`。`implemented`只表示获批影子范围进入主线，不等于部署或生产启用。
