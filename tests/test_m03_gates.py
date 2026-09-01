@@ -23,6 +23,7 @@ from tests.test_market_data_consumers import (
     DAY,
     complete_gate_rows,
     forward_snapshot,
+    gate_boundary_fixture,
     reader_for,
 )
 
@@ -65,6 +66,46 @@ def thaw(value):
 
 
 class M03GateTests(unittest.TestCase):
+    def test_gate_scan_audit_conserves_the_complete_universe_boundary(self):
+        snapshot, reader = gate_boundary_fixture()
+        prepared = prepare_shadow_consumer_input(
+            consumer="factor_snapshot",
+            mode="formal",
+            as_of=DAY,
+            snapshots=[snapshot],
+            reader=reader,
+            generated_at=f"{DAY}T23:05:00Z",
+            data_source={
+                "provider": "fixture",
+                "dataset": "adjusted-daily",
+                "market": "US",
+            },
+        )
+        batch = produce_gate_batch(
+            prepared,
+            generated_at=GENERATED_AT,
+            scan_batch_id="complete-universe-boundary",
+        )
+        self.assertEqual(batch.audit["input_count"], 6)
+        self.assertEqual(batch.audit["gate_event_created_count"], 1)
+        self.assertEqual(
+            dict(batch.audit["non_event_reason_counts"]),
+            {
+                "data_unavailable": 0,
+                "not_tradable": 1,
+                "insufficient_history": 1,
+                "below_price_floor": 1,
+                "below_liquidity_floor": 1,
+                "no_exact_daily_macd_cross": 1,
+            },
+        )
+        self.assertEqual(
+            sum(batch.audit["non_event_reason_counts"].values())
+            + len(batch.events),
+            len(snapshot["members"]),
+        )
+        validate_contract("GateScanAudit", batch.audit)
+
     def test_no_exact_cross_creates_only_batch_audit(self):
         rows = [dict(row) for row in complete_gate_rows()]
         rows[-1].update({"open": 90.0, "high": 91.0, "low": 89.0, "close": 90.0})

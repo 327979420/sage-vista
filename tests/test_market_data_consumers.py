@@ -179,6 +179,61 @@ def complete_gate_rows():
     return tuple(rows)
 
 
+def gate_boundary_fixture():
+    """Return a full six-member universe but rows for its two eligible members."""
+
+    symbols = ("TRIGGER", "NOTRAD", "SHORT", "CHEAP", "ILLIQ", "NOCROSS")
+    members = [forward_member(symbol) for symbol in symbols]
+    for member in members:
+        if member["symbol"] == "NOTRAD":
+            member["listing_status"] = "suspended"
+    qualifications = []
+    for member in members:
+        item = qualification(member["instrument_id"])
+        symbol = member["symbol"]
+        if symbol == "NOTRAD":
+            item.update(
+                eligible=False,
+                inclusion_reasons=[],
+                exclusion_reasons=["not_tradable"],
+            )
+        elif symbol == "SHORT":
+            item.update(
+                eligible=False,
+                history_length_passed=False,
+                inclusion_reasons=[],
+                exclusion_reasons=["insufficient_history"],
+            )
+        elif symbol == "CHEAP":
+            item.update(
+                eligible=False,
+                minimum_price_passed=False,
+                inclusion_reasons=[],
+                exclusion_reasons=["below_price_floor"],
+            )
+        elif symbol == "ILLIQ":
+            item.update(
+                eligible=False,
+                dollar_volume_passed=False,
+                inclusion_reasons=[],
+                exclusion_reasons=["below_liquidity_floor"],
+            )
+        qualifications.append(item)
+    snapshot = forward_snapshot(members=members, qualifications=qualifications)
+    trigger_rows = complete_gate_rows()
+    no_cross_rows = [dict(row) for row in trigger_rows]
+    no_cross_rows[-1].update(
+        {"open": 90.0, "high": 91.0, "low": 89.0, "close": 90.0}
+    )
+    symbol_by_id = {member["instrument_id"]: member["symbol"] for member in members}
+
+    def reader(instrument_id, *, as_of):
+        rows = no_cross_rows if symbol_by_id[instrument_id] == "NOCROSS" else trigger_rows
+        return reader_for(rows)(instrument_id, as_of=as_of)
+
+    return snapshot, reader
+
+
 def prepare(consumer, *, mode="formal", as_of=DAY, snapshots=None, rows=None):
     return prepare_shadow_consumer_input(
         consumer=consumer,
@@ -192,6 +247,36 @@ def prepare(consumer, *, mode="formal", as_of=DAY, snapshots=None, rows=None):
 
 
 class ForwardUniverseAndConsumerTests(unittest.TestCase):
+    def test_consumer_preserves_full_upstream_qualification_audit(self):
+        snapshot, reader = gate_boundary_fixture()
+        prepared = prepare_shadow_consumer_input(
+            consumer="factor_snapshot",
+            mode="formal",
+            as_of=DAY,
+            snapshots=[snapshot],
+            reader=reader,
+            generated_at=f"{DAY}T23:05:00Z",
+            data_source={
+                "provider": "fixture",
+                "dataset": "adjusted-daily",
+                "market": "US",
+            },
+        )
+        self.assertEqual(prepared.universe_member_count, 6)
+        self.assertEqual(set(prepared.symbol_rows), {"TRIGGER", "NOCROSS"})
+        self.assertEqual(
+            dict(prepared.upstream_non_event_reason_counts),
+            {
+                "data_unavailable": 0,
+                "not_tradable": 1,
+                "insufficient_history": 1,
+                "below_price_floor": 1,
+                "below_liquidity_floor": 1,
+            },
+        )
+        with self.assertRaises(TypeError):
+            prepared.upstream_non_event_reason_counts["not_tradable"] = 0
+
     def test_consumer_rejects_a_fingerprint_not_derived_from_delivered_rows(self):
         with self.assertRaisesRegex(ContractError, "fingerprint does not match"):
             prepare_shadow_consumer_input(

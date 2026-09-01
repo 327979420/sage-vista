@@ -40,6 +40,13 @@ LEGACY_BIASES = (
     "incomplete_membership_evidence",
     "not_formal_point_in_time_universe",
 )
+UPSTREAM_NON_EVENT_REASONS = (
+    "data_unavailable",
+    "not_tradable",
+    "insufficient_history",
+    "below_price_floor",
+    "below_liquidity_floor",
+)
 
 
 def _freeze_json(value: Any) -> Any:
@@ -63,6 +70,8 @@ class ShadowConsumerInput:
     market_snapshot_id: str
     adjustment_policy: Mapping[str, Any]
     symbol_rows: Mapping[str, tuple[Mapping[str, Any], ...]]
+    universe_member_count: int
+    upstream_non_event_reason_counts: Mapping[str, int]
     bias_labels: tuple[str, ...]
     market_snapshot: Mapping[str, Any]
 
@@ -74,8 +83,45 @@ class ShadowConsumerInput:
             "universe_id": self.universe_id,
             "market_snapshot_id": self.market_snapshot_id,
             "adjustment_policy": dict(self.adjustment_policy),
+            "universe_member_count": self.universe_member_count,
+            "upstream_non_event_reason_counts": dict(
+                self.upstream_non_event_reason_counts
+            ),
             "bias_labels": list(self.bias_labels),
         }
+
+
+def _qualification_non_event_reason(
+    qualification: Mapping[str, Any], member: Mapping[str, Any]
+) -> str | None:
+    """Map already-validated M02 facts to one deterministic M03 audit reason.
+
+    This function does not recalculate price, history, or liquidity.  It only
+    classifies the frozen booleans and point-in-time listing status carried by
+    UniverseSnapshot.  Unknown exclusions fail instead of being guessed.
+    """
+
+    if qualification["eligible"]:
+        if member["listing_status"] != "active":
+            raise ContractError("eligible qualification has a non-active listing status")
+        return None
+    if not qualification["price_complete"]:
+        return "data_unavailable"
+    if (
+        member["listing_status"] != "active"
+        or set(qualification["exclusion_reasons"])
+        & {"not_tradable", "not-tradable"}
+    ):
+        return "not_tradable"
+    if not qualification["history_length_passed"]:
+        return "insufficient_history"
+    if not qualification["minimum_price_passed"]:
+        return "below_price_floor"
+    if not qualification["dollar_volume_passed"]:
+        return "below_liquidity_floor"
+    raise ContractError(
+        "excluded qualification has no supported M03 audit reason"
+    )
 
 
 def open_internal_shadow_repository(source: MarketDataSource) -> MarketDataRepository:
@@ -123,9 +169,17 @@ def prepare_shadow_consumer_input(
     if mode == "formal" and universe["schema_version"].split(".", 1)[0] != "3":
         raise ContractError("formal shadow consumer requires UniverseSnapshot 3.x")
     members = {item["instrument_id"]: item for item in universe["members"]}
-    eligible_ids = [
-        item["instrument_id"] for item in universe["qualifications"] if item["eligible"]
-    ]
+    upstream_counts = {reason: 0 for reason in UPSTREAM_NON_EVENT_REASONS}
+    eligible_ids: list[str] = []
+    for qualification in universe["qualifications"]:
+        instrument_id = qualification["instrument_id"]
+        reason = _qualification_non_event_reason(
+            qualification, members[instrument_id]
+        )
+        if reason is None:
+            eligible_ids.append(instrument_id)
+        else:
+            upstream_counts[reason] += 1
     if not eligible_ids:
         raise ContractError("selected universe contains no eligible members")
 
@@ -193,6 +247,8 @@ def prepare_shadow_consumer_input(
         market_snapshot_id=market_snapshot["snapshot_id"],
         adjustment_policy=_freeze_json(adjustment_policy),
         symbol_rows=_freeze_json(symbol_rows),
+        universe_member_count=len(members),
+        upstream_non_event_reason_counts=_freeze_json(upstream_counts),
         bias_labels=() if mode == "formal" else LEGACY_BIASES,
         market_snapshot=_freeze_json(market_snapshot),
     )

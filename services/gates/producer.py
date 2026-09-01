@@ -14,7 +14,7 @@ from services.contracts.validation import ContractError, validate_contract
 from services.market_data.consumer import ShadowConsumerInput, require_shadow_rows
 from services.market_data.storage import atomic_write_validated_json, require_shadow_root
 
-from .baseline import creation_boundary_reason, legacy_long_trend_equivalence
+from .baseline import exact_daily_macd_bull_cross, legacy_long_trend_equivalence
 from .local_structure import assess_local_structure
 from .long_term_state import assess_long_term
 
@@ -239,10 +239,26 @@ def produce_gate_batch(
     for event in previous_events:
         validate_gate_event(event)
         previous_by_logical[(str(event["instrument_id"]), str(event["signal_date"]))] = event
-    counts = {reason: 0 for reason in NON_EVENT_REASONS}
+    upstream_counts = dict(prepared.upstream_non_event_reason_counts)
+    if set(upstream_counts) != set(NON_EVENT_REASONS[:-1]) or any(
+        isinstance(value, bool) or not isinstance(value, int) or value < 0
+        for value in upstream_counts.values()
+    ):
+        raise ContractError("M02 qualification audit summary is invalid")
+    if sum(upstream_counts.values()) + len(rows_by_symbol) != prepared.universe_member_count:
+        raise ContractError("M02 qualification audit summary does not conserve universe members")
+    counts = {reason: upstream_counts.get(reason, 0) for reason in NON_EVENT_REASONS}
     events: list[Mapping[str, Any]] = []
     for symbol, rows in sorted(rows_by_symbol.items()):
-        reason = creation_boundary_reason(rows, as_of=prepared.as_of)
+        # M02 already decided price, history, liquidity and tradability.  M03
+        # checks only that its eligible row reaches the date and exact MACD edge.
+        reason = (
+            "data_unavailable"
+            if not rows or rows[-1]["date"] != prepared.as_of
+            else None
+            if exact_daily_macd_bull_cross(rows)
+            else "no_exact_daily_macd_cross"
+        )
         if reason is not None:
             counts[reason] += 1
             continue
@@ -278,7 +294,7 @@ def produce_gate_batch(
             "market_snapshot_id": prepared.market_snapshot_id,
             "adjustment_policy": dict(ADJUSTMENT_POLICY),
         },
-        "input_count": len(rows_by_symbol),
+        "input_count": prepared.universe_member_count,
         "gate_event_created_count": len(events),
         "baseline_passed_count": passed_count,
         "baseline_failed_count": len(events) - passed_count,
