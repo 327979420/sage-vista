@@ -212,13 +212,29 @@ class M03GateTests(unittest.TestCase):
         self.assertNotEqual(len(rows), len(rows + (future,)))
 
     def test_shadow_store_is_append_only_and_rejects_production_paths(self):
-        event = event_from(prepare("factor_snapshot"))
+        prepared = prepare("factor_snapshot")
+        batch = produce_gate_batch(
+            prepared, generated_at=GENERATED_AT, scan_batch_id="store-audit"
+        )
+        event = batch.events[0]
         with tempfile.TemporaryDirectory() as folder:
             store = GateEventStore(folder)
             path = store.save(event)
             original = path.read_bytes()
             self.assertEqual(store.save(event), path)
             self.assertEqual(path.read_bytes(), original)
+            audit_path = store.save_audit(batch.audit)
+            audit_bytes = audit_path.read_bytes()
+            self.assertEqual(store.save_audit(batch.audit), audit_path)
+            self.assertEqual(audit_path.read_bytes(), audit_bytes)
+            conflict = thaw(batch.audit)
+            conflict["gate_event_created_count"] = 0
+            conflict["baseline_passed_count"] = 0
+            conflict["non_event_reason_counts"]["no_exact_daily_macd_cross"] = 1
+            validate_contract("GateScanAudit", conflict)
+            with self.assertRaisesRegex(ContractError, "scan audit conflict"):
+                store.save_audit(conflict)
+            self.assertEqual(audit_path.read_bytes(), audit_bytes)
         with self.assertRaises(ContractError):
             GateEventStore(ROOT / "public", workspace_root=ROOT)
 
