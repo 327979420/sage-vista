@@ -22,6 +22,7 @@ from services.scanner.unified_v2_scan import shadow_gate_batch
 from tests.test_market_data_consumers import (
     DAY,
     complete_gate_rows,
+    forward_member,
     forward_snapshot,
     gate_boundary_fixture,
     reader_for,
@@ -63,6 +64,36 @@ def thaw(value):
     if isinstance(value, (list, tuple)):
         return [thaw(item) for item in value]
     return value
+
+
+def refingerprint(event):
+    semantic = {
+        key: value
+        for key, value in event.items()
+        if key not in {"generated_at", "event_content_fingerprint"}
+    }
+    event["event_content_fingerprint"] = canonical_fingerprint(semantic)
+    return event
+
+
+def revised_event(
+    previous,
+    previous_prepared,
+    *,
+    high_delta,
+    revision_digit,
+    earlier_events=(),
+):
+    rows = [dict(row) for row in complete_gate_rows()]
+    rows[0]["high"] += high_delta
+    prepared = prepare("factor_snapshot", rows=rows)
+    evidence = {
+        "revision_id": "sha256:" + revision_digit * 64,
+        "from_market_snapshot_id": previous_prepared.market_snapshot_id,
+        "to_market_snapshot_id": prepared.market_snapshot_id,
+    }
+    chain = [*earlier_events, previous]
+    return prepared, event_from(prepared, chain, evidence), evidence
 
 
 class M03GateTests(unittest.TestCase):
@@ -176,6 +207,101 @@ class M03GateTests(unittest.TestCase):
         self.assertEqual(revised["logical_signal_id"], first["logical_signal_id"])
         self.assertEqual(revised["supersedes_event_id"], first["gate_event_id"])
         self.assertEqual(current_gate_event([revised, first])["gate_event_id"], revised["gate_event_id"])
+
+    def test_three_generation_revision_chain_is_input_order_independent(self):
+        first_prepared = prepare("factor_snapshot")
+        first = event_from(first_prepared)
+        second_prepared, second, _ = revised_event(
+            first, first_prepared, high_delta=0.25, revision_digit="1"
+        )
+        third_prepared, _, third_evidence = revised_event(
+            second,
+            second_prepared,
+            high_delta=0.5,
+            revision_digit="2",
+            earlier_events=[first],
+        )
+        results = []
+        for previous in ([first, second], [second, first]):
+            batch = produce_gate_batch(
+                third_prepared,
+                generated_at=GENERATED_AT,
+                scan_batch_id="three-generation-chain",
+                previous_events=previous,
+                market_revision_evidence=third_evidence,
+            )
+            results.append(batch.events[0])
+        self.assertEqual(results[0]["gate_event_id"], results[1]["gate_event_id"])
+        self.assertEqual(results[0]["supersedes_event_id"], second["gate_event_id"])
+
+    def test_revision_chain_branch_fails_instead_of_guessing_current(self):
+        first_prepared = prepare("factor_snapshot")
+        first = event_from(first_prepared)
+        _, left, _ = revised_event(
+            first, first_prepared, high_delta=0.25, revision_digit="1"
+        )
+        _, right, _ = revised_event(
+            first, first_prepared, high_delta=0.5, revision_digit="2"
+        )
+        with self.assertRaisesRegex(ContractError, "no unique current"):
+            current_gate_event([right, first, left])
+
+    def test_revision_chain_missing_link_fails(self):
+        first_prepared = prepare("factor_snapshot")
+        first = event_from(first_prepared)
+        _, second, _ = revised_event(
+            first, first_prepared, high_delta=0.25, revision_digit="1"
+        )
+        with self.assertRaisesRegex(ContractError, "missing or cross-signal"):
+            current_gate_event([second])
+
+    def test_revision_chain_cross_signal_link_fails(self):
+        first_prepared = prepare("factor_snapshot")
+        first = event_from(first_prepared)
+        _, second, _ = revised_event(
+            first, first_prepared, high_delta=0.25, revision_digit="1"
+        )
+        other_prepared = prepare(
+            "factor_snapshot", snapshot=forward_snapshot(members=[forward_member("XYZ")])
+        )
+        other = event_from(other_prepared)
+        cross = thaw(second)
+        cross["supersedes_event_id"] = other["gate_event_id"]
+        cross["market_revision_evidence"]["from_market_snapshot_id"] = (
+            other_prepared.market_snapshot_id
+        )
+        refingerprint(cross)
+        validate_gate_event(cross)
+        with self.assertRaisesRegex(ContractError, "missing or cross-signal"):
+            produce_gate_batch(
+                prepare("factor_snapshot"),
+                generated_at=GENERATED_AT,
+                scan_batch_id="cross-signal-chain",
+                previous_events=[first, cross, other],
+            )
+
+    def test_revision_chain_cycle_fails(self):
+        first_prepared = prepare("factor_snapshot")
+        first = event_from(first_prepared)
+        second_prepared, second, _ = revised_event(
+            first, first_prepared, high_delta=0.25, revision_digit="1"
+        )
+        cycle = thaw(first)
+        cycle["supersedes_event_id"] = second["gate_event_id"]
+        cycle["market_revision_evidence"] = {
+            "revision_id": "sha256:" + "3" * 64,
+            "from_market_snapshot_id": second_prepared.market_snapshot_id,
+            "to_market_snapshot_id": first_prepared.market_snapshot_id,
+        }
+        refingerprint(cycle)
+        validate_gate_event(cycle)
+        with self.assertRaisesRegex(ContractError, "no unique current"):
+            current_gate_event([second, cycle])
+
+    def test_revision_chain_duplicate_identity_fails(self):
+        event = event_from(prepare("factor_snapshot"))
+        with self.assertRaisesRegex(ContractError, "duplicate event identities"):
+            current_gate_event([event, event])
 
     def test_same_identity_with_different_content_is_a_conflict(self):
         prepared = prepare("factor_snapshot")

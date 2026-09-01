@@ -235,10 +235,14 @@ def produce_gate_batch(
         raise ContractError("M03 gate producer requires M02 ShadowConsumerInput")
     rows_by_symbol = require_shadow_rows(prepared, consumer=prepared.consumer)
     symbols = {item["symbol"]: item["instrument_id"] for item in prepared.market_snapshot["symbols"]}
-    previous_by_logical: dict[tuple[str, str], Mapping[str, Any]] = {}
+    previous_groups: dict[str, list[Mapping[str, Any]]] = {}
     for event in previous_events:
         validate_gate_event(event)
-        previous_by_logical[(str(event["instrument_id"]), str(event["signal_date"]))] = event
+        previous_groups.setdefault(str(event["logical_signal_id"]), []).append(event)
+    previous_by_logical = {
+        logical_id: current_gate_event(group)
+        for logical_id, group in previous_groups.items()
+    }
     upstream_counts = dict(prepared.upstream_non_event_reason_counts)
     if set(upstream_counts) != set(NON_EVENT_REASONS[:-1]) or any(
         isinstance(value, bool) or not isinstance(value, int) or value < 0
@@ -263,10 +267,20 @@ def produce_gate_batch(
             counts[reason] += 1
             continue
         instrument_id = symbols[symbol]
+        identity = _gate_identity(
+            instrument_id=instrument_id,
+            signal_date=prepared.as_of,
+            path_status=prepared.mode,
+            universe_id=prepared.universe_id,
+            market_snapshot_id=prepared.market_snapshot_id,
+        )
+        logical_id = "gate-signal:" + canonical_fingerprint(
+            _logical_identity(identity)
+        )
         events.append(_build_event(
             prepared=prepared, symbol=symbol, rows=rows, instrument_id=instrument_id,
             generated_at=generated_at,
-            previous_event=previous_by_logical.get((instrument_id, prepared.as_of)),
+            previous_event=previous_by_logical.get(logical_id),
             market_revision_evidence=market_revision_evidence,
         ))
     passed_count = sum(bool(event["baseline_passed"]) for event in events)
@@ -366,6 +380,13 @@ def current_gate_event(events: Iterable[Mapping[str, Any]]) -> Mapping[str, Any]
         prior = by_id.get(prior_id)
         if prior is None or prior["logical_signal_id"] != event["logical_signal_id"]:
             raise ContractError("gate revision chain has a missing or cross-signal link")
+        revision = event.get("market_revision_evidence")
+        if (
+            not isinstance(revision, Mapping)
+            or revision.get("from_market_snapshot_id")
+            != prior["input_identity"]["market_snapshot_id"]
+        ):
+            raise ContractError("gate revision chain evidence does not bind its prior event")
         superseded.add(prior_id)
     current = [event for event in materialized if event["gate_event_id"] not in superseded]
     if len(current) != 1:
