@@ -35,13 +35,13 @@
 ### CR-2026-09-01-045｜M05两个选股器与统一模型判断
 
 - 用户原意：M04正式收口后直接进入M05，让复杂多因子与“我最喜欢形态”只读消费同一`GateEvent`和`TechnicalEvidence`，收敛重复门票、因子和形态判断；M05只形成客观、可解释的模型判断，不计算评分、排名或交易计划，也不提前实现M06—M10。
-- 状态：`implementing`；用户已批准三项推荐选择并授权A—E连续影子实施。formal个人形态只处理同一GateEvent，原宽口径观察保持显式legacy；共享事实只引用TechnicalEvidence，个人形态专属事实单独命名；ModelAssessment不含评分、排名、上下文或交易计划。尚未合并、部署或生产启用。
+- 状态：`verified`（本地影子范围）；用户批准的A—E已经实现、测试并分为提交`af8331d`、`4f93eb3`和`12c554d`保存，等待独立审核。formal个人形态只处理同一GateEvent，原宽口径观察保持显式legacy；共享事实只引用TechnicalEvidence，个人形态专属事实单独命名；ModelAssessment不含评分、排名、上下文或交易计划。尚未推送、合并、部署或生产启用。
 - 主模块：两个选股器边界；正式设计见`docs/M05_SELECTORS_DESIGN_ZH.md`。获批实施前将最小更新`docs/rules/03_FACTOR_MODEL.md`和`docs/MODULE_REFACTOR_PLAN_ZH.md`中M05的过时越界文字。
 - 联动模块：只读消费M02不可变点时行情身份、M03 `GateEvent 2.x`和M04 `TechnicalEvidence 2.x`。M06负责市场／行业上下文，M07负责评分与唯一排行，M08负责交易计划，M09—M10负责总账、回放和评价，M12负责生产接入。
 - 规则先行：拟由中立`services/selectors/`成为唯一新formal `ModelAssessment 2.x`生产层；两个分析器不得创建第二张Gate票或重新生产已经存在的TechnicalEvidence。个人形态专属且与注册因子定义不同的组合事实必须明确命名并保存来源，不能冒充M04共享因子。
 - 实验：本轮设计与未来影子迁移不改变门票、因子定义、阈值、评分或生产结果，不需要收益实验；任何固定样本行为差异必须停止并解释。若以后要改变个人形态定义、资格或生产输出，另立实验和CR。
-- 实现与产物：未开始。目标只生成内存、测试临时目录或`work/`影子`ModelAssessment 2.x`；现有复杂多因子排行、个人形态页面、每日／夜间入口及公开JSON继续原样运行。
-- 验证：A—E实施与本地验收进行中；完成后须独立审核，无当前业务阻断缺陷才允许合并收口。
+- 实现与产物：`services/selectors/`是唯一新formal身份生产层；每日与回放只新增未接默认流程的同源影子入口。旧个人形态V3复用同一纯事实函数，V1／V2和原宽口径输出经唯一legacy适配器只读；现有复杂多因子排行、个人形态页面、每日／夜间入口及公开JSON继续原样运行。验收报告见`docs/M05_ACCEPTANCE_REPORT_ZH.md`。
+- 验证：M05专项15项、M03—M05定向72项、完整Python489项、四种固定`PYTHONHASHSEED`每轮54项、治理19项及前端11项通过；Python编译、lint、TypeScript和生产构建、`git diff --check`通过。等待独立审核，无当前业务阻断缺陷才允许合并收口。
 
 ### CR-2026-09-01-044｜M04统一因子事实与TechnicalEvidence
 

@@ -270,7 +270,7 @@ M01完成只代表共享合同和非生产影子验收能力已经进入主线�
 
 ### M05｜两个选股器
 
-**当前状态**：`implementing`（已批准A—E影子实施）；不表示部署或生产启用。
+**当前状态**：`verified`（A—E本地影子实现与验收通过，等待独立审核）；不表示合并、部署或生产启用。
 
 **共同输入输出**：两个formal选股器必须从同一`GateEvent 2.x`和同一批`TechnicalEvidence 2.x`开始，由`services/selectors/`唯一生成无评分的`ModelAssessment 2.x`。共享事实只引用，个人形态专属事实独立命名。
 
