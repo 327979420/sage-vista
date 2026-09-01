@@ -145,12 +145,30 @@ def validate_score_batch(batch: ScoreBatch) -> None:
 def _technical_components(
     evidence: tuple[Mapping[str, Any], ...], score_policy: Mapping[str, Any]
 ) -> tuple[list[dict[str, Any]], dict[str, int]]:
-    positive = {
+    recent_ids = set(score_policy["rules"].get("recent_hit_factor_ids", ()))
+    if any(factor_id not in FACTORS_BY_ID for factor_id in recent_ids):
+        raise ContractError("score policy references an unknown recent-hit factor")
+    active = {
         str(item["factor_id"]): item
         for item in evidence
-        if item["qualified_hit"]
-        and item["factor_id"] not in score_policy["rules"]["gate_factor_ids"]
+        if item["available"]
+        and (
+            item["recent_hit"]
+            if item["factor_id"] in recent_ids
+            else item["raw_hit"]
+        )
+    }
+    # Preserve the legacy ranker's dependency rule using only immutable M04
+    # facts: a child counts only when all declared parents are active too.
+    positive = {
+        factor_id: item
+        for factor_id, item in active.items()
+        if factor_id not in score_policy["rules"]["gate_factor_ids"]
         and item["family"] != score_policy["rules"]["risk_family"]
+        and (
+            not FACTORS_BY_ID[factor_id].depends_on
+            or all(parent_id in active for parent_id in FACTORS_BY_ID[factor_id].depends_on)
+        )
     }
     families = {str(item["family"]) for item in positive.values()}
     confirmations: list[dict[str, str]] = []

@@ -26,7 +26,7 @@ from services.ranking import (
 )
 from services.scanner.factor_detectors import evaluate_all_factors
 from services.scanner.factor_snapshot import build_shadow_versioned_ranking
-from services.scanner.unified_v2_scan import _resonance_summary, shadow_versioned_ranking
+from services.scanner.unified_v2_scan import _present, _resonance_summary, shadow_versioned_ranking
 from services.selectors import produce_model_assessments
 from tests.test_m03_gates import GENERATED_AT
 from tests.test_m06_context import price_rows
@@ -157,7 +157,12 @@ class M07RankingTests(unittest.TestCase):
         run = self.produce()
         evidence_by_event = {}
         for item in self.evidence.evidence:
-            if item["qualified_hit"]:
+            legacy_state = {
+                "factor_id": item["factor_id"],
+                "hit": item["raw_hit"],
+                "recent_hit": item["recent_hit"],
+            }
+            if _present(legacy_state):
                 evidence_by_event.setdefault(item["gate_event_id"], set()).add(item["factor_id"])
         for result in run.score_batch.results:
             old = _resonance_summary(evidence_by_event[result["gate_event_id"]])
@@ -167,6 +172,59 @@ class M07RankingTests(unittest.TestCase):
             self.assertEqual(result["metrics"]["parent_child_confirmation_bonus"], old["parent_child_confirmation_bonus"])
             self.assertEqual(result["metrics"]["timeframe_resonance_bonus"], old["timeframe_resonance_bonus"])
             self.assertEqual(result["context_reference"]["score_contribution"], 0)
+
+    def test_recent_hit_compatibility_matches_the_existing_ranker(self):
+        recent_id = "volume.bottom_expansion"
+
+        def detector(rows, as_of, *, fact_references):
+            states = evaluate_all_factors(rows, as_of, fact_references=fact_references)
+            return [
+                replace(state, available=True, hit=False, recent_hit=True)
+                if state.factor_id == recent_id
+                else replace(state, available=True)
+                for state in states
+            ]
+
+        evidence = produce_technical_evidence(
+            self.stock,
+            gate_events=self.events,
+            generated_at=GENERATED_AT,
+            detector=detector,
+        )
+        assessments = produce_model_assessments(
+            self.stock,
+            gate_events=self.events,
+            technical_evidence=evidence,
+            generated_at=GENERATED_AT,
+        )
+        contexts = produce_market_industry_context(
+            self.stock,
+            self.etf,
+            gate_events=self.events,
+            technical_evidence=evidence,
+            model_assessments=assessments,
+            etf_registry=self.registry,
+            membership_registry=self.memberships,
+            generated_at=GENERATED_AT,
+        )
+        run = self.produce(
+            technical_evidence=evidence,
+            model_assessments=assessments,
+            contexts=contexts,
+        )
+        by_event = {}
+        for item in evidence.evidence:
+            state = {
+                "factor_id": item["factor_id"],
+                "hit": item["raw_hit"],
+                "recent_hit": item["recent_hit"],
+            }
+            if _present(state):
+                by_event.setdefault(item["gate_event_id"], set()).add(item["factor_id"])
+        for result in run.score_batch.results:
+            old = _resonance_summary(by_event[result["gate_event_id"]])
+            self.assertIn(recent_id, old["positive_factor_ids"])
+            self.assertEqual(result["total_score"], old["technical_resonance_score"])
 
     def test_only_complex_model_enters_one_deterministic_main_ranking(self):
         run = self.produce(gate_events=reversed(self.events))

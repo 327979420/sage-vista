@@ -75,6 +75,12 @@ SCORE_POLICY = build_policy(
         "factor_registry_version": REGISTRY_VERSION,
         "gate_factor_ids": ["macd.daily_bull_cross", "qualification.long_trend"],
         "risk_family": "risk",
+        "recent_hit_factor_ids": [
+            "macd.daily_bull_cross",
+            "structure.engulfing_bullish_follow_through",
+            "structure.support_bullish_engulfing",
+            "volume.bottom_expansion",
+        ],
         "components": [
             "positive_hit_count",
             "family_count",
