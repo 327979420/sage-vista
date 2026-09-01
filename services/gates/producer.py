@@ -291,7 +291,7 @@ def produce_gate_batch(
 
 
 class GateEventStore:
-    """Append immutable M03 shadow events under temp or repository work/."""
+    """Append immutable M03 shadow events/audits under temp or repository work/."""
 
     def __init__(self, root: str | Path, *, workspace_root: str | Path | None = None):
         self.root = require_shadow_root(root, workspace_root=workspace_root)
@@ -306,6 +306,30 @@ class GateEventStore:
                 raise ContractError("gate event conflict: immutable stored event differs")
             return path
         atomic_write_validated_json(path, _thaw(event), validator=validate_gate_event)
+        return path
+
+    def save_audit(self, audit: Mapping[str, Any]) -> Path:
+        """Persist one batch identity once; changed counts are a real conflict."""
+
+        validate_contract("GateScanAudit", audit)
+        path = self.root / "scan-audits" / f"{audit['scan_audit_id'].split(':')[-1]}.json"
+        semantic = {
+            key: _thaw(value) for key, value in audit.items() if key != "generated_at"
+        }
+        if path.exists():
+            existing = json.loads(path.read_text())
+            validate_contract("GateScanAudit", existing)
+            existing_semantic = {
+                key: value for key, value in existing.items() if key != "generated_at"
+            }
+            if canonical_fingerprint(existing_semantic) != canonical_fingerprint(semantic):
+                raise ContractError("gate scan audit conflict: identical identity has different counts")
+            return path
+        atomic_write_validated_json(
+            path,
+            _thaw(audit),
+            validator=lambda staged: validate_contract("GateScanAudit", staged),
+        )
         return path
 
 
