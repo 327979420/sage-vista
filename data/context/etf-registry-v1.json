@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0.0",
+  "registry_version": "m06-etf-registry-1.0.0",
+  "as_of_date": "2026-08-26",
+  "etfs": [
+    {
+      "symbol": "BOTZ",
+      "etf_id": "etf:sha256:470e8d569124936d509ca725bdc137f70aa84a6508d96bafac10de1c8da33a17",
+      "category": "theme",
+      "label": "robotics_automation",
+      "issuer": "Global X",
+      "membership_source_url": "https://assets.globalxetfs.com/funds/holdings/botz_full-holdings_20260826.csv",
+      "membership_as_of_date": "2026-08-26",
+      "formal_current_forward_eligible": false,
+      "historical_membership_evidence": "ticker_only"
+    },
+    {
+      "symbol": "IWM",
+      "etf_id": "etf:sha256:e2894fd8062a94152ac21ff647e102f185a3437987c67901e4c9dd855628739a",
+      "category": "broad_market",
+      "label": "us_small_cap",
+      "issuer": "iShares",
+      "membership_source_url": "https://www.ishares.com/us/products/239710/ishares-russell-2000-etf",
+      "membership_as_of_date": "2026-08-26",
+      "formal_current_forward_eligible": false,
+      "historical_membership_evidence": "unavailable"
+    },
+    {
+      "symbol": "QQQ",
+      "etf_id": "etf:sha256:9ceb17975803388d52a7e8adb58828e261d54d38fa31e9a14162d379217264d1",
+      "category": "broad_market",
+      "label": "nasdaq_100",
+      "issuer": "Invesco",
+      "membership_source_url": "https://www.invesco.com/qqq-etf/en/home.html",
+      "membership_as_of_date": "2026-08-26",
+      "formal_current_forward_eligible": false,
+      "historical_membership_evidence": "unavailable"
+    },
+    {
+      "symbol": "SOXX",
+      "etf_id": "etf:sha256:dce15d5688629058a26f2645f6ee9c861271305f0c27c8ce9f6d40c89d3ef11e",
+      "category": "industry",
+      "label": "semiconductors",
+      "issuer": "iShares",
+      "membership_source_url": "https://www.ishares.com/us/products/239705/ishares-semiconductor-etf/latest-holdings.csv",
+      "membership_as_of_date": "2026-08-26",
+      "formal_current_forward_eligible": false,
+      "historical_membership_evidence": "ticker_only"
+    },
+    {
+      "symbol": "SPY",
+      "etf_id": "etf:sha256:29f83463c1b327604866fd27c9f70b65e4ca0269ea2c21649ac201cfece63597",
+      "category": "broad_market",
+      "label": "us_large_cap",
+      "issuer": "State Street",
+      "membership_source_url": "https://www.ssga.com/us/en/intermediary/etfs/spdr-sp-500-etf-trust-spy",
+      "membership_as_of_date": "2026-08-26",
+      "formal_current_forward_eligible": false,
+      "historical_membership_evidence": "unavailable"
+    },
+    {
+      "symbol": "XLE",
+      "etf_id": "etf:sha256:235e7e650dee1be1954143b062eadb0d2db053cf1be732d07527caf480f24ff6",
+      "category": "sector",
+      "label": "energy",
+      "issuer": "State Street",
+      "membership_source_url": "https://www.ssga.com/us/en/intermediary/library-content/products/fund-data/etfs/us/holdings-daily-us-en-xle.xlsx",
+      "membership_as_of_date": "2026-08-26",
+      "formal_current_forward_eligible": false,
+      "historical_membership_evidence": "ticker_only"
+    }
+  ]
+}

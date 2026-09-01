@@ -92,7 +92,7 @@ CONTRACT_SUPPORTED_MAJORS = {
     name: (
         {2, 3} if name == "UniverseSnapshot"
         else {1, 2} if name == "GateEvent"
-        else {1, 2} if name in {"TechnicalEvidence", "ModelAssessment"}
+        else {1, 2} if name in {"TechnicalEvidence", "ModelAssessment", "ContextSnapshot"}
         else {SUPPORTED_MAJOR}
     )
     for name in CONTRACT_REQUIRED
@@ -596,6 +596,61 @@ def validate_contract(
         _require_text(payload["context_type"], "context_type")
         _require_text(payload["status"], "status")
         _require_mapping(payload["evidence"], "evidence")
+        major = int(str(payload["schema_version"]).split(".", 1)[0])
+        if major == 2:
+            required_v2 = {
+                "context_content_fingerprint", "instrument_id", "path_status",
+                "input_identity", "gate_event_id", "technical_evidence_batch_id",
+                "model_assessment_batch_id", "technical_evidence_ids",
+                "model_assessment_ids", "registry_version", "membership_links",
+                "production_effect", "bias_labels",
+            }
+            missing_v2 = sorted(required_v2 - payload.keys())
+            if missing_v2:
+                raise ContractError(
+                    f"ContextSnapshot 2.x missing required fields: {', '.join(missing_v2)}"
+                )
+            if payload["context_type"] != "market_industry":
+                raise ContractError("ContextSnapshot 2.x context_type must be market_industry")
+            if payload["path_status"] != "formal":
+                raise ContractError("ContextSnapshot 2.x must use the formal path")
+            if _require_bool(payload["production_effect"], "production_effect") is not False:
+                raise ContractError("ContextSnapshot 2.x must remain shadow-only")
+            if not re.fullmatch(r"context:sha256:[0-9a-f]{64}", stable_id):
+                raise ContractError("ContextSnapshot 2.x context_id is invalid")
+            if not re.fullmatch(
+                r"sha256:[0-9a-f]{64}", str(payload["context_content_fingerprint"])
+            ):
+                raise ContractError("ContextSnapshot content fingerprint is invalid")
+            if not re.fullmatch(
+                r"instrument:sha256:[0-9a-f]{64}", str(payload["instrument_id"])
+            ):
+                raise ContractError("ContextSnapshot instrument_id is invalid")
+            identity = _require_mapping(payload["input_identity"], "input_identity")
+            for field, prefix in (
+                ("stock_universe_id", "universe:"),
+                ("stock_market_snapshot_id", "market:"),
+                ("etf_universe_id", "universe:"),
+                ("etf_market_snapshot_id", "market:"),
+            ):
+                if not _require_text(identity.get(field), f"input_identity.{field}").startswith(prefix):
+                    raise ContractError(f"input_identity.{field} has an invalid prefix")
+            if dict(_require_mapping(identity.get("adjustment_policy"), "adjustment_policy")) != ADJUSTMENT_POLICY:
+                raise ContractError("ContextSnapshot adjustment_policy must equal the M02 policy")
+            if not _require_text(payload["gate_event_id"], "gate_event_id").startswith("gate:"):
+                raise ContractError("ContextSnapshot gate_event_id is invalid")
+            for field in ("technical_evidence_ids", "model_assessment_ids", "membership_links"):
+                value = payload[field]
+                if not isinstance(value, (list, tuple)):
+                    raise ContractError(f"ContextSnapshot {field} must be a list")
+            if len(payload["membership_links"]) != len({
+                item.get("etf_id") for item in payload["membership_links"]
+                if isinstance(item, Mapping)
+            }):
+                raise ContractError("ContextSnapshot membership links contain duplicate ETFs")
+            biases = payload["bias_labels"]
+            if not isinstance(biases, (list, tuple)) or biases:
+                raise ContractError("formal ContextSnapshot cannot carry legacy bias labels")
     elif contract_name == "TradePlan":
         _require_text(payload["event_id"], "event_id")
         _require_mapping(payload["entry"], "entry")

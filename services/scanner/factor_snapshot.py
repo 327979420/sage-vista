@@ -63,6 +63,17 @@ def build_shadow_model_assessments(prepared: ShadowConsumerInput,*,gate_events,t
   generated_at=generated_at,
  )
 
+def build_shadow_market_industry_context(stock_prepared: ShadowConsumerInput,etf_prepared: ShadowConsumerInput,*,gate_events,technical_evidence,model_assessments,etf_registry,membership_registry,generated_at,state_evaluator=None):
+ """Run the sole M06 producer beside daily output without publishing it."""
+ from services.context import produce_market_industry_context
+ kwargs={} if state_evaluator is None else {"state_evaluator":state_evaluator}
+ return produce_market_industry_context(
+  stock_prepared,etf_prepared,gate_events=gate_events,
+  technical_evidence=technical_evidence,model_assessments=model_assessments,
+  etf_registry=etf_registry,membership_registry=membership_registry,
+  generated_at=generated_at,**kwargs,
+ )
+
 def load_symbol_rows(as_of,cache_dir="work/eodhd-cache",active_path="work/eodhd-active-common.json"):
  bulk=bulk_day(as_of,strict=True);bulk_map={row.get("code"):row for row in bulk}
  active_file=pathlib.Path(active_path);active={row["Code"] for row in json.loads(active_file.read_text())} if active_file.exists() else set(bulk_map)

@@ -149,6 +149,17 @@ def shadow_model_assessments(prepared,*,gate_events,technical_evidence,generated
   generated_at=generated_at,
  )
 
+def shadow_market_industry_context(stock_prepared,etf_prepared,*,gate_events,technical_evidence,model_assessments,etf_registry,membership_registry,generated_at,state_evaluator=None):
+ """Run the same M06 producer in replay shadow mode; ranking stays unchanged."""
+ from services.context import produce_market_industry_context
+ kwargs={} if state_evaluator is None else {"state_evaluator":state_evaluator}
+ return produce_market_industry_context(
+  stock_prepared,etf_prepared,gate_events=gate_events,
+  technical_evidence=technical_evidence,model_assessments=model_assessments,
+  etf_registry=etf_registry,membership_registry=membership_registry,
+  generated_at=generated_at,**kwargs,
+ )
+
 def _dates(data,start,end):
  return [x["date"] for x in data.get("SPY",[]) if start<=x["date"]<=end]
 

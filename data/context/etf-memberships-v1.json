@@ -1,0 +1,66 @@
+{
+  "schema_version": "1.0.0",
+  "mapping_registry_version": "m06-etf-membership-registry-1.0.0",
+  "snapshots": [
+    {
+      "mapping_id": "etf-membership:legacy:botz:2026-08-26-v2",
+      "etf_symbol": "BOTZ",
+      "membership_as_of_date": "2026-08-26",
+      "effective_from": "2026-08-26",
+      "path_status": "legacy",
+      "formal_eligible": false,
+      "identity_status": "ticker_only",
+      "source": {
+        "artifact": "data/themes/snapshots/2026-08-26-v2.json",
+        "artifact_sha256": "sha256:2994160504145063c096be9968f05dfd7ff6f52f6f7ad410e0c8fc48769a9a3e",
+        "theme_id": "robotics-automation",
+        "provider": "Global X",
+        "url": "https://assets.globalxetfs.com/funds/holdings/botz_full-holdings_20260826.csv"
+      },
+      "bias_labels": ["current_membership_bias", "missing_listing_lifecycle"],
+      "members_source_count": 61,
+      "unresolved_member_count": 61,
+      "members": []
+    },
+    {
+      "mapping_id": "etf-membership:legacy:soxx:2026-08-26-v2",
+      "etf_symbol": "SOXX",
+      "membership_as_of_date": "2026-08-26",
+      "effective_from": "2026-08-26",
+      "path_status": "legacy",
+      "formal_eligible": false,
+      "identity_status": "ticker_only",
+      "source": {
+        "artifact": "data/themes/snapshots/2026-08-26-v2.json",
+        "artifact_sha256": "sha256:2994160504145063c096be9968f05dfd7ff6f52f6f7ad410e0c8fc48769a9a3e",
+        "theme_id": "semiconductors",
+        "provider": "iShares",
+        "url": "https://www.ishares.com/us/products/239705/ishares-semiconductor-etf/latest-holdings.csv"
+      },
+      "bias_labels": ["current_membership_bias", "missing_listing_lifecycle"],
+      "members_source_count": 33,
+      "unresolved_member_count": 33,
+      "members": []
+    },
+    {
+      "mapping_id": "etf-membership:legacy:xle:2026-08-26-v2",
+      "etf_symbol": "XLE",
+      "membership_as_of_date": "2026-08-26",
+      "effective_from": "2026-08-26",
+      "path_status": "legacy",
+      "formal_eligible": false,
+      "identity_status": "ticker_only",
+      "source": {
+        "artifact": "data/themes/snapshots/2026-08-26-v2.json",
+        "artifact_sha256": "sha256:2994160504145063c096be9968f05dfd7ff6f52f6f7ad410e0c8fc48769a9a3e",
+        "theme_id": "oil-gas",
+        "provider": "State Street",
+        "url": "https://www.ssga.com/us/en/intermediary/library-content/products/fund-data/etfs/us/holdings-daily-us-en-xle.xlsx"
+      },
+      "bias_labels": ["current_membership_bias", "missing_listing_lifecycle"],
+      "members_source_count": 22,
+      "unresolved_member_count": 22,
+      "members": []
+    }
+  ]
+}
