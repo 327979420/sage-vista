@@ -35,13 +35,13 @@
 ### CR-2026-09-01-042｜M03唯一门卫与长期状态
 
 - 用户原意：在不改变当前生产结果的前提下，先把数据完整性、可交易性、流动性、精确日线MACD刚金叉、局部0.618／70%结构、多年回撤和完整月线长期状态收敛成一个可追溯的`GateEvent`；复杂多因子与个人形态以后只能引用同一个门卫事实，不能再各自复制门票。
-- 状态：`verified`；A— I本地影子实施、完整回归和确定性检查已通过，并以独立提交保存。尚未推送、合并`main`、部署或生产启用。个人形态兼容延后M05；生产接入、工作流、网站、Discord、评分、排行、交易和总账均未批准。
+- 状态：`implemented`（M03获批影子范围）；A— I、独立审计修复、完整回归和确定性检查已经通过，并以纯fast-forward方式随`d02b03295a5e37cebeb788bc780fbede67e574a0`进入`main`。这里的`implemented`只表示合同、唯一GateEvent生产者、GateScanAudit、长期结构影子事实及每日／回放影子入口已经进入主线；尚未部署或生产启用。正式每日扫描、夜间回测、网站、Discord、工作流和公开JSON均未切换到M03；个人形态兼容延后M05，M12生产集成及M04均未开始。
 - 主模块：`docs/rules/03_FACTOR_MODEL.md`；正式设计见`docs/M03_GATE_AND_LONG_TERM_STATE_DESIGN_ZH.md`。
 - 联动模块：M01的`services/contracts/`、M02的`services/market_data/`及未来每日／历史门卫消费者。M04—M10只读引用GateEvent并各自负责因子证据、选股、上下文、排行、交易、总账与评价；M12负责生产接入。M03不设计这些下游合同。
 - 规则先行：中立`services/gates/`已确认成为唯一生产者；实施代码前更新因子模块规则。完整事件只在数据完整／可交易／流动性和精确日线MACD刚金叉后创建；前置失败只进批次级`GateScanAudit`。`baseline_passed`只复现当前复杂多因子使用的既有长期趋势基线，`passed`必须与其相等；新增结构和长期事实全部进入`shadow_assessment`并固定`production_effect=false`。旧1.x只读兼容，不得补造M02输入证据进入2.x formal消费者。
 - 实验：本轮不运行实验。长期筑底、多年深跌、宽幅箱体、持续供给和0.618／70%只保存结构化影子事实与解释，固定`production_effect=false`；没有单独批准，不得改变基线资格或当前生产输出。CGEM、MRNA、BTDR、DLTR只作已见点时检测案例，不能证明收益或用于调整生产规则。
 - 实现与产物：规则与唯一合同／生产器提交`10bde71`；每日与回放影子入口提交`f6458b0`；反例、修订链和消费者清单测试提交`f722bf5`；批次审计不可变存储及冲突反例提交`140aa18`、`2150b39`。独立审核后，提交`170b0a5`让M02完整资格摘要与eligible行情共同进入GateScanAudit并保持Universe总数守恒；提交`9ccc075`让多代GateEvent修订链通过唯一current解析器选择直接前一版本，结果不再依赖输入顺序。`services/gates/producer.py`仍是唯一新`gate_event_id`创建器。当前生产仍由旧默认入口运行；新增入口不写`public/`或`automation/`。
-- 验证：2026-09-01本地M01／M02／M03定向`72`项、完整Python `456`项通过，Python编译通过；前端lint、类型检查、生产构建和`11`项测试通过；`PYTHONHASHSEED=0/1/42/12345`下M03定向`23`项各自通过；`git diff --check`通过。新增固定反例证明6名完整Universe得到5个非事件原因加1个事件，且A→B→C修订不受`[A,B]`或`[B,A]`顺序影响；分叉、断链、跨信号、循环和重复身份均失败关闭。固定本地案例仍只验证CGEM／BTDR定义不足时诚实`unavailable`、MRNA式深跌事实和DLTR式缺口事实，不使用真实案例调参或声称收益。详见`docs/M03_ACCEPTANCE_REPORT_ZH.md`。
+- 验证：2026-09-01 M01／M02／M03定向`72`项、完整Python `456`项通过，Python编译通过；前端lint、TypeScript检查、生产构建和`11`项测试通过；`PYTHONHASHSEED=0/1/42/12345`下M03定向`23`项各自通过；`git diff --check`通过。GateScanAudit完整Universe守恒修复为`170b0a5`，GateEvent修订链顺序无关修复为`9ccc075`，最终验收证据提交为`d02b032`。固定反例证明6名完整Universe得到5个非事件原因加1个事件，且A→B→C修订不受`[A,B]`或`[B,A]`顺序影响；分叉、断链、跨信号、循环和重复身份均失败关闭。`d02b032`通过纯fast-forward进入本地及远端`main`，且该HEAD没有GitHub Actions运行；未部署、未访问真实行情、未运行真实回测或Discord。固定本地案例仍只验证CGEM／BTDR定义不足时诚实`unavailable`、MRNA式深跌事实和DLTR式缺口事实，不使用真实案例调参或声称收益。详见`docs/M03_ACCEPTANCE_REPORT_ZH.md`。
 
 ### CR-2026-09-01-043｜排行榜入选后的留档与统一后续评价
 
@@ -124,7 +124,7 @@
 ### CR-2026-08-30-035｜按总需求制定分模块渐进式重构规划
 
 - 用户原意：采用此前六项推荐架构选择，开始制作覆盖每个模块的完整重构规划书。规划必须写清功能、时间线、交付、验收、回退和隐藏雷点；最终形成从每日扫描、模拟交易、永久总账、回测实验、人工复盘、规则升级、网站到Discord的完整闭环，减少逻辑冲突和重复实现。
-- 状态：整体重构仍为`design_review`；M00治理与状态基线、M01共享合同与影子Manifest、M02行情与股票池影子基础已在各自获批范围达到`implemented`。M03—M13仍须分别设计、批准和实施，当前不授权修改门票、因子、评分、长期资格、止损退出、事件账、页面或Discord业务逻辑。
+- 状态：整体重构仍为`design_review`；M00治理与状态基线、M01共享合同与影子Manifest、M02行情与股票池影子基础、M03唯一门卫与长期状态影子基础已在各自获批范围达到`implemented`。M04—M13仍须分别设计、批准和实施；M03进入主线不授权生产切换，也不授权修改因子评分、排行、持仓退出、事件账、页面或Discord业务逻辑。
 - 主模块：`docs/rules/01_GOVERNANCE.md`。
 - 联动模块：`docs/MODULE_REFACTOR_PLAN_ZH.md`、`docs/PROJECT_REQUIREMENTS_MASTER_ZH.md`、`docs/SYSTEM_ARCHITECTURE_ZH.md`及后续逐个获批的业务模块。
 - 规则先行：本轮不升级业务模块规则；冻结六项设计方向：长期上涨／长期筑底双路径、局部与多年双回撤、月→周→日解释、明显风险阻断完整交易、个人形态先实验20日退出、原仓渐进替换。
