@@ -35,13 +35,13 @@
 ### CR-2026-09-01-046｜M06市场与行业上下文
 
 - 用户原意：使用现有ETF行情和版本化ETF—个股映射，为每只个股生成统一、客观、可追溯的市场／行业技术背景；记录长期趋势、回调、接近突破、确认突破、走弱和个股—ETF同向事实，但不由M06加分、排名或决定交易。
-- 状态：`implementing`（仅获批影子范围）；最小设计和A—E连续影子实施已获用户批准，尚未合并、部署或生产启用。
+- 状态：`verified`（仅获批影子范围）；最小设计和A—E影子实施已保存为`c7f072a`、`d97a74f`和`d80744c`，本地验收通过；尚未合并、部署或生产启用。
 - 主模块：`docs/rules/05_MARKET_REGIME.md`、`docs/rules/06_INDUSTRY.md`；正式设计见`docs/M06_MARKET_INDUSTRY_CONTEXT_DESIGN_ZH.md`。
 - 联动模块：只读消费M02不可变ETF行情和稳定身份，以及M03 `GateEvent`、M04 `TechnicalEvidence`、M05 `ModelAssessment`引用。M07负责评分与排名，M08交易，M09—M10总账与评价，M12生产接入，均未获本条授权。
 - 规则先行：`services/context/`是唯一formal `ContextSnapshot 2.x`生产层；个股Gate、因子和模型事实只引用不重算。当前成分不得倒填历史，ticker-only证据只能显式legacy并附`current_membership_bias`。
 - 实验：不需要收益实验。M06只收敛客观上下文事实；任何“行业共振加分”或交易影响须留待M07另行设计、验证和批准。
 - 实现与产物：计划仅新增精选ETF注册表、不可覆盖成分证据、唯一ETF状态纯函数、唯一上下文生产器、每日／回放同源影子入口及固定样本。不写公开JSON。
-- 验证：待完整本地验收后填写；尚未合并或生产启用。
+- 验证：M06专项12项、M01—M06定向135项、完整Python 502项、四种固定`PYTHONHASHSEED`每轮12项、治理19项及前端11项通过；Python编译、lint、TypeScript、生产构建、文档链接和`git diff --check`通过。详见`docs/M06_ACCEPTANCE_REPORT_ZH.md`。
 
 ### CR-2026-09-01-045｜M05两个选股器与统一模型判断
 
