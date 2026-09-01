@@ -388,6 +388,26 @@ def current_gate_event(events: Iterable[Mapping[str, Any]]) -> Mapping[str, Any]
         ):
             raise ContractError("gate revision chain evidence does not bind its prior event")
         superseded.add(prior_id)
+
+    # A unique-looking current event is not sufficient proof of a valid chain:
+    # a disconnected cycle could otherwise be hidden beside it.  Walk every
+    # supplied event so all prior evidence is validated before selecting a tip.
+    states: dict[str, str] = {}
+
+    def visit(event_id: str) -> None:
+        state = states.get(event_id)
+        if state == "visiting":
+            raise ContractError("gate revision chain contains a cycle")
+        if state == "visited":
+            return
+        states[event_id] = "visiting"
+        prior_id = by_id[event_id]["supersedes_event_id"]
+        if prior_id:
+            visit(prior_id)
+        states[event_id] = "visited"
+
+    for event_id in sorted(by_id):
+        visit(event_id)
     current = [event for event in materialized if event["gate_event_id"] not in superseded]
     if len(current) != 1:
         raise ContractError("gate revision chain has no unique current event")

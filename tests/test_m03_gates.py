@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from itertools import permutations
 from pathlib import Path
 import tempfile
 import unittest
@@ -295,8 +296,42 @@ class M03GateTests(unittest.TestCase):
         }
         refingerprint(cycle)
         validate_gate_event(cycle)
-        with self.assertRaisesRegex(ContractError, "no unique current"):
+        with self.assertRaisesRegex(ContractError, "cycle"):
             current_gate_event([second, cycle])
+
+    def test_revision_chain_rejects_a_hidden_cycle_beside_an_independent_current(self):
+        first_prepared = prepare("factor_snapshot")
+        first = event_from(first_prepared)
+        second_prepared, second, _ = revised_event(
+            first, first_prepared, high_delta=0.25, revision_digit="1"
+        )
+        cycle = thaw(first)
+        cycle["supersedes_event_id"] = second["gate_event_id"]
+        cycle["market_revision_evidence"] = {
+            "revision_id": "sha256:" + "3" * 64,
+            "from_market_snapshot_id": second_prepared.market_snapshot_id,
+            "to_market_snapshot_id": first_prepared.market_snapshot_id,
+        }
+        refingerprint(cycle)
+        validate_gate_event(cycle)
+
+        _, third, _ = revised_event(
+            second,
+            second_prepared,
+            high_delta=0.5,
+            revision_digit="4",
+            earlier_events=[first],
+        )
+        independent_current = thaw(third)
+        independent_current["supersedes_event_id"] = None
+        independent_current.pop("market_revision_evidence", None)
+        refingerprint(independent_current)
+        validate_gate_event(independent_current)
+
+        for ordering in permutations([second, cycle, independent_current]):
+            with self.subTest(order=[event["gate_event_id"] for event in ordering]):
+                with self.assertRaisesRegex(ContractError, "cycle"):
+                    current_gate_event(ordering)
 
     def test_revision_chain_duplicate_identity_fails(self):
         event = event_from(prepare("factor_snapshot"))
