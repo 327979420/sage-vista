@@ -10,6 +10,13 @@ from .producer import (
     validate_technical_evidence_batch,
     validate_technical_evidence,
 )
+from .support import (
+    SUPPORT_EVIDENCE_SCHEMA_VERSION,
+    SupportEvidenceBatch,
+    produce_support_evidence,
+    validate_support_evidence,
+    validate_support_evidence_batch,
+)
 
 __all__ = [
     "DETECTOR_POLICY_VERSION",
@@ -20,4 +27,9 @@ __all__ = [
     "produce_technical_evidence",
     "validate_technical_evidence_batch",
     "validate_technical_evidence",
+    "SUPPORT_EVIDENCE_SCHEMA_VERSION",
+    "SupportEvidenceBatch",
+    "produce_support_evidence",
+    "validate_support_evidence",
+    "validate_support_evidence_batch",
 ]

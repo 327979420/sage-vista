@@ -81,7 +81,22 @@ def build_shadow_versioned_ranking(*,gate_events,technical_evidence,model_assess
   gate_events=gate_events,technical_evidence=technical_evidence,
   model_assessments=model_assessments,contexts=contexts,
   generated_at=generated_at,ranking_role=ranking_role,
-  activation=activation,comparison_to_snapshot_id=comparison_to_snapshot_id,
+ activation=activation,comparison_to_snapshot_id=comparison_to_snapshot_id,
+ )
+
+def build_shadow_support_evidence(prepared: ShadowConsumerInput,*,gate_events,technical_evidence,generated_at):
+ """Bind unchanged signal-time support facts to stable M04 evidence IDs."""
+ from services.factors import produce_support_evidence
+ return produce_support_evidence(
+  prepared,gate_events=gate_events,technical_evidence=technical_evidence,
+  generated_at=generated_at,
+ )
+
+def build_shadow_trade_plans(ranking_snapshot,support_evidence,*,entry_reads,generated_at):
+ """Run the sole M08 plan producer without changing the daily output path."""
+ from services.execution import produce_trade_plans
+ return produce_trade_plans(
+  ranking_snapshot,support_evidence,entry_reads=entry_reads,generated_at=generated_at,
  )
 
 def load_symbol_rows(as_of,cache_dir="work/eodhd-cache",active_path="work/eodhd-active-common.json"):

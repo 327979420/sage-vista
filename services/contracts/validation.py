@@ -78,6 +78,11 @@ CONTRACT_REQUIRED = {
         "excluded_entries", "selected_entries",
     },
     "TradePlan": {"plan_id", "event_id", "entry", "stop", "execution_policy_version", "status"},
+    "ExitState": {
+        "exit_state_id", "plan_id", "plan", "previous_exit_state_id",
+        "market_data_fingerprint", "holding_sessions", "state",
+        "exit_policy_version", "exit_policy_fingerprint",
+    },
     "OpportunityEvent": {"event_id", "symbol", "signal_date", "gate_event_id", "model_assessments"},
     "ReleaseManifest": {"release_id", "files"},
     "ExperimentRun": {"experiment_id", "status", "evidence_window", "input_refs", "result_refs"},
@@ -94,6 +99,7 @@ ID_FIELDS = {
     "ScoreResult": "score_result_id",
     "RankingSnapshot": "ranking_snapshot_id",
     "TradePlan": "plan_id",
+    "ExitState": "exit_state_id",
     "OpportunityEvent": "event_id",
     "ReleaseManifest": "release_id",
     "ExperimentRun": "experiment_id",
@@ -105,8 +111,9 @@ CONTRACT_SUPPORTED_MAJORS = {
         else {1, 2} if name == "GateEvent"
         else {1, 2} if name in {
             "TechnicalEvidence", "ModelAssessment", "ContextSnapshot",
-            "ScoreResult", "RankingSnapshot",
+            "ScoreResult", "RankingSnapshot", "TradePlan",
         }
+        else {2} if name == "ExitState"
         else {SUPPORTED_MAJOR}
     )
     for name in CONTRACT_REQUIRED
@@ -248,6 +255,7 @@ def validate_contract(
         "ScoreResult": ("score:",),
         "RankingSnapshot": ("ranking:",),
         "TradePlan": ("plan:",),
+        "ExitState": ("exit-state:",),
         # Older examples used event:, while the target design uses opportunity:.
         "OpportunityEvent": ("event:", "opportunity:"),
         "ReleaseManifest": ("sha256:",),
@@ -836,6 +844,38 @@ def validate_contract(
         _require_mapping(payload["stop"], "stop")
         _require_text(payload["execution_policy_version"], "execution_policy_version")
         _require_text(payload["status"], "status")
+        if str(payload["schema_version"]).startswith("2."):
+            required_v2 = {
+                "plan_content_fingerprint", "signal_date", "entry_date", "path_status",
+                "plan_role", "instrument_id", "ranking_snapshot_id", "score_result_id",
+                "gate_event_id", "input_identity", "support_evidence_id",
+                "technical_evidence_ids", "price_basis", "support", "target",
+                "max_hold_sessions", "invalidation_conditions", "plan_policy_version",
+                "plan_policy_fingerprint", "exit_policy_version",
+                "exit_policy_fingerprint", "disabled_experiments",
+            }
+            missing_v2 = sorted(required_v2 - payload.keys())
+            if missing_v2:
+                raise ContractError(f"TradePlan 2.x missing required fields: {', '.join(missing_v2)}")
+            _require_date(payload["signal_date"], "signal_date")
+            _require_date(payload["entry_date"], "entry_date")
+            if payload["entry_date"] <= payload["signal_date"]:
+                raise ContractError("TradePlan entry must follow its signal date")
+            for field in ("input_identity", "support", "target"):
+                _require_mapping(payload[field], field)
+            for field in ("plan_policy_version", "exit_policy_version"):
+                _require_semver(payload[field], field, supported_majors={1})
+            if not isinstance(payload["technical_evidence_ids"], (list, tuple)):
+                raise ContractError("TradePlan technical evidence IDs must be a list")
+    elif contract_name == "ExitState":
+        _require_text(payload["plan_id"], "plan_id")
+        _require_mapping(payload["plan"], "plan")
+        _require_text(payload["market_data_fingerprint"], "market_data_fingerprint")
+        _require_text(payload["state"], "state")
+        _require_text(payload["exit_policy_version"], "exit_policy_version")
+        _require_text(payload["exit_policy_fingerprint"], "exit_policy_fingerprint")
+        if isinstance(payload["holding_sessions"], bool) or not isinstance(payload["holding_sessions"], int) or payload["holding_sessions"] < 0:
+            raise ContractError("ExitState holding_sessions must be a non-negative integer")
     elif contract_name == "OpportunityEvent":
         _require_text(payload["symbol"], "symbol")
         _require_text(payload["gate_event_id"], "gate_event_id")

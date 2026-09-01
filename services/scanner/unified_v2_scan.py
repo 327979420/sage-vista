@@ -167,7 +167,22 @@ def shadow_versioned_ranking(*,gate_events,technical_evidence,model_assessments,
   gate_events=gate_events,technical_evidence=technical_evidence,
   model_assessments=model_assessments,contexts=contexts,
   generated_at=generated_at,ranking_role=ranking_role,
-  activation=activation,comparison_to_snapshot_id=comparison_to_snapshot_id,
+ activation=activation,comparison_to_snapshot_id=comparison_to_snapshot_id,
+ )
+
+def shadow_support_evidence(prepared,*,gate_events,technical_evidence,generated_at):
+ """Bind replay support facts using the same M04 evidence producer."""
+ from services.factors import produce_support_evidence
+ return produce_support_evidence(
+  prepared,gate_events=gate_events,technical_evidence=technical_evidence,
+  generated_at=generated_at,
+ )
+
+def shadow_trade_plans(ranking_snapshot,support_evidence,*,entry_reads,generated_at):
+ """Run the same M08 plan producer in replay shadow mode."""
+ from services.execution import produce_trade_plans
+ return produce_trade_plans(
+  ranking_snapshot,support_evidence,entry_reads=entry_reads,generated_at=generated_at,
  )
 
 def _dates(data,start,end):
