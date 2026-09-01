@@ -84,6 +84,24 @@ def validate_membership_registry(registry: Mapping[str, Any]) -> None:
         members = snapshot.get("members")
         if not isinstance(members, list):
             raise ContractError("membership members must be a list")
+        members_source_count = snapshot.get("members_source_count")
+        unresolved_member_count = snapshot.get("unresolved_member_count")
+        if (
+            isinstance(members_source_count, bool)
+            or not isinstance(members_source_count, int)
+            or members_source_count < 0
+        ):
+            raise ContractError("members_source_count must be a non-negative integer")
+        if (
+            isinstance(unresolved_member_count, bool)
+            or not isinstance(unresolved_member_count, int)
+            or unresolved_member_count < 0
+        ):
+            raise ContractError("unresolved_member_count must be a non-negative integer")
+        if members_source_count < len(members):
+            raise ContractError("members_source_count cannot be smaller than parsed members")
+        if members_source_count != len(members) + unresolved_member_count:
+            raise ContractError("membership counts do not conserve source members")
         member_ids: set[str] = set()
         for member in members:
             if not isinstance(member, Mapping):
@@ -98,13 +116,18 @@ def validate_membership_registry(registry: Mapping[str, Any]) -> None:
             weight = member.get("weight")
             if weight is not None and (not isinstance(weight, (int, float)) or weight < 0):
                 raise ContractError("membership weight must be a non-negative number")
-        if path_status == "formal" and (
-            snapshot.get("formal_eligible") is not True
-            or snapshot.get("identity_status") != "stable_instrument_id"
-            or not members
-            or snapshot.get("bias_labels") not in ([], ())
-        ):
-            raise ContractError("formal membership lacks complete stable identity evidence")
+        if path_status == "formal":
+            if unresolved_member_count != 0:
+                raise ContractError("formal membership cannot contain unresolved members")
+            if members_source_count != len(members):
+                raise ContractError("formal membership source coverage must be complete")
+            if (
+                snapshot.get("formal_eligible") is not True
+                or snapshot.get("identity_status") != "stable_instrument_id"
+                or not members
+                or snapshot.get("bias_labels") not in ([], ())
+            ):
+                raise ContractError("formal membership lacks complete stable identity evidence")
         if path_status == "legacy" and not snapshot.get("bias_labels"):
             raise ContractError("legacy membership must explain its bias")
         key = (symbol, effective, path_status)

@@ -203,9 +203,45 @@ class M06ContextTests(unittest.TestCase):
                 "snapshots": [self.mapping("SOXX", "first"), conflict],
             })
 
+    def test_formal_membership_rejects_unresolved_source_members(self):
+        incomplete = self.mapping("SOXX", "soxx-incomplete")
+        incomplete["members_source_count"] = 33
+        incomplete["unresolved_member_count"] = 32
+        with self.assertRaisesRegex(ContractError, "formal membership.*unresolved"):
+            validate_membership_registry({
+                "schema_version": "1.0.0",
+                "mapping_registry_version": "v1",
+                "snapshots": [incomplete],
+            })
+
+    def test_membership_source_counts_must_conserve_all_members(self):
+        inconsistent = self.mapping("SOXX", "soxx-inconsistent")
+        inconsistent["members_source_count"] = 33
+        inconsistent["unresolved_member_count"] = 0
+        with self.assertRaisesRegex(ContractError, "membership counts do not conserve"):
+            validate_membership_registry({
+                "schema_version": "1.0.0",
+                "mapping_registry_version": "v1",
+                "snapshots": [inconsistent],
+            })
+
+    def test_complete_formal_membership_counts_continue_to_validate(self):
+        validate_membership_registry(self.memberships)
+        selected = select_membership_snapshot(
+            self.memberships["snapshots"],
+            etf_symbol="SOXX", as_of=DAY, path_status="formal",
+        )
+        self.assertEqual(selected["members_source_count"], len(selected["members"]))
+        self.assertEqual(selected["unresolved_member_count"], 0)
+
     def test_repository_ticker_only_evidence_is_legacy_not_formal(self):
         registry = json.loads((ROOT / "data/context/etf-memberships-v1.json").read_text())
         validate_membership_registry(registry)
+        for snapshot in registry["snapshots"]:
+            self.assertEqual(
+                snapshot["members_source_count"],
+                len(snapshot["members"]) + snapshot["unresolved_member_count"],
+            )
         with self.assertRaisesRegex(ContractError, "membership_unavailable"):
             select_membership_snapshot(
                 registry["snapshots"], etf_symbol="SOXX", as_of=DAY, path_status="formal"
