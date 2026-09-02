@@ -1,12 +1,12 @@
 # M10｜统一评价、回测与外部研究引擎设计
 
-- 文档状态：M10-A合同里程碑已进入`main`；M10整体仍为`implementing`
+- 文档状态：M10-A合同里程碑已进入`main`；M10-B已在审核分支完成本地验收；M10整体仍为`implementing`
 - 对应需求：`CR-2026-09-02-050`
 - 基线提交：`5dfd0a57fc1dad56042c0db6b8e2c3ce9ff88251`
 - 设计日期：2026-09-02
-- 生产状态：M10-A影子合同基础已进入`main`；未部署、未生产启用
+- 生产状态：M10-A影子合同基础已进入`main`；M10-B仅为待独立审核的影子实现；未部署、未生产启用
 
-> 本文冻结M10的职责、合同边界、身份和失败关闭语义。M10-A已经完成审核并进入`main`，M10-B尚未开始；C—E、VectorBT、真实多年回测、生产目录、M11和M12仍未批准。
+> 本文冻结M10的职责、合同边界、身份和失败关闭语义。M10-A已经完成审核并进入`main`；M10-B已按批准口径完成固定样本实现和本地验收，尚待独立审核与合并。C—E、VectorBT、真实多年回测、生产目录、M11和M12仍未批准。
 
 ## 1. 人话版
 
@@ -421,3 +421,11 @@ C—E、VectorBT X包、真实多年回测、生产接入、M11和M12不随上�
 - 提交链为设计`386ec4c`、首版合同`814112a`、首轮审核修复`3c79082`和最终合同收口`eb0399c97fb0b9deedea7cdc03735e58fb9b2063`；最终提交已通过独立审核并纯fast-forward进入`main`。
 - M10-A没有计算真实`ForwardOutcome`或`TradeOutcome`；`PortfolioRun`和`ResearchAggregate`算法、M10-B、VectorBT、CSV／Excel、CLI和看板均未开始。
 - 本里程碑不表示部署或生产启用。M10总体继续为`implementing`；M11和M12尚未开始。
+
+### 16.2 M10-B本地验收里程碑（2026-09-02）
+
+- Forward基线提交`209d088045cd5c9d87be130a1c4b8499336cd202`只使用信号后下一有效交易日调整后开盘作为参考价格，并按注入的交易日序列形成1／5／20／60／100日结果；缺少下一开盘不回退其他价格。
+- Trade基线提交`a81d97ce288f7b62224e08556145c93a41df4b5c`只读M08 TradePlan和完整ExitState链，计算毛收益与R收益；formal净收益在费用／滑点未批准时保持`unavailable`，首版Trade MFE／MAE保持`unavailable`并保存已冻结原因。
+- 运行闭环提交`940604e8a004a2e2d0c54fbfeda1e7c6e8e3af65`要求先有pending `ExperimentRun 2.x`，结果完整验证后才追加complete收据；每日与回放薄入口调用同一评价器。
+- 本地验收为：M10-A／B专项57项、M01—M10扩大定向251项、完整Python 607项、四种固定哈希种子每轮57项、治理19项及前端11项通过；Python编译、lint、TypeScript、生产构建和差异格式检查通过。
+- M10-B当前只达到审核分支`verified`，不表示已经合并、部署或生产启用。没有运行真实多年回测，没有实现PortfolioRun、ResearchAggregate、VectorBT、CSV／Excel、CLI、看板、M11或M12。

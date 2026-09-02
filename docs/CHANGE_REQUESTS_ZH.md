@@ -35,7 +35,7 @@
 ### CR-2026-09-02-050｜M10统一评价、回测与外部研究引擎
 
 - 用户原意：在不改写M02—M09既有事实的前提下，为逐股前向表现、严格执行M08计划后的交易结果、资本约束组合运行和研究汇总建立四类互不冒充的不可变结果；V1、V2及comparison永久并存，并可按版本、日期、股票、事件和运行准确查询。CSV／Excel只能从权威结果再生成，供人工审核，不能成为机器账本或回写旧事实。
-- 状态：`implementing`；M10-A合同基础已经完成、通过独立审核，并随最终审核提交`eb0399c97fb0b9deedea7cdc03735e58fb9b2063`纯fast-forward进入`main`。M10-B尚未开始；M10整体不能标为`implemented`。C—E、VectorBT X包、真实多年回测、生产接入、M11和M12均未获批准。
+- 状态：`implementing`；M10-A合同基础已经完成、通过独立审核，并随最终审核提交`eb0399c97fb0b9deedea7cdc03735e58fb9b2063`纯fast-forward进入`main`。M10-B内部基线评价器已在独立审核分支完成实现、固定样本和完整本地验收，当前为`verified`并等待独立审核及合并；M10整体不能标为`implemented`。C—E、VectorBT X包、真实多年回测、生产接入、M11和M12均未获批准。
 - 主模块：`docs/rules/08_BACKTEST_AND_EXPERIMENTS.md`；未来中立唯一formal评价层建议为`services/evaluation/`，统一非交互式研究入口建议为`python3 -m research.run --config <versioned-config.json>`。
 - 联动模块：只读消费M02不可变行情／股票池、M07评分／权威排行、M08交易计划／退出状态和M09唯一事件及其稳定ID、政策版本和内容指纹。M11负责把研究结论送入独立升级闸门；M12负责真实生产工作流、Manifest、网站、下载和部署。M10不得反向修改M02—M09。
 - CR-043边界：本CR正式承接CR-043中M10的“V1／V2历史并存、按版本／日期／股票／运行查询、逐股forward／backtest、准确数字证据、CSV／Excel审核副本以及证据不足时偏差或`unavailable`”设计责任；CR-043整体继续为`captured`，不因此升级为已批准、已实施或生产启用。
@@ -44,8 +44,8 @@
 - 已批准口径：首版Forward窗口固定为`1/5/20/60/100`交易日；尚未走满的窗口为`pending`，到期后因停牌、退市或行情缺失才是`partial`或`unavailable`。formal TradeOutcome可以保存毛收益；费用／滑点政策未获批准时formal净收益必须`unavailable`，零成本净收益只能是明确`comparison`。
 - 不可变成熟链：后续窗口成熟只能追加新结果或显式修订链；不得覆盖较早的`pending`记录，也不得修改M09根事件或上游事实。
 - 实验：本条不批准资金分配、评分、排行、持仓或退出新政策。30→60→126日、部分止盈、追踪退出等既有`deferred_experiment`继续关闭；组合政策和外部引擎接入仍须另行批准。
-- 实现与产物：M10-A已经建立四类2.x结果合同骨架、`ExperimentRun 2.x`、稳定身份和版本化政策、formal／comparison／legacy隔离、不可变修订链及只追加影子存储；提交链为设计`386ec4c`、首版合同`814112a`、首轮审核修复`3c79082`和最终合同收口`eb0399c`。M10-A没有计算真实`ForwardOutcome`或`TradeOutcome`；`PortfolioRun`和`ResearchAggregate`仍只有明确`unavailable`的合同骨架，没有算法。M10-B、VectorBT、CSV／Excel、CLI和看板均未开始，也没有写入`public/`或生产状态。
-- 验证：M10-A最终专项33项、完整Python 583项、治理19项、四种固定`PYTHONHASHSEED`每轮33项、原始攻击反例13项及前端11项通过；Python编译、lint、TypeScript、生产构建、文档链接和差异格式检查通过。最终独立复核未发现当前合同范围内的可复现阻断缺陷。M10-A只进入`main`，尚未部署或生产启用；M10-B必须另行开始和验收。
+- 实现与产物：M10-A已经建立四类2.x结果合同骨架、`ExperimentRun 2.x`、稳定身份和版本化政策、formal／comparison／legacy隔离、不可变修订链及只追加影子存储；提交链为设计`386ec4c`、首版合同`814112a`、首轮审核修复`3c79082`和最终合同收口`eb0399c`。M10-B以`209d088`实现Forward基线、`a81d97c`实现Trade基线、`940604e`闭合运行收据及每日／回放同源影子入口；只使用固定合成样本。`PortfolioRun`和`ResearchAggregate`仍只有明确`unavailable`的合同骨架，没有算法；VectorBT、CSV／Excel、CLI和看板均未开始，也没有写入`public/`或生产状态。验收见`docs/M10_ACCEPTANCE_REPORT_ZH.md`。
+- 验证：M10-A／B专项57项、M01—M10扩大定向251项、完整Python 607项、治理19项、四种固定`PYTHONHASHSEED`每轮57项及前端11项通过；Python编译、lint、TypeScript、生产构建和差异格式检查通过。Forward起点固定为信号后下一有效交易日调整后开盘且不回退信号日收盘；Trade MFE／MAE固定为`unavailable`。M10-B尚待独立审核和合并，未部署或生产启用。
 
 ### CR-2026-09-01-049｜M09一本不可变事件总账与追加式人工审核
 
