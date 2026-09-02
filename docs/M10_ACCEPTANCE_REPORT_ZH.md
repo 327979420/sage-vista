@@ -5,6 +5,8 @@
 - Forward实现：`209d088045cd5c9d87be130a1c4b8499336cd202`
 - Trade实现：`a81d97ce288f7b62224e08556145c93a41df4b5c`
 - 运行收据与同源入口：`940604e8a004a2e2d0c54fbfeda1e7c6e8e3af65`
+- 运行结果完整守恒修复：`cd1379cda5513a7f13393ec47f23adbf897effa2`
+- ExitState与事件证券绑定修复：`3cecf80f0afd79d84b56518b6f0bb6644d984bcf`
 - 生产状态：未合并`main`、未部署、未生产启用
 
 ## 1. 阶段结论
@@ -29,18 +31,23 @@ M10-B已经用固定合成样本形成唯一内部基线评价层：ForwardOutco
 | Trade MFE／MAE均为unavailable，写入数值验证失败 | 通过 |
 | pending成熟只追加修订，旧记录不覆盖 | 通过 |
 | ExperimentRun输入、结果引用及收据修订守恒 | 通过 |
+| pending收据冻结事件、证券、日期、行情、股票池、日历、计划、ExitState及预期逻辑结果；complete拒绝缺少、重复、多出或外来结果 | 通过 |
+| Forward每个事件完整保存1／5／20／60／100五个窗口，混合pending／partial／unavailable／mature状态也保持集合守恒 | 通过 |
+| ExitState状态、退出原因、退出日期与执行价格一致；active不能伪造终态事实 | 通过 |
+| M09事件、TradePlan、ExitState及两条机器链接的证券和信号日完全一致 | 通过 |
 | 每日与回放相同输入得到相同结果和运行身份 | 通过 |
 | M02—M09输入在评价前后不变 | 通过 |
 
 ## 3. 验证记录
 
-- M10-A／B专项：57项通过。
-- M01—M10扩大定向：251项通过。
-- 完整Python：607项通过。
-- `PYTHONHASHSEED=0/1/42/12345`：每轮57项通过。
+- M08与M10专项：78项通过。
+- M01—M10扩大定向：261项通过。
+- 完整Python：615项通过。
+- `PYTHONHASHSEED=0/1/42/12345`：每轮78项通过。
 - 治理状态：19项通过。
 - 前端：lint、TypeScript、生产构建及11项测试通过。
 - Python编译和差异格式检查：通过。
+- 原始攻击反例：外来事件／行情及缺窗口complete、矛盾ExitState／倒置日期、替换另一证券或信号日链接均明确拒绝。
 - 测试前后没有出现范围外文件。
 
 ## 4. 明确未做

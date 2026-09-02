@@ -44,8 +44,8 @@
 - 已批准口径：首版Forward窗口固定为`1/5/20/60/100`交易日；尚未走满的窗口为`pending`，到期后因停牌、退市或行情缺失才是`partial`或`unavailable`。formal TradeOutcome可以保存毛收益；费用／滑点政策未获批准时formal净收益必须`unavailable`，零成本净收益只能是明确`comparison`。
 - 不可变成熟链：后续窗口成熟只能追加新结果或显式修订链；不得覆盖较早的`pending`记录，也不得修改M09根事件或上游事实。
 - 实验：本条不批准资金分配、评分、排行、持仓或退出新政策。30→60→126日、部分止盈、追踪退出等既有`deferred_experiment`继续关闭；组合政策和外部引擎接入仍须另行批准。
-- 实现与产物：M10-A已经建立四类2.x结果合同骨架、`ExperimentRun 2.x`、稳定身份和版本化政策、formal／comparison／legacy隔离、不可变修订链及只追加影子存储；提交链为设计`386ec4c`、首版合同`814112a`、首轮审核修复`3c79082`和最终合同收口`eb0399c`。M10-B以`209d088`实现Forward基线、`a81d97c`实现Trade基线、`940604e`闭合运行收据及每日／回放同源影子入口；只使用固定合成样本。`PortfolioRun`和`ResearchAggregate`仍只有明确`unavailable`的合同骨架，没有算法；VectorBT、CSV／Excel、CLI和看板均未开始，也没有写入`public/`或生产状态。验收见`docs/M10_ACCEPTANCE_REPORT_ZH.md`。
-- 验证：M10-A／B专项57项、M01—M10扩大定向251项、完整Python 607项、治理19项、四种固定`PYTHONHASHSEED`每轮57项及前端11项通过；Python编译、lint、TypeScript、生产构建和差异格式检查通过。Forward起点固定为信号后下一有效交易日调整后开盘且不回退信号日收盘；Trade MFE／MAE固定为`unavailable`。M10-B尚待独立审核和合并，未部署或生产启用。
+- 实现与产物：M10-A已经建立四类2.x结果合同骨架、`ExperimentRun 2.x`、稳定身份和版本化政策、formal／comparison／legacy隔离、不可变修订链及只追加影子存储；提交链为设计`386ec4c`、首版合同`814112a`、首轮审核修复`3c79082`和最终合同收口`eb0399c`。M10-B以`209d088`实现Forward基线、`a81d97c`实现Trade基线、`940604e`闭合运行收据及每日／回放同源影子入口；审核修复`cd1379c`冻结并核对完整预期结果集合，`3cecf80`收紧M08 ExitState一致性及M09事件／计划／退出链接的证券和信号日绑定。全部只使用固定合成样本。`PortfolioRun`和`ResearchAggregate`仍只有明确`unavailable`的合同骨架，没有算法；VectorBT、CSV／Excel、CLI和看板均未开始，也没有写入`public/`或生产状态。验收见`docs/M10_ACCEPTANCE_REPORT_ZH.md`。
+- 验证：M08与M10专项78项、M01—M10扩大定向261项、完整Python 615项、治理19项、四种固定`PYTHONHASHSEED`每轮78项及前端11项通过；Python编译、lint、TypeScript、生产构建和差异格式检查通过。外来事件／行情、缺少或重复窗口、矛盾ExitState、倒置退出日期及另一证券／信号日链接攻击均失败关闭。Forward起点固定为信号后下一有效交易日调整后开盘且不回退信号日收盘；Trade MFE／MAE固定为`unavailable`。M10-B尚待最后快速复核和合并，未部署或生产启用。
 
 ### CR-2026-09-01-049｜M09一本不可变事件总账与追加式人工审核
 
