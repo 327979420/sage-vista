@@ -16,7 +16,7 @@ from typing import Any, Iterable, Mapping
 
 from services.contracts.market_data import canonical_fingerprint, require_date
 from services.contracts.policies import ADJUSTMENT_POLICY
-from services.contracts.validation import ContractError, validate_contract
+from services.contracts.validation import ContractError, SEMVER, validate_contract
 
 from .policies import (
     EVALUATION_POLICY,
@@ -52,6 +52,52 @@ RESULT_TYPES = {
         "research_aggregate_id", "aggregate_content_fingerprint",
         "research-aggregate", "aggregate-logical",
     ),
+}
+
+COMMON_RESULT_FIELDS = {
+    "schema_version", "as_of", "generated_at", "source_version",
+    "future_data_used", "run_id", "logical_result_id", "supersedes_result_id",
+    "path_status", "result_role", "partition_role", "bias_labels",
+    "evaluation_policy", "partition_policy", "input_fingerprint", "status",
+}
+RESULT_ALLOWED_FIELDS = {
+    "ForwardOutcome": COMMON_RESULT_FIELDS | {
+        "forward_outcome_id", "forward_content_fingerprint", "event_id",
+        "event_content_fingerprint", "instrument_id", "signal_date",
+        "signal_market_snapshot_id", "window_sessions", "window_policy",
+        "session_calendar_id", "session_calendar_fingerprint",
+        "elapsed_session_count", "observed_session_count", "observed_through",
+        "status_reason", "entry", "endpoint", "gross_return", "mfe", "mae",
+        "price_basis", "adjustment_policy", "market_data_fingerprint",
+    },
+    "TradeOutcome": COMMON_RESULT_FIELDS | {
+        "trade_outcome_id", "trade_content_fingerprint", "event_id",
+        "event_content_fingerprint", "instrument_id", "signal_date",
+        "trade_plan_id", "trade_plan_content_fingerprint", "trade_plan_link_id",
+        "trade_plan_link_content_fingerprint", "exit_state_id",
+        "exit_state_content_fingerprint", "status_reason", "entry", "exit",
+        "holding_sessions", "gross_return", "gross_r_multiple", "net_return",
+        "net_return_status", "net_return_reason", "mfe", "mae", "mfe_status",
+        "mae_status", "cost_policy", "price_basis", "adjustment_policy",
+        "market_data_fingerprint", "execution_policy",
+    },
+    "PortfolioRun": COMMON_RESULT_FIELDS | {
+        "portfolio_run_id", "portfolio_content_fingerprint", "status_reason",
+        "trade_outcome_refs",
+    },
+    "ResearchAggregate": COMMON_RESULT_FIELDS | {
+        "research_aggregate_id", "aggregate_content_fingerprint", "status_reason",
+        "result_refs",
+    },
+}
+EXPERIMENT_RUN_ALLOWED_FIELDS = {
+    "schema_version", "as_of", "generated_at", "source_version",
+    "future_data_used", "run_id", "run_content_fingerprint", "attempt_id",
+    "experiment_id", "status", "evidence_window", "path_status", "result_role",
+    "partition_role", "bias_labels", "code_commit", "config_ref", "engine",
+    "policy_refs", "input_refs", "result_refs", "input_set_fingerprint",
+    "result_set_fingerprint", "started_at", "finished_at", "parent_run_id",
+    "checkpoint_ref", "error",
 }
 
 
@@ -124,6 +170,22 @@ def _required(payload: Mapping[str, Any], fields: set[str], label: str) -> None:
         raise ContractError(f"{label} missing required fields: {', '.join(missing)}")
 
 
+def _exact_fields(payload: Mapping[str, Any], fields: set[str], label: str) -> None:
+    """Reject both missing and unknown fields for an immutable 2.x contract."""
+
+    _required(payload, fields, label)
+    unknown = sorted(payload.keys() - fields)
+    if unknown:
+        raise ContractError(f"{label} contains unknown fields: {', '.join(unknown)}")
+
+
+def _exact_mapping(value: Any, fields: set[str], label: str) -> Mapping[str, Any]:
+    if not isinstance(value, Mapping):
+        raise ContractError(f"{label} must be an object")
+    _exact_fields(value, fields, label)
+    return value
+
+
 def _validate_roles(payload: Mapping[str, Any]) -> None:
     if payload["path_status"] not in {"formal", "legacy"}:
         raise ContractError("M10 path_status must be formal or legacy")
@@ -155,6 +217,104 @@ def _validate_policy_binding(payload: Mapping[str, Any]) -> None:
         raise ContractError("M10-A only knows the approved evaluation policy")
     if _plain(partition_policy) != _plain(PARTITION_POLICY):
         raise ContractError("M10-A only knows the approved partition policy")
+
+
+def _canonical_input_identity(
+    contract_name: str, payload: Mapping[str, Any]
+) -> dict[str, Any]:
+    """Return the one normalized input identity shared by creation and validation.
+
+    Stable upstream IDs and their content fingerprints are both included.  This
+    makes a market, run, event, plan, or policy revision produce a new result
+    version without copying or recalculating any M02-M09 fact.
+    """
+
+    common = {
+        "contract_name": contract_name,
+        "schema_major": 2,
+        "run_id": payload["run_id"],
+        "source_version": _plain(payload["source_version"]),
+        "path_status": payload["path_status"],
+        "result_role": payload["result_role"],
+        "partition_role": payload["partition_role"],
+        "bias_labels": _plain(payload["bias_labels"]),
+        "evaluation_policy_fingerprint": payload["evaluation_policy"][
+            "policy_fingerprint"
+        ],
+        "partition_policy_fingerprint": payload["partition_policy"][
+            "policy_fingerprint"
+        ],
+    }
+    if contract_name == "ForwardOutcome":
+        return {
+            **common,
+            "event_reference": {
+                "id": payload["event_id"],
+                "content_fingerprint": payload["event_content_fingerprint"],
+            },
+            "instrument_id": payload["instrument_id"],
+            "signal_date": payload["signal_date"],
+            "signal_market_snapshot_id": payload["signal_market_snapshot_id"],
+            "window_sessions": payload["window_sessions"],
+            "window_policy_fingerprint": payload["window_policy"][
+                "policy_fingerprint"
+            ],
+            "session_calendar_id": payload["session_calendar_id"],
+            "session_calendar_fingerprint": payload[
+                "session_calendar_fingerprint"
+            ],
+            "price_basis": payload["price_basis"],
+            "adjustment_policy": _plain(payload["adjustment_policy"]),
+            "market_data_fingerprint": payload["market_data_fingerprint"],
+        }
+    if contract_name == "TradeOutcome":
+        return {
+            **common,
+            "event_reference": {
+                "id": payload["event_id"],
+                "content_fingerprint": payload["event_content_fingerprint"],
+            },
+            "instrument_id": payload["instrument_id"],
+            "signal_date": payload["signal_date"],
+            "trade_plan_reference": {
+                "id": payload["trade_plan_id"],
+                "content_fingerprint": payload["trade_plan_content_fingerprint"],
+            },
+            "trade_plan_link_reference": {
+                "id": payload["trade_plan_link_id"],
+                "content_fingerprint": payload[
+                    "trade_plan_link_content_fingerprint"
+                ],
+            },
+            "exit_state_reference": {
+                "id": payload["exit_state_id"],
+                "content_fingerprint": payload["exit_state_content_fingerprint"],
+            },
+            "price_basis": payload["price_basis"],
+            "adjustment_policy": _plain(payload["adjustment_policy"]),
+            "market_data_fingerprint": payload["market_data_fingerprint"],
+            "execution_policy": _plain(payload["execution_policy"]),
+            "cost_policy": _plain(payload["cost_policy"]),
+        }
+    reference_field = (
+        "trade_outcome_refs" if contract_name == "PortfolioRun" else "result_refs"
+    )
+    return {**common, reference_field: _plain(payload[reference_field])}
+
+
+def result_input_fingerprint(
+    contract_name: str, payload: Mapping[str, Any]
+) -> str:
+    """Fingerprint the normalized input identity without trusting a caller value."""
+
+    if contract_name not in RESULT_TYPES:
+        raise ContractError(f"unknown M10 result contract: {contract_name}")
+    try:
+        return canonical_fingerprint(_canonical_input_identity(contract_name, payload))
+    except KeyError as exc:
+        raise ContractError(
+            f"{contract_name} cannot fingerprint missing input field: {exc.args[0]}"
+        ) from exc
 
 
 def _logical_identity(contract_name: str, payload: Mapping[str, Any]) -> dict[str, Any]:
@@ -207,6 +367,13 @@ def finalize_result(contract_name: str, payload: Mapping[str, Any]) -> Mapping[s
     if contract_name not in RESULT_TYPES:
         raise ContractError(f"unknown M10 result contract: {contract_name}")
     result = _plain(payload)
+    expected_input = result_input_fingerprint(contract_name, result)
+    provided_input = result.get("input_fingerprint")
+    if provided_input is not None and provided_input != expected_input:
+        raise ContractError(
+            f"{contract_name} input_fingerprint does not match its input facts"
+        )
+    result["input_fingerprint"] = expected_input
     id_field, fingerprint_field, id_prefix, logical_prefix = RESULT_TYPES[contract_name]
     result["logical_result_id"] = logical_prefix + ":" + canonical_fingerprint(
         _logical_identity(contract_name, result)
@@ -220,23 +387,20 @@ def finalize_result(contract_name: str, payload: Mapping[str, Any]) -> Mapping[s
 
 
 def _validate_common_result(contract_name: str, payload: Mapping[str, Any]) -> None:
-    _required(
-        payload,
-        {
-            "schema_version", "as_of", "generated_at", "source_version",
-            "future_data_used", "logical_result_id", "supersedes_result_id",
-            "path_status", "result_role", "partition_role", "bias_labels",
-            "evaluation_policy", "partition_policy", "input_fingerprint",
-        },
-        contract_name,
-    )
+    _exact_fields(payload, RESULT_ALLOWED_FIELDS[contract_name], contract_name)
     validate_contract(contract_name, payload)
     if payload["schema_version"] != RESULT_SCHEMA_VERSION:
         raise ContractError(f"formal M10 requires {contract_name} 2.0.0")
     _timestamp(payload["generated_at"], "generated_at")
+    if not RUN_ID.fullmatch(str(payload["run_id"])):
+        raise ContractError(f"{contract_name} run_id is invalid")
     _validate_roles(payload)
     _validate_policy_binding(payload)
     _fingerprint(payload["input_fingerprint"], "input_fingerprint")
+    if payload["input_fingerprint"] != result_input_fingerprint(contract_name, payload):
+        raise ContractError(
+            f"{contract_name} input_fingerprint does not match its input facts"
+        )
     id_field, fingerprint_field, id_prefix, logical_prefix = RESULT_TYPES[contract_name]
     if not re.fullmatch(logical_prefix + r":sha256:[0-9a-f]{64}", str(payload["logical_result_id"])):
         raise ContractError(f"{contract_name} logical_result_id is invalid")
@@ -339,8 +503,9 @@ def _validate_forward(payload: Mapping[str, Any]) -> None:
     for field in ("entry", "endpoint"):
         value = payload[field]
         if value is not None:
-            if not isinstance(value, Mapping):
-                raise ContractError(f"ForwardOutcome {field} must be an object")
+            value = _exact_mapping(
+                value, {"date", "price"}, f"ForwardOutcome {field}"
+            )
             require_date(value.get("date"), f"{field}.date")
             if value["date"] > payload["as_of"]:
                 raise ContractError(f"ForwardOutcome {field} cannot use future data")
@@ -408,8 +573,9 @@ def _validate_trade(payload: Mapping[str, Any]) -> None:
     for field in ("entry", "exit"):
         value = payload[field]
         if value is not None:
-            if not isinstance(value, Mapping):
-                raise ContractError(f"TradeOutcome {field} must be an object")
+            value = _exact_mapping(
+                value, {"date", "price"}, f"TradeOutcome {field}"
+            )
             require_date(value.get("date"), f"{field}.date")
             if value["date"] > payload["as_of"]:
                 raise ContractError(f"TradeOutcome {field} cannot use future data")
@@ -448,6 +614,18 @@ def _validate_trade(payload: Mapping[str, Any]) -> None:
             or not payload["net_return_reason"]
         ):
             raise ContractError("incomplete comparison cannot claim a net return")
+    execution_policy = _exact_mapping(
+        payload["execution_policy"],
+        {"policy_version", "policy_fingerprint"},
+        "TradeOutcome execution_policy",
+    )
+    version = execution_policy["policy_version"]
+    if not isinstance(version, str) or not SEMVER.fullmatch(version):
+        raise ContractError("TradeOutcome execution policy version is invalid")
+    _fingerprint(
+        execution_policy["policy_fingerprint"],
+        "execution_policy.policy_fingerprint",
+    )
 
 
 def _validate_reference_list(value: Any, field: str, *, required_prefix: str | None = None) -> None:
@@ -455,8 +633,9 @@ def _validate_reference_list(value: Any, field: str, *, required_prefix: str | N
         raise ContractError(f"{field} must be a list")
     normalized: list[tuple[str, str]] = []
     for item in value:
-        if not isinstance(item, Mapping):
-            raise ContractError(f"{field} items must be objects")
+        item = _exact_mapping(
+            item, {"id", "content_fingerprint"}, f"{field} item"
+        )
         stable_id = _text(item.get("id"), f"{field}.id")
         if required_prefix is not None and not stable_id.startswith(required_prefix):
             raise ContractError(f"{field} has an invalid identity")
@@ -623,15 +802,7 @@ def build_experiment_run_receipt(**values: Any) -> Mapping[str, Any]:
 def validate_experiment_run(payload: Mapping[str, Any]) -> None:
     """Validate an immutable ExperimentRun 2.x receipt; 1.x stays in M01."""
 
-    required = {
-        "schema_version", "as_of", "generated_at", "source_version", "future_data_used",
-        "run_id", "run_content_fingerprint", "attempt_id", "experiment_id", "status",
-        "evidence_window", "path_status", "result_role", "partition_role", "bias_labels",
-        "code_commit", "config_ref", "engine", "policy_refs", "input_refs", "result_refs",
-        "input_set_fingerprint", "result_set_fingerprint", "started_at", "finished_at",
-        "parent_run_id", "checkpoint_ref", "error",
-    }
-    _required(payload, required, "ExperimentRun 2.x")
+    _exact_fields(payload, EXPERIMENT_RUN_ALLOWED_FIELDS, "ExperimentRun 2.x")
     validate_contract("ExperimentRun", payload)
     if payload["schema_version"] != EXPERIMENT_RUN_SCHEMA_VERSION:
         raise ContractError("M10 formal receipts require ExperimentRun 2.0.0")
@@ -643,15 +814,19 @@ def validate_experiment_run(payload: Mapping[str, Any]) -> None:
     _validate_roles(payload)
     if not re.fullmatch(r"[0-9a-f]{40}", str(payload["code_commit"])):
         raise ContractError("ExperimentRun code_commit must be a full 40-hex Git commit")
-    config = payload["config_ref"]
-    if not isinstance(config, Mapping):
-        raise ContractError("ExperimentRun config_ref must be an object")
+    config = _exact_mapping(
+        payload["config_ref"],
+        {"config_id", "config_version", "content_fingerprint"},
+        "ExperimentRun config_ref",
+    )
     _text(config.get("config_id"), "config_ref.config_id")
     _text(config.get("config_version"), "config_ref.config_version")
     _fingerprint(config.get("content_fingerprint"), "config_ref.content_fingerprint")
-    engine = payload["engine"]
-    if not isinstance(engine, Mapping):
-        raise ContractError("ExperimentRun engine must be an object")
+    engine = _exact_mapping(
+        payload["engine"],
+        {"name", "version", "adapter_version"},
+        "ExperimentRun engine",
+    )
     for field in ("name", "version", "adapter_version"):
         _text(engine.get(field), f"engine.{field}")
     _validate_reference_list(payload["input_refs"], "input_refs")
@@ -665,17 +840,22 @@ def validate_experiment_run(payload: Mapping[str, Any]) -> None:
         raise ContractError("ExperimentRun requires policy references")
     policy_pairs: list[tuple[str, str]] = []
     for ref in policy_refs:
-        if not isinstance(ref, Mapping):
-            raise ContractError("ExperimentRun policy references must be objects")
+        ref = _exact_mapping(
+            ref,
+            {"policy_kind", "policy_fingerprint"},
+            "ExperimentRun policy reference",
+        )
         policy_pairs.append((
             _text(ref.get("policy_kind"), "policy_ref.policy_kind"),
             _fingerprint(ref.get("policy_fingerprint"), "policy_ref.policy_fingerprint"),
         ))
     if policy_pairs != sorted(set(policy_pairs)):
         raise ContractError("ExperimentRun policy references must be sorted and unique")
-    window = payload["evidence_window"]
-    if not isinstance(window, Mapping):
-        raise ContractError("ExperimentRun evidence_window must be an object")
+    window = _exact_mapping(
+        payload["evidence_window"],
+        {"start", "end", "evidence_as_of"},
+        "ExperimentRun evidence_window",
+    )
     start = require_date(window.get("start"), "evidence_window.start")
     end = require_date(window.get("end"), "evidence_window.end")
     evidence_as_of = require_date(window.get("evidence_as_of"), "evidence_window.evidence_as_of")
@@ -688,16 +868,30 @@ def validate_experiment_run(payload: Mapping[str, Any]) -> None:
     parent = payload["parent_run_id"]
     if parent is not None and not RUN_ID.fullmatch(str(parent)):
         raise ContractError("ExperimentRun parent_run_id is invalid")
-    if payload["checkpoint_ref"] is not None and not isinstance(payload["checkpoint_ref"], Mapping):
-        raise ContractError("ExperimentRun checkpoint_ref must be an object or null")
+    checkpoint = payload["checkpoint_ref"]
+    if checkpoint is not None:
+        checkpoint = _exact_mapping(
+            checkpoint,
+            {"checkpoint_id", "content_fingerprint"},
+            "ExperimentRun checkpoint_ref",
+        )
+        _text(checkpoint["checkpoint_id"], "checkpoint_ref.checkpoint_id")
+        _fingerprint(
+            checkpoint["content_fingerprint"],
+            "checkpoint_ref.content_fingerprint",
+        )
     status = payload["status"]
     if status not in {"completed", "failed", "interrupted", "unavailable"}:
         raise ContractError("ExperimentRun terminal status is invalid")
     if status == "completed":
         if not payload["result_refs"] or payload["error"] is not None:
             raise ContractError("completed ExperimentRun requires results and no error")
-    elif not isinstance(payload["error"], Mapping) or not payload["error"].get("category"):
-        raise ContractError("non-completed ExperimentRun requires a structured error")
+    else:
+        error = _exact_mapping(
+            payload["error"], {"category", "message"}, "ExperimentRun error"
+        )
+        _text(error["category"], "error.category")
+        _text(error["message"], "error.message")
     expected_id = "experiment-run:" + canonical_fingerprint(_run_identity(payload))
     if payload["run_id"] != expected_id:
         raise ContractError("ExperimentRun run_id does not match its execution identity")
@@ -708,5 +902,6 @@ def validate_experiment_run(payload: Mapping[str, Any]) -> None:
 __all__ = [
     "EXPERIMENT_RUN_SCHEMA_VERSION", "RESULT_SCHEMA_VERSION",
     "assert_immutable_compatible", "build_experiment_run_receipt", "current_result",
-    "finalize_result", "validate_experiment_run", "validate_result",
+    "finalize_result", "result_input_fingerprint", "validate_experiment_run",
+    "validate_result",
 ]

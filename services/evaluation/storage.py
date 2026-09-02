@@ -2,21 +2,32 @@
 
 from __future__ import annotations
 
+from contextlib import contextmanager
+import fcntl
+import hashlib
 import json
 import os
 from pathlib import Path
 import re
 import stat
 import tempfile
-from typing import Any, Callable, Mapping
+from threading import Lock
+from typing import Any, Callable, Iterator, Mapping
 
 from services.contracts.validation import ContractError
 from services.market_data.storage import require_shadow_root
 
-from .contracts import RESULT_TYPES, validate_experiment_run, validate_result
+from .contracts import (
+    RESULT_TYPES,
+    current_result,
+    validate_experiment_run,
+    validate_result,
+)
 
 
 _DIGEST = re.compile(r"^[0-9a-f]{64}$")
+_THREAD_LOCKS: dict[str, Lock] = {}
+_THREAD_LOCKS_GUARD = Lock()
 
 
 def _plain(value: Any) -> Any:
@@ -51,6 +62,30 @@ def _id_digest(value: Any, *, field: str) -> str:
 
 def _reject_json_constant(value: str) -> None:
     raise ContractError(f"stored M10 record contains non-finite JSON: {value}")
+
+
+@contextmanager
+def _chain_lock(root: Path, contract_name: str, logical_result_id: str) -> Iterator[None]:
+    """Serialize one logical chain across threads and local worker processes."""
+
+    key = f"{root}:{contract_name}:{logical_result_id}"
+    with _THREAD_LOCKS_GUARD:
+        thread_lock = _THREAD_LOCKS.setdefault(key, Lock())
+    lock_root = Path(tempfile.gettempdir()) / "sage-vista-m10-chain-locks"
+    lock_root.mkdir(mode=0o700, parents=True, exist_ok=True)
+    lock_name = hashlib.sha256(key.encode()).hexdigest() + ".lock"
+    with thread_lock:
+        descriptor = os.open(
+            lock_root / lock_name,
+            os.O_CREAT | os.O_RDWR | getattr(os, "O_NOFOLLOW", 0),
+            0o600,
+        )
+        try:
+            fcntl.flock(descriptor, fcntl.LOCK_EX)
+            yield
+        finally:
+            fcntl.flock(descriptor, fcntl.LOCK_UN)
+            os.close(descriptor)
 
 
 class EvaluationShadowStore:
@@ -137,11 +172,26 @@ class EvaluationShadowStore:
             if temporary.exists():
                 temporary.unlink()
 
+    def _result_records(
+        self, contract_name: str
+    ) -> list[tuple[Path, Mapping[str, Any]]]:
+        directory = self.root / "results" / contract_name
+        if not directory.exists():
+            return []
+        if directory.is_symlink() or not directory.is_dir():
+            raise ContractError("M10 result collection must be a real directory")
+        validator = lambda item: validate_result(contract_name, item)
+        return [
+            (path, self._load_existing(path, validator=validator))
+            for path in sorted(directory.glob("*.json"))
+        ]
+
     def write_result(
         self, contract_name: str, payload: Mapping[str, Any]
     ) -> Path:
         if contract_name not in RESULT_TYPES:
             raise ContractError("unknown M10 result contract")
+        validate_result(contract_name, payload)
         id_field, fingerprint_field, _, _ = RESULT_TYPES[contract_name]
         target = (
             self.root
@@ -149,13 +199,42 @@ class EvaluationShadowStore:
             / contract_name
             / (_id_digest(payload.get(id_field), field=id_field) + ".json")
         )
-        return self._write(
-            payload,
-            target=target,
-            validator=lambda item: validate_result(contract_name, item),
-            id_field=id_field,
-            fingerprint_field=fingerprint_field,
-        )
+        logical_result_id = str(payload["logical_result_id"])
+        _id_digest(logical_result_id, field="logical_result_id")
+        with _chain_lock(self.root, contract_name, logical_result_id):
+            records = self._result_records(contract_name)
+            chain = [
+                record
+                for _, record in records
+                if record["logical_result_id"] == logical_result_id
+            ]
+            leaf = current_result(contract_name, chain) if chain else None
+            existing_ids = [str(record[id_field]) for record in chain]
+            if str(payload[id_field]) in existing_ids:
+                return self._write(
+                    payload,
+                    target=target,
+                    validator=lambda item: validate_result(contract_name, item),
+                    id_field=id_field,
+                    fingerprint_field=fingerprint_field,
+                )
+
+            if leaf is not None:
+                if payload["supersedes_result_id"] != leaf[id_field]:
+                    raise ContractError(
+                        "M10 revision must supersede the unique current result"
+                    )
+            elif payload["supersedes_result_id"] is not None:
+                raise ContractError("M10 revision predecessor does not exist")
+
+            current_result(contract_name, [*chain, payload])
+            return self._write(
+                payload,
+                target=target,
+                validator=lambda item: validate_result(contract_name, item),
+                id_field=id_field,
+                fingerprint_field=fingerprint_field,
+            )
 
     def write_run_receipt(self, payload: Mapping[str, Any]) -> Path:
         target = (

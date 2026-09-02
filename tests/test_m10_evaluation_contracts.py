@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
+import itertools
 from pathlib import Path
 import tempfile
 import unittest
@@ -20,6 +22,7 @@ from services.evaluation import (
     build_experiment_run_receipt,
     current_result,
     finalize_result,
+    result_input_fingerprint,
     validate_experiment_run,
     validate_result,
 )
@@ -61,7 +64,6 @@ def common(*, role="authoritative", path="formal", biases=None):
         "bias_labels": [] if biases is None else biases,
         "evaluation_policy": EVALUATION_POLICY,
         "partition_policy": PARTITION_POLICY,
-        "input_fingerprint": SHA,
     }
 
 
@@ -99,7 +101,6 @@ def mature_forward(prior=None):
         "as_of": "2026-09-09",
         "generated_at": "2026-09-09T22:00:00Z",
         "supersedes_result_id": prior,
-        "input_fingerprint": SHA_2,
         "status": "mature",
         "elapsed_session_count": 5,
         "observed_session_count": 5,
@@ -109,6 +110,18 @@ def mature_forward(prior=None):
         "gross_return": 0.1,
         "mfe": 0.12,
         "mae": -0.03,
+    })
+    return values
+
+
+def partial_forward(prior):
+    values = mature_forward(prior)
+    values.update({
+        "status": "partial",
+        "status_reason": "trading_halt_before_full_window",
+        "observed_session_count": 4,
+        "mfe": None,
+        "mae": None,
     })
     return values
 
@@ -415,6 +428,196 @@ class M10EvaluationContractsTests(unittest.TestCase):
             first["input_set_fingerprint"],
             canonical_fingerprint(plain(first["input_refs"])),
         )
+
+    def test_result_identity_binds_run_market_and_upstream_evidence(self):
+        base = finalize_result("ForwardOutcome", forward_values())
+        changes = []
+        for field, value in (
+            ("run_id", "experiment-run:sha256:" + "e" * 64),
+            ("signal_market_snapshot_id", "market:sha256:" + "e" * 64),
+            ("market_data_fingerprint", "sha256:" + "e" * 64),
+            ("event_content_fingerprint", "sha256:" + "e" * 64),
+        ):
+            values = forward_values()
+            values[field] = value
+            changes.append(finalize_result("ForwardOutcome", values))
+        for changed in changes:
+            self.assertNotEqual(
+                base["forward_outcome_id"], changed["forward_outcome_id"]
+            )
+            self.assertNotEqual(
+                base["input_fingerprint"], changed["input_fingerprint"]
+            )
+
+        trade = finalize_result("TradeOutcome", trade_values())
+        changed_trade = trade_values()
+        changed_trade["market_data_fingerprint"] = "sha256:" + "e" * 64
+        changed_trade = finalize_result("TradeOutcome", changed_trade)
+        self.assertNotEqual(trade["trade_outcome_id"], changed_trade["trade_outcome_id"])
+
+    def test_invalid_run_and_forged_input_fingerprint_fail(self):
+        invalid = forward_values()
+        invalid["run_id"] = "not-a-run-id"
+        with self.assertRaises(ContractError):
+            finalize_result("ForwardOutcome", invalid)
+        forged = forward_values()
+        forged["input_fingerprint"] = SHA
+        with self.assertRaises(ContractError):
+            finalize_result("ForwardOutcome", forged)
+        valid = forward_values()
+        outcome = finalize_result("ForwardOutcome", valid)
+        self.assertEqual(
+            outcome["input_fingerprint"],
+            result_input_fingerprint("ForwardOutcome", outcome),
+        )
+
+    def test_unknown_top_level_fields_fail_for_all_five_contracts(self):
+        forward = finalize_result("ForwardOutcome", forward_values())
+        trade = finalize_result("TradeOutcome", trade_values())
+        candidates = (
+            ("ForwardOutcome", forward_values()),
+            ("TradeOutcome", trade_values()),
+            ("PortfolioRun", portfolio_values(trade)),
+            ("ResearchAggregate", aggregate_values(forward)),
+        )
+        for contract_name, values in candidates:
+            values["unexpected"] = "not-approved"
+            with self.subTest(contract_name=contract_name):
+                with self.assertRaises(ContractError):
+                    finalize_result(contract_name, values)
+        receipt = receipt_values(forward)
+        receipt["unexpected"] = "not-approved"
+        with self.assertRaises(ContractError):
+            build_experiment_run_receipt(**receipt)
+
+    def test_unknown_nested_fields_fail(self):
+        forward = forward_values()
+        forward["entry"]["vendor_note"] = "not-approved"
+        with self.assertRaises(ContractError):
+            finalize_result("ForwardOutcome", forward)
+        trade = trade_values()
+        trade["execution_policy"]["method"] = "not-approved"
+        with self.assertRaises(ContractError):
+            finalize_result("TradeOutcome", trade)
+        valid_forward = finalize_result("ForwardOutcome", forward_values())
+        receipt = receipt_values(valid_forward)
+        receipt["config_ref"]["label"] = "not-approved"
+        with self.assertRaises(ContractError):
+            build_experiment_run_receipt(**receipt)
+
+    def test_unimplemented_contracts_reject_renamed_metrics_and_market_rows(self):
+        forward = finalize_result("ForwardOutcome", forward_values())
+        trade = finalize_result("TradeOutcome", trade_values())
+        portfolio = portfolio_values(trade)
+        portfolio["portfolio_return"] = 9.99
+        with self.assertRaises(ContractError):
+            finalize_result("PortfolioRun", portfolio)
+        aggregate = aggregate_values(forward)
+        aggregate["computed_metrics"] = {"mean_return": 0.42}
+        with self.assertRaises(ContractError):
+            finalize_result("ResearchAggregate", aggregate)
+        aggregate = aggregate_values(forward)
+        aggregate["ohlcv"] = [{"date": "2026-09-03", "close": 100.0}]
+        with self.assertRaises(ContractError):
+            finalize_result("ResearchAggregate", aggregate)
+
+    def test_store_rejects_dangling_revision_without_creating_result_files(self):
+        pending = finalize_result("ForwardOutcome", forward_values())
+        orphan = finalize_result(
+            "ForwardOutcome", mature_forward(pending["forward_outcome_id"])
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "m10"
+            store = EvaluationShadowStore(root)
+            with self.assertRaises(ContractError):
+                store.write_result("ForwardOutcome", orphan)
+            self.assertEqual([], list(root.rglob("*.json")))
+
+    def test_store_rejects_fork_and_preserves_every_existing_byte(self):
+        pending = finalize_result("ForwardOutcome", forward_values())
+        partial = finalize_result(
+            "ForwardOutcome", partial_forward(pending["forward_outcome_id"])
+        )
+        competing = finalize_result(
+            "ForwardOutcome", mature_forward(pending["forward_outcome_id"])
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "m10"
+            store = EvaluationShadowStore(root)
+            store.write_result("ForwardOutcome", pending)
+            store.write_result("ForwardOutcome", partial)
+            before = {path: path.read_bytes() for path in root.rglob("*.json")}
+            with self.assertRaises(ContractError):
+                store.write_result("ForwardOutcome", competing)
+            self.assertEqual(before, {path: path.read_bytes() for path in root.rglob("*.json")})
+
+    def test_store_accepts_three_generations_and_chain_order_is_irrelevant(self):
+        pending = finalize_result("ForwardOutcome", forward_values())
+        partial = finalize_result(
+            "ForwardOutcome", partial_forward(pending["forward_outcome_id"])
+        )
+        mature_values = mature_forward(partial["forward_outcome_id"])
+        mature_values["as_of"] = "2026-09-10"
+        mature_values["generated_at"] = "2026-09-10T22:00:00Z"
+        mature = finalize_result("ForwardOutcome", mature_values)
+        for order in itertools.permutations((pending, partial, mature)):
+            self.assertEqual(
+                mature["forward_outcome_id"],
+                current_result("ForwardOutcome", order)["forward_outcome_id"],
+            )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "m10"
+            store = EvaluationShadowStore(root)
+            for item in (pending, partial, mature):
+                store.write_result("ForwardOutcome", item)
+            self.assertEqual(3, len(list(root.rglob("*.json"))))
+            self.assertEqual(
+                store.write_result("ForwardOutcome", pending),
+                store.write_result("ForwardOutcome", pending),
+            )
+
+    def test_store_rejects_cross_root_and_cross_path_revisions(self):
+        pending = finalize_result("ForwardOutcome", forward_values())
+        different_root = mature_forward(pending["forward_outcome_id"])
+        different_root["event_id"] = "opportunity:sha256:" + "e" * 64
+        different_root["event_content_fingerprint"] = "sha256:" + "e" * 64
+        different_root = finalize_result("ForwardOutcome", different_root)
+        cross_path = forward_values(
+            role="comparison", path="legacy", biases=["legacy_membership"]
+        )
+        cross_path["supersedes_result_id"] = pending["forward_outcome_id"]
+        cross_path = finalize_result("ForwardOutcome", cross_path)
+        with tempfile.TemporaryDirectory() as directory:
+            store = EvaluationShadowStore(Path(directory) / "m10")
+            store.write_result("ForwardOutcome", pending)
+            for invalid in (different_root, cross_path):
+                with self.assertRaises(ContractError):
+                    store.write_result("ForwardOutcome", invalid)
+
+    def test_concurrent_children_cannot_create_two_chain_heads(self):
+        pending = finalize_result("ForwardOutcome", forward_values())
+        first = finalize_result(
+            "ForwardOutcome", partial_forward(pending["forward_outcome_id"])
+        )
+        second = finalize_result(
+            "ForwardOutcome", mature_forward(pending["forward_outcome_id"])
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "m10"
+            store = EvaluationShadowStore(root)
+            store.write_result("ForwardOutcome", pending)
+
+            def attempt(item):
+                try:
+                    store.write_result("ForwardOutcome", item)
+                    return "written"
+                except ContractError:
+                    return "rejected"
+
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                outcomes = list(pool.map(attempt, (first, second)))
+            self.assertEqual(["rejected", "written"], sorted(outcomes))
+            self.assertEqual(2, len(list(root.rglob("*.json"))))
 
 
 if __name__ == "__main__":
