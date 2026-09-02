@@ -103,6 +103,7 @@ RESULT_ALLOWED_FIELDS = {
         "evaluation_market_snapshot_fingerprint", "universe_id",
         "universe_content_fingerprint", "window_sessions", "window_policy",
         "session_calendar_id", "session_calendar_fingerprint",
+        "target_session_date",
         "elapsed_session_count", "observed_session_count", "observed_through",
         "status_reason", "entry", "endpoint", "gross_return", "mfe", "mae",
         "price_basis", "adjustment_policy", "market_data_fingerprint",
@@ -405,7 +406,7 @@ def _canonical_input_identity(
         ],
     }
     if contract_name == "ForwardOutcome":
-        return {
+        identity = {
             **common,
             "event_reference": {
                 "id": payload["event_id"],
@@ -436,6 +437,9 @@ def _canonical_input_identity(
             "adjustment_policy": _plain(payload["adjustment_policy"]),
             "market_data_fingerprint": payload["market_data_fingerprint"],
         }
+        if "target_session_date" in payload:
+            identity["target_session_date"] = payload["target_session_date"]
+        return identity
     if contract_name == "TradeOutcome":
         return {
             **common,
@@ -570,7 +574,14 @@ def finalize_result(contract_name: str, payload: Mapping[str, Any]) -> Mapping[s
 
 
 def _validate_common_result(contract_name: str, payload: Mapping[str, Any]) -> None:
-    _exact_fields(payload, RESULT_ALLOWED_FIELDS[contract_name], contract_name)
+    allowed = RESULT_ALLOWED_FIELDS[contract_name]
+    optional = {"target_session_date"} if contract_name == "ForwardOutcome" else set()
+    _required(payload, allowed - optional, contract_name)
+    unknown = sorted(payload.keys() - allowed)
+    if unknown:
+        raise ContractError(
+            f"{contract_name} contains unknown fields: {', '.join(unknown)}"
+        )
     validate_contract(contract_name, payload)
     if payload["schema_version"] != RESULT_SCHEMA_VERSION:
         raise ContractError(f"formal M10 requires {contract_name} 2.0.0")
@@ -668,6 +679,13 @@ def _validate_forward(payload: Mapping[str, Any]) -> None:
         allowed_roles={"session_calendar"},
     )
     _fingerprint(payload["session_calendar_fingerprint"], "session_calendar_fingerprint")
+    target_session_date = payload.get("target_session_date")
+    if target_session_date is not None:
+        target_session_date = require_date(
+            target_session_date, "ForwardOutcome.target_session_date"
+        )
+        if target_session_date <= payload["signal_date"]:
+            raise ContractError("ForwardOutcome target session must follow the signal")
     elapsed = _non_negative_int(payload["elapsed_session_count"], "elapsed_session_count")
     observed = _non_negative_int(payload["observed_session_count"], "observed_session_count")
     if observed > elapsed:
@@ -689,10 +707,14 @@ def _validate_forward(payload: Mapping[str, Any]) -> None:
     if status == "pending":
         if elapsed >= payload["window_sessions"] or reason != "window_not_mature":
             raise ContractError("pending ForwardOutcome must be genuinely immature")
+        if target_session_date is not None and target_session_date <= payload["as_of"]:
+            raise ContractError("pending ForwardOutcome target must be after as_of")
         if any(payload[field] is not None for field in ("endpoint", "gross_return", "mfe", "mae")):
             raise ContractError("pending ForwardOutcome cannot contain mature results")
     elif elapsed < payload["window_sessions"]:
         raise ContractError("an immature ForwardOutcome must remain pending")
+    elif target_session_date is not None and target_session_date > payload["as_of"]:
+        raise ContractError("matured ForwardOutcome target cannot be after as_of")
     elif status == "mature":
         if reason is not None or observed != payload["window_sessions"]:
             raise ContractError("mature ForwardOutcome requires complete window evidence")
@@ -720,6 +742,14 @@ def _validate_forward(payload: Mapping[str, Any]) -> None:
             require_date(value.get("date"), f"{field}.date")
             if value["date"] > payload["as_of"]:
                 raise ContractError(f"ForwardOutcome {field} cannot use future data")
+            if (
+                field == "endpoint"
+                and target_session_date is not None
+                and value["date"] != target_session_date
+            ):
+                raise ContractError(
+                    "ForwardOutcome endpoint date must match its target session"
+                )
             price = _finite(value.get("price"), f"{field}.price")
             if price is None or price <= 0:
                 raise ContractError(f"{field}.price must be positive")

@@ -46,6 +46,7 @@ from services.evaluation import (
     validate_baseline_evaluation_batch,
     validate_result,
 )
+from services.evaluation.baseline import forward_result_scope_keys
 from services.ledger import produce_exit_state_link, produce_trade_plan_links
 from services.market_data import RepositoryRead
 from services.scanner.factor_snapshot import (
@@ -170,7 +171,7 @@ def policy_ref(kind, policy):
     }
 
 
-def pending_receipt(event, snapshot, calendar, *, attempt="forward-fixture"):
+def pending_receipt(event, read, snapshot, calendar, *, attempt="forward-fixture"):
     input_refs = [
         {
             "id": event["event_id"],
@@ -213,24 +214,13 @@ def pending_receipt(event, snapshot, calendar, *, attempt="forward-fixture"):
         instrument_id=event["instrument_id"],
         signal_date=event["signal_date"],
         market_data_fingerprint=market_fingerprint,
-        expected_result_keys=[{
-            "event_id": event["event_id"],
-            "event_content_fingerprint": event["event_content_fingerprint"],
-            "instrument_id": event["instrument_id"],
-            "signal_date": event["signal_date"],
-            "signal_market_snapshot_id": event["input_identity"]["market_snapshot_id"],
-            "evaluation_market_snapshot_id": snapshot["snapshot_id"],
-            "evaluation_market_snapshot_fingerprint": market_snapshot_evidence_fingerprint(
-                snapshot
-            ),
-            "universe_id": event["input_identity"]["universe_id"],
-            "universe_content_fingerprint": UNIVERSE_CONTENT,
-            "as_of": calendar["as_of"],
-            "session_calendar_id": calendar["calendar_id"],
-            "session_calendar_fingerprint": calendar["content_fingerprint"],
-            "elapsed_session_count": len(calendar["sessions"]),
-            "window_sessions": window,
-        } for window in FORWARD_WINDOWS],
+        expected_result_keys=forward_result_scope_keys(
+            event,
+            snapshot,
+            UNIVERSE_CONTENT,
+            calendar,
+            read.rows,
+        ),
     )
     return build_experiment_run_receipt(
         as_of=calendar["as_of"],
@@ -427,6 +417,7 @@ class M10ForwardBaselineTests(unittest.TestCase):
             signal_date=self.event["signal_date"],
             as_of=as_of,
             sessions=self.sessions[:elapsed],
+            target_sessions=self.sessions,
         )
         rows = adjusted_rows(
             self.event, self.sessions, through=as_of, missing=missing
@@ -434,6 +425,7 @@ class M10ForwardBaselineTests(unittest.TestCase):
         read, snapshot = market_evidence(self.event, rows, as_of=as_of)
         receipt = pending_receipt(
             self.event,
+            read,
             snapshot,
             calendar,
             attempt=attempt or f"forward-{elapsed}-{'-'.join(missing) or 'complete'}",
@@ -450,6 +442,28 @@ class M10ForwardBaselineTests(unittest.TestCase):
         )
         return outcomes, read, snapshot, calendar, receipt
 
+    def test_pending_calendar_freezes_all_authoritative_window_targets(self):
+        calendar = build_session_calendar_evidence(
+            calendar_name="fixed-us-session-fixture",
+            calendar_version="1.0.0",
+            signal_date=self.event["signal_date"],
+            as_of=self.sessions[4],
+            sessions=self.sessions[:5],
+            target_sessions=self.sessions,
+        )
+        self.assertEqual(calendar["sessions"], tuple(self.sessions[:5]))
+        self.assertEqual(calendar["target_sessions"], tuple(self.sessions))
+        self.assertEqual(
+            {
+                window: calendar["target_sessions"][window - 1]
+                for window in FORWARD_WINDOWS
+            },
+            {
+                window: self.sessions[window - 1]
+                for window in FORWARD_WINDOWS
+            },
+        )
+
     def test_all_windows_use_next_adjusted_open_not_signal_close(self):
         outcomes, _, _, calendar, _ = self.produce(elapsed=100)
         by_window = {item["window_sessions"]: item for item in outcomes}
@@ -459,6 +473,10 @@ class M10ForwardBaselineTests(unittest.TestCase):
             self.assertNotEqual(item["entry"]["price"], 999.0)
         self.assertEqual(by_window[1]["endpoint"]["date"], self.sessions[0])
         self.assertEqual(by_window[5]["endpoint"]["date"], self.sessions[4])
+        self.assertEqual(
+            {item["target_session_date"] for item in outcomes},
+            {self.sessions[window - 1] for window in FORWARD_WINDOWS},
+        )
         self.assertNotIn("2026-08-31", calendar["sessions"])
 
     def test_weekends_holiday_endpoint_and_excursions_are_exact(self):
@@ -476,6 +494,7 @@ class M10ForwardBaselineTests(unittest.TestCase):
         five = next(item for item in outcomes if item["window_sessions"] == 5)
         self.assertEqual(five["status"], "pending")
         self.assertEqual(five["status_reason"], "window_not_mature")
+        self.assertEqual(five["target_session_date"], self.sessions[4])
         self.assertIsNone(five["endpoint"])
         self.assertTrue(all(row["date"] <= read.as_of for row in read.rows))
 
@@ -490,6 +509,7 @@ class M10ForwardBaselineTests(unittest.TestCase):
         )
         self.assertIsNone(five["entry"])
         self.assertIsNone(five["gross_return"])
+        self.assertEqual(five["target_session_date"], self.sessions[4])
 
     def test_missing_middle_session_is_partial_without_guessed_excursions(self):
         outcomes, _, _, _, _ = self.produce(
@@ -499,8 +519,21 @@ class M10ForwardBaselineTests(unittest.TestCase):
         self.assertEqual(five["status"], "partial")
         self.assertEqual(five["gross_return"], 0.05)
         self.assertEqual(five["observed_session_count"], 4)
+        self.assertEqual(five["target_session_date"], self.sessions[4])
         self.assertIsNone(five["mfe"])
         self.assertIsNone(five["mae"])
+
+    def test_missing_target_session_never_falls_back_to_an_adjacent_close(self):
+        outcomes, _, _, _, _ = self.produce(
+            elapsed=5, missing=(self.sessions[4],)
+        )
+        five = next(item for item in outcomes if item["window_sessions"] == 5)
+        self.assertEqual(five["target_session_date"], self.sessions[4])
+        self.assertEqual(five["status"], "unavailable")
+        self.assertEqual(
+            five["status_reason"], "endpoint_adjusted_close_unavailable"
+        )
+        self.assertIsNone(five["endpoint"])
 
     def test_pending_matures_by_revision_and_same_replay_is_idempotent(self):
         pending, _, _, _, _ = self.produce(elapsed=3)
@@ -1046,7 +1079,7 @@ class M10RunIntegrationTests(unittest.TestCase):
             generated_at=f"{calendar['as_of']}T22:02:00Z",
         )
         other = pending_receipt(
-            event, snapshot, calendar, attempt="different-run-root"
+            event, read, snapshot, calendar, attempt="different-run-root"
         )
         with self.assertRaisesRegex(ContractError, "does not belong"):
             complete_baseline_run(
@@ -1067,7 +1100,7 @@ class M10RunIntegrationTests(unittest.TestCase):
             other, other_rows, as_of=calendar["as_of"]
         )
         other_receipt = pending_receipt(
-            other, other_snapshot, calendar, attempt="foreign-event"
+            other, other_read, other_snapshot, calendar, attempt="foreign-event"
         )
         foreign = produce_forward_outcomes(
             other,
@@ -1127,7 +1160,11 @@ class M10RunIntegrationTests(unittest.TestCase):
             event, tuple(changed_rows), as_of=calendar["as_of"]
         )
         foreign_receipt = pending_receipt(
-            event, foreign_snapshot, calendar, attempt="foreign-market"
+            event,
+            foreign_read,
+            foreign_snapshot,
+            calendar,
+            attempt="foreign-market",
         )
         foreign = produce_forward_outcomes(
             event,
@@ -1221,7 +1258,8 @@ class M10RunIntegrationTests(unittest.TestCase):
             calendar_version=calendar["calendar_version"],
             signal_date=calendar["signal_date"],
             as_of=calendar["as_of"],
-            sessions=calendar["sessions"][:-1],
+            sessions=calendar["sessions"],
+            target_sessions=calendar["target_sessions"][:-1],
         )
         self.assertEqual(calendar["calendar_id"], other_calendar["calendar_id"])
         self.assertNotEqual(
@@ -1276,6 +1314,86 @@ class M10RunIntegrationTests(unittest.TestCase):
             finished_at=f"{calendar['as_of']}T22:03:00Z",
         )
         self.assertEqual("completed", completed["status"])
+
+    def test_completion_rejects_wrong_target_date_or_adjacent_session_price(self):
+        fixture = M10ForwardBaselineTests()
+        outcomes, read, _, calendar, receipt = fixture.produce(elapsed=100)
+        rows = {row["date"]: row for row in read.rows}
+        wrong_indexes = {1: 1, 5: 3, 20: 18, 60: 58, 100: 98}
+
+        def rebound(item, *, target_date=None, endpoint_price=None):
+            values = plain(item)
+            for field in (
+                "forward_outcome_id",
+                "forward_content_fingerprint",
+                "input_fingerprint",
+            ):
+                values.pop(field)
+            if target_date is not None:
+                values["target_session_date"] = target_date
+                values["endpoint"] = {
+                    "date": target_date,
+                    "price": rows[target_date]["close"],
+                }
+            if endpoint_price is not None:
+                values["endpoint"] = {
+                    **values["endpoint"],
+                    "price": endpoint_price,
+                }
+            return finalize_result("ForwardOutcome", values)
+
+        for window, wrong_index in wrong_indexes.items():
+            with self.subTest(window=window):
+                position = next(
+                    index for index, item in enumerate(outcomes)
+                    if item["window_sessions"] == window
+                )
+                attacked = list(outcomes)
+                attacked[position] = rebound(
+                    outcomes[position], target_date=fixture.sessions[wrong_index]
+                )
+                with self.assertRaises(ContractError):
+                    complete_baseline_run(
+                        receipt,
+                        "ForwardOutcome",
+                        attacked,
+                        generated_at=f"{calendar['as_of']}T22:03:00Z",
+                        finished_at=f"{calendar['as_of']}T22:03:00Z",
+                    )
+
+        five = next(item for item in outcomes if item["window_sessions"] == 5)
+        self.assertEqual(five["target_session_date"], "2026-09-09")
+        wrong_five = rebound(five, target_date="2026-09-08")
+        with self.assertRaises(ContractError):
+            complete_baseline_run(
+                receipt,
+                "ForwardOutcome",
+                tuple(wrong_five if item is five else item for item in outcomes),
+                generated_at=f"{calendar['as_of']}T22:03:00Z",
+                finished_at=f"{calendar['as_of']}T22:03:00Z",
+            )
+
+        one = next(item for item in outcomes if item["window_sessions"] == 1)
+        wrong_price = rebound(
+            one, endpoint_price=rows[fixture.sessions[1]]["close"]
+        )
+        with self.assertRaises(ContractError):
+            complete_baseline_run(
+                receipt,
+                "ForwardOutcome",
+                tuple(wrong_price if item is one else item for item in outcomes),
+                generated_at=f"{calendar['as_of']}T22:03:00Z",
+                finished_at=f"{calendar['as_of']}T22:03:00Z",
+            )
+
+        completed = complete_baseline_run(
+            receipt,
+            "ForwardOutcome",
+            outcomes,
+            generated_at=f"{calendar['as_of']}T22:03:00Z",
+            finished_at=f"{calendar['as_of']}T22:03:00Z",
+        )
+        self.assertEqual(completed["status"], "completed")
 
     def test_trade_completion_rejects_changed_plan_or_exit_state(self):
         fixture, state, read, snapshot, receipt, state_link = self.trade_inputs()
