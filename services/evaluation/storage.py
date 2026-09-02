@@ -19,6 +19,7 @@ from services.market_data.storage import require_shadow_root
 
 from .contracts import (
     RESULT_TYPES,
+    current_experiment_run,
     current_result,
     validate_experiment_run,
     validate_result,
@@ -237,18 +238,61 @@ class EvaluationShadowStore:
             )
 
     def write_run_receipt(self, payload: Mapping[str, Any]) -> Path:
+        validate_experiment_run(payload)
         target = (
             self.root
             / "runs"
-            / (_id_digest(payload.get("run_id"), field="run_id") + ".json")
+            / (
+                _id_digest(
+                    payload.get("run_receipt_id"), field="run_receipt_id"
+                )
+                + ".json"
+            )
         )
-        return self._write(
-            payload,
-            target=target,
-            validator=validate_experiment_run,
-            id_field="run_id",
-            fingerprint_field="run_content_fingerprint",
-        )
+        run_id = str(payload["run_id"])
+        _id_digest(run_id, field="run_id")
+        with _chain_lock(self.root, "ExperimentRun", run_id):
+            directory = self.root / "runs"
+            receipts: list[Mapping[str, Any]] = []
+            if directory.exists():
+                if directory.is_symlink() or not directory.is_dir():
+                    raise ContractError("M10 run collection must be a real directory")
+                for path in sorted(directory.glob("*.json")):
+                    receipt = self._load_existing(
+                        path, validator=validate_experiment_run
+                    )
+                    if receipt["run_id"] == run_id:
+                        receipts.append(receipt)
+
+            existing_ids = {
+                str(receipt["run_receipt_id"]) for receipt in receipts
+            }
+            if str(payload["run_receipt_id"]) in existing_ids:
+                return self._write(
+                    payload,
+                    target=target,
+                    validator=validate_experiment_run,
+                    id_field="run_receipt_id",
+                    fingerprint_field="run_content_fingerprint",
+                )
+
+            leaf = current_experiment_run(receipts) if receipts else None
+            if leaf is not None:
+                if payload["supersedes_run_receipt_id"] != leaf["run_receipt_id"]:
+                    raise ContractError(
+                        "ExperimentRun revision must supersede the current receipt"
+                    )
+            elif payload["supersedes_run_receipt_id"] is not None:
+                raise ContractError("ExperimentRun receipt predecessor does not exist")
+
+            current_experiment_run([*receipts, payload])
+            return self._write(
+                payload,
+                target=target,
+                validator=validate_experiment_run,
+                id_field="run_receipt_id",
+                fingerprint_field="run_content_fingerprint",
+            )
 
 
 __all__ = ["EvaluationShadowStore"]

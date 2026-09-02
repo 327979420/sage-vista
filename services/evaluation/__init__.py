@@ -5,6 +5,7 @@ from .contracts import (
     RESULT_SCHEMA_VERSION,
     assert_immutable_compatible,
     build_experiment_run_receipt,
+    current_experiment_run,
     current_result,
     finalize_result,
     result_input_fingerprint,
@@ -26,7 +27,8 @@ __all__ = [
     "FORWARD_WINDOWS",
     "FORWARD_WINDOW_POLICY", "PARTITION_POLICY", "RESULT_SCHEMA_VERSION",
     "UNAPPROVED_COST_REFERENCE", "ZERO_COST_COMPARISON_POLICY",
-    "assert_immutable_compatible", "build_experiment_run_receipt", "current_result",
+    "assert_immutable_compatible", "build_experiment_run_receipt",
+    "current_experiment_run", "current_result",
     "finalize_result", "result_input_fingerprint", "validate_experiment_run",
     "validate_result",
 ]

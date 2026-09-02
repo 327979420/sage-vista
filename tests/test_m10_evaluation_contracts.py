@@ -20,6 +20,7 @@ from services.evaluation import (
     EvaluationShadowStore,
     assert_immutable_compatible,
     build_experiment_run_receipt,
+    current_experiment_run,
     current_result,
     finalize_result,
     result_input_fingerprint,
@@ -38,6 +39,7 @@ LINK = "machine-link:sha256:" + "7" * 64
 EXIT_STATE = "exit-state:sha256:" + "8" * 64
 MARKET = "market:sha256:" + "9" * 64
 CALENDAR = "session-calendar:sha256:" + "a" * 64
+UNIVERSE = "universe:sha256:" + "b" * 64
 
 
 def plain(value):
@@ -221,15 +223,31 @@ def receipt_values(forward):
         },
         "policy_refs": [
             {
+                "policy_kind": "adjustment",
+                "policy_version": ADJUSTMENT_POLICY["version"],
+                "policy_fingerprint": canonical_fingerprint(ADJUSTMENT_POLICY),
+            },
+            {
                 "policy_kind": "evaluation",
+                "policy_version": EVALUATION_POLICY["policy_version"],
                 "policy_fingerprint": EVALUATION_POLICY["policy_fingerprint"],
             },
             {
+                "policy_kind": "forward_window",
+                "policy_version": FORWARD_WINDOW_POLICY["policy_version"],
+                "policy_fingerprint": FORWARD_WINDOW_POLICY["policy_fingerprint"],
+            },
+            {
                 "policy_kind": "partition",
+                "policy_version": PARTITION_POLICY["policy_version"],
                 "policy_fingerprint": PARTITION_POLICY["policy_fingerprint"],
             },
         ],
-        "input_refs": [{"id": EVENT, "content_fingerprint": SHA}],
+        "input_refs": [
+            {"id": EVENT, "content_fingerprint": SHA},
+            {"id": MARKET, "content_fingerprint": SHA_2},
+            {"id": UNIVERSE, "content_fingerprint": SHA},
+        ],
         "result_refs": [{
             "id": forward["forward_outcome_id"],
             "content_fingerprint": forward["forward_content_fingerprint"],
@@ -428,6 +446,239 @@ class M10EvaluationContractsTests(unittest.TestCase):
             first["input_set_fingerprint"],
             canonical_fingerprint(plain(first["input_refs"])),
         )
+
+    def test_run_identity_binds_source_window_and_bias_set(self):
+        forward = finalize_result("ForwardOutcome", forward_values())
+        base = build_experiment_run_receipt(**receipt_values(forward))
+
+        changes = []
+        source = receipt_values(forward)
+        source["source_version"] = {"evaluation_contracts": "m10-a-2.0.0"}
+        changes.append(build_experiment_run_receipt(**source))
+        start = receipt_values(forward)
+        start["evidence_window"]["start"] = "2026-08-29"
+        changes.append(build_experiment_run_receipt(**start))
+        end = receipt_values(forward)
+        end["evidence_window"]["end"] = "2026-09-02"
+        changes.append(build_experiment_run_receipt(**end))
+        for changed in changes:
+            self.assertNotEqual(base["run_id"], changed["run_id"])
+
+        first_bias = receipt_values(forward)
+        first_bias.update({
+            "path_status": "legacy",
+            "result_role": "comparison",
+            "bias_labels": ["survivorship_bias", "current_membership_bias"],
+        })
+        reversed_bias = receipt_values(forward)
+        reversed_bias.update({
+            "path_status": "legacy",
+            "result_role": "comparison",
+            "bias_labels": ["current_membership_bias", "survivorship_bias"],
+        })
+        first = build_experiment_run_receipt(**first_bias)
+        second = build_experiment_run_receipt(**reversed_bias)
+        self.assertEqual(first["run_id"], second["run_id"])
+        self.assertEqual(
+            ["current_membership_bias", "survivorship_bias"],
+            list(first["bias_labels"]),
+        )
+
+        other_bias = receipt_values(forward)
+        other_bias.update({
+            "path_status": "legacy",
+            "result_role": "comparison",
+            "bias_labels": ["legacy_market_data"],
+        })
+        self.assertNotEqual(
+            first["run_id"],
+            build_experiment_run_receipt(**other_bias)["run_id"],
+        )
+
+    def test_modified_run_identity_cannot_reuse_old_ids(self):
+        forward = finalize_result("ForwardOutcome", forward_values())
+        receipt = plain(build_experiment_run_receipt(**receipt_values(forward)))
+        receipt["source_version"] = {"evaluation_contracts": "changed"}
+        with self.assertRaises(ContractError):
+            validate_experiment_run(receipt)
+        unknown_source = receipt_values(forward)
+        unknown_source["source_version"] = {
+            "evaluation_contracts": "m10-a-test",
+            "unapproved_source": "garbage",
+        }
+        with self.assertRaises(ContractError):
+            build_experiment_run_receipt(**unknown_source)
+
+    def test_pending_run_receipt_completes_by_append_only_revision(self):
+        forward = finalize_result("ForwardOutcome", forward_values())
+        pending_values = receipt_values(forward)
+        pending_values.update({
+            "status": "pending",
+            "result_refs": [],
+            "finished_at": None,
+        })
+        pending = build_experiment_run_receipt(**pending_values)
+        completed_values = receipt_values(forward)
+        completed_values["supersedes_run_receipt_id"] = pending["run_receipt_id"]
+        completed = build_experiment_run_receipt(**completed_values)
+
+        self.assertEqual(pending["run_id"], completed["run_id"])
+        self.assertNotEqual(pending["run_receipt_id"], completed["run_receipt_id"])
+        self.assertEqual(
+            completed["run_receipt_id"],
+            current_experiment_run([completed, pending])["run_receipt_id"],
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            store = EvaluationShadowStore(Path(directory) / "m10")
+            pending_path = store.write_run_receipt(pending)
+            completed_path = store.write_run_receipt(completed)
+            self.assertNotEqual(pending_path, completed_path)
+            self.assertEqual(2, len(list((Path(directory) / "m10").rglob("*.json"))))
+
+    def test_run_receipt_store_rejects_dangling_and_forked_revisions(self):
+        forward = finalize_result("ForwardOutcome", forward_values())
+        pending_values = receipt_values(forward)
+        pending_values.update({
+            "status": "pending", "result_refs": [], "finished_at": None,
+        })
+        pending = build_experiment_run_receipt(**pending_values)
+        first_values = receipt_values(forward)
+        first_values["supersedes_run_receipt_id"] = pending["run_receipt_id"]
+        first = build_experiment_run_receipt(**first_values)
+        second_values = receipt_values(forward)
+        second_values["supersedes_run_receipt_id"] = pending["run_receipt_id"]
+        second_values["result_refs"][0]["content_fingerprint"] = SHA_2
+        second = build_experiment_run_receipt(**second_values)
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "m10"
+            store = EvaluationShadowStore(root)
+            with self.assertRaises(ContractError):
+                store.write_run_receipt(first)
+            self.assertEqual([], list(root.rglob("*.json")))
+
+            store.write_run_receipt(pending)
+            store.write_run_receipt(first)
+            before = {path: path.read_bytes() for path in root.rglob("*.json")}
+            with self.assertRaises(ContractError):
+                store.write_run_receipt(second)
+            self.assertEqual(
+                before, {path: path.read_bytes() for path in root.rglob("*.json")}
+            )
+
+    def test_reference_roles_are_exact_and_order_is_canonical(self):
+        forward = finalize_result("ForwardOutcome", forward_values())
+        trade = finalize_result("TradeOutcome", trade_values())
+
+        portfolio = portfolio_values(trade)
+        portfolio["trade_outcome_refs"][0]["id"] = "trade-outcome:not-a-hash"
+        with self.assertRaises(ContractError):
+            finalize_result("PortfolioRun", portfolio)
+        portfolio = portfolio_values(trade)
+        portfolio["trade_outcome_refs"][0] = {
+            "id": forward["forward_outcome_id"],
+            "content_fingerprint": forward["forward_content_fingerprint"],
+        }
+        with self.assertRaises(ContractError):
+            finalize_result("PortfolioRun", portfolio)
+
+        aggregate = aggregate_values(forward)
+        aggregate["result_refs"][0]["id"] = "bogus"
+        with self.assertRaises(ContractError):
+            finalize_result("ResearchAggregate", aggregate)
+        recursive = aggregate_values(forward)
+        recursive["result_refs"][0]["id"] = "research-aggregate:sha256:" + "e" * 64
+        with self.assertRaises(ContractError):
+            finalize_result("ResearchAggregate", recursive)
+
+        first = receipt_values(forward)
+        first["input_refs"] = [
+            {"id": EVENT, "content_fingerprint": SHA},
+            {"id": MARKET, "content_fingerprint": SHA_2},
+            {"id": UNIVERSE, "content_fingerprint": SHA},
+        ]
+        second = receipt_values(forward)
+        second["input_refs"] = list(reversed(first["input_refs"]))
+        self.assertEqual(
+            build_experiment_run_receipt(**first)["run_id"],
+            build_experiment_run_receipt(**second)["run_id"],
+        )
+
+    def test_run_receipt_rejects_invalid_duplicate_and_wrong_role_refs(self):
+        forward = finalize_result("ForwardOutcome", forward_values())
+        invalid_input = receipt_values(forward)
+        invalid_input["input_refs"] = [{"id": "bogus", "content_fingerprint": SHA}]
+        with self.assertRaises(ContractError):
+            build_experiment_run_receipt(**invalid_input)
+        wrong_result = receipt_values(forward)
+        wrong_result["result_refs"] = [{"id": EVENT, "content_fingerprint": SHA}]
+        with self.assertRaises(ContractError):
+            build_experiment_run_receipt(**wrong_result)
+        duplicate = receipt_values(forward)
+        duplicate["input_refs"] = [
+            {"id": EVENT, "content_fingerprint": SHA},
+            {"id": EVENT, "content_fingerprint": SHA_2},
+        ]
+        with self.assertRaises(ContractError):
+            build_experiment_run_receipt(**duplicate)
+
+    def test_run_policy_set_rejects_unknown_missing_and_duplicate_kinds(self):
+        forward = finalize_result("ForwardOutcome", forward_values())
+        banana = receipt_values(forward)
+        banana["policy_refs"] = [{
+            "policy_kind": "banana",
+            "policy_version": "1.0.0",
+            "policy_fingerprint": SHA,
+        }]
+        with self.assertRaises(ContractError):
+            build_experiment_run_receipt(**banana)
+
+        for missing_kind in ("evaluation", "partition"):
+            values = receipt_values(forward)
+            values["policy_refs"] = [
+                item for item in values["policy_refs"]
+                if item["policy_kind"] != missing_kind
+            ]
+            with self.subTest(missing_kind=missing_kind):
+                with self.assertRaises(ContractError):
+                    build_experiment_run_receipt(**values)
+
+        duplicate = receipt_values(forward)
+        duplicate["policy_refs"].append({
+            "policy_kind": "evaluation",
+            "policy_version": "1.0.0",
+            "policy_fingerprint": SHA_2,
+        })
+        with self.assertRaises(ContractError):
+            build_experiment_run_receipt(**duplicate)
+
+        reversed_policies = receipt_values(forward)
+        reversed_policies["policy_refs"].reverse()
+        self.assertEqual(
+            build_experiment_run_receipt(**receipt_values(forward))["run_id"],
+            build_experiment_run_receipt(**reversed_policies)["run_id"],
+        )
+
+    def test_price_outcome_run_requires_market_universe_and_adjustment_evidence(self):
+        forward = finalize_result("ForwardOutcome", forward_values())
+        for missing_role, stable_id in (
+            ("market", MARKET),
+            ("universe", UNIVERSE),
+        ):
+            values = receipt_values(forward)
+            values["input_refs"] = [
+                item for item in values["input_refs"] if item["id"] != stable_id
+            ]
+            with self.subTest(missing_role=missing_role):
+                with self.assertRaises(ContractError):
+                    build_experiment_run_receipt(**values)
+        missing_adjustment = receipt_values(forward)
+        missing_adjustment["policy_refs"] = [
+            item for item in missing_adjustment["policy_refs"]
+            if item["policy_kind"] != "adjustment"
+        ]
+        with self.assertRaises(ContractError):
+            build_experiment_run_receipt(**missing_adjustment)
 
     def test_result_identity_binds_run_market_and_upstream_evidence(self):
         base = finalize_result("ForwardOutcome", forward_values())

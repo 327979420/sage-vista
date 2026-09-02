@@ -32,9 +32,44 @@ from .policies import (
 RESULT_SCHEMA_VERSION = "2.0.0"
 EXPERIMENT_RUN_SCHEMA_VERSION = "2.0.0"
 SHA256 = re.compile(r"^sha256:[0-9a-f]{64}$")
-INSTRUMENT_ID = re.compile(r"^instrument:sha256:[0-9a-f]{64}$")
-EVENT_ID = re.compile(r"^opportunity:sha256:[0-9a-f]{64}$")
-RUN_ID = re.compile(r"^experiment-run:sha256:[0-9a-f]{64}$")
+STABLE_REFERENCE_PREFIXES = {
+    "instrument": "instrument",
+    "universe": "universe",
+    "market_snapshot": "market",
+    "gate_event": "gate",
+    "technical_evidence": "evidence",
+    "model_assessment": "assessment",
+    "context_snapshot": "context",
+    "score_result": "score",
+    "ranking_snapshot": "ranking",
+    "trade_plan": "plan",
+    "exit_state": "exit-state",
+    "opportunity_event": "opportunity",
+    "machine_link": "machine-link",
+    "session_calendar": "session-calendar",
+    "forward_outcome": "forward-outcome",
+    "trade_outcome": "trade-outcome",
+    "portfolio_run": "portfolio-run",
+    "research_aggregate": "research-aggregate",
+    "experiment_run": "experiment-run",
+    "experiment_run_receipt": "experiment-run-receipt",
+}
+EXPERIMENT_INPUT_REFERENCE_ROLES = {
+    "instrument", "universe", "market_snapshot", "gate_event",
+    "technical_evidence", "model_assessment", "context_snapshot",
+    "score_result", "ranking_snapshot", "trade_plan", "exit_state",
+    "opportunity_event", "machine_link", "session_calendar",
+    "forward_outcome", "trade_outcome", "portfolio_run",
+    "research_aggregate",
+}
+EXPERIMENT_RESULT_REFERENCE_ROLES = {
+    "forward_outcome", "trade_outcome", "portfolio_run",
+    "research_aggregate",
+}
+ALLOWED_RUN_POLICY_KINDS = {
+    "adjustment", "cost_slippage", "evaluation", "execution",
+    "forward_window", "partition",
+}
 RESULT_TYPES = {
     "ForwardOutcome": (
         "forward_outcome_id", "forward_content_fingerprint",
@@ -92,7 +127,8 @@ RESULT_ALLOWED_FIELDS = {
 }
 EXPERIMENT_RUN_ALLOWED_FIELDS = {
     "schema_version", "as_of", "generated_at", "source_version",
-    "future_data_used", "run_id", "run_content_fingerprint", "attempt_id",
+    "future_data_used", "run_id", "run_receipt_id",
+    "supersedes_run_receipt_id", "run_content_fingerprint", "attempt_id",
     "experiment_id", "status", "evidence_window", "path_status", "result_role",
     "partition_role", "bias_labels", "code_commit", "config_ref", "engine",
     "policy_refs", "input_refs", "result_refs", "input_set_fingerprint",
@@ -184,6 +220,124 @@ def _exact_mapping(value: Any, fields: set[str], label: str) -> Mapping[str, Any
         raise ContractError(f"{label} must be an object")
     _exact_fields(value, fields, label)
     return value
+
+
+def _validate_source_version(value: Any) -> Mapping[str, Any]:
+    source = _exact_mapping(
+        value, {"evaluation_contracts"}, "ExperimentRun source_version"
+    )
+    _text(source["evaluation_contracts"], "source_version.evaluation_contracts")
+    return source
+
+
+def _stable_reference_role(
+    value: Any, *, field: str, allowed_roles: set[str]
+) -> str:
+    """Validate one typed, content-addressed ID without prefix guessing."""
+
+    if not isinstance(value, str):
+        raise ContractError(f"{field} must be a stable reference ID")
+    unknown_roles = allowed_roles - STABLE_REFERENCE_PREFIXES.keys()
+    if unknown_roles:
+        raise ContractError(f"{field} uses unknown reference roles")
+    for role in sorted(allowed_roles):
+        prefix = STABLE_REFERENCE_PREFIXES[role]
+        if re.fullmatch(re.escape(prefix) + r":sha256:[0-9a-f]{64}", value):
+            return role
+    raise ContractError(f"{field} has an invalid or disallowed stable ID")
+
+
+def _normalize_reference_list(value: Any) -> Any:
+    if not isinstance(value, (list, tuple)):
+        return value
+    items = [_plain(item) for item in value]
+    return sorted(
+        items,
+        key=lambda item: (
+            str(item.get("id", "")) if isinstance(item, Mapping) else str(item),
+            str(item.get("content_fingerprint", ""))
+            if isinstance(item, Mapping)
+            else "",
+        ),
+    )
+
+
+def _normalize_policy_references(value: Any) -> Any:
+    if not isinstance(value, (list, tuple)):
+        return value
+    items = [_plain(item) for item in value]
+    return sorted(
+        items,
+        key=lambda item: (
+            str(item.get("policy_kind", ""))
+            if isinstance(item, Mapping)
+            else str(item),
+            str(item.get("policy_version", ""))
+            if isinstance(item, Mapping)
+            else "",
+            str(item.get("policy_fingerprint", ""))
+            if isinstance(item, Mapping)
+            else "",
+        ),
+    )
+
+
+def _validate_run_policy_references(value: Any) -> set[str]:
+    if not isinstance(value, (list, tuple)) or not value:
+        raise ContractError("ExperimentRun requires policy references")
+    known_policies = {
+        "evaluation": EVALUATION_POLICY,
+        "partition": PARTITION_POLICY,
+        "forward_window": FORWARD_WINDOW_POLICY,
+        "cost_slippage": ZERO_COST_COMPARISON_POLICY,
+    }
+    seen: set[str] = set()
+    normalized: list[tuple[str, str, str]] = []
+    for raw in value:
+        ref = _exact_mapping(
+            raw,
+            {"policy_kind", "policy_version", "policy_fingerprint"},
+            "ExperimentRun policy reference",
+        )
+        kind = _text(ref["policy_kind"], "policy_ref.policy_kind")
+        if kind not in ALLOWED_RUN_POLICY_KINDS:
+            raise ContractError("ExperimentRun policy kind is not approved")
+        if kind in seen:
+            raise ContractError("ExperimentRun policy kind is duplicated")
+        seen.add(kind)
+        version = _text(ref["policy_version"], "policy_ref.policy_version")
+        fingerprint = _fingerprint(
+            ref["policy_fingerprint"], "policy_ref.policy_fingerprint"
+        )
+        if kind in known_policies:
+            expected = known_policies[kind]
+            if (
+                version != expected["policy_version"]
+                or fingerprint != expected["policy_fingerprint"]
+            ):
+                raise ContractError(
+                    f"ExperimentRun {kind} policy does not match the approved policy"
+                )
+        elif kind == "adjustment":
+            if (
+                version != ADJUSTMENT_POLICY["version"]
+                or fingerprint != canonical_fingerprint(ADJUSTMENT_POLICY)
+            ):
+                raise ContractError(
+                    "ExperimentRun adjustment policy does not match M02"
+                )
+        elif not SEMVER.fullmatch(version):
+            raise ContractError(
+                f"ExperimentRun {kind} policy version must be SemVer"
+            )
+        normalized.append((kind, version, fingerprint))
+    if [item[0] for item in normalized] != sorted(seen):
+        raise ContractError("ExperimentRun policy references must be canonical")
+    if not {"evaluation", "partition"}.issubset(seen):
+        raise ContractError(
+            "ExperimentRun requires evaluation and partition policies"
+        )
+    return seen
 
 
 def _validate_roles(payload: Mapping[str, Any]) -> None:
@@ -367,6 +521,12 @@ def finalize_result(contract_name: str, payload: Mapping[str, Any]) -> Mapping[s
     if contract_name not in RESULT_TYPES:
         raise ContractError(f"unknown M10 result contract: {contract_name}")
     result = _plain(payload)
+    if contract_name == "PortfolioRun" and "trade_outcome_refs" in result:
+        result["trade_outcome_refs"] = _normalize_reference_list(
+            result["trade_outcome_refs"]
+        )
+    elif contract_name == "ResearchAggregate" and "result_refs" in result:
+        result["result_refs"] = _normalize_reference_list(result["result_refs"])
     expected_input = result_input_fingerprint(contract_name, result)
     provided_input = result.get("input_fingerprint")
     if provided_input is not None and provided_input != expected_input:
@@ -392,8 +552,10 @@ def _validate_common_result(contract_name: str, payload: Mapping[str, Any]) -> N
     if payload["schema_version"] != RESULT_SCHEMA_VERSION:
         raise ContractError(f"formal M10 requires {contract_name} 2.0.0")
     _timestamp(payload["generated_at"], "generated_at")
-    if not RUN_ID.fullmatch(str(payload["run_id"])):
-        raise ContractError(f"{contract_name} run_id is invalid")
+    _stable_reference_role(
+        payload["run_id"], field=f"{contract_name}.run_id",
+        allowed_roles={"experiment_run"},
+    )
     _validate_roles(payload)
     _validate_policy_binding(payload)
     _fingerprint(payload["input_fingerprint"], "input_fingerprint")
@@ -439,23 +601,33 @@ def _validate_forward(payload: Mapping[str, Any]) -> None:
         },
         "ForwardOutcome",
     )
-    if not EVENT_ID.fullmatch(str(payload["event_id"])):
-        raise ContractError("ForwardOutcome event_id is invalid")
-    if not INSTRUMENT_ID.fullmatch(str(payload["instrument_id"])):
-        raise ContractError("ForwardOutcome instrument_id is invalid")
+    _stable_reference_role(
+        payload["event_id"], field="ForwardOutcome.event_id",
+        allowed_roles={"opportunity_event"},
+    )
+    _stable_reference_role(
+        payload["instrument_id"], field="ForwardOutcome.instrument_id",
+        allowed_roles={"instrument"},
+    )
     require_date(payload["signal_date"], "signal_date")
     if payload["signal_date"] > payload["as_of"]:
         raise ContractError("ForwardOutcome signal_date cannot be after as_of")
     _fingerprint(payload["event_content_fingerprint"], "event_content_fingerprint")
-    if not str(payload["signal_market_snapshot_id"]).startswith("market:"):
-        raise ContractError("ForwardOutcome signal market identity is invalid")
+    _stable_reference_role(
+        payload["signal_market_snapshot_id"],
+        field="ForwardOutcome.signal_market_snapshot_id",
+        allowed_roles={"market_snapshot"},
+    )
     validate_policy(payload["window_policy"], expected_kind="forward_window")
     if _plain(payload["window_policy"]) != _plain(FORWARD_WINDOW_POLICY):
         raise ContractError("ForwardOutcome uses an unknown window policy")
     if payload["window_sessions"] not in FORWARD_WINDOWS:
         raise ContractError("ForwardOutcome window is not approved")
-    if not re.fullmatch(r"session-calendar:sha256:[0-9a-f]{64}", str(payload["session_calendar_id"])):
-        raise ContractError("ForwardOutcome session calendar ID is invalid")
+    _stable_reference_role(
+        payload["session_calendar_id"],
+        field="ForwardOutcome.session_calendar_id",
+        allowed_roles={"session_calendar"},
+    )
     _fingerprint(payload["session_calendar_fingerprint"], "session_calendar_fingerprint")
     elapsed = _non_negative_int(payload["elapsed_session_count"], "elapsed_session_count")
     observed = _non_negative_int(payload["observed_session_count"], "observed_session_count")
@@ -528,10 +700,14 @@ def _validate_trade(payload: Mapping[str, Any]) -> None:
         },
         "TradeOutcome",
     )
-    if not EVENT_ID.fullmatch(str(payload["event_id"])):
-        raise ContractError("TradeOutcome event_id is invalid")
-    if not INSTRUMENT_ID.fullmatch(str(payload["instrument_id"])):
-        raise ContractError("TradeOutcome instrument_id is invalid")
+    _stable_reference_role(
+        payload["event_id"], field="TradeOutcome.event_id",
+        allowed_roles={"opportunity_event"},
+    )
+    _stable_reference_role(
+        payload["instrument_id"], field="TradeOutcome.instrument_id",
+        allowed_roles={"instrument"},
+    )
     require_date(payload["signal_date"], "signal_date")
     if payload["signal_date"] > payload["as_of"]:
         raise ContractError("TradeOutcome signal_date cannot be after as_of")
@@ -546,11 +722,15 @@ def _validate_trade(payload: Mapping[str, Any]) -> None:
     if status not in {"open", "completed", "no_trade", "unavailable"}:
         raise ContractError("TradeOutcome status is invalid")
     if status in {"open", "completed"}:
-        if not re.fullmatch(r"plan:sha256:[0-9a-f]{64}", str(payload["trade_plan_id"])):
-            raise ContractError("TradeOutcome plan identity is invalid")
+        _stable_reference_role(
+            payload["trade_plan_id"], field="TradeOutcome.trade_plan_id",
+            allowed_roles={"trade_plan"},
+        )
         _fingerprint(payload["trade_plan_content_fingerprint"], "trade_plan_content_fingerprint")
-        if not re.fullmatch(r"exit-state:sha256:[0-9a-f]{64}", str(payload["exit_state_id"])):
-            raise ContractError("TradeOutcome exit state identity is invalid")
+        _stable_reference_role(
+            payload["exit_state_id"], field="TradeOutcome.exit_state_id",
+            allowed_roles={"exit_state"},
+        )
         _fingerprint(payload["exit_state_content_fingerprint"], "exit_state_content_fingerprint")
         if payload["entry"] is None:
             raise ContractError("TradeOutcome with a plan requires its entry")
@@ -558,9 +738,10 @@ def _validate_trade(payload: Mapping[str, Any]) -> None:
         _text(payload["status_reason"], "status_reason")
         if any(payload[field] is not None for field in ("trade_plan_id", "exit_state_id", "entry", "exit")):
             raise ContractError("unplanned TradeOutcome cannot fabricate plan or execution facts")
-    for field in ("trade_plan_link_id",):
-        if not re.fullmatch(r"machine-link:sha256:[0-9a-f]{64}", str(payload[field])):
-            raise ContractError("TradeOutcome plan link identity is invalid")
+    _stable_reference_role(
+        payload["trade_plan_link_id"], field="TradeOutcome.trade_plan_link_id",
+        allowed_roles={"machine_link"},
+    )
     _fingerprint(payload["trade_plan_link_content_fingerprint"], "trade_plan_link_content_fingerprint")
     if status == "completed":
         if payload["status_reason"] is not None or payload["exit"] is None:
@@ -628,28 +809,45 @@ def _validate_trade(payload: Mapping[str, Any]) -> None:
     )
 
 
-def _validate_reference_list(value: Any, field: str, *, required_prefix: str | None = None) -> None:
+def _validate_reference_list(
+    value: Any,
+    field: str,
+    *,
+    allowed_roles: set[str],
+    allow_empty: bool = True,
+) -> set[str]:
     if not isinstance(value, (list, tuple)):
         raise ContractError(f"{field} must be a list")
+    if not allow_empty and not value:
+        raise ContractError(f"{field} cannot be empty")
     normalized: list[tuple[str, str]] = []
+    seen_ids: set[str] = set()
+    roles: set[str] = set()
     for item in value:
         item = _exact_mapping(
             item, {"id", "content_fingerprint"}, f"{field} item"
         )
         stable_id = _text(item.get("id"), f"{field}.id")
-        if required_prefix is not None and not stable_id.startswith(required_prefix):
-            raise ContractError(f"{field} has an invalid identity")
+        roles.add(_stable_reference_role(
+            stable_id, field=f"{field}.id", allowed_roles=allowed_roles
+        ))
+        if stable_id in seen_ids:
+            raise ContractError(f"{field} contains a duplicate stable ID")
+        seen_ids.add(stable_id)
         fingerprint = _fingerprint(item.get("content_fingerprint"), f"{field}.content_fingerprint")
         normalized.append((stable_id, fingerprint))
-    if normalized != sorted(set(normalized)):
+    if normalized != sorted(normalized):
         raise ContractError(f"{field} must be sorted and unique")
+    return roles
 
 
 def _validate_unimplemented_result(contract_name: str, payload: Mapping[str, Any]) -> None:
     field = "trade_outcome_refs" if contract_name == "PortfolioRun" else "result_refs"
     _validate_reference_list(
         payload[field], field,
-        required_prefix="trade-outcome:" if contract_name == "PortfolioRun" else None,
+        allowed_roles={"trade_outcome"}
+        if contract_name == "PortfolioRun"
+        else {"forward_outcome", "trade_outcome", "portfolio_run"},
     )
     if payload["status"] != "unavailable" or payload.get("status_reason") != (
         "portfolio_policy_not_approved"
@@ -752,9 +950,12 @@ def _run_identity(payload: Mapping[str, Any]) -> dict[str, Any]:
         "schema_major": 2,
         "attempt_id": payload["attempt_id"],
         "experiment_id": payload["experiment_id"],
+        "source_version": _plain(payload["source_version"]),
+        "evidence_window": _plain(payload["evidence_window"]),
         "path_status": payload["path_status"],
         "result_role": payload["result_role"],
         "partition_role": payload["partition_role"],
+        "bias_labels": _plain(payload["bias_labels"]),
         "code_commit": payload["code_commit"],
         "config_ref": _plain(payload["config_ref"]),
         "engine": _plain(payload["engine"]),
@@ -762,6 +963,15 @@ def _run_identity(payload: Mapping[str, Any]) -> dict[str, Any]:
         "input_set_fingerprint": payload["input_set_fingerprint"],
         "parent_run_id": payload["parent_run_id"],
         "checkpoint_ref": _plain(payload["checkpoint_ref"]),
+    }
+
+
+def _run_receipt_identity(payload: Mapping[str, Any]) -> dict[str, Any]:
+    return {
+        "run_id": payload["run_id"],
+        "status": payload["status"],
+        "result_set_fingerprint": payload["result_set_fingerprint"],
+        "supersedes_run_receipt_id": payload["supersedes_run_receipt_id"],
     }
 
 
@@ -774,12 +984,13 @@ def _run_semantic(payload: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def build_experiment_run_receipt(**values: Any) -> Mapping[str, Any]:
-    """Build one terminal ExperimentRun 2.x receipt from injected evidence."""
+    """Build one immutable ExperimentRun 2.x receipt revision."""
 
     payload = _plain(values)
     payload.setdefault("schema_version", EXPERIMENT_RUN_SCHEMA_VERSION)
     payload.setdefault("source_version", {"evaluation_contracts": "m10-a-1.0.0"})
     payload.setdefault("future_data_used", False)
+    payload.setdefault("supersedes_run_receipt_id", None)
     _required(
         payload,
         {
@@ -791,9 +1002,21 @@ def build_experiment_run_receipt(**values: Any) -> Mapping[str, Any]:
         },
         "ExperimentRun 2.x builder",
     )
+    if (
+        isinstance(payload.get("bias_labels"), (list, tuple))
+        and all(isinstance(item, str) for item in payload["bias_labels"])
+    ):
+        payload["bias_labels"] = sorted(payload["bias_labels"])
+    payload["policy_refs"] = _normalize_policy_references(payload["policy_refs"])
+    payload["input_refs"] = _normalize_reference_list(payload["input_refs"])
+    payload["result_refs"] = _normalize_reference_list(payload["result_refs"])
     payload["input_set_fingerprint"] = canonical_fingerprint(payload["input_refs"])
     payload["result_set_fingerprint"] = canonical_fingerprint(payload["result_refs"])
     payload["run_id"] = "experiment-run:" + canonical_fingerprint(_run_identity(payload))
+    payload["run_receipt_id"] = (
+        "experiment-run-receipt:"
+        + canonical_fingerprint(_run_receipt_identity(payload))
+    )
     payload["run_content_fingerprint"] = canonical_fingerprint(_run_semantic(payload))
     validate_experiment_run(payload)
     return _freeze(payload)
@@ -806,8 +1029,22 @@ def validate_experiment_run(payload: Mapping[str, Any]) -> None:
     validate_contract("ExperimentRun", payload)
     if payload["schema_version"] != EXPERIMENT_RUN_SCHEMA_VERSION:
         raise ContractError("M10 formal receipts require ExperimentRun 2.0.0")
-    if not RUN_ID.fullmatch(str(payload["run_id"])):
-        raise ContractError("ExperimentRun run_id is invalid")
+    _validate_source_version(payload["source_version"])
+    _stable_reference_role(
+        payload["run_id"], field="ExperimentRun.run_id",
+        allowed_roles={"experiment_run"},
+    )
+    _stable_reference_role(
+        payload["run_receipt_id"], field="ExperimentRun.run_receipt_id",
+        allowed_roles={"experiment_run_receipt"},
+    )
+    supersedes_receipt = payload["supersedes_run_receipt_id"]
+    if supersedes_receipt is not None:
+        _stable_reference_role(
+            supersedes_receipt,
+            field="ExperimentRun.supersedes_run_receipt_id",
+            allowed_roles={"experiment_run_receipt"},
+        )
     _fingerprint(payload["run_content_fingerprint"], "run_content_fingerprint")
     _text(payload["attempt_id"], "attempt_id")
     _text(payload["experiment_id"], "experiment_id")
@@ -829,28 +1066,38 @@ def validate_experiment_run(payload: Mapping[str, Any]) -> None:
     )
     for field in ("name", "version", "adapter_version"):
         _text(engine.get(field), f"engine.{field}")
-    _validate_reference_list(payload["input_refs"], "input_refs")
-    _validate_reference_list(payload["result_refs"], "result_refs")
+    input_roles = _validate_reference_list(
+        payload["input_refs"], "input_refs",
+        allowed_roles=EXPERIMENT_INPUT_REFERENCE_ROLES,
+        allow_empty=False,
+    )
+    result_roles = _validate_reference_list(
+        payload["result_refs"], "result_refs",
+        allowed_roles=EXPERIMENT_RESULT_REFERENCE_ROLES,
+    )
     if payload["input_set_fingerprint"] != canonical_fingerprint(_plain(payload["input_refs"])):
         raise ContractError("ExperimentRun input set fingerprint is invalid")
     if payload["result_set_fingerprint"] != canonical_fingerprint(_plain(payload["result_refs"])):
         raise ContractError("ExperimentRun result set fingerprint is invalid")
-    policy_refs = payload["policy_refs"]
-    if not isinstance(policy_refs, (list, tuple)) or not policy_refs:
-        raise ContractError("ExperimentRun requires policy references")
-    policy_pairs: list[tuple[str, str]] = []
-    for ref in policy_refs:
-        ref = _exact_mapping(
-            ref,
-            {"policy_kind", "policy_fingerprint"},
-            "ExperimentRun policy reference",
-        )
-        policy_pairs.append((
-            _text(ref.get("policy_kind"), "policy_ref.policy_kind"),
-            _fingerprint(ref.get("policy_fingerprint"), "policy_ref.policy_fingerprint"),
-        ))
-    if policy_pairs != sorted(set(policy_pairs)):
-        raise ContractError("ExperimentRun policy references must be sorted and unique")
+    policy_kinds = _validate_run_policy_references(payload["policy_refs"])
+    if result_roles & {"forward_outcome", "trade_outcome"}:
+        if not {"market_snapshot", "universe"}.issubset(input_roles):
+            raise ContractError(
+                "price outcomes require market and universe input references"
+            )
+        if "adjustment" not in policy_kinds:
+            raise ContractError(
+                "price outcomes require the M02 adjustment policy"
+            )
+    if "forward_outcome" in result_roles and "forward_window" not in policy_kinds:
+        raise ContractError("ForwardOutcome runs require the window policy")
+    if "trade_outcome" in result_roles:
+        if "execution" not in policy_kinds:
+            raise ContractError("TradeOutcome runs require execution policy evidence")
+        if payload["result_role"] == "comparison" and "cost_slippage" not in policy_kinds:
+            raise ContractError(
+                "comparison TradeOutcome runs require cost/slippage policy evidence"
+            )
     window = _exact_mapping(
         payload["evidence_window"],
         {"start", "end", "evidence_as_of"},
@@ -862,12 +1109,17 @@ def validate_experiment_run(payload: Mapping[str, Any]) -> None:
     if not start <= end <= evidence_as_of or payload["as_of"] != evidence_as_of:
         raise ContractError("ExperimentRun evidence window is inconsistent")
     started = _timestamp(payload["started_at"], "started_at")
-    finished = _timestamp(payload["finished_at"], "finished_at")
-    if finished < started:
-        raise ContractError("ExperimentRun finished_at predates started_at")
+    finished = payload["finished_at"]
+    if finished is not None:
+        finished = _timestamp(finished, "finished_at")
+        if finished < started:
+            raise ContractError("ExperimentRun finished_at predates started_at")
     parent = payload["parent_run_id"]
-    if parent is not None and not RUN_ID.fullmatch(str(parent)):
-        raise ContractError("ExperimentRun parent_run_id is invalid")
+    if parent is not None:
+        _stable_reference_role(
+            parent, field="ExperimentRun.parent_run_id",
+            allowed_roles={"experiment_run"},
+        )
     checkpoint = payload["checkpoint_ref"]
     if checkpoint is not None:
         checkpoint = _exact_mapping(
@@ -881,12 +1133,28 @@ def validate_experiment_run(payload: Mapping[str, Any]) -> None:
             "checkpoint_ref.content_fingerprint",
         )
     status = payload["status"]
-    if status not in {"completed", "failed", "interrupted", "unavailable"}:
-        raise ContractError("ExperimentRun terminal status is invalid")
-    if status == "completed":
-        if not payload["result_refs"] or payload["error"] is not None:
+    if status not in {"pending", "completed", "failed", "interrupted", "unavailable"}:
+        raise ContractError("ExperimentRun status is invalid")
+    if status == "pending":
+        if (
+            payload["result_refs"]
+            or payload["error"] is not None
+            or payload["finished_at"] is not None
+            or supersedes_receipt is not None
+        ):
+            raise ContractError(
+                "pending ExperimentRun must be an unfinished root receipt"
+            )
+    elif status == "completed":
+        if (
+            not payload["result_refs"]
+            or payload["error"] is not None
+            or payload["finished_at"] is None
+        ):
             raise ContractError("completed ExperimentRun requires results and no error")
     else:
+        if payload["finished_at"] is None:
+            raise ContractError("terminal ExperimentRun requires finished_at")
         error = _exact_mapping(
             payload["error"], {"category", "message"}, "ExperimentRun error"
         )
@@ -895,13 +1163,72 @@ def validate_experiment_run(payload: Mapping[str, Any]) -> None:
     expected_id = "experiment-run:" + canonical_fingerprint(_run_identity(payload))
     if payload["run_id"] != expected_id:
         raise ContractError("ExperimentRun run_id does not match its execution identity")
+    expected_receipt_id = (
+        "experiment-run-receipt:"
+        + canonical_fingerprint(_run_receipt_identity(payload))
+    )
+    if payload["run_receipt_id"] != expected_receipt_id:
+        raise ContractError(
+            "ExperimentRun receipt identity does not match its revision"
+        )
     if payload["run_content_fingerprint"] != canonical_fingerprint(_run_semantic(payload)):
         raise ContractError("ExperimentRun content fingerprint is invalid")
 
 
+def current_experiment_run(
+    receipts: Iterable[Mapping[str, Any]],
+) -> Mapping[str, Any]:
+    """Validate one linear receipt chain and return its sole current revision."""
+
+    items = list(receipts)
+    if not items:
+        raise ContractError("ExperimentRun receipt chain is empty")
+    by_id: dict[str, Mapping[str, Any]] = {}
+    run_ids: set[str] = set()
+    for item in items:
+        validate_experiment_run(item)
+        receipt_id = str(item["run_receipt_id"])
+        if receipt_id in by_id:
+            raise ContractError("ExperimentRun receipt chain has a duplicate identity")
+        by_id[receipt_id] = item
+        run_ids.add(str(item["run_id"]))
+    if len(run_ids) != 1:
+        raise ContractError("ExperimentRun receipt chain crosses run roots")
+
+    roots: list[str] = []
+    children: dict[str, str] = {}
+    for receipt_id, item in by_id.items():
+        prior = item["supersedes_run_receipt_id"]
+        if prior is None:
+            roots.append(receipt_id)
+            continue
+        if prior not in by_id:
+            raise ContractError("ExperimentRun receipt chain has a missing predecessor")
+        if prior in children:
+            raise ContractError("ExperimentRun receipt chain forks")
+        if by_id[prior]["status"] != "pending" or item["status"] == "pending":
+            raise ContractError("ExperimentRun receipt transition is invalid")
+        children[str(prior)] = receipt_id
+    if len(roots) != 1:
+        raise ContractError("ExperimentRun receipt chain must have one root")
+
+    visited: set[str] = set()
+    cursor = roots[0]
+    while cursor not in visited:
+        visited.add(cursor)
+        next_id = children.get(cursor)
+        if next_id is None:
+            break
+        cursor = next_id
+    if cursor in children or visited != set(by_id):
+        raise ContractError("ExperimentRun receipt chain is cyclic or disconnected")
+    return by_id[cursor]
+
+
 __all__ = [
     "EXPERIMENT_RUN_SCHEMA_VERSION", "RESULT_SCHEMA_VERSION",
-    "assert_immutable_compatible", "build_experiment_run_receipt", "current_result",
+    "assert_immutable_compatible", "build_experiment_run_receipt",
+    "current_experiment_run", "current_result",
     "finalize_result", "result_input_fingerprint", "validate_experiment_run",
     "validate_result",
 ]
