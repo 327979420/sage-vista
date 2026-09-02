@@ -560,8 +560,12 @@ def _finalize_revision(
 ) -> Mapping[str, Any]:
     """Append to the one matching chain, while preserving exact replays."""
 
+    validate_internal_baseline_source_version(values)
     for item in previous_results:
         validate_result(contract_name, item)
+        validate_internal_baseline_source_version(item)
+        if _plain(item["source_version"]) != _plain(values["source_version"]):
+            raise ContractError("M10-B result revisions cannot cross source versions")
     initial_values = {**_plain(values), "supersedes_result_id": None}
     initial = finalize_result(contract_name, initial_values)
     matching = [

@@ -302,6 +302,7 @@ class EvaluationShadowStore:
                     for _, record in records
                     if record["logical_result_id"] == logical_result_id
                 ]
+                self._validate_internal_run_sources([], [*chain, payload])
                 leaf = current_result(contract_name, chain) if chain else None
                 existing_ids = [str(record[id_field]) for record in chain]
                 if str(payload[id_field]) in existing_ids:

@@ -5,6 +5,7 @@ from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from datetime import date, timedelta
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -75,7 +76,7 @@ def plain(value):
     return value
 
 
-def resign_result_source(contract_name, original, source_version):
+def resign_result_source(contract_name, original, source_version, **changes):
     values = plain(original)
     derived = {
         "ForwardOutcome": (
@@ -92,6 +93,7 @@ def resign_result_source(contract_name, original, source_version):
     for field in derived[contract_name]:
         values.pop(field)
     values["source_version"] = {"evaluation_contracts": source_version}
+    values.update(changes)
     return finalize_result(contract_name, values)
 
 
@@ -1915,6 +1917,62 @@ class M10RunIntegrationTests(unittest.TestCase):
             self.assertEqual(
                 completed_path,
                 store.write_run_receipt(batch.completed_run_receipt),
+            )
+
+        legacy_cross_run = resign_result_source(
+            "ForwardOutcome",
+            batch.outcomes[0],
+            "m10-b-internal-1.0.0",
+            run_id=stale_pending["run_id"],
+        )
+        with self.assertRaises(ContractError):
+            produce_forward_outcomes(
+                event,
+                read,
+                snapshot,
+                calendar,
+                universe_content_fingerprint=UNIVERSE_CONTENT,
+                pending_run_receipt=receipt,
+                generated_at=f"{calendar['as_of']}T22:02:00Z",
+                previous_outcomes=(legacy_cross_run,),
+            )
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "m10-b"
+            store = EvaluationShadowStore(root)
+            legacy_digest = legacy_cross_run["forward_outcome_id"].rsplit(
+                ":", 1
+            )[-1]
+            legacy_path = (
+                root
+                / "results"
+                / "ForwardOutcome"
+                / f"{legacy_digest}.json"
+            )
+            legacy_path.parent.mkdir(parents=True)
+            legacy_path.write_text(
+                json.dumps(
+                    plain(legacy_cross_run),
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                    allow_nan=False,
+                ) + "\n",
+                encoding="utf-8",
+            )
+            store.write_run_receipt(batch.pending_run_receipt)
+            before = {
+                path.relative_to(root): path.read_bytes()
+                for path in root.rglob("*.json")
+            }
+            with self.assertRaises(ContractError):
+                store.write_result("ForwardOutcome", batch.outcomes[0])
+            self.assertEqual(
+                before,
+                {
+                    path.relative_to(root): path.read_bytes()
+                    for path in root.rglob("*.json")
+                },
             )
 
     def test_completed_internal_run_requires_persisted_pending_root(self):
