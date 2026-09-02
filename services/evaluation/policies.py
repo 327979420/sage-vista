@@ -91,11 +91,14 @@ EVALUATION_POLICY = build_policy(
 
 FORWARD_WINDOW_POLICY = build_policy(
     kind="forward_window",
-    version="1.0.0",
+    version="1.1.0",
     name="fixed_trading_session_windows",
     rules={
         "window_sessions": list(FORWARD_WINDOWS),
         "unit": "completed_trading_sessions",
+        "reference_price": "first_post_signal_session_adjusted_open",
+        "endpoint_price": "nth_post_signal_session_adjusted_close",
+        "excursion_range": "first_post_signal_session_through_endpoint_inclusive",
         "not_yet_mature": "pending",
         "due_but_incomplete": ["partial", "unavailable"],
         "calendar_days_are_not_sessions": True,
