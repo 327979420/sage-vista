@@ -68,6 +68,22 @@ def _plain(value: Any) -> Any:
     return value
 
 
+def validate_internal_baseline_source_version(payload: Mapping[str, Any]) -> None:
+    """Require the one source identity approved for new formal M10-B runs.
+
+    Generic M10 contract validation remains able to read older receipts and
+    results.  Any record participating in the active internal-baseline path,
+    however, must use this exact versioned source identity.
+    """
+
+    if not isinstance(payload, Mapping) or _plain(payload.get("source_version")) != {
+        "evaluation_contracts": BASELINE_SOURCE_VERSION,
+    }:
+        raise ContractError(
+            "M10-B internal baseline requires its approved source version"
+        )
+
+
 def _freeze(value: Any) -> Any:
     if isinstance(value, Mapping):
         return MappingProxyType({str(key): _freeze(item) for key, item in value.items()})
@@ -472,6 +488,7 @@ def _require_internal_engine(receipt: Mapping[str, Any]) -> None:
     }
     if _plain(receipt["engine"]) != expected:
         raise ContractError("M10-B requires the approved internal baseline engine")
+    validate_internal_baseline_source_version(receipt)
 
 
 def _require_pending_forward_run(
@@ -1079,5 +1096,6 @@ __all__ = [
     "trade_result_scope_keys",
     "market_snapshot_evidence_fingerprint", "produce_forward_outcomes",
     "produce_trade_outcome",
+    "validate_internal_baseline_source_version",
     "validate_session_calendar_evidence",
 ]

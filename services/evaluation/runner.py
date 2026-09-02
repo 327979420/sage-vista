@@ -17,11 +17,11 @@ from .baseline import (
     BASELINE_ADAPTER_VERSION,
     BASELINE_ENGINE_NAME,
     BASELINE_ENGINE_VERSION,
-    BASELINE_SOURCE_VERSION,
     baseline_run_scope_fingerprint,
     outcome_result_scope_keys,
     produce_forward_outcomes,
     produce_trade_outcome,
+    validate_internal_baseline_source_version,
 )
 from .contracts import (
     RESULT_TYPES,
@@ -54,6 +54,7 @@ class BaselineEvaluationBatch:
 
 def _validate_internal_receipt(receipt: Mapping[str, Any]) -> None:
     validate_experiment_run(receipt)
+    validate_internal_baseline_source_version(receipt)
     if _plain(receipt["engine"]) != {
         "name": BASELINE_ENGINE_NAME,
         "version": BASELINE_ENGINE_VERSION,
@@ -181,7 +182,9 @@ def validate_run_conservation(
     logical_ids = [str(item["logical_result_id"]) for item in frozen]
     if len(logical_ids) != len(set(logical_ids)):
         raise ContractError("M10-B run contains duplicate logical outcomes")
+    pending_source = _plain(pending_run_receipt["source_version"])
     for outcome in frozen:
+        validate_internal_baseline_source_version(outcome)
         if (
             outcome["run_id"] != pending_run_receipt["run_id"]
             or outcome["path_status"] != pending_run_receipt["path_status"]
@@ -189,8 +192,7 @@ def validate_run_conservation(
             or outcome["partition_role"] != pending_run_receipt["partition_role"]
             or list(outcome["bias_labels"])
             != list(pending_run_receipt["bias_labels"])
-            or _plain(outcome["source_version"])
-            != {"evaluation_contracts": BASELINE_SOURCE_VERSION}
+            or _plain(outcome["source_version"]) != pending_source
         ):
             raise ContractError("M10-B outcome does not belong to this run receipt")
         _validate_input_reference_shape(pending_run_receipt, contract_name, outcome)
@@ -248,8 +250,13 @@ def complete_baseline_run(
         "error": None,
     })
     completed = build_experiment_run_receipt(**values)
+    _validate_internal_receipt(completed)
     if completed["run_id"] != pending_run_receipt["run_id"]:
         raise ContractError("completed receipt changed the M10-B run root")
+    if _plain(completed["source_version"]) != _plain(
+        pending_run_receipt["source_version"]
+    ):
+        raise ContractError("completed receipt changed the M10-B source version")
     if current_experiment_run((completed, pending_run_receipt)) != completed:
         raise ContractError("completed receipt is not the unique run-chain leaf")
     return completed
@@ -264,6 +271,10 @@ def validate_baseline_evaluation_batch(batch: BaselineEvaluationBatch) -> None:
         batch.pending_run_receipt, batch.result_contract, batch.outcomes
     )
     _validate_internal_receipt(batch.completed_run_receipt)
+    if _plain(batch.completed_run_receipt["source_version"]) != _plain(
+        batch.pending_run_receipt["source_version"]
+    ):
+        raise ContractError("M10-B pending and completed receipts use different sources")
     if current_experiment_run(
         (batch.completed_run_receipt, batch.pending_run_receipt)
     ) != batch.completed_run_receipt:

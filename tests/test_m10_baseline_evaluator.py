@@ -25,6 +25,7 @@ from services.evaluation import (
     BASELINE_ADAPTER_VERSION,
     BASELINE_ENGINE_NAME,
     BASELINE_ENGINE_VERSION,
+    BASELINE_SOURCE_VERSION,
     BaselineEvaluationBatch,
     EvaluationShadowStore,
     EVALUATION_POLICY,
@@ -44,6 +45,7 @@ from services.evaluation import (
     produce_trade_outcome,
     store_baseline_evaluation_batch,
     validate_baseline_evaluation_batch,
+    validate_experiment_run,
     validate_result,
 )
 from services.evaluation.baseline import forward_result_scope_keys
@@ -71,6 +73,40 @@ def plain(value):
     if isinstance(value, (list, tuple)):
         return [plain(item) for item in value]
     return value
+
+
+def resign_result_source(contract_name, original, source_version):
+    values = plain(original)
+    derived = {
+        "ForwardOutcome": (
+            "forward_outcome_id",
+            "forward_content_fingerprint",
+            "input_fingerprint",
+        ),
+        "TradeOutcome": (
+            "trade_outcome_id",
+            "trade_content_fingerprint",
+            "input_fingerprint",
+        ),
+    }
+    for field in derived[contract_name]:
+        values.pop(field)
+    values["source_version"] = {"evaluation_contracts": source_version}
+    return finalize_result(contract_name, values)
+
+
+def resign_receipt_source(original, source_version):
+    values = plain(original)
+    for field in (
+        "run_id",
+        "run_receipt_id",
+        "run_content_fingerprint",
+        "input_set_fingerprint",
+        "result_set_fingerprint",
+    ):
+        values.pop(field)
+    values["source_version"] = {"evaluation_contracts": source_version}
+    return build_experiment_run_receipt(**values)
 
 
 def refingerprint_machine_link(original, **changes):
@@ -171,7 +207,15 @@ def policy_ref(kind, policy):
     }
 
 
-def pending_receipt(event, read, snapshot, calendar, *, attempt="forward-fixture"):
+def pending_receipt(
+    event,
+    read,
+    snapshot,
+    calendar,
+    *,
+    attempt="forward-fixture",
+    source_version=BASELINE_SOURCE_VERSION,
+):
     input_refs = [
         {
             "id": event["event_id"],
@@ -225,7 +269,7 @@ def pending_receipt(event, read, snapshot, calendar, *, attempt="forward-fixture
     return build_experiment_run_receipt(
         as_of=calendar["as_of"],
         generated_at=f"{calendar['as_of']}T22:01:00Z",
-        source_version={"evaluation_contracts": "m10-b-internal-1.0.0"},
+        source_version={"evaluation_contracts": source_version},
         attempt_id=attempt,
         experiment_id="M10-B-forward-fixed-sample",
         status="pending",
@@ -270,6 +314,7 @@ def trade_pending_receipt(
     *,
     role="authoritative",
     attempt="trade-fixture",
+    source_version=BASELINE_SOURCE_VERSION,
 ):
     input_refs = [
         {
@@ -363,7 +408,7 @@ def trade_pending_receipt(
     return build_experiment_run_receipt(
         as_of=as_of,
         generated_at=f"{as_of}T22:01:00Z",
-        source_version={"evaluation_contracts": "m10-b-internal-1.0.0"},
+        source_version={"evaluation_contracts": source_version},
         attempt_id=attempt,
         experiment_id="M10-B-trade-fixed-sample",
         status="pending",
@@ -1059,6 +1104,156 @@ class M10RunIntegrationTests(unittest.TestCase):
             {item["id"] for item in batch.completed_run_receipt["result_refs"]},
             {item["forward_outcome_id"] for item in batch.outcomes},
         )
+        expected_source = {"evaluation_contracts": BASELINE_SOURCE_VERSION}
+        self.assertEqual(expected_source, plain(batch.pending_run_receipt["source_version"]))
+        self.assertTrue(all(
+            plain(item["source_version"]) == expected_source
+            for item in batch.outcomes
+        ))
+        self.assertEqual(
+            expected_source, plain(batch.completed_run_receipt["source_version"])
+        )
+
+    def test_forward_run_rejects_every_internal_source_version_mix(self):
+        event, read, snapshot, calendar, receipt = self.forward_inputs()
+        outcomes = produce_forward_outcomes(
+            event,
+            read,
+            snapshot,
+            calendar,
+            universe_content_fingerprint=UNIVERSE_CONTENT,
+            pending_run_receipt=receipt,
+            generated_at=f"{calendar['as_of']}T22:02:00Z",
+        )
+        old_pending = pending_receipt(
+            event,
+            read,
+            snapshot,
+            calendar,
+            attempt="legacy-source-read-only",
+            source_version="m10-b-internal-1.0.0",
+        )
+        validate_experiment_run(old_pending)
+        with self.assertRaises(ContractError):
+            produce_forward_outcomes(
+                event,
+                read,
+                snapshot,
+                calendar,
+                universe_content_fingerprint=UNIVERSE_CONTENT,
+                pending_run_receipt=old_pending,
+                generated_at=f"{calendar['as_of']}T22:02:00Z",
+            )
+        with self.assertRaises(ContractError):
+            complete_baseline_run(
+                old_pending,
+                "ForwardOutcome",
+                outcomes,
+                generated_at=f"{calendar['as_of']}T22:03:00Z",
+                finished_at=f"{calendar['as_of']}T22:03:00Z",
+            )
+
+        old_outcomes = tuple(
+            resign_result_source(
+                "ForwardOutcome", item, "m10-b-internal-1.0.0"
+            )
+            for item in outcomes
+        )
+        with self.assertRaises(ContractError):
+            complete_baseline_run(
+                receipt,
+                "ForwardOutcome",
+                old_outcomes,
+                generated_at=f"{calendar['as_of']}T22:03:00Z",
+                finished_at=f"{calendar['as_of']}T22:03:00Z",
+            )
+        with self.assertRaises(ContractError):
+            complete_baseline_run(
+                receipt,
+                "ForwardOutcome",
+                (old_outcomes[0], *outcomes[1:]),
+                generated_at=f"{calendar['as_of']}T22:03:00Z",
+                finished_at=f"{calendar['as_of']}T22:03:00Z",
+            )
+
+        completed = complete_baseline_run(
+            receipt,
+            "ForwardOutcome",
+            outcomes,
+            generated_at=f"{calendar['as_of']}T22:03:00Z",
+            finished_at=f"{calendar['as_of']}T22:03:00Z",
+        )
+        stale_completed = resign_receipt_source(
+            completed, "m10-b-internal-1.0.0"
+        )
+        with self.assertRaises(ContractError):
+            validate_baseline_evaluation_batch(BaselineEvaluationBatch(
+                result_contract="ForwardOutcome",
+                pending_run_receipt=receipt,
+                outcomes=outcomes,
+                completed_run_receipt=stale_completed,
+            ))
+
+    def test_trade_run_rejects_stale_internal_source_version(self):
+        fixture, state, read, snapshot, receipt, state_link = self.trade_inputs()
+        outcome = produce_trade_outcome(
+            fixture.event,
+            fixture.plan_link,
+            fixture.plan,
+            (state,),
+            state_link,
+            read,
+            snapshot,
+            universe_content_fingerprint=UNIVERSE_CONTENT,
+            pending_run_receipt=receipt,
+            generated_at=f"{state['as_of']}T22:02:00Z",
+        )
+        old_pending = trade_pending_receipt(
+            fixture.event,
+            snapshot,
+            fixture.plan_link,
+            fixture.plan,
+            state,
+            state_link,
+            attempt="legacy-trade-source-read-only",
+            source_version="m10-b-internal-1.0.0",
+        )
+        validate_experiment_run(old_pending)
+        with self.assertRaises(ContractError):
+            produce_trade_outcome(
+                fixture.event,
+                fixture.plan_link,
+                fixture.plan,
+                (state,),
+                state_link,
+                read,
+                snapshot,
+                universe_content_fingerprint=UNIVERSE_CONTENT,
+                pending_run_receipt=old_pending,
+                generated_at=f"{state['as_of']}T22:02:00Z",
+            )
+        stale = resign_result_source(
+            "TradeOutcome", outcome, "m10-b-internal-1.0.0"
+        )
+        with self.assertRaises(ContractError):
+            complete_baseline_run(
+                receipt,
+                "TradeOutcome",
+                (stale,),
+                generated_at=f"{state['as_of']}T22:03:00Z",
+                finished_at=f"{state['as_of']}T22:03:00Z",
+            )
+        completed = complete_baseline_run(
+            receipt,
+            "TradeOutcome",
+            (outcome,),
+            generated_at=f"{state['as_of']}T22:03:00Z",
+            finished_at=f"{state['as_of']}T22:03:00Z",
+        )
+        self.assertEqual(
+            {"evaluation_contracts": BASELINE_SOURCE_VERSION},
+            plain(completed["source_version"]),
+        )
 
     def test_daily_and_replay_forward_use_the_same_runner(self):
         event, read, snapshot, calendar, receipt = self.forward_inputs()
@@ -1643,6 +1838,84 @@ class M10RunIntegrationTests(unittest.TestCase):
                 for path in store.root.rglob("*") if path.is_file()
             }
             self.assertEqual(before, after)
+
+    def test_public_store_rejects_mixed_internal_source_versions(self):
+        event, read, snapshot, calendar, receipt = self.forward_inputs()
+        batch = evaluate_forward_baseline(
+            event,
+            read,
+            snapshot,
+            calendar,
+            universe_content_fingerprint=UNIVERSE_CONTENT,
+            pending_run_receipt=receipt,
+            generated_at=f"{calendar['as_of']}T22:02:00Z",
+            finished_at=f"{calendar['as_of']}T22:03:00Z",
+        )
+        stale_outcome = resign_result_source(
+            "ForwardOutcome", batch.outcomes[0], "m10-b-internal-1.0.0"
+        )
+        stale_pending = pending_receipt(
+            event,
+            read,
+            snapshot,
+            calendar,
+            attempt="store-legacy-source",
+            source_version="m10-b-internal-1.0.0",
+        )
+        validate_experiment_run(stale_pending)
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "m10-b"
+            store = EvaluationShadowStore(root)
+            with self.assertRaises(ContractError):
+                store.write_result("ForwardOutcome", stale_outcome)
+            with self.assertRaises(ContractError):
+                store.write_run_receipt(stale_pending)
+            self.assertFalse(any(root.rglob("*.json")))
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "m10-b"
+            store = EvaluationShadowStore(root)
+            store.write_run_receipt(batch.pending_run_receipt)
+            before = {
+                path.relative_to(root): path.read_bytes()
+                for path in root.rglob("*.json")
+            }
+            with self.assertRaises(ContractError):
+                store.write_result("ForwardOutcome", stale_outcome)
+            self.assertEqual(
+                before,
+                {
+                    path.relative_to(root): path.read_bytes()
+                    for path in root.rglob("*.json")
+                },
+            )
+
+            for outcome in batch.outcomes:
+                store.write_result("ForwardOutcome", outcome)
+            stale_completed = resign_receipt_source(
+                batch.completed_run_receipt, "m10-b-internal-1.0.0"
+            )
+            before = {
+                path.relative_to(root): path.read_bytes()
+                for path in root.rglob("*.json")
+            }
+            with self.assertRaises(ContractError):
+                store.write_run_receipt(stale_completed)
+            self.assertEqual(
+                before,
+                {
+                    path.relative_to(root): path.read_bytes()
+                    for path in root.rglob("*.json")
+                },
+            )
+            completed_path = store.write_run_receipt(
+                batch.completed_run_receipt
+            )
+            self.assertEqual(
+                completed_path,
+                store.write_run_receipt(batch.completed_run_receipt),
+            )
 
     def test_completed_internal_run_requires_persisted_pending_root(self):
         event, read, snapshot, calendar, receipt = self.forward_inputs()

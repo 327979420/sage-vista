@@ -17,6 +17,10 @@ from typing import Any, Callable, Iterator, Mapping
 from services.contracts.validation import ContractError
 from services.market_data.storage import require_shadow_root
 
+from .baseline import (
+    BASELINE_SOURCE_VERSION,
+    validate_internal_baseline_source_version,
+)
 from .contracts import (
     RESULT_TYPES,
     current_experiment_run,
@@ -69,6 +73,16 @@ def _is_internal_baseline_receipt(payload: Mapping[str, Any]) -> bool:
     from .baseline import BASELINE_ENGINE_NAME
 
     return payload["engine"]["name"] == BASELINE_ENGINE_NAME
+
+
+def _declares_internal_baseline_source(payload: Mapping[str, Any]) -> bool:
+    """Classify M10-B source records; validation remains centralized."""
+
+    source = payload.get("source_version")
+    if not isinstance(source, Mapping):
+        return False
+    value = source.get("evaluation_contracts")
+    return isinstance(value, str) and value.startswith("m10-b-internal-")
 
 
 @contextmanager
@@ -206,6 +220,42 @@ class EvaluationShadowStore:
                 receipts.append(receipt)
         return receipts
 
+    def _result_records_for_run(
+        self, run_id: str
+    ) -> list[tuple[str, Mapping[str, Any]]]:
+        records: list[tuple[str, Mapping[str, Any]]] = []
+        for contract_name in RESULT_TYPES:
+            records.extend(
+                (contract_name, record)
+                for _, record in self._result_records(contract_name)
+                if record["run_id"] == run_id
+            )
+        return records
+
+    def _results_for_run(self, run_id: str) -> list[Mapping[str, Any]]:
+        return [record for _, record in self._result_records_for_run(run_id)]
+
+    @staticmethod
+    def _validate_internal_run_sources(
+        receipts: list[Mapping[str, Any]],
+        results: list[Mapping[str, Any]],
+    ) -> None:
+        """Reject any mixed source set for a persisted internal-baseline run."""
+
+        internal = [item for item in receipts if _is_internal_baseline_receipt(item)]
+        internal_results = [
+            item for item in results if _declares_internal_baseline_source(item)
+        ]
+        if not internal and not internal_results:
+            return
+        if len(internal) != len(receipts):
+            raise ContractError("M10-B run receipt chain crosses producers")
+        expected = {"evaluation_contracts": BASELINE_SOURCE_VERSION}
+        for item in [*internal, *results]:
+            validate_internal_baseline_source_version(item)
+            if _plain(item["source_version"]) != expected:
+                raise ContractError("M10-B persisted run mixes source versions")
+
     def write_result(
         self, contract_name: str, payload: Mapping[str, Any]
     ) -> Path:
@@ -225,6 +275,10 @@ class EvaluationShadowStore:
         _id_digest(run_id, field="run_id")
         with _chain_lock(self.root, "ExperimentRunOutcomeSet", run_id):
             receipts = self._run_receipts(run_id)
+            stored_results = self._results_for_run(run_id)
+            self._validate_internal_run_sources(
+                receipts, [*stored_results, payload]
+            )
             run_leaf = current_experiment_run(receipts) if receipts else None
             if (
                 run_leaf is not None
@@ -283,16 +337,12 @@ class EvaluationShadowStore:
 
         _id_digest(run_id, field="run_id")
         references: list[dict[str, str]] = []
-        for contract_name, result_type in RESULT_TYPES.items():
-            id_field, fingerprint_field, _, _ = result_type
-            references.extend(
-                {
-                    "id": str(record[id_field]),
-                    "content_fingerprint": str(record[fingerprint_field]),
-                }
-                for _, record in self._result_records(contract_name)
-                if record["run_id"] == run_id
-            )
+        for contract_name, record in self._result_records_for_run(run_id):
+            id_field, fingerprint_field, _, _ = RESULT_TYPES[contract_name]
+            references.append({
+                "id": str(record[id_field]),
+                "content_fingerprint": str(record[fingerprint_field]),
+            })
         return sorted(
             references,
             key=lambda item: (item["id"], item["content_fingerprint"]),
@@ -313,6 +363,13 @@ class EvaluationShadowStore:
         run_id = str(payload["run_id"])
         _id_digest(run_id, field="run_id")
         with _chain_lock(self.root, "ExperimentRunOutcomeSet", run_id):
+            receipts = self._run_receipts(run_id)
+            stored_results = self._results_for_run(run_id)
+            if _is_internal_baseline_receipt(payload):
+                validate_internal_baseline_source_version(payload)
+                self._validate_internal_run_sources(
+                    [*receipts, payload], stored_results
+                )
             if (
                 _is_internal_baseline_receipt(payload)
                 and payload["status"] == "completed"
@@ -327,7 +384,6 @@ class EvaluationShadowStore:
                     )
 
             with _chain_lock(self.root, "ExperimentRun", run_id):
-                receipts = self._run_receipts(run_id)
                 existing_ids = {
                     str(receipt["run_receipt_id"]) for receipt in receipts
                 }
