@@ -331,7 +331,27 @@ class EvaluationShadowStore:
                 existing_ids = {
                     str(receipt["run_receipt_id"]) for receipt in receipts
                 }
+                leaf = current_experiment_run(receipts) if receipts else None
                 if str(payload["run_receipt_id"]) in existing_ids:
+                    if (
+                        _is_internal_baseline_receipt(payload)
+                        and payload["status"] == "completed"
+                    ):
+                        by_id = {
+                            str(receipt["run_receipt_id"]): receipt
+                            for receipt in receipts
+                        }
+                        prior_id = payload["supersedes_run_receipt_id"]
+                        if (
+                            leaf is None
+                            or leaf["run_receipt_id"] != payload["run_receipt_id"]
+                            or prior_id is None
+                            or prior_id not in by_id
+                            or by_id[prior_id]["status"] != "pending"
+                        ):
+                            raise ContractError(
+                                "completed internal baseline run requires its persisted pending root"
+                            )
                     return self._write(
                         payload,
                         target=target,
@@ -340,7 +360,19 @@ class EvaluationShadowStore:
                         fingerprint_field="run_content_fingerprint",
                     )
 
-                leaf = current_experiment_run(receipts) if receipts else None
+                if (
+                    _is_internal_baseline_receipt(payload)
+                    and payload["status"] == "completed"
+                    and (
+                        leaf is None
+                        or leaf["status"] != "pending"
+                        or payload["supersedes_run_receipt_id"]
+                        != leaf["run_receipt_id"]
+                    )
+                ):
+                    raise ContractError(
+                        "completed internal baseline run must supersede the persisted pending leaf"
+                    )
                 if leaf is not None:
                     if payload["supersedes_run_receipt_id"] != leaf["run_receipt_id"]:
                         raise ContractError(

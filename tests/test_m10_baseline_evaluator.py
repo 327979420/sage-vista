@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from datetime import date, timedelta
 from pathlib import Path
@@ -1451,6 +1452,133 @@ class M10RunIntegrationTests(unittest.TestCase):
                 for path in store.root.rglob("*") if path.is_file()
             }
             self.assertEqual(before, after)
+
+    def test_completed_internal_run_requires_persisted_pending_root(self):
+        event, read, snapshot, calendar, receipt = self.forward_inputs()
+        batch = evaluate_forward_baseline(
+            event,
+            read,
+            snapshot,
+            calendar,
+            universe_content_fingerprint=UNIVERSE_CONTENT,
+            pending_run_receipt=receipt,
+            generated_at=f"{calendar['as_of']}T22:02:00Z",
+            finished_at=f"{calendar['as_of']}T22:03:00Z",
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "m10-b"
+            store = EvaluationShadowStore(root)
+            for outcome in batch.outcomes:
+                store.write_result("ForwardOutcome", outcome)
+
+            rootless_values = plain(batch.completed_run_receipt)
+            for field in (
+                "run_id",
+                "run_receipt_id",
+                "run_content_fingerprint",
+                "input_set_fingerprint",
+                "result_set_fingerprint",
+            ):
+                rootless_values.pop(field)
+            rootless_values["supersedes_run_receipt_id"] = None
+            rootless = build_experiment_run_receipt(**rootless_values)
+            before = {
+                path.relative_to(root): path.read_bytes()
+                for path in root.rglob("*") if path.is_file()
+            }
+            with self.assertRaises(ContractError):
+                store.write_run_receipt(rootless)
+            with self.assertRaises(ContractError):
+                store.write_run_receipt(batch.completed_run_receipt)
+            self.assertEqual(
+                before,
+                {
+                    path.relative_to(root): path.read_bytes()
+                    for path in root.rglob("*") if path.is_file()
+                },
+            )
+
+            store.write_run_receipt(batch.pending_run_receipt)
+            completed_path = store.write_run_receipt(batch.completed_run_receipt)
+            self.assertEqual(
+                completed_path,
+                store.write_run_receipt(batch.completed_run_receipt),
+            )
+
+            pending_digest = batch.pending_run_receipt["run_receipt_id"].rsplit(
+                ":", 1
+            )[-1]
+            (root / "runs" / f"{pending_digest}.json").unlink()
+            remaining = {
+                path.relative_to(root): path.read_bytes()
+                for path in root.rglob("*") if path.is_file()
+            }
+            with self.assertRaises(ContractError):
+                store.write_run_receipt(batch.completed_run_receipt)
+            self.assertEqual(
+                remaining,
+                {
+                    path.relative_to(root): path.read_bytes()
+                    for path in root.rglob("*") if path.is_file()
+                },
+            )
+
+    def test_concurrent_completed_receipts_preserve_one_immutable_leaf(self):
+        event, read, snapshot, calendar, receipt = self.forward_inputs()
+        batch = evaluate_forward_baseline(
+            event,
+            read,
+            snapshot,
+            calendar,
+            universe_content_fingerprint=UNIVERSE_CONTENT,
+            pending_run_receipt=receipt,
+            generated_at=f"{calendar['as_of']}T22:02:00Z",
+            finished_at=f"{calendar['as_of']}T22:03:00Z",
+        )
+        alternate_values = plain(batch.completed_run_receipt)
+        for field in (
+            "run_id",
+            "run_receipt_id",
+            "run_content_fingerprint",
+            "input_set_fingerprint",
+            "result_set_fingerprint",
+        ):
+            alternate_values.pop(field)
+        alternate_values.update({
+            "generated_at": f"{calendar['as_of']}T22:04:00Z",
+            "finished_at": f"{calendar['as_of']}T22:04:00Z",
+        })
+        alternate = build_experiment_run_receipt(**alternate_values)
+        self.assertEqual(
+            batch.completed_run_receipt["run_receipt_id"],
+            alternate["run_receipt_id"],
+        )
+        self.assertNotEqual(
+            batch.completed_run_receipt["run_content_fingerprint"],
+            alternate["run_content_fingerprint"],
+        )
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "m10-b"
+            store = EvaluationShadowStore(root)
+            store.write_run_receipt(batch.pending_run_receipt)
+            for outcome in batch.outcomes:
+                store.write_result("ForwardOutcome", outcome)
+
+            def attempt(candidate):
+                try:
+                    store.write_run_receipt(candidate)
+                    return "written"
+                except ContractError:
+                    return "rejected"
+
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                results = list(pool.map(
+                    attempt,
+                    (batch.completed_run_receipt, alternate),
+                ))
+            self.assertEqual(["rejected", "written"], sorted(results))
+            self.assertEqual(2, len(list((root / "runs").glob("*.json"))))
 
     def test_runner_does_not_mutate_m02_or_m09_inputs(self):
         event, read, snapshot, calendar, receipt = self.forward_inputs()
