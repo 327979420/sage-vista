@@ -135,6 +135,10 @@ M01已有`ExperimentRun 1.x`，但只保存较薄的实验状态、证据窗口�
 
 首版窗口已经冻结为`1／5／20／60／100`交易日。起算口径保持当前可审计基线：信号日收盘确认后，以第一根真实可用的下一交易日调整后开盘价为起点，第N个交易日的调整后收盘为N日终点；这只是客观观察基准，不代表真实成交。调用层必须注入带版本和指纹的预期session序列，M10不能把“出现了N根K线”自行解释成“走满N个交易日”。目标session尚未到达`evidence_as_of`时必须为`pending`。目标已经到期但起点或终点缺失时为`unavailable`；起点和终点存在但中间路径不完整时可为`partial`，终值收益可保存但MFE／MAE保持不可用，均不得猜价格。
 
+`SessionCalendarEvidence`只能保存信号日之后且不晚于`evidence_as_of`的已发生session前缀，禁止保存或推算未来session。对窗口N，只有当前缀长度达到N时，`target_session_date`才等于`sessions[N-1]`；否则该字段必须为`null`，状态必须为`pending`且不得保存端点日期或价格。目标日已经发生但行情缺失时可以保存该目标日，端点仍为`null`，不得用相邻日期替代。
+
+ForwardOutcome版本边界固定如下：旧`2.0.0`严格保持原字段集合，不允许`target_session_date`，只作既有记录的只读验证；新internal-baseline formal生产器只生成`2.1.0`，其中`target_session_date`为必填但可空字段，新formal完成流程拒绝`2.0.0`或混合版本。目标日进入具体结果身份、输入指纹、内容指纹及pending预期结果描述，但不进入`logical_result_id`，因此同一事件与窗口由未成熟到成熟仍走同一追加修订链。该结构升级对应内部基线来源版本`m10-b-internal-1.1.0`。
+
 每个窗口有稳定`logical_outcome_id`。较早`pending`记录和后来成熟记录都是不可变版本；成熟版本通过`supersedes_outcome_id`指向直接前一版本，旧记录不得删除或覆盖。
 
 禁止放入：模拟成交、交易计划收益、组合资金曲线、评分或人工结论。
@@ -427,5 +431,6 @@ C—E、VectorBT X包、真实多年回测、生产接入、M11和M12不随上�
 - Forward基线提交`209d088045cd5c9d87be130a1c4b8499336cd202`只使用信号后下一有效交易日调整后开盘作为参考价格，并按注入的交易日序列形成1／5／20／60／100日结果；缺少下一开盘不回退其他价格。
 - Trade基线提交`a81d97ce288f7b62224e08556145c93a41df4b5c`只读M08 TradePlan和完整ExitState链，计算毛收益与R收益；formal净收益在费用／滑点未批准时保持`unavailable`，首版Trade MFE／MAE保持`unavailable`并保存已冻结原因。
 - 运行闭环提交`940604e8a004a2e2d0c54fbfeda1e7c6e8e3af65`要求先有pending `ExperimentRun 2.x`，结果完整验证后才追加complete收据；每日与回放薄入口调用同一评价器。
-- 本地验收为：M10-A／B专项57项、M01—M10扩大定向251项、完整Python 607项、四种固定哈希种子每轮57项、治理19项及前端11项通过；Python编译、lint、TypeScript、生产构建和差异格式检查通过。
+- 最终防未来与版本隔离提交`6ac5465ac3b2209dd3f2d0304125e4d6c7342569`删除未来`target_sessions`，按已发生session前缀建立1／5／20／60／100目标，并将新formal ForwardOutcome升级为严格`2.1.0`；旧`2.0.0`仅保留原字段只读兼容。
+- 本地验收为：M10合同与基线专项75项、M08与M10专项90项、M01—M10扩大定向271项、完整Python 627项、四种固定哈希种子每轮90项、治理19项及前端11项通过；Python编译、lint、TypeScript、生产构建和差异格式检查通过。
 - M10-B当前只达到审核分支`verified`，不表示已经合并、部署或生产启用。没有运行真实多年回测，没有实现PortfolioRun、ResearchAggregate、VectorBT、CSV／Excel、CLI、看板、M11或M12。
