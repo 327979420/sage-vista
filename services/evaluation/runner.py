@@ -18,6 +18,8 @@ from .baseline import (
     BASELINE_ENGINE_NAME,
     BASELINE_ENGINE_VERSION,
     BASELINE_SOURCE_VERSION,
+    baseline_run_scope_fingerprint,
+    outcome_result_scope_keys,
     produce_forward_outcomes,
     produce_trade_outcome,
 )
@@ -29,6 +31,7 @@ from .contracts import (
     validate_result,
 )
 from .storage import EvaluationShadowStore
+from .policies import FORWARD_WINDOWS
 
 
 def _plain(value: Any) -> Any:
@@ -59,22 +62,6 @@ def _validate_internal_receipt(receipt: Mapping[str, Any]) -> None:
         raise ContractError("M10-B run receipt does not use the internal baseline engine")
 
 
-def _validate_outcome_ownership(
-    receipt: Mapping[str, Any], outcomes: Iterable[Mapping[str, Any]]
-) -> None:
-    for outcome in outcomes:
-        if (
-            outcome["run_id"] != receipt["run_id"]
-            or outcome["path_status"] != receipt["path_status"]
-            or outcome["result_role"] != receipt["result_role"]
-            or outcome["partition_role"] != receipt["partition_role"]
-            or list(outcome["bias_labels"]) != list(receipt["bias_labels"])
-            or _plain(outcome["source_version"])
-            != {"evaluation_contracts": BASELINE_SOURCE_VERSION}
-        ):
-            raise ContractError("M10-B outcome does not belong to this run receipt")
-
-
 def _result_references(
     contract_name: str, outcomes: Iterable[Mapping[str, Any]]
 ) -> list[dict[str, str]]:
@@ -96,6 +83,136 @@ def _result_references(
     )
 
 
+def _reference_prefix(stable_id: str) -> str:
+    marker = ":sha256:"
+    if marker not in stable_id:
+        raise ContractError("M10-B run input reference has no stable SHA-256 identity")
+    return stable_id.split(marker, 1)[0]
+
+
+def _validate_input_reference_shape(
+    receipt: Mapping[str, Any],
+    contract_name: str,
+    outcome: Mapping[str, Any],
+) -> None:
+    ids = [str(item["id"]) for item in receipt["input_refs"]]
+    fingerprints = {
+        str(item["id"]): str(item["content_fingerprint"])
+        for item in receipt["input_refs"]
+    }
+    prefixes = [_reference_prefix(item) for item in ids]
+    if contract_name == "ForwardOutcome":
+        if sorted(prefixes) != sorted(
+            ["opportunity", "market", "universe", "session-calendar"]
+        ):
+            raise ContractError("Forward run input evidence is incomplete or contains extras")
+        if (
+            outcome["event_id"] not in ids
+            or outcome["session_calendar_id"] not in ids
+            or outcome["evaluation_market_snapshot_id"] not in ids
+            or fingerprints.get(str(outcome["evaluation_market_snapshot_id"]))
+            != outcome["evaluation_market_snapshot_fingerprint"]
+            or outcome["universe_id"] not in ids
+            or fingerprints.get(str(outcome["universe_id"]))
+            != outcome["universe_content_fingerprint"]
+        ):
+            raise ContractError("Forward outcome does not belong to the frozen event or calendar")
+        return
+
+    planned = outcome["trade_plan_id"] is not None
+    expected_prefixes = ["opportunity", "market", "universe", "machine-link"]
+    if planned:
+        expected_prefixes.extend(["plan", "exit-state", "machine-link"])
+    if sorted(prefixes) != sorted(expected_prefixes):
+        raise ContractError("Trade run input evidence is incomplete or contains extras")
+    required = {
+        str(outcome["event_id"]), str(outcome["trade_plan_link_id"]),
+        str(outcome["evaluation_market_snapshot_id"]),
+        str(outcome["universe_id"]),
+    }
+    if planned:
+        required.update({
+            str(outcome["trade_plan_id"]), str(outcome["exit_state_id"]),
+        })
+    if not required.issubset(ids):
+        raise ContractError("Trade outcome does not belong to the frozen event or execution")
+    if (
+        fingerprints.get(str(outcome["evaluation_market_snapshot_id"]))
+        != outcome["evaluation_market_snapshot_fingerprint"]
+        or fingerprints.get(str(outcome["universe_id"]))
+        != outcome["universe_content_fingerprint"]
+    ):
+        raise ContractError("Trade outcome changes frozen market or universe evidence")
+
+
+def validate_run_conservation(
+    pending_run_receipt: Mapping[str, Any],
+    contract_name: str,
+    outcomes: Iterable[Mapping[str, Any]],
+) -> list[dict[str, str]]:
+    """Validate one pending run's promised logical set before completion.
+
+    This is the sole M10-B run/result conservation entry.  Both completion and
+    batch/storage validation use it, so missing windows or foreign but valid
+    outcomes cannot pass through a weaker path.
+    """
+
+    _validate_internal_receipt(pending_run_receipt)
+    if (
+        pending_run_receipt["status"] != "pending"
+        or pending_run_receipt["result_refs"]
+    ):
+        raise ContractError("M10-B conservation requires the pending root receipt")
+    frozen = tuple(outcomes)
+    references = _result_references(contract_name, frozen)
+    if contract_name == "ForwardOutcome":
+        if len(frozen) != len(FORWARD_WINDOWS) or {
+            item["window_sessions"] for item in frozen
+        } != set(FORWARD_WINDOWS):
+            raise ContractError("Forward run must conserve all five approved windows")
+    elif contract_name == "TradeOutcome":
+        if len(frozen) != 1:
+            raise ContractError("Trade run must conserve exactly one logical outcome")
+    else:
+        raise ContractError("M10-B only evaluates ForwardOutcome and TradeOutcome")
+
+    logical_ids = [str(item["logical_result_id"]) for item in frozen]
+    if len(logical_ids) != len(set(logical_ids)):
+        raise ContractError("M10-B run contains duplicate logical outcomes")
+    for outcome in frozen:
+        if (
+            outcome["run_id"] != pending_run_receipt["run_id"]
+            or outcome["path_status"] != pending_run_receipt["path_status"]
+            or outcome["result_role"] != pending_run_receipt["result_role"]
+            or outcome["partition_role"] != pending_run_receipt["partition_role"]
+            or list(outcome["bias_labels"])
+            != list(pending_run_receipt["bias_labels"])
+            or _plain(outcome["source_version"])
+            != {"evaluation_contracts": BASELINE_SOURCE_VERSION}
+        ):
+            raise ContractError("M10-B outcome does not belong to this run receipt")
+        _validate_input_reference_shape(pending_run_receipt, contract_name, outcome)
+    market_fingerprints = {str(item["market_data_fingerprint"]) for item in frozen}
+    if len(market_fingerprints) != 1:
+        raise ContractError("M10-B outcomes cross market evidence fingerprints")
+    first = frozen[0]
+    actual_scope = baseline_run_scope_fingerprint(
+        contract_name,
+        input_refs=pending_run_receipt["input_refs"],
+        policy_refs=pending_run_receipt["policy_refs"],
+        path_status=str(pending_run_receipt["path_status"]),
+        result_role=str(pending_run_receipt["result_role"]),
+        partition_role=str(pending_run_receipt["partition_role"]),
+        instrument_id=str(first["instrument_id"]),
+        signal_date=str(first["signal_date"]),
+        market_data_fingerprint=next(iter(market_fingerprints)),
+        expected_result_keys=outcome_result_scope_keys(contract_name, frozen),
+    )
+    if pending_run_receipt["config_ref"]["content_fingerprint"] != actual_scope:
+        raise ContractError("M10-B outcomes do not match the pending run's frozen scope")
+    return references
+
+
 def complete_baseline_run(
     pending_run_receipt: Mapping[str, Any],
     contract_name: str,
@@ -106,15 +223,10 @@ def complete_baseline_run(
 ) -> Mapping[str, Any]:
     """Append a completed receipt whose result set exactly matches outcomes."""
 
-    _validate_internal_receipt(pending_run_receipt)
-    if (
-        pending_run_receipt["status"] != "pending"
-        or pending_run_receipt["result_refs"]
-    ):
-        raise ContractError("M10-B completion requires its pending root receipt")
     frozen_outcomes = tuple(outcomes)
-    references = _result_references(contract_name, frozen_outcomes)
-    _validate_outcome_ownership(pending_run_receipt, frozen_outcomes)
+    references = validate_run_conservation(
+        pending_run_receipt, contract_name, frozen_outcomes
+    )
 
     values = _plain(pending_run_receipt)
     for derived in (
@@ -146,8 +258,9 @@ def validate_baseline_evaluation_batch(batch: BaselineEvaluationBatch) -> None:
 
     if not isinstance(batch, BaselineEvaluationBatch):
         raise ContractError("expected an M10-B BaselineEvaluationBatch")
-    expected = _result_references(batch.result_contract, batch.outcomes)
-    _validate_internal_receipt(batch.pending_run_receipt)
+    expected = validate_run_conservation(
+        batch.pending_run_receipt, batch.result_contract, batch.outcomes
+    )
     _validate_internal_receipt(batch.completed_run_receipt)
     if current_experiment_run(
         (batch.completed_run_receipt, batch.pending_run_receipt)
@@ -155,7 +268,6 @@ def validate_baseline_evaluation_batch(batch: BaselineEvaluationBatch) -> None:
         raise ContractError("M10-B batch receipt chain is not complete")
     if _plain(batch.completed_run_receipt["result_refs"]) != expected:
         raise ContractError("M10-B completed receipt does not conserve result references")
-    _validate_outcome_ownership(batch.pending_run_receipt, batch.outcomes)
 
 
 def evaluate_forward_baseline(
@@ -271,4 +383,5 @@ __all__ = [
     "evaluate_trade_baseline",
     "store_baseline_evaluation_batch",
     "validate_baseline_evaluation_batch",
+    "validate_run_conservation",
 ]

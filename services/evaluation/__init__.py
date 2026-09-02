@@ -5,6 +5,7 @@ from .baseline import (
     BASELINE_ENGINE_NAME,
     BASELINE_ENGINE_VERSION,
     BASELINE_SOURCE_VERSION,
+    baseline_run_scope_fingerprint,
     build_session_calendar_evidence,
     market_snapshot_evidence_fingerprint,
     produce_forward_outcomes,
@@ -38,6 +39,7 @@ from .runner import (
     evaluate_trade_baseline,
     store_baseline_evaluation_batch,
     validate_baseline_evaluation_batch,
+    validate_run_conservation,
 )
 from .storage import EvaluationShadowStore
 
@@ -49,7 +51,8 @@ __all__ = [
     "FORWARD_WINDOWS",
     "FORWARD_WINDOW_POLICY", "PARTITION_POLICY", "RESULT_SCHEMA_VERSION",
     "UNAPPROVED_COST_REFERENCE", "ZERO_COST_COMPARISON_POLICY",
-    "assert_immutable_compatible", "build_experiment_run_receipt",
+    "assert_immutable_compatible", "baseline_run_scope_fingerprint",
+    "build_experiment_run_receipt",
     "build_session_calendar_evidence",
     "complete_baseline_run", "current_experiment_run", "current_result",
     "evaluate_forward_baseline", "evaluate_trade_baseline",
@@ -58,5 +61,6 @@ __all__ = [
     "result_input_fingerprint", "store_baseline_evaluation_batch",
     "validate_experiment_run", "validate_result",
     "validate_baseline_evaluation_batch",
+    "validate_run_conservation",
     "validate_session_calendar_evidence",
 ]

@@ -99,7 +99,9 @@ RESULT_ALLOWED_FIELDS = {
     "ForwardOutcome": COMMON_RESULT_FIELDS | {
         "forward_outcome_id", "forward_content_fingerprint", "event_id",
         "event_content_fingerprint", "instrument_id", "signal_date",
-        "signal_market_snapshot_id", "window_sessions", "window_policy",
+        "signal_market_snapshot_id", "evaluation_market_snapshot_id",
+        "evaluation_market_snapshot_fingerprint", "universe_id",
+        "universe_content_fingerprint", "window_sessions", "window_policy",
         "session_calendar_id", "session_calendar_fingerprint",
         "elapsed_session_count", "observed_session_count", "observed_through",
         "status_reason", "entry", "endpoint", "gross_return", "mfe", "mae",
@@ -111,6 +113,8 @@ RESULT_ALLOWED_FIELDS = {
         "trade_plan_id", "trade_plan_content_fingerprint", "trade_plan_link_id",
         "trade_plan_link_content_fingerprint", "exit_state_id",
         "exit_state_content_fingerprint", "status_reason", "entry", "exit",
+        "evaluation_market_snapshot_id", "evaluation_market_snapshot_fingerprint",
+        "universe_id", "universe_content_fingerprint",
         "exit_reason", "holding_sessions", "gross_return", "gross_r_multiple", "net_return",
         "net_return_status", "net_return_reason", "mfe", "mae", "mfe_status",
         "mae_status", "mfe_reason", "mae_reason", "cost_policy",
@@ -410,6 +414,16 @@ def _canonical_input_identity(
             "instrument_id": payload["instrument_id"],
             "signal_date": payload["signal_date"],
             "signal_market_snapshot_id": payload["signal_market_snapshot_id"],
+            "evaluation_market_snapshot_reference": {
+                "id": payload["evaluation_market_snapshot_id"],
+                "content_fingerprint": payload[
+                    "evaluation_market_snapshot_fingerprint"
+                ],
+            },
+            "universe_reference": {
+                "id": payload["universe_id"],
+                "content_fingerprint": payload["universe_content_fingerprint"],
+            },
             "window_sessions": payload["window_sessions"],
             "window_policy_fingerprint": payload["window_policy"][
                 "policy_fingerprint"
@@ -431,6 +445,16 @@ def _canonical_input_identity(
             },
             "instrument_id": payload["instrument_id"],
             "signal_date": payload["signal_date"],
+            "evaluation_market_snapshot_reference": {
+                "id": payload["evaluation_market_snapshot_id"],
+                "content_fingerprint": payload[
+                    "evaluation_market_snapshot_fingerprint"
+                ],
+            },
+            "universe_reference": {
+                "id": payload["universe_id"],
+                "content_fingerprint": payload["universe_content_fingerprint"],
+            },
             "trade_plan_reference": {
                 "id": payload["trade_plan_id"],
                 "content_fingerprint": payload["trade_plan_content_fingerprint"],
@@ -593,6 +617,8 @@ def _validate_forward(payload: Mapping[str, Any]) -> None:
         payload,
         {
             "event_content_fingerprint", "signal_market_snapshot_id",
+            "evaluation_market_snapshot_id", "evaluation_market_snapshot_fingerprint",
+            "universe_id", "universe_content_fingerprint",
             "window_policy", "session_calendar_id", "session_calendar_fingerprint",
             "elapsed_session_count", "observed_session_count", "observed_through",
             "status_reason", "entry", "endpoint", "gross_return", "mfe", "mae",
@@ -617,6 +643,20 @@ def _validate_forward(payload: Mapping[str, Any]) -> None:
         field="ForwardOutcome.signal_market_snapshot_id",
         allowed_roles={"market_snapshot"},
     )
+    _stable_reference_role(
+        payload["evaluation_market_snapshot_id"],
+        field="ForwardOutcome.evaluation_market_snapshot_id",
+        allowed_roles={"market_snapshot"},
+    )
+    _fingerprint(
+        payload["evaluation_market_snapshot_fingerprint"],
+        "evaluation_market_snapshot_fingerprint",
+    )
+    _stable_reference_role(
+        payload["universe_id"], field="ForwardOutcome.universe_id",
+        allowed_roles={"universe"},
+    )
+    _fingerprint(payload["universe_content_fingerprint"], "universe_content_fingerprint")
     validate_policy(payload["window_policy"], expected_kind="forward_window")
     if _plain(payload["window_policy"]) != _plain(FORWARD_WINDOW_POLICY):
         raise ContractError("ForwardOutcome uses an unknown window policy")
@@ -697,6 +737,8 @@ def _validate_trade(payload: Mapping[str, Any]) -> None:
             "net_return_status", "net_return_reason", "mfe", "mae", "mfe_status",
             "mae_status", "mfe_reason", "mae_reason", "cost_policy",
             "price_basis", "adjustment_policy",
+            "evaluation_market_snapshot_id", "evaluation_market_snapshot_fingerprint",
+            "universe_id", "universe_content_fingerprint",
             "market_data_fingerprint", "execution_policy",
         },
         "TradeOutcome",
@@ -713,6 +755,20 @@ def _validate_trade(payload: Mapping[str, Any]) -> None:
     if payload["signal_date"] > payload["as_of"]:
         raise ContractError("TradeOutcome signal_date cannot be after as_of")
     _fingerprint(payload["event_content_fingerprint"], "event_content_fingerprint")
+    _stable_reference_role(
+        payload["evaluation_market_snapshot_id"],
+        field="TradeOutcome.evaluation_market_snapshot_id",
+        allowed_roles={"market_snapshot"},
+    )
+    _fingerprint(
+        payload["evaluation_market_snapshot_fingerprint"],
+        "evaluation_market_snapshot_fingerprint",
+    )
+    _stable_reference_role(
+        payload["universe_id"], field="TradeOutcome.universe_id",
+        allowed_roles={"universe"},
+    )
+    _fingerprint(payload["universe_content_fingerprint"], "universe_content_fingerprint")
     if payload["price_basis"] != "provider_adjusted_ohlcv":
         raise ContractError("TradeOutcome price basis is invalid")
     if _plain(payload["adjustment_policy"]) != ADJUSTMENT_POLICY:

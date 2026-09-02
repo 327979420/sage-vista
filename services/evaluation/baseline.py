@@ -213,6 +213,150 @@ def market_snapshot_evidence_fingerprint(snapshot: Mapping[str, Any]) -> str:
     })
 
 
+def baseline_run_scope_fingerprint(
+    contract_name: str,
+    *,
+    input_refs: Sequence[Mapping[str, Any]],
+    policy_refs: Sequence[Mapping[str, Any]],
+    path_status: str,
+    result_role: str,
+    partition_role: str,
+    instrument_id: str,
+    signal_date: str,
+    market_data_fingerprint: str,
+    expected_result_keys: Sequence[Mapping[str, Any]],
+) -> str:
+    """Fingerprint the complete result set promised by one pending run.
+
+    The pending receipt stores this fingerprint in ``config_ref`` before any
+    outcome is calculated.  Completion recomputes it from the delivered
+    outcomes and the frozen input references, so a foreign event, market,
+    plan, state, missing window, or extra logical result cannot be smuggled
+    into an otherwise valid run receipt.
+    """
+
+    if contract_name not in {"ForwardOutcome", "TradeOutcome"}:
+        raise ContractError("M10-B run scope supports only Forward and Trade")
+    signal_date = require_date(signal_date, "M10-B run scope signal_date")
+    _fingerprint(market_data_fingerprint, "M10-B run scope market_data_fingerprint")
+    normalized_refs = sorted(
+        (_plain(item) for item in input_refs),
+        key=lambda item: (str(item.get("id")), str(item.get("content_fingerprint"))),
+    )
+    normalized_policies = sorted(
+        (_plain(item) for item in policy_refs),
+        key=lambda item: (
+            str(item.get("policy_kind")),
+            str(item.get("policy_version")),
+            str(item.get("policy_fingerprint")),
+        ),
+    )
+    normalized_keys = sorted(
+        (_plain(item) for item in expected_result_keys),
+        key=canonical_fingerprint,
+    )
+    return canonical_fingerprint({
+        "contract_name": contract_name,
+        "source_version": {"evaluation_contracts": BASELINE_SOURCE_VERSION},
+        "path_status": path_status,
+        "result_role": result_role,
+        "partition_role": partition_role,
+        "instrument_id": instrument_id,
+        "signal_date": signal_date,
+        "market_data_fingerprint": market_data_fingerprint,
+        "input_refs": normalized_refs,
+        "policy_refs": normalized_policies,
+        "expected_result_keys": normalized_keys,
+    })
+
+
+def forward_result_scope_keys(
+    event: Mapping[str, Any],
+    market_snapshot: Mapping[str, Any],
+    universe_content_fingerprint: str,
+) -> list[dict[str, Any]]:
+    return [{
+        "event_id": event["event_id"],
+        "event_content_fingerprint": event["event_content_fingerprint"],
+        "instrument_id": event["instrument_id"],
+        "signal_date": event["signal_date"],
+        "signal_market_snapshot_id": event["input_identity"]["market_snapshot_id"],
+        "evaluation_market_snapshot_id": market_snapshot["snapshot_id"],
+        "evaluation_market_snapshot_fingerprint": market_snapshot_evidence_fingerprint(
+            market_snapshot
+        ),
+        "universe_id": event["input_identity"]["universe_id"],
+        "universe_content_fingerprint": universe_content_fingerprint,
+        "window_sessions": window,
+    } for window in FORWARD_WINDOWS]
+
+
+def trade_result_scope_keys(
+    event: Mapping[str, Any],
+    trade_plan_link: Mapping[str, Any],
+    trade_plan: Mapping[str, Any] | None,
+    current_state: Mapping[str, Any] | None,
+    market_snapshot: Mapping[str, Any],
+    universe_content_fingerprint: str,
+) -> list[dict[str, Any]]:
+    return [{
+        "event_id": event["event_id"],
+        "event_content_fingerprint": event["event_content_fingerprint"],
+        "instrument_id": event["instrument_id"],
+        "signal_date": event["signal_date"],
+        "evaluation_market_snapshot_id": market_snapshot["snapshot_id"],
+        "evaluation_market_snapshot_fingerprint": market_snapshot_evidence_fingerprint(
+            market_snapshot
+        ),
+        "universe_id": event["input_identity"]["universe_id"],
+        "universe_content_fingerprint": universe_content_fingerprint,
+        "trade_plan_link_id": trade_plan_link["link_id"],
+        "trade_plan_link_content_fingerprint": trade_plan_link[
+            "link_content_fingerprint"
+        ],
+        "trade_plan_id": trade_plan["plan_id"] if trade_plan is not None else None,
+        "trade_plan_content_fingerprint": (
+            trade_plan["plan_content_fingerprint"] if trade_plan is not None else None
+        ),
+        "exit_state_id": (
+            current_state["exit_state_id"] if current_state is not None else None
+        ),
+        "exit_state_content_fingerprint": (
+            current_state["exit_state_content_fingerprint"]
+            if current_state is not None else None
+        ),
+    }]
+
+
+def outcome_result_scope_keys(
+    contract_name: str, outcomes: Sequence[Mapping[str, Any]]
+) -> list[dict[str, Any]]:
+    """Extract the same logical keys from delivered outcomes at completion."""
+
+    if contract_name == "ForwardOutcome":
+        fields = (
+            "event_id", "event_content_fingerprint", "instrument_id",
+            "signal_date", "signal_market_snapshot_id", "window_sessions",
+            "evaluation_market_snapshot_id",
+            "evaluation_market_snapshot_fingerprint", "universe_id",
+            "universe_content_fingerprint",
+        )
+    elif contract_name == "TradeOutcome":
+        fields = (
+            "event_id", "event_content_fingerprint", "instrument_id",
+            "signal_date", "trade_plan_link_id",
+            "evaluation_market_snapshot_id",
+            "evaluation_market_snapshot_fingerprint", "universe_id",
+            "universe_content_fingerprint",
+            "trade_plan_link_content_fingerprint", "trade_plan_id",
+            "trade_plan_content_fingerprint", "exit_state_id",
+            "exit_state_content_fingerprint",
+        )
+    else:
+        raise ContractError("M10-B result scope supports only Forward and Trade")
+    return [{field: item[field] for field in fields} for item in outcomes]
+
+
 def _validated_market_rows(
     event: Mapping[str, Any],
     read: RepositoryRead,
@@ -288,6 +432,7 @@ def _require_pending_forward_run(
     market_snapshot: Mapping[str, Any],
     universe_content_fingerprint: str,
     calendar: Mapping[str, Any],
+    market_data_fingerprint: str,
 ) -> None:
     validate_experiment_run(receipt)
     _require_internal_engine(receipt)
@@ -314,14 +459,27 @@ def _require_pending_forward_run(
         ),
         str(calendar["calendar_id"]): str(calendar["content_fingerprint"]),
     }
-    for stable_id, fingerprint in expected.items():
-        if refs.get(stable_id) != fingerprint:
-            raise ContractError("Forward run receipt omits or changes required input evidence")
+    if refs != expected:
+        raise ContractError("Forward run receipt omits, adds, or changes input evidence")
     policy_kinds = {str(item["policy_kind"]) for item in receipt["policy_refs"]}
-    if not {"adjustment", "evaluation", "forward_window", "partition"}.issubset(
-        policy_kinds
-    ):
+    if policy_kinds != {"adjustment", "evaluation", "forward_window", "partition"}:
         raise ContractError("Forward run receipt omits an approved policy")
+    expected_scope = baseline_run_scope_fingerprint(
+        "ForwardOutcome",
+        input_refs=receipt["input_refs"],
+        policy_refs=receipt["policy_refs"],
+        path_status=str(receipt["path_status"]),
+        result_role=str(receipt["result_role"]),
+        partition_role=str(receipt["partition_role"]),
+        instrument_id=str(event["instrument_id"]),
+        signal_date=str(event["signal_date"]),
+        market_data_fingerprint=market_data_fingerprint,
+        expected_result_keys=forward_result_scope_keys(
+            event, market_snapshot, universe_content_fingerprint
+        ),
+    )
+    if receipt["config_ref"]["content_fingerprint"] != expected_scope:
+        raise ContractError("Forward pending receipt does not freeze its complete result scope")
 
 
 def _finalize_revision(
@@ -398,6 +556,7 @@ def produce_forward_outcomes(
         market_snapshot=market_snapshot,
         universe_content_fingerprint=universe_content_fingerprint,
         calendar=session_calendar,
+        market_data_fingerprint=market_read.point_in_time_fingerprint,
     )
     previous = tuple(previous_outcomes)
     row_by_date = {row["date"]: row for row in rows}
@@ -483,6 +642,12 @@ def produce_forward_outcomes(
             "instrument_id": event["instrument_id"],
             "signal_date": event["signal_date"],
             "signal_market_snapshot_id": event["input_identity"]["market_snapshot_id"],
+            "evaluation_market_snapshot_id": market_snapshot["snapshot_id"],
+            "evaluation_market_snapshot_fingerprint": market_snapshot_evidence_fingerprint(
+                market_snapshot
+            ),
+            "universe_id": event["input_identity"]["universe_id"],
+            "universe_content_fingerprint": universe_content_fingerprint,
             "window_sessions": window,
             "window_policy": FORWARD_WINDOW_POLICY,
             "session_calendar_id": session_calendar["calendar_id"],
@@ -515,6 +680,7 @@ def _require_pending_trade_run(
     trade_plan: Mapping[str, Any] | None,
     current_state: Mapping[str, Any] | None,
     exit_state_link: Mapping[str, Any] | None,
+    market_data_fingerprint: str,
 ) -> None:
     validate_experiment_run(receipt)
     _require_internal_engine(receipt)
@@ -547,15 +713,31 @@ def _require_pending_trade_run(
         expected[str(exit_state_link["link_id"])] = str(
             exit_state_link["link_content_fingerprint"]
         )
-    for stable_id, fingerprint in expected.items():
-        if refs.get(stable_id) != fingerprint:
-            raise ContractError("Trade run receipt omits or changes required input evidence")
+    if refs != expected:
+        raise ContractError("Trade run receipt omits, adds, or changes input evidence")
     policy_kinds = {str(item["policy_kind"]) for item in receipt["policy_refs"]}
     required = {"adjustment", "evaluation", "execution", "partition"}
     if receipt["result_role"] == "comparison":
         required.add("cost_slippage")
-    if not required.issubset(policy_kinds):
+    if policy_kinds != required:
         raise ContractError("Trade run receipt omits an approved policy")
+    expected_scope = baseline_run_scope_fingerprint(
+        "TradeOutcome",
+        input_refs=receipt["input_refs"],
+        policy_refs=receipt["policy_refs"],
+        path_status=str(receipt["path_status"]),
+        result_role=str(receipt["result_role"]),
+        partition_role=str(receipt["partition_role"]),
+        instrument_id=str(event["instrument_id"]),
+        signal_date=str(event["signal_date"]),
+        market_data_fingerprint=market_data_fingerprint,
+        expected_result_keys=trade_result_scope_keys(
+            event, trade_plan_link, trade_plan, current_state,
+            market_snapshot, universe_content_fingerprint,
+        ),
+    )
+    if receipt["config_ref"]["content_fingerprint"] != expected_scope:
+        raise ContractError("Trade pending receipt does not freeze its complete result scope")
 
 
 def _validate_trade_sources(
@@ -656,6 +838,7 @@ def produce_trade_outcome(
         trade_plan=trade_plan,
         current_state=current_state,
         exit_state_link=exit_state_link,
+        market_data_fingerprint=market_read.point_in_time_fingerprint,
     )
     if pending_run_receipt["evidence_window"]["evidence_as_of"] != evaluation_as_of:
         raise ContractError("Trade run receipt and ExitState dates differ")
@@ -765,6 +948,12 @@ def produce_trade_outcome(
         "event_content_fingerprint": event["event_content_fingerprint"],
         "instrument_id": event["instrument_id"],
         "signal_date": event["signal_date"],
+        "evaluation_market_snapshot_id": market_snapshot["snapshot_id"],
+        "evaluation_market_snapshot_fingerprint": market_snapshot_evidence_fingerprint(
+            market_snapshot
+        ),
+        "universe_id": event["input_identity"]["universe_id"],
+        "universe_content_fingerprint": universe_content_fingerprint,
         "trade_plan_id": trade_plan_id,
         "trade_plan_content_fingerprint": trade_plan_fingerprint,
         "trade_plan_link_id": trade_plan_link["link_id"],
@@ -806,7 +995,10 @@ def produce_trade_outcome(
 
 __all__ = [
     "BASELINE_ADAPTER_VERSION", "BASELINE_ENGINE_NAME", "BASELINE_ENGINE_VERSION",
-    "BASELINE_SOURCE_VERSION", "build_session_calendar_evidence",
+    "BASELINE_SOURCE_VERSION", "baseline_run_scope_fingerprint",
+    "build_session_calendar_evidence",
+    "forward_result_scope_keys", "outcome_result_scope_keys",
+    "trade_result_scope_keys",
     "market_snapshot_evidence_fingerprint", "produce_forward_outcomes",
     "produce_trade_outcome",
     "validate_session_calendar_evidence",

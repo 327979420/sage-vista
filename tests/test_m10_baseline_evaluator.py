@@ -24,17 +24,20 @@ from services.evaluation import (
     BASELINE_ADAPTER_VERSION,
     BASELINE_ENGINE_NAME,
     BASELINE_ENGINE_VERSION,
+    BaselineEvaluationBatch,
     EvaluationShadowStore,
     EVALUATION_POLICY,
     FORWARD_WINDOWS,
     FORWARD_WINDOW_POLICY,
     PARTITION_POLICY,
     ZERO_COST_COMPARISON_POLICY,
+    baseline_run_scope_fingerprint,
     build_experiment_run_receipt,
     build_session_calendar_evidence,
     complete_baseline_run,
     evaluate_forward_baseline,
     evaluate_trade_baseline,
+    finalize_result,
     market_snapshot_evidence_fingerprint,
     produce_forward_outcomes,
     produce_trade_outcome,
@@ -152,6 +155,63 @@ def policy_ref(kind, policy):
 
 
 def pending_receipt(event, snapshot, calendar, *, attempt="forward-fixture"):
+    input_refs = [
+        {
+            "id": event["event_id"],
+            "content_fingerprint": event["event_content_fingerprint"],
+        },
+        {
+            "id": snapshot["snapshot_id"],
+            "content_fingerprint": market_snapshot_evidence_fingerprint(snapshot),
+        },
+        {
+            "id": event["input_identity"]["universe_id"],
+            "content_fingerprint": UNIVERSE_CONTENT,
+        },
+        {
+            "id": calendar["calendar_id"],
+            "content_fingerprint": calendar["content_fingerprint"],
+        },
+    ]
+    policies = [
+        {
+            "policy_kind": "adjustment",
+            "policy_version": ADJUSTMENT_POLICY["version"],
+            "policy_fingerprint": canonical_fingerprint(ADJUSTMENT_POLICY),
+        },
+        policy_ref("evaluation", EVALUATION_POLICY),
+        policy_ref("forward_window", FORWARD_WINDOW_POLICY),
+        policy_ref("partition", PARTITION_POLICY),
+    ]
+    market_fingerprint = next(
+        item["content_fingerprint"] for item in snapshot["symbols"]
+        if item["instrument_id"] == event["instrument_id"]
+    )
+    scope_fingerprint = baseline_run_scope_fingerprint(
+        "ForwardOutcome",
+        input_refs=input_refs,
+        policy_refs=policies,
+        path_status="formal",
+        result_role="authoritative",
+        partition_role="forward",
+        instrument_id=event["instrument_id"],
+        signal_date=event["signal_date"],
+        market_data_fingerprint=market_fingerprint,
+        expected_result_keys=[{
+            "event_id": event["event_id"],
+            "event_content_fingerprint": event["event_content_fingerprint"],
+            "instrument_id": event["instrument_id"],
+            "signal_date": event["signal_date"],
+            "signal_market_snapshot_id": event["input_identity"]["market_snapshot_id"],
+            "evaluation_market_snapshot_id": snapshot["snapshot_id"],
+            "evaluation_market_snapshot_fingerprint": market_snapshot_evidence_fingerprint(
+                snapshot
+            ),
+            "universe_id": event["input_identity"]["universe_id"],
+            "universe_content_fingerprint": UNIVERSE_CONTENT,
+            "window_sessions": window,
+        } for window in FORWARD_WINDOWS],
+    )
     return build_experiment_run_receipt(
         as_of=calendar["as_of"],
         generated_at=f"{calendar['as_of']}T22:01:00Z",
@@ -172,41 +232,15 @@ def pending_receipt(event, snapshot, calendar, *, attempt="forward-fixture"):
         config_ref={
             "config_id": "m10-b-forward-fixed-sample",
             "config_version": "1.0.0",
-            "content_fingerprint": canonical_fingerprint({"windows": list(FORWARD_WINDOWS)}),
+            "content_fingerprint": scope_fingerprint,
         },
         engine={
             "name": BASELINE_ENGINE_NAME,
             "version": BASELINE_ENGINE_VERSION,
             "adapter_version": BASELINE_ADAPTER_VERSION,
         },
-        policy_refs=[
-            {
-                "policy_kind": "adjustment",
-                "policy_version": ADJUSTMENT_POLICY["version"],
-                "policy_fingerprint": canonical_fingerprint(ADJUSTMENT_POLICY),
-            },
-            policy_ref("evaluation", EVALUATION_POLICY),
-            policy_ref("forward_window", FORWARD_WINDOW_POLICY),
-            policy_ref("partition", PARTITION_POLICY),
-        ],
-        input_refs=[
-            {
-                "id": event["event_id"],
-                "content_fingerprint": event["event_content_fingerprint"],
-            },
-            {
-                "id": snapshot["snapshot_id"],
-                "content_fingerprint": market_snapshot_evidence_fingerprint(snapshot),
-            },
-            {
-                "id": event["input_identity"]["universe_id"],
-                "content_fingerprint": UNIVERSE_CONTENT,
-            },
-            {
-                "id": calendar["calendar_id"],
-                "content_fingerprint": calendar["content_fingerprint"],
-            },
-        ],
+        policy_refs=policies,
+        input_refs=input_refs,
         result_refs=[],
         started_at=f"{calendar['as_of']}T22:00:00Z",
         finished_at=None,
@@ -277,6 +311,45 @@ def trade_pending_receipt(
     if role == "comparison":
         policies.append(policy_ref("cost_slippage", ZERO_COST_COMPARISON_POLICY))
     as_of = state["as_of"] if state is not None else event["signal_date"]
+    market_fingerprint = next(
+        item["content_fingerprint"] for item in snapshot["symbols"]
+        if item["instrument_id"] == event["instrument_id"]
+    )
+    scope_fingerprint = baseline_run_scope_fingerprint(
+        "TradeOutcome",
+        input_refs=input_refs,
+        policy_refs=policies,
+        path_status="formal",
+        result_role=role,
+        partition_role="forward",
+        instrument_id=event["instrument_id"],
+        signal_date=event["signal_date"],
+        market_data_fingerprint=market_fingerprint,
+        expected_result_keys=[{
+            "event_id": event["event_id"],
+            "event_content_fingerprint": event["event_content_fingerprint"],
+            "instrument_id": event["instrument_id"],
+            "signal_date": event["signal_date"],
+            "evaluation_market_snapshot_id": snapshot["snapshot_id"],
+            "evaluation_market_snapshot_fingerprint": market_snapshot_evidence_fingerprint(
+                snapshot
+            ),
+            "universe_id": event["input_identity"]["universe_id"],
+            "universe_content_fingerprint": UNIVERSE_CONTENT,
+            "trade_plan_link_id": plan_link["link_id"],
+            "trade_plan_link_content_fingerprint": plan_link[
+                "link_content_fingerprint"
+            ],
+            "trade_plan_id": plan["plan_id"] if plan is not None else None,
+            "trade_plan_content_fingerprint": (
+                plan["plan_content_fingerprint"] if plan is not None else None
+            ),
+            "exit_state_id": state["exit_state_id"] if state is not None else None,
+            "exit_state_content_fingerprint": (
+                state["exit_state_content_fingerprint"] if state is not None else None
+            ),
+        }],
+    )
     return build_experiment_run_receipt(
         as_of=as_of,
         generated_at=f"{as_of}T22:01:00Z",
@@ -297,7 +370,7 @@ def trade_pending_receipt(
         config_ref={
             "config_id": "m10-b-trade-fixed-sample",
             "config_version": "1.0.0",
-            "content_fingerprint": canonical_fingerprint({"role": role}),
+            "content_fingerprint": scope_fingerprint,
         },
         engine={
             "name": BASELINE_ENGINE_NAME,
@@ -323,6 +396,7 @@ class M10ForwardBaselineTests(unittest.TestCase):
         )
         fixture.setUp()
         cls.event = fixture.batch.events[0]
+        cls.other_event = fixture.batch.events[1]
         cls.sessions = post_signal_sessions(cls.event["signal_date"])
 
     def produce(self, *, elapsed, missing=(), previous=(), attempt=None):
@@ -915,6 +989,222 @@ class M10RunIntegrationTests(unittest.TestCase):
                 generated_at=f"{calendar['as_of']}T22:03:00Z",
                 finished_at=f"{calendar['as_of']}T22:03:00Z",
             )
+
+    def test_completion_rejects_foreign_event_even_with_rebound_run_id(self):
+        event, _, _, calendar, receipt = self.forward_inputs()
+        other = M10ForwardBaselineTests.other_event
+        other_rows = adjusted_rows(
+            other, M10ForwardBaselineTests.sessions, through=calendar["as_of"]
+        )
+        other_read, other_snapshot = market_evidence(
+            other, other_rows, as_of=calendar["as_of"]
+        )
+        other_receipt = pending_receipt(
+            other, other_snapshot, calendar, attempt="foreign-event"
+        )
+        foreign = produce_forward_outcomes(
+            other,
+            other_read,
+            other_snapshot,
+            calendar,
+            universe_content_fingerprint=UNIVERSE_CONTENT,
+            pending_run_receipt=other_receipt,
+            generated_at=f"{calendar['as_of']}T22:02:00Z",
+        )[0]
+        rebound = plain(foreign)
+        for field in (
+            "forward_outcome_id", "forward_content_fingerprint",
+            "input_fingerprint",
+        ):
+            rebound.pop(field)
+        rebound["run_id"] = receipt["run_id"]
+        rebound = finalize_result("ForwardOutcome", rebound)
+        with self.assertRaises(ContractError):
+            complete_baseline_run(
+                receipt,
+                "ForwardOutcome",
+                (rebound,),
+                generated_at=f"{calendar['as_of']}T22:03:00Z",
+                finished_at=f"{calendar['as_of']}T22:03:00Z",
+            )
+
+    def test_completion_rejects_foreign_market_and_missing_windows(self):
+        event, read, snapshot, calendar, receipt = self.forward_inputs()
+        outcomes = produce_forward_outcomes(
+            event,
+            read,
+            snapshot,
+            calendar,
+            universe_content_fingerprint=UNIVERSE_CONTENT,
+            pending_run_receipt=receipt,
+            generated_at=f"{calendar['as_of']}T22:02:00Z",
+        )
+        with self.assertRaises(ContractError):
+            complete_baseline_run(
+                receipt,
+                "ForwardOutcome",
+                outcomes[:1],
+                generated_at=f"{calendar['as_of']}T22:03:00Z",
+                finished_at=f"{calendar['as_of']}T22:03:00Z",
+            )
+
+        changed_rows = list(read.rows)
+        changed_rows[-1] = {
+            **changed_rows[-1],
+            "close": changed_rows[-1]["close"] + 0.25,
+            "high": max(
+                changed_rows[-1]["high"], changed_rows[-1]["close"] + 0.25
+            ),
+        }
+        foreign_read, foreign_snapshot = market_evidence(
+            event, tuple(changed_rows), as_of=calendar["as_of"]
+        )
+        foreign_receipt = pending_receipt(
+            event, foreign_snapshot, calendar, attempt="foreign-market"
+        )
+        foreign = produce_forward_outcomes(
+            event,
+            foreign_read,
+            foreign_snapshot,
+            calendar,
+            universe_content_fingerprint=UNIVERSE_CONTENT,
+            pending_run_receipt=foreign_receipt,
+            generated_at=f"{calendar['as_of']}T22:02:00Z",
+        )
+        rebound = []
+        for item in foreign:
+            values = plain(item)
+            for field in (
+                "forward_outcome_id", "forward_content_fingerprint",
+                "input_fingerprint",
+            ):
+                values.pop(field)
+            values["run_id"] = receipt["run_id"]
+            rebound.append(finalize_result("ForwardOutcome", values))
+        with self.assertRaises(ContractError):
+            complete_baseline_run(
+                receipt,
+                "ForwardOutcome",
+                rebound,
+                generated_at=f"{calendar['as_of']}T22:03:00Z",
+                finished_at=f"{calendar['as_of']}T22:03:00Z",
+            )
+
+    def test_completion_rejects_changed_universe_calendar_and_extra_window(self):
+        event, read, snapshot, calendar, receipt = self.forward_inputs()
+        outcomes = list(produce_forward_outcomes(
+            event,
+            read,
+            snapshot,
+            calendar,
+            universe_content_fingerprint=UNIVERSE_CONTENT,
+            pending_run_receipt=receipt,
+            generated_at=f"{calendar['as_of']}T22:02:00Z",
+        ))
+        attacks = (
+            {
+                "universe_id": "universe:sha256:" + "e" * 64,
+                "universe_content_fingerprint": "sha256:" + "e" * 64,
+            },
+            {
+                "session_calendar_id": "session-calendar:sha256:" + "e" * 64,
+                "session_calendar_fingerprint": "sha256:" + "e" * 64,
+            },
+        )
+        for changes in attacks:
+            with self.subTest(changes=changes):
+                values = plain(outcomes[0])
+                for field in (
+                    "forward_outcome_id", "forward_content_fingerprint",
+                    "input_fingerprint",
+                ):
+                    values.pop(field)
+                values.update(changes)
+                attacked = finalize_result("ForwardOutcome", values)
+                with self.assertRaises(ContractError):
+                    complete_baseline_run(
+                        receipt,
+                        "ForwardOutcome",
+                        (attacked, *outcomes[1:]),
+                        generated_at=f"{calendar['as_of']}T22:03:00Z",
+                        finished_at=f"{calendar['as_of']}T22:03:00Z",
+                    )
+        with self.assertRaises(ContractError):
+            complete_baseline_run(
+                receipt,
+                "ForwardOutcome",
+                (*outcomes, outcomes[0]),
+                generated_at=f"{calendar['as_of']}T22:03:00Z",
+                finished_at=f"{calendar['as_of']}T22:03:00Z",
+            )
+
+    def test_trade_completion_rejects_changed_plan_or_exit_state(self):
+        fixture, state, read, snapshot, receipt, state_link = self.trade_inputs()
+        outcome = produce_trade_outcome(
+            fixture.event,
+            fixture.plan_link,
+            fixture.plan,
+            (state,),
+            state_link,
+            read,
+            snapshot,
+            universe_content_fingerprint=UNIVERSE_CONTENT,
+            pending_run_receipt=receipt,
+            generated_at=f"{state['as_of']}T22:02:00Z",
+        )
+        attacks = (
+            {
+                "trade_plan_id": "plan:sha256:" + "e" * 64,
+                "trade_plan_content_fingerprint": "sha256:" + "e" * 64,
+            },
+            {
+                "exit_state_id": "exit-state:sha256:" + "e" * 64,
+                "exit_state_content_fingerprint": "sha256:" + "e" * 64,
+            },
+        )
+        for changes in attacks:
+            with self.subTest(changes=changes):
+                values = plain(outcome)
+                for field in (
+                    "trade_outcome_id", "trade_content_fingerprint",
+                    "input_fingerprint",
+                ):
+                    values.pop(field)
+                values.update(changes)
+                attacked = finalize_result("TradeOutcome", values)
+                with self.assertRaises(ContractError):
+                    complete_baseline_run(
+                        receipt,
+                        "TradeOutcome",
+                        (attacked,),
+                        generated_at=f"{state['as_of']}T22:03:00Z",
+                        finished_at=f"{state['as_of']}T22:03:00Z",
+                    )
+
+    def test_invalid_batch_does_not_write_or_replace_existing_files(self):
+        event, read, snapshot, calendar, receipt = self.forward_inputs()
+        valid = evaluate_forward_baseline(
+            event,
+            read,
+            snapshot,
+            calendar,
+            universe_content_fingerprint=UNIVERSE_CONTENT,
+            pending_run_receipt=receipt,
+            generated_at=f"{calendar['as_of']}T22:02:00Z",
+            finished_at=f"{calendar['as_of']}T22:03:00Z",
+        )
+        invalid = BaselineEvaluationBatch(
+            result_contract="ForwardOutcome",
+            pending_run_receipt=valid.pending_run_receipt,
+            outcomes=valid.outcomes[:1],
+            completed_run_receipt=valid.completed_run_receipt,
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "m10-b"
+            store = EvaluationShadowStore(root)
+            with self.assertRaises(ContractError):
+                store_baseline_evaluation_batch(store, invalid)
+            self.assertFalse(root.exists())
 
     def test_shadow_store_persists_pending_results_then_completion(self):
         event, read, snapshot, calendar, receipt = self.forward_inputs()
