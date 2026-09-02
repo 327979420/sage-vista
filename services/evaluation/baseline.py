@@ -33,6 +33,7 @@ from services.market_data.normalization import validate_adjusted_rows
 from services.market_data.repository import RepositoryRead
 
 from .contracts import (
+    FORWARD_OUTCOME_SCHEMA_VERSION,
     RESULT_TYPES,
     current_result,
     finalize_result,
@@ -52,7 +53,7 @@ from .policies import (
 BASELINE_ENGINE_NAME = "sage-vista-internal-baseline"
 BASELINE_ENGINE_VERSION = "1.0.0"
 BASELINE_ADAPTER_VERSION = "internal-1.0.0"
-BASELINE_SOURCE_VERSION = "m10-b-internal-1.0.0"
+BASELINE_SOURCE_VERSION = "m10-b-internal-1.1.0"
 PRICE_QUANTUM = Decimal("0.00000001")
 METRIC_QUANTUM = Decimal("0.0000000001")
 SHA256 = re.compile(r"^sha256:[0-9a-f]{64}$")
@@ -121,15 +122,12 @@ def build_session_calendar_evidence(
     signal_date: str,
     as_of: str,
     sessions: Sequence[str],
-    target_sessions: Sequence[str] | None = None,
 ) -> Mapping[str, Any]:
     """Freeze the caller's explicit post-signal trading sessions.
 
     M10 cannot infer holidays or suspensions from whichever bars happen to be
-    present.  ``sessions`` is the observed prefix through ``as_of``;
-    ``target_sessions`` may additionally freeze the date-only schedule for all
-    approved windows.  The evaluator fingerprints and revalidates both without
-    admitting post-``as_of`` market prices.
+    present.  The caller supplies only the normalized sessions that have
+    actually occurred through ``as_of``; future schedule dates are forbidden.
     """
 
     if not isinstance(calendar_name, str) or not calendar_name.strip():
@@ -147,26 +145,6 @@ def build_session_calendar_evidence(
         raise ContractError("session calendar sessions must be sorted and unique")
     if any(item <= signal_date or item > as_of for item in normalized):
         raise ContractError("session calendar must contain only post-signal sessions through as_of")
-    normalized_targets = None
-    if target_sessions is not None:
-        if isinstance(target_sessions, (str, bytes)):
-            raise ContractError("session calendar target_sessions must be a sequence")
-        normalized_targets = [
-            require_date(item, "session_calendar.target_sessions")
-            for item in target_sessions
-        ]
-        if normalized_targets != sorted(set(normalized_targets)):
-            raise ContractError(
-                "session calendar target_sessions must be sorted and unique"
-            )
-        if any(item <= signal_date for item in normalized_targets):
-            raise ContractError(
-                "session calendar target_sessions must follow the signal"
-            )
-        if normalized != [item for item in normalized_targets if item <= as_of]:
-            raise ContractError(
-                "session calendar observed sessions must match the target schedule through as_of"
-            )
     identity = {
         "calendar_name": calendar_name,
         "calendar_version": calendar_version,
@@ -180,8 +158,6 @@ def build_session_calendar_evidence(
         "as_of": as_of,
         "sessions": normalized,
     }
-    if normalized_targets is not None:
-        payload["target_sessions"] = normalized_targets
     payload["content_fingerprint"] = canonical_fingerprint(payload)
     validate_session_calendar_evidence(payload)
     return _freeze(payload)
@@ -192,12 +168,7 @@ def validate_session_calendar_evidence(payload: Mapping[str, Any]) -> None:
         "schema_version", "calendar_id", "calendar_name", "calendar_version",
         "signal_date", "as_of", "sessions", "content_fingerprint",
     }
-    allowed = required | {"target_sessions"}
-    if (
-        not isinstance(payload, Mapping)
-        or not required.issubset(payload)
-        or not set(payload).issubset(allowed)
-    ):
+    if not isinstance(payload, Mapping) or set(payload) != required:
         raise ContractError("session calendar evidence fields are incomplete or unknown")
     if payload["schema_version"] != "1.0.0":
         raise ContractError("session calendar evidence schema is unknown")
@@ -217,23 +188,6 @@ def validate_session_calendar_evidence(payload: Mapping[str, Any]) -> None:
         raise ContractError("session calendar sessions must be sorted and unique")
     if any(item <= signal_date or item > as_of for item in normalized):
         raise ContractError("session calendar contains an out-of-range session")
-    target_sessions = payload.get("target_sessions", sessions)
-    if not isinstance(target_sessions, (list, tuple)):
-        raise ContractError("session calendar target_sessions must be a list")
-    normalized_targets = [
-        require_date(item, "session_calendar.target_sessions")
-        for item in target_sessions
-    ]
-    if normalized_targets != sorted(set(normalized_targets)):
-        raise ContractError(
-            "session calendar target_sessions must be sorted and unique"
-        )
-    if any(item <= signal_date for item in normalized_targets):
-        raise ContractError("session calendar target_sessions must follow the signal")
-    if normalized != [item for item in normalized_targets if item <= as_of]:
-        raise ContractError(
-            "session calendar observed sessions do not match the target schedule"
-        )
     expected_id = "session-calendar:" + canonical_fingerprint({
         "calendar_name": payload["calendar_name"],
         "calendar_version": payload["calendar_version"],
@@ -250,20 +204,16 @@ def validate_session_calendar_evidence(payload: Mapping[str, Any]) -> None:
         raise ContractError("session calendar fingerprint does not match its sessions")
 
 
-def _forward_target_sessions(
-    session_calendar: Mapping[str, Any],
-) -> tuple[str, ...]:
-    """Return the one verified schedule shared by all Forward windows."""
+def _forward_target_session_date(
+    sessions: Sequence[str], window_sessions: int
+) -> str | None:
+    """Map one approved window to the Nth session only after it has occurred."""
 
-    validate_session_calendar_evidence(session_calendar)
-    targets = tuple(
-        session_calendar.get("target_sessions", session_calendar["sessions"])
-    )
-    if len(targets) < max(FORWARD_WINDOWS):
-        raise ContractError(
-            "Forward calendar does not cover every approved target window"
-        )
-    return targets
+    if window_sessions not in FORWARD_WINDOWS:
+        raise ContractError("Forward window is not approved")
+    if len(sessions) < window_sessions:
+        return None
+    return str(sessions[window_sessions - 1])
 
 
 def market_snapshot_evidence_fingerprint(snapshot: Mapping[str, Any]) -> str:
@@ -341,42 +291,44 @@ def forward_result_scope_keys(
 ) -> list[dict[str, Any]]:
     """Freeze each Forward window against one normalized calendar evidence set."""
 
-    targets = _forward_target_sessions(session_calendar)
+    validate_session_calendar_evidence(session_calendar)
+    sessions = tuple(session_calendar["sessions"])
     rows = validate_adjusted_rows(market_rows)
     row_by_date = {row["date"]: row for row in rows}
-    return [{
-        "event_id": event["event_id"],
-        "event_content_fingerprint": event["event_content_fingerprint"],
-        "instrument_id": event["instrument_id"],
-        "signal_date": event["signal_date"],
-        "signal_market_snapshot_id": event["input_identity"]["market_snapshot_id"],
-        "evaluation_market_snapshot_id": market_snapshot["snapshot_id"],
-        "evaluation_market_snapshot_fingerprint": market_snapshot_evidence_fingerprint(
-            market_snapshot
-        ),
-        "universe_id": event["input_identity"]["universe_id"],
-        "universe_content_fingerprint": universe_content_fingerprint,
-        "as_of": session_calendar["as_of"],
-        "session_calendar_id": session_calendar["calendar_id"],
-        "session_calendar_fingerprint": session_calendar["content_fingerprint"],
-        "elapsed_session_count": len(session_calendar["sessions"]),
-        "window_sessions": window,
-        "target_session_date": targets[window - 1],
-        "endpoint": (
-            {
-                "date": targets[window - 1],
+    keys: list[dict[str, Any]] = []
+    for window in FORWARD_WINDOWS:
+        target_session_date = _forward_target_session_date(sessions, window)
+        endpoint = None
+        if target_session_date is not None and target_session_date in row_by_date:
+            endpoint = {
+                "date": target_session_date,
                 "price": _normalized_price(
-                    row_by_date[targets[window - 1]]["close"],
+                    row_by_date[target_session_date]["close"],
                     "ForwardOutcome.endpoint.close",
                 ),
             }
-            if (
-                targets[window - 1] <= session_calendar["as_of"]
-                and targets[window - 1] in row_by_date
-            )
-            else None
-        ),
-    } for window in FORWARD_WINDOWS]
+        keys.append({
+            "schema_version": FORWARD_OUTCOME_SCHEMA_VERSION,
+            "event_id": event["event_id"],
+            "event_content_fingerprint": event["event_content_fingerprint"],
+            "instrument_id": event["instrument_id"],
+            "signal_date": event["signal_date"],
+            "signal_market_snapshot_id": event["input_identity"]["market_snapshot_id"],
+            "evaluation_market_snapshot_id": market_snapshot["snapshot_id"],
+            "evaluation_market_snapshot_fingerprint": market_snapshot_evidence_fingerprint(
+                market_snapshot
+            ),
+            "universe_id": event["input_identity"]["universe_id"],
+            "universe_content_fingerprint": universe_content_fingerprint,
+            "as_of": session_calendar["as_of"],
+            "session_calendar_id": session_calendar["calendar_id"],
+            "session_calendar_fingerprint": session_calendar["content_fingerprint"],
+            "elapsed_session_count": len(sessions),
+            "window_sessions": window,
+            "target_session_date": target_session_date,
+            "endpoint": endpoint,
+        })
+    return keys
 
 
 def trade_result_scope_keys(
@@ -422,8 +374,15 @@ def outcome_result_scope_keys(
     """Extract the same logical keys from delivered outcomes at completion."""
 
     if contract_name == "ForwardOutcome":
+        if any(
+            item.get("schema_version") != FORWARD_OUTCOME_SCHEMA_VERSION
+            for item in outcomes
+        ):
+            raise ContractError(
+                "internal-baseline formal completion requires ForwardOutcome 2.1.0"
+            )
         fields = (
-            "event_id", "event_content_fingerprint", "instrument_id",
+            "schema_version", "event_id", "event_content_fingerprint", "instrument_id",
             "signal_date", "signal_market_snapshot_id", "window_sessions",
             "evaluation_market_snapshot_id",
             "evaluation_market_snapshot_fingerprint", "universe_id",
@@ -655,14 +614,19 @@ def produce_forward_outcomes(
         market_data_fingerprint=market_read.point_in_time_fingerprint,
     )
     previous = tuple(previous_outcomes)
+    for item in previous:
+        validate_result("ForwardOutcome", item)
+        if item["schema_version"] != FORWARD_OUTCOME_SCHEMA_VERSION:
+            raise ContractError(
+                "internal-baseline formal revisions require ForwardOutcome 2.1.0"
+            )
     row_by_date = {row["date"]: row for row in rows}
     sessions = tuple(session_calendar["sessions"])
-    target_sessions = _forward_target_sessions(session_calendar)
     elapsed = len(sessions)
-    entry_row = row_by_date.get(target_sessions[0]) if sessions else None
+    entry_row = row_by_date.get(sessions[0]) if sessions else None
     entry = (
         {
-            "date": target_sessions[0],
+            "date": sessions[0],
             "price": _normalized_price(entry_row["open"], "ForwardOutcome.entry.open"),
         }
         if entry_row is not None
@@ -671,8 +635,8 @@ def produce_forward_outcomes(
 
     outcomes: list[Mapping[str, Any]] = []
     for window in FORWARD_WINDOWS:
-        window_dates = target_sessions[:window]
-        target_session_date = target_sessions[window - 1]
+        window_dates = sessions[:window]
+        target_session_date = _forward_target_session_date(sessions, window)
         observed_dates = [day for day in window_dates if day in row_by_date]
         observed_through = max(observed_dates) if observed_dates else None
         endpoint = None
@@ -721,7 +685,7 @@ def produce_forward_outcomes(
                     )
 
         values = {
-            "schema_version": "2.0.0",
+            "schema_version": FORWARD_OUTCOME_SCHEMA_VERSION,
             "as_of": evaluation_as_of,
             "generated_at": generated_at,
             "source_version": {"evaluation_contracts": BASELINE_SOURCE_VERSION},

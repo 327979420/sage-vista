@@ -30,6 +30,7 @@ from .policies import (
 
 
 RESULT_SCHEMA_VERSION = "2.0.0"
+FORWARD_OUTCOME_SCHEMA_VERSION = "2.1.0"
 EXPERIMENT_RUN_SCHEMA_VERSION = "2.0.0"
 SHA256 = re.compile(r"^sha256:[0-9a-f]{64}$")
 STABLE_REFERENCE_PREFIXES = {
@@ -95,19 +96,25 @@ COMMON_RESULT_FIELDS = {
     "path_status", "result_role", "partition_role", "bias_labels",
     "evaluation_policy", "partition_policy", "input_fingerprint", "status",
 }
+FORWARD_OUTCOME_2_0_FIELDS = COMMON_RESULT_FIELDS | {
+    "forward_outcome_id", "forward_content_fingerprint", "event_id",
+    "event_content_fingerprint", "instrument_id", "signal_date",
+    "signal_market_snapshot_id", "evaluation_market_snapshot_id",
+    "evaluation_market_snapshot_fingerprint", "universe_id",
+    "universe_content_fingerprint", "window_sessions", "window_policy",
+    "session_calendar_id", "session_calendar_fingerprint",
+    "elapsed_session_count", "observed_session_count", "observed_through",
+    "status_reason", "entry", "endpoint", "gross_return", "mfe", "mae",
+    "price_basis", "adjustment_policy", "market_data_fingerprint",
+}
+FORWARD_OUTCOME_FIELDS_BY_VERSION = {
+    RESULT_SCHEMA_VERSION: FORWARD_OUTCOME_2_0_FIELDS,
+    FORWARD_OUTCOME_SCHEMA_VERSION: (
+        FORWARD_OUTCOME_2_0_FIELDS | {"target_session_date"}
+    ),
+}
 RESULT_ALLOWED_FIELDS = {
-    "ForwardOutcome": COMMON_RESULT_FIELDS | {
-        "forward_outcome_id", "forward_content_fingerprint", "event_id",
-        "event_content_fingerprint", "instrument_id", "signal_date",
-        "signal_market_snapshot_id", "evaluation_market_snapshot_id",
-        "evaluation_market_snapshot_fingerprint", "universe_id",
-        "universe_content_fingerprint", "window_sessions", "window_policy",
-        "session_calendar_id", "session_calendar_fingerprint",
-        "target_session_date",
-        "elapsed_session_count", "observed_session_count", "observed_through",
-        "status_reason", "entry", "endpoint", "gross_return", "mfe", "mae",
-        "price_basis", "adjustment_policy", "market_data_fingerprint",
-    },
+    "ForwardOutcome": FORWARD_OUTCOME_2_0_FIELDS,
     "TradeOutcome": COMMON_RESULT_FIELDS | {
         "trade_outcome_id", "trade_content_fingerprint", "event_id",
         "event_content_fingerprint", "instrument_id", "signal_date",
@@ -574,17 +581,17 @@ def finalize_result(contract_name: str, payload: Mapping[str, Any]) -> Mapping[s
 
 
 def _validate_common_result(contract_name: str, payload: Mapping[str, Any]) -> None:
-    allowed = RESULT_ALLOWED_FIELDS[contract_name]
-    optional = {"target_session_date"} if contract_name == "ForwardOutcome" else set()
-    _required(payload, allowed - optional, contract_name)
-    unknown = sorted(payload.keys() - allowed)
-    if unknown:
-        raise ContractError(
-            f"{contract_name} contains unknown fields: {', '.join(unknown)}"
-        )
+    schema_version = payload.get("schema_version")
+    if contract_name == "ForwardOutcome":
+        allowed = FORWARD_OUTCOME_FIELDS_BY_VERSION.get(schema_version)
+        if allowed is None:
+            raise ContractError("ForwardOutcome schema version is unknown")
+    else:
+        allowed = RESULT_ALLOWED_FIELDS[contract_name]
+        if schema_version != RESULT_SCHEMA_VERSION:
+            raise ContractError(f"formal M10 requires {contract_name} 2.0.0")
+    _exact_fields(payload, allowed, f"{contract_name} {schema_version}")
     validate_contract(contract_name, payload)
-    if payload["schema_version"] != RESULT_SCHEMA_VERSION:
-        raise ContractError(f"formal M10 requires {contract_name} 2.0.0")
     _timestamp(payload["generated_at"], "generated_at")
     _stable_reference_role(
         payload["run_id"], field=f"{contract_name}.run_id",
@@ -679,6 +686,7 @@ def _validate_forward(payload: Mapping[str, Any]) -> None:
         allowed_roles={"session_calendar"},
     )
     _fingerprint(payload["session_calendar_fingerprint"], "session_calendar_fingerprint")
+    modern_forward = payload["schema_version"] == FORWARD_OUTCOME_SCHEMA_VERSION
     target_session_date = payload.get("target_session_date")
     if target_session_date is not None:
         target_session_date = require_date(
@@ -695,6 +703,10 @@ def _validate_forward(payload: Mapping[str, Any]) -> None:
         require_date(observed_through, "observed_through")
         if observed_through > payload["as_of"]:
             raise ContractError("ForwardOutcome observes data after as_of")
+        if target_session_date is not None and observed_through > target_session_date:
+            raise ContractError(
+                "ForwardOutcome cannot observe beyond its target session"
+            )
     if payload["price_basis"] != "provider_adjusted_ohlcv":
         raise ContractError("ForwardOutcome price basis is invalid")
     if _plain(payload["adjustment_policy"]) != ADJUSTMENT_POLICY:
@@ -707,32 +719,35 @@ def _validate_forward(payload: Mapping[str, Any]) -> None:
     if status == "pending":
         if elapsed >= payload["window_sessions"] or reason != "window_not_mature":
             raise ContractError("pending ForwardOutcome must be genuinely immature")
-        if target_session_date is not None and target_session_date <= payload["as_of"]:
-            raise ContractError("pending ForwardOutcome target must be after as_of")
+        if modern_forward and target_session_date is not None:
+            raise ContractError("pending ForwardOutcome 2.1 target must be null")
         if any(payload[field] is not None for field in ("endpoint", "gross_return", "mfe", "mae")):
             raise ContractError("pending ForwardOutcome cannot contain mature results")
-    elif elapsed < payload["window_sessions"]:
-        raise ContractError("an immature ForwardOutcome must remain pending")
-    elif target_session_date is not None and target_session_date > payload["as_of"]:
-        raise ContractError("matured ForwardOutcome target cannot be after as_of")
-    elif status == "mature":
-        if reason is not None or observed != payload["window_sessions"]:
-            raise ContractError("mature ForwardOutcome requires complete window evidence")
-        if payload["entry"] is None or payload["endpoint"] is None:
-            raise ContractError("mature ForwardOutcome requires both prices")
-        for field in ("gross_return", "mfe", "mae"):
-            _finite(payload[field], field)
-    elif status == "partial":
-        _text(reason, "status_reason")
-        if payload["entry"] is None or payload["endpoint"] is None:
-            raise ContractError("partial ForwardOutcome requires known endpoints")
-        _finite(payload["gross_return"], "gross_return")
-        if payload["mfe"] is not None or payload["mae"] is not None:
-            raise ContractError("partial ForwardOutcome cannot claim complete excursions")
     else:
-        _text(reason, "status_reason")
-        if any(payload[field] is not None for field in ("gross_return", "mfe", "mae")):
-            raise ContractError("unavailable ForwardOutcome cannot contain guessed results")
+        if elapsed < payload["window_sessions"]:
+            raise ContractError("an immature ForwardOutcome must remain pending")
+        if modern_forward and target_session_date is None:
+            raise ContractError("matured ForwardOutcome 2.1 requires its target session")
+        if target_session_date is not None and target_session_date > payload["as_of"]:
+            raise ContractError("matured ForwardOutcome target cannot be after as_of")
+        if status == "mature":
+            if reason is not None or observed != payload["window_sessions"]:
+                raise ContractError("mature ForwardOutcome requires complete window evidence")
+            if payload["entry"] is None or payload["endpoint"] is None:
+                raise ContractError("mature ForwardOutcome requires both prices")
+            for field in ("gross_return", "mfe", "mae"):
+                _finite(payload[field], field)
+        elif status == "partial":
+            _text(reason, "status_reason")
+            if payload["entry"] is None or payload["endpoint"] is None:
+                raise ContractError("partial ForwardOutcome requires known endpoints")
+            _finite(payload["gross_return"], "gross_return")
+            if payload["mfe"] is not None or payload["mae"] is not None:
+                raise ContractError("partial ForwardOutcome cannot claim complete excursions")
+        else:
+            _text(reason, "status_reason")
+            if any(payload[field] is not None for field in ("gross_return", "mfe", "mae")):
+                raise ContractError("unavailable ForwardOutcome cannot contain guessed results")
     for field in ("entry", "endpoint"):
         value = payload[field]
         if value is not None:
@@ -1323,7 +1338,8 @@ def current_experiment_run(
 
 
 __all__ = [
-    "EXPERIMENT_RUN_SCHEMA_VERSION", "RESULT_SCHEMA_VERSION",
+    "EXPERIMENT_RUN_SCHEMA_VERSION", "FORWARD_OUTCOME_SCHEMA_VERSION",
+    "RESULT_SCHEMA_VERSION",
     "assert_immutable_compatible", "build_experiment_run_receipt",
     "current_experiment_run", "current_result",
     "finalize_result", "result_input_fingerprint", "validate_experiment_run",

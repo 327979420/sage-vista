@@ -417,7 +417,6 @@ class M10ForwardBaselineTests(unittest.TestCase):
             signal_date=self.event["signal_date"],
             as_of=as_of,
             sessions=self.sessions[:elapsed],
-            target_sessions=self.sessions,
         )
         rows = adjusted_rows(
             self.event, self.sessions, through=as_of, missing=missing
@@ -442,27 +441,52 @@ class M10ForwardBaselineTests(unittest.TestCase):
         )
         return outcomes, read, snapshot, calendar, receipt
 
-    def test_pending_calendar_freezes_all_authoritative_window_targets(self):
-        calendar = build_session_calendar_evidence(
-            calendar_name="fixed-us-session-fixture",
-            calendar_version="1.0.0",
-            signal_date=self.event["signal_date"],
-            as_of=self.sessions[4],
-            sessions=self.sessions[:5],
-            target_sessions=self.sessions,
-        )
+    def test_calendar_and_pending_targets_contain_no_future_sessions(self):
+        outcomes, _, _, calendar, _ = self.produce(elapsed=5)
         self.assertEqual(calendar["sessions"], tuple(self.sessions[:5]))
-        self.assertEqual(calendar["target_sessions"], tuple(self.sessions))
-        self.assertEqual(
-            {
-                window: calendar["target_sessions"][window - 1]
-                for window in FORWARD_WINDOWS
-            },
-            {
-                window: self.sessions[window - 1]
-                for window in FORWARD_WINDOWS
-            },
-        )
+        self.assertNotIn("target_sessions", calendar)
+        self.assertEqual({item["schema_version"] for item in outcomes}, {"2.1.0"})
+        by_window = {item["window_sessions"]: item for item in outcomes}
+        self.assertEqual(by_window[1]["target_session_date"], self.sessions[0])
+        self.assertEqual(by_window[5]["target_session_date"], self.sessions[4])
+        for window in (20, 60, 100):
+            self.assertEqual(by_window[window]["status"], "pending")
+            self.assertIsNone(by_window[window]["target_session_date"])
+            self.assertIsNone(by_window[window]["endpoint"])
+
+    def test_future_session_input_is_rejected(self):
+        with self.assertRaises(ContractError):
+            build_session_calendar_evidence(
+                calendar_name="fixed-us-session-fixture",
+                calendar_version="1.0.0",
+                signal_date=self.event["signal_date"],
+                as_of=self.sessions[4],
+                sessions=self.sessions[:6],
+            )
+
+    def test_target_dates_appear_only_at_20_60_and_100_session_boundaries(self):
+        for before, mature in ((19, 20), (59, 60), (99, 100)):
+            with self.subTest(window=mature, elapsed=before):
+                pending, *_ = self.produce(elapsed=before)
+                item = next(
+                    value for value in pending
+                    if value["window_sessions"] == mature
+                )
+                self.assertEqual(item["status"], "pending")
+                self.assertIsNone(item["target_session_date"])
+                self.assertIsNone(item["endpoint"])
+            with self.subTest(window=mature, elapsed=mature):
+                completed, *_ = self.produce(elapsed=mature)
+                item = next(
+                    value for value in completed
+                    if value["window_sessions"] == mature
+                )
+                self.assertEqual(
+                    item["target_session_date"], self.sessions[mature - 1]
+                )
+                self.assertEqual(
+                    item["endpoint"]["date"], self.sessions[mature - 1]
+                )
 
     def test_all_windows_use_next_adjusted_open_not_signal_close(self):
         outcomes, _, _, calendar, _ = self.produce(elapsed=100)
@@ -494,7 +518,7 @@ class M10ForwardBaselineTests(unittest.TestCase):
         five = next(item for item in outcomes if item["window_sessions"] == 5)
         self.assertEqual(five["status"], "pending")
         self.assertEqual(five["status_reason"], "window_not_mature")
-        self.assertEqual(five["target_session_date"], self.sessions[4])
+        self.assertIsNone(five["target_session_date"])
         self.assertIsNone(five["endpoint"])
         self.assertTrue(all(row["date"] <= read.as_of for row in read.rows))
 
@@ -541,6 +565,13 @@ class M10ForwardBaselineTests(unittest.TestCase):
         pending_five = next(item for item in pending if item["window_sessions"] == 5)
         mature_five = next(item for item in mature if item["window_sessions"] == 5)
         self.assertEqual(mature_five["status"], "mature")
+        self.assertEqual(pending_five["schema_version"], "2.1.0")
+        self.assertEqual(mature_five["schema_version"], "2.1.0")
+        self.assertIsNone(pending_five["target_session_date"])
+        self.assertEqual(mature_five["target_session_date"], self.sessions[4])
+        self.assertEqual(
+            mature_five["logical_result_id"], pending_five["logical_result_id"]
+        )
         self.assertEqual(
             mature_five["supersedes_result_id"], pending_five["forward_outcome_id"]
         )
@@ -1258,8 +1289,7 @@ class M10RunIntegrationTests(unittest.TestCase):
             calendar_version=calendar["calendar_version"],
             signal_date=calendar["signal_date"],
             as_of=calendar["as_of"],
-            sessions=calendar["sessions"],
-            target_sessions=calendar["target_sessions"][:-1],
+            sessions=calendar["sessions"][:-1],
         )
         self.assertEqual(calendar["calendar_id"], other_calendar["calendar_id"])
         self.assertNotEqual(
@@ -1331,6 +1361,7 @@ class M10RunIntegrationTests(unittest.TestCase):
                 values.pop(field)
             if target_date is not None:
                 values["target_session_date"] = target_date
+                values["observed_through"] = target_date
                 values["endpoint"] = {
                     "date": target_date,
                     "price": rows[target_date]["close"],
@@ -1394,6 +1425,48 @@ class M10RunIntegrationTests(unittest.TestCase):
             finished_at=f"{calendar['as_of']}T22:03:00Z",
         )
         self.assertEqual(completed["status"], "completed")
+
+    def test_formal_completion_rejects_legacy_or_mixed_forward_versions(self):
+        event, read, snapshot, calendar, receipt = self.forward_inputs()
+        outcomes = produce_forward_outcomes(
+            event,
+            read,
+            snapshot,
+            calendar,
+            universe_content_fingerprint=UNIVERSE_CONTENT,
+            pending_run_receipt=receipt,
+            generated_at=f"{calendar['as_of']}T22:02:00Z",
+        )
+
+        def legacy(item):
+            values = plain(item)
+            for field in (
+                "forward_outcome_id",
+                "forward_content_fingerprint",
+                "input_fingerprint",
+                "target_session_date",
+            ):
+                values.pop(field)
+            values["schema_version"] = "2.0.0"
+            return finalize_result("ForwardOutcome", values)
+
+        legacy_outcomes = tuple(legacy(item) for item in outcomes)
+        with self.assertRaises(ContractError):
+            complete_baseline_run(
+                receipt,
+                "ForwardOutcome",
+                legacy_outcomes,
+                generated_at=f"{calendar['as_of']}T22:03:00Z",
+                finished_at=f"{calendar['as_of']}T22:03:00Z",
+            )
+        with self.assertRaises(ContractError):
+            complete_baseline_run(
+                receipt,
+                "ForwardOutcome",
+                (legacy_outcomes[0], *outcomes[1:]),
+                generated_at=f"{calendar['as_of']}T22:03:00Z",
+                finished_at=f"{calendar['as_of']}T22:03:00Z",
+            )
 
     def test_trade_completion_rejects_changed_plan_or_exit_state(self):
         fixture, state, read, snapshot, receipt, state_link = self.trade_inputs()

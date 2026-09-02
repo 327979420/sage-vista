@@ -120,6 +120,13 @@ def mature_forward(prior=None):
     return values
 
 
+def forward_2_1_values(*, mature=False, prior=None):
+    values = mature_forward(prior) if mature else forward_values()
+    values["schema_version"] = "2.1.0"
+    values["target_session_date"] = "2026-09-09" if mature else None
+    return values
+
+
 def partial_forward(prior):
     values = mature_forward(prior)
     values.update({
@@ -272,6 +279,66 @@ def receipt_values(forward):
 
 
 class M10EvaluationContractsTests(unittest.TestCase):
+    def test_forward_2_0_read_compatibility_and_2_1_field_boundary(self):
+        legacy = finalize_result("ForwardOutcome", forward_values())
+        self.assertEqual(legacy["schema_version"], "2.0.0")
+        self.assertNotIn("target_session_date", legacy)
+        validate_result("ForwardOutcome", legacy)
+
+        legacy_with_target = forward_values()
+        legacy_with_target["target_session_date"] = None
+        with self.assertRaises(ContractError):
+            finalize_result("ForwardOutcome", legacy_with_target)
+
+        modern = finalize_result("ForwardOutcome", forward_2_1_values())
+        self.assertEqual(modern["schema_version"], "2.1.0")
+        self.assertIsNone(modern["target_session_date"])
+
+        modern_without_target = forward_2_1_values()
+        modern_without_target.pop("target_session_date")
+        with self.assertRaises(ContractError):
+            finalize_result("ForwardOutcome", modern_without_target)
+
+        unknown = forward_2_1_values()
+        unknown["schema_version"] = "2.2.0"
+        with self.assertRaises(ContractError):
+            finalize_result("ForwardOutcome", unknown)
+
+    def test_forward_2_1_target_changes_version_identity_not_logical_identity(self):
+        pending = finalize_result("ForwardOutcome", forward_2_1_values())
+        mature = finalize_result(
+            "ForwardOutcome",
+            forward_2_1_values(
+                mature=True,
+                prior=pending["forward_outcome_id"],
+            ),
+        )
+        self.assertEqual(pending["logical_result_id"], mature["logical_result_id"])
+        self.assertNotEqual(pending["forward_outcome_id"], mature["forward_outcome_id"])
+        self.assertEqual(
+            mature["supersedes_result_id"], pending["forward_outcome_id"]
+        )
+        self.assertNotEqual(
+            pending["forward_content_fingerprint"],
+            mature["forward_content_fingerprint"],
+        )
+
+    def test_forward_2_1_target_state_and_observation_boundaries(self):
+        pending_with_target = forward_2_1_values()
+        pending_with_target["target_session_date"] = "2026-09-09"
+        with self.assertRaises(ContractError):
+            finalize_result("ForwardOutcome", pending_with_target)
+
+        mature_without_target = forward_2_1_values(mature=True)
+        mature_without_target["target_session_date"] = None
+        with self.assertRaises(ContractError):
+            finalize_result("ForwardOutcome", mature_without_target)
+
+        observed_after_target = forward_2_1_values(mature=True)
+        observed_after_target["target_session_date"] = "2026-09-08"
+        with self.assertRaises(ContractError):
+            finalize_result("ForwardOutcome", observed_after_target)
+
     def test_all_four_result_contracts_and_run_receipt_are_valid_2x(self):
         forward = finalize_result("ForwardOutcome", forward_values())
         trade = finalize_result("TradeOutcome", trade_values())
