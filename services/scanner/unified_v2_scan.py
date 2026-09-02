@@ -194,6 +194,16 @@ def shadow_event_ledger(*,gate_events,technical_evidence,model_assessments,conte
   ranking_snapshot=ranking_snapshot,generated_at=generated_at,
  )
 
+def shadow_forward_evaluation(*args,**kwargs):
+ """Close replay Forward evidence through the same sole M10-B runner."""
+ from services.evaluation import evaluate_forward_baseline
+ return evaluate_forward_baseline(*args,**kwargs)
+
+def shadow_trade_evaluation(*args,**kwargs):
+ """Close replay Trade evidence through the same sole M10-B runner."""
+ from services.evaluation import evaluate_trade_baseline
+ return evaluate_trade_baseline(*args,**kwargs)
+
 def _dates(data,start,end):
  return [x["date"] for x in data.get("SPY",[]) if start<=x["date"]<=end]
 

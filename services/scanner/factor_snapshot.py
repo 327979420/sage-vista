@@ -105,8 +105,18 @@ def build_shadow_event_ledger(*,gate_events,technical_evidence,model_assessments
  return produce_event_ledger_batch(
   gate_events=gate_events,technical_evidence=technical_evidence,
   model_assessments=model_assessments,contexts=contexts,
-  ranking_snapshot=ranking_snapshot,generated_at=generated_at,
+ ranking_snapshot=ranking_snapshot,generated_at=generated_at,
  )
+
+def build_shadow_forward_evaluation(*args,**kwargs):
+ """Close one daily Forward evaluation through the sole M10-B runner."""
+ from services.evaluation import evaluate_forward_baseline
+ return evaluate_forward_baseline(*args,**kwargs)
+
+def build_shadow_trade_evaluation(*args,**kwargs):
+ """Close one daily Trade evaluation through the sole M10-B runner."""
+ from services.evaluation import evaluate_trade_baseline
+ return evaluate_trade_baseline(*args,**kwargs)
 
 def load_symbol_rows(as_of,cache_dir="work/eodhd-cache",active_path="work/eodhd-active-common.json"):
  bulk=bulk_day(as_of,strict=True);bulk_map={row.get("code"):row for row in bulk}

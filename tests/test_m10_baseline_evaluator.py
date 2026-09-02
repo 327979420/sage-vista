@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import replace
 from datetime import date, timedelta
 from pathlib import Path
+import tempfile
 import unittest
 
 from services.contracts.market_data import (
@@ -23,6 +24,7 @@ from services.evaluation import (
     BASELINE_ADAPTER_VERSION,
     BASELINE_ENGINE_NAME,
     BASELINE_ENGINE_VERSION,
+    EvaluationShadowStore,
     EVALUATION_POLICY,
     FORWARD_WINDOWS,
     FORWARD_WINDOW_POLICY,
@@ -30,13 +32,26 @@ from services.evaluation import (
     ZERO_COST_COMPARISON_POLICY,
     build_experiment_run_receipt,
     build_session_calendar_evidence,
+    complete_baseline_run,
+    evaluate_forward_baseline,
+    evaluate_trade_baseline,
     market_snapshot_evidence_fingerprint,
     produce_forward_outcomes,
     produce_trade_outcome,
+    store_baseline_evaluation_batch,
+    validate_baseline_evaluation_batch,
     validate_result,
 )
 from services.ledger import produce_exit_state_link, produce_trade_plan_links
 from services.market_data import RepositoryRead
+from services.scanner.factor_snapshot import (
+    build_shadow_forward_evaluation,
+    build_shadow_trade_evaluation,
+)
+from services.scanner.unified_v2_scan import (
+    shadow_forward_evaluation,
+    shadow_trade_evaluation,
+)
 from tests import test_m09_ledger as m09_fixtures
 
 
@@ -790,5 +805,167 @@ class M10TradeBaselineTests(unittest.TestCase):
             self.evaluate((closed,), (first, second), attempt="dangling")
 
 
+class M10RunIntegrationTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        M10ForwardBaselineTests.setUpClass()
+        M10TradeBaselineTests.setUpClass()
+
+    def forward_inputs(self):
+        fixture = M10ForwardBaselineTests()
+        _, read, snapshot, calendar, receipt = fixture.produce(elapsed=5)
+        return fixture.event, read, snapshot, calendar, receipt
+
+    def trade_inputs(self):
+        fixture = M10TradeBaselineTests()
+        bar = fixture.safe_bar(fixture.plan["entry_date"])
+        bar["high"] = fixture.plan["target"]["price"] + 1
+        state = advance_exit_state(
+            fixture.plan,
+            completed_bars=[bar],
+            generated_at=m09_fixtures.ENTRY_GENERATED_AT,
+        )
+        _, read, snapshot, receipt, state_link = fixture.evaluate(
+            (state,), (bar,), attempt="run-integration"
+        )
+        return fixture, state, read, snapshot, receipt, state_link
+
+    def test_forward_run_closes_with_exact_result_reference_set(self):
+        event, read, snapshot, calendar, receipt = self.forward_inputs()
+        batch = evaluate_forward_baseline(
+            event,
+            read,
+            snapshot,
+            calendar,
+            universe_content_fingerprint=UNIVERSE_CONTENT,
+            pending_run_receipt=receipt,
+            generated_at=f"{calendar['as_of']}T22:02:00Z",
+            finished_at=f"{calendar['as_of']}T22:03:00Z",
+        )
+        validate_baseline_evaluation_batch(batch)
+        self.assertEqual(batch.pending_run_receipt["status"], "pending")
+        self.assertEqual(batch.completed_run_receipt["status"], "completed")
+        self.assertEqual(
+            batch.completed_run_receipt["supersedes_run_receipt_id"],
+            batch.pending_run_receipt["run_receipt_id"],
+        )
+        self.assertEqual(len(batch.outcomes), len(FORWARD_WINDOWS))
+        self.assertEqual(
+            {item["id"] for item in batch.completed_run_receipt["result_refs"]},
+            {item["forward_outcome_id"] for item in batch.outcomes},
+        )
+
+    def test_daily_and_replay_forward_use_the_same_runner(self):
+        event, read, snapshot, calendar, receipt = self.forward_inputs()
+        kwargs = {
+            "universe_content_fingerprint": UNIVERSE_CONTENT,
+            "pending_run_receipt": receipt,
+            "generated_at": f"{calendar['as_of']}T22:02:00Z",
+            "finished_at": f"{calendar['as_of']}T22:03:00Z",
+        }
+        daily = build_shadow_forward_evaluation(
+            event, read, snapshot, calendar, **kwargs
+        )
+        replay = shadow_forward_evaluation(
+            event, read, snapshot, calendar, **kwargs
+        )
+        self.assertEqual(daily, replay)
+
+    def test_daily_and_replay_trade_use_the_same_runner(self):
+        fixture, state, read, snapshot, receipt, state_link = self.trade_inputs()
+        args = (
+            fixture.event,
+            fixture.plan_link,
+            fixture.plan,
+            (state,),
+            state_link,
+            read,
+            snapshot,
+        )
+        kwargs = {
+            "universe_content_fingerprint": UNIVERSE_CONTENT,
+            "pending_run_receipt": receipt,
+            "generated_at": f"{state['as_of']}T22:02:00Z",
+            "finished_at": f"{state['as_of']}T22:03:00Z",
+        }
+        daily = build_shadow_trade_evaluation(*args, **kwargs)
+        replay = shadow_trade_evaluation(*args, **kwargs)
+        self.assertEqual(daily, replay)
+        self.assertEqual(daily.outcomes[0]["exit_reason"], "target")
+
+    def test_completion_rejects_an_outcome_from_another_run(self):
+        event, read, snapshot, calendar, receipt = self.forward_inputs()
+        outcomes = produce_forward_outcomes(
+            event,
+            read,
+            snapshot,
+            calendar,
+            universe_content_fingerprint=UNIVERSE_CONTENT,
+            pending_run_receipt=receipt,
+            generated_at=f"{calendar['as_of']}T22:02:00Z",
+        )
+        other = pending_receipt(
+            event, snapshot, calendar, attempt="different-run-root"
+        )
+        with self.assertRaisesRegex(ContractError, "does not belong"):
+            complete_baseline_run(
+                other,
+                "ForwardOutcome",
+                outcomes,
+                generated_at=f"{calendar['as_of']}T22:03:00Z",
+                finished_at=f"{calendar['as_of']}T22:03:00Z",
+            )
+
+    def test_shadow_store_persists_pending_results_then_completion(self):
+        event, read, snapshot, calendar, receipt = self.forward_inputs()
+        batch = evaluate_forward_baseline(
+            event,
+            read,
+            snapshot,
+            calendar,
+            universe_content_fingerprint=UNIVERSE_CONTENT,
+            pending_run_receipt=receipt,
+            generated_at=f"{calendar['as_of']}T22:02:00Z",
+            finished_at=f"{calendar['as_of']}T22:03:00Z",
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            store = EvaluationShadowStore(Path(directory) / "m10-b")
+            paths = store_baseline_evaluation_batch(store, batch)
+            self.assertEqual(len(paths), len(FORWARD_WINDOWS) + 2)
+            self.assertTrue(all(path.exists() for path in paths))
+            self.assertEqual(paths, store_baseline_evaluation_batch(store, batch))
+
+    def test_runner_does_not_mutate_m02_or_m09_inputs(self):
+        event, read, snapshot, calendar, receipt = self.forward_inputs()
+        before = plain({
+            "event": event,
+            "rows": read.rows,
+            "snapshot": snapshot,
+            "calendar": calendar,
+            "receipt": receipt,
+        })
+        evaluate_forward_baseline(
+            event,
+            read,
+            snapshot,
+            calendar,
+            universe_content_fingerprint=UNIVERSE_CONTENT,
+            pending_run_receipt=receipt,
+            generated_at=f"{calendar['as_of']}T22:02:00Z",
+            finished_at=f"{calendar['as_of']}T22:03:00Z",
+        )
+        after = plain({
+            "event": event,
+            "rows": read.rows,
+            "snapshot": snapshot,
+            "calendar": calendar,
+            "receipt": receipt,
+        })
+        self.assertEqual(before, after)
+
+
 if __name__ == "__main__":
     unittest.main()
+    complete_baseline_run,
+    evaluate_forward_baseline,
+    evaluate_trade_baseline,
