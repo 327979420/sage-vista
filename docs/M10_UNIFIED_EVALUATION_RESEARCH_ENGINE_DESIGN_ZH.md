@@ -1,12 +1,12 @@
 # M10｜统一评价、回测与外部研究引擎设计
 
-- 文档状态：M10-A合同里程碑已进入`main`；M10-B已在审核分支完成本地验收；M10整体仍为`implementing`
+- 文档状态：M10-A与M10-B里程碑均已审核并进入`main`；M10整体仍为`implementing`
 - 对应需求：`CR-2026-09-02-050`
 - 基线提交：`5dfd0a57fc1dad56042c0db6b8e2c3ce9ff88251`
 - 设计日期：2026-09-02
-- 生产状态：M10-A影子合同基础已进入`main`；M10-B仅为待独立审核的影子实现；未部署、未生产启用
+- 生产状态：M10-A合同基础和M10-B内部基线评价器已进入`main`；未部署、未生产启用
 
-> 本文冻结M10的职责、合同边界、身份和失败关闭语义。M10-A已经完成审核并进入`main`；M10-B已按批准口径完成固定样本实现和本地验收，尚待独立审核与合并。C—E、VectorBT、真实多年回测、生产目录、M11和M12仍未批准。
+> 本文冻结M10的职责、合同边界、身份和失败关闭语义。M10-A和M10-B均已完成独立审核并进入`main`，M10整体继续为`implementing`。C—E、VectorBT、真实多年回测、生产目录、M11和M12仍未批准。
 
 ## 1. 人话版
 
@@ -426,11 +426,12 @@ C—E、VectorBT X包、真实多年回测、生产接入、M11和M12不随上�
 - M10-A没有计算真实`ForwardOutcome`或`TradeOutcome`；`PortfolioRun`和`ResearchAggregate`算法、M10-B、VectorBT、CSV／Excel、CLI和看板均未开始。
 - 本里程碑不表示部署或生产启用。M10总体继续为`implementing`；M11和M12尚未开始。
 
-### 16.2 M10-B本地验收里程碑（2026-09-02）
+### 16.2 M10-B审核与主线里程碑（2026-09-02）
 
 - Forward基线提交`209d088045cd5c9d87be130a1c4b8499336cd202`只使用信号后下一有效交易日调整后开盘作为参考价格，并按注入的交易日序列形成1／5／20／60／100日结果；缺少下一开盘不回退其他价格。
 - Trade基线提交`a81d97ce288f7b62224e08556145c93a41df4b5c`只读M08 TradePlan和完整ExitState链，计算毛收益与R收益；formal净收益在费用／滑点未批准时保持`unavailable`，首版Trade MFE／MAE保持`unavailable`并保存已冻结原因。
 - 运行闭环提交`940604e8a004a2e2d0c54fbfeda1e7c6e8e3af65`要求先有pending `ExperimentRun 2.x`，结果完整验证后才追加complete收据；每日与回放薄入口调用同一评价器。
 - 最终防未来与版本隔离提交`6ac5465ac3b2209dd3f2d0304125e4d6c7342569`删除未来`target_sessions`，按已发生session前缀建立1／5／20／60／100目标，并将新formal ForwardOutcome升级为严格`2.1.0`；旧`2.0.0`仅保留原字段只读兼容。
-- 本地验收为：M10合同与基线专项75项、M08与M10专项90项、M01—M10扩大定向271项、完整Python 627项、四种固定哈希种子每轮90项、治理19项及前端11项通过；Python编译、lint、TypeScript、生产构建和差异格式检查通过。
-- M10-B当前只达到审核分支`verified`，不表示已经合并、部署或生产启用。没有运行真实多年回测，没有实现PortfolioRun、ResearchAggregate、VectorBT、CSV／Excel、CLI、看板、M11或M12。
+- 最终验收为：机械版本攻击及四闸门11项、M10合同与基线专项78项、M08与M10专项93项、M01—M10扩大定向274项、完整Python 630项、四种固定哈希种子每轮93项、治理19项及前端11项通过；Python编译、lint、TypeScript、生产构建、文档链接和差异格式检查通过。
+- 最终审核确认：不存在未来session或target；20／60／100日成熟边界正确；ForwardOutcome 2.0.0／2.1.0严格隔离；5日`2026-09-09`改签为`2026-09-08`并重建身份仍失败；新formal pending、全部Outcome和completed共同使用`m10-b-internal-1.1.0`，公共存储无版本旁路，旧1.0历史只读，completed必须承接实际落盘pending链尾。
+- M10-B审核通过代码HEAD为`108a29271c75ba6b49f1172350fc3adbf3460a25`，已以纯fast-forward方式进入`main`。进入主线不表示部署或生产启用；默认每日、夜间、网站、Discord和公开JSON没有切换，未访问EODHD或运行真实行情／真实历史回测。PortfolioRun、ResearchAggregate、VectorBT、CSV／Excel、CLI、看板、M10-C—E、M11和M12均未开始。
