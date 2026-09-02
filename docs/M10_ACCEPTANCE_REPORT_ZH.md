@@ -1,6 +1,6 @@
-# M10｜内部基线评价器阶段验收报告
+# M10｜内部评价与只读汇总阶段验收报告
 
-- 状态：M10-B在获批影子范围达到`implemented`并进入`main`；M10整体仍为`implementing`
+- 状态：M10-B在获批影子范围达到`implemented`并进入`main`；M10-C本地影子实现已通过固定样本验证，等待独立审核；M10整体仍为`implementing`
 - 基线：`1c7f688bd0d3f0c52386851b302c6197f25437fb`
 - Forward实现：`209d088045cd5c9d87be130a1c4b8499336cd202`
 - Trade实现：`a81d97ce288f7b62224e08556145c93a41df4b5c`
@@ -15,13 +15,16 @@
 - 历史结果链来源混用封堵：`d99db58d108eb0c404df406d624fb1d543f0a58b`
 - 最终审核代码HEAD：`108a29271c75ba6b49f1172350fc3adbf3460a25`
 - 合并方式：纯fast-forward进入`main`
+- M10-C设计冻结：`dbcdcf6`
+- M10-C只读汇总生产层：`041e6be`
+- M10-C边界回归测试：`a08dd33`
 - 生产状态：未部署、未生产启用
 
 ## 1. 阶段结论
 
 M10-B已经用固定合成样本形成唯一内部基线评价层：ForwardOutcome从信号后下一有效交易日调整后开盘起算；TradeOutcome只读M08既有计划和退出事实；每次评价先绑定pending运行收据，结果通过后才追加complete收据。每日与回放影子入口调用同一生产器。
 
-本报告只证明获批的内部Forward／Trade固定样本能力。它不产生真实多年回测结论，不代表生产接入，也不批准M10-C—E或外部引擎。
+本报告还记录M10-C在本地审核分支中建立的Portfolio失败关闭边界和只读gross汇总能力。它不产生真实组合或多年回测结论，不代表已进入`main`、生产接入或部署，也不批准M10-D—E或外部引擎。
 
 ## 2. 已验证口径
 
@@ -64,13 +67,35 @@ M10-B已经用固定合成样本形成唯一内部基线评价层：ForwardOutco
 - 来源版本机械回归证明：pending 1.0＋Outcome 1.1、pending 1.1＋Outcome 1.0、五个Forward结果中仅一个为1.0、以及completed单独降为1.0，即使重新生成稳定身份和内容指纹也全部失败；公共影子存储同样拒绝混合版本且失败后旧字节不变。历史1.0结果即使已经存在，也不能被新1.1生产器或公共存储追加为同一修订链。完整1.1 pending→Outcome→completed及幂等重放继续通过；旧1.0收据仍可由通用合同只读验证，但不能写入或进入新formal运行。
 - 测试前后没有出现范围外文件。
 
-## 4. 明确未做
+## 4. M10-C本地影子验收
 
-- 未实现PortfolioRun或ResearchAggregate算法。
+| 验收项 | 结果 |
+| --- | --- |
+| `PortfolioRun 2.1.0`只接收已重新验证的TradeOutcome对象，引用规范排序且输入顺序不改变身份 | 通过 |
+| 未批准资本政策时Portfolio恒为`unavailable/capital_allocation_policy_not_approved`，禁止收益、资金、仓位、曲线、回撤或改名指标 | 通过 |
+| `ResearchAggregate 2.1.0`只消费一种完整的Forward或Trade结果对象，重新验证ID、内容指纹、逻辑链及共同口径 | 通过 |
+| Forward严格区分`pending/mature/partial/unavailable`；Trade严格区分`completed/open/no_trade/unavailable` | 通过 |
+| Trade `open`只从已验证的`pending + trade_open`映射，与`no_trade`分别计数，两者都进入missing而不当作零收益 | 通过 |
+| `total=sum(status_counts)=evaluated+missing`且`win+loss+flat=evaluated` | 通过 |
+| 空样本、无亏损、无盈利、全零、NaN／Infinity及PF量化边界 | 通过 |
+| 生产和验证共用Decimal、`1e-10`和`ROUND_HALF_EVEN`；`gross_expectancy`与平均毛收益保持同一公式 | 通过 |
+| 公共影子存储在同run锁内要求完整来源结果并重算守恒；重签统计、状态伪装、错误`as_of`和failed收据均失败且旧字节不变 | 通过 |
+| 旧Portfolio／Aggregate `2.0.0`仅通用合同只读；新formal生产、运行和存储只接受`2.1.0`+`m10-c-readonly-1.0.0` | 通过 |
+
+- M10-C专项：27项通过；M10合同／基线／汇总：105项通过；M08—M10：120项通过。
+- M01—M10扩大定向：290项通过；完整Python：657项通过。
+- `PYTHONHASHSEED=0/1/42/12345`：M10-C每轮27项通过。
+- 治理状态：19项通过；前端lint、TypeScript、生产构建和11项测试通过。
+- Python编译、文档链接和差异格式检查通过；测试前后工作区没有意外文件。
+
+## 5. 明确未做
+
+- 未实现Portfolio资本、仓位、现金、权益曲线或风险算法；M10-C只产生明确`unavailable`的Portfolio边界。
+- 未实现读取行情或重算逐股收益的研究算法；ResearchAggregate只读已冻结的`gross_return`。
 - 未安装或接入VectorBT、Excel或其他依赖。
 - 未创建CSV、Excel、CLI或看板。
 - 未运行真实行情、真实每日任务或真实多年回测。
 - 未修改生产入口、工作流、网站、Discord、公开JSON或历史断点。
-- 未开始M10-C—E、M11或M12。
+- 未开始M10-D—E、M11或M12。
 
-M10-B已完成独立审核并进入`main`；这里的`implemented`只表示获批影子范围进入主线，不等于部署或生产启用。默认每日、夜间、网站、Discord和公开JSON均未切换，也未访问EODHD。
+M10-B已完成独立审核并进入`main`；M10-C仅在本地审核分支完成固定样本验收，尚未合并。两者都不等于部署或生产启用。默认每日、夜间、网站、Discord和公开JSON均未切换，也未访问EODHD或运行真实行情／真实多年回测。
