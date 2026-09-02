@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import math
 from types import MappingProxyType
 from typing import Any, Iterable, Mapping
 
@@ -341,6 +342,45 @@ def validate_exit_state(payload: Mapping[str, Any]) -> None:
         raise ContractError("ExitState content fingerprint is invalid")
     if payload["state"] not in {"active", "closed_stop_gap", "closed_stop", "closed_target", "closed_time_40d"}:
         raise ContractError("ExitState state is invalid")
+    as_of = require_date(payload["as_of"], "ExitState.as_of")
+    entry_date = require_date(payload["plan"]["entry_date"], "ExitState.plan.entry_date")
+    if as_of < entry_date:
+        raise ContractError("ExitState cannot predate its TradePlan entry")
+    terminal_reason = {
+        "closed_stop_gap": "stop_gap",
+        "closed_stop": "stop",
+        "closed_target": "target",
+        "closed_time_40d": "time_40d",
+    }
+    state = str(payload["state"])
+    if state == "active":
+        if any(
+            payload[field] is not None
+            for field in ("exit_reason", "exit_date", "execution_price")
+        ):
+            raise ContractError("active ExitState cannot carry terminal execution facts")
+    else:
+        if payload["exit_reason"] != terminal_reason[state]:
+            raise ContractError("terminal ExitState reason contradicts its state")
+        exit_date = require_date(payload["exit_date"], "ExitState.exit_date")
+        if exit_date < entry_date or exit_date != as_of:
+            raise ContractError("terminal ExitState date must equal as_of and follow entry")
+        price = payload["execution_price"]
+        if (
+            isinstance(price, bool)
+            or not isinstance(price, (int, float))
+            or not math.isfinite(float(price))
+            or float(price) <= 0
+        ):
+            raise ContractError("terminal ExitState execution price must be finite and positive")
+        if payload["holding_sessions"] < 1:
+            raise ContractError("terminal ExitState must contain at least one held session")
+        if state == "closed_stop" and float(price) != float(payload["plan"]["stop"]["price"]):
+            raise ContractError("ordinary stop ExitState must execute at the frozen stop")
+        if state == "closed_stop_gap" and float(price) > float(payload["plan"]["stop"]["price"]):
+            raise ContractError("gap-stop ExitState execution cannot exceed the frozen stop")
+        if state == "closed_target" and float(price) != float(payload["plan"]["target"]["price"]):
+            raise ContractError("target ExitState must execute at the frozen target")
     if any(key in payload for key in ("return", "r_multiple", "mfe", "mae")):
         raise ContractError("M08 ExitState cannot contain performance metrics")
 

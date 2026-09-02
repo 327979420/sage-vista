@@ -71,6 +71,21 @@ def plain(value):
     return value
 
 
+def refingerprint_machine_link(original, **changes):
+    payload = plain(original)
+    payload.update(changes)
+    payload["link_id"] = "machine-link:" + canonical_fingerprint({
+        "event_id": payload["event_id"],
+        "link_type": payload["link_type"],
+        "source_identity": payload["source_identity"],
+    })
+    payload["link_content_fingerprint"] = canonical_fingerprint({
+        key: plain(value) for key, value in payload.items()
+        if key not in {"generated_at", "link_content_fingerprint"}
+    })
+    return payload
+
+
 def post_signal_sessions(signal_date: str, count: int = 110) -> tuple[str, ...]:
     current = date.fromisoformat(signal_date) + timedelta(days=1)
     sessions: list[str] = []
@@ -877,6 +892,53 @@ class M10TradeBaselineTests(unittest.TestCase):
             )
         with self.assertRaisesRegex(ContractError, "missing predecessor"):
             self.evaluate((closed,), (first, second), attempt="dangling")
+
+    def test_event_links_cannot_switch_instrument_or_signal_date(self):
+        bar = self.safe_bar(self.plan["entry_date"])
+        bar["high"] = self.plan["target"]["price"] + 1
+        state = advance_exit_state(
+            self.plan, completed_bars=[bar], generated_at=m09_fixtures.ENTRY_GENERATED_AT
+        )
+        state_link = produce_exit_state_link(
+            self.event,
+            self.plan_link,
+            state,
+            generated_at=f"{state['as_of']}T21:59:00Z",
+        )
+        rows = (*self.history, bar)
+        read, snapshot = market_evidence(self.event, rows, as_of=state["as_of"])
+        attacks = (
+            refingerprint_machine_link(
+                state_link, instrument_id="instrument:sha256:" + "e" * 64
+            ),
+            refingerprint_machine_link(
+                state_link, signal_date="2026-08-27", as_of="2026-08-27"
+            ),
+        )
+        for attacked_link in attacks:
+            with self.subTest(link=attacked_link):
+                receipt = trade_pending_receipt(
+                    self.event,
+                    snapshot,
+                    self.plan_link,
+                    self.plan,
+                    state,
+                    attacked_link,
+                    attempt="crossed-event-link",
+                )
+                with self.assertRaises(ContractError):
+                    produce_trade_outcome(
+                        self.event,
+                        self.plan_link,
+                        self.plan,
+                        (state,),
+                        attacked_link,
+                        read,
+                        snapshot,
+                        universe_content_fingerprint=UNIVERSE_CONTENT,
+                        pending_run_receipt=receipt,
+                        generated_at=f"{state['as_of']}T22:02:00Z",
+                    )
 
 
 class M10RunIntegrationTests(unittest.TestCase):

@@ -15,6 +15,7 @@ from services.execution import (
     adapt_legacy_support_plan_bytes,
     advance_exit_state,
     produce_trade_plans,
+    validate_exit_state,
     validate_trade_plan,
 )
 from services.factors import produce_support_evidence, produce_technical_evidence
@@ -55,6 +56,28 @@ def plain(value):
     if isinstance(value, (list, tuple)):
         return [plain(item) for item in value]
     return value
+
+
+def refingerprint_exit_state(original, **changes):
+    payload = plain(original)
+    payload.update(changes)
+    identity = {
+        "schema_major": 2,
+        "plan_id": payload["plan_id"],
+        "as_of": payload["as_of"],
+        "previous_exit_state_id": payload["previous_exit_state_id"],
+        "holding_sessions": payload["holding_sessions"],
+        "state": payload["state"],
+        "market_data_fingerprint": payload["market_data_fingerprint"],
+        "exit_policy_version": payload["exit_policy_version"],
+        "exit_policy_fingerprint": payload["exit_policy_fingerprint"],
+    }
+    payload["exit_state_id"] = "exit-state:" + canonical_fingerprint(identity)
+    payload["exit_state_content_fingerprint"] = canonical_fingerprint({
+        key: plain(value) for key, value in payload.items()
+        if key not in {"generated_at", "exit_state_content_fingerprint"}
+    })
+    return payload
 
 
 class M08ExecutionTests(unittest.TestCase):
@@ -212,6 +235,50 @@ class M08ExecutionTests(unittest.TestCase):
         target = {"date": ENTRY_DAY, "open": plan["entry"]["price"], "high": plan["target"]["price"] + 1, "low": plan["stop"]["price"] + 1, "close": plan["entry"]["price"], "volume": 1000}
         state = advance_exit_state(plan, completed_bars=[target], generated_at=ENTRY_GENERATED_AT)
         self.assertEqual((state["state"], state["execution_price"]), ("closed_target", plan["target"]["price"]))
+
+    def test_exit_state_rejects_contradictory_state_reason_and_dates(self):
+        plan = self.plans().plans[0]
+        target_bar = {
+            "date": ENTRY_DAY,
+            "open": plan["entry"]["price"],
+            "high": plan["target"]["price"] + 1,
+            "low": plan["stop"]["price"] + 1,
+            "close": plan["entry"]["price"],
+            "volume": 1000,
+        }
+        target = advance_exit_state(
+            plan, completed_bars=[target_bar], generated_at=ENTRY_GENERATED_AT
+        )
+        attacks = (
+            {"exit_reason": "stop"},
+            {"state": "closed_stop", "exit_reason": "target"},
+            {"exit_date": plan["signal_date"]},
+            {"exit_date": "2026-09-03"},
+        )
+        for changes in attacks:
+            with self.subTest(changes=changes):
+                with self.assertRaises(ContractError):
+                    validate_exit_state(refingerprint_exit_state(target, **changes))
+
+    def test_active_exit_state_cannot_fabricate_terminal_execution(self):
+        plan = self.plans().plans[0]
+        active_bar = {
+            "date": ENTRY_DAY,
+            "open": plan["entry"]["price"],
+            "high": plan["target"]["price"] - 1,
+            "low": plan["stop"]["price"] + 1,
+            "close": plan["entry"]["price"],
+            "volume": 1000,
+        }
+        active = advance_exit_state(
+            plan, completed_bars=[active_bar], generated_at=ENTRY_GENERATED_AT
+        )
+        before = json.dumps(plain(active), sort_keys=True)
+        validate_exit_state(active)
+        self.assertEqual(before, json.dumps(plain(active), sort_keys=True))
+        attacked = refingerprint_exit_state(active, execution_price=99.0)
+        with self.assertRaises(ContractError):
+            validate_exit_state(attacked)
 
     def test_forty_completed_sessions_exit_at_close_without_performance_metrics(self):
         plan = self.plans().plans[0]

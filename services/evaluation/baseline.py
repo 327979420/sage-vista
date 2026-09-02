@@ -756,7 +756,12 @@ def _validate_trade_sources(
         or event["event_role"] != "authoritative"
         or trade_plan_link["event_id"] != event["event_id"]
         or trade_plan_link["instrument_id"] != event["instrument_id"]
+        or trade_plan_link["signal_date"] != event["signal_date"]
         or trade_plan_link["link_type"] != "trade_plan_decision"
+        or trade_plan_link["source_reference"]["ranking_snapshot_id"]
+        != event["ranking_snapshot_id"]
+        or trade_plan_link["source_reference"]["score_result_id"]
+        != event["score_result_id"]
     ):
         raise ContractError("Trade evaluation crosses its authoritative M09 event")
 
@@ -771,6 +776,10 @@ def _validate_trade_sources(
     validate_trade_plan(trade_plan)
     if (
         trade_plan["instrument_id"] != event["instrument_id"]
+        or trade_plan["signal_date"] != event["signal_date"]
+        or trade_plan["ranking_snapshot_id"] != event["ranking_snapshot_id"]
+        or trade_plan["score_result_id"] != event["score_result_id"]
+        or trade_plan["gate_event_id"] != event["gate_event_id"]
         or trade_plan_link["source_reference"]["plan_id"] != trade_plan["plan_id"]
         or trade_plan_link["source_reference"]["plan_content_fingerprint"]
         != trade_plan["plan_content_fingerprint"]
@@ -786,11 +795,17 @@ def _validate_trade_sources(
     validate_machine_link(exit_state_link)
     if (
         exit_state_link["event_id"] != event["event_id"]
+        or exit_state_link["instrument_id"] != event["instrument_id"]
+        or exit_state_link["signal_date"] != event["signal_date"]
         or exit_state_link["link_type"] != "exit_state"
         or exit_state_link["source_reference"]["exit_state_id"]
         != current_state["exit_state_id"]
         or exit_state_link["source_reference"]["exit_state_content_fingerprint"]
         != current_state["exit_state_content_fingerprint"]
+        or exit_state_link["source_reference"].get("plan_id")
+        != current_state["plan_id"]
+        or exit_state_link["source_reference"].get("previous_exit_state_id")
+        != current_state["previous_exit_state_id"]
     ):
         raise ContractError("M09 ExitState link does not reference the unique current state")
     return current_state
