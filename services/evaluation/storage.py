@@ -21,11 +21,20 @@ from .baseline import (
     BASELINE_SOURCE_VERSION,
     validate_internal_baseline_source_version,
 )
+from .aggregate import (
+    READONLY_ENGINE_NAME,
+    validate_readonly_receipt_identity,
+    validate_readonly_run_conservation,
+)
 from .contracts import (
+    M10_C_SOURCE_VERSION,
+    PORTFOLIO_RUN_SCHEMA_VERSION,
+    RESEARCH_AGGREGATE_SCHEMA_VERSION,
     RESULT_TYPES,
     current_experiment_run,
     current_result,
     validate_experiment_run,
+    validate_m10c_source_version,
     validate_result,
 )
 
@@ -83,6 +92,30 @@ def _declares_internal_baseline_source(payload: Mapping[str, Any]) -> bool:
         return False
     value = source.get("evaluation_contracts")
     return isinstance(value, str) and value.startswith("m10-b-internal-")
+
+
+def _declares_m10c_source(payload: Mapping[str, Any]) -> bool:
+    source = payload.get("source_version")
+    return isinstance(source, Mapping) and source.get(
+        "evaluation_contracts"
+    ) == M10_C_SOURCE_VERSION
+
+
+def _declares_m10c_source_family(payload: Mapping[str, Any]) -> bool:
+    source = payload.get("source_version")
+    value = source.get("evaluation_contracts") if isinstance(source, Mapping) else None
+    return isinstance(value, str) and value.startswith("m10-c-readonly-")
+
+
+def _is_m10c_receipt_candidate(payload: Mapping[str, Any]) -> bool:
+    engine = payload.get("engine")
+    return _declares_m10c_source_family(payload) or (
+        isinstance(engine, Mapping) and engine.get("name") == READONLY_ENGINE_NAME
+    )
+
+
+def _is_managed_receipt(payload: Mapping[str, Any]) -> bool:
+    return _is_internal_baseline_receipt(payload) or _is_m10c_receipt_candidate(payload)
 
 
 @contextmanager
@@ -256,8 +289,37 @@ class EvaluationShadowStore:
             if _plain(item["source_version"]) != expected:
                 raise ContractError("M10-B persisted run mixes source versions")
 
+    @staticmethod
+    def _validate_m10c_run_sources(
+        receipts: list[Mapping[str, Any]],
+        results: list[tuple[str, Mapping[str, Any]]],
+    ) -> None:
+        m10c_receipts = [item for item in receipts if _is_m10c_receipt_candidate(item)]
+        m10c_results = [item for item in results if _declares_m10c_source_family(item[1])]
+        if not m10c_receipts and not m10c_results:
+            return
+        if len(m10c_receipts) != len(receipts) or len(m10c_results) != len(results):
+            raise ContractError("M10-C persisted run crosses producers")
+        for receipt in receipts:
+            validate_readonly_receipt_identity(receipt)
+        for contract_name, result in results:
+            validate_m10c_source_version(result)
+            expected_version = (
+                PORTFOLIO_RUN_SCHEMA_VERSION
+                if contract_name == "PortfolioRun"
+                else RESEARCH_AGGREGATE_SCHEMA_VERSION
+                if contract_name == "ResearchAggregate"
+                else None
+            )
+            if result.get("schema_version") != expected_version:
+                raise ContractError("M10-C storage accepts only new 2.1 result contracts")
+
     def write_result(
-        self, contract_name: str, payload: Mapping[str, Any]
+        self,
+        contract_name: str,
+        payload: Mapping[str, Any],
+        *,
+        source_records: Any = None,
     ) -> Path:
         if contract_name not in RESULT_TYPES:
             raise ContractError("unknown M10 result contract")
@@ -275,14 +337,40 @@ class EvaluationShadowStore:
         _id_digest(run_id, field="run_id")
         with _chain_lock(self.root, "ExperimentRunOutcomeSet", run_id):
             receipts = self._run_receipts(run_id)
-            stored_results = self._results_for_run(run_id)
+            stored_records = self._result_records_for_run(run_id)
+            stored_results = [item for _, item in stored_records]
             self._validate_internal_run_sources(
                 receipts, [*stored_results, payload]
             )
+            self._validate_m10c_run_sources(
+                receipts, [*stored_records, (contract_name, payload)]
+            )
             run_leaf = current_experiment_run(receipts) if receipts else None
+            if _declares_m10c_source(payload) and (
+                run_leaf is None
+                or not _declares_m10c_source(run_leaf)
+                or run_leaf["status"] != "pending"
+            ):
+                if target.exists() or target.is_symlink():
+                    return self._write(
+                        payload,
+                        target=target,
+                        validator=lambda item: validate_result(contract_name, item),
+                        id_field=id_field,
+                        fingerprint_field=fingerprint_field,
+                )
+                raise ContractError("M10-C result requires its persisted pending receipt")
+            if _declares_m10c_source(payload):
+                if source_records is None:
+                    raise ContractError(
+                        "M10-C public storage requires complete source outcomes"
+                    )
+                validate_readonly_run_conservation(
+                    run_leaf, contract_name, payload, source_records
+                )
             if (
                 run_leaf is not None
-                and _is_internal_baseline_receipt(run_leaf)
+                and _is_managed_receipt(run_leaf)
                 and run_leaf["status"] != "pending"
             ):
                 if target.exists() or target.is_symlink():
@@ -365,14 +453,20 @@ class EvaluationShadowStore:
         _id_digest(run_id, field="run_id")
         with _chain_lock(self.root, "ExperimentRunOutcomeSet", run_id):
             receipts = self._run_receipts(run_id)
-            stored_results = self._results_for_run(run_id)
+            stored_records = self._result_records_for_run(run_id)
+            stored_results = [item for _, item in stored_records]
             if _is_internal_baseline_receipt(payload):
                 validate_internal_baseline_source_version(payload)
                 self._validate_internal_run_sources(
                     [*receipts, payload], stored_results
                 )
+            if _is_m10c_receipt_candidate(payload):
+                validate_readonly_receipt_identity(payload)
+                self._validate_m10c_run_sources(
+                    [*receipts, payload], stored_records
+                )
             if (
-                _is_internal_baseline_receipt(payload)
+                _is_managed_receipt(payload)
                 and payload["status"] == "completed"
             ):
                 expected = sorted(
@@ -383,6 +477,23 @@ class EvaluationShadowStore:
                     raise ContractError(
                         "completed ExperimentRun does not match stored results"
                     )
+                if _is_m10c_receipt_candidate(payload):
+                    pending_roots = [
+                        item for item in receipts
+                        if item["status"] == "pending"
+                        and item["supersedes_run_receipt_id"] is None
+                    ]
+                    if len(pending_roots) != 1 or len(stored_records) != 1:
+                        raise ContractError(
+                            "completed M10-C run requires one pending root and one result"
+                        )
+                    stored_contract, stored_result = stored_records[0]
+                    if _plain(stored_result["source_version"]) != {
+                        "evaluation_contracts": M10_C_SOURCE_VERSION,
+                    }:
+                        raise ContractError(
+                            "completed M10-C run contains an unmanaged result"
+                        )
 
             with _chain_lock(self.root, "ExperimentRun", run_id):
                 existing_ids = {
@@ -391,7 +502,7 @@ class EvaluationShadowStore:
                 leaf = current_experiment_run(receipts) if receipts else None
                 if str(payload["run_receipt_id"]) in existing_ids:
                     if (
-                        _is_internal_baseline_receipt(payload)
+                        _is_managed_receipt(payload)
                         and payload["status"] == "completed"
                     ):
                         by_id = {
@@ -418,7 +529,7 @@ class EvaluationShadowStore:
                     )
 
                 if (
-                    _is_internal_baseline_receipt(payload)
+                    _is_managed_receipt(payload)
                     and payload["status"] == "completed"
                     and (
                         leaf is None

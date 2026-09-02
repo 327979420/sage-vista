@@ -19,6 +19,7 @@ from services.contracts.policies import ADJUSTMENT_POLICY
 from services.contracts.validation import ContractError, SEMVER, validate_contract
 
 from .policies import (
+    AGGREGATION_POLICY,
     EVALUATION_POLICY,
     FORWARD_WINDOWS,
     FORWARD_WINDOW_POLICY,
@@ -27,11 +28,15 @@ from .policies import (
     ZERO_COST_COMPARISON_POLICY,
     validate_policy,
 )
+from .metrics import decimal_metric, profit_factor_semantics, quantized_ratio
 
 
 RESULT_SCHEMA_VERSION = "2.0.0"
 FORWARD_OUTCOME_SCHEMA_VERSION = "2.1.0"
+PORTFOLIO_RUN_SCHEMA_VERSION = "2.1.0"
+RESEARCH_AGGREGATE_SCHEMA_VERSION = "2.1.0"
 EXPERIMENT_RUN_SCHEMA_VERSION = "2.0.0"
+M10_C_SOURCE_VERSION = "m10-c-readonly-1.0.0"
 SHA256 = re.compile(r"^sha256:[0-9a-f]{64}$")
 STABLE_REFERENCE_PREFIXES = {
     "instrument": "instrument",
@@ -68,7 +73,7 @@ EXPERIMENT_RESULT_REFERENCE_ROLES = {
     "research_aggregate",
 }
 ALLOWED_RUN_POLICY_KINDS = {
-    "adjustment", "cost_slippage", "evaluation", "execution",
+    "adjustment", "aggregation", "cost_slippage", "evaluation", "execution",
     "forward_window", "partition",
 }
 RESULT_TYPES = {
@@ -136,6 +141,31 @@ RESULT_ALLOWED_FIELDS = {
     "ResearchAggregate": COMMON_RESULT_FIELDS | {
         "research_aggregate_id", "aggregate_content_fingerprint", "status_reason",
         "result_refs",
+    },
+}
+PORTFOLIO_RUN_2_1_FIELDS = COMMON_RESULT_FIELDS | {
+    "portfolio_run_id", "portfolio_content_fingerprint", "status_reason",
+    "trade_outcome_refs", "result_set_fingerprint", "aggregation_policy",
+    "portfolio_scope",
+}
+RESEARCH_AGGREGATE_2_1_FIELDS = COMMON_RESULT_FIELDS | {
+    "research_aggregate_id", "aggregate_content_fingerprint",
+    "source_result_type", "window_sessions", "aggregate_scope",
+    "aggregation_policy", "result_refs", "result_set_fingerprint",
+    "total_count", "status_counts", "evaluated_count", "missing_count",
+    "missing_rate", "win_count", "loss_count", "flat_count", "win_rate",
+    "mean_gross_return", "median_gross_return", "gross_profit",
+    "gross_loss_abs", "profit_factor", "gross_expectancy", "metric_status",
+    "metric_reason",
+}
+RESULT_FIELDS_BY_VERSION = {
+    "PortfolioRun": {
+        RESULT_SCHEMA_VERSION: RESULT_ALLOWED_FIELDS["PortfolioRun"],
+        PORTFOLIO_RUN_SCHEMA_VERSION: PORTFOLIO_RUN_2_1_FIELDS,
+    },
+    "ResearchAggregate": {
+        RESULT_SCHEMA_VERSION: RESULT_ALLOWED_FIELDS["ResearchAggregate"],
+        RESEARCH_AGGREGATE_SCHEMA_VERSION: RESEARCH_AGGREGATE_2_1_FIELDS,
     },
 }
 EXPERIMENT_RUN_ALLOWED_FIELDS = {
@@ -243,6 +273,15 @@ def _validate_source_version(value: Any) -> Mapping[str, Any]:
     return source
 
 
+def validate_m10c_source_version(payload: Mapping[str, Any]) -> None:
+    """Require the sole source identity approved for new formal M10-C records."""
+
+    if not isinstance(payload, Mapping) or _plain(payload.get("source_version")) != {
+        "evaluation_contracts": M10_C_SOURCE_VERSION,
+    }:
+        raise ContractError("M10-C requires its approved readonly source version")
+
+
 def _stable_reference_role(
     value: Any, *, field: str, allowed_roles: set[str]
 ) -> str:
@@ -299,6 +338,7 @@ def _validate_run_policy_references(value: Any) -> set[str]:
     if not isinstance(value, (list, tuple)) or not value:
         raise ContractError("ExperimentRun requires policy references")
     known_policies = {
+        "aggregation": AGGREGATION_POLICY,
         "evaluation": EVALUATION_POLICY,
         "partition": PARTITION_POLICY,
         "forward_window": FORWARD_WINDOW_POLICY,
@@ -489,7 +529,23 @@ def _canonical_input_identity(
     reference_field = (
         "trade_outcome_refs" if contract_name == "PortfolioRun" else "result_refs"
     )
-    return {**common, reference_field: _plain(payload[reference_field])}
+    identity = {**common, reference_field: _plain(payload[reference_field])}
+    if payload.get("schema_version") != RESULT_SCHEMA_VERSION:
+        identity.update({
+            "schema_version": payload["schema_version"],
+            "result_set_fingerprint": payload["result_set_fingerprint"],
+            "aggregation_policy_fingerprint": payload["aggregation_policy"][
+                "policy_fingerprint"
+            ],
+            "evidence_scope": _plain(
+                payload[
+                    "portfolio_scope"
+                    if contract_name == "PortfolioRun"
+                    else "aggregate_scope"
+                ]
+            ),
+        })
+    return identity
 
 
 def result_input_fingerprint(
@@ -532,11 +588,19 @@ def _logical_identity(contract_name: str, payload: Mapping[str, Any]) -> dict[st
             "signal_date": payload["signal_date"],
         }
     reference_field = "trade_outcome_refs" if contract_name == "PortfolioRun" else "result_refs"
-    return {
+    identity = {
         **common,
         "run_id": payload["run_id"],
         reference_field: _plain(payload[reference_field]),
     }
+    if payload.get("schema_version") != RESULT_SCHEMA_VERSION:
+        identity["schema_version"] = payload["schema_version"]
+        if contract_name == "ResearchAggregate":
+            identity.update({
+                "source_result_type": payload["source_result_type"],
+                "window_sessions": payload["window_sessions"],
+            })
+    return identity
 
 
 def _version_identity(contract_name: str, payload: Mapping[str, Any]) -> dict[str, Any]:
@@ -586,6 +650,10 @@ def _validate_common_result(contract_name: str, payload: Mapping[str, Any]) -> N
         allowed = FORWARD_OUTCOME_FIELDS_BY_VERSION.get(schema_version)
         if allowed is None:
             raise ContractError("ForwardOutcome schema version is unknown")
+    elif contract_name in RESULT_FIELDS_BY_VERSION:
+        allowed = RESULT_FIELDS_BY_VERSION[contract_name].get(schema_version)
+        if allowed is None:
+            raise ContractError(f"{contract_name} schema version is unknown")
     else:
         allowed = RESULT_ALLOWED_FIELDS[contract_name]
         if schema_version != RESULT_SCHEMA_VERSION:
@@ -953,6 +1021,236 @@ def _validate_reference_list(
     return roles
 
 
+_M10_C_SCOPE_FIELDS = {
+    "source_result_type", "window_sessions", "path_status", "result_role",
+    "partition_role", "evaluation_policy_fingerprint",
+    "partition_policy_fingerprint", "adjustment_policy_fingerprint",
+    "window_policy_fingerprint", "execution_policy_version",
+    "execution_policy_fingerprint", "cost_policy_status",
+    "cost_policy_version", "cost_policy_fingerprint",
+}
+def _quantized_ratio(numerator: int, denominator: int) -> float:
+    return quantized_ratio(numerator, denominator)
+
+
+def _validate_m10c_scope(value: Any, *, expected_type: str) -> Mapping[str, Any]:
+    scope = _exact_mapping(value, _M10_C_SCOPE_FIELDS, "M10-C evidence scope")
+    if scope["source_result_type"] != expected_type:
+        raise ContractError("M10-C evidence scope has the wrong result type")
+    if scope["path_status"] != "formal":
+        raise ContractError("M10-C 2.1 only accepts formal evidence")
+    if scope["result_role"] not in {"authoritative", "comparison"}:
+        raise ContractError("M10-C evidence role is invalid")
+    if scope["partition_role"] not in {"development", "validation", "forward"}:
+        raise ContractError("M10-C evidence partition is invalid")
+    expected_fingerprints = {
+        "evaluation_policy_fingerprint": EVALUATION_POLICY["policy_fingerprint"],
+        "partition_policy_fingerprint": PARTITION_POLICY["policy_fingerprint"],
+        "adjustment_policy_fingerprint": canonical_fingerprint(ADJUSTMENT_POLICY),
+    }
+    for field, expected in expected_fingerprints.items():
+        _fingerprint(scope[field], f"M10-C scope.{field}")
+        if scope[field] != expected:
+            raise ContractError(f"M10-C scope {field} is not approved")
+    if expected_type == "forward_outcome":
+        if scope["window_sessions"] not in FORWARD_WINDOWS:
+            raise ContractError("M10-C Forward scope requires one approved window")
+        if scope["window_policy_fingerprint"] != FORWARD_WINDOW_POLICY[
+            "policy_fingerprint"
+        ]:
+            raise ContractError("M10-C Forward scope window policy is invalid")
+        if any(
+            scope[field] is not None
+            for field in (
+                "execution_policy_version", "execution_policy_fingerprint",
+                "cost_policy_status", "cost_policy_version", "cost_policy_fingerprint",
+            )
+        ):
+            raise ContractError("M10-C Forward scope cannot carry trade policies")
+    else:
+        if scope["window_sessions"] is not None or scope["window_policy_fingerprint"] is not None:
+            raise ContractError("M10-C Trade scope cannot carry a Forward window")
+        version = scope["execution_policy_version"]
+        if not isinstance(version, str) or not SEMVER.fullmatch(version):
+            raise ContractError("M10-C Trade scope execution policy is invalid")
+        _fingerprint(
+            scope["execution_policy_fingerprint"],
+            "M10-C scope.execution_policy_fingerprint",
+        )
+        if scope["result_role"] == "authoritative":
+            if (
+                scope["cost_policy_status"] != "unapproved"
+                or scope["cost_policy_version"] is not None
+                or scope["cost_policy_fingerprint"] is not None
+            ):
+                raise ContractError("authoritative M10-C scope cannot invent costs")
+        elif (
+            scope["cost_policy_status"] != "comparison_only"
+            or scope["cost_policy_version"]
+            != ZERO_COST_COMPARISON_POLICY["policy_version"]
+            or scope["cost_policy_fingerprint"]
+            != ZERO_COST_COMPARISON_POLICY["policy_fingerprint"]
+        ):
+            raise ContractError("comparison M10-C scope cost policy is invalid")
+    return scope
+
+
+def validate_m10c_scope(value: Any, *, expected_type: str) -> None:
+    """Validate the one strict evidence-scope shape used by M10-C."""
+
+    if expected_type not in {"forward_outcome", "trade_outcome"}:
+        raise ContractError("M10-C scope result type is invalid")
+    _validate_m10c_scope(value, expected_type=expected_type)
+
+
+def _validate_m10c_common(
+    payload: Mapping[str, Any], *, scope_field: str, expected_type: str
+) -> Mapping[str, Any]:
+    validate_m10c_source_version(payload)
+    if payload["path_status"] != "formal":
+        raise ContractError("M10-C 2.1 results must be formal")
+    validate_policy(payload["aggregation_policy"], expected_kind="aggregation")
+    if _plain(payload["aggregation_policy"]) != _plain(AGGREGATION_POLICY):
+        raise ContractError("M10-C result uses an unknown aggregation policy")
+    scope = _validate_m10c_scope(payload[scope_field], expected_type=expected_type)
+    if any(
+        payload[field] != scope[field]
+        for field in ("path_status", "result_role", "partition_role")
+    ):
+        raise ContractError("M10-C result role does not match its evidence scope")
+    return scope
+
+
+def _validate_portfolio_2_1(payload: Mapping[str, Any]) -> None:
+    _validate_m10c_common(
+        payload, scope_field="portfolio_scope", expected_type="trade_outcome"
+    )
+    _validate_reference_list(
+        payload["trade_outcome_refs"],
+        "trade_outcome_refs",
+        allowed_roles={"trade_outcome"},
+    )
+    _fingerprint(payload["result_set_fingerprint"], "result_set_fingerprint")
+    if payload["result_set_fingerprint"] != canonical_fingerprint(
+        _plain(payload["trade_outcome_refs"])
+    ):
+        raise ContractError("PortfolioRun result set fingerprint is invalid")
+    if (
+        payload["status"] != "unavailable"
+        or payload["status_reason"]
+        != "capital_allocation_policy_not_approved"
+    ):
+        raise ContractError("M10-C PortfolioRun must remain unavailable")
+
+
+def _validate_optional_metric(value: Any, field: str) -> float | None:
+    return _finite(value, field, allow_none=True)
+
+
+def _validate_research_2_1(payload: Mapping[str, Any]) -> None:
+    source_type = payload["source_result_type"]
+    if source_type not in {"forward_outcome", "trade_outcome"}:
+        raise ContractError("ResearchAggregate source result type is invalid")
+    scope = _validate_m10c_common(
+        payload, scope_field="aggregate_scope", expected_type=source_type
+    )
+    if payload["window_sessions"] != scope["window_sessions"]:
+        raise ContractError("ResearchAggregate window does not match its scope")
+    roles = _validate_reference_list(
+        payload["result_refs"],
+        "result_refs",
+        allowed_roles={
+            "forward_outcome" if source_type == "forward_outcome" else "trade_outcome"
+        },
+    )
+    if roles and roles != {
+        "forward_outcome" if source_type == "forward_outcome" else "trade_outcome"
+    }:
+        raise ContractError("ResearchAggregate references mixed result types")
+    _fingerprint(payload["result_set_fingerprint"], "result_set_fingerprint")
+    if payload["result_set_fingerprint"] != canonical_fingerprint(
+        _plain(payload["result_refs"])
+    ):
+        raise ContractError("ResearchAggregate result set fingerprint is invalid")
+    if payload["status"] != "completed":
+        raise ContractError("M10-C ResearchAggregate calculation must complete")
+
+    total = _non_negative_int(payload["total_count"], "total_count")
+    evaluated = _non_negative_int(payload["evaluated_count"], "evaluated_count")
+    missing = _non_negative_int(payload["missing_count"], "missing_count")
+    expected_statuses = (
+        {"pending", "mature", "partial", "unavailable"}
+        if source_type == "forward_outcome"
+        else {"completed", "open", "no_trade", "unavailable"}
+    )
+    counts = _exact_mapping(
+        payload["status_counts"], expected_statuses, "ResearchAggregate status_counts"
+    )
+    for name in expected_statuses:
+        _non_negative_int(counts[name], f"status_counts.{name}")
+    if total != sum(counts.values()) or total != evaluated + missing:
+        raise ContractError("ResearchAggregate counts do not conserve inputs")
+    if source_type == "forward_outcome":
+        if not counts["mature"] <= evaluated <= counts["mature"] + counts["partial"]:
+            raise ContractError(
+                "Forward ResearchAggregate evaluated count contradicts status buckets"
+            )
+    elif evaluated != counts["completed"]:
+        raise ContractError(
+            "Trade ResearchAggregate can evaluate completed outcomes only"
+        )
+    win = _non_negative_int(payload["win_count"], "win_count")
+    loss = _non_negative_int(payload["loss_count"], "loss_count")
+    flat = _non_negative_int(payload["flat_count"], "flat_count")
+    if win + loss + flat != evaluated:
+        raise ContractError("ResearchAggregate outcome classes do not conserve samples")
+    expected_missing_rate = None if total == 0 else _quantized_ratio(missing, total)
+    if payload["missing_rate"] != expected_missing_rate:
+        raise ContractError("ResearchAggregate missing_rate is inconsistent")
+
+    metric_fields = (
+        "win_rate", "mean_gross_return", "median_gross_return", "gross_profit",
+        "gross_loss_abs", "profit_factor", "gross_expectancy",
+    )
+    metrics = {
+        field: _validate_optional_metric(payload[field], field)
+        for field in metric_fields
+    }
+    if evaluated == 0:
+        if any(value is not None for value in metrics.values()):
+            raise ContractError("empty ResearchAggregate cannot contain return metrics")
+        if (
+            payload["metric_status"] != "unavailable"
+            or payload["metric_reason"] != "empty_sample"
+        ):
+            raise ContractError("empty ResearchAggregate requires explicit status")
+        return
+    if payload["metric_status"] != "available":
+        raise ContractError("evaluated ResearchAggregate metrics must be available")
+    if any(
+        metrics[field] is None
+        for field in (
+            "win_rate", "mean_gross_return", "median_gross_return",
+            "gross_profit", "gross_loss_abs", "gross_expectancy",
+        )
+    ):
+        raise ContractError("evaluated ResearchAggregate is missing metrics")
+    if payload["win_rate"] != _quantized_ratio(win, evaluated):
+        raise ContractError("ResearchAggregate win_rate is inconsistent")
+    if payload["gross_expectancy"] != payload["mean_gross_return"]:
+        raise ContractError("gross_expectancy must equal mean_gross_return")
+    gross_profit = decimal_metric(payload["gross_profit"], "gross_profit")
+    gross_loss = decimal_metric(payload["gross_loss_abs"], "gross_loss_abs")
+    expected_pf, expected_reason = profit_factor_semantics(gross_profit, gross_loss)
+    if (
+        payload["profit_factor"] != expected_pf
+        or payload["metric_reason"] != expected_reason
+    ):
+        raise ContractError("ResearchAggregate profit factor semantics are inconsistent")
+    if expected_reason == "undefined_zero_profit_and_loss" and (win != 0 or loss != 0):
+        raise ContractError("all-flat ResearchAggregate counts are inconsistent")
+
+
 def _validate_unimplemented_result(contract_name: str, payload: Mapping[str, Any]) -> None:
     field = "trade_outcome_refs" if contract_name == "PortfolioRun" else "result_refs"
     _validate_reference_list(
@@ -985,6 +1283,16 @@ def validate_result(contract_name: str, payload: Mapping[str, Any]) -> None:
         _validate_forward(payload)
     elif contract_name == "TradeOutcome":
         _validate_trade(payload)
+    elif (
+        contract_name == "PortfolioRun"
+        and payload["schema_version"] == PORTFOLIO_RUN_SCHEMA_VERSION
+    ):
+        _validate_portfolio_2_1(payload)
+    elif (
+        contract_name == "ResearchAggregate"
+        and payload["schema_version"] == RESEARCH_AGGREGATE_SCHEMA_VERSION
+    ):
+        _validate_research_2_1(payload)
     else:
         _validate_unimplemented_result(contract_name, payload)
 
@@ -1141,7 +1449,8 @@ def validate_experiment_run(payload: Mapping[str, Any]) -> None:
     validate_contract("ExperimentRun", payload)
     if payload["schema_version"] != EXPERIMENT_RUN_SCHEMA_VERSION:
         raise ContractError("M10 formal receipts require ExperimentRun 2.0.0")
-    _validate_source_version(payload["source_version"])
+    source = _validate_source_version(payload["source_version"])
+    m10c_run = source["evaluation_contracts"] == M10_C_SOURCE_VERSION
     _stable_reference_role(
         payload["run_id"], field="ExperimentRun.run_id",
         allowed_roles={"experiment_run"},
@@ -1181,7 +1490,7 @@ def validate_experiment_run(payload: Mapping[str, Any]) -> None:
     input_roles = _validate_reference_list(
         payload["input_refs"], "input_refs",
         allowed_roles=EXPERIMENT_INPUT_REFERENCE_ROLES,
-        allow_empty=False,
+        allow_empty=m10c_run,
     )
     result_roles = _validate_reference_list(
         payload["result_refs"], "result_refs",
@@ -1192,6 +1501,11 @@ def validate_experiment_run(payload: Mapping[str, Any]) -> None:
     if payload["result_set_fingerprint"] != canonical_fingerprint(_plain(payload["result_refs"])):
         raise ContractError("ExperimentRun result set fingerprint is invalid")
     policy_kinds = _validate_run_policy_references(payload["policy_refs"])
+    if m10c_run:
+        if "aggregation" not in policy_kinds:
+            raise ContractError("M10-C runs require the aggregation policy")
+        if result_roles - {"portfolio_run", "research_aggregate"}:
+            raise ContractError("M10-C runs cannot emit other M10 result types")
     if result_roles & {"forward_outcome", "trade_outcome"}:
         if not {"market_snapshot", "universe"}.issubset(input_roles):
             raise ContractError(
@@ -1339,9 +1653,10 @@ def current_experiment_run(
 
 __all__ = [
     "EXPERIMENT_RUN_SCHEMA_VERSION", "FORWARD_OUTCOME_SCHEMA_VERSION",
-    "RESULT_SCHEMA_VERSION",
+    "M10_C_SOURCE_VERSION", "PORTFOLIO_RUN_SCHEMA_VERSION",
+    "RESEARCH_AGGREGATE_SCHEMA_VERSION", "RESULT_SCHEMA_VERSION",
     "assert_immutable_compatible", "build_experiment_run_receipt",
     "current_experiment_run", "current_result",
     "finalize_result", "result_input_fingerprint", "validate_experiment_run",
-    "validate_result",
+    "validate_m10c_scope", "validate_m10c_source_version", "validate_result",
 ]

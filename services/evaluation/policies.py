@@ -118,6 +118,29 @@ PARTITION_POLICY = build_policy(
 )
 
 
+AGGREGATION_POLICY = build_policy(
+    kind="aggregation",
+    version="1.0.0",
+    name="m10_readonly_gross_outcome_summary",
+    rules={
+        "accepted_result_types": ["forward_outcome", "trade_outcome"],
+        "one_result_type_per_aggregate": True,
+        "one_forward_window_per_aggregate": True,
+        "value_source": "frozen_gross_return_only",
+        "missing_values_are_zero": False,
+        "win_definition": "gross_return_gt_zero",
+        "loss_definition": "gross_return_lt_zero",
+        "flat_definition": "gross_return_eq_zero",
+        "win_rate_denominator": "evaluated_count_including_flat",
+        "gross_loss_storage": "absolute_value",
+        "gross_expectancy": "mean_gross_return",
+        "decimal_quantum": "0.0000000001",
+        "rounding": "ROUND_HALF_EVEN",
+        "non_finite_numbers": "reject",
+    },
+)
+
+
 ZERO_COST_COMPARISON_POLICY = build_policy(
     kind="cost_slippage",
     version="1.0.0",
@@ -152,6 +175,7 @@ def policy_reference(policy: Mapping[str, Any], *, status: str = "approved") -> 
 
 
 __all__ = [
+    "AGGREGATION_POLICY",
     "EVALUATION_POLICY",
     "FORWARD_WINDOWS",
     "FORWARD_WINDOW_POLICY",

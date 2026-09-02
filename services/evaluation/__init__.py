@@ -1,5 +1,24 @@
 """M10 shadow-only immutable evaluation contracts."""
 
+from .aggregate import (
+    READONLY_ADAPTER_VERSION,
+    READONLY_ENGINE_NAME,
+    READONLY_ENGINE_VERSION,
+    ReadonlyEvaluationBatch,
+    build_aggregate_scope,
+    build_readonly_pending_run,
+    complete_readonly_run,
+    evaluate_portfolio_boundary,
+    evaluate_research_aggregate,
+    produce_portfolio_boundary,
+    produce_research_aggregate,
+    readonly_run_scope_fingerprint,
+    store_readonly_evaluation_batch,
+    validate_readonly_evaluation_batch,
+    validate_readonly_receipt_identity,
+    validate_readonly_run_conservation,
+)
+
 from .baseline import (
     BASELINE_ADAPTER_VERSION,
     BASELINE_ENGINE_NAME,
@@ -14,6 +33,9 @@ from .baseline import (
 )
 from .contracts import (
     EXPERIMENT_RUN_SCHEMA_VERSION,
+    M10_C_SOURCE_VERSION,
+    PORTFOLIO_RUN_SCHEMA_VERSION,
+    RESEARCH_AGGREGATE_SCHEMA_VERSION,
     RESULT_SCHEMA_VERSION,
     assert_immutable_compatible,
     build_experiment_run_receipt,
@@ -22,9 +44,12 @@ from .contracts import (
     finalize_result,
     result_input_fingerprint,
     validate_experiment_run,
+    validate_m10c_scope,
+    validate_m10c_source_version,
     validate_result,
 )
 from .policies import (
+    AGGREGATION_POLICY,
     EVALUATION_POLICY,
     FORWARD_WINDOWS,
     FORWARD_WINDOW_POLICY,
@@ -44,23 +69,37 @@ from .runner import (
 from .storage import EvaluationShadowStore
 
 __all__ = [
+    "AGGREGATION_POLICY",
     "BASELINE_ADAPTER_VERSION", "BASELINE_ENGINE_NAME", "BASELINE_ENGINE_VERSION",
     "BASELINE_SOURCE_VERSION", "BaselineEvaluationBatch", "EVALUATION_POLICY",
     "EXPERIMENT_RUN_SCHEMA_VERSION",
     "EvaluationShadowStore",
     "FORWARD_WINDOWS",
     "FORWARD_WINDOW_POLICY", "PARTITION_POLICY", "RESULT_SCHEMA_VERSION",
+    "M10_C_SOURCE_VERSION", "PORTFOLIO_RUN_SCHEMA_VERSION",
+    "READONLY_ADAPTER_VERSION", "READONLY_ENGINE_NAME",
+    "READONLY_ENGINE_VERSION", "RESEARCH_AGGREGATE_SCHEMA_VERSION",
+    "ReadonlyEvaluationBatch",
     "UNAPPROVED_COST_REFERENCE", "ZERO_COST_COMPARISON_POLICY",
     "assert_immutable_compatible", "baseline_run_scope_fingerprint",
     "build_experiment_run_receipt",
+    "build_aggregate_scope", "build_readonly_pending_run",
     "build_session_calendar_evidence",
     "complete_baseline_run", "current_experiment_run", "current_result",
+    "complete_readonly_run",
+    "evaluate_portfolio_boundary", "evaluate_research_aggregate",
     "evaluate_forward_baseline", "evaluate_trade_baseline",
     "finalize_result", "market_snapshot_evidence_fingerprint",
     "produce_forward_outcomes", "produce_trade_outcome",
+    "produce_portfolio_boundary", "produce_research_aggregate",
+    "readonly_run_scope_fingerprint",
     "result_input_fingerprint", "store_baseline_evaluation_batch",
+    "store_readonly_evaluation_batch",
     "validate_experiment_run", "validate_result",
     "validate_baseline_evaluation_batch",
     "validate_run_conservation",
+    "validate_m10c_scope", "validate_m10c_source_version",
+    "validate_readonly_evaluation_batch", "validate_readonly_run_conservation",
+    "validate_readonly_receipt_identity",
     "validate_session_calendar_evidence",
 ]
