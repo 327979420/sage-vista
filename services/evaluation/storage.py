@@ -237,6 +237,28 @@ class EvaluationShadowStore:
                 fingerprint_field=fingerprint_field,
             )
 
+    def result_references_for_run(
+        self, contract_name: str, run_id: str
+    ) -> list[dict[str, str]]:
+        """Return the immutable result set already stored for one run."""
+
+        if contract_name not in RESULT_TYPES:
+            raise ContractError("unknown M10 result contract")
+        _id_digest(run_id, field="run_id")
+        id_field, fingerprint_field, _, _ = RESULT_TYPES[contract_name]
+        references = [
+            {
+                "id": str(record[id_field]),
+                "content_fingerprint": str(record[fingerprint_field]),
+            }
+            for _, record in self._result_records(contract_name)
+            if record["run_id"] == run_id
+        ]
+        return sorted(
+            references,
+            key=lambda item: (item["id"], item["content_fingerprint"]),
+        )
+
     def write_run_receipt(self, payload: Mapping[str, Any]) -> Path:
         validate_experiment_run(payload)
         target = (

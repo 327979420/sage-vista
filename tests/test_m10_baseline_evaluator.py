@@ -1268,6 +1268,34 @@ class M10RunIntegrationTests(unittest.TestCase):
                 store_baseline_evaluation_batch(store, invalid)
             self.assertFalse(root.exists())
 
+        foreign_values = plain(valid.outcomes[0])
+        for field in (
+            "forward_outcome_id", "forward_content_fingerprint",
+            "input_fingerprint",
+        ):
+            foreign_values.pop(field)
+        foreign_values.update({
+            "event_id": "opportunity:sha256:" + "e" * 64,
+            "event_content_fingerprint": "sha256:" + "e" * 64,
+            "instrument_id": "instrument:sha256:" + "e" * 64,
+        })
+        foreign = finalize_result("ForwardOutcome", foreign_values)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "m10-b"
+            store = EvaluationShadowStore(root)
+            store.write_result("ForwardOutcome", foreign)
+            before = {
+                path.relative_to(root): path.read_bytes()
+                for path in root.rglob("*") if path.is_file()
+            }
+            with self.assertRaisesRegex(ContractError, "unregistered"):
+                store_baseline_evaluation_batch(store, valid)
+            after = {
+                path.relative_to(root): path.read_bytes()
+                for path in root.rglob("*") if path.is_file()
+            }
+            self.assertEqual(before, after)
+
     def test_shadow_store_persists_pending_results_then_completion(self):
         event, read, snapshot, calendar, receipt = self.forward_inputs()
         batch = evaluate_forward_baseline(
