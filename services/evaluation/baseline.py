@@ -274,7 +274,11 @@ def forward_result_scope_keys(
     event: Mapping[str, Any],
     market_snapshot: Mapping[str, Any],
     universe_content_fingerprint: str,
+    session_calendar: Mapping[str, Any],
 ) -> list[dict[str, Any]]:
+    """Freeze each Forward window against one normalized calendar evidence set."""
+
+    validate_session_calendar_evidence(session_calendar)
     return [{
         "event_id": event["event_id"],
         "event_content_fingerprint": event["event_content_fingerprint"],
@@ -287,6 +291,10 @@ def forward_result_scope_keys(
         ),
         "universe_id": event["input_identity"]["universe_id"],
         "universe_content_fingerprint": universe_content_fingerprint,
+        "as_of": session_calendar["as_of"],
+        "session_calendar_id": session_calendar["calendar_id"],
+        "session_calendar_fingerprint": session_calendar["content_fingerprint"],
+        "elapsed_session_count": len(session_calendar["sessions"]),
         "window_sessions": window,
     } for window in FORWARD_WINDOWS]
 
@@ -339,7 +347,8 @@ def outcome_result_scope_keys(
             "signal_date", "signal_market_snapshot_id", "window_sessions",
             "evaluation_market_snapshot_id",
             "evaluation_market_snapshot_fingerprint", "universe_id",
-            "universe_content_fingerprint",
+            "universe_content_fingerprint", "as_of", "session_calendar_id",
+            "session_calendar_fingerprint", "elapsed_session_count",
         )
     elif contract_name == "TradeOutcome":
         fields = (
@@ -475,7 +484,7 @@ def _require_pending_forward_run(
         signal_date=str(event["signal_date"]),
         market_data_fingerprint=market_data_fingerprint,
         expected_result_keys=forward_result_scope_keys(
-            event, market_snapshot, universe_content_fingerprint
+            event, market_snapshot, universe_content_fingerprint, calendar
         ),
     )
     if receipt["config_ref"]["content_fingerprint"] != expected_scope:

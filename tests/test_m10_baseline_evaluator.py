@@ -224,6 +224,10 @@ def pending_receipt(event, snapshot, calendar, *, attempt="forward-fixture"):
             ),
             "universe_id": event["input_identity"]["universe_id"],
             "universe_content_fingerprint": UNIVERSE_CONTENT,
+            "as_of": calendar["as_of"],
+            "session_calendar_id": calendar["calendar_id"],
+            "session_calendar_fingerprint": calendar["content_fingerprint"],
+            "elapsed_session_count": len(calendar["sessions"]),
             "window_sessions": window,
         } for window in FORWARD_WINDOWS],
     )
@@ -1199,6 +1203,78 @@ class M10RunIntegrationTests(unittest.TestCase):
                 generated_at=f"{calendar['as_of']}T22:03:00Z",
                 finished_at=f"{calendar['as_of']}T22:03:00Z",
             )
+
+    def test_completion_binds_normalized_calendar_content_across_all_windows(self):
+        event, read, snapshot, calendar, receipt = self.forward_inputs()
+        outcomes = produce_forward_outcomes(
+            event,
+            read,
+            snapshot,
+            calendar,
+            universe_content_fingerprint=UNIVERSE_CONTENT,
+            pending_run_receipt=receipt,
+            generated_at=f"{calendar['as_of']}T22:02:00Z",
+        )
+        other_calendar = build_session_calendar_evidence(
+            calendar_name=calendar["calendar_name"],
+            calendar_version=calendar["calendar_version"],
+            signal_date=calendar["signal_date"],
+            as_of=calendar["as_of"],
+            sessions=calendar["sessions"][:-1],
+        )
+        self.assertEqual(calendar["calendar_id"], other_calendar["calendar_id"])
+        self.assertNotEqual(
+            calendar["content_fingerprint"],
+            other_calendar["content_fingerprint"],
+        )
+
+        def with_calendar_fingerprint(outcome, fingerprint):
+            values = plain(outcome)
+            for field in (
+                "forward_outcome_id",
+                "forward_content_fingerprint",
+                "input_fingerprint",
+            ):
+                values.pop(field)
+            values["session_calendar_fingerprint"] = fingerprint
+            return finalize_result("ForwardOutcome", values)
+
+        all_rebound = tuple(
+            with_calendar_fingerprint(item, other_calendar["content_fingerprint"])
+            for item in outcomes
+        )
+        with self.assertRaises(ContractError):
+            complete_baseline_run(
+                receipt,
+                "ForwardOutcome",
+                all_rebound,
+                generated_at=f"{calendar['as_of']}T22:03:00Z",
+                finished_at=f"{calendar['as_of']}T22:03:00Z",
+            )
+
+        one_rebound = (
+            with_calendar_fingerprint(
+                outcomes[0], other_calendar["content_fingerprint"]
+            ),
+            *outcomes[1:],
+        )
+        with self.assertRaises(ContractError):
+            complete_baseline_run(
+                receipt,
+                "ForwardOutcome",
+                one_rebound,
+                generated_at=f"{calendar['as_of']}T22:03:00Z",
+                finished_at=f"{calendar['as_of']}T22:03:00Z",
+            )
+
+        completed = complete_baseline_run(
+            receipt,
+            "ForwardOutcome",
+            outcomes,
+            generated_at=f"{calendar['as_of']}T22:03:00Z",
+            finished_at=f"{calendar['as_of']}T22:03:00Z",
+        )
+        self.assertEqual("completed", completed["status"])
 
     def test_trade_completion_rejects_changed_plan_or_exit_state(self):
         fixture, state, read, snapshot, receipt, state_link = self.trade_inputs()

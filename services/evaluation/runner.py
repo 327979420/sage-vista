@@ -110,6 +110,8 @@ def _validate_input_reference_shape(
             outcome["event_id"] not in ids
             or outcome["session_calendar_id"] not in ids
             or outcome["evaluation_market_snapshot_id"] not in ids
+            or fingerprints.get(str(outcome["session_calendar_id"]))
+            != outcome["session_calendar_fingerprint"]
             or fingerprints.get(str(outcome["evaluation_market_snapshot_id"]))
             != outcome["evaluation_market_snapshot_fingerprint"]
             or outcome["universe_id"] not in ids
