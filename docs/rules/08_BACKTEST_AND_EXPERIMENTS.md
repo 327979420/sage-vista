@@ -1,7 +1,7 @@
 # 08｜回测与实验规则
 
-版本：`1.20.0`
-最后更新：2026-09-02
+版本：`1.21.0`
+最后更新：2026-09-03
 
 ## 本文件负责
 
@@ -68,7 +68,7 @@
 - 每日影子入口与回测影子入口必须对同一`universe_id + as_of + adjustment_policy`得到相同的数据身份。回测选择不能读取`as_of`之后的行情或证券身份元数据；未来收益仍只属于独立结果层。
 - 本次只增加未接入默认夜间任务的影子入口和固定小样本测试；当前断点、已保存结果、工作流和真实缓存均不得改变。
 
-## M10统一评价A—B冻结边界
+## M10统一评价A—C冻结边界
 
 - M10只读消费M02不可变行情、M07权威排行、M08计划／退出和M09不可变事件；不得重算Gate、因子、评分、排行、计划或退出。
 - `ForwardOutcome`、`TradeOutcome`、`PortfolioRun`和`ResearchAggregate`是四类不同2.x合同；`ExperimentRun 2.x`是运行收据，不是第五类收益结果。
@@ -77,7 +77,11 @@
 - TradeOutcome必须消费经过完整验证的M08 ExitState修订链和唯一终态，不得重新运行M08退出状态机。退出日MFE／MAE口径尚未批准，首版保持明确`unavailable`。
 - 每个窗口和交易结果都只追加不可变版本。后来成熟或行情修订产生新结果并指向直接前一版本，不得覆盖早期`pending`、旧结果或M09事件。
 - formal／legacy、authoritative／comparison以及development／validation／forward必须进入身份；相同完整身份与不同内容必须冲突失败。
-- A只建立四类合同、身份、验证、`ExperimentRun 2.x`收据和冲突保护；B只建立唯一内部Forward／Trade基线评价器。C—E、Portfolio／Aggregate计算、Excel、CLI、VectorBT、真实多年回测和生产接入未获批准。
+- A只建立四类合同、身份、验证、`ExperimentRun 2.x`收据和冲突保护；B只建立唯一内部Forward／Trade基线评价器；C只建立Portfolio失败关闭边界及只读gross汇总。M10-D—E、资本组合算法、Excel、CLI、VectorBT、真实多年回测和生产接入未获批准。
+- M10-C新formal `PortfolioRun 2.1.0`只接收已验证TradeOutcome对象并保存规范引用；资本政策未批准时状态固定`unavailable`、原因固定`capital_allocation_policy_not_approved`，禁止任何资本、仓位、现金、权益、收益、年化或回撤指标。旧`2.0.0`原字段只读。
+- M10-C新formal `ResearchAggregate 2.1.0`一次只汇总一种已验证Outcome；Forward只允许一个窗口，Trade和Forward不得混合，formal／comparison、path、partition及必要政策不得混合。汇总器只读已冻结`gross_return`，不得读取行情或重算收益。
+- Forward `status_counts`固定为`pending/mature/partial/unavailable`；Trade固定为`completed/open/no_trade/unavailable`。Trade `open`只对应已验证的`status=pending + status_reason=trade_open`，不得与普通pending混淆或静默删除。`total_count=sum(status_counts)=evaluated_count+missing_count`且`win+loss+flat=evaluated_count`；缺失不能作为0收益。
+- 首版只计算总数、状态守恒、缺失率、胜负平、胜率、平均／中位毛收益、gross profit、绝对gross loss、Profit Factor和gross expectancy；Decimal精度固定`1e-10`、`ROUND_HALF_EVEN`，非有限数失败。空样本、无亏损、无盈利和全零使用明确null／状态原因。
 
 ## 夜间历史续跑
 
@@ -297,6 +301,12 @@
 任何会改变筛选、分数、风险或实际结果的模块改动，都必须联动本文件中的预登记与归档流程。只改页面排版无需新实验。
 
 ## 变更记录
+
+### 1.21.0 — 2026-09-03
+
+- 批准M10-C Portfolio失败关闭边界和单一Outcome类型的只读gross汇总影子实施；资本组合曲线及后续研究指标继续关闭。
+- 冻结Forward四状态与Trade `completed/open/no_trade/unavailable`完整守恒，明确open和no_trade不得静默消失或被当成0收益。
+- 冻结`PortfolioRun/ResearchAggregate 2.0.0`只读兼容及新formal `2.1.0`、`m10-c-readonly-1.0.0`和`aggregation 1.0.0`版本隔离。
 
 ### 1.20.0 — 2026-09-02
 

@@ -1,10 +1,10 @@
 # Sage Vista 分模块重构规划书
 
-版本：`0.10.1-m10-ab-implementing`
+版本：`0.10.3-m10-c-implementing`
 
-日期：2026-09-02
+日期：2026-09-03
 
-状态：M00—M09已在各自获批范围内`implemented`并进入`main`，但M03—M09均尚未部署或生产启用。M10只获批A—B影子实施并处于`implementing`；C—E、VectorBT及M11—M13尚未开始。网站、正式每日链、夜间回测和Discord仍按旧流程运行，真实生产集成留给M12。
+状态：M00—M09已在各自获批范围内`implemented`并进入`main`，但M03—M09均尚未部署或生产启用。M10-A／B已进入`main`，用户已批准M10-C最小影子实施，M10整体处于`implementing`；M10-D—E、VectorBT及M11—M13尚未开始。网站、正式每日链、夜间回测和Discord仍按旧流程运行，真实生产集成留给M12。
 
 关联需求：`CR-2026-08-30-035`
 
@@ -387,7 +387,7 @@ M01完成只代表共享合同和非生产影子验收能力已经进入主线�
 
 ### M10｜统一评价、回测与外部研究引擎
 
-**当前状态**：`implementing`。用户批准的A合同／收据和B Forward／Trade内部基线均已完成独立审核，并分别以纯fast-forward方式进入`main`；M10整体仍未完成。C—E、VectorBT、真实多年回测、部署和生产启用均未批准；M11和M12仍未开始。
+**当前状态**：`implementing`。用户批准的A合同／收据和B Forward／Trade内部基线均已完成独立审核，并分别以纯fast-forward方式进入`main`；M10整体仍未完成。C“Portfolio边界与只读研究汇总”已完成最小设计并获批准进入影子实施；D—E、VectorBT、真实多年回测、部署和生产启用均未批准；M11和M12仍未开始。
 
 **功能**：只读复用M02行情／股票池、M07权威排行、M08计划／退出和M09唯一事件，将客观前向表现、计划交易结果、资本约束组合运行和研究汇总分成四类不可变结果；不重算上游事实，不把逐股收益拼成伪组合曲线。
 
@@ -395,8 +395,8 @@ M01完成只代表共享合同和非生产影子验收能力已经进入主线�
 
 - `ForwardOutcome`只保存`1/5/20/60/100`交易日窗口的客观价格表现，不冒充执行交易；未成熟为`pending`，到期但证据缺失才为`partial`或`unavailable`；
 - `TradeOutcome`严格消费M08计划和退出状态，保存费用／滑点政策及逐股结果，不重算执行顺序；
-- `PortfolioRun`只有在资本、仓位和并发政策获批后才可产生；否则必须`unavailable`；
-- `ResearchAggregate`只汇总前三类不可变结果，不能重新读取行情计算第二套数字；
+- `PortfolioRun`只有在资本、仓位和并发政策获批后才可计算；M10-C获批范围只允许验证TradeOutcome引用集合并以`capital_allocation_policy_not_approved`返回`unavailable`，不得生成资本或表现数字；
+- `ResearchAggregate`在M10-C首版只允许汇总一种不可变ForwardOutcome或TradeOutcome，Forward绑定单一窗口，只读`gross_return`且不能重新读取行情计算第二套数字；
 - M01 `ExperimentRun`升级为绑定代码、配置、引擎、输入输出哈希、角色、分区和断点的运行收据；
 - formal／legacy、authoritative／comparison及development／validation／forward严格分离；
 - 内部基线和可选VectorBT适配器读取同一标准数据集，逐笔对账前外部结果只能是comparison；

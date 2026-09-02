@@ -1,12 +1,12 @@
 # M10｜统一评价、回测与外部研究引擎设计
 
-- 文档状态：M10-A与M10-B里程碑均已审核并进入`main`；M10整体仍为`implementing`
+- 文档状态：M10-A与M10-B里程碑均已审核并进入`main`；M10-C最小设计已获批准并进入`implementing`；M10整体仍为`implementing`
 - 对应需求：`CR-2026-09-02-050`
 - 基线提交：`5dfd0a57fc1dad56042c0db6b8e2c3ce9ff88251`
 - 设计日期：2026-09-02
 - 生产状态：M10-A合同基础和M10-B内部基线评价器已进入`main`；未部署、未生产启用
 
-> 本文冻结M10的职责、合同边界、身份和失败关闭语义。M10-A和M10-B均已完成独立审核并进入`main`，M10整体继续为`implementing`。C—E、VectorBT、真实多年回测、生产目录、M11和M12仍未批准。
+> 本文冻结M10的职责、合同边界、身份和失败关闭语义。M10-A和M10-B均已完成独立审核并进入`main`，M10整体继续为`implementing`。用户已批准M10-C Portfolio边界与只读研究汇总的最小影子实施；设计提交先冻结合同，后续实现、测试和验收仍须分别留证。M10-D—E、VectorBT、真实多年回测、生产目录、M11和M12仍未批准。
 
 ## 1. 人话版
 
@@ -169,34 +169,57 @@ formal TradeOutcome可以保存可复核毛收益。费用和滑点政策尚未�
 
 回答：“在明确资本和并发约束下，整套组合如何运行？”
 
-最小字段：
+M10-C不批准资本、仓位、并发或信号竞争政策，因此它只建立失败关闭的Portfolio边界，不建立组合算法：
 
-- `portfolio_run_id`、组成它的不可变TradeOutcome ID／指纹集合；
-- 组合政策版本、初始资本、仓位分配、最大同时持仓；
-- 资金不足时的确定性信号处理规则；
-- 基准身份、费用／滑点政策；
-- 每个交易日的现金、持仓、市值、已实现／未实现权益；
-- 总收益、年化、最大回撤及数据完整性；
-- 被拒绝／延迟信号和原因。
+- 现有`PortfolioRun 2.0.0`及其`portfolio_policy_not_approved`原因保持原字段和原字节只读，不原地改义；
+- 新formal M10-C若保存Portfolio边界，使用`PortfolioRun 2.1.0`，状态只能为`unavailable`，原因必须精确为`capital_allocation_policy_not_approved`；
+- 只允许保存运行身份、政策证据、规范排序后的完整TradeOutcome ID／内容指纹集合、集合指纹、状态和内容指纹；输入必须是已通过同一M10合同验证入口验证的完整TradeOutcome对象，不能接受调用者自行拼出的裸引用；
+- 重复结果ID、同一`logical_result_id`的多个修订、错误引用、跨角色／分区／政策或ID与内容指纹不一致均失败关闭；
+- 同一规范化输入集合与政策只对应同一身份，输入顺序不得改变ID或内容；旧边界记录只追加，不覆盖。
 
-当前没有获批资金分配和资本竞争政策，因此正式`PortfolioRun`必须为`unavailable`。任何旧脚本的非重叠cohort或独立逐股收益拼接只能标记为研究诊断，不能冒充资本受限组合曲线。
+`PortfolioRun 2.1.0`明确禁止初始资本、仓位、现金、持仓、市值、权益曲线、组合总收益、年化收益、最大回撤、信号竞争、最大持仓和资金不足处理字段。任何旧脚本的非重叠cohort或独立逐股收益拼接只能标记为研究诊断，不能冒充资本受限组合曲线。
 
 ### 5.4 ResearchAggregate 2.x
 
-回答：“一组已经冻结的逐股或组合结果呈现什么统计规律？”
+回答：“一组已经冻结、口径一致的逐股结果呈现什么最小客观统计？”
 
-它只读取前三类不可变结果及其稳定引用，绝不重新读取行情计算另一套价格结果。最小字段：
+现有`ResearchAggregate 2.0.0`继续作为`research_aggregate_not_implemented`的只读骨架，不能在原版本上增加字段或改变引用语义。新formal M10-C固定使用`ResearchAggregate 2.1.0`及来源版本`m10-c-readonly-1.0.0`，由`services/evaluation/`内唯一只读汇总生产器生成；每日与回放未来只能通过薄入口调用同一纯函数。本设计提交本身不实现该生产器，后续获批实现仍不接生产。
 
-- `research_aggregate_id`、`experiment_id`、`run_id`；
-- 精确输入结果ID和集合指纹；
-- 查询、过滤、分组和统计政策版本；
-- 样本总数、有效数、缺失数／率及排除原因；
-- 胜率、平均／中位收益、Profit Factor、expectancy；
-- 分数单调性、单因子lift和双因子矩阵；
-- development／validation／forward分区结果与稳定性；
-- 偏差、不可重建区间及内容指纹。
+#### 5.4.1 输入边界
 
-分数、因子和上下文标签只能来自M07／M09冻结引用。ResearchAggregate不能反向修改逐股结果，不能用新的行情重算后保留旧ID。
+- 一份汇总只能消费一种经过完整验证的不可变结果：全是`ForwardOutcome`，或全是`TradeOutcome`；M10-C不汇总`PortfolioRun`，也不允许两种逐股结果混合。
+- Forward汇总必须固定一个`window_sessions`，不得把1／5／20／60／100日混成一个数字；Trade的`window_sessions`固定为`null`。
+- 输入必须在`path_status`、`result_role`、`partition_role`、评价政策、分区政策、M02复权／数据政策上完全一致；Forward还必须统一窗口政策，Trade还必须统一执行政策和成本证据状态。不同日期的合法行情快照可以不同，但不得混用数据政策。
+- 生产器接收完整Outcome对象，先调用现有唯一合同验证入口，再从对象派生规范排序的结果ID／内容指纹引用；裸引用、重复结果ID、同一`logical_result_id`的多个修订、错误角色、内容指纹冲突均失败关闭，不能自动猜测当前修订。
+- 允许以明确、严格白名单的`aggregate_scope`表达空样本范围；它只包含结果类型、Forward窗口、path／role／partition及必要政策身份，不是自由格式查询、行情或重算容器。
+- 输入结果ID、内容指纹、规范化集合指纹和聚合政策必须完整保存并参与身份；输入顺序不改变汇总身份或数字。
+
+#### 5.4.2 最小输出字段
+
+除公共身份、运行收据、来源版本、修订链和内容指纹外，`ResearchAggregate 2.1.0`只允许：
+
+- `source_result_type=forward_outcome|trade_outcome`、`window_sessions`和严格白名单的`aggregate_scope`；
+- `aggregation_policy`、规范排序后的`result_refs`及集合指纹；
+- `total_count`、严格按结果类型定义的`status_counts`、`evaluated_count`、`missing_count`和`missing_rate`；
+- `win_count`、`loss_count`、`flat_count`、`win_rate`；
+- `mean_gross_return`、`median_gross_return`、`gross_profit`、`gross_loss_abs`、`profit_factor`、`gross_expectancy`；
+- `metric_status`和`metric_reason`。
+
+Forward的`status_counts`必须精确且只包含`pending/mature/partial/unavailable`；Trade的`status_counts`必须精确且只包含`completed/open/no_trade/unavailable`。现有TradeOutcome用`status=pending + status_reason=trade_open`表达未退出交易，汇总器必须将且只能将这个已验证组合映射为`open`桶；该规范桶不修改上游TradeOutcome合同，也不能被静默并入普通pending。`no_trade`同样不得删除或并入`unavailable`。所有键即使计数为0也必须存在，禁止自由增加状态键。
+
+统一守恒为：`total_count`等于输入结果总数，也严格等于`sum(status_counts.values())`；`evaluated_count`只统计真实存在且允许参与汇总的有限`gross_return`；`missing_count=total_count-evaluated_count`，并满足`total_count=evaluated_count+missing_count`及`win_count+loss_count+flat_count=evaluated_count`；`total_count>0`时`missing_rate=missing_count/total_count`，否则为`null`。Forward mature且有毛收益时进入统计；partial仅在真实毛收益存在时进入，没有毛收益的partial计入`missing_count`；pending与unavailable不进入。Trade completed且有毛收益时进入；open、no_trade和unavailable分别计数并全部进入`missing_count`，不能被当成0收益。
+
+#### 5.4.3 唯一计算口径
+
+- Forward和Trade都只读取Outcome已冻结的`gross_return`，不得生成formal净收益汇总；没有费用／滑点政策时尤其不得以零成本替代。
+- `win/loss/flat`以规范化Decimal值严格按大于0／小于0／等于0分类；`win_rate=win_count/evaluated_count`，平收益保留在分母。
+- `gross_profit`是所有正收益之和；`gross_loss_abs`是所有负收益绝对值之和，保存为非负数；`profit_factor=gross_profit/gross_loss_abs`。
+- `mean_gross_return`为可评价收益算术平均；中位数按收益排序，偶数样本取中间两项平均；首版`gross_expectancy`严格等于同一量化后的`mean_gross_return`，不维护第二套公式。
+- 任何缺失值都不能作为0收益参与分类、分母或金额合计；状态守恒按上一节的`status_counts/evaluated_count/missing_count`机械验证。
+- 所有输入先以`Decimal(str(value))`规范化，输出沿用M10内部基线的`1e-10`量化和`ROUND_HALF_EVEN`；不得用二进制浮点格式化值参与分类、身份或业务判断。
+- 新增唯一`aggregation 1.0.0`政策，只冻结上述纳入、分母、精度、中位数和Profit Factor语义，不引入评分、策略或自由公式。
+
+ResearchAggregate不能读取M02行情、重算逐股收益、反向修改逐股结果或M07—M09，也不能用新行情重算后保留旧ID。分数单调性、因子lift、Pair Matrix、组合统计和跨分区稳定性全部延后，不属于M10-C。
 
 ## 6. 数值与失败关闭语义
 
@@ -217,17 +240,17 @@ formal TradeOutcome可以保存可复核毛收益。费用和滑点政策尚未�
 
 ### 6.3 空样本与特殊数值
 
-JSON不得写`NaN`、`Infinity`或`-Infinity`。建议冻结以下机械语义：
+JSON不得写`NaN`、`Infinity`或`-Infinity`。M10-C冻结以下机械语义：
 
 | 情况 | `profit_factor` | 状态说明 |
 | --- | --- | --- |
-| 没有可评价样本 | `null` | `unavailable: empty_sample` |
-| 有正收益且总亏损绝对值为0 | `null` | `unbounded: no_losses`，不能写Infinity |
+| 没有可评价样本 | `null` | `metric_status=unavailable`、`metric_reason=empty_sample`；所有收益统计为`null` |
+| 有正收益且`gross_loss_abs=0` | `null` | `metric_status=available`、`metric_reason=unbounded_no_losses`，不能写Infinity |
 | 没有正收益但存在亏损 | `0.0` | 有限、可解释的零 |
-| 全部结果恰为0 | `null` | `undefined: zero_gross_profit_and_loss` |
+| 全部可评价结果恰为0 | `null` | `metric_status=available`、`metric_reason=undefined_zero_profit_and_loss` |
 | 输入包含非法非有限数 | 无结果 | 验证失败，不落权威产物 |
 
-胜率、平均值、年化等指标同样必须定义空样本、分母和最小样本要求；没有证据时写`null + reason`，不得用0掩盖缺失。
+没有可评价样本时仍保存`total_count/status_counts/missing_count`：`total_count>0`则`missing_rate=1`，`total_count=0`则`missing_rate=null`。Forward pending／unavailable和Trade open／no_trade／unavailable不进入收益分母；Forward partial只有存在真实有限`gross_return`时才进入。没有证据时写`null + status/reason`，不得用0掩盖缺失。
 
 ## 7. 版本、角色与历史保护
 
@@ -376,20 +399,37 @@ M10未来只为M12提供小型、预计算、版本化的只读视图。页面�
 | M10-21 | ticker相同但上市身份不同 | 以instrument_id隔离，不猜测合并 |
 | M10-22 | 输出出现评分／Gate／计划重算 | 范围测试失败 |
 
+### 13.1 M10-C最小验收矩阵（已批准实施）
+
+M10-C实施前必须以固定合成Outcome完成以下10项机械验收；本表是设计闸门，不表示测试或实现已经存在：
+
+| 编号 | 固定正例／反例 | 必须结果 |
+| --- | --- | --- |
+| M10-C-01 | 同一完整输入集合以不同顺序交付；每日／回放未来调用同一输入 | 相同汇总ID、内容和数字；两个薄入口调用同一唯一生产器 |
+| M10-C-02 | 重复结果ID、相同ID不同内容指纹，或同一`logical_result_id`的多个修订 | 失败关闭，不重复计数、不自动猜链尾 |
+| M10-C-03 | Forward输入混合1／5／20／60／100日窗口 | 失败关闭；一份汇总只能绑定一个明确窗口 |
+| M10-C-04 | 混合formal／legacy、authoritative／comparison、不同partition、结果类型或必要政策 | 失败关闭，不生成汇总 |
+| M10-C-05 | Forward四状态（含有／无毛收益的partial）及Trade `completed/open/no_trade/unavailable`混合 | 逐项断言`total=sum(status_counts)=evaluated+missing`及`win+loss+flat=evaluated`；open与no_trade分别保留，只有真实有限gross_return进入收益分母 |
+| M10-C-06 | 空输入，或输入存在但无可评价样本 | 收益统计为`null`且`metric_status=unavailable/metric_reason=empty_sample`；空输入`missing_rate=null`，非空全缺失为1 |
+| M10-C-07 | 有盈利无亏损、无盈利有亏损、全部为0 | 分别得到`unbounded_no_losses`＋null、PF=0、`undefined_zero_profit_and_loss`＋null |
+| M10-C-08 | 任一输入或派生数为NaN／Infinity | 验证失败，不落任何权威产物 |
+| M10-C-09 | 向汇总器注入行情、bars／OHLCV或要求重算逐股收益 | 严格字段／函数边界拒绝；生产器只消费已验证Outcome |
+| M10-C-10 | 资本政策未批准却请求Portfolio数字或曲线 | `PortfolioRun 2.1.0`只能`unavailable`且原因为`capital_allocation_policy_not_approved`，禁止任何资本或表现字段 |
+
 ## 14. 分阶段实施建议
 
 每包保持小而可审核，核心与外部引擎分开批准：
 
 1. **M10-A｜合同、身份和运行收据**：冻结四类2.x合同、`ExperimentRun 2.x`、角色／分区、幂等、冲突和失败收据；不算收益。
 2. **M10-B｜内部Forward／Trade基线**：只用固定小样本实现逐股结果，复用M02／M08事实，验证防未来和执行顺序。
-3. **M10-C｜Portfolio／Aggregate边界**：先实现`PortfolioRun unavailable`守门和只读汇总；资金政策未批准前不建资本曲线。
+3. **M10-C｜Portfolio／Aggregate边界（当前`implementing`）**：保留`PortfolioRun unavailable`守门，只读取单一类型Forward或Trade结果做最小gross汇总；资金政策未批准前不建资本曲线。
 4. **M10-D｜存储、查询、CSV／Excel**：只追加存储、查询和可再生成导出；Excel依赖及格式另行确认。
 5. **M10-E｜配置和统一CLI**：版本化JSON、非交互CLI、运行收据与断点；不接工作流。
 6. **M10-X1｜VectorBT依赖及许可闸门**：独立批准最小依赖、锁定、哈希、安全和许可结论。
 7. **M10-X2｜固定样本适配与逐笔parity**：同一数据集对照内部基线，结果只作comparison。
 8. **M10-X3｜扩大comparison验证**：在用户另批样本范围内扩展，不触发真实多年生产回测。
 
-本轮只批准A—B连续实施，并要求A测试通过、独立提交后才能进入B。B完成后立即做快速独立审核；C—E和X1—X3均未批准。
+历史A—B已经完成审核并进入`main`；用户现已批准M10-C按本设计实施。M10-D—E和X1—X3仍未批准。
 
 ## 15. 回退和生产边界
 
@@ -417,7 +457,7 @@ M10设计与未来影子实施默认不改现有生产入口，所以回退是�
 - formal TradeOutcome可保存毛收益，费用／滑点缺失只阻断净收益。
 - 后续成熟结果只能追加不可变版本和修订链，不覆盖早期`pending`或M09事件。
 
-C—E、VectorBT X包、真实多年回测、生产接入、M11和M12不随上述选择获批。
+M10-C已获得本节之外的独立明确实施授权；M10-D—E、VectorBT X包、真实多年回测、生产接入、M11和M12仍未获批。
 
 ### 16.1 M10-A阶段里程碑（2026-09-02）
 
@@ -434,4 +474,12 @@ C—E、VectorBT X包、真实多年回测、生产接入、M11和M12不随上�
 - 最终防未来与版本隔离提交`6ac5465ac3b2209dd3f2d0304125e4d6c7342569`删除未来`target_sessions`，按已发生session前缀建立1／5／20／60／100目标，并将新formal ForwardOutcome升级为严格`2.1.0`；旧`2.0.0`仅保留原字段只读兼容。
 - 最终验收为：机械版本攻击及四闸门11项、M10合同与基线专项78项、M08与M10专项93项、M01—M10扩大定向274项、完整Python 630项、四种固定哈希种子每轮93项、治理19项及前端11项通过；Python编译、lint、TypeScript、生产构建、文档链接和差异格式检查通过。
 - 最终审核确认：不存在未来session或target；20／60／100日成熟边界正确；ForwardOutcome 2.0.0／2.1.0严格隔离；5日`2026-09-09`改签为`2026-09-08`并重建身份仍失败；新formal pending、全部Outcome和completed共同使用`m10-b-internal-1.1.0`，公共存储无版本旁路，旧1.0历史只读，completed必须承接实际落盘pending链尾。
-- M10-B审核通过代码HEAD为`108a29271c75ba6b49f1172350fc3adbf3460a25`，已以纯fast-forward方式进入`main`。进入主线不表示部署或生产启用；默认每日、夜间、网站、Discord和公开JSON没有切换，未访问EODHD或运行真实行情／真实历史回测。PortfolioRun、ResearchAggregate、VectorBT、CSV／Excel、CLI、看板、M10-C—E、M11和M12均未开始。
+- M10-B审核通过代码HEAD为`108a29271c75ba6b49f1172350fc3adbf3460a25`，已以纯fast-forward方式进入`main`。进入主线不表示部署或生产启用；默认每日、夜间、网站、Discord和公开JSON没有切换，未访问EODHD或运行真实行情／真实历史回测。截至该里程碑，PortfolioRun、ResearchAggregate、VectorBT、CSV／Excel、CLI、看板、M10-C—E、M11和M12均未开始。
+
+### 16.3 M10-C最小设计与实施批准（2026-09-03）
+
+- 唯一职责：在不批准资本政策的前提下关闭Portfolio伪精确入口，并对已经冻结、口径一致的Forward或Trade gross结果做最小只读汇总；不读取行情、不重算逐股结果。
+- 合同冻结：保留`PortfolioRun 2.0.0`和`ResearchAggregate 2.0.0`原语义只读；新formal M10-C分别使用严格字段隔离的`2.1.0`，来源版本固定为`m10-c-readonly-1.0.0`，汇总公式由唯一`aggregation 1.0.0`政策集中冻结。
+- 唯一生产边界继续位于`services/evaluation/`；Portfolio边界、只读汇总、合同验证、运行收据、修订链和影子存储复用现有体系，不建立第二个事实生产者。每日与回放未来只允许调用同一汇总纯函数。
+- 用户批准以固定合成Outcome连续实施Portfolio边界、只读汇总、合同验证、运行收据、影子存储和同源薄入口；设计提交本身仍不表示后续代码、测试或产物已经完成。
+- M10-D／E、Portfolio资本算法、VectorBT、CSV／Excel、CLI、查询API、真实多年回测、M11和M12均未开始；CR-043继续为`captured`。

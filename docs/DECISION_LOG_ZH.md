@@ -29,6 +29,15 @@
 - 当前日期、版本、数量和运行进度必须附日期并引用机器来源；无法核验时写“未知”，不能推测。
 - 本日志各个带日期章节中的旧版本、数量、排行和收益统一属于该章节日期的`历史快照`；章节里的“当前”只表示记录当时，不表示今天。机器来源以该条引用的实验ID、提交、运行或产物为准；没有留下可核验标识的来源明确记为“未知”，不得补猜。
 
+## 已批准实施｜2026-09-03：M10-C Portfolio边界与只读研究汇总（CR-2026-09-02-050，`implementing`）
+
+- 用户批准新formal `PortfolioRun 2.1.0`只保存已验证TradeOutcome引用并固定返回`unavailable: capital_allocation_policy_not_approved`；不得产生资本、仓位、现金、权益曲线、组合收益、年化、回撤或风险指标。旧`2.0.0`保持原字段只读。
+- 用户批准新formal `ResearchAggregate 2.1.0`只消费完整、已验证的ForwardOutcome或TradeOutcome对象，一份汇总只能有一种结果类型，Forward只能有一个窗口；输入顺序不得改变引用、数字或身份。
+- Forward状态桶固定为`pending/mature/partial/unavailable`；Trade固定为`completed/open/no_trade/unavailable`。现有TradeOutcome的`pending + trade_open`规范映射为open；open与no_trade必须分别保留并计入缺失，不能静默消失或作为0收益。
+- 汇总只读取已冻结`gross_return`，使用Decimal、`1e-10`及`ROUND_HALF_EVEN`计算最小样本、缺失、胜负平、平均／中位、gross profit/loss、Profit Factor与expectancy；不读取行情、不重算逐股收益或formal净收益。
+- 来源版本固定`m10-c-readonly-1.0.0`，聚合政策固定`aggregation 1.0.0`；新formal只生成`2.1.0`，旧`2.0.0`不参与新运行。复用现有运行收据、只追加存储、幂等、冲突和每日／回放同源保护。
+- 本批准只覆盖固定合成样本影子实施。M10-D／E、资本组合算法、VectorBT、Excel、CLI、真实多年回测、生产入口、M11和M12均未获批准。
+
 ## 已批准实施｜2026-09-02：M10统一评价A—B首轮边界（CR-2026-09-02-050，`implementing`）
 
 - 用户批准`1A`：首版Forward窗口固定为`1/5/20/60/100`交易日；未走满为`pending`，到期但因停牌、退市或缺行情不能评价才是`partial`或`unavailable`。
