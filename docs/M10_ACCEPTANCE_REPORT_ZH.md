@@ -7,6 +7,8 @@
 - 运行收据与同源入口：`940604e8a004a2e2d0c54fbfeda1e7c6e8e3af65`
 - 运行结果完整守恒修复：`cd1379cda5513a7f13393ec47f23adbf897effa2`
 - ExitState与事件证券绑定修复：`3cecf80f0afd79d84b56518b6f0bb6644d984bcf`
+- Forward日历证据绑定修复：`fc3f2b72d37b874719935263dc0f55e11b6fbdd8`
+- completed落盘pending根修复：`2f3fe38489668a4aa2929a40bd4f0354dab9fffc`
 - 生产状态：未合并`main`、未部署、未生产启用
 
 ## 1. 阶段结论
@@ -31,8 +33,9 @@ M10-B已经用固定合成样本形成唯一内部基线评价层：ForwardOutco
 | Trade MFE／MAE均为unavailable，写入数值验证失败 | 通过 |
 | pending成熟只追加修订，旧记录不覆盖 | 通过 |
 | ExperimentRun输入、结果引用及收据修订守恒 | 通过 |
-| pending收据冻结事件、证券、日期、行情、股票池、日历、计划、ExitState及预期逻辑结果；complete拒绝缺少、重复、多出或外来结果 | 通过 |
+| pending收据冻结事件、证券、日期、行情、股票池、规范化日历ID与实际session内容指纹、计划、ExitState及预期逻辑结果；五个Forward窗口必须绑定同一日历证据，complete拒绝缺少、重复、多出、外来或换指纹结果 | 通过 |
 | Forward每个事件完整保存1／5／20／60／100五个窗口，混合pending／partial／unavailable／mature状态也保持集合守恒 | 通过 |
+| 内部基线completed必须在同一run锁内直接承接实际落盘的唯一pending链尾；仅有结果、无pending根或伪造未落盘前序均失败且旧字节不变 | 通过 |
 | ExitState状态、退出原因、退出日期与执行价格一致；active不能伪造终态事实 | 通过 |
 | M09事件、TradePlan、ExitState及两条机器链接的证券和信号日完全一致 | 通过 |
 | 每日与回放相同输入得到相同结果和运行身份 | 通过 |
@@ -40,14 +43,14 @@ M10-B已经用固定合成样本形成唯一内部基线评价层：ForwardOutco
 
 ## 3. 验证记录
 
-- M08与M10专项：78项通过。
-- M01—M10扩大定向：261项通过。
-- 完整Python：615项通过。
-- `PYTHONHASHSEED=0/1/42/12345`：每轮78项通过。
+- M08与M10专项：81项通过。
+- M01—M10扩大定向：264项通过。
+- 完整Python：618项通过。
+- `PYTHONHASHSEED=0/1/42/12345`：每轮81项通过。
 - 治理状态：19项通过。
 - 前端：lint、TypeScript、生产构建及11项测试通过。
 - Python编译和差异格式检查：通过。
-- 原始攻击反例：外来事件／行情及缺窗口complete、矛盾ExitState／倒置日期、替换另一证券或信号日链接均明确拒绝。
+- 新增3项机械回归证明：同一日历ID但真实session内容指纹不同、五窗口中仅一项换日历指纹、无落盘pending根直接completed及并发竞争完成均失败关闭；合法五窗口、pending→结果全集→completed和完全相同重放继续通过。原有外来事件／行情及缺窗口complete、矛盾ExitState／倒置日期、替换另一证券或信号日链接反例继续拒绝。
 - 测试前后没有出现范围外文件。
 
 ## 4. 明确未做
