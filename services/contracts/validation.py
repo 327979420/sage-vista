@@ -84,6 +84,22 @@ CONTRACT_REQUIRED = {
         "exit_policy_version", "exit_policy_fingerprint",
     },
     "OpportunityEvent": {"event_id", "symbol", "signal_date", "gate_event_id", "model_assessments"},
+    "ForwardOutcome": {
+        "forward_outcome_id", "logical_result_id", "run_id", "event_id",
+        "instrument_id", "signal_date", "window_sessions", "status",
+    },
+    "TradeOutcome": {
+        "trade_outcome_id", "logical_result_id", "run_id", "event_id",
+        "instrument_id", "signal_date", "status",
+    },
+    "PortfolioRun": {
+        "portfolio_run_id", "logical_result_id", "run_id", "status",
+        "trade_outcome_refs",
+    },
+    "ResearchAggregate": {
+        "research_aggregate_id", "logical_result_id", "run_id", "status",
+        "result_refs",
+    },
     "ReleaseManifest": {"release_id", "files"},
     "ExperimentRun": {"experiment_id", "status", "evidence_window", "input_refs", "result_refs"},
 }
@@ -101,6 +117,10 @@ ID_FIELDS = {
     "TradePlan": "plan_id",
     "ExitState": "exit_state_id",
     "OpportunityEvent": "event_id",
+    "ForwardOutcome": "forward_outcome_id",
+    "TradeOutcome": "trade_outcome_id",
+    "PortfolioRun": "portfolio_run_id",
+    "ResearchAggregate": "research_aggregate_id",
     "ReleaseManifest": "release_id",
     "ExperimentRun": "experiment_id",
 }
@@ -115,10 +135,28 @@ CONTRACT_SUPPORTED_MAJORS = {
         }
         else {2} if name == "ExitState"
         else {1, 2} if name == "OpportunityEvent"
+        else {2} if name in {
+            "ForwardOutcome", "TradeOutcome", "PortfolioRun", "ResearchAggregate",
+        }
+        else {1, 2} if name == "ExperimentRun"
         else {SUPPORTED_MAJOR}
     )
     for name in CONTRACT_REQUIRED
 }
+
+
+def _stable_id_field(contract_name: str, payload: Mapping[str, Any]) -> str:
+    """Return the version-aware stable ID without changing legacy contracts.
+
+    ExperimentRun 1.x identifies a registered experiment.  M10 2.x identifies
+    one exact execution with ``run_id``.  Keeping this decision here lets the
+    shared collection validator detect duplicate runs without pretending an old
+    experiment ID was already a run receipt.
+    """
+
+    if contract_name == "ExperimentRun" and str(payload.get("schema_version", "")).startswith("2."):
+        return "run_id"
+    return ID_FIELDS[contract_name]
 
 
 def _require_date(value: Any, field: str) -> None:
@@ -223,11 +261,14 @@ def validate_contract(
     if missing:
         raise ContractError(f"{contract_name} missing required fields: {', '.join(missing)}")
 
-    _require_semver(
+    version_match = _require_semver(
         payload["schema_version"],
         "schema_version",
         supported_majors=CONTRACT_SUPPORTED_MAJORS[contract_name],
     )
+    schema_major = int(version_match.group(1))
+    if contract_name == "ExperimentRun" and schema_major == 2 and "run_id" not in payload:
+        raise ContractError("ExperimentRun 2.x missing required field: run_id")
 
     _require_date(payload["as_of"], "as_of")
     _require_timestamp(payload["generated_at"])
@@ -243,7 +284,8 @@ def validate_contract(
     ):
         raise ContractError("adapter_version must identify a legacy adapter")
 
-    stable_id = _require_text(payload[ID_FIELDS[contract_name]], ID_FIELDS[contract_name])
+    stable_id_field = _stable_id_field(contract_name, payload)
+    stable_id = _require_text(payload[stable_id_field], stable_id_field)
 
     allowed_prefixes = {
         "MarketDataSnapshot": ("market:",),
@@ -259,10 +301,18 @@ def validate_contract(
         "ExitState": ("exit-state:",),
         # Older examples used event:, while the target design uses opportunity:.
         "OpportunityEvent": ("event:", "opportunity:"),
+        "ForwardOutcome": ("forward-outcome:",),
+        "TradeOutcome": ("trade-outcome:",),
+        "PortfolioRun": ("portfolio-run:",),
+        "ResearchAggregate": ("research-aggregate:",),
         "ReleaseManifest": ("sha256:",),
     }.get(contract_name)
     if allowed_prefixes is not None and not stable_id.startswith(allowed_prefixes):
-        raise ContractError(f"{ID_FIELDS[contract_name]} has an invalid contract prefix")
+        raise ContractError(f"{stable_id_field} has an invalid contract prefix")
+    if contract_name == "ExperimentRun" and schema_major == 2 and not stable_id.startswith(
+        "experiment-run:"
+    ):
+        raise ContractError("run_id has an invalid contract prefix")
 
     if contract_name in {"GateEvent", "OpportunityEvent"}:
         _require_date(payload["signal_date"], "signal_date")
@@ -956,9 +1006,9 @@ def validate_contract(
     elif contract_name == "ExperimentRun":
         _require_text(payload["status"], "status")
         _require_mapping(payload["evidence_window"], "evidence_window")
-        if not isinstance(payload["input_refs"], (list, Mapping)):
+        if not isinstance(payload["input_refs"], (list, tuple, Mapping)):
             raise ContractError("input_refs must be a list or object")
-        if not isinstance(payload["result_refs"], (list, Mapping)):
+        if not isinstance(payload["result_refs"], (list, tuple, Mapping)):
             raise ContractError("result_refs must be a list or object")
 
     if contract_name == "ReleaseManifest":
@@ -1079,7 +1129,8 @@ def validate_contracts(items: Iterable[tuple[str, Mapping[str, Any]]]) -> None:
     opportunity_keys: set[tuple[str, str, str]] = set()
     for contract_name, payload in items:
         validate_contract(contract_name, payload)
-        identity = (contract_name, str(payload[ID_FIELDS[contract_name]]))
+        stable_id_field = _stable_id_field(contract_name, payload)
+        identity = (contract_name, str(payload[stable_id_field]))
         if identity in seen_ids:
             raise ContractError(f"duplicate stable ID: {identity[1]}")
         seen_ids.add(identity)
