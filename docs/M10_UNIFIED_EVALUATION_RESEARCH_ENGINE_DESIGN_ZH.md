@@ -1,12 +1,12 @@
 # M10｜统一评价、回测与外部研究引擎设计
 
-- 文档状态：`approved_for_A_B`（CR状态为`implementing`）
+- 文档状态：M10-A合同里程碑已进入`main`；M10整体仍为`implementing`
 - 对应需求：`CR-2026-09-02-050`
 - 基线提交：`5dfd0a57fc1dad56042c0db6b8e2c3ce9ff88251`
 - 设计日期：2026-09-02
-- 生产状态：未实施、未部署、未生产启用
+- 生产状态：M10-A影子合同基础已进入`main`；未部署、未生产启用
 
-> 本文冻结M10的职责、合同边界、身份和失败关闭语义。用户只批准连续实施M10-A和M10-B；C—E、VectorBT、真实多年回测、生产目录、M11和M12仍未批准。
+> 本文冻结M10的职责、合同边界、身份和失败关闭语义。M10-A已经完成审核并进入`main`，M10-B尚未开始；C—E、VectorBT、真实多年回测、生产目录、M11和M12仍未批准。
 
 ## 1. 人话版
 
@@ -414,3 +414,10 @@ M10设计与未来影子实施默认不改现有生产入口，所以回退是�
 - 后续成熟结果只能追加不可变版本和修订链，不覆盖早期`pending`或M09事件。
 
 C—E、VectorBT X包、真实多年回测、生产接入、M11和M12不随上述选择获批。
+
+### 16.1 M10-A阶段里程碑（2026-09-02）
+
+- M10-A已交付四类结果合同骨架、`ExperimentRun 2.x`、稳定身份与政策验证、formal／comparison／legacy隔离、不可变修订链和只追加影子存储。
+- 提交链为设计`386ec4c`、首版合同`814112a`、首轮审核修复`3c79082`和最终合同收口`eb0399c97fb0b9deedea7cdc03735e58fb9b2063`；最终提交已通过独立审核并纯fast-forward进入`main`。
+- M10-A没有计算真实`ForwardOutcome`或`TradeOutcome`；`PortfolioRun`和`ResearchAggregate`算法、M10-B、VectorBT、CSV／Excel、CLI和看板均未开始。
+- 本里程碑不表示部署或生产启用。M10总体继续为`implementing`；M11和M12尚未开始。
