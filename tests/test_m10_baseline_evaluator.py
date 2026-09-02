@@ -1296,6 +1296,43 @@ class M10RunIntegrationTests(unittest.TestCase):
             }
             self.assertEqual(before, after)
 
+        fixture, state, read, snapshot, receipt, state_link = self.trade_inputs()
+        trade = produce_trade_outcome(
+            fixture.event,
+            fixture.plan_link,
+            fixture.plan,
+            (state,),
+            state_link,
+            read,
+            snapshot,
+            universe_content_fingerprint=UNIVERSE_CONTENT,
+            pending_run_receipt=receipt,
+            generated_at=f"{state['as_of']}T22:02:00Z",
+        )
+        trade_values = plain(trade)
+        for field in (
+            "trade_outcome_id", "trade_content_fingerprint",
+            "input_fingerprint",
+        ):
+            trade_values.pop(field)
+        trade_values["run_id"] = valid.pending_run_receipt["run_id"]
+        cross_contract = finalize_result("TradeOutcome", trade_values)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "m10-b"
+            store = EvaluationShadowStore(root)
+            store.write_result("TradeOutcome", cross_contract)
+            before = {
+                path.relative_to(root): path.read_bytes()
+                for path in root.rglob("*") if path.is_file()
+            }
+            with self.assertRaisesRegex(ContractError, "unregistered"):
+                store_baseline_evaluation_batch(store, valid)
+            after = {
+                path.relative_to(root): path.read_bytes()
+                for path in root.rglob("*") if path.is_file()
+            }
+            self.assertEqual(before, after)
+
     def test_shadow_store_persists_pending_results_then_completion(self):
         event, read, snapshot, calendar, receipt = self.forward_inputs()
         batch = evaluate_forward_baseline(
@@ -1314,6 +1351,30 @@ class M10RunIntegrationTests(unittest.TestCase):
             self.assertEqual(len(paths), len(FORWARD_WINDOWS) + 2)
             self.assertTrue(all(path.exists() for path in paths))
             self.assertEqual(paths, store_baseline_evaluation_batch(store, batch))
+
+            values = plain(batch.outcomes[0])
+            for field in (
+                "forward_outcome_id", "forward_content_fingerprint",
+                "input_fingerprint",
+            ):
+                values.pop(field)
+            values.update({
+                "event_id": "opportunity:sha256:" + "e" * 64,
+                "event_content_fingerprint": "sha256:" + "e" * 64,
+                "instrument_id": "instrument:sha256:" + "e" * 64,
+            })
+            extra = finalize_result("ForwardOutcome", values)
+            before = {
+                path.relative_to(store.root): path.read_bytes()
+                for path in store.root.rglob("*") if path.is_file()
+            }
+            with self.assertRaisesRegex(ContractError, "terminal"):
+                store.write_result("ForwardOutcome", extra)
+            after = {
+                path.relative_to(store.root): path.read_bytes()
+                for path in store.root.rglob("*") if path.is_file()
+            }
+            self.assertEqual(before, after)
 
     def test_runner_does_not_mutate_m02_or_m09_inputs(self):
         event, read, snapshot, calendar, receipt = self.forward_inputs()

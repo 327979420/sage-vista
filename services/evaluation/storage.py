@@ -65,6 +65,12 @@ def _reject_json_constant(value: str) -> None:
     raise ContractError(f"stored M10 record contains non-finite JSON: {value}")
 
 
+def _is_internal_baseline_receipt(payload: Mapping[str, Any]) -> bool:
+    from .baseline import BASELINE_ENGINE_NAME
+
+    return payload["engine"]["name"] == BASELINE_ENGINE_NAME
+
+
 @contextmanager
 def _chain_lock(root: Path, contract_name: str, logical_result_id: str) -> Iterator[None]:
     """Serialize one logical chain across threads and local worker processes."""
@@ -187,6 +193,19 @@ class EvaluationShadowStore:
             for path in sorted(directory.glob("*.json"))
         ]
 
+    def _run_receipts(self, run_id: str) -> list[Mapping[str, Any]]:
+        directory = self.root / "runs"
+        if not directory.exists():
+            return []
+        if directory.is_symlink() or not directory.is_dir():
+            raise ContractError("M10 run collection must be a real directory")
+        receipts: list[Mapping[str, Any]] = []
+        for path in sorted(directory.glob("*.json")):
+            receipt = self._load_existing(path, validator=validate_experiment_run)
+            if receipt["run_id"] == run_id:
+                receipts.append(receipt)
+        return receipts
+
     def write_result(
         self, contract_name: str, payload: Mapping[str, Any]
     ) -> Path:
@@ -202,16 +221,53 @@ class EvaluationShadowStore:
         )
         logical_result_id = str(payload["logical_result_id"])
         _id_digest(logical_result_id, field="logical_result_id")
-        with _chain_lock(self.root, contract_name, logical_result_id):
-            records = self._result_records(contract_name)
-            chain = [
-                record
-                for _, record in records
-                if record["logical_result_id"] == logical_result_id
-            ]
-            leaf = current_result(contract_name, chain) if chain else None
-            existing_ids = [str(record[id_field]) for record in chain]
-            if str(payload[id_field]) in existing_ids:
+        run_id = str(payload["run_id"])
+        _id_digest(run_id, field="run_id")
+        with _chain_lock(self.root, "ExperimentRunOutcomeSet", run_id):
+            receipts = self._run_receipts(run_id)
+            run_leaf = current_experiment_run(receipts) if receipts else None
+            if (
+                run_leaf is not None
+                and _is_internal_baseline_receipt(run_leaf)
+                and run_leaf["status"] != "pending"
+            ):
+                if target.exists() or target.is_symlink():
+                    return self._write(
+                        payload,
+                        target=target,
+                        validator=lambda item: validate_result(contract_name, item),
+                        id_field=id_field,
+                        fingerprint_field=fingerprint_field,
+                    )
+                raise ContractError("terminal ExperimentRun cannot accept new results")
+
+            with _chain_lock(self.root, contract_name, logical_result_id):
+                records = self._result_records(contract_name)
+                chain = [
+                    record
+                    for _, record in records
+                    if record["logical_result_id"] == logical_result_id
+                ]
+                leaf = current_result(contract_name, chain) if chain else None
+                existing_ids = [str(record[id_field]) for record in chain]
+                if str(payload[id_field]) in existing_ids:
+                    return self._write(
+                        payload,
+                        target=target,
+                        validator=lambda item: validate_result(contract_name, item),
+                        id_field=id_field,
+                        fingerprint_field=fingerprint_field,
+                    )
+
+                if leaf is not None:
+                    if payload["supersedes_result_id"] != leaf[id_field]:
+                        raise ContractError(
+                            "M10 revision must supersede the unique current result"
+                        )
+                elif payload["supersedes_result_id"] is not None:
+                    raise ContractError("M10 revision predecessor does not exist")
+
+                current_result(contract_name, [*chain, payload])
                 return self._write(
                     payload,
                     target=target,
@@ -220,40 +276,23 @@ class EvaluationShadowStore:
                     fingerprint_field=fingerprint_field,
                 )
 
-            if leaf is not None:
-                if payload["supersedes_result_id"] != leaf[id_field]:
-                    raise ContractError(
-                        "M10 revision must supersede the unique current result"
-                    )
-            elif payload["supersedes_result_id"] is not None:
-                raise ContractError("M10 revision predecessor does not exist")
-
-            current_result(contract_name, [*chain, payload])
-            return self._write(
-                payload,
-                target=target,
-                validator=lambda item: validate_result(contract_name, item),
-                id_field=id_field,
-                fingerprint_field=fingerprint_field,
-            )
-
     def result_references_for_run(
-        self, contract_name: str, run_id: str
+        self, run_id: str
     ) -> list[dict[str, str]]:
-        """Return the immutable result set already stored for one run."""
+        """Return every immutable result stored for one run across M10 types."""
 
-        if contract_name not in RESULT_TYPES:
-            raise ContractError("unknown M10 result contract")
         _id_digest(run_id, field="run_id")
-        id_field, fingerprint_field, _, _ = RESULT_TYPES[contract_name]
-        references = [
-            {
-                "id": str(record[id_field]),
-                "content_fingerprint": str(record[fingerprint_field]),
-            }
-            for _, record in self._result_records(contract_name)
-            if record["run_id"] == run_id
-        ]
+        references: list[dict[str, str]] = []
+        for contract_name, result_type in RESULT_TYPES.items():
+            id_field, fingerprint_field, _, _ = result_type
+            references.extend(
+                {
+                    "id": str(record[id_field]),
+                    "content_fingerprint": str(record[fingerprint_field]),
+                }
+                for _, record in self._result_records(contract_name)
+                if record["run_id"] == run_id
+            )
         return sorted(
             references,
             key=lambda item: (item["id"], item["content_fingerprint"]),
@@ -273,23 +312,44 @@ class EvaluationShadowStore:
         )
         run_id = str(payload["run_id"])
         _id_digest(run_id, field="run_id")
-        with _chain_lock(self.root, "ExperimentRun", run_id):
-            directory = self.root / "runs"
-            receipts: list[Mapping[str, Any]] = []
-            if directory.exists():
-                if directory.is_symlink() or not directory.is_dir():
-                    raise ContractError("M10 run collection must be a real directory")
-                for path in sorted(directory.glob("*.json")):
-                    receipt = self._load_existing(
-                        path, validator=validate_experiment_run
+        with _chain_lock(self.root, "ExperimentRunOutcomeSet", run_id):
+            if (
+                _is_internal_baseline_receipt(payload)
+                and payload["status"] == "completed"
+            ):
+                expected = sorted(
+                    _plain(payload["result_refs"]),
+                    key=lambda item: (item["id"], item["content_fingerprint"]),
+                )
+                if self.result_references_for_run(run_id) != expected:
+                    raise ContractError(
+                        "completed ExperimentRun does not match stored results"
                     )
-                    if receipt["run_id"] == run_id:
-                        receipts.append(receipt)
 
-            existing_ids = {
-                str(receipt["run_receipt_id"]) for receipt in receipts
-            }
-            if str(payload["run_receipt_id"]) in existing_ids:
+            with _chain_lock(self.root, "ExperimentRun", run_id):
+                receipts = self._run_receipts(run_id)
+                existing_ids = {
+                    str(receipt["run_receipt_id"]) for receipt in receipts
+                }
+                if str(payload["run_receipt_id"]) in existing_ids:
+                    return self._write(
+                        payload,
+                        target=target,
+                        validator=validate_experiment_run,
+                        id_field="run_receipt_id",
+                        fingerprint_field="run_content_fingerprint",
+                    )
+
+                leaf = current_experiment_run(receipts) if receipts else None
+                if leaf is not None:
+                    if payload["supersedes_run_receipt_id"] != leaf["run_receipt_id"]:
+                        raise ContractError(
+                            "ExperimentRun revision must supersede the current receipt"
+                        )
+                elif payload["supersedes_run_receipt_id"] is not None:
+                    raise ContractError("ExperimentRun receipt predecessor does not exist")
+
+                current_experiment_run([*receipts, payload])
                 return self._write(
                     payload,
                     target=target,
@@ -297,24 +357,6 @@ class EvaluationShadowStore:
                     id_field="run_receipt_id",
                     fingerprint_field="run_content_fingerprint",
                 )
-
-            leaf = current_experiment_run(receipts) if receipts else None
-            if leaf is not None:
-                if payload["supersedes_run_receipt_id"] != leaf["run_receipt_id"]:
-                    raise ContractError(
-                        "ExperimentRun revision must supersede the current receipt"
-                    )
-            elif payload["supersedes_run_receipt_id"] is not None:
-                raise ContractError("ExperimentRun receipt predecessor does not exist")
-
-            current_experiment_run([*receipts, payload])
-            return self._write(
-                payload,
-                target=target,
-                validator=validate_experiment_run,
-                id_field="run_receipt_id",
-                fingerprint_field="run_content_fingerprint",
-            )
 
 
 __all__ = ["EvaluationShadowStore"]
