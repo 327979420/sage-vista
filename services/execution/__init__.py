@@ -7,6 +7,7 @@ from .producer import (
     TRADE_PLAN_SCHEMA_VERSION,
     TradePlanBatch,
     advance_exit_state,
+    current_exit_state,
     produce_trade_plans,
     validate_exit_state,
     validate_trade_plan,
@@ -17,6 +18,7 @@ from .storage import ExecutionShadowStore
 __all__ = [
     "EXIT_POLICY", "PLAN_POLICY", "EXIT_STATE_SCHEMA_VERSION",
     "TRADE_PLAN_SCHEMA_VERSION", "TradePlanBatch", "advance_exit_state",
+    "current_exit_state",
     "ExecutionShadowStore", "LegacyExecutionEvidence", "adapt_legacy_support_plan_bytes",
     "build_policy", "produce_trade_plans", "validate_exit_state",
     "validate_policy", "validate_trade_plan",

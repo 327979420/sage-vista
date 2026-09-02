@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any, Iterable, Mapping
 
 from services.contracts.market_data import canonical_fingerprint, require_date
 from services.contracts.policies import ADJUSTMENT_POLICY
@@ -345,6 +345,68 @@ def validate_exit_state(payload: Mapping[str, Any]) -> None:
         raise ContractError("M08 ExitState cannot contain performance metrics")
 
 
+def current_exit_state(
+    states: Iterable[Mapping[str, Any]],
+) -> Mapping[str, Any]:
+    """Validate one complete immutable M08 chain and return its unique leaf.
+
+    M10 is allowed to calculate outcomes but not to choose an ExitState by
+    filename or input order.  Keeping the chain check here leaves M08 as the
+    sole owner of plan/exit evidence while giving every later consumer the
+    same deterministic current-state answer.
+    """
+
+    items = list(states)
+    if not items:
+        raise ContractError("ExitState chain is empty")
+    by_id: dict[str, Mapping[str, Any]] = {}
+    plan_ids: set[str] = set()
+    for item in items:
+        validate_exit_state(item)
+        state_id = str(item["exit_state_id"])
+        if state_id in by_id:
+            raise ContractError("ExitState chain contains a duplicate identity")
+        by_id[state_id] = item
+        plan_ids.add(str(item["plan_id"]))
+    if len(plan_ids) != 1:
+        raise ContractError("ExitState chain crosses TradePlan identities")
+
+    roots: list[str] = []
+    children: dict[str, str] = {}
+    for state_id, item in by_id.items():
+        prior = item["previous_exit_state_id"]
+        if prior is None:
+            roots.append(state_id)
+            continue
+        if prior not in by_id:
+            raise ContractError("ExitState chain has a missing predecessor")
+        if prior in children:
+            raise ContractError("ExitState chain forks")
+        previous = by_id[str(prior)]
+        if previous["state"] != "active":
+            raise ContractError("a terminal ExitState cannot have a successor")
+        if (
+            item["as_of"] < previous["as_of"]
+            or item["holding_sessions"] < previous["holding_sessions"]
+        ):
+            raise ContractError("ExitState chain moves evidence backwards")
+        children[str(prior)] = state_id
+    if len(roots) != 1:
+        raise ContractError("ExitState chain must have one root")
+
+    visited: set[str] = set()
+    cursor = roots[0]
+    while cursor not in visited:
+        visited.add(cursor)
+        next_id = children.get(cursor)
+        if next_id is None:
+            break
+        cursor = next_id
+    if cursor in children or visited != set(by_id):
+        raise ContractError("ExitState chain is cyclic or disconnected")
+    return by_id[cursor]
+
+
 def advance_exit_state(
     plan: Mapping[str, Any],
     *,
@@ -431,5 +493,6 @@ def advance_exit_state(
 
 __all__ = [
     "EXIT_STATE_SCHEMA_VERSION", "TRADE_PLAN_SCHEMA_VERSION", "TradePlanBatch",
-    "advance_exit_state", "produce_trade_plans", "validate_exit_state", "validate_trade_plan",
+    "advance_exit_state", "current_exit_state", "produce_trade_plans",
+    "validate_exit_state", "validate_trade_plan",
 ]

@@ -20,7 +20,15 @@ from services.contracts.market_data import (
 )
 from services.contracts.policies import ADJUSTMENT_POLICY
 from services.contracts.validation import ContractError, SEMVER
-from services.ledger.producer import validate_opportunity_event
+from services.execution import (
+    EXIT_POLICY,
+    current_exit_state,
+    validate_trade_plan,
+)
+from services.ledger.producer import (
+    validate_machine_link,
+    validate_opportunity_event,
+)
 from services.market_data.normalization import validate_adjusted_rows
 from services.market_data.repository import RepositoryRead
 
@@ -36,6 +44,8 @@ from .policies import (
     FORWARD_WINDOWS,
     FORWARD_WINDOW_POLICY,
     PARTITION_POLICY,
+    UNAPPROVED_COST_REFERENCE,
+    ZERO_COST_COMPARISON_POLICY,
 )
 
 
@@ -96,6 +106,12 @@ def _normalized_ratio(numerator: Any, denominator: Any, field: str) -> float:
     return float(((top / bottom) - Decimal(1)).quantize(
         METRIC_QUANTUM, rounding=ROUND_HALF_EVEN
     ))
+
+
+def _normalized_quotient(numerator: Any, denominator: Any, field: str) -> float:
+    top = _decimal(numerator, f"{field}.numerator")
+    bottom = _decimal(denominator, f"{field}.denominator", positive=True)
+    return float((top / bottom).quantize(METRIC_QUANTUM, rounding=ROUND_HALF_EVEN))
 
 
 def build_session_calendar_evidence(
@@ -255,6 +271,16 @@ def _receipt_references(receipt: Mapping[str, Any]) -> dict[str, str]:
     return references
 
 
+def _require_internal_engine(receipt: Mapping[str, Any]) -> None:
+    expected = {
+        "name": BASELINE_ENGINE_NAME,
+        "version": BASELINE_ENGINE_VERSION,
+        "adapter_version": BASELINE_ADAPTER_VERSION,
+    }
+    if _plain(receipt["engine"]) != expected:
+        raise ContractError("M10-B requires the approved internal baseline engine")
+
+
 def _require_pending_forward_run(
     receipt: Mapping[str, Any],
     *,
@@ -264,6 +290,7 @@ def _require_pending_forward_run(
     calendar: Mapping[str, Any],
 ) -> None:
     validate_experiment_run(receipt)
+    _require_internal_engine(receipt)
     if receipt["status"] != "pending" or receipt["result_refs"]:
         raise ContractError("Forward evaluation requires its pending root run receipt")
     if receipt["evidence_window"]["evidence_as_of"] != calendar["as_of"]:
@@ -478,9 +505,309 @@ def produce_forward_outcomes(
     return tuple(outcomes)
 
 
+def _require_pending_trade_run(
+    receipt: Mapping[str, Any],
+    *,
+    event: Mapping[str, Any],
+    market_snapshot: Mapping[str, Any],
+    universe_content_fingerprint: str,
+    trade_plan_link: Mapping[str, Any],
+    trade_plan: Mapping[str, Any] | None,
+    current_state: Mapping[str, Any] | None,
+    exit_state_link: Mapping[str, Any] | None,
+) -> None:
+    validate_experiment_run(receipt)
+    _require_internal_engine(receipt)
+    if receipt["status"] != "pending" or receipt["result_refs"]:
+        raise ContractError("Trade evaluation requires its pending root run receipt")
+    if receipt["path_status"] != "formal" or receipt["path_status"] != event["path_status"]:
+        raise ContractError("Trade run receipt path is invalid")
+    refs = _receipt_references(receipt)
+    expected = {
+        str(event["event_id"]): str(event["event_content_fingerprint"]),
+        str(event["input_identity"]["universe_id"]): _fingerprint(
+            universe_content_fingerprint, "universe_content_fingerprint"
+        ),
+        str(market_snapshot["snapshot_id"]): market_snapshot_evidence_fingerprint(
+            market_snapshot
+        ),
+        str(trade_plan_link["link_id"]): str(
+            trade_plan_link["link_content_fingerprint"]
+        ),
+    }
+    if trade_plan is not None:
+        expected[str(trade_plan["plan_id"])] = str(
+            trade_plan["plan_content_fingerprint"]
+        )
+    if current_state is not None:
+        expected[str(current_state["exit_state_id"])] = str(
+            current_state["exit_state_content_fingerprint"]
+        )
+    if exit_state_link is not None:
+        expected[str(exit_state_link["link_id"])] = str(
+            exit_state_link["link_content_fingerprint"]
+        )
+    for stable_id, fingerprint in expected.items():
+        if refs.get(stable_id) != fingerprint:
+            raise ContractError("Trade run receipt omits or changes required input evidence")
+    policy_kinds = {str(item["policy_kind"]) for item in receipt["policy_refs"]}
+    required = {"adjustment", "evaluation", "execution", "partition"}
+    if receipt["result_role"] == "comparison":
+        required.add("cost_slippage")
+    if not required.issubset(policy_kinds):
+        raise ContractError("Trade run receipt omits an approved policy")
+
+
+def _validate_trade_sources(
+    event: Mapping[str, Any],
+    trade_plan_link: Mapping[str, Any],
+    trade_plan: Mapping[str, Any] | None,
+    exit_states: Sequence[Mapping[str, Any]],
+    exit_state_link: Mapping[str, Any] | None,
+) -> Mapping[str, Any] | None:
+    """Validate M08/M09 ownership without replaying any execution decision."""
+
+    validate_opportunity_event(event)
+    validate_machine_link(trade_plan_link)
+    if (
+        event["path_status"] != "formal"
+        or event["event_role"] != "authoritative"
+        or trade_plan_link["event_id"] != event["event_id"]
+        or trade_plan_link["instrument_id"] != event["instrument_id"]
+        or trade_plan_link["link_type"] != "trade_plan_decision"
+    ):
+        raise ContractError("Trade evaluation crosses its authoritative M09 event")
+
+    link_status = trade_plan_link["status"]
+    if link_status in {"not_created", "unavailable"}:
+        if trade_plan is not None or exit_states or exit_state_link is not None:
+            raise ContractError("unplanned M09 trade evidence cannot attach M08 execution")
+        return None
+    if link_status != "created" or trade_plan is None:
+        raise ContractError("created trade evidence requires its M08 TradePlan")
+
+    validate_trade_plan(trade_plan)
+    if (
+        trade_plan["instrument_id"] != event["instrument_id"]
+        or trade_plan_link["source_reference"]["plan_id"] != trade_plan["plan_id"]
+        or trade_plan_link["source_reference"]["plan_content_fingerprint"]
+        != trade_plan["plan_content_fingerprint"]
+    ):
+        raise ContractError("TradePlan does not match the event's M09 plan link")
+    current_state = current_exit_state(exit_states)
+    if current_state["plan_id"] != trade_plan["plan_id"] or _plain(
+        current_state["plan"]
+    ) != _plain(trade_plan):
+        raise ContractError("ExitState chain embeds a different TradePlan")
+    if exit_state_link is None:
+        raise ContractError("Trade evaluation requires the current ExitState M09 link")
+    validate_machine_link(exit_state_link)
+    if (
+        exit_state_link["event_id"] != event["event_id"]
+        or exit_state_link["link_type"] != "exit_state"
+        or exit_state_link["source_reference"]["exit_state_id"]
+        != current_state["exit_state_id"]
+        or exit_state_link["source_reference"]["exit_state_content_fingerprint"]
+        != current_state["exit_state_content_fingerprint"]
+    ):
+        raise ContractError("M09 ExitState link does not reference the unique current state")
+    return current_state
+
+
+def produce_trade_outcome(
+    event: Mapping[str, Any],
+    trade_plan_link: Mapping[str, Any],
+    trade_plan: Mapping[str, Any] | None,
+    exit_states: Iterable[Mapping[str, Any]],
+    exit_state_link: Mapping[str, Any] | None,
+    market_read: RepositoryRead,
+    market_snapshot: Mapping[str, Any],
+    *,
+    universe_content_fingerprint: str,
+    pending_run_receipt: Mapping[str, Any],
+    generated_at: str,
+    previous_outcomes: Iterable[Mapping[str, Any]] = (),
+) -> Mapping[str, Any]:
+    """Calculate one TradeOutcome strictly from frozen M08 execution facts.
+
+    M08 alone decides whether and where the trade entered or exited.  M10
+    checks that the delivered price path is the same evidence M08 fingerprinted,
+    then calculates only gross return and R.  High/low excursions are not read:
+    the unapproved terminal-bar convention remains explicitly unavailable.
+    """
+
+    states = tuple(exit_states)
+    current_state = _validate_trade_sources(
+        event, trade_plan_link, trade_plan, states, exit_state_link
+    )
+    evaluation_as_of = (
+        str(current_state["as_of"]) if current_state is not None
+        else str(event["signal_date"])
+    )
+    rows = _validated_market_rows(
+        event, market_read, market_snapshot, evaluation_as_of=evaluation_as_of
+    )
+    _require_pending_trade_run(
+        pending_run_receipt,
+        event=event,
+        market_snapshot=market_snapshot,
+        universe_content_fingerprint=universe_content_fingerprint,
+        trade_plan_link=trade_plan_link,
+        trade_plan=trade_plan,
+        current_state=current_state,
+        exit_state_link=exit_state_link,
+    )
+    if pending_run_receipt["evidence_window"]["evidence_as_of"] != evaluation_as_of:
+        raise ContractError("Trade run receipt and ExitState dates differ")
+
+    entry = None
+    exit_value = None
+    exit_reason = None
+    gross_return = None
+    gross_r_multiple = None
+    holding_sessions = 0
+    status_reason = None
+    trade_plan_id = None
+    trade_plan_fingerprint = None
+    exit_state_id = None
+    exit_state_fingerprint = None
+
+    if current_state is None:
+        status = "no_trade" if trade_plan_link["status"] == "not_created" else "unavailable"
+        status_reason = str(trade_plan_link["reason"])
+    else:
+        assert trade_plan is not None
+        trade_plan_id = trade_plan["plan_id"]
+        trade_plan_fingerprint = trade_plan["plan_content_fingerprint"]
+        exit_state_id = current_state["exit_state_id"]
+        exit_state_fingerprint = current_state["exit_state_content_fingerprint"]
+        entry = {
+            "date": trade_plan["entry"]["date"],
+            "price": _normalized_price(
+                trade_plan["entry"]["price"], "TradeOutcome.entry.price"
+            ),
+        }
+        holding_sessions = int(current_state["holding_sessions"])
+        path = tuple(
+            row for row in rows
+            if trade_plan["entry_date"] <= row["date"] <= current_state["as_of"]
+        )
+        if len(path) != holding_sessions or canonical_fingerprint(list(path)) != current_state[
+            "market_data_fingerprint"
+        ]:
+            raise ContractError("Trade market evidence does not match the M08 ExitState path")
+        if current_state["state"] == "active":
+            status = "pending"
+            status_reason = "trade_open"
+            if any(
+                current_state[field] is not None
+                for field in ("exit_reason", "exit_date", "execution_price")
+            ):
+                raise ContractError("active ExitState cannot contain terminal execution facts")
+        else:
+            status = "completed"
+            exit_reason = current_state["exit_reason"]
+            if (
+                exit_reason not in {"stop_gap", "stop", "target", "time_40d"}
+                or current_state["exit_date"] is None
+                or current_state["execution_price"] is None
+            ):
+                raise ContractError("terminal ExitState lacks its M08 execution facts")
+            exit_value = {
+                "date": current_state["exit_date"],
+                "price": _normalized_price(
+                    current_state["execution_price"], "TradeOutcome.exit.price"
+                ),
+            }
+            gross_return = _normalized_ratio(
+                exit_value["price"], entry["price"], "TradeOutcome.gross_return"
+            )
+            initial_risk = _decimal(
+                entry["price"], "TradeOutcome.entry.price", positive=True
+            ) - _decimal(trade_plan["stop"]["price"], "TradeOutcome.stop.price", positive=True)
+            if initial_risk <= 0:
+                raise ContractError("TradeOutcome initial risk must be positive")
+            gross_r_multiple = _normalized_quotient(
+                _decimal(exit_value["price"], "TradeOutcome.exit.price")
+                - _decimal(entry["price"], "TradeOutcome.entry.price"),
+                initial_risk,
+                "TradeOutcome.gross_r_multiple",
+            )
+
+    authoritative = pending_run_receipt["result_role"] == "authoritative"
+    if authoritative:
+        cost_policy = UNAPPROVED_COST_REFERENCE
+        net_return = None
+        net_status = "unavailable"
+        net_reason = "cost_slippage_policy_not_approved"
+    else:
+        cost_policy = ZERO_COST_COMPARISON_POLICY
+        net_return = gross_return if status == "completed" else None
+        net_status = "available" if status == "completed" else "unavailable"
+        net_reason = None if status == "completed" else "trade_not_completed"
+
+    values = {
+        "schema_version": "2.0.0",
+        "as_of": evaluation_as_of,
+        "generated_at": generated_at,
+        "source_version": {"evaluation_contracts": BASELINE_SOURCE_VERSION},
+        "future_data_used": False,
+        "run_id": pending_run_receipt["run_id"],
+        "logical_result_id": "assigned-by-finalizer",
+        "supersedes_result_id": None,
+        "path_status": pending_run_receipt["path_status"],
+        "result_role": pending_run_receipt["result_role"],
+        "partition_role": pending_run_receipt["partition_role"],
+        "bias_labels": list(pending_run_receipt["bias_labels"]),
+        "evaluation_policy": EVALUATION_POLICY,
+        "partition_policy": PARTITION_POLICY,
+        "event_id": event["event_id"],
+        "event_content_fingerprint": event["event_content_fingerprint"],
+        "instrument_id": event["instrument_id"],
+        "signal_date": event["signal_date"],
+        "trade_plan_id": trade_plan_id,
+        "trade_plan_content_fingerprint": trade_plan_fingerprint,
+        "trade_plan_link_id": trade_plan_link["link_id"],
+        "trade_plan_link_content_fingerprint": trade_plan_link[
+            "link_content_fingerprint"
+        ],
+        "exit_state_id": exit_state_id,
+        "exit_state_content_fingerprint": exit_state_fingerprint,
+        "status": status,
+        "status_reason": status_reason,
+        "entry": entry,
+        "exit": exit_value,
+        "exit_reason": exit_reason,
+        "holding_sessions": holding_sessions,
+        "gross_return": gross_return,
+        "gross_r_multiple": gross_r_multiple,
+        "net_return": net_return,
+        "net_return_status": net_status,
+        "net_return_reason": net_reason,
+        "mfe": None,
+        "mae": None,
+        "mfe_status": "unavailable",
+        "mae_status": "unavailable",
+        "mfe_reason": "exit_day_inclusion_and_intraday_order_not_approved",
+        "mae_reason": "exit_day_inclusion_and_intraday_order_not_approved",
+        "cost_policy": cost_policy,
+        "price_basis": "provider_adjusted_ohlcv",
+        "adjustment_policy": ADJUSTMENT_POLICY,
+        "market_data_fingerprint": market_read.point_in_time_fingerprint,
+        "execution_policy": {
+            "policy_version": EXIT_POLICY["policy_version"],
+            "policy_fingerprint": EXIT_POLICY["policy_fingerprint"],
+        },
+    }
+    return _finalize_revision(
+        "TradeOutcome", values, tuple(previous_outcomes)
+    )
+
+
 __all__ = [
     "BASELINE_ADAPTER_VERSION", "BASELINE_ENGINE_NAME", "BASELINE_ENGINE_VERSION",
     "BASELINE_SOURCE_VERSION", "build_session_calendar_evidence",
     "market_snapshot_evidence_fingerprint", "produce_forward_outcomes",
+    "produce_trade_outcome",
     "validate_session_calendar_evidence",
 ]

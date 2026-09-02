@@ -13,6 +13,12 @@ from services.contracts.market_data import (
 )
 from services.contracts.policies import ADJUSTMENT_POLICY
 from services.contracts.validation import ContractError
+from services.execution import (
+    EXIT_POLICY,
+    advance_exit_state,
+    current_exit_state,
+    produce_trade_plans,
+)
 from services.evaluation import (
     BASELINE_ADAPTER_VERSION,
     BASELINE_ENGINE_NAME,
@@ -21,11 +27,15 @@ from services.evaluation import (
     FORWARD_WINDOWS,
     FORWARD_WINDOW_POLICY,
     PARTITION_POLICY,
+    ZERO_COST_COMPARISON_POLICY,
     build_experiment_run_receipt,
     build_session_calendar_evidence,
     market_snapshot_evidence_fingerprint,
     produce_forward_outcomes,
+    produce_trade_outcome,
+    validate_result,
 )
+from services.ledger import produce_exit_state_link, produce_trade_plan_links
 from services.market_data import RepositoryRead
 from tests import test_m09_ledger as m09_fixtures
 
@@ -184,6 +194,105 @@ def pending_receipt(event, snapshot, calendar, *, attempt="forward-fixture"):
         ],
         result_refs=[],
         started_at=f"{calendar['as_of']}T22:00:00Z",
+        finished_at=None,
+        parent_run_id=None,
+        checkpoint_ref=None,
+        error=None,
+    )
+
+
+def trade_pending_receipt(
+    event,
+    snapshot,
+    plan_link,
+    plan,
+    state,
+    state_link,
+    *,
+    role="authoritative",
+    attempt="trade-fixture",
+):
+    input_refs = [
+        {
+            "id": event["event_id"],
+            "content_fingerprint": event["event_content_fingerprint"],
+        },
+        {
+            "id": snapshot["snapshot_id"],
+            "content_fingerprint": market_snapshot_evidence_fingerprint(snapshot),
+        },
+        {
+            "id": event["input_identity"]["universe_id"],
+            "content_fingerprint": UNIVERSE_CONTENT,
+        },
+        {
+            "id": plan_link["link_id"],
+            "content_fingerprint": plan_link["link_content_fingerprint"],
+        },
+    ]
+    if plan is not None:
+        input_refs.append({
+            "id": plan["plan_id"],
+            "content_fingerprint": plan["plan_content_fingerprint"],
+        })
+    if state is not None:
+        input_refs.append({
+            "id": state["exit_state_id"],
+            "content_fingerprint": state["exit_state_content_fingerprint"],
+        })
+    if state_link is not None:
+        input_refs.append({
+            "id": state_link["link_id"],
+            "content_fingerprint": state_link["link_content_fingerprint"],
+        })
+    policies = [
+        {
+            "policy_kind": "adjustment",
+            "policy_version": ADJUSTMENT_POLICY["version"],
+            "policy_fingerprint": canonical_fingerprint(ADJUSTMENT_POLICY),
+        },
+        policy_ref("evaluation", EVALUATION_POLICY),
+        {
+            "policy_kind": "execution",
+            "policy_version": EXIT_POLICY["policy_version"],
+            "policy_fingerprint": EXIT_POLICY["policy_fingerprint"],
+        },
+        policy_ref("partition", PARTITION_POLICY),
+    ]
+    if role == "comparison":
+        policies.append(policy_ref("cost_slippage", ZERO_COST_COMPARISON_POLICY))
+    as_of = state["as_of"] if state is not None else event["signal_date"]
+    return build_experiment_run_receipt(
+        as_of=as_of,
+        generated_at=f"{as_of}T22:01:00Z",
+        source_version={"evaluation_contracts": "m10-b-internal-1.0.0"},
+        attempt_id=attempt,
+        experiment_id="M10-B-trade-fixed-sample",
+        status="pending",
+        evidence_window={
+            "start": event["signal_date"],
+            "end": as_of,
+            "evidence_as_of": as_of,
+        },
+        path_status="formal",
+        result_role=role,
+        partition_role="forward",
+        bias_labels=[],
+        code_commit=CODE_COMMIT,
+        config_ref={
+            "config_id": "m10-b-trade-fixed-sample",
+            "config_version": "1.0.0",
+            "content_fingerprint": canonical_fingerprint({"role": role}),
+        },
+        engine={
+            "name": BASELINE_ENGINE_NAME,
+            "version": BASELINE_ENGINE_VERSION,
+            "adapter_version": BASELINE_ADAPTER_VERSION,
+        },
+        policy_refs=policies,
+        input_refs=input_refs,
+        result_refs=[],
+        started_at=f"{as_of}T22:00:00Z",
         finished_at=None,
         parent_run_id=None,
         checkpoint_ref=None,
@@ -362,6 +471,323 @@ class M10ForwardBaselineTests(unittest.TestCase):
                 pending_run_receipt=incomplete,
                 generated_at=f"{calendar['as_of']}T22:02:00Z",
             )
+
+
+class M10TradeBaselineTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        fixture = m09_fixtures.M09LedgerTests(
+            "test_event_exists_before_next_open_and_m08_links_append_later"
+        )
+        fixture.setUp()
+        plan_batch = produce_trade_plans(
+            fixture.ranking,
+            fixture.support,
+            entry_reads=fixture.entry_reads(),
+            generated_at=m09_fixtures.ENTRY_GENERATED_AT,
+        )
+        links = produce_trade_plan_links(
+            fixture.batch,
+            plan_batch,
+            generated_at=m09_fixtures.ENTRY_GENERATED_AT,
+        )
+        events = {item["event_id"]: item for item in fixture.batch.events}
+        plans = {item["plan_id"]: item for item in plan_batch.plans}
+        cls.plan_link = next(item for item in links if item["status"] == "created")
+        cls.event = events[cls.plan_link["event_id"]]
+        cls.plan = plans[cls.plan_link["source_reference"]["plan_id"]]
+        cls.no_plan_link = next(item for item in links if item["status"] == "not_created")
+        cls.no_plan_event = events[cls.no_plan_link["event_id"]]
+        reads = fixture.entry_reads()
+        cls.history = tuple(
+            row for row in reads[cls.plan["instrument_id"]].rows
+            if row["date"] < cls.plan["entry_date"]
+        )
+        cls.no_plan_history = tuple(
+            row for row in reads[cls.no_plan_event["instrument_id"]].rows
+            if row["date"] <= cls.no_plan_event["signal_date"]
+        )
+
+    def safe_bar(self, day):
+        return {
+            "date": day,
+            "open": self.plan["entry"]["price"],
+            "high": self.plan["target"]["price"] - 1,
+            "low": self.plan["stop"]["price"] + 1,
+            "close": self.plan["entry"]["price"] + 1,
+            "volume": 1_000_000,
+        }
+
+    def trading_days(self, count):
+        current = date.fromisoformat(self.plan["entry_date"])
+        result = []
+        while len(result) < count:
+            if current.weekday() < 5:
+                result.append(current.isoformat())
+            current += timedelta(days=1)
+        return result
+
+    def evaluate(
+        self,
+        states,
+        bars,
+        *,
+        role="authoritative",
+        previous=(),
+        attempt="trade-case",
+    ):
+        current = current_exit_state(states)
+        state_link = produce_exit_state_link(
+            self.event,
+            self.plan_link,
+            current,
+            generated_at=f"{current['as_of']}T21:59:00Z",
+        )
+        rows = (*self.history, *bars)
+        read, snapshot = market_evidence(
+            self.event, rows, as_of=current["as_of"]
+        )
+        receipt = trade_pending_receipt(
+            self.event,
+            snapshot,
+            self.plan_link,
+            self.plan,
+            current,
+            state_link,
+            role=role,
+            attempt=attempt,
+        )
+        outcome = produce_trade_outcome(
+            self.event,
+            self.plan_link,
+            self.plan,
+            states,
+            state_link,
+            read,
+            snapshot,
+            universe_content_fingerprint=UNIVERSE_CONTENT,
+            pending_run_receipt=receipt,
+            generated_at=f"{current['as_of']}T22:02:00Z",
+            previous_outcomes=previous,
+        )
+        return outcome, read, snapshot, receipt, state_link
+
+    def test_target_exit_calculates_only_gross_return_and_r(self):
+        bar = self.safe_bar(self.plan["entry_date"])
+        bar["high"] = self.plan["target"]["price"] + 1
+        state = advance_exit_state(
+            self.plan,
+            completed_bars=[bar],
+            generated_at=m09_fixtures.ENTRY_GENERATED_AT,
+        )
+        outcome, *_ = self.evaluate((state,), (bar,), attempt="target")
+        self.assertEqual(outcome["status"], "completed")
+        self.assertEqual(outcome["exit_reason"], "target")
+        self.assertEqual(outcome["gross_r_multiple"], 2.0)
+        self.assertGreater(outcome["gross_return"], 0)
+        self.assertEqual(outcome["holding_sessions"], 1)
+
+    def test_stop_gap_and_same_bar_stop_priority_are_reused_from_m08(self):
+        gap = self.safe_bar(self.plan["entry_date"])
+        gap.update({
+            "open": self.plan["stop"]["price"] - 2,
+            "low": self.plan["stop"]["price"] - 3,
+            "close": self.plan["stop"]["price"] - 1,
+        })
+        gap_state = advance_exit_state(
+            self.plan, completed_bars=[gap], generated_at=m09_fixtures.ENTRY_GENERATED_AT
+        )
+        gap_outcome, *_ = self.evaluate((gap_state,), (gap,), attempt="gap")
+        self.assertEqual(gap_outcome["exit_reason"], "stop_gap")
+        self.assertEqual(gap_outcome["exit"]["price"], gap["open"])
+
+        same = self.safe_bar(self.plan["entry_date"])
+        same.update({
+            "high": self.plan["target"]["price"] + 1,
+            "low": self.plan["stop"]["price"] - 1,
+        })
+        same_state = advance_exit_state(
+            self.plan, completed_bars=[same], generated_at=m09_fixtures.ENTRY_GENERATED_AT
+        )
+        same_outcome, *_ = self.evaluate((same_state,), (same,), attempt="same-bar")
+        self.assertEqual(same_outcome["exit_reason"], "stop")
+        self.assertEqual(same_outcome["exit"]["price"], self.plan["stop"]["price"])
+
+    def test_forty_session_exit_copies_m08_execution_without_redeciding(self):
+        bars = tuple(self.safe_bar(day) for day in self.trading_days(40))
+        state = advance_exit_state(
+            self.plan,
+            completed_bars=bars,
+            generated_at=f"{bars[-1]['date']}T22:00:00Z",
+        )
+        outcome, *_ = self.evaluate((state,), bars, attempt="time-40")
+        self.assertEqual(outcome["exit_reason"], "time_40d")
+        self.assertEqual(outcome["holding_sessions"], 40)
+        self.assertEqual(outcome["exit"]["price"], bars[-1]["close"])
+
+    def test_open_trade_is_pending_without_final_results(self):
+        bar = self.safe_bar(self.plan["entry_date"])
+        state = advance_exit_state(
+            self.plan,
+            completed_bars=[bar],
+            generated_at=m09_fixtures.ENTRY_GENERATED_AT,
+        )
+        outcome, *_ = self.evaluate((state,), (bar,), attempt="open")
+        self.assertEqual(outcome["status"], "pending")
+        self.assertEqual(outcome["status_reason"], "trade_open")
+        self.assertIsNone(outcome["gross_return"])
+        self.assertIsNone(outcome["exit"])
+
+    def test_formal_net_is_unavailable_and_zero_cost_is_comparison_only(self):
+        bar = self.safe_bar(self.plan["entry_date"])
+        bar["high"] = self.plan["target"]["price"] + 1
+        state = advance_exit_state(
+            self.plan, completed_bars=[bar], generated_at=m09_fixtures.ENTRY_GENERATED_AT
+        )
+        formal, *_ = self.evaluate((state,), (bar,), attempt="formal-cost")
+        comparison, *_ = self.evaluate(
+            (state,), (bar,), role="comparison", attempt="comparison-cost"
+        )
+        self.assertIsNone(formal["net_return"])
+        self.assertEqual(formal["net_return_status"], "unavailable")
+        self.assertEqual(comparison["net_return"], comparison["gross_return"])
+        self.assertEqual(comparison["result_role"], "comparison")
+
+    def test_trade_mfe_and_mae_are_always_unavailable_with_reason(self):
+        bar = self.safe_bar(self.plan["entry_date"])
+        bar["high"] = self.plan["target"]["price"] + 1
+        state = advance_exit_state(
+            self.plan, completed_bars=[bar], generated_at=m09_fixtures.ENTRY_GENERATED_AT
+        )
+        outcome, *_ = self.evaluate((state,), (bar,), attempt="excursions")
+        for metric in ("mfe", "mae"):
+            self.assertIsNone(outcome[metric])
+            self.assertEqual(outcome[f"{metric}_status"], "unavailable")
+            self.assertEqual(
+                outcome[f"{metric}_reason"],
+                "exit_day_inclusion_and_intraday_order_not_approved",
+            )
+        injected = plain(outcome)
+        for field in (
+            "trade_outcome_id", "trade_content_fingerprint", "input_fingerprint"
+        ):
+            injected.pop(field)
+        injected["mfe"] = 9.99
+        with self.assertRaises(ContractError):
+            from services.evaluation import finalize_result
+            finalize_result("TradeOutcome", injected)
+
+    def test_exit_state_maturity_appends_outcome_revision_order_independently(self):
+        days = self.trading_days(2)
+        first_bar = self.safe_bar(days[0])
+        active = advance_exit_state(
+            self.plan,
+            completed_bars=[first_bar],
+            generated_at=f"{days[0]}T22:00:00Z",
+        )
+        pending, *_ = self.evaluate((active,), (first_bar,), attempt="revision-open")
+        target_bar = self.safe_bar(days[1])
+        target_bar["high"] = self.plan["target"]["price"] + 1
+        closed = advance_exit_state(
+            self.plan,
+            completed_bars=[first_bar, target_bar],
+            generated_at=f"{days[1]}T22:00:00Z",
+            previous_state=active,
+        )
+        mature, *_ = self.evaluate(
+            (closed, active),
+            (first_bar, target_bar),
+            previous=(pending,),
+            attempt="revision-closed",
+        )
+        self.assertEqual(mature["logical_result_id"], pending["logical_result_id"])
+        self.assertEqual(mature["supersedes_result_id"], pending["trade_outcome_id"])
+        replay, *_ = self.evaluate(
+            (active, closed),
+            (first_bar, target_bar),
+            previous=(pending, mature),
+            attempt="revision-closed",
+        )
+        self.assertEqual(replay, mature)
+
+    def test_no_plan_event_is_preserved_as_no_trade(self):
+        rows = self.no_plan_history
+        read, snapshot = market_evidence(
+            self.no_plan_event, rows, as_of=self.no_plan_event["signal_date"]
+        )
+        receipt = trade_pending_receipt(
+            self.no_plan_event,
+            snapshot,
+            self.no_plan_link,
+            None,
+            None,
+            None,
+            attempt="no-trade",
+        )
+        outcome = produce_trade_outcome(
+            self.no_plan_event,
+            self.no_plan_link,
+            None,
+            (),
+            None,
+            read,
+            snapshot,
+            universe_content_fingerprint=UNIVERSE_CONTENT,
+            pending_run_receipt=receipt,
+            generated_at=f"{self.no_plan_event['signal_date']}T22:02:00Z",
+        )
+        self.assertEqual(outcome["status"], "no_trade")
+        self.assertEqual(outcome["status_reason"], "not_selected_for_plan")
+        self.assertIsNone(outcome["trade_plan_id"])
+
+    def test_exit_path_fingerprint_and_unique_chain_are_mandatory(self):
+        days = self.trading_days(2)
+        first = self.safe_bar(days[0])
+        active = advance_exit_state(
+            self.plan, completed_bars=[first], generated_at=f"{days[0]}T22:00:00Z"
+        )
+        second = self.safe_bar(days[1])
+        second["high"] = self.plan["target"]["price"] + 1
+        closed = advance_exit_state(
+            self.plan,
+            completed_bars=[first, second],
+            generated_at=f"{days[1]}T22:00:00Z",
+            previous_state=active,
+        )
+        outcome, read, snapshot, receipt, state_link = self.evaluate(
+            (active, closed), (first, second), attempt="chain"
+        )
+        self.assertEqual(outcome["status"], "completed")
+        changed = list(read.rows)
+        changed[-1] = {**changed[-1], "close": changed[-1]["close"] + 0.5}
+        changed[-1]["high"] = max(changed[-1]["high"], changed[-1]["close"])
+        changed_read, changed_snapshot = market_evidence(
+            self.event, tuple(changed), as_of=closed["as_of"]
+        )
+        changed_receipt = trade_pending_receipt(
+            self.event,
+            changed_snapshot,
+            self.plan_link,
+            self.plan,
+            closed,
+            state_link,
+            attempt="changed-path",
+        )
+        with self.assertRaisesRegex(ContractError, "ExitState path"):
+            produce_trade_outcome(
+                self.event,
+                self.plan_link,
+                self.plan,
+                (active, closed),
+                state_link,
+                changed_read,
+                changed_snapshot,
+                universe_content_fingerprint=UNIVERSE_CONTENT,
+                pending_run_receipt=changed_receipt,
+                generated_at=f"{closed['as_of']}T22:02:00Z",
+            )
+        with self.assertRaisesRegex(ContractError, "missing predecessor"):
+            self.evaluate((closed,), (first, second), attempt="dangling")
 
 
 if __name__ == "__main__":

@@ -8,6 +8,7 @@ from .baseline import (
     build_session_calendar_evidence,
     market_snapshot_evidence_fingerprint,
     produce_forward_outcomes,
+    produce_trade_outcome,
     validate_session_calendar_evidence,
 )
 from .contracts import (
@@ -43,7 +44,8 @@ __all__ = [
     "build_session_calendar_evidence",
     "current_experiment_run", "current_result",
     "finalize_result", "market_snapshot_evidence_fingerprint",
-    "produce_forward_outcomes", "result_input_fingerprint",
+    "produce_forward_outcomes", "produce_trade_outcome",
+    "result_input_fingerprint",
     "validate_experiment_run", "validate_result",
     "validate_session_calendar_evidence",
 ]

@@ -111,9 +111,10 @@ RESULT_ALLOWED_FIELDS = {
         "trade_plan_id", "trade_plan_content_fingerprint", "trade_plan_link_id",
         "trade_plan_link_content_fingerprint", "exit_state_id",
         "exit_state_content_fingerprint", "status_reason", "entry", "exit",
-        "holding_sessions", "gross_return", "gross_r_multiple", "net_return",
+        "exit_reason", "holding_sessions", "gross_return", "gross_r_multiple", "net_return",
         "net_return_status", "net_return_reason", "mfe", "mae", "mfe_status",
-        "mae_status", "cost_policy", "price_basis", "adjustment_policy",
+        "mae_status", "mfe_reason", "mae_reason", "cost_policy",
+        "price_basis", "adjustment_policy",
         "market_data_fingerprint", "execution_policy",
     },
     "PortfolioRun": COMMON_RESULT_FIELDS | {
@@ -494,8 +495,6 @@ def _logical_identity(contract_name: str, payload: Mapping[str, Any]) -> dict[st
             "event_id": payload["event_id"],
             "instrument_id": payload["instrument_id"],
             "signal_date": payload["signal_date"],
-            "trade_plan_id": payload["trade_plan_id"],
-            "trade_plan_link_id": payload["trade_plan_link_id"],
         }
     reference_field = "trade_outcome_refs" if contract_name == "PortfolioRun" else "result_refs"
     return {
@@ -693,9 +692,11 @@ def _validate_trade(payload: Mapping[str, Any]) -> None:
             "event_content_fingerprint", "trade_plan_id", "trade_plan_content_fingerprint",
             "trade_plan_link_id", "trade_plan_link_content_fingerprint", "exit_state_id",
             "exit_state_content_fingerprint", "status_reason", "entry", "exit",
+            "exit_reason",
             "holding_sessions", "gross_return", "gross_r_multiple", "net_return",
             "net_return_status", "net_return_reason", "mfe", "mae", "mfe_status",
-            "mae_status", "cost_policy", "price_basis", "adjustment_policy",
+            "mae_status", "mfe_reason", "mae_reason", "cost_policy",
+            "price_basis", "adjustment_policy",
             "market_data_fingerprint", "execution_policy",
         },
         "TradeOutcome",
@@ -719,9 +720,9 @@ def _validate_trade(payload: Mapping[str, Any]) -> None:
     _fingerprint(payload["market_data_fingerprint"], "market_data_fingerprint")
     _non_negative_int(payload["holding_sessions"], "holding_sessions")
     status = payload["status"]
-    if status not in {"open", "completed", "no_trade", "unavailable"}:
+    if status not in {"pending", "completed", "no_trade", "unavailable"}:
         raise ContractError("TradeOutcome status is invalid")
-    if status in {"open", "completed"}:
+    if status in {"pending", "completed"}:
         _stable_reference_role(
             payload["trade_plan_id"], field="TradeOutcome.trade_plan_id",
             allowed_roles={"trade_plan"},
@@ -746,9 +747,15 @@ def _validate_trade(payload: Mapping[str, Any]) -> None:
     if status == "completed":
         if payload["status_reason"] is not None or payload["exit"] is None:
             raise ContractError("completed TradeOutcome requires an exit")
+        if "exit_reason" in payload and payload["exit_reason"] not in {
+            "stop_gap", "stop", "target", "time_40d",
+        }:
+            raise ContractError("completed TradeOutcome exit reason is invalid")
         _finite(payload["gross_return"], "gross_return")
         _finite(payload["gross_r_multiple"], "gross_r_multiple")
     else:
+        if "exit_reason" in payload and payload["exit_reason"] is not None:
+            raise ContractError("non-completed TradeOutcome cannot claim an exit reason")
         if payload["gross_return"] is not None or payload["gross_r_multiple"] is not None:
             raise ContractError("non-completed TradeOutcome cannot contain final gross results")
     for field in ("entry", "exit"):
@@ -767,6 +774,10 @@ def _validate_trade(payload: Mapping[str, Any]) -> None:
         raise ContractError("M10-B has no approved terminal-bar excursion policy")
     if payload["mfe_status"] != "unavailable" or payload["mae_status"] != "unavailable":
         raise ContractError("TradeOutcome excursions must remain explicitly unavailable")
+    excursion_reason = "exit_day_inclusion_and_intraday_order_not_approved"
+    for field in ("mfe_reason", "mae_reason"):
+        if field in payload and payload[field] != excursion_reason:
+            raise ContractError("TradeOutcome excursion reason is invalid")
     cost_policy = _plain(payload["cost_policy"])
     if payload["result_role"] == "authoritative":
         if cost_policy != _plain(UNAPPROVED_COST_REFERENCE):
