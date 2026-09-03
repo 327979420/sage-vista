@@ -35,7 +35,7 @@
 ### CR-2026-09-02-050｜M10统一评价、回测与外部研究引擎
 
 - 用户原意：在不改写M02—M09既有事实的前提下，为逐股前向表现、严格执行M08计划后的交易结果、资本约束组合运行和研究汇总建立四类互不冒充的不可变结果；V1、V2及comparison永久并存，并可按版本、日期、股票、事件和运行准确查询。CSV／Excel只能从权威结果再生成，供人工审核，不能成为机器账本或回写旧事实。
-- 状态：`implementing`；M10-A合同基础已经完成、通过独立审核，并随最终审核提交`eb0399c97fb0b9deedea7cdc03735e58fb9b2063`纯fast-forward进入`main`。M10-B内部基线评价器也已完成实现和独立审核，审核通过代码HEAD为`108a29271c75ba6b49f1172350fc3adbf3460a25`，并以纯fast-forward方式进入`main`。M10-C“Portfolio边界与只读研究汇总”已在本地审核分支完成获批影子实现和固定样本验证，仍等待独立审核且尚未进入`main`；M10整体仍不能标为`implemented`。M10-D—E、VectorBT X包、真实多年回测、生产接入、M11和M12均未获批准。
+- 状态：`implementing`；M10-A合同基础已经完成、通过独立审核，并随最终审核提交`eb0399c97fb0b9deedea7cdc03735e58fb9b2063`纯fast-forward进入`main`。M10-B内部基线评价器也已完成实现和独立审核，审核通过代码HEAD为`108a29271c75ba6b49f1172350fc3adbf3460a25`，并以纯fast-forward方式进入`main`。M10-C“Portfolio边界与只读研究汇总”已完成获批影子实现和独立审核，审核代码HEAD为`7bb635617ddcfb06277d23269cca9fdfe4cadb8d`，并以纯fast-forward方式进入`main`；M10整体仍不能标为`implemented`。M10-D—E、VectorBT X包、真实多年回测、生产接入、M11和M12均未获批准或开始。
 - 主模块：`docs/rules/08_BACKTEST_AND_EXPERIMENTS.md`；未来中立唯一formal评价层建议为`services/evaluation/`，统一非交互式研究入口建议为`python3 -m research.run --config <versioned-config.json>`。
 - 联动模块：只读消费M02不可变行情／股票池、M07评分／权威排行、M08交易计划／退出状态和M09唯一事件及其稳定ID、政策版本和内容指纹。M11负责把研究结论送入独立升级闸门；M12负责真实生产工作流、Manifest、网站、下载和部署。M10不得反向修改M02—M09。
 - CR-043边界：本CR正式承接CR-043中M10的“V1／V2历史并存、按版本／日期／股票／运行查询、逐股forward／backtest、准确数字证据、CSV／Excel审核副本以及证据不足时偏差或`unavailable`”设计责任；CR-043整体继续为`captured`，不因此升级为已批准、已实施或生产启用。
@@ -46,8 +46,8 @@
 - M10-C已批准边界：唯一生产边界仍为`services/evaluation/`。资本、仓位、并发和信号竞争政策未批准，因此新formal `PortfolioRun 2.1.0`只能保存已验证TradeOutcome引用集合并返回`unavailable`，原因固定为`capital_allocation_policy_not_approved`；初始资本、仓位、现金、权益曲线、组合收益、年化和回撤均禁止。新formal `ResearchAggregate 2.1.0`只允许汇总一种已验证的不可变ForwardOutcome或TradeOutcome，Forward一份汇总只绑定一个窗口；禁止混合formal／legacy、authoritative／comparison、partition、评价／窗口／执行／数据政策，禁止读取M02行情或重算逐股收益。现有两类`2.0.0` unavailable骨架原语义只读，不原地升级。
 - M10-C最小数字口径：只汇总`gross_return`。Forward `status_counts`固定为`pending/mature/partial/unavailable`；Trade固定为`completed/open/no_trade/unavailable`，其中`open`规范映射已经验证的`status=pending + status_reason=trade_open`，不得静默消失或并入其他状态。`total_count=sum(status_counts)=evaluated_count+missing_count`，且`win_count+loss_count+flat_count=evaluated_count`；open、no_trade、pending和unavailable计入缺失但不进入收益分母，Forward partial仅在存在真实有限毛收益时进入可评价样本。空样本、无亏损、无盈利和全零分别使用明确null／状态语义，NaN／Infinity失败关闭；计算沿用确定性Decimal、`1e-10`和half-even。formal净收益汇总、Portfolio资本曲线、分数单调性、因子lift和Pair Matrix不属于本包。
 - 实验：本条不批准资金分配、评分、排行、持仓或退出新政策。30→60→126日、部分止盈、追踪退出等既有`deferred_experiment`继续关闭；组合政策和外部引擎接入仍须另行批准。
-- 实现与产物：M10-A和M10-B已按上述提交链进入`main`，且全部只使用固定合成样本。M10-C设计冻结于`dbcdcf6`，唯一只读生产层和合同／存储边界实现于`041e6be`，固定样本回归于`a08dd33`；新formal `PortfolioRun 2.1.0`只保存验证后的TradeOutcome引用并明确`unavailable`，`ResearchAggregate 2.1.0`只读单一口径的已冻结`gross_return`。旧`2.0.0`原字段只读，新生产／运行／存储只接受`2.1.0`+`m10-c-readonly-1.0.0`。M10-C本地实现尚待独立审核和合并；VectorBT、CSV／Excel、CLI和看板均未开始，也没有写入`public/`或生产状态。验收见`docs/M10_ACCEPTANCE_REPORT_ZH.md`。
-- 验证：M10-B保留机械版本攻击及最终四闸门11项、M10合同与基线专项78项、M08与M10专项93项、M01—M10扩大定向274项及完整Python 630项的主线验收证据。M10-C本地新增27项专项；当前M10合同／基线／汇总105项、M08—M10 120项、M01—M10扩大定向290项及完整Python 657项通过，四种固定`PYTHONHASHSEED`的M10-C每轮27项、治理19项及前端11项通过。Python编译、lint、TypeScript、生产构建、文档链接和差异格式检查通过。M10-C机械反例确认：输入顺序不影响身份与数字；重复ID／逻辑链、错指纹、跨窗口／结果类型／角色／分区均失败；Forward四状态及Trade `completed/open/no_trade/unavailable`完整守恒，open与no_trade不作为零收益；空样本、无亏损、无盈利、全零和非有限数语义确定；公共存储使用完整来源结果重算守恒，重签统计、伪造状态桶、错误`as_of`、failed收据、旧`2.0.0`写入及错误引擎／来源均失败且旧字节不变。M10-C仍待独立审核与合并，未部署或生产启用；默认每日、夜间、网站、Discord和公开JSON均未切换，也未访问EODHD或运行真实行情／真实历史回测。
+- 实现与产物：M10-A和M10-B已按上述提交链进入`main`，且全部只使用固定合成样本。M10-C设计冻结于`dbcdcf6`，唯一只读生产层和合同／存储边界实现于`041e6be`，固定样本回归于`a08dd33`，审核代码HEAD为`7bb635617ddcfb06277d23269cca9fdfe4cadb8d`；新formal `PortfolioRun 2.1.0`只保存验证后的TradeOutcome引用并明确`unavailable`，`ResearchAggregate 2.1.0`只读单一口径的已冻结`gross_return`。旧`2.0.0`原字段只读，新生产／运行／存储只接受`2.1.0`+`m10-c-readonly-1.0.0`。M10-C已通过独立审核并纯fast-forward进入`main`；VectorBT、CSV／Excel、CLI和看板均未开始，也没有写入`public/`或生产状态。验收见`docs/M10_ACCEPTANCE_REPORT_ZH.md`。
+- 验证：M10-B保留机械版本攻击及最终四闸门11项、M10合同与基线专项78项、M08与M10专项93项、M01—M10扩大定向274项及完整Python 630项的主线验收证据。M10-C新增27项专项；当前M10合同／基线／汇总105项、M08与M10 120项、指定含M09集合139项、M01—M10扩大定向290项及完整Python 657项通过，四种固定`PYTHONHASHSEED`的M10-C每轮27项、治理19项及前端11项通过。Python编译、lint、TypeScript、生产构建、文档链接和差异格式检查通过。M10-C机械反例确认：输入顺序不影响身份与数字；重复ID／逻辑链、错指纹、跨窗口／结果类型／角色／分区均失败；Forward四状态及Trade `completed/open/no_trade/unavailable`完整守恒，open与no_trade不作为零收益；空样本、无亏损、无盈利、全零和非有限数语义确定；公共存储使用完整来源结果重算守恒，重签统计、伪造状态桶、错误`as_of`、failed收据、旧`2.0.0`写入及错误引擎／来源均失败且旧字节不变。M10-C已通过独立审核并进入`main`，但未部署或生产启用；默认每日、夜间、网站、Discord和公开JSON均未切换，也未访问EODHD或运行真实行情／真实历史回测。
 
 ### CR-2026-09-01-049｜M09一本不可变事件总账与追加式人工审核
 
@@ -135,7 +135,7 @@
 - 联动模块：M07唯一排行榜负责不可变排行快照；M11策略升级闸门负责把人工案例变成候选假设并独立验证。四个模块进入各自设计阶段时必须重新请用户确认，不能由本条自动授权。
 - 版本与查询责任：M07部分已由`CR-2026-09-01-047`在获批影子范围达到`implemented`，冻结每次权威排行的不可变快照，以及日期、数据、股票池、Gate、因子、模型、上下文、评分和排序版本绑定；逐股排名、分数、分项、警告和排除原因可审计。新版本只能新增快照，不得覆盖旧版本。CR-043整体仍为`captured`，本次没有设计Excel、总账或后续评价。
 - 总账与人工责任：M09已由`CR-2026-09-01-049`完成A—E影子实现、提交与快速审核，并进入`main`，当前为获批影子范围的`implemented`；这不改变CR-043整体的`captured`状态。M09负责保存排行榜事件、模型判断和交易计划引用；机器原始事实和当时结论不可覆盖，人工审核只能作为带作者、时间、依据、关联事件和状态的追加记录，并区分`observation`、`hypothesis`、`approved_change`。误收、漏检、风险、异常、失败、掉榜、停牌、退市、缺失和不可用样本都必须保留并可按版本、日期、股票和案例类型查询。本包只实现影子合同、纯生产器和追加存储，不建设审核界面，也不保存亏损或后续表现数字。
-- 评价与Excel责任：该责任已由`CR-2026-09-02-050`进入获批A—C影子实施；A—B已进入`main`，C只读汇总在审核分支完成固定样本验收、尚待独立审核和合并。每日与回测未来复用同一点时事实和明确政策，把ForwardOutcome、TradeOutcome、PortfolioRun与ResearchAggregate分开，并保存运行级身份及逐股明细；开发、验证和前向期必须隔离，V1／V2及comparison不得相互覆盖。Excel仍只是未来从权威结果再生成的人工审核副本，人工修改后不得冒充系统原始结果；本轮没有批准Excel或M10-D—E。
+- 评价与Excel责任：该责任已由`CR-2026-09-02-050`进入获批A—C影子实施；A—C均已完成独立审核并进入`main`。每日与回测未来复用同一点时事实和明确政策，把ForwardOutcome、TradeOutcome、PortfolioRun与ResearchAggregate分开，并保存运行级身份及逐股明细；开发、验证和前向期必须隔离，V1／V2及comparison不得相互覆盖。Excel仍只是未来从权威结果再生成的人工审核副本，人工修改后不得冒充系统原始结果；本轮没有批准Excel或M10-D—E。
 - Excel候选范围：Excel生成与格式冻结留给未来M10；至少考虑`README`、`Rankings`、`Events`、`Trades`、`Outcomes`、`Summary`、`Periods`、`Cases`、`Human Review`、`Versions`和`Data Quality`工作表。每份导出至少说明导出ID、来源运行ID、策略版本、数据范围、formal／legacy、股票池与退市覆盖、数据修订身份、代码提交、配置指纹、样本与缺失、费用与滑点、收益窗口与持仓规则、内容SHA-256、生成时间及“人工修改后不再权威”的提示。M09只提供未来导出可引用的权威事件和人工记录，不生成Excel。
 - Excel查询候选：未来至少支持某日某版本完整排行、某版本区间全部事件、单股跨版本、V1／V2同区间逐股比较、多年回测、高分大亏、落选后大涨、停牌／退市／缺失／不可用、已人工标注但未验证案例，以及按年份、市场环境、行业和持仓窗口拆分表现。具体格式待M09／M10设计确认。
 - 准确数字底线：任何类似“V1过去20年收益”的回答，必须同时提供或引用精确策略及Gate／因子／评分／排行／交易／评价政策版本，数据和股票池身份、formal／legacy、历史成员及退市覆盖、时间范围、样本量、缺失率、费用、滑点、持仓、退出、代码提交、运行ID、结果指纹、已知偏差和不可重建区间。证据不完整时必须明确偏差或`unavailable`，不得给出伪精确正式结论。
@@ -143,7 +143,7 @@
 - 升级闸门：M11未来要求人工经验与机器证据并列展示，用未参与规则定义的独立样本验证；通过验证并经用户批准后才能成为新版本。失败或无效假设永久保留，禁止用同一案例调规则后再证明规则有效。
 - 规则先行：等待M07、M09、M10、M11分别进入设计时再冻结其合同、算法和验收；不得写入M03 GateEvent合同或验收矩阵，也不得借本条开始后续模块。
 - 实验：尚未预登记。
-- 实现与产物：M07不可变排行责任已完成；M09子责任已在独立CR-049的获批影子范围达到`implemented`并进入`main`，尚未部署或生产启用。M10的A—B已进入`main`，C只读汇总为待独立审核的本地影子实现；Excel仍未批准，M11升级闸门尚未开始。
+- 实现与产物：M07不可变排行责任已完成；M09子责任已在独立CR-049的获批影子范围达到`implemented`并进入`main`，尚未部署或生产启用。M10的A—C均已完成独立审核并进入`main`；Excel仍未批准，M11升级闸门尚未开始。
 - 验证：仅各子模块独立CR的证据有效；CR-043整体继续为`captured`，不等于M10／M11已批准设计、实施、验证或生产启用。
 
 ### CR-2026-08-31-041｜M01/M02基础合同审计修复

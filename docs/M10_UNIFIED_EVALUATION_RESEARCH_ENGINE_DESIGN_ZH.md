@@ -1,12 +1,12 @@
 # M10｜统一评价、回测与外部研究引擎设计
 
-- 文档状态：M10-A与M10-B里程碑均已审核并进入`main`；M10-C最小设计已获批准并进入`implementing`；M10整体仍为`implementing`
+- 文档状态：M10-A／B／C里程碑均已审核并进入`main`；M10整体仍为`implementing`
 - 对应需求：`CR-2026-09-02-050`
 - 基线提交：`5dfd0a57fc1dad56042c0db6b8e2c3ce9ff88251`
 - 设计日期：2026-09-02
-- 生产状态：M10-A合同基础和M10-B内部基线评价器已进入`main`；未部署、未生产启用
+- 生产状态：M10-A合同基础、M10-B内部基线评价器和M10-C只读汇总均已进入`main`；未部署、未生产启用
 
-> 本文冻结M10的职责、合同边界、身份和失败关闭语义。M10-A和M10-B均已完成独立审核并进入`main`，M10整体继续为`implementing`。用户已批准M10-C Portfolio边界与只读研究汇总的最小影子实施；设计提交先冻结合同，后续实现、测试和验收仍须分别留证。M10-D—E、VectorBT、真实多年回测、生产目录、M11和M12仍未批准。
+> 本文冻结M10的职责、合同边界、身份和失败关闭语义。M10-A、M10-B和M10-C均已完成独立审核并进入`main`，M10整体继续为`implementing`。M10-C只建立Portfolio失败关闭边界和只读研究汇总，不批准资本算法或真实组合表现。M10-D—E、VectorBT、真实多年回测、生产目录、M11和M12仍未批准。
 
 ## 1. 人话版
 
@@ -422,14 +422,14 @@ M10-C实施前必须以固定合成Outcome完成以下10项机械验收；本表
 
 1. **M10-A｜合同、身份和运行收据**：冻结四类2.x合同、`ExperimentRun 2.x`、角色／分区、幂等、冲突和失败收据；不算收益。
 2. **M10-B｜内部Forward／Trade基线**：只用固定小样本实现逐股结果，复用M02／M08事实，验证防未来和执行顺序。
-3. **M10-C｜Portfolio／Aggregate边界（当前`implementing`）**：保留`PortfolioRun unavailable`守门，只读取单一类型Forward或Trade结果做最小gross汇总；资金政策未批准前不建资本曲线。
+3. **M10-C｜Portfolio／Aggregate边界（里程碑已进入`main`）**：保留`PortfolioRun unavailable`守门，只读取单一类型Forward或Trade结果做最小gross汇总；资金政策未批准前不建资本曲线。
 4. **M10-D｜存储、查询、CSV／Excel**：只追加存储、查询和可再生成导出；Excel依赖及格式另行确认。
 5. **M10-E｜配置和统一CLI**：版本化JSON、非交互CLI、运行收据与断点；不接工作流。
 6. **M10-X1｜VectorBT依赖及许可闸门**：独立批准最小依赖、锁定、哈希、安全和许可结论。
 7. **M10-X2｜固定样本适配与逐笔parity**：同一数据集对照内部基线，结果只作comparison。
 8. **M10-X3｜扩大comparison验证**：在用户另批样本范围内扩展，不触发真实多年生产回测。
 
-历史A—B已经完成审核并进入`main`；用户现已批准M10-C按本设计实施。M10-D—E和X1—X3仍未批准。
+历史A—C已经完成审核并进入`main`。M10-D—E和X1—X3仍未批准或开始。
 
 ## 15. 回退和生产边界
 
@@ -481,6 +481,6 @@ M10-C已获得本节之外的独立明确实施授权；M10-D—E、VectorBT X�
 - 唯一职责：在不批准资本政策的前提下关闭Portfolio伪精确入口，并对已经冻结、口径一致的Forward或Trade gross结果做最小只读汇总；不读取行情、不重算逐股结果。
 - 合同冻结：保留`PortfolioRun 2.0.0`和`ResearchAggregate 2.0.0`原语义只读；新formal M10-C分别使用严格字段隔离的`2.1.0`，来源版本固定为`m10-c-readonly-1.0.0`，汇总公式由唯一`aggregation 1.0.0`政策集中冻结。
 - 唯一生产边界继续位于`services/evaluation/`；Portfolio边界、只读汇总、合同验证、运行收据、修订链和影子存储复用现有体系，不建立第二个事实生产者。每日与回放未来只允许调用同一汇总纯函数。
-- 用户批准的固定合成Outcome影子实施已在审核分支完成：设计冻结`dbcdcf6`、唯一只读生产与合同／存储边界`041e6be`、固定样本回归`a08dd33`。该实现仍等待独立审核和合并，不表示已进入`main`、部署或生产启用。
-- 本地验收：M10-C专项27项、M10合同／基线／汇总105项、M08—M10 120项、M01—M10扩大定向290项、完整Python 657项、四种固定哈希种子每轮M10-C 27项、治理19项和前端11项通过；Python编译、lint、TypeScript、生产构建、文档链接和格式检查通过。独立窄复核已确认重签统计、状态伪装、错误`as_of`、failed收据和PF量化边界均失败关闭，Trade `open/no_trade`分别守恒。
+- 用户批准的固定合成Outcome影子实施已完成：设计冻结`dbcdcf6`、唯一只读生产与合同／存储边界`041e6be`、固定样本回归`a08dd33`，审核代码HEAD为`7bb635617ddcfb06277d23269cca9fdfe4cadb8d`。该HEAD已通过独立审核并以纯fast-forward方式进入`main`；进入主线不表示部署或生产启用。
+- 最终验收：M10-C专项27项、M10合同／基线／汇总105项、M08与M10 120项、指定含M09集合139项、M01—M10扩大定向290项、完整Python 657项、四种固定哈希种子每轮M10-C 27项、治理19项和前端11项通过；Python编译、lint、TypeScript、生产构建、文档链接和格式检查通过。独立窄复核确认Portfolio始终诚实`unavailable`，ResearchAggregate不读取行情或重算逐股收益，重签统计、状态伪装、错误`as_of`、failed收据和PF量化边界均失败关闭，Trade `open/no_trade`分别守恒，状态、样本和收益分类守恒。
 - M10-D／E、Portfolio资本算法、VectorBT、CSV／Excel、CLI、查询API、真实多年回测、M11和M12均未开始；CR-043继续为`captured`。
