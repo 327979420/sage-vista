@@ -58,6 +58,26 @@ XLSX_PART_NAMES = {
 }
 
 
+def _expected_worksheet_name(
+    dataset_name: str, part_number: int, part_count: int
+) -> str:
+    if dataset_name not in XLSX_DATASET_ORDER:
+        raise ContractError("M10-D dataset is not approved for XLSX")
+    return (
+        XLSX_SHEET_NAMES[dataset_name]
+        if part_count == 1
+        else f"{XLSX_PART_NAMES[dataset_name]} {part_number:03d}"
+    )
+
+
+def _xlsx_artifact_sort_key(item: Mapping[str, Any]) -> tuple[int, int]:
+    try:
+        dataset_order = XLSX_DATASET_ORDER.index(str(item["dataset"]))
+    except ValueError as exc:
+        raise ContractError("M10-D dataset is not approved for XLSX") from exc
+    return dataset_order, int(item["part_number"])
+
+
 @dataclass(frozen=True)
 class XlsxPart:
     dataset: AuditDataset
@@ -78,11 +98,7 @@ def plan_xlsx_parts(
             continue
         count = len(row_parts)
         for number, rows in enumerate(row_parts, 1):
-            worksheet_name = (
-                XLSX_SHEET_NAMES[name]
-                if count == 1
-                else f"{XLSX_PART_NAMES[name]} {number:03d}"
-            )
+            worksheet_name = _expected_worksheet_name(name, number, count)
             if len(worksheet_name) > 31:
                 raise ContractError("M10-D worksheet name exceeds the XLSX limit")
             parts.append(XlsxPart(dataset, rows, number, count, worksheet_name))

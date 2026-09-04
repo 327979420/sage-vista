@@ -7,6 +7,7 @@ from decimal import Decimal
 import hashlib
 import importlib.util
 import json
+import os
 from pathlib import Path
 import tempfile
 from threading import Event
@@ -14,6 +15,7 @@ import unittest
 import zipfile
 
 from services.contracts.validation import ContractError
+from services.contracts.market_data import canonical_fingerprint
 from services.evaluation import (
     AuditDataset,
     ColumnSpec,
@@ -51,6 +53,70 @@ def plain(value):
     if isinstance(value, (list, tuple)):
         return [plain(item) for item in value]
     return value
+
+
+def _rewrite_zip_member(path: Path, member: str, transform) -> None:
+    temporary = path.with_name(path.name + ".mutated")
+    with zipfile.ZipFile(path, "r") as source:
+        entries = [(item, source.read(item.filename)) for item in source.infolist()]
+    changed = False
+    with zipfile.ZipFile(temporary, "w", compression=zipfile.ZIP_DEFLATED) as target:
+        for item, content in entries:
+            if item.filename == member:
+                replacement = transform(content)
+                changed = replacement != content
+                content = replacement
+            target.writestr(item, content)
+    if not changed:
+        temporary.unlink()
+        raise AssertionError(f"test mutation did not change {member}")
+    os.replace(temporary, path)
+
+
+def _canonical_bytes(value) -> bytes:
+    return (
+        json.dumps(
+            value, ensure_ascii=False, sort_keys=True,
+            separators=(",", ":"), allow_nan=False,
+        )
+        + "\n"
+    ).encode("utf-8")
+
+
+def _resign_package_after_xlsx_change(package: Path) -> None:
+    manifest_path = package / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    xlsx_path = next(
+        package / item["relative_path"]
+        for item in manifest["artifacts"] if item["format"] == "xlsx"
+    )
+    raw = xlsx_path.read_bytes()
+    fingerprint = "sha256:" + hashlib.sha256(raw).hexdigest()
+    for item in manifest["artifacts"]:
+        if item["format"] == "xlsx":
+            item["byte_count"] = len(raw)
+            item["file_sha256"] = fingerprint
+    manifest["artifact_set_fingerprint"] = canonical_fingerprint(manifest["artifacts"])
+    manifest["export_receipt_id"] = "export-receipt:" + canonical_fingerprint({
+        "export_id": manifest["export_id"],
+        "generated_at": manifest["generated_at"],
+        "artifact_set_fingerprint": manifest["artifact_set_fingerprint"],
+    })
+    semantic = {
+        key: value for key, value in manifest.items()
+        if key != "manifest_content_fingerprint"
+    }
+    manifest["manifest_content_fingerprint"] = canonical_fingerprint(semantic)
+    manifest_bytes = _canonical_bytes(manifest)
+    manifest_path.write_bytes(manifest_bytes)
+    completed = {
+        "export_receipt_id": manifest["export_receipt_id"],
+        "manifest_file_sha256": "sha256:" + hashlib.sha256(manifest_bytes).hexdigest(),
+        "artifact_set_fingerprint": manifest["artifact_set_fingerprint"],
+        "status": "completed",
+        "notice": manifest["notice"],
+    }
+    (package / "COMPLETED.json").write_bytes(_canonical_bytes(completed))
 
 
 def _pending_run_and_forward(values, attempt):
@@ -368,6 +434,65 @@ class M10CsvExportTests(unittest.TestCase):
                     workspace_root=Path(__file__).resolve().parents[1],
                 )
 
+        with tempfile.TemporaryDirectory() as directory:
+            execution = self._execution(directory)
+            real_root = Path(directory) / "real-exports"
+            real_root.mkdir()
+            linked_root = Path(directory) / "linked-exports"
+            linked_root.symlink_to(real_root, target_is_directory=True)
+            with self.assertRaisesRegex(ContractError, "symbolic link"):
+                publish_audit_export(
+                    execution,
+                    build_export_config(),
+                    output_root=linked_root,
+                    generated_at="2026-09-04T00:00:00Z",
+                    code_commit=COMMIT,
+                )
+
+        with tempfile.TemporaryDirectory() as directory:
+            execution = self._execution(directory)
+            config = build_export_config()
+            output = Path(directory) / "exports"
+            package = publish_audit_export(
+                execution, config, output_root=output,
+                generated_at="2026-09-04T00:00:00Z", code_commit=COMMIT,
+            )
+            manifest = plain(verify_export_package(package))
+            csv_path = package / next(
+                item["relative_path"] for item in manifest["artifacts"]
+                if item["format"] == "csv"
+            )
+            csv_path.write_bytes(csv_path.read_bytes() + b"tampered")
+            before = csv_path.read_bytes()
+            with self.assertRaisesRegex(ContractError, "different bytes"):
+                publish_audit_export(
+                    execution, config, output_root=output,
+                    generated_at="2026-09-04T00:00:00Z", code_commit=COMMIT,
+                )
+            self.assertEqual(before, csv_path.read_bytes())
+
+    def test_package_verification_rejects_artifact_symlink(self):
+        with tempfile.TemporaryDirectory() as directory:
+            execution = self._execution(directory)
+            package = publish_audit_export(
+                execution,
+                build_export_config(),
+                output_root=Path(directory) / "exports",
+                generated_at="2026-09-04T00:00:00Z",
+                code_commit=COMMIT,
+            )
+            manifest = plain(verify_export_package(package))
+            artifact = package / next(
+                item["relative_path"] for item in manifest["artifacts"]
+                if item["format"] == "csv"
+            )
+            outside = Path(directory) / "outside.csv"
+            outside.write_bytes(artifact.read_bytes())
+            artifact.unlink()
+            artifact.symlink_to(outside)
+            with self.assertRaisesRegex(ContractError, "symbolic link"):
+                verify_export_package(package)
+
 
 @unittest.skipUnless(
     importlib.util.find_spec("xlsxwriter") is not None,
@@ -436,6 +561,11 @@ class M10XlsxExportTests(unittest.TestCase):
             self.assertNotIn(b"<f>", xml)
             self.assertNotIn(b"<hyperlink", xml)
             self.assertNotIn(b"sharedStrings", xml)
+            worksheet_names = {item["worksheet_name"] for item in xlsx_artifacts}
+            self.assertIn("Research Aggregates", worksheet_names)
+            self.assertNotIn("Forward Outcomes", worksheet_names)
+            self.assertNotIn("Trade Outcomes", worksheet_names)
+            self.assertNotIn("Portfolio Status", worksheet_names)
 
     def test_xlsx_bytes_are_deterministic_while_receipts_are_materializations(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -503,6 +633,144 @@ class M10XlsxExportTests(unittest.TestCase):
             self.assertNotIn(b"<f>", xml)
             self.assertNotIn(b"<hyperlink", xml)
             self.assertIn(b"'=HYPERLINK", xml)
+
+    def test_xlsx_parts_match_csv_parts_without_loss_or_duplication(self):
+        with tempfile.TemporaryDirectory() as directory:
+            execution = self._execution(directory)
+            package = publish_audit_export(
+                execution,
+                build_export_config(formats=("csv", "xlsx"), max_data_rows=1),
+                output_root=Path(directory) / "exports",
+                generated_at="2026-09-04T00:00:00Z",
+                code_commit=COMMIT,
+            )
+            manifest = plain(verify_export_package(package))
+            csv_parts = {
+                (item["dataset"], item["part_number"]): item
+                for item in manifest["artifacts"] if item["format"] == "csv"
+            }
+            xlsx_parts = [
+                item for item in manifest["artifacts"] if item["format"] == "xlsx"
+            ]
+            for item in xlsx_parts:
+                counterpart = csv_parts[(item["dataset"], item["part_number"])]
+                self.assertEqual(item["data_row_count"], counterpart["data_row_count"])
+                self.assertEqual(
+                    item["row_set_fingerprint"], counterpart["row_set_fingerprint"]
+                )
+                self.assertEqual(item["first_sort_key"], counterpart["first_sort_key"])
+                self.assertEqual(item["last_sort_key"], counterpart["last_sort_key"])
+            for dataset, expected in manifest["dataset_counts"].items():
+                self.assertEqual(
+                    expected,
+                    sum(
+                        item["data_row_count"] for item in manifest["artifacts"]
+                        if item["format"] == "csv" and item["dataset"] == dataset
+                    ),
+                )
+
+    def test_resigned_xlsx_cell_tampering_still_fails_csv_parity(self):
+        with tempfile.TemporaryDirectory() as directory:
+            execution = self._execution(directory)
+            package = publish_audit_export(
+                execution,
+                build_export_config(formats=("csv", "xlsx")),
+                output_root=Path(directory) / "exports",
+                generated_at="2026-09-04T00:00:00Z",
+                code_commit=COMMIT,
+            )
+            workbook = package / "xlsx/sage-vista-m10-audit.xlsx"
+            _rewrite_zip_member(
+                workbook,
+                "xl/worksheets/sheet1.xml",
+                lambda raw: raw.replace(
+                    b"Non-authoritative audit copy.",
+                    b"Tampered audit copy........",
+                    1,
+                ),
+            )
+            _resign_package_after_xlsx_change(package)
+            with self.assertRaisesRegex(ContractError, "differs from its CSV"):
+                verify_export_package(package)
+
+    def test_ooxml_formula_external_link_and_unknown_cell_type_fail(self):
+        mutations = (
+            (
+                "xl/worksheets/sheet1.xml",
+                lambda raw: raw.replace(
+                    b'<c r="F2" s="3"><v>1</v></c>',
+                    b'<c r="F2" s="3"><f>1+1</f><v>2</v></c>',
+                    1,
+                ),
+            ),
+            (
+                "xl/_rels/workbook.xml.rels",
+                lambda raw: raw.replace(
+                    b"</Relationships>",
+                    b'<Relationship Id="external" Type="x" Target="https://invalid.example" TargetMode="External"/></Relationships>',
+                    1,
+                ),
+            ),
+            (
+                "xl/worksheets/sheet1.xml",
+                lambda raw: raw.replace(b't="inlineStr"', b't="s"', 1),
+            ),
+        )
+        for index, (member, transform) in enumerate(mutations):
+            with self.subTest(index=index), tempfile.TemporaryDirectory() as directory:
+                execution = self._execution(directory)
+                package = publish_audit_export(
+                    execution,
+                    build_export_config(formats=("csv", "xlsx")),
+                    output_root=Path(directory) / "exports",
+                    generated_at="2026-09-04T00:00:00Z",
+                    code_commit=COMMIT,
+                )
+                workbook = package / "xlsx/sage-vista-m10-audit.xlsx"
+                _rewrite_zip_member(workbook, member, transform)
+                _resign_package_after_xlsx_change(package)
+                with self.assertRaises(ContractError):
+                    verify_export_package(package)
+
+    def test_manual_xlsx_edit_invalidates_sha_and_has_no_import_entrypoint(self):
+        with tempfile.TemporaryDirectory() as directory:
+            execution = self._execution(directory)
+            package = publish_audit_export(
+                execution,
+                build_export_config(formats=("csv", "xlsx")),
+                output_root=Path(directory) / "exports",
+                generated_at="2026-09-04T00:00:00Z",
+                code_commit=COMMIT,
+            )
+            workbook = package / "xlsx/sage-vista-m10-audit.xlsx"
+            _rewrite_zip_member(
+                workbook,
+                "xl/worksheets/sheet1.xml",
+                lambda raw: raw.replace(b"current", b"all....", 1),
+            )
+            with self.assertRaisesRegex(ContractError, "bytes do not match"):
+                verify_export_package(package)
+            import services.evaluation as evaluation
+
+            self.assertFalse(any(name.startswith("import_") for name in evaluation.__all__))
+
+    def test_xlsx_failure_leaves_no_visible_partial_package(self):
+        with tempfile.TemporaryDirectory() as directory:
+            execution = self._execution(directory)
+            output = Path(directory) / "exports"
+            with self.assertRaises(RuntimeError):
+                publish_audit_export(
+                    execution,
+                    build_export_config(formats=("csv", "xlsx")),
+                    output_root=output,
+                    generated_at="2026-09-04T00:00:00Z",
+                    code_commit=COMMIT,
+                    fault_injector=lambda point: (
+                        (_ for _ in ()).throw(RuntimeError("fixed XLSX failure"))
+                        if point == "after_artifacts" else None
+                    ),
+                )
+            self.assertEqual([], list(output.iterdir()))
 
 
 if __name__ == "__main__":

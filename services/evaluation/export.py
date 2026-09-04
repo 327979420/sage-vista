@@ -1356,6 +1356,36 @@ def validate_export_manifest(payload: Mapping[str, Any]) -> None:
             for item in csv_group
         ]:
             raise ContractError("CSV and XLSX dataset parts do not conserve the same rows")
+    if "xlsx" in formats:
+        from .xlsx_export import (
+            XLSX_DATASET_ORDER,
+            XLSX_WORKBOOK_PATH,
+            _expected_worksheet_name,
+        )
+
+        actual_xlsx_datasets = {
+            dataset_name
+            for artifact_format, dataset_name in part_groups
+            if artifact_format == "xlsx"
+        }
+        expected_xlsx_datasets = {
+            dataset_name
+            for dataset_name in XLSX_DATASET_ORDER
+            if csv_counts.get(dataset_name, 0) > 0
+        }
+        if actual_xlsx_datasets != expected_xlsx_datasets:
+            raise ContractError("ExportManifest XLSX datasets do not match source-backed sheets")
+        for dataset_name in actual_xlsx_datasets:
+            group = part_groups[("xlsx", dataset_name)]
+            for item in group:
+                if (
+                    item["relative_path"] != XLSX_WORKBOOK_PATH
+                    or item["worksheet_name"]
+                    != _expected_worksheet_name(
+                        dataset_name, item["part_number"], item["part_count"]
+                    )
+                ):
+                    raise ContractError("ExportManifest XLSX worksheet identity is invalid")
     export_identity = {
         "query_result_set_id": payload["query_result_set_id"],
         "query_result_set_content_fingerprint": payload["query_result_set_content_fingerprint"],
@@ -1410,9 +1440,22 @@ def _verified_export_root(
 def _trees_equal(left: Path, right: Path) -> bool:
     left_files = sorted(path.relative_to(left) for path in left.rglob("*") if path.is_file())
     right_files = sorted(path.relative_to(right) for path in right.rglob("*") if path.is_file())
-    return left_files == right_files and all(
-        (left / item).read_bytes() == (right / item).read_bytes() for item in left_files
-    )
+    if left_files != right_files:
+        return False
+    for item in left_files:
+        left_path = left / item
+        right_path = right / item
+        if left_path.stat().st_size != right_path.stat().st_size:
+            return False
+        with left_path.open("rb") as left_handle, right_path.open("rb") as right_handle:
+            while True:
+                left_chunk = left_handle.read(1024 * 1024)
+                right_chunk = right_handle.read(1024 * 1024)
+                if left_chunk != right_chunk:
+                    return False
+                if not left_chunk:
+                    break
+    return True
 
 
 def _package_file(package: Path, relative: str) -> Path:
@@ -1455,6 +1498,7 @@ def verify_export_package(path: Path) -> Mapping[str, Any]:
     declared = {"manifest.json", "COMPLETED.json"}
     checked_physical: set[str] = set()
     csv_rows: dict[str, list[Mapping[str, Any]]] = {}
+    csv_parts: dict[tuple[str, int], tuple[Mapping[str, Any], ...]] = {}
     for artifact in manifest["artifacts"]:
         relative = _safe_relative_path(artifact["relative_path"])
         artifact_path = _package_file(path, relative)
@@ -1491,9 +1535,29 @@ def verify_export_package(path: Path) -> Mapping[str, Any]:
             ):
                 raise ContractError("CSV artifact rows do not match the manifest")
             csv_rows.setdefault(str(artifact["dataset"]), []).extend(rows)
+            csv_parts[(str(artifact["dataset"]), int(artifact["part_number"]))] = rows
+    xlsx_artifacts = [
+        item for item in manifest["artifacts"] if item["format"] == "xlsx"
+    ]
+    if xlsx_artifacts:
+        from .ooxml import verify_generated_audit_workbook
+        from .xlsx_export import _xlsx_artifact_sort_key
+
+        workbook_paths = {str(item["relative_path"]) for item in xlsx_artifacts}
+        if len(workbook_paths) != 1:
+            raise ContractError("M10-D XLSX export must use one audit workbook")
+        workbook_relative = next(iter(workbook_paths))
+        verify_generated_audit_workbook(
+            _package_file(path, workbook_relative),
+            worksheet_artifacts=sorted(xlsx_artifacts, key=_xlsx_artifact_sort_key),
+            csv_parts=csv_parts,
+        )
+    package_items = list(path.rglob("*"))
+    if any(item.is_symlink() for item in package_items):
+        raise ContractError("M10-D export package cannot contain symbolic links")
     actual = {
         item.relative_to(path).as_posix()
-        for item in path.rglob("*") if item.is_file()
+        for item in package_items if item.is_file()
     }
     if actual != declared:
         raise ContractError("M10-D export package contains undeclared files")
