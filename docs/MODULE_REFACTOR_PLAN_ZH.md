@@ -1,10 +1,10 @@
 # Sage Vista 分模块重构规划书
 
-版本：`0.10.5-m10-d-design`
+版本：`0.10.6-m10-d-local-acceptance`
 
 日期：2026-09-03
 
-状态：M00—M09已在各自获批范围内`implemented`并进入`main`，但M03—M09均尚未部署或生产启用。M10-A／B／C已完成独立审核并进入`main`，M10整体仍处于`implementing`；M10-D的D1／D2／D3已获批准实施但尚未完成，M10-E、VectorBT及M11—M13尚未开始。网站、正式每日链、夜间回测和Discord仍按旧流程运行，真实生产集成留给M12。
+状态：M00—M09已在各自获批范围内`implemented`并进入`main`，但M03—M09均尚未部署或生产启用。M10-A／B／C已完成独立审核并进入`main`，M10整体仍处于`implementing`；M10-D的D1／D2／D3已完成本地影子实施与固定样本验收、等待独立审核，M10-E、VectorBT及M11—M13尚未开始。网站、正式每日链、夜间回测和Discord仍按旧流程运行，真实生产集成留给M12。
 
 关联需求：`CR-2026-08-30-035`
 
@@ -387,7 +387,7 @@ M01完成只代表共享合同和非生产影子验收能力已经进入主线�
 
 ### M10｜统一评价、回测与外部研究引擎
 
-**当前状态**：`implementing`。用户批准的A合同／收据、B Forward／Trade内部基线及C Portfolio边界／只读研究汇总均已完成独立审核，并分别以纯fast-forward方式进入`main`；M10整体仍未完成。D“准确查询、CSV与Excel审核副本”的D1／D2／D3已批准实施但尚未完成；E、VectorBT、真实多年回测、部署和生产启用均未批准或开始，M11和M12仍未开始。
+**当前状态**：`implementing`。用户批准的A合同／收据、B Forward／Trade内部基线及C Portfolio边界／只读研究汇总均已完成独立审核，并分别以纯fast-forward方式进入`main`；M10整体仍未完成。D“准确查询、CSV与Excel审核副本”的D1／D2／D3已完成本地影子实施与固定样本验收、等待独立审核；E、VectorBT、真实多年回测、部署和生产启用均未批准或开始，M11和M12仍未开始。
 
 **功能**：只读复用M02行情／股票池、M07权威排行、M08计划／退出和M09唯一事件，将客观前向表现、计划交易结果、资本约束组合运行和研究汇总分成四类不可变结果；不重算上游事实，不把逐股收益拼成伪组合曲线。
 
@@ -401,8 +401,8 @@ M01完成只代表共享合同和非生产影子验收能力已经进入主线�
 - formal／legacy、authoritative／comparison及development／validation／forward严格分离；
 - 内部基线和可选VectorBT适配器读取同一标准数据集，逐笔对账前外部结果只能是comparison；
 - 权威JSON／JSONL、Git版本化配置、`work/`中间缓存、CSV／Excel审核副本各自分层，下载副本不得回写账本。
-- M10-D候选只读查询入口必须先冻结并验证原子库存和完整修订链，再显式按`revision_mode=all/current`筛选；结果集与ExportManifest保存来源ID／内容指纹全集、过滤条件、稳定行序、行数和文件SHA-256，不按ticker、文件名或`generated_at`猜历史。
-- D1候选先以标准库交付查询、Manifest和CSV，并冻结可逆cell codec及1,000,000行分片政策；D2须另批`XlsxWriter==3.2.9`精确锁定、许可证及Decimal双表示，D3才做CSV／XLSX逐格一致、确定性分片、公式注入与人工审核验收。三包均不读取行情、不重算收益、不写`public/`或生产目录，也不实现M10-E CLI。
+- M10-D只读查询入口已冻结并验证原子库存和完整修订链，再显式按`revision_mode=all/current`筛选；结果集与ExportManifest保存来源ID／内容指纹全集、过滤条件、稳定行序、行数和文件SHA-256，不按ticker、文件名或`generated_at`猜历史。
+- D1已以标准库交付查询、Manifest和CSV，并冻结可逆cell codec及1,000,000行分片政策；D2只在独立研究依赖精确锁定`XlsxWriter==3.2.9`、许可证证据及Decimal双表示；D3以标准库限定OOXML复核CSV／XLSX逐格一致、确定性分片、公式注入与人工审核边界。三包均不读取行情、不重算收益、不写`public/`或生产目录，也不实现M10-E CLI。
 
 **验收**：防未来、交易日窗口、下一真实开盘、复权、停牌／退市／缺失、M08执行顺序、费用／滑点、MFE／MAE、空样本与非有限数、V1／V2／comparison、三类研究分区、幂等／冲突、每日／回放同源、引擎逐笔对账及JSON／Excel一致均有机械反例；失败和中断运行永久保留并可从批准检查点继续。
 

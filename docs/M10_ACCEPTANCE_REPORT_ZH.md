@@ -1,6 +1,6 @@
 # M10｜内部评价与只读汇总阶段验收报告
 
-- 状态：M10-A／B／C均已完成独立审核并进入`main`；M10整体仍为`implementing`
+- 状态：M10-A／B／C均已完成独立审核并进入`main`；M10-D已完成本地影子实施与验收、等待独立审核；M10整体仍为`implementing`
 - 基线：`1c7f688bd0d3f0c52386851b302c6197f25437fb`
 - Forward实现：`209d088045cd5c9d87be130a1c4b8499336cd202`
 - Trade实现：`a81d97ce288f7b62224e08556145c93a41df4b5c`
@@ -20,13 +20,20 @@
 - M10-C边界回归测试：`a08dd33`
 - M10-C审核代码HEAD：`7bb635617ddcfb06277d23269cca9fdfe4cadb8d`
 - M10-C合并方式：纯fast-forward进入`main`
+- M10-D设计冻结：`b90c269`
+- M10-D基线：`3c0a314c921ffc38121a8ef678cf61be16bd2b86`
+- M10-D原子查询与CSV：`e7c649f`
+- M10-D锁定XLSX审核副本：`ee6d596`
+- M10-D逐格一致与安全复核：`d682897`
 - 生产状态：未部署、未生产启用
 
 ## 1. 阶段结论
 
 M10-B已经用固定合成样本形成唯一内部基线评价层：ForwardOutcome从信号后下一有效交易日调整后开盘起算；TradeOutcome只读M08既有计划和退出事实；每次评价先绑定pending运行收据，结果通过后才追加complete收据。每日与回放影子入口调用同一生产器。
 
-本报告还记录M10-C已经独立审核并进入`main`的Portfolio失败关闭边界和只读gross汇总能力。它不产生真实组合或多年回测结论；进入主线不代表生产接入或部署，也不批准M10-D—E或外部引擎。
+本报告还记录M10-C已经独立审核并进入`main`的Portfolio失败关闭边界和只读gross汇总能力。它不产生真实组合或多年回测结论；进入主线不代表生产接入或部署，也不自动批准M10-D—E或外部引擎。M10-D随后已由用户单独批准并完成本地影子实施。
+
+M10-D已在独立分支完成D1／D2／D3本地影子实施：唯一查询入口从`EvaluationShadowStore`取得原子库存，显式执行`all/current`修订语义；CSV与XLSX只物化已验证结果，完整包通过一次目录重命名发布，并由标准库限定OOXML复核逐格对账。该结果尚待独立审核，未进入`main`、未部署，也不批准M10-E或外部引擎。
 
 ## 2. 已验证口径
 
@@ -90,14 +97,38 @@ M10-B已经用固定合成样本形成唯一内部基线评价层：ForwardOutco
 - 治理状态：19项通过；前端lint、TypeScript、生产构建和11项测试通过。
 - Python编译、文档链接和差异格式检查通过；测试前后工作区没有意外文件。
 
-## 5. 明确未做
+## 5. M10-D本地验收
+
+| 验收项 | 结果 |
+| --- | --- |
+| `EvaluationQuery 2.0.0`强制显式`revision_mode=all/current`；`current`先验完整修订链、选择唯一叶节点再过滤 | 通过 |
+| 查询与写入共享store级inventory锁；锁顺序固定，查询只看到完整旧库存或完整新库存 | 通过 |
+| 坏合同、坏ID／指纹、未知版本、断链、分叉、循环和ticker歧义失败关闭 | 通过 |
+| M10-D启用前没有历史库存证据时返回`historical_inventory_unavailable`，不按时间戳猜历史 | 通过 |
+| CSV使用UTF-8无BOM、RFC 4180／CRLF、固定列序与稳定行序；`audit_cell_codec_v1`可逆区分null、空串、0、false和真实`\\N` | 通过 |
+| 每part最多1,000,000数据行；小阈值分片无丢失、重复或截断，各dataset独立守恒 | 通过 |
+| `XlsxWriter==3.2.9`只锁入独立研究导出依赖；wheel／sdist哈希和BSD-2-Clause许可证证据已冻结 | 通过 |
+| XLSX启用`constant_memory`并关闭公式、URL和数字自动转换；Decimal显示值与canonical text并列，不能安全往返时不伪造数值 | 通过 |
+| 标准库限定OOXML复核真实sheet顺序、工作表范围、单元格类型及CSV逐格一致；公式、外链、未知cell和重签篡改失败 | 通过 |
+| 没有来源行的结果表不生成；Score／Factor／Pair Matrix只在Coverage标记`not_implemented` | 通过 |
+| `ExportManifest 2.0.0`区分稳定`export_id`与物化`export_receipt_id`，绑定来源、配置、逐part行数、字节数及SHA-256 | 通过 |
+| 临时包写完、重读、校验、fsync后一次重命名；故障、路径逃逸、符号链接和已有导出冲突不留下半包 | 通过 |
+| Human Review只出不进；人工修改使SHA失效，CSV／XLSX没有回写M10的入口 | 通过 |
+
+- M10-D专项：25项通过；M10 A—D相关定向：130项通过；M08—M10：164项通过。
+- M01—M10扩大定向：315项通过；完整Python：682项通过。
+- `PYTHONHASHSEED=0/1/42/12345`：M10-D每轮25项通过。
+- 治理状态：19项通过；前端lint、TypeScript、生产构建和11项测试通过。
+- Python编译、隔离依赖完整性、文档链接和差异格式检查通过；测试前后工作区没有意外文件。
+
+## 6. 明确未做
 
 - 未实现Portfolio资本、仓位、现金、权益曲线或风险算法；M10-C只产生明确`unavailable`的Portfolio边界。
 - 未实现读取行情或重算逐股收益的研究算法；ResearchAggregate只读已冻结的`gross_return`。
-- 未安装或接入VectorBT、Excel或其他依赖。
-- 未创建CSV、Excel、CLI或看板。
+- 未安装或接入VectorBT；`XlsxWriter==3.2.9`仅存在于被忽略`work/`中的隔离研究导出环境和独立锁文件，不进入生产依赖。
+- 未创建M10-E CLI或看板；本轮CSV／XLSX只使用固定合成样本和临时目录验收，没有提交生成文件。
 - 未运行真实行情、真实每日任务或真实多年回测。
 - 未修改生产入口、工作流、网站、Discord、公开JSON或历史断点。
-- 未开始M10-D—E、M11或M12。
+- 未开始M10-E、M11或M12。
 
-M10-A／B／C均已完成独立审核并进入`main`，M10整体仍为`implementing`。进入主线不等于部署或生产启用；M10-D／E、Portfolio资本算法、VectorBT、CSV／Excel、CLI、看板、M11和M12均未开始。默认每日、夜间、网站、Discord和公开JSON均未切换，也未访问EODHD或运行真实行情／真实多年回测。
+M10-A／B／C均已完成独立审核并进入`main`；M10-D已完成本地影子实施与固定样本验收，等待独立审核，M10整体仍为`implementing`。这不等于合并、部署或生产启用；M10-E、Portfolio资本算法、VectorBT、CLI、看板、M11和M12均未开始。默认每日、夜间、网站、Discord和公开JSON均未切换，也未访问EODHD或运行真实行情／真实多年回测。
