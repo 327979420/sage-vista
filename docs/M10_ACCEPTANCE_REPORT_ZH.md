@@ -128,14 +128,33 @@ M10-D已通过独立审核并以纯fast-forward进入`main`：唯一查询入口
 - 五项审核修复后：M10-D专项33项、M10 A—D相关定向138项、完整Python 690项通过；四种固定`PYTHONHASHSEED`下M10-D每轮33项通过。治理19项、前端11项、Python编译、独立XlsxWriter依赖证据、lint、TypeScript、生产构建、文档链接及格式检查通过。
 - 最终独立审核的五个闸门全部通过，原始六项完整重签攻击全部失败关闭；43个本地文档链接通过。审核代码HEAD为`f91a6fa5773561354b255f9217679f237b0f7017`，已纯fast-forward进入`main`。
 
-## 6. 明确未做
+## 6. M10-E本地验收
+
+| 验收项 | 结果 |
+| --- | --- |
+| `ResearchRunConfig 2.0.0`严格JSON、稳定身份、单一结果族与formal Git边界 | 通过 |
+| `ResearchRunCheckpoint 2.0.0`只追加、完整集合守恒及显式续跑 | 通过 |
+| pending先落盘，结果完整保存后才可terminal；公共存储无旁路 | 通过 |
+| Forward／Trade／Portfolio-unavailable／ResearchAggregate只复用M10-A—D公共入口 | 通过 |
+| 相同配置并发最多一条权威链；中断和异常不遗留死锁 | 通过 |
+| CLI stdout唯一稳定JSON摘要，诊断写stderr，摘要与落盘证据一致 | 通过 |
+| 可选M10-D导出失败与已完成评价隔离且不留下半包 | 通过 |
+| 默认生产入口、旧回放断点、网站、Discord和公开JSON零变化 | 通过 |
+
+- 提交：设计`2517fa6`、E1配置合同`b22da0a`、E2／E3编排实现`dbde7fc61c1dcac0959c838552b23051d114b361`。
+- M10-E专项28项、M10 A—E相关定向166项（跳过10项）、M01—M10扩大定向351项（跳过10项）及完整Python 718项（跳过10项）通过。
+- `PYTHONHASHSEED=0/1/42/12345`下M10-E每轮28项通过；治理19项和前端11项通过。
+- Python编译、lint、TypeScript、生产构建、文档链接及差异格式检查通过；测试前后工作区没有意外文件，旧生产断点字节不变。
+- M10-E当前为`verified`，等待独立审核；M10整体继续为`implementing`。
+
+## 7. 明确未做
 
 - 未实现Portfolio资本、仓位、现金、权益曲线或风险算法；M10-C只产生明确`unavailable`的Portfolio边界。
 - 未实现读取行情或重算逐股收益的研究算法；ResearchAggregate只读已冻结的`gross_return`。
 - 未安装或接入VectorBT；`XlsxWriter==3.2.9`仅存在于被忽略`work/`中的隔离研究导出环境和独立锁文件，不进入生产依赖。
-- 未创建M10-E CLI或看板；本轮CSV／XLSX只使用固定合成样本和临时目录验收，没有提交生成文件。
+- 未创建看板；M10-E CLI和M10-D CSV／XLSX均只使用固定合成样本及临时目录验收，没有提交生成文件。
 - 未运行真实行情、真实每日任务或真实多年回测。
 - 未修改生产入口、工作流、网站、Discord、公开JSON或历史断点。
-- 未开始M10-E、M11或M12。
+- 未开始VectorBT、M11或M12。
 
-M10-A／B／C／D均已完成独立审核并进入`main`，M10整体仍为`implementing`。M10-D进入主线不等于部署、生产启用或完成真实历史导出；尚未生成正式生产CSV／XLSX，网站和Discord也未提供查询或下载。M10-E、Portfolio资本算法、VectorBT、CLI、看板、M11和M12均未开始；默认每日、夜间、网站、Discord和公开JSON均未切换，也未访问EODHD或运行真实行情／真实多年回测。Excel仍是人工审核副本，人工修改不能回写M10权威账本。
+M10-A／B／C／D均已完成独立审核并进入`main`，M10-E已完成本地影子实现并处于`verified`、等待独立审核，M10整体仍为`implementing`。M10-D进入主线和M10-E本地验证均不等于部署、生产启用或完成真实历史导出；尚未生成正式生产CSV／XLSX，网站和Discord也未提供查询或下载。Portfolio资本算法、VectorBT、看板、M11和M12均未开始；默认每日、夜间、网站、Discord和公开JSON均未切换，也未访问EODHD或运行真实行情／真实多年回测。Excel仍是人工审核副本，人工修改不能回写M10权威账本。
