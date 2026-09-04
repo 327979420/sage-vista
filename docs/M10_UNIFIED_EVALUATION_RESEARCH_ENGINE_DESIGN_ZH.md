@@ -1,12 +1,12 @@
 # M10｜统一评价、回测与外部研究引擎设计
 
-- 文档状态：M10-A／B／C里程碑均已审核并进入`main`；M10整体仍为`implementing`
+- 文档状态：M10-A／B／C里程碑均已审核并进入`main`；M10-D的D1／D2／D3最小设计已批准实施；M10整体仍为`implementing`
 - 对应需求：`CR-2026-09-02-050`
 - 基线提交：`5dfd0a57fc1dad56042c0db6b8e2c3ce9ff88251`
 - 设计日期：2026-09-02
 - 生产状态：M10-A合同基础、M10-B内部基线评价器和M10-C只读汇总均已进入`main`；未部署、未生产启用
 
-> 本文冻结M10的职责、合同边界、身份和失败关闭语义。M10-A、M10-B和M10-C均已完成独立审核并进入`main`，M10整体继续为`implementing`。M10-C只建立Portfolio失败关闭边界和只读研究汇总，不批准资本算法或真实组合表现。M10-D—E、VectorBT、真实多年回测、生产目录、M11和M12仍未批准。
+> 本文冻结M10的职责、合同边界、身份和失败关闭语义。M10-A、M10-B和M10-C均已完成独立审核并进入`main`，M10整体继续为`implementing`。M10-C只建立Portfolio失败关闭边界和只读研究汇总，不批准资本算法或真实组合表现。M10-D的D1／D2／D3边界已获用户明确批准并进入实施；M10-E、VectorBT、真实多年回测、生产目录、M11和M12仍未批准。
 
 ## 1. 人话版
 
@@ -330,24 +330,128 @@ python3 -m research.run --config research/configs/rsi-support-v1.json
 | M12看板数据 | 预计算的小型只读JSON | 可再生成视图 |
 | `public/` | 本轮禁止写入 | 生产集成留给M12 |
 
-查询层必须按稳定ID、策略／政策版本、日期、instrument、事件、运行、窗口、状态、路径、角色和分区过滤；不能靠文件名中的ticker和日期猜身份。
+查询层必须按稳定ID、政策版本、日期、instrument、事件、运行、窗口、状态、路径、角色和分区过滤；不能靠文件名中的ticker和日期猜身份。现有M10结果并不直接保存统一的`strategy_version`、排名或ticker；相关信息只能通过已验证的M09事件和M07排行稳定引用追溯，不能把M10 `source_version`误当策略版本。
 
-### 10.1 CSV／Excel边界
+### 10.1 M10-D唯一职责与候选合同
 
-Excel至少规划以下工作表：
+M10-D的D1／D2／D3最小边界已经批准：只在现有`services/evaluation/`和`EvaluationShadowStore`之上增加一个只读查询入口，例如`services/evaluation/query.py`。它不得建立第二数据库、可变“最新结果”索引或新的收益事实。JSON中的M10结果和ExperimentRun收据继续是权威机器证据；查询结果、CSV和XLSX均为可删除重建的审计证据或副本。
 
-- `Run Summary`
-- `Trade Outcomes`
-- `Forward Outcomes`
-- `Score Analysis`
-- `Factor Analysis`
-- `Pair Matrix`
-- `Bias & Missing Data`
-- `Version Evidence`
+候选合同及来源版本如下，须经用户批准后才能实施：
 
-每份导出至少保存导出ID、来源run ID、策略及各政策版本、日期范围、formal／legacy、股票池与退市覆盖、数据修订、代码提交、配置指纹、样本与缺失、费用／滑点、窗口／持仓规则、源结果集合指纹、内容SHA-256、生成时间，以及“人工修改后不再是权威结果”的说明。
+| 合同／配置 | 候选版本 | 身份职责 |
+| --- | --- | --- |
+| `EvaluationQuery` | `2.0.0` | 规范化过滤条件、显式修订模式和排序政策；`generated_at`及输出路径不入身份 |
+| `QueryResultSet` | `2.0.0` | 绑定查询、一次原子库存快照及规范排序后的精确结果引用集合 |
+| `ExportConfig` | `1.0.0` | 固定格式、列、空值、文本安全、精度、布局和分片政策 |
+| `ExportManifest` | `2.0.0` | 绑定结果集、导出配置、实际文件／工作表、行数、字节数和SHA-256 |
 
-导出器只读权威结果。Excel人工批注若未来需要回系统，必须走M09／M11独立追加流程，不能回写M10结果。具体列、拆分、大小限制和Excel依赖在实施D包前再次确认。
+候选M10-D来源版本为`m10-d-query-export-1.0.0`。这些合同只保存查询与导出证据，不属于第五种收益结果，也不得取代现有`ExperimentRun 2.x`。D1不把这些新引用强塞进当前不支持它们的ExperimentRun 2.0白名单：`QueryResultSet`自身保存查询、库存、代码提交、状态和诊断，`ExportManifest`自身作为成功导出的完整收据。若以后要求查询／导出也进入统一ExperimentRun，必须另行批准并版本化扩展稳定引用角色，不能假称现有合同已经支持。
+
+### 10.2 查询过滤、修订模式和库存证据
+
+`EvaluationQuery 2.0.0`的合同头保存自身`schema_version/source_version/query_id/query_content_fingerprint`；严格`filters`对象另用不会与合同头重名的允许字段，至少包括：
+
+- `result_contracts`、`result_schema_versions`、`result_source_versions`；
+- `run_id`、`event_id`、`instrument_id`；
+- 独立且包含两端的`signal_date_from/to`与`as_of_from/to`，不得用一个含糊“date”字段；
+- `window_sessions`、`status`、`path_status`、`result_role`、`partition_role`；
+- 评价、窗口、执行、成本、复权与聚合政策的角色、版本及内容指纹；
+- `bias_labels`，首版语义固定为结果必须包含全部请求标签；
+- 必填`revision_mode`和固定`sort_policy_version`。
+
+数组输入先按规范值排序和去重，因此输入顺序不影响`query_id`；`null`表示不使用该过滤器，空数组非法，避免“空数组表示全部还是零结果”的歧义。每个过滤器只匹配该结果合同直接保存的字段；字段不存在即不匹配，禁止为凑查询结果隐式遍历M07／M09或猜造派生字段。ticker不是formal查询身份：调用方若使用ticker，必须先经M01稳定证券身份解析；零个匹配返回`unavailable`，多个匹配返回`ambiguous`，均不得猜测instrument。未来如需展开M07／M09细节，必须是显式enrichment，交付并验证完整不可变对象，将其ID／内容指纹和enrichment政策纳入查询身份；D1不实现该展开。
+
+`revision_mode`没有默认值，也没有含糊的`latest`：
+
+- `all`：在验证完整修订链后返回符合过滤条件的全部结果修订，包括已被替代的`pending`、`partial`和`unavailable`；`failed`只属于关联ExperimentRun收据，不得伪造成四类结果状态；
+- `current`：先验证每个`logical_result_id`的完整链并调用现有唯一`current_result()`选择唯一叶节点，再应用日期、状态等记录级过滤。禁止先过滤后让旧`pending`重新冒充current。
+
+查询必须先在存储公共入口内建立一次只读库存屏障，并在同一保护范围中冻结`source_inventory_id`和`source_inventory_fingerprint`。库存证据由规范排序的相对路径、合同、稳定ID、内容指纹、文件字节SHA-256及关联运行收据组成；所有M10写入入口必须参加同一屏障，查询不能在并发写入中拼出混合时点。随后逐条调用现有`validate_result()`／`validate_experiment_run()`，按完整逻辑根调用`current_result()`／`current_experiment_run()`，最后才过滤和排序。损坏ID／内容指纹、重复身份、未知版本、断链、分叉或循环使整次formal查询失败，不能静默跳过坏文件。
+
+现有存储没有M10-D启用前的历史库存快照，因此`as_of`只表示结果的证据日期，不能倒推“过去某个墙钟时刻磁盘中有哪些文件”。这类请求必须返回`historical_inventory_unavailable`；不得按`generated_at`猜库存历史。
+
+`QueryResultSet 2.0.0`至少保存`query_id`及查询内容指纹、库存ID／指纹、代码提交、规范排序的`{result_contract,schema_version,result_id,logical_result_id,run_id,content_fingerprint}`引用、精确`run_receipt_refs`、匹配数量、排序政策、状态和诊断。每个run receipt引用必须包含`run_id/run_receipt_id/run_content_fingerprint/supersedes_run_receipt_id/status`。结果的`all/current`选择完成后，再对关联run的完整收据链执行相同语义：`all`保存全部收据引用，`current`先调用`current_experiment_run()`再保存唯一叶节点；无论何种模式都先验证完整收据链。这样`ExperimentRuns`导出能证明自己打印的具体收据，不能只靠run ID猜测。零匹配是合法`empty`且`row_count=0`；损坏、歧义或证据缺失分别为`failed`、`ambiguous`或`unavailable`，不能都伪装成空结果。推荐稳定排序键为合同固定顺序、instrument空值后置、signal date空值后置、窗口空值后置、`as_of`、`logical_result_id`、稳定结果ID。
+
+### 10.3 ExportManifest与原子发布
+
+`export_id`只由`QueryResultSet`身份／内容指纹和规范化`ExportConfig`决定；绝对输出路径与`generated_at`不进入该逻辑身份。每次实际物化另有`export_receipt_id`，由逻辑`export_id`、实际`generated_at`和规范排序的artifact SHA-256计算，因此同一逻辑导出的多次物化不会出现同ID不同Manifest，也不会覆盖彼此。`ExportManifest 2.0.0`至少保存：
+
+- `export_id`、`export_receipt_id`、manifest内容指纹、export schema／source／config版本和配置指纹；
+- 原始查询条件、`revision_mode`、库存ID／指纹、来源run ID集合；
+- 来源结果ID／内容指纹全集及`source_result_set_fingerprint`；
+- 合同、政策、日期、path／result／partition角色、bias与missing摘要；
+- 请求格式、代码提交、`generated_at`及固定“非权威审核副本、不可回写”声明；
+- 每个artifact的相对文件名、格式、part序号／总数、数据行数、工作表行数、首末稳定排序键、row-set指纹、字节数和实际文件SHA-256；
+- 文件集合指纹、查询总行数及各part行数守恒证据。
+
+Manifest本身不进入自己的artifact清单，避免自哈希循环。CSV／XLSX中不写实际生成时间；XLSX core properties的`created/modified`固定为渲染政策中的UTC常量，ZIP成员时间也由同一可复现政策控制，实际`generated_at`只写Manifest。所有文件只允许写入系统临时目录或仓库已忽略的`work/`；先在同文件系统的兄弟暂存目录逐个写完、关闭、重读核验行数／逐格规范值／SHA-256，再最后写Manifest并以`export_receipt_id`命名的原子目录重命名发布。任一步失败不得暴露半包或临时文件。目标已有完全相同Manifest和文件时幂等返回；相同receipt身份出现不同字节时冲突失败，不覆盖旧副本或人工修改副本。相同来源和配置必须保持同一逻辑`export_id`，固定渲染政策还必须使artifact字节SHA-256一致；不同实际生成时间只产生不同receipt证据。
+
+### 10.4 CSV固定编码和列
+
+M10-D1优先只用Python标准库`csv`：UTF-8无BOM、逗号分隔、RFC 4180引号和CRLF行结束；固定列顺序、固定行排序，不允许静默截断。序列化规则由`ExportConfig 1.0.0`绑定，并使用可逆、无碰撞的`audit_cell_codec_v1`：
+
+- `null`唯一写为`\N`；任何真实文本若以反斜杠开头，先额外前置一个反斜杠，因此真实`\N`与null不碰撞；解码时精确单反斜杠`\N`还原为null，以双反斜杠开头的文本只去掉一个前缀反斜杠；
+- 布尔固定为`true/false`，日期为ISO 8601，Decimal使用无指数的规范十进制字符串；
+- 列表／对象使用键排序、无NaN／Infinity的规范JSON；
+- ID、版本和指纹始终为文本，不允许电子表格转成科学计数法；
+- 任意真实文本以ASCII单引号或`= + - @`开头时，额外前置一个ASCII单引号；解码时只对“双单引号”或“单引号＋危险字符”去掉一个前缀。这样原始`=x`编码为`'=x`、原始`'=x`编码为`''=x`，互不碰撞且都不能成为公式；
+- 重读验证必须按上述逆规则恢复typed canonical值，任何非规范编码失败，不能只比较显示文本。
+
+每种结果类型使用独立逻辑CSV数据集；超限时只按固定分片政策生成确定性part，全部part仍构成一份完整数据集：
+
+| CSV | 固定列组 |
+| --- | --- |
+| `ForwardOutcomes` | 公共身份／版本／角色／修订列；event、instrument、signal date、行情／股票池／日历证据；窗口、target、entry、endpoint、gross／MFE／MAE及政策列。2.0的target只能为空，禁止推断 |
+| `TradeOutcomes` | 公共列；event、plan、link、ExitState、行情／股票池证据；entry／exit、holding、gross、R、net状态、MFE／MAE状态及政策列 |
+| `PortfolioStatus` | 公共列；验证后的TradeOutcome集合指纹、aggregation政策和portfolio scope；不得增加资本或表现字段 |
+| `ResearchAggregates` | 公共列；来源类型／窗口／scope、来源集合指纹、状态计数、样本计数及已经冻结的M10-C毛收益统计；不得现场重算 |
+| `ExperimentRuns` | run／receipt／前序身份、状态、证据窗口、角色、代码／配置／引擎、输入输出集合指纹、时间、错误和来源版本 |
+
+一对多引用使用固定子表`PortfolioRunRefs`、`ResearchAggregateRefs`、`RunPolicyRefs`、`RunInputRefs`和`RunResultRefs`，每行保存父稳定ID、ordinal、引用角色、被引用ID和内容指纹；不得塞进不可查询的逗号字符串。所有主表公共列至少保留合同、schema/source版本、稳定结果ID、内容指纹、逻辑ID、前序ID、run ID、`as_of`、path／result／partition、status／reason、input fingerprint、bias labels和future-data标志。字段不适用与真实数值0必须可区分。
+
+### 10.5 XLSX候选依赖、安全与精度
+
+M10-D2已获批准精确锁定、但尚未安装`XlsxWriter==3.2.9`。官方PyPI元数据记录Python `>=3.8`、BSD-2-Clause许可证和2025-09-16发布；锁定文件为：
+
+- wheel `xlsxwriter-3.2.9-py3-none-any.whl`，SHA-256 `9a5db42bc5dff014806c58a20b9eae7322a134abb6fce3c92c181bfb275ec5b3`；
+- sdist `xlsxwriter-3.2.9.tar.gz`，SHA-256 `254b1c37a368c444eac6e2f867405cc9e461b0ed97a3233b2ac1e574efb4140c`。
+
+权威来源为PyPI项目JSON、XlsxWriter官方文档及项目BSD-2-Clause LICENSE。该依赖未来只能放入独立、精确锁定的本地研究导出依赖组，不进入网站或Worker环境；本设计不安装它。选用理由是它只生成、不读取或修改已有XLSX，并支持顺序行写入的`constant_memory`模式，正好强化单向审核副本边界。
+
+设计证据链接：[PyPI 3.2.9 JSON](https://pypi.org/pypi/XlsxWriter/3.2.9/json)、[Workbook选项](https://xlsxwriter.readthedocs.io/workbook.html)、[constant_memory说明](https://xlsxwriter.readthedocs.io/working_with_memory.html)、[3.2.9版本归档的BSD-2-Clause LICENSE](https://raw.githubusercontent.com/jmcnamara/XlsxWriter/RELEASE_3.2.9/LICENSE.txt)及[Microsoft Excel规格上限](https://support.microsoft.com/en-us/office/excel-specifications-and-limits-1672b34d-7043-467e-8e27-269d656771c3)。
+
+候选工作簿必须设置`constant_memory=True`、`strings_to_formulas=False`、`strings_to_urls=False`和`strings_to_numbers=False`，所有不可信文本使用安全的显式字符串写入；固定表名／列序、冻结首行、自动筛选、明确日期／数字格式、只读推荐属性，不含宏、外链或公式。收益、胜率、PF及其他指标只能写入M10已有值，禁止Excel公式重算。
+
+Excel二进制数值不能冒充完整Decimal精度。首版候选渲染政策为：每个定点事实保留规范Decimal文本审计列；仅当数值能在Excel 15位有效数字限制内往返一致时，才另写可排序的展示数值列。CSV和XLSX从同一typed canonical row set渲染；D3使用Python标准库`zipfile`与`xml.etree.ElementTree`实现只读OOXML严格子集校验器，只识别本生成器允许的inline string、number、boolean和ISO文本，拒绝公式、宏、外链及未知cell类型，并以审计列逐格还原对账。该校验器不读取或修改任意第三方工作簿，也不是第二业务计算入口；展示格式不参与权威身份。精度政策仍需用户在D2前确认。
+
+### 10.6 工作表、拆分和人工审核
+
+首版候选工作簿只为真实来源生成以下表：
+
+1. `Run Summary`
+2. `Forward Outcomes`
+3. `Trade Outcomes`
+4. `Research Aggregates`
+5. `Portfolio Status`
+6. `Bias & Missing Data`
+7. `Version Evidence`
+8. `Human Review`
+
+结果类型没有来源行时不生成对应结果表，并在`Run Summary`的Coverage区明确`no_source_rows`。`Score Analysis`、`Factor Analysis`和`Pair Matrix`当前没有M10-C权威结果来源，因此不生成这些工作表；Coverage只标记`not_implemented`，不得生成看似有结论的空指标表。
+
+`Run Summary`只显示查询与现有结果的总数、有效、missing、open、no_trade、pending、partial和unavailable，不计算新研究指标。`Version Evidence`保存模型、排行、事件、计划、评价、代码和数据的稳定引用；M10结果未直接保存的M07／M09细节只能在提供并重新验证对应不可变对象时展开，否则保留稳定引用并标记`unavailable`，不得猜造。每个结果行保留event ID、instrument ID、signal date、run ID、结果ID和内容指纹。
+
+`Human Review`按来源结果生成稳定ID列和空白`reviewer/reviewed_at/decision/issue_type/notes/hypothesis`列，并醒目标明：表格修改不会回写机器账本，修改后原文件SHA-256失效；任何需要进入系统的观察必须通过M09／M11形成独立追加记录。M10-D不提供Excel导入器，Excel永远不能成为查询或后续计算输入。
+
+Excel官方单表上限为1,048,576行；候选项目阈值固定为每表1,000,000条数据行，另保留一行表头。规范排序后按固定行数生成`Forward 001`、`Forward 002`等part；CSV从D1起即使用同一`partition_policy 1.0.0`，因此该阈值必须在批准D1时一并确认，不能拖到D2。Manifest按逻辑dataset分别守恒：四类主结果表全部part的行数合计等于QueryResultSet相应合同的结果引用数，四类主结果合计等于全部结果引用数；`ExperimentRuns`等于`run_receipt_refs`数；每个引用子表等于对应来源对象实际引用数；Summary、Version、Bias和Human Review分别保存自己的期望行数。不得把所有不同表的行数错误地统一等同于查询结果数。任何dataset各part总行数、首末键或指纹不守恒即失败，任何单元格或文件无法无损表示时整次相应格式导出失败，不截断。工作簿采用顺序写入，不生成真实多年文件来测试拆分。
+
+### 10.7 D1／D2／D3候选工作包
+
+1. **M10-D1｜只读查询、库存证据、ExportManifest与CSV**：仅标准库；建立唯一查询入口、`all/current`、确定性typed row set、可逆cell codec、`partition_policy 1.0.0`、原子导出与固定合成测试；1,000,000数据行阈值须随D1批准。
+2. **M10-D2｜XLSX依赖闸门与单向生成器**：用户另行批准精确pin、哈希、许可证和Decimal双表示后才安装研究依赖；复用D1 row set、codec和分片政策生成XLSX，并固定所有可变工作簿元数据。
+3. **M10-D3｜一致性与审核验收**：用标准库OOXML严格子集校验器重读CSV／XLSX逐格对账，验证确定性字节、分片、公式注入、文件SHA、人工修改失效和失败零半包。
+
+每包目标不超过20分钟并形成独立审核点。M10-D不实现M10-E CLI，不接生产，不读取行情、不重算收益、不修改M09或任何M10结果，也不导入人工修改后的表格。
 
 ## 11. M12看板接口边界
 
@@ -416,6 +520,27 @@ M10-C实施前必须以固定合成Outcome完成以下10项机械验收；本表
 | M10-C-09 | 向汇总器注入行情、bars／OHLCV或要求重算逐股收益 | 严格字段／函数边界拒绝；生产器只消费已验证Outcome |
 | M10-C-10 | 资本政策未批准却请求Portfolio数字或曲线 | `PortfolioRun 2.1.0`只能`unavailable`且原因为`capital_allocation_policy_not_approved`，禁止任何资本或表现字段 |
 
+### 13.2 M10-D最小设计验收矩阵（已批准实施）
+
+以下14项冻结D1—D3的机械验收；批准设计不表示查询器、CSV或XLSX已经实现：
+
+| 编号 | 固定正例／反例 | 必须结果 |
+| --- | --- | --- |
+| M10-D-01 | 按合同／版本／日期／instrument／事件／run／窗口／状态／政策查询；调换过滤数组顺序 | 精确匹配；同语义查询得到相同`query_id`，任一过滤语义变化得到不同ID；ticker歧义不猜测 |
+| M10-D-02 | 对同一完整修订库存显式选择`all`或`current` | `all`保留全部历史；`current`先验全链再选唯一叶节点，旧pending不会因后续过滤复活 |
+| M10-D-03 | 库存含坏ID／指纹、重复、未知版本、断链、分叉或循环 | 整次formal查询失败关闭，不静默漏行；旧2.x只按已知版本语义只读 |
+| M10-D-04 | 调换源文件枚举顺序或Python哈希种子；对同一结果集和配置重复渲染 | 结果引用、稳定行排序、结果集指纹、分片、逻辑导出ID及artifact SHA-256不变 |
+| M10-D-05 | CSV与XLSX读取同一typed row set | 由标准库重读后每个源ID／指纹、规范值、row-set指纹和行数完全一致 |
+| M10-D-06 | null、空字符串、0、false及不适用字段并存 | 唯一编码且互不冒充；null绝不变成0 |
+| M10-D-07 | 高精度Decimal和既有M10统计 | 规范文本保留原精度，展示列仅在可往返时为数值；没有Excel公式重算 |
+| M10-D-08 | 文本以`= + - @`、单引号或反斜杠开头 | 可逆codec无碰撞；CSV与XLSX均为普通安全文本，不触发公式或URL；ID不变成科学计数法 |
+| M10-D-09 | 固定小样本把每part阈值降至极小以触发拆分 | 无丢行、重复或静默截断；每个dataset的part总数／行数／首末键／指纹分别守恒 |
+| M10-D-10 | 导出后人工修改XLSX任一单元格 | 文件SHA验证失败，不能回写、不能冒充原导出，也不能被同ID静默覆盖 |
+| M10-D-11 | 正常、空结果和故意中断的导出 | Manifest逻辑export ID、物化receipt ID、来源全集、各dataset行数及artifact SHA正确；空结果明确0行；失败无公开半包 |
+| M10-D-12 | 尝试向查询／导出注入行情、要求重算收益或新指标 | 严格边界拒绝；只读取和打印已验证不可变字段 |
+| M10-D-13 | 请求写`public/`、生产目录或Git跟踪数据 | 路径闸门失败；只允许系统临时目录或已忽略`work/` |
+| M10-D-14 | 用CSV／XLSX／可变current索引作为后续权威输入 | 失败关闭；权威仍是原M10 JSON、收据和修订链，不建立第二账本 |
+
 ## 14. 分阶段实施建议
 
 每包保持小而可审核，核心与外部引擎分开批准：
@@ -423,13 +548,13 @@ M10-C实施前必须以固定合成Outcome完成以下10项机械验收；本表
 1. **M10-A｜合同、身份和运行收据**：冻结四类2.x合同、`ExperimentRun 2.x`、角色／分区、幂等、冲突和失败收据；不算收益。
 2. **M10-B｜内部Forward／Trade基线**：只用固定小样本实现逐股结果，复用M02／M08事实，验证防未来和执行顺序。
 3. **M10-C｜Portfolio／Aggregate边界（里程碑已进入`main`）**：保留`PortfolioRun unavailable`守门，只读取单一类型Forward或Trade结果做最小gross汇总；资金政策未批准前不建资本曲线。
-4. **M10-D｜存储、查询、CSV／Excel**：只追加存储、查询和可再生成导出；Excel依赖及格式另行确认。
+4. **M10-D｜准确查询、CSV／Excel审核副本（`implementing`）**：D1查询／库存／Manifest／CSV、D2独立XLSX依赖闸门和D3一致性验收已经批准；尚未完成实现或审核。
 5. **M10-E｜配置和统一CLI**：版本化JSON、非交互CLI、运行收据与断点；不接工作流。
 6. **M10-X1｜VectorBT依赖及许可闸门**：独立批准最小依赖、锁定、哈希、安全和许可结论。
 7. **M10-X2｜固定样本适配与逐笔parity**：同一数据集对照内部基线，结果只作comparison。
 8. **M10-X3｜扩大comparison验证**：在用户另批样本范围内扩展，不触发真实多年生产回测。
 
-历史A—C已经完成审核并进入`main`。M10-D—E和X1—X3仍未批准或开始。
+历史A—C已经完成审核并进入`main`。M10-D只有设计草案、没有实现或产物；M10-E和X1—X3仍未批准或开始。
 
 ## 15. 回退和生产边界
 
@@ -457,7 +582,7 @@ M10设计与未来影子实施默认不改现有生产入口，所以回退是�
 - formal TradeOutcome可保存毛收益，费用／滑点缺失只阻断净收益。
 - 后续成熟结果只能追加不可变版本和修订链，不覆盖早期`pending`或M09事件。
 
-M10-C已获得本节之外的独立明确实施授权；M10-D—E、VectorBT X包、真实多年回测、生产接入、M11和M12仍未获批。
+M10-C已获得本节之外的独立明确实施授权；M10-D的D1／D2／D3已获得独立明确实施授权，XlsxWriter仅限隔离的研究导出依赖。M10-E、VectorBT X包、真实多年回测、生产接入、M11和M12仍未获批。
 
 ### 16.1 M10-A阶段里程碑（2026-09-02）
 
@@ -484,3 +609,11 @@ M10-C已获得本节之外的独立明确实施授权；M10-D—E、VectorBT X�
 - 用户批准的固定合成Outcome影子实施已完成：设计冻结`dbcdcf6`、唯一只读生产与合同／存储边界`041e6be`、固定样本回归`a08dd33`，审核代码HEAD为`7bb635617ddcfb06277d23269cca9fdfe4cadb8d`。该HEAD已通过独立审核并以纯fast-forward方式进入`main`；进入主线不表示部署或生产启用。
 - 最终验收：M10-C专项27项、M10合同／基线／汇总105项、M08与M10 120项、指定含M09集合139项、M01—M10扩大定向290项、完整Python 657项、四种固定哈希种子每轮M10-C 27项、治理19项和前端11项通过；Python编译、lint、TypeScript、生产构建、文档链接和格式检查通过。独立窄复核确认Portfolio始终诚实`unavailable`，ResearchAggregate不读取行情或重算逐股收益，重签统计、状态伪装、错误`as_of`、failed收据和PF量化边界均失败关闭，Trade `open/no_trade`分别守恒，状态、样本和收益分类守恒。
 - M10-D／E、Portfolio资本算法、VectorBT、CSV／Excel、CLI、查询API、真实多年回测、M11和M12均未开始；CR-043继续为`captured`。
+
+### 16.4 M10-D最小设计里程碑（2026-09-03）
+
+- 设计于2026-09-04获用户批准实施：唯一只读查询入口复用现有合同验证、完整修订链和`EvaluationShadowStore`，显式区分`all/current`，并以原子库存指纹证明查询看到的精确集合；批准时仍没有实现代码、测试产物或依赖安装。
+- 候选合同为`EvaluationQuery 2.0.0`、`QueryResultSet 2.0.0`、`ExportConfig 1.0.0`和`ExportManifest 2.0.0`，来源版本建议`m10-d-query-export-1.0.0`。它们只记录查询与导出证据，不创建收益事实或第二权威账本。
+- D1建议先用标准库完成查询、Manifest和CSV，并一并批准可逆cell codec及1,000,000行分片政策；D2须另行批准`XlsxWriter==3.2.9`精确锁定、BSD-2-Clause许可证和Decimal双表示；D3只做CSV／XLSX逐格一致、安全、拆分和人工审核验收。
+- 首版候选表只覆盖已有Run、Forward、Trade、ResearchAggregate、Portfolio状态、bias／missing、版本证据和人工审核列。Score Analysis、Factor Analysis和Pair Matrix没有M10-C权威来源，不生成伪数据表。
+- M10-D未读取行情、重算收益、生成CSV／XLSX、修改生产入口或接入网站／Discord。M10-E、VectorBT、真实多年回测、M11和M12仍未开始；CR-043继续为`captured`。
