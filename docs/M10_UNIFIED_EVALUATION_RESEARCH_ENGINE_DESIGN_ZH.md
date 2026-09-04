@@ -366,7 +366,7 @@ M10-D来源版本固定为`m10-d-query-export-1.0.0`。这些合同只保存查�
 - `all`：在验证完整修订链后返回符合过滤条件的全部结果修订，包括已被替代的`pending`、`partial`和`unavailable`；`failed`只属于关联ExperimentRun收据，不得伪造成四类结果状态；
 - `current`：先验证每个`logical_result_id`的完整链并调用现有唯一`current_result()`选择唯一叶节点，再应用日期、状态等记录级过滤。禁止先过滤后让旧`pending`重新冒充current。
 
-查询必须先在存储公共入口内建立一次只读库存屏障，并在同一保护范围中冻结`source_inventory_id`和`source_inventory_fingerprint`。库存证据由规范排序的相对路径、合同、稳定ID、内容指纹、文件字节SHA-256及关联运行收据组成；所有M10写入入口必须参加同一屏障，查询不能在并发写入中拼出混合时点。随后逐条调用现有`validate_result()`／`validate_experiment_run()`，按完整逻辑根调用`current_result()`／`current_experiment_run()`，最后才过滤和排序。损坏ID／内容指纹、重复身份、未知版本、断链、分叉或循环使整次formal查询失败，不能静默跳过坏文件。
+查询必须先在存储公共入口内建立一次只读库存屏障，并在同一保护范围中冻结`source_inventory_id`和`source_inventory_fingerprint`。库存证据由规范排序的相对路径、合同、稳定ID、内容指纹、文件字节SHA-256、完整规范payload及关联运行收据组成；完整payload是离线重新执行查询所需的最小只读证据，不是第二份可写账本。所有M10写入入口必须参加同一屏障，查询不能在并发写入中拼出混合时点。查询生成和复核共同调用唯一确定性推导函数：先逐条调用现有`validate_result()`／`validate_experiment_run()`并复核路径、文件字节和指纹，按完整逻辑根调用`current_result()`／`current_experiment_run()`，再执行`all/current`、过滤和稳定排序。复核必须把重新推导的完整有序集合与`QueryResultSet`逐项精确比较；少、多、重复、替换或乱序均失败。缺少完整payload时返回`inventory_evidence_unavailable`；损坏ID／内容指纹、重复身份、未知版本、断链、分叉或循环使整次formal查询失败，不能静默跳过坏文件。
 
 现有存储没有M10-D启用前的历史库存快照，因此`as_of`只表示结果的证据日期，不能倒推“过去某个墙钟时刻磁盘中有哪些文件”。这类请求必须返回`historical_inventory_unavailable`；不得按`generated_at`猜库存历史。
 
@@ -374,7 +374,7 @@ M10-D来源版本固定为`m10-d-query-export-1.0.0`。这些合同只保存查�
 
 ### 10.3 ExportManifest与原子发布
 
-`export_id`只由`QueryResultSet`身份／内容指纹和规范化`ExportConfig`决定；绝对输出路径与`generated_at`不进入该逻辑身份。每次实际物化另有`export_receipt_id`，由逻辑`export_id`、实际`generated_at`和规范排序的artifact SHA-256计算，因此同一逻辑导出的多次物化不会出现同ID不同Manifest，也不会覆盖彼此。`ExportManifest 2.0.0`至少保存：
+`export_id`只由`QueryResultSet`身份／内容指纹和规范化`ExportConfig`决定；绝对输出路径与`generated_at`不进入该逻辑身份。每次实际物化另有`export_receipt_id`，由唯一共享函数对完整Manifest物化语义重算：包括逻辑`export_id`、实际`generated_at`、`code_commit`、M10-D来源版本、导出格式／编码／渲染政策、XLSX生成器与锁定依赖证据，以及规范排序后每个最终文件／part的路径、行数、字节数和SHA-256。只排除`export_receipt_id`自身及随后据完整Manifest计算的`manifest_content_fingerprint`，以避免自引用；验证不得信任调用方传入的收据ID。因此相同来源与配置即使代码提交不同仍有相同`export_id`，但不同物化语义必有不同`export_receipt_id`。`ExportManifest 2.0.0`至少保存：
 
 - `export_id`、`export_receipt_id`、manifest内容指纹、export schema／source／config版本和配置指纹；
 - 原始查询条件、`revision_mode`、库存ID／指纹、来源run ID集合；
@@ -422,7 +422,9 @@ M10-D2已在独立研究导出依赖中精确锁定`XlsxWriter==3.2.9`，并在�
 
 工作簿固定设置`constant_memory=True`、`strings_to_formulas=False`、`strings_to_urls=False`和`strings_to_numbers=False`，所有不可信文本使用安全的显式字符串写入；固定表名／列序、冻结首行、自动筛选、明确日期／数字格式、只读推荐属性，不含宏、外链或公式。收益、胜率、PF及其他指标只能写入M10已有值，禁止Excel公式重算。
 
-Excel二进制数值不能冒充完整Decimal精度。首版渲染政策固定为：每个定点事实保留规范Decimal文本审计列；仅当数值能在Excel 15位有效数字限制内往返一致时，才另写可排序的展示数值列。CSV和XLSX从同一typed canonical row set渲染；D3使用Python标准库`zipfile`与`xml.etree.ElementTree`实现只读OOXML严格子集校验器，只识别本生成器允许的inline string、number、boolean和ISO文本，拒绝公式、宏、外链及未知cell类型，并以审计列逐格还原对账。该校验器不读取或修改任意第三方工作簿，也不是第二业务计算入口；展示格式不参与权威身份。该精度政策已随D2批准并冻结。
+Excel二进制数值不能冒充完整Decimal精度。首版渲染政策固定为：每个定点事实保留规范Decimal文本审计列；仅当数值能在Excel 15位有效数字限制内往返一致时，才另写可排序的展示数值列。CSV和XLSX从同一条唯一链路生成：已验证payload先生成全部主表和引用子表的canonical row projection，再生成CSV和XLSX；包复核重新解析并验证payload、重建相同投影，并精确比较表头、列序、行序和每个解码单元格，任何未知／缺失／重复列或子表行均失败。
+
+D3使用Python标准库`zipfile`与`xml.etree.ElementTree`实现命名空间感知的只读OOXML严格子集校验器。它只接受本生成器固定的ZIP成员、content types、关系、工作表结构、单元格类型和XlsxWriter 3.2.9样式集合；拒绝单元格公式、任意defined name、data validation／conditional formatting／table计算公式、calc chain、external link、connection、DDE／OLE、宏／VBA、未知关系或异常成员。XlsxWriter正常生成的筛选器内建defined name只按精确sheet及范围白名单接受。固定style角色区分表头、文本／ID／SHA／日期、整数、布尔和Decimal；自定义数字格式只允许`@`及固定十位Decimal，`;;;`、`;;;@@@@@@@@`或任何额外样式即使未被单元格引用也失败。该校验器不读取或修改任意第三方工作簿，也不是第二业务计算入口；展示格式不参与权威身份。列宽、分页及打印页数不属于本修复。该精度政策已随D2批准并冻结。
 
 ### 10.6 工作表、拆分和人工审核
 
