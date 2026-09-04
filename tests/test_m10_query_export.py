@@ -4,11 +4,14 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from decimal import Decimal
+import hashlib
+import importlib.util
 import json
 from pathlib import Path
 import tempfile
 from threading import Event
 import unittest
+import zipfile
 
 from services.contracts.validation import ContractError
 from services.evaluation import (
@@ -17,6 +20,7 @@ from services.evaluation import (
     EvaluationQueryResult,
     EvaluationShadowStore,
     build_evaluation_query,
+    build_audit_datasets,
     build_export_config,
     build_experiment_run_receipt,
     decode_audit_cell,
@@ -301,12 +305,10 @@ class M10CsvExportTests(unittest.TestCase):
             manifest = verify_export_package(package)
             self.assertEqual(execution.result_set["row_count"], manifest["query_row_count"])
             self.assertEqual(["csv"], list(manifest["requested_formats"]))
-            self.assertTrue(all(
-                (package / item["relative_path"]).read_bytes().startswith(
-                    next(iter((package / item["relative_path"]).read_bytes()), b"").to_bytes(1, "big")
-                )
-                for item in manifest["artifacts"]
-            ))
+            for item in manifest["artifacts"]:
+                raw = (package / item["relative_path"]).read_bytes()
+                self.assertFalse(raw.startswith(b"\xef\xbb\xbf"))
+                self.assertNotIn(b"\n", raw.replace(b"\r\n", b""))
             repeated = publish_audit_export(
                 execution,
                 config,
@@ -365,6 +367,142 @@ class M10CsvExportTests(unittest.TestCase):
                     code_commit=COMMIT,
                     workspace_root=Path(__file__).resolve().parents[1],
                 )
+
+
+@unittest.skipUnless(
+    importlib.util.find_spec("xlsxwriter") is not None,
+    "isolated M10-D research/export dependency is not installed",
+)
+class M10XlsxExportTests(unittest.TestCase):
+    def _execution(self, directory: str):
+        store = EvaluationShadowStore(Path(directory) / "store")
+        batch = research_batch([forward("1", gross=0.1)], forward_scope())
+        store_readonly_evaluation_batch(store, batch)
+        return execute_evaluation_query(
+            store,
+            build_evaluation_query(filters=None, revision_mode="current"),
+            code_commit=COMMIT,
+        )
+
+    def test_dependency_evidence_and_exact_runtime_version(self):
+        root = Path(__file__).resolve().parents[1]
+        evidence = json.loads(
+            (root / "research/export/dependencies/xlsxwriter-3.2.9.evidence.json")
+            .read_text(encoding="utf-8")
+        )
+        self.assertEqual("3.2.9", evidence["version"])
+        self.assertEqual("BSD-2-Clause", evidence["license"])
+        self.assertFalse(evidence["production_dependency"])
+        self.assertEqual(
+            {
+                "9a5db42bc5dff014806c58a20b9eae7322a134abb6fce3c92c181bfb275ec5b3",
+                "254b1c37a368c444eac6e2f867405cc9e461b0ed97a3233b2ac1e574efb4140c",
+            },
+            {item["sha256"] for item in evidence["artifacts"]},
+        )
+        import xlsxwriter
+
+        self.assertEqual("3.2.9", xlsxwriter.__version__)
+
+    def test_xlsx_export_has_fixed_source_backed_sheets_and_no_formulas(self):
+        with tempfile.TemporaryDirectory() as directory:
+            execution = self._execution(directory)
+            package = publish_audit_export(
+                execution,
+                build_export_config(formats=("csv", "xlsx"), max_data_rows=2),
+                output_root=Path(directory) / "exports",
+                generated_at="2026-09-04T00:00:00Z",
+                code_commit=COMMIT,
+            )
+            manifest = plain(verify_export_package(package))
+            xlsx_artifacts = [
+                item for item in manifest["artifacts"] if item["format"] == "xlsx"
+            ]
+            self.assertTrue(xlsx_artifacts)
+            self.assertEqual(
+                1, len({item["relative_path"] for item in xlsx_artifacts})
+            )
+            self.assertEqual(
+                len(xlsx_artifacts),
+                len({item["worksheet_name"] for item in xlsx_artifacts}),
+            )
+            workbook = package / xlsx_artifacts[0]["relative_path"]
+            with zipfile.ZipFile(workbook) as archive:
+                xml = b"\n".join(
+                    archive.read(name)
+                    for name in archive.namelist()
+                    if name.endswith(".xml")
+                )
+            self.assertNotIn(b"<f>", xml)
+            self.assertNotIn(b"<hyperlink", xml)
+            self.assertNotIn(b"sharedStrings", xml)
+
+    def test_xlsx_bytes_are_deterministic_while_receipts_are_materializations(self):
+        with tempfile.TemporaryDirectory() as directory:
+            execution = self._execution(directory)
+            config = build_export_config(formats=("csv", "xlsx"))
+            first = publish_audit_export(
+                execution, config,
+                output_root=Path(directory) / "exports",
+                generated_at="2026-09-04T00:00:00Z",
+                code_commit=COMMIT,
+            )
+            second = publish_audit_export(
+                execution, config,
+                output_root=Path(directory) / "exports",
+                generated_at="2026-09-04T00:01:00Z",
+                code_commit=COMMIT,
+            )
+            first_manifest = plain(verify_export_package(first))
+            second_manifest = plain(verify_export_package(second))
+            self.assertEqual(first_manifest["export_id"], second_manifest["export_id"])
+            self.assertNotEqual(
+                first_manifest["export_receipt_id"], second_manifest["export_receipt_id"]
+            )
+            first_path = next(
+                item["relative_path"] for item in first_manifest["artifacts"]
+                if item["format"] == "xlsx"
+            )
+            second_path = next(
+                item["relative_path"] for item in second_manifest["artifacts"]
+                if item["format"] == "xlsx"
+            )
+            first_bytes = (first / first_path).read_bytes()
+            second_bytes = (second / second_path).read_bytes()
+            self.assertEqual(first_bytes, second_bytes)
+            self.assertEqual(
+                hashlib.sha256(first_bytes).hexdigest(),
+                hashlib.sha256(second_bytes).hexdigest(),
+            )
+
+    def test_untrusted_xlsx_text_remains_a_plain_string(self):
+        from services.evaluation.export import excel_safe_decimal
+        from services.evaluation.xlsx_export import _write_xlsx_artifact
+
+        self.assertIsNone(excel_safe_decimal(Decimal("99999999999999.9")))
+
+        with tempfile.TemporaryDirectory() as directory:
+            execution = self._execution(directory)
+            datasets = dict(build_audit_datasets(execution))
+            summary = datasets["RunSummary"]
+            unsafe = dict(summary.rows[0])
+            unsafe["notice"] = "=HYPERLINK(\"https://invalid.example\")"
+            datasets["RunSummary"] = AuditDataset(
+                summary.name, summary.columns, (unsafe,), summary.sort_key_columns
+            )
+            artifacts = _write_xlsx_artifact(
+                Path(directory), datasets, max_data_rows=2
+            )
+            workbook = Path(directory) / artifacts[0]["relative_path"]
+            with zipfile.ZipFile(workbook) as archive:
+                xml = b"\n".join(
+                    archive.read(name)
+                    for name in archive.namelist()
+                    if name.startswith("xl/worksheets/") and name.endswith(".xml")
+                )
+            self.assertNotIn(b"<f>", xml)
+            self.assertNotIn(b"<hyperlink", xml)
+            self.assertIn(b"'=HYPERLINK", xml)
 
 
 if __name__ == "__main__":

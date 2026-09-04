@@ -129,6 +129,21 @@ def canonical_decimal(value: Decimal | int | float | str) -> str:
     return text
 
 
+def excel_safe_decimal(value: Any) -> Decimal | None:
+    """Return a numeric display value only when binary-float round-trip is exact.
+
+    The adjacent canonical text column always remains the audit authority.
+    """
+
+    decimal = Decimal(canonical_decimal(value))
+    if len(decimal.normalize().as_tuple().digits) > 15:
+        return None
+    number = float(decimal)
+    if not math.isfinite(number) or Decimal(format(number, ".16g")) != decimal:
+        return None
+    return decimal
+
+
 def encode_audit_cell(value: Any, kind: str) -> str:
     """Encode one typed cell without collapsing null, empty, zero, or text."""
 
@@ -481,7 +496,7 @@ def _result_row(contract_name: str, payload: Mapping[str, Any]) -> dict[str, Any
     }[contract_name]
     for field in decimal_fields:
         value = payload.get(field)
-        row[field] = None if value is None else Decimal(str(value))
+        row[field] = None if value is None else excel_safe_decimal(value)
         row[field + "_canonical"] = (
             None if value is None else canonical_decimal(Decimal(str(value)))
         )
@@ -894,8 +909,9 @@ def _artifact_metadata(
     part_count: int,
     worksheet_row_count: int | None,
     worksheet_name: str | None = None,
+    file_evidence: tuple[int, str] | None = None,
 ) -> dict[str, Any]:
-    raw = path.read_bytes()
+    byte_count, file_sha256 = file_evidence or _file_evidence(path)
     return {
         "relative_path": relative_path,
         "format": artifact_format,
@@ -908,9 +924,19 @@ def _artifact_metadata(
         "first_sort_key": _sort_key(dataset, rows[0]) if rows else None,
         "last_sort_key": _sort_key(dataset, rows[-1]) if rows else None,
         "row_set_fingerprint": dataset_row_set_fingerprint(dataset, rows),
-        "byte_count": len(raw),
-        "file_sha256": "sha256:" + hashlib.sha256(raw).hexdigest(),
+        "byte_count": byte_count,
+        "file_sha256": file_sha256,
     }
+
+
+def _file_evidence(path: Path) -> tuple[int, str]:
+    digest = hashlib.sha256()
+    byte_count = 0
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            byte_count += len(chunk)
+            digest.update(chunk)
+    return byte_count, "sha256:" + digest.hexdigest()
 
 
 def _write_csv_artifacts(
@@ -943,6 +969,7 @@ def _write_csv_artifacts(
                 part_count=len(parts),
                 worksheet_row_count=None,
             ))
+    _fsync_directory(root / "csv")
     return artifacts
 
 
@@ -1150,6 +1177,7 @@ def validate_export_manifest(payload: Mapping[str, Any]) -> None:
     }
     normalized = []
     paths: dict[str, tuple[str, int, str]] = {}
+    worksheet_names: set[str] = set()
     part_groups: dict[tuple[str, str], list[Mapping[str, Any]]] = {}
     for item in artifacts:
         if not isinstance(item, Mapping):
@@ -1180,6 +1208,10 @@ def validate_export_manifest(payload: Mapping[str, Any]) -> None:
             or item["worksheet_row_count"] != item["data_row_count"] + 1
         ):
             raise ContractError("XLSX worksheet metadata is invalid")
+        elif worksheet_name in worksheet_names:
+            raise ContractError("ExportManifest contains a duplicate worksheet name")
+        else:
+            worksheet_names.add(worksheet_name)
         _require_sha(item["row_set_fingerprint"], "row_set_fingerprint")
         _require_sha(item["file_sha256"], "file_sha256")
         physical = (str(item["format"]), int(item["byte_count"]), str(item["file_sha256"]))
@@ -1426,15 +1458,14 @@ def verify_export_package(path: Path) -> Mapping[str, Any]:
     for artifact in manifest["artifacts"]:
         relative = _safe_relative_path(artifact["relative_path"])
         artifact_path = _package_file(path, relative)
-        raw = artifact_path.read_bytes()
-        if len(raw) != artifact["byte_count"] or (
-            "sha256:" + hashlib.sha256(raw).hexdigest()
-        ) != artifact["file_sha256"]:
-            raise ContractError("M10-D artifact bytes do not match the manifest")
         declared.add(relative)
         if relative in checked_physical:
             continue
         checked_physical.add(relative)
+        if _file_evidence(artifact_path) != (
+            artifact["byte_count"], artifact["file_sha256"]
+        ):
+            raise ContractError("M10-D artifact bytes do not match the manifest")
         if artifact["format"] == "csv":
             dataset = AuditDataset(
                 str(artifact["dataset"]),
@@ -1529,9 +1560,9 @@ def publish_audit_export(
         if fault_injector is not None:
             fault_injector("after_csv")
         if "xlsx" in config["formats"]:
-            from .xlsx_export import write_xlsx_artifact
+            from .xlsx_export import _write_xlsx_artifact
 
-            artifacts.extend(write_xlsx_artifact(
+            artifacts.extend(_write_xlsx_artifact(
                 staging, datasets,
                 max_data_rows=int(config["partition_policy"]["max_data_rows"]),
             ))

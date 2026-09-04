@@ -1,0 +1,24 @@
+{
+  "dependency": "XlsxWriter",
+  "version": "3.2.9",
+  "python_requires": ">=3.8",
+  "project_metadata_url": "https://pypi.org/pypi/XlsxWriter/3.2.9/json",
+  "release_date": "2025-09-16",
+  "artifacts": [
+    {
+      "filename": "xlsxwriter-3.2.9-py3-none-any.whl",
+      "kind": "wheel",
+      "sha256": "9a5db42bc5dff014806c58a20b9eae7322a134abb6fce3c92c181bfb275ec5b3"
+    },
+    {
+      "filename": "xlsxwriter-3.2.9.tar.gz",
+      "kind": "sdist",
+      "sha256": "254b1c37a368c444eac6e2f867405cc9e461b0ed97a3233b2ac1e574efb4140c"
+    }
+  ],
+  "license": "BSD-2-Clause",
+  "license_source": "https://raw.githubusercontent.com/jmcnamara/XlsxWriter/RELEASE_3.2.9/LICENSE.txt",
+  "scope": "local_research_export_only",
+  "production_dependency": false,
+  "legal_conclusion": false
+}

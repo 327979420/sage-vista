@@ -1,0 +1,5 @@
+# Local research/audit export only. Install into an isolated work/ venv with:
+# python -m pip install --require-hashes --only-binary=:all: --no-deps -r this-file
+XlsxWriter==3.2.9 \
+    --hash=sha256:9a5db42bc5dff014806c58a20b9eae7322a134abb6fce3c92c181bfb275ec5b3 \
+    --hash=sha256:254b1c37a368c444eac6e2f867405cc9e461b0ed97a3233b2ac1e574efb4140c
