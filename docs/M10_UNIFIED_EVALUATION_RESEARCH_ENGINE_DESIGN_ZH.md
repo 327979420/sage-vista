@@ -1,12 +1,12 @@
 # M10｜统一评价、回测与外部研究引擎设计
 
-- 文档状态：M10-A／B／C里程碑均已审核并进入`main`；M10-D的D1／D2／D3已完成本地影子实施与验收、等待独立审核；M10整体仍为`implementing`
+- 文档状态：M10-A／B／C／D里程碑均已审核并进入`main`；M10-D在获批查询与审核导出范围内为`implemented`；M10整体仍为`implementing`
 - 对应需求：`CR-2026-09-02-050`
 - 基线提交：`5dfd0a57fc1dad56042c0db6b8e2c3ce9ff88251`
 - 设计日期：2026-09-02
-- 生产状态：M10-A合同基础、M10-B内部基线评价器和M10-C只读汇总均已进入`main`；未部署、未生产启用
+- 生产状态：M10-A合同基础、M10-B内部基线评价器、M10-C只读汇总和M10-D查询／审核导出均已进入`main`；未部署、未生产启用
 
-> 本文冻结M10的职责、合同边界、身份和失败关闭语义。M10-A、M10-B和M10-C均已完成独立审核并进入`main`，M10整体继续为`implementing`。M10-C只建立Portfolio失败关闭边界和只读研究汇总，不批准资本算法或真实组合表现。M10-D的D1／D2／D3已按获批边界完成本地影子实施与固定样本验收，等待独立审核；M10-E、VectorBT、真实多年回测、生产目录、M11和M12仍未批准。
+> 本文冻结M10的职责、合同边界、身份和失败关闭语义。M10-A、M10-B、M10-C和M10-D均已完成独立审核并进入`main`，M10整体继续为`implementing`。M10-C只建立Portfolio失败关闭边界和只读研究汇总，不批准资本算法或真实组合表现。M10-D只交付获批的原子库存查询、CSV／XLSX审核副本和导出证据，不代表部署、生产启用或真实历史导出；M10-E、VectorBT、真实多年回测、生产目录、M11和M12仍未批准。
 
 ## 1. 人话版
 
@@ -550,13 +550,13 @@ M10-C实施前必须以固定合成Outcome完成以下10项机械验收；本表
 1. **M10-A｜合同、身份和运行收据**：冻结四类2.x合同、`ExperimentRun 2.x`、角色／分区、幂等、冲突和失败收据；不算收益。
 2. **M10-B｜内部Forward／Trade基线**：只用固定小样本实现逐股结果，复用M02／M08事实，验证防未来和执行顺序。
 3. **M10-C｜Portfolio／Aggregate边界（里程碑已进入`main`）**：保留`PortfolioRun unavailable`守门，只读取单一类型Forward或Trade结果做最小gross汇总；资金政策未批准前不建资本曲线。
-4. **M10-D｜准确查询、CSV／Excel审核副本（`implementing`）**：D1查询／库存／Manifest／CSV、D2独立XLSX依赖闸门和D3一致性验收已完成本地影子实施与固定样本验收，等待独立审核；尚未进入`main`或生产。
+4. **M10-D｜准确查询、CSV／Excel审核副本（获批范围内`implemented`）**：D1查询／库存／Manifest／CSV、D2独立XLSX依赖闸门和D3一致性验收已完成独立审核并以纯fast-forward进入`main`；尚未部署或生产启用。
 5. **M10-E｜配置和统一CLI**：版本化JSON、非交互CLI、运行收据与断点；不接工作流。
 6. **M10-X1｜VectorBT依赖及许可闸门**：独立批准最小依赖、锁定、哈希、安全和许可结论。
 7. **M10-X2｜固定样本适配与逐笔parity**：同一数据集对照内部基线，结果只作comparison。
 8. **M10-X3｜扩大comparison验证**：在用户另批样本范围内扩展，不触发真实多年生产回测。
 
-历史A—C已经完成审核并进入`main`。M10-D本地实现只生成可删除重建的临时审核副本，尚待独立审核；M10-E和X1—X3仍未批准或开始。
+M10-A—D已经完成审核并进入`main`。M10-D只生成可删除重建的审核副本，尚未运行真实历史导出或生成正式生产CSV／XLSX；M10-E和X1—X3仍未批准或开始。
 
 ## 15. 回退和生产边界
 
@@ -612,10 +612,12 @@ M10-C已获得本节之外的独立明确实施授权；M10-D的D1／D2／D3已�
 - 最终验收：M10-C专项27项、M10合同／基线／汇总105项、M08与M10 120项、指定含M09集合139项、M01—M10扩大定向290项、完整Python 657项、四种固定哈希种子每轮M10-C 27项、治理19项和前端11项通过；Python编译、lint、TypeScript、生产构建、文档链接和格式检查通过。独立窄复核确认Portfolio始终诚实`unavailable`，ResearchAggregate不读取行情或重算逐股收益，重签统计、状态伪装、错误`as_of`、failed收据和PF量化边界均失败关闭，Trade `open/no_trade`分别守恒，状态、样本和收益分类守恒。
 - M10-D／E、Portfolio资本算法、VectorBT、CSV／Excel、CLI、查询API、真实多年回测、M11和M12均未开始；CR-043继续为`captured`。
 
-### 16.4 M10-D最小设计里程碑（2026-09-03）
+### 16.4 M10-D审核与主线里程碑（2026-09-05）
 
 - 设计于2026-09-04获用户批准实施：唯一只读查询入口复用现有合同验证、完整修订链和`EvaluationShadowStore`，显式区分`all/current`，并以原子库存指纹证明查询看到的精确集合。
 - 正式合同为`EvaluationQuery 2.0.0`、`QueryResultSet 2.0.0`、`ExportConfig 1.0.0`和`ExportManifest 2.0.0`，来源版本固定为`m10-d-query-export-1.0.0`。它们只记录查询与导出证据，不创建收益事实或第二权威账本。
-- 本地提交链为设计`b90c269`、D1原子查询／Manifest／CSV`e7c649f`、D2锁定XLSX审核副本`ee6d596`和D3逐格一致／安全复核`d682897`。`audit_cell_codec_v1`、1,000,000行分片、Decimal数值＋canonical text、标准库限定OOXML复核和Human Review只出不进均已机械验证。
+- 提交链为设计`b90c269`、D1原子查询／Manifest／CSV`e7c649f`、D2锁定XLSX审核副本`ee6d596`、D3逐格一致／安全复核`d682897`和审核修复`61de04e`；审核通过代码HEAD为`f91a6fa5773561354b255f9217679f237b0f7017`，已以纯fast-forward方式进入`main`。`audit_cell_codec_v1`、1,000,000行分片、Decimal数值＋canonical text、标准库限定OOXML复核和Human Review只出不进均已机械验证。
 - 首版工作表只覆盖已有Run、Forward、Trade、ResearchAggregate、Portfolio状态、bias／missing、版本证据和人工审核列。Score Analysis、Factor Analysis和Pair Matrix没有M10-C权威来源，不生成伪数据表。
-- M10-D只用固定合成样本在临时目录生成CSV／XLSX，没有读取行情、重算收益、提交导出文件、修改生产入口或接入网站／Discord。M10-E、VectorBT、真实多年回测、M11和M12仍未开始；CR-043继续为`captured`。
+- 最终独立审核确认原子库存和显式`all/current`、查询全集完备性、权威payload逐字段绑定、固定XLSX安全样式、命名空间感知OOXML安全复核、ExportManifest与导出身份、原子目录发布及Human Review只出不进均成立；五个审核闸门全部通过，原始六项完整重签攻击全部失败关闭。
+- 最终验收：M10-D专项33项、M10 A—D 138项、完整Python 690项、四种固定`PYTHONHASHSEED`每轮33项、治理19项和前端11项通过；Python编译、独立依赖及许可证证据、lint、TypeScript、生产构建、43个本地文档链接和差异格式检查通过。
+- M10-D只用固定合成样本在临时目录生成CSV／XLSX，没有读取行情、重算收益、提交生成文件、修改生产入口或接入网站／Discord。进入`main`不代表部署、生产启用或完成真实历史导出；Excel仍是人工审核副本，人工修改不能回写M10。M10-E、VectorBT、CLI、看板、真实多年回测、M11和M12仍未开始；CR-043继续为`captured`。
