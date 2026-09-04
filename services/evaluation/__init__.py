@@ -98,16 +98,32 @@ from .query import (
     validate_query_result_set,
 )
 from .storage import EvaluationInventorySnapshot, EvaluationShadowStore
+from .checkpoint import (
+    CHECKPOINT_SOURCE_VERSION,
+    RESEARCH_RUN_CHECKPOINT_SCHEMA_VERSION,
+    build_research_run_checkpoint,
+    current_research_run_checkpoint,
+    validate_research_run_checkpoint,
+)
 from .config import (
     GitState,
     M10_E_SOURCE_VERSION,
     OPERATIONS,
     RESEARCH_RUN_CONFIG_SCHEMA_VERSION,
     build_research_run_config,
+    config_resume_scope_fingerprint,
     current_git_state,
     load_research_run_config,
+    load_strict_json_object,
     validate_formal_git_state,
     validate_research_run_config,
+)
+from .orchestration import (
+    INPUT_BUNDLE_SCHEMA_VERSION,
+    ORCHESTRATOR_ENGINE,
+    ResearchRunExecution,
+    execute_research_run,
+    load_input_bundle,
 )
 
 __all__ = [
@@ -162,6 +178,12 @@ __all__ = [
     "validate_session_calendar_evidence",
     "GitState", "M10_E_SOURCE_VERSION", "OPERATIONS",
     "RESEARCH_RUN_CONFIG_SCHEMA_VERSION", "build_research_run_config",
-    "current_git_state", "load_research_run_config",
+    "config_resume_scope_fingerprint", "current_git_state",
+    "load_research_run_config", "load_strict_json_object",
     "validate_formal_git_state", "validate_research_run_config",
+    "CHECKPOINT_SOURCE_VERSION", "RESEARCH_RUN_CHECKPOINT_SCHEMA_VERSION",
+    "build_research_run_checkpoint", "current_research_run_checkpoint",
+    "validate_research_run_checkpoint", "INPUT_BUNDLE_SCHEMA_VERSION",
+    "ORCHESTRATOR_ENGINE", "ResearchRunExecution", "execute_research_run",
+    "load_input_bundle",
 ]

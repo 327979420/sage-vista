@@ -3,19 +3,43 @@
 from __future__ import annotations
 
 import json
+import hashlib
+import io
 from pathlib import Path
 import tempfile
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import redirect_stdout, redirect_stderr
 import unittest
 
 from services.contracts.market_data import canonical_fingerprint
 from services.contracts.validation import ContractError
 from services.evaluation import (
+    EvaluationShadowStore,
     GitState,
+    build_evaluation_query,
+    build_export_config,
+    build_research_run_checkpoint,
     build_research_run_config,
+    current_experiment_run,
+    current_research_run_checkpoint,
     load_research_run_config,
+    market_snapshot_evidence_fingerprint,
     validate_formal_git_state,
     validate_research_run_config,
 )
+from services.evaluation.orchestration import (
+    _checkpoint,
+    _orchestrator_pending,
+    execute_research_run,
+)
+from services.evaluation.policies import (
+    AGGREGATION_POLICY, EVALUATION_POLICY, FORWARD_WINDOW_POLICY, PARTITION_POLICY,
+)
+from services.contracts.policies import ADJUSTMENT_POLICY
+from services.execution import EXIT_POLICY, advance_exit_state
+from tests import test_m09_ledger as m09_fixtures
+from tests import test_m10_aggregate as aggregate_fixtures
+from tests import test_m10_baseline_evaluator as baseline_fixtures
 
 
 SHA = "sha256:" + "a" * 64
@@ -28,6 +52,16 @@ def ref(prefix="opportunity", digit="1"):
 
 def policy(kind):
     return {"policy_kind": kind, "policy_version": "1.0.0", "policy_fingerprint": SHA}
+
+
+def real_policy(kind, value):
+    return {
+        "policy_kind": kind,
+        "policy_version": value.get("policy_version", value.get("version")),
+        "policy_fingerprint": value.get(
+            "policy_fingerprint", canonical_fingerprint(plain(value))
+        ),
+    }
 
 
 def config_values(operation="forward_evaluation"):
@@ -45,17 +79,17 @@ def config_values(operation="forward_evaluation"):
         ),
         "portfolio_boundary": (
             "PortfolioRun", "2.1.0", "m10-c-readonly-1.0.0",
-            ("sage-vista-m10c-readonly", "1.0.0", "readonly-1.0.0"),
-            ["adjustment", "aggregation", "evaluation", "partition"], 1, [],
+            ("sage-vista-readonly-aggregate", "1.0.0", "shadow-1.0.0"),
+            ["adjustment", "aggregation", "evaluation", "execution", "partition"], 1, [],
         ),
         "research_aggregate": (
             "ResearchAggregate", "2.1.0", "m10-c-readonly-1.0.0",
-            ("sage-vista-m10c-readonly", "1.0.0", "readonly-1.0.0"),
-            ["adjustment", "aggregation", "evaluation", "partition"], 1, [],
+            ("sage-vista-readonly-aggregate", "1.0.0", "shadow-1.0.0"),
+            ["adjustment", "aggregation", "evaluation", "forward_window", "partition"], 1, [],
         ),
     }
     contract, schema, source, engine, policies, count, windows = specifications[operation]
-    selection = [ref()]
+    selection = [] if operation in {"portfolio_boundary", "research_aggregate"} else [ref()]
     execution = [ref("plan", "2"), ref("exit-state", "3")] if operation == "trade_evaluation" else []
     input_ref = (
         ref("trade-outcome", "4") if operation == "portfolio_boundary"
@@ -72,7 +106,10 @@ def config_values(operation="forward_evaluation"):
         "partition_role": "forward", "bias_labels": [],
         "universe_ref": ref("universe", "6") if operation in {"forward_evaluation", "trade_evaluation"} else None,
         "market_snapshot_ref": ref("market", "7") if operation in {"forward_evaluation", "trade_evaluation"} else None,
-        "adjustment_policy_ref": ref("policy", "8"),
+        "adjustment_policy_ref": (
+            ref("policy", "8")
+            if operation in {"forward_evaluation", "trade_evaluation"} else None
+        ),
         "selection_refs": selection,
         "execution_refs": execution,
         "input_selector": {
@@ -95,6 +132,11 @@ def config_values(operation="forward_evaluation"):
             "contract": contract, "schema_version": schema,
             "source_version": source, "per_work_unit_count": count,
             "forward_windows": windows,
+            "source_result_contract": (
+                "TradeOutcome" if operation == "portfolio_boundary"
+                else "ForwardOutcome" if operation == "research_aggregate"
+                else None
+            ),
         },
         "code_commit": COMMIT,
     }
@@ -122,9 +164,9 @@ class M10EConfigTests(unittest.TestCase):
         values = config_values()
         first = build_research_run_config(**values)
         values["policy_refs"].reverse()
-        values["bias_labels"] = ["z", "a"]
+        values["selection_refs"] = [ref("opportunity", "9"), ref()]
         second = build_research_run_config(**values)
-        values["bias_labels"] = ["a", "z"]
+        values["selection_refs"].reverse()
         third = build_research_run_config(**values)
         self.assertNotEqual(first["config_id"], second["config_id"])
         self.assertEqual(second["config_id"], third["config_id"])
@@ -140,11 +182,37 @@ class M10EConfigTests(unittest.TestCase):
         with self.assertRaises(ContractError):
             validate_research_run_config(tampered)
 
+    def test_each_mutable_orchestration_fact_changes_config_identity(self):
+        baseline = build_research_run_config(**config_values())
+        variants = []
+        values = config_values()
+        values["code_commit"] = "c" * 40
+        variants.append(values)
+        values = config_values()
+        values["storage"]["root_path"] = "/tmp/m10-e-other-store"
+        variants.append(values)
+        values = config_values()
+        values["policy_refs"][0]["policy_fingerprint"] = "sha256:" + "b" * 64
+        variants.append(values)
+        values = config_values()
+        values["input_selector"]["bundle_sha256"] = "sha256:" + "b" * 64
+        variants.append(values)
+        values = config_values()
+        values["work_units"][0]["start"] = "2026-09-02"
+        variants.append(values)
+        identities = {
+            build_research_run_config(**item)["config_id"] for item in variants
+        }
+        self.assertEqual(len(identities), len(variants))
+        self.assertNotIn(baseline["config_id"], identities)
+
     def test_work_unit_order_is_semantic(self):
         values = config_values()
         second = plain(values["work_units"][0])
         second["work_unit_id"] = "unit-2"
+        second["input_refs"] = [ref("opportunity", "9")]
         values["work_units"] = [values["work_units"][0], second]
+        values["input_selector"]["refs"] = [ref(), ref("opportunity", "9")]
         first = build_research_run_config(**values)
         values["work_units"].reverse()
         other = build_research_run_config(**values)
@@ -199,6 +267,39 @@ class M10EConfigTests(unittest.TestCase):
         with self.assertRaises(ContractError):
             validate_research_run_config(built)
 
+    def test_aggregate_source_family_is_explicit_and_changes_identity(self):
+        original = build_research_run_config(**config_values("research_aggregate"))
+        values = config_values("research_aggregate")
+        values["expected_results"]["source_result_contract"] = "TradeOutcome"
+        values["policy_refs"] = [
+            item for item in values["policy_refs"]
+            if item["policy_kind"] != "forward_window"
+        ] + [policy("execution")]
+        changed = build_research_run_config(**values)
+        self.assertNotEqual(original["config_id"], changed["config_id"])
+        values["expected_results"]["source_result_contract"] = "PortfolioRun"
+        with self.assertRaises(ContractError):
+            build_research_run_config(**values)
+
+    def test_enabled_export_plan_revalidates_query_config_and_formats(self):
+        values = config_values()
+        query = build_evaluation_query(
+            filters={"result_contracts": ["ForwardOutcome"]},
+            revision_mode="current",
+        )
+        export = build_export_config(formats=("csv",))
+        values["export_plan"] = {
+            "enabled": True,
+            "query": plain(query),
+            "config": plain(export),
+            "formats": ["csv"],
+            "output_root": "/tmp/m10-e-export",
+        }
+        validate_research_run_config(build_research_run_config(**values))
+        values["export_plan"]["formats"] = ["csv", "xlsx"]
+        with self.assertRaises(ContractError):
+            build_research_run_config(**values)
+
     def test_git_state_is_injected_and_strict(self):
         config = build_research_run_config(**config_values())
         validate_formal_git_state(
@@ -214,6 +315,596 @@ class M10EConfigTests(unittest.TestCase):
                 validate_formal_git_state(
                     config, repo_root=".", state_provider=lambda _, item=state: item
                 )
+
+
+def write_bundle(directory, operation, work_items, input_refs):
+    payload = {
+        "schema_version": "1.0.0", "operation_type": operation,
+        "input_refs": sorted(input_refs, key=lambda item: item["id"]),
+        "work_items": work_items,
+    }
+    path = Path(directory) / f"{operation}-inputs.json"
+    raw = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+    path.write_bytes(raw)
+    return path, "sha256:" + hashlib.sha256(raw).hexdigest()
+
+
+def runtime_config(operation, directory, work_items, work_refs):
+    all_refs = sorted(
+        {item["id"]: item for refs in work_refs for item in refs}.values(),
+        key=lambda item: item["id"],
+    )
+    path, digest = write_bundle(directory, operation, work_items, all_refs)
+    values = config_values(operation)
+    values["as_of"] = "2026-09-09"
+    values["evidence_window"] = {"start": "2026-08-31", "end": "2026-09-09"}
+    values["selection_refs"] = (
+        [item for item in all_refs if item["id"].startswith("opportunity:")]
+        if operation in {"forward_evaluation", "trade_evaluation"}
+        else []
+    )
+    values["execution_refs"] = [
+        item for item in all_refs
+        if item["id"].startswith(("plan:", "exit-state:", "machine-link:"))
+    ] if operation == "trade_evaluation" else []
+    values["input_selector"] = {
+        "mode": "bundle", "refs": all_refs, "bundle_path": str(path),
+        "bundle_sha256": digest, "query": None,
+    }
+    values["work_units"] = [
+        {"work_unit_id": item["work_unit_id"], "start": "2026-08-31",
+         "end": "2026-09-09", "input_refs": refs}
+        for item, refs in zip(work_items, work_refs)
+    ]
+    if operation in {"forward_evaluation", "trade_evaluation"}:
+        values["universe_ref"] = next(
+            item for item in all_refs if item["id"].startswith("universe:")
+        )
+        values["market_snapshot_ref"] = next(
+            item for item in all_refs if item["id"].startswith("market:")
+        )
+        adjustment_fingerprint = canonical_fingerprint(ADJUSTMENT_POLICY)
+        values["adjustment_policy_ref"] = {
+            "id": "policy:" + adjustment_fingerprint,
+            "content_fingerprint": adjustment_fingerprint,
+        }
+    common = [
+        real_policy("adjustment", ADJUSTMENT_POLICY),
+        real_policy("evaluation", EVALUATION_POLICY),
+        real_policy("partition", PARTITION_POLICY),
+    ]
+    if operation == "forward_evaluation":
+        common.append(real_policy("forward_window", FORWARD_WINDOW_POLICY))
+    elif operation == "trade_evaluation":
+        common.append(real_policy("execution", EXIT_POLICY))
+    else:
+        common.append(real_policy("aggregation", AGGREGATION_POLICY))
+        if operation == "portfolio_boundary":
+            scope = work_items[0]["arguments"]["scope"]
+            common.append({
+                "policy_kind": "execution",
+                "policy_version": scope["execution_policy_version"],
+                "policy_fingerprint": scope["execution_policy_fingerprint"],
+            })
+        else:
+            common.append(real_policy("forward_window", FORWARD_WINDOW_POLICY))
+    values["policy_refs"] = common
+    values["storage"] = {
+        "root_kind": "temporary", "root_path": str(Path(directory) / "store")
+    }
+    return build_research_run_config(**values)
+
+
+def forward_work():
+    baseline_fixtures.M10ForwardBaselineTests.setUpClass()
+    fixture = baseline_fixtures.M10ForwardBaselineTests()
+    _, read, snapshot, calendar, _ = fixture.produce(elapsed=5)
+    arguments = {
+        "event": plain(fixture.event),
+        "market_read": {
+            "instrument_id": read.instrument_id, "as_of": read.as_of,
+            "rows": plain(read.rows),
+            "point_in_time_fingerprint": read.point_in_time_fingerprint,
+        },
+        "market_snapshot": plain(snapshot), "session_calendar": plain(calendar),
+        "universe_content_fingerprint": baseline_fixtures.UNIVERSE_CONTENT,
+    }
+    refs = [
+        {"id": fixture.event["event_id"], "content_fingerprint": fixture.event["event_content_fingerprint"]},
+        {"id": snapshot["snapshot_id"], "content_fingerprint": baseline_fixtures.market_snapshot_evidence_fingerprint(snapshot)},
+        {"id": fixture.event["input_identity"]["universe_id"], "content_fingerprint": baseline_fixtures.UNIVERSE_CONTENT},
+        {"id": calendar["calendar_id"], "content_fingerprint": calendar["content_fingerprint"]},
+    ]
+    return {"work_unit_id": "forward-1", "arguments": arguments}, sorted(refs, key=lambda item: item["id"])
+
+
+def portfolio_works(count=2):
+    works, refs = [], []
+    for index in range(1, count + 1):
+        outcome = aggregate_fixtures.trade(str(index), gross=0.1 * index)
+        scope = aggregate_fixtures.trade_scope(outcome)
+        reference = {
+            "id": outcome["trade_outcome_id"],
+            "content_fingerprint": outcome["trade_content_fingerprint"],
+        }
+        works.append({
+            "work_unit_id": f"portfolio-{index}",
+            "arguments": {"trade_outcomes": [plain(outcome)], "scope": plain(scope)},
+        })
+        refs.append([reference])
+    return works, refs
+
+
+def aggregate_work():
+    outcome = aggregate_fixtures.forward("9", gross=0.125)
+    scope = aggregate_fixtures.forward_scope()
+    reference = {
+        "id": outcome["forward_outcome_id"],
+        "content_fingerprint": outcome["forward_content_fingerprint"],
+    }
+    return {
+        "work_unit_id": "aggregate-1",
+        "arguments": {"outcomes": [plain(outcome)], "scope": plain(scope)},
+    }, [reference]
+
+
+def trade_work():
+    baseline_fixtures.M10TradeBaselineTests.setUpClass()
+    fixture = baseline_fixtures.M10TradeBaselineTests()
+    bar = fixture.safe_bar(fixture.plan["entry_date"])
+    bar["high"] = fixture.plan["target"]["price"] + 1
+    state = advance_exit_state(
+        fixture.plan,
+        completed_bars=[bar],
+        generated_at=m09_fixtures.ENTRY_GENERATED_AT,
+    )
+    _, read, snapshot, _, state_link = fixture.evaluate(
+        (state,), (bar,), attempt="m10-e-trade-fixture"
+    )
+    arguments = {
+        "event": plain(fixture.event),
+        "trade_plan_link": plain(fixture.plan_link),
+        "trade_plan": plain(fixture.plan),
+        "exit_states": [plain(state)],
+        "exit_state_link": plain(state_link),
+        "market_read": {
+            "instrument_id": read.instrument_id,
+            "as_of": read.as_of,
+            "rows": plain(read.rows),
+            "point_in_time_fingerprint": read.point_in_time_fingerprint,
+        },
+        "market_snapshot": plain(snapshot),
+        "universe_content_fingerprint": baseline_fixtures.UNIVERSE_CONTENT,
+    }
+    refs = [
+        {"id": fixture.event["event_id"], "content_fingerprint": fixture.event["event_content_fingerprint"]},
+        {"id": snapshot["snapshot_id"], "content_fingerprint": market_snapshot_evidence_fingerprint(snapshot)},
+        {"id": fixture.event["input_identity"]["universe_id"], "content_fingerprint": baseline_fixtures.UNIVERSE_CONTENT},
+        {"id": fixture.plan_link["link_id"], "content_fingerprint": fixture.plan_link["link_content_fingerprint"]},
+        {"id": fixture.plan["plan_id"], "content_fingerprint": fixture.plan["plan_content_fingerprint"]},
+        {"id": state["exit_state_id"], "content_fingerprint": state["exit_state_content_fingerprint"]},
+        {"id": state_link["link_id"], "content_fingerprint": state_link["link_content_fingerprint"]},
+    ]
+    return {"work_unit_id": "trade-1", "arguments": arguments}, sorted(
+        refs, key=lambda item: item["id"]
+    )
+
+
+class M10EOrchestrationTests(unittest.TestCase):
+    def state(self, _):
+        return GitState(COMMIT, True, True)
+
+    def test_forward_uses_existing_producer_and_replay_is_idempotent(self):
+        with tempfile.TemporaryDirectory() as directory:
+            work, refs = forward_work()
+            config = runtime_config("forward_evaluation", directory, [work], [refs])
+            first = execute_research_run(
+                config, repo_root=ROOT, git_state_provider=self.state,
+                clock=lambda: "2026-09-09T23:00:00Z",
+            )
+            second = execute_research_run(
+                config, repo_root=ROOT, git_state_provider=self.state,
+                clock=lambda: "2026-09-09T23:10:00Z",
+            )
+            self.assertEqual(first.exit_code, 0)
+            self.assertEqual(first.summary["run_id"], second.summary["run_id"])
+            self.assertEqual(first.summary["completed_result_count"], 5)
+
+    def test_daily_and_partitioned_labels_keep_identical_outcome_facts(self):
+        with tempfile.TemporaryDirectory() as daily_dir, tempfile.TemporaryDirectory() as replay_dir:
+            daily_work, daily_refs = forward_work()
+            daily = runtime_config(
+                "forward_evaluation", daily_dir, [daily_work], [daily_refs]
+            )
+            replay_work, replay_refs = forward_work()
+            replay_work["work_unit_id"] = "replay-partition-001"
+            replay = runtime_config(
+                "forward_evaluation", replay_dir, [replay_work], [replay_refs]
+            )
+            for config in (daily, replay):
+                execute_research_run(
+                    config, repo_root=ROOT, git_state_provider=self.state,
+                    clock=lambda: "2026-09-09T23:00:00Z",
+                )
+            def forward_facts(directory):
+                inventory = EvaluationShadowStore(
+                    Path(directory) / "store", workspace_root=ROOT
+                ).capture_inventory()
+                return sorted(
+                    (
+                        result["forward_outcome_id"],
+                        result["forward_content_fingerprint"],
+                    )
+                    for contract, result in inventory.result_records
+                    if contract == "ForwardOutcome"
+                )
+            self.assertEqual(forward_facts(daily_dir), forward_facts(replay_dir))
+
+    def test_portfolio_interrupt_checkpoint_and_explicit_resume(self):
+        with tempfile.TemporaryDirectory() as directory:
+            works, refs = portfolio_works()
+            config = runtime_config("portfolio_boundary", directory, works, refs)
+            interrupted = execute_research_run(
+                config, repo_root=ROOT, git_state_provider=self.state,
+                clock=lambda: "2026-09-09T23:00:00Z",
+                interrupt_after_work_units=1,
+            )
+            self.assertEqual(interrupted.exit_code, 130)
+            self.assertEqual(interrupted.summary["completed_result_count"], 1)
+            values = plain(config)
+            for field in ("config_id", "config_content_fingerprint"):
+                values.pop(field)
+            values["resume"] = {
+                "mode": "checkpoint", "parent_run_id": interrupted.summary["run_id"],
+                "checkpoint_ref": {
+                    "id": interrupted.summary["checkpoint_id"],
+                    "content_fingerprint": "sha256:" + interrupted.summary["checkpoint_id"].rsplit(":", 1)[-1],
+                },
+            }
+            resumed_config = build_research_run_config(**values)
+            resumed = execute_research_run(
+                resumed_config, repo_root=ROOT, git_state_provider=self.state,
+                clock=lambda: "2026-09-09T23:30:00Z",
+            )
+            self.assertEqual(resumed.exit_code, 0)
+            self.assertEqual(resumed.summary["completed_result_count"], 2)
+
+    def test_concurrent_same_config_has_one_authoritative_run(self):
+        with tempfile.TemporaryDirectory() as directory:
+            work, refs = forward_work()
+            config = runtime_config("forward_evaluation", directory, [work], [refs])
+            def run():
+                return execute_research_run(
+                    config, repo_root=ROOT, git_state_provider=self.state,
+                    clock=lambda: "2026-09-09T23:00:00Z",
+                )
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                results = list(pool.map(lambda _: run(), range(2)))
+            self.assertEqual({item.summary["run_id"] for item in results}, {results[0].summary["run_id"]})
+            self.assertEqual([item.exit_code for item in results], [0, 0])
+
+    def test_cli_stdout_is_one_json_document(self):
+        from research import run as cli
+        from unittest.mock import patch
+
+        with tempfile.TemporaryDirectory() as directory:
+            work, refs = forward_work()
+            config = runtime_config("forward_evaluation", directory, [work], [refs])
+            path = Path(directory) / "config.json"
+            path.write_text(json.dumps(plain(config), sort_keys=True), encoding="utf-8")
+            stdout, stderr = io.StringIO(), io.StringIO()
+            with patch.object(cli, "current_git_state", self.state), redirect_stdout(stdout), redirect_stderr(stderr):
+                code = cli.main(["--config", str(path)])
+            self.assertEqual(code, 0)
+            self.assertEqual(len(stdout.getvalue().splitlines()), 1)
+            self.assertEqual(json.loads(stdout.getvalue())["status"], "completed")
+            self.assertEqual(stderr.getvalue(), "")
+
+    def test_trade_and_aggregate_each_use_the_existing_single_family_producer(self):
+        with tempfile.TemporaryDirectory() as directory:
+            trade, trade_refs = trade_work()
+            trade_config = runtime_config(
+                "trade_evaluation", directory, [trade], [trade_refs]
+            )
+            trade_run = execute_research_run(
+                trade_config, repo_root=ROOT, git_state_provider=self.state,
+                clock=lambda: "2026-09-09T23:00:00Z",
+            )
+            aggregate, aggregate_refs = aggregate_work()
+            aggregate_config = runtime_config(
+                "research_aggregate", directory, [aggregate], [aggregate_refs]
+            )
+            aggregate_run = execute_research_run(
+                aggregate_config, repo_root=ROOT, git_state_provider=self.state,
+                clock=lambda: "2026-09-09T23:10:00Z",
+            )
+            self.assertEqual(trade_run.exit_code, 0)
+            self.assertEqual(aggregate_run.exit_code, 0)
+            self.assertEqual(trade_run.summary["expected_result_count"], 1)
+            self.assertEqual(aggregate_run.summary["expected_result_count"], 1)
+
+    def test_query_selector_resolves_persisted_outcome_for_aggregate(self):
+        with tempfile.TemporaryDirectory() as directory:
+            work, refs = forward_work()
+            forward_config = runtime_config(
+                "forward_evaluation", directory, [work], [refs]
+            )
+            execute_research_run(
+                forward_config, repo_root=ROOT, git_state_provider=self.state,
+                clock=lambda: "2026-09-09T23:00:00Z",
+            )
+            store = EvaluationShadowStore(
+                Path(directory) / "store", workspace_root=ROOT
+            )
+            selected = next(
+                result for contract, result in store.capture_inventory().result_records
+                if contract == "ForwardOutcome" and result["window_sessions"] == 5
+            )
+            selected_ref = {
+                "id": selected["forward_outcome_id"],
+                "content_fingerprint": selected["forward_content_fingerprint"],
+            }
+            values = config_values("research_aggregate")
+            values["as_of"] = "2026-09-09"
+            values["evidence_window"] = {"start": "2026-08-31", "end": "2026-09-09"}
+            values["storage"] = {
+                "root_kind": "temporary", "root_path": str(Path(directory) / "store")
+            }
+            values["policy_refs"] = [
+                real_policy("adjustment", ADJUSTMENT_POLICY),
+                real_policy("aggregation", AGGREGATION_POLICY),
+                real_policy("evaluation", EVALUATION_POLICY),
+                real_policy("forward_window", FORWARD_WINDOW_POLICY),
+                real_policy("partition", PARTITION_POLICY),
+            ]
+            values["input_selector"] = {
+                "mode": "query", "refs": [], "bundle_path": None,
+                "bundle_sha256": None,
+                "query": plain(build_evaluation_query(
+                    filters={
+                        "result_contracts": ["ForwardOutcome"],
+                        "window_sessions": [5],
+                    },
+                    revision_mode="current",
+                )),
+            }
+            values["work_units"] = [{
+                "work_unit_id": "query-aggregate-1",
+                "start": "2026-08-31", "end": "2026-09-09",
+                "input_refs": [selected_ref],
+            }]
+            config = build_research_run_config(**values)
+            result = execute_research_run(
+                config, repo_root=ROOT, git_state_provider=self.state,
+                clock=lambda: "2026-09-09T23:10:00Z",
+            )
+            self.assertEqual(result.exit_code, 0)
+            self.assertEqual(result.summary["input_count"], 1)
+            self.assertEqual(result.summary["completed_result_count"], 1)
+
+    def test_bundle_hash_or_unknown_bundle_field_fails_before_pending(self):
+        with tempfile.TemporaryDirectory() as directory:
+            work, refs = forward_work()
+            config = runtime_config("forward_evaluation", directory, [work], [refs])
+            bundle_path = Path(config["input_selector"]["bundle_path"])
+            bundle_path.write_bytes(bundle_path.read_bytes() + b" ")
+            with self.assertRaisesRegex(ContractError, "bundle hash"):
+                execute_research_run(
+                    config, repo_root=ROOT, git_state_provider=self.state
+                )
+            self.assertFalse((Path(directory) / "store" / "runs").exists())
+
+    def test_public_store_rejects_terminal_without_persisted_pending(self):
+        with tempfile.TemporaryDirectory() as source_dir, tempfile.TemporaryDirectory() as target_dir:
+            work, refs = forward_work()
+            config = runtime_config(
+                "forward_evaluation", source_dir, [work], [refs]
+            )
+            completed = execute_research_run(
+                config, repo_root=ROOT, git_state_provider=self.state,
+                clock=lambda: "2026-09-09T23:00:00Z",
+            )
+            source_store = EvaluationShadowStore(
+                Path(source_dir) / "store", workspace_root=ROOT
+            )
+            receipt = next(
+                item for item in source_store.capture_inventory().run_receipts
+                if item["run_id"] == completed.summary["run_id"]
+                and item["status"] == "completed"
+            )
+            target_store = EvaluationShadowStore(
+                Path(target_dir) / "store", workspace_root=ROOT
+            )
+            with self.assertRaisesRegex(ContractError, "ResearchRunConfig"):
+                target_store.write_run_receipt(receipt)
+            self.assertFalse((Path(target_dir) / "store" / "runs").exists())
+
+    def test_public_checkpoint_storage_rejects_unstored_results_and_bad_prior(self):
+        with tempfile.TemporaryDirectory() as directory:
+            work, refs = forward_work()
+            config = runtime_config("forward_evaluation", directory, [work], [refs])
+            store = EvaluationShadowStore(
+                Path(directory) / "store", workspace_root=ROOT
+            )
+            pending = _orchestrator_pending(
+                config, generated_at="2026-09-09T23:00:00Z"
+            )
+            store.write_research_config(config)
+            store.write_run_receipt(pending)
+            root = _checkpoint(
+                config, pending, [], [], status="in_progress",
+                generated_at="2026-09-09T23:01:00Z", prior=None,
+            )
+            store.write_checkpoint(root)
+            forged_result = _checkpoint(
+                config, pending, ["forward-1"],
+                [
+                    {"work_unit_id": "forward-1", **ref("forward-outcome", digit)}
+                    for digit in "abcde"
+                ],
+                status="completed", generated_at="2026-09-09T23:02:00Z",
+                prior=root,
+            )
+            with self.assertRaisesRegex(ContractError, "not present"):
+                store.write_checkpoint(forged_result)
+            bad_prior = build_research_run_checkpoint(**{
+                **{
+                    key: plain(value) for key, value in root.items()
+                    if key not in {
+                        "checkpoint_id", "checkpoint_content_fingerprint",
+                        "supersedes_checkpoint_id", "generated_at",
+                    }
+                },
+                "supersedes_checkpoint_id": "research-run-checkpoint:sha256:" + "e" * 64,
+                "generated_at": "2026-09-09T23:03:00Z",
+            })
+            with self.assertRaisesRegex(ContractError, "unique current leaf"):
+                store.write_checkpoint(bad_prior)
+            self.assertEqual(current_research_run_checkpoint(store.capture_inventory().checkpoints), root)
+
+    def test_changed_config_cannot_resume_a_checkpoint(self):
+        with tempfile.TemporaryDirectory() as directory:
+            works, refs = portfolio_works()
+            config = runtime_config("portfolio_boundary", directory, works, refs)
+            interrupted = execute_research_run(
+                config, repo_root=ROOT, git_state_provider=self.state,
+                clock=lambda: "2026-09-09T23:00:00Z",
+                interrupt_after_work_units=1,
+            )
+            values = plain(config)
+            for field in ("config_id", "config_content_fingerprint"):
+                values.pop(field)
+            values["work_units"][0]["start"] = "2026-09-01"
+            values["resume"] = {
+                "mode": "checkpoint",
+                "parent_run_id": interrupted.summary["run_id"],
+                "checkpoint_ref": {
+                    "id": interrupted.summary["checkpoint_id"],
+                    "content_fingerprint": "sha256:" + interrupted.summary["checkpoint_id"].rsplit(":", 1)[-1],
+                },
+            }
+            changed = build_research_run_config(**values)
+            with self.assertRaisesRegex(ContractError, "resume evidence"):
+                execute_research_run(
+                    changed, repo_root=ROOT, git_state_provider=self.state
+                )
+
+    def test_export_failure_does_not_change_completed_evaluation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            work, refs = forward_work()
+            values = plain(runtime_config(
+                "forward_evaluation", directory, [work], [refs]
+            ))
+            for field in ("config_id", "config_content_fingerprint"):
+                values.pop(field)
+            values["export_plan"] = {
+                "enabled": True,
+                "query": plain(build_evaluation_query(
+                    filters={"result_contracts": ["ForwardOutcome"]},
+                    revision_mode="current",
+                )),
+                "config": plain(build_export_config(formats=("csv",))),
+                "formats": ["csv"],
+                "output_root": str(Path(directory) / "exports"),
+            }
+            config = build_research_run_config(**values)
+            def fail_export(*args, **kwargs):
+                raise OSError("injected export failure")
+            result = execute_research_run(
+                config, repo_root=ROOT, git_state_provider=self.state,
+                clock=lambda: "2026-09-09T23:00:00Z",
+                export_publisher=fail_export,
+            )
+            self.assertEqual(result.exit_code, 0)
+            self.assertEqual(result.summary["status"], "completed")
+            self.assertEqual(result.summary["export"]["status"], "failed")
+            self.assertFalse((Path(directory) / "exports").exists())
+
+    def test_producer_failure_appends_failed_checkpoint_and_receipt(self):
+        with tempfile.TemporaryDirectory() as directory:
+            work, refs = forward_work()
+            del work["arguments"]["universe_content_fingerprint"]
+            config = runtime_config("forward_evaluation", directory, [work], [refs])
+            result = execute_research_run(
+                config, repo_root=ROOT, git_state_provider=self.state,
+                clock=lambda: "2026-09-09T23:00:00Z",
+            )
+            inventory = EvaluationShadowStore(
+                Path(directory) / "store", workspace_root=ROOT
+            ).capture_inventory()
+            run_chain = [
+                item for item in inventory.run_receipts
+                if item["run_id"] == result.summary["run_id"]
+            ]
+            checkpoint_chain = [
+                item for item in inventory.checkpoints
+                if item["run_id"] == result.summary["run_id"]
+            ]
+            self.assertEqual(result.exit_code, 2)
+            self.assertEqual(result.summary["status"], "failed")
+            self.assertEqual(current_experiment_run(run_chain)["status"], "failed")
+            self.assertEqual(
+                current_research_run_checkpoint(checkpoint_chain)["status"], "failed"
+            )
+
+    def test_aggregate_mixed_result_families_fail_with_evidence(self):
+        with tempfile.TemporaryDirectory() as directory:
+            work, refs = aggregate_work()
+            trade = aggregate_fixtures.trade("8", gross=0.2)
+            work["arguments"]["outcomes"].append(plain(trade))
+            refs.append({
+                "id": trade["trade_outcome_id"],
+                "content_fingerprint": trade["trade_content_fingerprint"],
+            })
+            refs.sort(key=lambda item: item["id"])
+            config = runtime_config(
+                "research_aggregate", directory, [work], [refs]
+            )
+            result = execute_research_run(
+                config, repo_root=ROOT, git_state_provider=self.state,
+                clock=lambda: "2026-09-09T23:00:00Z",
+            )
+            self.assertEqual(result.exit_code, 2)
+            self.assertEqual(result.summary["status"], "failed")
+
+    def test_checkpoint_graph_rejects_fork_and_cross_run(self):
+        with tempfile.TemporaryDirectory() as directory:
+            work, refs = forward_work()
+            config = runtime_config("forward_evaluation", directory, [work], [refs])
+            pending = _orchestrator_pending(
+                config, generated_at="2026-09-09T23:00:00Z"
+            )
+            root = _checkpoint(
+                config, pending, [], [], status="in_progress",
+                generated_at="2026-09-09T23:01:00Z", prior=None,
+            )
+            child_a = _checkpoint(
+                config, pending, [], [], status="in_progress",
+                generated_at="2026-09-09T23:02:00Z", prior=root,
+            )
+            child_b = _checkpoint(
+                config, pending, [], [], status="interrupted",
+                generated_at="2026-09-09T23:03:00Z", prior=root,
+            )
+            with self.assertRaisesRegex(ContractError, "forks"):
+                current_research_run_checkpoint([root, child_a, child_b])
+            changed_values = plain(config)
+            for field in ("config_id", "config_content_fingerprint"):
+                changed_values.pop(field)
+            changed_values["code_commit"] = "c" * 40
+            changed = build_research_run_config(**changed_values)
+            other_pending = _orchestrator_pending(
+                changed, generated_at="2026-09-09T23:00:00Z"
+            )
+            other_root = _checkpoint(
+                changed, other_pending, [], [], status="in_progress",
+                generated_at="2026-09-09T23:01:00Z", prior=None,
+            )
+            with self.assertRaisesRegex(ContractError, "crosses runs"):
+                current_research_run_checkpoint([root, other_root])
+
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 if __name__ == "__main__":

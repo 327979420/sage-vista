@@ -39,6 +39,16 @@ from .contracts import (
     validate_m10c_source_version,
     validate_result,
 )
+from .checkpoint import (
+    current_research_run_checkpoint,
+    validate_research_run_checkpoint,
+)
+from .config import (
+    config_resume_scope_fingerprint,
+    is_m10e_receipt_candidate,
+    validate_m10e_receipt_identity,
+    validate_research_run_config,
+)
 
 
 _DIGEST = re.compile(r"^[0-9a-f]{64}$")
@@ -130,6 +140,19 @@ def _is_managed_receipt(payload: Mapping[str, Any]) -> bool:
     return _is_internal_baseline_receipt(payload) or _is_m10c_receipt_candidate(payload)
 
 
+def _checkpoint_result_refs(payload: Mapping[str, Any]) -> list[dict[str, str]]:
+    return sorted(
+        [
+            {
+                "id": str(item["id"]),
+                "content_fingerprint": str(item["content_fingerprint"]),
+            }
+            for item in payload["result_refs"]
+        ],
+        key=lambda item: (item["id"], item["content_fingerprint"]),
+    )
+
+
 @contextmanager
 def _chain_lock(root: Path, contract_name: str, logical_result_id: str) -> Iterator[None]:
     """Serialize one logical chain across threads and local worker processes."""
@@ -173,6 +196,7 @@ class EvaluationInventorySnapshot:
     evidence: Mapping[str, Any]
     result_records: tuple[tuple[str, Mapping[str, Any]], ...]
     run_receipts: tuple[Mapping[str, Any], ...]
+    checkpoints: tuple[Mapping[str, Any], ...] = ()
 
 
 class _EvaluationInventoryWriter:
@@ -205,10 +229,18 @@ class _EvaluationInventoryWriter:
         self._require_active()
         return self._store._write_run_receipt_inventory_locked(payload)
 
+    def write_research_config(self, payload: Mapping[str, Any]) -> Path:
+        self._require_active()
+        return self._store._write_research_config_inventory_locked(payload)
+
     def result_references_for_run(self, run_id: str) -> list[dict[str, str]]:
         self._require_active()
         _id_digest(run_id, field="run_id")
         return self._store._result_references_for_run_unlocked(run_id)
+
+    def write_checkpoint(self, payload: Mapping[str, Any]) -> Path:
+        self._require_active()
+        return self._store._write_checkpoint_inventory_locked(payload)
 
 
 class EvaluationShadowStore:
@@ -322,6 +354,31 @@ class EvaluationShadowStore:
                 receipts.append(receipt)
         return receipts
 
+    def _checkpoints(self, run_id: str) -> list[Mapping[str, Any]]:
+        directory = self.root / "checkpoints"
+        if not directory.exists():
+            return []
+        if directory.is_symlink() or not directory.is_dir():
+            raise ContractError("M10 checkpoint collection must be a real directory")
+        checkpoints: list[Mapping[str, Any]] = []
+        for path in sorted(directory.glob("*.json")):
+            checkpoint = self._load_existing(
+                path, validator=validate_research_run_checkpoint
+            )
+            if checkpoint["run_id"] == run_id:
+                checkpoints.append(checkpoint)
+        return checkpoints
+
+    def _research_config(self, config_id: str) -> Mapping[str, Any]:
+        digest = _id_digest(config_id, field="config_id")
+        path = self.root / "configs" / (digest + ".json")
+        if not path.exists() or path.is_symlink():
+            raise ContractError("M10-E persisted ResearchRunConfig is unavailable")
+        config = self._load_existing(path, validator=validate_research_run_config)
+        if config["config_id"] != config_id:
+            raise ContractError("M10-E config filename does not match its identity")
+        return config
+
     def _result_records_for_run(
         self, run_id: str
     ) -> list[tuple[str, Mapping[str, Any]]]:
@@ -382,7 +439,7 @@ class EvaluationShadowStore:
             unknown_root = {
                 item.name
                 for item in self._strict_directory_entries(self.root)
-                if item.name not in {"results", "runs"}
+                if item.name not in {"results", "runs", "checkpoints", "configs"}
             }
             if unknown_root:
                 raise ContractError("M10 inventory contains unknown top-level entries")
@@ -390,7 +447,17 @@ class EvaluationShadowStore:
         entries: list[dict[str, Any]] = []
         result_records: list[tuple[str, Mapping[str, Any]]] = []
         run_receipts: list[Mapping[str, Any]] = []
+        checkpoints: list[Mapping[str, Any]] = []
         seen_stable_ids: set[str] = set()
+
+        configs_root = self.root / "configs"
+        if configs_root.exists():
+            for path in self._strict_directory_entries(configs_root):
+                payload, _ = self._inventory_record(
+                    path, validator=validate_research_run_config
+                )
+                if path.stem != _id_digest(payload["config_id"], field="config_id"):
+                    raise ContractError("M10-E config filename does not match its ID")
 
         results_root = self.root / "results"
         if results_root.exists():
@@ -485,6 +552,47 @@ class EvaluationShadowStore:
                         "completed ExperimentRun does not match inventory results"
                     )
 
+        checkpoints_root = self.root / "checkpoints"
+        if checkpoints_root.exists():
+            grouped_checkpoints: dict[str, list[Mapping[str, Any]]] = {}
+            for path in self._strict_directory_entries(checkpoints_root):
+                payload, _ = self._inventory_record(
+                    path, validator=validate_research_run_checkpoint
+                )
+                if path.stem != _id_digest(
+                    payload["checkpoint_id"], field="checkpoint_id"
+                ):
+                    raise ContractError("M10 checkpoint filename does not match its ID")
+                checkpoints.append(_freeze(_plain(payload)))
+                grouped_checkpoints.setdefault(str(payload["run_id"]), []).append(payload)
+            for chain in grouped_checkpoints.values():
+                current_research_run_checkpoint(chain)
+            for run_id, receipts in grouped_receipts.items():
+                if not any(is_m10e_receipt_candidate(item) for item in receipts):
+                    continue
+                if any(not is_m10e_receipt_candidate(item) for item in receipts):
+                    raise ContractError("M10-E inventory run crosses producers")
+                for receipt in receipts:
+                    validate_m10e_receipt_identity(receipt)
+                config = self._research_config(
+                    str(receipts[0]["config_ref"]["config_id"])
+                )
+                if any(
+                    item["config_ref"]["config_id"] != config["config_id"]
+                    or item["config_ref"]["content_fingerprint"]
+                    != config["config_content_fingerprint"]
+                    for item in receipts
+                ):
+                    raise ContractError("M10-E receipt chain differs from its saved config")
+                leaf = current_experiment_run(receipts)
+                if leaf["status"] != "pending":
+                    self._validate_m10e_terminal_evidence(
+                        leaf,
+                        receipts,
+                        grouped_checkpoints.get(run_id, []),
+                        allow_existing_terminal=True,
+                    )
+
         ordered_entries = sorted(
             entries,
             key=lambda item: (
@@ -503,6 +611,7 @@ class EvaluationShadowStore:
             evidence=_freeze(evidence),
             result_records=tuple(result_records),
             run_receipts=tuple(run_receipts),
+            checkpoints=tuple(checkpoints),
         )
 
     def capture_inventory(self) -> EvaluationInventorySnapshot:
@@ -713,6 +822,178 @@ class EvaluationShadowStore:
             self._result_records_for_run(run_id)
         )
 
+    def _all_result_references_unlocked(self) -> list[dict[str, str]]:
+        records: list[tuple[str, Mapping[str, Any]]] = []
+        for contract_name in RESULT_TYPES:
+            records.extend(
+                (contract_name, record)
+                for _, record in self._result_records(contract_name)
+            )
+        return self._result_references_for_run_records(records)
+
+    def _validate_m10e_checkpoint_conservation(
+        self,
+        checkpoint: Mapping[str, Any],
+        config: Mapping[str, Any],
+    ) -> None:
+        expected_units = [item["work_unit_id"] for item in config["work_units"]]
+        if (
+            checkpoint["config_id"] != config["config_id"]
+            or checkpoint["config_content_fingerprint"]
+            != config["config_content_fingerprint"]
+            or checkpoint["config_scope_fingerprint"]
+            != config_resume_scope_fingerprint(config)
+            or checkpoint["result_family"] != config["output_contract"]["name"]
+            or list(checkpoint["expected_work_units"]) != expected_units
+        ):
+            raise ContractError("M10-E checkpoint differs from its saved config")
+        expected_contract = str(config["output_contract"]["name"])
+        expected_schema = str(config["output_contract"]["schema_version"])
+        expected_source = {"evaluation_contracts": config["producer_source_version"]}
+        expected_per_unit = int(config["expected_results"]["per_work_unit_count"])
+        stored_by_ref: dict[tuple[str, str], tuple[str, Mapping[str, Any]]] = {}
+        for contract_name in RESULT_TYPES:
+            id_field, fingerprint_field, _, _ = RESULT_TYPES[contract_name]
+            for _, result in self._result_records(contract_name):
+                stored_by_ref[(str(result[id_field]), str(result[fingerprint_field]))] = (
+                    contract_name,
+                    result,
+                )
+        refs_by_unit: dict[str, list[Mapping[str, Any]]] = {
+            unit: [] for unit in expected_units
+        }
+        for ref in checkpoint["result_refs"]:
+            refs_by_unit[str(ref["work_unit_id"])].append(ref)
+        completed = set(checkpoint["completed_work_units"])
+        units = {str(item["work_unit_id"]): item for item in config["work_units"]}
+        for unit_id in expected_units:
+            refs = refs_by_unit[unit_id]
+            expected_count = expected_per_unit if unit_id in completed else 0
+            if len(refs) != expected_count:
+                raise ContractError("M10-E checkpoint result count violates its config")
+            unit_results: list[Mapping[str, Any]] = []
+            for ref in refs:
+                key = (str(ref["id"]), str(ref["content_fingerprint"]))
+                stored = stored_by_ref.get(key)
+                if stored is None:
+                    raise ContractError("checkpoint references a result not present in storage")
+                contract_name, result = stored
+                unit_results.append(result)
+                if (
+                    contract_name != expected_contract
+                    or result["schema_version"] != expected_schema
+                    or _plain(result["source_version"]) != expected_source
+                    or result["path_status"] != config["path_status"]
+                    or result["result_role"] != config["result_role"]
+                    or result["partition_role"] != config["partition_role"]
+                ):
+                    raise ContractError("M10-E checkpoint contains an out-of-scope result")
+                child_receipts = self._run_receipts(str(result["run_id"]))
+                if not child_receipts:
+                    raise ContractError("M10-E result has no persisted producer run")
+                child_leaf = current_experiment_run(child_receipts)
+                child_roots = [
+                    item for item in child_receipts
+                    if item["status"] == "pending"
+                    and item["supersedes_run_receipt_id"] is None
+                ]
+                if len(child_roots) != 1 or child_leaf["status"] != "completed":
+                    raise ContractError("M10-E result producer run is not complete")
+                child_pending = child_roots[0]
+                if (
+                    _plain(child_pending["input_refs"])
+                    != _plain(units[unit_id]["input_refs"])
+                    or _plain(child_pending["policy_refs"])
+                    != _plain(config["policy_refs"])
+                    or child_pending["code_commit"] != config["code_commit"]
+                    or _plain(child_pending["source_version"]) != expected_source
+                ):
+                    raise ContractError("M10-E result producer evidence differs from its work unit")
+                child_refs = {
+                    (item["id"], item["content_fingerprint"])
+                    for item in child_leaf["result_refs"]
+                }
+                if key not in child_refs:
+                    raise ContractError("M10-E result is absent from its producer receipt")
+            if len({str(item["logical_result_id"]) for item in unit_results}) != len(unit_results):
+                raise ContractError("M10-E work unit contains duplicate logical results")
+            if expected_contract == "ForwardOutcome" and unit_id in completed:
+                actual_windows = sorted(int(item["window_sessions"]) for item in unit_results)
+                if actual_windows != list(config["expected_results"]["forward_windows"]):
+                    raise ContractError("M10-E Forward work unit does not contain every configured window")
+
+    def _validate_m10e_terminal_evidence(
+        self,
+        payload: Mapping[str, Any],
+        receipts: list[Mapping[str, Any]],
+        checkpoints: list[Mapping[str, Any]],
+        *,
+        allow_existing_terminal: bool,
+    ) -> None:
+        """Bind an M10-E terminal receipt to stored progress and child results."""
+
+        validate_m10e_receipt_identity(payload)
+        if any(not is_m10e_receipt_candidate(item) for item in receipts):
+            raise ContractError("M10-E receipt chain crosses producers")
+        for receipt in receipts:
+            validate_m10e_receipt_identity(receipt)
+        roots = [
+            item for item in receipts
+            if item["status"] == "pending"
+            and item["supersedes_run_receipt_id"] is None
+        ]
+        if len(roots) != 1:
+            raise ContractError("M10-E terminal receipt requires one persisted pending root")
+        pending = roots[0]
+        leaf = current_experiment_run(receipts)
+        existing = any(
+            item["run_receipt_id"] == payload["run_receipt_id"]
+            for item in receipts
+        )
+        if existing:
+            if not allow_existing_terminal or leaf["run_receipt_id"] != payload["run_receipt_id"]:
+                raise ContractError("M10-E terminal receipt conflicts with the stored chain")
+        elif leaf["status"] != "pending":
+            raise ContractError("M10-E terminal receipt must supersede the pending leaf")
+        if payload["supersedes_run_receipt_id"] != pending["run_receipt_id"]:
+            raise ContractError("M10-E terminal receipt must directly supersede its pending root")
+        if not checkpoints:
+            raise ContractError("M10-E terminal receipt requires a persisted checkpoint")
+        checkpoint = current_research_run_checkpoint(checkpoints)
+        config = self._research_config(str(pending["config_ref"]["config_id"]))
+        self._validate_m10e_checkpoint_conservation(checkpoint, config)
+        expected_status = payload["status"]
+        if checkpoint["status"] != expected_status:
+            raise ContractError("M10-E terminal receipt status differs from its checkpoint")
+        if (
+            checkpoint["run_id"] != payload["run_id"]
+            or checkpoint["config_id"] != pending["config_ref"]["config_id"]
+            or checkpoint["config_content_fingerprint"]
+            != pending["config_ref"]["content_fingerprint"]
+            or checkpoint["input_set_fingerprint"] != pending["input_set_fingerprint"]
+            or checkpoint["path_status"] != pending["path_status"]
+            or checkpoint["result_role"] != pending["result_role"]
+            or checkpoint["partition_role"] != pending["partition_role"]
+            or checkpoint["code_commit"] != pending["code_commit"]
+        ):
+            raise ContractError("M10-E checkpoint differs from its pending receipt")
+        checkpoint_refs = _checkpoint_result_refs(checkpoint)
+        receipt_refs = sorted(
+            _plain(payload["result_refs"]),
+            key=lambda item: (item["id"], item["content_fingerprint"]),
+        )
+        if checkpoint_refs != receipt_refs:
+            raise ContractError("M10-E terminal receipt does not conserve checkpoint results")
+        saved_refs = {
+            (item["id"], item["content_fingerprint"])
+            for item in self._all_result_references_unlocked()
+        }
+        if any(
+            (item["id"], item["content_fingerprint"]) not in saved_refs
+            for item in receipt_refs
+        ):
+            raise ContractError("M10-E terminal receipt references an unstored result")
+
     def result_references_for_run(
         self, run_id: str
     ) -> list[dict[str, str]]:
@@ -725,6 +1006,99 @@ class EvaluationShadowStore:
     def write_run_receipt(self, payload: Mapping[str, Any]) -> Path:
         with _inventory_lock(self.root):
             return self._write_run_receipt_inventory_locked(payload)
+
+    def write_research_config(self, payload: Mapping[str, Any]) -> Path:
+        with _inventory_lock(self.root):
+            return self._write_research_config_inventory_locked(payload)
+
+    def _write_research_config_inventory_locked(
+        self, payload: Mapping[str, Any]
+    ) -> Path:
+        validate_research_run_config(payload)
+        if Path(payload["storage"]["root_path"]).resolve() != self.root.resolve():
+            raise ContractError("ResearchRunConfig storage root differs from this store")
+        target = self.root / "configs" / (
+            _id_digest(payload["config_id"], field="config_id") + ".json"
+        )
+        with _chain_lock(self.root, "ResearchRunConfig", str(payload["config_id"])):
+            return self._write(
+                payload,
+                target=target,
+                validator=validate_research_run_config,
+                id_field="config_id",
+                fingerprint_field="config_content_fingerprint",
+            )
+
+    def write_checkpoint(self, payload: Mapping[str, Any]) -> Path:
+        with _inventory_lock(self.root):
+            return self._write_checkpoint_inventory_locked(payload)
+
+    def _write_checkpoint_inventory_locked(
+        self, payload: Mapping[str, Any]
+    ) -> Path:
+        validate_research_run_checkpoint(payload)
+        run_id = str(payload["run_id"])
+        _id_digest(run_id, field="run_id")
+        target = self.root / "checkpoints" / (
+            _id_digest(payload["checkpoint_id"], field="checkpoint_id") + ".json"
+        )
+        with _chain_lock(self.root, "ResearchRunCheckpoint", run_id):
+            receipts = self._run_receipts(run_id)
+            if not receipts:
+                raise ContractError("M10-E checkpoint requires its persisted pending receipt")
+            if any(not is_m10e_receipt_candidate(item) for item in receipts):
+                raise ContractError("M10-E checkpoint run crosses producers")
+            for receipt in receipts:
+                validate_m10e_receipt_identity(receipt)
+            run_leaf = current_experiment_run(receipts)
+            pending_roots = [
+                item for item in receipts
+                if item["status"] == "pending"
+                and item["supersedes_run_receipt_id"] is None
+            ]
+            if len(pending_roots) != 1 or run_leaf["status"] != "pending":
+                raise ContractError("M10-E checkpoint requires the unique pending run leaf")
+            pending = pending_roots[0]
+            config = self._research_config(str(payload["config_id"]))
+            if (
+                payload["config_id"] != pending["config_ref"]["config_id"]
+                or payload["config_content_fingerprint"]
+                != pending["config_ref"]["content_fingerprint"]
+                or payload["input_set_fingerprint"] != pending["input_set_fingerprint"]
+                or payload["path_status"] != pending["path_status"]
+                or payload["result_role"] != pending["result_role"]
+                or payload["partition_role"] != pending["partition_role"]
+                or payload["code_commit"] != pending["code_commit"]
+            ):
+                raise ContractError("M10-E checkpoint differs from its pending receipt")
+            chain = self._checkpoints(run_id)
+            existing = {str(item["checkpoint_id"]): item for item in chain}
+            checkpoint_id = str(payload["checkpoint_id"])
+            if checkpoint_id in existing:
+                return self._write(
+                    payload,
+                    target=target,
+                    validator=validate_research_run_checkpoint,
+                    id_field="checkpoint_id",
+                    fingerprint_field="checkpoint_content_fingerprint",
+                )
+            leaf = current_research_run_checkpoint(chain) if chain else None
+            if leaf is None:
+                if payload["supersedes_checkpoint_id"] is not None:
+                    raise ContractError("checkpoint predecessor does not exist")
+            elif payload["supersedes_checkpoint_id"] != leaf["checkpoint_id"]:
+                raise ContractError("checkpoint must supersede the unique current leaf")
+            if leaf is not None and leaf["status"] == "completed":
+                raise ContractError("completed research run cannot accept a new checkpoint")
+            current_research_run_checkpoint([*chain, payload])
+            self._validate_m10e_checkpoint_conservation(payload, config)
+            return self._write(
+                payload,
+                target=target,
+                validator=validate_research_run_checkpoint,
+                id_field="checkpoint_id",
+                fingerprint_field="checkpoint_content_fingerprint",
+            )
 
     def _write_run_receipt_inventory_locked(
         self, payload: Mapping[str, Any]
@@ -746,6 +1120,34 @@ class EvaluationShadowStore:
             receipts = self._run_receipts(run_id)
             stored_records = self._result_records_for_run(run_id)
             stored_results = [item for _, item in stored_records]
+            if is_m10e_receipt_candidate(payload):
+                validate_m10e_receipt_identity(payload)
+                config = self._research_config(str(payload["config_ref"]["config_id"]))
+                if (
+                    payload["config_ref"]["content_fingerprint"]
+                    != config["config_content_fingerprint"]
+                    or payload["code_commit"] != config["code_commit"]
+                    or _plain(payload["policy_refs"]) != _plain(config["policy_refs"])
+                    or _plain(payload["input_refs"])
+                    != sorted(
+                        [
+                            _plain(ref)
+                            for unit in config["work_units"]
+                            for ref in unit["input_refs"]
+                        ],
+                        key=lambda item: (item["id"], item["content_fingerprint"]),
+                    )
+                ):
+                    raise ContractError("M10-E receipt differs from its saved config")
+                if any(not is_m10e_receipt_candidate(item) for item in receipts):
+                    raise ContractError("M10-E receipt chain crosses producers")
+                if payload["status"] != "pending":
+                    self._validate_m10e_terminal_evidence(
+                        payload,
+                        receipts,
+                        self._checkpoints(run_id),
+                        allow_existing_terminal=True,
+                    )
             if _is_internal_baseline_receipt(payload):
                 validate_internal_baseline_source_version(payload)
                 self._validate_internal_run_sources(

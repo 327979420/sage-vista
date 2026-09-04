@@ -15,11 +15,16 @@ from types import MappingProxyType
 from typing import Any, Callable, Mapping, Sequence
 
 from services.contracts.market_data import canonical_fingerprint, require_date
-from services.contracts.validation import ContractError, SEMVER
+from services.contracts.validation import ContractError
 
 
 RESEARCH_RUN_CONFIG_SCHEMA_VERSION = "2.0.0"
 M10_E_SOURCE_VERSION = "m10-e-cli-1.0.0"
+M10_E_ORCHESTRATOR_ENGINE = {
+    "name": "sage-vista-m10e-orchestrator",
+    "version": "1.0.0",
+    "adapter_version": "cli-1.0.0",
+}
 CONFIG_ID = re.compile(r"^research-run-config:sha256:[0-9a-f]{64}$")
 SHA256 = re.compile(r"^sha256:[0-9a-f]{64}$")
 STABLE_ID = re.compile(r"^[a-z][a-z0-9-]*:sha256:[0-9a-f]{64}$")
@@ -48,8 +53,8 @@ OPERATIONS = {
         "contract": "PortfolioRun",
         "schema": "2.1.0",
         "producer": "m10-c-readonly-1.0.0",
-        "engine": ("sage-vista-m10c-readonly", "1.0.0", "readonly-1.0.0"),
-        "policies": {"adjustment", "aggregation", "evaluation", "partition"},
+        "engine": ("sage-vista-readonly-aggregate", "1.0.0", "shadow-1.0.0"),
+        "policies": {"adjustment", "aggregation", "evaluation", "execution", "partition"},
         "count": 1,
         "windows": [],
     },
@@ -57,7 +62,7 @@ OPERATIONS = {
         "contract": "ResearchAggregate",
         "schema": "2.1.0",
         "producer": "m10-c-readonly-1.0.0",
-        "engine": ("sage-vista-m10c-readonly", "1.0.0", "readonly-1.0.0"),
+        "engine": ("sage-vista-readonly-aggregate", "1.0.0", "shadow-1.0.0"),
         "policies": {"adjustment", "aggregation", "evaluation", "partition"},
         "count": 1,
         "windows": [],
@@ -149,8 +154,8 @@ def _policy_refs(value: Any, expected: set[str]) -> list[dict[str, str]]:
         )
         kind = _text(item["policy_kind"], "policy_kind")
         version = _text(item["policy_version"], "policy_version")
-        if not SEMVER.fullmatch(version):
-            raise ContractError("policy_version must be semantic version")
+        if version.strip().lower() in _DYNAMIC_ALIASES:
+            raise ContractError("policy_version cannot be dynamic")
         _sha(item["policy_fingerprint"], "policy_fingerprint")
         normalized.append(item)
     kinds = [item["policy_kind"] for item in normalized]
@@ -196,9 +201,20 @@ def _normalize(values: Mapping[str, Any], *, derived: bool) -> dict[str, Any]:
     ):
         raise ContractError("bias_labels must be a string list")
     payload["bias_labels"] = sorted(set(payload["bias_labels"]))
+    if payload["bias_labels"]:
+        raise ContractError("formal M10-E config cannot contain bias labels")
     for field in ("universe_ref", "market_snapshot_ref", "adjustment_policy_ref"):
         if payload[field] is not None:
             payload[field] = _stable_ref(payload[field], field)
+    baseline_operation = operation in {"forward_evaluation", "trade_evaluation"}
+    evidence_refs = (
+        payload["universe_ref"], payload["market_snapshot_ref"],
+        payload["adjustment_policy_ref"],
+    )
+    if baseline_operation and any(item is None for item in evidence_refs):
+        raise ContractError("M10-B config requires universe, market, and adjustment evidence")
+    if not baseline_operation and any(item is not None for item in evidence_refs):
+        raise ContractError("M10-C config must not fabricate M02 evidence references")
     payload["selection_refs"] = _refs(payload["selection_refs"], "selection_refs")
     payload["execution_refs"] = _refs(payload["execution_refs"], "execution_refs")
     if operation == "forward_evaluation" and not payload["selection_refs"]:
@@ -207,21 +223,29 @@ def _normalize(values: Mapping[str, Any], *, derived: bool) -> dict[str, Any]:
         not payload["selection_refs"] or not payload["execution_refs"]
     ):
         raise ContractError("Trade config requires selection and execution evidence")
-    if operation in {"portfolio_boundary", "research_aggregate"} and payload["execution_refs"]:
-        raise ContractError("M10-C config cannot contain M08 execution refs")
+    if operation in {"portfolio_boundary", "research_aggregate"} and (
+        payload["selection_refs"] or payload["execution_refs"]
+    ):
+        raise ContractError("M10-C config accepts only persisted Outcome input refs")
     selector = _exact(
         payload["input_selector"],
         {"mode", "refs", "bundle_path", "bundle_sha256", "query"},
         "input_selector",
     )
     selector["mode"] = _text(selector["mode"], "input_selector.mode")
-    selector["refs"] = _refs(selector["refs"], "input_selector.refs", allow_empty=False)
+    selector["refs"] = _refs(selector["refs"], "input_selector.refs")
     if selector["mode"] == "bundle":
+        if not selector["refs"]:
+            raise ContractError("bundle input_selector requires explicit references")
         _text(selector["bundle_path"], "input_selector.bundle_path")
         _sha(selector["bundle_sha256"], "input_selector.bundle_sha256")
         if selector["query"] is not None:
             raise ContractError("bundle input_selector cannot contain a query")
     elif selector["mode"] == "query":
+        if operation not in {"portfolio_boundary", "research_aggregate"}:
+            raise ContractError("query input_selector is only valid for persisted M10 Outcomes")
+        if selector["refs"]:
+            raise ContractError("query input_selector cannot also contain explicit refs")
         if selector["bundle_path"] is not None or selector["bundle_sha256"] is not None:
             raise ContractError("query input_selector cannot contain a bundle")
         if not isinstance(selector["query"], Mapping):
@@ -232,7 +256,21 @@ def _normalize(values: Mapping[str, Any], *, derived: bool) -> dict[str, Any]:
     else:
         raise ContractError("input_selector.mode is unknown")
     payload["input_selector"] = selector
-    payload["policy_refs"] = _policy_refs(payload["policy_refs"], spec["policies"])
+    expected_policy_kinds = set(spec["policies"])
+    expected_result_input = payload["expected_results"]
+    if (
+        operation == "research_aggregate"
+        and isinstance(expected_result_input, Mapping)
+        and expected_result_input.get("source_result_contract") == "ForwardOutcome"
+    ):
+        expected_policy_kinds.add("forward_window")
+    elif (
+        operation == "research_aggregate"
+        and isinstance(expected_result_input, Mapping)
+        and expected_result_input.get("source_result_contract") == "TradeOutcome"
+    ):
+        expected_policy_kinds.add("execution")
+    payload["policy_refs"] = _policy_refs(payload["policy_refs"], expected_policy_kinds)
     engine = _exact(payload["engine"], {"name", "version", "adapter_version"}, "engine")
     if (engine["name"], engine["version"], engine["adapter_version"]) != spec["engine"]:
         raise ContractError("ResearchRunConfig engine does not match its operation")
@@ -262,6 +300,13 @@ def _normalize(values: Mapping[str, Any], *, derived: bool) -> dict[str, Any]:
         if any(item not in {"csv", "xlsx"} for item in export_plan["formats"]):
             raise ContractError("export_plan format is unknown")
         _text(export_plan["output_root"], "export_plan.output_root")
+        from .export import validate_export_config
+        from .query import validate_evaluation_query
+
+        validate_evaluation_query(export_plan["query"])
+        validate_export_config(export_plan["config"])
+        if export_plan["formats"] != list(export_plan["config"]["formats"]):
+            raise ContractError("export_plan formats differ from ExportConfig")
     elif any(export_plan[field] is not None for field in ("query", "config", "output_root")) or export_plan["formats"] != []:
         raise ContractError("disabled export_plan must not contain export inputs")
     payload["export_plan"] = export_plan
@@ -293,9 +338,20 @@ def _normalize(values: Mapping[str, Any], *, derived: bool) -> dict[str, Any]:
         item["input_refs"] = _refs(item["input_refs"], "work_unit.input_refs", allow_empty=False)
         units.append(item)
     payload["work_units"] = units
+    unit_refs = sorted(
+        [item for unit in units for item in unit["input_refs"]],
+        key=lambda item: (item["id"], item["content_fingerprint"]),
+    )
+    if len({item["id"] for item in unit_refs}) != len(unit_refs):
+        raise ContractError("work units cannot claim the same input reference twice")
+    if selector["mode"] == "bundle" and unit_refs != selector["refs"]:
+        raise ContractError("bundle input refs must equal the complete work-unit inputs")
     expected = _exact(
         payload["expected_results"],
-        {"contract", "schema_version", "source_version", "per_work_unit_count", "forward_windows"},
+        {
+            "contract", "schema_version", "source_version", "per_work_unit_count",
+            "forward_windows", "source_result_contract",
+        },
         "expected_results",
     )
     if (
@@ -306,6 +362,15 @@ def _normalize(values: Mapping[str, Any], *, derived: bool) -> dict[str, Any]:
         or expected["forward_windows"] != spec["windows"]
     ):
         raise ContractError("expected_results does not match the selected operation")
+    source_result_contract = expected["source_result_contract"]
+    if operation in {"forward_evaluation", "trade_evaluation"}:
+        if source_result_contract is not None:
+            raise ContractError("baseline expected_results cannot name a source result contract")
+    elif operation == "portfolio_boundary":
+        if source_result_contract != "TradeOutcome":
+            raise ContractError("PortfolioRun requires TradeOutcome source results")
+    elif source_result_contract not in {"ForwardOutcome", "TradeOutcome"}:
+        raise ContractError("ResearchAggregate source result contract is invalid")
     payload["expected_results"] = expected
     if not isinstance(payload["code_commit"], str) or not GIT_COMMIT.fullmatch(payload["code_commit"]):
         raise ContractError("code_commit must be a full Git commit")
@@ -341,6 +406,34 @@ def validate_research_run_config(payload: Mapping[str, Any]) -> None:
         raise ContractError("ResearchRunConfig is not canonically normalized")
 
 
+def is_m10e_receipt_candidate(payload: Mapping[str, Any]) -> bool:
+    source = payload.get("source_version")
+    engine = payload.get("engine")
+    source_value = source.get("evaluation_contracts") if isinstance(source, Mapping) else None
+    engine_name = engine.get("name") if isinstance(engine, Mapping) else None
+    return (
+        isinstance(source_value, str) and source_value.startswith("m10-e-cli-")
+    ) or engine_name == M10_E_ORCHESTRATOR_ENGINE["name"]
+
+
+def validate_m10e_receipt_identity(payload: Mapping[str, Any]) -> None:
+    """Validate the one approved M10-E ExperimentRun receipt identity."""
+
+    from .contracts import validate_experiment_run
+
+    validate_experiment_run(payload)
+    if payload["source_version"] != {"evaluation_contracts": M10_E_SOURCE_VERSION}:
+        raise ContractError("M10-E ExperimentRun source version is invalid")
+    if _plain(payload["engine"]) != M10_E_ORCHESTRATOR_ENGINE:
+        raise ContractError("M10-E ExperimentRun engine identity is invalid")
+    config = payload["config_ref"]
+    if (
+        config["config_version"] != RESEARCH_RUN_CONFIG_SCHEMA_VERSION
+        or not CONFIG_ID.fullmatch(config["config_id"])
+    ):
+        raise ContractError("M10-E ExperimentRun config reference is invalid")
+
+
 def _pairs_no_duplicates(pairs: Sequence[tuple[str, Any]]) -> dict[str, Any]:
     result: dict[str, Any] = {}
     for key, value in pairs:
@@ -354,7 +447,7 @@ def _reject_constant(value: str) -> None:
     raise ContractError(f"strict JSON rejects non-finite value: {value}")
 
 
-def load_research_run_config(path: str | Path) -> Mapping[str, Any]:
+def load_strict_json_object(path: str | Path) -> Mapping[str, Any]:
     source = Path(path)
     try:
         raw = source.read_text(encoding="utf-8")
@@ -368,9 +461,24 @@ def load_research_run_config(path: str | Path) -> Mapping[str, Any]:
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise ContractError("ResearchRunConfig is not strict UTF-8 JSON") from exc
     if not isinstance(payload, Mapping):
-        raise ContractError("ResearchRunConfig root must be an object")
-    validate_research_run_config(payload)
+        raise ContractError("strict JSON root must be an object")
     return _freeze(payload)
+
+
+def load_research_run_config(path: str | Path) -> Mapping[str, Any]:
+    payload = load_strict_json_object(path)
+    validate_research_run_config(payload)
+    return payload
+
+
+def config_resume_scope_fingerprint(config: Mapping[str, Any]) -> str:
+    """Bind all resumable facts while excluding the explicit resume pointer."""
+
+    validate_research_run_config(config)
+    return canonical_fingerprint({
+        key: _plain(value) for key, value in config.items()
+        if key not in {"config_id", "config_content_fingerprint", "resume"}
+    })
 
 
 @dataclass(frozen=True)
@@ -410,8 +518,10 @@ def validate_formal_git_state(
 
 
 __all__ = [
-    "GitState", "M10_E_SOURCE_VERSION", "OPERATIONS",
+    "GitState", "M10_E_ORCHESTRATOR_ENGINE", "M10_E_SOURCE_VERSION", "OPERATIONS",
     "RESEARCH_RUN_CONFIG_SCHEMA_VERSION", "build_research_run_config",
-    "current_git_state", "load_research_run_config",
-    "validate_formal_git_state", "validate_research_run_config",
+    "config_resume_scope_fingerprint", "current_git_state",
+    "is_m10e_receipt_candidate", "load_research_run_config",
+    "load_strict_json_object", "validate_formal_git_state",
+    "validate_m10e_receipt_identity", "validate_research_run_config",
 ]
