@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+from dataclasses import dataclass
 import fcntl
 import hashlib
 import json
@@ -15,6 +16,7 @@ from threading import Lock
 from typing import Any, Callable, Iterator, Mapping
 
 from services.contracts.validation import ContractError
+from services.contracts.market_data import canonical_fingerprint
 from services.market_data.storage import require_shadow_root
 
 from .baseline import (
@@ -49,6 +51,16 @@ def _plain(value: Any) -> Any:
         return {str(key): _plain(item) for key, item in value.items()}
     if isinstance(value, (list, tuple)):
         return [_plain(item) for item in value]
+    return value
+
+
+def _freeze(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        from types import MappingProxyType
+
+        return MappingProxyType({str(key): _freeze(item) for key, item in value.items()})
+    if isinstance(value, (list, tuple)):
+        return tuple(_freeze(item) for item in value)
     return value
 
 
@@ -140,6 +152,63 @@ def _chain_lock(root: Path, contract_name: str, logical_result_id: str) -> Itera
         finally:
             fcntl.flock(descriptor, fcntl.LOCK_UN)
             os.close(descriptor)
+
+
+@contextmanager
+def _inventory_lock(root: Path) -> Iterator[None]:
+    """Serialize every inventory-changing write with one atomic snapshot.
+
+    Lock order is always inventory -> run outcome set -> result/run chain.
+    Callers holding a narrower lock must never acquire this lock.
+    """
+
+    with _chain_lock(root, "EvaluationInventory", "all-records"):
+        yield
+
+
+@dataclass(frozen=True)
+class EvaluationInventorySnapshot:
+    """One immutable, fully validated point-in-time view of the M10 store."""
+
+    evidence: Mapping[str, Any]
+    result_records: tuple[tuple[str, Mapping[str, Any]], ...]
+    run_receipts: tuple[Mapping[str, Any], ...]
+
+
+class _EvaluationInventoryWriter:
+    """Capability object valid only while the store inventory lock is held."""
+
+    def __init__(self, store: "EvaluationShadowStore") -> None:
+        self._store = store
+        self._active = True
+
+    def _require_active(self) -> None:
+        if not self._active:
+            raise ContractError("M10 inventory transaction is no longer active")
+
+    def close(self) -> None:
+        self._active = False
+
+    def write_result(
+        self,
+        contract_name: str,
+        payload: Mapping[str, Any],
+        *,
+        source_records: Any = None,
+    ) -> Path:
+        self._require_active()
+        return self._store._write_result_inventory_locked(
+            contract_name, payload, source_records=source_records
+        )
+
+    def write_run_receipt(self, payload: Mapping[str, Any]) -> Path:
+        self._require_active()
+        return self._store._write_run_receipt_inventory_locked(payload)
+
+    def result_references_for_run(self, run_id: str) -> list[dict[str, str]]:
+        self._require_active()
+        _id_digest(run_id, field="run_id")
+        return self._store._result_references_for_run_unlocked(run_id)
 
 
 class EvaluationShadowStore:
@@ -269,6 +338,194 @@ class EvaluationShadowStore:
         return [record for _, record in self._result_records_for_run(run_id)]
 
     @staticmethod
+    def _strict_directory_entries(directory: Path) -> list[Path]:
+        if directory.is_symlink() or not directory.is_dir():
+            raise ContractError("M10 inventory collection must be a real directory")
+        try:
+            return sorted(directory.iterdir(), key=lambda item: item.name)
+        except OSError as exc:
+            raise ContractError("M10 inventory collection cannot be enumerated") from exc
+
+    @classmethod
+    def _inventory_record(
+        cls,
+        path: Path,
+        *,
+        validator: Callable[[Mapping[str, Any]], None],
+    ) -> tuple[Mapping[str, Any], bytes]:
+        if path.is_symlink() or path.suffix != ".json":
+            raise ContractError("M10 inventory contains an unsupported entry")
+        try:
+            mode = path.lstat().st_mode
+            raw = path.read_bytes()
+        except OSError as exc:
+            raise ContractError("M10 inventory record cannot be read") from exc
+        if not stat.S_ISREG(mode):
+            raise ContractError("M10 inventory record must be a regular JSON file")
+        try:
+            payload = json.loads(raw, parse_constant=_reject_json_constant)
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise ContractError("M10 inventory record is not valid JSON") from exc
+        if not isinstance(payload, Mapping):
+            raise ContractError("M10 inventory record must be an object")
+        validator(payload)
+        if raw != _canonical_bytes(payload):
+            raise ContractError("M10 inventory record is not canonical JSON")
+        return payload, raw
+
+    def _capture_inventory_unlocked(self) -> EvaluationInventorySnapshot:
+        """Read and validate every record while the caller owns inventory lock."""
+
+        if self.root.exists():
+            if self.root.is_symlink() or not self.root.is_dir():
+                raise ContractError("M10 inventory root must be a real directory")
+            unknown_root = {
+                item.name
+                for item in self._strict_directory_entries(self.root)
+                if item.name not in {"results", "runs"}
+            }
+            if unknown_root:
+                raise ContractError("M10 inventory contains unknown top-level entries")
+
+        entries: list[dict[str, Any]] = []
+        result_records: list[tuple[str, Mapping[str, Any]]] = []
+        run_receipts: list[Mapping[str, Any]] = []
+        seen_stable_ids: set[str] = set()
+
+        results_root = self.root / "results"
+        if results_root.exists():
+            known_contracts = set(RESULT_TYPES)
+            for contract_dir in self._strict_directory_entries(results_root):
+                if contract_dir.name not in known_contracts:
+                    raise ContractError("M10 inventory contains an unknown result contract")
+                contract_name = contract_dir.name
+                id_field, fingerprint_field, _, _ = RESULT_TYPES[contract_name]
+                for path in self._strict_directory_entries(contract_dir):
+                    payload, raw = self._inventory_record(
+                        path,
+                        validator=lambda item, name=contract_name: validate_result(name, item),
+                    )
+                    stable_id = str(payload[id_field])
+                    if path.stem != _id_digest(stable_id, field=id_field):
+                        raise ContractError("M10 result filename does not match its stable ID")
+                    if stable_id in seen_stable_ids:
+                        raise ContractError("M10 inventory contains a duplicate stable ID")
+                    seen_stable_ids.add(stable_id)
+                    result_records.append((contract_name, _freeze(_plain(payload))))
+                    entries.append({
+                        "relative_path": path.relative_to(self.root).as_posix(),
+                        "record_kind": "result",
+                        "contract_name": contract_name,
+                        "schema_version": str(payload["schema_version"]),
+                        "stable_id": stable_id,
+                        "logical_id": str(payload["logical_result_id"]),
+                        "supersedes_id": payload["supersedes_result_id"],
+                        "run_id": str(payload["run_id"]),
+                        "content_fingerprint": str(payload[fingerprint_field]),
+                        "file_sha256": "sha256:" + hashlib.sha256(raw).hexdigest(),
+                        "byte_count": len(raw),
+                    })
+
+        runs_root = self.root / "runs"
+        if runs_root.exists():
+            for path in self._strict_directory_entries(runs_root):
+                payload, raw = self._inventory_record(
+                    path, validator=validate_experiment_run
+                )
+                stable_id = str(payload["run_receipt_id"])
+                if path.stem != _id_digest(stable_id, field="run_receipt_id"):
+                    raise ContractError("M10 run filename does not match its receipt ID")
+                if stable_id in seen_stable_ids:
+                    raise ContractError("M10 inventory contains a duplicate stable ID")
+                seen_stable_ids.add(stable_id)
+                run_receipts.append(_freeze(_plain(payload)))
+                entries.append({
+                    "relative_path": path.relative_to(self.root).as_posix(),
+                    "record_kind": "run_receipt",
+                    "contract_name": "ExperimentRun",
+                    "schema_version": str(payload["schema_version"]),
+                    "stable_id": stable_id,
+                    "logical_id": str(payload["run_id"]),
+                    "supersedes_id": payload["supersedes_run_receipt_id"],
+                    "run_id": str(payload["run_id"]),
+                    "content_fingerprint": str(payload["run_content_fingerprint"]),
+                    "file_sha256": "sha256:" + hashlib.sha256(raw).hexdigest(),
+                    "byte_count": len(raw),
+                })
+
+        grouped_results: dict[tuple[str, str], list[Mapping[str, Any]]] = {}
+        for contract_name, payload in result_records:
+            grouped_results.setdefault(
+                (contract_name, str(payload["logical_result_id"])), []
+            ).append(payload)
+        for (contract_name, _), chain in grouped_results.items():
+            current_result(contract_name, chain)
+
+        grouped_receipts: dict[str, list[Mapping[str, Any]]] = {}
+        for receipt in run_receipts:
+            grouped_receipts.setdefault(str(receipt["run_id"]), []).append(receipt)
+        for run_id, receipts in grouped_receipts.items():
+            leaf = current_experiment_run(receipts)
+            stored_records = [
+                item for item in result_records if str(item[1]["run_id"]) == run_id
+            ]
+            stored_results = [item for _, item in stored_records]
+            self._validate_internal_run_sources(receipts, stored_results)
+            self._validate_m10c_run_sources(receipts, stored_records)
+            if _is_managed_receipt(leaf) and leaf["status"] == "completed":
+                actual = self._result_references_for_run_records(stored_records)
+                expected = sorted(
+                    _plain(leaf["result_refs"]),
+                    key=lambda item: (item["id"], item["content_fingerprint"]),
+                )
+                if actual != expected:
+                    raise ContractError(
+                        "completed ExperimentRun does not match inventory results"
+                    )
+
+        ordered_entries = sorted(
+            entries,
+            key=lambda item: (
+                item["record_kind"], item["contract_name"], item["stable_id"],
+                item["relative_path"],
+            ),
+        )
+        inventory_content = {"entries": ordered_entries}
+        fingerprint = canonical_fingerprint(inventory_content)
+        evidence = {
+            "source_inventory_id": "source-inventory:" + fingerprint,
+            "source_inventory_fingerprint": fingerprint,
+            "entries": ordered_entries,
+        }
+        return EvaluationInventorySnapshot(
+            evidence=_freeze(evidence),
+            result_records=tuple(result_records),
+            run_receipts=tuple(run_receipts),
+        )
+
+    def capture_inventory(self) -> EvaluationInventorySnapshot:
+        """Return one atomic, validated inventory without persisting a second index."""
+
+        with _inventory_lock(self.root):
+            return self._capture_inventory_unlocked()
+
+    @contextmanager
+    def inventory_write_transaction(self) -> Iterator[_EvaluationInventoryWriter]:
+        """Serialize a complete logical batch against inventory snapshots.
+
+        All callers acquire the store-wide inventory lock first.  The existing
+        run outcome-set and result/receipt chain locks remain narrower and are
+        acquired only by the transaction writer, preserving one lock order.
+        """
+
+        with _inventory_lock(self.root):
+            writer = _EvaluationInventoryWriter(self)
+            try:
+                yield writer
+            finally:
+                writer.close()
+
+    @staticmethod
     def _validate_internal_run_sources(
         receipts: list[Mapping[str, Any]],
         results: list[Mapping[str, Any]],
@@ -315,6 +572,18 @@ class EvaluationShadowStore:
                 raise ContractError("M10-C storage accepts only new 2.1 result contracts")
 
     def write_result(
+        self,
+        contract_name: str,
+        payload: Mapping[str, Any],
+        *,
+        source_records: Any = None,
+    ) -> Path:
+        with _inventory_lock(self.root):
+            return self._write_result_inventory_locked(
+                contract_name, payload, source_records=source_records
+            )
+
+    def _write_result_inventory_locked(
         self,
         contract_name: str,
         payload: Mapping[str, Any],
@@ -419,14 +688,12 @@ class EvaluationShadowStore:
                     fingerprint_field=fingerprint_field,
                 )
 
-    def result_references_for_run(
-        self, run_id: str
+    @staticmethod
+    def _result_references_for_run_records(
+        records: list[tuple[str, Mapping[str, Any]]],
     ) -> list[dict[str, str]]:
-        """Return every immutable result stored for one run across M10 types."""
-
-        _id_digest(run_id, field="run_id")
         references: list[dict[str, str]] = []
-        for contract_name, record in self._result_records_for_run(run_id):
+        for contract_name, record in records:
             id_field, fingerprint_field, _, _ = RESULT_TYPES[contract_name]
             references.append({
                 "id": str(record[id_field]),
@@ -437,7 +704,29 @@ class EvaluationShadowStore:
             key=lambda item: (item["id"], item["content_fingerprint"]),
         )
 
+    def _result_references_for_run_unlocked(
+        self, run_id: str
+    ) -> list[dict[str, str]]:
+        return self._result_references_for_run_records(
+            self._result_records_for_run(run_id)
+        )
+
+    def result_references_for_run(
+        self, run_id: str
+    ) -> list[dict[str, str]]:
+        """Return one atomic result-reference view for a run."""
+
+        _id_digest(run_id, field="run_id")
+        with _inventory_lock(self.root):
+            return self._result_references_for_run_unlocked(run_id)
+
     def write_run_receipt(self, payload: Mapping[str, Any]) -> Path:
+        with _inventory_lock(self.root):
+            return self._write_run_receipt_inventory_locked(payload)
+
+    def _write_run_receipt_inventory_locked(
+        self, payload: Mapping[str, Any]
+    ) -> Path:
         validate_experiment_run(payload)
         target = (
             self.root
@@ -473,7 +762,7 @@ class EvaluationShadowStore:
                     _plain(payload["result_refs"]),
                     key=lambda item: (item["id"], item["content_fingerprint"]),
                 )
-                if self.result_references_for_run(run_id) != expected:
+                if self._result_references_for_run_unlocked(run_id) != expected:
                     raise ContractError(
                         "completed ExperimentRun does not match stored results"
                     )
@@ -559,4 +848,4 @@ class EvaluationShadowStore:
                 )
 
 
-__all__ = ["EvaluationShadowStore"]
+__all__ = ["EvaluationInventorySnapshot", "EvaluationShadowStore"]

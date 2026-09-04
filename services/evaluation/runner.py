@@ -381,22 +381,20 @@ def store_baseline_evaluation_batch(
         raise ContractError("M10-B storage requires EvaluationShadowStore")
     validate_baseline_evaluation_batch(batch)
     expected = _plain(batch.completed_run_receipt["result_refs"])
-    before = store.result_references_for_run(
-        str(batch.pending_run_receipt["run_id"])
-    )
-    if any(item not in expected for item in before):
-        raise ContractError("stored M10-B run contains an unregistered result")
-    paths = [store.write_run_receipt(batch.pending_run_receipt)]
-    paths.extend(
-        store.write_result(batch.result_contract, outcome)
-        for outcome in batch.outcomes
-    )
-    actual = store.result_references_for_run(
-        str(batch.pending_run_receipt["run_id"])
-    )
-    if actual != expected:
-        raise ContractError("stored M10-B results do not match the complete receipt")
-    paths.append(store.write_run_receipt(batch.completed_run_receipt))
+    run_id = str(batch.pending_run_receipt["run_id"])
+    with store.inventory_write_transaction() as inventory:
+        before = inventory.result_references_for_run(run_id)
+        if any(item not in expected for item in before):
+            raise ContractError("stored M10-B run contains an unregistered result")
+        paths = [inventory.write_run_receipt(batch.pending_run_receipt)]
+        paths.extend(
+            inventory.write_result(batch.result_contract, outcome)
+            for outcome in batch.outcomes
+        )
+        actual = inventory.result_references_for_run(run_id)
+        if actual != expected:
+            raise ContractError("stored M10-B results do not match the complete receipt")
+        paths.append(inventory.write_run_receipt(batch.completed_run_receipt))
     return tuple(paths)
 
 

@@ -829,13 +829,14 @@ def store_readonly_evaluation_batch(
     if not isinstance(store, EvaluationShadowStore):
         raise ContractError("M10-C storage requires EvaluationShadowStore")
     validate_readonly_evaluation_batch(batch)
-    paths = [store.write_run_receipt(batch.pending_run_receipt)]
-    paths.append(store.write_result(
-        batch.result_contract,
-        batch.result,
-        source_records=batch.source_outcomes,
-    ))
-    paths.append(store.write_run_receipt(batch.completed_run_receipt))
+    with store.inventory_write_transaction() as inventory:
+        paths = [inventory.write_run_receipt(batch.pending_run_receipt)]
+        paths.append(inventory.write_result(
+            batch.result_contract,
+            batch.result,
+            source_records=batch.source_outcomes,
+        ))
+        paths.append(inventory.write_run_receipt(batch.completed_run_receipt))
     return tuple(paths)
 
 
