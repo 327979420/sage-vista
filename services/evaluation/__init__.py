@@ -98,6 +98,17 @@ from .query import (
     validate_query_result_set,
 )
 from .storage import EvaluationInventorySnapshot, EvaluationShadowStore
+from .config import (
+    GitState,
+    M10_E_SOURCE_VERSION,
+    OPERATIONS,
+    RESEARCH_RUN_CONFIG_SCHEMA_VERSION,
+    build_research_run_config,
+    current_git_state,
+    load_research_run_config,
+    validate_formal_git_state,
+    validate_research_run_config,
+)
 
 __all__ = [
     "AGGREGATION_POLICY",
@@ -149,4 +160,8 @@ __all__ = [
     "validate_query_result_set",
     "verify_export_package",
     "validate_session_calendar_evidence",
+    "GitState", "M10_E_SOURCE_VERSION", "OPERATIONS",
+    "RESEARCH_RUN_CONFIG_SCHEMA_VERSION", "build_research_run_config",
+    "current_git_state", "load_research_run_config",
+    "validate_formal_git_state", "validate_research_run_config",
 ]
