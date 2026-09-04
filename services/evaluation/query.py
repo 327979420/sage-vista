@@ -8,6 +8,8 @@ filters, and returns a reproducible in-memory result set for audit exports.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
+import json
 import re
 from types import MappingProxyType
 from typing import Any, Callable, Iterable, Mapping, Sequence
@@ -341,7 +343,7 @@ def validate_source_inventory(value: Mapping[str, Any]) -> None:
     entry_fields = {
         "relative_path", "record_kind", "contract_name", "schema_version",
         "stable_id", "logical_id", "supersedes_id", "run_id",
-        "content_fingerprint", "file_sha256", "byte_count",
+        "content_fingerprint", "file_sha256", "byte_count", "payload",
     }
     normalized: list[dict[str, Any]] = []
     seen_paths: set[str] = set()
@@ -349,6 +351,8 @@ def validate_source_inventory(value: Mapping[str, Any]) -> None:
     for entry in entries:
         if not isinstance(entry, Mapping):
             raise ContractError("source_inventory entry must be an object")
+        if "payload" not in entry:
+            raise ContractError("inventory_evidence_unavailable")
         _exact_fields(entry, entry_fields, "source_inventory entry")
         path = _require_text(entry["relative_path"], "relative_path")
         parts = path.split("/")
@@ -385,6 +389,50 @@ def validate_source_inventory(value: Mapping[str, Any]) -> None:
         _require_sha(entry["file_sha256"], "file_sha256")
         if isinstance(entry["byte_count"], bool) or not isinstance(entry["byte_count"], int) or entry["byte_count"] <= 0:
             raise ContractError("source_inventory byte_count must be positive")
+        payload = entry["payload"]
+        if not isinstance(payload, Mapping):
+            raise ContractError("source_inventory payload must be an object")
+        if entry["record_kind"] == "result":
+            validate_result(str(entry["contract_name"]), payload)
+            id_field, fingerprint_field, _, _ = RESULT_TYPES[str(entry["contract_name"])]
+            expected_path = (
+                f"results/{entry['contract_name']}/"
+                f"{str(payload[id_field]).rsplit(':', 1)[-1]}.json"
+            )
+            metadata = {
+                "schema_version": str(payload["schema_version"]),
+                "stable_id": str(payload[id_field]),
+                "logical_id": str(payload["logical_result_id"]),
+                "supersedes_id": payload["supersedes_result_id"],
+                "run_id": str(payload["run_id"]),
+                "content_fingerprint": str(payload[fingerprint_field]),
+            }
+        else:
+            validate_experiment_run(payload)
+            expected_path = f"runs/{str(payload['run_receipt_id']).rsplit(':', 1)[-1]}.json"
+            metadata = {
+                "schema_version": str(payload["schema_version"]),
+                "stable_id": str(payload["run_receipt_id"]),
+                "logical_id": str(payload["run_id"]),
+                "supersedes_id": payload["supersedes_run_receipt_id"],
+                "run_id": str(payload["run_id"]),
+                "content_fingerprint": str(payload["run_content_fingerprint"]),
+            }
+        if path != expected_path or any(entry[key] != item for key, item in metadata.items()):
+            raise ContractError("source_inventory payload differs from its frozen index")
+        canonical_bytes = (
+            json.dumps(
+                _plain(payload), ensure_ascii=False, sort_keys=True,
+                separators=(",", ":"), allow_nan=False,
+            )
+            + "\n"
+        ).encode("utf-8")
+        if (
+            entry["byte_count"] != len(canonical_bytes)
+            or entry["file_sha256"]
+            != "sha256:" + hashlib.sha256(canonical_bytes).hexdigest()
+        ):
+            raise ContractError("source_inventory payload bytes do not match its evidence")
         normalized.append(_plain(entry))
     ordered = sorted(
         normalized,
@@ -547,6 +595,66 @@ class EvaluationQueryResult:
     run_receipts: tuple[Mapping[str, Any], ...]
 
 
+def _derive_query_records(
+    query: Mapping[str, Any], source_inventory: Mapping[str, Any]
+) -> tuple[
+    tuple[tuple[str, Mapping[str, Any]], ...],
+    tuple[Mapping[str, Any], ...],
+]:
+    """Deterministically re-run one query from its complete frozen inventory."""
+
+    validate_evaluation_query(query)
+    validate_source_inventory(source_inventory)
+    all_records: list[tuple[str, Mapping[str, Any]]] = []
+    all_receipts: list[Mapping[str, Any]] = []
+    for entry in source_inventory["entries"]:
+        payload = _freeze(_plain(entry["payload"]))
+        if entry["record_kind"] == "result":
+            all_records.append((str(entry["contract_name"]), payload))
+        else:
+            all_receipts.append(payload)
+
+    grouped_results: dict[tuple[str, str], list[Mapping[str, Any]]] = {}
+    for contract_name, payload in all_records:
+        grouped_results.setdefault(
+            (contract_name, str(payload["logical_result_id"])), []
+        ).append(payload)
+    current_results: dict[tuple[str, str], Mapping[str, Any]] = {
+        key: current_result(key[0], chain)
+        for key, chain in grouped_results.items()
+    }
+    candidates = (
+        [(contract_name, payload) for (contract_name, _), payload in current_results.items()]
+        if query["revision_mode"] == "current"
+        else all_records
+    )
+    selected = [
+        item for item in candidates
+        if _record_matches(item[0], item[1], query["filters"])
+    ]
+    selected.sort(key=_result_sort_key)
+
+    grouped_receipts: dict[str, list[Mapping[str, Any]]] = {}
+    for receipt in all_receipts:
+        grouped_receipts.setdefault(str(receipt["run_id"]), []).append(receipt)
+    current_receipts = {
+        run_id: current_experiment_run(chain)
+        for run_id, chain in grouped_receipts.items()
+    }
+    selected_receipts: list[Mapping[str, Any]] = []
+    for run_id in sorted({str(payload["run_id"]) for _, payload in selected}):
+        chain = grouped_receipts.get(run_id)
+        if not chain:
+            raise ContractError("selected M10 result has no ExperimentRun receipt")
+        selected_receipts.extend(
+            chain if query["revision_mode"] == "all" else [current_receipts[run_id]]
+        )
+    selected_receipts.sort(
+        key=lambda item: (str(item["run_id"]), str(item["run_receipt_id"]))
+    )
+    return tuple(selected), tuple(selected_receipts)
+
+
 def validate_query_execution(execution: EvaluationQueryResult) -> None:
     """Bind the public in-memory objects to the signed query result contract."""
 
@@ -615,37 +723,13 @@ def validate_query_execution(execution: EvaluationQueryResult) -> None:
         if execution.results or execution.run_receipts:
             raise ContractError("unavailable query cannot carry inventory records")
         return
-    entries = {
-        (str(item["record_kind"]), str(item["stable_id"])): item
-        for item in inventory["entries"]
-    }
-    for ref in actual_result_refs:
-        item = entries.get(("result", str(ref["result_id"])))
-        if item is None or (
-            item["contract_name"] != ref["result_contract"]
-            or item["schema_version"] != ref["schema_version"]
-            or item["logical_id"] != ref["logical_result_id"]
-            or item["run_id"] != ref["run_id"]
-            or item["content_fingerprint"] != ref["content_fingerprint"]
-        ):
-            raise ContractError("actual result is not present in the frozen inventory")
-    for ref in actual_receipt_refs:
-        item = entries.get(("run_receipt", str(ref["run_receipt_id"])))
-        if item is None or (
-            item["run_id"] != ref["run_id"]
-            or item["content_fingerprint"] != ref["run_content_fingerprint"]
-        ):
-            raise ContractError("actual receipt is not present in the frozen inventory")
-    if execution.query["revision_mode"] == "current":
-        superseded = {
-            str(item["supersedes_id"])
-            for item in inventory["entries"]
-            if item["supersedes_id"] is not None
-        }
-        if any(ref["result_id"] in superseded for ref in actual_result_refs):
-            raise ContractError("current query contains a superseded result")
-        if any(ref["run_receipt_id"] in superseded for ref in actual_receipt_refs):
-            raise ContractError("current query contains a superseded run receipt")
+    expected_results, expected_receipts = _derive_query_records(
+        execution.query, inventory
+    )
+    if tuple(actual_results) != expected_results:
+        raise ContractError("QueryResultSet is not the complete deterministic query result")
+    if tuple(actual_receipts) != expected_receipts:
+        raise ContractError("QueryResultSet receipts are not the complete deterministic query evidence")
 
 
 def _result_set_identity(payload: Mapping[str, Any]) -> dict[str, Any]:
@@ -700,42 +784,7 @@ def execute_evaluation_query(
         return EvaluationQueryResult(query, result_set, (), ())
 
     inventory = store.capture_inventory()
-    all_records = list(inventory.result_records)
-    grouped_results: dict[tuple[str, str], list[Mapping[str, Any]]] = {}
-    for contract_name, payload in all_records:
-        validate_result(contract_name, payload)
-        grouped_results.setdefault(
-            (contract_name, str(payload["logical_result_id"])), []
-        ).append(payload)
-
-    if query["revision_mode"] == "current":
-        selected = [
-            (contract_name, current_result(contract_name, chain))
-            for (contract_name, _), chain in grouped_results.items()
-        ]
-    else:
-        selected = all_records
-    filters = query["filters"]
-    selected = [
-        item for item in selected if _record_matches(item[0], item[1], filters)
-    ]
-    selected.sort(key=_result_sort_key)
-
-    selected_run_ids = {str(payload["run_id"]) for _, payload in selected}
-    grouped_receipts: dict[str, list[Mapping[str, Any]]] = {}
-    for receipt in inventory.run_receipts:
-        validate_experiment_run(receipt)
-        grouped_receipts.setdefault(str(receipt["run_id"]), []).append(receipt)
-    selected_receipts: list[Mapping[str, Any]] = []
-    for run_id in sorted(selected_run_ids):
-        chain = grouped_receipts.get(run_id)
-        if not chain:
-            raise ContractError("selected M10 result has no ExperimentRun receipt")
-        leaf = current_experiment_run(chain)
-        selected_receipts.extend(chain if query["revision_mode"] == "all" else [leaf])
-    selected_receipts.sort(
-        key=lambda item: (str(item["run_id"]), str(item["run_receipt_id"]))
-    )
+    selected, selected_receipts = _derive_query_records(query, inventory.evidence)
 
     result_refs = [_result_ref(contract_name, payload) for contract_name, payload in selected]
     receipt_refs = [_receipt_ref(payload) for payload in selected_receipts]
@@ -760,9 +809,7 @@ def execute_evaluation_query(
     payload["query_result_set_id"] = "query-result-set:" + canonical_fingerprint(identity)
     payload["query_result_set_content_fingerprint"] = canonical_fingerprint(identity)
     validate_query_result_set(payload)
-    return EvaluationQueryResult(
-        query, _freeze(payload), tuple(selected), tuple(selected_receipts)
-    )
+    return EvaluationQueryResult(query, _freeze(payload), selected, selected_receipts)
 
 
 def validate_query_result_set(payload: Mapping[str, Any]) -> None:

@@ -980,6 +980,23 @@ def _manifest_semantic(payload: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def _export_receipt_semantic(payload: Mapping[str, Any]) -> dict[str, Any]:
+    """Return every materialization fact except the two self-referential hashes."""
+
+    return {
+        key: _plain(value) for key, value in payload.items()
+        if key not in {"export_receipt_id", "manifest_content_fingerprint"}
+    }
+
+
+def compute_export_receipt_id(payload: Mapping[str, Any]) -> str:
+    """Bind a receipt to the complete manifest materialization semantics."""
+
+    return "export-receipt:" + canonical_fingerprint(
+        _export_receipt_semantic(payload)
+    )
+
+
 def _safe_relative_path(value: Any) -> str:
     text = _require_text(value, "artifact relative_path")
     if "\\" in text or text.startswith("/"):
@@ -1023,11 +1040,6 @@ def build_export_manifest(
     }
     export_id = "export:" + canonical_fingerprint(export_identity)
     artifact_set_fingerprint = canonical_fingerprint(ordered_artifacts)
-    export_receipt_id = "export-receipt:" + canonical_fingerprint({
-        "export_id": export_id,
-        "generated_at": generated_at,
-        "artifact_set_fingerprint": artifact_set_fingerprint,
-    })
     dataset_counts: dict[str, int] = {name: 0 for name in DATASET_COLUMNS}
     for item in ordered_artifacts:
         if item["format"] == "csv":
@@ -1059,7 +1071,6 @@ def build_export_manifest(
         "schema_version": EXPORT_MANIFEST_SCHEMA_VERSION,
         "source_version": {"evaluation_contracts": M10_D_SOURCE_VERSION},
         "export_id": export_id,
-        "export_receipt_id": export_receipt_id,
         "query": _plain(execution.query),
         "query_result_set": _plain(execution.result_set),
         "query_result_set_id": execution.result_set["query_result_set_id"],
@@ -1085,6 +1096,7 @@ def build_export_manifest(
         "artifact_set_fingerprint": artifact_set_fingerprint,
         "status": "completed",
     }
+    payload["export_receipt_id"] = compute_export_receipt_id(payload)
     payload["manifest_content_fingerprint"] = canonical_fingerprint(
         _manifest_semantic(payload)
     )
@@ -1394,10 +1406,7 @@ def validate_export_manifest(payload: Mapping[str, Any]) -> None:
     }
     if payload["export_id"] != "export:" + canonical_fingerprint(export_identity):
         raise ContractError("ExportManifest logical export ID is invalid")
-    expected_receipt = "export-receipt:" + canonical_fingerprint({
-        "export_id": payload["export_id"], "generated_at": payload["generated_at"],
-        "artifact_set_fingerprint": payload["artifact_set_fingerprint"],
-    })
+    expected_receipt = compute_export_receipt_id(payload)
     if payload["export_receipt_id"] != expected_receipt:
         raise ContractError("ExportManifest receipt ID is invalid")
     if payload["manifest_content_fingerprint"] != canonical_fingerprint(_manifest_semantic(payload)):
@@ -1467,6 +1476,54 @@ def _package_file(package: Path, relative: str) -> Path:
     if not cursor.is_file():
         raise ContractError("M10-D package file is missing")
     return cursor
+
+
+def _ordered_child_rows(
+    rows: Sequence[Mapping[str, Any]], *, label: str
+) -> dict[str, list[Mapping[str, Any]]]:
+    grouped: dict[str, list[Mapping[str, Any]]] = {}
+    for row in rows:
+        grouped.setdefault(str(row["parent_id"]), []).append(row)
+    for parent_id, items in grouped.items():
+        items.sort(key=lambda item: int(item["ordinal"]))
+        if [item["ordinal"] for item in items] != list(range(1, len(items) + 1)):
+            raise ContractError(f"{label} ordinals are not contiguous for {parent_id}")
+    return grouped
+
+
+def _refs_by_parent(
+    rows: Sequence[Mapping[str, Any]],
+) -> dict[str, list[dict[str, Any]]]:
+    return {
+        parent_id: [
+            {
+                "id": item["referenced_id"],
+                "content_fingerprint": item["content_fingerprint"],
+            }
+            for item in items
+        ]
+        for parent_id, items in _ordered_child_rows(
+            rows, label="M10-D reference rows"
+        ).items()
+    }
+
+
+def _policy_refs_by_parent(
+    rows: Sequence[Mapping[str, Any]],
+) -> dict[str, list[dict[str, Any]]]:
+    return {
+        parent_id: [
+            {
+                "policy_kind": item["policy_kind"],
+                "policy_version": item["policy_version"],
+                "policy_fingerprint": item["policy_fingerprint"],
+            }
+            for item in items
+        ]
+        for parent_id, items in _ordered_child_rows(
+            rows, label="M10-D policy rows"
+        ).items()
+    }
 
 
 def verify_export_package(path: Path) -> Mapping[str, Any]:
@@ -1561,41 +1618,53 @@ def verify_export_package(path: Path) -> Mapping[str, Any]:
     }
     if actual != declared:
         raise ContractError("M10-D export package contains undeclared files")
-    result_rows = [
-        row
-        for dataset_name in (
-            "ForwardOutcomes", "TradeOutcomes", "PortfolioStatus",
-            "ResearchAggregates",
-        )
-        for row in csv_rows.get(dataset_name, ())
-    ]
-    actual_result_refs = sorted(
-        ({
-            "result_contract": row["result_contract"],
-            "schema_version": row["schema_version"],
-            "result_id": row["result_id"],
-            "logical_result_id": row["logical_result_id"],
-            "run_id": row["run_id"],
-            "content_fingerprint": row["content_fingerprint"],
-        } for row in result_rows),
-        key=lambda item: (
-            list(RESULT_TYPES).index(item["result_contract"]), item["result_id"]
-        ),
+    if set(csv_rows) != set(DATASET_COLUMNS):
+        raise ContractError("CSV package does not contain the complete dataset set")
+    portfolio_refs = _refs_by_parent(csv_rows["PortfolioRunRefs"])
+    aggregate_refs = _refs_by_parent(csv_rows["ResearchAggregateRefs"])
+    run_policy_refs = _policy_refs_by_parent(csv_rows["RunPolicyRefs"])
+    run_input_refs = _refs_by_parent(csv_rows["RunInputRefs"])
+    run_result_refs = _refs_by_parent(csv_rows["RunResultRefs"])
+    reconstructed_results: list[tuple[str, Mapping[str, Any]]] = []
+    for dataset_name in (
+        "ForwardOutcomes", "TradeOutcomes", "PortfolioStatus",
+        "ResearchAggregates",
+    ):
+        for row in csv_rows[dataset_name]:
+            contract_name = str(row["result_contract"])
+            payload = row["payload_json"]
+            if not isinstance(payload, Mapping):
+                raise ContractError("CSV result payload_json must be an object")
+            rebuilt = _plain(payload)
+            result_id = str(row["result_id"])
+            if contract_name == "PortfolioRun":
+                rebuilt["trade_outcome_refs"] = portfolio_refs.get(result_id, [])
+            elif contract_name == "ResearchAggregate":
+                rebuilt["result_refs"] = aggregate_refs.get(result_id, [])
+            reconstructed_results.append((contract_name, _freeze(rebuilt)))
+    reconstructed_receipts: list[Mapping[str, Any]] = []
+    for row in csv_rows["ExperimentRuns"]:
+        payload = row["payload_json"]
+        if not isinstance(payload, Mapping):
+            raise ContractError("CSV run payload_json must be an object")
+        rebuilt = _plain(payload)
+        receipt_id = str(row["run_receipt_id"])
+        rebuilt["policy_refs"] = run_policy_refs.get(receipt_id, [])
+        rebuilt["input_refs"] = run_input_refs.get(receipt_id, [])
+        rebuilt["result_refs"] = run_result_refs.get(receipt_id, [])
+        reconstructed_receipts.append(_freeze(rebuilt))
+    reconstructed = EvaluationQueryResult(
+        _freeze(_plain(manifest["query"])),
+        _freeze(_plain(manifest["query_result_set"])),
+        tuple(reconstructed_results),
+        tuple(reconstructed_receipts),
     )
-    if actual_result_refs != _plain(manifest["source_result_refs"]):
-        raise ContractError("CSV result rows do not match QueryResultSet references")
-    actual_receipt_refs = sorted(
-        ({
-            "run_id": row["run_id"],
-            "run_receipt_id": row["run_receipt_id"],
-            "run_content_fingerprint": row["run_content_fingerprint"],
-            "supersedes_run_receipt_id": row["supersedes_run_receipt_id"],
-            "status": row["status"],
-        } for row in csv_rows.get("ExperimentRuns", ())),
-        key=lambda item: (item["run_id"], item["run_receipt_id"]),
-    )
-    if actual_receipt_refs != _plain(manifest["source_run_receipt_refs"]):
-        raise ContractError("CSV run rows do not match QueryResultSet references")
+    expected_datasets = build_audit_datasets(reconstructed)
+    for dataset_name, expected in expected_datasets.items():
+        if list(csv_rows[dataset_name]) != list(expected.rows):
+            raise ContractError(
+                f"CSV {dataset_name} rows differ from canonical payload projection"
+            )
     return _freeze(manifest)
 
 
@@ -1673,7 +1742,8 @@ __all__ = [
     "EXPORT_MANIFEST_SCHEMA_VERSION", "MAX_DATA_ROWS_PER_PART",
     "PARTITION_POLICY_VERSION", "TEXT_SAFETY_POLICY_VERSION", "XLSX_POLICY_VERSION",
     "build_audit_datasets", "build_export_config", "build_export_manifest",
-    "canonical_decimal", "dataset_row_set_fingerprint", "decode_audit_cell",
+    "canonical_decimal", "compute_export_receipt_id",
+    "dataset_row_set_fingerprint", "decode_audit_cell",
     "encode_audit_cell", "partition_dataset", "publish_audit_export",
     "read_csv_part", "validate_export_config", "validate_export_manifest",
     "verify_export_package",

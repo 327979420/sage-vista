@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
+import hashlib
 from pathlib import Path, PurePosixPath
 import posixpath
 import re
@@ -22,6 +23,7 @@ from services.contracts.validation import ContractError
 _MAIN = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
 _OFFICE_REL = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
 _PACKAGE_REL = "http://schemas.openxmlformats.org/package/2006/relationships"
+_CONTENT_TYPES = "http://schemas.openxmlformats.org/package/2006/content-types"
 _R_ID = f"{{{_OFFICE_REL}}}id"
 _CELL_REF = re.compile(r"^([A-Z]+)([1-9][0-9]*)$")
 _WORKSHEET = re.compile(r"^xl/worksheets/sheet[1-9][0-9]*\.xml$")
@@ -35,12 +37,25 @@ _FIXED_MEMBERS = {
     "xl/theme/theme1.xml",
     "xl/workbook.xml",
 }
+_APPROVED_STYLES_SHA256 = "fa19e1d778464b58de7359fa0a95222f084e79edbf4cf9ff2c361aa25a3e2f8f"
+_DANGEROUS_XML_TAGS = {
+    "f", "formula1", "formula2", "conditionalFormatting", "cfRule",
+    "calculatedColumnFormula", "totalsRowFormula", "calcChain",
+    "externalLink", "externalBook", "connections", "connection",
+    "ddeLink", "ddeItem", "oleObjects", "oleObject", "controls", "control",
+    "macrosheet", "vbaProject",
+}
+_WORKSHEET_CHILDREN = {
+    "dimension", "sheetViews", "sheetFormatPr", "cols", "sheetData",
+    "autoFilter", "pageMargins",
+}
 
 
 @dataclass(frozen=True)
 class _Cell:
     kind: str
     value: str | Decimal | bool
+    style_id: int
 
 
 def _local(tag: str) -> str:
@@ -65,9 +80,69 @@ def _read_xml(archive: zipfile.ZipFile, name: str) -> ET.Element:
     if b"<!DOCTYPE" in raw.upper() or b"<!ENTITY" in raw.upper():
         raise ContractError("M10-D XLSX XML declarations are not allowed")
     try:
-        return ET.fromstring(raw)
+        root = ET.fromstring(raw)
     except ET.ParseError as exc:
         raise ContractError("M10-D XLSX XML is malformed") from exc
+    if any(_local(item.tag) in _DANGEROUS_XML_TAGS for item in root.iter()):
+        raise ContractError("M10-D XLSX contains an unapproved executable OOXML structure")
+    return root
+
+
+def _relationship_rows(root: ET.Element) -> set[tuple[str, str, str]]:
+    rows: set[tuple[str, str, str]] = set()
+    ids: set[str] = set()
+    for item in list(root):
+        if item.tag != f"{{{_PACKAGE_REL}}}Relationship" or set(item.attrib) != {"Id", "Type", "Target"}:
+            raise ContractError("M10-D XLSX relationship is outside the approved subset")
+        row = (str(item.get("Id")), str(item.get("Type")), str(item.get("Target")))
+        if row in rows or row[0] in ids:
+            raise ContractError("M10-D XLSX contains duplicate relationships")
+        rows.add(row)
+        ids.add(row[0])
+    return rows
+
+
+def _verify_content_types(
+    root: ET.Element, worksheet_members: set[str]
+) -> None:
+    if root.tag != f"{{{_CONTENT_TYPES}}}Types":
+        raise ContractError("M10-D XLSX content types root is invalid")
+    actual = {
+        (_local(item.tag), tuple(sorted(item.attrib.items()))) for item in list(root)
+    }
+    expected = {
+        ("Default", (("ContentType", "application/vnd.openxmlformats-package.relationships+xml"), ("Extension", "rels"))),
+        ("Default", (("ContentType", "application/xml"), ("Extension", "xml"))),
+        ("Override", (("ContentType", "application/vnd.openxmlformats-officedocument.extended-properties+xml"), ("PartName", "/docProps/app.xml"))),
+        ("Override", (("ContentType", "application/vnd.openxmlformats-package.core-properties+xml"), ("PartName", "/docProps/core.xml"))),
+        ("Override", (("ContentType", "application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"), ("PartName", "/xl/styles.xml"))),
+        ("Override", (("ContentType", "application/vnd.openxmlformats-officedocument.theme+xml"), ("PartName", "/xl/theme/theme1.xml"))),
+        ("Override", (("ContentType", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"), ("PartName", "/xl/workbook.xml"))),
+    }
+    expected.update({
+        ("Override", (("ContentType", "application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"), ("PartName", "/" + member)))
+        for member in worksheet_members
+    })
+    if actual != expected or len(actual) != len(list(root)):
+        raise ContractError("M10-D XLSX content types are outside the approved subset")
+
+
+def _verify_styles(archive: zipfile.ZipFile) -> None:
+    raw = archive.read("xl/styles.xml")
+    root = _read_xml(archive, "xl/styles.xml")
+    num_formats = root.find(f"{{{_MAIN}}}numFmts")
+    if num_formats is None:
+        raise ContractError("M10-D XLSX styles lack approved number formats")
+    approved = {("164", "@"), ("165", "0.0000000000")}
+    actual = {
+        (str(item.get("numFmtId")), str(item.get("formatCode")))
+        for item in list(num_formats)
+        if item.tag == f"{{{_MAIN}}}numFmt"
+    }
+    if actual != approved or len(list(num_formats)) != len(approved):
+        raise ContractError("M10-D XLSX custom number format is not approved")
+    if hashlib.sha256(raw).hexdigest() != _APPROVED_STYLES_SHA256:
+        raise ContractError("M10-D XLSX style set differs from the fixed approved styles")
 
 
 def _column_number(letters: str) -> int:
@@ -89,6 +164,12 @@ def _cell_value(cell: ET.Element) -> _Cell:
     if any(_local(item.tag) == "f" for item in cell.iter()):
         raise ContractError("M10-D XLSX cannot contain formulas")
     cell_type = cell.get("t")
+    if set(cell.attrib) - {"r", "s", "t"}:
+        raise ContractError("M10-D XLSX cell attributes are outside the approved subset")
+    try:
+        style_id = int(cell.get("s", ""))
+    except ValueError as exc:
+        raise ContractError("M10-D XLSX cell style is invalid") from exc
     children = list(cell)
     if cell_type == "inlineStr":
         if len(children) != 1 or _local(children[0].tag) != "is":
@@ -96,13 +177,13 @@ def _cell_value(cell: ET.Element) -> _Cell:
         string_children = list(children[0])
         if len(string_children) != 1 or _local(string_children[0].tag) != "t":
             raise ContractError("M10-D XLSX rich or malformed text is not allowed")
-        return _Cell("text", string_children[0].text or "")
+        return _Cell("text", string_children[0].text or "", style_id)
     if cell_type == "b":
         if len(children) != 1 or _local(children[0].tag) != "v":
             raise ContractError("M10-D XLSX boolean is malformed")
         if children[0].text not in {"0", "1"}:
             raise ContractError("M10-D XLSX boolean value is invalid")
-        return _Cell("bool", children[0].text == "1")
+        return _Cell("bool", children[0].text == "1", style_id)
     if cell_type not in {None, "n"}:
         raise ContractError("M10-D XLSX cell type is outside the approved subset")
     if len(children) != 1 or _local(children[0].tag) != "v":
@@ -113,27 +194,27 @@ def _cell_value(cell: ET.Element) -> _Cell:
         raise ContractError("M10-D XLSX number is invalid") from exc
     if not number.is_finite():
         raise ContractError("M10-D XLSX number must be finite")
-    return _Cell("number", number)
+    return _Cell("number", number, style_id)
 
 
 def _expected_cell(spec: Any, value: Any) -> _Cell:
     from .export import encode_audit_cell
 
     if value is None:
-        return _Cell("text", r"\N")
+        return _Cell("text", r"\N", 2)
     if spec.kind == "bool":
         if not isinstance(value, bool):
             raise ContractError("M10-D expected boolean has the wrong type")
-        return _Cell("bool", value)
+        return _Cell("bool", value, 4)
     if spec.kind == "int":
         if isinstance(value, bool) or not isinstance(value, int):
             raise ContractError("M10-D expected integer has the wrong type")
-        return _Cell("number", Decimal(value))
+        return _Cell("number", Decimal(value), 3)
     if spec.kind == "decimal":
         if not isinstance(value, Decimal) or not value.is_finite():
             raise ContractError("M10-D expected Decimal has the wrong type")
-        return _Cell("number", value)
-    return _Cell("text", encode_audit_cell(value, spec.kind))
+        return _Cell("number", value, 5)
+    return _Cell("text", encode_audit_cell(value, spec.kind), 2)
 
 
 def _verify_worksheet(
@@ -145,6 +226,14 @@ def _verify_worksheet(
     from .export import DATASET_COLUMNS
 
     columns = DATASET_COLUMNS[str(artifact["dataset"])]
+    worksheet_root = _read_xml(archive, member)
+    worksheet_children = [_local(item.tag) for item in list(worksheet_root)]
+    if (
+        worksheet_root.tag != f"{{{_MAIN}}}worksheet"
+        or set(worksheet_children) != _WORKSHEET_CHILDREN
+        or len(worksheet_children) != len(_WORKSHEET_CHILDREN)
+    ):
+        raise ContractError("M10-D XLSX worksheet structure is outside the approved subset")
     expected_row_number = 1
     saw_pane = False
     auto_filter: str | None = None
@@ -199,7 +288,7 @@ def _verify_worksheet(
                             raise ContractError("M10-D XLSX cell address is invalid")
                         values.append(_cell_value(cell))
                     if expected_row_number == 1:
-                        expected = [_Cell("text", item.name) for item in columns]
+                        expected = [_Cell("text", item.name, 1) for item in columns]
                     else:
                         data_index = expected_row_number - 2
                         if data_index >= len(expected_rows):
@@ -254,13 +343,34 @@ def verify_generated_audit_workbook(
                 raise ContractError("M10-D XLSX contains an unsupported OOXML part")
             if archive.testzip() is not None:
                 raise ContractError("M10-D XLSX ZIP integrity check failed")
-            for relationship_name in ("_rels/.rels", "xl/_rels/workbook.xml.rels"):
-                relationships = _read_xml(archive, relationship_name)
-                for relationship in relationships:
-                    if relationship.get("TargetMode") == "External":
-                        raise ContractError("M10-D XLSX external relationships are forbidden")
+            for name in names:
+                if name.endswith(".xml"):
+                    _read_xml(archive, name)
+            _verify_content_types(_read_xml(archive, "[Content_Types].xml"), worksheet_members)
+            _verify_styles(archive)
+
+            package_relationships = _relationship_rows(
+                _read_xml(archive, "_rels/.rels")
+            )
+            if package_relationships != {
+                ("rId1", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument", "xl/workbook.xml"),
+                ("rId2", "http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties", "docProps/core.xml"),
+                ("rId3", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties", "docProps/app.xml"),
+            }:
+                raise ContractError("M10-D XLSX package relationships are not approved")
 
             workbook = _read_xml(archive, "xl/workbook.xml")
+            workbook_children = [_local(item.tag) for item in list(workbook)]
+            expected_workbook_children = {
+                "fileVersion", "fileSharing", "workbookPr", "bookViews",
+                "sheets", "definedNames", "calcPr",
+            }
+            if (
+                workbook.tag != f"{{{_MAIN}}}workbook"
+                or set(workbook_children) != expected_workbook_children
+                or len(workbook_children) != len(expected_workbook_children)
+            ):
+                raise ContractError("M10-D XLSX workbook structure is outside the approved subset")
             file_sharing = workbook.find(f"{{{_MAIN}}}fileSharing")
             if file_sharing is None or file_sharing.get("readOnlyRecommended") != "1":
                 raise ContractError("M10-D XLSX must be marked read-only recommended")
@@ -274,7 +384,47 @@ def verify_generated_audit_workbook(
             if any(item.get("state") not in {None, "visible"} for item in sheet_items):
                 raise ContractError("M10-D XLSX worksheets cannot be hidden")
 
+            defined_names = workbook.find(f"{{{_MAIN}}}definedNames")
+            if defined_names is None:
+                raise ContractError("M10-D XLSX lacks its fixed filter names")
+            from .export import DATASET_COLUMNS
+
+            expected_defined_names = {
+                (
+                    "_xlnm._FilterDatabase", str(index), "1",
+                    f"'{artifact['worksheet_name'].replace(chr(39), chr(39) * 2)}'!"
+                    f"$A$1:${_column_letters(len(DATASET_COLUMNS[str(artifact['dataset'])]))}"
+                    f"${int(artifact['data_row_count']) + 1}",
+                )
+                for index, artifact in enumerate(worksheet_artifacts)
+            }
+            actual_defined_names: set[tuple[str, str, str, str]] = set()
+            for item in list(defined_names):
+                if item.tag != f"{{{_MAIN}}}definedName" or set(item.attrib) != {"name", "localSheetId", "hidden"}:
+                    raise ContractError("M10-D XLSX contains an unapproved defined name")
+                actual_defined_names.add((
+                    str(item.get("name")), str(item.get("localSheetId")),
+                    str(item.get("hidden")), item.text or "",
+                ))
+            if actual_defined_names != expected_defined_names or len(actual_defined_names) != len(list(defined_names)):
+                raise ContractError("M10-D XLSX defined names are not the fixed filter names")
+
             relationships = _read_xml(archive, "xl/_rels/workbook.xml.rels")
+            relationship_rows = _relationship_rows(relationships)
+            expected_relationship_rows = {
+                (
+                    f"rId{index}",
+                    "http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet",
+                    f"worksheets/sheet{index}.xml",
+                )
+                for index in range(1, len(sheet_items) + 1)
+            }
+            expected_relationship_rows.update({
+                (f"rId{len(sheet_items) + 1}", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme", "theme/theme1.xml"),
+                (f"rId{len(sheet_items) + 2}", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles", "styles.xml"),
+            })
+            if relationship_rows != expected_relationship_rows:
+                raise ContractError("M10-D XLSX workbook relationships are not approved")
             relation_map: dict[str, str] = {}
             for relationship in relationships.findall(f"{{{_PACKAGE_REL}}}Relationship"):
                 if relationship.get("TargetMode") == "External":

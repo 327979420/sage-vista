@@ -6,9 +6,12 @@ from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from decimal import Decimal
 import hashlib
 import importlib.util
+import csv
+import io
 import json
 import os
 from pathlib import Path
+import shutil
 import tempfile
 from threading import Event
 import unittest
@@ -27,6 +30,7 @@ from services.evaluation import (
     build_experiment_run_receipt,
     decode_audit_cell,
     encode_audit_cell,
+    compute_export_receipt_id,
     execute_evaluation_query,
     finalize_result,
     partition_dataset,
@@ -37,6 +41,16 @@ from services.evaluation import (
     validate_query_execution,
     verify_export_package,
 )
+from services.evaluation.export import (
+    DATASET_COLUMNS,
+    DATASET_SORT_KEYS,
+    _file_evidence,
+    _sort_key,
+    _write_csv_part,
+    dataset_row_set_fingerprint,
+    read_csv_part,
+)
+from services.evaluation.contracts import RESULT_TYPES
 from tests.test_m10_aggregate import forward, forward_scope, research_batch
 from tests.test_m10_evaluation_contracts import (
     forward_2_1_values,
@@ -97,11 +111,7 @@ def _resign_package_after_xlsx_change(package: Path) -> None:
             item["byte_count"] = len(raw)
             item["file_sha256"] = fingerprint
     manifest["artifact_set_fingerprint"] = canonical_fingerprint(manifest["artifacts"])
-    manifest["export_receipt_id"] = "export-receipt:" + canonical_fingerprint({
-        "export_id": manifest["export_id"],
-        "generated_at": manifest["generated_at"],
-        "artifact_set_fingerprint": manifest["artifact_set_fingerprint"],
-    })
+    manifest["export_receipt_id"] = compute_export_receipt_id(manifest)
     semantic = {
         key: value for key, value in manifest.items()
         if key != "manifest_content_fingerprint"
@@ -117,6 +127,70 @@ def _resign_package_after_xlsx_change(package: Path) -> None:
         "notice": manifest["notice"],
     }
     (package / "COMPLETED.json").write_bytes(_canonical_bytes(completed))
+
+
+def _resign_manifest(package: Path) -> None:
+    manifest_path = package / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["artifact_set_fingerprint"] = canonical_fingerprint(manifest["artifacts"])
+    manifest["export_receipt_id"] = compute_export_receipt_id(manifest)
+    semantic = {
+        key: value for key, value in manifest.items()
+        if key != "manifest_content_fingerprint"
+    }
+    manifest["manifest_content_fingerprint"] = canonical_fingerprint(semantic)
+    manifest_bytes = _canonical_bytes(manifest)
+    manifest_path.write_bytes(manifest_bytes)
+    (package / "COMPLETED.json").write_bytes(_canonical_bytes({
+        "export_receipt_id": manifest["export_receipt_id"],
+        "manifest_file_sha256": "sha256:" + hashlib.sha256(manifest_bytes).hexdigest(),
+        "artifact_set_fingerprint": manifest["artifact_set_fingerprint"],
+        "status": "completed", "notice": manifest["notice"],
+    }))
+
+
+def _rewrite_csv_typed_cell(
+    package: Path, dataset_name: str, column_name: str, value
+) -> None:
+    manifest_path = package / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    artifact = next(
+        item for item in manifest["artifacts"]
+        if item["format"] == "csv" and item["dataset"] == dataset_name
+        and item["data_row_count"] > 0
+    )
+    dataset = AuditDataset(
+        dataset_name, DATASET_COLUMNS[dataset_name], (), DATASET_SORT_KEYS[dataset_name]
+    )
+    path = package / artifact["relative_path"]
+    rows = [dict(item) for item in read_csv_part(path, dataset)]
+    rows[0][column_name] = value
+    _write_csv_part(path, dataset, rows)
+    artifact["data_row_count"] = len(rows)
+    artifact["first_sort_key"] = _sort_key(dataset, rows[0]) if rows else None
+    artifact["last_sort_key"] = _sort_key(dataset, rows[-1]) if rows else None
+    artifact["row_set_fingerprint"] = dataset_row_set_fingerprint(dataset, rows)
+    artifact["byte_count"], artifact["file_sha256"] = _file_evidence(path)
+    manifest_path.write_bytes(_canonical_bytes(manifest))
+    _resign_manifest(package)
+
+
+def _rewrite_csv_header(package: Path, dataset_name: str, transform) -> None:
+    manifest_path = package / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    artifact = next(
+        item for item in manifest["artifacts"]
+        if item["format"] == "csv" and item["dataset"] == dataset_name
+    )
+    path = package / artifact["relative_path"]
+    rows = list(csv.reader(io.StringIO(path.read_text(encoding="utf-8"), newline="")))
+    rows[0] = transform(rows[0])
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.writer(handle, dialect="excel", lineterminator="\r\n")
+        writer.writerows(rows)
+    artifact["byte_count"], artifact["file_sha256"] = _file_evidence(path)
+    manifest_path.write_bytes(_canonical_bytes(manifest))
+    _resign_manifest(package)
 
 
 def _pending_run_and_forward(values, attempt):
@@ -152,6 +226,46 @@ def revision_store(root: Path):
     store.write_run_receipt(second_receipt)
     store.write_result("ForwardOutcome", second)
     return store, first, second
+
+
+def _resign_query_execution(execution, results, receipts):
+    result_set = plain(execution.result_set)
+    result_refs = []
+    for contract_name, payload in results:
+        id_field, fingerprint_field, _, _ = RESULT_TYPES[contract_name]
+        result_refs.append({
+            "result_contract": contract_name,
+            "schema_version": payload["schema_version"],
+            "result_id": payload[id_field],
+            "logical_result_id": payload["logical_result_id"],
+            "run_id": payload["run_id"],
+            "content_fingerprint": payload[fingerprint_field],
+        })
+    receipt_refs = [{
+        "run_id": item["run_id"],
+        "run_receipt_id": item["run_receipt_id"],
+        "run_content_fingerprint": item["run_content_fingerprint"],
+        "supersedes_run_receipt_id": item["supersedes_run_receipt_id"],
+        "status": item["status"],
+    } for item in receipts]
+    result_set.update({
+        "result_refs": result_refs,
+        "result_set_fingerprint": canonical_fingerprint(result_refs),
+        "run_receipt_refs": receipt_refs,
+        "run_receipt_set_fingerprint": canonical_fingerprint(receipt_refs),
+        "row_count": len(result_refs),
+        "status": "complete" if result_refs else "empty",
+    })
+    identity = {
+        key: value for key, value in result_set.items()
+        if key not in {"query_result_set_id", "query_result_set_content_fingerprint"}
+    }
+    fingerprint = canonical_fingerprint(identity)
+    result_set["query_result_set_id"] = "query-result-set:" + fingerprint
+    result_set["query_result_set_content_fingerprint"] = fingerprint
+    return EvaluationQueryResult(
+        execution.query, result_set, tuple(results), tuple(receipts)
+    )
 
 
 class M10QueryInventoryTests(unittest.TestCase):
@@ -285,6 +399,91 @@ class M10QueryInventoryTests(unittest.TestCase):
             with self.assertRaises(ContractError):
                 validate_query_execution(forged)
 
+    def test_resigned_query_results_must_equal_complete_inventory_derivation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store, first, second = revision_store(Path(directory) / "m10")
+            all_rows = execute_evaluation_query(
+                store, build_evaluation_query(filters=None, revision_mode="all"),
+                code_commit=COMMIT,
+            )
+            current = execute_evaluation_query(
+                store, build_evaluation_query(filters=None, revision_mode="current"),
+                code_commit=COMMIT,
+            )
+            first_receipts = tuple(
+                item for item in all_rows.run_receipts if item["run_id"] == first["run_id"]
+            )
+            attacks = {
+                "all_omission": _resign_query_execution(
+                    all_rows, all_rows.results[1:], all_rows.run_receipts[1:]
+                ),
+                "all_duplicate": _resign_query_execution(
+                    all_rows, all_rows.results + all_rows.results[:1],
+                    all_rows.run_receipts,
+                ),
+                "all_reorder": _resign_query_execution(
+                    all_rows, tuple(reversed(all_rows.results)),
+                    tuple(reversed(all_rows.run_receipts)),
+                ),
+                "current_substitute": _resign_query_execution(
+                    current, (("ForwardOutcome", first),), first_receipts
+                ),
+                "current_add_old": _resign_query_execution(
+                    current,
+                    (("ForwardOutcome", first), ("ForwardOutcome", second)),
+                    all_rows.run_receipts,
+                ),
+            }
+            for name, attack in attacks.items():
+                with self.subTest(name=name), self.assertRaises(ContractError):
+                    validate_query_execution(attack)
+
+    def test_resigned_empty_set_cannot_erase_four_matching_inventory_results(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = EvaluationShadowStore(Path(directory) / "m10")
+            for index, window in enumerate((5, 20, 60, 100), 1):
+                values = forward_2_1_values()
+                values["window_sessions"] = window
+                receipt, outcome = _pending_run_and_forward(
+                    values, f"m10-d-four-{index}"
+                )
+                store.write_run_receipt(receipt)
+                store.write_result("ForwardOutcome", outcome)
+            execution = execute_evaluation_query(
+                store,
+                build_evaluation_query(
+                    filters={"result_contracts": ["ForwardOutcome"]},
+                    revision_mode="current",
+                ),
+                code_commit=COMMIT,
+            )
+            self.assertEqual(4, len(execution.results))
+            erased = _resign_query_execution(execution, (), ())
+            with self.assertRaisesRegex(ContractError, "complete deterministic"):
+                validate_query_execution(erased)
+            output = Path(directory) / "exports"
+            with self.assertRaisesRegex(ContractError, "complete deterministic"):
+                publish_audit_export(
+                    erased, build_export_config(), output_root=output,
+                    generated_at="2026-09-04T00:00:00Z", code_commit=COMMIT,
+                )
+            self.assertFalse(output.exists())
+
+    def test_offline_completeness_requires_embedded_inventory_payloads(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store, _, _ = revision_store(Path(directory) / "m10")
+            execution = execute_evaluation_query(
+                store, build_evaluation_query(filters=None, revision_mode="current"),
+                code_commit=COMMIT,
+            )
+            result_set = plain(execution.result_set)
+            del result_set["source_inventory"]["entries"][0]["payload"]
+            with self.assertRaisesRegex(ContractError, "inventory_evidence_unavailable"):
+                validate_query_execution(EvaluationQueryResult(
+                    execution.query, result_set, execution.results,
+                    execution.run_receipts,
+                ))
+
     def test_batch_write_and_inventory_snapshot_are_atomic(self):
         with tempfile.TemporaryDirectory() as directory:
             store = EvaluationShadowStore(Path(directory) / "m10")
@@ -402,6 +601,117 @@ class M10CsvExportTests(unittest.TestCase):
             manifest["manifest_content_fingerprint"] = canonical_fingerprint(semantic)
             with self.assertRaises(ContractError):
                 validate_export_manifest(manifest)
+
+    def test_csv_business_values_and_reference_rows_are_bound_to_payloads(self):
+        with tempfile.TemporaryDirectory() as directory:
+            execution = self._execution(directory)
+            base = publish_audit_export(
+                execution, build_export_config(),
+                output_root=Path(directory) / "exports",
+                generated_at="2026-09-04T00:00:00Z", code_commit=COMMIT,
+            )
+            for index, (dataset, column, value) in enumerate((
+                ("ResearchAggregates", "mean_gross_return", Decimal("0.9")),
+                ("ResearchAggregates", "mean_gross_return_canonical", "0.9"),
+                ("ResearchAggregateRefs", "content_fingerprint", "sha256:" + "a" * 64),
+            )):
+                with self.subTest(dataset=dataset, column=column):
+                    attacked = Path(directory) / f"attack-{index}"
+                    shutil.copytree(base, attacked)
+                    _rewrite_csv_typed_cell(attacked, dataset, column, value)
+                    with self.assertRaises(ContractError):
+                        verify_export_package(attacked)
+
+    def test_every_main_and_reference_field_is_bound_to_canonical_projection(self):
+        def changed(spec, value):
+            if spec.kind == "bool":
+                return not value
+            if spec.kind == "int":
+                return (value or 0) + 1
+            if spec.kind == "decimal":
+                return Decimal("0.9") if value is None else value + Decimal("0.1")
+            if spec.kind == "json":
+                if isinstance(value, dict):
+                    return {**value, "__tampered__": True}
+                if isinstance(value, list):
+                    return [*value, "__tampered__"]
+                return {"__tampered__": True}
+            return "tampered" if value is None else str(value) + "-tampered"
+
+        with tempfile.TemporaryDirectory() as directory:
+            execution = self._execution(directory)
+            base = publish_audit_export(
+                execution, build_export_config(),
+                output_root=Path(directory) / "exports",
+                generated_at="2026-09-04T00:00:00Z", code_commit=COMMIT,
+            )
+            manifest = plain(verify_export_package(base))
+            for dataset_name in ("ResearchAggregates", "ResearchAggregateRefs"):
+                artifact = next(
+                    item for item in manifest["artifacts"]
+                    if item["format"] == "csv"
+                    and item["dataset"] == dataset_name
+                    and item["data_row_count"] > 0
+                )
+                dataset = AuditDataset(
+                    dataset_name, DATASET_COLUMNS[dataset_name], (),
+                    DATASET_SORT_KEYS[dataset_name],
+                )
+                source_row = read_csv_part(
+                    base / artifact["relative_path"], dataset
+                )[0]
+                for index, spec in enumerate(dataset.columns):
+                    with self.subTest(dataset=dataset_name, column=spec.name):
+                        attacked = Path(directory) / f"field-{dataset_name}-{index}"
+                        shutil.copytree(base, attacked)
+                        _rewrite_csv_typed_cell(
+                            attacked, dataset_name, spec.name,
+                            changed(spec, source_row[spec.name]),
+                        )
+                        with self.assertRaises(ContractError):
+                            verify_export_package(attacked)
+
+    def test_csv_header_must_be_exact_and_canonical(self):
+        transforms = (
+            lambda header: header[:-1],
+            lambda header: header + ["unknown"],
+            lambda header: header[:-1] + [header[0]],
+            lambda header: list(reversed(header)),
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            execution = self._execution(directory)
+            base = publish_audit_export(
+                execution, build_export_config(),
+                output_root=Path(directory) / "exports",
+                generated_at="2026-09-04T00:00:00Z", code_commit=COMMIT,
+            )
+            for index, transform in enumerate(transforms):
+                with self.subTest(index=index):
+                    attacked = Path(directory) / f"header-{index}"
+                    shutil.copytree(base, attacked)
+                    _rewrite_csv_header(attacked, "ResearchAggregates", transform)
+                    with self.assertRaisesRegex(ContractError, "header"):
+                        verify_export_package(attacked)
+
+    def test_export_receipt_binds_code_commit_but_export_identity_does_not(self):
+        with tempfile.TemporaryDirectory() as directory:
+            execution = self._execution(directory)
+            config = build_export_config()
+            first = publish_audit_export(
+                execution, config, output_root=Path(directory) / "exports",
+                generated_at="2026-09-04T00:00:00Z", code_commit="a" * 40,
+            )
+            second = publish_audit_export(
+                execution, config, output_root=Path(directory) / "exports",
+                generated_at="2026-09-04T00:00:00Z", code_commit="b" * 40,
+            )
+            first_manifest = verify_export_package(first)
+            second_manifest = verify_export_package(second)
+            self.assertEqual(first_manifest["export_id"], second_manifest["export_id"])
+            self.assertNotEqual(
+                first_manifest["export_receipt_id"],
+                second_manifest["export_receipt_id"],
+            )
 
     def test_failed_export_leaves_no_visible_partial_package(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -714,6 +1024,55 @@ class M10XlsxExportTests(unittest.TestCase):
             (
                 "xl/worksheets/sheet1.xml",
                 lambda raw: raw.replace(b't="inlineStr"', b't="s"', 1),
+            ),
+        )
+        for index, (member, transform) in enumerate(mutations):
+            with self.subTest(index=index), tempfile.TemporaryDirectory() as directory:
+                execution = self._execution(directory)
+                package = publish_audit_export(
+                    execution,
+                    build_export_config(formats=("csv", "xlsx")),
+                    output_root=Path(directory) / "exports",
+                    generated_at="2026-09-04T00:00:00Z",
+                    code_commit=COMMIT,
+                )
+                workbook = package / "xlsx/sage-vista-m10-audit.xlsx"
+                _rewrite_zip_member(workbook, member, transform)
+                _resign_package_after_xlsx_change(package)
+                with self.assertRaises(ContractError):
+                    verify_export_package(package)
+
+    def test_resigned_defined_name_data_validation_and_hidden_style_fail(self):
+        mutations = (
+            (
+                "xl/workbook.xml",
+                lambda raw: raw.replace(
+                    b"</definedNames>",
+                    b'<definedName name="attack">WEBSERVICE("https://invalid.example")</definedName></definedNames>',
+                    1,
+                ),
+            ),
+            (
+                "xl/worksheets/sheet1.xml",
+                lambda raw: raw.replace(
+                    b"<pageMargins ",
+                    b'<dataValidations count="1"><dataValidation type="custom" sqref="A2"><formula1>WEBSERVICE("https://invalid.example")</formula1></dataValidation></dataValidations><pageMargins ',
+                    1,
+                ),
+            ),
+            (
+                "xl/styles.xml",
+                lambda raw: raw.replace(
+                    b'formatCode="0.0000000000"',
+                    b'formatCode=";;;@@@@@@@@"',
+                    1,
+                ),
+            ),
+            (
+                "xl/worksheets/sheet2.xml",
+                lambda raw: raw.replace(
+                    b'<c r="AJ2" s="5">', b'<c r="AJ2" s="2">', 1
+                ),
             ),
         )
         for index, (member, transform) in enumerate(mutations):

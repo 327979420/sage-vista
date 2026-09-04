@@ -424,6 +424,7 @@ class EvaluationShadowStore:
                         "content_fingerprint": str(payload[fingerprint_field]),
                         "file_sha256": "sha256:" + hashlib.sha256(raw).hexdigest(),
                         "byte_count": len(raw),
+                        "payload": _plain(payload),
                     })
 
         runs_root = self.root / "runs"
@@ -451,6 +452,7 @@ class EvaluationShadowStore:
                     "content_fingerprint": str(payload["run_content_fingerprint"]),
                     "file_sha256": "sha256:" + hashlib.sha256(raw).hexdigest(),
                     "byte_count": len(raw),
+                    "payload": _plain(payload),
                 })
 
         grouped_results: dict[tuple[str, str], list[Mapping[str, Any]]] = {}
