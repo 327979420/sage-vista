@@ -583,3 +583,9 @@
 - 预登记的高位下降／震荡释放在开发、已见2025和已见2026均未优于同为高位但未下降的对照，且近期样本严重不足；`regime.choppiness_release_14_5`不加入因子库。
 - 高位且5日Choppiness继续上升相对中低位的稳健收益与PF三段同向为正，但BH校正未通过；它只作为现有`regime.choppiness_14`的零权重真正前向观察条件。
 - 不因机制方向与原先直觉相反而事后改阈值。生产37因子、模型1.3.0和所有权重保持不变。
+## 2026-09-05：批准M10-E版本化配置、统一CLI与独立编排检查点
+
+- 一份`ResearchRunConfig 2.0.0`只处理一种M10结果族；ResearchAggregate必须由另一份显式配置引用已落盘并重新验证的单一Outcome类型。
+- 唯一入口固定为`python3 -m research.run --config <versioned-config.json>`，只调用M10-A—D公共接口；禁止动态别名、隐藏参数、legacy自动回退和第二套评价算法。
+- 新增独立`ResearchRunCheckpoint 2.0.0`只保存编排进度，不改变ExperimentRun或Forward、Trade、Portfolio、Aggregate合同语义；续跑必须显式引用父run和检查点。
+- 用户批准按E1配置、E2 CLI、E3续跑／并发／可选导出连续影子实施。M10整体继续为`implementing`，未部署、未生产启用；VectorBT、M11和M12仍未开始。
