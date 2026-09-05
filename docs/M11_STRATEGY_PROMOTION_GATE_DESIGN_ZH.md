@@ -1,6 +1,6 @@
 # M11｜策略验证、批准与退休闸门最小设计
 
-状态：`approved`
+状态：`verified`（固定合成样本；尚未合并main或生产启用）
 
 设计日期：2026-09-05
 
@@ -287,3 +287,11 @@ M11本身不得写生产Manifest、切换工作流、修改网站／Discord或�
 3. `3A`：用户可在证据尚未`validated`时批准候选实现，但只改变用户决定轴，不改变机器证据、不自动改规则或代码、不激活生产；生产仍须`validated`＋批准＋main实现＋M12证明四者齐全。
 
 用户已批准A—D影子实施；任何新业务选择、真实策略晋级或范围扩张仍须停止并重新评审。
+
+## 16. 本地影子实施结果
+
+- `services/playbook/`是唯一M11生产、证据评估、生命周期存储和Registry派生层。
+- `StrategyProposal 2.0.0`、`StrategyEvidenceAssessment 2.0.0`、`StrategyLifecycleEvent 2.0.0`和`StrategyRegistrySnapshot 2.0.0`均使用严格允许字段、内容寻址ID和只追加修订链。
+- formal证据评估从M09和M10影子存储重新读取并验证完整记录；调用方裸ID、未落盘对象、comparison／legacy、缺少分区／成本／独立案例和失败标准不得形成`validated`。
+- 用户批准只改变决定轴；main实现绑定40位提交、规则版本和测试证据；`active`还需外部M12 Manifest、部署及线上验证证明。
+- 全部验收仅使用固定合成样本。当前真实formal validated策略、新交易alpha硬规则和active策略均为0。

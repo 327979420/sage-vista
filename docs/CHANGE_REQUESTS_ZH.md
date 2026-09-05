@@ -35,7 +35,7 @@
 ### CR-2026-09-05-051｜M11策略验证、批准与退休闸门
 
 - 用户原意：把M09保存的人工观察／假设与M10保存的不可变评价证据接成一条可审计的策略升级链。机器证据、用户批准、进入main和生产激活必须分开；V1、V2、失败、拒绝、延期、失效和退休历史永久保留。只有预登记标准由独立证据满足、用户明确批准、实现证据完整且M12提供生产激活证明的精确版本，才可成为active策略或交易红线。
-- 状态：`approved`；用户已批准`1A／2A／3A`和A—D最小影子实施。当前仅冻结设计与实施边界，没有运行实验、真实策略晋级、部署或生产启用。
+- 状态：`verified`；用户批准的`1A／2A／3A`及A—D最小影子合同、证据闸门、生命周期存储和只读Registry已在审核分支完成本地验证。尚未合并`main`，没有运行实实验、真实策略晋级、部署或生产启用。
 - 主模块：`docs/rules/11_VALIDATED_PLAYBOOK.md`、`docs/rules/12_HARD_RULES.md`；设计见`docs/M11_STRATEGY_PROMOTION_GATE_DESIGN_ZH.md`。未来唯一中立实现层建议为`services/playbook/`。
 - 联动模块：只读引用M09 `HumanReviewRecord`及M10 `ExperimentRun`、Outcome、Aggregate和查询证据；M12独立负责生产Manifest、部署、线上核验、激活和退休生效。M11不得反向修改M03—M10，也不得替M12切换生产。
 - CR-043边界：本CR只承接CR-043中“人工案例形成候选假设、使用未参与定义的独立样本验证、用户批准后形成新版本、失败假设永久保留”的升级责任。CR-043整体继续为`captured`，内容和状态不变。
@@ -44,8 +44,8 @@
 - 案例边界：案例角色固定为`discovery`、`calibration`、`validation`、`forward`或`explanation_only`。发现／校准案例不能再充当独立验证；CGEM、MRNA、BTDR、DLTR、ADBE、BABA、TTD和AEVA继续保持真实已见角色，不用单案例证明有效性。
 - Playbook／Hard Rule：系统完整性硬规则保护防未来、不可覆盖和数据／执行正确性，不是交易alpha；交易alpha／风险红线则必须通过M11证据闸门、机器可执行定义、范围／例外／解除条件、用户批准、实现和M12激活。当前正式validated策略和新增交易alpha硬规则均为0。
 - 实验：本轮不运行。M11不计算收益、不读取行情、不重跑M10、不搜索参数，也不创建新的有效性结论。
-- 实现与产物：已批准四合同、独立validation／forward最低门槛和“批准实现不等于validated／active”边界，允许进入A—D影子实施。
-- 验证：治理19项通过，27个本地Markdown链接、差异格式和设计文件范围检查通过；本轮不提交、不推送。
+- 实现与产物：`services/playbook/`为唯一影子生产／验证层；四合同、四轴、只读重验M09／M10证据、案例隔离、线性修订、只追加存储和派生Registry已完成。系统完整性规则与交易alpha红线仍分开；当前真实formal validated、新交易alpha硬规则和active策略均为0。
+- 验证：M11专项31项通过；M09—M11联合定向运行228项，通过218项、跳过10项；M01—M11扩大定向运行394项，通过384项、跳过10项；完整Python运行761项，通过751项、跳过10项；四种`PYTHONHASHSEED`每轮31项通过；治理19项、前端11项、Python编译、lint、TypeScript和生产构建通过。完整证据见`docs/M11_ACCEPTANCE_REPORT_ZH.md`。
 
 ### CR-2026-09-02-050｜M10统一评价、回测与外部研究引擎
 
