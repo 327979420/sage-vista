@@ -72,7 +72,12 @@ def _next_event(
     assessment_ref = None
     if assessment is not None:
         validate_strategy_evidence_assessment(assessment)
-        if assessment["proposal_id"] != proposal["proposal_id"]:
+        if (
+            assessment["proposal_id"] != proposal["proposal_id"]
+            or assessment["proposal_content_fingerprint"] != proposal["proposal_content_fingerprint"]
+            or assessment["strategy_id"] != proposal["strategy_id"]
+            or assessment["strategy_version"] != proposal["strategy_version"]
+        ):
             raise ContractError("lifecycle assessment crosses proposals")
         assessment_ref = _ref(assessment, "assessment_id", "assessment_content_fingerprint")
     return build_strategy_lifecycle_event(
@@ -129,6 +134,9 @@ def record_main_implementation(
     implementation_proof: Mapping[str, Any], test_proof: Mapping[str, Any],
     author_id: str, occurred_at: str, reason: str,
 ) -> Mapping[str, Any]:
+    leaf = current_strategy_lifecycle(existing_events)
+    if leaf["state_after"]["decision"] != "approved_for_implementation":
+        raise ContractError("main implementation requires explicit user approval")
     return _next_event(
         proposal, existing_events=existing_events, event_type="implementation_recorded",
         new_value="implemented_in_main", author_id=author_id, occurred_at=occurred_at,

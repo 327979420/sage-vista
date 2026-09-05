@@ -56,6 +56,7 @@ class M11PlaybookTests(unittest.TestCase):
         fixture = fixture_type("test_all_authoritative_ranked_entries_create_one_root")
         fixture.setUp()
         cls.event = plain(fixture.batch.events[0])
+        cls.baseline_event = plain(fixture.batch.events[1])
         cls.review = create_human_review(
             subject_type="event",
             subject_reference={"event_id": cls.event["event_id"]},
@@ -97,6 +98,38 @@ class M11PlaybookTests(unittest.TestCase):
             "supersedes_run_receipt_id": cls.pending["run_receipt_id"],
         })
         cls.completed = plain(build_experiment_run_receipt(**completed_values))
+
+        baseline_pending_values = receipt_values(dummy)
+        baseline_pending_values.update({
+            "status": "pending", "result_refs": [], "finished_at": None,
+            "partition_role": "validation", "supersedes_run_receipt_id": None,
+            "attempt_id": "attempt-baseline", "experiment_id": "M11-baseline-fixture",
+            "config_ref": {"config_id": "m11-baseline-fixed", "config_version": "0.9.0", "content_fingerprint": SHA},
+            "input_refs": [
+                {"id": cls.baseline_event["event_id"], "content_fingerprint": cls.baseline_event["event_content_fingerprint"]},
+                proof("market", "b"), proof("universe", "c"),
+            ],
+        })
+        cls.baseline_pending = plain(build_experiment_run_receipt(**baseline_pending_values))
+        baseline_outcome_values = forward_2_1_values(mature=True)
+        baseline_outcome_values.update({
+            "run_id": cls.baseline_pending["run_id"], "event_id": cls.baseline_event["event_id"],
+            "event_content_fingerprint": cls.baseline_event["event_content_fingerprint"],
+            "instrument_id": cls.baseline_event["instrument_id"], "signal_date": cls.baseline_event["signal_date"],
+            "partition_role": "validation",
+        })
+        cls.baseline_outcome = plain(finalize_result("ForwardOutcome", baseline_outcome_values))
+        baseline_completed_values = {
+            key: plain(value) for key, value in cls.baseline_pending.items()
+            if key not in {"run_id", "run_receipt_id", "run_content_fingerprint", "input_set_fingerprint", "result_set_fingerprint"}
+        }
+        baseline_completed_values.update({
+            "status": "completed",
+            "result_refs": [{"id": cls.baseline_outcome["forward_outcome_id"], "content_fingerprint": cls.baseline_outcome["forward_content_fingerprint"]}],
+            "finished_at": "2026-09-03T22:01:00Z",
+            "supersedes_run_receipt_id": cls.baseline_pending["run_receipt_id"],
+        })
+        cls.baseline_completed = plain(build_experiment_run_receipt(**baseline_completed_values))
         cls.prereg = build_preregistration(
             required_partitions=["validation"],
             required_result_contracts=["ForwardOutcome"],
@@ -124,18 +157,22 @@ class M11PlaybookTests(unittest.TestCase):
         root = Path(context.name)
         ledger = EventLedgerStore(root / "ledger")
         ledger.write_event(self.event)
+        ledger.write_event(self.baseline_event)
         ledger.write_human_review(self.review)
         evaluation = EvaluationShadowStore(root / "evaluation")
         evaluation.write_run_receipt(self.pending)
         evaluation.write_result("ForwardOutcome", self.outcome)
         evaluation.write_run_receipt(self.completed)
+        evaluation.write_run_receipt(self.baseline_pending)
+        evaluation.write_result("ForwardOutcome", self.baseline_outcome)
+        evaluation.write_run_receipt(self.baseline_completed)
         playbook = PlaybookShadowStore(root / "playbook")
         return context, ledger, evaluation, playbook
 
     def assess(self, ledger, evaluation, **changes):
         values = {
             "proposal": self.proposal, "ledger_store": ledger,
-            "evaluation_store": evaluation, "run_ids": [self.completed["run_id"]],
+            "evaluation_store": evaluation, "run_ids": [self.completed["run_id"], self.baseline_completed["run_id"]],
             "assessed_at": "2026-09-05T11:00:00Z",
         }
         values.update(changes)
@@ -194,8 +231,56 @@ class M11PlaybookTests(unittest.TestCase):
         with context:
             other = EvaluationShadowStore(Path(context.name) / "pending-evaluation")
             other.write_run_receipt(self.pending)
-            with self.assertRaises(ContractError):
-                self.assess(ledger, other, run_ids=[self.pending["run_id"]])
+            assessment = self.assess(ledger, other, run_ids=[self.pending["run_id"]])
+            self.assertEqual("evidence_incomplete", assessment["evidence_state"])
+
+    def test_comparison_or_legacy_cannot_support_validated(self):
+        context, ledger, _, _ = self.seeded()
+        with context:
+            for role, path, biases, suffix in (
+                ("comparison", "formal", [], "comparison"),
+                ("comparison", "legacy", ["legacy_evidence"], "legacy"),
+            ):
+                evaluation = EvaluationShadowStore(Path(context.name) / suffix)
+                pending_values = {
+                    key: plain(value) for key, value in self.pending.items()
+                    if key not in {"run_id", "run_receipt_id", "run_content_fingerprint", "input_set_fingerprint", "result_set_fingerprint"}
+                }
+                pending_values.update({"result_role": role, "path_status": path, "bias_labels": biases, "attempt_id": suffix})
+                pending = plain(build_experiment_run_receipt(**pending_values))
+                outcome_values = plain(self.outcome)
+                for field in ("forward_outcome_id", "forward_content_fingerprint", "logical_result_id", "input_fingerprint"):
+                    outcome_values.pop(field, None)
+                outcome_values.update({"run_id": pending["run_id"], "result_role": role, "path_status": path, "bias_labels": biases})
+                outcome = plain(finalize_result("ForwardOutcome", outcome_values))
+                completed_values = {
+                    key: plain(value) for key, value in pending.items()
+                    if key not in {"run_id", "run_receipt_id", "run_content_fingerprint", "input_set_fingerprint", "result_set_fingerprint"}
+                }
+                completed_values.update({"status": "completed", "result_refs": [{"id": outcome["forward_outcome_id"], "content_fingerprint": outcome["forward_content_fingerprint"]}], "finished_at": "2026-09-03T22:01:00Z", "supersedes_run_receipt_id": pending["run_receipt_id"]})
+                completed = plain(build_experiment_run_receipt(**completed_values))
+                evaluation.write_run_receipt(pending)
+                evaluation.write_result("ForwardOutcome", outcome)
+                evaluation.write_run_receipt(completed)
+                evaluation.write_run_receipt(self.baseline_pending)
+                evaluation.write_result("ForwardOutcome", self.baseline_outcome)
+                evaluation.write_run_receipt(self.baseline_completed)
+                assessment = self.assess(ledger, evaluation, run_ids=[completed["run_id"], self.baseline_completed["run_id"]])
+                self.assertEqual("evidence_incomplete", assessment["evidence_state"])
+
+    def test_required_cost_policy_missing_is_evidence_incomplete(self):
+        context, ledger, evaluation, _ = self.seeded()
+        with context:
+            prereg = build_preregistration(required_partitions=["validation"], required_result_contracts=["ForwardOutcome"], requires_cost_policy=True, criteria=plain(self.prereg["criteria"]))
+            proposal = resign_proposal(self.proposal, strategy_version="1.0.5", preregistration=prereg)
+            self.assertEqual("evidence_incomplete", self.assess(ledger, evaluation, proposal=proposal)["evidence_state"])
+
+    def test_evidence_input_order_does_not_change_identity(self):
+        context, ledger, evaluation, _ = self.seeded()
+        with context:
+            first = self.assess(ledger, evaluation)
+            second = self.assess(ledger, evaluation, run_ids=list(reversed([self.completed["run_id"], self.baseline_completed["run_id"]])))
+            self.assertEqual(first, second)
 
     def test_missing_required_partition_is_evidence_incomplete(self):
         context, ledger, evaluation, _ = self.seeded()
@@ -317,6 +402,21 @@ class M11PlaybookTests(unittest.TestCase):
             with self.assertRaisesRegex(ContractError, "current leaf"):
                 store.write_lifecycle_event(second)
             self.assertEqual(before, path.read_bytes())
+
+    def test_storage_requires_exact_proposal_and_assessment_authority(self):
+        context, ledger, evaluation, store = self.seeded()
+        with context:
+            assessment = self.assess(ledger, evaluation)
+            root = self.lifecycle(assessment)[0]
+            with self.assertRaisesRegex(ContractError, "persisted proposal"):
+                store.write_assessment(assessment)
+            with self.assertRaisesRegex(ContractError, "persisted proposal"):
+                store.write_lifecycle_event(root)
+            store.write_proposal(self.proposal)
+            store.write_assessment(assessment)
+            assessed_event = record_evidence_assessment(self.proposal, assessment, existing_events=[root], author_id="system:m11", occurred_at="2026-09-05T12:01:00Z")
+            store.write_lifecycle_event(root)
+            store.write_lifecycle_event(assessed_event)
 
     def test_concurrent_lifecycle_children_at_most_one_succeeds(self):
         context, _, _, store = self.seeded()

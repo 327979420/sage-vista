@@ -49,7 +49,16 @@ def derive_strategy_registry_snapshot(
         proposal_id = str(assessment["proposal_id"])
         if proposal_id not in by_proposal:
             raise ContractError("registry assessment lacks its proposal")
-        if assessment["proposal_content_fingerprint"] != by_proposal[proposal_id]["proposal_content_fingerprint"]:
+        proposal = by_proposal[proposal_id]
+        if any((
+            assessment["proposal_content_fingerprint"] != proposal["proposal_content_fingerprint"],
+            assessment["strategy_id"] != proposal["strategy_id"],
+            assessment["strategy_version"] != proposal["strategy_version"],
+            assessment["candidate_version"] != proposal["candidate_version"],
+            assessment["baseline_version"] != proposal["baseline_version"],
+            assessment["preregistration_ref"]["id"] != proposal["preregistration"]["preregistration_id"],
+            assessment["preregistration_ref"]["content_fingerprint"] != proposal["preregistration"]["content_fingerprint"],
+        )):
             raise ContractError("registry assessment proposal fingerprint is stale")
         assessment_groups.setdefault(proposal_id, []).append(assessment)
     event_groups: dict[str, list[Mapping[str, Any]]] = {}
@@ -58,7 +67,12 @@ def derive_strategy_registry_snapshot(
         proposal_id = str(event["proposal_id"])
         if proposal_id not in by_proposal:
             raise ContractError("registry lifecycle lacks its proposal")
-        if event["proposal_content_fingerprint"] != by_proposal[proposal_id]["proposal_content_fingerprint"]:
+        proposal = by_proposal[proposal_id]
+        if any((
+            event["proposal_content_fingerprint"] != proposal["proposal_content_fingerprint"],
+            event["strategy_id"] != proposal["strategy_id"],
+            event["strategy_version"] != proposal["strategy_version"],
+        )):
             raise ContractError("registry lifecycle proposal fingerprint is stale")
         event_groups.setdefault(proposal_id, []).append(event)
 

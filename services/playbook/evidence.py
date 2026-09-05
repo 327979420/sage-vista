@@ -163,6 +163,7 @@ def assess_persisted_strategy_evidence(
     run_refs: list[dict[str, str]] = []
     selected_results: list[tuple[str, Mapping[str, Any]]] = []
     partitions: set[str] = set()
+    config_versions: set[str] = set()
     incomplete: list[str] = []
     for run_id in requested:
         receipts = run_groups.get(run_id)
@@ -172,9 +173,15 @@ def assess_persisted_strategy_evidence(
         if leaf["status"] != "completed":
             incomplete.append("experiment_run_not_completed")
         partitions.add(str(leaf["partition_role"]))
+        config_versions.add(str(leaf["config_ref"]["config_version"]))
         if leaf["path_status"] != "formal" or leaf["result_role"] != "authoritative" or leaf["bias_labels"]:
             incomplete.append("nonformal_or_biased_evidence")
         input_roles = {str(item["id"]).split(":", 1)[0] for item in leaf["input_refs"]}
+        for reference in leaf["input_refs"]:
+            if str(reference["id"]).startswith("opportunity:"):
+                event = events.get(str(reference["id"]))
+                if event is None or event["event_content_fingerprint"] != reference["content_fingerprint"]:
+                    raise ContractError("M10 run event evidence differs from persisted M09")
         policy_kinds = {str(item["policy_kind"]) for item in leaf["policy_refs"]}
         if not {"market", "universe"}.issubset(input_roles) or "adjustment" not in policy_kinds:
             incomplete.append("data_universe_or_adjustment_evidence_missing")
@@ -198,6 +205,8 @@ def assess_persisted_strategy_evidence(
     required_partitions = set(proposal["preregistration"]["required_partitions"])
     if not required_partitions.issubset(partitions):
         incomplete.append("required_partition_missing")
+    if not {proposal["candidate_version"], proposal["baseline_version"]}.issubset(config_versions):
+        incomplete.append("candidate_or_baseline_version_evidence_missing")
     independent_cases = [
         item for item in proposal["case_roles"]
         if item["role"] in {"validation", "forward"} and not item["seen_before"]

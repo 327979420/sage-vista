@@ -368,8 +368,10 @@ def validate_strategy_evidence_assessment(payload: Mapping[str, Any]) -> None:
     if run_ids != sorted(set(run_ids)):
         raise ContractError("run references must be sorted and unique")
     result_refs = payload["result_refs"]
-    if not isinstance(result_refs, (list, tuple)) or not result_refs:
-        raise ContractError("assessment requires persisted result references")
+    if not isinstance(result_refs, (list, tuple)):
+        raise ContractError("assessment result references must be a list")
+    if not result_refs and payload["evidence_state"] != "evidence_incomplete":
+        raise ContractError("complete evidence assessment requires persisted results")
     result_ids: list[str] = []
     allowed_roles = {"forward-outcome", "trade-outcome", "portfolio-run", "research-aggregate"}
     for ref in result_refs:
@@ -443,8 +445,8 @@ def build_strategy_evidence_assessment(**values: Any) -> Mapping[str, Any]:
     payload.setdefault("schema_version", SCHEMA_VERSION)
     payload.setdefault("source_version", {"playbook": SOURCE_VERSION})
     payload.setdefault("future_data_used", False)
-    for field in ("run_refs", "result_refs"):
-        payload[field] = sorted(payload[field], key=lambda item: item.get("run_id", item.get("id")))
+    payload["run_refs"] = sorted(payload["run_refs"], key=lambda item: item["run_id"])
+    payload["result_refs"] = sorted(payload["result_refs"], key=lambda item: item["id"])
     payload["partitions"] = sorted(set(payload["partitions"]))
     payload["criteria_results"] = sorted(payload["criteria_results"], key=lambda item: item["criterion_id"])
     payload["case_roles"] = sorted(payload["case_roles"], key=lambda item: item["event_id"])
@@ -553,14 +555,18 @@ def validate_strategy_lifecycle_event(payload: Mapping[str, Any]) -> None:
     roles = {str(item["id"]).split(":", 1)[0] for item in refs}
     if event_type == "evidence_assessed" and assessment is None:
         raise ContractError("evidence assessment event requires its assessment")
-    if event_type == "user_decision_recorded" and "approval" not in roles:
-        raise ContractError("user decision requires approval evidence")
-    if event_type == "implementation_recorded" and not {"implementation-proof", "test-proof"}.issubset(roles):
-        raise ContractError("implementation requires code and test proof")
-    if event_type == "production_activation_recorded" and "m12-activation" not in roles:
-        raise ContractError("production activation requires M12 evidence")
-    if event_type == "retirement_recorded" and "retirement-proof" not in roles:
-        raise ContractError("retirement requires proof")
+    if event_type == "user_decision_recorded":
+        if after["decision"] not in {"approved_for_implementation", "rejected", "deferred"} or "approval" not in roles:
+            raise ContractError("user decision requires an allowed decision and approval evidence")
+    if event_type == "implementation_recorded":
+        if after["implementation"] != "implemented_in_main" or not {"implementation-proof", "test-proof"}.issubset(roles):
+            raise ContractError("implementation requires main code and test proof")
+    if event_type == "production_activation_recorded":
+        if after["production"] != "active" or "m12-activation" not in roles:
+            raise ContractError("production activation requires active state and M12 evidence")
+    if event_type == "retirement_recorded":
+        if after["production"] != "retired" or "retirement-proof" not in roles:
+            raise ContractError("retirement requires retired state and proof")
     _text(payload["author_id"], "author_id")
     occurred = _timestamp(payload["occurred_at"], "occurred_at")
     if occurred[:10] != payload["as_of"]:

@@ -136,6 +136,21 @@ class PlaybookShadowStore:
         logical = _digest(payload["logical_assessment_id"], "logical_assessment_id")
         target = self.root / "assessments" / (_digest(payload["assessment_id"], "assessment_id") + ".json")
         with _lock(self.root, "assessment-" + logical):
+            proposals = {
+                item["proposal_id"]: item
+                for item in self._collection("proposals", validate_strategy_proposal)
+            }
+            proposal = proposals.get(payload["proposal_id"])
+            if proposal is None or any((
+                proposal["proposal_content_fingerprint"] != payload["proposal_content_fingerprint"],
+                proposal["strategy_id"] != payload["strategy_id"],
+                proposal["strategy_version"] != payload["strategy_version"],
+                proposal["candidate_version"] != payload["candidate_version"],
+                proposal["baseline_version"] != payload["baseline_version"],
+                proposal["preregistration"]["preregistration_id"] != payload["preregistration_ref"]["id"],
+                proposal["preregistration"]["content_fingerprint"] != payload["preregistration_ref"]["content_fingerprint"],
+            )):
+                raise ContractError("assessment requires its exact persisted proposal")
             chain = [item for item in self._collection("assessments", validate_strategy_evidence_assessment) if item["logical_assessment_id"] == payload["logical_assessment_id"]]
             existing_ids = {item["assessment_id"] for item in chain}
             if payload["assessment_id"] not in existing_ids:
@@ -152,6 +167,28 @@ class PlaybookShadowStore:
         proposal = _digest(payload["proposal_id"], "proposal_id")
         target = self.root / "lifecycle" / (_digest(payload["lifecycle_event_id"], "lifecycle_event_id") + ".json")
         with _lock(self.root, "lifecycle-" + proposal):
+            proposals = {
+                item["proposal_id"]: item
+                for item in self._collection("proposals", validate_strategy_proposal)
+            }
+            stored_proposal = proposals.get(payload["proposal_id"])
+            if stored_proposal is None or any((
+                stored_proposal["proposal_content_fingerprint"] != payload["proposal_content_fingerprint"],
+                stored_proposal["strategy_id"] != payload["strategy_id"],
+                stored_proposal["strategy_version"] != payload["strategy_version"],
+            )):
+                raise ContractError("lifecycle event requires its exact persisted proposal")
+            assessment_ref = payload["assessment_ref"]
+            if assessment_ref is not None:
+                assessments = {
+                    item["assessment_id"]: item
+                    for item in self._collection("assessments", validate_strategy_evidence_assessment)
+                }
+                assessment = assessments.get(assessment_ref["id"])
+                if assessment is None or assessment["assessment_content_fingerprint"] != assessment_ref["content_fingerprint"]:
+                    raise ContractError("lifecycle event requires its exact persisted assessment")
+                if payload["event_type"] == "evidence_assessed" and payload["state_after"]["evidence"] != assessment["evidence_state"]:
+                    raise ContractError("lifecycle evidence state differs from its assessment")
             chain = [item for item in self._collection("lifecycle", validate_strategy_lifecycle_event) if item["proposal_id"] == payload["proposal_id"]]
             existing_ids = {item["lifecycle_event_id"] for item in chain}
             if payload["lifecycle_event_id"] not in existing_ids:
