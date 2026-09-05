@@ -673,7 +673,9 @@ class M10EOrchestrationTests(unittest.TestCase):
             self.assertEqual(len(chain), 1)
             self.assertEqual(chain[0]["status"], "ready_to_finalize")
 
-    def test_completed_receipt_failure_once_records_truthful_failed_terminal(self):
+    def test_completed_receipt_failure_once_leaves_ready_run_for_finalize_retry(self):
+        import services.evaluation.orchestration as module
+
         with tempfile.TemporaryDirectory() as directory:
             work, refs = forward_work()
             config = runtime_config("forward_evaluation", directory, [work], [refs])
@@ -697,10 +699,102 @@ class M10EOrchestrationTests(unittest.TestCase):
                     config, repo_root=ROOT, git_state_provider=self.state,
                     clock=lambda: "2026-09-09T23:00:00Z",
                 )
+            store = EvaluationShadowStore(
+                Path(directory) / "store", workspace_root=ROOT
+            )
+            inventory = store.capture_inventory()
+            run_chain = [
+                item for item in inventory.run_receipts
+                if item["run_id"] == result.summary["run_id"]
+            ]
             self.assertEqual(result.exit_code, 2)
-            self.assertEqual(result.summary["status"], "failed")
-            self.assertTrue(result.summary["terminal_persisted"])
+            self.assertEqual(result.summary["status"], "pending")
+            self.assertFalse(result.summary["terminal_persisted"])
+            self.assertEqual(
+                result.summary["error"], "terminal_completion_write_failed"
+            )
             self.assertEqual(result.summary["completed_result_count"], 5)
+            self.assertEqual({item["status"] for item in run_chain}, {"pending"})
+            checkpoint = current_research_run_checkpoint([
+                item for item in inventory.checkpoints
+                if item["run_id"] == result.summary["run_id"]
+            ])
+            self.assertEqual(checkpoint["status"], "ready_to_finalize")
+            self.assertEqual(list(checkpoint["remaining_work_units"]), [])
+            result_bytes = {
+                path.relative_to(store.root): path.read_bytes()
+                for path in (store.root / "results").rglob("*.json")
+            }
+
+            with (
+                patch.object(
+                    module, "load_input_bundle",
+                    side_effect=AssertionError("finalize retry loaded the input bundle"),
+                ),
+                patch.object(
+                    module, "_execute_work_unit",
+                    side_effect=AssertionError("finalize retry reran a producer"),
+                ),
+            ):
+                retried = execute_research_run(
+                    config, repo_root=ROOT, git_state_provider=self.state,
+                    clock=lambda: "2026-09-09T23:10:00Z",
+                )
+            final_inventory = store.capture_inventory()
+            final_chain = [
+                item for item in final_inventory.run_receipts
+                if item["run_id"] == result.summary["run_id"]
+            ]
+            self.assertEqual(retried.exit_code, 0)
+            self.assertEqual(retried.summary["status"], "completed")
+            self.assertTrue(retried.summary["terminal_persisted"])
+            self.assertEqual(len(final_chain), 2)
+            self.assertEqual(current_experiment_run(final_chain)["status"], "completed")
+            self.assertEqual(
+                result_bytes,
+                {
+                    path.relative_to(store.root): path.read_bytes()
+                    for path in (store.root / "results").rglob("*.json")
+                },
+            )
+
+    def test_completed_receipt_persisted_before_error_is_returned_as_completed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            work, refs = forward_work()
+            config = runtime_config("forward_evaluation", directory, [work], [refs])
+            original = EvaluationShadowStore.write_run_receipt
+            calls = {"failed": False}
+
+            def persist_then_raise(store, payload):
+                path = original(store, payload)
+                if (
+                    payload["engine"]["name"] == ORCHESTRATOR_ENGINE["name"]
+                    and payload["status"] == "completed"
+                    and not calls["failed"]
+                ):
+                    calls["failed"] = True
+                    raise OSError("injected after completed receipt persistence")
+                return path
+
+            with patch.object(
+                EvaluationShadowStore, "write_run_receipt", persist_then_raise
+            ):
+                result = execute_research_run(
+                    config, repo_root=ROOT, git_state_provider=self.state,
+                    clock=lambda: "2026-09-09T23:00:00Z",
+                )
+            inventory = EvaluationShadowStore(
+                Path(directory) / "store", workspace_root=ROOT
+            ).capture_inventory()
+            run_chain = [
+                item for item in inventory.run_receipts
+                if item["run_id"] == result.summary["run_id"]
+            ]
+            self.assertEqual(result.exit_code, 0)
+            self.assertEqual(result.summary["status"], "completed")
+            self.assertTrue(result.summary["terminal_persisted"])
+            self.assertEqual(len(run_chain), 2)
+            self.assertEqual(current_experiment_run(run_chain)["status"], "completed")
 
     def test_unwritable_terminal_stays_pending_and_retry_only_finalizes(self):
         import services.evaluation.orchestration as module
@@ -723,13 +817,34 @@ class M10EOrchestrationTests(unittest.TestCase):
                     config, repo_root=ROOT, git_state_provider=self.state,
                     clock=lambda: "2026-09-09T23:00:00Z",
                 )
+                with (
+                    patch.object(
+                        module, "load_input_bundle",
+                        side_effect=AssertionError("pending finalize loaded inputs"),
+                    ),
+                    patch.object(
+                        module, "_execute_work_unit",
+                        side_effect=AssertionError("pending finalize reran a producer"),
+                    ),
+                ):
+                    second = execute_research_run(
+                        config, repo_root=ROOT, git_state_provider=self.state,
+                        clock=lambda: "2026-09-09T23:05:00Z",
+                    )
             self.assertEqual(first.exit_code, 2)
             self.assertEqual(first.summary["status"], "pending")
             self.assertFalse(first.summary["terminal_persisted"])
             self.assertEqual(first.summary["completed_result_count"], 5)
+            self.assertEqual(second.exit_code, 2)
+            self.assertEqual(second.summary["status"], "pending")
+            self.assertFalse(second.summary["terminal_persisted"])
+            self.assertEqual(second.summary["checkpoint_id"], first.summary["checkpoint_id"])
             with patch.object(
                 module, "_execute_work_unit",
                 side_effect=AssertionError("completed work was rerun"),
+            ), patch.object(
+                module, "load_input_bundle",
+                side_effect=AssertionError("concurrent finalize loaded inputs"),
             ):
                 def retry():
                     return execute_research_run(
@@ -754,6 +869,51 @@ class M10EOrchestrationTests(unittest.TestCase):
             ]
             self.assertEqual(len(run_chain), 2)
             self.assertEqual(current_experiment_run(run_chain)["status"], "completed")
+
+    def test_ready_run_with_missing_result_fails_closed_without_rerun(self):
+        import services.evaluation.orchestration as module
+
+        with tempfile.TemporaryDirectory() as directory:
+            work, refs = forward_work()
+            config = runtime_config("forward_evaluation", directory, [work], [refs])
+            original = EvaluationShadowStore.write_run_receipt
+
+            def reject_completed(store, payload):
+                if (
+                    payload["engine"]["name"] == ORCHESTRATOR_ENGINE["name"]
+                    and payload["status"] == "completed"
+                ):
+                    raise OSError("injected terminal storage outage")
+                return original(store, payload)
+
+            with patch.object(
+                EvaluationShadowStore, "write_run_receipt", reject_completed
+            ):
+                first = execute_research_run(
+                    config, repo_root=ROOT, git_state_provider=self.state,
+                    clock=lambda: "2026-09-09T23:00:00Z",
+                )
+            store = EvaluationShadowStore(
+                Path(directory) / "store", workspace_root=ROOT
+            )
+            result_path = next((store.root / "results" / "ForwardOutcome").glob("*.json"))
+            result_path.unlink()
+            with (
+                patch.object(
+                    module, "load_input_bundle",
+                    side_effect=AssertionError("damaged finalize loaded inputs"),
+                ),
+                patch.object(
+                    module, "_execute_work_unit",
+                    side_effect=AssertionError("damaged finalize reran a producer"),
+                ),
+                self.assertRaises(ContractError),
+            ):
+                execute_research_run(
+                    config, repo_root=ROOT, git_state_provider=self.state,
+                    clock=lambda: "2026-09-09T23:10:00Z",
+                )
+            self.assertEqual(first.summary["status"], "pending")
 
     def test_forward_uses_existing_producer_and_replay_is_idempotent(self):
         with tempfile.TemporaryDirectory() as directory:

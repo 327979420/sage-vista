@@ -880,11 +880,10 @@ def execute_research_run(
     ):
         raise ContractError("M10-E formal config does not bind the approved policies")
     store = EvaluationShadowStore(config["storage"]["root_path"], workspace_root=repo_root)
-    bundle = load_input_bundle(config, store=store)
     generated_at = clock()
     pending = _orchestrator_pending(config, generated_at=generated_at)
+    bundle: Mapping[str, Any] | None = None
     with _config_lock(config["config_id"]):
-        store.write_research_config(config)
         inventory = store.capture_inventory()
         existing_chain = [item for item in inventory.run_receipts if item["run_id"] == pending["run_id"]]
         if existing_chain:
@@ -907,29 +906,37 @@ def execute_research_run(
             if state["remaining_work_units"]:
                 raise ContractError("run_in_progress_requires_explicit_resume")
         else:
+            bundle = load_input_bundle(config, store=store)
             _resume_evidence(config, inventory)
+            store.write_research_config(config)
             store.write_run_receipt(pending)
             state = store.reconcile_m10e_run(config, str(pending["run_id"]))
         try:
-            work_by_id = {item["work_unit_id"]: item for item in bundle["work_items"]}
-            for unit in config["work_units"]:
-                unit_id = unit["work_unit_id"]
-                if unit_id in set(state["completed_work_units"]):
-                    continue
-                _execute_work_unit(
-                    config, unit, work_by_id[unit_id]["arguments"], store,
-                    generated_at=clock(),
-                )
-                state = store.reconcile_m10e_run(config, str(pending["run_id"]))
-                state = _write_reconciled_checkpoint(
-                    store, config, pending, state, generated_at=clock()
-                )
-                if (
-                    interrupt_after_work_units is not None
-                    and len(state["completed_work_units"]) >= interrupt_after_work_units
-                    and state["remaining_work_units"]
-                ):
-                    raise KeyboardInterrupt
+            if state["remaining_work_units"]:
+                if bundle is None:
+                    bundle = load_input_bundle(config, store=store)
+                work_by_id = {
+                    item["work_unit_id"]: item for item in bundle["work_items"]
+                }
+                for unit in config["work_units"]:
+                    unit_id = unit["work_unit_id"]
+                    if unit_id in set(state["completed_work_units"]):
+                        continue
+                    _execute_work_unit(
+                        config, unit, work_by_id[unit_id]["arguments"], store,
+                        generated_at=clock(),
+                    )
+                    state = store.reconcile_m10e_run(config, str(pending["run_id"]))
+                    state = _write_reconciled_checkpoint(
+                        store, config, pending, state, generated_at=clock()
+                    )
+                    if (
+                        interrupt_after_work_units is not None
+                        and len(state["completed_work_units"])
+                        >= interrupt_after_work_units
+                        and state["remaining_work_units"]
+                    ):
+                        raise KeyboardInterrupt
             state = store.reconcile_m10e_run(config, str(pending["run_id"]))
             if state["remaining_work_units"] or state["missing_result_count"]:
                 raise ContractError("M10-E result set does not conserve the configured expectation")
@@ -942,12 +949,49 @@ def execute_research_run(
             try:
                 store.write_run_receipt(completed)
             except Exception as exc:
-                return _persist_terminal_failure(
-                    store, config, pending,
-                    terminal_status="failed",
-                    category="terminal_completion_write_failed",
-                    message=f"{type(exc).__name__}: {exc}",
-                    clock=clock,
+                try:
+                    state = store.reconcile_m10e_run(
+                        config, str(pending["run_id"])
+                    )
+                except Exception as reconciliation_error:
+                    raise ContractError(
+                        "M10-E terminal completion storage conflict"
+                    ) from reconciliation_error
+                if state["run_status"] == "completed" and state["terminal_persisted"]:
+                    return ResearchRunExecution(
+                        _summary(
+                            config, pending, status="completed",
+                            result_refs=[
+                                _plain(item) for item in state["result_refs"]
+                            ],
+                            checkpoint=state["checkpoint"],
+                            result_status_counts=state["result_status_counts"],
+                            terminal_persisted=True,
+                        ),
+                        0,
+                    )
+                checkpoint = state["checkpoint"]
+                if (
+                    state["run_status"] != "pending"
+                    or state["terminal_persisted"]
+                    or state["remaining_work_units"]
+                    or state["missing_result_count"]
+                    or checkpoint is None
+                    or checkpoint["status"] != "ready_to_finalize"
+                ):
+                    raise ContractError(
+                        "M10-E terminal completion storage conflict"
+                    ) from exc
+                return ResearchRunExecution(
+                    _summary(
+                        config, pending, status="pending",
+                        result_refs=[_plain(item) for item in state["result_refs"]],
+                        checkpoint=checkpoint,
+                        error="terminal_completion_write_failed",
+                        result_status_counts=state["result_status_counts"],
+                        terminal_persisted=False,
+                    ),
+                    2,
                 )
             state = store.reconcile_m10e_run(config, str(pending["run_id"]))
             if state["run_status"] != "completed" or not state["terminal_persisted"]:
