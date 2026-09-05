@@ -1,6 +1,6 @@
 # 08｜回测与实验规则
 
-版本：`1.22.0`
+版本：`1.22.1`
 最后更新：2026-09-05
 
 ## 本文件负责
@@ -68,7 +68,7 @@
 - 每日影子入口与回测影子入口必须对同一`universe_id + as_of + adjustment_policy`得到相同的数据身份。回测选择不能读取`as_of`之后的行情或证券身份元数据；未来收益仍只属于独立结果层。
 - 本次只增加未接入默认夜间任务的影子入口和固定小样本测试；当前断点、已保存结果、工作流和真实缓存均不得改变。
 
-## M10统一评价A—C冻结边界
+## M10统一评价A—E冻结边界
 
 - M10只读消费M02不可变行情、M07权威排行、M08计划／退出和M09不可变事件；不得重算Gate、因子、评分、排行、计划或退出。
 - `ForwardOutcome`、`TradeOutcome`、`PortfolioRun`和`ResearchAggregate`是四类不同2.x合同；`ExperimentRun 2.x`是运行收据，不是第五类收益结果。
@@ -77,7 +77,7 @@
 - TradeOutcome必须消费经过完整验证的M08 ExitState修订链和唯一终态，不得重新运行M08退出状态机。退出日MFE／MAE口径尚未批准，首版保持明确`unavailable`。
 - 每个窗口和交易结果都只追加不可变版本。后来成熟或行情修订产生新结果并指向直接前一版本，不得覆盖早期`pending`、旧结果或M09事件。
 - formal／legacy、authoritative／comparison以及development／validation／forward必须进入身份；相同完整身份与不同内容必须冲突失败。
-- A只建立四类合同、身份、验证、`ExperimentRun 2.x`收据和冲突保护；B只建立唯一内部Forward／Trade基线评价器；C只建立Portfolio失败关闭边界及只读gross汇总。M10-D—E、资本组合算法、Excel、CLI、VectorBT、真实多年回测和生产接入未获批准。
+- A只建立四类合同、身份、验证、`ExperimentRun 2.x`收据和冲突保护；B只建立唯一内部Forward／Trade基线评价器；C只建立Portfolio失败关闭边界及只读gross汇总；D只建立准确查询及CSV／XLSX人工审核副本；E只以版本化配置、非交互CLI、checkpoint、续跑和并发编排A—D公共入口。A—E已经在获批影子范围完成审核并进入`main`；资本组合算法、VectorBT comparison X包、真实多年回测和生产接入仍未实施。
 - M10-C新formal `PortfolioRun 2.1.0`只接收已验证TradeOutcome对象并保存规范引用；资本政策未批准时状态固定`unavailable`、原因固定`capital_allocation_policy_not_approved`，禁止任何资本、仓位、现金、权益、收益、年化或回撤指标。旧`2.0.0`原字段只读。
 - M10-C新formal `ResearchAggregate 2.1.0`一次只汇总一种已验证Outcome；Forward只允许一个窗口，Trade和Forward不得混合，formal／comparison、path、partition及必要政策不得混合。汇总器只读已冻结`gross_return`，不得读取行情或重算收益。
 - Forward `status_counts`固定为`pending/mature/partial/unavailable`；Trade固定为`completed/open/no_trade/unavailable`。Trade `open`只对应已验证的`status=pending + status_reason=trade_open`，不得与普通pending混淆或静默删除。`total_count=sum(status_counts)=evaluated_count+missing_count`且`win+loss+flat=evaluated_count`；缺失不能作为0收益。
@@ -301,6 +301,12 @@
 任何会改变筛选、分数、风险或实际结果的模块改动，都必须联动本文件中的预登记与归档流程。只改页面排版无需新实验。
 
 ## 变更记录
+
+### 1.22.1 — 2026-09-05
+
+- 记录M10核心A—E已经完成独立审核并进入`main`，在获批影子范围内为`implemented`；最终M10-E审核代码HEAD为`34c3cfec1662ddd301552822eb919bb2dd84d12d`。
+- 确认ExperimentRun是唯一终态权威；结果完整但completed收据未落盘时保持`pending + ready_to_finalize`，同配置只重试finalize，不加载bundle或重跑生产器。
+- 本次仅收口已批准边界，不改变收益、执行或实验规则；未部署、未生产启用，资本组合算法、VectorBT X包、真实多年回测、M11—M13和M12生产切换均未开始。
 
 ### 1.22.0 — 2026-09-05
 

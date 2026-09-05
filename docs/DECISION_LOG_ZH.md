@@ -29,6 +29,14 @@
 - 当前日期、版本、数量和运行进度必须附日期并引用机器来源；无法核验时写“未知”，不能推测。
 - 本日志各个带日期章节中的旧版本、数量、排行和收益统一属于该章节日期的`历史快照`；章节里的“当前”只表示记录当时，不表示今天。机器来源以该条引用的实验ID、提交、运行或产物为准；没有留下可核验标识的来源明确记为“未知”，不得补猜。
 
+## 已进入main｜2026-09-05：M10核心A—E影子收口（CR-2026-09-02-050，`implemented`）
+
+- M10-A合同、身份、运行收据和只追加存储，M10-B内部Forward／Trade基线评价，M10-C Portfolio失败关闭边界与只读ResearchAggregate，M10-D准确查询、CSV／XLSX审核副本、Manifest与安全复核，以及M10-E版本化配置、统一非交互CLI、checkpoint、续跑与并发编排均已完成独立审核并进入`main`。
+- M10-E最终审核代码HEAD为`34c3cfec1662ddd301552822eb919bb2dd84d12d`，由`1964f306f6f96f78873b38dccd5bf06a4c3555b4`纯fast-forward合并。最终验收为M10-E专项40项、M10 A—E 178项运行／10项跳过、M01—M10扩大定向363项运行／10项跳过、完整Python 730项运行／10项跳过、四种固定`PYTHONHASHSEED`每轮40项、治理19项和前端11项通过；Python编译、lint、TypeScript、生产构建、文档链接和格式检查通过。
+- M10-C来源必须来自真实落盘Outcome；磁盘盘点是进度与摘要唯一事实；ExperimentRun是唯一终态权威，checkpoint只允许`in_progress/ready_to_finalize`。completed收据写入失败时保持`pending + ready_to_finalize`，相同配置只重试finalize而不加载bundle或重跑生产器；写入后抛错、持续失败及并发重试均保持唯一终态；严格整数拒绝bool冒充。
+- `implemented`仅表示获批影子核心A—E完成审核并进入主线。`python3 -m research.run --config <versioned-config.json>`尚未由生产工作流调用；未部署、未生产启用、未运行真实行情／真实多年回测或真实历史导出，正式每日、夜间、网站、Discord和公开JSON仍使用旧路径。Excel仍是人工审核副本，人工修改不能回写机器结果。
+- VectorBT X1／X2／X3是独立可选comparison扩展，未实施不阻止M10核心关闭；Portfolio资本算法、看板、M11、M12和M13均未开始。CR-043继续为`captured`。
+
 ## 已批准实施｜2026-09-03：M10-C Portfolio边界与只读研究汇总（CR-2026-09-02-050，`implementing`）
 
 - 用户批准新formal `PortfolioRun 2.1.0`只保存已验证TradeOutcome引用并固定返回`unavailable: capital_allocation_policy_not_approved`；不得产生资本、仓位、现金、权益曲线、组合收益、年化、回撤或风险指标。旧`2.0.0`保持原字段只读。

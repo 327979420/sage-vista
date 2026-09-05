@@ -1,6 +1,6 @@
 # M10｜内部评价与只读汇总阶段验收报告
 
-- 状态：M10-A／B／C／D均已完成独立审核并进入`main`；M10-D在获批查询与审核导出范围内为`implemented`；M10-E审核修复已完成本地验证并恢复为`verified`，等待独立复核；M10整体仍为`implementing`
+- 状态：M10-A／B／C／D／E均已完成独立审核并进入`main`；M10核心A—E在获批影子范围内为`implemented`
 - 基线：`1c7f688bd0d3f0c52386851b302c6197f25437fb`
 - Forward实现：`209d088045cd5c9d87be130a1c4b8499336cd202`
 - Trade实现：`a81d97ce288f7b62224e08556145c93a41df4b5c`
@@ -29,15 +29,20 @@
 - M10-D审核通过代码HEAD：`f91a6fa5773561354b255f9217679f237b0f7017`
 - M10-D合并方式：纯fast-forward进入`main`
 - M10-E审核修复：`a0ab77c332995bb2710faa9d3ee946285c1cf0d1`
+- M10-E terminal finalize修复：`7e2dcc0c66704d278974525eb4bdd33a4cd93ad1`
+- M10-E最终审核代码HEAD：`34c3cfec1662ddd301552822eb919bb2dd84d12d`
+- M10-E合并方式：纯fast-forward进入`main`
 - 生产状态：未部署、未生产启用
 
 ## 1. 阶段结论
 
 M10-B已经用固定合成样本形成唯一内部基线评价层：ForwardOutcome从信号后下一有效交易日调整后开盘起算；TradeOutcome只读M08既有计划和退出事实；每次评价先绑定pending运行收据，结果通过后才追加complete收据。每日与回放影子入口调用同一生产器。
 
-本报告还记录M10-C已经独立审核并进入`main`的Portfolio失败关闭边界和只读gross汇总能力。它不产生真实组合或多年回测结论；进入主线不代表生产接入或部署，也不自动批准M10-E或外部引擎。
+本报告还记录M10-C已经独立审核并进入`main`的Portfolio失败关闭边界和只读gross汇总能力。它不产生真实组合或多年回测结论；进入主线不代表生产接入或部署，且M10-C本身不承担M10-E编排或外部引擎责任。
 
-M10-D已通过独立审核并以纯fast-forward进入`main`：唯一查询入口从`EvaluationShadowStore`取得原子库存，显式执行`all/current`修订语义并验证查询全集；CSV与XLSX逐字段绑定权威payload，完整包通过一次目录重命名发布，并由固定样式与标准库限定OOXML复核逐格对账。`ExportManifest`保存逻辑导出与实际物化证据，Human Review保持只出不进。该`implemented`只表示获批查询和审核导出基础设施进入主线，未部署、未生产启用，也不批准M10-E或外部引擎。
+M10-D已通过独立审核并以纯fast-forward进入`main`：唯一查询入口从`EvaluationShadowStore`取得原子库存，显式执行`all/current`修订语义并验证查询全集；CSV与XLSX逐字段绑定权威payload，完整包通过一次目录重命名发布，并由固定样式与标准库限定OOXML复核逐格对账。`ExportManifest`保存逻辑导出与实际物化证据，Human Review保持只出不进。
+
+M10-E已通过最终极窄独立复核并以纯fast-forward进入`main`：`ResearchRunConfig 2.0.0`、统一非交互影子CLI、只追加checkpoint、显式续跑和并发编排共同复用M10-A—D公共入口。结果完整而completed收据写入失败时保留`pending + ready_to_finalize`，相同配置只重试finalize，不加载bundle或重跑生产器。M10核心A—E的`implemented`仅表示获批影子能力完成审核并进入主线，不表示部署、生产启用或真实回测。
 
 ## 2. 已验证口径
 
@@ -152,7 +157,7 @@ M10-D已通过独立审核并以纯fast-forward进入`main`：唯一查询入口
 - `PYTHONHASHSEED=0/1/42/12345`下M10-E每轮40项通过；治理19项和前端11项通过。
 - Python编译、lint、TypeScript、生产构建、文档链接及差异格式检查通过；测试前后工作区没有意外文件，旧生产断点字节不变。
 - 空store裸Forward／Trade Outcome均在pending前拒绝；真实落盘来源在bundle/query路径得到同一结果。生产器保存5项后抛错时，failed收据、checkpoint和CLI摘要均从磁盘报告5项。全部结果完整且checkpoint为`ready_to_finalize`后，completed收据写入前失败或持续不可写均只保留`pending`及`terminal_persisted=false`，不再误写failed；写入后抛错会重读并按已落盘completed返回。同配置重试不加载bundle、不调用生产器，只重试finalize，并发最多形成一个terminal叶节点。
-- M10-E当前为`verified`，等待对上述四项修复的独立复核；M10整体继续为`implementing`。
+- 最终极窄复核确认五个terminal finalize闸门全部通过；M10-E随审核代码HEAD`34c3cfec1662ddd301552822eb919bb2dd84d12d`纯fast-forward进入`main`。M10核心A—E在获批影子范围内为`implemented`。
 
 ## 7. 明确未做
 
@@ -162,6 +167,6 @@ M10-D已通过独立审核并以纯fast-forward进入`main`：唯一查询入口
 - 未创建看板；M10-E CLI和M10-D CSV／XLSX均只使用固定合成样本及临时目录验收，没有提交生成文件。
 - 未运行真实行情、真实每日任务或真实多年回测。
 - 未修改生产入口、工作流、网站、Discord、公开JSON或历史断点。
-- 未开始VectorBT、M11或M12。
+- 未开始VectorBT X1／X2／X3、M11、M12或M13。
 
-M10-A／B／C／D均已完成独立审核并进入`main`，M10-E审核修复已完成本地影子验证并处于`verified`、等待独立复核，M10整体仍为`implementing`。M10-D进入主线和M10-E本地验证均不等于部署、生产启用或完成真实历史导出；尚未生成正式生产CSV／XLSX，网站和Discord也未提供查询或下载。Portfolio资本算法、VectorBT、看板、M11和M12均未开始；默认每日、夜间、网站、Discord和公开JSON均未切换，也未访问EODHD或运行真实行情／真实多年回测。Excel仍是人工审核副本，人工修改不能回写M10权威账本。
+M10-A／B／C／D／E均已完成独立审核并进入`main`，M10核心在获批影子范围内为`implemented`。这不等于部署、生产启用或完成真实历史导出；`python3 -m research.run --config <versioned-config.json>`仍是未被生产工作流调用的影子统一入口。正式每日、夜间、网站和Discord继续使用旧路径，M12才负责生产Manifest与工作流切换。2026-08-28及更早formal股票池证据仍不足，不能宣称正式多年收益；尚未生成正式生产CSV／XLSX，网站没有研究看板或下载入口。Portfolio资本算法和VectorBT X1／X2／X3均未实现；Excel仍是人工审核副本，人工修改不能回写M10权威账本。M11、M12和M13均未开始，也未访问EODHD或运行真实行情／真实多年回测。

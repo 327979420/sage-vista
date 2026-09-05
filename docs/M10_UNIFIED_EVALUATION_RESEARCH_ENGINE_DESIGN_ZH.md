@@ -1,12 +1,12 @@
 # M10｜统一评价、回测与外部研究引擎设计
 
-- 文档状态：M10-A／B／C／D里程碑均已审核并进入`main`；M10-D在获批查询与审核导出范围内为`implemented`；M10-E四项审核阻断已在编排层完成窄修复和本地验证，状态恢复为`verified`并等待独立复核；M10整体仍为`implementing`
+- 文档状态：M10-A／B／C／D／E均已审核并进入`main`；M10核心A—E在获批影子范围内为`implemented`
 - 对应需求：`CR-2026-09-02-050`
 - 基线提交：`5dfd0a57fc1dad56042c0db6b8e2c3ce9ff88251`
 - 设计日期：2026-09-02
-- 生产状态：M10-A合同基础、M10-B内部基线评价器、M10-C只读汇总和M10-D查询／审核导出均已进入`main`；未部署、未生产启用
+- 生产状态：M10-A—E均已进入`main`；未部署、未生产启用，默认每日、夜间、网站和Discord均未切换
 
-> 本文冻结M10的职责、合同边界、身份和失败关闭语义。M10-A、M10-B、M10-C和M10-D均已完成独立审核并进入`main`，M10整体继续为`implementing`。M10-C只建立Portfolio失败关闭边界和只读研究汇总，不批准资本算法或真实组合表现。M10-D只交付获批的原子库存查询、CSV／XLSX审核副本和导出证据，不代表部署、生产启用或真实历史导出；M10-E获批E1／E2／E3及四项窄审核修复已在审核分支完成固定样本实现与本地验证，仍须独立复核。VectorBT、真实多年回测、生产目录、M11和M12仍未批准。
+> 本文冻结M10的职责、合同边界、身份和失败关闭语义。M10-A—E均已完成独立审核并进入`main`，核心在获批影子范围内为`implemented`。M10-C只建立Portfolio失败关闭边界和只读研究汇总，不批准资本算法或真实组合表现。M10-D只交付获批的原子库存查询、CSV／XLSX审核副本和导出证据；M10-E只交付版本化配置、统一非交互影子CLI、checkpoint、续跑和并发编排。这些能力不代表部署、生产启用或真实历史导出；VectorBT X包、真实多年回测、生产目录、M11、M12和M13仍未开始。
 
 ## 1. 人话版
 
@@ -648,12 +648,12 @@ M10-C实施前必须以固定合成Outcome完成以下10项机械验收；本表
 2. **M10-B｜内部Forward／Trade基线**：只用固定小样本实现逐股结果，复用M02／M08事实，验证防未来和执行顺序。
 3. **M10-C｜Portfolio／Aggregate边界（里程碑已进入`main`）**：保留`PortfolioRun unavailable`守门，只读取单一类型Forward或Trade结果做最小gross汇总；资金政策未批准前不建资本曲线。
 4. **M10-D｜准确查询、CSV／Excel审核副本（获批范围内`implemented`）**：D1查询／库存／Manifest／CSV、D2独立XLSX依赖闸门和D3一致性验收已完成独立审核并以纯fast-forward进入`main`；尚未部署或生产启用。
-5. **M10-E｜配置和统一CLI（`verified`，等待独立复核）**：版本化JSON、非交互CLI、运行收据、显式检查点续跑和并发唯一已经完成固定样本影子实现；四项审核阻断已窄修复，不接工作流。
+5. **M10-E｜配置和统一CLI（获批影子范围内`implemented`）**：版本化JSON、非交互CLI、运行收据、显式检查点续跑和并发唯一已经完成固定样本影子实现与独立审核并进入`main`；不接生产工作流。
 6. **M10-X1｜VectorBT依赖及许可闸门**：独立批准最小依赖、锁定、哈希、安全和许可结论。
 7. **M10-X2｜固定样本适配与逐笔parity**：同一数据集对照内部基线，结果只作comparison。
 8. **M10-X3｜扩大comparison验证**：在用户另批样本范围内扩展，不触发真实多年生产回测。
 
-M10-A—D已经完成审核并进入`main`。M10-D只生成可删除重建的审核副本，尚未运行真实历史导出或生成正式生产CSV／XLSX；M10-E及其四项审核窄修复已完成本地固定样本验证并处于`verified`，等待独立复核，X1—X3仍未批准或开始。
+M10-A—E已经完成审核并进入`main`。M10-D只生成可删除重建的审核副本，尚未运行真实历史导出或生成正式生产CSV／XLSX；M10-E审核代码HEAD为`34c3cfec1662ddd301552822eb919bb2dd84d12d`。X1—X3仍未批准或开始，且不阻止M10核心关闭。
 
 ## 15. 回退和生产边界
 
@@ -681,7 +681,7 @@ M10设计与未来影子实施默认不改现有生产入口，所以回退是�
 - formal TradeOutcome可保存毛收益，费用／滑点缺失只阻断净收益。
 - 后续成熟结果只能追加不可变版本和修订链，不覆盖早期`pending`或M09事件。
 
-M10-C已获得本节之外的独立明确实施授权；M10-D的D1／D2／D3已获得独立明确实施授权，XlsxWriter仅限隔离的研究导出依赖。M10-E的E1／E2／E3及四项审核窄修复已完成本地固定样本验证并处于`verified`、等待独立复核；VectorBT X包、真实多年回测、生产接入、M11和M12仍未获批。
+M10-C已获得本节之外的独立明确实施授权；M10-D的D1／D2／D3已获得独立明确实施授权，XlsxWriter仅限隔离的研究导出依赖。M10-E的E1／E2／E3及审核修复已完成独立审核并进入`main`；VectorBT X包、真实多年回测、生产接入、M11、M12和M13仍未获批或开始。
 
 ### 16.1 M10-A阶段里程碑（2026-09-02）
 
@@ -717,9 +717,9 @@ M10-C已获得本节之外的独立明确实施授权；M10-D的D1／D2／D3已�
 - 首版工作表只覆盖已有Run、Forward、Trade、ResearchAggregate、Portfolio状态、bias／missing、版本证据和人工审核列。Score Analysis、Factor Analysis和Pair Matrix没有M10-C权威来源，不生成伪数据表。
 - 最终独立审核确认原子库存和显式`all/current`、查询全集完备性、权威payload逐字段绑定、固定XLSX安全样式、命名空间感知OOXML安全复核、ExportManifest与导出身份、原子目录发布及Human Review只出不进均成立；五个审核闸门全部通过，原始六项完整重签攻击全部失败关闭。
 - 最终验收：M10-D专项33项、M10 A—D 138项、完整Python 690项、四种固定`PYTHONHASHSEED`每轮33项、治理19项和前端11项通过；Python编译、独立依赖及许可证证据、lint、TypeScript、生产构建、43个本地文档链接和差异格式检查通过。
-- M10-D只用固定合成样本在临时目录生成CSV／XLSX，没有读取行情、重算收益、提交生成文件、修改生产入口或接入网站／Discord。进入`main`不代表部署、生产启用或完成真实历史导出；Excel仍是人工审核副本，人工修改不能回写M10。M10-E及四项审核窄修复已完成本地固定样本验证并处于`verified`、等待独立复核；VectorBT、看板、真实多年回测、M11和M12仍未开始；CR-043继续为`captured`。
+- M10-D只用固定合成样本在临时目录生成CSV／XLSX，没有读取行情、重算收益、提交生成文件、修改生产入口或接入网站／Discord。进入`main`不代表部署、生产启用或完成真实历史导出；Excel仍是人工审核副本，人工修改不能回写M10。M10-E后来已完成独立审核并进入`main`；VectorBT X1／X2／X3、看板、真实多年回测、M11、M12和M13仍未开始；CR-043继续为`captured`。
 
-### 16.5 M10-E本地验收里程碑（2026-09-05）
+### 16.5 M10-E审核与主线里程碑（2026-09-05）
 
 - `ResearchRunConfig 2.0.0`／`m10-e-cli-1.0.0`以唯一严格验证入口冻结一份配置的单一结果族、完整Git提交、路径／角色／分区、数据／股票池、政策、输入、工作单元、存储和可选导出；重复JSON键、NaN／Infinity、动态别名、未知字段、脏工作区及提交不一致均失败关闭。
 - 唯一入口为`python3 -m research.run --config <versioned-config.json>`。它只编排M10-A—D公共生产、查询和导出接口；Forward、Trade、Portfolio-unavailable和ResearchAggregate分别由单族固定样本证明，不复制评价、汇总或导出算法。
@@ -728,4 +728,5 @@ M10-C已获得本节之外的独立明确实施授权；M10-D的D1／D2／D3已�
 - completed后的可选导出直接调用M10-D；导出失败只在摘要中独立记录，不倒改评价状态，也不留下半包。CLI stdout保持唯一稳定JSON摘要，诊断写stderr。
 - 独立审核复现的四项阻断已经由`a0ab77c332995bb2710faa9d3ee946285c1cf0d1`窄修复：M10-C编排只把bundle视为声明并从配置指定store解析唯一当前、已完成的Outcome；成功、失败、中断、重试和摘要共同使用磁盘持久状态盘点；checkpoint不再表达终态；M10-E整数使用严格`type(value) is int`验证。最终极小修复`7e2dcc0c66704d278974525eb4bdd33a4cd93ad1`把“结果完整但completed收据写入失败”与业务运行失败分离：前者只保留`pending + ready_to_finalize`并允许同配置不加载bundle、不调用生产器而只重试finalize；写入后抛错则以重读到的completed事实幂等返回。
 - 提交链为设计`2517fa6`、E1配置合同`b22da0a`、E2／E3 CLI、检查点、续跑与并发`dbde7fc61c1dcac0959c838552b23051d114b361`、审核修复`a0ab77c332995bb2710faa9d3ee946285c1cf0d1`和最终终态修复`7e2dcc0c66704d278974525eb4bdd33a4cd93ad1`。最终本地验收为M10-E专项40项、M10 A—E相关定向178项（跳过10项）、M01—M10扩大定向363项（跳过10项）、完整Python 730项（跳过10项）、四种固定哈希种子每轮40项、治理19项及前端11项通过；Python编译、lint、TypeScript、生产构建、文档链接和格式检查通过。
-- M10-E当前状态为`verified`并等待独立复核，不能标记`implemented`。只运行固定合成样本并写临时目录；没有访问网络／EODHD、真实行情或真实回测，没有移动`automation/backtest-state.json`或旧回放断点，也没有接入默认每日、夜间、网站、Discord、公开JSON或生产工作流。VectorBT、M11和M12仍未开始；CR-043继续为`captured`。
+- 最终极窄复核确认：completed收据写入前失败时保持`pending + ready_to_finalize`与完整结果；相同配置在bundle不可用时也只执行finalize；写入后抛错、持续失败、两个独立进程并发及错误ready证据均保持唯一终态和磁盘守恒。审核代码HEAD`34c3cfec1662ddd301552822eb919bb2dd84d12d`已由`1964f306f6f96f78873b38dccd5bf06a4c3555b4`纯fast-forward进入`main`。
+- M10-A—E核心在获批影子范围内为`implemented`。只运行固定合成样本并写临时目录；`python3 -m research.run --config <versioned-config.json>`尚未由生产工作流调用。没有访问网络／EODHD、真实行情或真实回测，没有移动`automation/backtest-state.json`或旧回放断点，也没有接入默认每日、夜间、网站、Discord、公开JSON或生产工作流。VectorBT X1／X2／X3是独立可选comparison扩展，未实施不阻止核心关闭；Portfolio资本算法、M11、M12和M13仍未开始；CR-043继续为`captured`。
