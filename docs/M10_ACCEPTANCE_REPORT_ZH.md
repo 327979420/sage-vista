@@ -143,14 +143,15 @@ M10-D已通过独立审核并以纯fast-forward进入`main`：唯一查询入口
 | M10-C输入由配置指定store解析，裸bundle Outcome在pending前失败 | 通过 |
 | 异常后统一从磁盘重盘点work unit、结果、checkpoint和收据 | 通过 |
 | checkpoint只表达`in_progress/ready_to_finalize`，ExperimentRun唯一表达终态 | 通过 |
+| 结果完整但completed收据写入失败时保留`pending + ready_to_finalize`，同配置只重试finalize | 通过 |
 | M10-E整数语义拒绝bool、float、字符串和Decimal冒充 | 通过 |
 | 默认生产入口、旧回放断点、网站、Discord和公开JSON零变化 | 通过 |
 
-- 提交：设计`2517fa6`、E1配置合同`b22da0a`、E2／E3编排实现`dbde7fc61c1dcac0959c838552b23051d114b361`、审核修复`a0ab77c332995bb2710faa9d3ee946285c1cf0d1`。
-- 修复后M10-E专项38项、M10 A—E相关定向176项（跳过10项）、M01—M10扩大定向361项（跳过10项）及完整Python 728项（跳过10项）通过。
-- `PYTHONHASHSEED=0/1/42/12345`下M10-E每轮38项通过；治理19项和前端11项通过。
+- 提交：设计`2517fa6`、E1配置合同`b22da0a`、E2／E3编排实现`dbde7fc61c1dcac0959c838552b23051d114b361`、审核修复`a0ab77c332995bb2710faa9d3ee946285c1cf0d1`，以及completed收据只重试finalize修复`7e2dcc0c66704d278974525eb4bdd33a4cd93ad1`。
+- 最终修复后M10-E专项40项、M10 A—E相关定向178项（跳过10项）、M01—M10扩大定向363项（跳过10项）及完整Python 730项（跳过10项）通过。
+- `PYTHONHASHSEED=0/1/42/12345`下M10-E每轮40项通过；治理19项和前端11项通过。
 - Python编译、lint、TypeScript、生产构建、文档链接及差异格式检查通过；测试前后工作区没有意外文件，旧生产断点字节不变。
-- 空store裸Forward／Trade Outcome均在pending前拒绝；真实落盘来源在bundle/query路径得到同一结果。生产器保存5项后抛错时，failed收据、checkpoint和CLI摘要均从磁盘报告5项。terminal持续不可写时摘要诚实报告持久状态`pending`及`terminal_persisted=false`，相同配置随后只重试finalize且并发最多形成一个terminal叶节点。
+- 空store裸Forward／Trade Outcome均在pending前拒绝；真实落盘来源在bundle/query路径得到同一结果。生产器保存5项后抛错时，failed收据、checkpoint和CLI摘要均从磁盘报告5项。全部结果完整且checkpoint为`ready_to_finalize`后，completed收据写入前失败或持续不可写均只保留`pending`及`terminal_persisted=false`，不再误写failed；写入后抛错会重读并按已落盘completed返回。同配置重试不加载bundle、不调用生产器，只重试finalize，并发最多形成一个terminal叶节点。
 - M10-E当前为`verified`，等待对上述四项修复的独立复核；M10整体继续为`implementing`。
 
 ## 7. 明确未做
