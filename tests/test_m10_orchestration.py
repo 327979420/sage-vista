@@ -5,10 +5,12 @@ from __future__ import annotations
 import json
 import hashlib
 import io
+from decimal import Decimal
 from pathlib import Path
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import redirect_stdout, redirect_stderr
+from unittest.mock import patch
 import unittest
 
 from services.contracts.market_data import canonical_fingerprint
@@ -28,6 +30,7 @@ from services.evaluation import (
     validate_research_run_config,
 )
 from services.evaluation.orchestration import (
+    ORCHESTRATOR_ENGINE,
     _checkpoint,
     _orchestrator_pending,
     execute_research_run,
@@ -257,6 +260,33 @@ class M10EConfigTests(unittest.TestCase):
             with self.assertRaises(ContractError):
                 build_research_run_config(**values)
 
+    def test_integer_fields_reject_coercible_and_boolean_values(self):
+        for invalid in (True, False, 1.0, "1", Decimal("1")):
+            values = config_values()
+            values["expected_results"]["per_work_unit_count"] = invalid
+            with self.subTest(field="per_work_unit_count", value=repr(invalid)):
+                with self.assertRaises(ContractError):
+                    build_research_run_config(**values)
+
+    def test_interrupt_limit_rejects_non_integer_values(self):
+        with tempfile.TemporaryDirectory() as directory:
+            work, refs = forward_work()
+            config = runtime_config("forward_evaluation", directory, [work], [refs])
+            for invalid in (True, False, 1.0, "1", Decimal("1")):
+                with self.subTest(value=repr(invalid)):
+                    with self.assertRaises(ContractError):
+                        execute_research_run(
+                            config,
+                            repo_root=ROOT,
+                            git_state_provider=lambda _: GitState(COMMIT, True, True),
+                            interrupt_after_work_units=invalid,
+                        )
+            values = config_values()
+            values["expected_results"]["forward_windows"] = [1, 5, invalid, 60, 100]
+            with self.subTest(field="forward_windows", value=repr(invalid)):
+                with self.assertRaises(ContractError):
+                    build_research_run_config(**values)
+
     def test_wrong_policy_set_and_unknown_field_fail(self):
         values = config_values()
         values["policy_refs"].append(policy("banana"))
@@ -418,10 +448,9 @@ def forward_work():
     return {"work_unit_id": "forward-1", "arguments": arguments}, sorted(refs, key=lambda item: item["id"])
 
 
-def portfolio_works(count=2):
+def portfolio_works(outcomes):
     works, refs = [], []
-    for index in range(1, count + 1):
-        outcome = aggregate_fixtures.trade(str(index), gross=0.1 * index)
+    for index, outcome in enumerate(outcomes, 1):
         scope = aggregate_fixtures.trade_scope(outcome)
         reference = {
             "id": outcome["trade_outcome_id"],
@@ -435,15 +464,15 @@ def portfolio_works(count=2):
     return works, refs
 
 
-def aggregate_work():
-    outcome = aggregate_fixtures.forward("9", gross=0.125)
-    scope = aggregate_fixtures.forward_scope()
+def aggregate_work(outcome=None, *, work_unit_id="aggregate-1"):
+    outcome = outcome or aggregate_fixtures.forward("9", gross=0.125)
+    scope = aggregate_fixtures.forward_scope(window=outcome["window_sessions"])
     reference = {
         "id": outcome["forward_outcome_id"],
         "content_fingerprint": outcome["forward_content_fingerprint"],
     }
     return {
-        "work_unit_id": "aggregate-1",
+        "work_unit_id": work_unit_id,
         "arguments": {"outcomes": [plain(outcome)], "scope": plain(scope)},
     }, [reference]
 
@@ -494,6 +523,238 @@ class M10EOrchestrationTests(unittest.TestCase):
     def state(self, _):
         return GitState(COMMIT, True, True)
 
+    def run_forward_source(self, directory):
+        work, refs = forward_work()
+        config = runtime_config("forward_evaluation", directory, [work], [refs])
+        result = execute_research_run(
+            config, repo_root=ROOT, git_state_provider=self.state,
+            clock=lambda: "2026-09-09T22:40:00Z",
+        )
+        self.assertEqual(result.exit_code, 0)
+        inventory = EvaluationShadowStore(
+            Path(directory) / "store", workspace_root=ROOT
+        ).capture_inventory()
+        return sorted(
+            [payload for contract, payload in inventory.result_records
+             if contract == "ForwardOutcome"],
+            key=lambda item: item["window_sessions"],
+        )
+
+    def run_trade_source(self, directory):
+        work, refs = trade_work()
+        config = runtime_config("trade_evaluation", directory, [work], [refs])
+        result = execute_research_run(
+            config, repo_root=ROOT, git_state_provider=self.state,
+            clock=lambda: "2026-09-09T22:45:00Z",
+        )
+        self.assertEqual(result.exit_code, 0)
+        inventory = EvaluationShadowStore(
+            Path(directory) / "store", workspace_root=ROOT
+        ).capture_inventory()
+        return [payload for contract, payload in inventory.result_records
+                if contract == "TradeOutcome"]
+
+    def store_bytes(self, directory):
+        root = Path(directory) / "store"
+        return {
+            path.relative_to(root): path.read_bytes()
+            for path in root.rglob("*") if path.is_file()
+        }
+
+    def test_naked_m10c_sources_fail_before_any_orchestrator_evidence(self):
+        cases = (
+            ("research_aggregate", aggregate_work()),
+            ("portfolio_boundary", portfolio_works([
+                aggregate_fixtures.trade("8", gross=0.2)
+            ])),
+        )
+        for operation, pair in cases:
+            with self.subTest(operation=operation), tempfile.TemporaryDirectory() as directory:
+                if operation == "research_aggregate":
+                    works, refs = [pair[0]], [pair[1]]
+                else:
+                    works, refs = pair
+                config = runtime_config(operation, directory, works, refs)
+                with self.assertRaisesRegex(ContractError, "not uniquely persisted"):
+                    execute_research_run(
+                        config, repo_root=ROOT, git_state_provider=self.state
+                    )
+                self.assertFalse((Path(directory) / "store").exists())
+
+    def test_persisted_m10c_sources_allow_portfolio_and_aggregate(self):
+        with tempfile.TemporaryDirectory() as directory:
+            trade_sources = self.run_trade_source(directory)
+            works, refs = portfolio_works(trade_sources)
+            portfolio = execute_research_run(
+                runtime_config("portfolio_boundary", directory, works, refs),
+                repo_root=ROOT, git_state_provider=self.state,
+                clock=lambda: "2026-09-09T23:00:00Z",
+            )
+            forward = self.run_forward_source(directory)[1]
+            aggregate, aggregate_refs = aggregate_work(forward)
+            research = execute_research_run(
+                runtime_config(
+                    "research_aggregate", directory, [aggregate], [aggregate_refs]
+                ),
+                repo_root=ROOT, git_state_provider=self.state,
+                clock=lambda: "2026-09-09T23:10:00Z",
+            )
+            self.assertEqual(portfolio.exit_code, 0)
+            self.assertEqual(research.exit_code, 0)
+
+    def test_m10c_bundle_copy_must_equal_the_persisted_payload(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = self.run_forward_source(directory)[1]
+            changed = plain(source)
+            changed["generated_at"] = "2026-09-09T23:59:00Z"
+            work, refs = aggregate_work(changed)
+            config = runtime_config(
+                "research_aggregate", directory, [work], [refs]
+            )
+            before = self.store_bytes(directory)
+            with self.assertRaises(ContractError):
+                execute_research_run(
+                    config, repo_root=ROOT, git_state_provider=self.state
+                )
+            self.assertEqual(before, self.store_bytes(directory))
+
+    def test_saved_forward_results_are_reconciled_after_producer_raises(self):
+        import services.evaluation.orchestration as module
+
+        with tempfile.TemporaryDirectory() as directory:
+            work, refs = forward_work()
+            config = runtime_config("forward_evaluation", directory, [work], [refs])
+            original = module.store_baseline_evaluation_batch
+
+            def save_then_raise(*args, **kwargs):
+                original(*args, **kwargs)
+                raise RuntimeError("injected after durable producer write")
+
+            with patch.object(module, "store_baseline_evaluation_batch", save_then_raise):
+                result = execute_research_run(
+                    config, repo_root=ROOT, git_state_provider=self.state,
+                    clock=lambda: "2026-09-09T23:00:00Z",
+                )
+            store = EvaluationShadowStore(
+                Path(directory) / "store", workspace_root=ROOT
+            )
+            state = store.reconcile_m10e_run(config, result.summary["run_id"])
+            self.assertEqual(result.exit_code, 2)
+            self.assertEqual(result.summary["status"], "failed")
+            self.assertEqual(result.summary["completed_result_count"], 5)
+            self.assertEqual(len(state["result_refs"]), 5)
+            self.assertEqual(state["run_status"], "failed")
+
+    def test_checkpoint_write_failure_uses_disk_state_and_does_not_fork(self):
+        with tempfile.TemporaryDirectory() as directory:
+            work, refs = forward_work()
+            config = runtime_config("forward_evaluation", directory, [work], [refs])
+            original = EvaluationShadowStore.write_checkpoint
+            calls = {"failed": False}
+
+            def fail_once(store, payload):
+                if not calls["failed"]:
+                    calls["failed"] = True
+                    raise OSError("injected checkpoint failure")
+                return original(store, payload)
+
+            with patch.object(EvaluationShadowStore, "write_checkpoint", fail_once):
+                result = execute_research_run(
+                    config, repo_root=ROOT, git_state_provider=self.state,
+                    clock=lambda: "2026-09-09T23:00:00Z",
+                )
+            inventory = EvaluationShadowStore(
+                Path(directory) / "store", workspace_root=ROOT
+            ).capture_inventory()
+            chain = [item for item in inventory.checkpoints
+                     if item["run_id"] == result.summary["run_id"]]
+            self.assertEqual(result.exit_code, 2)
+            self.assertEqual(result.summary["completed_result_count"], 5)
+            self.assertEqual(len(chain), 1)
+            self.assertEqual(chain[0]["status"], "ready_to_finalize")
+
+    def test_completed_receipt_failure_once_records_truthful_failed_terminal(self):
+        with tempfile.TemporaryDirectory() as directory:
+            work, refs = forward_work()
+            config = runtime_config("forward_evaluation", directory, [work], [refs])
+            original = EvaluationShadowStore.write_run_receipt
+            calls = {"failed": False}
+
+            def fail_completed_once(store, payload):
+                if (
+                    payload["engine"]["name"] == ORCHESTRATOR_ENGINE["name"]
+                    and payload["status"] == "completed"
+                    and not calls["failed"]
+                ):
+                    calls["failed"] = True
+                    raise OSError("injected completed receipt failure")
+                return original(store, payload)
+
+            with patch.object(
+                EvaluationShadowStore, "write_run_receipt", fail_completed_once
+            ):
+                result = execute_research_run(
+                    config, repo_root=ROOT, git_state_provider=self.state,
+                    clock=lambda: "2026-09-09T23:00:00Z",
+                )
+            self.assertEqual(result.exit_code, 2)
+            self.assertEqual(result.summary["status"], "failed")
+            self.assertTrue(result.summary["terminal_persisted"])
+            self.assertEqual(result.summary["completed_result_count"], 5)
+
+    def test_unwritable_terminal_stays_pending_and_retry_only_finalizes(self):
+        import services.evaluation.orchestration as module
+
+        with tempfile.TemporaryDirectory() as directory:
+            work, refs = forward_work()
+            config = runtime_config("forward_evaluation", directory, [work], [refs])
+            original = EvaluationShadowStore.write_run_receipt
+
+            def reject_terminal(store, payload):
+                if (
+                    payload["engine"]["name"] == ORCHESTRATOR_ENGINE["name"]
+                    and payload["status"] != "pending"
+                ):
+                    raise OSError("injected terminal storage outage")
+                return original(store, payload)
+
+            with patch.object(EvaluationShadowStore, "write_run_receipt", reject_terminal):
+                first = execute_research_run(
+                    config, repo_root=ROOT, git_state_provider=self.state,
+                    clock=lambda: "2026-09-09T23:00:00Z",
+                )
+            self.assertEqual(first.exit_code, 2)
+            self.assertEqual(first.summary["status"], "pending")
+            self.assertFalse(first.summary["terminal_persisted"])
+            self.assertEqual(first.summary["completed_result_count"], 5)
+            with patch.object(
+                module, "_execute_work_unit",
+                side_effect=AssertionError("completed work was rerun"),
+            ):
+                def retry():
+                    return execute_research_run(
+                        config, repo_root=ROOT, git_state_provider=self.state,
+                        clock=lambda: "2026-09-09T23:10:00Z",
+                    )
+                with ThreadPoolExecutor(max_workers=2) as pool:
+                    retried = list(pool.map(lambda _: retry(), range(2)))
+            self.assertEqual([item.exit_code for item in retried], [0, 0])
+            self.assertEqual(
+                {item.summary["status"] for item in retried}, {"completed"}
+            )
+            self.assertEqual(
+                {item.summary["completed_result_count"] for item in retried}, {5}
+            )
+            inventory = EvaluationShadowStore(
+                Path(directory) / "store", workspace_root=ROOT
+            ).capture_inventory()
+            run_chain = [
+                item for item in inventory.run_receipts
+                if item["run_id"] == first.summary["run_id"]
+            ]
+            self.assertEqual(len(run_chain), 2)
+            self.assertEqual(current_experiment_run(run_chain)["status"], "completed")
+
     def test_forward_uses_existing_producer_and_replay_is_idempotent(self):
         with tempfile.TemporaryDirectory() as directory:
             work, refs = forward_work()
@@ -540,10 +801,15 @@ class M10EOrchestrationTests(unittest.TestCase):
                 )
             self.assertEqual(forward_facts(daily_dir), forward_facts(replay_dir))
 
-    def test_portfolio_interrupt_checkpoint_and_explicit_resume(self):
+    def test_aggregate_interrupt_checkpoint_and_explicit_resume(self):
         with tempfile.TemporaryDirectory() as directory:
-            works, refs = portfolio_works()
-            config = runtime_config("portfolio_boundary", directory, works, refs)
+            sources = self.run_forward_source(directory)[:2]
+            pairs = [
+                aggregate_work(item, work_unit_id=f"aggregate-{index}")
+                for index, item in enumerate(sources, 1)
+            ]
+            works, refs = [item[0] for item in pairs], [item[1] for item in pairs]
+            config = runtime_config("research_aggregate", directory, works, refs)
             interrupted = execute_research_run(
                 config, repo_root=ROOT, git_state_provider=self.state,
                 clock=lambda: "2026-09-09T23:00:00Z",
@@ -610,7 +876,8 @@ class M10EOrchestrationTests(unittest.TestCase):
                 trade_config, repo_root=ROOT, git_state_provider=self.state,
                 clock=lambda: "2026-09-09T23:00:00Z",
             )
-            aggregate, aggregate_refs = aggregate_work()
+            source = self.run_forward_source(directory)[1]
+            aggregate, aggregate_refs = aggregate_work(source)
             aggregate_config = runtime_config(
                 "research_aggregate", directory, [aggregate], [aggregate_refs]
             )
@@ -682,6 +949,58 @@ class M10EOrchestrationTests(unittest.TestCase):
             self.assertEqual(result.summary["input_count"], 1)
             self.assertEqual(result.summary["completed_result_count"], 1)
 
+    def test_query_and_bundle_use_the_same_persisted_m10c_source(self):
+        with tempfile.TemporaryDirectory() as bundle_dir, tempfile.TemporaryDirectory() as query_dir:
+            source = self.run_forward_source(bundle_dir)[1]
+            query_source = self.run_forward_source(query_dir)[1]
+            self.assertEqual(
+                source["forward_outcome_id"], query_source["forward_outcome_id"]
+            )
+            work, refs = aggregate_work(source)
+            bundle_config = runtime_config(
+                "research_aggregate", bundle_dir, [work], [refs]
+            )
+            bundle_run = execute_research_run(
+                bundle_config, repo_root=ROOT, git_state_provider=self.state,
+                clock=lambda: "2026-09-09T23:10:00Z",
+            )
+
+            values = plain(runtime_config(
+                "research_aggregate", query_dir,
+                [aggregate_work(query_source)[0]],
+                [aggregate_work(query_source)[1]],
+            ))
+            for field in ("config_id", "config_content_fingerprint"):
+                values.pop(field)
+            values["input_selector"] = {
+                "mode": "query", "refs": [], "bundle_path": None,
+                "bundle_sha256": None,
+                "query": plain(build_evaluation_query(
+                    filters={
+                        "result_contracts": ["ForwardOutcome"],
+                        "window_sessions": [5],
+                    },
+                    revision_mode="current",
+                )),
+            }
+            query_config = build_research_run_config(**values)
+            query_run = execute_research_run(
+                query_config, repo_root=ROOT, git_state_provider=self.state,
+                clock=lambda: "2026-09-09T23:10:00Z",
+            )
+            bundle_state = EvaluationShadowStore(
+                Path(bundle_dir) / "store", workspace_root=ROOT
+            ).reconcile_m10e_run(bundle_config, bundle_run.summary["run_id"])
+            query_state = EvaluationShadowStore(
+                Path(query_dir) / "store", workspace_root=ROOT
+            ).reconcile_m10e_run(query_config, query_run.summary["run_id"])
+            self.assertEqual(
+                [(item["id"], item["content_fingerprint"])
+                 for item in bundle_state["result_refs"]],
+                [(item["id"], item["content_fingerprint"])
+                 for item in query_state["result_refs"]],
+            )
+
     def test_bundle_hash_or_unknown_bundle_field_fails_before_pending(self):
         with tempfile.TemporaryDirectory() as directory:
             work, refs = forward_work()
@@ -742,7 +1061,7 @@ class M10EOrchestrationTests(unittest.TestCase):
                     {"work_unit_id": "forward-1", **ref("forward-outcome", digit)}
                     for digit in "abcde"
                 ],
-                status="completed", generated_at="2026-09-09T23:02:00Z",
+                status="ready_to_finalize", generated_at="2026-09-09T23:02:00Z",
                 prior=root,
             )
             with self.assertRaisesRegex(ContractError, "not present"):
@@ -764,8 +1083,13 @@ class M10EOrchestrationTests(unittest.TestCase):
 
     def test_changed_config_cannot_resume_a_checkpoint(self):
         with tempfile.TemporaryDirectory() as directory:
-            works, refs = portfolio_works()
-            config = runtime_config("portfolio_boundary", directory, works, refs)
+            sources = self.run_forward_source(directory)[:2]
+            pairs = [
+                aggregate_work(item, work_unit_id=f"aggregate-{index}")
+                for index, item in enumerate(sources, 1)
+            ]
+            works, refs = [item[0] for item in pairs], [item[1] for item in pairs]
+            config = runtime_config("research_aggregate", directory, works, refs)
             interrupted = execute_research_run(
                 config, repo_root=ROOT, git_state_provider=self.state,
                 clock=lambda: "2026-09-09T23:00:00Z",
@@ -844,13 +1168,14 @@ class M10EOrchestrationTests(unittest.TestCase):
             self.assertEqual(result.summary["status"], "failed")
             self.assertEqual(current_experiment_run(run_chain)["status"], "failed")
             self.assertEqual(
-                current_research_run_checkpoint(checkpoint_chain)["status"], "failed"
+                current_research_run_checkpoint(checkpoint_chain)["status"], "in_progress"
             )
 
     def test_aggregate_mixed_result_families_fail_with_evidence(self):
         with tempfile.TemporaryDirectory() as directory:
-            work, refs = aggregate_work()
-            trade = aggregate_fixtures.trade("8", gross=0.2)
+            forward = self.run_forward_source(directory)[1]
+            trade = self.run_trade_source(directory)[0]
+            work, refs = aggregate_work(forward)
             work["arguments"]["outcomes"].append(plain(trade))
             refs.append({
                 "id": trade["trade_outcome_id"],
@@ -860,12 +1185,18 @@ class M10EOrchestrationTests(unittest.TestCase):
             config = runtime_config(
                 "research_aggregate", directory, [work], [refs]
             )
-            result = execute_research_run(
-                config, repo_root=ROOT, git_state_provider=self.state,
-                clock=lambda: "2026-09-09T23:00:00Z",
-            )
-            self.assertEqual(result.exit_code, 2)
-            self.assertEqual(result.summary["status"], "failed")
+            before = EvaluationShadowStore(
+                Path(directory) / "store", workspace_root=ROOT
+            ).capture_inventory()
+            with self.assertRaises(ContractError):
+                execute_research_run(
+                    config, repo_root=ROOT, git_state_provider=self.state,
+                    clock=lambda: "2026-09-09T23:00:00Z",
+                )
+            after = EvaluationShadowStore(
+                Path(directory) / "store", workspace_root=ROOT
+            ).capture_inventory()
+            self.assertEqual(before, after)
 
     def test_checkpoint_graph_rejects_fork_and_cross_run(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -883,7 +1214,7 @@ class M10EOrchestrationTests(unittest.TestCase):
                 generated_at="2026-09-09T23:02:00Z", prior=root,
             )
             child_b = _checkpoint(
-                config, pending, [], [], status="interrupted",
+                config, pending, [], [], status="in_progress",
                 generated_at="2026-09-09T23:03:00Z", prior=root,
             )
             with self.assertRaisesRegex(ContractError, "forks"):

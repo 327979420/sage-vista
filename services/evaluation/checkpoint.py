@@ -154,10 +154,10 @@ def validate_research_run_checkpoint(payload: Mapping[str, Any]) -> None:
     refs = _result_refs(item["result_refs"])
     if any(ref["work_unit_id"] not in set(completed) for ref in refs):
         raise ContractError("checkpoint references a result for unfinished work")
-    if item["status"] not in {"in_progress", "interrupted", "failed", "completed"}:
+    if item["status"] not in {"in_progress", "ready_to_finalize"}:
         raise ContractError("ResearchRunCheckpoint status is invalid")
-    if item["status"] == "completed" and remaining:
-        raise ContractError("completed checkpoint cannot have remaining work")
+    if item["status"] == "ready_to_finalize" and remaining:
+        raise ContractError("ready-to-finalize checkpoint cannot have remaining work")
     prior = item["supersedes_checkpoint_id"]
     if prior is not None and (not isinstance(prior, str) or not _CHECKPOINT_ID.fullmatch(prior)):
         raise ContractError("ResearchRunCheckpoint predecessor is invalid")

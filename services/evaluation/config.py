@@ -124,6 +124,19 @@ def _sha(value: Any, field: str) -> str:
     return value
 
 
+def require_strict_integer(
+    value: Any,
+    field: str,
+    *,
+    minimum: int = 0,
+) -> int:
+    """Validate an M10-E integer without accepting bool or coercible values."""
+
+    if type(value) is not int or value < minimum:
+        raise ContractError(f"{field} must be an integer >= {minimum}")
+    return value
+
+
 def _stable_ref(value: Any, label: str) -> dict[str, str]:
     item = _exact(value, {"id", "content_fingerprint"}, label)
     if not isinstance(item["id"], str) or not STABLE_ID.fullmatch(item["id"]):
@@ -354,6 +367,21 @@ def _normalize(values: Mapping[str, Any], *, derived: bool) -> dict[str, Any]:
         },
         "expected_results",
     )
+    expected["per_work_unit_count"] = require_strict_integer(
+        expected["per_work_unit_count"],
+        "expected_results.per_work_unit_count",
+        minimum=1,
+    )
+    if not isinstance(expected["forward_windows"], (list, tuple)):
+        raise ContractError("expected_results.forward_windows must be a list")
+    expected["forward_windows"] = [
+        require_strict_integer(
+            value,
+            "expected_results.forward_windows",
+            minimum=1,
+        )
+        for value in expected["forward_windows"]
+    ]
     if (
         expected["contract"] != spec["contract"]
         or expected["schema_version"] != spec["schema"]
@@ -523,5 +551,6 @@ __all__ = [
     "config_resume_scope_fingerprint", "current_git_state",
     "is_m10e_receipt_candidate", "load_research_run_config",
     "load_strict_json_object", "validate_formal_git_state",
-    "validate_m10e_receipt_identity", "validate_research_run_config",
+    "require_strict_integer", "validate_m10e_receipt_identity",
+    "validate_research_run_config",
 ]

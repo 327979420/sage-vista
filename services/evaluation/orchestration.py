@@ -47,6 +47,7 @@ from .config import (
     M10_E_SOURCE_VERSION,
     config_resume_scope_fingerprint,
     load_strict_json_object,
+    require_strict_integer,
     validate_formal_git_state,
     validate_research_run_config,
 )
@@ -54,6 +55,7 @@ from .contracts import (
     RESULT_TYPES,
     build_experiment_run_receipt,
     current_experiment_run,
+    current_result,
     validate_result,
 )
 from .export import publish_audit_export
@@ -179,6 +181,78 @@ def _configured_input_refs(config: Mapping[str, Any]) -> list[dict[str, str]]:
     )
 
 
+def _persisted_current_outcomes(
+    store: EvaluationShadowStore,
+    contract_name: str,
+    expected_refs: list[Mapping[str, Any]],
+    claimed_outcomes: list[Mapping[str, Any]],
+) -> list[Mapping[str, Any]]:
+    """Resolve exact M10-C inputs from the configured authoritative store."""
+
+    if contract_name not in {"ForwardOutcome", "TradeOutcome"}:
+        raise ContractError("M10-E M10-C source result family is invalid")
+    id_field, fingerprint_field, _, _ = RESULT_TYPES[contract_name]
+    claims: dict[tuple[str, str], Mapping[str, Any]] = {}
+    for claim in claimed_outcomes:
+        validate_result(contract_name, claim)
+        key = (str(claim[id_field]), str(claim[fingerprint_field]))
+        if key in claims:
+            raise ContractError("M10-E source bundle contains duplicate outcomes")
+        claims[key] = claim
+    expected_keys = {
+        (str(item["id"]), str(item["content_fingerprint"]))
+        for item in expected_refs
+    }
+    if set(claims) != expected_keys:
+        raise ContractError("M10-E source outcomes differ from configured references")
+
+    inventory = store.capture_inventory()
+    records = [
+        payload for name, payload in inventory.result_records
+        if name == contract_name
+    ]
+    by_key: dict[tuple[str, str], list[Mapping[str, Any]]] = {}
+    by_logical: dict[str, list[Mapping[str, Any]]] = {}
+    for payload in records:
+        key = (str(payload[id_field]), str(payload[fingerprint_field]))
+        by_key.setdefault(key, []).append(payload)
+        by_logical.setdefault(str(payload["logical_result_id"]), []).append(payload)
+
+    resolved: list[Mapping[str, Any]] = []
+    for reference in expected_refs:
+        key = (str(reference["id"]), str(reference["content_fingerprint"]))
+        matches = by_key.get(key, [])
+        if len(matches) != 1:
+            raise ContractError("M10-E source outcome is not uniquely persisted")
+        stored = matches[0]
+        producer_receipts = [
+            receipt for receipt in inventory.run_receipts
+            if receipt["run_id"] == stored["run_id"]
+        ]
+        if not producer_receipts:
+            raise ContractError("M10-E source outcome has no persisted producer run")
+        producer_leaf = current_experiment_run(producer_receipts)
+        stored_reference = {
+            "id": str(stored[id_field]),
+            "content_fingerprint": str(stored[fingerprint_field]),
+        }
+        if (
+            producer_leaf["status"] != "completed"
+            or stored_reference not in [_plain(item) for item in producer_leaf["result_refs"]]
+        ):
+            raise ContractError("M10-E source outcome producer run is not complete")
+        leaf = current_result(
+            contract_name,
+            by_logical[str(stored["logical_result_id"])],
+        )
+        if str(leaf[id_field]) != str(stored[id_field]):
+            raise ContractError("M10-E source outcome is not the configured current revision")
+        if _plain(claims[key]) != _plain(stored):
+            raise ContractError("M10-E source outcome copy differs from persisted evidence")
+        resolved.append(stored)
+    return resolved
+
+
 def load_input_bundle(
     config: Mapping[str, Any],
     *,
@@ -213,7 +287,12 @@ def load_input_bundle(
             ]
             if any(contract != expected_contract for contract, _ in selected):
                 raise ContractError("M10-E query selected a different result family")
-            outcomes = [payload for _, payload in selected]
+            outcomes = _persisted_current_outcomes(
+                store,
+                str(expected_contract),
+                [_plain(item) for item in unit["input_refs"]],
+                [payload for _, payload in selected],
+            )
             first = outcomes[0]
             if expected_contract == "ForwardOutcome":
                 scope = build_aggregate_scope(
@@ -278,6 +357,35 @@ def load_input_bundle(
             raise ContractError("M10-E work item arguments must be an object")
     if actual_units != expected_units:
         raise ContractError("M10-E input bundle work units differ from the config")
+    if config["operation_type"] in {"portfolio_boundary", "research_aggregate"}:
+        if store is None:
+            raise ContractError("M10-C input resolution requires the configured M10 store")
+        expected_contract = str(config["expected_results"]["source_result_contract"])
+        units = {
+            str(unit["work_unit_id"]): unit for unit in config["work_units"]
+        }
+        source_field = (
+            "trade_outcomes"
+            if config["operation_type"] == "portfolio_boundary"
+            else "outcomes"
+        )
+        resolved_items: list[dict[str, Any]] = []
+        for work in item["work_items"]:
+            arguments = _plain(work["arguments"])
+            if source_field not in arguments or not isinstance(arguments[source_field], list):
+                raise ContractError("M10-E M10-C bundle source outcomes are invalid")
+            canonical = _persisted_current_outcomes(
+                store,
+                expected_contract,
+                [_plain(ref) for ref in units[str(work["work_unit_id"])]["input_refs"]],
+                arguments[source_field],
+            )
+            arguments[source_field] = [_plain(outcome) for outcome in canonical]
+            resolved_items.append({
+                "work_unit_id": work["work_unit_id"],
+                "arguments": arguments,
+            })
+        item["work_items"] = resolved_items
     return item
 
 
@@ -438,7 +546,12 @@ def _execute_work_unit(
 ) -> list[dict[str, str]]:
     operation = config["operation_type"]
     if operation in {"forward_evaluation", "trade_evaluation"}:
-        pending = _build_baseline_pending(config, work_unit, arguments, generated_at=generated_at)
+        pending = _build_baseline_pending(
+            config,
+            work_unit,
+            arguments,
+            generated_at=generated_at,
+        )
         read = _repository_read(arguments["market_read"])
         if operation == "forward_evaluation":
             batch = evaluate_forward_baseline(
@@ -575,6 +688,7 @@ def _summary(
     result_refs: list[dict[str, str]], checkpoint: Mapping[str, Any] | None,
     error: str | None = None, export: Mapping[str, Any] | None = None,
     result_status_counts: Mapping[str, int] | None = None,
+    terminal_persisted: bool = True,
 ) -> Mapping[str, Any]:
     expected = len(config["work_units"]) * int(config["expected_results"]["per_work_unit_count"])
     payload = {
@@ -589,34 +703,118 @@ def _summary(
         "error": error, "storage_root": config["storage"]["root_path"],
         "result_status_counts": dict(sorted((result_status_counts or {}).items())),
         "export": _plain(export) if export is not None else None,
+        "terminal_persisted": terminal_persisted,
     }
     return _freeze(payload)
 
 
-def _persisted_run_state(
+def _write_reconciled_checkpoint(
     store: EvaluationShadowStore,
-    run_id: str,
+    config: Mapping[str, Any],
+    pending: Mapping[str, Any],
+    state: Mapping[str, Any],
     *,
-    expected_status: str,
-) -> tuple[list[dict[str, str]], Mapping[str, Any], dict[str, int]]:
-    inventory = store.capture_inventory()
-    receipts = [item for item in inventory.run_receipts if item["run_id"] == run_id]
-    checkpoints = [item for item in inventory.checkpoints if item["run_id"] == run_id]
-    receipt = current_experiment_run(receipts)
-    checkpoint = current_research_run_checkpoint(checkpoints)
-    if receipt["status"] != expected_status or checkpoint["status"] != expected_status:
-        raise ContractError("M10-E persisted summary status is inconsistent")
-    refs = [_plain(item) for item in checkpoint["result_refs"]]
-    referenced_ids = {item["id"] for item in refs}
-    counts: dict[str, int] = {}
-    for contract_name, result in inventory.result_records:
-        id_field = RESULT_TYPES[contract_name][0]
-        if result[id_field] in referenced_ids:
-            status = str(result["status"])
-            counts[status] = counts.get(status, 0) + 1
-    if sum(counts.values()) != len(refs):
-        raise ContractError("M10-E persisted summary does not resolve every result")
-    return refs, checkpoint, counts
+    generated_at: str,
+) -> Mapping[str, Any]:
+    status = "ready_to_finalize" if not state["remaining_work_units"] else "in_progress"
+    prior = state["checkpoint"]
+    if prior is not None and (
+        prior["status"] == status
+        and list(prior["completed_work_units"]) == list(state["completed_work_units"])
+        and _plain(prior["result_refs"]) == _plain(state["result_refs"])
+    ):
+        return state
+    checkpoint = _checkpoint(
+        config,
+        pending,
+        list(state["completed_work_units"]),
+        [_plain(item) for item in state["result_refs"]],
+        status=status,
+        generated_at=generated_at,
+        prior=prior,
+    )
+    store.write_checkpoint(checkpoint)
+    return store.reconcile_m10e_run(config, str(pending["run_id"]))
+
+
+def _terminal_from_reconciliation(
+    pending: Mapping[str, Any],
+    state: Mapping[str, Any],
+    *,
+    status: str,
+    generated_at: str,
+    error: Mapping[str, str] | None,
+) -> Mapping[str, Any]:
+    return _terminal_receipt(
+        pending,
+        status=status,
+        result_refs=[
+            {"id": item["id"], "content_fingerprint": item["content_fingerprint"]}
+            for item in state["result_refs"]
+        ],
+        generated_at=generated_at,
+        error=error,
+    )
+
+
+def _persist_terminal_failure(
+    store: EvaluationShadowStore,
+    config: Mapping[str, Any],
+    pending: Mapping[str, Any],
+    *,
+    terminal_status: str,
+    category: str,
+    message: str,
+    clock: Callable[[], str],
+) -> ResearchRunExecution:
+    state = store.reconcile_m10e_run(config, str(pending["run_id"]))
+    try:
+        state = _write_reconciled_checkpoint(
+            store, config, pending, state, generated_at=clock()
+        )
+        terminal = _terminal_from_reconciliation(
+            pending,
+            state,
+            status=terminal_status,
+            generated_at=clock(),
+            error={"category": category, "message": message},
+        )
+        store.write_run_receipt(terminal)
+    except Exception:
+        state = store.reconcile_m10e_run(config, str(pending["run_id"]))
+        if state["terminal_persisted"]:
+            persisted_status = str(state["run_status"])
+            return ResearchRunExecution(
+                _summary(
+                    config, pending, status=persisted_status,
+                    result_refs=[_plain(item) for item in state["result_refs"]],
+                    checkpoint=state["checkpoint"], error=category,
+                    result_status_counts=state["result_status_counts"],
+                    terminal_persisted=True,
+                ),
+                0 if persisted_status == "completed" else 130 if persisted_status == "interrupted" else 2,
+            )
+        return ResearchRunExecution(
+            _summary(
+                config, pending, status="pending",
+                result_refs=[_plain(item) for item in state["result_refs"]],
+                checkpoint=state["checkpoint"], error=category,
+                result_status_counts=state["result_status_counts"],
+                terminal_persisted=False,
+            ),
+            130 if terminal_status == "interrupted" else 2,
+        )
+    state = store.reconcile_m10e_run(config, str(pending["run_id"]))
+    return ResearchRunExecution(
+        _summary(
+            config, pending, status=terminal_status,
+            result_refs=[_plain(item) for item in state["result_refs"]],
+            checkpoint=state["checkpoint"], error=category,
+            result_status_counts=state["result_status_counts"],
+            terminal_persisted=True,
+        ),
+        130 if terminal_status == "interrupted" else 2,
+    )
 
 
 def _resume_evidence(
@@ -669,6 +867,12 @@ def execute_research_run(
     """Run one exact config through one existing M10 result-family producer."""
 
     validate_research_run_config(config)
+    if interrupt_after_work_units is not None:
+        require_strict_integer(
+            interrupt_after_work_units,
+            "interrupt_after_work_units",
+            minimum=0,
+        )
     validate_formal_git_state(config, repo_root=repo_root, state_provider=git_state_provider)
     if (
         config["operation_type"] in {"forward_evaluation", "trade_evaluation"}
@@ -686,71 +890,71 @@ def execute_research_run(
         if existing_chain:
             leaf = current_experiment_run(existing_chain)
             if leaf["status"] == "completed":
-                checkpoint_chain = [item for item in inventory.checkpoints if item["run_id"] == pending["run_id"]]
-                checkpoint = current_research_run_checkpoint(checkpoint_chain) if checkpoint_chain else None
-                if checkpoint is None:
-                    raise ContractError("completed M10-E run has no checkpoint")
-                refs = [_plain(item) for item in checkpoint["result_refs"]]
-                counts: dict[str, int] = {}
-                referenced_ids = {item["id"] for item in refs}
-                for contract_name, result in inventory.result_records:
-                    if result[RESULT_TYPES[contract_name][0]] in referenced_ids:
-                        status = str(result["status"])
-                        counts[status] = counts.get(status, 0) + 1
+                state = store.reconcile_m10e_run(config, str(pending["run_id"]))
                 return ResearchRunExecution(
-                    _summary(config, pending, status="completed", result_refs=refs,
-                             checkpoint=checkpoint, result_status_counts=counts), 0
+                    _summary(
+                        config, pending, status="completed",
+                        result_refs=[_plain(item) for item in state["result_refs"]],
+                        checkpoint=state["checkpoint"],
+                        result_status_counts=state["result_status_counts"],
+                        terminal_persisted=True,
+                    ),
+                    0,
                 )
-            raise ContractError("run_in_progress_or_terminal_conflict")
-        completed_units, result_refs, prior_resume_checkpoint = _resume_evidence(config, inventory)
-        store.write_run_receipt(pending)
-        prior_checkpoint: Mapping[str, Any] | None = None
+            if leaf["status"] != "pending":
+                raise ContractError("run_in_progress_or_terminal_conflict")
+            state = store.reconcile_m10e_run(config, str(pending["run_id"]))
+            if state["remaining_work_units"]:
+                raise ContractError("run_in_progress_requires_explicit_resume")
+        else:
+            _resume_evidence(config, inventory)
+            store.write_run_receipt(pending)
+            state = store.reconcile_m10e_run(config, str(pending["run_id"]))
         try:
-            completed_set = set(completed_units)
             work_by_id = {item["work_unit_id"]: item for item in bundle["work_items"]}
             for unit in config["work_units"]:
                 unit_id = unit["work_unit_id"]
-                if unit_id in completed_set:
+                if unit_id in set(state["completed_work_units"]):
                     continue
-                refs = _execute_work_unit(
+                _execute_work_unit(
                     config, unit, work_by_id[unit_id]["arguments"], store,
                     generated_at=clock(),
                 )
-                result_refs.extend(refs)
-                completed_units.append(unit_id)
-                completed_set.add(unit_id)
-                checkpoint = _checkpoint(
-                    config, pending, completed_units, result_refs,
-                    status="in_progress", generated_at=clock(), prior=prior_checkpoint,
+                state = store.reconcile_m10e_run(config, str(pending["run_id"]))
+                state = _write_reconciled_checkpoint(
+                    store, config, pending, state, generated_at=clock()
                 )
-                store.write_checkpoint(checkpoint)
-                prior_checkpoint = checkpoint
                 if (
                     interrupt_after_work_units is not None
-                    and len(completed_units) >= interrupt_after_work_units
-                    and len(completed_units) < len(config["work_units"])
+                    and len(state["completed_work_units"]) >= interrupt_after_work_units
+                    and state["remaining_work_units"]
                 ):
                     raise KeyboardInterrupt
-            expected_count = len(config["work_units"]) * int(config["expected_results"]["per_work_unit_count"])
-            if len(result_refs) != expected_count or len({item["id"] for item in result_refs}) != expected_count:
+            state = store.reconcile_m10e_run(config, str(pending["run_id"]))
+            if state["remaining_work_units"] or state["missing_result_count"]:
                 raise ContractError("M10-E result set does not conserve the configured expectation")
-            checkpoint = _checkpoint(
-                config, pending, completed_units, result_refs,
-                status="completed", generated_at=clock(), prior=prior_checkpoint,
+            state = _write_reconciled_checkpoint(
+                store, config, pending, state, generated_at=clock()
             )
-            store.write_checkpoint(checkpoint)
-            terminal_refs = [
-                {"id": item["id"], "content_fingerprint": item["content_fingerprint"]}
-                for item in result_refs
-            ]
-            completed = _terminal_receipt(
-                pending, status="completed", result_refs=terminal_refs,
-                generated_at=clock(), error=None,
+            completed = _terminal_from_reconciliation(
+                pending, state, status="completed", generated_at=clock(), error=None
             )
-            store.write_run_receipt(completed)
-            result_refs, checkpoint, status_counts = _persisted_run_state(
-                store, pending["run_id"], expected_status="completed"
-            )
+            try:
+                store.write_run_receipt(completed)
+            except Exception as exc:
+                return _persist_terminal_failure(
+                    store, config, pending,
+                    terminal_status="failed",
+                    category="terminal_completion_write_failed",
+                    message=f"{type(exc).__name__}: {exc}",
+                    clock=clock,
+                )
+            state = store.reconcile_m10e_run(config, str(pending["run_id"]))
+            if state["run_status"] != "completed" or not state["terminal_persisted"]:
+                raise ContractError("M10-E completed receipt was not persisted")
+            result_refs = [_plain(item) for item in state["result_refs"]]
+            checkpoint = state["checkpoint"]
+            status_counts = state["result_status_counts"]
             export_summary: dict[str, Any] | None = None
             if config["export_plan"]["enabled"]:
                 try:
@@ -777,54 +981,24 @@ def execute_research_run(
             return ResearchRunExecution(
                 _summary(config, pending, status="completed", result_refs=result_refs,
                          checkpoint=checkpoint, export=export_summary,
-                         result_status_counts=status_counts), 0
+                         result_status_counts=status_counts,
+                         terminal_persisted=True), 0
             )
         except KeyboardInterrupt:
-            interrupted_checkpoint = _checkpoint(
-                config, pending, completed_units, result_refs,
-                status="interrupted", generated_at=clock(), prior=prior_checkpoint,
-            )
-            store.write_checkpoint(interrupted_checkpoint)
-            terminal = _terminal_receipt(
-                pending, status="interrupted",
-                result_refs=[{"id": item["id"], "content_fingerprint": item["content_fingerprint"]} for item in result_refs],
-                generated_at=clock(), error={"category": "interrupted", "message": "run interrupted"},
-            )
-            store.write_run_receipt(terminal)
-            result_refs, interrupted_checkpoint, status_counts = _persisted_run_state(
-                store, pending["run_id"], expected_status="interrupted"
-            )
-            return ResearchRunExecution(
-                _summary(config, pending, status="interrupted", result_refs=result_refs,
-                         checkpoint=interrupted_checkpoint, error="interrupted",
-                         result_status_counts=status_counts), 130
+            return _persist_terminal_failure(
+                store, config, pending,
+                terminal_status="interrupted",
+                category="interrupted",
+                message="run interrupted",
+                clock=clock,
             )
         except Exception as exc:
-            failed_checkpoint = _checkpoint(
-                config, pending, completed_units, result_refs,
-                status="failed", generated_at=clock(), prior=prior_checkpoint,
-            )
-            store.write_checkpoint(failed_checkpoint)
-            terminal = _terminal_receipt(
-                pending, status="failed",
-                result_refs=[
-                    {"id": item["id"], "content_fingerprint": item["content_fingerprint"]}
-                    for item in result_refs
-                ],
-                generated_at=clock(),
-                error={"category": type(exc).__name__, "message": str(exc)},
-            )
-            store.write_run_receipt(terminal)
-            result_refs, failed_checkpoint, status_counts = _persisted_run_state(
-                store, pending["run_id"], expected_status="failed"
-            )
-            return ResearchRunExecution(
-                _summary(
-                    config, pending, status="failed", result_refs=result_refs,
-                    checkpoint=failed_checkpoint, error=type(exc).__name__,
-                    result_status_counts=status_counts,
-                ),
-                2,
+            return _persist_terminal_failure(
+                store, config, pending,
+                terminal_status="failed",
+                category=type(exc).__name__,
+                message=str(exc),
+                clock=clock,
             )
 
 

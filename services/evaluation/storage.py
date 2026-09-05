@@ -922,6 +922,203 @@ class EvaluationShadowStore:
                 if actual_windows != list(config["expected_results"]["forward_windows"]):
                     raise ContractError("M10-E Forward work unit does not contain every configured window")
 
+    def _reconcile_m10e_run_unlocked(
+        self,
+        config: Mapping[str, Any],
+        run_id: str,
+    ) -> Mapping[str, Any]:
+        """Derive one M10-E run's progress exclusively from persisted evidence."""
+
+        validate_research_run_config(config)
+        saved_config = self._research_config(str(config["config_id"]))
+        if _plain(saved_config) != _plain(config):
+            raise ContractError("M10-E reconciliation config differs from storage")
+        receipts = self._run_receipts(run_id)
+        if not receipts or any(not is_m10e_receipt_candidate(item) for item in receipts):
+            raise ContractError("M10-E reconciliation requires its persisted receipt chain")
+        for receipt in receipts:
+            validate_m10e_receipt_identity(receipt)
+        run_leaf = current_experiment_run(receipts)
+        roots = [
+            item for item in receipts
+            if item["status"] == "pending"
+            and item["supersedes_run_receipt_id"] is None
+        ]
+        if len(roots) != 1:
+            raise ContractError("M10-E reconciliation requires one pending root")
+        pending = roots[0]
+        if (
+            pending["config_ref"]["config_id"] != config["config_id"]
+            or pending["config_ref"]["content_fingerprint"]
+            != config["config_content_fingerprint"]
+        ):
+            raise ContractError("M10-E pending receipt differs from its config")
+
+        checkpoint_chain = self._checkpoints(run_id)
+        checkpoint_leaf = None
+        if checkpoint_chain:
+            checkpoint_leaf = current_research_run_checkpoint(checkpoint_chain)
+            for checkpoint in checkpoint_chain:
+                self._validate_m10e_checkpoint_conservation(checkpoint, config)
+
+        expected_contract = str(config["output_contract"]["name"])
+        expected_schema = str(config["output_contract"]["schema_version"])
+        expected_source = {"evaluation_contracts": config["producer_source_version"]}
+        expected_count = int(config["expected_results"]["per_work_unit_count"])
+        expected_experiment = f"M10-E-{config['operation_type']}"
+        terminal_result_keys = (
+            {
+                (str(ref["id"]), str(ref["content_fingerprint"]))
+                for ref in run_leaf["result_refs"]
+            }
+            if run_leaf["status"] != "pending"
+            else None
+        )
+        units = {str(item["work_unit_id"]): item for item in config["work_units"]}
+        unit_by_inputs = {
+            tuple(
+                (str(ref["id"]), str(ref["content_fingerprint"]))
+                for ref in item["input_refs"]
+            ): str(item["work_unit_id"])
+            for item in config["work_units"]
+        }
+        if len(unit_by_inputs) != len(units):
+            raise ContractError("M10-E work units do not have unique input evidence")
+        results_by_unit: dict[str, list[tuple[str, Mapping[str, Any]]]] = {
+            unit_id: [] for unit_id in units
+        }
+
+        for contract_name in RESULT_TYPES:
+            for _, result in self._result_records(contract_name):
+                child_receipts = self._run_receipts(str(result["run_id"]))
+                child_roots = [
+                    item for item in child_receipts
+                    if item.get("status") == "pending"
+                    and item.get("supersedes_run_receipt_id") is None
+                    and item.get("experiment_id") == expected_experiment
+                    and str(item.get("attempt_id", "")).startswith("m10-e-work:")
+                ]
+                if not child_roots:
+                    continue
+                if len(child_roots) != 1:
+                    raise ContractError("M10-E result producer has ambiguous pending evidence")
+                child_pending = child_roots[0]
+                input_key = tuple(
+                    (str(ref["id"]), str(ref["content_fingerprint"]))
+                    for ref in child_pending["input_refs"]
+                )
+                unit_id = unit_by_inputs.get(input_key)
+                if unit_id is None:
+                    continue
+                if contract_name != expected_contract:
+                    raise ContractError("M10-E work unit produced the wrong result family")
+                child_leaf = current_experiment_run(child_receipts)
+                result_key = (
+                    str(result[RESULT_TYPES[contract_name][0]]),
+                    str(result[RESULT_TYPES[contract_name][1]]),
+                )
+                if terminal_result_keys is not None and result_key not in terminal_result_keys:
+                    continue
+                if (
+                    child_leaf["status"] != "completed"
+                    or result["schema_version"] != expected_schema
+                    or _plain(result["source_version"]) != expected_source
+                    or result["path_status"] != config["path_status"]
+                    or result["result_role"] != config["result_role"]
+                    or result["partition_role"] != config["partition_role"]
+                    or _plain(child_pending["policy_refs"])
+                    != _plain(config["policy_refs"])
+                    or child_pending["code_commit"] != config["code_commit"]
+                    or _plain(child_pending["source_version"]) != expected_source
+                    or result_key not in {
+                        (str(ref["id"]), str(ref["content_fingerprint"]))
+                        for ref in child_leaf["result_refs"]
+                    }
+                ):
+                    raise ContractError("M10-E persisted producer evidence is inconsistent")
+                results_by_unit[unit_id].append((contract_name, result))
+
+        completed_units: list[str] = []
+        result_refs: list[dict[str, str]] = []
+        logical_ids: set[str] = set()
+        status_counts: dict[str, int] = {}
+        for unit_id in units:
+            records = results_by_unit[unit_id]
+            if not records:
+                continue
+            if len(records) != expected_count:
+                raise ContractError("M10-E persisted work unit has an incomplete result set")
+            if expected_contract == "ForwardOutcome":
+                windows = sorted(int(result["window_sessions"]) for _, result in records)
+                if windows != list(config["expected_results"]["forward_windows"]):
+                    raise ContractError("M10-E persisted Forward windows are incomplete")
+            for contract_name, result in records:
+                logical_id = str(result["logical_result_id"])
+                if logical_id in logical_ids:
+                    raise ContractError("M10-E persisted results duplicate a logical result")
+                logical_ids.add(logical_id)
+                id_field, fingerprint_field, _, _ = RESULT_TYPES[contract_name]
+                result_refs.append({
+                    "work_unit_id": unit_id,
+                    "id": str(result[id_field]),
+                    "content_fingerprint": str(result[fingerprint_field]),
+                })
+                status = str(result["status"])
+                status_counts[status] = status_counts.get(status, 0) + 1
+            completed_units.append(unit_id)
+
+        result_refs.sort(key=lambda item: (item["work_unit_id"], item["id"]))
+        remaining_units = [unit_id for unit_id in units if unit_id not in set(completed_units)]
+        if checkpoint_leaf is not None:
+            checkpoint_keys = {
+                (str(item["work_unit_id"]), str(item["id"]), str(item["content_fingerprint"]))
+                for item in checkpoint_leaf["result_refs"]
+            }
+            actual_keys = {
+                (item["work_unit_id"], item["id"], item["content_fingerprint"])
+                for item in result_refs
+            }
+            if not checkpoint_keys.issubset(actual_keys):
+                raise ContractError("M10-E checkpoint contains results absent from reconciliation")
+        if run_leaf["status"] != "pending":
+            terminal_refs = sorted(
+                _plain(run_leaf["result_refs"]),
+                key=lambda item: (item["id"], item["content_fingerprint"]),
+            )
+            actual_terminal_refs = sorted(
+                [
+                    {"id": item["id"], "content_fingerprint": item["content_fingerprint"]}
+                    for item in result_refs
+                ],
+                key=lambda item: (item["id"], item["content_fingerprint"]),
+            )
+            if terminal_refs != actual_terminal_refs:
+                raise ContractError("M10-E terminal receipt differs from reconciled results")
+        expected_total = len(units) * expected_count
+        return _freeze({
+            "run_status": str(run_leaf["status"]),
+            "terminal_persisted": run_leaf["status"] != "pending",
+            "pending": _plain(pending),
+            "checkpoint": _plain(checkpoint_leaf) if checkpoint_leaf is not None else None,
+            "completed_work_units": completed_units,
+            "remaining_work_units": remaining_units,
+            "result_refs": result_refs,
+            "result_status_counts": dict(sorted(status_counts.items())),
+            "missing_result_count": expected_total - len(result_refs),
+        })
+
+    def reconcile_m10e_run(
+        self,
+        config: Mapping[str, Any],
+        run_id: str,
+    ) -> Mapping[str, Any]:
+        """Return one atomic persisted-state reconciliation for M10-E."""
+
+        _id_digest(run_id, field="run_id")
+        with _inventory_lock(self.root):
+            self._capture_inventory_unlocked()
+            return self._reconcile_m10e_run_unlocked(config, run_id)
+
     def _validate_m10e_terminal_evidence(
         self,
         payload: Mapping[str, Any],
@@ -962,9 +1159,11 @@ class EvaluationShadowStore:
         checkpoint = current_research_run_checkpoint(checkpoints)
         config = self._research_config(str(pending["config_ref"]["config_id"]))
         self._validate_m10e_checkpoint_conservation(checkpoint, config)
-        expected_status = payload["status"]
-        if checkpoint["status"] != expected_status:
-            raise ContractError("M10-E terminal receipt status differs from its checkpoint")
+        if payload["status"] == "completed" and (
+            checkpoint["status"] != "ready_to_finalize"
+            or checkpoint["remaining_work_units"]
+        ):
+            raise ContractError("completed M10-E receipt requires finalized progress")
         if (
             checkpoint["run_id"] != payload["run_id"]
             or checkpoint["config_id"] != pending["config_ref"]["config_id"]
@@ -984,6 +1183,16 @@ class EvaluationShadowStore:
         )
         if checkpoint_refs != receipt_refs:
             raise ContractError("M10-E terminal receipt does not conserve checkpoint results")
+        reconciled = self._reconcile_m10e_run_unlocked(config, str(payload["run_id"]))
+        reconciled_refs = sorted(
+            [
+                {"id": item["id"], "content_fingerprint": item["content_fingerprint"]}
+                for item in reconciled["result_refs"]
+            ],
+            key=lambda item: (item["id"], item["content_fingerprint"]),
+        )
+        if reconciled_refs != receipt_refs:
+            raise ContractError("M10-E terminal receipt differs from persisted reconciliation")
         saved_refs = {
             (item["id"], item["content_fingerprint"])
             for item in self._all_result_references_unlocked()
@@ -1088,8 +1297,6 @@ class EvaluationShadowStore:
                     raise ContractError("checkpoint predecessor does not exist")
             elif payload["supersedes_checkpoint_id"] != leaf["checkpoint_id"]:
                 raise ContractError("checkpoint must supersede the unique current leaf")
-            if leaf is not None and leaf["status"] == "completed":
-                raise ContractError("completed research run cannot accept a new checkpoint")
             current_research_run_checkpoint([*chain, payload])
             self._validate_m10e_checkpoint_conservation(payload, config)
             return self._write(
