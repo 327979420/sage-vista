@@ -1,6 +1,6 @@
 # M10｜内部评价与只读汇总阶段验收报告
 
-- 状态：M10-A／B／C／D均已完成独立审核并进入`main`；M10-D在获批查询与审核导出范围内为`implemented`；M10整体仍为`implementing`
+- 状态：M10-A／B／C／D均已完成独立审核并进入`main`；M10-D在获批查询与审核导出范围内为`implemented`；M10-E审核修复已完成本地验证并恢复为`verified`，等待独立复核；M10整体仍为`implementing`
 - 基线：`1c7f688bd0d3f0c52386851b302c6197f25437fb`
 - Forward实现：`209d088045cd5c9d87be130a1c4b8499336cd202`
 - Trade实现：`a81d97ce288f7b62224e08556145c93a41df4b5c`
@@ -28,6 +28,7 @@
 - M10-D审核修复：`61de04e`
 - M10-D审核通过代码HEAD：`f91a6fa5773561354b255f9217679f237b0f7017`
 - M10-D合并方式：纯fast-forward进入`main`
+- M10-E审核修复：`a0ab77c332995bb2710faa9d3ee946285c1cf0d1`
 - 生产状态：未部署、未生产启用
 
 ## 1. 阶段结论
@@ -139,13 +140,18 @@ M10-D已通过独立审核并以纯fast-forward进入`main`：唯一查询入口
 | 相同配置并发最多一条权威链；中断和异常不遗留死锁 | 通过 |
 | CLI stdout唯一稳定JSON摘要，诊断写stderr，摘要与落盘证据一致 | 通过 |
 | 可选M10-D导出失败与已完成评价隔离且不留下半包 | 通过 |
+| M10-C输入由配置指定store解析，裸bundle Outcome在pending前失败 | 通过 |
+| 异常后统一从磁盘重盘点work unit、结果、checkpoint和收据 | 通过 |
+| checkpoint只表达`in_progress/ready_to_finalize`，ExperimentRun唯一表达终态 | 通过 |
+| M10-E整数语义拒绝bool、float、字符串和Decimal冒充 | 通过 |
 | 默认生产入口、旧回放断点、网站、Discord和公开JSON零变化 | 通过 |
 
-- 提交：设计`2517fa6`、E1配置合同`b22da0a`、E2／E3编排实现`dbde7fc61c1dcac0959c838552b23051d114b361`。
-- M10-E专项28项、M10 A—E相关定向166项（跳过10项）、M01—M10扩大定向351项（跳过10项）及完整Python 718项（跳过10项）通过。
-- `PYTHONHASHSEED=0/1/42/12345`下M10-E每轮28项通过；治理19项和前端11项通过。
+- 提交：设计`2517fa6`、E1配置合同`b22da0a`、E2／E3编排实现`dbde7fc61c1dcac0959c838552b23051d114b361`、审核修复`a0ab77c332995bb2710faa9d3ee946285c1cf0d1`。
+- 修复后M10-E专项38项、M10 A—E相关定向176项（跳过10项）、M01—M10扩大定向361项（跳过10项）及完整Python 728项（跳过10项）通过。
+- `PYTHONHASHSEED=0/1/42/12345`下M10-E每轮38项通过；治理19项和前端11项通过。
 - Python编译、lint、TypeScript、生产构建、文档链接及差异格式检查通过；测试前后工作区没有意外文件，旧生产断点字节不变。
-- M10-E当前为`verified`，等待独立审核；M10整体继续为`implementing`。
+- 空store裸Forward／Trade Outcome均在pending前拒绝；真实落盘来源在bundle/query路径得到同一结果。生产器保存5项后抛错时，failed收据、checkpoint和CLI摘要均从磁盘报告5项。terminal持续不可写时摘要诚实报告持久状态`pending`及`terminal_persisted=false`，相同配置随后只重试finalize且并发最多形成一个terminal叶节点。
+- M10-E当前为`verified`，等待对上述四项修复的独立复核；M10整体继续为`implementing`。
 
 ## 7. 明确未做
 
@@ -157,4 +163,4 @@ M10-D已通过独立审核并以纯fast-forward进入`main`：唯一查询入口
 - 未修改生产入口、工作流、网站、Discord、公开JSON或历史断点。
 - 未开始VectorBT、M11或M12。
 
-M10-A／B／C／D均已完成独立审核并进入`main`，M10-E已完成本地影子实现并处于`verified`、等待独立审核，M10整体仍为`implementing`。M10-D进入主线和M10-E本地验证均不等于部署、生产启用或完成真实历史导出；尚未生成正式生产CSV／XLSX，网站和Discord也未提供查询或下载。Portfolio资本算法、VectorBT、看板、M11和M12均未开始；默认每日、夜间、网站、Discord和公开JSON均未切换，也未访问EODHD或运行真实行情／真实多年回测。Excel仍是人工审核副本，人工修改不能回写M10权威账本。
+M10-A／B／C／D均已完成独立审核并进入`main`，M10-E审核修复已完成本地影子验证并处于`verified`、等待独立复核，M10整体仍为`implementing`。M10-D进入主线和M10-E本地验证均不等于部署、生产启用或完成真实历史导出；尚未生成正式生产CSV／XLSX，网站和Discord也未提供查询或下载。Portfolio资本算法、VectorBT、看板、M11和M12均未开始；默认每日、夜间、网站、Discord和公开JSON均未切换，也未访问EODHD或运行真实行情／真实多年回测。Excel仍是人工审核副本，人工修改不能回写M10权威账本。
