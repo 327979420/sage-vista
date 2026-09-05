@@ -32,6 +32,21 @@
 
 > 整理边界：CR-2026-08-30-038及其交接Prompt本轮暂不纳入治理文档整理；原始内容完整保存在救援分支`rescue/local-work-2026-08-31-b14ec55`，没有删除。
 
+### CR-2026-09-05-051｜M11策略验证、批准与退休闸门
+
+- 用户原意：把M09保存的人工观察／假设与M10保存的不可变评价证据接成一条可审计的策略升级链。机器证据、用户批准、进入main和生产激活必须分开；V1、V2、失败、拒绝、延期、失效和退休历史永久保留。只有预登记标准由独立证据满足、用户明确批准、实现证据完整且M12提供生产激活证明的精确版本，才可成为active策略或交易红线。
+- 状态：`approved`；用户已批准`1A／2A／3A`和A—D最小影子实施。当前仅冻结设计与实施边界，没有运行实验、真实策略晋级、部署或生产启用。
+- 主模块：`docs/rules/11_VALIDATED_PLAYBOOK.md`、`docs/rules/12_HARD_RULES.md`；设计见`docs/M11_STRATEGY_PROMOTION_GATE_DESIGN_ZH.md`。未来唯一中立实现层建议为`services/playbook/`。
+- 联动模块：只读引用M09 `HumanReviewRecord`及M10 `ExperimentRun`、Outcome、Aggregate和查询证据；M12独立负责生产Manifest、部署、线上核验、激活和退休生效。M11不得反向修改M03—M10，也不得替M12切换生产。
+- CR-043边界：本CR只承接CR-043中“人工案例形成候选假设、使用未参与定义的独立样本验证、用户批准后形成新版本、失败假设永久保留”的升级责任。CR-043整体继续为`captured`，内容和状态不变。
+- 规则先行：建议冻结`StrategyProposal 2.0.0`、`StrategyEvidenceAssessment 2.0.0`、`StrategyLifecycleEvent 2.0.0`及只读派生`StrategyRegistrySnapshot 2.0.0`。机器证据、用户决定、实现和生产是四条独立状态轴；`validated`不等于批准，批准不等于实现，进入main不等于active。
+- 证据闸门：候选与基线版本、预登记标准、completed运行、数据／股票池／复权／代码身份、formal／legacy和bias、分区角色、样本／缺失／成本／滑点、Outcome／Aggregate及逐项标准结果必须完整。必要证据缺失只能为`evidence_incomplete`或`not_validated`，用户不得将其重标为`validated`。
+- 案例边界：案例角色固定为`discovery`、`calibration`、`validation`、`forward`或`explanation_only`。发现／校准案例不能再充当独立验证；CGEM、MRNA、BTDR、DLTR、ADBE、BABA、TTD和AEVA继续保持真实已见角色，不用单案例证明有效性。
+- Playbook／Hard Rule：系统完整性硬规则保护防未来、不可覆盖和数据／执行正确性，不是交易alpha；交易alpha／风险红线则必须通过M11证据闸门、机器可执行定义、范围／例外／解除条件、用户批准、实现和M12激活。当前正式validated策略和新增交易alpha硬规则均为0。
+- 实验：本轮不运行。M11不计算收益、不读取行情、不重跑M10、不搜索参数，也不创建新的有效性结论。
+- 实现与产物：已批准四合同、独立validation／forward最低门槛和“批准实现不等于validated／active”边界，允许进入A—D影子实施。
+- 验证：治理19项通过，27个本地Markdown链接、差异格式和设计文件范围检查通过；本轮不提交、不推送。
+
 ### CR-2026-09-02-050｜M10统一评价、回测与外部研究引擎
 
 - 用户原意：在不改写M02—M09既有事实的前提下，为逐股前向表现、严格执行M08计划后的交易结果、资本约束组合运行和研究汇总建立四类互不冒充的不可变结果；V1、V2及comparison永久并存，并可按版本、日期、股票、事件和运行准确查询。CSV／Excel只能从权威结果再生成，供人工审核，不能成为机器账本或回写旧事实。
