@@ -484,8 +484,9 @@ LIFECYCLE_FIELDS = {
     "lifecycle_event_id", "lifecycle_content_fingerprint", "proposal_id",
     "proposal_content_fingerprint", "strategy_id", "strategy_version", "event_type",
     "changed_axis", "state_before", "state_after", "supersedes_lifecycle_event_id",
-    "assessment_ref", "evidence_refs", "author_id", "occurred_at", "reason",
-    "bias_labels",
+    "assessment_ref", "evidence_refs", "implementation_evidence",
+    "activation_evidence", "retirement_evidence", "author_id", "occurred_at",
+    "reason", "bias_labels",
 }
 
 
@@ -515,6 +516,7 @@ def _lifecycle_identity(payload: Mapping[str, Any]) -> dict[str, Any]:
     return {key: plain(payload[key]) for key in (
         "proposal_id", "strategy_version", "event_type", "changed_axis", "state_before",
         "state_after", "supersedes_lifecycle_event_id", "assessment_ref", "evidence_refs",
+        "implementation_evidence", "activation_evidence", "retirement_evidence",
         "author_id", "occurred_at", "reason",
     )}
 
@@ -562,11 +564,51 @@ def validate_strategy_lifecycle_event(payload: Mapping[str, Any]) -> None:
         if after["implementation"] != "implemented_in_main" or not {"implementation-proof", "test-proof"}.issubset(roles):
             raise ContractError("implementation requires main code and test proof")
     if event_type == "production_activation_recorded":
-        if after["production"] != "active" or "m12-activation" not in roles:
+        if after["production"] != "active" or not {"m12-manifest", "deployment-proof", "online-verification"}.issubset(roles):
             raise ContractError("production activation requires active state and M12 evidence")
     if event_type == "retirement_recorded":
         if after["production"] != "retired" or "retirement-proof" not in roles:
             raise ContractError("retirement requires retired state and proof")
+    implementation = payload["implementation_evidence"]
+    activation = payload["activation_evidence"]
+    retirement = payload["retirement_evidence"]
+    if event_type == "implementation_recorded":
+        implementation = _exact(
+            implementation,
+            {"code_commit", "rule_version", "implementation_ref", "test_ref"},
+            "implementation_evidence",
+        )
+        if not _COMMIT.fullmatch(str(implementation["code_commit"])):
+            raise ContractError("implementation code_commit must be full 40-hex Git identity")
+        _semver(implementation["rule_version"], "implementation rule_version")
+        _validate_ref(implementation["implementation_ref"], "implementation_ref", {"implementation-proof"})
+        _validate_ref(implementation["test_ref"], "test_ref", {"test-proof"})
+    elif implementation is not None:
+        raise ContractError("only implementation event may carry implementation evidence")
+    if event_type == "production_activation_recorded":
+        activation = _exact(
+            activation,
+            {"manifest_ref", "deployment_ref", "online_verification_ref", "effective_date"},
+            "activation_evidence",
+        )
+        _validate_ref(activation["manifest_ref"], "activation.manifest_ref", {"m12-manifest"})
+        _validate_ref(activation["deployment_ref"], "activation.deployment_ref", {"deployment-proof"})
+        _validate_ref(activation["online_verification_ref"], "activation.online_verification_ref", {"online-verification"})
+        _date(activation["effective_date"], "activation.effective_date")
+    elif activation is not None:
+        raise ContractError("only activation event may carry activation evidence")
+    if event_type == "retirement_recorded":
+        retirement = _exact(
+            retirement,
+            {"retirement_ref", "effective_date", "replacement_strategy_version"},
+            "retirement_evidence",
+        )
+        _validate_ref(retirement["retirement_ref"], "retirement.retirement_ref", {"retirement-proof"})
+        _date(retirement["effective_date"], "retirement.effective_date")
+        if retirement["replacement_strategy_version"] is not None:
+            _semver(retirement["replacement_strategy_version"], "replacement_strategy_version")
+    elif retirement is not None:
+        raise ContractError("only retirement event may carry retirement evidence")
     _text(payload["author_id"], "author_id")
     occurred = _timestamp(payload["occurred_at"], "occurred_at")
     if occurred[:10] != payload["as_of"]:

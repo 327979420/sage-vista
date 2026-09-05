@@ -166,7 +166,9 @@ class M11PlaybookTests(unittest.TestCase):
         evaluation.write_run_receipt(self.baseline_pending)
         evaluation.write_result("ForwardOutcome", self.baseline_outcome)
         evaluation.write_run_receipt(self.baseline_completed)
-        playbook = PlaybookShadowStore(root / "playbook")
+        playbook = PlaybookShadowStore(
+            root / "playbook", ledger_store=ledger, evaluation_store=evaluation
+        )
         return context, ledger, evaluation, playbook
 
     def assess(self, ledger, evaluation, **changes):
@@ -332,7 +334,7 @@ class M11PlaybookTests(unittest.TestCase):
         approved = record_user_decision(self.proposal, existing_events=events, decision="approved_for_implementation", approval_ref=proof("approval", "d"), author_id="author:user", occurred_at="2026-09-05T12:02:00Z", reason="approve candidate implementation")
         self.assertEqual("candidate", approved["state_after"]["evidence"])
         with self.assertRaisesRegex(ContractError, "prerequisites"):
-            record_production_activation(self.proposal, existing_events=[*events, approved], m12_activation_proof=proof("m12-activation", "e"), author_id="system:m12", occurred_at="2026-09-05T12:03:00Z", reason="invalid")
+            record_production_activation(self.proposal, existing_events=[*events, approved], m12_manifest_proof=proof("m12-manifest", "e"), deployment_proof=proof("deployment-proof", "6"), online_verification_proof=proof("online-verification", "7"), effective_date="2026-09-05", author_id="system:m12", occurred_at="2026-09-05T12:03:00Z", reason="invalid")
 
     def test_implemented_in_main_is_not_active(self):
         context, ledger, evaluation, _ = self.seeded()
@@ -340,7 +342,7 @@ class M11PlaybookTests(unittest.TestCase):
             assessment = self.assess(ledger, evaluation)
             events = self.lifecycle(assessment)
             approved = record_user_decision(self.proposal, existing_events=events, decision="approved_for_implementation", approval_ref=proof("approval", "d"), author_id="author:user", occurred_at="2026-09-05T12:02:00Z", reason="approved")
-            implemented = record_main_implementation(self.proposal, existing_events=[*events, approved], implementation_proof=proof("implementation-proof", "e"), test_proof=proof("test-proof", "f"), author_id="system:git", occurred_at="2026-09-05T12:03:00Z", reason="merged")
+            implemented = record_main_implementation(self.proposal, existing_events=[*events, approved], implementation_proof=proof("implementation-proof", "e"), test_proof=proof("test-proof", "f"), code_commit="1" * 40, rule_version="1.0.0", author_id="system:git", occurred_at="2026-09-05T12:03:00Z", reason="merged")
             self.assertEqual("implemented_in_main", implemented["state_after"]["implementation"])
             self.assertEqual("inactive", implemented["state_after"]["production"])
 
@@ -350,8 +352,8 @@ class M11PlaybookTests(unittest.TestCase):
             assessment = self.assess(ledger, evaluation)
             events = self.lifecycle(assessment)
             approved = record_user_decision(self.proposal, existing_events=events, decision="approved_for_implementation", approval_ref=proof("approval", "d"), author_id="author:user", occurred_at="2026-09-05T12:02:00Z", reason="approved")
-            implemented = record_main_implementation(self.proposal, existing_events=[*events, approved], implementation_proof=proof("implementation-proof", "e"), test_proof=proof("test-proof", "f"), author_id="system:git", occurred_at="2026-09-05T12:03:00Z", reason="merged")
-            active = record_production_activation(self.proposal, existing_events=[*events, approved, implemented], m12_activation_proof=proof("m12-activation", "1"), author_id="system:m12", occurred_at="2026-09-05T12:04:00Z", reason="synthetic proof")
+            implemented = record_main_implementation(self.proposal, existing_events=[*events, approved], implementation_proof=proof("implementation-proof", "e"), test_proof=proof("test-proof", "f"), code_commit="1" * 40, rule_version="1.0.0", author_id="system:git", occurred_at="2026-09-05T12:03:00Z", reason="merged")
+            active = record_production_activation(self.proposal, existing_events=[*events, approved, implemented], m12_manifest_proof=proof("m12-manifest", "1"), deployment_proof=proof("deployment-proof", "6"), online_verification_proof=proof("online-verification", "7"), effective_date="2026-09-05", author_id="system:m12", occurred_at="2026-09-05T12:04:00Z", reason="synthetic proof")
             self.assertEqual("active", active["state_after"]["production"])
 
     def test_retirement_preserves_history_and_cannot_reactivate(self):
@@ -360,10 +362,10 @@ class M11PlaybookTests(unittest.TestCase):
             assessment = self.assess(ledger, evaluation)
             events = self.lifecycle(assessment)
             approved = record_user_decision(self.proposal, existing_events=events, decision="approved_for_implementation", approval_ref=proof("approval", "d"), author_id="author:user", occurred_at="2026-09-05T12:02:00Z", reason="approved")
-            implemented = record_main_implementation(self.proposal, existing_events=[*events, approved], implementation_proof=proof("implementation-proof", "e"), test_proof=proof("test-proof", "f"), author_id="system:git", occurred_at="2026-09-05T12:03:00Z", reason="merged")
-            active = record_production_activation(self.proposal, existing_events=[*events, approved, implemented], m12_activation_proof=proof("m12-activation", "1"), author_id="system:m12", occurred_at="2026-09-05T12:04:00Z", reason="synthetic proof")
+            implemented = record_main_implementation(self.proposal, existing_events=[*events, approved], implementation_proof=proof("implementation-proof", "e"), test_proof=proof("test-proof", "f"), code_commit="1" * 40, rule_version="1.0.0", author_id="system:git", occurred_at="2026-09-05T12:03:00Z", reason="merged")
+            active = record_production_activation(self.proposal, existing_events=[*events, approved, implemented], m12_manifest_proof=proof("m12-manifest", "1"), deployment_proof=proof("deployment-proof", "6"), online_verification_proof=proof("online-verification", "7"), effective_date="2026-09-05", author_id="system:m12", occurred_at="2026-09-05T12:04:00Z", reason="synthetic proof")
             chain = [*events, approved, implemented, active]
-            retired = record_retirement(self.proposal, existing_events=chain, retirement_proof=proof("retirement-proof", "2"), author_id="system:m12", occurred_at="2026-09-05T12:05:00Z", reason="retired")
+            retired = record_retirement(self.proposal, existing_events=chain, retirement_proof=proof("retirement-proof", "2"), effective_date="2026-09-05", author_id="system:m12", occurred_at="2026-09-05T12:05:00Z", reason="retired")
             self.assertEqual("retired", retired["state_after"]["production"])
             with self.assertRaisesRegex(ContractError, "retired"):
                 record_user_decision(self.proposal, existing_events=[*chain, retired], decision="deferred", approval_ref=proof("approval", "3"), author_id="author:user", occurred_at="2026-09-05T12:06:00Z", reason="cannot revive")

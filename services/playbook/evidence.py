@@ -116,17 +116,13 @@ def _criterion_result(criterion: Mapping[str, Any], result: Mapping[str, Any]) -
     }
 
 
-def assess_persisted_strategy_evidence(
+def validate_persisted_proposal_sources(
     proposal: Mapping[str, Any],
     *,
     ledger_store: EventLedgerStore,
-    evaluation_store: EvaluationShadowStore,
-    run_ids: Sequence[str],
-    assessed_at: str,
-    supersedes_assessment: Mapping[str, Any] | None = None,
     known_approval_refs: AbstractSet[str] = frozenset(),
-) -> Mapping[str, Any]:
-    """Assess only canonical evidence actually present in the M09/M10 stores."""
+) -> str:
+    """Revalidate a proposal's complete M09 sources from the ledger on disk."""
 
     validate_strategy_proposal(proposal)
     events, reviews, ledger_fingerprint = _ledger_authority(
@@ -144,6 +140,30 @@ def assess_persisted_strategy_evidence(
     for case in proposal["case_roles"]:
         if str(case["event_id"]) not in events:
             raise ContractError("proposal case event is not persisted in M09")
+    return ledger_fingerprint
+
+
+def assess_persisted_strategy_evidence(
+    proposal: Mapping[str, Any],
+    *,
+    ledger_store: EventLedgerStore,
+    evaluation_store: EvaluationShadowStore,
+    run_ids: Sequence[str],
+    assessed_at: str,
+    supersedes_assessment: Mapping[str, Any] | None = None,
+    known_approval_refs: AbstractSet[str] = frozenset(),
+) -> Mapping[str, Any]:
+    """Assess only canonical evidence actually present in the M09/M10 stores."""
+
+    validate_strategy_proposal(proposal)
+    events, _, ledger_fingerprint = _ledger_authority(
+        ledger_store, known_approval_refs=known_approval_refs
+    )
+    validate_persisted_proposal_sources(
+        proposal,
+        ledger_store=ledger_store,
+        known_approval_refs=known_approval_refs,
+    )
 
     inventory = evaluation_store.capture_inventory()
     run_groups: dict[str, list[Mapping[str, Any]]] = {}
@@ -278,4 +298,4 @@ def assess_persisted_strategy_evidence(
     )
 
 
-__all__ = ["assess_persisted_strategy_evidence"]
+__all__ = ["assess_persisted_strategy_evidence", "validate_persisted_proposal_sources"]

@@ -38,6 +38,9 @@ def _next_event(
     reason: str,
     evidence_refs: Sequence[Mapping[str, Any]] = (),
     assessment: Mapping[str, Any] | None = None,
+    implementation_evidence: Mapping[str, Any] | None = None,
+    activation_evidence: Mapping[str, Any] | None = None,
+    retirement_evidence: Mapping[str, Any] | None = None,
 ) -> Mapping[str, Any]:
     validate_strategy_proposal(proposal)
     if existing_events:
@@ -88,7 +91,11 @@ def _next_event(
         event_type=event_type, changed_axis=axis,
         state_before=before, state_after=after,
         supersedes_lifecycle_event_id=prior, assessment_ref=assessment_ref,
-        evidence_refs=evidence_refs, author_id=author_id,
+        evidence_refs=evidence_refs,
+        implementation_evidence=implementation_evidence,
+        activation_evidence=activation_evidence,
+        retirement_evidence=retirement_evidence,
+        author_id=author_id,
         occurred_at=occurred_at, reason=reason, bias_labels=[],
     )
 
@@ -132,6 +139,7 @@ def record_user_decision(
 def record_main_implementation(
     proposal: Mapping[str, Any], *, existing_events: Sequence[Mapping[str, Any]],
     implementation_proof: Mapping[str, Any], test_proof: Mapping[str, Any],
+    code_commit: str, rule_version: str,
     author_id: str, occurred_at: str, reason: str,
 ) -> Mapping[str, Any]:
     leaf = current_strategy_lifecycle(existing_events)
@@ -141,13 +149,20 @@ def record_main_implementation(
         proposal, existing_events=existing_events, event_type="implementation_recorded",
         new_value="implemented_in_main", author_id=author_id, occurred_at=occurred_at,
         reason=reason, evidence_refs=[implementation_proof, test_proof],
+        implementation_evidence={
+            "code_commit": code_commit,
+            "rule_version": rule_version,
+            "implementation_ref": implementation_proof,
+            "test_ref": test_proof,
+        },
     )
 
 
 def record_production_activation(
     proposal: Mapping[str, Any], *, existing_events: Sequence[Mapping[str, Any]],
-    m12_activation_proof: Mapping[str, Any], author_id: str,
-    occurred_at: str, reason: str,
+    m12_manifest_proof: Mapping[str, Any], deployment_proof: Mapping[str, Any],
+    online_verification_proof: Mapping[str, Any], effective_date: str,
+    author_id: str, occurred_at: str, reason: str,
 ) -> Mapping[str, Any]:
     """Consume an M12 proof; M11 never creates that proof itself."""
 
@@ -155,14 +170,21 @@ def record_production_activation(
         proposal, existing_events=existing_events,
         event_type="production_activation_recorded", new_value="active",
         author_id=author_id, occurred_at=occurred_at, reason=reason,
-        evidence_refs=[m12_activation_proof],
+        evidence_refs=[m12_manifest_proof, deployment_proof, online_verification_proof],
+        activation_evidence={
+            "manifest_ref": m12_manifest_proof,
+            "deployment_ref": deployment_proof,
+            "online_verification_ref": online_verification_proof,
+            "effective_date": effective_date,
+        },
     )
 
 
 def record_retirement(
     proposal: Mapping[str, Any], *, existing_events: Sequence[Mapping[str, Any]],
-    retirement_proof: Mapping[str, Any], author_id: str,
-    occurred_at: str, reason: str,
+    retirement_proof: Mapping[str, Any], effective_date: str,
+    replacement_strategy_version: str | None = None,
+    author_id: str, occurred_at: str, reason: str,
 ) -> Mapping[str, Any]:
     leaf = current_strategy_lifecycle(existing_events)
     if leaf["state_after"]["production"] != "active":
@@ -171,6 +193,11 @@ def record_retirement(
         proposal, existing_events=existing_events, event_type="retirement_recorded",
         new_value="retired", author_id=author_id, occurred_at=occurred_at,
         reason=reason, evidence_refs=[retirement_proof],
+        retirement_evidence={
+            "retirement_ref": retirement_proof,
+            "effective_date": effective_date,
+            "replacement_strategy_version": replacement_strategy_version,
+        },
     )
 
 

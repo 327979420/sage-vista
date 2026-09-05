@@ -10,10 +10,12 @@ from pathlib import Path
 import re
 import stat
 import tempfile
-from typing import Any, Callable, Iterator, Mapping
+from typing import AbstractSet, Any, Callable, Iterator, Mapping
 
 from services.contracts.validation import ContractError
 from services.market_data.storage import require_shadow_root
+from services.evaluation import EvaluationShadowStore
+from services.ledger import EventLedgerStore
 
 from .contracts import (
     current_strategy_assessment,
@@ -24,6 +26,7 @@ from .contracts import (
     validate_strategy_proposal,
     validate_strategy_registry_snapshot,
 )
+from .evidence import assess_persisted_strategy_evidence, validate_persisted_proposal_sources
 
 
 _DIGEST = re.compile(r"^[0-9a-f]{64}$")
@@ -61,8 +64,19 @@ def _lock(root: Path, key: str) -> Iterator[None]:
 class PlaybookShadowStore:
     """Persist the three M11 authority records and optional derived snapshots."""
 
-    def __init__(self, root: str | Path, *, workspace_root: str | Path | None = None) -> None:
+    def __init__(
+        self,
+        root: str | Path,
+        *,
+        workspace_root: str | Path | None = None,
+        ledger_store: EventLedgerStore | None = None,
+        evaluation_store: EvaluationShadowStore | None = None,
+        known_approval_refs: AbstractSet[str] = frozenset(),
+    ) -> None:
         self.root = require_shadow_root(root, workspace_root=workspace_root)
+        self.ledger_store = ledger_store
+        self.evaluation_store = evaluation_store
+        self.known_approval_refs = frozenset(known_approval_refs)
 
     @staticmethod
     def _read(path: Path, validator: Callable[[Mapping[str, Any]], None]) -> Mapping[str, Any]:
@@ -127,6 +141,13 @@ class PlaybookShadowStore:
 
     def write_proposal(self, payload: Mapping[str, Any]) -> Path:
         validate_strategy_proposal(payload)
+        if self.ledger_store is None:
+            raise ContractError("formal M11 proposal storage requires persisted M09 authority")
+        validate_persisted_proposal_sources(
+            payload,
+            ledger_store=self.ledger_store,
+            known_approval_refs=self.known_approval_refs,
+        )
         target = self.root / "proposals" / (_digest(payload["proposal_id"], "proposal_id") + ".json")
         with _lock(self.root, "proposals"):
             return self._write(payload, target=target, validator=validate_strategy_proposal, id_field="proposal_id", fingerprint_field="proposal_content_fingerprint")
@@ -152,6 +173,19 @@ class PlaybookShadowStore:
             )):
                 raise ContractError("assessment requires its exact persisted proposal")
             chain = [item for item in self._collection("assessments", validate_strategy_evidence_assessment) if item["logical_assessment_id"] == payload["logical_assessment_id"]]
+            if self.ledger_store is None or self.evaluation_store is None:
+                raise ContractError("formal M11 assessment storage requires M09 and M10 authority")
+            reproduced = assess_persisted_strategy_evidence(
+                proposal,
+                ledger_store=self.ledger_store,
+                evaluation_store=self.evaluation_store,
+                run_ids=[str(item["run_id"]) for item in payload["run_refs"]],
+                assessed_at=str(payload["assessed_at"]),
+                supersedes_assessment=(current_strategy_assessment(chain) if chain else None),
+                known_approval_refs=self.known_approval_refs,
+            )
+            if _bytes(reproduced) != _bytes(payload):
+                raise ContractError("assessment differs from persisted M09/M10 authority")
             existing_ids = {item["assessment_id"] for item in chain}
             if payload["assessment_id"] not in existing_ids:
                 leaf = current_strategy_assessment(chain) if chain else None

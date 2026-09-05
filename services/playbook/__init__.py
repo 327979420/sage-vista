@@ -22,7 +22,7 @@ from .contracts import (
     validate_strategy_proposal,
     validate_strategy_registry_snapshot,
 )
-from .evidence import assess_persisted_strategy_evidence
+from .evidence import assess_persisted_strategy_evidence, validate_persisted_proposal_sources
 from .producer import (
     produce_strategy_proposal,
     record_evidence_assessment,
@@ -39,6 +39,7 @@ __all__ = [
     "CASE_ROLES", "DECISION_STATES", "EVIDENCE_GATE_POLICY_VERSION", "EVIDENCE_STATES",
     "IMPLEMENTATION_STATES", "KNOWN_SEEN_CASES", "PRODUCTION_STATES", "SCHEMA_VERSION",
     "SOURCE_VERSION", "PlaybookShadowStore", "assess_persisted_strategy_evidence",
+    "validate_persisted_proposal_sources",
     "build_preregistration", "build_strategy_evidence_assessment",
     "build_strategy_lifecycle_event", "build_strategy_proposal",
     "current_strategy_assessment", "current_strategy_lifecycle",
