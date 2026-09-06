@@ -302,3 +302,26 @@ PublicationAuthorization的内部publication_authorization_evidence可增强为�
 本批是纯原件语义／证据一致性，不执行GitHub、R2、DO或运行时批准。保留原五字段可信注入路径以支持已有纯合同、历史及合成验证，不把它升级为生产认证入口；后续生产适配器必须由B2c直接取得原件并强制提供增强证据，不能允许外部删去两字段降级。source_commit及原件字节的真实来源仍由上游认证取证保证，纯函数不能证明同形JSON来自GitHub。实际原件归档、approval_evidence_ref与完整观测绑定、审核人看到固定请求的工作流、业务目标／配置实际库存验证、当前授权链及lease锁内登记仍待实施；不得以构造出的合同当作已生效许可。跨日端到端仍未执行，M11不重审。
 
 独立提交`feat: validate M12 frozen authorization request semantics [skip ci]`，父提交4b8b01fdda6284591ed7c5a8c6c29a486c685dde，完整SHA见交付消息。只改唯一合同模块、新增专项测试及3个治理文档；可撤回本批内部原件接点并保留记录，无存储迁移。未合并、推送、创建云资源、部署、生产启用或对外通知。
+
+
+## B2d独立复核回传
+
+审核对话01a074f9-098a-7b82-b486-3185683290fe确认c69951bc46ccffc27b0cbbcc9aaac29a780dc356在原件语义与授权合同绑定范围通过。审核员运行149项测试，另删除单一source字段／重签reason替换共9次三入口反例被拒绝；原合法身份、控制与业务提交分离及撤销前序不变。diff通过、HEAD不变、工作区干净。旧五字段纯注入路径非生产入口，后续必须强制verifyRequest＋增强路径；来源冻结仍不能替代正文批准或事务内授权。
+
+## B2e：完整观测原件归档及证据引用（待独立审核）
+
+`services/publication/review_archive.mjs`新增内部ReviewedRequestArchive，构造时固定身份／审核政策及R2绑定，archive只接签名token。内部直接组合B2c verifyRequest与B1a ImmutableArchive，不存在接收外部“已验证观测”JSON、可覆盖请求正文或退回五字段可信证据的方法。先核验来源，再写请求原件及九份API原件到raw/<sha256摘要>，全部条件写入并读回原字节核对完成后，才写私有authority/<摘要>.json批准观测清单。清单自身同样条件写入和读回复核，任意失败不返回完成。
+
+清单是字节归档清单，不是PublicationAuthorization或新的业务批准合同。精确内容为`{kind:'github_environment_approval_observation',version:1,identity,approver_id,environment_id,observed_at,review_observed_at,request,documents}`。identity及两观测时间来自真实取证流程；request为source_commit／path／blob_sha加已归档key／sha256／size_bytes；documents为九个`{role,url,key,sha256,size_bytes}`，顺序固定run_before_review、environment、review_history、run_after_review、source_commit、source_root_tree、source_config_tree、request_blob、run_after_source。同字节run原件可共用raw键，九个角色位置仍完整保留，不因去重漏掉核验步骤。清单用UTF-8无空白、键排序JSON保存；不保存原token或API凭据。
+
+清单完整原字节的SHA-256为F，引用精确为`{id:'approval-observation:'+F,content_fingerprint:F}`；与authority键及返回字节定位描述绑定。archive返回`{approval_evidence_ref,bundle,request_source}`，request_source包含已复核原件字节副本，便于后续Python增强证据接线。引用只定位私有观测清单，不表示权威索引已经登记、正文合同已验证或权限生效。来源来自服务器内部取证对象，不能把外部返回值同形JSON再当成已认证材料。
+
+每次原件写入前、清单写入前及读回后均检查当前服务时间与token期限，过期不返回完成。失败／过期可以留下原件或完整但未登记的清单，保留为孤立审计材料，不删除、不进入权威库存。重复相同观测返回同一引用并复用原字节；新观测时间、token身份或API字节变化会形成新观测清单，不覆盖旧件，不能因此重复授予授权。DO后续必须按已绑定run／请求执行授权幂等、验证完整原件和当前链／lease，而不能只看清单存在。
+
+### B2e实际检查与边界
+
+8项新增归档接点专项＋21项取证回归共29项Node测试，使用本地真实RSA／B2a签名核验、受控GitHub响应和R2绑定替身。覆盖九角色原件及SHA引用、11次条件写／读回、相同观测重放、外部伪造JSON／无批准／坏来源不写入、部分原件失败、清单响应丢失重试、损坏原件／读回、归档中途及末次过期、变化观测保留历史。加7项治理、12项项目状态共48项通过；定点lint、机器状态／文档链接、diff检查通过。
+
+本批实现实际R2绑定调用路径，但测试没有真实云桶、角色权限／无限保留锁或远端持久性证据。没有DO或RPC／HTTP入口，API凭据和存储能力仅内部注入；生产配置及权限隔离仍待上线卡与接线验收。尚未运行Python语义验证或形成授权记录；后续必须从已持久化清单重验原件、强制B2d增强证据，把approval_evidence_ref与请求／Job／approver完整绑定，并核验真实业务目标／config、审核人可审阅工作流及当前授权链／lease。原件存在不能当作已批准任意请求或生产许可。跨日端到端仍未执行，M11不重审。
+
+独立提交`feat: archive M12 approval observation evidence [skip ci]`，父提交c69951bc46ccffc27b0cbbcc9aaac29a780dc356，完整SHA见交付消息。仅新增内部归档组合器、扩展现有取证测试及3个治理文档，无业务算法／配置变更；可撤销本包并保留记录，无真实数据迁移。未合并、推送、创建云资源、部署、生产启用或对外通知。

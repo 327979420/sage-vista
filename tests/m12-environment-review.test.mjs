@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash, generateKeyPairSync, sign } from "node:crypto";
 import { GitHubEnvironmentReviewVerifier } from "../services/publication/environment_review.mjs";
+import { ReviewedRequestArchive } from "../services/publication/review_archive.mjs";
 
 const NOW = 1_788_652_800;
 const keys = generateKeyPairSync("rsa", { modulusLength: 2048 });
@@ -210,7 +211,7 @@ function requestFixture(raw = '{"action":"grant","reason":"冻结请求"}\n') {
     assert.ok(path in responses, path);
     return new Response(JSON.stringify(responses[path], null, 2) + "\n");
   } };
-  return { ...f, bytes, blobSha, responses, gitCalls, hooks,
+  return { ...f, options, bytes, blobSha, responses, gitCalls, hooks,
     commit: responses["/git/commits/" + identityPolicy.code_commit],
     root: responses["/git/trees/" + rootSha], tree: responses["/git/trees/" + configSha],
     blob: responses["/git/blobs/" + blobSha],
@@ -309,4 +310,146 @@ test("source binding does not pretend opaque bytes satisfy a request contract", 
   assert.equal("permissions" in result, false);
   // Subsequent Python request validation is mandatory; no JSON parser or grant
   // constructor is hidden inside this source adapter.
+});
+
+function archiveFixture() {
+  const f = requestFixture();
+  const objects = new Map();
+  const state = { failAt: null, corruptRead: false, afterPut: null, puts: 0, gets: 0 };
+  const bucket = {
+    async put(key, bytes, options) {
+      assert.equal(options.onlyIf.get("If-None-Match"), "*");
+      state.puts++;
+      const prior = objects.has(key);
+      if (!prior) objects.set(key, new Uint8Array(bytes));
+      if (state.afterPut) state.afterPut(key);
+      if (state.puts === state.failAt) throw new Error("write_response_lost");
+      return prior ? null : { key };
+    },
+    async get(key) {
+      state.gets++;
+      if (!objects.has(key)) return null;
+      const original = new Uint8Array(objects.get(key));
+      if (state.corruptRead) original[0] ^= 1;
+      return { arrayBuffer: async () => original.buffer };
+    },
+  };
+  return { ...f, objects, archiveState: state,
+    archive: new ReviewedRequestArchive(identityPolicy, reviewPolicy, { ...f.options, bucket }) };
+}
+
+test("archive binds every role and original byte before issuing evidence reference", async () => {
+  const f = archiveFixture();
+  const result = await f.archive.archive(token());
+  const bundleBytes = f.objects.get(result.bundle.key);
+  const hash = "sha256:" + createHash("sha256").update(bundleBytes).digest("hex");
+  assert.equal(result.approval_evidence_ref.id, "approval-observation:" + hash);
+  assert.equal(result.approval_evidence_ref.content_fingerprint, hash);
+  assert.equal(result.bundle.key, "authority/" + hash.slice(7) + ".json");
+  const bundle = JSON.parse(new TextDecoder().decode(bundleBytes));
+  assert.equal(bundle.kind, "github_environment_approval_observation");
+  assert.equal(bundle.documents.length, 9);
+  assert.equal(new Set(bundle.documents.map((d) => d.role)).size, 9);
+  for (const item of [bundle.request, ...bundle.documents]) {
+    const bytes = f.objects.get(item.key);
+    assert.equal(item.size_bytes, bytes.length);
+    assert.equal(item.sha256, "sha256:" + createHash("sha256").update(bytes).digest("hex"));
+  }
+  assert.deepEqual(Buffer.from(f.objects.get(bundle.request.key)), f.bytes);
+  assert.equal(bundle.identity.job.run_id, "456");
+  assert.equal(bundle.approver_id, "999");
+  assert.equal(bundle.environment_id, "10");
+  assert.equal(bundle.request.source_commit, identityPolicy.code_commit);
+  assert.equal(f.archiveState.puts, 11);
+  assert.equal(f.archiveState.gets, 11);
+  assert.equal(bundleBytes.includes(Buffer.from("local-test-credential")), false);
+  assert.equal(bundleBytes.includes(Buffer.from(token())), false);
+  assert.equal("authorization_id" in result, false);
+});
+
+test("same observations replay to same reference and byte keys without overwriting", async () => {
+  const f = archiveFixture();
+  const first = await f.archive.archive(token());
+  const saved = new Map([...f.objects].map(([key, value]) => [key, Buffer.from(value)]));
+  const next = await f.archive.archive(token());
+  assert.deepEqual(next, first);
+  assert.equal(f.objects.size, saved.size);
+  for (const [key, value] of saved) assert.deepEqual(Buffer.from(f.objects.get(key)), value);
+  next.request_source.bytes.fill(0);
+  assert.deepEqual(Buffer.from((await f.archive.archive(token())).request_source.bytes), f.bytes);
+});
+
+test("unverified JSON, failed review and bad source cannot cause any archive writes", async () => {
+  const f = archiveFixture();
+  await assert.rejects(f.archive.archive({ request_source: { bytes: "forged", source_commit: identityPolicy.code_commit } }));
+  f.data.reviews.length = 0;
+  await assert.rejects(f.archive.archive(token()));
+  assert.equal(f.objects.size, 0);
+  const badSource = archiveFixture();
+  badSource.blob.content = Buffer.alloc(badSource.bytes.length, 65).toString("base64");
+  await assert.rejects(badSource.archive.archive(token()), /blob_sha_mismatch/);
+  assert.equal(badSource.objects.size, 0);
+});
+
+
+test("partial raw failure returns no bundle and retry resumes immutable objects", async () => {
+  const f = archiveFixture();
+  f.archiveState.failAt = 4;
+  await assert.rejects(f.archive.archive(token()), /write_response_lost/);
+  assert.ok([...f.objects.keys()].every((key) => key.startsWith("raw/")));
+  const saved = new Map([...f.objects].map(([key, value]) => [key, Buffer.from(value)]));
+  f.archiveState.failAt = null;
+  const result = await f.archive.archive(token());
+  assert.ok(f.objects.has(result.bundle.key));
+  for (const [key, value] of saved) assert.deepEqual(Buffer.from(f.objects.get(key)), value);
+});
+
+test("lost bundle write response is not success and can retry by original bytes", async () => {
+  const f = archiveFixture();
+  f.archiveState.failAt = 11;
+  await assert.rejects(f.archive.archive(token()), /write_response_lost/);
+  const bundleKey = [...f.objects.keys()].find((key) => key.startsWith("authority/"));
+  assert.ok(bundleKey);
+  const original = Buffer.from(f.objects.get(bundleKey));
+  f.archiveState.failAt = null;
+  const result = await f.archive.archive(token());
+  assert.equal(result.bundle.key, bundleKey);
+  assert.deepEqual(Buffer.from(f.objects.get(bundleKey)), original);
+});
+
+test("corrupted existing raw object or readback never produces an evidence reference", async () => {
+  const f = archiveFixture();
+  const rawKey = "raw/" + createHash("sha256").update(f.bytes).digest("hex");
+  const corrupt = new Uint8Array(f.bytes); corrupt[0] ^= 1;
+  f.objects.set(rawKey, corrupt);
+  await assert.rejects(f.archive.archive(token()), /hash_mismatch/);
+  assert.deepEqual(f.objects.get(rawKey), corrupt);
+  const read = archiveFixture(); read.archiveState.corruptRead = true;
+  await assert.rejects(read.archive.archive(token()), /hash_mismatch/);
+  assert.ok([...read.objects.keys()].every((key) => key.startsWith("raw/")));
+});
+
+test("expiry mid-archive or after bundle write aborts without promoting or deleting orphans", async () => {
+  for (const afterBundle of [false, true]) {
+    const f = archiveFixture();
+    f.archiveState.afterPut = (key) => {
+      if (!afterBundle || key.startsWith("authority/")) f.state.now = claims.exp * 1000;
+    };
+    await assert.rejects(f.archive.archive(token()), /archive_identity_expired/);
+    assert.ok(f.objects.size > 0);
+    assert.equal([...f.objects.keys()].some((key) => key.startsWith("authority/")), afterBundle);
+  }
+});
+
+test("fresh changed observation creates another bundle and preserves earlier evidence", async () => {
+  const f = archiveFixture();
+  const first = await f.archive.archive(token());
+  const oldBytes = Buffer.from(f.objects.get(first.bundle.key));
+  f.data.reviews[0].comment = "different observed comment";
+  f.state.now += 1000;
+  const second = await f.archive.archive(token());
+  assert.notEqual(second.approval_evidence_ref.id, first.approval_evidence_ref.id);
+  assert.deepEqual(Buffer.from(f.objects.get(first.bundle.key)), oldBytes);
+  // A changed observation is not a second authorization. DO run/request
+  // deduplication and grant registration are not implemented in this adapter.
 });
