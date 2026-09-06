@@ -534,7 +534,7 @@ AuthorizationStore新增readValidationDispatch(identity,token,dispatchId)，先�
 
 每次准备或回传前分别请求新的OIDC token，只向同一固定origin的两个路径POST：`/v1/authorization/prepare`请求正文精确为空对象；响应精确`{protocol,dispatch_id,lease_token,input_sha256,input_size_bytes,input_base64}`，protocol为内部传输版本m12-authorization-job/1。通道严格解析JSON、标准base64、UUID／epoch／fence及输入原字节hash／长度，返回B3g需要的不可变input_bytes结构并私存会话副本。`/v1/authorization/return`正文精确`{protocol,dispatch_id,lease_token,result_base64}`，仅接受本会话原dispatch／令牌和不可变结果bytes，编码时不改变B3c stdout。该协议是客户端接点约定，两个服务端HTTP路由尚未实现或部署。
 
-HTTP只接受200、未变化的响应URL及单一application/json声明，拒绝压缩响应、重复长度／类型／编码头、错误长度和空正文，读取中执行上限而不是截断后继续。OIDC响应最多128KiB、准备响应最多32MiB、回传响应最多1MiB，单请求30秒超时。超限失败关闭，不省略授权历史以绕过上限；真实最大输入规模仍须后续验收。令牌响应只检查传输形状，不在客户端增加另一套JWT或业务合同验证；收到的协调器JSON对象原字节仍保持opaque，HTTP 200不是授权登记证明。
+HTTP只接受200、未变化的响应URL及单一application/json声明，拒绝压缩响应、重复长度／类型／编码头、错误长度和空正文，读取中执行上限而不是截断后继续。OIDC响应最多128KiB、准备响应最多32MiB、回传响应最多1MiB，阻塞网络操作30秒超时；B3h当时尚无请求总时限。超限失败关闭，不省略授权历史以绕过上限；真实最大输入规模仍须后续验收。令牌响应只检查传输形状，不在客户端增加另一套JWT或业务合同验证；收到的协调器JSON对象原字节仍保持opaque，HTTP 200不是授权登记证明。
 
 会话按new→preparing→prepared→returning→returned推进，网络或解析失败进入failed，重复准备及已发送／不确定回传不得在同实例再次发送。发送前错误dispatch／令牌／可变bytes直接拒绝且不发网络请求。网络错误只抛固定脱敏信息，不含URL、令牌或私有响应正文；HTTPError响应句柄会关闭。默认配置未创建任何真实资源或工作流，不读取本机真实Actions凭据、不调用外部协调器。
 
@@ -547,3 +547,24 @@ HTTP只接受200、未变化的响应URL及单一application/json声明，拒绝
 本包仅完成受控客户端，不补足真实受保护工作流执行前提。后续须完成服务端认证路由、60秒续租／失效停止、权威状态查询与不确定回传恢复，并将固定执行入口及此通道接入冻结checkout和经过批准的环境／工作流；运行配置不能来自可任意修改的dispatch输入。最终当时权限、业务目标/config和同事务票据消费／索引追加仍待后续，任何opaque响应均不得当作已登记授权。跨日端到端未执行，M11不重审。
 
 独立提交`feat: add controlled M12 authorization HTTPS transport [skip ci]`，父提交87320fc19f87c2d9888c29622e47ac6059bf0af9，完整SHA见交付消息。仅新增内部通道及其Python专项、扩展现有跨语言测试和3个治理文档；无业务合同／政策版本变化，可撤回本包接点并保留历史。未合并、推送、创建云资源、部署、生产启用或对外通知。
+
+
+## B3h独立复核回传及P3文案更正
+
+审核对话01a074f9-098a-7b82-b486-3185683290fe确认524ffb0f08743b793289c4dcd284dfd6b5ed28e5在未启用客户端范围通过，附一项非阻断P3。审核员运行86项环境／跨语言Node、11项通道Python及19项治理／状态，共116项通过（ResourceWarning按错误处理），并独立核对GitHub接口；diff通过、HEAD不变、工作区干净。已将B3h“单请求30秒超时”更正为“阻塞网络操作30秒超时；B3h当时尚无请求总时限”。[Python urllib文档](https://docs.python.org/3/library/urllib.request.html#urllib.request.OpenerDirector.open)明确该timeout限制阻塞操作，持续慢响应可超过30秒；不以它证明60秒续租或及时失效停止。该文案已改，新取消实现以下单独交审，不把客户端审核扩大到运行或登记。
+
+## B3i：默认HTTP请求隔离与总等待超时取消（待独立审核）
+
+默认AuthorizationHttpsTransport不再在任务主进程执行阻塞HTTP，每个请求启动固定`sys.executable -I <当前authorization_transport.py绝对路径>`子进程，原请求url／token／data_base64／limit仅经匿名stdin管道传递。无shell、无自选程序／路径参数、不继承环境变量、关闭其它文件描述符，stderr丢弃。原URL／身份和会话政策仍由父通道控制；子进程再次检查封闭输入及允许的响应上限，使用原阻塞请求函数、默认TLS证书验证、无环境代理及拒绝重定向策略，只有完整读回并通过原有长度／响应检查后才将原字节写到stdout。
+
+父进程使用subprocess.run的30秒总等待预算，超时由标准库终止并回收该请求子进程，不返回部分stdout；非零退出、空或超过上限的输出也拒绝，仅抛固定脱敏错误。[Python subprocess文档](https://docs.python.org/3/library/subprocess.html#subprocess.run)说明超时会杀死并等待子进程，同时进程创建可能无法中断。因此准确边界是“子进程启动后的总等待预算”，进程创建和终止回收开销不计入这30秒；序列化准备开销也不在其中。每个OIDC GET及协调器POST分别受预算约束，并不是整个prepare／return阶段或整个job的30秒总时限。
+
+保留opener注入仅用于内部受控测试；该分支直接调用原阻塞请求函数，没有子进程总等待保证，真实运行工厂不得从任务参数接受opener替换。取消只停止本地请求进程，不能撤销远端已收到或完成的操作；父通道沿B3h将不确定请求记为failed，不在同实例再次发送。它仍不能作为60秒续租、收到失效信号后立即停止、或远端事务回滚的保证，相关运行接线和状态查询恢复继续下一包。
+
+### B3i实际检查与剩余边界
+
+新增6项通道专项，覆盖默认路径固定argv／隔离标志／空环境／私有stdin及原始输出、不合规输入由实际隔离脚本静默拒绝、实际子进程成功读回保持字节、持续每20毫秒有数据的慢响应超过总等待后被终止并回收（验证其PID已不存在）、非零／空／超量输出及进程失败拒绝、不确定回传总等待超时后无重发。慢响应测试用真实子进程和生产请求读取循环，只有网络opener由独立测试harness替代；测试将预算缩短到1秒，确认此前已有多次读进展，避免只覆盖完全不响应情况。生产代码没有测试开关或可替换子进程命令参数。
+
+86项环境取证／跨语言Node、17项通道Python、7项治理及12项状态共122项通过；通道测试将ResourceWarning视为错误，机器状态／文档链接／diff检查通过。既有注入opener的完整执行／回传组合仍通过；未进行真实TLS／外部网络请求。该包未修改业务合同、服务端存储或租约实现，未重复其无变化完整测试。
+
+服务端路由、60秒续租及失效停止／状态恢复、冻结checkout与受保护工作流、最终当时权限／目标config和同事务消费追加均未完成；不因增加取消边界而提前启用。跨日端到端未执行，M11不重审。独立提交`feat: bound M12 HTTP waits with isolated request workers [skip ci]`，父提交524ffb0f08743b793289c4dcd284dfd6b5ed28e5，完整SHA见交付消息。仅修改通道实现及其专项和3个治理文档；无业务合同／政策版本变化，可撤回本包接点并保留历史。未合并、推送、创建云资源、部署、生产启用或对外通知。

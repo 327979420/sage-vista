@@ -5,11 +5,18 @@ from email.message import Message
 import hashlib
 import io
 import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+from unittest.mock import patch
 from urllib.parse import parse_qs, urlsplit
 from urllib.request import HTTPSHandler, ProxyHandler, build_opener
 from urllib.response import addinfourl
 import unittest
 
+from services.publication import authorization_transport as transport_module
 from services.publication.authorization_transport import AuthorizationHttpsTransport, AuthorizationTransportError, PREPARE_LIMIT, _NoRedirect
 
 
@@ -218,6 +225,128 @@ class AuthorizationTransportTests(unittest.TestCase):
             with self.assertRaises(AuthorizationTransportError):
                 transport.return_result(DISPATCH, LEASE, b'output')
             self.assertEqual(len(opener.calls), 4)
+
+
+class IsolatedRequestTests(unittest.TestCase):
+    def test_default_path_uses_fixed_isolated_program_and_private_stdin(self):
+        replies = [encoded({'value': 'first.token.signature'}), encoded(PREPARED),
+                   encoded({'value': 'second.token.signature'}), b'{"state":"pending"}']
+        calls = []
+
+        def run(command, **kwargs):
+            calls.append((command, kwargs))
+            return subprocess.CompletedProcess(command, 0, replies.pop(0))
+
+        with patch.object(transport_module.subprocess, 'run', side_effect=run):
+            transport = AuthorizationHttpsTransport(ORIGIN, ENV)
+            transport.prepare()
+            self.assertEqual(transport.return_result(DISPATCH, LEASE, b'original-output'), b'{"state":"pending"}')
+        self.assertEqual(len(calls), 4)
+        for command, options in calls:
+            self.assertEqual(command, [sys.executable, '-I', str(Path(transport_module.__file__).resolve())])
+            self.assertEqual(options['env'], {})
+            self.assertFalse(options['shell'])
+            self.assertTrue(options['close_fds'])
+            self.assertEqual(options['timeout'], 30)
+            self.assertEqual(options['stderr'], subprocess.DEVNULL)
+            self.assertNotIn('credential', repr(command))
+        oidc = json.loads(calls[0][1]['input'])
+        self.assertEqual(oidc['token'], 'fake-request-credential')
+        returned = json.loads(calls[3][1]['input'])
+        self.assertEqual(returned['token'], 'second.token.signature')
+        envelope = json.loads(base64.b64decode(returned['data_base64']))
+        self.assertEqual(base64.b64decode(envelope['result_base64']), b'original-output')
+
+    def test_actual_isolated_worker_rejects_bad_input_without_output(self):
+        command = [sys.executable, '-I', str(Path(transport_module.__file__).resolve())]
+        for raw in [b'private-invalid-json', encoded({'url': 'http://bad.example', 'token': 'secret', 'data_base64': None, 'limit': 131072}),
+                    encoded({'url': ORIGIN, 'token': 'secret', 'data_base64': None, 'limit': True})]:
+            result = subprocess.run(command, input=raw, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env={}, timeout=5, check=False)
+            self.assertEqual(result.returncode, 1)
+            self.assertEqual(result.stdout, b'')
+            self.assertEqual(result.stderr, b'')
+
+    def worker_harness(self, *, slow=False, directory=None):
+        # The actual worker functions run in a real child. Only its network
+        # opener is replaced by this test harness; no production test switch.
+        return f"""
+import importlib.util,io,os,time
+from email.message import Message
+from pathlib import Path
+spec=importlib.util.spec_from_file_location('worker', {str(Path(transport_module.__file__).resolve())!r})
+worker=importlib.util.module_from_spec(spec)
+spec.loader.exec_module(worker)
+slow={slow!r}
+directory={directory!r}
+if directory: Path(directory,'pid').write_text(str(os.getpid()))
+class Response(io.BytesIO):
+    def __init__(self,url):
+        super().__init__(b'{{"raw":"original-response"}}')
+        self.url=url
+        self.status=200
+        self.headers=Message()
+        self.headers['Content-Type']='application/json'
+    def geturl(self): return self.url
+    def read(self,size=-1):
+        if slow:
+            time.sleep(0.02)
+            with open(Path(directory,'reads'),'a') as out: out.write('x')
+            return b'x'
+        return super().read(size)
+class Network:
+    def open(self,request,timeout): return Response(request.full_url)
+worker.build_opener=lambda *args:Network()
+raise SystemExit(worker._http_worker_main())
+"""
+
+    def test_actual_child_returns_the_original_completed_response_bytes(self):
+        original_run = subprocess.run
+        harness = self.worker_harness()
+        def launch(command, **options):
+            return original_run([sys.executable, '-I', '-c', harness], **options)
+        with patch.object(transport_module.subprocess, 'run', side_effect=launch):
+            result = transport_module._isolated_request(ORIGIN, 'local-token', limit=131072)
+        self.assertEqual(result, b'{"raw":"original-response"}')
+
+    def test_slow_progress_exceeds_total_wait_and_child_is_killed_and_reaped(self):
+        original_run = subprocess.run
+        with tempfile.TemporaryDirectory(prefix='m12-http-deadline-') as directory:
+            harness = self.worker_harness(slow=True, directory=directory)
+            def launch(command, **options):
+                return original_run([sys.executable, '-I', '-c', harness], **options)
+            with patch.object(transport_module.subprocess, 'run', side_effect=launch), patch.object(transport_module, 'HTTP_TOTAL_WAIT_SECONDS', 1):
+                with self.assertRaisesRegex(AuthorizationTransportError, 'total wait expired'):
+                    transport_module._isolated_request(ORIGIN, 'local-secret-token', limit=131072)
+            self.assertGreater(len(Path(directory,'reads').read_text()), 1)
+            pid = int(Path(directory,'pid').read_text())
+            with self.assertRaises(ProcessLookupError):
+                os.kill(pid, 0)
+
+    def test_worker_failures_empty_or_over_limit_output_are_not_success(self):
+        for result in [subprocess.CompletedProcess([], 1, b'private-output'), subprocess.CompletedProcess([], 0, b''),
+                       subprocess.CompletedProcess([], 0, b'x'*131073)]:
+            with patch.object(transport_module.subprocess, 'run', return_value=result):
+                with self.assertRaisesRegex(AuthorizationTransportError, '^validation transport worker failed$'):
+                    transport_module._isolated_request(ORIGIN, 'secret', limit=131072)
+        with patch.object(transport_module.subprocess, 'run', side_effect=OSError('private credential failure')):
+            with self.assertRaisesRegex(AuthorizationTransportError, '^validation transport worker failed$'):
+                transport_module._isolated_request(ORIGIN, 'secret', limit=131072)
+
+    def test_uncertain_return_timeout_closes_the_session_without_retry(self):
+        replies = [encoded({'value': 'first.token.signature'}), encoded(PREPARED), encoded({'value': 'second.token.signature'})]
+        calls = []
+        def run(command, **options):
+            calls.append(command)
+            if replies: return subprocess.CompletedProcess(command, 0, replies.pop(0))
+            raise subprocess.TimeoutExpired(command, 30, output=b'private-partial-output')
+        with patch.object(transport_module.subprocess, 'run', side_effect=run):
+            transport = AuthorizationHttpsTransport(ORIGIN, ENV)
+            transport.prepare()
+            with self.assertRaisesRegex(AuthorizationTransportError, 'total wait expired'):
+                transport.return_result(DISPATCH, LEASE, b'output')
+            with self.assertRaises(AuthorizationTransportError):
+                transport.return_result(DISPATCH, LEASE, b'output')
+        self.assertEqual(len(calls), 4)
 
 
 if __name__ == '__main__':

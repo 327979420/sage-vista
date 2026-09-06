@@ -10,6 +10,9 @@ from copy import deepcopy
 from contextlib import suppress
 import hashlib
 import json
+from pathlib import Path
+import subprocess
+import sys
 import re
 import ssl
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
@@ -20,6 +23,7 @@ from urllib.request import HTTPSHandler, HTTPRedirectHandler, ProxyHandler, Requ
 PROTOCOL = "m12-authorization-job/1"
 AUDIENCE = "sage-vista-publication"
 PREPARE_LIMIT = 32 * 1024 * 1024
+HTTP_TOTAL_WAIT_SECONDS = 30
 UUID = re.compile(r"[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}")
 
 
@@ -77,6 +81,41 @@ def _lease(value):
     return dict(value)
 
 
+def _blocking_request(opener, url, token, *, data=None, limit):
+    request = Request(url, data=data, method="GET" if data is None else "POST", headers={
+        "Authorization": "Bearer " + token, "Accept": "application/json", "Accept-Encoding": "identity",
+        "Content-Type": "application/json", "Cache-Control": "no-store"})
+    try:
+        with opener.open(request, timeout=30) as response:
+            if response.status != 200 or response.geturl() != url:
+                raise ValueError("unexpected response")
+            headers = response.headers
+            if (headers.get("Content-Type", "").split(";")[0].strip().lower() != "application/json" or
+                    headers.get("Content-Encoding", "identity").lower() != "identity" or
+                    any(len(headers.get_all(name, [])) > 1 for name in ("Content-Type", "Content-Length", "Content-Encoding"))):
+                raise ValueError("unexpected headers")
+            length = headers.get("Content-Length")
+            if length is not None and (not re.fullmatch(r"[0-9]+", length) or int(length) > limit):
+                raise ValueError("response length invalid")
+            chunks, size = [], 0
+            while True:
+                part = response.read(min(65536, limit + 1 - size))
+                if not part:
+                    break
+                size += len(part)
+                if size > limit:
+                    raise ValueError("response too large")
+                chunks.append(part)
+            if not size or (length is not None and size != int(length)):
+                raise ValueError("response incomplete")
+            return b"".join(chunks)
+    except Exception as exc:
+        if isinstance(exc, HTTPError):
+            with suppress(Exception):
+                exc.close()
+        raise AuthorizationTransportError("validation transport request failed") from None
+
+
 class AuthorizationHttpsTransport:
     def __init__(self, coordinator_origin: str, actions_environment: dict, *, opener=None):
         origin = _url(coordinator_origin)
@@ -97,44 +136,15 @@ class AuthorizationHttpsTransport:
         self._origin = "https://" + origin.netloc
         self._oidc_url = urlunsplit(request._replace(query=urlencode([*query, ("audience", AUDIENCE)])))
         self._credential = credential
-        self._opener = opener if opener is not None else build_opener(
-            ProxyHandler({}), HTTPSHandler(context=ssl.create_default_context()), _NoRedirect())
+        self._opener = opener
         self._state = "new"
         self._prepared = None
 
     def _request(self, url, token, *, data=None, limit):
-        request = Request(url, data=data, method="GET" if data is None else "POST", headers={
-            "Authorization": "Bearer " + token, "Accept": "application/json", "Accept-Encoding": "identity",
-            "Content-Type": "application/json", "Cache-Control": "no-store"})
-        try:
-            with self._opener.open(request, timeout=30) as response:
-                if response.status != 200 or response.geturl() != url:
-                    raise ValueError("unexpected response")
-                headers = response.headers
-                if (headers.get("Content-Type", "").split(";")[0].strip().lower() != "application/json" or
-                        headers.get("Content-Encoding", "identity").lower() != "identity" or
-                        any(len(headers.get_all(name, [])) > 1 for name in ("Content-Type", "Content-Length", "Content-Encoding"))):
-                    raise ValueError("unexpected headers")
-                length = headers.get("Content-Length")
-                if length is not None and (not re.fullmatch(r"[0-9]+", length) or int(length) > limit):
-                    raise ValueError("response length invalid")
-                chunks, size = [], 0
-                while True:
-                    part = response.read(min(65536, limit + 1 - size))
-                    if not part:
-                        break
-                    size += len(part)
-                    if size > limit:
-                        raise ValueError("response too large")
-                    chunks.append(part)
-                if not size or (length is not None and size != int(length)):
-                    raise ValueError("response incomplete")
-                return b"".join(chunks)
-        except Exception as exc:
-            if isinstance(exc, HTTPError):
-                with suppress(Exception):
-                    exc.close()
-            raise AuthorizationTransportError("validation transport request failed") from None
+        if self._opener is not None:
+            # Test-only trusted I/O dependency; no cancellation guarantee here.
+            return _blocking_request(self._opener, url, token, data=data, limit=limit)
+        return _isolated_request(url, token, data=data, limit=limit)
 
     def _token(self):
         document = _json(self._request(self._oidc_url, self._credential, limit=131072))
@@ -187,3 +197,50 @@ class AuthorizationHttpsTransport:
         except Exception:
             self._state = "failed"
             raise
+
+
+def _isolated_request(url, token, *, data=None, limit):
+    payload = _body({"url": url, "token": token, "data_base64": None if data is None else base64.b64encode(data).decode("ascii"),
+                     "limit": limit})
+    try:
+        # No secrets in argv or inherited environment, no shell or caller program.
+        # run() kills and waits for the child when communicate() exceeds timeout.
+        result = subprocess.run([sys.executable, "-I", str(Path(__file__).resolve())], input=payload,
+                                stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, env={}, close_fds=True,
+                                shell=False, timeout=HTTP_TOTAL_WAIT_SECONDS, check=False)
+    except subprocess.TimeoutExpired:
+        raise AuthorizationTransportError("validation transport total wait expired") from None
+    except Exception:
+        raise AuthorizationTransportError("validation transport worker failed") from None
+    if result.returncode != 0 or not result.stdout or len(result.stdout) > limit:
+        raise AuthorizationTransportError("validation transport worker failed")
+    return result.stdout
+
+
+def _http_worker_main():
+    try:
+        raw = sys.stdin.buffer.read(PREPARE_LIMIT + 1)
+        if len(raw) > PREPARE_LIMIT:
+            return 1
+        value = _json(raw)
+        if set(value) != {"url", "token", "data_base64", "limit"} or type(value["limit"]) is not int or value["limit"] not in (131072, 1048576, PREPARE_LIMIT):
+            return 1
+        _url(value["url"])
+        if not isinstance(value["token"], str) or not re.fullmatch(r"[\x21-\x7e]+", value["token"]):
+            return 1
+        data = None
+        if value["data_base64"] is not None:
+            data = base64.b64decode(value["data_base64"], validate=True)
+            if base64.b64encode(data).decode("ascii") != value["data_base64"]:
+                return 1
+        opener = build_opener(ProxyHandler({}), HTTPSHandler(context=ssl.create_default_context()), _NoRedirect())
+        response = _blocking_request(opener, value["url"], value["token"], data=data, limit=value["limit"])
+        sys.stdout.buffer.write(response)
+        return 0
+    except Exception:
+        # Even direct invocation never prints a token, URL or partial response.
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(_http_worker_main())
