@@ -5,6 +5,7 @@ import { MembershipObservationIndex } from './membership_index.mjs';
 import { AuthorizationStore } from './authorization_store.mjs';
 import { ImmutableArchive } from './archive.mjs';
 import { GitHubIdentityVerifier } from './identity.mjs';
+import { LeaseStore } from './leases.mjs';
 
 const canonical = v => Array.isArray(v) ? v.map(canonical) : v && typeof v === 'object' ?
   Object.fromEntries(Object.keys(v).sort().map(k => [k, canonical(v[k])])) : v;
@@ -21,7 +22,7 @@ const exact = (v, keys) => {
 };
 
 export class MembershipRegistrationSession {
-  #readback; #index; #auth; #archive; #storage; #clock; #binding; #resource; #license; #verifier;
+  #readback; #index; #auth; #archive; #storage; #clock; #binding; #resource; #license; #verifier; #leases;
   constructor(identityPolicy, { licensePolicy = null, ...options } = {}) {
     if (licensePolicy === null) return;
     this.#readback = new MembershipRegistrationReadback(identityPolicy, { ...options, licensePolicy });
@@ -33,6 +34,7 @@ export class MembershipRegistrationSession {
     this.#auth = new AuthorizationStore(options.storage, options);
     this.#archive = new ImmutableArchive(options.bucket);
     this.#verifier = new GitHubIdentityVerifier(identityPolicy, options);
+    this.#leases = new LeaseStore(options.storage, options);
     this.#resource = `daily/${options.preparationPolicy.as_of}/${options.preparationPolicy.config_ref.id}`;
     options.storage.transactionSync(() => {
       for (const name of ['inputs', 'input_log', 'returns', 'return_log']) {
@@ -97,6 +99,10 @@ export class MembershipRegistrationSession {
     this.#guard(record, current.identity, expected);
     return current.identity;
   }
+  #commit(record, identity, callback) {
+    return this.#leases.withOwnedLease(this.#resource, record.identity.job, record.selection.lease_token, callback,
+      { deadlineMs: Math.min(identity.expires_at * 1000, record.identity.expires_at * 1000, this.#license.license_valid_until) });
+  }
   async #read(descriptor) {
     const { key, sha256, size_bytes } = descriptor;
     return this.#archive.read(key, { sha256, size_bytes });
@@ -111,9 +117,9 @@ export class MembershipRegistrationSession {
     record.input_archive = await this.#archive.put('raw/' + fingerprint.slice(7), raw, { sha256: fingerprint, size_bytes: raw.length });
     await this.#read(record.input_archive);
     const identity = await this.#fresh(token, record, input, input.expected_index);
-    return this.#storage.transactionSync(() => {
+    return this.#commit(record, identity, () => {
       const old = this.#pair('input', fingerprint, true);
-      if (old) record.recorded_ms = old.recorded_ms;
+      record.recorded_ms = old ? old.recorded_ms : this.#time();
       this.#guard(record, identity, input.expected_index);
       this.#save('input', fingerprint, record);
       this.#guard(record, identity, input.expected_index);
@@ -176,7 +182,7 @@ export class MembershipRegistrationSession {
     this.#result(record, input, raw, actual);
     await this.#read(record.input_archive);
     const identity = await this.#fresh(token, record, input, expected);
-    return this.#storage.transactionSync(() => {
+    return this.#commit(record, identity, () => {
       if (!same(record, this.#pair('input', inputHash)) || !same(prior, this.#pair('return', inputHash, true))) {
         throw new Error('membership_session_records_changed');
       }

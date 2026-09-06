@@ -1,6 +1,6 @@
 # M12｜价格、日历与上市区间接入细化卡
 
-版本：`0.1`；日期：2026-09-07；状态：`design_review`。
+版本：`0.2`；日期：2026-09-07；状态：`design_review`。
 
 关联CR-053及[已批准v0.2.1设计](M12_PRODUCTION_CHAIN_MINIMAL_DESIGN_ZH.md)。本卡纠正来源前提并提出接法，尚未批准价格接入实施；已批准的成员登记接线可继续，不将整个M12退回未批准状态。审核后判断是否涉及AGENTS要求的新设计批准。没有真实供应商请求、读取账户密钥、购买数据、添加依赖、创建云资源或启用生产。
 
@@ -68,3 +68,44 @@
 本卡无价格代码修改。复核后按每包≤20分钟拆分：先固定获证原件及唯一覆盖合同；再接获准范围的原字节取得／归档；最后将已证覆盖交原M02资格及Universe入口并完成定点联测。每包先登记规则／版本再写代码。实际授权／材料仍缺时不能通过把集合填满来继续；是否加入其他来源或改变业务边界须重新设计批准。
 
 旧SPY参考日、旧每日／夜间入口及断点保持；新接点默认禁用，取消新接点可回退，保留不可变原件及日志。M11不重审，CR-043 captured；本卡不授权main合并、部署、生产启用、通知、策略优化或M13。
+
+
+## 7. v0.2最小实证方案（待最终批准，尚未执行）
+
+v0.1来源方向获审核认可，未获完整价格入口实施批准。本节把无法从公开资料解决的部分收敛为一次有限取证；已有成员登记继续，不等待本卡。目的仅核实可取得的原件与用途范围，不运行全池价格扫描或上线。
+
+### 字段接法与五个来源标签
+
+日历解析按端点版本分开：v2取`data.Timezone/TradingHours`与日期键假日；v1取顶层同名字段、`ExchangeHolidays.*.Date`。后者不是v2日期键格式，历史提前收盘字段仍未获确认，不猜补。输出内部会话表按交易所、日期、当地开闭市、UTC闭市、状态及原件引用记录；时间转换使用现有Python标准库时区，不装新日历库。`Bank`不自动等于股票休市，未知类型或该市场适用性不明失败关闭。[供应商字段说明](https://eodhd.com/financial-apis/exchanges-api-trading-hours-and-stock-market-holidays)
+
+下表是待证映射，**不是把已有证券exchange字段改名或合并identity**：
+
+| 原成员Exchange标签 | 外部实体线索 | 升格为可用日历映射仍须取得 |
+| --- | --- | --- |
+| NASDAQ | SEC列有The Nasdaq Stock Market，供应商US示例提及NASDAQ | 该US会话原件适用于所需年份及该成员标签的供应商范围说明 |
+| NYSE | SEC列有New York Stock Exchange，供应商US示例提及NYSE | 同上；不能从标题推出临时休市历史全部包含 |
+| AMEX | SEC把American Stock Exchange列为现NYSE American前身 | 供应商当前AMEX标签究竟如何映射，以及生效期；不是单凭旧名称归并 |
+| NYSE MKT | SEC把NYSE MKT列为NYSE American旧称 | 供应商这个标签的有效期／现行语义；与AMEX标签同时出现时不得改写既有身份 |
+| NYSE ARCA | SEC单列NYSE Arca | 供应商US聚合日历是否覆盖该场所、相应年份及例外会话 |
+
+实体线索来自[SEC全国交易所列表](https://www.sec.gov/about/divisions-offices/division-trading-markets/national-securities-exchanges)。[EODHD列表文档](https://eodhd.com/financial-apis/exchanges-api-list-of-tickers-and-trading-hours)列明可直接查询NYSE、NASDAQ、NYSE MKT等venue；这不证明其exchange-details支持相同别名或覆盖全部五标签。[NYSE官方交易时间页](https://www.nyse.com/trade/hours-calendars)可作公开交叉核对，不能自动取代供应商历史覆盖证据。本轮仅阅读这些公开页面，不新增它们为生产数据源。
+
+### 一次取证的前置材料、请求上限及判定
+
+先从用户已持有且明确授权检查的材料取得：账户套餐／剩余额度及有效期、允许私有研究和留存的许可、适用的端点范围说明。公开衍生展示权限独立记未知，不用私有取证批准代替上线卡。当前没有这些已核实材料；不读取密钥试探、不调用账户API、不联系供应商或购买套餐。若需要供应商书面范围／listing证据，先整理请求内容交用户批准后才可对外发送。
+
+拟议API取证至多7次HTTP GET、无自动重试；实际执行前把D、S与两只样本证券的既有身份材料和具体URL冻结为取证清单。D取已留存的目标成员来源日；S取D减800个自然日作为有限探测范围（不是420会话证明）。没有已获准的同日成员原件，则此价格探测不启动，不追加成员抓取权限。
+
+| 数量上限 | 固定端点和参数（省略密钥） | 要解决的唯一问题／成功标准 |
+| --- | --- | --- |
+| 1 | `/api/v2/exchange-details?fmt=json` | 实際支持代码包含US；不试探猜测的别名端点 |
+| 1 | `/api/v2/exchange-details/US?fmt=json` | 当前年原件字段／例外时刻符合文档，且来源适用范围有依据 |
+| 1 | `/api/exchange-details/US?fmt=json&from=S&to=D` | 所需历史是否真正可取；逐年覆盖和例外事件须有材料支持，与v2重叠部分无冲突；不足时到此停止，不能扩大查询直到“凑够” |
+| 至多2 | `/api/v1.1/fundamentals/{code}.US?filter=General` | 核对两个已冻结样本的代码／交易所／ISIN／PrimaryTicker／IPODate，仅辅助；无完整listing证据则短历史路径保持未知 |
+| 至多2 | `/api/eod/{code}.US?fmt=json&period=d&order=a&from=S&to=D` | 仅对已有区间身份证明的样本取得原件，与已证会话逐日比对；短历史样本S改为已证listing起点。无起点证明不发短历史请求 |
+
+样本由实施者从已授权成员原件中按稳定代码顺序选取：一只有所需窗口身份连续证明的样本，另选一只有明确近期listing起点证据的样本；找不到后一类就少做相应请求并记录缺口，不让用户挑股票，也不拿名称或IPODate猜起点。该小样本仅用于验证材料接法，不能证明全成员范围完整，更不构成策略实验。
+
+额度估算依据三份官方接口页：日历每请求按5个API额度、General每请求10个、日线每请求1个计，7次HTTP合计最多37个额度；计费单位不是HTTP次数。此估算须在执行前与实际既有权益核对；不允许自动超额或加购。货币支出上限建议为新增0：仅当既有套餐覆盖且无额外费用时执行，否则停止，不能承诺现有账户一定免费。[日历额度](https://eodhd.com/financial-apis/exchanges-api-trading-hours-and-stock-market-holidays)、[General额度](https://eodhd.com/financial-apis/stock-etfs-fundamental-data-feeds)、[日线额度](https://eodhd.com/financial-apis/api-for-historical-data-and-volumes)
+
+每次保存去密钥请求、实际状态／字节长度／EOF／起止时间、原始响应与hash，并出一张“已证／缺证／冲突”表。五标签映射、历史提前收盘／临时休市范围、上市区间三类缺项不能由小样本推断补齐。若供应商现有材料无法证明，方案结果就是明确不足，价格入口继续unavailable；再就具体新来源／权益或规则调整提交设计，不自动扩大本取证单。此处未执行取证，也不要求现在批准部署。

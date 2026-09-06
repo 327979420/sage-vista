@@ -3528,3 +3528,24 @@ test('membership registration session rolls back dispatch pairs and refuses a co
   assert.equal(f.count('m12_membership_returns'), 1);
   assert.equal(f.count('m12_membership_index'), 1);
 });
+
+
+test('membership registration session checks the lease after final result serialization', async t => {
+  const f = await membershipSessionFixture(t), original = globalThis.structuredClone;
+  // Expire ONLY the lease on the final outgoing receipt copy. JWT/license
+  // remain valid, so earlier guards cannot be substituted for commit guard.
+  f.db.prepare('UPDATE m12_leases SET expires_ms=? WHERE resource=?').run(f.state.now + 1000, f.resource);
+  let hit = false;
+  globalThis.structuredClone = value => {
+    const result = original(value);
+    if (value?.registered_ms !== undefined && value?.current_index?.revision === 1) {
+      hit = true; f.state.now += 1000;
+    }
+    return result;
+  };
+  try { await assert.rejects(f.accept(), /lease_expired/); }
+  finally { globalThis.structuredClone = original; }
+  assert.equal(hit, true);
+  assert.equal(f.count('m12_membership_index'), 0);
+  assert.equal(f.count('m12_membership_returns'), 0);
+});
