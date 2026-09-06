@@ -2759,3 +2759,12 @@ def publication_preparation_completion(value: Mapping[str, Any], *, started_ms: 
     # Reuse the same authoritative rule at completion, including NY midnight.
     final = dict(evidence, checked_at=end.isoformat(timespec="seconds").replace("+00:00", "Z"))
     return publication_preparation_authorization(final)
+
+
+def membership_observation_history(evidence, *, as_of):
+    """Recover exact source bytes from a trusted complete observation index.
+
+    This pure check does not authenticate the index or grant data-use rights.
+    """
+    from .membership_observation import _observation_history
+    return _observation_history(evidence, as_of=as_of)
