@@ -260,3 +260,24 @@ API依据为[Cloudflare SQLite-backed Durable Object官方参考](https://develo
 **尚未绑定批准请求正文**：环境批准证明哪个用户放行了哪个固定执行run，不能单凭本结果证明用户批准了任意调用方传入的配置、范围、模式、期限或grant／revoke请求。后续必须把该run与预先归档且冻结的唯一授权请求绑定、归档本包原件、经唯一Python合同入口验证，并在DO提交事务重验身份有效期、当前批准链及lease令牌。没有把API观测当作跨服务原子快照；当前环境配置和批准事实核验不代表此刻已具有生产许可。授权工作流／环境实际配置、批准请求绑定、存储登记、即时撤销、队列／指针CAS及真实端到端继续排队。M11不重审，跨日端到端仍未执行。
 
 独立提交`feat: verify M12 environment review observations [skip ci]`，父提交5782e16deef54e3af20c66dd2c2be592d255396b，完整SHA见交付消息。只新增内部模块／测试及治理记录，可撤回本批实现并保留治理历史；没有已创建的远端对象需迁移。未合并、推送、创建云资源、部署、生产启用或对外通知。
+
+
+## B2b独立复核回传
+
+审核对话01a074f9-098a-7b82-b486-3185683290fe确认9d6fd8d6ce782380b191badc94f660dc15710f1c在真实B2a验签＋受控API环境批准观测范围通过。审核员逐段审读并运行31项测试，核对官方API无批准轮次／时间字段，确认第1轮且前后in_progress限制有依据。diff通过，工作区干净；不代表用户已批准任意请求正文。唯一冻结请求绑定、实际归档、Python合同验证及DO内实时授权链／租约检查仍须实施。
+
+## B2c：批准run绑定固定提交中的请求原件（待独立审核）
+
+在GitHubEnvironmentReviewVerifier增加verifyRequest(token)，内部先调用已审核verify取得真实验签／环境观测，再从同一OIDC代码提交读取固定路径`config/publication-authorization-request.json`。该固定路径不接受请求参数覆盖；没有创建真实授权请求文件或grant／revoke。每个新批准run只关联其执行提交该路径唯一原件，提交内的文件在run启动前已经存在，取证时不用浮动main或调用方上传的正文。运行工作流向审核人呈现该固定原件的接线仍留后续，不把本包当作人已阅读请求全部字段的证明。
+
+只读Git API依次取得指定commit、根tree、config子tree及blob，再次读取当前run。commit SHA必须等于已签名身份SHA，tree SHA逐层匹配且非递归结果truncated=false；每级路径唯一，目录只能040000／tree，最终只能100644／blob，拒绝symlink、可执行文件、gitlink和目录替代。请求原件1—65536字节，blob SHA／size／encoding与树条目绑定，严格base64解码并保留原字节；重算Git的SHA-1(blob头＋字节)及原件SHA-256／长度。所有URL由固定仓库与已验证SHA构造，不跟随响应中的url字段。身份到期、读取期间重跑或run不再符合B2b条件均拒绝返回。
+
+返回`{review,observed_at,request,documents}`：review为B2b四份原件观测，request精确为`{source_commit,path,blob_sha,bytes,sha256,size_bytes}`，documents追加commit／两层tree／blob／最终run五份原始API字节证据。source_commit指冻结请求的执行提交，不自动替代请求内拟批准的业务code_commit；本包不修改或推导请求字段。commit与tree关联以固定GitHub HTTPS API返回为来源证据，blob原字节另行重算Git摘要；没有声称重建原始Git commit序列化或验证提交签名。后续实际归档使用B1a，原件来源和Python请求解析接线完成前不得登记授权。
+
+### B2c实际检查与范围
+
+新增9项专项＋原B2b 12项共21项Node测试，覆盖合法固定路径／原字节、无批准不得取件、commit／tree／截断／路径多匹配、各种非普通文件、blob身份／编码／长度／内容替换、大小边界、取件期间rerun／过期、源故障和不跟随外部URL。特意验证合法Git字节即使不是请求JSON也只能返回来源材料，不产生authorization_id或permissions；请求是否满足业务合同仍由唯一Python入口判断。加7项治理及12项状态共40项通过；定点lint、机器状态／文档链接、diff通过。
+
+依据[GitHub Git commit API](https://docs.github.com/en/rest/git/commits#get-a-commit)、[tree API](https://docs.github.com/en/rest/git/trees#get-a-tree)及[blob API](https://docs.github.com/en/rest/git/blobs#get-a-blob)。源码读取还需要Contents read权限；本轮只有本地受控响应，未访问真实私有仓库或改凭据／平台设置。没有新增配置依赖或业务计算，不重审M11。请求语义、批准范围／版本／前序、实际原件归档、授权线性登记、实时撤销／lease／CAS和跨日端到端仍未完成；跨日样例仍未执行。
+
+独立提交`feat: bind M12 review to frozen request source [skip ci]`，父提交9d6fd8d6ce782380b191badc94f660dc15710f1c，完整SHA见交付消息。只改既有环境核验模块、其专项测试及3个治理文档；可以撤回本包方法／测试并保留治理记录，不影响已有verify接口。未合并、推送、创建云资源、部署、生产启用或对外通知。

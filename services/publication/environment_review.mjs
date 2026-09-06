@@ -1,5 +1,17 @@
 import { GitHubIdentityVerifier } from "./identity.mjs";
 
+const REQUEST_PATH = "config/publication-authorization-request.json";
+
+function gitSha(value) {
+  if (typeof value !== "string" || !/^[a-f0-9]{40}$/.test(value)) throw new Error("request_git_sha_invalid");
+  return value;
+}
+
+async function hash(algorithm, bytes) {
+  const digest = new Uint8Array(await crypto.subtle.digest(algorithm, bytes));
+  return Array.from(digest, (v) => v.toString(16).padStart(2, "0")).join("");
+}
+
 function id(value) {
   if (!Number.isSafeInteger(value) || value < 1) throw new Error("review_id_invalid");
   return String(value);
@@ -128,5 +140,69 @@ export class GitHubEnvironmentReviewVerifier {
     return { identity, approver_id: approver, environment_id: this.#policy.environment_id,
       observed_at: new Date(now).toISOString(),
       documents: [before, environment, history, after].map((item) => item.evidence) };
+  }
+
+  async verifyRequest(token) {
+    const review = await this.verify(token);
+    const sourceCommit = gitSha(review.identity.code_commit);
+    const evidence = [];
+    const get = async (path) => {
+      const result = await this.#get(path);
+      evidence.push(result.evidence);
+      return result.value;
+    };
+    const commit = await get("/git/commits/" + sourceCommit);
+    if (commit?.sha !== sourceCommit) throw new Error("request_commit_mismatch");
+    let treeSha = gitSha(commit.tree?.sha);
+    const segments = REQUEST_PATH.split("/");
+    let entry;
+    for (let i = 0; i < segments.length; i++) {
+      const tree = await get("/git/trees/" + treeSha);
+      if (!tree || tree.sha !== treeSha || tree.truncated !== false || !Array.isArray(tree.tree)) {
+        throw new Error("request_tree_invalid_or_incomplete");
+      }
+      const matches = tree.tree.filter((item) => item?.path === segments[i]);
+      if (matches.length !== 1) throw new Error("request_path_not_unique");
+      entry = matches[0];
+      const isDirectory = i < segments.length - 1;
+      if (entry.type !== (isDirectory ? "tree" : "blob") || entry.mode !== (isDirectory ? "040000" : "100644")) {
+        throw new Error("request_regular_file_required");
+      }
+      treeSha = gitSha(entry.sha);
+    }
+    if (!Number.isSafeInteger(entry.size) || entry.size < 1 || entry.size > 65_536) {
+      throw new Error("request_size_invalid");
+    }
+    const blobSha = treeSha;
+    const blob = await get("/git/blobs/" + blobSha);
+    if (!blob || blob.sha !== blobSha || blob.size !== entry.size || blob.encoding !== "base64" || typeof blob.content !== "string") {
+      throw new Error("request_blob_invalid");
+    }
+    const encoded = blob.content.replace(/[\r\n]/g, "");
+    if (!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(encoded)) {
+      throw new Error("request_blob_encoding_invalid");
+    }
+    const raw = atob(encoded);
+    if (btoa(raw) !== encoded) throw new Error("request_blob_encoding_invalid");
+    const bytes = Uint8Array.from(raw, (char) => char.charCodeAt(0));
+    if (bytes.length !== entry.size) throw new Error("request_blob_size_mismatch");
+    const prefix = new TextEncoder().encode("blob " + bytes.length + "\0");
+    const gitObject = new Uint8Array(prefix.length + bytes.length);
+    gitObject.set(prefix);
+    gitObject.set(bytes, prefix.length);
+    if (await hash("SHA-1", gitObject) !== blobSha) throw new Error("request_blob_sha_mismatch");
+    const sha256 = "sha256:" + await hash("SHA-256", bytes);
+    const finalRun = await get("/actions/runs/" + review.identity.job.run_id);
+    this.#run(finalRun, review.identity);
+    const now = this.#clock();
+    if (!Number.isSafeInteger(now) || now < Date.parse(review.observed_at) || now >= review.identity.expires_at * 1000) {
+      throw new Error("request_identity_expired");
+    }
+    // No body/path override or parsing here. Python must validate the frozen
+    // request bytes before any authorization can be constructed or registered.
+    return { review, observed_at: new Date(now).toISOString(), request: {
+      source_commit: sourceCommit, path: REQUEST_PATH, blob_sha: blobSha,
+      bytes, sha256, size_bytes: bytes.length,
+    }, documents: evidence };
   }
 }

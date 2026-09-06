@@ -180,3 +180,133 @@ test("policy is copied, unsafe API IDs and caller-selected endpoints are unavail
     assert.throws(() => new GitHubEnvironmentReviewVerifier(identityPolicy, invalid, f.options), /policy_invalid/);
   }
 });
+
+function requestFixture(raw = '{"action":"grant","reason":"冻结请求"}\n') {
+  const f = fixture();
+  const bytes = Buffer.from(raw);
+  const blobSha = createHash("sha1").update(Buffer.concat([Buffer.from(`blob ${bytes.length}\0`), bytes])).digest("hex");
+  const rootSha = "c".repeat(40);
+  const configSha = "d".repeat(40);
+  const responses = {
+    ["/git/commits/" + identityPolicy.code_commit]: { sha: identityPolicy.code_commit, tree: { sha: rootSha } },
+    ["/git/trees/" + rootSha]: { sha: rootSha, truncated: false,
+      tree: [{ path: "config", type: "tree", mode: "040000", sha: configSha }] },
+    ["/git/trees/" + configSha]: { sha: configSha, truncated: false,
+      tree: [{ path: "publication-authorization-request.json", type: "blob", mode: "100644", sha: blobSha, size: bytes.length }] },
+    ["/git/blobs/" + blobSha]: { sha: blobSha, encoding: "base64", size: bytes.length,
+      content: bytes.toString("base64").match(/.{1,16}/g).join("\n") + "\n" },
+  };
+  const gitCalls = [];
+  const hooks = { afterBlob: null, override: null };
+  const options = { ...f.options, fetchApi: async (url, init) => {
+    const path = new URL(url).pathname.replace("/repos/example/sage", "");
+    if (!path.startsWith("/git/")) return f.options.fetchApi(url, init);
+    gitCalls.push({ url, init });
+    assert.equal(init.method, "GET");
+    assert.equal(init.redirect, "error");
+    assert.equal(init.headers.Authorization, "Bearer local-test-credential");
+    if (path.startsWith("/git/blobs/") && hooks.afterBlob) hooks.afterBlob();
+    if (hooks.override) return hooks.override(path);
+    assert.ok(path in responses, path);
+    return new Response(JSON.stringify(responses[path], null, 2) + "\n");
+  } };
+  return { ...f, bytes, blobSha, responses, gitCalls, hooks,
+    commit: responses["/git/commits/" + identityPolicy.code_commit],
+    root: responses["/git/trees/" + rootSha], tree: responses["/git/trees/" + configSha],
+    blob: responses["/git/blobs/" + blobSha],
+    verifier: new GitHubEnvironmentReviewVerifier(identityPolicy, reviewPolicy, options) };
+}
+
+test("request is read only through signed commit, fixed tree path and verified original blob", async () => {
+  const f = requestFixture();
+  const result = await f.verifier.verifyRequest(token(), { path: "attacker.json", body: "ignored" });
+  assert.equal(result.review.approver_id, "999");
+  assert.equal(result.request.source_commit, identityPolicy.code_commit);
+  assert.equal(result.request.path, "config/publication-authorization-request.json");
+  assert.equal(result.request.blob_sha, f.blobSha);
+  assert.deepEqual(Buffer.from(result.request.bytes), f.bytes);
+  assert.equal(result.request.sha256, "sha256:" + createHash("sha256").update(f.bytes).digest("hex"));
+  assert.equal(result.documents.length, 5);
+  assert.equal(f.gitCalls.length, 4);
+  assert.equal(f.calls.length, 5);
+  assert.ok(f.gitCalls.every(({ url }) => !url.includes("main") && !url.includes("attacker")));
+  for (const item of result.documents) {
+    assert.equal(item.size_bytes, item.bytes.length);
+    assert.equal(item.sha256, "sha256:" + createHash("sha256").update(item.bytes).digest("hex"));
+  }
+});
+
+test("no approved environment means no request fetch", async () => {
+  const f = requestFixture();
+  f.data.reviews.length = 0;
+  await assert.rejects(f.verifier.verifyRequest(token()), /approval_not_unique/);
+  assert.equal(f.gitCalls.length, 0);
+});
+
+test("commit/tree mismatches, truncated and missing/duplicate paths reject", async () => {
+  for (const change of [(f) => { f.commit.sha = "e".repeat(40); }, (f) => { f.commit.tree.sha = "main"; },
+    (f) => { f.root.sha = "e".repeat(40); }, (f) => { f.root.truncated = true; },
+    (f) => { delete f.tree.truncated; }, (f) => { f.root.tree = []; },
+    (f) => { f.tree.tree = []; }, (f) => { f.tree.tree.push({ ...f.tree.tree[0] }); }]) {
+    const f = requestFixture(); change(f);
+    await assert.rejects(f.verifier.verifyRequest(token()));
+  }
+});
+
+test("symlinks, executable files, submodules and directory substitutions are rejected", async () => {
+  for (const [type, mode] of [["blob", "120000"], ["blob", "100755"], ["commit", "160000"], ["tree", "040000"]]) {
+    const f = requestFixture();
+    Object.assign(f.tree.tree[0], { type, mode });
+    await assert.rejects(f.verifier.verifyRequest(token()), /regular_file_required/);
+  }
+  const f = requestFixture(); f.root.tree[0].type = "blob";
+  await assert.rejects(f.verifier.verifyRequest(token()), /regular_file_required/);
+});
+
+test("wrong blob identity, encoding, declared size and bytes cannot replace frozen request", async () => {
+  for (const change of [(f) => { f.blob.sha = "e".repeat(40); }, (f) => { f.blob.encoding = "utf-8"; },
+    (f) => { f.blob.size++; }, (f) => { f.blob.content = "!!!!"; },
+    (f) => { f.blob.content = Buffer.from("x").toString("base64"); },
+    (f) => { f.blob.content = Buffer.alloc(f.bytes.length, 65).toString("base64"); }]) {
+    const f = requestFixture(); change(f);
+    await assert.rejects(f.verifier.verifyRequest(token()));
+  }
+});
+
+test("empty/oversized/unsafe request sizes are rejected before fetching a blob", async () => {
+  for (const size of [0, 65_537, -1, 1.5, true, Number.MAX_SAFE_INTEGER + 1]) {
+    const f = requestFixture(); f.tree.tree[0].size = size;
+    await assert.rejects(f.verifier.verifyRequest(token()), /size_invalid/);
+    assert.equal(f.gitCalls.length, 3);
+  }
+});
+
+test("new rerun or token expiry during source fetch prevents request return", async () => {
+  const rerun = requestFixture();
+  rerun.hooks.afterBlob = () => { rerun.data.after.run_attempt = 2; };
+  await assert.rejects(rerun.verifier.verifyRequest(token()), /run_mismatch/);
+  const expired = requestFixture();
+  expired.hooks.afterBlob = () => { expired.state.now = claims.exp * 1000; };
+  await assert.rejects(expired.verifier.verifyRequest(token()), /identity_expired/);
+});
+
+test("source outage fails closed; API-provided blob URL is never followed", async () => {
+  const missing = requestFixture();
+  missing.hooks.override = () => new Response("not found", { status: 404 });
+  await assert.rejects(missing.verifier.verifyRequest(token()), /unavailable/);
+  const f = requestFixture();
+  f.tree.tree[0].url = "https://attacker.invalid/blob";
+  f.commit.tree.url = "https://attacker.invalid/tree";
+  await f.verifier.verifyRequest(token());
+  assert.ok(f.gitCalls.every(({ url }) => url.startsWith("https://api.github.com/repos/example/sage/git/")));
+});
+
+test("source binding does not pretend opaque bytes satisfy a request contract", async () => {
+  const f = requestFixture("not a request JSON\n");
+  const result = await f.verifier.verifyRequest(token());
+  assert.deepEqual(Buffer.from(result.request.bytes), f.bytes);
+  assert.equal("authorization_id" in result, false);
+  assert.equal("permissions" in result, false);
+  // Subsequent Python request validation is mandatory; no JSON parser or grant
+  // constructor is hidden inside this source adapter.
+});
