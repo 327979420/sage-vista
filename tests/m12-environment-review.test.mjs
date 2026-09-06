@@ -1,3 +1,5 @@
+import { MembershipRegistrationReadback } from '../services/publication/membership_readback.mjs';
+import { MembershipObservationIndex } from '../services/publication/membership_index.mjs';
 import { DailyPreparationApi } from '../services/publication/daily_preparation_api.mjs';
 import { MembershipUseFactory } from '../services/publication/membership_use.mjs';
 import { MembershipArchiveApi } from '../services/publication/membership_api.mjs';
@@ -3203,11 +3205,13 @@ print(json.dumps(fixture(commit,build_research_configuration(commit),time.time_n
   f.objects.set(location.key, new Uint8Array(license));
   const epoch = f.leaseToken.epoch;
   f.state.now = Date.now();
-  const api = new DailyPreparationApi({ ...identityPolicy, code_commit: e.code_commit }, {
-    enabled: true, preparationPolicy: { actor_id: '789', as_of: e.as_of, config_ref: e.config_ref, config_archive: e.config_archive },
-    leaseEpoch: epoch, licensePolicy: { purpose: 'eodhd_us_membership_private_acquisition', license_archive: location,
-      license_valid_from: f.state.now - 1000, license_valid_until: f.state.now + 300000 },
-    storage: f.storage, bucket: f.bucket, clock: f.options.clock, fetchKeys: f.options.fetchKeys });
+  const runtimeIdentity = { ...identityPolicy, code_commit: e.code_commit };
+  const preparationPolicy = { actor_id: '789', as_of: e.as_of, config_ref: e.config_ref, config_archive: e.config_archive };
+  const licensePolicy = { purpose: 'eodhd_us_membership_private_acquisition', license_archive: location,
+    license_valid_from: f.state.now - 1000, license_valid_until: f.state.now + 300000 };
+  const options = { preparationPolicy, licensePolicy, storage: f.storage, bucket: f.bucket,
+    clock: f.options.clock, fetchKeys: f.options.fetchKeys };
+  const api = new DailyPreparationApi(runtimeIdentity, { ...options, enabled: true, leaseEpoch: epoch });
   const environment = { GITHUB_ACTIONS: 'true', ACTIONS_ID_TOKEN_REQUEST_URL: 'https://test.actions.githubusercontent.com/token',
     ACTIONS_ID_TOKEN_REQUEST_TOKEN: 'synthetic-credential', GITHUB_REPOSITORY: 'example/sage', GITHUB_REPOSITORY_ID: '123',
     GITHUB_WORKFLOW_REF: identityPolicy.workflow_ref, GITHUB_WORKFLOW_SHA: identityPolicy.workflow_commit,
@@ -3264,4 +3268,110 @@ print(json.dumps({'done':{'as_of':collected.parsed.as_of,'members':len(collected
   assert.deepEqual([...new Set(paths)], ['/v1/preparation/prepare', '/v1/preparation/return', '/v1/membership/permit', '/v1/membership/put', '/v1/membership/read']);
   assert.equal(paths.filter(path => path.endsWith('/prepare')).length, 1);
   assert.equal(paths.filter(path => path.endsWith('/return')).length, 1);
+  // Explicit synthetic empty migration; production setup is not installed.
+  const index = new MembershipObservationIndex(f.storage, { clock: f.options.clock }); index.initializeEmpty();
+  f.state.now = Date.now();
+  const now = Math.floor(f.state.now / 1000);
+  const currentToken = token({ sha: e.code_commit, iat: now - 30, nbf: now - 30, exp: now + 300 });
+  const original = f.objects.get(done.observation_key);
+  const descriptor = { key: done.observation_key, sha256: sha(original), size_bytes: original.length };
+  const input = await new MembershipRegistrationReadback(runtimeIdentity, options).capture(currentToken, descriptor);
+  const validated = spawnSync('python3', ['-B', '-c', `import sys,json
+from services.publication.preparation_execution import execute_membership_validation
+print(execute_membership_validation(sys.stdin.buffer.read()).decode())`],
+    { input: Buffer.from(input), encoding: 'utf8', cwd: new URL('..', import.meta.url), timeout: 30000 });
+  assert.equal(validated.status, 0, validated.stderr);
+  const result = JSON.parse(validated.stdout);
+  assert.equal(result.input_sha256, sha(input));
+  assert.equal(result.membership_registration.member_count, 1);
+  assert.deepEqual(result.membership_registration.candidate_archive, descriptor);
+  assert.equal(result.membership_registration.expected_index.revision, 0);
+  assert.equal(f.db.prepare('SELECT revision FROM m12_membership_head').get().revision, 0);
+});
+
+async function membershipReadbackFixture(t) {
+  const f = await membershipUseFixture(t);
+  const p = f.acquisitionPolicy;
+  await f.service.selectForUse(token(), p.lease_token, p.input_sha256, p.output_sha256);
+  const index = new MembershipObservationIndex(f.storage, { clock: f.options.clock }); index.initializeEmpty();
+  const descriptor = bytes => ({ key: 'raw/' + sha(bytes).slice(7), sha256: sha(bytes), size_bytes: bytes.length });
+  const response = Buffer.from(JSON.stringify([{ Code: 'SYNTH', Exchange: 'NYSE', Type: 'Common Stock', Name: 'Synthetic', Country: 'USA', Currency: 'USD' }]));
+  const responseArchive = descriptor(response);
+  await f.use.put(token(), responseArchive.key, response, { sha256: responseArchive.sha256, size_bytes: response.length });
+  const observation = Buffer.from(JSON.stringify({ kind: 'eodhd_us_membership_observation', version: 1, as_of: f.policy.as_of,
+    request: { method: 'GET', url: membershipSource, accept: 'application/json', accept_encoding: 'identity' },
+    acquisition_evidence: p.license_archive, started_at: new Date(f.state.now).toISOString(), completed_at: new Date(f.state.now).toISOString(),
+    http_status: 200, content_length: response.length, eof: true, failure: null, response: responseArchive,
+    parsed_policy_version: 'm12-eodhd-membership-source-1.0.0' }));
+  const candidate = descriptor(observation);
+  await f.use.put(token(), candidate.key, observation, { sha256: candidate.sha256, size_bytes: candidate.size_bytes });
+  const licensePolicy = Object.fromEntries(['purpose', 'license_archive', 'license_valid_from', 'license_valid_until'].map(k => [k, p[k]]));
+  const service = new MembershipRegistrationReadback(identityPolicy, { ...f.useOptions, licensePolicy });
+  return { ...f, index, candidate, observation, response, responseArchive, service,
+    resource: `daily/${f.policy.as_of}/${f.policy.config_ref.id}` };
+}
+
+test('membership registration readback defaults disabled and refuses foreign candidate ownership', async t => {
+  const off = new MembershipRegistrationReadback(null);
+  await assert.rejects(off.capture('bad', {}), /disabled/);
+  const f = await membershipReadbackFixture(t);
+  await assert.rejects(f.service.capture('unsigned', f.candidate));
+  await assert.rejects(f.service.capture(token({ actor_id: '790' }), f.candidate));
+  const privateBytes = Buffer.from('another task private original'), digest = sha(privateBytes);
+  const foreign = { key: 'raw/' + digest.slice(7), sha256: digest, size_bytes: privateBytes.length };
+  f.objects.set(foreign.key, privateBytes);
+  await assert.rejects(f.service.capture(token(), foreign));
+});
+
+test('membership registration readback binds actual originals and remains read only for pending or registered head', async t => {
+  const f = await membershipReadbackFixture(t);
+  const puts = f.archiveState.puts;
+  const input = await f.service.capture(token(), f.candidate);
+  const wire = JSON.parse(Buffer.from(input));
+  assert.equal(wire.protocol, 'm12-membership-registration/1');
+  assert.equal(wire.expected_index.revision, 0);
+  assert.deepEqual(Buffer.from(wire.observations_base64[0].observation_bytes, 'base64'), f.observation);
+  assert.deepEqual(Buffer.from(wire.observations_base64[0].response_bytes, 'base64'), f.response);
+  assert.deepEqual(Buffer.from(wire.observations_base64[0].acquisition_bytes, 'base64'), f.license);
+  assert.deepEqual(wire.candidate_archive, f.candidate);
+  assert.deepEqual(wire.acquisition_archive, f.acquisitionPolicy.license_archive);
+  assert.equal(f.archiveState.puts, puts);
+  // Explicit internal prevalidated registration stand-in, not an exposed API.
+  const checked = await new PreparationValidationSession(identityPolicy, { ...f.useOptions }).readForUse(token(), f.handle,
+    f.acquisitionPolicy.input_sha256, f.acquisitionPolicy.output_sha256);
+  const current = f.index.readCurrent(checked.identity, f.handle, f.resource);
+  f.index.append(checked.identity, f.handle, f.resource, { expected_index: current, as_of: f.policy.as_of, observation_archive: f.candidate });
+  const replay = JSON.parse(Buffer.from(await f.service.capture(token(), f.candidate)));
+  assert.equal(replay.expected_index.revision, 1); assert.equal(replay.observations_base64.length, 1);
+  assert.equal(f.db.prepare('SELECT count(*) AS n FROM m12_membership_index_log').get().n, 1);
+});
+
+test('membership registration readback rejects lost originals current permission selection and index changes', async t => {
+  for (const fault of ['response', 'license', 'selection', 'root', 'fence', 'expired']) {
+    const f = await membershipReadbackFixture(t);
+    f.archiveState.beforeGet = key => {
+      if (key !== f.candidate.key) return;
+      f.archiveState.beforeGet = null;
+      if (fault === 'response') f.objects.delete(f.responseArchive.key);
+      if (fault === 'license') f.objects.delete(f.acquisitionPolicy.license_archive.key);
+      if (fault === 'selection') f.db.exec('DELETE FROM m12_preparation_selection_log');
+      if (fault === 'root') f.db.exec('DELETE FROM m12_membership_head');
+      if (fault === 'fence') f.db.prepare('UPDATE m12_leases SET fence=fence+1 WHERE resource=?').run(f.resource);
+      if (fault === 'expired') f.state.now = (NOW + 301) * 1000;
+    };
+    await assert.rejects(f.service.capture(token(), f.candidate));
+  }
+});
+
+test('membership registration readback checks the original window after final encoding', async t => {
+  const f = await membershipReadbackFixture(t), Original = globalThis.TextEncoder;
+  globalThis.TextEncoder = class extends Original {
+    encode(text) {
+      const bytes = super.encode(text);
+      if (text.includes('"protocol":"m12-membership-registration/1"')) f.state.now = (NOW + 301) * 1000;
+      return bytes;
+    }
+  };
+  try { await assert.rejects(f.service.capture(token(), f.candidate)); }
+  finally { globalThis.TextEncoder = Original; }
 });
