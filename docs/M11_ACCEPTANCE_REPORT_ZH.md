@@ -13,8 +13,8 @@ M11 A—D已在获批影子范围完成本地固定合成样本验证。本结�
 ## 唯一生产层与合同
 
 - 唯一实现位于`services/playbook/`。
-- 权威事实为`StrategyProposal 2.0.0`、`StrategyEvidenceAssessment 2.0.0`和`StrategyLifecycleEvent 2.0.0`。
-- `StrategyRegistrySnapshot 2.0.0`只是从前三类完整链可再生成的只读视图，不保存第二份最终状态。
+- 当前formal写入使用`StrategyProposal 2.1.0`、`StrategyEvidenceAssessment 2.1.0`和`StrategyLifecycleEvent 2.1.0`；旧`2.0.0`只读，不能进入新的formal评估或存储。
+- `StrategyRegistrySnapshot 2.1.0`只是从前三类完整链可再生成的只读视图，不保存第二份最终状态；旧`2.0.0`同样只读。
 - 实现、评估和生命周期记录均使用严格版本、规范化身份、内容指纹和线性只追加修订。
 
 ## 机器证据闸门
@@ -24,6 +24,14 @@ M11 A—D已在获批影子范围完成本地固定合成样本验证。本结�
 - 必须有completed ExperimentRun、完整结果集、formal无bias路径、数据／股票池／复权政策、候选／基线版本、全部预登记分区及至少一个独立`validation`或真实`forward`案例。
 - 必需证据不足为`evidence_incomplete`；标准失败为`not_validated`，已验证后被新失败证据推翻则为`invalidated`。没有全局收益阈值。
 - CGEM、MRNA、BTDR、DLTR、ADBE、BABA、TTD和AEVA在固定样本中不得改标为新独立验证。
+
+## 独立审核修复
+
+- 四项权威性修复及回归测试代码提交为`e63412817f1ee9dc36a2aa10cedf807fd71d2600`。
+- 预登记现在冻结预期运行、必需分区／结果族／窗口、候选与基线版本、数据、股票池、政策及时间范围。Assessment从M10冻结库存确定性重推完整全集，再与声明逐项比较；遗漏不利运行、窗口或分区，增加／替换／重复运行，跨政策或跨结果族均失败关闭。
+- Proposal案例角色绑定已落盘M09事件的`event_id`、稳定`instrument_id`、`signal_date`和内容指纹；`seen_before`由显式可信案例登记解析，显示标签、ticker别名和调用方声明不能改变案例身份或已见状态。
+- 用户批准、main实现和M12激活事件必须经显式可信解析器重新验证。默认formal路径没有解析器即失败关闭；固定合成测试只能使用标记为`test`的解析器。M12尚未实施，因此真实formal `active`不可达。
+- RegistrySnapshot在同一库存锁内从完整Proposal、Assessment和Lifecycle库存重建，并与待写入快照作规范字节比较；公共存储不能接受删项、增项、替换、重复或重签后的不完整快照。
 
 ## 四轴和生命周期
 
@@ -35,11 +43,11 @@ M11 A—D已在获批影子范围完成本地固定合成样本验证。本结�
 
 ## 测试证据
 
-- M11专项：31项通过。
-- M09—M11联合定向：228项运行，218项通过、10项跳过。
-- M01—M11扩大定向：394项运行，384项通过、10项跳过。
-- 完整Python：761项运行，751项通过、10项跳过。
-- `PYTHONHASHSEED=0／1／42／12345`：每轮31项通过。
+- M11专项：46项通过。
+- M09—M11联合定向：243项运行，233项通过、10项跳过。
+- M01—M11扩大定向：409项运行，399项通过、10项跳过。
+- 完整Python：776项运行，766项通过、10项跳过。
+- `PYTHONHASHSEED=0／1／42／12345`：每轮46项通过。
 - 治理合同：19项通过。
 - 前端：11项通过；lint、TypeScript和生产构建通过。
 - Python编译、文档链接和`git diff --check`通过。
@@ -51,3 +59,4 @@ M11 A—D已在获批影子范围完成本地固定合成样本验证。本结�
 - 没有修改网站、Discord、工作流、公开JSON或生产入口。
 - M12、M13、VectorBT和看板均未开始。
 - CR-043继续为`captured`。
+- 当前真实formal validated、active和新增alpha hard rule数量均为0。
