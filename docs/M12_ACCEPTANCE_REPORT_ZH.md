@@ -1153,3 +1153,12 @@ M02唯一build_observed_membership按这些成功来源连续重建原observed_i
 8项新原件／身份样例＋14采集＋7资格＋19治理状态共48项通过0.093秒（ResourceWarning为错误）。样例覆盖实际原采集器合成字节恢复、全体原件错配、连续／缺日／消失重现／换所、ISIN缺报后冲突、同日重放一致与错误历史、失败采集拒绝、只读隔离；合成身份→C2a资格→原UniverseSnapshot 3.x构造器通过，完整价格证明在该样例明确为合成替身，不冒充实际覆盖。后续补可信持久成功观察索引及调用接线，不能从调用者所选列表开始真实epoch。
 
 本包父ddba447，提交feat: derive M02 listing identities from original observation history [skip ci]；撤回新接点即可回退，无旧身份或历史写入。只读定位发现旧daily_tracker_update复用eodhd.latest_reference_day，以SPY最新bar作参考；尚未找到独立权威完整交易日历入口。下一价格包须补真实可核验证据边界，不能把最新参考日或420行自报为完整交易日历／合法上市历史。未真实供应商调用、云资源、合并、部署或生产启用；跨日生产E2E未运行。
+
+
+C2c新增内部MembershipObservationIndex，使用真实SQLite/DO同步事务接口及原LeaseStore。构造只建表，空根仅可信迁移显式initializeEmpty；根／索引／配对日志／初始化标记任一残留时不能再次初始化，不在缺根时自动接管旧行。readCurrent返回完整revision／head／history描述符供C2b原件重建，仅读写metadata，不解析许可或复制Python身份规则。
+
+append在daily租约与原已验签身份期限内比较完整expected_index；跨日／配置租约仍共用同一根，CAS失败必须重新读回。日期只增，同日同原件在读取当前根后重试幂等；同日不同原件、晚到旧日或重复原件停止。观察条目／配对日志／新根一笔事务保存，记录任务、epoch／fence和时间，完成时沿用原租约及身份期限检查；过期或任何部分写失败整体回滚。重开时核对全体顺序／前序／计数／配对／根，丢失不能只凭raw归档继续。
+
+该接口只供未来固定协调器将已读回且通过唯一Python来源检查的成功观察登记；本包没有认证RPC、真实策略实例或固定返回绑定接线，直接调用内部存储不能自证来源／许可／formal。没有创建云资源或生产身份根。9项新Node通过0.415秒：显式初始化、成对提交／幂等隔离、真实文件SQLite关闭重开、跨日跨配置CAS／晚到、丢失成对记录／根、每个写点失败与末次过期回滚、owner／fence／身份窗口、坏描述符／目标，以及真实SQLite索引交给Python来源恢复／身份重建与缺原件失败。JS↔Python样例的原件由原采集器使用合成供应商观察生成，不是真实采集或受信生产登记。定点eslint通过。
+
+本包父62e14f7，提交feat: persist the ordered membership observation index [skip ci]。回退撤回未接线内部存储，保留来源对象和已有日志；后续需接归档读回／固定结果绑定及价格日历证据，不声称这两个基础接点已经构成完整身份生产工厂。未推送本阶段未审代码、合并main、部署、启用、供应商请求或跨日生产E2E。
