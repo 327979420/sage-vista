@@ -1,6 +1,6 @@
 # M12｜完整生产链路最小设计
 
-版本：`0.2.0-draft`；日期：2026-09-06；状态：`design_review`。
+版本：`0.2.1-draft`；日期：2026-09-06；状态：`design_review`。
 
 关联CR-2026-09-06-053。用户仅授权设计补齐及独立提交，不授权实施、部署或生产启用。合并`14fef535f67b7c4de035b4c84224e604850f1fed`与治理`be1119e643ea9f5aa9f63dd25223ee6848dda1f5`已由用户确认通过独立审核；M11不重复审核，CR-043保持captured。本版替代0.1草案的未冻结技术选项，上线日期和实际部署授权留在上线卡。
 
@@ -139,7 +139,7 @@ WebProjection的source_refs指向Manifest同一inventory中的来源，as_of=D�
 
 推荐单个DO实例`production-coordinator`管理所有本项目生产写资源，SQLite事务保存身份epoch、各合同线性链索引、任务队列、租约和CurrentPointer。对象正文仍在R2；协调器登记前核验可信合同验证收据、R2对象哈希、前序链及令牌，事务只提交指针／索引，不跨网络持事务。事务追加完整操作日志，异步导出到R2；DO丢失／不可用时拒绝切换和写入，不拿陈旧导出自动恢复生产。恢复先冻结写入，以R2收据重建并人工批准新租约epoch，旧runner令牌全部失效。
 
-租约精确字段`{resource,owner_job:Job,fence:UInt,expires_at:Time}`，DO服务端计时，TTL=300秒，每60秒续约；每次授予递增fence，续约不改fence。resource为Text且固定四族：`daily/<D>/<config_id>`、`evaluation/<task_id>`、`publish/global`、`legacy-nightly`。请求必须携带当前owner＋fence，过期后旧runner即使继续运行也不能登记事实、完成队列、切换指针或通知。只能提交内容寻址临时字节，无权绕过DO改权威索引。发布锁只占用发布／核验／通知登记期，不覆盖全市场计算或历史回放。
+租约精确字段`{resource,owner_job:Job,fence:UInt,expires_at:Time}`，DO服务端计时，TTL=300秒，每60秒续约；每次授予递增fence，续约不改fence。resource为Text且固定五族：`daily/<D>/<config_id>`、`evaluation/<task_id>`、`publish/global`、`legacy-nightly`、`execution/<task_id>`（第7.1节原信号批次续跑）。请求必须携带当前owner＋fence，过期后旧runner即使继续运行也不能登记事实、完成队列、切换指针或通知。只能提交内容寻址临时字节，无权绕过DO改权威索引。发布锁只占用发布／核验／通知登记期，不覆盖全市场计算或历史回放。
 
 所有手动／定时／恢复任务调用同一入口；GitHub concurrency只是减少重复，跨任务正确性由DO实现。借助R2＋DO的生产适配器复用既有M02—M11合同与线性链校验，不削弱原ShadowStore路径守门；正式存储能力只由已认证生产runner固定注入，CLI、下载内容、环境变量不能提供任意根目录。共用纯校验必须从原实现提取复用，不在publication复制第二套算法。此适配为本M12包明确包含的接点，不是授权重写上游身份。
 
@@ -167,11 +167,21 @@ notification key=H({scope, event_id或日更D, semantic_state, notification_poli
 - nightly只持legacy-nightly锁和自己的历史缓存，不能获取publish/global来更新新release，也不能改DO每日／评价水位。原夜间写旧public文件仍为legacy归档，新四页不读取它们；M12不删除这些入口。新formal前向评价队列和索引放DO／R2，与旧两个断点文件完全隔离。未来新formal历史回放另立范围，本轮不替换夜间算法。
 - 所有任务仅读共享不可变原件；供应商新增修订需经M02唯一写入与fence登记，日任务优先。资源紧张时nightly让出采集配额，不取消或丢掉已存周；评价和发布均不写旧夜间断点。
 
+### 7.1 原信号跨日执行续跑（v0.2.1定点补充）
+
+唯一编排责任仍为M12 `services/publication/`。D日M09事件批次登记时，同一DO事务登记execution任务，任务ID=H({原RankingSnapshot Ref, 原EventLedgerBatch Ref, plan_policy Ref, exit_policy Ref})；归档D日完整排行（含原selected_entries）、M04 SupportEvidenceBatch、M09原事件批次及其M02身份／行情引用，冻结其内容指纹。任务从持久索引读取，覆盖全部待补计划及未终结计划，**不依赖以后是否入选、是否仍过Gate或仍在活跃股票池**；新的信号属于新的事件根，不替换旧任务。daily在M02可读后dispatch同一execution入口，恢复触发亦可单独dispatch；每次持`execution/<task_id>`租约，沿用第5节fence、续约及失效写入限制，与每日新信号计算及M10评价分开重试。
+
+D日缺次日开盘时保留`next_adjusted_open_unavailable`决策及M09关联，任务待补，不标无交易终结。D+1归档真实行情后，调用`services/execution/producer.py:produce_trade_plans`，传入**D日原排行、原支撑批次和截至D后首个真实可交易日的M02 entry_read**；晚到D+2重试也必须截取该入场日，不以D+2价格改计划、不重算D的Gate／评分／支撑。按原批次全量生成决策，已建计划复用冻结entry_read和已有ID，避免部分补建时将其重新记为缺失。先登记M08计划，再用`services/ledger/producer.py:produce_trade_plan_links`和原EventLedgerBatch追加M09计划决策关联，保留D日unavailable原记录，不修改事件字节；非入选或其他不可建原因保持原入口结论，不能因后来入选而替旧信号凑计划。
+
+每个计划从入场日完整收盘起，按交易日顺序调用M08 `current_exit_state`选唯一叶，再用`advance_exit_state(previous_state=该叶, completed_bars=从原入场日至本次截止日的连续完整复权行情)`推进；补跑逐日恢复，禁止跳过缺失交易日、重写已观察行情前缀或重置持仓计数。每份ExitState持久化后，调用M09 `produce_exit_state_link`追加到原事件及已存created计划关联；终结叶停止执行续跑，仍保留独立前向窗口评价。M10仅在依赖的M08对象和M09关联已登记后读取冻结库存，复用`evaluate_trade_baseline`，不补计划、不运行退出状态机；尚缺依赖保持待补并显示原原因，不能把旧unavailable评价当永久终结。
+
+幂等边界为原任务根＋阶段＋截止交易日＋冻结输入Ref；DO保存每个计划／退出叶／M09关联的已提交Ref和连续完成断点。只有M08对象及对应M09关联均落盘并登记，才推进该阶段断点和唤醒已有M10任务的新attempt；不改变M10任务根。崩溃在两者之间时先复核原对象并补缺关联，不重新生成第二份计划或退出分支；CAS冲突重新读取唯一叶，分叉、身份冲突及历史行情前缀修订一律blocked，不自动重建旧交易。暂缺行情／网络失败沿用15分钟、60分钟、下一EOD及每日最多3次的重试预算，无效支撑等非暂时原因保留明确不可用，等待合规证据而不盲重试；无新交易日不推进。每个job最多10分钟并保存断点。执行续跑落后不阻塞完整的新扫描排行：events投影显示各旧事件“计划待补／退出跟踪截至E／不可用原因”，不冒充已跟踪至D，不计入已完成交易评价；补齐后按现有发布流程更新当前包，复用当日排行字节和通知去重键，不倒退页面日期、不写旧夜间断点。
+
 页面始终分别显示“扫描截至D”“评价连续完成截至E或尚无”“N项到期待补／F项失败／I项未成熟”。D新而E旧时显示“今日候选已更新；后续表现评价落后”，已完成结果仍按原窗口／样本显示，失败或pending不计入成功率分母。无成熟样本显示“尚无”，不得用零胜率。可选上下文缺失局部标不可用，不影响已完整的技术事实；必需行情／身份缺失则不发布新扫描包，保留旧日期并展示更新失败状态。
 
 评价恢复只生成同D的新evaluation快照与新release（排名／扫描字节复用），按完整发布验证流程切换，通知键去重。D+1新扫描已成为当前时，D的晚到任务不能把页面退回D；只将结果纳入当前或下一release且result as_of≤其D。失败提示来自DO独立运行状态的只读小投影`/run-status.json`（不在发布Manifest、不改变业务事实），精确字段为`scan_target_date:Date,last_attempt_at:Time,scan_state:running|current|failed,evaluation_state:current|lagging|unavailable,pending_due_count:UInt,failed_count:UInt`；不得覆盖冻结包里的指标或日期。它可在新包失败时说明“旧包仍有效”，也不能使旧排行冒充今日。
 
-## 8. 四个简短样例（D/E为示意交易日，非上线日期）
+## 8. 四种运行样例与跨日验收（D/E为示意交易日，非上线日期）
 
 | 情况 | 系统动作 | 用户看见什么 |
 | --- | --- | --- |
@@ -179,6 +189,8 @@ notification key=H({scope, event_id或日更D, semantic_state, notification_poli
 | 来源缺失 | D列表下载截断或某成员资格未知；formal整日停止，保存失败收据，不移动发布指针；来源修复后仅重试失败阶段 | 保留D-1完整排行，顶部明确“D更新失败：来源不完整”；不会出现混日期或假的空榜 |
 | 评价失败 | D扫描成功，20日窗口任务网络失败进入15分钟重试；其余完成结果保存，daily不等待 | 扫描D、评价E较早，标“到期评价待补”，失败样本不当零收益；恢复后同D修订包只补评价不重复通知 |
 | 发布失败 | 候选字节预验通过，切换后正式域名某文件错哈希；online失败，禁止通知，CAS回退上一已验证目标并复核 | 切换期锁定候选版本，校验失败的内容显示不可用、不拼接旧字段；随后恢复上一版本并标日期与发布失败；失败收据／新包保留不删除 |
+
+**跨日验收：D入选、D+1不再入选仍完整续跑。** 合成样本中A在D日selected_entries且支撑有效；D日无次日行情，断言0计划、原因next_adjusted_open_unavailable并已保存待补任务。D+1的新排行不含A，仍从D冻结批次补出且仅补出1个计划，入场价取D+1真实调整开盘，支撑及事件根保持D；同日用完整K线产生首个ExitState及M09关联，后续每日续跑到原退出政策终结，再由M10消费已有证据。分别注入“计划已存、关联未存”和“退出已存、关联未存”崩溃，重试仅补缺关联，重复运行ID／内容与数量不变；缺一天行情时断点停留并显示待补，恢复后逐日补齐，不重置40日计数、不重发日更摘要。此为实施验收要求，本设计轮未执行该新端到端用例。
 
 ## 9. 实施边界、验收与交付拆包
 
@@ -190,6 +202,7 @@ notification key=H({scope, event_id或日更D, semantic_state, notification_poli
 | B1/B2 | R2只追加适配＋DO身份／租约／索引及失效fence测试；保留shadow边界 |
 | C1/C2 | 同日EODHD成员归档与资格、现有M03—M09串联、精确政策与research授权 |
 | D1/D2 | 独立评价队列、旧夜间断点隔离、重试与页面水位 |
+| D3/D4 | 第7.1节原信号计划补建／退出续跑与M09追加、跨日掉榜及部分提交恢复验收 |
 | E1/E2 | 十文件投影、四页版本锁定及来源映射，无新产品页 |
 | F1/F2 | preflight／CAS切换／online／回退、首个legacy回退目标 |
 | G | Discord日更摘要、跨release去重与uncertain恢复 |
