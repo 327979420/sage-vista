@@ -144,3 +144,29 @@
 - 74项M12专项／回归、31项共享合同、7项治理、12项状态，共124项通过，无跳过；diff、文档链接与机器状态一致性通过。没有重复M11或全业务审核。
 
 与本段同属独立提交`fix: bind receipt notification plan to release file [skip ci]`，父提交1b5e65abfe0370fa0e1a60a0152d833b015850b5，完整SHA见交付消息。仅本处修复，未开始A2b；真实发送、去重、平台认证、持久存储与CAS继续待后续。不合并、推送、部署、生产启用或对外通知；交回独立定点复核，不自行宣布审核通过。
+
+## A2a定点独立复核回传
+
+审核对话01a074f9-098a-7b82-b486-3185683290fe确认1d4ba84关闭通知计划Ref绑定P2，A2a纯合同范围审核通过。审核员运行相关receipts＋manifest共31项（未重复完整124项），并独立验证库存Ref、check Ref、另一release相同通知计划字节Ref在三个入口共9次拒绝；diff通过、工作区干净。真实来源、租约、CAS、HTTP、发送及恢复仍待后续验收。
+
+## A2b：CurrentPointer纯状态转换（待独立审核）
+
+- CurrentPointer 1.0.0保持设计八字段，通过唯一validate_contract入口验证；集合入口将其视为唯一可变单例，拒绝一个集合出现多个CurrentPointer，不伪造内容ID。
+- initialize只允许可信前态不存在，生成generation=0的empty；bootstrap只允许从empty登记已核验legacy目标，generation=1，visible=last_verified、phase=verified。不能用bootstrap把新release直接置为已发布。
+- promote要求verified前态、before／expected_generation匹配；Manifest.previous_release_ref也必须匹配保存的last_verified新版Ref（legacy时null）。成功generation+1并置switching，保留旧last_verified；失败保持可见目标／generation／verified状态，仅记录本次收据。
+- online必须匹配当前target／generation及switching或恢复状态。成功后才更新last_verified、清pending并verified；失败／uncertain保持目标与generation，置rollback_pending。失败候选不能以又一次成功online跳过回退；已回退旧目标若核验失败，则仍pending，可重新核验旧目标后恢复verified。
+- rollback仅允许恢复前态保存的last_verified，不许第三目标；成功generation+1、visible回旧目标但仍switching，等待线上核验；失败继续rollback_pending，不伪报恢复。prepare／preflight／notify收据不更新CurrentPointer。
+- 重放与前态last_receipt_ref相同的已验证收据返回完整原指针，generation及updated_at不再改变；仍需调用方提供匹配当前generation的可信前态。检查过期generation、时间倒退、目标或renderer错配、未知字段／版本／bool UInt。
+- `services/publication/pointer.py`提供纯构造器及公开投影；公开对象严格只有generation／visible／phase且不共享可变内部引用。未添加HTTP端点或缓存策略实现。
+
+### A2b内部证据和持久化边界
+
+`current_pointer_evidence`精确为`{operation,previous,expected_generation,updated_at,receipt,receipt_evidence,bootstrap}`；operation为initialize／bootstrap／apply_receipt。bootstrap是来自可信基线验证适配器的`{target,verification_ref}`配对，代码检查封闭形状与legacy类别，但不证明远端原件存在、verification_ref类型／内容确实对应target或回退演练发生；这些来源配对必须由B/F适配器核验。其余操作禁止混入bootstrap信息，apply_receipt重验A2a完整收据及证据。
+
+本批把previous作为可信锁内读取的已验证前态，检查其结构及本次转换一致性，不在此重建完整旧状态历史。后续协调器必须确认前态真实、持锁读取及原子CAS、当前lease/fence有效、收据已持久化、bootstrap基线及即时授权有效；纯函数可推导状态不等于真实写入或发布。initialize不能据此覆盖已有DO，重放也不能绕过生产令牌检查。
+
+### A2b实际检查与提交
+
+15项新增专项、74项M12回归、31项共享合同、7项治理、12项状态，共139项通过，无跳过。覆盖正常初始化至核验、legacy bootstrap边界、回退／回退失败及再次核验、失败候选拒绝跳过恢复、第三目标拒绝、stale generation、完整收据重放、混合renderer／类型反例、单例重复和公开投影隔离；文档链接、diff及机器状态一致性通过。未重审M11，跨日端到端仍未执行。
+
+与本段同属独立提交`feat: add M12 current pointer transitions [skip ci]`，父提交1d4ba84a244760f62f092b98cb3462efefa7bd9f；完整SHA见交付消息。无持久存储／工作流／页面变更，可撤回本批代码测试并保留治理历史。未合并、推送、部署、生产启用或对外通知。

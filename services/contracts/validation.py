@@ -260,9 +260,13 @@ def validate_contract(
     evaluation_snapshot_evidence: Mapping[str, Any] | None = None,
     release_manifest_evidence: Mapping[str, Any] | None = None,
     publication_receipt_evidence: Mapping[str, Any] | None = None,
+    current_pointer_evidence: Mapping[str, Any] | None = None,
 ) -> None:
     """Validate one canonical contract and fail closed on unknown evidence."""
 
+    if contract_name == "CurrentPointer":
+        _validate_current_pointer(payload, current_pointer_evidence)
+        return
     if contract_name == "PublicationReceipt":
         _validate_publication_receipt(payload, publication_receipt_evidence)
         return
@@ -1155,6 +1159,7 @@ def validate_contracts(
     evaluation_snapshot_evidence: Mapping[str, Any] | None = None,
     release_manifest_evidence: Mapping[str, Any] | None = None,
     publication_receipt_evidence: Mapping[str, Any] | None = None,
+    current_pointer_evidence: Mapping[str, Any] | None = None,
 ) -> None:
     """Validate a collection, including stable-ID and event uniqueness rules."""
 
@@ -1167,9 +1172,14 @@ def validate_contracts(
             evaluation_snapshot_evidence=evaluation_snapshot_evidence,
             release_manifest_evidence=release_manifest_evidence,
             publication_receipt_evidence=publication_receipt_evidence,
+            current_pointer_evidence=current_pointer_evidence,
         )
-        stable_id_field = _stable_id_field(contract_name, payload)
-        identity = (contract_name, str(payload[stable_id_field]))
+        if contract_name == "CurrentPointer":
+            # Mutable singleton, not a content-addressed artifact with a new ID.
+            identity = (contract_name, "current")
+        else:
+            stable_id_field = _stable_id_field(contract_name, payload)
+            identity = (contract_name, str(payload[stable_id_field]))
         if identity in seen_ids:
             raise ContractError(f"duplicate stable ID: {identity[1]}")
         seen_ids.add(identity)
@@ -2133,3 +2143,130 @@ def release_file_reference(
     }
     fingerprint = "sha256:" + hashlib.sha256(_canonical(identity)).hexdigest()
     return {"id": "release-file:" + fingerprint, "content_fingerprint": entry["sha256"]}
+
+
+M12_POINTER_FIELDS = frozenset({
+    "schema_version", "generation", "visible", "last_verified", "phase",
+    "pending_receipt_ref", "last_receipt_ref", "updated_at",
+})
+
+
+def _m12_pointer_fields(payload: Mapping[str, Any]) -> None:
+    _m12_exact(payload, set(M12_POINTER_FIELDS), "CurrentPointer")
+    if payload["schema_version"] != "1.0.0":
+        raise ContractError("unsupported CurrentPointer version")
+    _m12_uint(payload["generation"])
+    _m12_time(payload["updated_at"])
+    for key in ("visible", "last_verified"):
+        if payload[key] is not None:
+            _m12_pointer_target(payload[key])
+    for key in ("pending_receipt_ref", "last_receipt_ref"):
+        if payload[key] is not None:
+            _m12_ref(payload[key])
+    phase = payload["phase"]
+    if phase == "empty":
+        if payload["generation"] != 0 or any(payload[k] is not None for k in ("visible", "last_verified", "pending_receipt_ref", "last_receipt_ref")):
+            raise ContractError("empty pointer cannot contain a visible target or history")
+    elif phase in ("verified", "switching", "rollback_pending"):
+        if payload["generation"] == 0 or payload["visible"] is None or payload["last_verified"] is None:
+            raise ContractError("nonempty pointer needs visible and verified fallback targets")
+        if phase == "verified":
+            if payload["visible"] != payload["last_verified"] or payload["pending_receipt_ref"] is not None:
+                raise ContractError("verified pointer must equal its verified target with no pending action")
+            if payload["visible"]["kind"] == "release" and payload["last_receipt_ref"] is None:
+                raise ContractError("verified release requires an online receipt")
+        elif payload["pending_receipt_ref"] is None or payload["last_receipt_ref"] is None:
+            raise ContractError("incomplete transition requires its durable receipt references")
+    else:
+        raise ContractError("unknown pointer phase")
+
+
+def current_pointer_body(evidence: Mapping[str, Any] | None) -> dict[str, Any]:
+    """Derive the singleton state from a trusted prior state and validated receipt.
+
+    The future coordinator must load that prior state under its lock and enforce
+    the live lease/fence and CAS. This pure transition is not a database write.
+    Bootstrap evidence must attest an archived and verified legacy fallback.
+    """
+    _m12_exact(evidence, {
+        "operation", "previous", "expected_generation", "updated_at", "receipt", "receipt_evidence", "bootstrap",
+    }, "trusted pointer transition")
+    _m12_uint(evidence["expected_generation"])
+    _m12_time(evidence["updated_at"])
+    previous = evidence["previous"]
+    operation = evidence["operation"]
+    if operation == "initialize":
+        if previous is not None or evidence["expected_generation"] != 0 or any(evidence[k] is not None for k in ("receipt", "receipt_evidence", "bootstrap")):
+            raise ContractError("initialize cannot overwrite existing state or imply an action")
+        return {"schema_version": "1.0.0", "generation": 0, "visible": None, "last_verified": None,
+                "phase": "empty", "pending_receipt_ref": None, "last_receipt_ref": None, "updated_at": evidence["updated_at"]}
+    _m12_pointer_fields(previous)
+    if evidence["expected_generation"] != previous["generation"]:
+        raise ContractError("pointer expected_generation is stale")
+    if evidence["updated_at"] < previous["updated_at"]:
+        raise ContractError("pointer transition cannot move time backwards")
+    result = dict(previous)
+    result["updated_at"] = evidence["updated_at"]
+    if operation == "bootstrap":
+        if previous["phase"] != "empty" or evidence["receipt"] is not None or evidence["receipt_evidence"] is not None:
+            raise ContractError("bootstrap only installs the first verified legacy fallback")
+        bootstrap = evidence["bootstrap"]
+        _m12_exact(bootstrap, {"target", "verification_ref"}, "legacy bootstrap evidence")
+        _m12_pointer_target(bootstrap["target"])
+        _m12_ref(bootstrap["verification_ref"])
+        if bootstrap["target"]["kind"] != "legacy":
+            raise ContractError("new releases cannot bypass promotion via bootstrap")
+        result.update(generation=1, visible=bootstrap["target"], last_verified=bootstrap["target"], phase="verified")
+        return result
+    if operation != "apply_receipt" or evidence["bootstrap"] is not None:
+        raise ContractError("unknown pointer operation or mixed bootstrap/receipt")
+    receipt = evidence["receipt"]
+    validate_contract("PublicationReceipt", receipt, publication_receipt_evidence=evidence["receipt_evidence"])
+    reference = {"id": receipt["receipt_id"], "content_fingerprint": receipt["content_fingerprint"]}
+    if evidence["updated_at"] < receipt["occurred_at"]:
+        raise ContractError("pointer update cannot precede its receipt observation")
+    if previous["last_receipt_ref"] == reference:
+        return dict(previous)  # Lost-response retry: preserve generation and timestamp.
+    kind, details, success = receipt["kind"], receipt["details"], receipt["outcome"] == "success"
+    if kind not in ("promote", "online", "rollback"):
+        raise ContractError("only switch and online receipts update CurrentPointer")
+    if previous["phase"] == "empty":
+        raise ContractError("a release requires an archived verified fallback first")
+    result["last_receipt_ref"] = reference
+    if kind in ("promote", "rollback"):
+        if details["before"] != previous["visible"] or details["expected_generation"] != previous["generation"]:
+            raise ContractError("switch receipt does not match the current target/generation")
+        if kind == "promote":
+            if previous["phase"] != "verified":
+                raise ContractError("cannot publish over an incomplete or failed transition")
+            fallback = previous["last_verified"]
+            expected_prior_release = fallback["release_ref"] if fallback["kind"] == "release" else None
+            if evidence["receipt_evidence"]["release"]["previous_release_ref"] != expected_prior_release:
+                raise ContractError("manifest predecessor differs from the pointer's verified fallback")
+        else:
+            if previous["phase"] not in ("switching", "rollback_pending") or details["after"] != previous["last_verified"]:
+                raise ContractError("rollback may only restore the saved verified fallback")
+        if success:
+            result.update(generation=details["resulting_generation"], visible=details["after"],
+                          phase="switching", pending_receipt_ref=reference)
+        elif kind == "rollback":
+            result.update(phase="rollback_pending", pending_receipt_ref=reference)
+        # Failed promote leaves the prior verified target/phase/generation intact.
+    else:
+        if previous["phase"] not in ("switching", "rollback_pending"):
+            raise ContractError("online completion requires an in-progress transition")
+        if details["target"] != previous["visible"] or details["pointer_generation"] != previous["generation"]:
+            raise ContractError("online receipt checks another target or generation")
+        if success:
+            if previous["phase"] == "rollback_pending" and previous["visible"] != previous["last_verified"]:
+                raise ContractError("failed candidate must roll back before resuming publication")
+            result.update(last_verified=previous["visible"], phase="verified", pending_receipt_ref=None)
+        else:
+            result.update(phase="rollback_pending", pending_receipt_ref=reference)
+    return result
+
+
+def _validate_current_pointer(payload: Mapping[str, Any], evidence: Mapping[str, Any] | None) -> None:
+    _m12_pointer_fields(payload)
+    if _canonical(payload) != _canonical(current_pointer_body(evidence)):
+        raise ContractError("CurrentPointer differs from its trusted transition")
