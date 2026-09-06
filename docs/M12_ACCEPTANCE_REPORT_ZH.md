@@ -54,3 +54,28 @@
 合同可存未来生效或已到期的历史批准，不代表当前可发布；生效时间、到期、即时撤销和回退例外的运行时权限执行仍由后续包落实。未提供任何默认允许的is_authorized接口或生产消费者；没有将此处grant转成M11 active。Manifest、收据、评价快照、R2／DO及跨日端到端仍待实现／验收。
 
 本批与本段同属独立提交`feat: add M12 publication authorization contract [skip ci]`，父提交6aa60cdb66469fb19cfe03cf61349b9b2b174e9d；完整SHA见交付消息。未推送、合并、部署、生产启用或对外通知。无数据迁移；如需回退仅撤回本批代码／测试，保留审核与实施历史。
+
+## A1b独立复核回传
+
+审核对话01a074f9-098a-7b82-b486-3185683290fe确认5461741在纯合同及可信批准输入绑定范围内通过，无阻断。审核员自行运行78项测试，另验证40条交替grant/revoke历史、80次重签Job仓库身份替换及38次跳过直接前序请求；后两者均拒绝。HEAD不变、工作区干净。结论不涵盖真实OIDC、批准人／保护环境、完整历史来源、实时期限／即时撤销或生产存储。
+
+## A1c：EvaluationSnapshot合同（待独立审核）
+
+- `validate_contract`及集合入口新增EvaluationSnapshot 1.0.0，封闭字段／ResultRow、UInt计数、有限数值、规范身份及可信任务输入必需；纯构造器位于`services/publication/evaluation.py`。
+- 重新验证SourceInventory，要求同一扫描日的独立任务索引根；任务全集必须等于索引根的直接依赖，按task_ref排序唯一。每个已引用结果必须绑定对应任务节点、在冻结库存内、ID／指纹吻合，不能遗漏、重复或加入额外结果。
+- 通过现有M10 `validate_result`核验实际完整结果对象，并逐字段只读投影，拒绝晚于扫描日、legacy或comparison对象冒充formal研究结果。事件／窗口／结果类型必须吻合任务元数据。Forward仅投影gross/MFE/MAE，Trade沿现有净收益缺成本为null边界，Portfolio指标全null，ResearchAggregate读取已有mean_gross_return/win_rate；无新收益计算。
+- 到期分类按可信任务due_on与scan_as_of比较；queued/running为到期待补，retry_wait/blocked为失败，completed必须已有到期且非pending的合法M10结果。未到期单计immature，不计due。终结且明确unavailable结果表示评价任务已完成，不等于指标可用，页面仍须保留原不可用原因。
+- 同日任何到期任务未完成就阻止该日及以后水位；部分失败时保守保存阻断日之前最后一个全部完成的到期日，全清零时推进至scan_as_of。无到期任务为current／水位null，有到期但零完成为unavailable，有完成且仍待补为lagging。收益、状态、日期和计数改写后重签也必须与可信输入一致。
+
+### A1c内部证据与后续验收
+
+`evaluation_snapshot_evidence`精确输入为`{scan_as_of,inventory,inventory_evidence,task_index_ref,tasks,results}`。tasks每项为`{task_ref,due_on,state,result_ref,result_contract,event_id,window_sessions,reason_codes}`；results每项为`{contract_name,payload}`，payload为实际M10结果。来源适配器须在锁内证明完整任务索引、真实到期计划／状态、已持久化完成收据及结果链最新叶，并核验任务元数据与task_ref所指原件一致。本批用合成可信任务元数据验证这些输入之间的一致性，不能据此证明真实任务状态或调度已经正确运行；不接受外部用户JSON充当可信证据。
+
+首轮不可用说明只映射原结果的status_reason，其为空时读取metric_reason或net_return_reason；不编造成功率或收益。尚未启动每日／夜间／M10评价任务，也未执行跨日掉榜端到端样例。Manifest／收据、R2／DO、任务恢复、页面发布和实时权限仍待后续包。
+
+### A1c实际检查与提交
+
+- 15项新增评价快照测试，包括现有四类M10合同、当前2.1汇总投影、禁止重新计算、缺证据、闭包删改、同日／跨日失败水位、未成熟、未来／comparison、缺成本及重签篡改。
+- 加上28项A1a/b、31项共享合同、7项治理、12项状态，共93项通过，无跳过。文档链接、差异格式及机器状态一致性通过。
+- 未重审M11，无真实数据或实验运行，旧政策、快照、许可及断点未改。
+- 与本段同属独立提交`feat: add M12 evaluation snapshot contract [skip ci]`，父提交5461741c3ed53ae7b1d3aba618cf5fb49a8d0f16；完整SHA见交付消息。无数据迁移／生产消费者，可撤回本批代码和测试，保留实施审核历史。未合并、推送、部署、生产启用或对外通知。

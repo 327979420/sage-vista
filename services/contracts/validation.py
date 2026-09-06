@@ -10,6 +10,7 @@ from __future__ import annotations
 from datetime import date, datetime
 import hashlib
 import json
+import math
 from pathlib import PurePosixPath
 import re
 from typing import AbstractSet, Any, Iterable, Mapping
@@ -124,6 +125,7 @@ ID_FIELDS = {
     "ReleaseManifest": "release_id",
     "SourceInventory": "inventory_id",
     "PublicationAuthorization": "authorization_id",
+    "EvaluationSnapshot": "evaluation_snapshot_id",
     "ExperimentRun": "experiment_id",
 }
 
@@ -254,9 +256,13 @@ def validate_contract(
     allow_partial_manifest: bool = False,
     source_inventory_evidence: Mapping[str, Any] | None = None,
     publication_authorization_evidence: Mapping[str, Any] | None = None,
+    evaluation_snapshot_evidence: Mapping[str, Any] | None = None,
 ) -> None:
     """Validate one canonical contract and fail closed on unknown evidence."""
 
+    if contract_name == "EvaluationSnapshot":
+        _validate_evaluation_snapshot(payload, evaluation_snapshot_evidence)
+        return
     if contract_name == "PublicationAuthorization":
         _validate_publication_authorization(payload, publication_authorization_evidence)
         return
@@ -1137,6 +1143,7 @@ def validate_contracts(
     *,
     source_inventory_evidence: Mapping[str, Any] | None = None,
     publication_authorization_evidence: Mapping[str, Any] | None = None,
+    evaluation_snapshot_evidence: Mapping[str, Any] | None = None,
 ) -> None:
     """Validate a collection, including stable-ID and event uniqueness rules."""
 
@@ -1146,6 +1153,7 @@ def validate_contracts(
         validate_contract(
             contract_name, payload, source_inventory_evidence=source_inventory_evidence,
             publication_authorization_evidence=publication_authorization_evidence,
+            evaluation_snapshot_evidence=evaluation_snapshot_evidence,
         )
         stable_id_field = _stable_id_field(contract_name, payload)
         identity = (contract_name, str(payload[stable_id_field]))
@@ -1408,3 +1416,179 @@ def _validate_publication_authorization(payload: Mapping[str, Any], evidence: Ma
         raise ContractError("PublicationAuthorization differs from the trusted approval")
     if any(record["authorization_id"] == payload["authorization_id"] for record in evidence["history"]):
         raise ContractError("new authorization already occurs in predecessor history")
+
+
+M12_RESULT_METRICS = (
+    "gross_return", "net_return", "mfe", "mae", "gross_r_multiple", "mean_gross_return", "win_rate",
+)
+
+
+def _m12_strings(value: Any) -> list[str]:
+    if not isinstance(value, list):
+        raise ContractError("M12 reason codes must be an array")
+    for item in value:
+        _m12_text(item, "reason code")
+    if value != sorted(set(value)):
+        raise ContractError("M12 reason codes must be sorted and unique")
+    return list(value)
+
+
+def _m12_result_row(contract: str, result: Mapping[str, Any], as_of: str) -> dict[str, Any]:
+    # Deferred import preserves the shared-contract / M10 dependency direction.
+    from services.evaluation.contracts import RESULT_TYPES, validate_result
+
+    validate_result(contract, result)
+    if result["path_status"] != "formal" or result["result_role"] != "authoritative":
+        raise ContractError("M12 research summary cannot promote comparison or legacy results")
+    if result["as_of"] > as_of:
+        raise ContractError("M12 result cannot exceed the scan cutoff")
+    id_field, fingerprint_field, _, _ = RESULT_TYPES[contract]
+    allowed = {
+        "ForwardOutcome": {"gross_return", "mfe", "mae"},
+        "TradeOutcome": {"gross_return", "net_return", "mfe", "mae", "gross_r_multiple"},
+        "PortfolioRun": set(),
+        "ResearchAggregate": {"mean_gross_return", "win_rate"},
+    }[contract]
+    return {
+        "result_ref": {"id": result[id_field], "content_fingerprint": result[fingerprint_field]},
+        "event_id": result.get("event_id"), "result_contract": contract,
+        "window_sessions": result.get("window_sessions"), "status": result["status"],
+        **{field: result.get(field) if field in allowed else None for field in M12_RESULT_METRICS},
+        "unavailable_reason": result.get("status_reason") or result.get("metric_reason") or result.get("net_return_reason"),
+    }
+
+
+def evaluation_snapshot_body(evidence: Mapping[str, Any] | None) -> dict[str, Any]:
+    """Project validated M10 leaves and counts from a trusted frozen task index.
+
+    The future adapter verifies task scheduling, result-chain heads, persisted
+    receipts and index completeness under its lock. This function verifies the
+    supplied graph and actual M10 contracts, not the existence of remote state.
+    """
+    _m12_exact(evidence, {
+        "scan_as_of", "inventory", "inventory_evidence", "task_index_ref", "tasks", "results",
+    }, "trusted evaluation snapshot evidence")
+    cutoff = evidence["scan_as_of"]
+    _require_date(cutoff, "scan_as_of")
+    inventory = evidence["inventory"]
+    validate_contract("SourceInventory", inventory, source_inventory_evidence=evidence["inventory_evidence"])
+    index_ref = _m12_ref(evidence["task_index_ref"])
+    if inventory["as_of"] != cutoff or inventory["roots"] != [index_ref]:
+        raise ContractError("evaluation inventory must freeze the same-day task index root")
+    graph = {node["ref"]["id"]: node for node in evidence["inventory_evidence"]["nodes"]}
+    inventory_refs = {ref["id"]: ref for ref in inventory["records"]}
+    if not isinstance(evidence["tasks"], list) or not isinstance(evidence["results"], list):
+        raise ContractError("evaluation tasks and results must be arrays")
+    task_refs = _m12_refs([task.get("task_ref") if isinstance(task, Mapping) else None for task in evidence["tasks"]])
+    if graph[index_ref["id"]]["dependencies"] != task_refs:
+        raise ContractError("evaluation tasks differ from the complete task index")
+    rows = {}
+    for item in evidence["results"]:
+        _m12_exact(item, {"contract_name", "payload"}, "M10 result record")
+        if not isinstance(item["contract_name"], str):
+            raise ContractError("M10 contract name must be text")
+        row = _m12_result_row(item["contract_name"], item["payload"], cutoff)
+        reference = row["result_ref"]
+        if reference["id"] in rows or inventory_refs.get(reference["id"]) != reference:
+            raise ContractError("duplicate result or result outside frozen inventory")
+        rows[reference["id"]] = row
+    counts = {"due_count": 0, "completed_count": 0, "failed_count": 0, "pending_due_count": 0, "immature_count": 0}
+    reasons: set[str] = set()
+    referenced: set[str] = set()
+    due_days: dict[str, list[bool]] = {}
+    for task in evidence["tasks"]:
+        _m12_exact(task, {
+            "task_ref", "due_on", "state", "result_ref", "result_contract", "event_id", "window_sessions", "reason_codes",
+        }, "evaluation task")
+        _require_date(task["due_on"], "task.due_on")
+        state = task["state"]
+        if not isinstance(state, str) or state not in {"queued", "running", "retry_wait", "blocked", "completed"}:
+            raise ContractError("unknown evaluation task state")
+        if task["result_contract"] not in ("ForwardOutcome", "TradeOutcome", "PortfolioRun", "ResearchAggregate"):
+            raise ContractError("unknown evaluation task result contract")
+        if task["event_id"] is not None:
+            _m12_text(task["event_id"], "task.event_id")
+        window = task["window_sessions"]
+        if window is not None and (type(window) is not int or window < 0):
+            raise ContractError("task.window_sessions must be UInt or null")
+        reasons.update(_m12_strings(task["reason_codes"]))
+        row = None
+        if task["result_ref"] is not None:
+            reference = _m12_ref(task["result_ref"])
+            row = rows.get(reference["id"])
+            if row is None or row["result_ref"] != reference or reference["id"] in referenced:
+                raise ContractError("task result is missing, duplicated or has conflicting content")
+            if reference not in graph[task["task_ref"]["id"]]["dependencies"]:
+                raise ContractError("task result is not bound to its frozen index node")
+            if any(row[field] != task[field] for field in ("result_contract", "event_id", "window_sessions")):
+                raise ContractError("task result crosses event, window or result family")
+            referenced.add(reference["id"])
+        due = task["due_on"] <= cutoff
+        if state == "completed" and (not due or row is None or row["status"] == "pending"):
+            raise ContractError("completed task needs a due, readable terminal M10 result")
+        if not due:
+            counts["immature_count"] += 1
+            continue
+        counts["due_count"] += 1
+        completed = state == "completed"
+        bucket = "completed_count" if completed else "failed_count" if state in {"retry_wait", "blocked"} else "pending_due_count"
+        counts[bucket] += 1
+        due_days.setdefault(task["due_on"], []).append(completed)
+    if referenced != set(rows):
+        raise ContractError("evaluation snapshot has extra result objects")
+    through = None
+    for day in sorted(due_days):
+        if not all(due_days[day]):
+            break
+        through = day
+    incomplete = counts["failed_count"] + counts["pending_due_count"]
+    state = "current" if not incomplete else "unavailable" if not counts["completed_count"] else "lagging"
+    if counts["due_count"] and not incomplete:
+        through = cutoff
+    result_rows = [rows[key] for key in sorted(rows)]
+    return {
+        "schema_version": "1.0.0", "scan_as_of": cutoff,
+        "inventory_ref": {"id": inventory["inventory_id"], "content_fingerprint": inventory["content_fingerprint"]},
+        "state": state, "completed_through": through, **counts,
+        "result_refs": [row["result_ref"] for row in result_rows], "result_rows": result_rows,
+        "reason_codes": sorted(reasons),
+    }
+
+
+def _validate_evaluation_snapshot(payload: Mapping[str, Any], evidence: Mapping[str, Any] | None) -> None:
+    _m12_exact(payload, {
+        "schema_version", "evaluation_snapshot_id", "content_fingerprint", "generated_at",
+        "scan_as_of", "inventory_ref", "state", "completed_through", "due_count",
+        "completed_count", "failed_count", "pending_due_count", "immature_count",
+        "result_refs", "result_rows", "reason_codes",
+    }, "EvaluationSnapshot")
+    if payload["schema_version"] != "1.0.0":
+        raise ContractError("unsupported EvaluationSnapshot version")
+    _m12_time(payload["generated_at"])
+    for field in ("due_count", "completed_count", "failed_count", "pending_due_count", "immature_count"):
+        if type(payload[field]) is not int or payload[field] < 0:
+            raise ContractError("evaluation counts must be UInt, not bool")
+    _m12_refs(payload["result_refs"])
+    _m12_strings(payload["reason_codes"])
+    if not isinstance(payload["result_rows"], list):
+        raise ContractError("result_rows must be an array")
+    for row in payload["result_rows"]:
+        _m12_exact(row, {
+            "result_ref", "event_id", "result_contract", "window_sessions", "status", "unavailable_reason",
+            *M12_RESULT_METRICS,
+        }, "ResultRow")
+        window = row["window_sessions"]
+        if window is not None and (type(window) is not int or window < 0):
+            raise ContractError("ResultRow.window_sessions must be UInt or null")
+        for field in M12_RESULT_METRICS:
+            value = row[field]
+            if value is not None and (type(value) not in (int, float) or (type(value) is float and not math.isfinite(value))):
+                raise ContractError("ResultRow metrics must be finite numbers or null")
+    body = {key: value for key, value in payload.items() if key not in {
+        "evaluation_snapshot_id", "content_fingerprint", "generated_at",
+    }}
+    if body != evaluation_snapshot_body(evidence):
+        raise ContractError("EvaluationSnapshot differs from frozen tasks or M10 results")
+    fingerprint = "sha256:" + hashlib.sha256(_canonical(body)).hexdigest()
+    if payload["content_fingerprint"] != fingerprint or payload["evaluation_snapshot_id"] != "evaluation-snapshot:" + fingerprint:
+        raise ContractError("EvaluationSnapshot identity mismatch")
