@@ -2691,6 +2691,18 @@ def _m12_preparation_identity(identity: Any, evidence: Mapping[str, Any]) -> Non
         raise ContractError("preparation identity window invalid")
 
 
+def _m12_decode_base64(encoded):
+    if not isinstance(encoded, str):
+        raise ContractError("preparation byte input must be base64 text")
+    try:
+        value = base64.b64decode(encoded, validate=True)
+    except (ValueError, binascii.Error) as exc:
+        raise ContractError("preparation byte input must be strict base64") from exc
+    if base64.b64encode(value).decode("ascii") != encoded:
+        raise ContractError("preparation byte input must be canonical base64")
+    return value
+
+
 def publication_preparation_input(raw: bytes) -> dict[str, Any]:
     """Decode fixed server readback bytes; byte input alone does not prove origin."""
     if type(raw) is not bytes or not 0 < len(raw) <= PREPARATION_INPUT_MAX_BYTES:
@@ -2705,18 +2717,8 @@ def publication_preparation_input(raw: bytes) -> dict[str, Any]:
     _m12_preparation_identity(wire["identity"], e)
     if not isinstance(e["history_base64"], list):
         raise ContractError("preparation requires complete original history bytes")
-    def decode(encoded):
-        if not isinstance(encoded, str):
-            raise ContractError("preparation byte input must be base64 text")
-        try:
-            value = base64.b64decode(encoded, validate=True)
-        except (ValueError, binascii.Error) as exc:
-            raise ContractError("preparation byte input must be strict base64") from exc
-        if base64.b64encode(value).decode("ascii") != encoded:
-            raise ContractError("preparation byte input must be canonical base64")
-        return value
     evidence = {key: value for key, value in e.items() if key not in ("history_base64", "config_base64")}
-    evidence.update(history_bytes=[decode(value) for value in e["history_base64"]], config_bytes=decode(e["config_base64"]))
+    evidence.update(history_bytes=[_m12_decode_base64(value) for value in e["history_base64"]], config_bytes=_m12_decode_base64(e["config_base64"]))
     return {"identity": wire["identity"], "evidence": evidence}
 
 
@@ -2768,3 +2770,18 @@ def membership_observation_history(evidence, *, as_of):
     """
     from .membership_observation import _observation_history
     return _observation_history(evidence, as_of=as_of)
+
+
+def membership_registration_input(raw):
+    """Decode the fixed coordinator's exact membership computation input."""
+    from .membership_observation import _registration_input
+    return _registration_input(raw)
+
+
+def membership_registration_completion(value, *, started_ms, completed_ms):
+    """Final guard after full input/source computation; insufficient alone."""
+    preparation = publication_preparation_completion(value['preparation'], started_ms=started_ms, completed_ms=completed_ms)
+    start = datetime(1970, 1, 1, tzinfo=timezone.utc) + timedelta(milliseconds=started_ms)
+    if value['latest_observation_completed_at'] > start:
+        raise ContractError('membership observation completed after validation began')
+    return preparation

@@ -1177,3 +1177,16 @@ PYTHONDONTWRITEBYTECODE=1 node --test --test-name-pattern='daily client integrat
 本执行任务再次只读git ls-remote确认：origin的refs/heads/m12/production-chain-design-14fef53=ddba4477105e4a3c3ecb741f03274b20395d7261，refs/heads/main=14fef535f67b7c4de035b4c84224e604850f1fed。本阶段尚未推送，由审核任务阶段通过后普通同步已审SHA。未创建云资源、运行真实采集、合并main、部署、生产启用或执行跨日生产端到端；新成员证据的complete仅表示可信输入中的供应商成功范围，不证明实际交易日历或价格覆盖。
 
 下一阶段先把本索引接到既有认证采集会话的实际原件读回及固定Python检查／返回绑定，不能直接公开append或把自报来源列表当根；接点完成后接价格完整性与日历材料。关于设计中“现有交易日历”，目前实际旧入口仅以SPY最新bar定参考日，尚未确认完整交易会话／收盘时刻／上市历史来源，交审核任务澄清具体证据接法后实施，不能静默填充complete_history_instruments或另猜算法。供应商明确重上市证据的来源亦尚未接入。M03—M09、跨日执行／M09关联、独立M10与四页发布仍为未完成链路，不将本基础阶段标成M12 implemented。
+
+
+## 成功观察登记接线阶段（C2d起，待独立审核）
+
+C2b—C2c范围ddba447..7e8019a已获独立PASS：70 Python（7.608秒）、9索引Node（0.421秒）、1原每日客户端固定worker联测（2.719秒）共80项通过；eslint／区间diff／HEAD／工作区通过。审核任务已普通推送并读回工作分支7e8019a29eea502ea86dfbcdf4c1143789cfdc1f，main仍14fef535。该结论不含上层实际读回／固定返回登记或真实价格日历。
+
+C2d新增封闭m12-membership-registration/1输入，包含原身份、原准备输入base64、完整expected_index、candidate_archive、服务器固定acquisition_archive及完整来源原件base64。唯一合同入口复用原严格base64解码、C2b原件检查和原准备身份；候选未在当前head则只追加一项拟议来源，已是同一head可幂等重验。缺件／错根／错许可／错身份失败，不能替换原完整源或用候选列表重置epoch。
+
+固定membership_validation生产者读取实际Git配置，复用原当前授权及时间闸门，调用唯一M02身份生产者，完成后再次检查原身份／授权日期和观察完成时间不得晚于开始计算。只输出原输入摘要／长度／起止时间、原准备摘要及expected_index／候选归档／成员数量与指纹；不是登记或运行许可。成员登记复用既有preparation固定worker的明确协议分支和原进程取消／30秒预算／64KiB输出上限，原准备协议保持，未知协议拒绝。输入32MiB上限保留全历史，超限失败、不裁剪；实际长期源规模与受信检查点优化未验证，不声称已完成生产容量验收。
+
+25项先行检查（6新纯／拒绝样例＋19治理状态）通过5.384秒，ResourceWarning为错误；覆盖真实Git配置及登记目标绑定、当前head幂等、原件／许可／身份／索引错配、revoke／政策漂移、未来采集／过期及固定执行器协议拒绝。实际完整源码固定worker正向需提交后执行，尚不先宣布通过。base64仅原地提取共用，旧输入语义／错误文字保留。后续接服务器实际原件读回及持久返回绑定，再受租约CAS登记索引，不直接暴露append。
+
+本包父7e8019a，提交feat: validate membership registration in the fixed daily worker [skip ci]；撤回新协议分支及接点可回退，历史原件／旧协议保留。无供应商请求、云资源、合并、部署、生产启用或跨日生产E2E。

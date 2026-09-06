@@ -54,8 +54,15 @@ def main():
         _checkout(raw)
         sys.dont_write_bytecode = True
         runpy.run_path(str(Path(__file__).resolve().with_name('authorization_imports.py')))
-        from services.publication.preparation_validation import validate_preparation_input
-        output = validate_preparation_input(raw)
+        protocol = json.loads(raw).get('protocol')
+        if protocol == 'm12-preparation-validation/1':
+            from services.publication.preparation_validation import validate_preparation_input
+            output = validate_preparation_input(raw)
+        elif protocol == 'm12-membership-registration/1':
+            from services.publication.membership_validation import validate_membership_registration_input
+            output = validate_membership_registration_input(raw)
+        else:
+            return 1
         _checkout(raw)  # Reject source replacement during computation as well.
         if not 0 < len(output) <= 65536:
             return 1

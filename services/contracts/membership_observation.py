@@ -80,3 +80,43 @@ def _observation_history(evidence, *, as_of):
     if index['head'] != result[-1][1] or previous_day != as_of:
         raise ContractError('membership observation head or target day differs')
     return result
+
+
+def _registration_input(raw):
+    from .validation import PREPARATION_INPUT_MAX_BYTES, _m12_decode_base64, publication_preparation_input
+    if type(raw) is not bytes or not 0 < len(raw) <= PREPARATION_INPUT_MAX_BYTES:
+        raise ContractError('membership registration input size invalid')
+    wire = _m12_json(raw)
+    _m12_exact(wire, {'protocol', 'identity', 'preparation_base64', 'expected_index',
+        'candidate_archive', 'acquisition_archive', 'observations_base64'}, 'membership registration wire')
+    if wire['protocol'] != 'm12-membership-registration/1':
+        raise ContractError('membership registration protocol invalid')
+    prepared = publication_preparation_input(_m12_decode_base64(wire['preparation_base64']))
+    if wire['identity'] != prepared['identity']:
+        raise ContractError('membership registration identity differs from preparation')
+    expected = wire['expected_index']
+    _m12_exact(expected, {'revision', 'head', 'history'}, 'membership registration expected index')
+    if (type(expected['revision']) is not int or expected['revision'] < 0
+            or type(expected['history']) is not list or len(expected['history']) != expected['revision']
+            or expected['head'] != (expected['history'][-1] if expected['history'] else None)):
+        raise ContractError('membership registration expected index incomplete')
+    if type(wire['observations_base64']) is not list:
+        raise ContractError('membership registration original bytes missing')
+    originals = []
+    for item in wire['observations_base64']:
+        _m12_exact(item, {'observation_bytes', 'response_bytes', 'acquisition_bytes'}, 'membership encoded originals')
+        originals.append({key: _m12_decode_base64(value) for key, value in item.items()})
+    candidate = wire['candidate_archive']
+    history = list(expected['history'])
+    if candidate != expected['head']:
+        history.append(candidate)
+    proposed = {'revision': len(history), 'head': candidate, 'history': history}
+    evidence = {'current_index': proposed, 'observations': originals}
+    restored = _observation_history(evidence, as_of=prepared['evidence']['as_of'])
+    current = _m12_json(originals[-1]['observation_bytes'])
+    if current['acquisition_evidence'] != wire['acquisition_archive']:
+        raise ContractError('membership candidate license differs from fixed capability')
+    _raw_descriptor(wire['acquisition_archive'], originals[-1]['acquisition_bytes'], limit=1024 * 1024)
+    return {'identity': prepared['identity'], 'preparation': prepared, 'expected_index': expected,
+            'candidate_archive': candidate, 'membership_evidence': evidence,
+            'latest_observation_completed_at': max(parsed.completed_at for parsed, _ in restored)}
