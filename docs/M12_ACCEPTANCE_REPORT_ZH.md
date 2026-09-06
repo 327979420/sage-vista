@@ -964,3 +964,22 @@ Python MembershipArchiveTransport实现C1b authorize/put/read依赖，每次取�
 22项归档会话／API／跨语言Node通过495.10ms（往返190.28ms），7项受影响旧授权路由定点回归通过5.99秒；7项新客户端、25项共享HTTPS和19项治理状态共51项Python通过1.651秒（ResourceWarning为错误），合计80项。定点eslint、共享助手提取前后字节核对、机器状态／链接／diff通过。没有重跑M11或无变化B全部测试。
 
 独立提交feat: connect controlled M12 membership byte transport [skip ci]，父a07299953a1367ea58c27a3d2fd132eac7057e30，完整SHA见交付消息。回退撤回未挂接客户端／路由，保留原件及会话归属日志。下一包优先实际授权来源工厂／当前授权、撤销及配置使用核验，再接M02身份／同日资格和C/D链；服务端合成sessionPolicy不成为真实生产许可，数据公开展示仍按上线卡批准。未真实供应商调用、外部写入、合并、推送、云资源、部署、生产启用或对外通知；跨日端到端仍未执行。
+
+
+## C1d独立审核结论
+
+审核任务确认b2a1ae2dc92891f923d823a807156a593de11998在Python字节客户端／默认禁用归档路由／共享字节助手提取范围通过，无新增阻断。独立22项归档Node通过491.85ms（实际Python两轮往返174.57ms），旧授权路由定点9项通过（含真实5秒body期限），51项Python通过1.655秒（ResourceWarning为错误），合计82项。父提交canonical/base64/response/body段与提取后逐字节一致；eslint／diff／精确HEAD／干净工作区通过。不证明真实Cloudflare内存／响应容量、TLS、sessionPolicy或许可工厂已完成。
+
+## C1e：当前授权根与配置字节使用前置检查（待独立审核）
+
+当前授权来源工厂需要先补两个必要前置接点。AuthorizationStore新增内部readCurrentForPreparation(identity, leaseToken, resource)，resource仅为服务器固定daily目标；复用当前LeaseStore检查Job／epoch／fence及JWT期限，并在同一同步事务内调用原#history，核对完整revision／head／索引、导入基线与全部登记来源／配对记录。只返回当前索引快照，不创建票据、不追加授权、不读取或声明许可正文有效。空根如实返回空，由纯准备检查拒绝；该内部方法没有HTTP路由，也不接受调用方提供历史根。未来认证工厂必须提供真实身份、固定资源，并在异步读回及实际使用前再次读取当前根确认一致。
+
+唯一services/contracts/validation.py新增publication_preparation_authorization，输入精确为current_history、history_bytes、config_ref、config_archive、config_bytes、code_commit、as_of、checked_at；current_history精确使用现有Store的revision/head/history。把旧publication_ticket_history的逐份原字节／大小／SHA／合同内在字段／直接前序／唯一ID／最终head检查原样提取成共用函数，旧票据的身份／时间／持锁结构验证保留，新的使用检查不复制第二套历史逻辑。完整原件必须由受信读回方提供，纯函数本身不能发现调用方伪造的“当前”完整根，不允许作为公开自证入口。
+
+检查只选择完整链头，空链、当前revoke或另一配置的新grant失败，不能向后搜索旧grant。头必须为research_only、complex_multifactor_main且含prepare，配置Ref及执行code_commit精确相同。as_of不晚于checked_at对应的实际纽约日期；所有授权generated_at不得晚于checked_at。目标日和实际检查日均需处于grant的effective_from／valid_until范围，纽约午夜按时区转换处理；旧D仍有效而检查日已到期也拒绝。revoke不因旧grant尚在期限内而回落使用。本入口仅研究准备检查，不实现publish／notify或特殊失效授权回退。
+
+配置部分要求实际不可变非空bytes（上限1MiB），config_archive精确raw/<原字节SHA>、sha256、size_bytes；完整JSON经原唯一严格解码及canonical序列化后重算语义指纹，必须等于grant精确config_ref。空白改变原件摘要但不改变语义Ref，内容变化不能靠换描述符继续使用旧授权。这里尚未定义／验证v0.2.1政策全集、固定Git定义blob、真实供应商许可或配置生产者；测试配置明确为合成JSON，不把“与已批准引用字节一致”冒充“完整生产配置已验证”。返回仅为授权／配置引用、归档描述符、代码、目标／检查时间和历史revision，不返回authorized布尔或可复用权限令牌。
+
+10项新Python覆盖合法当前grant和输出隔离、即时revoke及新grant、空／缺项／错误head／重排／重复链、原件描述符／字节变动、代码和配置错配、当前其他配置不回退、两日期有效期与纽约午夜、未来目标／记录／非法检查时间、配置重复键／非有限值／实际和语义哈希／bool长度、纯输入不变。4项Node使用实际B3注册路径、真实SQLite，覆盖当前完整根只读、成对登记来源丢失拒绝、错误Job／resource／epoch／fence／时间及最终SQL读取跨期限。4项专项＋29项受影响存储回归共33项Node通过；10项新检查及既有授权／Manifest／共享合同／治理共89项Python通过（ResourceWarning为错误），总122项。定点eslint、历史校验提取前后机械一致性、机器状态／文档链接／diff通过；不重复M11或无变化B完整流程。
+
+独立提交feat: validate current M12 preparation authorization evidence [skip ci]，父b2a1ae2dc92891f923d823a807156a593de11998，完整SHA见交付消息。回退撤回未接线当前检查／读取方法即可，不迁移或删除任何原件／历史。下一包完成实际配置政策／Git来源，继而受信R2授权原件读回与当前使用工厂；这些仍未完成，C1会话测试策略仍不能进生产，再后进入M02身份／资格及C/D日链。未真实数据调用、外部写入、合并、推送、云资源、部署、生产启用或对外通知；跨日端到端仍未执行。

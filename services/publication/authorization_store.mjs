@@ -145,6 +145,18 @@ export class AuthorizationStore {
     return { revision: state.revision, head, history };
   }
 
+  readCurrentForPreparation(identity, leaseToken, resource) {
+    // Internal authenticated adapter only; resource is its fixed daily target.
+    // A snapshot is not permission and must be rechecked after object reads/use.
+    if (typeof resource !== "string" || !resource.startsWith("daily/") ||
+        !identity || !Number.isSafeInteger(identity.issued_at) || !Number.isSafeInteger(identity.expires_at) ||
+        !Number.isSafeInteger(identity.expires_at * 1000)) throw new Error("authorization_preparation_identity_invalid");
+    return this.#leases.withOwnedLease(resource, identity.job, leaseToken, ({ now }) => {
+      if (now < identity.issued_at * 1000) throw new Error("authorization_preparation_identity_not_yet_valid");
+      return this.#history();
+    }, { deadlineMs: identity.expires_at * 1000 });
+  }
+
   prepareValidation(ownerJob, token, approvalEvidenceRef) {
     const evidenceRef = reference(approvalEvidenceRef, "approval-observation:");
     // Called only by the internal authenticated coordinator after controlled B2g

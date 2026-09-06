@@ -8,6 +8,7 @@ not grow separate interpretations of the same contract.
 from __future__ import annotations
 
 from datetime import date, datetime
+from zoneinfo import ZoneInfo
 import base64
 import binascii
 import hashlib
@@ -1620,14 +1621,19 @@ def publication_ticket_history(
         times.append(datetime.fromisoformat(ticket[key].replace("Z", "+00:00")).timestamp())
     if times[0] >= times[1]:
         raise ContractError("ticket expiry must follow preparation")
-    if (type(ticket["expected_revision"]) is not int or ticket["expected_revision"] < 0 or
-            not isinstance(ticket["history"], list) or not isinstance(history_bytes, list) or
-            len(ticket["history"]) != ticket["expected_revision"] or len(history_bytes) != ticket["expected_revision"]):
+    return _m12_authorization_byte_history(ticket["expected_revision"], ticket["expected_head_ref"], ticket["history"], history_bytes)
+
+
+def _m12_authorization_byte_history(revision, expected_head, descriptors, history_bytes):
+    """Shared byte/chain rules; the caller must supply the trusted full index."""
+    if (type(revision) is not int or revision < 0 or
+            not isinstance(descriptors, list) or not isinstance(history_bytes, list) or
+            len(descriptors) != revision or len(history_bytes) != revision):
         raise ContractError("ticket byte history is incomplete")
     history = []
     previous = None
     seen = set()
-    for item, raw in zip(ticket["history"], history_bytes):
+    for item, raw in zip(descriptors, history_bytes):
         _m12_exact(item, {"reference", "archive", "previous_ref"}, "ticket history item")
         _m12_ref(item["reference"])
         if item["previous_ref"] is not None:
@@ -1650,11 +1656,64 @@ def publication_ticket_history(
         history.append(dict(record))
         previous = record
     head = None if previous is None else {"id": previous["authorization_id"], "content_fingerprint": previous["content_fingerprint"]}
-    if ticket["expected_head_ref"] is not None:
-        _m12_ref(ticket["expected_head_ref"])
-    if ticket["expected_head_ref"] != head:
+    if expected_head is not None:
+        _m12_ref(expected_head)
+    if expected_head != head:
         raise ContractError("ticket head differs from complete history")
     return history
+
+
+def publication_preparation_authorization(evidence: Mapping[str, Any]) -> dict[str, Any]:
+    """Necessary current-grant/config-byte checks, not a reusable permission.
+
+    The trusted adapter must obtain the current complete index through the
+    registered store, read all referenced objects, validate real config policy
+    sources and acquisition rights, then recheck the head/fence at use time.
+    Caller-built history, checked_at or matching config JSON cannot self-authorize.
+    This fixed preparation check grants no publish/notify/rollback capability.
+    """
+    _m12_exact(evidence, {"current_history", "history_bytes", "config_ref", "config_archive", "config_bytes",
+                          "code_commit", "as_of", "checked_at"}, "current preparation evidence")
+    current = evidence["current_history"]
+    _m12_exact(current, {"revision", "head", "history"}, "current authorization index")
+    history = _m12_authorization_byte_history(current["revision"], current["head"], current["history"], evidence["history_bytes"])
+    if not history:
+        raise ContractError("preparation requires a current grant")
+    _require_date(evidence["as_of"], "preparation.as_of")
+    _m12_time(evidence["checked_at"])
+    _m12_commit(evidence["code_commit"])
+    checked = datetime.fromisoformat(evidence["checked_at"].replace("Z", "+00:00"))
+    try:
+        current_day = checked.astimezone(ZoneInfo("America/New_York")).date().isoformat()
+    except (ValueError, OverflowError) as exc:
+        raise ContractError("preparation check time is outside the supported date range") from exc
+    if evidence["as_of"] > current_day or any(record["generated_at"] > evidence["checked_at"] for record in history):
+        raise ContractError("preparation cannot use future dates or authorization records")
+    config_ref = _m12_ref(evidence["config_ref"])
+    location = evidence["config_archive"]
+    _m12_exact(location, {"key", "sha256", "size_bytes"}, "configuration archive")
+    raw = evidence["config_bytes"]
+    if type(raw) is not bytes or not 0 < len(raw) <= 1024 * 1024:
+        raise ContractError("configuration must have bounded actual bytes")
+    actual_hash = "sha256:" + hashlib.sha256(raw).hexdigest()
+    if (location["key"] != "raw/" + actual_hash[7:] or location["sha256"] != actual_hash or
+            type(location["size_bytes"]) is not int or location["size_bytes"] != len(raw)):
+        raise ContractError("configuration archive differs from actual bytes")
+    config = _m12_json(raw)
+    semantic_hash = "sha256:" + hashlib.sha256(_canonical(config)).hexdigest()
+    if config_ref["content_fingerprint"] != semantic_hash:
+        raise ContractError("configuration reference differs from actual content")
+    grant = history[-1]  # Never search backward for a convenient old grant.
+    if (grant["action"] != "grant" or "prepare" not in grant["permissions"] or
+            grant["publication_mode"] != "research_only" or grant["scope"] != "complex_multifactor_main" or
+            grant["config_ref"] != config_ref or grant["code_commit"] != evidence["code_commit"]):
+        raise ContractError("current head does not permit this research preparation")
+    if any(day < grant["effective_from"] or (grant["valid_until"] is not None and day > grant["valid_until"])
+           for day in (evidence["as_of"], current_day)):
+        raise ContractError("preparation grant is not effective at target and current dates")
+    return {"authorization_ref": dict(current["head"]), "config_ref": dict(config_ref),
+            "config_archive": dict(location), "code_commit": evidence["code_commit"],
+            "as_of": evidence["as_of"], "checked_at": evidence["checked_at"], "history_revision": current["revision"]}
 
 
 def _m12_authorization_fields(payload: Mapping[str, Any]) -> dict[str, Any]:

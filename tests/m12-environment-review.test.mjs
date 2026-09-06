@@ -2578,3 +2578,69 @@ print(json.dumps({'finished':True,'response':base64.b64encode(result).decode()})
   assert.equal(JSON.parse(f.db.prepare("SELECT owner_json FROM m12_leases WHERE resource='publish/global'").get().owner_json).run_id, '457');
 });
 }
+
+test('current preparation snapshot reads registered history under its daily lease without a new ticket', async t => {
+  const f = await registrationFixture(t, false);
+  const registered = await f.register();
+  const store = new AuthorizationStore(f.storage, { clock: f.options.clock });
+  const lease = new LeaseStore(f.storage, { clock: f.options.clock });
+  const resource = 'daily/2026-09-06/config:1';
+  const held = lease.acquire(resource, f.job, f.leaseToken.epoch);
+  const handle = { epoch: held.epoch, fence: held.lease.fence };
+  const identity = { job: f.job, issued_at: NOW - 30, expires_at: NOW + 300 };
+  const before = f.rows();
+  const snapshot = store.readCurrentForPreparation(identity, handle, resource);
+  assert.equal(snapshot.revision, 1);
+  assert.deepEqual(snapshot.head, registered.return_record.authorization_ref);
+  assert.deepEqual(snapshot.history[0].archive, registered.return_record.authorization_archive);
+  assert.deepEqual(f.rows(), before);
+  snapshot.history[0].reference.id = 'mutated';
+  assert.deepEqual(store.readCurrentForPreparation(identity, handle, resource).head, registered.return_record.authorization_ref);
+});
+
+test('current preparation snapshot cannot bypass registration provenance or current head', async t => {
+  const f = await registrationFixture(t, false);
+  await f.register();
+  const store = new AuthorizationStore(f.storage, { clock: f.options.clock });
+  const leases = new LeaseStore(f.storage, { clock: f.options.clock });
+  const resource = 'daily/2026-09-06/config:1';
+  const held = leases.acquire(resource, f.job, f.leaseToken.epoch);
+  const identity = { job: f.job, issued_at: NOW - 30, expires_at: NOW + 300 };
+  const handle = { epoch: held.epoch, fence: held.lease.fence };
+  f.db.exec("DELETE FROM m12_authorization_consumptions; DELETE FROM m12_authorization_log WHERE operation='register_authorization'");
+  assert.throws(() => store.readCurrentForPreparation(identity, handle, resource), /recovery_required/);
+});
+
+test('current preparation snapshot refuses foreign Job resource epoch fence or expired identity', async t => {
+  const f = await registrationFixture(t, false);
+  const store = new AuthorizationStore(f.storage, { clock: f.options.clock });
+  const leases = new LeaseStore(f.storage, { clock: f.options.clock });
+  const resource = 'daily/2026-09-06/config:1';
+  const held = leases.acquire(resource, f.job, f.leaseToken.epoch);
+  const identity = { job: f.job, issued_at: NOW - 30, expires_at: NOW + 300 };
+  const handle = { epoch: held.epoch, fence: held.lease.fence };
+  for (const changed of [{ ...identity, job: { ...f.job, run_id: '457' } },
+    { ...identity, expires_at: NOW }, { ...identity, issued_at: NOW + 1 }]) {
+    assert.throws(() => store.readCurrentForPreparation(changed, handle, resource));
+  }
+  assert.throws(() => store.readCurrentForPreparation(identity, handle, 'publish/global'));
+  assert.throws(() => store.readCurrentForPreparation(identity, { ...handle, fence: handle.fence + 1 }, resource));
+  assert.throws(() => store.readCurrentForPreparation(identity, { ...handle, epoch: '22222222-2222-4222-8222-222222222222' }, resource));
+  assert.deepEqual(store.readCurrentForPreparation(identity, handle, resource), { revision: 0, head: null, history: [] });
+});
+
+test('current preparation snapshot checks deadline after the final history SQL read', async t => {
+  const f = await registrationFixture(t, false);
+  const store = new AuthorizationStore(f.storage, { clock: f.options.clock });
+  const leases = new LeaseStore(f.storage, { clock: f.options.clock });
+  const resource = 'daily/2026-09-06/config:1';
+  const held = leases.acquire(resource, f.job, f.leaseToken.epoch);
+  const identity = { job: f.job, issued_at: NOW - 30, expires_at: NOW + 10 };
+  const exec = f.storage.sql.exec;
+  f.storage.sql.exec = (sql, ...args) => {
+    const result = exec(sql, ...args);
+    if (sql.includes('SELECT history_json FROM m12_authorization_import_baseline')) f.state.now = (NOW + 10) * 1000;
+    return result;
+  };
+  assert.throws(() => store.readCurrentForPreparation(identity, { epoch: held.epoch, fence: held.lease.fence }, resource), /deadline/);
+});

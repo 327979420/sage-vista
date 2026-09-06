@@ -377,7 +377,7 @@ test("lost head or ticket log requires recovery instead of silently empty bootst
 test("wrong reference type is rejected and only internal authorization methods are exposed", (t) => {
   const f = authorizations(t);
   assert.throws(() => f.authorization.prepareValidation(JOB, token(f.handle), authRef("a")), /reference_invalid/);
-  assert.deepEqual(Object.getOwnPropertyNames(AuthorizationStore.prototype).sort(), ["constructor", "prepareValidation", "readArchivedValidation", "readPreparedValidation", "readValidationDispatch", "recordValidationArchive", "recordValidationDispatch", "registerValidatedAuthorization"]);
+  assert.deepEqual(Object.getOwnPropertyNames(AuthorizationStore.prototype).sort(), ["constructor", "prepareValidation", "readArchivedValidation", "readCurrentForPreparation", "readPreparedValidation", "readValidationDispatch", "recordValidationArchive", "recordValidationDispatch", "registerValidatedAuthorization"]);
 });
 
 // Synthetic transport descriptors only; real byte hashing/readback is covered
