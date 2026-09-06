@@ -884,3 +884,24 @@ AuthorizationJobApi新增仅由服务器构造参数提供的registrationPolicy�
 136项环境／跨语言／路由Node完整通过20.92秒，无失败／取消／跳过（新增登记恢复往返666.6ms）；14项运行工厂Python与19项治理状态共33项通过（ResourceWarning按错误），总169项。定点eslint、机器状态／文档链接／diff检查通过。Store／业务Python／工作流未改，不重复无变化租约整套及M11。新增实际往返仍为本地API、受控GitHub／R2和测试时钟，不证明真实网络断连、TLS或Actions平台配置。
 
 独立提交feat: connect controlled M12 authorization registration [skip ci]，父3788fb8301ff6582162213535179c267068ad61a，完整SHA见交付消息。仅API接线、中性运行文案、对应测试及三治理；无实际生产registrationPolicy实例，工作流与runtime配置两道禁用均保持。撤回接线可恢复归档模式，但保留消费、授权及原件，不重新使用旧票据。待本包审核后进入已批准C／D同日来源、业务配置及每日／跨日链路；实际使用授权仍需核验完整配置／政策blob、当前链／撤销／日期与运行代码，未以本包代替。未合并、推送、创建云资源、部署、生产启用或对外通知，跨日端到端未执行。
+
+
+## B3t独立审核结论
+
+审核任务确认70bdd976a1adf6a0c461f9ef6a18746715690086在受控return登记接线范围通过，无新增阻断。独立136项Node（20.79秒，登记丢响应往返658.2ms）及14项运行工厂Python＋19项治理状态共169项通过（ResourceWarning按错误）；eslint／diff与干净HEAD核对通过，工作流if:false及runtime enabled:false／origin:null保留。结论不证明真实生产策略实例、平台／TLS、完整业务配置或跨日端到端。
+
+## C1a：M02同日成员原字节解析及过滤审计（待独立审核）
+
+进入已批准C同日来源包，先解决旧eodhd.symbols直接解析JSON、无法保留本轮原响应字节的问题。新增services/market_data/eodhd_membership.py纯解析入口parse_us_symbol_response；不新增HTTP客户端、文件根或formal写入口。入参为不可变原始bytes、规范as_of及可信采集开始／完成UTC datetime；两个实际观察时间必须均属同一个请求纽约日期且不能倒退，按America/New_York处理夏令时，不用UTC日期代替交易所日期。交易日历是否有实际交易会话仍由下一采集／资格接线验证；本函数的日期检查本身不证明某日已开市或完整收盘。
+
+返回冻结dataclass材料，含as_of、开始／结束时间、原字节及其实际SHA-256、解析政策版本m12-eodhd-membership-source-1.0.0、原总数、全部纳入记录与全部排除记录／原因。记录保留供应商Code、Exchange、Type、Name、Country、Currency及可空Isin，不生成instrument_id／epoch／资格或UniverseSnapshot。额外供应商字段完整留在原字节，不能丢掉未知元数据或把显示顺序当成员身份。返回对象没有complete／universe_id标志；其source解析版本不是M12资格配置m12-eodhd-primary-common-1.0.0，两者不混用。
+
+先严格解析整份UTF-8 JSON，拒绝空／非列表／坏行／重复JSON键／截断／非有限数（含溢出和额外元数据）／非法Unicode；原字节上限32MiB，超限整体拒绝，不截取部分列表。每行要求上述六个基本字符串规范非空且无控制字符，Isin缺失或null允许，其他非文本拒绝。按供应商Code检查整个响应的重复或跨交易所冲突，包括已排除项。全量校验后复用services/scanner/audit_eodhd.py:common现有Common Stock＋PRIMARY范围，不从缓存或下载目标取候选；非普通股与范围外交易所分别保留明确原因，零纳入拒绝，所有成功响应满足原总数＝纳入＋排除。
+
+已识别Type固定Common Stock、Preferred Stock、ETF、FUND、Mutual Fund、Warrant、Unit、Notes；Exchange固定原PRIMARY及BATS／PINK／NMFQS／OTCQB／OTCQX／OTCMKTS／OTCBB／OTCGREY／OTC。该词表仅识别正常排除，不扩大主股票池；未知值整批失败，未来遇到其他标签须凭来源证据定点扩充适配，不能静默猜测或忽略。[EODHD官方端点说明](https://eodhd.com/financial-apis/exchanges-api-list-of-tickers-and-trading-hours)确认US为组合列表、非分页，Type返回值多于过滤参数允许值。此次仅查官方说明，没有读取真实账户token、请求真实股票名单或消耗供应商调用。
+
+复用既有资格、身份、UniverseSnapshot3.x及影子根守门的边界已写入规则02 v1.8.0和已批准决策细化。纯解析既不证明HTTP响应完整、供应商现实覆盖或数据使用许可，也不写任何文件；未来可信采集器必须保存全部原件（包括被拒绝的响应），绑定实际固定请求／状态／时刻／完整读回，再接身份及逐成员资格。不能用调用者提供的raw或这份解析材料自证formal complete。当前旧每日／夜间和生产文件未改。
+
+9项新测试覆盖原字节及中文额外元数据／摘要／完整分组；全部识别类型与交易所组合严格等于旧common选择；不可变交付及1001条不截断；重排／格式只改变原字节摘要；夏冬纽约跨UTC日期及午夜／倒时／非法时间；空／截断／重复键／非有限值／非法Unicode及大小；排除项缺字段仍失败；未知词表与重复Code／跨交易所冲突；无I/O和错误不回显私有内容。9项来源专项＋29项M02合同／股票池＋19项治理状态共57项通过（ResourceWarning按错误），机器状态／文档链接／diff检查通过。未重复M11、B层或无变化全部业务测试；这不是实际供应商全量或formal日验收。
+
+独立提交feat: parse audited M12 daily membership sources [skip ci]，父70bdd976a1adf6a0c461f9ef6a18746715690086，完整SHA见交付消息。回退可撤回新解析接点，旧入口与已有记录保持；下一小包接真实受信采集及私有原字节归档，再继续身份／同日资格、配置和每日链。未合并、推送、创建云资源、部署、生产启用、真实数据调用或对外通知；跨日端到端未执行。
