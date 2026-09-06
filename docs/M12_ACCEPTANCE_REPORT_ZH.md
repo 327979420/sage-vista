@@ -1237,3 +1237,17 @@ C2f新增内部默认禁用MembershipRegistrationSession，复用C2e实际读回
 C2f提交f26483b后，实际每日客户端／固定worker→持久输入→实际固定成员worker→原件读回→CAS登记→重建服务实例后幂等回传联测1项通过4.335秒（核心4.081秒）。原完整services源码守门保持；HTTP采集为合成桥，后半段为真实本地内部会话调用，没有新RPC或云端进程重启证明。12项Node复核20.551秒、19治理0.013秒通过；未重复计数先行测试。
 
 随后本地复查补C2f末次事务守门：原内层读回租约检查到最后返回复制仍可能跨过期限，改用原LeaseStore.withOwnedLease包围整个同步提交，绑定原身份／新身份／许可的最早期限，同时核租约最后时刻。新增反例只在最终回执复制时令租约到期、JWT与许可仍有效，必须回滚索引与回执。9项登记Node通过19.417秒。新派发时间记录于实际输入配对事务内，重试保持旧记录时间。该修正沿用原规则，不改身份／索引算法；最终固定worker正向在修正提交后再验证。
+
+
+### C2f集中阶段验证与交审
+
+最终业务源码9152484上14项Node（9登记、4读回、1原每日客户端／实际固定worker至登记联测）全部通过25.246秒，联测核心4.219秒；19项治理／状态全部通过0.012秒，合计33项，不累计重复运行。eslint通过、机器状态生成一致、文档相对链接及f1bce48起区间diff通过；无失败／取消／跳过。没有重跑M11或无变化全前端。最终治理提交只保存证据及设计卡链接标签，无业务变化。
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 node --test --test-name-pattern='membership registration session|membership registration readback|daily client integrates' tests/m12-environment-review.test.mjs
+PYTHONDONTWRITEBYTECODE=1 python3 -W error::ResourceWarning -m unittest tests.test_rulebook_contract tests.test_project_status
+```
+
+交审范围：已审f1bce48之后的f26483b（持久输入／返回与CAS）、9152484（全事务末次租约守门及取证细化卡v0.2）和最终治理提交。测试证明本地内部会话的实际字节联通、事务／幂等及失败边界，不等于认证HTTP与固定daily runner已经调用该新会话，更不是云端生产登记。下一已明确接线为既有每日认证通道／客户端与默认禁用runner调用本会话；不得在没有登记票据后置复核的情况下直接开放append。全历史输入／输出容量未验收，不得裁剪。
+
+价格卡v0.2仍design_review：供应商字段接法、SEC五标签实体线索及剩余缺证分开；一次待批准取证最多7次GET、估算37额度，既有权益内新增支出0，无自动重试。实际账户、历史会话、上市区间及公开展示权限均未验证，未发真实API请求，卡不是价格实施批准。全M02 formal、M03—M09业务链、原信号跨日续跑、M10及四页发布尚未完成；跨日生产E2E未运行。工作分支由审核任务通过后普通同步，main14fef535不动；本轮未合并、部署、启用或对外通知。
