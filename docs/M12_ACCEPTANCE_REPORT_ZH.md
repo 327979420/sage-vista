@@ -616,3 +616,30 @@ prepare请求最多2字节，return最多4MiB，按实际流长度核对并拒�
 100项环境／跨语言Node、29项租约Node、1项本地workerd事务、7项治理及12项状态共149项通过；定点lint、机器状态／文档链接／diff检查通过。没有修改Python／业务合同／底层租约，不重复无变化完整测试。冻结checkout／受保护工作流、客户端续租停止、权威回传恢复、最终权限／目标config与同事务登记仍后续，跨日端到端仍未执行，M11不重审。
 
 独立提交feat: add authenticated M12 dispatch status and renewal [skip ci]，父提交67636da5ac3611cad54ea953dea7d8d4086da29e，完整SHA见交付消息。仅调整内部API与共用回传绑定、专项测试及3个治理文档，无业务合同／政策版本变化，可撤回接点并保留历史。未合并、推送、创建云资源、部署、生产启用或对外通知。
+
+
+## B3k独立复核回传
+
+审核对话01a074f9-098a-7b82-b486-3185683290fe确认047f136d0f96fa5cd8618bf4807a5bcd54934f88在默认关闭API的status／renew及共用verifyDispatch范围无阻断。审核员逐段读取7文件，运行100项环境／跨语言Node、29项租约Node、19项治理／状态及1项本地workerd事务，共149项通过。workerd首次被沙箱禁止回环监听，单独以本地执行权限重跑通过；使用提交内2026-05-22配置，没有云部署。确认输入原件与身份绑定、同步事务中的续租及最后重查、故障／过期整笔回滚和原截止不变；diff通过、HEAD不变、工作区干净。status只说明dispatch_current，不推断归档／登记或允许盲重发。
+
+## B3l：客户端状态查询及续租通道（待独立审核）
+
+AuthorizationHttpsTransport新增无参数status()和renew()，只操作自身prepare保存的会话，不能传入另一dispatch、lease、TTL、资源或路径。只有prepared状态可调用，调用期间分别进入checking／renewing；成功返回prepared，任何解码、时间、网络或响应错误进入failed并抛固定脱敏validation control failed。failed后不允许再次查询、续租或回传；未准备及已回传会话不能调用。本包仍是单调用顺序通道，没有并发线程安全或调度循环承诺。
+
+每次请求单独取得新OIDC，向固定origin的/status或/renew发送精确`{protocol,dispatch_id,lease_token}`。沿用默认隔离HTTP子进程、TLS／重定向／URL／响应检查及每请求启动后30秒等待预算，控制响应最多128KiB；没有新增可配置地址、超时或子进程参数。受信opener注入仍仅供测试，无隔离取消保证。新通道不是60秒定时续租本身，也不证明失效信号能及时终止正在运行的计算。
+
+复用唯一publication_validation_input解码器读取私存原输入，核对其中epoch／fence，提取原票据expires_at及原取证identity.expires_at，计算较早的冻结截止用于传输响应一致性比较。该步骤只读时间／会话元数据，不认定批准、策略、历史或业务合同有效，实际执行仍走B3c唯一验证路径。服务端与客户端继续各自承担身份／事务守门及传输一致性，摘要和自洽时间都不是执行或登记证明。
+
+成功响应必须精确含protocol、dispatch_id、state、lease_token、lease_expires_at、validation_expires_at；protocol和原dispatch／lease一致，state只能dispatch_current。时间必须是规范UTC毫秒字符串，validation_expires_at严格等于原冻结截止；lease_expires_at不能短于原票据期限或此前观察到的租约期限。客户端在网络前及完整响应后检查本地墙钟，负时间、到期、单次请求或两次请求间时钟倒退均拒绝；不以新JWT／新租约改变原验证窗口。这里的时钟检查失败关闭，没有放宽漂移容忍或授予额外有效期。
+
+返回解析对象使用副本，调用者改写响应不会修改私存会话或已观察截止。查询／续租成功仍仅表示这次状态读取成功，不检查或报告结果已归档／授权已登记，不自动重放不确定回传；后续操作仍须服务端重新校验。权威恢复查询及原件完成证据仍待后续。
+
+### B3l实际检查与剩余边界
+
+新增8项Python专项覆盖固定路径、逐次新令牌、原句柄与返回副本、精确状态／时间／字段拒绝、网络前后到期与时钟倒退、连续响应租约期限倒退、原身份早于票据期限、输入解码或lease不符提前拒绝、网络／HTTP／重复键失败脱敏且停止会话，以及默认路径继续使用固定隔离子进程和既有128KiB限制。专项时间／原件为合成传输样本，明确不是业务有效性证据。
+
+扩展已有本地跨语言往返，实际Python客户端和固定执行器经双向消息桥依次调用服务端prepare→status→renew→return，四个Fetch路由返回真实处理结果，最终仍只已归档待登记。测试适配器子类只在prepare后顺序调用两项新方法；没有生产定时循环或执行器逻辑变化。GitHub／R2／网络仍为替身，未执行真实TLS或平台工作流。
+
+100项环境／跨语言Node、25项通道Python、7项治理及12项状态共144项通过，ResourceWarning按错误处理；定点lint、机器状态／文档链接／diff检查通过。服务端API、底层租约和合同未修改，不重复无变化整套检查。后续仍须60秒调度／运行失效停止、权威恢复、冻结checkout／受保护工作流及最终权限／目标config／同事务登记；跨日端到端未执行，M11不重审。
+
+独立提交feat: add M12 client dispatch status and renewal [skip ci]，父提交047f136d0f96fa5cd8618bf4807a5bcd54934f88，完整SHA见交付消息。仅调整客户端、相关Python／跨语言专项及3个治理文档，无业务合同／政策版本变化，可撤回通道接点并保留历史。未合并、推送、创建云资源、部署、生产启用或对外通知。

@@ -349,5 +349,127 @@ raise SystemExit(worker._http_worker_main())
         self.assertEqual(len(calls), 4)
 
 
+NOW_MS = 1_788_652_800_000
+
+
+def control_fixture():
+    # Wire-shape metadata only; deliberately not a business-valid approval.
+    raw = encoded({'protocol': 'm12-authorization-validation/1', 'approval_evidence_ref': {},
+                   'approval_archive': {'bundle_base64': base64.b64encode(encoded({'identity': {'expires_at': 1_788_653_100}})).decode(), 'objects': {}},
+                   'validation_ticket': {**LEASE, 'expires_at': '2026-09-06T00:05:00.000Z'}, 'history_base64': []})
+    transport, opener = fixture()
+    opener.queue[1] = {'raw': encoded({**PREPARED, 'input_base64': base64.b64encode(raw).decode(),
+                                     'input_sha256': 'sha256:' + hashlib.sha256(raw).hexdigest(), 'input_size_bytes': len(raw)})}
+    transport.prepare()
+    response = {'protocol': 'm12-authorization-job/1', 'dispatch_id': DISPATCH, 'lease_token': deepcopy(LEASE),
+                'state': 'dispatch_current', 'lease_expires_at': '2026-09-06T00:05:00.000Z',
+                'validation_expires_at': '2026-09-06T00:05:00.000Z'}
+    opener.queue = [{'raw': encoded({'value': 'control.token.signature'})}, {'raw': encoded(response)}]
+    return transport, opener, response
+
+
+class ControlRequestTests(unittest.TestCase):
+    def test_fixed_paths_fresh_tokens_original_handles_and_unmodified_deadline(self):
+        transport, opener, response = control_fixture()
+        with patch.object(transport_module.time, 'time_ns', return_value=NOW_MS * 1_000_000):
+            value = transport.status()
+            value['lease_token']['fence'] = 999
+            opener.queue = [{'raw': encoded({'value': 'renew.token.signature'})},
+                            {'raw': encoded({**response, 'lease_expires_at': '2026-09-06T00:06:00.000Z'})}]
+            renewed = transport.renew()
+        self.assertEqual(renewed['validation_expires_at'], response['validation_expires_at'])
+        self.assertEqual(renewed['lease_token'], LEASE)
+        self.assertEqual([r.full_url for r in opener.calls[3::2]], [ORIGIN + '/v1/authorization/status', ORIGIN + '/v1/authorization/renew'])
+        self.assertEqual([r.get_header('Authorization') for r in opener.calls[3::2]], ['Bearer control.token.signature', 'Bearer renew.token.signature'])
+        for request in opener.calls[3::2]:
+            self.assertEqual(json.loads(request.data), {'protocol': 'm12-authorization-job/1', 'dispatch_id': DISPATCH, 'lease_token': LEASE})
+        opener.queue = [{'raw': encoded({'value': 'return.token.signature'})}, {'raw': b'{"state":"pending"}'}]
+        self.assertEqual(transport.return_result(DISPATCH, LEASE, b'original'), b'{"state":"pending"}')
+
+    def test_exact_control_response_identity_state_and_deadlines(self):
+        patches = [{'valid': True}, {'protocol': 'other'}, {'state': 'registered'}, {'dispatch_id': '33333333-3333-4333-8333-333333333333'},
+                   {'lease_token': {**LEASE, 'fence': True}}, {'lease_token': {**LEASE, 'fence': 2}},
+                   {'validation_expires_at': '2026-09-06T00:06:00.000Z'}, {'validation_expires_at': '2026-09-06T00:05:00Z'},
+                   {'lease_expires_at': '2026-09-06T00:04:59.999Z'}, {'lease_expires_at': '2026-09-06T00:06:00.000+00:00'}]
+        for patch_value in patches:
+            transport, opener, response = control_fixture()
+            opener.queue[1]['raw'] = encoded({**response, **patch_value})
+            with self.subTest(patch=patch_value), patch.object(transport_module.time, 'time_ns', return_value=NOW_MS * 1_000_000):
+                with self.assertRaisesRegex(AuthorizationTransportError, '^validation control failed$'):
+                    transport.renew()
+                with self.assertRaises(AuthorizationTransportError): transport.return_result(DISPATCH, LEASE, b'output')
+                with self.assertRaises(AuthorizationTransportError): transport.status()
+            self.assertEqual(len(opener.calls), 4)
+
+    def test_expiry_before_request_after_request_and_clock_reversal_close_session(self):
+        for times, expected_calls in [([NOW_MS + 300_000], 2), ([NOW_MS, NOW_MS + 300_000], 4), ([NOW_MS, NOW_MS - 1], 4)]:
+            transport, opener, _ = control_fixture()
+            with patch.object(transport_module.time, 'time_ns', side_effect=[v * 1_000_000 for v in times]):
+                with self.assertRaises(AuthorizationTransportError): transport.status()
+            self.assertEqual(len(opener.calls), expected_calls)
+            with self.assertRaises(AuthorizationTransportError): transport.renew()
+
+    def test_old_lease_expiry_and_backwards_clock_between_requests_refused(self):
+        for mode in ['expiry', 'clock']:
+            transport, opener, response = control_fixture()
+            opener.queue[1]['raw'] = encoded({**response, 'lease_expires_at': '2026-09-06T00:06:00.000Z'})
+            with patch.object(transport_module.time, 'time_ns', return_value=NOW_MS * 1_000_000): transport.renew()
+            opener.queue = [{'raw': encoded({'value': 'new.token.signature'})}, {'raw': encoded(response)}]
+            now = NOW_MS if mode == 'expiry' else NOW_MS - 1
+            with patch.object(transport_module.time, 'time_ns', return_value=now * 1_000_000):
+                with self.assertRaises(AuthorizationTransportError): transport.status()
+            self.assertEqual(len(opener.calls), 6 if mode == 'expiry' else 4)
+
+    def test_input_decode_or_lease_mismatch_fails_before_request(self):
+        for malformed in [True, False]:
+            transport, opener, _ = control_fixture()
+            if malformed: transport._prepared['input_bytes'] = RAW
+            else:
+                value = json.loads(transport._prepared['input_bytes']); value['validation_ticket']['fence'] = 2
+                transport._prepared['input_bytes'] = encoded(value)
+            with self.assertRaisesRegex(AuthorizationTransportError, '^validation control failed$'): transport.status()
+            self.assertEqual(len(opener.calls), 2)
+
+    def test_failure_is_sanitized_no_blind_retry_and_no_session_selection(self):
+        for failure in [OSError('private-credential'), {'raw': b'{"private":true}', 'status': 409}, {'raw': b'{"state":"a","state":"b"}'}]:
+            transport, opener, _ = control_fixture(); opener.queue[1] = failure
+            with patch.object(transport_module.time, 'time_ns', return_value=NOW_MS * 1_000_000):
+                with self.assertRaisesRegex(AuthorizationTransportError, '^validation control failed$'): transport.renew()
+            with self.assertRaises(AuthorizationTransportError): transport.renew()
+            with self.assertRaises(AuthorizationTransportError): transport.return_result(DISPATCH, LEASE, b'output')
+            self.assertEqual(len(opener.calls), 4)
+        transport, opener = fixture()
+        with self.assertRaises(AuthorizationTransportError): transport.status()
+        with self.assertRaises(TypeError): transport.renew(DISPATCH, LEASE)
+        self.assertEqual(opener.calls, [])
+
+    def test_original_identity_deadline_can_be_earlier_than_ticket_and_lease(self):
+        transport, opener, response = control_fixture()
+        wire = json.loads(transport._prepared['input_bytes'])
+        wire['approval_archive']['bundle_base64'] = base64.b64encode(encoded({'identity': {'expires_at': 1_788_652_890}})).decode()
+        transport._prepared['input_bytes'] = encoded(wire)
+        opener.queue[1]['raw'] = encoded({**response, 'validation_expires_at': '2026-09-06T00:01:30.000Z'})
+        with patch.object(transport_module.time, 'time_ns', return_value=NOW_MS * 1_000_000):
+            self.assertEqual(transport.status()['validation_expires_at'], '2026-09-06T00:01:30.000Z')
+        with patch.object(transport_module.time, 'time_ns', return_value=(NOW_MS + 90_000) * 1_000_000):
+            with self.assertRaises(AuthorizationTransportError): transport.renew()
+        self.assertEqual(len(opener.calls), 4)
+
+    def test_default_control_request_uses_isolated_fixed_worker_without_new_limits(self):
+        transport, opener, response = control_fixture()
+        transport._opener = None
+        replies = [encoded({'value': 'fresh.token.signature'}), encoded(response)]
+        calls = []
+        def run(command, **options):
+            calls.append((command, json.loads(options['input'])))
+            return subprocess.CompletedProcess(command, 0, replies.pop(0))
+        with patch.object(transport_module.time, 'time_ns', return_value=NOW_MS * 1_000_000), patch.object(transport_module.subprocess, 'run', side_effect=run):
+            self.assertEqual(transport.status()['state'], 'dispatch_current')
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(calls[1][0], [sys.executable, '-I', str(Path(transport_module.__file__).resolve())])
+        self.assertEqual(calls[1][1]['limit'], 131072)
+        self.assertEqual(calls[1][1]['url'], ORIGIN + '/v1/authorization/status')
+
+
 if __name__ == '__main__':
     unittest.main()

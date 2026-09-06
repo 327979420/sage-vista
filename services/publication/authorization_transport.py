@@ -8,6 +8,7 @@ import base64
 import binascii
 from copy import deepcopy
 from contextlib import suppress
+from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 from pathlib import Path
@@ -15,6 +16,7 @@ import subprocess
 import sys
 import re
 import ssl
+import time
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from urllib.error import HTTPError
 from urllib.request import HTTPSHandler, HTTPRedirectHandler, ProxyHandler, Request, build_opener
@@ -81,6 +83,15 @@ def _lease(value):
     return dict(value)
 
 
+def _stamp(value):
+    if not isinstance(value, str):
+        raise ValueError("timestamp invalid")
+    parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    if parsed.tzinfo != timezone.utc or parsed.isoformat(timespec="milliseconds").replace("+00:00", "Z") != value:
+        raise ValueError("timestamp encoding invalid")
+    return (parsed - datetime(1970, 1, 1, tzinfo=timezone.utc)) // timedelta(milliseconds=1)
+
+
 def _blocking_request(opener, url, token, *, data=None, limit):
     request = Request(url, data=data, method="GET" if data is None else "POST", headers={
         "Authorization": "Bearer " + token, "Accept": "application/json", "Accept-Encoding": "identity",
@@ -139,6 +150,8 @@ class AuthorizationHttpsTransport:
         self._opener = opener
         self._state = "new"
         self._prepared = None
+        self._control_now = None
+        self._lease_expiry = None
 
     def _request(self, url, token, *, data=None, limit):
         if self._opener is not None:
@@ -197,6 +210,55 @@ class AuthorizationHttpsTransport:
         except Exception:
             self._state = "failed"
             raise
+
+    def status(self):
+        return self._control("status")
+
+    def renew(self):
+        return self._control("renew")
+
+    def _control(self, operation):
+        if self._state != "prepared" or operation not in ("status", "renew"):
+            raise AuthorizationTransportError("validation control session mismatch")
+        self._state = "checking" if operation == "status" else "renewing"
+        try:
+            # Only decode our frozen input through the shared wire decoder.
+            # This metadata check does not validate its business evidence.
+            from services.contracts.validation import publication_validation_input
+            value = publication_validation_input(self._prepared["input_bytes"])
+            ticket = value["validation_ticket"]
+            original = _json(value["approval_archive"]["bundle_bytes"])["identity"]
+            if _lease({"epoch": ticket["epoch"], "fence": ticket["fence"]}) != self._prepared["lease_token"]:
+                raise ValueError("input lease mismatch")
+            identity_expiry = original["expires_at"]
+            if type(identity_expiry) is not int or not 0 < identity_expiry <= (2**53 - 1) // 1000:
+                raise ValueError("identity deadline invalid")
+            ticket_expiry = _stamp(ticket["expires_at"])
+            deadline = min(ticket_expiry, identity_expiry * 1000)
+            started = time.time_ns() // 1_000_000
+            if started < 0 or started >= deadline or (self._control_now is not None and started < self._control_now):
+                raise ValueError("control outside window")
+            payload = {"protocol": PROTOCOL, "dispatch_id": self._prepared["dispatch_id"],
+                       "lease_token": self._prepared["lease_token"]}
+            raw = self._request(self._origin + "/v1/authorization/" + operation, self._token(),
+                                data=_body(payload), limit=131072)
+            response = _json(raw)
+            if (set(response) != {"protocol", "dispatch_id", "state", "lease_token", "lease_expires_at", "validation_expires_at"} or
+                    response["protocol"] != PROTOCOL or response["dispatch_id"] != payload["dispatch_id"] or
+                    response["state"] != "dispatch_current" or _lease(response["lease_token"]) != payload["lease_token"] or
+                    _stamp(response["validation_expires_at"]) != deadline):
+                raise ValueError("control response mismatch")
+            lease_expiry = _stamp(response["lease_expires_at"])
+            completed = time.time_ns() // 1_000_000
+            if (not started <= completed < deadline or lease_expiry < ticket_expiry or
+                    (self._lease_expiry is not None and lease_expiry < self._lease_expiry)):
+                raise ValueError("control response stale")
+            self._control_now, self._lease_expiry = completed, lease_expiry
+            self._state = "prepared"
+            return deepcopy(response)
+        except Exception:
+            self._state = "failed"
+            raise AuthorizationTransportError("validation control failed") from None
 
 
 def _isolated_request(url, token, *, data=None, limit):

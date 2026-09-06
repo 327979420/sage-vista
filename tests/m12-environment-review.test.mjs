@@ -1639,7 +1639,7 @@ test("job request reads enforce byte limit and a total body-read timer", async (
   assert.equal(dispatchCount(f), 0);
 });
 
-test("actual Python HTTP client and fixed executor round trip through both local Fetch routes", async (t) => {
+test("actual Python HTTP client and fixed executor round trip through prepare status renew and return routes", async (t) => {
   const f = apiFixture(t);
   const script = `
 import base64,io,json,sys
@@ -1658,7 +1658,13 @@ class Opener:
         print(json.dumps({'url':request.full_url,'headers':dict(request.header_items()),'body':base64.b64encode(request.data).decode('ascii') if request.data else None}),flush=True)
         value=json.loads(sys.stdin.readline())
         return Response(value,request.full_url)
-transport=AuthorizationHttpsTransport('https://coordinator.example.test',{'GITHUB_ACTIONS':'true','ACTIONS_ID_TOKEN_REQUEST_URL':'https://run.actions.githubusercontent.com/token?api-version=2.0','ACTIONS_ID_TOKEN_REQUEST_TOKEN':'local-request-credential'},opener=Opener())
+class ControlledTransport(AuthorizationHttpsTransport):
+    def prepare(self):
+        value=super().prepare()
+        assert self.status()['state']=='dispatch_current'
+        assert self.renew()['state']=='dispatch_current'
+        return value
+transport=ControlledTransport('https://coordinator.example.test',{'GITHUB_ACTIONS':'true','ACTIONS_ID_TOKEN_REQUEST_URL':'https://run.actions.githubusercontent.com/token?api-version=2.0','ACTIONS_ID_TOKEN_REQUEST_TOKEN':'local-request-credential'},opener=Opener())
 with patch('time.time_ns',return_value=${NOW * 1000}*1000000):
     result=execute_authorization_validation(transport)
 print(json.dumps({'finished':True,'response':base64.b64encode(result).decode('ascii')}),flush=True)
@@ -1685,7 +1691,7 @@ print(json.dumps({'finished':True,'response':base64.b64encode(result).decode('as
     child.stdin.write(JSON.stringify({ status: result.status, headers: Object.fromEntries(result.headers), body }) + "\n");
   }
   assert.equal(await exited, 0, stderr);
-  assert.deepEqual(paths, ["/v1/authorization/prepare", "/v1/authorization/return"]);
+  assert.deepEqual(paths, ["/v1/authorization/prepare", "/v1/authorization/status", "/v1/authorization/renew", "/v1/authorization/return"]);
   assert.equal(finished.state, "archived_pending_registration");
   assert.ok(f.objects.has(finished.authorization_archive.key));
   assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_index").get().n, 1);
