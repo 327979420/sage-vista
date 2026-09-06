@@ -32,6 +32,15 @@
 
 > 整理边界：CR-2026-08-30-038及其交接Prompt本轮暂不纳入治理文档整理；原始内容完整保存在救援分支`rescue/local-work-2026-08-31-b14ec55`，没有删除。
 
+### CR-2026-09-06-052｜FinanceDatabase指定快照许可证留档
+
+- 用户原意：仅补bot快照提交`992042ab1a3a746b735821dea30a50d958651b42`所引用FinanceDatabase固定上游提交`5865ce3b26e6f393dc0600cad1ae02339bd7d52d`的原始LICENSE，完整保留版权及许可正文，并澄清旧生产消费者与新版M06 formal边界。
+- 状态：`verified`（本地许可／文档核验，待本审核对话复核）；用户明确授权本小包（≤20分钟）。
+- 主模块：行业数据来源留档，遵守`docs/rules/06_INDUSTRY.md`和治理规则；业务含义不变，不升级业务规则、数据schema或来源身份。
+- 接入与文件边界：固定上游LICENSE → 仓库原文副本 → `docs/OPEN_SOURCE_INDUSTRY_DATA.md`关联来源提交、bot提交及快照；仅修改许可文件、该说明、需求账本和决策日志。旧`industry_radar.run`已调用按日期选择快照的消费者，不等于新版`services/context/`的M06 formal接入。
+- 兼容／回退：不引入或重写快照、不改代码、算法、身份或生产入口；指定bot快照在其独立Git提交中，本审核分支不导入该数据提交。需要回退时仅撤销本许可／文档提交，不改历史快照。
+- 验证：LICENSE与固定上游原始字节完全相等（1069字节），Git blob为`1a1e8a1a258291d88337e23bd21fcda21db3e100`，SHA-256见开源行业说明；固定快照source.ref核对通过。既有开源行业及治理回归11项通过，文档链接、机器状态一致性和`git diff --check`通过；仅四个许可／文档文件变化，快照及业务代码无改动。提交证据：本记录与原始LICENSE同属独立提交`docs: archive pinned FinanceDatabase snapshot license`，完整SHA以交付消息和Git记录为准。无真实实验、推送、合并、部署或生产启用；交回本审核对话。
+
 ### CR-2026-09-05-051｜M11策略验证、批准与退休闸门
 
 - 2026-09-06最小修复（用户明确授权，`verified`仅本地合成验收，等待全新独立审核）：基线`751cc3ebfe4cf5ba3342c503baaac648047d1e72`允许criterion用Outcome身份字段与具体ID／指纹等值比较而validated。本包仅在唯一合同入口限制各结果合同的业务字段及expected类型，补两个反例、合法判定和公共存储回归；规则11升级1.2.1，合同字段／schema及来源版本不变，旧2.0／2.1只读边界保留。本轮M11专项60项、四种hash seed每轮60项通过；完整Python790项（780通过、10跳过），前端11项、lint／类型检查／构建及编译／文档链接／diff检查通过。修复代码与本记录同属独立提交`fix: restrict M11 criteria to typed business fields`（父提交751cc3e），未推送。设计补充见M11设计第17节；不审核bot数据、不合并、不部署或启用生产，完成后交全新独立审核。
