@@ -11,7 +11,7 @@ import subprocess
 from types import MappingProxyType
 from typing import Mapping
 
-from services.contracts.configuration import BASELINE_BLOBS, DEFINITION_COMMIT
+from services.contracts.configuration import BASELINE_BLOBS, DEFINITION_COMMIT, configuration_source_allowed
 from services.contracts.validation import publication_configuration_body, verify_publication_configuration, _canonical
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -38,7 +38,7 @@ def read_configuration_sources(code_commit: str):
     if type(code_commit) is not str or not re.fullmatch('[a-f0-9]{40}', code_commit):
         raise ConfigurationSourceError('configuration_explicit_commit_required')
     cache = {}
-    def read(commit):
+    def read(commit, *, runtime=False):
         raw_commit = _git('cat-file', 'commit', commit)
         if hashlib.sha1(b'commit ' + str(len(raw_commit)).encode() + b'\0' + raw_commit).hexdigest() != commit:
             raise ConfigurationSourceError('configuration_commit_identity_invalid')
@@ -50,7 +50,7 @@ def read_configuration_sources(code_commit: str):
             mode, kind, blob = metadata.split()
             if kind != 'blob' or path not in BASELINE_BLOBS or path in found:
                 raise ConfigurationSourceError('configuration_source_tree_invalid')
-            if (mode, blob) != BASELINE_BLOBS[path]:
+            if not configuration_source_allowed(path, mode, blob, runtime=runtime):
                 raise ConfigurationSourceError('configuration_business_source_drift')
             if blob not in cache: cache[blob] = _git('cat-file', 'blob', blob)
             found[path] = {'mode': mode, 'blob': blob, 'bytes': cache[blob]}
@@ -58,7 +58,7 @@ def read_configuration_sources(code_commit: str):
             raise ConfigurationSourceError('configuration_source_tree_incomplete')
         return found
     return {'definition_commit': DEFINITION_COMMIT, 'code_commit': code_commit,
-            'definition_sources': read(DEFINITION_COMMIT), 'runtime_sources': read(code_commit)}
+            'definition_sources': read(DEFINITION_COMMIT), 'runtime_sources': read(code_commit, runtime=True)}
 
 
 @dataclass(frozen=True)

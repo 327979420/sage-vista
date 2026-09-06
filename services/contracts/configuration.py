@@ -167,12 +167,25 @@ def _policy_objects():
     return dict(sorted(objects.items()))
 
 
+# C2a behavior-preserving extraction only; original definition inventory stays intact.
+RUNTIME_SOURCE_ALTERNATIVES = {
+    'services/gates/baseline.py': ('100644', '1f69d4339b77af789621d4bb90e0586893be7446'),
+}
+
+
+def configuration_source_allowed(path, mode, blob, *, runtime):
+    expected = BASELINE_BLOBS.get(path)
+    return expected is not None and ((mode, blob) == expected or (
+        runtime and (mode, blob) == RUNTIME_SOURCE_ALTERNATIVES.get(path)))
+
+
 def _configuration_body(evidence):
     _m12_exact(evidence, {'definition_commit', 'code_commit', 'definition_sources', 'runtime_sources'}, 'configuration source evidence')
     if evidence['definition_commit'] != DEFINITION_COMMIT:
         raise ContractError('M12 configuration definition commit differs')
     _m12_commit(evidence['code_commit'])
     sources = []
+    overrides = []
     for group in ('definition_sources', 'runtime_sources'):
         _m12_exact(evidence[group], set(BASELINE_BLOBS), group)
         for path, (mode, blob) in BASELINE_BLOBS.items():
@@ -182,11 +195,16 @@ def _configuration_body(evidence):
             if type(data) is not bytes or len(data) > 1024 * 1024:
                 raise ContractError('configuration source bytes invalid')
             actual = hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
-            if item['mode'] != mode or item['blob'] != blob or actual != blob:
+            if actual != item['blob'] or not configuration_source_allowed(
+                    path, item['mode'], item['blob'], runtime=group == 'runtime_sources'):
                 raise ContractError('configuration business source drift or corrupt blob')
             if group == 'definition_sources':
                 sources.append({'path': path, 'mode': mode, 'source_blob': blob,
                                 'sha256': 'sha256:' + hashlib.sha256(data).hexdigest(), 'size_bytes': len(data)})
+            elif item['blob'] != blob:
+                overrides.append({'path': path, 'mode': mode, 'definition_blob': blob,
+                                  'source_blob': actual, 'sha256': 'sha256:' + hashlib.sha256(data).hexdigest(),
+                                  'size_bytes': len(data)})
     # Read values from original module definitions; all persisted objects and
     # imported versions are pinned, never reconstructed scoring/execution rules.
     from services.contracts.policies import ADJUSTMENT_POLICY
@@ -221,6 +239,7 @@ def _configuration_body(evidence):
         'protocol': 'm12-research-configuration/1', 'definition_commit': DEFINITION_COMMIT,
         'code_commit': evidence['code_commit'], 'publication_mode': 'research_only', 'scope': 'complex_multifactor_main',
         'versions': versions, 'policies': _policy_objects(), 'definition_sources': sources,
+        **({'runtime_source_overrides': overrides} if overrides else {}),
         'membership': {'provider': 'EODHD', 'market': 'US', 'request_url': 'https://eodhd.com/api/exchange-symbol-list/US?delisted=0&fmt=json',
                        'instrument_type': 'Common Stock', 'exchanges': sorted(PRIMARY), 'observation_timezone': 'America/New_York',
                        'identity': 'observed_instrument_id', 'historical_membership_backfill': False},

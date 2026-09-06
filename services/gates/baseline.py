@@ -32,19 +32,35 @@ def legacy_long_trend_equivalence(rows: Sequence[Mapping[str, Any]]) -> bool:
     return closes[end] >= average[end] * 0.90 and average[end] >= average[end - 60] * 0.97
 
 
+def price_complete(rows: Sequence[Mapping[str, Any]], *, as_of: str) -> bool:
+    """The frozen latest-bar check; source coverage must be proved separately."""
+    return bool(rows) and rows[-1]["date"] == as_of
+
+
+def history_length_passed(rows: Sequence[Mapping[str, Any]]) -> bool:
+    return len(rows) >= MIN_HISTORY_SESSIONS
+
+
+def minimum_price_passed(current: Mapping[str, Any]) -> bool:
+    return not current["close"] < MIN_CLOSE
+
+
+def dollar_volume_passed(current: Mapping[str, Any]) -> bool:
+    return not current["close"] * current["volume"] < MIN_DOLLAR_VOLUME
+
+
 def creation_boundary_reason(rows: Sequence[Mapping[str, Any]], *, as_of: str) -> str | None:
     """Return the first frozen non-event reason, or None at event boundary."""
 
-    if not rows or rows[-1]["date"] != as_of:
+    if not price_complete(rows, as_of=as_of):
         return "data_unavailable"
-    if len(rows) < MIN_HISTORY_SESSIONS:
+    if not history_length_passed(rows):
         return "insufficient_history"
     current = rows[-1]
-    if current["close"] < MIN_CLOSE:
+    if not minimum_price_passed(current):
         return "below_price_floor"
-    if current["close"] * current["volume"] < MIN_DOLLAR_VOLUME:
+    if not dollar_volume_passed(current):
         return "below_liquidity_floor"
     if not exact_daily_macd_bull_cross(rows):
         return "no_exact_daily_macd_cross"
     return None
-

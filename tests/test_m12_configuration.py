@@ -2,13 +2,14 @@
 from copy import deepcopy
 from dataclasses import FrozenInstanceError
 import json
+import hashlib
 from pathlib import Path
 import subprocess
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-from services.contracts.configuration import BASELINE_BLOBS, DEFINITION_COMMIT, POLICY_PINS
+from services.contracts.configuration import BASELINE_BLOBS, DEFINITION_COMMIT, POLICY_PINS, RUNTIME_SOURCE_ALTERNATIVES
 from services.contracts.validation import ContractError, publication_configuration_body, verify_publication_configuration
 from services.publication import configuration as producer
 
@@ -122,6 +123,53 @@ class ConfigurationTests(unittest.TestCase):
             if mutation == 'missing': body['definition_sources'].pop()
             else: body['allowed_to_run'] = True
             with self.assertRaises(ContractError): verify_publication_configuration(raw(body), self.sources)
+
+    def test_exact_extraction_runtime_source_is_recorded_but_definition_cannot_change(self):
+        path = 'services/gates/baseline.py'
+        data = (producer.ROOT / path).read_bytes()
+        mode, blob = RUNTIME_SOURCE_ALTERNATIVES[path]
+        self.assertEqual(hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest(), blob)
+        sources = deepcopy(self.sources)
+        sources['runtime_sources'][path] = {'mode': mode, 'blob': blob, 'bytes': data}
+        body = publication_configuration_body(sources)
+        self.assertEqual(body['runtime_source_overrides'], [{'path': path, 'mode': mode,
+            'definition_blob': BASELINE_BLOBS[path][1], 'source_blob': blob,
+            'sha256': 'sha256:' + hashlib.sha256(data).hexdigest(), 'size_bytes': len(data)}])
+        self.assertEqual(body['policies'], self.body['policies'])
+        verify_publication_configuration(raw(body), sources)
+        del body['runtime_source_overrides']
+        with self.assertRaises(ContractError): verify_publication_configuration(raw(body), sources)
+        sources['definition_sources'][path] = dict(sources['runtime_sources'][path])
+        with self.assertRaises(ContractError): publication_configuration_body(sources)
+
+    def test_original_runtime_retains_old_configuration_shape(self):
+        sources = producer.read_configuration_sources(DEFINITION_COMMIT)
+        self.assertNotIn('runtime_source_overrides', publication_configuration_body(sources))
+        path = 'services/gates/baseline.py'
+        sources['runtime_sources'][path]['bytes'] += b'# arbitrary change'
+        data = sources['runtime_sources'][path]['bytes']
+        sources['runtime_sources'][path]['blob'] = hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
+        with self.assertRaises(ContractError): publication_configuration_body(sources)
+
+    def test_git_producer_rejects_unknown_runtime_blob_before_reading_it(self):
+        original = producer._git
+        changed = []
+        def git(*args):
+            result = original(*args)
+            if args[0] == 'ls-tree' and args[3] == self.commit:
+                path = b'services/gates/baseline.py'
+                rows = result.split(b'\0')
+                for i, row in enumerate(rows):
+                    if row.endswith(b'\t' + path):
+                        rows[i] = b'100644 blob ' + b'0' * 40 + b'\t' + path
+                        changed.append(path)
+                result = b'\0'.join(rows)
+            if args[:2] == ('cat-file', 'blob'):
+                self.assertNotEqual(args[2], '0' * 40)
+            return result
+        with patch.object(producer, '_git', side_effect=git), self.assertRaises(producer.ConfigurationSourceError):
+            producer.read_configuration_sources(self.commit)
+        self.assertEqual(len(changed), 1)
 
 
 if __name__ == '__main__': unittest.main()

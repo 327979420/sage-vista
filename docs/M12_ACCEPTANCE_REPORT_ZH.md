@@ -1104,3 +1104,18 @@ C1m提交b7ed6f9后，真实固定worker／DailyPreparationApi／Python客户端
 C1n新增publication-daily-runtime.json（enabled=false、origin=null）和m12-daily.yml（job if:false，无定时触发或参数）。工作流固定生产环境、只读contents和id-token，Action固定提交与原批准配置一致；fetch-depth=0为原业务基线Git对象所必需。唯一-I/-B入口固定Python3.12.12、main受保护分支、首attempt、GitHub托管Linux；配置和工作流也纳入实际Git字节检查，禁止额外导入、符号链接、未提交替换和替换对象／网络补取。显式EODHD环境token为前提，不能回退本地.env；配置禁用时不检查或调用供应商。
 
 固定客户端完成准备后，入口调用原collect_membership，再检查源字节；失败观察保留归档但任务失败，成功只报告daily_membership_archived_not_formal。5项runtime测试通过0.110秒：实际禁用入口／工作流、无CLI覆盖、坏配置、错误上下文／源字节、非固定解释器，以及完全合成依赖下的校验→准备→校验→采集→校验顺序。生产配置、平台环境和供应商均未启用；真实受保护工作流执行未验收。父b7ed6f9，提交feat: add the disabled fixed daily membership runner [skip ci]，待阶段独立审核。
+
+
+### C2a同日资格接点（待阶段独立审核）
+
+新增services/market_data/qualification.py纯生产者，使用原forward成员／资格规范化和实际调整后OHLCV验证、摘要重算；逐身份RepositoryRead必须与全部成员及当天一一对应。完整可得历史必须由可信价格接入先验证供应商／上市范围及交易日历后明确交付complete_history_instruments；这是内部依赖接点，不是CLI能力、来源自报证明或行数推断，实际价格来源接入仍待完成。无该证明、任何错身份／日期／指纹／未来行或缺当天价格整批失败；已证明完整但不足420日明确排除，不冒充下载失败的淘汰。
+
+原gates/baseline.py仅原地提取四个判定谓词供M02共用，原creation_boundary_reason保持同一顺序、阈值、短路和MACD调用；不改变研究门票或注册政策。M02逐项保存独立原因，无MACD仍可有资格；只输出旧3.x构造器所需资格事实，不写存储或签发formal。完整来源、身份持续登记和价格／日历证据未接齐，不宣称真实股票池完成。
+
+保留113份14fef535定义源清单全部原blob；仅接受gates/baseline.py的原blob或精确提取后运行blob 1f69d4339b77af789621d4bb90e0586893be7446。读取器与唯一配置验证器共用允许项判定，新运行源在配置明确记录runtime_source_overrides（实际blob／SHA-256／长度和原定义blob），旧运行源不新增字段。原九政策指纹不变，未知替代blob／模式或改定义源仍拒绝；固定worker全services实际字节守门不变。
+
+首次7项资格＋9项配置＋25项M03回归共41项通过3.372秒；补充新旧配置／精确运行源／未知blob读取前失败后，7资格＋12配置＋19治理状态共38项通过4.669秒，均ResourceWarning为错误。原门卫等价测试从固定Git基线机械取出原函数，与新函数比较空输入、缺日、419／420日、价格／流动性边界及MACD真假，保留短历史缺业务字段的短路行为；合成资格可直接进入原3.x构造器。实际已提交新配置／固定worker阶段联测待本包提交后执行。
+
+本包父6ab7c1e，提交feat: build same-day M02 qualifications from shared frozen checks [skip ci]。回退本包适配及精确替代项即可；原业务blob、旧配置和全部历史保留。没有写公开数据、bot快照／许可、旧断点；无供应商请求、合并、部署或生产启用。跨日生产端到端尚未执行。
+
+GitHub同步：远端main读回14fef535f67b7c4de035b4c84224e604850f1fed，refs/heads/m12/production-chain-design-14fef53尚不存在。只拟普通推送已独立审核8b745d0296a93d4358b6c5f23f44ef33c0e6e702，不含本阶段未审提交；自动审批审查拒绝，认为跨任务转述未构成此次目标／载荷授权。未绕过、未同步成功，需用户直接确认精确目标后再执行。
