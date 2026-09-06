@@ -214,3 +214,24 @@ SQLite三表保存epoch／服务时钟水位、租约及只追加租约操作日
 API依据为[Cloudflare SQLite-backed Durable Object官方参考](https://developers.cloudflare.com/durable-objects/api/sqlite-storage-api/)；同步事务回调不跨网络或await。没有新增Worker入口、绑定／迁移配置或依赖，无云资源创建。B1b不修改B1a、已有纯合同、ShadowStore守门或业务算法。跨日端到端仍未执行。
 
 本批12项专项、7项治理及12项项目状态共31项通过；新增文件定点lint、机器状态一致性、文档链接和diff检查通过。独立提交`feat: add M12 persistent lease lifecycle [skip ci]`，父提交13d9925f274a9af9fc15092aa57d3e86c5bc1ffa，完整SHA见交付消息。本地测试SQLite已清理，无真实数据迁移；可撤回本包代码／测试并保留治理历史。未合并、推送、创建云资源、部署、生产启用或对外通知。
+
+
+## B1b独立复核回传
+
+审核对话01a074f9-098a-7b82-b486-3185683290fe确认edd2a67e00423321f9848a4c06ff6fac86d5a9fe在内部租约生命周期及本地SQLite事务范围通过。审核员运行31项测试、100轮释放／到期再授予及198次旧token renew／release拒绝；fence连续递增，有效同Job acquire重放不延长TTL。官方transactionSync同步／回滚语义、diff及干净工作区已核对。生产认证、真实DO输出门／持久性、60秒续约及权威写入CAS不在本结论内；后续必须在提交事务检查实时授权及当前令牌。
+
+## B2a：GitHub OIDC签名与固定执行身份（待独立审核）
+
+`services/publication/identity.mjs`新增内部GitHubIdentityVerifier，使用平台WebCrypto RSA-SHA256验签，不实现密码学算法或增加依赖。issuer固定https://token.actions.githubusercontent.com，audience固定sage-vista-publication；只从该issuer的固定/.well-known/jwks取钥，禁重定向，不跟随token里的URL或内嵌公钥，无网络失败时的陈旧公钥回退。kid必须唯一、RSA签名公钥、至少2048位；只接受RS256／JWT及alg、typ、kid、可选x5t头，不接受crit或算法替换。token限制64KiB，JWKS流式限256KiB，取钥超时10秒；这些为传输限额，不改变业务合同。
+
+服务端构造器固定精确策略`{repository,repository_id,workflow_ref,workflow_commit,code_commit,environment,subject}`并复制冻结，不能由请求覆盖。身份必须匹配main分支、仓库稳定ID及全名、精确工作流ref与workflow_sha、代码sha、环境和subject；run_id／actor_id保留十进制文本，run_attempt严格转换为安全正整数。验签和取钥等待结束后重新检查exp／nbf／iat，恰好到期拒绝，不用客户端时钟。本批只支持已固定的普通工作流，包含job_workflow_ref／job_workflow_sha的可复用工作流令牌失败关闭，避免将调用者工作流当作实际受信执行体。
+
+返回`{job,code_commit,actor_id,subject,token_id,issued_at,expires_at}`已签名身份投影，job字段来自token，与现有M12 Job映射一致；时间字段为token的整数秒。这里没有权限／approved／grant结果，不生成PublicationAuthorization或验证任何业务合同。GitHub身份通过不等于环境批准通过；真实批准回执、允许审核人／禁自审、代码配置对应的实时grant／revoke及唯一Python合同验证接线仍留B2后续，当前未向LeaseStore、归档或DO写入口暴露任何调用通道。后续必须由服务端直接调用核验器，不能把外部同形JSON当已认证身份，也不能长期缓存此返回值充当许可。
+
+### B2a实际检查及边界
+
+13项专项使用本地RSA密钥真实签名／验签、受控Response公钥响应，覆盖完整合法身份、正文／签名篡改、11个固定claim分别替换与null、算法混淆／嵌入钥匙／外部URL、时间边界／等待期间到期、run及actor类型、可复用工作流替换、未知／重复kid、轮换／网络失败、异常／超大公钥正文、JWT编码、固定策略隔离及弱钥／无效时钟。没有取得或保存真实GitHub任务令牌，没有调用环境批准API，没有使用真实生产凭据。
+
+核对[GitHub OIDC官方字段说明](https://docs.github.com/en/actions/reference/security/oidc)及[官方公开发现文档](https://token.actions.githubusercontent.com/.well-known/openid-configuration)，确认issuer、公钥地址、RS256和workflow_sha字段。正式配置仍须从可信上线配置固定真实仓库／工作流／环境／subject，不猜测subject格式；GitHub可自定义subject且新仓库默认格式可能不同。该内部核验器不支持GitHub Enterprise自定义issuer，也未声明真实protected environment已配置。jti只作为身份材料返回，不是单次消费或业务幂等证明；真实请求的重放／授权撤销／租约到期保护须在后续提交事务重新核验。
+
+本批13项专项、7项治理及12项项目状态共32项通过；定点lint、机器状态一致性、文档链接及diff检查通过。独立提交`feat: add M12 GitHub OIDC identity verifier [skip ci]`，父提交edd2a67e00423321f9848a4c06ff6fac86d5a9fe，完整SHA见交付消息。无生产入口或存储迁移，回退可撤销本模块／测试并保留治理历史。M11不重审、跨日端到端仍未执行。未合并、推送、创建云资源、部署、生产启用或对外通知。
