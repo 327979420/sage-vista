@@ -1284,3 +1284,17 @@ Python每日客户端保存最后实际成功归档描述符，候选必须匹�
 先行4个顶层Node通过7.608秒（3新API＋午夜组，组内原3项及新编码跨日共4项）；14个Python客户端／runtime通过1.002秒。初次新API夹具未按既有canonical JSON编码而被400拒绝，已修夹具不改body校验；新Python成员输入夹具subject原为synthetic，改成与其测试Actions环境一致，未改身份守门。定点eslint、diff通过。实际跨语言正向须新services源码提交后再跑，尚不提前宣布通过。
 
 本包父6d3b43f，回退撤销两个新协议路由与新客户端／runner调用即可，保留已登记原件／日志；无需重写股票池或旧历史。不新建云资源／真实许可实例、不调用真实供应商、不合并main、部署、启用或通知。全历史32MiB输入／64KiB固定返回容量尚未验收，不裁剪；全M02 formal价格、业务链／跨日生产E2E仍未运行。价格卡v0.2保持design_review，无材料就不扩写或真实请求。
+
+
+### C2g阶段交审证据
+
+业务提交4e2f5dbfeae604fdda944d5e25072350e6ebffec后，23个顶层Node通过32.860秒（其中午夜组含4个子检查，不另加总），33项Python客户端／runtime／治理／状态通过0.990秒，共56项顶层相关检查，无失败／跳过／取消。实际联测核心4.022秒：Python客户端通过既有Actions模拟HTTPS通道完成原准备→合成采集→registration/prepare→真实完整源码固定成员worker→registration/return→实际本地SQLite登记；断言两组prepare／return路径及唯一登记根。后半段已不再由测试直接调用内部会话，固定worker源码守门未放宽。仍不是实际供应商／GitHub托管runner／云端DO／生产运行证明。
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 node --test --test-name-pattern='daily client integrates|daily preparation API|daily registration API|membership registration' tests/m12-environment-review.test.mjs
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=tests:. python3 -W error::ResourceWarning -m unittest tests.test_m12_daily_transport tests.test_m12_daily_runtime tests.test_rulebook_contract tests.test_project_status
+```
+
+定点eslint、6d3b43f起差异格式、机器生成状态和相对文档链接核验通过；最终治理提交不改变业务字节。没有重跑M11、原策略实验或完整前端。已核本地config/publication-daily-runtime.json和authorization-runtime均enabled=false、coordinator_origin=null；本轮未取得可核验的真实账户许可、同日成员D或短listing原件，因此没有冻结真实价格样本或发起取证。价格卡仍v0.2 design_review，材料缺项准确保留，不用合成来源冒充现有真实材料，不扩写空泛新卡。
+
+本阶段由审核任务复核后普通同步已审工作分支。远端最近已审6d3b43f由审核任务核验；本地待审提交不称远端已同步，main14fef535不变。成员观察登记调用已本地连通；M02价格／日历与formal资格、M03—M09业务链、跨日M08/M09续跑、独立M10及四页发布仍未完成。真实跨日生产E2E未运行。未真实供应商调用、云资源、合并、部署、启用或通知。
