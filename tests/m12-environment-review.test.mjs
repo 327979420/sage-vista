@@ -728,7 +728,7 @@ except (ContractError, TypeError) as exc:
         raise
     print(json.dumps({"valid":False, "error":str(exc)}))
 `;
-  const result = spawnSync("python3", ["-c", script], { input: JSON.stringify(input), encoding: "utf-8",
+  const result = spawnSync("python3", ["-B", "-c", script], { input: JSON.stringify(input), encoding: "utf-8",
     cwd: new URL("..", import.meta.url) });
   assert.equal(result.status, 0, result.stderr);
   return JSON.parse(result.stdout);
@@ -904,7 +904,7 @@ function priorAuthorization() {
     run_id: "400", run_attempt: 1, environment: "production" };
   const evidence = { request: businessRequest, approver_id: "999", job, history: [],
     approval_evidence_ref: { id: "approval-observation:sha256:" + "8".repeat(64), content_fingerprint: "sha256:" + "8".repeat(64) } };
-  const result = spawnSync("python3", ["-c", "import json,sys; from services.publication.authorization import build_publication_authorization; print(json.dumps(build_publication_authorization(json.load(sys.stdin), generated_at='2026-09-06T00:00:00Z'),sort_keys=True,separators=(',',':'),ensure_ascii=False))"],
+  const result = spawnSync("python3", ["-B", "-c", "import json,sys; from services.publication.authorization import build_publication_authorization; print(json.dumps(build_publication_authorization(json.load(sys.stdin), generated_at='2026-09-06T00:00:00Z'),sort_keys=True,separators=(',',':'),ensure_ascii=False))"],
     { input: JSON.stringify(evidence), encoding: "utf-8", cwd: new URL("..", import.meta.url) });
   assert.equal(result.status, 0, result.stderr);
   return Buffer.from(result.stdout);
@@ -1050,7 +1050,7 @@ try:
 except ContractError as exc:
     print(json.dumps({'valid':False,'error':str(exc)}))
 `;
-  const result = spawnSync("python3", ["-c", script], { input: JSON.stringify({ input: Buffer.from(raw).toString("base64"), times }),
+  const result = spawnSync("python3", ["-B", "-c", script], { input: JSON.stringify({ input: Buffer.from(raw).toString("base64"), times }),
     encoding: "utf-8", cwd: new URL("..", import.meta.url) });
   assert.equal(result.status, 0, result.stderr);
   const value = JSON.parse(result.stdout);
@@ -1160,7 +1160,7 @@ test("Python module command emits only the two base64 artifacts and fails with e
   const raw = await f.preparation.prepareValidationInput(token(), f.leaseToken);
   // Only the local test clock is patched; the actual module stdin/stdout path runs.
   const script = `import time,runpy; time.time_ns=lambda:${NOW * 1000}*1000000; runpy.run_module('services.publication.authorization_validation',run_name='__main__')`;
-  const invoke = (input) => spawnSync("python3", ["-c", script], { input, cwd: new URL("..", import.meta.url) });
+  const invoke = (input) => spawnSync("python3", ["-B", "-c", script], { input, cwd: new URL("..", import.meta.url) });
   const result = invoke(raw);
   assert.equal(result.status, 0, result.stderr.toString());
   assert.equal(result.stderr.length, 0);
@@ -1604,7 +1604,7 @@ except (ContractError, RuntimeError, TypeError) as exc:
   const prepared = { dispatch_id: f.sent.dispatch.dispatch_id, lease_token: f.leaseToken,
     input_sha256: sha(f.sent.input_bytes), input_size_bytes: f.sent.input_bytes.length,
     input_bytes: Buffer.from(f.sent.input_bytes).toString("base64"), ...changes.prepared };
-  const result = spawnSync("python3", ["-c", script], { input: JSON.stringify({ ...changes, prepared, now_ms: changes.now_ms ?? NOW * 1000 }),
+  const result = spawnSync("python3", ["-B", "-c", script], { input: JSON.stringify({ ...changes, prepared, now_ms: changes.now_ms ?? NOW * 1000 }),
     encoding: "utf-8", cwd: new URL("..", import.meta.url) });
   assert.equal(result.status, 0, result.stderr);
   return JSON.parse(result.stdout);
@@ -1726,7 +1726,7 @@ print(json.dumps({'calls':calls,'response':base64.b64encode(response).decode('as
   const prepared = { protocol: "m12-authorization-job/1", dispatch_id: f.sent.dispatch.dispatch_id, lease_token: f.leaseToken,
     input_sha256: sha(f.sent.input_bytes), input_size_bytes: f.sent.input_bytes.length,
     input_base64: Buffer.from(f.sent.input_bytes).toString("base64") };
-  const executed = spawnSync("python3", ["-c", script], { input: JSON.stringify({ prepared, token: token(), now_ms: NOW * 1000 }),
+  const executed = spawnSync("python3", ["-B", "-c", script], { input: JSON.stringify({ prepared, token: token(), now_ms: NOW * 1000 }),
     encoding: "utf-8", cwd: new URL("..", import.meta.url) });
   assert.equal(executed.status, 0, executed.stderr);
   const output = JSON.parse(executed.stdout);
@@ -1972,7 +1972,7 @@ with patch('time.time_ns',return_value=${NOW * 1000}*1000000):
     result=execute_authorization_validation(transport)
 print(json.dumps({'finished':True,'response':base64.b64encode(result).decode('ascii')}),flush=True)
 `;
-  const child = spawn("python3", ["-u", "-c", script], { cwd: new URL("..", import.meta.url), stdio: ["pipe", "pipe", "pipe"] });
+  const child = spawn("python3", ["-B", "-u", "-c", script], { cwd: new URL("..", import.meta.url), stdio: ["pipe", "pipe", "pipe"] });
   t.after(() => { if (child.exitCode === null) child.kill(); });
   let stderr = "", finished;
   child.stderr.on("data", (data) => { stderr += data; });
@@ -2151,7 +2151,7 @@ with patch('subprocess.Popen',side_effect=launch):
             time.sleep(0.005)
         else: raise AssertionError('validation did not complete')
 `;
-  const executed = spawnSync('python3', ['-c', script], { cwd: new URL('..', import.meta.url),
+  const executed = spawnSync('python3', ['-B', '-c', script], { cwd: new URL('..', import.meta.url),
     input: f.sent.input_bytes, maxBuffer: 4 * 1024 * 1024, timeout: 10_000 });
   assert.equal(executed.status, 0, executed.stderr?.toString());
   const raw = Buffer.from(executed.stdout.toString().trim(), 'base64');
@@ -2189,7 +2189,7 @@ with patch('time.time_ns',return_value=${NOW * 1000}*1000000),patch('subprocess.
     result=supervisor.execute_supervised_authorization_validation(transport)
 print(json.dumps({'finished':True,'response':base64.b64encode(result).decode()}),flush=True)
 `;
-  const child = spawn('python3', ['-u', '-c', script], { cwd: new URL('..', import.meta.url), stdio: ['pipe', 'pipe', 'pipe'] });
+  const child = spawn('python3', ['-B', '-u', '-c', script], { cwd: new URL('..', import.meta.url), stdio: ['pipe', 'pipe', 'pipe'] });
   t.after(() => { if (child.exitCode === null) child.kill(); });
   let stderr = '', finished;
   child.stderr.on('data', (data) => { stderr += data; });
@@ -2540,7 +2540,7 @@ with tempfile.TemporaryDirectory(prefix='m12-rpc-recovery-') as directory:
     result=recovered.recover(transport.recovery_id)
 print(json.dumps({'finished':True,'response':base64.b64encode(result).decode()}),flush=True)
 `;
-  const child = spawn('python3', ['-u', '-c', script], { cwd: new URL('..', import.meta.url), stdio: ['pipe', 'pipe', 'pipe'] });
+  const child = spawn('python3', ['-B', '-u', '-c', script], { cwd: new URL('..', import.meta.url), stdio: ['pipe', 'pipe', 'pipe'] });
   t.after(() => { if (child.exitCode === null) child.kill(); });
   let stderr = '', finished, lost = false;
   child.stderr.on('data', (data) => { stderr += data; });
@@ -2970,7 +2970,7 @@ print(json.dumps(fixture(commit,build_research_configuration(commit),time.time_n
   const wire = JSON.parse(build.stdout);
   const e = wire.evidence;
   // Explicit synthetic trusted baseline, not a production import or approval.
-  const history = e.current_history.history;
+  const history = e.current_history.history.map(item => ({ reference: item.reference, archive: item.archive, previous_ref: item.previous_ref }));
   history.forEach((item, i) => f.objects.set(item.archive.key, new Uint8Array(Buffer.from(e.history_base64[i], 'base64'))));
   f.objects.set(e.config_archive.key, new Uint8Array(Buffer.from(e.config_base64, 'base64')));
   f.db.prepare('INSERT INTO m12_authorization_index VALUES (1,?,?,NULL)').run(JSON.stringify(history[0].reference), JSON.stringify(history[0].archive));
