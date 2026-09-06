@@ -2042,3 +2042,134 @@ test('surviving return record prevents silent empty-head initialization after pa
   assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM m12_authorization_head').get().n, 0);
   assert.equal(recordedReturns(f).length, 1);
 });
+
+function recoveryReader(f, patch = {}) {
+  return new AuthorizationValidationReturn(identityPolicy, { ...f.options, storage: f.storage, bucket: f.bucket,
+    recoveryEpoch: f.leaseToken.epoch, ...patch });
+}
+const freshRecoveryToken = () => token({ iat: NOW + 301, nbf: NOW + 301, exp: NOW + 601 });
+
+test('recovery reads expired historical return after lease takeover without reviving authority', async (t) => {
+  const f = await validationArchiveFixture(t);
+  const archived = await f.archiveValidation();
+  f.state.now = (NOW + 301) * 1000;
+  f.lease.acquire('publish/global', { ...f.job, run_id: '457' }, f.leaseToken.epoch);
+  const leases = f.db.prepare('SELECT * FROM m12_leases').all(), logs = f.db.prepare('SELECT * FROM m12_authorization_log').all();
+  const puts = f.archiveState.puts;
+  const result = await recoveryReader(f).recover(freshRecoveryToken(), f.sent.dispatch.dispatch_id, f.receiptKey);
+  assert.deepEqual(result.return_record, archived.return_record);
+  assert.deepEqual(result.authorization_bytes, archived.authorization_bytes);
+  assert.deepEqual(result.receipt_bytes, archived.receipt_bytes);
+  assert.equal(result.current_history.revision, 1);
+  assert.deepEqual(f.db.prepare('SELECT * FROM m12_leases').all(), leases);
+  assert.deepEqual(f.db.prepare('SELECT * FROM m12_authorization_log').all(), logs);
+  assert.equal(f.archiveState.puts, puts);
+  result.return_record.actor_id = 'changed';
+  assert.equal((await recoveryReader(f).recover(freshRecoveryToken(), f.sent.dispatch.dispatch_id, f.receiptKey)).return_record.actor_id, claims.actor_id);
+});
+
+test('recovery permits a later intact authority head without making historical return current permission', async (t) => {
+  const f = await validationArchiveFixture(t);
+  const archived = await f.archiveValidation();
+  const ref = JSON.stringify(archived.return_record.authorization_ref);
+  const prior = f.db.prepare('SELECT reference_json FROM m12_authorization_index WHERE position=1').get().reference_json;
+  f.db.prepare('INSERT INTO m12_authorization_index VALUES (2,?,?,?)').run(ref, JSON.stringify(archived.authorization_archive), prior);
+  f.db.prepare('UPDATE m12_authorization_head SET revision=2,head_json=?').run(ref);
+  const result = await recoveryReader(f).recover(token(), f.sent.dispatch.dispatch_id, f.receiptKey);
+  assert.equal(result.current_history.revision, 2);
+  assert.equal(result.validation_ticket.expected_revision, 1);
+  assert.deepEqual(result.return_record, archived.return_record);
+});
+
+test('recovery requires configured epoch fresh original identity and exact receipt selection', async (t) => {
+  const f = await validationArchiveFixture(t);
+  await f.archiveValidation();
+  const gets = f.archiveState.gets;
+  const disabled = recoveryReader(f, { recoveryEpoch: undefined });
+  await assert.rejects(disabled.recover(token(), f.sent.dispatch.dispatch_id, f.receiptKey), /not_configured/);
+  for (const jwt of ['unsigned', token({ actor_id: '999' }), token({ run_id: '457' }), token({ run_attempt: '2' }), token({ sha: 'c'.repeat(40) })]) {
+    await assert.rejects(recoveryReader(f).recover(jwt, f.sent.dispatch.dispatch_id, f.receiptKey));
+  }
+  await assert.rejects(recoveryReader(f, { recoveryEpoch: '22222222-2222-4222-8222-222222222222' }).recover(token(), f.sent.dispatch.dispatch_id, f.receiptKey));
+  await assert.rejects(recoveryReader(f).recover(token(), f.sent.dispatch.dispatch_id, 'raw/' + '0'.repeat(64)), /unavailable/);
+  assert.equal(f.archiveState.gets, gets);
+  f.state.now = (NOW + 301) * 1000;
+  await assert.rejects(recoveryReader(f).recover(token(), f.sent.dispatch.dispatch_id, f.receiptKey), /time_invalid/);
+});
+
+test('recovery rejects missing row or paired logs without inferring safe replay', async (t) => {
+  for (const target of ['return', 'return_log', 'dispatch_log', 'ticket_log']) {
+    const f = await validationArchiveFixture(t);
+    await f.archiveValidation();
+    if (target === 'return') f.db.exec('DELETE FROM m12_authorization_returns');
+    else {
+      const operation = { return_log: 'archive_validation', dispatch_log: 'dispatch_validation', ticket_log: 'prepare_validation' }[target];
+      f.db.prepare('DELETE FROM m12_authorization_log WHERE operation=?').run(operation);
+    }
+    const records = recordedReturns(f), logs = recordedReturnLogs(f), puts = f.archiveState.puts;
+    await assert.rejects(recoveryReader(f).recover(token(), f.sent.dispatch.dispatch_id, f.receiptKey));
+    assert.deepEqual(recordedReturns(f), records);
+    assert.deepEqual(recordedReturnLogs(f), logs);
+    assert.equal(f.archiveState.puts, puts);
+  }
+});
+
+test('recovery actually reads input authorization and receipt and fails on missing or corrupt originals', async (t) => {
+  for (const role of ['input', 'authorization', 'receipt']) for (const corrupt of [false, true]) {
+    const f = await validationArchiveFixture(t);
+    await f.archiveValidation();
+    const key = role === 'input' ? f.sent.dispatch.input_archive.key : role === 'authorization' ? f.authorizationKey : f.receiptKey;
+    if (corrupt) f.objects.get(key)[0] ^= 1;
+    else f.objects.delete(key);
+    const records = recordedReturns(f), puts = f.archiveState.puts;
+    await assert.rejects(recoveryReader(f).recover(token(), f.sent.dispatch.dispatch_id, f.receiptKey), /missing|hash_mismatch/);
+    assert.deepEqual(recordedReturns(f), records);
+    assert.equal(f.archiveState.puts, puts);
+  }
+});
+
+test('recovery fails if record epoch head or fresh identity changes during final original read', async (t) => {
+  for (const change of ['record', 'epoch', 'head', 'identity']) {
+    const f = await validationArchiveFixture(t);
+    await f.archiveValidation();
+    f.archiveState.beforeGet = (key) => {
+      if (key !== f.receiptKey) return;
+      if (change === 'record') f.db.exec('DELETE FROM m12_authorization_returns');
+      if (change === 'epoch') f.db.exec("UPDATE m12_lease_epoch SET epoch='22222222-2222-4222-8222-222222222222'");
+      if (change === 'head') f.db.exec('UPDATE m12_authorization_head SET revision=2');
+      if (change === 'identity') f.state.now = (NOW + 300) * 1000;
+    };
+    await assert.rejects(recoveryReader(f).recover(token(), f.sent.dispatch.dispatch_id, f.receiptKey));
+  }
+});
+
+test('recovery selects each legitimate validation receipt rather than an arbitrary latest result', async (t) => {
+  const f = await validationArchiveFixture(t);
+  const first = await f.archiveValidation();
+  f.state.now = (NOW + 2) * 1000;
+  const later = validateWire(f.sent.input_bytes, [(NOW + 1) * 1000, (NOW + 2) * 1000]);
+  f.result.authorization_base64 = later.authorization_bytes;
+  f.result.receipt_base64 = later.receipt_bytes;
+  const second = await f.archiveValidation();
+  for (const expected of [first, second]) {
+    const result = await recoveryReader(f).recover(token(), f.sent.dispatch.dispatch_id, expected.validation_receipt_archive.key);
+    assert.deepEqual(result.return_record, expected.return_record);
+    assert.deepEqual(result.receipt_bytes, expected.receipt_bytes);
+  }
+  assert.equal(recordedReturns(f).length, 2);
+});
+
+test('recovery reuses artifact relationship checks even when altered receipt hash and record agree', async (t) => {
+  const f = await validationArchiveFixture(t);
+  await f.archiveValidation();
+  const receipt = JSON.parse(Buffer.from(f.objects.get(f.receiptKey)));
+  receipt.ticket_id = '22222222-2222-4222-8222-222222222222';
+  const bytes = Buffer.from(JSON.stringify(canonical(receipt))), hash = sha(bytes), key = 'raw/' + hash.slice(7);
+  f.objects.set(key, new Uint8Array(bytes));
+  const record = JSON.parse(recordedReturns(f)[0].record_json);
+  record.validation_receipt_archive = { key, sha256: hash, size_bytes: bytes.length };
+  const raw = JSON.stringify(record);
+  f.db.prepare('UPDATE m12_authorization_returns SET receipt_key=?,record_json=?').run(key, raw);
+  f.db.prepare("UPDATE m12_authorization_log SET record_json=? WHERE operation='archive_validation'").run(raw);
+  await assert.rejects(recoveryReader(f).recover(token(), f.sent.dispatch.dispatch_id, key), /receipt_mismatch/);
+});

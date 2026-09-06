@@ -1,5 +1,8 @@
 import { LeaseStore } from "./leases.mjs";
 
+const sameJob = (left, right) => Object.keys(left).sort().join() === Object.keys(right).sort().join() &&
+  Object.keys(left).every((key) => left[key] === right[key]);
+
 function reference(value, prefix) {
   if (!value || Object.keys(value).sort().join() !== "content_fingerprint,id" ||
       typeof value.content_fingerprint !== "string" || !/^sha256:[a-f0-9]{64}$/.test(value.content_fingerprint) ||
@@ -13,6 +16,25 @@ function location(value) {
       typeof value.sha256 !== "string" || !/^sha256:[a-f0-9]{64}$/.test(value.sha256) ||
       !Number.isSafeInteger(value.size_bytes) || value.size_bytes < 1) throw new Error("authorization_location_invalid");
   return { key: value.key, sha256: value.sha256, size_bytes: value.size_bytes };
+}
+
+function returnBinding(identity, dispatch, artifacts) {
+  const frozen = JSON.parse(JSON.stringify(artifacts));
+  if (Object.keys(frozen).sort().join() !== "authorization_archive,authorization_ref,validation_receipt_archive") {
+    throw new Error("authorization_return_record_invalid");
+  }
+  const ref = reference(frozen.authorization_ref, "publication-authorization:");
+  const archived = location(frozen.authorization_archive), receipt = frozen.validation_receipt_archive;
+  if (archived.key !== "authority/" + ref.content_fingerprint.slice(7) + ".json" ||
+      !receipt || Object.keys(receipt).sort().join() !== "key,sha256,size_bytes" ||
+      typeof receipt.sha256 !== "string" || !/^sha256:[a-f0-9]{64}$/.test(receipt.sha256) ||
+      receipt.key !== "raw/" + receipt.sha256.slice(7) ||
+      !Number.isSafeInteger(receipt.size_bytes) || receipt.size_bytes < 1) throw new Error("authorization_return_record_invalid");
+  return { protocol: "m12-authorization-return/1", state: "archived_pending_registration",
+      dispatch_id: dispatch.dispatch_id, ticket_id: dispatch.ticket_id, epoch: dispatch.epoch, fence: dispatch.fence,
+      owner_job: dispatch.owner_job, actor_id: identity.actor_id, source_commit: dispatch.source_commit,
+      input_archive: dispatch.input_archive, authorization_ref: ref, authorization_archive: archived,
+      validation_receipt_archive: receipt };
 }
 
 export class AuthorizationStore {
@@ -109,7 +131,7 @@ export class AuthorizationStore {
     return this.#leases.withOwnedLease("publish/global", ownerJob, token, (context) => this.#ticket(ticketId, context));
   }
 
-  #ticket(ticketId, { epoch, lease, now }) {
+  #ticketRecord(ticketId) {
     if (typeof ticketId !== "string" || !/^[a-f0-9-]{36}$/.test(ticketId)) throw new Error("authorization_ticket_invalid");
     const rows = this.#exec("SELECT ticket_json FROM m12_authorization_tickets WHERE ticket_id = ?", ticketId);
     if (rows.length !== 1) throw new Error("authorization_ticket_missing");
@@ -117,6 +139,11 @@ export class AuthorizationStore {
     const ticket = JSON.parse(record);
     const logs = this.#exec("SELECT record_json FROM m12_authorization_log WHERE operation = 'prepare_validation' AND ticket_id = ?", ticketId);
     if (logs.length !== 1 || logs[0].record_json !== record) throw new Error("authorization_ticket_recovery_required");
+    return ticket;
+  }
+
+  #ticket(ticketId, { epoch, lease, now }) {
+    const ticket = this.#ticketRecord(ticketId);
     const prepared = Date.parse(ticket.prepared_at), expiry = Date.parse(ticket.expires_at);
     if (ticket.ticket_id !== ticketId || ticket.resource !== "publish/global" || ticket.epoch !== epoch ||
         ticket.fence !== lease.fence || JSON.stringify(ticket.owner_job) !== JSON.stringify(lease.owner_job) ||
@@ -217,20 +244,73 @@ export class AuthorizationStore {
     }, { deadlineMs: deadline });
   }
 
+  #returnRows(dispatch) {
+    const allRows = this.#exec("SELECT * FROM m12_authorization_returns WHERE ticket_id=?", dispatch.ticket_id);
+    const logs = this.#exec(`SELECT record_json,occurred_ms FROM m12_authorization_log
+      WHERE operation='archive_validation' AND ticket_id=?`, dispatch.ticket_id);
+    if (allRows.length !== logs.length) throw new Error("authorization_return_record_recovery_required");
+    for (const row of allRows) {
+      const prior = JSON.parse(row.record_json);
+      if (row.dispatch_id !== dispatch.dispatch_id || prior.dispatch_id !== dispatch.dispatch_id || prior.ticket_id !== dispatch.ticket_id ||
+          row.receipt_key !== prior.validation_receipt_archive?.key ||
+          logs.filter((log) => log.record_json === row.record_json).length !== 1) {
+        throw new Error("authorization_return_record_recovery_required");
+      }
+    }
+    return { allRows, logs };
+  }
+
+  readArchivedValidation(identity, epoch, dispatchId, receiptKey) {
+    // Historical lookup only: identity is freshly verified by the internal
+    // recovery adapter; epoch is server configuration, never a lease revival.
+    if (typeof epoch !== "string" || !/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(epoch) ||
+        typeof receiptKey !== "string" || !/^raw\/[a-f0-9]{64}$/.test(receiptKey)) throw new Error("authorization_recovery_request_invalid");
+    return this.#storage.transactionSync(() => {
+      const state = this.#exec("SELECT epoch,last_now FROM m12_lease_epoch WHERE singleton=1")[0];
+      const checkTime = (previous) => {
+        const now = this.#clock();
+        if (!state || state.epoch !== epoch || !Number.isSafeInteger(now) || !Number.isSafeInteger(previous) || now < previous ||
+            now < identity.issued_at * 1000 || now >= identity.expires_at * 1000) throw new Error("authorization_recovery_identity_or_epoch_invalid");
+        return now;
+      };
+      const now = checkTime(state?.last_now);
+      const history = this.#history(); // Fail closed on lost/corrupt authority state.
+      const dispatch = this.#dispatch(dispatchId), ticket = this.#ticketRecord(dispatch.ticket_id);
+      const prepared = Date.parse(ticket.prepared_at), expiry = Date.parse(ticket.expires_at);
+      const dispatched = Date.parse(dispatch.dispatched_at);
+      if (dispatch.protocol !== "m12-authorization-validation/1" || dispatch.epoch !== epoch || ticket.epoch !== epoch ||
+          ticket.ticket_id !== dispatch.ticket_id || ticket.resource !== "publish/global" || ticket.fence !== dispatch.fence ||
+          !Number.isSafeInteger(dispatch.fence) || dispatch.fence < 1 || dispatch.source_commit !== identity.code_commit ||
+          !sameJob(dispatch.owner_job, identity.job) || !sameJob(ticket.owner_job, identity.job) ||
+          JSON.stringify(ticket.approval_evidence_ref) !== JSON.stringify(dispatch.approval_evidence_ref) ||
+          !Number.isSafeInteger(dispatch.identity_issued_at) || !Number.isSafeInteger(dispatch.identity_expires_at) ||
+          dispatch.identity_issued_at < 0 || dispatch.identity_expires_at <= dispatch.identity_issued_at ||
+          !Number.isFinite(prepared) || !Number.isFinite(expiry) || !Number.isFinite(dispatched) || prepared > dispatched ||
+          dispatched < dispatch.identity_issued_at * 1000 || dispatched >= Math.min(expiry, dispatch.identity_expires_at * 1000) ||
+          dispatch.expires_at !== new Date(Math.min(expiry, dispatch.identity_expires_at * 1000)).toISOString()) {
+        throw new Error("authorization_recovery_dispatch_invalid");
+      }
+      const { allRows, logs } = this.#returnRows(dispatch);
+      const row = allRows.find((value) => value.receipt_key === receiptKey);
+      if (!row) throw new Error("authorization_recovery_record_unavailable"); // Never infer not received.
+      const record = JSON.parse(row.record_json), { recorded_at, ...binding } = record;
+      const expected = returnBinding(identity, dispatch, { authorization_ref: record.authorization_ref,
+        authorization_archive: record.authorization_archive, validation_receipt_archive: record.validation_receipt_archive });
+      const recorded = Date.parse(recorded_at);
+      if (JSON.stringify(binding) !== JSON.stringify(expected) || !Number.isFinite(recorded) ||
+          new Date(recorded).toISOString() !== recorded_at || recorded < dispatched || recorded >= Date.parse(dispatch.expires_at) ||
+          recorded > now || logs.find((log) => log.record_json === row.record_json)?.occurred_ms !== recorded) {
+        throw new Error("authorization_recovery_record_invalid");
+      }
+      const completed = checkTime(now);
+      this.#exec("UPDATE m12_lease_epoch SET last_now=? WHERE singleton=1", completed);
+      return { dispatch, validation_ticket: ticket, return_record: record, current_history: history };
+    });
+  }
+
   recordValidationArchive(identity, token, dispatchId, snapshot, artifacts) {
     // Internal B3f readback only. This method does not authenticate arbitrary
     // descriptors or prove R2 writes; it is never exposed directly over RPC.
-    const frozen = JSON.parse(JSON.stringify(artifacts));
-    if (Object.keys(frozen).sort().join() !== "authorization_archive,authorization_ref,validation_receipt_archive") {
-      throw new Error("authorization_return_record_invalid");
-    }
-    const ref = reference(frozen.authorization_ref, "publication-authorization:");
-    const archived = location(frozen.authorization_archive), receipt = frozen.validation_receipt_archive;
-    if (archived.key !== "authority/" + ref.content_fingerprint.slice(7) + ".json" ||
-        !receipt || Object.keys(receipt).sort().join() !== "key,sha256,size_bytes" ||
-        typeof receipt.sha256 !== "string" || !/^sha256:[a-f0-9]{64}$/.test(receipt.sha256) ||
-        receipt.key !== "raw/" + receipt.sha256.slice(7) ||
-        !Number.isSafeInteger(receipt.size_bytes) || receipt.size_bytes < 1) throw new Error("authorization_return_record_invalid");
     const expected = JSON.stringify(snapshot);
     return this.#storage.transactionSync(() => {
       const current = () => {
@@ -239,23 +319,9 @@ export class AuthorizationStore {
         return value.dispatch;
       };
       const dispatch = current();
-      const binding = { protocol: "m12-authorization-return/1", state: "archived_pending_registration",
-        dispatch_id: dispatchId, ticket_id: dispatch.ticket_id, epoch: dispatch.epoch, fence: dispatch.fence,
-        owner_job: dispatch.owner_job, actor_id: identity.actor_id, source_commit: dispatch.source_commit,
-        input_archive: dispatch.input_archive, authorization_ref: ref, authorization_archive: archived,
-        validation_receipt_archive: receipt };
-      const allRows = this.#exec("SELECT * FROM m12_authorization_returns WHERE ticket_id=?", dispatch.ticket_id);
-      const logs = this.#exec(`SELECT record_json,occurred_ms FROM m12_authorization_log
-        WHERE operation='archive_validation' AND ticket_id=?`, dispatch.ticket_id);
-      if (allRows.length !== logs.length) throw new Error("authorization_return_record_recovery_required");
-      for (const row of allRows) {
-        const prior = JSON.parse(row.record_json);
-        if (row.dispatch_id !== dispatchId || prior.dispatch_id !== dispatchId || prior.ticket_id !== dispatch.ticket_id ||
-            row.receipt_key !== prior.validation_receipt_archive?.key ||
-            logs.filter((log) => log.record_json === row.record_json).length !== 1) {
-          throw new Error("authorization_return_record_recovery_required");
-        }
-      }
+      const binding = returnBinding(identity, dispatch, artifacts);
+      const receipt = binding.validation_receipt_archive;
+      const { allRows, logs } = this.#returnRows(dispatch);
       const rows = allRows.filter((row) => row.receipt_key === receipt.key);
       const matchingLogs = rows.length ? logs.filter((log) => log.record_json === rows[0].record_json) : [];
       const now = this.#clock();

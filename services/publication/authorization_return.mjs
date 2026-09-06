@@ -45,17 +45,19 @@ export class AuthorizationValidationReturn {
   #store;
   #archive;
   #clock;
+  #recoveryEpoch;
 
-  constructor(identityPolicy, { storage, bucket, clock = Date.now, fetchKeys } = {}) {
+  constructor(identityPolicy, { storage, bucket, clock = Date.now, fetchKeys, recoveryEpoch } = {}) {
+    if (recoveryEpoch !== undefined && (typeof recoveryEpoch !== "string" ||
+        !/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(recoveryEpoch))) throw new Error("authorization_recovery_epoch_invalid");
+    this.#recoveryEpoch = recoveryEpoch;
     this.#verifier = new GitHubIdentityVerifier(identityPolicy, { clock, fetchKeys });
     this.#store = new AuthorizationStore(storage, { clock });
     this.#archive = new ImmutableArchive(bucket);
     this.#clock = clock;
   }
 
-  async verifyDispatch(token, leaseToken, dispatchId) {
-    const identity = await this.#verifier.verify(token);
-    const snapshot = this.#store.readValidationDispatch(identity, leaseToken, dispatchId);
+  async #readInput(identity, snapshot) {
     const { dispatch, validation_ticket: ticket } = snapshot;
     const inputBytes = await this.#archive.read(dispatch.input_archive.key,
       { sha256: dispatch.input_archive.sha256, size_bytes: dispatch.input_archive.size_bytes });
@@ -65,23 +67,31 @@ export class AuthorizationValidationReturn {
         !same(input.approval_evidence_ref, dispatch.approval_evidence_ref)) throw new Error("authorization_return_input_mismatch");
     const original = JSON.parse(utf8(unbase64(input.approval_archive.bundle_base64))).identity;
     if (original.actor_id !== identity.actor_id || original.code_commit !== identity.code_commit ||
-        !same(original.job, dispatch.owner_job)) throw new Error("authorization_return_origin_mismatch");
+        !same(original.job, dispatch.owner_job) || original.issued_at !== dispatch.identity_issued_at ||
+        original.expires_at !== dispatch.identity_expires_at) throw new Error("authorization_return_origin_mismatch");
+
+    return inputBytes;
+  }
+
+  async verifyDispatch(token, leaseToken, dispatchId) {
+    const identity = await this.#verifier.verify(token);
+    const snapshot = this.#store.readValidationDispatch(identity, leaseToken, dispatchId);
+    const inputBytes = await this.#readInput(identity, snapshot);
 
     const current = this.#store.readValidationDispatch(identity, leaseToken, dispatchId);
     if (!same(current, snapshot)) throw new Error("authorization_return_dispatch_changed");
     return { identity, ...current, input_bytes: inputBytes };
   }
 
-  async verify(token, leaseToken, dispatchId, resultBytes) {
-    if (!(resultBytes instanceof Uint8Array)) throw new Error("authorization_return_bytes_required");
-    const frozen = new Uint8Array(resultBytes);
-    const prepared = await this.verifyDispatch(token, leaseToken, dispatchId);
-    const { identity, dispatch, validation_ticket: ticket, input_bytes: inputBytes } = prepared;
-    const snapshot = { dispatch, validation_ticket: ticket };
-
+  async #verifyOutput(prepared, frozen) {
     const output = encodedObject(frozen, "\n");
     exact(output, ["authorization_base64", "receipt_base64"]);
     const receiptBytes = unbase64(output.receipt_base64), authorizationBytes = unbase64(output.authorization_base64);
+    return this.#verifyArtifacts(prepared, receiptBytes, authorizationBytes);
+  }
+
+  async #verifyArtifacts(prepared, receiptBytes, authorizationBytes) {
+    const { dispatch, validation_ticket: ticket } = prepared;
     const receipt = encodedObject(receiptBytes), authorization = encodedObject(authorizationBytes);
     exact(receipt, ["protocol", "verdict", "validated_at", "input_sha256", "input_size_bytes", "ticket_id", "ticket_sha256",
       "approval_evidence_ref", "authorization_ref", "authorization_archive"]);
@@ -108,10 +118,48 @@ export class AuthorizationValidationReturn {
         validated < Date.parse(dispatch.dispatched_at) || validated >= Date.parse(dispatch.expires_at) || validated > now) {
       throw new Error("authorization_return_time_invalid");
     }
+    return { receipt_bytes: receiptBytes, authorization_bytes: authorizationBytes };
+  }
+
+  async recover(token, dispatchId, receiptKey) {
+    if (this.#recoveryEpoch === undefined) throw new Error("authorization_recovery_not_configured");
+    const identity = await this.#verifier.verify(token);
+    const snapshot = this.#store.readArchivedValidation(identity, this.#recoveryEpoch, dispatchId, receiptKey);
+    const current = () => {
+      const value = this.#store.readArchivedValidation(identity, this.#recoveryEpoch, dispatchId, receiptKey);
+      if (!same(value, snapshot)) throw new Error("authorization_recovery_state_changed");
+    };
+    const inputBytes = await this.#readInput(identity, snapshot);
+    current();
+    const record = snapshot.return_record;
+    const read = (location) => this.#archive.read(location.key, { sha256: location.sha256, size_bytes: location.size_bytes });
+    const authorizationBytes = await read(record.authorization_archive);
+    current();
+    const receiptBytes = await read(record.validation_receipt_archive);
+    current();
+    const prepared = { identity, ...snapshot, input_bytes: inputBytes };
+    const checked = await this.#verifyArtifacts(prepared, receiptBytes, authorizationBytes);
+    const receipt = encodedObject(checked.receipt_bytes);
+    if (!same(receipt.authorization_ref, record.authorization_ref) || !same(receipt.authorization_archive, record.authorization_archive) ||
+        Date.parse(receipt.validated_at) > Date.parse(record.recorded_at)) throw new Error("authorization_recovery_artifacts_changed");
+    current();
+    // Historical readback only. No lease acquisition, validation rerun, artifact
+    // write, ticket consumption or permission decision; clock bookkeeping only.
+    return { ...prepared, ...checked };
+  }
+
+  async verify(token, leaseToken, dispatchId, resultBytes) {
+    if (!(resultBytes instanceof Uint8Array)) throw new Error("authorization_return_bytes_required");
+    const frozen = new Uint8Array(resultBytes);
+    const prepared = await this.verifyDispatch(token, leaseToken, dispatchId);
+    const { identity, dispatch, validation_ticket: ticket, input_bytes: inputBytes } = prepared;
+    const snapshot = { dispatch, validation_ticket: ticket };
+
+    const checked = await this.#verifyOutput(prepared, frozen);
     // No business reimplementation here: the pinned workflow must actually run
     // B3c on our exact dispatched bytes. OIDC alone is not execution attestation.
     const current = this.#store.readValidationDispatch(identity, leaseToken, dispatchId);
     if (!same(current, snapshot)) throw new Error("authorization_return_dispatch_changed");
-    return { identity, ...current, input_bytes: inputBytes, receipt_bytes: receiptBytes, authorization_bytes: authorizationBytes };
+    return { identity, ...current, input_bytes: inputBytes, ...checked };
   }
 }
