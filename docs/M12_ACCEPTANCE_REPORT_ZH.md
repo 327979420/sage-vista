@@ -1298,3 +1298,12 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=tests:. python3 -W error::ResourceWarning -
 定点eslint、6d3b43f起差异格式、机器生成状态和相对文档链接核验通过；最终治理提交不改变业务字节。没有重跑M11、原策略实验或完整前端。已核本地config/publication-daily-runtime.json和authorization-runtime均enabled=false、coordinator_origin=null；本轮未取得可核验的真实账户许可、同日成员D或短listing原件，因此没有冻结真实价格样本或发起取证。价格卡仍v0.2 design_review，材料缺项准确保留，不用合成来源冒充现有真实材料，不扩写空泛新卡。
 
 本阶段由审核任务复核后普通同步已审工作分支。远端最近已审6d3b43f由审核任务核验；本地待审提交不称远端已同步，main14fef535不变。成员观察登记调用已本地连通；M02价格／日历与formal资格、M03—M09业务链、跨日M08/M09续跑、独立M10及四页发布仍未完成。真实跨日生产E2E未运行。未真实供应商调用、云资源、合并、部署、启用或通知。
+
+
+### C2h原日链组合（待独立审核）
+
+父d20bff8；审核任务已确认C2g独立PASS及普通同步工作分支。新增services/publication/daily_chain.py，仅将原M02 3.x准备、M03 Gate、M04事实／支撑、M05模型、M06上下文、M07权威研究排行、M08无次日开盘决策及M09事件／计划关联串联；不覆盖任何默认检测器或九项政策。返回原不可变批次和原M02准备结果，作为后续库存写入的内存交接，不是已登记SourceInventory。默认因子不可用仍如实保留，无Gate但有完整M02行情可产生合法空日；M02未生成必需行情快照时失败关闭（包括全员资格排除），不假造空快照绕过M06。该纯入口不提供实际许可证明，未接任何runtime路由。
+
+本地合成原3.x联测7项通过；联合既有M08／M09及治理／项目状态共60项通过11.243秒，diff检查通过。覆盖默认证据和原账本等价、幂等及冻结、拒绝检测器／政策／未来入场覆盖、缺失／改坏／legacy输入、缺必需快照、完整无Gate空日和缺M07 activation。测试来源明确为fixture，不将构造的complete成员证明当真实采集。
+
+回退撤销新纯日链和其测试即可，旧shadow存储及九项政策无变化。跨日持久恢复、实际冻结库存登记和真实生产E2E仍待后续；不称整条M12已完成。未真实供应商请求、云资源、main合并、推送、部署、启用或通知；CR-053仍implementing，价格卡仍design_review。
