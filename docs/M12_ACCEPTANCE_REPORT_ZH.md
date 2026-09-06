@@ -1002,3 +1002,20 @@ Python MembershipArchiveTransport实现C1b authorize/put/read依赖，每次取�
 9项新配置测试使用实际本地Git读取原件，覆盖113份固定清单独立比对、九政策／版本／边界、缺失／额外／损坏字节和模式、同版本政策内容漂移、配置篡改、严格JSON、空白与不同code_commit身份、非法／未知提交、固定根／无网络环境及错误脱敏。加10项当前授权使用、14项Manifest、19项治理状态，共52项通过3.158秒，ResourceWarning按错误；不重复M11或无变化B全部检查。机器状态生成一致、文档链接及差异格式另行核验。
 
 独立提交feat: build pinned M12 research configuration from Git sources [skip ci]，父8696910a797f5a82decbb9cbf26479e345d919b3，完整SHA见交付消息。回退撤回未接线配置模块与入口即可，不删除任何事实或授权历史。下一小包完成受信当前授权原件读回／实际使用工厂，再进入M02身份资格和C/D链；跨日端到端仍未执行。未真实供应商调用、外部写入、合并、推送、云资源、部署、生产启用或对外通知。
+
+
+### C1f独立审核记录｜2026-09-07
+
+审核任务01a074f9-098a-7b82-b486-3185683290fe确认f1bffe7110281663b01ee27db7058a6e0bcdbbd5在固定本地Git／完整首轮研究配置范围通过，无新增阻断。独立52项Python通过3.148秒（ResourceWarning为错误），并以当前完整提交实际构造62186字节、113来源、9政策，三个M07指纹与设计机械匹配；diff、精确HEAD、干净工作区通过。未重跑M11或无变化B全套。该结论不认证当前运行者、Git提交批准或供应商许可；实际执行字节及权限绑定仍需受信工厂，修改已固定原文件须在对应获批包明确处理来源约束。
+
+## C1g：受信当前授权／配置原件读回（待独立审核）
+
+新增服务端内部PreparationEvidenceReadback，默认preparationPolicy=null立即禁用，不接触存储／网络；启用策略来自服务端，精确固定actor、as_of、config_ref和config_archive，构造时深复制。配置位置限raw/<SHA>且实际长度1..1MiB。read只接收OIDC令牌和现有lease handle；不接受身份声明、Job、历史、原件位置、配置或日期覆盖。先复制handle，再实际验签及固定代码／工作流身份检查，actor匹配后复用C1e readCurrentForPreparation，在daily/<as_of>/<config_id>现有epoch／fence／Job租约下读取完整持久索引与登记来源。
+
+按该索引顺序通过ImmutableArchive真正读回每份授权原字节，再读固定配置原字节；每份均校验实际长度与SHA。每次异步读回后以及组装输出后，再在同步持锁事务复查完整revision／head／索引与全部原登记配对、原身份有效期和当前租约。读取期间新撤销登记、来源损坏、fence或期限失效均拒绝本次材料，不返回此前内存成功。未创建、获取或续期租约，不新建票据、授权索引或归档写入；已有epoch的last_now仍仅为单调时钟维护。失败不自动重试、不重建原件。
+
+输出为实际验签身份与当前材料evidence，字段衔接C1e唯一Python入口：current_history、history_bytes、config_ref、config_archive、config_bytes、已验签code_commit、固定as_of、本次checked_at（UTC整秒）。正文不在JS解析或判定业务权限；测试用撤销头和不相关合成配置仍能得到真实材料，明确随后必须由唯一合同入口拒绝其准备资格。没有authorized状态、权限令牌、sessionPolicy生成、HTTP路由或生产运行实例。输出只说明本次读回与末次重查一致，不冻结未来权限，实际使用工厂仍须连接C1e／C1f、真实许可及使用时重查；不承诺R2对象之后永不缺失。
+
+新增8项Node专项以真实SQLite和实际B3登记路径、合成签名OIDC／R2依赖验证：默认禁用；逐份原字节／顺序及无写入／输出隔离；每一位置缺失、损坏、读取失败；错误actor／Job／代码／JWT／epoch／fence、错误固定策略和key服务失败在原件读取前拒绝；每个异步读取中通过原登记入口追加合法revoke后拒绝旧材料；末次原件读取中登记来源／fence／期限变化；外部策略及handle在取密钥期间修改不改变冻结目标；最终输出guard末次SQL读取越过期限失败。8项全部通过1.161秒，无失败／取消／跳过，定点eslint通过。另10项当前授权使用与19项治理状态Python通过0.022秒（ResourceWarning为错误），共37项；机器状态生成一致、文档链接／diff通过。未重复M11、无变化B全套或跨日端到端。
+
+独立提交feat: read current M12 preparation evidence from private archives [skip ci]，父f1bffe7110281663b01ee27db7058a6e0bcdbbd5，完整SHA见交付消息。回退撤回未接线读回器即可，不删除事实／授权历史。下一包继续受信材料到唯一Python检查及实际使用工厂，再接M02身份资格和C/D链。未真实供应商调用、外部写入、合并、推送、云资源、部署、生产启用或对外通知；跨日端到端仍未执行。

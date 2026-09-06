@@ -1,3 +1,4 @@
+import { PreparationEvidenceReadback } from '../services/publication/preparation_readback.mjs';
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash, generateKeyPairSync, sign } from "node:crypto";
@@ -2643,4 +2644,154 @@ test('current preparation snapshot checks deadline after the final history SQL r
     return result;
   };
   assert.throws(() => store.readCurrentForPreparation(identity, { epoch: held.epoch, fence: held.lease.fence }, resource), /deadline/);
+});
+
+async function preparationReadbackFixture(t, withHistory = true, registerNow = true) {
+  const f = await registrationFixture(t, withHistory);
+  if (registerNow) await f.register();
+  const configBytes = Buffer.from('{"synthetic_config":true}\n');
+  const sha256 = 'sha256:' + createHash('sha256').update(configBytes).digest('hex');
+  const policy = { actor_id: '789', as_of: '2026-09-06',
+    config_ref: { id: 'config:1', content_fingerprint: 'sha256:' + 'c'.repeat(64) },
+    config_archive: { key: 'raw/' + sha256.slice(7), sha256, size_bytes: configBytes.length } };
+  f.objects.set(policy.config_archive.key, new Uint8Array(configBytes));
+  const held = f.lease.acquire('daily/2026-09-06/config:1', f.job, f.leaseToken.epoch);
+  const handle = { epoch: held.epoch, fence: held.lease.fence };
+  const create = (preparationPolicy = policy, options = {}) => new PreparationEvidenceReadback(identityPolicy,
+    { preparationPolicy, storage: f.storage, bucket: f.bucket, clock: f.options.clock, fetchKeys: f.options.fetchKeys, ...options });
+  return { ...f, policy, configBytes, handle, create };
+}
+
+test('preparation readback defaults disabled without storage or network', async () => {
+  const reader = new PreparationEvidenceReadback(null);
+  await assert.rejects(reader.read('anything', null), /disabled/);
+});
+
+test('preparation readback obtains every indexed original and fixed config without writes or authority', async t => {
+  const f = await preparationReadbackFixture(t);
+  const before = f.rows();
+  const puts = f.archiveState.puts;
+  const keysRead = [];
+  f.archiveState.beforeGet = key => { keysRead.push(key); };
+  const reader = f.create();
+  const result = await reader.read(token(), f.handle);
+  assert.equal(result.identity.actor_id, '789');
+  assert.equal(result.evidence.current_history.revision, 2);
+  assert.equal(result.evidence.history_bytes.length, 2);
+  assert.deepEqual(keysRead, [...result.evidence.current_history.history.map(item => item.archive.key), f.policy.config_archive.key]);
+  result.evidence.history_bytes.forEach((bytes, i) => assert.deepEqual(bytes, f.objects.get(keysRead[i])));
+  assert.deepEqual(Buffer.from(result.evidence.config_bytes), f.configBytes);
+  assert.equal(result.evidence.code_commit, identityPolicy.code_commit);
+  assert.equal(result.evidence.checked_at, new Date(f.state.now).toISOString().replace('.000Z', 'Z'));
+  // Fixture is deliberately a revoke head with an unrelated synthetic config:
+  // transport must not mint a grant decision or duplicate Python semantics.
+  assert.equal(JSON.parse(Buffer.from(result.evidence.history_bytes.at(-1))).action, 'revoke');
+  assert.deepEqual(Object.keys(result).sort(), ['evidence', 'identity']);
+  assert.equal(f.archiveState.puts, puts);
+  assert.deepEqual(f.rows(), before);
+  result.evidence.config_ref.id = 'mutated';
+  result.evidence.config_bytes[0] ^= 1;
+  result.evidence.current_history.head.id = 'mutated';
+  const again = await reader.read(token(), f.handle);
+  assert.equal(again.evidence.config_ref.id, 'config:1');
+  assert.deepEqual(Buffer.from(again.evidence.config_bytes), f.configBytes);
+});
+
+test('preparation readback fails missing corrupt or unavailable original at each position', async t => {
+  const f = await preparationReadbackFixture(t);
+  const first = await f.create().read(token(), f.handle);
+  const targets = [...first.evidence.current_history.history.map(item => item.archive.key), f.policy.config_archive.key];
+  for (const key of targets) {
+    const saved = f.objects.get(key);
+    f.objects.delete(key);
+    await assert.rejects(f.create().read(token(), f.handle), /object_missing/);
+    const corrupt = new Uint8Array(saved); corrupt[0] ^= 1;
+    f.objects.set(key, corrupt);
+    await assert.rejects(f.create().read(token(), f.handle), /hash_mismatch/);
+    f.objects.set(key, saved);
+    f.archiveState.beforeGet = async target => { if (target === key) throw new Error('synthetic_outage'); };
+    await assert.rejects(f.create().read(token(), f.handle), /synthetic_outage/);
+    f.archiveState.beforeGet = null;
+  }
+});
+
+test('preparation readback refuses identity actor lease and malformed fixed target before raw reads', async t => {
+  const f = await preparationReadbackFixture(t);
+  const before = f.archiveState.gets;
+  for (const patch of [{ actor_id: '790' }, { run_id: '457' }, { sha: 'd'.repeat(40) }, { exp: NOW }]) {
+    await assert.rejects(f.create().read(token(patch), f.handle));
+  }
+  await assert.rejects(f.create().read(token(), { ...f.handle, fence: f.handle.fence + 1 }));
+  await assert.rejects(f.create().read(token(), { ...f.handle, epoch: '22222222-2222-4222-8222-222222222222' }));
+  await assert.rejects(f.create().read(token(), { ...f.handle, history: [] }));
+  await assert.rejects(f.create(f.policy, { fetchKeys: async () => new Response('down', { status: 503 }) }).read(token(), f.handle));
+  for (const change of [p => { p.as_of = '2026-02-30'; }, p => { p.config_archive.size_bytes = true; },
+    p => { p.config_archive.sha256 = 'sha256:' + '0'.repeat(64); }, p => { p.history = []; },
+    p => { p.config_ref.id = '../other'; }]) {
+    const policy = structuredClone(f.policy); change(policy);
+    assert.throws(() => f.create(policy), /policy_invalid/);
+  }
+  assert.equal(f.archiveState.gets, before);
+});
+
+test('preparation readback rechecks newly registered revoke during each async read', async t => {
+  for (const at of [1, 2]) {
+    const f = await preparationReadbackFixture(t, true, false);
+    let reads = 0;
+    f.archiveState.beforeGet = async () => {
+      if (++reads !== at) return;
+      f.archiveState.beforeGet = null;
+      await f.register(); // Full existing registration path appends a revoke.
+    };
+    await assert.rejects(f.create().read(token(), f.handle), /history_changed/);
+    assert.equal(reads, at);
+    assert.equal(f.rows().index.length, 2);
+    assert.equal(f.rows().consumption.length, 1);
+  }
+});
+
+test('preparation readback rechecks provenance and lease after final object read', async t => {
+  for (const change of ['provenance', 'fence', 'expiry']) {
+    const f = await preparationReadbackFixture(t, false);
+    f.archiveState.beforeGet = key => {
+      if (key !== f.policy.config_archive.key) return;
+      if (change === 'provenance') f.db.exec("DELETE FROM m12_authorization_consumptions; DELETE FROM m12_authorization_log WHERE operation='register_authorization'");
+      if (change === 'fence') f.db.exec("UPDATE m12_leases SET fence=fence+1 WHERE resource='daily/2026-09-06/config:1'");
+      if (change === 'expiry') f.state.now = (NOW + 300) * 1000;
+    };
+    await assert.rejects(f.create().read(token(), f.handle));
+  }
+});
+
+test('preparation readback copies fixed target and lease before async identity verification', async t => {
+  const f = await preparationReadbackFixture(t, false);
+  const original = structuredClone(f.policy);
+  const handle = { ...f.handle };
+  const reader = f.create(f.policy, { fetchKeys: async (...args) => {
+    handle.fence += 1;
+    f.policy.config_ref.id = 'other';
+    f.policy.config_archive.key = 'raw/' + '0'.repeat(64);
+    return f.options.fetchKeys(...args);
+  } });
+  const result = await reader.read(token(), handle);
+  assert.deepEqual(result.evidence.config_ref, original.config_ref);
+  assert.deepEqual(result.evidence.config_archive, original.config_archive);
+});
+
+
+test('preparation readback checks expiry after the last output guard SQL read', async t => {
+  const f = await preparationReadbackFixture(t, false);
+  let configRead = false;
+  let guards = 0;
+  f.archiveState.beforeGet = key => { if (key === f.policy.config_archive.key) configRead = true; };
+  const exec = f.storage.sql.exec;
+  f.storage.sql.exec = (sql, ...args) => {
+    const result = exec(sql, ...args);
+    if (configRead && sql.includes('SELECT history_json FROM m12_authorization_import_baseline') && ++guards === 2) {
+      f.state.now = (NOW + 300) * 1000;
+    }
+    return result;
+  };
+  await assert.rejects(f.create().read(token(), f.handle), /deadline|expired/);
+  assert.equal(guards, 2);
 });
