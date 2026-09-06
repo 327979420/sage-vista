@@ -5,6 +5,15 @@ from __future__ import annotations
 from typing import Any, Mapping, Sequence
 
 from services.contracts.validation import ContractError
+from services.ledger import validate_opportunity_event
+
+from .authority import (
+    CaseAuthorityResolver,
+    LifecycleAuthorityResolver,
+    resolve_case_authority,
+    validate_case_authority,
+    validate_sensitive_lifecycle_authority,
+)
 
 from .contracts import (
     build_strategy_lifecycle_event,
@@ -17,9 +26,41 @@ from .contracts import (
 )
 
 
-def produce_strategy_proposal(**values: Any) -> Mapping[str, Any]:
+def produce_strategy_proposal(
+    *, persisted_case_events: Sequence[Mapping[str, Any]],
+    case_authority_resolver: CaseAuthorityResolver | None,
+    **values: Any,
+) -> Mapping[str, Any]:
     """Create a candidate proposal; this never claims validation or activation."""
 
+    events: dict[str, Mapping[str, Any]] = {}
+    for event in persisted_case_events:
+        validate_opportunity_event(event)
+        event_id = str(event["event_id"])
+        if event_id in events:
+            raise ContractError("proposal case authority contains duplicate M09 events")
+        events[event_id] = event
+    resolved_cases: list[dict[str, Any]] = []
+    for declared in values.get("case_roles", []):
+        if not isinstance(declared, Mapping) or set(declared) != {
+            "event_id", "case_label", "role",
+        }:
+            raise ContractError(
+                "proposal producer accepts only event_id, case_label, and role; "
+                "stable case identity is authority-derived"
+            )
+        event = events.get(str(declared["event_id"]))
+        if event is None:
+            raise ContractError("proposal case event is not in persisted authority input")
+        authority = resolve_case_authority(event, case_authority_resolver)
+        resolved_case = {
+            **authority,
+            "case_label": declared["case_label"],
+            "role": declared["role"],
+        }
+        validate_case_authority(resolved_case, event, case_authority_resolver)
+        resolved_cases.append(resolved_case)
+    values["case_roles"] = resolved_cases
     return build_strategy_proposal(**values)
 
 
@@ -41,8 +82,13 @@ def _next_event(
     implementation_evidence: Mapping[str, Any] | None = None,
     activation_evidence: Mapping[str, Any] | None = None,
     retirement_evidence: Mapping[str, Any] | None = None,
+    authority_resolver: LifecycleAuthorityResolver | None = None,
 ) -> Mapping[str, Any]:
     validate_strategy_proposal(proposal)
+    for existing in existing_events:
+        validate_sensitive_lifecycle_authority(
+            proposal, existing, authority_resolver
+        )
     if existing_events:
         leaf = current_strategy_lifecycle(existing_events)
         if leaf["proposal_id"] != proposal["proposal_id"]:
@@ -83,7 +129,7 @@ def _next_event(
         ):
             raise ContractError("lifecycle assessment crosses proposals")
         assessment_ref = _ref(assessment, "assessment_id", "assessment_content_fingerprint")
-    return build_strategy_lifecycle_event(
+    event = build_strategy_lifecycle_event(
         as_of=occurred_at[:10], generated_at=occurred_at,
         proposal_id=proposal["proposal_id"],
         proposal_content_fingerprint=proposal["proposal_content_fingerprint"],
@@ -98,6 +144,8 @@ def _next_event(
         author_id=author_id,
         occurred_at=occurred_at, reason=reason, bias_labels=[],
     )
+    validate_sensitive_lifecycle_authority(proposal, event, authority_resolver)
+    return event
 
 
 def register_strategy_proposal(
@@ -113,12 +161,14 @@ def register_strategy_proposal(
 def record_evidence_assessment(
     proposal: Mapping[str, Any], assessment: Mapping[str, Any], *,
     existing_events: Sequence[Mapping[str, Any]], author_id: str, occurred_at: str,
+    authority_resolver: LifecycleAuthorityResolver | None = None,
 ) -> Mapping[str, Any]:
     return _next_event(
         proposal, existing_events=existing_events, event_type="evidence_assessed",
         new_value=str(assessment["evidence_state"]), author_id=author_id,
         occurred_at=occurred_at, reason="machine_evidence_assessed", assessment=assessment,
         evidence_refs=[_ref(assessment, "assessment_id", "assessment_content_fingerprint")],
+        authority_resolver=authority_resolver,
     )
 
 
@@ -126,6 +176,7 @@ def record_user_decision(
     proposal: Mapping[str, Any], *, existing_events: Sequence[Mapping[str, Any]],
     decision: str, approval_ref: Mapping[str, Any], author_id: str,
     occurred_at: str, reason: str,
+    authority_resolver: LifecycleAuthorityResolver | None = None,
 ) -> Mapping[str, Any]:
     if decision not in {"approved_for_implementation", "rejected", "deferred"}:
         raise ContractError("user decision is invalid")
@@ -133,6 +184,7 @@ def record_user_decision(
         proposal, existing_events=existing_events, event_type="user_decision_recorded",
         new_value=decision, author_id=author_id, occurred_at=occurred_at,
         reason=reason, evidence_refs=[approval_ref],
+        authority_resolver=authority_resolver,
     )
 
 
@@ -141,6 +193,7 @@ def record_main_implementation(
     implementation_proof: Mapping[str, Any], test_proof: Mapping[str, Any],
     code_commit: str, rule_version: str,
     author_id: str, occurred_at: str, reason: str,
+    authority_resolver: LifecycleAuthorityResolver | None = None,
 ) -> Mapping[str, Any]:
     leaf = current_strategy_lifecycle(existing_events)
     if leaf["state_after"]["decision"] != "approved_for_implementation":
@@ -155,6 +208,7 @@ def record_main_implementation(
             "implementation_ref": implementation_proof,
             "test_ref": test_proof,
         },
+        authority_resolver=authority_resolver,
     )
 
 
@@ -163,6 +217,7 @@ def record_production_activation(
     m12_manifest_proof: Mapping[str, Any], deployment_proof: Mapping[str, Any],
     online_verification_proof: Mapping[str, Any], effective_date: str,
     author_id: str, occurred_at: str, reason: str,
+    authority_resolver: LifecycleAuthorityResolver | None = None,
 ) -> Mapping[str, Any]:
     """Consume an M12 proof; M11 never creates that proof itself."""
 
@@ -177,6 +232,7 @@ def record_production_activation(
             "online_verification_ref": online_verification_proof,
             "effective_date": effective_date,
         },
+        authority_resolver=authority_resolver,
     )
 
 
@@ -185,6 +241,7 @@ def record_retirement(
     retirement_proof: Mapping[str, Any], effective_date: str,
     replacement_strategy_version: str | None = None,
     author_id: str, occurred_at: str, reason: str,
+    authority_resolver: LifecycleAuthorityResolver | None = None,
 ) -> Mapping[str, Any]:
     leaf = current_strategy_lifecycle(existing_events)
     if leaf["state_after"]["production"] != "active":
@@ -198,6 +255,7 @@ def record_retirement(
             "effective_date": effective_date,
             "replacement_strategy_version": replacement_strategy_version,
         },
+        authority_resolver=authority_resolver,
     )
 
 

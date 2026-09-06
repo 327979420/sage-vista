@@ -7,6 +7,8 @@ from .contracts import (
     EVIDENCE_STATES,
     IMPLEMENTATION_STATES,
     KNOWN_SEEN_CASES,
+    LEGACY_SCHEMA_VERSION,
+    LEGACY_SOURCE_VERSION,
     PRODUCTION_STATES,
     SCHEMA_VERSION,
     SOURCE_VERSION,
@@ -22,6 +24,7 @@ from .contracts import (
     validate_strategy_proposal,
     validate_strategy_registry_snapshot,
 )
+from .authority import CaseAuthorityResolver, LifecycleAuthorityResolver
 from .evidence import assess_persisted_strategy_evidence, validate_persisted_proposal_sources
 from .producer import (
     produce_strategy_proposal,
@@ -37,8 +40,10 @@ from .storage import PlaybookShadowStore
 
 __all__ = [
     "CASE_ROLES", "DECISION_STATES", "EVIDENCE_GATE_POLICY_VERSION", "EVIDENCE_STATES",
-    "IMPLEMENTATION_STATES", "KNOWN_SEEN_CASES", "PRODUCTION_STATES", "SCHEMA_VERSION",
-    "SOURCE_VERSION", "PlaybookShadowStore", "assess_persisted_strategy_evidence",
+    "IMPLEMENTATION_STATES", "KNOWN_SEEN_CASES", "LEGACY_SCHEMA_VERSION",
+    "LEGACY_SOURCE_VERSION", "PRODUCTION_STATES", "SCHEMA_VERSION",
+    "SOURCE_VERSION", "CaseAuthorityResolver", "LifecycleAuthorityResolver",
+    "PlaybookShadowStore", "assess_persisted_strategy_evidence",
     "validate_persisted_proposal_sources",
     "build_preregistration", "build_strategy_evidence_assessment",
     "build_strategy_lifecycle_event", "build_strategy_proposal",

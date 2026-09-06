@@ -17,6 +17,8 @@ from services.playbook import (
     PlaybookShadowStore,
     assess_persisted_strategy_evidence,
     build_preregistration,
+    build_strategy_evidence_assessment,
+    build_strategy_proposal,
     current_strategy_assessment,
     current_strategy_lifecycle,
     derive_strategy_registry_snapshot,
@@ -41,12 +43,57 @@ def proof(role: str, digit: str = "a") -> dict[str, str]:
     return {"id": f"{role}:sha256:{digit * 64}", "content_fingerprint": f"sha256:{digit * 64}"}
 
 
-def resign_proposal(original, **changes):
-    values = plain(original)
-    for field in ("proposal_id", "proposal_content_fingerprint", "strategy_id"):
-        values.pop(field, None)
-    values.update(changes)
-    return produce_strategy_proposal(**values)
+def resign_snapshot(payload):
+    result = plain(payload)
+    result["source_refs"] = sorted(
+        result["source_refs"], key=lambda item: (item["id"], item["content_fingerprint"])
+    )
+    result["source_set_fingerprint"] = canonical_fingerprint(result["source_refs"])
+    result["registry_snapshot_id"] = "strategy-registry:" + canonical_fingerprint({
+        "as_of": result["as_of"],
+        "source_set_fingerprint": result["source_set_fingerprint"],
+        "code_commit": result["code_commit"],
+    })
+    result["registry_content_fingerprint"] = canonical_fingerprint({
+        key: value for key, value in result.items()
+        if key not in {"generated_at", "registry_content_fingerprint"}
+    })
+    validate_strategy_registry_snapshot(result)
+    return result
+
+
+class SyntheticCaseAuthority:
+    authority_mode = "test"
+
+    def __init__(self, events, *, seen=()):
+        self.records = {
+            item["event_id"]: {
+                "event_id": item["event_id"],
+                "instrument_id": item["instrument_id"],
+                "signal_date": item["signal_date"],
+                "event_content_fingerprint": item["event_content_fingerprint"],
+                "seen_before": item["event_id"] in set(seen),
+            }
+            for item in events
+        }
+
+    def resolve_case(self, event_id):
+        if event_id not in self.records:
+            raise ContractError("synthetic case is not registered")
+        return self.records[event_id]
+
+
+class SyntheticLifecycleAuthority:
+    authority_mode = "test"
+
+    def resolve_user_approval(self, proposal, event):
+        return event["proposal_id"] == proposal["proposal_id"]
+
+    def resolve_main_implementation(self, proposal, event):
+        return event["proposal_id"] == proposal["proposal_id"]
+
+    def resolve_m12_activation(self, proposal, event):
+        return event["proposal_id"] == proposal["proposal_id"]
 
 
 class M11PlaybookTests(unittest.TestCase):
@@ -57,6 +104,7 @@ class M11PlaybookTests(unittest.TestCase):
         fixture.setUp()
         cls.event = plain(fixture.batch.events[0])
         cls.baseline_event = plain(fixture.batch.events[1])
+        cls.third_event = plain(fixture.batch.events[2])
         cls.review = create_human_review(
             subject_type="event",
             subject_reference={"event_id": cls.event["event_id"]},
@@ -130,10 +178,27 @@ class M11PlaybookTests(unittest.TestCase):
             "supersedes_run_receipt_id": cls.baseline_pending["run_receipt_id"],
         })
         cls.baseline_completed = plain(build_experiment_run_receipt(**baseline_completed_values))
+        cls.case_authority = SyntheticCaseAuthority([
+            cls.event, cls.baseline_event, cls.third_event,
+        ])
+        cls.lifecycle_authority = SyntheticLifecycleAuthority()
+        evidence_scope = {
+            "expected_run_ids": sorted([
+                cls.completed["run_id"], cls.baseline_completed["run_id"],
+            ]),
+            "evidence_window": plain(cls.completed["evidence_window"]),
+            "required_input_refs": sorted(
+                [proof("market", "b"), proof("universe", "c")],
+                key=lambda item: item["id"],
+            ),
+            "required_policy_refs": plain(cls.completed["policy_refs"]),
+            "required_window_sessions": [5],
+        }
         cls.prereg = build_preregistration(
             required_partitions=["validation"],
             required_result_contracts=["ForwardOutcome"],
             requires_cost_policy=False,
+            evidence_scope=evidence_scope,
             criteria=[{
                 "criterion_id": "criterion-001-status-mature",
                 "result_ref": {"id": cls.outcome["forward_outcome_id"], "content_fingerprint": cls.outcome["forward_content_fingerprint"]},
@@ -148,8 +213,13 @@ class M11PlaybookTests(unittest.TestCase):
             affected_modules=["M11"],
             applicability={"universe_scope": "synthetic", "market_scope": "synthetic", "timeframes": ["daily"]},
             m09_review_refs=[{"id": cls.review["review_id"], "content_fingerprint": cls.review["review_content_fingerprint"], "review_type": "hypothesis"}],
-            case_roles=[{"event_id": cls.event["event_id"], "case_label": "SYNTH-UNSEEN", "role": "validation", "seen_before": False}],
+            case_roles=[
+                {"event_id": cls.event["event_id"], "case_label": "SYNTH-UNSEEN", "role": "validation"},
+                {"event_id": cls.baseline_event["event_id"], "case_label": "SYNTH-BASELINE", "role": "validation"},
+            ],
             preregistration=cls.prereg, created_by="author:synthetic-owner", created_at="2026-09-05T10:00:00Z", bias_labels=[],
+            persisted_case_events=[cls.event, cls.baseline_event],
+            case_authority_resolver=cls.case_authority,
         )
 
     def seeded(self):
@@ -158,6 +228,7 @@ class M11PlaybookTests(unittest.TestCase):
         ledger = EventLedgerStore(root / "ledger")
         ledger.write_event(self.event)
         ledger.write_event(self.baseline_event)
+        ledger.write_event(self.third_event)
         ledger.write_human_review(self.review)
         evaluation = EvaluationShadowStore(root / "evaluation")
         evaluation.write_run_receipt(self.pending)
@@ -167,7 +238,9 @@ class M11PlaybookTests(unittest.TestCase):
         evaluation.write_result("ForwardOutcome", self.baseline_outcome)
         evaluation.write_run_receipt(self.baseline_completed)
         playbook = PlaybookShadowStore(
-            root / "playbook", ledger_store=ledger, evaluation_store=evaluation
+            root / "playbook", ledger_store=ledger, evaluation_store=evaluation,
+            case_authority_resolver=self.case_authority,
+            lifecycle_authority_resolver=self.lifecycle_authority,
         )
         return context, ledger, evaluation, playbook
 
@@ -176,9 +249,93 @@ class M11PlaybookTests(unittest.TestCase):
             "proposal": self.proposal, "ledger_store": ledger,
             "evaluation_store": evaluation, "run_ids": [self.completed["run_id"], self.baseline_completed["run_id"]],
             "assessed_at": "2026-09-05T11:00:00Z",
+            "case_authority_resolver": self.case_authority,
         }
         values.update(changes)
         return assess_persisted_strategy_evidence(**values)
+
+    def resign(self, original, **changes):
+        values = plain(original)
+        for field in ("proposal_id", "proposal_content_fingerprint", "strategy_id"):
+            values.pop(field, None)
+        cases = changes.pop("case_roles", values.pop("case_roles"))
+        values.update(changes)
+        declared_cases = [
+            {
+                "event_id": item["event_id"],
+                "case_label": item["case_label"],
+                "role": item["role"],
+            }
+            for item in cases
+        ]
+        return produce_strategy_proposal(
+            **values,
+            case_roles=declared_cases,
+            persisted_case_events=[self.event, self.baseline_event, self.third_event],
+            case_authority_resolver=self.case_authority,
+        )
+
+    def scope_for(self, *receipts):
+        return {
+            "expected_run_ids": sorted(item["run_id"] for item in receipts),
+            "evidence_window": plain(receipts[0]["evidence_window"]),
+            "required_input_refs": sorted(
+                [proof("market", "b"), proof("universe", "c")],
+                key=lambda item: item["id"],
+            ),
+            "required_policy_refs": plain(receipts[0]["policy_refs"]),
+            "required_window_sessions": [5],
+        }
+
+    def make_forward_run(
+        self, event, *, attempt_id, experiment_id, config_version="1.0.0",
+        gross_return=0.1, policy_refs=None,
+    ):
+        dummy = finalize_result("ForwardOutcome", forward_2_1_values())
+        pending_values = receipt_values(dummy)
+        pending_values.update({
+            "status": "pending", "result_refs": [], "finished_at": None,
+            "partition_role": "validation", "supersedes_run_receipt_id": None,
+            "attempt_id": attempt_id, "experiment_id": experiment_id,
+            "config_ref": {
+                "config_id": experiment_id, "config_version": config_version,
+                "content_fingerprint": SHA,
+            },
+            "input_refs": [
+                {"id": event["event_id"], "content_fingerprint": event["event_content_fingerprint"]},
+                proof("market", "b"), proof("universe", "c"),
+            ],
+        })
+        if policy_refs is not None:
+            pending_values["policy_refs"] = plain(policy_refs)
+        pending = plain(build_experiment_run_receipt(**pending_values))
+        outcome_values = forward_2_1_values(mature=True)
+        outcome_values.update({
+            "run_id": pending["run_id"], "event_id": event["event_id"],
+            "event_content_fingerprint": event["event_content_fingerprint"],
+            "instrument_id": event["instrument_id"], "signal_date": event["signal_date"],
+            "partition_role": "validation", "gross_return": gross_return,
+            "endpoint": {"date": "2026-09-09", "price": 100.0 * (1.0 + gross_return)},
+        })
+        outcome = plain(finalize_result("ForwardOutcome", outcome_values))
+        completed_values = {
+            key: plain(value) for key, value in pending.items()
+            if key not in {
+                "run_id", "run_receipt_id", "run_content_fingerprint",
+                "input_set_fingerprint", "result_set_fingerprint",
+            }
+        }
+        completed_values.update({
+            "status": "completed",
+            "result_refs": [{
+                "id": outcome["forward_outcome_id"],
+                "content_fingerprint": outcome["forward_content_fingerprint"],
+            }],
+            "finished_at": "2026-09-03T22:01:00Z",
+            "supersedes_run_receipt_id": pending["run_receipt_id"],
+        })
+        completed = plain(build_experiment_run_receipt(**completed_values))
+        return pending, outcome, completed
 
     def lifecycle(self, assessment=None):
         root = register_strategy_proposal(self.proposal, author_id="author:owner", occurred_at="2026-09-05T12:00:00Z")
@@ -189,35 +346,146 @@ class M11PlaybookTests(unittest.TestCase):
 
     def test_proposal_is_deterministic_and_timestamp_not_strategy_identity(self):
         validate_strategy_proposal(self.proposal)
-        changed = resign_proposal(self.proposal, generated_at="2026-09-05T10:30:00Z")
+        changed = self.resign(self.proposal, generated_at="2026-09-05T10:30:00Z")
         self.assertEqual(self.proposal["proposal_id"], changed["proposal_id"])
         self.assertEqual(self.proposal["proposal_content_fingerprint"], changed["proposal_content_fingerprint"])
 
     def test_new_definition_requires_new_version_or_conflicts(self):
         changed_definition = plain(self.proposal["definition"])
         changed_definition["description"] = "changed"
-        changed = resign_proposal(self.proposal, definition=changed_definition)
+        changed = self.resign(self.proposal, definition=changed_definition)
         self.assertEqual(self.proposal["proposal_id"], changed["proposal_id"])
         self.assertNotEqual(self.proposal["proposal_content_fingerprint"], changed["proposal_content_fingerprint"])
-        v2 = resign_proposal(self.proposal, strategy_version="2.0.0", definition=changed_definition)
+        v2 = self.resign(self.proposal, strategy_version="2.0.0", definition=changed_definition)
         self.assertNotEqual(self.proposal["proposal_id"], v2["proposal_id"])
 
     def test_observation_cannot_source_proposal(self):
         refs = plain(self.proposal["m09_review_refs"])
         refs[0]["review_type"] = "observation"
         with self.assertRaises(ContractError):
-            resign_proposal(self.proposal, m09_review_refs=refs)
+            self.resign(self.proposal, m09_review_refs=refs)
 
     def test_known_seen_cases_cannot_claim_independent_validation(self):
         cases = plain(self.proposal["case_roles"])
         cases[0].update({"case_label": "CGEM", "role": "validation", "seen_before": True})
         with self.assertRaises(ContractError):
-            resign_proposal(self.proposal, case_roles=cases)
+            self.resign(self.proposal, case_roles=cases)
+
+    def test_seen_case_identity_cannot_be_hidden_by_display_alias(self):
+        resolver = SyntheticCaseAuthority(
+            [self.event, self.baseline_event], seen=[self.event["event_id"]]
+        )
+        values = plain(self.proposal)
+        for field in ("proposal_id", "proposal_content_fingerprint", "strategy_id", "case_roles"):
+            values.pop(field, None)
+        with self.assertRaisesRegex(ContractError, "previously seen"):
+            produce_strategy_proposal(
+                **values,
+                case_roles=[
+                    {
+                        "event_id": self.event["event_id"],
+                        "case_label": "renamed-alias",
+                        "role": "validation",
+                    },
+                    {
+                        "event_id": self.baseline_event["event_id"],
+                        "case_label": "baseline",
+                        "role": "validation",
+                    },
+                ],
+                persisted_case_events=[self.event, self.baseline_event],
+                case_authority_resolver=resolver,
+            )
+
+    def test_case_seen_before_and_stable_identity_are_not_caller_controlled(self):
+        values = plain(self.proposal)
+        for field in ("proposal_id", "proposal_content_fingerprint", "strategy_id", "case_roles"):
+            values.pop(field, None)
+        with self.assertRaisesRegex(ContractError, "authority-derived"):
+            produce_strategy_proposal(
+                **values,
+                case_roles=[{
+                    "event_id": self.event["event_id"], "case_label": "alias",
+                    "role": "validation", "seen_before": False,
+                }],
+                persisted_case_events=[self.event],
+                case_authority_resolver=self.case_authority,
+            )
+
+        context, ledger, evaluation, _ = self.seeded()
+        with context:
+            attacks = (
+                ("instrument_id", self.third_event["instrument_id"]),
+                ("signal_date", "2026-09-04"),
+            )
+            for index, (field, replacement) in enumerate(attacks, 6):
+                tampered = plain(self.proposal)
+                for identity in ("proposal_id", "proposal_content_fingerprint", "strategy_id"):
+                    tampered.pop(identity, None)
+                tampered["strategy_version"] = f"1.{index}.0"
+                tampered["case_roles"][0][field] = replacement
+                forged = build_strategy_proposal(**tampered)
+                with self.subTest(field=field), self.assertRaisesRegex(
+                    ContractError, "persisted M09 event identity"
+                ):
+                    self.assess(ledger, evaluation, proposal=forged)
+
+            missing = plain(self.proposal)
+            for identity in ("proposal_id", "proposal_content_fingerprint", "strategy_id"):
+                missing.pop(identity, None)
+            missing["case_roles"][0].pop("instrument_id")
+            with self.assertRaises(ContractError):
+                build_strategy_proposal(**missing)
+
+    def test_legacy_m11_proposal_is_read_only_not_formal_writable(self):
+        legacy = plain(self.proposal)
+        for field in ("proposal_id", "proposal_content_fingerprint", "strategy_id"):
+            legacy.pop(field, None)
+        legacy["schema_version"] = "2.0.0"
+        legacy["source_version"] = {"playbook": "m11-shadow-1.0.0"}
+        legacy["preregistration"] = build_preregistration(
+            required_partitions=legacy["preregistration"]["required_partitions"],
+            required_result_contracts=legacy["preregistration"]["required_result_contracts"],
+            requires_cost_policy=legacy["preregistration"]["requires_cost_policy"],
+            criteria=legacy["preregistration"]["criteria"],
+            schema_version="2.0.0",
+        )
+        for case in legacy["case_roles"]:
+            for field in (
+                "instrument_id", "signal_date", "event_content_fingerprint",
+            ):
+                case.pop(field)
+        legacy = build_strategy_proposal(**legacy)
+        validate_strategy_proposal(legacy)
+        context, ledger, evaluation, _ = self.seeded()
+        with context:
+            store = PlaybookShadowStore(
+                Path(context.name) / "legacy-reject",
+                ledger_store=ledger, evaluation_store=evaluation,
+                case_authority_resolver=self.case_authority,
+            )
+            with self.assertRaisesRegex(ContractError, "read-only"):
+                store.write_proposal(legacy)
+
+    def test_same_case_cannot_cross_calibration_and_validation_roles(self):
+        values = plain(self.proposal)
+        for field in ("proposal_id", "proposal_content_fingerprint", "strategy_id", "case_roles"):
+            values.pop(field, None)
+        with self.assertRaisesRegex(ContractError, "sorted and unique"):
+            produce_strategy_proposal(
+                **values,
+                case_roles=[
+                    {"event_id": self.event["event_id"], "case_label": "one", "role": "calibration"},
+                    {"event_id": self.event["event_id"], "case_label": "alias", "role": "validation"},
+                ],
+                persisted_case_events=[self.event],
+                case_authority_resolver=self.case_authority,
+            )
 
     def test_bare_or_unpersisted_m09_review_fails(self):
         context, ledger, evaluation, _ = self.seeded()
         with context:
-            missing = resign_proposal(self.proposal, m09_review_refs=[{"id": "human-review:sha256:" + "f" * 64, "content_fingerprint": SHA, "review_type": "hypothesis"}])
+            missing = self.resign(self.proposal, m09_review_refs=[{"id": "human-review:sha256:" + "f" * 64, "content_fingerprint": SHA, "review_type": "hypothesis"}])
             with self.assertRaisesRegex(ContractError, "not persisted"):
                 self.assess(ledger, evaluation, proposal=missing)
 
@@ -228,12 +496,163 @@ class M11PlaybookTests(unittest.TestCase):
             self.assertEqual("validated", assessment["evidence_state"])
             self.assertEqual(["validation"], list(assessment["partitions"]))
 
+    def test_complete_inventory_rejects_omitted_adverse_run(self):
+        context, ledger, evaluation, _ = self.seeded()
+        with context:
+            pending, outcome, completed = self.make_forward_run(
+                self.third_event,
+                attempt_id="attempt-adverse",
+                experiment_id="M11-adverse-fixture",
+                gross_return=-0.5,
+            )
+            evaluation.write_run_receipt(pending)
+            evaluation.write_result("ForwardOutcome", outcome)
+            evaluation.write_run_receipt(completed)
+            with self.assertRaisesRegex(ContractError, "complete authoritative scope"):
+                self.assess(ledger, evaluation)
+
+            prereg = build_preregistration(
+                required_partitions=["validation"],
+                required_result_contracts=["ForwardOutcome"],
+                requires_cost_policy=False,
+                criteria=plain(self.prereg["criteria"]),
+                evidence_scope=self.scope_for(
+                    self.completed, self.baseline_completed, completed
+                ),
+            )
+            cases = [
+                *plain(self.proposal["case_roles"]),
+                {
+                    "event_id": self.third_event["event_id"],
+                    "case_label": "ADVERSE-DISPLAY-ONLY",
+                    "role": "validation",
+                },
+            ]
+            proposal = self.resign(
+                self.proposal,
+                strategy_version="1.3.0",
+                preregistration=prereg,
+                case_roles=cases,
+            )
+            complete = self.assess(
+                ledger,
+                evaluation,
+                proposal=proposal,
+                run_ids=[
+                    self.completed["run_id"], self.baseline_completed["run_id"],
+                    completed["run_id"],
+                ],
+            )
+            self.assertEqual("validated", complete["evidence_state"])
+            self.assertEqual(3, complete["sample_count"])
+
+    def test_declared_run_replacement_extra_and_duplicate_fail_closed(self):
+        context, ledger, evaluation, _ = self.seeded()
+        with context:
+            expected = [self.completed["run_id"], self.baseline_completed["run_id"]]
+            attacks = (
+                [expected[0]],
+                [expected[0], expected[0]],
+                [*expected, "experiment-run:sha256:" + "f" * 64],
+                [expected[0], "experiment-run:sha256:" + "e" * 64],
+            )
+            for attack in attacks:
+                with self.subTest(attack=attack), self.assertRaises(ContractError):
+                    self.assess(ledger, evaluation, run_ids=attack)
+
+    def test_cross_policy_run_cannot_be_preregistered_into_scope(self):
+        context, ledger, evaluation, _ = self.seeded()
+        with context:
+            policies = plain(self.completed["policy_refs"])
+            policies.append({
+                "policy_kind": "execution", "policy_version": "1.0.0",
+                "policy_fingerprint": "sha256:" + "9" * 64,
+            })
+            policies.sort(key=lambda item: item["policy_kind"])
+            pending, outcome, completed = self.make_forward_run(
+                self.third_event, attempt_id="attempt-cross-policy",
+                experiment_id="M11-cross-policy-fixture", gross_return=0.9,
+                policy_refs=policies,
+            )
+            evaluation.write_run_receipt(pending)
+            evaluation.write_result("ForwardOutcome", outcome)
+            evaluation.write_run_receipt(completed)
+            scope = self.scope_for(self.completed, self.baseline_completed, completed)
+            scope["required_policy_refs"] = plain(self.completed["policy_refs"])
+            prereg = build_preregistration(
+                required_partitions=["validation"],
+                required_result_contracts=["ForwardOutcome"],
+                requires_cost_policy=False,
+                criteria=plain(self.prereg["criteria"]), evidence_scope=scope,
+            )
+            proposal = self.resign(
+                self.proposal, strategy_version="1.5.0", preregistration=prereg,
+                case_roles=[
+                    *plain(self.proposal["case_roles"]),
+                    {
+                        "event_id": self.third_event["event_id"],
+                        "case_label": "CROSS-POLICY", "role": "validation",
+                    },
+                ],
+            )
+            with self.assertRaisesRegex(ContractError, "complete authoritative scope"):
+                self.assess(
+                    ledger, evaluation, proposal=proposal,
+                    run_ids=[
+                        self.completed["run_id"], self.baseline_completed["run_id"],
+                        completed["run_id"],
+                    ],
+                )
+
+    def test_missing_preregistered_forward_window_fails_closed(self):
+        context, ledger, evaluation, _ = self.seeded()
+        with context:
+            scope = plain(self.prereg["evidence_scope"])
+            scope["required_window_sessions"] = [5, 20]
+            prereg = build_preregistration(
+                required_partitions=["validation"],
+                required_result_contracts=["ForwardOutcome"],
+                requires_cost_policy=False,
+                criteria=plain(self.prereg["criteria"]),
+                evidence_scope=scope,
+            )
+            proposal = self.resign(
+                self.proposal, strategy_version="1.4.0", preregistration=prereg
+            )
+            with self.assertRaisesRegex(ContractError, "Forward windows"):
+                self.assess(ledger, evaluation, proposal=proposal)
+
+    def test_duplicate_logical_result_across_runs_fails_closed(self):
+        context, ledger, evaluation, _ = self.seeded()
+        with context:
+            assessment = plain(self.assess(ledger, evaluation))
+            for field in (
+                "assessment_id", "logical_assessment_id",
+                "assessment_content_fingerprint", "gate_policy_version",
+            ):
+                assessment.pop(field, None)
+            assessment["result_refs"][1]["logical_id"] = assessment["result_refs"][0]["logical_id"]
+            with self.assertRaisesRegex(ContractError, "logical result"):
+                build_strategy_evidence_assessment(**assessment)
+
     def test_pending_or_failed_run_cannot_support_validated(self):
         context, ledger, evaluation, _ = self.seeded()
         with context:
             other = EvaluationShadowStore(Path(context.name) / "pending-evaluation")
             other.write_run_receipt(self.pending)
-            assessment = self.assess(ledger, other, run_ids=[self.pending["run_id"]])
+            prereg = build_preregistration(
+                required_partitions=["validation"],
+                required_result_contracts=["ForwardOutcome"],
+                requires_cost_policy=False,
+                criteria=plain(self.prereg["criteria"]),
+                evidence_scope=self.scope_for(self.pending),
+            )
+            proposal = self.resign(
+                self.proposal, strategy_version="1.0.6", preregistration=prereg
+            )
+            assessment = self.assess(
+                ledger, other, proposal=proposal, run_ids=[self.pending["run_id"]]
+            )
             self.assertEqual("evidence_incomplete", assessment["evidence_state"])
 
     def test_comparison_or_legacy_cannot_support_validated(self):
@@ -267,14 +686,34 @@ class M11PlaybookTests(unittest.TestCase):
                 evaluation.write_run_receipt(self.baseline_pending)
                 evaluation.write_result("ForwardOutcome", self.baseline_outcome)
                 evaluation.write_run_receipt(self.baseline_completed)
-                assessment = self.assess(ledger, evaluation, run_ids=[completed["run_id"], self.baseline_completed["run_id"]])
+                criteria = plain(self.prereg["criteria"])
+                criteria[0]["result_ref"] = {
+                    "id": outcome["forward_outcome_id"],
+                    "content_fingerprint": outcome["forward_content_fingerprint"],
+                }
+                prereg = build_preregistration(
+                    required_partitions=["validation"],
+                    required_result_contracts=["ForwardOutcome"],
+                    requires_cost_policy=False,
+                    criteria=criteria,
+                    evidence_scope=self.scope_for(completed, self.baseline_completed),
+                )
+                proposal = self.resign(
+                    self.proposal,
+                    strategy_version="1.1.0" if suffix == "comparison" else "1.2.0",
+                    preregistration=prereg,
+                )
+                assessment = self.assess(
+                    ledger, evaluation, proposal=proposal,
+                    run_ids=[completed["run_id"], self.baseline_completed["run_id"]],
+                )
                 self.assertEqual("evidence_incomplete", assessment["evidence_state"])
 
     def test_required_cost_policy_missing_is_evidence_incomplete(self):
         context, ledger, evaluation, _ = self.seeded()
         with context:
-            prereg = build_preregistration(required_partitions=["validation"], required_result_contracts=["ForwardOutcome"], requires_cost_policy=True, criteria=plain(self.prereg["criteria"]))
-            proposal = resign_proposal(self.proposal, strategy_version="1.0.5", preregistration=prereg)
+            prereg = build_preregistration(required_partitions=["validation"], required_result_contracts=["ForwardOutcome"], requires_cost_policy=True, criteria=plain(self.prereg["criteria"]), evidence_scope=plain(self.prereg["evidence_scope"]))
+            proposal = self.resign(self.proposal, strategy_version="1.0.5", preregistration=prereg)
             self.assertEqual("evidence_incomplete", self.assess(ledger, evaluation, proposal=proposal)["evidence_state"])
 
     def test_evidence_input_order_does_not_change_identity(self):
@@ -287,8 +726,8 @@ class M11PlaybookTests(unittest.TestCase):
     def test_missing_required_partition_is_evidence_incomplete(self):
         context, ledger, evaluation, _ = self.seeded()
         with context:
-            prereg = build_preregistration(required_partitions=["forward", "validation"], required_result_contracts=["ForwardOutcome"], requires_cost_policy=False, criteria=plain(self.prereg["criteria"]))
-            proposal = resign_proposal(self.proposal, strategy_version="1.0.1", preregistration=prereg)
+            prereg = build_preregistration(required_partitions=["forward", "validation"], required_result_contracts=["ForwardOutcome"], requires_cost_policy=False, criteria=plain(self.prereg["criteria"]), evidence_scope=plain(self.prereg["evidence_scope"]))
+            proposal = self.resign(self.proposal, strategy_version="1.0.1", preregistration=prereg)
             assessment = self.assess(ledger, evaluation, proposal=proposal)
             self.assertEqual("evidence_incomplete", assessment["evidence_state"])
 
@@ -296,8 +735,9 @@ class M11PlaybookTests(unittest.TestCase):
         context, ledger, evaluation, _ = self.seeded()
         with context:
             cases = plain(self.proposal["case_roles"])
-            cases[0].update({"role": "discovery", "seen_before": True})
-            proposal = resign_proposal(self.proposal, strategy_version="1.0.2", case_roles=cases)
+            for case in cases:
+                case.update({"role": "discovery"})
+            proposal = self.resign(self.proposal, strategy_version="1.0.2", case_roles=cases)
             self.assertEqual("evidence_incomplete", self.assess(ledger, evaluation, proposal=proposal)["evidence_state"])
 
     def test_failed_preregistered_criterion_is_not_validated(self):
@@ -305,8 +745,8 @@ class M11PlaybookTests(unittest.TestCase):
         with context:
             criteria = plain(self.prereg["criteria"])
             criteria[0]["expected"] = "pending"
-            prereg = build_preregistration(required_partitions=["validation"], required_result_contracts=["ForwardOutcome"], requires_cost_policy=False, criteria=criteria)
-            proposal = resign_proposal(self.proposal, strategy_version="1.0.3", preregistration=prereg)
+            prereg = build_preregistration(required_partitions=["validation"], required_result_contracts=["ForwardOutcome"], requires_cost_policy=False, criteria=criteria, evidence_scope=plain(self.prereg["evidence_scope"]))
+            proposal = self.resign(self.proposal, strategy_version="1.0.3", preregistration=prereg)
             self.assertEqual("not_validated", self.assess(ledger, evaluation, proposal=proposal)["evidence_state"])
 
     def test_unpersisted_m10_object_or_bad_fingerprint_fails(self):
@@ -314,8 +754,8 @@ class M11PlaybookTests(unittest.TestCase):
         with context:
             criteria = plain(self.prereg["criteria"])
             criteria[0]["result_ref"]["content_fingerprint"] = SHA
-            prereg = build_preregistration(required_partitions=["validation"], required_result_contracts=["ForwardOutcome"], requires_cost_policy=False, criteria=criteria)
-            proposal = resign_proposal(self.proposal, strategy_version="1.0.4", preregistration=prereg)
+            prereg = build_preregistration(required_partitions=["validation"], required_result_contracts=["ForwardOutcome"], requires_cost_policy=False, criteria=criteria, evidence_scope=plain(self.prereg["evidence_scope"]))
+            proposal = self.resign(self.proposal, strategy_version="1.0.4", preregistration=prereg)
             with self.assertRaisesRegex(ContractError, "fingerprint"):
                 self.assess(ledger, evaluation, proposal=proposal)
 
@@ -324,25 +764,25 @@ class M11PlaybookTests(unittest.TestCase):
         with context:
             assessment = self.assess(ledger, evaluation)
             events = self.lifecycle(assessment)
-            approved = record_user_decision(self.proposal, existing_events=events, decision="approved_for_implementation", approval_ref=proof("approval", "d"), author_id="author:user", occurred_at="2026-09-05T12:02:00Z", reason="approved intent")
+            approved = record_user_decision(self.proposal, existing_events=events, decision="approved_for_implementation", approval_ref=proof("approval", "d"), author_id="author:user", occurred_at="2026-09-05T12:02:00Z", reason="approved intent", authority_resolver=self.lifecycle_authority)
             self.assertEqual("validated", approved["state_after"]["evidence"])
             self.assertEqual("approved_for_implementation", approved["state_after"]["decision"])
             self.assertEqual("inactive", approved["state_after"]["production"])
 
     def test_approval_before_validation_is_allowed_but_not_active(self):
         events = self.lifecycle()
-        approved = record_user_decision(self.proposal, existing_events=events, decision="approved_for_implementation", approval_ref=proof("approval", "d"), author_id="author:user", occurred_at="2026-09-05T12:02:00Z", reason="approve candidate implementation")
+        approved = record_user_decision(self.proposal, existing_events=events, decision="approved_for_implementation", approval_ref=proof("approval", "d"), author_id="author:user", occurred_at="2026-09-05T12:02:00Z", reason="approve candidate implementation", authority_resolver=self.lifecycle_authority)
         self.assertEqual("candidate", approved["state_after"]["evidence"])
         with self.assertRaisesRegex(ContractError, "prerequisites"):
-            record_production_activation(self.proposal, existing_events=[*events, approved], m12_manifest_proof=proof("m12-manifest", "e"), deployment_proof=proof("deployment-proof", "6"), online_verification_proof=proof("online-verification", "7"), effective_date="2026-09-05", author_id="system:m12", occurred_at="2026-09-05T12:03:00Z", reason="invalid")
+            record_production_activation(self.proposal, existing_events=[*events, approved], m12_manifest_proof=proof("m12-manifest", "e"), deployment_proof=proof("deployment-proof", "6"), online_verification_proof=proof("online-verification", "7"), effective_date="2026-09-05", author_id="system:m12", occurred_at="2026-09-05T12:03:00Z", reason="invalid", authority_resolver=self.lifecycle_authority)
 
     def test_implemented_in_main_is_not_active(self):
         context, ledger, evaluation, _ = self.seeded()
         with context:
             assessment = self.assess(ledger, evaluation)
             events = self.lifecycle(assessment)
-            approved = record_user_decision(self.proposal, existing_events=events, decision="approved_for_implementation", approval_ref=proof("approval", "d"), author_id="author:user", occurred_at="2026-09-05T12:02:00Z", reason="approved")
-            implemented = record_main_implementation(self.proposal, existing_events=[*events, approved], implementation_proof=proof("implementation-proof", "e"), test_proof=proof("test-proof", "f"), code_commit="1" * 40, rule_version="1.0.0", author_id="system:git", occurred_at="2026-09-05T12:03:00Z", reason="merged")
+            approved = record_user_decision(self.proposal, existing_events=events, decision="approved_for_implementation", approval_ref=proof("approval", "d"), author_id="author:user", occurred_at="2026-09-05T12:02:00Z", reason="approved", authority_resolver=self.lifecycle_authority)
+            implemented = record_main_implementation(self.proposal, existing_events=[*events, approved], implementation_proof=proof("implementation-proof", "e"), test_proof=proof("test-proof", "f"), code_commit="1" * 40, rule_version="1.0.0", author_id="system:git", occurred_at="2026-09-05T12:03:00Z", reason="merged", authority_resolver=self.lifecycle_authority)
             self.assertEqual("implemented_in_main", implemented["state_after"]["implementation"])
             self.assertEqual("inactive", implemented["state_after"]["production"])
 
@@ -351,24 +791,131 @@ class M11PlaybookTests(unittest.TestCase):
         with context:
             assessment = self.assess(ledger, evaluation)
             events = self.lifecycle(assessment)
-            approved = record_user_decision(self.proposal, existing_events=events, decision="approved_for_implementation", approval_ref=proof("approval", "d"), author_id="author:user", occurred_at="2026-09-05T12:02:00Z", reason="approved")
-            implemented = record_main_implementation(self.proposal, existing_events=[*events, approved], implementation_proof=proof("implementation-proof", "e"), test_proof=proof("test-proof", "f"), code_commit="1" * 40, rule_version="1.0.0", author_id="system:git", occurred_at="2026-09-05T12:03:00Z", reason="merged")
-            active = record_production_activation(self.proposal, existing_events=[*events, approved, implemented], m12_manifest_proof=proof("m12-manifest", "1"), deployment_proof=proof("deployment-proof", "6"), online_verification_proof=proof("online-verification", "7"), effective_date="2026-09-05", author_id="system:m12", occurred_at="2026-09-05T12:04:00Z", reason="synthetic proof")
+            approved = record_user_decision(self.proposal, existing_events=events, decision="approved_for_implementation", approval_ref=proof("approval", "d"), author_id="author:user", occurred_at="2026-09-05T12:02:00Z", reason="approved", authority_resolver=self.lifecycle_authority)
+            implemented = record_main_implementation(self.proposal, existing_events=[*events, approved], implementation_proof=proof("implementation-proof", "e"), test_proof=proof("test-proof", "f"), code_commit="1" * 40, rule_version="1.0.0", author_id="system:git", occurred_at="2026-09-05T12:03:00Z", reason="merged", authority_resolver=self.lifecycle_authority)
+            active = record_production_activation(self.proposal, existing_events=[*events, approved, implemented], m12_manifest_proof=proof("m12-manifest", "1"), deployment_proof=proof("deployment-proof", "6"), online_verification_proof=proof("online-verification", "7"), effective_date="2026-09-05", author_id="system:m12", occurred_at="2026-09-05T12:04:00Z", reason="synthetic proof", authority_resolver=self.lifecycle_authority)
             self.assertEqual("active", active["state_after"]["production"])
+
+    def test_sensitive_lifecycle_defaults_fail_closed_and_store_has_no_bypass(self):
+        context, ledger, evaluation, _ = self.seeded()
+        with context:
+            assessment = self.assess(ledger, evaluation)
+            events = self.lifecycle(assessment)
+            with self.assertRaisesRegex(ContractError, "trusted evidence resolver"):
+                record_user_decision(
+                    self.proposal, existing_events=events,
+                    decision="approved_for_implementation",
+                    approval_ref=proof("approval", "d"), author_id="author:user",
+                    occurred_at="2026-09-05T12:02:00Z", reason="untrusted",
+                )
+            approved = record_user_decision(
+                self.proposal, existing_events=events,
+                decision="approved_for_implementation",
+                approval_ref=proof("approval", "d"), author_id="author:user",
+                occurred_at="2026-09-05T12:02:00Z", reason="synthetic",
+                authority_resolver=self.lifecycle_authority,
+            )
+            implemented = record_main_implementation(
+                self.proposal, existing_events=[*events, approved],
+                implementation_proof=proof("implementation-proof", "e"),
+                test_proof=proof("test-proof", "f"), code_commit="1" * 40,
+                rule_version="1.0.0", author_id="system:git",
+                occurred_at="2026-09-05T12:03:00Z", reason="synthetic",
+                authority_resolver=self.lifecycle_authority,
+            )
+            active = record_production_activation(
+                self.proposal, existing_events=[*events, approved, implemented],
+                m12_manifest_proof=proof("m12-manifest", "1"),
+                deployment_proof=proof("deployment-proof", "6"),
+                online_verification_proof=proof("online-verification", "7"),
+                effective_date="2026-09-05", author_id="system:m12",
+                occurred_at="2026-09-05T12:04:00Z", reason="synthetic",
+                authority_resolver=self.lifecycle_authority,
+            )
+            untrusted = PlaybookShadowStore(
+                Path(context.name) / "untrusted-playbook",
+                ledger_store=ledger, evaluation_store=evaluation,
+                case_authority_resolver=self.case_authority,
+            )
+            untrusted.write_proposal(self.proposal)
+            untrusted.write_assessment(assessment)
+            for item in events:
+                untrusted.write_lifecycle_event(item)
+            before = sorted(path.relative_to(untrusted.root) for path in untrusted.root.rglob("*.json"))
+            with self.assertRaisesRegex(ContractError, "trusted evidence resolver"):
+                untrusted.write_lifecycle_event(approved)
+            with self.assertRaisesRegex(ContractError, "trusted evidence resolver"):
+                untrusted.write_lifecycle_event(active)
+            with self.assertRaisesRegex(ContractError, "trusted evidence resolver"):
+                record_retirement(
+                    self.proposal,
+                    existing_events=[*events, approved, implemented, active],
+                    retirement_proof=proof("retirement-proof", "2"),
+                    effective_date="2026-09-05", author_id="system:m12",
+                    occurred_at="2026-09-05T12:05:00Z", reason="untrusted",
+                )
+            after = sorted(path.relative_to(untrusted.root) for path in untrusted.root.rglob("*.json"))
+            self.assertEqual(before, after)
+
+    def test_trusted_synthetic_lifecycle_can_persist_but_real_default_active_is_zero(self):
+        context, ledger, evaluation, store = self.seeded()
+        with context:
+            assessment = self.assess(ledger, evaluation)
+            events = self.lifecycle(assessment)
+            approved = record_user_decision(
+                self.proposal, existing_events=events,
+                decision="approved_for_implementation",
+                approval_ref=proof("approval", "d"), author_id="author:user",
+                occurred_at="2026-09-05T12:02:00Z", reason="synthetic",
+                authority_resolver=self.lifecycle_authority,
+            )
+            implemented = record_main_implementation(
+                self.proposal, existing_events=[*events, approved],
+                implementation_proof=proof("implementation-proof", "e"),
+                test_proof=proof("test-proof", "f"), code_commit="1" * 40,
+                rule_version="1.0.0", author_id="system:git",
+                occurred_at="2026-09-05T12:03:00Z", reason="synthetic",
+                authority_resolver=self.lifecycle_authority,
+            )
+            active = record_production_activation(
+                self.proposal, existing_events=[*events, approved, implemented],
+                m12_manifest_proof=proof("m12-manifest", "1"),
+                deployment_proof=proof("deployment-proof", "6"),
+                online_verification_proof=proof("online-verification", "7"),
+                effective_date="2026-09-05", author_id="system:m12",
+                occurred_at="2026-09-05T12:04:00Z", reason="synthetic",
+                authority_resolver=self.lifecycle_authority,
+            )
+            store.write_proposal(self.proposal)
+            store.write_assessment(assessment)
+            for item in [*events, approved, implemented, active]:
+                store.write_lifecycle_event(item)
+            snapshot, _ = store.derive_and_write_registry_snapshot(
+                as_of="2026-09-05", generated_at="2026-09-05T13:00:00Z",
+                code_commit="1" * 40,
+            )
+            self.assertEqual(1, snapshot["active_count"])
+        self.assertEqual(
+            0,
+            empty_current_registry(
+                as_of="2026-09-05", generated_at="2026-09-05T13:00:00Z",
+                code_commit="1" * 40,
+            )["active_count"],
+        )
 
     def test_retirement_preserves_history_and_cannot_reactivate(self):
         context, ledger, evaluation, _ = self.seeded()
         with context:
             assessment = self.assess(ledger, evaluation)
             events = self.lifecycle(assessment)
-            approved = record_user_decision(self.proposal, existing_events=events, decision="approved_for_implementation", approval_ref=proof("approval", "d"), author_id="author:user", occurred_at="2026-09-05T12:02:00Z", reason="approved")
-            implemented = record_main_implementation(self.proposal, existing_events=[*events, approved], implementation_proof=proof("implementation-proof", "e"), test_proof=proof("test-proof", "f"), code_commit="1" * 40, rule_version="1.0.0", author_id="system:git", occurred_at="2026-09-05T12:03:00Z", reason="merged")
-            active = record_production_activation(self.proposal, existing_events=[*events, approved, implemented], m12_manifest_proof=proof("m12-manifest", "1"), deployment_proof=proof("deployment-proof", "6"), online_verification_proof=proof("online-verification", "7"), effective_date="2026-09-05", author_id="system:m12", occurred_at="2026-09-05T12:04:00Z", reason="synthetic proof")
+            approved = record_user_decision(self.proposal, existing_events=events, decision="approved_for_implementation", approval_ref=proof("approval", "d"), author_id="author:user", occurred_at="2026-09-05T12:02:00Z", reason="approved", authority_resolver=self.lifecycle_authority)
+            implemented = record_main_implementation(self.proposal, existing_events=[*events, approved], implementation_proof=proof("implementation-proof", "e"), test_proof=proof("test-proof", "f"), code_commit="1" * 40, rule_version="1.0.0", author_id="system:git", occurred_at="2026-09-05T12:03:00Z", reason="merged", authority_resolver=self.lifecycle_authority)
+            active = record_production_activation(self.proposal, existing_events=[*events, approved, implemented], m12_manifest_proof=proof("m12-manifest", "1"), deployment_proof=proof("deployment-proof", "6"), online_verification_proof=proof("online-verification", "7"), effective_date="2026-09-05", author_id="system:m12", occurred_at="2026-09-05T12:04:00Z", reason="synthetic proof", authority_resolver=self.lifecycle_authority)
             chain = [*events, approved, implemented, active]
-            retired = record_retirement(self.proposal, existing_events=chain, retirement_proof=proof("retirement-proof", "2"), effective_date="2026-09-05", author_id="system:m12", occurred_at="2026-09-05T12:05:00Z", reason="retired")
+            retired = record_retirement(self.proposal, existing_events=chain, retirement_proof=proof("retirement-proof", "2"), effective_date="2026-09-05", author_id="system:m12", occurred_at="2026-09-05T12:05:00Z", reason="retired", authority_resolver=self.lifecycle_authority)
             self.assertEqual("retired", retired["state_after"]["production"])
             with self.assertRaisesRegex(ContractError, "retired"):
-                record_user_decision(self.proposal, existing_events=[*chain, retired], decision="deferred", approval_ref=proof("approval", "3"), author_id="author:user", occurred_at="2026-09-05T12:06:00Z", reason="cannot revive")
+                record_user_decision(self.proposal, existing_events=[*chain, retired], decision="deferred", approval_ref=proof("approval", "3"), author_id="author:user", occurred_at="2026-09-05T12:06:00Z", reason="cannot revive", authority_resolver=self.lifecycle_authority)
 
     def test_assessment_chain_rejects_dangling_fork_and_cross_version(self):
         context, ledger, evaluation, _ = self.seeded()
@@ -383,8 +930,8 @@ class M11PlaybookTests(unittest.TestCase):
 
     def test_lifecycle_chain_rejects_dangling_fork_and_cross_version(self):
         root = self.lifecycle()[0]
-        first = record_user_decision(self.proposal, existing_events=[root], decision="deferred", approval_ref=proof("approval", "4"), author_id="author:user", occurred_at="2026-09-05T12:01:00Z", reason="defer")
-        second = record_user_decision(self.proposal, existing_events=[root], decision="rejected", approval_ref=proof("approval", "5"), author_id="author:user", occurred_at="2026-09-05T12:02:00Z", reason="reject")
+        first = record_user_decision(self.proposal, existing_events=[root], decision="deferred", approval_ref=proof("approval", "4"), author_id="author:user", occurred_at="2026-09-05T12:01:00Z", reason="defer", authority_resolver=self.lifecycle_authority)
+        second = record_user_decision(self.proposal, existing_events=[root], decision="rejected", approval_ref=proof("approval", "5"), author_id="author:user", occurred_at="2026-09-05T12:02:00Z", reason="reject", authority_resolver=self.lifecycle_authority)
         with self.assertRaisesRegex(ContractError, "fork"):
             current_strategy_lifecycle([root, first, second])
         with self.assertRaises(ContractError):
@@ -398,8 +945,8 @@ class M11PlaybookTests(unittest.TestCase):
             path = store.write_lifecycle_event(root)
             before = path.read_bytes()
             self.assertEqual(path, store.write_lifecycle_event(root))
-            first = record_user_decision(self.proposal, existing_events=[root], decision="deferred", approval_ref=proof("approval", "4"), author_id="author:user", occurred_at="2026-09-05T12:01:00Z", reason="defer")
-            second = record_user_decision(self.proposal, existing_events=[root], decision="rejected", approval_ref=proof("approval", "5"), author_id="author:user", occurred_at="2026-09-05T12:02:00Z", reason="reject")
+            first = record_user_decision(self.proposal, existing_events=[root], decision="deferred", approval_ref=proof("approval", "4"), author_id="author:user", occurred_at="2026-09-05T12:01:00Z", reason="defer", authority_resolver=self.lifecycle_authority)
+            second = record_user_decision(self.proposal, existing_events=[root], decision="rejected", approval_ref=proof("approval", "5"), author_id="author:user", occurred_at="2026-09-05T12:02:00Z", reason="reject", authority_resolver=self.lifecycle_authority)
             store.write_lifecycle_event(first)
             with self.assertRaisesRegex(ContractError, "current leaf"):
                 store.write_lifecycle_event(second)
@@ -427,7 +974,7 @@ class M11PlaybookTests(unittest.TestCase):
             store.write_proposal(self.proposal)
             store.write_lifecycle_event(root)
             children = [
-                record_user_decision(self.proposal, existing_events=[root], decision=decision, approval_ref=proof("approval", digit), author_id="author:user", occurred_at=f"2026-09-05T12:0{index}:00Z", reason=decision)
+                record_user_decision(self.proposal, existing_events=[root], decision=decision, approval_ref=proof("approval", digit), author_id="author:user", occurred_at=f"2026-09-05T12:0{index}:00Z", reason=decision, authority_resolver=self.lifecycle_authority)
                 for index, (decision, digit) in enumerate((("deferred", "4"), ("rejected", "5")), 1)
             ]
             def write(item):
@@ -451,8 +998,161 @@ class M11PlaybookTests(unittest.TestCase):
             self.assertEqual("validated", first["entries"][0]["evidence_state"])
             self.assertEqual("inactive", first["entries"][0]["production_state"])
 
+    def test_registry_public_store_rejects_resigned_incomplete_inventory(self):
+        context, _, _, store = self.seeded()
+        with context:
+            second = self.resign(self.proposal, strategy_version="2.0.0")
+            store.write_proposal(self.proposal)
+            store.write_proposal(second)
+            omitted = derive_strategy_registry_snapshot(
+                [self.proposal], [], [], as_of="2026-09-05",
+                generated_at="2026-09-05T13:00:00Z", code_commit="1" * 40,
+            )
+            before = sorted(path.read_bytes() for path in store.root.rglob("*.json"))
+            with self.assertRaisesRegex(ContractError, "complete M11 authority inventory"):
+                store.write_registry_snapshot(omitted)
+            self.assertEqual(
+                before, sorted(path.read_bytes() for path in store.root.rglob("*.json"))
+            )
+            complete, path = store.derive_and_write_registry_snapshot(
+                as_of="2026-09-05", generated_at="2026-09-05T13:00:00Z",
+                code_commit="1" * 40,
+            )
+            replay, replay_path = store.derive_and_write_registry_snapshot(
+                as_of="2026-09-05", generated_at="2026-09-05T13:00:00Z",
+                code_commit="1" * 40,
+            )
+            self.assertEqual(2, len(complete["entries"]))
+            self.assertEqual((complete, path), (replay, replay_path))
+
+    def test_registry_rejects_omitted_assessment_and_lifecycle_sources(self):
+        context, ledger, evaluation, store = self.seeded()
+        with context:
+            assessment = self.assess(ledger, evaluation)
+            events = self.lifecycle(assessment)
+            store.write_proposal(self.proposal)
+            store.write_assessment(assessment)
+            for event in events:
+                store.write_lifecycle_event(event)
+            complete = derive_strategy_registry_snapshot(
+                [self.proposal], [assessment], events, as_of="2026-09-05",
+                generated_at="2026-09-05T13:00:00Z", code_commit="1" * 40,
+            )
+            without_assessment = derive_strategy_registry_snapshot(
+                [self.proposal], [], events, as_of="2026-09-05",
+                generated_at="2026-09-05T13:00:00Z", code_commit="1" * 40,
+            )
+            without_lifecycle = plain(complete)
+            without_lifecycle["source_refs"] = [
+                item for item in without_lifecycle["source_refs"]
+                if not item["id"].startswith("strategy-lifecycle:")
+            ]
+            without_lifecycle["entries"][0]["current_lifecycle_ref"] = None
+            without_lifecycle = resign_snapshot(without_lifecycle)
+            attacks = (without_assessment, without_lifecycle)
+            before = {
+                str(path.relative_to(store.root)): path.read_bytes()
+                for path in store.root.rglob("*.json")
+            }
+            for attack in attacks:
+                with self.subTest(source_count=len(attack["source_refs"])):
+                    with self.assertRaisesRegex(ContractError, "complete M11 authority inventory"):
+                        store.write_registry_snapshot(attack)
+            self.assertEqual(
+                before,
+                {
+                    str(path.relative_to(store.root)): path.read_bytes()
+                    for path in store.root.rglob("*.json")
+                },
+            )
+
+    def test_registry_rejects_each_omitted_lifecycle_transition(self):
+        context, ledger, evaluation, store = self.seeded()
+        with context:
+            assessment = self.assess(ledger, evaluation)
+            events = self.lifecycle(assessment)
+            approved = record_user_decision(
+                self.proposal, existing_events=events,
+                decision="approved_for_implementation",
+                approval_ref=proof("approval", "d"), author_id="author:user",
+                occurred_at="2026-09-05T12:02:00Z", reason="synthetic",
+                authority_resolver=self.lifecycle_authority,
+            )
+            implemented = record_main_implementation(
+                self.proposal, existing_events=[*events, approved],
+                implementation_proof=proof("implementation-proof", "e"),
+                test_proof=proof("test-proof", "f"), code_commit="1" * 40,
+                rule_version="1.0.0", author_id="system:git",
+                occurred_at="2026-09-05T12:03:00Z", reason="synthetic",
+                authority_resolver=self.lifecycle_authority,
+            )
+            active = record_production_activation(
+                self.proposal, existing_events=[*events, approved, implemented],
+                m12_manifest_proof=proof("m12-manifest", "1"),
+                deployment_proof=proof("deployment-proof", "6"),
+                online_verification_proof=proof("online-verification", "7"),
+                effective_date="2026-09-05", author_id="system:m12",
+                occurred_at="2026-09-05T12:04:00Z", reason="synthetic",
+                authority_resolver=self.lifecycle_authority,
+            )
+            chain = [*events, approved, implemented, active]
+            retired = record_retirement(
+                self.proposal, existing_events=chain,
+                retirement_proof=proof("retirement-proof", "2"),
+                effective_date="2026-09-05", author_id="system:m12",
+                occurred_at="2026-09-05T12:05:00Z", reason="synthetic",
+                authority_resolver=self.lifecycle_authority,
+            )
+            chain.append(retired)
+            store.write_proposal(self.proposal)
+            store.write_assessment(assessment)
+            for event in chain:
+                store.write_lifecycle_event(event)
+            complete = derive_strategy_registry_snapshot(
+                [self.proposal], [assessment], chain, as_of="2026-09-05",
+                generated_at="2026-09-05T13:00:00Z", code_commit="1" * 40,
+            )
+            before = {
+                str(path.relative_to(store.root)): path.read_bytes()
+                for path in store.root.rglob("*.json")
+            }
+            for omitted in (approved, implemented, active, retired):
+                attack = plain(complete)
+                attack["source_refs"] = [
+                    item for item in attack["source_refs"]
+                    if item["id"] != omitted["lifecycle_event_id"]
+                ]
+                attack = resign_snapshot(attack)
+                with self.subTest(event_type=omitted["event_type"]), self.assertRaisesRegex(
+                    ContractError, "complete M11 authority inventory"
+                ):
+                    store.write_registry_snapshot(attack)
+            self.assertEqual(
+                before,
+                {
+                    str(path.relative_to(store.root)): path.read_bytes()
+                    for path in store.root.rglob("*.json")
+                },
+            )
+
+    def test_concurrent_registry_derivation_has_one_complete_snapshot(self):
+        context, _, _, store = self.seeded()
+        with context:
+            store.write_proposal(self.proposal)
+
+            def derive(_):
+                return store.derive_and_write_registry_snapshot(
+                    as_of="2026-09-05", generated_at="2026-09-05T13:00:00Z",
+                    code_commit="1" * 40,
+                )
+
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                results = list(pool.map(derive, range(2)))
+            self.assertEqual(results[0], results[1])
+            self.assertEqual(1, len(list((store.root / "registry-snapshots").glob("*.json"))))
+
     def test_registry_distinguishes_approved_unvalidated_and_validated_unapproved(self):
-        approved = record_user_decision(self.proposal, existing_events=self.lifecycle(), decision="approved_for_implementation", approval_ref=proof("approval", "d"), author_id="author:user", occurred_at="2026-09-05T12:02:00Z", reason="approved")
+        approved = record_user_decision(self.proposal, existing_events=self.lifecycle(), decision="approved_for_implementation", approval_ref=proof("approval", "d"), author_id="author:user", occurred_at="2026-09-05T12:02:00Z", reason="approved", authority_resolver=self.lifecycle_authority)
         first = derive_strategy_registry_snapshot([self.proposal], [], [*self.lifecycle(), approved], as_of="2026-09-05", generated_at="2026-09-05T13:00:00Z", code_commit="1" * 40)
         self.assertEqual(("candidate", "approved_for_implementation"), (first["entries"][0]["evidence_state"], first["entries"][0]["decision_state"]))
 
@@ -466,7 +1166,7 @@ class M11PlaybookTests(unittest.TestCase):
                 derive_strategy_registry_snapshot([self.proposal], [assessment], self.lifecycle(), as_of="2026-09-05", generated_at="2026-09-05T13:00:00Z", code_commit="1" * 40)
 
     def test_v1_v2_coexist_without_overwriting(self):
-        v2 = resign_proposal(self.proposal, strategy_version="2.0.0")
+        v2 = self.resign(self.proposal, strategy_version="2.0.0")
         snapshot = derive_strategy_registry_snapshot([v2, self.proposal], [], [], as_of="2026-09-05", generated_at="2026-09-05T13:00:00Z", code_commit="1" * 40)
         self.assertEqual(["1.0.0", "2.0.0"], [item["strategy_version"] for item in snapshot["entries"]])
 

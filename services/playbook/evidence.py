@@ -13,7 +13,9 @@ from services.evaluation import EvaluationShadowStore, current_experiment_run, v
 from services.evaluation.contracts import RESULT_TYPES
 from services.ledger import EventLedgerStore, validate_human_review, validate_opportunity_event
 
+from .authority import CaseAuthorityResolver, validate_case_authority
 from .contracts import (
+    SCHEMA_VERSION,
     build_strategy_evidence_assessment,
     current_strategy_assessment,
     plain,
@@ -121,10 +123,13 @@ def validate_persisted_proposal_sources(
     *,
     ledger_store: EventLedgerStore,
     known_approval_refs: AbstractSet[str] = frozenset(),
+    case_authority_resolver: CaseAuthorityResolver | None = None,
 ) -> str:
     """Revalidate a proposal's complete M09 sources from the ledger on disk."""
 
     validate_strategy_proposal(proposal)
+    if proposal["schema_version"] != SCHEMA_VERSION:
+        raise ContractError("legacy M11 proposals are read-only and cannot be assessed")
     events, reviews, ledger_fingerprint = _ledger_authority(
         ledger_store, known_approval_refs=known_approval_refs
     )
@@ -138,8 +143,10 @@ def validate_persisted_proposal_sources(
         ):
             raise ContractError("proposal M09 review evidence does not match storage")
     for case in proposal["case_roles"]:
-        if str(case["event_id"]) not in events:
+        event = events.get(str(case["event_id"]))
+        if event is None:
             raise ContractError("proposal case event is not persisted in M09")
+        validate_case_authority(case, event, case_authority_resolver)
     return ledger_fingerprint
 
 
@@ -152,6 +159,7 @@ def assess_persisted_strategy_evidence(
     assessed_at: str,
     supersedes_assessment: Mapping[str, Any] | None = None,
     known_approval_refs: AbstractSet[str] = frozenset(),
+    case_authority_resolver: CaseAuthorityResolver | None = None,
 ) -> Mapping[str, Any]:
     """Assess only canonical evidence actually present in the M09/M10 stores."""
 
@@ -163,6 +171,7 @@ def assess_persisted_strategy_evidence(
         proposal,
         ledger_store=ledger_store,
         known_approval_refs=known_approval_refs,
+        case_authority_resolver=case_authority_resolver,
     )
 
     inventory = evaluation_store.capture_inventory()
@@ -177,9 +186,57 @@ def assess_persisted_strategy_evidence(
         result_by_id[str(result[id_field])] = (contract_name, result)
         result_by_run.setdefault(str(result["run_id"]), []).append((contract_name, result))
 
+    scope = proposal["preregistration"]["evidence_scope"]
+    expected_run_ids = list(scope["expected_run_ids"])
+    required_input_refs = {
+        (str(item["id"]), str(item["content_fingerprint"]))
+        for item in scope["required_input_refs"]
+    }
+    required_policy_refs = {
+        (
+            str(item["policy_kind"]), str(item["policy_version"]),
+            str(item["policy_fingerprint"]),
+        )
+        for item in scope["required_policy_refs"]
+    }
+    required_partitions = set(proposal["preregistration"]["required_partitions"])
+    relevant_run_ids: list[str] = []
+    leaf_by_run: dict[str, Mapping[str, Any]] = {}
+    for run_id, receipts in sorted(run_groups.items()):
+        leaf = current_experiment_run(receipts)
+        leaf_by_run[run_id] = leaf
+        input_refs = {
+            (str(item["id"]), str(item["content_fingerprint"]))
+            for item in leaf["input_refs"]
+            if str(item["id"]).split(":", 1)[0] in {"market", "universe"}
+        }
+        policy_refs = {
+            (
+                str(item["policy_kind"]), str(item["policy_version"]),
+                str(item["policy_fingerprint"]),
+            )
+            for item in leaf["policy_refs"]
+        }
+        if (
+            leaf["config_ref"]["config_version"]
+            in {proposal["candidate_version"], proposal["baseline_version"]}
+            and leaf["partition_role"] in required_partitions
+            and plain(leaf["evidence_window"]) == plain(scope["evidence_window"])
+            and required_input_refs == input_refs
+            and required_policy_refs == policy_refs
+        ):
+            relevant_run_ids.append(run_id)
+    relevant_run_ids.sort()
+    if relevant_run_ids != expected_run_ids:
+        raise ContractError(
+            "M11 preregistered runs do not equal the complete authoritative scope"
+        )
+
     requested = sorted(set(run_ids))
     if len(requested) != len(run_ids) or not requested:
         raise ContractError("M11 run selection must be non-empty and unique")
+    if requested != expected_run_ids:
+        raise ContractError("M11 declared run set differs from preregistered authority")
     run_refs: list[dict[str, str]] = []
     selected_results: list[tuple[str, Mapping[str, Any]]] = []
     partitions: set[str] = set()
@@ -189,7 +246,7 @@ def assess_persisted_strategy_evidence(
         receipts = run_groups.get(run_id)
         if not receipts:
             raise ContractError("M11 cannot assess an unpersisted ExperimentRun")
-        leaf = current_experiment_run(receipts)
+        leaf = leaf_by_run[run_id]
         if leaf["status"] != "completed":
             incomplete.append("experiment_run_not_completed")
         partitions.add(str(leaf["partition_role"]))
@@ -222,7 +279,6 @@ def assess_persisted_strategy_evidence(
             "partition_role": str(leaf["partition_role"]),
         })
 
-    required_partitions = set(proposal["preregistration"]["required_partitions"])
     if not required_partitions.issubset(partitions):
         incomplete.append("required_partition_missing")
     if not {proposal["candidate_version"], proposal["baseline_version"]}.issubset(config_versions):
@@ -235,10 +291,49 @@ def assess_persisted_strategy_evidence(
         incomplete.append("independent_validation_or_forward_missing")
 
     selected_meta = [_result_meta(name, item) for name, item in selected_results]
+    selected_logical_ids = [item["logical_id"] for item in selected_meta]
+    if len(selected_logical_ids) != len(set(selected_logical_ids)):
+        raise ContractError("M11 evidence repeats a logical result")
     selected_ids = {item["id"] for item in selected_meta}
     required_contracts = set(proposal["preregistration"]["required_result_contracts"])
-    if not required_contracts.issubset({item["contract"] for item in selected_meta}):
-        incomplete.append("required_result_contract_missing")
+    required_windows = set(scope["required_window_sessions"])
+    for run_id in requested:
+        if leaf_by_run[run_id]["status"] != "completed":
+            continue
+        run_results = [item for item in selected_meta if item["run_id"] == run_id]
+        contracts = {item["contract"] for item in run_results}
+        if contracts != required_contracts:
+            raise ContractError("M11 run result family differs from preregistered scope")
+        forward_windows = {
+            int(result["window_sessions"])
+            for name, result in selected_results
+            if str(result["run_id"]) == run_id and name == "ForwardOutcome"
+        }
+        if "ForwardOutcome" in required_contracts and forward_windows != required_windows:
+            raise ContractError("M11 Forward windows differ from preregistered scope")
+
+    case_by_event = {
+        str(item["event_id"]): item for item in proposal["case_roles"]
+    }
+    for _, result in selected_results:
+        event_id = result.get("event_id")
+        if event_id is None:
+            continue
+        case = case_by_event.get(str(event_id))
+        stored_event = events.get(str(event_id))
+        if case is None or stored_event is None:
+            raise ContractError("M10 result case is outside the proposal case authority")
+        if any((
+            result.get("instrument_id") != case["instrument_id"],
+            result.get("signal_date") != case["signal_date"],
+            result.get("event_content_fingerprint")
+            != case["event_content_fingerprint"],
+            stored_event["instrument_id"] != case["instrument_id"],
+            stored_event["signal_date"] != case["signal_date"],
+            stored_event["event_content_fingerprint"]
+            != case["event_content_fingerprint"],
+        )):
+            raise ContractError("M10 result crosses its M09 case instrument or date")
     criteria_results: list[dict[str, Any]] = []
     for criterion in proposal["preregistration"]["criteria"]:
         evidence_id = str(criterion["result_ref"]["id"])

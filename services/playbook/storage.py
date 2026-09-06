@@ -18,6 +18,8 @@ from services.evaluation import EvaluationShadowStore
 from services.ledger import EventLedgerStore
 
 from .contracts import (
+    SCHEMA_VERSION,
+    SOURCE_VERSION,
     current_strategy_assessment,
     current_strategy_lifecycle,
     plain,
@@ -26,7 +28,13 @@ from .contracts import (
     validate_strategy_proposal,
     validate_strategy_registry_snapshot,
 )
+from .authority import (
+    CaseAuthorityResolver,
+    LifecycleAuthorityResolver,
+    validate_sensitive_lifecycle_authority,
+)
 from .evidence import assess_persisted_strategy_evidence, validate_persisted_proposal_sources
+from .registry import derive_strategy_registry_snapshot
 
 
 _DIGEST = re.compile(r"^[0-9a-f]{64}$")
@@ -72,11 +80,23 @@ class PlaybookShadowStore:
         ledger_store: EventLedgerStore | None = None,
         evaluation_store: EvaluationShadowStore | None = None,
         known_approval_refs: AbstractSet[str] = frozenset(),
+        case_authority_resolver: CaseAuthorityResolver | None = None,
+        lifecycle_authority_resolver: LifecycleAuthorityResolver | None = None,
     ) -> None:
         self.root = require_shadow_root(root, workspace_root=workspace_root)
         self.ledger_store = ledger_store
         self.evaluation_store = evaluation_store
         self.known_approval_refs = frozenset(known_approval_refs)
+        self.case_authority_resolver = case_authority_resolver
+        self.lifecycle_authority_resolver = lifecycle_authority_resolver
+
+    @staticmethod
+    def _require_current(payload: Mapping[str, Any]) -> None:
+        if (
+            payload.get("schema_version") != SCHEMA_VERSION
+            or payload.get("source_version") != {"playbook": SOURCE_VERSION}
+        ):
+            raise ContractError("legacy M11 records are read-only and cannot enter formal storage")
 
     @staticmethod
     def _read(path: Path, validator: Callable[[Mapping[str, Any]], None]) -> Mapping[str, Any]:
@@ -141,22 +161,25 @@ class PlaybookShadowStore:
 
     def write_proposal(self, payload: Mapping[str, Any]) -> Path:
         validate_strategy_proposal(payload)
+        self._require_current(payload)
         if self.ledger_store is None:
             raise ContractError("formal M11 proposal storage requires persisted M09 authority")
         validate_persisted_proposal_sources(
             payload,
             ledger_store=self.ledger_store,
             known_approval_refs=self.known_approval_refs,
+            case_authority_resolver=self.case_authority_resolver,
         )
         target = self.root / "proposals" / (_digest(payload["proposal_id"], "proposal_id") + ".json")
-        with _lock(self.root, "proposals"):
+        with _lock(self.root, "inventory"), _lock(self.root, "proposals"):
             return self._write(payload, target=target, validator=validate_strategy_proposal, id_field="proposal_id", fingerprint_field="proposal_content_fingerprint")
 
     def write_assessment(self, payload: Mapping[str, Any]) -> Path:
         validate_strategy_evidence_assessment(payload)
+        self._require_current(payload)
         logical = _digest(payload["logical_assessment_id"], "logical_assessment_id")
         target = self.root / "assessments" / (_digest(payload["assessment_id"], "assessment_id") + ".json")
-        with _lock(self.root, "assessment-" + logical):
+        with _lock(self.root, "inventory"), _lock(self.root, "assessment-" + logical):
             proposals = {
                 item["proposal_id"]: item
                 for item in self._collection("proposals", validate_strategy_proposal)
@@ -183,6 +206,7 @@ class PlaybookShadowStore:
                 assessed_at=str(payload["assessed_at"]),
                 supersedes_assessment=(current_strategy_assessment(chain) if chain else None),
                 known_approval_refs=self.known_approval_refs,
+                case_authority_resolver=self.case_authority_resolver,
             )
             if _bytes(reproduced) != _bytes(payload):
                 raise ContractError("assessment differs from persisted M09/M10 authority")
@@ -198,9 +222,10 @@ class PlaybookShadowStore:
 
     def write_lifecycle_event(self, payload: Mapping[str, Any]) -> Path:
         validate_strategy_lifecycle_event(payload)
+        self._require_current(payload)
         proposal = _digest(payload["proposal_id"], "proposal_id")
         target = self.root / "lifecycle" / (_digest(payload["lifecycle_event_id"], "lifecycle_event_id") + ".json")
-        with _lock(self.root, "lifecycle-" + proposal):
+        with _lock(self.root, "inventory"), _lock(self.root, "lifecycle-" + proposal):
             proposals = {
                 item["proposal_id"]: item
                 for item in self._collection("proposals", validate_strategy_proposal)
@@ -212,6 +237,9 @@ class PlaybookShadowStore:
                 stored_proposal["strategy_version"] != payload["strategy_version"],
             )):
                 raise ContractError("lifecycle event requires its exact persisted proposal")
+            validate_sensitive_lifecycle_authority(
+                stored_proposal, payload, self.lifecycle_authority_resolver
+            )
             assessment_ref = payload["assessment_ref"]
             if assessment_ref is not None:
                 assessments = {
@@ -224,6 +252,10 @@ class PlaybookShadowStore:
                 if payload["event_type"] == "evidence_assessed" and payload["state_after"]["evidence"] != assessment["evidence_state"]:
                     raise ContractError("lifecycle evidence state differs from its assessment")
             chain = [item for item in self._collection("lifecycle", validate_strategy_lifecycle_event) if item["proposal_id"] == payload["proposal_id"]]
+            for event in chain:
+                validate_sensitive_lifecycle_authority(
+                    stored_proposal, event, self.lifecycle_authority_resolver
+                )
             existing_ids = {item["lifecycle_event_id"] for item in chain}
             if payload["lifecycle_event_id"] not in existing_ids:
                 leaf = current_strategy_lifecycle(chain) if chain else None
@@ -236,19 +268,64 @@ class PlaybookShadowStore:
 
     def write_registry_snapshot(self, payload: Mapping[str, Any]) -> Path:
         validate_strategy_registry_snapshot(payload)
+        self._require_current(payload)
         target = self.root / "registry-snapshots" / (_digest(payload["registry_snapshot_id"], "registry_snapshot_id") + ".json")
-        with _lock(self.root, "registry-snapshots"):
+        with _lock(self.root, "inventory"), _lock(self.root, "registry-snapshots"):
+            proposals, assessments, lifecycle = self._read_authority_unlocked()
+            expected = derive_strategy_registry_snapshot(
+                proposals, assessments, lifecycle,
+                as_of=str(payload["as_of"]),
+                generated_at=str(payload["generated_at"]),
+                code_commit=str(payload["code_commit"]),
+            )
+            if _bytes(expected) != _bytes(payload):
+                raise ContractError("registry snapshot differs from complete M11 authority inventory")
             return self._write(payload, target=target, validator=validate_strategy_registry_snapshot, id_field="registry_snapshot_id", fingerprint_field="registry_content_fingerprint")
 
-    def read_authority(self) -> tuple[tuple[Mapping[str, Any], ...], tuple[Mapping[str, Any], ...], tuple[Mapping[str, Any], ...]]:
+    def derive_and_write_registry_snapshot(
+        self, *, as_of: str, generated_at: str, code_commit: str
+    ) -> tuple[Mapping[str, Any], Path]:
+        """Atomically derive the only writable registry view from full authority."""
+
+        with _lock(self.root, "inventory"), _lock(self.root, "registry-snapshots"):
+            proposals, assessments, lifecycle = self._read_authority_unlocked()
+            snapshot = derive_strategy_registry_snapshot(
+                proposals, assessments, lifecycle,
+                as_of=as_of, generated_at=generated_at, code_commit=code_commit,
+            )
+            target = self.root / "registry-snapshots" / (
+                _digest(snapshot["registry_snapshot_id"], "registry_snapshot_id") + ".json"
+            )
+            path = self._write(
+                snapshot, target=target, validator=validate_strategy_registry_snapshot,
+                id_field="registry_snapshot_id",
+                fingerprint_field="registry_content_fingerprint",
+            )
+            return snapshot, path
+
+    def _read_authority_unlocked(self) -> tuple[tuple[Mapping[str, Any], ...], tuple[Mapping[str, Any], ...], tuple[Mapping[str, Any], ...]]:
         proposals = tuple(self._collection("proposals", validate_strategy_proposal))
         assessments = tuple(self._collection("assessments", validate_strategy_evidence_assessment))
         lifecycle = tuple(self._collection("lifecycle", validate_strategy_lifecycle_event))
+        proposals_by_id = {item["proposal_id"]: item for item in proposals}
+        if len(proposals_by_id) != len(proposals):
+            raise ContractError("M11 authority contains duplicate proposals")
+        for event in lifecycle:
+            proposal = proposals_by_id.get(event["proposal_id"])
+            if proposal is None:
+                raise ContractError("M11 lifecycle authority lacks its proposal")
+            validate_sensitive_lifecycle_authority(
+                proposal, event, self.lifecycle_authority_resolver
+            )
         for proposal_id in {item["proposal_id"] for item in assessments}:
             current_strategy_assessment([item for item in assessments if item["proposal_id"] == proposal_id])
         for proposal_id in {item["proposal_id"] for item in lifecycle}:
             current_strategy_lifecycle([item for item in lifecycle if item["proposal_id"] == proposal_id])
         return proposals, assessments, lifecycle
+
+    def read_authority(self) -> tuple[tuple[Mapping[str, Any], ...], tuple[Mapping[str, Any], ...], tuple[Mapping[str, Any], ...]]:
+        with _lock(self.root, "inventory"):
+            return self._read_authority_unlocked()
 
 
 __all__ = ["PlaybookShadowStore"]
