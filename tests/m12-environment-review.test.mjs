@@ -1,3 +1,5 @@
+import { MembershipUseFactory } from '../services/publication/membership_use.mjs';
+import { MembershipArchiveApi } from '../services/publication/membership_api.mjs';
 import { PreparationValidationSession } from '../services/publication/preparation_session.mjs';
 import { PreparationEvidenceReadback } from '../services/publication/preparation_readback.mjs';
 import test from "node:test";
@@ -2836,8 +2838,8 @@ test('preparation validation input rechecks original identity deadline after enc
   assert.equal(guards, 3);
 });
 
-async function preparationSessionFixture(t) {
-  const f = await preparationReadbackFixture(t, false);
+async function preparationSessionFixture(t, withHistory = false, registerNow = true) {
+  const f = await preparationReadbackFixture(t, withHistory, registerNow);
   const create = () => new PreparationValidationSession(identityPolicy, { preparationPolicy: f.policy,
     storage: f.storage, bucket: f.bucket, clock: f.options.clock, fetchKeys: f.options.fetchKeys });
   const service = create();
@@ -2994,4 +2996,87 @@ print(json.dumps(fixture(commit,build_research_configuration(commit),time.time_n
   assert.deepEqual(ready.preparation.config_ref, e.config_ref);
   assert.deepEqual(ready.preparation.authorization_ref, history[0].reference);
   assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM m12_preparation_returns').get().n, 1);
+  const license = Buffer.from('synthetic launch-card-reviewed private license');
+  const licenseHash = 'sha256:' + createHash('sha256').update(license).digest('hex');
+  const licenseArchive = { key: 'raw/' + licenseHash.slice(7), sha256: licenseHash, size_bytes: license.length };
+  f.objects.set(licenseArchive.key, new Uint8Array(license));
+  const factory = new MembershipUseFactory({ ...identityPolicy, code_commit: e.code_commit }, {
+    preparationPolicy: policy, acquisitionPolicy: { input_sha256: accepted.input_sha256,
+      output_sha256: accepted.output_archive.sha256, lease_token: handle,
+      purpose: 'eodhd_us_membership_private_acquisition', license_archive: licenseArchive,
+      license_valid_from: now * 1000 - 1, license_valid_until: (now + 300) * 1000 },
+    storage: f.storage, bucket: f.bucket, clock: f.options.clock, fetchKeys: f.options.fetchKeys });
+  assert.deepEqual(Buffer.from(await factory.acquisitionEvidence(jwt, e.as_of, membershipSource)), license);
+
+});
+
+
+async function membershipUseFixture(t, withHistory = false, registerNow = true) {
+  const f = await preparationSessionFixture(t, withHistory, registerNow);
+  const accepted = await f.accept();
+  const license = Buffer.from('synthetic reviewed private acquisition evidence');
+  const digest = 'sha256:' + createHash('sha256').update(license).digest('hex');
+  const acquisitionPolicy = { input_sha256: accepted.input_sha256, output_sha256: accepted.output_archive.sha256,
+    lease_token: f.handle, purpose: 'eodhd_us_membership_private_acquisition',
+    license_archive: { key: 'raw/' + digest.slice(7), sha256: digest, size_bytes: license.length },
+    license_valid_from: NOW * 1000 - 1, license_valid_until: (NOW + 300) * 1000 };
+  f.objects.set(acquisitionPolicy.license_archive.key, new Uint8Array(license));
+  const options = { acquisitionPolicy, preparationPolicy: f.policy, storage: f.storage,
+    bucket: f.bucket, clock: f.options.clock, fetchKeys: f.options.fetchKeys };
+  return { ...f, license, acquisitionPolicy, useOptions: options,
+    use: new MembershipUseFactory(identityPolicy, options) };
+}
+const membershipSource = 'https://eodhd.com/api/exchange-symbol-list/US?delisted=0&fmt=json';
+
+test('membership use requires fixed private license capability and defaults disabled', async t => {
+  const disabled = new MembershipUseFactory(null);
+  await assert.rejects(disabled.acquisitionEvidence('bad', '2026-09-06', membershipSource), /disabled/);
+  const f = await membershipUseFixture(t);
+  for (const change of [p => { p.purpose = 'public_display'; }, p => { p.license_archive.size_bytes = true; },
+    p => { p.license_valid_until = p.license_valid_from; }, p => { p.lease_token.fence = 0; }, p => { p.allowed = true; }]) {
+    const policy = structuredClone(f.acquisitionPolicy); change(policy);
+    assert.throws(() => new MembershipUseFactory(identityPolicy, { ...f.useOptions, acquisitionPolicy: policy }), /policy_invalid/);
+  }
+  assert.throws(() => new MembershipArchiveApi(identityPolicy, { ...f.useOptions, enabled: true, sessionPolicy: {} }), /policy_required/);
+});
+
+test('membership use connects permit put read and encoded-response guard to current checks', async t => {
+  const f = await membershipUseFixture(t);
+  assert.deepEqual(Buffer.from(await f.use.acquisitionEvidence(token(), '2026-09-06', membershipSource)), f.license);
+  const bytes = Buffer.from('synthetic response');
+  const sha256 = 'sha256:' + createHash('sha256').update(bytes).digest('hex');
+  const key = 'raw/' + sha256.slice(7), expected = { sha256, size_bytes: bytes.length };
+  await f.use.put(token(), key, bytes, expected);
+  assert.deepEqual(Buffer.from(await f.use.read(token(), key, expected)), bytes);
+  await f.use.verifyAccess(token(), key, expected);
+  const api = new MembershipArchiveApi(identityPolicy, { ...f.useOptions, enabled: true });
+  const result = await api.fetch(new Request('https://coordinator.invalid/v1/membership/permit', { method: 'POST',
+    headers: { Authorization: 'Bearer ' + token(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ as_of: '2026-09-06', protocol: 'm12-membership-archive/1', request_url: membershipSource }) }));
+  assert.equal(result.status, 200);
+  assert.deepEqual(Buffer.from((await result.json()).bytes_base64, 'base64'), f.license);
+  await assert.rejects(f.use.acquisitionEvidence(token(), '2026-09-05', membershipSource));
+  await assert.rejects(f.use.acquisitionEvidence(token(), '2026-09-06', 'https://other.invalid'));
+});
+
+test('membership use rejects missing corrupt expired license and missing preparation output', async t => {
+  for (const failure of ['missing', 'corrupt', 'expired', 'output']) {
+    const f = await membershipUseFixture(t);
+    if (failure === 'missing') f.objects.delete(f.acquisitionPolicy.license_archive.key);
+    if (failure === 'corrupt') f.objects.get(f.acquisitionPolicy.license_archive.key)[0] ^= 1;
+    if (failure === 'expired') f.state.now = f.acquisitionPolicy.license_valid_until;
+    if (failure === 'output') f.objects.delete('raw/' + f.acquisitionPolicy.output_sha256.slice(7));
+    await assert.rejects(f.use.acquisitionEvidence(token(), '2026-09-06', membershipSource));
+  }
+});
+
+test('membership use refuses a real registered revoke during license readback', async t => {
+  const f = await membershipUseFixture(t, true, false);
+  f.archiveState.beforeGet = async key => {
+    if (key !== f.acquisitionPolicy.license_archive.key) return;
+    f.archiveState.beforeGet = null;
+    await f.register();
+  };
+  await assert.rejects(f.use.acquisitionEvidence(token(), '2026-09-06', membershipSource), /history_changed/);
+  assert.equal(f.rows().index.length, 2);
 });

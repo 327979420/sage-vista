@@ -1057,3 +1057,10 @@ C1j先行11项Python（新取消／摘要／源码反例3项＋受影响原进�
 
 
 C1j提交后复现：34576de的实际源码守门、固定进程及原worker正向／失败输出5项Python通过4.315秒。首轮阶段联测暴露测试夹具两处问题：合成导入基线的字段顺序与原存储规范顺序不同，以及旧测试Python助手生成缓存导致新源码守门正确拒绝。仅调整测试基线字段顺序并给该测试文件的Python助手加-B，清理可重新生成的本地pyc；不放宽任何生产守门。随后C1g读回→输入配对归档→真实固定Git worker→OIDC返回绑定→全原件当前使用联测通过2.166秒。单独测试修订提交保留失败证据，仍待阶段独立审核。
+
+
+C1k新增默认禁用MembershipUseFactory：服务端固定acquisitionPolicy仅绑定C1i输入／结果摘要、daily租约、purpose=eodhd_us_membership_private_acquisition、许可原件raw描述符与许可起止毫秒。与固定preparationPolicy／identityPolicy一起构成上线卡审定后安装的内部能力，RPC、CLI、供应商内容不能提供该策略。法律覆盖判断是上线卡审核前提，程序不解析任意许可正文来猜测权利；没有真实许可能力实例、网站／Discord授权或自动法律判断。
+
+每次permit／put／read／verifyAccess操作前后，均通过C1i重新验证当前准备记录和全体原件，在许可原件实际读取前后重查当前根，并检查许可期限；然后从已验签身份及固定配置构造C1c私有归档会话。许可缺失、坏字节、到期或期间登记revoke拒绝成功。put入口先复制原字节，原有对象读取归属守门保持；在途写入可能留下原件／私有读取记录，但后续操作仍须重新经过当前准备根和许可检查，不形成formal登记或持续许可。默认关闭的MembershipArchiveApi新增明确受信工厂配置分支，与原静态会话策略互斥，不增加路由；原静态分支只保留已审核基础适配兼容，未安装生产实例。
+
+C1k四项新Node通过1.212秒，覆盖默认禁用／固定私有purpose、许可与epoch／fence字段、permit→put→read→响应核验及既有API工厂分支、许可缺失／腐坏／到期／原输出缺件、读许可期间通过原登记入口追加真实合成revoke。22项受影响归档桥／API／Python客户端回归通过0.450秒。eslint通过（将内部回调名称改为currentCheck，避免被React规则误认）；阶段真实Git worker联测进一步接到本工厂的合成许可原件交付，须在本包提交后运行并记录。父dd0ce13，独立提交feat: gate membership archive use on current checks and reviewed license evidence [skip ci]，待阶段独立审核。

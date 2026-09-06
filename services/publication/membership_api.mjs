@@ -1,6 +1,7 @@
 // Opt-in server route adapter. No Worker wiring, policy factory or deployment.
 import { GitHubIdentityVerifier } from './identity.mjs';
 import { MembershipArchiveSession } from './membership_archive.mjs';
+import { MembershipUseFactory } from './membership_use.mjs';
 import { body, base64, response } from './job_wire.mjs';
 
 const PROTOCOL = 'm12-membership-archive/1';
@@ -26,13 +27,15 @@ export class MembershipArchiveApi {
   #identity;
   #session;
 
-  constructor(identityPolicy, { enabled = false, sessionPolicy = null, ...dependencies } = {}) {
+  constructor(identityPolicy, { enabled = false, sessionPolicy = null, acquisitionPolicy = null, preparationPolicy, ...dependencies } = {}) {
     if (typeof enabled !== 'boolean') throw new Error('membership_api_configuration_invalid');
     this.#enabled = enabled;
     if (!enabled) return;
-    if (sessionPolicy === null) throw new Error('membership_api_policy_required');
+    if ((sessionPolicy === null) === (acquisitionPolicy === null)) throw new Error('membership_api_policy_required');
     this.#identity = new GitHubIdentityVerifier(identityPolicy, dependencies);
-    this.#session = new MembershipArchiveSession(identityPolicy, { sessionPolicy, ...dependencies });
+    this.#session = acquisitionPolicy === null
+      ? new MembershipArchiveSession(identityPolicy, { sessionPolicy, ...dependencies })
+      : new MembershipUseFactory(identityPolicy, { acquisitionPolicy, preparationPolicy, ...dependencies });
   }
 
   async fetch(request) {
