@@ -1064,3 +1064,20 @@ C1k新增默认禁用MembershipUseFactory：服务端固定acquisitionPolicy仅�
 每次permit／put／read／verifyAccess操作前后，均通过C1i重新验证当前准备记录和全体原件，在许可原件实际读取前后重查当前根，并检查许可期限；然后从已验签身份及固定配置构造C1c私有归档会话。许可缺失、坏字节、到期或期间登记revoke拒绝成功。put入口先复制原字节，原有对象读取归属守门保持；在途写入可能留下原件／私有读取记录，但后续操作仍须重新经过当前准备根和许可检查，不形成formal登记或持续许可。默认关闭的MembershipArchiveApi新增明确受信工厂配置分支，与原静态会话策略互斥，不增加路由；原静态分支只保留已审核基础适配兼容，未安装生产实例。
 
 C1k四项新Node通过1.212秒，覆盖默认禁用／固定私有purpose、许可与epoch／fence字段、permit→put→read→响应核验及既有API工厂分支、许可缺失／腐坏／到期／原输出缺件、读许可期间通过原登记入口追加真实合成revoke。22项受影响归档桥／API／Python客户端回归通过0.450秒。eslint通过（将内部回调名称改为currentCheck，避免被React规则误认）；阶段真实Git worker联测进一步接到本工厂的合成许可原件交付，须在本包提交后运行并记录。父dd0ce13，独立提交feat: gate membership archive use on current checks and reviewed license evidence [skip ci]，待阶段独立审核。
+
+
+### C1i—C1k阶段集成与复现
+
+源码基线78315ee之后的小提交为5849593（持久验证会话）、34576de（固定源码进程）、dd0ce13（仅测试夹具修订）、6918ccd（采集使用工厂）。这些依赖均待本阶段独立审核，不能沿用C1h的PASS。6918ccd上24项Python通过4.878秒（固定执行4项、原worker1项、治理状态19项；ResourceWarning为错误），12项Node通过5.286秒，无失败／取消／跳过；其中真实Git／固定进程／许可工厂集成耗时2.255秒。另22项受影响字节API回归已通过0.450秒，原进程生命周期8项已在C1j提取后验证。状态生成、链接和差异格式在阶段交付前核验。
+
+本阶段实际闭合：受信服务端当前授权／配置全原件读回 → 精确输入归档及配对记账 → 本地真实Git源码守门／固定Python联合检查 → 原输入与固定OIDC身份返回绑定／归档 → 使用前全原件及原根复查 → 固定私有采集许可能力的原件／期限门槛 → 既有成员字节API工厂分支。许可正文与平台／R2依赖均为明确合成材料，未发真实供应商请求；不等于正式股票池或跨日生产端到端运行。
+
+仓库根目录的独立复现入口如下。源码守门有意拒绝services中的额外导入文件／本地pyc；使用干净源文件树，测试应禁止生成缓存，不能放宽守门来通过测试。
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=tests:. python3 -W error::ResourceWarning -m unittest test_m12_preparation_execution test_m12_preparation_validation.PreparationValidationTests.test_fixed_isolated_worker_roundtrip_and_failure_has_no_private_output test_rulebook_contract test_project_status
+PYTHONDONTWRITEBYTECODE=1 node --test --test-name-pattern='preparation session|preparation stage|membership use' tests/m12-environment-review.test.mjs
+PYTHONDONTWRITEBYTECODE=1 node --test tests/m12-membership-archive.test.mjs
+```
+
+首次可用尚需：将上述内部准备会话接到受保护每日runner及认证调度／传输入口；按上线卡安装真实许可和配置能力；复用M02既有3.x构造器、观察身份函数及行情规范化，补完整来源身份持续登记、同日全体资格和交易日历／价格源接入；再串M03—M09、旧信号计划补建／退出续跑／M09关联及独立M10到期队列；完成四页数据、持久发布切换／回退与生产验收。已有M02门槛仍为420日、5美元、1000万美元，下一阶段须与原M03边界复用同一口径，不复制规则。无新增M13或美化目标；旧回放断点、公开文件、bot快照／许可和生产入口不变。
