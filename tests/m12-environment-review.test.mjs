@@ -1,13 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash, generateKeyPairSync, sign } from "node:crypto";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
+import { createInterface } from "node:readline";
 import { DatabaseSync } from "node:sqlite";
 import { GitHubEnvironmentReviewVerifier } from "../services/publication/environment_review.mjs";
 import { ReviewedRequestArchive } from "../services/publication/review_archive.mjs";
 import { AuthorizationPreparation } from "../services/publication/authorization_preparation.mjs";
 import { AuthorizationValidationReturn } from "../services/publication/authorization_return.mjs";
 import { AuthorizationValidationArchive } from "../services/publication/authorization_validation_archive.mjs";
+import { AuthorizationJobApi } from "../services/publication/authorization_api.mjs";
 import { LeaseStore } from "../services/publication/leases.mjs";
 
 const NOW = 1_788_652_800;
@@ -1516,4 +1518,171 @@ print(json.dumps({'calls':calls,'response':base64.b64encode(response).decode('as
   assert.deepEqual(resultBytes, f.resultBytes());
   const archived = await f.archiveValidation(token(), resultBytes);
   assert.equal(Buffer.from(archived.authorization_bytes).toString("base64"), f.python.authorization_bytes);
+});
+
+function apiFixture(t, patch = {}) {
+  const f = preparationFixture(t);
+  const api = new AuthorizationJobApi(identityPolicy, reviewPolicy,
+    { ...f.options, storage: f.storage, bucket: f.bucket, leaseEpoch: f.leaseToken.epoch, enabled: true, ...patch });
+  return { ...f, api };
+}
+function apiRequest(path, raw = "{}", jwt = token(), headers = {}) {
+  return new Request("https://coordinator.example.test/v1/authorization/" + path,
+    { method: "POST", headers: { "Authorization": "Bearer " + jwt, "Content-Type": "application/json", ...headers }, body: raw });
+}
+
+test("job API is disabled by default without touching network or storage", async () => {
+  const storage = new Proxy({}, { get() { throw new Error("storage must not be touched"); } });
+  const api = new AuthorizationJobApi(null, null, { storage });
+  const result = await api.fetch(apiRequest("prepare"));
+  assert.equal(result.status, 503);
+  assert.equal((await result.json()).error, "authorization_jobs_disabled");
+  assert.equal(result.headers.get("Cache-Control"), "no-store");
+});
+
+test("prepare route obtains server epoch lease only after archived approval readback", async (t) => {
+  const f = apiFixture(t);
+  f.lease.release("publish/global", f.job, f.leaseToken);
+  let checked = 0;
+  f.archiveState.beforeGet = (key) => {
+    try {
+      if (JSON.parse(Buffer.from(f.objects.get(key))).kind !== "github_environment_approval_observation") return;
+    } catch { return; }
+    assert.equal(f.db.prepare("SELECT owner_json FROM m12_leases WHERE resource='publish/global'").get().owner_json, null);
+    checked++;
+  };
+  const result = await f.api.fetch(apiRequest("prepare"));
+  assert.equal(result.status, 200, await result.clone().text());
+  const prepared = await result.json();
+  assert.ok(checked >= 2);
+  assert.equal(prepared.lease_token.epoch, f.leaseToken.epoch);
+  assert.equal(prepared.lease_token.fence, f.leaseToken.fence + 1);
+  assert.deepEqual(Object.keys(prepared).sort(), ["protocol", "dispatch_id", "lease_token", "input_base64", "input_sha256", "input_size_bytes"].sort());
+  const raw = Buffer.from(prepared.input_base64, "base64");
+  assert.equal(prepared.input_sha256, sha(raw));
+  assert.equal(prepared.input_size_bytes, raw.length);
+  assert.equal(validateWire(raw).valid, true);
+  assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_index").get().n, 1);
+});
+
+test("job API does not initialize a missing epoch or preempt another owner", async (t) => {
+  for (const missing of [false, true]) {
+    const f = apiFixture(t);
+    if (missing) f.db.exec("DELETE FROM m12_lease_epoch");
+    else {
+      f.lease.release("publish/global", f.job, f.leaseToken);
+      f.lease.acquire("publish/global", { ...f.job, run_id: "457" }, f.leaseToken.epoch);
+    }
+    const result = await f.api.fetch(apiRequest("prepare"));
+    assert.equal(result.status, 409);
+    assert.equal(dispatchCount(f), 0);
+    if (missing) assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_lease_epoch").get().n, 0);
+    else assert.equal(JSON.parse(f.db.prepare("SELECT owner_json FROM m12_leases WHERE resource='publish/global'").get().owner_json).run_id, "457");
+  }
+});
+
+test("job routes refuse wrong method/path/identity and private body before any archival writes", async (t) => {
+  const f = apiFixture(t);
+  const puts = f.archiveState.puts;
+  const requests = [new Request("https://coordinator.example.test/v1/authorization/prepare"), apiRequest("prepare?epoch=other"),
+    apiRequest("initialize"), apiRequest("prepare", "{}", token({ run_attempt: "bogus" })),
+    apiRequest("prepare", "{}", "unsigned"), apiRequest("prepare", "{\"epoch\":\"user-selected\"}"),
+    apiRequest("prepare", "{}", token(), { "Content-Type": "text/plain" }),
+    apiRequest("return", '{"protocol":"m12-authorization-job/1","protocol":"m12-authorization-job/1"}'),
+    apiRequest("return", '{"valid":true}'), apiRequest("return", "{}", token(), { "Content-Encoding": "gzip" })];
+  for (const request of requests) {
+    const result = await f.api.fetch(request);
+    assert.notEqual(result.status, 200);
+    assert.deepEqual(Object.keys(await result.json()).sort(), ["error", "protocol"]);
+  }
+  assert.equal(f.archiveState.puts, puts);
+});
+
+test("return route archives valid artifacts but never consumes or registers authority", async (t) => {
+  const f = apiFixture(t);
+  const prepared = await (await f.api.fetch(apiRequest("prepare"))).json();
+  const python = validateWire(Buffer.from(prepared.input_base64, "base64"));
+  const raw = Buffer.from(JSON.stringify(canonical({ authorization_base64: python.authorization_bytes, receipt_base64: python.receipt_bytes })) + "\n");
+  const payload = { protocol: "m12-authorization-job/1", dispatch_id: prepared.dispatch_id, lease_token: prepared.lease_token,
+    result_base64: raw.toString("base64") };
+  const first = await f.api.fetch(apiRequest("return", JSON.stringify(canonical(payload))));
+  assert.equal(first.status, 200, await first.clone().text());
+  const ack = await first.json();
+  assert.equal(ack.state, "archived_pending_registration");
+  assert.equal(ack.dispatch_id, prepared.dispatch_id);
+  assert.deepEqual(ack.authorization_archive, python.receipt.authorization_archive);
+  assert.ok(f.objects.has(ack.validation_receipt_archive.key));
+  const replay = await f.api.fetch(apiRequest("return", JSON.stringify(canonical(payload))));
+  assert.deepEqual(await replay.json(), ack);
+  assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_index").get().n, 1);
+  assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_log").get().n, 2);
+  const wrong = { ...payload, lease_token: { ...prepared.lease_token, fence: true } };
+  assert.equal((await f.api.fetch(apiRequest("return", JSON.stringify(canonical(wrong))))).status, 400);
+  payload.result_base64 = Buffer.from('{"valid":true}\n').toString("base64");
+  assert.equal((await f.api.fetch(apiRequest("return", JSON.stringify(canonical(payload))))).status, 409);
+});
+
+test("job request reads enforce byte limit and a total body-read timer", async (t) => {
+  const f = apiFixture(t);
+  let cancelled = false;
+  const stream = new ReadableStream({ pull() {}, cancel() { cancelled = true; } });
+  const request = new Request("https://coordinator.example.test/v1/authorization/return", { method: "POST",
+    headers: { "Authorization": "Bearer " + token(), "Content-Type": "application/json" }, body: stream, duplex: "half" });
+  assert.equal((await f.api.fetch(request)).status, 400);
+  assert.equal(cancelled, true);
+  const tooLarge = apiRequest("return", "{}", token(), { "Content-Length": String(4 * 1024 * 1024 + 1) });
+  assert.equal((await f.api.fetch(tooLarge)).status, 400);
+  assert.equal(dispatchCount(f), 0);
+});
+
+test("actual Python HTTP client and fixed executor round trip through both local Fetch routes", async (t) => {
+  const f = apiFixture(t);
+  const script = `
+import base64,io,json,sys
+from email.message import Message
+from unittest.mock import patch
+from services.publication.authorization_execution import execute_authorization_validation
+from services.publication.authorization_transport import AuthorizationHttpsTransport
+class Response(io.BytesIO):
+    def __init__(self,value,url):
+        super().__init__(base64.b64decode(value['body']))
+        self.status=value['status']; self.url=url; self.headers=Message()
+        for k,v in value['headers'].items(): self.headers[k]=v
+    def geturl(self): return self.url
+class Opener:
+    def open(self,request,timeout):
+        print(json.dumps({'url':request.full_url,'headers':dict(request.header_items()),'body':base64.b64encode(request.data).decode('ascii') if request.data else None}),flush=True)
+        value=json.loads(sys.stdin.readline())
+        return Response(value,request.full_url)
+transport=AuthorizationHttpsTransport('https://coordinator.example.test',{'GITHUB_ACTIONS':'true','ACTIONS_ID_TOKEN_REQUEST_URL':'https://run.actions.githubusercontent.com/token?api-version=2.0','ACTIONS_ID_TOKEN_REQUEST_TOKEN':'local-request-credential'},opener=Opener())
+with patch('time.time_ns',return_value=${NOW * 1000}*1000000):
+    result=execute_authorization_validation(transport)
+print(json.dumps({'finished':True,'response':base64.b64encode(result).decode('ascii')}),flush=True)
+`;
+  const child = spawn("python3", ["-u", "-c", script], { cwd: new URL("..", import.meta.url), stdio: ["pipe", "pipe", "pipe"] });
+  t.after(() => { if (child.exitCode === null) child.kill(); });
+  let stderr = "", finished;
+  child.stderr.on("data", (data) => { stderr += data; });
+  const exited = new Promise((resolve, reject) => { child.on("error", reject); child.on("exit", resolve); });
+  const lines = createInterface({ input: child.stdout });
+  const paths = [];
+  for await (const line of lines) {
+    const request = JSON.parse(line);
+    if (request.finished) { finished = JSON.parse(Buffer.from(request.response, "base64")); child.stdin.end(); continue; }
+    const url = new URL(request.url);
+    let result;
+    if (url.hostname.endsWith(".actions.githubusercontent.com")) {
+      result = new Response(JSON.stringify({ value: token() }), { headers: { "Content-Type": "application/json" } });
+    } else {
+      paths.push(url.pathname);
+      result = await f.api.fetch(new Request(request.url, { method: "POST", headers: request.headers, body: Buffer.from(request.body, "base64") }));
+    }
+    const body = Buffer.from(await result.arrayBuffer()).toString("base64");
+    child.stdin.write(JSON.stringify({ status: result.status, headers: Object.fromEntries(result.headers), body }) + "\n");
+  }
+  assert.equal(await exited, 0, stderr);
+  assert.deepEqual(paths, ["/v1/authorization/prepare", "/v1/authorization/return"]);
+  assert.equal(finished.state, "archived_pending_registration");
+  assert.ok(f.objects.has(finished.authorization_archive.key));
+  assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_index").get().n, 1);
 });
