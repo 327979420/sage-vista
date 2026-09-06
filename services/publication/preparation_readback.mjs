@@ -2,6 +2,7 @@
 import { GitHubIdentityVerifier } from './identity.mjs';
 import { ImmutableArchive } from './archive.mjs';
 import { AuthorizationStore } from './authorization_store.mjs';
+import { base64 } from './job_wire.mjs';
 
 export class PreparationEvidenceReadback {
   #policy;
@@ -32,6 +33,22 @@ export class PreparationEvidenceReadback {
     this.#clock = clock;
     this.#policy = p;
     this.#resource = `daily/${p.as_of}/${p.config_ref.id}`;
+  }
+
+  async readValidationInput(token, leaseToken) {
+    // Own readback only, never encode a caller-supplied evidence object.
+    const handle = leaseToken && { ...leaseToken };
+    const result = await this.read(token, handle);
+    const { history_bytes, config_bytes, ...fields } = result.evidence;
+    const raw = new TextEncoder().encode(JSON.stringify({ protocol: 'm12-preparation-validation/1',
+      identity: result.identity, evidence: { ...fields,
+        history_base64: history_bytes.map(base64), config_base64: base64(config_bytes) } }));
+    if (raw.length > 32 * 1024 * 1024) throw new Error('preparation_readback_input_too_large');
+    const current = this.#store.readCurrentForPreparation(result.identity, handle, this.#resource);
+    if (JSON.stringify(current) !== JSON.stringify(result.evidence.current_history)) {
+      throw new Error('preparation_readback_history_changed');
+    }
+    return raw;
   }
 
   async read(token, leaseToken) {

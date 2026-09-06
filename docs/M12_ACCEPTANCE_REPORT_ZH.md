@@ -1019,3 +1019,22 @@ Python MembershipArchiveTransport实现C1b authorize/put/read依赖，每次取�
 新增8项Node专项以真实SQLite和实际B3登记路径、合成签名OIDC／R2依赖验证：默认禁用；逐份原字节／顺序及无写入／输出隔离；每一位置缺失、损坏、读取失败；错误actor／Job／代码／JWT／epoch／fence、错误固定策略和key服务失败在原件读取前拒绝；每个异步读取中通过原登记入口追加合法revoke后拒绝旧材料；末次原件读取中登记来源／fence／期限变化；外部策略及handle在取密钥期间修改不改变冻结目标；最终输出guard末次SQL读取越过期限失败。8项全部通过1.161秒，无失败／取消／跳过，定点eslint通过。另10项当前授权使用与19项治理状态Python通过0.022秒（ResourceWarning为错误），共37项；机器状态生成一致、文档链接／diff通过。未重复M11、无变化B全套或跨日端到端。
 
 独立提交feat: read current M12 preparation evidence from private archives [skip ci]，父f1bffe7110281663b01ee27db7058a6e0bcdbbd5，完整SHA见交付消息。回退撤回未接线读回器即可，不删除事实／授权历史。下一包继续受信材料到唯一Python检查及实际使用工厂，再接M02身份资格和C/D链。未真实供应商调用、外部写入、合并、推送、云资源、部署、生产启用或对外通知；跨日端到端仍未执行。
+
+
+### C1g独立审核记录｜2026-09-07
+
+审核任务01a074f9-098a-7b82-b486-3185683290fe确认e80c37554ec02acb14c29d7a00ec1f69b1ae5559在受信当前授权／配置原件读回半段通过，无新增阻断。独立8项Node专项与29项Python（0.028秒，ResourceWarning为错误）共37项通过；eslint／diff／精确HEAD、干净工作区通过。限定原件读回和末次持久根检查，不代表真实许可语义、运行绑定或完整使用工厂完成，也不冻结未来权限。
+
+## C1h：准备材料字节与唯一Python联合检查（待独立审核）
+
+C1g新增内部readValidationInput，仅编码自身read的结果；协议m12-preparation-validation/1固定顶层protocol／identity／evidence，配置与有序授权原件以base64承载，其他材料原样保持。复制handle后进行自身OIDC读回流程，编码后再次检查原身份期限、daily租约和完整原根；输入上限32MiB。不接收调用者选定的材料，不新增HTTP路由。
+
+唯一validation模块增加严格输入解码和联合必要检查：实际bytes／严格JSON／精确字段／规范base64，平台标识、Job结构及原身份代码与材料代码一致；原身份仍是受信服务端的验签材料，Python结构检查不能自行认证OIDC来源。联合入口复用C1e完整当前授权检查与C1f实际配置正文／固定Git来源检查，要求完整配置Ref（含id）及运行code_commit精确一致。即便为改写政策重新生成匹配grant，仍不能绕过原批准政策；Ref别名也不能替换固定配置身份。
+
+内部Python生产者从固定本地Git读取输入身份所指完整提交的来源，执行联合检查后取完成时钟，再调用同一validation模块的完成窗口／日期检查。观察时间、计算开始与完成必须在原身份窗口内，时钟回退、未来观察、非整数或溢出时间失败；完成时用同一C1e规则重新检查目标日和当前纽约日期，跨午夜后grant过期则不产出结果。完成辅助检查单独使用不替代先前联合检查，不赋予许可。
+
+固定preparation_validation_worker复用已审核services专用隔离导入，命令以-I／-B运行，不暴露整个仓库或cwd导入根；stdin有32MiB＋1截断上限，stdout最多64KiB，异常静默失败且没有成功形状回退。生产者只输出protocol、精确input_sha256／input_size_bytes、started_ms／completed_ms和必要检查摘要preparation；不输出许可、令牌或sessionPolicy。摘要不是签名／执行证明，完整工厂仍须绑定实际worker字节、受信发送输入和返回原件，并在实际使用时复查服务器根／租约及供应商许可。本包没有新增worker监督器、RPC、凭证或启动工作流。
+
+8项新Python通过3.908秒，覆盖真实本地Git完整配置与原输入摘要、撤销／原件篡改、重做匹配授权也不能改变政策、身份／来源代码与精确Ref、严格字节和身份结构、窗口失效、纽约午夜授权到期、实际-I隔离worker正常往返及失败无stdout／stderr。10项Node（原8项读回＋新增2项）通过1.489秒，无失败／取消／跳过；新增跨语言样例把真实JS读回编码交给唯一Python解码，核对全部原字节摘要并由C1e拒绝其合成撤销材料；另验证编码后末次SQL越过期限失败。该跨语言样例不冒充真实配置正向生产验收，正向完整配置由Python本地Git／worker样例覆盖。38项既有配置／当前使用／治理状态Python通过3.154秒，总56项，Python均将ResourceWarning视为错误。定点eslint通过；状态／链接／diff另核验，不重跑M11或无变化B全套。
+
+独立提交feat: validate M12 preparation readback through the fixed Python boundary [skip ci]，父e80c37554ec02acb14c29d7a00ec1f69b1ae5559，完整SHA见交付消息。回退撤回未接线字节入口及worker即可，原件和权威历史保留。已消除材料到共同合同检查的依赖，余下为受信执行／返回绑定、实际使用前当前根复查与许可来源工厂，之后推进M02身份资格和C/D链。未真实供应商调用、外部写入、合并、推送、云资源、部署、生产启用或对外通知；跨日端到端仍未执行。

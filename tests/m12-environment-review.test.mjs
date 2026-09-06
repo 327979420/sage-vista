@@ -2795,3 +2795,42 @@ test('preparation readback checks expiry after the last output guard SQL read', 
   await assert.rejects(f.create().read(token(), f.handle), /deadline|expired/);
   assert.equal(guards, 2);
 });
+
+test('preparation validation input carries actual readback bytes into the sole Python decoder and grant check', async t => {
+  const f = await preparationReadbackFixture(t);
+  const bytes = await f.create().readValidationInput(token(), f.handle);
+  const wire = JSON.parse(new TextDecoder().decode(bytes));
+  assert.equal(wire.protocol, 'm12-preparation-validation/1');
+  assert.deepEqual(Buffer.from(wire.evidence.config_base64, 'base64'), f.configBytes);
+  assert.equal(wire.evidence.history_base64.length, 2);
+  const script = `import sys,json,hashlib
+from services.contracts.validation import publication_preparation_input,publication_preparation_authorization,ContractError
+value=publication_preparation_input(sys.stdin.buffer.read())
+try:
+ publication_preparation_authorization(value['evidence'])
+ raise AssertionError('revoked unrelated synthetic config must not grant preparation')
+except ContractError:
+ pass
+print(json.dumps({'config_sha256':hashlib.sha256(value['evidence']['config_bytes']).hexdigest(),'history_sha256':[hashlib.sha256(b).hexdigest() for b in value['evidence']['history_bytes']],'code_commit':value['identity']['code_commit']}))`;
+  const result = spawnSync('python3', ['-B', '-c', script], { input: bytes, cwd: new URL('..', import.meta.url), encoding: 'utf8', timeout: 10000 });
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout), { config_sha256: f.policy.config_archive.sha256.slice(7),
+    history_sha256: wire.evidence.current_history.history.map(item => item.archive.sha256.slice(7)), code_commit: identityPolicy.code_commit });
+});
+
+test('preparation validation input rechecks original identity deadline after encoding', async t => {
+  const f = await preparationReadbackFixture(t, false);
+  let configRead = false;
+  let guards = 0;
+  f.archiveState.beforeGet = key => { if (key === f.policy.config_archive.key) configRead = true; };
+  const exec = f.storage.sql.exec;
+  f.storage.sql.exec = (sql, ...args) => {
+    const result = exec(sql, ...args);
+    if (configRead && sql.includes('SELECT history_json FROM m12_authorization_import_baseline') && ++guards === 3) {
+      f.state.now = (NOW + 300) * 1000;
+    }
+    return result;
+  };
+  await assert.rejects(f.create().readValidationInput(token(), f.handle), /deadline|expired/);
+  assert.equal(guards, 3);
+});

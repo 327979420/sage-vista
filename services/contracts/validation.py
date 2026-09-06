@@ -7,7 +7,7 @@ not grow separate interpretations of the same contract.
 
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 import base64
 import binascii
@@ -2670,3 +2670,92 @@ def verify_publication_configuration(raw: bytes, evidence: Mapping[str, Any]) ->
         raise ContractError("M12 configuration differs from frozen policy/source evidence")
     fingerprint = "sha256:" + hashlib.sha256(_canonical(value)).hexdigest()
     return {"id": "publication-config:" + fingerprint, "content_fingerprint": fingerprint}
+
+
+PREPARATION_INPUT_MAX_BYTES = 32 * 1024 * 1024
+
+
+def _m12_preparation_identity(identity: Any, evidence: Mapping[str, Any]) -> None:
+    # Structural binding of trusted server identity, not OIDC verification.
+    _m12_exact(identity, {"job", "code_commit", "actor_id", "subject", "token_id", "issued_at", "expires_at"}, "preparation identity")
+    _m12_job(identity["job"])
+    _m12_commit(identity["code_commit"])
+    for field in ("actor_id", "subject", "token_id"):
+        _m12_text(identity[field], field)
+    for value in (identity["actor_id"], identity["job"]["repository_id"], identity["job"]["run_id"]):
+        if not re.fullmatch(r"[1-9][0-9]*", value):
+            raise ContractError("preparation identity requires canonical platform IDs")
+    if identity["job"]["run_attempt"] < 1 or identity["code_commit"] != evidence.get("code_commit"):
+        raise ContractError("preparation identity differs from execution code")
+    if any(type(identity[key]) is not int or identity[key] < 0 for key in ("issued_at", "expires_at")) or identity["issued_at"] >= identity["expires_at"]:
+        raise ContractError("preparation identity window invalid")
+
+
+def publication_preparation_input(raw: bytes) -> dict[str, Any]:
+    """Decode fixed server readback bytes; byte input alone does not prove origin."""
+    if type(raw) is not bytes or not 0 < len(raw) <= PREPARATION_INPUT_MAX_BYTES:
+        raise ContractError("preparation input bytes invalid")
+    wire = _m12_json(raw)
+    _m12_exact(wire, {"protocol", "identity", "evidence"}, "preparation wire input")
+    if wire["protocol"] != "m12-preparation-validation/1":
+        raise ContractError("unsupported preparation protocol")
+    e = wire["evidence"]
+    _m12_exact(e, {"current_history", "history_base64", "config_ref", "config_archive", "config_base64",
+                   "code_commit", "as_of", "checked_at"}, "preparation byte evidence")
+    _m12_preparation_identity(wire["identity"], e)
+    if not isinstance(e["history_base64"], list):
+        raise ContractError("preparation requires complete original history bytes")
+    def decode(encoded):
+        if not isinstance(encoded, str):
+            raise ContractError("preparation byte input must be base64 text")
+        try:
+            value = base64.b64decode(encoded, validate=True)
+        except (ValueError, binascii.Error) as exc:
+            raise ContractError("preparation byte input must be strict base64") from exc
+        if base64.b64encode(value).decode("ascii") != encoded:
+            raise ContractError("preparation byte input must be canonical base64")
+        return value
+    evidence = {key: value for key, value in e.items() if key not in ("history_base64", "config_base64")}
+    evidence.update(history_bytes=[decode(value) for value in e["history_base64"]], config_bytes=decode(e["config_base64"]))
+    return {"identity": wire["identity"], "evidence": evidence}
+
+
+def publication_preparation_check(value: Mapping[str, Any], sources: Mapping[str, Any], *, started_ms: int, completed_ms: int) -> dict[str, Any]:
+    """Joint necessary checks, not source-license or live coordinator permission."""
+    _m12_exact(value, {"identity", "evidence"}, "preparation readback")
+    identity, evidence = value["identity"], value["evidence"]
+    if not isinstance(evidence, Mapping):
+        raise ContractError("preparation evidence must be an object")
+    _m12_preparation_identity(identity, evidence)
+    publication_preparation_authorization(evidence)
+    config_ref = verify_publication_configuration(evidence["config_bytes"], sources)
+    if config_ref != evidence["config_ref"] or sources["code_commit"] != identity["code_commit"]:
+        raise ContractError("preparation configuration source or exact Ref differs")
+    return publication_preparation_completion(value, started_ms=started_ms, completed_ms=completed_ms)
+
+
+def publication_preparation_completion(value: Mapping[str, Any], *, started_ms: int, completed_ms: int) -> dict[str, Any]:
+    """Final time/current-date guard after the joint policy/source computation.
+
+    Necessary only; this helper alone never substitutes for the full check.
+    """
+    _m12_exact(value, {"identity", "evidence"}, "preparation readback")
+    identity, evidence = value["identity"], value["evidence"]
+    if not isinstance(evidence, Mapping):
+        raise ContractError("preparation evidence must be an object")
+    _m12_preparation_identity(identity, evidence)
+    _m12_time(evidence.get("checked_at"))
+    if any(type(stamp) is not int for stamp in (started_ms, completed_ms)):
+        raise ContractError("preparation computation times require integer milliseconds")
+    try:
+        epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)
+        observed = datetime.fromisoformat(evidence["checked_at"].replace("Z", "+00:00"))
+        start, end = (epoch + timedelta(milliseconds=stamp) for stamp in (started_ms, completed_ms))
+        issued, expires = (epoch + timedelta(seconds=identity[key]) for key in ("issued_at", "expires_at"))
+    except (ValueError, OverflowError) as exc:
+        raise ContractError("preparation computation time outside supported range") from exc
+    if not issued <= observed <= start <= end < expires:
+        raise ContractError("preparation computation outside original identity window")
+    # Reuse the same authoritative rule at completion, including NY midnight.
+    final = dict(evidence, checked_at=end.isoformat(timespec="seconds").replace("+00:00", "Z"))
+    return publication_preparation_authorization(final)
