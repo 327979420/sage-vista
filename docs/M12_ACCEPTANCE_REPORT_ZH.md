@@ -825,3 +825,28 @@ AuthorizationStore新增内部readArchivedValidation，复用ticket原记录／�
 14项运行入口、8项进程、25项HTTPS通道、10项恢复、11项监督与19项治理／状态，共87项Python通过（ResourceWarning按错误，4.87秒）；另1项实际监督客户端／固定worker／本地Fetch路由恢复往返通过，总88项。状态生成／文档链接及diff检查通过；工作流未改变，不重复YAML和119项Node无变化完整套件。未进行真实Actions／TLS／跨runner恢复或跨日端到端验收。仅调整两处引导、新增共享命名空间文件、定点测试及三份治理文档，业务合同／政策不变。
 
 独立提交fix: confine M12 imports to verified services namespace [skip ci]，父提交3c1936c31957cc9600088907eacfee411b633285；完整SHA见交付消息，交回此P2定点复核，不自行宣布通过。未合并、推送、创建云资源、部署、生产启用或对外通知；最终权限／目标config／同事务登记仍为下一包。
+
+
+## B3r及导入P2独立复核结论
+
+审核任务确认3c1936c31957cc9600088907eacfee411b633285及bb2807c205b77cebee2b92aa37be9ccd52bb1a8b在默认禁用固定工作流／凭证运行工厂范围通过，根目录导入P2关闭。独立87项Python（ResourceWarning按错误，4.369秒）及1项实际监督客户端／固定worker／本地API恢复（638.4ms）共88项通过；原2项YAML证据保留，diff及干净HEAD核对通过。结论不证明真实Actions环境保护、OIDC平台／TLS或最终授权生效。
+
+## B3s：固定请求权限与内部原子授权登记（待独立审核）
+
+新增内部AuthorizationRegistration，registrationPolicy缺省null时不构造存储／网络依赖，任何register请求立即拒绝。非空策略只能由受信服务器配置注入，字段精确为actor_id、approver_id、request；request为已批准的完整十字段请求。构造时保存不可变规范字节，不能在调用过程中由原配置对象改写；不接受RPC传入策略、已验证对象或成功声明。固定策略表示允许指定执行者与审核人登记这一个精确请求，不是任意grant权限。真实部署必须把该策略与获批控制提交／环境配置同步；本包没有配置任何生产策略实例或修改HTTP／工作流启用状态。
+
+register始终复用B3f内部认证、原输入／票据绑定、授权及收据归档和独立读回。随后将实际授权产物的十字段请求、审核人和已验证OIDC actor规范编码，与服务器固定策略逐项精确匹配：业务config_ref、业务code_commit、publication_mode、scope、permissions、action、前序、生效／到期日期及reason全部绑定。控制来源code_commit仍与请求内业务提交分开；不把控制工作流版本当业务版本。该比较仅限制服务器允许登记的目标，不复算或另定义Python业务合同；日期、权限语义、链后继和授权身份计算仍由唯一Python验证器负责。
+
+AuthorizationStore新增只供内部调用的registerValidatedAuthorization；在publish/global当前租约事务中核对原发送／票据／历史快照、原归档回传行与日志、actor、服务器权限谓词及未消费状态。实际登记时钟不得倒退、早于归档或超出原票据／原OIDC与新OIDC期限；写入前再次检查。一个事务追加授权index、更新head/revision、写单次票据consumption及register_authorization日志；写完再核历史、权限，并由withOwnedLease在提交前重验epoch／owner／fence／期限，任一失败全部回滚，R2原件及先前归档记录保留。重复或并发使用旧票据只允许一次成功；head改变后旧请求拒绝，不自动重建票据或另发授权。
+
+新增SQLite表m12_authorization_consumptions，以ticket_id唯一，保存内部m12-authorization-registration/1记录：protocol、ticket_id、dispatch_id、原return_record、previous_ref、position、registered_at。消费记录与登记日志逐行配对，并关联实际index位置、授权Ref／原字节位置、前序及原回传行；缺行／错配在后续历史读取时要求恢复，不静默补记成功。启动增加该表但保留全部旧记录；若只有consumption幸存，禁止自动初始化空head。迁移不修改已有业务合同／身份或授权原件。
+
+本包完成的是受信固定目标策略下的内部登记操作。完整业务配置对象、政策blob和实际运行代码来源仍由C包配置生产者核验；本操作的Ref精确匹配不能代替这些检查。登记记录也不等于允许当前时点发布：后续每次使用仍须解析最新授权链、有效期／撤销及实际配置／代码、M07政策和相应租约。真实服务器工厂与受控任务路由尚未连接此登记入口，既有return／recover响应仍表示归档事实，不能因新增此内部类把其解释为授权已登记或已生效。不存在生产grant、M11 active或生产切换。
+
+### B3s实际检查与边界
+
+新增9项Node专项，使用真实本地SQLite、实际Python唯一验证产生的授权／收据和已审核取证替身：默认关闭无依赖；首次grant与后继revoke的完整原字节、消费／日志及重开历史；完整请求各字段／审核人／actor不匹配；服务器策略深冻结；并发及重复单次消费；index／head／consumption／日志四个写入点逐次注入失败后全回滚并能显式重试；写完消费后租约到期全回滚；事务中原回传行损坏拒绝且回滚；消费与日志失配重开拒绝。正常用例最初只因Buffer与Uint8Array类型断言不一致失败，改为统一字节容器后通过，未为此改变业务实现。
+
+157项环境取证／跨语言／登记及租约Node完整通过（最终19.34秒，无失败、取消或跳过），19项治理／项目状态通过，共176项；定点eslint、机器状态／文档链接／diff检查通过。未改变Python业务或工作流，不重复其完整测试和M11。测试使用本地SQLite事务、合成GitHub／R2和既有固定Python验证，不证明真实平台执行、云持久配置、HTTP登记接线、权限消费或跨日端到端已完成。
+
+独立提交feat: atomically register approved M12 authorization [skip ci]，父bb2807c205b77cebee2b92aa37be9ccd52bb1a8b，完整SHA见交付消息。可撤回内部接线，但保留已存授权、消费和日志以供恢复，不删除记录来重开已消费票据。待此包审核后收口受控登记接线并进入既定C／D业务链；未合并、推送、创建云资源、部署、生产启用或对外通知。

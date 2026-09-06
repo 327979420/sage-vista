@@ -9,8 +9,149 @@ import { ReviewedRequestArchive } from "../services/publication/review_archive.m
 import { AuthorizationPreparation } from "../services/publication/authorization_preparation.mjs";
 import { AuthorizationValidationReturn } from "../services/publication/authorization_return.mjs";
 import { AuthorizationValidationArchive } from "../services/publication/authorization_validation_archive.mjs";
+import { AuthorizationRegistration } from "../services/publication/authorization_registration.mjs";
+import { AuthorizationStore } from "../services/publication/authorization_store.mjs";
 import { AuthorizationJobApi } from "../services/publication/authorization_api.mjs";
 import { LeaseStore } from "../services/publication/leases.mjs";
+
+async function registrationFixture(t, withHistory = true) {
+  const f = await validationArchiveFixture(t, withHistory);
+  const authorization = JSON.parse(Buffer.from(f.python.authorization_bytes, 'base64'));
+  const policy = { actor_id: '789', approver_id: authorization.approver_id,
+    request: Object.fromEntries(Object.keys(businessRequest).map(key => [key, authorization[key]])) };
+  const create = (registrationPolicy = policy) => new AuthorizationRegistration(identityPolicy,
+    { storage: f.storage, bucket: f.bucket, clock: f.options.clock, fetchKeys: f.options.fetchKeys, registrationPolicy });
+  const register = (service = create()) => service.register(token(), f.leaseToken, f.sent.dispatch.dispatch_id, f.resultBytes());
+  const rows = () => ({ index: f.db.prepare('SELECT * FROM m12_authorization_index').all(),
+    head: f.db.prepare('SELECT * FROM m12_authorization_head').all(),
+    consumption: f.db.prepare('SELECT * FROM m12_authorization_consumptions').all(),
+    log: f.db.prepare("SELECT * FROM m12_authorization_log WHERE operation='register_authorization'").all() });
+  return { ...f, policy, create, register, rows };
+}
+
+test('registration is disabled without a server policy and performs no storage or network work', async () => {
+  const service = new AuthorizationRegistration(null);
+  await assert.rejects(service.register('untrusted', {}, 'arbitrary', new Uint8Array()), /disabled/);
+});
+
+test('registration appends first grant and successor revoke with consumption and log atomically', async t => {
+  for (const history of [false, true]) {
+    const f = await registrationFixture(t, history);
+    const result = await f.register();
+    assert.equal(result.position, history ? 2 : 1);
+    assert.equal(result.previous_ref?.id ?? null, history ? f.priorRef.id : null);
+    const rows = f.rows();
+    assert.equal(rows.index.length, result.position);
+    assert.equal(rows.head[0].revision, result.position);
+    assert.equal(rows.consumption.length, 1);
+    assert.equal(rows.consumption[0].registration_json, rows.log[0].record_json);
+    assert.deepEqual(JSON.parse(rows.consumption[0].registration_json), result);
+    assert.equal(rows.log[0].occurred_ms, Date.parse(result.registered_at));
+    assert.deepEqual(Buffer.from(f.objects.get(f.authorizationKey)), Buffer.from(f.python.authorization_bytes, 'base64'));
+    assert.equal(JSON.parse(rows.index.at(-1).reference_json).id, result.return_record.authorization_ref.id);
+    const reopened = new AuthorizationStore(f.storage, { clock: f.options.clock });
+    const ticket = reopened.prepareValidation(f.job, f.leaseToken, f.sent.dispatch.approval_evidence_ref);
+    assert.equal(ticket.expected_revision, result.position);
+  }
+});
+
+test('registration binds every approved request field, reviewer and actor without alternate target', async t => {
+  const f = await registrationFixture(t);
+  const changes = [p => { p.actor_id = '790'; }, p => { p.approver_id = '998'; },
+    ...Object.keys(f.policy.request).map(key => p => { p.request[key] = null; })];
+  // Replace even originally-null fields with a distinct value.
+  for (const key of Object.keys(f.policy.request).filter(key => f.policy.request[key] === null)) {
+    changes.push(p => { p.request[key] = 'different'; });
+  }
+  for (const change of changes) {
+    const wrong = structuredClone(f.policy); change(wrong);
+    if (JSON.stringify(wrong) === JSON.stringify(f.policy)) continue;
+    await assert.rejects(f.register(f.create(wrong)), /not_permitted/);
+    assert.equal(f.rows().index.length, 1);
+    assert.equal(f.rows().consumption.length, 0);
+    assert.equal(f.rows().log.length, 0);
+  }
+  assert.ok(f.objects.has(f.authorizationKey)); // Orphan/read-verified bytes retained.
+});
+
+test('registration server policy is frozen and cannot be mutated by its constructor caller', async t => {
+  const f = await registrationFixture(t);
+  const service = f.create();
+  f.policy.request.code_commit = '0'.repeat(40);
+  f.policy.approver_id = '998';
+  assert.equal((await f.register(service)).position, 2);
+});
+
+test('registration refuses duplicate and concurrent consumption of the original ticket', async t => {
+  const f = await registrationFixture(t);
+  const service = f.create();
+  const outcomes = await Promise.allSettled([f.register(service), f.register(service)]);
+  assert.equal(outcomes.filter(item => item.status === 'fulfilled').length, 1);
+  assert.equal(f.rows().consumption.length, 1);
+  assert.equal(f.rows().index.length, 2);
+  await assert.rejects(f.register(service));
+  assert.equal(f.rows().log.length, 1);
+});
+
+test('registration rolls back index head consumption and log at every failed write', async t => {
+  for (const query of ['INSERT INTO m12_authorization_index', 'UPDATE m12_authorization_head',
+    'INSERT INTO m12_authorization_consumptions', 'INSERT INTO m12_authorization_log']) {
+    const f = await registrationFixture(t);
+    await f.archiveValidation();
+    const before = f.rows();
+    const exec = f.storage.sql.exec;
+    f.storage.sql.exec = (sql, ...args) => {
+      if (sql.startsWith(query) && (query !== 'INSERT INTO m12_authorization_log' || sql.includes("'register_authorization'"))) {
+        throw new Error('injected_registration_write_failure');
+      }
+      return exec(sql, ...args);
+    };
+    await assert.rejects(f.register(), /injected_registration_write_failure/);
+    assert.deepEqual(f.rows(), before);
+    f.storage.sql.exec = exec;
+    assert.equal((await f.register()).position, 2);
+  }
+});
+
+test('registration final lease expiry rolls back all writes and retains verified archive', async t => {
+  const f = await registrationFixture(t);
+  await f.archiveValidation();
+  const before = f.rows(), exec = f.storage.sql.exec;
+  f.storage.sql.exec = (sql, ...args) => {
+    const result = exec(sql, ...args);
+    if (sql.startsWith('INSERT INTO m12_authorization_consumptions')) f.state.now = (NOW + 300) * 1000;
+    return result;
+  };
+  await assert.rejects(f.register());
+  assert.deepEqual(f.rows(), before);
+  assert.ok(f.objects.has(f.authorizationKey));
+});
+
+test('registration rejects return record corruption during its final transaction', async t => {
+  const f = await registrationFixture(t);
+  await f.archiveValidation();
+  const before = f.rows();
+  const raw = f.db.prepare('SELECT record_json FROM m12_authorization_returns').get().record_json;
+  const exec = f.storage.sql.exec;
+  f.storage.sql.exec = (sql, ...args) => {
+    if (sql.startsWith('SELECT ticket_id FROM m12_authorization_consumptions WHERE')) {
+      const changed = JSON.parse(raw); changed.actor_id = '998';
+      f.db.prepare('UPDATE m12_authorization_returns SET record_json=?').run(JSON.stringify(changed));
+    }
+    return exec(sql, ...args);
+  };
+  await assert.rejects(f.register(), /recovery_required/);
+  assert.deepEqual(f.rows(), before);
+  assert.equal(f.db.prepare('SELECT record_json FROM m12_authorization_returns').get().record_json, raw);
+});
+
+test('registration consumption and log must remain paired on reopen', async t => {
+  const f = await registrationFixture(t);
+  await f.register();
+  f.db.exec("DELETE FROM m12_authorization_log WHERE operation='register_authorization'");
+  const reopened = new AuthorizationStore(f.storage, { clock: f.options.clock });
+  assert.throws(() => reopened.prepareValidation(f.job, f.leaseToken, f.sent.dispatch.approval_evidence_ref), /recovery_required/);
+});
 
 const NOW = 1_788_652_800;
 const keys = generateKeyPairSync("rsa", { modulusLength: 2048 });
@@ -1060,8 +1201,8 @@ test("identity expiration after archived input readback leaves no dispatch recor
   assert.equal(dispatchCount(f), 0);
 });
 
-async function returnFixture(t) {
-  const f = preparationFixture(t);
+async function returnFixture(t, withHistory = true) {
+  const f = preparationFixture(t, withHistory);
   const sent = await f.preparation.dispatchValidationInput(token(), f.leaseToken);
   const python = validateWire(sent.input_bytes);
   assert.equal(python.valid, true, python.error);
@@ -1218,8 +1359,8 @@ test("return copies caller output bytes before identity and storage awaits", asy
   assert.equal(Buffer.from(result.authorization_bytes).toString("base64"), f.python.authorization_bytes);
 });
 
-async function validationArchiveFixture(t) {
-  const f = await returnFixture(t);
+async function validationArchiveFixture(t, withHistory = true) {
+  const f = await returnFixture(t, withHistory);
   const validator = new AuthorizationValidationArchive(identityPolicy,
     { storage: f.storage, bucket: f.bucket, clock: f.options.clock, fetchKeys: f.options.fetchKeys });
   const receiptKey = "raw/" + sha(Buffer.from(f.python.receipt_bytes, "base64")).slice(7);

@@ -59,6 +59,8 @@ export class AuthorizationStore {
       this.#exec(`CREATE TABLE IF NOT EXISTS m12_authorization_returns (
         dispatch_id TEXT NOT NULL, receipt_key TEXT NOT NULL, ticket_id TEXT NOT NULL,
         record_json TEXT NOT NULL, PRIMARY KEY(dispatch_id,receipt_key))`);
+      this.#exec(`CREATE TABLE IF NOT EXISTS m12_authorization_consumptions (
+        ticket_id TEXT PRIMARY KEY, registration_json TEXT NOT NULL)`);
       this.#exec(`CREATE TABLE IF NOT EXISTS m12_authorization_log (
         sequence INTEGER PRIMARY KEY AUTOINCREMENT, operation TEXT NOT NULL, ticket_id TEXT NOT NULL,
         record_json TEXT NOT NULL, occurred_ms INTEGER NOT NULL)`);
@@ -68,6 +70,7 @@ export class AuthorizationStore {
           !this.#exec("SELECT ticket_id FROM m12_authorization_tickets LIMIT 1").length &&
           !this.#exec("SELECT ticket_id FROM m12_authorization_dispatches LIMIT 1").length &&
           !this.#exec("SELECT ticket_id FROM m12_authorization_returns LIMIT 1").length &&
+          !this.#exec("SELECT ticket_id FROM m12_authorization_consumptions LIMIT 1").length &&
           !this.#exec("SELECT sequence FROM m12_authorization_log LIMIT 1").length) {
         this.#exec("INSERT INTO m12_authorization_head VALUES (1, 0, NULL)");
       }
@@ -97,6 +100,29 @@ export class AuthorizationStore {
     }
     const head = state.head_json === null ? null : reference(JSON.parse(state.head_json), "publication-authorization:");
     if (JSON.stringify(head) !== JSON.stringify(previous)) throw new Error("authorization_head_mismatch");
+    const consumed = this.#exec("SELECT * FROM m12_authorization_consumptions");
+    const registered = this.#exec("SELECT * FROM m12_authorization_log WHERE operation='register_authorization'");
+    if (consumed.length !== registered.length) throw new Error("authorization_registration_recovery_required");
+    for (const row of consumed) {
+      const record = JSON.parse(row.registration_json), item = history[record.position - 1];
+      const ticket = this.#ticketRecord(row.ticket_id);
+      const logs = registered.filter(log => log.ticket_id === row.ticket_id && log.record_json === row.registration_json);
+      const storedReturn = this.#exec("SELECT record_json FROM m12_authorization_returns WHERE dispatch_id=? AND receipt_key=?",
+        record.dispatch_id, record.return_record.validation_receipt_archive.key);
+      if (Object.keys(record).sort().join() !== "dispatch_id,position,previous_ref,protocol,registered_at,return_record,ticket_id" ||
+          record.protocol !== "m12-authorization-registration/1" || record.ticket_id !== row.ticket_id ||
+          record.return_record.ticket_id !== row.ticket_id || record.return_record.dispatch_id !== record.dispatch_id ||
+          record.position !== ticket.expected_revision + 1 || JSON.stringify(record.previous_ref) !== JSON.stringify(ticket.expected_head_ref) ||
+          Date.parse(record.registered_at) < Date.parse(record.return_record.recorded_at) ||
+          !Number.isSafeInteger(record.position) || !item || logs.length !== 1 ||
+          logs[0].occurred_ms !== Date.parse(record.registered_at) || storedReturn.length !== 1 ||
+          storedReturn[0].record_json !== JSON.stringify(record.return_record) ||
+          JSON.stringify(item.reference) !== JSON.stringify(record.return_record.authorization_ref) ||
+          JSON.stringify(item.archive) !== JSON.stringify(record.return_record.authorization_archive) ||
+          JSON.stringify(item.previous_ref) !== JSON.stringify(record.previous_ref)) {
+        throw new Error("authorization_registration_recovery_required");
+      }
+    }
     return { revision: state.revision, head, history };
   }
 
@@ -350,5 +376,51 @@ export class AuthorizationStore {
       current(); // Last synchronous identity/lease/ticket/history check before commit.
       return record;
     });
+  }
+
+  registerValidatedAuthorization(identity, token, dispatchId, snapshot, permissionGuard) {
+    // Internal authenticated/read-verified entry only, never a direct RPC.
+    const frozen = JSON.parse(JSON.stringify(snapshot));
+    const deadline = Math.min(Date.parse(frozen.dispatch.expires_at), identity.expires_at * 1000);
+    return this.#leases.withOwnedLease("publish/global", identity.job, token, () => {
+      const current = this.readValidationDispatch(identity, token, dispatchId);
+      if (JSON.stringify(current) !== JSON.stringify({ dispatch: frozen.dispatch, validation_ticket: frozen.validation_ticket }) ||
+          typeof permissionGuard !== "function" || permissionGuard() !== true) {
+        throw new Error("authorization_registration_not_permitted");
+      }
+      const { allRows } = this.#returnRows(current.dispatch);
+      const returned = frozen.return_record;
+      const row = allRows.find(value => value.receipt_key === returned.validation_receipt_archive.key);
+      if (!row || row.record_json !== JSON.stringify(returned) || returned.actor_id !== identity.actor_id ||
+          this.#exec("SELECT ticket_id FROM m12_authorization_consumptions WHERE ticket_id=?", current.dispatch.ticket_id).length ||
+          this.#exec("SELECT sequence FROM m12_authorization_log WHERE operation='register_authorization' AND ticket_id=?", current.dispatch.ticket_id).length) {
+        throw new Error("authorization_registration_record_conflict");
+      }
+      const history = this.#history();
+      const now = this.#clock();
+      const lastNow = this.#exec("SELECT last_now FROM m12_lease_epoch WHERE singleton=1")[0]?.last_now;
+      if (!Number.isSafeInteger(now) || now < lastNow || now < Date.parse(returned.recorded_at) || now >= deadline) {
+        throw new Error("authorization_registration_time_invalid");
+      }
+      const record = { protocol: "m12-authorization-registration/1", ticket_id: current.dispatch.ticket_id,
+        dispatch_id: dispatchId, return_record: returned, previous_ref: history.head,
+        position: history.revision + 1, registered_at: new Date(now).toISOString() };
+      // Final pre-write identity, lease, original deadline, head and history guard.
+      if (JSON.stringify(this.readValidationDispatch(identity, token, dispatchId)) !== JSON.stringify(current) ||
+          permissionGuard() !== true) throw new Error("authorization_registration_changed");
+      const raw = JSON.stringify(record);
+      this.#exec("INSERT INTO m12_authorization_index VALUES (?, ?, ?, ?)", record.position,
+        JSON.stringify(returned.authorization_ref), JSON.stringify(returned.authorization_archive),
+        history.head === null ? null : JSON.stringify(history.head));
+      this.#exec("UPDATE m12_authorization_head SET revision=?,head_json=? WHERE singleton=1",
+        record.position, JSON.stringify(returned.authorization_ref));
+      this.#exec("INSERT INTO m12_authorization_consumptions VALUES (?, ?)", record.ticket_id, raw);
+      this.#exec(`INSERT INTO m12_authorization_log (operation,ticket_id,record_json,occurred_ms)
+        VALUES ('register_authorization', ?, ?, ?)`, record.ticket_id, raw, now);
+      const after = this.#history();
+      if (after.revision !== record.position || JSON.stringify(after.head) !== JSON.stringify(returned.authorization_ref) ||
+          permissionGuard() !== true) throw new Error("authorization_registration_changed");
+      return record;
+    }, { deadlineMs: deadline }); // Rechecks owner/epoch/fence/time after all writes; rollback on failure.
   }
 }
