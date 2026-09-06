@@ -4,7 +4,7 @@ import { MembershipObservationIndex } from '../services/publication/membership_i
 import { DailyPreparationApi } from '../services/publication/daily_preparation_api.mjs';
 import { MembershipUseFactory } from '../services/publication/membership_use.mjs';
 import { MembershipArchiveApi } from '../services/publication/membership_api.mjs';
-import { PreparationValidationSession } from '../services/publication/preparation_session.mjs';
+import { PreparationValidationSession, preparationWindowDeadline } from '../services/publication/preparation_session.mjs';
 import { PreparationEvidenceReadback } from '../services/publication/preparation_readback.mjs';
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -228,7 +228,7 @@ test('import baseline is an exact trusted prefix and missing boundary is never i
   assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM m12_authorization_import_baseline').get().n, 0);
 });
 
-const NOW = 1_788_652_800;
+const NOW = process.env.SAGE_M12_MIDNIGHT_TEST === '1' ? Date.parse('2026-09-07T03:59:59Z') / 1000 : 1_788_652_800;
 const keys = generateKeyPairSync("rsa", { modulusLength: 2048 });
 const jwk = { ...keys.publicKey.export({ format: "jwk" }), kid: "test", alg: "RS256", use: "sig" };
 const identityPolicy = { repository: "example/sage", repository_id: "123",
@@ -3549,3 +3549,79 @@ test('membership registration session checks the lease after final result serial
   assert.equal(f.count('m12_membership_index'), 0);
   assert.equal(f.count('m12_membership_returns'), 0);
 });
+
+
+test('membership registration original day deadline preserves shorter expiry and DST dates', () => {
+  for (const [start, end] of [['2026-03-08T05:00:00Z', '2026-03-09T04:00:00Z'],
+    ['2026-11-01T04:00:00Z', '2026-11-02T05:00:00Z'], ['2026-09-07T03:59:59Z', '2026-09-07T04:00:00Z']]) {
+    const a = Date.parse(start), b = Date.parse(end);
+    assert.equal(preparationWindowDeadline(a, b + 3600000), b);
+    assert.equal(preparationWindowDeadline(a, a + 500), a + 500);
+    assert.equal(preparationWindowDeadline(a, b), b);
+  }
+});
+
+if (process.env.SAGE_M12_MIDNIGHT_TEST === '1') {
+  test('membership midnight first registration rolls back only on crossing the original day', async t => {
+    for (const delta of [0, 1000]) {
+      const f = await membershipSessionFixture(t), original = globalThis.structuredClone;
+      let hit = false;
+      globalThis.structuredClone = value => {
+        const result = original(value);
+        if (value?.registered_ms !== undefined && value?.current_index?.revision === 1) { hit = true; f.state.now += delta; }
+        return result;
+      };
+      try {
+        if (delta) await assert.rejects(f.accept(), /deadline/);
+        else assert.equal((await f.accept()).current_index.revision, 1);
+      } finally { globalThis.structuredClone = original; }
+      assert.equal(hit, true);
+      assert.equal(f.count('m12_membership_index'), delta ? 0 : 1);
+      assert.equal(f.count('m12_membership_returns'), delta ? 0 : 1);
+      if (delta) await assert.rejects(f.service.accept(token({ iat: NOW, nbf: NOW, exp: NOW + 600 }), f.sent.input_archive.sha256, f.bytes()));
+    }
+  });
+  test('membership midnight idempotent return cannot revive yesterday while preserving prior success', async t => {
+    const f = await membershipSessionFixture(t), receipt = await f.accept(), original = globalThis.structuredClone;
+    globalThis.structuredClone = value => {
+      const result = original(value);
+      if (value?.registered_ms !== undefined && value?.current_index?.revision === 1) f.state.now += 1000;
+      return result;
+    };
+    try { await assert.rejects(f.accept(), /deadline/); }
+    finally { globalThis.structuredClone = original; }
+    assert.equal(f.count('m12_membership_index'), 1);
+    assert.equal(f.count('m12_membership_returns'), 1);
+    assert.deepEqual(JSON.parse(f.db.prepare('SELECT record_json FROM m12_membership_returns').get().record_json), receipt);
+    await assert.rejects(f.service.accept(token({ iat: NOW, nbf: NOW, exp: NOW + 600 }), f.sent.input_archive.sha256, f.bytes()));
+  });
+  test('membership midnight prepared input final copy rolls back its pair and keeps orphan bytes', async t => {
+    const f = await membershipReadbackFixture(t);
+    const licensePolicy = Object.fromEntries(['purpose', 'license_archive', 'license_valid_from', 'license_valid_until'].map(k => [k, f.acquisitionPolicy[k]]));
+    const service = new MembershipRegistrationSession(identityPolicy, { ...f.useOptions, licensePolicy });
+    const exec = f.storage.sql.exec, original = globalThis.structuredClone, before = f.objects.size;
+    let armed = false, hit = false;
+    f.storage.sql.exec = (sql, ...args) => { const result = exec(sql, ...args); if (sql.includes('INSERT INTO m12_membership_input_log')) armed = true; return result; };
+    globalThis.structuredClone = value => {
+      const result = original(value);
+      if (armed && value?.key?.startsWith('raw/')) { hit = true; f.state.now += 1000; }
+      return result;
+    };
+    try { await assert.rejects(service.prepare(token(), f.candidate), /deadline/); }
+    finally { globalThis.structuredClone = original; f.storage.sql.exec = exec; }
+    assert.equal(hit, true);
+    assert.equal(f.db.prepare('SELECT count(*) AS n FROM m12_membership_inputs').get().n, 0);
+    assert.equal(f.db.prepare('SELECT count(*) AS n FROM m12_membership_input_log').get().n, 0);
+    assert.ok(f.objects.size > before);
+    await assert.rejects(service.prepare(token({ iat: NOW, nbf: NOW, exp: NOW + 600 }), f.candidate));
+  });
+} else {
+  test('membership registration midnight boundaries run with otherwise valid credentials', () => {
+    const childEnv = { ...process.env, SAGE_M12_MIDNIGHT_TEST: '1', PYTHONDONTWRITEBYTECODE: '1' };
+    delete childEnv.NODE_TEST_CONTEXT; // Start an independent test runner, not the parent's IPC harness.
+    const child = spawnSync(process.execPath, ['--test', '--test-reporter=tap', '--test-name-pattern=^membership midnight', new URL(import.meta.url).pathname], {
+      env: childEnv, encoding: 'utf8', timeout: 20000 });
+    assert.equal(child.status, 0, child.stdout + child.stderr);
+    assert.match(child.stdout, /# pass 3/);
+  });
+}

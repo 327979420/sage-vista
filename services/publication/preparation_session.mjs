@@ -17,6 +17,23 @@ const exact = (value, fields) => {
 const sha = async bytes => 'sha256:' + Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)),
   v => v.toString(16).padStart(2, '0')).join('');
 const newYorkDay = milliseconds => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(milliseconds);
+// Cap another expiry at the first change of the ORIGINAL evidence's NY day.
+// Reuse the existing timezone interpretation, including 23/25-hour DST days.
+export function preparationWindowDeadline(recordedMs, deadlineMs) {
+  if (!Number.isSafeInteger(recordedMs) || !Number.isSafeInteger(deadlineMs) ||
+      recordedMs < 0 || !Number.isFinite(new Date(recordedMs).getTime()) ||
+      !Number.isFinite(new Date(deadlineMs).getTime())) throw new Error('preparation_session_clock_invalid');
+  if (deadlineMs <= recordedMs) return deadlineMs;
+  const originalDay = newYorkDay(recordedMs);
+  if (newYorkDay(deadlineMs - 1) === originalDay) return deadlineMs;
+  let low = recordedMs, high = deadlineMs;
+  while (high - low > 1) {
+    const middle = low + Math.floor((high - low) / 2);
+    if (newYorkDay(middle) === originalDay) low = middle;
+    else high = middle;
+  }
+  return high;
+}
 const parse = bytes => JSON.parse(new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes));
 const handleCopy = handle => {
   exact(handle, ['epoch', 'fence']);

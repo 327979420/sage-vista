@@ -6,6 +6,7 @@ import { AuthorizationStore } from './authorization_store.mjs';
 import { ImmutableArchive } from './archive.mjs';
 import { GitHubIdentityVerifier } from './identity.mjs';
 import { LeaseStore } from './leases.mjs';
+import { preparationWindowDeadline } from './preparation_session.mjs';
 
 const canonical = v => Array.isArray(v) ? v.map(canonical) : v && typeof v === 'object' ?
   Object.fromEntries(Object.keys(v).sort().map(k => [k, canonical(v[k])])) : v;
@@ -101,7 +102,8 @@ export class MembershipRegistrationSession {
   }
   #commit(record, identity, callback) {
     return this.#leases.withOwnedLease(this.#resource, record.identity.job, record.selection.lease_token, callback,
-      { deadlineMs: Math.min(identity.expires_at * 1000, record.identity.expires_at * 1000, this.#license.license_valid_until) });
+      { deadlineMs: preparationWindowDeadline(record.recorded_ms,
+        Math.min(identity.expires_at * 1000, record.identity.expires_at * 1000, this.#license.license_valid_until)) });
   }
   async #read(descriptor) {
     const { key, sha256, size_bytes } = descriptor;
