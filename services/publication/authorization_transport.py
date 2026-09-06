@@ -25,6 +25,8 @@ from urllib.request import HTTPSHandler, HTTPRedirectHandler, ProxyHandler, Requ
 PROTOCOL = "m12-authorization-job/1"
 AUDIENCE = "sage-vista-publication"
 PREPARE_LIMIT = 32 * 1024 * 1024
+ARCHIVE_RESPONSE_LIMIT = 48 * 1024 * 1024
+ARCHIVE_WORKER_LIMIT = 64 * 1024 * 1024
 HTTP_TOTAL_WAIT_SECONDS = 30
 UUID = re.compile(r"[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}")
 
@@ -127,7 +129,7 @@ def _blocking_request(opener, url, token, *, data=None, limit):
         raise AuthorizationTransportError("validation transport request failed") from None
 
 
-class AuthorizationHttpsTransport:
+class ActionsHttpsChannel:
     def __init__(self, coordinator_origin: str, actions_environment: dict, *, opener=None):
         origin = _url(coordinator_origin)
         if origin.path not in ("", "/") or origin.query:
@@ -148,10 +150,6 @@ class AuthorizationHttpsTransport:
         self._oidc_url = urlunsplit(request._replace(query=urlencode([*query, ("audience", AUDIENCE)])))
         self._credential = credential
         self._opener = opener
-        self._state = "new"
-        self._prepared = None
-        self._control_now = None
-        self._lease_expiry = None
 
     def _request(self, url, token, *, data=None, limit):
         if self._opener is not None:
@@ -165,6 +163,15 @@ class AuthorizationHttpsTransport:
         if not isinstance(token, str) or len(token) > 65536 or not re.fullmatch(r"[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+", token):
             raise AuthorizationTransportError("validation OIDC response invalid")
         return token  # Signature, issuer, Job and policy remain server-verified.
+
+
+class AuthorizationHttpsTransport(ActionsHttpsChannel):
+    def __init__(self, coordinator_origin: str, actions_environment: dict, *, opener=None):
+        super().__init__(coordinator_origin, actions_environment, opener=opener)
+        self._state = "new"
+        self._prepared = None
+        self._control_now = None
+        self._lease_expiry = None
 
     def prepare(self):
         if self._state != "new":
@@ -281,11 +288,13 @@ def _isolated_request(url, token, *, data=None, limit):
 
 def _http_worker_main():
     try:
-        raw = sys.stdin.buffer.read(PREPARE_LIMIT + 1)
-        if len(raw) > PREPARE_LIMIT:
+        raw = sys.stdin.buffer.read(ARCHIVE_WORKER_LIMIT + 1)
+        if len(raw) > ARCHIVE_WORKER_LIMIT:
             return 1
         value = _json(raw)
-        if set(value) != {"url", "token", "data_base64", "limit"} or type(value["limit"]) is not int or value["limit"] not in (131072, 1048576, PREPARE_LIMIT):
+        if set(value) != {"url", "token", "data_base64", "limit"} or type(value["limit"]) is not int or value["limit"] not in (131072, 1048576, PREPARE_LIMIT, ARCHIVE_RESPONSE_LIMIT):
+            return 1
+        if value["limit"] != ARCHIVE_RESPONSE_LIMIT and len(raw) > PREPARE_LIMIT:
             return 1
         _url(value["url"])
         if not isinstance(value["token"], str) or not re.fullmatch(r"[\x21-\x7e]+", value["token"]):

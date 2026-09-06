@@ -130,13 +130,21 @@ export class MembershipArchiveSession {
     return result;
   }
 
+  #allowed(key, frozen, now) {
+    if (encode({ key, ...frozen }) === encode(this.#policy.acquisition_evidence)) return;
+    this.#owned(key, frozen, true, now);
+  }
+
+  async verifyAccess(token, key, expected) {
+    const frozen = descriptor(key, expected);
+    const identity = await this.#identity(token);
+    this.#guard(identity, ({ now }) => this.#allowed(key, frozen, now));
+  }
+
   async read(token, key, expected) {
     const frozen = descriptor(key, expected);
     const identity = await this.#identity(token);
-    const allowed = ({ now }) => {
-      if (encode({ key, ...frozen }) === encode(this.#policy.acquisition_evidence)) return;
-      this.#owned(key, frozen, true, now);
-    };
+    const allowed = ({ now }) => this.#allowed(key, frozen, now);
     this.#guard(identity, allowed);
     await this.#evidence(identity);
     const bytes = await this.#archive.read(key, frozen);

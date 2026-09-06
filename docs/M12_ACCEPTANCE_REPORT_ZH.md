@@ -943,3 +943,24 @@ read只允许服务器固定许可原件或本会话已实际写入／读回并�
 16项专项使用真实RSA签名、原身份验证器、真实本地SQLite事务和B1a实际适配器，R2/JWKS端点为内存替身：默认禁用、固定许可及任务归属、持久对象重开、他人哈希拒读、Job／actor／代码／签名差错、来源／日期替换、许可缺失／损坏、策略和入参不可变、R2失败孤立对象、会话／JWT期限（租约续约后旧JWT仍失效）、读写中fence接管、SQL末尾到期回滚、并发重放与腐坏、严格raw描述符、配对日志丢失／写失败及读取中归属丢失。16项Node＋19项治理状态共35项通过，定点eslint、机器状态／链接／diff通过。无真实Cloudflare跨请求持久性或Python↔R2网络验收，不重复无变化B／M11／C1b整套。
 
 独立提交feat: bind private M12 raw archive access to task sessions [skip ci]，父98c82a76c510107d182d46a2fa3b1b0057a1e098，完整SHA见交付消息。回退撤回未接线会话，不删除对象或读取日志。下一小包接Python受控字节通道与服务端路由，随后补实际授权来源工厂／当前使用核验、M02身份资格和C/D链；完整归档桥尚未验收。未真实供应商调用、外部写入、合并、推送、云资源、部署、生产启用或对外通知；跨日端到端仍未执行。
+
+
+## C1c独立审核结论
+
+审核任务确认a07299953a1367ea58c27a3d2fd132eac7057e30在私有归档桥服务端内部会话范围通过，无新增阻断。独立16项Node spec通过178.68ms、19项治理状态通过，共35项，无失败／取消／跳过；eslint、diff、精确HEAD及干净工作区通过。不替代许可语义、当前授权／撤销／真实配置核验，也不证明供应商事实、真实Cloudflare持久性或Python-R2桥完成。
+
+## C1d：Python字节客户端与默认禁用归档路由（待独立审核）
+
+新增MembershipArchiveApi，仅提供POST /v1/membership/permit、put、read；默认enabled=false时无SQL或网络，显式启用仍必须有服务器sessionPolicy。无Worker挂接、工作流或真实策略实例。API先复用GitHubIdentityVerifier验证固定身份，随后读取严格规范JSON；未知字段、重复键、非规范编码／base64、错误长度、非raw对象或替代路径失败关闭。请求不能提供Job、actor、租约、配置或会话策略，C1c仍独自负责当前权限及归属。
+
+精确传输protocol=m12-membership-archive/1：permit请求为protocol/as_of/request_url，回复另含key/sha256/size_bytes/bytes_base64；put请求为protocol/key/sha256/size_bytes/bytes_base64，回复去掉bytes_base64；read请求为protocol/key/sha256/size_bytes，回复添加bytes_base64。permit数据来自固定原件实际读回；put实际保存／读回后才确认；read仅读本会话许可范围。响应完成base64／JSON编码后，通过C1c新增verifyAccess复用唯一归属检查，再次新验签和检查原fence、会话／JWT期限及配对记录，防止编码耗时跨过权限窗口。失败仅给有限通道错误，不输出私有正文或token。
+
+Python MembershipArchiveTransport实现C1b authorize/put/read依赖，每次取新Actions OIDC并只调用固定协调器三路由；permit精确匹配日期／来源，put确认和read均核对严格整数大小、完整字段、键／SHA及实际bytes，不接受bool冒充整数或同大小异字节。失败不自动重试或改目标；响应不确定可能已保存原件，不因此声称未发生写入。C1b仍在许可原件读回后采集，并由同一解析器处理成功／拒绝响应；PrivateArchive不再只靠测试内存对象完成调用链。
+
+现有authorization_transport.py的URL／OIDC／隔离请求提取为ActionsHttpsChannel父类，旧AuthorizationHttpsTransport只移动会话初始化位置，其prepare／return／status／renew语义不变。新归档JSON请求／回复上限48MiB，固定HTTP worker的stdin封装上限64MiB，以容纳32MiB＋1原件及两层base64；旧路径仍按原PREPARE_LIMIT等限额执行，旧worker请求若超过原32MiB也继续拒绝。最大原件确实完成客户端序列化并核对两层预算，但这不是Cloudflare运行内存／大响应的实际容量验收，真实平台内存／时间与TLS仍须上线前dry-run确认。旧API的规范JSON读取／base64／响应助手原样提取到job_wire.mjs共用，未复制业务合同校验或改变旧读取期限。
+
+测试使用真实Python子进程执行collect_membership＋MembershipArchiveTransport，经本地双向消息替身承载实际HTTPS请求对象，交给真实API／OIDC签名／SQLite／B1a适配器。正常名单和截断JSON两轮各调用permit一次及三组put/read，保存许可原件、响应原件和观察记录；每轮3条归属，坏JSON保留原件并返回原有限原因。供应商、JWKS与R2绑定均为替身，无真实HTTP／TLS／账户调用。另覆盖默认关闭、错误路由／方法、未认证不读取body、未知字段／重复键／坏base64、响应编码后到期、客户端篡改响应／bool大小、隔离worker复用、旧／新封装限额和最大捕获原件。
+
+22项归档会话／API／跨语言Node通过495.10ms（往返190.28ms），7项受影响旧授权路由定点回归通过5.99秒；7项新客户端、25项共享HTTPS和19项治理状态共51项Python通过1.651秒（ResourceWarning为错误），合计80项。定点eslint、共享助手提取前后字节核对、机器状态／链接／diff通过。没有重跑M11或无变化B全部测试。
+
+独立提交feat: connect controlled M12 membership byte transport [skip ci]，父a07299953a1367ea58c27a3d2fd132eac7057e30，完整SHA见交付消息。回退撤回未挂接客户端／路由，保留原件及会话归属日志。下一包优先实际授权来源工厂／当前授权、撤销及配置使用核验，再接M02身份／同日资格和C/D链；服务端合成sessionPolicy不成为真实生产许可，数据公开展示仍按上线卡批准。未真实供应商调用、外部写入、合并、推送、云资源、部署、生产启用或对外通知；跨日端到端仍未执行。

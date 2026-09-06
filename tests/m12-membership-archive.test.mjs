@@ -2,6 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash, generateKeyPairSync, sign } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
+import { spawn } from 'node:child_process';
+import { createInterface } from 'node:readline';
+import { MembershipArchiveApi } from '../services/publication/membership_api.mjs';
 import { MembershipArchiveSession } from '../services/publication/membership_archive.mjs';
 import { LeaseStore } from '../services/publication/leases.mjs';
 
@@ -72,7 +75,7 @@ function fixture(t, patchPolicy = {}) {
   } };
   const create = (sessionPolicy = policy) => new MembershipArchiveSession(identityPolicy, { ...dependencies, sessionPolicy });
   return { db, storage, leases, resource, policy, evidence, objects, bucket, calls, hooks, create,
-    session: create(), setTime: ms => { now = ms; }, verified: () => verified,
+    session: create(), api: new MembershipArchiveApi(identityPolicy, { ...dependencies, sessionPolicy: policy, enabled: true }), setTime: ms => { now = ms; }, verified: () => verified,
     rows: () => db.prepare('SELECT * FROM m12_membership_raw_access').all() };
 }
 
@@ -263,4 +266,135 @@ test('log write failure rolls back access; read-time ownership loss never releas
   await save(f);
   f.hooks.get = key => { if (key === RAW_DESC.key) f.db.exec('DELETE FROM m12_membership_raw_access'); };
   await assert.rejects(read(f), /access_conflict/);
+});
+
+
+const PROTOCOL = 'm12-membership-archive/1';
+const canonical = v => Array.isArray(v) ? v.map(canonical) : v && typeof v === 'object' ?
+  Object.fromEntries(Object.keys(v).sort().map(k => [k, canonical(v[k])])) : v;
+const wire = v => JSON.stringify(canonical(v));
+const request = (op, value, jwt = token()) => new Request('https://coordinator.example.test/v1/membership/' + op,
+  { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + jwt }, body: wire(value) });
+const permit = { protocol: PROTOCOL, as_of: '2026-09-08', request_url: SOURCE };
+const put = { protocol: PROTOCOL, ...RAW_DESC, bytes_base64: RAW.toString('base64') };
+const get = { protocol: PROTOCOL, ...RAW_DESC };
+
+test('API remains disabled without binding or rejects enabled missing policy', async () => {
+  const api = new MembershipArchiveApi(null);
+  assert.equal((await api.fetch(request('permit', permit))).status, 503);
+  assert.throws(() => new MembershipArchiveApi(null, { enabled: true }), /policy_required/);
+});
+
+test('three fixed API routes perform actual byte session roundtrip', async t => {
+  const f = fixture(t);
+  const granted = await (await f.api.fetch(request('permit', permit))).json();
+  assert.equal(granted.bytes_base64, f.evidence.toString('base64'));
+  assert.equal(granted.as_of, permit.as_of);
+  const stored = await f.api.fetch(request('put', put));
+  assert.equal(stored.status, 200);
+  assert.deepEqual(await stored.json(), { protocol: PROTOCOL, ...RAW_DESC });
+  const loaded = await f.api.fetch(request('read', get));
+  assert.equal(loaded.headers.get('Cache-Control'), 'no-store');
+  assert.deepEqual(await loaded.json(), put);
+});
+
+test('API rejects route substitutions unknown fields duplicate JSON and noncanonical bytes', async t => {
+  const f = fixture(t);
+  for (const op of ['unknown', 'read?key=other']) assert.equal((await f.api.fetch(request(op, get))).status, 404);
+  assert.equal((await f.api.fetch(new Request('https://coordinator.example.test/v1/membership/read'))).status, 405);
+  for (const raw of [wire({ ...put, job: JOB }), '{"protocol":"x","protocol":"m12-membership-archive/1"}',
+    wire(put) + ' ', wire({ ...put, bytes_base64: RAW.toString('base64') + '\n' }), wire({ ...get, size_bytes: true })]) {
+    const req = request('put', put);
+    assert.equal((await f.api.fetch(new Request(req.url, { method: 'POST', headers: req.headers, body: raw }))).status, 400);
+  }
+  assert.equal(f.calls.length, 0);
+});
+
+test('API verifies identity before requesting body and never echoes private errors', async t => {
+  const f = fixture(t);
+  const req = request('put', put, 'unsigned');
+  Object.defineProperty(req, 'body', { get() { throw new Error('body_was_touched'); } });
+  assert.equal((await f.api.fetch(req)).status, 401);
+  const response = await f.api.fetch(request('read', get));
+  assert.equal(response.status, 409);
+  assert.deepEqual(await response.json(), { protocol: PROTOCOL, error: 'membership_archive_not_ready' });
+  assert.equal(f.calls.length, 0);
+});
+
+test('API rechecks after response encoding; expired response cannot release bytes', async t => {
+  const f = fixture(t);
+  const original = globalThis.btoa;
+  globalThis.btoa = value => {
+    const result = original(value);
+    if (value === f.evidence.toString('binary')) f.setTime(f.policy.expires_at);
+    return result;
+  };
+  try { assert.equal((await f.api.fetch(request('permit', permit))).status, 409); }
+  finally { globalThis.btoa = original; }
+  assert.equal(f.calls.filter(call => call[0] === 'get').length, 1);
+});
+
+test('real Python collector and HTTPS client use all three API routes for success and failure archival', async t => {
+  for (const valid of [true, false]) {
+    const f = fixture(t);
+    const raw = valid ? Buffer.from('[{"Code":"A","Type":"Common Stock","Exchange":"NYSE","Name":"A","Country":"USA","Currency":"USD"}]\n') : Buffer.from('[{');
+    const code = `
+import io,json,sys,base64
+from datetime import datetime,timezone
+from email.message import Message
+from unittest.mock import patch
+from services.scanner import eodhd
+from services.market_data.membership_collection import collect_membership
+from services.publication.membership_transport import MembershipArchiveTransport
+class Response(io.BytesIO):
+ def __init__(self,raw,url,status=200):
+  super().__init__(raw);self.url=url;self.status=status;self.headers=Message()
+  self.headers['Content-Type']='application/json';self.headers['Content-Length']=str(len(raw))
+ def geturl(self):return self.url
+class Opener:
+ def open(self,req,timeout):
+  print(json.dumps({'request':True,'url':req.full_url,'token':req.get_header('Authorization'),'body':None if req.data is None else req.data.decode()}),flush=True)
+  result=json.loads(sys.stdin.readline())
+  return Response(result['body'].encode(),req.full_url,result['status'])
+env={'GITHUB_ACTIONS':'true','ACTIONS_ID_TOKEN_REQUEST_URL':'https://run.actions.githubusercontent.com/token','ACTIONS_ID_TOKEN_REQUEST_TOKEN':'synthetic'}
+client=MembershipArchiveTransport('https://coordinator.example.test',env,opener=Opener())
+raw=base64.b64decode('${raw.toString('base64')}')
+with patch.object(eodhd,'token',return_value='fake-provider-token'),patch.object(eodhd,'_membership_open',side_effect=lambda req:Response(raw,req.full_url)),patch.object(eodhd,'datetime') as clock:
+ clock.now.side_effect=[datetime(2026,9,8,23,47,tzinfo=timezone.utc),datetime(2026,9,8,23,48,tzinfo=timezone.utc)]
+ result=collect_membership('2026-09-08',authorize=client.authorize,archive=client)
+print(json.dumps({'completed':True,'failure':result.failure,'key':result.observation_key}),flush=True)
+`;
+    const child = spawn('python3', ['-B', '-c', code], { cwd: process.cwd(), env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1' }, stdio: ['pipe', 'pipe', 'pipe'] });
+    t.after(() => { if (child.exitCode === null) child.kill(); });
+    let chain = Promise.resolve(), final, stderr = '';
+    const operations = [];
+    child.stderr.on('data', data => { stderr += data; });
+    const lines = createInterface({ input: child.stdout });
+    lines.on('line', line => {
+      chain = chain.then(async () => {
+        const value = JSON.parse(line);
+        if (value.completed) { final = value; return; }
+        let result;
+        if (value.url.startsWith('https://run.actions.githubusercontent.com/')) {
+          result = { status: 200, body: JSON.stringify({ value: token({ jti: 'fresh-' + operations.length }) }) };
+        } else {
+          operations.push(new URL(value.url).pathname);
+          const response = await f.api.fetch(new Request(value.url, { method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: value.token }, body: value.body }));
+          result = { status: response.status, body: await response.text() };
+        }
+        child.stdin.write(JSON.stringify(result) + '\n');
+      }).catch(error => { child.kill(); throw error; });
+    });
+    const status = await new Promise((resolve, reject) => { child.once('error', reject); child.once('exit', resolve); });
+    await chain;
+    assert.equal(status, 0, stderr);
+    assert.equal(final.failure, valid ? null : 'membership_response_json_invalid');
+    assert.equal(operations.length, 7);
+    assert.equal(operations[0], '/v1/membership/permit');
+    const observation = JSON.parse(Buffer.from(f.objects.get(final.key)));
+    assert.deepEqual(Buffer.from(f.objects.get(observation.response.key)), raw);
+    assert.equal(f.rows().length, 3);
+    assert.equal(observation.failure, final.failure);
+  }
 });
