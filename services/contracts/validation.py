@@ -126,6 +126,7 @@ ID_FIELDS = {
     "SourceInventory": "inventory_id",
     "PublicationAuthorization": "authorization_id",
     "EvaluationSnapshot": "evaluation_snapshot_id",
+    "PublicationReceipt": "receipt_id",
     "ExperimentRun": "experiment_id",
 }
 
@@ -258,9 +259,13 @@ def validate_contract(
     publication_authorization_evidence: Mapping[str, Any] | None = None,
     evaluation_snapshot_evidence: Mapping[str, Any] | None = None,
     release_manifest_evidence: Mapping[str, Any] | None = None,
+    publication_receipt_evidence: Mapping[str, Any] | None = None,
 ) -> None:
     """Validate one canonical contract and fail closed on unknown evidence."""
 
+    if contract_name == "PublicationReceipt":
+        _validate_publication_receipt(payload, publication_receipt_evidence)
+        return
     if contract_name == "ReleaseManifest" and isinstance(payload, Mapping) and payload.get("schema_version") == "2.0.0":
         _validate_release_manifest_v2(payload, release_manifest_evidence)
         return
@@ -1149,6 +1154,7 @@ def validate_contracts(
     publication_authorization_evidence: Mapping[str, Any] | None = None,
     evaluation_snapshot_evidence: Mapping[str, Any] | None = None,
     release_manifest_evidence: Mapping[str, Any] | None = None,
+    publication_receipt_evidence: Mapping[str, Any] | None = None,
 ) -> None:
     """Validate a collection, including stable-ID and event uniqueness rules."""
 
@@ -1160,6 +1166,7 @@ def validate_contracts(
             publication_authorization_evidence=publication_authorization_evidence,
             evaluation_snapshot_evidence=evaluation_snapshot_evidence,
             release_manifest_evidence=release_manifest_evidence,
+            publication_receipt_evidence=publication_receipt_evidence,
         )
         stable_id_field = _stable_id_field(contract_name, payload)
         identity = (contract_name, str(payload[stable_id_field]))
@@ -1633,7 +1640,7 @@ def _m12_policy_refs(value: Any) -> list[dict[str, Any]]:
     return [dict(item) for item in value]
 
 
-def _m12_json(raw: Any) -> Mapping[str, Any]:
+def _m12_json(raw: Any, *, allow_release_identity: bool = False) -> Mapping[str, Any]:
     if type(raw) is not bytes:
         raise ContractError("M12 file snapshots must be immutable bytes")
 
@@ -1659,7 +1666,7 @@ def _m12_json(raw: Any) -> Mapping[str, Any]:
     while stack:
         item = stack.pop()
         if isinstance(item, Mapping):
-            if "release_id" in item:
+            if "release_id" in item and not allow_release_identity:
                 raise ContractError("release files cannot contain their release identity")
             stack.extend(item.values())
         elif isinstance(item, list):
@@ -1795,3 +1802,308 @@ def _validate_release_manifest_v2(payload: Mapping[str, Any], evidence: Mapping[
     fingerprint = "sha256:" + hashlib.sha256(_canonical(body)).hexdigest()
     if payload["content_fingerprint"] != fingerprint or payload["release_id"] != "release:" + fingerprint:
         raise ContractError("ReleaseManifest identity mismatch")
+
+
+M12_PAGE_PATHS = ("/", "/zh/watch/industry-radar", "/zh/watch/resonance/favorite-pattern", "/zh/watch/resonance/rare-opportunities")
+M12_CHECK_NAMES = frozenset({"contract", "date", "identity", "hash", "coverage", "four_pages", "authorization"})
+M12_RECEIPT_DETAILS = {
+    "prepare": {"inventory_ref", "checked_files", "checks"},
+    "preflight": {"target", "candidate_url", "renderer_version_id", "provider_deployment_id", "manifest_hash", "checked_files", "page_paths", "checks"},
+    "promote": {"before", "after", "expected_generation", "resulting_generation", "preflight_ref"},
+    "online": {"target", "pointer_generation", "renderer_version_id", "provider_deployment_id", "manifest_hash", "checked_files", "page_paths", "checks"},
+    "rollback": {"before", "after", "failed_receipt_ref", "rollback_check_ref", "expected_generation", "resulting_generation"},
+    "notify": {"online_receipt_ref", "notification_plan_ref", "items"},
+}
+M12_RECEIPT_BODY_FIELDS = frozenset({
+    "release_ref", "previous_receipt_ref", "job", "fence", "occurred_at", "kind", "outcome", "reason_code", "details",
+})
+
+
+def _m12_uint(value: Any) -> None:
+    if type(value) is not int or value < 0:
+        raise ContractError("M12 UInt must be a nonnegative integer, not bool")
+
+
+def _m12_hash(value: Any) -> None:
+    _m12_ref({"id": "hash-check", "content_fingerprint": value})
+
+
+def _m12_pointer_target(value: Any) -> None:
+    if not isinstance(value, Mapping) or value.get("kind") not in ("release", "legacy"):
+        raise ContractError("unknown PointerTarget kind")
+    ref_key = "release_ref" if value["kind"] == "release" else "baseline_ref"
+    _m12_exact(value, {"kind", ref_key, "renderer_version_id"}, "PointerTarget")
+    _m12_ref(value[ref_key])
+    _m12_text(value["renderer_version_id"], "renderer_version_id")
+
+
+def _m12_checked_files(value: Any) -> None:
+    if not isinstance(value, list):
+        raise ContractError("checked_files must be an array")
+    paths = []
+    for item in value:
+        _m12_exact(item, {"path", "sha256", "size_bytes"}, "checked file")
+        _m12_text(item["path"], "checked path")
+        path = PurePosixPath(item["path"])
+        if path.is_absolute() or not path.parts or ".." in path.parts or path.as_posix() != item["path"] or ":" in item["path"] or "\\" in item["path"]:
+            raise ContractError("checked path must be canonical and relative")
+        _m12_hash(item["sha256"])
+        _m12_uint(item["size_bytes"])
+        paths.append(item["path"])
+    if paths != sorted(set(paths)):
+        raise ContractError("checked files must be sorted and unique")
+
+
+def _m12_receipt_fields(payload: Mapping[str, Any]) -> dict[str, Any]:
+    _m12_exact(payload, set(M12_RECEIPT_BODY_FIELDS) | {
+        "schema_version", "receipt_id", "content_fingerprint", "generated_at",
+    }, "PublicationReceipt")
+    if payload["schema_version"] != "1.0.0":
+        raise ContractError("unsupported PublicationReceipt version")
+    _m12_time(payload["generated_at"])
+    _m12_time(payload["occurred_at"])
+    _m12_job(payload["job"])
+    _m12_uint(payload["fence"])
+    kind, outcome = payload["kind"], payload["outcome"]
+    if not isinstance(kind, str) or kind not in M12_RECEIPT_DETAILS or outcome not in ("success", "failed", "uncertain"):
+        raise ContractError("unknown receipt kind/outcome")
+    if outcome == "success":
+        if payload["reason_code"] is not None:
+            raise ContractError("successful receipt cannot contain a failure reason")
+    elif payload["reason_code"] not in (
+        "source_missing", "contract_invalid", "hash_mismatch", "coverage_incomplete", "authority_missing",
+        "lease_lost", "switch_conflict", "provider_error", "transport_unknown",
+    ):
+        raise ContractError("unknown receipt failure reason")
+    if outcome == "uncertain" and (kind not in ("notify", "preflight", "online") or payload["reason_code"] != "transport_unknown"):
+        raise ContractError("uncertain is reserved for unknown external responses")
+    if payload["release_ref"] is None:
+        if kind != "prepare" or outcome != "failed":
+            raise ContractError("only early prepare failure may lack a release")
+    else:
+        _m12_ref(payload["release_ref"])
+    if payload["previous_receipt_ref"] is not None:
+        _m12_ref(payload["previous_receipt_ref"])
+    details = payload["details"]
+    _m12_exact(details, M12_RECEIPT_DETAILS[kind], "receipt details")
+    if kind in ("prepare", "preflight", "online"):
+        _m12_checked_files(details["checked_files"])
+        if not isinstance(details["checks"], list):
+            raise ContractError("checks must be an array")
+        names = []
+        for check in details["checks"]:
+            _m12_exact(check, {"name", "result", "evidence_ref"}, "Check")
+            if not isinstance(check["name"], str) or check["name"] not in M12_CHECK_NAMES or check["result"] not in ("pass", "fail"):
+                raise ContractError("unknown check name/result")
+            _m12_ref(check["evidence_ref"])
+            if outcome == "success" and check["result"] != "pass":
+                raise ContractError("success cannot contain a failed check")
+            names.append(check["name"])
+        if names != sorted(set(names)):
+            raise ContractError("checks must be sorted and unique")
+        required = M12_CHECK_NAMES if kind == "prepare" and outcome == "success" else {"hash", "date", "four_pages", "authorization"} if kind != "prepare" else set()
+        if not required <= set(names):
+            raise ContractError("receipt lacks required checks")
+    if kind == "prepare":
+        if details["inventory_ref"] is None:
+            if outcome != "failed":
+                raise ContractError("successful prepare needs an inventory")
+        else:
+            _m12_ref(details["inventory_ref"])
+    elif kind in ("preflight", "online"):
+        _m12_pointer_target(details["target"])
+        if details["renderer_version_id"] != details["target"]["renderer_version_id"]:
+            raise ContractError("renderer does not match target")
+        if details["provider_deployment_id"] is not None:
+            _m12_text(details["provider_deployment_id"], "provider_deployment_id")
+        _m12_hash(details["manifest_hash"])
+        pages = details["page_paths"]
+        if not isinstance(pages, list) or any(not isinstance(page, str) or page not in M12_PAGE_PATHS for page in pages) or pages != sorted(set(pages)):
+            raise ContractError("receipt page_paths must be a unique sorted subset of the four routes")
+        if outcome == "success" and pages != list(M12_PAGE_PATHS):
+            raise ContractError("successful verification must cover all four routes")
+        if kind == "preflight":
+            _m12_text(details["candidate_url"], "candidate_url")
+            if not details["candidate_url"].startswith("https://"):
+                raise ContractError("candidate URL must use HTTPS")
+        else:
+            _m12_uint(details["pointer_generation"])
+    elif kind in ("promote", "rollback"):
+        if details["before"] is not None:
+            _m12_pointer_target(details["before"])
+        elif kind == "rollback":
+            raise ContractError("rollback must identify its failed target")
+        _m12_pointer_target(details["after"])
+        _m12_uint(details["expected_generation"])
+        _m12_uint(details["resulting_generation"])
+        if details["resulting_generation"] != details["expected_generation"] + (1 if outcome == "success" else 0):
+            raise ContractError("switch generation must advance exactly once on success only")
+        if outcome == "success" and details["before"] == details["after"]:
+            raise ContractError("successful switch cannot leave the target unchanged")
+        for key in (("preflight_ref",) if kind == "promote" else ("failed_receipt_ref", "rollback_check_ref")):
+            _m12_ref(details[key])
+    else:
+        _m12_ref(details["online_receipt_ref"])
+        _m12_ref(details["notification_plan_ref"])
+        if not isinstance(details["items"], list):
+            raise ContractError("notification items must be an array")
+        keys = []
+        for item in details["items"]:
+            _m12_exact(item, {"key", "status", "platform_message_id", "attempt"}, "notification item")
+            _m12_hash(item["key"])
+            _m12_uint(item["attempt"])
+            if item["status"] not in ("sent", "skipped", "failed", "uncertain"):
+                raise ContractError("unknown notification item status")
+            if item["platform_message_id"] is not None:
+                _m12_text(item["platform_message_id"], "platform_message_id")
+            if item["status"] == "sent" and item["platform_message_id"] is None:
+                raise ContractError("sent requires an actual platform message id")
+            if outcome == "success" and item["status"] not in ("sent", "skipped"):
+                raise ContractError("notification success contains an incomplete item")
+            keys.append(item["key"])
+        if keys != sorted(set(keys)):
+            raise ContractError("notification keys must be sorted and unique")
+    body = {key: value for key, value in payload.items() if key not in {"receipt_id", "content_fingerprint", "generated_at"}}
+    fingerprint = "sha256:" + hashlib.sha256(_canonical(body)).hexdigest()
+    if payload["content_fingerprint"] != fingerprint or payload["receipt_id"] != "publication-receipt:" + fingerprint:
+        raise ContractError("PublicationReceipt identity mismatch")
+    return body
+
+
+def publication_receipt_body(evidence: Mapping[str, Any] | None) -> dict[str, Any]:
+    """Bind one receipt to a trusted observation, frozen chain and target inventory.
+
+    Platform observations and supporting Ref provenance must be authenticated by
+    the future adapter. No claim here means an actual probe, CAS or send occurred.
+    """
+    _m12_exact(evidence, {"observation", "history", "release", "release_evidence", "release_bytes", "targets", "references", "prepared_files"}, "trusted receipt evidence")
+    observation = evidence["observation"]
+    _m12_exact(observation, set(M12_RECEIPT_BODY_FIELDS), "receipt observation")
+    refs = {ref["id"]: ref for ref in _m12_refs(evidence["references"])}
+    if not isinstance(evidence["history"], list) or not isinstance(evidence["targets"], list):
+        raise ContractError("receipt history/targets must be arrays")
+    history = {}
+    previous_ref = None
+    for receipt in evidence["history"]:
+        _m12_receipt_fields(receipt)
+        if receipt["previous_receipt_ref"] != previous_ref or receipt["receipt_id"] in history:
+            raise ContractError("receipt history is not a unique direct-predecessor chain")
+        if receipt["release_ref"] is None:
+            if receipt["job"] != observation["job"] or any(r["release_ref"] is not None for r in history.values()):
+                raise ContractError("early prepare history crosses its job root")
+        elif receipt["release_ref"] != observation["release_ref"]:
+            raise ContractError("receipt history crosses releases")
+        previous_ref = {"id": receipt["receipt_id"], "content_fingerprint": receipt["content_fingerprint"]}
+        history[receipt["receipt_id"]] = receipt
+    if observation["previous_receipt_ref"] != previous_ref:
+        raise ContractError("receipt must bind the latest trusted predecessor")
+    release = evidence["release"]
+    if observation["release_ref"] is None:
+        if release is not None or evidence["release_evidence"] is not None or evidence["release_bytes"] is not None:
+            raise ContractError("early failure cannot invent a release")
+    else:
+        validate_contract("ReleaseManifest", release, release_manifest_evidence=evidence["release_evidence"])
+        if release["schema_version"] != "2.0.0" or _canonical(_m12_json(evidence["release_bytes"], allow_release_identity=True)) != _canonical(release):
+            raise ContractError("receipt must resolve the exact stored M12 manifest bytes")
+        expected_ref = {"id": release["release_id"], "content_fingerprint": release["content_fingerprint"]}
+        if observation["release_ref"] != expected_ref:
+            raise ContractError("receipt release reference mismatch")
+    prepared = evidence["prepared_files"]
+    if not isinstance(prepared, Mapping) or any(path not in M12_RELEASE_FILES or type(raw) is not bytes for path, raw in prepared.items()):
+        raise ContractError("prepared_files must contain partial fixed-file byte snapshots")
+    if release is not None and prepared:
+        raise ContractError("once a manifest exists its bytes are the sole file authority")
+    targets = {}
+    for record in evidence["targets"]:
+        _m12_exact(record, {"target", "manifest_hash", "files", "public_paths"}, "verified target inventory")
+        _m12_pointer_target(record["target"])
+        _m12_hash(record["manifest_hash"])
+        _m12_checked_files(record["files"])
+        paths = [f["path"] for f in record["files"]]
+        public = record["public_paths"]
+        if not isinstance(public, list) or any(not isinstance(p, str) or p not in paths for p in public) or public != sorted(set(public)):
+            raise ContractError("invalid target public file paths")
+        key = _canonical(record["target"])
+        if key in targets:
+            raise ContractError("duplicate target evidence")
+        if release is not None and record["target"].get("release_ref") == observation["release_ref"]:
+            expected_files = [{k: f[k] for k in ("path", "sha256", "size_bytes")} for f in release["files"]]
+            if record["files"] != expected_files or public != [f["path"] for f in release["files"] if "web" in f["roles"]] or record["manifest_hash"] != "sha256:" + hashlib.sha256(evidence["release_bytes"]).hexdigest():
+                raise ContractError("current target inventory differs from stored manifest")
+        targets[key] = record
+
+    def target_record(target):
+        record = targets.get(_canonical(target))
+        if record is None:
+            raise ContractError("target is not in the trusted verified-target inventory")
+        return record
+
+    def resolved(reference):
+        _m12_ref(reference)
+        if refs.get(reference["id"]) != reference:
+            raise ContractError("supporting receipt evidence does not resolve")
+
+    def prior(reference, kind, outcome="success"):
+        _m12_ref(reference)
+        record = history.get(reference["id"])
+        if record is None or reference["content_fingerprint"] != record["content_fingerprint"] or record["kind"] != kind or record["outcome"] != outcome:
+            raise ContractError("receipt prerequisite is missing, wrong-kind or unsuccessful")
+        return record
+
+    kind, details = observation["kind"], observation["details"]
+    if not isinstance(kind, str) or kind not in M12_RECEIPT_DETAILS:
+        raise ContractError("unknown observation kind")
+    _m12_exact(details, M12_RECEIPT_DETAILS[kind], "observation details")
+    success = observation["outcome"] == "success"
+    if kind in ("prepare", "preflight", "online"):
+        _m12_checked_files(details["checked_files"])
+        if not isinstance(details["checks"], list):
+            raise ContractError("checks must be an array")
+        for check in details["checks"]:
+            _m12_exact(check, {"name", "result", "evidence_ref"}, "Check")
+            resolved(check["evidence_ref"])
+        if kind == "prepare":
+            if details["inventory_ref"] is not None:
+                resolved(details["inventory_ref"])
+                if release is not None and details["inventory_ref"] != release["source_inventory_ref"]:
+                    raise ContractError("prepare inventory differs from the release")
+            allowed = {path: {"path": path, "size_bytes": len(raw), "sha256": "sha256:" + hashlib.sha256(raw).hexdigest()} for path, raw in prepared.items()} if release is None else {f["path"]: {k: f[k] for k in ("path", "sha256", "size_bytes")} for f in release["files"]}
+            required_paths = set(allowed) if success else set()
+        else:
+            record = target_record(details["target"])
+            if kind == "online":
+                switches = [r for r in history.values() if r["kind"] in ("promote", "rollback") and r["outcome"] == "success"]
+                if not switches or switches[-1]["details"]["after"] != details["target"] or switches[-1]["details"]["resulting_generation"] != details["pointer_generation"]:
+                    raise ContractError("online observation is not bound to the latest successful switch")
+            if success and details["manifest_hash"] != record["manifest_hash"]:
+                raise ContractError("successful verification hash differs from the target manifest")
+            allowed = {f["path"]: f for f in record["files"]}
+            required_paths = set(record["public_paths"]) if success else set()
+        if any(f["path"] not in allowed or (success and allowed[f["path"]] != f) for f in details["checked_files"]) or not required_paths <= {f["path"] for f in details["checked_files"]}:
+            raise ContractError("checked files disagree with required target bytes")
+    elif kind in ("promote", "rollback"):
+        if details["before"] is not None:
+            target_record(details["before"])
+        target_record(details["after"])
+        preflight = prior(details["preflight_ref"] if kind == "promote" else details["rollback_check_ref"], "preflight")
+        if preflight["details"]["target"] != details["after"]:
+            raise ContractError("switch target differs from its successful preflight")
+        if kind == "promote" and details["after"].get("release_ref") != observation["release_ref"]:
+            raise ContractError("promote must target the receipt release")
+        if kind == "rollback":
+            failure = prior(details["failed_receipt_ref"], "online", "failed")
+            if failure["details"]["target"] != details["before"]:
+                raise ContractError("rollback does not identify the failed online target")
+    elif kind == "notify":
+        online = prior(details["online_receipt_ref"], "online")
+        transitions = [r for r in history.values() if r["kind"] in ("online", "promote", "rollback")]
+        if not transitions or transitions[-1] != online or online["details"]["target"].get("release_ref") != observation["release_ref"]:
+            raise ContractError("notify needs the latest successful online check of this release")
+        resolved(details["notification_plan_ref"])
+    return {"schema_version": "1.0.0", **observation}
+
+
+def _validate_publication_receipt(payload: Mapping[str, Any], evidence: Mapping[str, Any] | None) -> None:
+    body = _m12_receipt_fields(payload)
+    if _canonical(body) != _canonical(publication_receipt_body(evidence)):
+        raise ContractError("receipt differs from the trusted operation observation")

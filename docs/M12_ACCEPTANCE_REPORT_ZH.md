@@ -105,3 +105,26 @@
 14项新增Manifest专项、43项A1a/b/c回归、31项共享合同、7项治理、12项状态，共107项通过，无跳过。覆盖字节换行身份、删增重复文件、私有roles篡改、投影改写、路径越界、严格JSON、日期／来源、错误授权／前序／政策、未知版本及集合重复。共享回归保留旧影子Manifest边界；未重审M11。文档链接、差异格式、机器状态一致性通过。
 
 本段与代码同属独立提交`feat: add M12 release manifest byte contract [skip ci]`，父提交9af398344d58155196bcd27323fb82036c8b6547，完整SHA见交付消息。无数据迁移和生产消费者；可撤回本批代码／测试，保留审核历史。未合并、推送、部署、生产启用或对外通知。
+
+## A1d独立复核回传
+
+审核对话01a074f9-098a-7b82-b486-3185683290fe确认0f0b7c2在Manifest 2.0纯合同、可信准备输入及实际字节一致性范围内通过。审核员自行运行107项测试，另覆盖十文件字节变化及哈希／roles／source_refs重签篡改，单对象／partial／集合入口共88次拒绝检查全部通过。HEAD不变，diff通过，工作区干净。真实投影、政策完整性／源码blob、registry出处、当前未撤销授权、last_verified和锁内CAS仍待后续证明。
+
+## A2a：PublicationReceipt与PointerTarget结构（待独立审核）
+
+- 六类PublicationReceipt 1.0.0统一经validate_contract及集合入口；精确字段／kind专属details、UInt／时间、规范内容身份、直接前序链、release或提前prepare的Job根。纯构造器为`services/publication/receipts.py`，不执行任何操作。
+- PointerTarget封闭为release或legacy，两者都绑定renderer。核验四路由、检查名与Ref、已检文件路径／长度／哈希、成功／失败理由及通知项目均验证格式和集合；成功prepare需七类检查和全文件，成功preflight／online需四类检查及全部公开文件／四页。失败收据可保留部分检查及实际测得的错误字节哈希，不能把失败值伪装为成功。
+- 收据解析当前M12 Manifest实际字节并复用其合同，当前目标文件清单／公开roles／Manifest字节哈希由该对象核对。提前prepare失败允许无Manifest但保留部分prepared_files原字节；不需伪造不存在的库存或release。
+- promote／rollback依赖成功preflight同一目标，成功generation恰加1，失败不变；online绑定最近成功切换的目标和generation。rollback绑定失败online和旧目标成功preflight；旧站回退后的online不能用于通知失败新版。notify必须引用本release最近成功online及可解析通知计划Ref，sent须带message_id，uncertain不能冒充success。
+
+### A2a可信输入与运行边界
+
+`publication_receipt_evidence`精确为`{observation,history,release,release_evidence,release_bytes,targets,references,prepared_files}`。observation含合同的九个业务字段（release_ref／previous_receipt_ref／job／fence／occurred_at／kind／outcome／reason_code／details）；history为该release或提前失败Job根的完整可信前序链。references为已验证来源的辅助Ref全集；targets每项为`{target,manifest_hash,files,public_paths}`，旧目标／legacy来源由后续适配器重验。prepared_files只用于尚无Manifest的失败准备字节；Manifest存在后必须为空，避免双文件权威。
+
+本批只证明观测、前序、引用与字节材料的一致性，不证明真实HTTP检查、平台message_id／部署ID、辅助Check原件、历史全集或旧目标库存来源。主release已实际复用Manifest验证；其它归档目标的完整字节／renderer和last_verified真实性仍待B／F包认证及持锁接线。generation这里只验证收据声明，不代表CAS已执行或lease仍有效；CurrentPointer完整状态转换留A2b。即时撤销、通知去重、uncertain后禁止自动重发及查询／人工确认恢复仍由后续运行适配器执行，记录uncertain不等于已实现重试保护。
+
+### A2a实际检查与提交
+
+15项新增专项覆盖正常五阶段、提前准备失败／部分字节、旧站回退及再核验、失败不得递增generation、online切换绑定、失败观测错误哈希留档、成功检查／文件／页面守门、未知字段／版本／bool、缺证据与前序、通知失败／uncertain、集合重复及输入隔离。加57项A1、31项共享合同、7项治理、12项状态，共122项通过，无跳过；文档链接、diff、机器状态一致性通过。未重审M11，跨日端到端仍未执行。
+
+与本段同属独立提交`feat: add M12 publication receipt contracts [skip ci]`，父提交0f0b7c206312fbac94a7a399b6c8d70ec4852fbe，完整SHA见交付消息。无持久存储／工作流／页面变化，可撤回本批代码测试，保留治理历史。未合并、推送、部署、生产启用或对外通知。
