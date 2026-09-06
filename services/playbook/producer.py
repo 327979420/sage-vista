@@ -10,8 +10,10 @@ from services.ledger import validate_opportunity_event
 from .authority import (
     CaseAuthorityResolver,
     LifecycleAuthorityResolver,
+    PreregistrationAuthorityResolver,
     resolve_case_authority,
     validate_case_authority,
+    validate_preregistration_authority,
     validate_sensitive_lifecycle_authority,
 )
 
@@ -29,6 +31,7 @@ from .contracts import (
 def produce_strategy_proposal(
     *, persisted_case_events: Sequence[Mapping[str, Any]],
     case_authority_resolver: CaseAuthorityResolver | None,
+    preregistration_authority_resolver: PreregistrationAuthorityResolver | None = None,
     **values: Any,
 ) -> Mapping[str, Any]:
     """Create a candidate proposal; this never claims validation or activation."""
@@ -61,7 +64,11 @@ def produce_strategy_proposal(
         validate_case_authority(resolved_case, event, case_authority_resolver)
         resolved_cases.append(resolved_case)
     values["case_roles"] = resolved_cases
-    return build_strategy_proposal(**values)
+    proposal = build_strategy_proposal(**values)
+    validate_preregistration_authority(
+        proposal, preregistration_authority_resolver
+    )
+    return proposal
 
 
 def _ref(item: Mapping[str, Any], id_field: str, fingerprint_field: str) -> dict[str, str]:

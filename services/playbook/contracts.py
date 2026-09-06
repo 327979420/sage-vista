@@ -15,8 +15,10 @@ from services.contracts.market_data import canonical_fingerprint
 from services.contracts.validation import ContractError
 
 
-SCHEMA_VERSION = "2.1.0"
-SOURCE_VERSION = "m11-shadow-1.1.0"
+SCHEMA_VERSION = "2.2.0"
+SOURCE_VERSION = "m11-shadow-1.2.0"
+INTERMEDIATE_SCHEMA_VERSION = "2.1.0"
+INTERMEDIATE_SOURCE_VERSION = "m11-shadow-1.1.0"
 LEGACY_SCHEMA_VERSION = "2.0.0"
 LEGACY_SOURCE_VERSION = "m11-shadow-1.0.0"
 EVIDENCE_GATE_POLICY_VERSION = "1.0.0"
@@ -32,7 +34,6 @@ PRODUCTION_STATES = frozenset({"inactive", "active", "retired"})
 CASE_ROLES = frozenset({
     "discovery", "calibration", "validation", "forward", "explanation_only",
 })
-KNOWN_SEEN_CASES = frozenset({"CGEM", "MRNA", "BTDR", "DLTR", "ADBE", "BABA", "TTD", "AEVA"})
 
 _SHA = re.compile(r"^sha256:[0-9a-f]{64}$")
 _STABLE_ID = re.compile(r"^[a-z][a-z0-9-]*:(?:sha256:)?[0-9a-f]{64}$")
@@ -142,18 +143,30 @@ def _semantic(payload: Mapping[str, Any], fingerprint_field: str) -> dict[str, A
 
 def _validate_common(payload: Mapping[str, Any], contract: str) -> None:
     version = payload.get("schema_version")
-    if version not in {LEGACY_SCHEMA_VERSION, SCHEMA_VERSION}:
+    sources = {
+        LEGACY_SCHEMA_VERSION: LEGACY_SOURCE_VERSION,
+        INTERMEDIATE_SCHEMA_VERSION: INTERMEDIATE_SOURCE_VERSION,
+        SCHEMA_VERSION: SOURCE_VERSION,
+    }
+    if version not in sources:
         raise ContractError(f"{contract} schema version is unknown")
     _date(payload.get("as_of"), f"{contract}.as_of")
     _timestamp(payload.get("generated_at"), f"{contract}.generated_at")
     _exact(payload.get("source_version"), {"playbook"}, f"{contract}.source_version")
-    expected_source = (
-        SOURCE_VERSION if version == SCHEMA_VERSION else LEGACY_SOURCE_VERSION
-    )
+    expected_source = sources[version]
     if payload["source_version"]["playbook"] != expected_source:
         raise ContractError(f"{contract} source version is unknown")
     if payload.get("future_data_used") is not False:
         raise ContractError(f"{contract} must fail closed on future data")
+
+
+def _source_version_for(schema_version: str) -> str:
+    versions = {
+        LEGACY_SCHEMA_VERSION: LEGACY_SOURCE_VERSION,
+        INTERMEDIATE_SCHEMA_VERSION: INTERMEDIATE_SOURCE_VERSION,
+        SCHEMA_VERSION: SOURCE_VERSION,
+    }
+    return versions.get(schema_version, "unknown")
 
 
 def _validate_ref(value: Any, field: str, roles: set[str] | None = None) -> Mapping[str, Any]:
@@ -185,6 +198,7 @@ PROPOSAL_FIELDS = {
     "definition", "affected_modules", "applicability", "m09_review_refs",
     "case_roles", "preregistration", "created_by", "created_at", "bias_labels",
 }
+PROPOSAL_2_2_FIELDS = PROPOSAL_FIELDS | {"preregistration_authority_ref"}
 
 
 def _proposal_identity(payload: Mapping[str, Any]) -> dict[str, Any]:
@@ -260,12 +274,12 @@ def _validate_evidence_scope(value: Any) -> None:
         raise ContractError("evidence scope windows must be sorted and unique")
 
 
-def _validate_preregistration(value: Any, *, current: bool) -> None:
+def _validate_preregistration(value: Any, *, schema_version: str) -> None:
     fields = {
         "preregistration_id", "content_fingerprint", "required_partitions",
         "required_result_contracts", "requires_cost_policy", "criteria",
     }
-    if current:
+    if schema_version in {INTERMEDIATE_SCHEMA_VERSION, SCHEMA_VERSION}:
         fields.add("evidence_scope")
     item = _exact(value, fields, "preregistration")
     _stable_id(item["preregistration_id"], "preregistration.id", {"strategy-preregistration"})
@@ -279,16 +293,46 @@ def _validate_preregistration(value: Any, *, current: bool) -> None:
         raise ContractError("preregistration requires criteria")
     ids: list[str] = []
     for criterion in criteria:
-        criterion = _exact(criterion, {"criterion_id", "result_ref", "field", "operator", "expected"}, "criterion")
+        if schema_version == SCHEMA_VERSION:
+            criterion = _exact(criterion, {
+                "criterion_id", "result_contract", "run_role", "partition_role",
+                "window_sessions", "field", "operator", "expected",
+            }, "criterion")
+            if criterion["result_contract"] not in {
+                "ForwardOutcome", "TradeOutcome", "PortfolioRun", "ResearchAggregate",
+            }:
+                raise ContractError("criterion result contract is unknown")
+            if criterion["run_role"] not in {"candidate", "baseline"}:
+                raise ContractError("criterion run role is unknown")
+            if criterion["partition_role"] not in {"development", "validation", "forward"}:
+                raise ContractError("criterion partition role is unknown")
+            window_sessions = criterion["window_sessions"]
+            if criterion["result_contract"] == "ForwardOutcome":
+                if (
+                    isinstance(window_sessions, bool)
+                    or not isinstance(window_sessions, int)
+                    or window_sessions <= 0
+                ):
+                    raise ContractError("Forward criterion requires a positive window")
+            elif window_sessions is not None:
+                raise ContractError("non-Forward criterion cannot select a window")
+        else:
+            criterion = _exact(
+                criterion,
+                {"criterion_id", "result_ref", "field", "operator", "expected"},
+                "criterion",
+            )
+            _validate_ref(criterion["result_ref"], "criterion.result_ref", {
+                "forward-outcome", "trade-outcome", "portfolio-run", "research-aggregate",
+            })
         ids.append(_text(criterion["criterion_id"], "criterion_id"))
-        _validate_ref(criterion["result_ref"], "criterion.result_ref", {"forward-outcome", "trade-outcome", "portfolio-run", "research-aggregate"})
         _text(criterion["field"], "criterion.field")
         if criterion["operator"] not in {"eq", "gte", "lte"}:
             raise ContractError("criterion operator is unknown")
         _finite(criterion["expected"], "criterion.expected")
     if ids != sorted(set(ids)):
         raise ContractError("criteria must be sorted and unique")
-    if current:
+    if schema_version in {INTERMEDIATE_SCHEMA_VERSION, SCHEMA_VERSION}:
         _validate_evidence_scope(item["evidence_scope"])
     semantic = {key: plain(child) for key, child in item.items() if key not in {"preregistration_id", "content_fingerprint"}}
     expected_fp = canonical_fingerprint(semantic)
@@ -299,7 +343,12 @@ def _validate_preregistration(value: Any, *, current: bool) -> None:
 
 
 def validate_strategy_proposal(payload: Mapping[str, Any]) -> None:
-    _exact(payload, PROPOSAL_FIELDS, "StrategyProposal")
+    expected_fields = (
+        PROPOSAL_2_2_FIELDS
+        if payload.get("schema_version") == SCHEMA_VERSION
+        else PROPOSAL_FIELDS
+    )
+    _exact(payload, expected_fields, "StrategyProposal")
     _validate_common(payload, "StrategyProposal")
     _stable_id(payload["proposal_id"], "proposal_id", {"strategy-proposal"})
     _stable_id(payload["strategy_id"], "strategy_id", {"strategy"})
@@ -324,28 +373,36 @@ def validate_strategy_proposal(payload: Mapping[str, Any]) -> None:
             raise ContractError("only M09 hypothesis or approved_change can source a proposal")
     if review_ids != sorted(set(review_ids)):
         raise ContractError("M09 review references must be sorted and unique")
-    current = payload["schema_version"] == SCHEMA_VERSION
+    stable_case_identity = payload["schema_version"] in {
+        INTERMEDIATE_SCHEMA_VERSION, SCHEMA_VERSION,
+    }
     case_ids: list[str] = []
     for case in payload["case_roles"]:
         case_fields = {"event_id", "case_label", "role", "seen_before"}
-        if current:
+        if stable_case_identity:
             case_fields.update({
                 "instrument_id", "signal_date", "event_content_fingerprint",
             })
         case = _exact(case, case_fields, "case_role")
         case_ids.append(_stable_id(case["event_id"], "case.event_id", {"opportunity"}))
-        label = _text(case["case_label"], "case_label")
+        _text(case["case_label"], "case_label")
         if case["role"] not in CASE_ROLES or not isinstance(case["seen_before"], bool):
             raise ContractError("case role is invalid")
-        if current:
+        if stable_case_identity:
             _stable_id(case["instrument_id"], "case.instrument_id", {"instrument"})
             _date(case["signal_date"], "case.signal_date")
             _sha(case["event_content_fingerprint"], "case.event_content_fingerprint")
-        if label in KNOWN_SEEN_CASES and (not case["seen_before"] or case["role"] in {"validation", "forward"}):
-            raise ContractError("known seen case cannot masquerade as independent evidence")
     if case_ids != sorted(set(case_ids)):
         raise ContractError("case roles must be sorted and unique by event")
-    _validate_preregistration(payload["preregistration"], current=current)
+    _validate_preregistration(
+        payload["preregistration"], schema_version=str(payload["schema_version"])
+    )
+    if payload["schema_version"] == SCHEMA_VERSION:
+        _validate_ref(
+            payload["preregistration_authority_ref"],
+            "preregistration_authority_ref",
+            {"strategy-preregistration-proof"},
+        )
     _text(payload["created_by"], "created_by")
     created = _timestamp(payload["created_at"], "created_at")
     if created[:10] != payload["as_of"]:
@@ -372,9 +429,9 @@ def build_preregistration(
         "requires_cost_policy": requires_cost_policy,
         "criteria": sorted((plain(item) for item in criteria), key=lambda item: item["criterion_id"]),
     }
-    if schema_version == SCHEMA_VERSION:
+    if schema_version in {INTERMEDIATE_SCHEMA_VERSION, SCHEMA_VERSION}:
         if evidence_scope is None:
-            raise ContractError("StrategyProposal 2.1 preregistration requires evidence_scope")
+            raise ContractError("modern StrategyProposal preregistration requires evidence_scope")
         normalized_scope = plain(evidence_scope)
         normalized_scope["expected_run_ids"] = sorted(normalized_scope["expected_run_ids"])
         normalized_scope["required_input_refs"] = _normalize_refs(
@@ -394,20 +451,39 @@ def build_preregistration(
         raise ContractError("preregistration schema version is unknown")
     fingerprint = canonical_fingerprint(payload)
     result = {"preregistration_id": "strategy-preregistration:" + fingerprint, "content_fingerprint": fingerprint, **payload}
-    _validate_preregistration(result, current=schema_version == SCHEMA_VERSION)
+    _validate_preregistration(result, schema_version=schema_version)
     return freeze(result)
+
+
+def proposal_preregistration_semantic_fingerprint(values: Mapping[str, Any]) -> str:
+    """Fingerprint the complete business proposal frozen by M11 preregistration."""
+
+    required = {
+        "as_of", "strategy_key", "strategy_version", "proposal_kind",
+        "candidate_version", "baseline_version", "definition", "affected_modules",
+        "applicability", "m09_review_refs", "case_roles", "preregistration",
+        "created_by", "bias_labels",
+    }
+    if not required.issubset(values):
+        raise ContractError("preregistration semantics omit proposal fields")
+    semantic = {key: plain(values[key]) for key in sorted(required)}
+    semantic["affected_modules"] = sorted(set(semantic["affected_modules"]))
+    semantic["bias_labels"] = sorted(set(semantic["bias_labels"]))
+    semantic["m09_review_refs"] = sorted(
+        semantic["m09_review_refs"], key=lambda item: item["id"]
+    )
+    semantic["case_roles"] = sorted(
+        semantic["case_roles"], key=lambda item: item["event_id"]
+    )
+    return canonical_fingerprint(semantic)
 
 
 def build_strategy_proposal(**values: Any) -> Mapping[str, Any]:
     payload = plain(values)
     payload.setdefault("schema_version", SCHEMA_VERSION)
-    payload.setdefault("source_version", {
-        "playbook": (
-            SOURCE_VERSION
-            if payload["schema_version"] == SCHEMA_VERSION
-            else LEGACY_SOURCE_VERSION
-        )
-    })
+    payload.setdefault(
+        "source_version", {"playbook": _source_version_for(payload["schema_version"])}
+    )
     payload.setdefault("future_data_used", False)
     payload["affected_modules"] = sorted(set(payload.get("affected_modules", [])))
     payload["bias_labels"] = sorted(set(payload.get("bias_labels", [])))
@@ -509,7 +585,12 @@ def validate_strategy_evidence_assessment(payload: Mapping[str, Any]) -> None:
             raise ContractError("criterion result status is invalid")
         statuses.append(item["status"])
         _finite(item["actual"], "criterion_result.actual")
-        _validate_ref(item["evidence_ref"], "criterion_result.evidence_ref", allowed_roles)
+        evidence_ref = item["evidence_ref"]
+        if evidence_ref is None:
+            if payload["schema_version"] != SCHEMA_VERSION or item["status"] != "unavailable":
+                raise ContractError("criterion evidence reference is required")
+        else:
+            _validate_ref(evidence_ref, "criterion_result.evidence_ref", allowed_roles)
     if criterion_ids != sorted(set(criterion_ids)):
         raise ContractError("criterion results must be sorted and unique")
     case_ids: list[str] = []
@@ -555,13 +636,9 @@ def validate_strategy_evidence_assessment(payload: Mapping[str, Any]) -> None:
 def build_strategy_evidence_assessment(**values: Any) -> Mapping[str, Any]:
     payload = plain(values)
     payload.setdefault("schema_version", SCHEMA_VERSION)
-    payload.setdefault("source_version", {
-        "playbook": (
-            SOURCE_VERSION
-            if payload["schema_version"] == SCHEMA_VERSION
-            else LEGACY_SOURCE_VERSION
-        )
-    })
+    payload.setdefault(
+        "source_version", {"playbook": _source_version_for(payload["schema_version"])}
+    )
     payload.setdefault("future_data_used", False)
     payload["run_refs"] = sorted(payload["run_refs"], key=lambda item: item["run_id"])
     payload["result_refs"] = sorted(payload["result_refs"], key=lambda item: item["id"])
@@ -582,7 +659,10 @@ def current_strategy_assessment(items: Iterable[Mapping[str, Any]]) -> Mapping[s
     return _current_linear_chain(
         items, validator=validate_strategy_evidence_assessment,
         id_field="assessment_id", prior_field="supersedes_assessment_id",
-        root_fields=("logical_assessment_id", "proposal_id", "strategy_version"),
+        root_fields=(
+            "logical_assessment_id", "proposal_id", "strategy_version",
+            "schema_version",
+        ),
         label="assessment",
     )
 
@@ -742,13 +822,9 @@ def validate_strategy_lifecycle_event(payload: Mapping[str, Any]) -> None:
 def build_strategy_lifecycle_event(**values: Any) -> Mapping[str, Any]:
     payload = plain(values)
     payload.setdefault("schema_version", SCHEMA_VERSION)
-    payload.setdefault("source_version", {
-        "playbook": (
-            SOURCE_VERSION
-            if payload["schema_version"] == SCHEMA_VERSION
-            else LEGACY_SOURCE_VERSION
-        )
-    })
+    payload.setdefault(
+        "source_version", {"playbook": _source_version_for(payload["schema_version"])}
+    )
     payload.setdefault("future_data_used", False)
     payload["evidence_refs"] = _normalize_refs(payload.get("evidence_refs", []))
     payload["bias_labels"] = sorted(set(payload.get("bias_labels", [])))
@@ -763,7 +839,10 @@ def current_strategy_lifecycle(items: Iterable[Mapping[str, Any]]) -> Mapping[st
     leaf = _current_linear_chain(
         sequence, validator=validate_strategy_lifecycle_event,
         id_field="lifecycle_event_id", prior_field="supersedes_lifecycle_event_id",
-        root_fields=("proposal_id", "strategy_id", "strategy_version"), label="lifecycle",
+        root_fields=(
+            "proposal_id", "strategy_id", "strategy_version",
+            "schema_version",
+        ), label="lifecycle",
     )
     by_id = {str(item["lifecycle_event_id"]): item for item in sequence}
     cursor = leaf
@@ -881,11 +960,13 @@ def validate_strategy_registry_snapshot(payload: Mapping[str, Any]) -> None:
 
 __all__ = [
     "CASE_ROLES", "DECISION_STATES", "EVIDENCE_GATE_POLICY_VERSION", "EVIDENCE_STATES",
-    "IMPLEMENTATION_STATES", "KNOWN_SEEN_CASES", "LEGACY_SCHEMA_VERSION",
-    "LEGACY_SOURCE_VERSION", "PRODUCTION_STATES", "SCHEMA_VERSION", "SOURCE_VERSION",
+    "IMPLEMENTATION_STATES", "INTERMEDIATE_SCHEMA_VERSION",
+    "INTERMEDIATE_SOURCE_VERSION", "LEGACY_SCHEMA_VERSION", "LEGACY_SOURCE_VERSION",
+    "PRODUCTION_STATES", "SCHEMA_VERSION", "SOURCE_VERSION",
     "build_preregistration", "build_strategy_evidence_assessment",
     "build_strategy_lifecycle_event", "build_strategy_proposal", "current_strategy_assessment",
     "current_strategy_lifecycle", "freeze", "initial_state", "plain",
+    "proposal_preregistration_semantic_fingerprint",
     "validate_strategy_evidence_assessment", "validate_strategy_lifecycle_event",
     "validate_strategy_proposal", "validate_strategy_registry_snapshot",
 ]

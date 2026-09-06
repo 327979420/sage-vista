@@ -31,6 +31,7 @@ from .contracts import (
 from .authority import (
     CaseAuthorityResolver,
     LifecycleAuthorityResolver,
+    PreregistrationAuthorityResolver,
     validate_sensitive_lifecycle_authority,
 )
 from .evidence import assess_persisted_strategy_evidence, validate_persisted_proposal_sources
@@ -82,6 +83,7 @@ class PlaybookShadowStore:
         known_approval_refs: AbstractSet[str] = frozenset(),
         case_authority_resolver: CaseAuthorityResolver | None = None,
         lifecycle_authority_resolver: LifecycleAuthorityResolver | None = None,
+        preregistration_authority_resolver: PreregistrationAuthorityResolver | None = None,
     ) -> None:
         self.root = require_shadow_root(root, workspace_root=workspace_root)
         self.ledger_store = ledger_store
@@ -89,6 +91,7 @@ class PlaybookShadowStore:
         self.known_approval_refs = frozenset(known_approval_refs)
         self.case_authority_resolver = case_authority_resolver
         self.lifecycle_authority_resolver = lifecycle_authority_resolver
+        self.preregistration_authority_resolver = preregistration_authority_resolver
 
     @staticmethod
     def _require_current(payload: Mapping[str, Any]) -> None:
@@ -169,6 +172,7 @@ class PlaybookShadowStore:
             ledger_store=self.ledger_store,
             known_approval_refs=self.known_approval_refs,
             case_authority_resolver=self.case_authority_resolver,
+            preregistration_authority_resolver=self.preregistration_authority_resolver,
         )
         target = self.root / "proposals" / (_digest(payload["proposal_id"], "proposal_id") + ".json")
         with _lock(self.root, "inventory"), _lock(self.root, "proposals"):
@@ -207,6 +211,7 @@ class PlaybookShadowStore:
                 supersedes_assessment=(current_strategy_assessment(chain) if chain else None),
                 known_approval_refs=self.known_approval_refs,
                 case_authority_resolver=self.case_authority_resolver,
+                preregistration_authority_resolver=self.preregistration_authority_resolver,
             )
             if _bytes(reproduced) != _bytes(payload):
                 raise ContractError("assessment differs from persisted M09/M10 authority")
@@ -310,6 +315,16 @@ class PlaybookShadowStore:
         proposals_by_id = {item["proposal_id"]: item for item in proposals}
         if len(proposals_by_id) != len(proposals):
             raise ContractError("M11 authority contains duplicate proposals")
+        if proposals and self.ledger_store is None:
+            raise ContractError("formal M11 inventory requires persisted M09 authority")
+        for proposal in proposals:
+            validate_persisted_proposal_sources(
+                proposal,
+                ledger_store=self.ledger_store,
+                known_approval_refs=self.known_approval_refs,
+                case_authority_resolver=self.case_authority_resolver,
+                preregistration_authority_resolver=self.preregistration_authority_resolver,
+            )
         for event in lifecycle:
             proposal = proposals_by_id.get(event["proposal_id"])
             if proposal is None:

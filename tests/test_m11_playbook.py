@@ -16,6 +16,7 @@ from services.ledger import EventLedgerStore, create_human_review
 from services.playbook import (
     PlaybookShadowStore,
     assess_persisted_strategy_evidence,
+    build_preregistration_authority_record,
     build_preregistration,
     build_strategy_evidence_assessment,
     build_strategy_proposal,
@@ -24,6 +25,7 @@ from services.playbook import (
     derive_strategy_registry_snapshot,
     empty_current_registry,
     produce_strategy_proposal,
+    proposal_preregistration_semantic_fingerprint,
     record_evidence_assessment,
     record_main_implementation,
     record_production_activation,
@@ -96,6 +98,49 @@ class SyntheticLifecycleAuthority:
         return event["proposal_id"] == proposal["proposal_id"]
 
 
+class SyntheticPreregistrationAuthority:
+    authority_mode = "test"
+
+    def __init__(self):
+        self.records = {}
+
+    def register(
+        self, proposal_values, *, registered_at="2026-09-03T21:00:00Z",
+        run_code_commits=(), registration_commit="0" * 40,
+    ):
+        record = build_preregistration_authority_record(
+            proposal_semantic_fingerprint=(
+                proposal_preregistration_semantic_fingerprint(proposal_values)
+            ),
+            registered_at=registered_at,
+            registration_commit=registration_commit,
+            verified_run_code_commits=run_code_commits,
+            authority_mode=self.authority_mode,
+        )
+        self.records[record["authority_id"]] = record
+        return {
+            "id": record["authority_id"],
+            "content_fingerprint": record["content_fingerprint"],
+        }
+
+    def resolve_preregistration(self, authority_id):
+        if authority_id not in self.records:
+            raise ContractError("synthetic preregistration is not registered")
+        return self.records[authority_id]
+
+    def verify_registration_commit_ancestry(self, registration_commit, run_code_commit):
+        return any(
+            record["registration_commit"] == registration_commit
+            and run_code_commit in record["verified_run_code_commits"]
+            for record in self.records.values()
+        )
+
+
+class RejectingPreregistrationAncestry(SyntheticPreregistrationAuthority):
+    def verify_registration_commit_ancestry(self, registration_commit, run_code_commit):
+        return False
+
+
 class M11PlaybookTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -110,7 +155,7 @@ class M11PlaybookTests(unittest.TestCase):
             subject_reference={"event_id": cls.event["event_id"]},
             review_type="hypothesis",
             author_id="author:synthetic-reviewer",
-            authored_at="2026-09-05T09:00:00Z",
+            authored_at="2026-09-03T20:00:00Z",
             body="Synthetic candidate only; no production claim.",
             known_event_ids={cls.event["event_id"]},
         )
@@ -181,6 +226,7 @@ class M11PlaybookTests(unittest.TestCase):
         cls.case_authority = SyntheticCaseAuthority([
             cls.event, cls.baseline_event, cls.third_event,
         ])
+        cls.prereg_authority = SyntheticPreregistrationAuthority()
         cls.lifecycle_authority = SyntheticLifecycleAuthority()
         evidence_scope = {
             "expected_run_ids": sorted([
@@ -201,25 +247,43 @@ class M11PlaybookTests(unittest.TestCase):
             evidence_scope=evidence_scope,
             criteria=[{
                 "criterion_id": "criterion-001-status-mature",
-                "result_ref": {"id": cls.outcome["forward_outcome_id"], "content_fingerprint": cls.outcome["forward_content_fingerprint"]},
+                "result_contract": "ForwardOutcome",
+                "run_role": "baseline",
+                "partition_role": "validation",
+                "window_sessions": 5,
                 "field": "status", "operator": "eq", "expected": "mature",
             }],
         )
+        proposal_values = {
+            "as_of": "2026-09-05", "generated_at": "2026-09-05T10:00:00Z",
+            "strategy_key": "synthetic.validation.gate", "strategy_version": "1.0.0",
+            "proposal_kind": "playbook_candidate", "candidate_version": "1.0.0", "baseline_version": "0.9.0",
+            "definition": {"rule_id": "synthetic-only", "description": "Fixed contract fixture", "definition_fingerprint": SHA},
+            "affected_modules": ["M11"],
+            "applicability": {"universe_scope": "synthetic", "market_scope": "synthetic", "timeframes": ["daily"]},
+            "m09_review_refs": [{"id": cls.review["review_id"], "content_fingerprint": cls.review["review_content_fingerprint"], "review_type": "hypothesis"}],
+            "case_roles": [
+                {**cls.case_authority.records[cls.event["event_id"]], "case_label": "SYNTH-UNSEEN", "role": "validation"},
+                {**cls.case_authority.records[cls.baseline_event["event_id"]], "case_label": "SYNTH-BASELINE", "role": "validation"},
+            ],
+            "preregistration": cls.prereg, "created_by": "author:synthetic-owner",
+            "created_at": "2026-09-05T10:00:00Z", "bias_labels": [],
+        }
+        proposal_values["preregistration_authority_ref"] = cls.prereg_authority.register(
+            proposal_values,
+            run_code_commits=sorted({
+                cls.pending["code_commit"], cls.baseline_pending["code_commit"],
+            }),
+        )
         cls.proposal = produce_strategy_proposal(
-            as_of="2026-09-05", generated_at="2026-09-05T10:00:00Z",
-            strategy_key="synthetic.validation.gate", strategy_version="1.0.0",
-            proposal_kind="playbook_candidate", candidate_version="1.0.0", baseline_version="0.9.0",
-            definition={"rule_id": "synthetic-only", "description": "Fixed contract fixture", "definition_fingerprint": SHA},
-            affected_modules=["M11"],
-            applicability={"universe_scope": "synthetic", "market_scope": "synthetic", "timeframes": ["daily"]},
-            m09_review_refs=[{"id": cls.review["review_id"], "content_fingerprint": cls.review["review_content_fingerprint"], "review_type": "hypothesis"}],
+            **{key: value for key, value in proposal_values.items() if key != "case_roles"},
             case_roles=[
                 {"event_id": cls.event["event_id"], "case_label": "SYNTH-UNSEEN", "role": "validation"},
                 {"event_id": cls.baseline_event["event_id"], "case_label": "SYNTH-BASELINE", "role": "validation"},
             ],
-            preregistration=cls.prereg, created_by="author:synthetic-owner", created_at="2026-09-05T10:00:00Z", bias_labels=[],
             persisted_case_events=[cls.event, cls.baseline_event],
             case_authority_resolver=cls.case_authority,
+            preregistration_authority_resolver=cls.prereg_authority,
         )
 
     def seeded(self):
@@ -241,6 +305,7 @@ class M11PlaybookTests(unittest.TestCase):
             root / "playbook", ledger_store=ledger, evaluation_store=evaluation,
             case_authority_resolver=self.case_authority,
             lifecycle_authority_resolver=self.lifecycle_authority,
+            preregistration_authority_resolver=self.prereg_authority,
         )
         return context, ledger, evaluation, playbook
 
@@ -250,13 +315,27 @@ class M11PlaybookTests(unittest.TestCase):
             "evaluation_store": evaluation, "run_ids": [self.completed["run_id"], self.baseline_completed["run_id"]],
             "assessed_at": "2026-09-05T11:00:00Z",
             "case_authority_resolver": self.case_authority,
+            "preregistration_authority_resolver": self.prereg_authority,
         }
         values.update(changes)
         return assess_persisted_strategy_evidence(**values)
 
     def resign(self, original, **changes):
+        return self.proposal_with_preregistration(original, **changes)
+
+    def proposal_with_preregistration(
+        self, original, *, preregistration_resolver=None,
+        case_resolver=None,
+        registered_at="2026-09-03T21:00:00Z", run_code_commits=None,
+        **changes,
+    ):
+        resolver = preregistration_resolver or self.prereg_authority
+        case_authority = case_resolver or self.case_authority
         values = plain(original)
-        for field in ("proposal_id", "proposal_content_fingerprint", "strategy_id"):
+        for field in (
+            "proposal_id", "proposal_content_fingerprint", "strategy_id",
+            "preregistration_authority_ref",
+        ):
             values.pop(field, None)
         cases = changes.pop("case_roles", values.pop("case_roles"))
         values.update(changes)
@@ -268,11 +347,25 @@ class M11PlaybookTests(unittest.TestCase):
             }
             for item in cases
         ]
+        resolved_cases = [
+            {
+                **case_authority.records[item["event_id"]],
+                "case_label": item["case_label"],
+                "role": item["role"],
+            }
+            for item in declared_cases
+        ]
+        values["preregistration_authority_ref"] = resolver.register(
+            {**values, "case_roles": resolved_cases},
+            registered_at=registered_at,
+            run_code_commits=(run_code_commits or [self.pending["code_commit"]]),
+        )
         return produce_strategy_proposal(
             **values,
             case_roles=declared_cases,
             persisted_case_events=[self.event, self.baseline_event, self.third_event],
-            case_authority_resolver=self.case_authority,
+            case_authority_resolver=case_authority,
+            preregistration_authority_resolver=resolver,
         )
 
     def scope_for(self, *receipts):
@@ -365,11 +458,33 @@ class M11PlaybookTests(unittest.TestCase):
         with self.assertRaises(ContractError):
             self.resign(self.proposal, m09_review_refs=refs)
 
-    def test_known_seen_cases_cannot_claim_independent_validation(self):
+    def test_case_label_is_display_only_for_unseen_case(self):
         cases = plain(self.proposal["case_roles"])
-        cases[0].update({"case_label": "CGEM", "role": "validation", "seen_before": True})
-        with self.assertRaises(ContractError):
-            self.resign(self.proposal, case_roles=cases)
+        cases[0].update({"case_label": "CGEM", "role": "validation"})
+        changed = self.resign(self.proposal, case_roles=cases)
+        self.assertFalse(changed["case_roles"][0]["seen_before"])
+        self.assertEqual("validation", changed["case_roles"][0]["role"])
+        self.assertNotEqual(
+            self.proposal["proposal_content_fingerprint"],
+            changed["proposal_content_fingerprint"],
+        )
+
+    def test_case_label_cannot_hide_stably_seen_case(self):
+        case_authority = SyntheticCaseAuthority(
+            [self.event, self.baseline_event], seen=[self.event["event_id"]]
+        )
+        cases = plain(self.proposal["case_roles"])
+        cases[0].update({"case_label": "SYNTH-UNSEEN", "role": "calibration"})
+        changed = self.proposal_with_preregistration(
+            self.proposal, case_roles=cases, case_resolver=case_authority,
+        )
+        self.assertTrue(changed["case_roles"][0]["seen_before"])
+        validation_cases = plain(changed["case_roles"])
+        validation_cases[0]["role"] = "validation"
+        with self.assertRaisesRegex(ContractError, "previously seen"):
+            self.proposal_with_preregistration(
+                changed, case_roles=validation_cases, case_resolver=case_authority,
+            )
 
     def test_seen_case_identity_cannot_be_hidden_by_display_alias(self):
         resolver = SyntheticCaseAuthority(
@@ -395,6 +510,7 @@ class M11PlaybookTests(unittest.TestCase):
                 ],
                 persisted_case_events=[self.event, self.baseline_event],
                 case_authority_resolver=resolver,
+                preregistration_authority_resolver=self.prereg_authority,
             )
 
     def test_case_seen_before_and_stable_identity_are_not_caller_controlled(self):
@@ -410,6 +526,7 @@ class M11PlaybookTests(unittest.TestCase):
                 }],
                 persisted_case_events=[self.event],
                 case_authority_resolver=self.case_authority,
+                preregistration_authority_resolver=self.prereg_authority,
             )
 
         context, ledger, evaluation, _ = self.seeded()
@@ -439,7 +556,10 @@ class M11PlaybookTests(unittest.TestCase):
 
     def test_legacy_m11_proposal_is_read_only_not_formal_writable(self):
         legacy = plain(self.proposal)
-        for field in ("proposal_id", "proposal_content_fingerprint", "strategy_id"):
+        for field in (
+            "proposal_id", "proposal_content_fingerprint", "strategy_id",
+            "preregistration_authority_ref",
+        ):
             legacy.pop(field, None)
         legacy["schema_version"] = "2.0.0"
         legacy["source_version"] = {"playbook": "m11-shadow-1.0.0"}
@@ -447,7 +567,14 @@ class M11PlaybookTests(unittest.TestCase):
             required_partitions=legacy["preregistration"]["required_partitions"],
             required_result_contracts=legacy["preregistration"]["required_result_contracts"],
             requires_cost_policy=legacy["preregistration"]["requires_cost_policy"],
-            criteria=legacy["preregistration"]["criteria"],
+            criteria=[{
+                "criterion_id": "legacy-criterion",
+                "result_ref": {
+                    "id": self.outcome["forward_outcome_id"],
+                    "content_fingerprint": self.outcome["forward_content_fingerprint"],
+                },
+                "field": "status", "operator": "eq", "expected": "mature",
+            }],
             schema_version="2.0.0",
         )
         for case in legacy["case_roles"]:
@@ -467,6 +594,36 @@ class M11PlaybookTests(unittest.TestCase):
             with self.assertRaisesRegex(ContractError, "read-only"):
                 store.write_proposal(legacy)
 
+    def test_intermediate_2_1_proposal_is_read_only_not_formal_assessable(self):
+        intermediate = plain(self.proposal)
+        for field in (
+            "proposal_id", "proposal_content_fingerprint", "strategy_id",
+            "preregistration_authority_ref",
+        ):
+            intermediate.pop(field, None)
+        intermediate["schema_version"] = "2.1.0"
+        intermediate["source_version"] = {"playbook": "m11-shadow-1.1.0"}
+        intermediate["preregistration"] = build_preregistration(
+            required_partitions=["validation"],
+            required_result_contracts=["ForwardOutcome"],
+            requires_cost_policy=False,
+            criteria=[{
+                "criterion_id": "intermediate-post-result-criterion",
+                "result_ref": {
+                    "id": self.outcome["forward_outcome_id"],
+                    "content_fingerprint": self.outcome["forward_content_fingerprint"],
+                },
+                "field": "status", "operator": "eq", "expected": "mature",
+            }],
+            evidence_scope=plain(self.prereg["evidence_scope"]),
+            schema_version="2.1.0",
+        )
+        intermediate = build_strategy_proposal(**intermediate)
+        validate_strategy_proposal(intermediate)
+        context, ledger, evaluation, _ = self.seeded()
+        with context, self.assertRaisesRegex(ContractError, "read-only"):
+            self.assess(ledger, evaluation, proposal=intermediate)
+
     def test_same_case_cannot_cross_calibration_and_validation_roles(self):
         values = plain(self.proposal)
         for field in ("proposal_id", "proposal_content_fingerprint", "strategy_id", "case_roles"):
@@ -480,6 +637,7 @@ class M11PlaybookTests(unittest.TestCase):
                 ],
                 persisted_case_events=[self.event],
                 case_authority_resolver=self.case_authority,
+                preregistration_authority_resolver=self.prereg_authority,
             )
 
     def test_bare_or_unpersisted_m09_review_fails(self):
@@ -495,6 +653,128 @@ class M11PlaybookTests(unittest.TestCase):
             assessment = self.assess(ledger, evaluation)
             self.assertEqual("validated", assessment["evidence_state"])
             self.assertEqual(["validation"], list(assessment["partitions"]))
+
+    def test_preregistration_must_precede_every_m10_pending_root(self):
+        context, ledger, evaluation, _ = self.seeded()
+        with context:
+            late = SyntheticPreregistrationAuthority()
+            proposal = self.proposal_with_preregistration(
+                self.proposal,
+                preregistration_resolver=late,
+                registered_at="2026-09-03T22:30:00Z",
+            )
+            with self.assertRaisesRegex(ContractError, "before M10 started"):
+                self.assess(
+                    ledger, evaluation, proposal=proposal,
+                    preregistration_authority_resolver=late,
+                )
+
+    def test_backfilled_proposal_time_cannot_replace_preregistration_proof(self):
+        context, ledger, evaluation, _ = self.seeded()
+        with context:
+            late = SyntheticPreregistrationAuthority()
+            proposal = self.proposal_with_preregistration(
+                self.proposal,
+                preregistration_resolver=late,
+                registered_at="2026-09-03T22:30:00Z",
+                as_of="2026-09-03",
+                created_at="2026-09-03T19:00:00Z",
+            )
+            with self.assertRaisesRegex(ContractError, "before M10 started"):
+                self.assess(
+                    ledger, evaluation, proposal=proposal,
+                    preregistration_authority_resolver=late,
+                )
+
+    def test_preregistration_commit_must_precede_run_commit(self):
+        context, ledger, evaluation, _ = self.seeded()
+        with context:
+            resolver = RejectingPreregistrationAncestry()
+            proposal = self.proposal_with_preregistration(
+                self.proposal, preregistration_resolver=resolver,
+            )
+            with self.assertRaisesRegex(ContractError, "does not precede"):
+                self.assess(
+                    ledger, evaluation, proposal=proposal,
+                    preregistration_authority_resolver=resolver,
+                )
+
+    def test_missing_or_mismatched_preregistration_authority_fails_closed(self):
+        context, ledger, evaluation, _ = self.seeded()
+        with context:
+            with self.assertRaisesRegex(ContractError, "trusted preregistration resolver"):
+                self.assess(
+                    ledger, evaluation,
+                    preregistration_authority_resolver=None,
+                )
+            criteria = plain(self.prereg["criteria"])
+            criteria[0]["expected"] = "pending"
+            changed_prereg = build_preregistration(
+                required_partitions=["validation"],
+                required_result_contracts=["ForwardOutcome"],
+                requires_cost_policy=False,
+                criteria=criteria,
+                evidence_scope=plain(self.prereg["evidence_scope"]),
+            )
+            forged = plain(self.proposal)
+            for field in ("proposal_id", "proposal_content_fingerprint", "strategy_id"):
+                forged.pop(field, None)
+            forged["preregistration"] = changed_prereg
+            forged = build_strategy_proposal(**forged)
+            with self.assertRaisesRegex(ContractError, "differs from the proposal"):
+                self.assess(ledger, evaluation, proposal=forged)
+
+            untrusted_store = PlaybookShadowStore(
+                Path(context.name) / "untrusted-preregistration",
+                ledger_store=ledger,
+                evaluation_store=evaluation,
+                case_authority_resolver=self.case_authority,
+            )
+            with self.assertRaisesRegex(ContractError, "trusted preregistration resolver"):
+                untrusted_store.write_proposal(self.proposal)
+            self.assertFalse(list(untrusted_store.root.rglob("*.json")))
+
+    def test_preregistration_freezes_scope_policy_window_and_threshold(self):
+        context, ledger, evaluation, _ = self.seeded()
+        with context:
+            attacks = []
+            for kind in ("window", "partition", "date", "policy", "threshold"):
+                prereg = plain(self.prereg)
+                for field in ("preregistration_id", "content_fingerprint"):
+                    prereg.pop(field)
+                if kind == "window":
+                    prereg["evidence_scope"]["required_window_sessions"] = [5, 20]
+                elif kind == "partition":
+                    prereg["required_partitions"] = ["forward", "validation"]
+                elif kind == "date":
+                    prereg["evidence_scope"]["evidence_window"]["start"] = "2026-09-02"
+                elif kind == "policy":
+                    prereg["evidence_scope"]["required_policy_refs"][0]["policy_fingerprint"] = "sha256:" + "9" * 64
+                else:
+                    prereg["criteria"][0]["expected"] = "pending"
+                rebuilt = build_preregistration(**prereg)
+                forged = plain(self.proposal)
+                for field in ("proposal_id", "proposal_content_fingerprint", "strategy_id"):
+                    forged.pop(field, None)
+                forged["preregistration"] = rebuilt
+                attacks.append(build_strategy_proposal(**forged))
+            for forged in attacks:
+                with self.assertRaisesRegex(ContractError, "differs from the proposal"):
+                    self.assess(ledger, evaluation, proposal=forged)
+
+    def test_preregistration_proof_cannot_cross_strategy_version(self):
+        context, ledger, evaluation, _ = self.seeded()
+        with context:
+            other = self.resign(self.proposal, strategy_version="9.0.0")
+            forged = plain(self.proposal)
+            for field in ("proposal_id", "proposal_content_fingerprint", "strategy_id"):
+                forged.pop(field, None)
+            forged["preregistration_authority_ref"] = plain(
+                other["preregistration_authority_ref"]
+            )
+            forged = build_strategy_proposal(**forged)
+            with self.assertRaisesRegex(ContractError, "differs from the proposal"):
+                self.assess(ledger, evaluation, proposal=forged)
 
     def test_complete_inventory_rejects_omitted_adverse_run(self):
         context, ledger, evaluation, _ = self.seeded()
@@ -686,16 +966,11 @@ class M11PlaybookTests(unittest.TestCase):
                 evaluation.write_run_receipt(self.baseline_pending)
                 evaluation.write_result("ForwardOutcome", self.baseline_outcome)
                 evaluation.write_run_receipt(self.baseline_completed)
-                criteria = plain(self.prereg["criteria"])
-                criteria[0]["result_ref"] = {
-                    "id": outcome["forward_outcome_id"],
-                    "content_fingerprint": outcome["forward_content_fingerprint"],
-                }
                 prereg = build_preregistration(
                     required_partitions=["validation"],
                     required_result_contracts=["ForwardOutcome"],
                     requires_cost_policy=False,
-                    criteria=criteria,
+                    criteria=plain(self.prereg["criteria"]),
                     evidence_scope=self.scope_for(completed, self.baseline_completed),
                 )
                 proposal = self.resign(
@@ -749,15 +1024,23 @@ class M11PlaybookTests(unittest.TestCase):
             proposal = self.resign(self.proposal, strategy_version="1.0.3", preregistration=prereg)
             self.assertEqual("not_validated", self.assess(ledger, evaluation, proposal=proposal)["evidence_state"])
 
-    def test_unpersisted_m10_object_or_bad_fingerprint_fails(self):
-        context, ledger, evaluation, _ = self.seeded()
-        with context:
-            criteria = plain(self.prereg["criteria"])
-            criteria[0]["result_ref"]["content_fingerprint"] = SHA
-            prereg = build_preregistration(required_partitions=["validation"], required_result_contracts=["ForwardOutcome"], requires_cost_policy=False, criteria=criteria, evidence_scope=plain(self.prereg["evidence_scope"]))
-            proposal = self.resign(self.proposal, strategy_version="1.0.4", preregistration=prereg)
-            with self.assertRaisesRegex(ContractError, "fingerprint"):
-                self.assess(ledger, evaluation, proposal=proposal)
+    def test_current_criterion_cannot_bind_completed_outcome_identity(self):
+        criterion = {
+            "criterion_id": "forbidden-post-result-selector",
+            "result_ref": {
+                "id": self.outcome["forward_outcome_id"],
+                "content_fingerprint": self.outcome["forward_content_fingerprint"],
+            },
+            "field": "status", "operator": "eq", "expected": "mature",
+        }
+        with self.assertRaisesRegex(ContractError, "criterion"):
+            build_preregistration(
+                required_partitions=["validation"],
+                required_result_contracts=["ForwardOutcome"],
+                requires_cost_policy=False,
+                criteria=[criterion],
+                evidence_scope=plain(self.prereg["evidence_scope"]),
+            )
 
     def test_user_approval_changes_decision_not_machine_evidence(self):
         context, ledger, evaluation, _ = self.seeded()
@@ -836,6 +1119,7 @@ class M11PlaybookTests(unittest.TestCase):
                 Path(context.name) / "untrusted-playbook",
                 ledger_store=ledger, evaluation_store=evaluation,
                 case_authority_resolver=self.case_authority,
+                preregistration_authority_resolver=self.prereg_authority,
             )
             untrusted.write_proposal(self.proposal)
             untrusted.write_assessment(assessment)

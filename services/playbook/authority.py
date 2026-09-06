@@ -7,11 +7,14 @@ No default resolver trusts caller-supplied objects.
 
 from __future__ import annotations
 
-from typing import Any, Mapping, Protocol
+from datetime import datetime
+import re
+from typing import Any, Mapping, Protocol, Sequence
 
+from services.contracts.market_data import canonical_fingerprint
 from services.contracts.validation import ContractError
 
-from .contracts import plain
+from .contracts import plain, proposal_preregistration_semantic_fingerprint
 
 
 class CaseAuthorityResolver(Protocol):
@@ -39,6 +42,148 @@ class LifecycleAuthorityResolver(Protocol):
         self, proposal: Mapping[str, Any], event: Mapping[str, Any]
     ) -> bool: ...
 
+
+class PreregistrationAuthorityResolver(Protocol):
+    """Resolve an immutable, pre-run registration record for Proposal 2.2."""
+
+    authority_mode: str
+
+    def resolve_preregistration(self, authority_id: str) -> Mapping[str, Any]: ...
+
+    def verify_registration_commit_ancestry(
+        self, registration_commit: str, run_code_commit: str
+    ) -> bool: ...
+
+
+_SHA = re.compile(r"^sha256:[0-9a-f]{64}$")
+_COMMIT = re.compile(r"^[0-9a-f]{40}$")
+
+
+def build_preregistration_authority_record(
+    *, proposal_semantic_fingerprint: str, registered_at: str,
+    registration_commit: str, verified_run_code_commits: Sequence[str],
+    authority_mode: str,
+) -> Mapping[str, Any]:
+    """Build the canonical record returned by a trusted preregistration source."""
+
+    semantic = {
+        "proposal_semantic_fingerprint": proposal_semantic_fingerprint,
+        "registered_at": registered_at,
+        "registration_commit": registration_commit,
+        "verified_run_code_commits": sorted(set(verified_run_code_commits)),
+        "authority_mode": authority_mode,
+    }
+    fingerprint = canonical_fingerprint(semantic)
+    record = {
+        "authority_id": "strategy-preregistration-proof:" + fingerprint,
+        "content_fingerprint": fingerprint,
+        **semantic,
+    }
+    validate_preregistration_authority_record(record)
+    return record
+
+
+def validate_preregistration_authority_record(record: Mapping[str, Any]) -> None:
+    expected_fields = {
+        "authority_id", "content_fingerprint", "proposal_semantic_fingerprint",
+        "registered_at", "registration_commit", "verified_run_code_commits",
+        "authority_mode",
+    }
+    if not isinstance(record, Mapping) or set(record) != expected_fields:
+        raise ContractError("trusted preregistration record has an invalid shape")
+    for field in ("content_fingerprint", "proposal_semantic_fingerprint"):
+        if not isinstance(record[field], str) or not _SHA.fullmatch(record[field]):
+            raise ContractError(f"trusted preregistration {field} is invalid")
+    if record["authority_mode"] not in {"formal", "test"}:
+        raise ContractError("trusted preregistration authority mode is invalid")
+    if not isinstance(record["registered_at"], str) or not record["registered_at"].endswith("Z"):
+        raise ContractError("trusted preregistration time is invalid")
+    try:
+        datetime.fromisoformat(record["registered_at"][:-1] + "+00:00")
+    except ValueError as exc:
+        raise ContractError("trusted preregistration time is invalid") from exc
+    if not isinstance(record["registration_commit"], str) or not _COMMIT.fullmatch(record["registration_commit"]):
+        raise ContractError("trusted preregistration commit is invalid")
+    commits = record["verified_run_code_commits"]
+    if (
+        not isinstance(commits, (list, tuple))
+        or not commits
+        or list(commits) != sorted(set(commits))
+        or any(not isinstance(item, str) or not _COMMIT.fullmatch(item) for item in commits)
+    ):
+        raise ContractError("trusted preregistration run commits are invalid")
+    semantic = {
+        key: plain(value)
+        for key, value in record.items()
+        if key not in {"authority_id", "content_fingerprint"}
+    }
+    fingerprint = canonical_fingerprint(semantic)
+    if record["content_fingerprint"] != fingerprint:
+        raise ContractError("trusted preregistration content fingerprint is invalid")
+    if record["authority_id"] != "strategy-preregistration-proof:" + fingerprint:
+        raise ContractError("trusted preregistration identity is invalid")
+
+
+def validate_preregistration_authority(
+    proposal: Mapping[str, Any],
+    resolver: PreregistrationAuthorityResolver | None,
+    *,
+    pending_run_receipts: Sequence[Mapping[str, Any]] = (),
+) -> Mapping[str, Any]:
+    """Verify full proposal semantics and, when supplied, pre-run ordering."""
+
+    if resolver is None:
+        raise ContractError("formal M11 validation requires a trusted preregistration resolver")
+    mode = getattr(resolver, "authority_mode", None)
+    if mode not in {"formal", "test"}:
+        raise ContractError("formal M11 preregistration resolver is not explicitly trusted")
+    authority_ref = proposal.get("preregistration_authority_ref")
+    if not isinstance(authority_ref, Mapping):
+        raise ContractError("formal M11 proposal lacks preregistration authority")
+    callback = getattr(resolver, "resolve_preregistration", None)
+    if callback is None or not callable(callback):
+        raise ContractError("formal M11 preregistration resolver is unavailable")
+    try:
+        record = callback(str(authority_ref["id"]))
+    except ContractError:
+        raise
+    except Exception as exc:
+        raise ContractError("formal M11 preregistration evidence cannot be resolved") from exc
+    if not isinstance(record, Mapping):
+        raise ContractError("formal M11 preregistration resolver returned no authority record")
+    validate_preregistration_authority_record(record)
+    if record["authority_mode"] != mode:
+        raise ContractError("preregistration authority mode differs from its resolver")
+    if plain(authority_ref) != {
+        "id": record["authority_id"],
+        "content_fingerprint": record["content_fingerprint"],
+    }:
+        raise ContractError("proposal preregistration authority reference is invalid")
+    expected_semantic = proposal_preregistration_semantic_fingerprint(proposal)
+    if record["proposal_semantic_fingerprint"] != expected_semantic:
+        raise ContractError("trusted preregistration content differs from the proposal")
+    if pending_run_receipts:
+        run_commits = sorted({str(item["code_commit"]) for item in pending_run_receipts})
+        if list(record["verified_run_code_commits"]) != run_commits:
+            raise ContractError("preregistration proof does not cover every M10 run commit")
+        ancestry = getattr(resolver, "verify_registration_commit_ancestry", None)
+        if ancestry is None or not callable(ancestry):
+            raise ContractError("preregistration Git ordering proof is unavailable")
+        for run_commit in run_commits:
+            try:
+                is_ancestor = ancestry(str(record["registration_commit"]), run_commit)
+            except ContractError:
+                raise
+            except Exception as exc:
+                raise ContractError("preregistration Git ordering cannot be verified") from exc
+            if is_ancestor is not True:
+                raise ContractError("preregistration commit does not precede M10 run code")
+        registered = datetime.fromisoformat(str(record["registered_at"])[:-1] + "+00:00")
+        for receipt in pending_run_receipts:
+            started = datetime.fromisoformat(str(receipt["started_at"])[:-1] + "+00:00")
+            if registered >= started:
+                raise ContractError("preregistration was not frozen before M10 started")
+    return record
 
 def _resolved(resolver: Any, method: str, key: str, label: str) -> Mapping[str, Any]:
     if resolver is None:
@@ -137,7 +282,11 @@ def validate_sensitive_lifecycle_authority(
 __all__ = [
     "CaseAuthorityResolver",
     "LifecycleAuthorityResolver",
+    "PreregistrationAuthorityResolver",
+    "build_preregistration_authority_record",
     "resolve_case_authority",
     "validate_case_authority",
+    "validate_preregistration_authority",
+    "validate_preregistration_authority_record",
     "validate_sensitive_lifecycle_authority",
 ]
