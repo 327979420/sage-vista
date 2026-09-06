@@ -153,6 +153,73 @@ test('registration consumption and log must remain paired on reopen', async t =>
   assert.throws(() => reopened.prepareValidation(f.job, f.leaseToken, f.sent.dispatch.approval_evidence_ref), /recovery_required/);
 });
 
+test('first registration loses both consumption and log: historical recovery fails closed', async t => {
+  const f = await registrationFixture(t, false);
+  await f.register();
+  assert.equal((await recoveryReader(f).recover(token(), f.sent.dispatch.dispatch_id, f.receiptKey)).current_history.revision, 1);
+  const originalIndex = f.rows().index;
+  f.db.exec("DELETE FROM m12_authorization_consumptions; DELETE FROM m12_authorization_log WHERE operation='register_authorization'");
+  await assert.rejects(recoveryReader(f).recover(token(), f.sent.dispatch.dispatch_id, f.receiptKey), /recovery_required/);
+  assert.deepEqual(f.rows().index, originalIndex);
+  const reopened = new AuthorizationStore(f.storage, { clock: f.options.clock });
+  assert.throws(() => reopened.prepareValidation(f.job, f.leaseToken, f.sent.dispatch.approval_evidence_ref), /recovery_required/);
+});
+
+test('two real registrations reject local pair loss at either index position', async t => {
+  const f = await registrationFixture(t, false);
+  const first = await f.register();
+  // A second controlled GitHub source response, independently Python-validated.
+  // Same local SQLite/R2, distinct control commit; no fabricated verified object.
+  const request = { ...businessRequest, action: 'revoke', permissions: [],
+    prior_authorization_ref: first.return_record.authorization_ref };
+  const policy = { ...identityPolicy, code_commit: '9'.repeat(40) };
+  const source = requestFixture(JSON.stringify(request));
+  source.responses['/git/commits/' + policy.code_commit] = { ...source.commit, sha: policy.code_commit };
+  source.data.run.head_sha = source.data.after.head_sha = policy.code_commit;
+  const jwt = token({ sha: policy.code_commit });
+  const options = { ...source.options, storage: f.storage, bucket: f.bucket };
+  const preparation = new AuthorizationPreparation(policy, reviewPolicy, options);
+  const sent = await preparation.dispatchValidationInput(jwt, f.leaseToken);
+  const validated = validateWire(sent.input_bytes);
+  assert.equal(validated.valid, true, validated.error);
+  const raw = Buffer.from(JSON.stringify(canonical({ authorization_base64: validated.authorization_bytes,
+    receipt_base64: validated.receipt_bytes })) + '\n');
+  const service = new AuthorizationRegistration(policy, { ...options,
+    registrationPolicy: { actor_id: '789', approver_id: '999', request } });
+  const second = await service.register(jwt, f.leaseToken, sent.dispatch.dispatch_id, raw);
+  assert.equal(second.position, 2);
+  assert.equal((await recoveryReader(f).recover(token(), f.sent.dispatch.dispatch_id, f.receiptKey)).current_history.revision, 2);
+  for (const record of [first, second]) {
+    f.db.exec('SAVEPOINT paired_loss_probe');
+    try {
+      f.db.prepare('DELETE FROM m12_authorization_consumptions WHERE ticket_id=?').run(record.ticket_id);
+      f.db.prepare("DELETE FROM m12_authorization_log WHERE operation='register_authorization' AND ticket_id=?").run(record.ticket_id);
+      assert.equal(f.rows().consumption.length, 1); // Other registration remains intact.
+      await assert.rejects(recoveryReader(f).recover(token(), f.sent.dispatch.dispatch_id, f.receiptKey), /recovery_required/);
+    } finally {
+      f.db.exec('ROLLBACK TO paired_loss_probe; RELEASE paired_loss_probe');
+    }
+    assert.equal(f.rows().consumption.length, 2);
+    assert.equal((await recoveryReader(f).recover(token(), f.sent.dispatch.dispatch_id, f.receiptKey)).current_history.revision, 2);
+  }
+});
+
+test('import baseline is an exact trusted prefix and missing boundary is never inferred', async t => {
+  const f = await registrationFixture(t);
+  const baseline = f.db.prepare('SELECT history_json FROM m12_authorization_import_baseline').get().history_json;
+  for (const value of ['[]', JSON.stringify([{ ...JSON.parse(baseline)[0], previous_ref: f.priorRef }])]) {
+    f.db.prepare('UPDATE m12_authorization_import_baseline SET history_json=?').run(value);
+    await assert.rejects(f.register(), /recovery_required/);
+    assert.equal(f.rows().consumption.length, 0);
+  }
+  f.db.prepare('UPDATE m12_authorization_import_baseline SET history_json=?').run(baseline);
+  assert.equal((await f.register()).position, 2);
+  f.db.exec('DELETE FROM m12_authorization_import_baseline');
+  const reopened = new AuthorizationStore(f.storage, { clock: f.options.clock });
+  assert.throws(() => reopened.prepareValidation(f.job, f.leaseToken, f.sent.dispatch.approval_evidence_ref), /recovery_required/);
+  assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM m12_authorization_import_baseline').get().n, 0);
+});
+
 const NOW = 1_788_652_800;
 const keys = generateKeyPairSync("rsa", { modulusLength: 2048 });
 const jwk = { ...keys.publicKey.export({ format: "jwk" }), kid: "test", alg: "RS256", use: "sig" };
@@ -875,6 +942,10 @@ function preparationFixture(t, withHistory = true) {
       storage.sql.exec("INSERT INTO m12_authorization_index VALUES (1, ?, ?, NULL)", JSON.stringify(priorRef),
         JSON.stringify({ key: historyKey, sha256: "sha256:" + createHash("sha256").update(priorBytes).digest("hex"), size_bytes: priorBytes.length }));
       storage.sql.exec("UPDATE m12_authorization_head SET revision = 1, head_json = ?", JSON.stringify(priorRef));
+      // Explicit trusted synthetic import prefix; never inferred by production.
+      storage.sql.exec("UPDATE m12_authorization_import_baseline SET history_json=? WHERE singleton=1",
+        JSON.stringify([{ reference: priorRef, archive: { key: historyKey,
+          sha256: "sha256:" + createHash("sha256").update(priorBytes).digest("hex"), size_bytes: priorBytes.length }, previous_ref: null }]));
     });
   }
   return { ...f, db, storage, lease, job, leaseToken, preparation, historyKey, priorBytes, priorRef };
@@ -923,7 +994,7 @@ test("head change during R2 history read invalidates the prepared ticket", async
       f.storage.sql.exec("UPDATE m12_authorization_head SET revision = 0, head_json = NULL");
     });
   };
-  await assert.rejects(f.preparation.prepare(token(), f.leaseToken), /ticket_history_changed/);
+  await assert.rejects(f.preparation.prepare(token(), f.leaseToken), /registration_recovery_required/);
 });
 
 test("lease takeover during history read rejects old owner even while OIDC token is valid", async (t) => {
@@ -1189,7 +1260,7 @@ test("head or lease change while archiving validation input prevents its dispatc
         });
       }
     };
-    await assert.rejects(f.preparation.dispatchValidationInput(token(), f.leaseToken), /history_changed|not_owned/);
+    await assert.rejects(f.preparation.dispatchValidationInput(token(), f.leaseToken), takeover ? /not_owned/ : /registration_recovery_required/);
     assert.equal(dispatchCount(f), 0);
   }
 });
@@ -2210,16 +2281,12 @@ test('recovery reads expired historical return after lease takeover without revi
 });
 
 test('recovery permits a later intact authority head without making historical return current permission', async (t) => {
-  const f = await validationArchiveFixture(t);
-  const archived = await f.archiveValidation();
-  const ref = JSON.stringify(archived.return_record.authorization_ref);
-  const prior = f.db.prepare('SELECT reference_json FROM m12_authorization_index WHERE position=1').get().reference_json;
-  f.db.prepare('INSERT INTO m12_authorization_index VALUES (2,?,?,?)').run(ref, JSON.stringify(archived.authorization_archive), prior);
-  f.db.prepare('UPDATE m12_authorization_head SET revision=2,head_json=?').run(ref);
+  const f = await registrationFixture(t);
+  const registered = await f.register();
   const result = await recoveryReader(f).recover(token(), f.sent.dispatch.dispatch_id, f.receiptKey);
   assert.equal(result.current_history.revision, 2);
   assert.equal(result.validation_ticket.expected_revision, 1);
-  assert.deepEqual(result.return_record, archived.return_record);
+  assert.deepEqual(result.return_record, registered.return_record);
 });
 
 test('recovery requires configured epoch fresh original identity and exact receipt selection', async (t) => {

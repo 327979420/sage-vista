@@ -221,6 +221,10 @@ function seedHistory(storage) {
         sha256: "sha256:" + String(i + 1).repeat(64), size_bytes: 100 + i }),
       i === 0 ? null : JSON.stringify(refs[i - 1])));
     storage.sql.exec("UPDATE m12_authorization_head SET revision = 2, head_json = ?", JSON.stringify(refs[1]));
+    // Full trusted synthetic prefix, not a boolean exemption for missing records.
+    storage.sql.exec("UPDATE m12_authorization_import_baseline SET history_json=? WHERE singleton=1",
+      JSON.stringify(refs.map((ref, i) => ({ reference: ref, archive: { key: `authority/${String(i + 1).repeat(64)}.json`,
+        sha256: "sha256:" + String(i + 1).repeat(64), size_bytes: 100 + i }, previous_ref: i ? refs[i - 1] : null }))));
   });
   return refs;
 }

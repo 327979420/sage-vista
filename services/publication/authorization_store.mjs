@@ -61,6 +61,8 @@ export class AuthorizationStore {
         record_json TEXT NOT NULL, PRIMARY KEY(dispatch_id,receipt_key))`);
       this.#exec(`CREATE TABLE IF NOT EXISTS m12_authorization_consumptions (
         ticket_id TEXT PRIMARY KEY, registration_json TEXT NOT NULL)`);
+      this.#exec(`CREATE TABLE IF NOT EXISTS m12_authorization_import_baseline (
+        singleton INTEGER PRIMARY KEY CHECK(singleton=1), history_json TEXT NOT NULL)`);
       this.#exec(`CREATE TABLE IF NOT EXISTS m12_authorization_log (
         sequence INTEGER PRIMARY KEY AUTOINCREMENT, operation TEXT NOT NULL, ticket_id TEXT NOT NULL,
         record_json TEXT NOT NULL, occurred_ms INTEGER NOT NULL)`);
@@ -71,8 +73,11 @@ export class AuthorizationStore {
           !this.#exec("SELECT ticket_id FROM m12_authorization_dispatches LIMIT 1").length &&
           !this.#exec("SELECT ticket_id FROM m12_authorization_returns LIMIT 1").length &&
           !this.#exec("SELECT ticket_id FROM m12_authorization_consumptions LIMIT 1").length &&
+          !this.#exec("SELECT singleton FROM m12_authorization_import_baseline LIMIT 1").length &&
           !this.#exec("SELECT sequence FROM m12_authorization_log LIMIT 1").length) {
         this.#exec("INSERT INTO m12_authorization_head VALUES (1, 0, NULL)");
+        // No import API and no automatic adoption of surviving index rows.
+        this.#exec("INSERT INTO m12_authorization_import_baseline VALUES (1, '[]')");
       }
     });
   }
@@ -102,7 +107,15 @@ export class AuthorizationStore {
     if (JSON.stringify(head) !== JSON.stringify(previous)) throw new Error("authorization_head_mismatch");
     const consumed = this.#exec("SELECT * FROM m12_authorization_consumptions");
     const registered = this.#exec("SELECT * FROM m12_authorization_log WHERE operation='register_authorization'");
-    if (consumed.length !== registered.length) throw new Error("authorization_registration_recovery_required");
+    const baselines = this.#exec("SELECT history_json FROM m12_authorization_import_baseline WHERE singleton=1");
+    if (baselines.length !== 1) throw new Error("authorization_registration_recovery_required");
+    const baseline = JSON.parse(baselines[0].history_json);
+    if (!Array.isArray(baseline) || baseline.length > history.length ||
+        JSON.stringify(baseline) !== JSON.stringify(history.slice(0, baseline.length)) ||
+        consumed.length !== registered.length || consumed.length !== history.length - baseline.length) {
+      throw new Error("authorization_registration_recovery_required");
+    }
+    const positions = new Set();
     for (const row of consumed) {
       const record = JSON.parse(row.registration_json), item = history[record.position - 1];
       const ticket = this.#ticketRecord(row.ticket_id);
@@ -114,7 +127,8 @@ export class AuthorizationStore {
           record.return_record.ticket_id !== row.ticket_id || record.return_record.dispatch_id !== record.dispatch_id ||
           record.position !== ticket.expected_revision + 1 || JSON.stringify(record.previous_ref) !== JSON.stringify(ticket.expected_head_ref) ||
           Date.parse(record.registered_at) < Date.parse(record.return_record.recorded_at) ||
-          !Number.isSafeInteger(record.position) || !item || logs.length !== 1 ||
+          !Number.isSafeInteger(record.position) || record.position <= baseline.length || positions.has(record.position) ||
+          !item || logs.length !== 1 ||
           logs[0].occurred_ms !== Date.parse(record.registered_at) || storedReturn.length !== 1 ||
           storedReturn[0].record_json !== JSON.stringify(record.return_record) ||
           JSON.stringify(item.reference) !== JSON.stringify(record.return_record.authorization_ref) ||
@@ -122,6 +136,11 @@ export class AuthorizationStore {
           JSON.stringify(item.previous_ref) !== JSON.stringify(record.previous_ref)) {
         throw new Error("authorization_registration_recovery_required");
       }
+      positions.add(record.position);
+    }
+    // Every non-baseline index position has exactly one checked source pair.
+    for (let position = baseline.length + 1; position <= history.length; position++) {
+      if (!positions.has(position)) throw new Error("authorization_registration_recovery_required");
     }
     return { revision: state.revision, head, history };
   }
