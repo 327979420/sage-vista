@@ -257,9 +257,13 @@ def validate_contract(
     source_inventory_evidence: Mapping[str, Any] | None = None,
     publication_authorization_evidence: Mapping[str, Any] | None = None,
     evaluation_snapshot_evidence: Mapping[str, Any] | None = None,
+    release_manifest_evidence: Mapping[str, Any] | None = None,
 ) -> None:
     """Validate one canonical contract and fail closed on unknown evidence."""
 
+    if contract_name == "ReleaseManifest" and isinstance(payload, Mapping) and payload.get("schema_version") == "2.0.0":
+        _validate_release_manifest_v2(payload, release_manifest_evidence)
+        return
     if contract_name == "EvaluationSnapshot":
         _validate_evaluation_snapshot(payload, evaluation_snapshot_evidence)
         return
@@ -1144,6 +1148,7 @@ def validate_contracts(
     source_inventory_evidence: Mapping[str, Any] | None = None,
     publication_authorization_evidence: Mapping[str, Any] | None = None,
     evaluation_snapshot_evidence: Mapping[str, Any] | None = None,
+    release_manifest_evidence: Mapping[str, Any] | None = None,
 ) -> None:
     """Validate a collection, including stable-ID and event uniqueness rules."""
 
@@ -1154,6 +1159,7 @@ def validate_contracts(
             contract_name, payload, source_inventory_evidence=source_inventory_evidence,
             publication_authorization_evidence=publication_authorization_evidence,
             evaluation_snapshot_evidence=evaluation_snapshot_evidence,
+            release_manifest_evidence=release_manifest_evidence,
         )
         stable_id_field = _stable_id_field(contract_name, payload)
         identity = (contract_name, str(payload[stable_id_field]))
@@ -1592,3 +1598,200 @@ def _validate_evaluation_snapshot(payload: Mapping[str, Any], evidence: Mapping[
     fingerprint = "sha256:" + hashlib.sha256(_canonical(body)).hexdigest()
     if payload["content_fingerprint"] != fingerprint or payload["evaluation_snapshot_id"] != "evaluation-snapshot:" + fingerprint:
         raise ContractError("EvaluationSnapshot identity mismatch")
+
+
+# One file/kind registry for M12; independent of the legacy M01 fifteen-file set.
+M12_PROJECTION_KINDS = {
+    "update-status.json": "status", "overview.json": "overview", "rankings.json": "rankings",
+    "technical-evidence.json": "technical_evidence", "favorite-pattern.json": "favorite_pattern",
+    "context.json": "context", "events.json": "events", "notification-plan.json": "notification_plan",
+}
+M12_RELEASE_FILES = frozenset(M12_PROJECTION_KINDS) | {"factor-registry.json", "evaluation.json"}
+
+
+def _m12_policy_refs(value: Any) -> list[dict[str, Any]]:
+    if not isinstance(value, list) or not value:
+        raise ContractError("M12 policy_refs must be a nonempty array")
+    keys = []
+    for item in value:
+        _m12_exact(item, {
+            "module", "name", "version", "content_fingerprint", "definition_commit", "source_path", "source_blob",
+        }, "PolicyRef")
+        for field in ("module", "name", "version", "source_path"):
+            _m12_text(item[field], "PolicyRef." + field)
+        if item["module"] not in {f"M{i:02}" for i in range(2, 13)}:
+            raise ContractError("PolicyRef module is outside M02–M12")
+        _m12_ref({"id": item["name"], "content_fingerprint": item["content_fingerprint"]})
+        _m12_commit(item["definition_commit"])
+        _m12_commit(item["source_blob"])
+        path = PurePosixPath(item["source_path"])
+        if path.is_absolute() or ".." in path.parts or path.as_posix() != item["source_path"] or ":" in item["source_path"] or "\\" in item["source_path"] or not path.parts:
+            raise ContractError("PolicyRef source_path must be a canonical repository path")
+        keys.append((item["module"], item["name"]))
+    if keys != sorted(set(keys)):
+        raise ContractError("PolicyRefs must be sorted and unique by module/name")
+    return [dict(item) for item in value]
+
+
+def _m12_json(raw: Any) -> Mapping[str, Any]:
+    if type(raw) is not bytes:
+        raise ContractError("M12 file snapshots must be immutable bytes")
+
+    def pairs(items):
+        result = {}
+        for key, value in items:
+            if key in result:
+                raise ContractError("duplicate JSON key in release file")
+            result[key] = value
+        return result
+
+    def constant(value):
+        raise ContractError("nonfinite JSON number in release file")
+
+    try:
+        payload = json.loads(raw.decode("utf-8"), object_pairs_hook=pairs, parse_constant=constant)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ContractError("release file must be UTF-8 JSON") from exc
+    if not isinstance(payload, Mapping):
+        raise ContractError("release file must be a JSON object")
+    _canonical(payload)  # Also rejects exponent overflow to Infinity.
+    stack = [payload]
+    while stack:
+        item = stack.pop()
+        if isinstance(item, Mapping):
+            if "release_id" in item:
+                raise ContractError("release files cannot contain their release identity")
+            stack.extend(item.values())
+        elif isinstance(item, list):
+            stack.extend(item)
+    return payload
+
+
+def release_manifest_body(evidence: Mapping[str, Any] | None) -> dict[str, Any]:
+    """Bind exact bytes to trusted preparation inputs; no filesystem or publish I/O.
+
+    The future adapter authenticates config/policy source blobs, prepared business
+    projections, the active approval, previous verified target and inventory dates.
+    A matching injected context alone is not proof of those external facts.
+    """
+    from services.contracts.adapters import adapt_legacy_bytes
+
+    _m12_exact(evidence, {
+        "as_of", "code_commit", "config_ref", "policy_refs", "last_verified_release_ref",
+        "inventory", "inventory_evidence", "source_dates", "authorization", "authorization_evidence",
+        "evaluation", "evaluation_evidence", "registry_ref", "registry_bytes", "projection_expectations", "files",
+    }, "trusted release preparation evidence")
+    day = evidence["as_of"]
+    _require_date(day, "release.as_of")
+    _m12_commit(evidence["code_commit"])
+    config = _m12_ref(evidence["config_ref"])
+    policies = _m12_policy_refs(evidence["policy_refs"])
+    previous = evidence["last_verified_release_ref"]
+    if previous is not None:
+        _m12_ref(previous)
+    inventory = evidence["inventory"]
+    validate_contract("SourceInventory", inventory, source_inventory_evidence=evidence["inventory_evidence"])
+    if inventory["as_of"] != day or inventory["config_ref"] != config:
+        raise ContractError("release inventory date/config mismatch")
+    references = {item["id"]: item for item in inventory["records"]}
+    _m12_exact(evidence["source_dates"], set(references), "inventory source dates")
+    for source_date in evidence["source_dates"].values():
+        if source_date is not None:
+            _require_date(source_date, "source date")
+            if source_date > day:
+                raise ContractError("release inventory contains future evidence")
+
+    def resolve(reference):
+        _m12_ref(reference)
+        if references.get(reference["id"]) != reference:
+            raise ContractError("release input does not resolve in its frozen inventory")
+        return reference
+
+    authorization = evidence["authorization"]
+    validate_contract("PublicationAuthorization", authorization, publication_authorization_evidence=evidence["authorization_evidence"])
+    if (authorization["action"] != "grant" or authorization["config_ref"] != config
+            or authorization["code_commit"] != evidence["code_commit"]
+            or authorization["effective_from"] > day
+            or (authorization["valid_until"] is not None and authorization["valid_until"] < day)):
+        raise ContractError("release needs a matching research grant effective for its date")
+    evaluation = evidence["evaluation"]
+    validate_contract("EvaluationSnapshot", evaluation, evaluation_snapshot_evidence=evidence["evaluation_evidence"])
+    if evaluation["scan_as_of"] != day or evidence["evaluation_evidence"]["inventory"]["config_ref"] != config:
+        raise ContractError("evaluation snapshot belongs to another scan date/config")
+    evaluation_ref = resolve({"id": evaluation["evaluation_snapshot_id"], "content_fingerprint": evaluation["content_fingerprint"]})
+    registry_ref = resolve(evidence["registry_ref"])
+    _m12_exact(evidence["projection_expectations"], set(M12_PROJECTION_KINDS), "frozen projection expectations")
+    _m12_exact(evidence["files"], set(M12_RELEASE_FILES), "release files")
+    entries = []
+    for path in sorted(M12_RELEASE_FILES):
+        raw = evidence["files"][path]
+        content = _m12_json(raw)
+        entry = {
+            "path": path, "size_bytes": len(raw), "sha256": "sha256:" + hashlib.sha256(raw).hexdigest(),
+            "required": True, "roles": ["audit", "web"], "as_of": None, "coverage_end": None, "registry_version": None,
+        }
+        if path == "factor-registry.json":
+            if raw != evidence["registry_bytes"]:
+                raise ContractError("registry file differs from the pinned registry bytes")
+            adapted = adapt_legacy_bytes(path, raw)
+            if content["registry_version"] != "0.10.0":
+                raise ContractError("first M12 release requires the frozen factor registry 0.10.0")
+            entry.update(contract_name="FactorRegistry", schema_version=adapted.schema_version,
+                         temporal_class="versioned_config", registry_version=content["registry_version"], source_refs=[registry_ref])
+        elif path == "evaluation.json":
+            # Reuse the one evaluation contract, then require the exact frozen object.
+            validate_contract("EvaluationSnapshot", content, evaluation_snapshot_evidence=evidence["evaluation_evidence"])
+            if content != evaluation:
+                raise ContractError("evaluation file differs from the frozen snapshot")
+            entry.update(contract_name="EvaluationSnapshot", schema_version="1.0.0", temporal_class="research_summary",
+                         coverage_end=content["completed_through"], source_refs=[resolve(content["inventory_ref"])])
+        else:
+            _m12_exact(content, {"schema_version", "kind", "as_of", "source_refs", "data"}, "WebProjection")
+            if content["schema_version"] != "1.0.0" or content["kind"] != M12_PROJECTION_KINDS[path] or content["as_of"] != day:
+                raise ContractError("projection kind/version/date mismatch")
+            refs = _m12_refs(content["source_refs"])
+            if not refs:
+                raise ContractError("projection requires source evidence even for empty results")
+            for reference in refs:
+                resolve(reference)
+            if _canonical(content) != _canonical(evidence["projection_expectations"][path]):
+                raise ContractError("file differs from frozen upstream projection")
+            entry.update(contract_name="WebProjection", schema_version="1.0.0", temporal_class="daily_snapshot", as_of=day, source_refs=refs)
+            if path == "notification-plan.json":
+                entry["roles"] = ["audit", "discord"]
+            elif path == "update-status.json":
+                entry["roles"] = ["audit", "discord", "web"]
+        entries.append(entry)
+    return {
+        "schema_version": "2.0.0", "as_of": day, "code_commit": evidence["code_commit"], "config_ref": config,
+        "authorization_ref": {"id": authorization["authorization_id"], "content_fingerprint": authorization["content_fingerprint"]},
+        "publication_mode": "research_only", "future_data_used": False, "previous_release_ref": previous,
+        "source_inventory_ref": {"id": inventory["inventory_id"], "content_fingerprint": inventory["content_fingerprint"]},
+        "policy_refs": policies, "evaluation_snapshot_ref": evaluation_ref, "files": entries,
+    }
+
+
+def _validate_release_manifest_v2(payload: Mapping[str, Any], evidence: Mapping[str, Any] | None) -> None:
+    _m12_exact(payload, {
+        "schema_version", "release_id", "content_fingerprint", "generated_at", "as_of", "code_commit", "config_ref",
+        "authorization_ref", "publication_mode", "future_data_used", "previous_release_ref", "source_inventory_ref",
+        "policy_refs", "evaluation_snapshot_ref", "files",
+    }, "ReleaseManifest 2.0.0")
+    _m12_time(payload["generated_at"])
+    if payload["future_data_used"] is not False:
+        raise ContractError("release future_data_used must be boolean false")
+    if not isinstance(payload["files"], list):
+        raise ContractError("manifest files must be an array")
+    for entry in payload["files"]:
+        _m12_exact(entry, {
+            "path", "contract_name", "schema_version", "size_bytes", "sha256", "roles", "required",
+            "temporal_class", "as_of", "coverage_end", "registry_version", "source_refs",
+        }, "FileEntry")
+        if type(entry["size_bytes"]) is not int or entry["size_bytes"] < 0 or entry["required"] is not True:
+            raise ContractError("FileEntry requires a UInt size and required=true")
+    body = {key: value for key, value in payload.items() if key not in {"release_id", "content_fingerprint", "generated_at"}}
+    if body != release_manifest_body(evidence):
+        raise ContractError("manifest differs from exact bytes or trusted release inputs")
+    fingerprint = "sha256:" + hashlib.sha256(_canonical(body)).hexdigest()
+    if payload["content_fingerprint"] != fingerprint or payload["release_id"] != "release:" + fingerprint:
+        raise ContractError("ReleaseManifest identity mismatch")

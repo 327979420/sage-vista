@@ -79,3 +79,29 @@
 - 加上28项A1a/b、31项共享合同、7项治理、12项状态，共93项通过，无跳过。文档链接、差异格式及机器状态一致性通过。
 - 未重审M11，无真实数据或实验运行，旧政策、快照、许可及断点未改。
 - 与本段同属独立提交`feat: add M12 evaluation snapshot contract [skip ci]`，父提交5461741c3ed53ae7b1d3aba618cf5fb49a8d0f16；完整SHA见交付消息。无数据迁移／生产消费者，可撤回本批代码和测试，保留实施审核历史。未合并、推送、部署、生产启用或对外通知。
+
+## A1c独立复核回传
+
+审核对话01a074f9-098a-7b82-b486-3185683290fe确认9af3983在EvaluationSnapshot纯合同、实际M10对象只读投影及可信任务索引一致性范围内通过。审核员自行运行93项测试及250组同日／跨日任务状态组合对照，计数、状态和失败阻断水位全部符合预期；diff通过、工作区干净。真实任务全集、到期安排、持久化收据、最新叶及元数据原件真实性仍留后续验收，跨日端到端未执行。
+
+## A1d：ReleaseManifest 2.0.0（待独立审核）
+
+- 唯一合同入口新增明确2.0.0分支，旧M01 1.x仍走原路径；新分支即使传allow_partial_manifest也不能省文件。构造器为`services/publication/manifest.py:build_release_manifest`，无文件／网络／发布I/O。
+- 固定十文件、按路径排序且全required；公开文件为audit/web，update-status额外discord，notification-plan仅audit/discord。哈希与长度来自同一次注入的不可变bytes，包含换行，不拿JSON语义指纹替代文件摘要。
+- 严格UTF-8 JSON、拒绝重复键／NaN／Infinity／数字溢出以及文件内release_id自引用。WebProjection只校验固定封装、kind／日期／来源引用并逐字节规范语义对照可信生产者给出的冻结投影，不计算扫描、排行或收益。
+- factor-registry通过现有唯一legacy只读适配器验证，并与可信配置固定原件字节一致，首轮registry_version必须0.10.0；FileEntry合同标签为FactorRegistry、适配schema为1.0.0。evaluation复用EvaluationSnapshot唯一入口，文件须等于完整冻结对象，日期及其库存配置须同本包，coverage_end只取其完成水位，可为null。
+- 重验SourceInventory与授权合同；配置／代码和发布日期须被grant涵盖，拒绝将revoke作为发布依据。评价Ref、注册表Ref及文件来源Ref须位于本包库存，来源日期不晚于扫描日；Manifest精确绑定可信政策Ref列表及last_verified新版Ref，未知键／版本或重签篡改均拒绝。
+
+### A1d可信输入及未完成边界
+
+`release_manifest_evidence`精确输入为`{as_of,code_commit,config_ref,policy_refs,last_verified_release_ref,inventory,inventory_evidence,source_dates,authorization,authorization_evidence,evaluation,evaluation_evidence,registry_ref,registry_bytes,projection_expectations,files}`。文件是内存bytes；projection_expectations为八个WebProjection预期对象；source_dates为库存records的完整ID→日期或null映射。既有三个合同仍使用其各自可信证据接口。
+
+本批证明**文件字节、合同和注入的准备输入彼此一致**，不能证明真实准备生产者已执行。B／C／E／F包仍须验证：源日期与对象原件、政策完整集合与固定14fef535源码／blob和配置绑定、原注册表字节出处、业务投影与上游的唯一映射、当前未撤销授权、last_verified真实对象及锁内CAS。PolicyRef当前做封闭格式／排序／SHA／路径检查并绑定可信列表，不在纯合同函数内读Git或自行选择真实政策；合成测试政策不代表获批生产配置。不能将外部JSON当上述可信输入。
+
+没有写R2、改DO指针、部署Worker或发送通知。收据／当前指针合同、生产存储、实际四页映射和跨日续跑仍待实现与验收；本批不是上线批准。
+
+### A1d实际检查与提交
+
+14项新增Manifest专项、43项A1a/b/c回归、31项共享合同、7项治理、12项状态，共107项通过，无跳过。覆盖字节换行身份、删增重复文件、私有roles篡改、投影改写、路径越界、严格JSON、日期／来源、错误授权／前序／政策、未知版本及集合重复。共享回归保留旧影子Manifest边界；未重审M11。文档链接、差异格式、机器状态一致性通过。
+
+本段与代码同属独立提交`feat: add M12 release manifest byte contract [skip ci]`，父提交9af398344d58155196bcd27323fb82036c8b6547，完整SHA见交付消息。无数据迁移和生产消费者；可撤回本批代码／测试，保留审核历史。未合并、推送、部署、生产启用或对外通知。
