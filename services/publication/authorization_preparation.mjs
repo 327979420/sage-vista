@@ -10,6 +10,19 @@ function base64(bytes) {
   return btoa(binary);
 }
 
+function canonical(value) {
+  if (Array.isArray(value)) return value.map(canonical);
+  if (value !== null && typeof value === "object") {
+    return Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonical(value[key])]));
+  }
+  return value;
+}
+
+async function digest(bytes) {
+  const hash = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
+  return "sha256:" + Array.from(hash, (v) => v.toString(16).padStart(2, "0")).join("");
+}
+
 export class AuthorizationPreparation {
   #reviews;
   #store;
@@ -50,11 +63,37 @@ export class AuthorizationPreparation {
   async prepareValidationInput(token, leaseToken) {
     const prepared = await this.prepare(token, leaseToken);
     // Encode our own controlled result, never caller-selected evidence or history.
-    // The exact bytes must later be recorded by the dispatching coordinator.
+    // This encoding alone is not dispatch; use the recording wrapper below.
     return new TextEncoder().encode(JSON.stringify({ protocol: "m12-authorization-validation/1",
       approval_evidence_ref: prepared.approval_evidence_ref,
       approval_archive: { bundle_base64: base64(prepared.approval_archive.bundle_bytes),
         objects: Object.fromEntries(Object.entries(prepared.approval_archive.objects).map(([key, bytes]) => [key, base64(bytes)])) },
       validation_ticket: prepared.validation_ticket, history_base64: prepared.history_bytes.map(base64) }));
+  }
+
+  async dispatchValidationInput(token, leaseToken) {
+    const raw = await this.prepareValidationInput(token, leaseToken);
+    const wire = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(raw));
+    const bundleBytes = Uint8Array.from(atob(wire.approval_archive.bundle_base64), (value) => value.charCodeAt(0));
+    const bundle = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bundleBytes));
+    const alive = () => {
+      const now = this.#clock();
+      if (!Number.isSafeInteger(now) || now < Date.parse(bundle.observed_at) || now >= bundle.identity.expires_at * 1000) {
+        throw new Error("authorization_dispatch_identity_expired");
+      }
+    };
+    const [inputHash, ticketHash] = await Promise.all([digest(raw),
+      digest(new TextEncoder().encode(JSON.stringify(canonical(wire.validation_ticket))))]);
+    alive();
+    const inputArchive = await this.#archive.put("raw/" + inputHash.slice(7), raw,
+      { sha256: inputHash, size_bytes: raw.length });
+    alive();
+    // The transaction rechecks the complete persistent ticket, head and lease
+    // after all asynchronous writes/readbacks. No actual job dispatch is sent.
+    const dispatch = this.#store.recordValidationDispatch(bundle.identity.job, leaseToken,
+      { ticket: wire.validation_ticket, ticket_sha256: ticketHash, input_archive: inputArchive,
+        source_commit: bundle.identity.code_commit, identity_issued_at: bundle.identity.issued_at,
+        identity_expires_at: bundle.identity.expires_at });
+    return { dispatch, input_bytes: raw };
   }
 }

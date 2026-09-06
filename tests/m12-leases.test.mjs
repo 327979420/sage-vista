@@ -373,5 +373,121 @@ test("lost head or ticket log requires recovery instead of silently empty bootst
 test("wrong reference type is rejected and no authorization commit method exists yet", (t) => {
   const f = authorizations(t);
   assert.throws(() => f.authorization.prepareValidation(JOB, token(f.handle), authRef("a")), /reference_invalid/);
-  assert.deepEqual(Object.getOwnPropertyNames(AuthorizationStore.prototype).sort(), ["constructor", "prepareValidation", "readPreparedValidation"]);
+  assert.deepEqual(Object.getOwnPropertyNames(AuthorizationStore.prototype).sort(), ["constructor", "prepareValidation", "readPreparedValidation", "recordValidationDispatch"]);
+});
+
+// Synthetic transport descriptors only; real byte hashing/readback is covered
+// by the internal preparation integration tests, not this SQL component.
+function dispatchPreparation(ticket) {
+  return { ticket, ticket_sha256: "sha256:" + "2".repeat(64),
+    input_archive: { key: "raw/" + "1".repeat(64), sha256: "sha256:" + "1".repeat(64), size_bytes: 100 },
+    source_commit: "3".repeat(40), identity_issued_at: NOW / 1000 - 30, identity_expires_at: NOW / 1000 + 120 };
+}
+
+function dispatchSetup(t) {
+  const f = authorizations(t);
+  const ticket = f.authorization.prepareValidation(JOB, token(f.handle), APPROVAL);
+  return { ...f, input: dispatchPreparation(ticket),
+    dispatches: () => f.storage.sql.exec("SELECT * FROM m12_authorization_dispatches").toArray() };
+}
+
+test("dispatch persists exact binding once, preserves replay time and rejects same-ticket substitutions", (t) => {
+  const f = dispatchSetup(t);
+  const first = f.authorization.recordValidationDispatch(JOB, token(f.handle), f.input);
+  assert.equal(first.ticket_id, f.input.ticket.ticket_id);
+  assert.deepEqual(first.input_archive, f.input.input_archive);
+  assert.equal(first.expires_at, new Date(NOW + 120_000).toISOString());
+  f.setTime(NOW + 60_000);
+  assert.deepEqual(f.authorization.recordValidationDispatch(JOB, token(f.handle), f.input), first);
+  const changed = structuredClone(first); changed.input_archive.size_bytes++;
+  assert.notDeepEqual(f.authorization.recordValidationDispatch(JOB, token(f.handle), f.input), changed);
+  for (const patch of [(v) => { v.input_archive.size_bytes++; }, (v) => { v.ticket_sha256 = "sha256:" + "a".repeat(64); },
+    (v) => { v.source_commit = "b".repeat(40); }, (v) => { v.identity_expires_at++; },
+    (v) => { v.ticket.expected_revision++; }]) {
+    const input = structuredClone(f.input); patch(input);
+    assert.throws(() => f.authorization.recordValidationDispatch(JOB, token(f.handle), input), /conflict|ticket_mismatch/);
+  }
+  assert.equal(f.dispatches().length, 1);
+  assert.equal(f.authLog().filter((row) => row.operation === "dispatch_validation").length, 1);
+});
+
+test("dispatch refuses invalid descriptor, stale lease, expired identity and changed head before any append", (t) => {
+  for (const change of [(f) => { f.input.input_archive.key = "raw/" + "9".repeat(64); },
+    (f) => { f.input.input_archive.size_bytes = true; }, (f) => { f.input.identity_expires_at = true; },
+    (f) => { f.input.extra = true; }, (f) => { f.setTime(NOW + 120_000); },
+    (f) => { f.store.release("publish/global", JOB, token(f.handle)); f.store.acquire("publish/global", OTHER, EPOCH); },
+    (f) => { seedHistory(f.storage); }]) {
+    const f = dispatchSetup(t); change(f);
+    assert.throws(() => f.authorization.recordValidationDispatch(JOB, token(f.handle), f.input));
+    assert.equal(f.dispatches().length, 0);
+    assert.equal(f.authLog().filter((row) => row.operation === "dispatch_validation").length, 0);
+  }
+});
+
+test("dispatch log failure rolls back input binding and leaves the prepared ticket retryable", (t) => {
+  const f = dispatchSetup(t);
+  f.storage.db.exec(`CREATE TRIGGER fail_dispatch BEFORE INSERT ON m12_authorization_log
+    WHEN NEW.operation = 'dispatch_validation' BEGIN SELECT RAISE(ABORT, 'dispatch log failure'); END`);
+  assert.throws(() => f.authorization.recordValidationDispatch(JOB, token(f.handle), f.input), /dispatch log failure/);
+  assert.equal(f.dispatches().length, 0);
+  assert.equal(f.tickets().length, 1);
+  f.storage.db.exec("DROP TRIGGER fail_dispatch");
+  f.authorization.recordValidationDispatch(JOB, token(f.handle), f.input);
+  assert.equal(f.dispatches().length, 1);
+});
+
+test("identity or original ticket expiration inside dispatch transaction rolls back even after lease renewal", (t) => {
+  for (const ticketDeadline of [false, true]) {
+    const f = dispatchSetup(t);
+    const deadline = NOW + (ticketDeadline ? 300_000 : 120_000);
+    if (ticketDeadline) {
+      f.input.identity_expires_at = NOW / 1000 + 600;
+      f.setTime(NOW + 60_000);
+      f.store.renew("publish/global", JOB, token(f.handle));
+    }
+    const original = f.storage.sql.exec;
+    f.storage.sql.exec = (query, ...args) => {
+      const result = original(query, ...args);
+      if (query.includes("VALUES ('dispatch_validation'")) f.setTime(deadline);
+      return result;
+    };
+    assert.throws(() => f.authorization.recordValidationDispatch(JOB, token(f.handle), f.input), /deadline_expired/);
+    assert.equal(f.dispatches().length, 0);
+    assert.equal(f.authLog().filter((row) => row.operation === "dispatch_validation").length, 0);
+    assert.equal(f.tickets().length, 1);
+  }
+});
+
+test("dispatch binding and original response survive file database reopen", (t) => {
+  const directory = mkdtempSync(join(tmpdir(), "m12-dispatch-"));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  const path = join(directory, "coordinator.sqlite");
+  const first = binding(path);
+  const lease = new LeaseStore(first, { clock: () => NOW });
+  lease.initialize(EPOCH);
+  const held = lease.acquire("publish/global", JOB, EPOCH);
+  const a = new AuthorizationStore(first, { clock: () => NOW });
+  const input = dispatchPreparation(a.prepareValidation(JOB, token(held), APPROVAL));
+  const saved = a.recordValidationDispatch(JOB, token(held), input);
+  first.db.close();
+  const second = binding(path); t.after(() => second.db.close());
+  const b = new AuthorizationStore(second, { clock: () => NOW + 1000 });
+  assert.deepEqual(b.recordValidationDispatch(JOB, token(held), input), saved);
+  assert.equal(second.sql.exec("SELECT * FROM m12_authorization_dispatches").toArray().length, 1);
+});
+
+test("partial dispatch/log/head loss requires recovery instead of reconstructing success", (t) => {
+  for (const table of ["m12_authorization_dispatches", "m12_authorization_log"]) {
+    const f = dispatchSetup(t);
+    f.authorization.recordValidationDispatch(JOB, token(f.handle), f.input);
+    f.storage.db.exec(table.endsWith("_log") ? "DELETE FROM m12_authorization_log WHERE operation='dispatch_validation'" :
+      "DELETE FROM m12_authorization_dispatches");
+    assert.throws(() => f.authorization.recordValidationDispatch(JOB, token(f.handle), f.input), /recovery_required/);
+  }
+  const f = dispatchSetup(t);
+  f.authorization.recordValidationDispatch(JOB, token(f.handle), f.input);
+  f.storage.db.exec("DELETE FROM m12_authorization_head; DELETE FROM m12_authorization_log; DELETE FROM m12_authorization_tickets");
+  const reopened = new AuthorizationStore(f.storage, { clock: f.clock });
+  assert.throws(() => reopened.prepareValidation(JOB, token(f.handle), APPROVAL), /recovery_required/);
+  assert.equal(f.storage.sql.exec("SELECT * FROM m12_authorization_head").toArray().length, 0);
 });

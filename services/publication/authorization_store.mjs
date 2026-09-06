@@ -30,6 +30,8 @@ export class AuthorizationStore {
         archive_json TEXT NOT NULL, previous_ref_json TEXT)`);
       this.#exec(`CREATE TABLE IF NOT EXISTS m12_authorization_tickets (
         ticket_id TEXT PRIMARY KEY, preparation_key TEXT NOT NULL UNIQUE, ticket_json TEXT NOT NULL)`);
+      this.#exec(`CREATE TABLE IF NOT EXISTS m12_authorization_dispatches (
+        ticket_id TEXT PRIMARY KEY, dispatch_id TEXT NOT NULL UNIQUE, dispatch_json TEXT NOT NULL)`);
       this.#exec(`CREATE TABLE IF NOT EXISTS m12_authorization_log (
         sequence INTEGER PRIMARY KEY AUTOINCREMENT, operation TEXT NOT NULL, ticket_id TEXT NOT NULL,
         record_json TEXT NOT NULL, occurred_ms INTEGER NOT NULL)`);
@@ -37,6 +39,7 @@ export class AuthorizationStore {
       if (!this.#exec("SELECT singleton FROM m12_authorization_head").length &&
           !this.#exec("SELECT position FROM m12_authorization_index LIMIT 1").length &&
           !this.#exec("SELECT ticket_id FROM m12_authorization_tickets LIMIT 1").length &&
+          !this.#exec("SELECT ticket_id FROM m12_authorization_dispatches LIMIT 1").length &&
           !this.#exec("SELECT sequence FROM m12_authorization_log LIMIT 1").length) {
         this.#exec("INSERT INTO m12_authorization_head VALUES (1, 0, NULL)");
       }
@@ -71,7 +74,7 @@ export class AuthorizationStore {
 
   prepareValidation(ownerJob, token, approvalEvidenceRef) {
     const evidenceRef = reference(approvalEvidenceRef, "approval-observation:");
-    // Called only by the future authenticated coordinator after controlled B2g
+    // Called only by the internal authenticated coordinator after controlled B2g
     // reads. Creating a ticket neither authenticates this Ref nor grants rights.
     return this.#leases.withOwnedLease("publish/global", ownerJob, token, ({ epoch, lease, now }) => {
       const snapshot = this.#history();
@@ -97,23 +100,76 @@ export class AuthorizationStore {
   }
 
   readPreparedValidation(ownerJob, token, ticketId) {
+    return this.#leases.withOwnedLease("publish/global", ownerJob, token, (context) => this.#ticket(ticketId, context));
+  }
+
+  #ticket(ticketId, { epoch, lease, now }) {
     if (typeof ticketId !== "string" || !/^[a-f0-9-]{36}$/.test(ticketId)) throw new Error("authorization_ticket_invalid");
-    return this.#leases.withOwnedLease("publish/global", ownerJob, token, ({ epoch, lease, now }) => {
-      const rows = this.#exec("SELECT ticket_json FROM m12_authorization_tickets WHERE ticket_id = ?", ticketId);
-      if (rows.length !== 1) throw new Error("authorization_ticket_missing");
-      const record = rows[0].ticket_json;
-      const ticket = JSON.parse(record);
-      const logs = this.#exec("SELECT record_json FROM m12_authorization_log WHERE operation = 'prepare_validation' AND ticket_id = ?", ticketId);
-      if (logs.length !== 1 || logs[0].record_json !== record) throw new Error("authorization_ticket_recovery_required");
-      const prepared = Date.parse(ticket.prepared_at), expiry = Date.parse(ticket.expires_at);
-      if (ticket.ticket_id !== ticketId || ticket.resource !== "publish/global" || ticket.epoch !== epoch ||
-          ticket.fence !== lease.fence || JSON.stringify(ticket.owner_job) !== JSON.stringify(lease.owner_job) ||
-          !Number.isFinite(prepared) || !Number.isFinite(expiry) || prepared > now || expiry <= now ||
-          expiry > Date.parse(lease.expires_at)) throw new Error("authorization_ticket_stale");
-      const current = this.#history();
-      if (ticket.expected_revision !== current.revision || JSON.stringify(ticket.expected_head_ref) !== JSON.stringify(current.head) ||
-          JSON.stringify(ticket.history) !== JSON.stringify(current.history)) throw new Error("authorization_ticket_history_changed");
-      return ticket;
-    });
+    const rows = this.#exec("SELECT ticket_json FROM m12_authorization_tickets WHERE ticket_id = ?", ticketId);
+    if (rows.length !== 1) throw new Error("authorization_ticket_missing");
+    const record = rows[0].ticket_json;
+    const ticket = JSON.parse(record);
+    const logs = this.#exec("SELECT record_json FROM m12_authorization_log WHERE operation = 'prepare_validation' AND ticket_id = ?", ticketId);
+    if (logs.length !== 1 || logs[0].record_json !== record) throw new Error("authorization_ticket_recovery_required");
+    const prepared = Date.parse(ticket.prepared_at), expiry = Date.parse(ticket.expires_at);
+    if (ticket.ticket_id !== ticketId || ticket.resource !== "publish/global" || ticket.epoch !== epoch ||
+        ticket.fence !== lease.fence || JSON.stringify(ticket.owner_job) !== JSON.stringify(lease.owner_job) ||
+        !Number.isFinite(prepared) || !Number.isFinite(expiry) || prepared > now || expiry <= now ||
+        expiry > Date.parse(lease.expires_at)) throw new Error("authorization_ticket_stale");
+    const current = this.#history();
+    if (ticket.expected_revision !== current.revision || JSON.stringify(ticket.expected_head_ref) !== JSON.stringify(current.head) ||
+        JSON.stringify(ticket.history) !== JSON.stringify(current.history)) throw new Error("authorization_ticket_history_changed");
+    return ticket;
+  }
+
+  recordValidationDispatch(ownerJob, token, preparation) {
+    // Only the internal coordinator may supply these read-verified descriptors.
+    // This SQL layer cannot authenticate an arbitrary caller's hash or identity.
+    if (!preparation || Object.keys(preparation).sort().join() !==
+        "identity_expires_at,identity_issued_at,input_archive,source_commit,ticket,ticket_sha256") {
+      throw new Error("authorization_dispatch_input_invalid");
+    }
+    const frozen = JSON.parse(JSON.stringify(preparation));
+    const input = frozen.input_archive;
+    if (!input || Object.keys(input).sort().join() !== "key,sha256,size_bytes" ||
+        typeof input.sha256 !== "string" || !/^sha256:[a-f0-9]{64}$/.test(input.sha256) ||
+        input.key !== "raw/" + input.sha256.slice(7) || !Number.isSafeInteger(input.size_bytes) || input.size_bytes < 1 ||
+        typeof frozen.ticket_sha256 !== "string" || !/^sha256:[a-f0-9]{64}$/.test(frozen.ticket_sha256) ||
+        typeof frozen.source_commit !== "string" || !/^[a-f0-9]{40}$/.test(frozen.source_commit) ||
+        !Number.isSafeInteger(frozen.identity_issued_at) || !Number.isSafeInteger(frozen.identity_expires_at) ||
+        frozen.identity_issued_at < 0 || frozen.identity_expires_at <= frozen.identity_issued_at ||
+        !Number.isSafeInteger(frozen.identity_expires_at * 1000)) throw new Error("authorization_dispatch_input_invalid");
+    const expires = Math.min(Date.parse(frozen.ticket?.expires_at), frozen.identity_expires_at * 1000);
+    return this.#leases.withOwnedLease("publish/global", ownerJob, token, (context) => {
+      const ticket = this.#ticket(frozen.ticket?.ticket_id, context);
+      if (JSON.stringify(frozen.ticket) !== JSON.stringify(ticket)) throw new Error("authorization_dispatch_ticket_mismatch");
+      if (context.now < frozen.identity_issued_at * 1000) throw new Error("authorization_dispatch_identity_not_yet_valid");
+      const binding = { protocol: "m12-authorization-validation/1", ticket_id: ticket.ticket_id,
+        ticket_sha256: frozen.ticket_sha256, input_archive: input, owner_job: ticket.owner_job,
+        epoch: ticket.epoch, fence: ticket.fence, approval_evidence_ref: ticket.approval_evidence_ref,
+        source_commit: frozen.source_commit, identity_issued_at: frozen.identity_issued_at,
+        identity_expires_at: frozen.identity_expires_at, expires_at: new Date(expires).toISOString() };
+      const rows = this.#exec("SELECT dispatch_id,dispatch_json FROM m12_authorization_dispatches WHERE ticket_id = ?", ticket.ticket_id);
+      const logs = this.#exec("SELECT record_json FROM m12_authorization_log WHERE operation = 'dispatch_validation' AND ticket_id = ?", ticket.ticket_id);
+      if (rows.length) {
+        const prior = JSON.parse(rows[0].dispatch_json);
+        if (logs.length !== 1 || logs[0].record_json !== rows[0].dispatch_json || rows[0].dispatch_id !== prior.dispatch_id) {
+          throw new Error("authorization_dispatch_recovery_required");
+        }
+        const { dispatch_id, dispatched_at, ...priorBinding } = prior;
+        if (JSON.stringify(priorBinding) !== JSON.stringify(binding)) throw new Error("authorization_dispatch_conflict");
+        if (typeof dispatch_id !== "string" || !/^[a-f0-9-]{36}$/.test(dispatch_id) ||
+            !Number.isFinite(Date.parse(dispatched_at)) || Date.parse(dispatched_at) < Date.parse(ticket.prepared_at) ||
+            Date.parse(dispatched_at) > context.now) throw new Error("authorization_dispatch_recovery_required");
+        return prior;
+      }
+      if (logs.length) throw new Error("authorization_dispatch_recovery_required");
+      const dispatch = { ...binding, dispatch_id: crypto.randomUUID(), dispatched_at: new Date(context.now).toISOString() };
+      const record = JSON.stringify(dispatch);
+      this.#exec("INSERT INTO m12_authorization_dispatches VALUES (?, ?, ?)", ticket.ticket_id, dispatch.dispatch_id, record);
+      this.#exec(`INSERT INTO m12_authorization_log (operation,ticket_id,record_json,occurred_ms)
+        VALUES ('dispatch_validation', ?, ?, ?)`, ticket.ticket_id, record, context.now);
+      return JSON.parse(record);
+    }, { deadlineMs: expires });
   }
 }

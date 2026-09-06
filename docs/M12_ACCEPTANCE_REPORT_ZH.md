@@ -432,3 +432,26 @@ AuthorizationPreparation.prepareValidationInput(token,leaseToken)仅序列化自
 收据目前只是可校验的内部产物：任何人可重算摘要，不能凭其存在或verdict声明取得权限。下一包须由服务端持久绑定本次发送的完整原字节摘要／票据，认证固定验证工作流的回传身份，比较收据与服务端记录及授权输出，再按设计读回R2并完成当前业务目标/config／授权、lease、head及票据前态的最终同事务消费／追加；本包不接受外部成功声明，不建立可信回执接收入口、不写R2授权正文、不消费票据或追加索引。输入仍全量内存处理，真实最大历史规模与平台限制留运行适配验收。跨日端到端未执行，M11不重审；无算法、业务合同版本、政策、快照或生产入口变化。
 
 独立提交`feat: emit M12 ticket-bound Python validation artifacts [skip ci]`，父提交3e36cada8daf7d3d3edd1861d9add7796b9aba2d，完整SHA见交付消息。仅修改内部准备器、新增Python验证命令、唯一合同传输解析、现有环境专项测试及3个治理文档。可撤回本包接口并保留历史，无真实数据迁移。未合并、推送、创建云资源、部署、生产启用或对外通知。
+
+
+## B3c独立复核回传
+
+审核对话01a074f9-098a-7b82-b486-3185683290fe确认bf56d72d2c50c945b90f053377690902da39cac9在内部原字节验证协议及绑定收据产物范围无阻断。审核员逐段审读7文件，自行运行56项环境取证／跨语言Node、99项M12 Python及50项共享／治理／状态，共205项通过；确认封闭协议／标准base64、完整归档／票据路径、输入／输出hash和长度、票据与批准Ref绑定、重验授权字节稳定、冻结窗口及失败空stdout。diff通过、HEAD不变、工作区干净。限定通过不含可信回传认证、授权登记或生产许可，摘要不能替代身份认证。
+
+## B3d：服务端输入归档与持久发送准备绑定（待独立审核）
+
+AuthorizationPreparation新增dispatchValidationInput(token,leaseToken)，仅调用自身B3c准备路径取得完整输入，内部计算实际原字节SHA-256／长度及规范票据摘要。先通过既有ImmutableArchive写入raw/<输入摘要>并实际读回核对，再调用AuthorizationStore.recordValidationDispatch，最后返回`{dispatch,input_bytes}`。调用方不能选择输入正文、摘要、票据、Job或来源提交。原字节含批准原件及完整历史，保持私有；失败遗留对象不算已登记发送。这里的dispatch是“输入已冻结、可交给验证任务”的准备记录，未向GitHub派发任务、未证明Python已运行或接收输入。
+
+新增SQLite表m12_authorization_dispatches，ticket_id唯一且dispatch_id唯一，同步日志operation为dispatch_validation。记录精确字段`protocol,ticket_id,ticket_sha256,input_archive,owner_job,epoch,fence,approval_evidence_ref,source_commit,identity_issued_at,identity_expires_at,expires_at,dispatch_id,dispatched_at`；protocol沿B3c，input_archive精确为`{key,sha256,size_bytes}`。source_commit是本次已验证执行身份的控制提交，不能替代授权请求中的业务code_commit。有效期取原票据和已验证身份的较早到期时间，不因lease续约延长。记录只是下一阶段回传比对的服务端依据，不代表授权批准已生效。
+
+当前lease事务内重用唯一私有票据读取逻辑，验证持久票据／准备日志、完整head／revision／历史、当前epoch／owner／fence及原期限，整个冻结票据必须与本次准备一致；然后保存发送绑定及日志。LeaseStore.withOwnedLease增加仅供内部同步调用的可选deadlineMs，在事务开始和结束用同一租约时钟守门；结束时同时检查lease及本操作的更早期限，异常整笔回滚。原默认调用行为不变，不增加异步事务。相同票据和完整绑定重放保留dispatch_id、dispatched_at及原日志，不重复写入；相同票据换输入／来源／期限／摘要拒绝。丢失发送记录但日志尚在、记录存在但日志缺失或不一致均要求恢复；仅剩发送记录时也不能自动建立空head。
+
+### B3d实际检查及未完成边界
+
+新增6项SQLite专项及5项实际内部编排专项。覆盖同绑定幂等及不同输入拒绝、无效描述／旧lease／过期身份／head变化、日志故障回滚、事务内身份或原票据到期（含lease已续期）、文件数据库重开、记录／日志／head部分丢失，以及实际完整输入先写读回后登记、Python收据各hash与发送记录一致、返回值隔离、写入不确定留下孤立对象并一致重试、输入缺失／损坏、归档期间head／lease改变和身份到期。61项环境取证／跨语言Node、29项租约／存储Node、7项治理及12项状态共109项通过；定点lint、机器状态／文档链接、diff检查通过。未修改Python合同或业务代码，未重复无变化Python整套测试。
+
+SQL低层方法只消费内部可信编排的描述，不独立认证自报hash、身份或R2来源；后续外部入口必须通过本包dispatchValidationInput，不可暴露低层方法或以纯prepareValidationInput替代持久发送绑定。测试用本地GitHub／R2绑定替身及真实本地SQLite，低层SQLite专项的字节描述是合成元数据，完整原字节来源由组合专项覆盖；真实平台权限／资源和最大输入规模尚未验收。
+
+下一包仍须认证固定验证工作流回传、从持久发送记录取回原输入并比对收据与授权输出，读回归档授权原件；在最终事务重新检查当时身份／授权、目标/config、lease、head及票据前态，才可消费票据和追加授权索引／日志。本包没有成功回执接收、票据消费、授权追加或权限启用；准备记录和收据摘要均不能代替这些步骤。跨日端到端尚未执行，M11不重审。
+
+独立提交`feat: persist M12 validation input dispatch bindings [skip ci]`，父提交bf56d72d2c50c945b90f053377690902da39cac9，完整SHA见交付消息。仅修改内部准备／授权存储／租约包装、现有两组专项测试及3个治理文档。无业务合同／政策版本变化；可撤回本包接点并保留历史，无真实生产数据迁移。未合并、推送、创建云资源、部署、生产启用或对外通知。

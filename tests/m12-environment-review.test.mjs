@@ -954,3 +954,100 @@ test("Python module command emits only the two base64 artifacts and fails with e
     assert.equal(failure.stderr.toString(), "authorization validation failed\n");
   }
 });
+
+function isValidationWire(f, key) {
+  try { return JSON.parse(Buffer.from(f.objects.get(key))).protocol === "m12-authorization-validation/1"; }
+  catch { return false; }
+}
+const dispatchCount = (f) => f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_dispatches").get().n;
+
+test("internal dispatch archives actual full input before transactional binding and matches Python receipt", async (t) => {
+  const f = preparationFixture(t);
+  let readAfterWrite = false;
+  f.archiveState.beforeGet = (key) => {
+    if (isValidationWire(f, key)) {
+      assert.equal(dispatchCount(f), 0);
+      readAfterWrite = true;
+    }
+  };
+  const result = await f.preparation.dispatchValidationInput(token(), f.leaseToken);
+  assert.equal(readAfterWrite, true);
+  const { dispatch, input_bytes: raw } = result;
+  assert.equal(dispatchCount(f), 1);
+  assert.deepEqual(dispatch.input_archive, { key: "raw/" + sha(raw).slice(7), sha256: sha(raw), size_bytes: raw.length });
+  assert.deepEqual(f.objects.get(dispatch.input_archive.key), raw);
+  const receipt = validateWire(raw).receipt;
+  assert.equal(receipt.input_sha256, dispatch.input_archive.sha256);
+  assert.equal(receipt.input_size_bytes, dispatch.input_archive.size_bytes);
+  assert.equal(receipt.ticket_sha256, dispatch.ticket_sha256);
+  assert.equal(receipt.ticket_id, dispatch.ticket_id);
+  assert.deepEqual(receipt.approval_evidence_ref, dispatch.approval_evidence_ref);
+  assert.equal(dispatch.source_commit, identityPolicy.code_commit);
+  assert.equal(dispatch.identity_expires_at, claims.exp);
+  assert.equal(dispatch.identity_issued_at, claims.iat);
+  assert.deepEqual(dispatch.owner_job, JSON.parse(Buffer.from(raw)).validation_ticket.owner_job);
+  assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_index").get().n, 1);
+  raw[0] ^= 1;
+  dispatch.input_archive.size_bytes++;
+  const saved = JSON.parse(f.db.prepare("SELECT dispatch_json FROM m12_authorization_dispatches").get().dispatch_json);
+  assert.equal(saved.input_archive.size_bytes + 1, dispatch.input_archive.size_bytes);
+  assert.notDeepEqual(f.objects.get(saved.input_archive.key), raw);
+});
+
+test("uncertain input write leaves only an orphan, and consistent retry records exactly one dispatch", async (t) => {
+  const f = preparationFixture(t);
+  let inputKey;
+  f.archiveState.afterPut = (key) => {
+    if (isValidationWire(f, key)) { inputKey = key; throw new Error("input_write_response_lost"); }
+  };
+  await assert.rejects(f.preparation.dispatchValidationInput(token(), f.leaseToken), /input_write_response_lost/);
+  assert.ok(f.objects.has(inputKey));
+  assert.equal(dispatchCount(f), 0);
+  f.archiveState.afterPut = null;
+  const result = await f.preparation.dispatchValidationInput(token(), f.leaseToken);
+  assert.equal(result.dispatch.input_archive.key, inputKey);
+  assert.equal(dispatchCount(f), 1);
+  const replay = await f.preparation.dispatchValidationInput(token(), f.leaseToken);
+  assert.deepEqual(replay, result);
+  assert.equal(dispatchCount(f), 1);
+});
+
+test("missing or corrupt persisted validation input cannot be recorded as dispatched", async (t) => {
+  for (const corrupt of [false, true]) {
+    const f = preparationFixture(t);
+    f.archiveState.beforeGet = (key) => {
+      if (!isValidationWire(f, key)) return;
+      if (corrupt) f.objects.get(key)[0] ^= 1;
+      else f.objects.delete(key);
+    };
+    await assert.rejects(f.preparation.dispatchValidationInput(token(), f.leaseToken), /missing|hash_mismatch/);
+    assert.equal(dispatchCount(f), 0);
+  }
+});
+
+test("head or lease change while archiving validation input prevents its dispatch registration", async (t) => {
+  for (const takeover of [false, true]) {
+    const f = preparationFixture(t);
+    f.archiveState.beforeGet = (key) => {
+      if (!isValidationWire(f, key)) return;
+      if (takeover) {
+        f.lease.release("publish/global", f.job, f.leaseToken);
+        f.lease.acquire("publish/global", { ...f.job, run_id: "457" }, f.leaseToken.epoch);
+      } else {
+        f.storage.transactionSync(() => {
+          f.storage.sql.exec("DELETE FROM m12_authorization_index");
+          f.storage.sql.exec("UPDATE m12_authorization_head SET revision=0,head_json=NULL");
+        });
+      }
+    };
+    await assert.rejects(f.preparation.dispatchValidationInput(token(), f.leaseToken), /history_changed|not_owned/);
+    assert.equal(dispatchCount(f), 0);
+  }
+});
+
+test("identity expiration after archived input readback leaves no dispatch record", async (t) => {
+  const f = preparationFixture(t);
+  f.archiveState.beforeGet = (key) => { if (isValidationWire(f, key)) f.state.now = claims.exp * 1000; };
+  await assert.rejects(f.preparation.dispatchValidationInput(token(), f.leaseToken), /dispatch_identity_expired/);
+  assert.equal(dispatchCount(f), 0);
+});
