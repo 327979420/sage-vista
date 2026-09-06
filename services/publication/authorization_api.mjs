@@ -87,7 +87,7 @@ export class AuthorizationJobApi {
     this.#preparation = new AuthorizationPreparation(identityPolicy, reviewPolicy, dependencies);
     this.#archive = new AuthorizationValidationArchive(identityPolicy, dependencies);
     this.#store = new AuthorizationStore(dependencies.storage, { clock: dependencies.clock });
-    this.#returns = new AuthorizationValidationReturn(identityPolicy, dependencies);
+    this.#returns = new AuthorizationValidationReturn(identityPolicy, { ...dependencies, recoveryEpoch: leaseEpoch });
     this.#leases = new LeaseStore(dependencies.storage, { clock: dependencies.clock });
     this.#storage = dependencies.storage;
   }
@@ -120,7 +120,7 @@ export class AuthorizationJobApi {
     const url = new URL(request.url);
     const route = url.pathname.slice("/v1/authorization/".length);
     if (url.search || url.hash || !url.pathname.startsWith("/v1/authorization/") ||
-        !["prepare", "return", "status", "renew"].includes(route)) return error(404, "route_unavailable");
+        !["prepare", "return", "status", "renew", "recover"].includes(route)) return error(404, "route_unavailable");
     if (request.method !== "POST") return error(405, "method_not_allowed");
     const authorization = request.headers.get("Authorization") ?? "";
     if (!authorization.startsWith("Bearer ") || authorization.length > 65543) return error(401, "unauthorized");
@@ -133,6 +133,10 @@ export class AuthorizationJobApi {
       value = await body(request, route === "prepare" ? 2 : route === "return" ? RETURN_LIMIT : 1024);
       if (route === "prepare") {
         if (Object.keys(value).length) throw new Error("invalid");
+      } else if (route === "recover") {
+        if (Object.keys(value).sort().join() !== "dispatch_id,protocol,receipt_key" || value.protocol !== PROTOCOL ||
+            typeof value.dispatch_id !== "string" || !UUID.test(value.dispatch_id) ||
+            typeof value.receipt_key !== "string" || !/^raw\/[a-f0-9]{64}$/.test(value.receipt_key)) throw new Error("invalid");
       } else {
         const fields = route === "return" ? "dispatch_id,lease_token,protocol,result_base64" : "dispatch_id,lease_token,protocol";
         if (Object.keys(value).sort().join() !== fields || value.protocol !== PROTOCOL ||
@@ -151,6 +155,17 @@ export class AuthorizationJobApi {
       }
     } catch { return error(400, "request_invalid"); }
     try {
+      if (route === "recover") {
+        const recovered = await this.#returns.recover(token, value.dispatch_id, value.receipt_key);
+        const record = recovered.return_record;
+        const result = response({ protocol: PROTOCOL, dispatch_id: value.dispatch_id, state: "archived_return_verified",
+          authorization_archive: record.authorization_archive, validation_receipt_archive: record.validation_receipt_archive,
+          input_sha256: record.input_archive.sha256, recorded_at: record.recorded_at });
+        const current = this.#store.readArchivedValidation(recovered.identity, this.#epoch, value.dispatch_id, value.receipt_key);
+        if (JSON.stringify(current) !== JSON.stringify({ dispatch: recovered.dispatch, validation_ticket: recovered.validation_ticket,
+          return_record: record, current_history: recovered.current_history })) throw new Error("recovery_changed");
+        return result;
+      }
       if (route === "status" || route === "renew") return await this.#control(token, value, route === "renew");
       if (route === "prepare") {
         const prepared = await this.#preparation.prepareJob(token, this.#epoch);

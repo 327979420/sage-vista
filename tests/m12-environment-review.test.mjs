@@ -2173,3 +2173,114 @@ test('recovery reuses artifact relationship checks even when altered receipt has
   f.db.prepare("UPDATE m12_authorization_log SET record_json=? WHERE operation='archive_validation'").run(raw);
   await assert.rejects(recoveryReader(f).recover(token(), f.sent.dispatch.dispatch_id, key), /receipt_mismatch/);
 });
+
+test('recovery HTTP route returns only authenticated historical archive verification', async (t) => {
+  const f = await validationArchiveFixture(t);
+  const saved = await f.archiveValidation();
+  const api = new AuthorizationJobApi(identityPolicy, reviewPolicy,
+    { ...f.options, storage: f.storage, bucket: f.bucket, enabled: true, leaseEpoch: f.leaseToken.epoch });
+  const payload = { protocol: 'm12-authorization-job/1', dispatch_id: f.sent.dispatch.dispatch_id, receipt_key: f.receiptKey };
+  f.state.now = (NOW + 301) * 1000;
+  const puts = f.archiveState.puts;
+  const response = await api.fetch(apiRequest('recover', JSON.stringify(canonical(payload)), freshRecoveryToken()));
+  assert.equal(response.status, 200);
+  const value = await response.json();
+  assert.deepEqual(Object.keys(value).sort(), ['authorization_archive', 'dispatch_id', 'input_sha256', 'protocol', 'recorded_at', 'state', 'validation_receipt_archive']);
+  assert.equal(value.state, 'archived_return_verified');
+  assert.deepEqual(value.authorization_archive, saved.authorization_archive);
+  assert.equal(value.input_sha256, f.sent.dispatch.input_archive.sha256);
+  assert.equal(f.archiveState.puts, puts);
+  assert.equal(recordedReturns(f).length, 1);
+  assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM m12_authorization_index').get().n, 1);
+});
+
+test('recovery HTTP route stays disabled by default and rejects external epoch lease and missing evidence', async (t) => {
+  const disabled = new AuthorizationJobApi(null, null);
+  assert.equal((await disabled.fetch(apiRequest('recover'))).status, 503);
+  const f = await validationArchiveFixture(t);
+  await f.archiveValidation();
+  const api = new AuthorizationJobApi(identityPolicy, reviewPolicy,
+    { ...f.options, storage: f.storage, bucket: f.bucket, enabled: true, leaseEpoch: f.leaseToken.epoch });
+  const payload = { protocol: 'm12-authorization-job/1', dispatch_id: f.sent.dispatch.dispatch_id, receipt_key: f.receiptKey };
+  for (const patch of [{ epoch: f.leaseToken.epoch }, { lease_token: f.leaseToken }, { valid: true }, { receipt_key: '../private' }]) {
+    assert.equal((await api.fetch(apiRequest('recover', JSON.stringify(canonical({ ...payload, ...patch }))))).status, 400);
+  }
+  assert.equal((await api.fetch(apiRequest('recover', JSON.stringify(canonical(payload)), token({ actor_id: '999' })))).status, 409);
+  f.objects.delete(f.receiptKey);
+  const missing = await api.fetch(apiRequest('recover', JSON.stringify(canonical(payload))));
+  assert.equal(missing.status, 409);
+  assert.deepEqual(Object.keys(await missing.json()).sort(), ['error', 'protocol']);
+});
+
+test('journaled supervised client recovers a lost return response with a new client and no resend', { timeout: 15_000 }, async (t) => {
+  const f = apiFixture(t);
+  const script = `
+import base64,io,json,subprocess,sys,tempfile
+from email.message import Message
+from unittest.mock import patch
+from services.publication.authorization_supervision import execute_supervised_authorization_validation,AuthorizationSupervisionError
+from services.publication.authorization_recovery import RecoverableAuthorizationTransport
+class Response(io.BytesIO):
+    def __init__(self,value,url):
+        super().__init__(base64.b64decode(value['body']))
+        self.status=value['status'];self.url=url;self.headers=Message()
+        for k,v in value['headers'].items():self.headers[k]=v
+    def geturl(self):return self.url
+class Opener:
+    def open(self,request,timeout):
+        print(json.dumps({'url':request.full_url,'headers':dict(request.header_items()),'body':base64.b64encode(request.data).decode() if request.data else None}),flush=True)
+        return Response(json.loads(sys.stdin.readline()),request.full_url)
+real=subprocess.Popen
+def launch(command,**options):
+    assert command[1]=='-I' and command[2].endswith('/authorization_validation_worker.py')
+    harness="import runpy,time;time.time_ns=lambda:${NOW * 1000}*1000000;runpy.run_path("+repr(command[2])+",run_name='__main__')"
+    return real([command[0],'-I','-c',harness],**options)
+env={'GITHUB_ACTIONS':'true','ACTIONS_ID_TOKEN_REQUEST_URL':'https://run.actions.githubusercontent.com/token?api-version=2.0','ACTIONS_ID_TOKEN_REQUEST_TOKEN':'local-request-credential'}
+with tempfile.TemporaryDirectory(prefix='m12-rpc-recovery-') as directory:
+    transport=RecoverableAuthorizationTransport('https://coordinator.example.test',env,recovery_directory=directory,opener=Opener())
+    with patch('time.time_ns',return_value=${NOW * 1000}*1000000),patch('subprocess.Popen',side_effect=launch):
+        try:execute_supervised_authorization_validation(transport)
+        except AuthorizationSupervisionError:pass
+        else:raise AssertionError('expected lost return response')
+    assert transport.recovery_id
+    recovered=RecoverableAuthorizationTransport('https://coordinator.example.test',env,recovery_directory=directory,opener=Opener())
+    result=recovered.recover(transport.recovery_id)
+print(json.dumps({'finished':True,'response':base64.b64encode(result).decode()}),flush=True)
+`;
+  const child = spawn('python3', ['-u', '-c', script], { cwd: new URL('..', import.meta.url), stdio: ['pipe', 'pipe', 'pipe'] });
+  t.after(() => { if (child.exitCode === null) child.kill(); });
+  let stderr = '', finished, lost = false;
+  child.stderr.on('data', (data) => { stderr += data; });
+  const exited = new Promise((resolve, reject) => { child.on('error', reject); child.on('exit', resolve); });
+  const paths = [];
+  for await (const line of createInterface({ input: child.stdout })) {
+    const request = JSON.parse(line);
+    if (request.finished) { finished = JSON.parse(Buffer.from(request.response, 'base64')); child.stdin.end(); continue; }
+    const url = new URL(request.url);
+    let response;
+    if (url.hostname.endsWith('.actions.githubusercontent.com')) {
+      response = new Response(JSON.stringify({ value: lost ? freshRecoveryToken() : token() }), { headers: { 'Content-Type': 'application/json' } });
+    } else {
+      paths.push(url.pathname);
+      response = await f.api.fetch(new Request(request.url, { method: 'POST', headers: request.headers, body: Buffer.from(request.body, 'base64') }));
+      if (url.pathname.endsWith('/return')) {
+        assert.equal(response.status, 200, await response.clone().text());
+        assert.equal(recordedReturns(f).length, 1);
+        lost = true;
+        f.state.now = (NOW + 301) * 1000;
+        f.lease.acquire('publish/global', { ...f.job, run_id: '457' }, f.leaseToken.epoch);
+        response = new Response('{}', { status: 503, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+    child.stdin.write(JSON.stringify({ status: response.status, headers: Object.fromEntries(response.headers),
+      body: Buffer.from(await response.arrayBuffer()).toString('base64') }) + '\n');
+  }
+  assert.equal(await exited, 0, stderr);
+  assert.equal(paths.filter((path) => path.endsWith('/return')).length, 1);
+  assert.equal(paths.filter((path) => path.endsWith('/prepare')).length, 1);
+  assert.equal(paths.at(-1), '/v1/authorization/recover');
+  assert.equal(finished.state, 'archived_return_verified');
+  assert.equal(recordedReturns(f).length, 1);
+  assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM m12_authorization_index').get().n, 1);
+  assert.equal(JSON.parse(f.db.prepare("SELECT owner_json FROM m12_leases WHERE resource='publish/global'").get().owner_json).run_id, '457');
+});

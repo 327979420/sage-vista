@@ -745,3 +745,32 @@ AuthorizationStore新增内部readArchivedValidation，复用ticket原记录／�
 116项环境／跨语言Node、29项租约／存储Node、7项治理及12项状态共164项通过；本轮145项Node使用spec完整运行（18.25秒），无失败／取消／跳过。定点lint、机器状态／文档链接／diff检查通过。真实本地SQLite与假GitHub／R2／网络边界不变，不重复无变化Python整套。恢复RPC／客户端接线、冻结checkout／受保护工作流及最终权限／目标config／同事务登记仍后续；平台时序和跨日端到端未执行，M11不重审。
 
 独立提交feat: verify archived M12 returns for internal recovery [skip ci]，父提交a68874b57b685f5a6bc228fc34f502009d19da26，完整SHA见交付消息。仅调整内部存储／回传共用验证、相关专项及3个治理文档，无业务合同／政策版本变化；可撤回恢复读接点并保留原件与记录。未合并、推送、创建云资源、部署、生产启用或对外通知。
+
+
+## B3p独立复核回传
+
+审核对话01a074f9-098a-7b82-b486-3185683290fe确认4ca4129f548a935fc5d5a51c6cee63f112a9a39e在内部历史恢复读回范围无阻断。审核员逐段审查实现差异、新增8项恢复测试及治理记录，145项Node spec完整通过（18.07秒，无失败／取消／跳过），另19项治理／状态通过，总164项；定点eslint和diff通过，HEAD一致、工作区干净。确认默认禁用、配置epoch、原身份和三份原件实际读回、共同产物绑定及末次重查。current_history仅为结构完整快照，不代表本轮重读全部历史原件或当前发布获授权；历史读取不复活权限，last_now只作时钟维护。
+
+## B3q：受控恢复RPC与客户端本地凭证（待独立审核）
+
+默认关闭AuthorizationJobApi增加POST /v1/authorization/recover，沿用新OIDC验签、1024字节请求上限、规范JSON及5秒正文读取期限；正文精确`{protocol,dispatch_id,receipt_key}`，不接受epoch、lease、原件或成功声明。服务器从自身leaseEpoch配置恢复适配器，完整调用已审核B3p读取，再编码精确响应`{protocol,dispatch_id,state,authorization_archive,validation_receipt_archive,input_sha256,recorded_at}`，最后重新读取并比较持久快照。state固定archived_return_verified，仅说明指定历史回传及此次原件读回一致，不是授权生效／票据可继续。缺少记录、原件或身份／状态失效均返回既有409，绝不返回“未收到，可重发”。
+
+新增RecoverableAuthorizationTransport，继承已审核HTTPS通道并要求受信工厂配置recovery_directory。每次真实return前，核对本会话原dispatch／lease及固定输出的传输元数据，读取stdout内原验证收据和授权字节，绑定原输入摘要／长度、实际授权字节摘要／长度及验证收据摘要。先保存并读回精确恢复凭证，然后才交原return_result取新令牌／发HTTP；文件保存失败即failed，不发送回传。元数据检查不替代业务验证，也不把本地凭证当执行证明。
+
+凭证协议为内部m12-authorization-recovery/1，字段精确`{protocol,origin,dispatch_id,input_sha256,authorization_archive,validation_receipt_archive,validated_at}`。不含OIDC／Actions请求凭据、完整输入、stdout或业务正文。AuthorizationRecoveryJournal要求本机当前用户拥有的私有0700目录，文件0600，固定文件名为规范凭证字节的SHA-256＋.json。先写同目录私有临时文件、flush／fsync，再通过不覆盖的原子硬链接安装最终文件、fsync目录，并以摘要／规范JSON／权限／非符号链接读取核对；同字节重放复用，损坏或冲突不覆盖。临时文件仅清理本次创建者，异常关闭保留已安装凭证；这是POSIX本地持久文件，不是跨runner云存储或磁盘故障保证。
+
+客户端只通过新RecoverableAuthorizationTransport实例的recover(recovery_id)恢复。先读本地已保存凭证并匹配固定origin，再取新OIDC，仅发送recover查询；不调用prepare、renew或return。响应字段／state、原dispatch、输入摘要及两份原件描述符必须精确匹配凭证，描述符数值拒绝bool等类型混用，recorded_at为规范时间且不早于原验证时间。成功只返回历史核对响应原字节；异常则failed，已用／失败会话不能恢复或重发。只读recovery_id属性供运行工厂在丢弃失败会话时定位已保存文件，不赋予任何网络或权限能力。
+
+本包收口同一原Job仍能取得新OIDC时的恢复RPC及本地凭证链路；旧租约可以到期或换owner，不会因此复活。跨Job／新attempt／跨epoch继续失败关闭。固定工作流必须使用此凭证客户端与B3n监督器，并安排私有凭证文件在所需生命周期内可取回；本包未创建Actions artifact、云资源或跨runner凭证传输，也未将旧无凭证客户端当作最终生产工厂。临时.pending文件不是恢复凭证，后续归档只能选规范摘要文件名。
+
+按用户要求一并修正MODULE_REFACTOR_PLAN_ZH.md页首过时总览，版本更新为0.12.1-m12-implementing：明确M12已获批且正在分包实施，完整生产链尚未收口，新看板／M13未实施，生产仍走旧流程。该同步不改变业务含义、规则或生产状态。
+
+### B3q实际检查与剩余边界
+
+新增8项Python专项验证凭证确实先持久读回再发return且不含令牌／正文、回传响应不确定后新客户端只查原记录、fsync失败不发网络、同字节保存／损坏／符号链接拒绝且不覆盖、错误状态／额外字段／摘要／类型／时间拒绝、origin与标识不符提前拒绝、坏结果／错误会话不保存，以及恢复409不能转为重发。使用真实本地文件和受控网络替身，ResourceWarning按错误。
+
+新增3项Node专项覆盖默认关闭／封闭恢复请求／历史响应，以及真实Python凭证客户端＋监督器＋固定worker＋实际Fetch路由往返。组合样例在服务器已成功记账后人为让客户端收到503，令旧窗口到期并由另一Job接手lease，再用新原身份和新客户端从同一私有目录读取凭证，成功recover；全程只1次prepare、1次return，授权索引和接手owner不变。固定worker仅用测试时钟harness适配合成时间，GitHub／R2／网络仍为替身；不是实际网络断连、TLS或GitHub平台恢复验收。
+
+119项环境／跨语言Node、8项恢复Python、7项治理及12项状态共146项通过；定点lint、机器状态／文档链接／diff检查通过。未修改存储、业务合同或原基础通道，不重复其无变化整套测试。接下来收口固定checkout／受保护工作流／凭证运行工厂及最终权限／目标config／同事务登记，再进入获批C／D每日业务与跨日链；平台时序和跨日端到端未执行，M11不重审。
+
+独立提交feat: add controlled M12 recovery RPC and local journal [skip ci]，父提交4ca4129f548a935fc5d5a51c6cee63f112a9a39e，完整SHA见交付消息。仅增加恢复RPC、凭证客户端／本地日志及相关专项、同步3个治理文档；业务合同／政策版本不变，可撤回接点但保留凭证及原件／记录。未合并、推送、创建云资源、部署、生产启用或对外通知。
