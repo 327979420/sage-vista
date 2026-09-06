@@ -291,9 +291,12 @@ M11本身不得写生产Manifest、切换工作流、修改网站／Discord或�
 ## 16. 本地影子实施结果
 
 - `services/playbook/`是唯一M11生产、证据评估、生命周期存储和Registry派生层。
-- 独立审核后，当前formal合同升级为严格隔离的`2.1.0`；旧`2.0.0`只读，不能进入新的formal评估、追加或Registry。`2.1.0` Proposal预登记完整M10证据范围，并冻结M09稳定案例身份。
+- 最终审核收口后，当前formal合同升级为严格隔离的`2.2.0`及来源版本`m11-shadow-1.2.0`；旧`2.0.0／2.1.0`只读，不能进入新的formal评估、追加或Registry。2.2 Proposal除完整M10证据范围和M09稳定案例身份外，还必须绑定可信、内容寻址的运行前预登记证明。
 - formal证据评估从M09和M10影子存储重新读取完整库存，按预登记范围确定性推导应参与的全部运行和结果；调用方列表只是声明。删、增、替换、重复、跨运行／分区／政策／窗口或未完成证据均不得形成`validated`。
 - 用户批准、main实现和M12激活使用显式可信证据解析器；默认无解析器即失败关闭，公共存储再次执行权限验证。用户批准只改变决定轴；main实现必须由解析器确认提交、策略／规则版本和测试证据；`active`还需可信M12 Manifest、部署及线上验证证明。M12未实施时真实formal `active`不可达。
-- `StrategyRegistrySnapshot 2.1.0`只能在store级库存锁内由全部Proposal、Assessment和Lifecycle记录重建；调用方重签的不完整或替换快照不能经公共存储写入。
+- `StrategyRegistrySnapshot 2.2.0`只能在store级库存锁内由全部Proposal、Assessment和Lifecycle记录重建；调用方重签的不完整或替换快照不能经公共存储写入。
 - 案例显示标签不参与权威身份；`event_id`、稳定`instrument_id`、`signal_date`、事件内容指纹和`seen_before`均由已落盘M09事件及可信案例登记确定。缺稳定身份的历史案例只能失败关闭或作解释，不能冒充独立validation／forward。
+- 2.2预登记证明冻结策略定义／版本、candidate／baseline、适用范围、案例角色、预期运行、日期／分区／结果族／窗口、数据／股票池／政策，以及全部criterion字段、操作符和阈值。默认formal路径无可信`PreregistrationAuthorityResolver`时不得validated；解析器必须返回完整冻结记录，并证明登记时间及登记提交均早于相关M10 pending运行。
+- 2.2 criterion使用运行前可确定的语义选择器，不得引用已完成Outcome ID或指纹；Assessment在完整权威库存中匹配唯一结果后只读已保存字段。零匹配为`evidence_incomplete`，多匹配失败关闭。
+- `case_label`只作为非空显示字段并进入内容指纹，不再通过ticker硬编码名单决定`seen_before`、角色或独立验证资格。
 - 全部验收仅使用固定合成样本。当前真实formal validated策略、新交易alpha硬规则和active策略均为0。

@@ -13,17 +13,17 @@ M11 A—D已在获批影子范围完成本地固定合成样本验证。本结�
 ## 唯一生产层与合同
 
 - 唯一实现位于`services/playbook/`。
-- 当前formal写入使用`StrategyProposal 2.1.0`、`StrategyEvidenceAssessment 2.1.0`和`StrategyLifecycleEvent 2.1.0`；旧`2.0.0`只读，不能进入新的formal评估或存储。
-- `StrategyRegistrySnapshot 2.1.0`只是从前三类完整链可再生成的只读视图，不保存第二份最终状态；旧`2.0.0`同样只读。
+- 当前formal写入使用`StrategyProposal 2.2.0`、`StrategyEvidenceAssessment 2.2.0`和`StrategyLifecycleEvent 2.2.0`；旧`2.0.0／2.1.0`只读，不能进入新的formal评估或存储。
+- `StrategyRegistrySnapshot 2.2.0`只是从前三类完整链可再生成的只读视图，不保存第二份最终状态；旧`2.0.0／2.1.0`同样只读。
 - 实现、评估和生命周期记录均使用严格版本、规范化身份、内容指纹和线性只追加修订。
 
 ## 机器证据闸门
 
-- Proposal只允许已落盘M09 `hypothesis`或`approved_change`来源；`observation`不得直接晋级。
+- Proposal只允许已落盘M09 `hypothesis`或`approved_change`来源；`observation`不得直接晋级。2.2还必须绑定可信预登记记录，证明完整提议、证据范围和全部criterion早于每个相关M10 pending运行冻结。
 - Assessment只从真实落盘的M09和M10影子存储重新读取并验证权威证据；未落盘对象、裸ID和仅格式合法的SHA不足够。
 - 必须有completed ExperimentRun、完整结果集、formal无bias路径、数据／股票池／复权政策、候选／基线版本、全部预登记分区及至少一个独立`validation`或真实`forward`案例。
 - 必需证据不足为`evidence_incomplete`；标准失败为`not_validated`，已验证后被新失败证据推翻则为`invalidated`。没有全局收益阈值。
-- CGEM、MRNA、BTDR、DLTR、ADBE、BABA、TTD和AEVA在固定样本中不得改标为新独立验证。
+- `case_label`和ticker只作显示；是否已见及validation／forward资格只由M09稳定事件身份和可信案例登记决定。换成已知ticker文字不会把未见案例变成已见，改成“UNSEEN”也不能隐藏真实已见案例。
 
 ## 独立审核修复
 
@@ -32,6 +32,13 @@ M11 A—D已在获批影子范围完成本地固定合成样本验证。本结�
 - Proposal案例角色绑定已落盘M09事件的`event_id`、稳定`instrument_id`、`signal_date`和内容指纹；`seen_before`由显式可信案例登记解析，显示标签、ticker别名和调用方声明不能改变案例身份或已见状态。
 - 用户批准、main实现和M12激活事件必须经显式可信解析器重新验证。默认formal路径没有解析器即失败关闭；固定合成测试只能使用标记为`test`的解析器。M12尚未实施，因此真实formal `active`不可达。
 - RegistrySnapshot在同一库存锁内从完整Proposal、Assessment和Lifecycle库存重建，并与待写入快照作规范字节比较；公共存储不能接受删项、增项、替换、重复或重签后的不完整快照。
+
+## 最终两项收口修复
+
+- 代码提交`ffda522`将current formal合同升级为严格`2.2.0`，来源版本升级为`m11-shadow-1.2.0`；`2.0.0／2.1.0`继续按原字段只读。
+- `PreregistrationAuthorityResolver`必须返回完整、内容寻址的冻结记录，绑定完整Proposal业务语义、登记时间、登记提交及覆盖的M10运行代码提交。评估同时验证登记时间早于每个pending根`started_at`，并要求可信解析器确认登记提交先于对应运行提交；默认无解析器失败关闭。
+- 2.2 criterion只允许以结果合同、candidate／baseline角色、分区、Forward窗口、字段、操作符和阈值作运行前语义选择；不得保存运行后才出现的Outcome ID或内容指纹。评估从M10完整库存匹配唯一结果，零匹配为证据不足，多匹配失败关闭，不重算收益或指标。
+- `case_label`硬编码名单已退出合同判断；标签仍进入Proposal内容指纹，但不改变稳定案例身份、`seen_before`或案例资格。
 
 ## 四轴和生命周期
 
@@ -43,11 +50,11 @@ M11 A—D已在获批影子范围完成本地固定合成样本验证。本结�
 
 ## 测试证据
 
-- M11专项：46项通过。
-- M09—M11联合定向：243项运行，233项通过、10项跳过。
-- M01—M11扩大定向：409项运行，399项通过、10项跳过。
-- 完整Python：776项运行，766项通过、10项跳过。
-- `PYTHONHASHSEED=0／1／42／12345`：每轮46项通过。
+- M11专项：54项通过。
+- M09—M11联合定向：251项运行，241项通过、10项跳过。
+- M01—M11扩大定向：417项运行，407项通过、10项跳过。
+- 完整Python：784项运行，774项通过、10项跳过。
+- `PYTHONHASHSEED=0／1／42／12345`：每轮54项通过。
 - 治理合同：19项通过。
 - 前端：11项通过；lint、TypeScript和生产构建通过。
 - Python编译、文档链接和`git diff --check`通过。
