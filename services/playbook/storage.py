@@ -1,0 +1,346 @@
+"""Append-only, atomic, shadow-only M11 storage."""
+
+from __future__ import annotations
+
+from contextlib import contextmanager
+import fcntl
+import json
+import os
+from pathlib import Path
+import re
+import stat
+import tempfile
+from typing import AbstractSet, Any, Callable, Iterator, Mapping
+
+from services.contracts.validation import ContractError
+from services.market_data.storage import require_shadow_root
+from services.evaluation import EvaluationShadowStore
+from services.ledger import EventLedgerStore
+
+from .contracts import (
+    SCHEMA_VERSION,
+    SOURCE_VERSION,
+    current_strategy_assessment,
+    current_strategy_lifecycle,
+    plain,
+    validate_strategy_evidence_assessment,
+    validate_strategy_lifecycle_event,
+    validate_strategy_proposal,
+    validate_strategy_registry_snapshot,
+)
+from .authority import (
+    CaseAuthorityResolver,
+    LifecycleAuthorityResolver,
+    PreregistrationAuthorityResolver,
+    validate_sensitive_lifecycle_authority,
+)
+from .evidence import assess_persisted_strategy_evidence, validate_persisted_proposal_sources
+from .registry import derive_strategy_registry_snapshot
+
+
+_DIGEST = re.compile(r"^[0-9a-f]{64}$")
+
+
+def _digest(value: Any, field: str) -> str:
+    if not isinstance(value, str):
+        raise ContractError(f"{field} must be a stable ID")
+    digest = value.rsplit(":", 1)[-1]
+    if not _DIGEST.fullmatch(digest):
+        raise ContractError(f"{field} must end in a lowercase SHA-256")
+    return digest
+
+
+def _bytes(payload: Mapping[str, Any]) -> bytes:
+    try:
+        return json.dumps(plain(payload), ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode() + b"\n"
+    except (TypeError, ValueError) as exc:
+        raise ContractError("M11 record must be canonical JSON") from exc
+
+
+@contextmanager
+def _lock(root: Path, key: str) -> Iterator[None]:
+    lock_dir = root / ".locks"
+    lock_dir.mkdir(parents=True, exist_ok=True)
+    path = lock_dir / (key + ".lock")
+    with path.open("a+b") as handle:
+        fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+
+
+class PlaybookShadowStore:
+    """Persist the three M11 authority records and optional derived snapshots."""
+
+    def __init__(
+        self,
+        root: str | Path,
+        *,
+        workspace_root: str | Path | None = None,
+        ledger_store: EventLedgerStore | None = None,
+        evaluation_store: EvaluationShadowStore | None = None,
+        known_approval_refs: AbstractSet[str] = frozenset(),
+        case_authority_resolver: CaseAuthorityResolver | None = None,
+        lifecycle_authority_resolver: LifecycleAuthorityResolver | None = None,
+        preregistration_authority_resolver: PreregistrationAuthorityResolver | None = None,
+    ) -> None:
+        self.root = require_shadow_root(root, workspace_root=workspace_root)
+        self.ledger_store = ledger_store
+        self.evaluation_store = evaluation_store
+        self.known_approval_refs = frozenset(known_approval_refs)
+        self.case_authority_resolver = case_authority_resolver
+        self.lifecycle_authority_resolver = lifecycle_authority_resolver
+        self.preregistration_authority_resolver = preregistration_authority_resolver
+
+    @staticmethod
+    def _require_current(payload: Mapping[str, Any]) -> None:
+        if (
+            payload.get("schema_version") != SCHEMA_VERSION
+            or payload.get("source_version") != {"playbook": SOURCE_VERSION}
+        ):
+            raise ContractError("legacy M11 records are read-only and cannot enter formal storage")
+
+    @staticmethod
+    def _read(path: Path, validator: Callable[[Mapping[str, Any]], None]) -> Mapping[str, Any]:
+        try:
+            mode = path.lstat().st_mode
+            raw = path.read_bytes()
+        except OSError as exc:
+            raise ContractError("M11 stored record cannot be inspected") from exc
+        if path.is_symlink() or not stat.S_ISREG(mode):
+            raise ContractError("M11 stored record must be a regular file")
+        try:
+            payload = json.loads(raw, parse_constant=lambda value: (_ for _ in ()).throw(ContractError(f"non-finite JSON {value}")))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise ContractError("M11 stored record is not valid JSON") from exc
+        if not isinstance(payload, Mapping):
+            raise ContractError("M11 stored record must be an object")
+        validator(payload)
+        if raw != _bytes(payload):
+            raise ContractError("M11 stored record is not canonical JSON")
+        return payload
+
+    def _write(self, payload: Mapping[str, Any], *, target: Path, validator: Callable[[Mapping[str, Any]], None], id_field: str, fingerprint_field: str) -> Path:
+        validator(payload)
+        content = _bytes(payload)
+        if target.exists() or target.is_symlink():
+            existing = self._read(target, validator)
+            if existing[id_field] == payload[id_field] and existing[fingerprint_field] == payload[fingerprint_field] and _bytes(existing) == content:
+                return target
+            raise ContractError("immutable M11 identity already exists with different content")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        descriptor, temporary_name = tempfile.mkstemp(prefix=target.name + ".", suffix=".tmp", dir=target.parent)
+        temporary = Path(temporary_name)
+        try:
+            with os.fdopen(descriptor, "wb") as handle:
+                handle.write(content)
+                handle.flush()
+                os.fsync(handle.fileno())
+            self._read(temporary, validator)
+            try:
+                os.link(temporary, target)
+            except FileExistsError:
+                existing = self._read(target, validator)
+                if _bytes(existing) != content:
+                    raise ContractError("concurrent immutable M11 write conflict")
+            directory_fd = os.open(target.parent, os.O_RDONLY)
+            try:
+                os.fsync(directory_fd)
+            finally:
+                os.close(directory_fd)
+            return target
+        finally:
+            if temporary.exists():
+                temporary.unlink()
+
+    def _collection(self, name: str, validator: Callable[[Mapping[str, Any]], None]) -> list[Mapping[str, Any]]:
+        root = self.root / name
+        if not root.exists():
+            return []
+        if root.is_symlink() or not root.is_dir():
+            raise ContractError("M11 collection must be a real directory")
+        return [self._read(path, validator) for path in sorted(root.glob("*.json"))]
+
+    def write_proposal(self, payload: Mapping[str, Any]) -> Path:
+        validate_strategy_proposal(payload)
+        self._require_current(payload)
+        if self.ledger_store is None:
+            raise ContractError("formal M11 proposal storage requires persisted M09 authority")
+        validate_persisted_proposal_sources(
+            payload,
+            ledger_store=self.ledger_store,
+            known_approval_refs=self.known_approval_refs,
+            case_authority_resolver=self.case_authority_resolver,
+            preregistration_authority_resolver=self.preregistration_authority_resolver,
+        )
+        target = self.root / "proposals" / (_digest(payload["proposal_id"], "proposal_id") + ".json")
+        with _lock(self.root, "inventory"), _lock(self.root, "proposals"):
+            return self._write(payload, target=target, validator=validate_strategy_proposal, id_field="proposal_id", fingerprint_field="proposal_content_fingerprint")
+
+    def write_assessment(self, payload: Mapping[str, Any]) -> Path:
+        validate_strategy_evidence_assessment(payload)
+        self._require_current(payload)
+        logical = _digest(payload["logical_assessment_id"], "logical_assessment_id")
+        target = self.root / "assessments" / (_digest(payload["assessment_id"], "assessment_id") + ".json")
+        with _lock(self.root, "inventory"), _lock(self.root, "assessment-" + logical):
+            proposals = {
+                item["proposal_id"]: item
+                for item in self._collection("proposals", validate_strategy_proposal)
+            }
+            proposal = proposals.get(payload["proposal_id"])
+            if proposal is None or any((
+                proposal["proposal_content_fingerprint"] != payload["proposal_content_fingerprint"],
+                proposal["strategy_id"] != payload["strategy_id"],
+                proposal["strategy_version"] != payload["strategy_version"],
+                proposal["candidate_version"] != payload["candidate_version"],
+                proposal["baseline_version"] != payload["baseline_version"],
+                proposal["preregistration"]["preregistration_id"] != payload["preregistration_ref"]["id"],
+                proposal["preregistration"]["content_fingerprint"] != payload["preregistration_ref"]["content_fingerprint"],
+            )):
+                raise ContractError("assessment requires its exact persisted proposal")
+            chain = [item for item in self._collection("assessments", validate_strategy_evidence_assessment) if item["logical_assessment_id"] == payload["logical_assessment_id"]]
+            if self.ledger_store is None or self.evaluation_store is None:
+                raise ContractError("formal M11 assessment storage requires M09 and M10 authority")
+            reproduced = assess_persisted_strategy_evidence(
+                proposal,
+                ledger_store=self.ledger_store,
+                evaluation_store=self.evaluation_store,
+                run_ids=[str(item["run_id"]) for item in payload["run_refs"]],
+                assessed_at=str(payload["assessed_at"]),
+                supersedes_assessment=(current_strategy_assessment(chain) if chain else None),
+                known_approval_refs=self.known_approval_refs,
+                case_authority_resolver=self.case_authority_resolver,
+                preregistration_authority_resolver=self.preregistration_authority_resolver,
+            )
+            if _bytes(reproduced) != _bytes(payload):
+                raise ContractError("assessment differs from persisted M09/M10 authority")
+            existing_ids = {item["assessment_id"] for item in chain}
+            if payload["assessment_id"] not in existing_ids:
+                leaf = current_strategy_assessment(chain) if chain else None
+                if leaf is None and payload["supersedes_assessment_id"] is not None:
+                    raise ContractError("assessment predecessor is not stored")
+                if leaf is not None and payload["supersedes_assessment_id"] != leaf["assessment_id"]:
+                    raise ContractError("assessment must supersede the current leaf")
+                current_strategy_assessment([*chain, payload])
+            return self._write(payload, target=target, validator=validate_strategy_evidence_assessment, id_field="assessment_id", fingerprint_field="assessment_content_fingerprint")
+
+    def write_lifecycle_event(self, payload: Mapping[str, Any]) -> Path:
+        validate_strategy_lifecycle_event(payload)
+        self._require_current(payload)
+        proposal = _digest(payload["proposal_id"], "proposal_id")
+        target = self.root / "lifecycle" / (_digest(payload["lifecycle_event_id"], "lifecycle_event_id") + ".json")
+        with _lock(self.root, "inventory"), _lock(self.root, "lifecycle-" + proposal):
+            proposals = {
+                item["proposal_id"]: item
+                for item in self._collection("proposals", validate_strategy_proposal)
+            }
+            stored_proposal = proposals.get(payload["proposal_id"])
+            if stored_proposal is None or any((
+                stored_proposal["proposal_content_fingerprint"] != payload["proposal_content_fingerprint"],
+                stored_proposal["strategy_id"] != payload["strategy_id"],
+                stored_proposal["strategy_version"] != payload["strategy_version"],
+            )):
+                raise ContractError("lifecycle event requires its exact persisted proposal")
+            validate_sensitive_lifecycle_authority(
+                stored_proposal, payload, self.lifecycle_authority_resolver
+            )
+            assessment_ref = payload["assessment_ref"]
+            if assessment_ref is not None:
+                assessments = {
+                    item["assessment_id"]: item
+                    for item in self._collection("assessments", validate_strategy_evidence_assessment)
+                }
+                assessment = assessments.get(assessment_ref["id"])
+                if assessment is None or assessment["assessment_content_fingerprint"] != assessment_ref["content_fingerprint"]:
+                    raise ContractError("lifecycle event requires its exact persisted assessment")
+                if payload["event_type"] == "evidence_assessed" and payload["state_after"]["evidence"] != assessment["evidence_state"]:
+                    raise ContractError("lifecycle evidence state differs from its assessment")
+            chain = [item for item in self._collection("lifecycle", validate_strategy_lifecycle_event) if item["proposal_id"] == payload["proposal_id"]]
+            for event in chain:
+                validate_sensitive_lifecycle_authority(
+                    stored_proposal, event, self.lifecycle_authority_resolver
+                )
+            existing_ids = {item["lifecycle_event_id"] for item in chain}
+            if payload["lifecycle_event_id"] not in existing_ids:
+                leaf = current_strategy_lifecycle(chain) if chain else None
+                if leaf is None and payload["supersedes_lifecycle_event_id"] is not None:
+                    raise ContractError("lifecycle predecessor is not stored")
+                if leaf is not None and payload["supersedes_lifecycle_event_id"] != leaf["lifecycle_event_id"]:
+                    raise ContractError("lifecycle event must supersede the current leaf")
+                current_strategy_lifecycle([*chain, payload])
+            return self._write(payload, target=target, validator=validate_strategy_lifecycle_event, id_field="lifecycle_event_id", fingerprint_field="lifecycle_content_fingerprint")
+
+    def write_registry_snapshot(self, payload: Mapping[str, Any]) -> Path:
+        validate_strategy_registry_snapshot(payload)
+        self._require_current(payload)
+        target = self.root / "registry-snapshots" / (_digest(payload["registry_snapshot_id"], "registry_snapshot_id") + ".json")
+        with _lock(self.root, "inventory"), _lock(self.root, "registry-snapshots"):
+            proposals, assessments, lifecycle = self._read_authority_unlocked()
+            expected = derive_strategy_registry_snapshot(
+                proposals, assessments, lifecycle,
+                as_of=str(payload["as_of"]),
+                generated_at=str(payload["generated_at"]),
+                code_commit=str(payload["code_commit"]),
+            )
+            if _bytes(expected) != _bytes(payload):
+                raise ContractError("registry snapshot differs from complete M11 authority inventory")
+            return self._write(payload, target=target, validator=validate_strategy_registry_snapshot, id_field="registry_snapshot_id", fingerprint_field="registry_content_fingerprint")
+
+    def derive_and_write_registry_snapshot(
+        self, *, as_of: str, generated_at: str, code_commit: str
+    ) -> tuple[Mapping[str, Any], Path]:
+        """Atomically derive the only writable registry view from full authority."""
+
+        with _lock(self.root, "inventory"), _lock(self.root, "registry-snapshots"):
+            proposals, assessments, lifecycle = self._read_authority_unlocked()
+            snapshot = derive_strategy_registry_snapshot(
+                proposals, assessments, lifecycle,
+                as_of=as_of, generated_at=generated_at, code_commit=code_commit,
+            )
+            target = self.root / "registry-snapshots" / (
+                _digest(snapshot["registry_snapshot_id"], "registry_snapshot_id") + ".json"
+            )
+            path = self._write(
+                snapshot, target=target, validator=validate_strategy_registry_snapshot,
+                id_field="registry_snapshot_id",
+                fingerprint_field="registry_content_fingerprint",
+            )
+            return snapshot, path
+
+    def _read_authority_unlocked(self) -> tuple[tuple[Mapping[str, Any], ...], tuple[Mapping[str, Any], ...], tuple[Mapping[str, Any], ...]]:
+        proposals = tuple(self._collection("proposals", validate_strategy_proposal))
+        assessments = tuple(self._collection("assessments", validate_strategy_evidence_assessment))
+        lifecycle = tuple(self._collection("lifecycle", validate_strategy_lifecycle_event))
+        proposals_by_id = {item["proposal_id"]: item for item in proposals}
+        if len(proposals_by_id) != len(proposals):
+            raise ContractError("M11 authority contains duplicate proposals")
+        if proposals and self.ledger_store is None:
+            raise ContractError("formal M11 inventory requires persisted M09 authority")
+        for proposal in proposals:
+            validate_persisted_proposal_sources(
+                proposal,
+                ledger_store=self.ledger_store,
+                known_approval_refs=self.known_approval_refs,
+                case_authority_resolver=self.case_authority_resolver,
+                preregistration_authority_resolver=self.preregistration_authority_resolver,
+            )
+        for event in lifecycle:
+            proposal = proposals_by_id.get(event["proposal_id"])
+            if proposal is None:
+                raise ContractError("M11 lifecycle authority lacks its proposal")
+            validate_sensitive_lifecycle_authority(
+                proposal, event, self.lifecycle_authority_resolver
+            )
+        for proposal_id in {item["proposal_id"] for item in assessments}:
+            current_strategy_assessment([item for item in assessments if item["proposal_id"] == proposal_id])
+        for proposal_id in {item["proposal_id"] for item in lifecycle}:
+            current_strategy_lifecycle([item for item in lifecycle if item["proposal_id"] == proposal_id])
+        return proposals, assessments, lifecycle
+
+    def read_authority(self) -> tuple[tuple[Mapping[str, Any], ...], tuple[Mapping[str, Any], ...], tuple[Mapping[str, Any], ...]]:
+        with _lock(self.root, "inventory"):
+            return self._read_authority_unlocked()
+
+
+__all__ = ["PlaybookShadowStore"]

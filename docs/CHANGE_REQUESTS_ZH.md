@@ -32,6 +32,34 @@
 
 > 整理边界：CR-2026-08-30-038及其交接Prompt本轮暂不纳入治理文档整理；原始内容完整保存在救援分支`rescue/local-work-2026-08-31-b14ec55`，没有删除。
 
+### CR-2026-09-06-052｜FinanceDatabase指定快照许可证留档
+
+- 用户原意：仅补bot快照提交`992042ab1a3a746b735821dea30a50d958651b42`所引用FinanceDatabase固定上游提交`5865ce3b26e6f393dc0600cad1ae02339bd7d52d`的原始LICENSE，完整保留版权及许可正文，并澄清旧生产消费者与新版M06 formal边界。
+- 状态：`verified`（本地许可／文档核验，待本审核对话复核）；用户明确授权本小包（≤20分钟）。
+- 主模块：行业数据来源留档，遵守`docs/rules/06_INDUSTRY.md`和治理规则；业务含义不变，不升级业务规则、数据schema或来源身份。
+- 接入与文件边界：固定上游LICENSE → 仓库原文副本 → `docs/OPEN_SOURCE_INDUSTRY_DATA.md`关联来源提交、bot提交及快照；仅修改许可文件、该说明、需求账本和决策日志。旧`industry_radar.run`已调用按日期选择快照的消费者，不等于新版`services/context/`的M06 formal接入。
+- 兼容／回退：不引入或重写快照、不改代码、算法、身份或生产入口；指定bot快照在其独立Git提交中，本审核分支不导入该数据提交。需要回退时仅撤销本许可／文档提交，不改历史快照。
+- 验证：LICENSE与固定上游原始字节完全相等（1069字节），Git blob为`1a1e8a1a258291d88337e23bd21fcda21db3e100`，SHA-256见开源行业说明；固定快照source.ref核对通过。既有开源行业及治理回归11项通过，文档链接、机器状态一致性和`git diff --check`通过；仅四个许可／文档文件变化，快照及业务代码无改动。提交证据：本记录与原始LICENSE同属独立提交`docs: archive pinned FinanceDatabase snapshot license`，完整SHA以交付消息和Git记录为准。无真实实验、推送、合并、部署或生产启用；交回本审核对话。
+
+### CR-2026-09-05-051｜M11策略验证、批准与退休闸门
+
+- 2026-09-06最小修复（用户明确授权，`verified`仅本地合成验收，等待全新独立审核）：基线`751cc3ebfe4cf5ba3342c503baaac648047d1e72`允许criterion用Outcome身份字段与具体ID／指纹等值比较而validated。本包仅在唯一合同入口限制各结果合同的业务字段及expected类型，补两个反例、合法判定和公共存储回归；规则11升级1.2.1，合同字段／schema及来源版本不变，旧2.0／2.1只读边界保留。本轮M11专项60项、四种hash seed每轮60项通过；完整Python790项（780通过、10跳过），前端11项、lint／类型检查／构建及编译／文档链接／diff检查通过。修复代码与本记录同属独立提交`fix: restrict M11 criteria to typed business fields`（父提交751cc3e），未推送。设计补充见M11设计第17节；不审核bot数据、不合并、不部署或启用生产，完成后交全新独立审核。
+
+- 用户原意：把M09保存的人工观察／假设与M10保存的不可变评价证据接成一条可审计的策略升级链。机器证据、用户批准、进入main和生产激活必须分开；V1、V2、失败、拒绝、延期、失效和退休历史永久保留。只有预登记标准由独立证据满足、用户明确批准、实现证据完整且M12提供生产激活证明的精确版本，才可成为active策略或交易红线。
+- 状态：`verified`；用户批准的`1A／2A／3A`及A—D最小影子合同、证据闸门、生命周期存储和只读Registry已在审核分支完成本地验证。尚未合并`main`，没有运行实实验、真实策略晋级、部署或生产启用。
+- 主模块：`docs/rules/11_VALIDATED_PLAYBOOK.md`、`docs/rules/12_HARD_RULES.md`；设计见`docs/M11_STRATEGY_PROMOTION_GATE_DESIGN_ZH.md`。未来唯一中立实现层建议为`services/playbook/`。
+- 联动模块：只读引用M09 `HumanReviewRecord`及M10 `ExperimentRun`、Outcome、Aggregate和查询证据；M12独立负责生产Manifest、部署、线上核验、激活和退休生效。M11不得反向修改M03—M10，也不得替M12切换生产。
+- CR-043边界：本CR只承接CR-043中“人工案例形成候选假设、使用未参与定义的独立样本验证、用户批准后形成新版本、失败假设永久保留”的升级责任。CR-043整体继续为`captured`，内容和状态不变。
+- 规则先行：最终审核收口后，当前formal写入使用严格隔离的`StrategyProposal 2.2.0`、`StrategyEvidenceAssessment 2.2.0`、`StrategyLifecycleEvent 2.2.0`及只读派生`StrategyRegistrySnapshot 2.2.0`，来源版本为`m11-shadow-1.2.0`；旧`2.0.0／2.1.0`只读。机器证据、用户决定、实现和生产是四条独立状态轴；`validated`不等于批准，批准不等于实现，进入main不等于active。
+- 证据闸门：Proposal冻结预期运行、必需分区／结果族／窗口、候选与基线版本、数据、股票池、政策和时间范围。Assessment从M10权威库存确定性重推完整全集；调用方列表只作声明。删、增、替换、重复、跨运行／分区／政策或未完成证据均失败关闭，用户不得将缺失或失败证据重标为`validated`。
+- 案例边界：案例角色固定为`discovery`、`calibration`、`validation`、`forward`或`explanation_only`。发现／校准案例不能再充当独立验证；是否已见只按M09 `event_id + instrument_id + signal_date + content_fingerprint`及可信登记判断。`case_label`和ticker别名只显示，不参与资格判断。
+- Playbook／Hard Rule：系统完整性硬规则保护防未来、不可覆盖和数据／执行正确性，不是交易alpha；交易alpha／风险红线则必须通过M11证据闸门、机器可执行定义、范围／例外／解除条件、用户批准、实现和M12激活。当前正式validated策略和新增交易alpha硬规则均为0。
+- 实验：本轮不运行。M11不计算收益、不读取行情、不重跑M10、不搜索参数，也不创建新的有效性结论。
+- 权威性修复：M09案例以事件、稳定证券、信号日和内容指纹绑定，`seen_before`由可信登记派生；用户批准、main实现和M12激活默认失败关闭并须可信解析器；公共存储重复权限校验。Registry只能在库存锁内由完整Proposal／Assessment／Lifecycle库存派生，重签删项或替换不能写入。M12尚未实施，因此真实formal `active`仍不可达。
+- 最终收口：Proposal 2.2必须引用可信预登记冻结记录，完整绑定提议、证据范围和criterion语义；登记时间必须早于每个相关M10 pending根，登记提交与运行提交的先后关系也必须由可信解析器确认。2.2 criterion不允许引用事后Outcome ID／指纹，而以结果族、candidate／baseline、分区、窗口、字段、操作符和阈值匹配权威库存中的唯一结果。旧自由格式或2.0／2.1实验没有该证明，不能自动validated。
+- 实现与产物：`services/playbook/`为唯一影子生产／验证层；四合同、四轴、只读重验M09／M10证据、案例隔离、线性修订、只追加存储和完整库存派生Registry已完成。系统完整性规则与交易alpha红线仍分开；当前真实formal validated、新交易alpha硬规则和active策略均为0。
+- 验证：最终收口后M11专项54项通过；M09—M11联合定向运行251项，通过241项、跳过10项；M01—M11扩大定向运行417项，通过407项、跳过10项；完整Python运行784项，通过774项、跳过10项；四种`PYTHONHASHSEED`每轮54项通过；治理19项、前端11项、Python编译、lint、TypeScript和生产构建通过。原四项权威性攻击及事后预登记、范围／阈值回填和标签越权攻击均失败关闭；完整证据见`docs/M11_ACCEPTANCE_REPORT_ZH.md`。
+
 ### CR-2026-09-02-050｜M10统一评价、回测与外部研究引擎
 
 - 用户原意：在不改写M02—M09既有事实的前提下，为逐股前向表现、严格执行M08计划后的交易结果、资本约束组合运行和研究汇总建立四类互不冒充的不可变结果；V1、V2及comparison永久并存，并可按版本、日期、股票、事件和运行准确查询。CSV／Excel只能从权威结果再生成，供人工审核，不能成为机器账本或回写旧事实。
