@@ -2,8 +2,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash, generateKeyPairSync, sign } from "node:crypto";
 import { spawnSync } from "node:child_process";
+import { DatabaseSync } from "node:sqlite";
 import { GitHubEnvironmentReviewVerifier } from "../services/publication/environment_review.mjs";
 import { ReviewedRequestArchive } from "../services/publication/review_archive.mjs";
+import { AuthorizationPreparation } from "../services/publication/authorization_preparation.mjs";
+import { LeaseStore } from "../services/publication/leases.mjs";
 
 const NOW = 1_788_652_800;
 const keys = generateKeyPairSync("rsa", { modulusLength: 2048 });
@@ -336,7 +339,7 @@ function archiveFixture(raw) {
       return { arrayBuffer: async () => original.buffer };
     },
   };
-  return { ...f, objects, archiveState: state,
+  return { ...f, bucket, objects, archiveState: state,
     archive: new ReviewedRequestArchive(identityPolicy, reviewPolicy, { ...f.options, bucket }) };
 }
 
@@ -483,19 +486,25 @@ function resealArchive(input) {
 function checkPython(input) {
   const script = `
 import base64, json, sys
-from services.contracts.validation import ContractError, publication_approval_archive_body, validate_contract, validate_contracts
-from services.publication.authorization import build_publication_authorization, build_publication_authorization_from_archive
+from services.contracts.validation import ContractError, publication_approval_archive_body, publication_ticket_history, validate_contract, validate_contracts
+from services.publication.authorization import build_publication_authorization, build_publication_authorization_from_archive, build_publication_authorization_for_ticket
 v = json.load(sys.stdin)
 archive = {"bundle_bytes": base64.b64decode(v["bundle_bytes"]), "objects": {k:base64.b64decode(b) for k,b in v["objects"].items()}}
 try:
-    if v.get("factory"):
+    if "ticket" in v:
+        history_bytes = [base64.b64decode(raw) for raw in v["history_bytes"]]
+        payload = build_publication_authorization_for_ticket(archive, v["reference"], v["ticket"], history_bytes, generated_at="2026-09-06T00:00:00Z")
+    elif v.get("factory"):
         payload = build_publication_authorization_from_archive(archive, v["reference"], history=[], generated_at="2026-09-06T00:00:00Z", **v.get("unexpected_factory_kwargs", {}))
     bound = publication_approval_archive_body(archive, v["reference"])
     evidence = {**bound, "approval_evidence_ref":v["reference"], "history":[], "approval_archive":archive}
+    if "ticket" in v:
+        evidence.update(validation_ticket=v["ticket"], history_bytes=history_bytes,
+                        history=publication_ticket_history(v["ticket"], history_bytes, job=bound["job"], approval_evidence_ref=v["reference"]))
     for key in v.get("drop_evidence", []):
         del evidence[key]
     evidence.update(v.get("replace_evidence", {}))
-    if not v.get("factory"):
+    if not v.get("factory") and "ticket" not in v:
         payload = build_publication_authorization(evidence, generated_at="2026-09-06T00:00:00Z")
     validate_contract("PublicationAuthorization", payload, publication_authorization_evidence=evidence)
     validate_contracts([("PublicationAuthorization", payload)], publication_authorization_evidence=evidence)
@@ -674,4 +683,134 @@ test("mutating returned readback cannot rewrite archive or affect a later verifi
   const second = await f.archive.readForValidation(token());
   assert.deepEqual(second.approval_evidence_ref, expectedRef);
   assert.equal(checkPython(readerInput(second)).valid, true);
+});
+
+function priorAuthorization() {
+  const job = { repository_id: "123", workflow_ref: identityPolicy.workflow_ref, workflow_commit: identityPolicy.workflow_commit,
+    run_id: "400", run_attempt: 1, environment: "production" };
+  const evidence = { request: businessRequest, approver_id: "999", job, history: [],
+    approval_evidence_ref: { id: "approval-observation:sha256:" + "8".repeat(64), content_fingerprint: "sha256:" + "8".repeat(64) } };
+  const result = spawnSync("python3", ["-c", "import json,sys; from services.publication.authorization import build_publication_authorization; print(json.dumps(build_publication_authorization(json.load(sys.stdin), generated_at='2026-09-06T00:00:00Z'),sort_keys=True,separators=(',',':'),ensure_ascii=False))"],
+    { input: JSON.stringify(evidence), encoding: "utf-8", cwd: new URL("..", import.meta.url) });
+  assert.equal(result.status, 0, result.stderr);
+  return Buffer.from(result.stdout);
+}
+
+function preparationFixture(t, withHistory = true) {
+  const priorBytes = priorAuthorization();
+  const prior = JSON.parse(priorBytes.toString());
+  const priorRef = { id: prior.authorization_id, content_fingerprint: prior.content_fingerprint };
+  const request = withHistory ? { ...businessRequest, action: "revoke", permissions: [], prior_authorization_ref: priorRef } : businessRequest;
+  const f = archiveFixture(JSON.stringify(request));
+  const db = new DatabaseSync(":memory:");
+  t.after(() => db.close());
+  const storage = { sql: { exec(query, ...args) {
+    const rows = db.prepare(query).all(...args);
+    return { toArray: () => rows.map((row) => ({ ...row })) };
+  } }, transactionSync(callback) {
+    db.exec("BEGIN IMMEDIATE");
+    try { const result = callback(); assert.ok(!(result instanceof Promise)); db.exec("COMMIT"); return result; }
+    catch (error) { db.exec("ROLLBACK"); throw error; }
+  } };
+  const lease = new LeaseStore(storage, { clock: f.options.clock });
+  const epoch = "11111111-1111-4111-8111-111111111111";
+  lease.initialize(epoch);
+  const job = { ...prior.job, run_id: "456" };
+  const held = lease.acquire("publish/global", job, epoch);
+  const leaseToken = { epoch, fence: held.lease.fence };
+  const preparation = new AuthorizationPreparation(identityPolicy, reviewPolicy, { ...f.options, storage, bucket: f.bucket });
+  const historyKey = "authority/" + prior.content_fingerprint.slice(7) + ".json";
+  if (withHistory) {
+    f.objects.set(historyKey, new Uint8Array(priorBytes));
+    storage.transactionSync(() => {
+      storage.sql.exec("INSERT INTO m12_authorization_index VALUES (1, ?, ?, NULL)", JSON.stringify(priorRef),
+        JSON.stringify({ key: historyKey, sha256: "sha256:" + createHash("sha256").update(priorBytes).digest("hex"), size_bytes: priorBytes.length }));
+      storage.sql.exec("UPDATE m12_authorization_head SET revision = 1, head_json = ?", JSON.stringify(priorRef));
+    });
+  }
+  return { ...f, db, storage, lease, job, leaseToken, preparation, historyKey, priorBytes, priorRef };
+}
+
+function ticketInput(value) {
+  return { ...readerInput(value), ticket: value.validation_ticket,
+    history_bytes: value.history_bytes.map((bytes) => Buffer.from(bytes).toString("base64")) };
+}
+
+test("internal preparation reads full stored history and Python constructs its valid successor", async (t) => {
+  const f = preparationFixture(t);
+  const input = await f.preparation.prepare(token(), f.leaseToken);
+  assert.equal(input.validation_ticket.expected_revision, 1);
+  assert.deepEqual(input.validation_ticket.expected_head_ref, f.priorRef);
+  assert.deepEqual(Buffer.from(input.history_bytes[0]), f.priorBytes);
+  const result = checkPython(ticketInput(input));
+  assert.equal(result.valid, true, result.error);
+  assert.equal(result.code_commit, businessRequest.code_commit);
+  assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_index").get().n, 1);
+});
+
+test("first grant preparation has an explicitly empty complete history", async (t) => {
+  const f = preparationFixture(t, false);
+  const input = await f.preparation.prepare(token(), f.leaseToken);
+  assert.deepEqual(input.history_bytes, []);
+  assert.equal(input.validation_ticket.expected_revision, 0);
+  assert.equal(checkPython(ticketInput(input)).valid, true);
+});
+
+test("missing or corrupted R2 history refuses partial preparation", async (t) => {
+  for (const corrupt of [false, true]) {
+    const f = preparationFixture(t);
+    if (corrupt) f.objects.get(f.historyKey)[0] ^= 1;
+    else f.objects.delete(f.historyKey);
+    await assert.rejects(f.preparation.prepare(token(), f.leaseToken), /missing|hash_mismatch/);
+  }
+});
+
+test("head change during R2 history read invalidates the prepared ticket", async (t) => {
+  const f = preparationFixture(t);
+  f.archiveState.beforeGet = (key) => {
+    if (key !== f.historyKey) return;
+    f.storage.transactionSync(() => {
+      f.storage.sql.exec("DELETE FROM m12_authorization_index");
+      f.storage.sql.exec("UPDATE m12_authorization_head SET revision = 0, head_json = NULL");
+    });
+  };
+  await assert.rejects(f.preparation.prepare(token(), f.leaseToken), /ticket_history_changed/);
+});
+
+test("lease takeover during history read rejects old owner even while OIDC token is valid", async (t) => {
+  const f = preparationFixture(t);
+  f.archiveState.beforeGet = (key) => {
+    if (key !== f.historyKey) return;
+    f.lease.release("publish/global", f.job, f.leaseToken);
+    f.lease.acquire("publish/global", { ...f.job, run_id: "457" }, f.leaseToken.epoch);
+  };
+  await assert.rejects(f.preparation.prepare(token(), f.leaseToken), /not_owned/);
+});
+
+test("identity expiry after the final history read stops preparation", async (t) => {
+  const f = preparationFixture(t);
+  f.archiveState.beforeGet = (key) => { if (key === f.historyKey) f.state.now = claims.exp * 1000; };
+  await assert.rejects(f.preparation.prepare(token(), f.leaseToken), /preparation_identity_expired/);
+});
+
+test("Python rejects truncated/replaced history, stale head and ticket identity substitutions", async (t) => {
+  const f = preparationFixture(t);
+  const original = ticketInput(await f.preparation.prepare(token(), f.leaseToken));
+  for (const change of [(v) => { v.history_bytes = []; }, (v) => { v.history_bytes.push(v.history_bytes[0]); },
+    (v) => { v.history_bytes[0] = Buffer.from("{}").toString("base64"); },
+    (v) => { v.ticket.expected_revision = 0; }, (v) => { v.ticket.expected_head_ref = null; },
+    (v) => { v.ticket.owner_job.run_id = "457"; }, (v) => { v.ticket.fence = true; },
+    (v) => { v.ticket.approval_evidence_ref = f.priorRef; },
+    (v) => { v.ticket.history[0].previous_ref = f.priorRef; }]) {
+    const input = structuredClone(original); change(input);
+    assert.equal(checkPython(input).valid, false);
+  }
+});
+
+test("ticket path requires both ticket and bytes and cannot downgrade by removing archive context", async (t) => {
+  const f = preparationFixture(t);
+  const original = ticketInput(await f.preparation.prepare(token(), f.leaseToken));
+  for (const drop of [["validation_ticket"], ["history_bytes"], ["approval_archive"], ["request_source", "source_commit"]]) {
+    assert.equal(checkPython({ ...original, drop_evidence: drop }).valid, false);
+  }
 });

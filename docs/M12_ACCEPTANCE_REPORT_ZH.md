@@ -392,3 +392,22 @@ LeaseStore提取共用owner事务检查，renew／release继续复用；withOwne
 下一步必须在事务外按该快照读取全部R2授权正文，交强制B2g Python构造器，并把可信验证结果绑定票据、完整历史及原件Ref；最终登记必须重新读取当前授权head／revision及当前身份／授权／lease，比较票据前态并原子追加授权索引和日志，不能仅凭旧快照或票据存在放行。当前无票据消费、通过收据、授权登记、有效授权查询、队列或CurrentPointer CAS。真实平台配置／凭据、业务目标/config和可审阅工作流仍待接线；跨日端到端尚未执行，M11不重审。
 
 独立提交`feat: persist M12 lease-bound authorization validation tickets [skip ci]`，父提交aa4848802a9baccde1f5dbb2a30c13dfe46bad18，完整SHA见交付消息。只改内部租约包装、新增授权存储基础、现有lease专项测试及3个治理文档，无Worker配置／迁移／云资源操作；可撤回本包并保留治理历史，本地SQLite测试文件已清理。未合并、推送、创建云资源、部署、生产启用或对外通知。
+
+
+## B3a独立复核回传
+
+审核对话01a074f9-098a-7b82-b486-3185683290fe确认2193c7235772c4fbe9499aa6de127bdeb7a3a8a2在完整授权索引快照、租约绑定准备票据和同步事务范围通过。审核员运行23项Node（11项新增及12项lease回归）和19项治理／状态共42项，确认完整性／线性前序／head、日志故障和到期回滚、重放、续约／head变化票据及文件重开。当前索引元数据是合成样本，票据仍仅为待验证输入，不代表正文验证或授权生效。
+
+## B3b：完整授权字节历史与票据绑定构造（待独立审核）
+
+新增内部AuthorizationPreparation.prepare(token,leaseToken)，串联B2g自身取证和受控归档读回，从该清单取得Job和批准证据Ref，再由B3a在当前publish/global租约事务内生成完整历史票据。事务外按每条冻结索引的归档键／hash／长度读回全部R2授权正文；末次读取后，AuthorizationStore.readPreparedValidation在当前租约事务中重读持久票据及准备日志，比较epoch／owner／fence、原票据期限与当前head／revision／完整索引。读取期间前序变化、租约丢失、票据缺失或不一致均拒绝。取件前后及最终事务后均检查取证身份未到期；不允许调用方选择Job、历史、票据、请求或Ref。
+
+Python唯一合同入口新增publication_ticket_history，验证票据封闭字段、Job／批准证据绑定、UUID／整数／历史时间格式和完整条数，再逐份核对不可变bytes长度／SHA-256、严格JSON、既有授权合同身份及直接前序，最终head必须等于实际完整历史末尾。带validation_ticket或history_bytes任一字段时，另一字段及完整approval_archive／source上下文均强制存在，声明history必须与实际字节历史一致。build_publication_authorization_for_ticket从完整归档和票据字节历史推导输入，复用原构造器及唯一验证，不增加业务合同、权限或身份公式。
+
+### B3b实际检查与未完成边界
+
+新增8项跨语言／编排专项覆盖合法旧授权续接撤销、空历史首授、R2缺失或损坏、读取期间head或租约变化、末次读取身份到期、截断／额外／替换历史、票据字段和强制上下文反例。50项环境取证／归档／跨语言Node与23项租约Node共73项，加99项M12 Python、31项共享合同、7项治理和12项状态共222项通过；定点lint、机器状态／文档链接和diff检查通过。现有旧授权正文由Python构造器生成，索引在测试中合成插入；使用本地R2／GitHub绑定替身和真实本地SQLite，未验证真实历史批准来源、真实云权限或平台持久性。
+
+当前结果仍是内部受控输入和未登记合同，未追加授权索引、生成可信Python验证收据或消费票据。Python纯校验只证明历史一致性，不能证明票据来自DO或目前仍有效；真实入口必须使用服务端持久票据及本包内部读取路径。Python处理完成后的最终登记仍须重新核对当前身份／授权、业务目标/config、lease、head／revision和票据前态，并在同一事务消费票据、追加索引与日志；本包末次读取检查不能替代该最终检查。跨进程可信回执通道、工作流请求展示、实际平台配置、队列及CurrentPointer CAS继续后续，旧纯验证路径不成为生产入口。跨日端到端仍未执行，M11不重审。
+
+独立提交`feat: prepare M12 authorization from ticket-bound history [skip ci]`，父提交2193c7235772c4fbe9499aa6de127bdeb7a3a8a2，完整SHA见交付消息。仅修改内部准备／授权存储／纯构造及唯一合同入口、现有两组专项测试和3个治理文档；可撤回本包接点并保留历史，无真实数据迁移。未合并、推送、创建云资源、部署、生产启用或对外通知。

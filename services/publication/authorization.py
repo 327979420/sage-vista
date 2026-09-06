@@ -4,7 +4,9 @@ from copy import deepcopy
 from typing import Any, Mapping
 
 from services.contracts.market_data import canonical_fingerprint
-from services.contracts.validation import publication_approval_archive_body, publication_authorization_body, validate_contract
+from services.contracts.validation import (
+    publication_approval_archive_body, publication_authorization_body, publication_ticket_history, validate_contract,
+)
 
 
 def build_publication_authorization(
@@ -38,4 +40,18 @@ def build_publication_authorization_from_archive(
     bound = publication_approval_archive_body(frozen_archive, frozen_ref)
     evidence = {**bound, "approval_archive": frozen_archive, "approval_evidence_ref": frozen_ref,
                 "history": deepcopy(history)}
+    return build_publication_authorization(evidence, generated_at=generated_at)
+
+
+def build_publication_authorization_for_ticket(
+    archive: Mapping[str, Any], approval_evidence_ref: Mapping[str, Any], ticket: Mapping[str, Any],
+    history_bytes: list[bytes], *, generated_at: str,
+) -> dict[str, Any]:
+    """Use only complete ticket-bound byte inputs, without registering authority."""
+    frozen_archive, frozen_ref = deepcopy(archive), deepcopy(approval_evidence_ref)
+    frozen_ticket, frozen_history = deepcopy(ticket), deepcopy(history_bytes)
+    bound = publication_approval_archive_body(frozen_archive, frozen_ref)
+    history = publication_ticket_history(frozen_ticket, frozen_history, job=bound["job"], approval_evidence_ref=frozen_ref)
+    evidence = {**bound, "approval_archive": frozen_archive, "approval_evidence_ref": frozen_ref,
+                "history": history, "validation_ticket": frozen_ticket, "history_bytes": frozen_history}
     return build_publication_authorization(evidence, generated_at=generated_at)

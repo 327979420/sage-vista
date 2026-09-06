@@ -1562,6 +1562,68 @@ def publication_approval_archive_body(archive: Mapping[str, Any], reference: Map
             "job": identity["job"], "approver_id": bundle["approver_id"]}
 
 
+def publication_ticket_history(
+    ticket: Mapping[str, Any], history_bytes: list[bytes], *, job: Mapping[str, Any], approval_evidence_ref: Mapping[str, Any],
+) -> list[dict[str, Any]]:
+    """Validate the complete byte history against a trusted persisted ticket."""
+    _m12_exact(ticket, {"ticket_id", "resource", "owner_job", "epoch", "fence", "prepared_at", "expires_at",
+                        "approval_evidence_ref", "expected_revision", "expected_head_ref", "history"}, "validation ticket")
+    for key in ("ticket_id", "epoch"):
+        if not isinstance(ticket[key], str) or not re.fullmatch(r"[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}", ticket[key]):
+            raise ContractError("validation ticket requires canonical UUIDs")
+    if ticket["resource"] != "publish/global" or type(ticket["fence"]) is not int or ticket["fence"] < 1:
+        raise ContractError("validation ticket needs the publication lease")
+    _m12_job(ticket["owner_job"])
+    _m12_job(job)
+    _m12_ref(ticket["approval_evidence_ref"])
+    _m12_ref(approval_evidence_ref)
+    if _canonical(ticket["owner_job"]) != _canonical(job) or ticket["approval_evidence_ref"] != approval_evidence_ref:
+        raise ContractError("validation ticket differs from the archived approval identity")
+    times = []
+    for key in ("prepared_at", "expires_at"):
+        _require_timestamp(ticket[key])
+        if not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z", ticket[key]):
+            raise ContractError("ticket time must be UTC milliseconds")
+        times.append(datetime.fromisoformat(ticket[key].replace("Z", "+00:00")).timestamp())
+    if times[0] >= times[1]:
+        raise ContractError("ticket expiry must follow preparation")
+    if (type(ticket["expected_revision"]) is not int or ticket["expected_revision"] < 0 or
+            not isinstance(ticket["history"], list) or not isinstance(history_bytes, list) or
+            len(ticket["history"]) != ticket["expected_revision"] or len(history_bytes) != ticket["expected_revision"]):
+        raise ContractError("ticket byte history is incomplete")
+    history = []
+    previous = None
+    seen = set()
+    for item, raw in zip(ticket["history"], history_bytes):
+        _m12_exact(item, {"reference", "archive", "previous_ref"}, "ticket history item")
+        _m12_ref(item["reference"])
+        if item["previous_ref"] is not None:
+            _m12_ref(item["previous_ref"])
+        loc = item["archive"]
+        _m12_exact(loc, {"key", "sha256", "size_bytes"}, "ticket archive location")
+        if not isinstance(loc["key"], str) or not re.fullmatch(r"authority/[a-f0-9]{64}\.json", loc["key"]):
+            raise ContractError("ticket archive key is invalid")
+        if type(raw) is not bytes or type(loc["size_bytes"]) is not int or loc["size_bytes"] != len(raw):
+            raise ContractError("ticket history byte length differs")
+        if loc["sha256"] != "sha256:" + hashlib.sha256(raw).hexdigest():
+            raise ContractError("ticket history byte fingerprint differs")
+        record = _m12_json(raw)
+        _m12_authorization_fields(record)
+        _m12_authorization_successor(record, previous)
+        ref = {"id": record["authorization_id"], "content_fingerprint": record["content_fingerprint"]}
+        if ref != item["reference"] or record["prior_authorization_ref"] != item["previous_ref"] or ref["id"] in seen:
+            raise ContractError("ticket history identity or predecessor differs")
+        seen.add(ref["id"])
+        history.append(dict(record))
+        previous = record
+    head = None if previous is None else {"id": previous["authorization_id"], "content_fingerprint": previous["content_fingerprint"]}
+    if ticket["expected_head_ref"] is not None:
+        _m12_ref(ticket["expected_head_ref"])
+    if ticket["expected_head_ref"] != head:
+        raise ContractError("ticket head differs from complete history")
+    return history
+
+
 def _m12_authorization_fields(payload: Mapping[str, Any]) -> dict[str, Any]:
     """Validate intrinsic fields only; not a public approval validator."""
     _m12_exact(payload, set(M12_AUTHORIZATION_REQUEST_FIELDS) | {
@@ -1609,12 +1671,15 @@ def publication_authorization_body(evidence: Mapping[str, Any] | None) -> dict[s
     fields = {
         "request", "approver_id", "approval_evidence_ref", "job", "history",
     }
-    has_archive = isinstance(evidence, Mapping) and "approval_archive" in evidence
-    has_source = isinstance(evidence, Mapping) and bool({"request_source", "source_commit", "approval_archive"} & set(evidence))
+    has_ticket = isinstance(evidence, Mapping) and bool({"validation_ticket", "history_bytes"} & set(evidence))
+    has_archive = isinstance(evidence, Mapping) and ("approval_archive" in evidence or has_ticket)
+    has_source = has_archive or (isinstance(evidence, Mapping) and bool({"request_source", "source_commit"} & set(evidence)))
     if has_source:
         fields |= {"request_source", "source_commit"}
     if has_archive:
         fields.add("approval_archive")
+    if has_ticket:
+        fields |= {"validation_ticket", "history_bytes"}
     _m12_exact(evidence, fields, "trusted publication approval evidence")
     _m12_job(evidence["job"])
     _m12_text(evidence["approver_id"], "approver_id")
@@ -1628,6 +1693,11 @@ def publication_authorization_body(evidence: Mapping[str, Any] | None) -> dict[s
         bound = publication_approval_archive_body(evidence["approval_archive"], evidence["approval_evidence_ref"])
         if any(evidence[key] != bound[key] for key in bound):
             raise ContractError("approval evidence differs from the archived originals")
+    if has_ticket:
+        history = publication_ticket_history(evidence["validation_ticket"], evidence["history_bytes"],
+                                             job=evidence["job"], approval_evidence_ref=evidence["approval_evidence_ref"])
+        if _canonical(history) != _canonical(evidence["history"]):
+            raise ContractError("claimed history differs from ticket byte originals")
     if not isinstance(evidence["history"], list):
         raise ContractError("trusted authorization history must be an array")
     previous = None

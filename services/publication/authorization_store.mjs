@@ -95,4 +95,25 @@ export class AuthorizationStore {
       return JSON.parse(record);
     });
   }
+
+  readPreparedValidation(ownerJob, token, ticketId) {
+    if (typeof ticketId !== "string" || !/^[a-f0-9-]{36}$/.test(ticketId)) throw new Error("authorization_ticket_invalid");
+    return this.#leases.withOwnedLease("publish/global", ownerJob, token, ({ epoch, lease, now }) => {
+      const rows = this.#exec("SELECT ticket_json FROM m12_authorization_tickets WHERE ticket_id = ?", ticketId);
+      if (rows.length !== 1) throw new Error("authorization_ticket_missing");
+      const record = rows[0].ticket_json;
+      const ticket = JSON.parse(record);
+      const logs = this.#exec("SELECT record_json FROM m12_authorization_log WHERE operation = 'prepare_validation' AND ticket_id = ?", ticketId);
+      if (logs.length !== 1 || logs[0].record_json !== record) throw new Error("authorization_ticket_recovery_required");
+      const prepared = Date.parse(ticket.prepared_at), expiry = Date.parse(ticket.expires_at);
+      if (ticket.ticket_id !== ticketId || ticket.resource !== "publish/global" || ticket.epoch !== epoch ||
+          ticket.fence !== lease.fence || JSON.stringify(ticket.owner_job) !== JSON.stringify(lease.owner_job) ||
+          !Number.isFinite(prepared) || !Number.isFinite(expiry) || prepared > now || expiry <= now ||
+          expiry > Date.parse(lease.expires_at)) throw new Error("authorization_ticket_stale");
+      const current = this.#history();
+      if (ticket.expected_revision !== current.revision || JSON.stringify(ticket.expected_head_ref) !== JSON.stringify(current.head) ||
+          JSON.stringify(ticket.history) !== JSON.stringify(current.history)) throw new Error("authorization_ticket_history_changed");
+      return ticket;
+    });
+  }
 }
