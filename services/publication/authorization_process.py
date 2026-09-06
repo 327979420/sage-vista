@@ -33,7 +33,7 @@ class AuthorizationValidationProcess:
             self._input.write(input_bytes)
             self._input.flush()
             self._input.seek(0)
-            worker = Path(__file__).resolve().with_name('authorization_validation_worker.py')
+            worker = self._worker_path()
             self._process = subprocess.Popen(
                 [sys.executable, '-I', str(worker)], cwd=str(worker.parents[2]),
                 stdin=self._input, stdout=self._output, stderr=subprocess.DEVNULL,
@@ -46,6 +46,10 @@ class AuthorizationValidationProcess:
             self._state = 'failed'
             self._dispose()
             raise AuthorizationValidationProcessError('validation process start failed') from None
+
+    def _worker_path(self):
+        # Protected fixed specialization, never a constructor or wire option.
+        return Path(__file__).resolve().with_name('authorization_validation_worker.py')
 
     def _dispose(self):
         try:

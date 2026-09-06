@@ -1049,3 +1049,8 @@ C1i新增默认禁用内部PreparationValidationSession。prepare复用C1h自身
 readForUse重新验签，读回成对输入／输出记录及其原件，并经C1g重新读回所有当前授权与固定配置原件；各异步后及最终交付前检查原根、登记来源、Job／epoch／fence和新旧身份窗口。跨纽约日期须重新准备输入，旧检查摘要不能跨日复用。只读使用不产生归档或权威写入，既有last_now仅作单调时钟维护。该方法返回必要检查证据，不签发许可证；JS只绑定元数据，不解析grant／政策语义。无RPC或真实策略实例，固定执行监督仍待接线，测试结果为明确的合成固定runner输出。
 
 C1i七项Node专项通过1.356秒：禁用／认证；实际SQLite配对记账、重开、重放、只读及输出隔离；错误结果字段／时间；输入、输出、授权、配置原件和配对日志缺失；日志插入失败整笔回滚及孤立对象保留；读取期间来源／fence／期限变化；JWT仍有效但跨纽约午夜拒绝旧输入。父78315ee9380f7fd720571cafd478dae6b5d015e4，独立提交标题feat: bind preparation validation records to current daily sessions [skip ci]。回退撤回未接线会话，保留原件与记录；未合并、推送、部署、生产启用、真实供应商调用或对外通知。
+
+
+C1j接固定执行：准备worker仅以-I固定入口接受有界stdin，在业务导入前检查完整code_commit等于自身HEAD，并逐份核对全部services实际字节和Git blob；符号链接、额外导入文件（含本地编译缓存）、未提交替换或缺件失败。禁替换对象和网络补取；计算后再次检查源文件。原services隔离导入与私有失败输出保留。原AuthorizationValidationProcess只把既有固定worker路径提取为受保护方法，原构造参数和命令不变；准备派生类固定新worker，复用文件stdio、取消／回收和输出限额，内部执行器在30秒预算及原身份期限内轮询，原输入摘要／长度匹配后才返回原stdout，不重试。
+
+C1j先行11项Python（新取消／摘要／源码反例3项＋受影响原进程8项）通过1.058秒，ResourceWarning为错误；源反例使用临时目录，修正macOS临时目录实际路径后通过。实际源码绑定需要提交本包后才允许正向执行，已安排以完整HEAD运行准备进程／原worker回归及C1g→C1h→C1i阶段跨语言联测，结果将在本阶段后续治理记录补记，当前不宣称该联测已通过。跨语言fixture使用显式合成授权导入基线／签名身份／R2替身与真实本地Git和固定worker，仍非真实供应商或生产端到端。父5849593，提交feat: execute preparation checks in a verified fixed process [skip ci]；待阶段独立审核。

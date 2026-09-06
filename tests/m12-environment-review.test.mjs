@@ -2957,3 +2957,41 @@ test('preparation session requires a fresh input after New York midnight even wi
   f.state.now += 1000;
   await assert.rejects(service.accept(jwt, handle, prepared.input_archive.sha256, Buffer.from('{}\n')), /window_changed/);
 });
+
+test('preparation stage integrates actual fixed Git worker with archived input return and current use', async t => {
+  const f = preparationFixture(t, false);
+  const build = spawnSync('python3', ['-B', '-c', `import json,subprocess,time
+from services.publication.configuration import build_research_configuration
+from tests.test_m12_preparation_validation import fixture
+commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+print(json.dumps(fixture(commit,build_research_configuration(commit),time.time_ns()//1000000)))`],
+    { cwd: new URL('..', import.meta.url), encoding: 'utf8', timeout: 15000 });
+  assert.equal(build.status, 0, build.stderr);
+  const wire = JSON.parse(build.stdout);
+  const e = wire.evidence;
+  // Explicit synthetic trusted baseline, not a production import or approval.
+  const history = e.current_history.history;
+  history.forEach((item, i) => f.objects.set(item.archive.key, new Uint8Array(Buffer.from(e.history_base64[i], 'base64'))));
+  f.objects.set(e.config_archive.key, new Uint8Array(Buffer.from(e.config_base64, 'base64')));
+  f.db.prepare('INSERT INTO m12_authorization_index VALUES (1,?,?,NULL)').run(JSON.stringify(history[0].reference), JSON.stringify(history[0].archive));
+  f.db.prepare('UPDATE m12_authorization_head SET revision=1,head_json=?').run(JSON.stringify(history[0].reference));
+  f.db.prepare('UPDATE m12_authorization_import_baseline SET history_json=?').run(JSON.stringify(history));
+  const now = Math.floor(Date.now() / 1000);
+  f.state.now = Date.now();
+  const jwt = token({ sha: e.code_commit, iat: now - 30, nbf: now - 30, exp: now + 300 });
+  const policy = { actor_id: '789', as_of: e.as_of, config_ref: e.config_ref, config_archive: e.config_archive };
+  const held = f.lease.acquire(`daily/${e.as_of}/${e.config_ref.id}`, f.job, f.leaseToken.epoch);
+  const handle = { epoch: held.epoch, fence: held.lease.fence };
+  const session = new PreparationValidationSession({ ...identityPolicy, code_commit: e.code_commit },
+    { preparationPolicy: policy, storage: f.storage, bucket: f.bucket, clock: f.options.clock, fetchKeys: f.options.fetchKeys });
+  const prepared = await session.prepare(jwt, handle);
+  const run = spawnSync('python3', ['-B', '-c', 'import sys;from services.publication.preparation_execution import execute_preparation_validation;sys.stdout.buffer.write(execute_preparation_validation(sys.stdin.buffer.read()))'],
+    { cwd: new URL('..', import.meta.url), input: prepared.input_bytes, timeout: 35000 });
+  assert.equal(run.status, 0, run.stderr?.toString());
+  f.state.now = Date.now();
+  const accepted = await session.accept(jwt, handle, prepared.input_archive.sha256, new Uint8Array(run.stdout));
+  const ready = await session.readForUse(jwt, handle, accepted.input_sha256, accepted.output_archive.sha256);
+  assert.deepEqual(ready.preparation.config_ref, e.config_ref);
+  assert.deepEqual(ready.preparation.authorization_ref, history[0].reference);
+  assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM m12_preparation_returns').get().n, 1);
+});
