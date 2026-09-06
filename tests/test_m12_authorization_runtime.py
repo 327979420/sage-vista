@@ -211,5 +211,84 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(result.stderr, b'')
         self.assertEqual(list((self.root / 'services').rglob('*.pyc')), [])
 
+    def test_real_isolated_runtime_ignores_unverified_root_modules_and_packages(self):
+        shutil.copytree(ROOT / 'services', self.root / 'services', dirs_exist_ok=True,
+                        ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
+        self.commit()
+        self.env['GITHUB_SHA'] = self.env['GITHUB_WORKFLOW_SHA'] = self.git('rev-parse', 'HEAD').strip()
+        script = '''
+import os, pathlib, runpy, sys
+root = pathlib.Path(sys.argv[1])
+namespace = runpy.run_path(str(root / 'services/publication/authorization_runtime.py'))
+namespace['_checkout'](dict(os.environ))
+assert 'base64' not in sys.modules
+# Test-only local interpreter version override; no injected factory or imports.
+sys.version_info = (3, 12, 12)
+try:
+    namespace['run']()
+except Exception as exc:
+    assert type(exc).__name__ == 'AuthorizationTransportError', repr(exc)
+    assert str(exc) == 'validation transport URL invalid', repr(exc)
+else:
+    raise AssertionError('missing Actions credentials must fail before network')
+assert 'services.publication.authorization_supervision' in sys.modules
+assert 'services.publication.authorization_recovery' in sys.modules
+assert str(root) not in sys.path
+assert list(sys.modules['services'].__path__) == [str(root / 'services')]
+import base64, urllib, importlib.util
+assert not pathlib.Path(base64.__file__).is_relative_to(root)
+assert not pathlib.Path(urllib.__file__).is_relative_to(root)
+assert importlib.util.find_spec('m12_unverified_top_level') is None
+print('CHECKOUT_AND_SCOPED_IMPORTS_PASSED')
+'''
+        for shadows in (False, True):
+            if shadows:
+                for name in ('base64.py', 'm12_unverified_top_level.py', 'services.py', 'urllib/__init__.py'):
+                    path = self.root / name
+                    path.parent.mkdir(exist_ok=True)
+                    path.write_text("raise RuntimeError('UNVERIFIED_ROOT_MODULE_EXECUTED')\n")
+            with self.subTest(shadows=shadows):
+                result = subprocess.run([sys.executable, '-I', '-B', '-c', script, str(self.root)],
+                                        cwd=self.root, env={**self.env, 'PYTHONPATH': str(self.root)},
+                                        capture_output=True, timeout=15)
+                self.assertEqual((result.returncode, result.stdout, result.stderr),
+                                 (0, b'CHECKOUT_AND_SCOPED_IMPORTS_PASSED\n', b''))
+
+    def test_fixed_worker_and_http_process_ignore_root_shadowing(self):
+        shutil.copytree(ROOT / 'services', self.root / 'services', dirs_exist_ok=True,
+                        ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
+        marker = self.root / 'untrusted-code-executed'
+        for name in ('base64.py', 'ssl.py', 'urllib/__init__.py', 'services.py'):
+            path = self.root / name
+            path.parent.mkdir(exist_ok=True)
+            path.write_text(f"open({str(marker)!r}, 'w').write('executed')\nraise RuntimeError('ROOT_SHADOW')\n")
+        for entry in ('authorization_validation_worker.py', 'authorization_transport.py'):
+            with self.subTest(entry=entry):
+                result = subprocess.run([sys.executable, '-I', '-B', str(self.root / 'services/publication' / entry)],
+                                        input=b'{}', cwd=self.root,
+                                        env={'PYTHONPATH': str(self.root)}, capture_output=True, timeout=15)
+                self.assertEqual((result.returncode, result.stdout, result.stderr), (1, b'', b''))
+                self.assertFalse(marker.exists())
+        self.assertEqual(list((self.root / 'services').rglob('*.pyc')), [])
+
+    def test_scoped_bootstrap_rejects_preexisting_different_services_path(self):
+        script = '''
+import runpy, sys, types
+services = types.ModuleType('services')
+services.__path__ = ['/unverified/services']
+sys.modules['services'] = services
+try:
+    runpy.run_path(sys.argv[1])
+except RuntimeError as exc:
+    assert str(exc) == 'authorization services import root invalid'
+else:
+    raise AssertionError('foreign namespace accepted')
+assert sys.modules['services'] is services
+'''
+        result = subprocess.run([sys.executable, '-I', '-B', '-c', script,
+                                 str(ROOT / 'services/publication/authorization_imports.py')],
+                                env={}, capture_output=True, timeout=10)
+        self.assertEqual((result.returncode, result.stdout, result.stderr), (0, b'', b''))
+
 
 if __name__ == '__main__': unittest.main()

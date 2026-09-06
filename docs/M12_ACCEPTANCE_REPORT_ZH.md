@@ -812,3 +812,16 @@ AuthorizationStore新增内部readArchivedValidation，复用ticket原记录／�
 11项运行Python＋8项进程＋10项恢复＋11项监督＋19项治理／状态=59项通过（ResourceWarning按错误）；2项Node实际YAML解析验证封闭触发、权限、双重禁用和固定步骤通过；另1项实际Python监督／凭证客户端／固定worker／本地Fetch路由恢复往返通过688.69ms，共62项。单独运行还发现测试解释器标志替身遗漏标准属性，已改为保留原属性并重新独跑11项、重跑59项通过；这是测试隔离修正。定点eslint发现测试未使用变量后已修正并重跑；机器状态／文档链接／diff检查通过。不重复无变化119项Node及M11测试。尚未执行GitHub平台工作流或跨日端到端，不改变旧生产及夜间断点。
 
 独立提交feat: wire disabled M12 authorization workflow [skip ci]，父提交ae474fedff28bbe06e568488f7699db21a9567fd，完整SHA见交付消息。可撤回本固定工作流／工厂接点，保留已有归档和凭证；业务合同及政策版本不变。下一包为最终权限／业务目标config及同事务登记，然后进入既定C／D每日和跨日业务链。未合并、推送、创建云资源、部署、生产启用或对外通知。
+
+
+## B3r导入边界P2与定点修复（待独立复核）
+
+审核员针对3c1936c31957cc9600088907eacfee411b633285复现：runtime第52—54行只核验services／配置／工作流，却在第108行将整仓ROOT加入sys.path；未追踪的根目录base64.py因此能在checkout核验通过后执行。-I不能阻止代码自行扩大导入搜索路径，双重禁用仅说明尚无生产暴露，不能抵消此缺口。审核员已有59项Python、2项YAML、eslint及diff通过，仍判本包暂不通过。
+
+本修复删除runtime和固定validation worker的ROOT搜索路径插入，统一用绝对同目录文件authorization_imports.py注册唯一services命名空间，其__path__仅为该固定文件所属的services目录。引导通过标准库runpy读取指定文件，不把仓库根加入sys.path；其他顶层模块仍只从隔离解释器路径解析。已有services命名空间仅允许同一精确目录（重复同路径不扩大权限），不同目录拒绝；不以预加载base64或某个模块黑名单遮蔽问题。固定HTTP子进程仍用-I、空环境和绝对脚本，不新增仓库导入或命令参数。该修复不复制业务验证，也不改变凭证、恢复、权限或工作流配置；worker的固定代码来源仍由已审核运行工厂checkout核验绑定。
+
+新增3项测试使用真实-I -B子进程。第一项复制真实services到临时Git并提交，真实_checkout通过后执行实际runtime.run（仅测试覆盖本机解释器版本），分别在无遮蔽和根目录新增未追踪base64.py／urllib包／services.py／额外顶层模块的情况下验证：实际监督器与凭证客户端正确导入，缺Actions凭据在网络前按既有规则拒绝，base64／urllib来自标准库、仓库根不在sys.path、额外顶层模块不可解析。没有预加载base64，运行前明确断言尚未导入它。第二项直接运行实际固定worker及HTTP脚本，恶意同名模块带文件写入标记；两个进程均正常拒绝无效输入且不执行标记，不产生pyc。第三项验证已有外来services路径不能被接纳或覆盖。原工厂测试同时保持合法接线、恢复与封闭参数回归。
+
+14项运行入口、8项进程、25项HTTPS通道、10项恢复、11项监督与19项治理／状态，共87项Python通过（ResourceWarning按错误，4.87秒）；另1项实际监督客户端／固定worker／本地Fetch路由恢复往返通过，总88项。状态生成／文档链接及diff检查通过；工作流未改变，不重复YAML和119项Node无变化完整套件。未进行真实Actions／TLS／跨runner恢复或跨日端到端验收。仅调整两处引导、新增共享命名空间文件、定点测试及三份治理文档，业务合同／政策不变。
+
+独立提交fix: confine M12 imports to verified services namespace [skip ci]，父提交3c1936c31957cc9600088907eacfee411b633285；完整SHA见交付消息，交回此P2定点复核，不自行宣布通过。未合并、推送、创建云资源、部署、生产启用或对外通知；最终权限／目标config／同事务登记仍为下一包。

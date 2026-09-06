@@ -1,10 +1,11 @@
 """Fixed -I bootstrap for the repository's sole authorization validator."""
 from pathlib import Path
+import runpy
 import sys
 
-# Fixed checkout-relative import root, never PYTHONPATH, cwd or request input.
+# Only the services namespace is exposed, never the whole checkout or cwd.
 sys.dont_write_bytecode = True  # Keep the verified checkout unchanged for recovery.
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+runpy.run_path(str(Path(__file__).resolve().with_name('authorization_imports.py')))
 from services.publication.authorization_process import MAX_INPUT_BYTES, MAX_OUTPUT_BYTES
 from services.publication.authorization_validation import authorization_validation_output
 

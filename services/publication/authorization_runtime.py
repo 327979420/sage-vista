@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import re
+import runpy
 import stat
 import subprocess
 import sys
@@ -103,9 +104,9 @@ def run():
     if not parent.is_absolute() or not parent.is_dir() or parent.resolve() != parent or parent.is_relative_to(ROOT):
         raise AuthorizationRuntimeError('authorization recovery parent invalid')
     directory = parent / ('m12-authorization-' + env['GITHUB_RUN_ID'] + '-1')
-    # Imports occur only after checkout verification; -I excludes cwd/PYTHONPATH.
+    # Register only services, without exposing root-level modules to imports.
     sys.dont_write_bytecode = True
-    sys.path.insert(0, str(ROOT))
+    runpy.run_path(str(Path(__file__).with_name('authorization_imports.py')))
     from services.publication.authorization_recovery import RecoverableAuthorizationTransport
     from services.publication.authorization_supervision import execute_supervised_authorization_validation
     client = RecoverableAuthorizationTransport(config['coordinator_origin'], env, recovery_directory=directory)
