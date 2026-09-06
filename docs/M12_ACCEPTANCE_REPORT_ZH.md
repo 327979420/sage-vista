@@ -411,3 +411,24 @@ Python唯一合同入口新增publication_ticket_history，验证票据封闭字
 当前结果仍是内部受控输入和未登记合同，未追加授权索引、生成可信Python验证收据或消费票据。Python纯校验只证明历史一致性，不能证明票据来自DO或目前仍有效；真实入口必须使用服务端持久票据及本包内部读取路径。Python处理完成后的最终登记仍须重新核对当前身份／授权、业务目标/config、lease、head／revision和票据前态，并在同一事务消费票据、追加索引与日志；本包末次读取检查不能替代该最终检查。跨进程可信回执通道、工作流请求展示、实际平台配置、队列及CurrentPointer CAS继续后续，旧纯验证路径不成为生产入口。跨日端到端仍未执行，M11不重审。
 
 独立提交`feat: prepare M12 authorization from ticket-bound history [skip ci]`，父提交2193c7235772c4fbe9499aa6de127bdeb7a3a8a2，完整SHA见交付消息。仅修改内部准备／授权存储／纯构造及唯一合同入口、现有两组专项测试和3个治理文档；可撤回本包接点并保留历史，无真实数据迁移。未合并、推送、创建云资源、部署、生产启用或对外通知。
+
+
+## B3b独立复核回传
+
+审核对话01a074f9-098a-7b82-b486-3185683290fe确认3e36cada8daf7d3d3edd1861d9add7796b9aba2d在内部取证、完整票据历史读回及Python唯一合同绑定范围无阻断。审核员逐段审读并自行运行50项环境取证Node、23项租约Node、99项M12 Python和50项共享／治理／状态，共222项通过；确认末次原件读取后重新核对持久票据／日志、lease、head／revision及完整历史，缺失、损坏、截断、上下文降级及读取期间状态变化均拒绝。diff通过、HEAD不变、工作区干净。结论不含票据消费、可信Python回执、授权追加或权限生效；最终登记仍需在Python完成后重验当前身份／授权、业务目标/config、lease及票据前态。
+
+## B3c：Python验证原字节协议及绑定收据产物（待独立审核）
+
+AuthorizationPreparation.prepareValidationInput(token,leaseToken)仅序列化自身B3b受控准备结果，无外部Job／引用／历史覆盖参数。输入为UTF-8 JSON，精确字段`protocol,approval_evidence_ref,approval_archive,validation_ticket,history_base64`，protocol固定`m12-authorization-validation/1`；approval_archive精确含`bundle_base64,objects`，objects仍为全部raw键到原件标准base64文本的映射，history_base64按票据顺序保存全部历史正文。唯一合同模块publication_validation_input复用严格JSON解析，拒绝重复键、非有限数、额外或缺失字段、旧上下文降级，以及非标准编码／空白／不规范填充位的base64。解码只恢复不可变bytes，不把传输格式正确当正文通过。
+
+新增内部命令`python3 -m services.publication.authorization_validation`，只从stdin读完整输入，复用B2f归档唯一校验及B3b强制票据构造器，不接网络、凭据或权威存储。成功stdout精确输出`{authorization_base64,receipt_base64}`；两者为规范UTF-8 JSON原字节的base64，未生成签名或PublicationReceipt业务收据。合同失败返回非零码、stdout为空，stderr仅固定失败信息，不回显私有请求。未知故障同样不能产生成功材料，不自动回落其它构造路径。
+
+内部验证收据精确字段为`protocol,verdict,validated_at,input_sha256,input_size_bytes,ticket_id,ticket_sha256,approval_evidence_ref,authorization_ref,authorization_archive`；protocol同输入、verdict只可能valid。input摘要／长度绑定整个实际输入原字节，ticket摘要绑定排序键、UTF-8、无空白的规范票据JSON；authorization_archive精确为`{key,sha256,size_bytes}`，指向authority/<授权语义指纹>.json并绑定输出实际原字节。authorization_ref保留既有合同身份，未改变身份公式。授权generated_at取已验证批准清单observed_at的UTC整秒，确保同一批准在不同时间／票据重验仍输出相同授权字节；实际本次验证结束时间另存validated_at（UTC毫秒）。开始／结束使用命令内部时钟，拒绝早于冻结准备／批准观测、到达票据或归档身份期限、时钟倒退及非整数时钟；这只是拒绝超期计算，不能证明DO现在仍持锁。
+
+### B3c实际检查及下一接点
+
+6项新增专项覆盖真实B3b输入→Python命令产物的首次grant和旧链revoke，逐项重算全输入／票据／输出字节摘要，重跑和晚时重验的授权字节稳定性，同义不同排版输入的原字节区别，封闭字段／严格base64／历史和原件篡改、冻结窗口端点，以及实际模块stdin/stdout成功与失败。56项环境取证／跨语言Node、99项M12 Python、31项共享合同、7项治理和12项状态共205项通过；定点lint、机器状态／文档链接和diff检查通过。新测试使用本地绑定替身和真实SQLite，命令测试仅注入本地时钟；没有运行真实GitHub工作流或云服务，也未重跑无变化的整套租约测试。
+
+收据目前只是可校验的内部产物：任何人可重算摘要，不能凭其存在或verdict声明取得权限。下一包须由服务端持久绑定本次发送的完整原字节摘要／票据，认证固定验证工作流的回传身份，比较收据与服务端记录及授权输出，再按设计读回R2并完成当前业务目标/config／授权、lease、head及票据前态的最终同事务消费／追加；本包不接受外部成功声明，不建立可信回执接收入口、不写R2授权正文、不消费票据或追加索引。输入仍全量内存处理，真实最大历史规模与平台限制留运行适配验收。跨日端到端未执行，M11不重审；无算法、业务合同版本、政策、快照或生产入口变化。
+
+独立提交`feat: emit M12 ticket-bound Python validation artifacts [skip ci]`，父提交3e36cada8daf7d3d3edd1861d9add7796b9aba2d，完整SHA见交付消息。仅修改内部准备器、新增Python验证命令、唯一合同传输解析、现有环境专项测试及3个治理文档。可撤回本包接口并保留历史，无真实数据迁移。未合并、推送、创建云资源、部署、生产启用或对外通知。

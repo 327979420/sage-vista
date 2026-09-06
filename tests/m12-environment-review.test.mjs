@@ -814,3 +814,143 @@ test("ticket path requires both ticket and bytes and cannot downgrade by removin
     assert.equal(checkPython({ ...original, drop_evidence: drop }).valid, false);
   }
 });
+
+function validateWire(raw, times = [NOW * 1000, NOW * 1000]) {
+  const script = `
+import base64, json, sys
+from services.contracts.validation import ContractError
+from services.publication.authorization_validation import validate_authorization_input
+v=json.load(sys.stdin)
+times=iter(v['times'])
+try:
+    result=validate_authorization_input(base64.b64decode(v['input']), clock=lambda:next(times))
+    print(json.dumps({'valid':True, **{key:base64.b64encode(raw).decode('ascii') for key,raw in result.items()}}))
+except ContractError as exc:
+    print(json.dumps({'valid':False,'error':str(exc)}))
+`;
+  const result = spawnSync("python3", ["-c", script], { input: JSON.stringify({ input: Buffer.from(raw).toString("base64"), times }),
+    encoding: "utf-8", cwd: new URL("..", import.meta.url) });
+  assert.equal(result.status, 0, result.stderr);
+  const value = JSON.parse(result.stdout);
+  if (!value.valid) return value;
+  return { ...value, receipt: JSON.parse(Buffer.from(value.receipt_bytes, "base64")),
+    authorization: JSON.parse(Buffer.from(value.authorization_bytes, "base64")) };
+}
+
+const sha = (bytes) => "sha256:" + createHash("sha256").update(bytes).digest("hex");
+const canonical = (value) => value && typeof value === "object" ? Array.isArray(value) ? value.map(canonical) :
+  Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonical(value[key])])) : value;
+
+test("controlled validation wire produces receipt bound to full input, ticket and exact authorization bytes", async (t) => {
+  for (const withHistory of [false, true]) {
+    const f = preparationFixture(t, withHistory);
+    const raw = await f.preparation.prepareValidationInput(token(), f.leaseToken);
+    const input = JSON.parse(Buffer.from(raw));
+    const result = validateWire(raw);
+    assert.equal(result.valid, true, result.error);
+    const { receipt, authorization } = result;
+    assert.deepEqual(Object.keys(receipt).sort(), ["protocol", "verdict", "validated_at", "input_sha256", "input_size_bytes",
+      "ticket_id", "ticket_sha256", "approval_evidence_ref", "authorization_ref", "authorization_archive"].sort());
+    assert.equal(receipt.protocol, "m12-authorization-validation/1");
+    assert.equal(receipt.verdict, "valid");
+    assert.equal(receipt.validated_at, new Date(NOW * 1000).toISOString());
+    assert.equal(authorization.generated_at, new Date(NOW * 1000).toISOString().replace(".000Z", "Z"));
+    assert.equal(receipt.input_sha256, sha(raw));
+    assert.equal(receipt.input_size_bytes, raw.length);
+    assert.equal(receipt.ticket_id, input.validation_ticket.ticket_id);
+    assert.equal(receipt.ticket_sha256, sha(JSON.stringify(canonical(input.validation_ticket))));
+    assert.deepEqual(receipt.approval_evidence_ref, input.approval_evidence_ref);
+    assert.deepEqual(receipt.authorization_ref, { id: authorization.authorization_id, content_fingerprint: authorization.content_fingerprint });
+    const authBytes = Buffer.from(result.authorization_bytes, "base64");
+    assert.deepEqual(receipt.authorization_archive, { key: "authority/" + authorization.content_fingerprint.slice(7) + ".json",
+      sha256: sha(authBytes), size_bytes: authBytes.length });
+    assert.equal(authorization.action, withHistory ? "revoke" : "grant");
+    assert.equal(authorization.code_commit, businessRequest.code_commit);
+    assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_index").get().n, withHistory ? 1 : 0);
+    assert.equal(f.objects.has(receipt.authorization_archive.key), false);
+  }
+});
+
+test("receipt distinguishes exact wire bytes while same inputs retain contract identity", async (t) => {
+  const f = preparationFixture(t);
+  const raw = await f.preparation.prepareValidationInput(token(), f.leaseToken);
+  const first = validateWire(raw), replay = validateWire(raw);
+  assert.deepEqual(first, replay);
+  const later = validateWire(raw, [(NOW + 1) * 1000, (NOW + 2) * 1000]);
+  assert.equal(later.valid, true, later.error);
+  assert.equal(later.authorization_bytes, first.authorization_bytes);
+  assert.notEqual(later.receipt.validated_at, first.receipt.validated_at);
+  const spaced = Buffer.from(JSON.stringify(JSON.parse(Buffer.from(raw)), null, 2));
+  const second = validateWire(spaced);
+  assert.equal(second.valid, true);
+  assert.notEqual(second.receipt.input_sha256, first.receipt.input_sha256);
+  assert.equal(second.receipt.ticket_sha256, first.receipt.ticket_sha256);
+  assert.equal(second.authorization_bytes, first.authorization_bytes);
+});
+
+test("validation wire rejects open fields, fallback shapes and noncanonical base64", async (t) => {
+  const f = preparationFixture(t);
+  const original = JSON.parse(Buffer.from(await f.preparation.prepareValidationInput(token(), f.leaseToken)));
+  for (const change of [(v) => { v.protocol = "m12-authorization-validation/2"; }, (v) => { v.valid = true; },
+    (v) => { delete v.validation_ticket; }, (v) => { delete v.history_base64; }, (v) => { delete v.approval_archive; },
+    (v) => { v.history_base64 = {}; }, (v) => { v.approval_archive.objects = []; },
+    (v) => { v.approval_archive.bundle_bytes = v.approval_archive.bundle_base64; },
+    (v) => { v.approval_archive.bundle_base64 += "\n"; }, (v) => { v.approval_archive.bundle_base64 = "e31="; },
+    (v) => { v.history_base64[0] = 3; }, (v) => { v.history_base64[0] = "中文"; }]) {
+    const input = structuredClone(original); change(input);
+    const result = validateWire(Buffer.from(JSON.stringify(input)));
+    assert.equal(result.valid, false);
+    assert.equal("receipt_bytes" in result, false);
+    assert.equal("authorization_bytes" in result, false);
+  }
+  for (const raw of [Buffer.from('{"protocol":1,"protocol":2}'), Buffer.from('{"number":NaN}'),
+    Buffer.from([0xff]), Buffer.from("[]")]) assert.equal(validateWire(raw).valid, false);
+});
+
+test("wire transport cannot bypass archived originals and complete history validation", async (t) => {
+  const f = preparationFixture(t);
+  const original = JSON.parse(Buffer.from(await f.preparation.prepareValidationInput(token(), f.leaseToken)));
+  for (const change of [(v) => { v.history_base64 = []; }, (v) => { v.history_base64[0] = Buffer.from("{}").toString("base64"); },
+    (v) => { delete v.approval_archive.objects[Object.keys(v.approval_archive.objects)[0]]; },
+    (v) => { v.validation_ticket.owner_job.run_id = "457"; }, (v) => { v.validation_ticket.fence = true; },
+    (v) => { v.approval_evidence_ref = f.priorRef; }]) {
+    const input = structuredClone(original); change(input);
+    assert.equal(validateWire(Buffer.from(JSON.stringify(input))).valid, false);
+  }
+  assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_index").get().n, 1);
+});
+
+test("Python computation rejects future start, expiry during validation and backwards or invalid clock", async (t) => {
+  const f = preparationFixture(t);
+  const raw = await f.preparation.prepareValidationInput(token(), f.leaseToken);
+  for (const times of [[NOW * 1000 - 1, NOW * 1000], [NOW * 1000, (NOW + 300) * 1000],
+    [(NOW + 300) * 1000, (NOW + 300) * 1000], [NOW * 1000 + 1, NOW * 1000], [true], [0.1]]) {
+    const result = validateWire(raw, times);
+    assert.equal(result.valid, false);
+    assert.match(result.error, /frozen time window|clock/);
+    assert.equal("receipt_bytes" in result, false);
+  }
+  assert.equal(validateWire(raw, [NOW * 1000, (NOW + 300) * 1000 - 1]).valid, true);
+});
+
+test("Python module command emits only the two base64 artifacts and fails with empty stdout", async (t) => {
+  const f = preparationFixture(t);
+  const raw = await f.preparation.prepareValidationInput(token(), f.leaseToken);
+  // Only the local test clock is patched; the actual module stdin/stdout path runs.
+  const script = `import time,runpy; time.time_ns=lambda:${NOW * 1000}*1000000; runpy.run_module('services.publication.authorization_validation',run_name='__main__')`;
+  const invoke = (input) => spawnSync("python3", ["-c", script], { input, cwd: new URL("..", import.meta.url) });
+  const result = invoke(raw);
+  assert.equal(result.status, 0, result.stderr.toString());
+  assert.equal(result.stderr.length, 0);
+  const output = JSON.parse(result.stdout);
+  assert.deepEqual(Object.keys(output).sort(), ["authorization_base64", "receipt_base64"]);
+  const expected = validateWire(raw);
+  assert.equal(output.receipt_base64, expected.receipt_bytes);
+  assert.equal(output.authorization_base64, expected.authorization_bytes);
+  for (const bad of [Buffer.from("{}"), Buffer.from("private-invalid-input")]) {
+    const failure = invoke(bad);
+    assert.equal(failure.status, 1);
+    assert.equal(failure.stdout.length, 0);
+    assert.equal(failure.stderr.toString(), "authorization validation failed\n");
+  }
+});

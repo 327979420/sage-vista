@@ -1562,6 +1562,39 @@ def publication_approval_archive_body(archive: Mapping[str, Any], reference: Map
             "job": identity["job"], "approver_id": bundle["approver_id"]}
 
 
+def publication_validation_input(raw: bytes) -> dict[str, Any]:
+    """Decode only the complete internal authorization-validation wire input.
+
+    This is a transport decoder, not proof of its coordinator origin. The
+    returned data must go through the mandatory ticket/archive constructor.
+    """
+    value = _m12_json(raw)
+    _m12_exact(value, {"protocol", "approval_evidence_ref", "approval_archive", "validation_ticket", "history_base64"},
+               "authorization validation input")
+    if value["protocol"] != "m12-authorization-validation/1":
+        raise ContractError("unsupported authorization validation protocol")
+    archive = value["approval_archive"]
+    _m12_exact(archive, {"bundle_base64", "objects"}, "validation archive transport")
+    if not isinstance(archive["objects"], Mapping) or not isinstance(value["history_base64"], list):
+        raise ContractError("validation input requires complete objects and history")
+
+    def decode(encoded):
+        if not isinstance(encoded, str):
+            raise ContractError("validation byte input must be base64 text")
+        try:
+            decoded = base64.b64decode(encoded, validate=True)
+        except (ValueError, binascii.Error) as exc:
+            raise ContractError("validation byte input must be strict base64") from exc
+        if base64.b64encode(decoded).decode("ascii") != encoded:
+            raise ContractError("validation byte input must be canonical base64")
+        return decoded
+
+    return {"approval_evidence_ref": value["approval_evidence_ref"], "validation_ticket": value["validation_ticket"],
+            "approval_archive": {"bundle_bytes": decode(archive["bundle_base64"]),
+                                 "objects": {key: decode(encoded) for key, encoded in archive["objects"].items()}},
+            "history_bytes": [decode(encoded) for encoded in value["history_base64"]]}
+
+
 def publication_ticket_history(
     ticket: Mapping[str, Any], history_bytes: list[bytes], *, job: Mapping[str, Any], approval_evidence_ref: Mapping[str, Any],
 ) -> list[dict[str, Any]]:
