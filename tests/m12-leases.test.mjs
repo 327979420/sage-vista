@@ -373,7 +373,7 @@ test("lost head or ticket log requires recovery instead of silently empty bootst
 test("wrong reference type is rejected and no authorization commit method exists yet", (t) => {
   const f = authorizations(t);
   assert.throws(() => f.authorization.prepareValidation(JOB, token(f.handle), authRef("a")), /reference_invalid/);
-  assert.deepEqual(Object.getOwnPropertyNames(AuthorizationStore.prototype).sort(), ["constructor", "prepareValidation", "readPreparedValidation", "recordValidationDispatch"]);
+  assert.deepEqual(Object.getOwnPropertyNames(AuthorizationStore.prototype).sort(), ["constructor", "prepareValidation", "readPreparedValidation", "readValidationDispatch", "recordValidationDispatch"]);
 });
 
 // Synthetic transport descriptors only; real byte hashing/readback is covered
@@ -473,6 +473,8 @@ test("dispatch binding and original response survive file database reopen", (t) 
   const second = binding(path); t.after(() => second.db.close());
   const b = new AuthorizationStore(second, { clock: () => NOW + 1000 });
   assert.deepEqual(b.recordValidationDispatch(JOB, token(held), input), saved);
+  const identity = { job: JOB, code_commit: input.source_commit, issued_at: input.identity_issued_at, expires_at: input.identity_expires_at };
+  assert.deepEqual(b.readValidationDispatch(identity, token(held), saved.dispatch_id), { dispatch: saved, validation_ticket: input.ticket });
   assert.equal(second.sql.exec("SELECT * FROM m12_authorization_dispatches").toArray().length, 1);
 });
 

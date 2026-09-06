@@ -6,6 +6,7 @@ import { DatabaseSync } from "node:sqlite";
 import { GitHubEnvironmentReviewVerifier } from "../services/publication/environment_review.mjs";
 import { ReviewedRequestArchive } from "../services/publication/review_archive.mjs";
 import { AuthorizationPreparation } from "../services/publication/authorization_preparation.mjs";
+import { AuthorizationValidationReturn } from "../services/publication/authorization_return.mjs";
 import { LeaseStore } from "../services/publication/leases.mjs";
 
 const NOW = 1_788_652_800;
@@ -1050,4 +1051,162 @@ test("identity expiration after archived input readback leaves no dispatch recor
   f.archiveState.beforeGet = (key) => { if (isValidationWire(f, key)) f.state.now = claims.exp * 1000; };
   await assert.rejects(f.preparation.dispatchValidationInput(token(), f.leaseToken), /dispatch_identity_expired/);
   assert.equal(dispatchCount(f), 0);
+});
+
+async function returnFixture(t) {
+  const f = preparationFixture(t);
+  const sent = await f.preparation.dispatchValidationInput(token(), f.leaseToken);
+  const python = validateWire(sent.input_bytes);
+  assert.equal(python.valid, true, python.error);
+  const result = { authorization_base64: python.authorization_bytes, receipt_base64: python.receipt_bytes };
+  const receiver = new AuthorizationValidationReturn(identityPolicy,
+    { storage: f.storage, bucket: f.bucket, clock: f.options.clock, fetchKeys: f.options.fetchKeys });
+  const resultBytes = () => Buffer.from(JSON.stringify(canonical(result)) + "\n");
+  return { ...f, sent, python, result, resultBytes, receiver,
+    verify: (jwt = token(), id = sent.dispatch.dispatch_id, bytes = resultBytes()) => receiver.verify(jwt, f.leaseToken, id, bytes) };
+}
+
+function changeReceipt(f, change) {
+  const receipt = JSON.parse(Buffer.from(f.result.receipt_base64, "base64"));
+  change(receipt);
+  f.result.receipt_base64 = Buffer.from(JSON.stringify(canonical(receipt))).toString("base64");
+}
+
+test("actual signed return reads persistent input and matches Python artifacts without consuming or appending", async (t) => {
+  const f = await returnFixture(t);
+  const gets = f.archiveState.gets;
+  const result = await f.verify();
+  assert.equal(f.archiveState.gets, gets + 1);
+  assert.deepEqual(result.dispatch, f.sent.dispatch);
+  assert.deepEqual(result.input_bytes, f.sent.input_bytes);
+  assert.equal(Buffer.from(result.receipt_bytes).toString("base64"), f.python.receipt_bytes);
+  assert.equal(Buffer.from(result.authorization_bytes).toString("base64"), f.python.authorization_bytes);
+  assert.deepEqual(result.identity.job, f.job);
+  assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_index").get().n, 1);
+  assert.equal(dispatchCount(f), 1);
+  assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_log").get().n, 2);
+  result.input_bytes[0] ^= 1;
+  result.dispatch.input_archive.size_bytes++;
+  assert.deepEqual((await f.verify()).input_bytes, f.sent.input_bytes);
+});
+
+test("return rejects unverified claims, wrong signature, pinned workflow changes and other run or actor", async (t) => {
+  const f = await returnFixture(t);
+  for (const jwt of [{ job: f.job }, token().slice(0, -8) + "AAAAAAAA",
+    token({ sha: "c".repeat(40) }), token({ workflow_sha: "c".repeat(40) }), token({ environment: "other" }),
+    token({ run_id: "457" }), token({ run_attempt: "2" }), token({ actor_id: "888" })]) {
+    await assert.rejects(f.verify(jwt));
+  }
+  const unknown = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+  await assert.rejects(f.verify(token(), unknown), /dispatch_missing/);
+  const unavailable = new AuthorizationValidationReturn(identityPolicy,
+    { storage: f.storage, bucket: f.bucket, clock: f.options.clock, fetchKeys: async () => new Response("down", { status: 503 }) });
+  await assert.rejects(unavailable.verify(token(), f.leaseToken, f.sent.dispatch.dispatch_id, f.resultBytes()), /keys_unavailable/);
+  const changedPolicy = new AuthorizationValidationReturn({ ...identityPolicy, code_commit: "c".repeat(40) },
+    { storage: f.storage, bucket: f.bucket, clock: f.options.clock, fetchKeys: f.options.fetchKeys });
+  await assert.rejects(changedPolicy.verify(token({ sha: "c".repeat(40) }), f.leaseToken,
+    f.sent.dispatch.dispatch_id, f.resultBytes()), /dispatch_identity_mismatch/);
+});
+
+test("return receipt must bind original input, ticket, approval and exact authorization output bytes", async (t) => {
+  const f = await returnFixture(t);
+  const original = structuredClone(f.result);
+  for (const change of [(r) => { r.input_sha256 = "sha256:" + "0".repeat(64); }, (r) => { r.input_size_bytes++; },
+    (r) => { r.ticket_id = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"; }, (r) => { r.ticket_sha256 = "sha256:" + "0".repeat(64); },
+    (r) => { r.approval_evidence_ref = f.priorRef; }, (r) => { r.verdict = "invalid"; }, (r) => { r.extra = true; },
+    (r) => { r.authorization_archive.size_bytes++; }, (r) => { r.authorization_archive.sha256 = "sha256:" + "0".repeat(64); },
+    (r) => { r.authorization_archive.key = "authority/" + "0".repeat(64) + ".json"; },
+    (r) => { r.authorization_ref = f.priorRef; }]) {
+    Object.assign(f.result, original); changeReceipt(f, change);
+    await assert.rejects(f.verify());
+  }
+  Object.assign(f.result, original);
+  const auth = JSON.parse(Buffer.from(f.result.authorization_base64, "base64"));
+  auth.reason = "changed output";
+  f.result.authorization_base64 = Buffer.from(JSON.stringify(canonical(auth))).toString("base64");
+  await assert.rejects(f.verify(), /output_mismatch/);
+  for (const change of [(value) => { value.job.run_id = "457"; },
+    (value) => { value.approval_evidence_ref = f.priorRef; }, (value) => { value.prior_authorization_ref = null; },
+    (value) => { value.authorization_id = f.priorRef.id; }]) {
+    Object.assign(f.result, original);
+    const changed = JSON.parse(Buffer.from(f.result.authorization_base64, "base64"));
+    change(changed);
+    const bytes = Buffer.from(JSON.stringify(canonical(changed)));
+    f.result.authorization_base64 = bytes.toString("base64");
+    changeReceipt(f, (r) => { r.authorization_archive.sha256 = sha(bytes); r.authorization_archive.size_bytes = bytes.length; });
+    await assert.rejects(f.verify(), /output_mismatch/);
+  }
+});
+
+test("return artifact protocol refuses duplicate keys, noncanonical bytes and alternate success shapes", async (t) => {
+  const f = await returnFixture(t);
+  const original = structuredClone(f.result);
+  for (const bytes of [Buffer.from("{}\n"), Buffer.from('{"valid":true}\n'),
+    Buffer.from('{"receipt_base64":"","receipt_base64":""}\n'), Buffer.from([0xff]),
+    Buffer.from(JSON.stringify(f.result, null, 2) + "\n"), Buffer.from("\ufeff" + f.resultBytes().toString())]) {
+    await assert.rejects(f.verify(token(), f.sent.dispatch.dispatch_id, bytes));
+  }
+  for (const change of [() => { f.result.receipt_base64 += "\n"; },
+    () => { f.result.receipt_base64 = Buffer.from(Buffer.from(f.result.receipt_base64, "base64").toString() + "\n").toString("base64"); },
+    () => { f.result.authorization_base64 = "e31="; },
+    () => { f.result.receipt_base64 = Buffer.from('{"verdict":"valid","verdict":"valid"}').toString("base64"); }]) {
+    Object.assign(f.result, original); change();
+    await assert.rejects(f.verify());
+  }
+});
+
+test("other dispatch for the same job cannot borrow a previous input receipt", async (t) => {
+  const f = await returnFixture(t);
+  f.state.now += 1000;
+  const next = await f.preparation.dispatchValidationInput(token(), f.leaseToken);
+  assert.notEqual(next.dispatch.dispatch_id, f.sent.dispatch.dispatch_id);
+  await assert.rejects(f.verify(token(), next.dispatch.dispatch_id), /receipt_mismatch/);
+});
+
+test("missing or damaged stored input and dispatch log refuse return verification", async (t) => {
+  for (const corrupt of ["missing", "bytes", "log"]) {
+    const f = await returnFixture(t);
+    if (corrupt === "missing") f.objects.delete(f.sent.dispatch.input_archive.key);
+    if (corrupt === "bytes") f.objects.get(f.sent.dispatch.input_archive.key)[0] ^= 1;
+    if (corrupt === "log") f.db.exec("DELETE FROM m12_authorization_log WHERE operation='dispatch_validation'");
+    await assert.rejects(f.verify());
+  }
+});
+
+test("return rechecks live head, owner and log after input readback", async (t) => {
+  for (const change of ["head", "lease", "log"]) {
+    const f = await returnFixture(t);
+    f.archiveState.beforeGet = (key) => {
+      if (key !== f.sent.dispatch.input_archive.key) return;
+      if (change === "head") f.db.exec("DELETE FROM m12_authorization_index; UPDATE m12_authorization_head SET revision=0,head_json=NULL");
+      if (change === "log") f.db.exec("DELETE FROM m12_authorization_log WHERE operation='dispatch_validation'");
+      if (change === "lease") {
+        f.lease.release("publish/global", f.job, f.leaseToken);
+        f.lease.acquire("publish/global", { ...f.job, run_id: "457" }, f.leaseToken.epoch);
+      }
+    };
+    await assert.rejects(f.verify(), /history_changed|not_owned|recovery_required/);
+  }
+});
+
+test("return time and renewed OIDC cannot outlive frozen dispatch, ticket or current lease", async (t) => {
+  const f = await returnFixture(t);
+  const original = structuredClone(f.result);
+  for (const stamp of [new Date(NOW * 1000 - 1).toISOString(), new Date(NOW * 1000 + 1).toISOString(),
+    new Date(claims.exp * 1000).toISOString(), new Date(NOW * 1000).toISOString().replace(".000Z", "Z")]) {
+    Object.assign(f.result, original); changeReceipt(f, (r) => { r.validated_at = stamp; });
+    await assert.rejects(f.verify(), /return_time_invalid/);
+  }
+  Object.assign(f.result, original);
+  f.archiveState.beforeGet = (key) => { if (key === f.sent.dispatch.input_archive.key) f.state.now = claims.exp * 1000; };
+  await assert.rejects(f.verify(token({ exp: claims.exp + 300 })), /deadline_expired|expired_before_commit|stale/);
+});
+
+test("return copies caller output bytes before identity and storage awaits", async (t) => {
+  const f = await returnFixture(t);
+  const bytes = f.resultBytes();
+  const pending = f.verify(token(), f.sent.dispatch.dispatch_id, bytes);
+  bytes.fill(0);
+  const result = await pending;
+  assert.equal(Buffer.from(result.authorization_bytes).toString("base64"), f.python.authorization_bytes);
 });

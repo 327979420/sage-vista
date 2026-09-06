@@ -172,4 +172,42 @@ export class AuthorizationStore {
       return JSON.parse(record);
     }, { deadlineMs: expires });
   }
+
+  #dispatch(dispatchId) {
+    if (typeof dispatchId !== "string" || !/^[a-f0-9-]{36}$/.test(dispatchId)) throw new Error("authorization_dispatch_id_invalid");
+    const row = this.#exec("SELECT * FROM m12_authorization_dispatches WHERE dispatch_id = ?", dispatchId)[0];
+    if (!row) throw new Error("authorization_dispatch_missing");
+    const dispatch = JSON.parse(row.dispatch_json);
+    const logs = this.#exec("SELECT record_json FROM m12_authorization_log WHERE operation = 'dispatch_validation' AND ticket_id = ?", row.ticket_id);
+    if (logs.length !== 1 || logs[0].record_json !== row.dispatch_json || dispatch.dispatch_id !== dispatchId ||
+        dispatch.ticket_id !== row.ticket_id || Object.keys(dispatch).sort().join() !==
+        "approval_evidence_ref,dispatch_id,dispatched_at,epoch,expires_at,fence,identity_expires_at,identity_issued_at,input_archive,owner_job,protocol,source_commit,ticket_id,ticket_sha256") {
+      throw new Error("authorization_dispatch_recovery_required");
+    }
+    return dispatch;
+  }
+
+  readValidationDispatch(identity, token, dispatchId) {
+    // Identity must come from the internal OIDC verifier, not an RPC JSON claim.
+    const initial = this.#dispatch(dispatchId);
+    const deadline = Math.min(Date.parse(initial.expires_at), identity.expires_at * 1000);
+    return this.#leases.withOwnedLease("publish/global", identity.job, token, (context) => {
+      const dispatch = this.#dispatch(dispatchId);
+      if (JSON.stringify(initial) !== JSON.stringify(dispatch)) throw new Error("authorization_dispatch_changed");
+      const ticket = this.#ticket(dispatch.ticket_id, context);
+      if (dispatch.protocol !== "m12-authorization-validation/1" || dispatch.epoch !== ticket.epoch || dispatch.fence !== ticket.fence ||
+          JSON.stringify(dispatch.owner_job) !== JSON.stringify(ticket.owner_job) ||
+          JSON.stringify(dispatch.approval_evidence_ref) !== JSON.stringify(ticket.approval_evidence_ref) ||
+          dispatch.source_commit !== identity.code_commit || context.now < identity.issued_at * 1000 ||
+          !Number.isSafeInteger(dispatch.identity_issued_at) || !Number.isSafeInteger(dispatch.identity_expires_at) ||
+          dispatch.identity_issued_at < 0 || dispatch.identity_expires_at <= dispatch.identity_issued_at ||
+          !Number.isSafeInteger(dispatch.identity_expires_at * 1000)) throw new Error("authorization_dispatch_identity_mismatch");
+      const expires = Math.min(Date.parse(ticket.expires_at), dispatch.identity_expires_at * 1000);
+      const dispatched = Date.parse(dispatch.dispatched_at);
+      if (dispatch.expires_at !== new Date(expires).toISOString() || !Number.isFinite(dispatched) ||
+          dispatched < Date.parse(ticket.prepared_at) || dispatched < dispatch.identity_issued_at * 1000 ||
+          dispatched >= expires || dispatched > context.now) throw new Error("authorization_dispatch_recovery_required");
+      return { dispatch, validation_ticket: ticket };
+    }, { deadlineMs: deadline });
+  }
 }
