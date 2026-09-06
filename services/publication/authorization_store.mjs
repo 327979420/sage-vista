@@ -18,9 +18,11 @@ function location(value) {
 export class AuthorizationStore {
   #storage;
   #leases;
+  #clock;
 
   constructor(storage, { clock = Date.now } = {}) {
     this.#storage = storage;
+    this.#clock = clock;
     this.#leases = new LeaseStore(storage, { clock });
     storage.transactionSync(() => {
       this.#exec(`CREATE TABLE IF NOT EXISTS m12_authorization_head (
@@ -32,6 +34,9 @@ export class AuthorizationStore {
         ticket_id TEXT PRIMARY KEY, preparation_key TEXT NOT NULL UNIQUE, ticket_json TEXT NOT NULL)`);
       this.#exec(`CREATE TABLE IF NOT EXISTS m12_authorization_dispatches (
         ticket_id TEXT PRIMARY KEY, dispatch_id TEXT NOT NULL UNIQUE, dispatch_json TEXT NOT NULL)`);
+      this.#exec(`CREATE TABLE IF NOT EXISTS m12_authorization_returns (
+        dispatch_id TEXT NOT NULL, receipt_key TEXT NOT NULL, ticket_id TEXT NOT NULL,
+        record_json TEXT NOT NULL, PRIMARY KEY(dispatch_id,receipt_key))`);
       this.#exec(`CREATE TABLE IF NOT EXISTS m12_authorization_log (
         sequence INTEGER PRIMARY KEY AUTOINCREMENT, operation TEXT NOT NULL, ticket_id TEXT NOT NULL,
         record_json TEXT NOT NULL, occurred_ms INTEGER NOT NULL)`);
@@ -40,6 +45,7 @@ export class AuthorizationStore {
           !this.#exec("SELECT position FROM m12_authorization_index LIMIT 1").length &&
           !this.#exec("SELECT ticket_id FROM m12_authorization_tickets LIMIT 1").length &&
           !this.#exec("SELECT ticket_id FROM m12_authorization_dispatches LIMIT 1").length &&
+          !this.#exec("SELECT ticket_id FROM m12_authorization_returns LIMIT 1").length &&
           !this.#exec("SELECT sequence FROM m12_authorization_log LIMIT 1").length) {
         this.#exec("INSERT INTO m12_authorization_head VALUES (1, 0, NULL)");
       }
@@ -209,5 +215,74 @@ export class AuthorizationStore {
           dispatched >= expires || dispatched > context.now) throw new Error("authorization_dispatch_recovery_required");
       return { dispatch, validation_ticket: ticket };
     }, { deadlineMs: deadline });
+  }
+
+  recordValidationArchive(identity, token, dispatchId, snapshot, artifacts) {
+    // Internal B3f readback only. This method does not authenticate arbitrary
+    // descriptors or prove R2 writes; it is never exposed directly over RPC.
+    const frozen = JSON.parse(JSON.stringify(artifacts));
+    if (Object.keys(frozen).sort().join() !== "authorization_archive,authorization_ref,validation_receipt_archive") {
+      throw new Error("authorization_return_record_invalid");
+    }
+    const ref = reference(frozen.authorization_ref, "publication-authorization:");
+    const archived = location(frozen.authorization_archive), receipt = frozen.validation_receipt_archive;
+    if (archived.key !== "authority/" + ref.content_fingerprint.slice(7) + ".json" ||
+        !receipt || Object.keys(receipt).sort().join() !== "key,sha256,size_bytes" ||
+        typeof receipt.sha256 !== "string" || !/^sha256:[a-f0-9]{64}$/.test(receipt.sha256) ||
+        receipt.key !== "raw/" + receipt.sha256.slice(7) ||
+        !Number.isSafeInteger(receipt.size_bytes) || receipt.size_bytes < 1) throw new Error("authorization_return_record_invalid");
+    const expected = JSON.stringify(snapshot);
+    return this.#storage.transactionSync(() => {
+      const current = () => {
+        const value = this.readValidationDispatch(identity, token, dispatchId);
+        if (JSON.stringify(value) !== expected) throw new Error("authorization_return_record_changed");
+        return value.dispatch;
+      };
+      const dispatch = current();
+      const binding = { protocol: "m12-authorization-return/1", state: "archived_pending_registration",
+        dispatch_id: dispatchId, ticket_id: dispatch.ticket_id, epoch: dispatch.epoch, fence: dispatch.fence,
+        owner_job: dispatch.owner_job, actor_id: identity.actor_id, source_commit: dispatch.source_commit,
+        input_archive: dispatch.input_archive, authorization_ref: ref, authorization_archive: archived,
+        validation_receipt_archive: receipt };
+      const allRows = this.#exec("SELECT * FROM m12_authorization_returns WHERE ticket_id=?", dispatch.ticket_id);
+      const logs = this.#exec(`SELECT record_json,occurred_ms FROM m12_authorization_log
+        WHERE operation='archive_validation' AND ticket_id=?`, dispatch.ticket_id);
+      if (allRows.length !== logs.length) throw new Error("authorization_return_record_recovery_required");
+      for (const row of allRows) {
+        const prior = JSON.parse(row.record_json);
+        if (row.dispatch_id !== dispatchId || prior.dispatch_id !== dispatchId || prior.ticket_id !== dispatch.ticket_id ||
+            row.receipt_key !== prior.validation_receipt_archive?.key ||
+            logs.filter((log) => log.record_json === row.record_json).length !== 1) {
+          throw new Error("authorization_return_record_recovery_required");
+        }
+      }
+      const rows = allRows.filter((row) => row.receipt_key === receipt.key);
+      const matchingLogs = rows.length ? logs.filter((log) => log.record_json === rows[0].record_json) : [];
+      const now = this.#clock();
+      const lastNow = this.#exec("SELECT last_now FROM m12_lease_epoch WHERE singleton=1")[0]?.last_now;
+      if (!Number.isSafeInteger(now) || !Number.isSafeInteger(lastNow) || now < lastNow || now < Date.parse(dispatch.dispatched_at) ||
+          now >= Math.min(Date.parse(dispatch.expires_at), identity.expires_at * 1000)) throw new Error("authorization_return_record_expired");
+      let record;
+      if (rows.length) {
+        if (rows.length !== 1 || matchingLogs.length !== 1 ||
+            rows[0].ticket_id !== dispatch.ticket_id) throw new Error("authorization_return_record_recovery_required");
+        record = JSON.parse(rows[0].record_json);
+        const { recorded_at, ...prior } = record;
+        const recorded = Date.parse(recorded_at);
+        if (JSON.stringify(prior) !== JSON.stringify(binding) || !Number.isFinite(recorded) ||
+            new Date(recorded).toISOString() !== recorded_at || recorded < Date.parse(dispatch.dispatched_at) ||
+            recorded > now || recorded >= Date.parse(dispatch.expires_at) || matchingLogs[0].occurred_ms !== recorded) {
+          throw new Error("authorization_return_record_conflict");
+        }
+      } else {
+        record = { ...binding, recorded_at: new Date(now).toISOString() };
+        const raw = JSON.stringify(record);
+        this.#exec("INSERT INTO m12_authorization_returns VALUES (?, ?, ?, ?)", dispatchId, receipt.key, dispatch.ticket_id, raw);
+        this.#exec(`INSERT INTO m12_authorization_log (operation,ticket_id,record_json,occurred_ms)
+          VALUES ('archive_validation', ?, ?, ?)`, dispatch.ticket_id, raw, now);
+      }
+      current(); // Last synchronous identity/lease/ticket/history check before commit.
+      return record;
+    });
   }
 }

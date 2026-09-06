@@ -373,7 +373,7 @@ test("lost head or ticket log requires recovery instead of silently empty bootst
 test("wrong reference type is rejected and no authorization commit method exists yet", (t) => {
   const f = authorizations(t);
   assert.throws(() => f.authorization.prepareValidation(JOB, token(f.handle), authRef("a")), /reference_invalid/);
-  assert.deepEqual(Object.getOwnPropertyNames(AuthorizationStore.prototype).sort(), ["constructor", "prepareValidation", "readPreparedValidation", "readValidationDispatch", "recordValidationDispatch"]);
+  assert.deepEqual(Object.getOwnPropertyNames(AuthorizationStore.prototype).sort(), ["constructor", "prepareValidation", "readPreparedValidation", "readValidationDispatch", "recordValidationArchive", "recordValidationDispatch"]);
 });
 
 // Synthetic transport descriptors only; real byte hashing/readback is covered

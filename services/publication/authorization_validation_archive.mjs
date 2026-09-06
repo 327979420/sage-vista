@@ -45,9 +45,12 @@ export class AuthorizationValidationArchive {
     const receiptBytes = await this.#archive.read(receiptArchive.key,
       { sha256: receiptArchive.sha256, size_bytes: receiptArchive.size_bytes });
     const final = current();
+    const returnRecord = this.#store.recordValidationArchive(verified.identity, leaseToken, dispatchId, final,
+      { authorization_ref: receipt.authorization_ref, authorization_archive: authorizationArchive,
+        validation_receipt_archive: receiptArchive });
     // Still unregistered objects. Final permission/config checks and atomic
     // ticket consumption/index append must happen after this entire operation.
     return { ...verified, ...final, authorization_bytes: authorizationBytes, receipt_bytes: receiptBytes,
-      authorization_archive: authorizationArchive, validation_receipt_archive: receiptArchive };
+      authorization_archive: authorizationArchive, validation_receipt_archive: receiptArchive, return_record: returnRecord };
   }
 }

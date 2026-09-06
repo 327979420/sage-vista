@@ -1241,7 +1241,7 @@ test("validation archive internally verifies and writes then separately reads bo
   assert.deepEqual(result.authorization_bytes, f.objects.get(f.authorizationKey));
   assert.deepEqual(result.receipt_bytes, f.objects.get(f.receiptKey));
   assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_index").get().n, 1);
-  assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_log").get().n, 2);
+  assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_log").get().n, 3);
   result.authorization_bytes[0] ^= 1;
   result.validation_receipt_archive.size_bytes++;
   const replay = await f.archiveValidation();
@@ -1266,13 +1266,15 @@ test("uncertain artifact write remains unregistered and retry retains exact orig
     const key = failed === "authorization" ? f.authorizationKey : f.receiptKey;
     f.archiveState.afterPut = (written) => { if (written === key) throw new Error("artifact_write_response_lost"); };
     await assert.rejects(f.archiveValidation(), /artifact_write_response_lost/);
+    assert.equal(recordedReturns(f).length, 0);
+    assert.equal(recordedReturnLogs(f).length, 0);
     const orphan = new Uint8Array(f.objects.get(key));
     assert.ok(orphan.length);
     assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_index").get().n, 1);
     f.archiveState.afterPut = null;
     await f.archiveValidation();
     assert.deepEqual(f.objects.get(key), orphan);
-    assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_log").get().n, 2);
+    assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_log").get().n, 3);
   }
 });
 
@@ -1297,6 +1299,8 @@ test("late missing or corrupt artifacts fail the independent final read instead 
     };
     await assert.rejects(f.archiveValidation(), /missing|hash_mismatch/);
     assert.equal(reads, 2);
+    assert.equal(recordedReturns(f).length, 0);
+    assert.equal(recordedReturnLogs(f).length, 0);
     assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_index").get().n, 1);
   }
 });
@@ -1348,6 +1352,9 @@ test("later valid revalidation reuses authorization bytes and preserves both val
   assert.notEqual(second.validation_receipt_archive.key, first.validation_receipt_archive.key);
   assert.ok(f.objects.has(first.validation_receipt_archive.key));
   assert.ok(f.objects.has(second.validation_receipt_archive.key));
+  assert.equal(recordedReturns(f).length, 2);
+  assert.equal(recordedReturnLogs(f).length, 2);
+  assert.notDeepEqual(first.return_record, second.return_record);
   assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_index").get().n, 1);
 });
 
@@ -1619,7 +1626,7 @@ test("return route archives valid artifacts but never consumes or registers auth
   const replay = await f.api.fetch(apiRequest("return", JSON.stringify(canonical(payload))));
   assert.deepEqual(await replay.json(), ack);
   assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_index").get().n, 1);
-  assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_log").get().n, 2);
+  assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_log").get().n, 3);
   const wrong = { ...payload, lease_token: { ...prepared.lease_token, fence: true } };
   assert.equal((await f.api.fetch(apiRequest("return", JSON.stringify(canonical(wrong))))).status, 400);
   payload.result_base64 = Buffer.from('{"valid":true}\n').toString("base64");
@@ -1913,4 +1920,125 @@ print(json.dumps({'finished':True,'response':base64.b64encode(result).decode()})
   assert.equal(finished.state, 'archived_pending_registration');
   assert.ok(f.objects.has(finished.authorization_archive.key));
   assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM m12_authorization_index').get().n, 1);
+});
+
+const recordedReturns = (f) => f.db.prepare('SELECT * FROM m12_authorization_returns ORDER BY receipt_key').all();
+const recordedReturnLogs = (f) => f.db.prepare("SELECT * FROM m12_authorization_log WHERE operation='archive_validation'").all();
+
+test('return record follows final readbacks and replay across adapter reopen retains original record', async (t) => {
+  const f = await validationArchiveFixture(t);
+  let checked = 0;
+  f.archiveState.beforeGet = (key) => {
+    if (key === f.authorizationKey || key === f.receiptKey) {
+      assert.equal(recordedReturns(f).length, 0);
+      checked++;
+    }
+  };
+  const first = await f.archiveValidation();
+  assert.equal(checked, 4);
+  const rows = recordedReturns(f), logs = recordedReturnLogs(f);
+  assert.equal(rows.length, 1);
+  assert.equal(logs.length, 1);
+  assert.equal(rows[0].record_json, logs[0].record_json);
+  const record = JSON.parse(rows[0].record_json);
+  assert.deepEqual(first.return_record, record);
+  assert.equal(record.state, 'archived_pending_registration');
+  assert.equal(record.dispatch_id, f.sent.dispatch.dispatch_id);
+  assert.deepEqual(record.authorization_archive, first.authorization_archive);
+  assert.deepEqual(record.validation_receipt_archive, first.validation_receipt_archive);
+  assert.deepEqual(record.input_archive, f.sent.dispatch.input_archive);
+  assert.equal(record.actor_id, claims.actor_id);
+  first.return_record.authorization_archive.size_bytes++;
+  f.archiveState.beforeGet = null;
+  f.state.now += 1000;
+  const reopened = new AuthorizationValidationArchive(identityPolicy, { ...f.options, storage: f.storage, bucket: f.bucket });
+  const replay = await reopened.archive(token(), f.leaseToken, f.sent.dispatch.dispatch_id, f.resultBytes());
+  assert.deepEqual(replay.return_record, record);
+  assert.deepEqual(recordedReturns(f), rows);
+  assert.deepEqual(recordedReturnLogs(f), logs);
+  assert.equal(f.db.prepare('SELECT revision FROM m12_authorization_head').get().revision, 1);
+});
+
+test('return record row or log write failure rolls back paired state while preserving archive bytes', async (t) => {
+  for (const operation of ['row', 'log']) {
+    const f = await validationArchiveFixture(t);
+    const exec = f.storage.sql.exec;
+    f.storage.sql.exec = (query, ...args) => {
+      const result = exec(query, ...args);
+      if ((operation === 'row' && query.startsWith('INSERT INTO m12_authorization_returns')) ||
+          (operation === 'log' && query.includes("VALUES ('archive_validation'"))) throw new Error('return_record_write_failed');
+      return result;
+    };
+    await assert.rejects(f.archiveValidation(), /return_record_write_failed/);
+    assert.equal(recordedReturns(f).length, 0);
+    assert.equal(recordedReturnLogs(f).length, 0);
+    const authorization = new Uint8Array(f.objects.get(f.authorizationKey));
+    const receipt = new Uint8Array(f.objects.get(f.receiptKey));
+    f.storage.sql.exec = exec;
+    await f.archiveValidation();
+    assert.equal(recordedReturns(f).length, 1);
+    assert.equal(recordedReturnLogs(f).length, 1);
+    assert.deepEqual(f.objects.get(f.authorizationKey), authorization);
+    assert.deepEqual(f.objects.get(f.receiptKey), receipt);
+  }
+});
+
+test('state changes after return log insertion prevent commit and roll back the record', async (t) => {
+  for (const change of ['head', 'lease', 'epoch', 'expiry']) {
+    const f = await validationArchiveFixture(t);
+    const exec = f.storage.sql.exec;
+    let reached = false;
+    f.storage.sql.exec = (query, ...args) => {
+      const result = exec(query, ...args);
+      if (query.includes("VALUES ('archive_validation'")) {
+        reached = true;
+        if (change === 'head') f.db.exec('UPDATE m12_authorization_head SET revision=revision+1');
+        if (change === 'lease') f.lease.release('publish/global', f.job, f.leaseToken);
+        if (change === 'epoch') f.db.exec("UPDATE m12_lease_epoch SET epoch='22222222-2222-4222-8222-222222222222'");
+        if (change === 'expiry') f.state.now = (NOW + 300) * 1000;
+      }
+      return result;
+    };
+    await assert.rejects(f.archiveValidation());
+    assert.equal(reached, true);
+    assert.equal(recordedReturns(f).length, 0);
+    assert.equal(recordedReturnLogs(f).length, 0);
+    assert.equal(f.db.prepare('SELECT revision FROM m12_authorization_head').get().revision, 1);
+    assert.ok(f.objects.has(f.authorizationKey));
+    assert.ok(f.objects.has(f.receiptKey));
+  }
+});
+
+test('partial loss of a return row or log is rejected without recreating evidence', async (t) => {
+  for (const table of ['m12_authorization_returns', 'm12_authorization_log']) {
+    const f = await validationArchiveFixture(t);
+    await f.archiveValidation();
+    f.db.exec(table.endsWith('_log') ? "DELETE FROM m12_authorization_log WHERE operation='archive_validation'" : 'DELETE FROM m12_authorization_returns');
+    const rows = recordedReturns(f), logs = recordedReturnLogs(f);
+    await assert.rejects(f.archiveValidation(), /recovery_required/);
+    assert.deepEqual(recordedReturns(f), rows);
+    assert.deepEqual(recordedReturnLogs(f), logs);
+  }
+});
+
+test('conflicting return record is preserved and cannot be silently rewritten on replay', async (t) => {
+  const f = await validationArchiveFixture(t);
+  await f.archiveValidation();
+  const record = JSON.parse(recordedReturns(f)[0].record_json);
+  record.authorization_archive.size_bytes++;
+  const raw = JSON.stringify(record);
+  f.db.prepare('UPDATE m12_authorization_returns SET record_json=?').run(raw);
+  f.db.prepare("UPDATE m12_authorization_log SET record_json=? WHERE operation='archive_validation'").run(raw);
+  await assert.rejects(f.archiveValidation(), /record_conflict/);
+  assert.equal(recordedReturns(f)[0].record_json, raw);
+  assert.equal(recordedReturnLogs(f)[0].record_json, raw);
+});
+
+test('surviving return record prevents silent empty-head initialization after partial loss', async (t) => {
+  const f = await validationArchiveFixture(t);
+  await f.archiveValidation();
+  f.db.exec('DELETE FROM m12_authorization_head; DELETE FROM m12_authorization_index; DELETE FROM m12_authorization_tickets; DELETE FROM m12_authorization_dispatches; DELETE FROM m12_authorization_log');
+  new AuthorizationValidationArchive(identityPolicy, { ...f.options, storage: f.storage, bucket: f.bucket });
+  assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM m12_authorization_head').get().n, 0);
+  assert.equal(recordedReturns(f).length, 1);
 });
