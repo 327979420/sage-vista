@@ -128,6 +128,68 @@ class RecoveryTests(unittest.TestCase):
         self.assertEqual(list(Path(self.directory).iterdir()), [])
         self.assertEqual(len(self.opener.calls), 2)
 
+    def test_new_journal_parent_is_fsynced_before_return_request(self):
+        root = Path(self.directory) / 'new-journal'
+        opener = Opener()
+        client = Client(ORIGIN, ENV, recovery_directory=root, opener=opener)
+        client.prepare()
+        synced = []
+        real_sync, real_open = module.os.fsync, opener.open
+        def identity(info): return (info.st_dev, info.st_ino)
+        def sync(fd):
+            real_sync(fd)
+            synced.append(identity(module.os.fstat(fd)))
+        def open_request(request, timeout):
+            if request.full_url.endswith('/return'):
+                self.assertIn(identity(root.stat()), synced)
+                self.assertIn(identity(root.parent.stat()), synced)
+                self.assertEqual(synced[-2:], [identity(root.stat()), identity(root.parent.stat())])
+                Journal(root).read(client.recovery_id)
+            return real_open(request, timeout)
+        opener.open = open_request
+        with patch.object(module.os, 'fsync', side_effect=sync):
+            client.return_result(DISPATCH, LEASE, output())
+        self.assertEqual(len(opener.calls), 4)
+        self.assertEqual(len(synced), 3)
+
+    def test_parent_sync_failure_blocks_return_and_existing_directory_retry_still_syncs_parent(self):
+        root = Path(self.directory) / 'new-journal'
+        parent = root.parent.stat()
+        real_sync = module.os.fsync
+        failed = []
+        def sync(fd):
+            info = module.os.fstat(fd)
+            if (info.st_dev, info.st_ino) == (parent.st_dev, parent.st_ino):
+                failed.append(True)
+                raise OSError('parent synchronization failed')
+            real_sync(fd)
+        saved = None
+        for attempt in range(2):
+            self.assertEqual(root.exists(), attempt > 0)
+            opener = Opener()
+            client = Client(ORIGIN, ENV, recovery_directory=root, opener=opener)
+            client.prepare()
+            with patch.object(module.os, 'fsync', side_effect=sync):
+                with self.assertRaisesRegex(AuthorizationTransportError, '^validation recovery preparation failed$'):
+                    client.return_result(DISPATCH, LEASE, output())
+            self.assertEqual(len(opener.calls), 2)
+            self.assertIsNone(client.recovery_id)
+            files = list(root.glob('*.json'))
+            self.assertEqual(len(files), 1)
+            current = (files[0].name, files[0].read_bytes())
+            if saved is not None: self.assertEqual(current, saved)
+            saved = current
+            self.assertEqual(list(root.glob('.pending-*')), [])
+        self.assertEqual(len(failed), 2)
+        # Explicit fresh attempt succeeds after the synchronization fault clears.
+        opener = Opener()
+        client = Client(ORIGIN, ENV, recovery_directory=root, opener=opener)
+        client.prepare()
+        client.return_result(DISPATCH, LEASE, output())
+        self.assertEqual(client.recovery_id + '.json', saved[0])
+        self.assertEqual((root / saved[0]).read_bytes(), saved[1])
+        self.assertEqual(len(opener.calls), 4)
+
     def test_missing_or_failed_recovery_response_never_authorizes_resend(self):
         recovery_id = self.returned()
         client, opener, _ = self.recovery_client(recovery_id)

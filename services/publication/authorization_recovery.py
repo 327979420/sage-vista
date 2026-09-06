@@ -115,9 +115,13 @@ class AuthorizationRecoveryJournal:
                 os.link(temporary, self._root / (recovery_id + '.json'))  # Atomic no-overwrite install.
             except FileExistsError:
                 pass  # Existing exact bytes must pass the same readback below.
-            directory_fd = os.open(self._root, os.O_RDONLY | os.O_DIRECTORY)
-            try: os.fsync(directory_fd)
-            finally: os.close(directory_fd)
+            # Persist the journal's own directory entry too. Always repeat this
+            # chain: a previous failed save may have left both directory and
+            # final file present without a completed parent-directory sync.
+            for directory in (self._root, self._root.parent):
+                directory_fd = os.open(directory, os.O_RDONLY | os.O_DIRECTORY)
+                try: os.fsync(directory_fd)
+                finally: os.close(directory_fd)
             if self.read(recovery_id) != value: raise ValueError('handle conflict')
             return recovery_id
         except Exception:
