@@ -708,13 +708,17 @@ function preparationFixture(t, withHistory = true) {
   const f = archiveFixture(JSON.stringify(request));
   const db = new DatabaseSync(":memory:");
   t.after(() => db.close());
+  let transactionSequence = 0;
   const storage = { sql: { exec(query, ...args) {
     const rows = db.prepare(query).all(...args);
     return { toArray: () => rows.map((row) => ({ ...row })) };
   } }, transactionSync(callback) {
-    db.exec("BEGIN IMMEDIATE");
-    try { const result = callback(); assert.ok(!(result instanceof Promise)); db.exec("COMMIT"); return result; }
-    catch (error) { db.exec("ROLLBACK"); throw error; }
+    // Local SQLite equivalent of nested transactionSync; production uses the
+    // DO API, never transaction SQL statements through sql.exec.
+    const savepoint = "test_transaction_" + (++transactionSequence);
+    db.exec("SAVEPOINT " + savepoint);
+    try { const result = callback(); assert.ok(!(result instanceof Promise)); db.exec("RELEASE " + savepoint); return result; }
+    catch (error) { db.exec("ROLLBACK TO " + savepoint); db.exec("RELEASE " + savepoint); throw error; }
   } };
   const lease = new LeaseStore(storage, { clock: f.options.clock });
   const epoch = "11111111-1111-4111-8111-111111111111";
@@ -1685,4 +1689,131 @@ print(json.dumps({'finished':True,'response':base64.b64encode(result).decode('as
   assert.equal(finished.state, "archived_pending_registration");
   assert.ok(f.objects.has(finished.authorization_archive.key));
   assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_index").get().n, 1);
+});
+
+async function controlFixture(t, jwt = token()) {
+  const f = apiFixture(t);
+  const prepared = await (await f.api.fetch(apiRequest('prepare', '{}', jwt))).json();
+  const payload = { protocol: 'm12-authorization-job/1', dispatch_id: prepared.dispatch_id, lease_token: prepared.lease_token };
+  const request = (route, patch = {}, jwt = token()) => apiRequest(route, JSON.stringify(canonical({ ...payload, ...patch })), jwt);
+  const leaseRow = () => ({ ...f.db.prepare("SELECT * FROM m12_leases WHERE resource='publish/global'").get() });
+  const renewCount = () => f.db.prepare("SELECT COUNT(*) AS n FROM m12_lease_log WHERE operation='renew'").get().n;
+  return { ...f, prepared, payload, request, leaseRow, renewCount };
+}
+
+test('status reads current frozen dispatch across API reopen without lease renewal or success claims', async (t) => {
+  const f = await controlFixture(t);
+  const before = f.leaseRow(), puts = f.archiveState.puts;
+  const result = await f.api.fetch(f.request('status'));
+  assert.equal(result.status, 200);
+  const value = await result.json();
+  assert.deepEqual(Object.keys(value).sort(), ['dispatch_id', 'lease_expires_at', 'lease_token', 'protocol', 'state', 'validation_expires_at']);
+  assert.equal(value.state, 'dispatch_current');
+  const reopened = new AuthorizationJobApi(identityPolicy, reviewPolicy,
+    { ...f.options, storage: f.storage, bucket: f.bucket, enabled: true, leaseEpoch: f.leaseToken.epoch });
+  assert.deepEqual(await (await reopened.fetch(f.request('status'))).json(), value);
+  assert.deepEqual(f.leaseRow(), before);
+  assert.equal(f.renewCount(), 0);
+  assert.equal(f.archiveState.puts, puts);
+  assert.equal(dispatchCount(f), 1);
+});
+
+test('renew extends only lease while preserving original dispatch bytes and validation deadline', async (t) => {
+  const f = await controlFixture(t);
+  const rows = () => f.db.prepare('SELECT dispatch_json FROM m12_authorization_dispatches').all();
+  const original = rows();
+  const expiry = JSON.parse(original[0].dispatch_json).expires_at;
+  f.state.now += 60_000;
+  const result = await f.api.fetch(f.request('renew', {}, token({ iat: NOW + 60, exp: NOW + 600 })));
+  assert.equal(result.status, 200);
+  const value = await result.json();
+  assert.equal(value.lease_expires_at, new Date((NOW + 360) * 1000).toISOString());
+  assert.equal(value.validation_expires_at, expiry);
+  assert.deepEqual(value.lease_token, f.prepared.lease_token);
+  assert.deepEqual(rows(), original);
+  assert.equal(f.renewCount(), 1);
+  f.state.now = (NOW + 300) * 1000;
+  for (const route of ['status', 'renew']) {
+    assert.equal((await f.api.fetch(f.request(route, {}, token({ iat: NOW + 300, exp: NOW + 600 })))).status, 409);
+  }
+  assert.equal(f.renewCount(), 1);
+});
+
+test('fresh JWT cannot revive original dispatch identity deadline before lease expiry', async (t) => {
+  const f = await controlFixture(t, token({ exp: NOW + 90 }));
+  f.state.now = (NOW + 91) * 1000;
+  for (const route of ['status', 'renew']) {
+    assert.equal((await f.api.fetch(f.request(route, {}, token({ iat: NOW + 90, exp: NOW + 600 })))).status, 409);
+  }
+  assert.equal(f.renewCount(), 0);
+});
+
+test('control routes bind original actor Job epoch fence and dispatch and accept no extra controls', async (t) => {
+  const f = await controlFixture(t);
+  const before = f.leaseRow();
+  for (const route of ['status', 'renew']) {
+    for (const patch of [{ actor_id: '999' }, { run_id: '457' }, { run_attempt: '2' }, { sha: 'c'.repeat(40) }]) {
+      assert.notEqual((await f.api.fetch(f.request(route, {}, token(patch)))).status, 200);
+    }
+    for (const patch of [{ dispatch_id: '22222222-2222-4222-8222-222222222222' },
+      { lease_token: { ...f.leaseToken, fence: f.leaseToken.fence + 1 } },
+      { lease_token: { ...f.leaseToken, epoch: '22222222-2222-4222-8222-222222222222' } },
+      { lease_token: { ...f.leaseToken, fence: true } }, { result_base64: '' }, { ttl: 600 }, { valid: true }]) {
+      assert.notEqual((await f.api.fetch(f.request(route, patch))).status, 200);
+    }
+    assert.equal((await f.api.fetch(f.request(route + '?retry=true'))).status, 404);
+  }
+  assert.deepEqual(f.leaseRow(), before);
+  assert.equal(f.renewCount(), 0);
+});
+
+test('control refuses missing input and state changes during original input readback', async (t) => {
+  for (const failure of ['missing', 'head', 'owner']) {
+    const f = await controlFixture(t);
+    const dispatch = JSON.parse(f.db.prepare('SELECT dispatch_json FROM m12_authorization_dispatches').get().dispatch_json);
+    if (failure === 'missing') f.objects.delete(dispatch.input_archive.key);
+    else f.archiveState.beforeGet = (key) => {
+      if (key !== dispatch.input_archive.key) return;
+      if (failure === 'head') f.db.exec('UPDATE m12_authorization_head SET revision=revision+1');
+      else f.lease.release('publish/global', f.job, f.leaseToken);
+    };
+    assert.equal((await f.api.fetch(f.request('renew'))).status, 409);
+    assert.equal(f.renewCount(), 0);
+  }
+});
+
+test('failure or deadline crossing after renew mutation rolls back lease and renewal log', async (t) => {
+  for (const failure of ['sql', 'deadline']) {
+    const f = await controlFixture(t);
+    f.state.now += 60_000;
+    const before = f.leaseRow();
+    const exec = f.storage.sql.exec;
+    let reached = false;
+    f.storage.sql.exec = (query, ...args) => {
+      const result = exec(query, ...args);
+      if (query.includes('INSERT INTO m12_lease_log') && args[1] === 'renew') {
+        reached = true;
+        if (failure === 'sql') throw new Error('simulated failure after log insertion');
+        f.state.now = (NOW + 300) * 1000;
+      }
+      return result;
+    };
+    assert.equal((await f.api.fetch(f.request('renew'))).status, 409);
+    assert.equal(reached, true);
+    assert.deepEqual(f.leaseRow(), before);
+    assert.equal(f.renewCount(), 0);
+  }
+});
+
+test('status after artifact return does not infer receipt or authorization registration', async (t) => {
+  const f = await controlFixture(t);
+  const python = validateWire(Buffer.from(f.prepared.input_base64, 'base64'));
+  const raw = Buffer.from(JSON.stringify(canonical({ authorization_base64: python.authorization_bytes, receipt_base64: python.receipt_bytes })) + '\n');
+  const returned = await f.api.fetch(f.request('return', { result_base64: raw.toString('base64') }));
+  assert.equal((await returned.json()).state, 'archived_pending_registration');
+  const status = await (await f.api.fetch(f.request('status'))).json();
+  assert.equal(status.state, 'dispatch_current');
+  assert.equal('authorization_archive' in status, false);
+  assert.equal('validation_receipt_archive' in status, false);
+  assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM m12_authorization_index').get().n, 1);
 });

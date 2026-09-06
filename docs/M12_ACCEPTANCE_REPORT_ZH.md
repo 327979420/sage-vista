@@ -591,3 +591,28 @@ prepare请求最多2字节，return最多4MiB，按实际流长度核对并拒�
 93项环境取证／跨语言Node、29项租约Node、7项治理及12项状态共141项通过；定点lint、机器状态／文档链接／diff检查通过。未改业务合同或Python通道，不重复其无变化完整测试。60秒续租及失效停止／状态恢复、冻结checkout与受保护工作流、最终当时权限／业务目标config和同事务票据消费／索引追加仍待后续；跨日端到端仍未执行，M11不重审。
 
 独立提交feat: add disabled M12 authorization job routes [skip ci]，父提交9a8b6e660f9791b5b9213f907bd065396a7de696，完整SHA见交付消息。仅新增内部路由、调整准备接点、扩展既有环境专项及3个治理文档，无业务合同／政策版本变化；可撤回本包接点并保留历史。未合并、推送、创建云资源、部署、生产启用或对外通知。
+
+
+## B3j独立复核回传
+
+审核对话01a074f9-098a-7b82-b486-3185683290fe确认67636da5ac3611cad54ea953dea7d8d4086da29e在默认关闭内部AuthorizationJobApi及prepareJob接点范围无阻断。审核员逐段审读6文件及租约acquire语义，自行运行93项环境／跨语言Node、29项租约Node及19项治理／状态，共141项通过；diff通过、HEAD不变、工作区干净。确认取证后取既有epoch租约、封闭请求、真实5秒正文取消、编码后当前发送重查和本地消息桥往返，回传只有已归档待登记。该结论不覆盖默认隔离HTTP分支与真实TLS／平台往返、续租恢复、固定工作流及最终登记。
+
+## B3k：服务端当前状态及续租接点（待独立审核）
+
+同一默认关闭AuthorizationJobApi新增POST /v1/authorization/status及/renew。两者请求精确`{protocol,dispatch_id,lease_token}`，沿用m12-authorization-job/1、规范JSON及UUID／epoch／整数fence，正文最多1024字节并沿用5秒正文读取期限；不能指定TTL、资源、输入或结果。仍先验签再读正文。由AuthorizationValidationReturn提取verifyDispatch，共用现有真实OIDC、当前持久发送／票据／历史、R2原输入摘要／长度及原actor／Job／来源绑定，末次异步读取后重查；原结果verify继续调用此共同接点，业务验证规则未复制或更改。
+
+取得受信快照后，在一个外层storage.transactionSync内重查当前快照；status只读当前租约，renew复用既有LeaseStore.renew固定300秒TTL。形成响应后再次执行readValidationDispatch，以当前身份、原dispatch截止、票据／租约、head／revision与完整历史守门。任一同步步骤失败使租约更新与renew日志一起回滚；无网络或await进入事务，不改lease实现或表结构。外层只管理原子性，不将旧读取时钟写回epoch。
+
+成功响应精确`{protocol,dispatch_id,state,lease_token,lease_expires_at,validation_expires_at}`，state固定dispatch_current，validation_expires_at始终为原冻结dispatch的截止（原票据与原取证身份期限的较早者）。这只说明本次事务内原发送仍可继续；后续请求必须重新验证。续租不改票据／输入／dispatch原字节或fence，新JWT也不能延长原验证窗口。status不续租、不写归档／授权／续租日志，既有检查仍维护lease的last_now。所有失效或原件不可读返回既有409 job_not_ready，不泄露是否存在其他Job的记录。
+
+该status刻意不判断回传结果是否已归档、是否执行或是否已登记：即使一次return已确认archived_pending_registration，status仍只给dispatch_current且无产物引用。它不构成不确定回传的完成查询或自动重试许可；丢失响应、已过期dispatch及部分准备恢复仍待独立恢复接点，不重建输入、不重发验证或结果。客户端60秒心跳及及时停止仍未接线，本包没有宣称任务可无限续跑。
+
+### B3k实际检查与剩余边界
+
+新增7项环境专项覆盖status跨适配器重开一致且不续租／不报成功、60秒后续租但原dispatch字节与截止不变、原身份提前到期不能被新JWT救活、actor／Job／来源／epoch／fence／dispatch及额外控制字段拒绝、缺失R2原件及读回期间head／owner变化拒绝、renew日志插入后SQL故障或跨过原截止导致全部续租回滚、return后status不推断产物登记。真实SQLite测试夹具使用保存点模拟嵌套transactionSync，保持同步回调及外层失败回滚。
+
+另外新增1项本地Miniflare／workerd内存SQLite DO测试，实际确认内层成功事务在外层抛错后回滚，外层成功时保留全部写入；未部署到Cloudflare。本机已安装运行时最高兼容日期2026-05-22，专项使用此日期；最初以2026-09-01启动被运行时拒绝后改为支持日期，没有改依赖或生产配置。普通沙箱禁止回环监听，该本地测试经执行权限放行后通过。平台同步回调／抛错回滚约定见[Cloudflare SQLite存储文档](https://developers.cloudflare.com/durable-objects/api/sqlite-storage-api/#transactionsync)；嵌套行为的本轮证据来自已安装本地运行时，不当作云平台往返验收。
+
+100项环境／跨语言Node、29项租约Node、1项本地workerd事务、7项治理及12项状态共149项通过；定点lint、机器状态／文档链接／diff检查通过。没有修改Python／业务合同／底层租约，不重复无变化完整测试。冻结checkout／受保护工作流、客户端续租停止、权威回传恢复、最终权限／目标config与同事务登记仍后续，跨日端到端仍未执行，M11不重审。
+
+独立提交feat: add authenticated M12 dispatch status and renewal [skip ci]，父提交67636da5ac3611cad54ea953dea7d8d4086da29e，完整SHA见交付消息。仅调整内部API与共用回传绑定、专项测试及3个治理文档，无业务合同／政策版本变化，可撤回接点并保留历史。未合并、推送、创建云资源、部署、生产启用或对外通知。

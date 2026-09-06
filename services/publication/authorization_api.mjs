@@ -2,6 +2,8 @@ import { GitHubIdentityVerifier } from "./identity.mjs";
 import { AuthorizationPreparation } from "./authorization_preparation.mjs";
 import { AuthorizationValidationArchive } from "./authorization_validation_archive.mjs";
 import { AuthorizationStore } from "./authorization_store.mjs";
+import { AuthorizationValidationReturn } from "./authorization_return.mjs";
+import { LeaseStore } from "./leases.mjs";
 
 const PROTOCOL = "m12-authorization-job/1";
 const UUID = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
@@ -71,6 +73,9 @@ export class AuthorizationJobApi {
   #preparation;
   #archive;
   #store;
+  #returns;
+  #leases;
+  #storage;
 
   constructor(identityPolicy, reviewPolicy, { enabled = false, leaseEpoch, ...dependencies } = {}) {
     if (typeof enabled !== "boolean") throw new Error("authorization_api_configuration_invalid");
@@ -82,13 +87,40 @@ export class AuthorizationJobApi {
     this.#preparation = new AuthorizationPreparation(identityPolicy, reviewPolicy, dependencies);
     this.#archive = new AuthorizationValidationArchive(identityPolicy, dependencies);
     this.#store = new AuthorizationStore(dependencies.storage, { clock: dependencies.clock });
+    this.#returns = new AuthorizationValidationReturn(identityPolicy, dependencies);
+    this.#leases = new LeaseStore(dependencies.storage, { clock: dependencies.clock });
+    this.#storage = dependencies.storage;
+  }
+
+  async #control(token, value, renew) {
+    const prepared = await this.#returns.verifyDispatch(token, value.lease_token, value.dispatch_id);
+    const { identity, dispatch, validation_ticket } = prepared;
+    const snapshot = JSON.stringify({ dispatch, validation_ticket });
+    // No await within this transaction. A failure after renewal rolls back the
+    // lease and its log, and renewal never changes the original ticket window.
+    return this.#storage.transactionSync(() => {
+      const current = () => {
+        if (JSON.stringify(this.#store.readValidationDispatch(identity, value.lease_token, value.dispatch_id)) !== snapshot) {
+          throw new Error("authorization_dispatch_changed");
+        }
+      };
+      current();
+      const held = renew ? this.#leases.renew("publish/global", identity.job, value.lease_token) :
+        this.#leases.withOwnedLease("publish/global", identity.job, value.lease_token, (context) => context);
+      const result = response({ protocol: PROTOCOL, dispatch_id: dispatch.dispatch_id, state: "dispatch_current",
+        lease_token: value.lease_token, lease_expires_at: held.lease.expires_at, validation_expires_at: dispatch.expires_at });
+      current();
+      return result;
+    });
   }
 
   async fetch(request) {
     const error = (status, code) => response({ protocol: PROTOCOL, error: code }, status);
     if (!this.#enabled) return error(503, "authorization_jobs_disabled");
     const url = new URL(request.url);
-    if (url.search || url.hash || !["/v1/authorization/prepare", "/v1/authorization/return"].includes(url.pathname)) return error(404, "route_unavailable");
+    const route = url.pathname.slice("/v1/authorization/".length);
+    if (url.search || url.hash || !url.pathname.startsWith("/v1/authorization/") ||
+        !["prepare", "return", "status", "renew"].includes(route)) return error(404, "route_unavailable");
     if (request.method !== "POST") return error(405, "method_not_allowed");
     const authorization = request.headers.get("Authorization") ?? "";
     if (!authorization.startsWith("Bearer ") || authorization.length > 65543) return error(401, "unauthorized");
@@ -98,24 +130,29 @@ export class AuthorizationJobApi {
     catch { return error(401, "unauthorized"); }
     let value;
     try {
-      value = await body(request, url.pathname.endsWith("/prepare") ? 2 : RETURN_LIMIT);
-      if (url.pathname.endsWith("/prepare")) {
+      value = await body(request, route === "prepare" ? 2 : route === "return" ? RETURN_LIMIT : 1024);
+      if (route === "prepare") {
         if (Object.keys(value).length) throw new Error("invalid");
       } else {
-        if (Object.keys(value).sort().join() !== "dispatch_id,lease_token,protocol,result_base64" || value.protocol !== PROTOCOL ||
+        const fields = route === "return" ? "dispatch_id,lease_token,protocol,result_base64" : "dispatch_id,lease_token,protocol";
+        if (Object.keys(value).sort().join() !== fields || value.protocol !== PROTOCOL ||
             typeof value.dispatch_id !== "string" || !UUID.test(value.dispatch_id) ||
             !value.lease_token || Object.keys(value.lease_token).sort().join() !== "epoch,fence" ||
             typeof value.lease_token.epoch !== "string" || !UUID.test(value.lease_token.epoch) ||
-            !Number.isSafeInteger(value.lease_token.fence) || value.lease_token.fence < 1 || typeof value.result_base64 !== "string") {
+            !Number.isSafeInteger(value.lease_token.fence) || value.lease_token.fence < 1) {
           throw new Error("invalid");
         }
-        const raw = atob(value.result_base64);
-        if (btoa(raw) !== value.result_base64) throw new Error("invalid");
-        value.result_bytes = Uint8Array.from(raw, (char) => char.charCodeAt(0));
+        if (route === "return") {
+          if (typeof value.result_base64 !== "string") throw new Error("invalid");
+          const raw = atob(value.result_base64);
+          if (btoa(raw) !== value.result_base64) throw new Error("invalid");
+          value.result_bytes = Uint8Array.from(raw, (char) => char.charCodeAt(0));
+        }
       }
     } catch { return error(400, "request_invalid"); }
     try {
-      if (url.pathname.endsWith("/prepare")) {
+      if (route === "status" || route === "renew") return await this.#control(token, value, route === "renew");
+      if (route === "prepare") {
         const prepared = await this.#preparation.prepareJob(token, this.#epoch);
         // Check before allocating the base64-expanded response.
         if (4 * Math.ceil(prepared.input_bytes.length / 3) + 2048 > 32 * 1024 * 1024) return error(409, "job_not_ready");

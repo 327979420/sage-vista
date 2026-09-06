@@ -53,9 +53,7 @@ export class AuthorizationValidationReturn {
     this.#clock = clock;
   }
 
-  async verify(token, leaseToken, dispatchId, resultBytes) {
-    if (!(resultBytes instanceof Uint8Array)) throw new Error("authorization_return_bytes_required");
-    const frozen = new Uint8Array(resultBytes);
+  async verifyDispatch(token, leaseToken, dispatchId) {
     const identity = await this.#verifier.verify(token);
     const snapshot = this.#store.readValidationDispatch(identity, leaseToken, dispatchId);
     const { dispatch, validation_ticket: ticket } = snapshot;
@@ -68,6 +66,18 @@ export class AuthorizationValidationReturn {
     const original = JSON.parse(utf8(unbase64(input.approval_archive.bundle_base64))).identity;
     if (original.actor_id !== identity.actor_id || original.code_commit !== identity.code_commit ||
         !same(original.job, dispatch.owner_job)) throw new Error("authorization_return_origin_mismatch");
+
+    const current = this.#store.readValidationDispatch(identity, leaseToken, dispatchId);
+    if (!same(current, snapshot)) throw new Error("authorization_return_dispatch_changed");
+    return { identity, ...current, input_bytes: inputBytes };
+  }
+
+  async verify(token, leaseToken, dispatchId, resultBytes) {
+    if (!(resultBytes instanceof Uint8Array)) throw new Error("authorization_return_bytes_required");
+    const frozen = new Uint8Array(resultBytes);
+    const prepared = await this.verifyDispatch(token, leaseToken, dispatchId);
+    const { identity, dispatch, validation_ticket: ticket, input_bytes: inputBytes } = prepared;
+    const snapshot = { dispatch, validation_ticket: ticket };
 
     const output = encodedObject(frozen, "\n");
     exact(output, ["authorization_base64", "receipt_base64"]);
