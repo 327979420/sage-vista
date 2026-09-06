@@ -924,3 +924,22 @@ services/market_data/membership_collection.py提供内部collect_membership(as_o
 14项新测试覆盖固定请求和许可原件在网络前读回、成功字节与时间、解析前已存原件、HTTP失败留正文不重试、部分读取／超时留前缀、连接失败空捕获、坏长度／编码、无Content-Length合法EOF、超限／预算、跨纽约日期、许可／前置归档失败不请求、后置归档失败不交付、重复原件／新观察保留和默认禁代理／重定向。测试调用实际EODHD字节采集逻辑，以内存响应和私有存储替身替代网络／R2；不声称真实跨语言存储桥已完成。14项采集＋9项解析＋24项旧EODHD＋29项M02合同／股票池＋19项治理状态共95项通过0.072秒（ResourceWarning按错误），机器状态／本地链接／diff通过；未重复无变化B／M11。
 
 独立提交feat: collect fixed M12 membership source with private audit [skip ci]，父6a194c9bdb770efb7ae3ddb68e5c53174c3c07b8，完整SHA见交付消息。回退撤回新内部接点即可，既有来源／生产文件不迁移；保留已留存原件。下一包先完成受信私有R2通道和运行权限绑定，再接M02观察身份／同日资格与实际业务配置、C/D链。未合并、推送、创建云资源、真实数据调用、部署、生产启用或对外通知；跨日端到端仍未执行。
+
+
+## C1b独立审核结论
+
+审核任务确认98c82a76c510107d182d46a2fa3b1b0057a1e098在固定字节观察／可信内部采集与归档接点范围通过，无新增阻断。独立95项Python通过0.092秒（ResourceWarning为错误），diff、精确HEAD及干净工作区通过。另4项标准库HTTPResponse内存线协议probe中，合法Content-Length和chunked成功；短Content-Length为http_length_mismatch，截断chunked为http_incomplete_read且eof=false。只保证HTTPResponse已交付bytes／IncompleteRead.partial，不承诺底层缓冲未交付尾字节，EOF必须与failure共同消费。真实TLS、Python-R2／权限工厂及硬总期限均未验收。
+
+## C1c：私有归档桥服务端会话（待独立审核）
+
+新增services/publication/membership_archive.mjs内部MembershipArchiveSession，复用GitHubIdentityVerifier、ImmutableArchive及LeaseStore；无新HTTP路由、工作流或生产工厂。sessionPolicy默认null，禁用时不初始化SQL或访问网络。服务器固定策略精确包含acquisition_evidence原件描述符、actor_id、as_of、config_id、expires_at（UTC毫秒）、job及lease_token；结合固定identityPolicy编码成不可变会话归属，代码／工作流／任务／配置／来源／期限任一变化不能借用旧读取资格。配置根或供应商内容不能注入策略；当前仅测试构造，不声称来源核验工厂已完成或任意非空证据等于合法许可。
+
+每个acquisitionEvidence／put／read调用都实际进行新OIDC签名与固定来源身份验证，核对完整Job和actor，持有daily/<as_of>/<config_id>既有租约；不初始化epoch、不自取租约、不续租。原租约期限、fence、会话固定期限和本次JWT期限共同约束，沿用withOwnedLease的事务前后期限／时钟检查。acquisitionEvidence只接受固定US active URL及会话日期，从私有R2绑定真实读回指定许可原件并校验长度和哈希，返回原bytes；每次put/read也重新读回该固定原件，原件缺失／损坏不给出成功。这里只绑定已批准运行能力的使用，实际许可语义与当前PublicationAuthorization／配置／撤销链的生产核验仍必须由后续唯一授权工厂完成。
+
+put只接受raw/<SHA-256>及精确sha256／size_bytes，正文上限32MiB＋1（与C1b失败捕获边界一致），允许空失败捕获；原bytes在第一次await前复制。B1a实际write-if-absent并读回后，才在当前租约同步事务内登记m12_membership_raw_access及m12_membership_raw_log（配对描述符／服务器时刻）。完全相同重放复用一条归属和日志；归属与日志不配对或冲突失败关闭。中途归档／事务／租约失败可能留下不可变孤立原件，不能据此获得读取资格或formal事实身份。
+
+read只允许服务器固定许可原件或本会话已实际写入／读回并登记的raw对象，不开放仅凭哈希查询整桶；在R2读取前后均重验归属／配对日志和当前租约。另一Job、actor、执行代码或会话参数不可继承读取权限；读中丢失配对记录也不给出字节。该表只控制私有字节可见范围，不是SourceInventory／UniverseSnapshot登记，不选择业务事实、不产生采集真实性或公开展示承诺。旧shadow守门及B授权合同／代码全部未变。
+
+16项专项使用真实RSA签名、原身份验证器、真实本地SQLite事务和B1a实际适配器，R2/JWKS端点为内存替身：默认禁用、固定许可及任务归属、持久对象重开、他人哈希拒读、Job／actor／代码／签名差错、来源／日期替换、许可缺失／损坏、策略和入参不可变、R2失败孤立对象、会话／JWT期限（租约续约后旧JWT仍失效）、读写中fence接管、SQL末尾到期回滚、并发重放与腐坏、严格raw描述符、配对日志丢失／写失败及读取中归属丢失。16项Node＋19项治理状态共35项通过，定点eslint、机器状态／链接／diff通过。无真实Cloudflare跨请求持久性或Python↔R2网络验收，不重复无变化B／M11／C1b整套。
+
+独立提交feat: bind private M12 raw archive access to task sessions [skip ci]，父98c82a76c510107d182d46a2fa3b1b0057a1e098，完整SHA见交付消息。回退撤回未接线会话，不删除对象或读取日志。下一小包接Python受控字节通道与服务端路由，随后补实际授权来源工厂／当前使用核验、M02身份资格和C/D链；完整归档桥尚未验收。未真实供应商调用、外部写入、合并、推送、云资源、部署、生产启用或对外通知；跨日端到端仍未执行。
