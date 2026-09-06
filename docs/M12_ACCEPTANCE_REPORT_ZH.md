@@ -281,3 +281,24 @@ API依据为[Cloudflare SQLite-backed Durable Object官方参考](https://develo
 依据[GitHub Git commit API](https://docs.github.com/en/rest/git/commits#get-a-commit)、[tree API](https://docs.github.com/en/rest/git/trees#get-a-tree)及[blob API](https://docs.github.com/en/rest/git/blobs#get-a-blob)。源码读取还需要Contents read权限；本轮只有本地受控响应，未访问真实私有仓库或改凭据／平台设置。没有新增配置依赖或业务计算，不重审M11。请求语义、批准范围／版本／前序、实际原件归档、授权线性登记、实时撤销／lease／CAS和跨日端到端仍未完成；跨日样例仍未执行。
 
 独立提交`feat: bind M12 review to frozen request source [skip ci]`，父提交9d6fd8d6ce782380b191badc94f660dc15710f1c，完整SHA见交付消息。只改既有环境核验模块、其专项测试及3个治理文档；可以撤回本包方法／测试并保留治理记录，不影响已有verify接口。未合并、推送、创建云资源、部署、生产启用或对外通知。
+
+
+## B2c独立复核回传
+
+审核对话01a074f9-098a-7b82-b486-3185683290fe确认4b8b01fdda6284591ed7c5a8c6c29a486c685dde在固定执行提交→固定路径→原blob绑定范围通过。审核员逐段审读并运行40项测试，核对官方tree/blob接口；原字节Git SHA-1／SHA-256、固定路径／普通文件守门及取源后run／时效检查符合范围。diff通过、HEAD不变、工作区干净。来源一致不等于人已批准正文，请求展示／语义、业务code_commit分离、实际归档、Python合同和DO实时链／lease／CAS仍须后续落实。
+
+## B2d：冻结请求语义及唯一合同绑定（待独立审核）
+
+在`services/contracts/validation.py`提取原有嵌套请求规则为唯一_m12_authorization_request_fields，原PublicationAuthorization字段验证和新publication_request_body共同调用。固定请求文件正文精确为既有十字段`action,prior_authorization_ref,config_ref,code_commit,publication_mode,scope,effective_from,valid_until,permissions,reason`，不增加schema、审核人、控制SHA或运行身份字段。PublicationAuthorization 1.0.0最终字段／身份公式和合法grant／revoke含义保持不变，因此不升级合同或业务规则版本；只扩展内部可信原件证据接点。
+
+publication_request_body(source, source_commit=...)接B2c的六字段原件描述，要求独立注入的可信控制提交与原件source_commit一致、固定路径、1—65536字节不可变bytes、严格整数长度及实际原字节SHA-256／Git blob SHA-1。复用既有严格JSON解析器，拒绝重复键、非法UTF-8、非对象、NaN／Infinity及指数溢出；缺字段／多字段、非法模式或策略权限、错Ref／日期／代码版本、空白原因等由同一请求规则拒绝。解析只使用已核对原字节，不接第二份可覆盖正文。
+
+PublicationAuthorization的内部publication_authorization_evidence可增强为原五字段加`request_source,source_commit`。两字段只要出现其一就必须同时存在；在统一合同入口重新解析原件，request声明须与原件规范内容完全相同，然后继续原有完整历史／直接前序／撤销目标检查。既有build_publication_authorization无需消费者新增校验；构造器、单对象及集合验证都经过该路径。source_commit只标识保存请求的控制提交，原件内code_commit仍为实际请求的业务目标，不覆盖或要求两者相等；新的控制提交可撤销前一业务代码／配置，仍不得换掉撤销目标。
+
+### B2d实际检查与保留边界
+
+10项新增专项覆盖合法grant／revoke、控制和业务提交分离、五种合法字段重签替换在三个入口共15次拒绝、十字段缺失／未知字段、权限／类型／日期／Ref、严格JSON、字节／hash／Git blob、部分增强证据、前序／撤销目标与输出隔离。99项M12专项／回归、31项共享合同、7项治理、12项项目状态共149项通过；机器状态／文档链接、diff检查通过。合成新旧可信证据构造出的合法授权完全相同，不改变既有内容身份。
+
+本批是纯原件语义／证据一致性，不执行GitHub、R2、DO或运行时批准。保留原五字段可信注入路径以支持已有纯合同、历史及合成验证，不把它升级为生产认证入口；后续生产适配器必须由B2c直接取得原件并强制提供增强证据，不能允许外部删去两字段降级。source_commit及原件字节的真实来源仍由上游认证取证保证，纯函数不能证明同形JSON来自GitHub。实际原件归档、approval_evidence_ref与完整观测绑定、审核人看到固定请求的工作流、业务目标／配置实际库存验证、当前授权链及lease锁内登记仍待实施；不得以构造出的合同当作已生效许可。跨日端到端仍未执行，M11不重审。
+
+独立提交`feat: validate M12 frozen authorization request semantics [skip ci]`，父提交4b8b01fdda6284591ed7c5a8c6c29a486c685dde，完整SHA见交付消息。只改唯一合同模块、新增专项测试及3个治理文档；可撤回本批内部原件接点并保留记录，无存储迁移。未合并、推送、创建云资源、部署、生产启用或对外通知。

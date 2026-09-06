@@ -1345,19 +1345,10 @@ def _m12_job(job: Any) -> None:
         raise ContractError("Job.run_attempt must be UInt, not bool")
 
 
-def _m12_authorization_fields(payload: Mapping[str, Any]) -> dict[str, Any]:
-    """Validate intrinsic fields only; not a public approval validator."""
-    _m12_exact(payload, set(M12_AUTHORIZATION_REQUEST_FIELDS) | {
-        "schema_version", "authorization_id", "content_fingerprint", "generated_at",
-        "approver_id", "approval_evidence_ref", "job",
-    }, "PublicationAuthorization")
-    if payload["schema_version"] != "1.0.0":
-        raise ContractError("unsupported PublicationAuthorization version")
-    _m12_time(payload["generated_at"])
-    _m12_job(payload["job"])
-    _m12_text(payload["approver_id"], "approver_id")
+def _m12_authorization_request_fields(payload: Mapping[str, Any]) -> None:
+    """One nested request definition for raw sources and authorization records."""
+    _m12_exact(payload, set(M12_AUTHORIZATION_REQUEST_FIELDS), "approved request")
     _m12_text(payload["reason"], "reason")
-    _m12_ref(payload["approval_evidence_ref"])
     _m12_ref(payload["config_ref"])
     _m12_commit(payload["code_commit"])
     if payload["prior_authorization_ref"] is not None:
@@ -1377,6 +1368,47 @@ def _m12_authorization_fields(payload: Mapping[str, Any]) -> dict[str, Any]:
             raise ContractError("revocation needs a predecessor and cannot grant permissions")
     else:
         raise ContractError("unknown publication authorization action")
+
+
+def publication_request_body(source: Mapping[str, Any], *, source_commit: str) -> dict[str, Any]:
+    """Parse trusted B2c source bytes; this does not authenticate their provenance.
+
+    The source commit contains the request. Its business code_commit can name a
+    different reviewed implementation, including a predecessor being revoked.
+    """
+    _m12_exact(source, {"source_commit", "path", "blob_sha", "bytes", "sha256", "size_bytes"}, "request source")
+    _m12_commit(source_commit)
+    _m12_commit(source["source_commit"])
+    _m12_commit(source["blob_sha"])
+    if source["source_commit"] != source_commit or source["path"] != "config/publication-authorization-request.json":
+        raise ContractError("request source differs from the verified execution commit/path")
+    raw = source["bytes"]
+    if type(raw) is not bytes or not 1 <= len(raw) <= 65_536:
+        raise ContractError("request source requires bounded immutable bytes")
+    if type(source["size_bytes"]) is not int or source["size_bytes"] != len(raw):
+        raise ContractError("request source byte length mismatch")
+    if source["sha256"] != "sha256:" + hashlib.sha256(raw).hexdigest():
+        raise ContractError("request source byte fingerprint mismatch")
+    if source["blob_sha"] != hashlib.sha1(b"blob " + str(len(raw)).encode("ascii") + b"\0" + raw).hexdigest():
+        raise ContractError("request source Git blob mismatch")
+    request = _m12_json(raw)
+    _m12_authorization_request_fields(request)
+    return dict(request)
+
+
+def _m12_authorization_fields(payload: Mapping[str, Any]) -> dict[str, Any]:
+    """Validate intrinsic fields only; not a public approval validator."""
+    _m12_exact(payload, set(M12_AUTHORIZATION_REQUEST_FIELDS) | {
+        "schema_version", "authorization_id", "content_fingerprint", "generated_at",
+        "approver_id", "approval_evidence_ref", "job",
+    }, "PublicationAuthorization")
+    if payload["schema_version"] != "1.0.0":
+        raise ContractError("unsupported PublicationAuthorization version")
+    _m12_time(payload["generated_at"])
+    _m12_job(payload["job"])
+    _m12_text(payload["approver_id"], "approver_id")
+    _m12_ref(payload["approval_evidence_ref"])
+    _m12_authorization_request_fields({key: payload[key] for key in M12_AUTHORIZATION_REQUEST_FIELDS})
     body = {key: value for key, value in payload.items() if key not in {
         "authorization_id", "content_fingerprint", "generated_at",
     }}
@@ -1408,10 +1440,18 @@ def publication_authorization_body(evidence: Mapping[str, Any] | None) -> dict[s
     request/config/code and raw approval receipt, and freeze the complete chain
     under its lock. Caller-submitted JSON must never be injected as evidence.
     """
-    _m12_exact(evidence, {
+    fields = {
         "request", "approver_id", "approval_evidence_ref", "job", "history",
-    }, "trusted publication approval evidence")
-    _m12_exact(evidence["request"], set(M12_AUTHORIZATION_REQUEST_FIELDS), "approved request")
+    }
+    has_source = isinstance(evidence, Mapping) and bool({"request_source", "source_commit"} & set(evidence))
+    if has_source:
+        fields |= {"request_source", "source_commit"}
+    _m12_exact(evidence, fields, "trusted publication approval evidence")
+    _m12_authorization_request_fields(evidence["request"])
+    if has_source:
+        request = publication_request_body(evidence["request_source"], source_commit=evidence["source_commit"])
+        if _canonical(request) != _canonical(evidence["request"]):
+            raise ContractError("approved request differs from the frozen source bytes")
     if not isinstance(evidence["history"], list):
         raise ContractError("trusted authorization history must be an array")
     previous = None
