@@ -112,7 +112,7 @@ def run():
     client = RecoverableAuthorizationTransport(config['coordinator_origin'], env, recovery_directory=directory)
     try:
         execute_supervised_authorization_validation(client)
-        return 'validation_return_received_pending_registration'
+        return 'validation_return_received'
     except Exception:
         recovery_id = client.recovery_id
         if not recovery_id:
@@ -121,7 +121,7 @@ def run():
         _checkout(env)
         replacement = RecoverableAuthorizationTransport(config['coordinator_origin'], env, recovery_directory=directory)
         replacement.recover(recovery_id)
-        return 'historical_return_verified_pending_registration'
+        return 'historical_return_verified'
 
 
 def main():

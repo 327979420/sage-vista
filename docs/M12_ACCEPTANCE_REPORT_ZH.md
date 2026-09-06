@@ -865,3 +865,22 @@ AuthorizationStore新增只供内部调用的registerValidatedAuthorization；�
 本包仅修改Store完整性、对应测试夹具及三治理文档；默认禁用、业务合同／权限／原件及事务回滚不变。独立提交fix: verify complete M12 authorization index provenance [skip ci]，父2d709d480e0c4e4dcc3b04435f3e1ee44942c56f，完整SHA见交付消息。交回P2定点复核；不自行宣布通过，不扩展受控登记接线或C／D。未合并、推送、创建云资源、部署、生产启用或对外通知；跨日端到端仍未执行。
 
 本P2修复实际检查：160项环境／跨语言／登记／恢复及租约Node完整通过19.30秒，无失败／取消／跳过；19项治理／状态通过，共179项。定点eslint、机器状态生成一致性、文档链接和diff检查通过。未重跑无变化Python业务完整套件或M11。
+
+
+## B3s及索引来源P2独立复核结论
+
+审核任务确认2d709d480e0c4e4dcc3b04435f3e1ee44942c56f及3788fb8301ff6582162213535179c267068ad61a在内部固定目标权限／原子登记范围通过，成对丢失P2关闭。独立160项Node（19.69秒）与19项治理／状态共179项通过，eslint／diff与干净HEAD核对通过；另以临时文件重跑原始首grant成对DELETE反例，真实recover按registration_recovery_required拒绝，额外1项probe通过。未来可信导入仍须另行批准；不证明真实配置原件、当前可发布或平台／TLS／跨日端到端。
+
+## B3t：受控return登记接线（待独立审核）
+
+AuthorizationJobApi新增仅由服务器构造参数提供的registrationPolicy，默认null保留原归档模式；整个API仍默认enabled=false，关闭时即使传有策略也不访问存储／网络。服务器显式配置固定策略时，既有POST /v1/authorization/return直接调用已审核AuthorizationRegistration.register，内部完成认证、固定目标权限匹配、原件归档读回及原子登记。请求仍精确为原protocol／dispatch_id／lease_token／result_base64，不能加入登记开关、策略或目标配置，也不新增/register RPC。没有第二套业务验证、消费写入或降级成功路径；策略不匹配继续409，已归档孤立对象保留。
+
+登记成功响应精确为`{protocol,dispatch_id,state:'authorization_registered',authorization_archive,validation_receipt_archive,registration_position,registered_at}`。两个位置描述符和登记位置／时间来自实际持久登记记录，不由请求指定。状态仅说明该记录已登记，不表示当前发布操作已获准。响应编码后再用新鲜请求身份及服务器epoch读取已审核历史来源，比较原回传记录及对应索引位置的Ref／归档／前序；原票据因head推进已失效，不调用原current-dispatch逻辑复活它。编码后若身份过期或消费／日志证据丢失，返回原409，不发送成功响应；登记已提交时也不回滚或声称服务器从未收到。
+
+未配置登记策略时仍返回原archived_pending_registration及原五字段形状；recover保持原archived_return_verified协议，只核对历史归档，不推断“未登记所以可以重发”。运行工厂两个完成文案分别改为validation_return_received与historical_return_verified，移除未核实的pending_registration后缀：无论服务器选择归档或登记，客户端都不凭粗粒度完成文案宣称登记生效／允许发布。原回传不确定→保留凭证→新客户端只查一次的流程不变。
+
+新增4项路由专项：固定服务器策略登记并返回真实位置／时间，重复拒绝且只消费一次；请求不能替换策略／target或调用额外/register，服务器业务目标不符拒绝；默认无策略保留归档且整个API关闭时不触碰依赖；响应编码后分别注入身份过期、登记证据成对丢失，已提交索引保留但返回409。原实际Python监督器／凭证客户端／固定worker／本地Fetch恢复样例扩为归档、登记两种模式，登记模式确认服务器返回authorization_registered且index前进后人为丢弃HTTP响应、旧租约到期被另一Job接手，再用新原身份客户端只recover，最终只一次prepare／return、一次consumption，无重发或权限复活。
+
+136项环境／跨语言／路由Node完整通过20.92秒，无失败／取消／跳过（新增登记恢复往返666.6ms）；14项运行工厂Python与19项治理状态共33项通过（ResourceWarning按错误），总169项。定点eslint、机器状态／文档链接／diff检查通过。Store／业务Python／工作流未改，不重复无变化租约整套及M11。新增实际往返仍为本地API、受控GitHub／R2和测试时钟，不证明真实网络断连、TLS或Actions平台配置。
+
+独立提交feat: connect controlled M12 authorization registration [skip ci]，父3788fb8301ff6582162213535179c267068ad61a，完整SHA见交付消息。仅API接线、中性运行文案、对应测试及三治理；无实际生产registrationPolicy实例，工作流与runtime配置两道禁用均保持。撤回接线可恢复归档模式，但保留消费、授权及原件，不重新使用旧票据。待本包审核后进入已批准C／D同日来源、业务配置及每日／跨日链路；实际使用授权仍需核验完整配置／政策blob、当前链／撤销／日期与运行代码，未以本包代替。未合并、推送、创建云资源、部署、生产启用或对外通知，跨日端到端未执行。

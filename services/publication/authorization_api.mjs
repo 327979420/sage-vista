@@ -4,6 +4,7 @@ import { AuthorizationValidationArchive } from "./authorization_validation_archi
 import { AuthorizationStore } from "./authorization_store.mjs";
 import { AuthorizationValidationReturn } from "./authorization_return.mjs";
 import { LeaseStore } from "./leases.mjs";
+import { AuthorizationRegistration } from "./authorization_registration.mjs";
 
 const PROTOCOL = "m12-authorization-job/1";
 const UUID = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
@@ -76,8 +77,9 @@ export class AuthorizationJobApi {
   #returns;
   #leases;
   #storage;
+  #registration;
 
-  constructor(identityPolicy, reviewPolicy, { enabled = false, leaseEpoch, ...dependencies } = {}) {
+  constructor(identityPolicy, reviewPolicy, { enabled = false, leaseEpoch, registrationPolicy = null, ...dependencies } = {}) {
     if (typeof enabled !== "boolean") throw new Error("authorization_api_configuration_invalid");
     this.#enabled = enabled;
     if (!enabled) return; // No storage initialization or network in disabled mode.
@@ -90,6 +92,8 @@ export class AuthorizationJobApi {
     this.#returns = new AuthorizationValidationReturn(identityPolicy, { ...dependencies, recoveryEpoch: leaseEpoch });
     this.#leases = new LeaseStore(dependencies.storage, { clock: dependencies.clock });
     this.#storage = dependencies.storage;
+    this.#registration = registrationPolicy === null ? null :
+      new AuthorizationRegistration(identityPolicy, { ...dependencies, registrationPolicy });
   }
 
   async #control(token, value, renew) {
@@ -175,6 +179,22 @@ export class AuthorizationJobApi {
           input_sha256: prepared.dispatch.input_archive.sha256, input_size_bytes: prepared.input_bytes.length,
           input_base64: base64(prepared.input_bytes) });
         this.#store.readValidationDispatch(identity, prepared.lease_token, prepared.dispatch.dispatch_id);
+        return result;
+      }
+      if (this.#registration) {
+        const registered = await this.#registration.register(token, value.lease_token, value.dispatch_id, value.result_bytes);
+        const record = registered.return_record;
+        const result = response({ protocol: PROTOCOL, dispatch_id: value.dispatch_id, state: "authorization_registered",
+          authorization_archive: record.authorization_archive, validation_receipt_archive: record.validation_receipt_archive,
+          registration_position: registered.position, registered_at: registered.registered_at });
+        // Registration advanced the head, so the original dispatch is no longer
+        // current. Recheck persistent provenance, not revive its old ticket.
+        const current = this.#store.readArchivedValidation(identity, this.#epoch, value.dispatch_id, record.validation_receipt_archive.key);
+        const item = { reference: record.authorization_ref, archive: record.authorization_archive, previous_ref: registered.previous_ref };
+        if (JSON.stringify(current.return_record) !== JSON.stringify(record) ||
+            JSON.stringify(current.current_history.history[registered.position - 1]) !== JSON.stringify(item)) {
+          throw new Error("registration_changed");
+        }
         return result;
       }
       const archived = await this.#archive.archive(token, value.lease_token, value.dispatch_id, value.result_bytes);

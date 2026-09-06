@@ -1743,16 +1743,98 @@ print(json.dumps({'calls':calls,'response':base64.b64encode(response).decode('as
   assert.equal(Buffer.from(archived.authorization_bytes).toString("base64"), f.python.authorization_bytes);
 });
 
-function apiFixture(t, patch = {}) {
+function apiFixture(t, patch = {}, register = false) {
   const f = preparationFixture(t);
   const api = new AuthorizationJobApi(identityPolicy, reviewPolicy,
-    { ...f.options, storage: f.storage, bucket: f.bucket, leaseEpoch: f.leaseToken.epoch, enabled: true, ...patch });
+    { ...f.options, storage: f.storage, bucket: f.bucket, leaseEpoch: f.leaseToken.epoch, enabled: true,
+      registrationPolicy: register ? { actor_id: claims.actor_id, approver_id: "999", request: JSON.parse(f.bytes) } : null, ...patch });
   return { ...f, api };
 }
 function apiRequest(path, raw = "{}", jwt = token(), headers = {}) {
   return new Request("https://coordinator.example.test/v1/authorization/" + path,
     { method: "POST", headers: { "Authorization": "Bearer " + jwt, "Content-Type": "application/json", ...headers }, body: raw });
 }
+
+function registrationRequest(f, additions = {}) {
+  return apiRequest('return', JSON.stringify(canonical({ protocol: 'm12-authorization-job/1',
+    dispatch_id: f.sent.dispatch.dispatch_id, lease_token: f.leaseToken,
+    result_base64: f.resultBytes().toString('base64'), ...additions })));
+}
+
+function registrationApi(f, registrationPolicy = f.policy) {
+  return new AuthorizationJobApi(identityPolicy, reviewPolicy, { ...f.options, storage: f.storage,
+    bucket: f.bucket, leaseEpoch: f.leaseToken.epoch, enabled: true, registrationPolicy });
+}
+
+test('controlled return registers only with fixed server policy and reports exact persistent position', async t => {
+  const f = await registrationFixture(t);
+  const api = registrationApi(f);
+  const response = await api.fetch(registrationRequest(f));
+  assert.equal(response.status, 200, await response.clone().text());
+  assert.equal(response.headers.get('Cache-Control'), 'no-store');
+  const value = await response.json();
+  assert.deepEqual(Object.keys(value).sort(), ['authorization_archive', 'dispatch_id', 'protocol', 'registered_at',
+    'registration_position', 'state', 'validation_receipt_archive']);
+  assert.equal(value.state, 'authorization_registered');
+  assert.equal(value.registration_position, 2);
+  const record = JSON.parse(f.rows().consumption[0].registration_json);
+  assert.equal(value.registered_at, record.registered_at);
+  assert.deepEqual(value.authorization_archive, record.return_record.authorization_archive);
+  assert.deepEqual(value.validation_receipt_archive, record.return_record.validation_receipt_archive);
+  assert.equal((await api.fetch(registrationRequest(f))).status, 409);
+  assert.equal(f.rows().consumption.length, 1);
+});
+
+test('controlled return cannot accept caller registration options or replace server target', async t => {
+  const f = await registrationFixture(t);
+  const api = registrationApi(f);
+  for (const additions of [{ registrationPolicy: f.policy }, { register: true }, { config_ref: f.policy.request.config_ref }]) {
+    assert.equal((await api.fetch(registrationRequest(f, additions))).status, 400);
+  }
+  assert.equal((await api.fetch(apiRequest('register'))).status, 404);
+  const wrong = structuredClone(f.policy); wrong.request.code_commit = '0'.repeat(40);
+  const denied = await registrationApi(f, wrong).fetch(registrationRequest(f));
+  assert.equal(denied.status, 409);
+  assert.deepEqual(Object.keys(await denied.json()).sort(), ['error', 'protocol']);
+  assert.equal(f.rows().consumption.length, 0);
+  assert.equal(f.rows().index.length, 1);
+});
+
+test('controlled return without registration policy preserves archive-only behavior', async t => {
+  const f = await registrationFixture(t);
+  const response = await registrationApi(f, null).fetch(registrationRequest(f));
+  assert.equal(response.status, 200);
+  const value = await response.json();
+  assert.equal(value.state, 'archived_pending_registration');
+  assert.equal(value.registration_position, undefined);
+  assert.equal(f.rows().consumption.length, 0);
+  const storage = new Proxy({}, { get() { throw new Error('disabled storage access'); } });
+  const disabled = new AuthorizationJobApi(null, null, { registrationPolicy: f.policy, storage });
+  assert.equal((await disabled.fetch(registrationRequest(f))).status, 503);
+});
+
+test('controlled registered response rechecks provenance and fresh identity after encoding', async t => {
+  for (const expired of [false, true]) {
+    const f = await registrationFixture(t);
+    const api = registrationApi(f);
+    const Original = globalThis.Response;
+    globalThis.Response = class extends Original {
+      constructor(body, options) {
+        super(body, options);
+        if (typeof body === 'string' && body.includes('"state":"authorization_registered"')) {
+          if (expired) f.state.now = (NOW + 301) * 1000;
+          else f.db.exec("DELETE FROM m12_authorization_consumptions; DELETE FROM m12_authorization_log WHERE operation='register_authorization'");
+        }
+      }
+    };
+    try {
+      const response = await api.fetch(registrationRequest(f));
+      assert.equal(response.status, 409);
+      assert.equal((await response.json()).error, 'job_not_ready');
+      assert.equal(f.rows().index.length, 2); // Commit happened; never claim it did not.
+    } finally { globalThis.Response = Original; }
+  }
+});
 
 test("job API is disabled by default without touching network or storage", async () => {
   const storage = new Proxy({}, { get() { throw new Error("storage must not be touched"); } });
@@ -2420,8 +2502,9 @@ test('recovery HTTP route stays disabled by default and rejects external epoch l
   assert.deepEqual(Object.keys(await missing.json()).sort(), ['error', 'protocol']);
 });
 
-test('journaled supervised client recovers a lost return response with a new client and no resend', { timeout: 15_000 }, async (t) => {
-  const f = apiFixture(t);
+for (const register of [false, true]) {
+test(`journaled supervised client recovers a lost ${register ? 'registered' : 'archived'} return response with a new client and no resend`, { timeout: 15_000 }, async (t) => {
+  const f = apiFixture(t, {}, register);
   const script = `
 import base64,io,json,subprocess,sys,tempfile
 from email.message import Message
@@ -2474,6 +2557,7 @@ print(json.dumps({'finished':True,'response':base64.b64encode(result).decode()})
       if (url.pathname.endsWith('/return')) {
         assert.equal(response.status, 200, await response.clone().text());
         assert.equal(recordedReturns(f).length, 1);
+        assert.equal((await response.clone().json()).state, register ? 'authorization_registered' : 'archived_pending_registration');
         lost = true;
         f.state.now = (NOW + 301) * 1000;
         f.lease.acquire('publish/global', { ...f.job, run_id: '457' }, f.leaseToken.epoch);
@@ -2489,6 +2573,8 @@ print(json.dumps({'finished':True,'response':base64.b64encode(result).decode()})
   assert.equal(paths.at(-1), '/v1/authorization/recover');
   assert.equal(finished.state, 'archived_return_verified');
   assert.equal(recordedReturns(f).length, 1);
-  assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM m12_authorization_index').get().n, 1);
+  assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM m12_authorization_index').get().n, register ? 2 : 1);
+  assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM m12_authorization_consumptions').get().n, register ? 1 : 0);
   assert.equal(JSON.parse(f.db.prepare("SELECT owner_json FROM m12_leases WHERE resource='publish/global'").get().owner_json).run_id, '457');
 });
+}

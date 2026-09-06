@@ -161,7 +161,7 @@ class RuntimeTests(unittest.TestCase):
         factory.return_value = client
         with patch.dict(os.environ, {'M12_COORDINATOR_ORIGIN': 'https://evil.example',
                                      'PYTHONPATH': '/bad', 'M12_COMMAND': 'false'}):
-            self.assertEqual(runtime.run(), 'validation_return_received_pending_registration')
+            self.assertEqual(runtime.run(), 'validation_return_received')
         args, kwargs = factory.call_args
         self.assertEqual(args[0], 'https://coordinator.example.com')
         self.assertEqual(kwargs, {'recovery_directory': self.parent / 'm12-authorization-456-1'})
@@ -175,7 +175,7 @@ class RuntimeTests(unittest.TestCase):
         first, second = Mock(recovery_id='a'*64), Mock()
         factory.side_effect = [first, second]
         execute.side_effect = RuntimeError('private payload')
-        self.assertEqual(runtime.run(), 'historical_return_verified_pending_registration')
+        self.assertEqual(runtime.run(), 'historical_return_verified')
         self.assertEqual(factory.call_count, 2)
         execute.assert_called_once_with(first)
         second.recover.assert_called_once_with('a'*64)
