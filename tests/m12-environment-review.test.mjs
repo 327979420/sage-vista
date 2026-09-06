@@ -3212,6 +3212,7 @@ print(json.dumps(fixture(commit,build_research_configuration(commit),time.time_n
     license_valid_from: f.state.now - 1000, license_valid_until: f.state.now + 300000 };
   const options = { preparationPolicy, licensePolicy, storage: f.storage, bucket: f.bucket,
     clock: f.options.clock, fetchKeys: f.options.fetchKeys };
+  const index = new MembershipObservationIndex(f.storage, { clock: f.options.clock }); index.initializeEmpty();
   const api = new DailyPreparationApi(runtimeIdentity, { ...options, enabled: true, leaseEpoch: epoch });
   const environment = { GITHUB_ACTIONS: 'true', ACTIONS_ID_TOKEN_REQUEST_URL: 'https://test.actions.githubusercontent.com/token',
     ACTIONS_ID_TOKEN_REQUEST_TOKEN: 'synthetic-credential', GITHUB_REPOSITORY: 'example/sage', GITHUB_REPOSITORY_ID: '123',
@@ -3237,7 +3238,8 @@ observation=MembershipHttpObservation(started_at=stamp,completed_at=stamp,status
 with patch('services.market_data.membership_collection.observe_active_us_symbols',return_value=observation) as supplier:
  collected=collect_membership(prepared['as_of'],authorize=client.authorize,archive=client)
  assert supplier.call_count==1
-print(json.dumps({'done':{'as_of':collected.parsed.as_of,'members':len(collected.parsed.included),'observation_key':collected.observation_key,'failure':collected.failure}}),flush=True)`;
+registered=client.register_membership(collected.observation_key,collected.observation_sha256)
+print(json.dumps({'done':{'registered':registered,'as_of':collected.parsed.as_of,'members':len(collected.parsed.included),'observation_key':collected.observation_key,'failure':collected.failure}}),flush=True)`;
   const child = spawn('python3', ['-B', '-u', '-c', script], { cwd: new URL('..', import.meta.url), stdio: ['pipe', 'pipe', 'pipe'] });
   t.after(() => { if (child.exitCode === null) child.kill(); });
   let stderr = '', done;
@@ -3266,36 +3268,13 @@ print(json.dumps({'done':{'as_of':collected.parsed.as_of,'members':len(collected
   assert.equal(done.members, 1);
   assert.equal(done.as_of, e.as_of);
   assert.ok(f.objects.has(done.observation_key));
-  assert.deepEqual([...new Set(paths)], ['/v1/preparation/prepare', '/v1/preparation/return', '/v1/membership/permit', '/v1/membership/put', '/v1/membership/read']);
-  assert.equal(paths.filter(path => path.endsWith('/prepare')).length, 1);
-  assert.equal(paths.filter(path => path.endsWith('/return')).length, 1);
-  // Explicit synthetic empty migration; production setup is not installed.
-  const index = new MembershipObservationIndex(f.storage, { clock: f.options.clock }); index.initializeEmpty();
-  f.state.now = Date.now();
-  const now = Math.floor(f.state.now / 1000);
-  const currentToken = token({ sha: e.code_commit, iat: now - 30, nbf: now - 30, exp: now + 300 });
-  const original = f.objects.get(done.observation_key);
-  const descriptor = { key: done.observation_key, sha256: sha(original), size_bytes: original.length };
-  const session = new MembershipRegistrationSession(runtimeIdentity, options);
-  const sent = await session.prepare(currentToken, descriptor);
-  const input = sent.input_bytes;
-  const validated = spawnSync('python3', ['-B', '-c', `import sys,json
-from services.publication.preparation_execution import execute_membership_validation
-sys.stdout.buffer.write(execute_membership_validation(sys.stdin.buffer.read()))`],
-    { input: Buffer.from(input), encoding: 'utf8', cwd: new URL('..', import.meta.url), timeout: 30000 });
-  assert.equal(validated.status, 0, validated.stderr);
-  const result = JSON.parse(validated.stdout);
-  assert.equal(result.input_sha256, sha(input));
-  assert.equal(result.membership_registration.member_count, 1);
-  assert.deepEqual(result.membership_registration.candidate_archive, descriptor);
-  assert.equal(result.membership_registration.expected_index.revision, 0);
-  assert.equal(f.db.prepare('SELECT revision FROM m12_membership_head').get().revision, 0);
-  f.state.now = Date.now();
-  const registered = await session.accept(currentToken, sent.input_archive.sha256, Buffer.from(validated.stdout));
-  assert.equal(registered.current_index.revision, 1);
-  assert.deepEqual(registered.current_index.head, descriptor);
-  const reopened = new MembershipRegistrationSession(runtimeIdentity, options);
-  assert.deepEqual(await reopened.accept(currentToken, sent.input_archive.sha256, Buffer.from(validated.stdout)), registered);
+  assert.deepEqual([...new Set(paths)], ['/v1/preparation/prepare', '/v1/preparation/return', '/v1/membership/permit', '/v1/membership/put', '/v1/membership/read', '/v1/membership/registration/prepare', '/v1/membership/registration/return']);
+  assert.equal(paths.filter(path => path.endsWith('/prepare')).length, 2);
+  assert.equal(paths.filter(path => path.endsWith('/return')).length, 2);
+  assert.equal(done.registered.current_index.revision, 1);
+  assert.equal(done.registered.current_index.head.key, done.observation_key);
+  assert.equal(f.db.prepare('SELECT revision FROM m12_membership_head').get().revision, 1);
+  assert.equal(f.db.prepare('SELECT count(*) AS n FROM m12_membership_returns').get().n, 1);
 });
 
 async function membershipReadbackFixture(t) {
@@ -3622,6 +3601,96 @@ if (process.env.SAGE_M12_MIDNIGHT_TEST === '1') {
     const child = spawnSync(process.execPath, ['--test', '--test-reporter=tap', '--test-name-pattern=^membership midnight', new URL(import.meta.url).pathname], {
       env: childEnv, encoding: 'utf8', timeout: 20000 });
     assert.equal(child.status, 0, child.stdout + child.stderr);
-    assert.match(child.stdout, /# pass 3/);
+    assert.match(child.stdout, /# pass 4/);
+  });
+}
+
+
+async function membershipRegistrationApiFixture(t) {
+  const f = await membershipSessionFixture(t);
+  const licensePolicy = Object.fromEntries(['purpose', 'license_archive', 'license_valid_from', 'license_valid_until'].map(k => [k, f.acquisitionPolicy[k]]));
+  const api = new DailyPreparationApi(identityPolicy, { ...f.useOptions, licensePolicy, enabled: true, leaseEpoch: f.handle.epoch });
+  const protocol = 'm12-membership-registration/1';
+  const request = (operation, value, jwt = token()) => new Request('https://coordinator.invalid/v1/membership/registration/' + operation,
+    { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + jwt }, body: f.bytes(value).toString().trimEnd() });
+  const prepare = { protocol, candidate_archive: f.candidate };
+  const returned = { protocol, input_sha256: f.sent.input_archive.sha256, result_base64: f.bytes().toString('base64') };
+  return { ...f, api, protocol, request, prepare, returned };
+}
+
+test('daily registration API binds fixed requests and never exposes append', async t => {
+  const f = await membershipRegistrationApiFixture(t);
+  for (const value of [{}, { ...f.prepare, lease_token: f.handle }, { ...f.prepare, expected_index: {} }]) {
+    assert.equal((await f.api.fetch(f.request('prepare', value))).status, 400);
+  }
+  assert.equal((await f.api.fetch(f.request('append', f.prepare))).status, 404);
+  assert.equal((await f.api.fetch(f.request('prepare', f.prepare, 'unsigned'))).status, 401);
+  assert.equal((await f.api.fetch(f.request('prepare', f.prepare, token({ actor_id: '790' })))).status, 401);
+  assert.equal((await f.api.fetch(f.request('return', { ...f.returned, result_base64: 'YQ===' }))).status, 400);
+  assert.equal((await f.api.fetch(f.request('prepare', f.prepare, token({ run_id: '457' })))).status, 409);
+  const disabled = new DailyPreparationApi(null);
+  assert.equal((await disabled.fetch(f.request('prepare', f.prepare))).status, 503);
+  assert.equal(f.count('m12_membership_index'), 0);
+});
+
+test('daily registration API sends actual persisted bytes and rechecks exact registered receipts', async t => {
+  const f = await membershipRegistrationApiFixture(t);
+  const prepared = await f.api.fetch(f.request('prepare', f.prepare));
+  assert.equal(prepared.status, 200, await prepared.clone().text());
+  const value = await prepared.json();
+  assert.deepEqual(Buffer.from(value.input_base64, 'base64'), Buffer.from(f.sent.input_bytes));
+  assert.equal(value.input_sha256, f.sent.input_archive.sha256);
+  const result = await f.api.fetch(f.request('return', f.returned));
+  assert.equal(result.status, 200, await result.clone().text());
+  const receipt = await result.json();
+  assert.equal(receipt.current_index.revision, 1);
+  assert.deepEqual(Object.keys(receipt).sort(), ['current_index', 'input_sha256', 'output_archive', 'protocol']);
+  assert.deepEqual(await (await f.api.fetch(f.request('return', f.returned))).json(), receipt);
+  assert.equal(f.count('m12_membership_index'), 1);
+});
+
+test('daily registration API fails if original input or registered pairs disappear during response encoding', async t => {
+  for (const operation of ['prepare', 'return']) {
+    const f = await membershipRegistrationApiFixture(t), original = JSON.stringify;
+    const request = f.request(operation, operation === 'prepare' ? f.prepare : f.returned);
+    let hit = false;
+    JSON.stringify = (value, ...args) => {
+      const result = original(value, ...args);
+      if (value?.protocol === f.protocol && (operation === 'prepare' ? value.input_base64 : value.current_index)) {
+        hit = true;
+        if (operation === 'prepare') f.objects.delete(f.sent.input_archive.key);
+        else { f.db.exec('DELETE FROM m12_membership_returns'); f.db.exec('DELETE FROM m12_membership_return_log'); }
+      }
+      return result;
+    };
+    let result;
+    try { result = await f.api.fetch(request); }
+    finally { JSON.stringify = original; }
+    assert.equal(hit, true); assert.equal(result.status, 409);
+    assert.equal(f.count('m12_membership_returns'), 0); // Post-encoding checks must not recreate a lost pair.
+  }
+});
+
+if (process.env.SAGE_M12_MIDNIGHT_TEST === '1') {
+  test('membership midnight API cannot send usable prepare or return after response encoding crosses day', async t => {
+    for (const operation of ['prepare', 'return']) {
+      const f = await membershipRegistrationApiFixture(t), original = JSON.stringify;
+      const request = f.request(operation, operation === 'prepare' ? f.prepare : f.returned);
+      let hit = false;
+      JSON.stringify = (value, ...args) => {
+        const result = original(value, ...args);
+        if (value?.protocol === f.protocol && (operation === 'prepare' ? value.input_base64 : value.current_index)) {
+          hit = true; f.state.now += 1000;
+        }
+        return result;
+      };
+      let result;
+      try { result = await f.api.fetch(request); }
+      finally { JSON.stringify = original; }
+      assert.equal(hit, true); assert.equal(result.status, 409);
+      // A transaction already committed BEFORE midnight remains history; it
+      // does not authorize a successful HTTP response after midnight.
+      assert.equal(f.count('m12_membership_index'), operation === 'return' ? 1 : 0);
+    }
   });
 }

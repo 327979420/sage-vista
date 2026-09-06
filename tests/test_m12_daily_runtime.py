@@ -86,11 +86,13 @@ class DailyRuntimeTests(unittest.TestCase):
                 events.append('client'); self.origin = origin
             def prepare_and_validate(self): events.append('prepare'); return {'as_of': '2026-09-06'}
             def authorize(self, **_): raise AssertionError('test collector is replaced')
+            def register_membership(self, key, digest):
+                events.append('register'); assert key == 'observed' and digest == 'hash'
         def collect(as_of, *, authorize, archive):
             events.append('collect')
             self.assertEqual(as_of, '2026-09-06')
             self.assertIsInstance(archive, Client)
-            return SimpleNamespace(failure=None, parsed=object())
+            return SimpleNamespace(failure=None, parsed=object(), observation_key='observed', observation_sha256='hash')
         flags = SimpleNamespace(**{key: getattr(sys.flags, key) for key in dir(sys.flags) if not key.startswith('_') and isinstance(getattr(sys.flags, key), int)})
         flags.isolated = 1
         env = {**environment(module.ROOT), 'EODHD_API_TOKEN': 'synthetic-only'}
@@ -99,8 +101,8 @@ class DailyRuntimeTests(unittest.TestCase):
              patch.object(module.sys, 'flags', flags), patch.object(module.sys, 'version_info', (3, 12, 12)), \
              patch.dict(module.os.environ, env, clear=True), patch.object(module.runpy, 'run_path'), \
              patch.object(daily_transport, 'DailyPreparationTransport', Client), patch.object(membership_collection, 'collect_membership', side_effect=collect):
-            self.assertEqual(module.run(), 'daily_membership_archived_not_formal')
-        self.assertEqual(events, ['checkout', 'client', 'prepare', 'checkout', 'collect', 'checkout'])
+            self.assertEqual(module.run(), 'daily_membership_registered_not_formal')
+        self.assertEqual(events, ['checkout', 'client', 'prepare', 'checkout', 'collect', 'checkout', 'register', 'checkout'])
 
 
 if __name__ == '__main__': unittest.main()

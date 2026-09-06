@@ -94,7 +94,9 @@ def run():
     _checkout(env)
     if collected.failure is not None or collected.parsed is None:
         raise DailyRuntimeError('daily membership incomplete')
-    return 'daily_membership_archived_not_formal'
+    client.register_membership(collected.observation_key, collected.observation_sha256)
+    _checkout(env)
+    return 'daily_membership_registered_not_formal'
 
 
 def main():

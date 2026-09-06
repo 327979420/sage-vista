@@ -151,7 +151,24 @@ export class MembershipRegistrationSession {
     }
     return result;
   }
-  async accept(token, inputHash, resultBytes) {
+  async verifyPrepared(token, inputHash) {
+    this.#enabled();
+    const identity = await this.#verifier.verify(token), record = this.#pair('input', inputHash);
+    if (record.input_archive.sha256 !== inputHash) throw new Error('membership_session_input_mismatch');
+    this.#guard(record, identity, this.#index.readCurrent(record.identity, record.selection.lease_token, this.#resource));
+    const raw = await this.#read(record.input_archive), input = parse(raw);
+    const fresh = await this.#fresh(token, record, input, input.expected_index);
+    return this.#commit(record, fresh, () => {
+      if (!same(record, this.#pair('input', inputHash))) throw new Error('membership_session_records_changed');
+      this.#guard(record, fresh, input.expected_index);
+      return structuredClone(record.input_archive);
+    });
+  }
+  accept(token, inputHash, resultBytes) { return this.#accept(token, inputHash, resultBytes, null); }
+  verifyRegistered(token, inputHash, resultBytes, receipt) {
+    return this.#accept(token, inputHash, resultBytes, structuredClone(receipt));
+  }
+  async #accept(token, inputHash, resultBytes, requiredReceipt) {
     this.#enabled();
     if (!(resultBytes instanceof Uint8Array) || !resultBytes.length || resultBytes.length > 65536) {
       throw new Error('membership_session_result_invalid');
@@ -167,6 +184,7 @@ export class MembershipRegistrationSession {
       throw new Error('membership_session_input_mismatch');
     }
     const prior = this.#pair('return', inputHash, true);
+    if (requiredReceipt !== null && !same(requiredReceipt, prior)) throw new Error('membership_session_return_changed');
     const expected = prior ? prior.current_index : input.expected_index;
     await this.#fresh(token, record, input, expected);
     const result = this.#result(record, input, raw, frozen), fingerprint = await hash(frozen);

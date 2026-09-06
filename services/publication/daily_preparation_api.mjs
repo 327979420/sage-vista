@@ -3,12 +3,21 @@ import { GitHubIdentityVerifier } from './identity.mjs';
 import { LeaseStore } from './leases.mjs';
 import { PreparationValidationSession } from './preparation_session.mjs';
 import { MembershipArchiveApi } from './membership_api.mjs';
+import { MembershipRegistrationSession } from './membership_session.mjs';
 import { body, base64, response } from './job_wire.mjs';
 
 const PROTOCOL = 'm12-daily-preparation/1';
 const canonical = value => Array.isArray(value) ? value.map(canonical) : value && typeof value === 'object' ?
   Object.fromEntries(Object.keys(value).sort().map(key => [key, canonical(value[key])])) : value;
 const same = (a, b) => JSON.stringify(canonical(a)) === JSON.stringify(canonical(b));
+
+const REGISTRATION = 'm12-membership-registration/1';
+function resultBytes(value) {
+  if (typeof value.result_base64 !== 'string' || value.result_base64.length > 4 * Math.ceil(65536 / 3)) throw new Error('size');
+  const binary = atob(value.result_base64);
+  if (!binary.length || binary.length > 65536 || btoa(binary) !== value.result_base64) throw new Error('encoding');
+  return Uint8Array.from(binary, c => c.charCodeAt(0));
+}
 
 export class DailyPreparationApi {
   #enabled;
@@ -42,7 +51,8 @@ export class DailyPreparationApi {
     if (!this.#enabled) return fail(503, 'daily_preparation_disabled');
     const url = new URL(request.url);
     const member = ['/v1/membership/permit', '/v1/membership/put', '/v1/membership/read'].includes(url.pathname);
-    if ((!member && !['/v1/preparation/prepare', '/v1/preparation/return'].includes(url.pathname)) || url.search || url.hash) return fail(404, 'route_unavailable');
+    const registration = ['/v1/membership/registration/prepare', '/v1/membership/registration/return'].includes(url.pathname);
+    if ((!member && !registration && !['/v1/preparation/prepare', '/v1/preparation/return'].includes(url.pathname)) || url.search || url.hash) return fail(404, 'route_unavailable');
     if (request.method !== 'POST') return fail(405, 'method_not_allowed');
     const auth = request.headers.get('Authorization') ?? '';
     if (!auth.startsWith('Bearer ') || auth.length > 65543) return fail(401, 'unauthorized');
@@ -51,6 +61,7 @@ export class DailyPreparationApi {
     try { identity = await this.#identity.verify(token); }
     catch { return fail(401, 'unauthorized'); }
     if (identity.actor_id !== this.#policy.actor_id) return fail(401, 'unauthorized');
+    if (registration) return this.#registration(request, token);
     if (member) {
       try {
         if (this.#license === null) throw new Error('license not configured');
@@ -67,12 +78,7 @@ export class DailyPreparationApi {
     try {
       value = await body(request, preparing ? 256 : 131072);
       if (value.protocol !== PROTOCOL || Object.keys(value).sort().join() !== (preparing ? 'protocol' : 'input_sha256,lease_token,protocol,result_base64')) throw new Error('fields');
-      if (!preparing) {
-        if (typeof value.result_base64 !== 'string' || value.result_base64.length > 4 * Math.ceil(65536 / 3)) throw new Error('size');
-        const binary = atob(value.result_base64);
-        if (!binary.length || binary.length > 65536 || btoa(binary) !== value.result_base64) throw new Error('encoding');
-        raw = Uint8Array.from(binary, c => c.charCodeAt(0));
-      }
+      if (!preparing) raw = resultBytes(value);
     } catch { return fail(400, 'request_invalid'); }
     try {
       if (preparing) {
@@ -106,4 +112,33 @@ export class DailyPreparationApi {
       return result;
     } catch { return fail(409, 'daily_preparation_not_ready'); }
   }
+
+  async #registration(request, token) {
+    const fail = (status, error) => response({ protocol: REGISTRATION, error }, status);
+    const preparing = new URL(request.url).pathname.endsWith('/prepare');
+    let value, raw;
+    try {
+      value = await body(request, preparing ? 1024 : 131072);
+      if (value.protocol !== REGISTRATION || Object.keys(value).sort().join() !==
+          (preparing ? 'candidate_archive,protocol' : 'input_sha256,protocol,result_base64')) throw new Error('fields');
+      if (!preparing) raw = resultBytes(value);
+    } catch { return fail(400, 'request_invalid'); }
+    try {
+      const session = new MembershipRegistrationSession(this.#identityPolicy, { ...this.#dependencies,
+        preparationPolicy: this.#policy, licensePolicy: this.#license });
+      if (preparing) {
+        const sent = await session.prepare(token, value.candidate_archive);
+        const result = response({ protocol: REGISTRATION, input_sha256: sent.input_archive.sha256,
+          input_size_bytes: sent.input_archive.size_bytes, input_base64: base64(sent.input_bytes) });
+        if (!same(sent.input_archive, await session.verifyPrepared(token, sent.input_archive.sha256))) throw new Error('input changed');
+        return result;
+      }
+      const accepted = await session.accept(token, value.input_sha256, raw);
+      const result = response({ protocol: REGISTRATION, input_sha256: accepted.input_sha256,
+        output_archive: accepted.output_archive, current_index: accepted.current_index });
+      if (!same(accepted, await session.verifyRegistered(token, value.input_sha256, raw, accepted))) throw new Error('return changed');
+      return result;
+    } catch { return fail(409, 'membership_registration_not_ready'); }
+  }
+
 }

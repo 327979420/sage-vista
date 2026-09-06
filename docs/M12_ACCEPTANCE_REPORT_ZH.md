@@ -1271,3 +1271,16 @@ PYTHONDONTWRITEBYTECODE=1 node --test --test-reporter=spec --test-name-pattern='
 PYTHONDONTWRITEBYTECODE=1 node --test --test-name-pattern='daily client integrates|membership registration original day|membership registration midnight' tests/m12-environment-review.test.mjs
 PYTHONDONTWRITEBYTECODE=1 python3 -W error::ResourceWarning -m unittest tests.test_rulebook_contract tests.test_project_status
 ```
+
+
+## C2g｜每日认证通道、Python客户端及禁用runner登记接线（待阶段独立审核）
+
+审核任务确认C2f阶段及午夜P2关闭：原审核脚本0.975秒通过，3顶层Node（含3午夜子项）7.277秒、19治理0.012秒通过；结合前轮33项证据，f1bce48..6d3b43f内部阶段独立PASS，不累加重复次数。审核任务已普通同步工作分支6d3b43f2e1aeb81da3613c6e3486f6b5f6754687，main14fef535不动，原失败证据保留。
+
+C2g在既有DailyPreparationApi加入封闭/v1/membership/registration/prepare与return，沿用原JWT／actor／原选择／固定许可；不公开append或调用方源列表。prepare先保存实际输入再编码，随后核原输入原件／配对与当前来源；return编码后再读回已登记固定回执且要求原回执仍存在，不允许丢失返回对后重建成功。全事务纽约日界、原身份及租约守门保持。响应编码之后过期或缺件返回409；若事务此前合法完成，保留原成功历史，HTTP失败不抹掉它，也不把响应失败当作未写入。
+
+Python每日客户端保存最后实际成功归档描述符，候选必须匹配该原件；收到服务器输入核hash／长度、唯一成员字节合同、当前执行身份及原准备目标，再运行原execute_membership_validation固定进程。回传绑定实际输出hash／长度，精确核服务器回执及其CAS后的根（仅核回执投影，客户端不执行CAS）。每请求新凭证，无自动重试；坏输入、固定worker失败、错回执或不确定响应均关闭客户端，不能继续采集或自报成功。默认禁用daily runner在原采集成功后调用登记并再次核源，返回daily_membership_registered_not_formal；原配置、工作流禁用与生产入口边界未改变。
+
+先行4个顶层Node通过7.608秒（3新API＋午夜组，组内原3项及新编码跨日共4项）；14个Python客户端／runtime通过1.002秒。初次新API夹具未按既有canonical JSON编码而被400拒绝，已修夹具不改body校验；新Python成员输入夹具subject原为synthetic，改成与其测试Actions环境一致，未改身份守门。定点eslint、diff通过。实际跨语言正向须新services源码提交后再跑，尚不提前宣布通过。
+
+本包父6d3b43f，回退撤销两个新协议路由与新客户端／runner调用即可，保留已登记原件／日志；无需重写股票池或旧历史。不新建云资源／真实许可实例、不调用真实供应商、不合并main、部署、启用或通知。全历史32MiB输入／64KiB固定返回容量尚未验收，不裁剪；全M02 formal价格、业务链／跨日生产E2E仍未运行。价格卡v0.2保持design_review，无材料就不扩写或真实请求。
