@@ -501,3 +501,24 @@ AuthorizationStore新增readValidationDispatch(identity,token,dispatchId)，先�
 本包继承B3e信任边界：实际固定工作流对服务端原输入执行唯一Python命令并原样回传的接线尚未完成，身份认证不等于独立执行证明。归档成功不证明该缺口已关闭，也不产生生效权限；当前没有公开HTTP入口、真实工作流运行、授权索引追加或票据消费。最终入口必须内部调用完整验证／归档路径，再检查当时身份／授权、业务目标/config、lease／head和票据前态，同事务消费票据并追加索引／日志。不能在本包之后仅凭对象存在或调用方返回JSON放行。真实平台配置、最大输入规模和跨日端到端仍待后续，M11不重审。
 
 独立提交`feat: archive M12 authorization validation originals [skip ci]`，父提交4d9e81547df972184c0aaa7d2cb73f7828b40556，完整SHA见交付消息。仅新增内部归档组合器、扩展现有环境专项测试及3个治理文档；无业务合同／政策版本变化，可撤回本包接点并保留历史，无真实数据迁移。未合并、推送、创建云资源、部署、生产启用或对外通知。
+
+
+## B3f独立复核回传
+
+审核对话01a074f9-098a-7b82-b486-3185683290fe确认5b2e8f3b48cea7cb5584cea1b106b6eea1f37ecd在内部授权／验证收据原件归档及最终读回范围无阻断。审核员逐段读取5文件，自行运行78项环境取证／跨语言Node及19项治理／状态，共97项通过；确认自身验证后写入、raw收据、两次条件写后读回及两次独立最终读回、返回实际存储字节、每阶段当前状态重查。故障孤立对象不能推断登记，同键异字节保留原件并拒绝；diff通过、HEAD不变、工作区干净。固定工作流实际执行前提仍未接线，归档不等于权限生效。
+
+## B3g：固定Python验证任务执行器（待独立审核）
+
+固定执行接线拆成可独立审核的小包，本包先完成执行核心，真实通道和受保护工作流随后接入。新增services/publication/authorization_execution.py的execute_authorization_validation(transport)，内部通道仅提供prepare()和return_result(dispatch_id,lease_token,result_bytes)。prepare返回精确`{dispatch_id,lease_token,input_sha256,input_size_bytes,input_bytes}`，input_bytes必须为不可变bytes，令牌精确epoch／fence；复制准备对象，核对摘要／长度／UUID／整数并将令牌绑定输入票据的epoch／fence。该结构是内部通道交接，不新增外部HTTP合同或可触发工作流。
+
+执行器只有transport参数，没有自选输入、验证函数、命令、可执行文件或成功stdout参数。正文由B3c的真实唯一合同路径处理：从authorization_validation.py提取authorization_validation_output(raw)，CLI main和固定执行器共用同一个输出函数，实际执行validate_authorization_input并按原B3c规范输出两份base64产物及单个换行。CLI成功／失败stdout格式不变。执行器把该输出原字节、原dispatch_id及原lease_token直接交return_result，不在调用方重建收据、改写输出或额外计算业务规则。
+
+准备、字节／合同验证或回传异常均向调用方传播，不生成替代失败收据、不自动重发，特别是回传响应丢失不能自行再次提交。返回值只保留通道原始响应bytes，不解读为授权生效；字典形式的“成功声明”被拒绝。服务端是否已收件、归档或登记，仍须后续真实通道的权威响应与状态恢复规则处理。
+
+### B3g实际检查及后续前提
+
+7项新增专项使用实际B3d输入和Python固定执行函数，核对传给通道的stdout与B3c命令输出一致，再将这些真实执行字节交B3f内部适配器验证／归档；还覆盖字段／摘要／长度／令牌篡改、可变bytes拒绝、重算摘要后仍无效的原件／历史／票据、禁止覆盖执行函数／命令／成功产物、过期计算停止、准备失败／回传不确定仅单次调用以及原始响应不冒充授权结论。85项环境取证／跨语言Node、7项治理和12项状态共104项通过；定点lint、机器状态／文档链接和diff检查通过。既有B3c实际模块stdin/stdout测试继续通过；合同规则和存储／租约实现未变，不重复其无变化整套测试。
+
+这里的transport是受信运行适配器依赖，当前测试使用内存通道并仅注入本地时钟；它不认证任意调用方自制的transport，也没有执行真实GitHub任务或网络往返。下一包仍必须实现受控认证通道、固定来源获取、及时续租及错误恢复，再将唯一执行入口接入冻结checkout和受保护工作流；不能向用户暴露替换transport／输入／执行代码的参数，也不能把本包调用成功视作实际工作流执行前提已关闭。此前OIDC／固定workflow政策只能认证身份的限制仍保留。
+
+最终权限／业务目标/config检查及同事务票据消费／索引追加继续后续，本包不增加授权登记或生产许可。跨日端到端仍未执行，M11不重审。独立提交`feat: execute M12 validation through the fixed Python path [skip ci]`，父提交5b2e8f3b48cea7cb5584cea1b106b6eea1f37ecd，完整SHA见交付消息。仅新增内部固定执行器、提取现有命令共同输出函数、扩展现有环境专项测试及3个治理文档；无业务合同／政策版本变化，可撤回本包接点并保留历史。未合并、推送、创建云资源、部署、生产启用或对外通知。

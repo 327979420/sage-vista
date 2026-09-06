@@ -1344,3 +1344,120 @@ test("later valid revalidation reuses authorization bytes and preserves both val
   assert.ok(f.objects.has(second.validation_receipt_archive.key));
   assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_index").get().n, 1);
 });
+
+function executePythonJob(f, changes = {}) {
+  const script = `
+import base64, json, sys
+from unittest.mock import patch
+from services.contracts.validation import ContractError
+from services.publication.authorization_execution import execute_authorization_validation
+v=json.load(sys.stdin)
+prepared=v['prepared']
+prepared['input_bytes']=base64.b64decode(prepared['input_bytes'])
+if v.get('mutable_input'): prepared['input_bytes']=bytearray(prepared['input_bytes'])
+for name in v.get('drop',[]): prepared.pop(name, None)
+calls=[]
+class Transport:
+    def prepare(self):
+        calls.append('prepare')
+        if v.get('prepare_error'): raise RuntimeError('prepare transport failure')
+        return prepared
+    def return_result(self, dispatch_id, lease_token, result_bytes):
+        calls.append({'dispatch_id':dispatch_id,'lease_token':lease_token,'result_bytes':base64.b64encode(result_bytes).decode('ascii')})
+        if v.get('return_error'): raise RuntimeError('return response lost')
+        return {'claimed_success':True} if v.get('bad_response') else b'opaque-server-response'
+try:
+    with patch('time.time_ns', return_value=v['now_ms']*1000000):
+        response=execute_authorization_validation(Transport(), **v.get('kwargs',{}))
+    print(json.dumps({'ok':True,'response':base64.b64encode(response).decode('ascii'),'calls':calls}))
+except (ContractError, RuntimeError, TypeError) as exc:
+    if isinstance(exc, TypeError) and not v.get('kwargs'): raise
+    print(json.dumps({'ok':False,'error':str(exc),'calls':calls}))
+`;
+  const prepared = { dispatch_id: f.sent.dispatch.dispatch_id, lease_token: f.leaseToken,
+    input_sha256: sha(f.sent.input_bytes), input_size_bytes: f.sent.input_bytes.length,
+    input_bytes: Buffer.from(f.sent.input_bytes).toString("base64"), ...changes.prepared };
+  const result = spawnSync("python3", ["-c", script], { input: JSON.stringify({ ...changes, prepared, now_ms: changes.now_ms ?? NOW * 1000 }),
+    encoding: "utf-8", cwd: new URL("..", import.meta.url) });
+  assert.equal(result.status, 0, result.stderr);
+  return JSON.parse(result.stdout);
+}
+
+test("fixed executor takes transport bytes through the real single Python output path and B3f accepts them", async (t) => {
+  const f = await validationArchiveFixture(t);
+  const executed = executePythonJob(f);
+  assert.equal(executed.ok, true, executed.error);
+  assert.equal(executed.calls[0], "prepare");
+  assert.equal(executed.calls.length, 2);
+  const sent = executed.calls[1];
+  assert.equal(sent.dispatch_id, f.sent.dispatch.dispatch_id);
+  assert.deepEqual(sent.lease_token, f.leaseToken);
+  const output = Buffer.from(sent.result_bytes, "base64");
+  assert.deepEqual(output, f.resultBytes());
+  const archived = await f.archiveValidation(token(), output);
+  assert.equal(Buffer.from(archived.authorization_bytes).toString("base64"), f.python.authorization_bytes);
+  assert.equal(Buffer.from(executed.response, "base64").toString(), "opaque-server-response");
+});
+
+test("fixed executor rejects missing, extra or altered transport input and lease before return", async (t) => {
+  const f = await validationArchiveFixture(t);
+  for (const changes of [{ drop: ["input_sha256"] }, { prepared: { extra: true } }, { prepared: { input_size_bytes: true } },
+    { prepared: { input_sha256: "sha256:" + "0".repeat(64) } }, { mutable_input: true },
+    { prepared: { dispatch_id: "not-a-dispatch" } }, { prepared: { lease_token: { ...f.leaseToken, fence: true } } },
+    { prepared: { lease_token: { ...f.leaseToken, fence: f.leaseToken.fence + 1 } } },
+    { prepared: { lease_token: { ...f.leaseToken, epoch: "22222222-2222-4222-8222-222222222222" } } }]) {
+    const result = executePythonJob(f, changes);
+    assert.equal(result.ok, false);
+    assert.deepEqual(result.calls, ["prepare"]);
+  }
+});
+
+test("self-consistent transport hashes cannot bypass actual archive, history and ticket validation", async (t) => {
+  const f = await validationArchiveFixture(t);
+  for (const change of [(v) => { v.history_base64 = []; }, (v) => { v.approval_archive.objects = {}; },
+    (v) => { v.validation_ticket.owner_job.run_id = "457"; }, (v) => { v.protocol = "other"; }]) {
+    const input = JSON.parse(Buffer.from(f.sent.input_bytes)); change(input);
+    const bytes = Buffer.from(JSON.stringify(input));
+    const result = executePythonJob(f, { prepared: { input_bytes: bytes.toString("base64"), input_sha256: sha(bytes), input_size_bytes: bytes.length } });
+    assert.equal(result.ok, false);
+    assert.deepEqual(result.calls, ["prepare"]);
+  }
+});
+
+test("fixed execution cannot substitute a validator, executable or caller-provided success bytes", async (t) => {
+  const f = await validationArchiveFixture(t);
+  for (const kwargs of [{ validator: "accept_all" }, { command: "true" }, { result_bytes: "valid" }, { input_bytes: "{}" }]) {
+    const result = executePythonJob(f, { kwargs });
+    assert.equal(result.ok, false);
+    assert.deepEqual(result.calls, []);
+  }
+});
+
+test("fixed execution stops before submitting expired validation and never fabricates a failure receipt", async (t) => {
+  const f = await validationArchiveFixture(t);
+  const result = executePythonJob(f, { now_ms: claims.exp * 1000 });
+  assert.equal(result.ok, false);
+  assert.match(result.error, /frozen time window/);
+  assert.deepEqual(result.calls, ["prepare"]);
+});
+
+test("prepare and uncertain return failures propagate without automatic resubmission", async (t) => {
+  const f = await validationArchiveFixture(t);
+  for (const changes of [{ prepare_error: true }, { return_error: true }]) {
+    const result = executePythonJob(f, changes);
+    assert.equal(result.ok, false);
+    assert.equal(result.calls.length, changes.prepare_error ? 1 : 2);
+    assert.match(result.error, /transport failure|response lost/);
+  }
+});
+
+test("transport response stays opaque bytes and cannot become a claimed authorization success", async (t) => {
+  const f = await validationArchiveFixture(t);
+  const valid = executePythonJob(f);
+  assert.equal(valid.ok, true);
+  assert.equal(Buffer.from(valid.response, "base64").toString(), "opaque-server-response");
+  const invalid = executePythonJob(f, { bad_response: true });
+  assert.equal(invalid.ok, false);
+  assert.equal(invalid.calls.length, 2);
+  assert.match(invalid.error, /raw bytes/);
+});

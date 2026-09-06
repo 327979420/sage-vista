@@ -70,15 +70,21 @@ def validate_authorization_input(raw: bytes, *, clock: Callable[[], int] = lambd
     return {"receipt_bytes": _bytes(receipt), "authorization_bytes": authorization_bytes}
 
 
+def authorization_validation_output(raw: bytes) -> bytes:
+    """The single stdout encoding used by both the CLI and the fixed job."""
+    result = validate_authorization_input(raw)
+    return _bytes({key.replace("_bytes", "_base64"): base64.b64encode(value).decode("ascii")
+                   for key, value in result.items()}) + b"\n"
+
+
 def main() -> int:
     try:
-        result = validate_authorization_input(sys.stdin.buffer.read())
+        output = authorization_validation_output(sys.stdin.buffer.read())
     except ContractError:
         # Do not echo private request bytes or provide a success-shaped failure.
         print("authorization validation failed", file=sys.stderr)
         return 1
-    sys.stdout.buffer.write(_bytes({key.replace("_bytes", "_base64"): base64.b64encode(raw).decode("ascii")
-                                   for key, raw in result.items()}) + b"\n")
+    sys.stdout.buffer.write(output)
     return 0
 
 
