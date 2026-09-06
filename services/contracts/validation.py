@@ -122,6 +122,7 @@ ID_FIELDS = {
     "PortfolioRun": "portfolio_run_id",
     "ResearchAggregate": "research_aggregate_id",
     "ReleaseManifest": "release_id",
+    "SourceInventory": "inventory_id",
     "ExperimentRun": "experiment_id",
 }
 
@@ -250,9 +251,13 @@ def validate_contract(
     *,
     known_experiment_ids: AbstractSet[str] | None = None,
     allow_partial_manifest: bool = False,
+    source_inventory_evidence: Mapping[str, Any] | None = None,
 ) -> None:
     """Validate one canonical contract and fail closed on unknown evidence."""
 
+    if contract_name == "SourceInventory":
+        _validate_source_inventory(payload, source_inventory_evidence)
+        return
     if contract_name not in CONTRACT_REQUIRED:
         raise ContractError(f"unknown contract: {contract_name}")
     if not isinstance(payload, Mapping):
@@ -1122,13 +1127,19 @@ def validate_contract(
             raise ContractError("release_id does not match canonical manifest entries")
 
 
-def validate_contracts(items: Iterable[tuple[str, Mapping[str, Any]]]) -> None:
+def validate_contracts(
+    items: Iterable[tuple[str, Mapping[str, Any]]],
+    *,
+    source_inventory_evidence: Mapping[str, Any] | None = None,
+) -> None:
     """Validate a collection, including stable-ID and event uniqueness rules."""
 
     seen_ids: set[tuple[str, str]] = set()
     opportunity_keys: set[tuple[str, str, str]] = set()
     for contract_name, payload in items:
-        validate_contract(contract_name, payload)
+        validate_contract(
+            contract_name, payload, source_inventory_evidence=source_inventory_evidence
+        )
         stable_id_field = _stable_id_field(contract_name, payload)
         identity = (contract_name, str(payload[stable_id_field]))
         if identity in seen_ids:
@@ -1146,3 +1157,120 @@ def validate_contracts(items: Iterable[tuple[str, Mapping[str, Any]]]) -> None:
             if key in opportunity_keys:
                 raise ContractError("same event root produced two opportunity events")
             opportunity_keys.add(key)
+
+
+# M12 inventory validation lives at the same public contract boundary as M01–M11.
+# Evidence is an injected, lock-frozen trusted index, NEVER the artifact's own
+# declaration. The production index adapter and its authentication ship later.
+def _m12_exact(value: Any, fields: set[str], label: str) -> None:
+    if not isinstance(value, Mapping) or set(value) != fields:
+        raise ContractError(f"{label} must contain exactly {sorted(fields)}")
+
+
+def _m12_ref(value: Any) -> dict[str, str]:
+    _m12_exact(value, {"id", "content_fingerprint"}, "M12 Ref")
+    stable_id = value["id"]
+    fingerprint = value["content_fingerprint"]
+    if not isinstance(stable_id, str) or not stable_id.strip() or stable_id != stable_id.strip():
+        raise ContractError("M12 Ref id must be canonical nonempty text")
+    if not isinstance(fingerprint, str) or not re.fullmatch(r"sha256:[0-9a-f]{64}", fingerprint):
+        raise ContractError("M12 Ref requires a SHA-256 content fingerprint")
+    return {"id": stable_id, "content_fingerprint": fingerprint}
+
+
+def _m12_refs(value: Any) -> list[dict[str, str]]:
+    if not isinstance(value, list):
+        raise ContractError("M12 references must be an array")
+    refs = [_m12_ref(item) for item in value]
+    ids = [ref["id"] for ref in refs]
+    if ids != sorted(ids) or len(ids) != len(set(ids)):
+        raise ContractError("M12 references must be sorted and unique by id")
+    return refs
+
+
+def source_inventory_body(evidence: Mapping[str, Any] | None) -> dict[str, Any]:
+    """Derive the complete reachable closure from one trusted frozen index.
+
+    Internal adapter input: as_of/config_ref/roots/nodes; each node is an already
+    resolved and validated upstream Ref plus its complete direct dependencies.
+    The adapter must obtain ALL roots under the inventory lock, and verify source
+    types/content before injecting this index. This pure function does not grant
+    trust to caller-provided bytes or attest that a remote lock was held.
+    """
+    _m12_exact(evidence, {"as_of", "config_ref", "roots", "nodes"}, "trusted inventory evidence")
+    _require_date(evidence["as_of"], "inventory evidence as_of")
+    config = _m12_ref(evidence["config_ref"])
+    roots = _m12_refs(evidence["roots"])
+    if not roots:
+        raise ContractError("inventory requires at least one authoritative root")
+    if not isinstance(evidence["nodes"], list):
+        raise ContractError("inventory nodes must be an array")
+    nodes: dict[str, tuple[dict[str, str], list[dict[str, str]]]] = {}
+    for node in evidence["nodes"]:
+        _m12_exact(node, {"ref", "dependencies"}, "inventory node")
+        ref = _m12_ref(node["ref"])
+        if ref["id"] in nodes:
+            raise ContractError("duplicate or conflicting inventory node")
+        nodes[ref["id"]] = (ref, _m12_refs(node["dependencies"]))
+
+    def resolve(ref: dict[str, str]) -> tuple[dict[str, str], list[dict[str, str]]]:
+        node = nodes.get(ref["id"])
+        if node is None or node[0] != ref:
+            raise ContractError("inventory reference is missing or has conflicting content")
+        return node
+
+    resolve(config)
+    # Iterative DFS supports long append-only histories without recursion limits.
+    seen: set[str] = set()
+    active: set[str] = set()
+    stack = [(ref, False) for ref in reversed(roots)]
+    while stack:
+        ref, leaving = stack.pop()
+        stable_id = ref["id"]
+        node = resolve(ref)
+        if leaving:
+            active.remove(stable_id)
+            seen.add(stable_id)
+            continue
+        if stable_id in active:
+            raise ContractError("inventory reference cycle")
+        if stable_id in seen:
+            continue
+        active.add(stable_id)
+        stack.append((ref, True))
+        stack.extend((child, False) for child in reversed(node[1]))
+    return {
+        "schema_version": "1.0.0",
+        "as_of": evidence["as_of"],
+        "config_ref": config,
+        "roots": roots,
+        "records": [nodes[key][0] for key in sorted(seen)],
+    }
+
+
+def _validate_source_inventory(payload: Mapping[str, Any], evidence: Mapping[str, Any] | None) -> None:
+    _m12_exact(payload, {
+        "schema_version", "inventory_id", "content_fingerprint", "generated_at",
+        "as_of", "config_ref", "roots", "records",
+    }, "SourceInventory")
+    if payload["schema_version"] != "1.0.0":
+        raise ContractError("unsupported SourceInventory version")
+    timestamp = payload["generated_at"]
+    if not isinstance(timestamp, str) or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z", timestamp):
+        raise ContractError("M12 generated_at must be canonical UTC seconds")
+    _require_timestamp(timestamp)
+    _require_date(payload["as_of"], "SourceInventory.as_of")
+    _m12_ref(payload["config_ref"])
+    _m12_refs(payload["roots"])
+    _m12_refs(payload["records"])
+    body = {key: value for key, value in payload.items() if key not in {
+        "inventory_id", "content_fingerprint", "generated_at",
+    }}
+    expected = source_inventory_body(evidence)
+    if body != expected:
+        raise ContractError("SourceInventory differs from authoritative roots or complete closure")
+    fingerprint = "sha256:" + hashlib.sha256(_canonical(body)).hexdigest()
+    if payload["content_fingerprint"] != fingerprint or payload["inventory_id"] != "source-inventory:" + fingerprint:
+        raise ContractError("SourceInventory identity does not match semantic content")
+    if any(ref["id"] == payload["inventory_id"] for ref in [payload["config_ref"], *payload["roots"], *payload["records"]]):
+        raise ContractError("SourceInventory cannot reference itself")
