@@ -1092,3 +1092,8 @@ C1l增加默认禁用DailyPreparationApi，固定/v1/preparation/prepare和/retu
 选择由m12_preparation_selected与独立selection_log配对持久保存，重放相同选择不重复记录，切换前检查旧选择配对；使用前核对当前租约与全部原件并确认选择未变。成员正文仍不含任务、策略或租约，服务器从已验证选择与上线卡固定许可构造C1k工厂，响应编码后再次检查选择。未知路由／字段、未认证身份、无选择／许可、配对缺失或原窗口失效失败关闭；此为内部router，尚未挂到真实Worker。
 
 C1l四项新API专项与七项原会话回归通过，覆盖准备→回传→选择→成员permit、重开与重放、错误正文／目标／actor、外任务和配对丢失、选择日志失败整笔回滚及获取／续租期间JWT到期回滚。实现期修正扩展SQL表清单时误改旧helper参数的问题，原会话回归已恢复通过；不隐去失败过程。父8b745d0，提交feat: connect authenticated daily preparation and membership routing [skip ci]。Python客户端与受保护固定runner由后续同阶段接线，仍无真实供应商请求、云资源、推送、合并、部署或生产启用。
+
+
+C1m新增DailyPreparationTransport，继承已有成员桥，prepare_and_validate只调用固定准备／回传两路径且逐次取新OIDC；完整输入解码复用唯一合同入口，Job／actor／代码／subject精确匹配构造时冻结的Actions环境。固定进程输出的实际摘要与长度必须等于服务器归档确认，才进入ready并允许原permit／put／read；失败后客户端不可重用，无自动重发，确认仅说明检查记录已选择，不是许可证。5项新客户端＋7项成员桥Python共12项通过0.409秒（ResourceWarning为错误），覆盖固定路径、新令牌、身份／原件／返回错配、不确定回传、无准备禁止请求及坏成员响应后关闭。
+
+新增本地跨语言联测使用真实DailyPreparationApi、SQLite配对选择和固定Git worker，Python客户端经stdio替身交付实际HTTP请求／响应字节，再由原collect_membership调用原三字节路由保存合成供应商观察；供应商获取函数仅在测试替换，未发真实请求。完整源码守门要求提交后运行，该联测结果在下一阶段记录补记，当前不先宣称通过。父93c8b65，提交feat: connect the fixed daily preparation client to membership collection [skip ci]，待阶段独立审核；下一包固定受保护runner。

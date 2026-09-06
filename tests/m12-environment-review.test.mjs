@@ -3180,3 +3180,88 @@ test('daily preparation API rolls back expired acquisition and selection log fai
   f.storage.sql.exec = exec;
   assert.equal((await api.fetch(f.request('/v1/preparation/prepare', { protocol: 'm12-daily-preparation/1' }))).status, 401);
 });
+
+test('daily client integrates authenticated preparation fixed worker and synthetic member collection', async t => {
+  const f = preparationFixture(t, false);
+  const build = spawnSync('python3', ['-B', '-c', `import json,subprocess,time
+from services.publication.configuration import build_research_configuration
+from tests.test_m12_preparation_validation import fixture
+commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+print(json.dumps(fixture(commit,build_research_configuration(commit),time.time_ns()//1000000)))`],
+    { cwd: new URL('..', import.meta.url), encoding: 'utf8', timeout: 15000 });
+  assert.equal(build.status, 0, build.stderr);
+  const e = JSON.parse(build.stdout).evidence;
+  const history = e.current_history.history.map(item => ({ reference: item.reference, archive: item.archive, previous_ref: item.previous_ref }));
+  history.forEach((item, i) => f.objects.set(item.archive.key, new Uint8Array(Buffer.from(e.history_base64[i], 'base64'))));
+  f.objects.set(e.config_archive.key, new Uint8Array(Buffer.from(e.config_base64, 'base64')));
+  f.db.prepare('INSERT INTO m12_authorization_index VALUES (1,?,?,NULL)').run(JSON.stringify(history[0].reference), JSON.stringify(history[0].archive));
+  f.db.prepare('UPDATE m12_authorization_head SET revision=1,head_json=?').run(JSON.stringify(history[0].reference));
+  f.db.prepare('UPDATE m12_authorization_import_baseline SET history_json=?').run(JSON.stringify(history));
+  const license = Buffer.from('synthetic reviewed daily acquisition license');
+  const hash = 'sha256:' + createHash('sha256').update(license).digest('hex');
+  const location = { key: 'raw/' + hash.slice(7), sha256: hash, size_bytes: license.length };
+  f.objects.set(location.key, new Uint8Array(license));
+  const epoch = f.leaseToken.epoch;
+  f.state.now = Date.now();
+  const api = new DailyPreparationApi({ ...identityPolicy, code_commit: e.code_commit }, {
+    enabled: true, preparationPolicy: { actor_id: '789', as_of: e.as_of, config_ref: e.config_ref, config_archive: e.config_archive },
+    leaseEpoch: epoch, licensePolicy: { purpose: 'eodhd_us_membership_private_acquisition', license_archive: location,
+      license_valid_from: f.state.now - 1000, license_valid_until: f.state.now + 300000 },
+    storage: f.storage, bucket: f.bucket, clock: f.options.clock, fetchKeys: f.options.fetchKeys });
+  const environment = { GITHUB_ACTIONS: 'true', ACTIONS_ID_TOKEN_REQUEST_URL: 'https://test.actions.githubusercontent.com/token',
+    ACTIONS_ID_TOKEN_REQUEST_TOKEN: 'synthetic-credential', GITHUB_REPOSITORY: 'example/sage', GITHUB_REPOSITORY_ID: '123',
+    GITHUB_WORKFLOW_REF: identityPolicy.workflow_ref, GITHUB_WORKFLOW_SHA: identityPolicy.workflow_commit,
+    GITHUB_SHA: e.code_commit, GITHUB_RUN_ID: '456', GITHUB_RUN_ATTEMPT: '1', GITHUB_ACTOR_ID: '789' };
+  const script = `import json,sys,base64,hashlib
+from datetime import datetime,timezone
+from unittest.mock import patch
+from services.publication.daily_transport import DailyPreparationTransport
+from services.market_data.membership_collection import collect_membership
+from services.scanner.eodhd import MembershipHttpObservation
+class Client(DailyPreparationTransport):
+ def _request(self,url,token,*,data=None,limit):
+  print(json.dumps({'http':{'url':url,'token':token,'body':None if data is None else base64.b64encode(data).decode()}}),flush=True)
+  reply=json.loads(sys.stdin.readline())
+  if reply['status']!=200:raise RuntimeError('local coordinator rejected')
+  return base64.b64decode(reply['body'])
+client=Client('https://coordinator.invalid',${JSON.stringify(environment)})
+prepared=client.prepare_and_validate()
+raw=json.dumps([{'Code':'SYNTH','Exchange':'NASDAQ','Type':'Common Stock','Name':'Synthetic','Country':'USA','Currency':'USD'}]).encode()
+stamp=datetime.now(timezone.utc)
+observation=MembershipHttpObservation(started_at=stamp,completed_at=stamp,status=200,content_length=len(raw),eof=True,failure=None,raw=raw)
+with patch('services.market_data.membership_collection.observe_active_us_symbols',return_value=observation) as supplier:
+ collected=collect_membership(prepared['as_of'],authorize=client.authorize,archive=client)
+ assert supplier.call_count==1
+print(json.dumps({'done':{'as_of':collected.parsed.as_of,'members':len(collected.parsed.included),'observation_key':collected.observation_key,'failure':collected.failure}}),flush=True)`;
+  const child = spawn('python3', ['-B', '-u', '-c', script], { cwd: new URL('..', import.meta.url), stdio: ['pipe', 'pipe', 'pipe'] });
+  t.after(() => { if (child.exitCode === null) child.kill(); });
+  let stderr = '', done;
+  child.stderr.on('data', chunk => { stderr += chunk; });
+  const exited = new Promise(resolve => child.on('exit', code => resolve(code)));
+  const lines = createInterface({ input: child.stdout });
+  const paths = [];
+  for await (const line of lines) {
+    const value = JSON.parse(line);
+    if (value.done) { done = value.done; continue; }
+    const req = value.http;
+    let result;
+    if (new URL(req.url).hostname.endsWith('.actions.githubusercontent.com')) {
+      const now = Math.floor(Date.now() / 1000);
+      result = new Response(JSON.stringify({ value: token({ sha: e.code_commit, iat: now - 30, nbf: now - 30, exp: now + 300 }) }));
+    } else {
+      paths.push(new URL(req.url).pathname);
+      f.state.now = Date.now();
+      result = await api.fetch(new Request(req.url, { method: 'POST', body: Buffer.from(req.body, 'base64'),
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + req.token } }));
+    }
+    child.stdin.write(JSON.stringify({ status: result.status, body: Buffer.from(await result.arrayBuffer()).toString('base64') }) + '\n');
+  }
+  assert.equal(await exited, 0, stderr);
+  assert.equal(done.failure, null);
+  assert.equal(done.members, 1);
+  assert.equal(done.as_of, e.as_of);
+  assert.ok(f.objects.has(done.observation_key));
+  assert.deepEqual([...new Set(paths)], ['/v1/preparation/prepare', '/v1/preparation/return', '/v1/membership/permit', '/v1/membership/put', '/v1/membership/read']);
+  assert.equal(paths.filter(path => path.endsWith('/prepare')).length, 1);
+  assert.equal(paths.filter(path => path.endsWith('/return')).length, 1);
+});
