@@ -7,6 +7,7 @@ import { GitHubEnvironmentReviewVerifier } from "../services/publication/environ
 import { ReviewedRequestArchive } from "../services/publication/review_archive.mjs";
 import { AuthorizationPreparation } from "../services/publication/authorization_preparation.mjs";
 import { AuthorizationValidationReturn } from "../services/publication/authorization_return.mjs";
+import { AuthorizationValidationArchive } from "../services/publication/authorization_validation_archive.mjs";
 import { LeaseStore } from "../services/publication/leases.mjs";
 
 const NOW = 1_788_652_800;
@@ -1209,4 +1210,137 @@ test("return copies caller output bytes before identity and storage awaits", asy
   bytes.fill(0);
   const result = await pending;
   assert.equal(Buffer.from(result.authorization_bytes).toString("base64"), f.python.authorization_bytes);
+});
+
+async function validationArchiveFixture(t) {
+  const f = await returnFixture(t);
+  const validator = new AuthorizationValidationArchive(identityPolicy,
+    { storage: f.storage, bucket: f.bucket, clock: f.options.clock, fetchKeys: f.options.fetchKeys });
+  const receiptKey = "raw/" + sha(Buffer.from(f.python.receipt_bytes, "base64")).slice(7);
+  return { ...f, receiptKey, authorizationKey: f.python.receipt.authorization_archive.key,
+    archiveValidation: (jwt = token(), bytes = f.resultBytes()) => validator.archive(jwt, f.leaseToken, f.sent.dispatch.dispatch_id, bytes) };
+}
+
+test("validation archive internally verifies and writes then separately reads both unchanged original artifacts", async (t) => {
+  const f = await validationArchiveFixture(t);
+  const puts = f.archiveState.puts, gets = f.archiveState.gets;
+  const result = await f.archiveValidation();
+  assert.equal(f.archiveState.puts, puts + 2);
+  assert.equal(f.archiveState.gets, gets + 5); // Input read + two put readbacks + two independent reads.
+  assert.deepEqual(result.authorization_archive, f.python.receipt.authorization_archive);
+  assert.deepEqual(result.validation_receipt_archive, { key: f.receiptKey,
+    sha256: sha(Buffer.from(f.python.receipt_bytes, "base64")), size_bytes: Buffer.from(f.python.receipt_bytes, "base64").length });
+  assert.equal(Buffer.from(result.authorization_bytes).toString("base64"), f.python.authorization_bytes);
+  assert.equal(Buffer.from(result.receipt_bytes).toString("base64"), f.python.receipt_bytes);
+  assert.deepEqual(result.authorization_bytes, f.objects.get(f.authorizationKey));
+  assert.deepEqual(result.receipt_bytes, f.objects.get(f.receiptKey));
+  assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_index").get().n, 1);
+  assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_log").get().n, 2);
+  result.authorization_bytes[0] ^= 1;
+  result.validation_receipt_archive.size_bytes++;
+  const replay = await f.archiveValidation();
+  assert.equal(Buffer.from(replay.authorization_bytes).toString("base64"), f.python.authorization_bytes);
+  assert.notEqual(replay.validation_receipt_archive.size_bytes, result.validation_receipt_archive.size_bytes);
+});
+
+test("claimed verified JSON, invalid signature and changed stdout cannot write validation artifacts", async (t) => {
+  const f = await validationArchiveFixture(t);
+  const puts = f.archiveState.puts;
+  await assert.rejects(f.archiveValidation(token(), { valid: true, receipt: f.python.receipt }));
+  await assert.rejects(f.archiveValidation(token().slice(0, -8) + "AAAAAAAA"));
+  await assert.rejects(f.archiveValidation(token(), Buffer.from('{"valid":true}\n')));
+  assert.equal(f.archiveState.puts, puts);
+  assert.equal(f.objects.has(f.authorizationKey), false);
+  assert.equal(f.objects.has(f.receiptKey), false);
+});
+
+test("uncertain artifact write remains unregistered and retry retains exact original bytes", async (t) => {
+  for (const failed of ["authorization", "receipt"]) {
+    const f = await validationArchiveFixture(t);
+    const key = failed === "authorization" ? f.authorizationKey : f.receiptKey;
+    f.archiveState.afterPut = (written) => { if (written === key) throw new Error("artifact_write_response_lost"); };
+    await assert.rejects(f.archiveValidation(), /artifact_write_response_lost/);
+    const orphan = new Uint8Array(f.objects.get(key));
+    assert.ok(orphan.length);
+    assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_index").get().n, 1);
+    f.archiveState.afterPut = null;
+    await f.archiveValidation();
+    assert.deepEqual(f.objects.get(key), orphan);
+    assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_log").get().n, 2);
+  }
+});
+
+test("existing authorization key with conflicting bytes is preserved and blocks receipt write", async (t) => {
+  const f = await validationArchiveFixture(t);
+  const conflict = new Uint8Array([1, 2, 3]);
+  f.objects.set(f.authorizationKey, conflict);
+  await assert.rejects(f.archiveValidation(), /size_mismatch|hash_mismatch/);
+  assert.deepEqual(f.objects.get(f.authorizationKey), conflict);
+  assert.equal(f.objects.has(f.receiptKey), false);
+});
+
+test("late missing or corrupt artifacts fail the independent final read instead of returning old memory", async (t) => {
+  for (const object of ["authorization", "receipt"]) for (const corrupt of [false, true]) {
+    const f = await validationArchiveFixture(t);
+    const key = object === "authorization" ? f.authorizationKey : f.receiptKey;
+    let reads = 0;
+    f.archiveState.beforeGet = (read) => {
+      if (read !== key || ++reads !== 2) return;
+      if (corrupt) f.objects.get(key)[0] ^= 1;
+      else f.objects.delete(key);
+    };
+    await assert.rejects(f.archiveValidation(), /missing|hash_mismatch/);
+    assert.equal(reads, 2);
+    assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_index").get().n, 1);
+  }
+});
+
+test("head, lease or dispatch log change during artifact I/O prevents successful return", async (t) => {
+  for (const change of ["head", "lease", "log"]) for (const finalRead of [false, true]) {
+    const f = await validationArchiveFixture(t);
+    const key = finalRead ? f.receiptKey : f.authorizationKey;
+    let reads = 0;
+    f.archiveState.beforeGet = (read) => {
+      if (read !== key || ++reads !== (finalRead ? 2 : 1)) return;
+      if (change === "head") f.db.exec("DELETE FROM m12_authorization_index; UPDATE m12_authorization_head SET revision=0,head_json=NULL");
+      if (change === "log") f.db.exec("DELETE FROM m12_authorization_log WHERE operation='dispatch_validation'");
+      if (change === "lease") {
+        f.lease.release("publish/global", f.job, f.leaseToken);
+        f.lease.acquire("publish/global", { ...f.job, run_id: "457" }, f.leaseToken.epoch);
+      }
+    };
+    await assert.rejects(f.archiveValidation(), /history_changed|not_owned|recovery_required/);
+    if (!finalRead) assert.equal(f.objects.has(f.receiptKey), false);
+  }
+});
+
+test("expired original window during either write or final read cannot be extended by fresh OIDC", async (t) => {
+  for (const finalRead of [false, true]) {
+    const f = await validationArchiveFixture(t);
+    const key = finalRead ? f.receiptKey : f.authorizationKey;
+    let reads = 0;
+    f.archiveState.beforeGet = (read) => {
+      if (read === key && ++reads === (finalRead ? 2 : 1)) f.state.now = claims.exp * 1000;
+    };
+    await assert.rejects(f.archiveValidation(token({ exp: claims.exp + 300 })), /deadline_expired|stale|expired_before_commit/);
+    if (!finalRead) assert.equal(f.objects.has(f.receiptKey), false);
+    assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_index").get().n, 1);
+  }
+});
+
+test("later valid revalidation reuses authorization bytes and preserves both validation receipts", async (t) => {
+  const f = await validationArchiveFixture(t);
+  const first = await f.archiveValidation();
+  f.state.now = (NOW + 2) * 1000;
+  const later = validateWire(f.sent.input_bytes, [(NOW + 1) * 1000, (NOW + 2) * 1000]);
+  assert.equal(later.valid, true, later.error);
+  f.result.authorization_base64 = later.authorization_bytes;
+  f.result.receipt_base64 = later.receipt_bytes;
+  const second = await f.archiveValidation();
+  assert.deepEqual(second.authorization_archive, first.authorization_archive);
+  assert.deepEqual(second.authorization_bytes, first.authorization_bytes);
+  assert.notEqual(second.validation_receipt_archive.key, first.validation_receipt_archive.key);
+  assert.ok(f.objects.has(first.validation_receipt_archive.key));
+  assert.ok(f.objects.has(second.validation_receipt_archive.key));
+  assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM m12_authorization_index").get().n, 1);
 });
