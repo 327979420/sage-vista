@@ -1162,3 +1162,18 @@ append在daily租约与原已验签身份期限内比较完整expected_index；�
 该接口只供未来固定协调器将已读回且通过唯一Python来源检查的成功观察登记；本包没有认证RPC、真实策略实例或固定返回绑定接线，直接调用内部存储不能自证来源／许可／formal。没有创建云资源或生产身份根。9项新Node通过0.415秒：显式初始化、成对提交／幂等隔离、真实文件SQLite关闭重开、跨日跨配置CAS／晚到、丢失成对记录／根、每个写点失败与末次过期回滚、owner／fence／身份窗口、坏描述符／目标，以及真实SQLite索引交给Python来源恢复／身份重建与缺原件失败。JS↔Python样例的原件由原采集器使用合成供应商观察生成，不是真实采集或受信生产登记。定点eslint通过。
 
 本包父62e14f7，提交feat: persist the ordered membership observation index [skip ci]。回退撤回未接线内部存储，保留来源对象和已有日志；后续需接归档读回／固定结果绑定及价格日历证据，不声称这两个基础接点已经构成完整身份生产工厂。未推送本阶段未审代码、合并main、部署、启用、供应商请求或跨日生产E2E。
+
+
+### C2b—C2c阶段验证与交审
+
+基线ddba447已审且已同步；62e14f7（实际来源字节／连续身份）与faf92ab（持久成功观察索引）待本阶段独立审核，不沿用前阶段PASS。faf92ab源码上70项Python通过7.837秒，ResourceWarning为错误；9项新索引Node通过0.392秒，原每日客户端／真实固定Git worker→合成成员归档联测1项通过2.913秒（核心2.745秒）。共80项全部通过，无失败／取消／跳过；定点eslint及区间diff通过。固定worker仍验证实际全部services源字节，未放宽源守门。机器状态生成一致及文档链接在治理提交前核验，不重跑无变化M11或完整前端。
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=tests:. python3 -W error::ResourceWarning -m unittest tests.test_m12_membership_identity tests.test_m12_membership_source tests.test_m12_membership_collection tests.test_m12_qualification tests.test_m12_configuration tests.test_m12_preparation_validation.PreparationValidationTests.test_fixed_isolated_worker_roundtrip_and_failure_has_no_private_output tests.test_rulebook_contract tests.test_project_status
+PYTHONDONTWRITEBYTECODE=1 node --test tests/m12-membership-index.test.mjs
+PYTHONDONTWRITEBYTECODE=1 node --test --test-name-pattern='daily client integrates' tests/m12-environment-review.test.mjs
+```
+
+本执行任务再次只读git ls-remote确认：origin的refs/heads/m12/production-chain-design-14fef53=ddba4477105e4a3c3ecb741f03274b20395d7261，refs/heads/main=14fef535f67b7c4de035b4c84224e604850f1fed。本阶段尚未推送，由审核任务阶段通过后普通同步已审SHA。未创建云资源、运行真实采集、合并main、部署、生产启用或执行跨日生产端到端；新成员证据的complete仅表示可信输入中的供应商成功范围，不证明实际交易日历或价格覆盖。
+
+下一阶段先把本索引接到既有认证采集会话的实际原件读回及固定Python检查／返回绑定，不能直接公开append或把自报来源列表当根；接点完成后接价格完整性与日历材料。关于设计中“现有交易日历”，目前实际旧入口仅以SPY最新bar定参考日，尚未确认完整交易会话／收盘时刻／上市历史来源，交审核任务澄清具体证据接法后实施，不能静默填充complete_history_instruments或另猜算法。供应商明确重上市证据的来源亦尚未接入。M03—M09、跨日执行／M09关联、独立M10与四页发布仍为未完成链路，不将本基础阶段标成M12 implemented。
