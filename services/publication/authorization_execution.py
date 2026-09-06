@@ -20,13 +20,9 @@ class AuthorizationJobTransport(Protocol):
     def return_result(self, dispatch_id: str, lease_token: dict, result_bytes: bytes) -> bytes: ...
 
 
-def execute_authorization_validation(transport: AuthorizationJobTransport) -> bytes:
-    """Fetch our input, run the one validator, and return its unmodified output.
-
-    The return is the transport's raw response, not an authorization-success
-    assertion. Exceptions are propagated without retry or fabricated receipts.
-    """
-    prepared = deepcopy(transport.prepare())
+def validation_job_preparation(value: dict) -> dict:
+    """Copy and check the one internal preparation envelope, not its origin."""
+    prepared = deepcopy(value)
     fields = {"dispatch_id", "lease_token", "input_sha256", "input_size_bytes", "input_bytes"}
     if type(prepared) is not dict or set(prepared) != fields:
         raise ContractError("validation job preparation fields differ")
@@ -44,6 +40,13 @@ def execute_authorization_validation(transport: AuthorizationJobTransport) -> by
     ticket = publication_validation_input(raw)["validation_ticket"]
     if not isinstance(ticket, dict) or lease != {"epoch": ticket.get("epoch"), "fence": ticket.get("fence")}:
         raise ContractError("validation job lease differs from its input ticket")
+    return prepared
+
+
+def execute_authorization_validation(transport: AuthorizationJobTransport) -> bytes:
+    """Run the one validator; return raw response without retry or success claim."""
+    prepared = validation_job_preparation(transport.prepare())
+    raw, lease = prepared["input_bytes"], prepared["lease_token"]
     result = authorization_validation_output(raw)
     # No caller-provided stdout, executable, arguments or alternate validator.
     response = transport.return_result(prepared["dispatch_id"], lease, result)

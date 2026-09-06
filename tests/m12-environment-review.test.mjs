@@ -1857,3 +1857,60 @@ with patch('subprocess.Popen',side_effect=launch):
   assert.equal(Buffer.from(archived.authorization_bytes).toString('base64'), f.python.authorization_bytes);
   assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM m12_authorization_index').get().n, 1);
 });
+
+test('supervisor renews during fixed validation and returns through actual local job routes', { timeout: 15_000 }, async (t) => {
+  const f = apiFixture(t);
+  const script = `
+import base64,io,json,subprocess,sys
+from email.message import Message
+from unittest.mock import patch
+from services.publication import authorization_supervision as supervisor
+from services.publication.authorization_transport import AuthorizationHttpsTransport
+class Response(io.BytesIO):
+    def __init__(self,value,url):
+        super().__init__(base64.b64decode(value['body']))
+        self.status=value['status'];self.url=url;self.headers=Message()
+        for k,v in value['headers'].items():self.headers[k]=v
+    def geturl(self):return self.url
+class Opener:
+    def open(self,request,timeout):
+        print(json.dumps({'url':request.full_url,'headers':dict(request.header_items()),'body':base64.b64encode(request.data).decode() if request.data else None}),flush=True)
+        return Response(json.loads(sys.stdin.readline()),request.full_url)
+real=subprocess.Popen
+def launch(command,**options):
+    assert command[1]=='-I' and command[2].endswith('/authorization_validation_worker.py')
+    harness="import runpy,time;time.sleep(0.2);time.time_ns=lambda:${NOW * 1000}*1000000;runpy.run_path("+repr(command[2])+",run_name='__main__')"
+    return real([command[0],'-I','-c',harness],**options)
+transport=AuthorizationHttpsTransport('https://coordinator.example.test',{'GITHUB_ACTIONS':'true','ACTIONS_ID_TOKEN_REQUEST_URL':'https://run.actions.githubusercontent.com/token?api-version=2.0','ACTIONS_ID_TOKEN_REQUEST_TOKEN':'local-request-credential'},opener=Opener())
+with patch('time.time_ns',return_value=${NOW * 1000}*1000000),patch('subprocess.Popen',side_effect=launch),patch.object(supervisor,'HEARTBEAT_SECONDS',0.04),patch.object(supervisor,'CONTROL_WAIT_SECONDS',2),patch.object(supervisor,'POLL_SECONDS',0.005):
+    result=supervisor.execute_supervised_authorization_validation(transport)
+print(json.dumps({'finished':True,'response':base64.b64encode(result).decode()}),flush=True)
+`;
+  const child = spawn('python3', ['-u', '-c', script], { cwd: new URL('..', import.meta.url), stdio: ['pipe', 'pipe', 'pipe'] });
+  t.after(() => { if (child.exitCode === null) child.kill(); });
+  let stderr = '', finished;
+  child.stderr.on('data', (data) => { stderr += data; });
+  const exited = new Promise((resolve, reject) => { child.on('error', reject); child.on('exit', resolve); });
+  const paths = [];
+  for await (const line of createInterface({ input: child.stdout })) {
+    const request = JSON.parse(line);
+    if (request.finished) { finished = JSON.parse(Buffer.from(request.response, 'base64')); child.stdin.end(); continue; }
+    const url = new URL(request.url);
+    let response;
+    if (url.hostname.endsWith('.actions.githubusercontent.com')) {
+      response = new Response(JSON.stringify({ value: token() }), { headers: { 'Content-Type': 'application/json' } });
+    } else {
+      paths.push(url.pathname);
+      response = await f.api.fetch(new Request(request.url, { method: 'POST', headers: request.headers, body: Buffer.from(request.body, 'base64') }));
+    }
+    child.stdin.write(JSON.stringify({ status: response.status, headers: Object.fromEntries(response.headers),
+      body: Buffer.from(await response.arrayBuffer()).toString('base64') }) + '\n');
+  }
+  assert.equal(await exited, 0, stderr);
+  assert.deepEqual(paths.slice(0, 2), ['/v1/authorization/prepare', '/v1/authorization/status']);
+  assert.ok(paths.includes('/v1/authorization/renew'));
+  assert.deepEqual(paths.slice(-2), ['/v1/authorization/status', '/v1/authorization/return']);
+  assert.equal(finished.state, 'archived_pending_registration');
+  assert.ok(f.objects.has(finished.authorization_archive.key));
+  assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM m12_authorization_index').get().n, 1);
+});
