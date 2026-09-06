@@ -785,3 +785,30 @@ AuthorizationStore新增内部readArchivedValidation，复用ticket原记录／�
 新增2项Python验证：包装真实os.fsync，通过设备／inode确认新建目录的父目录在return请求前完成同步，实际顺序为文件、凭证目录、父目录；连续注入两次父目录fsync失败，第二次目录与最终凭证已存在，仍命中同步失败且仅发生prepare阶段请求，凭证原字节不变、无.pending残留，故障清除后的显式新尝试成功。10项恢复Python整体通过（含新增2项，ResourceWarning按错误）；另定点运行1项实际监督客户端／固定worker／本地路由的已记账响应不确定→新客户端恢复样例通过，19项治理／状态通过，共30项检查。状态／文档链接／差异检查通过，未重复无变化的119项Node完整测试。
 
 该证据补足同步调用链及失败关闭，未进行主机断电实验，不改变跨runner存储、磁盘故障、跨Job／epoch和生产未启用边界。仅修改客户端save、相关测试及3个治理文件；独立提交fix: persist M12 recovery journal directory entry [skip ci]，父提交27e25314b7c626ee08e71040399e78a085706125，完整SHA见交付消息。交回本问题的定点复核后，再继续已批准的冻结工作流／运行工厂和最终登记。未合并、推送、创建云资源、部署、生产启用或对外通知。
+
+
+## B3q／P2独立复核结论
+
+审核任务确认27e25314b7c626ee08e71040399e78a085706125及ae474fedff28bbe06e568488f7699db21a9567fd在受控恢复RPC／本地凭证范围通过，父目录同步P2关闭。独立重跑10项恢复Python＋19项治理／状态及1项实际监督客户端／固定worker／本地路由恢复往返，共30项通过（ResourceWarning按错误）；原始新目录probe实际同步3次，最后设备／inode为父目录。每次save均同步父目录，已存在目录或文件不跳过，失败阻止回传。原146项证据保留，不重复无变化119项Node。未做断电实验，不承诺跨runner持久性或授权生效。
+
+## B3r：禁用的固定工作流与凭证运行工厂（待独立审核）
+
+本包收口固定执行接线：新增`.github/workflows/m12-publication-authorize.yml`，仅workflow_dispatch且无inputs；唯一job固定`if: ${{ false }}`，引用production环境，权限仅contents:read与id-token:write。无schedule／push／可调用工作流／自选命令或产物输入；checkout只取触发的github.sha、不保存Git凭据、不取submodule／LFS。checkout固定de0fac2e4500dabe0009e67214ff5f5447ce83dd（v6.0.2），setup-python固定e797f83bcb11b83ae66e0230d6156d7c80228e7c（v6.0.0），Python固定3.12.12、ubuntu-24.04 x64，job上限15分钟。两个Action SHA已通过GitHub官方只读tag API确认指向commit，Python版本已在官方版本清单确认；不声称是最新版本或已经运行过此GitHub job。
+
+来源：[checkout固定标签](https://api.github.com/repos/actions/checkout/git/ref/tags/v6.0.2)、[setup-python固定标签](https://api.github.com/repos/actions/setup-python/git/ref/tags/v6.0.0)、[官方Python版本清单](https://github.com/actions/python-versions/blob/main/versions-manifest.json)、[Actions变量](https://docs.github.com/en/actions/reference/workflows-and-actions/variables)。GitHub托管镜像本身仍由平台维护，本包未验证真实runner环境、环境保护规则或网络TLS。
+
+固定命令`python -I -B "$GITHUB_WORKSPACE/services/publication/authorization_runtime.py"`没有CLI参数，根目录从自身文件派生。内部配置协议m12-authorization-runtime/1只有protocol／enabled／coordinator_origin三个字段，固定文件`config/publication-authorization-runtime.json`当前enabled=false、origin=null，是第二道禁用门。不存在真实协调器URL或授权请求文件，本包未造grant。启用后只读已提交配置，不接受dispatch、环境变量或参数覆盖来源／命令／验证输入／客户端。工作流及源码配置启用、固定服务端workflow_ref／commit／source身份政策和真实受保护环境都必须在后续上线卡明确批准后配置；仅修改其中一处不能表示生产获批。
+
+运行工厂先要求隔离Python3.12.12，核对Actions、workflow_dispatch、main受保护分支、第1attempt、github-hosted Linux、规范仓库／run／actor标识、固定workflow_ref、workflow SHA与触发SHA一致、workspace与自身根一致、Git HEAD一致。再用Git树对象逐文件重算services代码、工作流及固定配置的实际Git blob SHA，拒绝符号链接、额外导入文件（含被忽略文件）、篡改及未提交替换；不依赖diff缓存或assume-unchanged。只有复核后才导入凭证客户端及监督器。此为受信平台内的本地前置核对，不是调用者不可伪造的身份证明；服务器仍必须独立验证OIDC／批准证据及最终授权条件。控制来源提交与授权请求中的业务code_commit保持分离。
+
+工厂只创建RecoverableAuthorizationTransport并调用execute_supervised_authorization_validation，无opener、validator或命令注入参数。恢复目录固定为RUNNER_TEMP下m12-authorization-<原run_id>-1，父目录须为已存在绝对真实路径且不在源码内，子目录／文件权限和持久保存继续由已审核journal负责。固定worker只补sys.dont_write_bytecode=True，避免正常导入写入源码目录后阻挡恢复前复核，不改变合同计算。回传异常且已有恢复ID时，等待监督器完成取消／清理后重核源码与原上下文，创建一个新客户端，只查原历史一次；无ID、恢复失败或原件缺失均失败关闭，不重prepare／return，不把失败改成成功。
+
+输出仅固定粗粒度状态：禁用、回传已收到待登记、历史回传已核对待登记或统一失败；不输出私有输入、令牌、原stdout或异常细节。普通回传状态只说明受控调用返回，不赋予授权；恢复成功也仅证明指定历史记录，不能复活旧lease／票据。凭证保留在同一原Job的runner本地目录，RUNNER_TEMP在job前后由平台清理，故不保证job结束、runner丢失或换attempt后的文件可用；没有增加artifact上传或跨runner恢复。两类完成状态都仍须后续最终权限／目标config核验及同事务登记，本包不消费票据或追加授权链。
+
+### B3r实际检查与边界
+
+11项新Python检查包含：真实隔离CLI默认禁用／拒绝参数；本地Git真实树／SHA通过；16种身份上下文替换拒绝且不创建客户端；assume-unchanged隐藏改动、额外字节码、symlink和staged配置替换拒绝；封闭配置；错误解释器／目录；固定工厂只调用监督器、不接受环境变量来源替换；不确定回传只用新客户端查询一次；无凭证／恢复失败不重发且隐藏私有错误；实际固定worker导入后无字节码写入。运行工厂的启用分支以受控环境／客户端替身验证，不伪称真实Actions执行。
+
+11项运行Python＋8项进程＋10项恢复＋11项监督＋19项治理／状态=59项通过（ResourceWarning按错误）；2项Node实际YAML解析验证封闭触发、权限、双重禁用和固定步骤通过；另1项实际Python监督／凭证客户端／固定worker／本地Fetch路由恢复往返通过688.69ms，共62项。单独运行还发现测试解释器标志替身遗漏标准属性，已改为保留原属性并重新独跑11项、重跑59项通过；这是测试隔离修正。定点eslint发现测试未使用变量后已修正并重跑；机器状态／文档链接／diff检查通过。不重复无变化119项Node及M11测试。尚未执行GitHub平台工作流或跨日端到端，不改变旧生产及夜间断点。
+
+独立提交feat: wire disabled M12 authorization workflow [skip ci]，父提交ae474fedff28bbe06e568488f7699db21a9567fd，完整SHA见交付消息。可撤回本固定工作流／工厂接点，保留已有归档和凭证；业务合同及政策版本不变。下一包为最终权限／业务目标config及同事务登记，然后进入既定C／D每日和跨日业务链。未合并、推送、创建云资源、部署、生产启用或对外通知。

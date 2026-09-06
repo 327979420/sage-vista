@@ -3,6 +3,7 @@ from pathlib import Path
 import sys
 
 # Fixed checkout-relative import root, never PYTHONPATH, cwd or request input.
+sys.dont_write_bytecode = True  # Keep the verified checkout unchanged for recovery.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from services.publication.authorization_process import MAX_INPUT_BYTES, MAX_OUTPUT_BYTES
 from services.publication.authorization_validation import authorization_validation_output
