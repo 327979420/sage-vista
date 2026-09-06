@@ -1201,3 +1201,21 @@ C2e新增内部MembershipRegistrationReadback：沿原已验签准备选择与�
 4项新Node通过2.393秒：默认禁用及外来候选拒绝；实际原件／固定许可／空根及同head只读重验；中途缺原件／许可／选择／根、fence或期限变化拒绝；最终编码后原窗口过期拒绝。定点eslint通过。扩展原每日客户端联测，实际读回字节交固定成员worker，正向待本包提交后运行。
 
 本包仅产生实际固定输入；尚未持久配对发送输入／返回，未开放RPC或调用append，不具备成功来源登记权限。下一包仍须绑定实际输入与固定返回、当前授权／原身份／租约及CAS后才允许登记。父075dd1e，撤回未接线读回类即可回退；不删除任何历史。未真实供应商调用、云资源、部署、启用或跨日生产E2E。
+
+
+### C2d—C2e阶段交审与来源细化卡
+
+阶段基线7e8019a（已独立审核且审核任务已同步GitHub）；本地075dd1e与858d9ad待本阶段独立审核。858d9ad提交后扩展每日客户端实际联测通过1项3.731秒（核心3.603秒）：原认证准备／固定worker、合成供应商成员采集、实际存储原件读回生成登记输入，再交实际固定成员worker；输入hash／候选／数量／expected_index一致。索引仍为初始空根，证明本包没有提前写入登记。该测试以实际Git源码与真实子进程执行，供应商数据、许可及存储环境仍为合成，本地通过不等于真实供应商或云端运行。
+
+本阶段19项Python登记／准备回归、4项新Node读回、1项上述联测、19项治理／状态，共43项相关检查通过（不把重复治理运行叠加计数）。C2d原19项于075dd1e运行12.185秒；C2e4项于提交前运行2.393秒；治理19项于858d9ad运行0.012秒。eslint通过；最终文档变动后再核治理、机器生成状态、相对链接与区间差异。不重跑无变化M11、完整前端或旧算法实验。
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=tests:. python3 -W error::ResourceWarning -m unittest tests.test_m12_membership_validation tests.test_m12_preparation_execution tests.test_m12_preparation_validation
+PYTHONDONTWRITEBYTECODE=1 node --test --test-name-pattern='membership registration readback' tests/m12-environment-review.test.mjs
+PYTHONDONTWRITEBYTECODE=1 node --test --test-name-pattern='daily client integrates' tests/m12-environment-review.test.mjs
+PYTHONDONTWRITEBYTECODE=1 python3 -W error::ResourceWarning -m unittest tests.test_rulebook_contract tests.test_project_status
+```
+
+另交[价格／日历接入细化卡v0.1](M12_PRICE_CALENDAR_INTAKE_REVIEW_ZH.md)，design_review。只读公开文档与旧入口核对，不取得真实API原件；列出既有EODHD推荐方案、当前年／历史日历缺口、≥420所需窗口、短历史listing起点／重上市证据及许可未知。原设计关于“现有交易日历”的错误前提已勘误，其他已批准设计不重开审核。卡中样例为后续验收要求，尚未执行。
+
+下一包：实际发送输入与固定结果持久配对，使用前再核当前权限、原身份／租约及原expected_index，最终CAS追加成功观察。不得直接公开append或以当前纯结果充当登记收据。真实价格／日历、M03—M09、跨日续跑、独立M10与四页发布尚未完成。本阶段无真实供应商请求、云资源、合并main、部署、生产启用、通知或跨日生产E2E。由审核任务复核本阶段后同步通过的工作分支提交，未将本地待审SHA称作远端已同步。
