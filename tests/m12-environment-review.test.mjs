@@ -1823,3 +1823,37 @@ test('status after artifact return does not infer receipt or authorization regis
   assert.equal('validation_receipt_archive' in status, false);
   assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM m12_authorization_index').get().n, 1);
 });
+
+test('fixed cancellable process produces the sole validator bytes accepted by return archival', async (t) => {
+  const f = await validationArchiveFixture(t);
+  const script = `
+import base64,runpy,subprocess,sys,time
+from unittest.mock import patch
+from services.publication.authorization_process import AuthorizationValidationProcess
+real=subprocess.Popen
+# Test-only clock harness: actual fixed worker script and sole validator run.
+def launch(command,**options):
+    assert command[0]==sys.executable and command[1]=='-I'
+    assert command[2].endswith('/services/publication/authorization_validation_worker.py')
+    harness="import runpy,time;time.time_ns=lambda:${NOW * 1000}*1000000;runpy.run_path("+repr(command[2])+",run_name='__main__')"
+    return real([command[0],'-I','-c',harness],**options)
+with patch('subprocess.Popen',side_effect=launch):
+    with AuthorizationValidationProcess(sys.stdin.buffer.read()) as child:
+        end=time.monotonic()+5
+        while time.monotonic()<end:
+            value=child.poll()
+            if value is not None:
+                print(base64.b64encode(value).decode('ascii'))
+                break
+            time.sleep(0.005)
+        else: raise AssertionError('validation did not complete')
+`;
+  const executed = spawnSync('python3', ['-c', script], { cwd: new URL('..', import.meta.url),
+    input: f.sent.input_bytes, maxBuffer: 4 * 1024 * 1024, timeout: 10_000 });
+  assert.equal(executed.status, 0, executed.stderr?.toString());
+  const raw = Buffer.from(executed.stdout.toString().trim(), 'base64');
+  assert.deepEqual(raw, f.resultBytes());
+  const archived = await f.archiveValidation(token(), raw);
+  assert.equal(Buffer.from(archived.authorization_bytes).toString('base64'), f.python.authorization_bytes);
+  assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM m12_authorization_index').get().n, 1);
+});
