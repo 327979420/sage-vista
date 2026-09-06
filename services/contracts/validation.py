@@ -8,6 +8,8 @@ not grow separate interpretations of the same contract.
 from __future__ import annotations
 
 from datetime import date, datetime
+import base64
+import binascii
 import hashlib
 import json
 import math
@@ -1396,6 +1398,170 @@ def publication_request_body(source: Mapping[str, Any], *, source_commit: str) -
     return dict(request)
 
 
+def publication_approval_archive_body(archive: Mapping[str, Any], reference: Mapping[str, Any]) -> dict[str, Any]:
+    """Rebind trusted archived bytes; not an offline substitute for OIDC or R2 provenance."""
+    _m12_exact(archive, {"bundle_bytes", "objects"}, "approval archive bytes")
+    _m12_ref(reference)
+    raw = archive["bundle_bytes"]
+    bundle = _m12_json(raw)
+    fingerprint = "sha256:" + hashlib.sha256(raw).hexdigest()
+    if reference != {"id": "approval-observation:" + fingerprint, "content_fingerprint": fingerprint}:
+        raise ContractError("approval archive reference does not bind the bundle bytes")
+    _m12_exact(bundle, {"kind", "version", "identity", "approver_id", "environment_id", "observed_at",
+                        "review_observed_at", "request", "documents"}, "approval observation bundle")
+    if bundle["kind"] != "github_environment_approval_observation" or type(bundle["version"]) is not int or bundle["version"] != 1:
+        raise ContractError("unsupported approval observation bundle")
+    if raw != _canonical(bundle):
+        raise ContractError("approval bundle must use its canonical archive encoding")
+    identity = bundle["identity"]
+    _m12_exact(identity, {"job", "code_commit", "actor_id", "subject", "token_id", "issued_at", "expires_at"}, "archived identity")
+    _m12_job(identity["job"])
+    _m12_commit(identity["code_commit"])
+    job = identity["job"]
+    for key in ("actor_id", "subject", "token_id"):
+        _m12_text(identity[key], key)
+    for key in ("approver_id", "environment_id"):
+        _m12_text(bundle[key], key)
+    if any(type(identity[key]) is not int or identity[key] < 0 for key in ("issued_at", "expires_at")):
+        raise ContractError("archived identity times must be nonnegative integer seconds")
+    times = []
+    for key in ("review_observed_at", "observed_at"):
+        _require_timestamp(bundle[key])
+        if not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z", bundle[key]):
+            raise ContractError("archive observation time must be UTC milliseconds")
+        times.append(datetime.fromisoformat(bundle[key].replace("Z", "+00:00")).timestamp())
+    if not identity["issued_at"] <= times[0] <= times[1] < identity["expires_at"]:
+        raise ContractError("archive observation lies outside its identity window")
+    if not isinstance(archive["objects"], Mapping):
+        raise ContractError("archive object bytes must be a mapping")
+    used = set()
+
+    def original(item):
+        key = item["key"]
+        if not isinstance(key, str) or key not in archive["objects"]:
+            raise ContractError("approval archive original is missing")
+        value = archive["objects"][key]
+        if type(value) is not bytes or type(item["size_bytes"]) is not int or item["size_bytes"] != len(value):
+            raise ContractError("approval archive original byte length mismatch")
+        expected = "sha256:" + hashlib.sha256(value).hexdigest()
+        if item["sha256"] != expected or key != "raw/" + expected[7:]:
+            raise ContractError("approval archive original byte fingerprint mismatch")
+        used.add(key)
+        return value
+
+    source = bundle["request"]
+    _m12_exact(source, {"key", "sha256", "size_bytes", "source_commit", "path", "blob_sha"}, "archived request")
+    request_source = {key: source[key] for key in ("sha256", "size_bytes", "source_commit", "path", "blob_sha")}
+    request_source["bytes"] = original(source)
+    request = publication_request_body(request_source, source_commit=identity["code_commit"])
+    roles = ("run_before_review", "environment", "review_history", "run_after_review", "source_commit",
+             "source_root_tree", "source_config_tree", "request_blob", "run_after_source")
+    documents = bundle["documents"]
+    if not isinstance(documents, list) or len(documents) != len(roles):
+        raise ContractError("approval archive needs all nine original roles")
+    parsed = {}
+    for role, item in zip(roles, documents):
+        _m12_exact(item, {"role", "url", "key", "sha256", "size_bytes"}, "archived API original")
+        if item["role"] != role:
+            raise ContractError("approval archive role order mismatch")
+        parsed[role] = _m12_json(original(item), allow_release_identity=True, allow_array=role == "review_history")
+    if set(archive["objects"]) != used:
+        raise ContractError("approval archive object inventory is not exact")
+
+    # Cross-link the summary to its originals; platform policies/signatures are
+    # checked by B2a/c, not inferred merely because these archived bytes exist.
+    def api_id(value):
+        if type(value) is not int or not 1 <= value <= 9_007_199_254_740_991:
+            raise ContractError("archived API ID is not a safe positive integer")
+        return str(value)
+
+    run = parsed["run_before_review"]
+    repository = run.get("repository", {})
+    if not isinstance(repository, Mapping):
+        raise ContractError("archived repository must be an object")
+    repo = repository.get("full_name")
+    if not isinstance(repo, str) or not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repo) or not job["workflow_ref"].startswith(repo + "/.github/workflows/"):
+        raise ContractError("archived workflow/repository mismatch")
+    for role in ("run_before_review", "run_after_review", "run_after_source"):
+        item = parsed[role]
+        if any(not isinstance(item.get(key), Mapping) for key in ("repository", "actor", "triggering_actor")):
+            raise ContractError("archived run identities must be objects")
+        if (api_id(item.get("id")) != job["run_id"] or type(item.get("run_attempt")) is not int or
+                item["run_attempt"] != 1 or job["run_attempt"] != 1 or
+                any(item.get(key) != value for key, value in (("head_branch", "main"), ("event", "workflow_dispatch"),
+                                                            ("status", "in_progress"), ("conclusion", None))) or
+                item["actor"].get("type") != "User" or item["triggering_actor"].get("type") != "User" or
+                item.get("head_sha") != identity["code_commit"] or item["repository"].get("full_name") != repo or
+                api_id(item["repository"].get("id")) != job["repository_id"] or
+                api_id(item.get("actor", {}).get("id")) != identity["actor_id"] or
+                api_id(item.get("triggering_actor", {}).get("id")) != identity["actor_id"]):
+            raise ContractError("archived Job differs from original run")
+    env = parsed["environment"]
+    if api_id(env.get("id")) != bundle["environment_id"] or env.get("name") != job["environment"]:
+        raise ContractError("archived environment differs from identity")
+    history = parsed["review_history"]
+    if not isinstance(history, list):
+        raise ContractError("archived review history must be an array")
+    relevant = []
+    for item in history:
+        if not isinstance(item, Mapping) or not isinstance(item.get("environments"), list):
+            raise ContractError("archived review history is malformed")
+        if any(not isinstance(entry, Mapping) for entry in item["environments"]):
+            raise ContractError("archived review environment must be an object")
+        matched = False
+        seen_ids = set()
+        for entry in item["environments"]:
+            entry_id = api_id(entry.get("id"))
+            same_id, same_name = entry_id == bundle["environment_id"], entry.get("name") == job["environment"]
+            if entry_id in seen_ids or same_id != same_name:
+                raise ContractError("archived review environment identities conflict")
+            seen_ids.add(entry_id)
+            matched |= same_id
+        if matched:
+            relevant.append(item)
+    if (len(relevant) != 1 or relevant[0].get("state") != "approved" or
+            not isinstance(relevant[0].get("user"), Mapping) or
+            relevant[0]["user"].get("type") != "User" or
+            api_id(relevant[0].get("user", {}).get("id")) != bundle["approver_id"] or
+            bundle["approver_id"] == identity["actor_id"]):
+        raise ContractError("archived approver differs from review original")
+    commit, root, tree, blob = (parsed[role] for role in roles[4:8])
+    _m12_commit(root.get("sha"))
+    _m12_commit(tree.get("sha"))
+    if not isinstance(commit.get("tree"), Mapping):
+        raise ContractError("archived commit tree must be an object")
+    if commit.get("sha") != identity["code_commit"] or root.get("sha") != commit.get("tree", {}).get("sha"):
+        raise ContractError("archived source commit/tree mismatch")
+    for parent, path, target, mode, kind in ((root, "config", tree.get("sha"), "040000", "tree"),
+                                           (tree, "publication-authorization-request.json", source["blob_sha"], "100644", "blob")):
+        if parent.get("truncated") is not False or not isinstance(parent.get("tree"), list):
+            raise ContractError("archived source tree is incomplete")
+        matches = [item for item in parent["tree"] if isinstance(item, Mapping) and item.get("path") == path]
+        if len(matches) != 1 or any(matches[0].get(key) != value for key, value in (("sha", target), ("mode", mode), ("type", kind))):
+            raise ContractError("archived fixed source path differs")
+        if kind == "blob" and (type(matches[0].get("size")) is not int or matches[0]["size"] != source["size_bytes"]):
+            raise ContractError("archived tree/blob size differs")
+    if blob.get("sha") != source["blob_sha"] or blob.get("encoding") != "base64" or type(blob.get("size")) is not int or blob["size"] != source["size_bytes"]:
+        raise ContractError("archived request blob metadata differs")
+    try:
+        encoded = blob["content"].replace("\r", "").replace("\n", "")
+        decoded = base64.b64decode(encoded, validate=True)
+    except (KeyError, AttributeError, ValueError, binascii.Error) as exc:
+        raise ContractError("archived request blob encoding is invalid") from exc
+    if decoded != request_source["bytes"] or base64.b64encode(decoded).decode("ascii") != encoded:
+        raise ContractError("archived request bytes differ from the Git blob original")
+    base = "https://api.github.com/repos/" + repo
+    run_url = base + "/actions/runs/" + job["run_id"]
+    from urllib.parse import quote
+    urls = (run_url, base + "/environments/" + quote(job["environment"], safe="~()*!.'"), run_url + "/approvals", run_url,
+            base + "/git/commits/" + identity["code_commit"], base + "/git/trees/" + root["sha"],
+            base + "/git/trees/" + tree["sha"], base + "/git/blobs/" + source["blob_sha"], run_url)
+    if [item["url"] for item in documents] != list(urls):
+        raise ContractError("approval archive API URLs differ from source identities")
+    return {"request": request, "request_source": request_source, "source_commit": identity["code_commit"],
+            "job": identity["job"], "approver_id": bundle["approver_id"]}
+
+
 def _m12_authorization_fields(payload: Mapping[str, Any]) -> dict[str, Any]:
     """Validate intrinsic fields only; not a public approval validator."""
     _m12_exact(payload, set(M12_AUTHORIZATION_REQUEST_FIELDS) | {
@@ -1443,15 +1609,25 @@ def publication_authorization_body(evidence: Mapping[str, Any] | None) -> dict[s
     fields = {
         "request", "approver_id", "approval_evidence_ref", "job", "history",
     }
-    has_source = isinstance(evidence, Mapping) and bool({"request_source", "source_commit"} & set(evidence))
+    has_archive = isinstance(evidence, Mapping) and "approval_archive" in evidence
+    has_source = isinstance(evidence, Mapping) and bool({"request_source", "source_commit", "approval_archive"} & set(evidence))
     if has_source:
         fields |= {"request_source", "source_commit"}
+    if has_archive:
+        fields.add("approval_archive")
     _m12_exact(evidence, fields, "trusted publication approval evidence")
+    _m12_job(evidence["job"])
+    _m12_text(evidence["approver_id"], "approver_id")
+    _m12_ref(evidence["approval_evidence_ref"])
     _m12_authorization_request_fields(evidence["request"])
     if has_source:
         request = publication_request_body(evidence["request_source"], source_commit=evidence["source_commit"])
         if _canonical(request) != _canonical(evidence["request"]):
             raise ContractError("approved request differs from the frozen source bytes")
+    if has_archive:
+        bound = publication_approval_archive_body(evidence["approval_archive"], evidence["approval_evidence_ref"])
+        if any(evidence[key] != bound[key] for key in bound):
+            raise ContractError("approval evidence differs from the archived originals")
     if not isinstance(evidence["history"], list):
         raise ContractError("trusted authorization history must be an array")
     previous = None
@@ -1690,7 +1866,7 @@ def _m12_policy_refs(value: Any) -> list[dict[str, Any]]:
     return [dict(item) for item in value]
 
 
-def _m12_json(raw: Any, *, allow_release_identity: bool = False) -> Mapping[str, Any]:
+def _m12_json(raw: Any, *, allow_release_identity: bool = False, allow_array: bool = False) -> Any:
     if type(raw) is not bytes:
         raise ContractError("M12 file snapshots must be immutable bytes")
 
@@ -1709,7 +1885,7 @@ def _m12_json(raw: Any, *, allow_release_identity: bool = False) -> Mapping[str,
         payload = json.loads(raw.decode("utf-8"), object_pairs_hook=pairs, parse_constant=constant)
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise ContractError("release file must be UTF-8 JSON") from exc
-    if not isinstance(payload, Mapping):
+    if not isinstance(payload, Mapping) and not (allow_array and isinstance(payload, list)):
         raise ContractError("release file must be a JSON object")
     _canonical(payload)  # Also rejects exponent overflow to Infinity.
     stack = [payload]

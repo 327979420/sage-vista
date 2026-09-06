@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash, generateKeyPairSync, sign } from "node:crypto";
+import { spawnSync } from "node:child_process";
 import { GitHubEnvironmentReviewVerifier } from "../services/publication/environment_review.mjs";
 import { ReviewedRequestArchive } from "../services/publication/review_archive.mjs";
 
@@ -312,8 +313,8 @@ test("source binding does not pretend opaque bytes satisfy a request contract", 
   // constructor is hidden inside this source adapter.
 });
 
-function archiveFixture() {
-  const f = requestFixture();
+function archiveFixture(raw) {
+  const f = requestFixture(raw);
   const objects = new Map();
   const state = { failAt: null, corruptRead: false, afterPut: null, puts: 0, gets: 0 };
   const bucket = {
@@ -452,4 +453,132 @@ test("fresh changed observation creates another bundle and preserves earlier evi
   assert.deepEqual(Buffer.from(f.objects.get(first.bundle.key)), oldBytes);
   // A changed observation is not a second authorization. DO run/request
   // deduplication and grant registration are not implemented in this adapter.
+});
+
+const businessRequest = { action: "grant", prior_authorization_ref: null,
+  config_ref: { id: "config-1", content_fingerprint: "sha256:" + "f".repeat(64) }, code_commit: "e".repeat(40),
+  publication_mode: "research_only", scope: "complex_multifactor_main", effective_from: "2026-09-06",
+  valid_until: null, permissions: ["prepare", "publish", "notify", "rollback"], reason: "冻结研究服务请求" };
+
+async function pythonArchive() {
+  const f = archiveFixture(JSON.stringify(businessRequest, null, 2) + "\n");
+  const result = await f.archive.archive(token());
+  return { bundle: JSON.parse(new TextDecoder().decode(f.objects.get(result.bundle.key))),
+    bundle_bytes: Buffer.from(f.objects.get(result.bundle.key)).toString("base64"),
+    reference: result.approval_evidence_ref,
+    objects: Object.fromEntries([...f.objects].filter(([key]) => key.startsWith("raw/"))
+      .map(([key, bytes]) => [key, Buffer.from(bytes).toString("base64")])) };
+}
+
+function resealArchive(input) {
+  const stable = (value) => Array.isArray(value) ? value.map(stable) : value && typeof value === "object" ?
+    Object.fromEntries(Object.keys(value).sort().map((key) => [key, stable(value[key])])) : value;
+  const bytes = Buffer.from(JSON.stringify(stable(input.bundle)));
+  const hash = "sha256:" + createHash("sha256").update(bytes).digest("hex");
+  input.bundle_bytes = bytes.toString("base64");
+  input.reference = { id: "approval-observation:" + hash, content_fingerprint: hash };
+}
+
+function checkPython(input) {
+  const script = `
+import base64, json, sys
+from services.contracts.validation import ContractError, publication_approval_archive_body, validate_contract, validate_contracts
+from services.publication.authorization import build_publication_authorization
+v = json.load(sys.stdin)
+archive = {"bundle_bytes": base64.b64decode(v["bundle_bytes"]), "objects": {k:base64.b64decode(b) for k,b in v["objects"].items()}}
+try:
+    bound = publication_approval_archive_body(archive, v["reference"])
+    evidence = {**bound, "approval_evidence_ref":v["reference"], "history":[], "approval_archive":archive}
+    for key in v.get("drop_evidence", []):
+        del evidence[key]
+    evidence.update(v.get("replace_evidence", {}))
+    payload = build_publication_authorization(evidence, generated_at="2026-09-06T00:00:00Z")
+    validate_contract("PublicationAuthorization", payload, publication_authorization_evidence=evidence)
+    validate_contracts([("PublicationAuthorization", payload)], publication_authorization_evidence=evidence)
+    print(json.dumps({"valid":True, "code_commit":payload["code_commit"], "approval_evidence_ref":payload["approval_evidence_ref"]}))
+except ContractError as exc:
+    print(json.dumps({"valid":False, "error":str(exc)}))
+`;
+  const result = spawnSync("python3", ["-c", script], { input: JSON.stringify(input), encoding: "utf-8",
+    cwd: new URL("..", import.meta.url) });
+  assert.equal(result.status, 0, result.stderr);
+  return JSON.parse(result.stdout);
+}
+
+test("actual JavaScript archive bytes bind through Python builder, single and collection entry", async () => {
+  const input = await pythonArchive();
+  const result = checkPython(input);
+  assert.equal(result.valid, true, result.error);
+  assert.equal(result.code_commit, businessRequest.code_commit);
+  assert.notEqual(result.code_commit, input.bundle.request.source_commit);
+  assert.deepEqual(result.approval_evidence_ref, input.reference);
+});
+
+test("Python rejects changed bundle reference and missing/extra/corrupt original bytes", async () => {
+  const original = await pythonArchive();
+  for (const change of [(v) => { v.reference.content_fingerprint = "sha256:" + "0".repeat(64); },
+    (v) => { delete v.objects[v.bundle.request.key]; },
+    (v) => { v.objects["raw/" + "0".repeat(64)] = Buffer.from("extra").toString("base64"); },
+    (v) => { v.objects[v.bundle.documents[1].key] = Buffer.from("changed").toString("base64"); }]) {
+    const input = structuredClone(original); change(input);
+    assert.equal(checkPython(input).valid, false);
+  }
+});
+
+test("Python rejects resealed bundle kind/version/role/URL and byte-metadata substitutions", async () => {
+  const original = await pythonArchive();
+  for (const change of [(b) => { b.version = true; }, (b) => { b.kind = "other"; }, (b) => { b.extra = 1; },
+    (b) => { b.documents.pop(); }, (b) => { b.documents.reverse(); },
+    (b) => { b.documents[1].url = "https://attacker.invalid/env"; },
+    (b) => { b.documents[1].size_bytes = true; }, (b) => { b.identity.job.run_attempt = true; }]) {
+    const input = structuredClone(original); change(input.bundle); resealArchive(input);
+    assert.equal(checkPython(input).valid, false);
+  }
+});
+
+test("Python rejects summary identities/time that disagree with original API/source bytes", async () => {
+  const original = await pythonArchive();
+  for (const change of [(b) => { b.identity.job.run_id = "457"; }, (b) => { b.approver_id = "998"; },
+    (b) => { b.environment_id = "11"; }, (b) => { b.identity.actor_id = "790"; },
+    (b) => { b.request.source_commit = "a".repeat(40); },
+    (b) => { b.observed_at = new Date(claims.exp * 1000).toISOString(); }]) {
+    const input = structuredClone(original); change(input.bundle); resealArchive(input);
+    assert.equal(checkPython(input).valid, false);
+  }
+});
+
+test("Python checks API originals even when their descriptor and bundle hashes are resigned", async () => {
+  const original = await pythonArchive();
+  for (const [role, change] of [
+    ["review_history", (v) => { v[0].user.id = 998; }],
+    ["review_history", (v) => { v[0].environments.push({ id: 11, name: "production" }); }],
+    ["run_before_review", (v) => { v.id = 457; }],
+    ["run_after_source", (v) => { v.status = "completed"; }],
+    ["source_config_tree", (v) => { v.tree[0].mode = "120000"; }],
+    ["request_blob", (v) => { v.content = Buffer.from("replaced").toString("base64"); }],
+  ]) {
+    const input = structuredClone(original);
+    const descriptor = input.bundle.documents.find((d) => d.role === role);
+    const document = JSON.parse(Buffer.from(input.objects[descriptor.key], "base64").toString());
+    change(document);
+    const bytes = Buffer.from(JSON.stringify(document));
+    const hash = "sha256:" + createHash("sha256").update(bytes).digest("hex");
+    Object.assign(descriptor, { key: "raw/" + hash.slice(7), sha256: hash, size_bytes: bytes.length });
+    input.objects[descriptor.key] = bytes.toString("base64");
+    const used = new Set([input.bundle.request.key, ...input.bundle.documents.map((d) => d.key)]);
+    input.objects = Object.fromEntries(Object.entries(input.objects).filter(([key]) => used.has(key)));
+    resealArchive(input);
+    assert.equal(checkPython(input).valid, false);
+  }
+});
+
+test("archive-backed Python evidence cannot omit source context or substitute Job/approver", async () => {
+  const original = await pythonArchive();
+  for (const missing of [["source_commit"], ["request_source"], ["source_commit", "request_source"]]) {
+    assert.equal(checkPython({ ...original, drop_evidence: missing }).valid, false);
+  }
+  for (const replacement of [{ approver_id: "998" }, { job: { ...original.bundle.identity.job, run_id: "457" } },
+    { job: { ...original.bundle.identity.job, run_attempt: true } }]) {
+    assert.equal(checkPython({ ...original, replace_evidence: replacement }).valid, false);
+  }
 });

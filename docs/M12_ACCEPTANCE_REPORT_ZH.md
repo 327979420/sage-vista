@@ -325,3 +325,26 @@ PublicationAuthorization的内部publication_authorization_evidence可增强为�
 本批实现实际R2绑定调用路径，但测试没有真实云桶、角色权限／无限保留锁或远端持久性证据。没有DO或RPC／HTTP入口，API凭据和存储能力仅内部注入；生产配置及权限隔离仍待上线卡与接线验收。尚未运行Python语义验证或形成授权记录；后续必须从已持久化清单重验原件、强制B2d增强证据，把approval_evidence_ref与请求／Job／approver完整绑定，并核验真实业务目标／config、审核人可审阅工作流及当前授权链／lease。原件存在不能当作已批准任意请求或生产许可。跨日端到端仍未执行，M11不重审。
 
 独立提交`feat: archive M12 approval observation evidence [skip ci]`，父提交c69951bc46ccffc27b0cbbcc9aaac29a780dc356，完整SHA见交付消息。仅新增内部归档组合器、扩展现有取证测试及3个治理文档，无业务算法／配置变更；可撤销本包并保留记录，无真实数据迁移。未合并、推送、创建云资源、部署、生产启用或对外通知。
+
+
+## B2e独立复核回传
+
+审核对话01a074f9-098a-7b82-b486-3185683290fe确认d414597f18115dee6f7f9bfd05fdc035d21f8bbd在内部签名取证→原件归档→完整清单引用组合范围通过。审核员运行48项测试、逐段检查原件先读回／清单后写、字节hash引用、失败／过期／幂等及不留原token／凭据；diff通过、HEAD不变、工作区干净。受控API／R2替身结论不覆盖真实云或生产授权，实际归档原件、Job／审核人／请求及DO当前链／lease仍须后续重验。
+
+## B2f：归档清单原件的唯一合同重验（待独立审核）
+
+在`services/contracts/validation.py`增加publication_approval_archive_body，输入仅为可信读取的`{bundle_bytes,objects}`及预期approval_evidence_ref；objects为本清单所需raw键到不可变bytes的精确映射。重算清单原字节SHA-256／Ref、规范字节编码、kind／版本及封闭字段；逐一验证请求与九角色API原件的长度／hash／raw键，缺项、多项、重复角色、顺序或URL替换拒绝，同字节多角色可以共用同一raw对象。归档JSON仍复用既有严格解析器，仅对review_history显式允许数组；原Manifest／请求等对象边界默认不变。
+
+源身份使用既有Job校验，核对观测在已存身份issued_at／expires_at范围内；控制提交由identity绑定到固定请求原件，经B2d解析业务请求，不用控制SHA替代业务code_commit。Job的run／attempt／仓库稳定身份／actor与三份run原件对应，环境和审核人对应环境／批准历史原件；源码commit／两层tree／普通文件／blob关联及原字节一致性再次检查，九个URL必须由对应仓库、run、环境和Git对象身份导出。此处重验归档内部关联，不重新实施Github签名或外部政策认证；例如workflow_commit、subject的真实签名来源仍依赖受信B2a取证，不从本清单存在推断真实性。
+
+publication_authorization_evidence增加可选的approval_archive接点；只要带该字段，request_source和source_commit也强制存在，不能仅删除两个source字段退回五字段路径。唯一入口从归档原件推导request／request_source／source_commit／Job／approver，与声明逐项比较，再走已有完整历史／直接前序规则。另显式调用既有Job／Ref／Text规则验证可信证据自身，避免仅靠Python字典相等让bool冒充Job整数。构造器／单对象／集合共享该路径；没有新业务合同、权限、身份公式或消费者侧第二套规则。
+
+### B2f实际检查与未完成接点
+
+6项新增跨语言专项直接将B2e通过实际组合器写入本地R2替身的清单／原件字节送入Python解析／授权构造／单对象／集合入口，验证编码和身份一致，未重新手写一套理想化清单样本。覆盖错误Ref、缺失／额外／损坏原件、重签kind／version／role／URL／元数据、Job／审核人／时间替换、原API内容与blob变更后重算所有相关hash、删除增强字段或替换声明。35项Node专项／取证回归、99项M12 Python、31项共享合同、7项治理、12项项目状态共184项通过；定点lint、机器状态／文档链接、diff检查通过。Node跨语言测试需本地python3，只用标准库和当前源码。
+
+本批输入是可信读回字节上下文；测试字节来自真实组合器＋本地绑定替身，不代表已接入真实R2读取／权限或DO。纯校验不能证明调用者提供的自制清单来自受信协调器；原token未归档，不能离线重验OIDC签名。后续运行入口必须从受控归档及真实取证登记来源取得预期Ref／字节，强制完整approval_archive上下文，并在提交事务重验当前Job／授权链／lease；不得接受外部完整重造的同形JSON，也不得删除整个归档上下文退回旧纯合同路径。旧五字段／仅source增强路径仍仅保留为内部纯验证边界，不增加生产入口。
+
+来源和原件一致依然不是当前生产许可。审核工作流展示冻结请求、业务目标／config实际库存校验、原件引用权威登记、可信Python验证收据及DO当前链／lease／CAS接线仍待后续；归档日期检查验证历史一致性，不把历史身份窗口当作现在有效。跨日端到端仍未执行，M11不重审。
+
+独立提交`feat: validate M12 archived approval evidence binding [skip ci]`，父提交d414597f18115dee6f7f9bfd05fdc035d21f8bbd，完整SHA见交付消息。只改唯一合同模块、现有环境／归档专项测试及3个治理文档；可撤回本包归档接点并保留历史，无真实数据迁移。未合并、推送、创建云资源、部署、生产启用或对外通知。
