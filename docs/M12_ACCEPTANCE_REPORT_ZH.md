@@ -191,3 +191,26 @@ API依据为[Cloudflare R2 Workers官方参考](https://developers.cloudflare.co
 尚无DO索引、身份认证、当前授权、跨任务锁、队列、实际CAS及发布接线；R2存在对象不等于已验证或已登记事实，孤立对象不进入权威库存。既有ShadowStore守门不变。跨日端到端仍未执行，无运行通过声明。本批只完成B的字节传输基础，后续登记必须重新验证合同身份、原件、真实前序和当前令牌，不能直接信任调用方描述符。
 
 本批检查：9项Node专项、7项治理及12项项目状态测试；新增文件定点lint、机器状态一致性、文档链接与差异格式检查。独立提交`feat: add M12 immutable R2 archive binding [skip ci]`，父提交bf4a705ef77cd87e911e3f628ab866a0d07076f3，完整SHA见交付消息。回退可撤销本批模块／测试，保留治理记录；尚无真实存储对象需迁移。未合并、推送、创建云资源、部署、生产启用或对外通知。
+
+
+## B1a独立复核回传
+
+审核对话01a074f9-098a-7b82-b486-3185683290fe确认13d9925f274a9af9fc15092aa57d3e86c5bc1ffa在字节归档适配器及本地R2绑定替身范围通过。审核员自行运行28项测试、20组六方不同字节竞争，均只有一个成功，140次读回且原键重试保留赢家；另核对官方条件put接口，diff通过、HEAD不变、工作区干净。真实云桶、无限保留锁／私有权限、最大对象内存、生产认证及DO／lease／CAS不在该结论范围。
+
+## B1b：SQLite持久租约生命周期（待独立审核）
+
+`services/publication/leases.mjs`新增内部LeaseStore，直接使用SQLite-backed DO的sql.exec和transactionSync API。五类资源保持设计第5节边界，daily校验实际日期；服务端时钟，TTL固定300秒，续约不改fence，runner每60秒续约的调度留后续。每个资源保留递增fence，释放不删除记录；恰好到期视为失效。有效期内同Job重复acquire返回原租约且不延长TTL，另一Job被拒绝；过期／释放后重新授予加1，即使Job相同也拒绝旧fence。renew／release在同一事务比较epoch、完整owner Job、当前fence和有效期；不同epoch、旧令牌、非owner、无租约及超出安全整数范围均失败关闭。
+
+SQLite三表保存epoch／服务时钟水位、租约及只追加租约操作日志；每次初始化／授予／续约／释放的前后状态与日志同事务提交，日志失败一起回滚。服务时钟比已记录成功操作倒退时拒绝操作。默认时钟来自Date.now，测试才注入固定时间。打开存储只建表，不激活epoch；initialize仅是未来可信控制面的一次初始化接点，同epoch重放不清表，不允许以另一epoch覆盖。epoch缺失但租约／日志尚存时要求恢复；没有自动重建、删表、租约epoch轮换或旧导出恢复入口。
+
+返回内部句柄`{epoch,lease}`，lease精确为设计的`{resource,owner_job,fence,expires_at}`；续约／释放令牌为`{epoch,fence}`，请求另带resource及可信Job。expires_at由服务时间转换为UTC字符串。Job仅按已验证原始字段排序保存并比较，不在JS复制Python的Job合同／身份认证逻辑；不接受输入时间作为过期依据。该类尚无HTTP/RPC暴露，未来认证适配器必须提供经唯一合同入口验证且与真实认证身份绑定的Job，不能将客户端JSON直接注入。获得句柄不证明当前生产批准有效。
+
+### B1b实际检查与边界
+
+12项专项使用Node本地真实SQLite及DO同步API薄适配，覆盖五族／TTL、完整Job变化、acquire重放、到期接管、释放后再授予、epoch隔离、文件数据库重开、日志失败事务回滚、非法资源／时钟／令牌、部分状态丢失、fence溢出和两个实例争用同一SQLite状态。首次测试发现本地Node版本没有Statement.columns，已将测试薄适配改为直接all执行语句，12项最终全部通过；不改生产模块来迎合替身。此验证不等于Cloudflare DO调度、输出门或远端落盘已通过。
+
+本批仅租约生命周期，不提供“验证令牌后脱离事务写事实”的接口；后续权威登记／队列完成／CurrentPointer CAS必须在其提交事务内重新比较当前认证授权、epoch、owner、fence及期限，不能缓存本批返回句柄当写入许可。release成功响应丢失后的重复release当前拒绝旧令牌，不承诺已实现业务操作重放收据；业务幂等、恢复查询、操作日志R2导出、真实初始化控制面及灾难恢复仍待后续。没有全量协调器或租约已保护生产写入的声明。
+
+API依据为[Cloudflare SQLite-backed Durable Object官方参考](https://developers.cloudflare.com/durable-objects/api/sqlite-storage-api/)；同步事务回调不跨网络或await。没有新增Worker入口、绑定／迁移配置或依赖，无云资源创建。B1b不修改B1a、已有纯合同、ShadowStore守门或业务算法。跨日端到端仍未执行。
+
+本批12项专项、7项治理及12项项目状态共31项通过；新增文件定点lint、机器状态一致性、文档链接和diff检查通过。独立提交`feat: add M12 persistent lease lifecycle [skip ci]`，父提交13d9925f274a9af9fc15092aa57d3e86c5bc1ffa，完整SHA见交付消息。本地测试SQLite已清理，无真实数据迁移；可撤回本包代码／测试并保留治理历史。未合并、推送、创建云资源、部署、生产启用或对外通知。
