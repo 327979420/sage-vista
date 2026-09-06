@@ -48,6 +48,10 @@ export class MembershipRegistrationReadback {
   }
 
   async capture(token, candidateArchive) {
+    return (await this.captureForRegistration(token, candidateArchive)).input_bytes;
+  }
+
+  async captureForRegistration(token, candidateArchive) {
     if (!this.#license) throw new Error('membership_readback_disabled');
     const candidate = location(candidateArchive, 16384);
     const selected = await this.#selected.selectedForUse(token);
@@ -92,6 +96,6 @@ export class MembershipRegistrationReadback {
       acquisition_archive: this.#license.license_archive, observations_base64: originals }));
     if (raw.length > MAX_INPUT) throw new Error('membership_readback_input_too_large');
     await currentCheck();
-    return raw; // Persist and bind this actual input before dispatch/registration.
+    return { input_bytes: raw, selection: structuredClone(selected) }; // Internal origin binding, not a permission.
   }
 }

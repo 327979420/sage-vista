@@ -1,3 +1,4 @@
+import { MembershipRegistrationSession } from '../services/publication/membership_session.mjs';
 import { MembershipRegistrationReadback } from '../services/publication/membership_readback.mjs';
 import { MembershipObservationIndex } from '../services/publication/membership_index.mjs';
 import { DailyPreparationApi } from '../services/publication/daily_preparation_api.mjs';
@@ -3275,10 +3276,12 @@ print(json.dumps({'done':{'as_of':collected.parsed.as_of,'members':len(collected
   const currentToken = token({ sha: e.code_commit, iat: now - 30, nbf: now - 30, exp: now + 300 });
   const original = f.objects.get(done.observation_key);
   const descriptor = { key: done.observation_key, sha256: sha(original), size_bytes: original.length };
-  const input = await new MembershipRegistrationReadback(runtimeIdentity, options).capture(currentToken, descriptor);
+  const session = new MembershipRegistrationSession(runtimeIdentity, options);
+  const sent = await session.prepare(currentToken, descriptor);
+  const input = sent.input_bytes;
   const validated = spawnSync('python3', ['-B', '-c', `import sys,json
 from services.publication.preparation_execution import execute_membership_validation
-print(execute_membership_validation(sys.stdin.buffer.read()).decode())`],
+sys.stdout.buffer.write(execute_membership_validation(sys.stdin.buffer.read()))`],
     { input: Buffer.from(input), encoding: 'utf8', cwd: new URL('..', import.meta.url), timeout: 30000 });
   assert.equal(validated.status, 0, validated.stderr);
   const result = JSON.parse(validated.stdout);
@@ -3287,6 +3290,12 @@ print(execute_membership_validation(sys.stdin.buffer.read()).decode())`],
   assert.deepEqual(result.membership_registration.candidate_archive, descriptor);
   assert.equal(result.membership_registration.expected_index.revision, 0);
   assert.equal(f.db.prepare('SELECT revision FROM m12_membership_head').get().revision, 0);
+  f.state.now = Date.now();
+  const registered = await session.accept(currentToken, sent.input_archive.sha256, Buffer.from(validated.stdout));
+  assert.equal(registered.current_index.revision, 1);
+  assert.deepEqual(registered.current_index.head, descriptor);
+  const reopened = new MembershipRegistrationSession(runtimeIdentity, options);
+  assert.deepEqual(await reopened.accept(currentToken, sent.input_archive.sha256, Buffer.from(validated.stdout)), registered);
 });
 
 async function membershipReadbackFixture(t) {
@@ -3374,4 +3383,148 @@ test('membership registration readback checks the original window after final en
   };
   try { await assert.rejects(f.service.capture(token(), f.candidate)); }
   finally { globalThis.TextEncoder = Original; }
+});
+
+
+async function membershipSessionFixture(t) {
+  const f = await membershipReadbackFixture(t);
+  const licensePolicy = Object.fromEntries(['purpose', 'license_archive', 'license_valid_from', 'license_valid_until'].map(k => [k, f.acquisitionPolicy[k]]));
+  const create = () => new MembershipRegistrationSession(identityPolicy, { ...f.useOptions, licensePolicy });
+  const service = create(), sent = await service.prepare(token(), f.candidate);
+  const input = JSON.parse(Buffer.from(sent.input_bytes)), prepared = JSON.parse(Buffer.from(input.preparation_base64, 'base64'));
+  // Synthetic fixed-runner result for server binding tests only. Real worker
+  // produces the return in the separate daily-client integration above.
+  const result = { protocol: input.protocol, input_sha256: sent.input_archive.sha256,
+    input_size_bytes: sent.input_bytes.length, started_ms: f.state.now, completed_ms: f.state.now,
+    preparation: { authorization_ref: prepared.evidence.current_history.head, config_ref: f.policy.config_ref,
+      config_archive: f.policy.config_archive, code_commit: identityPolicy.code_commit, as_of: f.policy.as_of,
+      checked_at: new Date(f.state.now).toISOString().replace('.000Z', 'Z'), history_revision: prepared.evidence.current_history.revision },
+    membership_registration: { as_of: f.policy.as_of, expected_index: input.expected_index, candidate_archive: f.candidate,
+      member_count: 1, members_fingerprint: 'sha256:' + 'a'.repeat(64) } };
+  const canonical = v => Array.isArray(v) ? v.map(canonical) : v && typeof v === 'object' ?
+    Object.fromEntries(Object.keys(v).sort().map(k => [k, canonical(v[k])])) : v;
+  const bytes = (value = result) => Buffer.from(JSON.stringify(canonical(value)) + '\n');
+  const accept = (instance = service, value = result) => instance.accept(token(), sent.input_archive.sha256, bytes(value));
+  const count = table => f.db.prepare('SELECT count(*) AS n FROM ' + table).get().n;
+  return { ...f, create, service, sent, result, bytes, accept, count };
+}
+
+test('membership registration session persists actual dispatch and atomically registers with restart replay', async t => {
+  const f = await membershipSessionFixture(t);
+  assert.deepEqual(Buffer.from(f.objects.get(f.sent.input_archive.key)), Buffer.from(f.sent.input_bytes));
+  assert.equal(f.count('m12_membership_inputs'), 1);
+  assert.equal(f.count('m12_membership_input_log'), 1);
+  const receipt = await f.accept(f.create());
+  assert.deepEqual(receipt.current_index.head, f.candidate);
+  assert.equal(receipt.current_index.revision, 1);
+  assert.deepEqual(await f.accept(f.create()), receipt);
+  for (const table of ['returns', 'return_log', 'index', 'index_log']) assert.equal(f.count('m12_membership_' + table), 1);
+});
+
+test('membership registration session rejects disabled unauthenticated and foreign task access', async t => {
+  const off = new MembershipRegistrationSession(null);
+  await assert.rejects(off.prepare('bad', {}), /disabled/);
+  await assert.rejects(off.accept('bad', 'x', Buffer.from('x')), /disabled/);
+  const f = await membershipSessionFixture(t);
+  const gets = f.archiveState.gets;
+  for (const value of ['unsigned', token({ actor_id: '790' }), token({ run_id: '457' })]) {
+    await assert.rejects(f.service.accept(value, f.sent.input_archive.sha256, f.bytes()));
+  }
+  assert.equal(f.archiveState.gets, gets);
+  assert.equal(f.count('m12_membership_returns'), 0);
+  assert.equal(f.count('m12_membership_index'), 0);
+});
+
+test('membership registration session binds all fixed result targets and computation times', async t => {
+  const f = await membershipSessionFixture(t);
+  for (const change of [r => { r.input_sha256 = 'sha256:' + 'b'.repeat(64); }, r => { r.input_size_bytes++; },
+    r => { r.protocol = 'm12-preparation-validation/1'; }, r => { r.started_ms--; }, r => { r.completed_ms++; },
+    r => { r.preparation.history_revision++; }, r => { r.preparation.code_commit = 'c'.repeat(40); },
+    r => { r.membership_registration.expected_index.revision++; }, r => { r.membership_registration.candidate_archive.sha256 = 'sha256:' + 'd'.repeat(64); },
+    r => { r.membership_registration.as_of = '2026-09-05'; }, r => { r.membership_registration.member_count = true; },
+    r => { r.membership_registration.members_fingerprint = 'bad'; }, r => { r.registered = true; }]) {
+    const wrong = structuredClone(f.result); change(wrong);
+    await assert.rejects(f.accept(f.service, wrong));
+  }
+  assert.equal(f.count('m12_membership_index'), 0);
+  assert.equal(f.count('m12_membership_returns'), 0);
+});
+
+test('membership registration session missing pairs originals or current evidence never recovers from hashes alone', async t => {
+  for (const missing of ['input', 'input_log', 'return', 'return_log', 'input_raw', 'output_raw', 'source_raw', 'license', 'selection', 'root']) {
+    const f = await membershipSessionFixture(t), receipt = await f.accept();
+    if (['input', 'return'].includes(missing)) f.db.exec('DELETE FROM m12_membership_' + missing + 's');
+    else if (missing.endsWith('_log')) f.db.exec('DELETE FROM m12_membership_' + missing);
+    else if (missing === 'input_raw') f.objects.delete(f.sent.input_archive.key);
+    else if (missing === 'output_raw') f.objects.delete(receipt.output_archive.key);
+    else if (missing === 'source_raw') f.objects.delete(f.responseArchive.key);
+    else if (missing === 'license') f.objects.delete(f.acquisitionPolicy.license_archive.key);
+    else if (missing === 'selection') f.db.exec('DELETE FROM m12_preparation_selection_log');
+    else f.db.exec('DELETE FROM m12_membership_head');
+    await assert.rejects(f.accept(f.create()));
+  }
+});
+
+test('membership registration session rolls back every final write and retries orphaned bytes', async t => {
+  for (const point of ['INSERT INTO m12_membership_index VALUES', 'INSERT INTO m12_membership_index_log',
+    'UPDATE m12_membership_head', 'INSERT INTO m12_membership_returns', 'INSERT INTO m12_membership_return_log']) {
+    const f = await membershipSessionFixture(t), exec = f.storage.sql.exec;
+    f.storage.sql.exec = (sql, ...args) => { const result = exec(sql, ...args); if (sql.includes(point)) throw new Error('injected write failure'); return result; };
+    await assert.rejects(f.accept(), /injected/);
+    f.storage.sql.exec = exec;
+    for (const table of ['returns', 'return_log', 'index', 'index_log']) assert.equal(f.count('m12_membership_' + table), 0);
+    assert.equal(f.db.prepare('SELECT revision FROM m12_membership_head').get().revision, 0);
+    assert.equal((await f.accept(f.create())).current_index.revision, 1);
+  }
+});
+
+test('membership registration session fails on changed roots permission and original window during return IO', async t => {
+  for (const change of [f => f.objects.delete(f.acquisitionPolicy.license_archive.key),
+    f => f.objects.delete(f.sent.input_archive.key), f => f.db.exec('DELETE FROM m12_preparation_selection_log'),
+    f => f.db.exec('UPDATE m12_membership_head SET revision=99'),
+    f => { f.state.now = (NOW + 300) * 1000; }]) {
+    const f = await membershipSessionFixture(t);
+    f.archiveState.afterPut = () => change(f);
+    await assert.rejects(f.accept());
+    assert.equal(f.count('m12_membership_returns'), 0);
+    assert.equal(f.count('m12_membership_index'), 0);
+  }
+});
+
+test('membership registration session final expiry rolls back index and paired receipt', async t => {
+  const f = await membershipSessionFixture(t), exec = f.storage.sql.exec;
+  f.storage.sql.exec = (sql, ...args) => {
+    const result = exec(sql, ...args);
+    if (sql.includes('INSERT INTO m12_membership_return_log')) f.state.now = (NOW + 300) * 1000;
+    return result;
+  };
+  await assert.rejects(f.accept(), /expired|deadline|window|stale/);
+  for (const table of ['returns', 'return_log', 'index', 'index_log']) assert.equal(f.count('m12_membership_' + table), 0);
+  // Even a freshly signed JWT cannot revive the original preparation window.
+  await assert.rejects(f.service.accept(token({ iat: NOW + 290, nbf: NOW + 290, exp: NOW + 600 }), f.sent.input_archive.sha256, f.bytes()));
+});
+
+
+test('membership registration session rolls back dispatch pairs and refuses a competing dispatched root', async t => {
+  const f = await membershipSessionFixture(t), exec = f.storage.sql.exec;
+  f.state.now += 1000;
+  f.storage.sql.exec = (sql, ...args) => {
+    const value = exec(sql, ...args);
+    if (sql.includes('INSERT INTO m12_membership_input_log')) throw new Error('dispatch pair failure');
+    return value;
+  };
+  await assert.rejects(f.service.prepare(token(), f.candidate), /dispatch pair/);
+  f.storage.sql.exec = exec;
+  assert.equal(f.count('m12_membership_inputs'), 1);
+  assert.equal(f.count('m12_membership_input_log'), 1);
+  const second = await f.service.prepare(token(), f.candidate);
+  assert.notEqual(second.input_archive.sha256, f.sent.input_archive.sha256);
+  const other = structuredClone(f.result);
+  Object.assign(other, { input_sha256: second.input_archive.sha256, input_size_bytes: second.input_bytes.length,
+    started_ms: f.state.now, completed_ms: f.state.now });
+  other.preparation.checked_at = new Date(f.state.now).toISOString().replace('.000Z', 'Z');
+  await f.accept();
+  await assert.rejects(f.service.accept(token(), second.input_archive.sha256, f.bytes(other)), /source_changed|index_changed/);
+  assert.equal(f.count('m12_membership_returns'), 1);
+  assert.equal(f.count('m12_membership_index'), 1);
 });
