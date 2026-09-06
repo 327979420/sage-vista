@@ -5,6 +5,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { LeaseStore } from "../services/publication/leases.mjs";
+import { AuthorizationStore } from "../services/publication/authorization_store.mjs";
 
 const EPOCH = "11111111-1111-4111-8111-111111111111";
 const OTHER_EPOCH = "22222222-2222-4222-8222-222222222222";
@@ -46,7 +47,7 @@ function setup(t) {
   let now = NOW;
   const store = new LeaseStore(storage, { clock: () => now });
   store.initialize(EPOCH);
-  return { storage, store, setTime: (value) => { now = value; },
+  return { storage, store, clock: () => now, setTime: (value) => { now = value; },
     log: () => storage.sql.exec("SELECT * FROM m12_lease_log ORDER BY sequence").toArray() };
 }
 
@@ -197,4 +198,180 @@ test("two store instances serialize contenders against the same SQLite state", (
   winner.lease.owner_job.run_id = "caller-mutation";
   assert.deepEqual(other.acquire("execution/task:1", JOB, EPOCH).lease.owner_job, JOB);
   assert.equal(log().length, 2);
+});
+
+const APPROVAL = { id: "approval-observation:sha256:" + "f".repeat(64), content_fingerprint: "sha256:" + "f".repeat(64) };
+const authRef = (digit) => ({ id: "publication-authorization:sha256:" + digit.repeat(64), content_fingerprint: "sha256:" + digit.repeat(64) });
+
+function authorizations(t) {
+  const f = setup(t);
+  const authorization = new AuthorizationStore(f.storage, { clock: f.clock });
+  const handle = f.store.acquire("publish/global", JOB, EPOCH);
+  return { ...f, authorization, handle,
+    tickets: () => f.storage.sql.exec("SELECT * FROM m12_authorization_tickets").toArray(),
+    authLog: () => f.storage.sql.exec("SELECT * FROM m12_authorization_log").toArray() };
+}
+
+// Only synthetic index metadata; B3a does not register real authorization bodies.
+function seedHistory(storage) {
+  const refs = [authRef("a"), authRef("b")];
+  storage.transactionSync(() => {
+    refs.forEach((ref, i) => storage.sql.exec("INSERT INTO m12_authorization_index VALUES (?, ?, ?, ?)",
+      i + 1, JSON.stringify(ref), JSON.stringify({ key: `authority/${String(i + 1).repeat(64)}.json`,
+        sha256: "sha256:" + String(i + 1).repeat(64), size_bytes: 100 + i }),
+      i === 0 ? null : JSON.stringify(refs[i - 1])));
+    storage.sql.exec("UPDATE m12_authorization_head SET revision = 2, head_json = ?", JSON.stringify(refs[1]));
+  });
+  return refs;
+}
+
+test("lease-owned transaction rejects async closures and rolls back synchronous errors", (t) => {
+  const { storage, store } = setup(t);
+  const handle = store.acquire("publish/global", JOB, EPOCH);
+  storage.db.exec("CREATE TABLE test_mutation (value INTEGER)");
+  let invoked = false;
+  assert.throws(() => store.withOwnedLease("publish/global", JOB, token(handle), async () => { invoked = true; }), /synchronous/);
+  assert.equal(invoked, false);
+  for (const callback of [() => { storage.db.exec("INSERT INTO test_mutation VALUES (1)"); throw new Error("abort"); },
+    () => { storage.db.exec("INSERT INTO test_mutation VALUES (1)"); return Promise.resolve(); }]) {
+    assert.throws(() => store.withOwnedLease("publish/global", JOB, token(handle), callback));
+    assert.equal(storage.sql.exec("SELECT * FROM test_mutation").toArray().length, 0);
+  }
+});
+
+test("empty history produces one durable ticket bound to current lease and original evidence", (t) => {
+  const f = authorizations(t);
+  const ticket = f.authorization.prepareValidation(JOB, token(f.handle), APPROVAL);
+  assert.deepEqual(ticket.history, []);
+  assert.equal(ticket.expected_revision, 0);
+  assert.equal(ticket.expected_head_ref, null);
+  assert.equal(ticket.epoch, EPOCH);
+  assert.equal(ticket.fence, f.handle.lease.fence);
+  assert.equal(ticket.resource, "publish/global");
+  assert.deepEqual(ticket.owner_job, JOB);
+  assert.equal(ticket.expires_at, f.handle.lease.expires_at);
+  assert.deepEqual(ticket.approval_evidence_ref, APPROVAL);
+  assert.equal(f.tickets().length, 1);
+  assert.equal(f.authLog()[0].record_json, JSON.stringify(ticket));
+  assert.equal(f.storage.sql.exec("SELECT * FROM m12_authorization_index").toArray().length, 0);
+});
+
+test("complete ordered index and head are frozen; replay does not extend ticket time", (t) => {
+  const f = authorizations(t);
+  const refs = seedHistory(f.storage);
+  const first = f.authorization.prepareValidation(JOB, token(f.handle), APPROVAL);
+  assert.deepEqual(first.history.map((item) => item.reference), refs);
+  assert.equal(first.expected_revision, 2);
+  assert.deepEqual(first.expected_head_ref, refs[1]);
+  f.setTime(NOW + 60_000);
+  const repeated = f.authorization.prepareValidation(JOB, token(f.handle), APPROVAL);
+  assert.deepEqual(repeated, first);
+  assert.equal(f.tickets().length, 1);
+  assert.equal(f.authLog().length, 1);
+  repeated.history.pop(); repeated.owner_job.run_id = "attacker";
+  assert.deepEqual(f.authorization.prepareValidation(JOB, token(f.handle), APPROVAL), first);
+});
+
+test("stale fence, different epoch/owner and exact expiry cannot prepare tickets", (t) => {
+  const f = authorizations(t);
+  assert.throws(() => f.authorization.prepareValidation(OTHER, token(f.handle), APPROVAL), /not_owned/);
+  assert.throws(() => f.authorization.prepareValidation(JOB, { epoch: OTHER_EPOCH, fence: 1 }, APPROVAL), /epoch_mismatch/);
+  assert.throws(() => f.authorization.prepareValidation(JOB, { epoch: EPOCH, fence: 2 }, APPROVAL), /stale/);
+  f.setTime(NOW + 300_000);
+  assert.throws(() => f.authorization.prepareValidation(JOB, token(f.handle), APPROVAL), /stale/);
+  assert.equal(f.tickets().length, 0);
+});
+
+test("history gap, wrong predecessor/head or malformed archive location fail closed", (t) => {
+  const f = authorizations(t);
+  const refs = seedHistory(f.storage);
+  for (const sql of ["DELETE FROM m12_authorization_index WHERE position = 1",
+    "UPDATE m12_authorization_index SET previous_ref_json = NULL WHERE position = 2",
+    "UPDATE m12_authorization_index SET position = 3 WHERE position = 2",
+    "UPDATE m12_authorization_index SET archive_json = '{}' WHERE position = 1"]) {
+    f.storage.db.exec("BEGIN");
+    f.storage.db.exec(sql);
+    // Avoid nested transaction in the shim: persist the malformed state, then
+    // restore it explicitly for the next isolated counterexample.
+    f.storage.db.exec("COMMIT");
+    assert.throws(() => f.authorization.prepareValidation(JOB, token(f.handle), APPROVAL));
+    f.storage.db.exec("DELETE FROM m12_authorization_index");
+    seedHistory(f.storage);
+  }
+  f.storage.sql.exec("UPDATE m12_authorization_head SET head_json = ?", JSON.stringify(refs[0]));
+  assert.throws(() => f.authorization.prepareValidation(JOB, token(f.handle), APPROVAL), /head_mismatch/);
+  assert.equal(f.tickets().length, 0);
+});
+
+test("ticket-log failure rolls back ticket insertion and lease clock watermark", (t) => {
+  const f = authorizations(t);
+  f.storage.db.exec(`CREATE TRIGGER fail_ticket_log BEFORE INSERT ON m12_authorization_log
+    BEGIN SELECT RAISE(ABORT, 'ticket_log_unavailable'); END`);
+  f.setTime(NOW + 60_000);
+  assert.throws(() => f.authorization.prepareValidation(JOB, token(f.handle), APPROVAL), /ticket_log_unavailable/);
+  assert.equal(f.tickets().length, 0);
+  f.storage.db.exec("DROP TRIGGER fail_ticket_log");
+  f.setTime(NOW);
+  assert.equal(f.authorization.prepareValidation(JOB, token(f.handle), APPROVAL).prepared_at, new Date(NOW).toISOString());
+});
+
+test("lease expiry inside the ticket transaction rolls back both ticket and log", (t) => {
+  const f = authorizations(t);
+  const original = f.storage.sql.exec;
+  f.storage.sql.exec = (query, ...args) => {
+    const result = original(query, ...args);
+    if (query.includes("INSERT INTO m12_authorization_log")) f.setTime(NOW + 300_000);
+    return result;
+  };
+  assert.throws(() => f.authorization.prepareValidation(JOB, token(f.handle), APPROVAL), /expired_before_commit/);
+  assert.equal(f.tickets().length, 0);
+  assert.equal(f.authLog().length, 0);
+});
+
+test("renewed lease or changed head creates a new snapshot without rewriting old ticket", (t) => {
+  const f = authorizations(t);
+  const first = f.authorization.prepareValidation(JOB, token(f.handle), APPROVAL);
+  f.setTime(NOW + 60_000);
+  f.store.renew("publish/global", JOB, token(f.handle));
+  const renewed = f.authorization.prepareValidation(JOB, token(f.handle), APPROVAL);
+  assert.notEqual(renewed.ticket_id, first.ticket_id);
+  assert.notEqual(renewed.expires_at, first.expires_at);
+  seedHistory(f.storage);
+  const changed = f.authorization.prepareValidation(JOB, token(f.handle), APPROVAL);
+  assert.notEqual(changed.ticket_id, renewed.ticket_id);
+  assert.equal(changed.expected_revision, 2);
+  assert.deepEqual(JSON.parse(f.tickets()[0].ticket_json), first);
+});
+
+test("ticket persists across file database reopen and replay retains exact identity", (t) => {
+  const dir = mkdtempSync(join(tmpdir(), "sage-m12-auth-ticket-"));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const file = join(dir, "state.sqlite");
+  const first = binding(file);
+  const lease = new LeaseStore(first, { clock: () => NOW });
+  lease.initialize(EPOCH);
+  const handle = lease.acquire("publish/global", JOB, EPOCH);
+  const a = new AuthorizationStore(first, { clock: () => NOW });
+  const prepared = a.prepareValidation(JOB, token(handle), APPROVAL);
+  first.db.close();
+  const second = binding(file);
+  t.after(() => second.db.close());
+  const b = new AuthorizationStore(second, { clock: () => NOW + 60_000 });
+  assert.deepEqual(b.prepareValidation(JOB, token(handle), APPROVAL), prepared);
+});
+
+test("lost head or ticket log requires recovery instead of silently empty bootstrap", (t) => {
+  const f = authorizations(t);
+  f.authorization.prepareValidation(JOB, token(f.handle), APPROVAL);
+  f.storage.db.exec("DELETE FROM m12_authorization_log");
+  assert.throws(() => f.authorization.prepareValidation(JOB, token(f.handle), APPROVAL), /recovery_required/);
+  f.storage.db.exec("DELETE FROM m12_authorization_head");
+  const reopened = new AuthorizationStore(f.storage, { clock: f.clock });
+  assert.throws(() => reopened.prepareValidation(JOB, token(f.handle), APPROVAL), /recovery_required/);
+});
+
+test("wrong reference type is rejected and no authorization commit method exists yet", (t) => {
+  const f = authorizations(t);
+  assert.throws(() => f.authorization.prepareValidation(JOB, token(f.handle), authRef("a")), /reference_invalid/);
+  assert.deepEqual(Object.getOwnPropertyNames(AuthorizationStore.prototype).sort(), ["constructor", "prepareValidation"]);
 });

@@ -130,7 +130,7 @@ export class LeaseStore {
     });
   }
 
-  #owned(resource, ownerJob, token, operation) {
+  #ownerTransaction(resource, ownerJob, token, callback) {
     const owner = jobBytes(ownerJob);
     if (!token || !Number.isSafeInteger(token.fence) || token.fence < 1 || typeof token.epoch !== "string" ||
         Object.keys(token).sort().join() !== "epoch,fence") throw new Error("lease_token_invalid");
@@ -138,6 +138,13 @@ export class LeaseStore {
       if (!before || before.owner_json !== owner || before.fence !== token.fence || before.expires_ms <= now) {
         throw new Error("lease_stale_or_not_owned");
       }
+      return callback(before, now);
+    });
+  }
+
+  #owned(resource, ownerJob, token, operation) {
+    return this.#ownerTransaction(resource, ownerJob, token, (before, now) => {
+      const owner = before.owner_json;
       const after = { ...before, owner_json: operation === "release" ? null : owner,
         expires_ms: operation === "release" ? 0 : now + TTL_MS };
       this.#exec("UPDATE m12_leases SET owner_json = ?, expires_ms = ? WHERE resource = ?",
@@ -149,4 +156,18 @@ export class LeaseStore {
 
   renew(resource, ownerJob, token) { return this.#owned(resource, ownerJob, token, "renew"); }
   release(resource, ownerJob, token) { return this.#owned(resource, ownerJob, token, "release"); }
+
+  withOwnedLease(resource, ownerJob, token, callback) {
+    // Internal synchronous SQL closures only. Never expose callback code over RPC
+    // or perform network/async work here; no lease check result escapes for reuse.
+    if (typeof callback !== "function" || callback.constructor.name === "AsyncFunction") {
+      throw new Error("lease_callback_must_be_synchronous");
+    }
+    return this.#ownerTransaction(resource, ownerJob, token, (row, now) => {
+      const result = callback({ ...this.#handle(token.epoch, row), now });
+      if (result && typeof result.then === "function") throw new Error("lease_callback_must_be_synchronous");
+      if (this.#now(now) >= row.expires_ms) throw new Error("lease_expired_before_commit");
+      return result;
+    });
+  }
 }

@@ -369,3 +369,26 @@ ReviewedRequestArchive增加readForValidation(token)，内部先完成自身arch
 这是内部绑定调用及Python函数接点，测试仍用受控GitHub／R2绑定替身，不是已部署RPC／HTTP服务。真实跨进程传输、可信Python验证收据、DO持锁提供完整当前历史／当前授权／lease及最终原子登记尚未接入；不能把Python纯函数可接受同形bytes视为认证。将来HTTP入口必须直接使用内部readForValidation路径，并由服务端取得history，不允许外部提供自制清单、预期Ref或截断历史。当前构造出的PublicationAuthorization只是未登记合同，不是生效授权。审核人可审阅冻结请求的工作流、真实业务目标/config库存及生产设置仍待后续；跨日端到端仍未执行，M11不重审。
 
 独立提交`feat: connect M12 controlled archive reads to authorization builder [skip ci]`，父提交38424b4aff6ad91c07248dd72f017b91959eb390，完整SHA见交付消息。只改内部归档组合器／纯构造器、现有专项测试及3个治理文档；可撤回本批接点并保留历史，无真实数据迁移。未合并、推送、创建云资源、部署、生产启用或对外通知。
+
+
+## B2g独立复核回传
+
+审核对话01a074f9-098a-7b82-b486-3185683290fe确认aa4848802a9baccde1f5dbb2a30c13dfe46bad18在内部新取证→受控R2读回→强制Python归档构造范围通过。审核员运行86项测试、逐段核对实际读回／跨语言、故障／过期、覆盖参数拒绝及隔离；diff通过、HEAD不变、工作区干净。真实平台／跨进程通道和验证收据未覆盖，后续必须服务端取得完整持锁历史，不接受自制Ref／清单或截断历史，构造对象尚未登记／生效。
+
+## B3a：持锁授权历史快照与持久验证票据（待独立审核）
+
+新增内部AuthorizationStore，复用同一SQLite-backed DO storage和B1b LeaseStore。在publish/global当前lease事务内读取授权head／revision及完整有序索引，保存待验证票据和日志，不允许调用方传入历史或head。索引条目只包含不可变授权Ref、归档key／原字节hash／长度及直接前序Ref；验证位置连续、无重复身份、前序线性、条数等于revision及末尾等于head。真正授权正文仍在R2，读取并经Python唯一合同验证留后续；索引格式检查不等于正文已复核。
+
+LeaseStore提取共用owner事务检查，renew／release继续复用；withOwnedLease只供内部硬编码同步SQL回调，在事务开始比较当前epoch、owner、fence、期限，并在回调结束前再次检查未过期，拒绝async回调或Promise结果，异常同事务回滚。AuthorizationStore只传内部固定闭包，不接受外部回调代码，不在事务中等待网络；回调类型守门不替代此内部使用约束。该包装本批保护的是票据准备，不声称已保护未实现的生产事实／发布写入。
+
+四张SQLite表保存head、授权索引、票据和操作日志；新空库可建立revision=0／head=null，若head缺失但索引／票据／日志尚存，不自动当作空历史恢复。当前只实现prepareValidation(ownerJob,token,approvalEvidenceRef)，无授权追加／登记或消费票据方法。输入Job和批准证据Ref必须由未来内部B2g认证接线提供，此低层方法仅检查引用格式及lease持有关系，不独立证明批准来源或当前发布权限。
+
+票据精确字段`ticket_id,resource,owner_job,epoch,fence,prepared_at,expires_at,approval_evidence_ref,expected_revision,expected_head_ref,history`，ticket_id为服务端UUID。history冻结完整索引描述，resource固定publish/global，期限取本次lease期限，不给调用者覆盖。相同epoch／Job／fence／lease期限／revision／head／证据Ref复用同一票据及prepared_at，不重复日志；读取既有票据要求对应准备日志完整一致。续约改变期限或head变化可生成新快照，旧票据原件保留，不能延长旧票有效期。票据／日志写入与lease检查同事务，日志故障或结束时过期均回滚。
+
+### B3a实际检查及后续要求
+
+11项新增＋12项lease回归共23项Node测试，使用真实本地SQLite和DO同步API薄适配，覆盖空／两条合成索引快照、重放、期限／epoch／owner／fence、索引缺项／位置／前序／head／归档定位异常、日志故障及事务内到期回滚、续约／head变化保留旧票据、文件数据库重开和部分状态丢失。加7项治理、12项状态共42项通过，定点lint、机器状态／链接／diff检查通过。历史行仅在测试中直接插入合成索引，不声称已运行授权登记或真实批准链。
+
+下一步必须在事务外按该快照读取全部R2授权正文，交强制B2g Python构造器，并把可信验证结果绑定票据、完整历史及原件Ref；最终登记必须重新读取当前授权head／revision及当前身份／授权／lease，比较票据前态并原子追加授权索引和日志，不能仅凭旧快照或票据存在放行。当前无票据消费、通过收据、授权登记、有效授权查询、队列或CurrentPointer CAS。真实平台配置／凭据、业务目标/config和可审阅工作流仍待接线；跨日端到端尚未执行，M11不重审。
+
+独立提交`feat: persist M12 lease-bound authorization validation tickets [skip ci]`，父提交aa4848802a9baccde1f5dbb2a30c13dfe46bad18，完整SHA见交付消息。只改内部租约包装、新增授权存储基础、现有lease专项测试及3个治理文档，无Worker配置／迁移／云资源操作；可撤回本包并保留治理历史，本地SQLite测试文件已清理。未合并、推送、创建云资源、部署、生产启用或对外通知。
