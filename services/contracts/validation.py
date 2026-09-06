@@ -2648,3 +2648,25 @@ def _validate_current_pointer(payload: Mapping[str, Any], evidence: Mapping[str,
     _m12_pointer_fields(payload)
     if _canonical(payload) != _canonical(current_pointer_body(evidence)):
         raise ContractError("CurrentPointer differs from its trusted transition")
+
+
+def publication_configuration_body(evidence: Mapping[str, Any]) -> dict[str, Any]:
+    """Validate trusted fixed-Git source bytes and materialize approved policies.
+
+    Provenance must come from the fixed source collector; labels in arbitrary
+    caller evidence do not prove that a process runs the specified code commit.
+    """
+    from .configuration import _configuration_body
+    return _configuration_body(evidence)
+
+
+def verify_publication_configuration(raw: bytes, evidence: Mapping[str, Any]) -> dict[str, str]:
+    """Single validation boundary for exact first-run config content and Ref."""
+    if type(raw) is not bytes or not 0 < len(raw) <= 1024 * 1024:
+        raise ContractError("M12 configuration bytes are invalid")
+    value = _m12_json(raw)
+    expected = publication_configuration_body(evidence)
+    if _canonical(value) != _canonical(expected):
+        raise ContractError("M12 configuration differs from frozen policy/source evidence")
+    fingerprint = "sha256:" + hashlib.sha256(_canonical(value)).hexdigest()
+    return {"id": "publication-config:" + fingerprint, "content_fingerprint": fingerprint}
