@@ -235,3 +235,28 @@ API依据为[Cloudflare SQLite-backed Durable Object官方参考](https://develo
 核对[GitHub OIDC官方字段说明](https://docs.github.com/en/actions/reference/security/oidc)及[官方公开发现文档](https://token.actions.githubusercontent.com/.well-known/openid-configuration)，确认issuer、公钥地址、RS256和workflow_sha字段。正式配置仍须从可信上线配置固定真实仓库／工作流／环境／subject，不猜测subject格式；GitHub可自定义subject且新仓库默认格式可能不同。该内部核验器不支持GitHub Enterprise自定义issuer，也未声明真实protected environment已配置。jti只作为身份材料返回，不是单次消费或业务幂等证明；真实请求的重放／授权撤销／租约到期保护须在后续提交事务重新核验。
 
 本批13项专项、7项治理及12项项目状态共32项通过；定点lint、机器状态一致性、文档链接及diff检查通过。独立提交`feat: add M12 GitHub OIDC identity verifier [skip ci]`，父提交edd2a67e00423321f9848a4c06ff6fac86d5a9fe，完整SHA见交付消息。无生产入口或存储迁移，回退可撤销本模块／测试并保留治理历史。M11不重审、跨日端到端仍未执行。未合并、推送、创建云资源、部署、生产启用或对外通知。
+
+
+## B2a独立复核回传
+
+审核对话01a074f9-098a-7b82-b486-3185683290fe确认5782e16deef54e3af20c66dd2c2be592d255396b在GitHubIdentityVerifier本地真实验签、固定身份／密钥源／时效范围通过。审核员运行32项测试并逐段核对实现、GitHub官方OIDC参考、公开发现文档及JWKS地址；diff通过，工作区干净。真实工作流令牌端到端、环境保护／批准回执／审核人／禁自审、实时grant/revoke和事务写许可仍不在此结论内，外部同形JSON或缓存身份不能当授权。
+
+## B2b：GitHub环境批准观测（待独立审核）
+
+`services/publication/environment_review.mjs`新增GitHubEnvironmentReviewVerifier，verify只接收原签名token，并直接组合B2a验证器。服务端固定B2a身份策略、环境稳定ID、工作流稳定ID和允许的审核人稳定ID集合；只读API凭据在内部构造时注入，不接受请求提供的Job、审核人、API文档或目标URL。请求固定api.github.com、对应仓库及GET方法，禁止重定向，不跟随响应URL／分页Link，无陈旧缓存兜底，单响应流式限1MiB、单请求10秒超时；生产凭据与权限配置待上线卡批准后接入，本轮仅测试凭据。
+
+读取顺序为当前run、环境保护设置、该run批准历史、再次当前run。run必须与已签名身份的run_id、repository_id／全名、main、代码sha、固定workflow_id、actor匹配，且workflow_dispatch、第1轮、in_progress／未结论；triggering_actor与原actor一致。环境必须精确匹配ID及名称，恰有一条required_reviewers规则且prevent_self_review=true，审核人全为User且ID集合与服务端允许集合精确相同，不按login或Team推断成员。该环境批准记录必须唯一且approved，审核人须在允许集合中且不是发起人；零记录、冲突／重复、同名异ID、异名同ID、未知审核人、自审、API失败或不完整响应全部失败关闭。其它环境记录不替代本环境。
+
+官方批准历史只按run_id提供，没有批准级run_attempt或批准发生时间；不能把环境created_at／updated_at当批准时间。本包因此对新授权的环境观测只接受尚未重跑的第1轮，取回历史前后都核对当前run轮次，拒绝将旧批准带入重试。新批准流程失败后需用新的workflow_dispatch run取得新回执；已经归档的有效授权仍可供日常任务重试使用，不要求每天重批，不限制B2a认证任意合法run_attempt。此为当前可信回执的失败关闭边界，不伪造API缺失字段。
+
+返回`{identity,approver_id,environment_id,observed_at,documents}`，documents含四个GET原URL、原UTF-8字节、实际SHA-256及长度；保留空白／换行以便B1a归档，observed_at只表示服务端观测时间。读取及摘要计算后再次检查身份有效期，不输出原token或内部API凭据，不生成approval_evidence_ref、PublicationAuthorization或生产许可。
+
+### B2b验证及未覆盖部分
+
+12项专项使用本地真实RSA签名的OIDC令牌、B2a真实验签及受控GitHub GET响应，覆盖合法观测／原字节摘要、伪造JSON／签名、旧重试与读取期间重跑、run来源替换、环境保护／允许集合、自审及显示名冒充、零／重复／冲突批准、环境条目全集检查、网络／重定向／分页／超大正文／解析失败、读取期间token到期及策略隔离。加7项治理、12项项目状态共31项通过；定点lint、机器状态一致性、本地文档链接、diff检查通过。没有调用真实仓库API、取得真实令牌或审核批准任何任务。
+
+依据[GitHub workflow run／批准历史官方API](https://docs.github.com/en/rest/actions/workflow-runs#get-the-review-history-for-a-workflow-run)及[环境保护官方API](https://docs.github.com/en/rest/deployments/environments#get-an-environment)。当前API版本固定2026-03-10。只读调用权限为Actions及Environments所需的read范围，最终GitHub App／凭据配置留后续，不在此创建或授予权限。
+
+**尚未绑定批准请求正文**：环境批准证明哪个用户放行了哪个固定执行run，不能单凭本结果证明用户批准了任意调用方传入的配置、范围、模式、期限或grant／revoke请求。后续必须把该run与预先归档且冻结的唯一授权请求绑定、归档本包原件、经唯一Python合同入口验证，并在DO提交事务重验身份有效期、当前批准链及lease令牌。没有把API观测当作跨服务原子快照；当前环境配置和批准事实核验不代表此刻已具有生产许可。授权工作流／环境实际配置、批准请求绑定、存储登记、即时撤销、队列／指针CAS及真实端到端继续排队。M11不重审，跨日端到端仍未执行。
+
+独立提交`feat: verify M12 environment review observations [skip ci]`，父提交5782e16deef54e3af20c66dd2c2be592d255396b，完整SHA见交付消息。只新增内部模块／测试及治理记录，可撤回本批实现并保留治理历史；没有已创建的远端对象需迁移。未合并、推送、创建云资源、部署、生产启用或对外通知。
