@@ -123,6 +123,7 @@ ID_FIELDS = {
     "ResearchAggregate": "research_aggregate_id",
     "ReleaseManifest": "release_id",
     "SourceInventory": "inventory_id",
+    "PublicationAuthorization": "authorization_id",
     "ExperimentRun": "experiment_id",
 }
 
@@ -252,9 +253,13 @@ def validate_contract(
     known_experiment_ids: AbstractSet[str] | None = None,
     allow_partial_manifest: bool = False,
     source_inventory_evidence: Mapping[str, Any] | None = None,
+    publication_authorization_evidence: Mapping[str, Any] | None = None,
 ) -> None:
     """Validate one canonical contract and fail closed on unknown evidence."""
 
+    if contract_name == "PublicationAuthorization":
+        _validate_publication_authorization(payload, publication_authorization_evidence)
+        return
     if contract_name == "SourceInventory":
         _validate_source_inventory(payload, source_inventory_evidence)
         return
@@ -1131,6 +1136,7 @@ def validate_contracts(
     items: Iterable[tuple[str, Mapping[str, Any]]],
     *,
     source_inventory_evidence: Mapping[str, Any] | None = None,
+    publication_authorization_evidence: Mapping[str, Any] | None = None,
 ) -> None:
     """Validate a collection, including stable-ID and event uniqueness rules."""
 
@@ -1138,7 +1144,8 @@ def validate_contracts(
     opportunity_keys: set[tuple[str, str, str]] = set()
     for contract_name, payload in items:
         validate_contract(
-            contract_name, payload, source_inventory_evidence=source_inventory_evidence
+            contract_name, payload, source_inventory_evidence=source_inventory_evidence,
+            publication_authorization_evidence=publication_authorization_evidence,
         )
         stable_id_field = _stable_id_field(contract_name, payload)
         identity = (contract_name, str(payload[stable_id_field]))
@@ -1255,10 +1262,7 @@ def _validate_source_inventory(payload: Mapping[str, Any], evidence: Mapping[str
     }, "SourceInventory")
     if payload["schema_version"] != "1.0.0":
         raise ContractError("unsupported SourceInventory version")
-    timestamp = payload["generated_at"]
-    if not isinstance(timestamp, str) or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z", timestamp):
-        raise ContractError("M12 generated_at must be canonical UTC seconds")
-    _require_timestamp(timestamp)
+    _m12_time(payload["generated_at"])
     _require_date(payload["as_of"], "SourceInventory.as_of")
     _m12_ref(payload["config_ref"])
     _m12_refs(payload["roots"])
@@ -1274,3 +1278,133 @@ def _validate_source_inventory(payload: Mapping[str, Any], evidence: Mapping[str
         raise ContractError("SourceInventory identity does not match semantic content")
     if any(ref["id"] == payload["inventory_id"] for ref in [payload["config_ref"], *payload["roots"], *payload["records"]]):
         raise ContractError("SourceInventory cannot reference itself")
+
+
+M12_AUTHORIZATION_REQUEST_FIELDS = frozenset({
+    "action", "prior_authorization_ref", "config_ref", "code_commit",
+    "publication_mode", "scope", "effective_from", "valid_until", "permissions", "reason",
+})
+M12_RESEARCH_PERMISSIONS = ("prepare", "publish", "notify", "rollback")
+
+
+def _m12_time(value: Any) -> None:
+    if not isinstance(value, str) or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z", value):
+        raise ContractError("M12 timestamp must be canonical UTC seconds")
+    _require_timestamp(value)
+
+
+def _m12_text(value: Any, label: str) -> None:
+    if not isinstance(value, str) or not value.strip() or value != value.strip():
+        raise ContractError(f"{label} must be canonical nonempty text")
+
+
+def _m12_commit(value: Any) -> None:
+    if not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{40}", value):
+        raise ContractError("M12 commit must be a full lowercase Git SHA")
+
+
+def _m12_job(job: Any) -> None:
+    _m12_exact(job, {
+        "repository_id", "workflow_ref", "workflow_commit", "run_id", "run_attempt", "environment",
+    }, "M12 Job")
+    for field in ("repository_id", "workflow_ref", "run_id", "environment"):
+        _m12_text(job[field], "Job." + field)
+    _m12_commit(job["workflow_commit"])
+    if type(job["run_attempt"]) is not int or job["run_attempt"] < 0:
+        raise ContractError("Job.run_attempt must be UInt, not bool")
+
+
+def _m12_authorization_fields(payload: Mapping[str, Any]) -> dict[str, Any]:
+    """Validate intrinsic fields only; not a public approval validator."""
+    _m12_exact(payload, set(M12_AUTHORIZATION_REQUEST_FIELDS) | {
+        "schema_version", "authorization_id", "content_fingerprint", "generated_at",
+        "approver_id", "approval_evidence_ref", "job",
+    }, "PublicationAuthorization")
+    if payload["schema_version"] != "1.0.0":
+        raise ContractError("unsupported PublicationAuthorization version")
+    _m12_time(payload["generated_at"])
+    _m12_job(payload["job"])
+    _m12_text(payload["approver_id"], "approver_id")
+    _m12_text(payload["reason"], "reason")
+    _m12_ref(payload["approval_evidence_ref"])
+    _m12_ref(payload["config_ref"])
+    _m12_commit(payload["code_commit"])
+    if payload["prior_authorization_ref"] is not None:
+        _m12_ref(payload["prior_authorization_ref"])
+    if payload["publication_mode"] != "research_only" or payload["scope"] != "complex_multifactor_main":
+        raise ContractError("M12 authorization is limited to the research publication scope")
+    _require_date(payload["effective_from"], "effective_from")
+    if payload["valid_until"] is not None:
+        _require_date(payload["valid_until"], "valid_until")
+        if payload["valid_until"] < payload["effective_from"]:
+            raise ContractError("authorization expires before its effective date")
+    if payload["action"] == "grant":
+        if payload["permissions"] != list(M12_RESEARCH_PERMISSIONS):
+            raise ContractError("research grant must contain exactly the frozen permissions in order")
+    elif payload["action"] == "revoke":
+        if payload["permissions"] != [] or payload["prior_authorization_ref"] is None:
+            raise ContractError("revocation needs a predecessor and cannot grant permissions")
+    else:
+        raise ContractError("unknown publication authorization action")
+    body = {key: value for key, value in payload.items() if key not in {
+        "authorization_id", "content_fingerprint", "generated_at",
+    }}
+    fingerprint = "sha256:" + hashlib.sha256(_canonical(body)).hexdigest()
+    if payload["content_fingerprint"] != fingerprint or payload["authorization_id"] != "publication-authorization:" + fingerprint:
+        raise ContractError("PublicationAuthorization identity mismatch")
+    for reference in (payload["prior_authorization_ref"], payload["config_ref"], payload["approval_evidence_ref"]):
+        if reference is not None and reference["id"] == payload["authorization_id"]:
+            raise ContractError("PublicationAuthorization cannot reference itself")
+    return body
+
+
+def _m12_authorization_successor(payload: Mapping[str, Any], previous: Mapping[str, Any] | None) -> None:
+    expected_ref = None if previous is None else {
+        "id": previous["authorization_id"], "content_fingerprint": previous["content_fingerprint"],
+    }
+    if payload["prior_authorization_ref"] != expected_ref:
+        raise ContractError("authorization must reference the direct trusted predecessor")
+    if previous is not None and payload["action"] == "revoke":
+        if payload["config_ref"] != previous["config_ref"] or payload["code_commit"] != previous["code_commit"]:
+            raise ContractError("revocation cannot change predecessor config or code")
+
+
+def publication_authorization_body(evidence: Mapping[str, Any] | None) -> dict[str, Any]:
+    """Bind an approval to a trusted protected-workflow request and chain.
+
+    This is a pure adapter boundary, not GitHub/OIDC authentication. The future
+    adapter must verify the protected environment, allowed approver, OIDC claims,
+    request/config/code and raw approval receipt, and freeze the complete chain
+    under its lock. Caller-submitted JSON must never be injected as evidence.
+    """
+    _m12_exact(evidence, {
+        "request", "approver_id", "approval_evidence_ref", "job", "history",
+    }, "trusted publication approval evidence")
+    _m12_exact(evidence["request"], set(M12_AUTHORIZATION_REQUEST_FIELDS), "approved request")
+    if not isinstance(evidence["history"], list):
+        raise ContractError("trusted authorization history must be an array")
+    previous = None
+    seen: set[str] = set()
+    for record in evidence["history"]:
+        _m12_authorization_fields(record)
+        _m12_authorization_successor(record, previous)
+        if record["authorization_id"] in seen:
+            raise ContractError("duplicate authorization in trusted history")
+        seen.add(record["authorization_id"])
+        previous = record
+    request = evidence["request"]
+    _m12_authorization_successor(request, previous)
+    return {
+        "schema_version": "1.0.0", **request,
+        "approver_id": evidence["approver_id"],
+        "approval_evidence_ref": evidence["approval_evidence_ref"],
+        "job": evidence["job"],
+    }
+
+
+def _validate_publication_authorization(payload: Mapping[str, Any], evidence: Mapping[str, Any] | None) -> None:
+    body = _m12_authorization_fields(payload)
+    if body != publication_authorization_body(evidence):
+        raise ContractError("PublicationAuthorization differs from the trusted approval")
+    if any(record["authorization_id"] == payload["authorization_id"] for record in evidence["history"]):
+        raise ContractError("new authorization already occurs in predecessor history")
