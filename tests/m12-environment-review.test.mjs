@@ -1,3 +1,4 @@
+import { PreparationValidationSession } from '../services/publication/preparation_session.mjs';
 import { PreparationEvidenceReadback } from '../services/publication/preparation_readback.mjs';
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -2833,4 +2834,126 @@ test('preparation validation input rechecks original identity deadline after enc
   };
   await assert.rejects(f.create().readValidationInput(token(), f.handle), /deadline|expired/);
   assert.equal(guards, 3);
+});
+
+async function preparationSessionFixture(t) {
+  const f = await preparationReadbackFixture(t, false);
+  const create = () => new PreparationValidationSession(identityPolicy, { preparationPolicy: f.policy,
+    storage: f.storage, bucket: f.bucket, clock: f.options.clock, fetchKeys: f.options.fetchKeys });
+  const service = create();
+  const prepared = await service.prepare(token(), f.handle);
+  const input = JSON.parse(Buffer.from(prepared.input_bytes));
+  const result = { protocol: input.protocol, input_sha256: prepared.input_archive.sha256,
+    input_size_bytes: prepared.input_bytes.length, started_ms: f.state.now, completed_ms: f.state.now,
+    preparation: { authorization_ref: input.evidence.current_history.head, config_ref: f.policy.config_ref,
+      config_archive: f.policy.config_archive, code_commit: identityPolicy.code_commit, as_of: f.policy.as_of,
+      checked_at: new Date(f.state.now).toISOString().replace('.000Z', 'Z'), history_revision: input.evidence.current_history.revision } };
+  const canonical = value => Array.isArray(value) ? value.map(canonical) : value && typeof value === 'object' ?
+    Object.fromEntries(Object.keys(value).sort().map(key => [key, canonical(value[key])])) : value;
+  const bytes = (value = result) => Buffer.from(JSON.stringify(canonical(value)) + '\n');
+  return { ...f, createSession: create, service, prepared, result, resultBytes: bytes,
+    accept: (service = create()) => service.accept(token(), f.handle, prepared.input_archive.sha256, bytes()) };
+}
+
+test('preparation session defaults disabled without storage and authenticates every operation', async t => {
+  const off = new PreparationValidationSession(null);
+  await assert.rejects(off.prepare('bad', {}), /disabled/);
+  await assert.rejects(off.accept('bad', {}, 'x', Buffer.from('x')), /disabled/);
+  await assert.rejects(off.readForUse('bad', {}, 'x', 'x'), /disabled/);
+  const f = await preparationSessionFixture(t);
+  const gets = f.archiveState.gets;
+  await assert.rejects(f.service.accept(token({ actor_id: '790' }), f.handle, f.prepared.input_archive.sha256, f.resultBytes()));
+  await assert.rejects(f.service.accept(token({ run_id: '457' }), f.handle, f.prepared.input_archive.sha256, f.resultBytes()));
+  await assert.rejects(f.service.readForUse(token({ sha: 'c'.repeat(40) }), f.handle, 'x', 'y'));
+  assert.equal(f.archiveState.gets, gets);
+});
+
+test('preparation session persists paired input and result and reopens for fresh current use', async t => {
+  const f = await preparationSessionFixture(t);
+  const before = f.rows();
+  const accepted = await f.accept();
+  assert.deepEqual(await f.accept(), accepted);
+  const puts = f.archiveState.puts;
+  const value = await f.createSession().readForUse(token(), f.handle, accepted.input_sha256, accepted.output_archive.sha256);
+  assert.deepEqual(value.preparation, f.result.preparation);
+  assert.equal(f.archiveState.puts, puts);
+  assert.deepEqual(f.rows(), before);
+  for (const table of ['m12_preparation_inputs', 'm12_preparation_input_log', 'm12_preparation_returns', 'm12_preparation_return_log']) {
+    assert.equal(f.db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get().n, 1);
+  }
+  assert.deepEqual(Buffer.from(f.objects.get(accepted.output_archive.key)), f.resultBytes());
+  value.preparation.config_ref.id = 'mutated';
+  assert.equal((await f.createSession().readForUse(token(), f.handle, accepted.input_sha256, accepted.output_archive.sha256)).preparation.config_ref.id, 'config:1');
+});
+
+test('preparation session rejects wrong result fields input identity and times before output writes', async t => {
+  const f = await preparationSessionFixture(t);
+  const puts = f.archiveState.puts;
+  for (const change of [r => { r.input_sha256 = 'sha256:' + '0'.repeat(64); }, r => { r.input_size_bytes = true; },
+    r => { r.preparation.authorization_ref.id = 'other'; }, r => { r.preparation.code_commit = 'c'.repeat(40); },
+    r => { r.preparation.config_ref.id = 'other'; }, r => { r.preparation.history_revision += 1; },
+    r => { r.started_ms -= 1; }, r => { r.completed_ms += 1; }, r => { r.preparation.checked_at = '2026-01-01T00:00:00Z'; },
+    r => { r.permissions = ['prepare']; }]) {
+    const value = structuredClone(f.result); change(value);
+    await assert.rejects(f.service.accept(token(), f.handle, f.prepared.input_archive.sha256, f.resultBytes(value)));
+  }
+  await assert.rejects(f.service.accept(token(), f.handle, f.prepared.input_archive.sha256, Buffer.from(JSON.stringify(f.result))));
+  assert.equal(f.archiveState.puts, puts);
+});
+
+test('preparation session refuses missing pairs and actual input or output bytes at use', async t => {
+  for (const target of ['input', 'output', 'input_log', 'return_log', 'authorization', 'configuration']) {
+    const f = await preparationSessionFixture(t);
+    const accepted = await f.accept();
+    if (target === 'input') f.objects.delete(f.prepared.input_archive.key);
+    if (target === 'authorization') f.objects.delete(f.authorizationKey);
+    if (target === 'configuration') f.objects.delete(f.policy.config_archive.key);
+    if (target === 'output') f.objects.delete(accepted.output_archive.key);
+    if (target === 'input_log') f.db.exec('DELETE FROM m12_preparation_input_log');
+    if (target === 'return_log') f.db.exec('DELETE FROM m12_preparation_return_log');
+    await assert.rejects(f.service.readForUse(token(), f.handle, accepted.input_sha256, accepted.output_archive.sha256));
+  }
+});
+
+test('preparation session rolls back partial return record on log insertion failure', async t => {
+  const f = await preparationSessionFixture(t);
+  const exec = f.storage.sql.exec;
+  f.storage.sql.exec = (sql, ...args) => {
+    const result = exec(sql, ...args);
+    if (sql.startsWith('INSERT INTO m12_preparation_return_log')) throw new Error('injected');
+    return result;
+  };
+  await assert.rejects(f.accept(), /injected/);
+  assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM m12_preparation_returns').get().n, 0);
+  assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM m12_preparation_return_log').get().n, 0);
+  assert.ok([...f.objects.values()].some(bytes => Buffer.from(bytes).equals(f.resultBytes()))); // Orphan retained.
+});
+
+test('preparation session fails use when input read changes current provenance or original lease', async t => {
+  for (const change of ['provenance', 'fence', 'expiry']) {
+    const f = await preparationSessionFixture(t);
+    const accepted = await f.accept();
+    f.archiveState.beforeGet = key => {
+      if (key !== f.prepared.input_archive.key) return;
+      if (change === 'provenance') f.db.exec("DELETE FROM m12_authorization_consumptions; DELETE FROM m12_authorization_log WHERE operation='register_authorization'");
+      if (change === 'fence') f.db.exec("UPDATE m12_leases SET fence=fence+1 WHERE resource='daily/2026-09-06/config:1'");
+      if (change === 'expiry') f.state.now = (NOW + 300) * 1000;
+    };
+    await assert.rejects(f.service.readForUse(token(), f.handle, accepted.input_sha256, accepted.output_archive.sha256));
+  }
+});
+
+
+test('preparation session requires a fresh input after New York midnight even within the JWT window', async t => {
+  const f = await preparationReadbackFixture(t, false);
+  const nearMidnight = Date.parse('2026-09-07T03:59:59Z');
+  f.state.now = nearMidnight;
+  const held = f.lease.acquire('daily/2026-09-06/config:1', f.job, f.handle.epoch);
+  const handle = { epoch: held.epoch, fence: held.lease.fence };
+  const jwt = token({ iat: nearMidnight / 1000 - 30, nbf: nearMidnight / 1000 - 30, exp: nearMidnight / 1000 + 300 });
+  const service = new PreparationValidationSession(identityPolicy, { preparationPolicy: f.policy,
+    storage: f.storage, bucket: f.bucket, clock: f.options.clock, fetchKeys: f.options.fetchKeys });
+  const prepared = await service.prepare(jwt, handle);
+  f.state.now += 1000;
+  await assert.rejects(service.accept(jwt, handle, prepared.input_archive.sha256, Buffer.from('{}\n')), /window_changed/);
 });
