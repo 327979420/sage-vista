@@ -522,3 +522,28 @@ AuthorizationStore新增readValidationDispatch(identity,token,dispatchId)，先�
 这里的transport是受信运行适配器依赖，当前测试使用内存通道并仅注入本地时钟；它不认证任意调用方自制的transport，也没有执行真实GitHub任务或网络往返。下一包仍必须实现受控认证通道、固定来源获取、及时续租及错误恢复，再将唯一执行入口接入冻结checkout和受保护工作流；不能向用户暴露替换transport／输入／执行代码的参数，也不能把本包调用成功视作实际工作流执行前提已关闭。此前OIDC／固定workflow政策只能认证身份的限制仍保留。
 
 最终权限／业务目标/config检查及同事务票据消费／索引追加继续后续，本包不增加授权登记或生产许可。跨日端到端仍未执行，M11不重审。独立提交`feat: execute M12 validation through the fixed Python path [skip ci]`，父提交5b2e8f3b48cea7cb5584cea1b106b6eea1f37ecd，完整SHA见交付消息。仅新增内部固定执行器、提取现有命令共同输出函数、扩展现有环境专项测试及3个治理文档；无业务合同／政策版本变化，可撤回本包接点并保留历史。未合并、推送、创建云资源、部署、生产启用或对外通知。
+
+
+## B3g独立复核回传
+
+审核对话01a074f9-098a-7b82-b486-3185683290fe确认87320fc19f87c2d9888c29622e47ac6059bf0af9在内部固定Python执行核心范围无阻断。审核员逐段读取6文件，自行运行85项环境取证／跨语言Node及19项治理／状态，共104项通过；确认输入复制、hash／长度／lease绑定、直接调用CLI共用的唯一输出路径、原字节回传、无执行替换参数及不伪造／重发。diff通过、HEAD不变、工作区干净。该限定结论不认证任意transport，真实通道、冻结checkout／固定工作流、续租与错误恢复仍待验收。
+
+## B3h：受控HTTPS任务通道（待独立审核）
+
+新增内部AuthorizationHttpsTransport，作为B3g固定执行器的真实HTTP客户端实现；构造器只接受运行适配器提供的固定coordinator_origin、Actions运行环境及测试用opener依赖，非外部任务参数。默认采用标准库验证TLS证书、禁用环境代理、拒绝HTTP重定向；仅允许规范HTTPS域名，协调器配置不能含路径／query／fragment／用户信息／端口或控制字符。Actions令牌请求URL取运行环境，限定*.actions.githubusercontent.com且拒绝预置audience，追加固定sage-vista-publication；不把该请求凭据发送到协调器。相关依据已核对[GitHub OIDC参考](https://docs.github.com/en/actions/reference/security/oidc#methods-for-requesting-the-oidc-token)及[托管runner网络要求](https://docs.github.com/en/actions/reference/runners/github-hosted-runners#communication-requirements-for-github-hosted-runners)，不自行生成身份令牌；服务端仍须真实验签和核对Job／政策。
+
+每次准备或回传前分别请求新的OIDC token，只向同一固定origin的两个路径POST：`/v1/authorization/prepare`请求正文精确为空对象；响应精确`{protocol,dispatch_id,lease_token,input_sha256,input_size_bytes,input_base64}`，protocol为内部传输版本m12-authorization-job/1。通道严格解析JSON、标准base64、UUID／epoch／fence及输入原字节hash／长度，返回B3g需要的不可变input_bytes结构并私存会话副本。`/v1/authorization/return`正文精确`{protocol,dispatch_id,lease_token,result_base64}`，仅接受本会话原dispatch／令牌和不可变结果bytes，编码时不改变B3c stdout。该协议是客户端接点约定，两个服务端HTTP路由尚未实现或部署。
+
+HTTP只接受200、未变化的响应URL及单一application/json声明，拒绝压缩响应、重复长度／类型／编码头、错误长度和空正文，读取中执行上限而不是截断后继续。OIDC响应最多128KiB、准备响应最多32MiB、回传响应最多1MiB，单请求30秒超时。超限失败关闭，不省略授权历史以绕过上限；真实最大输入规模仍须后续验收。令牌响应只检查传输形状，不在客户端增加另一套JWT或业务合同验证；收到的协调器JSON对象原字节仍保持opaque，HTTP 200不是授权登记证明。
+
+会话按new→preparing→prepared→returning→returned推进，网络或解析失败进入failed，重复准备及已发送／不确定回传不得在同实例再次发送。发送前错误dispatch／令牌／可变bytes直接拒绝且不发网络请求。网络错误只抛固定脱敏信息，不含URL、令牌或私有响应正文；HTTPError响应句柄会关闭。默认配置未创建任何真实资源或工作流，不读取本机真实Actions凭据、不调用外部协调器。
+
+### B3h实际检查及未完成边界
+
+11项Python专项覆盖固定origin／audience／凭据分离、新令牌逐次获取、完整输入与原输出、配置与会话隔离、协议／摘要／base64／令牌守门、重定向／响应URL／状态／MIME／编码／长度／资源上限、重复JSON键／非有限数、会话替换、不确定网络错误脱敏及无自动重发。另使用真实urllib重定向处理链和替代网络层验证302不会向新地址转发凭据；未进行真实TLS握手。1项新增跨语言组合将实际B3d输入交本HTTP客户端和B3g唯一执行器，检查四次请求封装，再把真正生成的回传字节交B3f接收／归档；网络层及响应均为受控替身，不声称服务端路由往返已经实现。
+
+86项环境取证／跨语言Node、11项HTTPS通道Python、7项治理及12项状态共116项通过；通道专项同时将ResourceWarning视为错误，定点lint、机器状态／文档链接／diff检查通过。合同、租约及权威存储实现未改，未重复其无变化完整测试。
+
+本包仅完成受控客户端，不补足真实受保护工作流执行前提。后续须完成服务端认证路由、60秒续租／失效停止、权威状态查询与不确定回传恢复，并将固定执行入口及此通道接入冻结checkout和经过批准的环境／工作流；运行配置不能来自可任意修改的dispatch输入。最终当时权限、业务目标/config和同事务票据消费／索引追加仍待后续，任何opaque响应均不得当作已登记授权。跨日端到端未执行，M11不重审。
+
+独立提交`feat: add controlled M12 authorization HTTPS transport [skip ci]`，父提交87320fc19f87c2d9888c29622e47ac6059bf0af9，完整SHA见交付消息。仅新增内部通道及其Python专项、扩展现有跨语言测试和3个治理文档；无业务合同／政策版本变化，可撤回本包接点并保留历史。未合并、推送、创建云资源、部署、生产启用或对外通知。

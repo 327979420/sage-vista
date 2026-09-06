@@ -1461,3 +1461,59 @@ test("transport response stays opaque bytes and cannot become a claimed authoriz
   assert.equal(invalid.calls.length, 2);
   assert.match(invalid.error, /raw bytes/);
 });
+
+test("HTTPS transport carries actual fixed Python output through its closed wire envelope to B3f", async (t) => {
+  const f = await validationArchiveFixture(t);
+  const script = `
+import base64, io, json, sys
+from email.message import Message
+from unittest.mock import patch
+from services.publication.authorization_execution import execute_authorization_validation
+from services.publication.authorization_transport import AuthorizationHttpsTransport
+v=json.load(sys.stdin)
+calls=[]
+class Response(io.BytesIO):
+    def __init__(self, raw, url):
+        super().__init__(raw)
+        self.status=200
+        self.url=url
+        self.headers=Message()
+        self.headers['Content-Type']='application/json'
+        self.headers['Content-Length']=str(len(raw))
+    def geturl(self): return self.url
+class Opener:
+    def open(self, request, timeout):
+        calls.append({'url':request.full_url,'authorization':request.get_header('Authorization'),'body':base64.b64encode(request.data).decode('ascii') if request.data is not None else None})
+        if 'actions.githubusercontent.com' in request.full_url:
+            raw=json.dumps({'value':v['token']}).encode()
+        elif request.full_url.endswith('/prepare'):
+            raw=json.dumps(v['prepared']).encode()
+        else:
+            raw=b'{"state":"pending"}'
+        return Response(raw,request.full_url)
+transport=AuthorizationHttpsTransport('https://coordinator.example.test', {'GITHUB_ACTIONS':'true','ACTIONS_ID_TOKEN_REQUEST_URL':'https://run.actions.githubusercontent.com/token?api-version=2.0','ACTIONS_ID_TOKEN_REQUEST_TOKEN':'local-request-credential'}, opener=Opener())
+with patch('time.time_ns',return_value=v['now_ms']*1000000):
+    response=execute_authorization_validation(transport)
+print(json.dumps({'calls':calls,'response':base64.b64encode(response).decode('ascii')}))
+`;
+  const prepared = { protocol: "m12-authorization-job/1", dispatch_id: f.sent.dispatch.dispatch_id, lease_token: f.leaseToken,
+    input_sha256: sha(f.sent.input_bytes), input_size_bytes: f.sent.input_bytes.length,
+    input_base64: Buffer.from(f.sent.input_bytes).toString("base64") };
+  const executed = spawnSync("python3", ["-c", script], { input: JSON.stringify({ prepared, token: token(), now_ms: NOW * 1000 }),
+    encoding: "utf-8", cwd: new URL("..", import.meta.url) });
+  assert.equal(executed.status, 0, executed.stderr);
+  const output = JSON.parse(executed.stdout);
+  assert.equal(output.calls.length, 4);
+  assert.equal(output.calls[0].authorization, "Bearer local-request-credential");
+  assert.equal(output.calls[2].authorization, "Bearer local-request-credential");
+  assert.equal(output.calls[1].authorization, "Bearer " + token());
+  assert.equal(output.calls[3].authorization, "Bearer " + token());
+  assert.equal(output.calls[3].url, "https://coordinator.example.test/v1/authorization/return");
+  const returned = JSON.parse(Buffer.from(output.calls[3].body, "base64"));
+  assert.equal(returned.dispatch_id, f.sent.dispatch.dispatch_id);
+  assert.deepEqual(returned.lease_token, f.leaseToken);
+  const resultBytes = Buffer.from(returned.result_base64, "base64");
+  assert.deepEqual(resultBytes, f.resultBytes());
+  const archived = await f.archiveValidation(token(), resultBytes);
+  assert.equal(Buffer.from(archived.authorization_bytes).toString("base64"), f.python.authorization_bytes);
+});
