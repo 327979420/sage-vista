@@ -128,3 +128,19 @@
 15项新增专项覆盖正常五阶段、提前准备失败／部分字节、旧站回退及再核验、失败不得递增generation、online切换绑定、失败观测错误哈希留档、成功检查／文件／页面守门、未知字段／版本／bool、缺证据与前序、通知失败／uncertain、集合重复及输入隔离。加57项A1、31项共享合同、7项治理、12项状态，共122项通过，无跳过；文档链接、diff、机器状态一致性通过。未重审M11，跨日端到端仍未执行。
 
 与本段同属独立提交`feat: add M12 publication receipt contracts [skip ci]`，父提交0f0b7c206312fbac94a7a399b6c8d70ec4852fbe，完整SHA见交付消息。无持久存储／工作流／页面变化，可撤回本批代码测试，保留治理历史。未合并、推送、部署、生产启用或对外通知。
+
+## A2a通知计划引用定点修复（待独立复核）
+
+独立审核发现1项P2：1b5e65a的notify仅要求notification_plan_ref在辅助references中可解析，未绑定当前release文件。审核员既有122项测试通过仍可复现；实施侧修复前亦复现库存Ref替换后构造器／单对象／集合入口全部接受。本轮暂停A2b，只修此项。
+
+- 在唯一合同入口增加`release_file_reference`：先复用Manifest 2.0及实际冻结字节验证，按设计3.4补充的`release_ref + path + sha256 + size_bytes`规范身份生成`release-file:sha256:…`；Ref的content_fingerprint就是文件原始字节SHA-256。
+- notify必须精确等于当前Manifest固定notification-plan.json派生的Ref，再检查辅助引用可解析；不能用库存、检查证据或其它release计划替代。复用现有Manifest文件字节，不引入第二套消费者校验或额外可信输入。
+- 合同字段／schema、上游身份、通知去重key不变；文件Ref即使字节相同也按release区分，这不改变未来通知按日／事件跨release去重的设计。任意旧占位Ref不再作为合法新收据输入，旧测试样本已改用明确映射；本功能尚未上线，无生产迁移。
+
+### 定点验证
+
+- 三个反例：已在辅助列表的库存Ref、普通check Ref、另一release不同计划Ref（额外放入辅助列表保证可解析）；分别构造并重签，在构造器、单对象和集合入口共9次拒绝。
+- 合法notify及uncertain留档回归通过。文件Ref测试验证原字节哈希（含换行）、release／path绑定、缺Manifest证据拒绝，以及相同计划字节在不同release中的Ref ID不同。
+- 74项M12专项／回归、31项共享合同、7项治理、12项状态，共124项通过，无跳过；diff、文档链接与机器状态一致性通过。没有重复M11或全业务审核。
+
+与本段同属独立提交`fix: bind receipt notification plan to release file [skip ci]`，父提交1b5e65abfe0370fa0e1a60a0152d833b015850b5，完整SHA见交付消息。仅本处修复，未开始A2b；真实发送、去重、平台认证、持久存储与CAS继续待后续。不合并、推送、部署、生产启用或对外通知；交回独立定点复核，不自行宣布审核通过。

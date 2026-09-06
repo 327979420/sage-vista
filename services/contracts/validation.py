@@ -2099,6 +2099,11 @@ def publication_receipt_body(evidence: Mapping[str, Any] | None) -> dict[str, An
         transitions = [r for r in history.values() if r["kind"] in ("online", "promote", "rollback")]
         if not transitions or transitions[-1] != online or online["details"]["target"].get("release_ref") != observation["release_ref"]:
             raise ContractError("notify needs the latest successful online check of this release")
+        expected_plan_ref = release_file_reference(
+            release, "notification-plan.json", release_manifest_evidence=evidence["release_evidence"],
+        )
+        if details["notification_plan_ref"] != expected_plan_ref:
+            raise ContractError("notification plan must be the current release's frozen notification-plan.json")
         resolved(details["notification_plan_ref"])
     return {"schema_version": "1.0.0", **observation}
 
@@ -2107,3 +2112,24 @@ def _validate_publication_receipt(payload: Mapping[str, Any], evidence: Mapping[
     body = _m12_receipt_fields(payload)
     if _canonical(body) != _canonical(publication_receipt_body(evidence)):
         raise ContractError("receipt differs from the trusted operation observation")
+
+
+
+def release_file_reference(
+    manifest: Mapping[str, Any], path: str, *, release_manifest_evidence: Mapping[str, Any] | None = None,
+) -> dict[str, str]:
+    """Derive one file Ref from a fully validated M12 manifest and its bytes.
+
+    File ownership is release + path; content is the exact byte SHA-256 already
+    verified at the unique manifest boundary. This is not a notification key.
+    """
+    validate_contract("ReleaseManifest", manifest, release_manifest_evidence=release_manifest_evidence)
+    if manifest["schema_version"] != "2.0.0" or not isinstance(path, str) or path not in M12_RELEASE_FILES:
+        raise ContractError("file references require a fixed M12 release file")
+    entry = next(item for item in manifest["files"] if item["path"] == path)
+    identity = {
+        "release_ref": {"id": manifest["release_id"], "content_fingerprint": manifest["content_fingerprint"]},
+        "path": path, "sha256": entry["sha256"], "size_bytes": entry["size_bytes"],
+    }
+    fingerprint = "sha256:" + hashlib.sha256(_canonical(identity)).hexdigest()
+    return {"id": "release-file:" + fingerprint, "content_fingerprint": entry["sha256"]}

@@ -102,6 +102,8 @@ daily_snapshot的as_of=Manifest.as_of，其余两个时间键null；versioned_co
 
 path/hash/size类型同FileEntry；检查文件按path、页面按路由、通知按key排序。成功prepare必须非空inventory_ref、七类Check齐全；失败prepare只保存已执行检查和对应日志证据，不要求不存在的文件／库存引用；preflight/online必须hash/date/four_pages/authorization齐全，成功时全部pass并覆盖全部公开files和四个路由。平台部署ID不存在的数据更新不能冒填，使用已核验renderer版本和明确null。sent必须有真实message_id；uncertain禁止自动再发该键，平台查询或人工确认后才追加修订。
 
+通知计划的最小文件Ref映射（A2a定点修复）：先由唯一Manifest验证入口重验当前release及冻结文件字节，再令`F={release_ref:{id:release_id,content_fingerprint:Manifest.content_fingerprint},path:'notification-plan.json',sha256:FileEntry.sha256,size_bytes:FileEntry.size_bytes}`。文件Ref为`{id:'release-file:'+H(F),content_fingerprint:FileEntry.sha256}`，其中H沿3.1规范JSON，content_fingerprint为包含换行的实际文件字节SHA-256。notify必须等于当前Manifest派生的此Ref；辅助引用可解析不能代替文件类型／所属release绑定。此为Ref映射，不新增文件合同或改变Manifest／Receipt schema，也不改变跨release通知去重key。
+
 `PointerTarget`为封闭union：新版`{kind:'release',release_ref:Ref,renderer_version_id:Text}`，首次回退旧站`{kind:'legacy',baseline_ref:Ref,renderer_version_id:Text}`。legacy baseline_ref是切换前归档的旧站完整文件清单／字节和代码证据，不得成为2.0研究Manifest。两种都必须有可信线上核验依据。preflight／online的target明确本次实际核验对象；正常发布等于release_ref目标，回退核验等于rollback.after，release_ref仍标识触发本轮恢复的失败新版。legacy核验中的manifest_hash为已归档旧文件清单原字节哈希，checked_files覆盖该清单，不把旧清单当2.0合同；四路由与字节核验仍必需。
 
 ### 3.5 EvaluationSnapshot 1.0.0 与当前指针

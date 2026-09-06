@@ -5,7 +5,7 @@ import hashlib
 import unittest
 
 from services.contracts.market_data import canonical_fingerprint
-from services.contracts.validation import ContractError, M12_CHECK_NAMES, M12_PAGE_PATHS, validate_contract, validate_contracts
+from services.contracts.validation import ContractError, M12_CHECK_NAMES, M12_PAGE_PATHS, release_file_reference, validate_contract, validate_contracts
 from services.publication.manifest import build_release_manifest
 from services.publication.receipts import build_publication_receipt
 from tests.test_m12_manifest import preparation, raw
@@ -27,6 +27,7 @@ class ReceiptFixture:
     def __init__(self):
         self.preparation = preparation()
         self.release = build_release_manifest(self.preparation, generated_at=TIME)
+        self.plan_ref = release_file_reference(self.release, "notification-plan.json", release_manifest_evidence=self.preparation)
         self.release_ref = {"id": self.release["release_id"], "content_fingerprint": self.release["content_fingerprint"]}
         self.target = {"kind": "release", "release_ref": self.release_ref, "renderer_version_id": "renderer-new"}
         self.legacy = {"kind": "legacy", "baseline_ref": ref("legacy"), "renderer_version_id": "renderer-old"}
@@ -38,7 +39,7 @@ class ReceiptFixture:
              "files": [{"path": "old.json", "size_bytes": 3, "sha256": ref("old-file")["content_fingerprint"]}], "public_paths": ["old.json"]},
         ]
         self.checks = [{"name": name, "result": "pass", "evidence_ref": ref("check-" + name)} for name in sorted(M12_CHECK_NAMES)]
-        refs = [c["evidence_ref"] for c in self.checks] + [self.release["source_inventory_ref"], ref("notification-plan")]
+        refs = [c["evidence_ref"] for c in self.checks] + [self.release["source_inventory_ref"], self.plan_ref]
         self.references = sorted(refs, key=lambda r: r["id"])
         self.history = []
 
@@ -79,7 +80,7 @@ class ReceiptFixture:
         return self.append("online", details, "failed" if fail else "success", "hash_mismatch" if fail else None)
 
     def notify_details(self, online):
-        return {"online_receipt_ref": receipt_ref(online), "notification_plan_ref": ref("notification-plan"),
+        return {"online_receipt_ref": receipt_ref(online), "notification_plan_ref": self.plan_ref,
                 "items": [{"key": ref("day-key")["content_fingerprint"], "status": "sent", "platform_message_id": "msg-1", "attempt": 1}]}
 
 
@@ -168,6 +169,52 @@ class PublicationReceiptTests(unittest.TestCase):
         details = self.f.notify_details(online)
         details["items"][0]["platform_message_id"] = None
         with self.assertRaises(ContractError): self.f.append("notify", details)
+
+    def test_resolved_inventory_check_and_other_release_plan_cannot_impersonate_plan(self):
+        online, _ = self.f.switch_and_online()
+        receipt, evidence = self.f.append("notify", self.f.notify_details(online))
+        other_preparation = deepcopy(self.f.preparation)
+        other_preparation["projection_expectations"]["notification-plan.json"]["data"] = {"summary": "different plan"}
+        other_preparation["files"]["notification-plan.json"] = raw(other_preparation["projection_expectations"]["notification-plan.json"])
+        other_release = build_release_manifest(other_preparation, generated_at=TIME)
+        other_plan = release_file_reference(other_release, "notification-plan.json", release_manifest_evidence=other_preparation)
+        replacements = [self.f.release["source_inventory_ref"], self.f.checks[0]["evidence_ref"], other_plan]
+        for replacement in replacements:
+            bad_evidence = deepcopy(evidence)
+            bad_evidence["observation"]["details"]["notification_plan_ref"] = replacement
+            if replacement == other_plan:
+                bad_evidence["references"].append(other_plan)
+                bad_evidence["references"].sort(key=lambda r: r["id"])
+            self.assertIn(replacement, bad_evidence["references"])
+            forged = deepcopy(receipt)
+            forged["details"]["notification_plan_ref"] = replacement
+            reseal(forged)
+            calls = [
+                lambda: build_publication_receipt(bad_evidence, generated_at=TIME),
+                lambda: validate_contract("PublicationReceipt", forged, publication_receipt_evidence=bad_evidence),
+                lambda: validate_contracts([("PublicationReceipt", forged)], publication_receipt_evidence=bad_evidence),
+            ]
+            for number, call in enumerate(calls):
+                with self.subTest(replacement=replacement, entry=number), self.assertRaisesRegex(ContractError, "current release's frozen"):
+                    call()
+
+    def test_file_ref_binds_release_path_and_exact_byte_hash(self):
+        entry = next(f for f in self.f.release["files"] if f["path"] == "notification-plan.json")
+        identity = {"release_ref": self.f.release_ref, "path": entry["path"], "sha256": entry["sha256"], "size_bytes": entry["size_bytes"]}
+        self.assertEqual(self.f.plan_ref, {"id": "release-file:" + canonical_fingerprint(identity), "content_fingerprint": "sha256:" + hashlib.sha256(self.f.preparation["files"]["notification-plan.json"]).hexdigest()})
+        with self.assertRaises(ContractError): release_file_reference(self.f.release, "notification-plan.json")
+        other = deepcopy(self.f.preparation)
+        other["files"]["notification-plan.json"] += b"\n"
+        other_release = build_release_manifest(other, generated_at=TIME)
+        other_ref = release_file_reference(other_release, "notification-plan.json", release_manifest_evidence=other)
+        self.assertNotEqual(self.f.plan_ref["content_fingerprint"], other_ref["content_fingerprint"])
+        self.assertNotEqual(self.f.plan_ref["id"], other_ref["id"])
+        same_plan = deepcopy(self.f.preparation)
+        same_plan["files"]["overview.json"] += b"\n"
+        another_release = build_release_manifest(same_plan, generated_at=TIME)
+        same_bytes_ref = release_file_reference(another_release, "notification-plan.json", release_manifest_evidence=same_plan)
+        self.assertEqual(self.f.plan_ref["content_fingerprint"], same_bytes_ref["content_fingerprint"])
+        self.assertNotEqual(self.f.plan_ref["id"], same_bytes_ref["id"])
 
     def test_uncertain_notification_is_preserved_not_success(self):
         online, _ = self.f.switch_and_online()
