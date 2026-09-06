@@ -1097,3 +1097,10 @@ C1l四项新API专项与七项原会话回归通过，覆盖准备→回传→�
 C1m新增DailyPreparationTransport，继承已有成员桥，prepare_and_validate只调用固定准备／回传两路径且逐次取新OIDC；完整输入解码复用唯一合同入口，Job／actor／代码／subject精确匹配构造时冻结的Actions环境。固定进程输出的实际摘要与长度必须等于服务器归档确认，才进入ready并允许原permit／put／read；失败后客户端不可重用，无自动重发，确认仅说明检查记录已选择，不是许可证。5项新客户端＋7项成员桥Python共12项通过0.409秒（ResourceWarning为错误），覆盖固定路径、新令牌、身份／原件／返回错配、不确定回传、无准备禁止请求及坏成员响应后关闭。
 
 新增本地跨语言联测使用真实DailyPreparationApi、SQLite配对选择和固定Git worker，Python客户端经stdio替身交付实际HTTP请求／响应字节，再由原collect_membership调用原三字节路由保存合成供应商观察；供应商获取函数仅在测试替换，未发真实请求。完整源码守门要求提交后运行，该联测结果在下一阶段记录补记，当前不先宣称通过。父93c8b65，提交feat: connect the fixed daily preparation client to membership collection [skip ci]，待阶段独立审核；下一包固定受保护runner。
+
+
+C1m提交b7ed6f9后，真实固定worker／DailyPreparationApi／Python客户端／原collect_membership本地跨语言联测通过2.382秒。五条固定路径均实际往返，只有一次prepare和一次return；供应商观察在测试内替换，成功保存一名合成成员及观察原件，没有正式股票池／真实供应商调用。
+
+C1n新增publication-daily-runtime.json（enabled=false、origin=null）和m12-daily.yml（job if:false，无定时触发或参数）。工作流固定生产环境、只读contents和id-token，Action固定提交与原批准配置一致；fetch-depth=0为原业务基线Git对象所必需。唯一-I/-B入口固定Python3.12.12、main受保护分支、首attempt、GitHub托管Linux；配置和工作流也纳入实际Git字节检查，禁止额外导入、符号链接、未提交替换和替换对象／网络补取。显式EODHD环境token为前提，不能回退本地.env；配置禁用时不检查或调用供应商。
+
+固定客户端完成准备后，入口调用原collect_membership，再检查源字节；失败观察保留归档但任务失败，成功只报告daily_membership_archived_not_formal。5项runtime测试通过0.110秒：实际禁用入口／工作流、无CLI覆盖、坏配置、错误上下文／源字节、非固定解释器，以及完全合成依赖下的校验→准备→校验→采集→校验顺序。生产配置、平台环境和供应商均未启用；真实受保护工作流执行未验收。父b7ed6f9，提交feat: add the disabled fixed daily membership runner [skip ci]，待阶段独立审核。
