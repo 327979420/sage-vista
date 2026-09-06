@@ -1262,3 +1262,12 @@ PYTHONDONTWRITEBYTECODE=1 python3 -W error::ResourceWarning -m unittest tests.te
 直接重跑审核原/tmp/sage-m12-c2f-midnight.test.mjs反例通过0.944秒：hit=true，accepted=false，indexCount=0，returnCount=0，错误lease_operation_deadline_expired；未改该审核脚本。新增仓库回归含午夜前成功、跨日首次登记整笔回滚、幂等跨日拒绝且保留先前成功、prepare复制跨日撤销输入配对但保留孤立raw、次日新JWT不可复活，以及更短期限与DST边界。测试子进程初次继承NODE_TEST_CONTEXT造成无输出，已隔离该测试环境字段，不改生产环境或降低断言。
 
 价格卡v0.2仅获“可作待批准取证方案”的审核意见，仍design_review，实际D/S／样本清单与既有材料尚未冻结或核实；不再扩写无材料的细化卡，也不发真实请求。本P2修复及已批准登记调用接线继续，与取证授权分开。
+
+
+P2修复提交d237a889ec4635a315b65767a250ec80b6a6fd38后，实际固定worker联测＋日期截止检查＋午夜子进程回归3个顶层Node测试通过7.008秒（午夜组含3项独立子测试）；19项治理／状态通过0.012秒。原审核反例亦已直接通过，输出与原件保留。eslint及9ff3be8起差异检查通过，机器生成状态一致、相对文档链接有效。此次只验证P2受影响路径，未重复无变化全阶段/M11/前端；未推送、合并、部署、启用或真实供应商调用。交审核者定点复核后继续原批准登记调用接线，本执行记录不宣布P2独立关闭。
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 node --test --test-reporter=spec --test-name-pattern='^independent midnight' /tmp/sage-m12-c2f-midnight.test.mjs
+PYTHONDONTWRITEBYTECODE=1 node --test --test-name-pattern='daily client integrates|membership registration original day|membership registration midnight' tests/m12-environment-review.test.mjs
+PYTHONDONTWRITEBYTECODE=1 python3 -W error::ResourceWarning -m unittest tests.test_rulebook_contract tests.test_project_status
+```
