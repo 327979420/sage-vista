@@ -73,4 +73,33 @@ export class ReviewedRequestArchive {
       request_source: { ...request, bytes: new Uint8Array(request.bytes) },
     };
   }
+
+  async readForValidation(token) {
+    // The expected reference comes only from this verifier's fresh internal
+    // archive operation, never a caller-selected key or JSON "proof".
+    const stored = await this.archive(token);
+    const bundleBytes = await this.#archive.read(stored.bundle.key,
+      { sha256: stored.bundle.sha256, size_bytes: stored.bundle.size_bytes });
+    const bundle = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bundleBytes));
+    const observation = { observed_at: bundle.observed_at, review: { identity: bundle.identity } };
+    const descriptors = new Map();
+    for (const item of [bundle.request, ...bundle.documents]) {
+      const expected = { sha256: item.sha256, size_bytes: item.size_bytes };
+      const previous = descriptors.get(item.key);
+      if (previous && (previous.sha256 !== expected.sha256 || previous.size_bytes !== expected.size_bytes)) {
+        throw new Error("review_archive_descriptor_conflict");
+      }
+      descriptors.set(item.key, expected);
+    }
+    const objects = {};
+    for (const [key, expected] of descriptors) {
+      this.#alive(observation);
+      objects[key] = await this.#archive.read(key, expected);
+    }
+    this.#alive(observation);
+    // Python consumes immutable bytes decoded by the future transport bridge,
+    // and B2f is the sole validator of bundle roles and approval semantics.
+    return { approval_evidence_ref: stored.approval_evidence_ref,
+      approval_archive: { bundle_bytes: bundleBytes, objects } };
+  }
 }

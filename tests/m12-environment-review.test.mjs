@@ -316,7 +316,7 @@ test("source binding does not pretend opaque bytes satisfy a request contract", 
 function archiveFixture(raw) {
   const f = requestFixture(raw);
   const objects = new Map();
-  const state = { failAt: null, corruptRead: false, afterPut: null, puts: 0, gets: 0 };
+  const state = { failAt: null, corruptRead: false, afterPut: null, beforeGet: null, puts: 0, gets: 0 };
   const bucket = {
     async put(key, bytes, options) {
       assert.equal(options.onlyIf.get("If-None-Match"), "*");
@@ -329,6 +329,7 @@ function archiveFixture(raw) {
     },
     async get(key) {
       state.gets++;
+      if (state.beforeGet) await state.beforeGet(key);
       if (!objects.has(key)) return null;
       const original = new Uint8Array(objects.get(key));
       if (state.corruptRead) original[0] ^= 1;
@@ -483,20 +484,25 @@ function checkPython(input) {
   const script = `
 import base64, json, sys
 from services.contracts.validation import ContractError, publication_approval_archive_body, validate_contract, validate_contracts
-from services.publication.authorization import build_publication_authorization
+from services.publication.authorization import build_publication_authorization, build_publication_authorization_from_archive
 v = json.load(sys.stdin)
 archive = {"bundle_bytes": base64.b64decode(v["bundle_bytes"]), "objects": {k:base64.b64decode(b) for k,b in v["objects"].items()}}
 try:
+    if v.get("factory"):
+        payload = build_publication_authorization_from_archive(archive, v["reference"], history=[], generated_at="2026-09-06T00:00:00Z", **v.get("unexpected_factory_kwargs", {}))
     bound = publication_approval_archive_body(archive, v["reference"])
     evidence = {**bound, "approval_evidence_ref":v["reference"], "history":[], "approval_archive":archive}
     for key in v.get("drop_evidence", []):
         del evidence[key]
     evidence.update(v.get("replace_evidence", {}))
-    payload = build_publication_authorization(evidence, generated_at="2026-09-06T00:00:00Z")
+    if not v.get("factory"):
+        payload = build_publication_authorization(evidence, generated_at="2026-09-06T00:00:00Z")
     validate_contract("PublicationAuthorization", payload, publication_authorization_evidence=evidence)
     validate_contracts([("PublicationAuthorization", payload)], publication_authorization_evidence=evidence)
     print(json.dumps({"valid":True, "code_commit":payload["code_commit"], "approval_evidence_ref":payload["approval_evidence_ref"]}))
-except ContractError as exc:
+except (ContractError, TypeError) as exc:
+    if isinstance(exc, TypeError) and not v.get("unexpected_factory_kwargs"):
+        raise
     print(json.dumps({"valid":False, "error":str(exc)}))
 `;
   const result = spawnSync("python3", ["-c", script], { input: JSON.stringify(input), encoding: "utf-8",
@@ -581,4 +587,91 @@ test("archive-backed Python evidence cannot omit source context or substitute Jo
     { job: { ...original.bundle.identity.job, run_attempt: true } }]) {
     assert.equal(checkPython({ ...original, replace_evidence: replacement }).valid, false);
   }
+});
+
+function readerInput(value) {
+  return { factory: true, reference: value.approval_evidence_ref,
+    bundle_bytes: Buffer.from(value.approval_archive.bundle_bytes).toString("base64"),
+    objects: Object.fromEntries(Object.entries(value.approval_archive.objects)
+      .map(([key, bytes]) => [key, Buffer.from(bytes).toString("base64")])) };
+}
+
+test("controlled read supplies actual R2 readbacks to mandatory Python archive constructor", async () => {
+  const f = archiveFixture(JSON.stringify(businessRequest));
+  const read = await f.archive.readForValidation(token());
+  assert.deepEqual(Object.keys(read).sort(), ["approval_archive", "approval_evidence_ref"]);
+  const rawCount = Object.keys(read.approval_archive.objects).length;
+  assert.equal(f.archiveState.gets, 11 + 1 + rawCount);
+  const result = checkPython(readerInput(read));
+  assert.equal(result.valid, true, result.error);
+  assert.equal(result.code_commit, businessRequest.code_commit);
+});
+
+test("controlled read has no caller-selected reference/JSON route and excludes unrelated orphans", async () => {
+  const f = archiveFixture(JSON.stringify(businessRequest));
+  await assert.rejects(f.archive.readForValidation({ approval_evidence_ref: { id: "forged" } }));
+  assert.equal(f.objects.size, 0);
+  const orphan = "raw/" + createHash("sha256").update("orphan").digest("hex");
+  f.objects.set(orphan, new TextEncoder().encode("orphan"));
+  const result = await f.archive.readForValidation(token(), { reference: "ignored", request: "forged" });
+  assert.equal(orphan in result.approval_archive.objects, false);
+  assert.equal(checkPython(readerInput(result)).valid, true);
+});
+
+test("missing/corrupt bundle on fresh read fails despite successful earlier archive", async () => {
+  for (const corrupt of [false, true]) {
+    const f = archiveFixture(JSON.stringify(businessRequest));
+    f.archiveState.beforeGet = (key) => {
+      if (f.archiveState.gets !== 12) return;
+      if (corrupt) f.objects.get(key)[0] ^= 1;
+      else f.objects.delete(key);
+    };
+    await assert.rejects(f.archive.readForValidation(token()), /missing|hash_mismatch/);
+  }
+});
+
+test("original reread failure never returns a partial Python validation input", async () => {
+  for (const corrupt of [false, true]) {
+    const f = archiveFixture(JSON.stringify(businessRequest));
+    f.archiveState.beforeGet = (key) => {
+      if (f.archiveState.gets !== 13) return;
+      if (corrupt) f.objects.get(key)[0] ^= 1;
+      else throw new Error("r2_read_unavailable");
+    };
+    await assert.rejects(f.archive.readForValidation(token()), /unavailable|hash_mismatch/);
+  }
+});
+
+test("identity expiry while reading bundle or final original rejects the result", async () => {
+  for (const last of [false, true]) {
+    const f = archiveFixture(JSON.stringify(businessRequest));
+    f.archiveState.beforeGet = () => {
+      const rawCount = [...f.objects.keys()].filter((key) => key.startsWith("raw/")).length;
+      if (f.archiveState.gets === (last ? 12 + rawCount : 12)) f.state.now = claims.exp * 1000;
+    };
+    await assert.rejects(f.archive.readForValidation(token()), /archive_identity_expired/);
+  }
+});
+
+test("mandatory Python constructor cannot replace request, source or approver via kwargs", async () => {
+  const f = archiveFixture(JSON.stringify(businessRequest));
+  const input = readerInput(await f.archive.readForValidation(token()));
+  for (const replacement of [{ request: {} }, { approver_id: "998" }, { job: {} }, { source_commit: "a".repeat(40) }]) {
+    assert.equal(checkPython({ ...input, unexpected_factory_kwargs: replacement }).valid, false);
+  }
+  const missing = structuredClone(input);
+  delete missing.objects[Object.keys(missing.objects)[0]];
+  assert.equal(checkPython(missing).valid, false);
+});
+
+test("mutating returned readback cannot rewrite archive or affect a later verified read", async () => {
+  const f = archiveFixture(JSON.stringify(businessRequest));
+  const first = await f.archive.readForValidation(token());
+  const expectedRef = structuredClone(first.approval_evidence_ref);
+  first.approval_archive.bundle_bytes.fill(0);
+  Object.values(first.approval_archive.objects)[0].fill(0);
+  first.approval_evidence_ref.id = "forged";
+  const second = await f.archive.readForValidation(token());
+  assert.deepEqual(second.approval_evidence_ref, expectedRef);
+  assert.equal(checkPython(readerInput(second)).valid, true);
 });

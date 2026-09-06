@@ -348,3 +348,24 @@ publication_authorization_evidence增加可选的approval_archive接点；只要
 来源和原件一致依然不是当前生产许可。审核工作流展示冻结请求、业务目标／config实际库存校验、原件引用权威登记、可信Python验证收据及DO当前链／lease／CAS接线仍待后续；归档日期检查验证历史一致性，不把历史身份窗口当作现在有效。跨日端到端仍未执行，M11不重审。
 
 独立提交`feat: validate M12 archived approval evidence binding [skip ci]`，父提交d414597f18115dee6f7f9bfd05fdc035d21f8bbd，完整SHA见交付消息。只改唯一合同模块、现有环境／归档专项测试及3个治理文档；可撤回本包归档接点并保留历史，无真实数据迁移。未合并、推送、创建云资源、部署、生产启用或对外通知。
+
+
+## B2f独立复核回传
+
+审核对话01a074f9-098a-7b82-b486-3185683290fe确认38424b4aff6ad91c07248dd72f017b91959eb390在归档内部一致性与增强Python合同接点范围通过。审核员运行184项测试、逐段核对清单Ref／规范原字节、全集／角色／URL／请求／运行身份／审核人，增强字段及Job bool守门生效；旧对象默认解析路径未放宽数组。diff通过、HEAD不变、工作区干净。完整自制一致清单仍不能冒充可信来源，真实取证／受控读取、强制完整上下文和DO实时授权仍须接线。
+
+## B2g：受控读回与强制归档构造接点（待独立审核）
+
+ReviewedRequestArchive增加readForValidation(token)，内部先完成自身archive(token)获取预期Ref及定位，随后通过同一R2绑定再次读取清单原字节并重验hash／长度，再按清单引用读取全部不同raw原件，拒绝同键元数据冲突。返回仅`{approval_evidence_ref,approval_archive:{bundle_bytes,objects}}`，不复用archive返回的请求字节副本充作存储读回，不纳入其它孤立对象或客户端选择的引用。所有输入来源由已绑定策略／凭据的内部B2a—e流程取得；不新增接收“verified JSON”或任意archive key的通道。
+
+取件前及末次读回后重验身份时效；已成功归档之后，清单／任一raw读取缺失、损坏、故障或token过期，均不交出部分验证输入。不同角色引用相同raw字节只读一次，角色完整性继续由B2f唯一Python入口验证；JS只执行存储定位／摘要检查，不复制业务语义。此前原件及孤立清单不删除，不把读回成功记作DO权威登记。
+
+`services/publication/authorization.py`增加build_publication_authorization_from_archive(archive,approval_evidence_ref,history=...,generated_at=...)；强制完整归档输入，经B2f推导请求／source／Job／审核人，自动构建完整增强证据，再复用既有授权构造及唯一合同验证。函数无request、approver_id、Job或source_commit覆盖参数，也无退回旧五字段上下文选项；缺原件或错误Ref不能构造。没有新增业务合同／规则／权限／身份公式，原纯构造器保留用于既有内部纯验证。
+
+### B2g实际检查与未完成边界
+
+新增7项读回／跨语言专项＋35项原取证／归档／合同接点回归共42项Node测试；用实际内部组合器的受控R2读回来驱动Python强制构造器，验证原业务目标与控制提交分离、所有读取确实发生、无调用方引用选择、排除孤立对象、二次读取清单／原件失败、取件时失效、覆盖参数拒绝及返回值隔离。加15项授权、10项请求语义、7项治理、12项状态共86项通过；定点lint、机器状态／链接和diff检查通过。未改共享合同入口，未重复无变化全套业务测试。
+
+这是内部绑定调用及Python函数接点，测试仍用受控GitHub／R2绑定替身，不是已部署RPC／HTTP服务。真实跨进程传输、可信Python验证收据、DO持锁提供完整当前历史／当前授权／lease及最终原子登记尚未接入；不能把Python纯函数可接受同形bytes视为认证。将来HTTP入口必须直接使用内部readForValidation路径，并由服务端取得history，不允许外部提供自制清单、预期Ref或截断历史。当前构造出的PublicationAuthorization只是未登记合同，不是生效授权。审核人可审阅冻结请求的工作流、真实业务目标/config库存及生产设置仍待后续；跨日端到端仍未执行，M11不重审。
+
+独立提交`feat: connect M12 controlled archive reads to authorization builder [skip ci]`，父提交38424b4aff6ad91c07248dd72f017b91959eb390，完整SHA见交付消息。只改内部归档组合器／纯构造器、现有专项测试及3个治理文档；可撤回本批接点并保留历史，无真实数据迁移。未合并、推送、创建云资源、部署、生产启用或对外通知。
