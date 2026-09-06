@@ -1,12 +1,22 @@
 # M11｜策略验证、批准与退休闸门本地验收
 
-状态：`verified`（仅本地合成验收；等待全新独立审核，审核分支）
+状态：`implemented`（获批影子范围已独立审核并合并main；未部署、未生产启用）
 
 验收日期：2026-09-06
 
 对应需求：`CR-2026-09-05-051`
 
-## 2026-09-06 criterion身份自证修复
+## 2026-09-06 独立审核及main合并收口
+
+用户回传独立审核结论：M11与bot数据两侧已知阻断项均关闭；许可补档`ab2c0cbfdc61a02cb707bdec9b14b06b563316f4`已独立复核。M11 criterion修复提交为`584189461e246ade30049c56322e03f1da665b0d`。本记录引用用户提供的审核结论，不冒充实施员自行独立审核。
+
+获批普通双亲合并为`14fef535f67b7c4de035b4c84224e604850f1fed`；第一父提交`992042ab1a3a746b735821dea30a50d958651b42`，第二父提交`ab2c0cbfdc61a02cb707bdec9b14b06b563316f4`。合并无冲突，树为`7a3171892da00aee1b59e302b31cf774cdc40497`，与审核预览相同；普通推送后远端main核验等于该提交。保留完整历史，未rebase、squash或强推。
+
+快照231462字节，SHA-256 `77a6dc9b5ad6749db947c9dfbfde092ba0486f60aa76bc93e191cdcaf0695aeb`；LICENSE 1069字节，SHA-256 `dea317ce7193c52174ebb0def6df1a2f762f75b60e5bc026176fea6cf3ede4ff`，均与对应父提交逐字节一致。审核预览在隔离工作区运行790项Python测试，780通过、10跳过；系统临时目录初次运行的路径环境问题已通过正确工作区复核排除。合并结果无变化，按用户要求不重复完整测试。
+
+CR-051为`implemented`（仅获批M11影子范围）；CR-052为`implemented`（仅许可／治理文档）。M11进入main不代表策略validated、生产active或生产链已切换。真实formal validated、active及新增alpha hard rule仍为0；CR-043保持`captured`。本次没有部署、生产启用、运行真实实验或发送Discord。M12仅允许下一步准备设计，不授权实施或上线。以下旧验收记录保留为历史证据。
+
+## 2026-09-06 criterion身份自证修复（合并前历史）
 
 - 审核基线：`751cc3ebfe4cf5ba3342c503baaac648047d1e72`。基线实测：固定合成baseline criterion分别使用`forward_outcome_id`和`forward_content_fingerprint`，expected填实际结果ID／指纹，经合成可信预登记后均为`validated`，`write_proposal`和`write_assessment`均接受。
 - 修复只在`services/playbook/contracts.py`的预登记合同入口集中增加四种结果合同的业务字段、数值类型及封闭状态枚举允许表；未修改消费者。规则11升级`1.2.1`，schema和来源版本不变，不重写历史。

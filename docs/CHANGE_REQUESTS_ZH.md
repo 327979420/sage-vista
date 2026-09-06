@@ -35,18 +35,18 @@
 ### CR-2026-09-06-052｜FinanceDatabase指定快照许可证留档
 
 - 用户原意：仅补bot快照提交`992042ab1a3a746b735821dea30a50d958651b42`所引用FinanceDatabase固定上游提交`5865ce3b26e6f393dc0600cad1ae02339bd7d52d`的原始LICENSE，完整保留版权及许可正文，并澄清旧生产消费者与新版M06 formal边界。
-- 状态：`verified`（本地许可／文档核验，待本审核对话复核）；用户明确授权本小包（≤20分钟）。
+- 状态：`implemented`（仅许可／治理文档）；用户回传ab2c0cb独立复核通过，许可阻断项关闭；已随14fef53进入main，未部署或生产启用。
 - 主模块：行业数据来源留档，遵守`docs/rules/06_INDUSTRY.md`和治理规则；业务含义不变，不升级业务规则、数据schema或来源身份。
 - 接入与文件边界：固定上游LICENSE → 仓库原文副本 → `docs/OPEN_SOURCE_INDUSTRY_DATA.md`关联来源提交、bot提交及快照；仅修改许可文件、该说明、需求账本和决策日志。旧`industry_radar.run`已调用按日期选择快照的消费者，不等于新版`services/context/`的M06 formal接入。
-- 兼容／回退：不引入或重写快照、不改代码、算法、身份或生产入口；指定bot快照在其独立Git提交中，本审核分支不导入该数据提交。需要回退时仅撤销本许可／文档提交，不改历史快照。
-- 验证：LICENSE与固定上游原始字节完全相等（1069字节），Git blob为`1a1e8a1a258291d88337e23bd21fcda21db3e100`，SHA-256见开源行业说明；固定快照source.ref核对通过。既有开源行业及治理回归11项通过，文档链接、机器状态一致性和`git diff --check`通过；仅四个许可／文档文件变化，快照及业务代码无改动。提交证据：本记录与原始LICENSE同属独立提交`docs: archive pinned FinanceDatabase snapshot license`，完整SHA以交付消息和Git记录为准。无真实实验、推送、合并、部署或生产启用；交回本审核对话。
+- 许可补档阶段兼容／回退（历史）：不引入或重写快照、不改代码、算法、身份或生产入口；指定bot快照在其独立Git提交中，本审核分支不导入该数据提交。需要回退时仅撤销本许可／文档提交，不改历史快照。
+- 补档提交时验证（历史；后续已独立审核并合并）：LICENSE与固定上游原始字节完全相等（1069字节），Git blob为`1a1e8a1a258291d88337e23bd21fcda21db3e100`，SHA-256见开源行业说明；固定快照source.ref核对通过。既有开源行业及治理回归11项通过，文档链接、机器状态一致性和`git diff --check`通过；仅四个许可／文档文件变化，快照及业务代码无改动。提交证据：本记录与原始LICENSE同属独立提交`docs: archive pinned FinanceDatabase snapshot license`，完整SHA以交付消息和Git记录为准。无真实实验、推送、合并、部署或生产启用；交回本审核对话。
 
 ### CR-2026-09-05-051｜M11策略验证、批准与退休闸门
 
-- 2026-09-06最小修复（用户明确授权，`verified`仅本地合成验收，等待全新独立审核）：基线`751cc3ebfe4cf5ba3342c503baaac648047d1e72`允许criterion用Outcome身份字段与具体ID／指纹等值比较而validated。本包仅在唯一合同入口限制各结果合同的业务字段及expected类型，补两个反例、合法判定和公共存储回归；规则11升级1.2.1，合同字段／schema及来源版本不变，旧2.0／2.1只读边界保留。本轮M11专项60项、四种hash seed每轮60项通过；完整Python790项（780通过、10跳过），前端11项、lint／类型检查／构建及编译／文档链接／diff检查通过。修复代码与本记录同属独立提交`fix: restrict M11 criteria to typed business fields`（父提交751cc3e），未推送。设计补充见M11设计第17节；不审核bot数据、不合并、不部署或启用生产，完成后交全新独立审核。
+- 2026-09-06最小修复历史记录（当时为`verified`；现已独立审核并合并，见下方当前状态）：基线`751cc3ebfe4cf5ba3342c503baaac648047d1e72`允许criterion用Outcome身份字段与具体ID／指纹等值比较而validated。本包仅在唯一合同入口限制各结果合同的业务字段及expected类型，补两个反例、合法判定和公共存储回归；规则11升级1.2.1，合同字段／schema及来源版本不变，旧2.0／2.1只读边界保留。本轮M11专项60项、四种hash seed每轮60项通过；完整Python790项（780通过、10跳过），前端11项、lint／类型检查／构建及编译／文档链接／diff检查通过。修复代码与本记录同属独立提交`fix: restrict M11 criteria to typed business fields`（父提交751cc3e），未推送。设计补充见M11设计第17节；不审核bot数据、不合并、不部署或启用生产，完成后交全新独立审核。
 
 - 用户原意：把M09保存的人工观察／假设与M10保存的不可变评价证据接成一条可审计的策略升级链。机器证据、用户批准、进入main和生产激活必须分开；V1、V2、失败、拒绝、延期、失效和退休历史永久保留。只有预登记标准由独立证据满足、用户明确批准、实现证据完整且M12提供生产激活证明的精确版本，才可成为active策略或交易红线。
-- 状态：`verified`；用户批准的`1A／2A／3A`及A—D最小影子合同、证据闸门、生命周期存储和只读Registry已在审核分支完成本地验证。尚未合并`main`，没有运行实实验、真实策略晋级、部署或生产启用。
+- 状态：`implemented`（仅获批影子范围）；用户回传独立审核结论确认M11和bot数据两侧已知阻断项关闭。A—D及最小修复已通过14fef53普通双亲合并并推送main；没有运行真实实验、真实策略晋级、部署或生产启用。合并及测试证据见`docs/M11_ACCEPTANCE_REPORT_ZH.md`。
 - 主模块：`docs/rules/11_VALIDATED_PLAYBOOK.md`、`docs/rules/12_HARD_RULES.md`；设计见`docs/M11_STRATEGY_PROMOTION_GATE_DESIGN_ZH.md`。未来唯一中立实现层建议为`services/playbook/`。
 - 联动模块：只读引用M09 `HumanReviewRecord`及M10 `ExperimentRun`、Outcome、Aggregate和查询证据；M12独立负责生产Manifest、部署、线上核验、激活和退休生效。M11不得反向修改M03—M10，也不得替M12切换生产。
 - CR-043边界：本CR只承接CR-043中“人工案例形成候选假设、使用未参与定义的独立样本验证、用户批准后形成新版本、失败假设永久保留”的升级责任。CR-043整体继续为`captured`，内容和状态不变。
@@ -63,7 +63,7 @@
 ### CR-2026-09-02-050｜M10统一评价、回测与外部研究引擎
 
 - 用户原意：在不改写M02—M09既有事实的前提下，为逐股前向表现、严格执行M08计划后的交易结果、资本约束组合运行和研究汇总建立四类互不冒充的不可变结果；V1、V2及comparison永久并存，并可按版本、日期、股票、事件和运行准确查询。CSV／Excel只能从权威结果再生成，供人工审核，不能成为机器账本或回写旧事实。
-- 状态：`implemented`（仅获批影子核心A—E范围）；M10-A合同／身份／运行收据／只追加存储、M10-B内部Forward／Trade基线评价、M10-C Portfolio失败关闭边界／只读ResearchAggregate、M10-D准确查询／CSV与XLSX审核副本／Manifest／安全复核，以及M10-E版本化配置／统一非交互CLI／checkpoint／续跑／并发编排均已完成独立审核并进入`main`。M10-E最终审核代码HEAD为`34c3cfec1662ddd301552822eb919bb2dd84d12d`，由`1964f306f6f96f78873b38dccd5bf06a4c3555b4`纯fast-forward合并。该状态不表示部署、生产启用、真实多年回测或真实历史导出；VectorBT X1／X2／X3是独立可选comparison扩展，未实施不阻止M10核心关闭。M11、M12和M13均未开始。
+- 状态：`implemented`（仅获批影子核心A—E范围）；M10-A合同／身份／运行收据／只追加存储、M10-B内部Forward／Trade基线评价、M10-C Portfolio失败关闭边界／只读ResearchAggregate、M10-D准确查询／CSV与XLSX审核副本／Manifest／安全复核，以及M10-E版本化配置／统一非交互CLI／checkpoint／续跑／并发编排均已完成独立审核并进入`main`。M10-E最终审核代码HEAD为`34c3cfec1662ddd301552822eb919bb2dd84d12d`，由`1964f306f6f96f78873b38dccd5bf06a4c3555b4`纯fast-forward合并。该状态不表示部署、生产启用、真实多年回测或真实历史导出；VectorBT X1／X2／X3是独立可选comparison扩展，未实施不阻止M10核心关闭。历史上M10收口时M11—M13均未开始；当前M11已按CR-051独立审核并合并，M12／M13未实施。
 - 主模块：`docs/rules/08_BACKTEST_AND_EXPERIMENTS.md`；未来中立唯一formal评价层建议为`services/evaluation/`，统一非交互式研究入口建议为`python3 -m research.run --config <versioned-config.json>`。
 - 联动模块：只读消费M02不可变行情／股票池、M07评分／权威排行、M08交易计划／退出状态和M09唯一事件及其稳定ID、政策版本和内容指纹。M11负责把研究结论送入独立升级闸门；M12负责真实生产工作流、Manifest、网站、下载和部署。M10不得反向修改M02—M09。
 - CR-043边界：本CR正式承接CR-043中M10的“V1／V2历史并存、按版本／日期／股票／运行查询、逐股forward／backtest、准确数字证据、CSV／Excel审核副本以及证据不足时偏差或`unavailable`”设计责任；CR-043整体继续为`captured`，不因此升级为已批准、已实施或生产启用。
@@ -177,7 +177,7 @@
 - 升级闸门：M11未来要求人工经验与机器证据并列展示，用未参与规则定义的独立样本验证；通过验证并经用户批准后才能成为新版本。失败或无效假设永久保留，禁止用同一案例调规则后再证明规则有效。
 - 规则先行：等待M07、M09、M10、M11分别进入设计时再冻结其合同、算法和验收；不得写入M03 GateEvent合同或验收矩阵，也不得借本条开始后续模块。
 - 实验：尚未预登记。
-- 实现与产物：M07不可变排行责任已完成；M09子责任已在独立CR-049的获批影子范围达到`implemented`并进入`main`，尚未部署或生产启用。M10的A—C均已完成独立审核并进入`main`；M10-D已完成本地只读查询、CSV／XLSX审核副本及安全复核，等待独立审核，M11升级闸门尚未开始。
+- 实现与产物：M07不可变排行责任已完成；M09子责任已在独立CR-049的获批影子范围达到`implemented`并进入`main`，尚未部署或生产启用。M10的A—C均已完成独立审核并进入`main`；M10-D／E及M11升级闸门现已在各自获批影子范围完成独立审核并进入main（CR-050／051）；本CR-043仍为captured。
 - 验证：仅各子模块独立CR的证据有效；CR-043整体继续为`captured`，不等于M10／M11已批准设计、实施、验证或生产启用。
 
 ### CR-2026-08-31-041｜M01/M02基础合同审计修复
