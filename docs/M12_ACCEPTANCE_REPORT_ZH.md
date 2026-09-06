@@ -1119,3 +1119,22 @@ C1n新增publication-daily-runtime.json（enabled=false、origin=null）和m12-d
 本包父6ab7c1e，提交feat: build same-day M02 qualifications from shared frozen checks [skip ci]。回退本包适配及精确替代项即可；原业务blob、旧配置和全部历史保留。没有写公开数据、bot快照／许可、旧断点；无供应商请求、合并、部署或生产启用。跨日生产端到端尚未执行。
 
 GitHub同步：远端main读回14fef535f67b7c4de035b4c84224e604850f1fed，refs/heads/m12/production-chain-design-14fef53尚不存在。只拟普通推送已独立审核8b745d0296a93d4358b6c5f23f44ef33c0e6e702，不含本阶段未审提交；自动审批审查拒绝，认为跨任务转述未构成此次目标／载荷授权。未绕过、未同步成功，需用户直接确认精确目标后再执行。
+
+
+### C1l—C2a阶段提交后验证与交审
+
+阶段基线8b745d0296a93d4358b6c5f23f44ef33c0e6e702已独立审核；93c8b65、b7ed6f9、6ab7c1e、f164534为本次待审提交。f164534实际源码上，Python阶段命令运行80项成功，另1项模块加载失败：调用时缺少既有测试所需PYTHONPATH=tests:.，test_m12_daily_transport无法导入其测试夹具；补上该测试路径后仅重跑这5项，全部通过0.005秒。累计85项有效Python通过，覆盖新资格／新旧配置精确源／M03与入口盘点／每日客户端及禁用runner／准备进程及合同／治理状态，ResourceWarning均视为错误；保留该命令失败证据，不将加载错误算测试通过。
+
+17项阶段Node通过8.861秒，含原准备会话／许可使用回归、四项每日API反例、真实Git固定worker联测2.306秒及实际每日客户端→合成成员采集归档联测2.549秒。22项原归档桥／API／Python字节往返回归通过0.541秒；定点eslint通过。本阶段有效检查合计124项（85 Python＋39 Node），没有重跑M11或无变化B全套；实际受保护GitHub workflow、供应商许可／真实采集、完整价格与身份登记、跨日生产端到端仍未验收。
+
+复现（仓库根目录、干净services、禁止生成pyc）：
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=tests:. python3 -W error::ResourceWarning -m unittest tests.test_m12_qualification tests.test_m12_configuration tests.test_m03_gates tests.test_m03_gate_consumer_inventory tests.test_m12_daily_transport tests.test_m12_daily_runtime tests.test_m12_preparation_execution tests.test_m12_preparation_validation tests.test_rulebook_contract tests.test_project_status
+PYTHONDONTWRITEBYTECODE=1 node --test --test-name-pattern='daily preparation API|daily client integrates|preparation session|membership use|preparation stage' tests/m12-environment-review.test.mjs
+PYTHONDONTWRITEBYTECODE=1 node --test tests/m12-membership-archive.test.mjs
+```
+
+GitHub同步仍未完成：补读审核任务中原始userMessage“先继续完成，但保证github也同步”（01a07784-d243-7eb1-a09c-436b6d22dfd3）作为新增证据，再次申请同一已审8b745d0普通推送；自动审批审查仍拒绝，理由是跨任务工具输出不足以扩大可信授权到具体M12分支／提交。未更换通道绕过、未推未审内容；需要用户在当前执行任务直接确认origin的refs/heads/m12/production-chain-design-14fef53及已审8b745d0范围。已核验远端main为14fef535，工作分支无SHA可报（尚不存在）。本地main未改变。
+
+首次可用的下一依赖：把已归档成员的连续观察身份登记与实际价格／交易日历完整证据接到M02，再调用本包资格与原3.x快照构造器；不能给complete_history_instruments直接填全集来假装已经证明覆盖。随后串现有M03—M09、原信号跨日M08／M09、独立M10及四页／发布回退。持续按≤20分钟小包及阶段集中审核推进，当前不称完整生产链完成。
