@@ -46,7 +46,7 @@ export class PreparationValidationSession {
     this.#binding = encode({ identity: identityPolicy, preparation: preparationPolicy });
     this.#resource = `daily/${this.#policy.as_of}/${this.#policy.config_ref.id}`;
     storage.transactionSync(() => {
-      for (const table of ['m12_preparation_inputs', 'm12_preparation_input_log', 'm12_preparation_returns', 'm12_preparation_return_log']) {
+      for (const table of ['m12_preparation_inputs', 'm12_preparation_input_log', 'm12_preparation_returns', 'm12_preparation_return_log', 'm12_preparation_selected', 'm12_preparation_selection_log']) {
         this.#exec(`CREATE TABLE IF NOT EXISTS ${table} (key TEXT PRIMARY KEY, record_json TEXT NOT NULL)`);
       }
     });
@@ -119,7 +119,7 @@ export class PreparationValidationSession {
     });
   }
 
-  async #verify(identity, handle, inputHash, frozen) {
+  async #readInput(identity, handle, inputHash) {
     const record = this.#load(identity, handle, inputHash);
     const { key, sha256, size_bytes } = record.input_archive;
     const raw = await this.#archive.read(key, { sha256, size_bytes });
@@ -131,6 +131,20 @@ export class PreparationValidationSession {
         input.evidence.as_of !== this.#policy.as_of || input.evidence.code_commit !== identity.code_commit) {
       throw new Error('preparation_session_input_mismatch');
     }
+    this.#current(identity, handle, record);
+    return { record, input, raw };
+  }
+
+  async verifyPrepared(token, leaseToken, inputHash) {
+    this.#enabled();
+    const handle = handleCopy(leaseToken);
+    const identity = await this.#verifier.verify(token);
+    const { record } = await this.#readInput(identity, handle, inputHash);
+    return { ...record.input_archive };
+  }
+
+  async #verify(identity, handle, inputHash, frozen) {
+    const { record, input, raw } = await this.#readInput(identity, handle, inputHash);
     const result = parse(frozen);
     if (encode(result) + '\n' !== new TextDecoder().decode(frozen)) throw new Error('preparation_session_result_encoding_invalid');
     exact(result, ['protocol', 'input_sha256', 'input_size_bytes', 'started_ms', 'completed_ms', 'preparation']);
@@ -170,6 +184,56 @@ export class PreparationValidationSession {
       this.#current(identity, handle, verified.record);
       return { input_sha256: inputHash, output_archive: { ...output } };
     });
+  }
+
+  #selectionKey(identity) {
+    return encode({ binding: this.#binding, job: identity.job, actor_id: identity.actor_id });
+  }
+  #selection(identity) {
+    const key = this.#selectionKey(identity);
+    const rows = this.#exec('SELECT record_json FROM m12_preparation_selected WHERE key=?', key);
+    if (rows.length !== 1) throw new Error('preparation_selection_missing');
+    const record = JSON.parse(rows[0].record_json);
+    const log = this.#exec('SELECT record_json FROM m12_preparation_selection_log WHERE key=?', key + '/' + record.input_sha256 + '/' + record.output_sha256);
+    if (log.length !== 1 || log[0].record_json !== rows[0].record_json) throw new Error('preparation_selection_corrupt');
+    this.#load(identity, record.lease_token, record.input_sha256);
+    return record;
+  }
+
+  async selectForUse(token, leaseToken, inputHash, outputHash) {
+    this.#enabled();
+    const handle = handleCopy(leaseToken);
+    const verified = await this.readForUse(token, handle, inputHash, outputHash);
+    return this.#storage.transactionSync(() => {
+      const record = this.#load(verified.identity, handle, inputHash);
+      const returned = this.#pair('m12_preparation_returns', 'm12_preparation_return_log', inputHash + '/' + outputHash);
+      if (!same(returned.output_archive, verified.output_archive)) throw new Error('preparation_selection_return_changed');
+      const key = this.#selectionKey(verified.identity);
+      const choice = { input_sha256: inputHash, output_sha256: outputHash, lease_token: handle };
+      const encoded = encode(choice), logKey = key + '/' + inputHash + '/' + outputHash;
+      const previous = this.#exec('SELECT record_json FROM m12_preparation_selected WHERE key=?', key);
+      if (previous.length) {
+        // Check the previous pair even when its original input has expired.
+        const old = JSON.parse(previous[0].record_json);
+        const logs = this.#exec('SELECT record_json FROM m12_preparation_selection_log WHERE key=?', key + '/' + old.input_sha256 + '/' + old.output_sha256);
+        if (logs.length !== 1 || logs[0].record_json !== previous[0].record_json) throw new Error('preparation_selection_corrupt');
+      }
+      const logs = this.#exec('SELECT record_json FROM m12_preparation_selection_log WHERE key=?', logKey);
+      if (logs.length && logs[0].record_json !== encoded) throw new Error('preparation_selection_conflict');
+      if (!logs.length) this.#exec('INSERT INTO m12_preparation_selection_log VALUES (?,?)', logKey, encoded);
+      this.#exec('INSERT INTO m12_preparation_selected VALUES (?,?) ON CONFLICT(key) DO UPDATE SET record_json=excluded.record_json', key, encoded);
+      this.#current(verified.identity, handle, record);
+      return choice;
+    });
+  }
+
+  async selectedForUse(token) {
+    this.#enabled();
+    const identity = await this.#verifier.verify(token);
+    const choice = this.#selection(identity);
+    await this.readForUse(token, choice.lease_token, choice.input_sha256, choice.output_sha256);
+    if (!same(choice, this.#selection(identity))) throw new Error('preparation_selection_changed');
+    return structuredClone(choice);
   }
 
   async readForUse(token, leaseToken, inputHash, outputHash) {

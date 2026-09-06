@@ -1081,3 +1081,14 @@ PYTHONDONTWRITEBYTECODE=1 node --test tests/m12-membership-archive.test.mjs
 ```
 
 首次可用尚需：将上述内部准备会话接到受保护每日runner及认证调度／传输入口；按上线卡安装真实许可和配置能力；复用M02既有3.x构造器、观察身份函数及行情规范化，补完整来源身份持续登记、同日全体资格和交易日历／价格源接入；再串M03—M09、旧信号计划补建／退出续跑／M09关联及独立M10到期队列；完成四页数据、持久发布切换／回退与生产验收。已有M02门槛仍为420日、5美元、1000万美元，下一阶段须与原M03边界复用同一口径，不复制规则。无新增M13或美化目标；旧回放断点、公开文件、bot快照／许可和生产入口不变。
+
+
+## 每日认证接线阶段（C1l起，待独立审核）
+
+上一阶段78315ee..8b745d0已获独立PASS：24 Python＋12阶段Node＋22字节桥Node＋8原进程Python共66项，另/tmp/sage-m12-stage-independent.test.mjs三项独立反例通过，总69项。确认续租／新JWT不复活旧输入、丢失返回双记录不能仅凭原件使用、raw写入期间revoke后拒绝完成及后续读取。定点eslint／区间diff／精确HEAD／工作区通过；限定内部链和合成材料。
+
+C1l增加默认禁用DailyPreparationApi，固定/v1/preparation/prepare和/return，并组合原成员三路由。服务器固定actor／日期／配置／epoch／许可，prepare正文只有protocol；获得与续持daily租约在同步事务中前后检查JWT期限，不自动初始化epoch。C1h原字节编码后通过新增verifyPrepared重读原输入并验证持久绑定，不第二次采样checked_at。return正文只有协议、原输入摘要、已绑定lease handle及固定worker stdout base64，C1i核验／归档后选择该Job当前输入和结果。
+
+选择由m12_preparation_selected与独立selection_log配对持久保存，重放相同选择不重复记录，切换前检查旧选择配对；使用前核对当前租约与全部原件并确认选择未变。成员正文仍不含任务、策略或租约，服务器从已验证选择与上线卡固定许可构造C1k工厂，响应编码后再次检查选择。未知路由／字段、未认证身份、无选择／许可、配对缺失或原窗口失效失败关闭；此为内部router，尚未挂到真实Worker。
+
+C1l四项新API专项与七项原会话回归通过，覆盖准备→回传→选择→成员permit、重开与重放、错误正文／目标／actor、外任务和配对丢失、选择日志失败整笔回滚及获取／续租期间JWT到期回滚。实现期修正扩展SQL表清单时误改旧helper参数的问题，原会话回归已恢复通过；不隐去失败过程。父8b745d0，提交feat: connect authenticated daily preparation and membership routing [skip ci]。Python客户端与受保护固定runner由后续同阶段接线，仍无真实供应商请求、云资源、推送、合并、部署或生产启用。

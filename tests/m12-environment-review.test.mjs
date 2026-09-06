@@ -1,3 +1,4 @@
+import { DailyPreparationApi } from '../services/publication/daily_preparation_api.mjs';
 import { MembershipUseFactory } from '../services/publication/membership_use.mjs';
 import { MembershipArchiveApi } from '../services/publication/membership_api.mjs';
 import { PreparationValidationSession } from '../services/publication/preparation_session.mjs';
@@ -3079,4 +3080,103 @@ test('membership use refuses a real registered revoke during license readback', 
   };
   await assert.rejects(f.use.acquisitionEvidence(token(), '2026-09-06', membershipSource), /history_changed/);
   assert.equal(f.rows().index.length, 2);
+});
+
+
+async function dailyPreparationFixture(t) {
+  const f = await preparationReadbackFixture(t, false);
+  const license = Buffer.from('synthetic daily private license');
+  const digest = 'sha256:' + createHash('sha256').update(license).digest('hex');
+  const licensePolicy = { purpose: 'eodhd_us_membership_private_acquisition',
+    license_archive: { key: 'raw/' + digest.slice(7), sha256: digest, size_bytes: license.length },
+    license_valid_from: NOW * 1000 - 1, license_valid_until: (NOW + 300) * 1000 };
+  f.objects.set(licensePolicy.license_archive.key, new Uint8Array(license));
+  const create = (changes = {}) => new DailyPreparationApi(identityPolicy, { enabled: true, preparationPolicy: f.policy,
+    leaseEpoch: f.handle.epoch, licensePolicy, storage: f.storage, bucket: f.bucket,
+    clock: f.options.clock, fetchKeys: f.options.fetchKeys, ...changes });
+  const canonical = value => Array.isArray(value) ? value.map(canonical) : value && typeof value === 'object' ?
+    Object.fromEntries(Object.keys(value).sort().map(key => [key, canonical(value[key])])) : value;
+  const request = (path, value, jwt = token()) => new Request('https://coordinator.invalid' + path, { method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + jwt }, body: JSON.stringify(canonical(value)) });
+  const prepare = async api => {
+    const response = await api.fetch(request('/v1/preparation/prepare', { protocol: 'm12-daily-preparation/1' }));
+    assert.equal(response.status, 200, await response.clone().text());
+    return response.json();
+  };
+  const returned = prepared => {
+    const input = JSON.parse(Buffer.from(prepared.input_base64, 'base64'));
+    const result = { protocol: input.protocol, input_sha256: prepared.input_sha256, input_size_bytes: prepared.input_size_bytes,
+      started_ms: f.state.now, completed_ms: f.state.now, preparation: { authorization_ref: input.evidence.current_history.head,
+        config_ref: f.policy.config_ref, config_archive: f.policy.config_archive, code_commit: identityPolicy.code_commit,
+        as_of: f.policy.as_of, checked_at: new Date(f.state.now).toISOString().replace('.000Z', 'Z'), history_revision: input.evidence.current_history.revision } };
+    return { protocol: 'm12-daily-preparation/1', input_sha256: prepared.input_sha256, lease_token: prepared.lease_token,
+      result_base64: Buffer.from(JSON.stringify(canonical(result)) + '\n').toString('base64') };
+  };
+  return { ...f, license, createDaily: create, request, prepareDaily: prepare, returned };
+}
+
+test('daily preparation API is disabled and rejects unrecognized bodies targets and identities', async t => {
+  assert.equal((await new DailyPreparationApi(null).fetch(new Request('https://coordinator.invalid'))).status, 503);
+  const f = await dailyPreparationFixture(t);
+  const api = f.createDaily();
+  for (const value of [{}, { protocol: 'm12-daily-preparation/1', as_of: '2026-09-06' },
+    { protocol: 'm12-daily-preparation/1', lease_token: f.handle }]) {
+    assert.equal((await api.fetch(f.request('/v1/preparation/prepare', value))).status, 400);
+  }
+  assert.equal((await api.fetch(f.request('/v1/preparation/prepare?other=1', { protocol: 'm12-daily-preparation/1' }))).status, 404);
+  assert.equal((await api.fetch(f.request('/v1/preparation/prepare', {}, token({ actor_id: '790' })))).status, 401);
+  assert.equal((await api.fetch(f.request('/v1/membership/permit', { as_of: '2026-09-06', protocol: 'm12-membership-archive/1', request_url: membershipSource }))).status, 409);
+});
+
+test('daily preparation API prepares returns selects and routes membership with no caller lease fields', async t => {
+  const f = await dailyPreparationFixture(t);
+  const prepared = await f.prepareDaily(f.createDaily());
+  const returned = await f.createDaily().fetch(f.request('/v1/preparation/return', f.returned(prepared)));
+  assert.equal(returned.status, 200, await returned.clone().text());
+  const reply = await returned.json();
+  assert.equal(reply.input_sha256, prepared.input_sha256);
+  const permit = await f.createDaily().fetch(f.request('/v1/membership/permit', {
+    as_of: '2026-09-06', protocol: 'm12-membership-archive/1', request_url: membershipSource }));
+  assert.equal(permit.status, 200, await permit.clone().text());
+  assert.deepEqual(Buffer.from((await permit.json()).bytes_base64, 'base64'), f.license);
+  assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM m12_preparation_selected').get().n, 1);
+  assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM m12_preparation_selection_log').get().n, 1);
+  assert.equal((await f.createDaily().fetch(f.request('/v1/preparation/return', f.returned(prepared)))).status, 200);
+  assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM m12_preparation_selection_log').get().n, 1);
+});
+
+test('daily preparation API refuses missing paired selection or foreign task', async t => {
+  const f = await dailyPreparationFixture(t);
+  const prepared = await f.prepareDaily(f.createDaily());
+  assert.equal((await f.createDaily().fetch(f.request('/v1/preparation/return', f.returned(prepared)))).status, 200);
+  const value = { as_of: '2026-09-06', protocol: 'm12-membership-archive/1', request_url: membershipSource };
+  assert.equal((await f.createDaily().fetch(f.request('/v1/membership/permit', value, token({ run_id: '457' })))).status, 409);
+  f.db.exec('DELETE FROM m12_preparation_selection_log');
+  assert.equal((await f.createDaily().fetch(f.request('/v1/membership/permit', value))).status, 409);
+});
+
+test('daily preparation API rolls back expired acquisition and selection log failures', async t => {
+  const f = await dailyPreparationFixture(t);
+  const api = f.createDaily();
+  const prepared = await f.prepareDaily(api);
+  const exec = f.storage.sql.exec;
+  f.storage.sql.exec = (sql, ...args) => {
+    const result = exec(sql, ...args);
+    if (sql.startsWith('INSERT INTO m12_preparation_selection_log')) throw new Error('injected');
+    return result;
+  };
+  assert.equal((await api.fetch(f.request('/v1/preparation/return', f.returned(prepared)))).status, 409);
+  assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM m12_preparation_selected').get().n, 0);
+  assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM m12_preparation_selection_log').get().n, 0);
+  f.storage.sql.exec = exec;
+  const before = f.db.prepare('SELECT * FROM m12_lease_log').all();
+  f.storage.sql.exec = (sql, ...args) => {
+    const result = exec(sql, ...args);
+    if (sql.startsWith('UPDATE m12_leases SET owner_json')) f.state.now = (NOW + 300) * 1000;
+    return result;
+  };
+  assert.equal((await api.fetch(f.request('/v1/preparation/prepare', { protocol: 'm12-daily-preparation/1' }))).status, 409);
+  assert.deepEqual(f.db.prepare('SELECT * FROM m12_lease_log').all(), before);
+  f.storage.sql.exec = exec;
+  assert.equal((await api.fetch(f.request('/v1/preparation/prepare', { protocol: 'm12-daily-preparation/1' }))).status, 401);
 });
