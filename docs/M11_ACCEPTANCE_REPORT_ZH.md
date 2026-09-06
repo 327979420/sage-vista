@@ -1,12 +1,22 @@
 # M11｜策略验证、批准与退休闸门本地验收
 
-状态：`verified`（审核分支）
+状态：`verified`（仅本地合成验收；等待全新独立审核，审核分支）
 
 验收日期：2026-09-06
 
 对应需求：`CR-2026-09-05-051`
 
-## 验收结论
+## 2026-09-06 criterion身份自证修复
+
+- 审核基线：`751cc3ebfe4cf5ba3342c503baaac648047d1e72`。基线实测：固定合成baseline criterion分别使用`forward_outcome_id`和`forward_content_fingerprint`，expected填实际结果ID／指纹，经合成可信预登记后均为`validated`，`write_proposal`和`write_assessment`均接受。
+- 修复只在`services/playbook/contracts.py`的预登记合同入口集中增加四种结果合同的业务字段、数值类型及封闭状态枚举允许表；未修改消费者。规则11升级`1.2.1`，schema和来源版本不变，不重写历史。
+- 两个反例覆盖构造器、直接合同验证、评估、公共Proposal写入，以及模拟旧漏洞写入的canonical Proposal被重新读取时的公共Assessment写入；均应在criterion验证处拒绝。
+- 合法状态、指标eq/gte/lte和计数可评估并落盘；错误类型、等价身份／指纹字段、自由文本与嵌套路径拒绝。零匹配仍unavailable，多匹配失败关闭，旧2.0／2.1只读边界由既有专项回归覆盖。
+- 本轮验证：M11专项60项通过；完整Python运行790项，780通过、10跳过；PYTHONHASHSEED=0／1／42／12345每轮60项通过；前端11项、lint、TypeScript、生产构建、Python编译、变更文档链接与`git diff --check`通过。机器状态重新生成内容与CURRENT_STATUS完全一致。以下历史测试数字属于先前收口，并非本次独立审核结论。
+- 提交证据：本节与修复代码同属独立提交`fix: restrict M11 criteria to typed business fields`（父提交751cc3e）；最终完整SHA由交付消息及Git记录提供。审核分支`m11/strategy-promotion-gate-5859d12`。
+- 仅本地合成样本；没有审核bot数据、合并、部署、真实策略晋级或生产启用。完成后留在审核分支，交全新独立审核。
+
+## 先前验收结论
 
 M11 A—D已在获批影子范围完成本地固定合成样本验证。本结论不代表合并`main`、真实策略有效、部署或生产启用。
 

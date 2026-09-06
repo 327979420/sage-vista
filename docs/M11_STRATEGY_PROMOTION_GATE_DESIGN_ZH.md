@@ -300,3 +300,18 @@ M11本身不得写生产Manifest、切换工作流、修改网站／Discord或�
 - 2.2 criterion使用运行前可确定的语义选择器，不得引用已完成Outcome ID或指纹；Assessment在完整权威库存中匹配唯一结果后只读已保存字段。零匹配为`evidence_incomplete`，多匹配失败关闭。
 - `case_label`只作为非空显示字段并进入内容指纹，不再通过ticker硬编码名单决定`seen_before`、角色或独立验证资格。
 - 全部验收仅使用固定合成样本。当前真实formal validated策略、新交易alpha硬规则和active策略均为0。
+
+## 17. criterion身份自证最小修复（2026-09-06，用户已授权）
+
+- 当前链路：Proposal预登记 → 唯一合同验证 → 可信登记解析 → 库存匹配与Assessment → 公共存储重验。漏洞位于合同只验证field非空及expected为标量。
+- 输入／输出／负责人：保持Proposal 2.2输入与四合同输出形状；`services/playbook/contracts.py`集中增加业务字段及类型允许表，评估和存储不新增验证逻辑。
+- ForwardOutcome：status枚举pending/mature/partial/unavailable；gross_return/mfe/mae为有限数值；elapsed_session_count/observed_session_count为非负整数。
+- TradeOutcome：status枚举pending/completed/no_trade/unavailable；gross_return/gross_r_multiple/net_return/mfe/mae为有限数值，holding_sessions为非负整数；net_return_status/mfe_status/mae_status枚举available/unavailable；exit_reason枚举stop_gap/stop/target/time_40d。
+- PortfolioRun：仅status枚举unavailable（当前合同没有可用组合指标）。
+- ResearchAggregate：status枚举completed；metric_status枚举available/unavailable；total_count/evaluated_count/missing_count/win_count/loss_count/flat_count为非负整数；missing_rate/win_rate/mean_gross_return/median_gross_return/gross_profit/gross_loss_abs/profit_factor/gross_expectancy为有限数值。
+- 数值允许eq/gte/lte，bool、null、字符串、容器及非有限数值均拒绝；枚举仅允许eq。所有未列字段失败关闭，含身份、指纹、引用、日期、自由文本和嵌套路径。
+- 迁移：规则11为1.2.1；这是既有“不得引用Outcome身份”规则的修错，schema 2.2.0与来源m11-shadow-1.2.0不变，不重写旧对象；旧2.0／2.1只读格式仍沿原入口。
+- 测试：固定合成baseline的ID和指纹攻击，可信合成预登记后仍拒绝；覆盖构造、Proposal验证、评估与两种公共写入，以及合法指标／状态、错误类型、零匹配和多匹配。
+- 影响：仅M11合同、专项测试和治理文档；M09／M10只读。每日、回放、评分、行情、网站、Discord、bot数据、生产配置、M12／M13均不改，不运行真实实验。
+- 工作包A（≤20分钟）：规则与集中验证、反例／合法回归；包B（≤20分钟）：必要检查、证据同步、独立提交与审核提示词。
+- 回退：审核分支可撤销本独立修复提交，基线751cc3e可复现旧行为；不得因此生产启用有漏洞版本。尚待全新独立审核。

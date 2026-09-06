@@ -1024,6 +1024,154 @@ class M11PlaybookTests(unittest.TestCase):
             proposal = self.resign(self.proposal, strategy_version="1.0.3", preregistration=prereg)
             self.assertEqual("not_validated", self.assess(ledger, evaluation, proposal=proposal)["evidence_state"])
 
+    def criterion_preregistration(self, **changes):
+        values = plain(self.prereg)
+        values.pop("preregistration_id")
+        values.pop("content_fingerprint")
+        values["criteria"][0].update(changes)
+        return build_preregistration(**values)
+
+    def assert_identity_criterion_rejected(self, field):
+        expected = self.baseline_outcome[field]
+        with self.assertRaisesRegex(ContractError, "criterion"):
+            self.criterion_preregistration(field=field, operator="eq", expected=expected)
+        # Forge canonical bytes directly, as a caller bypassing all builders can.
+        proposal = plain(self.proposal)
+        prereg = proposal["preregistration"]
+        prereg["criteria"][0].update(field=field, operator="eq", expected=expected)
+        fp = canonical_fingerprint({k: v for k, v in prereg.items()
+                                    if k not in {"preregistration_id", "content_fingerprint"}})
+        prereg.update(preregistration_id="strategy-preregistration:" + fp,
+                      content_fingerprint=fp)
+        proposal["preregistration_authority_ref"] = self.prereg_authority.register(
+            proposal, run_code_commits=[self.pending["code_commit"]],
+        )
+        proposal["proposal_content_fingerprint"] = canonical_fingerprint({
+            k: v for k, v in proposal.items()
+            if k not in {"generated_at", "proposal_content_fingerprint"}
+        })
+        context, ledger, evaluation, store = self.seeded()
+        with context:
+            assessment = plain(self.assess(ledger, evaluation))
+            assessment.update(
+                proposal_content_fingerprint=proposal["proposal_content_fingerprint"],
+                preregistration_ref={"id": prereg["preregistration_id"],
+                                     "content_fingerprint": fp},
+            )
+            assessment["criteria_results"][0]["actual"] = expected
+            assessment = build_strategy_evidence_assessment(**assessment)
+            for operation in (
+                lambda: build_strategy_proposal(**proposal),
+                lambda: validate_strategy_proposal(proposal),
+                lambda: self.assess(ledger, evaluation, proposal=proposal),
+                lambda: store.write_proposal(proposal),
+            ):
+                with self.assertRaisesRegex(ContractError, "criterion"):
+                    operation()
+            # Simulate an old vulnerable store's canonical Proposal, then try
+            # the formerly accepted validated Assessment through public storage.
+            path = store.root / "proposals" / (proposal["proposal_id"].rsplit(":", 1)[-1] + ".json")
+            path.parent.mkdir(parents=True, exist_ok=True)
+            from services.playbook.storage import _bytes
+            path.write_bytes(_bytes(proposal))
+            with self.assertRaisesRegex(ContractError, "criterion"):
+                store.write_assessment(assessment)
+            self.assertFalse(list((store.root / "assessments").glob("*.json")))
+
+    def test_criterion_rejects_outcome_id_even_after_trusted_registration(self):
+        self.assert_identity_criterion_rejected("forward_outcome_id")
+
+    def test_criterion_rejects_content_fingerprint_even_after_trusted_registration(self):
+        self.assert_identity_criterion_rejected("forward_content_fingerprint")
+
+    def test_criterion_business_fields_types_and_enums(self):
+        for contract, field, expected in (
+            ("ForwardOutcome", "gross_return", 0.1),
+            ("ForwardOutcome", "observed_session_count", 5),
+            ("TradeOutcome", "net_return", -0.1),
+            ("TradeOutcome", "holding_sessions", 5),
+            ("TradeOutcome", "net_return_status", "available"),
+            ("TradeOutcome", "exit_reason", "stop"),
+            ("PortfolioRun", "status", "unavailable"),
+            ("ResearchAggregate", "win_rate", 0.5),
+            ("ResearchAggregate", "total_count", 10),
+            ("ResearchAggregate", "metric_status", "available"),
+        ):
+            with self.subTest(contract=contract, field=field):
+                self.criterion_preregistration(result_contract=contract, field=field,
+                    expected=expected, window_sessions=5 if contract == "ForwardOutcome" else None)
+        for contract in ("ForwardOutcome", "TradeOutcome", "PortfolioRun", "ResearchAggregate"):
+            for field in ("event_id", "instrument_id", "run_id", "input_fingerprint",
+                          "result_set_fingerprint", "trade_outcome_id", "portfolio_run_id",
+                          "research_aggregate_id", "status_reason", "signal_date", "entry.id",
+                          "forward_content_fingerprint", "aggregate_content_fingerprint"):
+                with self.subTest(contract=contract, field=field):
+                    with self.assertRaisesRegex(ContractError, "criterion"):
+                        self.criterion_preregistration(result_contract=contract, field=field,
+                            expected=SHA, window_sessions=5 if contract == "ForwardOutcome" else None)
+        for field, expected, operator in (
+            ("gross_return", SHA, "eq"), ("gross_return", True, "eq"),
+            ("gross_return", None, "eq"), ("gross_return", [], "eq"),
+            ("gross_return", float("nan"), "eq"), ("gross_return", float("inf"), "eq"),
+            ("observed_session_count", 1.5, "gte"), ("observed_session_count", -1, "gte"),
+            ("status", SHA, "eq"), ("status", "mature", "gte"),
+        ):
+            with self.subTest(field=field, expected=expected, operator=operator):
+                with self.assertRaises(ContractError):
+                    self.criterion_preregistration(field=field, expected=expected, operator=operator)
+
+    def test_legal_metric_and_status_criteria_still_assess_and_persist(self):
+        for field, expected, operator in (
+            ("status", "mature", "eq"),
+            ("gross_return", self.baseline_outcome["gross_return"], "eq"),
+            ("gross_return", self.baseline_outcome["gross_return"], "gte"),
+            ("gross_return", self.baseline_outcome["gross_return"], "lte"),
+            ("observed_session_count", self.baseline_outcome["observed_session_count"], "eq"),
+        ):
+            with self.subTest(field=field, operator=operator):
+                context, ledger, evaluation, store = self.seeded()
+                with context:
+                    proposal = self.resign(self.proposal, preregistration=self.criterion_preregistration(
+                        field=field, expected=expected, operator=operator))
+                    assessment = self.assess(ledger, evaluation, proposal=proposal)
+                    self.assertEqual("validated", assessment["evidence_state"])
+                    store.write_proposal(proposal)
+                    store.write_assessment(assessment)
+
+    def test_legal_criterion_zero_matches_remains_unavailable(self):
+        context, ledger, evaluation, store = self.seeded()
+        with context:
+            proposal = self.resign(self.proposal, preregistration=self.criterion_preregistration(window_sessions=10))
+            assessment = self.assess(ledger, evaluation, proposal=proposal)
+            self.assertEqual("evidence_incomplete", assessment["evidence_state"])
+            self.assertEqual("unavailable", assessment["criteria_results"][0]["status"])
+            store.write_proposal(proposal)
+            store.write_assessment(assessment)
+
+    def test_legal_criterion_multiple_matches_fail_closed(self):
+        context, ledger, evaluation, _ = self.seeded()
+        with context:
+            pending, outcome, completed = self.make_forward_run(
+                self.third_event, attempt_id="second-baseline",
+                experiment_id="M11-second-baseline", config_version="0.9.0",
+            )
+            evaluation.write_run_receipt(pending)
+            evaluation.write_result("ForwardOutcome", outcome)
+            evaluation.write_run_receipt(completed)
+            values = plain(self.prereg)
+            values.pop("preregistration_id")
+            values.pop("content_fingerprint")
+            values["evidence_scope"] = self.scope_for(self.completed, self.baseline_completed, completed)
+            proposal = self.resign(self.proposal,
+                preregistration=build_preregistration(**values),
+                case_roles=[*plain(self.proposal["case_roles"]), {
+                    "event_id": self.third_event["event_id"],
+                    "case_label": "SECOND-BASELINE", "role": "validation",
+                }])
+            with self.assertRaisesRegex(ContractError, "criterion does not select one result"):
+                self.assess(ledger, evaluation, proposal=proposal,
+                    run_ids=[self.completed["run_id"], self.baseline_completed["run_id"], completed["run_id"]])
+
     def test_current_criterion_cannot_bind_completed_outcome_identity(self):
         criterion = {
             "criterion_id": "forbidden-post-result-selector",

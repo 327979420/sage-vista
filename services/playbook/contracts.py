@@ -274,6 +274,48 @@ def _validate_evidence_scope(value: Any) -> None:
         raise ContractError("evidence scope windows must be sorted and unique")
 
 
+# Only business measurements and closed status enums may judge success. Identity,
+# provenance and free text must never become post-result selectors via expected.
+_CRITERION_FIELDS = {
+    "ForwardOutcome": {
+        **dict.fromkeys(("gross_return", "mfe", "mae"), "number"),
+        **dict.fromkeys(("elapsed_session_count", "observed_session_count"), "count"),
+        "status": frozenset({"pending", "mature", "partial", "unavailable"}),
+    },
+    "TradeOutcome": {
+        **dict.fromkeys(("gross_return", "gross_r_multiple", "net_return", "mfe", "mae"), "number"),
+        "holding_sessions": "count",
+        "status": frozenset({"pending", "completed", "no_trade", "unavailable"}),
+        **dict.fromkeys(("net_return_status", "mfe_status", "mae_status"), frozenset({"available", "unavailable"})),
+        "exit_reason": frozenset({"stop_gap", "stop", "target", "time_40d"}),
+    },
+    "PortfolioRun": {"status": frozenset({"unavailable"})},
+    "ResearchAggregate": {
+        **dict.fromkeys(("total_count", "evaluated_count", "missing_count", "win_count", "loss_count", "flat_count"), "count"),
+        **dict.fromkeys(("missing_rate", "win_rate", "mean_gross_return", "median_gross_return", "gross_profit", "gross_loss_abs", "profit_factor", "gross_expectancy"), "number"),
+        "status": frozenset({"completed"}),
+        "metric_status": frozenset({"available", "unavailable"}),
+    },
+}
+
+
+def _validate_criterion_business_value(criterion: Mapping[str, Any]) -> None:
+    field = _text(criterion["field"], "criterion.field")
+    kind = _CRITERION_FIELDS[criterion["result_contract"]].get(field)
+    if kind is None:
+        raise ContractError("criterion field is not an allowed business field")
+    expected = criterion["expected"]
+    if isinstance(kind, frozenset):
+        if criterion["operator"] != "eq" or not isinstance(expected, str) or expected not in kind:
+            raise ContractError("criterion status requires eq and a known business value")
+    else:
+        if isinstance(expected, bool) or not isinstance(expected, (int, float)):
+            raise ContractError("criterion metric expected must be numeric")
+        _finite(expected, "criterion.expected")
+        if kind == "count" and (not isinstance(expected, int) or expected < 0):
+            raise ContractError("criterion count expected must be a non-negative integer")
+
+
 def _validate_preregistration(value: Any, *, schema_version: str) -> None:
     fields = {
         "preregistration_id", "content_fingerprint", "required_partitions",
@@ -330,6 +372,8 @@ def _validate_preregistration(value: Any, *, schema_version: str) -> None:
         if criterion["operator"] not in {"eq", "gte", "lte"}:
             raise ContractError("criterion operator is unknown")
         _finite(criterion["expected"], "criterion.expected")
+        if schema_version == SCHEMA_VERSION:
+            _validate_criterion_business_value(criterion)
     if ids != sorted(set(ids)):
         raise ContractError("criteria must be sorted and unique")
     if schema_version in {INTERMEDIATE_SCHEMA_VERSION, SCHEMA_VERSION}:

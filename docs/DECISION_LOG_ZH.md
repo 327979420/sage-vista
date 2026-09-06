@@ -607,3 +607,7 @@
 - 唯一入口固定为`python3 -m research.run --config <versioned-config.json>`，只调用M10-A—D公共接口；禁止动态别名、隐藏参数、legacy自动回退和第二套评价算法。
 - 新增独立`ResearchRunCheckpoint 2.0.0`只保存编排进度，不改变ExperimentRun或Forward、Trade、Portfolio、Aggregate合同语义；续跑必须显式引用父run和检查点。
 - 用户批准按E1配置、E2 CLI、E3续跑／并发／可选导出连续影子实施。M10整体继续为`implementing`，未部署、未生产启用；VectorBT、M11和M12仍未开始。
+
+## 2026-09-06｜CR-051 criterion身份自证最小修复
+
+用户明确要求接手实施基线751cc3e的单一阻断项。按M11设计第17节在唯一合同入口建立按结果合同划分的业务字段、阈值类型及状态枚举限制，禁止身份／指纹及等价身份字段，规则11升级1.2.1。保持现有schema／来源版本、旧2.0／2.1只读和唯一消费者验证链；仅合成样本，不合并、部署、生产启用或审核bot数据。本地测试与独立审核分开，完成后交全新独立审核。
