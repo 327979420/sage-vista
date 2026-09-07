@@ -1349,3 +1349,16 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=tests:. python3 -W error::ResourceWarning -
 范围限制：D3b内部存储组件只证明配对字节已落盘，不能独自验证业务或供应商来源；生产调用必须经过固定受信原件重放／回传绑定工厂。本包完成可复现的本地持久读回及语义组合，未安装该生产工厂。执行信号仍含M02／配置等外部引用，不把内存或执行归档冒称完整SourceInventory；全局库存需继续复用既有build_source_inventory和唯一合同入口闭合真实登记引用，尚未完成。任务领取／重试预算、独立M10、四页和发布仍待后续；实际价格／日历及许可缺项保留，不阻断本地已批准工作，不造来源证明。
 
 回退撤销新字节封装及测试，不删除D3b已存原件／孤件／失败记录。原九政策、M08／M09算法和shadow存储均未修改，旧夜间断点不写，runtime仍禁用。未真实供应商、云资源、推送、main合并、部署、启用或通知。
+
+
+### D3b／D3c重放部分集中交审补充
+
+业务提交1ba0919（持久基础）、a78d99b0d22eb734d4fcc482451f565a8ef7504f（原件重放及测试桥）。提交后另跑原固定worker七路径本地认证→SQLite联测1项通过4.378秒（Node总4.526秒），确认新增services原件在完整提交守门下可运行；未放宽源码守门。加上述48项Node／34项Python，共83项本轮检查通过；本地新执行原件联测与原认证联测是不同接点，不称执行已接生产认证RPC。
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=tests:. python3 -B -W error::ResourceWarning -m unittest tests.test_m12_execution_history tests.test_m12_execution_continuation tests.test_rulebook_contract tests.test_project_status
+PYTHONDONTWRITEBYTECODE=1 node --test tests/m12-execution-archive.test.mjs tests/m12-archive.test.mjs tests/m12-leases.test.mjs
+PYTHONDONTWRITEBYTECODE=1 node --test --test-name-pattern='daily client integrates authenticated preparation fixed worker and synthetic member collection' tests/m12-environment-review.test.mjs
+```
+
+机器生成状态、九政策原指纹、两runtime配置禁用／origin空、3处相对文档链接、定点eslint与c20d0f4起diff格式通过。业务提交后工作区干净，本地main仍14fef535。完整SourceInventory解析以及受信实际调用工厂仍未接，下一包应继续闭合这两个接点，不能跳过它们把执行包当完整来源库存，亦不以真实材料尚缺为理由停止已经批准的纯接线。本阶段由审核任务复核后同步已审工作分支；本任务未推送、合并、部署、启用、通知或调用真实供应商。
