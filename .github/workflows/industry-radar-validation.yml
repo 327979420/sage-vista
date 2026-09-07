@@ -1,4 +1,4 @@
-name: CR056 cached input coverage audit
+name: CR056 real candidate ranking
 on:
   workflow_dispatch:
 permissions:
@@ -6,7 +6,7 @@ permissions:
 jobs:
   coverage:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -59,4 +59,22 @@ jobs:
           name: cr056-input-coverage-${{ github.run_id }}
           path: work/cr056-input-coverage.json
           retention-days: 7
+          if-no-files-found: error
+      - name: Repair recent inputs through existing supplier
+        env:
+          EODHD_API_TOKEN: ${{ secrets.EODHD_API_TOKEN }}
+        run: |
+          PYTHONDONTWRITEBYTECODE=1 python3 -B -m services.scanner.cr056_inputs --as-of 2026-09-04
+      - name: Generate candidate rankings offline
+        run: |
+          PYTHONDONTWRITEBYTECODE=1 python3 -B -m services.scanner.cr056_runner --as-of 2026-09-04
+      - name: Upload derived rankings and input provenance
+        uses: actions/upload-artifact@v4
+        with:
+          name: cr056-real-ranking-${{ github.run_id }}
+          path: |
+            work/cr056-results/*.json
+            work/cr056-results/*.md
+            work/cr056-private/input-repair-report.json
+          retention-days: 14
           if-no-files-found: error
