@@ -281,10 +281,41 @@ test('registered source inventory to actual fixed computation and atomic result/
   const frozenPair = Object.fromEntries(['input', 'object', 'link'].map(key => [key, readFileSync(join(env.root, 'archive', receipt.snapshot.history[0][key].key)).toString('base64')]));
   assert.equal(readFileSync(join(env.root, 'archive', receipt.snapshot.root.root.key)).toString('base64'), fixture.root_bytes);
   assert.deepEqual(await session.accept(identity, owned, prepared.input.sha256, output), receipt);
+  // Restore fixture bytes only after proving accept never repairs them.
+  const refs = [receipt.snapshot.root.root, ...['input', 'object', 'link'].map(key => receipt.snapshot.history[0][key])];
+  for (const ref of refs) {
+    const path = join(env.root, 'archive', ref.key), original = readFileSync(path);
+    for (const corrupt of [false, true]) {
+      if (corrupt) writeFileSync(path, bytes('corrupted original')); else rmSync(path);
+      const puts = env.bucket.puts;
+      await assert.rejects(session.accept(identity, owned, prepared.input.sha256, output), /object_missing|mismatch/);
+      assert.equal(env.bucket.puts, puts);
+      writeFileSync(path, original);
+    }
+  }
   const second = await session.prepare(identity, owned, fixture.task_id, new Uint8Array(Buffer.from(fixture.request_bytes, 'base64')));
   const after = python({ operation: 'fixed_execution', input_bytes: Buffer.from(second.input_bytes).toString('base64') });
   const afterBytes = new Uint8Array(Buffer.from(after.output_bytes, 'base64'));
   assert.equal(JSON.parse(new TextDecoder().decode(afterBytes)).next_pair, null);
+  // Lose each promised historical original while saving the null-pair output.
+  const outputKey = 'raw/' + Buffer.from(await crypto.subtle.digest('SHA-256', afterBytes)).toString('hex');
+  for (const ref of refs) {
+    const path = join(env.root, 'archive', ref.key), original = readFileSync(path);
+    for (const corrupt of [false, true]) {
+      let injected = false;
+      env.bucket.afterGet = key => {
+        if (key === outputKey && !injected) {
+          injected = true;
+          if (corrupt) writeFileSync(path, bytes('corrupted original')); else rmSync(path);
+        }
+      };
+      await assert.rejects(session.accept(identity, owned, second.input.sha256, afterBytes), /object_missing|mismatch/);
+      assert.ok(injected);
+      assert.equal(env.storage.sql.exec('SELECT completed FROM m12_execution_validation_inputs WHERE input_sha=?', second.input.sha256).toArray()[0].completed, 0);
+      env.bucket.afterGet = null;
+      writeFileSync(path, original);
+    }
+  }
   const final = await session.accept(identity, owned, second.input.sha256, afterBytes);
   assert.equal(final.snapshot.revision, 1);
   assert.deepEqual(Object.fromEntries(['input', 'object', 'link'].map(key => [key, readFileSync(join(env.root, 'archive', final.snapshot.history[0][key].key)).toString('base64')])), frozenPair);

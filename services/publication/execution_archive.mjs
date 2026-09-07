@@ -175,11 +175,12 @@ export class ExecutionTaskArchive {
     }
     return { current, objects }; // Full server-owned history; not SourceInventory.
   }
-  async appendPair(identity, token, taskId, expected, stepId, inputBytes, objectBytes, linkBytes, onCommit = null) {
+  async appendPair(identity, token, taskId, expected, stepId, inputBytes, objectBytes, linkBytes, onCommit = null, completionOriginals = []) {
     identity = structuredClone(identity); token = structuredClone(token);
     const resource = 'execution/' + task(taskId);
     if (onCommit !== null && (typeof onCommit !== 'function' || onCommit.constructor.name === 'AsyncFunction')) throw new Error('execution_callback_must_be_synchronous');
     if (typeof stepId !== 'string' || !/^sha256:[a-f0-9]{64}$/.test(stepId)) throw new Error('execution_step_invalid');
+    const completionRefs = completionOriginals.map(item => descriptor(item));
     const frozenExpected = structuredClone(expected);
     const originals = [inputBytes, objectBytes, linkBytes].map(bytes => {
       if (!(bytes instanceof Uint8Array) || bytes.length < 1 || bytes.length > MAX_BYTES) throw new Error('execution_bytes_invalid');
@@ -205,6 +206,14 @@ export class ExecutionTaskArchive {
       await this.#read(ref);
       this.#check(identity, token, resource, taskId, current);
     }
+    // Recheck computation originals and all registered history after pair writes.
+    // These are archive descriptors only; business validation stays in Python.
+    for (const ref of completionRefs) {
+      await this.#read(ref);
+      this.#check(identity, token, resource, taskId, current);
+    }
+    const reread = await this.readTask(identity, token, taskId);
+    if (!same(current, reread.current)) throw new Error('execution_compare_failed');
     return this.#owned(identity, token, resource, ({ now, epoch, lease }) => {
       if (!same(current, this.#snapshot(taskId))) throw new Error('execution_compare_failed');
       const position = current.revision + 1;

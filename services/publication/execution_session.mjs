@@ -121,6 +121,8 @@ export class ExecutionComputationSession {
     if (pending.result) {
       const stored = await this.#read(pending.result.output);
       if (stored.length !== raw.length || stored.some((value, i) => value !== raw[i])) throw new Error('execution_validation_output_conflict');
+      const { current } = await this.#tasks.readTask(identity, token, pending.task_id);
+      if (!same(current, pending.result.snapshot)) throw new Error('execution_validation_compare_failed');
       return this.#tasks.withCurrentTask(identity, token, pending.task_id, pending.result.snapshot, context => {
         if (result.completed_ms > context.now) throw new Error('execution_result_completed_in_future');
         if (!same(pending, this.#catalog().find(row => row.input.sha256 === inputSha))) throw new Error('execution_validation_compare_failed');
@@ -141,12 +143,14 @@ export class ExecutionComputationSession {
       this.#sql('UPDATE m12_execution_validation_inputs SET completed=1 WHERE input_sha=?', inputSha);
     };
     if (result.next_pair === null) {
+      const reread = await this.#tasks.readTask(identity, token, pending.task_id);
+      if (!same(reread.current, current)) throw new Error('execution_validation_compare_failed');
       this.#tasks.withCurrentTask(identity, token, pending.task_id, current, (context, snapshot) => finish(snapshot, context));
     } else {
       const pair = result.next_pair;
       if (Object.keys(pair).sort().join() !== 'input_bytes,link_bytes,object_bytes,step_id') throw new Error('execution_result_pair_invalid');
       await this.#tasks.appendPair(identity, token, pending.task_id, current, pair.step_id,
-        unb64(pair.input_bytes), unb64(pair.object_bytes), unb64(pair.link_bytes), finish);
+        unb64(pair.input_bytes), unb64(pair.object_bytes), unb64(pair.link_bytes), finish, [pending.input, output]);
     }
     const completed = this.#catalog().find(row => row.input.sha256 === inputSha)?.result;
     if (!completed) throw new Error('execution_validation_result_missing');
