@@ -1380,3 +1380,12 @@ PYTHONDONTWRITEBYTECODE=1 node --test --test-name-pattern='daily client integrat
 父6cff922，复用原PreparationValidationProcess／隔离worker／导入前后完整源码核验和30秒取消预算。新增封闭m12-execution-validation/1，经contracts/validation.py唯一入口解析，原身份结构复用既有检查，配置code_commit必须等于实际输入身份代码。库存与下一对复用D3d及原生产者，结果绑定完整输入hash／长度、task／snapshot hash，计算起止须在原身份期限内。新结果最多2MiB（原进程既有文件输出上限），旧两协议仍64KiB；不接受自选命令或自动重试。
 
 4项先行纯计算／反例通过3.565秒，涵盖原库存及下一对字节等价、身份／配置不符、过期、原件缺失、未知字段／协议、错固定输出摘要。首轮库存时间用了毫秒，原SourceInventory要求UTC秒而拒绝；只修输出格式，不放宽合同。真正固定worker须源码提交后执行，尚不提前计通过；服务端实际input/result绑定仍接下一包。
+
+
+### D3f实际派发／结果与成对登记会话（待提交后联测）
+
+父2002ed3；ExecutionComputationSession从原execution租约下完整readTask自行构造固定输入，保存实际输入字节与配对索引／日志。准备索引显式初始化并保存总计数；输入／返回配对缺失失败关闭。接受固定运行者回传时，绑定原input hash／长度、actor/Job/code、原snapshot hash、原身份期限及计算起止；原返回字节归档读回。下一M08／M09对与完成回执／日志、原输入completed标记共用原ExecutionTaskArchive同步事务，任何回执写失败回滚业务对和头。重试只重读原件和原完成snapshot，不从缺失记录重建。内部同步回调只为同库事务接点，不接RPC或异步业务逻辑。
+
+结果中的inventory属于本次计算消费的source_snapshot；登记下一对后的snapshot可能已前进，须再读当前根生成新库存，不能把旧inventory当成登记后完整库存。完成回执明确同时保存input、output、source_snapshot和snapshot。既有受信身份和固定运行者是调用前提；本会话不验证真实数据许可，也没有公开路由。
+
+先行10个原归档／恢复检查通过。测试名排除模式意外选中了新的固定进程用例，完整源码守门因未提交services原件而正确拒绝；未放宽守门，真实正向待提交后执行。初次静态检查发现新同步方法缺结束括号，已修正，定点eslint复核后再交审。

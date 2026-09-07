@@ -151,6 +151,17 @@ export class ExecutionTaskArchive {
       return this.#snapshot(taskId);
     });
   }
+  withCurrentTask(identity, token, taskId, expected, callback) {
+    if (typeof callback !== 'function' || callback.constructor.name === 'AsyncFunction') throw new Error('execution_callback_must_be_synchronous');
+    const resource = 'execution/' + task(taskId);
+    return this.#owned(identity, token, resource, context => {
+      const current = this.#snapshot(taskId);
+      if (!same(expected, current)) throw new Error('execution_compare_failed');
+      const result = callback(context, current);
+      if (result && typeof result.then === 'function') throw new Error('execution_callback_must_be_synchronous');
+      return result;
+    });
+  }
   async readTask(identity, token, taskId) {
     identity = structuredClone(identity); token = structuredClone(token);
     const resource = 'execution/' + task(taskId);
@@ -164,9 +175,10 @@ export class ExecutionTaskArchive {
     }
     return { current, objects }; // Full server-owned history; not SourceInventory.
   }
-  async appendPair(identity, token, taskId, expected, stepId, inputBytes, objectBytes, linkBytes) {
+  async appendPair(identity, token, taskId, expected, stepId, inputBytes, objectBytes, linkBytes, onCommit = null) {
     identity = structuredClone(identity); token = structuredClone(token);
     const resource = 'execution/' + task(taskId);
+    if (onCommit !== null && (typeof onCommit !== 'function' || onCommit.constructor.name === 'AsyncFunction')) throw new Error('execution_callback_must_be_synchronous');
     if (typeof stepId !== 'string' || !/^sha256:[a-f0-9]{64}$/.test(stepId)) throw new Error('execution_step_invalid');
     const frozenExpected = structuredClone(expected);
     const originals = [inputBytes, objectBytes, linkBytes].map(bytes => {
@@ -177,6 +189,7 @@ export class ExecutionTaskArchive {
     if (!same(frozenExpected, current)) throw new Error('execution_compare_failed');
     const old = current.history.find(row => row.step_id === stepId);
     if (old) {
+      if (onCommit !== null) throw new Error('execution_pair_already_registered');
       [old.input, old.object, old.link].forEach((ref, i) => {
         if (!sameBytes(objects.get(ref.key), originals[i])) throw new Error('execution_step_conflict');
       });
@@ -202,7 +215,12 @@ export class ExecutionTaskArchive {
       this.#sql('INSERT INTO m12_execution_pairs VALUES (?, ?, ?, ?)', taskId, position, stepId, record);
       this.#sql('INSERT INTO m12_execution_pair_log VALUES (?, ?, ?)', taskId, position, record);
       this.#sql('UPDATE m12_execution_heads SET revision=? WHERE task_id=?', position, taskId);
-      return this.#snapshot(taskId);
+      const completed = this.#snapshot(taskId);
+      if (onCommit !== null) {
+        const result = onCommit(completed, { now, epoch, lease });
+        if (result && typeof result.then === 'function') throw new Error('execution_callback_must_be_synchronous');
+      }
+      return completed;
     });
   }
 }

@@ -48,9 +48,9 @@ class FileBucket {
     return { arrayBuffer: async () => new Uint8Array(value).buffer };
   }
 }
-function setup(t) {
+function setup(t, start = NOW) {
   const root = mkdtempSync(join(tmpdir(), 'm12-execution-'));
-  let storage = binding(join(root, 'db.sqlite')), now = NOW;
+  let storage = binding(join(root, 'db.sqlite')), now = start;
   const bucket = new FileBucket(join(root, 'archive'));
   let leases = new LeaseStore(storage, { clock: () => now });
   leases.initialize(EPOCH);
@@ -231,4 +231,55 @@ test('async writes retain the original trusted identity deadline despite caller 
   };
   await assert.rejects(env.store.register(identity, env.daily, DAILY, TASK, bytes('original root')), /deadline_expired/);
   assert.equal(env.storage.sql.exec('SELECT * FROM m12_execution_catalog').toArray().length, 0);
+});
+
+
+test('registered source inventory to actual fixed computation and atomic result/pair receipt survives restart', async t => {
+  const { ExecutionComputationSession } = await import('../services/publication/execution_session.mjs');
+  const { spawnSync } = await import('node:child_process');
+  const python = value => {
+    const result = spawnSync('python3', ['-B', '-W', 'error::ResourceWarning', 'tests/m12_execution_history_fixture.py'], {
+      input: JSON.stringify(value), encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
+      env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1', PYTHONPATH: 'tests:.' },
+    });
+    assert.equal(result.status, 0, result.stderr);
+    return JSON.parse(result.stdout);
+  };
+  const fixture = python({ operation: 'source_fixture' });
+  const start = Date.now(), env = setup(t, start);
+  const rootIdentity = { ...IDENTITY, issued_at: Math.floor(start / 1000) - 1, expires_at: Math.floor(start / 1000) + 300 };
+  await env.store.register(rootIdentity, env.daily, DAILY, fixture.task_id, new Uint8Array(Buffer.from(fixture.root_bytes, 'base64')));
+  const identity = { ...rootIdentity, job: { repository_id: '1', workflow_ref: 'local/synthetic@main', workflow_commit: fixture.commit,
+    run_id: '1', run_attempt: 1, environment: 'synthetic' }, code_commit: fixture.commit,
+    actor_id: '1', subject: 'synthetic-only', token_id: 'synthetic-only' };
+  const owned = token(env.leases.acquire('execution/' + fixture.task_id, identity.job, EPOCH));
+  let session = new ExecutionComputationSession(env.storage, env.bucket, { clock: () => Date.now() });
+  session.initializeEmpty();
+  const prepared = await session.prepare(identity, owned, fixture.task_id, new Uint8Array(Buffer.from(fixture.request_bytes, 'base64')));
+  const executed = python({ operation: 'fixed_execution', input_bytes: Buffer.from(prepared.input_bytes).toString('base64') });
+  const output = new Uint8Array(Buffer.from(executed.output_bytes, 'base64'));
+  const decoded = JSON.parse(new TextDecoder().decode(output));
+  const inventory = JSON.parse(Buffer.from(decoded.inventory_bytes, 'base64'));
+  assert.ok(inventory.records.some(ref => ref.id.startsWith('market:')));
+  assert.ok(inventory.records.some(ref => ref.id.startsWith('universe:')));
+  assert.ok(decoded.next_pair);
+  await assert.rejects(session.accept(identity, owned, prepared.input.sha256, bytes(JSON.stringify({ ...decoded, input_sha256: 'sha256:' + '0'.repeat(64) }))), /binding_invalid/);
+  env.storage.db.exec("CREATE TRIGGER fail_execution_result_log BEFORE INSERT ON m12_execution_validation_result_log BEGIN SELECT RAISE(ABORT, 'synthetic receipt interruption'); END");
+  await assert.rejects(session.accept(identity, owned, prepared.input.sha256, output), /receipt interruption/);
+  assert.equal(env.storage.sql.exec('SELECT revision FROM m12_execution_heads WHERE task_id=?', fixture.task_id).toArray()[0].revision, 0);
+  assert.equal(env.storage.sql.exec('SELECT completed FROM m12_execution_validation_inputs').toArray()[0].completed, 0);
+  env.storage.db.exec('DROP TRIGGER fail_execution_result_log');
+  env.restart();
+  session = new ExecutionComputationSession(env.storage, env.bucket, { clock: () => Date.now() });
+  const receipt = await session.accept(identity, owned, prepared.input.sha256, output);
+  assert.equal(receipt.snapshot.revision, 1);
+  assert.deepEqual(await session.accept(identity, owned, prepared.input.sha256, output), receipt);
+  const second = await session.prepare(identity, owned, fixture.task_id, new Uint8Array(Buffer.from(fixture.request_bytes, 'base64')));
+  const after = python({ operation: 'fixed_execution', input_bytes: Buffer.from(second.input_bytes).toString('base64') });
+  const afterBytes = new Uint8Array(Buffer.from(after.output_bytes, 'base64'));
+  assert.equal(JSON.parse(new TextDecoder().decode(afterBytes)).next_pair, null);
+  const final = await session.accept(identity, owned, second.input.sha256, afterBytes);
+  assert.equal(final.snapshot.revision, 1);
+  env.storage.db.exec('DELETE FROM m12_execution_validation_results; DELETE FROM m12_execution_validation_result_log');
+  await assert.rejects(session.accept(identity, owned, second.input.sha256, afterBytes), /recovery_required/);
 });

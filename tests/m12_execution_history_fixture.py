@@ -13,7 +13,18 @@ def b64(raw):
 
 def main():
     value = json.load(sys.stdin)
-    if value['operation'] == 'fixture':
+    if value['operation'] == 'source_fixture':
+        from tests.test_m12_execution_inventory import ExecutionInventoryTests
+        ExecutionInventoryTests.setUpClass()
+        fixture = ExecutionInventoryTests()
+        fixture.setUp()
+        result = {'task_id': fixture.snapshot['root']['task_id'], 'root_bytes': b64(fixture.root_bytes),
+            'commit': fixture.commit, 'request_bytes': b64(encode({'as_of': '2026-09-01', 'sessions_by_instrument': {},
+                'entry_reads': {}, 'completed_reads': {}, 'generated_at': '2026-09-01T23:15:00Z'}))}
+    elif value['operation'] == 'fixed_execution':
+        from services.publication.preparation_execution import execute_execution_validation
+        result = {'output_bytes': b64(execute_execution_validation(base64.b64decode(value['input_bytes'], validate=True)))}
+    elif value['operation'] == 'fixture':
         from tests.test_m12_execution_history import ExecutionHistoryTests
         ExecutionHistoryTests.setUpClass()
         fixture = ExecutionHistoryTests()
