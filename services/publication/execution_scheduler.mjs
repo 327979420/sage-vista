@@ -221,7 +221,8 @@ export class ExecutionScheduler {
         job: identity.job, token, previous_position: latest.position, occurred_ms: now,
         source_snapshot: latest.source_snapshot, snapshot: current, checkpoint_snapshot: current,
         receipt: proof?.completed ? proof.receipt : null,
-        abandoned_input_sha: prior.dispatch_input_sha ?? null, state });
+        recovered_input_sha: completedDispatch ? prior.dispatch_input_sha : null,
+        abandoned_input_sha: completedDispatch ? null : prior.dispatch_input_sha ?? null, state });
     });
   }
 }
