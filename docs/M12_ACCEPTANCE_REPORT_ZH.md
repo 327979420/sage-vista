@@ -1395,3 +1395,18 @@ PYTHONDONTWRITEBYTECODE=1 node --test --test-name-pattern='daily client integrat
 D3e最初要求冻结源配置提交等于本次运行提交，会阻止纯运维更新后续跑旧信号；本包纠正该边界。当前配置由实际身份提交的Git对象重新构建，历史配置仍经原源重放及原Git验证；除code_commit与已经独立严格验证的runtime_source_overrides之外比较全部配置内容，不接调用者compatible声明。九政策及业务定义变化即使版本号相同也拒绝，旧源配置Ref、原根与已登记执行对不改写。
 
 先行旧源／当前运行正例与身份期限反例2项通过7.535秒；同版本政策／业务定义漂移反例1项通过3.217秒。定点eslint与差异检查通过。真实固定worker及SQLite恢复桥须提交源码后再执行；不降低导入前后完整源码守门。回退本次兼容检查会恢复旧任务跨运维提交失败关闭，不重写任何历史原件。
+
+
+### D3d—g阶段提交后联测交审
+
+审核基线17a7bf7；业务提交6cff922、2002ed3、cc647dd、c4b1a19、6ce1a5f。D3f及D3g上述待联测项现已在提交源码后执行：54项Python通过24.950秒，49项Node通过11.957秒，其中实际旧源Git提交→当前固定worker→库存及下一对→原子回执／登记→文件与SQLite重启桥8.544秒。另原认证准备／固定进程／合成成员采集桥1项通过4.481秒（c4b1a19运行）；共104项，不将先行或前轮重叠测试累加。执行命令：
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=tests:. python3 -B -W error::ResourceWarning -m unittest tests.test_m12_execution_inventory tests.test_m12_execution_validation tests.test_m12_execution_history tests.test_m12_inventory tests.test_m12_preparation_execution tests.test_rulebook_contract tests.test_project_status
+PYTHONDONTWRITEBYTECODE=1 node --test tests/m12-execution-archive.test.mjs tests/m12-archive.test.mjs tests/m12-leases.test.mjs
+PYTHONDONTWRITEBYTECODE=1 node --test --test-name-pattern='daily client integrates authenticated preparation fixed worker and synthetic member collection' tests/m12-environment-review.test.mjs
+```
+
+新桥核验旧源配置Ref保留、源根及原input/object/link字节不变；过期fence在任何私有输入读取前拒绝；SQL完成日志故障使业务对、头和completed标记全部回滚；重启后使用同一实际结果完成并幂等，再次实际计算无下一对；配对完成记录删除后失败关闭。库存对应source_snapshot，登记后snapshot须重新构建库存。内部会话依赖既有受信身份及固定执行者，未安装生产认证RPC，合成M02完整原合同输入不证明真实供应商来源或授权。
+
+机器生成状态一致、九项原政策定义、两runtime禁用且origin为空、定点eslint及差异格式检查通过。本地主分支及origin/main本地跟踪值均14fef535；本阶段没有查询远端、推送、合并、部署、启用、通知或真实供应商调用。后续仍须任务领取／独立重试预算、原M10集成、全日库存及四页发布流程；本阶段不声明M12完成或独立审核通过。
