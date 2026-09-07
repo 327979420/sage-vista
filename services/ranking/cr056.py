@@ -1,7 +1,8 @@
 """Sole CR-056 candidate score calculation, shared by snapshots and daily reviews."""
 from services.contracts.cr056_policy import WHITE_LIST, SETTINGS as S, WEIGHTS, CAPS, POLICY_VERSION, POLICY_FINGERPRINT
 from services.contracts.market_data import canonical_fingerprint
-from services.scanner.factor_registry import FACTORS_BY_ID
+from services.scanner.factor_registry import FACTORS_BY_ID, REGISTRY_VERSION
+from dataclasses import asdict
 
 MONTHLY_DIRECTION = 'direction.macd_state.monthly'
 
@@ -18,6 +19,13 @@ def _metadata(factor_id):
 
 def score_candidate(states, permission):
     states = list(states)
+    if any(s.get('as_of') != permission.get('as_of') for s in states):
+        raise ValueError('factor date does not match permission as_of')
+    if not isinstance(permission.get('facts_input_fingerprint'), str) or not permission['facts_input_fingerprint']:
+        raise ValueError('permission input fingerprint is required')
+    factor_input_fingerprint = canonical_fingerprint(sorted(states, key=lambda s: s['factor_id']))
+    registry_fingerprint = canonical_fingerprint({'version': REGISTRY_VERSION,
+        'factors': [asdict(FACTORS_BY_ID[fid]) for fid in sorted(FACTORS_BY_ID)]})
     by_id = {s['factor_id']: s for s in states}
     if len(by_id) != len(states):
         raise ValueError('duplicate factor state')
@@ -85,6 +93,9 @@ def score_candidate(states, permission):
     total = diagnostic_score if score_status in {'scored', 'partial'} else None
     result = {'policy_version': POLICY_VERSION, 'policy_fingerprint': POLICY_FINGERPRINT,
         'as_of': permission['as_of'], 'permission': permission['permission'], 'score_status': score_status,
+        'facts_input_fingerprint': permission['facts_input_fingerprint'],
+        'factor_input_fingerprint': factor_input_fingerprint, 'registry_version': REGISTRY_VERSION,
+        'registry_fingerprint': registry_fingerprint,
         'total_score': total, 'diagnostic_score': diagnostic_score, 'coverage': coverage,
         'positive_family_count': len(active_families), 'timeframes': frame_results,
         'high_score_eligible': total is not None and coverage == 1 and total >= S['high_score']
