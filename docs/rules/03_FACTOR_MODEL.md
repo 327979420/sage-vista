@@ -5,7 +5,7 @@
 
 ## CR056获批候选榜边界
 
-CR056候选对照使用services/factors/cr056.py收集完整月周事实，services/selectors/cr056.py统一判定方向、高位及上涨/筑底回调许可。复用旧因子检测器并增加月线方向候选，不升级旧rejected等研究状态，不伪造今日Gate或formal TechnicalEvidence身份。 用户已授权真实重排及现有页面更新；本次发布9月4日快照，新榜自动日更尚未接通，页面必须如实显示独立日期及落后提示。原批准/预登记见提交acfc061，交付证据集中见[CR056](../CHANGE_REQUESTS_ZH.md)。后续先日更续跑，再大盘行业、回测。
+CR056候选对照使用services/factors/cr056.py收集完整月周事实，services/selectors/cr056.py统一判定方向、高位及上涨/筑底回调许可。复用旧因子检测器并增加月线方向候选，不升级旧rejected等研究状态，不伪造今日Gate或formal TechnicalEvidence身份。 用户已授权真实重排及现有页面更新；已发布9月4日快照并沿既有日终流程接通自动复评；页面必须如实显示独立日期、落后和失败提示，接通不等于已取得跨交易日运行证据。原批准/预登记见提交acfc061，交付证据集中见[CR056](../CHANGE_REQUESTS_ZH.md)。后续核对首个跨交易日续跑，再大盘行业、回测。
 
 ## 本文件负责
 
