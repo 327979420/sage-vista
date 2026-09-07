@@ -59,8 +59,8 @@ def market_regimes(cache):
   pair=(states["SPY"][date],states["QQQ"][date]);out[date]="both_bull" if pair==(True,True) else "both_bear" if pair==(False,False) else "mixed"
  return out,benchmarks
 
-def available(groups,key):
- return [bar for group_key,bar in groups if group_key<key]
+def available(groups,key,*,include_current=False):
+ return [bar for group_key,bar in groups if group_key<key or (include_current and group_key==key)]
 
 def macd_state(rows):
  closes=[x["close"] for x in rows];line,signal=macd(closes);hist=[a-b for a,b in zip(line,signal)];i=len(rows)-1
