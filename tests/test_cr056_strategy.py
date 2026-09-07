@@ -19,7 +19,7 @@ def facts():
 
 
 def states():
-    return [{'factor_id': fid, 'hit': True, 'available': True, 'recent_hit': False, 'bars_since_hit': 0}
+    return [{'factor_id': fid, 'as_of': '2026-09-04', 'hit': True, 'available': True, 'recent_hit': False, 'bars_since_hit': 0}
             for ids in WHITE_LIST.values() for fid in ids if fid != 'direction.macd_state.monthly']
 
 class PermissionTests(unittest.TestCase):
@@ -67,6 +67,22 @@ class ScoreTests(unittest.TestCase):
         self.assertEqual(r['score_status'], 'partial')
         self.assertEqual(r['timeframes']['daily']['cap'], 5)
         self.assertFalse(r['high_score_eligible'])
+
+    def test_old_factor_date_cannot_be_mixed_with_today_permission(self):
+        st = states(); st[0]['as_of'] = '2020-01-01'
+        with self.assertRaisesRegex(ValueError, 'factor date'):
+            score_candidate(st, assess_permission(facts()))
+
+    def test_equal_scores_keep_distinct_price_and_factor_sources(self):
+        f = facts(); p1 = assess_permission(f)
+        f['input_fingerprint'] = 'another-price-snapshot'; p2 = assess_permission(f)
+        a = score_candidate(states(), p1); b = score_candidate(states(), p2)
+        self.assertEqual(a['total_score'], b['total_score'])
+        self.assertNotEqual(a['score_fingerprint'], b['score_fingerprint'])
+        st = states(); st[0]['evidence'] = {'source': 'another-factor-input'}
+        c = score_candidate(st, p1)
+        self.assertNotEqual(a['factor_input_fingerprint'], c['factor_input_fingerprint'])
+        self.assertIn('registry_fingerprint', a)
 
     def test_month_direction_remains_scored_after_cross_day(self):
         r = score_candidate(states(), assess_permission(facts()))
