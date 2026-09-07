@@ -45,7 +45,7 @@ class FileBucket {
     let value;
     try { value = readFileSync(join(this.root, key)); }
     catch (error) { if (error.code === 'ENOENT') return null; throw error; }
-    if (this.afterGet) this.afterGet(key);
+    if (this.afterGet) await this.afterGet(key);
     return { arrayBuffer: async () => new Uint8Array(value).buffer };
   }
 }
@@ -379,6 +379,23 @@ async function runLocalRecoveryFixture(t, mode = 'same_job') {
     assert.equal(cancelled.status, 'queued'); assert.equal(cancelled.outcome, 'cancelled');
   } finally { clearTimeout(timer); }
   assert.equal(new ExecutionScheduler(env.storage, env.bucket).list()[0].schedule.state.attempts_today, 0);
+  if (mode === 'yield_before_commit') {
+    let yielded = false;
+    env.bucket.afterGet = async () => {
+      const schedule = new ExecutionScheduler(env.storage, env.bucket).list()[0].schedule;
+      if (schedule?.kind === 'dispatch' && !yielded) {
+        yielded = true; env.bucket.afterGet = null;
+        await new ExecutionScheduler(env.storage, env.bucket).settle(identity, owned, fixture.task_id, 'cancelled');
+      }
+    };
+    await assert.rejects(runner.runTask(identity, owned, fixture.task_id, request), /attempt_not_owned/);
+    assert.equal(yielded, true);
+    const final = new ExecutionScheduler(env.storage, env.bucket).list()[0];
+    assert.equal(final.schedule.state.state, 'queued');
+    assert.equal(final.snapshot.revision, 0);
+    assert.equal(env.storage.sql.exec('SELECT * FROM m12_execution_validation_results').toArray().length, 0);
+    return;
+  }
   const unfinished = mode === 'unfinished_new_job';
   env.storage.db.exec(unfinished
     ? "CREATE TRIGGER fail_checkpoint BEFORE INSERT ON m12_execution_pairs BEGIN SELECT RAISE(ABORT, 'synthetic checkpoint interruption'); END"
@@ -445,6 +462,7 @@ async function runLocalRecoveryFixture(t, mode = 'same_job') {
 test('local fixed runner checkpoints actual receipts and resumes after checkpoint SQL interruption', t => runLocalRecoveryFixture(t));
 test('new job recovers a registered completion without executing the old job input', t => runLocalRecoveryFixture(t, 'completed_new_job'));
 test('new job leaves an incomplete old dispatch in retry wait without rerunning its input', t => runLocalRecoveryFixture(t, 'unfinished_new_job'));
+test('yield during actual return prevents the old running attempt from committing', t => runLocalRecoveryFixture(t, 'yield_before_commit'));
 
 test('synthetic bridge timeout retains a Python stack and reaps the stalled child', async () => {
   const result = spawnWithFileInput('python3', ['-B', 'tests/m12_execution_history_fixture.py'], Buffer.from(JSON.stringify({ operation: 'diagnostic_stall' })), {
