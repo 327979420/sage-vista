@@ -33,12 +33,13 @@
 ### CR-2026-09-07-055｜恢复最新真实网站日更并隔离通知
 
 - 用户原意：先给最新真实部分使用，之后完整上线，持续每日更新；不以旧归档替代。
-- 状态：`implementing`；6558cb9最小卡已独立审核通过，用户网站发布/日更目标授权由审核任务01a074f9-098a-7b82-b486-3185683290fe明确转交①一行修复回归②网站/通知隔离。代码完成再审核精确SHA，随后执行首次发布。
-- 基线：独立worktree从main14fef535建立，不混CR054或M12未审实现。
-- 范围：空周期变量修复不改评分/排序；网站更新默认不通知，显式通知能力保留，本轮不用。UI运维规则1.16.1先行；行为保持修复不另开收益实验。
-- 首轮运行34082002517已过数据/排行/ledger，在794项Python中因5项旧日期/数量测试假设失败（10跳过）；补修仅固定历史原件及当前输入期望，并验证日期推进。业务代码、公开数据和通知边界不改，交独立审核后再由审核方统一重跑。
-- 第二次运行34083265496已将9/4真实数据0527b97提交并部署，但用户现场Build为工作流启动SHA64ccc0c，正式身份核验失败。按审核转交授权，两个发布入口改用自有SAGE_DEPLOYMENT_COMMIT传实际提交并由Vite优先编译，保留GITHUB_SHA/local回退；校验器和公开数据不改，错误SHA仍拒绝。独立树先快进0527b97，再交补修精确SHA审核；尚非implemented。
-- 设计、复现及回退：[EOD_WEBSITE_RECOVERY_MINIMAL_CARD_ZH.md](EOD_WEBSITE_RECOVERY_MINIMAL_CARD_ZH.md)。
+- 状态：`implemented`（现行网站首次真实恢复与日更路径；不表示完整新M12完成）。6558cb9最小卡及f329b94、64ccc0c、6dc33ee补修已由独立审核任务复核，按用户网站发布/日更授权进入main并发布。
+- 基线与范围：独立树从14fef535建立，不混CR054/M12未审运行时。空周期修复保留评分/排序；UI运维规则1.16.1限定网站默认不通知；变化日期测试与自有构建变量补修不改业务算法。保留全部失败记录和历史。
+- 三次失败轨迹：33955477625生成9/4数据后空周期排行崩溃→f329b94；34082002517数据/排行/ledger成功、794项Python中5项旧日期/数量假设失败（10跳过）→64ccc0c；34083265496已生成数据提交0527b97并部署，但用户Build为启动SHA64ccc0c、身份核验失败→6dc33ee使用SAGE_DEPLOYMENT_COMMIT，原严格校验器不变。
+- 成功交付：网站专用[34084790077](https://github.com/327979420/sage-vista/actions/runs/34084790077)全部成功，用时1分2秒，复用已有9/4数据。正式收据result=verified、as_of=2026-09-04、website_version=unified-v2-macd-trigger-1.4.0、deployment_commit=6dc33ee3fb8e2e42b4d1b007462e9f76c0d520ad；状态提交9634ab291262b38283b8fbbfd863a2e671b0b53c已记录live_verified=true。状态提交与实际部署提交分别保留。
+- 数据与日更：收据eligible1366、factor_symbols48、forward101、opportunity4512；实际最新排行30行且rank1..30，前三SAIA/LNT/ALLY。历史覆盖169 sessions为原168加9/4，不表示已补齐8/31—9/3。审核侧已用实际API确认daily-eod和freshness均active，沿用原时点；不保证未来运行永不失败。
+- 验收边界：正式线上核验覆盖12份JSON及主页Build；本地Node导航/SSR检查不等于四页浏览器实际点击。浏览器管理策略仍阻断自动交互，未宣称交互验收通过。此次仅现行算法网站恢复，CR054与完整新M12未上线，无Discord发送；状态中保留的discord_result不是本轮发送凭证。
+- 详细证据、设计及回退：[EOD_WEBSITE_RECOVERY_MINIMAL_CARD_ZH.md](EOD_WEBSITE_RECOVERY_MINIMAL_CARD_ZH.md)。后续按用户实际使用反馈推进，不新增优化或回补任务。
 
 > 整理边界：CR-2026-08-30-038及其交接Prompt本轮暂不纳入治理文档整理；原始内容完整保存在救援分支`rescue/local-work-2026-08-31-b14ec55`，没有删除。
 
