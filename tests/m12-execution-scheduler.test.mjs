@@ -140,3 +140,30 @@ test('renewed identity cannot extend the original running attempt deadline', asy
   await assert.rejects(env.scheduler.claim(renewed, owner.owned, TASK), /deadline_expired/);
   await assert.rejects(env.scheduler.fail(renewed, owner.owned, TASK, claim.attempt.position, 'network_error'), /deadline_expired/);
 });
+
+test('concurrent short attempt constrains longer replay at entry and final transaction clock', async t => {
+  for (const boundary of ['entry', 'commit']) {
+    let env, owner, nested = false, inner, reads = 0;
+    env = setup(t, async () => {
+      if (!nested) {
+        nested = true;
+        inner = await env.scheduler.claim({ ...owner.actor, expires_at: START / 1000 + 1 }, owner.owned, TASK);
+        assert.equal(inner.claimed, true);
+        env.setTime(START + (boundary === 'entry' ? 1000 : 999));
+        if (boundary === 'commit') {
+          const original = env.storage.sql.exec;
+          env.storage.sql.exec = (query, ...args) => {
+            const result = original(query, ...args);
+            if (query === 'SELECT * FROM m12_execution_schedule_events ORDER BY position' && ++reads === 2) env.setTime(START + 1000);
+            return result;
+          };
+        }
+      }
+      return { mature: true, eod_ms: START };
+    });
+    await env.register(); owner = env.acquire(TASK, 'one');
+    await assert.rejects(env.scheduler.claim(owner.actor, owner.owned, TASK), /deadline_expired/);
+    if (boundary === 'commit') assert.equal(reads, 2);
+    assert.deepEqual(env.scheduler.list()[0].schedule, inner.attempt);
+  }
+});

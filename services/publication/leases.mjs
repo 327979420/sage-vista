@@ -157,7 +157,7 @@ export class LeaseStore {
   renew(resource, ownerJob, token) { return this.#owned(resource, ownerJob, token, "renew"); }
   release(resource, ownerJob, token) { return this.#owned(resource, ownerJob, token, "release"); }
 
-  withOwnedLease(resource, ownerJob, token, callback, { deadlineMs } = {}) {
+  withOwnedLease(resource, ownerJob, token, callback, { deadlineMs, resolveDeadlineMs } = {}) {
     // Internal synchronous SQL closures only. Never expose callback code over RPC
     // or perform network/async work here; no lease check result escapes for reuse.
     if (typeof callback !== "function" || callback.constructor.name === "AsyncFunction") {
@@ -166,13 +166,24 @@ export class LeaseStore {
     if (deadlineMs !== undefined && (!Number.isSafeInteger(deadlineMs) || deadlineMs < 0)) {
       throw new Error("lease_operation_deadline_invalid");
     }
+    if (resolveDeadlineMs !== undefined && (typeof resolveDeadlineMs !== "function" || resolveDeadlineMs.constructor.name === "AsyncFunction")) {
+      throw new Error("lease_deadline_resolver_must_be_synchronous");
+    }
     return this.#ownerTransaction(resource, ownerJob, token, (row, now) => {
-      if (deadlineMs !== undefined && now >= deadlineMs) throw new Error("lease_operation_deadline_expired");
+      // Resolve from current persisted state inside this same transaction.
+      // Capture once; both entry and final clock enforce the stricter deadline.
+      let effectiveDeadline = deadlineMs;
+      if (resolveDeadlineMs !== undefined) {
+        const resolved = resolveDeadlineMs();
+        if (!Number.isSafeInteger(resolved) || resolved < 0) throw new Error("lease_operation_deadline_invalid");
+        effectiveDeadline = Math.min(deadlineMs ?? resolved, resolved);
+      }
+      if (effectiveDeadline !== undefined && now >= effectiveDeadline) throw new Error("lease_operation_deadline_expired");
       const result = callback({ ...this.#handle(token.epoch, row), now });
       if (result && typeof result.then === "function") throw new Error("lease_callback_must_be_synchronous");
       const completed = this.#now(now);
       if (completed >= row.expires_ms) throw new Error("lease_expired_before_commit");
-      if (deadlineMs !== undefined && completed >= deadlineMs) throw new Error("lease_operation_deadline_expired");
+      if (effectiveDeadline !== undefined && completed >= effectiveDeadline) throw new Error("lease_operation_deadline_expired");
       return result;
     });
   }

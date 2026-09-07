@@ -46,7 +46,7 @@ export class ExecutionTaskArchive {
       this.#sql('INSERT INTO m12_execution_catalog_head VALUES (1, ?, 0)', GENESIS);
     });
   }
-  #owned(identity, token, resource, callback) {
+  #owned(identity, token, resource, callback, resolveDeadlineMs) {
     if (!identity || !Number.isSafeInteger(identity.issued_at) || !Number.isSafeInteger(identity.expires_at) ||
         !Number.isSafeInteger(identity.expires_at * 1000) || identity.issued_at >= identity.expires_at) {
       throw new Error('execution_trusted_identity_required');
@@ -54,7 +54,7 @@ export class ExecutionTaskArchive {
     return this.#leases.withOwnedLease(resource, identity.job, token, context => {
       if (context.now < identity.issued_at * 1000) throw new Error('execution_identity_not_yet_valid');
       return callback(context);
-    }, { deadlineMs: identity.expires_at * 1000 });
+    }, { deadlineMs: identity.expires_at * 1000, resolveDeadlineMs });
   }
   #catalog() {
     const head = this.#sql('SELECT * FROM m12_execution_catalog_head WHERE singleton=1')[0];
@@ -156,7 +156,7 @@ export class ExecutionTaskArchive {
       return this.#snapshot(taskId);
     });
   }
-  withCurrentTask(identity, token, taskId, expected, callback) {
+  withCurrentTask(identity, token, taskId, expected, callback, { resolveDeadlineMs } = {}) {
     if (typeof callback !== 'function' || callback.constructor.name === 'AsyncFunction') throw new Error('execution_callback_must_be_synchronous');
     const resource = 'execution/' + task(taskId);
     return this.#owned(identity, token, resource, context => {
@@ -165,7 +165,7 @@ export class ExecutionTaskArchive {
       const result = callback(context, current);
       if (result && typeof result.then === 'function') throw new Error('execution_callback_must_be_synchronous');
       return result;
-    });
+    }, resolveDeadlineMs);
   }
   async readTask(identity, token, taskId) {
     identity = structuredClone(identity); token = structuredClone(token);

@@ -497,3 +497,20 @@ test("partial dispatch/log/head loss requires recovery instead of reconstructing
   assert.throws(() => reopened.prepareValidation(JOB, token(f.handle), APPROVAL), /recovery_required/);
   assert.equal(f.storage.sql.exec("SELECT * FROM m12_authorization_head").toArray().length, 0);
 });
+
+test('transaction deadline resolver only tightens and final expiry rolls back writes', t => {
+  const { store, storage, setTime } = setup(t);
+  const owned = token(store.acquire('execution/task:deadline', JOB, EPOCH));
+  storage.db.exec('CREATE TABLE deadline_probe (value INTEGER)');
+  assert.throws(() => store.withOwnedLease('execution/task:deadline', JOB, owned, () => {
+    storage.db.exec('INSERT INTO deadline_probe VALUES (1)');
+    setTime(NOW + 1000);
+  }, { deadlineMs: NOW + 100000, resolveDeadlineMs: () => NOW + 1000 }), /deadline_expired/);
+  assert.equal(storage.db.prepare('SELECT * FROM deadline_probe').all().length, 0);
+  assert.throws(() => store.withOwnedLease('execution/task:deadline', JOB, owned, () => {},
+    { deadlineMs: NOW + 1000, resolveDeadlineMs: () => NOW + 100000 }), /deadline_expired/);
+  assert.throws(() => store.withOwnedLease('execution/task:deadline', JOB, owned, () => {},
+    { resolveDeadlineMs: async () => NOW + 100000 }), /must_be_synchronous/);
+  assert.throws(() => store.withOwnedLease('execution/task:deadline', JOB, owned, () => {},
+    { resolveDeadlineMs: () => Promise.resolve(NOW + 100000) }), /deadline_invalid/);
+});

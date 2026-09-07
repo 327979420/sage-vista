@@ -48,6 +48,11 @@ export class ExecutionScheduler {
     return { position, ...record };
   }
   #latest(history, taskId) { return history.filter(row => row.task_id === taskId).at(-1); }
+  #attemptDeadline(identity, token, taskId) {
+    const latest = this.#latest(this.#history(), taskId);
+    return latest?.state.state === 'running' && same(latest.job, identity.job) && same(latest.token, token)
+      ? Math.min(identity.expires_at, latest.original_expires_at) * 1000 : identity.expires_at * 1000;
+  }
   list() {
     // No caller-supplied complete list and no current-day ranking filter.
     const tasks = this.#tasks.registeredTasks();
@@ -91,7 +96,7 @@ export class ExecutionScheduler {
         original_expires_at: identity.expires_at, started_ms: now, job_started_ms: budget.started_ms,
         previous_position: latest?.position ?? null, source_snapshot: reread.current, state: decision.next });
       return { claimed: true, attempt };
-    });
+    }, { resolveDeadlineMs: () => this.#attemptDeadline(identity, token, taskId) });
   }
   async fail(identity, token, taskId, attemptPosition, reason) {
     identity = structuredClone(identity); token = structuredClone(token);
@@ -106,7 +111,7 @@ export class ExecutionScheduler {
       return this.#append(history, { kind: 'failure', task_id: taskId, job: identity.job, token,
         previous_position: latest.position, occurred_ms: now, source_snapshot: latest.source_snapshot,
         snapshot: current, state: failureState(latest.state, reason, now) });
-    });
+    }, { resolveDeadlineMs: () => this.#attemptDeadline(identity, token, taskId) });
   }
   async recover(identity, token, taskId) {
     identity = structuredClone(identity); token = structuredClone(token);

@@ -1446,3 +1446,9 @@ PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest tests.test_rulebook_contract te
 失败／诊断保留：两次完整组和一次原生产者定点组在旧跨语言桥长期无后续输出后取消，不计通过。/tmp临时副本为原spawnSync加10秒时限，prepare子调用一次超时（退出status null，11.918秒）；再加Python faulthandler诊断的临时副本通过3.199秒，随后未修改的正式全组通过。停顿原因尚未确定，未把一次通过解释为消除间歇停顿；未改原测试桥或生产固定进程的超时守门。此处只记录实际本地检查，不宣称真实runner可用。
 
 定点eslint、e340ccc起diff、机器状态一致、双runtime disabled/origin空、变更文档相对链接通过。只增加领取及失败记录，没有连接运行任务或宣称completed；10分钟目前约束新领取，真实Job取消监督／checkpoint仍后续接入。readiness安装参数不是认证入口，默认不存在且不领取，必须后续由真实固定来源验证适配闭合；此阶段不得装成公开RPC。继续复用原M10，原政策、旧夜间断点、扫描日期均未改变。无推送、合并、部署、启用、真实来源调用或通知；待独立阶段审核。
+
+### D1b独立P2：并发领取的实际原期限
+
+bed251e暂不通过、不推送。审核任务原临时反例：长效JWT外层claim在readiness await期间，同Job/fence短效JWT完成内层claim，推进到原短期限后外层仍claimed=true（Missing expected rejection，75毫秒）。请求前prior限制不能约束异步期间新出现的latest。
+
+修复在最终LeaseStore持锁事务内部同步读取latest原期限，使用同一进入时钟及提交前时钟，取原请求期限与实际attempt期限较小值；同步resolver只能收紧期限，拒绝异步或非整数返回。ExecutionTaskArchive仅转交该内部期限接点，claim／fail复用它，不在消费者新增时钟或业务政策。新增并发入口恰到期限／事务末次跨期限两场景，以及统一租约层收紧、不延长、异步拒绝及写入回滚检查。先行44项预算／调度／原租约组通过0.207秒，eslint及diff通过。
