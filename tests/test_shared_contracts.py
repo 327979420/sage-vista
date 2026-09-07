@@ -1,4 +1,5 @@
 import copy
+from datetime import date, timedelta
 import hashlib
 import json
 from pathlib import Path
@@ -103,7 +104,7 @@ class SharedContractTests(unittest.TestCase):
                 ("OpportunityEvent", {**base, "event_id": "event:two"}),
             ])
 
-    def test_current_2026_08_28_files_adapt_without_modification(self):
+    def test_current_files_adapt_without_modification(self):
         paths = [
             ROOT / "public" / "update-status.json",
             ROOT / "public" / "unified-v2-latest.json",
@@ -118,7 +119,13 @@ class SharedContractTests(unittest.TestCase):
         ]
         before = {path: path.read_bytes() for path in paths}
         adapted = [adapt_legacy_file(path) for path in paths]
-        self.assertTrue(all(item.as_of == "2026-08-28" for item in adapted))
+        day = json.loads(before[paths[0]])["source_latest_complete_date"]
+        for path, item in zip(paths, adapted):
+            source = json.loads(before[path])
+            source_day = (source["source_latest_complete_date"] if path.name == "update-status.json"
+                          else source["coverage"]["end"] if path.name == "unified-v2-latest.json" else source["as_of"])
+            self.assertEqual(source_day, day, path.name)
+            self.assertEqual(item.as_of, source_day, path.name)
         self.assertTrue(all(item.future_data_used is False for item in adapted))
         self.assertEqual(before, {path: path.read_bytes() for path in paths})
 
@@ -148,9 +155,12 @@ class SharedContractTests(unittest.TestCase):
         paths = [ROOT / "public" / "update-status.json", ROOT / "public" / "signal-history-summary.json"]
         manifest = build_shadow_manifest(paths, generated_at="2026-08-30T00:00:00Z", allow_partial=True)
         self.assertTrue(manifest["shadow_only"])
-        self.assertEqual(manifest["as_of"], "2026-08-28")
+        self.assertEqual(manifest["as_of"], json.loads(paths[0].read_bytes())["source_latest_complete_date"])
         self.assertEqual({entry["path"] for entry in manifest["files"]}, {path.name for path in paths})
-        self.assertTrue(all(len(entry["sha256"]) == 64 for entry in manifest["files"]))
+        original_bytes = {path.name: path.read_bytes() for path in paths}
+        for entry in manifest["files"]:
+            self.assertEqual(entry["sha256"], hashlib.sha256(original_bytes[entry["path"]]).hexdigest())
+            self.assertEqual(entry["size_bytes"], len(original_bytes[entry["path"]]))
         verify_shadow_manifest(manifest, ROOT / "public", allow_partial=True)
 
     def test_manifest_missing_file_and_hash_mismatch_fail(self):
@@ -357,7 +367,7 @@ class SharedContractTests(unittest.TestCase):
                     with self.assertRaises(ContractError):
                         adapt_legacy_file(path)
 
-    def test_full_2026_08_28_shadow_release_uses_three_temporal_classes(self):
+    def test_full_current_shadow_release_uses_three_temporal_classes(self):
         manifest = build_shadow_manifest(
             [ROOT / "public" / name for name in FROZEN_RELEASE_NAMES],
             generated_at="2026-08-30T00:00:00Z",
@@ -394,10 +404,10 @@ class SharedContractTests(unittest.TestCase):
             known_experiment_ids=experiment_ids(),
         )
         daily = next(entry for entry in manifest["files"] if entry["temporal_class"] == "daily_snapshot")
-        daily["as_of"] = "2026-08-27"
+        daily["as_of"] = (date.fromisoformat(manifest["as_of"]) - timedelta(days=1)).isoformat()
         with self.assertRaises(ContractError):
             validate_contract("ReleaseManifest", manifest, known_experiment_ids=experiment_ids())
-        daily["as_of"] = "2026-08-28"
+        daily["as_of"] = manifest["as_of"]
         daily["future_data_used"] = True
         with self.assertRaises(ContractError):
             validate_contract("ReleaseManifest", manifest, known_experiment_ids=experiment_ids())
@@ -423,7 +433,8 @@ class SharedContractTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             replacement = Path(folder) / "decision-summary.json"
             payload = json.loads((ROOT / "public" / "decision-summary.json").read_text())
-            payload["coverage"]["end"] = "2026-08-29"
+            source_day = json.loads((ROOT / "public/update-status.json").read_bytes())["source_latest_complete_date"]
+            payload["coverage"]["end"] = (date.fromisoformat(source_day) + timedelta(days=1)).isoformat()
             replacement.write_text(json.dumps(payload))
             paths = [
                 replacement if name == replacement.name else ROOT / "public" / name
@@ -436,7 +447,7 @@ class SharedContractTests(unittest.TestCase):
                     known_experiment_ids=experiment_ids(),
                 )
             del payload["source_experiment"]
-            payload["coverage"]["end"] = "2026-08-28"
+            payload["coverage"]["end"] = source_day
             replacement.write_text(json.dumps(payload))
             with self.assertRaises(ContractError):
                 build_shadow_manifest(

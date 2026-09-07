@@ -514,7 +514,15 @@ class M09LedgerTests(unittest.TestCase):
         opportunity = adapt_legacy_opportunity_ledger(opportunity_raw)
         signal = adapt_legacy_signal_history(signal_raw)
         report = reconcile_legacy_ledgers(opportunity, signal)
-        self.assertEqual((opportunity.record_count, signal.record_count), (4451, 69))
+        expected_opportunity = json.loads(opportunity_raw)["events"]
+        expected_signal = json.loads(signal_raw)["cases"]
+        self.assertEqual((opportunity.record_count, signal.record_count),
+                         (len(expected_opportunity), len(expected_signal)))
+        for archive, source_rows, source_raw in ((opportunity, expected_opportunity, opportunity_raw),
+                                               (signal, expected_signal, signal_raw)):
+            self.assertEqual([plain(record.payload) for record in archive.records], source_rows)
+            self.assertEqual(archive.source_bytes, source_raw)
+            self.assertTrue(all(not record.formal_eligible for record in archive.records))
         self.assertEqual(report.formal_records_created, 0)
         self.assertGreater(report.classification_counts["ambiguous"], 0)
         self.assertEqual(opportunity_path.read_bytes(), opportunity_raw)

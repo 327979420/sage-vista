@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 import json
 import os
+import subprocess
 from pathlib import Path
 import tempfile
 import unittest
@@ -417,7 +418,10 @@ class ForwardUniverseAndConsumerTests(unittest.TestCase):
             prepared.market_snapshot["snapshot_id"] = "changed"
 
     def test_2026_08_28_repository_sample_is_only_count_and_trigger_evidence(self):
-        payload = json.loads((ROOT / "public/daily-factor-snapshot.json").read_bytes())
+        # This is a dated historical claim, not a check of the moving EOD output.
+        raw = subprocess.check_output(["git", "--no-replace-objects", "show",
+            "14fef535f67b7c4de035b4c84224e604850f1fed:public/daily-factor-snapshot.json"], cwd=ROOT)
+        payload = json.loads(raw)
         self.assertEqual(payload["as_of"], "2026-08-28")
         self.assertEqual(payload["universe_eligible_count"], 1337)
         self.assertEqual(payload["triggered_count"], 31)
