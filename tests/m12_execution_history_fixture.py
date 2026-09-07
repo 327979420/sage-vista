@@ -41,6 +41,25 @@ def main():
     elif value['operation'] == 'fixed_execution':
         from services.publication.preparation_execution import execute_execution_validation
         result = {'output_bytes': b64(execute_execution_validation(base64.b64decode(value['input_bytes'], validate=True)))}
+    elif value['operation'] == 'trade_fixture':
+        from tests.test_m12_execution_history import ExecutionHistoryTests
+        from tests.test_m12_execution_continuation import sessions
+        from tests.test_market_data_consumers import DAY
+        ExecutionHistoryTests.setUpClass()
+        fixture = ExecutionHistoryTests()
+        fixture.setUp()
+        requests = [dict(as_of=DAY, sessions_by_instrument={}, entry_reads={},
+                         completed_reads={}, generated_at=DAY + 'T23:00:00Z')]
+        for days in (1, 40):
+            dates = sessions(days)
+            requests.append({**fixture.request, 'as_of': dates[-1],
+                'sessions_by_instrument': {fixture.fixture.instrument: dates},
+                'completed_reads': {fixture.fixture.instrument: fixture.fixture.read(
+                    tuple({**fixture.fixture.entry, 'date': day} for day in dates))},
+                'generated_at': dates[-1] + 'T23:00:00Z'})
+        result = {'task_id': execution_task_id(fixture.fixture.signal),
+                  'root_bytes': b64(encode_signal(fixture.fixture.signal)),
+                  'requests': [b64(encode(request)) for request in requests]}
     elif value['operation'] == 'fixture':
         from tests.test_m12_execution_history import ExecutionHistoryTests
         ExecutionHistoryTests.setUpClass()
@@ -59,6 +78,24 @@ def main():
             pairs = prepare_execution_pairs(snapshot, objects, request)
             result = {'pairs': [{key: b64(item) if isinstance(item, bytes) else item
                                 for key, item in pair.items()} for pair in pairs]}
+        elif value['operation'] == 'trade_evaluate':
+            from tests.test_m12_trade_evaluation import RegisteredTradeEvaluationTests
+            from services.evaluation.runner import store_baseline_evaluation_batch
+            from services.evaluation.storage import EvaluationShadowStore
+            RegisteredTradeEvaluationTests.setUpClass()
+            fixture = RegisteredTradeEvaluationTests()
+            fixture.setUp()
+            fixture.history.snapshot, fixture.history.objects = snapshot, objects
+            previous = [json.loads(base64.b64decode(raw, validate=True))
+                        for raw in value.get('previous_outcome_bytes', ())]
+            evaluated = fixture.evaluate(previous=previous)
+            store = EvaluationShadowStore(value['shadow_root'])
+            paths = store_baseline_evaluation_batch(store, evaluated.batch)
+            result = {'task_id': evaluated.task_id, 'state': evaluated.state,
+                'reason': evaluated.reason, 'dependency_bytes': b64(evaluated.dependency_bytes),
+                'batch': evaluated.batch, 'outcome_bytes': [b64(encode(item)) for item in evaluated.batch.outcomes],
+                'paths': [str(path) for path in paths],
+                'refs': store.result_references_for_run(evaluated.batch.pending_run_receipt['run_id'])}
         elif value['operation'] == 'restore':
             restored = restore_execution_history(snapshot, objects)
             result = {'confirmed_through': dict(restored.confirmed_through),

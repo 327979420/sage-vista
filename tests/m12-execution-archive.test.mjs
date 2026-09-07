@@ -234,6 +234,70 @@ test('async writes retain the original trusted identity deadline despite caller 
   assert.equal(env.storage.sql.exec('SELECT * FROM m12_execution_catalog').toArray().length, 0);
 });
 
+test('persisted original execution history feeds M10 unavailable, open and terminal receipts after reopen', async t => {
+  const { ImmutableArchive } = await import('../services/publication/archive.mjs');
+  const { createHash } = await import('node:crypto');
+  const python = value => {
+    const result = spawnWithFileInput('python3', ['-B', '-W', 'error::ResourceWarning', 'tests/m12_execution_history_fixture.py'], Buffer.from(JSON.stringify(value)), {
+      encoding: 'utf8', maxBuffer: 32 * 1024 * 1024, timeout: 15000, killSignal: 'SIGKILL',
+      env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1', PYTHONPATH: 'tests:.' },
+    });
+    assert.equal(result.status, 0, `operation=${value.operation} ${result.error?.code ?? ''}\n${result.stderr}`);
+    return JSON.parse(result.stdout);
+  };
+  const fixture = python({ operation: 'trade_fixture' });
+  const env = setup(t);
+  await env.store.register(IDENTITY, env.daily, DAILY, fixture.task_id, new Uint8Array(Buffer.from(fixture.root_bytes, 'base64')));
+  const owned = token(env.leases.acquire('execution/' + fixture.task_id, JOB, EPOCH));
+  const read = async () => {
+    const result = await env.store.readTask(IDENTITY, owned, fixture.task_id);
+    return { snapshot: result.current, objects: Object.fromEntries([...result.objects].map(([key, raw]) => [key, Buffer.from(raw).toString('base64')])) };
+  };
+  let previous = [], root, terminal, terminalInput;
+  const dependencyRefs = [];
+  for (const [index, request] of fixture.requests.entries()) {
+    const pairs = python({ operation: 'prepare', ...await read(), request_bytes: request }).pairs;
+    for (const pair of pairs) {
+      const current = await read();
+      await env.store.appendPair(IDENTITY, owned, fixture.task_id, current.snapshot, pair.step_id,
+        ...['input_bytes', 'object_bytes', 'link_bytes'].map(key => new Uint8Array(Buffer.from(pair[key], 'base64'))));
+    }
+    env.restart();
+    const input = { operation: 'trade_evaluate', ...await read(), previous_outcome_bytes: previous,
+      shadow_root: join(env.root, 'm10-shadow') };
+    const result = python(input);
+    root ??= result.task_id;
+    assert.equal(result.task_id, root);
+    assert.equal(result.state, index < 2 ? 'queued' : 'completed');
+    assert.equal(result.batch.outcomes[0].status, ['unavailable', 'pending', 'completed'][index]);
+    assert.deepEqual(result.refs, result.batch.completed_run_receipt.result_refs);
+    // These are local archived bytes, NOT an authoritative evaluation task or
+    // authenticated completion registration. That production binding is next.
+    const raw = new Uint8Array(Buffer.from(result.dependency_bytes, 'base64'));
+    const hash = createHash('sha256').update(raw).digest('hex');
+    dependencyRefs.push(await new ImmutableArchive(env.bucket).put('raw/' + hash, raw,
+      { sha256: 'sha256:' + hash, size_bytes: raw.length }));
+    previous = [...previous, ...result.outcome_bytes];
+    terminal = result; terminalInput = input;
+  }
+  assert.equal(terminal.batch.outcomes[0].holding_sessions, 40);
+  assert.equal(terminal.batch.outcomes[0].exit_reason, 'time_40d');
+  const saved = terminal.paths.map(path => readFileSync(path));
+  env.restart();
+  const retry = python({ ...terminalInput, ...await read() });
+  assert.deepEqual(retry, terminal);
+  assert.deepEqual(terminal.paths.map(path => readFileSync(path)), saved);
+  for (const ref of dependencyRefs) {
+    const raw = await new ImmutableArchive(env.bucket).read(ref.key, { sha256: ref.sha256, size_bytes: ref.size_bytes });
+    assert.equal(JSON.parse(Buffer.from(raw)).task_id, root);
+  }
+  const current = await read(), puts = env.bucket.puts;
+  rmSync(join(env.bucket.root, current.snapshot.history.at(-1).link.key));
+  await assert.rejects(read(), /missing/);
+  assert.equal(env.bucket.puts, puts);
+  t.diagnostic('Synthetic dates/prices and original shadow storage only; no production evaluation registration or source authorization.');
+});
+
 
 test('registered source inventory to actual fixed computation and atomic result/pair receipt survives restart', async t => {
   const { ExecutionComputationSession } = await import('../services/publication/execution_session.mjs');
