@@ -105,7 +105,7 @@ def _timeframe_profile(states,hits,resonance):
  eligible={key:points[key]>0 for key in TIMEFRAME_LABELS}
  choices=[key for key in TIMEFRAME_LABELS if eligible[key]]
  if not choices:
-  dominant=None;label="周期证据不足";resonance=False
+  dominant=None;label="周期证据不足";is_resonance=False
  else:
   dominant=max(choices,key=lambda key:(points[key],{"daily":0,"weekly":1,"monthly":2}[key]))
   ordered=sorted((shares[key] for key in choices),reverse=True);lead=ordered[0]-(ordered[1] if len(ordered)>1 else 0)

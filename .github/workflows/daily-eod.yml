@@ -19,6 +19,11 @@ on:
         default: preview
         type: choice
         options: [preview, update, deploy]
+      notify:
+        description: Send Discord only after a verified website release
+        required: true
+        default: false
+        type: boolean
       trigger_source:
         description: Audited source of an update dispatch
         required: true
@@ -46,7 +51,6 @@ jobs:
     timeout-minutes: 180
     env:
       EODHD_API_TOKEN: ${{ secrets.EODHD_API_TOKEN }}
-      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_OPPORTUNITY }}
       UPDATE_TRIGGER_SOURCE: ${{ github.event_name == 'schedule' && 'github_schedule' || inputs.trigger_source || 'manual' }}
     steps:
       - uses: actions/checkout@v7
@@ -118,11 +122,11 @@ jobs:
         if: steps.update_result.outputs.needs_release == 'true'
         run: npm test
       - name: Dry-run Discord payload
-        if: steps.update_result.outputs.needs_release == 'true'
+        if: github.event_name == 'workflow_dispatch' && inputs.notify == true && steps.update_result.outputs.needs_release == 'true'
         run: python3 -m services.scanner.discord_daily_digest --preview --state-path automation/discord-state.json > discord-preview.json
       - name: Validate dry-run did not send
         id: payload_validation
-        if: steps.update_result.outputs.needs_release == 'true'
+        if: github.event_name == 'workflow_dispatch' && inputs.notify == true && steps.update_result.outputs.needs_release == 'true'
         run: |
           python3 - <<'PY'
           import json
@@ -166,7 +170,7 @@ jobs:
             public/update-status.json
           if-no-files-found: warn
           retention-days: 14
-      - name: Require deployment and notification secrets
+      - name: Require deployment secrets
         if: steps.update_result.outputs.needs_release == 'true'
         shell: bash
         env:
@@ -175,7 +179,6 @@ jobs:
         run: |
           test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN secret is not configured"; exit 1; }
           test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "CLOUDFLARE_ACCOUNT_ID secret is not configured"; exit 1; }
-          test -n "$DISCORD_WEBHOOK_URL" || { echo "DISCORD_OPPORTUNITY secret is not configured"; exit 1; }
       - name: Deploy production to Cloudflare Workers
         id: cloudflare_deploy
         if: steps.update_result.outputs.needs_release == 'true'
@@ -221,15 +224,21 @@ jobs:
           git add docs/CURRENT_STATUS_ZH.md
           git diff --cached --quiet || git commit --amend --no-edit
           git push origin HEAD:main
+      - name: Require explicitly requested notification secret
+        if: github.event_name == 'workflow_dispatch' && inputs.notify == true && steps.live_verify.outcome == 'success'
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_OPPORTUNITY }}
+        run: test -n "$DISCORD_WEBHOOK_URL" || { echo "DISCORD_OPPORTUNITY secret is not configured"; exit 1; }
       - name: Send deduplicated Discord daily digest
         id: discord_send
-        if: steps.live_verify.outcome == 'success'
+        if: github.event_name == 'workflow_dispatch' && inputs.notify == true && steps.live_verify.outcome == 'success'
         env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_OPPORTUNITY }}
           SAGE_VISTA_SITE_URL: ${{ steps.cloudflare_deploy.outputs.site_url }}
         run: python3 -m services.scanner.discord_daily_digest --state-path automation/discord-state.json > discord-result.json
       - name: Validate Discord send result
         id: discord_validation
-        if: steps.discord_send.outcome == 'success'
+        if: github.event_name == 'workflow_dispatch' && inputs.notify == true && steps.discord_send.outcome == 'success'
         shell: bash
         run: |
           python3 - <<'PY'
@@ -239,7 +248,7 @@ jobs:
           with open(os.environ["GITHUB_OUTPUT"],"a") as out:out.write(f"result={result['result']}\n")
           PY
       - name: Persist Discord duplicate state
-        if: steps.discord_validation.outcome == 'success'
+        if: github.event_name == 'workflow_dispatch' && inputs.notify == true && steps.discord_validation.outcome == 'success'
         shell: bash
         run: |
           python3 - <<'PY'
