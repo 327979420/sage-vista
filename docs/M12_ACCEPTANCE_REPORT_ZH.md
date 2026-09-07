@@ -1410,3 +1410,13 @@ PYTHONDONTWRITEBYTECODE=1 node --test --test-name-pattern='daily client integrat
 新桥核验旧源配置Ref保留、源根及原input/object/link字节不变；过期fence在任何私有输入读取前拒绝；SQL完成日志故障使业务对、头和completed标记全部回滚；重启后使用同一实际结果完成并幂等，再次实际计算无下一对；配对完成记录删除后失败关闭。库存对应source_snapshot，登记后snapshot须重新构建库存。内部会话依赖既有受信身份及固定执行者，未安装生产认证RPC，合成M02完整原合同输入不证明真实供应商来源或授权。
 
 机器生成状态一致、九项原政策定义、两runtime禁用且origin为空、定点eslint及差异格式检查通过。本地主分支及origin/main本地跟踪值均14fef535；本阶段没有查询远端、推送、合并、部署、启用、通知或真实供应商调用。后续仍须任务领取／独立重试预算、原M10集成、全日库存及四页发布流程；本阶段不声明M12完成或独立审核通过。
+
+### D3f独立P2：完成回执必须重读业务原件
+
+2514484暂不通过、不推送。审核任务独立反例在成功登记与重启后删除receipt.snapshot.history[0].object.key，SQL及计算回执原件仍存在，accept仍返回成功（Missing expected rejection，5.675秒）；此前本地104项通过未覆盖此路径，不能据此认定原件恢复边界完整。
+
+0949321复用readTask补已完成重试及首次null-pair完成的全任务原件读取，保留私有读取前租约检查和最终CAS。appendPair在新对象写入后复核计算输入／输出描述符及完整原历史，然后才提交业务对与回执。a904fa7补写入期间故障注入。没有改变业务合同／算法或许可规则，属于既有失败关闭规则的实现修复，rule10版本不变。
+
+实际固定worker桥新增22个故障注入场景：完成重试根及pair input/object/link各缺失／损坏8个；首次null-pair保存输出期间上述原件缺失／损坏8个；追加新pair写入期间根及计算input/output缺失／损坏6个。拒绝后断言无成功标记或业务头推进，完成重试不增加归档写入；测试显式恢复夹具原字节后才继续，产品不恢复丢失原件。外部归档和SQLite不是跨介质原子事务；本修复在写入后再次完整读回及最终租约/CAS检查，不承诺存储介质以后永不损坏。
+
+03546c9后完整49项Node通过11.311秒，其中修复后的实际桥8.091秒（内含上述22场景）；另19项治理／状态通过0.012秒，共68项，不累计单跑重复。命令为上节Node三文件组加--test-reporter=spec，以及python3 -B -m unittest tests.test_rulebook_contract tests.test_project_status。首次完整组无后续输出后被取消，不计通过；定点首次新增夹具用固定旧时钟调用store导致lease_clock_invalid，03546c9改为读取实际派发snapshot中的rootRef，保留生产时钟守门，之后定点及完整组通过。未重跑无变化54项Python业务检查。定点eslint与2514484起差异检查通过；无推送、合并、部署、生产启用或供应商调用，待同阶段独立复核。
