@@ -269,7 +269,7 @@ test('registered source inventory to actual fixed computation and atomic result/
   assert.equal(privateReads, 0);
   env.bucket.afterGet = null;
   await assert.rejects(session.accept(identity, owned, prepared.input.sha256, bytes(JSON.stringify({ ...decoded, input_sha256: 'sha256:' + '0'.repeat(64) }))), /binding_invalid/);
-  const rootRef = (await env.store.readTask(identity, owned, fixture.task_id)).current.root.root;
+  const rootRef = JSON.parse(new TextDecoder().decode(prepared.input_bytes)).snapshot.root.root;
   const linkRaw = Buffer.from(decoded.next_pair.link_bytes, 'base64');
   const linkKey = 'raw/' + Buffer.from(await crypto.subtle.digest('SHA-256', linkRaw)).toString('hex');
   const outputRef = { key: 'raw/' + Buffer.from(await crypto.subtle.digest('SHA-256', output)).toString('hex') };
