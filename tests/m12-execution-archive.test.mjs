@@ -171,9 +171,10 @@ test('actual original Python producers recover frozen inputs and paired checkpoi
   const python = value => {
     const result = spawnSync('python3', ['-B', '-W', 'error::ResourceWarning', 'tests/m12_execution_history_fixture.py'], {
       input: JSON.stringify(value), encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
+      timeout: value.operation === 'fixed_execution' ? 45000 : 15000, killSignal: 'SIGKILL',
       env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1', PYTHONPATH: 'tests:.' },
     });
-    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.status, 0, `operation=${value.operation} error=${result.error?.code ?? 'none'} signal=${result.signal ?? 'none'}\n${result.stderr}`);
     return JSON.parse(result.stdout);
   };
   const fixture = python({ operation: 'fixture' });
@@ -240,9 +241,10 @@ test('registered source inventory to actual fixed computation and atomic result/
   const python = value => {
     const result = spawnSync('python3', ['-B', '-W', 'error::ResourceWarning', 'tests/m12_execution_history_fixture.py'], {
       input: JSON.stringify(value), encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
+      timeout: value.operation === 'fixed_execution' ? 45000 : 15000, killSignal: 'SIGKILL',
       env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1', PYTHONPATH: 'tests:.' },
     });
-    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.status, 0, `operation=${value.operation} error=${result.error?.code ?? 'none'} signal=${result.signal ?? 'none'}\n${result.stderr}`);
     return JSON.parse(result.stdout);
   };
   const fixture = python({ operation: 'source_fixture', prior_source: true });
@@ -345,4 +347,62 @@ test('registered source inventory to actual fixed computation and atomic result/
   assert.equal(readFileSync(join(env.root, 'archive', final.snapshot.root.root.key)).toString('base64'), fixture.root_bytes);
   env.storage.db.exec('DELETE FROM m12_execution_validation_results; DELETE FROM m12_execution_validation_result_log');
   await assert.rejects(session.accept(identity, owned, second.input.sha256, afterBytes), /recovery_required/);
+});
+
+test('local fixed runner checkpoints actual receipts and resumes after checkpoint SQL interruption', async t => {
+  const { ExecutionComputationSession } = await import('../services/publication/execution_session.mjs');
+  const { ExecutionScheduler } = await import('../services/publication/execution_scheduler.mjs');
+  const { LocalExecutionRunner } = await import('../services/publication/local_execution_runner.mjs');
+  const { spawnSync } = await import('node:child_process');
+  const pythonPath = spawnSync('python3', ['-c', 'import sys;print(sys.executable)'], { encoding: 'utf8', timeout: 5000 });
+  assert.equal(pythonPath.status, 0);
+  const pythonExecutable = pythonPath.stdout.trim();
+  const source = spawnSync(pythonExecutable, ['-B', 'tests/m12_execution_history_fixture.py'], {
+    input: JSON.stringify({ operation: 'source_fixture', prior_source: true }), encoding: 'utf8', timeout: 15000, killSignal: 'SIGKILL',
+    maxBuffer: 32 * 1024 * 1024, env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1', PYTHONPATH: 'tests:.' },
+  });
+  assert.equal(source.status, 0, source.stderr);
+  const fixture = JSON.parse(source.stdout), start = Date.now(), env = setup(t, start);
+  const rootIdentity = { ...IDENTITY, issued_at: Math.floor(start / 1000) - 1, expires_at: Math.floor(start / 1000) + 300 };
+  await env.store.register(rootIdentity, env.daily, DAILY, fixture.task_id, new Uint8Array(Buffer.from(fixture.root_bytes, 'base64')));
+  const identity = { ...rootIdentity, job: { repository_id: '1', workflow_ref: 'local/synthetic@main', workflow_commit: fixture.commit,
+    run_id: 'runner-1', run_attempt: 1, environment: 'synthetic' }, code_commit: fixture.commit,
+    actor_id: '1', subject: 'synthetic-only', token_id: 'synthetic-only' };
+  const owned = token(env.leases.acquire('execution/' + fixture.task_id, identity.job, EPOCH));
+  new ExecutionScheduler(env.storage, env.bucket).initializeEmpty();
+  new ExecutionComputationSession(env.storage, env.bucket).initializeEmpty();
+  const request = new Uint8Array(Buffer.from(fixture.request_bytes, 'base64'));
+  let runner = new LocalExecutionRunner(env.storage, env.bucket, { pythonExecutable });
+  const abort = new AbortController();
+  const timer = setTimeout(() => abort.abort(), 100);
+  try { await assert.rejects(runner.runTask(identity, owned, fixture.task_id, request, { signal: abort.signal }), /cancelled/); }
+  finally { clearTimeout(timer); }
+  assert.equal(new ExecutionScheduler(env.storage, env.bucket).list()[0].schedule, null);
+  env.storage.db.exec("CREATE TRIGGER fail_checkpoint BEFORE INSERT ON m12_execution_schedule_log WHEN json_extract(NEW.record_json,'$.kind')='checkpoint' BEGIN SELECT RAISE(ABORT, 'synthetic checkpoint interruption'); END");
+  await assert.rejects(runner.runTask(identity, owned, fixture.task_id, request), /checkpoint interruption/);
+  const pending = new ExecutionScheduler(env.storage, env.bucket).list()[0];
+  assert.equal(pending.snapshot.revision, 1);
+  assert.equal(pending.schedule.kind, 'dispatch');
+  assert.ok(pending.schedule.dispatch_input_sha);
+  env.storage.db.exec('DROP TRIGGER fail_checkpoint');
+  env.restart();
+  runner = new LocalExecutionRunner(env.storage, env.bucket, { pythonExecutable });
+  const result = await runner.runTask(identity, owned, fixture.task_id, request);
+  assert.equal(result.status, 'caught_up_for_input');
+  assert.equal(result.checkpoint.state.attempts_today, 1);
+  assert.equal(result.checkpoint.state.state, 'queued');
+  assert.equal(result.checkpoint.state.reason, 'no_new_execution_pair');
+  assert.equal(result.checkpoint.checkpoint_snapshot.revision, 1);
+  const rows = env.storage.sql.exec('SELECT record_json FROM m12_execution_schedule_events').toArray().map(row => JSON.parse(row.record_json));
+  const checkpoints = rows.filter(row => row.kind === 'checkpoint');
+  assert.equal(checkpoints.length, 2);
+  assert.deepEqual(checkpoints.map(row => [row.receipt.source_snapshot.revision, row.receipt.snapshot.revision]), [[0, 1], [1, 1]]);
+  assert.equal(rows.filter(row => row.kind === 'claim').length, 1);
+  assert.equal(readFileSync(join(env.root, 'archive', result.checkpoint.receipt.snapshot.root.root.key)).toString('base64'), fixture.root_bytes);
+  const original = result.checkpoint.receipt.snapshot.history[0].object;
+  rmSync(join(env.root, 'archive', original.key));
+  const puts = env.bucket.puts;
+  await assert.rejects(new ExecutionScheduler(env.storage, env.bucket).checkpoint(identity, owned, fixture.task_id,
+    result.checkpoint.position, result.checkpoint.input_sha), /object_missing/);
+  assert.equal(env.bucket.puts, puts);
 });

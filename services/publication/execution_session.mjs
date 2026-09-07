@@ -98,6 +98,59 @@ export class ExecutionComputationSession {
     });
     return { input, input_bytes: new Uint8Array(raw) };
   }
+  async #bindOutput(pending, raw) {
+    const result = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(raw));
+    if (Object.keys(result).sort().join() !== 'completed_ms,input_sha256,input_size_bytes,inventory_bytes,next_pair,protocol,snapshot_sha256,started_ms,task_id' ||
+        result.protocol !== 'm12-execution-validation/1' || result.input_sha256 !== pending.input.sha256 || result.input_size_bytes !== pending.input.size_bytes ||
+        result.task_id !== pending.task_id || result.snapshot_sha256 !== await sha(bytes(pending.snapshot)) ||
+        !Number.isSafeInteger(result.started_ms) || !Number.isSafeInteger(result.completed_ms) ||
+        result.started_ms < pending.recorded_ms || result.completed_ms < result.started_ms ||
+        result.completed_ms >= pending.identity.expires_at * 1000 || result.completed_ms - result.started_ms >= 30000) throw new Error('execution_validation_output_binding_invalid');
+    const inventory = unb64(result.inventory_bytes);
+    if (!inventory.length) throw new Error('execution_inventory_output_empty');
+    return result;
+  }
+  async inspect(identity, token, inputSha, outputBytes) {
+    identity = structuredClone(identity); token = structuredClone(token);
+    if (!(outputBytes instanceof Uint8Array) || !outputBytes.length || outputBytes.length > 2 * 1024 * 1024) throw new Error('execution_output_size_invalid');
+    const raw = new Uint8Array(outputBytes);
+    const pending = this.#catalog().find(row => row.input.sha256 === inputSha);
+    if (!pending || !same(actor(identity), actor(pending.identity))) throw new Error('execution_validation_actor_mismatch');
+    identity.expires_at = Math.min(identity.expires_at, pending.identity.expires_at);
+    this.#tasks.withCurrentTask(identity, token, pending.task_id, pending.snapshot, () => {});
+    await this.#read(pending.input);
+    const result = await this.#bindOutput(pending, raw);
+    const { current } = await this.#tasks.readTask(identity, token, pending.task_id);
+    if (!same(current, pending.snapshot)) throw new Error('execution_validation_compare_failed');
+    return this.#tasks.withCurrentTask(identity, token, pending.task_id, current, ({ now }) => {
+      if (result.completed_ms > now || !same(pending, this.#catalog().find(row => row.input.sha256 === inputSha))) throw new Error('execution_validation_compare_failed');
+      return { has_next_pair: result.next_pair !== null, input: pending.input, source_snapshot: current };
+    });
+  }
+  async readPrepared(identity, token, inputSha) {
+    identity = structuredClone(identity); token = structuredClone(token);
+    const pending = this.#catalog().find(row => row.input.sha256 === inputSha);
+    if (!pending || !same(actor(identity), actor(pending.identity))) throw new Error('execution_validation_actor_mismatch');
+    identity.expires_at = Math.min(identity.expires_at, pending.identity.expires_at);
+    const expected = pending.result?.snapshot ?? pending.snapshot;
+    this.#tasks.withCurrentTask(identity, token, pending.task_id, expected, () => {});
+    const raw = await this.#read(pending.input);
+    const { current } = await this.#tasks.readTask(identity, token, pending.task_id);
+    return this.#tasks.withCurrentTask(identity, token, pending.task_id, expected, () => {
+      if (!same(current, expected) || !same(pending, this.#catalog().find(row => row.input.sha256 === inputSha))) throw new Error('execution_validation_compare_failed');
+      return { input_bytes: raw, completed: pending.result !== null, source_snapshot: pending.snapshot };
+    });
+  }
+  async readCompleted(identity, token, inputSha) {
+    identity = structuredClone(identity); token = structuredClone(token);
+    const pending = this.#catalog().find(row => row.input.sha256 === inputSha);
+    if (!pending?.result || !same(actor(identity), actor(pending.identity))) throw new Error('execution_validation_result_missing');
+    identity.expires_at = Math.min(identity.expires_at, pending.identity.expires_at);
+    this.#tasks.withCurrentTask(identity, token, pending.task_id, pending.result.snapshot, () => {});
+    const output = await this.#read(pending.result.output);
+    const receipt = await this.accept(identity, token, inputSha, output);
+    return { receipt, has_next_pair: JSON.parse(new TextDecoder().decode(output)).next_pair !== null };
+  }
   async accept(identity, token, inputSha, outputBytes) {
     identity = structuredClone(identity); token = structuredClone(token);
     if (!(outputBytes instanceof Uint8Array) || !outputBytes.length || outputBytes.length > 2 * 1024 * 1024) throw new Error('execution_output_size_invalid');
@@ -109,15 +162,7 @@ export class ExecutionComputationSession {
       if (!same(pending, this.#catalog().find(row => row.input.sha256 === inputSha))) throw new Error('execution_validation_compare_failed');
     });
     await this.#read(pending.input);
-    const result = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(raw));
-    if (Object.keys(result).sort().join() !== 'completed_ms,input_sha256,input_size_bytes,inventory_bytes,next_pair,protocol,snapshot_sha256,started_ms,task_id' ||
-        result.protocol !== 'm12-execution-validation/1' || result.input_sha256 !== inputSha || result.input_size_bytes !== pending.input.size_bytes ||
-        result.task_id !== pending.task_id || result.snapshot_sha256 !== await sha(bytes(pending.snapshot)) ||
-        !Number.isSafeInteger(result.started_ms) || !Number.isSafeInteger(result.completed_ms) ||
-        result.started_ms < pending.recorded_ms || result.completed_ms < result.started_ms ||
-        result.completed_ms >= pending.identity.expires_at * 1000 || result.completed_ms - result.started_ms >= 30000) throw new Error('execution_validation_output_binding_invalid');
-    const inventory = unb64(result.inventory_bytes);
-    if (!inventory.length) throw new Error('execution_inventory_output_empty');
+    const result = await this.#bindOutput(pending, raw);
     if (pending.result) {
       const stored = await this.#read(pending.result.output);
       if (stored.length !== raw.length || stored.some((value, i) => value !== raw[i])) throw new Error('execution_validation_output_conflict');

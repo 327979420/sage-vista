@@ -1,4 +1,8 @@
 """Test-only stdio adapter for real local Node archive / Python producer replay."""
+import faulthandler
+faulthandler.enable()
+faulthandler.dump_traceback_later(5, repeat=True)
+
 import base64
 import json
 import sys
@@ -58,6 +62,8 @@ def main():
         else:
             raise ValueError('unknown test operation')
     sys.stdout.buffer.write(encode(result))
+    sys.stdout.buffer.flush()
+    faulthandler.cancel_dump_traceback_later()
 
 
 if __name__ == '__main__':

@@ -1,5 +1,6 @@
 // Internal execution scheduling journal. No RPC, scanner, or M10 completion API.
 // readiness is installed only by a trusted fixed adapter; absent => not runnable.
+import { ExecutionComputationSession } from './execution_session.mjs';
 import { ExecutionTaskArchive } from './execution_archive.mjs';
 import { initialRetryState, claimDecision, failureState, JOB_BUDGET_MS } from './retry_policy.mjs';
 const ordered = value => Array.isArray(value) ? value.map(ordered) : value && typeof value === 'object'
@@ -8,12 +9,13 @@ const encode = value => JSON.stringify(ordered(value));
 const same = (a, b) => encode(a) === encode(b);
 
 export class ExecutionScheduler {
-  #storage; #tasks; #readiness;
+  #storage; #tasks; #readiness; #session;
   constructor(storage, bucket, { clock = Date.now, readiness = null } = {}) {
     if (readiness !== null && typeof readiness !== 'function') throw new Error('execution_readiness_adapter_invalid');
     this.#storage = storage;
     this.#tasks = new ExecutionTaskArchive(storage, bucket, { clock });
     this.#readiness = readiness;
+    this.#session = new ExecutionComputationSession(storage, bucket, { clock });
     storage.transactionSync(() => {
       this.#sql('CREATE TABLE IF NOT EXISTS m12_execution_schedule_head (singleton INTEGER PRIMARY KEY CHECK(singleton=1), revision INTEGER NOT NULL)');
       this.#sql('CREATE TABLE IF NOT EXISTS m12_execution_schedule_events (position INTEGER PRIMARY KEY, record_json TEXT NOT NULL)');
@@ -50,7 +52,7 @@ export class ExecutionScheduler {
   #latest(history, taskId) { return history.filter(row => row.task_id === taskId).at(-1); }
   #attemptDeadline(identity, token, taskId) {
     const latest = this.#latest(this.#history(), taskId);
-    return latest?.state.state === 'running' && same(latest.job, identity.job) && same(latest.token, token)
+    return (latest?.state.state === 'running' || latest?.kind === 'checkpoint') && same(latest.job, identity.job) && same(latest.token, token)
       ? Math.min(identity.expires_at, latest.original_expires_at) * 1000 : identity.expires_at * 1000;
   }
   list() {
@@ -75,7 +77,7 @@ export class ExecutionScheduler {
       return this.#append(history, { kind: 'job_start', job: identity.job, started_ms: now });
     });
     if (!this.#readiness) return { claimed: false, reason: 'readiness_unavailable' };
-    const ready = await this.#readiness(initial);
+    const ready = await this.#readiness(initial, { deadline_ms: Math.min(budget.started_ms + JOB_BUDGET_MS, identity.expires_at * 1000) });
     if (!ready || Object.keys(ready).sort().join() !== 'eod_ms,mature' || typeof ready.mature !== 'boolean') throw new Error('execution_readiness_invalid');
     const reread = await this.#tasks.readTask(identity, token, taskId);
     if (!same(initial.current, reread.current)) throw new Error('execution_schedule_compare_failed');
@@ -111,6 +113,38 @@ export class ExecutionScheduler {
       return this.#append(history, { kind: 'failure', task_id: taskId, job: identity.job, token,
         previous_position: latest.position, occurred_ms: now, source_snapshot: latest.source_snapshot,
         snapshot: current, state: failureState(latest.state, reason, now) });
+    }, { resolveDeadlineMs: () => this.#attemptDeadline(identity, token, taskId) });
+  }
+  async bindDispatch(identity, token, taskId, attemptPosition, inputSha, outputBytes) {
+    identity = structuredClone(identity); token = structuredClone(token);
+    identity.expires_at = Math.min(identity.expires_at, this.#attemptDeadline(identity, token, taskId) / 1000);
+    const proof = await this.#session.inspect(identity, token, inputSha, outputBytes);
+    return this.#tasks.withCurrentTask(identity, token, taskId, proof.source_snapshot, () => {
+      const history = this.#history(), latest = this.#latest(history, taskId);
+      if (!latest || latest.state.state !== 'running' || !same(latest.job, identity.job) || !same(latest.token, token)) throw new Error('execution_attempt_not_owned');
+      if (latest.dispatch_input_sha === inputSha) return latest;
+      if (latest.position !== attemptPosition || latest.dispatch_input_sha || !same(latest.checkpoint_snapshot ?? latest.source_snapshot, proof.source_snapshot)) throw new Error('execution_dispatch_conflict');
+      const { position, ...retained } = latest;
+      return this.#append(history, { ...retained, kind: 'dispatch', previous_position: position, dispatch_input_sha: inputSha });
+    }, { resolveDeadlineMs: () => this.#attemptDeadline(identity, token, taskId) });
+  }
+  async checkpoint(identity, token, taskId, attemptPosition, inputSha) {
+    identity = structuredClone(identity); token = structuredClone(token);
+    identity.expires_at = Math.min(identity.expires_at, this.#attemptDeadline(identity, token, taskId) / 1000);
+    const completed = await this.#session.readCompleted(identity, token, inputSha);
+    const { receipt } = completed;
+    return this.#tasks.withCurrentTask(identity, token, taskId, receipt.snapshot, ({ now }) => {
+      const history = this.#history(), latest = this.#latest(history, taskId);
+      if (latest?.kind === 'checkpoint' && latest.input_sha === inputSha && same(latest.job, identity.job) && same(latest.token, token)) return latest;
+      if (!latest || latest.position !== attemptPosition || latest.state.state !== 'running' ||
+          !same(latest.job, identity.job) || !same(latest.token, token)) throw new Error('execution_attempt_not_owned');
+      if (latest.dispatch_input_sha !== inputSha) throw new Error('execution_checkpoint_dispatch_missing');
+      if (!same(latest.checkpoint_snapshot ?? latest.source_snapshot, receipt.source_snapshot)) throw new Error('execution_checkpoint_source_conflict');
+      const { position, ...retained } = latest;
+      const state = completed.has_next_pair ? latest.state : { ...latest.state, state: 'queued',
+        reason: 'no_new_execution_pair', retry_at_ms: null, wait_for_eod_after_ms: now };
+      return this.#append(history, { ...retained, kind: 'checkpoint', previous_position: position,
+        dispatch_input_sha: null, input_sha: inputSha, receipt, checkpoint_snapshot: receipt.snapshot, occurred_ms: now, state });
     }, { resolveDeadlineMs: () => this.#attemptDeadline(identity, token, taskId) });
   }
   async recover(identity, token, taskId) {

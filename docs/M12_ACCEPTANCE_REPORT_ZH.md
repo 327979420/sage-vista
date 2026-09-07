@@ -1454,3 +1454,13 @@ bed251e暂不通过、不推送。审核任务原临时反例：长效JWT外层c
 修复在最终LeaseStore持锁事务内部同步读取latest原期限，使用同一进入时钟及提交前时钟，取原请求期限与实际attempt期限较小值；同步resolver只能收紧期限，拒绝异步或非整数返回。ExecutionTaskArchive仅转交该内部期限接点，claim／fail复用它，不在消费者新增时钟或业务政策。新增并发入口恰到期限／事务末次跨期限两场景，以及统一租约层收紧、不延长、异步拒绝及写入回滚检查。先行44项预算／调度／原租约组通过0.207秒，eslint及diff通过。
 
 fb96745提交后64项Node正式组通过12.438秒（原恢复桥3.196秒、固定库存登记桥9.091秒），原认证准备固定worker桥1项4.773秒、19治理／状态0.016秒，共84项；原/tmp/sage-m12-d1-running-expiry.test.mjs未修改复跑通过0.126秒，单独列证据不累计前轮重复。正式组沿用上一节五文件命令，另原认证桥命令见D3节。eslint与bed251e起diff通过；无推送、合并、部署、生产启用或新业务政策。rule10版本不变，保留原审核失败与前轮间歇停顿记录；本次通过不宣称已解释前轮停顿原因。待同阶段定点复核。
+
+### D1c有界旧桥诊断与实际checkpoint接线（待提交后联测）
+
+按审核任务要求固定三次诊断，旧合成stdio父进程每次prepare/restore最多15秒，fixed_execution外层最多45秒（原worker预算仍30秒）；Python测试适配在5秒输出faulthandler栈，超时父进程SIGKILL等待子进程结束。预定三次原生产者桥分别通过3.278、3.386、3.300秒，未复现停顿，因此原因仍未定位、生产稳定性待验证；不再继续重试到绿。没有修改原生产算法或放宽固定worker守门。
+
+本地LocalExecutionRunner复用原隔离worker（固定脚本及-I、源码前后检查），解释器仅由可信本地宿主安装提供，任务请求不能给命令。异步stdio持续读输出，最多2MiB、30秒，原身份/Job期限及租约监控失效时kill并等close再拒绝；不安装公开RPC、不获取真实来源。
+
+原会话将输出绑定逻辑集中提取供inspect和accept共享，inspect只读，不登记业务对；调度mature由固定实际next_pair导出，不接用户布尔值。真实EOD尚无适配，固定返回null，不猜会话解除第三次失败等待。实际派发输入sha经inspect后持久绑定attempt；checkpoint只重读原会话已完成回执、实际input/output及全任务原件后登记。source_snapshot与登记后snapshot分开，多个pair仍沿同一running attempt，不重复消耗日预算；原实际null-pair回执只表示本次输入追平，queued等下一EOD，不标completed/M10终结。
+
+先行注入checkpoint日志失败的计划：业务对及会话回执先成功，dispatch绑定保留；重启读取原派发/完成回执补checkpoint，再继续下一对，不能将新输出冒充原checkpoint。真实M10依赖收据、部署来源/许可及完整调度错误分类仍后续接线，本包不宣称M12生产闭环。
