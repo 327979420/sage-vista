@@ -9,6 +9,7 @@ from .macd_factor_backtest import (available,bullish_fvg_support,completed_group
  recent_double_bottom_breakout,recent_three_push_breakout,support_bottom_volume,support_bullish_engulfing,
  three_push_breakout,three_push_retest,double_bottom_neckline_retest,volume_profile_support,fibonacci_support_levels)
 from .technical import macd,rsi
+from services.gates.long_term_state import period_closed_at_session
 
 MONITORED_FACTOR_IDS=tuple(factor.id for factor in FACTORS)
 TECHNICAL_CONFIG=load_config()
@@ -76,7 +77,7 @@ def higher_timeframe_double_engulfing(bars,timeframe,lookback,low_tolerance=.10)
    return True,evidence
  return False,evidence
 
-def _raw(rows,i,fact_references=None):
+def _raw(rows,i,fact_references=None,*,complete_session=False):
  """Objective current-bar states using only rows through i."""
  fact_references=fact_references or {}
  view=rows[:i+1];current=view[-1];closes=[row["close"] for row in view];line,signal=macd(closes);curves={period:ema(closes,period) for period in (21,50,200)}
@@ -112,7 +113,7 @@ def _raw(rows,i,fact_references=None):
  w=detect_w_bottom(view,i,TECHNICAL_CONFIG);double_bottom=w.detected and detect_bos(view,i,w.levels["neckline"],TECHNICAL_CONFIG).detected
  triple=detect_triple_bottom(view,i,TECHNICAL_CONFIG);trend_ok=fact_references.get("qualification.long_trend",{}).get("hit") if "qualification.long_trend" in fact_references else long_trend_ok(view,i,curves[200]);triple_pullback=triple.detected and trend_ok and pullback
  double_bottom_recent=recent_double_bottom_breakout(view,i);double_bottom_retest=double_bottom_recent and double_bottom_neckline_retest(view,i)
- day=date.fromisoformat(current["date"]);weekly_rows=available(completed_groups(view,"weekly"),(day.isocalendar().year,day.isocalendar().week));monthly_rows=available(completed_groups(view,"monthly"),(day.year,day.month))
+ day=date.fromisoformat(current["date"]);weekly_rows=available(completed_groups(view,"weekly"),(day.isocalendar().year,day.isocalendar().week),include_current=period_closed_at_session(current["date"],"weekly",complete_session=complete_session));monthly_rows=available(completed_groups(view,"monthly"),(day.year,day.month),include_current=period_closed_at_session(current["date"],"monthly",complete_session=complete_session))
  weekly_state=macd_state(weekly_rows[-160:]) if len(weekly_rows)>=3 else None
  monthly_line,monthly_signal=macd([row["close"] for row in monthly_rows]) if len(monthly_rows)>=2 else ([],[]);monthly_cross=bool(monthly_line and monthly_line[-1]>monthly_signal[-1] and monthly_line[-2]<=monthly_signal[-2])
  weekly_ema_hit,weekly_ema_evidence=higher_timeframe_ema_support(current,weekly_rows,"weekly_completed",.03)
@@ -146,13 +147,13 @@ def _raw(rows,i,fact_references=None):
   "support.close_congestion":(congestion,{"lookback_sessions":250}),"support.volume_profile_proxy":(volume_peak,{"lookback_sessions":250,"bins":40}),
  }
 
-def evaluate_all_factors(rows,as_of,*,fact_references=None):
+def evaluate_all_factors(rows,as_of,*,fact_references=None,complete_session=False):
  fact_references=fact_references or {}
  rows=trim_as_of(rows,as_of);latest=rows[-1]["date"] if rows else None
  if not rows or latest!=as_of or len(rows)<260:
   reason="latest bar does not match as_of" if latest!=as_of else "insufficient history"
   return [_base(factor.id,as_of,None,False,{"reason":reason},False,latest,"unavailable") for factor in FACTORS]
- i=len(rows)-1;cache={i:_raw(rows,i,fact_references)};states=[]
+ i=len(rows)-1;cache={i:_raw(rows,i,fact_references,complete_session=complete_session)};states=[]
  for factor in FACTORS:
   if factor.runtime_status=="definition_required":
    states.append(_base(factor.id,as_of,None,False,{"reason":"registry definition is not precise enough for an objective detector"},False,latest,"definition_required"));continue
@@ -161,7 +162,7 @@ def evaluate_all_factors(rows,as_of,*,fact_references=None):
   if factor.factor_type=="event" and factor.observation_window_sessions and factor.id not in fact_references:
    for ago in range(0,min(factor.observation_window_sessions,i+1)):
     j=i-ago
-    if j not in cache:cache[j]=_raw(rows,j)
+    if j not in cache:cache[j]=_raw(rows,j,complete_session=complete_session)
     raw_hit=cache[j][factor.id][0]
     if factor.id=="macd.daily_bull_cross":
      past=[row["close"] for row in rows[:j+1]];line,signal=macd(past);raw_hit=j>=1 and line[j]>signal[j] and line[j-1]<=signal[j-1]

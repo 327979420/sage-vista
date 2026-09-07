@@ -2,12 +2,32 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 from typing import Any, Mapping, Sequence
 
 
+def period_closed_at_session(as_of: str, period: str, *, complete_session: bool = False) -> bool:
+    """US weekend boundary only; requires explicit completed-session evidence.
+
+    Holidays are not inferred. Legacy callers retain the conservative boundary.
+    """
+    if period not in {"weekly", "monthly"}:
+        raise ValueError("unknown period")
+    if not complete_session:
+        return False
+    day = date.fromisoformat(as_of)
+    if period == "weekly":
+        return day.weekday() == 4
+    following = day + timedelta(days=1)
+    while following.month == day.month:
+        if following.weekday() < 5:
+            return False
+        following += timedelta(days=1)
+    return True
+
+
 def completed_period_bars(
-    rows: Sequence[Mapping[str, Any]], *, as_of: str, period: str
+    rows: Sequence[Mapping[str, Any]], *, as_of: str, period: str, complete_session: bool = False
 ) -> tuple[dict[str, Any], ...]:
     """Aggregate only natural weeks/months already closed before ``as_of``."""
 
@@ -26,7 +46,8 @@ def completed_period_bars(
             bar["volume"] += row["volume"]
             bar["date"] = row["date"]
     current_key = (cutoff.isocalendar().year, cutoff.isocalendar().week) if period == "weekly" else (cutoff.year, cutoff.month)
-    return tuple(bar for key, bar in groups if key < current_key)
+    include_current = period_closed_at_session(as_of, period, complete_session=complete_session)
+    return tuple(bar for key, bar in groups if key < current_key or (include_current and key == current_key))
 
 
 def multi_year_drawdown(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
