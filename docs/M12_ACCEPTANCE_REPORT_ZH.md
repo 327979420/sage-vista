@@ -1510,3 +1510,12 @@ ef6b51f正式66项Node五文件组通过20.574秒（原恢复桥3.169秒、原�
 10分钟边界为预算／调度测试中的合成时钟及显式测试租约续持证据；本地runner仍只监控原300秒租约，不绕过受信身份边界续租。实际固定生产者夹具仍为D日unavailable计划决策，不代表D+1真实行情入场、完整退出或M10到期端到端。原M10调用、成熟／真实EOD来源、评价依赖持久接线与四页发布仍待后续实施。
 
 定点eslint、4e2e434起diff格式、机器生成状态一致、九政策、双runtime disabled/origin空及变更文档相对链接检查通过。原业务模块、生产数据、旧夜间断点、供应商快照及入口未变。保留此前旧桥65/66失败；有限文件stdin补救已独立通过，但Node／OS触发条件仍未明确。本阶段未推送、合并、部署、生产启用、调用真实来源或发送通知；CR-053保持implementing，交独立阶段审核，不自称PASS。
+
+
+### D2a原M10交易评价本地组合（实施中）
+
+从完整execution snapshot／原件复用原历史解析，选择已配对计划决策和唯一退出叶关联，再直接调用evaluate_trade_baseline。任务根冻结event Ref／TradeOutcome／null窗口／原评价政策／baseline／forward；attempt另绑定当前依赖原字节、执行快照、行情修订、代码及previous_outcomes。原收据构造／范围／守恒和M10状态不复制；尚无关联不造收据，pending／unavailable不标任务完成。
+
+合成样例由原M08／M09生成D日unavailable→原入场日active→40日time_40d退出，原M10收据/结果写入真实本地EvaluationShadowStore，重新打开后幂等且原结果引用守恒。市场/日历仍合成，并非真实采集；完整生产DO任务登记、固定计算认证及M10队列仍后续接线，不能把此纯组合称正式评价链完成。
+
+首次新组9项中1项出错：新attempt摘要直接传入MappingProxy，原canonical JSON入口拒绝序列化；改为复用既有_plain展开后求摘要。另去除测试类直接import导致的6项重复发现。随后新组3项通过5.437秒。没有放宽原合同、改政策或重写历史。提交后再接已有本地文件/SQLite恢复桥验证实际持久输入到M10。
