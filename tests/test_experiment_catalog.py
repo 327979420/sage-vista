@@ -1,10 +1,13 @@
+import json
 import unittest
-from services.scanner.experiment_catalog import build,render_summary
+from services.scanner.experiment_catalog import build,render_summary,LEDGER,EVENTS
 
 class ExperimentCatalogTests(unittest.TestCase):
  def test_all_old_experiments_are_preserved_and_ids_are_unique(self):
-  catalog=build();self.assertEqual(catalog["experiment_count"],37)
-  self.assertEqual(len({x["experiment_id"] for x in catalog["experiments"]}),37)
+  catalog=build();registered=[json.loads(line) for line in LEDGER.read_text().splitlines() if line.strip()]
+  self.assertEqual(catalog["experiment_count"],len(registered))
+  self.assertEqual({x["experiment_id"] for x in catalog["experiments"]},{x["experiment_id"] for x in registered})
+  self.assertEqual(len({x["experiment_id"] for x in catalog["experiments"]}),len(registered))
   self.assertTrue(catalog["policy"]["append_only"]);self.assertTrue(catalog["policy"]["failed_results_preserved"])
   challenger=next(x for x in catalog["experiments"] if x["experiment_id"]=="timeframe-score-v3.0.0-2026-08-28")
   self.assertEqual(challenger["status"],"pre_registered")
@@ -40,7 +43,14 @@ class ExperimentCatalogTests(unittest.TestCase):
   self.assertEqual(favorite_v3["status"],"pre_registered_forward_only")
 
  def test_every_experiment_has_lifecycle_and_plain_chinese_summary(self):
-  catalog=build();self.assertEqual(catalog["summary"]["completed"],26);self.assertEqual(catalog["summary"]["in_progress"],11)
+  catalog=build();events=[json.loads(line) for line in EVENTS.read_text().splitlines() if line.strip()]
+  completed={x["experiment_id"] for x in events if x["event"]=="completed"}
+  self.assertEqual(catalog["summary"]["completed"],len(completed))
+  self.assertEqual(catalog["summary"]["in_progress"],catalog["experiment_count"]-len(completed))
+  candidate=next(x for x in catalog["experiments"] if x["experiment_id"]=="cr056-month-week-day-watch-v1.0.0-2026-09-07")
+  self.assertEqual(candidate["status"],"pre_registered")
+  self.assertIsNone(candidate["lifecycle"]["completed_at"])
+  self.assertEqual(candidate["human_summary"]["verdict"],"pre_registered")
   for row in catalog["experiments"]:
    self.assertTrue(row["human_summary"]["title_zh"]);self.assertTrue(row["human_summary"]["use_zh"])
    self.assertTrue(row["lifecycle"]["registered_at"]);self.assertGreaterEqual(row["lifecycle"]["event_count"],1)

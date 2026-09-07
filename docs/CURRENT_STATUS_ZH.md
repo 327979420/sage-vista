@@ -31,7 +31,8 @@
 
 ## 实验
 
-- 总数 37；已完成 26；待运行 / 进行中 11。
+- 总数 38；已完成 26；待运行 / 进行中 12。
+- `cr056-month-week-day-watch-v1.0.0-2026-09-07`：月周日加权评分与持续观察候选。
 - `multi-factor-count-resonance-v1.0.0-2026-08-30`：全因子计数与周期共振排行V1。
 - `favorite-pattern-simple-v3.0.0-2026-08-30`：我最喜欢形态四项简化V3。
 - `favorite-pattern-generalization-v1.0.0-2026-08-30`：个人形态举一反三与漏检复盘V1。
@@ -67,4 +68,4 @@
 - `public/factor-registry.json`
 - `research/generated/experiment-catalog.json`
 
-来源时间：生产数据更新 2026-09-07T04:35:35.258597+00:00；实验目录生成 2026-08-30T15:05:21+10:00。
+来源时间：生产数据更新 2026-09-07T04:35:35.258597+00:00；实验目录生成 2026-09-07。

@@ -18,6 +18,7 @@ TOKENS = (
 # factor_registry declares facts; it does not consume or create a candidate.
 DECLARATION_ONLY = {"services/scanner/factor_registry.py"}
 EXPECTED_LEGACY_CONSUMER_FILES = {
+    "services/scanner/cr056_runner.py",
     "services/scanner/factor_detectors.py",
     "services/scanner/factor_effectiveness.py",
     "services/scanner/factor_snapshot.py",

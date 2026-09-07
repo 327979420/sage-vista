@@ -1,15 +1,15 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-08-30T15:05:21+10:00",
+  "generated_at": "2026-09-07",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 37,
+  "experiment_count": 38,
   "summary": {
     "completed": 26,
-    "in_progress": 11,
+    "in_progress": 12,
     "candidate": 10,
     "not_validated_or_unstable": 11
   },
@@ -21,6 +21,70 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "cr056-month-week-day-watch-v1.0.0-2026-09-07",
+      "created_at": "2026-09-07",
+      "status": "pre_registered",
+      "change": "Freeze candidate month/week permissions, two pullback backgrounds, normalized weighted score and append-only daily watch reviews before implementation; no production activation.",
+      "coverage": "Backend latest completed as_of replay only first; future strategy evaluation after market/industry work. Existing known 2025/2026 and old Tracker samples are seen comparisons, not unseen validation.",
+      "specification": {
+        "design": "docs/MONTH_WEEK_DAY_REQUIREMENT_CORRECTION_ZH.md",
+        "policy": "cr056-policy-1.0.0-candidate",
+        "weights_month_week_day": [
+          3,
+          2,
+          1
+        ],
+        "caps_day_week_month": [
+          5,
+          2,
+          3.25
+        ],
+        "controls": [
+          "frozen old policy",
+          "permission only",
+          "weighted score",
+          "daily review"
+        ],
+        "execution": "unchanged original execution/cost policy; alert is not a trade; portfolio unavailable without approved capital policy"
+      },
+      "success_criteria": "First demonstrate point-in-time same-source calculation, coherent non-empty usable real coverage or explicit missing diagnosis, immutable old evidence, exact permission/scoring counterexamples, deterministic review/ranking. No profitability pass from technical acceptance. Later report returns, benchmark, risk-adjusted metrics only when valid, tails and samples without cherry-picking.",
+      "result": "Not run; no new strategy backtest authorized in this first ranking package.",
+      "known_limitations": [
+        "Local raw caches empty at A0; remote existing cache retrieval pending",
+        "Defaults are proposed policy, not validated alpha",
+        "Legacy source observations cannot become formal membership or stable identity"
+      ],
+      "human_summary": {
+        "title_zh": "月周日加权评分与持续观察候选",
+        "family": "scoring",
+        "family_zh": "评分与持续观察",
+        "question_zh": "月周许可、两类回调背景和3:2:1加权复评能否形成可复核的候选优先级，并在后续同源比较中改善表现？",
+        "result_zh": "候选评分和真实榜单已有工程核验；策略收益回测尚未执行，不能将技术验收等同收益验证。",
+        "use_zh": "用于人工复核候选和持续观察；旧分数、原提名及失败记录保留，不视为已验证策略或自动交易指令。",
+        "next_zh": "先核验既有日更续跑，再按已登记边界完成大盘行业及后续策略比较；保留已见样本限制。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-09-07",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-09-07",
+        "time_source": "preregistration_record",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "cr056-month-week-day-watch-v1.0.0-2026-09-07",
+            "event": "registered",
+            "event_at": "2026-09-07",
+            "time_source": "preregistration_record",
+            "source_ref": "acfc061bb539b566ef8cbc31aa0a90b67ea8fc46",
+            "result": "Backfilled lifecycle index for the existing preregistration; preserves its recorded registration date. No strategy backtest completion or effectiveness verdict is added."
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "multi-factor-count-resonance-v1.0.0-2026-08-30",
       "created_at": "2026-08-30T12:00:00+10:00",
@@ -2897,6 +2961,7 @@
     "choppiness-state-mechanism-v1.0.0-2026-08-29",
     "connors-choppiness-paired-ab-v1.0.0-2026-08-29",
     "core-factor-backtest-v1.0.0-2026-08-27",
+    "cr056-month-week-day-watch-v1.0.0-2026-09-07",
     "evidence-calibrated-daily-score-v1.0.0-2026-08-29",
     "exit-score-v0.1.0-2026-08-28",
     "factor-family-return-combination-v1.0.0-2026-08-29",
