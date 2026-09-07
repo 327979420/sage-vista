@@ -1432,3 +1432,17 @@ ExecutionScheduler只在内部从ExecutionTaskArchive持久全集发现任务，
 初始成熟/EOD解析器未安装时不领取；安装点仅内部可信固定适配，当前测试用明确合成适配，不代表真实成熟度／EOD证据已接。无completed API、blocked恢复API、实际worker监督或M10执行／终结收据登记；这些接点仍须后续闭合，不把领取成功当业务执行成功。本包保护原source_snapshot与后续snapshot分别留档，未修改原M08／M09／M10算法或旧夜间文件。
 
 先行13项新预算／持久检查通过0.176秒：持久全集及重启幂等、跨任务同Job10分钟、跨Job每日3次和下一EOD、新fence失联恢复及旧runner拒绝、缺成熟适配不消费attempt、配对丢失／SQL失败、异步原件缺失／租约失效、blocked不自动恢复、原身份期限续活拒绝。定点eslint及diff通过。源码提交后再跑受影响原归档固定worker联测。
+
+
+### D1a／D1b基础阶段提交后证据
+
+基线e340ccc，业务提交fc47dff、48b50b0。最终正式62项Node组通过12.298秒，其中原生产者恢复桥3.160秒、原固定库存／登记桥8.952秒；19项治理／状态0.012秒，共81项，不累加先行重复。命令：
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 node --test --test-reporter=spec tests/m12-execution-scheduler.test.mjs tests/m12-retry-policy.test.mjs tests/m12-execution-archive.test.mjs tests/m12-archive.test.mjs tests/m12-leases.test.mjs
+PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest tests.test_rulebook_contract tests.test_project_status
+```
+
+失败／诊断保留：两次完整组和一次原生产者定点组在旧跨语言桥长期无后续输出后取消，不计通过。/tmp临时副本为原spawnSync加10秒时限，prepare子调用一次超时（退出status null，11.918秒）；再加Python faulthandler诊断的临时副本通过3.199秒，随后未修改的正式全组通过。停顿原因尚未确定，未把一次通过解释为消除间歇停顿；未改原测试桥或生产固定进程的超时守门。此处只记录实际本地检查，不宣称真实runner可用。
+
+定点eslint、e340ccc起diff、机器状态一致、双runtime disabled/origin空、变更文档相对链接通过。只增加领取及失败记录，没有连接运行任务或宣称completed；10分钟目前约束新领取，真实Job取消监督／checkpoint仍后续接入。readiness安装参数不是认证入口，默认不存在且不领取，必须后续由真实固定来源验证适配闭合；此阶段不得装成公开RPC。继续复用原M10，原政策、旧夜间断点、扫描日期均未改变。无推送、合并、部署、启用、真实来源调用或通知；待独立阶段审核。
