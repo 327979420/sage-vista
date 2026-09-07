@@ -269,6 +269,29 @@ test('registered source inventory to actual fixed computation and atomic result/
   assert.equal(privateReads, 0);
   env.bucket.afterGet = null;
   await assert.rejects(session.accept(identity, owned, prepared.input.sha256, bytes(JSON.stringify({ ...decoded, input_sha256: 'sha256:' + '0'.repeat(64) }))), /binding_invalid/);
+  const rootRef = (await env.store.readTask(identity, owned, fixture.task_id)).current.root.root;
+  const linkRaw = Buffer.from(decoded.next_pair.link_bytes, 'base64');
+  const linkKey = 'raw/' + Buffer.from(await crypto.subtle.digest('SHA-256', linkRaw)).toString('hex');
+  const outputRef = { key: 'raw/' + Buffer.from(await crypto.subtle.digest('SHA-256', output)).toString('hex') };
+  for (const ref of [rootRef, prepared.input, outputRef]) {
+    const path = join(env.root, 'archive', ref.key);
+    const original = ref === outputRef ? output : readFileSync(path);
+    for (const corrupt of [false, true]) {
+      let injected = false;
+      env.bucket.afterGet = key => {
+        if (key === linkKey && !injected) {
+          injected = true;
+          if (corrupt) writeFileSync(path, bytes('corrupted original')); else rmSync(path);
+        }
+      };
+      await assert.rejects(session.accept(identity, owned, prepared.input.sha256, output), /object_missing|mismatch/);
+      assert.ok(injected);
+      assert.equal(env.storage.sql.exec('SELECT revision FROM m12_execution_heads WHERE task_id=?', fixture.task_id).toArray()[0].revision, 0);
+      assert.equal(env.storage.sql.exec('SELECT completed FROM m12_execution_validation_inputs').toArray()[0].completed, 0);
+      env.bucket.afterGet = null;
+      writeFileSync(path, original);
+    }
+  }
   env.storage.db.exec("CREATE TRIGGER fail_execution_result_log BEFORE INSERT ON m12_execution_validation_result_log BEGIN SELECT RAISE(ABORT, 'synthetic receipt interruption'); END");
   await assert.rejects(session.accept(identity, owned, prepared.input.sha256, output), /receipt interruption/);
   assert.equal(env.storage.sql.exec('SELECT revision FROM m12_execution_heads WHERE task_id=?', fixture.task_id).toArray()[0].revision, 0);
