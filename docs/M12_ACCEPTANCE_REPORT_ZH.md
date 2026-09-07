@@ -1483,3 +1483,5 @@ ef6b51f正式66项Node五文件组通过20.574秒（原恢复桥3.169秒、原�
 只修改测试传输：spawnWithFileInput在私有临时目录中以wx/0600保存完全相同的Uint8Array，写FD关闭后以只读文件FD作为stdin；不传spawnSync.input、不更改JSON字段、base64原件或Python json.load。普通文件由文件长度提供有限EOF，不等待父管道关闭通知；父进程finally关闭FD并清除目录，异常和超时同样清理。保持原15秒/45秒上限、SIGKILL及5秒faulthandler，不改生产compute传输、源码守门或业务语义。
 
 预先固定三次旧桥核验全部通过，业务测试耗时3.112、3.014、3.038秒。首轮同时验证1MiB以上含非ASCII/NUL/换行的输入size/SHA逐字节一致，stdin为只读普通文件，二次读立即EOF；显式stall仍得到ETIMEDOUT、SIGKILL及Python栈。三轮后只运行一次完整相关组，不再循环到绿。eslint及diff检查通过，rule10版本不变。
+
+6d4bcc0后依计划只跑一次正式五文件组，67项全通过21.352秒（原恢复3.108秒、固定库存8.511秒、新runner8.016秒、显式stall1.508秒、只读FD原字节0.038秒）；19治理/状态0.015秒，共86项，不累计预定三次定点重复。命令沿用D1c五文件组，另python3 -B -m unittest tests.test_rulebook_contract tests.test_project_status；定点eslint与e74ec4f起diff通过。git diff e74ec4f -- services为空，Python适配器json.load及5秒栈原样保留。当前证据证明有限文件stdin路径的字节保真及本轮运行通过，不宣称找到了Node/OS内部触发条件或排除了所有其他潜在停顿。未推送、合并、部署、生产启用或变更业务政策，交回同阶段复核。
