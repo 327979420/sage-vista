@@ -50,7 +50,7 @@ jobs:
       - run: npm ci
       - name: Build and test website
         env:
-          GITHUB_SHA: ${{ steps.production_head.outputs.deployment_commit }}
+          SAGE_DEPLOYMENT_COMMIT: ${{ steps.production_head.outputs.deployment_commit }}
         run: npm test
       - name: Require deployment secrets
         env:

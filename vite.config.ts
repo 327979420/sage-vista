@@ -22,7 +22,10 @@ export default defineConfig(async () => {
 
   return {
     define: {
-      "process.env.GITHUB_SHA": JSON.stringify(process.env.GITHUB_SHA ?? "local"),
+      // GitHub reserves GITHUB_*; use our explicit deployed commit after data commits or main sync.
+      "process.env.GITHUB_SHA": JSON.stringify(
+        process.env.SAGE_DEPLOYMENT_COMMIT ?? process.env.GITHUB_SHA ?? "local",
+      ),
     },
     server: isCodexSeatbeltSandbox
       ? { watch: { useFsEvents: false, usePolling: true } }

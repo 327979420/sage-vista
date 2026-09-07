@@ -49,6 +49,16 @@ class LiveDeploymentVerificationTests(unittest.TestCase):
    with self.assertRaisesRegex(RuntimeError,"commit marker mismatch"):
     verify("https://example.test",DATE,deployment_commit="abcdef1234567890",attempts=1)
 
+ def test_actual_data_commit_accepts_only_its_marker_not_workflow_start_or_other_commit(self):
+  commit="0527b97cea79f8f519cf6d53b1bbcd06aeb704d6"
+  for marker in ("0527b97", "64ccc0c", "0000000"):
+   with self.subTest(marker=marker),patch("services.scanner.verify_live_deployment.fetch",side_effect=bundle()),patch("services.scanner.verify_live_deployment.fetch_text",return_value=f'<div class="siteVersionBar"><b>Sage Vista UI v6.1</b><span>Build {marker}</span></div>'):
+    if marker == commit[:7]:
+     self.assertEqual(verify("https://example.test",DATE,commit,attempts=1)["deployment_commit"],commit)
+    else:
+     with self.assertRaisesRegex(RuntimeError,"commit marker mismatch"):
+      verify("https://example.test",DATE,commit,attempts=1)
+
  def test_fails_immediately_without_deployment_commit(self):
   with patch("services.scanner.verify_live_deployment.fetch") as fetch:
    with self.assertRaisesRegex(RuntimeError,"commit evidence is required"):

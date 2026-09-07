@@ -66,6 +66,7 @@ class DailyEodWorkflowTests(unittest.TestCase):
   for text in (daily,site):
    self.assertIn("cancel-in-progress: false",text)
    self.assertEqual(text.count("verify_live_deployment persist --receipt-path live-verification.json"),1)
+   self.assertNotRegex(text,r"(?m)^\s*GITHUB_SHA:")
    self.assertNotIn('state.update({"as_of":receipt',text)
 
  def test_daily_deploys_the_commit_created_by_the_data_step(self):
@@ -79,7 +80,7 @@ class DailyEodWorkflowTests(unittest.TestCase):
   self.assertIn("id: audited_data_commit",text[commit:output])
   self.assertNotIn("exit 0",text[commit:output])
   self.assertIn("if ! git diff --cached --quiet; then",text[commit:output])
-  self.assertIn('GITHUB_SHA: ${{ steps.audited_data_commit.outputs.deployment_commit }}',text[rebuild:deploy])
+  self.assertIn('SAGE_DEPLOYMENT_COMMIT: ${{ steps.audited_data_commit.outputs.deployment_commit }}',text[rebuild:deploy])
   self.assertIn("run: npm run build",text[rebuild:deploy])
 
  def test_both_workflows_sync_latest_main_before_production_work(self):
@@ -101,7 +102,7 @@ class DailyEodWorkflowTests(unittest.TestCase):
   verify=text.index("name: Verify live website and write deployment receipt")
   self.assertLess(sync,build);self.assertLess(build,deploy);self.assertLess(deploy,verify)
   self.assertIn('echo "deployment_commit=$(git rev-parse HEAD)"',text[sync:build])
-  self.assertIn('GITHUB_SHA: ${{ steps.production_head.outputs.deployment_commit }}',text[build:deploy])
+  self.assertIn('SAGE_DEPLOYMENT_COMMIT: ${{ steps.production_head.outputs.deployment_commit }}',text[build:deploy])
   self.assertIn('--deployment-commit "${{ steps.production_head.outputs.deployment_commit }}"',text[verify:])
   self.assertNotIn('--deployment-commit "$GITHUB_SHA"',text)
 

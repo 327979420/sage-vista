@@ -33,6 +33,9 @@ test("server-renders the Sage Vista application", async () => {
   assert.match(html, /今日研究总览/i);
   assert.match(html, /Sage Vista UI v6\.1/);
   assert.match(html, /Build (?:local|[0-9a-f]{7})/);
+  const expectedCommit = process.env.SAGE_DEPLOYMENT_COMMIT ?? process.env.GITHUB_SHA ?? "local";
+  const buildMarker = html.match(/<span>(Build [^<]+)<\/span>/)?.[1];
+  assert.equal(buildMarker, `Build ${expectedCommit.slice(0, 7)}`);
   assert.doesNotMatch(html, /US Equity Signals|SIGNAL BOARD/i);
   assert.doesNotMatch(html, /DISCORD_WEBHOOK_URL|EODHD_API_TOKEN/i);
 });

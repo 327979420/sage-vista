@@ -55,3 +55,15 @@
 方案仅改测试：历史8/28计数/门票用已固定Git提交14fef535的原文件，日期和1337/31断言保留；当前ledger从原输入events/cases取得精确预期数量并逐条核验payload、字节不变及禁止formal升格；当前文件适配和manifest用同批status真实日期并核验各原件日期/哈希；未来研究coverage设为源日期+1日，缺source反例恢复到源日期，daily未来标记反例也先恢复原日期，防止因另一错误误通过。用内存读取覆盖模拟9/4和再推进一天，只改变测试输入，不写public、不复制历史库、不改业务合同/算法。首次失败永久保留；不做缓存优化或重复dispatch。
 
 结果：共享合同、M02消费者、M09共70项通过15.103秒；独立内存日期/记录增长模拟通过5.481秒（源日期至少9/4，再推进一天，调用6个相关断言用例，磁盘15份发布原件哈希保持不变）。把错日期也改为源日减1后，只复跑受影响的模拟和反例2项，通过5.866秒。模拟不是重建真实会话或formal数据，固定历史用例通过Git精确提交读取，现有daily-eod完整历史checkout已满足。未重复794项全组、未下载庞大历史库、未dispatch或部署。
+
+## 已部署后的构建身份定点补修
+
+第二次真实运行34083265496已生成并提交9/4数据0527b97cea79f8f519cf6d53b1bbcd06aeb704d6，测试、构建及Cloudflare部署成功；部署版本48dffeff-3ea2-4562-9147-cd1f57002ed5。最终线上提交标记核验12次失败，正式verified收据尚未成功。用户现场确认Build为64ccc0c，即工作流启动提交；不能把已部署写成全部交付完成。
+
+根因证据：[GitHub默认环境变量规则](https://docs.github.com/en/actions/reference/workflows-and-actions/variables)不允许覆盖GITHUB_*；工作流env日志虽显示0527，实际页面仍为启动SHA。独立本地普通shell覆盖可成功，含旧SHA先npm test（11项JS通过）、新SHA再build、直接worker.fetch及带deployment查询的SSR均输出精确Build 0527b97；无React注释拆分，dist/client无HTML。不能因此放宽校验或将expected改为64ccc0c。
+
+审核任务按用户已授权网站恢复目标明确转交此定点补修。基线先核远端main精确为0527b97并快进独立修复树。唯一负责人仍为M12现有网站构建/交付边界（不是未审formal运行时）：daily-eod重建与deploy-site构建均以自有SAGE_DEPLOYMENT_COMMIT接收各自实际deployment_commit；Vite优先用此值生成原有Build常量，缺省仍回退GITHUB_SHA/local。输入为既有实际Git提交，输出仍为原七位页面Build及原精确预期SHA收据；无数据迁移、无新合同版本、无业务语义变化。
+
+范围仅vite.config.ts、两个现有发布工作流、对应构建/工作流/线上核验反例测试及本卡/CR；不改校验器、页面、公开数据、模型、排行、历史、通知或M12 formal。验收：GITHUB_SHA=64ccc0c与自有变量0527同时存在时实际编译SSR必须为0527；旧64ccc0c及任意其他SHA必须仍被线上校验拒绝；两个入口均绑定各自实际提交、禁止重写保留GITHUB_SHA；缺自有变量的既有构建回退保留。单包≤20分钟。失败回退本补丁并保留身份核验失败，不伪造成功收据。交精确提交供独立复核后，由审核侧复用main已有9/4数据运行网站专用发布；执行侧不重复dispatch或推送，不重新采集数据。
+
+补修本地结果：GITHUB_SHA=64ccc0cd7bc4b4e9033bf955148eb509f37f789b与SAGE_DEPLOYMENT_COMMIT=0527b97cea79f8f519cf6d53b1bbcd06aeb704d6同时传入npm test，lint/typecheck/build及11项JS全部通过；新增SSR断言精确比较实际Build与预期自有提交，而非仅检查任意七位标记。27项工作流/线上收据/CR055回归和12项项目状态检查通过；实际加载Vite配置验证自有值优先、GITHUB_SHA回退及local回退三种情况全部通过。原线上校验器不变，0527正例通过，64ccc及0000000反例均失败关闭。两份YAML解析和差异格式通过。公开数据及机器状态无变更，工作包待独立复核；执行侧未推送、dispatch、部署或发送Discord。

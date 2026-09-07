@@ -149,7 +149,7 @@ jobs:
       - name: Rebuild production website for deployment commit
         if: steps.update_result.outputs.needs_release == 'true'
         env:
-          GITHUB_SHA: ${{ steps.audited_data_commit.outputs.deployment_commit }}
+          SAGE_DEPLOYMENT_COMMIT: ${{ steps.audited_data_commit.outputs.deployment_commit }}
         run: npm run build
       - name: Upload safe preview artifact
         if: steps.update_result.outputs.needs_release == 'true'

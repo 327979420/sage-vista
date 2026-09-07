@@ -37,7 +37,8 @@
 - 基线：独立worktree从main14fef535建立，不混CR054或M12未审实现。
 - 范围：空周期变量修复不改评分/排序；网站更新默认不通知，显式通知能力保留，本轮不用。UI运维规则1.16.1先行；行为保持修复不另开收益实验。
 - 首轮运行34082002517已过数据/排行/ledger，在794项Python中因5项旧日期/数量测试假设失败（10跳过）；补修仅固定历史原件及当前输入期望，并验证日期推进。业务代码、公开数据和通知边界不改，交独立审核后再由审核方统一重跑。
-- 设计、复现及回退：[EOD_WEBSITE_RECOVERY_MINIMAL_CARD_ZH.md](EOD_WEBSITE_RECOVERY_MINIMAL_CARD_ZH.md)。9/4远端真实生成成功，排行崩溃阻断部署；生产仍8/28，尚未执行本轮发布。
+- 第二次运行34083265496已将9/4真实数据0527b97提交并部署，但用户现场Build为工作流启动SHA64ccc0c，正式身份核验失败。按审核转交授权，两个发布入口改用自有SAGE_DEPLOYMENT_COMMIT传实际提交并由Vite优先编译，保留GITHUB_SHA/local回退；校验器和公开数据不改，错误SHA仍拒绝。独立树先快进0527b97，再交补修精确SHA审核；尚非implemented。
+- 设计、复现及回退：[EOD_WEBSITE_RECOVERY_MINIMAL_CARD_ZH.md](EOD_WEBSITE_RECOVERY_MINIMAL_CARD_ZH.md)。
 
 > 整理边界：CR-2026-08-30-038及其交接Prompt本轮暂不纳入治理文档整理；原始内容完整保存在救援分支`rescue/local-work-2026-08-31-b14ec55`，没有删除。
 
