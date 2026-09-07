@@ -1475,3 +1475,11 @@ ef6b51f正式66项Node五文件组通过20.574秒（原恢复桥3.169秒、原�
 失败保留：b372423首次新桥失败execution_process_failed（3.875秒）；临时合成诊断沿原验证器定位到夹具run_id=runner-1不符合平台ID格式。ef6b51f改为规范合成ID=2，唯一验证规则及worker源码守门未变。三次预定旧桥诊断未复现原间歇停顿；新增显式diagnostic_stall验证超时保留Python栈并SIGKILL回收，不代表解释或消除了旧停顿。固定次数后停止诊断，未以无限重试换取通过。
 
 本地runner现在只检查原300秒租约，不绕过受信身份边界直接续租；较早的身份/租约截止会先于10分钟Job预算终止。预算终止后的完整yield/失败分类、可信续租和跨Job恢复调度仍须后续完成。固定next_pair仅证明原执行可推进，不证明M10窗口成熟；真实EOD未接，不能解除等待闸门。解释器配置只来自可信宿主安装、没有任务参数或公开RPC，当前使用本地Python，不是云运行安装或真实来源认证。原M10依赖收据、完整成熟来源和后续四页发布仍待接，未修改业务算法、旧夜间断点、供应商数据、main或生产入口；本任务未推送、合并、部署、生产启用或通知，待阶段独立审核。
+
+### D1c独立测试输入传输阻断：有限文件stdin
+
+审核e74ec4f正式66项为65通过/1失败（34.539秒），不得写成本轮整体通过。失败旧恢复桥prepare超时17.207秒：两次5秒栈一致停在Python3.14 json/__init__.py:298 load → m12_execution_history_fixture.py:19 json.load(sys.stdin)，调用方spawnSync位于测试171—177行、prepare调用192行；本次未进入恢复业务。已从原因不可见推进到可观测的测试stdin读取/EOF边界；尚未确定Node/OS触发条件，也不据此排除所有业务问题。原固定库存8.050秒、新runner7.597秒、显式stall1.506秒及19治理0.014秒独立分次通过，旧失败记录保留。
+
+只修改测试传输：spawnWithFileInput在私有临时目录中以wx/0600保存完全相同的Uint8Array，写FD关闭后以只读文件FD作为stdin；不传spawnSync.input、不更改JSON字段、base64原件或Python json.load。普通文件由文件长度提供有限EOF，不等待父管道关闭通知；父进程finally关闭FD并清除目录，异常和超时同样清理。保持原15秒/45秒上限、SIGKILL及5秒faulthandler，不改生产compute传输、源码守门或业务语义。
+
+预先固定三次旧桥核验全部通过，业务测试耗时3.112、3.014、3.038秒。首轮同时验证1MiB以上含非ASCII/NUL/换行的输入size/SHA逐字节一致，stdin为只读普通文件，二次读立即EOF；显式stall仍得到ETIMEDOUT、SIGKILL及Python栈。三轮后只运行一次完整相关组，不再循环到绿。eslint及diff检查通过，rule10版本不变。

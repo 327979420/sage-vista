@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { spawnWithFileInput } from './m12-file-stdin.mjs';
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync, readdirSync } from 'node:fs';
@@ -167,10 +168,9 @@ test('SQL failure between pair and log rolls back head and both records', async 
 });
 
 test('actual original Python producers recover frozen inputs and paired checkpoints after file and SQLite reopen', async t => {
-  const { spawnSync } = await import('node:child_process');
   const python = value => {
-    const result = spawnSync('python3', ['-B', '-W', 'error::ResourceWarning', 'tests/m12_execution_history_fixture.py'], {
-      input: JSON.stringify(value), encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
+    const result = spawnWithFileInput('python3', ['-B', '-W', 'error::ResourceWarning', 'tests/m12_execution_history_fixture.py'], Buffer.from(JSON.stringify(value)), {
+      encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
       timeout: value.operation === 'fixed_execution' ? 45000 : 15000, killSignal: 'SIGKILL',
       env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1', PYTHONPATH: 'tests:.' },
     });
@@ -237,10 +237,9 @@ test('async writes retain the original trusted identity deadline despite caller 
 
 test('registered source inventory to actual fixed computation and atomic result/pair receipt survives restart', async t => {
   const { ExecutionComputationSession } = await import('../services/publication/execution_session.mjs');
-  const { spawnSync } = await import('node:child_process');
   const python = value => {
-    const result = spawnSync('python3', ['-B', '-W', 'error::ResourceWarning', 'tests/m12_execution_history_fixture.py'], {
-      input: JSON.stringify(value), encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
+    const result = spawnWithFileInput('python3', ['-B', '-W', 'error::ResourceWarning', 'tests/m12_execution_history_fixture.py'], Buffer.from(JSON.stringify(value)), {
+      encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
       timeout: value.operation === 'fixed_execution' ? 45000 : 15000, killSignal: 'SIGKILL',
       env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1', PYTHONPATH: 'tests:.' },
     });
@@ -357,8 +356,8 @@ test('local fixed runner checkpoints actual receipts and resumes after checkpoin
   const pythonPath = spawnSync('python3', ['-c', 'import sys;print(sys.executable)'], { encoding: 'utf8', timeout: 5000 });
   assert.equal(pythonPath.status, 0);
   const pythonExecutable = pythonPath.stdout.trim();
-  const source = spawnSync(pythonExecutable, ['-B', 'tests/m12_execution_history_fixture.py'], {
-    input: JSON.stringify({ operation: 'source_fixture', prior_source: true }), encoding: 'utf8', timeout: 15000, killSignal: 'SIGKILL',
+  const source = spawnWithFileInput(pythonExecutable, ['-B', 'tests/m12_execution_history_fixture.py'], Buffer.from(JSON.stringify({ operation: 'source_fixture', prior_source: true })), {
+    encoding: 'utf8', timeout: 15000, killSignal: 'SIGKILL',
     maxBuffer: 32 * 1024 * 1024, env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1', PYTHONPATH: 'tests:.' },
   });
   assert.equal(source.status, 0, source.stderr);
@@ -408,9 +407,8 @@ test('local fixed runner checkpoints actual receipts and resumes after checkpoin
 });
 
 test('synthetic bridge timeout retains a Python stack and reaps the stalled child', async () => {
-  const { spawnSync } = await import('node:child_process');
-  const result = spawnSync('python3', ['-B', 'tests/m12_execution_history_fixture.py'], {
-    input: JSON.stringify({ operation: 'diagnostic_stall' }), encoding: 'utf8', timeout: 1500, killSignal: 'SIGKILL',
+  const result = spawnWithFileInput('python3', ['-B', 'tests/m12_execution_history_fixture.py'], Buffer.from(JSON.stringify({ operation: 'diagnostic_stall' })), {
+    encoding: 'utf8', timeout: 1500, killSignal: 'SIGKILL',
     env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1', PYTHONPATH: 'tests:.' },
   });
   assert.equal(result.error.code, 'ETIMEDOUT');
@@ -418,4 +416,16 @@ test('synthetic bridge timeout retains a Python stack and reaps the stalled chil
   assert.match(result.stderr, /Timeout.*\nThread/s);
   assert.match(result.stderr, /m12_execution_history_fixture.py/);
   assert.equal(result.stdout, '');
+});
+
+test('fixture stdin is a finite read-only regular file preserving exact large bytes', () => {
+  const raw = Buffer.concat([Buffer.from('原件\u0000\r\n 100.0 '), Buffer.alloc(1024 * 1024, 0xab)]);
+  const result = spawnWithFileInput('python3', ['-B', '-c',
+    'import sys,os,stat,fcntl,hashlib,json; raw=sys.stdin.buffer.read(); print(json.dumps({"regular":stat.S_ISREG(os.fstat(0).st_mode),"readonly":fcntl.fcntl(0,fcntl.F_GETFL)&os.O_ACCMODE==os.O_RDONLY,"size":len(raw),"sha":hashlib.sha256(raw).hexdigest(),"eof":sys.stdin.buffer.read()==b""}))'], raw,
+    { encoding: 'utf8', timeout: 15000, killSignal: 'SIGKILL' });
+  assert.equal(result.status, 0, result.stderr);
+  const read = JSON.parse(result.stdout);
+  assert.equal(read.regular, true); assert.equal(read.readonly, true); assert.equal(read.eof, true);
+  assert.equal(read.size, raw.length);
+  return crypto.subtle.digest('SHA-256', raw).then(hash => assert.equal(read.sha, Buffer.from(hash).toString('hex')));
 });
