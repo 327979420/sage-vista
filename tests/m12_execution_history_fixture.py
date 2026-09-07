@@ -18,6 +18,14 @@ def main():
         ExecutionInventoryTests.setUpClass()
         fixture = ExecutionInventoryTests()
         fixture.setUp()
+        if value.get('prior_source'):
+            import subprocess
+            from services.publication.configuration import build_research_configuration
+            from services.publication.execution_inventory import encode_execution_source_root
+            from services.publication.execution_history import _signal
+            prior = subprocess.check_output(['git', 'rev-parse', 'HEAD~1'], text=True).strip()
+            fixture.root_bytes = encode_execution_source_root(build_research_configuration(prior).raw_bytes, encode(fixture.inputs))
+            fixture.snapshot['root']['task_id'] = execution_task_id(_signal(fixture.root_bytes))
         result = {'task_id': fixture.snapshot['root']['task_id'], 'root_bytes': b64(fixture.root_bytes),
             'commit': fixture.commit, 'request_bytes': b64(encode({'as_of': '2026-09-01', 'sessions_by_instrument': {},
                 'entry_reads': {}, 'completed_reads': {}, 'generated_at': '2026-09-01T23:15:00Z'}))}

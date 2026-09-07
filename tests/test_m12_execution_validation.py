@@ -56,7 +56,7 @@ class ExecutionValidationTests(unittest.TestCase):
         value = copy.deepcopy(self.value)
         value['objects'] = {}
         with self.assertRaises(ContractError): validate_execution_input(encode(value), clock=lambda: self.now)
-        for change in ({'command': 'other'}, {'protocol': 'other'}, {'request_bytes': 'not base64'}):
+        for change in ({'command': 'other'}, {'compatible': True}, {'protocol': 'other'}, {'request_bytes': 'not base64'}):
             with self.subTest(change=change), self.assertRaises(ContractError):
                 execution_computation_input(encode({**self.value, **change}))
 
@@ -76,3 +76,45 @@ class ExecutionValidationTests(unittest.TestCase):
         self.assertEqual(result['task_id'], self.fixture.snapshot['root']['task_id'])
         self.assertEqual(result['input_sha256'], 'sha256:' + hashlib.sha256(raw).hexdigest())
         self.assertIsNotNone(result['next_pair'])
+
+    def test_prior_source_configuration_keeps_original_ref_with_current_runtime(self):
+        from services.publication.configuration import build_research_configuration
+        from services.publication.execution_inventory import encode_execution_source_root
+        from services.publication.execution_history import _signal, execution_task_id
+        from tests.test_m12_execution_history import put
+        import subprocess
+        prior = subprocess.check_output(['git', 'rev-parse', 'HEAD~1'], text=True).strip()
+        config = build_research_configuration(prior)
+        original = encode_execution_source_root(config.raw_bytes, encode(self.fixture.inputs))
+        objects = {}
+        value = copy.deepcopy(self.value)
+        value['snapshot'] = {'root': {'task_id': execution_task_id(_signal(original)), 'root': put(objects, original)},
+                             'revision': 0, 'history': []}
+        value['objects'] = {key: base64.b64encode(raw).decode() for key, raw in objects.items()}
+        result = json.loads(validate_execution_input(encode(value), clock=lambda: self.now))
+        inventory = json.loads(base64.b64decode(result['inventory_bytes']))
+        self.assertEqual(inventory['config_ref'], dict(config.config_ref))
+        self.assertNotEqual(prior, value['identity']['code_commit'])
+
+    def test_changed_policy_or_business_definition_rejected_even_with_same_versions(self):
+        from services.contracts.market_data import canonical_fingerprint
+        from tests.test_m12_execution_history import put
+        for mutation in ('policy', 'definition'):
+            with self.subTest(mutation=mutation):
+                root = json.loads(self.fixture.root_bytes)
+                config = json.loads(base64.b64decode(root['sources']['configuration_bytes']))
+                if mutation == 'policy':
+                    policy = config['policies']['M08.plan']
+                    policy['rules']['maximum_loss_fraction'] = 0.2
+                    policy['policy_fingerprint'] = canonical_fingerprint({k: v for k, v in policy.items() if k != 'policy_fingerprint'})
+                    self.assertEqual(policy['policy_version'], '1.0.0')
+                else:
+                    config['definition_sources'][0]['source_blob'] = 'a' * 40
+                    config['definition_sources'][0]['sha256'] = 'sha256:' + 'a' * 64
+                root['sources']['configuration_bytes'] = base64.b64encode(encode(config)).decode()
+                objects = {}
+                value = copy.deepcopy(self.value)
+                value['snapshot']['root']['root'] = put(objects, encode(root))
+                value['objects'] = {key: base64.b64encode(raw).decode() for key, raw in objects.items()}
+                with self.assertRaisesRegex(ContractError, 'frozen business configuration'):
+                    validate_execution_input(encode(value), clock=lambda: self.now)

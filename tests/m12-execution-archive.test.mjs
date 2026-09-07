@@ -245,7 +245,7 @@ test('registered source inventory to actual fixed computation and atomic result/
     assert.equal(result.status, 0, result.stderr);
     return JSON.parse(result.stdout);
   };
-  const fixture = python({ operation: 'source_fixture' });
+  const fixture = python({ operation: 'source_fixture', prior_source: true });
   const start = Date.now(), env = setup(t, start);
   const rootIdentity = { ...IDENTITY, issued_at: Math.floor(start / 1000) - 1, expires_at: Math.floor(start / 1000) + 300 };
   await env.store.register(rootIdentity, env.daily, DAILY, fixture.task_id, new Uint8Array(Buffer.from(fixture.root_bytes, 'base64')));
@@ -278,6 +278,8 @@ test('registered source inventory to actual fixed computation and atomic result/
   session = new ExecutionComputationSession(env.storage, env.bucket, { clock: () => Date.now() });
   const receipt = await session.accept(identity, owned, prepared.input.sha256, output);
   assert.equal(receipt.snapshot.revision, 1);
+  const frozenPair = Object.fromEntries(['input', 'object', 'link'].map(key => [key, readFileSync(join(env.root, 'archive', receipt.snapshot.history[0][key].key)).toString('base64')]));
+  assert.equal(readFileSync(join(env.root, 'archive', receipt.snapshot.root.root.key)).toString('base64'), fixture.root_bytes);
   assert.deepEqual(await session.accept(identity, owned, prepared.input.sha256, output), receipt);
   const second = await session.prepare(identity, owned, fixture.task_id, new Uint8Array(Buffer.from(fixture.request_bytes, 'base64')));
   const after = python({ operation: 'fixed_execution', input_bytes: Buffer.from(second.input_bytes).toString('base64') });
@@ -285,6 +287,8 @@ test('registered source inventory to actual fixed computation and atomic result/
   assert.equal(JSON.parse(new TextDecoder().decode(afterBytes)).next_pair, null);
   const final = await session.accept(identity, owned, second.input.sha256, afterBytes);
   assert.equal(final.snapshot.revision, 1);
+  assert.deepEqual(Object.fromEntries(['input', 'object', 'link'].map(key => [key, readFileSync(join(env.root, 'archive', final.snapshot.history[0][key].key)).toString('base64')])), frozenPair);
+  assert.equal(readFileSync(join(env.root, 'archive', final.snapshot.root.root.key)).toString('base64'), fixture.root_bytes);
   env.storage.db.exec('DELETE FROM m12_execution_validation_results; DELETE FROM m12_execution_validation_result_log');
   await assert.rejects(session.accept(identity, owned, second.input.sha256, afterBytes), /recovery_required/);
 });
