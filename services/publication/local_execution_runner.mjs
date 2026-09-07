@@ -6,7 +6,6 @@ import { fileURLToPath } from 'node:url';
 import { ExecutionComputationSession } from './execution_session.mjs';
 import { ExecutionScheduler } from './execution_scheduler.mjs';
 import { ExecutionTaskArchive } from './execution_archive.mjs';
-import { LeaseStore } from './leases.mjs';
 const WORKER = fileURLToPath(new URL('./preparation_validation_worker.py', import.meta.url));
 const ROOT = dirname(dirname(dirname(WORKER)));
 
@@ -52,19 +51,18 @@ function compute(python, raw, deadline, signal, check) {
 }
 
 export class LocalExecutionRunner {
-  #storage; #bucket; #python; #session; #tasks; #leases;
+  #storage; #bucket; #python; #session; #tasks;
   constructor(storage, bucket, { pythonExecutable } = {}) {
     if (typeof pythonExecutable !== 'string' || !isAbsolute(pythonExecutable)) throw new Error('execution_installed_python_required');
     this.#storage = storage; this.#bucket = bucket; this.#python = pythonExecutable;
     this.#session = new ExecutionComputationSession(storage, bucket);
     this.#tasks = new ExecutionTaskArchive(storage, bucket);
-    this.#leases = new LeaseStore(storage);
   }
   async runTask(identity, token, taskId, requestBytes, { signal } = {}) {
     identity = structuredClone(identity); token = structuredClone(token);
     if (!(requestBytes instanceof Uint8Array)) throw new Error('execution_request_bytes_required');
     const request = new Uint8Array(requestBytes);
-    let dispatched, renewedAt = Date.now();
+    let dispatched;
     const scheduler = new ExecutionScheduler(this.#storage, this.#bucket, {
       readiness: async (initial, budget) => {
         if (Date.now() >= budget.deadline_ms) throw new Error('execution_job_budget_exhausted');
@@ -83,9 +81,6 @@ export class LocalExecutionRunner {
     let checkpoint = null;
     for (;;) {
       if (signal?.aborted) throw new Error('execution_cancelled');
-      if (Date.now() - renewedAt >= 60000) {
-        this.#leases.renew('execution/' + taskId, identity.job, token); renewedAt = Date.now();
-      }
       const pending = scheduler.list().find(item => item.snapshot.root.task_id === taskId)?.schedule;
       if (pending?.state.state === 'running' && pending.dispatch_input_sha) {
         const bounded = { ...identity, expires_at: Math.min(identity.expires_at, pending.original_expires_at,
