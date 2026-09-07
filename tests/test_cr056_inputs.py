@@ -3,7 +3,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from services.scanner.cr056_inputs import merge_recent_history, repair_existing_cache
+from services.scanner.cr056_inputs import merge_recent_history, repair_existing_cache, normalized_comparison_rows
 
 
 def bar(day, adjustment=10):
@@ -61,3 +61,15 @@ class InputRepairTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'separate_from_original'):
                 repair_existing_cache(cache, cache.parent, as_of='2026-09-04',
                                       fetch_bulk=lambda d: self.fail('must reject before supplier'))
+
+    def test_adjustment_preserves_equal_prices_without_tolerance(self):
+        raw = dict(date='2026-09-04', open=1.03, high=1.03, low=1.02,
+                   close=1.03, adjusted_close=.45, volume=100)
+        result = normalized_comparison_rows([raw], as_of=raw['date'])[0]
+        self.assertEqual(result['high'], .45)
+        self.assertEqual(result['open'], .45)
+        # A genuine raw OHLC violation must fail before any equality repair.
+        with self.assertRaisesRegex(ValueError, 'raw OHLC relationship'):
+            normalized_comparison_rows([dict(raw, high=1.02)], as_of=raw['date'])
+        with self.assertRaisesRegex(ValueError, 'future_rows'):
+            normalized_comparison_rows([raw], as_of='2026-09-03')

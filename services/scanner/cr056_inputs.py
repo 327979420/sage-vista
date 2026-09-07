@@ -9,10 +9,22 @@ import hashlib
 import json
 import math
 from pathlib import Path
-from services.scanner.macd_factor_backtest import adjusted_rows
-from services.market_data.normalization import validate_adjusted_rows
+from services.market_data.normalization import adjusted_point_in_time_rows, validate_adjusted_rows
 from services.market_data.storage import require_shadow_root
 
+
+
+def normalized_comparison_rows(raw, *, as_of):
+    """Use strict M02 raw validation; preserve exact raw-close price equalities."""
+    raw = list(raw)
+    rows = adjusted_point_in_time_rows(raw, as_of=as_of)
+    if len(rows) != len(raw):
+        raise ValueError('comparison_input_contains_future_rows')
+    for original, adjusted in zip(raw, rows):
+        for field in ('open', 'high', 'low'):
+            if original[field] == original['close']:
+                adjusted[field] = original['adjusted_close']
+    return validate_adjusted_rows(rows)
 
 def merge_recent_history(raw, bulk_by_day, *, as_of, expected_sessions):
     """Pure merge with adjustment-anchor checks; stale identities are not revived."""
@@ -43,10 +55,7 @@ def merge_recent_history(raw, bulk_by_day, *, as_of, expected_sessions):
     if any(day not in before for day in needed) or as_of not in before:
         raise ValueError('recent_session_missing')
     output = [before[day] for day in sorted(before)]
-    normalized = adjusted_rows(output)
-    if len(normalized) != len(output):
-        raise ValueError('cached_ohlcv_invalid')
-    validate_adjusted_rows(normalized)
+    normalized_comparison_rows(output, as_of=as_of)
     return output
 
 

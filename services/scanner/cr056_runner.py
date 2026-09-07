@@ -11,7 +11,6 @@ from pathlib import Path
 import subprocess
 from services.contracts.cr056_policy import POLICY_VERSION, POLICY_FINGERPRINT
 from services.contracts.market_data import canonical_fingerprint
-from services.market_data.normalization import validate_adjusted_rows
 from services.market_data.storage import require_shadow_root
 from services.gates.baseline import exact_daily_macd_bull_cross, MIN_HISTORY_SESSIONS, MIN_CLOSE, MIN_DOLLAR_VOLUME
 from services.factors.cr056 import collect_direction_facts
@@ -19,7 +18,7 @@ from services.selectors.cr056 import assess_permission
 from services.ranking.cr056 import score_candidate
 from services.ledger.cr056 import review_watch
 from services.scanner.factor_detectors import evaluate_all_factors
-from services.scanner.macd_factor_backtest import adjusted_rows
+from services.scanner.cr056_inputs import normalized_comparison_rows
 
 
 def historical_origins(history, *, as_of):
@@ -66,9 +65,7 @@ def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previo
             if hashlib.sha256(content).hexdigest() != source['repaired_sha256']:
                 raise ValueError('repaired_source_hash_mismatch')
             raw = json.loads(content)
-            rows = adjusted_rows(raw)
-            if len(rows) != len(raw): raise ValueError('invalid_cached_ohlcv')
-            rows = validate_adjusted_rows(rows)
+            rows = normalized_comparison_rows(raw, as_of=as_of)
             if not rows or rows[-1]['date'] != as_of: raise ValueError('source_date_mismatch')
             input_fp = canonical_fingerprint(list(rows))
             item['input_fingerprint'] = input_fp
