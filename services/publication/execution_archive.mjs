@@ -122,6 +122,7 @@ export class ExecutionTaskArchive {
     return this.#archive.read(value.key, { sha256: value.sha256, size_bytes: value.size_bytes });
   }
   async register(identity, token, dailyResource, taskId, rootBytes) {
+    identity = structuredClone(identity); token = structuredClone(token);
     task(taskId);
     if (!dailyResource.startsWith('daily/')) throw new Error('execution_daily_lease_required');
     const catalog = this.#owned(identity, token, dailyResource, () => this.#catalog());
@@ -151,6 +152,7 @@ export class ExecutionTaskArchive {
     });
   }
   async readTask(identity, token, taskId) {
+    identity = structuredClone(identity); token = structuredClone(token);
     const resource = 'execution/' + task(taskId);
     const current = this.#check(identity, token, resource, taskId);
     const objects = new Map();
@@ -163,6 +165,7 @@ export class ExecutionTaskArchive {
     return { current, objects }; // Full server-owned history; not SourceInventory.
   }
   async appendPair(identity, token, taskId, expected, stepId, inputBytes, objectBytes, linkBytes) {
+    identity = structuredClone(identity); token = structuredClone(token);
     const resource = 'execution/' + task(taskId);
     if (typeof stepId !== 'string' || !/^sha256:[a-f0-9]{64}$/.test(stepId)) throw new Error('execution_step_invalid');
     const frozenExpected = structuredClone(expected);

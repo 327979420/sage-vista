@@ -165,3 +165,70 @@ test('SQL failure between pair and log rolls back head and both records', async 
   const result = await env.store.appendPair(IDENTITY, owned, TASK, current, STEP, bytes('i'), bytes('o'), bytes('l'));
   assert.equal(result.revision, 1);
 });
+
+test('actual original Python producers recover frozen inputs and paired checkpoints after file and SQLite reopen', async t => {
+  const { spawnSync } = await import('node:child_process');
+  const python = value => {
+    const result = spawnSync('python3', ['-B', '-W', 'error::ResourceWarning', 'tests/m12_execution_history_fixture.py'], {
+      input: JSON.stringify(value), encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
+      env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1', PYTHONPATH: 'tests:.' },
+    });
+    assert.equal(result.status, 0, result.stderr);
+    return JSON.parse(result.stdout);
+  };
+  const fixture = python({ operation: 'fixture' });
+  const env = setup(t);
+  await env.store.register(IDENTITY, env.daily, DAILY, fixture.task_id, new Uint8Array(Buffer.from(fixture.root_bytes, 'base64')));
+  const owned = token(env.leases.acquire('execution/' + fixture.task_id, JOB, EPOCH));
+  const read = async () => {
+    const value = await env.store.readTask(IDENTITY, owned, fixture.task_id);
+    return { snapshot: value.current, objects: Object.fromEntries([...value.objects].map(([key, raw]) => [key, Buffer.from(raw).toString('base64')])) };
+  };
+  const append = (snapshot, pair) => env.store.appendPair(IDENTITY, owned, fixture.task_id, snapshot, pair.step_id,
+    ...['input_bytes', 'object_bytes', 'link_bytes'].map(key => new Uint8Array(Buffer.from(pair[key], 'base64'))));
+  for (let index = 0; index < 4; index++) {
+    let current = await read();
+    let pair = python({ operation: 'prepare', ...current, request_bytes: fixture.request_bytes }).pairs[0];
+    assert.ok(pair);
+    if (index < 2) {
+      // Both actual plan and actual exit object are archived before failure of
+      // their M09 link. Restart loads the durable head, never the orphan list.
+      env.bucket.failAt = env.bucket.puts + 3;
+      await assert.rejects(append(current.snapshot, pair), /interruption/);
+      env.restart(); env.bucket.failAt = null;
+      current = await read();
+      assert.equal(current.snapshot.revision, index);
+      const recovered = python({ operation: 'restore', ...current });
+      assert.deepEqual(recovered.holding_sessions, []);
+      const replay = python({ operation: 'prepare', ...current, request_bytes: fixture.request_bytes }).pairs[0];
+      assert.deepEqual(replay, pair);
+      pair = replay;
+    }
+    await append(current.snapshot, pair);
+  }
+  env.restart();
+  const current = await read();
+  assert.equal(current.snapshot.revision, 4);
+  const restored = python({ operation: 'restore', ...current });
+  assert.deepEqual(restored.holding_sessions, [1, 2, 3]);
+  assert.deepEqual(restored.entry_dates, ['2026-09-02']);
+  assert.deepEqual(Object.values(restored.confirmed_through), ['2026-09-04']);
+  const before = readdirSync(join(env.root, 'archive/raw')).sort().map(name => [name, readFileSync(join(env.root, 'archive/raw', name)).toString('base64')]);
+  const retry = python({ operation: 'prepare', ...current,
+    request_bytes: fixture.request_bytes, late_retry: true });
+  assert.deepEqual(retry.pairs, []);
+  assert.deepEqual(readdirSync(join(env.root, 'archive/raw')).sort().map(name => [name, readFileSync(join(env.root, 'archive/raw', name)).toString('base64')]), before);
+  t.diagnostic(`original task retained ${before.length} immutable archive files and 4 paired records after restart`);
+});
+
+
+test('async writes retain the original trusted identity deadline despite caller mutation', async t => {
+  const env = setup(t);
+  const identity = { ...IDENTITY, expires_at: IDENTITY.issued_at + 1 };
+  env.bucket.afterGet = () => {
+    identity.expires_at += 3600;
+    env.setTime(NOW + 2000);
+  };
+  await assert.rejects(env.store.register(identity, env.daily, DAILY, TASK, bytes('original root')), /deadline_expired/);
+  assert.equal(env.storage.sql.exec('SELECT * FROM m12_execution_catalog').toArray().length, 0);
+});
