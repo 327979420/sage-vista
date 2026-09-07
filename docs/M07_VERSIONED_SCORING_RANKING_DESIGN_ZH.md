@@ -5,7 +5,7 @@
 - 基线：`8e18263c8ecaf1f29268378881b1739aeea99701`
 - 边界：用户已授权并完成A—E影子实施；本文件不授权部署或生产切换
 
-证据：设计`7fa6e59`、实现`8a773e8`、测试`4c1acdb`、首次审核根因修复`405bd3e`、审核头`2449856`；完整验收见`docs/M07_ACCEPTANCE_REPORT_ZH.md`。`implemented`只表示获批影子范围已经进入主线，不表示权威排行已经上线。
+证据：设计`7fa6e59`、实现`8a773e8`、测试`4c1acdb`、首次审核根因修复`405bd3e`、审核头`2449856`；完整验收见[M07_ACCEPTANCE_REPORT_ZH.md](archive/acceptance-history.md#m07-acceptance-report-zh)。`implemented`只表示获批影子范围已经进入主线，不表示权威排行已经上线。
 
 ## 人话版
 

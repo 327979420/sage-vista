@@ -184,4 +184,4 @@ M08只新增未接默认流程的影子入口。任何固定样本在入场、�
 
 用户已批准三项选择及A—E影子实施。该授权不包含部署、生产切换、M09／M10／M12实施或任何延后实验。
 
-验收证据：设计`c00e4e8`、实现`cc42569`、测试`75a4d3c`、验收记录`43ccc22`；独立审核通过后已纯fast-forward进入`main`，完整结果见`docs/M08_ACCEPTANCE_REPORT_ZH.md`。`implemented`不表示已经部署或生产启用。
+验收证据：设计`c00e4e8`、实现`cc42569`、测试`75a4d3c`、验收记录`43ccc22`；独立审核通过后已纯fast-forward进入`main`，完整结果见[M08_ACCEPTANCE_REPORT_ZH.md](archive/acceptance-history.md#m08-acceptance-report-zh)。`implemented`不表示已经部署或生产启用。

@@ -1,16 +1,16 @@
 # Sage Vista 需求与改动账本
 
-用途：逐条保存用户提出的碎片想法、批准决定和最终交付证据。聊天不是长期权威；业务规则仍以对应 `docs/rules/*.md` 为准。
+用途：逐条保存用户提出的碎片想法、批准决定和最终交付证据。用户最新明确指令优先；业务规则见对应模块，执行流程仅见 [治理规则](rules/01_GOVERNANCE.md)。
 
 ## 状态
 
 - `captured`：已记录，尚待澄清或批准，不允许改变生产。
 - `design_review`：当前流程、目标接入点、接口、影响面和验收标准已经写出，等待用户确认；仍不允许改业务代码。
 - `approved`：用户已明确要求执行，必须先更新对应模块规则。
-- `implementing`：已按获批设计拆成小工作包，正在实现；超出批准范围必须退回设计评审。
+- `implementing`：正在已授权范围内实现；扩大目标或缺少授权时才重新确认。
 - `experimental`：已预登记并正在研究，不能冒充生产结论。
 - `verified`：本地实现与约定测试已经通过，但尚未完成提交、部署或必要线上核验。
-- `implemented`：代码、测试、提交、部署和必要的线上核验均完成。
+- `implemented`：约定交付及适用验证已完成；提交与上线分别记录，本地及文档任务不强制部署。
 - `deferred`：保留但暂缓，写明重新启动条件。
 - `rejected`：明确不采用，保留理由和证据。
 
@@ -29,6 +29,14 @@
 ```
 
 ## 当前条目
+
+### CLEANUP-2026-09-07｜统一文档并清理 GitHub 文件
+
+- 用户原意：中小项目文件与文档过多，要求实际清理并同步 GitHub。
+- 状态：`verified`；基于生产 main `875c1d2` 独立清理，不混入 M12 或 CR056 研发提交。
+- 交付：七份入口说明统一；五份早期产品/技术规格和九份已完成验收分别合成两份按需历史档案，并修正引用；删除无人引用的旧回测交接提示和一次性多年调度脚本。原件留在 Git 历史。
+- 保留：每日更新与现有回测工作流、业务代码、行情、全部实验记录及结果；无生产规则或数据变化。
+- 验收：23项相关既有测试通过；82处文档链接存在；14份归档原文完整（仅调整链接、锚点和行尾空格）；git diff --check通过。普通提交推送，提交身份以 Git 为准；无历史改写、强推或独立部署。
 
 ### CR-2026-09-07-055｜恢复最新真实网站日更并隔离通知
 
@@ -69,7 +77,7 @@
 - 权威性修复：M09案例以事件、稳定证券、信号日和内容指纹绑定，`seen_before`由可信登记派生；用户批准、main实现和M12激活默认失败关闭并须可信解析器；公共存储重复权限校验。Registry只能在库存锁内由完整Proposal／Assessment／Lifecycle库存派生，重签删项或替换不能写入。M12尚未实施，因此真实formal `active`仍不可达。
 - 最终收口：Proposal 2.2必须引用可信预登记冻结记录，完整绑定提议、证据范围和criterion语义；登记时间必须早于每个相关M10 pending根，登记提交与运行提交的先后关系也必须由可信解析器确认。2.2 criterion不允许引用事后Outcome ID／指纹，而以结果族、candidate／baseline、分区、窗口、字段、操作符和阈值匹配权威库存中的唯一结果。旧自由格式或2.0／2.1实验没有该证明，不能自动validated。
 - 实现与产物：`services/playbook/`为唯一影子生产／验证层；四合同、四轴、只读重验M09／M10证据、案例隔离、线性修订、只追加存储和完整库存派生Registry已完成。系统完整性规则与交易alpha红线仍分开；当前真实formal validated、新交易alpha硬规则和active策略均为0。
-- 验证：最终收口后M11专项54项通过；M09—M11联合定向运行251项，通过241项、跳过10项；M01—M11扩大定向运行417项，通过407项、跳过10项；完整Python运行784项，通过774项、跳过10项；四种`PYTHONHASHSEED`每轮54项通过；治理19项、前端11项、Python编译、lint、TypeScript和生产构建通过。原四项权威性攻击及事后预登记、范围／阈值回填和标签越权攻击均失败关闭；完整证据见`docs/M11_ACCEPTANCE_REPORT_ZH.md`。
+- 验证：最终收口后M11专项54项通过；M09—M11联合定向运行251项，通过241项、跳过10项；M01—M11扩大定向运行417项，通过407项、跳过10项；完整Python运行784项，通过774项、跳过10项；四种`PYTHONHASHSEED`每轮54项通过；治理19项、前端11项、Python编译、lint、TypeScript和生产构建通过。原四项权威性攻击及事后预登记、范围／阈值回填和标签越权攻击均失败关闭；完整证据见[M11_ACCEPTANCE_REPORT_ZH.md](archive/acceptance-history.md#m11-acceptance-report-zh)。
 
 ### CR-2026-09-02-050｜M10统一评价、回测与外部研究引擎
 
@@ -88,7 +96,7 @@
 - M10-D独立审核修复：独立审核复现了查询结果可删减后重签、CSV业务字段未绑定payload、OOXML存在额外公式载体、危险隐藏格式可注入以及收据未绑定全部物化语义五个当前阻断点。窄修复统一由冻结库存完整payload重新推导查询全集；从已验证payload生成并复核全部主表／引用子表canonical rows；以命名空间感知的OOXML结构／关系及固定XlsxWriter 3.2.9样式白名单拒绝公式、外链、宏、DDE／OLE和隐藏格式；并由唯一函数以完整Manifest物化语义重算`export_receipt_id`。缺库存payload明确`inventory_evidence_unavailable`，不再宣称离线完整验证。五个审核闸门已经全部通过，原始六项完整重签攻击全部失败关闭；修复没有增加查询功能、收益计算、生产入口或非阻断排版优化。
 - M10-E最小设计与主线实现：formal配置合同为`ResearchRunConfig 2.0.0`，来源版本为`m10-e-cli-1.0.0`。唯一非交互影子入口固定为`python3 -m research.run --config <versioned-config.json>`，一份配置只选择一个结果族操作，并严格绑定日期、路径／角色／分区、数据／股票池、上游稳定引用、政策、生产器来源、结果合同、存储、显式work unit、可选导出、代码提交和预期结果全集；禁止`latest/today`、隐藏环境选择、formal自动回退和脏提交。M10-E只编排现有A—D公共接口，不计算新事实、不移动legacy夜间断点。独立`ResearchRunCheckpoint 2.0.0`只保存非终态编排进度，不改变ExperimentRun或M10-A—D结果语义。独立审核复现的四项阻断已由`a0ab77c332995bb2710faa9d3ee946285c1cf0d1`关闭：bundle/query的M10-C来源均从配置store解析唯一当前且已完成的Outcome；异常后由唯一磁盘盘点重建实际结果、工作单元和摘要；ExperimentRun成为唯一终态，checkpoint只允许`in_progress/ready_to_finalize`；bool、float、字符串和Decimal均不能冒充整数。最终极小修复`7e2dcc0c66704d278974525eb4bdd33a4cd93ad1`进一步明确：结果完整而completed收据未落盘不属于业务失败，保持`pending + ready_to_finalize`，同配置不加载bundle或重跑生产器，只重试finalize；若收据已落盘后抛错则重读并按completed返回。最终极窄复核确认写入前失败、只finalize重试、写入后抛错、持续失败、两个独立进程并发以及错误ready证据全部守恒；审核代码HEAD`34c3cfec1662ddd301552822eb919bb2dd84d12d`已纯fast-forward进入`main`。
 - 实验：本条不批准资金分配、评分、排行、持仓或退出新政策。30→60→126日、部分止盈、追踪退出等既有`deferred_experiment`继续关闭；组合政策和外部引擎接入仍须另行批准。
-- 实现与产物：M10-A和M10-B已按上述提交链进入`main`，且全部只使用固定合成样本。M10-C设计冻结于`dbcdcf6`，唯一只读生产层和合同／存储边界实现于`041e6be`，固定样本回归于`a08dd33`，审核代码HEAD为`7bb635617ddcfb06277d23269cca9fdfe4cadb8d`；新formal `PortfolioRun 2.1.0`只保存验证后的TradeOutcome引用并明确`unavailable`，`ResearchAggregate 2.1.0`只读单一口径的已冻结`gross_return`。旧`2.0.0`原字段只读，新生产／运行／存储只接受`2.1.0`+`m10-c-readonly-1.0.0`。M10-C已通过独立审核并纯fast-forward进入`main`。M10-D设计冻结于`b90c269`，原子查询／Manifest／CSV实现于`e7c649f`，精确锁定XLSX审核副本实现于`ee6d596`，逐格一致与安全复核实现于`d682897`，审核修复为`61de04e`，审核代码HEAD为`f91a6fa5773561354b255f9217679f237b0f7017`；全部只使用固定合成样本和临时目录，已经独立审核并纯fast-forward进入`main`。M10-E设计冻结提交为`2517fa6`，配置合同提交为`b22da0a`，CLI／检查点／续跑／并发实现提交为`dbde7fc61c1dcac0959c838552b23051d114b361`，审核修复为`a0ab77c332995bb2710faa9d3ee946285c1cf0d1`，terminal finalize修复为`7e2dcc0c66704d278974525eb4bdd33a4cd93ad1`，最终审核代码HEAD为`34c3cfec1662ddd301552822eb919bb2dd84d12d`；全部只使用固定合成样本和临时目录，已经独立审核并纯fast-forward进入`main`，没有写入`public/`、`automation/`或生产状态。验收见`docs/M10_ACCEPTANCE_REPORT_ZH.md`。
+- 实现与产物：M10-A和M10-B已按上述提交链进入`main`，且全部只使用固定合成样本。M10-C设计冻结于`dbcdcf6`，唯一只读生产层和合同／存储边界实现于`041e6be`，固定样本回归于`a08dd33`，审核代码HEAD为`7bb635617ddcfb06277d23269cca9fdfe4cadb8d`；新formal `PortfolioRun 2.1.0`只保存验证后的TradeOutcome引用并明确`unavailable`，`ResearchAggregate 2.1.0`只读单一口径的已冻结`gross_return`。旧`2.0.0`原字段只读，新生产／运行／存储只接受`2.1.0`+`m10-c-readonly-1.0.0`。M10-C已通过独立审核并纯fast-forward进入`main`。M10-D设计冻结于`b90c269`，原子查询／Manifest／CSV实现于`e7c649f`，精确锁定XLSX审核副本实现于`ee6d596`，逐格一致与安全复核实现于`d682897`，审核修复为`61de04e`，审核代码HEAD为`f91a6fa5773561354b255f9217679f237b0f7017`；全部只使用固定合成样本和临时目录，已经独立审核并纯fast-forward进入`main`。M10-E设计冻结提交为`2517fa6`，配置合同提交为`b22da0a`，CLI／检查点／续跑／并发实现提交为`dbde7fc61c1dcac0959c838552b23051d114b361`，审核修复为`a0ab77c332995bb2710faa9d3ee946285c1cf0d1`，terminal finalize修复为`7e2dcc0c66704d278974525eb4bdd33a4cd93ad1`，最终审核代码HEAD为`34c3cfec1662ddd301552822eb919bb2dd84d12d`；全部只使用固定合成样本和临时目录，已经独立审核并纯fast-forward进入`main`，没有写入`public/`、`automation/`或生产状态。验收见[M10_ACCEPTANCE_REPORT_ZH.md](archive/acceptance-history.md#m10-acceptance-report-zh)。
 - M10-E修复验证：最终专项40项、M10 A—E相关定向178项（其中10项按现有隔离依赖条件跳过）、M01—M10扩大定向363项（其中10项跳过）和完整Python 730项（其中10项跳过）通过；四种固定`PYTHONHASHSEED`下M10-E每轮40项、治理19项及前端11项通过。Python编译、lint、TypeScript、生产构建、文档链接和差异格式检查通过；测试前后旧生产断点字节不变。固定反例覆盖空store裸Outcome、bundle副本篡改、保存5项后抛错、checkpoint写入失败、completed收据写入前失败、写入后抛错、terminal持续不可写、同配置单次及并发只finalize、损坏结果禁止finalize、严格整数和bundle/query同源；所有摘要和终态均由实际磁盘证据重建。
 - M10-D验证：专项25项、M10 A—D相关定向130项、M08—M10 164项、M01—M10扩大定向315项、完整Python 682项及四种固定哈希种子每轮25项通过；治理19项和前端11项通过，Python编译、隔离依赖完整性、lint、TypeScript、生产构建、文档链接及格式检查通过。查询与库存原子性、`all/current`、CSV／XLSX逐格一致、确定性分片、公式／外链拒绝、人工修改SHA失效和原子整包发布均有机械反例。
 - M10-D审核修复验证：修复后专项33项、M10 A—D相关定向138项、完整Python 690项及四种固定哈希种子每轮33项通过；治理19项和前端11项通过，Python编译、独立XlsxWriter依赖及许可证证据、lint、TypeScript、生产构建、43个本地文档链接及格式检查通过。五个审核闸门全部通过，原始六项完整重签攻击全部失败关闭；查询删／增／重／替／乱序、全部主表／引用字段篡改、未知／缺失／重复列、额外公式结构、隐藏样式和不同代码提交收据身份均有正式回归。没有Actions运行，未访问EODHD，也未运行真实行情、真实回测或真实历史导出。
@@ -102,13 +110,13 @@
 - 联动模块：只读消费M03—M08的稳定ID和内容指纹。M10负责收益、R收益、MFE／MAE、回测与Excel；M11负责假设验证和规则升级；M12负责生产目录、Manifest、网站、Discord、工作流切换和回退。这些均不属于本CR。
 - 规则先行：包A更新排行追踪规则并冻结`OpportunityEvent 2.x`、机器追加引用和人工审核记录。旧`OpportunityEvent 1.x`及四份旧公开账只能legacy只读，不得猜造`instrument_id`、股票池、行情、Gate或排行身份后升级为formal。
 - 实验：不需要。M09只保存事实、引用和人工记录，不计算或改变选股、评分、排名、交易、退出或收益。
-- 实现与产物：规则／设计提交`8818fa7`、实现提交`0d1c252`、回归测试提交`7ca8ea3`。事件根使用稳定`instrument_id + signal_date`；同日不同模型、证据修订或版本作为不可变引用追加，不建立第二个正式事件。只为M07权威formal主榜`ranked_entries`建立正式事件；排除项继续由M07快照保存，可作为人工漏检审核对象但不得伪造事件。入榜日先建事件，M08计划在下一真实开盘后追加。验收见`docs/M09_ACCEPTANCE_REPORT_ZH.md`。
+- 实现与产物：规则／设计提交`8818fa7`、实现提交`0d1c252`、回归测试提交`7ca8ea3`。事件根使用稳定`instrument_id + signal_date`；同日不同模型、证据修订或版本作为不可变引用追加，不建立第二个正式事件。只为M07权威formal主榜`ranked_entries`建立正式事件；排除项继续由M07快照保存，可作为人工漏检审核对象但不得伪造事件。入榜日先建事件，M08计划在下一真实开盘后追加。验收见[M09_ACCEPTANCE_REPORT_ZH.md](archive/acceptance-history.md#m09-acceptance-report-zh)。
 - 验证：M09专项19项、M01—M09定向194项、完整Python550项、四种固定`PYTHONHASHSEED`每轮19项、治理19项和前端11项通过；Python编译、lint、TypeScript、生产构建及差异格式检查通过。三路快速独立审核确认事件唯一、追加不可变、comparison隔离、旧账歧义处理及同Gate同模型判断唯一性；未发现剩余可复现阻断缺陷。旧账适配统计为4,451个Opportunity记录和69个Signal记录，只有明确ID可匹配，ticker＋日期重合保持`ambiguous`，原文件字节不变。
 
 ### CR-2026-09-01-048｜M08统一模拟交易计划与退出状态
 
 - 用户原意：M08只把现有模拟入场、止损、2R目标、40交易日持仓和保守退出顺序整理为一个干净、版本化、可替换的接口；每个获准建立计划的排行条目最多对应一份同政策计划，每日与回放使用同一生产器。缺少下一交易日开盘价、信号日支撑或风险证据时必须明确`unavailable`，不能凑计划。
-- 状态：`implemented`（仅获批影子范围）；用户批准的A—E已实现、测试并分开提交，设计`c00e4e8`、实现`cc42569`、测试`75a4d3c`、验收证据`43ccc22`。独立审核未发现当前业务范围内的可复现阻断缺陷，四个M08提交已纯fast-forward进入`main`。尚未部署或生产启用。设计见`docs/M08_TRADE_PLAN_EXIT_STATE_DESIGN_ZH.md`，验收见`docs/M08_ACCEPTANCE_REPORT_ZH.md`。
+- 状态：`implemented`（仅获批影子范围）；用户批准的A—E已实现、测试并分开提交，设计`c00e4e8`、实现`cc42569`、测试`75a4d3c`、验收证据`43ccc22`。独立审核未发现当前业务范围内的可复现阻断缺陷，四个M08提交已纯fast-forward进入`main`。尚未部署或生产启用。设计见`docs/M08_TRADE_PLAN_EXIT_STATE_DESIGN_ZH.md`，验收见[M08_ACCEPTANCE_REPORT_ZH.md](archive/acceptance-history.md#m08-acceptance-report-zh)。
 - 主模块：`docs/rules/09_RISK_AND_EXECUTION.md`。
 - 联动模块：只读消费M02不可变调整后行情、M03 `GateEvent 2.x`和M07 `RankingSnapshot 2.x`／`ScoreResult 2.x`。M09负责永久事件总账，M10负责收益、MFE／MAE、回测评价和Excel，M12负责生产接入；均不属于本CR。
 - 规则先行：`docs/rules/09_RISK_AND_EXECUTION.md`版本`1.5.0`冻结`TradePlan 2.x`、`ExitState 2.x`、执行政策身份和唯一生产者。M04另提供只读`SupportEvidenceBatch`，把现有支撑计算绑定M02／M03／M04稳定身份；M08不重新计算Gate、EMA、Fibonacci、pivot、因子、模型、上下文、评分或排行。
@@ -119,7 +127,7 @@
 ### CR-2026-09-01-047｜M07版本化评分政策与唯一权威排行
 
 - 用户原意：M07建立可从V1升级到V2、但永不覆盖旧结果的版本化评分政策和唯一权威复杂多因子排行榜；同一批输入只能产生一份权威排行，逐股结果必须绑定Gate、因子、模型、市场／行业上下文及各自版本，并保存分项、警告、排除原因和确定性排序依据。个人形态继续独立观察，不建立第二张竞争主榜。
-- 状态：`implemented`（仅获批影子范围）；设计`7fa6e59`、实现`8a773e8`、测试`4c1acdb`、首次审核根因修复`405bd3e`及证据`2449856`已经通过独立复核，并以纯fast-forward进入`main`。这不表示部署、生产接入或历史迁移。设计见`docs/M07_VERSIONED_SCORING_RANKING_DESIGN_ZH.md`，验收见`docs/M07_ACCEPTANCE_REPORT_ZH.md`。
+- 状态：`implemented`（仅获批影子范围）；设计`7fa6e59`、实现`8a773e8`、测试`4c1acdb`、首次审核根因修复`405bd3e`及证据`2449856`已经通过独立复核，并以纯fast-forward进入`main`。这不表示部署、生产接入或历史迁移。设计见`docs/M07_VERSIONED_SCORING_RANKING_DESIGN_ZH.md`，验收见[M07_ACCEPTANCE_REPORT_ZH.md](archive/acceptance-history.md#m07-acceptance-report-zh)。
 - 主模块：`docs/rules/04_SCORING.md`、`docs/rules/07_RANKING_AND_TRACKING.md`。
 - 联动模块：只读消费M02身份、M03 `GateEvent 2.x`、M04 `TechnicalEvidence 2.x`、M05 `ModelAssessment 2.x`和M06 `ContextSnapshot 2.x`。M08交易计划、M09总账、M10回测／前向评价／Excel和M12生产接入均不属于本CR。
 - 规则先行：已冻结`ScorePolicy`、`ScoreResult 2.x`、`RankingPolicy`和`RankingSnapshot 2.x`，并由中立`services/ranking/`成为唯一formal评分与主榜身份生产层。评分公式、缺失值处理、同分顺序和候选截断来自版本化政策，不得散落在消费者。
@@ -137,7 +145,7 @@
 - 规则先行：`services/context/`是唯一formal `ContextSnapshot 2.x`生产层；个股Gate、因子和模型事实只引用不重算。formal成分必须满足来源总数等于已解析成员数、未解析数为零；当前成分不得倒填历史，ticker-only证据只能显式legacy并附`current_membership_bias`。
 - 实验：不需要收益实验。M06只收敛客观上下文事实；任何“行业共振加分”或交易影响须留待M07另行设计、验证和批准。
 - 实现与产物：计划仅新增精选ETF注册表、不可覆盖成分证据、唯一ETF状态纯函数、唯一上下文生产器、每日／回放同源影子入口及固定样本。不写公开JSON。
-- 验证：审核修复后M06专项15项、M01—M06定向138项、完整Python 505项、四种固定`PYTHONHASHSEED`每轮15项、治理19项及前端11项通过；Python编译、lint、TypeScript、生产构建、文档链接和`git diff --check`通过。当前真实2026-08-26成分仍是legacy；SOXX—AVGO合成样本只证明合同能力，不代表真实连接已完成。详见`docs/M06_ACCEPTANCE_REPORT_ZH.md`。
+- 验证：审核修复后M06专项15项、M01—M06定向138项、完整Python 505项、四种固定`PYTHONHASHSEED`每轮15项、治理19项及前端11项通过；Python编译、lint、TypeScript、生产构建、文档链接和`git diff --check`通过。当前真实2026-08-26成分仍是legacy；SOXX—AVGO合成样本只证明合同能力，不代表真实连接已完成。详见[M06_ACCEPTANCE_REPORT_ZH.md](archive/acceptance-history.md#m06-acceptance-report-zh)。
 
 ### CR-2026-09-01-045｜M05两个选股器与统一模型判断
 
@@ -147,7 +155,7 @@
 - 联动模块：只读消费M02不可变点时行情身份、M03 `GateEvent 2.x`和M04 `TechnicalEvidence 2.x`。M06负责市场／行业上下文，M07负责评分与唯一排行，M08负责交易计划，M09—M10负责总账、回放和评价，M12负责生产接入。
 - 规则先行：拟由中立`services/selectors/`成为唯一新formal `ModelAssessment 2.x`生产层；两个分析器不得创建第二张Gate票或重新生产已经存在的TechnicalEvidence。个人形态专属且与注册因子定义不同的组合事实必须明确命名并保存来源，不能冒充M04共享因子。
 - 实验：本轮设计与未来影子迁移不改变门票、因子定义、阈值、评分或生产结果，不需要收益实验；任何固定样本行为差异必须停止并解释。若以后要改变个人形态定义、资格或生产输出，另立实验和CR。
-- 实现与产物：`services/selectors/`是唯一新formal身份生产层；每日与回放只新增未接默认流程的同源影子入口。旧个人形态V3复用同一纯事实函数，V1／V2和原宽口径输出经唯一legacy适配器只读；现有复杂多因子排行、个人形态页面、每日／夜间入口及公开JSON继续原样运行。验收报告见`docs/M05_ACCEPTANCE_REPORT_ZH.md`。
+- 实现与产物：`services/selectors/`是唯一新formal身份生产层；每日与回放只新增未接默认流程的同源影子入口。旧个人形态V3复用同一纯事实函数，V1／V2和原宽口径输出经唯一legacy适配器只读；现有复杂多因子排行、个人形态页面、每日／夜间入口及公开JSON继续原样运行。验收报告见[M05_ACCEPTANCE_REPORT_ZH.md](archive/acceptance-history.md#m05-acceptance-report-zh)。
 - 验证：审核修复后M05专项16项、M01—M05相关定向106项、完整Python490项、四种固定`PYTHONHASHSEED`每轮55项、治理19项及前端11项通过；Python编译、lint、TypeScript和生产构建、`git diff --check`通过。独立定向复核未发现新的可复现阻断缺陷；默认生产入口和生产输出保持不变。
 
 ### CR-2026-09-01-044｜M04统一因子事实与TechnicalEvidence
@@ -158,7 +166,7 @@
 - 联动模块：只读消费M01共享合同、M02不可变点时行情和M03唯一`GateEvent`。M05以后只读引用M04证据；评分、排序、交易、事件总账、网站与Discord均不属于M04。
 - 规则先行：实施包A获批后，先冻结`TechnicalEvidence 2.x`、唯一生产者、因子版本和父子依赖语义。现有`TechnicalEvidence 1.x`只允许legacy只读；不得补造缺失身份后进入formal消费者。
 - 实验：不需要。M04是行为等价的事实收敛；不新增因子、不调整阈值或权重，不实施CR-033。任何固定样本中的因子命中差异都必须停止并解释，不能当作重构成果。
-- 实现与产物：`services/factors/`是唯一新formal证据身份生产层；共享合同验证器支持严格2.x；旧快照通过唯一legacy适配器只读；`factor_snapshot`和`unified_v2_scan`只增加未接默认流程的影子入口。验收报告见`docs/M04_ACCEPTANCE_REPORT_ZH.md`。
+- 实现与产物：`services/factors/`是唯一新formal证据身份生产层；共享合同验证器支持严格2.x；旧快照通过唯一legacy适配器只读；`factor_snapshot`和`unified_v2_scan`只增加未接默认流程的影子入口。验收报告见[M04_ACCEPTANCE_REPORT_ZH.md](archive/acceptance-history.md#m04-acceptance-report-zh)。
 - 验证：M04专项14项、M01—M04定向101项、完整Python474项通过；`PYTHONHASHSEED=0/1/42/12345`下每轮14项通过；Python编译、前端lint／TypeScript／生产构建及11项测试、`git diff --check`均通过。独立审核另行复核定向90／130项及完整Python474项，未发现可复现阻断缺陷。当前2026-08-28旧因子快照可全部legacy只读适配且原文件字节不变；固定样本中全部非Gate因子与旧检测器逐项一致。审核分支保留，未部署或生产启用。
 
 ### CR-2026-09-01-042｜M03唯一门卫与长期状态
@@ -170,7 +178,7 @@
 - 规则先行：中立`services/gates/`已确认成为唯一生产者；实施代码前更新因子模块规则。完整事件只在数据完整／可交易／流动性和精确日线MACD刚金叉后创建；前置失败只进批次级`GateScanAudit`。`baseline_passed`只复现当前复杂多因子使用的既有长期趋势基线，`passed`必须与其相等；新增结构和长期事实全部进入`shadow_assessment`并固定`production_effect=false`。旧1.x只读兼容，不得补造M02输入证据进入2.x formal消费者。
 - 实验：本轮不运行实验。长期筑底、多年深跌、宽幅箱体、持续供给和0.618／70%只保存结构化影子事实与解释，固定`production_effect=false`；没有单独批准，不得改变基线资格或当前生产输出。CGEM、MRNA、BTDR、DLTR只作已见点时检测案例，不能证明收益或用于调整生产规则。
 - 实现与产物：规则与唯一合同／生产器提交`10bde71`；每日与回放影子入口提交`f6458b0`；反例、修订链和消费者清单测试提交`f722bf5`；批次审计不可变存储及冲突反例提交`140aa18`、`2150b39`。独立审核后，提交`170b0a5`让M02完整资格摘要与eligible行情共同进入GateScanAudit并保持Universe总数守恒；提交`9ccc075`让多代GateEvent修订链通过唯一current解析器选择直接前一版本，结果不再依赖输入顺序。后续集成冒烟修复提交`ae936c7`全局拒绝隐藏修订循环，提交`88ae7da`让完整formal且零eligible的Universe不读取OHLCV也能形成守恒审计。`services/gates/producer.py`仍是唯一新`gate_event_id`创建器。当前生产仍由旧默认入口运行；新增入口不写`public/`或`automation/`。
-- 验证：原M03收口在2026-09-01通过M01／M02／M03定向`72`项、完整Python `456`项、M03确定性`23`项及前端`11`项。随后集成冒烟修复在独立分支通过定向`76`项、完整Python `460`项、`PYTHONHASHSEED=0/1/42/12345`下M03定向`25`项、Python编译、前端lint／TypeScript／生产构建及`11`项测试，`git diff --check`通过。新增反例证明：任何输入排列下，A↔B循环即使旁有独立current也失败；完整formal且五名成员全部不eligible时得到零事件、五个上游原因的同源幂等审计，且不调用行情读取。审核修复`ae936c7`、`88ae7da`及验收证据`547949b`已通过纯fast-forward进入`main`，未部署或生产启用；没有访问真实行情、运行真实回测或Discord。固定本地案例仍只验证CGEM／BTDR定义不足时诚实`unavailable`、MRNA式深跌事实和DLTR式缺口事实，不使用真实案例调参或声称收益。详见`docs/M03_ACCEPTANCE_REPORT_ZH.md`。
+- 验证：原M03收口在2026-09-01通过M01／M02／M03定向`72`项、完整Python `456`项、M03确定性`23`项及前端`11`项。随后集成冒烟修复在独立分支通过定向`76`项、完整Python `460`项、`PYTHONHASHSEED=0/1/42/12345`下M03定向`25`项、Python编译、前端lint／TypeScript／生产构建及`11`项测试，`git diff --check`通过。新增反例证明：任何输入排列下，A↔B循环即使旁有独立current也失败；完整formal且五名成员全部不eligible时得到零事件、五个上游原因的同源幂等审计，且不调用行情读取。审核修复`ae936c7`、`88ae7da`及验收证据`547949b`已通过纯fast-forward进入`main`，未部署或生产启用；没有访问真实行情、运行真实回测或Discord。固定本地案例仍只验证CGEM／BTDR定义不足时诚实`unavailable`、MRNA式深跌事实和DLTR式缺口事实，不使用真实案例调参或声称收益。详见[M03_ACCEPTANCE_REPORT_ZH.md](archive/acceptance-history.md#m03-acceptance-report-zh)。
 
 ### CR-2026-09-01-043｜排行榜入选后的留档与统一后续评价
 

@@ -1,67 +1,31 @@
 # Sage Vista
 
-Sage Vista 是一个开源、可解释、可人工复核的美股技术研究与日终扫描项目。当前主线是以日线 MACD 触发的多因子模型：使用月线、周线、日线的趋势、价格位置、支撑、结构、RSI、成交量，以及大盘和行业上下文，持续检验哪些组合真正有帮助。
+个人美股技术研究与日终选股工具：查看候选及依据，结合大盘与行业背景，持续追踪和验证交易经验。项目不自动下单，不把匹配分数当作收益概率。
 
-项目不是自动荐股或自动下单系统。所有信号只使用当时已经完整收盘的数据；回测按下一交易日复权开盘价进入；失败、不稳定和样本不足的实验也永久保留。
+生产站点：<https://sage-vista-parallel.gizmo-allied-0s.workers.dev>。实际数据日和部署状态需核验，不能以本地版本代替。
 
-唯一生产站点：<https://sage-vista-parallel.gizmo-allied-0s.workers.dev>。旧 `chatgpt.site` 已退出生产链，不作为数据新鲜度、发布成功或 Discord 链接的依据。
+## 文档入口
 
-## 当前产品结构
+- [当前状态](docs/CURRENT_STATUS_ZH.md)：日期、版本、回测断点及机器来源。
+- [产品与模块地图](docs/SAGE_VISTA_RULEBOOK_ZH.md)：项目做什么；按需进入具体业务规则。
+- [执行与文档维护](docs/rules/01_GOVERNANCE.md)：唯一工作流程。Codex 从 [AGENTS.md](AGENTS.md) 接手。
 
-每日产品流固定为四层，不再维护平行 Signal Board 或旧 MACD Tracker 页面：
+定位实现时查 [代码地图](docs/CODEBASE_MAP_ZH.md)；任务进度查 [需求账本](docs/CHANGE_REQUESTS_ZH.md) 对应条目。历史设计与案例按需查阅；早期产品规格合并到 [产品历史](docs/archive/product-history.md)，已完成验收合并到 [验收历史](docs/archive/acceptance-history.md)。[研究记录](research/README.md) 保留原路径，不是日常接手清单。
 
-1. **今日研究总览**：市场状态、行业位置、Top 5 技术机会、Forward Observation 与数据审计。
-2. **多因子机会**：当前 37 项统一技术证据层；日线 MACD 触发后检测其余 36 项，并维护唯一权威排行榜、精选子集和个股详情。
-3. **行业雷达**：行业与 Theme 上下文，不进入 Technical Score。
-4. **研究 / 实验**：明确分开 Backtesting、Forward Testing 和 Experiments；Signal History 的 canonical UI 在 Forward Testing。
+动态因子数量、参数和状态不在 README 重复维护。文档目录不是待完成任务清单，旧设计不自动成为当前要求。
 
-生产提醒另有一份 append-only `signal-history.json`：它保存当时真实显示的 Technical / Multi-Factor opportunity、冻结当时的因子与 Industry 上下文，并只随未来交易日逐步填写 forward outcome。它不等于历史回测，也不会因股票离开今日榜单而消失。
-
-旧根路径 `US Equity Signals / Signal Board` 及其 mock candidates 已移除；根路径现在就是使用 production JSON 的今日研究总览。
-
-RSI、RSI 底背离、成交量放大等不再需要各自占用独立功能页，但其检测能力必须保留并逐步迁移到统一因子库。
-
-## 长期方向
-
-- 在当前 37 因子库上继续扩展可验证、可审计的多周期因子。
-- 每个因子记录定义、类别、周期、状态、样本、20/100 日结果、版本和防前视审计。
-- 多因子雷达读取统一因子库，区分技术候选分、实验观察分、正式验证分和风险扣分。
-- 美国市场完整收盘后自动更新 MACD Tracker 与多因子雷达。
-- 未来接入 Discord Bot，只在达到门槛的稀有机会出现时播报，并提供网站复查链接。
-- 持续维护简洁、专业、适合桌面与手机复查的金融研究 UI；正文不低于 15–16px，工程审计元数据不与决策信息竞争。
-
-## 文档
-
-- [跨六阶段对话整理的项目总需求](docs/PROJECT_REQUIREMENTS_MASTER_ZH.md)
-- [BABA、ADBE、TTD、AEVA、POWL、PG 人工案例复盘总账](docs/CASE_REVIEW_LEDGER_ZH.md)
-- [新对话三分钟接手入口](docs/NEXT_SESSION_HANDOFF_ZH.md)
-- [机器状态生成的当前进度](docs/CURRENT_STATUS_ZH.md)
-- [代码地图：页面、数据生成器、工作流与最小阅读路径](docs/CODEBASE_MAP_ZH.md)
-- [碎片需求与改动交付账本](docs/CHANGE_REQUESTS_ZH.md)
-- [Sage Vista 总规则手册：项目宗旨、全局流程和模块地图](docs/SAGE_VISTA_RULEBOOK_ZH.md)
-- [模块规则索引：精准定位评分、因子、实验、回测、红线等规则](docs/rules/README.md)
-- [Factor Architecture：权威 inventory、生命周期与系统边界](docs/FACTOR_ARCHITECTURE.md)
-- [Industry Radar V1 架构、数据与 Theme Universe 说明](research/INDUSTRY_RADAR.md)
-- [Signal History 与 Production Forward Observation 权威说明](docs/SIGNAL_HISTORY.md)
-- [项目蓝图与产品框架](docs/PROJECT_BLUEPRINT_ZH.md)
-- [产品决策日志](docs/DECISION_LOG_ZH.md)
-- [Tracker 产品要求](docs/TRACKER_PRODUCT_REQUIREMENTS_ZH.md)
-- [技术规则手册](docs/TECHNICAL_RULEBOOK.md)
-- [研究账本说明](research/README.md)
-- 实验机器记录：`research/experiments.jsonl`
-
-出现文档冲突时，具体业务含义以对应的 `docs/rules/*.md` 模块规则为准；总手册负责项目宗旨、模块边界和全系统流程；实验数字以机器账本和版本化产物为准。任何语义改动必须先更新对应模块规则，再改代码、测试和生产页面。
-
-新对话不需要复制旧聊天：从仓库根目录开始，Codex 会读取 `AGENTS.md`；随后按“接手入口 → 当前状态 → 总手册 → 唯一相关模块”的顺序即可。当前日期、回测断点和实验数量以生成状态及其列出的机器源为准，不以聊天中的旧数字为准。
-
-## 本地运行与验证
+## 本地运行
 
 ```bash
 npm install
 npm run dev
 ```
 
+## 验证入口
+
 ```bash
 python3 -m unittest discover -s tests
 npm test
 ```
+
+按影响范围选择必要检查；以上是完整检查入口，并非每次文档或局部修改都要执行。
