@@ -2785,3 +2785,9 @@ def membership_registration_completion(value, *, started_ms, completed_ms):
     if value['latest_observation_completed_at'] > start:
         raise ContractError('membership observation completed after validation began')
     return preparation
+
+
+def execution_computation_input(raw):
+    """Sole parser of the fixed coordinator's execution readback byte protocol."""
+    from .execution_input import decode_execution_input
+    return decode_execution_input(raw)

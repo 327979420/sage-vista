@@ -1373,3 +1373,10 @@ PYTHONDONTWRITEBYTECODE=1 node --test --test-name-pattern='daily client integrat
 新增5项source检查，联合原history／SourceInventory／治理／状态43项通过8.852秒。覆盖原源完整闭包及固定配置Ref、全部成对历史改变库存根、缺读数／缺固定ETF拒绝、有效重哈希行情改动与原signal不一致拒绝、无源包旧根拒绝。初始反例仅改scan_batch_id，未改变原业务signal因此不应拒绝；改为变更实际行情并重算其指纹，保留正确的原业务身份语义，没有修改原生产者。固定执行／成对登记联测随后接入；本包未安装任何生产入口。
 
 回退撤销源包格式2生产与新库存构造，旧格式1原范围不变；不重写已存根。九政策／原业务算法、旧shadow存储／断点未变，无真实源、云资源、推送、合并、部署、启用或通知。
+
+
+### D3e固定计算协议（待独立审核）
+
+父6cff922，复用原PreparationValidationProcess／隔离worker／导入前后完整源码核验和30秒取消预算。新增封闭m12-execution-validation/1，经contracts/validation.py唯一入口解析，原身份结构复用既有检查，配置code_commit必须等于实际输入身份代码。库存与下一对复用D3d及原生产者，结果绑定完整输入hash／长度、task／snapshot hash，计算起止须在原身份期限内。新结果最多2MiB（原进程既有文件输出上限），旧两协议仍64KiB；不接受自选命令或自动重试。
+
+4项先行纯计算／反例通过3.565秒，涵盖原库存及下一对字节等价、身份／配置不符、过期、原件缺失、未知字段／协议、错固定输出摘要。首轮库存时间用了毫秒，原SourceInventory要求UTC秒而拒绝；只修输出格式，不放宽合同。真正固定worker须源码提交后执行，尚不提前计通过；服务端实际input/result绑定仍接下一包。

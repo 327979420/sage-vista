@@ -61,10 +61,14 @@ def main():
         elif protocol == 'm12-membership-registration/1':
             from services.publication.membership_validation import validate_membership_registration_input
             output = validate_membership_registration_input(raw)
+        elif protocol == 'm12-execution-validation/1':
+            from services.publication.execution_validation import validate_execution_input
+            output = validate_execution_input(raw)
         else:
             return 1
         _checkout(raw)  # Reject source replacement during computation as well.
-        if not 0 < len(output) <= 65536:
+        output_limit = 2 * 1024 * 1024 if protocol == 'm12-execution-validation/1' else 65536
+        if not 0 < len(output) <= output_limit:
             return 1
         sys.stdout.buffer.write(output)
         return 0

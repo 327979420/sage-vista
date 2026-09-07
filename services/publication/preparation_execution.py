@@ -3,7 +3,7 @@ import hashlib
 from pathlib import Path
 import time
 
-from services.contracts.validation import publication_preparation_input, membership_registration_input, _m12_json
+from services.contracts.validation import publication_preparation_input, membership_registration_input, execution_computation_input, _m12_json
 from services.publication.authorization_process import AuthorizationValidationProcess
 
 
@@ -26,10 +26,14 @@ def execute_membership_validation(input_bytes: bytes) -> bytes:
     return _execute(input_bytes, membership=True)
 
 
-def _execute(input_bytes, *, membership):
+def execute_execution_validation(input_bytes: bytes) -> bytes:
+    return _execute(input_bytes, membership=False, execution=True)
+
+
+def _execute(input_bytes, *, membership, execution=False):
     try:
-        value = membership_registration_input(input_bytes) if membership else publication_preparation_input(input_bytes)
-        protocol = 'm12-membership-registration/1' if membership else 'm12-preparation-validation/1'
+        value = execution_computation_input(input_bytes) if execution else (membership_registration_input(input_bytes) if membership else publication_preparation_input(input_bytes))
+        protocol = 'm12-execution-validation/1' if execution else ('m12-membership-registration/1' if membership else 'm12-preparation-validation/1')
         started = previous = time.monotonic_ns()
         wall = time.time_ns() // 1_000_000
         expires = value['identity']['expires_at'] * 1000
@@ -41,7 +45,7 @@ def _execute(input_bytes, *, membership):
                 previous, wall = now, current_wall
                 output = child.poll()
                 if output is not None:
-                    if len(output) > 65536:
+                    if len(output) > (2 * 1024 * 1024 if execution else 65536):
                         raise ValueError('result too large')
                     result = _m12_json(output)
                     if result.get('protocol') != protocol or result.get('input_sha256') != 'sha256:' + hashlib.sha256(input_bytes).hexdigest() or type(result.get('input_size_bytes')) is not int or result['input_size_bytes'] != len(input_bytes):
@@ -52,4 +56,4 @@ def _execute(input_bytes, *, membership):
                     return output  # Server must independently bind/recheck at use.
                 time.sleep(0.01)
     except Exception:
-        raise PreparationExecutionError('membership computation failed' if membership else 'preparation computation failed') from None
+        raise PreparationExecutionError('execution computation failed' if execution else ('membership computation failed' if membership else 'preparation computation failed')) from None
