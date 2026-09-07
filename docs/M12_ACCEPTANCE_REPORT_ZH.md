@@ -1493,3 +1493,9 @@ ef6b51f正式66项Node五文件组通过20.574秒（原恢复桥3.169秒、原�
 会话accept增加内部同步最终guard，原业务对/回执事务中核调度仍为同Job/fence/position running，yield后旧回传不能继续登记；只复用原状态/期限，不新增业务算法。只读readRecovery供当前任务租约读取旧已完成事实，绑定原input/output和原时间窗，不能以新Job执行/accept旧输入。D1e接实际新fence恢复。
 
 48项预算/调度/租约检查通过0.224秒，包括预算yield后新Job领取、等待闸门不再启动readiness、失败readiness计入attempt且blocked、过期所有者不能settle、未知存储结果不写成功。eslint与diff通过；固定进程实际组合须提交源码后执行。
+
+### D1e新Job实际恢复（待提交后联测）
+
+新fence先核原任务全原件，并从持久dispatch找原会话。完整原回执/原输入/输出均可读时恢复checkpoint；旧JWT当前过期不使历史成功事实失效，但新Job不获得readPrepared/accept旧输入资格。未完成旧派发保留abandoned引用、runner_lost及原重试预算，当前请求不得复活它。实际完成事实的原source_snapshot和当前snapshot分别保留；恢复前后最新调度记录/任务快照CAS，租约失效仍拒绝。
+
+本包把新fence分支直接接入LocalExecutionRunner；与同Job checkpoint恢复共享真实固定生产者夹具，拟覆盖业务已登记/未登记两种SQL中断、新Job不执行旧输入，以及旧身份已过期的历史成功事实只读。48项预算/调度/租约先行通过0.196秒，eslint/diff通过；实际跨语言联测在源码提交后执行。

@@ -198,14 +198,30 @@ export class ExecutionScheduler {
   }
   async recover(identity, token, taskId) {
     identity = structuredClone(identity); token = structuredClone(token);
+    const prior = this.#latest(this.#history(), taskId);
+    const initial = await this.#tasks.readTask(identity, token, taskId);
+    this.#tasks.withCurrentTask(identity, token, taskId, initial.current, () => {
+      if (!prior || prior.state.state !== 'running') throw new Error('execution_running_attempt_required');
+      if (token.epoch !== prior.token.epoch || token.fence <= prior.token.fence) throw new Error('execution_recovery_new_fence_required');
+    });
+    const proofSha = prior.dispatch_input_sha ?? prior.input_sha;
+    const proof = proofSha ? await this.#session.readRecovery(identity, token, taskId, proofSha) : null;
     const { current } = await this.#tasks.readTask(identity, token, taskId);
     return this.#tasks.withCurrentTask(identity, token, taskId, current, ({ now }) => {
       const history = this.#history(), latest = this.#latest(history, taskId);
-      if (!latest || latest.state.state !== 'running') throw new Error('execution_running_attempt_required');
-      if (token.epoch !== latest.token.epoch || token.fence <= latest.token.fence) throw new Error('execution_recovery_new_fence_required');
-      return this.#append(history, { kind: 'recovery', task_id: taskId, job: identity.job, token,
-        previous_position: latest.position, occurred_ms: now, source_snapshot: latest.source_snapshot,
-        snapshot: current, state: failureState(latest.state, 'runner_lost', now) });
+      if (!same(prior, latest) || !same(initial.current, current)) throw new Error('execution_schedule_compare_failed');
+      if (proof && !same(proof.snapshot, current)) throw new Error('execution_checkpoint_source_conflict');
+      const completedDispatch = prior.dispatch_input_sha && proof?.completed;
+      if (completedDispatch && !same(prior.checkpoint_snapshot ?? prior.source_snapshot, proof.source_snapshot)) throw new Error('execution_checkpoint_source_conflict');
+      const state = completedDispatch ? { ...prior.state, state: 'queued', retry_at_ms: null,
+        reason: proof.has_next_pair ? 'checkpoint_recovered' : 'no_new_execution_pair',
+        wait_for_eod_after_ms: proof.has_next_pair ? null : now }
+        : failureState(prior.state, 'runner_lost', now);
+      return this.#append(history, { kind: completedDispatch ? 'recovery_checkpoint' : 'recovery', task_id: taskId,
+        job: identity.job, token, previous_position: latest.position, occurred_ms: now,
+        source_snapshot: latest.source_snapshot, snapshot: current, checkpoint_snapshot: current,
+        receipt: proof?.completed ? proof.receipt : null,
+        abandoned_input_sha: prior.dispatch_input_sha ?? null, state });
     });
   }
 }

@@ -85,6 +85,12 @@ export class LocalExecutionRunner {
     for (;;) {
       if (signal?.aborted) throw new Error('execution_cancelled');
       const pending = scheduler.list().find(item => item.snapshot.root.task_id === taskId)?.schedule;
+      if (pending?.state.state === 'running' && (pending.token.epoch !== token.epoch || pending.token.fence !== token.fence)) {
+        checkpoint = await scheduler.recover(identity, token, taskId);
+        if (checkpoint.state.state === 'retry_wait') return { status: 'retry_wait', checkpoint };
+        if (checkpoint.state.wait_for_eod_after_ms !== null) return { status: 'caught_up_for_input', checkpoint };
+        continue;
+      }
       if (pending?.state.state === 'running' && pending.dispatch_input_sha) {
         const bounded = { ...identity, expires_at: Math.min(identity.expires_at, pending.original_expires_at,
           Math.floor((pending.job_started_ms + 600000) / 1000)) };

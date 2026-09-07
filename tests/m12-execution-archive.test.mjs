@@ -348,7 +348,7 @@ test('registered source inventory to actual fixed computation and atomic result/
   await assert.rejects(session.accept(identity, owned, second.input.sha256, afterBytes), /recovery_required/);
 });
 
-test('local fixed runner checkpoints actual receipts and resumes after checkpoint SQL interruption', async t => {
+async function runLocalRecoveryFixture(t, mode = 'same_job') {
   const { ExecutionComputationSession } = await import('../services/publication/execution_session.mjs');
   const { ExecutionScheduler } = await import('../services/publication/execution_scheduler.mjs');
   const { LocalExecutionRunner } = await import('../services/publication/local_execution_runner.mjs');
@@ -379,34 +379,72 @@ test('local fixed runner checkpoints actual receipts and resumes after checkpoin
     assert.equal(cancelled.status, 'queued'); assert.equal(cancelled.outcome, 'cancelled');
   } finally { clearTimeout(timer); }
   assert.equal(new ExecutionScheduler(env.storage, env.bucket).list()[0].schedule.state.attempts_today, 0);
-  env.storage.db.exec("CREATE TRIGGER fail_checkpoint BEFORE INSERT ON m12_execution_schedule_log WHEN json_extract(NEW.record_json,'$.kind')='checkpoint' BEGIN SELECT RAISE(ABORT, 'synthetic checkpoint interruption'); END");
+  const unfinished = mode === 'unfinished_new_job';
+  env.storage.db.exec(unfinished
+    ? "CREATE TRIGGER fail_checkpoint BEFORE INSERT ON m12_execution_pairs BEGIN SELECT RAISE(ABORT, 'synthetic checkpoint interruption'); END"
+    : "CREATE TRIGGER fail_checkpoint BEFORE INSERT ON m12_execution_schedule_log WHEN json_extract(NEW.record_json,'$.kind')='checkpoint' BEGIN SELECT RAISE(ABORT, 'synthetic checkpoint interruption'); END");
   await assert.rejects(runner.runTask(identity, owned, fixture.task_id, request), /checkpoint interruption/);
   const pending = new ExecutionScheduler(env.storage, env.bucket).list()[0];
-  assert.equal(pending.snapshot.revision, 1);
+  assert.equal(pending.snapshot.revision, unfinished ? 0 : 1);
   assert.equal(pending.schedule.kind, 'dispatch');
   assert.ok(pending.schedule.dispatch_input_sha);
   env.storage.db.exec('DROP TRIGGER fail_checkpoint');
+  const resumedIdentity = mode === 'same_job' ? identity : { ...identity, job: { ...identity.job, run_id: '3' } };
+  let resumedOwned = owned;
+  if (mode !== 'same_job') {
+    const liveLeases = new LeaseStore(env.storage);
+    liveLeases.release('execution/' + fixture.task_id, identity.job, owned);
+    resumedOwned = token(liveLeases.acquire('execution/' + fixture.task_id, resumedIdentity.job, EPOCH));
+  }
+  const inputsBefore = env.storage.sql.exec('SELECT * FROM m12_execution_validation_inputs').toArray().length;
   env.restart();
   runner = new LocalExecutionRunner(env.storage, env.bucket, { pythonExecutable });
-  const result = await runner.runTask(identity, owned, fixture.task_id, request);
-  assert.equal(result.status, 'caught_up_for_input');
+  const result = await runner.runTask(resumedIdentity, resumedOwned, fixture.task_id, request);
+  if (unfinished) {
+    assert.equal(result.status, 'retry_wait');
+    assert.equal(result.checkpoint.state.attempts_today, 1);
+    assert.equal(result.checkpoint.snapshot.revision, 0);
+    assert.equal(result.checkpoint.abandoned_input_sha, pending.schedule.dispatch_input_sha);
+    assert.equal(env.storage.sql.exec('SELECT * FROM m12_execution_validation_inputs').toArray().length, inputsBefore);
+    await assert.rejects(new ExecutionComputationSession(env.storage, env.bucket).readPrepared(resumedIdentity, resumedOwned, pending.schedule.dispatch_input_sha), /actor_mismatch/);
+    return;
+  }
+  assert.equal(result.status, mode === 'same_job' ? 'caught_up_for_input' : 'immature');
   assert.equal(result.checkpoint.state.attempts_today, 1);
   assert.equal(result.checkpoint.state.state, 'queued');
-  assert.equal(result.checkpoint.state.reason, 'no_new_execution_pair');
+  assert.equal(result.checkpoint.state.reason, mode === 'same_job' ? 'no_new_execution_pair' : 'checkpoint_recovered');
   assert.equal(result.checkpoint.checkpoint_snapshot.revision, 1);
   const rows = env.storage.sql.exec('SELECT record_json FROM m12_execution_schedule_events').toArray().map(row => JSON.parse(row.record_json));
-  const checkpoints = rows.filter(row => row.kind === 'checkpoint');
-  assert.equal(checkpoints.length, 2);
-  assert.deepEqual(checkpoints.map(row => [row.receipt.source_snapshot.revision, row.receipt.snapshot.revision]), [[0, 1], [1, 1]]);
+  const checkpoints = rows.filter(row => ['checkpoint', 'recovery_checkpoint'].includes(row.kind));
+  assert.equal(checkpoints.length, mode === 'same_job' ? 2 : 1);
+  assert.deepEqual(checkpoints.map(row => [row.receipt.source_snapshot.revision, row.receipt.snapshot.revision]), mode === 'same_job' ? [[0, 1], [1, 1]] : [[0, 1]]);
   assert.equal(rows.filter(row => row.kind === 'claim').length, 1);
   assert.equal(readFileSync(join(env.root, 'archive', result.checkpoint.receipt.snapshot.root.root.key)).toString('base64'), fixture.root_bytes);
   const original = result.checkpoint.receipt.snapshot.history[0].object;
+  const originalBytes = readFileSync(join(env.root, 'archive', original.key));
   rmSync(join(env.root, 'archive', original.key));
   const puts = env.bucket.puts;
-  await assert.rejects(new ExecutionScheduler(env.storage, env.bucket).checkpoint(identity, owned, fixture.task_id,
-    result.checkpoint.position, result.checkpoint.input_sha), /object_missing/);
+  await assert.rejects(new ExecutionComputationSession(env.storage, env.bucket).readRecovery(resumedIdentity, resumedOwned,
+    fixture.task_id, result.checkpoint.receipt.input.sha256), /object_missing/);
   assert.equal(env.bucket.puts, puts);
-});
+  if (mode === 'completed_new_job') {
+    writeFileSync(join(env.root, 'archive', original.key), originalBytes); // Test fixture restoration only.
+    const future = identity.expires_at * 1000 + 400000;
+    const lateIdentity = { ...resumedIdentity, job: { ...identity.job, run_id: '4' },
+      issued_at: future / 1000 - 1, expires_at: future / 1000 + 300 };
+    const futureLeases = new LeaseStore(env.storage, { clock: () => future });
+    const lateToken = token(futureLeases.acquire('execution/' + fixture.task_id, lateIdentity.job, EPOCH));
+    const lateSession = new ExecutionComputationSession(env.storage, env.bucket, { clock: () => future });
+    const fact = await lateSession.readRecovery(lateIdentity, lateToken, fixture.task_id, result.checkpoint.receipt.input.sha256);
+    assert.equal(fact.completed, true);
+    assert.deepEqual(fact.receipt, result.checkpoint.receipt);
+    await assert.rejects(lateSession.readPrepared(lateIdentity, lateToken, result.checkpoint.receipt.input.sha256), /actor_mismatch/);
+  }
+}
+
+test('local fixed runner checkpoints actual receipts and resumes after checkpoint SQL interruption', t => runLocalRecoveryFixture(t));
+test('new job recovers a registered completion without executing the old job input', t => runLocalRecoveryFixture(t, 'completed_new_job'));
+test('new job leaves an incomplete old dispatch in retry wait without rerunning its input', t => runLocalRecoveryFixture(t, 'unfinished_new_job'));
 
 test('synthetic bridge timeout retains a Python stack and reaps the stalled child', async () => {
   const result = spawnWithFileInput('python3', ['-B', 'tests/m12_execution_history_fixture.py'], Buffer.from(JSON.stringify({ operation: 'diagnostic_stall' })), {
