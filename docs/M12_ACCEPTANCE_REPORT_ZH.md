@@ -1420,3 +1420,7 @@ PYTHONDONTWRITEBYTECODE=1 node --test --test-name-pattern='daily client integrat
 实际固定worker桥新增22个故障注入场景：完成重试根及pair input/object/link各缺失／损坏8个；首次null-pair保存输出期间上述原件缺失／损坏8个；追加新pair写入期间根及计算input/output缺失／损坏6个。拒绝后断言无成功标记或业务头推进，完成重试不增加归档写入；测试显式恢复夹具原字节后才继续，产品不恢复丢失原件。外部归档和SQLite不是跨介质原子事务；本修复在写入后再次完整读回及最终租约/CAS检查，不承诺存储介质以后永不损坏。
 
 03546c9后完整49项Node通过11.311秒，其中修复后的实际桥8.091秒（内含上述22场景）；另19项治理／状态通过0.012秒，共68项，不累计单跑重复。命令为上节Node三文件组加--test-reporter=spec，以及python3 -B -m unittest tests.test_rulebook_contract tests.test_project_status。首次完整组无后续输出后被取消，不计通过；定点首次新增夹具用固定旧时钟调用store导致lease_clock_invalid，03546c9改为读取实际派发snapshot中的rootRef，保留生产时钟守门，之后定点及完整组通过。未重跑无变化54项Python业务检查。定点eslint与2514484起差异检查通过；无推送、合并、部署、生产启用或供应商调用，待同阶段独立复核。
+
+### D1a固定重试预算（待阶段独立审核）
+
+纯运维转换按已批准第7节实现15分钟／60分钟／下一已核EOD、每纽约日最多3次与每Job10分钟。4项纯检查通过0.082秒，覆盖跨Job计数、严格延迟、第三次失败后午夜不能代替下一EOD、纽约夏令／冬令日界、未成熟不消费attempt、10分钟边界、blocked不恢复及未知reason拒绝。没有业务完成接口；调用上下文必须由后续持久可信适配构造，本包不自证成熟度或EOD来源。eslint及diff通过，未生产启用。
