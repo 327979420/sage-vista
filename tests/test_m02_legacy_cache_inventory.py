@@ -19,6 +19,7 @@ LEGACY_PATH_MARKERS = (
 # This is an audit inventory, not a production allow-list.  Any source change
 # must make the test fail until package H is deliberately reviewed and updated.
 EXPECTED_PYTHON_REFERENCES = frozenset({
+    "services/scanner/cr056_inputs.py::main",
     "services/scanner/cache_theme_etfs.py::run",
     "services/scanner/eodhd_factor_pilot.py::adjusted_rows",
     "services/scanner/eodhd_factor_validation.py::run",
