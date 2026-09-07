@@ -105,6 +105,9 @@ export class ExecutionComputationSession {
     const pending = this.#catalog().find(row => row.input.sha256 === inputSha);
     if (!pending || !same(actor(identity), actor(pending.identity))) throw new Error('execution_validation_actor_mismatch');
     identity.expires_at = Math.min(identity.expires_at, pending.identity.expires_at);
+    this.#tasks.withCurrentTask(identity, token, pending.task_id, pending.result?.snapshot ?? pending.snapshot, () => {
+      if (!same(pending, this.#catalog().find(row => row.input.sha256 === inputSha))) throw new Error('execution_validation_compare_failed');
+    });
     await this.#read(pending.input);
     const result = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(raw));
     if (Object.keys(result).sort().join() !== 'completed_ms,input_sha256,input_size_bytes,inventory_bytes,next_pair,protocol,snapshot_sha256,started_ms,task_id' ||

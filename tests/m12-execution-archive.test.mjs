@@ -263,6 +263,11 @@ test('registered source inventory to actual fixed computation and atomic result/
   assert.ok(inventory.records.some(ref => ref.id.startsWith('market:')));
   assert.ok(inventory.records.some(ref => ref.id.startsWith('universe:')));
   assert.ok(decoded.next_pair);
+  let privateReads = 0;
+  env.bucket.afterGet = () => { privateReads++; };
+  await assert.rejects(session.accept(identity, { ...owned, fence: owned.fence + 1 }, prepared.input.sha256, output), /not_owned/);
+  assert.equal(privateReads, 0);
+  env.bucket.afterGet = null;
   await assert.rejects(session.accept(identity, owned, prepared.input.sha256, bytes(JSON.stringify({ ...decoded, input_sha256: 'sha256:' + '0'.repeat(64) }))), /binding_invalid/);
   env.storage.db.exec("CREATE TRIGGER fail_execution_result_log BEFORE INSERT ON m12_execution_validation_result_log BEGIN SELECT RAISE(ABORT, 'synthetic receipt interruption'); END");
   await assert.rejects(session.accept(identity, owned, prepared.input.sha256, output), /receipt interruption/);
