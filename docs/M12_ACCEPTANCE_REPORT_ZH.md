@@ -1424,3 +1424,11 @@ PYTHONDONTWRITEBYTECODE=1 node --test --test-name-pattern='daily client integrat
 ### D1a固定重试预算（待阶段独立审核）
 
 纯运维转换按已批准第7节实现15分钟／60分钟／下一已核EOD、每纽约日最多3次与每Job10分钟。4项纯检查通过0.082秒，覆盖跨Job计数、严格延迟、第三次失败后午夜不能代替下一EOD、纽约夏令／冬令日界、未成熟不消费attempt、10分钟边界、blocked不恢复及未知reason拒绝。没有业务完成接口；调用上下文必须由后续持久可信适配构造，本包不自证成熟度或EOD来源。eslint及diff通过，未生产启用。
+
+### D1b持久执行领取／失联恢复（待阶段独立审核）
+
+ExecutionScheduler只在内部从ExecutionTaskArchive持久全集发现任务，仍由原readTask核全原件及原租约，异步成熟度读取后再次readTask／CAS。Job起点、领取、失败、失联恢复追加事件与配对日志，同事务更新头；重新打开SQLite、换Job或换任务不抹除日预算／同Job预算。成功回传丢失时原running同Job/fence复用attempt，原身份期限不能续活；新fence接管先留runner_lost及原重试延迟，不把失联当完成。
+
+初始成熟/EOD解析器未安装时不领取；安装点仅内部可信固定适配，当前测试用明确合成适配，不代表真实成熟度／EOD证据已接。无completed API、blocked恢复API、实际worker监督或M10执行／终结收据登记；这些接点仍须后续闭合，不把领取成功当业务执行成功。本包保护原source_snapshot与后续snapshot分别留档，未修改原M08／M09／M10算法或旧夜间文件。
+
+先行13项新预算／持久检查通过0.176秒：持久全集及重启幂等、跨任务同Job10分钟、跨Job每日3次和下一EOD、新fence失联恢复及旧runner拒绝、缺成熟适配不消费attempt、配对丢失／SQL失败、异步原件缺失／租约失效、blocked不自动恢复、原身份期限续活拒绝。定点eslint及diff通过。源码提交后再跑受影响原归档固定worker联测。

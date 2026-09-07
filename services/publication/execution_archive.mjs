@@ -99,6 +99,11 @@ export class ExecutionTaskArchive {
     });
     return { root, revision: head.revision, history };
   }
+  // Internal scheduling discovery only; no read capability or write permission
+  // escapes. Claiming still requires the task lease and full readTask originals.
+  registeredTasks() {
+    return this.#storage.transactionSync(() => this.#catalog().map(row => this.#snapshot(row.task_id)));
+  }
   listTasks(identity, token, dailyResource) {
     if (!dailyResource.startsWith('daily/')) throw new Error('execution_daily_lease_required');
     return this.#owned(identity, token, dailyResource, () => this.#catalog().map(row => this.#snapshot(row.task_id)));

@@ -1,0 +1,123 @@
+// Internal execution scheduling journal. No RPC, scanner, or M10 completion API.
+// readiness is installed only by a trusted fixed adapter; absent => not runnable.
+import { ExecutionTaskArchive } from './execution_archive.mjs';
+import { initialRetryState, claimDecision, failureState, JOB_BUDGET_MS } from './retry_policy.mjs';
+const ordered = value => Array.isArray(value) ? value.map(ordered) : value && typeof value === 'object'
+  ? Object.fromEntries(Object.keys(value).sort().map(key => [key, ordered(value[key])])) : value;
+const encode = value => JSON.stringify(ordered(value));
+const same = (a, b) => encode(a) === encode(b);
+
+export class ExecutionScheduler {
+  #storage; #tasks; #readiness;
+  constructor(storage, bucket, { clock = Date.now, readiness = null } = {}) {
+    if (readiness !== null && typeof readiness !== 'function') throw new Error('execution_readiness_adapter_invalid');
+    this.#storage = storage;
+    this.#tasks = new ExecutionTaskArchive(storage, bucket, { clock });
+    this.#readiness = readiness;
+    storage.transactionSync(() => {
+      this.#sql('CREATE TABLE IF NOT EXISTS m12_execution_schedule_head (singleton INTEGER PRIMARY KEY CHECK(singleton=1), revision INTEGER NOT NULL)');
+      this.#sql('CREATE TABLE IF NOT EXISTS m12_execution_schedule_events (position INTEGER PRIMARY KEY, record_json TEXT NOT NULL)');
+      this.#sql('CREATE TABLE IF NOT EXISTS m12_execution_schedule_log (position INTEGER PRIMARY KEY, record_json TEXT NOT NULL)');
+    });
+  }
+  #sql(query, ...args) { return this.#storage.sql.exec(query, ...args).toArray(); }
+  initializeEmpty() {
+    this.#storage.transactionSync(() => {
+      for (const suffix of ['head', 'events', 'log']) {
+        if (this.#sql('SELECT * FROM m12_execution_schedule_' + suffix + ' LIMIT 1').length) throw new Error('execution_schedule_not_empty');
+      }
+      this.#sql('INSERT INTO m12_execution_schedule_head VALUES (1,0)');
+    });
+  }
+  #history() {
+    const head = this.#sql('SELECT revision FROM m12_execution_schedule_head WHERE singleton=1')[0];
+    const rows = this.#sql('SELECT * FROM m12_execution_schedule_events ORDER BY position');
+    const logs = this.#sql('SELECT * FROM m12_execution_schedule_log ORDER BY position');
+    if (!head || head.revision !== rows.length || !same(rows, logs)) throw new Error('execution_schedule_recovery_required');
+    return rows.map((row, index) => {
+      if (row.position !== index + 1) throw new Error('execution_schedule_history_invalid');
+      return { position: row.position, ...JSON.parse(row.record_json) };
+    });
+  }
+  #append(history, record) {
+    if (!same(history, this.#history())) throw new Error('execution_schedule_compare_failed');
+    const position = history.length + 1, raw = encode(record);
+    this.#sql('INSERT INTO m12_execution_schedule_events VALUES (?,?)', position, raw);
+    this.#sql('INSERT INTO m12_execution_schedule_log VALUES (?,?)', position, raw);
+    this.#sql('UPDATE m12_execution_schedule_head SET revision=? WHERE singleton=1', position);
+    return { position, ...record };
+  }
+  #latest(history, taskId) { return history.filter(row => row.task_id === taskId).at(-1); }
+  list() {
+    // No caller-supplied complete list and no current-day ranking filter.
+    const tasks = this.#tasks.registeredTasks();
+    const history = this.#history();
+    if (history.some(row => row.task_id && !tasks.some(task => task.root.task_id === row.task_id))) throw new Error('execution_schedule_orphan');
+    return tasks.map(snapshot => ({ snapshot,
+      schedule: this.#latest(history, snapshot.root.task_id) ?? null }));
+  }
+  async claim(identity, token, taskId) {
+    identity = structuredClone(identity); token = structuredClone(token);
+    const prior = this.#latest(this.#history(), taskId);
+    if (prior?.state.state === 'running' && same(prior.job, identity.job) && same(prior.token, token)) {
+      identity.expires_at = Math.min(identity.expires_at, prior.original_expires_at);
+    }
+    const initial = await this.#tasks.readTask(identity, token, taskId);
+    const budget = this.#tasks.withCurrentTask(identity, token, taskId, initial.current, ({ now }) => {
+      const history = this.#history();
+      const existing = history.find(row => row.kind === 'job_start' && same(row.job, identity.job));
+      if (existing) return existing;
+      return this.#append(history, { kind: 'job_start', job: identity.job, started_ms: now });
+    });
+    if (!this.#readiness) return { claimed: false, reason: 'readiness_unavailable' };
+    const ready = await this.#readiness(initial);
+    if (!ready || Object.keys(ready).sort().join() !== 'eod_ms,mature' || typeof ready.mature !== 'boolean') throw new Error('execution_readiness_invalid');
+    const reread = await this.#tasks.readTask(identity, token, taskId);
+    if (!same(initial.current, reread.current)) throw new Error('execution_schedule_compare_failed');
+    return this.#tasks.withCurrentTask(identity, token, taskId, reread.current, ({ now }) => {
+      const history = this.#history(), latest = this.#latest(history, taskId);
+      if (latest?.state.state === 'running') {
+        if (same(latest.job, identity.job) && same(latest.token, token)) {
+          if (now >= budget.started_ms + JOB_BUDGET_MS) return { claimed: false, reason: 'job_budget_exhausted' };
+          return { claimed: true, attempt: latest }; // lost response, no extra attempt
+        }
+        return { claimed: false, reason: 'recovery_required' };
+      }
+      const decision = claimDecision(latest?.state ?? initialRetryState(), {
+        now, jobStartedMs: budget.started_ms, mature: ready.mature, eodMs: ready.eod_ms,
+      });
+      if (!decision.claimable) return { claimed: false, reason: decision.reason };
+      const attempt = this.#append(history, { kind: 'claim', task_id: taskId, job: identity.job, token,
+        original_expires_at: identity.expires_at, started_ms: now, job_started_ms: budget.started_ms,
+        previous_position: latest?.position ?? null, source_snapshot: reread.current, state: decision.next });
+      return { claimed: true, attempt };
+    });
+  }
+  async fail(identity, token, taskId, attemptPosition, reason) {
+    identity = structuredClone(identity); token = structuredClone(token);
+    const prior = this.#latest(this.#history(), taskId);
+    if (prior?.state.state === 'running') identity.expires_at = Math.min(identity.expires_at, prior.original_expires_at);
+    const { current } = await this.#tasks.readTask(identity, token, taskId);
+    return this.#tasks.withCurrentTask(identity, token, taskId, current, ({ now }) => {
+      const history = this.#history(), latest = this.#latest(history, taskId);
+      if (!latest || latest.position !== attemptPosition || latest.state.state !== 'running' ||
+          !same(latest.job, identity.job) || !same(latest.token, token)) throw new Error('execution_attempt_not_owned');
+      if (now >= latest.original_expires_at * 1000) throw new Error('execution_attempt_expired');
+      return this.#append(history, { kind: 'failure', task_id: taskId, job: identity.job, token,
+        previous_position: latest.position, occurred_ms: now, source_snapshot: latest.source_snapshot,
+        snapshot: current, state: failureState(latest.state, reason, now) });
+    });
+  }
+  async recover(identity, token, taskId) {
+    identity = structuredClone(identity); token = structuredClone(token);
+    const { current } = await this.#tasks.readTask(identity, token, taskId);
+    return this.#tasks.withCurrentTask(identity, token, taskId, current, ({ now }) => {
+      const history = this.#history(), latest = this.#latest(history, taskId);
+      if (!latest || latest.state.state !== 'running') throw new Error('execution_running_attempt_required');
+      if (token.epoch !== latest.token.epoch || token.fence <= latest.token.fence) throw new Error('execution_recovery_new_fence_required');
+      return this.#append(history, { kind: 'recovery', task_id: taskId, job: identity.job, token,
+        previous_position: latest.position, occurred_ms: now, source_snapshot: latest.source_snapshot,
+        snapshot: current, state: failureState(latest.state, 'runner_lost', now) });
+    });
+  }
+}
