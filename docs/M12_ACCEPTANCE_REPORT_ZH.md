@@ -1452,3 +1452,5 @@ PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest tests.test_rulebook_contract te
 bed251e暂不通过、不推送。审核任务原临时反例：长效JWT外层claim在readiness await期间，同Job/fence短效JWT完成内层claim，推进到原短期限后外层仍claimed=true（Missing expected rejection，75毫秒）。请求前prior限制不能约束异步期间新出现的latest。
 
 修复在最终LeaseStore持锁事务内部同步读取latest原期限，使用同一进入时钟及提交前时钟，取原请求期限与实际attempt期限较小值；同步resolver只能收紧期限，拒绝异步或非整数返回。ExecutionTaskArchive仅转交该内部期限接点，claim／fail复用它，不在消费者新增时钟或业务政策。新增并发入口恰到期限／事务末次跨期限两场景，以及统一租约层收紧、不延长、异步拒绝及写入回滚检查。先行44项预算／调度／原租约组通过0.207秒，eslint及diff通过。
+
+fb96745提交后64项Node正式组通过12.438秒（原恢复桥3.196秒、固定库存登记桥9.091秒），原认证准备固定worker桥1项4.773秒、19治理／状态0.016秒，共84项；原/tmp/sage-m12-d1-running-expiry.test.mjs未修改复跑通过0.126秒，单独列证据不累计前轮重复。正式组沿用上一节五文件命令，另原认证桥命令见D3节。eslint与bed251e起diff通过；无推送、合并、部署、生产启用或新业务政策。rule10版本不变，保留原审核失败与前轮间歇停顿记录；本次通过不宣称已解释前轮停顿原因。待同阶段定点复核。
