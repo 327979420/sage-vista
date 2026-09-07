@@ -17,6 +17,11 @@ def b64(raw):
 
 def main():
     value = json.load(sys.stdin)
+    if value['operation'] == 'diagnostic_stall':
+        import time
+        faulthandler.dump_traceback_later(0.1)
+        time.sleep(60)
+        raise RuntimeError('diagnostic stall should have been killed')
     if value['operation'] == 'source_fixture':
         from tests.test_m12_execution_inventory import ExecutionInventoryTests
         ExecutionInventoryTests.setUpClass()

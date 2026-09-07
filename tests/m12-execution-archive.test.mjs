@@ -366,7 +366,7 @@ test('local fixed runner checkpoints actual receipts and resumes after checkpoin
   const rootIdentity = { ...IDENTITY, issued_at: Math.floor(start / 1000) - 1, expires_at: Math.floor(start / 1000) + 300 };
   await env.store.register(rootIdentity, env.daily, DAILY, fixture.task_id, new Uint8Array(Buffer.from(fixture.root_bytes, 'base64')));
   const identity = { ...rootIdentity, job: { repository_id: '1', workflow_ref: 'local/synthetic@main', workflow_commit: fixture.commit,
-    run_id: 'runner-1', run_attempt: 1, environment: 'synthetic' }, code_commit: fixture.commit,
+    run_id: '2', run_attempt: 1, environment: 'synthetic' }, code_commit: fixture.commit,
     actor_id: '1', subject: 'synthetic-only', token_id: 'synthetic-only' };
   const owned = token(env.leases.acquire('execution/' + fixture.task_id, identity.job, EPOCH));
   new ExecutionScheduler(env.storage, env.bucket).initializeEmpty();
@@ -405,4 +405,17 @@ test('local fixed runner checkpoints actual receipts and resumes after checkpoin
   await assert.rejects(new ExecutionScheduler(env.storage, env.bucket).checkpoint(identity, owned, fixture.task_id,
     result.checkpoint.position, result.checkpoint.input_sha), /object_missing/);
   assert.equal(env.bucket.puts, puts);
+});
+
+test('synthetic bridge timeout retains a Python stack and reaps the stalled child', async () => {
+  const { spawnSync } = await import('node:child_process');
+  const result = spawnSync('python3', ['-B', 'tests/m12_execution_history_fixture.py'], {
+    input: JSON.stringify({ operation: 'diagnostic_stall' }), encoding: 'utf8', timeout: 1500, killSignal: 'SIGKILL',
+    env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1', PYTHONPATH: 'tests:.' },
+  });
+  assert.equal(result.error.code, 'ETIMEDOUT');
+  assert.equal(result.signal, 'SIGKILL');
+  assert.match(result.stderr, /Timeout.*\nThread/s);
+  assert.match(result.stderr, /m12_execution_history_fixture.py/);
+  assert.equal(result.stdout, '');
 });
