@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-30T05:00:44.502990+00:00",
-  "as_of": "2026-08-28",
+  "generated_at": "2026-09-07T04:33:38.585804+00:00",
+  "as_of": "2026-09-04",
   "status": "research_observation_only",
   "registry_version": "0.10.0",
   "factor_source": "canonical_daily_snapshot",
@@ -12,7 +12,7 @@
   "policy": "5分为稀有观察，6分或以上为极稀有观察；不是买入信号，不显示为已验证胜率。",
   "scan": {
     "frequency": "每个美国交易日收盘后",
-    "universe_scanned": 1457,
+    "universe_scanned": 1498,
     "minimum_price": 5,
     "minimum_dollar_volume": 10000000,
     "future_data_used": false

@@ -2,16 +2,16 @@
   "status": "up_to_date",
   "market": "US",
   "provider": "EODHD",
-  "source_latest_complete_date": "2026-08-28",
-  "tracker_as_of": "2026-08-28",
-  "factor_snapshot_as_of": "2026-08-28",
-  "radar_as_of": "2026-08-28",
-  "industry_radar_as_of": "2026-08-28",
-  "market_context_as_of": "2026-08-28",
-  "signal_history_as_of": "2026-08-28",
+  "source_latest_complete_date": "2026-09-04",
+  "tracker_as_of": "2026-09-04",
+  "factor_snapshot_as_of": "2026-09-04",
+  "radar_as_of": "2026-09-04",
+  "industry_radar_as_of": "2026-09-04",
+  "market_context_as_of": "2026-09-04",
+  "signal_history_as_of": "2026-09-04",
   "data_dates_match": true,
   "future_data_used": false,
-  "last_successful_update_at": "2026-08-30T05:03:47.478266+00:00",
+  "last_successful_update_at": "2026-09-07T04:35:35.258597+00:00",
   "trigger_source": "manual",
   "checks": {
     "provider_date_exact": true,
@@ -21,6 +21,6 @@
     "signal_history_append_only": true,
     "macd_trigger_first": true,
     "favorite_pattern_tracker": true,
-    "favorite_pattern_forward_deferred_on_same_date": true
+    "favorite_pattern_forward_deferred_on_same_date": false
   }
 }
