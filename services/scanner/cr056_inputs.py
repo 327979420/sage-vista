@@ -59,7 +59,7 @@ def merge_recent_history(raw, bulk_by_day, *, as_of, expected_sessions):
     return output
 
 
-def repair_existing_cache(cache_dir, private_dir, *, as_of, fetch_bulk):
+def repair_existing_cache(cache_dir, private_dir, *, as_of, fetch_bulk, reference_sessions=None):
     private_dir = require_shadow_root(private_dir, workspace_root=Path(__file__).resolve().parents[2])
     original = Path(cache_dir).resolve()
     if private_dir == original or private_dir in original.parents or original in private_dir.parents:
@@ -88,6 +88,14 @@ def repair_existing_cache(cache_dir, private_dir, *, as_of, fetch_bulk):
     while start <= cutoff:
         if start.weekday() < 5: days.append(start.isoformat())
         start += timedelta(days=1)
+    if reference_sessions is not None:
+        reference_sessions = list(reference_sessions)
+        if reference_sessions != sorted(set(reference_sessions)) or any(date.fromisoformat(d).isoformat() != d for d in reference_sessions):
+            raise ValueError('invalid_reference_sessions')
+        earliest = min(tail for _, tail in candidates.values())
+        if not reference_sessions or reference_sessions[0] > earliest or as_of not in reference_sessions:
+            raise ValueError('reference_session_coverage_missing')
+        days = [d for d in reference_sessions if earliest <= d <= as_of]
     if len(days) > 9: raise ValueError('bounded_bulk_request_budget_exceeded')
     series = {symbol: {} for symbol in candidates}
     sessions, hashes = [], {}

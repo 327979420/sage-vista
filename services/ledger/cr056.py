@@ -43,3 +43,30 @@ def review_watch(*, symbol, as_of, origin, score, previous, reference_sessions):
         'reason_codes': score['reason_codes']}
     result['review_fingerprint'] = canonical_fingerprint(result)
     return result
+
+
+def watch_checkpoint(report):
+    """Persist only frozen origins and latest watch state, not full factor arrays."""
+    checkpoint = {k: report[k] for k in ('as_of', 'result_role', 'snapshot_fingerprint')}
+    checkpoint['reviews'] = [{'symbol': r['symbol'], 'watch': r['watch']}
+                             for r in report['reviews'] if r.get('watch')]
+    checkpoint['checkpoint_fingerprint'] = canonical_fingerprint(checkpoint)
+    return checkpoint
+
+
+def validate_watch_checkpoint(checkpoint):
+    body = {k: v for k, v in checkpoint.items() if k != 'checkpoint_fingerprint'}
+    if canonical_fingerprint(body) != checkpoint.get('checkpoint_fingerprint'):
+        raise ValueError('watch_checkpoint_content_mismatch')
+    if checkpoint.get('result_role') != 'legacy_comparison':
+        raise ValueError('watch_checkpoint_role_mismatch')
+    seen = set()
+    for row in checkpoint['reviews']:
+        watch = row['watch']; symbol = row['symbol']
+        if symbol in seen or watch['watch_id'] != watch_identity(symbol) or watch['as_of'] != checkpoint['as_of']:
+            raise ValueError('watch_checkpoint_identity_mismatch')
+        body = {k: v for k, v in watch.items() if k != 'review_fingerprint'}
+        if canonical_fingerprint(body) != watch.get('review_fingerprint'):
+            raise ValueError('watch_review_content_mismatch')
+        seen.add(symbol)
+    return checkpoint

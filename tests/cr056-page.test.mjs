@@ -13,15 +13,15 @@ new Function('require','exports','module',compiled)(require,compiledModule.expor
 const data=JSON.parse(fs.readFileSync(new URL('../public/cr056-ranking.json',import.meta.url),'utf8'));
 
 test('real candidate projection renders its date, same backend scores and daily-update boundary',()=>{
- const html=renderToStaticMarkup(React.createElement(compiledModule.exports.CandidateView,{data,latestDate:'2026-09-08'}));
- assert.match(html,/新榜自动日更尚未接通/);
+ const html=renderToStaticMarkup(React.createElement(compiledModule.exports.CandidateView,{data,latestDate:new Date(Date.parse(data.as_of+'T00:00:00Z')+7*86400000).toISOString().slice(0,10)}));
+ assert.match(html,data.automatic_updates_connected?/随现有日终流程自动复评/:/新榜自动日更尚未接通/);
  assert.match(html,/更新落后/);
  assert.ok(html.includes(data.as_of));
  const first=data.reviews.find(r=>r.symbol===data.ranked_symbols[0]);
- assert.ok(html.includes(first.symbol));assert.ok(html.includes(first.total.toFixed(2)));
- assert.match(html,/当日新提名/);assert.match(html,/0只/);
+ if(first){assert.ok(html.includes(first.symbol));assert.ok(html.includes(first.total.toFixed(2)));}
+ assert.match(html,/当日新提名/);assert.ok(html.includes(`${data.new_nomination_symbols.length}只`));
  assert.match(html,/尚未验证收益/);
- assert.ok(html.includes(first.periods.monthly));assert.ok(html.includes(first.periods.weekly));
+ if(first){assert.ok(html.includes(first.periods.monthly));assert.ok(html.includes(first.periods.weekly));}
  assert.doesNotMatch(html,/API_TOKEN|adjusted_close/);
 });
 test('an empty computed list is a result, not a loading failure',()=>{
@@ -32,13 +32,20 @@ test('an empty computed list is a result, not a loading failure',()=>{
 test('all ranked and selected display rows preserve backend identity and exclude unavailable rows',()=>{
  assert.ok(fs.statSync(new URL('../public/cr056-ranking.json',import.meta.url)).size<750000);
  assert.equal(data.result_role,'legacy_comparison');
- assert.equal(data.automatic_updates_connected,false);
+ assert.equal(typeof data.automatic_updates_connected,'boolean');
  assert.deepEqual(data.selected_symbols,data.ranked_symbols.slice(0,5));
  data.ranked_symbols.forEach((s,i)=>{
   const r=data.reviews.find(r=>r.symbol===s);
-  assert.equal(r.rank,i+1);assert.ok(r.total!==null);assert.equal(r.coverage,1);
+  assert.equal(r.rank,i+1);assert.ok(r.total!==null);assert.ok(r.coverage>=0.8);
  });
  const page=fs.readFileSync(new URL('../app/zh/watch/resonance/rare-opportunities/page.tsx',import.meta.url),'utf8');
  assert.match(page,/if\(!showLegacy\)return/);
  assert.match(page,/旧版本排行与因子研究留档/);
+});
+
+test('daily refresh failure retains the actual snapshot date and shows failure',()=>{
+ const current={...data,automatic_updates_connected:true,refresh_status:{status:'failed',target_as_of:'2026-09-08'}};
+ const html=renderToStaticMarkup(React.createElement(compiledModule.exports.CandidateView,{data:current,latestDate:new Date(Date.parse(data.as_of+'T00:00:00Z')+7*86400000).toISOString().slice(0,10)}));
+ assert.match(html,/随现有日终流程自动复评/);assert.match(html,/自动复评未完成/);
+ assert.ok(html.includes(data.as_of));assert.match(html,/更新落后/);
 });

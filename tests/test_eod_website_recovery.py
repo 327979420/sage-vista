@@ -86,8 +86,7 @@ class EodWebsiteRecoveryTests(unittest.TestCase):
             for event, notify, success in product(('schedule', 'workflow_dispatch'), (False, True), (False, True)):
                 expr = condition.replace("github.event_name", repr(event)).replace('inputs.notify == true', str(notify))
                 expr = expr.replace('&&', 'and')
-                result = ('true' if success else 'false') if 'needs_release' in condition else ('success' if success else 'failure')
-                expr = re.sub(r'steps\.[\w.]+', repr(result), expr)
+                expr = re.sub(r'steps\.[\w.]+', lambda match: repr(('true' if success else 'false') if match.group(0).endswith('needs_release') else ('success' if success else 'failure')), expr)
                 allowed = eval(expr, {'__builtins__': {}}, {})
                 self.assertEqual(allowed, event == 'workflow_dispatch' and notify and success, name)
                 if event != 'workflow_dispatch' or not notify:

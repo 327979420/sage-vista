@@ -94,6 +94,47 @@ jobs:
           PY
         env:
           MANUAL_DEPLOY: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'deploy' }}
+      - name: Restore private candidate input accelerator
+        continue-on-error: true
+        uses: actions/cache/restore@v4
+        with:
+          path: work/cr056-daily/cache
+          key: cr056-daily-inputs-v1-${{ github.run_id }}
+          restore-keys: cr056-daily-inputs-v1-
+      - name: Refresh candidate ranking and persistent watch state
+        id: candidate_update
+        run: |
+          python3 -m services.scanner.cr056_daily --as-of "${{ steps.update_result.outputs.as_of }}" > cr056-update-result.json
+          python3 - <<'PYCODE'
+          import json,os
+          result=json.load(open("cr056-update-result.json"))
+          if result.get("result") not in ("updated","already_current","retained_previous"):raise SystemExit("invalid candidate update result")
+          with open(os.environ["GITHUB_OUTPUT"],"a") as out:
+              out.write(f"needs_release={str(result['changed'] or os.environ['LEGACY_RELEASE']=='true').lower()}\n")
+              out.write(f"cache_ready={str(result['cache_ready']).lower()}\n")
+              out.write(f"result={result['result']}\n")
+              out.write(f"as_of={result['as_of']}\n")
+          PYCODE
+        env:
+          LEGACY_RELEASE: ${{ steps.update_result.outputs.needs_release }}
+      - name: Save private candidate input accelerator
+        continue-on-error: true
+        if: steps.candidate_update.outputs.cache_ready == 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: work/cr056-daily/cache
+          key: cr056-daily-inputs-v1-${{ github.run_id }}
+      - name: Upload candidate derived audit only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cr056-eod-${{ github.run_id }}
+          path: |
+            cr056-update-result.json
+            work/cr056-daily/daily-report.json.gz
+            work/cr056-daily/input-report.json
+          if-no-files-found: warn
+          retention-days: 30
       - name: Update latest unified V2 ranking
         if: steps.update_result.outputs.needs_release == 'true'
         run: |
@@ -103,23 +144,23 @@ jobs:
         if: steps.update_result.outputs.needs_release == 'true'
         run: python3 -m services.scanner.opportunity_ledger
       - name: Refresh pre-deployment machine status
-        if: steps.update_result.outputs.needs_release == 'true'
+        if: steps.candidate_update.outputs.needs_release == 'true'
         run: python3 -m services.scanner.project_status > /dev/null
       - uses: actions/setup-node@v7
-        if: steps.update_result.outputs.needs_release == 'true'
+        if: steps.candidate_update.outputs.needs_release == 'true'
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - name: Install website dependencies
-        if: steps.update_result.outputs.needs_release == 'true'
+        if: steps.candidate_update.outputs.needs_release == 'true'
         run: npm ci
       - name: Run all Python tests
         id: python_tests
-        if: steps.update_result.outputs.needs_release == 'true'
+        if: steps.candidate_update.outputs.needs_release == 'true'
         run: python3 -m unittest discover -s tests -p 'test_*.py'
       - name: Run production build and rendered tests
         id: production_build
-        if: steps.update_result.outputs.needs_release == 'true'
+        if: steps.candidate_update.outputs.needs_release == 'true'
         run: npm test
       - name: Dry-run Discord payload
         if: github.event_name == 'workflow_dispatch' && inputs.notify == true && steps.update_result.outputs.needs_release == 'true'
@@ -135,24 +176,25 @@ jobs:
           PY
       - name: Commit audited website data
         id: audited_data_commit
-        if: steps.update_result.outputs.needs_release == 'true'
+        if: steps.candidate_update.outputs.needs_release == 'true'
         shell: bash
         run: |
           git config user.name "sage-vista-bot"
           git config user.email "sage-vista-bot@users.noreply.github.com"
-          git add public/resonance-tracker.json public/favorite-pattern.json public/daily-factor-snapshot.json public/rare-opportunity-radar.json public/industry-radar.json public/market-etf-watch.json public/signal-history.json public/signal-history-summary.json public/update-status.json public/factor-registry.json public/unified-v2-rankings.json public/unified-v2-latest.json public/opportunity-ledger.json public/opportunity-ledger-latest.json docs/CURRENT_STATUS_ZH.md
+          git add public/resonance-tracker.json public/favorite-pattern.json public/daily-factor-snapshot.json public/rare-opportunity-radar.json public/industry-radar.json public/market-etf-watch.json public/signal-history.json public/signal-history-summary.json public/update-status.json public/factor-registry.json public/unified-v2-rankings.json public/unified-v2-latest.json public/opportunity-ledger.json public/opportunity-ledger-latest.json public/cr056-ranking.json automation/cr056-watch-state.json.gz docs/CURRENT_STATUS_ZH.md
+          if [ -d research/generated/cr056-daily ]; then git add research/generated/cr056-daily; fi
           if ! git diff --cached --quiet; then
             git commit -m "data: EOD update ${{ steps.update_result.outputs.as_of }}"
             git push origin HEAD:main
           fi
           echo "deployment_commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - name: Rebuild production website for deployment commit
-        if: steps.update_result.outputs.needs_release == 'true'
+        if: steps.candidate_update.outputs.needs_release == 'true'
         env:
           SAGE_DEPLOYMENT_COMMIT: ${{ steps.audited_data_commit.outputs.deployment_commit }}
         run: npm run build
       - name: Upload safe preview artifact
-        if: steps.update_result.outputs.needs_release == 'true'
+        if: steps.candidate_update.outputs.needs_release == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: discord-preview-${{ steps.update_result.outputs.as_of }}
@@ -171,7 +213,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
       - name: Require deployment secrets
-        if: steps.update_result.outputs.needs_release == 'true'
+        if: steps.candidate_update.outputs.needs_release == 'true'
         shell: bash
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -181,7 +223,7 @@ jobs:
           test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "CLOUDFLARE_ACCOUNT_ID secret is not configured"; exit 1; }
       - name: Deploy production to Cloudflare Workers
         id: cloudflare_deploy
-        if: steps.update_result.outputs.needs_release == 'true'
+        if: steps.candidate_update.outputs.needs_release == 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -225,20 +267,20 @@ jobs:
           git diff --cached --quiet || git commit --amend --no-edit
           git push origin HEAD:main
       - name: Require explicitly requested notification secret
-        if: github.event_name == 'workflow_dispatch' && inputs.notify == true && steps.live_verify.outcome == 'success'
+        if: github.event_name == 'workflow_dispatch' && inputs.notify == true && steps.update_result.outputs.needs_release == 'true' && steps.live_verify.outcome == 'success'
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_OPPORTUNITY }}
         run: test -n "$DISCORD_WEBHOOK_URL" || { echo "DISCORD_OPPORTUNITY secret is not configured"; exit 1; }
       - name: Send deduplicated Discord daily digest
         id: discord_send
-        if: github.event_name == 'workflow_dispatch' && inputs.notify == true && steps.live_verify.outcome == 'success'
+        if: github.event_name == 'workflow_dispatch' && inputs.notify == true && steps.update_result.outputs.needs_release == 'true' && steps.live_verify.outcome == 'success'
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_OPPORTUNITY }}
           SAGE_VISTA_SITE_URL: ${{ steps.cloudflare_deploy.outputs.site_url }}
         run: python3 -m services.scanner.discord_daily_digest --state-path automation/discord-state.json > discord-result.json
       - name: Validate Discord send result
         id: discord_validation
-        if: github.event_name == 'workflow_dispatch' && inputs.notify == true && steps.discord_send.outcome == 'success'
+        if: github.event_name == 'workflow_dispatch' && inputs.notify == true && steps.update_result.outputs.needs_release == 'true' && steps.discord_send.outcome == 'success'
         shell: bash
         run: |
           python3 - <<'PY'
@@ -248,7 +290,7 @@ jobs:
           with open(os.environ["GITHUB_OUTPUT"],"a") as out:out.write(f"result={result['result']}\n")
           PY
       - name: Persist Discord duplicate state
-        if: github.event_name == 'workflow_dispatch' && inputs.notify == true && steps.discord_validation.outcome == 'success'
+        if: github.event_name == 'workflow_dispatch' && inputs.notify == true && steps.update_result.outputs.needs_release == 'true' && steps.discord_validation.outcome == 'success'
         shell: bash
         run: |
           python3 - <<'PY'
@@ -279,6 +321,8 @@ jobs:
         shell: bash
         env:
           UPDATE_RESULT: ${{ steps.update_result.outputs.result }}
+          CANDIDATE_RESULT: ${{ steps.candidate_update.outputs.result }}
+          CANDIDATE_AS_OF: ${{ steps.candidate_update.outputs.as_of }}
           AS_OF: ${{ steps.update_result.outputs.as_of }}
           PYTHON_TESTS: ${{ steps.python_tests.outcome }}
           PRODUCTION_BUILD: ${{ steps.production_build.outcome }}
@@ -291,6 +335,7 @@ jobs:
             echo "# Sage Vista Production Pipeline"
             echo
             echo "- ① Data Update: **${UPDATE_RESULT:-failed_closed}**"
+            echo "- Candidate ranking: **${CANDIDATE_RESULT:-not_run}**, data **${CANDIDATE_AS_OF:-unknown}**"
             echo "- ② Tests / Audit: **Python ${PYTHON_TESTS:-skipped} · Build ${PRODUCTION_BUILD:-skipped}**"
             echo "- ③ Cloudflare Deployment: **${DEPLOYMENT:-skipped}**"
             echo "- ④ Live Verification: **${LIVE_VERIFICATION:-skipped}**"

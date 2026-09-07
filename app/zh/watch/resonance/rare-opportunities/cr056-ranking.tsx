@@ -3,7 +3,7 @@ import {useEffect,useState} from "react";
 
 type Group={group:string;available:boolean;contribution:number;strengths:Record<string,number>;missing_factor_ids:string[]};
 type Row={symbol:string;rank:number|null;price:number|null;status:string;new_nomination:boolean;origin_date:string|null;total:number|null;coverage:number|null;frames:Record<string,number>|null;periods:{monthly:string;weekly:string}|null;high_score_eligible:boolean;reason_codes:string[];checks?:Record<string,{status:string;reason:string}>;groups?:Group[]};
-export type CandidateData={as_of:string;result_role:string;policy_version:string;source_snapshot:string;automatic_updates_connected:boolean;input_coverage:{repaired_count:number;excluded_count:number};counts:Record<string,number>;ranked_symbols:string[];selected_symbols:string[];new_nomination_symbols:string[];continuing_ranked_symbols:string[];factor_catalog:Record<string,{name:string;timeframe:string}>;reviews:Row[]};
+export type CandidateData={as_of:string;result_role:string;policy_version:string;source_snapshot:string;automatic_updates_connected:boolean;refresh_status?:{status:string;target_as_of:string;reason?:string};input_coverage:{repaired_count:number;excluded_count:number};counts:Record<string,number>;ranked_symbols:string[];selected_symbols:string[];new_nomination_symbols:string[];continuing_ranked_symbols:string[];factor_catalog:Record<string,{name:string;timeframe:string}>;reviews:Row[]};
 const frameNames:Record<string,string>={monthly_completed:"月线",weekly_completed:"周线",daily:"日线"};
 const reasons:Record<string,string>={
  monthly_not_confirmed:"月线方向未获许可（柱缩短、刚转负或改善未确认）",weekly_not_confirmed:"周线方向尚未确认",weekly_near_bear_cross:"周线正柱已接近死叉",monthly_high_zone:"月线价格或MACD处于高位区",near_observed_history_high:"接近已观测历史高点",no_pullback_60d:"相对前60日高点回调不足",structure_broken:"原支撑结构已破坏",no_available_background:"长期上涨或长期筑底背景未确认",no_initial_daily_cross:"没有首次提名所需的当日日线金叉",daily_tradability_not_met:"价格或成交额未达到可交易门槛",historical_adjustment_changed:"供应商复权历史已变化，待核对",empty_invalid_or_old_cache:"原缓存为空、无效或过旧",recent_session_missing:"近期交易日行情缺失",adjustment_anchor_missing:"缺少旧尾日复权核对锚点",completed_months_below_61:"不足61根完整月线",monthly_high_window_missing:"月线高位检验历史不足",daily_history_below_420:"不足420个日线交易会话",local_structure_unavailable:"支撑结构证据不足",source_history_unavailable:"缺少行情来源",
@@ -29,7 +29,7 @@ export function CandidateView({data,latestDate}:{data:CandidateData;latestDate?:
    <article className="tone-violet"><small>持续观察合格榜</small><b>{data.continuing_ranked_symbols.length}只</b><p>原提名冻结，复评无需再次金叉</p></article>
    <article className="tone-rose"><small>达到60分警报线</small><b>{alerts}只</b><p>还需完整覆盖与至少两个证据家族</p></article>
   </section>
-  <div className="replayCoverage" role="status"><mark>{stale?`更新落后：已有 ${latestDate} 行情，本榜仍为 ${data.as_of}`:"已核验快照"}</mark><span>新榜自动日更尚未接通</span><span>行情可用 {data.input_coverage.repaired_count}只／来源排除 {data.input_coverage.excluded_count}只</span></div>
+  <div className="replayCoverage" role="status"><mark>{stale?`更新落后：已有 ${latestDate} 行情，本榜仍为 ${data.as_of}`:"已核验快照"}</mark><span>{data.automatic_updates_connected?"随现有日终流程自动复评":"新榜自动日更尚未接通"}</span>{data.refresh_status?.status==="failed"&&<mark>{data.refresh_status.target_as_of} 自动复评未完成，保留 {data.as_of} 榜单</mark>}<span>行情可用 {data.input_coverage.repaired_count}只／来源排除 {data.input_coverage.excluded_count}只</span></div>
   <p>候选策略仅供人工复核，尚未验证收益。月→周→日先判断许可，再按各周期固定满分归一、3∶2∶1加权。失格退出当前排名，原提名继续保留。股票身份来自旧缓存观察池，覆盖不等于完整市场。</p>
   <section className="researchReplay">
    <header><div><small>月定方向 · 周确认 · 日择时</small><h2>多因子候选排行榜</h2><p>先看前5只，再点击股票核对分项；“优先复核”不表示达到警报线。</p></div></header>
@@ -43,7 +43,7 @@ export function CandidateView({data,latestDate}:{data:CandidateData;latestDate?:
     {selected.groups&&<div className="v2Ledger">{selected.groups.map(g=><section key={g.group}><h4>证据组贡献 {g.contribution.toFixed(2)}{!g.available&&" · 数据不足"}</h4>{Object.entries(g.strengths).map(([fid,q])=><p key={fid}><i>{q>0?"✓":"○"}</i><span>{data.factor_catalog[fid]?.name??fid}<small>{frameNames[data.factor_catalog[fid]?.timeframe]} · 候选因子</small></span><b>{g.missing_factor_ids.includes(fid)?"不可用":q===1?"命中":q>0?"较弱／近期":"未计入"}</b></p>)}</section>)}</div>}
     <p>同组证据封顶，父子确认与家族上限已在后台计入；周线正柱缩短时周分乘0.75。分项不是收益概率，当前新榜未生成交易计划。</p>
    </article>}
-   <footer>政策 {data.policy_version} · 行情来源 EODHD · 新评分未覆盖旧提名记录。自动复评接通前，此页仅展示本次已核快照。</footer>
+   <footer>政策 {data.policy_version} · 行情来源 EODHD · 新评分未覆盖旧提名记录。{data.automatic_updates_connected?"本页按每次成功复评更新；失败保留原日期与榜单。":"自动复评接通前，此页仅展示本次已核快照。"}</footer>
   </section>
  </>;
 }

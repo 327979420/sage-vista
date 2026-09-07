@@ -41,7 +41,7 @@ def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previo
         raise ValueError('previous snapshot is not an earlier candidate comparison')
     sources = {r['symbol']: r for r in input_report['repaired']}
     prior = {r['symbol']: r['watch'] for r in previous.get('reviews', []) if r.get('watch')} if previous else {}
-    origins = historical_origins(history, as_of=as_of)
+    origins = historical_origins(history, as_of=as_of) if previous is None else {}
     for symbol, watch in prior.items(): origins[symbol] = watch['origin']
     reference = Path(cache_dir)/'SPY.json'
     if not reference.exists(): raise ValueError('repaired reference history missing')

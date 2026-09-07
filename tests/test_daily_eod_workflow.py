@@ -135,3 +135,23 @@ class DailyEodWorkflowTests(unittest.TestCase):
   self.assertIn("gh run download",recovery)
   self.assertIn("merge_unified_v2_reports",recovery)
   self.assertNotIn("unified_v2_scan --start",recovery)
+
+ def test_candidate_failure_can_publish_old_date_with_visible_status(self):
+  import json,os,subprocess,sys,tempfile,textwrap
+  text=WORKFLOW.read_text()
+  block=text.split('name: Refresh candidate ranking and persistent watch state',1)[1].split('      - name:',1)[0]
+  script=textwrap.dedent(block.split("python3 - <<'PYCODE'",1)[1].split('          PYCODE',1)[0])
+  with tempfile.TemporaryDirectory() as directory:
+   root=pathlib.Path(directory);out=root/'outputs'
+   (root/'cr056-update-result.json').write_text(json.dumps({'result':'retained_previous','as_of':'2026-09-04','changed':True,'cache_ready':False}))
+   subprocess.run([sys.executable,'-c',script],cwd=root,env={**os.environ,'GITHUB_OUTPUT':str(out),'LEGACY_RELEASE':'false'},check=True)
+   self.assertIn('needs_release=true',out.read_text())
+   self.assertIn('result=retained_previous',out.read_text())
+  blocks={b.splitlines()[0]:b for b in text.split('      - name: ')[1:]}
+  for name in ('Commit audited website data','Run all Python tests','Run production build and rendered tests','Deploy production to Cloudflare Workers'):
+   self.assertIn("steps.candidate_update.outputs.needs_release == 'true'",blocks[name])
+  self.assertIn('public/cr056-ranking.json automation/cr056-watch-state.json.gz',blocks['Commit audited website data'])
+  artifact=blocks['Upload candidate derived audit only']
+  self.assertNotIn('/cache',artifact);self.assertNotIn('eodhd-cache',artifact);self.assertNotIn('/bulk',artifact)
+  self.assertIn('daily-report.json.gz',artifact)
+  self.assertIn("steps.update_result.outputs.needs_release == 'true'",blocks['Send deduplicated Discord daily digest'])
