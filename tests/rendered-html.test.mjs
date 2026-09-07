@@ -102,3 +102,12 @@ test("experiment pages are retired from the website", async () => {
     assert.equal(new URL(response.headers.get("location"), "http://localhost").pathname, "/");
   }
 });
+
+test("multi-factor route renders the candidate snapshot boundary and optional legacy archive", async () => {
+  const response = await render("/zh/watch/resonance/rare-opportunities");
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.match(html, /正在读取已核新模型快照/);
+  assert.match(html, /旧版本排行与因子研究留档/);
+  assert.doesNotMatch(html, /共同门票.*个样本/);
+});

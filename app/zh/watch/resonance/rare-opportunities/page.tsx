@@ -1,5 +1,6 @@
 "use client";
 
+import CandidateRanking from "./cr056-ranking";
 import React,{useEffect,useState} from "react";
 import {TrackerShell} from "../tracker-ui";
 import {TimeframeProfile,TimeframeProfilePanel} from "./timeframe-profile";
@@ -25,6 +26,7 @@ const evaluationNames:Record<string,string>={data_unavailable:"等待行情",pen
 const signed=(value:number)=>`${value>0?"+":""}${value.toFixed(1)}%`;
 
 export default function RareOpportunities(){
+ const [showLegacy,setShowLegacy]=useState(false);
  const [snapshot,setSnapshot]=useState<Snapshot|null>(null);
  const [effectiveness,setEffectiveness]=useState<Effectiveness|null>(null);
  const [unified,setUnified]=useState<UnifiedV2|null>(null);
@@ -36,11 +38,12 @@ export default function RareOpportunities(){
  const [historyLoading,setHistoryLoading]=useState(false);
 
  useEffect(()=>{
+  if(!showLegacy)return;
   fetch("/daily-factor-snapshot.json",{cache:"no-store"}).then(x=>x.ok?x.json():null).then(setSnapshot).catch(()=>setSnapshot(null));
   fetch("/factor-effectiveness.json",{cache:"no-store"}).then(x=>x.ok?x.json():null).then(setEffectiveness).catch(()=>setEffectiveness(null));
   fetch("/unified-v2-latest.json",{cache:"no-store"}).then(x=>x.ok?x.json():null).then(x=>{setUnified(x);if(x?.days?.length)setV2Date(x.days.at(-1).date)}).catch(()=>setUnified(null));
   fetch("/opportunity-ledger-latest.json",{cache:"no-store"}).then(x=>x.ok?x.json():null).then(x=>{setLedger(x);if(x?.events?.length)setLedgerMonth(x.events.at(-1).signal_date.slice(0,7))}).catch(()=>setLedger(null));
- },[]);
+ },[showLegacy]);
 
  const loadFullHistory=()=>{
   if(historyLoaded||historyLoading)return;
@@ -59,7 +62,9 @@ export default function RareOpportunities(){
  const ledgerRows=(ledger?.events??[]).filter(item=>item.signal_date.startsWith(ledgerMonth)).slice().reverse().slice(0,100);
  const latest20=effectiveness?.baseline_20d.forward_2026;
 
- return <TrackerShell active="多因子机会" title="多因子" subtitle="复杂版：技术颗数、家族、重复确认和跨周期共振，一页看清。">
+ return <TrackerShell active="多因子机会" title="多因子" subtitle="月定方向、周确认、日择时；查看当日新提名与持续观察。">
+  <div className="rareRadar"><CandidateRanking/></div>
+  <details onToggle={e=>setShowLegacy(e.currentTarget.open)}><summary>旧版本排行与因子研究留档（原规则，仅供对照）</summary>
   <div className="rareRadar">{unified&&<>
    <section className="rareFirstView">
     <article className="tone-blue"><i className="rareMetricIcon">1</i><small>今天更新到</small><b>{day?.date??snapshot?.as_of??"—"}</b><p>{snapshot?.triggered_count??"—"}只MACD刚金叉 → {day?.candidate_count??"—"}只通过门票</p></article>
@@ -107,6 +112,6 @@ export default function RareOpportunities(){
    {selected&&<section className="researchReplay"><header><div><small>RISK PLAN · SIGNAL-DAY SNAPSHOT</small><h2>{selected.symbol}的支撑与离场计划</h2><p>排行变了，止损和退出没有偷偷改变。</p></div><mark>{selected.execution_policy_version??"旧批次"}</mark></header><div className="replayCoverage"><span>当时价格 <b>${selected.price}</b></span><span>支撑 <b>{selected.support_plan?.level?`$${selected.support_plan.level}`:"未记录"}</b></span><span>来源 <b>{selected.support_plan?.source??"—"}</b></span><span>结构止损 <b>{selected.support_plan?.structural_stop?`$${selected.support_plan.structural_stop}`:"—"}</b></span><mark>支撑下5%与入场下10%取更高者</mark></div></section>}
 
    <section className="researchReplay"><header><div><small>PERMANENT OPPORTUNITY LEDGER</small><h2>统一机会账本</h2><p>旧排名和新共振榜都永久保留版本；未来涨跌只负责评价。</p></div>{ledger&&<select aria-label="账本月份" value={ledgerMonth} onChange={event=>setLedgerMonth(event.target.value)}>{months.map(month=><option key={month}>{month}</option>)}</select>}</header>{ledger?<><div className="replayCoverage"><span>永久记录 <b>{ledger.coverage.events}</b>条</span><span>排行事件 <b>{ledger.summary.unified_v2_events}</b>条</span><span>真实Forward <b>{ledger.summary.production_forward_events}</b>条</span><mark>{ledger.selection_future_data_used?"数据异常":"防前视通过"}</mark></div><div className="replayTable"><div className="replayRow replayHead"><span>触发日 / 排名</span><span>股票</span><span>当时分数</span><span>1日</span><span>5日</span><span>20日</span><span>60日</span><span>跟踪状态</span></div>{ledgerRows.map(item=><article className="replayRow" key={item.event_id}><span>{item.signal_date}<small>{item.selection.rank?`当日 #${item.selection.rank}`:"真实提醒"}</small></span><b>{item.symbol}<small>{item.source_systems.map(source=>sourceNames[source]??source).join(" + ")}</small></b><span><b>{item.selection.technical_score??item.selection.final_priority??"—"}</b><small>{item.selection.score_equation??item.selection.reasons.slice(0,2).join(" · ")}</small></span>{(["1","5","20","60"] as const).map(horizon=>{const value=item.evaluation.returns[horizon];return <strong key={horizon} className={value===null?"pending":value>=0?"positive":"negative"}>{value===null?"进行中":`${value>0?"+":""}${(value*100).toFixed(1)}%`}</strong>})}<span>{evaluationNames[item.evaluation.status]??item.evaluation.status}<small>{item.evaluation.elapsed_sessions}个交易日 · MFE {item.evaluation.mfe===null?"—":`${(item.evaluation.mfe*100).toFixed(1)}%`} · MAE {item.evaluation.mae===null?"—":`${(item.evaluation.mae*100).toFixed(1)}%`}</small></span></article>)}</div><footer>每条记录冻结当日模型版本，不会用新分覆盖旧事件。</footer></>:<div className="rareEmpty"><b>统一机会账本等待生成</b></div>}</section>
-  </>}</div>
+  </>}</div></details>
  </TrackerShell>;
 }
