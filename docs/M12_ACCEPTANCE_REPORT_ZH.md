@@ -1362,3 +1362,14 @@ PYTHONDONTWRITEBYTECODE=1 node --test --test-name-pattern='daily client integrat
 ```
 
 机器生成状态、九政策原指纹、两runtime配置禁用／origin空、3处相对文档链接、定点eslint与c20d0f4起diff格式通过。业务提交后工作区干净，本地main仍14fef535。完整SourceInventory解析以及受信实际调用工厂仍未接，下一包应继续闭合这两个接点，不能跳过它们把执行包当完整来源库存，亦不以真实材料尚缺为理由停止已经批准的纯接线。本阶段由审核任务复核后同步已审工作分支；本任务未推送、合并、部署、启用、通知或调用真实供应商。
+
+
+### D3d源包重放与任务级库存（待独立审核）
+
+父17a7bf7。内部execution根格式2冻结原Git配置字节和完整日链输入字节，原M02／日链重新计算后生成signal，不接调用者signal或检测器替代。配置原字节经原verify_publication_configuration及固定Git来源核验，ETF使用配置原六只集合；M02消费读数集合须与实际输入一致，provider/market绑定配置。生成仅是原件包，不是数据使用授权。
+
+任务库存从ExecutionTaskArchive全读回根／对记录解析：先原执行历史重放，再源包日链重放与原signal核对；实际M02宇宙／行情／读数、配置、Gate、技术／支撑／模型／上下文／排行／事件及计划／退出／关联解析成依赖节点，根取全持久task snapshot，最后调用既有build_source_inventory／唯一合同入口计算闭包。接口不接roots/nodes。缺源包的格式1仍保留原恢复能力，但不能生成完整任务库存；此为task范围，不是全日publication库存，不证明真实供应商许可。
+
+新增5项source检查，联合原history／SourceInventory／治理／状态43项通过8.852秒。覆盖原源完整闭包及固定配置Ref、全部成对历史改变库存根、缺读数／缺固定ETF拒绝、有效重哈希行情改动与原signal不一致拒绝、无源包旧根拒绝。初始反例仅改scan_batch_id，未改变原业务signal因此不应拒绝；改为变更实际行情并重算其指纹，保留正确的原业务身份语义，没有修改原生产者。固定执行／成对登记联测随后接入；本包未安装任何生产入口。
+
+回退撤销源包格式2生产与新库存构造，旧格式1原范围不变；不重写已存根。九政策／原业务算法、旧shadow存储／断点未变，无真实源、云资源、推送、合并、部署、启用或通知。

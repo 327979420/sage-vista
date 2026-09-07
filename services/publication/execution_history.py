@@ -61,7 +61,8 @@ def encode_signal(signal):
 def _signal(raw):
     value = _decode(raw)
     try:
-        if set(value) != {'format', 'signal'} or value['format'] != 'm12-execution-signal/1':
+        expected = {'format', 'signal'} if value.get('format') == 'm12-execution-signal/1' else {'format', 'signal', 'sources'}
+        if set(value) != expected or value['format'] not in {'m12-execution-signal/1', 'm12-execution-signal/2'}:
             raise ValueError('format')
         source = value['signal']
         if set(source) != {'ranking', 'support', 'events'}:
