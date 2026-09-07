@@ -4,9 +4,32 @@ The verifier fetches every public dataset used by the four pages, checks one
 expected market date, model contracts and lookahead flags, then returns a small
 deployment receipt. Discord runs only after this receipt succeeds.
 """
-import argparse,datetime,json,os,pathlib,re,tempfile,time,urllib.error,urllib.parse,urllib.request
+import argparse,datetime,hashlib,json,os,pathlib,re,tempfile,time,urllib.error,urllib.parse,urllib.request
 from .factor_snapshot import SNAPSHOT_MODE_VERSION
 from .favorite_pattern_tracker import GENERALIZATION_VERSION, PATTERN_VERSION
+
+CANDIDATE_PUBLIC_PATH = pathlib.Path(__file__).resolve().parents[2] / "public/cr056-ranking.json"
+
+def fetch_candidate_bytes(base,cache_key):
+ url=f"{base.rstrip('/')}/cr056-ranking.json?deployment={urllib.parse.quote(cache_key)}"
+ request=urllib.request.Request(url,headers={"Accept":"application/json","User-Agent":"SageVistaDeploymentAudit/1.0"})
+ with urllib.request.urlopen(request,timeout=30) as response:
+  if response.status!=200:raise RuntimeError(f"Live candidate snapshot returned HTTP {response.status}")
+  return response.read()
+
+def verify_candidate_asset(base,expected,deployment_commit):
+ if not CANDIDATE_PUBLIC_PATH.exists():return None
+ local=CANDIDATE_PUBLIC_PATH.read_bytes();payload=json.loads(local)
+ if payload.get("result_role")!="legacy_comparison" or not payload.get("source_snapshot"):
+  raise RuntimeError("Local candidate snapshot provenance missing")
+ as_of=payload.get("as_of")
+ if _receipt_date(as_of,"Candidate as_of")>_receipt_date(expected,"Expected as_of"):
+  raise RuntimeError("Candidate snapshot uses a future date")
+ digest=hashlib.sha256(local).hexdigest()
+ if hashlib.sha256(fetch_candidate_bytes(base,deployment_commit)).hexdigest()!=digest:
+  raise RuntimeError("Live candidate snapshot bytes differ from reviewed local asset")
+ return {"as_of":as_of,"source_snapshot":payload["source_snapshot"],"sha256":digest,
+         "ranked_count":len(payload["ranked_symbols"]),"stale":as_of<expected}
 
 def fetch(base,path,cache_key,attempts=12,delay_seconds=5):
  url=f"{base.rstrip('/')}/{path}?deployment={urllib.parse.quote(cache_key)}"
@@ -53,7 +76,8 @@ def verify_once(base,expected,deployment_commit):
  if f"Build {deployment_commit[:7]}" not in page:raise RuntimeError("Live deployment commit marker mismatch")
  details=tracker.get("details",{})
  if any(x.get("audit",{}).get("future_rows_used") or x.get("audit",{}).get("latest_bar")!=expected for x in details.values()):raise RuntimeError("Live tracker completeness audit failed")
- return {"result":"verified","as_of":expected,"site_url":base,"website_version":website_version,"deployment_commit":deployment_commit,"tracker_details":len(details),"favorite_pattern_watchlist":favorite.get("summary",{}).get("watchlist"),"favorite_pattern_entry_ready":favorite.get("summary",{}).get("entry_ready"),"factor_symbols":snapshot.get("triggered_count"),"eligible_universe":snapshot.get("eligible_count"),"forward_cases":len(history.get("cases",[])),"opportunity_events":len(ledger.get("events",[]))}
+ candidate=verify_candidate_asset(base,expected,deployment_commit)
+ return {"candidate_snapshot":candidate,"result":"verified","as_of":expected,"site_url":base,"website_version":website_version,"deployment_commit":deployment_commit,"tracker_details":len(details),"favorite_pattern_watchlist":favorite.get("summary",{}).get("watchlist"),"favorite_pattern_entry_ready":favorite.get("summary",{}).get("entry_ready"),"factor_symbols":snapshot.get("triggered_count"),"eligible_universe":snapshot.get("eligible_count"),"forward_cases":len(history.get("cases",[])),"opportunity_events":len(ledger.get("events",[]))}
 
 def verify(base,expected,deployment_commit,attempts=12,delay_seconds=5):
  if not deployment_commit:raise RuntimeError("Deployment commit evidence is required")

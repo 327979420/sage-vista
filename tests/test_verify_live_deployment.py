@@ -1,8 +1,8 @@
-import json,pathlib,tempfile,unittest
+import hashlib,json,pathlib,tempfile,unittest
 from unittest.mock import patch
 
 from services.scanner.favorite_pattern_tracker import GENERALIZATION_VERSION, PATTERN_VERSION
-from services.scanner.verify_live_deployment import persist_verified_receipt, verify
+from services.scanner.verify_live_deployment import persist_verified_receipt, verify, verify_candidate_asset
 
 
 DATE="2026-08-26"
@@ -24,6 +24,33 @@ def bundle(tracker_date=DATE):
  ]
 
 class LiveDeploymentVerificationTests(unittest.TestCase):
+ def setUp(self):
+  self.candidate_dir=tempfile.TemporaryDirectory();self.addCleanup(self.candidate_dir.cleanup)
+  self.candidate_path=pathlib.Path(self.candidate_dir.name)/"cr056-ranking.json"
+  guard=patch("services.scanner.verify_live_deployment.CANDIDATE_PUBLIC_PATH",self.candidate_path)
+  guard.start();self.addCleanup(guard.stop)
+
+ def test_candidate_exact_bytes_are_part_of_the_existing_bundle_receipt(self):
+  payload={"as_of":DATE,"result_role":"legacy_comparison","source_snapshot":"sha256:reviewed","ranked_symbols":["AAA"]}
+  raw=json.dumps(payload).encode();self.candidate_path.write_bytes(raw)
+  with patch("services.scanner.verify_live_deployment.fetch",side_effect=bundle()),patch("services.scanner.verify_live_deployment.fetch_text",return_value="Build abcdef1"),patch("services.scanner.verify_live_deployment.fetch_candidate_bytes",return_value=raw):
+   result=verify("https://example.test",DATE,"abcdef1",attempts=1)
+  self.assertEqual(result["candidate_snapshot"]["sha256"],hashlib.sha256(raw).hexdigest())
+  self.assertEqual(result["candidate_snapshot"]["ranked_count"],1)
+  for changed in ({**payload,"source_snapshot":"sha256:wrong"},{**payload,"ranked_symbols":[]},{**payload,"as_of":"2026-08-25"}):
+   with patch("services.scanner.verify_live_deployment.fetch",side_effect=bundle()),patch("services.scanner.verify_live_deployment.fetch_text",return_value="Build abcdef1"),patch("services.scanner.verify_live_deployment.fetch_candidate_bytes",return_value=json.dumps(changed).encode()):
+    with self.assertRaisesRegex(RuntimeError,"bytes differ"):
+     verify("https://example.test",DATE,"abcdef1",attempts=1)
+
+ def test_candidate_old_snapshot_is_explicitly_stale_not_relabelled(self):
+  raw=json.dumps({"as_of":"2026-08-25","result_role":"legacy_comparison","source_snapshot":"sha256:reviewed","ranked_symbols":[]}).encode()
+  self.candidate_path.write_bytes(raw)
+  with patch("services.scanner.verify_live_deployment.fetch_candidate_bytes",return_value=raw):
+   result=verify_candidate_asset("https://example.test",DATE,"commit")
+  self.assertTrue(result["stale"]);self.assertEqual(result["as_of"],"2026-08-25")
+  with self.assertRaisesRegex(RuntimeError,"future date"):
+   verify_candidate_asset("https://example.test","2026-08-24","commit")
+
  def test_retries_the_full_bundle_after_mixed_date_propagation(self):
   with patch("services.scanner.verify_live_deployment.fetch",side_effect=bundle("2026-08-25")+bundle()),patch("services.scanner.verify_live_deployment.fetch_text",return_value="<p>Build abcdef1</p>"),patch("services.scanner.verify_live_deployment.time.sleep") as sleep:
    result=verify("https://example.test",DATE,"abcdef1234567890",attempts=2,delay_seconds=0)
