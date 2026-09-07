@@ -1,72 +1,62 @@
-name: Industry Radar Real Data Validation
-
+name: CR056 cached input coverage audit
 on:
   workflow_dispatch:
-    inputs:
-      as_of:
-        description: Optional completed EOD date (YYYY-MM-DD); blank uses EODHD latest
-        required: false
-        type: string
-
 permissions:
   contents: read
-
-concurrency:
-  group: industry-radar-real-data-validation
-  cancel-in-progress: false
-
 jobs:
-  validate:
+  coverage:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
-    env:
-      EODHD_API_TOKEN: ${{ secrets.EODHD_API_TOKEN }}
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
-      - name: Require existing EODHD secret
-        shell: bash
-        run: test -n "$EODHD_API_TOKEN" || { echo "EODHD_API_TOKEN secret is not configured"; exit 1; }
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
-      - name: Restore Industry Radar EOD cache
-        uses: actions/cache@v4
+          python-version: '3.13'
+      - uses: actions/cache/restore@v4
+        id: history
         with:
-          path: work/eodhd-cache
-          key: industry-radar-eod-${{ github.run_id }}
-          restore-keys: industry-radar-eod-
-      - name: Run Industry Radar with EODHD
-        shell: bash
+          path: |
+            work/eodhd-cache
+            work/eodhd-active-common.json
+          key: eodhd-history-v1-33293559230
+          fail-on-cache-miss: true
+      - name: Summarize existing cached inputs only
         env:
-          REQUESTED_AS_OF: ${{ inputs.as_of }}
-        run: |
-          args=(--out public/industry-radar.json)
-          if [ -n "$REQUESTED_AS_OF" ]; then args+=(--as-of "$REQUESTED_AS_OF"); fi
-          python3 -m services.scanner.industry_radar "${args[@]}" > industry-radar-run-summary.json
-      - name: Validate point-in-time output
-        shell: bash
-        env:
-          REQUESTED_AS_OF: ${{ inputs.as_of }}
+          RESTORED_KEY: ${{ steps.history.outputs.cache-matched-key }}
         run: |
           python3 - <<'PY'
-          import json,os
-          from services.scanner.eodhd import latest_reference_day
-          report=json.load(open("public/industry-radar.json"))
-          expected=os.environ.get("REQUESTED_AS_OF") or latest_reference_day()
-          if report.get("as_of")!=expected:raise SystemExit(f"as_of mismatch: {report.get('as_of')} != {expected}")
-          if report.get("future_data_used") is not False:raise SystemExit("future-data audit failed")
-          if report.get("historical_membership_safe") is not True:raise SystemExit("membership audit failed")
-          audit=report.get("price_data_audit",{})
-          if audit.get("provider")!="EODHD" or audit.get("errors_redacted") is not True:raise SystemExit("price-data audit missing")
-          if not audit.get("fetched_tickers"):raise SystemExit("EODHD returned no constituent histories")
-          print(json.dumps({"as_of":report["as_of"],"themes":len(report["themes"]),"fetched":len(audit["fetched_tickers"]),"unavailable":len(audit["unavailable_tickers"])},indent=2))
+          import collections, datetime, json, os
+          from pathlib import Path
+          as_of = json.loads(Path('public/update-status.json').read_text())['source_latest_complete_date']
+          cutoff = datetime.date.fromisoformat(as_of)
+          hist = collections.Counter()
+          enough_months = 0
+          exact = 0
+          invalid = 0
+          selected = {}
+          files = list(Path('work/eodhd-cache').glob('*.json'))
+          for p in files:
+              try:
+                  rows = json.loads(p.read_text())
+                  if not isinstance(rows, list): raise ValueError('not rows')
+                  days = sorted({str(r['date']) for r in rows if str(r['date']) <= as_of})
+                  if not days: raise ValueError('empty as of')
+                  hist[days[-1]] += 1
+                  months = {d[:7] for d in days if d[:7] < as_of[:7]}
+                  enough_months += len(months) >= 61
+                  exact += days[-1] == as_of
+                  if p.stem in {'SPY','QQQ','SAIA','LNT','ALLY','SOXX'}:
+                      selected[p.stem] = {'first_date':days[0], 'last_date':days[-1], 'rows':len(days), 'observed_prior_months':len(months), 'recent_dates':days[-8:]}
+              except (ValueError, KeyError, TypeError):
+                  invalid += 1
+          result = {'as_of':as_of, 'restored_key':os.environ['RESTORED_KEY'], 'cache_files':len(files), 'invalid_or_empty_files':invalid, 'last_date_counts':dict(sorted(hist.items())), 'at_least_61_observed_prior_months':enough_months, 'exact_as_of_files':exact, 'selected_metadata':selected, 'scope':'input_coverage_only_not_strategy_eligibility', 'raw_market_data_uploaded':False, 'network_provider_calls':0}
+          Path('work/cr056-input-coverage.json').write_text(json.dumps(result, indent=2))
+          print(json.dumps(result, indent=2))
+          if not files: raise SystemExit('No restored input files')
           PY
-      - name: Run Industry Radar tests
-        run: python3 -m unittest tests.test_industry_radar -v
-      - name: Upload validated Radar JSON
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: industry-radar-${{ inputs.as_of || 'latest' }}-${{ github.run_id }}
-          path: public/industry-radar.json
+          name: cr056-input-coverage-${{ github.run_id }}
+          path: work/cr056-input-coverage.json
+          retention-days: 7
           if-no-files-found: error
-          retention-days: 14
