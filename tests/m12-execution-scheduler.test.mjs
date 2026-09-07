@@ -167,3 +167,52 @@ test('concurrent short attempt constrains longer replay at entry and final trans
     assert.deepEqual(env.scheduler.list()[0].schedule, inner.attempt);
   }
 });
+
+test('budget yield preserves progress and a new job claims without resurrecting the old attempt', async t => {
+  const env = setup(t); await env.register(); const first = env.acquire(TASK, 'one');
+  const claimed = await env.scheduler.claim(first.actor, first.owned, TASK);
+  for (const offset of [200000, 400000, 599000]) {
+    env.setTime(START + offset); env.leases.renew('execution/' + TASK, first.actor.job, first.owned);
+  }
+  env.setTime(START + 600000);
+  const yielded = await env.scheduler.settle(first.actor, first.owned, TASK, 'budget_exhausted');
+  assert.equal(yielded.kind, 'yield'); assert.equal(yielded.state.state, 'queued');
+  assert.equal(yielded.state.attempts_today, 1);
+  assert.throws(() => env.scheduler.assertRunning(TASK, claimed.attempt.position, first.actor, first.owned), /not_owned/);
+  env.leases.release('execution/' + TASK, first.actor.job, first.owned);
+  const second = env.acquire(TASK, 'two');
+  const next = await env.scheduler.claim(second.actor, second.owned, TASK);
+  assert.equal(next.attempt.state.attempts_today, 2);
+});
+test('known retry and blocked gates stop readiness computation before it starts', async t => {
+  let calls = 0;
+  const env = setup(t, async () => { calls++; return { mature: true, eod_ms: START }; });
+  await env.register(); const first = env.acquire(TASK, 'one');
+  await env.scheduler.claim(first.actor, first.owned, TASK);
+  await env.scheduler.settle(first.actor, first.owned, TASK, 'computation_timeout');
+  assert.equal((await env.scheduler.claim(first.actor, first.owned, TASK)).reason, 'retry_delay');
+  assert.equal(calls, 1);
+  env.setTime(START + 900000); const next = env.acquire(TASK, 'two');
+  await env.scheduler.claim(next.actor, next.owned, TASK);
+  await env.scheduler.settle(next.actor, next.owned, TASK, 'computation_invalid');
+  assert.equal((await env.scheduler.claim(next.actor, next.owned, TASK)).reason, 'blocked');
+  assert.equal(calls, 2);
+});
+test('failed readiness is recorded without pretending maturity and stale owner cannot settle', async t => {
+  const env = setup(t, async () => { throw new Error('execution_process_failed'); });
+  await env.register(); const first = env.acquire(TASK, 'one');
+  await assert.rejects(env.scheduler.claim(first.actor, first.owned, TASK), /process_failed/);
+  const failed = await env.scheduler.settle(first.actor, first.owned, TASK, 'computation_invalid');
+  assert.equal(failed.state.state, 'blocked'); assert.equal(failed.state.attempts_today, 1);
+  const before = env.scheduler.list(); env.setTime(START + 300000);
+  await assert.rejects(env.scheduler.settle(first.actor, first.owned, TASK, 'cancelled'), /not_owned/);
+  assert.deepEqual(env.scheduler.list(), before);
+});
+test('runtime classification leaves unknown storage results untouched', async () => {
+  const { classifyExecutionError } = await import('../services/publication/execution_errors.mjs');
+  for (const [code, action] of [['execution_cancelled', 'yield'], ['execution_job_budget_exhausted', 'yield'],
+    ['execution_computation_timeout', 'retry'], ['execution_process_failed', 'block'],
+    ['execution_lease_lost', 'stop'], ['synthetic checkpoint interruption', 'stop']]) {
+    assert.equal(classifyExecutionError(new Error(code)).action, action);
+  }
+});

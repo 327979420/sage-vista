@@ -1485,3 +1485,11 @@ ef6b51f正式66项Node五文件组通过20.574秒（原恢复桥3.169秒、原�
 预先固定三次旧桥核验全部通过，业务测试耗时3.112、3.014、3.038秒。首轮同时验证1MiB以上含非ASCII/NUL/换行的输入size/SHA逐字节一致，stdin为只读普通文件，二次读立即EOF；显式stall仍得到ETIMEDOUT、SIGKILL及Python栈。三轮后只运行一次完整相关组，不再循环到绿。eslint及diff检查通过，rule10版本不变。
 
 6d4bcc0后依计划只跑一次正式五文件组，67项全通过21.352秒（原恢复3.108秒、固定库存8.511秒、新runner8.016秒、显式stall1.508秒、只读FD原字节0.038秒）；19治理/状态0.015秒，共86项，不累计预定三次定点重复。命令沿用D1c五文件组，另python3 -B -m unittest tests.test_rulebook_contract tests.test_project_status；定点eslint与e74ec4f起diff通过。git diff e74ec4f -- services为空，Python适配器json.load及5秒栈原样保留。当前证据证明有限文件stdin路径的字节保真及本轮运行通过，不宣称找到了Node/OS内部触发条件或排除了所有其他潜在停顿。未推送、合并、部署、生产启用或变更业务政策，交回同阶段复核。
+
+### D1d原预算yield与错误分类（待阶段联测）
+
+先检查已知日预算/重试延迟/blocked，再运行固定可推进计算；EOD等待仍由可信材料决定，不猜日期。预算/取消停止并回收实际子进程后记录queued/yield，已完成事实先补checkpoint，未完成派发原件保留为abandoned引用；不会清除既有blocked/retry/EOD闸门。固定计算超时按runner_lost原预算，固定计算未产出合法证据为evidence_unavailable blocked；未知SQL/缺原件/身份租约失效停止且保留原dispatch，不从字符串猜测成功。
+
+会话accept增加内部同步最终guard，原业务对/回执事务中核调度仍为同Job/fence/position running，yield后旧回传不能继续登记；只复用原状态/期限，不新增业务算法。只读readRecovery供当前任务租约读取旧已完成事实，绑定原input/output和原时间窗，不能以新Job执行/accept旧输入。D1e接实际新fence恢复。
+
+48项预算/调度/租约检查通过0.224秒，包括预算yield后新Job领取、等待闸门不再启动readiness、失败readiness计入attempt且blocked、过期所有者不能settle、未知存储结果不写成功。eslint与diff通过；固定进程实际组合须提交源码后执行。

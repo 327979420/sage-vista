@@ -151,7 +151,31 @@ export class ExecutionComputationSession {
     const receipt = await this.accept(identity, token, inputSha, output);
     return { receipt, has_next_pair: JSON.parse(new TextDecoder().decode(output)).next_pair !== null };
   }
-  async accept(identity, token, inputSha, outputBytes) {
+  async readRecovery(identity, token, taskId, inputSha) {
+    // Current task lease authorizes reading an immutable historical completion;
+    // it does not authorize executing or accepting the old Job's input again.
+    identity = structuredClone(identity); token = structuredClone(token);
+    const pending = this.#catalog().find(row => row.input.sha256 === inputSha);
+    if (!pending || pending.task_id !== taskId) throw new Error('execution_recovery_input_missing');
+    const expected = pending.result?.snapshot ?? pending.snapshot;
+    this.#tasks.withCurrentTask(identity, token, taskId, expected, () => {});
+    await this.#read(pending.input);
+    let result = null;
+    if (pending.result) {
+      if (!same(pending.result.input, pending.input) || !same(pending.result.source_snapshot, pending.snapshot)) throw new Error('execution_recovery_receipt_conflict');
+      result = await this.#bindOutput(pending, await this.#read(pending.result.output));
+    }
+    const { current } = await this.#tasks.readTask(identity, token, taskId);
+    return this.#tasks.withCurrentTask(identity, token, taskId, expected, ({ now }) => {
+      if (!same(current, expected) || !same(pending, this.#catalog().find(row => row.input.sha256 === inputSha)) ||
+          (result && result.completed_ms > now)) throw new Error('execution_validation_compare_failed');
+      return { completed: pending.result !== null, receipt: pending.result,
+        has_next_pair: result ? result.next_pair !== null : null, input: pending.input,
+        source_snapshot: pending.snapshot, snapshot: current };
+    });
+  }
+  async accept(identity, token, inputSha, outputBytes, { verifyCommit } = {}) {
+    if (verifyCommit !== undefined && (typeof verifyCommit !== 'function' || verifyCommit.constructor.name === 'AsyncFunction')) throw new Error('execution_commit_guard_invalid');
     identity = structuredClone(identity); token = structuredClone(token);
     if (!(outputBytes instanceof Uint8Array) || !outputBytes.length || outputBytes.length > 2 * 1024 * 1024) throw new Error('execution_output_size_invalid');
     const raw = new Uint8Array(outputBytes);
@@ -169,6 +193,10 @@ export class ExecutionComputationSession {
       const { current } = await this.#tasks.readTask(identity, token, pending.task_id);
       if (!same(current, pending.result.snapshot)) throw new Error('execution_validation_compare_failed');
       return this.#tasks.withCurrentTask(identity, token, pending.task_id, pending.result.snapshot, context => {
+        if (verifyCommit) {
+          const checked = verifyCommit();
+          if (checked && typeof checked.then === 'function') throw new Error('execution_commit_guard_invalid');
+        }
         if (result.completed_ms > context.now) throw new Error('execution_result_completed_in_future');
         if (!same(pending, this.#catalog().find(row => row.input.sha256 === inputSha))) throw new Error('execution_validation_compare_failed');
         return pending.result;
@@ -180,6 +208,10 @@ export class ExecutionComputationSession {
     await this.#read(pending.input);
     await this.#read(output);
     const finish = (snapshot, context) => {
+      if (verifyCommit) {
+        const checked = verifyCommit();
+        if (checked && typeof checked.then === 'function') throw new Error('execution_commit_guard_invalid');
+      }
       if (result.completed_ms > context.now) throw new Error('execution_result_completed_in_future');
       if (!same(pending, this.#catalog().find(row => row.input.sha256 === inputSha))) throw new Error('execution_validation_compare_failed');
       const record = JSON.stringify({ input: pending.input, output, source_snapshot: pending.snapshot, snapshot });

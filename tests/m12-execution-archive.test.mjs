@@ -374,9 +374,11 @@ test('local fixed runner checkpoints actual receipts and resumes after checkpoin
   let runner = new LocalExecutionRunner(env.storage, env.bucket, { pythonExecutable });
   const abort = new AbortController();
   const timer = setTimeout(() => abort.abort(), 100);
-  try { await assert.rejects(runner.runTask(identity, owned, fixture.task_id, request, { signal: abort.signal }), /cancelled/); }
-  finally { clearTimeout(timer); }
-  assert.equal(new ExecutionScheduler(env.storage, env.bucket).list()[0].schedule, null);
+  try {
+    const cancelled = await runner.runTask(identity, owned, fixture.task_id, request, { signal: abort.signal });
+    assert.equal(cancelled.status, 'queued'); assert.equal(cancelled.outcome, 'cancelled');
+  } finally { clearTimeout(timer); }
+  assert.equal(new ExecutionScheduler(env.storage, env.bucket).list()[0].schedule.state.attempts_today, 0);
   env.storage.db.exec("CREATE TRIGGER fail_checkpoint BEFORE INSERT ON m12_execution_schedule_log WHEN json_extract(NEW.record_json,'$.kind')='checkpoint' BEGIN SELECT RAISE(ABORT, 'synthetic checkpoint interruption'); END");
   await assert.rejects(runner.runTask(identity, owned, fixture.task_id, request), /checkpoint interruption/);
   const pending = new ExecutionScheduler(env.storage, env.bucket).list()[0];

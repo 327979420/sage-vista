@@ -76,6 +76,11 @@ export class ExecutionScheduler {
       if (existing) return existing;
       return this.#append(history, { kind: 'job_start', job: identity.job, started_ms: now });
     });
+    const gate = this.#tasks.withCurrentTask(identity, token, taskId, initial.current, ({ now }) => {
+      const latest = this.#latest(this.#history(), taskId);
+      return claimDecision(latest?.state ?? initialRetryState(), { now, jobStartedMs: budget.started_ms, mature: true });
+    });
+    if (!gate.claimable && !['running', 'next_eod_required'].includes(gate.reason)) return { claimed: false, reason: gate.reason };
     if (!this.#readiness) return { claimed: false, reason: 'readiness_unavailable' };
     const ready = await this.#readiness(initial, { deadline_ms: Math.min(budget.started_ms + JOB_BUDGET_MS, identity.expires_at * 1000) });
     if (!ready || Object.keys(ready).sort().join() !== 'eod_ms,mature' || typeof ready.mature !== 'boolean') throw new Error('execution_readiness_invalid');
@@ -113,6 +118,50 @@ export class ExecutionScheduler {
       return this.#append(history, { kind: 'failure', task_id: taskId, job: identity.job, token,
         previous_position: latest.position, occurred_ms: now, source_snapshot: latest.source_snapshot,
         snapshot: current, state: failureState(latest.state, reason, now) });
+    }, { resolveDeadlineMs: () => this.#attemptDeadline(identity, token, taskId) });
+  }
+  assertRunning(taskId, position, identity, token) {
+    // Synchronous guard for the existing session's final owned transaction.
+    const latest = this.#latest(this.#history(), taskId);
+    if (!latest || latest.position !== position || latest.state.state !== 'running' ||
+        !same(latest.job, identity.job) || !same(latest.token, token)) throw new Error('execution_attempt_not_owned');
+  }
+  async settle(identity, token, taskId, outcome) {
+    identity = structuredClone(identity); token = structuredClone(token);
+    if (!['budget_exhausted', 'cancelled', 'computation_timeout', 'computation_invalid', 'contract_conflict'].includes(outcome)) throw new Error('execution_stop_outcome_invalid');
+    let prior = this.#latest(this.#history(), taskId);
+    if (prior?.state.state === 'running') {
+      if (!same(prior.job, identity.job) || !same(prior.token, token)) throw new Error('execution_attempt_not_owned');
+      identity.expires_at = Math.min(identity.expires_at, prior.original_expires_at);
+      if (prior.dispatch_input_sha) {
+        const actual = await this.#session.readRecovery(identity, token, taskId, prior.dispatch_input_sha);
+        if (actual.completed) {
+          await this.checkpoint(identity, token, taskId, prior.position, prior.dispatch_input_sha);
+          prior = this.#latest(this.#history(), taskId);
+        }
+      }
+    }
+    const { current } = await this.#tasks.readTask(identity, token, taskId);
+    return this.#tasks.withCurrentTask(identity, token, taskId, current, ({ now }) => {
+      const history = this.#history(), latest = this.#latest(history, taskId);
+      if (!same(latest ?? null, prior ?? null)) throw new Error('execution_schedule_compare_failed');
+      const yielding = ['budget_exhausted', 'cancelled'].includes(outcome);
+      let state = latest?.state ?? initialRetryState();
+      // Never erase a prior blocked/retry/EOD gate by yielding a later request.
+      if (yielding && state.state !== 'running' && latest) return latest;
+      if (!yielding && state.state !== 'running') {
+        const budget = history.find(row => row.kind === 'job_start' && same(row.job, identity.job));
+        const decision = claimDecision(state, { now, jobStartedMs: budget?.started_ms ?? now, mature: true });
+        if (!decision.claimable) return latest ?? null;
+        state = decision.next; // A failed readiness computation consumes an attempt too.
+      }
+      state = yielding ? { ...state, state: 'queued', reason: outcome, retry_at_ms: null, wait_for_eod_after_ms: null }
+        : failureState(state, outcome === 'computation_timeout' ? 'runner_lost' : outcome === 'contract_conflict' ? 'contract_conflict' : 'evidence_unavailable', now);
+      return this.#append(history, { kind: yielding ? 'yield' : 'failure', task_id: taskId,
+        job: identity.job, token, previous_position: latest?.position ?? null, occurred_ms: now,
+        source_snapshot: latest?.source_snapshot ?? current, snapshot: current,
+        checkpoint_snapshot: current, last_receipt: latest?.receipt ?? latest?.last_receipt ?? null,
+        abandoned_input_sha: latest?.dispatch_input_sha ?? null, state });
     }, { resolveDeadlineMs: () => this.#attemptDeadline(identity, token, taskId) });
   }
   async bindDispatch(identity, token, taskId, attemptPosition, inputSha, outputBytes) {

@@ -1,5 +1,6 @@
 // Local protected-runtime composition. No RPC, source fetch, or deployment route.
 // pythonExecutable is installed by the trusted host, never supplied on task wire.
+import { classifyExecutionError } from './execution_errors.mjs';
 import { spawn } from 'node:child_process';
 import { isAbsolute, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -21,13 +22,14 @@ function compute(python, raw, deadline, signal, check) {
     const child = spawn(python, ['-I', WORKER], { cwd: ROOT, env: {}, stdio: ['pipe', 'pipe', 'ignore'] });
     const stop = reason => { failure ??= reason; child.kill('SIGKILL'); };
     const aborted = () => stop('execution_cancelled');
-    const timeout = setTimeout(() => stop('execution_computation_timeout'), remaining);
+    const timeout = setTimeout(() => stop(remaining < 30000 ? 'execution_job_budget_exhausted' : 'execution_computation_timeout'), remaining);
     const monitor = setInterval(() => {
       try {
         const now = Date.now();
-        if (now < previous || now >= deadline) throw new Error('execution_job_budget_exhausted');
+        if (now < previous) { stop('execution_clock_invalid'); return; }
+        if (now >= deadline) { stop('execution_job_budget_exhausted'); return; }
         previous = now; check();
-      } catch { stop('execution_lease_or_budget_lost'); }
+      } catch { stop('execution_lease_lost'); }
     }, 1000);
     signal?.addEventListener('abort', aborted, { once: true });
     if (signal?.aborted) aborted();
@@ -79,6 +81,7 @@ export class LocalExecutionRunner {
       },
     });
     let checkpoint = null;
+    try {
     for (;;) {
       if (signal?.aborted) throw new Error('execution_cancelled');
       const pending = scheduler.list().find(item => item.snapshot.root.task_id === taskId)?.schedule;
@@ -89,22 +92,33 @@ export class LocalExecutionRunner {
         if (!saved.completed) {
           const check = () => this.#tasks.withCurrentTask(bounded, token, taskId, saved.source_snapshot, () => {});
           const output = await compute(this.#python, saved.input_bytes, bounded.expires_at * 1000, signal, check);
-          await this.#session.accept(bounded, token, pending.dispatch_input_sha, output);
+          await this.#session.accept(bounded, token, pending.dispatch_input_sha, output,
+            { verifyCommit: () => scheduler.assertRunning(taskId, pending.position, identity, token) });
         }
         checkpoint = await scheduler.checkpoint(bounded, token, taskId, pending.position, pending.dispatch_input_sha);
         if (checkpoint.state.state !== 'running') return { status: 'caught_up_for_input', checkpoint };
         continue;
       }
       const claimed = await scheduler.claim(identity, token, taskId);
-      if (!claimed.claimed) return { status: claimed.reason, checkpoint };
+      if (!claimed.claimed) {
+        if (claimed.reason === 'job_budget_exhausted') throw new Error('execution_job_budget_exhausted');
+        return { status: claimed.reason, checkpoint };
+      }
       let attempt = claimed.attempt;
       const bounded = { ...identity, expires_at: Math.min(identity.expires_at, attempt.original_expires_at,
         Math.floor((attempt.job_started_ms + 600000) / 1000)) };
       if (signal?.aborted) throw new Error('execution_cancelled');
       attempt = await scheduler.bindDispatch(bounded, token, taskId, attempt.position, dispatched.prepared.input.sha256, dispatched.output);
-      await this.#session.accept(bounded, token, dispatched.prepared.input.sha256, dispatched.output);
+      await this.#session.accept(bounded, token, dispatched.prepared.input.sha256, dispatched.output,
+        { verifyCommit: () => scheduler.assertRunning(taskId, attempt.position, identity, token) });
       checkpoint = await scheduler.checkpoint(bounded, token, taskId, attempt.position, dispatched.prepared.input.sha256);
       if (checkpoint.state.state !== 'running') return { status: 'caught_up_for_input', checkpoint };
+    }
+    } catch (error) {
+      const classified = classifyExecutionError(error);
+      if (classified.action === 'stop') throw error;
+      const stopped = await scheduler.settle(identity, token, taskId, classified.outcome);
+      return { status: stopped?.state.state ?? 'queued', outcome: classified.outcome, checkpoint: stopped };
     }
   }
 }
