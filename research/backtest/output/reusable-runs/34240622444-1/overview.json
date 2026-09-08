@@ -1,0 +1,41 @@
+{
+  "code_commit": "103abc7f1ff7d919c054e850944b5f6f1354ed22",
+  "downloads": {
+    "trades_csv": {
+      "path": "34240622444-1/trades.csv",
+      "sha256": "ea1aaa67897ce4d9f59b4943d86835dc11477ab29d5534af99174af797e6f6e0"
+    }
+  },
+  "id": "34240622444-1",
+  "report": {
+    "path": "34240622444-1/report.html",
+    "sha256": "aa9c3a39cf2111f3ddee7e45a20f40f39a8060f1e19bf32ab284cf0abe9e075b"
+  },
+  "request": {
+    "end": "2025-12-31",
+    "start": "2025-01-01",
+    "strategy": "cr056-2.0-new-nominations-legacy-exit-v1"
+  },
+  "research_input": {
+    "coverage_note": "observed cached universe; not complete historical market; latest adjusted history revision",
+    "excluded_source_count": 64,
+    "incomplete_source_days": 250,
+    "role": "observed_cache_empty_initial_cohort"
+  },
+  "selection": {
+    "eligible_policy_events": 203,
+    "entered_trades": 97,
+    "excluded_other_policy": 0,
+    "window_events": 203
+  },
+  "status": "completed",
+  "summary": {
+    "daily_sessions": 250,
+    "ending_equity": 85350.70473768986,
+    "initial_cash": 100000,
+    "max_drawdown": -0.23164699932723698,
+    "quantstats_version": "0.0.81",
+    "total_return": -0.14649295262310214,
+    "win_rate": 0.3
+  }
+}
