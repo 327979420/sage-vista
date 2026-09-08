@@ -87,6 +87,45 @@ class AccountTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             with self.assertRaisesRegex(ValueError,'not_approved'):approved_scenario(Path(d)/'missing.json')
 
+    def test_valid_empty_or_only_pending_windows_complete_cash_reports(self):
+        from research.backtest.account_runner import execute
+        days,rows,events=self.fixture()
+        pending=copy.deepcopy(events[0]);pending['signal_date']=days[64]
+        with tempfile.TemporaryDirectory() as d, patch('yfinance.download',side_effect=AssertionError('no_download')):
+            root=Path(d);cache=root/'cache';cache.mkdir()
+            for symbol in ('SPY','A'):(cache/(symbol+'.json')).write_text(json.dumps(rows))
+            ledger=root/'ledger.json'
+            for n,signals in enumerate(([],[pending]),1):
+                with self.subTest(signals=signals):
+                    ledger.write_text(json.dumps({'coverage':{'first':days[0],'last':days[-1]},'events':signals}))
+                    result=execute({'strategy':POLICY,'start':days[0],'end':days[64]},CONFIG,cache,ledger,out=root/str(n),run_id='901',attempt=str(n),code_commit='a'*40,cache_key='synthetic',synthetic=True)
+                    self.assertEqual(result['status'],'completed')
+                    self.assertEqual(result['summary']['total_return'],0)
+                    self.assertEqual(result['summary']['max_drawdown'],0)
+                    self.assertIsNone(result['summary']['win_rate'])
+                    self.assertEqual(result['selection']['entered_trades'],0)
+                    self.assertTrue(all(row['equity']==1000 and row['return']==0 for row in result['daily_account']))
+                    self.assertEqual(result['trades'],[] if not signals else [{'event_id':pending['event_id'],'symbol':'A','signal_date':days[64],'status':'pending_next_session'}])
+                    self.assertIn('0.00%',(root/str(n)/'report.html').read_text())
+            # Empty signals do not waive reference or ledger coverage requirements.
+            ledger.write_text(json.dumps({'coverage':{'first':days[0],'last':days[-1]},'events':[]}))
+            args=dict(out=root/'missing',run_id='902',attempt='1',code_commit='a'*40,cache_key='synthetic',synthetic=True)
+            with self.assertRaisesRegex(ValueError,'requested_signal_history_not_covered'):
+                execute({'strategy':POLICY,'start':'2024-01-01','end':days[64]},CONFIG,cache,ledger,**args)
+            (cache/'SPY.json').unlink()
+            with self.assertRaises(FileNotFoundError):
+                execute({'strategy':POLICY,'start':days[0],'end':days[64]},CONFIG,cache,ledger,**args)
+
+    def test_all_rejected_orders_leave_cash_unchanged(self):
+        from research.backtest.account_runner import account
+        days,rows,events=self.fixture()
+        eq,daily,trades=account(events,{s:rows for s in 'ABC'},days,{**CONFIG,'allocation_fraction':1.})
+        self.assertTrue((eq==CONFIG['initial_cash']).all())
+        self.assertTrue((daily==0).all())
+        self.assertTrue(all(t['status']=='skipped' for t in trades))
+        self.assertTrue(all(t['reason']=='cash_or_whole_share_insufficient' for t in trades))
+        self.assertTrue(all('quantity' not in t for t in trades))
+
     def test_two_synthetic_windows_reconcile_and_render_but_cannot_publish(self):
         from research.backtest.account_runner import execute
         days,rows,events=self.fixture()

@@ -86,8 +86,8 @@ def account(events, rows_by_symbol, sessions, config):
     if any(date.fromisoformat(d).isoformat() != d for d in sessions):
         raise ValueError('canonical_sessions_required')
     events = sorted(events, key=lambda e: (e['signal_date'], e['selection']['rank'], e['event_id']))
-    if not events or len({e['event_id'] for e in events}) != len(events):
-        raise ValueError('nonempty_unique_signal_set_required')
+    if len({e['event_id'] for e in events}) != len(events):
+        raise ValueError('unique_signal_set_required')
     trades, pending = [], []
     for event in events:
         if event['selection'].get('execution_policy_version') != POLICY:
@@ -114,16 +114,16 @@ def account(events, rows_by_symbol, sessions, config):
             raise ValueError('held_asset_session_missing:' + event['symbol'])
         trades.append({'event_id':event['event_id'], 'symbol':event['symbol'], 'signal_date':event['signal_date'],
                        'rank':event['selection']['rank'], 'entry_date':future[0], 'entry_price':path[0]['open'], 'execution':execution})
-    if not trades:
-        raise ValueError('no_enterable_signals_in_date_range')
     # One column per original signal. Multiple signals for the same symbol are
     # denied by the allocator while a prior column still holds that symbol.
-    n = len(trades)
+    # VectorBT needs a column for the account even without any asset orders.
+    # Keep one inert all-NaN book slot: no asset price, signal, or trade is invented.
+    n = max(1, len(trades))
     close = np.full((len(sessions)*3, n), np.nan)
     enter = np.full(n, -1, dtype=np.int64); leave = enter.copy()
     entry_price = np.zeros(n); exit_price = np.zeros(n)
     symbols = sorted({t['symbol'] for t in trades})
-    symbol_ids = np.array([symbols.index(t['symbol']) for t in trades])
+    symbol_ids = np.array([symbols.index(t['symbol']) for t in trades] or [-1], dtype=np.int64)
     for col,t in enumerate(trades):
         rows = {r['date']:r for r in rows_by_symbol[t['symbol']]}
         for i,d in enumerate(sessions):
@@ -196,7 +196,7 @@ def execute(request, config, cache_dir, ledger_path, *, out, run_id, attempt, co
     summary['win_rate'] = sum(t['net_pnl']>0 for t in closed)/len(closed) if closed else None
     win_text = f"{summary['win_rate']:.1%}" if summary['win_rate'] is not None else '不可用（无已平仓交易）'
     intro = (f"<section><h2>账户净收益 {summary['total_return']:.2%} · 最大回撤 {summary['max_drawdown']:.2%}</h2>"
-             f"<p>{request['start']} 至 {request['end']} · 已平仓胜率 {win_text} · 期末未平仓 {sum(t['status']=='open' for t in trades)} 笔</p>"
+             f"<p>{request['start']} 至 {request['end']} · 实际入场 {sum(t['status'] in ('open','closed') for t in trades)} 笔 · 已平仓胜率 {win_text} · 期末未平仓 {sum(t['status']=='open' for t in trades)} 笔</p>"
              f"<p>研究资金 {config['initial_cash']:,.2f}；每笔初始资金的 {config['allocation_fraction']:.1%}；最多 {config['max_positions']} 只；单边综合成本 {config['cost_rate']:.2%}；碎股 {'允许' if config['fractional_shares'] else '不允许'}。</p>"
              f"<p>仅旧支撑5%／入场10%上限止损、2R目标、最长40交易日。窗口原信号 {len(window_events)} 条，其中旧政策 {len(events)} 条；其余政策不混入本回测。每窗口从初始现金开始，不带入起始日前持仓。</p>"
              "<p>保守记账约定：原排名新入场先于当日退出，不用当日卖出款资助新买入；不代表真实盘中现金顺序。只做多，无杠杆，无部分成交；未平仓收益按窗口末有效收盘估值。</p></section>")
@@ -211,7 +211,7 @@ def execute(request, config, cache_dir, ledger_path, *, out, run_id, attempt, co
     report_path.write_text(report_path.read_text().replace('<body>','<body>'+intro,1).replace('</body>',table+'</table></div></body>'))
     receipt = seal({'schema_version':'legacy-research-run-v1','id':f'{run_id}-{attempt}','result_role':'legacy/research',
                     'status':'completed','request':request,'summary':summary,'code_commit':code_commit,
-                    'scenario':config,'selection':{'window_events':len(window_events),'eligible_policy_events':len(events),'excluded_other_policy':len(window_events)-len(events)},'source':{'ledger_sha256':sha256(raw),'cache_key':cache_key,'windows_sha256':sources,'reference_sessions_sha256':sha256(encode(sessions)),'historical_raw_revision_proven':False},
+                    'scenario':config,'selection':{'window_events':len(window_events),'eligible_policy_events':len(events),'excluded_other_policy':len(window_events)-len(events),'entered_trades':sum(t['status'] in ('open','closed') for t in trades)},'source':{'ledger_sha256':sha256(raw),'cache_key':cache_key,'windows_sha256':sources,'reference_sessions_sha256':sha256(encode(sessions)),'historical_raw_revision_proven':False},
                     'daily_account':[{'date':d,'equity':float(v),'return':float(r)} for d,v,r in zip(sessions,equity,daily)],
                     'trades':trades,'synthetic':synthetic,
                     'report':{'path':f'{run_id}-{attempt}/report.html','sha256':sha256(report_path.read_bytes())}})
