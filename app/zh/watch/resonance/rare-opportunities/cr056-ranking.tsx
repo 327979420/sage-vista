@@ -83,8 +83,8 @@ export function CandidateView({data,latestDate,initialQuery=""}:{data:CandidateD
    <div className="candidateToolbar"><div className="candidateTabs" role="group" aria-label="候选范围">{[["new","新提名",data.new_nomination_symbols.length],["continuing","持续观察",data.continuing_ranked_symbols.length]].map(([id,label,count])=><button key={id} type="button" aria-pressed={mode===id} onClick={()=>{setMode(String(id));setQuery("")}}>{label} <b>{count}只</b></button>)}</div><label>查找股票 <input aria-label="查找股票" value={query} onChange={e=>setQuery(e.target.value.trim())} placeholder="代码，含未入榜原因"/></label></div>
    {mode==="continuing"&&<details className="candidateFilters"><summary>筛选与排序 · {filtered.length}只{(filters.from||filters.to||filters.minimum||filters.maximum)?" · 已筛选":""}</summary><div>
     <label>排列方式<select aria-label="排列方式" value={filters.sort} onChange={e=>setFilters({...filters,sort:e.target.value})}><option value="score_high">分数从高到低</option><option value="score_low">分数从低到高</option><option value="date_new">最近提名优先</option><option value="date_old">最早提名优先</option></select></label>
-    <label>原提名从<input aria-label="原提名开始日期" type="date" value={filters.from} onChange={e=>setFilters({...filters,from:e.target.value})}/></label>
-    <label>到<input aria-label="原提名结束日期" type="date" value={filters.to} onChange={e=>setFilters({...filters,to:e.target.value})}/></label>
+    <label>原提名从<input aria-label="原提名开始日期" type="date" value={filters.from} onInput={e=>setFilters({...filters,from:e.currentTarget.value})}/></label>
+    <label>到<input aria-label="原提名结束日期" type="date" value={filters.to} onInput={e=>setFilters({...filters,to:e.currentTarget.value})}/></label>
     <label>最低分<input aria-label="最低分" type="number" min="0" max="100" value={filters.minimum} onChange={e=>setFilters({...filters,minimum:e.target.value})}/></label>
     <label>最高分<input aria-label="最高分" type="number" min="0" max="100" value={filters.maximum} onChange={e=>setFilters({...filters,maximum:e.target.value})}/></label>
     <button type="button" onClick={()=>setFilters({from:"",to:"",minimum:"",maximum:"",sort:"score_high"})}>重置筛选</button>
