@@ -1,0 +1,52 @@
+name: Research Input Check (account run pending approval)
+
+on:
+  workflow_dispatch:
+    inputs:
+      strategy:
+        description: Existing legacy policy (input check only; account run disabled)
+        type: choice
+        options: [support-5pct-cap-10pct-2r-v1]
+        required: true
+      start:
+        description: Start date YYYY-MM-DD
+        type: string
+        required: true
+      end:
+        description: End date YYYY-MM-DD (later than start)
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v7
+        with: {python-version: "3.14"}
+      - name: Validate inputs and retain blocked or failed receipt without computing
+        env:
+          RESEARCH_INPUTS: ${{ toJSON(inputs) }}
+        run: python3 -m research.backtest.preflight
+      - name: Permanently append only the derived receipt and index
+        run: python3 -m research.backtest.publish_attempt --receipt work/research-attempt/receipt.json
+      - name: Keep recovery copy if ordinary publication fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-attempt-${{ github.run_id }}-${{ github.run_attempt }}
+          path: work/research-attempt/receipt.json
+          retention-days: 30
+          if-no-files-found: error
+      - name: Mark account execution unavailable instead of successful backtest
+        run: |
+          echo 'Inputs checked and receipt retained. Account execution remains disabled pending parameters.'
+          exit 1

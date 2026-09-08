@@ -1,5 +1,6 @@
 import copy
 import json
+import subprocess
 from pathlib import Path
 import tempfile
 import unittest
@@ -34,7 +35,7 @@ class StoreTests(unittest.TestCase):
 
     def test_html_bytes_and_path_cannot_be_substituted(self):
         raw=b'<html><body>derived report</body></html>'
-        value=receipt();value.update(status='completed',report={'path':'123-1/report.html','sha256':sha256(raw)})
+        value=receipt();value.update(status='completed',request={'strategy':'support-5pct-cap-10pct-2r-v1','start':'2026-01-01','end':'2026-02-01'},summary={'total_return':.1,'max_drawdown':-.03,'initial_cash':100,'ending_equity':110,'daily_sessions':20,'win_rate':None,'quantstats_version':'0.0.81'},report={'path':'123-1/report.html','sha256':sha256(raw)})
         value=seal(value)
         with tempfile.TemporaryDirectory() as d:
             with self.assertRaisesRegex(ValueError,'report_bytes_mismatch'):save(value,b'wrong',root=d)
@@ -42,12 +43,80 @@ class StoreTests(unittest.TestCase):
             changed=copy.deepcopy(value);changed['report']['path']='../other.html'
             with self.assertRaisesRegex(ValueError,'invalid_report_reference'):seal(changed)
 
+    def test_empty_or_wrong_type_completed_and_failure_metrics_rejected(self):
+        value=receipt();value.update(status='completed',request={})
+        with self.assertRaises(ValueError):seal(value)
+        value.update(request={'strategy':'support-5pct-cap-10pct-2r-v1','start':'2026-01-01','end':'2026-02-01'},summary={'total_return':.1,'max_drawdown':-.03,'initial_cash':100,'ending_equity':110,'daily_sessions':20,'win_rate':None,'quantstats_version':'0.0.81'},report={'path':'123-1/report.html','sha256':'a'*64})
+        seal(value)
+        for patch_value in ({'report':None},{'request':{}},{'summary':{}},{'request':{**value['request'],'end':'2026-99-99'}}):
+            with self.assertRaises(ValueError):seal({**value,**patch_value})
+        for key,bad in [('total_return','0.1'),('max_drawdown',{}),('initial_cash',True),('daily_sessions',2.5),('win_rate',[]),('ending_equity',0)]:
+            with self.assertRaises(ValueError):seal({**value,'summary':{**value['summary'],key:bad}})
+        for status in ('failed','unavailable'):
+            for summary in ({'total_return':.1},{'win_rate':None}):
+                with self.assertRaises(ValueError):seal({**receipt(status=status),'summary':summary})
+            with self.assertRaises(ValueError):seal({**receipt(status=status),'reason':' '})
+
     def test_tampered_receipt_and_symlink_fail_closed(self):
         value=receipt();value['summary']={'total_return':1}
         with self.assertRaisesRegex(ValueError,'fingerprint'):validate_receipt(value)
         with tempfile.TemporaryDirectory() as d:
             root=Path(d);(root/'123-1').symlink_to(root/'outside')
             with self.assertRaisesRegex(ValueError,'symlink'):save(receipt(),root=root)
+
+
+class PreflightTests(unittest.TestCase):
+    def test_valid_inputs_stay_unavailable_invalid_dates_fail_without_results(self):
+        from research.backtest.preflight import prepare
+        request={'strategy':'support-5pct-cap-10pct-2r-v1','start':'2026-01-01','end':'2026-02-01'}
+        kwargs={'run_id':'123','attempt':'1','code_commit':'a'*40}
+        valid=prepare(request,**kwargs)
+        self.assertEqual(valid['status'],'unavailable')
+        self.assertEqual(valid['reason'],'account_parameters_not_approved')
+        self.assertEqual(valid['summary'],{})
+        self.assertEqual(prepare({**request,'end':'2026-00-99'},**kwargs)['status'],'failed')
+        self.assertEqual(prepare({**request,'strategy':'new-policy'},**kwargs)['status'],'failed')
+
+    def test_real_local_git_publisher_appends_without_overwrite_or_deploy(self):
+        from research.backtest.publish_attempt import publish
+        from research.backtest.run_store import encode
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d); remote=root/'remote.git'; repo=root/'job'
+            def git(*args,cwd=None):
+                return subprocess.run(['git',*args],cwd=cwd,check=True,capture_output=True,text=True).stdout.strip()
+            git('init','--bare',str(remote));git('clone',str(remote),str(repo))
+            git('switch','-c','main',cwd=repo)
+            (repo/'anchor.txt').write_text('unchanged')
+            git('add','anchor.txt',cwd=repo)
+            git('-c','user.name=test','-c','user.email=test@example.invalid','commit','-m','base',cwd=repo)
+            git('push','origin','main',cwd=repo)
+            before=git('rev-parse','HEAD',cwd=repo)
+            result=publish(receipt(),repo=repo)
+            self.assertEqual(git('rev-parse','HEAD^',cwd=repo),before)
+            self.assertEqual(publish(receipt(),repo=repo),result)
+            publish(receipt('123-2','unavailable'),repo=repo)
+            saved=repo/'research/backtest/output/reusable-runs'
+            self.assertEqual((saved/'123-1/receipt.json').read_bytes(),encode(receipt()))
+            self.assertEqual(len(json.loads((saved/'index.json').read_bytes())['runs']),2)
+            changed=git('diff','--name-only',before,'HEAD',cwd=repo).splitlines()
+            self.assertTrue(all(x.startswith('research/backtest/output/reusable-runs/') for x in changed))
+            self.assertEqual(git('status','--porcelain',cwd=repo),'')
+            competitor=root/'other-job';git('clone',str(remote),str(competitor))
+            git('switch','main',cwd=competitor)
+            from research.backtest.run_store import save
+            native_run=subprocess.run; raced=[False]
+            def with_concurrent_push(args,**kwargs):
+                if args[:4]==['git','push','origin','HEAD:main'] and not raced[0]:
+                    raced[0]=True
+                    save(receipt('124-1'),root=competitor/'research/backtest/output/reusable-runs')
+                    git('add','research/backtest/output/reusable-runs',cwd=competitor)
+                    git('-c','user.name=test','-c','user.email=test@example.invalid','commit','-m','concurrent receipt',cwd=competitor)
+                    git('push','origin','HEAD:main',cwd=competitor)
+                return native_run(args,**kwargs)
+            with patch('research.backtest.publish_attempt.subprocess.run',side_effect=with_concurrent_push):
+                publish(receipt('125-1'),repo=repo)
+            self.assertTrue(raced[0])
+            self.assertEqual({r['id'] for r in json.loads((saved/'index.json').read_bytes())['runs']},{'123-1','123-2','124-1','125-1'})
 
 
 class DailyReturnTests(unittest.TestCase):

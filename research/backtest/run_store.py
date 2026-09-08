@@ -7,8 +7,10 @@ No source prices, arbitrary files, or engine-generated scripts are published.
 import argparse
 from contextlib import contextmanager
 import fcntl
+from datetime import date
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -18,6 +20,31 @@ ROOT = Path(__file__).resolve().parents[2]
 OUTPUT = ROOT / 'research/backtest/output/reusable-runs'
 RUN_ID = re.compile(r'[1-9][0-9]{0,19}-[1-9][0-9]{0,5}')
 STATUSES = {'completed', 'unavailable', 'failed'}
+POLICY = 'support-5pct-cap-10pct-2r-v1'
+
+
+def validate_request(request):
+    if not isinstance(request, dict) or set(request) != {'strategy', 'start', 'end'}:
+        raise ValueError('strategy_and_date_range_required')
+    if request['strategy'] != POLICY:
+        raise ValueError('unsupported_research_strategy')
+    for field in ('start', 'end'):
+        value = request[field]
+        if not isinstance(value, str):
+            raise ValueError('canonical_date_required')
+        try:
+            parsed = date.fromisoformat(value)
+        except ValueError as exc:
+            raise ValueError('canonical_date_required') from exc
+        if parsed.isoformat() != value:
+            raise ValueError('canonical_date_required')
+    if request['start'] >= request['end']:
+        raise ValueError('date_range_must_increase')
+    return request
+
+
+def _number(value):
+    return type(value) in (int, float) and math.isfinite(value)
 
 
 def encode(value):
@@ -41,14 +68,38 @@ def validate_receipt(receipt):
         raise ValueError('request_and_summary_required')
     if not re.fullmatch(r'[0-9a-f]{40}', receipt.get('code_commit', '')):
         raise ValueError('code_commit_required')
-    if receipt['status'] != 'completed' and not receipt.get('reason'):
-        raise ValueError('noncompletion_reason_required')
     fp = receipt.get('content_sha256')
     if fp != sha256(encode({k: v for k, v in receipt.items() if k != 'content_sha256'})):
         raise ValueError('receipt_fingerprint_mismatch')
     report = receipt.get('report')
+    summary = receipt['summary']
+    if receipt['status'] == 'completed':
+        validate_request(receipt['request'])
+        required = {'total_return', 'max_drawdown', 'initial_cash', 'ending_equity',
+                    'daily_sessions', 'win_rate', 'quantstats_version'}
+        if set(summary) != required or not isinstance(report, dict):
+            raise ValueError('completed_account_summary_and_report_required')
+        for field in ('total_return', 'max_drawdown', 'initial_cash', 'ending_equity'):
+            if not _number(summary[field]):
+                raise ValueError('finite_account_metrics_required')
+        if type(summary['daily_sessions']) is not int or summary['daily_sessions'] < 2:
+            raise ValueError('daily_session_count_required')
+        if (summary['initial_cash'] <= 0 or summary['ending_equity'] <= 0
+                or not -1 <= summary['max_drawdown'] <= 0
+                or not math.isclose(summary['total_return'], summary['ending_equity']/summary['initial_cash']-1, rel_tol=1e-9, abs_tol=1e-12)):
+            raise ValueError('invalid_account_summary')
+        win = summary['win_rate']
+        if win is not None and (not _number(win) or not 0 <= win <= 1):
+            raise ValueError('invalid_closed_trade_win_rate')
+        if summary['quantstats_version'] != '0.0.81':
+            raise ValueError('unsupported_report_engine')
+    else:
+        if not isinstance(receipt.get('reason'), str) or not receipt['reason'].strip():
+            raise ValueError('noncompletion_reason_required')
+        if summary or report is not None:
+            raise ValueError('noncompletion_cannot_contain_account_results')
     if report is not None:
-        if receipt['status'] != 'completed' or report.get('path') != receipt['id'] + '/report.html':
+        if not isinstance(report, dict) or receipt['status'] != 'completed' or report.get('path') != receipt['id'] + '/report.html':
             raise ValueError('invalid_report_reference')
         if not re.fullmatch(r'[0-9a-f]{64}', report.get('sha256', '')):
             raise ValueError('invalid_report_fingerprint')

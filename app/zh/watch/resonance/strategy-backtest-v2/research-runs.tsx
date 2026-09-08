@@ -7,12 +7,13 @@ type Receipt = Run & {reason?:string; report?:{path:string;sha256:string}};
 const validId = (id:string) => /^[1-9][0-9]{0,19}-[1-9][0-9]{0,5}$/.test(id);
 const fingerprint = (s:string) => /^[0-9a-f]{64}$/.test(s);
 const statusLabel = {completed:"已完成",unavailable:"来源不可用",failed:"运行失败"};
-const percent = (n:number|null|undefined) => n == null ? "不可用" : `${(n*100).toFixed(2)}%`;
+const percent = (n:unknown) => typeof n!=="number" || !Number.isFinite(n) ? "不可用" : `${(n*100).toFixed(2)}%`;
+const record = (v:unknown):v is Record<string,unknown> => !!v && typeof v==="object" && !Array.isArray(v);
 
 export function checkedIndex(data:unknown):Run[]{
  const value=data as {schema_version?:string;runs?:Run[]};
  if(value?.schema_version!=="legacy-research-index-v1" || !Array.isArray(value.runs)) throw Error("结果索引格式不符");
- if(value.runs.some(r=>!validId(r.id)||!fingerprint(r.receipt_sha256)||!Object.hasOwn(statusLabel,r.status)||!r.request||!r.summary)) throw Error("结果索引内容不符");
+ if(value.runs.some(r=>!record(r)||typeof r.id!=="string"||!validId(r.id)||typeof r.receipt_sha256!=="string"||!fingerprint(r.receipt_sha256)||!Object.hasOwn(statusLabel,r.status)||!record(r.request)||Object.values(r.request).some(v=>typeof v!=="string")||!record(r.summary)||Object.entries(r.summary).some(([k,v])=>k==="quantstats_version"?typeof v!=="string":v!==null&&(typeof v!=="number"||!Number.isFinite(v))))) throw Error("结果索引内容不符");
  return value.runs;
 }
 
@@ -44,6 +45,7 @@ export default function ResearchRuns(){
    if(await hash(raw)!==run.receipt_sha256)throw Error("收据校验失败，请等待索引更新后刷新。");
    const value:Receipt=JSON.parse(raw);
    if(value.id!==run.id||value.status!==run.status)throw Error("运行身份不一致");
+   if(value.reason!==undefined&&typeof value.reason!=="string")throw Error("运行原因格式不符");
    let report="";
    if(value.report){
     if(value.status!=="completed"||value.report.path!==run.id+"/report.html"||!fingerprint(value.report.sha256))throw Error("报告引用不符");
