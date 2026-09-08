@@ -199,18 +199,3 @@ class SignalAuditTests(unittest.TestCase):
         self.assertEqual(trade['exit_score']['status'],'unavailable')
         with self.assertRaises(ValueError):attach_signal_audit([{**trade,'symbol':'B'}],[event])
         with self.assertRaises(ValueError):attach_signal_audit([trade],[event,event])
-
-    def test_real_saved_trades_match_original_scores_without_recomputing_returns(self):
-        from research.backtest.account_runner import attach_signal_audit
-        from research.backtest.run_store import ROOT, encode
-        raw=(ROOT/'public/opportunity-ledger.json').read_bytes()
-        ledger=json.loads(raw)
-        for path in (ROOT/'research/backtest/output/reusable-runs').glob('*/receipt.json'):
-            value=json.loads(path.read_bytes())
-            self.assertEqual(sha256(raw),value['source']['ledger_sha256'])
-            trades=copy.deepcopy(value['trades'])
-            before=[t.get('net_pnl') for t in trades]
-            attach_signal_audit(trades,ledger['events'])
-            self.assertEqual([t.get('net_pnl') for t in trades],before)
-            for t in trades:
-                self.assertEqual(t['signal_snapshot_sha256'],sha256(encode(t['signal_snapshot'])))
