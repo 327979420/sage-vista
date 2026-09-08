@@ -2,6 +2,8 @@
 import {useEffect, useState} from "react";
 
 export const RESULTS_ROOT = "https://raw.githubusercontent.com/327979420/sage-vista/main/research/backtest/output/reusable-runs/";
+const CONFIG_URL = "https://raw.githubusercontent.com/327979420/sage-vista/main/research/backtest/account-scenario.json";
+const WORKFLOW_URL = "https://github.com/327979420/sage-vista/actions/workflows/opportunity-ledger-refresh.yml";
 type Run = {id:string; status:"completed"|"unavailable"|"failed"; request:{strategy?:string;start?:string;end?:string}; summary:Record<string,number|null>; receipt_sha256:string};
 type Receipt = Run & {reason?:string; report?:{path:string;sha256:string}};
 const validId = (id:string) => /^[1-9][0-9]{0,19}-[1-9][0-9]{0,5}$/.test(id);
@@ -32,6 +34,12 @@ export function ResearchRunList({runs,onSelect,selected}:{runs:Run[];onSelect:(i
 
 export default function ResearchRuns(){
  const [runs,setRuns]=useState<Run[]>([]),[selected,setSelected]=useState(""),[html,setHtml]=useState(""),[receipt,setReceipt]=useState<Receipt|null>(null),[error,setError]=useState(""),[loading,setLoading]=useState(true),[refresh,setRefresh]=useState(0);
+ const [enabled,setEnabled]=useState(false);
+ useEffect(()=>{
+  const controller=new AbortController();
+  fetch(CONFIG_URL,{cache:"no-store",signal:controller.signal,credentials:"omit"}).then(r=>r.ok?r.json():null).then(c=>{if(!controller.signal.aborted)setEnabled(c?.approved===true&&typeof c?.approval_ref==="string"&&c.approval_ref.length>0)}).catch(()=>{if(!controller.signal.aborted)setEnabled(false)});
+  return()=>controller.abort();
+ },[refresh]);
  useEffect(()=>{
   const controller=new AbortController();
   fetchText("index.json",controller.signal).then(JSON.parse).then(checkedIndex).then(values=>{setRuns(values);setSelected(old=>values.some(r=>r.id===old)?old:values[0]?.id??"");setError("");setLoading(false)}).catch(e=>{if(!controller.signal.aborted){setError(String(e.message));setLoading(false)}});
@@ -58,7 +66,7 @@ export default function ResearchRuns(){
  },[selected,runs]);
  const choose=(id:string)=>{setHtml("");setReceipt(null);setSelected(id)};
  return <div className="tradeComparison">
-  <header className="svPanel"><small>VectorBT＋QuantStats · 旧规则研究场景</small><h2>历史研究结果</h2><p>账户回测待确认资金、仓位和费用参数，暂未开放提交。确认并接通作业后，将在 GitHub 登录后的表单选择策略和日期；这里只读已保存报告。</p><p><button disabled>账户运行待参数确认</button> · <button onClick={()=>{setLoading(true);setRefresh(v=>v+1)}}>刷新已保存结果</button></p><p>永久结果直接从仓库读取，无需每次重新部署；公开内容可能有几分钟缓存延迟。来源缺失和失败也保留，不作为零收益。研究假设不代表生产策略已获批准。</p></header>
+  <header className="svPanel"><small>VectorBT＋QuantStats · 旧规则研究场景</small><h2>历史研究结果</h2><p>{enabled?"在 GitHub 登录后的表单选择 research 模式、旧基线策略和起止日期，然后提交。运行结束后回到这里刷新查看结果。":"账户回测待确认资金、仓位和费用参数，暂未开放提交。确认并接通作业后，将在 GitHub 登录后的表单选择策略和日期；这里只读已保存报告。"}</p><p>{enabled?<a href={WORKFLOW_URL} target="_blank" rel="noreferrer">提交回测／查看运行进度 ↗</a>:<button disabled>账户运行待参数确认</button>} · <button onClick={()=>{setLoading(true);setRefresh(v=>v+1)}}>刷新已保存结果</button></p><p>永久结果直接从仓库读取，无需每次重新部署；公开内容可能有几分钟缓存延迟。来源缺失和失败也保留，不作为零收益。研究假设不代表生产策略已获批准。</p></header>
   {loading&&<p role="status">正在读取历史运行…</p>}{error&&<p role="alert">{error}</p>}
   <ResearchRunList runs={runs} onSelect={choose} selected={selected}/>
   {receipt&&<section className="svPanel"><h3>运行 #{receipt.id} · {statusLabel[receipt.status]}</h3>{receipt.reason&&<p>{receipt.reason}</p>}<p><a href={RESULTS_ROOT+receipt.id+"/receipt.json"} target="_blank" rel="noreferrer">下载本次收据与逐笔结果</a></p>{html&&<iframe key={receipt.id} title="QuantStats账户报告与交易明细" sandbox="" referrerPolicy="no-referrer" srcDoc={'<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'; img-src data:; font-src data:; base-uri \'none\'; form-action \'none\'">'+html} style={{width:"100%",height:"1100px",border:0}}/>}</section>}

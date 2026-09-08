@@ -23,13 +23,18 @@ test('pending account scenario has no fake runnable entry and HTML is sandboxed'
  assert.match(source,/sandbox=""/);assert.match(source,/img-src data:/);assert.doesNotMatch(source,/allow-scripts|allow-same-origin/);
 });
 
-test('manual input-check workflow cannot compute, deploy or expose a token',async()=>{
+test('existing workflow isolates research and requires approval before engines',async()=>{
  const yaml=(await import('js-yaml')).default;
- const workflow=yaml.load(fs.readFileSync(new URL('../.github/workflows/research-backtest.yml',import.meta.url),'utf8'));
- assert.deepEqual(Object.keys(workflow.on),['workflow_dispatch']);
- assert.match(workflow.jobs.preflight.if,/refs\/heads\/main/);
- assert.deepEqual(workflow.jobs.preflight.steps.find(s=>s.env)?.env,{RESEARCH_INPUTS:'${{ toJSON(inputs) }}'});
- const body=JSON.stringify(workflow);
- assert.doesNotMatch(body,/pip install|vectorbt_comparison|quantstats_report|deploy-site|secrets\./);
- assert.match(body,/publish_attempt/);assert.match(body,/exit 1/);
+ const workflow=yaml.load(fs.readFileSync(new URL('../.github/workflows/opportunity-ledger-refresh.yml',import.meta.url),'utf8'));
+ assert.equal(fs.existsSync(new URL('../.github/workflows/research-backtest.yml',import.meta.url)),false);
+ assert.deepEqual(workflow.on.workflow_dispatch.inputs.mode.options,['refresh','comparison','research']);
+ assert.match(workflow.jobs.refresh.if,/inputs.mode == 'refresh'/);
+ assert.match(workflow.jobs.research.if,/inputs.mode == 'research'/);
+ assert.match(workflow.jobs.research.if,/refs\/heads\/main/);
+ const steps=workflow.jobs.research.steps;
+ assert.match(steps.find(s=>s.id==='approval').run,/run_research --check/);
+ assert.match(steps.find(s=>s.name?.startsWith('Install isolated')).if,/approval.outputs.enabled == 'true'/);
+ assert.match(steps.find(s=>s.name?.startsWith('Run the selected')).if,/approval.outputs.enabled == 'true'/);
+ assert.doesNotMatch(JSON.stringify(workflow.jobs.research),/deploy-site|secrets\.|cache\/save/);
+ assert.match(JSON.stringify(workflow.jobs.research),/publish_attempt/);
 });

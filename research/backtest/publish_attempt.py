@@ -10,10 +10,10 @@ import subprocess
 from research.backtest.run_store import ROOT, save, validate_receipt
 
 
-def publish(receipt, *, repo=ROOT, max_attempts=3):
+def publish(receipt, *, html=None, repo=ROOT, max_attempts=3):
     validate_receipt(receipt)
-    if receipt['status'] == 'completed':
-        raise ValueError('account_result_publication_not_enabled')
+    if receipt.get('synthetic'):
+        raise ValueError('synthetic_result_cannot_be_published')
     repo = Path(repo).resolve()
 
     def git(*args, check=True):
@@ -25,10 +25,13 @@ def publish(receipt, *, repo=ROOT, max_attempts=3):
     for _ in range(max_attempts):
         git('fetch', 'origin', 'main')
         git('switch', '--detach', 'origin/main')
-        save(receipt, root=repo / relative)
-        # Exactly two derived files in this preflight-only publisher. Never git
-        # add a directory, raw data, engine environment, or unrelated changes.
-        git('add', '--', str(relative / receipt['id'] / 'receipt.json'), str(relative / 'index.json'))
+        save(receipt, html, root=repo / relative)
+        # Only the receipt, index, and (on completion) its verified report.
+        # Never add a directory, raw data, environment, or unrelated changes.
+        paths = [str(relative / receipt['id'] / 'receipt.json'), str(relative / 'index.json')]
+        if receipt.get('report'):
+            paths.append(str(relative / receipt['id'] / 'report.html'))
+        git('add', '--', *paths)
         if git('diff', '--cached', '--quiet', check=False).returncode == 0:
             return git('rev-parse', 'HEAD').stdout.strip()
         git('-c', 'user.name=sage-vista-bot', '-c', 'user.email=sage-vista-bot@users.noreply.github.com',
@@ -43,4 +46,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--receipt', required=True)
     args = parser.parse_args()
-    print(publish(json.loads(Path(args.receipt).read_bytes())))
+    receipt_path=Path(args.receipt)
+    receipt=json.loads(receipt_path.read_bytes())
+    report=(receipt_path.parent/'report.html').read_bytes() if receipt.get('report') else None
+    print(publish(receipt, html=report))

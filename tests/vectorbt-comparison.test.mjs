@@ -11,7 +11,7 @@ const root=new URL('../',import.meta.url);
 test('comparison mode is isolated from all legacy refresh and production actions',()=>{
  const workflow=yaml.load(fs.readFileSync(new URL('.github/workflows/opportunity-ledger-refresh.yml',root),'utf8'));
  assert.equal(workflow.on.workflow_dispatch.inputs.mode.default,'refresh');
- assert.match(workflow.jobs.refresh.if,/inputs.mode != 'comparison'/);
+ assert.match(workflow.jobs.refresh.if,/inputs.mode == 'refresh'/);
  const job=workflow.jobs.comparison;
  assert.match(job.if,/workflow_dispatch.*inputs.mode == 'comparison'/);
  assert.deepEqual(job.permissions,{contents:'read',actions:'read'});

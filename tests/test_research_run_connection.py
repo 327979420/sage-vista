@@ -77,6 +77,18 @@ class PreflightTests(unittest.TestCase):
         self.assertEqual(prepare({**request,'end':'2026-00-99'},**kwargs)['status'],'failed')
         self.assertEqual(prepare({**request,'strategy':'new-policy'},**kwargs)['status'],'failed')
 
+    def test_workflow_gate_never_calls_engine_without_approved_configuration(self):
+        import os
+        from research.backtest.run_research import run
+        inputs={'strategy':'support-5pct-cap-10pct-2r-v1','start':'2026-01-01','end':'2026-02-01'}
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)
+            with patch.dict(os.environ,{'RESEARCH_INPUTS':json.dumps(inputs),'GITHUB_RUN_ID':'123','GITHUB_RUN_ATTEMPT':'1','GITHUB_SHA':'a'*40,'GITHUB_OUTPUT':str(root/'outputs')}), patch('research.backtest.run_research.OUT',root/'attempt'), patch('research.backtest.run_research.approved_scenario',side_effect=ValueError('account_parameters_not_approved')), patch('research.backtest.run_research.execute') as engine:
+                run(check_only=True)
+                engine.assert_not_called()
+                self.assertEqual(json.loads((root/'attempt/receipt.json').read_bytes())['status'],'unavailable')
+                self.assertEqual((root/'outputs').read_text(),'enabled=false\n')
+
     def test_real_local_git_publisher_appends_without_overwrite_or_deploy(self):
         from research.backtest.publish_attempt import publish
         from research.backtest.run_store import encode
@@ -117,6 +129,12 @@ class PreflightTests(unittest.TestCase):
                 publish(receipt('125-1'),repo=repo)
             self.assertTrue(raced[0])
             self.assertEqual({r['id'] for r in json.loads((saved/'index.json').read_bytes())['runs']},{'123-1','123-2','124-1','125-1'})
+            report=b'<html><body>Local contract fixture, not real research</body></html>'
+            completed=receipt('126-1');completed.update(status='completed',request={'strategy':'support-5pct-cap-10pct-2r-v1','start':'2026-01-01','end':'2026-02-01'},summary={'total_return':.1,'max_drawdown':-.03,'initial_cash':100,'ending_equity':110,'daily_sessions':20,'win_rate':None,'quantstats_version':'0.0.81'},report={'path':'126-1/report.html','sha256':sha256(report)})
+            completed=seal(completed)
+            publish(completed,html=report,repo=repo)
+            self.assertEqual((saved/'126-1/report.html').read_bytes(),report)
+            self.assertEqual(json.loads((saved/'index.json').read_bytes())['runs'][0]['id'],'126-1')
 
 
 class DailyReturnTests(unittest.TestCase):

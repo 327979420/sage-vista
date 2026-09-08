@@ -141,6 +141,8 @@ def _lock(root):
 
 def save(receipt, html=None, root=OUTPUT):
     receipt = validate_receipt(receipt)
+    if receipt.get('synthetic'):
+        raise ValueError('synthetic_result_cannot_be_published')
     root = Path(root).resolve()
     if ROOT / 'public' == root or ROOT / 'public' in root.parents:
         raise ValueError('research_writer_cannot_write_public_assets')
