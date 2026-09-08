@@ -30,7 +30,7 @@ test('real comparison report renders differences, costs and path limitations',()
  const mod={exports:{}};new Function('require','exports','module',code)(createRequire(import.meta.url),mod.exports,mod);
  const {reports}=JSON.parse(fs.readFileSync(new URL('public/vectorbt-comparison.json',root),'utf8'));
  const html=renderToStaticMarkup(React.createElement(mod.exports.ComparisonView,{reports}));
- assert.match(html,/这不是完整回测/);assert.match(html,/有差异/);assert.match(html,/真实费用与数量缺失/);
+ assert.match(html,/平均每笔毛收益/);assert.match(html,/\+5\.73%/);assert.match(html,/70%/);assert.match(html,/3\.95/);assert.match(html,/这不是完整回测/);assert.match(html,/有差异/);assert.match(html,/真实费用与数量缺失/);
  assert.match(html,/MFE／MAE/);assert.match(html,/VectorBT没有重新决定买卖/);assert.match(html,/原始差值/);
  assert.equal((html.match(/data-selected=/g)||[]).length,20);
  assert.doesNotMatch(html,/adjusted_close|api_token/);
