@@ -18,9 +18,10 @@ class UiV2ContractTests(unittest.TestCase):
 
  def test_industry_page_starts_with_market_decision_and_practical_groups(self):
   text=(ROOT/"app/zh/watch/industry-radar/page.tsx").read_text()
-  for label in ("/market-etf-watch.json","SPY","QQQ","IWM","RSP","SOXX","常用行业，一张表读完","只影响优先级，不改技术分"):
+  for label in ("/market-etf-watch.json","SPY","QQQ","IWM","RSP","SOXX","旧快照成员广度","独立背景，不改当前排名"):
    self.assertIn(label,text)
-  self.assertLess(text.index("marketDecisionHero"),text.index("EVERYDAY SECTOR ETFS"))
+  self.assertLess(text.index("marketDecisionHero"),text.index("<IndustryContext/>"))
+  self.assertLess(text.index("<IndustryContext/>"),text.index("旧成员广度证据"))
 
  def test_multifactor_keeps_only_the_current_decision_surface(self):
   self.assertFalse((ROOT/"app/zh/watch/resonance/macd/page.tsx").exists())
