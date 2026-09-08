@@ -31,6 +31,7 @@ EXPECTED_PYTHON_REFERENCES = frozenset({
     "services/scanner/macd_factor_backtest.py::run",
     "services/scanner/market_context_factor_test.py::run",
     "services/scanner/market_etf_watch.py::refreshed_rows",
+    "services/scanner/daily_tracker_update.py::publish_market_cache",
     "services/scanner/neutralization_test.py::run",
     "services/scanner/open_source_industry.py::tracked_symbols",
     "services/scanner/opportunity_ledger.py::<module>",

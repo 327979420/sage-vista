@@ -8,6 +8,7 @@ import argparse,datetime,hashlib,json,os,pathlib,re,tempfile,time,urllib.error,u
 from .factor_snapshot import SNAPSHOT_MODE_VERSION
 from .favorite_pattern_tracker import GENERALIZATION_VERSION, PATTERN_VERSION
 
+INDUSTRY_PUBLIC_PATH = pathlib.Path(__file__).resolve().parents[2] / "public/industry-radar.json"
 CANDIDATE_PUBLIC_PATH = pathlib.Path(__file__).resolve().parents[2] / "public/cr056-ranking.json"
 
 def fetch_candidate_bytes(base,cache_key):
@@ -76,8 +77,21 @@ def verify_once(base,expected,deployment_commit):
  if f"Build {deployment_commit[:7]}" not in page:raise RuntimeError("Live deployment commit marker mismatch")
  details=tracker.get("details",{})
  if any(x.get("audit",{}).get("future_rows_used") or x.get("audit",{}).get("latest_bar")!=expected for x in details.values()):raise RuntimeError("Live tracker completeness audit failed")
+ industry_receipt=None
+ local_industry=json.loads(INDUSTRY_PUBLIC_PATH.read_bytes()) if INDUSTRY_PUBLIC_PATH.exists() else {}
+ if "display_context" in local_industry:
+  local_context=local_industry["display_context"]
+  if not isinstance(local_context,dict) or local_context.get("as_of")!=expected:
+   raise RuntimeError("Local industry display context date mismatch")
+  # Compare canonical content from the existing bundle fetch, without another
+  # network path or a second implementation of industry business validation.
+  local_content=json.dumps(local_context,sort_keys=True,separators=(",",":"),allow_nan=False).encode()
+  live_content=json.dumps(industry.get("display_context"),sort_keys=True,separators=(",",":"),allow_nan=False).encode()
+  if live_content!=local_content:raise RuntimeError("Live industry display context differs from reviewed local asset")
+  industry_receipt={"as_of":local_context["as_of"],"coverage":local_context.get("coverage"),
+                    "content_fingerprint":"sha256:"+hashlib.sha256(local_content).hexdigest()}
  candidate=verify_candidate_asset(base,expected,deployment_commit)
- return {"candidate_snapshot":candidate,"result":"verified","as_of":expected,"site_url":base,"website_version":website_version,"deployment_commit":deployment_commit,"tracker_details":len(details),"favorite_pattern_watchlist":favorite.get("summary",{}).get("watchlist"),"favorite_pattern_entry_ready":favorite.get("summary",{}).get("entry_ready"),"factor_symbols":snapshot.get("triggered_count"),"eligible_universe":snapshot.get("eligible_count"),"forward_cases":len(history.get("cases",[])),"opportunity_events":len(ledger.get("events",[]))}
+ return {"industry_context":industry_receipt,"candidate_snapshot":candidate,"result":"verified","as_of":expected,"site_url":base,"website_version":website_version,"deployment_commit":deployment_commit,"tracker_details":len(details),"favorite_pattern_watchlist":favorite.get("summary",{}).get("watchlist"),"favorite_pattern_entry_ready":favorite.get("summary",{}).get("entry_ready"),"factor_symbols":snapshot.get("triggered_count"),"eligible_universe":snapshot.get("eligible_count"),"forward_cases":len(history.get("cases",[])),"opportunity_events":len(ledger.get("events",[]))}
 
 def verify(base,expected,deployment_commit,attempts=12,delay_seconds=5):
  if not deployment_commit:raise RuntimeError("Deployment commit evidence is required")

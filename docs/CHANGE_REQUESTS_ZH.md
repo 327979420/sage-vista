@@ -43,7 +43,8 @@
 - 2026-09-08行业交付（`verified`，本地待独立审核）：按用户最新收缩方向，静态26主题／21参考ETF／5待补映射先可见，有限ETF背景日更，原17ETF大盘复用；公司分类与官方持仓分别标源和日期。规则06 v1.3.0先行；不修全成员日更、不重算技术分和排行、不回测、不安装外部平台。基线1fbe4a2，独立分支交审，审核任务负责真实运行与发布。
 - 顺序纠正：原总需求第七节的“ETF每天先算一次缓存”纳入本包；daily_tracker_update前置17大盘和21行业ETF，成功同日背景复用，失败ETF单独重试，随后原个股扫描。旧大盘行情缓存先暂存，仍在原扫描之后回写；候选交集后置只读。背景独立更新触发发布但不重跑旧排行或触发旧通知。保持原历史行情缓存键及路径，背景缓存单独加速。
 - 本地验收：行业映射／行情异常／顺序／同日复用／缓存时点及原行业回归通过；追加同日发布不扫描和日更回归通过，5项候选及背景SSR测试通过，lint／typecheck／build、工作流结构与diff检查通过。public、快照、排行、身份和策略文件未改；未运行真实行情请求、回测或上线，不宣称浏览器交互验证。
-- 真实生成与交付：审核任务在独立运行树使用既有EODHD凭证，先核对最新完整交易日与现有bundle。若仍为2026-09-04，运行`python3 -m services.scanner.daily_tracker_update --as-of 2026-09-04`，预期already_current且background_changed=true，仅补背景；每个行业ETF最多400日历日、21次请求，大盘已同日则复用。再次运行成功ETF零请求、无变化；失败ETF允许独立重试。对比industry-radar除display_context外完全相等、cr056-ranking与全部旧榜字节不变；核对26主题/21ETF/5manual、实际行情日、可用数量及持仓日期。审核后沿原发布和线上核验入口更新，另比对线上display_context与审核树相同，并记录实际可用ETF数。
+- 真实生成与交付：审核任务在独立运行树使用既有EODHD凭证，先核对最新完整交易日与现有bundle。若仍为2026-09-04，运行`python3 -m services.scanner.daily_tracker_update --as-of 2026-09-04`，预期already_current且background_changed=true，仅补背景；每个行业ETF最多400日历日、21次请求，大盘已同日则复用。再次运行成功ETF零请求、无变化；失败ETF允许独立重试。对比industry-radar除display_context外完全相等、cr056-ranking与全部旧榜字节不变；核对26主题/21ETF/5manual、实际行情日、可用数量及持仓日期。审核后沿原发布和线上核验入口更新，现有verify_live_deployment在本地含display_context时自动严格比对线上规范化完整内容，收据记录日期、coverage和SHA-256内容指纹；错日期、缺ETF、缺背景或类型变化均失败，兼容旧无背景字段文件。
+- 定点审核补修：沿原上线核验函数增加上述背景内容比较，不另发请求或建立核验脚本；M02旧缓存库存登记已审publish_market_cache入口。原上线核验17项通过，库存专项检查与diff检查通过；未重复全量构建。
 - 页面入口：`/zh/watch/industry-radar`显示全部注册对照、ETF状态及候选交集；`/zh/watch/resonance/rare-opportunities`选中股票可见公司分类、官方持仓关联及17ETF大盘摘要，日期错位明确提示。真实生成与发布尚待审核任务执行。
 
 

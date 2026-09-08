@@ -29,6 +29,44 @@ class LiveDeploymentVerificationTests(unittest.TestCase):
   self.candidate_path=pathlib.Path(self.candidate_dir.name)/"cr056-ranking.json"
   guard=patch("services.scanner.verify_live_deployment.CANDIDATE_PUBLIC_PATH",self.candidate_path)
   guard.start();self.addCleanup(guard.stop)
+  self.industry_path=pathlib.Path(self.candidate_dir.name)/"industry-radar.json"
+  industry_guard=patch("services.scanner.verify_live_deployment.INDUSTRY_PUBLIC_PATH",self.industry_path)
+  industry_guard.start();self.addCleanup(industry_guard.stop)
+
+
+ def test_industry_display_content_is_verified_and_recorded_in_existing_receipt(self):
+  context={"as_of":DATE,"themes":[{"theme_id":"semiconductors"}],"funds":{"SOXX":{"available":True}},
+           "coverage":{"themes":1,"reference_etfs":1,"available_etfs":1,"dated_membership_themes":1}}
+  self.industry_path.write_text(json.dumps({"display_context":context},indent=2))
+  inputs=bundle();inputs[5]["display_context"]=dict(reversed(list(context.items())))
+  with patch("services.scanner.verify_live_deployment.fetch",side_effect=inputs) as fetch,patch("services.scanner.verify_live_deployment.fetch_text",return_value="Build abcdef1"):
+   result=verify("https://example.test",DATE,"abcdef1",attempts=1)
+  self.assertEqual(fetch.call_count,len(inputs))
+  receipt=result["industry_context"]
+  self.assertEqual(receipt["as_of"],DATE);self.assertEqual(receipt["coverage"],context["coverage"])
+  digest=hashlib.sha256(json.dumps(context,sort_keys=True,separators=(",",":"),allow_nan=False).encode()).hexdigest()
+  self.assertEqual(receipt["content_fingerprint"],"sha256:"+digest)
+  for changed in ({**context,"as_of":"2026-08-25"},{**context,"funds":{}},None,
+                  {**context,"funds":{"SOXX":{"available":1}}}):
+   with self.subTest(changed=changed):
+    inputs=bundle()
+    if changed is not None:inputs[5]["display_context"]=changed
+    with patch("services.scanner.verify_live_deployment.fetch",side_effect=inputs),patch("services.scanner.verify_live_deployment.fetch_text",return_value="Build abcdef1"):
+     with self.assertRaisesRegex(RuntimeError,"display context differs"):
+      verify("https://example.test",DATE,"abcdef1",attempts=1)
+
+ def test_industry_old_local_file_without_display_context_remains_compatible(self):
+  self.industry_path.write_text(json.dumps({"as_of":DATE}))
+  with patch("services.scanner.verify_live_deployment.fetch",side_effect=bundle()),patch("services.scanner.verify_live_deployment.fetch_text",return_value="Build abcdef1"):
+   self.assertIsNone(verify("https://example.test",DATE,"abcdef1",attempts=1)["industry_context"])
+
+ def test_industry_local_wrong_date_cannot_pass_even_when_remote_matches(self):
+  context={"as_of":"2026-08-25"}
+  self.industry_path.write_text(json.dumps({"display_context":context}))
+  inputs=bundle();inputs[5]["display_context"]=context
+  with patch("services.scanner.verify_live_deployment.fetch",side_effect=inputs),patch("services.scanner.verify_live_deployment.fetch_text",return_value="Build abcdef1"):
+   with self.assertRaisesRegex(RuntimeError,"Local industry display context date mismatch"):
+    verify("https://example.test",DATE,"abcdef1",attempts=1)
 
  def test_candidate_exact_bytes_are_part_of_the_existing_bundle_receipt(self):
   payload={"as_of":DATE,"result_role":"legacy_comparison","source_snapshot":"sha256:reviewed","ranked_symbols":["AAA"]}
