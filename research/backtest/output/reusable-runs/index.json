@@ -20,6 +20,27 @@
         "total_return": 0.029218556288361563,
         "win_rate": 0.42857142857142855
       }
+    },
+    {
+      "code_commit": "025a961ede0afc28681d028efca2f84b34b91e91",
+      "content_sha256": "6f49c65572ecd8f6d5f225ccc9f614c1117a599bf69e103d7896d26312117d17",
+      "id": "34207675449-1",
+      "receipt_sha256": "8404b1a448434c1fa2ffb13d656b126d02d50c9af46b377cb2fffacff2e74a27",
+      "request": {
+        "end": "2026-01-30",
+        "start": "2025-12-29",
+        "strategy": "support-5pct-cap-10pct-2r-v1"
+      },
+      "status": "completed",
+      "summary": {
+        "daily_sessions": 23,
+        "ending_equity": 106988.35085931489,
+        "initial_cash": 100000,
+        "max_drawdown": -0.02137034153796824,
+        "quantstats_version": "0.0.81",
+        "total_return": 0.06988350859314973,
+        "win_rate": 0.625
+      }
     }
   ],
   "schema_version": "legacy-research-index-v1"
