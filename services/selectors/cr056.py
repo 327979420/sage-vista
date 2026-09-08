@@ -2,17 +2,20 @@
 from services.contracts.cr056_policy import SETTINGS as S, POLICY_VERSION, POLICY_FINGERPRINT
 
 
-def _negative_improvement(h):
-    return len(h) >= 3 and h[-3] < h[-2] < h[-1] < 0
+def _negative_improvement(h, confirmations):
+    tail = h[-(confirmations + 1):]
+    return len(tail) == confirmations + 1 and tail[-1] < 0 and all(
+        previous < current for previous, current in zip(tail, tail[1:]))
 
 
 def direction_permission(h, *, timeframe):
     if timeframe not in ('monthly', 'weekly'):
         raise ValueError('unknown permission timeframe')
-    if len(h) < max(3, S['weekly_positive_peak_window'] if timeframe == 'weekly' else 3):
+    confirmations = S[timeframe + '_negative_improvements']
+    if len(h) < max(confirmations + 1, S['weekly_positive_peak_window'] if timeframe == 'weekly' else 2):
         return {'status': 'unavailable', 'reason': 'insufficient_histogram', 'score_multiplier': None}
     current, previous = h[-1], h[-2]
-    if _negative_improvement(h):
+    if _negative_improvement(h, confirmations):
         return {'status': 'allowed', 'reason': 'negative_histogram_improving', 'score_multiplier': 1.0}
     if current > 0 and current >= previous:
         return {'status': 'allowed', 'reason': 'positive_histogram_supported', 'score_multiplier': 1.0}

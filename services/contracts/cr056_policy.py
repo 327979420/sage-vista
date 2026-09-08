@@ -13,6 +13,7 @@ WHITE_LIST = MappingProxyType({
 })
 SETTINGS = MappingProxyType({
     'minimum_daily_rows': 420, 'minimum_completed_months': 61,
+    'monthly_negative_improvements': 1, 'weekly_negative_improvements': 2,
     'monthly_percentile_history': 60, 'high_percentile': 0.90,
     'near_history_high_fraction': 0.95, 'monthly_ema_extension': 0.20,
     'weekly_positive_peak_window': 13, 'weekly_near_cross_fraction': 0.10,
@@ -26,6 +27,6 @@ SETTINGS = MappingProxyType({
 })
 WEIGHTS = MappingProxyType({'daily': 1, 'weekly_completed': 2, 'monthly_completed': 3})
 CAPS = MappingProxyType({'daily': 5.0, 'weekly_completed': 2.0, 'monthly_completed': 3.25})
-POLICY_VERSION = 'cr056-policy-1.0.0-candidate'
+POLICY_VERSION = 'cr056-policy-1.1.0-candidate'
 POLICY_FINGERPRINT = canonical_fingerprint({'version': POLICY_VERSION, 'settings': dict(SETTINGS),
     'white_list': {k: list(v) for k, v in WHITE_LIST.items()}, 'weights': dict(WEIGHTS), 'caps': dict(CAPS)})

@@ -28,6 +28,28 @@ class PermissionTests(unittest.TestCase):
                             ([-3, -2, -1], 'allowed'), ([-3, -2, -2], 'blocked')]:
             self.assertEqual(direction_permission(h, timeframe='monthly')['status'], expected)
 
+    def test_first_negative_contraction_is_monthly_only(self):
+        h = [-2]*11 + [-3, -2]
+        self.assertEqual(direction_permission(h, timeframe='monthly')['status'], 'allowed')
+        self.assertEqual(direction_permission(h, timeframe='weekly')['status'], 'blocked')
+        self.assertEqual(direction_permission(h + [-1], timeframe='weekly')['status'], 'allowed')
+
+    def test_monthly_first_contraction_boundary(self):
+        for h, expected in [([-3, -2], 'allowed'), ([-2, -2], 'blocked'),
+                            ([-2, -3], 'blocked'), ([.1, -.1], 'blocked'),
+                            ([-1, 0], 'blocked'), ([-1], 'unavailable')]:
+            with self.subTest(histogram=h):
+                self.assertEqual(direction_permission(h, timeframe='monthly')['status'], expected)
+
+    def test_first_contraction_does_not_override_other_exclusions(self):
+        f = facts(); f['monthly']['histogram'] = [-2, -3, -2]
+        self.assertTrue(assess_permission(f)['eligible'])
+        f['close'] = 114
+        self.assertFalse(assess_permission(f)['eligible'])
+        f = facts(); f['monthly']['histogram'] = [-2, -3, -2]
+        f['legacy_long_trend'] = False; f['base']['prior_peak'] = 65
+        self.assertIn('no_available_background', assess_permission(f)['reason_codes'])
+
     def test_weekly_near_cross_boundary_and_ordinary_shrink_penalty(self):
         self.assertEqual(direction_permission([1]*12+[.1], timeframe='weekly')['status'], 'blocked')
         self.assertEqual(direction_permission([1]*12+[.5], timeframe='weekly')['score_multiplier'], .75)
