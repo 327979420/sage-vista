@@ -1,0 +1,2018 @@
+{
+  "audit": {
+    "account_algorithm": "legacy-shared-cash-v1",
+    "execution_policy": "support-5pct-cap-10pct-2r-v1",
+    "experiment_identity": {
+      "account_parameters": {
+        "allocation_fraction": 0.1,
+        "cost_rate": 0.001,
+        "fractional_shares": false,
+        "initial_cash": 100000,
+        "max_positions": 10
+      },
+      "implementation": {
+        "research/backtest/account_runner.py": "8937eb8477ace5e7a4b1fce216ee9854584349b7278bd5de5935d388d42e9ef2",
+        "research/backtest/dependencies/quantstats-requirements.lock": "0e287d53f62e595c8c757be400769199bd4220ac7fcc9d75c31b3d22e6d2cd12",
+        "research/backtest/dependencies/vectorbt-requirements.lock": "3597a0446bd55a6bd56ef0de9b57864584bcdff8bba24e092bbff66ccb8018de",
+        "research/backtest/quantstats_report.py": "94665f81f146f97843db5e5caff94388c048622f994637b3e873225f95724a72",
+        "services/scanner/support_risk.py": "9b3651bdd08a87e528a3bd3eb228ce8020dd1746f5107df1da7c1e79a4e83365"
+      },
+      "price_windows_sha256": {
+        "ANF": "59e93033997d90388609395578fe4e089f91e2bc03935079b78fcb67d7cf3ab6",
+        "AR": "41af3ff1da274fa96a8e4cbc31b5c7657b939805cd7d351ebe50c48829ad08fd",
+        "BMRN": "ca0310bd190d2cef14142bd993745400250644411d844e090c2322d8ccadc800",
+        "CNC": "1c0ed88729b503f2a3c2213329c1317f731900bdf01490a25685c7406e94c48f",
+        "COO": "1b9e114fecd7b8ae4c9e20cd4891d48e06a2878e940bb5f71128df75556cdbc4",
+        "DNLI": "0c659a3835017fa2786a7e4440f21c2c93cf18199ea38006e6ee32f5a745be4b",
+        "DOC": "41df2c66f115ec79e518e97f7fcc8a3e3cd5bc32d52234442027aee16ae09381",
+        "ELV": "6197a3c885eb1f09710309b04d7716898853de097245d1b0f0335024b90a4e24",
+        "GKOS": "10ffe792fc9663587a1b623a4fbebf1ad1ca28eb8e5a66f9909a84cd87d320c3",
+        "MRNA": "7d1955b2d5b531016a05569922a619522d12d927985ec1825e73a6e57cfe405d",
+        "MXL": "2cb44190216237f469a6502edd1578d4ab1f721091adf89fe44e4508a3a7168c",
+        "NVAX": "616c591c5db57196ffa39e92aa333be2847c240109f5f9235768a4d343002c9f",
+        "PNFP": "bcb15fe8a510684701603b0288ea21c18f0acc2faac2640aec44cf11c0c1feb8",
+        "REGN": "69d94d917d4155803dc2a4c9c35e8d636d385ccbf1688fb8f0c101078f1223e2",
+        "SBUX": "b47b8340aec0e0bb16d1ed009e725908cf90877789d3fcba9f72ef27ff1551f8",
+        "SGML": "05f95d5805a3d9df15b426eb492dfdbb6bea00c91c2fe8a7a6f0d913642dad71",
+        "VCEL": "d7b9db2ae35828f7c56730a27aa9ae8ee04d3b7357d3b1bc36d02767d7ed55c1",
+        "WEX": "b1f7f928ed2eb0eef04ec2071876cf211ad74dc7ec2e7a5e96b0c6619f1df273"
+      },
+      "reference_sha256": "4fbff67b39dc25c293b1e330e51399524ac66b9a07c9159e71a3e61424705db3",
+      "request": {
+        "end": "2026-02-27",
+        "start": "2026-02-02",
+        "strategy": "cr056-2.0-new-nominations-legacy-exit-v1"
+      },
+      "scan_days_sha256": "d748b40113f00a702c2da4156eeb2306fdb51821a4e9f0f953110cdc28332040",
+      "selection_versions": [
+        "cr056-policy-2.0.0-candidate"
+      ],
+      "signal_snapshots_sha256": "a9c383b077dd6af0e21fa744ae4a5b8f3be39a9409a54c6c93ca72fbe9b9bebc"
+    },
+    "experiment_key": "5cca222322c2aec727f5feec756c4af2b6b51b2df79ecf3ee5c9921e7f88b750",
+    "selection_versions": [
+      "cr056-policy-2.0.0-candidate"
+    ],
+    "version": "trade-signal-audit-v1"
+  },
+  "code_commit": "8532d13a8bf7bcb0fc9a6b7bd60b3ccacce0c160",
+  "content_sha256": "55162377b4187a23cbe4b8a69aa694d88c38e7a5dd074a86ca49e1b14271b499",
+  "daily_account": [
+    {
+      "date": "2026-02-02",
+      "equity": 100000.0,
+      "return": 0.0
+    },
+    {
+      "date": "2026-02-03",
+      "equity": 100000.0,
+      "return": 0.0
+    },
+    {
+      "date": "2026-02-04",
+      "equity": 100187.13050804826,
+      "return": 0.0018713050804826104
+    },
+    {
+      "date": "2026-02-05",
+      "equity": 99837.71903772386,
+      "return": -0.0034875883614245984
+    },
+    {
+      "date": "2026-02-06",
+      "equity": 100292.65753772386,
+      "return": 0.004556779786085707
+    },
+    {
+      "date": "2026-02-09",
+      "equity": 99468.25002637511,
+      "return": -0.008220018609424673
+    },
+    {
+      "date": "2026-02-10",
+      "equity": 99166.88182637512,
+      "return": -0.0030297929230692633
+    },
+    {
+      "date": "2026-02-11",
+      "equity": 99551.54972637512,
+      "return": 0.003878995617442982
+    },
+    {
+      "date": "2026-02-12",
+      "equity": 98292.55852637511,
+      "return": -0.012646625828130587
+    },
+    {
+      "date": "2026-02-13",
+      "equity": 99090.34987637511,
+      "return": 0.008116497952242563
+    },
+    {
+      "date": "2026-02-17",
+      "equity": 98483.45527637511,
+      "return": -0.0061246589678728425
+    },
+    {
+      "date": "2026-02-18",
+      "equity": 99077.23777637511,
+      "return": 0.0060292614463379746
+    },
+    {
+      "date": "2026-02-19",
+      "equity": 99563.95067322493,
+      "return": 0.004912459287049975
+    },
+    {
+      "date": "2026-02-20",
+      "equity": 99489.26597322492,
+      "return": -0.0007501178839832701
+    },
+    {
+      "date": "2026-02-23",
+      "equity": 97311.89972914493,
+      "return": -0.02188543882378191
+    },
+    {
+      "date": "2026-02-24",
+      "equity": 97191.69962874494,
+      "return": -0.0012352045406014422
+    },
+    {
+      "date": "2026-02-25",
+      "equity": 100331.50176461492,
+      "return": 0.0323052498090215
+    },
+    {
+      "date": "2026-02-26",
+      "equity": 101748.81638461493,
+      "return": 0.014126317209176564
+    },
+    {
+      "date": "2026-02-27",
+      "equity": 101991.62861955992,
+      "return": 0.002386388791267624
+    }
+  ],
+  "downloads": {
+    "trades_csv": {
+      "path": "34240123213-1/trades.csv",
+      "sha256": "675aac23dce74e9576859740323d5f123f9404b69e8adb3da61b34b69fbdb115"
+    }
+  },
+  "id": "34240123213-1",
+  "report": {
+    "path": "34240123213-1/report.html",
+    "sha256": "9a1b42943dcc2115b884f6b325ba2907045ce0694e06514974b44e3de2923984"
+  },
+  "request": {
+    "end": "2026-02-27",
+    "start": "2026-02-02",
+    "strategy": "cr056-2.0-new-nominations-legacy-exit-v1"
+  },
+  "research_input": {
+    "coverage_note": "observed cached universe; not complete historical market; latest adjusted history revision",
+    "excluded_source_count": 58,
+    "incomplete_source_days": 19,
+    "role": "observed_cache_empty_initial_cohort"
+  },
+  "result_role": "legacy/research",
+  "scenario": {
+    "allocation_fraction": 0.1,
+    "approval_ref": "2026-09-08：审核任务 01a074f9-098a-7b82-b486-3185683290fe 转达用户对研究账户预设明确回复“好”，批准100000美元、初始资金10%每笔、最多10只、单边成本0.001、无杠杆及现金不足/同股跳过；同次转达明确首版普通整股 fractional_shares=false，无需再问。仅legacy研究，不是生产策略、M10 formal资本合同或券商实盘授权。",
+    "approved": true,
+    "cost_rate": 0.001,
+    "fractional_shares": false,
+    "initial_cash": 100000,
+    "max_positions": 10
+  },
+  "schema_version": "legacy-research-run-v1",
+  "selection": {
+    "eligible_policy_events": 18,
+    "entered_trades": 13,
+    "excluded_other_policy": 0,
+    "window_events": 18
+  },
+  "source": {
+    "cache_key": "eodhd-history-v1-34202570654",
+    "historical_raw_revision_proven": false,
+    "ledger_sha256": "683010ce927b4aacf8693387c8f346998cc1ee4ba60de8d80cf0fe47b7a8f4e9",
+    "reference_sessions_sha256": "0b65322a6c329e3d2f7e842de791f991d6097b266987cc8090e9048fac61d20d",
+    "scan_days_sha256": "d748b40113f00a702c2da4156eeb2306fdb51821a4e9f0f953110cdc28332040",
+    "scan_file_sha256": "601c3a96755c6b9323dfdda526bad9da88caacb191719c9338e9bd21e484effd",
+    "windows_sha256": {
+      "ANF": "59e93033997d90388609395578fe4e089f91e2bc03935079b78fcb67d7cf3ab6",
+      "AR": "41af3ff1da274fa96a8e4cbc31b5c7657b939805cd7d351ebe50c48829ad08fd",
+      "BMRN": "ca0310bd190d2cef14142bd993745400250644411d844e090c2322d8ccadc800",
+      "CNC": "1c0ed88729b503f2a3c2213329c1317f731900bdf01490a25685c7406e94c48f",
+      "COO": "1b9e114fecd7b8ae4c9e20cd4891d48e06a2878e940bb5f71128df75556cdbc4",
+      "DNLI": "0c659a3835017fa2786a7e4440f21c2c93cf18199ea38006e6ee32f5a745be4b",
+      "DOC": "41df2c66f115ec79e518e97f7fcc8a3e3cd5bc32d52234442027aee16ae09381",
+      "ELV": "6197a3c885eb1f09710309b04d7716898853de097245d1b0f0335024b90a4e24",
+      "GKOS": "10ffe792fc9663587a1b623a4fbebf1ad1ca28eb8e5a66f9909a84cd87d320c3",
+      "MRNA": "7d1955b2d5b531016a05569922a619522d12d927985ec1825e73a6e57cfe405d",
+      "MXL": "2cb44190216237f469a6502edd1578d4ab1f721091adf89fe44e4508a3a7168c",
+      "NVAX": "616c591c5db57196ffa39e92aa333be2847c240109f5f9235768a4d343002c9f",
+      "PNFP": "bcb15fe8a510684701603b0288ea21c18f0acc2faac2640aec44cf11c0c1feb8",
+      "REGN": "69d94d917d4155803dc2a4c9c35e8d636d385ccbf1688fb8f0c101078f1223e2",
+      "SBUX": "b47b8340aec0e0bb16d1ed009e725908cf90877789d3fcba9f72ef27ff1551f8",
+      "SGML": "05f95d5805a3d9df15b426eb492dfdbb6bea00c91c2fe8a7a6f0d913642dad71",
+      "VCEL": "d7b9db2ae35828f7c56730a27aa9ae8ee04d3b7357d3b1bc36d02767d7ed55c1",
+      "WEX": "b1f7f928ed2eb0eef04ec2071876cf211ad74dc7ec2e7a5e96b0c6619f1df273"
+    }
+  },
+  "status": "completed",
+  "summary": {
+    "daily_sessions": 19,
+    "ending_equity": 101991.62861955992,
+    "initial_cash": 100000,
+    "max_drawdown": -0.030919092036349016,
+    "quantstats_version": "0.0.81",
+    "total_return": 0.019916286195599486,
+    "win_rate": 0.375
+  },
+  "synthetic": false,
+  "trades": [
+    {
+      "entry_date": "2026-02-04",
+      "entry_fees": 9.902325486465283,
+      "entry_price": 98.04282659866617,
+      "event_id": "CR056-PNFP-2026-02-03",
+      "execution": {
+        "entry": 98.042827,
+        "executable": true,
+        "exit_date": "2026-02-27",
+        "exit_price": 90.864555,
+        "exit_reason": "stop",
+        "holding_sessions": 17,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 88.238544,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "r_multiple": -1.0,
+        "return": -0.07321567,
+        "risk_pct": 0.07321567,
+        "status": "resolved",
+        "stop": 90.864555,
+        "stop_source": "EMA200",
+        "structural_stop": 90.864555,
+        "support_level": 95.6469,
+        "support_source": "EMA200",
+        "target": 112.39937,
+        "target_r": 2.0
+      },
+      "exit_fees": 9.177320055000001,
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "net_pnl": -744.0850770067478,
+      "net_return": -0.07514245800380727,
+      "quantity": 101.0,
+      "rank": 1,
+      "signal_date": "2026-02-03",
+      "signal_snapshot": {
+        "as_of": "2026-02-03",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:f56aa9c03f415bcfb625abf29f692e508f4c211be9aee785d9bf70d79ff0abae",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 1.99,
+                "level": 95.6469,
+                "source": "EMA200"
+              },
+              {
+                "distance_pct": 1.995,
+                "level": 95.6425,
+                "source": "volume-profile-poc"
+              },
+              {
+                "distance_pct": 2.157,
+                "level": 95.4905,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 3.038,
+                "level": 94.674,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 6.035,
+                "level": 91.9977,
+                "source": "prior-20D-low"
+              },
+              {
+                "distance_pct": 6.035,
+                "level": 91.9977,
+                "source": "confirmed-swing-low"
+              }
+            ],
+            "level": 95.6469,
+            "max_loss_pct": 10,
+            "signal_close": 97.5502,
+            "source": "EMA200",
+            "structural_stop": 90.8646,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 1.9946,
+              "hit": true,
+              "level": 95.642469,
+              "lookback_sessions": 250,
+              "near_price": true,
+              "peak_share": 0.100545,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 51.0417,
+          "timeframe_scores": {
+            "daily": 62.5,
+            "monthly_completed": 43.75,
+            "weekly_completed": 56.25
+          }
+        }
+      },
+      "signal_snapshot_sha256": "e704e3e299082f9008fbcdb5f53ab46e8f16798bf7d2034ec91504a11ba98c91",
+      "status": "closed",
+      "symbol": "PNFP"
+    },
+    {
+      "entry_date": "2026-02-04",
+      "entry_fees": 9.948480000000002,
+      "entry_price": 57.84,
+      "event_id": "CR056-BMRN-2026-02-03",
+      "execution": {
+        "entry": 57.84,
+        "executable": true,
+        "exit_date": "2026-02-23",
+        "exit_price": 65.10714,
+        "exit_reason": "target",
+        "holding_sessions": 13,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 52.056,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "r_multiple": 2.0,
+        "return": 0.12564212,
+        "risk_pct": 0.06282106,
+        "status": "resolved",
+        "stop": 54.20643,
+        "stop_source": "EMA21",
+        "structural_stop": 54.20643,
+        "support_level": 57.0594,
+        "support_source": "EMA21",
+        "target": 65.10714,
+        "target_r": 2.0
+      },
+      "exit_fees": 11.19842808,
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "net_pnl": 1228.8011719199983,
+      "net_return": 0.12351647406638985,
+      "quantity": 172.0,
+      "rank": 2,
+      "signal_date": "2026-02-03",
+      "signal_snapshot": {
+        "as_of": "2026-02-03",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 2,
+          "reasons": [],
+          "score_fingerprint": "sha256:5fb917a0ac84f5cc2ab029342b4d81fbb47e2e9c2265a456e892dbbd0a534683",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 0.965,
+                "level": 57.0594,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 1.926,
+                "level": 56.5212,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 4.215,
+                "level": 55.28,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 6.547,
+                "level": 54.07,
+                "source": "prior-20D-low"
+              }
+            ],
+            "level": 57.0594,
+            "max_loss_pct": 10,
+            "signal_close": 57.61,
+            "source": "EMA21",
+            "structural_stop": 54.2064,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 4.0674,
+              "hit": false,
+              "level": 55.358333,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.089602,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 30.2083,
+          "timeframe_scores": {
+            "daily": 68.75,
+            "monthly_completed": 18.75,
+            "weekly_completed": 28.125
+          }
+        }
+      },
+      "signal_snapshot_sha256": "250e73560e185cac160db4829e961c1e760a7929cc4501304967cd58465d7752",
+      "status": "closed",
+      "symbol": "BMRN"
+    },
+    {
+      "entry_date": "2026-02-05",
+      "entry_fees": 9.297984385938458,
+      "entry_price": 774.8320321615382,
+      "event_id": "CR056-REGN-2026-02-04",
+      "execution": {
+        "entry": 774.832032,
+        "executable": true,
+        "holding_sessions": 16,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 697.348829,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.07386786,
+        "status": "observing",
+        "stop": 717.596845,
+        "stop_source": "EMA21",
+        "structural_stop": 717.596845,
+        "support_level": 755.3651,
+        "support_source": "EMA21",
+        "target": 889.302406,
+        "target_r": 2.0
+      },
+      "exit_fees": 0.0,
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "net_pnl": 47.84442967560333,
+      "net_return": 0.005145677567275709,
+      "quantity": 12.0,
+      "rank": 1,
+      "signal_date": "2026-02-04",
+      "signal_snapshot": {
+        "as_of": "2026-02-04",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:e58e0761169d391c1eddd5b364540c2e63d2747dc022ae43b02f726fcd239918",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 2.212,
+                "level": 755.3651,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 4.53,
+                "level": 738.6154,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 5.953,
+                "level": 728.6906,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 7.89,
+                "level": 715.6112,
+                "source": "prior-20D-low"
+              }
+            ],
+            "level": 755.3651,
+            "max_loss_pct": 10,
+            "signal_close": 772.0727,
+            "source": "EMA21",
+            "structural_stop": 717.5968,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 38.5674,
+              "hit": false,
+              "level": 557.182232,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.104214,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 29.1667,
+          "timeframe_scores": {
+            "daily": 43.75,
+            "monthly_completed": 37.5,
+            "weekly_completed": 9.375
+          }
+        }
+      },
+      "signal_snapshot_sha256": "c936b2caffbd37f55628fc0cf59521e068e3b9712749d51661375489392d4fa8",
+      "status": "open",
+      "symbol": "REGN"
+    },
+    {
+      "entry_date": "2026-02-06",
+      "entry_fees": 9.999,
+      "entry_price": 99.0,
+      "event_id": "CR056-ANF-2026-02-05",
+      "execution": {
+        "entry": 99.0,
+        "executable": true,
+        "exit_date": "2026-02-09",
+        "exit_price": 91.89141,
+        "exit_reason": "stop",
+        "holding_sessions": 2,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 89.1,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "r_multiple": -1.0,
+        "return": -0.07180394,
+        "risk_pct": 0.07180394,
+        "status": "resolved",
+        "stop": 91.89141,
+        "stop_source": "EMA200",
+        "structural_stop": 91.89141,
+        "support_level": 96.7278,
+        "support_source": "EMA200",
+        "target": 113.21718,
+        "target_r": 2.0
+      },
+      "exit_fees": 9.28103241,
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "net_pnl": -737.2476224100002,
+      "net_return": -0.07373213545454547,
+      "quantity": 101.0,
+      "rank": 1,
+      "signal_date": "2026-02-05",
+      "signal_snapshot": {
+        "as_of": "2026-02-05",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:170b381dfff88e9f3715752e5f60f00fd2c558138e1b093c916ca14247d5dbb2",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 2.452,
+                "level": 96.7278,
+                "source": "EMA200"
+              },
+              {
+                "distance_pct": 6.904,
+                "level": 92.7,
+                "source": "prior-20D-low"
+              },
+              {
+                "distance_pct": 6.904,
+                "level": 92.7,
+                "source": "confirmed-swing-low"
+              }
+            ],
+            "level": 96.7278,
+            "max_loss_pct": 10,
+            "signal_close": 99.1,
+            "source": "EMA200",
+            "structural_stop": 91.8914,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 5.181,
+              "hit": false,
+              "level": 94.218542,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.081104,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 46.3542,
+          "timeframe_scores": {
+            "daily": 25.0,
+            "monthly_completed": 56.25,
+            "weekly_completed": 42.1875
+          }
+        }
+      },
+      "signal_snapshot_sha256": "0a83d84147e510fe3603e77065fcf163ad23ae73663c9ef9cb85e993d069a965",
+      "status": "closed",
+      "symbol": "ANF"
+    },
+    {
+      "entry_date": "2026-02-09",
+      "entry_fees": 9.920867621317436,
+      "entry_price": 97.26340805213174,
+      "event_id": "CR056-SBUX-2026-02-06",
+      "execution": {
+        "entry": 97.263408,
+        "executable": true,
+        "holding_sessions": 14,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 87.537067,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.1,
+        "status": "observing",
+        "stop": 87.537067,
+        "stop_source": "max-loss-10pct-cap",
+        "structural_stop": 87.260445,
+        "support_level": 91.8531,
+        "support_source": "EMA21",
+        "target": 116.71609,
+        "target_r": 2.0
+      },
+      "exit_fees": 0.0,
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "net_pnl": -47.784088938754344,
+      "net_return": -0.004816523187556541,
+      "quantity": 102.0,
+      "rank": 1,
+      "signal_date": "2026-02-06",
+      "signal_snapshot": {
+        "as_of": "2026-02-06",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:9b7bb947d0378a4a4b2fe713f36623a854b278c2c1f784324ff7e80c2ac2e42a",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 6.339,
+                "level": 91.8531,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 9.744,
+                "level": 89.0034,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 10.127,
+                "level": 88.6941,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 16.166,
+                "level": 84.0827,
+                "source": "prior-20D-low"
+              }
+            ],
+            "level": 91.8531,
+            "max_loss_pct": 10,
+            "signal_close": 97.6759,
+            "source": "EMA21",
+            "structural_stop": 87.2604,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 18.6812,
+              "hit": false,
+              "level": 82.301043,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.093935,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 44.7917,
+          "timeframe_scores": {
+            "daily": 50.0,
+            "monthly_completed": 18.75,
+            "weekly_completed": 81.25
+          }
+        }
+      },
+      "signal_snapshot_sha256": "6bb94675fa06742d7082f87c3328c865ed682dbade8c4fc44c84baf2e96ab05f",
+      "status": "open",
+      "symbol": "SBUX"
+    },
+    {
+      "entry_date": "2026-02-12",
+      "entry_fees": 9.9888,
+      "entry_price": 83.24,
+      "event_id": "CR056-COO-2026-02-11",
+      "execution": {
+        "entry": 83.24,
+        "executable": true,
+        "holding_sessions": 11,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 74.916,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.07078838,
+        "status": "observing",
+        "stop": 77.347575,
+        "stop_source": "volume-profile-poc",
+        "structural_stop": 77.347575,
+        "support_level": 81.4185,
+        "support_source": "volume-profile-poc",
+        "target": 95.02485,
+        "target_r": 2.0
+      },
+      "exit_fees": 0.0,
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "net_pnl": 41.611200000000366,
+      "net_return": 0.004165785679961594,
+      "quantity": 120.0,
+      "rank": 1,
+      "signal_date": "2026-02-11",
+      "signal_snapshot": {
+        "as_of": "2026-02-11",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:6f9aea85f489d7bc0fb8c00af541f9996181e231a566a0ba5519be31d30b4747",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 2.004,
+                "level": 81.4185,
+                "source": "volume-profile-poc"
+              },
+              {
+                "distance_pct": 2.01,
+                "level": 81.4134,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 3.5,
+                "level": 80.2417,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 5.407,
+                "level": 78.79,
+                "source": "prior-20D-low"
+              },
+              {
+                "distance_pct": 5.407,
+                "level": 78.79,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 6.127,
+                "level": 78.2556,
+                "source": "EMA200"
+              }
+            ],
+            "level": 81.4185,
+            "max_loss_pct": 10,
+            "signal_close": 83.05,
+            "source": "volume-profile-poc",
+            "structural_stop": 77.3476,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 2.0038,
+              "hit": true,
+              "level": 81.4185,
+              "lookback_sessions": 250,
+              "near_price": true,
+              "peak_share": 0.064166,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 40.625,
+          "timeframe_scores": {
+            "daily": 56.25,
+            "monthly_completed": 43.75,
+            "weekly_completed": 28.125
+          }
+        }
+      },
+      "signal_snapshot_sha256": "25b5c90e9206793c2d0158c4e82325e0732649185ec9bffbdc0c7857b5353554",
+      "status": "open",
+      "symbol": "COO"
+    },
+    {
+      "entry_date": "2026-02-12",
+      "entry_fees": 9.988439999999999,
+      "entry_price": 19.74,
+      "event_id": "CR056-MXL-2026-02-11",
+      "execution": {
+        "entry": 19.74,
+        "executable": true,
+        "exit_date": "2026-02-23",
+        "exit_price": 17.766,
+        "exit_reason": "stop",
+        "holding_sessions": 7,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 17.766,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "r_multiple": -1.0,
+        "return": -0.1,
+        "risk_pct": 0.1,
+        "status": "resolved",
+        "stop": 17.766,
+        "stop_source": "max-loss-10pct-cap",
+        "structural_stop": 17.496245,
+        "support_level": 18.4171,
+        "support_source": "EMA21",
+        "target": 23.688,
+        "target_r": 2.0
+      },
+      "exit_fees": 8.989596,
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "net_pnl": -1017.8220359999991,
+      "net_return": -0.10189999999999992,
+      "quantity": 506.0,
+      "rank": 2,
+      "signal_date": "2026-02-11",
+      "signal_snapshot": {
+        "as_of": "2026-02-11",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 2,
+          "reasons": [],
+          "score_fingerprint": "sha256:33865761de5ac7518d594efc44855e604328c91fdb22642183f4c0c7fc78d182",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 5.337,
+                "level": 18.4171,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 8.089,
+                "level": 17.9482,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 20.422,
+                "level": 16.11,
+                "source": "prior-20D-low"
+              },
+              {
+                "distance_pct": 20.422,
+                "level": 16.11,
+                "source": "confirmed-swing-low"
+              }
+            ],
+            "level": 18.4171,
+            "max_loss_pct": 10,
+            "signal_close": 19.4,
+            "source": "EMA21",
+            "structural_stop": 17.4963,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 21.2554,
+              "hit": false,
+              "level": 15.999292,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.082597,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 36.4583,
+          "timeframe_scores": {
+            "daily": 50.0,
+            "monthly_completed": 37.5,
+            "weekly_completed": 28.125
+          }
+        }
+      },
+      "signal_snapshot_sha256": "0c1de364456ad80cf7243631b769443173586fd21a98e6bec1fa4116b0b5d946",
+      "status": "closed",
+      "symbol": "MXL"
+    },
+    {
+      "entry_date": "2026-02-12",
+      "entry_fees": 9.997160000000001,
+      "entry_price": 34.12,
+      "event_id": "CR056-AR-2026-02-11",
+      "execution": {
+        "entry": 34.12,
+        "executable": true,
+        "holding_sessions": 11,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 30.708,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.04889464,
+        "status": "observing",
+        "stop": 32.451715,
+        "stop_source": "EMA21",
+        "structural_stop": 32.451715,
+        "support_level": 34.1597,
+        "support_source": "EMA21",
+        "target": 37.45657,
+        "target_r": 2.0
+      },
+      "exit_fees": 0.0,
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "net_pnl": 778.1728400000001,
+      "net_return": 0.07783939038686988,
+      "quantity": 293.0,
+      "rank": 3,
+      "signal_date": "2026-02-11",
+      "signal_snapshot": {
+        "as_of": "2026-02-11",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 3,
+          "reasons": [],
+          "score_fingerprint": "sha256:75d379b63903eaf2781f9d72d78dcbc866bbf96ac4d2b43b301530d4ac91fc64",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 2.782,
+                "level": 34.1597,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 2.862,
+                "level": 34.1329,
+                "source": "EMA200"
+              },
+              {
+                "distance_pct": 3.178,
+                "level": 34.0285,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 5.913,
+                "level": 33.15,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 12.713,
+                "level": 31.15,
+                "source": "prior-20D-low"
+              }
+            ],
+            "level": 34.1597,
+            "max_loss_pct": 10,
+            "signal_close": 35.11,
+            "source": "EMA21",
+            "structural_stop": 32.4517,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 8.0945,
+              "hit": false,
+              "level": 32.480833,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.080129,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 22.3958,
+          "timeframe_scores": {
+            "daily": 31.25,
+            "monthly_completed": 18.75,
+            "weekly_completed": 23.4375
+          }
+        }
+      },
+      "signal_snapshot_sha256": "7625c11a05dbd843462f04316ad8b11d4175d26d72f1394275be47c89988e1e1",
+      "status": "open",
+      "symbol": "AR"
+    },
+    {
+      "entry_date": "2026-02-13",
+      "entry_fees": 9.990450000000001,
+      "entry_price": 13.41,
+      "event_id": "CR056-SGML-2026-02-12",
+      "execution": {
+        "entry": 13.41,
+        "executable": true,
+        "exit_date": "2026-02-25",
+        "exit_price": 16.092,
+        "exit_reason": "target",
+        "holding_sessions": 8,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 12.069,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "r_multiple": 2.0,
+        "return": 0.2,
+        "risk_pct": 0.1,
+        "status": "resolved",
+        "stop": 12.069,
+        "stop_source": "max-loss-10pct-cap",
+        "structural_stop": 12.03897,
+        "support_level": 12.6726,
+        "support_source": "EMA21",
+        "target": 16.092,
+        "target_r": 2.0
+      },
+      "exit_fees": 11.988539999999999,
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "net_pnl": 1976.1110099999983,
+      "net_return": 0.1977999999999998,
+      "quantity": 745.0,
+      "rank": 1,
+      "signal_date": "2026-02-12",
+      "signal_snapshot": {
+        "as_of": "2026-02-12",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:786290a3aba105c031304fd5b6507cad658d1f297dea671405143522db86d820",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 4.083,
+                "level": 12.6726,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 8.952,
+                "level": 12.1063,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 14.199,
+                "level": 11.55,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 23.85,
+                "level": 10.65,
+                "source": "prior-20D-low"
+              }
+            ],
+            "level": 12.6726,
+            "max_loss_pct": 10,
+            "signal_close": 13.19,
+            "source": "EMA21",
+            "structural_stop": 12.039,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 120.7224,
+              "hit": false,
+              "level": 5.975833,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.084602,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 26.5625,
+          "timeframe_scores": {
+            "daily": 37.5,
+            "monthly_completed": 37.5,
+            "weekly_completed": 4.6875
+          }
+        }
+      },
+      "signal_snapshot_sha256": "b398ded260d2b638f60a262bbfdef65541fab85173a128032aee0188d8e91c3a",
+      "status": "closed",
+      "symbol": "SGML"
+    },
+    {
+      "entry_date": "2026-02-19",
+      "entry_fees": 9.8595,
+      "entry_price": 156.5,
+      "event_id": "CR056-WEX-2026-02-18",
+      "execution": {
+        "entry": 156.5,
+        "executable": true,
+        "exit_date": "2026-02-25",
+        "exit_price": 148.79451,
+        "exit_reason": "stop",
+        "holding_sessions": 5,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 140.85,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "r_multiple": -1.0,
+        "return": -0.04923636,
+        "risk_pct": 0.04923636,
+        "status": "resolved",
+        "stop": 148.79451,
+        "stop_source": "EMA21",
+        "structural_stop": 148.79451,
+        "support_level": 156.6258,
+        "support_source": "EMA21",
+        "target": 171.91098,
+        "target_r": 2.0
+      },
+      "exit_fees": 9.374054130000001,
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "net_pnl": -504.6794241299996,
+      "net_return": -0.05118712146964852,
+      "quantity": 63.0,
+      "rank": 1,
+      "signal_date": "2026-02-18",
+      "signal_snapshot": {
+        "as_of": "2026-02-18",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:42f54d80e6f539da52c765fe66e406da962f615ede7238ec1b83627f61aadf9f",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 1.509,
+                "level": 156.6258,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 1.6,
+                "level": 156.487,
+                "source": "EMA200"
+              },
+              {
+                "distance_pct": 2.158,
+                "level": 155.6315,
+                "source": "volume-profile-poc"
+              },
+              {
+                "distance_pct": 2.419,
+                "level": 155.2351,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 5.291,
+                "level": 151.0,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 12.095,
+                "level": 141.835,
+                "source": "prior-20D-low"
+              }
+            ],
+            "level": 156.6258,
+            "max_loss_pct": 10,
+            "signal_close": 158.99,
+            "source": "EMA21",
+            "structural_stop": 148.7945,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 2.158,
+              "hit": true,
+              "level": 155.631458,
+              "lookback_sessions": 250,
+              "near_price": true,
+              "peak_share": 0.090237,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 41.6667,
+          "timeframe_scores": {
+            "daily": 62.5,
+            "monthly_completed": 37.5,
+            "weekly_completed": 37.5
+          }
+        }
+      },
+      "signal_snapshot_sha256": "772f0827ef0381f9a27e006a351d5474410f53ca95ee23d307eccfbf09be7259",
+      "status": "closed",
+      "symbol": "WEX"
+    },
+    {
+      "entry_date": "2026-02-19",
+      "entry_fees": 9.956799203946236,
+      "entry_price": 343.33790358435294,
+      "event_id": "CR056-ELV-2026-02-18",
+      "execution": {
+        "entry": 343.337904,
+        "executable": true,
+        "exit_date": "2026-02-24",
+        "exit_price": 325.4776,
+        "exit_reason": "stop",
+        "holding_sessions": 4,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 309.004113,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "r_multiple": -1.0,
+        "return": -0.05201961,
+        "risk_pct": 0.05201961,
+        "status": "resolved",
+        "stop": 325.4776,
+        "stop_source": "EMA50",
+        "structural_stop": 325.4776,
+        "support_level": 342.608,
+        "support_source": "EMA50",
+        "target": 379.058511,
+        "target_r": 2.0
+      },
+      "exit_fees": 9.4388504,
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "net_pnl": -537.344453550182,
+      "net_return": -0.05396758963836624,
+      "quantity": 29.0,
+      "rank": 2,
+      "signal_date": "2026-02-18",
+      "signal_snapshot": {
+        "as_of": "2026-02-18",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 2,
+          "reasons": [],
+          "score_fingerprint": "sha256:e4995f819fb8b35a35b313f92ce992465d9be3e44beadacee6e48ad59c401b60",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 0.034,
+                "level": 342.608,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 0.52,
+                "level": 340.9519,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 7.096,
+                "level": 320.0171,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 9.757,
+                "level": 312.2567,
+                "source": "prior-20D-low"
+              }
+            ],
+            "level": 342.608,
+            "max_loss_pct": 10,
+            "signal_close": 342.7242,
+            "source": "EMA50",
+            "structural_stop": 325.4776,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": -6.8158,
+              "hit": false,
+              "level": 367.792223,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.067474,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 33.8542,
+          "timeframe_scores": {
+            "daily": 62.5,
+            "monthly_completed": 18.75,
+            "weekly_completed": 42.1875
+          }
+        }
+      },
+      "signal_snapshot_sha256": "319067c7141e78b2c1514686c9eca86576cdc083b749450a061ee367e8f91a1c",
+      "status": "closed",
+      "symbol": "ELV"
+    },
+    {
+      "entry_date": "2026-02-19",
+      "entry_price": 37.23,
+      "event_id": "CR056-VCEL-2026-02-18",
+      "execution": {
+        "entry": 37.23,
+        "executable": true,
+        "holding_sessions": 7,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 33.507,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.06070951,
+        "status": "observing",
+        "stop": 34.969785,
+        "stop_source": "EMA50",
+        "structural_stop": 34.969785,
+        "support_level": 36.8103,
+        "support_source": "EMA50",
+        "target": 41.75043,
+        "target_r": 2.0
+      },
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "rank": 3,
+      "reason": "position_limit",
+      "signal_date": "2026-02-18",
+      "signal_snapshot": {
+        "as_of": "2026-02-18",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 3,
+          "reasons": [],
+          "score_fingerprint": "sha256:e2e330d18baf716e4c27215d6bb058628ed779031e1da79ebcd0e90facb4c20b",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 1.629,
+                "level": 36.8103,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 2.74,
+                "level": 36.4123,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 11.406,
+                "level": 33.58,
+                "source": "prior-20D-low"
+              },
+              {
+                "distance_pct": 11.406,
+                "level": 33.58,
+                "source": "confirmed-swing-low"
+              }
+            ],
+            "level": 36.8103,
+            "max_loss_pct": 10,
+            "signal_close": 37.41,
+            "source": "EMA50",
+            "structural_stop": 34.9698,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 3.0292,
+              "hit": false,
+              "level": 36.310083,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.141839,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 30.7292,
+          "timeframe_scores": {
+            "daily": 53.125,
+            "monthly_completed": 25.0,
+            "weekly_completed": 28.125
+          }
+        }
+      },
+      "signal_snapshot_sha256": "1fca9e300a5dbe6f65bd92412d1602992e3e9234f36aca3f953c41675f57dbcc",
+      "status": "skipped",
+      "symbol": "VCEL"
+    },
+    {
+      "entry_date": "2026-02-20",
+      "entry_price": 16.549806238964095,
+      "event_id": "CR056-DOC-2026-02-19",
+      "execution": {
+        "entry": 16.549806,
+        "executable": true,
+        "holding_sessions": 6,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 14.894826,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.05962101,
+        "status": "observing",
+        "stop": 15.56309,
+        "stop_source": "EMA50",
+        "structural_stop": 15.56309,
+        "support_level": 16.3822,
+        "support_source": "EMA50",
+        "target": 18.523239,
+        "target_r": 2.0
+      },
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "rank": 1,
+      "reason": "position_limit",
+      "signal_date": "2026-02-19",
+      "signal_snapshot": {
+        "as_of": "2026-02-19",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:3e2b0dad31ec9198f266427691ed3cbcbf6757a3eee8efcd710a75fd77cd1598",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 0.905,
+                "level": 16.3822,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 0.942,
+                "level": 16.3762,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 6.039,
+                "level": 15.5891,
+                "source": "prior-20D-low"
+              },
+              {
+                "distance_pct": 6.039,
+                "level": 15.5891,
+                "source": "confirmed-swing-low"
+              }
+            ],
+            "level": 16.3822,
+            "max_loss_pct": 10,
+            "signal_close": 16.5305,
+            "source": "EMA50",
+            "structural_stop": 15.5631,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 4.2056,
+              "hit": false,
+              "level": 15.863353,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.073801,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 44.7917,
+          "timeframe_scores": {
+            "daily": 62.5,
+            "monthly_completed": 56.25,
+            "weekly_completed": 18.75
+          }
+        }
+      },
+      "signal_snapshot_sha256": "ef3ab58e0a07e02ed88cca599830376273fe153e9bdf959504d13bbb6c3fcfc4",
+      "status": "skipped",
+      "symbol": "DOC"
+    },
+    {
+      "entry_date": "2026-02-20",
+      "entry_price": 49.16,
+      "event_id": "CR056-MRNA-2026-02-19",
+      "execution": {
+        "entry": 49.16,
+        "executable": true,
+        "holding_sessions": 6,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 44.244,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.1,
+        "status": "observing",
+        "stop": 44.244,
+        "stop_source": "max-loss-10pct-cap",
+        "structural_stop": 34.82225,
+        "support_level": 36.655,
+        "support_source": "prior-20D-low",
+        "target": 58.992,
+        "target_r": 2.0
+      },
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "rank": 2,
+      "reason": "position_limit",
+      "signal_date": "2026-02-19",
+      "signal_snapshot": {
+        "as_of": "2026-02-19",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 2,
+          "reasons": [],
+          "score_fingerprint": "sha256:87b234b50924403d0ad5791278b32c86a3f2c42333f067d45e6cbf9ab6a7a98d",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 35.589,
+                "level": 36.655,
+                "source": "prior-20D-low"
+              },
+              {
+                "distance_pct": 35.589,
+                "level": 36.655,
+                "source": "confirmed-swing-low"
+              }
+            ],
+            "level": 36.655,
+            "max_loss_pct": 10,
+            "signal_close": 49.7,
+            "source": "prior-20D-low",
+            "structural_stop": 34.8222,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 82.6638,
+              "hit": false,
+              "level": 27.208458,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.114234,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 33.3333,
+          "timeframe_scores": {
+            "daily": 12.5,
+            "monthly_completed": 56.25,
+            "weekly_completed": 9.375
+          }
+        }
+      },
+      "signal_snapshot_sha256": "c86c6127ccbfd9776027c10d74bfe777a7814dfec7e8e8f3a7a2170075a58a20",
+      "status": "skipped",
+      "symbol": "MRNA"
+    },
+    {
+      "entry_date": "2026-02-20",
+      "entry_price": 43.33,
+      "event_id": "CR056-CNC-2026-02-19",
+      "execution": {
+        "entry": 43.33,
+        "executable": true,
+        "holding_sessions": 6,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 38.997,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.06403623,
+        "status": "observing",
+        "stop": 40.55531,
+        "stop_source": "EMA200",
+        "structural_stop": 40.55531,
+        "support_level": 42.6898,
+        "support_source": "EMA200",
+        "target": 48.87938,
+        "target_r": 2.0
+      },
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "rank": 3,
+      "reason": "position_limit",
+      "signal_date": "2026-02-19",
+      "signal_snapshot": {
+        "as_of": "2026-02-19",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 3,
+          "reasons": [],
+          "score_fingerprint": "sha256:df37c77b49e7160edaf4503667d4f3636b9e5b3d7f1dc5e53c39055e0f81aaa8",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 2.319,
+                "level": 42.6898,
+                "source": "EMA200"
+              },
+              {
+                "distance_pct": 4.387,
+                "level": 41.8441,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 5.339,
+                "level": 41.4661,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 12.432,
+                "level": 38.85,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 21.131,
+                "level": 36.06,
+                "source": "prior-20D-low"
+              }
+            ],
+            "level": 42.6898,
+            "max_loss_pct": 10,
+            "signal_close": 43.68,
+            "source": "EMA200",
+            "structural_stop": 40.5553,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 23.5085,
+              "hit": false,
+              "level": 35.366,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.088986,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 21.875,
+          "timeframe_scores": {
+            "daily": 37.5,
+            "monthly_completed": 18.75,
+            "weekly_completed": 18.75
+          }
+        }
+      },
+      "signal_snapshot_sha256": "417b7f585d8ba4963282b42432007bc2d6be55f308ac53f6caa0343630f51beb",
+      "status": "skipped",
+      "symbol": "CNC"
+    },
+    {
+      "entry_date": "2026-02-23",
+      "entry_price": 119.12,
+      "event_id": "CR056-GKOS-2026-02-20",
+      "execution": {
+        "entry": 119.12,
+        "executable": true,
+        "holding_sessions": 5,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 107.208,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.08336245,
+        "status": "observing",
+        "stop": 109.189865,
+        "stop_source": "EMA21",
+        "structural_stop": 109.189865,
+        "support_level": 114.9367,
+        "support_source": "EMA21",
+        "target": 138.98027,
+        "target_r": 2.0
+      },
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "rank": 1,
+      "reason": "position_limit",
+      "signal_date": "2026-02-20",
+      "signal_snapshot": {
+        "as_of": "2026-02-20",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:138d81711e37107c8b80a62b1abc8ace07b8ba9ab456198b681253f48544598c",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 4.64,
+                "level": 114.9367,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 7.139,
+                "level": 112.2565,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 16.147,
+                "level": 103.55,
+                "source": "prior-20D-low"
+              },
+              {
+                "distance_pct": 16.147,
+                "level": 103.55,
+                "source": "confirmed-swing-low"
+              }
+            ],
+            "level": 114.9367,
+            "max_loss_pct": 10,
+            "signal_close": 120.27,
+            "source": "EMA21",
+            "structural_stop": 109.1899,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 33.8683,
+              "hit": false,
+              "level": 89.842,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.066488,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 31.25,
+          "timeframe_scores": {
+            "daily": 43.75,
+            "monthly_completed": 31.25,
+            "weekly_completed": 25.0
+          }
+        }
+      },
+      "signal_snapshot_sha256": "72e0a0b3b37927e13fcefbb624388d374ae338d8bb4eb3c21bf99e7444b165e0",
+      "status": "skipped",
+      "symbol": "GKOS"
+    },
+    {
+      "entry_date": "2026-02-24",
+      "entry_fees": 9.99515,
+      "entry_price": 9.35,
+      "event_id": "CR056-NVAX-2026-02-23",
+      "execution": {
+        "entry": 9.35,
+        "executable": true,
+        "exit_date": "2026-02-26",
+        "exit_price": 11.22,
+        "exit_reason": "target",
+        "holding_sessions": 3,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 8.415,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "r_multiple": 2.0,
+        "return": 0.2,
+        "risk_pct": 0.1,
+        "status": "resolved",
+        "stop": 8.415,
+        "stop_source": "max-loss-10pct-cap",
+        "structural_stop": 8.295495,
+        "support_level": 8.7321,
+        "support_source": "EMA21",
+        "target": 11.22,
+        "target_r": 2.0
+      },
+      "exit_fees": 11.99418,
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "net_pnl": 1977.0406700000008,
+      "net_return": 0.1978000000000001,
+      "quantity": 1069.0,
+      "rank": 1,
+      "signal_date": "2026-02-23",
+      "signal_snapshot": {
+        "as_of": "2026-02-23",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:4223f91e78ffb746e2d3f2eb7dd8232a4c707b4159f4e9d6abf09656706e4c30",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 7.19,
+                "level": 8.7321,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 13.455,
+                "level": 8.25,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 19.388,
+                "level": 7.84,
+                "source": "prior-20D-low"
+              }
+            ],
+            "level": 8.7321,
+            "max_loss_pct": 10,
+            "signal_close": 9.36,
+            "source": "EMA21",
+            "structural_stop": 8.2955,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 19.1832,
+              "hit": false,
+              "level": 7.853458,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.084313,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 33.0729,
+          "timeframe_scores": {
+            "daily": 45.3125,
+            "monthly_completed": 25.0,
+            "weekly_completed": 39.0625
+          }
+        }
+      },
+      "signal_snapshot_sha256": "aa58afa891e8e279b39e7c112651398a504d76029619e37bd7a2ce809bc691be",
+      "status": "closed",
+      "symbol": "NVAX"
+    },
+    {
+      "entry_date": "2026-02-26",
+      "entry_fees": 9.99,
+      "entry_price": 22.2,
+      "event_id": "CR056-DNLI-2026-02-25",
+      "execution": {
+        "entry": 22.2,
+        "executable": true,
+        "holding_sessions": 2,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 19.98,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.1,
+        "status": "observing",
+        "stop": 19.98,
+        "stop_source": "max-loss-10pct-cap",
+        "structural_stop": 19.25992,
+        "support_level": 20.2736,
+        "support_source": "EMA21",
+        "target": 26.64,
+        "target_r": 2.0
+      },
+      "exit_fees": 0.0,
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "net_pnl": -468.99,
+      "net_return": -0.04694594594594595,
+      "quantity": 450.0,
+      "rank": 1,
+      "signal_date": "2026-02-25",
+      "signal_snapshot": {
+        "as_of": "2026-02-25",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:8fdaf1d8e8a9b94881c09798318bb4f68ba330f7c2dc333681c100140a478ccb",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 9.946,
+                "level": 20.2736,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 19.774,
+                "level": 18.61,
+                "source": "prior-20D-low"
+              },
+              {
+                "distance_pct": 19.774,
+                "level": 18.61,
+                "source": "confirmed-swing-low"
+              }
+            ],
+            "level": 20.2736,
+            "max_loss_pct": 10,
+            "signal_close": 22.29,
+            "source": "EMA21",
+            "structural_stop": 19.2599,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 56.7589,
+              "hit": false,
+              "level": 14.219292,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.089835,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 35.4167,
+          "timeframe_scores": {
+            "daily": 25.0,
+            "monthly_completed": 43.75,
+            "weekly_completed": 28.125
+          }
+        }
+      },
+      "signal_snapshot_sha256": "f6c31b196405588006987ab9f2c637688084fc00cc5058867852f8b7d8afaff2",
+      "status": "open",
+      "symbol": "DNLI"
+    }
+  ]
+}

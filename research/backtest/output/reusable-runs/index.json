@@ -1,6 +1,28 @@
 {
   "runs": [
     {
+      "code_commit": "8532d13a8bf7bcb0fc9a6b7bd60b3ccacce0c160",
+      "content_sha256": "55162377b4187a23cbe4b8a69aa694d88c38e7a5dd074a86ca49e1b14271b499",
+      "id": "34240123213-1",
+      "overview_sha256": "8f1809e20d0ecab7bea740e5372612b19154a5227311034681843979f53cf81f",
+      "receipt_sha256": "8a4a785bfdea88eab975d0ad9d9ab74bf0f2abf0fe544685740691c75236b49f",
+      "request": {
+        "end": "2026-02-27",
+        "start": "2026-02-02",
+        "strategy": "cr056-2.0-new-nominations-legacy-exit-v1"
+      },
+      "status": "completed",
+      "summary": {
+        "daily_sessions": 19,
+        "ending_equity": 101991.62861955992,
+        "initial_cash": 100000,
+        "max_drawdown": -0.030919092036349016,
+        "quantstats_version": "0.0.81",
+        "total_return": 0.019916286195599486,
+        "win_rate": 0.375
+      }
+    },
+    {
       "code_commit": "fd0ee1f182ef2458b8981b7e3795fbca0ff9f7c0",
       "content_sha256": "f339bd4dc0914472c3c7b996c722ad93cf55959624ba296c9cfdad881fb5d395",
       "id": "34238310171-1",
