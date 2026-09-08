@@ -22,7 +22,7 @@ export function checkedIndex(data:unknown):Run[]{
 }
 
 async function fetchText(path:string,signal:AbortSignal){
- const response=await fetch(RESULTS_ROOT+path,{cache:"no-store",signal,credentials:"omit"});
+ const response=await fetch(RESULTS_ROOT+path+(path==="index.json"?"?refresh="+Date.now():""),{cache:"no-store",signal,credentials:"omit"});
  if(!response.ok) throw Error(`读取结果失败（${response.status}），请稍后刷新。`);
  return response.text();
 }
@@ -78,6 +78,7 @@ function TradeAudit({receipt}:{receipt:Receipt}){
 export default function ResearchRuns(){
  const [runs,setRuns]=useState<Run[]>([]),[selected,setSelected]=useState(""),[html,setHtml]=useState(""),[receipt,setReceipt]=useState<Receipt|null>(null),[error,setError]=useState(""),[loading,setLoading]=useState(true),[refresh,setRefresh]=useState(0);
  const [enabled,setEnabled]=useState(false),[configLoaded,setConfigLoaded]=useState(false);
+ useEffect(()=>{const timer=setInterval(()=>setRefresh(v=>v+1),60000);return()=>clearInterval(timer)},[]);
  useEffect(()=>{
   const controller=new AbortController();
   fetch(CONFIG_URL,{cache:"no-store",signal:controller.signal,credentials:"omit"}).then(r=>r.ok?r.json():null).then(c=>{if(!controller.signal.aborted){setEnabled(c?.approved===true&&typeof c?.approval_ref==="string"&&c.approval_ref.length>0);setConfigLoaded(true)}}).catch(()=>{if(!controller.signal.aborted){setEnabled(false);setConfigLoaded(true)}});
@@ -112,7 +113,7 @@ export default function ResearchRuns(){
  },[selected,runs]);
  const choose=(id:string)=>{if(id===selected){document.getElementById("quantstats-report")?.scrollIntoView({behavior:"smooth"});return;}setHtml("");setReceipt(null);setError("");setSelected(id)};
  return <div className="tradeComparison">
-  <header className="svPanel"><small>VectorBT＋QuantStats · 版本化研究场景</small><h2>自动回测与历史结果</h2><p>旧策略：支撑下5%／入场亏损上限10%，2R目标，最长40个交易日。逐日回放当时保存的信号，不用今天的榜单倒填过去。</p><p>记录从2025-12-29开始。首轮建议：2025-12-29至2026-01-30、2026-02-02至2026-02-27；其他区间须每日旧策略记录与行情完整。新版选股选择 cr056-2.0-new-nominations-legacy-exit-v1：重用缓存行情与MACD门票，重新计算CR056评分，窗口开始观察池为空；退出仍使用上述旧基线。新版结果以实际完成记录为准。</p><p>{enabled?"在 GitHub 登录后的表单选择 research 模式、策略和必填起止日期，然后提交。运行结束后回到这里刷新查看结果。":configLoaded?"研究配置暂不可用，提交入口暂时关闭；已有报告仍可查看。":"正在读取已批准的研究配置…"}</p><p>{enabled?<a href={WORKFLOW_URL} target="_blank" rel="noreferrer">提交回测／查看运行进度 ↗</a>:<button disabled>{configLoaded?"研究配置暂不可用":"正在读取研究配置"}</button>} · <button onClick={()=>{setLoading(true);setRefresh(v=>v+1)}}>刷新已保存结果</button></p><p>永久结果直接从仓库读取，无需每次重新部署；公开内容可能有几分钟缓存延迟。来源缺失和失败也保留，不作为零收益。研究假设不代表生产策略已获批准。</p></header>
+  <header className="svPanel"><small>VectorBT＋QuantStats · 版本化研究场景</small><h2>自动回测与历史结果</h2><p>旧策略：支撑下5%／入场亏损上限10%，2R目标，最长40个交易日。逐日回放当时保存的信号，不用今天的榜单倒填过去。</p><p>记录从2025-12-29开始。首轮建议：2025-12-29至2026-01-30、2026-02-02至2026-02-27；其他区间须每日旧策略记录与行情完整。新版选股选择 cr056-2.0-new-nominations-legacy-exit-v1：重用缓存行情与MACD门票，重新计算CR056评分，窗口开始观察池为空；退出仍使用上述旧基线。新版结果以实际完成记录为准。</p><p>{enabled?"在 GitHub 登录后的表单选择 research 模式、策略和必填起止日期，然后提交。启动后可关闭网页；本页每分钟自动检查已保存结果。":configLoaded?"研究配置暂不可用，提交入口暂时关闭；已有报告仍可查看。":"正在读取已批准的研究配置…"}</p><p>{enabled?<a href={WORKFLOW_URL} target="_blank" rel="noreferrer">提交回测／查看运行进度 ↗</a>:<button disabled>{configLoaded?"研究配置暂不可用":"正在读取研究配置"}</button>} · <button onClick={()=>{setLoading(true);setRefresh(v=>v+1)}}>刷新已保存结果</button></p><p>永久结果直接从仓库读取，无需每次重新部署；公开内容可能有几分钟缓存延迟。来源缺失和失败也保留，不作为零收益。研究假设不代表生产策略已获批准。</p></header>
   {loading&&<p role="status">正在读取历史运行…</p>}{error&&<p role="alert">{error}</p>}
   <ResearchRunList runs={runs} onSelect={choose} selected={selected}/>
   {selected&&!receipt&&!error&&<p role="status">正在加载所选回测报告…</p>}
