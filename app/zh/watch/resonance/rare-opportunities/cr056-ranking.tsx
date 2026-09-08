@@ -18,6 +18,7 @@ const pct=(v:number|null)=>v===null?"—":`${(100*v).toFixed(1)}%`;
 type FactorDetail={factor_id:string;available:boolean;hit:boolean;recent_hit:boolean;bars_since_hit:number|null;latest_hit_date:string|null;runtime_status:string;score_role:string;completed_through:string;period_bar_count:number;minimum_bars:number;evidence?:{ratio?:number;histogram?:number;previous_histogram?:number}};
 type DetailBundle={source_snapshot:string;reviews:Record<string,{groups:Group[];factors:FactorDetail[]}>};
 function PeriodFactors({data,symbol}:{data:CandidateData;symbol:string}){
+ const [showAll,setShowAll]=useState(false);
  const [bundle,setBundle]=useState<DetailBundle|null>(null);const [failed,setFailed]=useState(false);
  useEffect(()=>{let active=true;
   if(data.detail_path!=="/cr056-factor-details.json.gz")return;
@@ -35,12 +36,12 @@ function PeriodFactors({data,symbol}:{data:CandidateData;symbol:string}){
  if(!bundle)return <p role="status">正在读取月、周、日因子明细…</p>;
  const detail=bundle.reviews[symbol];if(!detail)return <p>该股票尚未通过门票或数据检查，本次没有深度检测结果。</p>;
  const strengths=Object.assign({},...detail.groups.map(g=>g.strengths));
- return <div className="v2Ledger periodFactorLedger">{Object.entries(frameNames).map(([tf,name])=>{
+ return <div className="v2Ledger periodFactorLedger"><label className="factorVisibility"><input type="checkbox" checked={showAll} onChange={e=>setShowAll(e.target.checked)}/> 显示全部检查（含未命中与缺数据）</label>{Object.entries(frameNames).map(([tf,name])=>{
   const factors=detail.factors.filter(f=>data.factor_catalog[f.factor_id]?.timeframe===tf);
-  return <details key={tf} open={tf==="monthly_completed"}><summary>{name} · {factors.length}项检查 · {factors.filter(f=>f.available&&f.hit).length}项当前命中</summary>
+  return <details key={tf} open><summary>{name} · {factors.length}项检查 · {factors.filter(f=>f.available&&f.hit).length}项当前命中</summary>
    <p className="periodFactorNote">截至 {factors[0]?.completed_through??"—"}；窗口按{name}K线根数计算。近期命中保留发生日期。</p>
    {detail.groups.filter(g=>g.timeframe===tf&&g.contribution>0).map(g=><p className="periodFactorNote" key={g.group}>证据组：{Object.keys(g.strengths).map(id=>data.factor_catalog[id]?.name.replace(/(\d+)日/g,"$1根")).join("／")} · 原始贡献 {g.contribution.toFixed(2)}</p>)}
-   {factors.map(f=>{const meta=data.factor_catalog[f.factor_id];
+   {factors.filter(f=>showAll||f.hit||f.recent_hit||!f.available).map(f=>{const meta=data.factor_catalog[f.factor_id];
     const state=!f.available?(f.runtime_status==="definition_required"?"未实现，不计分":`数据不足：需${f.minimum_bars}根，现有${f.period_bar_count}根`):
      f.score_role==="risk"?(f.hit?"风险命中，单独参考":"未命中风险"):
      f.score_role==="ticket"||f.score_role==="qualification"?(f.hit?"条件满足，不重复加分":"条件未满足，不计分"):
@@ -52,38 +53,33 @@ function PeriodFactors({data,symbol}:{data:CandidateData;symbol:string}){
 }
 
 export function CandidateView({data,latestDate,initialQuery=""}:{data:CandidateData;latestDate?:string;initialQuery?:string}){
- const [mode,setMode]=useState("all");const [query,setQuery]=useState(initialQuery);const [symbol,setSymbol]=useState(initialQuery);
+ const [mode,setMode]=useState("continuing");const [query,setQuery]=useState(initialQuery);const [symbol,setSymbol]=useState(initialQuery);
  const bySymbol=new Map(data.reviews.map(r=>[r.symbol,r]));
  const listed=(mode==="new"?data.new_nomination_symbols:mode==="continuing"?data.continuing_ranked_symbols:data.ranked_symbols).map(s=>bySymbol.get(s)!).filter(Boolean);
- const filtered=(mode==="excluded"?data.reviews.filter(r=>!r.rank):query&&mode==="all"?data.reviews:listed).filter(r=>initialQuery&&query===initialQuery?r.symbol.toUpperCase()===initialQuery.toUpperCase():r.symbol.toLowerCase().includes(query.toLowerCase()));
+ const filtered=(query?data.reviews:listed).filter(r=>initialQuery&&query===initialQuery?r.symbol.toUpperCase()===initialQuery.toUpperCase():r.symbol.toLowerCase().includes(query.toLowerCase()));
  const visible=filtered.slice(0,50);const selected=visible.find(r=>r.symbol===symbol)??visible[0];
  const periods=listed.find(r=>r.periods)?.periods??data.reviews.find(r=>r.periods)?.periods;
  const alerts=data.reviews.filter(r=>r.high_score_eligible).length;
  const stale=Boolean(latestDate&&latestDate>data.as_of);
  return <>
-  <section className="rareFirstView">
-   <article className="tone-blue"><small>新模型行情截止</small><b>{data.as_of}</b><p>完整月线 {periods?.monthly??"—"}<br/>完整周线 {periods?.weekly??"—"}</p></article>
-   <article className="tone-amber"><small>当日新提名</small><b>{data.new_nomination_symbols.length}只</b><p>当日首次金叉、方向许可与计分覆盖均合格</p></article>
-   <article className="tone-violet"><small>持续观察合格榜</small><b>{data.continuing_ranked_symbols.length}只</b><p>原提名冻结，复评无需再次金叉</p></article>
-   <article className="tone-rose"><small>达到60分警报线</small><b>{alerts}只</b><p>还需完整覆盖与至少两个证据家族</p></article>
-  </section>
+  <div className="candidateHeading"><div><small>月定方向 · 周确认 · 日择时</small><h2>候选榜</h2><p>{data.as_of} 收盘 · 达到60分警报线 {alerts}只</p></div><a href="/zh/backtest">回测与收益报告 →</a></div>
   <div className="replayCoverage" role="status"><mark>{stale?`更新落后：已有 ${latestDate} 行情，本榜仍为 ${data.as_of}`:"已核验快照"}</mark><span>{data.automatic_updates_connected?"随现有日终流程自动复评":"新榜自动日更尚未接通"}</span>{data.refresh_status?.status==="failed"&&<mark>{data.refresh_status.target_as_of} 自动复评未完成，保留 {data.as_of} 榜单</mark>}<span>行情可用 {data.input_coverage.repaired_count}只／来源排除 {data.input_coverage.excluded_count}只</span></div>
-  <p>候选策略仅供人工复核，尚未验证收益。月→周→日先判断许可，再按各周期固定满分归一、3∶2∶1加权。失格退出当前排名，原提名继续保留。股票身份来自旧缓存观察池，覆盖不等于完整市场。</p>
-  <section className="researchReplay">
-   <header><div><small>月定方向 · 周确认 · 日择时</small><h2>多因子候选排行榜</h2><p>{data.detail_path?"同一套适用因子分别检测月、周、日；点击股票查看命中、缺数据和未实现项。":"点击股票核对当前版本分项。"}“优先复核”不表示达到警报线。</p></div></header>
-   <div className="archiveLoadBar"><label>查看 <select aria-label="候选范围" value={mode} onChange={e=>{setMode(e.target.value);setQuery("")}}><option value="all">全部合格榜</option><option value="new">当日新提名</option><option value="continuing">持续观察</option><option value="excluded">未入榜及数据不足</option></select></label><label>股票代码 <input aria-label="查找股票" value={query} onChange={e=>setQuery(e.target.value.trim())} placeholder="例如 DHR、SAIA"/></label></div>
+  <section className="researchReplay candidateWorkspace">
+   <div className="candidateToolbar"><div className="candidateTabs" role="group" aria-label="候选范围">{[["new","新提名",data.new_nomination_symbols.length],["continuing","持续观察",data.continuing_ranked_symbols.length]].map(([id,label,count])=><button key={id} type="button" aria-pressed={mode===id} onClick={()=>{setMode(String(id));setQuery("")}}>{label} <b>{count}只</b></button>)}</div><label>查找股票 <input aria-label="查找股票" value={query} onChange={e=>setQuery(e.target.value.trim())} placeholder="代码，含未入榜原因"/></label></div>
+   <p className="candidateHint">{query?"搜索包含未入榜股票；诊断结果不代表获准入榜。":mode==="new"?"当日新提名：日线金叉后，通过方向与评分检查。":"持续观察：保留原提名，每天重新评分，无需再次金叉。"}</p>
    {visible.length?<div className="replayTable"><div className="v2RankRow replayHead"><span>股票／排名</span><span>总分</span><span>月／周／日</span><span>覆盖</span><span>当前状态</span><span>入选或排除原因</span></div>{visible.map(r=><button type="button" className={`v2RankRow ${selected?.symbol===r.symbol?"isSelected":""}`} key={r.symbol} onClick={()=>setSymbol(r.symbol)}><b>{r.rank?`#${r.rank} · `:""}{r.symbol}{data.selected_symbols.includes(r.symbol)&&<mark>优先复核</mark>}<small>{r.price===null?"价格不可用":`$${r.price}`}</small></b><strong>{r.total?.toFixed(2)??"—"}</strong><span>{r.frames?(["monthly_completed","weekly_completed","daily"].map(tf=>(r.frames![tf]*100).toFixed(1)).join(" / ")):"—"}</span><span>{pct(r.coverage)}</span><span>{statusName(r)}<small>{r.new_nomination?"当日新提名":r.origin_date?`原提名 ${r.origin_date}`:"尚无提名"}</small></span><span>{r.reason_codes.length?r.reason_codes.map(explain).join("；"):r.rank?"月周方向、回调与背景许可通过":"请核对计分覆盖与当前状态"}</span></button>)}</div>:<div className="rareEmpty"><b>{mode==="new"&&!query?"当日没有合格新提名":"没有匹配股票"}</b><p>{mode==="new"&&!query?"计算已完成；可切换持续观察查看旧提名的最新复评。":"可切换范围或修改股票代码。"}</p></div>}
    {filtered.length>50&&<p>共 {filtered.length}只，当前显示前50只；输入股票代码可缩小范围。</p>}
-   {selected&&<article className="v2Audit"><header><div><small>{data.as_of} · {statusName(selected)}</small><h3>{selected.symbol} · 分项与原因</h3><p>月线截止 {selected.periods?.monthly??"不可用"} · 周线截止 {selected.periods?.weekly??"不可用"}</p></div><strong>{selected.total?.toFixed(2)??"未入榜"}<small>{selected.total===null?"分项仅供诊断":"人工复核优先级"}</small></strong></header>
-    <IndustryContext symbol={selected.symbol} asOf={data.as_of}/>
-    {selected.frames&&<div className="v2Equation">{Object.entries(frameNames).map(([tf,name])=><span key={tf}>{name}<b>{(selected.frames![tf]*100).toFixed(1)}</b></span>)}</div>}
+   {selected&&<article className="v2Audit candidateDetail"><header><div><small>{data.as_of} · {statusName(selected)}</small><h3>{selected.symbol} · 分项与原因</h3><p>月线截止 {selected.periods?.monthly??"不可用"} · 周线截止 {selected.periods?.weekly??"不可用"}</p></div><strong>{selected.total?.toFixed(2)??"未入榜"}<small>{selected.total===null?"分项仅供诊断":"人工复核优先级"}</small></strong></header>
+
+    {selected.frames&&<div className="v2Equation candidateScores">{Object.entries(frameNames).map(([tf,name])=><span key={tf}>{name}<b>{(selected.frames![tf]*100).toFixed(1)}</b><small>权重 {tf==="monthly_completed"?"3":tf==="weekly_completed"?"2":"1"}</small></span>)}</div>}
     <p>{selected.reason_codes.length?selected.reason_codes.map(explain).join("；"):selected.rank?"所有必要方向与位置许可均已通过。":"当前未获准入榜，请核对计分覆盖与状态。"}</p>
-    {selected.checks&&<ul>{Object.entries(selected.checks).map(([key,c])=><li key={key}>{explain(c.reason)}</li>)}</ul>}
-    <PeriodFactors key={data.source_snapshot} data={data} symbol={selected.symbol}/>
+    {selected.checks&&<details className="candidateSecondary"><summary>方向与位置检查</summary><ul>{Object.entries(selected.checks).map(([key,c])=><li key={key}>{explain(c.reason)}</li>)}</ul></details>}
+    <details className="candidateSecondary"><summary>查看月、周、日命中与风险明细</summary><PeriodFactors key={data.source_snapshot} data={data} symbol={selected.symbol}/></details>
+    <details className="candidateSecondary"><summary>大盘与行业背景</summary><IndustryContext symbol={selected.symbol} asOf={data.as_of}/></details>
     {selected.groups&&<div className="v2Ledger">{selected.groups.map(g=><section key={g.group}><h4>证据组贡献 {g.contribution.toFixed(2)}{!g.available&&" · 数据不足"}</h4>{Object.entries(g.strengths).map(([fid,q])=><p key={fid}><i>{q>0?"✓":"○"}</i><span>{data.factor_catalog[fid]?.name??fid}<small>{frameNames[data.factor_catalog[fid]?.timeframe]} · 候选因子</small></span><b>{g.missing_factor_ids.includes(fid)?"不可用":q===1?"命中":q>0?"较弱／近期":"未计入"}</b></p>)}</section>)}</div>}
-    <p>同组证据封顶，父子确认与家族上限已在后台计入；周线正柱缩短时周分乘0.75。分项不是收益概率，当前新榜未生成交易计划。</p>
+    <p className="candidateHint">月、周、日按3∶2∶1加权，同组证据封顶。覆盖 {pct(selected.coverage)}；分数是复核优先级，不是收益概率。</p>
    </article>}
-   <p><a href="/zh/backtest">打开回测：收益曲线与历史报告</a></p>
+   <details className="candidateSecondary"><summary>数据与评分说明</summary><p>候选策略仅供人工复核，尚未验证收益。完整月线 {periods?.monthly??"—"} · 完整周线 {periods?.weekly??"—"}。警报还要求完整覆盖及至少两个证据家族。股票来源为现有观察池，不代表完整市场；失格退出排名，原提名保留。</p></details>
    <footer>政策 {data.policy_version} · 行情来源 EODHD · 新评分未覆盖旧提名记录。{data.automatic_updates_connected?"本页按每次成功复评更新；失败保留原日期与榜单。":"自动复评接通前，此页仅展示本次已核快照。"}</footer>
   </section>
  </>;

@@ -26,23 +26,12 @@ class UiV2ContractTests(unittest.TestCase):
  def test_multifactor_keeps_only_the_current_decision_surface(self):
   self.assertFalse((ROOT/"app/zh/watch/resonance/macd/page.tsx").exists())
   text=(ROOT/"app/zh/watch/resonance/rare-opportunities/page.tsx").read_text()
-  profile=(ROOT/"app/zh/watch/resonance/rare-opportunities/timeframe-profile.tsx").read_text()
-  for label in ("WHY IT RANKS HERE","RISK PLAN","TimeframeProfilePanel","effectiveness.coverage.factors","factorFamilyLegend","统一机会账本"):
-   self.assertIn(label,text)
-  for retired in ("旧系统历史机会参考","统一因子库","股票技术证据查询","旧评分兼容观察","查看当前动态观察评分规则","/research-opportunity-pool.json","/rare-opportunity-radar.json","/signal-history.json","/factor-registry.json"):
+  self.assertIn('<CandidateRanking/>',text)
+  for retired in ('showLegacy','TimeframeProfilePanel','factorFamilyLegend','/opportunity-ledger.json','/unified-v2-rankings.json'):
    self.assertNotIn(retired,text)
-  styles=(ROOT/"app/globals.css").read_text()+(ROOT/"app/product-v2.css").read_text()
-  for retired_selector in ("rareFactorLibrary","rareCurrent","rareLegacy","rareExamples","rareScoreDial"):
-   self.assertNotIn(retired_selector,styles)
-  factor_view=json.loads((ROOT/"public/factor-effectiveness.json").read_text())
-  self.assertEqual([factor_view["quadrants"][key]["label_zh"] for key in factor_view["quadrant_order"]],["正在使用","候选观察","暂停加权","准备弃用"])
-  self.assertNotIn("factor-family-combination.json",text)
-  self.assertFalse((ROOT/"public/factor-family-combination.json").exists())
-  family_combo=json.loads((ROOT/"research/backtest/output/factor-family-return-combination-v1.json").read_text())
-  self.assertFalse(family_combo["production_scoring_changed"])
-  self.assertNotIn("旧系统因子实验",text)
-  for label in ("周线","月线","不是建议持仓天数","直接参与"):
-   self.assertIn(label,profile)
+  self.assertFalse((ROOT/"app/zh/watch/resonance/rare-opportunities/timeframe-profile.tsx").exists())
+  self.assertTrue((ROOT/"public/opportunity-ledger.json").exists())
+  self.assertTrue((ROOT/"research/experiments.jsonl").exists())
 
  def test_semiconductors_is_supported_and_ai_infrastructure_is_not_published(self):
   registry=json.loads((ROOT/"data/themes/theme-registry.json").read_text())

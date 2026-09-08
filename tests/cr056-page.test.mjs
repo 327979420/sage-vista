@@ -23,7 +23,7 @@ test('real candidate projection renders its date, same backend scores and daily-
  assert.ok(html.includes(data.as_of));
  const first=data.reviews.find(r=>r.symbol===data.ranked_symbols[0]);
  if(first){assert.ok(html.includes(first.symbol));assert.ok(html.includes(first.total.toFixed(2)));}
- assert.match(html,/当日新提名/);assert.ok(html.includes(`${data.new_nomination_symbols.length}只`));
+ assert.match(html,/新提名/);assert.ok(html.includes(`${data.new_nomination_symbols.length}只`));
  assert.match(html,/尚未验证收益/);
  if(first){assert.ok(html.includes(first.periods.monthly));assert.ok(html.includes(first.periods.weekly));}
  assert.doesNotMatch(html,/API_TOKEN|adjusted_close/);
@@ -43,8 +43,8 @@ test('all ranked and selected display rows preserve backend identity and exclude
   assert.equal(r.rank,i+1);assert.ok(r.total!==null);assert.ok(r.coverage>=0.8);
  });
  const page=fs.readFileSync(new URL('../app/zh/watch/resonance/rare-opportunities/page.tsx',import.meta.url),'utf8');
- assert.match(page,/if\(!showLegacy\)return/);
- assert.match(page,/旧版本排行与因子研究留档/);
+ assert.doesNotMatch(page,/showLegacy|unified-v2-rankings|opportunity-ledger|TimeframeProfilePanel/);
+ assert.match(page,/<CandidateRanking\/>/);
 });
 
 test('daily refresh failure retains the actual snapshot date and shows failure',()=>{
