@@ -29,7 +29,7 @@ async function hash(text:string){
 }
 
 export function ResearchRunList({runs,onSelect,selected}:{runs:Run[];onSelect:(id:string)=>void;selected:string}){
- return <section className="svPanel"><h2>历史研究运行</h2>{!runs.length?<p>还没有已保存的研究运行。下方保留早期20笔工程对账。</p>:<div className="tradeComparisonTable"><table><thead><tr><th>运行／日期</th><th>状态</th><th>账户收益</th><th>最大回撤</th><th>已平仓胜率</th></tr></thead><tbody>{runs.map(r=><tr key={r.id} data-selected={r.id===selected}><td><button onClick={()=>onSelect(r.id)}>{r.request.start} 至 {r.request.end}</button><small>#{r.id}</small></td><td>{statusLabel[r.status]}</td><td>{percent(r.summary.total_return)}</td><td>{percent(r.summary.max_drawdown)}</td><td>{percent(r.summary.win_rate)}</td></tr>)}</tbody></table></div>}</section>;
+ return <section className="svPanel"><h2>历史研究运行</h2>{!runs.length?<p>还没有已保存的研究运行。下方保留早期20笔工程对账。</p>:<div className="tradeComparisonTable"><table><thead><tr><th>运行／日期</th><th>状态</th><th>账户收益</th><th>最大回撤</th><th>已平仓胜率</th></tr></thead><tbody>{runs.map(r=><tr key={r.id} data-selected={r.id===selected}><td><span>{r.request.start} 至 {r.request.end}</span> <button aria-pressed={r.id===selected} onClick={()=>onSelect(r.id)}>{r.status==="completed"?"查看报告":"查看原因"}</button><small>#{r.id}</small></td><td>{statusLabel[r.status]}</td><td>{percent(r.summary.total_return)}</td><td>{percent(r.summary.max_drawdown)}</td><td>{percent(r.summary.win_rate)}</td></tr>)}</tbody></table></div>}</section>;
 }
 
 export default function ResearchRuns(){
@@ -64,11 +64,12 @@ export default function ResearchRuns(){
   })().catch(e=>{if(!controller.signal.aborted){setReceipt(null);setHtml("");setError(String(e.message))}});
   return()=>controller.abort();
  },[selected,runs]);
- const choose=(id:string)=>{setHtml("");setReceipt(null);setSelected(id)};
+ const choose=(id:string)=>{if(id===selected){document.getElementById("quantstats-report")?.scrollIntoView({behavior:"smooth"});return;}setHtml("");setReceipt(null);setError("");setSelected(id)};
  return <div className="tradeComparison">
   <header className="svPanel"><small>VectorBT＋QuantStats · 旧规则研究场景</small><h2>历史研究结果</h2><p>旧策略：支撑下5%／入场亏损上限10%，2R目标，最长40个交易日。逐日回放当时保存的信号，不用今天的榜单倒填过去。</p><p>记录从2025-12-29开始。首轮建议：2025-12-29至2026-01-30、2026-02-02至2026-02-27；其他区间须每日旧策略记录与行情完整。前几年及新版策略历史重算尚未接通。</p><p>{enabled?"在 GitHub 登录后的表单选择 research 模式、旧基线策略和起止日期，然后提交。运行结束后回到这里刷新查看结果。":configLoaded?"研究配置暂不可用，提交入口暂时关闭；已有报告仍可查看。":"正在读取已批准的研究配置…"}</p><p>{enabled?<a href={WORKFLOW_URL} target="_blank" rel="noreferrer">提交回测／查看运行进度 ↗</a>:<button disabled>{configLoaded?"研究配置暂不可用":"正在读取研究配置"}</button>} · <button onClick={()=>{setLoading(true);setRefresh(v=>v+1)}}>刷新已保存结果</button></p><p>永久结果直接从仓库读取，无需每次重新部署；公开内容可能有几分钟缓存延迟。来源缺失和失败也保留，不作为零收益。研究假设不代表生产策略已获批准。</p></header>
   {loading&&<p role="status">正在读取历史运行…</p>}{error&&<p role="alert">{error}</p>}
   <ResearchRunList runs={runs} onSelect={choose} selected={selected}/>
-  {receipt&&<section className="svPanel"><h3>运行 #{receipt.id} · {statusLabel[receipt.status]}</h3>{receipt.reason&&<p>{receipt.reason}</p>}<p><a href={RESULTS_ROOT+receipt.id+"/receipt.json"} target="_blank" rel="noreferrer">下载本次收据与逐笔结果</a></p>{html&&<iframe key={receipt.id} title="QuantStats账户报告与交易明细" sandbox="" referrerPolicy="no-referrer" srcDoc={'<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'; img-src data:; font-src data:; base-uri \'none\'; form-action \'none\'">'+html} style={{width:"100%",height:"1100px",border:0}}/>}</section>}
+  {selected&&!receipt&&!error&&<p role="status">正在加载所选回测报告…</p>}
+  {receipt&&<section id="quantstats-report" className="svPanel"><h2>QuantStats 回测报告</h2><h3>{receipt.request.start} 至 {receipt.request.end} · {statusLabel[receipt.status]}</h3>{receipt.reason&&<p>{receipt.reason}</p>}<p><a href={RESULTS_ROOT+receipt.id+"/receipt.json"} target="_blank" rel="noreferrer">下载本次收据与逐笔结果</a></p>{html&&<iframe key={receipt.id} title="QuantStats账户报告与交易明细" sandbox="" referrerPolicy="no-referrer" srcDoc={'<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'; img-src data:; font-src data:; base-uri \'none\'; form-action \'none\'">'+html} style={{width:"100%",height:"1100px",border:0}}/>}</section>}
  </div>;
 }

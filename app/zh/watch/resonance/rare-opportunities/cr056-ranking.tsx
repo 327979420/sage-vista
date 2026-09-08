@@ -45,7 +45,7 @@ export function CandidateView({data,latestDate,initialQuery=""}:{data:CandidateD
     {selected.groups&&<div className="v2Ledger">{selected.groups.map(g=><section key={g.group}><h4>证据组贡献 {g.contribution.toFixed(2)}{!g.available&&" · 数据不足"}</h4>{Object.entries(g.strengths).map(([fid,q])=><p key={fid}><i>{q>0?"✓":"○"}</i><span>{data.factor_catalog[fid]?.name??fid}<small>{frameNames[data.factor_catalog[fid]?.timeframe]} · 候选因子</small></span><b>{g.missing_factor_ids.includes(fid)?"不可用":q===1?"命中":q>0?"较弱／近期":"未计入"}</b></p>)}</section>)}</div>}
     <p>同组证据封顶，父子确认与家族上限已在后台计入；周线正柱缩短时周分乘0.75。分项不是收益概率，当前新榜未生成交易计划。</p>
    </article>}
-   <p><a href="/zh/watch/resonance/strategy-backtest-v2">查看20笔旧版成交对账（VectorBT工程核对）</a></p>
+   <p><a href="/zh/backtest">打开回测：收益曲线与历史报告</a></p>
    <footer>政策 {data.policy_version} · 行情来源 EODHD · 新评分未覆盖旧提名记录。{data.automatic_updates_connected?"本页按每次成功复评更新；失败保留原日期与榜单。":"自动复评接通前，此页仅展示本次已核快照。"}</footer>
   </section>
  </>;

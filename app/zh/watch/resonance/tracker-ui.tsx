@@ -13,6 +13,7 @@ export const modules=[
  ["多因子机会","/zh/watch/resonance/rare-opportunities"],
  ["我最喜欢形态","/zh/watch/resonance/favorite-pattern"],
  ["行业与大盘","/zh/watch/industry-radar"],
+ ["回测","/zh/backtest"],
 ] as const;
 
 function useUpdateStatus(){

@@ -5,7 +5,7 @@ import {createRequire} from 'node:module';
 import ts from 'typescript';
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
-const source=fs.readFileSync(new URL('../app/zh/watch/resonance/strategy-backtest-v2/research-runs.tsx',import.meta.url),'utf8');
+const source=fs.readFileSync(new URL('../app/zh/backtest/research-runs.tsx',import.meta.url),'utf8');
 const code=ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
 const mod={exports:{}};new Function('require','exports','module',code)(createRequire(import.meta.url),mod.exports,mod);
 const {checkedIndex,ResearchRunList,default:ResearchRuns}=mod.exports;

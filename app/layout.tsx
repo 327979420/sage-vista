@@ -64,6 +64,7 @@ export default function RootLayout({
           <a href="/zh/watch/resonance/rare-opportunities">多因子机会</a>
           <a href="/zh/watch/resonance/favorite-pattern">我最喜欢形态</a>
           <a href="/zh/watch/industry-radar">行业与大盘</a>
+          <a href="/zh/backtest">回测</a>
         </div>
         {children}
       </body>

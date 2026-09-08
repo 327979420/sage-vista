@@ -25,7 +25,7 @@ test('comparison mode is isolated from all legacy refresh and production actions
 });
 
 test('real comparison report renders differences, costs and path limitations',()=>{
- const source=fs.readFileSync(new URL('app/zh/watch/resonance/strategy-backtest-v2/comparison.tsx',root),'utf8');
+ const source=fs.readFileSync(new URL('app/zh/backtest/comparison.tsx',root),'utf8');
  const code=ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
  const mod={exports:{}};new Function('require','exports','module',code)(createRequire(import.meta.url),mod.exports,mod);
  const {reports}=JSON.parse(fs.readFileSync(new URL('public/vectorbt-comparison.json',root),'utf8'));
