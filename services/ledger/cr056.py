@@ -8,7 +8,7 @@ def watch_identity(symbol):
         'model_lineage': 'complex_multifactor', 'scope': 'legacy_comparison'})
 
 
-def review_watch(*, symbol, as_of, origin, score, previous, reference_sessions):
+def review_watch(*, symbol, as_of, origin, score, previous, reference_sessions, policy_revision=False):
     watch_id = watch_identity(symbol)
     if previous is not None:
         if previous['watch_id'] != watch_id or previous['as_of'] > as_of:
@@ -16,7 +16,7 @@ def review_watch(*, symbol, as_of, origin, score, previous, reference_sessions):
         if previous['origin'] != origin:
             raise ValueError('original nomination must remain frozen')
     score_binding = canonical_fingerprint(score)
-    if previous and previous['as_of'] == as_of:
+    if previous and previous['as_of'] == as_of and not policy_revision:
         if previous.get('score_binding') != score_binding:
             raise ValueError('same-day watch content conflict')
         return dict(previous)
@@ -29,10 +29,12 @@ def review_watch(*, symbol, as_of, origin, score, previous, reference_sessions):
     prior_date = dates[dates.index(as_of)-1] if as_of in dates and dates.index(as_of) > 0 else None
     consecutive = (previous.get('consecutive_high_sessions', 0)
                    if previous and previous['as_of'] == prior_date else 0) + 1 if high else 0
+    if policy_revision and previous and previous['as_of'] == as_of:
+        consecutive = previous.get('consecutive_high_sessions', 0) if high else 0
     last_alert = previous.get('last_alert_as_of') if previous else None
     cooled = last_alert is None or (last_alert in dates and as_of in dates and dates.index(as_of)-dates.index(last_alert) >= S['alert_cooldown_sessions'])
     same_day_alert = last_alert == as_of
-    alert_due = bool(high and cooled and not same_day_alert)
+    alert_due = bool(high and cooled and not same_day_alert and not policy_revision)
     # This is an internal website alert fact, not an external notification receipt.
     result = {'watch_id': watch_id, 'symbol': symbol, 'as_of': as_of, 'origin': origin,
         'state': state, 'restored': restored, 'consecutive_high_sessions': consecutive,
@@ -41,6 +43,8 @@ def review_watch(*, symbol, as_of, origin, score, previous, reference_sessions):
         'alert_dedupe_key': f'{watch_id}:{as_of}:website' if alert_due else None,
         'score_fingerprint': score.get('score_fingerprint'), 'score_binding': score_binding,
         'reason_codes': score['reason_codes']}
+    if policy_revision and previous:
+        result['supersedes_review_fingerprint'] = previous['review_fingerprint']
     result['review_fingerprint'] = canonical_fingerprint(result)
     return result
 

@@ -77,17 +77,17 @@ def higher_timeframe_double_engulfing(bars,timeframe,lookback,low_tolerance=.10)
    return True,evidence
  return False,evidence
 
-def _raw(rows,i,fact_references=None,*,complete_session=False):
+def _raw(rows,i,fact_references=None,*,complete_session=False,native_period=False):
  """Objective current-bar states using only rows through i."""
  fact_references=fact_references or {}
  view=rows[:i+1];current=view[-1];closes=[row["close"] for row in view];line,signal=macd(closes);curves={period:ema(closes,period) for period in (21,50,200)}
- fib,golden,fib_levels=_fib_context(view,i);ema_distances={str(period):current["close"]/curves[period][i]-1 for period in (21,50,200)};ema_hit=any(abs(value)<=.02 for value in ema_distances.values())
+ fib,golden,fib_levels=_fib_context(view,i);ema_distances={str(period):current["close"]/curves[period][i]-1 for period in (21,50,200)};ema_hit=any(abs(value)<=.02 and (not native_period or len(view)>=int(period)) for period,value in ema_distances.items())
  fvg=bullish_fvg_support(view,i);three_push_recent=recent_three_push_breakout(view,i);retest=three_push_recent and three_push_retest(view,i);volume_peak=volume_profile_support(view,i);congestion=kline_congestion_support(view,i)
  support_context=bool(fib[.5] or fib[.618] or ema_hit or fvg or retest or volume_peak or congestion)
  prior_engulf=False
  if i>=2:
   prior_view=view[:-1];prior_i=i-1;prior_closes=[row["close"] for row in prior_view];prior_curves={period:ema(prior_closes,period) for period in (21,50,200)}
-  prior_fib,_,_=_fib_context(prior_view,prior_i);prior_ema=any(abs(prior_view[-1]["close"]/prior_curves[period][prior_i]-1)<=.02 for period in (21,50,200))
+  prior_fib,_,_=_fib_context(prior_view,prior_i);prior_ema=any(abs(prior_view[-1]["close"]/prior_curves[period][prior_i]-1)<=.02 and (not native_period or len(prior_view)>=period) for period in (21,50,200))
   prior_fvg=bullish_fvg_support(prior_view,prior_i);prior_three=recent_three_push_breakout(prior_view,prior_i);prior_retest=prior_three and three_push_retest(prior_view,prior_i)
   prior_support=bool(prior_fib[.5] or prior_fib[.618] or prior_ema or prior_fvg or prior_retest or volume_profile_support(prior_view,prior_i) or kline_congestion_support(prior_view,prior_i))
   prior_engulf=support_bullish_engulfing(prior_view,prior_i,prior_support)
@@ -113,15 +113,20 @@ def _raw(rows,i,fact_references=None,*,complete_session=False):
  w=detect_w_bottom(view,i,TECHNICAL_CONFIG);double_bottom=w.detected and detect_bos(view,i,w.levels["neckline"],TECHNICAL_CONFIG).detected
  triple=detect_triple_bottom(view,i,TECHNICAL_CONFIG);trend_ok=fact_references.get("qualification.long_trend",{}).get("hit") if "qualification.long_trend" in fact_references else long_trend_ok(view,i,curves[200]);triple_pullback=triple.detected and trend_ok and pullback
  double_bottom_recent=recent_double_bottom_breakout(view,i);double_bottom_retest=double_bottom_recent and double_bottom_neckline_retest(view,i)
- day=date.fromisoformat(current["date"]);weekly_rows=available(completed_groups(view,"weekly"),(day.isocalendar().year,day.isocalendar().week),include_current=period_closed_at_session(current["date"],"weekly",complete_session=complete_session));monthly_rows=available(completed_groups(view,"monthly"),(day.year,day.month),include_current=period_closed_at_session(current["date"],"monthly",complete_session=complete_session))
- weekly_state=macd_state(weekly_rows[-160:]) if len(weekly_rows)>=3 else None
- monthly_line,monthly_signal=macd([row["close"] for row in monthly_rows]) if len(monthly_rows)>=2 else ([],[]);monthly_cross=bool(monthly_line and monthly_line[-1]>monthly_signal[-1] and monthly_line[-2]<=monthly_signal[-2])
- weekly_ema_hit,weekly_ema_evidence=higher_timeframe_ema_support(current,weekly_rows,"weekly_completed",.03)
- monthly_ema_hit,monthly_ema_evidence=higher_timeframe_ema_support(current,monthly_rows,"monthly_completed",.05)
- weekly_engulf,weekly_engulf_evidence=higher_timeframe_bullish_engulfing(weekly_rows,"weekly_completed")
- monthly_engulf,monthly_engulf_evidence=higher_timeframe_bullish_engulfing(monthly_rows,"monthly_completed")
- weekly_double,weekly_double_evidence=higher_timeframe_double_engulfing(weekly_rows,"weekly_completed",26)
- monthly_double,monthly_double_evidence=higher_timeframe_double_engulfing(monthly_rows,"monthly_completed",12)
+ if native_period:
+  weekly_rows=[]; monthly_rows=[]; weekly_state=None; monthly_cross=False
+  weekly_ema_hit=monthly_ema_hit=weekly_engulf=monthly_engulf=weekly_double=monthly_double=False
+  weekly_ema_evidence=monthly_ema_evidence=weekly_engulf_evidence=monthly_engulf_evidence=weekly_double_evidence=monthly_double_evidence={"detector_available":False}
+ else:
+  day=date.fromisoformat(current["date"]);weekly_rows=available(completed_groups(view,"weekly"),(day.isocalendar().year,day.isocalendar().week),include_current=period_closed_at_session(current["date"],"weekly",complete_session=complete_session));monthly_rows=available(completed_groups(view,"monthly"),(day.year,day.month),include_current=period_closed_at_session(current["date"],"monthly",complete_session=complete_session))
+  weekly_state=macd_state(weekly_rows[-160:]) if len(weekly_rows)>=3 else None
+  monthly_line,monthly_signal=macd([row["close"] for row in monthly_rows]) if len(monthly_rows)>=2 else ([],[]);monthly_cross=bool(monthly_line and monthly_line[-1]>monthly_signal[-1] and monthly_line[-2]<=monthly_signal[-2])
+  weekly_ema_hit,weekly_ema_evidence=higher_timeframe_ema_support(current,weekly_rows,"weekly_completed",.03)
+  monthly_ema_hit,monthly_ema_evidence=higher_timeframe_ema_support(current,monthly_rows,"monthly_completed",.05)
+  weekly_engulf,weekly_engulf_evidence=higher_timeframe_bullish_engulfing(weekly_rows,"weekly_completed")
+  monthly_engulf,monthly_engulf_evidence=higher_timeframe_bullish_engulfing(monthly_rows,"monthly_completed")
+  weekly_double,weekly_double_evidence=higher_timeframe_double_engulfing(weekly_rows,"weekly_completed",26)
+  monthly_double,monthly_double_evidence=higher_timeframe_double_engulfing(monthly_rows,"monthly_completed",12)
  return {
   "qualification.long_trend":(trend_ok,fact_references.get("qualification.long_trend",{}).get("evidence",{"close":current["close"],"ema200":curves[200][i]})),
   "qualification.pullback_60d":(pullback,{"prior_60d_high":max(row["high"] for row in view[max(0,i-60):i]) if i else None}),
@@ -173,3 +178,65 @@ def evaluate_all_factors(rows,as_of,*,fact_references=None,complete_session=Fals
 def evaluate_initial_factors(rows,as_of):
  initial={"macd.daily_bull_cross","macd.weekly_histogram_improving","support.ema_proximity","structure.trendline_three_push_retest","structure.bullish_fvg_support","risk.overhead_unfilled_gap","volume.bottom_expansion","structure.support_bullish_engulfing","structure.engulfing_bullish_follow_through"}
  return [state for state in evaluate_all_factors(rows,as_of) if state.factor_id in initial]
+
+
+def evaluate_period_factors(rows, as_of, *, complete_session=False):
+ """Same native-bar algorithms on three completed resolutions; no recursive resampling."""
+ from services.contracts.cr056_policy import MAPPED_FACTORS, SETTINGS
+ from services.gates.long_term_state import completed_period_bars
+ rows = trim_as_of(rows, as_of)
+ periods = {"daily": rows}
+ for tf, period in (("monthly_completed", "monthly"), ("weekly_completed", "weekly")):
+  periods[tf] = completed_period_bars(rows, as_of=as_of, period=period, complete_session=complete_session)
+ result = []
+ for tf, bars in periods.items():
+  cache = {}
+  def raw_at(j):
+   if j not in cache: cache[j] = _raw(bars, j, native_period=True)
+   return cache[j]
+  for fid, meta in MAPPED_FACTORS.items():
+   if meta['timeframe'] != tf: continue
+   template = meta['template']; minimum = 3
+   if template == 'qualification.long_trend': minimum = 261
+   elif template in ('support.close_congestion', 'support.volume_profile_proxy'): minimum = 251
+   elif template == 'support.ema_proximity' or template.startswith('volume.'): minimum = 21
+   elif template.startswith('rsi.'): minimum = 15
+   elif template == 'direction.macd_state' or template == 'macd.daily_bull_cross': minimum = 35
+   elif template in ('qualification.pullback_60d', 'structure.triple_bottom_pullback'): minimum = 61
+   available = bool(rows and rows[-1]['date'] == as_of and len(bars) >= minimum and meta['role'] != 'unimplemented')
+   hit=False; evidence={}; age=None; last=None; strength=0.0
+   def detect(j):
+    if template == 'direction.macd_state':
+     line, signal = macd([r['close'] for r in bars[:j+1]])
+     h, prior = line[-1]-signal[-1], line[-2]-signal[-2]
+     quality = 1.0 if h>0 and h>=prior else .5 if prior<h<0 else 0.0
+     return quality>0, {'histogram':h, 'previous_histogram':prior, 'strength':quality}
+    if template == 'structure.period_bullish_engulfing': return higher_timeframe_bullish_engulfing(bars[:j+1], tf)
+    if template == 'structure.period_double_bullish_engulfing': return higher_timeframe_double_engulfing(bars[:j+1], tf, SETTINGS['period_double_engulfing_window'])
+    return raw_at(j)[template]
+   if available:
+    hit, evidence = detect(len(bars)-1)
+    strength = evidence.get('strength', 1.0 if hit else 0.0)
+    if hit: age=0; last=bars[-1]['date']
+    elif meta['source_definition']['factor_type']=='event' and meta['window']:
+     for ago in range(1, min(meta['window'], len(bars)-minimum+1)):
+      if detect(len(bars)-1-ago)[0]: age=ago; last=bars[-1-ago]['date']; break
+   reason = ('definition_required' if meta['role']=='unimplemented' else
+             'insufficient_period_history' if not available else 'observed')
+   # Windows expressed by old functions as sessions now mean native bars.
+   def native_evidence(value):
+    if isinstance(value, dict):
+     return {k.replace('sessions','bars').replace('60d','60bar'): (tf if k=='timeframe' else native_evidence(v)) for k,v in value.items()}
+    if isinstance(value, list): return [native_evidence(v) for v in value]
+    return value
+   evidence = native_evidence(evidence)
+   if template == 'support.ema_proximity' and available:
+    evidence['distance_by_period']={p:d for p,d in evidence['distance_by_period'].items() if len(bars)>=int(p)}
+   result.append({'factor_id':fid, 'factor_version':'period-mapping-1.0.0', 'as_of':as_of,
+    'source_factor_ids':meta['source_ids'], 'timeframe':tf, 'completed_through':bars[-1]['date'] if bars else None,
+    'available':available, 'hit':bool(hit), 'recent_hit':age is not None, 'bars_since_hit':age,
+    'latest_hit_date':last, 'value':strength if template=='direction.macd_state' else evidence.get('ratio',bool(hit)),
+    'evidence':evidence, 'runtime_status':reason, 'research_status':meta['research_status'], 'score_role':meta['role'],
+    'period_bar_count':len(bars), 'minimum_bars':minimum,
+    'lookahead_audit':{'future_data_used':False,'completed_bars_only':True}})
+ return result

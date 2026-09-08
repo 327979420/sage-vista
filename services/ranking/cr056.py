@@ -1,20 +1,11 @@
 """Sole CR-056 candidate score calculation, shared by snapshots and daily reviews."""
-from services.contracts.cr056_policy import WHITE_LIST, SETTINGS as S, WEIGHTS, CAPS, POLICY_VERSION, POLICY_FINGERPRINT
+from services.contracts.cr056_policy import WHITE_LIST, SETTINGS as S, WEIGHTS, CAPS, POLICY_VERSION, POLICY_FINGERPRINT, MAPPED_FACTORS
 from services.contracts.market_data import canonical_fingerprint
 from services.scanner.factor_registry import FACTORS_BY_ID, REGISTRY_VERSION
 from dataclasses import asdict
 
-MONTHLY_DIRECTION = 'direction.macd_state.monthly'
-
-
 def _metadata(factor_id):
-    if factor_id == MONTHLY_DIRECTION:
-        return {'family': 'macd', 'group': 'macd_monthly', 'parents': (), 'window': 0}
-    f = FACTORS_BY_ID[factor_id]
-    if f.status != 'candidate':
-        raise ValueError('CR056 cannot silently promote a non-candidate factor')
-    return {'family': f.evidence_family, 'group': f.redundancy_group,
-            'parents': f.depends_on, 'window': f.observation_window_sessions}
+    return MAPPED_FACTORS[factor_id]
 
 
 def score_candidate(states, permission):
@@ -24,33 +15,23 @@ def score_candidate(states, permission):
     if not isinstance(permission.get('facts_input_fingerprint'), str) or not permission['facts_input_fingerprint']:
         raise ValueError('permission input fingerprint is required')
     factor_input_fingerprint = canonical_fingerprint(sorted(states, key=lambda s: s['factor_id']))
-    registry_fingerprint = canonical_fingerprint({'version': REGISTRY_VERSION,
+    registry_fingerprint = canonical_fingerprint({'version': REGISTRY_VERSION, 'mapping': dict(MAPPED_FACTORS),
         'factors': [asdict(FACTORS_BY_ID[fid]) for fid in sorted(FACTORS_BY_ID)]})
     by_id = {s['factor_id']: s for s in states}
     if len(by_id) != len(states):
         raise ValueError('duplicate factor state')
-    monthly = permission['checks']['monthly']
-    direction_q = 1.0 if monthly['reason'] == 'positive_histogram_supported' else (
-        0.5 if monthly['reason'] == 'negative_histogram_improving' else 0.0)
-    by_id[MONTHLY_DIRECTION] = {'available': monthly['status'] != 'unavailable', 'hit': direction_q > 0,
-                               'recent_hit': False, 'bars_since_hit': None}
     frame_results, all_groups, active_families = {}, [], set()
     for timeframe, ids in WHITE_LIST.items():
         meta = {fid: _metadata(fid) for fid in ids}
         group_for = {fid: meta[fid]['group'] for fid in ids}
-        # This frozen list has same-period parents in the same redundancy group.
-        for fid in ids:
-            for parent in meta[fid]['parents']:
-                if parent in ids and group_for[parent] != group_for[fid]:
-                    raise ValueError('registry dependency changed; candidate policy needs review')
         q, available = {}, {}
         for fid in ids:
             state = by_id.get(fid)
             available[fid] = state is not None and state.get('available') is True
             strength = 0.0
             if available[fid]:
-                if fid == MONTHLY_DIRECTION:
-                    strength = direction_q
+                if meta[fid]['template'] == 'direction.macd_state':
+                    strength = float(state.get('value', 0))
                 elif state.get('hit') is True:
                     strength = 1.0
                 elif state.get('recent_hit') is True and meta[fid]['window'] > 0:
@@ -61,7 +42,7 @@ def score_candidate(states, permission):
         # Resolve parent constraints independently of registry ordering.
         for _ in range(len(ids)):
             for fid in ids:
-                if any(q.get(parent, 0) <= 0 for parent in meta[fid]['parents']):
+                if any((q.get(parent, 0) <= 0 if parent in q else not by_id.get(parent, {}).get('hit')) for parent in meta[fid]['parents']):
                     q[fid] = 0.0
         groups, families = [], {}
         for group in sorted(set(group_for.values())):

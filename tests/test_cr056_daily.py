@@ -34,9 +34,9 @@ class DailyCandidateTests(unittest.TestCase):
         f['monthly']['completed_through']='2026-08-31';f['weekly']['completed_through']='2026-09-04'
         if blocked:f['monthly']['histogram']=[1,2,1]
         def factor_rows(*args,**kwargs):
-            return [SimpleNamespace(dict=lambda x=x: x) for x in [dict(s,as_of=day) for s in states()]]
+            return [dict(s,as_of=day) for s in states()]
         stack.enter_context(patch('services.scanner.cr056_runner.collect_direction_facts',return_value=f))
-        stack.enter_context(patch('services.scanner.cr056_runner.evaluate_all_factors',side_effect=factor_rows))
+        stack.enter_context(patch('services.scanner.cr056_runner.evaluate_period_factors',side_effect=factor_rows))
         stack.enter_context(patch('services.scanner.cr056_runner.exact_daily_macd_bull_cross',return_value=trigger))
         return stack
 
@@ -57,6 +57,19 @@ class DailyCandidateTests(unittest.TestCase):
             fetch_reference=overrides.get('fetch_reference',self.reference),fetch_bulk=self.bulk)
 
     def checkpoint(self):return validate_watch_checkpoint(json.loads(gzip.decompress(self.state.read_bytes())))
+
+    def test_same_day_policy_revision_archives_origin_and_does_not_duplicate_alert(self):
+        old=json.loads(self.public.read_text());old['policy_version']='old-policy'
+        self.public.write_bytes(encoded(old)); original=self.state.read_bytes()
+        with self.producers('2026-09-04',False): result=self.run_daily('2026-09-04')
+        self.assertEqual(result['result'],'updated',result)
+        self.assertEqual(self.checkpoint()['reviews'][0]['watch']['origin'],self.seed_origin)
+        self.assertFalse(self.checkpoint()['reviews'][0]['watch']['alert_due'])
+        archives=list((self.root/'archive').glob('*-watch.json.gz'))
+        self.assertEqual(archives[0].read_bytes(),original)
+        details=json.loads(gzip.decompress((self.root/'cr056-factor-details.json.gz').read_bytes()))
+        self.assertEqual(details['source_snapshot'],json.loads(self.public.read_text())['source_snapshot'])
+        self.assertEqual(self.run_daily('2026-09-04')['result'],'already_current')
 
     def test_same_day_needs_no_source_and_does_not_recreate_watches(self):
         before=self.state.read_bytes()

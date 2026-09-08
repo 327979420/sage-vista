@@ -1,6 +1,6 @@
 import copy
 import unittest
-from services.contracts.cr056_policy import WHITE_LIST
+from services.contracts.cr056_policy import WHITE_LIST, MAPPED_FACTORS, CAPS
 from services.selectors.cr056 import direction_permission, assess_permission
 from services.ranking.cr056 import score_candidate
 from services.gates.long_term_state import completed_period_bars, period_closed_at_session
@@ -19,8 +19,8 @@ def facts():
 
 
 def states():
-    return [{'factor_id': fid, 'as_of': '2026-09-04', 'hit': True, 'available': True, 'recent_hit': False, 'bars_since_hit': 0}
-            for ids in WHITE_LIST.values() for fid in ids if fid != 'direction.macd_state.monthly']
+    return [{'factor_id': fid, 'as_of': '2026-09-04', 'hit': True, 'available': True, 'recent_hit': False, 'bars_since_hit': 0, 'value': 1.0}
+            for fid in MAPPED_FACTORS]
 
 class PermissionTests(unittest.TestCase):
     def test_month_shrinking_and_new_bear_block_but_old_negative_improvement_allows(self):
@@ -74,7 +74,7 @@ class ScoreTests(unittest.TestCase):
     def test_fixed_caps_are_reachable_and_duplicate_stories_do_not_inflate(self):
         r = score_candidate(states(), assess_permission(facts()))
         self.assertEqual(r['total_score'], 100)
-        self.assertEqual([r['timeframes'][tf]['raw'] for tf in WHITE_LIST], [5, 2, 3.25])
+        self.assertEqual([r['timeframes'][tf]['raw'] for tf in WHITE_LIST], list(CAPS.values()))
         self.assertTrue(r['high_score_eligible'])
 
     def test_month_veto_cannot_be_bought_back_by_all_factors(self):
@@ -84,10 +84,10 @@ class ScoreTests(unittest.TestCase):
         self.assertFalse(r['high_score_eligible'])
 
     def test_missing_group_does_not_reduce_denominator_or_raise_alarm(self):
-        st = states(); st[0]['available'] = False
+        st = states(); next(x for x in st if x['factor_id'] == WHITE_LIST['daily'][0])['available'] = False
         r = score_candidate(st, assess_permission(facts()))
         self.assertEqual(r['score_status'], 'partial')
-        self.assertEqual(r['timeframes']['daily']['cap'], 5)
+        self.assertEqual(r['timeframes']['daily']['cap'], CAPS['daily'])
         self.assertFalse(r['high_score_eligible'])
 
     def test_old_factor_date_cannot_be_mixed_with_today_permission(self):
@@ -142,3 +142,49 @@ class PeriodBoundaryTests(unittest.TestCase):
         old = evaluate_all_factors(rows, end.isoformat())
         old_weekly = next(s for s in old if s.factor_id == 'macd.weekly_histogram_improving')
         self.assertEqual(old_weekly.evidence['completed_week_end'], '2026-08-28')
+
+
+class PeriodMappingTests(unittest.TestCase):
+    def rows(self):
+        import calendar
+        result = []
+        for i in range(40):
+            year, month = 2023 + i//12, i%12+1
+            last = calendar.monthrange(year,month)[1]
+            from datetime import date, timedelta
+            day = date(year,month,last)
+            while day.weekday()>4: day -= timedelta(days=1)
+            result.append(dict(date=day.isoformat(),open=100,high=102,low=98,close=101,volume=100))
+        result[-1].update(open=110,high=113,low=110,close=111,volume=300)
+        return result
+
+    def test_all_original_ids_are_accounted_for_and_aliases_do_not_duplicate(self):
+        from services.scanner.factor_registry import FACTORS
+        from services.contracts.cr056_policy import MAPPED_FACTORS
+        self.assertEqual({f.id for f in FACTORS}, {sid for m in MAPPED_FACTORS.values() for sid in m['source_ids']})
+        for tf in WHITE_LIST:
+            templates = [m['template'] for m in MAPPED_FACTORS.values() if m['timeframe']==tf]
+            self.assertEqual(len(templates),len(set(templates)))
+            self.assertTrue(all(MAPPED_FACTORS[fid]['role']=='score' for fid in WHITE_LIST[tf]))
+
+    def test_monthly_volume_and_fvg_use_month_bars_and_preserve_missing_history(self):
+        from services.scanner.factor_detectors import evaluate_period_factors
+        rows=self.rows(); states={s['factor_id']:s for s in evaluate_period_factors(rows,rows[-1]['date'],complete_session=True)}
+        volume=states['monthly_completed::volume.relative_expansion']
+        self.assertEqual(volume['evidence']['ratio'],3)
+        self.assertTrue(volume['hit'])
+        self.assertTrue(states['monthly_completed::structure.bullish_fvg_support']['hit'])
+        self.assertFalse(states['monthly_completed::support.close_congestion']['available'])
+        ema=states['monthly_completed::support.ema_proximity']
+        self.assertEqual(set(ema['evidence']['distance_by_period']),{'21'})
+        self.assertEqual(states['monthly_completed::volume.pullback_contraction']['runtime_status'],'definition_required')
+
+    def test_unfinished_and_future_month_cannot_change_completed_month_facts(self):
+        from services.scanner.factor_detectors import evaluate_period_factors
+        rows=self.rows(); first=evaluate_period_factors(rows,rows[-1]['date'],complete_session=True)
+        rows.append(dict(date='2026-05-08',open=999,high=9999,low=1,close=999,volume=999999))
+        rows.append(dict(date='2026-06-08',open=999,high=9999,low=1,close=999,volume=999999))
+        after=evaluate_period_factors(rows,'2026-05-08',complete_session=True)
+        a=[{k:v for k,v in f.items() if k!='as_of'} for f in first if f['timeframe']=='monthly_completed']
+        b=[{k:v for k,v in f.items() if k!='as_of'} for f in after if f['timeframe']=='monthly_completed']
+        self.assertEqual(a,b)

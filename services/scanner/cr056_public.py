@@ -3,7 +3,7 @@ import argparse
 import json
 from pathlib import Path
 from services.contracts.market_data import canonical_fingerprint
-from services.contracts.cr056_policy import WHITE_LIST
+from services.contracts.cr056_policy import WHITE_LIST, MAPPED_FACTORS
 from services.scanner.factor_registry import FACTORS_BY_ID
 
 
@@ -13,11 +13,9 @@ def project_report(report):
         raise ValueError('source snapshot fingerprint mismatch')
     if report['result_role'] != 'legacy_comparison':
         raise ValueError('expected candidate comparison')
-    catalog = {}
-    for tf, ids in WHITE_LIST.items():
-        for fid in ids:
-            f = FACTORS_BY_ID.get(fid)
-            catalog[fid] = {'name': f.name_zh if f else '月线MACD方向状态', 'timeframe': tf}
+    catalog = {fid: {'name': m['name'], 'timeframe': m['timeframe'], 'role': m['role'],
+                     'research_status': m['research_status'], 'source_ids': m['source_ids']}
+               for fid, m in MAPPED_FACTORS.items()}
     reviews = []
     for row in report['reviews']:
         score = row.get('score')
@@ -32,14 +30,31 @@ def project_report(report):
         # Detailed contribution groups are only needed for the small eligible list.
         if row.get('rank'):
             item['checks'] = permission.get('checks', {})
-            item['groups'] = [g for tf in WHITE_LIST for g in score['timeframes'][tf]['groups']]
+            # Full evidence is loaded on demand from the matching compressed detail file.
         reviews.append(item)
     return {'as_of': report['as_of'], 'result_role': report['result_role'],
         'policy_version': report['policy_version'], 'source_snapshot': report['snapshot_fingerprint'],
         'source_commit': report['code_commit'], 'automatic_updates_connected': False,
         'input_coverage': report['input_coverage'], 'counts': report['counts'],
         **{k: report[k] for k in ('ranked_symbols', 'selected_symbols', 'new_nomination_symbols', 'continuing_ranked_symbols')},
-        'factor_catalog': catalog, 'reviews': reviews}
+        'factor_catalog': catalog, 'detail_path': '/cr056-factor-details.json.gz', 'reviews': reviews}
+
+
+def project_details(report):
+    # Reuse the single source-integrity check; no recomputation of scores.
+    project_report(report)
+    reviews = {}
+    for r in report['reviews']:
+        if not r.get('score'): continue
+        score = r['score']
+        reviews[r['symbol']] = {
+            'groups': [g for tf in WHITE_LIST for g in score['timeframes'][tf]['groups']],
+            'factors': [{k: s.get(k) for k in ('factor_id','available','hit','recent_hit','bars_since_hit',
+                         'latest_hit_date','runtime_status','score_role','completed_through','period_bar_count',
+                         'minimum_bars','evidence')} for s in r['factor_states']],
+        }
+    return {'source_snapshot': report['snapshot_fingerprint'], 'as_of': report['as_of'],
+            'policy_version': report['policy_version'], 'reviews': reviews}
 
 
 def main():

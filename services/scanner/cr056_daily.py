@@ -17,7 +17,8 @@ import zlib
 from services.ledger.cr056 import watch_checkpoint, validate_watch_checkpoint
 from services.scanner.cr056_inputs import repair_existing_cache, normalized_comparison_rows
 from services.scanner.cr056_runner import run_snapshot
-from services.scanner.cr056_public import project_report
+from services.scanner.cr056_public import project_report, project_details
+from services.contracts.cr056_policy import POLICY_VERSION
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -68,6 +69,8 @@ def prepare_inputs(*, base_cache, cache, stage, previous_date, as_of, reference_
 def refresh(*, as_of, code_commit, public_path, state_path, archive_dir, work_dir,
             base_cache, fetch_reference, fetch_bulk, runner=run_snapshot):
     original_public = public_path.read_bytes()
+    detail_path = public_path.parent/'cr056-factor-details.json.gz'
+    original_details = detail_path.read_bytes() if detail_path.exists() else None
     current = json.loads(original_public)
     changed = False
     try:
@@ -76,7 +79,8 @@ def refresh(*, as_of, code_commit, public_path, state_path, archive_dir, work_di
         if previous['as_of'] > as_of: raise ValueError('older_date_cannot_replace_watch_state')
         if previous['snapshot_fingerprint'] != current['source_snapshot'] or previous['as_of'] != current['as_of']:
             raise ValueError('public_watch_checkpoint_mismatch')
-        if previous['as_of'] == as_of:
+        policy_revision = current['policy_version'] != POLICY_VERSION
+        if previous['as_of'] == as_of and not policy_revision:
             current.update(automatic_updates_connected=True,
                            refresh_status={'status':'current', 'target_as_of':as_of})
             public_bytes = encoded(current); changed = public_bytes != original_public
@@ -102,7 +106,15 @@ def refresh(*, as_of, code_commit, public_path, state_path, archive_dir, work_di
             source, input_report = prepare_inputs(base_cache=base_cache, cache=cache, stage=stage,
                 previous_date=previous['as_of'], as_of=as_of, reference_sessions=sessions, fetch_bulk=bulk)
             report = runner(source, as_of=as_of, history={'days':[]}, code_commit=code_commit,
-                            input_report=input_report, previous=previous)
+                            input_report=input_report, previous=previous, **({"policy_revision":True} if policy_revision and previous["as_of"] == as_of else {}))
+            if policy_revision:
+                old_suffix = previous['snapshot_fingerprint'].split(':')[-1][:16]
+                for name, content in ((f"{previous['as_of']}-{old_suffix}-before-policy.json.gz", gzip.compress(original_public, mtime=0)),
+                                      (f"{previous['as_of']}-{old_suffix}-watch.json.gz", state_bytes)):
+                    path = archive_dir/name
+                    if path.exists() and path.read_bytes() != content: raise ValueError('old_policy_archive_conflict')
+                    if not path.exists(): replace_bytes(path, content)
+            details = gzip.compress(encoded(project_details(report)), mtime=0)
             public = project_report(report)
             public.update(automatic_updates_connected=True,
                           refresh_status={'status':'updated', 'target_as_of':as_of})
@@ -124,9 +136,12 @@ def refresh(*, as_of, code_commit, public_path, state_path, archive_dir, work_di
             try:
                 if not archive.exists(): replace_bytes(archive, archive_bytes)
                 replace_bytes(state_path, state_output)
+                replace_bytes(public_path.parent/'cr056-factor-details.json.gz', details)
                 replace_bytes(public_path, public_bytes)
             except OSError:
                 replace_bytes(state_path, state_bytes)
+                if original_details is not None: replace_bytes(detail_path, original_details)
+                elif detail_path.exists(): detail_path.unlink()
                 replace_bytes(public_path, original_public)
                 raise
             changed = True
@@ -134,7 +149,7 @@ def refresh(*, as_of, code_commit, public_path, state_path, archive_dir, work_di
             replacement = stage/'cache'; replacement.mkdir()
             shutil.move(str(source), replacement/'eodhd-cache')
             (replacement/'bulk').mkdir()
-            (replacement/'bulk'/f'{as_of}.json').write_bytes(encoded(fetched[as_of]))
+            if as_of in fetched: (replacement/'bulk'/f'{as_of}.json').write_bytes(encoded(fetched[as_of]))
             (replacement/'index.json').write_bytes(encoded(input_report))
             if cache.exists(): shutil.rmtree(cache)
             shutil.move(str(replacement), cache)

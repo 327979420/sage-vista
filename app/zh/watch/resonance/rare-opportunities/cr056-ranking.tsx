@@ -2,9 +2,9 @@
 import IndustryContext from "../../industry-radar/context";
 import {useEffect,useState} from "react";
 
-type Group={group:string;available:boolean;contribution:number;strengths:Record<string,number>;missing_factor_ids:string[]};
+type Group={timeframe:string;group:string;available:boolean;contribution:number;strengths:Record<string,number>;missing_factor_ids:string[]};
 type Row={symbol:string;rank:number|null;price:number|null;status:string;new_nomination:boolean;origin_date:string|null;total:number|null;coverage:number|null;frames:Record<string,number>|null;periods:{monthly:string;weekly:string}|null;high_score_eligible:boolean;reason_codes:string[];checks?:Record<string,{status:string;reason:string}>;groups?:Group[]};
-export type CandidateData={as_of:string;result_role:string;policy_version:string;source_snapshot:string;automatic_updates_connected:boolean;refresh_status?:{status:string;target_as_of:string;reason?:string};input_coverage:{repaired_count:number;excluded_count:number};counts:Record<string,number>;ranked_symbols:string[];selected_symbols:string[];new_nomination_symbols:string[];continuing_ranked_symbols:string[];factor_catalog:Record<string,{name:string;timeframe:string}>;reviews:Row[]};
+export type CandidateData={detail_path?:string;as_of:string;result_role:string;policy_version:string;source_snapshot:string;automatic_updates_connected:boolean;refresh_status?:{status:string;target_as_of:string;reason?:string};input_coverage:{repaired_count:number;excluded_count:number};counts:Record<string,number>;ranked_symbols:string[];selected_symbols:string[];new_nomination_symbols:string[];continuing_ranked_symbols:string[];factor_catalog:Record<string,{name:string;timeframe:string;role?:string;research_status?:string}>;reviews:Row[]};
 const frameNames:Record<string,string>={monthly_completed:"月线",weekly_completed:"周线",daily:"日线"};
 const reasons:Record<string,string>={
  monthly_not_confirmed:"月线方向未获许可（柱缩短、刚转负或改善未确认）",weekly_not_confirmed:"周线方向尚未确认",weekly_near_bear_cross:"周线正柱已接近死叉",monthly_high_zone:"月线价格或MACD处于高位区",near_observed_history_high:"接近已观测历史高点",no_pullback_60d:"相对前60日高点回调不足",structure_broken:"原支撑结构已破坏",no_available_background:"长期上涨或长期筑底背景未确认",no_initial_daily_cross:"没有首次提名所需的当日日线金叉",daily_tradability_not_met:"价格或成交额未达到可交易门槛",historical_adjustment_changed:"供应商复权历史已变化，待核对",empty_invalid_or_old_cache:"原缓存为空、无效或过旧",recent_session_missing:"近期交易日行情缺失",adjustment_anchor_missing:"缺少旧尾日复权核对锚点",completed_months_below_61:"不足61根完整月线",monthly_high_window_missing:"月线高位检验历史不足",daily_history_below_420:"不足420个日线交易会话",local_structure_unavailable:"支撑结构证据不足",source_history_unavailable:"缺少行情来源",
@@ -12,7 +12,42 @@ const reasons:Record<string,string>={
 };
 const explain=(code:string)=>reasons[code]??(code.startsWith("raw OHLC relationship")?"原始行情高低价关系异常":`数据检查未通过：${code}`);
 const statusName=(r:Row)=>r.rank?"允许入榜":r.status==="not_nominated"?"未触发新提名":r.status==="excluded"?"未获许可":"数据不足";
+const researchNames:Record<string,string>={candidate:"候选，未验证",rejected:"旧研究未通过",testing:"待验证",pending:"待研究",unstable:"结果不稳定",insufficient_sample:"样本不足",paused:"暂停",validated:"已验证"};
 const pct=(v:number|null)=>v===null?"—":`${(100*v).toFixed(1)}%`;
+
+type FactorDetail={factor_id:string;available:boolean;hit:boolean;recent_hit:boolean;bars_since_hit:number|null;latest_hit_date:string|null;runtime_status:string;score_role:string;completed_through:string;period_bar_count:number;minimum_bars:number;evidence?:{ratio?:number}};
+type DetailBundle={source_snapshot:string;reviews:Record<string,{groups:Group[];factors:FactorDetail[]}>};
+function PeriodFactors({data,symbol}:{data:CandidateData;symbol:string}){
+ const [bundle,setBundle]=useState<DetailBundle|null>(null);const [failed,setFailed]=useState(false);
+ useEffect(()=>{let active=true;
+  if(data.detail_path!=="/cr056-factor-details.json.gz")return;
+  fetch(data.detail_path,{cache:"no-store"}).then(async response=>{
+   if(!response.ok||!response.body)throw new Error("details unavailable");
+   const parsed=await new Response(response.body.pipeThrough(new DecompressionStream("gzip"))).json();
+   if(parsed.source_snapshot!==data.source_snapshot)throw new Error("snapshot mismatch");
+   if(active)setBundle(parsed);
+  }).catch(()=>{if(active)setFailed(true)});return()=>{active=false};
+ },[data.detail_path,data.source_snapshot]);
+ if(!data.detail_path)return null;
+ if(failed)return <p role="status">本次快照的分项暂不可用，请刷新；未混用其他版本证据。</p>;
+ if(!bundle)return <p role="status">正在读取月、周、日因子明细…</p>;
+ const detail=bundle.reviews[symbol];if(!detail)return <p>该股票尚未通过门票或数据检查，本次没有深度检测结果。</p>;
+ const strengths=Object.assign({},...detail.groups.map(g=>g.strengths));
+ return <div className="v2Ledger">{Object.entries(frameNames).map(([tf,name])=>{
+  const factors=detail.factors.filter(f=>data.factor_catalog[f.factor_id]?.timeframe===tf);
+  return <details key={tf} open={tf==="monthly_completed"}><summary>{name} · {factors.length}项检查 · {factors.filter(f=>f.available&&f.hit).length}项当前命中</summary>
+   <p>截至 {factors[0]?.completed_through??"—"}；窗口按{name}K线根数计算。近期命中保留发生日期。</p>
+   {detail.groups.filter(g=>g.timeframe===tf&&g.contribution>0).map(g=><p key={g.group}>证据组：{Object.keys(g.strengths).map(id=>data.factor_catalog[id]?.name).join("／")} · 原始贡献 {g.contribution.toFixed(2)}</p>)}
+   {factors.map(f=>{const meta=data.factor_catalog[f.factor_id];
+    const state=!f.available?(f.runtime_status==="definition_required"?"未实现，不计分":`数据不足：需${f.minimum_bars}根，现有${f.period_bar_count}根`):
+     f.score_role==="risk"?(f.hit?"风险命中，单独参考":"未命中风险"):
+     f.score_role==="ticket"||f.score_role==="qualification"?(f.hit?"条件满足，不重复加分":"条件未满足，不计分"):
+     strengths[f.factor_id]>0?(f.hit?"命中":"近期命中"):
+     f.hit||f.recent_hit?"检测命中，依赖或去重后未计入":"未命中";
+    return <p key={f.factor_id}><i>{f.available&&f.hit?"✓":"○"}</i><span>{meta?.name??f.factor_id}<small>{f.latest_hit_date?`最近命中 ${f.latest_hit_date} · `:""}{meta?.research_status?`原研究：${researchNames[meta.research_status]??meta.research_status}`:""}{typeof f.evidence?.ratio==="number"?` · 成交量比 ${f.evidence.ratio.toFixed(2)}`:""}</small></span><b>{state}</b></p>})}
+  </details>
+ })}</div>
+}
 
 export function CandidateView({data,latestDate,initialQuery=""}:{data:CandidateData;latestDate?:string;initialQuery?:string}){
  const [mode,setMode]=useState("all");const [query,setQuery]=useState(initialQuery);const [symbol,setSymbol]=useState(initialQuery);
@@ -33,7 +68,7 @@ export function CandidateView({data,latestDate,initialQuery=""}:{data:CandidateD
   <div className="replayCoverage" role="status"><mark>{stale?`更新落后：已有 ${latestDate} 行情，本榜仍为 ${data.as_of}`:"已核验快照"}</mark><span>{data.automatic_updates_connected?"随现有日终流程自动复评":"新榜自动日更尚未接通"}</span>{data.refresh_status?.status==="failed"&&<mark>{data.refresh_status.target_as_of} 自动复评未完成，保留 {data.as_of} 榜单</mark>}<span>行情可用 {data.input_coverage.repaired_count}只／来源排除 {data.input_coverage.excluded_count}只</span></div>
   <p>候选策略仅供人工复核，尚未验证收益。月→周→日先判断许可，再按各周期固定满分归一、3∶2∶1加权。失格退出当前排名，原提名继续保留。股票身份来自旧缓存观察池，覆盖不等于完整市场。</p>
   <section className="researchReplay">
-   <header><div><small>月定方向 · 周确认 · 日择时</small><h2>多因子候选排行榜</h2><p>先看前5只，再点击股票核对分项；“优先复核”不表示达到警报线。</p></div></header>
+   <header><div><small>月定方向 · 周确认 · 日择时</small><h2>多因子候选排行榜</h2><p>{data.detail_path?"同一套适用因子分别检测月、周、日；点击股票查看命中、缺数据和未实现项。":"点击股票核对当前版本分项。"}“优先复核”不表示达到警报线。</p></div></header>
    <div className="archiveLoadBar"><label>查看 <select aria-label="候选范围" value={mode} onChange={e=>{setMode(e.target.value);setQuery("")}}><option value="all">全部合格榜</option><option value="new">当日新提名</option><option value="continuing">持续观察</option><option value="excluded">未入榜及数据不足</option></select></label><label>股票代码 <input aria-label="查找股票" value={query} onChange={e=>setQuery(e.target.value.trim())} placeholder="例如 DHR、SAIA"/></label></div>
    {visible.length?<div className="replayTable"><div className="v2RankRow replayHead"><span>股票／排名</span><span>总分</span><span>月／周／日</span><span>覆盖</span><span>当前状态</span><span>入选或排除原因</span></div>{visible.map(r=><button type="button" className={`v2RankRow ${selected?.symbol===r.symbol?"isSelected":""}`} key={r.symbol} onClick={()=>setSymbol(r.symbol)}><b>{r.rank?`#${r.rank} · `:""}{r.symbol}{data.selected_symbols.includes(r.symbol)&&<mark>优先复核</mark>}<small>{r.price===null?"价格不可用":`$${r.price}`}</small></b><strong>{r.total?.toFixed(2)??"—"}</strong><span>{r.frames?(["monthly_completed","weekly_completed","daily"].map(tf=>(r.frames![tf]*100).toFixed(1)).join(" / ")):"—"}</span><span>{pct(r.coverage)}</span><span>{statusName(r)}<small>{r.new_nomination?"当日新提名":r.origin_date?`原提名 ${r.origin_date}`:"尚无提名"}</small></span><span>{r.reason_codes.length?r.reason_codes.map(explain).join("；"):r.rank?"月周方向、回调与背景许可通过":"请核对计分覆盖与当前状态"}</span></button>)}</div>:<div className="rareEmpty"><b>{mode==="new"&&!query?"当日没有合格新提名":"没有匹配股票"}</b><p>{mode==="new"&&!query?"计算已完成；可切换持续观察查看旧提名的最新复评。":"可切换范围或修改股票代码。"}</p></div>}
    {filtered.length>50&&<p>共 {filtered.length}只，当前显示前50只；输入股票代码可缩小范围。</p>}
@@ -42,6 +77,7 @@ export function CandidateView({data,latestDate,initialQuery=""}:{data:CandidateD
     {selected.frames&&<div className="v2Equation">{Object.entries(frameNames).map(([tf,name])=><span key={tf}>{name}<b>{(selected.frames![tf]*100).toFixed(1)}</b></span>)}</div>}
     <p>{selected.reason_codes.length?selected.reason_codes.map(explain).join("；"):selected.rank?"所有必要方向与位置许可均已通过。":"当前未获准入榜，请核对计分覆盖与状态。"}</p>
     {selected.checks&&<ul>{Object.entries(selected.checks).map(([key,c])=><li key={key}>{explain(c.reason)}</li>)}</ul>}
+    <PeriodFactors key={data.source_snapshot} data={data} symbol={selected.symbol}/>
     {selected.groups&&<div className="v2Ledger">{selected.groups.map(g=><section key={g.group}><h4>证据组贡献 {g.contribution.toFixed(2)}{!g.available&&" · 数据不足"}</h4>{Object.entries(g.strengths).map(([fid,q])=><p key={fid}><i>{q>0?"✓":"○"}</i><span>{data.factor_catalog[fid]?.name??fid}<small>{frameNames[data.factor_catalog[fid]?.timeframe]} · 候选因子</small></span><b>{g.missing_factor_ids.includes(fid)?"不可用":q===1?"命中":q>0?"较弱／近期":"未计入"}</b></p>)}</section>)}</div>}
     <p>同组证据封顶，父子确认与家族上限已在后台计入；周线正柱缩短时周分乘0.75。分项不是收益概率，当前新榜未生成交易计划。</p>
    </article>}

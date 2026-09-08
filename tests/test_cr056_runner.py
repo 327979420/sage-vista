@@ -86,10 +86,10 @@ class RunnerTests(unittest.TestCase):
         f = facts()
         f['monthly']['completed_through'] = '2026-08-31'
         f['weekly']['completed_through'] = '2026-09-04'
-        objects = [SimpleNamespace(dict=lambda s=s: s) for s in states()]
+        objects = states()
         with patch('services.scanner.cr056_runner.exact_daily_macd_bull_cross', side_effect=[False, True, False]), \
              patch('services.scanner.cr056_runner.collect_direction_facts', return_value=f), \
-             patch('services.scanner.cr056_runner.evaluate_all_factors', return_value=objects):
+             patch('services.scanner.cr056_runner.evaluate_period_factors', return_value=objects):
             result = self.run_report()
         self.assertEqual(result['continuing_ranked_symbols'], ['AAA'])
         self.assertEqual(result['new_nomination_symbols'], ['NEW'])

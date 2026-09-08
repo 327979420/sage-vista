@@ -17,7 +17,7 @@ from services.factors.cr056 import collect_direction_facts
 from services.selectors.cr056 import assess_permission
 from services.ranking.cr056 import score_candidate
 from services.ledger.cr056 import review_watch
-from services.scanner.factor_detectors import evaluate_all_factors
+from services.scanner.factor_detectors import evaluate_period_factors
 from services.scanner.cr056_inputs import normalized_comparison_rows
 
 
@@ -34,7 +34,7 @@ def historical_origins(history, *, as_of):
     return result
 
 
-def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previous=None):
+def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previous=None, policy_revision=False):
     if input_report.get('as_of') != as_of or input_report.get('result_role') != 'legacy_comparison_input_repair':
         raise ValueError('repaired input report date or role mismatch')
     if previous and (previous.get('result_role') != 'legacy_comparison' or previous['as_of'] > as_of):
@@ -84,7 +84,7 @@ def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previo
             if missing is not None: raise ValueError(missing)
             facts = collect_direction_facts(rows, as_of=as_of, complete_session=True)
             permission = assess_permission(facts)
-            states = [s.dict() for s in evaluate_all_factors(rows, as_of, complete_session=True)]
+            states = evaluate_period_factors(rows, as_of, complete_session=True)
             score = score_candidate(states, permission)
             item.update({'status': score['score_status'], 'price': rows[-1]['close'], 'permission': permission,
                 'score': score, 'factor_states': states, 'reason_codes': score['reason_codes'],
@@ -96,9 +96,11 @@ def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previo
                     'original_score': score, 'record_fingerprint': score['score_fingerprint']}
                 item['new_nomination'] = True
             item['origin'] = origins.get(symbol)
+            if item['origin'] and item['origin'].get('kind') == 'candidate_initial_nomination' and item['origin']['date'] == as_of and score['total_score'] is not None:
+                item['new_nomination'] = True
             if item['origin']:
                 item['watch'] = review_watch(symbol=symbol, as_of=as_of, origin=item['origin'], score=score,
-                    previous=prior.get(symbol), reference_sessions=reference_sessions)
+                    previous=prior.get(symbol), reference_sessions=reference_sessions, policy_revision=policy_revision)
         except (ValueError, TypeError, KeyError, OSError, ZeroDivisionError) as error:
             if str(error) == 'same-day watch content conflict':
                 raise
@@ -110,7 +112,7 @@ def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previo
                 fallback = {'total_score': None, 'permission': 'blocked' if missing else 'unavailable',
                     'high_score_eligible': False, 'reason_codes': [reason]}
                 item['watch'] = review_watch(symbol=symbol, as_of=as_of, origin=item['origin'], score=fallback,
-                    previous=prior.get(symbol), reference_sessions=reference_sessions)
+                    previous=prior.get(symbol), reference_sessions=reference_sessions, policy_revision=policy_revision)
         counts[item['status']] += 1
         reviews.append(item)
     ranked = [r for r in reviews if r.get('score', {}).get('total_score') is not None]
