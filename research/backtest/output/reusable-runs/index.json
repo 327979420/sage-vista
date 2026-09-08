@@ -1,4 +1,26 @@
 {
-  "runs": [],
+  "runs": [
+    {
+      "code_commit": "025a961ede0afc28681d028efca2f84b34b91e91",
+      "content_sha256": "e9b4b733397704521a82536845a712ecebf32b351f23e90028c55883c8c5370b",
+      "id": "34207678805-1",
+      "receipt_sha256": "f6365c3e2b38823eef0476c9f3fe29bd6479bc9821dfca14acc0381674e680df",
+      "request": {
+        "end": "2026-02-27",
+        "start": "2026-02-02",
+        "strategy": "support-5pct-cap-10pct-2r-v1"
+      },
+      "status": "completed",
+      "summary": {
+        "daily_sessions": 19,
+        "ending_equity": 102921.85562883617,
+        "initial_cash": 100000,
+        "max_drawdown": -0.03823241329293414,
+        "quantstats_version": "0.0.81",
+        "total_return": 0.029218556288361563,
+        "win_rate": 0.42857142857142855
+      }
+    }
+  ],
   "schema_version": "legacy-research-index-v1"
 }
