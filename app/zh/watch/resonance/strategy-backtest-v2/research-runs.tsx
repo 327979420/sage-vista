@@ -1,0 +1,64 @@
+"use client";
+import {useEffect, useState} from "react";
+
+export const RESULTS_ROOT = "https://raw.githubusercontent.com/327979420/sage-vista/main/research/backtest/output/reusable-runs/";
+type Run = {id:string; status:"completed"|"unavailable"|"failed"; request:{strategy?:string;start?:string;end?:string}; summary:Record<string,number|null>; receipt_sha256:string};
+type Receipt = Run & {reason?:string; report?:{path:string;sha256:string}};
+const validId = (id:string) => /^[1-9][0-9]{0,19}-[1-9][0-9]{0,5}$/.test(id);
+const fingerprint = (s:string) => /^[0-9a-f]{64}$/.test(s);
+const statusLabel = {completed:"已完成",unavailable:"来源不可用",failed:"运行失败"};
+const percent = (n:number|null|undefined) => n == null ? "不可用" : `${(n*100).toFixed(2)}%`;
+
+export function checkedIndex(data:unknown):Run[]{
+ const value=data as {schema_version?:string;runs?:Run[]};
+ if(value?.schema_version!=="legacy-research-index-v1" || !Array.isArray(value.runs)) throw Error("结果索引格式不符");
+ if(value.runs.some(r=>!validId(r.id)||!fingerprint(r.receipt_sha256)||!Object.hasOwn(statusLabel,r.status)||!r.request||!r.summary)) throw Error("结果索引内容不符");
+ return value.runs;
+}
+
+async function fetchText(path:string,signal:AbortSignal){
+ const response=await fetch(RESULTS_ROOT+path,{cache:"no-store",signal,credentials:"omit"});
+ if(!response.ok) throw Error(`读取结果失败（${response.status}），请稍后刷新。`);
+ return response.text();
+}
+async function hash(text:string){
+ return Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(text)))).map(n=>n.toString(16).padStart(2,"0")).join("");
+}
+
+export function ResearchRunList({runs,onSelect,selected}:{runs:Run[];onSelect:(id:string)=>void;selected:string}){
+ return <section className="svPanel"><h2>历史研究运行</h2>{!runs.length?<p>还没有已保存的研究运行。下方保留早期20笔工程对账。</p>:<div className="tradeComparisonTable"><table><thead><tr><th>运行／日期</th><th>状态</th><th>账户收益</th><th>最大回撤</th><th>已平仓胜率</th></tr></thead><tbody>{runs.map(r=><tr key={r.id} data-selected={r.id===selected}><td><button onClick={()=>onSelect(r.id)}>{r.request.start} 至 {r.request.end}</button><small>#{r.id}</small></td><td>{statusLabel[r.status]}</td><td>{percent(r.summary.total_return)}</td><td>{percent(r.summary.max_drawdown)}</td><td>{percent(r.summary.win_rate)}</td></tr>)}</tbody></table></div>}</section>;
+}
+
+export default function ResearchRuns(){
+ const [runs,setRuns]=useState<Run[]>([]),[selected,setSelected]=useState(""),[html,setHtml]=useState(""),[receipt,setReceipt]=useState<Receipt|null>(null),[error,setError]=useState(""),[loading,setLoading]=useState(true),[refresh,setRefresh]=useState(0);
+ useEffect(()=>{
+  const controller=new AbortController();
+  fetchText("index.json",controller.signal).then(JSON.parse).then(checkedIndex).then(values=>{setRuns(values);setSelected(old=>values.some(r=>r.id===old)?old:values[0]?.id??"");setError("");setLoading(false)}).catch(e=>{if(!controller.signal.aborted){setError(String(e.message));setLoading(false)}});
+  return()=>controller.abort();
+ },[refresh]);
+ useEffect(()=>{
+  const run=runs.find(r=>r.id===selected);if(!run)return;
+  const controller=new AbortController();
+  (async()=>{
+   const raw=await fetchText(run.id+"/receipt.json",controller.signal);
+   if(await hash(raw)!==run.receipt_sha256)throw Error("收据校验失败，请等待索引更新后刷新。");
+   const value:Receipt=JSON.parse(raw);
+   if(value.id!==run.id||value.status!==run.status)throw Error("运行身份不一致");
+   let report="";
+   if(value.report){
+    if(value.status!=="completed"||value.report.path!==run.id+"/report.html"||!fingerprint(value.report.sha256))throw Error("报告引用不符");
+    report=await fetchText(value.report.path,controller.signal);
+    if(await hash(report)!==value.report.sha256)throw Error("报告校验失败，请稍后刷新。");
+   }
+   if(!controller.signal.aborted){setReceipt(value);setHtml(report);setError("")}
+  })().catch(e=>{if(!controller.signal.aborted){setReceipt(null);setHtml("");setError(String(e.message))}});
+  return()=>controller.abort();
+ },[selected,runs]);
+ const choose=(id:string)=>{setHtml("");setReceipt(null);setSelected(id)};
+ return <div className="tradeComparison">
+  <header className="svPanel"><small>VectorBT＋QuantStats · 旧规则研究场景</small><h2>历史研究结果</h2><p>账户回测待确认资金、仓位和费用参数，暂未开放提交。确认并接通作业后，将在 GitHub 登录后的表单选择策略和日期；这里只读已保存报告。</p><p><button disabled>账户运行待参数确认</button> · <button onClick={()=>{setLoading(true);setRefresh(v=>v+1)}}>刷新已保存结果</button></p><p>永久结果直接从仓库读取，无需每次重新部署；公开内容可能有几分钟缓存延迟。来源缺失和失败也保留，不作为零收益。研究假设不代表生产策略已获批准。</p></header>
+  {loading&&<p role="status">正在读取历史运行…</p>}{error&&<p role="alert">{error}</p>}
+  <ResearchRunList runs={runs} onSelect={choose} selected={selected}/>
+  {receipt&&<section className="svPanel"><h3>运行 #{receipt.id} · {statusLabel[receipt.status]}</h3>{receipt.reason&&<p>{receipt.reason}</p>}<p><a href={RESULTS_ROOT+receipt.id+"/receipt.json"} target="_blank" rel="noreferrer">下载本次收据与逐笔结果</a></p>{html&&<iframe key={receipt.id} title="QuantStats账户报告与交易明细" sandbox="" referrerPolicy="no-referrer" srcDoc={'<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'; img-src data:; font-src data:; base-uri \'none\'; form-action \'none\'">'+html} style={{width:"100%",height:"1100px",border:0}}/>}</section>}
+ </div>;
+}

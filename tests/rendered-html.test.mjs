@@ -112,9 +112,9 @@ test("multi-factor route renders the candidate snapshot boundary and optional le
 });
 
 
-test("renders the authorized fixed-sample comparison entry without restoring the experiment archive", async()=>{
+test("renders research history with pending account entry and retained comparison", async()=>{
   const response=await render("/zh/watch/resonance/strategy-backtest-v2");
   assert.equal(response.status,200);
   const html=await response.text();
-  assert.match(html,/逐笔成交对账/);assert.match(html,/不改变生产策略/);
+  assert.match(html,/策略回测与历史结果/);assert.match(html,/账户运行待参数确认/);assert.match(html,/早期20笔成交工程对账/);
 });
