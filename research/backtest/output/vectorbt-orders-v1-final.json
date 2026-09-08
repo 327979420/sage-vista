@@ -1,0 +1,4068 @@
+{
+  "schema_version": "1.0.0",
+  "result_role": "comparison",
+  "data_path": "legacy",
+  "scope": "frozen_order_accounting_and_optional_old_policy_replay",
+  "source": {
+    "path": "public/opportunity-ledger.json",
+    "sha256": "a50d74f621a0ba17f278d6c18cc06f2c42cc5d5949d65b21025239683365189f",
+    "as_of": "2026-09-04",
+    "git_commit": "03c18cb68c33aa8720ecac2d582f27aa13ba87d9"
+  },
+  "input_sha256": "72fa4eb9699a8042ae4d1a2d301e52cf12f08289810364e9c0fb7c4467cb1d95",
+  "selection": {
+    "sort_keys": [
+      "signal_date",
+      "event_id"
+    ],
+    "count": 20,
+    "filter_policy": "support-5pct-cap-10pct-2r-v1",
+    "filter_by_outcome": false,
+    "total_events": 4512,
+    "eligible_policy_count": 2129,
+    "excluded_other_or_missing_policy": 2383,
+    "outside_fixed_limit": 2109
+  },
+  "assumptions": {
+    "quantity_per_trade": 1,
+    "fees": 0,
+    "slippage": 0,
+    "actual_quantity_available": false,
+    "actual_fees_available": false,
+    "capital_allocation": "independent_unit_trade_not_portfolio"
+  },
+  "engine": {
+    "name": "vectorbt",
+    "version": "1.1.0",
+    "adapter_sha256": "b59f7cda99147f46a465d071c54302e2f83c3085f4a82fc7b0242d0f3347b357"
+  },
+  "cache_key": null,
+  "events": [
+    {
+      "event_id": "V2-ALL-2025-12-29",
+      "symbol": "ALL",
+      "signal_date": "2025-12-29",
+      "source_event_sha256": "4092084d2b8f5939639aae8d7727dcef963cad653dda69c01b9d82cd14262892",
+      "policy_version": "support-5pct-cap-10pct-2r-v1",
+      "entry_date": "2025-12-30",
+      "entry_price": 207.07577,
+      "baseline": {
+        "executable": true,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "entry": 207.07577,
+        "support_level": 205.173,
+        "support_source": "EMA21",
+        "structural_stop": 194.91435,
+        "max_loss_stop": 186.368193,
+        "stop": 194.91435,
+        "stop_source": "EMA21",
+        "risk_pct": 0.05872932,
+        "target_r": 2.0,
+        "target": 231.39861,
+        "max_hold_sessions": 40,
+        "status": "resolved",
+        "exit_date": "2026-01-14",
+        "exit_price": 194.91435,
+        "exit_reason": "stop",
+        "holding_sessions": 11,
+        "return": -0.05872932,
+        "r_multiple": -1.0
+      },
+      "accounting": {
+        "status": "match",
+        "checks": [
+          {
+            "field": "entry_price",
+            "expected": 207.07577,
+            "actual": 207.07577,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_price",
+            "expected": 194.91435,
+            "actual": 194.91435,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "entry_slot",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_slot",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "closed_status",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "quantity",
+            "expected": 1.0,
+            "actual": 1.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "unit_trade_assumption"
+          },
+          {
+            "field": "entry_order_side",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_order_side",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "gross_return",
+            "expected": -0.05872932,
+            "actual": -0.058729324053702625,
+            "delta": -4.053702625e-09,
+            "source_decimal_places": 8,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "fees",
+            "expected": 0.0,
+            "actual": 0.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "net_return_zero_cost_scenario",
+            "expected": -0.05872932,
+            "actual": -0.058729324053702625,
+            "delta": -4.053702625e-09,
+            "source_decimal_places": 8,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "unit_pnl",
+            "expected": -12.161419999999993,
+            "actual": -12.161419999999993,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "derived_from_frozen_fills"
+          },
+          {
+            "field": "r_multiple",
+            "expected": -1.0,
+            "actual": -1.0,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "sage_derived_using_frozen_risk_not_vectorbt_metric"
+          }
+        ],
+        "engine_trade": {
+          "id": 0,
+          "col": 0,
+          "size": 1.0,
+          "entry_idx": 0,
+          "entry_price": 207.07577,
+          "entry_fees": 0.0,
+          "exit_idx": 1,
+          "exit_price": 194.91435,
+          "exit_fees": 0.0,
+          "pnl": -12.161419999999993,
+          "return": -0.058729324053702625,
+          "direction": 0,
+          "status": 1,
+          "parent_id": 0
+        },
+        "engine_orders": [
+          {
+            "id": 0,
+            "col": 0,
+            "idx": 0,
+            "size": 1.0,
+            "price": 207.07577,
+            "fees": 0.0,
+            "side": 0
+          },
+          {
+            "id": 1,
+            "col": 0,
+            "idx": 1,
+            "size": 1.0,
+            "price": 194.91435,
+            "fees": 0.0,
+            "side": 1
+          }
+        ],
+        "actual_fees": null,
+        "actual_quantity": null,
+        "actual_net_return": null,
+        "mfe": null,
+        "mae": null,
+        "path_validation": "not_performed_by_vectorbt"
+      },
+      "cache_replay": {
+        "status": "unavailable",
+        "reason": "cache_not_restored_locally",
+        "checks": []
+      }
+    },
+    {
+      "event_id": "V2-ALNY-2025-12-29",
+      "symbol": "ALNY",
+      "signal_date": "2025-12-29",
+      "source_event_sha256": "278c45834e243d880b19436c9668f8fde8091c984a8d20fad86a822385428fa9",
+      "policy_version": "support-5pct-cap-10pct-2r-v1",
+      "entry_date": "2025-12-30",
+      "entry_price": 394.81,
+      "baseline": {
+        "executable": true,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "entry": 394.81,
+        "support_level": 395.05,
+        "support_source": "confirmed-swing-low",
+        "structural_stop": 375.2975,
+        "max_loss_stop": 355.329,
+        "stop": 375.2975,
+        "stop_source": "confirmed-swing-low",
+        "risk_pct": 0.04942251,
+        "target_r": 2.0,
+        "target": 433.835,
+        "max_hold_sessions": 40,
+        "status": "resolved",
+        "exit_date": "2026-01-12",
+        "exit_price": 375.2975,
+        "exit_reason": "stop",
+        "holding_sessions": 9,
+        "return": -0.04942251,
+        "r_multiple": -1.0
+      },
+      "accounting": {
+        "status": "match",
+        "checks": [
+          {
+            "field": "entry_price",
+            "expected": 394.81,
+            "actual": 394.81,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_price",
+            "expected": 375.2975,
+            "actual": 375.2975,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "entry_slot",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_slot",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "closed_status",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "quantity",
+            "expected": 1.0,
+            "actual": 1.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "unit_trade_assumption"
+          },
+          {
+            "field": "entry_order_side",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_order_side",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "gross_return",
+            "expected": -0.04942251,
+            "actual": -0.04942250702869732,
+            "delta": 2.97130268e-09,
+            "source_decimal_places": 8,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "fees",
+            "expected": 0.0,
+            "actual": 0.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "net_return_zero_cost_scenario",
+            "expected": -0.04942251,
+            "actual": -0.04942250702869732,
+            "delta": 2.97130268e-09,
+            "source_decimal_places": 8,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "unit_pnl",
+            "expected": -19.51249999999999,
+            "actual": -19.51249999999999,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "derived_from_frozen_fills"
+          },
+          {
+            "field": "r_multiple",
+            "expected": -1.0,
+            "actual": -1.0,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "sage_derived_using_frozen_risk_not_vectorbt_metric"
+          }
+        ],
+        "engine_trade": {
+          "id": 0,
+          "col": 0,
+          "size": 1.0,
+          "entry_idx": 0,
+          "entry_price": 394.81,
+          "entry_fees": 0.0,
+          "exit_idx": 1,
+          "exit_price": 375.2975,
+          "exit_fees": 0.0,
+          "pnl": -19.51249999999999,
+          "return": -0.04942250702869732,
+          "direction": 0,
+          "status": 1,
+          "parent_id": 0
+        },
+        "engine_orders": [
+          {
+            "id": 0,
+            "col": 0,
+            "idx": 0,
+            "size": 1.0,
+            "price": 394.81,
+            "fees": 0.0,
+            "side": 0
+          },
+          {
+            "id": 1,
+            "col": 0,
+            "idx": 1,
+            "size": 1.0,
+            "price": 375.2975,
+            "fees": 0.0,
+            "side": 1
+          }
+        ],
+        "actual_fees": null,
+        "actual_quantity": null,
+        "actual_net_return": null,
+        "mfe": null,
+        "mae": null,
+        "path_validation": "not_performed_by_vectorbt"
+      },
+      "cache_replay": {
+        "status": "unavailable",
+        "reason": "cache_not_restored_locally",
+        "checks": []
+      }
+    },
+    {
+      "event_id": "V2-AZO-2025-12-29",
+      "symbol": "AZO",
+      "signal_date": "2025-12-29",
+      "source_event_sha256": "902f140939861a42a2cb1e8bccc54b4a2e35d9359196b95e58ab31d9acf966ad",
+      "policy_version": "support-5pct-cap-10pct-2r-v1",
+      "entry_date": "2025-12-30",
+      "entry_price": 3405.0,
+      "baseline": {
+        "executable": true,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "entry": 3405.0,
+        "support_level": 3344.04,
+        "support_source": "prior-20D-low",
+        "structural_stop": 3176.838,
+        "max_loss_stop": 3064.5,
+        "stop": 3176.838,
+        "stop_source": "prior-20D-low",
+        "risk_pct": 0.06700793,
+        "target_r": 2.0,
+        "target": 3861.324,
+        "max_hold_sessions": 40,
+        "status": "resolved",
+        "exit_date": "2026-02-13",
+        "exit_price": 3861.324,
+        "exit_reason": "target",
+        "holding_sessions": 32,
+        "return": 0.13401586,
+        "r_multiple": 2.0
+      },
+      "accounting": {
+        "status": "match",
+        "checks": [
+          {
+            "field": "entry_price",
+            "expected": 3405.0,
+            "actual": 3405.0,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_price",
+            "expected": 3861.324,
+            "actual": 3861.324,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "entry_slot",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_slot",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "closed_status",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "quantity",
+            "expected": 1.0,
+            "actual": 1.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "unit_trade_assumption"
+          },
+          {
+            "field": "entry_order_side",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_order_side",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "gross_return",
+            "expected": 0.13401586,
+            "actual": 0.13401585903083701,
+            "delta": -9.6916299e-10,
+            "source_decimal_places": 8,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "fees",
+            "expected": 0.0,
+            "actual": 0.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "net_return_zero_cost_scenario",
+            "expected": 0.13401586,
+            "actual": 0.13401585903083701,
+            "delta": -9.6916299e-10,
+            "source_decimal_places": 8,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "unit_pnl",
+            "expected": 456.32400000000007,
+            "actual": 456.32400000000007,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "derived_from_frozen_fills"
+          },
+          {
+            "field": "r_multiple",
+            "expected": 2.0,
+            "actual": 2.0000000000000018,
+            "delta": 1.8e-15,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "sage_derived_using_frozen_risk_not_vectorbt_metric"
+          }
+        ],
+        "engine_trade": {
+          "id": 0,
+          "col": 0,
+          "size": 1.0,
+          "entry_idx": 0,
+          "entry_price": 3405.0,
+          "entry_fees": 0.0,
+          "exit_idx": 1,
+          "exit_price": 3861.324,
+          "exit_fees": 0.0,
+          "pnl": 456.32400000000007,
+          "return": 0.13401585903083701,
+          "direction": 0,
+          "status": 1,
+          "parent_id": 0
+        },
+        "engine_orders": [
+          {
+            "id": 0,
+            "col": 0,
+            "idx": 0,
+            "size": 1.0,
+            "price": 3405.0,
+            "fees": 0.0,
+            "side": 0
+          },
+          {
+            "id": 1,
+            "col": 0,
+            "idx": 1,
+            "size": 1.0,
+            "price": 3861.324,
+            "fees": 0.0,
+            "side": 1
+          }
+        ],
+        "actual_fees": null,
+        "actual_quantity": null,
+        "actual_net_return": null,
+        "mfe": null,
+        "mae": null,
+        "path_validation": "not_performed_by_vectorbt"
+      },
+      "cache_replay": {
+        "status": "unavailable",
+        "reason": "cache_not_restored_locally",
+        "checks": []
+      }
+    },
+    {
+      "event_id": "V2-BOX-2025-12-29",
+      "symbol": "BOX",
+      "signal_date": "2025-12-29",
+      "source_event_sha256": "257eb8f2e438c23247d8119838c4159f718c980ee9cd767490d79e434707c68b",
+      "policy_version": "support-5pct-cap-10pct-2r-v1",
+      "entry_date": "2025-12-30",
+      "entry_price": 30.45,
+      "baseline": {
+        "executable": true,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "entry": 30.45,
+        "support_level": 30.3779,
+        "support_source": "EMA21",
+        "structural_stop": 28.859005,
+        "max_loss_stop": 27.405,
+        "stop": 28.859005,
+        "stop_source": "EMA21",
+        "risk_pct": 0.05224943,
+        "target_r": 2.0,
+        "target": 33.63199,
+        "max_hold_sessions": 40,
+        "status": "resolved",
+        "exit_date": "2026-01-02",
+        "exit_price": 28.859005,
+        "exit_reason": "stop",
+        "holding_sessions": 3,
+        "return": -0.05224943,
+        "r_multiple": -1.0
+      },
+      "accounting": {
+        "status": "match",
+        "checks": [
+          {
+            "field": "entry_price",
+            "expected": 30.45,
+            "actual": 30.45,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_price",
+            "expected": 28.859005,
+            "actual": 28.859005,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "entry_slot",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_slot",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "closed_status",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "quantity",
+            "expected": 1.0,
+            "actual": 1.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "unit_trade_assumption"
+          },
+          {
+            "field": "entry_order_side",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_order_side",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "gross_return",
+            "expected": -0.05224943,
+            "actual": -0.05224942528735631,
+            "delta": 4.71264369e-09,
+            "source_decimal_places": 8,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "fees",
+            "expected": 0.0,
+            "actual": 0.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "net_return_zero_cost_scenario",
+            "expected": -0.05224943,
+            "actual": -0.05224942528735631,
+            "delta": 4.71264369e-09,
+            "source_decimal_places": 8,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "unit_pnl",
+            "expected": -1.5909949999999995,
+            "actual": -1.5909949999999995,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "derived_from_frozen_fills"
+          },
+          {
+            "field": "r_multiple",
+            "expected": -1.0,
+            "actual": -1.0,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "sage_derived_using_frozen_risk_not_vectorbt_metric"
+          }
+        ],
+        "engine_trade": {
+          "id": 0,
+          "col": 0,
+          "size": 1.0,
+          "entry_idx": 0,
+          "entry_price": 30.45,
+          "entry_fees": 0.0,
+          "exit_idx": 1,
+          "exit_price": 28.859005,
+          "exit_fees": 0.0,
+          "pnl": -1.5909949999999995,
+          "return": -0.05224942528735631,
+          "direction": 0,
+          "status": 1,
+          "parent_id": 0
+        },
+        "engine_orders": [
+          {
+            "id": 0,
+            "col": 0,
+            "idx": 0,
+            "size": 1.0,
+            "price": 30.45,
+            "fees": 0.0,
+            "side": 0
+          },
+          {
+            "id": 1,
+            "col": 0,
+            "idx": 1,
+            "size": 1.0,
+            "price": 28.859005,
+            "fees": 0.0,
+            "side": 1
+          }
+        ],
+        "actual_fees": null,
+        "actual_quantity": null,
+        "actual_net_return": null,
+        "mfe": null,
+        "mae": null,
+        "path_validation": "not_performed_by_vectorbt"
+      },
+      "cache_replay": {
+        "status": "unavailable",
+        "reason": "cache_not_restored_locally",
+        "checks": []
+      }
+    },
+    {
+      "event_id": "V2-CMS-2025-12-29",
+      "symbol": "CMS",
+      "signal_date": "2025-12-29",
+      "source_event_sha256": "c15c73e29e2fb02cbba52d64219855f4e03ded09277e7117e91b82f5b746ae5e",
+      "policy_version": "support-5pct-cap-10pct-2r-v1",
+      "entry_date": "2025-12-30",
+      "entry_price": 68.646674,
+      "baseline": {
+        "executable": true,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "entry": 68.646674,
+        "support_level": 67.2397,
+        "support_source": "prior-20D-low",
+        "structural_stop": 63.877715,
+        "max_loss_stop": 61.782007,
+        "stop": 63.877715,
+        "stop_source": "prior-20D-low",
+        "risk_pct": 0.06947109,
+        "target_r": 2.0,
+        "target": 78.184592,
+        "max_hold_sessions": 40,
+        "status": "resolved",
+        "exit_date": "2026-02-26",
+        "exit_price": 75.8441,
+        "exit_reason": "time_40d",
+        "holding_sessions": 40,
+        "return": 0.10484741,
+        "r_multiple": 1.509224
+      },
+      "accounting": {
+        "status": "match",
+        "checks": [
+          {
+            "field": "entry_price",
+            "expected": 68.646674,
+            "actual": 68.646674,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_price",
+            "expected": 75.8441,
+            "actual": 75.8441,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "entry_slot",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_slot",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "closed_status",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "quantity",
+            "expected": 1.0,
+            "actual": 1.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "unit_trade_assumption"
+          },
+          {
+            "field": "entry_order_side",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_order_side",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "gross_return",
+            "expected": 0.10484741,
+            "actual": 0.10484741037854205,
+            "delta": 3.7854205e-10,
+            "source_decimal_places": 8,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "fees",
+            "expected": 0.0,
+            "actual": 0.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "net_return_zero_cost_scenario",
+            "expected": 0.10484741,
+            "actual": 0.10484741037854205,
+            "delta": 3.7854205e-10,
+            "source_decimal_places": 8,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "unit_pnl",
+            "expected": 7.197425999999993,
+            "actual": 7.197425999999993,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "derived_from_frozen_fills"
+          },
+          {
+            "field": "r_multiple",
+            "expected": 1.509224,
+            "actual": 1.5092237110866311,
+            "delta": -2.889133689e-07,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "sage_derived_using_frozen_risk_not_vectorbt_metric"
+          }
+        ],
+        "engine_trade": {
+          "id": 0,
+          "col": 0,
+          "size": 1.0,
+          "entry_idx": 0,
+          "entry_price": 68.646674,
+          "entry_fees": 0.0,
+          "exit_idx": 1,
+          "exit_price": 75.8441,
+          "exit_fees": 0.0,
+          "pnl": 7.197425999999993,
+          "return": 0.10484741037854205,
+          "direction": 0,
+          "status": 1,
+          "parent_id": 0
+        },
+        "engine_orders": [
+          {
+            "id": 0,
+            "col": 0,
+            "idx": 0,
+            "size": 1.0,
+            "price": 68.646674,
+            "fees": 0.0,
+            "side": 0
+          },
+          {
+            "id": 1,
+            "col": 0,
+            "idx": 1,
+            "size": 1.0,
+            "price": 75.8441,
+            "fees": 0.0,
+            "side": 1
+          }
+        ],
+        "actual_fees": null,
+        "actual_quantity": null,
+        "actual_net_return": null,
+        "mfe": null,
+        "mae": null,
+        "path_validation": "not_performed_by_vectorbt"
+      },
+      "cache_replay": {
+        "status": "unavailable",
+        "reason": "cache_not_restored_locally",
+        "checks": []
+      }
+    },
+    {
+      "event_id": "V2-CNQ-2025-12-29",
+      "symbol": "CNQ",
+      "signal_date": "2025-12-29",
+      "source_event_sha256": "7e23f1aad6f49b43b0aabf1916dd249cfe1b8a9be1318dadc09670948cd6620d",
+      "policy_version": "support-5pct-cap-10pct-2r-v1",
+      "entry_date": "2025-12-30",
+      "entry_price": 32.788457,
+      "baseline": {
+        "executable": true,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "entry": 32.788457,
+        "support_level": 32.029,
+        "support_source": "EMA21",
+        "structural_stop": 30.42755,
+        "max_loss_stop": 29.509612,
+        "stop": 30.42755,
+        "stop_source": "EMA21",
+        "risk_pct": 0.07200422,
+        "target_r": 2.0,
+        "target": 37.510272,
+        "max_hold_sessions": 40,
+        "status": "resolved",
+        "exit_date": "2026-01-07",
+        "exit_price": 30.42755,
+        "exit_reason": "stop",
+        "holding_sessions": 6,
+        "return": -0.07200422,
+        "r_multiple": -1.0
+      },
+      "accounting": {
+        "status": "difference",
+        "checks": [
+          {
+            "field": "entry_price",
+            "expected": 32.788457,
+            "actual": 32.788457,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_price",
+            "expected": 30.42755,
+            "actual": 30.42755,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "entry_slot",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_slot",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "closed_status",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "quantity",
+            "expected": 1.0,
+            "actual": 1.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "unit_trade_assumption"
+          },
+          {
+            "field": "entry_order_side",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_order_side",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "gross_return",
+            "expected": -0.07200422,
+            "actual": -0.0720042117260962,
+            "delta": 8.2739038e-09,
+            "source_decimal_places": 8,
+            "status": "difference",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "fees",
+            "expected": 0.0,
+            "actual": 0.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "net_return_zero_cost_scenario",
+            "expected": -0.07200422,
+            "actual": -0.0720042117260962,
+            "delta": 8.2739038e-09,
+            "source_decimal_places": 8,
+            "status": "difference",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "unit_pnl",
+            "expected": -2.360907000000001,
+            "actual": -2.360907000000001,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "derived_from_frozen_fills"
+          },
+          {
+            "field": "r_multiple",
+            "expected": -1.0,
+            "actual": -1.0,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "sage_derived_using_frozen_risk_not_vectorbt_metric"
+          }
+        ],
+        "engine_trade": {
+          "id": 0,
+          "col": 0,
+          "size": 1.0,
+          "entry_idx": 0,
+          "entry_price": 32.788457,
+          "entry_fees": 0.0,
+          "exit_idx": 1,
+          "exit_price": 30.42755,
+          "exit_fees": 0.0,
+          "pnl": -2.360907000000001,
+          "return": -0.0720042117260962,
+          "direction": 0,
+          "status": 1,
+          "parent_id": 0
+        },
+        "engine_orders": [
+          {
+            "id": 0,
+            "col": 0,
+            "idx": 0,
+            "size": 1.0,
+            "price": 32.788457,
+            "fees": 0.0,
+            "side": 0
+          },
+          {
+            "id": 1,
+            "col": 0,
+            "idx": 1,
+            "size": 1.0,
+            "price": 30.42755,
+            "fees": 0.0,
+            "side": 1
+          }
+        ],
+        "actual_fees": null,
+        "actual_quantity": null,
+        "actual_net_return": null,
+        "mfe": null,
+        "mae": null,
+        "path_validation": "not_performed_by_vectorbt"
+      },
+      "cache_replay": {
+        "status": "unavailable",
+        "reason": "cache_not_restored_locally",
+        "checks": []
+      }
+    },
+    {
+      "event_id": "V2-CWEN-2025-12-29",
+      "symbol": "CWEN",
+      "signal_date": "2025-12-29",
+      "source_event_sha256": "5be6c7900fc0dc873ca0d022c143d67ed666cbaa1e04f57c27beaed8ac4c57c7",
+      "policy_version": "support-5pct-cap-10pct-2r-v1",
+      "entry_date": "2025-12-30",
+      "entry_price": 32.819119,
+      "baseline": {
+        "executable": true,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "entry": 32.819119,
+        "support_level": 32.6112,
+        "support_source": "EMA21",
+        "structural_stop": 30.98064,
+        "max_loss_stop": 29.537208,
+        "stop": 30.98064,
+        "stop_source": "EMA21",
+        "risk_pct": 0.05601855,
+        "target_r": 2.0,
+        "target": 36.496078,
+        "max_hold_sessions": 40,
+        "status": "resolved",
+        "exit_date": "2026-01-29",
+        "exit_price": 36.496078,
+        "exit_reason": "target",
+        "holding_sessions": 21,
+        "return": 0.11203709,
+        "r_multiple": 2.0
+      },
+      "accounting": {
+        "status": "difference",
+        "checks": [
+          {
+            "field": "entry_price",
+            "expected": 32.819119,
+            "actual": 32.819119,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_price",
+            "expected": 36.496078,
+            "actual": 36.496078,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "entry_slot",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_slot",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "closed_status",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "quantity",
+            "expected": 1.0,
+            "actual": 1.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "unit_trade_assumption"
+          },
+          {
+            "field": "entry_order_side",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_order_side",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "gross_return",
+            "expected": 0.11203709,
+            "actual": 0.11203710251941852,
+            "delta": 1.251941852e-08,
+            "source_decimal_places": 8,
+            "status": "difference",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "fees",
+            "expected": 0.0,
+            "actual": 0.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "net_return_zero_cost_scenario",
+            "expected": 0.11203709,
+            "actual": 0.11203710251941852,
+            "delta": 1.251941852e-08,
+            "source_decimal_places": 8,
+            "status": "difference",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "unit_pnl",
+            "expected": 3.6769589999999965,
+            "actual": 3.6769589999999965,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "derived_from_frozen_fills"
+          },
+          {
+            "field": "r_multiple",
+            "expected": 2.0,
+            "actual": 2.0000005439278867,
+            "delta": 5.439278867e-07,
+            "source_decimal_places": 6,
+            "status": "difference",
+            "origin": "sage_derived_using_frozen_risk_not_vectorbt_metric"
+          }
+        ],
+        "engine_trade": {
+          "id": 0,
+          "col": 0,
+          "size": 1.0,
+          "entry_idx": 0,
+          "entry_price": 32.819119,
+          "entry_fees": 0.0,
+          "exit_idx": 1,
+          "exit_price": 36.496078,
+          "exit_fees": 0.0,
+          "pnl": 3.6769589999999965,
+          "return": 0.11203710251941852,
+          "direction": 0,
+          "status": 1,
+          "parent_id": 0
+        },
+        "engine_orders": [
+          {
+            "id": 0,
+            "col": 0,
+            "idx": 0,
+            "size": 1.0,
+            "price": 32.819119,
+            "fees": 0.0,
+            "side": 0
+          },
+          {
+            "id": 1,
+            "col": 0,
+            "idx": 1,
+            "size": 1.0,
+            "price": 36.496078,
+            "fees": 0.0,
+            "side": 1
+          }
+        ],
+        "actual_fees": null,
+        "actual_quantity": null,
+        "actual_net_return": null,
+        "mfe": null,
+        "mae": null,
+        "path_validation": "not_performed_by_vectorbt"
+      },
+      "cache_replay": {
+        "status": "unavailable",
+        "reason": "cache_not_restored_locally",
+        "checks": []
+      }
+    },
+    {
+      "event_id": "V2-D-2025-12-29",
+      "symbol": "D",
+      "signal_date": "2025-12-29",
+      "source_event_sha256": "791f8f6b45d6013de762c03e3ae4de0a03aadc708ab8b9b6927552c554488f3c",
+      "policy_version": "support-5pct-cap-10pct-2r-v1",
+      "entry_date": "2025-12-30",
+      "entry_price": 57.94697,
+      "baseline": {
+        "executable": true,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "entry": 57.94697,
+        "support_level": 58.0239,
+        "support_source": "EMA21",
+        "structural_stop": 55.122705,
+        "max_loss_stop": 52.152273,
+        "stop": 55.122705,
+        "stop_source": "EMA21",
+        "risk_pct": 0.04873878,
+        "target_r": 2.0,
+        "target": 63.595499,
+        "max_hold_sessions": 40,
+        "status": "resolved",
+        "exit_date": "2026-02-12",
+        "exit_price": 63.595499,
+        "exit_reason": "target",
+        "holding_sessions": 31,
+        "return": 0.09747756,
+        "r_multiple": 2.0
+      },
+      "accounting": {
+        "status": "match",
+        "checks": [
+          {
+            "field": "entry_price",
+            "expected": 57.94697,
+            "actual": 57.94697,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_price",
+            "expected": 63.595499,
+            "actual": 63.595499,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "entry_slot",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_slot",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "closed_status",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "quantity",
+            "expected": 1.0,
+            "actual": 1.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "unit_trade_assumption"
+          },
+          {
+            "field": "entry_order_side",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_order_side",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "gross_return",
+            "expected": 0.09747756,
+            "actual": 0.09747755577211364,
+            "delta": -4.22788636e-09,
+            "source_decimal_places": 8,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "fees",
+            "expected": 0.0,
+            "actual": 0.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "net_return_zero_cost_scenario",
+            "expected": 0.09747756,
+            "actual": 0.09747755577211364,
+            "delta": -4.22788636e-09,
+            "source_decimal_places": 8,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "unit_pnl",
+            "expected": 5.648528999999996,
+            "actual": 5.648528999999996,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "derived_from_frozen_fills"
+          },
+          {
+            "field": "r_multiple",
+            "expected": 2.0,
+            "actual": 1.999999645925578,
+            "delta": -3.54074422e-07,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "sage_derived_using_frozen_risk_not_vectorbt_metric"
+          }
+        ],
+        "engine_trade": {
+          "id": 0,
+          "col": 0,
+          "size": 1.0,
+          "entry_idx": 0,
+          "entry_price": 57.94697,
+          "entry_fees": 0.0,
+          "exit_idx": 1,
+          "exit_price": 63.595499,
+          "exit_fees": 0.0,
+          "pnl": 5.648528999999996,
+          "return": 0.09747755577211364,
+          "direction": 0,
+          "status": 1,
+          "parent_id": 0
+        },
+        "engine_orders": [
+          {
+            "id": 0,
+            "col": 0,
+            "idx": 0,
+            "size": 1.0,
+            "price": 57.94697,
+            "fees": 0.0,
+            "side": 0
+          },
+          {
+            "id": 1,
+            "col": 0,
+            "idx": 1,
+            "size": 1.0,
+            "price": 63.595499,
+            "fees": 0.0,
+            "side": 1
+          }
+        ],
+        "actual_fees": null,
+        "actual_quantity": null,
+        "actual_net_return": null,
+        "mfe": null,
+        "mae": null,
+        "path_validation": "not_performed_by_vectorbt"
+      },
+      "cache_replay": {
+        "status": "unavailable",
+        "reason": "cache_not_restored_locally",
+        "checks": []
+      }
+    },
+    {
+      "event_id": "V2-DBRG-2025-12-29",
+      "symbol": "DBRG",
+      "signal_date": "2025-12-29",
+      "source_event_sha256": "f2089ee2e870158837d27bdf7529ea3ac97ec88d51a5d75533535d4a3942ffe3",
+      "policy_version": "support-5pct-cap-10pct-2r-v1",
+      "entry_date": "2025-12-30",
+      "entry_price": 15.260381,
+      "baseline": {
+        "executable": true,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "entry": 15.260381,
+        "support_level": 12.6555,
+        "support_source": "confirmed-swing-low",
+        "structural_stop": 12.022725,
+        "max_loss_stop": 13.734343,
+        "stop": 13.734343,
+        "stop_source": "max-loss-10pct-cap",
+        "risk_pct": 0.1,
+        "target_r": 2.0,
+        "target": 18.312457,
+        "max_hold_sessions": 40,
+        "status": "resolved",
+        "exit_date": "2026-02-26",
+        "exit_price": 15.3902,
+        "exit_reason": "time_40d",
+        "holding_sessions": 40,
+        "return": 0.00850696,
+        "r_multiple": 0.08507
+      },
+      "accounting": {
+        "status": "difference",
+        "checks": [
+          {
+            "field": "entry_price",
+            "expected": 15.260381,
+            "actual": 15.260381,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_price",
+            "expected": 15.3902,
+            "actual": 15.3902,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "entry_slot",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_slot",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "closed_status",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "quantity",
+            "expected": 1.0,
+            "actual": 1.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "unit_trade_assumption"
+          },
+          {
+            "field": "entry_order_side",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_order_side",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "gross_return",
+            "expected": 0.00850696,
+            "actual": 0.008506930462614233,
+            "delta": -2.9537385767e-08,
+            "source_decimal_places": 8,
+            "status": "difference",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "fees",
+            "expected": 0.0,
+            "actual": 0.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "net_return_zero_cost_scenario",
+            "expected": 0.00850696,
+            "actual": 0.008506930462614233,
+            "delta": -2.9537385767e-08,
+            "source_decimal_places": 8,
+            "status": "difference",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "unit_pnl",
+            "expected": 0.12981899999999946,
+            "actual": 0.12981899999999946,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "derived_from_frozen_fills"
+          },
+          {
+            "field": "r_multiple",
+            "expected": 0.08507,
+            "actual": 0.08506931020066308,
+            "delta": -6.8979933692e-07,
+            "source_decimal_places": 6,
+            "status": "difference",
+            "origin": "sage_derived_using_frozen_risk_not_vectorbt_metric"
+          }
+        ],
+        "engine_trade": {
+          "id": 0,
+          "col": 0,
+          "size": 1.0,
+          "entry_idx": 0,
+          "entry_price": 15.260381,
+          "entry_fees": 0.0,
+          "exit_idx": 1,
+          "exit_price": 15.3902,
+          "exit_fees": 0.0,
+          "pnl": 0.12981899999999946,
+          "return": 0.008506930462614233,
+          "direction": 0,
+          "status": 1,
+          "parent_id": 0
+        },
+        "engine_orders": [
+          {
+            "id": 0,
+            "col": 0,
+            "idx": 0,
+            "size": 1.0,
+            "price": 15.260381,
+            "fees": 0.0,
+            "side": 0
+          },
+          {
+            "id": 1,
+            "col": 0,
+            "idx": 1,
+            "size": 1.0,
+            "price": 15.3902,
+            "fees": 0.0,
+            "side": 1
+          }
+        ],
+        "actual_fees": null,
+        "actual_quantity": null,
+        "actual_net_return": null,
+        "mfe": null,
+        "mae": null,
+        "path_validation": "not_performed_by_vectorbt"
+      },
+      "cache_replay": {
+        "status": "unavailable",
+        "reason": "cache_not_restored_locally",
+        "checks": []
+      }
+    },
+    {
+      "event_id": "V2-ENB-2025-12-29",
+      "symbol": "ENB",
+      "signal_date": "2025-12-29",
+      "source_event_sha256": "2a9b9160a1a78285cec1e900c8e827d643716625d498df08e527a8c3a1995481",
+      "policy_version": "support-5pct-cap-10pct-2r-v1",
+      "entry_date": "2025-12-30",
+      "entry_price": 45.910259,
+      "baseline": {
+        "executable": true,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "entry": 45.910259,
+        "support_level": 45.5948,
+        "support_source": "EMA21",
+        "structural_stop": 43.31506,
+        "max_loss_stop": 41.319233,
+        "stop": 43.31506,
+        "stop_source": "EMA21",
+        "risk_pct": 0.05652764,
+        "target_r": 2.0,
+        "target": 51.100656,
+        "max_hold_sessions": 40,
+        "status": "resolved",
+        "exit_date": "2026-01-08",
+        "exit_price": 43.31506,
+        "exit_reason": "stop",
+        "holding_sessions": 7,
+        "return": -0.05652764,
+        "r_multiple": -1.0
+      },
+      "accounting": {
+        "status": "difference",
+        "checks": [
+          {
+            "field": "entry_price",
+            "expected": 45.910259,
+            "actual": 45.910259,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_price",
+            "expected": 43.31506,
+            "actual": 43.31506,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "entry_slot",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_slot",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "closed_status",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "quantity",
+            "expected": 1.0,
+            "actual": 1.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "unit_trade_assumption"
+          },
+          {
+            "field": "entry_order_side",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_order_side",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "gross_return",
+            "expected": -0.05652764,
+            "actual": -0.0565276488638411,
+            "delta": -8.8638411e-09,
+            "source_decimal_places": 8,
+            "status": "difference",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "fees",
+            "expected": 0.0,
+            "actual": 0.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "net_return_zero_cost_scenario",
+            "expected": -0.05652764,
+            "actual": -0.0565276488638411,
+            "delta": -8.8638411e-09,
+            "source_decimal_places": 8,
+            "status": "difference",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "unit_pnl",
+            "expected": -2.595199000000001,
+            "actual": -2.595199000000001,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "derived_from_frozen_fills"
+          },
+          {
+            "field": "r_multiple",
+            "expected": -1.0,
+            "actual": -1.0,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "sage_derived_using_frozen_risk_not_vectorbt_metric"
+          }
+        ],
+        "engine_trade": {
+          "id": 0,
+          "col": 0,
+          "size": 1.0,
+          "entry_idx": 0,
+          "entry_price": 45.910259,
+          "entry_fees": 0.0,
+          "exit_idx": 1,
+          "exit_price": 43.31506,
+          "exit_fees": 0.0,
+          "pnl": -2.595199000000001,
+          "return": -0.0565276488638411,
+          "direction": 0,
+          "status": 1,
+          "parent_id": 0
+        },
+        "engine_orders": [
+          {
+            "id": 0,
+            "col": 0,
+            "idx": 0,
+            "size": 1.0,
+            "price": 45.910259,
+            "fees": 0.0,
+            "side": 0
+          },
+          {
+            "id": 1,
+            "col": 0,
+            "idx": 1,
+            "size": 1.0,
+            "price": 43.31506,
+            "fees": 0.0,
+            "side": 1
+          }
+        ],
+        "actual_fees": null,
+        "actual_quantity": null,
+        "actual_net_return": null,
+        "mfe": null,
+        "mae": null,
+        "path_validation": "not_performed_by_vectorbt"
+      },
+      "cache_replay": {
+        "status": "unavailable",
+        "reason": "cache_not_restored_locally",
+        "checks": []
+      }
+    },
+    {
+      "event_id": "V2-ETN-2025-12-29",
+      "symbol": "ETN",
+      "signal_date": "2025-12-29",
+      "source_event_sha256": "c110434fc47f7e58dbace7e0c93e3503718c1731ff7f73b71b2761ce14ad2990",
+      "policy_version": "support-5pct-cap-10pct-2r-v1",
+      "entry_date": "2025-12-30",
+      "entry_price": 318.813057,
+      "baseline": {
+        "executable": true,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "entry": 318.813057,
+        "support_level": 316.831,
+        "support_source": "volume-profile-poc",
+        "structural_stop": 300.98945,
+        "max_loss_stop": 286.931751,
+        "stop": 300.98945,
+        "stop_source": "volume-profile-poc",
+        "risk_pct": 0.05590614,
+        "target_r": 2.0,
+        "target": 354.46027,
+        "max_hold_sessions": 40,
+        "status": "resolved",
+        "exit_date": "2026-01-29",
+        "exit_price": 354.46027,
+        "exit_reason": "target",
+        "holding_sessions": 21,
+        "return": 0.11181228,
+        "r_multiple": 2.0
+      },
+      "accounting": {
+        "status": "difference",
+        "checks": [
+          {
+            "field": "entry_price",
+            "expected": 318.813057,
+            "actual": 318.813057,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_price",
+            "expected": 354.46027,
+            "actual": 354.46027,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "entry_slot",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_slot",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "closed_status",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "quantity",
+            "expected": 1.0,
+            "actual": 1.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "unit_trade_assumption"
+          },
+          {
+            "field": "entry_order_side",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_order_side",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "gross_return",
+            "expected": 0.11181228,
+            "actual": 0.1118122743636562,
+            "delta": -5.6363438e-09,
+            "source_decimal_places": 8,
+            "status": "difference",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "fees",
+            "expected": 0.0,
+            "actual": 0.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "net_return_zero_cost_scenario",
+            "expected": 0.11181228,
+            "actual": 0.1118122743636562,
+            "delta": -5.6363438e-09,
+            "source_decimal_places": 8,
+            "status": "difference",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "unit_pnl",
+            "expected": 35.647212999999965,
+            "actual": 35.647212999999965,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "derived_from_frozen_fills"
+          },
+          {
+            "field": "r_multiple",
+            "expected": 2.0,
+            "actual": 1.9999999438946274,
+            "delta": -5.61053726e-08,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "sage_derived_using_frozen_risk_not_vectorbt_metric"
+          }
+        ],
+        "engine_trade": {
+          "id": 0,
+          "col": 0,
+          "size": 1.0,
+          "entry_idx": 0,
+          "entry_price": 318.813057,
+          "entry_fees": 0.0,
+          "exit_idx": 1,
+          "exit_price": 354.46027,
+          "exit_fees": 0.0,
+          "pnl": 35.647212999999965,
+          "return": 0.1118122743636562,
+          "direction": 0,
+          "status": 1,
+          "parent_id": 0
+        },
+        "engine_orders": [
+          {
+            "id": 0,
+            "col": 0,
+            "idx": 0,
+            "size": 1.0,
+            "price": 318.813057,
+            "fees": 0.0,
+            "side": 0
+          },
+          {
+            "id": 1,
+            "col": 0,
+            "idx": 1,
+            "size": 1.0,
+            "price": 354.46027,
+            "fees": 0.0,
+            "side": 1
+          }
+        ],
+        "actual_fees": null,
+        "actual_quantity": null,
+        "actual_net_return": null,
+        "mfe": null,
+        "mae": null,
+        "path_validation": "not_performed_by_vectorbt"
+      },
+      "cache_replay": {
+        "status": "unavailable",
+        "reason": "cache_not_restored_locally",
+        "checks": []
+      }
+    },
+    {
+      "event_id": "V2-ETR-2025-12-29",
+      "symbol": "ETR",
+      "signal_date": "2025-12-29",
+      "source_event_sha256": "163d53a7ba1d12c08ff6e7d706b6363e5cae36f88d886bfb2ae12d4d81a101d1",
+      "policy_version": "support-5pct-cap-10pct-2r-v1",
+      "entry_date": "2025-12-30",
+      "entry_price": 91.394693,
+      "baseline": {
+        "executable": true,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "entry": 91.394693,
+        "support_level": 89.2511,
+        "support_source": "prior-20D-low",
+        "structural_stop": 84.788545,
+        "max_loss_stop": 82.255223,
+        "stop": 84.788545,
+        "stop_source": "prior-20D-low",
+        "risk_pct": 0.07228152,
+        "target_r": 2.0,
+        "target": 104.606988,
+        "max_hold_sessions": 40,
+        "status": "resolved",
+        "exit_date": "2026-02-17",
+        "exit_price": 104.606988,
+        "exit_reason": "target",
+        "holding_sessions": 33,
+        "return": 0.14456305,
+        "r_multiple": 2.0
+      },
+      "accounting": {
+        "status": "difference",
+        "checks": [
+          {
+            "field": "entry_price",
+            "expected": 91.394693,
+            "actual": 91.394693,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_price",
+            "expected": 104.606988,
+            "actual": 104.606988,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "entry_slot",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_slot",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "closed_status",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "quantity",
+            "expected": 1.0,
+            "actual": 1.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "unit_trade_assumption"
+          },
+          {
+            "field": "entry_order_side",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_order_side",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "gross_return",
+            "expected": 0.14456305,
+            "actual": 0.1445630437207114,
+            "delta": -6.2792886e-09,
+            "source_decimal_places": 8,
+            "status": "difference",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "fees",
+            "expected": 0.0,
+            "actual": 0.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "net_return_zero_cost_scenario",
+            "expected": 0.14456305,
+            "actual": 0.1445630437207114,
+            "delta": -6.2792886e-09,
+            "source_decimal_places": 8,
+            "status": "difference",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "unit_pnl",
+            "expected": 13.212294999999997,
+            "actual": 13.212294999999997,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "derived_from_frozen_fills"
+          },
+          {
+            "field": "r_multiple",
+            "expected": 2.0,
+            "actual": 1.9999998486258541,
+            "delta": -1.513741459e-07,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "sage_derived_using_frozen_risk_not_vectorbt_metric"
+          }
+        ],
+        "engine_trade": {
+          "id": 0,
+          "col": 0,
+          "size": 1.0,
+          "entry_idx": 0,
+          "entry_price": 91.394693,
+          "entry_fees": 0.0,
+          "exit_idx": 1,
+          "exit_price": 104.606988,
+          "exit_fees": 0.0,
+          "pnl": 13.212294999999997,
+          "return": 0.1445630437207114,
+          "direction": 0,
+          "status": 1,
+          "parent_id": 0
+        },
+        "engine_orders": [
+          {
+            "id": 0,
+            "col": 0,
+            "idx": 0,
+            "size": 1.0,
+            "price": 91.394693,
+            "fees": 0.0,
+            "side": 0
+          },
+          {
+            "id": 1,
+            "col": 0,
+            "idx": 1,
+            "size": 1.0,
+            "price": 104.606988,
+            "fees": 0.0,
+            "side": 1
+          }
+        ],
+        "actual_fees": null,
+        "actual_quantity": null,
+        "actual_net_return": null,
+        "mfe": null,
+        "mae": null,
+        "path_validation": "not_performed_by_vectorbt"
+      },
+      "cache_replay": {
+        "status": "unavailable",
+        "reason": "cache_not_restored_locally",
+        "checks": []
+      }
+    },
+    {
+      "event_id": "V2-EVRG-2025-12-29",
+      "symbol": "EVRG",
+      "signal_date": "2025-12-29",
+      "source_event_sha256": "6315208e8d076bf3ac4dbcce1aa254dc512b53bc262df38c6d69806609437de2",
+      "policy_version": "support-5pct-cap-10pct-2r-v1",
+      "entry_date": "2025-12-30",
+      "entry_price": 71.242511,
+      "baseline": {
+        "executable": true,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "entry": 71.242511,
+        "support_level": 70.1503,
+        "support_source": "prior-20D-low",
+        "structural_stop": 66.642785,
+        "max_loss_stop": 64.11826,
+        "stop": 66.642785,
+        "stop_source": "prior-20D-low",
+        "risk_pct": 0.06456435,
+        "target_r": 2.0,
+        "target": 80.441964,
+        "max_hold_sessions": 40,
+        "status": "resolved",
+        "exit_date": "2026-02-13",
+        "exit_price": 80.441964,
+        "exit_reason": "target",
+        "holding_sessions": 32,
+        "return": 0.12912869,
+        "r_multiple": 2.0
+      },
+      "accounting": {
+        "status": "difference",
+        "checks": [
+          {
+            "field": "entry_price",
+            "expected": 71.242511,
+            "actual": 71.242511,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_price",
+            "expected": 80.441964,
+            "actual": 80.441964,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "entry_slot",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_slot",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "closed_status",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "quantity",
+            "expected": 1.0,
+            "actual": 1.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "unit_trade_assumption"
+          },
+          {
+            "field": "entry_order_side",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_order_side",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "gross_return",
+            "expected": 0.12912869,
+            "actual": 0.12912870238388996,
+            "delta": 1.238388996e-08,
+            "source_decimal_places": 8,
+            "status": "difference",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "fees",
+            "expected": 0.0,
+            "actual": 0.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "net_return_zero_cost_scenario",
+            "expected": 0.12912869,
+            "actual": 0.12912870238388996,
+            "delta": 1.238388996e-08,
+            "source_decimal_places": 8,
+            "status": "difference",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "unit_pnl",
+            "expected": 9.199453000000005,
+            "actual": 9.199453000000005,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "derived_from_frozen_fills"
+          },
+          {
+            "field": "r_multiple",
+            "expected": 2.0,
+            "actual": 2.00000021740426,
+            "delta": 2.1740426e-07,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "sage_derived_using_frozen_risk_not_vectorbt_metric"
+          }
+        ],
+        "engine_trade": {
+          "id": 0,
+          "col": 0,
+          "size": 1.0,
+          "entry_idx": 0,
+          "entry_price": 71.242511,
+          "entry_fees": 0.0,
+          "exit_idx": 1,
+          "exit_price": 80.441964,
+          "exit_fees": 0.0,
+          "pnl": 9.199453000000005,
+          "return": 0.12912870238388996,
+          "direction": 0,
+          "status": 1,
+          "parent_id": 0
+        },
+        "engine_orders": [
+          {
+            "id": 0,
+            "col": 0,
+            "idx": 0,
+            "size": 1.0,
+            "price": 71.242511,
+            "fees": 0.0,
+            "side": 0
+          },
+          {
+            "id": 1,
+            "col": 0,
+            "idx": 1,
+            "size": 1.0,
+            "price": 80.441964,
+            "fees": 0.0,
+            "side": 1
+          }
+        ],
+        "actual_fees": null,
+        "actual_quantity": null,
+        "actual_net_return": null,
+        "mfe": null,
+        "mae": null,
+        "path_validation": "not_performed_by_vectorbt"
+      },
+      "cache_replay": {
+        "status": "unavailable",
+        "reason": "cache_not_restored_locally",
+        "checks": []
+      }
+    },
+    {
+      "event_id": "V2-FUTU-2025-12-29",
+      "symbol": "FUTU",
+      "signal_date": "2025-12-29",
+      "source_event_sha256": "ae7007b0160e7e374a2d43e69ebe6109578a9288bef41f7bdb5ff6e6b340e4d0",
+      "policy_version": "support-5pct-cap-10pct-2r-v1",
+      "entry_date": "2025-12-30",
+      "entry_price": 162.70559,
+      "baseline": {
+        "executable": true,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "entry": 162.70559,
+        "support_level": 160.2303,
+        "support_source": "confirmed-swing-low",
+        "structural_stop": 152.218785,
+        "max_loss_stop": 146.435031,
+        "stop": 152.218785,
+        "stop_source": "confirmed-swing-low",
+        "risk_pct": 0.06445264,
+        "target_r": 2.0,
+        "target": 183.679199,
+        "max_hold_sessions": 40,
+        "status": "resolved",
+        "exit_date": "2026-01-06",
+        "exit_price": 183.679199,
+        "exit_reason": "target",
+        "holding_sessions": 5,
+        "return": 0.12890528,
+        "r_multiple": 2.0
+      },
+      "accounting": {
+        "status": "match",
+        "checks": [
+          {
+            "field": "entry_price",
+            "expected": 162.70559,
+            "actual": 162.70559,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_price",
+            "expected": 183.679199,
+            "actual": 183.679199,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "entry_slot",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_slot",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "closed_status",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "quantity",
+            "expected": 1.0,
+            "actual": 1.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "unit_trade_assumption"
+          },
+          {
+            "field": "entry_order_side",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_order_side",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "gross_return",
+            "expected": 0.12890528,
+            "actual": 0.12890527608793287,
+            "delta": -3.91206713e-09,
+            "source_decimal_places": 8,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "fees",
+            "expected": 0.0,
+            "actual": 0.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "net_return_zero_cost_scenario",
+            "expected": 0.12890528,
+            "actual": 0.12890527608793287,
+            "delta": -3.91206713e-09,
+            "source_decimal_places": 8,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "unit_pnl",
+            "expected": 20.97360900000001,
+            "actual": 20.97360900000001,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "derived_from_frozen_fills"
+          },
+          {
+            "field": "r_multiple",
+            "expected": 2.0,
+            "actual": 1.9999999046420718,
+            "delta": -9.53579282e-08,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "sage_derived_using_frozen_risk_not_vectorbt_metric"
+          }
+        ],
+        "engine_trade": {
+          "id": 0,
+          "col": 0,
+          "size": 1.0,
+          "entry_idx": 0,
+          "entry_price": 162.70559,
+          "entry_fees": 0.0,
+          "exit_idx": 1,
+          "exit_price": 183.679199,
+          "exit_fees": 0.0,
+          "pnl": 20.97360900000001,
+          "return": 0.12890527608793287,
+          "direction": 0,
+          "status": 1,
+          "parent_id": 0
+        },
+        "engine_orders": [
+          {
+            "id": 0,
+            "col": 0,
+            "idx": 0,
+            "size": 1.0,
+            "price": 162.70559,
+            "fees": 0.0,
+            "side": 0
+          },
+          {
+            "id": 1,
+            "col": 0,
+            "idx": 1,
+            "size": 1.0,
+            "price": 183.679199,
+            "fees": 0.0,
+            "side": 1
+          }
+        ],
+        "actual_fees": null,
+        "actual_quantity": null,
+        "actual_net_return": null,
+        "mfe": null,
+        "mae": null,
+        "path_validation": "not_performed_by_vectorbt"
+      },
+      "cache_replay": {
+        "status": "unavailable",
+        "reason": "cache_not_restored_locally",
+        "checks": []
+      }
+    },
+    {
+      "event_id": "V2-MDU-2025-12-29",
+      "symbol": "MDU",
+      "signal_date": "2025-12-29",
+      "source_event_sha256": "61eff65f20477070b1b2ccf4b1681804b47fd40306da98ab7c54984252c32804",
+      "policy_version": "support-5pct-cap-10pct-2r-v1",
+      "entry_date": "2025-12-30",
+      "entry_price": 19.51787,
+      "baseline": {
+        "executable": true,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "entry": 19.51787,
+        "support_level": 19.3998,
+        "support_source": "EMA21",
+        "structural_stop": 18.42981,
+        "max_loss_stop": 17.566083,
+        "stop": 18.42981,
+        "stop_source": "EMA21",
+        "risk_pct": 0.05574686,
+        "target_r": 2.0,
+        "target": 21.69399,
+        "max_hold_sessions": 40,
+        "status": "resolved",
+        "exit_date": "2026-02-26",
+        "exit_price": 20.1691,
+        "exit_reason": "time_40d",
+        "holding_sessions": 40,
+        "return": 0.03336584,
+        "r_multiple": 0.598524
+      },
+      "accounting": {
+        "status": "difference",
+        "checks": [
+          {
+            "field": "entry_price",
+            "expected": 19.51787,
+            "actual": 19.51787,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_price",
+            "expected": 20.1691,
+            "actual": 20.1691,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "entry_slot",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_slot",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "closed_status",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "quantity",
+            "expected": 1.0,
+            "actual": 1.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "unit_trade_assumption"
+          },
+          {
+            "field": "entry_order_side",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_order_side",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "gross_return",
+            "expected": 0.03336584,
+            "actual": 0.03336583346440989,
+            "delta": -6.53559011e-09,
+            "source_decimal_places": 8,
+            "status": "difference",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "fees",
+            "expected": 0.0,
+            "actual": 0.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "net_return_zero_cost_scenario",
+            "expected": 0.03336584,
+            "actual": 0.03336583346440989,
+            "delta": -6.53559011e-09,
+            "source_decimal_places": 8,
+            "status": "difference",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "unit_pnl",
+            "expected": 0.6512300000000018,
+            "actual": 0.6512300000000018,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "derived_from_frozen_fills"
+          },
+          {
+            "field": "r_multiple",
+            "expected": 0.598524,
+            "actual": 0.5985239784570727,
+            "delta": -2.15429273e-08,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "sage_derived_using_frozen_risk_not_vectorbt_metric"
+          }
+        ],
+        "engine_trade": {
+          "id": 0,
+          "col": 0,
+          "size": 1.0,
+          "entry_idx": 0,
+          "entry_price": 19.51787,
+          "entry_fees": 0.0,
+          "exit_idx": 1,
+          "exit_price": 20.1691,
+          "exit_fees": 0.0,
+          "pnl": 0.6512300000000018,
+          "return": 0.03336583346440989,
+          "direction": 0,
+          "status": 1,
+          "parent_id": 0
+        },
+        "engine_orders": [
+          {
+            "id": 0,
+            "col": 0,
+            "idx": 0,
+            "size": 1.0,
+            "price": 19.51787,
+            "fees": 0.0,
+            "side": 0
+          },
+          {
+            "id": 1,
+            "col": 0,
+            "idx": 1,
+            "size": 1.0,
+            "price": 20.1691,
+            "fees": 0.0,
+            "side": 1
+          }
+        ],
+        "actual_fees": null,
+        "actual_quantity": null,
+        "actual_net_return": null,
+        "mfe": null,
+        "mae": null,
+        "path_validation": "not_performed_by_vectorbt"
+      },
+      "cache_replay": {
+        "status": "unavailable",
+        "reason": "cache_not_restored_locally",
+        "checks": []
+      }
+    },
+    {
+      "event_id": "V2-NRG-2025-12-29",
+      "symbol": "NRG",
+      "signal_date": "2025-12-29",
+      "source_event_sha256": "7a1e95a30cc28f240451d62e211fffd76e0b0f749bc430a1b29fdf385d5d0c74",
+      "policy_version": "support-5pct-cap-10pct-2r-v1",
+      "entry_date": "2025-12-30",
+      "entry_price": 159.888636,
+      "baseline": {
+        "executable": true,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "entry": 159.888636,
+        "support_level": 146.5489,
+        "support_source": "prior-20D-low",
+        "structural_stop": 139.221455,
+        "max_loss_stop": 143.899772,
+        "stop": 143.899772,
+        "stop_source": "max-loss-10pct-cap",
+        "risk_pct": 0.1,
+        "target_r": 2.0,
+        "target": 191.866363,
+        "max_hold_sessions": 40,
+        "status": "resolved",
+        "exit_date": "2026-01-08",
+        "exit_price": 143.899772,
+        "exit_reason": "stop",
+        "holding_sessions": 7,
+        "return": -0.1,
+        "r_multiple": -1.0
+      },
+      "accounting": {
+        "status": "match",
+        "checks": [
+          {
+            "field": "entry_price",
+            "expected": 159.888636,
+            "actual": 159.888636,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_price",
+            "expected": 143.899772,
+            "actual": 143.899772,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "entry_slot",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_slot",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "closed_status",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "quantity",
+            "expected": 1.0,
+            "actual": 1.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "unit_trade_assumption"
+          },
+          {
+            "field": "entry_order_side",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_order_side",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "gross_return",
+            "expected": -0.1,
+            "actual": -0.10000000250174114,
+            "delta": -2.50174114e-09,
+            "source_decimal_places": 8,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "fees",
+            "expected": 0.0,
+            "actual": 0.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "net_return_zero_cost_scenario",
+            "expected": -0.1,
+            "actual": -0.10000000250174114,
+            "delta": -2.50174114e-09,
+            "source_decimal_places": 8,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "unit_pnl",
+            "expected": -15.988863999999978,
+            "actual": -15.988863999999978,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "derived_from_frozen_fills"
+          },
+          {
+            "field": "r_multiple",
+            "expected": -1.0,
+            "actual": -1.0,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "sage_derived_using_frozen_risk_not_vectorbt_metric"
+          }
+        ],
+        "engine_trade": {
+          "id": 0,
+          "col": 0,
+          "size": 1.0,
+          "entry_idx": 0,
+          "entry_price": 159.888636,
+          "entry_fees": 0.0,
+          "exit_idx": 1,
+          "exit_price": 143.899772,
+          "exit_fees": 0.0,
+          "pnl": -15.988863999999978,
+          "return": -0.10000000250174114,
+          "direction": 0,
+          "status": 1,
+          "parent_id": 0
+        },
+        "engine_orders": [
+          {
+            "id": 0,
+            "col": 0,
+            "idx": 0,
+            "size": 1.0,
+            "price": 159.888636,
+            "fees": 0.0,
+            "side": 0
+          },
+          {
+            "id": 1,
+            "col": 0,
+            "idx": 1,
+            "size": 1.0,
+            "price": 143.899772,
+            "fees": 0.0,
+            "side": 1
+          }
+        ],
+        "actual_fees": null,
+        "actual_quantity": null,
+        "actual_net_return": null,
+        "mfe": null,
+        "mae": null,
+        "path_validation": "not_performed_by_vectorbt"
+      },
+      "cache_replay": {
+        "status": "unavailable",
+        "reason": "cache_not_restored_locally",
+        "checks": []
+      }
+    },
+    {
+      "event_id": "V2-NVT-2025-12-29",
+      "symbol": "NVT",
+      "signal_date": "2025-12-29",
+      "source_event_sha256": "b140fa4c797fdbc484f192a8fe11f1f4a422b9fa8ed7dbe5d71f3c9cb3c1c097",
+      "policy_version": "support-5pct-cap-10pct-2r-v1",
+      "entry_date": "2025-12-30",
+      "entry_price": 102.58882,
+      "baseline": {
+        "executable": true,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "entry": 102.58882,
+        "support_level": 102.5921,
+        "support_source": "EMA50",
+        "structural_stop": 97.462495,
+        "max_loss_stop": 92.329938,
+        "stop": 97.462495,
+        "stop_source": "EMA50",
+        "risk_pct": 0.04996963,
+        "target_r": 2.0,
+        "target": 112.84147,
+        "max_hold_sessions": 40,
+        "status": "resolved",
+        "exit_date": "2026-01-21",
+        "exit_price": 112.84147,
+        "exit_reason": "target",
+        "holding_sessions": 15,
+        "return": 0.09993925,
+        "r_multiple": 2.0
+      },
+      "accounting": {
+        "status": "match",
+        "checks": [
+          {
+            "field": "entry_price",
+            "expected": 102.58882,
+            "actual": 102.58882,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_price",
+            "expected": 112.84147,
+            "actual": 112.84147,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "entry_slot",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_slot",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "closed_status",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "quantity",
+            "expected": 1.0,
+            "actual": 1.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "unit_trade_assumption"
+          },
+          {
+            "field": "entry_order_side",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_order_side",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "gross_return",
+            "expected": 0.09993925,
+            "actual": 0.0999392526398101,
+            "delta": 2.6398101e-09,
+            "source_decimal_places": 8,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "fees",
+            "expected": 0.0,
+            "actual": 0.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "net_return_zero_cost_scenario",
+            "expected": 0.09993925,
+            "actual": 0.0999392526398101,
+            "delta": 2.6398101e-09,
+            "source_decimal_places": 8,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "unit_pnl",
+            "expected": 10.252650000000003,
+            "actual": 10.252650000000003,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "derived_from_frozen_fills"
+          },
+          {
+            "field": "r_multiple",
+            "expected": 2.0,
+            "actual": 2.0000000000000027,
+            "delta": 2.7e-15,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "sage_derived_using_frozen_risk_not_vectorbt_metric"
+          }
+        ],
+        "engine_trade": {
+          "id": 0,
+          "col": 0,
+          "size": 1.0,
+          "entry_idx": 0,
+          "entry_price": 102.58882,
+          "entry_fees": 0.0,
+          "exit_idx": 1,
+          "exit_price": 112.84147,
+          "exit_fees": 0.0,
+          "pnl": 10.252650000000003,
+          "return": 0.0999392526398101,
+          "direction": 0,
+          "status": 1,
+          "parent_id": 0
+        },
+        "engine_orders": [
+          {
+            "id": 0,
+            "col": 0,
+            "idx": 0,
+            "size": 1.0,
+            "price": 102.58882,
+            "fees": 0.0,
+            "side": 0
+          },
+          {
+            "id": 1,
+            "col": 0,
+            "idx": 1,
+            "size": 1.0,
+            "price": 112.84147,
+            "fees": 0.0,
+            "side": 1
+          }
+        ],
+        "actual_fees": null,
+        "actual_quantity": null,
+        "actual_net_return": null,
+        "mfe": null,
+        "mae": null,
+        "path_validation": "not_performed_by_vectorbt"
+      },
+      "cache_replay": {
+        "status": "unavailable",
+        "reason": "cache_not_restored_locally",
+        "checks": []
+      }
+    },
+    {
+      "event_id": "V2-RKT-2025-12-29",
+      "symbol": "RKT",
+      "signal_date": "2025-12-29",
+      "source_event_sha256": "1b0506d741c5e3c44c53abb7dde4b24a65ec76ec06e4b7a9690ff06ce7e5a6d4",
+      "policy_version": "support-5pct-cap-10pct-2r-v1",
+      "entry_date": "2025-12-30",
+      "entry_price": 19.5,
+      "baseline": {
+        "executable": true,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "entry": 19.5,
+        "support_level": 18.8761,
+        "support_source": "EMA21",
+        "structural_stop": 17.932295,
+        "max_loss_stop": 17.55,
+        "stop": 17.932295,
+        "stop_source": "EMA21",
+        "risk_pct": 0.08039513,
+        "target_r": 2.0,
+        "target": 22.63541,
+        "max_hold_sessions": 40,
+        "status": "resolved",
+        "exit_date": "2026-01-09",
+        "exit_price": 22.63541,
+        "exit_reason": "target",
+        "holding_sessions": 8,
+        "return": 0.16079026,
+        "r_multiple": 2.0
+      },
+      "accounting": {
+        "status": "match",
+        "checks": [
+          {
+            "field": "entry_price",
+            "expected": 19.5,
+            "actual": 19.5,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_price",
+            "expected": 22.63541,
+            "actual": 22.63541,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "entry_slot",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_slot",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "closed_status",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "quantity",
+            "expected": 1.0,
+            "actual": 1.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "unit_trade_assumption"
+          },
+          {
+            "field": "entry_order_side",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_order_side",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "gross_return",
+            "expected": 0.16079026,
+            "actual": 0.16079025641025643,
+            "delta": -3.58974357e-09,
+            "source_decimal_places": 8,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "fees",
+            "expected": 0.0,
+            "actual": 0.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "net_return_zero_cost_scenario",
+            "expected": 0.16079026,
+            "actual": 0.16079025641025643,
+            "delta": -3.58974357e-09,
+            "source_decimal_places": 8,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "unit_pnl",
+            "expected": 3.1354100000000003,
+            "actual": 3.1354100000000003,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "derived_from_frozen_fills"
+          },
+          {
+            "field": "r_multiple",
+            "expected": 2.0,
+            "actual": 2.0,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "sage_derived_using_frozen_risk_not_vectorbt_metric"
+          }
+        ],
+        "engine_trade": {
+          "id": 0,
+          "col": 0,
+          "size": 1.0,
+          "entry_idx": 0,
+          "entry_price": 19.5,
+          "entry_fees": 0.0,
+          "exit_idx": 1,
+          "exit_price": 22.63541,
+          "exit_fees": 0.0,
+          "pnl": 3.1354100000000003,
+          "return": 0.16079025641025643,
+          "direction": 0,
+          "status": 1,
+          "parent_id": 0
+        },
+        "engine_orders": [
+          {
+            "id": 0,
+            "col": 0,
+            "idx": 0,
+            "size": 1.0,
+            "price": 19.5,
+            "fees": 0.0,
+            "side": 0
+          },
+          {
+            "id": 1,
+            "col": 0,
+            "idx": 1,
+            "size": 1.0,
+            "price": 22.63541,
+            "fees": 0.0,
+            "side": 1
+          }
+        ],
+        "actual_fees": null,
+        "actual_quantity": null,
+        "actual_net_return": null,
+        "mfe": null,
+        "mae": null,
+        "path_validation": "not_performed_by_vectorbt"
+      },
+      "cache_replay": {
+        "status": "unavailable",
+        "reason": "cache_not_restored_locally",
+        "checks": []
+      }
+    },
+    {
+      "event_id": "V2-SJM-2025-12-29",
+      "symbol": "SJM",
+      "signal_date": "2025-12-29",
+      "source_event_sha256": "3fd80a3470cfa4f24bddd7ce9e7f2722348cc7937fc9446cffd55f5668fb1a4b",
+      "policy_version": "support-5pct-cap-10pct-2r-v1",
+      "entry_date": "2025-12-30",
+      "entry_price": 96.304811,
+      "baseline": {
+        "executable": true,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "entry": 96.304811,
+        "support_level": 94.4131,
+        "support_source": "prior-20D-low",
+        "structural_stop": 89.692445,
+        "max_loss_stop": 86.674329,
+        "stop": 89.692445,
+        "stop_source": "prior-20D-low",
+        "risk_pct": 0.0686608,
+        "target_r": 2.0,
+        "target": 109.529542,
+        "max_hold_sessions": 40,
+        "status": "resolved",
+        "exit_date": "2026-02-23",
+        "exit_price": 109.529542,
+        "exit_reason": "target",
+        "holding_sessions": 37,
+        "return": 0.13732161,
+        "r_multiple": 2.0
+      },
+      "accounting": {
+        "status": "difference",
+        "checks": [
+          {
+            "field": "entry_price",
+            "expected": 96.304811,
+            "actual": 96.304811,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_price",
+            "expected": 109.529542,
+            "actual": 109.529542,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "entry_slot",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_slot",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "closed_status",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "quantity",
+            "expected": 1.0,
+            "actual": 1.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "unit_trade_assumption"
+          },
+          {
+            "field": "entry_order_side",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_order_side",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "gross_return",
+            "expected": 0.13732161,
+            "actual": 0.13732160275980404,
+            "delta": -7.24019596e-09,
+            "source_decimal_places": 8,
+            "status": "difference",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "fees",
+            "expected": 0.0,
+            "actual": 0.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "net_return_zero_cost_scenario",
+            "expected": 0.13732161,
+            "actual": 0.13732160275980404,
+            "delta": -7.24019596e-09,
+            "source_decimal_places": 8,
+            "status": "difference",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "unit_pnl",
+            "expected": 13.224731000000006,
+            "actual": 13.224731000000006,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "derived_from_frozen_fills"
+          },
+          {
+            "field": "r_multiple",
+            "expected": 2.0,
+            "actual": 1.9999998487682045,
+            "delta": -1.512317955e-07,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "sage_derived_using_frozen_risk_not_vectorbt_metric"
+          }
+        ],
+        "engine_trade": {
+          "id": 0,
+          "col": 0,
+          "size": 1.0,
+          "entry_idx": 0,
+          "entry_price": 96.304811,
+          "entry_fees": 0.0,
+          "exit_idx": 1,
+          "exit_price": 109.529542,
+          "exit_fees": 0.0,
+          "pnl": 13.224731000000006,
+          "return": 0.13732160275980404,
+          "direction": 0,
+          "status": 1,
+          "parent_id": 0
+        },
+        "engine_orders": [
+          {
+            "id": 0,
+            "col": 0,
+            "idx": 0,
+            "size": 1.0,
+            "price": 96.304811,
+            "fees": 0.0,
+            "side": 0
+          },
+          {
+            "id": 1,
+            "col": 0,
+            "idx": 1,
+            "size": 1.0,
+            "price": 109.529542,
+            "fees": 0.0,
+            "side": 1
+          }
+        ],
+        "actual_fees": null,
+        "actual_quantity": null,
+        "actual_net_return": null,
+        "mfe": null,
+        "mae": null,
+        "path_validation": "not_performed_by_vectorbt"
+      },
+      "cache_replay": {
+        "status": "unavailable",
+        "reason": "cache_not_restored_locally",
+        "checks": []
+      }
+    },
+    {
+      "event_id": "V2-SOXX-2025-12-29",
+      "symbol": "SOXX",
+      "signal_date": "2025-12-29",
+      "source_event_sha256": "ffbd1057efa46a9640d14e378f68f6ac16327f265336570fc81ed0d022e03f41",
+      "policy_version": "support-5pct-cap-10pct-2r-v1",
+      "entry_date": "2025-12-30",
+      "entry_price": 305.746335,
+      "baseline": {
+        "executable": true,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "entry": 305.746335,
+        "support_level": 300.4138,
+        "support_source": "EMA21",
+        "structural_stop": 285.39311,
+        "max_loss_stop": 275.171702,
+        "stop": 285.39311,
+        "stop_source": "EMA21",
+        "risk_pct": 0.06656899,
+        "target_r": 2.0,
+        "target": 346.452786,
+        "max_hold_sessions": 40,
+        "status": "resolved",
+        "exit_date": "2026-01-21",
+        "exit_price": 346.452786,
+        "exit_reason": "target",
+        "holding_sessions": 15,
+        "return": 0.13313798,
+        "r_multiple": 2.0
+      },
+      "accounting": {
+        "status": "difference",
+        "checks": [
+          {
+            "field": "entry_price",
+            "expected": 305.746335,
+            "actual": 305.746335,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_price",
+            "expected": 346.452786,
+            "actual": 346.452786,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "entry_slot",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_slot",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "closed_status",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "quantity",
+            "expected": 1.0,
+            "actual": 1.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "unit_trade_assumption"
+          },
+          {
+            "field": "entry_order_side",
+            "expected": 0,
+            "actual": 0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "exit_order_side",
+            "expected": 1,
+            "actual": 1,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "gross_return",
+            "expected": 0.13313798,
+            "actual": 0.13313798512090103,
+            "delta": 5.12090103e-09,
+            "source_decimal_places": 8,
+            "status": "difference",
+            "origin": "frozen_evidence"
+          },
+          {
+            "field": "fees",
+            "expected": 0.0,
+            "actual": 0.0,
+            "delta": 0.0,
+            "source_decimal_places": null,
+            "status": "match",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "net_return_zero_cost_scenario",
+            "expected": 0.13313798,
+            "actual": 0.13313798512090103,
+            "delta": 5.12090103e-09,
+            "source_decimal_places": 8,
+            "status": "difference",
+            "origin": "zero_cost_assumption"
+          },
+          {
+            "field": "unit_pnl",
+            "expected": 40.706451000000015,
+            "actual": 40.706451000000015,
+            "delta": 0.0,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "derived_from_frozen_fills"
+          },
+          {
+            "field": "r_multiple",
+            "expected": 2.0,
+            "actual": 2.0000000491322627,
+            "delta": 4.91322627e-08,
+            "source_decimal_places": 6,
+            "status": "match",
+            "origin": "sage_derived_using_frozen_risk_not_vectorbt_metric"
+          }
+        ],
+        "engine_trade": {
+          "id": 0,
+          "col": 0,
+          "size": 1.0,
+          "entry_idx": 0,
+          "entry_price": 305.746335,
+          "entry_fees": 0.0,
+          "exit_idx": 1,
+          "exit_price": 346.452786,
+          "exit_fees": 0.0,
+          "pnl": 40.706451000000015,
+          "return": 0.13313798512090103,
+          "direction": 0,
+          "status": 1,
+          "parent_id": 0
+        },
+        "engine_orders": [
+          {
+            "id": 0,
+            "col": 0,
+            "idx": 0,
+            "size": 1.0,
+            "price": 305.746335,
+            "fees": 0.0,
+            "side": 0
+          },
+          {
+            "id": 1,
+            "col": 0,
+            "idx": 1,
+            "size": 1.0,
+            "price": 346.452786,
+            "fees": 0.0,
+            "side": 1
+          }
+        ],
+        "actual_fees": null,
+        "actual_quantity": null,
+        "actual_net_return": null,
+        "mfe": null,
+        "mae": null,
+        "path_validation": "not_performed_by_vectorbt"
+      },
+      "cache_replay": {
+        "status": "unavailable",
+        "reason": "cache_not_restored_locally",
+        "checks": []
+      }
+    }
+  ],
+  "summary": {
+    "accounting": {
+      "match": 10,
+      "difference": 10
+    },
+    "cache_replay": {
+      "unavailable": 20
+    }
+  },
+  "sample_audit": {
+    "frozen_status_counts": {
+      "resolved": 20
+    },
+    "omitted_after_selection": 0,
+    "source_fields_unavailable": 0
+  },
+  "limitations": [
+    "engineering_comparison_not_strategy_validation",
+    "frozen_exits_not_independently_decided_by_vectorbt",
+    "actual_quantity_fees_net_return_unavailable",
+    "r_is_sage_derived_from_frozen_risk",
+    "mfe_mae_unavailable",
+    "original_raw_revision_not_proven",
+    "zero_cost_is_only_an_assumption"
+  ],
+  "content_fingerprint": "sha256:0d8023d7d991c64b2e8c6f3adf8d73247fb12c97f901cbcee17740860e1a823e"
+}

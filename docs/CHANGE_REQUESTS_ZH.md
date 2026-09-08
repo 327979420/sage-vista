@@ -40,6 +40,15 @@
 
 ### CR-2026-09-07-056｜月周日加权评分与持续观察
 
+- 2026-09-08VectorBT接入（`verified`本地记账／缓存作业待真实运行）：用户要求下一包实际导入执行并可看逐笔报告。08 v1.23.1先行，X1固定依赖许可＋X2最早20条旧政策成交记账comparison；真实旧账本可用但本地完整OHLC缓存缺失，先交订单级核对，路径指标明确不可用。不改选股/评分/执行算法，未决新止损不实施，不启动X3或多年回测；引擎隔离本地，网站仅派生报告，独立提交交审。
+- 固定样本：账本源03c18cb、SHA-256 a50d74f621a0ba17f278d6c18cc06f2c42cc5d5949d65b21025239683365189f；4512事件中2129旧政策，2383其他/无政策不适用，固定前20以外2109条不运行。按signal_date/event_id选择2025-12-29起20条，全部resolved且成交字段完整，选择后跳过0条；冻结输入72fa4eb9699a8042ae4d1a2d301e52cf12f08289810364e9c0fb7c4467cb1d95，CLI先核此hash。
+- X1实装：VectorBT1.1.0、CPython3.14隔离work环境；59包精确版本＋官方wheel哈希锁，pip check通过，OSV在2026-09-08查询59包未返回已知漏洞（不是永久安全证明）。VectorBT上游tag commit259d2d89fe2e7638baf3ca76c394937cd32b656d的LICENSE与wheel内原文逐字节一致，12321字节、SHA-256 a914859a115b70e80956a3cbd613139ad74c04e5d1bd38da8bcc16725822ec84。原解析Plotly7的scattermapbox导入失败留档；固定官方6.9.0后真实导入和20笔运行完成，无fork/源码补丁。网站package.json/锁未增加引擎；ESLint排除已忽略work，避免扫描研究环境附带Jupyter资源导致堆内存耗尽。
+- 实际本地结果：20条成交价格一致；10条全部记账字段一致、10条收益8位／R6位下有差异，最大毛收益差约2.95e-8，原始差值全部保留。精度原因只是待缓存核实的解释，不放宽精度。每笔1单位和零费用／滑点只是假设；真实数量、费用、净收益及MFE/MAE不可用。原退出作输入，VectorBT不重新决定退出。派生报告位于原research/backtest/output，公开紧凑副本由已核报告打包复制，引擎拒绝直接写public。
+- 后续本包缓存重放：既有opportunity-ledger-refresh默认refresh不变，显式mode=comparison才运行独立contents:read job，精确A0/current两个cache key、无fallback/save/生产secret，与旧生产并发组隔离，所有旧refresh/push/deploy及通知分支跳过。只读恢复后使用原simulate_execution重放固定窗口并核对原成交与复权指纹，仅上传派生报告与attempt身份。缓存未真实运行，当前页面对此显示不可用，不宣称路径parity通过。
+- 本地验收：6项comparison检查、5项原UI合同、2项M02缓存库存检查通过；完整前端lint／typecheck／build及22项Node检查通过。仅新派生public/vectorbt-comparison.json加入，原公开事实、机会账本、排行及自动断点不变。缓存重放和网站发布仍待审核任务执行；本地真实VectorBT只证明引擎可运行及该20笔订单记账结果。
+- 可复现：隔离venv按research/backtest/dependencies/vectorbt-requirements.lock使用--only-binary=:all: --require-hashes安装；python -m research.backtest.vectorbt_comparison --out work/新文件.json可重现冻结成交记账。恢复后加--cache-dir work/eodhd-cache及已固定--cache-key；差异保留、输出不可覆盖。使用--bundle 两份已核报告 --out work/website.json汇集后只复制该派生JSON到public/vectorbt-comparison.json。入口为现有/zh/watch/resonance/strategy-backtest-v2，多因子页已链接。
+
+
 - 2026-09-08视觉定点补修（已独立复核并上线，见下条）：针对真实浏览器发现的CSS reset连续文本问题，共享背景组件新增覆盖摘要、独立卡片网格／状态徽标／明确来源、待补折叠区和手机单列，个股背景紧凑显示。候选代码链接到原多因子页并按symbol精确选中；持仓改称“持仓代码（含未核资产类型）”，原代码可选择复制。大盘标题直接使用已有温度state，“分化”配中性说明。7项页面渲染及5项原UI合同、lint／typecheck／build与diff检查通过；public／services／data／automation完全未改，未跑全Python、未部署，真实视觉复验由审核任务执行。
 - 2026-09-08独立线上验收：功能日终运行 `34184997473` 成功；首次 `34184691737` 因旧UI文案断言失败，修正对应断言后重试，保留失败记录。视觉提交 `7e48ae2` 已推送 main，网站专用发布 `34185814112` 成功，线上 Build 一致。审核任务本地完整 `npm test` 通过（含19项页面测试）；现场浏览器确认卡片排版、SOXX持仓展开、SWKS链接精确选中及个股行业背景，390px手机视口为单列且 scrollWidth=clientWidth=390。发布收据核验21/21 ETF、26主题、19有日期持仓主题；行业指纹与32只候选榜单哈希和前次功能发布一致，未重算行情或排名。当前行情日2026-09-04，持仓与分类快照日期独立展示；本包完成不表示新版买卖规则或VectorBT回测已完成。
 

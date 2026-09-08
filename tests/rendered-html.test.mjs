@@ -90,7 +90,6 @@ test("experiment pages are retired from the website", async () => {
   const routes = [
     "/zh/watch/resonance/research",
     "/zh/watch/resonance/strategy-backtest",
-    "/zh/watch/resonance/strategy-backtest-v2",
     "/zh/watch/resonance/market-regime",
     "/zh/watch/resonance/factor-attribution",
     "/zh/watch/resonance/ranking-research",
@@ -110,4 +109,12 @@ test("multi-factor route renders the candidate snapshot boundary and optional le
   assert.match(html, /正在读取已核新模型快照/);
   assert.match(html, /旧版本排行与因子研究留档/);
   assert.doesNotMatch(html, /共同门票.*个样本/);
+});
+
+
+test("renders the authorized fixed-sample comparison entry without restoring the experiment archive", async()=>{
+  const response=await render("/zh/watch/resonance/strategy-backtest-v2");
+  assert.equal(response.status,200);
+  const html=await response.text();
+  assert.match(html,/逐笔成交对账/);assert.match(html,/不改变生产策略/);
 });

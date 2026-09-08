@@ -5,18 +5,24 @@ on:
     workflows: ["Unified V2 Historical Backfill"]
     types: [completed]
   workflow_dispatch:
+    inputs:
+      mode:
+        description: Existing ledger refresh or isolated fixed-sample comparison
+        type: choice
+        options: [refresh, comparison]
+        default: refresh
 
 permissions:
   contents: write
   actions: write
 
 concurrency:
-  group: sage-vista-opportunity-ledger
+  group: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'comparison' && 'sage-vista-vectorbt-comparison' || 'sage-vista-opportunity-ledger' }}
   cancel-in-progress: false
 
 jobs:
   refresh:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    if: (github.event_name == 'workflow_dispatch' && inputs.mode != 'comparison') || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -48,3 +54,68 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run deploy-site.yml --ref main
+
+  comparison:
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'comparison'
+    permissions:
+      contents: read
+      actions: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: a0
+            cache_key: eodhd-history-v1-33293559230
+          - name: current
+            cache_key: eodhd-history-v1-34184997473
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with: { python-version: "3.14" }
+      - name: Restore exact reviewed cache without fallback or saving
+        id: prices
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            work/eodhd-cache
+            work/eodhd-active-common.json
+          key: ${{ matrix.cache_key }}
+          fail-on-cache-miss: true
+      - name: Require exact cache identity
+        env:
+          EXPECTED_CACHE: ${{ matrix.cache_key }}
+          ACTUAL_CACHE: ${{ steps.prices.outputs.cache-matched-key }}
+        run: test "$EXPECTED_CACHE" = "$ACTUAL_CACHE"
+      - name: Install hash-locked isolated comparison dependencies
+        run: |
+          python3 -m venv work/vectorbt-env
+          work/vectorbt-env/bin/python -m pip install --only-binary=:all: --require-hashes -r research/backtest/dependencies/vectorbt-requirements.lock
+          work/vectorbt-env/bin/python -m pip check
+      - name: Compare fixed events using restored prices and frozen fills
+        env:
+          CACHE_KEY: ${{ matrix.cache_key }}
+          SAMPLE_NAME: ${{ matrix.name }}
+        run: work/vectorbt-env/bin/python -m research.backtest.vectorbt_comparison --cache-dir work/eodhd-cache --cache-key "$CACHE_KEY" --out "work/vectorbt-derived/$SAMPLE_NAME.json"
+      - name: Save comparison attempt identity
+        if: always()
+        env:
+          CACHE_KEY: ${{ matrix.cache_key }}
+          CACHE_OUTCOME: ${{ steps.prices.outcome }}
+          SAMPLE_NAME: ${{ matrix.name }}
+        run: |
+          python3 - <<'PYCODE'
+          import json,os,pathlib
+          target=pathlib.Path('work/vectorbt-derived');target.mkdir(parents=True,exist_ok=True)
+          (target/'attempt.json').write_text(json.dumps({'run_id':os.environ['GITHUB_RUN_ID'],'code_commit':os.environ['GITHUB_SHA'],'sample':os.environ['SAMPLE_NAME'],'cache_key':os.environ['CACHE_KEY'],'cache_restore_outcome':os.environ['CACHE_OUTCOME'],'raw_prices_exported':False}))
+          PYCODE
+      - name: Upload derived comparison only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vectorbt-comparison-${{ matrix.name }}-${{ github.run_id }}
+          path: work/vectorbt-derived/*.json
+          retention-days: 30
