@@ -116,5 +116,5 @@ test("renders research history with pending account entry and retained compariso
   const response=await render("/zh/watch/resonance/strategy-backtest-v2");
   assert.equal(response.status,200);
   const html=await response.text();
-  assert.match(html,/策略回测与历史结果/);assert.match(html,/账户运行待参数确认/);assert.match(html,/早期20笔成交工程对账/);
+  assert.match(html,/策略回测与历史结果/);assert.match(html,/正在读取研究配置/);assert.match(html,/早期20笔成交工程对账/);
 });

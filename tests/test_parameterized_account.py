@@ -28,9 +28,32 @@ class AccountTests(unittest.TestCase):
             price=100+math.sin(i)*2
             rows.append({'date':d,'open':price,'high':max(price+2,125 if i in (12,85) else 0),'low':price-2,'close':price,'adjusted_close':price,'volume':1000})
         def event(symbol,i,rank):
-            return {'event_id':f'{symbol}-{i}','symbol':symbol,'signal_date':days[i],'selection':{'rank':rank,'execution_policy_version':POLICY,'support_plan':{'level':90,'source':'synthetic'}}}
+            return {'event_id':f'{symbol}-{i}','symbol':symbol,'signal_date':days[i],'selection':{'rank':rank,'model_version':'unified-v2-macd-trigger-1.3.0','execution_policy_version':POLICY,'support_plan':{'level':90,'source':'synthetic'}}}
         events=[event('A',0,1),event('B',0,2),event('C',0,3),event('A',10,1),event('A',60,1),event('B',90,2)]
         return days,rows,events
+
+    def write_scans(self,root,days,events):
+        path=root/'rankings.json'
+        path.write_text(json.dumps({'future_data_used':False,'days':[{'date':d,'model_version':'unified-v2-macd-trigger-1.3.0','candidate_count':sum(e['signal_date']==d for e in events),'ranking':[{'symbol':e['symbol'],'rank':e['selection']['rank'],'execution_policy_version':POLICY} for e in events if e['signal_date']==d]} for d in days]}))
+        return path
+
+    def test_approved_whole_share_preset_and_scan_coverage_boundaries(self):
+        from research.backtest.account_runner import approved_scenario,account,validate_scan_coverage
+        config=approved_scenario()
+        self.assertEqual({k:config[k] for k in CONFIG},{'initial_cash':100000,'allocation_fraction':.1,'max_positions':10,'cost_rate':.001,'fractional_shares':False})
+        self.assertIn('01a074f9-098a-7b82-b486-3185683290fe',config['approval_ref'])
+        days,rows,events=self.fixture()
+        _,_,trades=account(events,{s:rows for s in 'ABC'},days,config)
+        self.assertTrue(all(t['quantity'].is_integer() for t in trades if 'quantity' in t))
+        with tempfile.TemporaryDirectory() as d:
+            scans=json.loads(self.write_scans(Path(d),days,events).read_bytes())
+        validate_scan_coverage(scans,events,days)
+        for mutation,reason in [('missing','historical_scan_day_missing'),('other_policy','historical_scan_policy_unsupported'),('lost_signal','ledger_does_not_match_historical_scan')]:
+            bad=copy.deepcopy(scans); actual=events
+            if mutation=='missing':bad['days'].pop(3)
+            elif mutation=='other_policy':bad['days'][3]['model_version']='unified-v2-macd-trigger-1.1.0'
+            else:actual=events[1:]
+            with self.assertRaisesRegex(ValueError,reason):validate_scan_coverage(bad,actual,days)
 
     def test_vectorbt_cash_rank_same_stock_and_daily_values(self):
         from research.backtest.account_runner import account
@@ -98,7 +121,8 @@ class AccountTests(unittest.TestCase):
             for n,signals in enumerate(([],[pending]),1):
                 with self.subTest(signals=signals):
                     ledger.write_text(json.dumps({'coverage':{'first':days[0],'last':days[-1]},'events':signals}))
-                    result=execute({'strategy':POLICY,'start':days[0],'end':days[64]},CONFIG,cache,ledger,out=root/str(n),run_id='901',attempt=str(n),code_commit='a'*40,cache_key='synthetic',synthetic=True)
+                    scans=self.write_scans(root,days,signals)
+                    result=execute({'strategy':POLICY,'start':days[0],'end':days[64]},CONFIG,cache,ledger,rankings_path=scans,out=root/str(n),run_id='901',attempt=str(n),code_commit='a'*40,cache_key='synthetic',synthetic=True)
                     self.assertEqual(result['status'],'completed')
                     self.assertEqual(result['summary']['total_return'],0)
                     self.assertEqual(result['summary']['max_drawdown'],0)
@@ -133,9 +157,10 @@ class AccountTests(unittest.TestCase):
             root=Path(d);cache=root/'cache';cache.mkdir()
             for symbol in ('SPY','A','B','C'):(cache/(symbol+'.json')).write_text(json.dumps(rows))
             ledger=root/'ledger.json';ledger.write_text(json.dumps({'coverage':{'first':days[0],'last':days[-1]},'events':events}))
+            scans=self.write_scans(root,days,events)
             results=[]
             for n,end in enumerate((days[64],days[130]),1):
-                result=execute({'strategy':POLICY,'start':days[0],'end':end},CONFIG,cache,ledger,out=root/str(n),run_id='900',attempt=str(n),code_commit='a'*40,cache_key='synthetic',synthetic=True)
+                result=execute({'strategy':POLICY,'start':days[0],'end':end},CONFIG,cache,ledger,rankings_path=scans,out=root/str(n),run_id='900',attempt=str(n),code_commit='a'*40,cache_key='synthetic',synthetic=True)
                 results.append(result)
                 self.assertEqual(result['status'],'completed')
                 self.assertAlmostEqual(result['summary']['total_return'],result['daily_account'][-1]['equity']/1000-1)

@@ -1,0 +1,9 @@
+{
+  "approved": true,
+  "approval_ref": "2026-09-08：审核任务 01a074f9-098a-7b82-b486-3185683290fe 转达用户对研究账户预设明确回复“好”，批准100000美元、初始资金10%每笔、最多10只、单边成本0.001、无杠杆及现金不足/同股跳过；同次转达明确首版普通整股 fractional_shares=false，无需再问。仅legacy研究，不是生产策略、M10 formal资本合同或券商实盘授权。",
+  "initial_cash": 100000,
+  "allocation_fraction": 0.1,
+  "max_positions": 10,
+  "cost_rate": 0.001,
+  "fractional_shares": false
+}

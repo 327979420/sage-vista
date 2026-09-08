@@ -34,10 +34,10 @@ export function ResearchRunList({runs,onSelect,selected}:{runs:Run[];onSelect:(i
 
 export default function ResearchRuns(){
  const [runs,setRuns]=useState<Run[]>([]),[selected,setSelected]=useState(""),[html,setHtml]=useState(""),[receipt,setReceipt]=useState<Receipt|null>(null),[error,setError]=useState(""),[loading,setLoading]=useState(true),[refresh,setRefresh]=useState(0);
- const [enabled,setEnabled]=useState(false);
+ const [enabled,setEnabled]=useState(false),[configLoaded,setConfigLoaded]=useState(false);
  useEffect(()=>{
   const controller=new AbortController();
-  fetch(CONFIG_URL,{cache:"no-store",signal:controller.signal,credentials:"omit"}).then(r=>r.ok?r.json():null).then(c=>{if(!controller.signal.aborted)setEnabled(c?.approved===true&&typeof c?.approval_ref==="string"&&c.approval_ref.length>0)}).catch(()=>{if(!controller.signal.aborted)setEnabled(false)});
+  fetch(CONFIG_URL,{cache:"no-store",signal:controller.signal,credentials:"omit"}).then(r=>r.ok?r.json():null).then(c=>{if(!controller.signal.aborted){setEnabled(c?.approved===true&&typeof c?.approval_ref==="string"&&c.approval_ref.length>0);setConfigLoaded(true)}}).catch(()=>{if(!controller.signal.aborted){setEnabled(false);setConfigLoaded(true)}});
   return()=>controller.abort();
  },[refresh]);
  useEffect(()=>{
@@ -66,7 +66,7 @@ export default function ResearchRuns(){
  },[selected,runs]);
  const choose=(id:string)=>{setHtml("");setReceipt(null);setSelected(id)};
  return <div className="tradeComparison">
-  <header className="svPanel"><small>VectorBT＋QuantStats · 旧规则研究场景</small><h2>历史研究结果</h2><p>{enabled?"在 GitHub 登录后的表单选择 research 模式、旧基线策略和起止日期，然后提交。运行结束后回到这里刷新查看结果。":"账户回测待确认资金、仓位和费用参数，暂未开放提交。确认并接通作业后，将在 GitHub 登录后的表单选择策略和日期；这里只读已保存报告。"}</p><p>{enabled?<a href={WORKFLOW_URL} target="_blank" rel="noreferrer">提交回测／查看运行进度 ↗</a>:<button disabled>账户运行待参数确认</button>} · <button onClick={()=>{setLoading(true);setRefresh(v=>v+1)}}>刷新已保存结果</button></p><p>永久结果直接从仓库读取，无需每次重新部署；公开内容可能有几分钟缓存延迟。来源缺失和失败也保留，不作为零收益。研究假设不代表生产策略已获批准。</p></header>
+  <header className="svPanel"><small>VectorBT＋QuantStats · 旧规则研究场景</small><h2>历史研究结果</h2><p>旧策略：支撑下5%／入场亏损上限10%，2R目标，最长40个交易日。逐日回放当时保存的信号，不用今天的榜单倒填过去。</p><p>记录从2025-12-29开始。首轮建议：2025-12-29至2026-01-30、2026-02-02至2026-02-27；其他区间须每日旧策略记录与行情完整。前几年及新版策略历史重算尚未接通。</p><p>{enabled?"在 GitHub 登录后的表单选择 research 模式、旧基线策略和起止日期，然后提交。运行结束后回到这里刷新查看结果。":configLoaded?"研究配置暂不可用，提交入口暂时关闭；已有报告仍可查看。":"正在读取已批准的研究配置…"}</p><p>{enabled?<a href={WORKFLOW_URL} target="_blank" rel="noreferrer">提交回测／查看运行进度 ↗</a>:<button disabled>{configLoaded?"研究配置暂不可用":"正在读取研究配置"}</button>} · <button onClick={()=>{setLoading(true);setRefresh(v=>v+1)}}>刷新已保存结果</button></p><p>永久结果直接从仓库读取，无需每次重新部署；公开内容可能有几分钟缓存延迟。来源缺失和失败也保留，不作为零收益。研究假设不代表生产策略已获批准。</p></header>
   {loading&&<p role="status">正在读取历史运行…</p>}{error&&<p role="alert">{error}</p>}
   <ResearchRunList runs={runs} onSelect={choose} selected={selected}/>
   {receipt&&<section className="svPanel"><h3>运行 #{receipt.id} · {statusLabel[receipt.status]}</h3>{receipt.reason&&<p>{receipt.reason}</p>}<p><a href={RESULTS_ROOT+receipt.id+"/receipt.json"} target="_blank" rel="noreferrer">下载本次收据与逐笔结果</a></p>{html&&<iframe key={receipt.id} title="QuantStats账户报告与交易明细" sandbox="" referrerPolicy="no-referrer" srcDoc={'<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'; img-src data:; font-src data:; base-uri \'none\'; form-action \'none\'">'+html} style={{width:"100%",height:"1100px",border:0}}/>}</section>}

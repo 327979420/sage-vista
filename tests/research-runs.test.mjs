@@ -18,7 +18,7 @@ test('fixed result paths reject arbitrary report identities and malformed index'
 });
 test('pending account scenario has no fake runnable entry and HTML is sandboxed',()=>{
  const markup=renderToStaticMarkup(React.createElement(ResearchRuns));
- assert.match(markup,/账户运行待参数确认/);assert.match(markup,/<button disabled/);
+ assert.match(markup,/正在读取研究配置/);assert.match(markup,/<button disabled/);
  assert.doesNotMatch(markup,/research-backtest\.yml/);
  assert.match(source,/sandbox=""/);assert.match(source,/img-src data:/);assert.doesNotMatch(source,/allow-scripts|allow-same-origin/);
 });

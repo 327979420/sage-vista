@@ -1,7 +1,7 @@
 """Parameterized legacy scenario: sole old exits -> VectorBT daily account.
 
-There is deliberately no approved default configuration. Synthetic tests call
-the pure account function; real runs require the separately approved Git config.
+Real runs require the explicitly approved Git scenario. Synthetic tests call
+the pure account function without authorizing a production policy.
 """
 from datetime import date
 from functools import lru_cache
@@ -12,6 +12,43 @@ from pathlib import Path
 from research.backtest.run_store import ROOT, POLICY, encode, seal, sha256, validate_request
 
 CONFIG = ROOT / 'research/backtest/account-scenario.json'
+RANKINGS = ROOT / 'public/unified-v2-rankings.json'
+
+
+def validate_scan_coverage(rankings, events, sessions):
+    """Prove each requested session was scanned under this legacy policy.
+
+    Version 1.1 lacks the execution-policy contract. Later saved 1.2/1.3/1.4
+    records share it; this does not equate their signal-selection algorithms.
+    """
+    if rankings.get('future_data_used') is not False:
+        raise ValueError('scan_future_data_safety_unproven')
+    records = rankings.get('days', [])
+    days = {d['date']: d for d in records}
+    if len(days) != len(records):
+        raise ValueError('duplicate_scan_date')
+    supported = {'unified-v2-macd-trigger-1.2.0', 'unified-v2-macd-trigger-1.3.0', 'unified-v2-macd-trigger-1.4.0'}
+    for session in sessions:
+        day = days.get(session)
+        if day is None:
+            raise ValueError('historical_scan_day_missing:' + session)
+        if day.get('model_version') not in supported:
+            raise ValueError('historical_scan_policy_unsupported:' + session)
+        ranking = day.get('ranking')
+        if (not isinstance(ranking, list) or type(day.get('candidate_count')) is not int
+                or day['candidate_count'] < len(ranking)
+                or (not ranking and day['candidate_count'] != 0)):
+            raise ValueError('historical_scan_completeness_unproven:' + session)
+        if any(r.get('execution_policy_version') != POLICY for r in ranking):
+            raise ValueError('historical_scan_policy_unsupported:' + session)
+        expected = {(r['symbol'], r['rank']) for r in ranking}
+        actual_events = [e for e in events if e['signal_date'] == session]
+        actual = {(e['symbol'], e['selection']['rank']) for e in actual_events}
+        if (len(expected) != len(ranking) or len(actual) != len(actual_events) or actual != expected
+                or any(e['selection'].get('model_version') != day['model_version']
+                       or e['selection'].get('execution_policy_version') != POLICY for e in actual_events)):
+            raise ValueError('ledger_does_not_match_historical_scan:' + session)
+    return [days[d] for d in sessions]
 
 
 def scenario_values(config):
@@ -162,7 +199,7 @@ def account(events, rows_by_symbol, sessions, config):
     return equity, daily, trades+pending
 
 
-def execute(request, config, cache_dir, ledger_path, *, out, run_id, attempt, code_commit, cache_key, synthetic=False):
+def execute(request, config, cache_dir, ledger_path, *, out, run_id, attempt, code_commit, cache_key, synthetic=False, rankings_path=RANKINGS):
     from services.scanner.cr056_inputs import normalized_comparison_rows
     from research.backtest.quantstats_report import render_daily_report
     validate_request(request)
@@ -178,6 +215,8 @@ def execute(request, config, cache_dir, ledger_path, *, out, run_id, attempt, co
     reference = normalized_comparison_rows([r for r in calendar if request['start'] <= r['date'] <= request['end']],as_of=request['end'])
     sessions = [r['date'] for r in reference]
     window_events = [e for e in ledger['events'] if request['start'] <= e['signal_date'] <= request['end']]
+    scan_bytes = Path(rankings_path).read_bytes()
+    scan_days = validate_scan_coverage(json.loads(scan_bytes), window_events, sessions)
     events = [e for e in window_events if e['selection'].get('execution_policy_version') == POLICY]
     rows, sources = {}, {}
     for symbol in sorted({e['symbol'] for e in events}):
@@ -211,7 +250,7 @@ def execute(request, config, cache_dir, ledger_path, *, out, run_id, attempt, co
     report_path.write_text(report_path.read_text().replace('<body>','<body>'+intro,1).replace('</body>',table+'</table></div></body>'))
     receipt = seal({'schema_version':'legacy-research-run-v1','id':f'{run_id}-{attempt}','result_role':'legacy/research',
                     'status':'completed','request':request,'summary':summary,'code_commit':code_commit,
-                    'scenario':config,'selection':{'window_events':len(window_events),'eligible_policy_events':len(events),'excluded_other_policy':len(window_events)-len(events),'entered_trades':sum(t['status'] in ('open','closed') for t in trades)},'source':{'ledger_sha256':sha256(raw),'cache_key':cache_key,'windows_sha256':sources,'reference_sessions_sha256':sha256(encode(sessions)),'historical_raw_revision_proven':False},
+                    'scenario':config,'selection':{'window_events':len(window_events),'eligible_policy_events':len(events),'excluded_other_policy':len(window_events)-len(events),'entered_trades':sum(t['status'] in ('open','closed') for t in trades)},'source':{'ledger_sha256':sha256(raw),'cache_key':cache_key,'windows_sha256':sources,'reference_sessions_sha256':sha256(encode(sessions)),'scan_file_sha256':sha256(scan_bytes),'scan_days_sha256':sha256(encode(scan_days)),'historical_raw_revision_proven':False},
                     'daily_account':[{'date':d,'equity':float(v),'return':float(r)} for d,v,r in zip(sessions,equity,daily)],
                     'trades':trades,'synthetic':synthetic,
                     'report':{'path':f'{run_id}-{attempt}/report.html','sha256':sha256(report_path.read_bytes())}})
