@@ -129,7 +129,10 @@ class AccountTests(unittest.TestCase):
                     self.assertIsNone(result['summary']['win_rate'])
                     self.assertEqual(result['selection']['entered_trades'],0)
                     self.assertTrue(all(row['equity']==1000 and row['return']==0 for row in result['daily_account']))
-                    self.assertEqual(result['trades'],[] if not signals else [{'event_id':pending['event_id'],'symbol':'A','signal_date':days[64],'status':'pending_next_session'}])
+                    self.assertEqual([{k:t[k] for k in ('event_id','symbol','signal_date','status')} for t in result['trades']],[] if not signals else [{'event_id':pending['event_id'],'symbol':'A','signal_date':days[64],'status':'pending_next_session'}])
+                    self.assertEqual(result['audit']['account_algorithm'],'legacy-shared-cash-v1')
+                    self.assertEqual(len(result['audit']['experiment_key']),64)
+                    if signals:self.assertEqual(result['trades'][0]['signal_snapshot']['as_of'],days[64])
                     self.assertIn('0.00%',(root/str(n)/'report.html').read_text())
             # Empty signals do not waive reference or ledger coverage requirements.
             ledger.write_text(json.dumps({'coverage':{'first':days[0],'last':days[-1]},'events':[]}))

@@ -5,7 +5,9 @@ export const RESULTS_ROOT = "https://raw.githubusercontent.com/327979420/sage-vi
 const CONFIG_URL = "https://raw.githubusercontent.com/327979420/sage-vista/main/research/backtest/account-scenario.json";
 const WORKFLOW_URL = "https://github.com/327979420/sage-vista/actions/workflows/opportunity-ledger-refresh.yml";
 type Run = {id:string; status:"completed"|"unavailable"|"failed"; request:{strategy?:string;start?:string;end?:string}; summary:Record<string,number|null>; receipt_sha256:string};
-type Receipt = Run & {reason?:string; report?:{path:string;sha256:string}};
+type Selection = {technical_score?:number;rank?:number;model_version?:string;factor_registry_version?:string;ruleset_id?:string;score_equation?:string;reasons?:string[];timeframe_profile?:{label?:string}};
+type Trade = {event_id:string;symbol:string;signal_date:string;entry_date?:string;status:string;rank?:number;signal_snapshot?:{as_of:string;selection:Selection}};
+type Receipt = Run & {reason?:string; report?:{path:string;sha256:string};code_commit?:string;source?:{ledger_sha256?:string};trades?:Trade[];audit?:{account_algorithm:string;experiment_key:string;selection_versions:string[]}};
 const validId = (id:string) => /^[1-9][0-9]{0,19}-[1-9][0-9]{0,5}$/.test(id);
 const fingerprint = (s:string) => /^[0-9a-f]{64}$/.test(s);
 const statusLabel = {completed:"已完成",unavailable:"来源不可用",failed:"运行失败"};
@@ -30,6 +32,47 @@ async function hash(text:string){
 
 export function ResearchRunList({runs,onSelect,selected}:{runs:Run[];onSelect:(id:string)=>void;selected:string}){
  return <section className="svPanel"><h2>历史研究运行</h2>{!runs.length?<p>还没有已保存的研究运行。下方保留早期20笔工程对账。</p>:<div className="tradeComparisonTable"><table><thead><tr><th>运行／日期</th><th>状态</th><th>账户收益</th><th>最大回撤</th><th>已平仓胜率</th></tr></thead><tbody>{runs.map(r=><tr key={r.id} data-selected={r.id===selected}><td><span>{r.request.start} 至 {r.request.end}</span> <button aria-pressed={r.id===selected} onClick={()=>onSelect(r.id)}>{r.status==="completed"?"查看报告":"查看原因"}</button><small>#{r.id}</small></td><td>{statusLabel[r.status]}</td><td>{percent(r.summary.total_return)}</td><td>{percent(r.summary.max_drawdown)}</td><td>{percent(r.summary.win_rate)}</td></tr>)}</tbody></table></div>}</section>;
+}
+
+export function matchingSignal(trade:Trade, events:Map<string,{symbol:string;signal_date:string;selection:Selection}>):Selection{
+ const event=events.get(trade.event_id);
+ if(!event||event.symbol!==trade.symbol||event.signal_date!==trade.signal_date||(trade.rank!==undefined&&event.selection.rank!==trade.rank))throw Error("原交易与信号账本不一致，停止显示评分。");
+ return event.selection;
+}
+
+function TradeAudit({receipt}:{receipt:Receipt}){
+ const [selections,setSelections]=useState<Record<string,Selection>|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState("");
+ const trades=(receipt.trades??[]).filter(t=>t.status==="open"||t.status==="closed");
+ async function load(){
+  setBusy(true);setError("");
+  try{
+   const result:Record<string,Selection>={};
+   if(trades.every(t=>t.signal_snapshot)){
+    for(const t of trades){if(t.signal_snapshot!.as_of!==t.signal_date)throw Error("评分快照日期不一致");result[t.event_id]=t.signal_snapshot!.selection;}
+   }else{
+    if(!/^[0-9a-f]{40}$/.test(receipt.code_commit??"")||!fingerprint(receipt.source?.ledger_sha256??""))throw Error("原报告缺少评分来源身份");
+    const response=await fetch(`https://raw.githubusercontent.com/327979420/sage-vista/${receipt.code_commit}/public/opportunity-ledger.json`,{credentials:"omit"});
+    if(!response.ok)throw Error("原始评分账本读取失败，请重试");
+    const raw=await response.text();if(await hash(raw)!==receipt.source!.ledger_sha256)throw Error("原始账本校验失败，不能用其他版本替代");
+    const events=JSON.parse(raw).events;const map=new Map<string,{symbol:string;signal_date:string;selection:Selection}>();
+    for(const e of events){if(map.has(e.event_id))throw Error("原账本事件重复");map.set(e.event_id,e);}
+    for(const t of trades)result[t.event_id]=matchingSignal(t,map);
+   }
+   setSelections(result);
+  }catch(e){setError(e instanceof Error?e.message:String(e));}finally{setBusy(false);}
+ }
+ const versions=selections?[...new Set(Object.values(selections).map(s=>s.model_version??"未记录"))]:receipt.audit?.selection_versions;
+ return <section className="svPanel"><h2>策略版本与买入评分</h2>
+  <p>本报告为旧策略：日线金叉及旧长期趋势资格后按排名尝试入场，未使用新版月线方向否决。评分用于排序，没有额外最低买入分数。</p>
+  <p>买入依据采用信号日收盘技术分，次日开盘尝试买入；旧分数不能与新版百分制直接比较。卖出时评分：未记录，不用今天的分数补填。</p>
+  <p>执行版本：{receipt.request.strategy??"未记录"} · 回测代码：{receipt.code_commit??"未记录"}{receipt.audit&&<> · 账户算法：{receipt.audit.account_algorithm}</>}</p>
+  {versions&&<p>实际买入使用的选股版本：{versions.join("、")}{versions.length>1&&"（混合历史版本，不视为同一策略）"}</p>}
+  {receipt.audit&&<details><summary>实验身份（识别相同条件）</summary><p style={{overflowWrap:"anywhere"}}>{receipt.audit.experiment_key}</p><p>相同条件优先复用已有报告；目前尚未自动阻止重复提交。</p></details>}
+  {!selections&&<button disabled={busy} onClick={load}>{busy?"正在核对原信号账本…":"查看每笔买入评分与原因"}</button>}
+  {!selections&&<p>旧报告首次查看按需读取原始评分档案，约9MB；复用已保存交易，不重跑回测。</p>}
+  {error&&<p role="alert">{error}</p>}
+  {selections&&<div className="tradeComparisonTable"><table><thead><tr><th>股票</th><th>评分日期／买入日</th><th>技术分／原排名</th><th>评分版本</th><th>入选依据</th></tr></thead><tbody>{trades.map(t=>{const s=selections[t.event_id];return <tr key={t.event_id}><td>{t.symbol}</td><td>{t.signal_date} 收盘<br/>{t.entry_date} 买入</td><td>{typeof s.technical_score==="number"?s.technical_score:"未记录"} 分／第 {s.rank??"未记录"} 名</td><td>{s.model_version??"未记录"}<br/>因子 {s.factor_registry_version??"未记录"}</td><td>{s.reasons?.join("；")??"未记录"}<details><summary>原评分说明</summary><p>{s.score_equation??"未记录"}</p><p>{s.timeframe_profile?.label??"周期信息未记录"}</p><p>规则：{s.ruleset_id??"未记录"}</p></details></td></tr>})}</tbody></table></div>}
+ </section>;
 }
 
 export default function ResearchRuns(){
@@ -70,6 +113,7 @@ export default function ResearchRuns(){
   {loading&&<p role="status">正在读取历史运行…</p>}{error&&<p role="alert">{error}</p>}
   <ResearchRunList runs={runs} onSelect={choose} selected={selected}/>
   {selected&&!receipt&&!error&&<p role="status">正在加载所选回测报告…</p>}
+  {receipt?.status==="completed"&&<TradeAudit key={receipt.id} receipt={receipt}/>}
   {receipt&&<section id="quantstats-report" className="svPanel"><h2>QuantStats 回测报告</h2><h3>{receipt.request.start} 至 {receipt.request.end} · {statusLabel[receipt.status]}</h3>{receipt.reason&&<p>{receipt.reason}</p>}<p><a href={RESULTS_ROOT+receipt.id+"/receipt.json"} target="_blank" rel="noreferrer">下载本次收据与逐笔结果</a></p>{html&&<iframe key={receipt.id} title="QuantStats账户报告与交易明细" sandbox="" referrerPolicy="no-referrer" srcDoc={'<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'; img-src data:; font-src data:; base-uri \'none\'; form-action \'none\'">'+html} style={{width:"100%",height:"1100px",border:0}}/>}</section>}
  </div>;
 }

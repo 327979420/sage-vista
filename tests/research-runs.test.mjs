@@ -38,3 +38,11 @@ test('existing workflow isolates research and requires approval before engines',
  assert.doesNotMatch(JSON.stringify(workflow.jobs.research),/deploy-site|secrets\.|cache\/save/);
  assert.match(JSON.stringify(workflow.jobs.research),/publish_attempt/);
 });
+
+
+test('trade score lookup requires original event, symbol, day and rank',()=>{
+ const t={event_id:'A-1',symbol:'A',signal_date:'2026-01-02',rank:1};
+ const map=new Map([['A-1',{symbol:'A',signal_date:t.signal_date,selection:{rank:1,technical_score:5}}]]);
+ assert.equal(mod.exports.matchingSignal(t,map).technical_score,5);
+ for(const patch of [{event_id:'missing'},{symbol:'B'},{signal_date:'2026-01-03'},{rank:2}])assert.throws(()=>mod.exports.matchingSignal({...t,...patch},map));
+});

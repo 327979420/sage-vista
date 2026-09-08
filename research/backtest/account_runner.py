@@ -199,6 +199,25 @@ def account(events, rows_by_symbol, sessions, config):
     return equity, daily, trades+pending
 
 
+def attach_signal_audit(trades, events):
+    """Copy selection-time facts only; never read later evaluation or scores."""
+    by_id = {e['event_id']: e for e in events}
+    if len(by_id) != len(events):
+        raise ValueError('duplicate_signal_audit_identity')
+    for trade in trades:
+        event = by_id.get(trade['event_id'])
+        if (event is None or event['symbol'] != trade['symbol']
+                or event['signal_date'] != trade['signal_date']
+                or ('rank' in trade and event['selection']['rank'] != trade['rank'])):
+            raise ValueError('trade_signal_audit_identity_mismatch')
+        snapshot = {'as_of': event['signal_date'], 'basis': 'signal_close_before_next_open',
+                    'selection': json.loads(encode(event['selection']))}
+        trade['signal_snapshot'] = snapshot
+        trade['signal_snapshot_sha256'] = sha256(encode(snapshot))
+        trade['exit_score'] = {'status': 'unavailable', 'reason': 'not_recorded_at_exit'}
+    return trades
+
+
 def execute(request, config, cache_dir, ledger_path, *, out, run_id, attempt, code_commit, cache_key, synthetic=False, rankings_path=RANKINGS):
     from services.scanner.cr056_inputs import normalized_comparison_rows
     from research.backtest.quantstats_report import render_daily_report
@@ -228,6 +247,11 @@ def execute(request, config, cache_dir, ledger_path, *, out, run_id, attempt, co
             raise ValueError('asset_date_missing_from_reference_calendar')
         sources[symbol] = sha256(encode(window))
     equity,daily,trades = account(events,rows,sessions,config)
+    attach_signal_audit(trades, events)
+    versions = sorted({e["selection"]["model_version"] for e in events})
+    implementation = {name: sha256((ROOT/name).read_bytes()) for name in ("research/backtest/account_runner.py", "services/scanner/support_risk.py", "research/backtest/quantstats_report.py", "research/backtest/dependencies/vectorbt-requirements.lock", "research/backtest/dependencies/quantstats-requirements.lock")}
+    experiment = {"request":request,"account_parameters":scenario_values(config),"selection_versions":versions,"implementation":implementation,"scan_days_sha256":sha256(encode(scan_days)),"signal_snapshots_sha256":sha256(encode([t["signal_snapshot"] for t in trades])),"price_windows_sha256":sources,"reference_sha256":sha256(encode(reference))}
+    audit = {"version":"trade-signal-audit-v1", "account_algorithm":"legacy-shared-cash-v1", "selection_versions":versions, "execution_policy":POLICY, "experiment_key":sha256(encode(experiment)), "experiment_identity":experiment}
     output = Path(out); output.mkdir(parents=True,exist_ok=True)
     report_path = output/'report.html'
     summary = render_daily_report(equity,daily,config['initial_cash'],report_path,title='Legacy account research',synthetic=synthetic)
@@ -239,11 +263,13 @@ def execute(request, config, cache_dir, ledger_path, *, out, run_id, attempt, co
              f"<p>研究资金 {config['initial_cash']:,.2f}；每笔初始资金的 {config['allocation_fraction']:.1%}；最多 {config['max_positions']} 只；单边综合成本 {config['cost_rate']:.2%}；碎股 {'允许' if config['fractional_shares'] else '不允许'}。</p>"
              f"<p>仅旧支撑5%／入场10%上限止损、2R目标、最长40交易日。窗口原信号 {len(window_events)} 条，其中旧政策 {len(events)} 条；其余政策不混入本回测。每窗口从初始现金开始，不带入起始日前持仓。</p>"
              "<p>保守记账约定：原排名新入场先于当日退出，不用当日卖出款资助新买入；不代表真实盘中现金顺序。只做多，无杠杆，无部分成交；未平仓收益按窗口末有效收盘估值。</p></section>")
-    table = '<h2>Trades · 逐笔结果（已扣场景成本）</h2><div style="overflow-x:auto"><table><tr><th>股票／事件</th><th>信号日</th><th>入场日／价</th><th>状态／退出日</th><th>数量</th><th>净收益／净损益</th><th>原因</th></tr>'
+    table = '<h2>Trades · 逐笔结果（已扣场景成本）</h2><div style="overflow-x:auto"><table><tr><th>股票／事件</th><th>信号日</th><th>买入依据：信号收盘技术分／排名／模型</th><th>入场日／价</th><th>状态／退出日</th><th>数量</th><th>净收益／净损益</th><th>原因</th></tr>'
     for t in trades:
         ex=t.get('execution',{})
         state={'closed':'已平仓','open':'未平仓','skipped':'跳过','pending_next_session':'等待次日'}[t['status']]
+        selection = t['signal_snapshot']['selection']
         cells = [t['symbol']+' / '+t['event_id'],t.get('signal_date',''),
+                 str(selection.get('technical_score','未记录'))+' / #'+str(selection.get('rank','未记录'))+' / '+str(selection.get('model_version','未记录')),
                  str(t.get('entry_date',''))+' / '+str(t.get('entry_price','')),state+' / '+str(ex.get('exit_date','') if t['status']=='closed' else ''),
                  str(t.get('quantity','—')),f"{t['net_return']:.2%} / {t['net_pnl']:.2f}" if 'net_return' in t else '不可用',t.get('reason',ex.get('exit_reason',''))]
         table += '<tr>'+''.join('<td>'+html.escape(str(c))+'</td>' for c in cells)+'</tr>'
@@ -252,7 +278,7 @@ def execute(request, config, cache_dir, ledger_path, *, out, run_id, attempt, co
                     'status':'completed','request':request,'summary':summary,'code_commit':code_commit,
                     'scenario':config,'selection':{'window_events':len(window_events),'eligible_policy_events':len(events),'excluded_other_policy':len(window_events)-len(events),'entered_trades':sum(t['status'] in ('open','closed') for t in trades)},'source':{'ledger_sha256':sha256(raw),'cache_key':cache_key,'windows_sha256':sources,'reference_sessions_sha256':sha256(encode(sessions)),'scan_file_sha256':sha256(scan_bytes),'scan_days_sha256':sha256(encode(scan_days)),'historical_raw_revision_proven':False},
                     'daily_account':[{'date':d,'equity':float(v),'return':float(r)} for d,v,r in zip(sessions,equity,daily)],
-                    'trades':trades,'synthetic':synthetic,
+                    'trades':trades,'synthetic':synthetic,'audit':audit,
                     'report':{'path':f'{run_id}-{attempt}/report.html','sha256':sha256(report_path.read_bytes())}})
     (output/'receipt.json').write_bytes(encode(receipt))
     return receipt

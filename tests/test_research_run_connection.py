@@ -184,3 +184,33 @@ class DailyReturnTests(unittest.TestCase):
 
 
 if __name__=='__main__': unittest.main()
+
+
+class SignalAuditTests(unittest.TestCase):
+    def test_signal_snapshot_is_frozen_and_never_uses_later_evaluation(self):
+        from research.backtest.account_runner import attach_signal_audit
+        event={'event_id':'A-1','symbol':'A','signal_date':'2026-01-02','selection':{'rank':1,'technical_score':5,'model_version':'old'},'evaluation':{'technical_score':99}}
+        trade={'event_id':'A-1','symbol':'A','signal_date':'2026-01-02','rank':1}
+        attach_signal_audit([trade],[event])
+        self.assertEqual(trade['signal_snapshot']['selection']['technical_score'],5)
+        self.assertNotIn('evaluation',trade['signal_snapshot'])
+        event['selection']['technical_score']=77
+        self.assertEqual(trade['signal_snapshot']['selection']['technical_score'],5)
+        self.assertEqual(trade['exit_score']['status'],'unavailable')
+        with self.assertRaises(ValueError):attach_signal_audit([{**trade,'symbol':'B'}],[event])
+        with self.assertRaises(ValueError):attach_signal_audit([trade],[event,event])
+
+    def test_real_saved_trades_match_original_scores_without_recomputing_returns(self):
+        from research.backtest.account_runner import attach_signal_audit
+        from research.backtest.run_store import ROOT, encode
+        raw=(ROOT/'public/opportunity-ledger.json').read_bytes()
+        ledger=json.loads(raw)
+        for path in (ROOT/'research/backtest/output/reusable-runs').glob('*/receipt.json'):
+            value=json.loads(path.read_bytes())
+            self.assertEqual(sha256(raw),value['source']['ledger_sha256'])
+            trades=copy.deepcopy(value['trades'])
+            before=[t.get('net_pnl') for t in trades]
+            attach_signal_audit(trades,ledger['events'])
+            self.assertEqual([t.get('net_pnl') for t in trades],before)
+            for t in trades:
+                self.assertEqual(t['signal_snapshot_sha256'],sha256(encode(t['signal_snapshot'])))

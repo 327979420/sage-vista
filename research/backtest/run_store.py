@@ -71,6 +71,18 @@ def validate_receipt(receipt):
     fp = receipt.get('content_sha256')
     if fp != sha256(encode({k: v for k, v in receipt.items() if k != 'content_sha256'})):
         raise ValueError('receipt_fingerprint_mismatch')
+    audit = receipt.get('audit')
+    if audit is not None:
+        if (not isinstance(audit, dict) or audit.get('version') != 'trade-signal-audit-v1'
+                or audit.get('execution_policy') != POLICY
+                or audit.get('experiment_key') != sha256(encode(audit.get('experiment_identity')))):
+            raise ValueError('invalid_experiment_audit')
+        for trade in receipt.get('trades', []):
+            snap = trade.get('signal_snapshot')
+            if (not isinstance(snap, dict) or snap.get('as_of') != trade.get('signal_date')
+                    or snap.get('basis') != 'signal_close_before_next_open'
+                    or trade.get('signal_snapshot_sha256') != sha256(encode(snap))):
+                raise ValueError('invalid_trade_signal_snapshot')
     report = receipt.get('report')
     summary = receipt['summary']
     if receipt['status'] == 'completed':
