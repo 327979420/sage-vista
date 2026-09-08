@@ -7,22 +7,32 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: Existing ledger refresh or isolated fixed-sample comparison
+        description: Ledger refresh, fixed comparison, or approved account research
         type: choice
-        options: [refresh, comparison]
+        options: [refresh, comparison, research]
         default: refresh
+      strategy:
+        description: Research only — existing execution policy
+        type: choice
+        options: [support-5pct-cap-10pct-2r-v1]
+      start:
+        description: Research start YYYY-MM-DD
+        type: string
+      end:
+        description: Research end YYYY-MM-DD
+        type: string
 
 permissions:
   contents: write
   actions: write
 
 concurrency:
-  group: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'comparison' && 'sage-vista-vectorbt-comparison' || 'sage-vista-opportunity-ledger' }}
+  group: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'comparison' && 'sage-vista-vectorbt-comparison' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'research' && format('sage-vista-research-{0}', github.run_id)) || 'sage-vista-opportunity-ledger' }}
   cancel-in-progress: false
 
 jobs:
   refresh:
-    if: (github.event_name == 'workflow_dispatch' && inputs.mode != 'comparison') || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    if: (github.event_name == 'workflow_dispatch' && inputs.mode == 'refresh') || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -119,3 +129,77 @@ jobs:
           name: vectorbt-comparison-${{ matrix.name }}-${{ github.run_id }}
           path: work/vectorbt-derived/*.json
           retention-days: 30
+
+  research:
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'research' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+      actions: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      RESEARCH_INPUTS: ${{ toJSON(inputs) }}
+      MPLBACKEND: Agg
+    steps:
+      - uses: actions/checkout@v7
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v7
+        with: {python-version: "3.14"}
+      - name: Require approved scenario and valid request before restoring or computing
+        id: approval
+        run: python3 -m research.backtest.run_research --check
+      - name: Restore existing historical cache without downloading or saving
+        id: prices
+        if: steps.approval.outputs.enabled == 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            work/eodhd-cache
+            work/eodhd-active-common.json
+          key: eodhd-history-v1-research-${{ github.run_id }}
+          restore-keys: eodhd-history-v1-
+          fail-on-cache-miss: true
+      - name: Install isolated hash-locked accounting and reporting engines
+        if: steps.approval.outputs.enabled == 'true' && steps.prices.outcome == 'success'
+        run: |
+          python3 -m venv work/research-env
+          work/research-env/bin/python -m pip install --only-binary=:all: --require-hashes -r research/backtest/dependencies/vectorbt-requirements.lock -r research/backtest/dependencies/quantstats-requirements.lock
+          work/research-env/bin/python -m pip check
+      - name: Run the selected date window through the same account and report
+        if: steps.approval.outputs.enabled == 'true' && steps.prices.outcome == 'success'
+        env:
+          RESEARCH_CACHE_KEY: ${{ steps.prices.outputs.cache-matched-key }}
+        run: work/research-env/bin/python -m research.backtest.run_research
+      - name: Retain setup failure when no account receipt could be written
+        if: always()
+        env:
+          SETUP_OUTCOME: ${{ job.status }}
+        run: |
+          python3 - <<'PYCODE'
+          import json,os,pathlib
+          from research.backtest.run_store import encode,seal
+          target=pathlib.Path('work/research-attempt/receipt.json')
+          if not target.exists():
+              inputs=json.loads(os.environ['RESEARCH_INPUTS'])
+              r=seal({'schema_version':'legacy-research-run-v1','id':os.environ['GITHUB_RUN_ID']+'-'+os.environ['GITHUB_RUN_ATTEMPT'],'result_role':'legacy/research','status':'failed','request':{k:inputs.get(k,'') for k in ('strategy','start','end')},'summary':{},'reason':'research_setup_'+os.environ['SETUP_OUTCOME'],'report':None,'code_commit':os.environ['GITHUB_SHA']})
+              target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(encode(r))
+          PYCODE
+      - name: Permanently append verified derived result and index without deployment
+        if: always()
+        run: python3 -m research.backtest.publish_attempt --receipt work/research-attempt/receipt.json
+      - name: Keep only derived recovery copy
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            work/research-attempt/receipt.json
+            work/research-attempt/report.html
+          retention-days: 30
+      - name: Require an actually completed account result
+        run: |
+          python3 - <<'PYCODE'
+          import json
+          r=json.load(open('work/research-attempt/receipt.json'))
+          if r['status']!='completed':raise SystemExit(r['reason'])
+          PYCODE
