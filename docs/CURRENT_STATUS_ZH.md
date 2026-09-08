@@ -13,7 +13,7 @@
 ## 版本与代码身份
 
 - 网站实际版本：unified-v2-macd-trigger-1.4.0
-- 网站部署提交编号：66fc745b9bc42d4ac77a621ce93ca3f474d94579
+- 网站部署提交编号：8532d13a8bf7bcb0fc9a6b7bd60b3ccacce0c160
 - 夜间最近已保存批次版本：unified-v2-macd-trigger-1.3.0
 - 夜间批次编号：2025-12-29_to_2026-01-01
 - 夜间运行提交编号：未知
