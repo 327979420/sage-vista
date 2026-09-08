@@ -88,3 +88,15 @@ test('candidate query selects the linked stock without changing backend ranking'
  assert.equal((html.match(/class="v2RankRow isSelected"/g)||[]).length,1);
  assert.equal(JSON.stringify(data),before);
 });
+
+
+test('view filters preserve original ranks and inputs, use nomination dates, and keep missing scores last',()=>{
+ const rows=[{symbol:'OLD',rank:1,total:80,origin_date:'2025-12-01'},{symbol:'NEW',rank:2,total:60,origin_date:'2026-09-01'},{symbol:'TIE',rank:3,total:60,origin_date:'2026-08-01'},{symbol:'MISS',rank:null,total:null,origin_date:null}];
+ const before=JSON.stringify(rows), base={from:'',to:'',minimum:'',maximum:'',sort:'score_high'};
+ const filter=compiledModule.exports.filterCandidateRows;
+ assert.deepEqual(filter(rows,{...base,sort:'date_new'}).map(r=>r.symbol),['NEW','TIE','OLD','MISS']);
+ assert.deepEqual(filter(rows,{...base,sort:'score_low'}).map(r=>r.symbol),['NEW','TIE','OLD','MISS']);
+ assert.deepEqual(filter(rows,{...base,from:'2026-08-01',to:'2026-09-01',minimum:'60',maximum:'60'}).map(r=>r.rank),[2,3]);
+ assert.deepEqual(filter(rows,{...base,from:'2026-09-02',to:'2026-08-01'}),[]);
+ assert.equal(JSON.stringify(rows),before);
+});

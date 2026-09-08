@@ -136,17 +136,35 @@ class DailyEodWorkflowTests(unittest.TestCase):
   self.assertIn("merge_unified_v2_reports",recovery)
   self.assertNotIn("unified_v2_scan --start",recovery)
 
- def test_candidate_failure_can_publish_old_date_with_visible_status(self):
+ def test_candidate_release_requires_successful_same_day_bundle(self):
   import json,os,subprocess,sys,tempfile,textwrap
   text=WORKFLOW.read_text()
   block=text.split('name: Refresh candidate ranking and persistent watch state',1)[1].split('      - name:',1)[0]
   script=textwrap.dedent(block.split("python3 - <<'PYCODE'",1)[1].split('          PYCODE',1)[0])
   with tempfile.TemporaryDirectory() as directory:
    root=pathlib.Path(directory);out=root/'outputs'
-   (root/'cr056-update-result.json').write_text(json.dumps({'result':'retained_previous','as_of':'2026-09-04','changed':True,'cache_ready':False}))
-   subprocess.run([sys.executable,'-c',script],cwd=root,env={**os.environ,'GITHUB_OUTPUT':str(out),'LEGACY_RELEASE':'false'},check=True)
+   (root/'public').mkdir()
+   target='2026-09-08'
+   for name in ('market-etf-watch','industry-radar','cr056-ranking'):
+    (root/'public'/f'{name}.json').write_text(json.dumps({'as_of':target,'display_context':{'as_of':target}}))
+   env={**os.environ,'GITHUB_OUTPUT':str(out),'LEGACY_RELEASE':'false','BACKGROUND_CHANGED':'false','TARGET_AS_OF':target}
+   def run(result):
+    (root/'cr056-update-result.json').write_text(json.dumps(result))
+    if out.exists():out.unlink()
+    return subprocess.run([sys.executable,'-c',script],cwd=root,env=env,capture_output=True,text=True)
+   good={'result':'updated','as_of':target,'changed':True,'cache_ready':True}
+   self.assertEqual(run(good).returncode,0)
    self.assertIn('needs_release=true',out.read_text())
-   self.assertIn('result=retained_previous',out.read_text())
+   for result in ({**good,'result':'retained_previous'},{**good,'as_of':'2026-09-04'}):
+    self.assertNotEqual(run(result).returncode,0)
+    self.assertFalse(out.exists())
+   for name in ('market-etf-watch','industry-radar','cr056-ranking'):
+    path=root/'public'/f'{name}.json';before=path.read_text()
+    path.write_text(json.dumps({'as_of':'2026-09-04','display_context':{'as_of':target}}))
+    self.assertNotEqual(run(good).returncode,0);self.assertFalse(out.exists())
+    path.write_text(before)
+   (root/'public/industry-radar.json').write_text(json.dumps({'as_of':target,'display_context':{'as_of':'2026-09-04'}}))
+   self.assertNotEqual(run(good).returncode,0);self.assertFalse(out.exists())
   blocks={b.splitlines()[0]:b for b in text.split('      - name: ')[1:]}
   for name in ('Commit audited website data','Run all Python tests','Run production build and rendered tests','Deploy production to Cloudflare Workers'):
    self.assertIn("steps.candidate_update.outputs.needs_release == 'true'",blocks[name])

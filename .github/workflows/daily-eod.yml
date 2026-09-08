@@ -115,7 +115,14 @@ jobs:
           python3 - <<'PYCODE'
           import json,os
           result=json.load(open("cr056-update-result.json"))
-          if result.get("result") not in ("updated","already_current","retained_previous"):raise SystemExit("invalid candidate update result")
+          if result.get("result") not in ("updated","already_current"):raise SystemExit("candidate refresh incomplete; retain the entire previous production release")
+          target=os.environ['TARGET_AS_OF']
+          if result.get('as_of')!=target:raise SystemExit('candidate result date mismatch')
+          for path in ('public/market-etf-watch.json','public/industry-radar.json','public/cr056-ranking.json'):
+              payload=json.load(open(path))
+              if payload.get('as_of')!=target:raise SystemExit(f'bundle date mismatch: {path}')
+              if path.endswith('industry-radar.json') and payload.get('display_context',{}).get('as_of')!=target:raise SystemExit('industry ETF background date mismatch')
+              if path.endswith('cr056-ranking.json') and payload.get('refresh_status',{}).get('status')=='failed':raise SystemExit('candidate snapshot still marked failed')
           with open(os.environ["GITHUB_OUTPUT"],"a") as out:
               out.write(f"needs_release={str(result['changed'] or os.environ['LEGACY_RELEASE']=='true' or os.environ['BACKGROUND_CHANGED']=='true').lower()}\n")
               out.write(f"cache_ready={str(result['cache_ready']).lower()}\n")
@@ -123,6 +130,7 @@ jobs:
               out.write(f"as_of={result['as_of']}\n")
           PYCODE
         env:
+          TARGET_AS_OF: ${{ steps.update_result.outputs.as_of }}
           LEGACY_RELEASE: ${{ steps.update_result.outputs.needs_release }}
           BACKGROUND_CHANGED: ${{ steps.update_result.outputs.background_changed }}
       - name: Save private candidate input accelerator

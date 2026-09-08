@@ -52,20 +52,43 @@ function PeriodFactors({data,symbol}:{data:CandidateData;symbol:string}){
  })}</div>
 }
 
+export function filterCandidateRows(rows:Row[],filters:{from:string;to:string;minimum:string;maximum:string;sort:string}){
+ const filtered=rows.filter(r=>(!filters.from||(r.origin_date!==null&&r.origin_date>=filters.from))&&(!filters.to||(r.origin_date!==null&&r.origin_date<=filters.to))&&(!filters.minimum||(r.total!==null&&r.total>=Number(filters.minimum)))&&(!filters.maximum||(r.total!==null&&r.total<=Number(filters.maximum))));
+ return filtered.sort((a,b)=>{
+  const tie=(a.rank??Infinity)-(b.rank??Infinity)||a.symbol.localeCompare(b.symbol);
+  if(filters.sort.startsWith("date")){
+   if(a.origin_date===null||b.origin_date===null)return a.origin_date===b.origin_date?tie:a.origin_date===null?1:-1;
+   return (filters.sort==="date_new"?b.origin_date.localeCompare(a.origin_date):a.origin_date.localeCompare(b.origin_date))||tie;
+  }
+  if(a.total===null||b.total===null)return a.total===b.total?tie:a.total===null?1:-1;
+  return (filters.sort==="score_low"?a.total-b.total:b.total-a.total)||tie;
+ });
+}
+
 export function CandidateView({data,latestDate,initialQuery=""}:{data:CandidateData;latestDate?:string;initialQuery?:string}){
+ const [filters,setFilters]=useState({from:"",to:"",minimum:"",maximum:"",sort:"score_high"});
  const [mode,setMode]=useState("continuing");const [query,setQuery]=useState(initialQuery);const [symbol,setSymbol]=useState(initialQuery);
  const bySymbol=new Map(data.reviews.map(r=>[r.symbol,r]));
  const listed=(mode==="new"?data.new_nomination_symbols:mode==="continuing"?data.continuing_ranked_symbols:data.ranked_symbols).map(s=>bySymbol.get(s)!).filter(Boolean);
- const filtered=(query?data.reviews:listed).filter(r=>initialQuery&&query===initialQuery?r.symbol.toUpperCase()===initialQuery.toUpperCase():r.symbol.toLowerCase().includes(query.toLowerCase()));
+ const searched=(query?data.reviews:listed).filter(r=>initialQuery&&query===initialQuery?r.symbol.toUpperCase()===initialQuery.toUpperCase():r.symbol.toLowerCase().includes(query.toLowerCase()));
+ const filtered=mode==="continuing"?filterCandidateRows(searched,filters):searched;
  const visible=filtered.slice(0,50);const selected=visible.find(r=>r.symbol===symbol)??visible[0];
  const periods=listed.find(r=>r.periods)?.periods??data.reviews.find(r=>r.periods)?.periods;
  const alerts=data.reviews.filter(r=>r.high_score_eligible).length;
  const stale=Boolean(latestDate&&latestDate>data.as_of);
- return <>
+ return <div className="candidateSurface">
   <div className="candidateHeading"><div><small>月定方向 · 周确认 · 日择时</small><h2>候选榜</h2><p>{data.as_of} 收盘 · 达到60分警报线 {alerts}只</p></div><a href="/zh/backtest">回测与收益报告 →</a></div>
   <div className="replayCoverage" role="status"><mark>{stale?`更新落后：已有 ${latestDate} 行情，本榜仍为 ${data.as_of}`:"已核验快照"}</mark><span>{data.automatic_updates_connected?"随现有日终流程自动复评":"新榜自动日更尚未接通"}</span>{data.refresh_status?.status==="failed"&&<mark>{data.refresh_status.target_as_of} 自动复评未完成，保留 {data.as_of} 榜单</mark>}<span>行情可用 {data.input_coverage.repaired_count}只／来源排除 {data.input_coverage.excluded_count}只</span></div>
   <section className="researchReplay candidateWorkspace">
    <div className="candidateToolbar"><div className="candidateTabs" role="group" aria-label="候选范围">{[["new","新提名",data.new_nomination_symbols.length],["continuing","持续观察",data.continuing_ranked_symbols.length]].map(([id,label,count])=><button key={id} type="button" aria-pressed={mode===id} onClick={()=>{setMode(String(id));setQuery("")}}>{label} <b>{count}只</b></button>)}</div><label>查找股票 <input aria-label="查找股票" value={query} onChange={e=>setQuery(e.target.value.trim())} placeholder="代码，含未入榜原因"/></label></div>
+   {mode==="continuing"&&<details className="candidateFilters"><summary>筛选与排序 · {filtered.length}只{(filters.from||filters.to||filters.minimum||filters.maximum)?" · 已筛选":""}</summary><div>
+    <label>排列方式<select aria-label="排列方式" value={filters.sort} onChange={e=>setFilters({...filters,sort:e.target.value})}><option value="score_high">分数从高到低</option><option value="score_low">分数从低到高</option><option value="date_new">最近提名优先</option><option value="date_old">最早提名优先</option></select></label>
+    <label>原提名从<input aria-label="原提名开始日期" type="date" value={filters.from} onChange={e=>setFilters({...filters,from:e.target.value})}/></label>
+    <label>到<input aria-label="原提名结束日期" type="date" value={filters.to} onChange={e=>setFilters({...filters,to:e.target.value})}/></label>
+    <label>最低分<input aria-label="最低分" type="number" min="0" max="100" value={filters.minimum} onChange={e=>setFilters({...filters,minimum:e.target.value})}/></label>
+    <label>最高分<input aria-label="最高分" type="number" min="0" max="100" value={filters.maximum} onChange={e=>setFilters({...filters,maximum:e.target.value})}/></label>
+    <button type="button" onClick={()=>setFilters({from:"",to:"",minimum:"",maximum:"",sort:"score_high"})}>重置筛选</button>
+   </div><p>时间指原提名日期；#编号保留后台原排名。筛选只改变当前视图。</p></details>}
    <p className="candidateHint">{query?"搜索包含未入榜股票；诊断结果不代表获准入榜。":mode==="new"?"当日新提名：日线金叉后，通过方向与评分检查。":"持续观察：保留原提名，每天重新评分，无需再次金叉。"}</p>
    {visible.length?<div className="replayTable"><div className="v2RankRow replayHead"><span>股票／排名</span><span>总分</span><span>月／周／日</span><span>覆盖</span><span>当前状态</span><span>入选或排除原因</span></div>{visible.map(r=><button type="button" className={`v2RankRow ${selected?.symbol===r.symbol?"isSelected":""}`} key={r.symbol} onClick={()=>setSymbol(r.symbol)}><b>{r.rank?`#${r.rank} · `:""}{r.symbol}{data.selected_symbols.includes(r.symbol)&&<mark>优先复核</mark>}<small>{r.price===null?"价格不可用":`$${r.price}`}</small></b><strong>{r.total?.toFixed(2)??"—"}</strong><span>{r.frames?(["monthly_completed","weekly_completed","daily"].map(tf=>(r.frames![tf]*100).toFixed(1)).join(" / ")):"—"}</span><span>{pct(r.coverage)}</span><span>{statusName(r)}<small>{r.new_nomination?"当日新提名":r.origin_date?`原提名 ${r.origin_date}`:"尚无提名"}</small></span><span>{r.reason_codes.length?r.reason_codes.map(explain).join("；"):r.rank?"月周方向、回调与背景许可通过":"请核对计分覆盖与当前状态"}</span></button>)}</div>:<div className="rareEmpty"><b>{mode==="new"&&!query?"当日没有合格新提名":"没有匹配股票"}</b><p>{mode==="new"&&!query?"计算已完成；可切换持续观察查看旧提名的最新复评。":"可切换范围或修改股票代码。"}</p></div>}
    {filtered.length>50&&<p>共 {filtered.length}只，当前显示前50只；输入股票代码可缩小范围。</p>}
@@ -82,7 +105,7 @@ export function CandidateView({data,latestDate,initialQuery=""}:{data:CandidateD
    <details className="candidateSecondary"><summary>数据与评分说明</summary><p>候选策略仅供人工复核，尚未验证收益。完整月线 {periods?.monthly??"—"} · 完整周线 {periods?.weekly??"—"}。警报还要求完整覆盖及至少两个证据家族。股票来源为现有观察池，不代表完整市场；失格退出排名，原提名保留。</p></details>
    <footer>政策 {data.policy_version} · 行情来源 EODHD · 新评分未覆盖旧提名记录。{data.automatic_updates_connected?"本页按每次成功复评更新；失败保留原日期与榜单。":"自动复评接通前，此页仅展示本次已核快照。"}</footer>
   </section>
- </>;
+ </div>;
 }
 
 export default function CandidateRanking(){
