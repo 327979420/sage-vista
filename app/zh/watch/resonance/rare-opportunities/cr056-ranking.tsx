@@ -7,7 +7,7 @@ type Row={symbol:string;rank:number|null;price:number|null;status:string;new_nom
 export type CandidateData={detail_path?:string;as_of:string;result_role:string;policy_version:string;source_snapshot:string;automatic_updates_connected:boolean;refresh_status?:{status:string;target_as_of:string;reason?:string};input_coverage:{repaired_count:number;excluded_count:number};counts:Record<string,number>;ranked_symbols:string[];selected_symbols:string[];new_nomination_symbols:string[];continuing_ranked_symbols:string[];factor_catalog:Record<string,{name:string;timeframe:string;role?:string;research_status?:string}>;reviews:Row[]};
 const frameNames:Record<string,string>={monthly_completed:"月线",weekly_completed:"周线",daily:"日线"};
 const reasons:Record<string,string>={
- monthly_not_confirmed:"月线方向未获许可（柱缩短、刚转负或改善未确认）",weekly_not_confirmed:"周线方向尚未确认",weekly_near_bear_cross:"周线正柱已接近死叉",monthly_high_zone:"月线价格或MACD处于高位区",near_observed_history_high:"接近已观测历史高点",no_pullback_60d:"相对前60日高点回调不足",structure_broken:"原支撑结构已破坏",no_available_background:"长期上涨或长期筑底背景未确认",no_initial_daily_cross:"没有首次提名所需的当日日线金叉",daily_tradability_not_met:"价格或成交额未达到可交易门槛",historical_adjustment_changed:"供应商复权历史已变化，待核对",empty_invalid_or_old_cache:"原缓存为空、无效或过旧",recent_session_missing:"近期交易日行情缺失",adjustment_anchor_missing:"缺少旧尾日复权核对锚点",completed_months_below_61:"不足61根完整月线",monthly_high_window_missing:"月线高位检验历史不足",daily_history_below_420:"不足420个日线交易会话",local_structure_unavailable:"支撑结构证据不足",source_history_unavailable:"缺少行情来源",
+ monthly_not_confirmed:"月线方向未获许可（正柱衰减、刚转负或负柱改善未确认）",weekly_not_confirmed:"周线方向尚未确认",weekly_near_bear_cross:"周线正柱已接近死叉",monthly_high_zone:"月线价格或MACD处于高位区",near_observed_history_high:"接近已观测历史高点",no_pullback_60d:"相对前60日高点回调不足",structure_broken:"原支撑结构已破坏",no_available_background:"长期上涨或长期筑底背景未确认",no_initial_daily_cross:"没有首次提名所需的当日日线金叉",daily_tradability_not_met:"价格或成交额未达到可交易门槛",historical_adjustment_changed:"供应商复权历史已变化，待核对",empty_invalid_or_old_cache:"原缓存为空、无效或过旧",recent_session_missing:"近期交易日行情缺失",adjustment_anchor_missing:"缺少旧尾日复权核对锚点",completed_months_below_61:"不足61根完整月线",monthly_high_window_missing:"月线高位检验历史不足",daily_history_below_420:"不足420个日线交易会话",local_structure_unavailable:"支撑结构证据不足",source_history_unavailable:"缺少行情来源",
  positive_histogram_supported:"正柱保持或增强",negative_histogram_improving:"负柱改善",positive_histogram_shrinking:"正柱缩短：周分按75%计入",below_observed_high_proves_below_all_time_high:"远离已观测高点，采用保守高位检查",monthly_high_zone_clear:"月线高位检查通过",pullback_60d:"已有足够回调",structure_intact:"原支撑结构保持",deep_sweep_reclaimed:"深度回撤后已重新收复关键支撑",deep_pullback_warning:"回调较深，但尚未触发结构破坏",uptrend_pullback:"长期上涨后的回调",long_base_pullback:"长期筑底背景中的回调",
 };
 const explain=(code:string)=>reasons[code]??(code.startsWith("raw OHLC relationship")?"原始行情高低价关系异常":`数据检查未通过：${code}`);
@@ -15,7 +15,7 @@ const statusName=(r:Row)=>r.rank?"允许入榜":r.status==="not_nominated"?"未�
 const researchNames:Record<string,string>={candidate:"候选，未验证",rejected:"旧研究未通过",testing:"待验证",pending:"待研究",unstable:"结果不稳定",insufficient_sample:"样本不足",paused:"暂停",validated:"已验证"};
 const pct=(v:number|null)=>v===null?"—":`${(100*v).toFixed(1)}%`;
 
-type FactorDetail={factor_id:string;available:boolean;hit:boolean;recent_hit:boolean;bars_since_hit:number|null;latest_hit_date:string|null;runtime_status:string;score_role:string;completed_through:string;period_bar_count:number;minimum_bars:number;evidence?:{ratio?:number}};
+type FactorDetail={factor_id:string;available:boolean;hit:boolean;recent_hit:boolean;bars_since_hit:number|null;latest_hit_date:string|null;runtime_status:string;score_role:string;completed_through:string;period_bar_count:number;minimum_bars:number;evidence?:{ratio?:number;histogram?:number;previous_histogram?:number}};
 type DetailBundle={source_snapshot:string;reviews:Record<string,{groups:Group[];factors:FactorDetail[]}>};
 function PeriodFactors({data,symbol}:{data:CandidateData;symbol:string}){
  const [bundle,setBundle]=useState<DetailBundle|null>(null);const [failed,setFailed]=useState(false);
@@ -23,7 +23,9 @@ function PeriodFactors({data,symbol}:{data:CandidateData;symbol:string}){
   if(data.detail_path!=="/cr056-factor-details.json.gz")return;
   fetch(data.detail_path,{cache:"no-store"}).then(async response=>{
    if(!response.ok||!response.body)throw new Error("details unavailable");
-   const parsed=await new Response(response.body.pipeThrough(new DecompressionStream("gzip"))).json();
+   const bytes=new Uint8Array(await response.arrayBuffer());
+   const stream=new Blob([bytes]).stream();
+   const parsed=await new Response(bytes[0]===31&&bytes[1]===139?stream.pipeThrough(new DecompressionStream("gzip")):stream).json();
    if(parsed.source_snapshot!==data.source_snapshot)throw new Error("snapshot mismatch");
    if(active)setBundle(parsed);
   }).catch(()=>{if(active)setFailed(true)});return()=>{active=false};
@@ -33,18 +35,18 @@ function PeriodFactors({data,symbol}:{data:CandidateData;symbol:string}){
  if(!bundle)return <p role="status">正在读取月、周、日因子明细…</p>;
  const detail=bundle.reviews[symbol];if(!detail)return <p>该股票尚未通过门票或数据检查，本次没有深度检测结果。</p>;
  const strengths=Object.assign({},...detail.groups.map(g=>g.strengths));
- return <div className="v2Ledger">{Object.entries(frameNames).map(([tf,name])=>{
+ return <div className="v2Ledger periodFactorLedger">{Object.entries(frameNames).map(([tf,name])=>{
   const factors=detail.factors.filter(f=>data.factor_catalog[f.factor_id]?.timeframe===tf);
   return <details key={tf} open={tf==="monthly_completed"}><summary>{name} · {factors.length}项检查 · {factors.filter(f=>f.available&&f.hit).length}项当前命中</summary>
-   <p>截至 {factors[0]?.completed_through??"—"}；窗口按{name}K线根数计算。近期命中保留发生日期。</p>
-   {detail.groups.filter(g=>g.timeframe===tf&&g.contribution>0).map(g=><p key={g.group}>证据组：{Object.keys(g.strengths).map(id=>data.factor_catalog[id]?.name).join("／")} · 原始贡献 {g.contribution.toFixed(2)}</p>)}
+   <p className="periodFactorNote">截至 {factors[0]?.completed_through??"—"}；窗口按{name}K线根数计算。近期命中保留发生日期。</p>
+   {detail.groups.filter(g=>g.timeframe===tf&&g.contribution>0).map(g=><p className="periodFactorNote" key={g.group}>证据组：{Object.keys(g.strengths).map(id=>data.factor_catalog[id]?.name.replace(/(\d+)日/g,"$1根")).join("／")} · 原始贡献 {g.contribution.toFixed(2)}</p>)}
    {factors.map(f=>{const meta=data.factor_catalog[f.factor_id];
     const state=!f.available?(f.runtime_status==="definition_required"?"未实现，不计分":`数据不足：需${f.minimum_bars}根，现有${f.period_bar_count}根`):
      f.score_role==="risk"?(f.hit?"风险命中，单独参考":"未命中风险"):
      f.score_role==="ticket"||f.score_role==="qualification"?(f.hit?"条件满足，不重复加分":"条件未满足，不计分"):
      strengths[f.factor_id]>0?(f.hit?"命中":"近期命中"):
      f.hit||f.recent_hit?"检测命中，依赖或去重后未计入":"未命中";
-    return <p key={f.factor_id}><i>{f.available&&f.hit?"✓":"○"}</i><span>{meta?.name??f.factor_id}<small>{f.latest_hit_date?`最近命中 ${f.latest_hit_date} · `:""}{meta?.research_status?`原研究：${researchNames[meta.research_status]??meta.research_status}`:""}{typeof f.evidence?.ratio==="number"?` · 成交量比 ${f.evidence.ratio.toFixed(2)}`:""}</small></span><b>{state}</b></p>})}
+    return <p key={f.factor_id}><i>{f.available&&f.hit?"✓":"○"}</i><span>{meta?.name.replace(/(\d+)日/g,"$1根")??f.factor_id}<small>{f.latest_hit_date?`最近命中 ${f.latest_hit_date} · `:""}{meta?.research_status?`原研究：${researchNames[meta.research_status]??meta.research_status}`:""}{typeof f.evidence?.ratio==="number"?` · 本期成交量比 ${f.evidence.ratio.toFixed(2)}`:""}{typeof f.evidence?.histogram==="number"&&typeof f.evidence?.previous_histogram==="number"?` · MACD柱 ${f.evidence.previous_histogram.toFixed(2)} → ${f.evidence.histogram.toFixed(2)}`:""}</small></span><b>{state}</b></p>})}
   </details>
  })}</div>
 }

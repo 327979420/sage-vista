@@ -53,6 +53,7 @@ EXPECTED_PYTHON_REFERENCES = frozenset({
     "research/backtest/ranking_research_v1.py::<module>",
     "research/backtest/ranking_research_v1.py::run",
     "research/backtest/reused_event_study_v2.py::main",
+    "research/backtest/run_research.py::run",
     "research/backtest/selection_research_v1.py::<module>",
     "research/backtest/tracker_backtest_v1.py::<module>",
     "research/backtest/tracker_backtest_v1.py::run",
