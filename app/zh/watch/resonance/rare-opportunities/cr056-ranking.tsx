@@ -14,11 +14,11 @@ const explain=(code:string)=>reasons[code]??(code.startsWith("raw OHLC relations
 const statusName=(r:Row)=>r.rank?"允许入榜":r.status==="not_nominated"?"未触发新提名":r.status==="excluded"?"未获许可":"数据不足";
 const pct=(v:number|null)=>v===null?"—":`${(100*v).toFixed(1)}%`;
 
-export function CandidateView({data,latestDate}:{data:CandidateData;latestDate?:string}){
- const [mode,setMode]=useState("all");const [query,setQuery]=useState("");const [symbol,setSymbol]=useState("");
+export function CandidateView({data,latestDate,initialQuery=""}:{data:CandidateData;latestDate?:string;initialQuery?:string}){
+ const [mode,setMode]=useState("all");const [query,setQuery]=useState(initialQuery);const [symbol,setSymbol]=useState(initialQuery);
  const bySymbol=new Map(data.reviews.map(r=>[r.symbol,r]));
  const listed=(mode==="new"?data.new_nomination_symbols:mode==="continuing"?data.continuing_ranked_symbols:data.ranked_symbols).map(s=>bySymbol.get(s)!).filter(Boolean);
- const filtered=(mode==="excluded"?data.reviews.filter(r=>!r.rank):query&&mode==="all"?data.reviews:listed).filter(r=>r.symbol.toLowerCase().includes(query.toLowerCase()));
+ const filtered=(mode==="excluded"?data.reviews.filter(r=>!r.rank):query&&mode==="all"?data.reviews:listed).filter(r=>initialQuery&&query===initialQuery?r.symbol.toUpperCase()===initialQuery.toUpperCase():r.symbol.toLowerCase().includes(query.toLowerCase()));
  const visible=filtered.slice(0,50);const selected=visible.find(r=>r.symbol===symbol)??visible[0];
  const periods=listed.find(r=>r.periods)?.periods??data.reviews.find(r=>r.periods)?.periods;
  const alerts=data.reviews.filter(r=>r.high_score_eligible).length;
@@ -51,6 +51,7 @@ export function CandidateView({data,latestDate}:{data:CandidateData;latestDate?:
 }
 
 export default function CandidateRanking(){
+ const [initialQuery]=useState(()=>typeof window==="undefined"?"":(new URLSearchParams(window.location.search).get("symbol")??"").trim().toUpperCase());
  const [data,setData]=useState<CandidateData|null>(null);const [error,setError]=useState(false);const [latestDate,setLatestDate]=useState<string>();
  useEffect(()=>{
   let active=true;
@@ -58,5 +59,5 @@ export default function CandidateRanking(){
   fetch("/update-status.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>{if(active)setLatestDate(d?.source_latest_complete_date)}).catch(()=>{});
   return ()=>{active=false};
  },[]);
- return data?<CandidateView data={data} latestDate={latestDate}/>:<section className="rareEmpty" role="status"><b>{error?"新模型快照暂时不可用":"正在读取已核新模型快照"}</b><p>{error?"请稍后刷新；没有把旧版排行当作新榜。":"新提名和持续观察将使用同一份后台结果。"}</p></section>;
+ return data?<CandidateView data={data} latestDate={latestDate} initialQuery={initialQuery}/>:<section className="rareEmpty" role="status"><b>{error?"新模型快照暂时不可用":"正在读取已核新模型快照"}</b><p>{error?"请稍后刷新；没有把旧版排行当作新榜。":"新提名和持续观察将使用同一份后台结果。"}</p></section>;
 }

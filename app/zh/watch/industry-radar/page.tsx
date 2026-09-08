@@ -25,8 +25,10 @@ export default function IndustryRadar(){
  const themeOrder=new Map(EVERYDAY_ETFS.map((ticker,index)=>[ticker,index]));
  const themes=(industry?.themes??[]).slice().sort((a,b)=>(themeOrder.get(a.source??"")??999)-(themeOrder.get(b.source??"")??999)||((b.relative_20d??-99)-(a.relative_20d??-99)));
  const trend=market?.layers.trend.state==="supportive",mixed=market?.layers.breadth.state==="narrow_or_mixed",riskOn=market?.layers.risk_appetite.state==="risk_seeking";
- const marketTitle=trend&&riskOn?mixed?"大盘向上，但行情比较集中":"大盘趋势支持做多":"大盘偏防守";
- const marketAction=trend&&riskOn?mixed?"可以找机会，但只做技术形态最完整的股票。":"可以正常筛选，仍按个股止损执行。":"降低仓位和优先级，等待 SPY/QQQ 重新站稳。";
+ const marketState=market?.market_temperature.state;
+ const marketTitle=marketState?`大盘环境 · ${marketState}`:"大盘环境待更新";
+ const marketAction=marketState==="分化"?"市场信号有分歧，结合个股形态观察；背景不改变当前排名。":marketState==="风险偏好"?"市场风险偏好较强，仍需结合个股形态与风险证据。":marketState==="防守"?"市场呈防守背景，保留候选供人工核对，不自动排除股票。":"等待同日大盘背景。";
+
  return <TrackerShell active="行业与大盘" title="行业与大盘" subtitle="先看 SPY 等大盘，再读 SOXX 等常用行业 ETF；它们只提供背景，不暗改个股技术分。"><div className="irV2">
   {market?<section className="marketDecisionHero"><div><small>大盘结论 · 数据截至 {market.as_of}</small><h2>{marketTitle}</h2><p>{marketAction}</p><mark>{market.market_temperature.score}/{market.market_temperature.max_score} · {market.market_temperature.state}</mark></div><div className="marketLayers"><article><small>趋势</small><b>{trend?"支持":"不支持"}</b><span>SPY/QQQ 与均线关系</span></article><article><small>广度</small><b>{mixed?"上涨集中":"较为扩散"}</b><span>等权与小盘是否跟上</span></article><article><small>风险偏好</small><b>{riskOn?"愿意冒险":"转向防守"}</b><span>独立背景，不改当前排名</span></article></div></section>:<EmptyState title="正在读取大盘数据"/>}
 

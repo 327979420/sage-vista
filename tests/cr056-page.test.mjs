@@ -64,3 +64,27 @@ test('independent context keeps date mismatch, classification and holdings separ
  assert.match(html,/FinanceDatabase/);assert.match(html,/不等于 ETF 实际持仓/);assert.match(html,/17 ETF/);
  assert.match(render('BBB'),/不据此排除候选/);
 });
+
+test('industry overview separates cards, pending evidence and dated holdings',()=>{
+ const context=JSON.parse(fs.readFileSync(new URL('../public/industry-radar.json',import.meta.url),'utf8')).display_context;
+ const market=JSON.parse(fs.readFileSync(new URL('../public/market-etf-watch.json',import.meta.url),'utf8'));
+ const html=renderToStaticMarkup(React.createElement(contextModule.exports.ContextView,{context,market,candidates:data.ranked_symbols,candidateDate:data.as_of}));
+ assert.equal((html.match(/class="industryContextCard"/g)||[]).length,context.themes.length);
+ assert.match(html,/industryContextSummary/);assert.match(html,/industryContextGrid/);assert.match(html,/industryContextPending/);
+ assert.match(html,/持仓代码/);assert.match(html,/含未核资产类型/);assert.doesNotMatch(html,/已解析股票/);
+ const linked=context.themes.flatMap(t=>t.members).find(s=>data.ranked_symbols.includes(s));
+ if(linked)assert.ok(html.includes(`/zh/watch/resonance/rare-opportunities?symbol=${encodeURIComponent(linked)}`));
+ assert.match(html,/官方ETF来源/);assert.match(html,/持仓来源/);
+ const css=fs.readFileSync(new URL('../app/product-v2.css',import.meta.url),'utf8');
+ assert.match(css,/industryContextCompact \.industryContextGrid\{grid-template-columns:1fr/);
+ assert.match(css,/\.industryContextHoldings span\{[^}]*user-select:all/);
+});
+
+test('candidate query selects the linked stock without changing backend ranking',()=>{
+ const target=data.ranked_symbols.at(-1);
+ const before=JSON.stringify(data);
+ const html=renderToStaticMarkup(React.createElement(compiledModule.exports.CandidateView,{data,initialQuery:target}));
+ assert.ok(html.includes(`${target} · 分项与原因`));
+ assert.equal((html.match(/class="v2RankRow isSelected"/g)||[]).length,1);
+ assert.equal(JSON.stringify(data),before);
+});
