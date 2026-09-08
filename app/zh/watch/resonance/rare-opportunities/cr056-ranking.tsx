@@ -1,4 +1,5 @@
 "use client";
+import IndustryContext from "../../industry-radar/context";
 import {useEffect,useState} from "react";
 
 type Group={group:string;available:boolean;contribution:number;strengths:Record<string,number>;missing_factor_ids:string[]};
@@ -37,6 +38,7 @@ export function CandidateView({data,latestDate}:{data:CandidateData;latestDate?:
    {visible.length?<div className="replayTable"><div className="v2RankRow replayHead"><span>股票／排名</span><span>总分</span><span>月／周／日</span><span>覆盖</span><span>当前状态</span><span>入选或排除原因</span></div>{visible.map(r=><button type="button" className={`v2RankRow ${selected?.symbol===r.symbol?"isSelected":""}`} key={r.symbol} onClick={()=>setSymbol(r.symbol)}><b>{r.rank?`#${r.rank} · `:""}{r.symbol}{data.selected_symbols.includes(r.symbol)&&<mark>优先复核</mark>}<small>{r.price===null?"价格不可用":`$${r.price}`}</small></b><strong>{r.total?.toFixed(2)??"—"}</strong><span>{r.frames?(["monthly_completed","weekly_completed","daily"].map(tf=>(r.frames![tf]*100).toFixed(1)).join(" / ")):"—"}</span><span>{pct(r.coverage)}</span><span>{statusName(r)}<small>{r.new_nomination?"当日新提名":r.origin_date?`原提名 ${r.origin_date}`:"尚无提名"}</small></span><span>{r.reason_codes.length?r.reason_codes.map(explain).join("；"):r.rank?"月周方向、回调与背景许可通过":"请核对计分覆盖与当前状态"}</span></button>)}</div>:<div className="rareEmpty"><b>{mode==="new"&&!query?"当日没有合格新提名":"没有匹配股票"}</b><p>{mode==="new"&&!query?"计算已完成；可切换持续观察查看旧提名的最新复评。":"可切换范围或修改股票代码。"}</p></div>}
    {filtered.length>50&&<p>共 {filtered.length}只，当前显示前50只；输入股票代码可缩小范围。</p>}
    {selected&&<article className="v2Audit"><header><div><small>{data.as_of} · {statusName(selected)}</small><h3>{selected.symbol} · 分项与原因</h3><p>月线截止 {selected.periods?.monthly??"不可用"} · 周线截止 {selected.periods?.weekly??"不可用"}</p></div><strong>{selected.total?.toFixed(2)??"未入榜"}<small>{selected.total===null?"分项仅供诊断":"人工复核优先级"}</small></strong></header>
+    <IndustryContext symbol={selected.symbol} asOf={data.as_of}/>
     {selected.frames&&<div className="v2Equation">{Object.entries(frameNames).map(([tf,name])=><span key={tf}>{name}<b>{(selected.frames![tf]*100).toFixed(1)}</b></span>)}</div>}
     <p>{selected.reason_codes.length?selected.reason_codes.map(explain).join("；"):selected.rank?"所有必要方向与位置许可均已通过。":"当前未获准入榜，请核对计分覆盖与状态。"}</p>
     {selected.checks&&<ul>{Object.entries(selected.checks).map(([key,c])=><li key={key}>{explain(c.reason)}</li>)}</ul>}

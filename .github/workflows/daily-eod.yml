@@ -64,6 +64,12 @@ jobs:
         run: test -n "$EODHD_API_TOKEN" || { echo "EODHD_API_TOKEN secret is not configured"; exit 1; }
       - uses: actions/setup-python@v7
         with: { python-version: "3.13" }
+      - name: Restore daily ETF background cache
+        uses: actions/cache@v4
+        with:
+          path: work/daily-background
+          key: daily-etf-background-v1-${{ github.run_id }}
+          restore-keys: daily-etf-background-v1-
       - name: Restore historical EOD cache
         uses: actions/cache@v4
         with:
@@ -88,6 +94,7 @@ jobs:
           manual_deploy=os.environ.get("MANUAL_DEPLOY")=="true"
           needs_release=result["result"]=="updated" or state.get("as_of")!=result["as_of"] or manual_deploy or not os.path.exists("public/unified-v2-rankings.json") or not os.path.exists("public/unified-v2-latest.json") or not os.path.exists("public/opportunity-ledger-latest.json")
           with open(os.environ["GITHUB_OUTPUT"],"a") as out:
+              out.write(f"background_changed={str(result.get('background_changed',False)).lower()}\n")
               out.write(f"result={result['result']}\n")
               out.write(f"as_of={result['as_of']}\n")
               out.write(f"needs_release={str(needs_release).lower()}\n")
@@ -110,13 +117,14 @@ jobs:
           result=json.load(open("cr056-update-result.json"))
           if result.get("result") not in ("updated","already_current","retained_previous"):raise SystemExit("invalid candidate update result")
           with open(os.environ["GITHUB_OUTPUT"],"a") as out:
-              out.write(f"needs_release={str(result['changed'] or os.environ['LEGACY_RELEASE']=='true').lower()}\n")
+              out.write(f"needs_release={str(result['changed'] or os.environ['LEGACY_RELEASE']=='true' or os.environ['BACKGROUND_CHANGED']=='true').lower()}\n")
               out.write(f"cache_ready={str(result['cache_ready']).lower()}\n")
               out.write(f"result={result['result']}\n")
               out.write(f"as_of={result['as_of']}\n")
           PYCODE
         env:
           LEGACY_RELEASE: ${{ steps.update_result.outputs.needs_release }}
+          BACKGROUND_CHANGED: ${{ steps.update_result.outputs.background_changed }}
       - name: Save private candidate input accelerator
         continue-on-error: true
         if: steps.candidate_update.outputs.cache_ready == 'true'

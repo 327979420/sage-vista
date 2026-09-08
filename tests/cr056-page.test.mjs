@@ -9,7 +9,11 @@ const require=createRequire(import.meta.url);
 const source=fs.readFileSync(new URL('../app/zh/watch/resonance/rare-opportunities/cr056-ranking.tsx',import.meta.url),'utf8');
 const compiled=ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
 const compiledModule={exports:{}};
-new Function('require','exports','module',compiled)(require,compiledModule.exports,compiledModule);
+const contextSource=fs.readFileSync(new URL('../app/zh/watch/industry-radar/context.tsx',import.meta.url),'utf8');
+const contextCode=ts.transpileModule(contextSource,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+const contextModule={exports:{}};
+new Function('require','exports','module',contextCode)(require,contextModule.exports,contextModule);
+new Function('require','exports','module',compiled)(id=>id==='../../industry-radar/context'?contextModule.exports:require(id),compiledModule.exports,compiledModule);
 const data=JSON.parse(fs.readFileSync(new URL('../public/cr056-ranking.json',import.meta.url),'utf8'));
 
 test('real candidate projection renders its date, same backend scores and daily-update boundary',()=>{
@@ -48,4 +52,15 @@ test('daily refresh failure retains the actual snapshot date and shows failure',
  const html=renderToStaticMarkup(React.createElement(compiledModule.exports.CandidateView,{data:current,latestDate:new Date(Date.parse(data.as_of+'T00:00:00Z')+7*86400000).toISOString().slice(0,10)}));
  assert.match(html,/随现有日终流程自动复评/);assert.match(html,/自动复评未完成/);
  assert.ok(html.includes(data.as_of));assert.match(html,/更新落后/);
+});
+
+
+test('independent context keeps date mismatch, classification and holdings separate',()=>{
+ const context={as_of:'2026-09-04',themes:[{theme_id:'semiconductors',reference_etf:'SOXX',members:['AAA'],membership_as_of:'2026-08-26'}],funds:{SOXX:{available:false,state:'Unavailable',latest_bar:'2026-08-28'}},ticker_themes:{AAA:['semiconductors']},classifications:{AAA:{sector:'Technology',industry:'Semiconductors'}},classification_as_of:'2026-08-28',coverage:{available_etfs:0,reference_etfs:21,themes:26,dated_membership_themes:19}};
+ const market={as_of:'2026-09-04',funds:Array(17).fill({}),layers:{trend:{state:'supportive'},breadth:{state:'narrow_or_mixed'},risk_appetite:{state:'risk_seeking'}}};
+ const render=symbol=>renderToStaticMarkup(React.createElement(contextModule.exports.ContextView,{context,market,symbol,asOf:'2026-09-08'}));
+ const html=render('AAA');
+ assert.match(html,/不作为同日背景/);assert.match(html,/ETF行情不可用/);assert.match(html,/2026-08-26/);assert.match(html,/2026-08-28/);
+ assert.match(html,/FinanceDatabase/);assert.match(html,/不等于 ETF 实际持仓/);assert.match(html,/17 ETF/);
+ assert.match(render('BBB'),/不据此排除候选/);
 });

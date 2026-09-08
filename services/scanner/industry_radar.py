@@ -142,7 +142,84 @@ def run(out="public/industry-radar.json",as_of=None,snapshot_dir=DEFAULT_SNAPSHO
  pathlib.Path(out).parent.mkdir(parents=True,exist_ok=True);pathlib.Path(out).write_text(json.dumps(report,indent=2)+"\n")
  return report
 
+
+def refresh_display_context(out="public/industry-radar.json", as_of=None,
+                            registry=DEFAULT_REGISTRY, snapshot_dir=DEFAULT_SNAPSHOT_DIR,
+                            fetch_prices=None):
+ """Append independent ETF/mapping facts; never revise legacy score inputs.
+
+ Each ETF is normalized from one bounded supplier window, not spliced onto an
+ old adjustment basis. Same-day successful evidence is reused; failed funds
+ alone retry. No constituent price downloads or membership scraping occur.
+ """
+ import hashlib
+ import os
+ from datetime import timedelta
+ from .eodhd import prices
+ from .cr056_inputs import normalized_comparison_rows
+ from .theme_etf_context import evaluate_fund
+ fetch_prices = fetch_prices or prices
+ path=pathlib.Path(out);before=path.read_bytes();report=json.loads(before)
+ as_of=as_of or report["as_of"]
+ if report.get("as_of")!=as_of:raise ValueError("industry_bundle_date_mismatch")
+ registry_bytes=pathlib.Path(registry).read_bytes();configured=json.loads(registry_bytes)
+ registry_hash=hashlib.sha256(registry_bytes).hexdigest()
+ previous=report.get("display_context",{})
+ reusable=previous.get("funds",{}) if previous.get("as_of")==as_of and previous.get("registry_sha256")==registry_hash else {}
+ funds=sorted({t["membership_source"]["fund"] for t in configured["themes"] if t.get("membership_source",{}).get("fund")})
+ if len(funds)>21:raise ValueError("industry_etf_request_budget_exceeded")
+ start=(date.fromisoformat(as_of)-timedelta(days=400)).isoformat();evidence={}
+ for fund in funds:
+  if reusable.get(fund,{}).get("available"):
+   evidence[fund]=reusable[fund];continue
+  try:
+   raw=fetch_prices(fund,start=start,end=as_of)
+   if not isinstance(raw,list) or any(not start<=r.get("date","")<=as_of for r in raw):
+    raise ValueError("industry_window_date_invalid")
+   rows=normalized_comparison_rows(raw,as_of=as_of)
+   fact=evaluate_fund(fund,rows,as_of)
+   fact.update({"latest_bar":rows[-1]["date"] if rows else None,"row_count":len(rows),
+                "source_sha256":hashlib.sha256(json.dumps(raw,sort_keys=True,separators=(",",":")).encode()).hexdigest()})
+  except Exception:
+   # Supplier exceptions may contain secrets. Publish only a fixed reason.
+   fact={"symbol":fund,"as_of":as_of,"available":False,"state":"Unavailable",
+         "reason":"source_missing_or_invalid","latest_bar":None,"row_count":0}
+  evidence[fund]=fact
+ snapshot=select_snapshot(as_of,snapshot_dir)
+ dated={t["theme_id"]:t for t in (snapshot or {}).get("themes",[])}
+ themes=[];links={}
+ for theme in configured["themes"]:
+  source=theme.get("membership_source",{});fund=source.get("fund");holding=dated.get(theme["theme_id"],{})
+  valid=bool(fund and holding.get("source")==fund and holding.get("source_type")=="official_etf_holdings"
+             and holding.get("source_status")=="available" and holding.get("source_date")
+             and holding["source_date"]<=as_of and holding.get("effective_from",as_of)<=as_of)
+  members=sorted(set(holding.get("members",[]))) if valid else []
+  themes.append({"theme_id":theme["theme_id"],"name":theme["name"],"reference_etf":fund,
+                 "source_url":source.get("url") or holding.get("source_url"),
+                 "membership_status":"dated_official_holdings" if valid else "unavailable",
+                 "membership_as_of":holding.get("source_date") if valid else None,
+                 "membership_source_url":holding.get("source_url") if valid else None,
+                 "members":members,"manual":not bool(fund)})
+  for symbol in members:links.setdefault(symbol,[]).append(theme["theme_id"])
+ taxonomy=select_finance_database_snapshot(as_of)
+ display={"version":"1.0.0","as_of":as_of,"registry_version":configured["version"],"registry_sha256":registry_hash,
+          "mapping_role":"current_registry_with_dated_legacy_evidence_not_formal",
+          "funds":evidence,"themes":themes,"ticker_themes":links,
+          "classifications":classification_by_ticker(taxonomy),
+          "classification_source":(taxonomy or {}).get("source"),
+          "classification_as_of":(taxonomy or {}).get("effective_from"),
+          "coverage":{"themes":len(themes),"reference_etfs":len(funds),"available_etfs":sum(bool(f.get("available")) for f in evidence.values()),
+                      "dated_membership_themes":sum(t["membership_status"]=="dated_official_holdings" for t in themes)},
+          "audit":{"technical_scores_changed":False,"ranking_changed":False,"future_data_used":False,
+                   "price_window_start":start,"max_requests":21,"history_spliced":False,"provider":"EODHD"}}
+ report["display_context"]=display
+ after=(json.dumps(report,indent=2)+"\n").encode()
+ changed=after!=before
+ if changed:
+  temp=path.with_suffix(".tmp");temp.write_bytes(after);os.replace(temp,path)
+ return {"as_of":as_of,"changed":changed,"coverage":display["coverage"]}
+
 if __name__=="__main__":
  parser=argparse.ArgumentParser(description="Build the standalone Industry Radar research report")
- parser.add_argument("--as-of");parser.add_argument("--out",default="public/industry-radar.json");parser.add_argument("--snapshot-dir",default=str(DEFAULT_SNAPSHOT_DIR))
- args=parser.parse_args();print(json.dumps(run(args.out,args.as_of,args.snapshot_dir),indent=2))
+ parser.add_argument("--refresh-context",action="store_true");parser.add_argument("--as-of");parser.add_argument("--out",default="public/industry-radar.json");parser.add_argument("--snapshot-dir",default=str(DEFAULT_SNAPSHOT_DIR))
+ args=parser.parse_args();print(json.dumps(refresh_display_context(args.out,args.as_of,snapshot_dir=args.snapshot_dir) if args.refresh_context else run(args.out,args.as_of,args.snapshot_dir),indent=2))

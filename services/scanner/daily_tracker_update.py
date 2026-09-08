@@ -13,8 +13,8 @@ from .factor_snapshot import SNAPSHOT_MODE_VERSION,TRIGGER_FACTOR_ID,run as run_
 from .factor_registry import REGISTRY_VERSION
 from .factor_detectors import MONITORED_FACTOR_IDS
 from .favorite_pattern_tracker import GENERALIZATION_VERSION, PATTERN_VERSION
-from .industry_radar import run as run_industry_radar
-from .market_etf_watch import run as run_market_context
+from .industry_radar import run as run_industry_radar, refresh_display_context
+from .market_etf_watch import run as run_market_context, refreshed_rows
 from .rare_opportunity_scanner import run as run_radar
 from .resonance_tracker import run as run_tracker
 from .signal_history import SCHEMA_VERSION as SIGNAL_HISTORY_SCHEMA_VERSION,build as build_signal_history,validate as validate_signal_history
@@ -82,12 +82,50 @@ def validate(authoritative,tracker,radar,snapshot,industry,market,history):
  invalid_details=[symbol for symbol,x in details.items() if x.get("audit",{}).get("future_rows_used") or x.get("audit",{}).get("latest_bar")!=authoritative]
  if invalid_details:raise RuntimeError(f"Tracker bar-date or future-data audit failed: {','.join(invalid_details)}")
 
+def prepare_background(authoritative,current_industry,current_market):
+ """ETF-only preflight; cache successful same-day facts before stock scanning.
+
+ Persistent work cache is an accelerator. Public same-day facts are another
+ reusable copy. No new ETF window is written into legacy stock history caches.
+ """
+ folder=pathlib.Path("work/daily-background")/authoritative
+ folder.mkdir(parents=True,exist_ok=True)
+ market_path=folder/"market-etf-watch.json"
+ market=current_market if current_market.get("as_of")==authoritative else read_json(market_path)
+ if market.get("as_of")!=authoritative:
+  market=run_market_context(market_path,authoritative,loader=lambda code:refreshed_rows(code,persist=False,staged_cache_dir=folder/"market-cache"))
+ else:market_path.write_text(json.dumps(market))
+ industry_path=folder/"industry-radar.json"
+ cached=read_json(industry_path)
+ if cached.get("as_of")!=authoritative:
+  cached={"as_of":authoritative,"display_context":current_industry.get("display_context",{})}
+  industry_path.write_text(json.dumps(cached))
+ refresh_display_context(industry_path,authoritative)
+ return read_json(industry_path)["display_context"],market
+
+
+def publish_market_cache(authoritative):
+ """Preserve the old post-stock cache-update timing for the next daily run."""
+ source=pathlib.Path("work/daily-background")/authoritative/"market-cache"
+ target=pathlib.Path("work/eodhd-cache");target.mkdir(parents=True,exist_ok=True)
+ for path in source.glob("*.json"):
+  temporary=target/(path.stem+".tmp")
+  temporary.write_bytes(path.read_bytes());os.replace(temporary,target/path.name)
+
+
 def run(target=1000,as_of=None,trigger_source="manual"):
  if trigger_source not in TRIGGER_SOURCES:raise ValueError(f"Unsupported trigger source: {trigger_source}")
  authoritative=as_of or latest_reference_day()
  current_tracker=read_json(PUBLIC/"resonance-tracker.json");current_favorite=read_json(PUBLIC/"favorite-pattern.json");current_history_summary=read_json(PUBLIC/"signal-history-summary.json");current_radar=read_json(PUBLIC/"rare-opportunity-radar.json");current_snapshot=read_json(PUBLIC/"daily-factor-snapshot.json");current_industry=read_json(PUBLIC/"industry-radar.json");current_market=read_json(PUBLIC/"market-etf-watch.json");current_history=read_json(PUBLIC/"signal-history.json")
+ background,market=prepare_background(authoritative,current_industry,current_market)
  if current_tracker.get("as_of")==authoritative and current_tracker.get("favorite_pattern_tracker",{}).get("pattern_version")==PATTERN_VERSION and current_tracker.get("favorite_pattern_tracker",{}).get("generalization_version")==GENERALIZATION_VERSION and current_favorite.get("as_of")==authoritative and current_favorite.get("pattern_version")==PATTERN_VERSION and current_favorite.get("generalization_version")==GENERALIZATION_VERSION and current_history_summary.get("as_of")==authoritative and current_radar.get("as_of")==authoritative and current_snapshot.get("as_of")==authoritative and current_snapshot.get("registry_version")==REGISTRY_VERSION and current_snapshot.get("snapshot_mode_version")==SNAPSHOT_MODE_VERSION and current_radar.get("registry_version")==REGISTRY_VERSION and current_industry.get("as_of")==authoritative and current_market.get("as_of")==authoritative and current_history.get("as_of")==authoritative and current_history.get("signal_schema_version")==SIGNAL_HISTORY_SCHEMA_VERSION:
-  return {"result":"already_current","as_of":authoritative,"trigger_source":trigger_source}
+  changed=current_industry.get("display_context")!=background
+  if changed:
+   current_industry["display_context"]=background
+   temporary=PUBLIC/"industry-radar.tmp"
+   temporary.write_text(json.dumps(current_industry,indent=2)+"\n")
+   os.replace(temporary,PUBLIC/"industry-radar.json")
+  return {"result":"already_current","as_of":authoritative,"trigger_source":trigger_source,"background_changed":changed}
  pathlib.Path("work").mkdir(exist_ok=True)
  # Every producer writes into one temporary bundle. If any producer or audit
  # fails, the currently published website remains untouched and date-consistent.
@@ -95,7 +133,11 @@ def run(target=1000,as_of=None,trigger_source="manual"):
   folder=pathlib.Path(folder)
   # Universe expansion is an internal preparation audit, not a website asset.
   expand_universe(target,authoritative,out=folder/"universe-expansion.json")
-  tracker=run_tracker(folder/"resonance-tracker.json",authoritative);snapshot=run_factor_snapshot(folder/"daily-factor-snapshot.json",authoritative);radar=run_radar(folder/"rare-opportunity-radar.json",authoritative,snapshot);industry=run_industry_radar(folder/"industry-radar.json",authoritative);market=run_market_context(folder/"market-etf-watch.json",authoritative)
+  tracker=run_tracker(folder/"resonance-tracker.json",authoritative);snapshot=run_factor_snapshot(folder/"daily-factor-snapshot.json",authoritative);radar=run_radar(folder/"rare-opportunity-radar.json",authoritative,snapshot);industry=run_industry_radar(folder/"industry-radar.json",authoritative)
+  publish_market_cache(authoritative)
+  industry["display_context"]=background
+  (folder/"industry-radar.json").write_text(json.dumps(industry,indent=2)+"\n")
+  (folder/"market-etf-watch.json").write_text(json.dumps(market,indent=2)+"\n")
   (folder/"favorite-pattern.json").write_text(json.dumps(compact_favorite_pattern(tracker),ensure_ascii=False,separators=(",",":"))+"\n")
   history_tracker,favorite_forward_deferred=tracker_for_forward_history(current_tracker,current_history,tracker,authoritative)
   history=build_signal_history(current_history,history_tracker,radar,snapshot,industry,market,authoritative)

@@ -8,14 +8,18 @@ from .technical import ema
 SCHEMA_VERSION="2.0.0"
 FUNDS={"SPY":("标普500","大盘基准"),"QQQ":("纳斯达克100","成长/科技"),"DIA":("道琼斯","蓝筹价值"),"IWM":("罗素2000","小盘风险偏好"),"RSP":("标普500等权","市场广度"),"MDY":("标普中盘400","中盘股"),"VTI":("美国全市场","整体市场"),"IWD":("罗素1000价值","价值"),"IWF":("罗素1000成长","成长"),"MTUM":("美国动量","动量"),"QUAL":("美国质量","质量"),"USMV":("美国低波动","防守"),"HYG":("高收益债","信用风险偏好"),"LQD":("投资级债","高质量信用"),"TLT":("长期美债","利率/防守"),"GLD":("黄金","避险/通胀"),"UUP":("美元","美元强弱")}
 
-def refreshed_rows(code,cache_dir="work/eodhd-cache"):
+def refreshed_rows(code,cache_dir="work/eodhd-cache",*,persist=True,staged_cache_dir=None):
  """Refresh the recent tail before using an ETF cache for the daily regime."""
  path=pathlib.Path(cache_dir)/f"{code}.json";path.parent.mkdir(parents=True,exist_ok=True)
  cached=json.loads(path.read_text()) if path.exists() else []
  start=(datetime.now(timezone.utc).date()-timedelta(days=400)).isoformat()
  fresh=prices(code,start=start)
  merged={x["date"]:x for x in cached if x.get("date")};merged.update({x["date"]:x for x in fresh if x.get("date")})
- raw=[merged[day] for day in sorted(merged)];path.write_text(json.dumps(raw))
+ raw=[merged[day] for day in sorted(merged)]
+ if persist:path.write_text(json.dumps(raw))
+ if staged_cache_dir is not None:
+  staged=pathlib.Path(staged_cache_dir);staged.mkdir(parents=True,exist_ok=True)
+  (staged/f"{code}.json").write_text(json.dumps(raw))
  return normalize_rows(raw)
 
 def _iso(raw):return datetime.strptime(raw,"%m/%d/%Y").date().isoformat() if "/" in raw else raw
