@@ -4,10 +4,10 @@ import {useEffect, useState} from "react";
 export const RESULTS_ROOT = "https://raw.githubusercontent.com/327979420/sage-vista/main/research/backtest/output/reusable-runs/";
 const CONFIG_URL = "https://raw.githubusercontent.com/327979420/sage-vista/main/research/backtest/account-scenario.json";
 const WORKFLOW_URL = "https://github.com/327979420/sage-vista/actions/workflows/opportunity-ledger-refresh.yml";
-type Run = {id:string; status:"completed"|"unavailable"|"failed"; request:{strategy?:string;start?:string;end?:string}; summary:Record<string,number|null>; receipt_sha256:string};
+type Run = {id:string; status:"completed"|"unavailable"|"failed"; request:{strategy?:string;start?:string;end?:string}; summary:Record<string,number|null>; receipt_sha256:string;overview_sha256?:string};
 type Selection = {technical_score?:number;rank?:number;model_version?:string;factor_registry_version?:string;ruleset_id?:string;score_equation?:string;reasons?:string[];timeframe_profile?:{label?:string}};
 type Trade = {event_id:string;symbol:string;signal_date:string;entry_date?:string;status:string;rank?:number;signal_snapshot?:{as_of:string;selection:Selection}};
-type Receipt = Run & {reason?:string; report?:{path:string;sha256:string};code_commit?:string;source?:{ledger_sha256?:string};trades?:Trade[];audit?:{account_algorithm:string;experiment_key:string;selection_versions:string[]}};
+type Receipt = Run & {downloads?:{trades_csv:{path:string;sha256:string}};research_input?:{role:string;excluded_source_count:number;incomplete_source_days:number};reason?:string; report?:{path:string;sha256:string};code_commit?:string;source?:{ledger_sha256?:string};trades?:Trade[];audit?:{account_algorithm:string;experiment_key:string;selection_versions:string[]}};
 const validId = (id:string) => /^[1-9][0-9]{0,19}-[1-9][0-9]{0,5}$/.test(id);
 const fingerprint = (s:string) => /^[0-9a-f]{64}$/.test(s);
 const statusLabel = {completed:"已完成",unavailable:"来源不可用",failed:"运行失败"};
@@ -92,11 +92,14 @@ export default function ResearchRuns(){
   const run=runs.find(r=>r.id===selected);if(!run)return;
   const controller=new AbortController();
   (async()=>{
-   const raw=await fetchText(run.id+"/receipt.json",controller.signal);
-   if(await hash(raw)!==run.receipt_sha256)throw Error("收据校验失败，请等待索引更新后刷新。");
+   const overview=run.overview_sha256;
+   if(overview&&!fingerprint(overview))throw Error("总览指纹不符");
+   const raw=await fetchText(run.id+(overview?"/overview.json":"/receipt.json"),controller.signal);
+   if(await hash(raw)!==(overview??run.receipt_sha256))throw Error("收据校验失败，请等待索引更新后刷新。");
    const value:Receipt=JSON.parse(raw);
    if(value.id!==run.id||value.status!==run.status)throw Error("运行身份不一致");
    if(value.reason!==undefined&&typeof value.reason!=="string")throw Error("运行原因格式不符");
+   if(value.downloads&&(value.downloads.trades_csv?.path!==run.id+"/trades.csv"||!fingerprint(value.downloads.trades_csv.sha256)))throw Error("明细下载引用不符");
    let report="";
    if(value.report){
     if(value.status!=="completed"||value.report.path!==run.id+"/report.html"||!fingerprint(value.report.sha256))throw Error("报告引用不符");
@@ -109,11 +112,11 @@ export default function ResearchRuns(){
  },[selected,runs]);
  const choose=(id:string)=>{if(id===selected){document.getElementById("quantstats-report")?.scrollIntoView({behavior:"smooth"});return;}setHtml("");setReceipt(null);setError("");setSelected(id)};
  return <div className="tradeComparison">
-  <header className="svPanel"><small>VectorBT＋QuantStats · 旧规则研究场景</small><h2>历史研究结果</h2><p>旧策略：支撑下5%／入场亏损上限10%，2R目标，最长40个交易日。逐日回放当时保存的信号，不用今天的榜单倒填过去。</p><p>记录从2025-12-29开始。首轮建议：2025-12-29至2026-01-30、2026-02-02至2026-02-27；其他区间须每日旧策略记录与行情完整。前几年及新版策略历史重算尚未接通。</p><p>{enabled?"在 GitHub 登录后的表单选择 research 模式、旧基线策略和起止日期，然后提交。运行结束后回到这里刷新查看结果。":configLoaded?"研究配置暂不可用，提交入口暂时关闭；已有报告仍可查看。":"正在读取已批准的研究配置…"}</p><p>{enabled?<a href={WORKFLOW_URL} target="_blank" rel="noreferrer">提交回测／查看运行进度 ↗</a>:<button disabled>{configLoaded?"研究配置暂不可用":"正在读取研究配置"}</button>} · <button onClick={()=>{setLoading(true);setRefresh(v=>v+1)}}>刷新已保存结果</button></p><p>永久结果直接从仓库读取，无需每次重新部署；公开内容可能有几分钟缓存延迟。来源缺失和失败也保留，不作为零收益。研究假设不代表生产策略已获批准。</p></header>
+  <header className="svPanel"><small>VectorBT＋QuantStats · 版本化研究场景</small><h2>自动回测与历史结果</h2><p>旧策略：支撑下5%／入场亏损上限10%，2R目标，最长40个交易日。逐日回放当时保存的信号，不用今天的榜单倒填过去。</p><p>记录从2025-12-29开始。首轮建议：2025-12-29至2026-01-30、2026-02-02至2026-02-27；其他区间须每日旧策略记录与行情完整。新版选股选择 cr056-2.0-new-nominations-legacy-exit-v1：重用缓存行情与MACD门票，重新计算CR056评分，窗口开始观察池为空；退出仍使用上述旧基线。新版结果以实际完成记录为准。</p><p>{enabled?"在 GitHub 登录后的表单选择 research 模式、策略和必填起止日期，然后提交。运行结束后回到这里刷新查看结果。":configLoaded?"研究配置暂不可用，提交入口暂时关闭；已有报告仍可查看。":"正在读取已批准的研究配置…"}</p><p>{enabled?<a href={WORKFLOW_URL} target="_blank" rel="noreferrer">提交回测／查看运行进度 ↗</a>:<button disabled>{configLoaded?"研究配置暂不可用":"正在读取研究配置"}</button>} · <button onClick={()=>{setLoading(true);setRefresh(v=>v+1)}}>刷新已保存结果</button></p><p>永久结果直接从仓库读取，无需每次重新部署；公开内容可能有几分钟缓存延迟。来源缺失和失败也保留，不作为零收益。研究假设不代表生产策略已获批准。</p></header>
   {loading&&<p role="status">正在读取历史运行…</p>}{error&&<p role="alert">{error}</p>}
   <ResearchRunList runs={runs} onSelect={choose} selected={selected}/>
   {selected&&!receipt&&!error&&<p role="status">正在加载所选回测报告…</p>}
-  {receipt?.status==="completed"&&<TradeAudit key={receipt.id} receipt={receipt}/>}
-  {receipt&&<section id="quantstats-report" className="svPanel"><h2>QuantStats 回测报告</h2><h3>{receipt.request.start} 至 {receipt.request.end} · {statusLabel[receipt.status]}</h3>{receipt.reason&&<p>{receipt.reason}</p>}<p><a href={RESULTS_ROOT+receipt.id+"/receipt.json"} target="_blank" rel="noreferrer">下载本次收据与逐笔结果</a></p>{html&&<iframe key={receipt.id} title="QuantStats账户报告与交易明细" sandbox="" referrerPolicy="no-referrer" srcDoc={'<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'; img-src data:; font-src data:; base-uri \'none\'; form-action \'none\'">'+html} style={{width:"100%",height:"1100px",border:0}}/>}</section>}
+  {receipt?.status==="completed"&&!receipt.downloads&&<details><summary>查看旧报告逐笔评分（按需展开）</summary><TradeAudit key={receipt.id} receipt={receipt}/></details>}
+  {receipt&&<section id="quantstats-report" className="svPanel"><h2>QuantStats 回测报告</h2><h3>{receipt.request.start} 至 {receipt.request.end} · {statusLabel[receipt.status]}</h3>{receipt.reason&&<p>{receipt.reason}</p>}<p>{receipt.downloads&&<><a href={RESULTS_ROOT+receipt.downloads.trades_csv.path} download>下载逐笔CSV（Excel可打开）</a> · </>}<a href={RESULTS_ROOT+receipt.id+"/receipt.json"} target="_blank" rel="noreferrer">下载本次收据与逐笔结果</a></p>{receipt.research_input&&<p>输入：{receipt.research_input.role} · 来源排除 {receipt.research_input.excluded_source_count}只 · 存在缺行情或不可计算股票的日期 {receipt.research_input.incomplete_source_days}天。不是完整历史市场。</p>}{html&&<iframe key={receipt.id} title="QuantStats账户报告与交易明细" sandbox="" referrerPolicy="no-referrer" srcDoc={'<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'; img-src data:; font-src data:; base-uri \'none\'; form-action \'none\'">'+html} style={{width:"100%",height:"1100px",border:0}}/>}</section>}
  </div>;
 }

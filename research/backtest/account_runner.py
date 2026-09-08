@@ -5,11 +5,10 @@ the pure account function without authorizing a production policy.
 """
 from datetime import date
 from functools import lru_cache
-import html
 import json
 import math
 from pathlib import Path
-from research.backtest.run_store import ROOT, POLICY, encode, seal, sha256, validate_request
+from research.backtest.run_store import ROOT, POLICY, CANDIDATE_POLICY, trade_csv, encode, seal, sha256, validate_request
 
 CONFIG = ROOT / 'research/backtest/account-scenario.json'
 RANKINGS = ROOT / 'public/unified-v2-rankings.json'
@@ -27,7 +26,7 @@ def validate_scan_coverage(rankings, events, sessions):
     days = {d['date']: d for d in records}
     if len(days) != len(records):
         raise ValueError('duplicate_scan_date')
-    supported = {'unified-v2-macd-trigger-1.2.0', 'unified-v2-macd-trigger-1.3.0', 'unified-v2-macd-trigger-1.4.0'}
+    supported = {'unified-v2-macd-trigger-1.2.0', 'unified-v2-macd-trigger-1.3.0', 'unified-v2-macd-trigger-1.4.0', 'cr056-policy-2.0.0-candidate'}
     for session in sessions:
         day = days.get(session)
         if day is None:
@@ -235,7 +234,11 @@ def execute(request, config, cache_dir, ledger_path, *, out, run_id, attempt, co
     sessions = [r['date'] for r in reference]
     window_events = [e for e in ledger['events'] if request['start'] <= e['signal_date'] <= request['end']]
     scan_bytes = Path(rankings_path).read_bytes()
-    scan_days = validate_scan_coverage(json.loads(scan_bytes), window_events, sessions)
+    scan_doc=json.loads(scan_bytes)
+    scan_days = validate_scan_coverage(scan_doc, window_events, sessions)
+    new_model='cr056-policy-2.0.0-candidate'
+    if any((d['model_version']==new_model)!=(request['strategy']==CANDIDATE_POLICY) for d in scan_days):
+        raise ValueError('research_request_selection_model_mismatch')
     events = [e for e in window_events if e['selection'].get('execution_policy_version') == POLICY]
     rows, sources = {}, {}
     for symbol in sorted({e['symbol'] for e in events}):
@@ -254,7 +257,7 @@ def execute(request, config, cache_dir, ledger_path, *, out, run_id, attempt, co
     audit = {"version":"trade-signal-audit-v1", "account_algorithm":"legacy-shared-cash-v1", "selection_versions":versions, "execution_policy":POLICY, "experiment_key":sha256(encode(experiment)), "experiment_identity":experiment}
     output = Path(out); output.mkdir(parents=True,exist_ok=True)
     report_path = output/'report.html'
-    summary = render_daily_report(equity,daily,config['initial_cash'],report_path,title='Legacy account research',synthetic=synthetic)
+    summary = render_daily_report(equity,daily,config['initial_cash'],report_path,title='CR056 new nominations / legacy exits' if request['strategy']==CANDIDATE_POLICY else 'Legacy account research',synthetic=synthetic)
     closed = [t for t in trades if t['status'] == 'closed']
     summary['win_rate'] = sum(t['net_pnl']>0 for t in closed)/len(closed) if closed else None
     win_text = f"{summary['win_rate']:.1%}" if summary['win_rate'] is not None else '不可用（无已平仓交易）'
@@ -263,22 +266,17 @@ def execute(request, config, cache_dir, ledger_path, *, out, run_id, attempt, co
              f"<p>研究资金 {config['initial_cash']:,.2f}；每笔初始资金的 {config['allocation_fraction']:.1%}；最多 {config['max_positions']} 只；单边综合成本 {config['cost_rate']:.2%}；碎股 {'允许' if config['fractional_shares'] else '不允许'}。</p>"
              f"<p>仅旧支撑5%／入场10%上限止损、2R目标、最长40交易日。窗口原信号 {len(window_events)} 条，其中旧政策 {len(events)} 条；其余政策不混入本回测。每窗口从初始现金开始，不带入起始日前持仓。</p>"
              "<p>保守记账约定：原排名新入场先于当日退出，不用当日卖出款资助新买入；不代表真实盘中现金顺序。只做多，无杠杆，无部分成交；未平仓收益按窗口末有效收盘估值。</p></section>")
-    table = '<h2>Trades · 逐笔结果（已扣场景成本）</h2><div style="overflow-x:auto"><table><tr><th>股票／事件</th><th>信号日</th><th>买入依据：信号收盘技术分／排名／模型</th><th>入场日／价</th><th>状态／退出日</th><th>数量</th><th>净收益／净损益</th><th>原因</th></tr>'
-    for t in trades:
-        ex=t.get('execution',{})
-        state={'closed':'已平仓','open':'未平仓','skipped':'跳过','pending_next_session':'等待次日'}[t['status']]
-        selection = t['signal_snapshot']['selection']
-        cells = [t['symbol']+' / '+t['event_id'],t.get('signal_date',''),
-                 str(selection.get('technical_score','未记录'))+' / #'+str(selection.get('rank','未记录'))+' / '+str(selection.get('model_version','未记录')),
-                 str(t.get('entry_date',''))+' / '+str(t.get('entry_price','')),state+' / '+str(ex.get('exit_date','') if t['status']=='closed' else ''),
-                 str(t.get('quantity','—')),f"{t['net_return']:.2%} / {t['net_pnl']:.2f}" if 'net_return' in t else '不可用',t.get('reason',ex.get('exit_reason',''))]
-        table += '<tr>'+''.join('<td>'+html.escape(str(c))+'</td>' for c in cells)+'</tr>'
-    report_path.write_text(report_path.read_text().replace('<body>','<body>'+intro,1).replace('</body>',table+'</table></div></body>'))
+    if request['strategy']==CANDIDATE_POLICY:
+        intro=intro.replace('窗口原信号', '新版首次合格金叉信号').replace('其余政策不混入本回测。','选股CR0562.0，年度/窗口开始观察池为空；不是完整历史市场，使用现有缓存观测股票，存在幸存者偏差。')
+    report_path.write_text(report_path.read_text().replace('<body>','<body>'+intro,1))
     receipt = seal({'schema_version':'legacy-research-run-v1','id':f'{run_id}-{attempt}','result_role':'legacy/research',
                     'status':'completed','request':request,'summary':summary,'code_commit':code_commit,
                     'scenario':config,'selection':{'window_events':len(window_events),'eligible_policy_events':len(events),'excluded_other_policy':len(window_events)-len(events),'entered_trades':sum(t['status'] in ('open','closed') for t in trades)},'source':{'ledger_sha256':sha256(raw),'cache_key':cache_key,'windows_sha256':sources,'reference_sessions_sha256':sha256(encode(sessions)),'scan_file_sha256':sha256(scan_bytes),'scan_days_sha256':sha256(encode(scan_days)),'historical_raw_revision_proven':False},
                     'daily_account':[{'date':d,'equity':float(v),'return':float(r)} for d,v,r in zip(sessions,equity,daily)],
                     'trades':trades,'synthetic':synthetic,'audit':audit,
                     'report':{'path':f'{run_id}-{attempt}/report.html','sha256':sha256(report_path.read_bytes())}})
+    csv_bytes=trade_csv(receipt)
+    receipt=seal({**receipt,'research_input':{'role':scan_doc.get('history_role','legacy_saved_signals'),'excluded_source_count':len(scan_doc.get('excluded_sources',{})),'incomplete_source_days':sum(bool(d.get('missing_session_symbols') or d.get('unavailable')) for d in scan_days),'coverage_note':'observed cached universe; not complete historical market; latest adjusted history revision'},'downloads':{'trades_csv':{'path':f'{run_id}-{attempt}/trades.csv','sha256':sha256(csv_bytes)}}})
+    (output/'trades.csv').write_bytes(csv_bytes)
     (output/'receipt.json').write_bytes(encode(receipt))
     return receipt

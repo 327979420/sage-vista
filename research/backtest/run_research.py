@@ -4,7 +4,7 @@ import json
 import os
 from pathlib import Path
 from research.backtest.account_runner import approved_scenario, execute
-from research.backtest.run_store import ROOT, encode, seal, validate_request
+from research.backtest.run_store import ROOT, CANDIDATE_POLICY, encode, seal, validate_request
 
 OUT = ROOT/'work/research-attempt'
 
@@ -23,8 +23,13 @@ def run(*, check_only=False):
             with open(os.environ['GITHUB_OUTPUT'],'a') as stream:stream.write('enabled=true\n')
             return
         phase="account"
-        execute(request,config,ROOT/'work/eodhd-cache',ROOT/'public/opportunity-ledger.json',out=OUT,
-                cache_key=os.environ['RESEARCH_CACHE_KEY'],**identity)
+        ledger=ROOT/'public/opportunity-ledger.json';kwargs={}
+        if request['strategy']==CANDIDATE_POLICY:
+            from research.backtest.cr056_history import prepare
+            ledger,rankings=prepare(request,ROOT/'work/eodhd-cache',ROOT/'work/research-signals',identity['code_commit'])
+            kwargs['rankings_path']=rankings
+        execute(request,config,ROOT/'work/eodhd-cache',ledger,out=OUT,
+                cache_key=os.environ['RESEARCH_CACHE_KEY'],**identity,**kwargs)
     except Exception as exc:
         # Preserve source failures and dependency/engine failures, without a
         # fabricated account metric. No traceback, token, or raw bars in output.

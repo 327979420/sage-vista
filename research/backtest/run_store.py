@@ -21,12 +21,13 @@ OUTPUT = ROOT / 'research/backtest/output/reusable-runs'
 RUN_ID = re.compile(r'[1-9][0-9]{0,19}-[1-9][0-9]{0,5}')
 STATUSES = {'completed', 'unavailable', 'failed'}
 POLICY = 'support-5pct-cap-10pct-2r-v1'
+CANDIDATE_POLICY = 'cr056-2.0-new-nominations-legacy-exit-v1'
 
 
 def validate_request(request):
     if not isinstance(request, dict) or set(request) != {'strategy', 'start', 'end'}:
         raise ValueError('strategy_and_date_range_required')
-    if request['strategy'] != POLICY:
+    if request['strategy'] not in (POLICY, CANDIDATE_POLICY):
         raise ValueError('unsupported_research_strategy')
     for field in ('start', 'end'):
         value = request[field]
@@ -115,6 +116,11 @@ def validate_receipt(receipt):
             raise ValueError('invalid_report_reference')
         if not re.fullmatch(r'[0-9a-f]{64}', report.get('sha256', '')):
             raise ValueError('invalid_report_fingerprint')
+    downloads=receipt.get('downloads')
+    if downloads is not None:
+        item=downloads.get('trades_csv',{})
+        if receipt['status']!='completed' or set(downloads)!={'trades_csv'} or item.get('path')!=receipt['id']+'/trades.csv' or item.get('sha256')!=sha256(trade_csv(receipt)):
+            raise ValueError('invalid_csv_reference_or_content')
     return receipt
 
 
@@ -151,6 +157,17 @@ def _lock(root):
         yield
 
 
+def trade_csv(receipt):
+    import csv, io
+    out=io.StringIO(newline=''); writer=csv.writer(out)
+    writer.writerow(['symbol','signal_date','entry_date','entry_price','status','exit_date','exit_price','quantity','net_pnl','net_return','signal_score','original_rank','model_version','monthly_score','weekly_score','daily_score','reason'])
+    for t in receipt.get('trades',[]):
+        selection=t.get('signal_snapshot',{}).get('selection',{}); ex=t.get('execution',{}); frames=selection.get('timeframe_scores',{})
+        values=[t['symbol'],t['signal_date'],t.get('entry_date',''),t.get('entry_price',''),t['status'],ex.get('exit_date','') if t['status']=='closed' else '',ex.get('exit_price','') if t['status']=='closed' else '',t.get('quantity',''),t.get('net_pnl',''),t.get('net_return',''),selection.get('technical_score',''),selection.get('rank',''),selection.get('model_version',''),frames.get('monthly_completed',''),frames.get('weekly_completed',''),frames.get('daily',''),t.get('reason',ex.get('exit_reason',''))]
+        writer.writerow(["'"+v if isinstance(v,str) and v.startswith(('=','+','-','@')) else v for v in values])
+    return ('\ufeff'+out.getvalue()).encode('utf-8')
+
+
 def save(receipt, html=None, root=OUTPUT):
     receipt = validate_receipt(receipt)
     if receipt.get('synthetic'):
@@ -173,6 +190,14 @@ def save(receipt, html=None, root=OUTPUT):
             raise FileExistsError('run_identity_already_contains_different_bytes')
         if report:
             _immutable(target / 'report.html', html)
+            if receipt.get('downloads',{}).get('trades_csv'):
+                raw_csv=trade_csv(receipt)
+                if sha256(raw_csv)!=receipt['downloads']['trades_csv']['sha256']:raise ValueError('csv_fingerprint_mismatch')
+                _immutable(target/'trades.csv',raw_csv)
+                overview={k:receipt[k] for k in ('id','status','request','summary','code_commit','report','downloads')}
+                overview['selection']=receipt.get('selection',{})
+                overview['research_input']=receipt.get('research_input',{})
+                _immutable(target/'overview.json',encode(overview))
         _immutable(target / 'receipt.json', encode(receipt))
         # Rebuild from verified receipts, never from untrusted supplied indexes.
         # A crash after immutable files but before index is recovered by retry.
@@ -186,6 +211,9 @@ def save(receipt, html=None, root=OUTPUT):
             entry = {k: value[k] for k in
                      ('id', 'status', 'request', 'summary', 'code_commit', 'content_sha256')}
             entry['receipt_sha256'] = sha256(path.read_bytes())
+            if value.get('downloads'):
+                view=path.parent/'overview.json'
+                entry['overview_sha256']=sha256(view.read_bytes())
             entries.append(entry)
         entries.sort(key=lambda e: tuple(int(n) for n in e['id'].split('-')), reverse=True)
         raw = encode({'schema_version': 'legacy-research-index-v1', 'runs': entries})

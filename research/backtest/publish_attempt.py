@@ -31,6 +31,7 @@ def publish(receipt, *, html=None, repo=ROOT, max_attempts=3):
         paths = [str(relative / receipt['id'] / 'receipt.json'), str(relative / 'index.json')]
         if receipt.get('report'):
             paths.append(str(relative / receipt['id'] / 'report.html'))
+            if receipt.get('downloads',{}).get('trades_csv'):paths.extend(str(relative/receipt['id']/name) for name in ('trades.csv','overview.json'))
         git('add', '--', *paths)
         if git('diff', '--cached', '--quiet', check=False).returncode == 0:
             return git('rev-parse', 'HEAD').stdout.strip()

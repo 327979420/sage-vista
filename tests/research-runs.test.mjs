@@ -35,8 +35,9 @@ test('existing workflow isolates research and requires approval before engines',
  assert.match(steps.find(s=>s.id==='approval').run,/run_research --check/);
  assert.match(steps.find(s=>s.name?.startsWith('Install isolated')).if,/approval.outputs.enabled == 'true'/);
  assert.match(steps.find(s=>s.name?.startsWith('Run the selected')).if,/approval.outputs.enabled == 'true'/);
- assert.doesNotMatch(JSON.stringify(workflow.jobs.research),/deploy-site|secrets\.|cache\/save/);
+ assert.doesNotMatch(JSON.stringify(workflow.jobs.research),/deploy-site|secrets\./);
  assert.match(JSON.stringify(workflow.jobs.research),/publish_attempt/);
+ assert.equal(steps.find(s=>s.uses==='actions/cache/save@v4').with.path,'work/research-signals');
 });
 
 

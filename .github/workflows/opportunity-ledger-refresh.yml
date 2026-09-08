@@ -14,12 +14,12 @@ on:
       strategy:
         description: Research only — existing execution policy
         type: choice
-        options: [support-5pct-cap-10pct-2r-v1]
+        options: [support-5pct-cap-10pct-2r-v1, cr056-2.0-new-nominations-legacy-exit-v1]
       start:
-        description: Research start YYYY-MM-DD
+        description: Required research start YYYY-MM-DD
         type: string
       end:
-        description: Research end YYYY-MM-DD
+        description: Required research end YYYY-MM-DD
         type: string
 
 permissions:
@@ -136,7 +136,7 @@ jobs:
       contents: write
       actions: read
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 330
     env:
       RESEARCH_INPUTS: ${{ toJSON(inputs) }}
       MPLBACKEND: Agg
@@ -159,6 +159,13 @@ jobs:
           key: eodhd-history-v1-research-${{ github.run_id }}
           restore-keys: eodhd-history-v1-
           fail-on-cache-miss: true
+      - name: Restore version-checked historical signal checkpoint
+        if: steps.approval.outputs.enabled == 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: work/research-signals
+          key: cr056-research-signals-v1-${{ inputs.start }}-${{ inputs.end }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: cr056-research-signals-v1-${{ inputs.start }}-${{ inputs.end }}-
       - name: Install isolated hash-locked accounting and reporting engines
         if: steps.approval.outputs.enabled == 'true' && steps.prices.outcome == 'success'
         run: |
@@ -170,6 +177,12 @@ jobs:
         env:
           RESEARCH_CACHE_KEY: ${{ steps.prices.outputs.cache-matched-key }}
         run: work/research-env/bin/python -m research.backtest.run_research
+      - name: Save completed historical signal checkpoints
+        if: always() && inputs.strategy == 'cr056-2.0-new-nominations-legacy-exit-v1'
+        uses: actions/cache/save@v4
+        with:
+          path: work/research-signals
+          key: cr056-research-signals-v1-${{ inputs.start }}-${{ inputs.end }}-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Retain setup failure when no account receipt could be written
         if: always()
         env:
@@ -195,6 +208,7 @@ jobs:
           path: |
             work/research-attempt/receipt.json
             work/research-attempt/report.html
+            work/research-attempt/trades.csv
           retention-days: 30
       - name: Require an actually completed account result
         run: |
