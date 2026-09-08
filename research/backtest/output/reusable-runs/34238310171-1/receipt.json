@@ -1,0 +1,16 @@
+{
+  "code_commit": "fd0ee1f182ef2458b8981b7e3795fbca0ff9f7c0",
+  "content_sha256": "f339bd4dc0914472c3c7b996c722ad93cf55959624ba296c9cfdad881fb5d395",
+  "id": "34238310171-1",
+  "reason": "canonical_date_required",
+  "report": null,
+  "request": {
+    "end": "",
+    "start": "",
+    "strategy": "support-5pct-cap-10pct-2r-v1"
+  },
+  "result_role": "legacy/research",
+  "schema_version": "legacy-research-run-v1",
+  "status": "failed",
+  "summary": {}
+}
