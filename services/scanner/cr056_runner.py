@@ -16,7 +16,7 @@ from services.gates.baseline import exact_daily_macd_bull_cross, MIN_HISTORY_SES
 from services.factors.cr056 import collect_direction_facts, collect_entry_facts
 from services.selectors.cr056 import assess_permission, assess_entry
 from services.ranking.cr056 import score_candidate
-from services.ledger.cr056 import review_watch
+from services.ledger.cr056 import review_watch, track_entry_structures
 from services.scanner.factor_detectors import evaluate_period_factors
 from services.scanner.cr056_inputs import normalized_comparison_rows
 
@@ -86,6 +86,17 @@ def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previo
             if missing is not None: raise ValueError(missing)
             facts = collect_direction_facts(rows, as_of=as_of, complete_session=True)
             permission = assess_permission(facts)
+            tracking = (prior.get(symbol) or {}).get('entry_tracking')
+            if symbol in origins and (tracking is not None or permission['eligible']):
+                tracking = track_entry_structures(rows, as_of=as_of, previous=tracking)
+                if not tracking['eligible']:
+                    permission = {**permission, 'eligible':False, 'permission':'blocked',
+                                  'reason_codes':permission['reason_codes']+['no_surviving_new_rule_structure']}
+            elif symbol not in origins and entry['eligible'] and permission['eligible']:
+                # The first actual nomination starts its own observation. Legacy
+                # migration above is explicitly labelled retrospective research.
+                tracking = track_entry_structures(rows, as_of=as_of, start_date=as_of)
+            item['entry_tracking'] = tracking
             states = evaluate_period_factors(rows, as_of, complete_session=True)
             score = score_candidate(states, permission)
             item.update({'status': score['score_status'], 'price': rows[-1]['close'], 'permission': permission,
@@ -102,7 +113,8 @@ def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previo
                 item['new_nomination'] = True
             if item['origin']:
                 item['watch'] = review_watch(symbol=symbol, as_of=as_of, origin=item['origin'], score=score,
-                    previous=prior.get(symbol), reference_sessions=reference_sessions, policy_revision=policy_revision)
+                    previous=prior.get(symbol), reference_sessions=reference_sessions, policy_revision=policy_revision,
+                    entry_tracking=item.get('entry_tracking') or (prior.get(symbol) or {}).get('entry_tracking'))
         except (ValueError, TypeError, KeyError, OSError, ZeroDivisionError) as error:
             if str(error) == 'same-day watch content conflict':
                 raise
@@ -114,7 +126,8 @@ def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previo
                 fallback = {'total_score': None, 'permission': 'blocked' if missing else 'unavailable',
                     'high_score_eligible': False, 'reason_codes': [reason]}
                 item['watch'] = review_watch(symbol=symbol, as_of=as_of, origin=item['origin'], score=fallback,
-                    previous=prior.get(symbol), reference_sessions=reference_sessions, policy_revision=policy_revision)
+                    previous=prior.get(symbol), reference_sessions=reference_sessions, policy_revision=policy_revision,
+                    entry_tracking=item.get('entry_tracking') or (prior.get(symbol) or {}).get('entry_tracking'))
         counts[item['status']] += 1
         reviews.append(item)
     ranked = [r for r in reviews if r.get('score', {}).get('total_score') is not None]

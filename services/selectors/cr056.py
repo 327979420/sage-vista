@@ -99,9 +99,20 @@ def assess_entry(facts):
                           ('three_push_breakout', len(frame['bottoms']) >= 2 and frame['breakout']),
                           ('support_reversal', frame['support_reversal'])):
             if hit:
+                from services.contracts.market_data import canonical_fingerprint
+                anchors = frame.get('bottoms', []) if name != 'support_reversal' else [frame.get('support', {})]
+                prices = [a['price'] for a in anchors if 'price' in a]
+                if name == 'support_reversal' and frame.get('current_low') is not None:
+                    prices.append(frame['current_low'])
+                identity = {'path':name,'timeframe':timeframe,
+                            'anchors':[a.get('date') for a in anchors],
+                            'cross':frame.get('cross_date') if name=='bottom_macd' else None,
+                            'confirmation':frame['completed_through'] if name!='bottom_macd' else None}
                 paths.append({'path':name,'timeframe':timeframe,
                               'confirmed_through':frame['completed_through'],
-                              'cross_date':frame.get('cross_date') if name=='bottom_macd' else None})
+                              'cross_date':frame.get('cross_date') if name=='bottom_macd' else None,
+                              'structure_key':canonical_fingerprint(identity),
+                              'structure_floor':min(prices) if prices else None})
     return {'as_of':facts['as_of'],'eligible':bool(paths),'paths':paths,
             'reason_codes':[] if paths else ['no_confirmed_reversal_entry'],
             'policy_version':POLICY_VERSION,'policy_fingerprint':POLICY_FINGERPRINT,

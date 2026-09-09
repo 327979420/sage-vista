@@ -92,7 +92,7 @@ RULE_IMPLEMENTATION = {name: sha256((_RULE_ROOT/name).read_bytes()).hexdigest() 
     'services/scanner/factor_detectors.py', 'services/scanner/detectors.py',
     'services/scanner/technical.py', 'services/scanner/macd_factor_backtest.py',
     'services/gates/baseline.py', 'services/gates/local_structure.py',
-    'services/gates/long_term_state.py')}
-POLICY_VERSION = 'cr056-policy-3.0.0-candidate'
+    'services/gates/long_term_state.py', 'services/ledger/cr056.py')}
+POLICY_VERSION = 'cr056-policy-3.1.0-candidate'
 POLICY_FINGERPRINT = canonical_fingerprint({'version': POLICY_VERSION, 'entry_settings': ENTRY_SETTINGS, 'implementation': RULE_IMPLEMENTATION, 'settings': dict(SETTINGS),
     'white_list': {k: list(v) for k, v in WHITE_LIST.items()}, 'weights': dict(WEIGHTS), 'caps': dict(CAPS), 'mapped_factors': dict(MAPPED_FACTORS)})

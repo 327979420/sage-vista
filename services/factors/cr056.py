@@ -81,7 +81,8 @@ def collect_entry_facts(rows, *, as_of, complete_session=False):
         bars = all_bars[-limits['lookback_bars']-1:]
         end = len(bars)-1
         frame = {'completed_through': bars[-1]['date'] if bars else None,
-                 'available': len(bars) >= 5, 'bottoms': [], 'support_reversal': False,
+                 'available': len(bars) >= 5, 'close': bars[-1]['close'] if bars else None,
+                 'current_low': bars[-1]['low'] if bars else None, 'bottoms': [], 'support_reversal': False,
                  'breakout': False, 'macd_valid': False, 'cross_date': None}
         frames[tf] = frame
         if not frame['available']: continue

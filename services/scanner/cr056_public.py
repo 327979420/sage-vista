@@ -21,6 +21,21 @@ def project_report(report):
         score = row.get('score')
         permission = row.get('permission', {})
         item = {k: row.get(k) for k in ('symbol', 'rank', 'price', 'status', 'new_nomination', 'periods')}
+        tracking = row.get('entry_tracking') or (row.get('watch') or {}).get('entry_tracking')
+        if tracking:
+            # Keep the public table compact; full episode history stays in the ledger.
+            active = [r for r in tracking['records'] if r['state']=='active']
+            latest = {}
+            for record in sorted(active or tracking['records'],key=lambda r:r['trigger_date']):
+                latest[(record['path'],record['timeframe'])] = record
+            item['watch_entries'] = [{k:r.get(k) for k in ('path','timeframe','trigger_date','trigger_close',
+                                      'state','invalidated_at','observation_return','observed_sessions')}
+                                     for r in latest.values()]
+            item['watch_history_start'] = tracking['history_start']
+            item['watch_as_of'] = tracking['as_of']
+            oldest = min(active,key=lambda r:r['trigger_date']) if active else None
+            item['watch_since'] = oldest['trigger_date'] if oldest else None
+            item['watch_return'] = oldest['observation_return'] if oldest else None
         item['entry_paths'] = (row.get('entry_gate') or {}).get('paths', [])
         item.update(origin_date=(row.get('origin') or {}).get('date'),
                     reason_codes=row['reason_codes'],

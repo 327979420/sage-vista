@@ -154,8 +154,8 @@
         "completed_at": null,
         "latest_event": "registered",
         "latest_event_at": "2026-09-09",
-        "time_source": "preregistration_record",
-        "event_count": 1,
+        "time_source": "user_followup",
+        "event_count": 2,
         "events": [
           {
             "experiment_id": "cr056-three-paths-v3-2026-09-09",
@@ -164,6 +164,14 @@
             "time_source": "preregistration_record",
             "source_ref": "docs/rules/04_SCORING.md",
             "result": "三路径统一入口预登记；尚无收益结论。"
+          },
+          {
+            "experiment_id": "cr056-three-paths-v3-2026-09-09",
+            "event": "registered",
+            "event_at": "2026-09-09",
+            "time_source": "user_followup",
+            "source_ref": "docs/rules/04_SCORING.md",
+            "result": "3.1持续观察重核：同一门票检测、历史可知日、结构未失效与价格观察涨跌；不改权重/交易退出，不作为收益验证。"
           }
         ]
       }
