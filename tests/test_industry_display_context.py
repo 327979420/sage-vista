@@ -25,8 +25,25 @@ class IndustryDisplayContextTests(unittest.TestCase):
         self.addCleanup(self.tmp.cleanup)
         self.path = Path(self.tmp.name)/'industry.json'
         self.original = json.loads((ROOT/'public/industry-radar.json').read_text())
+        # Fixture date must not follow the mutable production snapshot.
+        # The mismatch test below still exercises the real fail-closed check.
+        self.original['as_of'] = AS_OF
         self.original.pop('display_context', None)
         self.path.write_text(json.dumps(self.original))
+
+    def test_fixture_remains_fixed_when_production_date_advances(self):
+        source = ROOT/'public/industry-radar.json'
+        read_text = Path.read_text
+        for day in ('2026-09-08', '2026-10-01'):
+            advanced = {**self.original, 'as_of':day}
+            def read(path, *args, **kwargs):
+                return json.dumps(advanced) if path == source else read_text(path, *args, **kwargs)
+            case = IndustryDisplayContextTests()
+            try:
+                with patch.object(Path, 'read_text', read): case.setUp()
+                case.test_all_registered_themes_are_visible_without_revising_legacy_inputs()
+                case.test_bundle_mismatch_stops_before_supplier_request()
+            finally: case.doCleanups()
 
     def refresh(self, loader):
         return refresh_display_context(self.path, AS_OF, fetch_prices=loader)

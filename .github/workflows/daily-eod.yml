@@ -41,7 +41,7 @@ permissions:
   deployments: read
 
 concurrency:
-  group: sage-vista-production-deploy
+  group: ${{ (github.event_name == 'push' || github.event_name == 'pull_request') && format('sage-vista-code-check-{0}', github.run_id) || 'sage-vista-production-deploy' }}
   cancel-in-progress: false
 
 env:

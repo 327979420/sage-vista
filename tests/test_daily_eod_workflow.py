@@ -72,7 +72,10 @@ class DailyEodWorkflowTests(unittest.TestCase):
  def test_production_deployments_share_one_lock_and_one_receipt_writer(self):
   daily=WORKFLOW.read_text();site=(WORKFLOW.parent/"deploy-site.yml").read_text()
   groups=[re.search(r"concurrency:\s+group: ([^\n]+)",text).group(1) for text in (daily,site)]
-  self.assertEqual(groups,["sage-vista-production-deploy"]*2)
+  self.assertEqual(groups[1],"sage-vista-production-deploy")
+  self.assertIn("|| 'sage-vista-production-deploy'",groups[0])
+  self.assertIn("format('sage-vista-code-check-{0}', github.run_id)",groups[0])
+  self.assertIn("github.event_name == 'push' || github.event_name == 'pull_request'",groups[0])
   for text in (daily,site):
    self.assertIn("cancel-in-progress: false",text)
    self.assertEqual(text.count("verify_live_deployment persist --receipt-path live-verification.json"),1)
