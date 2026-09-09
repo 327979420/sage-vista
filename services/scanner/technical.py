@@ -24,6 +24,10 @@ def atr(rows,n=14):
     return ema(tr,n)
 def macd(v):
     a,b=ema(v,12),ema(v,26); line=[x-y for x,y in zip(a,b)]; sig=ema(line,9); return line,sig
+def macd_bull_cross_at(line, signal, index):
+    """One exact crossing predicate for gates and period event timestamps."""
+    return index >= 1 and line[index] > signal[index] and line[index-1] <= signal[index-1]
+
 def position_size(equity,risk_pct,entry,stop,max_position_pct=.20):
     if equity<=0 or not 0<risk_pct<=.02 or stop>=entry: return 0
     risk_shares=floor(equity*risk_pct/(entry-stop)); cap_shares=floor(equity*max_position_pct/entry)

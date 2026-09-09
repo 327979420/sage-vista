@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any, Mapping, Sequence
 
 from services.scanner.macd_factor_backtest import ema
-from services.scanner.technical import macd
+from services.scanner.technical import macd, macd_bull_cross_at
 
 MIN_HISTORY_SESSIONS = 420
 MIN_CLOSE = 5.0
@@ -18,7 +18,7 @@ def exact_daily_macd_bull_cross(rows: Sequence[Mapping[str, Any]]) -> bool:
     if len(rows) < 2:
         return False
     line, signal = macd([row["close"] for row in rows])
-    return line[-1] > signal[-1] and line[-2] <= signal[-2]
+    return macd_bull_cross_at(line, signal, len(line)-1)
 
 
 def legacy_long_trend_equivalence(rows: Sequence[Mapping[str, Any]]) -> bool:

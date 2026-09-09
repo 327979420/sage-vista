@@ -188,3 +188,43 @@ class PeriodMappingTests(unittest.TestCase):
         a=[{k:v for k,v in f.items() if k!='as_of'} for f in first if f['timeframe']=='monthly_completed']
         b=[{k:v for k,v in f.items() if k!='as_of'} for f in after if f['timeframe']=='monthly_completed']
         self.assertEqual(a,b)
+
+class MacdEventDateRegressionTests(unittest.TestCase):
+    def test_window_does_not_move_event_and_dead_cross_invalidates_it(self):
+        from unittest.mock import patch
+        from services.scanner.factor_detectors import _period_macd_event
+        rows=[{'date':f'bar-{i}','close':100} for i in range(40)]
+        for tail, expected_hit, expected_age, expected_recent in (
+            ([-1,-1,-1,-1,1],True,0,True),
+            ([1,1,1,1,1],False,4,True),
+            ([1,1,1,1,-1],False,4,False),
+            ([1,1,-1,-1,1],True,0,True),
+            ([-1,-1,-1,-1,-1],False,None,False)):
+            line=[-1]*35+tail
+            with self.subTest(tail=tail),patch('services.scanner.factor_detectors.macd',return_value=(line,[0]*40)):
+                hit, day, age, recent, evidence=_period_macd_event(rows,5)
+            self.assertEqual((hit,age,recent),(expected_hit,expected_age,expected_recent))
+            self.assertEqual(day,None if age is None else rows[-1-age]['date'])
+        with patch('services.scanner.factor_detectors.macd',return_value=([-1]*34+[1]*6,[0]*40)):
+            hit, day, age, recent, evidence=_period_macd_event(rows,5)
+        self.assertFalse(recent);self.assertEqual(age,5);self.assertEqual(day,'bar-34')
+
+    def test_real_macd_matches_strict_gate_in_all_completed_periods(self):
+        from services.scanner.factor_detectors import evaluate_period_factors
+        from services.scanner.technical import macd
+        from services.gates.baseline import exact_daily_macd_bull_cross
+        rows=PeriodMappingTests().rows()
+        rows[-2].update(open=108,high=111,low=107,close=110)
+        rows.append(dict(date='2026-05-01',open=111,high=114,low=110,close=112,volume=100))
+        as_of=rows[-1]['date']
+        states={s['factor_id']:s for s in evaluate_period_factors(rows,as_of,complete_session=True)}
+        for tf,period in [('daily',None),('weekly_completed','weekly'),('monthly_completed','monthly')]:
+            bars=rows if period is None else completed_period_bars(rows,as_of=as_of,period=period,complete_session=True)
+            line,signal=macd([r['close'] for r in bars])
+            crosses=[i for i in range(1,len(bars)) if line[i]>signal[i] and line[i-1]<=signal[i-1]]
+            self.assertTrue(crosses)
+            state=states[tf+'::macd.daily_bull_cross']
+            self.assertEqual(state['hit'],exact_daily_macd_bull_cross(bars))
+            self.assertEqual(state['latest_hit_date'],bars[crosses[-1]]['date'])
+            self.assertEqual(state['bars_since_hit'],len(bars)-1-crosses[-1])
+            self.assertFalse(state['hit']);self.assertTrue(state['recent_hit'])

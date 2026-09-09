@@ -79,6 +79,6 @@ def _frame_cap(tf):
         families[family] = min(SETTINGS['family_cap'], families.get(family, 0) + value)
     return sum(families.values())
 CAPS = MappingProxyType({tf: _frame_cap(tf) for tf in FRAMES})
-POLICY_VERSION = 'cr056-policy-2.0.0-candidate'
+POLICY_VERSION = 'cr056-policy-2.0.1-candidate'
 POLICY_FINGERPRINT = canonical_fingerprint({'version': POLICY_VERSION, 'settings': dict(SETTINGS),
     'white_list': {k: list(v) for k, v in WHITE_LIST.items()}, 'weights': dict(WEIGHTS), 'caps': dict(CAPS), 'mapped_factors': dict(MAPPED_FACTORS)})

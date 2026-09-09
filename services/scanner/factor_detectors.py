@@ -8,7 +8,7 @@ from .macd_factor_backtest import (available,bullish_fvg_support,completed_group
  ema,kline_congestion_support,long_trend_ok,macd_state,overhead_unfilled_gap,
  recent_double_bottom_breakout,recent_three_push_breakout,support_bottom_volume,support_bullish_engulfing,
  three_push_breakout,three_push_retest,double_bottom_neckline_retest,volume_profile_support,fibonacci_support_levels)
-from .technical import macd,rsi
+from .technical import macd,rsi,macd_bull_cross_at
 from services.gates.long_term_state import period_closed_at_session
 
 MONITORED_FACTOR_IDS=tuple(factor.id for factor in FACTORS)
@@ -180,6 +180,21 @@ def evaluate_initial_factors(rows,as_of):
  return [state for state in evaluate_all_factors(rows,as_of) if state.factor_id in initial]
 
 
+def _period_macd_event(bars, window):
+ """Actual cross time and current validity are separate point-in-time facts."""
+ line, signal = macd([row['close'] for row in bars])
+ crosses = [i for i in range(1, len(bars))
+            if macd_bull_cross_at(line, signal, i)]
+ last = crosses[-1] if crosses else None
+ age = len(bars)-1-last if last is not None else None
+ bullish = line[-1] > signal[-1]
+ recent = age is not None and age < window and bullish
+ evidence = {'macd':line[-1], 'signal':signal[-1], 'freshness_bars':window,
+             'above_signal':bullish, 'within_window':age is not None and age < window,
+             'cross_valid':recent, 'confirmation':'completed_bar_exact_cross'}
+ return age == 0, (bars[last]['date'] if last is not None else None), age, recent, evidence
+
+
 def evaluate_period_factors(rows, as_of, *, complete_session=False):
  """Same native-bar algorithms on three completed resolutions; no recursive resampling."""
  from services.contracts.cr056_policy import MAPPED_FACTORS, SETTINGS
@@ -221,6 +236,9 @@ def evaluate_period_factors(rows, as_of, *, complete_session=False):
     elif meta['source_definition']['factor_type']=='event' and meta['window']:
      for ago in range(1, min(meta['window'], len(bars)-minimum+1)):
       if detect(len(bars)-1-ago)[0]: age=ago; last=bars[-1-ago]['date']; break
+   recent = age is not None
+   if available and template == 'macd.daily_bull_cross':
+    hit, last, age, recent, evidence = _period_macd_event(bars, meta['window'])
    reason = ('definition_required' if meta['role']=='unimplemented' else
              'insufficient_period_history' if not available else 'observed')
    # Windows expressed by old functions as sessions now mean native bars.
@@ -232,9 +250,9 @@ def evaluate_period_factors(rows, as_of, *, complete_session=False):
    evidence = native_evidence(evidence)
    if template == 'support.ema_proximity' and available:
     evidence['distance_by_period']={p:d for p,d in evidence['distance_by_period'].items() if len(bars)>=int(p)}
-   result.append({'factor_id':fid, 'factor_version':'period-mapping-1.0.0', 'as_of':as_of,
+   result.append({'factor_id':fid, 'factor_version':('period-mapping-macd-1.0.1' if template=='macd.daily_bull_cross' else 'period-mapping-1.0.0'), 'as_of':as_of,
     'source_factor_ids':meta['source_ids'], 'timeframe':tf, 'completed_through':bars[-1]['date'] if bars else None,
-    'available':available, 'hit':bool(hit), 'recent_hit':age is not None, 'bars_since_hit':age,
+    'available':available, 'hit':bool(hit), 'recent_hit':recent, 'bars_since_hit':age,
     'latest_hit_date':last, 'value':strength if template=='direction.macd_state' else evidence.get('ratio',bool(hit)),
     'evidence':evidence, 'runtime_status':reason, 'research_status':meta['research_status'], 'score_role':meta['role'],
     'period_bar_count':len(bars), 'minimum_bars':minimum,
