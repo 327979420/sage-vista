@@ -7,6 +7,8 @@ from services.contracts.cr056_policy import WHITE_LIST, MAPPED_FACTORS
 from services.scanner.factor_registry import FACTORS_BY_ID
 
 
+VIEW_VERSION = 'nomination-observation-1'
+
 def project_report(report):
     body = {k: v for k, v in report.items() if k != 'snapshot_fingerprint'}
     if canonical_fingerprint(body) != report.get('snapshot_fingerprint'):
@@ -33,9 +35,11 @@ def project_report(report):
                                      for r in latest.values()]
             item['watch_history_start'] = tracking['history_start']
             item['watch_as_of'] = tracking['as_of']
-            oldest = min(active,key=lambda r:r['trigger_date']) if active else None
-            item['watch_since'] = oldest['trigger_date'] if oldest else None
-            item['watch_return'] = oldest['observation_return'] if oldest else None
+
+        observation = row.get('nomination_observation') or {}
+        if observation:
+            item['watch_return'] = observation.get('price_change')
+            item['nomination_price'] = observation.get('price')
         paths = (row.get('entry_gate') or {}).get('paths', [])
         if paths:
             item['entry_paths'] = [{k:p.get(k) for k in ('path','timeframe','confirmed_through','cross_date')} for p in paths]
@@ -52,7 +56,7 @@ def project_report(report):
             item['checks'] = permission.get('checks', {})
             # Full evidence is loaded on demand from the matching compressed detail file.
         reviews.append(item)
-    return {'as_of': report['as_of'], 'result_role': report['result_role'],
+    return {'view_version': VIEW_VERSION, 'as_of': report['as_of'], 'result_role': report['result_role'],
         'policy_version': report['policy_version'], 'policy_fingerprint': report['policy_fingerprint'], 'source_snapshot': report['snapshot_fingerprint'],
         'source_commit': report['code_commit'], 'automatic_updates_connected': False,
         'input_coverage': report['input_coverage'], 'counts': report['counts'],

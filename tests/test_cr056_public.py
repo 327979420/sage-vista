@@ -27,3 +27,19 @@ class PublicProjectionTests(unittest.TestCase):
         report['reviews'][0]['score']['total_score']=99
         with self.assertRaisesRegex(ValueError,'fingerprint'):
             project_report(report)
+
+class NominationObservationTests(unittest.TestCase):
+    def test_return_starts_at_nomination_not_an_older_gate(self):
+        from services.scanner.cr056_runner import nomination_observation
+        rows=[{'date':'2019-08-01','close':10.}, {'date':'2026-04-13','close':100.}, {'date':'2026-09-08','close':120.}]
+        result=nomination_observation(rows,{'date':'2026-04-13'},'2026-09-08')
+        self.assertEqual(result['date'],'2026-04-13')
+        self.assertEqual(result['price'],100.)
+        self.assertAlmostEqual(result['price_change'],.2)
+        self.assertEqual(nomination_observation(rows,{'date':'2026-09-08'},'2026-09-08')['price_change'],0.)
+
+    def test_missing_nomination_close_is_not_replaced_with_nearest_or_old_gate(self):
+        from services.scanner.cr056_runner import nomination_observation
+        result=nomination_observation([{'date':'2026-09-08','close':120.}],{'date':'2026-04-13'},'2026-09-08')
+        self.assertIsNone(result['price_change']);self.assertIsNone(result['price'])
+        self.assertEqual(result['status'],'nomination_close_unavailable')

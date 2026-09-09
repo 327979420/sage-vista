@@ -21,6 +21,18 @@ from services.scanner.factor_detectors import evaluate_period_factors
 from services.scanner.cr056_inputs import normalized_comparison_rows
 
 
+def nomination_observation(rows, origin, as_of):
+    """Compare the actual nomination close using one adjusted source vintage."""
+    day = origin['date']
+    base = next((r for r in rows if r['date'] == day), None)
+    latest = rows[-1] if rows and rows[-1]['date'] == as_of else None
+    available = bool(base and latest and day <= as_of and base['close'] > 0)
+    return {'date':day, 'as_of':as_of, 'price':base['close'] if available else None,
+            'price_change':latest['close']/base['close']-1 if available else None,
+            'status':'available' if available else 'nomination_close_unavailable',
+            'basis':'same_source_adjusted_close_not_trade_return'}
+
+
 def historical_origins(history, *, as_of):
     result = {}
     for day in sorted(history.get('days', []), key=lambda d: d['date']):
@@ -112,6 +124,7 @@ def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previo
             if item['origin'] and item['origin'].get('kind') == 'candidate_initial_nomination' and item['origin']['date'] == as_of and score['total_score'] is not None:
                 item['new_nomination'] = True
             if item['origin']:
+                item['nomination_observation'] = nomination_observation(rows, item['origin'], as_of)
                 item['watch'] = review_watch(symbol=symbol, as_of=as_of, origin=item['origin'], score=score,
                     previous=prior.get(symbol), reference_sessions=reference_sessions, policy_revision=policy_revision,
                     entry_tracking=item.get('entry_tracking') or (prior.get(symbol) or {}).get('entry_tracking'))

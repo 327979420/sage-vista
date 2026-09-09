@@ -17,7 +17,7 @@ import zlib
 from services.ledger.cr056 import watch_checkpoint, validate_watch_checkpoint
 from services.scanner.cr056_inputs import repair_existing_cache, normalized_comparison_rows
 from services.scanner.cr056_runner import run_snapshot
-from services.scanner.cr056_public import project_report, project_details
+from services.scanner.cr056_public import project_report, project_details, VIEW_VERSION
 from services.contracts.cr056_policy import POLICY_VERSION, POLICY_FINGERPRINT
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -80,7 +80,8 @@ def refresh(*, as_of, code_commit, public_path, state_path, archive_dir, work_di
         if previous['snapshot_fingerprint'] != current['source_snapshot'] or previous['as_of'] != current['as_of']:
             raise ValueError('public_watch_checkpoint_mismatch')
         policy_revision = (current['policy_version'] != POLICY_VERSION or
-                           current.get('policy_fingerprint') != POLICY_FINGERPRINT)
+                           current.get('policy_fingerprint') != POLICY_FINGERPRINT or
+                           current.get('view_version') != VIEW_VERSION)
         if previous['as_of'] == as_of and not policy_revision:
             current.update(automatic_updates_connected=True,
                            refresh_status={'status':'current', 'target_as_of':as_of})
