@@ -30,7 +30,7 @@ jobs:
         id: freshness
         shell: bash
         run: |
-          python3 -m services.scanner.freshness_monitor > freshness-result.json
+          python3 -m services.scanner.freshness_monitor --url https://sage-vista-parallel.gizmo-allied-0s.workers.dev > freshness-result.json
           python3 - <<'PY'
           import json,os
           result=json.load(open("freshness-result.json"))
@@ -42,7 +42,7 @@ jobs:
         if: steps.freshness.outputs.result == 'stale'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh workflow run daily-eod.yml --ref main -f mode=update -f trigger_source=freshness_recovery
+        run: gh workflow run daily-eod.yml --ref main -f mode=deploy -f notify=false -f trigger_source=freshness_recovery
       - name: Open one deduplicated stale-data issue
         if: steps.freshness.outputs.result == 'stale'
         env:

@@ -77,6 +77,8 @@ export default {
   async scheduled(controller, env, ctx) {
     const plan = planForCron(controller.cron, env, controller.scheduledTime);
     if (!plan) return;
-    ctx.waitUntil(dispatchWorkflow(plan, env));
+    ctx.waitUntil(dispatchWorkflow(plan, env).then(result => {
+      console.log(JSON.stringify({event: "scheduled_dispatch", scheduledTime: controller.scheduledTime, cron: controller.cron, ...result}));
+    }));
   },
 };

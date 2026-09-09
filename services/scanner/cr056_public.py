@@ -33,7 +33,7 @@ def project_report(report):
             # Full evidence is loaded on demand from the matching compressed detail file.
         reviews.append(item)
     return {'as_of': report['as_of'], 'result_role': report['result_role'],
-        'policy_version': report['policy_version'], 'source_snapshot': report['snapshot_fingerprint'],
+        'policy_version': report['policy_version'], 'policy_fingerprint': report['policy_fingerprint'], 'source_snapshot': report['snapshot_fingerprint'],
         'source_commit': report['code_commit'], 'automatic_updates_connected': False,
         'input_coverage': report['input_coverage'], 'counts': report['counts'],
         **{k: report[k] for k in ('ranked_symbols', 'selected_symbols', 'new_nomination_symbols', 'continuing_ranked_symbols')},

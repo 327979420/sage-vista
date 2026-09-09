@@ -4,6 +4,16 @@ WORKFLOW=pathlib.Path(__file__).parents[1]/".github/workflows/daily-eod.yml"
 ROOT=WORKFLOW.parents[2]
 
 class DailyEodWorkflowTests(unittest.TestCase):
+ def test_scoring_changes_validate_without_triggering_market_or_publication(self):
+  text=WORKFLOW.read_text()
+  self.assertIn('pull_request:',text)
+  self.assertIn('"services/**"',text)
+  self.assertIn("if: github.event_name == 'push' || github.event_name == 'pull_request'",text)
+  checks=text.split('  check_changes:',1)[1].split('  update:',1)[0]
+  self.assertIn('unittest discover',checks)
+  self.assertNotIn('secrets.',checks)
+  self.assertNotIn('deploy production',checks.lower())
+
  def test_retry_window_uses_independent_crons(self):
   text=WORKFLOW.read_text();crons=re.findall(r'- cron: "([^"]+)"',text)
   self.assertEqual(crons,["47 23 * * 1-5","17 0 * * 2-6","47 0 * * 2-6","17 1 * * 2-6","47 1 * * 2-6","17 2 * * 2-6","17 3 * * 2-6"])

@@ -8,7 +8,7 @@ class PublicProjectionTests(unittest.TestCase):
         score={'total_score':42.125, 'coverage':1, 'high_score_eligible':False,
                'timeframes':{tf:{'normalized':v,'groups':[]} for tf,v in
                               [('daily',.1),('weekly_completed',.7),('monthly_completed',.2)]}}
-        report={'result_role':'legacy_comparison','as_of':'2026-09-04','policy_version':'candidate',
+        report={'result_role':'legacy_comparison','as_of':'2026-09-04','policy_version':'candidate','policy_fingerprint':'sha256:'+'1'*64,
                 'code_commit':'fixed', 'input_coverage':{},'counts':{},'ranked_symbols':['AAA'],
                 'selected_symbols':['AAA'],'new_nomination_symbols':[], 'continuing_ranked_symbols':['AAA'],
                 'reviews':[{'symbol':'AAA','rank':1,'score':score,'permission':{},'reason_codes':[],
@@ -19,6 +19,7 @@ class PublicProjectionTests(unittest.TestCase):
         self.assertEqual(report,before)
         self.assertEqual(public['reviews'][0]['total'],42.125)
         self.assertEqual(public['ranked_symbols'],['AAA'])
+        self.assertEqual(public['policy_fingerprint'],report['policy_fingerprint'])
         self.assertNotIn('never publish',str(public))
         report['reviews'][0]['score']['total_score']=99
         with self.assertRaisesRegex(ValueError,'fingerprint'):

@@ -1,6 +1,11 @@
 name: Sage Vista EOD Update
 
 on:
+  push:
+    branches: [main]
+    paths: ["services/**", "tests/**", "research/experiment*.json*", ".github/workflows/daily-eod.yml", ".github/workflows/eod-freshness-monitor.yml"]
+  pull_request:
+    paths: ["services/**", "tests/**", "research/experiment*.json*", ".github/workflows/daily-eod.yml", ".github/workflows/eod-freshness-monitor.yml"]
   schedule:
     # Independent UTC retries. Together they cover US EDT/EST and Melbourne
     # AEST/AEDT without assuming either timezone has a fixed offset.
@@ -45,6 +50,23 @@ env:
   CLOUDFLARE_WORKER_NAME: sage-vista-parallel
 
 jobs:
+  check_changes:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with: { python-version: "3.13" }
+      - uses: actions/setup-node@v7
+        with: { node-version: "22.13.0" }
+      - name: Validate scoring and daily contracts before the next scheduled run
+        run: |
+          python3 -m unittest discover -s tests -p 'test_*.py'
+          node --test tests/eod-scheduler-worker.test.mjs
+
   update:
     if: github.event_name == 'schedule' || inputs.mode == 'update' || inputs.mode == 'deploy'
     runs-on: ubuntu-latest
