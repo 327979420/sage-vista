@@ -36,7 +36,11 @@ def project_report(report):
             oldest = min(active,key=lambda r:r['trigger_date']) if active else None
             item['watch_since'] = oldest['trigger_date'] if oldest else None
             item['watch_return'] = oldest['observation_return'] if oldest else None
-        item['entry_paths'] = (row.get('entry_gate') or {}).get('paths', [])
+        paths = (row.get('entry_gate') or {}).get('paths', [])
+        if paths:
+            item['entry_paths'] = [{k:p.get(k) for k in ('path','timeframe','confirmed_through','cross_date')} for p in paths]
+        # Non-ranked rows retain reasons and scores, without repeating period labels.
+        if not row.get('rank'): item.pop('periods', None)
         item.update(origin_date=(row.get('origin') or {}).get('date'),
                     reason_codes=row['reason_codes'],
                     total=score['total_score'] if score else None,

@@ -108,6 +108,9 @@ def refresh(*, as_of, code_commit, public_path, state_path, archive_dir, work_di
                 previous_date=previous['as_of'], as_of=as_of, reference_sessions=sessions, fetch_bulk=bulk)
             report = runner(source, as_of=as_of, history={'days':[]}, code_commit=code_commit,
                             input_report=input_report, previous=previous, **({"policy_revision":True} if policy_revision and previous["as_of"] == as_of else {}))
+            # Preserve completed derived work even if display validation fails.
+            replace_bytes(work_dir/'daily-report.json.gz', gzip.compress(encoded(report),mtime=0))
+            replace_bytes(work_dir/'input-report.json', encoded(input_report))
             if policy_revision:
                 old_suffix = previous['snapshot_fingerprint'].split(':')[-1][:16]
                 for name, content in ((f"{previous['as_of']}-{old_suffix}-before-policy.json.gz", gzip.compress(original_public, mtime=0)),
@@ -130,8 +133,6 @@ def refresh(*, as_of, code_commit, public_path, state_path, archive_dir, work_di
             archive_bytes = gzip.compress(public_bytes, mtime=0)
             if archive.exists() and archive.read_bytes()!=archive_bytes: raise ValueError('dated_view_conflict')
             # Derived audit only: never put private raw histories in an artifact.
-            replace_bytes(work_dir/'daily-report.json.gz', gzip.compress(encoded(report),mtime=0))
-            replace_bytes(work_dir/'input-report.json', encoded(input_report))
             # The job's existing Git commit is the durable publication boundary.
             # A process failure before that commit is discarded by the next checkout.
             try:

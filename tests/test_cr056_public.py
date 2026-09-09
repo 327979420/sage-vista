@@ -12,6 +12,9 @@ class PublicProjectionTests(unittest.TestCase):
                 'code_commit':'fixed', 'input_coverage':{},'counts':{},'ranked_symbols':['AAA'],
                 'selected_symbols':['AAA'],'new_nomination_symbols':[], 'continuing_ranked_symbols':['AAA'],
                 'reviews':[{'symbol':'AAA','rank':1,'score':score,'permission':{},'reason_codes':[],
+                            'entry_gate':{'paths':[{'path':'bottom_macd','timeframe':'daily',
+                                'confirmed_through':'2026-09-04','cross_date':'2026-09-04',
+                                'structure_key':'never publish','structure_floor':10}]},
                             'factor_states':[{'raw_private':'never publish'}], 'input_fingerprint':'private',
                             'origin':{'date':'2026-08-28','original_record':{'legacy_private':'never publish'}}}]}
         report['snapshot_fingerprint']=canonical_fingerprint(report)
