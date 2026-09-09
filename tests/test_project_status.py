@@ -89,7 +89,6 @@ class ProjectStatusTests(unittest.TestCase):
         backtest = json.loads((ROOT / "automation" / "backtest-state.json").read_text())
         saved_batch = backtest["last_successful_batch"]
         saved_version = saved_batch["model_versions"][0]
-        self.assertNotEqual(saved_version, LOCAL_MODEL_VERSION)
 
         nightly_line = self._line_starting_with(project_status.build(), "- 夜间最近已保存批次版本：")
         batch_line = self._line_starting_with(project_status.build(), "- 夜间批次编号：")

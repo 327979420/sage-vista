@@ -20,12 +20,7 @@ class ProductConsolidationTests(unittest.TestCase):
 
  def test_fast_production_json_fetches_are_no_store(self):
   consumers={
-   "daily-factor-snapshot.json":"app/zh/watch/resonance/rare-opportunities/page.tsx",
-   "factor-effectiveness.json":"app/zh/watch/resonance/rare-opportunities/page.tsx",
-   "unified-v2-latest.json":"app/zh/watch/resonance/rare-opportunities/page.tsx",
-   "opportunity-ledger-latest.json":"app/zh/watch/resonance/rare-opportunities/page.tsx",
-   "unified-v2-rankings.json":"app/zh/watch/resonance/rare-opportunities/page.tsx",
-   "opportunity-ledger.json":"app/zh/watch/resonance/rare-opportunities/page.tsx",
+   "cr056-ranking.json":"app/zh/watch/resonance/rare-opportunities/cr056-ranking.tsx",
    "favorite-pattern.json":"app/zh/watch/resonance/favorite-pattern/page.tsx",
    "industry-radar.json":"app/zh/watch/industry-radar/page.tsx",
    "market-etf-watch.json":"app/zh/watch/industry-radar/page.tsx",

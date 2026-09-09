@@ -1,17 +1,17 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-09-07",
+  "generated_at": "2026-09-09",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 38,
+  "experiment_count": 39,
   "summary": {
     "completed": 26,
-    "in_progress": 12,
+    "in_progress": 13,
     "candidate": 10,
-    "not_validated_or_unstable": 11
+    "not_validated_or_unstable": 12
   },
   "policy": {
     "append_only": true,
@@ -21,6 +21,79 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "cr056-history-new-nominations-legacy-exit-v1-2026-09-09",
+      "created_at": "2026-09-09",
+      "status": "pre_registered",
+      "change": "Automated historical CR0562.0 first-nomination cohort with existing account and legacy exit; no production change",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md",
+        "strategy": "cr056-2.0-new-nominations-legacy-exit-v1",
+        "policy": "cr056-policy-2.0.0-candidate",
+        "execution": "support-5pct-cap-10pct-2r-v1",
+        "account": "research/backtest/account-scenario.json",
+        "windows": [
+          [
+            "2026-02-02",
+            "2026-02-27"
+          ],
+          [
+            "2025-01-01",
+            "2025-12-31"
+          ]
+        ],
+        "initial_state": "cash only, empty nomination cohort at window start",
+        "entry": "next available reference trading open after first eligible exact daily golden cross; no later-current stocks backfilled",
+        "sources": "existing GitHub EOD cache, exact input hashes in checkpoint/receipt; no supplier requests",
+        "universe": "all valid symbols in restored observed cache; not historical complete universe",
+        "reuse": "causal MACD indexed once per symbol; same production CR056 scorer; identity-checked completed signal days",
+        "outputs": [
+          "account total return",
+          "max drawdown",
+          "closed win rate",
+          "CSV trades with entry scores",
+          "QuantStats curve"
+        ],
+        "comparison": "seen-period descriptive baseline, not holdout strategy validation"
+      },
+      "known_limitations": [
+        "survivorship and partial coverage",
+        "latest historical adjustment revision unproven",
+        "empty initial cohort differs from ongoing daily watch",
+        "legacy 5pct stop not new 2pct/FVG rule",
+        "holding-horizon optimization not run in this experiment"
+      ],
+      "success_criteria": "same-source deterministic ticket parity; historical cutoff; full requested calendar processed; truthful missing coverage; immutable automatic CSV/overview/report; no synthetic success",
+      "human_summary": {
+        "title_zh": "CR056新版提名与旧退出历史验证",
+        "family": "strategy",
+        "family_zh": "多周期策略",
+        "question_zh": "新版月周日评分与金叉提名在旧退出基线下的账户表现如何？",
+        "result_zh": "2025全年后台运行已完成，净收益-14.65%，最大回撤23.16%；观测股票池有覆盖缺口，不能作为完整历史市场验证。",
+        "use_zh": "用于定位入场与退出问题，不自动修改生产规则。",
+        "next_zh": "结合逐笔评分和人工案例解读结果，再预登记单变量实验。",
+        "verdict": "not_validated"
+      },
+      "lifecycle": {
+        "registered_at": "2026-09-09",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-09-09",
+        "time_source": "preregistration_record",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "cr056-history-new-nominations-legacy-exit-v1-2026-09-09",
+            "event": "registered",
+            "event_at": "2026-09-09",
+            "time_source": "preregistration_record",
+            "source_ref": "8532d13",
+            "result": "补齐既有预登记索引；本条不代表策略有效。"
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "cr056-month-week-day-watch-v1.0.0-2026-09-07",
       "created_at": "2026-09-07",
@@ -2961,6 +3034,7 @@
     "choppiness-state-mechanism-v1.0.0-2026-08-29",
     "connors-choppiness-paired-ab-v1.0.0-2026-08-29",
     "core-factor-backtest-v1.0.0-2026-08-27",
+    "cr056-history-new-nominations-legacy-exit-v1-2026-09-09",
     "cr056-month-week-day-watch-v1.0.0-2026-09-07",
     "evidence-calibrated-daily-score-v1.0.0-2026-08-29",
     "exit-score-v0.1.0-2026-08-28",
