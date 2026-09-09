@@ -21,13 +21,14 @@ OUTPUT = ROOT / 'research/backtest/output/reusable-runs'
 RUN_ID = re.compile(r'[1-9][0-9]{0,19}-[1-9][0-9]{0,5}')
 STATUSES = {'completed', 'unavailable', 'failed'}
 POLICY = 'support-5pct-cap-10pct-2r-v1'
-CANDIDATE_POLICY = 'cr056-2.0-new-nominations-legacy-exit-v1'
+HISTORICAL_CANDIDATE_POLICY = 'cr056-2.0-new-nominations-legacy-exit-v1'
+CANDIDATE_POLICY = 'cr056-current-new-nominations-legacy-exit-v1'
 
 
 def validate_request(request):
     if not isinstance(request, dict) or set(request) != {'strategy', 'start', 'end'}:
         raise ValueError('strategy_and_date_range_required')
-    if request['strategy'] not in (POLICY, CANDIDATE_POLICY):
+    if request['strategy'] not in (POLICY, CANDIDATE_POLICY, HISTORICAL_CANDIDATE_POLICY):
         raise ValueError('unsupported_research_strategy')
     for field in ('start', 'end'):
         value = request[field]
@@ -160,10 +161,14 @@ def _lock(root):
 def trade_csv(receipt):
     import csv, io
     out=io.StringIO(newline=''); writer=csv.writer(out)
-    writer.writerow(['symbol','signal_date','entry_date','entry_price','status','exit_date','exit_price','quantity','net_pnl','net_return','signal_score','original_rank','model_version','monthly_score','weekly_score','daily_score','reason'])
+    entry_columns=receipt.get('request',{}).get('strategy')==CANDIDATE_POLICY
+    writer.writerow(['symbol','signal_date','entry_date','entry_price','status','exit_date','exit_price','quantity','net_pnl','net_return','signal_score','original_rank','model_version','monthly_score','weekly_score','daily_score','reason']+(['entry_paths','entry_policy_fingerprint'] if entry_columns else []))
     for t in receipt.get('trades',[]):
         selection=t.get('signal_snapshot',{}).get('selection',{}); ex=t.get('execution',{}); frames=selection.get('timeframe_scores',{})
         values=[t['symbol'],t['signal_date'],t.get('entry_date',''),t.get('entry_price',''),t['status'],ex.get('exit_date','') if t['status']=='closed' else '',ex.get('exit_price','') if t['status']=='closed' else '',t.get('quantity',''),t.get('net_pnl',''),t.get('net_return',''),selection.get('technical_score',''),selection.get('rank',''),selection.get('model_version',''),frames.get('monthly_completed',''),frames.get('weekly_completed',''),frames.get('daily',''),t.get('reason',ex.get('exit_reason',''))]
+        if entry_columns:
+            gate=selection.get('entry_gate') or {}
+            values += [';'.join(p['timeframe']+':'+p['path'] for p in gate.get('paths',[])),selection.get('policy_fingerprint','')]
         writer.writerow(["'"+v if isinstance(v,str) and v.startswith(('=','+','-','@')) else v for v in values])
     return ('\ufeff'+out.getvalue()).encode('utf-8')
 

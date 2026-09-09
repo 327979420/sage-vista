@@ -14,7 +14,7 @@ on:
       strategy:
         description: Research only — existing execution policy
         type: choice
-        options: [support-5pct-cap-10pct-2r-v1, cr056-2.0-new-nominations-legacy-exit-v1]
+        options: [cr056-current-new-nominations-legacy-exit-v1, support-5pct-cap-10pct-2r-v1]
       start:
         description: Required research start YYYY-MM-DD
         type: string
@@ -164,8 +164,8 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: work/research-signals
-          key: cr056-research-signals-v1-${{ inputs.start }}-${{ inputs.end }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: cr056-research-signals-v1-${{ inputs.start }}-${{ inputs.end }}-
+          key: cr056-research-signals-v2-${{ github.sha }}-${{ inputs.start }}-${{ inputs.end }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: cr056-research-signals-v2-${{ github.sha }}-${{ inputs.start }}-${{ inputs.end }}-
       - name: Install isolated hash-locked accounting and reporting engines
         if: steps.approval.outputs.enabled == 'true' && steps.prices.outcome == 'success'
         run: |
@@ -178,11 +178,11 @@ jobs:
           RESEARCH_CACHE_KEY: ${{ steps.prices.outputs.cache-matched-key }}
         run: work/research-env/bin/python -m research.backtest.run_research
       - name: Save completed historical signal checkpoints
-        if: always() && inputs.strategy == 'cr056-2.0-new-nominations-legacy-exit-v1'
+        if: always() && inputs.strategy == 'cr056-current-new-nominations-legacy-exit-v1'
         uses: actions/cache/save@v4
         with:
           path: work/research-signals
-          key: cr056-research-signals-v1-${{ inputs.start }}-${{ inputs.end }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: cr056-research-signals-v2-${{ github.sha }}-${{ inputs.start }}-${{ inputs.end }}-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Retain setup failure when no account receipt could be written
         if: always()
         env:

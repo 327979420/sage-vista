@@ -21,6 +21,7 @@ def project_report(report):
         score = row.get('score')
         permission = row.get('permission', {})
         item = {k: row.get(k) for k in ('symbol', 'rank', 'price', 'status', 'new_nomination', 'periods')}
+        item['entry_paths'] = (row.get('entry_gate') or {}).get('paths', [])
         item.update(origin_date=(row.get('origin') or {}).get('date'),
                     reason_codes=row['reason_codes'],
                     total=score['total_score'] if score else None,
@@ -48,6 +49,7 @@ def project_details(report):
         if not r.get('score'): continue
         score = r['score']
         reviews[r['symbol']] = {
+            'entry_gate': r.get('entry_gate'),
             'groups': [g for tf in WHITE_LIST for g in score['timeframes'][tf]['groups']],
             'factors': [{k: s.get(k) for k in ('factor_id','available','hit','recent_hit','bars_since_hit',
                          'latest_hit_date','runtime_status','score_role','completed_through','period_bar_count',

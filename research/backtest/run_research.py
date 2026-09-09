@@ -4,7 +4,7 @@ import json
 import os
 from pathlib import Path
 from research.backtest.account_runner import approved_scenario, execute
-from research.backtest.run_store import ROOT, CANDIDATE_POLICY, encode, seal, validate_request
+from research.backtest.run_store import ROOT, CANDIDATE_POLICY, HISTORICAL_CANDIDATE_POLICY, encode, seal, validate_request
 
 OUT = ROOT/'work/research-attempt'
 
@@ -17,6 +17,8 @@ def run(*, check_only=False):
     phase="request"
     try:
         validate_request(request)
+        if request['strategy'] == HISTORICAL_CANDIDATE_POLICY:
+            raise ValueError('historical_policy_requires_original_code_use_current_for_new_runs')
         phase="approval"
         config=approved_scenario()
         if check_only:

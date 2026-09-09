@@ -6,10 +6,10 @@
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 39,
+  "experiment_count": 40,
   "summary": {
     "completed": 26,
-    "in_progress": 13,
+    "in_progress": 14,
     "candidate": 10,
     "not_validated_or_unstable": 12
   },
@@ -90,6 +90,80 @@
             "time_source": "preregistration_record",
             "source_ref": "8532d13",
             "result": "补齐既有预登记索引；本条不代表策略有效。"
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "cr056-three-paths-v3-2026-09-09",
+      "created_at": "2026-09-09",
+      "status": "pre_registered",
+      "change": "Shared three-path entry gate for daily candidates and historical replay; unchanged scoring and legacy exits",
+      "specification": {
+        "rule": "docs/rules/04_SCORING.md",
+        "policy": "cr056-policy-3.0.0-candidate",
+        "baseline": "cr056-policy-2.0.1-candidate",
+        "execution": "support-5pct-cap-10pct-2r-v1",
+        "windows": [
+          [
+            "2026-02-02",
+            "2026-02-27"
+          ],
+          [
+            "2025-01-01",
+            "2025-12-31"
+          ]
+        ],
+        "comparison": "same sources, account, costs and exits; changed entry paths only",
+        "discovery_cases": [
+          "CALX",
+          "JKS",
+          "AZO",
+          "AN",
+          "EG",
+          "SWKS"
+        ],
+        "outputs": [
+          "paths and timeframe",
+          "score components",
+          "return",
+          "drawdown",
+          "CSV",
+          "QuantStats"
+        ]
+      },
+      "known_limitations": [
+        "discovery cases are not holdout",
+        "observed cached universe",
+        "unchanged legacy exits"
+      ],
+      "success_criteria": "daily/replay same-date entry and score parity; no future data; immutable versions; no claim of profitability",
+      "human_summary": {
+        "title_zh": "底部反转三路径统一门票",
+        "family": "scoring",
+        "family_zh": "入场规则",
+        "question_zh": "三种同周期底部反转门票能否改善候选质量？",
+        "result_zh": "待验证，无收益结论。",
+        "use_zh": "每日与回测共用候选入口。",
+        "next_zh": "同源一致性验证后配对回测。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-09-09",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-09-09",
+        "time_source": "preregistration_record",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "cr056-three-paths-v3-2026-09-09",
+            "event": "registered",
+            "event_at": "2026-09-09",
+            "time_source": "preregistration_record",
+            "source_ref": "docs/rules/04_SCORING.md",
+            "result": "三路径统一入口预登记；尚无收益结论。"
           }
         ]
       }
@@ -3036,6 +3110,7 @@
     "core-factor-backtest-v1.0.0-2026-08-27",
     "cr056-history-new-nominations-legacy-exit-v1-2026-09-09",
     "cr056-month-week-day-watch-v1.0.0-2026-09-07",
+    "cr056-three-paths-v3-2026-09-09",
     "evidence-calibrated-daily-score-v1.0.0-2026-08-29",
     "exit-score-v0.1.0-2026-08-28",
     "factor-family-return-combination-v1.0.0-2026-08-29",

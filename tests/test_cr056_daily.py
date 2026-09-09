@@ -38,6 +38,7 @@ class DailyCandidateTests(unittest.TestCase):
         stack.enter_context(patch('services.scanner.cr056_runner.collect_direction_facts',return_value=f))
         stack.enter_context(patch('services.scanner.cr056_runner.evaluate_period_factors',side_effect=factor_rows))
         stack.enter_context(patch('services.scanner.cr056_runner.exact_daily_macd_bull_cross',return_value=trigger))
+        stack.enter_context(patch('services.scanner.cr056_runner.assess_entry',return_value={'eligible':trigger,'paths':[],'reason_codes':[] if trigger else ['no_confirmed_reversal_entry']}))
         return stack
 
     def bulk(self, day, directory):

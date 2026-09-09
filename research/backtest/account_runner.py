@@ -10,6 +10,8 @@ import math
 from pathlib import Path
 from research.backtest.run_store import ROOT, POLICY, CANDIDATE_POLICY, trade_csv, encode, seal, sha256, validate_request
 
+from services.contracts.cr056_policy import POLICY_VERSION, POLICY_FINGERPRINT
+
 CONFIG = ROOT / 'research/backtest/account-scenario.json'
 RANKINGS = ROOT / 'public/unified-v2-rankings.json'
 
@@ -26,7 +28,7 @@ def validate_scan_coverage(rankings, events, sessions):
     days = {d['date']: d for d in records}
     if len(days) != len(records):
         raise ValueError('duplicate_scan_date')
-    supported = {'unified-v2-macd-trigger-1.2.0', 'unified-v2-macd-trigger-1.3.0', 'unified-v2-macd-trigger-1.4.0', 'cr056-policy-2.0.0-candidate'}
+    supported = {'unified-v2-macd-trigger-1.2.0', 'unified-v2-macd-trigger-1.3.0', 'unified-v2-macd-trigger-1.4.0', 'cr056-policy-2.0.0-candidate', POLICY_VERSION}
     for session in sessions:
         day = days.get(session)
         if day is None:
@@ -236,9 +238,13 @@ def execute(request, config, cache_dir, ledger_path, *, out, run_id, attempt, co
     scan_bytes = Path(rankings_path).read_bytes()
     scan_doc=json.loads(scan_bytes)
     scan_days = validate_scan_coverage(scan_doc, window_events, sessions)
-    new_model='cr056-policy-2.0.0-candidate'
+    new_model=POLICY_VERSION
     if any((d['model_version']==new_model)!=(request['strategy']==CANDIDATE_POLICY) for d in scan_days):
         raise ValueError('research_request_selection_model_mismatch')
+    if request['strategy']==CANDIDATE_POLICY and (
+            any(d.get('policy_fingerprint') != POLICY_FINGERPRINT for d in scan_days)
+            or any(e['selection'].get('policy_fingerprint') != POLICY_FINGERPRINT for e in window_events)):
+        raise ValueError('research_selection_policy_fingerprint_mismatch')
     events = [e for e in window_events if e['selection'].get('execution_policy_version') == POLICY]
     rows, sources = {}, {}
     for symbol in sorted({e['symbol'] for e in events}):
@@ -251,7 +257,7 @@ def execute(request, config, cache_dir, ledger_path, *, out, run_id, attempt, co
         sources[symbol] = sha256(encode(window))
     equity,daily,trades = account(events,rows,sessions,config)
     attach_signal_audit(trades, events)
-    versions = sorted({e["selection"]["model_version"] for e in events})
+    versions = sorted({d['model_version'] for d in scan_days})
     implementation = {name: sha256((ROOT/name).read_bytes()) for name in ("research/backtest/account_runner.py", "services/scanner/support_risk.py", "research/backtest/quantstats_report.py", "research/backtest/dependencies/vectorbt-requirements.lock", "research/backtest/dependencies/quantstats-requirements.lock")}
     experiment = {"request":request,"account_parameters":scenario_values(config),"selection_versions":versions,"implementation":implementation,"scan_days_sha256":sha256(encode(scan_days)),"signal_snapshots_sha256":sha256(encode([t["signal_snapshot"] for t in trades])),"price_windows_sha256":sources,"reference_sha256":sha256(encode(reference))}
     audit = {"version":"trade-signal-audit-v1", "account_algorithm":"legacy-shared-cash-v1", "selection_versions":versions, "execution_policy":POLICY, "experiment_key":sha256(encode(experiment)), "experiment_identity":experiment}
@@ -267,7 +273,7 @@ def execute(request, config, cache_dir, ledger_path, *, out, run_id, attempt, co
              f"<p>仅旧支撑5%／入场10%上限止损、2R目标、最长40交易日。窗口原信号 {len(window_events)} 条，其中旧政策 {len(events)} 条；其余政策不混入本回测。每窗口从初始现金开始，不带入起始日前持仓。</p>"
              "<p>保守记账约定：原排名新入场先于当日退出，不用当日卖出款资助新买入；不代表真实盘中现金顺序。只做多，无杠杆，无部分成交；未平仓收益按窗口末有效收盘估值。</p></section>")
     if request['strategy']==CANDIDATE_POLICY:
-        intro=intro.replace('窗口原信号', '新版首次合格金叉信号').replace('其余政策不混入本回测。','选股CR0562.0，年度/窗口开始观察池为空；不是完整历史市场，使用现有缓存观测股票，存在幸存者偏差。')
+        intro=intro.replace('窗口原信号', '新版首次合格门票信号').replace('其余政策不混入本回测。',f'选股{POLICY_VERSION}，年度/窗口开始观察池为空；不是完整历史市场，使用现有缓存观测股票，存在幸存者偏差。')
     report_path.write_text(report_path.read_text().replace('<body>','<body>'+intro,1))
     receipt = seal({'schema_version':'legacy-research-run-v1','id':f'{run_id}-{attempt}','result_role':'legacy/research',
                     'status':'completed','request':request,'summary':summary,'code_commit':code_commit,

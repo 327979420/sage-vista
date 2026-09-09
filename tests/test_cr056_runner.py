@@ -88,6 +88,7 @@ class RunnerTests(unittest.TestCase):
         f['weekly']['completed_through'] = '2026-09-04'
         objects = states()
         with patch('services.scanner.cr056_runner.exact_daily_macd_bull_cross', side_effect=[False, True, False]), \
+             patch('services.scanner.cr056_runner.assess_entry', side_effect=[{'eligible':v,'paths':[],'reason_codes':[]} for v in (False,True,False)]), \
              patch('services.scanner.cr056_runner.collect_direction_facts', return_value=f), \
              patch('services.scanner.cr056_runner.evaluate_period_factors', return_value=objects):
             result = self.run_report()

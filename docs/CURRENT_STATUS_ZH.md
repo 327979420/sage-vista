@@ -31,8 +31,9 @@
 
 ## 实验
 
-- 总数 39；已完成 26；待运行 / 进行中 13。
+- 总数 40；已完成 26；待运行 / 进行中 14。
 - `cr056-history-new-nominations-legacy-exit-v1-2026-09-09`：CR056新版提名与旧退出历史验证。
+- `cr056-three-paths-v3-2026-09-09`：底部反转三路径统一门票。
 - `cr056-month-week-day-watch-v1.0.0-2026-09-07`：月周日加权评分与持续观察候选。
 - `multi-factor-count-resonance-v1.0.0-2026-08-30`：全因子计数与周期共振排行V1。
 - `favorite-pattern-simple-v3.0.0-2026-08-30`：我最喜欢形态四项简化V3。

@@ -3,16 +3,17 @@ from datetime import date, timedelta
 from pathlib import Path
 from unittest.mock import patch
 from research.backtest.cr056_history import ticket_dates, prepare
-from services.gates.baseline import exact_daily_macd_bull_cross
+from services.factors.cr056 import collect_entry_facts
+from services.selectors.cr056 import assess_entry
 from research.backtest.run_store import POLICY, CANDIDATE_POLICY, trade_csv, sha256, seal, save
 
 class HistoryTests(unittest.TestCase):
  def rows(self):
   days=[date(2020,1,1)+timedelta(days=i) for i in range(900)]
   return [{'date':d.isoformat(),'open':100+8*math.sin(i/5),'high':111.,'low':89.,'close':100+8*math.sin(i/5),'adjusted_close':100+8*math.sin(i/5),'volume':1000000} for i,d in enumerate(days) if d.weekday()<5]
- def test_ticket_preindex_matches_same_baseline_on_every_historical_day(self):
+ def test_ticket_preindex_matches_shared_entry_on_every_historical_day(self):
   rows=self.rows();actual=set(ticket_dates(rows,rows[420]['date'],rows[-1]['date']))
-  expected={r['date'] for i,r in enumerate(rows) if i>=420 and exact_daily_macd_bull_cross(rows[:i+1])}
+  expected={r['date'] for i,r in enumerate(rows) if i>=420 and assess_entry(collect_entry_facts(rows[:i+1],as_of=r['date'],complete_session=True))['eligible']}
   self.assertEqual(actual,expected)
  def test_adapter_truncates_future_and_reuses_completed_days_without_current_watch(self):
   rows=self.rows();start,end=rows[430]['date'],rows[480]['date'];calls=[]
@@ -28,15 +29,19 @@ class HistoryTests(unittest.TestCase):
    root=Path(d);cache=root/'cache';cache.mkdir()
    for symbol in ('AAA','SPY'):(cache/f'{symbol}.json').write_text(json.dumps(rows))
    request={'strategy':CANDIDATE_POLICY,'start':start,'end':end}
-   with patch('research.backtest.cr056_history.collect_direction_facts',return_value={}),patch('research.backtest.cr056_history.assess_permission',return_value={'eligible':True}),patch('research.backtest.cr056_history.run_snapshot',side_effect=snapshot),patch('research.backtest.cr056_history.signal_support_plan',return_value={'level':90}):
+   with patch('research.backtest.cr056_history.ticket_dates',return_value=[start]),patch('research.backtest.cr056_history.collect_direction_facts',return_value={}),patch('research.backtest.cr056_history.assess_permission',return_value={'eligible':True}),patch('research.backtest.cr056_history.run_snapshot',side_effect=snapshot),patch('research.backtest.cr056_history.signal_support_plan',return_value={'level':90}):
     ledger,rankings=prepare(request,cache,root/'state','a'*40)
     self.assertEqual(len(calls),51)
     events=json.loads(ledger.read_bytes())['events']
     self.assertEqual(len(events),2)
     self.assertTrue(all(e['selection']['execution_policy_version']==POLICY for e in events))
     before=ledger.read_bytes();calls.clear()
-    prepare(request,cache,root/'state','b'*40)
+    with patch('research.backtest.cr056_history.ticket_dates',side_effect=AssertionError('cached gate index must be reused')):
+     prepare(request,cache,root/'state','b'*40)
     self.assertEqual(calls,[]);self.assertEqual(ledger.read_bytes(),before)
+    with patch('research.backtest.cr056_history.POLICY_FINGERPRINT','changed-policy'):
+     with self.assertRaisesRegex(ValueError,'checkpoint_policy_or_sources_changed'):
+      prepare(request,cache,root/'state','b'*40)
 
 class CsvTests(unittest.TestCase):
  def test_csv_escapes_formula_and_retains_unavailable_instead_of_zero(self):

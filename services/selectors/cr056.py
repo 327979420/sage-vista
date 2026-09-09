@@ -88,3 +88,21 @@ def assess_permission(facts):
             'reason_codes': [x['reason'] for x in checks.values() if x['status'] != 'allowed'],
             'policy_version': POLICY_VERSION, 'policy_fingerprint': POLICY_FINGERPRINT,
             'facts_input_fingerprint': facts['input_fingerprint']}
+
+
+def assess_entry(facts):
+    """Single alternative-ticket decision. No scores or cross-period mixing."""
+    paths = []
+    for timeframe, frame in facts['frames'].items():
+        if not frame['available']: continue
+        for name, hit in (('bottom_macd', len(frame['bottoms']) >= 2 and frame['macd_valid']),
+                          ('three_push_breakout', len(frame['bottoms']) >= 2 and frame['breakout']),
+                          ('support_reversal', frame['support_reversal'])):
+            if hit:
+                paths.append({'path':name,'timeframe':timeframe,
+                              'confirmed_through':frame['completed_through'],
+                              'cross_date':frame.get('cross_date') if name=='bottom_macd' else None})
+    return {'as_of':facts['as_of'],'eligible':bool(paths),'paths':paths,
+            'reason_codes':[] if paths else ['no_confirmed_reversal_entry'],
+            'policy_version':POLICY_VERSION,'policy_fingerprint':POLICY_FINGERPRINT,
+            'evidence':facts['frames']}

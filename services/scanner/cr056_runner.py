@@ -13,8 +13,8 @@ from services.contracts.cr056_policy import POLICY_VERSION, POLICY_FINGERPRINT
 from services.contracts.market_data import canonical_fingerprint
 from services.market_data.storage import require_shadow_root
 from services.gates.baseline import exact_daily_macd_bull_cross, MIN_HISTORY_SESSIONS, MIN_CLOSE, MIN_DOLLAR_VOLUME
-from services.factors.cr056 import collect_direction_facts
-from services.selectors.cr056 import assess_permission
+from services.factors.cr056 import collect_direction_facts, collect_entry_facts
+from services.selectors.cr056 import assess_permission, assess_entry
 from services.ranking.cr056 import score_candidate
 from services.ledger.cr056 import review_watch
 from services.scanner.factor_detectors import evaluate_period_factors
@@ -78,8 +78,10 @@ def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previo
                 missing = 'daily_tradability_not_met'
             trigger = exact_daily_macd_bull_cross(rows)
             item['exact_daily_cross_today'] = trigger
-            if missing is None and symbol not in origins and not trigger:
-                item['status'] = 'not_nominated'; item['reason_codes'] = ['no_initial_daily_cross']
+            entry = assess_entry(collect_entry_facts(rows, as_of=as_of, complete_session=True))
+            item['entry_gate'] = entry
+            if missing is None and symbol not in origins and not entry['eligible']:
+                item['status'] = 'not_nominated'; item['reason_codes'] = entry['reason_codes']
                 counts['not_nominated'] += 1; reviews.append(item); continue
             if missing is not None: raise ValueError(missing)
             facts = collect_direction_facts(rows, as_of=as_of, complete_session=True)
@@ -93,7 +95,7 @@ def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previo
             if symbol not in origins and permission['eligible'] and score['total_score'] is not None:
                 origins[symbol] = {'date': as_of, 'kind': 'candidate_initial_nomination',
                     'model_version': POLICY_VERSION, 'input_fingerprint': input_fp,
-                    'original_score': score, 'record_fingerprint': score['score_fingerprint']}
+                    'original_score': score, 'entry_gate': entry, 'record_fingerprint': score['score_fingerprint']}
                 item['new_nomination'] = True
             item['origin'] = origins.get(symbol)
             if item['origin'] and item['origin'].get('kind') == 'candidate_initial_nomination' and item['origin']['date'] == as_of and score['total_score'] is not None:
