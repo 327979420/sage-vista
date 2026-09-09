@@ -82,6 +82,17 @@ CAPS = MappingProxyType({tf: _frame_cap(tf) for tf in FRAMES})
 # Include shared geometry settings so a detector parameter change invalidates caches.
 from services.scanner.detectors import load_config
 ENTRY_SETTINGS = load_config()
+# Parameter AND implementation identity: even a same-version bug fix must
+# invalidate daily snapshots rather than silently reuse yesterday's rules.
+from hashlib import sha256
+from pathlib import Path
+_RULE_ROOT = Path(__file__).resolve().parents[2]
+RULE_IMPLEMENTATION = {name: sha256((_RULE_ROOT/name).read_bytes()).hexdigest() for name in (
+    'services/factors/cr056.py', 'services/selectors/cr056.py', 'services/ranking/cr056.py',
+    'services/scanner/factor_detectors.py', 'services/scanner/detectors.py',
+    'services/scanner/technical.py', 'services/scanner/macd_factor_backtest.py',
+    'services/gates/baseline.py', 'services/gates/local_structure.py',
+    'services/gates/long_term_state.py')}
 POLICY_VERSION = 'cr056-policy-3.0.0-candidate'
-POLICY_FINGERPRINT = canonical_fingerprint({'version': POLICY_VERSION, 'entry_settings': ENTRY_SETTINGS, 'settings': dict(SETTINGS),
+POLICY_FINGERPRINT = canonical_fingerprint({'version': POLICY_VERSION, 'entry_settings': ENTRY_SETTINGS, 'implementation': RULE_IMPLEMENTATION, 'settings': dict(SETTINGS),
     'white_list': {k: list(v) for k, v in WHITE_LIST.items()}, 'weights': dict(WEIGHTS), 'caps': dict(CAPS), 'mapped_factors': dict(MAPPED_FACTORS)})
