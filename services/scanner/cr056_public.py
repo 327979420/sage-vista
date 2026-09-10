@@ -71,8 +71,16 @@ def project_details(report):
     for r in report['reviews']:
         if not r.get('score'): continue
         score = r['score']
+        tracking = r.get('entry_tracking') or (r.get('watch') or {}).get('entry_tracking') or {}
+        latest_structures = {}
+        for episode in sorted(tracking.get('records', []), key=lambda e: e['trigger_date']):
+            latest_structures[(episode['path'], episode['timeframe'])] = episode
         reviews[r['symbol']] = {
             'entry_gate': r.get('entry_gate'),
+            'checks': (r.get('permission') or {}).get('checks', {}),
+            'structures': [{k: episode.get(k) for k in ('path', 'timeframe', 'trigger_date',
+                           'structure_floor', 'state', 'invalidated_at')}
+                           for episode in latest_structures.values()],
             'groups': [g for tf in WHITE_LIST for g in score['timeframes'][tf]['groups']],
             'factors': [{k: s.get(k) for k in ('factor_id','available','hit','recent_hit','bars_since_hit',
                          'latest_hit_date','runtime_status','score_role','completed_through','period_bar_count',

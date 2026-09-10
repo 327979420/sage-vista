@@ -1,7 +1,7 @@
 import copy
 import unittest
 from services.contracts.market_data import canonical_fingerprint
-from services.scanner.cr056_public import project_report
+from services.scanner.cr056_public import project_report, project_details
 
 class PublicProjectionTests(unittest.TestCase):
     def test_projection_copies_scores_and_order_without_private_facts(self):
@@ -17,8 +17,16 @@ class PublicProjectionTests(unittest.TestCase):
                                 'structure_key':'never publish','structure_floor':10}]},
                             'factor_states':[{'raw_private':'never publish'}], 'input_fingerprint':'private',
                             'origin':{'date':'2026-08-28','original_record':{'legacy_private':'never publish'}}}]}
+        report['reviews'][0]['permission']={'checks':{'structure':{'status':'blocked','reason':'structure_broken'}}}
+        report['reviews'][0]['entry_tracking']={'records':[{'path':'bottom_macd','timeframe':'daily',
+            'trigger_date':'2026-09-04','structure_floor':10,'state':'active','invalidated_at':None}],
+            'history_start':'2026-09-04','as_of':'2026-09-04'}
         report['snapshot_fingerprint']=canonical_fingerprint(report)
         before=copy.deepcopy(report); public=project_report(report)
+        self.assertEqual(report,before)
+        details=project_details(report)['reviews']['AAA']
+        self.assertEqual(details['checks']['structure']['status'],'blocked')
+        self.assertEqual(details['structures'][0]['structure_floor'],10)
         self.assertEqual(report,before)
         self.assertEqual(public['reviews'][0]['total'],42.125)
         self.assertEqual(public['ranked_symbols'],['AAA'])
