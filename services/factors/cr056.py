@@ -63,6 +63,96 @@ def collect_direction_facts(rows, *, as_of, complete_session=False):
     return result
 
 
+def negative_histogram_confirmation(line, signal, dates):
+    """Evidence only: two strict improvements across three completed negatives."""
+    if not (len(line) == len(signal) == len(dates)):
+        raise ValueError('histogram_evidence_length_mismatch')
+    tail = [a-b for a, b in zip(line[-3:], signal[-3:])]
+    from math import isfinite
+    available = len(tail) == 3 and all(isfinite(v) for v in tail)
+    confirmed = available and tail[0] < tail[1] < tail[2] < 0
+    return {'available': available, 'confirmed': bool(confirmed),
+            'histogram': tail if available else [], 'dates': list(dates[-3:]) if available else [],
+            'confirmation_date': dates[-1] if confirmed else None,
+            'meaning': 'momentum_evidence_not_standalone_entry'}
+
+
+def _bottom_pair_valid(bars, first, second, volatility, limits, end):
+    gap = second['index']-first['index']
+    tolerance = max(first['price']*limits['max_low_spread_pct'],
+                    volatility[second['index']]*limits['max_low_spread_atr'])
+    peak = max((b['high'] for b in bars[first['index']+1:second['index']]), default=0)
+    return (limits['min_separation_bars'] <= gap <= limits['max_separation_bars']
+            and abs(second['price']-first['price']) <= tolerance
+            and peak-max(first['price'], second['price']) >= limits['min_intervening_bounce_atr']*volatility[second['index']]
+            and min(b['close'] for b in bars[second['index']:end+1]) >= min(first['price'], second['price']))
+
+
+def bearish_full_body_evidence(rows):
+    """Three-bar risk check using prior-bar ATR, never the candle's own ATR."""
+    from services.scanner.technical import atr
+    if len(rows) < 17:
+        return {'available': False, 'blocked': False, 'candles': []}
+    volatility = atr(rows)
+    candles = []
+    for i in range(len(rows)-3, len(rows)):
+        r = rows[i]; span = r['high']-r['low']; body = r['open']-r['close']
+        available = span > 0 and volatility[i-1] > 0
+        upper = r['high']-max(r['open'],r['close'])
+        lower = min(r['open'],r['close'])-r['low']
+        candles.append({'date': r['date'], 'available': available,
+            'body': body, 'prior_atr': volatility[i-1],
+            'upper_wick_fraction': upper/span if span > 0 else None,
+            'lower_wick_fraction': lower/span if span > 0 else None,
+            'blocked': bool(available and body > 0
+                and body >= S['pullback_bear_body_atr']*volatility[i-1]
+                and upper <= span*S['pullback_bear_wick_fraction']+1e-12
+                and lower <= span*S['pullback_bear_wick_fraction']+1e-12)})
+    return {'available': all(c['available'] for c in candles),
+            'blocked': any(c['blocked'] for c in candles), 'candles': candles}
+
+
+def breakout_pullback_momentum(rows, confirmation, cfg):
+    """Daily retest evidence, using geometry known at the original breakout."""
+    from services.scanner.technical import atr
+    from services.scanner.detectors import pivots
+    from services.scanner.macd_factor_backtest import three_push_breakout_setup
+    risk = bearish_full_body_evidence(rows)
+    result = {'confirmed': False, 'momentum': confirmation, 'bearish_candle': risk,
+              'reason': 'negative_histogram_not_confirmed'}
+    if not confirmation['confirmed']: return result
+    if not risk['available']:
+        return {**result, 'reason': 'bearish_candle_evidence_unavailable'}
+    if risk['blocked']: return {**result, 'reason': 'large_full_body_bearish_candle'}
+    volatility = atr(rows); averages = ema([r['close'] for r in rows],20)
+    end = len(rows)-1; limits = cfg['triple_bottom']; current = rows[-1]
+    for i in range(end-cfg['retest']['min_bars_after_bos'],
+                   max(0,end-cfg['retest']['max_bars_after_bos']-1),-1):
+        # Prefix slicing prevents the breakout detector from observing the retest.
+        past = rows[:i+1]; setup = three_push_breakout_setup(past,i)
+        if not setup or rows[i-1]['close'] > setup['level']-setup['slope']: continue
+        start = max(0,i-limits['lookback_bars']); window = rows[start:i+1]
+        points = pivots(window,len(window)-1,cfg)['lows']
+        if len(points)<2 or not _bottom_pair_valid(window,*points[-2:],atr(window),limits,len(window)-1): continue
+        floor = min(p['price'] for p in points[-2:])
+        if any(r['close'] < floor for r in rows[i+1:]): continue
+        level = setup['level']+setup['slope']*(end-i)
+        if current['close'] < level: continue
+        tolerance = cfg['retest']['proximity_atr']*volatility[-1]
+        supports = [{'kind':kind,'price':price} for kind,price in
+                    (('trendline',level),('ema20',averages[-1]))
+                    if current['low'] <= price+tolerance and current['high'] >= price-tolerance
+                    and current['close'] >= price]
+        if not supports: continue
+        return {**result,'confirmed':True,'reason':'breakout_pullback_negative_histogram',
+                'breakout_date':rows[i]['date'],'breakout_level':setup['level'],
+                'trendline_level':level,'supports':supports,
+                'structure_floor':floor,'confirmation_date':current['date'],
+                'bottoms':[{'date':window[p['index']]['date'],'price':p['price'],
+                            'confirmed_at':window[p['confirmed_index']]['date']} for p in points[-2:]]}
+    return {**result,'reason':'no_confirmed_breakout_support_retest'}
+
+
 def collect_entry_facts(rows, *, as_of, complete_session=False):
     """Completed native-period structure facts, also used by the replay prefilter."""
     from services.contracts.cr056_policy import ENTRY_SETTINGS
@@ -88,17 +178,16 @@ def collect_entry_facts(rows, *, as_of, complete_session=False):
         if not frame['available']: continue
         a = atr(bars); points = pivots(bars, end, cfg)['lows']
         def pair_valid(first, second):
-            gap = second['index']-first['index']
-            tolerance = max(first['price']*limits['max_low_spread_pct'], a[second['index']]*limits['max_low_spread_atr'])
-            peak = max((b['high'] for b in bars[first['index']+1:second['index']]), default=0)
-            return (limits['min_separation_bars'] <= gap <= limits['max_separation_bars']
-                    and abs(second['price']-first['price']) <= tolerance
-                    and peak-max(first['price'], second['price']) >= limits['min_intervening_bounce_atr']*a[second['index']]
-                    and min(b['close'] for b in bars[second['index']:]) >= min(first['price'], second['price']))
+            return _bottom_pair_valid(bars,first,second,a,limits,end)
         pair = points[-2:] if len(points) >= 2 and pair_valid(*points[-2:]) else []
         frame['bottoms'] = [{'date': bars[p['index']]['date'], 'price': p['price'],
                              'confirmed_at': bars[p['confirmed_index']]['date']} for p in pair]
         line, signal = macd([b['close'] for b in all_bars])
+        frame['negative_histogram_confirmation'] = negative_histogram_confirmation(
+            line, signal, [b['date'] for b in all_bars])
+        if tf == 'daily':
+            frame['pullback_momentum'] = breakout_pullback_momentum(
+                all_bars,frame['negative_histogram_confirmation'],cfg)
         crosses = [i for i in range(1,len(all_bars)) if macd_bull_cross_at(line,signal,i)]
         last = crosses[-1] if crosses else None
         frame['cross_date'] = all_bars[last]['date'] if last is not None else None

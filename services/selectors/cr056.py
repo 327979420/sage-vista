@@ -95,24 +95,38 @@ def assess_entry(facts):
     paths = []
     for timeframe, frame in facts['frames'].items():
         if not frame['available']: continue
+        momentum = frame.get('pullback_momentum') or {}
+        momentum_hit = timeframe == 'daily' and momentum.get('confirmed', False)
         for name, hit in (('bottom_macd', len(frame['bottoms']) >= 2 and frame['macd_valid']),
                           ('three_push_breakout', len(frame['bottoms']) >= 2 and frame['breakout']),
-                          ('support_reversal', frame['support_reversal'])):
+                          ('support_reversal', frame['support_reversal'] or momentum_hit)):
             if hit:
                 from services.contracts.market_data import canonical_fingerprint
                 anchors = frame.get('bottoms', []) if name != 'support_reversal' else [frame.get('support', {})]
                 prices = [a['price'] for a in anchors if 'price' in a]
                 if name == 'support_reversal' and frame.get('current_low') is not None:
                     prices.append(frame['current_low'])
+                kinds = []
+                if name == 'support_reversal':
+                    if frame['support_reversal']: kinds.append('candle_reversal')
+                    if momentum_hit: kinds.append('negative_histogram_pullback')
+                    if momentum_hit and not frame['support_reversal']:
+                        anchors = momentum['bottoms']
+                        prices = [momentum['structure_floor']]
                 identity = {'path':name,'timeframe':timeframe,
                             'anchors':[a.get('date') for a in anchors],
                             'cross':frame.get('cross_date') if name=='bottom_macd' else None,
                             'confirmation':frame['completed_through'] if name!='bottom_macd' else None}
+                if kinds == ['negative_histogram_pullback']:
+                    identity['confirmation'] = momentum['breakout_date']
+                    identity['confirmation_kind'] = kinds[0]
+                    identity['anchors'] = [a['date'] for a in anchors]
                 paths.append({'path':name,'timeframe':timeframe,
                               'confirmed_through':frame['completed_through'],
                               'cross_date':frame.get('cross_date') if name=='bottom_macd' else None,
                               'structure_key':canonical_fingerprint(identity),
-                              'structure_floor':min(prices) if prices else None})
+                              'structure_floor':min(prices) if prices else None,
+                              'confirmation_kinds':kinds})
     return {'as_of':facts['as_of'],'eligible':bool(paths),'paths':paths,
             'reason_codes':[] if paths else ['no_confirmed_reversal_entry'],
             'policy_version':POLICY_VERSION,'policy_fingerprint':POLICY_FINGERPRINT,

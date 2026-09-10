@@ -53,6 +53,7 @@ MAPPED_FACTORS = MappingProxyType(MAPPED_FACTORS)
 WHITE_LIST = MappingProxyType({tf: tuple(fid for fid, m in MAPPED_FACTORS.items()
                                        if m['timeframe'] == tf and m['role'] == 'score') for tf in FRAMES})
 SETTINGS = MappingProxyType({
+    'pullback_bear_body_atr': 1.0, 'pullback_bear_wick_fraction': 0.10,
     'minimum_daily_rows': 420, 'minimum_completed_months': 61,
     'period_double_engulfing_window': 12,
     'monthly_negative_improvements': 1, 'weekly_negative_improvements': 2,
@@ -93,6 +94,6 @@ RULE_IMPLEMENTATION = {name: sha256((_RULE_ROOT/name).read_bytes()).hexdigest() 
     'services/scanner/technical.py', 'services/scanner/macd_factor_backtest.py',
     'services/gates/baseline.py', 'services/gates/local_structure.py',
     'services/gates/long_term_state.py', 'services/ledger/cr056.py')}
-POLICY_VERSION = 'cr056-policy-3.1.0-candidate'
+POLICY_VERSION = 'cr056-policy-3.2.0-candidate'
 POLICY_FINGERPRINT = canonical_fingerprint({'version': POLICY_VERSION, 'entry_settings': ENTRY_SETTINGS, 'implementation': RULE_IMPLEMENTATION, 'settings': dict(SETTINGS),
     'white_list': {k: list(v) for k, v in WHITE_LIST.items()}, 'weights': dict(WEIGHTS), 'caps': dict(CAPS), 'mapped_factors': dict(MAPPED_FACTORS)})

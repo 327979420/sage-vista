@@ -131,3 +131,112 @@ class EntryTests(unittest.TestCase):
                 self.assertEqual(blocked['ranked_symbols'],[])
                 rejected,_=prepare({'strategy':CANDIDATE_POLICY,'start':day,'end':end},cache,Path(temp)/'blocked','a'*40)
                 self.assertEqual(json.loads(rejected.read_bytes())['events'],[])
+
+
+class NegativeHistogramEvidenceTests(unittest.TestCase):
+    def test_strict_completed_negative_improvements(self):
+        from services.factors.cr056 import negative_histogram_confirmation as check
+        dates=['2026-09-07','2026-09-08','2026-09-09']
+        for values, expected in [([-3,-2,-1],True),([-3,-2,-2],False),
+                                 ([-3,-2,0],False),([-3,-1,-2],False),
+                                 ([3,2,1],False),([-3,1,2],False)]:
+            with self.subTest(values=values):
+                r=check(values,[0]*3,dates)
+                self.assertEqual(r['confirmed'],expected)
+                self.assertEqual(r['confirmation_date'],dates[-1] if expected else None)
+                self.assertEqual(r['dates'],dates)
+
+    def test_missing_or_nonfinite_is_unavailable(self):
+        from services.factors.cr056 import negative_histogram_confirmation as check
+        self.assertFalse(check([-2,-1],[0,0],['a','b'])['available'])
+        self.assertFalse(check([-3,float('nan'),-1],[0,0,0],['a','b','c'])['available'])
+        with self.assertRaises(ValueError):check([-1],[0],[])
+
+    def test_evidence_alone_cannot_admit_stock(self):
+        frame={'available':True,'completed_through':'2026-09-09','bottoms':[],
+               'macd_valid':False,'breakout':False,'support_reversal':False,
+               'negative_histogram_confirmation':{'confirmed':True}}
+        self.assertFalse(assess_entry({'as_of':'2026-09-09','frames':{'daily':frame}})['eligible'])
+
+class PullbackMomentumTests(unittest.TestCase):
+    def rows(self):
+        anchors={0:135,5:125,10:130,15:95,20:120,25:96,30:110,35:100,38:100,39:99,40:106}
+        rows=[]
+        for i in range(41):
+            before=max(x for x in anchors if x<=i);after=min(x for x in anchors if x>=i)
+            c=anchors[before] if before==after else anchors[before]+(anchors[after]-anchors[before])*(i-before)/(after-before)
+            rows.append({'date':str(date(2026,1,1)+timedelta(days=i)),'open':c-.2,'high':c+1,'low':c-1,'close':c,'volume':1000000})
+        rows[-1].update(open=100,low=99,high=107)
+        for c in [105.,105.]:
+            rows.append({'date':str(date(2026,1,1)+timedelta(days=len(rows))),
+                         'open':c+.2,'high':c+1,'low':c-2,'close':c,'volume':1000000})
+        return rows
+
+    def test_real_breakout_ema_retest_without_cross_or_bullish_candle(self):
+        from services.factors.cr056 import breakout_pullback_momentum
+        from services.contracts.cr056_policy import ENTRY_SETTINGS
+        rows=self.rows()
+        r=breakout_pullback_momentum(rows,{'confirmed':True},ENTRY_SETTINGS)
+        self.assertTrue(r['confirmed'],r)
+        self.assertIn('ema20',[s['kind'] for s in r['supports']])
+        self.assertEqual(r['breakout_date'],rows[40]['date'])
+        self.assertEqual(len(r['bottoms']),2)
+        frame={'available':True,'completed_through':rows[-1]['date'],'bottoms':[],
+               'macd_valid':False,'breakout':False,'support_reversal':False,'pullback_momentum':r}
+        p=assess_entry({'as_of':rows[-1]['date'],'frames':{'daily':frame}})['paths']
+        self.assertEqual(len(p),1)
+        self.assertEqual(p[0]['confirmation_kinds'],['negative_histogram_pullback'])
+        frame['support_reversal']=True
+        both=assess_entry({'as_of':rows[-1]['date'],'frames':{'daily':frame}})['paths']
+        self.assertEqual(len(both),1)
+        self.assertEqual(len(both[0]['confirmation_kinds']),2)
+
+    def test_large_full_body_and_wick_boundaries(self):
+        from services.factors.cr056 import bearish_full_body_evidence
+        rows=self.rows();rows[-1].update(open=109,close=101,high=110,low=100)
+        self.assertTrue(bearish_full_body_evidence(rows)['blocked'])
+        # Same body and volatility, but a longer lower rejection wick.
+        rows[-1]['low']=98
+        self.assertFalse(bearish_full_body_evidence(rows)['blocked'])
+        rows[-1].update(open=105.8,close=105.,high=105.9,low=104.9)
+        self.assertFalse(bearish_full_body_evidence(rows)['blocked'])
+        rows[-1].update(open=101,close=109,high=110,low=100)
+        self.assertFalse(bearish_full_body_evidence(rows)['blocked'])
+
+    def test_bearish_guard_applies_to_all_three_confirmation_days(self):
+        from services.factors.cr056 import breakout_pullback_momentum
+        from services.contracts.cr056_policy import ENTRY_SETTINGS
+        for offset in [-1,-2,-3]:
+            rows=self.rows();rows[offset].update(open=109,close=101,high=110,low=100)
+            r=breakout_pullback_momentum(rows,{'confirmed':True},ENTRY_SETTINGS)
+            self.assertFalse(r['confirmed'])
+            self.assertEqual(r['reason'],'large_full_body_bearish_candle')
+
+    def test_no_breakout_or_lost_floor_cannot_be_saved_by_momentum(self):
+        from services.factors.cr056 import breakout_pullback_momentum
+        from services.contracts.cr056_policy import ENTRY_SETTINGS
+        rows=self.rows();rows[40].update(close=99.5,open=99.2)
+        self.assertFalse(breakout_pullback_momentum(rows,{'confirmed':True},ENTRY_SETTINGS)['confirmed'])
+        rows=self.rows();rows[41].update(close=90,open=90,low=89,high=91)
+        self.assertFalse(breakout_pullback_momentum(rows,{'confirmed':True},ENTRY_SETTINGS)['confirmed'])
+
+
+class MomentumSharedEntryTests(unittest.TestCase):
+    def test_daily_facts_and_history_ticket_prefilter_share_momentum_branch(self):
+        from research.backtest.cr056_history import ticket_dates
+        rows=PullbackMomentumTests().rows()
+        lead=[{'open':140.,'close':140.,'high':141.,'low':139.,'volume':1000000} for _ in range(400)]
+        rows=lead+rows
+        for i,r in enumerate(rows):r['date']=str(date(2024,1,1)+timedelta(days=i))
+        def curve(c):return [-4.]*(len(c)-3)+[-3.,-2.,-1.],[0.]*len(c)
+        day=rows[-1]['date']
+        with patch('services.factors.cr056.macd',side_effect=curve):
+            evidence=collect_entry_facts(rows,as_of=day,complete_session=True)
+            gate=assess_entry(evidence)
+            self.assertTrue(evidence['frames']['daily']['pullback_momentum']['confirmed'])
+            self.assertTrue(any('negative_histogram_pullback' in p['confirmation_kinds'] for p in gate['paths']))
+            self.assertEqual(list(ticket_dates(rows,day,day)),[day])
+            evidence['frames']['daily']['pullback_momentum']['confirmed']=False
+            # No automatic conversion of the negative histogram itself to a ticket.
+            evidence['frames']['daily'].update(macd_valid=False,breakout=False,support_reversal=False)
+            self.assertFalse(any(p['timeframe']=='daily' for p in assess_entry(evidence)['paths']))

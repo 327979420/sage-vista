@@ -541,12 +541,26 @@
         }
       },
       "human_review": {
-        "type": null,
-        "stage": null,
+        "type": "historically_valid_bottom_macd",
+        "stage": "target_reached_current_opportunity_finished",
         "support": null,
-        "decision": null
+        "decision": "valid_at_original_signal_not_current_candidate",
+        "source": "user_review_in_thread",
+        "note": "用户确认3/20、5/15周线底与6/12周线金叉当时合格；6/12后稍晚是很好入场时机。截至案例日已创新高、达到TP区域，现在不再合格。未给精确入场日/TP价/到达日，不能当作已执行成交或已验证收益。",
+        "implementation_implication": "结构未跌破不等于机会仍可参与；当前机会达到事先确定的目标区后应完成，旧形态保留历史，未来新回踩须另行确认。目标区域识别及阶段接线尚待实现。"
       },
-      "review_status": "not_reviewed"
+      "review_status": "human_reviewed_detection_not_yet_corrected",
+      "review_history": [
+        {
+          "type": "historically_valid_bottom_macd",
+          "stage": "target_reached_current_opportunity_finished",
+          "support": null,
+          "decision": "valid_at_original_signal_not_current_candidate",
+          "source": "user_review_in_thread",
+          "note": "用户确认3/20、5/15周线底与6/12周线金叉当时合格；6/12后稍晚是很好入场时机。截至案例日已创新高、达到TP区域，现在不再合格。未给精确入场日/TP价/到达日，不能当作已执行成交或已验证收益。",
+          "implementation_implication": "结构未跌破不等于机会仍可参与；当前机会达到事先确定的目标区后应完成，旧形态保留历史，未来新回踩须另行确认。目标区域识别及阶段接线尚待实现。"
+        }
+      ]
     },
     {
       "symbol": "VRDN",
@@ -1809,12 +1823,28 @@
         }
       },
       "human_review": {
-        "type": null,
-        "stage": null,
+        "type": "daily_only_opportunity",
+        "stage": "earlier_daily_entry_windows_current_not_selected",
         "support": null,
-        "decision": null
+        "decision": "exclude_current_insufficient_quality",
+        "source": "user_chart_review_in_thread",
+        "note": "用户认为仅有日线机会，周/月没有警报；图中12日吞没启动、21日回踩趋势线为此前日线入场窗口。按图位置应为8月，用户只口述日号，精确日期须核验。用户判断该例分/质量低不能进入，不新增未经确认的分数阈值。无周月警报不等于周月方向恶化；不能把日线反转升级为大周期修复机会。",
+        "image_reference": "codex-clipboard-93be5362-f2af-4c46-b146-bb5e9feafccf.png",
+        "implementation_implication": "分别记录机会周期、历史入场窗口、当前质量/准入；现行代码实际因方向/结构条件排除且总分null，不冒充按低分阈值排除。"
       },
-      "review_status": "not_reviewed"
+      "review_status": "human_reviewed_detection_not_yet_corrected",
+      "review_history": [
+        {
+          "type": "daily_only_opportunity",
+          "stage": "earlier_daily_entry_windows_current_not_selected",
+          "support": null,
+          "decision": "exclude_current_insufficient_quality",
+          "source": "user_chart_review_in_thread",
+          "note": "用户认为仅有日线机会，周/月没有警报；图中12日吞没启动、21日回踩趋势线为此前日线入场窗口。按图位置应为8月，用户只口述日号，精确日期须核验。用户判断该例分/质量低不能进入，不新增未经确认的分数阈值。无周月警报不等于周月方向恶化；不能把日线反转升级为大周期修复机会。",
+          "image_reference": "codex-clipboard-93be5362-f2af-4c46-b146-bb5e9feafccf.png",
+          "implementation_implication": "分别记录机会周期、历史入场窗口、当前质量/准入；现行代码实际因方向/结构条件排除且总分null，不冒充按低分阈值排除。"
+        }
+      ]
     },
     {
       "symbol": "VST",

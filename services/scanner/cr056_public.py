@@ -31,7 +31,7 @@ def project_report(report):
             for record in sorted(active or tracking['records'],key=lambda r:r['trigger_date']):
                 latest[(record['path'],record['timeframe'])] = record
             item['watch_entries'] = [{k:r.get(k) for k in ('path','timeframe','trigger_date','trigger_close',
-                                      'state','invalidated_at','observation_return','observed_sessions')}
+                                      'state','invalidated_at','observation_return','observed_sessions','confirmation_kinds')}
                                      for r in latest.values()]
             item['watch_history_start'] = tracking['history_start']
             item['watch_as_of'] = tracking['as_of']
@@ -42,7 +42,7 @@ def project_report(report):
             item['nomination_price'] = observation.get('price')
         paths = (row.get('entry_gate') or {}).get('paths', [])
         if paths:
-            item['entry_paths'] = [{k:p.get(k) for k in ('path','timeframe','confirmed_through','cross_date')} for p in paths]
+            item['entry_paths'] = [{k:p.get(k) for k in ('path','timeframe','confirmed_through','cross_date','confirmation_kinds')} for p in paths]
         # Non-ranked rows retain reasons and scores, without repeating period labels.
         if not row.get('rank'): item.pop('periods', None)
         item.update(origin_date=(row.get('origin') or {}).get('date'),
