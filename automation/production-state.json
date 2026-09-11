@@ -1,9 +1,9 @@
 {
-  "as_of": "2026-09-09",
+  "as_of": "2026-09-10",
   "site_url": "https://sage-vista-parallel.gizmo-allied-0s.workers.dev",
   "live_verified": true,
   "discord_result": "duplicate_skipped",
   "trigger_source": "manual",
   "website_version": "unified-v2-macd-trigger-1.4.0",
-  "deployment_commit": "46c672631cb2bafb3e59df2ce77f938240c04743"
+  "deployment_commit": "9c7f176ef1338c06c5079e12d7f903cf1a8f68d0"
 }
