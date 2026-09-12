@@ -70,7 +70,7 @@ class RunnerTests(unittest.TestCase):
                             code_commit='test', input_report=self.report, **kw)
 
     def test_monthly_structure_without_entry_is_diagnostic_not_buy(self):
-        with patch('services.scanner.detectors.head_shoulders_bottom', return_value={'strength':.5}), \
+        with patch('services.scanner.detectors.multi_bottom_structure', return_value={'strength':.5,'anchors':[],'bottom_count':2}), \
              patch('services.scanner.cr056_runner.assess_entry', return_value={'eligible':False,'paths':[], 'reason_codes':['no_confirmed_reversal_entry']}):
             result=self.run_report()
         row=next(r for r in result['reviews'] if r['symbol']=='NEW')

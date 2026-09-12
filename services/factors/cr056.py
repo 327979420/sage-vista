@@ -80,10 +80,11 @@ def negative_histogram_confirmation(line, signal, dates):
 def _bottom_pair_valid(bars, first, second, volatility, limits, end):
     gap = second['index']-first['index']
     tolerance = max(first['price']*limits['max_low_spread_pct'],
-                    volatility[second['index']]*limits['max_low_spread_atr'])
+                    volatility[first.get('confirmed_index',first['index'])]*limits['max_low_spread_atr'])
     peak = max((b['high'] for b in bars[first['index']+1:second['index']]), default=0)
     return (limits['min_separation_bars'] <= gap <= limits['max_separation_bars']
             and abs(second['price']-first['price']) <= tolerance
+            and min(b['low'] for b in bars[first['index']:end+1]) >= first['price']-tolerance
             and peak-max(first['price'], second['price']) >= limits['min_intervening_bounce_atr']*volatility[second['index']]
             and min(b['close'] for b in bars[second['index']:end+1]) >= min(first['price'], second['price']))
 
@@ -156,7 +157,7 @@ def breakout_pullback_momentum(rows, confirmation, cfg):
 def collect_entry_facts(rows, *, as_of, complete_session=False):
     """Completed native-period structure facts, also used by the replay prefilter."""
     from services.contracts.cr056_policy import ENTRY_SETTINGS
-    from services.scanner.detectors import pivots, _retest_candle
+    from services.scanner.detectors import pivots, _retest_candle, multi_bottom_structure
     from services.scanner.macd_factor_backtest import three_push_breakout_setup
     from services.scanner.technical import atr, macd_bull_cross_at
     rows = validate_adjusted_rows(rows)
@@ -179,7 +180,10 @@ def collect_entry_facts(rows, *, as_of, complete_session=False):
         a = atr(bars); points = pivots(bars, end, cfg)['lows']
         def pair_valid(first, second):
             return _bottom_pair_valid(bars,first,second,a,limits,end)
-        pair = points[-2:] if len(points) >= 2 and pair_valid(*points[-2:]) else []
+        zone = multi_bottom_structure(bars,end,cfg)
+        frame['support_zone'] = zone
+        anchor_dates={p['date'] for p in zone['anchors']} if zone['strength']>0 else set()
+        pair = [p for p in points if bars[p['index']]['date'] in anchor_dates]
         frame['bottoms'] = [{'date': bars[p['index']]['date'], 'price': p['price'],
                              'confirmed_at': bars[p['confirmed_index']]['date']} for p in pair]
         line, signal = macd([b['close'] for b in all_bars])

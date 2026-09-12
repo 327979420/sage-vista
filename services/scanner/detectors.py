@@ -126,24 +126,38 @@ def head_shoulders_bottom(rows, end=None, cfg=None):
 
 
 def multi_bottom_structure(rows, end=None, cfg=None):
- """Three separated support tests remain evidence after their confirmation bar."""
+ """Independent tests in a frozen zone; no separate head/shoulders credit."""
  cfg=cfg or load_config(); end=len(rows)-1 if end is None else end
  bars=rows[:end+1]; limits=cfg['triple_bottom']; volatility=atr(bars)
  points=[p for p in pivots(bars,end,cfg)['lows'] if p['index']>=end-limits['lookback_bars']]
  candidates=[]
- for a,b,c in zip(points,points[1:],points[2:]):
-  known=c['confirmed_index']; scale=volatility[known]; prices=[p['price'] for p in (a,b,c)]
-  if not all(limits['min_separation_bars']<=y['index']-x['index']<=limits['max_separation_bars'] for x,y in ((a,b),(b,c))):continue
-  tolerance=max(sorted(prices)[1]*limits['max_low_spread_pct'],scale*limits['max_low_spread_atr'])
-  if max(prices)-min(prices)>tolerance:continue
-  peaks=[max(bars[j]['high'] for j in range(x['index']+1,y['index'])) for x,y in ((a,b),(b,c))]
-  if any(peak-max(x['price'],y['price'])<limits['min_intervening_bounce_atr']*scale for peak,(x,y) in zip(peaks,((a,b),(b,c)))):continue
-  floor=min(prices); invalid=next((j for j in range(known,end+1) if bars[j]['close']<floor),None)
-  breakout=next((j for j in range(known,invalid if invalid is not None else end+1) if bars[j]['close']>max(peaks)),None)
-  stage='invalidated' if invalid is not None else 'confirmed' if breakout is not None else 'forming'
-  candidates.append({'stage':stage,'strength':0 if invalid is not None else 1 if breakout is not None else .5,
-    'structure_floor':floor,'neckline':max(peaks),'confirmed_at':bars[known]['date'],
-    'breakout_date':bars[breakout]['date'] if breakout is not None else None,
-    'invalidated_at':bars[invalid]['date'] if invalid is not None else None,
-    'anchors':[{'role':'bottom','date':bars[p['index']]['date'],'price':p['price']} for p in (a,b,c)]})
- return candidates[-1] if candidates else {'stage':'not_detected','strength':0,'anchors':[]}
+ for offset,first in enumerate(points[:-1]):
+  scale=volatility[first['confirmed_index']]
+  tolerance=max(first['price']*limits['max_low_spread_pct'],scale*limits['max_low_spread_atr'])
+  lower,upper=first['price']-tolerance,first['price']+tolerance
+  tests=[first]; peaks=[]; rejected=False
+  for point in points[offset+1:]:
+   prior=tests[-1]; gap=point['index']-prior['index']
+   if not lower<=point['price']<=upper:rejected=True;break
+   if gap<3:continue
+   if gap>limits['max_separation_bars']:rejected=True;break
+   peak=max(bars[j]['high'] for j in range(prior['index']+1,point['index']))
+   if peak-max(prior['price'],point['price'])<scale*limits['min_intervening_bounce_atr']:continue
+   tests.append(point);peaks.append(peak)
+  if rejected or len(tests)<2 or tests[-1]!=points[-1]:continue
+  known=tests[1]['confirmed_index']
+  swept=next((j for j in range(first['confirmed_index']+1,end+1) if bars[j]['low']<lower and bars[j]['close']>=lower),None)
+  invalid=next((j for j in range(known,end+1) if bars[j]['close']<lower),None)
+  neckline=max(peaks); breakout=next((j for j in range(tests[-1]['confirmed_index'],end+1) if bars[j]['close']>neckline),None)
+  rising=tests[-1]['price']>tests[-2]['price']
+  strength=min(1.0,min(.9,.5+.15*(len(tests)-2))+(.1 if rising else 0))
+  stage='deep_sweep_rejected' if swept is not None else 'invalidated' if invalid is not None else 'confirmed' if breakout is not None else 'forming'
+  candidates.append({'stage':stage,'strength':0.0 if swept is not None or invalid is not None else round(strength,4),
+   'bottom_count':len(tests),'last_bottom_higher':rising,'zone_lower':lower,'zone_upper':upper,
+   'frozen_at':bars[known]['date'],'structure_floor':min(p['price'] for p in tests[:2]),
+   'neckline':neckline,'confirmed_at':bars[tests[-1]['confirmed_index']]['date'],
+   'breakout_date':bars[breakout]['date'] if breakout is not None else None,
+   'invalidated_at':bars[invalid]['date'] if invalid is not None else None,
+   'sweep_at':bars[swept]['date'] if swept is not None else None,
+   'anchors':[{'role':'bottom','date':bars[p['index']]['date'],'price':p['price'],'confirmed_at':bars[p['confirmed_index']]['date']} for p in tests]})
+ return max(candidates,key=lambda c:c['bottom_count']) if candidates else {'stage':'not_detected','strength':0.0,'anchors':[],'bottom_count':0}

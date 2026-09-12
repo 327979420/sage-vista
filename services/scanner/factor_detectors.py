@@ -212,7 +212,7 @@ def evaluate_period_factors(rows, as_of, *, complete_session=False):
   for fid, meta in MAPPED_FACTORS.items():
    if meta['timeframe'] != tf: continue
    template = meta['template']; minimum = 3
-   if template == 'structure.head_shoulders_bottom': minimum = 9
+   if template in ('structure.double_bottom','structure.triple_bottom_pullback','structure.higher_low'): minimum = 9
    elif template == 'qualification.long_trend': minimum = 261
    elif template in ('support.close_congestion', 'support.volume_profile_proxy'): minimum = 251
    elif template == 'support.ema_proximity': minimum = 20
@@ -223,9 +223,11 @@ def evaluate_period_factors(rows, as_of, *, complete_session=False):
    available = bool(rows and rows[-1]['date'] == as_of and len(bars) >= minimum and meta['role'] != 'unimplemented')
    hit=False; evidence={}; age=None; last=None; strength=0.0
    def detect(j):
-    if template == 'structure.triple_bottom_pullback' and tf != 'daily':
+    if template in ('structure.double_bottom','structure.triple_bottom_pullback','structure.higher_low'):
      from .detectors import multi_bottom_structure
      state=multi_bottom_structure(bars,j)
+     if template=='structure.triple_bottom_pullback' and state.get('bottom_count',0)<3:state=dict(state,strength=0.0)
+     if template=='structure.higher_low':state=dict(state,strength=.1 if state['strength']>0 and state.get('last_bottom_higher') else 0.0)
      return state['strength']>0,state
     if template == 'structure.trendline_three_push' and tf != 'daily':
      from .macd_factor_backtest import three_push_structure_state
@@ -242,10 +244,6 @@ def evaluate_period_factors(rows, as_of, *, complete_session=False):
        if history[k]['low']<=line[k]*1.02 and history[k]['high']>=line[k]*.98 and history[k]['close']>=line[k]:touched.append(history[k]['date'])
       tests[n]=touched
      return any(d<=.02 for d in distances.values()),{'distance_by_period':distances,'levels':levels,'tolerance':.02,'historical_support_tests':tests}
-    if template == 'structure.head_shoulders_bottom':
-     from .detectors import head_shoulders_bottom
-     state=head_shoulders_bottom(bars,j)
-     return state['strength']>0,state
     if template == 'direction.macd_state':
      line, signal = macd([r['close'] for r in bars[:j+1]])
      h, prior = line[-1]-signal[-1], line[-2]-signal[-2]

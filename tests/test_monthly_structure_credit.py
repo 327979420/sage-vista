@@ -27,9 +27,10 @@ class StructureCreditTests(unittest.TestCase):
         rows.extend(dict(date=f'2020-02-{i+1:02}',open=12,close=13,low=12,high=14,volume=1000) for i in range(5))
         state=multi_bottom_structure(rows)
         self.assertEqual(state['stage'],'forming')
-        self.assertEqual(state['strength'],.5)
+        self.assertEqual(state['bottom_count'],3)
+        self.assertEqual(state['strength'],.75)
         self.assertLess(state['confirmed_at'],rows[-1]['date'])
-        rows[-2]['close']=9
+        rows[-2]['close']=1
         self.assertEqual(multi_bottom_structure(rows)['stage'],'invalidated')
 
     def test_head_shoulders_every_prefix_and_price_scale(self):
@@ -62,7 +63,7 @@ class StructureCreditTests(unittest.TestCase):
     def test_partial_credit_and_bottom_group_dedup(self):
         base=states()
         for s in base:s.update(hit=False,recent_hit=False,value=0)
-        fid='monthly_completed::structure.head_shoulders_bottom'
+        fid='monthly_completed::structure.double_bottom'
         next(s for s in base if s['factor_id']==fid).update(hit=True,value=.5)
         p=assess_permission(facts())
         def group():
@@ -73,6 +74,46 @@ class StructureCreditTests(unittest.TestCase):
         self.assertEqual(group()['contribution'],1)
         next(s for s in base if s['factor_id']=='monthly_completed::structure.double_bottom').update(hit=True,value=1)
         self.assertEqual(group()['contribution'],1)
+
+    def zone_rows(self, lows):
+        from datetime import date,timedelta
+        values=[]
+        for low in lows:values.extend([104,103,low,103,106,108])
+        return [dict(date=(date(2020,1,1)+timedelta(days=i)).isoformat(),
+                     open=v+.3,close=v+.5,low=v,high=v+1,volume=1000) for i,v in enumerate(values)]
+
+    def test_zone_count_credit_and_optional_higher_last_bottom(self):
+        strengths=[multi_bottom_structure(self.zone_rows([100]*n))['strength'] for n in range(2,7)]
+        self.assertEqual(strengths,[.5,.65,.8,.9,.9])
+        higher=multi_bottom_structure(self.zone_rows([100,100,100.2]))
+        self.assertEqual(higher['strength'],.75)
+        lower=multi_bottom_structure(self.zone_rows([100,100,99.8]))
+        self.assertEqual(lower['bottom_count'],3)
+        self.assertEqual(lower['strength'],.65)
+        self.assertFalse(lower['last_bottom_higher'])
+
+    def test_deep_wick_recovery_rejected_and_old_head_not_mapped(self):
+        from services.contracts.cr056_policy import MAPPED_FACTORS
+        self.assertFalse(any('head_shoulders' in fid for fid in MAPPED_FACTORS))
+        rows=self.zone_rows([100,100,100]); rows[-1].update(low=70,close=108,high=109)
+        result=multi_bottom_structure(rows)
+        self.assertEqual(result['stage'],'deep_sweep_rejected')
+        self.assertEqual(result['strength'],0)
+        self.assertEqual(multi_bottom_structure(self.zone_rows([100,70,100]))['strength'],0)
+
+    def test_zone_prefix_invariance_and_price_scale(self):
+        import copy
+        rows=self.zone_rows([100,100,100.2,100])
+        for end in range(9,len(rows)):
+            changed=copy.deepcopy(rows)
+            for row in changed[end+1:]:row.update(low=1,high=999,close=500)
+            self.assertEqual(multi_bottom_structure(rows[:end+1]),multi_bottom_structure(changed,end))
+        scaled=copy.deepcopy(rows)
+        for row in scaled:
+            for key in ('open','high','low','close'):row[key]*=.1
+        before,after=multi_bottom_structure(rows),multi_bottom_structure(scaled)
+        self.assertEqual((before['strength'],before['bottom_count']),(after['strength'],after['bottom_count']))
+        self.assertAlmostEqual(before['zone_lower']*.1,after['zone_lower'])
 
     def test_three_push_ignores_minor_peak_without_losing_main_line(self):
         from services.scanner.macd_factor_backtest import three_push_breakout_setup

@@ -49,28 +49,21 @@ for timeframe in FRAMES:
         }
         if template == 'direction.macd_state':
             MAPPED_FACTORS[mapped_id(timeframe, template)].update(name='MACD方向质量', window=0)
-# Candidate-only structure state reuses the bottom family; no legacy formula change.
+# One zone detector backs all bottom evidence; aliases share one capped group.
 for timeframe in FRAMES:
-    parent = dict(MAPPED_FACTORS[mapped_id(timeframe, 'structure.double_bottom')])
-    parent.update(template='structure.head_shoulders_bottom', source_ids=[],
-                  name='头肩底结构（形成中／确认／回踩）', parents=(), window=0,
-                  research_status='testing', role='score', graded=True)
-    parent['source_definition'] = dict(parent['source_definition'], factor_type='state',
-                                     id='structure.head_shoulders_bottom', version='1.0.0',
-                                     name_zh='头肩底结构', machine_rule='Three confirmed lows with a lower head; frozen neckline and close-based invalidation',
-                                     explanation='形成中半强度，颈线突破确认后全强度，不授予独立入场资格')
-    MAPPED_FACTORS[mapped_id(timeframe, 'structure.head_shoulders_bottom')] = parent
-for timeframe in ('monthly_completed', 'weekly_completed'):
-    MAPPED_FACTORS[mapped_id(timeframe,'structure.triple_bottom_pullback')].update(
-        group=timeframe+'::bottom_structure', family='price_structure', parents=(), window=0, graded=True,
-        name='多底结构（形成中／确认）')
+    for template in ('structure.double_bottom','structure.triple_bottom_pullback','structure.higher_low'):
+        item=MAPPED_FACTORS[mapped_id(timeframe,template)]
+        item.update(group=timeframe+'::bottom_structure',family='price_structure',parents=(),window=0,graded=True,
+                    name={'structure.double_bottom':'支撑区多底','structure.triple_bottom_pullback':'三底及以上支撑区','structure.higher_low':'支撑区末底抬高'}[template])
+        item['source_definition']=dict(item['source_definition'],version='candidate-3.4.0',factor_type='state',
+            machine_rule='Frozen support zone, independent tests, bounded count credit and optional last-bottom uplift; reject deep sweeps')
 for timeframe in FRAMES:
     item=MAPPED_FACTORS[mapped_id(timeframe,'support.ema_proximity')]
     item['name']='EMA20/50/100/200支撑'
     item['source_definition']=dict(item['source_definition'],version='candidate-3.3.0',
         machine_rule='Native EMA20/50/100/200, each requires matching history, 2 percent current proximity; historical tests are evidence only')
     if timeframe!='daily':
-        for template in ('structure.triple_bottom_pullback','structure.trendline_three_push'):
+        for template in ('structure.trendline_three_push',):
             item=MAPPED_FACTORS[mapped_id(timeframe,template)]
             item['source_definition']=dict(item['source_definition'],version='candidate-3.3.0',factor_type='state',
                 machine_rule='Confirmed native-period structural state retained until frozen support invalidation within 120-bar discovery window')
@@ -119,6 +112,6 @@ RULE_IMPLEMENTATION = {name: sha256((_RULE_ROOT/name).read_bytes()).hexdigest() 
     'services/scanner/technical.py', 'services/scanner/macd_factor_backtest.py',
     'services/gates/baseline.py', 'services/gates/local_structure.py',
     'services/gates/long_term_state.py', 'services/ledger/cr056.py')}
-POLICY_VERSION = 'cr056-policy-3.3.0-candidate'
+POLICY_VERSION = 'cr056-policy-3.4.0-candidate'
 POLICY_FINGERPRINT = canonical_fingerprint({'version': POLICY_VERSION, 'entry_settings': ENTRY_SETTINGS, 'implementation': RULE_IMPLEMENTATION, 'settings': dict(SETTINGS),
     'white_list': {k: list(v) for k, v in WHITE_LIST.items()}, 'weights': dict(WEIGHTS), 'caps': dict(CAPS), 'mapped_factors': dict(MAPPED_FACTORS)})

@@ -93,11 +93,11 @@ def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previo
             entry_facts = collect_entry_facts(rows, as_of=as_of, complete_session=True)
             entry = assess_entry(entry_facts)
             from services.gates.long_term_state import completed_period_bars
-            from services.scanner.detectors import head_shoulders_bottom, multi_bottom_structure
+            from services.scanner.detectors import multi_bottom_structure
             from services.scanner.macd_factor_backtest import three_push_structure_state
             monthly_bars = completed_period_bars(rows, as_of=as_of, period='monthly', complete_session=True)
             structure_wait = any(d(monthly_bars).get('strength',0)>0 for d in
-                                 (head_shoulders_bottom,multi_bottom_structure,three_push_structure_state))
+                                 (multi_bottom_structure,three_push_structure_state))
             item['entry_gate'] = entry
             if missing is None and symbol not in origins and not entry['eligible'] and not structure_wait:
                 item['status'] = 'not_nominated'; item['reason_codes'] = entry['reason_codes']
