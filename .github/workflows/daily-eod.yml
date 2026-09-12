@@ -23,7 +23,7 @@ on:
         required: true
         default: preview
         type: choice
-        options: [preview, update, deploy]
+        options: [preview, candidate_preview, update, deploy]
       notify:
         description: Send Discord only after a verified website release
         required: true
@@ -410,3 +410,59 @@ jobs:
           name: manual-discord-preview
           path: discord-preview.json
           retention-days: 3
+
+
+  candidate_preview:
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'candidate_preview'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    permissions:
+      contents: read
+    env:
+      EODHD_API_TOKEN: ${{ secrets.EODHD_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-python@v7
+        with: { python-version: "3.13" }
+      - uses: actions/cache/restore@v4
+        with:
+          path: |
+            work/eodhd-cache
+            work/eodhd-active-common.json
+          key: eodhd-history-v1-${{ github.run_id }}
+          restore-keys: eodhd-history-v1-
+      - uses: actions/cache/restore@v4
+        with:
+          path: work/cr056-daily/cache
+          key: cr056-daily-inputs-v1-${{ github.run_id }}
+          restore-keys: cr056-daily-inputs-v1-
+      - name: Recompute candidate policy against checked-out complete-session bundle
+        run: |
+          mkdir -p work/candidate-preview
+          cp public/cr056-ranking.json work/candidate-preview/before-ranking.json
+          cp automation/cr056-watch-state.json.gz work/candidate-preview/before-watch.json.gz
+          target=$(python3 -c 'import json;print(json.load(open("public/update-status.json"))["source_latest_complete_date"])')
+          python3 -m services.scanner.cr056_daily --as-of "$target" > work/candidate-preview/result.json
+          python3 - <<'PYCODE'
+          import json
+          from services.contracts.cr056_policy import POLICY_FINGERPRINT
+          result=json.load(open('work/candidate-preview/result.json'))
+          if result.get('result')!='updated':raise SystemExit('candidate preview did not produce new verified result')
+          ranking=json.load(open('public/cr056-ranking.json'))
+          if ranking['policy_fingerprint']!=POLICY_FINGERPRINT:raise SystemExit('preview policy mismatch')
+          PYCODE
+      - name: Upload derived preview only; never publish, notify, or export raw histories
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: candidate-preview-${{ github.run_id }}
+          path: |
+            work/candidate-preview/
+            work/cr056-daily/daily-report.json.gz
+            work/cr056-daily/input-report.json
+            public/cr056-ranking.json
+            public/cr056-factor-details.json.gz
+            automation/cr056-watch-state.json.gz
+            research/generated/cr056-daily/
+          retention-days: 30

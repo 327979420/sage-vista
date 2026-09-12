@@ -186,3 +186,15 @@ class DailyEodWorkflowTests(unittest.TestCase):
   self.assertNotIn('/cache',artifact);self.assertNotIn('eodhd-cache',artifact);self.assertNotIn('/bulk',artifact)
   self.assertIn('daily-report.json.gz',artifact)
   self.assertIn("steps.update_result.outputs.needs_release == 'true'",blocks['Send deduplicated Discord daily digest'])
+
+
+class CandidatePreviewBoundaryTests(unittest.TestCase):
+ def test_candidate_preview_cannot_publish_or_notify(self):
+  text=WORKFLOW.read_text().split('  candidate_preview:',1)[1]
+  self.assertIn('contents: read',text)
+  self.assertIn('actions/cache/restore@v4',text)
+  self.assertNotIn('actions/cache/save',text)
+  for mutation in ('git push','deploy:cloudflare','discord_daily_digest'):
+   self.assertNotIn(mutation,text)
+  self.assertIn('services.scanner.cr056_daily',text)
+  self.assertIn('before-watch.json.gz',text)
