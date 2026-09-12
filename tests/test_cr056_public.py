@@ -32,6 +32,16 @@ class PublicProjectionTests(unittest.TestCase):
         self.assertEqual(public['ranked_symbols'],['AAA'])
         self.assertEqual(public['policy_fingerprint'],report['policy_fingerprint'])
         self.assertNotIn('never publish',str(public))
+        self.assertNotIn('new_nomination',public['reviews'][0])
+        self.assertNotIn('high_score_eligible',public['reviews'][0])
+        affirmative=copy.deepcopy(report)
+        affirmative['reviews'][0]['new_nomination']=True
+        affirmative['reviews'][0]['score']['high_score_eligible']=True
+        affirmative.pop('snapshot_fingerprint')
+        affirmative['snapshot_fingerprint']=canonical_fingerprint(affirmative)
+        flags=project_report(affirmative)['reviews'][0]
+        self.assertTrue(flags['new_nomination'])
+        self.assertTrue(flags['high_score_eligible'])
         report['reviews'][0]['score']['total_score']=99
         with self.assertRaisesRegex(ValueError,'fingerprint'):
             project_report(report)

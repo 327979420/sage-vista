@@ -55,6 +55,10 @@ def project_report(report):
         if row.get('rank'):
             item['checks'] = permission.get('checks', {})
             # Full evidence is loaded on demand from the matching compressed detail file.
+        # False display flags are the default; omit their repeated wire keys.
+        # Scores, dates, prices, reasons and all watch evidence remain exact.
+        for flag in ('new_nomination', 'high_score_eligible'):
+            if not item.get(flag): item.pop(flag, None)
         reviews.append(item)
     return {'view_version': VIEW_VERSION, 'as_of': report['as_of'], 'result_role': report['result_role'],
         'policy_version': report['policy_version'], 'policy_fingerprint': report['policy_fingerprint'], 'source_snapshot': report['snapshot_fingerprint'],
