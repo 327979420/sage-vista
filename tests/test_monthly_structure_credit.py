@@ -115,12 +115,55 @@ class StructureCreditTests(unittest.TestCase):
         self.assertEqual((before['strength'],before['bottom_count']),(after['strength'],after['bottom_count']))
         self.assertAlmostEqual(before['zone_lower']*.1,after['zone_lower'])
 
+    def test_independent_rally_cuts_old_bottom_but_keeps_recent_pair(self):
+        rows=self.zone_rows([100,100,100,100])
+        rows[1].update(high=115)
+        rows[8].update(high=150)
+        points={'highs':[{'index':1,'price':115,'confirmed_index':3},
+                          {'index':8,'price':150,'confirmed_index':10}],
+                'lows':[{'index':4,'price':100,'confirmed_index':6},
+                        {'index':12,'price':100,'confirmed_index':14},
+                        {'index':20,'price':100,'confirmed_index':22}]}
+        with patch('services.scanner.detectors.pivots',return_value=points),patch('services.scanner.macd_factor_backtest.three_push_breakout_setup',return_value=None):
+            state=multi_bottom_structure(rows)
+        self.assertEqual(state['bottom_count'],2)
+        self.assertEqual(state['anchors'][0]['date'],rows[12]['date'])
+        self.assertNotIn(rows[4]['date'],[a['date'] for a in state['anchors']])
+
+    def test_trendline_start_excludes_old_bottom_and_keeps_support_separate(self):
+        rows=self.zone_rows([100,100,100,100])
+        rows[-1].update(open=101,high=102,low=100,close=101)
+        trend={'anchors':[{'index':6,'date':rows[6]['date'],'price':110}]}
+        with patch('services.scanner.macd_factor_backtest.three_push_breakout_setup',return_value=trend):
+            state=multi_bottom_structure(rows)
+        self.assertEqual(state['bottom_count'],3)
+        self.assertEqual(state['start_source'],'three_push_anchor')
+        self.assertTrue(state['historical_support'])
+        self.assertTrue(all(a['date']>=rows[6]['date'] for a in state['anchors']))
+        self.assertTrue(all(a['date']<state['anchors'][0]['date'] for a in state['historical_support']))
+
+    def test_historical_support_does_not_supply_bottom_count_or_ticket(self):
+        from services.selectors.cr056 import assess_entry
+        base=states()
+        for state in base:state.update(hit=False,recent_hit=False,value=0)
+        fid='monthly_completed::support.historical_bottom_zone'
+        next(s for s in base if s['factor_id']==fid).update(hit=True,value=.25)
+        score=score_candidate(base,assess_permission(facts()))
+        groups=score['timeframes']['monthly_completed']['groups']
+        self.assertEqual(next(g for g in groups if fid in g['factor_ids'])['contribution'],.25)
+        self.assertEqual(next(g for g in groups if g['group'].endswith('::bottom_structure'))['contribution'],0)
+        entry=assess_entry({'as_of':'2026-09-11','frames':{'monthly_completed':{
+            'available':True,'bottoms':[],'support_reversal':False,'historical_support':[{'price':100}]}}})
+        self.assertFalse(entry['eligible'])
+
     def test_three_push_ignores_minor_peak_without_losing_main_line(self):
         from services.scanner.macd_factor_backtest import three_push_breakout_setup
         rows=[dict(date=f'D{i}',open=95,high=96,low=94,close=95,volume=1000) for i in range(80)]
         for i,p in ((20,110),(35,106),(45,99),(50,102)):
             rows[i].update(high=p,close=p-2,open=p-3,low=p-4)
         rows[55].update(open=98,high=103,low=97,close=102.5)
+        self.assertIsNone(three_push_breakout_setup(rows,54))
+        self.assertIsNotNone(three_push_breakout_setup(rows,54,require_breakout=False))
         setup=three_push_breakout_setup(rows,55)
         self.assertEqual([a['date'] for a in setup['anchors']],['D20','D35','D50'])
         rows[60].update(high=999,close=999)

@@ -129,10 +129,16 @@ def multi_bottom_structure(rows, end=None, cfg=None):
  """Independent tests in a frozen zone; no separate head/shoulders credit."""
  cfg=cfg or load_config(); end=len(rows)-1 if end is None else end
  bars=rows[:end+1]; limits=cfg['triple_bottom']; volatility=atr(bars)
- points=[p for p in pivots(bars,end,cfg)['lows'] if p['index']>=end-limits['lookback_bars']]
+ all_points=pivots(bars,end,cfg)
+ from .macd_factor_backtest import three_push_breakout_setup
+ trend=three_push_breakout_setup(bars,end,require_breakout=False)
+ start=trend['anchors'][0]['index'] if trend else max(0,end-limits['lookback_bars'])
+ points=[p for p in all_points['lows'] if p['index']>=start]
  candidates=[]
  for offset,first in enumerate(points[:-1]):
   scale=volatility[first['confirmed_index']]
+  prior_highs=[h for h in all_points['highs'] if h['confirmed_index']<=first['index']]
+  if prior_highs and any(first['index']<h['index']<points[-1]['index'] and h['price']>prior_highs[-1]['price']+scale for h in all_points['highs']):continue
   tolerance=max(first['price']*limits['max_low_spread_pct'],scale*limits['max_low_spread_atr'])
   lower,upper=first['price']-tolerance,first['price']+tolerance
   tests=[first]; peaks=[]; rejected=False
@@ -153,11 +159,17 @@ def multi_bottom_structure(rows, end=None, cfg=None):
   strength=min(1.0,min(.9,.5+.15*(len(tests)-2))+(.1 if rising else 0))
   stage='deep_sweep_rejected' if swept is not None else 'invalidated' if invalid is not None else 'confirmed' if breakout is not None else 'forming'
   candidates.append({'stage':stage,'strength':0.0 if swept is not None or invalid is not None else round(strength,4),
-   'bottom_count':len(tests),'last_bottom_higher':rising,'zone_lower':lower,'zone_upper':upper,
+   'bottom_count':len(tests),'structure_start':bars[start]['date'] if trend else bars[first['index']]['date'],'start_source':'three_push_anchor' if trend else 'continuous_bottom_tests','last_bottom_higher':rising,'zone_lower':lower,'zone_upper':upper,
    'frozen_at':bars[known]['date'],'structure_floor':min(p['price'] for p in tests[:2]),
    'neckline':neckline,'confirmed_at':bars[tests[-1]['confirmed_index']]['date'],
    'breakout_date':bars[breakout]['date'] if breakout is not None else None,
    'invalidated_at':bars[invalid]['date'] if invalid is not None else None,
    'sweep_at':bars[swept]['date'] if swept is not None else None,
    'anchors':[{'role':'bottom','date':bars[p['index']]['date'],'price':p['price'],'confirmed_at':bars[p['confirmed_index']]['date']} for p in tests]})
- return max(candidates,key=lambda c:c['bottom_count']) if candidates else {'stage':'not_detected','strength':0.0,'anchors':[],'bottom_count':0}
+ result=max(candidates,key=lambda c:c['bottom_count']) if candidates else {'stage':'not_detected','strength':0.0,'anchors':[],'bottom_count':0}
+ boundary=result['anchors'][0]['date'] if result['anchors'] else bars[start]['date'] if bars else ''
+ old=[p for p in all_points['lows'] if bars[p['index']]['date']<boundary]
+ # Historical support is a separate fact, never inserted into current anchors.
+ result['historical_support']=[{'date':bars[p['index']]['date'],'price':p['price']} for p in old
+  if bars[end]['low']<=p['price']*1.02 and bars[end]['high']>=p['price']*.98 and bars[end]['close']>=p['price']]
+ return result

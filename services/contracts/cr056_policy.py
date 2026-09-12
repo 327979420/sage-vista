@@ -55,8 +55,15 @@ for timeframe in FRAMES:
         item=MAPPED_FACTORS[mapped_id(timeframe,template)]
         item.update(group=timeframe+'::bottom_structure',family='price_structure',parents=(),window=0,graded=True,
                     name={'structure.double_bottom':'支撑区多底','structure.triple_bottom_pullback':'三底及以上支撑区','structure.higher_low':'支撑区末底抬高'}[template])
-        item['source_definition']=dict(item['source_definition'],version='candidate-3.4.0',factor_type='state',
-            machine_rule='Frozen support zone, independent tests, bounded count credit and optional last-bottom uplift; reject deep sweeps')
+        item['source_definition']=dict(item['source_definition'],version='candidate-3.5.0',factor_type='state',
+            machine_rule='Current trendline-bounded continuous support zone; independent rallies separate older support; reject deep sweeps')
+for timeframe in FRAMES:
+    item=dict(MAPPED_FACTORS[mapped_id(timeframe,'support.ema_proximity')])
+    item.update(template='support.historical_bottom_zone',source_ids=[],name='历史底部支撑参考',
+        group=timeframe+'::historical_bottom_support',parents=(),window=0,graded=True,research_status='testing')
+    item['source_definition']=dict(item['source_definition'],id='support.historical_bottom_zone',version='candidate-3.5.0',factor_type='state',
+        machine_rule='Prior episode lows tested by current candle within 2 percent, close held; 0.25 credit, never entry anchors')
+    MAPPED_FACTORS[mapped_id(timeframe,'support.historical_bottom_zone')]=item
 for timeframe in FRAMES:
     item=MAPPED_FACTORS[mapped_id(timeframe,'support.ema_proximity')]
     item['name']='EMA20/50/100/200支撑'
@@ -112,6 +119,6 @@ RULE_IMPLEMENTATION = {name: sha256((_RULE_ROOT/name).read_bytes()).hexdigest() 
     'services/scanner/technical.py', 'services/scanner/macd_factor_backtest.py',
     'services/gates/baseline.py', 'services/gates/local_structure.py',
     'services/gates/long_term_state.py', 'services/ledger/cr056.py')}
-POLICY_VERSION = 'cr056-policy-3.4.0-candidate'
+POLICY_VERSION = 'cr056-policy-3.5.0-candidate'
 POLICY_FINGERPRINT = canonical_fingerprint({'version': POLICY_VERSION, 'entry_settings': ENTRY_SETTINGS, 'implementation': RULE_IMPLEMENTATION, 'settings': dict(SETTINGS),
     'white_list': {k: list(v) for k, v in WHITE_LIST.items()}, 'weights': dict(WEIGHTS), 'caps': dict(CAPS), 'mapped_factors': dict(MAPPED_FACTORS)})

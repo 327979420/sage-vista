@@ -223,6 +223,11 @@ def evaluate_period_factors(rows, as_of, *, complete_session=False):
    available = bool(rows and rows[-1]['date'] == as_of and len(bars) >= minimum and meta['role'] != 'unimplemented')
    hit=False; evidence={}; age=None; last=None; strength=0.0
    def detect(j):
+    if template == 'support.historical_bottom_zone':
+     from .detectors import multi_bottom_structure
+     state=multi_bottom_structure(bars,j)
+     refs=state.get('historical_support',[])
+     return bool(refs),{'strength':.25 if refs else 0,'anchors':[dict(x,role='historical_support') for x in refs]}
     if template in ('structure.double_bottom','structure.triple_bottom_pullback','structure.higher_low'):
      from .detectors import multi_bottom_structure
      state=multi_bottom_structure(bars,j)

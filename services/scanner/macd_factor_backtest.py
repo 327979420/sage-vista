@@ -72,7 +72,7 @@ def macd_state(rows):
  scale=statistics.pstdev(hist[-20:]) or 1;near=line[i]<=signal[i] and rising and abs(hist[i])<=scale*.35
  return {"macd_line":line[i],"signal_line":signal[i],"zero_zone":zone,"cross_zero_zone":cross_zone,"dead_cross_zero_zone":dead_zone,"histogram_rising":rising,"histogram_falling":falling,"negative_histogram_shrinking":hist[i]<0 and rising,"near_cross":near}
 
-def three_push_breakout_setup(rows,end):
+def three_push_breakout_setup(rows,end,*,require_breakout=True):
  """Search confirmed main-line anchors; never select pivots from future bars."""
  from itertools import combinations
  start=max(0,end-120);window=rows[start:end+1];local_end=len(window)-1
@@ -91,7 +91,8 @@ def three_push_breakout_setup(rows,end):
   # Reject a supposed resistance line cut by intervening candle highs.
   if any(window[j]['high']>line(j)+tolerance for j in range(a['index']+1,c['index'])):continue
   projected=line(local_end)
-  if not detect_bos(window,local_end,projected,TECHNICAL_CONFIG).detected:continue
+  if projected<=0:continue
+  if require_breakout and not detect_bos(window,local_end,projected,TECHNICAL_CONFIG).detected:continue
   candidates.append((c['index'],c['index']-a['index'],a['index'],{
    'breakout_index':end,'level':projected,'slope':slope,'atr':volatility,
    'anchors':[{'date':window[p['index']]['date'],'price':p['price'],'index':p['index']+start} for p in (a,b,c)]}))

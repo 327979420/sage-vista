@@ -27,6 +27,9 @@ class PublicProjectionTests(unittest.TestCase):
         details=project_details(report)['reviews']['AAA']
         self.assertEqual(details['checks']['structure']['status'],'blocked')
         self.assertEqual(details['structures'][0]['structure_floor'],10)
+        self.assertEqual(details['entry_gate']['paths'][0]['cross_date'],'2026-09-04')
+        self.assertEqual(details['entry_gate']['paths'][0]['confirmed_through'],'2026-09-04')
+        self.assertNotIn('cross_date',public['reviews'][0]['entry_paths'][0])
         self.assertEqual(report,before)
         self.assertEqual(public['reviews'][0]['total'],42.125)
         self.assertEqual(public['ranked_symbols'],['AAA'])
