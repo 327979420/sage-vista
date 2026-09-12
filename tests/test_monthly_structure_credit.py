@@ -32,6 +32,23 @@ class StructureCreditTests(unittest.TestCase):
         rows[-2]['close']=9
         self.assertEqual(multi_bottom_structure(rows)['stage'],'invalidated')
 
+    def test_head_shoulders_every_prefix_and_price_scale(self):
+        import copy
+        rows=candles()
+        for end in range(9,len(rows)):
+            expected=head_shoulders_bottom(rows[:end+1])
+            changed=copy.deepcopy(rows)
+            for row in changed[end+1:]:row.update(open=999,high=1000,low=1,close=500)
+            self.assertEqual(head_shoulders_bottom(changed,end),expected)
+        original=head_shoulders_bottom(rows)
+        self.assertEqual(original['stage'],'forming')
+        scaled=copy.deepcopy(rows)
+        for row in scaled:
+            for key in ('open','high','low','close'):row[key]*=.1
+        adjusted=head_shoulders_bottom(scaled)
+        self.assertEqual((adjusted['stage'],adjusted['strength']),(original['stage'],original['strength']))
+        self.assertAlmostEqual(adjusted['structure_floor'],original['structure_floor']*.1)
+
     def test_no_future_confirmation(self):
         rows=candles(); before=head_shoulders_bottom(rows,15)
         future=rows+[dict(date='2020-01-20',open=100,close=100,low=1,high=200,volume=1)]
