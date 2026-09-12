@@ -73,17 +73,29 @@ def macd_state(rows):
  return {"macd_line":line[i],"signal_line":signal[i],"zero_zone":zone,"cross_zero_zone":cross_zone,"dead_cross_zero_zone":dead_zone,"histogram_rising":rising,"histogram_falling":falling,"negative_histogram_shrinking":hist[i]<0 and rising,"near_cross":near}
 
 def three_push_breakout_setup(rows,end):
- """Return the point-in-time trendline geometry when a three-push breakout is confirmed."""
+ """Search confirmed main-line anchors; never select pivots from future bars."""
+ from itertools import combinations
  start=max(0,end-120);window=rows[start:end+1];local_end=len(window)-1
- points=pivots(window,local_end,TECHNICAL_CONFIG)["highs"]
+ points=pivots(window,local_end,TECHNICAL_CONFIG)["highs"][-14:]
  if len(points)<3:return None
- a,b,c=points[-3:]
- if not (a["price"]>b["price"]>c["price"]):return None
- slope=(c["price"]-a["price"])/(c["index"]-a["index"]);projected=c["price"]+slope*(local_end-c["index"]);volatility=atr(window)[local_end]
- touches=all(abs(p["price"]-(a["price"]+slope*(p["index"]-a["index"])))<=TECHNICAL_CONFIG["level_test"]["proximity_atr"]*volatility for p in (a,b,c))
- separated=b["index"]-a["index"]>TECHNICAL_CONFIG["level_test"]["rejection_cluster_bars"] and c["index"]-b["index"]>TECHNICAL_CONFIG["level_test"]["rejection_cluster_bars"]
- if not (touches and separated and detect_bos(window,local_end,projected,TECHNICAL_CONFIG).detected):return None
- return {"breakout_index":end,"level":projected,"slope":slope,"atr":volatility}
+ volatility=atr(window)[local_end]
+ tolerance=TECHNICAL_CONFIG["level_test"]["proximity_atr"]*volatility
+ gap=TECHNICAL_CONFIG["level_test"]["rejection_cluster_bars"]
+ candidates=[]
+ for a,b,c in combinations(points,3):
+  if not (a['price']>b['price']>c['price']):continue
+  if not (b['index']-a['index']>gap and c['index']-b['index']>gap):continue
+  slope=(c['price']-a['price'])/(c['index']-a['index'])
+  line=lambda j:a['price']+slope*(j-a['index'])
+  if abs(b['price']-line(b['index']))>tolerance:continue
+  # Reject a supposed resistance line cut by intervening candle highs.
+  if any(window[j]['high']>line(j)+tolerance for j in range(a['index']+1,c['index'])):continue
+  projected=line(local_end)
+  if not detect_bos(window,local_end,projected,TECHNICAL_CONFIG).detected:continue
+  candidates.append((c['index'],c['index']-a['index'],a['index'],{
+   'breakout_index':end,'level':projected,'slope':slope,'atr':volatility,
+   'anchors':[{'date':window[p['index']]['date'],'price':p['price'],'index':p['index']+start} for p in (a,b,c)]}))
+ return max(candidates,key=lambda c:c[:3])[3] if candidates else None
 
 def three_push_breakout(rows,end):
  """Three confirmed descending swing-high attempts followed by a solid close above their trendline."""
@@ -481,3 +493,26 @@ def run(out="research/backtest/output/macd-factor-backtest.json",limit=None):
 
 if __name__=="__main__":
  r=run();print(json.dumps({"universe":r["universe"],"top":r["validated_combinations"][:5]},ensure_ascii=False,indent=2))
+
+
+def three_push_structure_state(rows, end=None):
+ """Retain a confirmed higher-period line until its frozen bottom is broken."""
+ end=len(rows)-1 if end is None else end
+ for j in range(end,max(2,end-120),-1):
+  setup=three_push_breakout_setup(rows,j)
+  if not setup or rows[j-1]['close']>setup['level']-setup['slope']:continue
+  start=max(0,j-120); window=rows[start:j+1]; points=pivots(window,len(window)-1,TECHNICAL_CONFIG)
+  highs=setup.get('anchors') or [{'date':window[p['index']]['date'],'price':p['price'],'index':p['index']+start} for p in points['highs'][-3:]]
+  lows=[p for p in points['lows'] if p['index']+start>=highs[0]['index']]
+  if len(lows)<2:continue
+  floor=min(p['price'] for p in lows)
+  invalid=next((k for k in range(j+1,end+1) if rows[k]['close']<floor),None)
+  level=setup['level']+setup['slope']*(end-j)
+  tolerance=.25*atr(rows[:end+1])[-1]
+  retest=end>j and rows[end]['low']<=level+tolerance and rows[end]['high']>=level-tolerance and rows[end]['close']>=level
+  return {'stage':'invalidated' if invalid is not None else 'retest' if retest else 'confirmed',
+   'strength':0.0 if invalid is not None else 1.0,'breakout_date':rows[j]['date'],
+   'structure_floor':floor,'line':level,'invalidated_at':rows[invalid]['date'] if invalid is not None else None,
+   'anchors':[{'date':p['date'],'price':p['price'],'role':'trendline_high'} for p in highs],
+   'bottoms':[{'date':window[p['index']]['date'],'price':p['price']} for p in lows]}
+ return {'stage':'not_detected','strength':0.0,'anchors':[]}

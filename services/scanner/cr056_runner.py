@@ -90,14 +90,24 @@ def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previo
                 missing = 'daily_tradability_not_met'
             trigger = exact_daily_macd_bull_cross(rows)
             item['exact_daily_cross_today'] = trigger
-            entry = assess_entry(collect_entry_facts(rows, as_of=as_of, complete_session=True))
+            entry_facts = collect_entry_facts(rows, as_of=as_of, complete_session=True)
+            entry = assess_entry(entry_facts)
+            from services.gates.long_term_state import completed_period_bars
+            from services.scanner.detectors import head_shoulders_bottom, multi_bottom_structure
+            from services.scanner.macd_factor_backtest import three_push_structure_state
+            monthly_bars = completed_period_bars(rows, as_of=as_of, period='monthly', complete_session=True)
+            structure_wait = any(d(monthly_bars).get('strength',0)>0 for d in
+                                 (head_shoulders_bottom,multi_bottom_structure,three_push_structure_state))
             item['entry_gate'] = entry
-            if missing is None and symbol not in origins and not entry['eligible']:
+            if missing is None and symbol not in origins and not entry['eligible'] and not structure_wait:
                 item['status'] = 'not_nominated'; item['reason_codes'] = entry['reason_codes']
                 counts['not_nominated'] += 1; reviews.append(item); continue
             if missing is not None: raise ValueError(missing)
             facts = collect_direction_facts(rows, as_of=as_of, complete_session=True)
             permission = assess_permission(facts)
+            if symbol not in origins and not entry['eligible'] and structure_wait:
+                permission = {**permission, 'eligible':False, 'permission':'blocked',
+                              'reason_codes':permission['reason_codes']+['monthly_structure_waiting_for_entry']}
             tracking = (prior.get(symbol) or {}).get('entry_tracking')
             if symbol in origins and (tracking is not None or permission['eligible']):
                 tracking = track_entry_structures(rows, as_of=as_of, previous=tracking)
@@ -120,6 +130,8 @@ def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previo
                     'model_version': POLICY_VERSION, 'input_fingerprint': input_fp,
                     'original_score': score, 'entry_gate': entry, 'record_fingerprint': score['score_fingerprint']}
                 item['new_nomination'] = True
+            if symbol not in origins and not entry['eligible'] and structure_wait:
+                item['status'] = 'not_nominated'
             item['origin'] = origins.get(symbol)
             if item['origin'] and item['origin'].get('kind') == 'candidate_initial_nomination' and item['origin']['date'] == as_of and score['total_score'] is not None:
                 item['new_nomination'] = True

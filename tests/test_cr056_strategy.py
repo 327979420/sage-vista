@@ -176,7 +176,7 @@ class PeriodMappingTests(unittest.TestCase):
         self.assertTrue(states['monthly_completed::structure.bullish_fvg_support']['hit'])
         self.assertFalse(states['monthly_completed::support.close_congestion']['available'])
         ema=states['monthly_completed::support.ema_proximity']
-        self.assertEqual(set(ema['evidence']['distance_by_period']),{'21'})
+        self.assertEqual(set(ema['evidence']['distance_by_period']),{'20'})
         self.assertEqual(states['monthly_completed::volume.pullback_contraction']['runtime_status'],'definition_required')
 
     def test_unfinished_and_future_month_cannot_change_completed_month_facts(self):

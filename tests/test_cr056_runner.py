@@ -69,6 +69,17 @@ class RunnerTests(unittest.TestCase):
         return run_snapshot(self.root, as_of='2026-09-04', history=self.history,
                             code_commit='test', input_report=self.report, **kw)
 
+    def test_monthly_structure_without_entry_is_diagnostic_not_buy(self):
+        with patch('services.scanner.detectors.head_shoulders_bottom', return_value={'strength':.5}), \
+             patch('services.scanner.cr056_runner.assess_entry', return_value={'eligible':False,'paths':[], 'reason_codes':['no_confirmed_reversal_entry']}):
+            result=self.run_report()
+        row=next(r for r in result['reviews'] if r['symbol']=='NEW')
+        self.assertIn('monthly_structure_waiting_for_entry',row['reason_codes'])
+        self.assertIn('factor_states',row)
+        self.assertIsNone(row['score']['total_score'])
+        self.assertFalse(row['new_nomination'])
+        self.assertNotIn('NEW',result['ranked_symbols'])
+
     def test_real_producers_run_on_long_synthetic_history(self):
         result = self.run_report()
         by = {r['symbol']: r for r in result['reviews']}
