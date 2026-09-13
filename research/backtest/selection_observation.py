@@ -174,7 +174,7 @@ def shard(index,total,pilot=False):
             for symbol,values in data.items():
                 content=encode(values);(stage/(symbol+'.json')).write_bytes(content);hashes[symbol]=sha256(content)
             inputs={'as_of':day,'result_role':'legacy_comparison_input_repair','repaired':[{'symbol':s,'repaired_sha256':h,'source_sha256':identity['source'] if s==p.stem else identity['spy']} for s,h in hashes.items()], 'repaired_count':len(hashes),'excluded_count':0,'excluded':[]}
-            report=run_snapshot(stage,as_of=day,history={'days':[]},code_commit=code,input_report=inputs,factor_cache=factor_cache)
+            report=run_snapshot(stage,as_of=day,history={'days':[]},code_commit=code,input_report=inputs,factor_cache=factor_cache,selection_only=True)
             review=next((r for r in report['reviews'] if r['symbol']==p.stem),None)
             saved['evaluated']=saved.get('evaluated',0)+1
             if not review or review['status'] == 'unavailable':
@@ -315,7 +315,13 @@ def benchmark():
             cached=run_snapshot(stage,as_of=day,history={'days':[]},code_commit=os.environ['GITHUB_SHA'],input_report=inputs,factor_cache=factor_cache)
             cached_seconds=time.perf_counter()-began
             if encode(report)!=encode(cached):raise ValueError('full_score_report_parity_failed')
-            pipeline.append({'symbol':symbol,'date':day,'original_seconds':original_seconds,'cached_seconds':cached_seconds,'exact_report_match':True,
+            began=time.perf_counter()
+            selected=run_snapshot(stage,as_of=day,history={'days':[]},code_commit=os.environ['GITHUB_SHA'],input_report=inputs,factor_cache={},selection_only=True)
+            selection_seconds=time.perf_counter()-began
+            eligible=lambda value:[r for r in value['reviews'] if r.get('score',{}).get('total_score') is not None]
+            if encode(eligible(report))!=encode(eligible(selected)):raise ValueError('selection_prefilter_changed_candidate')
+
+            pipeline.append({'symbol':symbol,'date':day,'original_seconds':original_seconds,'cached_seconds':cached_seconds,'exact_report_match':True,'selection_seconds_cold_cache':selection_seconds,'eligible_reviews_exact_match':True,
                              'report_sha256':sha256(encode(report)),
                              'reviews':[{'symbol':r['symbol'],'status':r['status']} for r in report['reviews']]})
     import shutil

@@ -99,3 +99,20 @@ class NativeFrameCacheTests(unittest.TestCase):
   self.assertEqual(evaluate_period_factors(changed,changed[-1]['date'],complete_session=True,raw_cache=cache),
                    evaluate_period_factors(changed,changed[-1]['date'],complete_session=True))
   self.assertLessEqual(len(cache),96)
+
+class SelectionPrefilterTests(unittest.TestCase):
+ def test_blocked_entry_skips_diagnostic_only_and_default_keeps_it(self):
+  from services.scanner.cr056_runner import run_snapshot
+  rows=HistoryTests().rows();day=rows[-1]['date'];content=json.dumps(rows).encode()
+  inputs={'as_of':day,'result_role':'legacy_comparison_input_repair','repaired':[{'symbol':'SPY','repaired_sha256':sha256(content),'source_sha256':sha256(content)}],'repaired_count':1,'excluded_count':0,'excluded':{}}
+  with tempfile.TemporaryDirectory() as td:
+   (Path(td)/'SPY.json').write_bytes(content)
+   with patch('services.scanner.cr056_runner.assess_entry',return_value={'eligible':True,'paths':[],'reason_codes':[]}),patch('services.scanner.cr056_runner.evaluate_period_factors',side_effect=AssertionError('diagnostic scorer called')):
+    report=run_snapshot(td,as_of=day,history={'days':[]},code_commit='a'*40,input_report=inputs,selection_only=True)
+    self.assertEqual(report['ranked_symbols'],[])
+    self.assertTrue(report['reviews'][0]['diagnostic_score_omitted'])
+    self.assertFalse(report['reviews'][0]['permission']['eligible'])
+    with self.assertRaisesRegex(AssertionError,'diagnostic scorer called'):
+     run_snapshot(td,as_of=day,history={'days':[]},code_commit='a'*40,input_report=inputs)
+   with self.assertRaisesRegex(ValueError,'empty nomination history'):
+    run_snapshot(td,as_of=day,history={'days':[{}]},code_commit='a'*40,input_report=inputs,selection_only=True)

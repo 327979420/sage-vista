@@ -46,11 +46,13 @@ def historical_origins(history, *, as_of):
     return result
 
 
-def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previous=None, policy_revision=False, factor_cache=None):
+def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previous=None, policy_revision=False, factor_cache=None, selection_only=False):
     if input_report.get('as_of') != as_of or input_report.get('result_role') != 'legacy_comparison_input_repair':
         raise ValueError('repaired input report date or role mismatch')
     if previous and (previous.get('result_role') != 'legacy_comparison' or previous['as_of'] > as_of):
         raise ValueError('previous snapshot is not an earlier candidate comparison')
+    if selection_only and (previous is not None or history.get('days')):
+        raise ValueError('selection-only mode requires an empty nomination history')
     sources = {r['symbol']: r for r in input_report['repaired']}
     prior = {r['symbol']: r['watch'] for r in previous.get('reviews', []) if r.get('watch')} if previous else {}
     origins = historical_origins(history, as_of=as_of) if previous is None else {}
@@ -108,6 +110,14 @@ def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previo
             if symbol not in origins and not entry['eligible'] and structure_wait:
                 permission = {**permission, 'eligible':False, 'permission':'blocked',
                               'reason_codes':permission['reason_codes']+['monthly_structure_waiting_for_entry']}
+            # Observation needs eligible signals, not diagnostic scores for
+            # blocked entries. The same shared permission remains authoritative.
+            # Default reports still compute every diagnostic factor as before.
+            if selection_only and entry['eligible'] and not permission['eligible']:
+                item.update({'status':'excluded' if permission['permission']=='blocked' else 'unavailable',
+                             'permission':permission, 'reason_codes':permission['reason_codes'],
+                             'diagnostic_score_omitted':True})
+                counts[item['status']] += 1; reviews.append(item); continue
             tracking = (prior.get(symbol) or {}).get('entry_tracking')
             if symbol in origins and (tracking is not None or permission['eligible']):
                 tracking = track_entry_structures(rows, as_of=as_of, previous=tracking)
