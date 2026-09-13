@@ -1,0 +1,16 @@
+{
+  "decision": "rejected_not_published",
+  "run_url": "https://github.com/327979420/sage-vista/actions/runs/34695968442",
+  "as_of": "2026-09-11",
+  "policy_version": "cr056-policy-3.3.0-candidate",
+  "source_snapshot": "sha256:19d568d160ac6cd0963115cbf516a33d7dee2450afbba0721aec92b6400e391f",
+  "report_sha256": "686b44880ee4b7863e579bcf524cbc81792d44363ee43082daeffe3dadf0c6a8",
+  "blockers": [
+    "historical_2019_smci_head_shoulders_credited_as_current",
+    "recent_smci_monthly_three_push_not_detected"
+  ],
+  "projection_bytes_before": 783014,
+  "projection_bytes_after": 704942,
+  "preserved_origins": 1185,
+  "raw_market_histories_exported": false
+}

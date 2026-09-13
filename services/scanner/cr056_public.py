@@ -31,7 +31,7 @@ def project_report(report):
             for record in sorted(active or tracking['records'],key=lambda r:r['trigger_date']):
                 latest[(record['path'],record['timeframe'])] = record
             item['watch_entries'] = [{k:r.get(k) for k in ('path','timeframe','trigger_date','trigger_close',
-                                      'state','invalidated_at','observation_return','observed_sessions')}
+                                      'state','invalidated_at','observation_return','observed_sessions','confirmation_kinds')}
                                      for r in latest.values()]
             item['watch_history_start'] = tracking['history_start']
             item['watch_as_of'] = tracking['as_of']
@@ -42,7 +42,8 @@ def project_report(report):
             item['nomination_price'] = observation.get('price')
         paths = (row.get('entry_gate') or {}).get('paths', [])
         if paths:
-            item['entry_paths'] = [{k:p.get(k) for k in ('path','timeframe','confirmed_through','cross_date')} for p in paths]
+            # Table tags need only path/type; exact gate dates stay in project_details.
+            item['entry_paths'] = [{k:p.get(k) for k in ('path','timeframe','confirmation_kinds') if p.get(k)} for p in paths]
         # Non-ranked rows retain reasons and scores, without repeating period labels.
         if not row.get('rank'): item.pop('periods', None)
         item.update(origin_date=(row.get('origin') or {}).get('date'),
@@ -55,6 +56,10 @@ def project_report(report):
         if row.get('rank'):
             item['checks'] = permission.get('checks', {})
             # Full evidence is loaded on demand from the matching compressed detail file.
+        # False display flags are the default; omit their repeated wire keys.
+        # Scores, dates, prices, reasons and all watch evidence remain exact.
+        for flag in ('new_nomination', 'high_score_eligible'):
+            if not item.get(flag): item.pop(flag, None)
         reviews.append(item)
     return {'view_version': VIEW_VERSION, 'as_of': report['as_of'], 'result_role': report['result_role'],
         'policy_version': report['policy_version'], 'policy_fingerprint': report['policy_fingerprint'], 'source_snapshot': report['snapshot_fingerprint'],
@@ -71,8 +76,16 @@ def project_details(report):
     for r in report['reviews']:
         if not r.get('score'): continue
         score = r['score']
+        tracking = r.get('entry_tracking') or (r.get('watch') or {}).get('entry_tracking') or {}
+        latest_structures = {}
+        for episode in sorted(tracking.get('records', []), key=lambda e: e['trigger_date']):
+            latest_structures[(episode['path'], episode['timeframe'])] = episode
         reviews[r['symbol']] = {
             'entry_gate': r.get('entry_gate'),
+            'checks': (r.get('permission') or {}).get('checks', {}),
+            'structures': [{k: episode.get(k) for k in ('path', 'timeframe', 'trigger_date',
+                           'structure_floor', 'state', 'invalidated_at')}
+                           for episode in latest_structures.values()],
             'groups': [g for tf in WHITE_LIST for g in score['timeframes'][tf]['groups']],
             'factors': [{k: s.get(k) for k in ('factor_id','available','hit','recent_hit','bars_since_hit',
                          'latest_hit_date','runtime_status','score_role','completed_through','period_bar_count',

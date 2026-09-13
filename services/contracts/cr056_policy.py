@@ -49,10 +49,36 @@ for timeframe in FRAMES:
         }
         if template == 'direction.macd_state':
             MAPPED_FACTORS[mapped_id(timeframe, template)].update(name='MACD方向质量', window=0)
+# One zone detector backs all bottom evidence; aliases share one capped group.
+for timeframe in FRAMES:
+    for template in ('structure.double_bottom','structure.triple_bottom_pullback','structure.higher_low'):
+        item=MAPPED_FACTORS[mapped_id(timeframe,template)]
+        item.update(group=timeframe+'::bottom_structure',family='price_structure',parents=(),window=0,graded=True,
+                    name={'structure.double_bottom':'支撑区多底','structure.triple_bottom_pullback':'三底及以上支撑区','structure.higher_low':'支撑区末底抬高'}[template])
+        item['source_definition']=dict(item['source_definition'],version='candidate-3.5.0',factor_type='state',
+            machine_rule='Current trendline-bounded continuous support zone; independent rallies separate older support; reject deep sweeps')
+for timeframe in FRAMES:
+    item=dict(MAPPED_FACTORS[mapped_id(timeframe,'support.ema_proximity')])
+    item.update(template='support.historical_bottom_zone',source_ids=[],name='历史底部支撑参考',
+        group=timeframe+'::historical_bottom_support',parents=(),window=0,graded=True,research_status='testing')
+    item['source_definition']=dict(item['source_definition'],id='support.historical_bottom_zone',version='candidate-3.5.0',factor_type='state',
+        machine_rule='Prior episode lows tested by current candle within 2 percent, close held; 0.25 credit, never entry anchors')
+    MAPPED_FACTORS[mapped_id(timeframe,'support.historical_bottom_zone')]=item
+for timeframe in FRAMES:
+    item=MAPPED_FACTORS[mapped_id(timeframe,'support.ema_proximity')]
+    item['name']='EMA20/50/100/200支撑'
+    item['source_definition']=dict(item['source_definition'],version='candidate-3.3.0',
+        machine_rule='Native EMA20/50/100/200, each requires matching history, 2 percent current proximity; historical tests are evidence only')
+    if timeframe!='daily':
+        for template in ('structure.trendline_three_push',):
+            item=MAPPED_FACTORS[mapped_id(timeframe,template)]
+            item['source_definition']=dict(item['source_definition'],version='candidate-3.3.0',factor_type='state',
+                machine_rule='Confirmed native-period structural state retained until frozen support invalidation within 120-bar discovery window')
 MAPPED_FACTORS = MappingProxyType(MAPPED_FACTORS)
 WHITE_LIST = MappingProxyType({tf: tuple(fid for fid, m in MAPPED_FACTORS.items()
                                        if m['timeframe'] == tf and m['role'] == 'score') for tf in FRAMES})
 SETTINGS = MappingProxyType({
+    'pullback_bear_body_atr': 1.0, 'pullback_bear_wick_fraction': 0.10,
     'minimum_daily_rows': 420, 'minimum_completed_months': 61,
     'period_double_engulfing_window': 12,
     'monthly_negative_improvements': 1, 'weekly_negative_improvements': 2,
@@ -93,6 +119,6 @@ RULE_IMPLEMENTATION = {name: sha256((_RULE_ROOT/name).read_bytes()).hexdigest() 
     'services/scanner/technical.py', 'services/scanner/macd_factor_backtest.py',
     'services/gates/baseline.py', 'services/gates/local_structure.py',
     'services/gates/long_term_state.py', 'services/ledger/cr056.py')}
-POLICY_VERSION = 'cr056-policy-3.1.0-candidate'
+POLICY_VERSION = 'cr056-policy-3.5.0-candidate'
 POLICY_FINGERPRINT = canonical_fingerprint({'version': POLICY_VERSION, 'entry_settings': ENTRY_SETTINGS, 'implementation': RULE_IMPLEMENTATION, 'settings': dict(SETTINGS),
     'white_list': {k: list(v) for k, v in WHITE_LIST.items()}, 'weights': dict(WEIGHTS), 'caps': dict(CAPS), 'mapped_factors': dict(MAPPED_FACTORS)})

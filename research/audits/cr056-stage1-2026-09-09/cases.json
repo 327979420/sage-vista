@@ -1,0 +1,2550 @@
+{
+  "id": "cr056-stage1-v1-2026-09-09",
+  "status": "sample_frozen_not_validated",
+  "policy_version": "cr056-policy-3.1.0-candidate",
+  "policy_fingerprint": "sha256:9add3f6d8da2136fafa16b9ebbc68d1eabd83acefa3019bf926767a3802d2760",
+  "source_snapshot": "sha256:58dbd4e4b2f92d2085ce789c4f9f22ad81628d97ef459bfb3d2ae32a0febf240",
+  "selection": "4 known + 5 per 4 strata ordered by sha256(cr056-stage1-v1|as_of|symbol); first3 development last2 held per stratum; no returns used",
+  "scope": "single-date engineering sample, not independent historical profitability validation; future outcomes omitted",
+  "cards": [
+    {
+      "symbol": "REXR",
+      "split": "development_known",
+      "as_of": "2026-09-09",
+      "status": "excluded",
+      "score": null,
+      "reasons": [
+        "structure_broken"
+      ],
+      "current_gate_paths": [],
+      "period_evidence": {
+        "daily": {
+          "completed_through": "2026-09-09",
+          "close": 37.07,
+          "current_low": 36.83,
+          "bottoms": [
+            {
+              "date": "2026-08-21",
+              "price": 37.0,
+              "confirmed_at": "2026-08-25"
+            },
+            {
+              "date": "2026-09-02",
+              "price": 36.56,
+              "confirmed_at": "2026-09-04"
+            }
+          ],
+          "cross_date": "2026-08-25",
+          "cross_age_bars": 10,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-09-02",
+            "price": 36.56,
+            "confirmed_at": "2026-09-04",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "weekly_completed": {
+          "completed_through": "2026-09-04",
+          "close": 36.79,
+          "current_low": 36.56,
+          "bottoms": [],
+          "cross_date": "2026-07-02",
+          "cross_age_bars": 9,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-06-18",
+            "price": 31.899035109331695,
+            "confirmed_at": "2026-07-02",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "monthly_completed": {
+          "completed_through": "2026-08-31",
+          "close": 37.04,
+          "current_low": 35.68,
+          "bottoms": [],
+          "cross_date": "2026-07-31",
+          "cross_age_bars": 1,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-03-31",
+            "price": 31.483400430901813,
+            "confirmed_at": "2026-05-29",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        }
+      },
+      "human_review": {
+        "type": null,
+        "stage": null,
+        "support": null,
+        "decision": null
+      },
+      "review_status": "not_reviewed"
+    },
+    {
+      "symbol": "AMD",
+      "split": "development_known",
+      "as_of": "2026-09-09",
+      "status": "excluded",
+      "score": null,
+      "reasons": [
+        "monthly_not_confirmed",
+        "weekly_not_confirmed",
+        "monthly_high_zone"
+      ],
+      "current_gate_paths": [
+        {
+          "path": "bottom_macd",
+          "timeframe": "daily",
+          "confirmed_through": "2026-09-09",
+          "cross_date": "2026-09-04",
+          "structure_key": "sha256:241ddb1590622df7709a4598216f496f34b583413ff37c0ab22a050e54b7db98",
+          "structure_floor": 440.5
+        }
+      ],
+      "period_evidence": {
+        "daily": {
+          "completed_through": "2026-09-09",
+          "close": 521.095,
+          "current_low": 506.36,
+          "bottoms": [
+            {
+              "date": "2026-08-24",
+              "price": 451.0,
+              "confirmed_at": "2026-08-26"
+            },
+            {
+              "date": "2026-09-03",
+              "price": 440.5,
+              "confirmed_at": "2026-09-08"
+            }
+          ],
+          "cross_date": "2026-09-04",
+          "cross_age_bars": 2,
+          "macd_valid": true,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-09-03",
+            "price": 440.5,
+            "confirmed_at": "2026-09-08",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": true,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "weekly_completed": {
+          "completed_through": "2026-09-04",
+          "close": 477.57,
+          "current_low": 440.5,
+          "bottoms": [
+            {
+              "date": "2026-06-12",
+              "price": 437.23,
+              "confirmed_at": "2026-06-26"
+            },
+            {
+              "date": "2026-07-31",
+              "price": 424.03,
+              "confirmed_at": "2026-08-14"
+            }
+          ],
+          "cross_date": "2026-04-17",
+          "cross_age_bars": 20,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-07-31",
+            "price": 424.03,
+            "confirmed_at": "2026-08-14",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": true,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "monthly_completed": {
+          "completed_through": "2026-08-31",
+          "close": 470.72,
+          "current_low": 451.0,
+          "bottoms": [],
+          "cross_date": "2025-08-29",
+          "cross_age_bars": 12,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-03-31",
+            "price": 188.22,
+            "confirmed_at": "2026-05-29",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        }
+      },
+      "human_review": {
+        "type": null,
+        "stage": null,
+        "support": null,
+        "decision": null
+      },
+      "review_status": "not_reviewed"
+    },
+    {
+      "symbol": "LNN",
+      "split": "development_known",
+      "as_of": "2026-09-09",
+      "status": "partial",
+      "score": 50.0,
+      "reasons": [],
+      "current_gate_paths": [],
+      "period_evidence": {
+        "daily": {
+          "completed_through": "2026-09-09",
+          "close": 120.87,
+          "current_low": 120.08,
+          "bottoms": [],
+          "cross_date": "2026-08-31",
+          "cross_age_bars": 6,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-09-02",
+            "price": 112.69,
+            "confirmed_at": "2026-09-04",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "weekly_completed": {
+          "completed_through": "2026-09-04",
+          "close": 123.39,
+          "current_low": 112.69,
+          "bottoms": [],
+          "cross_date": "2026-06-12",
+          "cross_age_bars": 12,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-07-31",
+            "price": 109.37756686518678,
+            "confirmed_at": "2026-08-14",
+            "signals": {
+              "engulfing": true,
+              "hammer_rejection": false,
+              "expansion": true,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "monthly_completed": {
+          "completed_through": "2026-08-31",
+          "close": 114.91,
+          "current_low": 111.03,
+          "bottoms": [
+            {
+              "date": "2025-11-28",
+              "price": 105.0925627287229,
+              "confirmed_at": "2026-01-30"
+            },
+            {
+              "date": "2026-04-30",
+              "price": 96.61183027594248,
+              "confirmed_at": "2026-06-30"
+            }
+          ],
+          "cross_date": "2024-09-30",
+          "cross_age_bars": 23,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-04-30",
+            "price": 96.61183027594248,
+            "confirmed_at": "2026-06-30",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        }
+      },
+      "human_review": {
+        "type": null,
+        "stage": null,
+        "support": null,
+        "decision": null
+      },
+      "review_status": "not_reviewed"
+    },
+    {
+      "symbol": "AMT",
+      "split": "development_known",
+      "as_of": "2026-09-09",
+      "status": "partial",
+      "score": 44.0104,
+      "reasons": [],
+      "current_gate_paths": [
+        {
+          "path": "support_reversal",
+          "timeframe": "monthly_completed",
+          "confirmed_through": "2026-08-31",
+          "cross_date": null,
+          "structure_key": "sha256:26de697f8ef9946640c7644a0161936583a8c3b7e64273a223abeb955004cddf",
+          "structure_floor": 161.90146735218508
+        }
+      ],
+      "period_evidence": {
+        "daily": {
+          "completed_through": "2026-09-09",
+          "close": 175.43,
+          "current_low": 174.6044,
+          "bottoms": [
+            {
+              "date": "2026-08-17",
+              "price": 170.15,
+              "confirmed_at": "2026-08-19"
+            },
+            {
+              "date": "2026-09-02",
+              "price": 171.73,
+              "confirmed_at": "2026-09-04"
+            }
+          ],
+          "cross_date": "2026-09-03",
+          "cross_age_bars": 3,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-09-02",
+            "price": 171.73,
+            "confirmed_at": "2026-09-04",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "weekly_completed": {
+          "completed_through": "2026-09-04",
+          "close": 175.85,
+          "current_low": 171.73,
+          "bottoms": [],
+          "cross_date": "2026-08-21",
+          "cross_age_bars": 2,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-08-07",
+            "price": 162.5,
+            "confirmed_at": "2026-08-21",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "monthly_completed": {
+          "completed_through": "2026-08-31",
+          "close": 175.7,
+          "current_low": 162.5,
+          "bottoms": [
+            {
+              "date": "2025-01-31",
+              "price": 163.45198184595873,
+              "confirmed_at": "2025-03-31"
+            },
+            {
+              "date": "2026-03-31",
+              "price": 161.90146735218508,
+              "confirmed_at": "2026-05-29"
+            }
+          ],
+          "cross_date": "2023-12-29",
+          "cross_age_bars": 32,
+          "macd_valid": false,
+          "support_reversal": true,
+          "breakout": false,
+          "support": {
+            "date": "2026-03-31",
+            "price": 161.90146735218508,
+            "confirmed_at": "2026-05-29",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": true,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        }
+      },
+      "human_review": {
+        "type": null,
+        "stage": null,
+        "support": null,
+        "decision": null
+      },
+      "review_status": "not_reviewed"
+    },
+    {
+      "symbol": "SSB",
+      "split": "development",
+      "as_of": "2026-09-09",
+      "status": "scored",
+      "score": 29.1667,
+      "reasons": [],
+      "current_gate_paths": [
+        {
+          "path": "bottom_macd",
+          "timeframe": "weekly_completed",
+          "confirmed_through": "2026-09-04",
+          "cross_date": "2026-06-12",
+          "structure_key": "sha256:d378727a562dab6e7ab037f9bc401a1fac09d3dbe3eb9c0bfb85b2b7ce97a5c7",
+          "structure_floor": 86.41223806321453
+        }
+      ],
+      "period_evidence": {
+        "daily": {
+          "completed_through": "2026-09-09",
+          "close": 105.35,
+          "current_low": 105.165,
+          "bottoms": [
+            {
+              "date": "2026-08-20",
+              "price": 105.73,
+              "confirmed_at": "2026-08-24"
+            },
+            {
+              "date": "2026-09-01",
+              "price": 103.75,
+              "confirmed_at": "2026-09-03"
+            }
+          ],
+          "cross_date": "2026-07-24",
+          "cross_age_bars": 32,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-09-01",
+            "price": 103.75,
+            "confirmed_at": "2026-09-03",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "weekly_completed": {
+          "completed_through": "2026-09-04",
+          "close": 107.98,
+          "current_low": 103.75,
+          "bottoms": [
+            {
+              "date": "2026-03-20",
+              "price": 86.41223806321453,
+              "confirmed_at": "2026-04-02"
+            },
+            {
+              "date": "2026-05-15",
+              "price": 90.57592722836695,
+              "confirmed_at": "2026-05-29"
+            }
+          ],
+          "cross_date": "2026-06-12",
+          "cross_age_bars": 12,
+          "macd_valid": true,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-05-15",
+            "price": 90.57592722836695,
+            "confirmed_at": "2026-05-29",
+            "signals": {
+              "engulfing": true,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "monthly_completed": {
+          "completed_through": "2026-08-31",
+          "close": 104.89,
+          "current_low": 103.63606547056096,
+          "bottoms": [],
+          "cross_date": "2026-07-31",
+          "cross_age_bars": 1,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-03-31",
+            "price": 86.41223806321453,
+            "confirmed_at": "2026-05-29",
+            "signals": {
+              "engulfing": true,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        }
+      },
+      "human_review": {
+        "type": "historically_valid_bottom_macd",
+        "stage": "target_reached_current_opportunity_finished",
+        "support": null,
+        "decision": "valid_at_original_signal_not_current_candidate",
+        "source": "user_review_in_thread",
+        "note": "用户确认3/20、5/15周线底与6/12周线金叉当时合格；6/12后稍晚是很好入场时机。截至案例日已创新高、达到TP区域，现在不再合格。未给精确入场日/TP价/到达日，不能当作已执行成交或已验证收益。",
+        "implementation_implication": "结构未跌破不等于机会仍可参与；当前机会达到事先确定的目标区后应完成，旧形态保留历史，未来新回踩须另行确认。目标区域识别及阶段接线尚待实现。"
+      },
+      "review_status": "human_reviewed_detection_not_yet_corrected",
+      "review_history": [
+        {
+          "type": "historically_valid_bottom_macd",
+          "stage": "target_reached_current_opportunity_finished",
+          "support": null,
+          "decision": "valid_at_original_signal_not_current_candidate",
+          "source": "user_review_in_thread",
+          "note": "用户确认3/20、5/15周线底与6/12周线金叉当时合格；6/12后稍晚是很好入场时机。截至案例日已创新高、达到TP区域，现在不再合格。未给精确入场日/TP价/到达日，不能当作已执行成交或已验证收益。",
+          "implementation_implication": "结构未跌破不等于机会仍可参与；当前机会达到事先确定的目标区后应完成，旧形态保留历史，未来新回踩须另行确认。目标区域识别及阶段接线尚待实现。"
+        }
+      ]
+    },
+    {
+      "symbol": "VRDN",
+      "split": "development",
+      "as_of": "2026-09-09",
+      "status": "partial",
+      "score": 31.25,
+      "reasons": [],
+      "current_gate_paths": [
+        {
+          "path": "bottom_macd",
+          "timeframe": "weekly_completed",
+          "confirmed_through": "2026-09-04",
+          "cross_date": "2026-07-02",
+          "structure_key": "sha256:5d229a7ea4d8b538c101a09a2aae6c708406430a1ed8ae8faced1eddb9306a86",
+          "structure_floor": 15.5
+        }
+      ],
+      "period_evidence": {
+        "daily": {
+          "completed_through": "2026-09-09",
+          "close": 22.73,
+          "current_low": 22.7,
+          "bottoms": [
+            {
+              "date": "2026-08-14",
+              "price": 21.62,
+              "confirmed_at": "2026-08-18"
+            },
+            {
+              "date": "2026-09-02",
+              "price": 22.39,
+              "confirmed_at": "2026-09-04"
+            }
+          ],
+          "cross_date": "2026-08-04",
+          "cross_age_bars": 25,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-09-02",
+            "price": 22.39,
+            "confirmed_at": "2026-09-04",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "weekly_completed": {
+          "completed_through": "2026-09-04",
+          "close": 22.92,
+          "current_low": 22.39,
+          "bottoms": [
+            {
+              "date": "2026-06-12",
+              "price": 15.5,
+              "confirmed_at": "2026-06-26"
+            },
+            {
+              "date": "2026-07-17",
+              "price": 17.54,
+              "confirmed_at": "2026-07-31"
+            }
+          ],
+          "cross_date": "2026-07-02",
+          "cross_age_bars": 9,
+          "macd_valid": true,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-07-17",
+            "price": 17.54,
+            "confirmed_at": "2026-07-31",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "monthly_completed": {
+          "completed_through": "2026-08-31",
+          "close": 23.16,
+          "current_low": 18.4,
+          "bottoms": [
+            {
+              "date": "2025-04-30",
+              "price": 9.9,
+              "confirmed_at": "2025-06-30"
+            },
+            {
+              "date": "2026-04-30",
+              "price": 13.18,
+              "confirmed_at": "2026-06-30"
+            }
+          ],
+          "cross_date": "2025-08-29",
+          "cross_age_bars": 12,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-04-30",
+            "price": 13.18,
+            "confirmed_at": "2026-06-30",
+            "signals": {
+              "engulfing": true,
+              "hammer_rejection": false,
+              "expansion": true,
+              "doji_follow_through": true
+            }
+          }
+        }
+      },
+      "human_review": {
+        "type": null,
+        "stage": null,
+        "support": null,
+        "decision": null
+      },
+      "review_status": "not_reviewed"
+    },
+    {
+      "symbol": "AXTA",
+      "split": "development",
+      "as_of": "2026-09-09",
+      "status": "partial",
+      "score": 21.7448,
+      "reasons": [],
+      "current_gate_paths": [
+        {
+          "path": "bottom_macd",
+          "timeframe": "monthly_completed",
+          "confirmed_through": "2026-08-31",
+          "cross_date": "2026-07-31",
+          "structure_key": "sha256:e4a5d2bf8a9b8c8abf5263b1ee94f1db07a9f0368c005720a821ef493866efdd",
+          "structure_floor": 24.9365
+        }
+      ],
+      "period_evidence": {
+        "daily": {
+          "completed_through": "2026-09-09",
+          "close": 34.44,
+          "current_low": 34.295,
+          "bottoms": [],
+          "cross_date": "2026-07-28",
+          "cross_age_bars": 30,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-09-01",
+            "price": 34.99,
+            "confirmed_at": "2026-09-03",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "weekly_completed": {
+          "completed_through": "2026-09-04",
+          "close": 35.78,
+          "current_low": 34.99,
+          "bottoms": [],
+          "cross_date": "2026-05-29",
+          "cross_age_bars": 14,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-07-24",
+            "price": 31.52,
+            "confirmed_at": "2026-08-07",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "monthly_completed": {
+          "completed_through": "2026-08-31",
+          "close": 36.42,
+          "current_low": 35.26,
+          "bottoms": [
+            {
+              "date": "2025-10-31",
+              "price": 26.28,
+              "confirmed_at": "2025-12-31"
+            },
+            {
+              "date": "2026-03-31",
+              "price": 24.9365,
+              "confirmed_at": "2026-05-29"
+            }
+          ],
+          "cross_date": "2026-07-31",
+          "cross_age_bars": 1,
+          "macd_valid": true,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-03-31",
+            "price": 24.9365,
+            "confirmed_at": "2026-05-29",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        }
+      },
+      "human_review": {
+        "type": null,
+        "stage": null,
+        "support": null,
+        "decision": null
+      },
+      "review_status": "not_reviewed"
+    },
+    {
+      "symbol": "FLR",
+      "split": "held_engineering_check",
+      "as_of": "2026-09-09",
+      "status": "partial",
+      "score": 31.25,
+      "reasons": [],
+      "current_gate_paths": [
+        {
+          "path": "bottom_macd",
+          "timeframe": "daily",
+          "confirmed_through": "2026-09-09",
+          "cross_date": "2026-08-31",
+          "structure_key": "sha256:908d922d82221eb3ce7a4e0751a1163f7ab77e8754a1ac11eea4e41cebe77195",
+          "structure_floor": 50.65
+        },
+        {
+          "path": "bottom_macd",
+          "timeframe": "monthly_completed",
+          "confirmed_through": "2026-08-31",
+          "cross_date": "2026-06-30",
+          "structure_key": "sha256:5aee9c0ebf91f21ce3c0ee15913f17c0bad547ede1f4c8c30f301f2d77a53b64",
+          "structure_floor": 39.33
+        }
+      ],
+      "period_evidence": {
+        "daily": {
+          "completed_through": "2026-09-09",
+          "close": 54.83,
+          "current_low": 54.71,
+          "bottoms": [
+            {
+              "date": "2026-08-13",
+              "price": 51.09,
+              "confirmed_at": "2026-08-17"
+            },
+            {
+              "date": "2026-08-25",
+              "price": 50.65,
+              "confirmed_at": "2026-08-27"
+            }
+          ],
+          "cross_date": "2026-08-31",
+          "cross_age_bars": 6,
+          "macd_valid": true,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-08-25",
+            "price": 50.65,
+            "confirmed_at": "2026-08-27",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "weekly_completed": {
+          "completed_through": "2026-09-04",
+          "close": 56.16,
+          "current_low": 52.97,
+          "bottoms": [],
+          "cross_date": "2026-06-12",
+          "cross_age_bars": 12,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-07-31",
+            "price": 46.77,
+            "confirmed_at": "2026-08-14",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "monthly_completed": {
+          "completed_through": "2026-08-31",
+          "close": 54.51,
+          "current_low": 48.58,
+          "bottoms": [
+            {
+              "date": "2025-12-31",
+              "price": 39.33,
+              "confirmed_at": "2026-02-27"
+            },
+            {
+              "date": "2026-05-29",
+              "price": 41.6,
+              "confirmed_at": "2026-07-31"
+            }
+          ],
+          "cross_date": "2026-06-30",
+          "cross_age_bars": 2,
+          "macd_valid": true,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-05-29",
+            "price": 41.6,
+            "confirmed_at": "2026-07-31",
+            "signals": {
+              "engulfing": true,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        }
+      },
+      "human_review": {
+        "type": null,
+        "stage": null,
+        "support": null,
+        "decision": null
+      },
+      "review_status": "not_reviewed"
+    },
+    {
+      "symbol": "DCH",
+      "split": "held_engineering_check",
+      "as_of": "2026-09-09",
+      "status": "partial",
+      "score": 18.4896,
+      "reasons": [],
+      "current_gate_paths": [
+        {
+          "path": "bottom_macd",
+          "timeframe": "weekly_completed",
+          "confirmed_through": "2026-09-04",
+          "cross_date": "2026-08-14",
+          "structure_key": "sha256:4b6d7fb2f8389357325ea73527a09159ead1f24c6c32cc75c24751d6f3803b5e",
+          "structure_floor": 4.915
+        }
+      ],
+      "period_evidence": {
+        "daily": {
+          "completed_through": "2026-09-09",
+          "close": 6.72,
+          "current_low": 6.6112,
+          "bottoms": [],
+          "cross_date": "2026-09-04",
+          "cross_age_bars": 2,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-09-01",
+            "price": 6.07,
+            "confirmed_at": "2026-09-03",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "weekly_completed": {
+          "completed_through": "2026-09-04",
+          "close": 6.99,
+          "current_low": 6.07,
+          "bottoms": [
+            {
+              "date": "2026-05-08",
+              "price": 5.31,
+              "confirmed_at": "2026-05-22"
+            },
+            {
+              "date": "2026-07-02",
+              "price": 4.915,
+              "confirmed_at": "2026-07-17"
+            }
+          ],
+          "cross_date": "2026-08-14",
+          "cross_age_bars": 3,
+          "macd_valid": true,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-07-02",
+            "price": 4.915,
+            "confirmed_at": "2026-07-17",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": true,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "monthly_completed": {
+          "completed_through": "2026-08-31",
+          "close": 6.26,
+          "current_low": 5.59,
+          "bottoms": [],
+          "cross_date": "2025-09-30",
+          "cross_age_bars": 11,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-03-31",
+            "price": 5.07,
+            "confirmed_at": "2026-05-29",
+            "signals": {
+              "engulfing": true,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        }
+      },
+      "human_review": {
+        "type": null,
+        "stage": null,
+        "support": null,
+        "decision": null
+      },
+      "review_status": "not_reviewed"
+    },
+    {
+      "symbol": "CME",
+      "split": "development",
+      "as_of": "2026-09-09",
+      "status": "partial",
+      "score": 34.375,
+      "reasons": [],
+      "current_gate_paths": [],
+      "period_evidence": {
+        "daily": {
+          "completed_through": "2026-09-09",
+          "close": 274.7,
+          "current_low": 274.0325,
+          "bottoms": [],
+          "cross_date": "2026-07-06",
+          "cross_age_bars": 46,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-09-02",
+            "price": 275.63,
+            "confirmed_at": "2026-09-04",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "weekly_completed": {
+          "completed_through": "2026-09-04",
+          "close": 281.29,
+          "current_low": 275.63,
+          "bottoms": [],
+          "cross_date": "2026-08-14",
+          "cross_age_bars": 3,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-07-02",
+            "price": 218.31,
+            "confirmed_at": "2026-07-17",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "monthly_completed": {
+          "completed_through": "2026-08-31",
+          "close": 285.5,
+          "current_low": 256.83,
+          "bottoms": [],
+          "cross_date": "2024-08-30",
+          "cross_age_bars": 24,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2025-10-31",
+            "price": 248.7235983175927,
+            "confirmed_at": "2025-12-31",
+            "signals": {
+              "engulfing": true,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        }
+      },
+      "human_review": {
+        "type": null,
+        "stage": null,
+        "support": null,
+        "decision": null
+      },
+      "review_status": "not_reviewed"
+    },
+    {
+      "symbol": "CVLT",
+      "split": "development",
+      "as_of": "2026-09-09",
+      "status": "partial",
+      "score": 18.75,
+      "reasons": [],
+      "current_gate_paths": [],
+      "period_evidence": {
+        "daily": {
+          "completed_through": "2026-09-09",
+          "close": 131.66,
+          "current_low": 130.5,
+          "bottoms": [
+            {
+              "date": "2026-08-26",
+              "price": 128.57,
+              "confirmed_at": "2026-08-28"
+            },
+            {
+              "date": "2026-09-02",
+              "price": 125.9,
+              "confirmed_at": "2026-09-04"
+            }
+          ],
+          "cross_date": "2026-08-11",
+          "cross_age_bars": 20,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-09-02",
+            "price": 125.9,
+            "confirmed_at": "2026-09-04",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "weekly_completed": {
+          "completed_through": "2026-09-04",
+          "close": 136.41,
+          "current_low": 125.9,
+          "bottoms": [],
+          "cross_date": "2026-04-10",
+          "cross_age_bars": 21,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-07-31",
+            "price": 113.53,
+            "confirmed_at": "2026-08-14",
+            "signals": {
+              "engulfing": true,
+              "hammer_rejection": true,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "monthly_completed": {
+          "completed_through": "2026-08-31",
+          "close": 137.52,
+          "current_low": 119.41,
+          "bottoms": [],
+          "cross_date": "2023-06-30",
+          "cross_age_bars": 38,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-04-30",
+            "price": 71.75,
+            "confirmed_at": "2026-06-30",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        }
+      },
+      "human_review": {
+        "type": null,
+        "stage": null,
+        "support": null,
+        "decision": null
+      },
+      "review_status": "not_reviewed"
+    },
+    {
+      "symbol": "DOCU",
+      "split": "development",
+      "as_of": "2026-09-09",
+      "status": "partial",
+      "score": 32.2917,
+      "reasons": [],
+      "current_gate_paths": [],
+      "period_evidence": {
+        "daily": {
+          "completed_through": "2026-09-09",
+          "close": 64.45,
+          "current_low": 63.633,
+          "bottoms": [
+            {
+              "date": "2026-08-12",
+              "price": 57.5,
+              "confirmed_at": "2026-08-14"
+            },
+            {
+              "date": "2026-08-26",
+              "price": 58.73,
+              "confirmed_at": "2026-08-28"
+            }
+          ],
+          "cross_date": "2026-08-31",
+          "cross_age_bars": 6,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-08-26",
+            "price": 58.73,
+            "confirmed_at": "2026-08-28",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "weekly_completed": {
+          "completed_through": "2026-09-04",
+          "close": 68.41,
+          "current_low": 63.6,
+          "bottoms": [
+            {
+              "date": "2026-05-15",
+              "price": 44.06,
+              "confirmed_at": "2026-05-29"
+            },
+            {
+              "date": "2026-06-18",
+              "price": 41.368,
+              "confirmed_at": "2026-07-02"
+            }
+          ],
+          "cross_date": "2026-04-24",
+          "cross_age_bars": 19,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-06-18",
+            "price": 41.368,
+            "confirmed_at": "2026-07-02",
+            "signals": {
+              "engulfing": true,
+              "hammer_rejection": false,
+              "expansion": true,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "monthly_completed": {
+          "completed_through": "2026-08-31",
+          "close": 66.27,
+          "current_low": 54.26,
+          "bottoms": [],
+          "cross_date": "2023-08-31",
+          "cross_age_bars": 36,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-02-27",
+            "price": 40.16,
+            "confirmed_at": "2026-04-30",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": true,
+              "doji_follow_through": false
+            }
+          }
+        }
+      },
+      "human_review": {
+        "type": null,
+        "stage": null,
+        "support": null,
+        "decision": null
+      },
+      "review_status": "not_reviewed"
+    },
+    {
+      "symbol": "DNOW",
+      "split": "held_engineering_check",
+      "as_of": "2026-09-09",
+      "status": "partial",
+      "score": 14.5833,
+      "reasons": [],
+      "current_gate_paths": [],
+      "period_evidence": {
+        "daily": {
+          "completed_through": "2026-09-09",
+          "close": 16.14,
+          "current_low": 15.98,
+          "bottoms": [
+            {
+              "date": "2026-08-20",
+              "price": 15.36,
+              "confirmed_at": "2026-08-24"
+            },
+            {
+              "date": "2026-09-03",
+              "price": 15.605,
+              "confirmed_at": "2026-09-08"
+            }
+          ],
+          "cross_date": "2026-08-03",
+          "cross_age_bars": 26,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-09-03",
+            "price": 15.605,
+            "confirmed_at": "2026-09-08",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "weekly_completed": {
+          "completed_through": "2026-09-04",
+          "close": 16.12,
+          "current_low": 15.605,
+          "bottoms": [
+            {
+              "date": "2026-06-05",
+              "price": 12.715,
+              "confirmed_at": "2026-06-18"
+            },
+            {
+              "date": "2026-07-10",
+              "price": 12.43,
+              "confirmed_at": "2026-07-24"
+            }
+          ],
+          "cross_date": "2026-05-01",
+          "cross_age_bars": 18,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-07-10",
+            "price": 12.43,
+            "confirmed_at": "2026-07-24",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": true,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "monthly_completed": {
+          "completed_through": "2026-08-31",
+          "close": 16.03,
+          "current_low": 13.96,
+          "bottoms": [],
+          "cross_date": "2025-01-31",
+          "cross_age_bars": 19,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-03-31",
+            "price": 10.935,
+            "confirmed_at": "2026-05-29",
+            "signals": {
+              "engulfing": true,
+              "hammer_rejection": false,
+              "expansion": true,
+              "doji_follow_through": false
+            }
+          }
+        }
+      },
+      "human_review": {
+        "type": null,
+        "stage": null,
+        "support": null,
+        "decision": null
+      },
+      "review_status": "not_reviewed"
+    },
+    {
+      "symbol": "GEN",
+      "split": "held_engineering_check",
+      "as_of": "2026-09-09",
+      "status": "partial",
+      "score": 21.875,
+      "reasons": [],
+      "current_gate_paths": [],
+      "period_evidence": {
+        "daily": {
+          "completed_through": "2026-09-09",
+          "close": 29.76,
+          "current_low": 29.549,
+          "bottoms": [],
+          "cross_date": "2026-08-26",
+          "cross_age_bars": 9,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-08-20",
+            "price": 27.01,
+            "confirmed_at": "2026-08-24",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "weekly_completed": {
+          "completed_through": "2026-09-04",
+          "close": 30.65,
+          "current_low": 29.86,
+          "bottoms": [],
+          "cross_date": "2026-05-08",
+          "cross_age_bars": 17,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-07-24",
+            "price": 24.860438771439966,
+            "confirmed_at": "2026-08-07",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "monthly_completed": {
+          "completed_through": "2026-08-31",
+          "close": 31,
+          "current_low": 26.951219537366548,
+          "bottoms": [],
+          "cross_date": "2026-08-31",
+          "cross_age_bars": 0,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-04-30",
+            "price": 17.607559386567956,
+            "confirmed_at": "2026-06-30",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": true,
+              "doji_follow_through": false
+            }
+          }
+        }
+      },
+      "human_review": {
+        "type": null,
+        "stage": null,
+        "support": null,
+        "decision": null
+      },
+      "review_status": "not_reviewed"
+    },
+    {
+      "symbol": "MDY",
+      "split": "development",
+      "as_of": "2026-09-09",
+      "status": "excluded",
+      "score": null,
+      "reasons": [
+        "monthly_not_confirmed",
+        "weekly_not_confirmed",
+        "structure_broken"
+      ],
+      "current_gate_paths": [
+        {
+          "path": "support_reversal",
+          "timeframe": "weekly_completed",
+          "confirmed_through": "2026-09-04",
+          "cross_date": null,
+          "structure_key": "sha256:e9addbec4e6490adb039d808f42e446ea664691b7746589e4897b5421a46bdc0",
+          "structure_floor": 678.6
+        }
+      ],
+      "period_evidence": {
+        "daily": {
+          "completed_through": "2026-09-09",
+          "close": 679.65,
+          "current_low": 679.23,
+          "bottoms": [
+            {
+              "date": "2026-08-25",
+              "price": 691.62,
+              "confirmed_at": "2026-08-27"
+            },
+            {
+              "date": "2026-09-01",
+              "price": 678.6,
+              "confirmed_at": "2026-09-03"
+            }
+          ],
+          "cross_date": "2026-08-04",
+          "cross_age_bars": 25,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-09-01",
+            "price": 678.6,
+            "confirmed_at": "2026-09-03",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "weekly_completed": {
+          "completed_through": "2026-09-04",
+          "close": 691.52,
+          "current_low": 678.6,
+          "bottoms": [],
+          "cross_date": "2026-08-07",
+          "cross_age_bars": 4,
+          "macd_valid": false,
+          "support_reversal": true,
+          "breakout": false,
+          "support": {
+            "date": "2026-07-31",
+            "price": 679.11,
+            "confirmed_at": "2026-08-14",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": true,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "monthly_completed": {
+          "completed_through": "2026-08-31",
+          "close": 687.13,
+          "current_low": 685.6,
+          "bottoms": [],
+          "cross_date": "2025-10-31",
+          "cross_age_bars": 10,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-03-31",
+            "price": 595.5484630235547,
+            "confirmed_at": "2026-05-29",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        }
+      },
+      "human_review": {
+        "type": null,
+        "stage": null,
+        "support": null,
+        "decision": null
+      },
+      "review_status": "not_reviewed"
+    },
+    {
+      "symbol": "AAOI",
+      "split": "development",
+      "as_of": "2026-09-09",
+      "status": "unavailable",
+      "score": null,
+      "reasons": [
+        "monthly_not_confirmed",
+        "weekly_not_confirmed",
+        "monthly_high_zone",
+        "local_structure_unavailable"
+      ],
+      "current_gate_paths": [
+        {
+          "path": "bottom_macd",
+          "timeframe": "monthly_completed",
+          "confirmed_through": "2026-08-31",
+          "cross_date": "2025-09-30",
+          "structure_key": "sha256:510ed64e7414f0a5de983717c583b5bebc3fc2079a3fa3593a52ecf6fb1c0487",
+          "structure_floor": 9.711
+        }
+      ],
+      "period_evidence": {
+        "daily": {
+          "completed_through": "2026-09-09",
+          "close": 107.93,
+          "current_low": 107.62,
+          "bottoms": [
+            {
+              "date": "2026-08-24",
+              "price": 102.1,
+              "confirmed_at": "2026-08-26"
+            },
+            {
+              "date": "2026-09-03",
+              "price": 96.96,
+              "confirmed_at": "2026-09-08"
+            }
+          ],
+          "cross_date": "2026-08-03",
+          "cross_age_bars": 26,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-09-03",
+            "price": 96.96,
+            "confirmed_at": "2026-09-08",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "weekly_completed": {
+          "completed_through": "2026-09-04",
+          "close": 105.53,
+          "current_low": 96.96,
+          "bottoms": [],
+          "cross_date": "2025-12-19",
+          "cross_age_bars": 37,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-07-31",
+            "price": 76.01,
+            "confirmed_at": "2026-08-14",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": true,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "monthly_completed": {
+          "completed_through": "2026-08-31",
+          "close": 107.69,
+          "current_low": 88.13,
+          "bottoms": [
+            {
+              "date": "2025-04-30",
+              "price": 9.711,
+              "confirmed_at": "2025-06-30"
+            },
+            {
+              "date": "2025-11-28",
+              "price": 18.5,
+              "confirmed_at": "2026-01-30"
+            }
+          ],
+          "cross_date": "2025-09-30",
+          "cross_age_bars": 11,
+          "macd_valid": true,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2025-11-28",
+            "price": 18.5,
+            "confirmed_at": "2026-01-30",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        }
+      },
+      "human_review": {
+        "type": null,
+        "stage": null,
+        "support": null,
+        "decision": null
+      },
+      "review_status": "not_reviewed"
+    },
+    {
+      "symbol": "COKE",
+      "split": "development",
+      "as_of": "2026-09-09",
+      "status": "excluded",
+      "score": null,
+      "reasons": [
+        "monthly_not_confirmed",
+        "weekly_not_confirmed",
+        "structure_broken"
+      ],
+      "current_gate_paths": [
+        {
+          "path": "support_reversal",
+          "timeframe": "daily",
+          "confirmed_through": "2026-09-09",
+          "cross_date": null,
+          "structure_key": "sha256:45e1bfc644451de97eb36a94fb439ee61f949efe6bbab6bd1e28db96871f9d96",
+          "structure_floor": 184.47
+        }
+      ],
+      "period_evidence": {
+        "daily": {
+          "completed_through": "2026-09-09",
+          "close": 189.02,
+          "current_low": 184.47,
+          "bottoms": [],
+          "cross_date": "2026-08-24",
+          "cross_age_bars": 11,
+          "macd_valid": false,
+          "support_reversal": true,
+          "breakout": false,
+          "support": {
+            "date": "2026-08-27",
+            "price": 187.28,
+            "confirmed_at": "2026-08-31",
+            "signals": {
+              "engulfing": true,
+              "hammer_rejection": true,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "weekly_completed": {
+          "completed_through": "2026-09-04",
+          "close": 189.33,
+          "current_low": 188.33,
+          "bottoms": [
+            {
+              "date": "2026-05-15",
+              "price": 160.77440494401273,
+              "confirmed_at": "2026-05-29"
+            },
+            {
+              "date": "2026-07-10",
+              "price": 166.66614250768006,
+              "confirmed_at": "2026-07-24"
+            }
+          ],
+          "cross_date": "2026-02-20",
+          "cross_age_bars": 28,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-07-10",
+            "price": 166.66614250768006,
+            "confirmed_at": "2026-07-24",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "monthly_completed": {
+          "completed_through": "2026-08-31",
+          "close": 195.57,
+          "current_low": 176.24,
+          "bottoms": [],
+          "cross_date": "2025-12-31",
+          "cross_age_bars": 8,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-05-29",
+            "price": 160.77440494401273,
+            "confirmed_at": "2026-07-31",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": true,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        }
+      },
+      "human_review": {
+        "type": "daily_only_opportunity",
+        "stage": "earlier_daily_entry_windows_current_not_selected",
+        "support": null,
+        "decision": "exclude_current_insufficient_quality",
+        "source": "user_chart_review_in_thread",
+        "note": "用户认为仅有日线机会，周/月没有警报；图中12日吞没启动、21日回踩趋势线为此前日线入场窗口。按图位置应为8月，用户只口述日号，精确日期须核验。用户判断该例分/质量低不能进入，不新增未经确认的分数阈值。无周月警报不等于周月方向恶化；不能把日线反转升级为大周期修复机会。",
+        "image_reference": "codex-clipboard-93be5362-f2af-4c46-b146-bb5e9feafccf.png",
+        "implementation_implication": "分别记录机会周期、历史入场窗口、当前质量/准入；现行代码实际因方向/结构条件排除且总分null，不冒充按低分阈值排除。"
+      },
+      "review_status": "human_reviewed_detection_not_yet_corrected",
+      "review_history": [
+        {
+          "type": "daily_only_opportunity",
+          "stage": "earlier_daily_entry_windows_current_not_selected",
+          "support": null,
+          "decision": "exclude_current_insufficient_quality",
+          "source": "user_chart_review_in_thread",
+          "note": "用户认为仅有日线机会，周/月没有警报；图中12日吞没启动、21日回踩趋势线为此前日线入场窗口。按图位置应为8月，用户只口述日号，精确日期须核验。用户判断该例分/质量低不能进入，不新增未经确认的分数阈值。无周月警报不等于周月方向恶化；不能把日线反转升级为大周期修复机会。",
+          "image_reference": "codex-clipboard-93be5362-f2af-4c46-b146-bb5e9feafccf.png",
+          "implementation_implication": "分别记录机会周期、历史入场窗口、当前质量/准入；现行代码实际因方向/结构条件排除且总分null，不冒充按低分阈值排除。"
+        }
+      ]
+    },
+    {
+      "symbol": "VST",
+      "split": "held_engineering_check",
+      "as_of": "2026-09-09",
+      "status": "excluded",
+      "score": null,
+      "reasons": [
+        "monthly_not_confirmed",
+        "weekly_not_confirmed",
+        "no_available_background"
+      ],
+      "current_gate_paths": [
+        {
+          "path": "bottom_macd",
+          "timeframe": "daily",
+          "confirmed_through": "2026-09-09",
+          "cross_date": "2026-09-01",
+          "structure_key": "sha256:d224688cc73001dfd89444d37593d64ee04bf8620e5557da90f93d2610672306",
+          "structure_floor": 134.5
+        }
+      ],
+      "period_evidence": {
+        "daily": {
+          "completed_through": "2026-09-09",
+          "close": 151.1,
+          "current_low": 148.9,
+          "bottoms": [
+            {
+              "date": "2026-08-24",
+              "price": 134.5,
+              "confirmed_at": "2026-08-26"
+            },
+            {
+              "date": "2026-09-01",
+              "price": 134.9,
+              "confirmed_at": "2026-09-03"
+            }
+          ],
+          "cross_date": "2026-09-01",
+          "cross_age_bars": 5,
+          "macd_valid": true,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-09-01",
+            "price": 134.9,
+            "confirmed_at": "2026-09-03",
+            "signals": {
+              "engulfing": true,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "weekly_completed": {
+          "completed_through": "2026-09-04",
+          "close": 149.3,
+          "current_low": 134.9,
+          "bottoms": [
+            {
+              "date": "2026-06-12",
+              "price": 137.7211626461672,
+              "confirmed_at": "2026-06-26"
+            },
+            {
+              "date": "2026-08-07",
+              "price": 134.75,
+              "confirmed_at": "2026-08-21"
+            }
+          ],
+          "cross_date": "2026-06-18",
+          "cross_age_bars": 11,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-08-07",
+            "price": 134.75,
+            "confirmed_at": "2026-08-21",
+            "signals": {
+              "engulfing": true,
+              "hammer_rejection": false,
+              "expansion": true,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "monthly_completed": {
+          "completed_through": "2026-08-31",
+          "close": 137.37,
+          "current_low": 134.5,
+          "bottoms": [],
+          "cross_date": "2023-06-30",
+          "cross_age_bars": 38,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-05-29",
+            "price": 132.4784061762304,
+            "confirmed_at": "2026-07-31",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        }
+      },
+      "human_review": {
+        "type": null,
+        "stage": null,
+        "support": null,
+        "decision": null
+      },
+      "review_status": "not_reviewed"
+    },
+    {
+      "symbol": "GRID",
+      "split": "held_engineering_check",
+      "as_of": "2026-09-09",
+      "status": "excluded",
+      "score": null,
+      "reasons": [
+        "monthly_not_confirmed",
+        "weekly_not_confirmed"
+      ],
+      "current_gate_paths": [
+        {
+          "path": "bottom_macd",
+          "timeframe": "monthly_completed",
+          "confirmed_through": "2026-08-31",
+          "cross_date": "2025-06-30",
+          "structure_key": "sha256:ec5adcb074a6c8115bcc2dd226861b620b8cd6ba49c4f06903dc6027a9359a0a",
+          "structure_floor": 98.34036688639007
+        }
+      ],
+      "period_evidence": {
+        "daily": {
+          "completed_through": "2026-09-09",
+          "close": 180.13,
+          "current_low": 179.6608,
+          "bottoms": [
+            {
+              "date": "2026-08-24",
+              "price": 177.31,
+              "confirmed_at": "2026-08-26"
+            },
+            {
+              "date": "2026-09-02",
+              "price": 174.2,
+              "confirmed_at": "2026-09-04"
+            }
+          ],
+          "cross_date": "2026-08-03",
+          "cross_age_bars": 26,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-09-02",
+            "price": 174.2,
+            "confirmed_at": "2026-09-04",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "weekly_completed": {
+          "completed_through": "2026-09-04",
+          "close": 178.99,
+          "current_low": 174.2,
+          "bottoms": [],
+          "cross_date": "2026-04-17",
+          "cross_age_bars": 20,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-07-31",
+            "price": 166.4,
+            "confirmed_at": "2026-08-14",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": true,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "monthly_completed": {
+          "completed_through": "2026-08-31",
+          "close": 178.39,
+          "current_low": 177.31,
+          "bottoms": [
+            {
+              "date": "2024-08-30",
+              "price": 105.39174236779937,
+              "confirmed_at": "2024-10-31"
+            },
+            {
+              "date": "2025-04-30",
+              "price": 98.34036688639007,
+              "confirmed_at": "2025-06-30"
+            }
+          ],
+          "cross_date": "2025-06-30",
+          "cross_age_bars": 14,
+          "macd_valid": true,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2025-04-30",
+            "price": 98.34036688639007,
+            "confirmed_at": "2025-06-30",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        }
+      },
+      "human_review": {
+        "type": null,
+        "stage": null,
+        "support": null,
+        "decision": null
+      },
+      "review_status": "not_reviewed"
+    },
+    {
+      "symbol": "NTCT",
+      "split": "development",
+      "as_of": "2026-09-09",
+      "status": "excluded",
+      "score": null,
+      "reasons": [
+        "monthly_not_confirmed",
+        "weekly_not_confirmed",
+        "structure_broken"
+      ],
+      "current_gate_paths": [],
+      "period_evidence": {
+        "daily": {
+          "completed_through": "2026-09-09",
+          "close": 37.3,
+          "current_low": 36.92,
+          "bottoms": [
+            {
+              "date": "2026-08-06",
+              "price": 36.6542,
+              "confirmed_at": "2026-08-10"
+            },
+            {
+              "date": "2026-08-24",
+              "price": 37.525,
+              "confirmed_at": "2026-08-26"
+            }
+          ],
+          "cross_date": "2026-08-27",
+          "cross_age_bars": 8,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-08-24",
+            "price": 37.525,
+            "confirmed_at": "2026-08-26",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "weekly_completed": {
+          "completed_through": "2026-09-04",
+          "close": 37.22,
+          "current_low": 36.655,
+          "bottoms": [
+            {
+              "date": "2026-06-12",
+              "price": 38.62,
+              "confirmed_at": "2026-06-26"
+            },
+            {
+              "date": "2026-08-07",
+              "price": 36.6542,
+              "confirmed_at": "2026-08-21"
+            }
+          ],
+          "cross_date": "2026-02-13",
+          "cross_age_bars": 29,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-08-07",
+            "price": 36.6542,
+            "confirmed_at": "2026-08-21",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "monthly_completed": {
+          "completed_through": "2026-08-31",
+          "close": 38.83,
+          "current_low": 36.6542,
+          "bottoms": [],
+          "cross_date": "2024-11-29",
+          "cross_age_bars": 21,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-02-27",
+            "price": 26.1638,
+            "confirmed_at": "2026-04-30",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        }
+      },
+      "human_review": {
+        "type": null,
+        "stage": null,
+        "support": null,
+        "decision": null
+      },
+      "review_status": "not_reviewed"
+    },
+    {
+      "symbol": "PFGC",
+      "split": "development",
+      "as_of": "2026-09-09",
+      "status": "excluded",
+      "score": null,
+      "reasons": [
+        "monthly_not_confirmed",
+        "weekly_not_confirmed",
+        "structure_broken"
+      ],
+      "current_gate_paths": [],
+      "period_evidence": {
+        "daily": {
+          "completed_through": "2026-09-09",
+          "close": 95.63,
+          "current_low": 95.025,
+          "bottoms": [],
+          "cross_date": "2026-06-09",
+          "cross_age_bars": 63,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-09-01",
+            "price": 98.09,
+            "confirmed_at": "2026-09-03",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "weekly_completed": {
+          "completed_through": "2026-09-04",
+          "close": 98.63,
+          "current_low": 97.81,
+          "bottoms": [],
+          "cross_date": "2026-05-08",
+          "cross_age_bars": 17,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-07-24",
+            "price": 108.32,
+            "confirmed_at": "2026-08-07",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "monthly_completed": {
+          "completed_through": "2026-08-31",
+          "close": 99.17,
+          "current_low": 98.48,
+          "bottoms": [],
+          "cross_date": "2026-07-31",
+          "cross_age_bars": 1,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-03-31",
+            "price": 80.82,
+            "confirmed_at": "2026-05-29",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        }
+      },
+      "human_review": {
+        "type": null,
+        "stage": null,
+        "support": null,
+        "decision": null
+      },
+      "review_status": "not_reviewed"
+    },
+    {
+      "symbol": "CTRI",
+      "split": "development",
+      "as_of": "2026-09-09",
+      "status": "unavailable",
+      "score": null,
+      "reasons": [
+        "completed_months_below_61",
+        "monthly_not_confirmed",
+        "weekly_not_confirmed",
+        "monthly_high_window_missing",
+        "structure_broken",
+        "no_available_background"
+      ],
+      "current_gate_paths": [],
+      "period_evidence": {
+        "daily": {
+          "completed_through": "2026-09-09",
+          "close": 20.16,
+          "current_low": 20.12,
+          "bottoms": [],
+          "cross_date": "2026-09-03",
+          "cross_age_bars": 3,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-08-31",
+            "price": 19.9,
+            "confirmed_at": "2026-09-02",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "weekly_completed": {
+          "completed_through": "2026-09-04",
+          "close": 20.54,
+          "current_low": 19.9,
+          "bottoms": [],
+          "cross_date": "2026-04-10",
+          "cross_age_bars": 21,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-06-12",
+            "price": 27.97,
+            "confirmed_at": "2026-06-26",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "monthly_completed": {
+          "completed_through": "2026-08-31",
+          "close": 20.41,
+          "current_low": 19.9,
+          "bottoms": [],
+          "cross_date": "2025-06-30",
+          "cross_age_bars": 14,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2025-11-28",
+            "price": 19.04,
+            "confirmed_at": "2026-01-30",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        }
+      },
+      "human_review": {
+        "type": null,
+        "stage": null,
+        "support": null,
+        "decision": null
+      },
+      "review_status": "not_reviewed"
+    },
+    {
+      "symbol": "MMM",
+      "split": "held_engineering_check",
+      "as_of": "2026-09-09",
+      "status": "excluded",
+      "score": null,
+      "reasons": [
+        "structure_broken"
+      ],
+      "current_gate_paths": [],
+      "period_evidence": {
+        "daily": {
+          "completed_through": "2026-09-09",
+          "close": 164.4,
+          "current_low": 164.03,
+          "bottoms": [],
+          "cross_date": "2026-07-21",
+          "cross_age_bars": 35,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-08-20",
+            "price": 177.12462810938288,
+            "confirmed_at": "2026-08-24",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "weekly_completed": {
+          "completed_through": "2026-09-04",
+          "close": 168.56,
+          "current_low": 165.8,
+          "bottoms": [],
+          "cross_date": "2026-06-05",
+          "cross_age_bars": 13,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-07-10",
+            "price": 152.89066898513252,
+            "confirmed_at": "2026-07-24",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "monthly_completed": {
+          "completed_through": "2026-08-31",
+          "close": 171.83,
+          "current_low": 171.66,
+          "bottoms": [],
+          "cross_date": "2023-12-29",
+          "cross_age_bars": 32,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-03-31",
+            "price": 138.01893443342777,
+            "confirmed_at": "2026-05-29",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        }
+      },
+      "human_review": {
+        "type": null,
+        "stage": null,
+        "support": null,
+        "decision": null
+      },
+      "review_status": "not_reviewed"
+    },
+    {
+      "symbol": "RY",
+      "split": "held_engineering_check",
+      "as_of": "2026-09-09",
+      "status": "excluded",
+      "score": null,
+      "reasons": [
+        "monthly_not_confirmed",
+        "weekly_not_confirmed",
+        "monthly_high_zone"
+      ],
+      "current_gate_paths": [],
+      "period_evidence": {
+        "daily": {
+          "completed_through": "2026-09-09",
+          "close": 206.81,
+          "current_low": 205.88,
+          "bottoms": [],
+          "cross_date": "2026-09-04",
+          "cross_age_bars": 2,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-09-01",
+            "price": 201.75,
+            "confirmed_at": "2026-09-03",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "weekly_completed": {
+          "completed_through": "2026-09-04",
+          "close": 210.59,
+          "current_low": 201.75,
+          "bottoms": [],
+          "cross_date": "2026-05-01",
+          "cross_age_bars": 18,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-07-31",
+            "price": 205.9,
+            "confirmed_at": "2026-08-14",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        },
+        "monthly_completed": {
+          "completed_through": "2026-08-31",
+          "close": 204.15,
+          "current_low": 200.86,
+          "bottoms": [],
+          "cross_date": "2024-02-29",
+          "cross_age_bars": 30,
+          "macd_valid": false,
+          "support_reversal": false,
+          "breakout": false,
+          "support": {
+            "date": "2026-03-31",
+            "price": 154.93556095026923,
+            "confirmed_at": "2026-05-29",
+            "signals": {
+              "engulfing": false,
+              "hammer_rejection": false,
+              "expansion": false,
+              "doji_follow_through": false
+            }
+          }
+        }
+      },
+      "human_review": {
+        "type": null,
+        "stage": null,
+        "support": null,
+        "decision": null
+      },
+      "review_status": "not_reviewed"
+    }
+  ]
+}

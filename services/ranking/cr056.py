@@ -30,7 +30,7 @@ def score_candidate(states, permission):
             available[fid] = state is not None and state.get('available') is True
             strength = 0.0
             if available[fid]:
-                if meta[fid]['template'] == 'direction.macd_state':
+                if meta[fid]['template'] == 'direction.macd_state' or meta[fid].get('graded'):
                     strength = float(state.get('value', 0))
                 elif state.get('hit') is True:
                     strength = 1.0

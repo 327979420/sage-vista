@@ -1,0 +1,22 @@
+{
+  "decision": "rejected_not_published",
+  "as_of": "2026-09-11",
+  "policy_version": "cr056-policy-3.4.0-candidate",
+  "run_url": "https://github.com/327979420/sage-vista/actions/runs/34699117378",
+  "source_snapshot": "sha256:17bed6efd2042a899fba3814f72a3f10f132c9c11e19fafa9bf0c559cd1d650b",
+  "report_sha256": "4ac1398590b42a2e14530e62e783328a8a75c90777c46c20a77b3ba0628c94ae",
+  "preserved_origins": 1185,
+  "projection_bytes_without_refresh_fields": 765608,
+  "issues": [
+    "public_projection_size_budget_exceeded",
+    "SMCI_support_zone_includes_2023_pre_rally_bottom_and_122.9_neckline",
+    "SMCI_monthly_three_push_not_detected",
+    "AMT_historical_breakout_state_not_distinguished_from_current_position"
+  ],
+  "sample_symbols": [
+    "SMCI",
+    "AMT",
+    "PG"
+  ],
+  "manual_symbol_override": false
+}

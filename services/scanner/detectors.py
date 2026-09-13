@@ -89,3 +89,87 @@ def evaluate_gap(previous_close,planned_entry,next_open,atr_value,cfg=None):
  cfg=cfg or load_config();gap=next_open-planned_entry;ratio=gap/atr_value if atr_value else 999
  if gap<=0:return {"classification":"no_adverse_gap","action":"plan unchanged","gap_atr":round(ratio,3),"reject":False}
  small=ratio<cfg["gap"]["small_gap_atr"];return {"classification":"small_gap" if small else "large_gap","action":"wait for four-hour retest" if small else "do not chase; recalculate plan","gap_atr":round(ratio,3),"reject":not small}
+
+
+def head_shoulders_bottom(rows, end=None, cfg=None):
+ """Point-in-time structural evidence, separate from entry permission."""
+ cfg=cfg or load_config(); end=len(rows)-1 if end is None else end
+ bars=rows[:end+1]
+ if len(bars)<9:return {'stage':'unavailable','strength':0.0,'anchors':[]}
+ points=pivots(bars,end,cfg)['lows']; points=[p for p in points if p['index']>=end-120]
+ volatility=atr(bars); candidates=[]
+ for left,head,right in zip(points,points[1:],points[2:]):
+  li,hi,ri=left['index'],head['index'],right['index']; known=right['confirmed_index']
+  scale=volatility[known]
+  if not (3<=hi-li<=60 and 3<=ri-hi<=60):continue
+  if min(left['price'],right['price'])-head['price']<.25*scale:continue
+  if abs(left['price']-right['price'])>scale:continue
+  a=max(range(li+1,hi),key=lambda j:bars[j]['high'])
+  b=max(range(hi+1,ri),key=lambda j:bars[j]['high'])
+  slope=(bars[b]['high']-bars[a]['high'])/(b-a)
+  level=lambda j:bars[a]['high']+slope*(j-a)
+  # A neckline below a shoulder is not a valid reversal target.
+  if level(known)<=max(left['price'],right['price']):continue
+  invalid=next((j for j in range(known,end+1) if bars[j]['close']<head['price']),None)
+  breakout=next((j for j in range(known,(invalid if invalid is not None else end+1))
+                 if bars[j]['close']>level(j)),None)
+  stage='invalidated' if invalid is not None else 'confirmed' if breakout is not None else 'forming'
+  if stage=='confirmed' and end>breakout and bars[end]['low']<=level(end)+.25*volatility[end] and bars[end]['close']>=level(end):stage='retest'
+  anchors=[{'role':role,'date':bars[p['index']]['date'],'price':p['price'],
+            'confirmed_at':bars[p['confirmed_index']]['date']} for role,p in [('left_shoulder',left),('head',head),('right_shoulder',right)]]
+  candidates.append({'stage':stage,'strength':0.0 if invalid is not None else .5 if breakout is None else 1.0,
+   'anchors':anchors,'confirmed_at':bars[known]['date'],'structure_floor':head['price'],
+   'neckline_anchors':[{'date':bars[j]['date'],'price':bars[j]['high']} for j in (a,b)],
+   'neckline':level(end),'breakout_date':bars[breakout]['date'] if breakout is not None else None,
+   'invalidated_at':bars[invalid]['date'] if invalid is not None else None})
+ return candidates[-1] if candidates else {'stage':'not_detected','strength':0.0,'anchors':[]}
+
+
+def multi_bottom_structure(rows, end=None, cfg=None):
+ """Independent tests in a frozen zone; no separate head/shoulders credit."""
+ cfg=cfg or load_config(); end=len(rows)-1 if end is None else end
+ bars=rows[:end+1]; limits=cfg['triple_bottom']; volatility=atr(bars)
+ all_points=pivots(bars,end,cfg)
+ from .macd_factor_backtest import three_push_breakout_setup
+ trend=three_push_breakout_setup(bars,end,require_breakout=False)
+ start=trend['anchors'][0]['index'] if trend else max(0,end-limits['lookback_bars'])
+ points=[p for p in all_points['lows'] if p['index']>=start]
+ candidates=[]
+ for offset,first in enumerate(points[:-1]):
+  scale=volatility[first['confirmed_index']]
+  prior_highs=[h for h in all_points['highs'] if h['confirmed_index']<=first['index']]
+  if prior_highs and any(first['index']<h['index']<points[-1]['index'] and h['price']>prior_highs[-1]['price']+scale for h in all_points['highs']):continue
+  tolerance=max(first['price']*limits['max_low_spread_pct'],scale*limits['max_low_spread_atr'])
+  lower,upper=first['price']-tolerance,first['price']+tolerance
+  tests=[first]; peaks=[]; rejected=False
+  for point in points[offset+1:]:
+   prior=tests[-1]; gap=point['index']-prior['index']
+   if not lower<=point['price']<=upper:rejected=True;break
+   if gap<3:continue
+   if gap>limits['max_separation_bars']:rejected=True;break
+   peak=max(bars[j]['high'] for j in range(prior['index']+1,point['index']))
+   if peak-max(prior['price'],point['price'])<scale*limits['min_intervening_bounce_atr']:continue
+   tests.append(point);peaks.append(peak)
+  if rejected or len(tests)<2 or tests[-1]!=points[-1]:continue
+  known=tests[1]['confirmed_index']
+  swept=next((j for j in range(first['confirmed_index']+1,end+1) if bars[j]['low']<lower and bars[j]['close']>=lower),None)
+  invalid=next((j for j in range(known,end+1) if bars[j]['close']<lower),None)
+  neckline=max(peaks); breakout=next((j for j in range(tests[-1]['confirmed_index'],end+1) if bars[j]['close']>neckline),None)
+  rising=tests[-1]['price']>tests[-2]['price']
+  strength=min(1.0,min(.9,.5+.15*(len(tests)-2))+(.1 if rising else 0))
+  stage='deep_sweep_rejected' if swept is not None else 'invalidated' if invalid is not None else 'confirmed' if breakout is not None else 'forming'
+  candidates.append({'stage':stage,'strength':0.0 if swept is not None or invalid is not None else round(strength,4),
+   'bottom_count':len(tests),'structure_start':bars[start]['date'] if trend else bars[first['index']]['date'],'start_source':'three_push_anchor' if trend else 'continuous_bottom_tests','last_bottom_higher':rising,'zone_lower':lower,'zone_upper':upper,
+   'frozen_at':bars[known]['date'],'structure_floor':min(p['price'] for p in tests[:2]),
+   'neckline':neckline,'confirmed_at':bars[tests[-1]['confirmed_index']]['date'],
+   'breakout_date':bars[breakout]['date'] if breakout is not None else None,
+   'invalidated_at':bars[invalid]['date'] if invalid is not None else None,
+   'sweep_at':bars[swept]['date'] if swept is not None else None,
+   'anchors':[{'role':'bottom','date':bars[p['index']]['date'],'price':p['price'],'confirmed_at':bars[p['confirmed_index']]['date']} for p in tests]})
+ result=max(candidates,key=lambda c:c['bottom_count']) if candidates else {'stage':'not_detected','strength':0.0,'anchors':[],'bottom_count':0}
+ boundary=result['anchors'][0]['date'] if result['anchors'] else bars[start]['date'] if bars else ''
+ old=[p for p in all_points['lows'] if bars[p['index']]['date']<boundary]
+ # Historical support is a separate fact, never inserted into current anchors.
+ result['historical_support']=[{'date':bars[p['index']]['date'],'price':p['price']} for p in old
+  if bars[end]['low']<=p['price']*1.02 and bars[end]['high']>=p['price']*.98 and bars[end]['close']>=p['price']]
+ return result

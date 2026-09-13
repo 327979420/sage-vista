@@ -212,15 +212,43 @@ def evaluate_period_factors(rows, as_of, *, complete_session=False):
   for fid, meta in MAPPED_FACTORS.items():
    if meta['timeframe'] != tf: continue
    template = meta['template']; minimum = 3
-   if template == 'qualification.long_trend': minimum = 261
+   if template in ('structure.double_bottom','structure.triple_bottom_pullback','structure.higher_low'): minimum = 9
+   elif template == 'qualification.long_trend': minimum = 261
    elif template in ('support.close_congestion', 'support.volume_profile_proxy'): minimum = 251
-   elif template == 'support.ema_proximity' or template.startswith('volume.'): minimum = 21
+   elif template == 'support.ema_proximity': minimum = 20
+   elif template.startswith('volume.'): minimum = 21
    elif template.startswith('rsi.'): minimum = 15
    elif template == 'direction.macd_state' or template == 'macd.daily_bull_cross': minimum = 35
    elif template in ('qualification.pullback_60d', 'structure.triple_bottom_pullback'): minimum = 61
    available = bool(rows and rows[-1]['date'] == as_of and len(bars) >= minimum and meta['role'] != 'unimplemented')
    hit=False; evidence={}; age=None; last=None; strength=0.0
    def detect(j):
+    if template == 'support.historical_bottom_zone':
+     from .detectors import multi_bottom_structure
+     state=multi_bottom_structure(bars,j)
+     refs=state.get('historical_support',[])
+     return bool(refs),{'strength':.25 if refs else 0,'anchors':[dict(x,role='historical_support') for x in refs]}
+    if template in ('structure.double_bottom','structure.triple_bottom_pullback','structure.higher_low'):
+     from .detectors import multi_bottom_structure
+     state=multi_bottom_structure(bars,j)
+     if template=='structure.triple_bottom_pullback' and state.get('bottom_count',0)<3:state=dict(state,strength=0.0)
+     if template=='structure.higher_low':state=dict(state,strength=.1 if state['strength']>0 and state.get('last_bottom_higher') else 0.0)
+     return state['strength']>0,state
+    if template == 'structure.trendline_three_push' and tf != 'daily':
+     from .macd_factor_backtest import three_push_structure_state
+     state=three_push_structure_state(bars,j)
+     return state['strength']>0,state
+    if template == 'support.ema_proximity':
+     history=bars[:j+1]; prices=[r['close'] for r in history]
+     levels={str(n):ema(prices,n)[-1] for n in (20,50,100,200) if len(history)>=n}
+     distances={n:abs(prices[-1]/v-1) for n,v in levels.items() if v>0}
+     tests={}
+     for n in levels:
+      line=ema(prices,int(n)); touched=[]
+      for k in range(max(int(n)-1,j-11),j+1):
+       if history[k]['low']<=line[k]*1.02 and history[k]['high']>=line[k]*.98 and history[k]['close']>=line[k]:touched.append(history[k]['date'])
+      tests[n]=touched
+     return any(d<=.02 for d in distances.values()),{'distance_by_period':distances,'levels':levels,'tolerance':.02,'historical_support_tests':tests}
     if template == 'direction.macd_state':
      line, signal = macd([r['close'] for r in bars[:j+1]])
      h, prior = line[-1]-signal[-1], line[-2]-signal[-2]
@@ -233,7 +261,7 @@ def evaluate_period_factors(rows, as_of, *, complete_session=False):
     hit, evidence = detect(len(bars)-1)
     strength = evidence.get('strength', 1.0 if hit else 0.0)
     if hit: age=0; last=bars[-1]['date']
-    elif meta['source_definition']['factor_type']=='event' and meta['window']:
+    elif meta['source_definition']['factor_type']=='event' and meta['window'] and not (template=='structure.trendline_three_push' and tf!='daily'):
      for ago in range(1, min(meta['window'], len(bars)-minimum+1)):
       if detect(len(bars)-1-ago)[0]: age=ago; last=bars[-1-ago]['date']; break
    recent = age is not None
@@ -250,10 +278,10 @@ def evaluate_period_factors(rows, as_of, *, complete_session=False):
    evidence = native_evidence(evidence)
    if template == 'support.ema_proximity' and available:
     evidence['distance_by_period']={p:d for p,d in evidence['distance_by_period'].items() if len(bars)>=int(p)}
-   result.append({'factor_id':fid, 'factor_version':('period-mapping-macd-1.0.1' if template=='macd.daily_bull_cross' else 'period-mapping-1.0.0'), 'as_of':as_of,
+   result.append({'factor_id':fid, 'factor_version':('period-mapping-macd-1.0.1' if template=='macd.daily_bull_cross' else 'period-mapping-1.1.0'), 'as_of':as_of,
     'source_factor_ids':meta['source_ids'], 'timeframe':tf, 'completed_through':bars[-1]['date'] if bars else None,
     'available':available, 'hit':bool(hit), 'recent_hit':recent, 'bars_since_hit':age,
-    'latest_hit_date':last, 'value':strength if template=='direction.macd_state' else evidence.get('ratio',bool(hit)),
+    'latest_hit_date':last, 'value':strength if template=='direction.macd_state' or meta.get('graded') else evidence.get('ratio',bool(hit)),
     'evidence':evidence, 'runtime_status':reason, 'research_status':meta['research_status'], 'score_role':meta['role'],
     'period_bar_count':len(bars), 'minimum_bars':minimum,
     'lookahead_audit':{'future_data_used':False,'completed_bars_only':True}})
