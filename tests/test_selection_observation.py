@@ -72,3 +72,17 @@ class ObservationTests(unittest.TestCase):
             review['reviews'][0]['status']='unavailable'
             with self.assertRaisesRegex(ValueError,'pilot_no_evaluable_candidates'):
                 m.shard(0,1,pilot=True)
+
+    def test_long_history_preparation_reuses_verified_source(self):
+        import tempfile,json,os
+        from pathlib import Path
+        from unittest.mock import patch
+        from research.backtest import selection_observation as m
+        old=[{'date':'2017-12-04','close':100},{'date':'2026-09-11','close':100}]
+        full=[{'date':'2000-01-03','close':100},{'date':'2026-09-11','close':100}]
+        with tempfile.TemporaryDirectory() as td,patch.object(m,'ROOT',Path(td)),patch.object(m,'normalized_comparison_rows',side_effect=lambda r,**k:r),patch('services.scanner.eodhd.prices',return_value=full) as fetch,patch.object(m.time,'sleep'):
+            cache=Path(td)/'work/eodhd-cache';cache.mkdir(parents=True);(cache/'SPY.json').write_text(json.dumps(old))
+            m.prepare_history();m.prepare_history()
+            self.assertEqual(fetch.call_count,1)
+            self.assertEqual(json.loads((cache/'SPY.json').read_bytes())[0]['date'],'2000-01-03')
+            self.assertTrue((Path(td)/'work/observation/history-coverage.json').exists())

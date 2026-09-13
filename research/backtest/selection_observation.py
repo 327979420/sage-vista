@@ -64,6 +64,40 @@ def choose(gate,scores):
     return tf,min(p['structure_floor'] for p in paths if p['timeframe']==tf)
 
 
+def prepare_history():
+    """Refresh whole source vintages, never splice differently adjusted tails."""
+    from services.scanner.eodhd import prices
+    cache=ROOT/'work/eodhd-cache';state_path=ROOT/'work/observation-history.json'
+    state=json.loads(state_path.read_bytes()) if state_path.exists() else {'as_of':ASOF,'from':'2000-01-01','sources':{}}
+    if state['as_of']!=ASOF:raise ValueError('research_history_vintage_changed')
+    paths=[p for p in sorted(cache.glob('*.json')) if p.stem.replace('-','').replace('.','').isalnum()]
+    requested=0
+    for p in paths:
+        raw=p.read_bytes();prior=state['sources'].get(p.stem)
+        if prior and prior['sha256']==sha256(raw):continue
+        old=json.loads(raw)
+        # Only a previously verified full-history request proves later listing.
+        # A truncated daily cache cannot establish a listing date.
+        if old and old[0]['date']<='2000-01-03' and old[-1]['date']>=ASOF:
+            rows=[r for r in old if r['date']<=ASOF];source='reused_long_cache'
+        else:
+            if requested>=2500:raise ValueError('history_request_budget_exhausted')
+            rows=prices(p.stem,'2000-01-01',ASOF);requested+=1;source='full_history_provider_request'
+            time.sleep(.25)
+        if not isinstance(rows,list) or not rows:raise ValueError('history_provider_empty_'+p.stem)
+        normalized_comparison_rows(rows,as_of=ASOF)
+        days=[r['date'] for r in rows]
+        if days!=sorted(set(days)) or days[-1]>ASOF:raise ValueError('history_invalid_or_stale_'+p.stem)
+        content=encode(rows);temp=p.with_suffix('.tmp');temp.write_bytes(content);temp.replace(p)
+        state['sources'][p.stem]={'sha256':sha256(content),'first':days[0],'last':days[-1],'sessions':len(days),'source':source}
+        temp=state_path.with_suffix('.tmp');temp.write_bytes(encode(state));temp.replace(state_path)
+        print(f'History {len(state["sources"])}/{len(paths)} {p.stem}: {days[0]} to {days[-1]}',flush=True)
+    spy=state['sources'].get('SPY',{})
+    if spy.get('first','9999')>START or spy.get('last','')<ASOF:raise ValueError('twenty_year_reference_history_missing')
+    audit=ROOT/'work/observation/history-coverage.json';audit.parent.mkdir(parents=True,exist_ok=True)
+    audit.write_bytes(encode(state))
+
+
 def checkpoint_bytes(value):
     body={k:v for k,v in value.items() if k!='checkpoint_sha256'}
     return gzip.compress(encode({**body,'checkpoint_sha256':sha256(encode(body))}),mtime=0)
@@ -199,5 +233,6 @@ def aggregate(total):
     out=ROOT/'work/research-attempt';out.mkdir(parents=True,exist_ok=True);(out/'report.html').write_bytes(report);(out/'receipt.json').write_bytes(encode(receipt))
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('--shard',type=int,default=0);p.add_argument('--total',type=int,default=1);p.add_argument('--pilot',action='store_true');p.add_argument('--aggregate',action='store_true');a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('--shard',type=int,default=0);p.add_argument('--total',type=int,default=1);p.add_argument('--pilot',action='store_true');p.add_argument('--aggregate',action='store_true');p.add_argument('--prepare-history',action='store_true');a=p.parse_args()
+    if a.prepare_history:prepare_history();raise SystemExit(0)
     aggregate(a.total) if a.aggregate else shard(a.shard,a.total,a.pilot)
