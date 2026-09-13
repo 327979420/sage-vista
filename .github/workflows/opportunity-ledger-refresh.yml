@@ -2,7 +2,7 @@ name: Refresh Opportunity Ledger
 
 on:
   workflow_run:
-    workflows: ["Unified V2 Historical Backfill", "Refresh Opportunity Ledger"]
+    workflows: ["Unified V2 Historical Backfill"]
     types: [completed]
   workflow_dispatch:
     inputs:
@@ -324,18 +324,3 @@ jobs:
           name: observation-report-${{ github.run_id }}
           path: work/research-attempt/
           retention-days: 90
-
-  observation_resume:
-    if: github.event_name == 'workflow_run' && github.event.workflow_run.name == 'Refresh Opportunity Ledger' && github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.event == 'workflow_dispatch' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.run_attempt < 3
-    runs-on: ubuntu-latest
-    steps:
-      - name: Retry failed observation shards only, preserving original commit and checkpoints
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          RUN_ID: ${{ github.event.workflow_run.id }}
-        run: |
-          gh api "repos/$GH_REPO/actions/runs/$RUN_ID/jobs?per_page=100" > jobs.json
-          if python3 -c 'import json;raise SystemExit(0 if any(j["name"].startswith("observation_shards") and j["conclusion"] in ("failure","timed_out") for j in json.load(open("jobs.json"))["jobs"]) else 1)'; then
-            gh run rerun "$RUN_ID" --failed
-          fi

@@ -1,6 +1,9 @@
 name: Sage Vista EOD Freshness Monitor
 
 on:
+  workflow_run:
+    workflows: ["Refresh Opportunity Ledger"]
+    types: [completed]
   # Separate late check after all normal EOD retry windows. repository_dispatch
   # also permits an external scheduler to invoke the same audit in the future.
   schedule:
@@ -16,6 +19,7 @@ permissions:
 
 jobs:
   freshness:
+    if: github.event_name != 'workflow_run'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
@@ -66,3 +70,18 @@ jobs:
       - name: Fail visibly when stale
         if: steps.freshness.outputs.result == 'stale'
         run: exit 1
+
+  observation_resume:
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.name == 'Refresh Opportunity Ledger' && github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.event == 'workflow_dispatch' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.run_attempt < 3
+    runs-on: ubuntu-latest
+    steps:
+      - name: Retry failed observation shards only, preserving original commit and checkpoints
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          gh api "repos/$GH_REPO/actions/runs/$RUN_ID/jobs?per_page=100" > jobs.json
+          if python3 -c 'import json;raise SystemExit(0 if any(j["name"].startswith("observation_shards") and j["conclusion"] in ("failure","timed_out") for j in json.load(open("jobs.json"))["jobs"]) else 1)'; then
+            gh run rerun "$RUN_ID" --failed
+          fi
