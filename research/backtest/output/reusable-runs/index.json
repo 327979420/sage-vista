@@ -1,6 +1,19 @@
 {
   "runs": [
     {
+      "code_commit": "0c5fe1186af2eb0f40240c4c68af8baa2728f2c8",
+      "content_sha256": "d431d48dd304fa594189e0679331d7ccfe1b2007ad7d08f9734053655a866c3f",
+      "id": "34746471646-1",
+      "receipt_sha256": "af3c4b7564956115216210999a9b795897a122b4de7026dedd7f75c7561836d0",
+      "request": {
+        "end": "2025-09-11",
+        "start": "2005-09-12",
+        "strategy": "cr056-selection-observation-v1"
+      },
+      "status": "failed",
+      "summary": {}
+    },
+    {
       "code_commit": "6487afbbb456416c454e3d027b1700c3d6ec493a",
       "content_sha256": "7b2934e4dd087e994a746e3ec1934e93d7190db2ca70fa5efd624ed4ada246ab",
       "id": "34746259309-1",
