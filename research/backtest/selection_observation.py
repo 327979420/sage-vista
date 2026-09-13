@@ -293,6 +293,31 @@ def benchmark():
         results.append({'symbol':symbol,'source':sha256(raw),'dates':[rows[i]['date'] for i in indices],
                         'fact_and_gate_hashes':expected,'seconds':times,'exact_match':True})
         print(f'{symbol}: exact facts/gates, original {times["original"]:.2f}s, cached {times["cached"]:.2f}s',flush=True)
+    # Measure the full shared scorer separately; ticket timings are not a
+    # substitute for end-to-end cost. Fixed dates, including excluded stocks.
+    pipeline_profile=cProfile.Profile();pipeline=[]
+    spyraw=json.loads((cache/'SPY.json').read_bytes())
+    stage=out/'stage';stage.mkdir(exist_ok=True)
+    for symbol in symbols:
+        rawrows=json.loads((cache/(symbol+'.json')).read_bytes())
+        for day in ('2020-03-13','2025-01-16'):
+            for old in stage.glob('*.json'):old.unlink()
+            repaired=[]
+            for ticker,rawvalues in ((symbol,rawrows),('SPY',spyraw)):
+                content=encode([r for r in rawvalues if r['date']<=day])
+                (stage/(ticker+'.json')).write_bytes(content)
+                repaired.append({'symbol':ticker,'repaired_sha256':sha256(content),'source_sha256':sources[ticker]['sha256']})
+            inputs={'as_of':day,'result_role':'legacy_comparison_input_repair','repaired':repaired,'repaired_count':2,'excluded_count':0,'excluded':{}}
+            began=time.perf_counter();pipeline_profile.enable()
+            report=run_snapshot(stage,as_of=day,history={'days':[]},code_commit=os.environ['GITHUB_SHA'],input_report=inputs)
+            pipeline_profile.disable()
+            pipeline.append({'symbol':symbol,'date':day,'profiled_seconds':time.perf_counter()-began,
+                             'reviews':[{'symbol':r['symbol'],'status':r['status']} for r in report['reviews']]})
+    import shutil
+    shutil.rmtree(stage)  # Never upload private source prices with diagnostics.
+    stream=io.StringIO();pstats.Stats(pipeline_profile,stream=stream).sort_stats('cumulative').print_stats(35)
+    (out/'pipeline-profile.txt').write_text(stream.getvalue())
+    (out/'pipeline-summary.json').write_bytes(encode(pipeline))
     profile.dump_stats(str(out/'cached-profile.stats'))
     stream=io.StringIO();pstats.Stats(profile,stream=stream).sort_stats('cumulative').print_stats(25)
     (out/'profile.txt').write_text(stream.getvalue())
