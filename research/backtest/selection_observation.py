@@ -7,6 +7,7 @@ import html
 import io
 import json
 import os
+import time
 from bisect import bisect_left
 from datetime import date, timedelta
 from pathlib import Path
@@ -18,7 +19,7 @@ from services.scanner.cr056_runner import run_snapshot
 from services.contracts.cr056_policy import POLICY_VERSION, POLICY_FINGERPRINT
 
 STRATEGY = 'cr056-selection-observation-v1'
-START, END, ASOF = '2020-09-14', '2025-09-11', '2026-09-11'
+START, END, ASOF = '2005-09-12', '2025-09-11', '2026-09-11'
 WINDOWS = {'daily': [('5d',5,'d'),('10d',10,'d'),('20d',20,'d')],
  'weekly_completed':[('5w',5,'w'),('10w',10,'w'),('20w',20,'w')],
  'monthly_completed':[('3m',3,'m'),('6m',6,'m'),('9m',9,'m'),('12m',12,'m')]}
@@ -78,9 +79,10 @@ def shard(index,total,pilot=False):
     if min(spy)>start or max(spy)<ASOF:raise ValueError('reference_calendar_not_covered')
     paths=[p for p in sorted(cache.glob('*.json')) if p.stem.replace('-','').replace('.','').isalnum()]
     if pilot:paths=paths[:8]
-    code=os.environ['GITHUB_SHA'];completed=[]
+    code=os.environ['GITHUB_SHA'];completed=[];started=time.monotonic();timing=[]
     for pos,p in enumerate(paths):
         if pos%total!=index:continue
+        symbol_started=time.monotonic()
         raw=p.read_bytes();identity={'symbol':p.stem,'source':sha256(raw),'spy':sha256(encode(spyraw)),'code':code,'policy':POLICY_FINGERPRINT,'start':start,'end':end,'asof':ASOF}
         key=sha256(encode(identity));file=out/(p.stem+'.json.gz')
         if file.exists():
@@ -95,13 +97,22 @@ def shard(index,total,pilot=False):
             saved['excluded']='calendar_mismatch';rows=[]
         stage=out/'stage';stage.mkdir(exist_ok=True)
         for old in stage.glob('*.json'):old.unlink()
-        for day in ticket_dates(rows,start,end):
-            if day<=saved['done_through']:continue
-            past=[r for r in rows if r['date']<=day]
+        for row_index,row in enumerate(rows):
+            day=row['date']
+            if not start<=day<=end or day<=saved['done_through']:continue
+            if time.monotonic()-started>14400:raise TimeoutError('observation_checkpoint_budget_resume')
+            past=rows[:row_index+1]
+            if row_index%50==0:
+                temp=file.with_suffix('.tmp');temp.write_bytes(checkpoint_bytes(saved));temp.replace(file)
             if saved['active']:
                 active=saved['active']
-                if not any(r['close']<active['floor'] for r in past if r['date']>active['day']):continue
+                if not any(r['close']<active['floor'] for r in past if r['date']>active['day']):
+                    saved['done_through']=day
+                    continue
                 saved['active']=None
+            if not next(iter(ticket_dates(past,day,day)),None):
+                saved['done_through']=day
+                continue
             rawpast=[r for r in json.loads(raw) if r['date']<=day]
             data={p.stem:rawpast,'SPY':[r for r in spyraw if r['date']<=day]}
             hashes={}
@@ -124,11 +135,12 @@ def shard(index,total,pilot=False):
         saved['complete']=True
         if not rows:saved.setdefault('excluded','no_rows')
         file.write_bytes(checkpoint_bytes(saved));completed.append(p.stem)
+        timing.append({'symbol':p.stem,'seconds':time.monotonic()-symbol_started,'sessions':sum(start<=r['date']<=end for r in rows)})
         print(f'{p.stem}: {len(saved["events"])} opportunities; {len(completed)} symbols completed',flush=True)
     if pilot:
         checks=[json.loads(gzip.decompress((out/(symbol+'.json.gz')).read_bytes())) for symbol in completed]
         if not any(v.get('evaluated',0)>v.get('unavailable',0) for v in checks):raise ValueError('pilot_no_evaluable_candidates')
-    (out/f'manifest-{index}.json').write_bytes(encode({'shard':index,'total':total,'symbols':completed,'pilot':pilot,'code':code,'policy':POLICY_FINGERPRINT}))
+    (out/f'manifest-{index}.json').write_bytes(encode({'shard':index,'total':total,'symbols':completed,'pilot':pilot,'timing':timing,'cache_symbols':len(list(cache.glob('*.json'))),'code':code,'policy':POLICY_FINGERPRINT}))
 
 
 def summarize(events):

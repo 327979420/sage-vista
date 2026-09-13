@@ -42,7 +42,7 @@ class ObservationTests(unittest.TestCase):
             calls.append(as_of)
             gate={'eligible':True,'paths':[{'timeframe':'daily','path':'bottom_macd','structure_key':'constant','structure_floor':90}]}
             return {'reviews':[{'symbol':s,'status':'allowed','rank':1,'entry_gate':gate,'score':{'total_score':40,'timeframes':{'daily':{'normalized':.4}}},'reason_codes':[]} for s in ('AAA','SPY')]}
-        with tempfile.TemporaryDirectory() as td,patch.object(m,'ROOT',Path(td)),patch.dict(os.environ,{'GITHUB_SHA':'a'*40}),patch.object(m,'normalized_comparison_rows',side_effect=lambda r,**k:r),patch.object(m,'ticket_dates',return_value=days[:3]),patch.object(m,'run_snapshot',side_effect=scan):
+        with tempfile.TemporaryDirectory() as td,patch.object(m,'ROOT',Path(td)),patch.dict(os.environ,{'GITHUB_SHA':'a'*40}),patch.object(m,'normalized_comparison_rows',side_effect=lambda r,**k:r),patch.object(m,'ticket_dates',side_effect=lambda rows,start,end:[start]),patch.object(m,'run_snapshot',side_effect=scan):
             cache=Path(td)/'work/eodhd-cache';cache.mkdir(parents=True)
             for s in ('AAA','SPY'):(cache/(s+'.json')).write_text(json.dumps(rows))
             m.shard(0,1)
