@@ -87,3 +87,15 @@ class NativeFrameCacheTests(unittest.TestCase):
   past=rows[:430]
   self.assertEqual(collect_entry_facts(past,as_of=past[-1]['date'],complete_session=True,frame_cache=cache),
                    collect_entry_facts(past,as_of=past[-1]['date'],complete_session=True))
+ def test_factor_cache_preserves_all_states_and_rejects_revision(self):
+  from copy import deepcopy
+  from services.scanner.factor_detectors import evaluate_period_factors
+  rows=HistoryTests().rows();cache={}
+  for i in (430,431,432,430):
+   past=rows[:i+1];day=past[-1]['date']
+   self.assertEqual(evaluate_period_factors(past,day,complete_session=True,raw_cache=cache),
+                    evaluate_period_factors(past,day,complete_session=True))
+  changed=deepcopy(rows[:433]);changed[100]['high']+=20
+  self.assertEqual(evaluate_period_factors(changed,changed[-1]['date'],complete_session=True,raw_cache=cache),
+                   evaluate_period_factors(changed,changed[-1]['date'],complete_session=True))
+  self.assertLessEqual(len(cache),96)

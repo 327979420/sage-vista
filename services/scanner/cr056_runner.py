@@ -46,7 +46,7 @@ def historical_origins(history, *, as_of):
     return result
 
 
-def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previous=None, policy_revision=False):
+def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previous=None, policy_revision=False, factor_cache=None):
     if input_report.get('as_of') != as_of or input_report.get('result_role') != 'legacy_comparison_input_repair':
         raise ValueError('repaired input report date or role mismatch')
     if previous and (previous.get('result_role') != 'legacy_comparison' or previous['as_of'] > as_of):
@@ -119,7 +119,7 @@ def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previo
                 # migration above is explicitly labelled retrospective research.
                 tracking = track_entry_structures(rows, as_of=as_of, start_date=as_of)
             item['entry_tracking'] = tracking
-            states = evaluate_period_factors(rows, as_of, complete_session=True)
+            states = evaluate_period_factors(rows, as_of, complete_session=True, raw_cache=factor_cache)
             score = score_candidate(states, permission)
             item.update({'status': score['score_status'], 'price': rows[-1]['close'], 'permission': permission,
                 'score': score, 'factor_states': states, 'reason_codes': score['reason_codes'],

@@ -195,7 +195,7 @@ def _period_macd_event(bars, window):
  return age == 0, (bars[last]['date'] if last is not None else None), age, recent, evidence
 
 
-def evaluate_period_factors(rows, as_of, *, complete_session=False):
+def evaluate_period_factors(rows, as_of, *, complete_session=False, raw_cache=None):
  """Same native-bar algorithms on three completed resolutions; no recursive resampling."""
  from services.contracts.cr056_policy import MAPPED_FACTORS, SETTINGS
  from services.gates.long_term_state import completed_period_bars
@@ -207,7 +207,19 @@ def evaluate_period_factors(rows, as_of, *, complete_session=False):
  for tf, bars in periods.items():
   cache = {}
   def raw_at(j):
-   if j not in cache: cache[j] = _raw(bars, j, native_period=True)
+   if j not in cache:
+    if raw_cache is None:
+     cache[j] = _raw(bars, j, native_period=True)
+    else:
+     from copy import deepcopy
+     from services.contracts.market_data import canonical_fingerprint
+     # _raw consumes only this prefix. Bound storage and bind all input bytes,
+     # native period and detector settings, including when replay goes backwards.
+     key=canonical_fingerprint({'bars':list(bars[:j+1]),'period':tf,'config':TECHNICAL_CONFIG})
+     if key not in raw_cache:
+      raw_cache[key]=deepcopy(_raw(bars,j,native_period=True))
+      if len(raw_cache)>96:del raw_cache[next(iter(raw_cache))]
+     cache[j]=deepcopy(raw_cache[key])
    return cache[j]
   for fid, meta in MAPPED_FACTORS.items():
    if meta['timeframe'] != tf: continue

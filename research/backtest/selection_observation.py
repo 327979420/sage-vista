@@ -145,7 +145,7 @@ def shard(index,total,pilot=False):
             continue
         rawrows=json.loads(raw)
         rows=normalized_comparison_rows([r for r in rawrows if r['date']<=ASOF],as_of=ASOF)
-        frame_cache={}
+        frame_cache={};factor_cache={}
         if any(r['date'] not in spy for r in rows):
             saved['excluded']='calendar_mismatch';rows=[]
         saved['history_coverage']={'first':rows[0]['date'] if rows else None,'last':rows[-1]['date'] if rows else None,'sessions':len(rows)}
@@ -174,7 +174,7 @@ def shard(index,total,pilot=False):
             for symbol,values in data.items():
                 content=encode(values);(stage/(symbol+'.json')).write_bytes(content);hashes[symbol]=sha256(content)
             inputs={'as_of':day,'result_role':'legacy_comparison_input_repair','repaired':[{'symbol':s,'repaired_sha256':h,'source_sha256':identity['source'] if s==p.stem else identity['spy']} for s,h in hashes.items()], 'repaired_count':len(hashes),'excluded_count':0,'excluded':[]}
-            report=run_snapshot(stage,as_of=day,history={'days':[]},code_commit=code,input_report=inputs)
+            report=run_snapshot(stage,as_of=day,history={'days':[]},code_commit=code,input_report=inputs,factor_cache=factor_cache)
             review=next((r for r in report['reviews'] if r['symbol']==p.stem),None)
             saved['evaluated']=saved.get('evaluated',0)+1
             if not review or review['status'] == 'unavailable':
@@ -295,12 +295,12 @@ def benchmark():
         print(f'{symbol}: exact facts/gates, original {times["original"]:.2f}s, cached {times["cached"]:.2f}s',flush=True)
     # Measure the full shared scorer separately; ticket timings are not a
     # substitute for end-to-end cost. Fixed dates, including excluded stocks.
-    pipeline_profile=cProfile.Profile();pipeline=[]
+    pipeline=[];factor_cache={}
     spyraw=json.loads((cache/'SPY.json').read_bytes())
     stage=out/'stage';stage.mkdir(exist_ok=True)
     for symbol in symbols:
         rawrows=json.loads((cache/(symbol+'.json')).read_bytes())
-        for day in ('2020-03-13','2025-01-16'):
+        for day in ('2008-07-11','2008-07-14','2020-03-12','2020-03-13','2025-01-15','2025-01-16'):
             for old in stage.glob('*.json'):old.unlink()
             repaired=[]
             for ticker,rawvalues in ((symbol,rawrows),('SPY',spyraw)):
@@ -308,15 +308,18 @@ def benchmark():
                 (stage/(ticker+'.json')).write_bytes(content)
                 repaired.append({'symbol':ticker,'repaired_sha256':sha256(content),'source_sha256':sources[ticker]['sha256']})
             inputs={'as_of':day,'result_role':'legacy_comparison_input_repair','repaired':repaired,'repaired_count':2,'excluded_count':0,'excluded':{}}
-            began=time.perf_counter();pipeline_profile.enable()
+            began=time.perf_counter()
             report=run_snapshot(stage,as_of=day,history={'days':[]},code_commit=os.environ['GITHUB_SHA'],input_report=inputs)
-            pipeline_profile.disable()
-            pipeline.append({'symbol':symbol,'date':day,'profiled_seconds':time.perf_counter()-began,
+            original_seconds=time.perf_counter()-began
+            began=time.perf_counter()
+            cached=run_snapshot(stage,as_of=day,history={'days':[]},code_commit=os.environ['GITHUB_SHA'],input_report=inputs,factor_cache=factor_cache)
+            cached_seconds=time.perf_counter()-began
+            if encode(report)!=encode(cached):raise ValueError('full_score_report_parity_failed')
+            pipeline.append({'symbol':symbol,'date':day,'original_seconds':original_seconds,'cached_seconds':cached_seconds,'exact_report_match':True,
+                             'report_sha256':sha256(encode(report)),
                              'reviews':[{'symbol':r['symbol'],'status':r['status']} for r in report['reviews']]})
     import shutil
     shutil.rmtree(stage)  # Never upload private source prices with diagnostics.
-    stream=io.StringIO();pstats.Stats(pipeline_profile,stream=stream).sort_stats('cumulative').print_stats(35)
-    (out/'pipeline-profile.txt').write_text(stream.getvalue())
     (out/'pipeline-summary.json').write_bytes(encode(pipeline))
     profile.dump_stats(str(out/'cached-profile.stats'))
     stream=io.StringIO();pstats.Stats(profile,stream=stream).sort_stats('cumulative').print_stats(25)
