@@ -28,7 +28,7 @@ CANDIDATE_POLICY = 'cr056-current-new-nominations-legacy-exit-v1'
 def validate_request(request):
     if not isinstance(request, dict) or set(request) != {'strategy', 'start', 'end'}:
         raise ValueError('strategy_and_date_range_required')
-    if request['strategy'] not in (POLICY, CANDIDATE_POLICY, HISTORICAL_CANDIDATE_POLICY):
+    if request['strategy'] not in (POLICY, CANDIDATE_POLICY, HISTORICAL_CANDIDATE_POLICY, 'cr056-selection-observation-v1'):
         raise ValueError('unsupported_research_strategy')
     for field in ('start', 'end'):
         value = request[field]
@@ -87,7 +87,29 @@ def validate_receipt(receipt):
                 raise ValueError('invalid_trade_signal_snapshot')
     report = receipt.get('report')
     summary = receipt['summary']
-    if receipt['status'] == 'completed':
+    observation = receipt.get('request', {}).get('strategy') == 'cr056-selection-observation-v1'
+    if receipt['status'] == 'completed' and observation:
+        validate_request(receipt['request'])
+        if set(summary) != {'opportunities', 'symbols'} or any(type(v) is not int or v < 0 for v in summary.values()):
+            raise ValueError('invalid_observation_summary')
+        if not isinstance(receipt.get('events'), list) or len(receipt['events']) != summary['opportunities'] or not isinstance(receipt.get('observation'), dict) or not isinstance(report, dict):
+            raise ValueError('invalid_observation_result')
+        ids=set()
+        for event in receipt['events']:
+            if event.get('episode_id') in ids or not re.fullmatch('[0-9a-f]{64}',event.get('episode_id','')):
+                raise ValueError('invalid_or_duplicate_episode')
+            ids.add(event['episode_id'])
+            if event.get('timeframe') not in ('daily','weekly_completed','monthly_completed') or not _number(event.get('score')) or not 0<=event['score']<=100:
+                raise ValueError('invalid_observation_classification')
+            if not receipt['request']['start']<=event.get('signal_date','')<=receipt['request']['end'] or not _number(event.get('signal_close')) or event['signal_close']<=0:
+                raise ValueError('invalid_observation_signal')
+            if set(event.get('outcomes',{}))!={'5d','10d','20d','5w','10w','20w','3m','6m','9m','12m'}:
+                raise ValueError('observation_windows_missing')
+            for outcome in event['outcomes'].values():
+                if outcome.get('status') not in ('complete','immature','missing_prices'):raise ValueError('invalid_observation_status')
+                if outcome['status']=='complete' and (any(not _number(outcome.get(k)) for k in ('return','spy_return','excess','mfe','mae')) or outcome.get('target_date','')<=event['signal_date']):
+                    raise ValueError('invalid_observation_outcome')
+    elif receipt['status'] == 'completed':
         validate_request(receipt['request'])
         required = {'total_return', 'max_drawdown', 'initial_cash', 'ending_equity',
                     'daily_sessions', 'win_rate', 'quantstats_version'}
@@ -161,6 +183,13 @@ def _lock(root):
 def trade_csv(receipt):
     import csv, io
     out=io.StringIO(newline=''); writer=csv.writer(out)
+    if receipt.get('request',{}).get('strategy') == 'cr056-selection-observation-v1':
+        writer.writerow(['symbol','signal_date','episode_id','timeframe','score','monthly_score','weekly_score','daily_score','signal_close','structure_floor','entry_paths','window','status','target_date','return','spy_return','excess','mfe','mae','days_to_10pct'])
+        for e in receipt.get('events',[]):
+            scores=e['timeframe_scores'];paths=';'.join(p['timeframe']+':'+p['path'] for p in e['entry_gate']['paths'])
+            for window,o in e['outcomes'].items():
+                writer.writerow([e['symbol'],e['signal_date'],e['episode_id'],e['timeframe'],e['score'],scores.get('monthly_completed'),scores.get('weekly_completed'),scores.get('daily'),e['signal_close'],e['floor'],paths,window,o['status'],*[o.get(k) for k in ('target_date','return','spy_return','excess','mfe','mae','days_to_10pct')]])
+        return ('\ufeff'+out.getvalue()).encode('utf-8')
     entry_columns=receipt.get('request',{}).get('strategy')==CANDIDATE_POLICY
     writer.writerow(['symbol','signal_date','entry_date','entry_price','status','exit_date','exit_price','quantity','net_pnl','net_return','signal_score','original_rank','model_version','monthly_score','weekly_score','daily_score','reason']+(['entry_paths','entry_policy_fingerprint'] if entry_columns else []))
     for t in receipt.get('trades',[]):

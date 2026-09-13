@@ -9,7 +9,7 @@ on:
       mode:
         description: Ledger refresh, fixed comparison, or approved account research
         type: choice
-        options: [refresh, comparison, research]
+        options: [refresh, comparison, research, observation]
         default: refresh
       strategy:
         description: Research only — existing execution policy
@@ -217,3 +217,107 @@ jobs:
           r=json.load(open('work/research-attempt/receipt.json'))
           if r['status']!='completed':raise SystemExit(r['reason'])
           PYCODE
+
+  observation_pilot:
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'observation' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    outputs:
+      cache_key: ${{ steps.prices.outputs.cache-matched-key }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with: {python-version: '3.13'}
+      - uses: actions/cache/restore@v4
+        id: prices
+        with:
+          path: |
+            work/eodhd-cache
+            work/eodhd-active-common.json
+          key: observation-no-new-download-${{ github.run_id }}
+          restore-keys: eodhd-history-v1-
+          fail-on-cache-miss: true
+      - run: python3 -m unittest tests.test_selection_observation
+      - run: python3 -m research.backtest.selection_observation --pilot
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: observation-pilot-${{ github.run_id }}
+          path: work/observation/*.gz
+          retention-days: 90
+
+  observation_shards:
+    needs: observation_pilot
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with: {python-version: '3.13'}
+      - uses: actions/cache/restore@v4
+        with:
+          path: |
+            work/eodhd-cache
+            work/eodhd-active-common.json
+          key: ${{ needs.observation_pilot.outputs.cache_key }}
+          fail-on-cache-miss: true
+      - uses: actions/cache/restore@v4
+        with:
+          path: work/observation
+          key: observation-v1-${{ github.sha }}-${{ matrix.shard }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: observation-v1-${{ github.sha }}-${{ matrix.shard }}-
+      - run: python3 -m research.backtest.selection_observation --shard ${{ matrix.shard }} --total 16
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: work/observation
+          key: observation-v1-${{ github.sha }}-${{ matrix.shard }}-${{ github.run_id }}-${{ github.run_attempt }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: observation-shard-${{ matrix.shard }}
+          path: |
+            work/observation/*.gz
+            work/observation/manifest-*.json
+          retention-days: 90
+
+  observation_report:
+    if: always() && github.event_name == 'workflow_dispatch' && inputs.mode == 'observation'
+    needs: [observation_pilot, observation_shards]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@v7
+        with: {python-version: '3.13'}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: observation-shard-*
+          merge-multiple: true
+          path: work/observation
+      - run: python3 -m research.backtest.selection_observation --aggregate --total 16
+      - name: Preserve incomplete observation attempt
+        if: always()
+        run: |
+          python3 - <<'PYCODE'
+          import os
+          from research.backtest.run_store import ROOT,encode,seal
+          from research.backtest.selection_observation import STRATEGY,START,END
+          p=ROOT/'work/research-attempt/receipt.json'
+          if not p.exists():
+              p.parent.mkdir(parents=True,exist_ok=True)
+              p.write_bytes(encode(seal({'schema_version':'legacy-research-run-v1','id':os.environ['GITHUB_RUN_ID']+'-'+os.environ['GITHUB_RUN_ATTEMPT'],'result_role':'legacy/research','status':'failed','request':{'strategy':STRATEGY,'start':START,'end':END},'summary':{},'reason':'observation_incomplete_see_shard_artifacts_and_resume_failed_jobs','report':None,'code_commit':os.environ['GITHUB_SHA']})))
+          PYCODE
+      - if: always()
+        run: python3 -m research.backtest.publish_attempt --receipt work/research-attempt/receipt.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: observation-report-${{ github.run_id }}
+          path: work/research-attempt/
+          retention-days: 90

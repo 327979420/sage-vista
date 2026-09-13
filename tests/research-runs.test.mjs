@@ -27,7 +27,7 @@ test('existing workflow isolates research and requires approval before engines',
  const yaml=(await import('js-yaml')).default;
  const workflow=yaml.load(fs.readFileSync(new URL('../.github/workflows/opportunity-ledger-refresh.yml',import.meta.url),'utf8'));
  assert.equal(fs.existsSync(new URL('../.github/workflows/research-backtest.yml',import.meta.url)),false);
- assert.deepEqual(workflow.on.workflow_dispatch.inputs.mode.options,['refresh','comparison','research']);
+ assert.deepEqual(workflow.on.workflow_dispatch.inputs.mode.options,['refresh','comparison','research','observation']);
  assert.match(workflow.jobs.refresh.if,/inputs.mode == 'refresh'/);
  assert.match(workflow.jobs.research.if,/inputs.mode == 'research'/);
  assert.match(workflow.jobs.research.if,/refs\/heads\/main/);
