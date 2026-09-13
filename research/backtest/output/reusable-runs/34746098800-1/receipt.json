@@ -1,0 +1,16 @@
+{
+  "code_commit": "f8fd85857ac9537cd622ef93c1ec976fbf0bb025",
+  "content_sha256": "be47c32c31cd1c6c15bae337948fca565cbd16162ba2f4b676a9610911052a8d",
+  "id": "34746098800-1",
+  "reason": "observation_incomplete_see_shard_artifacts_and_resume_failed_jobs",
+  "report": null,
+  "request": {
+    "end": "2025-09-11",
+    "start": "2005-09-12",
+    "strategy": "cr056-selection-observation-v1"
+  },
+  "result_role": "legacy/research",
+  "schema_version": "legacy-research-run-v1",
+  "status": "failed",
+  "summary": {}
+}
