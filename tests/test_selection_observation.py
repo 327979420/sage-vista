@@ -51,6 +51,18 @@ class ObservationTests(unittest.TestCase):
             self.assertEqual(len(calls),2)
             m.shard(0,1)
             self.assertEqual(len(calls),2)
+            resumed=Path(td)/'resumed'
+            with self.assertRaisesRegex(TimeoutError,'observation_test_interrupt'):
+                m.shard(0,1,output_dir=resumed,symbols=['AAA'],stop_after_sessions=1)
+            partial=json.loads(gzip.decompress((resumed/'AAA.json.gz').read_bytes()))
+            self.assertFalse(partial['complete'])
+            self.assertEqual(partial['done_through'],days[0])
+            m.shard(0,1,output_dir=resumed,symbols=['AAA'])
+            finished=json.loads(gzip.decompress((resumed/'AAA.json.gz').read_bytes()))
+            self.assertEqual(finished,data)
+            baseline=Path(td)/'baseline'
+            m.shard(0,1,output_dir=baseline,symbols=['AAA'],optimized=False)
+            self.assertEqual(json.loads(gzip.decompress((baseline/'AAA.json.gz').read_bytes())),data)
 
     def test_valid_rule_rejections_are_successful_pilot(self):
         import tempfile,json,os,gzip

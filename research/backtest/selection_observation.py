@@ -112,15 +112,22 @@ def checkpoint_bytes(value):
     return gzip.compress(encode({**body,'checkpoint_sha256':sha256(encode(body))}),mtime=0)
 
 
-def shard(index,total,pilot=False):
+def shard(index,total,pilot=False, *, output_dir=None, window=None, symbols=None, optimized=True, stop_after_sessions=None):
     if POLICY_VERSION != 'cr056-policy-3.5.0-candidate':raise ValueError('experiment_requires_frozen_3_5_policy')
-    cache=ROOT/'work/eodhd-cache';out=ROOT/'work/observation';out.mkdir(parents=True,exist_ok=True)
+    if output_dir is None and (window is not None or symbols is not None or not optimized or stop_after_sessions is not None):
+        raise ValueError('diagnostic_replay_requires_isolated_output')
+    cache=ROOT/'work/eodhd-cache';out=Path(output_dir) if output_dir is not None else ROOT/'work/observation';out.mkdir(parents=True,exist_ok=True)
     spyraw=json.loads((cache/'SPY.json').read_bytes())
     spyrows=normalized_comparison_rows([r for r in spyraw if r['date']<=ASOF],as_of=ASOF)
     spy={r['date']:r for r in spyrows}
-    start,end=('2025-01-02','2025-01-31') if pilot else (START,END)
+    start,end=window or (('2025-01-02','2025-01-31') if pilot else (START,END))
+    if not START<=start<=end<=END:raise ValueError('observation_window_outside_registered_history')
+    processed=0
     if min(spy)>start or max(spy)<ASOF:raise ValueError('reference_calendar_not_covered')
     paths=[p for p in sorted(cache.glob('*.json')) if p.stem.replace('-','').replace('.','').isalnum()]
+    if symbols is not None:
+        if set(symbols)-{p.stem for p in paths}:raise ValueError('observation_sample_symbol_missing')
+        paths=[p for p in paths if p.stem in symbols]
     if pilot:paths=paths[:8]
     history_manifest=ROOT/'work/observation-history.json'
     prepared=json.loads(history_manifest.read_bytes()).get('sources',{}) if history_manifest.exists() else {}
@@ -145,7 +152,7 @@ def shard(index,total,pilot=False):
             continue
         rawrows=json.loads(raw)
         rows=normalized_comparison_rows([r for r in rawrows if r['date']<=ASOF],as_of=ASOF)
-        frame_cache={};factor_cache={}
+        frame_cache={} if optimized else None;factor_cache={} if optimized else None
         if any(r['date'] not in spy for r in rows):
             saved['excluded']='calendar_mismatch';rows=[]
         saved['history_coverage']={'first':rows[0]['date'] if rows else None,'last':rows[-1]['date'] if rows else None,'sessions':len(rows)}
@@ -155,6 +162,10 @@ def shard(index,total,pilot=False):
         for row_index,row in enumerate(rows):
             day=row['date']
             if not start<=day<=end or day<=saved['done_through']:continue
+            if stop_after_sessions is not None and processed>=stop_after_sessions:
+                temp=file.with_suffix('.tmp');temp.write_bytes(checkpoint_bytes(saved));temp.replace(file)
+                raise TimeoutError('observation_test_interrupt')
+            processed+=1
             if time.monotonic()-started>14400:raise TimeoutError('observation_checkpoint_budget_resume')
             past=rows[:row_index+1]
             if row_index%50==0:
@@ -174,7 +185,7 @@ def shard(index,total,pilot=False):
             for symbol,values in data.items():
                 content=encode(values);(stage/(symbol+'.json')).write_bytes(content);hashes[symbol]=sha256(content)
             inputs={'as_of':day,'result_role':'legacy_comparison_input_repair','repaired':[{'symbol':s,'repaired_sha256':h,'source_sha256':identity['source'] if s==p.stem else identity['spy']} for s,h in hashes.items()], 'repaired_count':len(hashes),'excluded_count':0,'excluded':[]}
-            report=run_snapshot(stage,as_of=day,history={'days':[]},code_commit=code,input_report=inputs,factor_cache=factor_cache,selection_only=True)
+            report=run_snapshot(stage,as_of=day,history={'days':[]},code_commit=code,input_report=inputs,factor_cache=factor_cache,selection_only=optimized)
             review=next((r for r in report['reviews'] if r['symbol']==p.stem),None)
             saved['evaluated']=saved.get('evaluated',0)+1
             if not review or review['status'] == 'unavailable':
@@ -232,6 +243,7 @@ def aggregate(total):
         p=folder/(symbol+'.json.gz');v=json.loads(gzip.decompress(p.read_bytes()))
         if v.get('checkpoint_sha256')!=sha256(encode({k:x for k,x in v.items() if k!='checkpoint_sha256'})):raise ValueError('checkpoint_integrity_failed')
         if not v['complete'] or v['identity']['policy']!=POLICY_FINGERPRINT or v['identity']['code']!=os.environ['GITHUB_SHA']:raise ValueError('mixed_or_incomplete_checkpoint')
+        if (v['identity']['start'],v['identity']['end'],v['identity']['asof'])!=(START,END,ASOF):raise ValueError('checkpoint_window_not_full_experiment')
         events.extend(v['events']);sources.append({'identity':v['identity'],'checkpoint_sha256':sha256(p.read_bytes()),'excluded':v.get('excluded'),'evaluated':v.get('evaluated',0),'unavailable':v.get('unavailable',0)})
     if len({s['identity']['spy'] for s in sources})!=1:raise ValueError('mixed_reference_sources')
     groups=summarize(events)
@@ -327,11 +339,41 @@ def benchmark():
     import shutil
     shutil.rmtree(stage)  # Never upload private source prices with diagnostics.
     (out/'pipeline-summary.json').write_bytes(encode(pipeline))
+    # Same production loop, isolated outputs: baseline, optimized and interrupted.
+    # Fixed window includes an existing A entry and a completed month boundary.
+    replay_window=('2008-07-01','2008-08-15');runs={};elapsed={}
+    for mode in ('baseline','optimized','resumed'):
+        destination=out/('replay-'+mode);began=time.perf_counter()
+        if mode=='resumed':
+            try:
+                shard(0,1,output_dir=destination,window=replay_window,symbols=symbols,stop_after_sessions=12)
+            except TimeoutError as exc:
+                if str(exc)!='observation_test_interrupt':raise
+            else:raise ValueError('replay_interrupt_not_exercised')
+        shard(0,1,output_dir=destination,window=replay_window,symbols=symbols,optimized=mode!='baseline')
+        elapsed[mode]=time.perf_counter()-began
+        runs[mode]={symbol:json.loads(gzip.decompress((destination/(symbol+'.json.gz')).read_bytes())) for symbol in symbols}
+        shutil.rmtree(destination/'stage')
+    comparisons=[]
+    for symbol in symbols:
+        original=runs['baseline'][symbol]
+        for mode in ('optimized','resumed'):
+            for field in ('identity','events','active','used','done_through','complete'):
+                if encode(original[field])!=encode(runs[mode][symbol][field]):
+                    raise ValueError('continuous_replay_mismatch: '+symbol+' '+mode+' '+field)
+        comparisons.append({'symbol':symbol,'events':len(original['events']),
+            'signal_dates':[e['signal_date'] for e in original['events']],
+            'events_sha256':sha256(encode(original['events'])),'exact_match':True})
+    if not any(c['events'] for c in comparisons):raise ValueError('replay_sample_no_positive_event')
+    (out/'replay-summary.json').write_bytes(encode({'window':replay_window,'seconds':elapsed,'comparisons':comparisons,
+        'policy':POLICY_FINGERPRINT,'code':os.environ['GITHUB_SHA'],
+        'verified':['signal_dates','entry_gates','scores','episode_dedup','all_forward_outcomes','resume_from_checkpoint'],
+        'scope':'engineering sample; not representative strategy performance or long-run timing'}))
     profile.dump_stats(str(out/'cached-profile.stats'))
     stream=io.StringIO();pstats.Stats(profile,stream=stream).sort_stats('cumulative').print_stats(25)
     (out/'profile.txt').write_text(stream.getvalue())
     (out/'summary.json').write_bytes(encode({'code':os.environ.get('GITHUB_SHA'),'policy':POLICY_FINGERPRINT,
-        'scope':'fixed facts and gate parity only; full score and episode parity still required before resume',
+        'scope':'fixed sample facts, full scores and continuous episode parity; not a multi-year experiment',
         'results':results}))
 
 
