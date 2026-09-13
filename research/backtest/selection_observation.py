@@ -84,14 +84,23 @@ def prepare_history():
             if requested>=2500:raise ValueError('history_request_budget_exhausted')
             rows=prices(p.stem,'2000-01-01',ASOF);requested+=1;source='full_history_provider_request'
             time.sleep(.25)
-        if not isinstance(rows,list) or not rows:raise ValueError('history_provider_empty_'+p.stem)
-        normalized_comparison_rows(rows,as_of=ASOF)
-        days=[r['date'] for r in rows]
-        if days!=sorted(set(days)) or days[-1]>ASOF:raise ValueError('history_invalid_or_stale_'+p.stem)
+        reason=None
+        try:
+            if not isinstance(rows,list) or not rows:raise ValueError('history_provider_empty')
+            normalized_comparison_rows(rows,as_of=ASOF)
+            days=[r['date'] for r in rows]
+            if days!=sorted(set(days)) or days[-1]>ASOF:raise ValueError('history_invalid_dates')
+        except (ValueError,TypeError,KeyError) as exc:
+            if p.stem=='SPY':raise ValueError('reference_history_invalid: '+str(exc)) from None
+            reason=str(exc)[:200]
         content=encode(rows);temp=p.with_suffix('.tmp');temp.write_bytes(content);temp.replace(p)
-        state['sources'][p.stem]={'sha256':sha256(content),'first':days[0],'last':days[-1],'sessions':len(days),'source':source}
+        if reason:
+            state['sources'][p.stem]={'sha256':sha256(content),'excluded':reason,'source':source}
+            print(f'History excluded {p.stem}: {reason}',flush=True)
+        else:
+            state['sources'][p.stem]={'sha256':sha256(content),'first':days[0],'last':days[-1],'sessions':len(days),'source':source}
+            print(f'History {len(state["sources"])}/{len(paths)} {p.stem}: {days[0]} to {days[-1]}',flush=True)
         temp=state_path.with_suffix('.tmp');temp.write_bytes(encode(state));temp.replace(state_path)
-        print(f'History {len(state["sources"])}/{len(paths)} {p.stem}: {days[0]} to {days[-1]}',flush=True)
     spy=state['sources'].get('SPY',{})
     if spy.get('first','9999')>START or spy.get('last','')<ASOF:raise ValueError('twenty_year_reference_history_missing')
     audit=ROOT/'work/observation/history-coverage.json';audit.parent.mkdir(parents=True,exist_ok=True)
@@ -113,6 +122,8 @@ def shard(index,total,pilot=False):
     if min(spy)>start or max(spy)<ASOF:raise ValueError('reference_calendar_not_covered')
     paths=[p for p in sorted(cache.glob('*.json')) if p.stem.replace('-','').replace('.','').isalnum()]
     if pilot:paths=paths[:8]
+    history_manifest=ROOT/'work/observation-history.json'
+    prepared=json.loads(history_manifest.read_bytes()).get('sources',{}) if history_manifest.exists() else {}
     code=os.environ['GITHUB_SHA'];completed=[];started=time.monotonic();timing=[]
     for pos,p in enumerate(paths):
         if pos%total!=index:continue
@@ -126,6 +137,12 @@ def shard(index,total,pilot=False):
             if saved.get('identity')!=identity:raise ValueError('checkpoint_identity_changed')
         else:saved={'identity':identity,'events':[],'done_through':'','active':None,'used':[],'complete':False,'evaluated':0,'unavailable':0}
         if saved['complete']:completed.append(p.stem);continue
+        source_status=prepared.get(p.stem,{})
+        if source_status.get('excluded'):
+            if source_status['sha256']!=sha256(raw):raise ValueError('excluded_source_changed')
+            saved['excluded']=source_status['excluded'];saved['complete']=True
+            file.write_bytes(checkpoint_bytes(saved));completed.append(p.stem)
+            continue
         rows=normalized_comparison_rows([r for r in json.loads(raw) if r['date']<=ASOF],as_of=ASOF)
         if any(r['date'] not in spy for r in rows):
             saved['excluded']='calendar_mismatch';rows=[]
@@ -216,8 +233,9 @@ def aggregate(total):
         events.extend(v['events']);sources.append({'identity':v['identity'],'checkpoint_sha256':sha256(p.read_bytes()),'excluded':v.get('excluded'),'evaluated':v.get('evaluated',0),'unavailable':v.get('unavailable',0)})
     if len({s['identity']['spy'] for s in sources})!=1:raise ValueError('mixed_reference_sources')
     groups=summarize(events)
+    excluded_sources=[s for s in sources if s.get('excluded')]
     def percent(v):return '—' if v is None else f'{v*100:.2f}%'
-    lines=['<html lang="zh"><meta charset="utf-8"><style>body{font:16px system-ui;padding:24px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:8px}</style><h1>3.5选股观察：不模拟买卖</h1>',f'<p>{START} 至 {END} 触发，观察截至 {ASOF}。{len(events)}次机会，{len(symbols)}只缓存股票。</p>', '<p>涨跌从信号确认收盘起算；不是交易收益。当前缓存股票池有幸存者及覆盖偏差，历史复权修订未证明。主导周期由有门票周期的未加权分数确定。小样本仅供探索，既有已见年份不称独立验证。</p><table><tr><th>周期/分组</th><th>期限</th><th>完整/总样本</th><th>股票数</th><th>中位涨跌</th><th>上涨比例</th><th>相对SPY</th><th>途中最低相对起点</th><th>途中最高相对起点</th></tr>']
+    lines=['<html lang="zh"><meta charset="utf-8"><style>body{font:16px system-ui;padding:24px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:8px}</style><h1>3.5选股观察：不模拟买卖</h1>',f'<p>{START} 至 {END} 触发，观察截至 {ASOF}。{len(events)}次机会，{len(symbols)}只缓存股票。</p>', f'<p>数据来源排除 {len(excluded_sources)}只；逐项原因保存在收据。</p>', '<p>涨跌从信号确认收盘起算；不是交易收益。当前缓存股票池有幸存者及覆盖偏差，历史复权修订未证明。主导周期由有门票周期的未加权分数确定。小样本仅供探索，既有已见年份不称独立验证。</p><table><tr><th>周期/分组</th><th>期限</th><th>完整/总样本</th><th>股票数</th><th>中位涨跌</th><th>上涨比例</th><th>相对SPY</th><th>途中最低相对起点</th><th>途中最高相对起点</th></tr>']
     for g in groups:lines.append('<tr>'+''.join('<td>'+html.escape(str(x))+'</td>' for x in [LABELS[g['timeframe']]+' / '+g['group'],g['window'],f'{g["complete"]}/{g["samples"]}',g['symbols'],*[percent(g[k]) for k in ('median_return','win_rate','median_excess','median_mae','median_mfe')]])+'</tr>')
     lines.append('</table><h2>代表案例：按主要期限的结果选取，不用于证明策略有效</h2>')
     for tf,window in [('daily','10d'),('weekly_completed','10w'),('monthly_completed','6m')]:

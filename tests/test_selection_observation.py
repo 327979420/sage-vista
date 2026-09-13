@@ -86,3 +86,28 @@ class ObservationTests(unittest.TestCase):
             self.assertEqual(fetch.call_count,1)
             self.assertEqual(json.loads((cache/'SPY.json').read_bytes())[0]['date'],'2000-01-03')
             self.assertTrue((Path(td)/'work/observation/history-coverage.json').exists())
+
+    def test_bad_equity_is_isolated_but_bad_reference_stops(self):
+        import tempfile,json
+        from pathlib import Path
+        from unittest.mock import patch
+        from research.backtest import selection_observation as m
+        from services.contracts.validation import ContractError
+        old=[{'date':'2017-12-04','close':100},{'date':'2026-09-11','close':100}]
+        good=[{'date':'2000-01-03','close':100},{'date':'2026-09-11','close':100}]
+        bad=[{'date':'2024-06-28','close':200,'high':100}]
+        def normalize(rows,**kw):
+            if rows==bad:raise ContractError('raw OHLC relationship is impossible on 2024-06-28')
+            return rows
+        with tempfile.TemporaryDirectory() as td,patch.object(m,'ROOT',Path(td)),patch.object(m,'normalized_comparison_rows',side_effect=normalize),patch('services.scanner.eodhd.prices',side_effect=lambda symbol,*a:bad if symbol=='BAD' else good) as fetch,patch.object(m.time,'sleep'):
+            cache=Path(td)/'work/eodhd-cache';cache.mkdir(parents=True)
+            for symbol in ('BAD','SPY'):(cache/(symbol+'.json')).write_text(json.dumps(old))
+            m.prepare_history();m.prepare_history()
+            manifest=json.loads((Path(td)/'work/observation-history.json').read_bytes())
+            self.assertIn('OHLC',manifest['sources']['BAD']['excluded'])
+            self.assertNotIn('excluded',manifest['sources']['SPY'])
+            self.assertEqual(fetch.call_count,2)
+            (Path(td)/'work/observation-history.json').unlink()
+            (cache/'SPY.json').write_text(json.dumps(old))
+            fetch.side_effect=lambda *a:bad
+            with self.assertRaisesRegex(ValueError,'reference_history_invalid'):m.prepare_history()
