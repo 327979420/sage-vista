@@ -56,7 +56,10 @@ jobs:
         if: always()
         with:
           name: observation-benchmark-${{ github.run_id }}
-          path: work/observation-benchmark/
+          path: |
+            work/observation-benchmark/*.json
+            work/observation-benchmark/*.txt
+            work/observation-benchmark/*.stats
           retention-days: 90
 
   refresh:
