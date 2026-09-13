@@ -51,3 +51,24 @@ class ObservationTests(unittest.TestCase):
             self.assertEqual(len(calls),2)
             m.shard(0,1)
             self.assertEqual(len(calls),2)
+
+    def test_valid_rule_rejections_are_successful_pilot(self):
+        import tempfile,json,os,gzip
+        from pathlib import Path
+        from unittest.mock import patch
+        from research.backtest import selection_observation as m
+        rows=[{'date':d,'open':100,'close':100,'low':99,'high':101,'volume':10000} for d in ['2025-01-02','2025-01-31','2026-09-11']]
+        review={'reviews':[{'symbol':'SPY','status':'excluded','reason_codes':['monthly_not_confirmed']}]}
+        with tempfile.TemporaryDirectory() as td,patch.object(m,'ROOT',Path(td)),patch.dict(os.environ,{'GITHUB_SHA':'a'*40}),patch.object(m,'normalized_comparison_rows',side_effect=lambda r,**k:r),patch.object(m,'ticket_dates',side_effect=lambda r,start,end:[start]),patch.object(m,'run_snapshot',return_value=review):
+            cache=Path(td)/'work/eodhd-cache';cache.mkdir(parents=True);(cache/'SPY.json').write_text(json.dumps(rows))
+            m.shard(0,1,pilot=True)
+            v=json.loads(gzip.decompress((Path(td)/'work/observation/SPY.json.gz').read_bytes()))
+            self.assertEqual(v['unavailable'],0)
+            self.assertEqual(v['rule_excluded'],2)
+            self.assertEqual(v['events'],[])
+            self.assertTrue((Path(td)/'work/observation/manifest-0.json').exists())
+            import shutil
+            shutil.rmtree(Path(td)/'work/observation')
+            review['reviews'][0]['status']='unavailable'
+            with self.assertRaisesRegex(ValueError,'pilot_no_evaluable_candidates'):
+                m.shard(0,1,pilot=True)

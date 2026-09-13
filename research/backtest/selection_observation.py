@@ -124,11 +124,13 @@ def shard(index,total,pilot=False):
             report=run_snapshot(stage,as_of=day,history={'days':[]},code_commit=code,input_report=inputs)
             review=next((r for r in report['reviews'] if r['symbol']==p.stem),None)
             saved['evaluated']=saved.get('evaluated',0)+1
-            if not review or review['status'] in ('unavailable','excluded'):
+            if not review or review['status'] == 'unavailable':
                 saved['unavailable']=saved.get('unavailable',0)+1
                 reasons=review.get('reason_codes',[]) if review else ['review_missing']
                 for reason in reasons:saved.setdefault('unavailable_reasons',{})[reason]=saved.setdefault('unavailable_reasons',{}).get(reason,0)+1
                 if saved['unavailable']<=2:print(f'{p.stem} {day} unavailable: {reasons}',flush=True)
+            if review and review['status']=='excluded':
+                saved['rule_excluded']=saved.get('rule_excluded',0)+1
             if review and review.get('rank') is not None and review.get('score',{}).get('total_score') is not None and review.get('entry_gate',{}).get('eligible'):
                 gate=review['entry_gate'];scores={k:100*v['normalized'] for k,v in review['score']['timeframes'].items()}
                 picked=choose(gate,scores)
