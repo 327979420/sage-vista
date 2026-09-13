@@ -30,6 +30,8 @@ test('existing workflow isolates research and requires approval before engines',
  assert.deepEqual(workflow.on.workflow_dispatch.inputs.mode.options,['refresh','comparison','research','observation','observation_benchmark']);
  const benchmark=workflow.jobs.observation_benchmark;
  assert.equal(benchmark['timeout-minutes'],20);
+ assert.match(workflow.concurrency.group,/inputs.mode == 'observation'/);
+ assert.match(workflow.concurrency.group,/sage-vista-observation-\{0\}/);
  assert.doesNotMatch(JSON.stringify(benchmark),/secrets\.|publish_attempt|--prepare-history|--shard/);
  assert.match(workflow.jobs.refresh.if,/inputs.mode == 'refresh'/);
  assert.match(workflow.jobs.research.if,/inputs.mode == 'research'/);

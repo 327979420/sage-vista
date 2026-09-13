@@ -27,7 +27,7 @@ permissions:
   actions: write
 
 concurrency:
-  group: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'comparison' && 'sage-vista-vectorbt-comparison' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'research' && format('sage-vista-research-{0}', github.run_id)) || 'sage-vista-opportunity-ledger' }}
+  group: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'comparison' && 'sage-vista-vectorbt-comparison' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'research' && format('sage-vista-research-{0}', github.run_id)) || (github.event_name == 'workflow_dispatch' && (inputs.mode == 'observation' || inputs.mode == 'observation_benchmark') && format('sage-vista-observation-{0}', github.run_id)) || 'sage-vista-opportunity-ledger' }}
   cancel-in-progress: false
 
 jobs:
