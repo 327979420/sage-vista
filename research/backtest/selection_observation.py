@@ -95,6 +95,8 @@ def shard(index,total,pilot=False):
         rows=normalized_comparison_rows([r for r in json.loads(raw) if r['date']<=ASOF],as_of=ASOF)
         if any(r['date'] not in spy for r in rows):
             saved['excluded']='calendar_mismatch';rows=[]
+        saved['history_coverage']={'first':rows[0]['date'] if rows else None,'last':rows[-1]['date'] if rows else None,'sessions':len(rows)}
+        print(f'{p.stem} cache coverage: {saved["history_coverage"]}',flush=True)
         stage=out/'stage';stage.mkdir(exist_ok=True)
         for old in stage.glob('*.json'):old.unlink()
         for row_index,row in enumerate(rows):
@@ -122,7 +124,11 @@ def shard(index,total,pilot=False):
             report=run_snapshot(stage,as_of=day,history={'days':[]},code_commit=code,input_report=inputs)
             review=next((r for r in report['reviews'] if r['symbol']==p.stem),None)
             saved['evaluated']=saved.get('evaluated',0)+1
-            if not review or review['status'] in ('unavailable','excluded'):saved['unavailable']=saved.get('unavailable',0)+1
+            if not review or review['status'] in ('unavailable','excluded'):
+                saved['unavailable']=saved.get('unavailable',0)+1
+                reasons=review.get('reason_codes',[]) if review else ['review_missing']
+                for reason in reasons:saved.setdefault('unavailable_reasons',{})[reason]=saved.setdefault('unavailable_reasons',{}).get(reason,0)+1
+                if saved['unavailable']<=2:print(f'{p.stem} {day} unavailable: {reasons}',flush=True)
             if review and review.get('rank') is not None and review.get('score',{}).get('total_score') is not None and review.get('entry_gate',{}).get('eligible'):
                 gate=review['entry_gate'];scores={k:100*v['normalized'] for k,v in review['score']['timeframes'].items()}
                 picked=choose(gate,scores)
