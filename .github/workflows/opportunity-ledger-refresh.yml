@@ -50,7 +50,7 @@ jobs:
           key: observation-benchmark-${{ github.run_id }}
           restore-keys: observation-history-v1-
           fail-on-cache-miss: true
-      - run: python3 -m unittest tests.test_cr056_history.NativeFrameCacheTests tests.test_selection_observation
+      - run: python3 -m unittest tests.test_cr056_history.NativeFrameCacheTests tests.test_cr056_history.SelectionPrefilterTests tests.test_selection_observation
       - run: python3 -m research.backtest.selection_observation --benchmark
       - uses: actions/upload-artifact@v4
         if: always()
