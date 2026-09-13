@@ -33,7 +33,7 @@ class ObservationTests(unittest.TestCase):
         from pathlib import Path
         from unittest.mock import patch
         from research.backtest import selection_observation as m
-        days=['2020-09-14','2020-09-15','2020-09-16','2025-09-11','2026-09-11']
+        days=['2005-09-12','2005-09-13','2005-09-14','2025-09-11','2026-09-11']
         rows=[{'date':d,'open':100,'close':100,'low':99,'high':101,'volume':10000} for d in days]
         calls=[]
         def scan(stage,as_of,**kwargs):
