@@ -9,7 +9,7 @@ on:
       mode:
         description: Ledger refresh, fixed comparison, or approved account research
         type: choice
-        options: [refresh, comparison, research, observation]
+        options: [refresh, comparison, research, observation, observation_benchmark]
         default: refresh
       strategy:
         description: Research only — existing execution policy
@@ -31,6 +31,34 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  observation_benchmark:
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'observation_benchmark'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with: {python-version: '3.13'}
+      - uses: actions/cache/restore@v4
+        with:
+          path: |
+            work/eodhd-cache
+            work/eodhd-active-common.json
+            work/observation-history.json
+          key: observation-benchmark-${{ github.run_id }}
+          restore-keys: observation-history-v1-
+          fail-on-cache-miss: true
+      - run: python3 -m unittest tests.test_cr056_history.NativeFrameCacheTests tests.test_selection_observation
+      - run: python3 -m research.backtest.selection_observation --benchmark
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: observation-benchmark-${{ github.run_id }}
+          path: work/observation-benchmark/
+          retention-days: 90
+
   refresh:
     if: (github.event_name == 'workflow_dispatch' && inputs.mode == 'refresh') || (github.event_name == 'workflow_run' && github.event.workflow_run.name == 'Unified V2 Historical Backfill' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest

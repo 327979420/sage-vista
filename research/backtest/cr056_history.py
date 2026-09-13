@@ -18,13 +18,17 @@ from services.scanner.cr056_runner import run_snapshot
 from services.scanner.support_risk import signal_support_plan
 
 
-def ticket_dates(rows, start, end):
+def ticket_dates(rows, start, end, *, frame_cache=None):
     # Cheap shared geometry first, full multi-factor scoring only for gate hits.
-    for i,r in enumerate(rows):
+    first = bisect_right(rows, start, key=lambda r: r['date'])
+    if first and rows[first-1]['date'] == start: first -= 1
+    for i in range(max(first, MIN_HISTORY_SESSIONS-1), len(rows)):
+        r = rows[i]
+        if r['date'] > end: break
         if (i < MIN_HISTORY_SESSIONS-1 or not start <= r['date'] <= end
                 or r['close'] < MIN_CLOSE or r['close']*r['volume'] < MIN_DOLLAR_VOLUME):
             continue
-        if assess_entry(collect_entry_facts(rows[:i+1],as_of=r['date'],complete_session=True))['eligible']:
+        if assess_entry(collect_entry_facts(rows[:i+1],as_of=r['date'],complete_session=True,frame_cache=frame_cache))['eligible']:
             yield r['date']
 
 

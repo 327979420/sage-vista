@@ -1,4 +1,5 @@
 """CR-056 objective facts, sharing M02 validation and the existing pure indicators."""
+from copy import deepcopy
 from math import ceil
 from statistics import median
 from services.contracts.cr056_policy import SETTINGS as S
@@ -154,7 +155,7 @@ def breakout_pullback_momentum(rows, confirmation, cfg):
     return {**result,'reason':'no_confirmed_breakout_support_retest'}
 
 
-def collect_entry_facts(rows, *, as_of, complete_session=False):
+def collect_entry_facts(rows, *, as_of, complete_session=False, frame_cache=None):
     """Completed native-period structure facts, also used by the replay prefilter."""
     from services.contracts.cr056_policy import ENTRY_SETTINGS
     from services.scanner.detectors import pivots, _retest_candle, multi_bottom_structure
@@ -169,6 +170,16 @@ def collect_entry_facts(rows, *, as_of, complete_session=False):
     cfg = ENTRY_SETTINGS; limits = cfg['triple_bottom']
     frames = {}
     for tf, all_bars in periods.items():
+        # Only completed native bars determine these frames. Keep at most one
+        # entry per native period; content identity prevents cross-stock/revision
+        # reuse and policy changes invalidate the cache. Daily facts stay live.
+        cache_key = None
+        if frame_cache is not None and tf != 'daily':
+            cache_key = (repr(cfg), tuple(tuple(sorted(b.items())) for b in all_bars))
+            cached = frame_cache.get(tf)
+            if cached is not None and cached[0] == cache_key:
+                frames[tf] = deepcopy(cached[1])
+                continue
         bars = all_bars[-limits['lookback_bars']-1:]
         end = len(bars)-1
         frame = {'completed_through': bars[-1]['date'] if bars else None,
@@ -214,4 +225,6 @@ def collect_entry_facts(rows, *, as_of, complete_session=False):
                                               and bars[-1]['close'] >= first['price'])
             frame['support'] = {'date':bars[first['index']]['date'],'price':first['price'],
                                 'confirmed_at':bars[first['confirmed_index']]['date'],'signals':evidence}
+        if cache_key is not None:
+            frame_cache[tf] = (cache_key, deepcopy(frame))
     return {'as_of':as_of,'frames':frames}

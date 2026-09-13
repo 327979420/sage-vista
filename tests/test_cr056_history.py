@@ -59,3 +59,31 @@ class CsvTests(unittest.TestCase):
    overview=json.loads((path/'overview.json').read_bytes())
    self.assertNotIn('trades',overview);self.assertEqual(overview['summary'],receipt['summary'])
    self.assertIn('overview_sha256',json.loads((Path(d)/'index.json').read_bytes())['runs'][0])
+
+class NativeFrameCacheTests(unittest.TestCase):
+ def test_exact_facts_and_tickets_across_period_boundaries(self):
+  rows=HistoryTests().rows();cache={}
+  # Consecutive days cross week and month closes; cold/reused frames must agree.
+  for i in range(420,465):
+   past=rows[:i+1];day=past[-1]['date']
+   expected=collect_entry_facts(past,as_of=day,complete_session=True)
+   actual=collect_entry_facts(past,as_of=day,complete_session=True,frame_cache=cache)
+   self.assertEqual(actual,expected)
+   self.assertEqual(assess_entry(actual),assess_entry(expected))
+  self.assertLessEqual(len(cache),2)
+  self.assertEqual(list(ticket_dates(rows,rows[420]['date'],rows[465]['date'])),
+                   list(ticket_dates(rows,rows[420]['date'],rows[465]['date'],frame_cache={})))
+ def test_revised_history_other_symbol_and_mutation_do_not_reuse_stale_frame(self):
+  from copy import deepcopy
+  rows=HistoryTests().rows()[:450];cache={};day=rows[-1]['date']
+  actual=collect_entry_facts(rows,as_of=day,complete_session=True,frame_cache=cache)
+  actual['frames']['monthly_completed']['bottoms'].append({'bad':True})
+  self.assertEqual(collect_entry_facts(rows,as_of=day,complete_session=True,frame_cache=cache),
+                   collect_entry_facts(rows,as_of=day,complete_session=True))
+  changed=deepcopy(rows);changed[100]['high']+=20
+  self.assertEqual(collect_entry_facts(changed,as_of=day,complete_session=True,frame_cache=cache),
+                   collect_entry_facts(changed,as_of=day,complete_session=True))
+  # A future-populated cache is safe when replay goes backwards.
+  past=rows[:430]
+  self.assertEqual(collect_entry_facts(past,as_of=past[-1]['date'],complete_session=True,frame_cache=cache),
+                   collect_entry_facts(past,as_of=past[-1]['date'],complete_session=True))

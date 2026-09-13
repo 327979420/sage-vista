@@ -42,7 +42,7 @@ class ObservationTests(unittest.TestCase):
             calls.append(as_of)
             gate={'eligible':True,'paths':[{'timeframe':'daily','path':'bottom_macd','structure_key':'constant','structure_floor':90}]}
             return {'reviews':[{'symbol':s,'status':'allowed','rank':1,'entry_gate':gate,'score':{'total_score':40,'timeframes':{'daily':{'normalized':.4}}},'reason_codes':[]} for s in ('AAA','SPY')]}
-        with tempfile.TemporaryDirectory() as td,patch.object(m,'ROOT',Path(td)),patch.dict(os.environ,{'GITHUB_SHA':'a'*40}),patch.object(m,'normalized_comparison_rows',side_effect=lambda r,**k:r),patch.object(m,'ticket_dates',side_effect=lambda rows,start,end:[start]),patch.object(m,'run_snapshot',side_effect=scan):
+        with tempfile.TemporaryDirectory() as td,patch.object(m,'ROOT',Path(td)),patch.dict(os.environ,{'GITHUB_SHA':'a'*40}),patch.object(m,'normalized_comparison_rows',side_effect=lambda r,**k:r),patch.object(m,'ticket_dates',side_effect=lambda rows,start,end,**kwargs:[start]),patch.object(m,'run_snapshot',side_effect=scan):
             cache=Path(td)/'work/eodhd-cache';cache.mkdir(parents=True)
             for s in ('AAA','SPY'):(cache/(s+'.json')).write_text(json.dumps(rows))
             m.shard(0,1)
@@ -59,7 +59,7 @@ class ObservationTests(unittest.TestCase):
         from research.backtest import selection_observation as m
         rows=[{'date':d,'open':100,'close':100,'low':99,'high':101,'volume':10000} for d in ['2025-01-02','2025-01-31','2026-09-11']]
         review={'reviews':[{'symbol':'SPY','status':'excluded','reason_codes':['monthly_not_confirmed']}]}
-        with tempfile.TemporaryDirectory() as td,patch.object(m,'ROOT',Path(td)),patch.dict(os.environ,{'GITHUB_SHA':'a'*40}),patch.object(m,'normalized_comparison_rows',side_effect=lambda r,**k:r),patch.object(m,'ticket_dates',side_effect=lambda r,start,end:[start]),patch.object(m,'run_snapshot',return_value=review):
+        with tempfile.TemporaryDirectory() as td,patch.object(m,'ROOT',Path(td)),patch.dict(os.environ,{'GITHUB_SHA':'a'*40}),patch.object(m,'normalized_comparison_rows',side_effect=lambda r,**k:r),patch.object(m,'ticket_dates',side_effect=lambda r,start,end,**kwargs:[start]),patch.object(m,'run_snapshot',return_value=review):
             cache=Path(td)/'work/eodhd-cache';cache.mkdir(parents=True);(cache/'SPY.json').write_text(json.dumps(rows))
             m.shard(0,1,pilot=True)
             v=json.loads(gzip.decompress((Path(td)/'work/observation/SPY.json.gz').read_bytes()))

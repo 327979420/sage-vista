@@ -143,7 +143,9 @@ def shard(index,total,pilot=False):
             saved['excluded']=source_status['excluded'];saved['complete']=True
             file.write_bytes(checkpoint_bytes(saved));completed.append(p.stem)
             continue
-        rows=normalized_comparison_rows([r for r in json.loads(raw) if r['date']<=ASOF],as_of=ASOF)
+        rawrows=json.loads(raw)
+        rows=normalized_comparison_rows([r for r in rawrows if r['date']<=ASOF],as_of=ASOF)
+        frame_cache={}
         if any(r['date'] not in spy for r in rows):
             saved['excluded']='calendar_mismatch';rows=[]
         saved['history_coverage']={'first':rows[0]['date'] if rows else None,'last':rows[-1]['date'] if rows else None,'sessions':len(rows)}
@@ -163,10 +165,10 @@ def shard(index,total,pilot=False):
                     saved['done_through']=day
                     continue
                 saved['active']=None
-            if not next(iter(ticket_dates(past,day,day)),None):
+            if not next(iter(ticket_dates(past,day,day,frame_cache=frame_cache)),None):
                 saved['done_through']=day
                 continue
-            rawpast=[r for r in json.loads(raw) if r['date']<=day]
+            rawpast=[r for r in rawrows if r['date']<=day]
             data={p.stem:rawpast,'SPY':[r for r in spyraw if r['date']<=day]}
             hashes={}
             for symbol,values in data.items():
@@ -250,7 +252,57 @@ def aggregate(total):
     receipt=seal(receipt)
     out=ROOT/'work/research-attempt';out.mkdir(parents=True,exist_ok=True);(out/'report.html').write_bytes(report);(out/'receipt.json').write_bytes(encode(receipt))
 
+def benchmark():
+    """Bounded engineering comparison; no new market downloads or experiment resume."""
+    from services.factors.cr056 import collect_entry_facts
+    from services.selectors.cr056 import assess_entry
+    from services.gates.baseline import MIN_HISTORY_SESSIONS
+    import cProfile
+    import pstats
+    cache=ROOT/'work/eodhd-cache';out=ROOT/'work/observation-benchmark';out.mkdir(parents=True,exist_ok=True)
+    sources=json.loads((ROOT/'work/observation-history.json').read_bytes())['sources']
+    # Freeze samples before looking at returns: first two valid symbols,
+    # two different market periods, ten sessions each. Not a strategy backtest.
+    symbols=sorted(s for s,v in sources.items() if not v.get('excluded') and s!='SPY')[:2]
+    results=[];profile=cProfile.Profile()
+    for symbol in symbols:
+        raw=(cache/(symbol+'.json')).read_bytes()
+        if sha256(raw)!=sources[symbol]['sha256']:raise ValueError('benchmark_source_changed')
+        rows=normalized_comparison_rows(json.loads(raw),as_of=ASOF)
+        indices=[]
+        for start,end in [('2020-03-02','2020-03-31'),('2025-01-02','2025-01-31')]:
+            indices.extend([i for i,r in enumerate(rows) if start<=r['date']<=end and i>=MIN_HISTORY_SESSIONS-1][:10])
+        if len(indices)!=20:raise ValueError('benchmark_fixed_sample_not_covered')
+        expected=[];times={};native_cache={}
+        for mode in ('original','cached'):
+            began=time.perf_counter()
+            for j,i in enumerate(indices):
+                past=rows[:i+1];day=past[-1]['date']
+                facts=collect_entry_facts(past,as_of=day,complete_session=True,
+                                          frame_cache=native_cache if mode=='cached' else None)
+                gate=assess_entry(facts)
+                digest=sha256(encode({'facts':facts,'gate':gate}))
+                if mode=='original':expected.append(digest)
+                elif digest!=expected[j]:raise ValueError('benchmark_facts_or_gate_mismatch: '+symbol+' '+day)
+            times[mode]=time.perf_counter()-began
+        profile.enable()
+        diagnostic_cache={}
+        for i in indices[:5]:
+            collect_entry_facts(rows[:i+1],as_of=rows[i]['date'],complete_session=True,frame_cache=diagnostic_cache)
+        profile.disable()
+        results.append({'symbol':symbol,'source':sha256(raw),'dates':[rows[i]['date'] for i in indices],
+                        'fact_and_gate_hashes':expected,'seconds':times,'exact_match':True})
+        print(f'{symbol}: exact facts/gates, original {times["original"]:.2f}s, cached {times["cached"]:.2f}s',flush=True)
+    profile.dump_stats(str(out/'cached-profile.stats'))
+    stream=io.StringIO();pstats.Stats(profile,stream=stream).sort_stats('cumulative').print_stats(25)
+    (out/'profile.txt').write_text(stream.getvalue())
+    (out/'summary.json').write_bytes(encode({'code':os.environ.get('GITHUB_SHA'),'policy':POLICY_FINGERPRINT,
+        'scope':'fixed facts and gate parity only; full score and episode parity still required before resume',
+        'results':results}))
+
+
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('--shard',type=int,default=0);p.add_argument('--total',type=int,default=1);p.add_argument('--pilot',action='store_true');p.add_argument('--aggregate',action='store_true');p.add_argument('--prepare-history',action='store_true');a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('--shard',type=int,default=0);p.add_argument('--total',type=int,default=1);p.add_argument('--pilot',action='store_true');p.add_argument('--aggregate',action='store_true');p.add_argument('--prepare-history',action='store_true');p.add_argument('--benchmark',action='store_true');a=p.parse_args()
+    if a.benchmark:benchmark();raise SystemExit(0)
     if a.prepare_history:prepare_history();raise SystemExit(0)
     aggregate(a.total) if a.aggregate else shard(a.shard,a.total,a.pilot)
