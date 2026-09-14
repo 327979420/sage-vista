@@ -9,8 +9,11 @@ on:
       mode:
         description: Ledger refresh, fixed comparison, or approved account research
         type: choice
-        options: [refresh, comparison, research, observation, observation_benchmark]
+        options: [refresh, comparison, research, observation, observation_benchmark, observation_resume]
         default: refresh
+      resume_run:
+        description: Original observation run ID to continue without changing its code
+        type: string
       strategy:
         description: Research only — existing execution policy
         type: choice
@@ -27,10 +30,24 @@ permissions:
   actions: write
 
 concurrency:
-  group: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'comparison' && 'sage-vista-vectorbt-comparison' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'research' && format('sage-vista-research-{0}', github.run_id)) || (github.event_name == 'workflow_dispatch' && (inputs.mode == 'observation' || inputs.mode == 'observation_benchmark') && format('sage-vista-observation-{0}', github.run_id)) || 'sage-vista-opportunity-ledger' }}
+  group: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'comparison' && 'sage-vista-vectorbt-comparison' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'research' && format('sage-vista-research-{0}', github.run_id)) || (github.event_name == 'workflow_dispatch' && (inputs.mode == 'observation' || inputs.mode == 'observation_benchmark' || inputs.mode == 'observation_resume') && format('sage-vista-observation-{0}', github.run_id)) || 'sage-vista-opportunity-ledger' }}
   cancel-in-progress: false
 
 jobs:
+  observation_resume_request:
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'observation_resume' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with: {python-version: '3.13'}
+      - name: Continue the original immutable observation run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RESUME_RUN_ID: ${{ inputs.resume_run }}
+        run: python3 -m research.backtest.observation_resume
+
   observation_benchmark:
     if: github.event_name == 'workflow_dispatch' && inputs.mode == 'observation_benchmark'
     runs-on: ubuntu-latest
@@ -261,6 +278,7 @@ jobs:
         with: {python-version: '3.13'}
       - uses: actions/cache/restore@v4
         id: prices
+        if: github.run_attempt == 1
         with:
           path: |
             work/eodhd-cache
@@ -275,9 +293,11 @@ jobs:
             work/eodhd-active-common.json
             work/observation-history.json
           key: observation-history-v1-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: observation-history-v1-
+          restore-keys: observation-history-v1-${{ github.run_id }}-
+          fail-on-cache-miss: ${{ github.run_attempt > 1 }}
       - run: python3 -m unittest tests.test_selection_observation
       - name: Prepare reusable full research histories
+        if: github.run_attempt == 1
         env:
           EODHD_API_TOKEN: ${{ secrets.EODHD_API_TOKEN }}
         run: python3 -m research.backtest.selection_observation --prepare-history
@@ -294,9 +314,11 @@ jobs:
         if: always()
         with:
           name: observation-pilot-${{ github.run_id }}
+          overwrite: true
           path: |
             work/observation/*.gz
             work/observation/manifest-*.json
+            work/observation/progress-*.json
             work/observation/history-coverage.json
           retention-days: 90
 
@@ -322,11 +344,20 @@ jobs:
           key: ${{ needs.observation_pilot.outputs.cache_key }}
           fail-on-cache-miss: true
       - uses: actions/cache/restore@v4
+        id: checkpoint_cache
         with:
           path: work/observation
           key: observation-v1-${{ github.sha }}-${{ matrix.shard }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: observation-v1-${{ github.sha }}-${{ matrix.shard }}-
-      - run: python3 -m research.backtest.selection_observation --shard ${{ matrix.shard }} --total 16
+          restore-keys: observation-v1-${{ github.sha }}-${{ matrix.shard }}-${{ github.run_id }}-
+      - name: Recover checkpoints from the previous artifact if cache was evicted
+        if: steps.checkpoint_cache.outputs.cache-matched-key == '' && github.run_attempt > 1
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ORIGINAL_RUN: ${{ github.run_id }}
+          SHARD: ${{ matrix.shard }}
+        run: gh run download "$ORIGINAL_RUN" --name "observation-shard-$SHARD" --dir work/observation
+      - run: python3 -m research.backtest.selection_observation --shard ${{ matrix.shard }} --total 16 --batch-seconds 2700
       - uses: actions/cache/save@v4
         if: always()
         with:
@@ -340,6 +371,7 @@ jobs:
           path: |
             work/observation/*.gz
             work/observation/manifest-*.json
+            work/observation/progress-*.json
           retention-days: 90
 
   observation_report:
@@ -356,9 +388,28 @@ jobs:
           pattern: observation-shard-*
           merge-multiple: true
           path: work/observation
-      - run: python3 -m research.backtest.selection_observation --aggregate --total 16
-      - name: Preserve incomplete observation attempt
+      - name: Inspect complete versus pending batches
+        id: progress
+        run: python3 -m research.backtest.selection_observation --batch-status --total 16
+      - uses: actions/upload-artifact@v4
         if: always()
+        with:
+          name: observation-progress-${{ github.run_attempt }}
+          path: work/observation/batch-status.json
+          retention-days: 90
+      - name: Report batch progress
+        if: steps.progress.outcome == 'success'
+        run: |
+          python3 - <<'PYCODE'
+          import json,os
+          s=json.load(open('work/observation/batch-status.json'))
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:
+              out.write(f"Observation: {s['completed_symbols']} stocks complete. " + ('Complete; publishing results.' if s['complete'] else 'Checkpoint saved; awaiting automatic continuation.') + '\n')
+          PYCODE
+      - if: steps.progress.outputs.complete == 'true'
+        run: python3 -m research.backtest.selection_observation --aggregate --total 16
+      - name: Preserve incomplete observation attempt
+        if: always() && steps.progress.outputs.complete != 'false'
         run: |
           python3 - <<'PYCODE'
           import os
@@ -369,7 +420,7 @@ jobs:
               p.parent.mkdir(parents=True,exist_ok=True)
               p.write_bytes(encode(seal({'schema_version':'legacy-research-run-v1','id':os.environ['GITHUB_RUN_ID']+'-'+os.environ['GITHUB_RUN_ATTEMPT'],'result_role':'legacy/research','status':'failed','request':{'strategy':STRATEGY,'start':START,'end':END},'summary':{},'reason':'observation_incomplete_see_shard_artifacts_and_resume_failed_jobs','report':None,'code_commit':os.environ['GITHUB_SHA']})))
           PYCODE
-      - if: always()
+      - if: always() && steps.progress.outputs.complete != 'false'
         run: python3 -m research.backtest.publish_attempt --receipt work/research-attempt/receipt.json
       - uses: actions/upload-artifact@v4
         if: always()

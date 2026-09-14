@@ -27,7 +27,7 @@ test('existing workflow isolates research and requires approval before engines',
  const yaml=(await import('js-yaml')).default;
  const workflow=yaml.load(fs.readFileSync(new URL('../.github/workflows/opportunity-ledger-refresh.yml',import.meta.url),'utf8'));
  assert.equal(fs.existsSync(new URL('../.github/workflows/research-backtest.yml',import.meta.url)),false);
- assert.deepEqual(workflow.on.workflow_dispatch.inputs.mode.options,['refresh','comparison','research','observation','observation_benchmark']);
+ assert.deepEqual(workflow.on.workflow_dispatch.inputs.mode.options,['refresh','comparison','research','observation','observation_benchmark','observation_resume']);
  const benchmark=workflow.jobs.observation_benchmark;
  assert.equal(benchmark['timeout-minutes'],20);
  assert.match(workflow.concurrency.group,/inputs.mode == 'observation'/);
@@ -51,4 +51,21 @@ test('trade score lookup requires original event, symbol, day and rank',()=>{
  const map=new Map([['A-1',{symbol:'A',signal_date:t.signal_date,selection:{rank:1,technical_score:5}}]]);
  assert.equal(mod.exports.matchingSignal(t,map).technical_score,5);
  for(const patch of [{event_id:'missing'},{symbol:'B'},{signal_date:'2026-01-03'},{rank:2}])assert.throws(()=>mod.exports.matchingSignal({...t,...patch},map));
+});
+
+test('observation continuation preserves original inputs and skips pending publication',async()=>{
+ const yaml=(await import('js-yaml')).default;
+ const w=yaml.load(fs.readFileSync(new URL('../.github/workflows/opportunity-ledger-refresh.yml',import.meta.url),'utf8'));
+ const pilot=w.jobs.observation_pilot.steps;
+ assert.equal(pilot.find(s=>s.name==='Prepare reusable full research histories').if,'github.run_attempt == 1');
+ assert.match(JSON.stringify(pilot),/fail-on-cache-miss/);
+ assert.match(JSON.stringify(pilot),/observation-history-v1-\$\{\{ github.run_id \}\}-/);
+ const shard=w.jobs.observation_shards.steps;
+ assert.ok(shard.some(s=>s.run?.includes('--batch-seconds 2700')));
+ assert.ok(shard.some(s=>s.run?.includes('gh run download')));
+ const report=w.jobs.observation_report.steps;
+ assert.equal(report.find(s=>s.run?.includes(' --aggregate')).if,"steps.progress.outputs.complete == 'true'");
+ assert.equal(report.find(s=>s.run?.includes('publish_attempt')).if,"always() && steps.progress.outputs.complete != 'false'");
+ const monitor=yaml.load(fs.readFileSync(new URL('../.github/workflows/eod-freshness-monitor.yml',import.meta.url),'utf8'));
+ assert.ok(monitor.jobs.observation_resume.steps.some(s=>s.run==='python3 -m research.backtest.observation_resume'));
 });

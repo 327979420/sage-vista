@@ -112,7 +112,7 @@ def checkpoint_bytes(value):
     return gzip.compress(encode({**body,'checkpoint_sha256':sha256(encode(body))}),mtime=0)
 
 
-def shard(index,total,pilot=False, *, output_dir=None, window=None, symbols=None, optimized=True, stop_after_sessions=None):
+def shard(index,total,pilot=False, *, output_dir=None, window=None, symbols=None, optimized=True, stop_after_sessions=None, budget_seconds=14400):
     if POLICY_VERSION != 'cr056-policy-3.5.0-candidate':raise ValueError('experiment_requires_frozen_3_5_policy')
     if output_dir is None and (window is not None or symbols is not None or not optimized or stop_after_sessions is not None):
         raise ValueError('diagnostic_replay_requires_isolated_output')
@@ -122,6 +122,7 @@ def shard(index,total,pilot=False, *, output_dir=None, window=None, symbols=None
     spy={r['date']:r for r in spyrows}
     start,end=window or (('2025-01-02','2025-01-31') if pilot else (START,END))
     if not START<=start<=end<=END:raise ValueError('observation_window_outside_registered_history')
+    if budget_seconds<=0:raise ValueError('positive_batch_budget_required')
     processed=0
     if min(spy)>start or max(spy)<ASOF:raise ValueError('reference_calendar_not_covered')
     paths=[p for p in sorted(cache.glob('*.json')) if p.stem.replace('-','').replace('.','').isalnum()]
@@ -166,7 +167,14 @@ def shard(index,total,pilot=False, *, output_dir=None, window=None, symbols=None
                 temp=file.with_suffix('.tmp');temp.write_bytes(checkpoint_bytes(saved));temp.replace(file)
                 raise TimeoutError('observation_test_interrupt')
             processed+=1
-            if time.monotonic()-started>14400:raise TimeoutError('observation_checkpoint_budget_resume')
+            if time.monotonic()-started>=budget_seconds:
+                temp=file.with_suffix('.tmp');temp.write_bytes(checkpoint_bytes(saved));temp.replace(file)
+                progress={'shard':index,'complete':False,'completed_symbols':len(completed),
+                    'current_symbol':p.stem,'through':saved['done_through'],'code':code,'policy':POLICY_FINGERPRINT}
+                (out/f'progress-{index}.json').write_bytes(encode(progress))
+                if pilot:raise TimeoutError('pilot_budget_exhausted')
+                print('Observation batch saved; continuation required',flush=True)
+                return progress
             past=rows[:row_index+1]
             if row_index%50==0:
                 temp=file.with_suffix('.tmp');temp.write_bytes(checkpoint_bytes(saved));temp.replace(file)
@@ -213,6 +221,36 @@ def shard(index,total,pilot=False, *, output_dir=None, window=None, symbols=None
         checks=[json.loads(gzip.decompress((out/(symbol+'.json.gz')).read_bytes())) for symbol in completed]
         if not any(v.get('evaluated',0)>v.get('unavailable',0) for v in checks):raise ValueError('pilot_no_evaluable_candidates')
     (out/f'manifest-{index}.json').write_bytes(encode({'shard':index,'total':total,'symbols':completed,'pilot':pilot,'timing':timing,'cache_symbols':len(list(cache.glob('*.json'))),'code':code,'policy':POLICY_FINGERPRINT}))
+    progress={'shard':index,'complete':True,'completed_symbols':len(completed),'code':code,'policy':POLICY_FINGERPRINT}
+    (out/f'progress-{index}.json').write_bytes(encode(progress))
+    return progress
+
+
+def batch_status(total):
+    folder=ROOT/'work/observation';states=[]
+    for index in range(total):
+        p=folder/f'progress-{index}.json'
+        if not p.exists():raise ValueError('batch_progress_missing')
+        state=json.loads(p.read_bytes())
+        if state['shard']!=index or state['code']!=os.environ['GITHUB_SHA'] or state['policy']!=POLICY_FINGERPRINT:
+            raise ValueError('batch_progress_identity_mismatch')
+        states.append(state)
+    points=[]
+    for p in sorted(folder.glob('*.json.gz')):
+        value=json.loads(gzip.decompress(p.read_bytes()))
+        if value.get('checkpoint_sha256')!=sha256(encode({k:v for k,v in value.items() if k!='checkpoint_sha256'})):
+            raise ValueError('checkpoint_integrity_failed')
+        if value['identity']['code']!=os.environ['GITHUB_SHA'] or value['identity']['policy']!=POLICY_FINGERPRINT:
+            raise ValueError('checkpoint_code_or_policy_mismatch')
+        points.append((value['identity']['symbol'],value.get('done_through',''),value['complete']))
+    complete=all(s['complete'] for s in states)
+    result={'complete':complete,'code':os.environ['GITHUB_SHA'],'policy':POLICY_FINGERPRINT,
+            'completed_symbols':sum(s['completed_symbols'] for s in states),
+            'progress_fingerprint':sha256(encode(points)),'shards':states}
+    (folder/'batch-status.json').write_bytes(encode(result))
+    if os.environ.get('GITHUB_OUTPUT'):
+        with open(os.environ['GITHUB_OUTPUT'],'a') as output:output.write('complete='+str(complete).lower()+'\n')
+    return result
 
 
 def summarize(events):
@@ -342,7 +380,7 @@ def benchmark():
     # Same production loop, isolated outputs: baseline, optimized and interrupted.
     # Fixed window includes an existing A entry and a completed month boundary.
     replay_window=('2008-07-01','2008-08-15');runs={};elapsed={}
-    for mode in ('baseline','optimized','resumed'):
+    for mode in ('baseline','optimized','resumed','budget_resumed'):
         destination=out/('replay-'+mode);began=time.perf_counter()
         if mode=='resumed':
             try:
@@ -350,6 +388,9 @@ def benchmark():
             except TimeoutError as exc:
                 if str(exc)!='observation_test_interrupt':raise
             else:raise ValueError('replay_interrupt_not_exercised')
+        if mode=='budget_resumed':
+            pending=shard(0,1,output_dir=destination,window=replay_window,symbols=symbols,budget_seconds=1)
+            if pending['complete']:raise ValueError('graceful_batch_pause_not_exercised')
         shard(0,1,output_dir=destination,window=replay_window,symbols=symbols,optimized=mode!='baseline')
         elapsed[mode]=time.perf_counter()-began
         runs[mode]={symbol:json.loads(gzip.decompress((destination/(symbol+'.json.gz')).read_bytes())) for symbol in symbols}
@@ -357,7 +398,7 @@ def benchmark():
     comparisons=[]
     for symbol in symbols:
         original=runs['baseline'][symbol]
-        for mode in ('optimized','resumed'):
+        for mode in ('optimized','resumed','budget_resumed'):
             for field in ('identity','events','active','used','done_through','complete'):
                 if encode(original[field])!=encode(runs[mode][symbol][field]):
                     raise ValueError('continuous_replay_mismatch: '+symbol+' '+mode+' '+field)
@@ -378,7 +419,8 @@ def benchmark():
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('--shard',type=int,default=0);p.add_argument('--total',type=int,default=1);p.add_argument('--pilot',action='store_true');p.add_argument('--aggregate',action='store_true');p.add_argument('--prepare-history',action='store_true');p.add_argument('--benchmark',action='store_true');a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('--shard',type=int,default=0);p.add_argument('--total',type=int,default=1);p.add_argument('--pilot',action='store_true');p.add_argument('--aggregate',action='store_true');p.add_argument('--prepare-history',action='store_true');p.add_argument('--benchmark',action='store_true');p.add_argument('--batch-seconds',type=int,default=14400);p.add_argument('--batch-status',action='store_true');a=p.parse_args()
+    if a.batch_status:batch_status(a.total);raise SystemExit(0)
     if a.benchmark:benchmark();raise SystemExit(0)
     if a.prepare_history:prepare_history();raise SystemExit(0)
-    aggregate(a.total) if a.aggregate else shard(a.shard,a.total,a.pilot)
+    aggregate(a.total) if a.aggregate else shard(a.shard,a.total,a.pilot,budget_seconds=a.batch_seconds)

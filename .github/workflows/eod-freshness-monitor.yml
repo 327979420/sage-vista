@@ -72,16 +72,17 @@ jobs:
         run: exit 1
 
   observation_resume:
-    if: github.event_name == 'workflow_run' && github.event.workflow_run.name == 'Refresh Opportunity Ledger' && github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.event == 'workflow_dispatch' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.run_attempt < 3
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.name == 'Refresh Opportunity Ledger' && (github.event.workflow_run.conclusion == 'failure' || github.event.workflow_run.conclusion == 'success') && github.event.workflow_run.event == 'workflow_dispatch' && github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
     steps:
-      - name: Retry failed observation shards only, preserving original commit and checkpoints
+      - uses: actions/checkout@v7
+        with: {ref: main}
+      - uses: actions/setup-python@v7
+        with: {python-version: '3.13'}
+      - name: Continue only unfinished observation runs with saved progress
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          RUN_ID: ${{ github.event.workflow_run.id }}
-        run: |
-          gh api "repos/$GH_REPO/actions/runs/$RUN_ID/jobs?per_page=100" > jobs.json
-          if python3 -c 'import json;raise SystemExit(0 if any(j["name"].startswith("observation_shards") and j["conclusion"] in ("failure","timed_out") for j in json.load(open("jobs.json"))["jobs"]) else 1)'; then
-            gh run rerun "$RUN_ID" --failed
-          fi
+          RESUME_RUN_ID: ${{ github.event.workflow_run.id }}
+          AUTOMATIC_RESUME: 'true'
+        run: python3 -m research.backtest.observation_resume

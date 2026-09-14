@@ -60,6 +60,19 @@ class ObservationTests(unittest.TestCase):
             m.shard(0,1,output_dir=resumed,symbols=['AAA'])
             finished=json.loads(gzip.decompress((resumed/'AAA.json.gz').read_bytes()))
             self.assertEqual(finished,data)
+            graceful=Path(td)/'graceful'
+            with patch.object(m.time,'monotonic',side_effect=[0,0,0,2]):
+                progress=m.shard(0,1,output_dir=graceful,symbols=['AAA'],budget_seconds=1)
+            self.assertFalse(progress['complete'])
+            self.assertEqual(progress['through'],days[0])
+            progress=m.shard(0,1,output_dir=graceful,symbols=['AAA'])
+            self.assertTrue(progress['complete'])
+            self.assertEqual(json.loads(gzip.decompress((graceful/'AAA.json.gz').read_bytes())),data)
+            status=m.batch_status(1)
+            self.assertTrue(status['complete'])
+            self.assertEqual(status['completed_symbols'],2)
+            (Path(td)/'work/observation/progress-0.json').unlink()
+            with self.assertRaisesRegex(ValueError,'batch_progress_missing'):m.batch_status(1)
             baseline=Path(td)/'baseline'
             m.shard(0,1,output_dir=baseline,symbols=['AAA'],optimized=False)
             self.assertEqual(json.loads(gzip.decompress((baseline/'AAA.json.gz').read_bytes())),data)
