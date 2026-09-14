@@ -1,15 +1,15 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-09-09",
+  "generated_at": "2026-09-13T15:49:44Z",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 40,
+  "experiment_count": 41,
   "summary": {
     "completed": 26,
-    "in_progress": 14,
+    "in_progress": 15,
     "candidate": 10,
     "not_validated_or_unstable": 12
   },
@@ -21,6 +21,87 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "cr056-selection-observation-v1-2026-09-13",
+      "created_at": "2026-09-13",
+      "status": "pre_registered",
+      "change": "Observe policy3.5 selections without trades; user authorized automatic pilot then twenty-year run",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md",
+        "policy": "cr056-policy-3.5.0-candidate",
+        "start": "2005-09-12",
+        "end": "2025-09-11",
+        "observation_end": "2026-09-11",
+        "primary": "monthly six calendar month median SPY-relative price return",
+        "windows": {
+          "daily": [
+            5,
+            10,
+            20
+          ],
+          "weekly": [
+            5,
+            10,
+            20
+          ],
+          "monthly": [
+            3,
+            6,
+            9,
+            12
+          ]
+        },
+        "entry": "none; signal close observation",
+        "universe": "all eligible restored cache symbols; not complete historical market",
+        "episode": "one active frozen structure per symbol until daily close below its floor; new unused shared structure key required",
+        "reuse": "immutable source/code identity; per-symbol checkpoint; all windows retained in CSV and receipt"
+      },
+      "known_limitations": [
+        "survivorship and cached coverage",
+        "historical adjustment revisions unproven",
+        "dominant frame is ticket-qualified score heuristic",
+        "nested valid structures coalesced",
+        "descriptive only, no independent holdout claim"
+      ],
+      "success_criteria": "Complete all shards; causal selection; future windows and missing data explicit; readable report and immutable derived evidence; no account return claims",
+      "human_summary": {
+        "title_zh": "新版选股二十年分周期收益观察",
+        "family": "selection_observation",
+        "family_zh": "选股效果观察",
+        "question_zh": "新版门票和评分产生的候选，在不同主导周期和观察窗口表现如何？",
+        "result_zh": "多年任务进行中，尚无完整收益结论；小样本暂停续跑一致性已验证。",
+        "use_zh": "沿原运行断点接续，完成后读取既有回测报告和全部窗口CSV；不作为模拟账户收益。",
+        "next_zh": "完成全部分片、校验覆盖与缺失，再比较各形态和周期的收益分布。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-09-13",
+        "started_at": "2026-09-13T15:49:44Z",
+        "completed_at": null,
+        "latest_event": "started",
+        "latest_event_at": "2026-09-13T15:49:44Z",
+        "time_source": "github_actions",
+        "event_count": 2,
+        "events": [
+          {
+            "experiment_id": "cr056-selection-observation-v1-2026-09-13",
+            "event": "registered",
+            "event_at": "2026-09-13",
+            "time_source": "experiment_ledger",
+            "source_ref": "research/experiments.jsonl",
+            "result": "用户批准按3.5规则观察20年信号，不模拟买卖。"
+          },
+          {
+            "experiment_id": "cr056-selection-observation-v1-2026-09-13",
+            "event": "started",
+            "event_at": "2026-09-13T15:49:44Z",
+            "time_source": "github_actions",
+            "source_ref": "https://github.com/327979420/sage-vista/actions/runs/34766761296",
+            "result": "冻结ddb129c原运行；保留每股检查点，未完成分片接续。"
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "cr056-history-new-nominations-legacy-exit-v1-2026-09-09",
       "created_at": "2026-09-09",
@@ -3118,6 +3199,7 @@
     "core-factor-backtest-v1.0.0-2026-08-27",
     "cr056-history-new-nominations-legacy-exit-v1-2026-09-09",
     "cr056-month-week-day-watch-v1.0.0-2026-09-07",
+    "cr056-selection-observation-v1-2026-09-13",
     "cr056-three-paths-v3-2026-09-09",
     "evidence-calibrated-daily-score-v1.0.0-2026-08-29",
     "exit-score-v0.1.0-2026-08-28",

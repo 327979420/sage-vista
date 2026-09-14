@@ -1,6 +1,7 @@
 {
   "schema_version": "1.0.0",
   "experiments": {
+    "cr056-selection-observation-v1-2026-09-13": {"title_zh": "新版选股二十年分周期收益观察", "family": "selection_observation", "family_zh": "选股效果观察", "question_zh": "新版门票和评分产生的候选，在不同主导周期和观察窗口表现如何？", "result_zh": "多年任务进行中，尚无完整收益结论；小样本暂停续跑一致性已验证。", "use_zh": "沿原运行断点接续，完成后读取既有回测报告和全部窗口CSV；不作为模拟账户收益。", "next_zh": "完成全部分片、校验覆盖与缺失，再比较各形态和周期的收益分布。", "verdict": "pre_registered"},
     "cr056-history-new-nominations-legacy-exit-v1-2026-09-09": {"title_zh": "CR056新版提名与旧退出历史验证", "family": "strategy", "family_zh": "多周期策略", "question_zh": "新版月周日评分与金叉提名在旧退出基线下的账户表现如何？", "result_zh": "2025全年后台运行已完成，净收益-14.65%，最大回撤23.16%；观测股票池有覆盖缺口，不能作为完整历史市场验证。", "use_zh": "用于定位入场与退出问题，不自动修改生产规则。", "next_zh": "结合逐笔评分和人工案例解读结果，再预登记单变量实验。", "verdict": "not_validated"},
     "research-v0.1.0-2026-08-17": {"title_zh":"通用因子研究底座","family":"general","family_zh":"通用研究","question_zh":"能否先建立不使用未来数据的通用因子研究流程？","result_zh":"建立了基础研究数据和流程，但没有得出可以直接交易的策略结论。","use_zh":"保留为研究基础设施，不作为买入依据。","next_zh":"后续实验沿用同一份数据契约和时间切分。","verdict":"infrastructure"},
     "tracker-backtest-v1-2026-08-25": {"title_zh":"旧 Tracker 历史基准","family":"tracker","family_zh":"旧系统基准","question_zh":"旧 Tracker 的趋势过滤和排名是否有历史参考价值？","result_zh":"长期趋势过滤略有改善：20日胜率52.95%、PF 1.122；但排名分组并不稳定，多因子分组更有顺序性。","use_zh":"保留为比较新策略的历史基准，不直接照搬排名。","next_zh":"新策略必须与这条基准在相同样本上比较。","verdict":"candidate"},

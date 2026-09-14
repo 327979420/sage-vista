@@ -19,6 +19,10 @@ LEGACY_PATH_MARKERS = (
 # This is an audit inventory, not a production allow-list.  Any source change
 # must make the test fail until package H is deliberately reviewed and updated.
 EXPECTED_PYTHON_REFERENCES = frozenset({
+    # CR056 research-only: source preparation, frozen replay and isolated parity benchmark.
+    "research/backtest/selection_observation.py::prepare_history",
+    "research/backtest/selection_observation.py::shard",
+    "research/backtest/selection_observation.py::benchmark",
     "services/scanner/cr056_inputs.py::main",
     "services/scanner/cr056_daily.py::main",
     "services/scanner/cr056_daily.py::existing_bulk",
