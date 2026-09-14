@@ -426,5 +426,6 @@ jobs:
         if: always()
         with:
           name: observation-report-${{ github.run_id }}
+          overwrite: true
           path: work/research-attempt/
           retention-days: 90

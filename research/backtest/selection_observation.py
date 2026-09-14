@@ -232,7 +232,7 @@ def batch_status(total):
         p=folder/f'progress-{index}.json'
         if not p.exists():raise ValueError('batch_progress_missing')
         state=json.loads(p.read_bytes())
-        if state['shard']!=index or state['code']!=os.environ['GITHUB_SHA'] or state['policy']!=POLICY_FINGERPRINT:
+        if type(state.get('complete')) is not bool or state['shard']!=index or state['code']!=os.environ['GITHUB_SHA'] or state['policy']!=POLICY_FINGERPRINT:
             raise ValueError('batch_progress_identity_mismatch')
         states.append(state)
     points=[]
@@ -242,7 +242,11 @@ def batch_status(total):
             raise ValueError('checkpoint_integrity_failed')
         if value['identity']['code']!=os.environ['GITHUB_SHA'] or value['identity']['policy']!=POLICY_FINGERPRINT:
             raise ValueError('checkpoint_code_or_policy_mismatch')
+        if any(value['identity'].get(k)!=v for k,v in {'start':START,'end':END,'asof':ASOF}.items()):
+            raise ValueError('checkpoint_window_mismatch')
         points.append((value['identity']['symbol'],value.get('done_through',''),value['complete']))
+    if sum(s['completed_symbols'] for s in states)!=sum(p[2] for p in points):
+        raise ValueError('batch_completed_count_mismatch')
     complete=all(s['complete'] for s in states)
     result={'complete':complete,'code':os.environ['GITHUB_SHA'],'policy':POLICY_FINGERPRINT,
             'completed_symbols':sum(s['completed_symbols'] for s in states),
