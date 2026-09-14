@@ -1,0 +1,26 @@
+{
+  "code_commit": "ddb129c9ca847e83e1356ed995907e12428cb3c5",
+  "downloads": {
+    "trades_csv": {
+      "path": "34766761296-2/trades.csv",
+      "sha256": "0b6119814ce76d5875e9d36e228aaf916aa475ce2e2590abebb3df499f4bb92b"
+    }
+  },
+  "id": "34766761296-2",
+  "report": {
+    "path": "34766761296-2/report.html",
+    "sha256": "351d122015b5e2b470fa1694de3993b69d6fe1a1b29dee07cd7f2627191b2287"
+  },
+  "request": {
+    "end": "2025-09-11",
+    "start": "2005-09-12",
+    "strategy": "cr056-selection-observation-v1"
+  },
+  "research_input": {},
+  "selection": {},
+  "status": "completed",
+  "summary": {
+    "opportunities": 3115,
+    "symbols": 1640
+  }
+}

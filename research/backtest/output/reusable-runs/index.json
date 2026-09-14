@@ -2,6 +2,23 @@
   "runs": [
     {
       "code_commit": "ddb129c9ca847e83e1356ed995907e12428cb3c5",
+      "content_sha256": "213761ec14fb849e0545afef1282c123e60bde318d65da2db256fd152b3f70ee",
+      "id": "34766761296-2",
+      "overview_sha256": "b36365ba2739b6f5f3f5684d88f5615468ffc4871102c60a32b73b7e24027e7f",
+      "receipt_sha256": "5b5bcda7335180b082dd9982074e1517ed58c618b9e5f2c9a5f34b56a5f07de8",
+      "request": {
+        "end": "2025-09-11",
+        "start": "2005-09-12",
+        "strategy": "cr056-selection-observation-v1"
+      },
+      "status": "completed",
+      "summary": {
+        "opportunities": 3115,
+        "symbols": 1640
+      }
+    },
+    {
+      "code_commit": "ddb129c9ca847e83e1356ed995907e12428cb3c5",
       "content_sha256": "dbd1aa6ba090c3a51f9a98721226eaf6bc049e91a7e42211424903f2b5b2f6a1",
       "id": "34766761296-1",
       "receipt_sha256": "75658a70587ee05bf7040d38868fd24196aa9366ff0c9263bb8e010224ca6d97",
