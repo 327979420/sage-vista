@@ -1,7 +1,8 @@
 import copy
 import unittest
 from services.contracts.cr056_policy import WHITE_LIST, MAPPED_FACTORS, CAPS
-from services.selectors.cr056 import direction_permission, assess_permission, assess_watch_permission
+from services.selectors.cr056 import direction_permission, assess_permission
+from services.selectors.cr056_watch import assess_watch_permission
 from services.ranking.cr056 import score_candidate
 from services.gates.long_term_state import completed_period_bars, period_closed_at_session
 

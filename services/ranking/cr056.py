@@ -73,8 +73,6 @@ def score_candidate(states, permission):
         'unavailable' if coverage < S['minimum_score_coverage'] else 'scored' if coverage == 1 else 'partial')
     total = diagnostic_score if score_status in {'scored', 'partial'} else None
     result = {'policy_version': POLICY_VERSION, 'policy_fingerprint': POLICY_FINGERPRINT,
-        **({k: permission[k] for k in ('watch_permission_version', 'watch_tracking_fingerprint')}
-           if 'watch_permission_version' in permission else {}),
         'as_of': permission['as_of'], 'permission': permission['permission'], 'score_status': score_status,
         'facts_input_fingerprint': permission['facts_input_fingerprint'],
         'factor_input_fingerprint': factor_input_fingerprint, 'registry_version': REGISTRY_VERSION,

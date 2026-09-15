@@ -15,7 +15,8 @@ from services.contracts.market_data import canonical_fingerprint
 from services.market_data.storage import require_shadow_root
 from services.gates.baseline import exact_daily_macd_bull_cross, MIN_HISTORY_SESSIONS, MIN_CLOSE, MIN_DOLLAR_VOLUME
 from services.factors.cr056 import collect_direction_facts, collect_entry_facts
-from services.selectors.cr056 import assess_permission, assess_entry, assess_watch_permission, WATCH_PERMISSION_VERSION
+from services.selectors.cr056 import assess_permission, assess_entry
+from services.selectors.cr056_watch import assess_watch_permission, WATCH_PERMISSION_VERSION
 from services.ranking.cr056 import score_candidate
 from services.ledger.cr056 import review_watch, track_entry_structures
 from services.scanner.factor_detectors import evaluate_period_factors

@@ -79,7 +79,7 @@ def refresh(*, as_of, code_commit, public_path, state_path, archive_dir, work_di
         if previous['as_of'] > as_of: raise ValueError('older_date_cannot_replace_watch_state')
         if previous['snapshot_fingerprint'] != current['source_snapshot'] or previous['as_of'] != current['as_of']:
             raise ValueError('public_watch_checkpoint_mismatch')
-        from services.selectors.cr056 import WATCH_PERMISSION_VERSION
+        from services.selectors.cr056_watch import WATCH_PERMISSION_VERSION
         policy_revision = (current.get('watch_permission_version') != WATCH_PERMISSION_VERSION or
                            current['policy_version'] != POLICY_VERSION or
                            current.get('policy_fingerprint') != POLICY_FINGERPRINT or
