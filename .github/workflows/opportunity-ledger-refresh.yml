@@ -9,7 +9,7 @@ on:
       mode:
         description: Ledger refresh, fixed comparison, or approved account research
         type: choice
-        options: [refresh, comparison, research, observation, observation_benchmark, observation_resume]
+        options: [refresh, comparison, research, observation, observation_benchmark, observation_resume, observation_horizons]
         default: refresh
       resume_run:
         description: Original observation run ID to continue without changing its code
@@ -34,6 +34,48 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  observation_horizons:
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'observation_horizons'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with: {python-version: '3.13'}
+      - name: Restore only the original observation price vintage
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            work/eodhd-cache
+            work/eodhd-active-common.json
+            work/observation-history.json
+          key: observation-history-v1-34766761296-1
+      - uses: actions/cache/restore@v4
+        with:
+          path: work/horizon-checkpoints
+          key: observation-horizons-v1-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: observation-horizons-v1-${{ github.sha }}-${{ github.run_id }}-
+      - name: Validate the affected calculation and original observer
+        run: python3 -m unittest tests.test_observation_horizons tests.test_selection_observation
+      - name: Derive curves from the frozen receipt and matching prices
+        run: python3 -m research.backtest.observation_horizons --parent research/backtest/output/reusable-runs/34766761296-2/receipt.json
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: work/horizon-checkpoints
+          key: observation-horizons-v1-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Publish through the existing immutable result index
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 -m research.backtest.publish_attempt --receipt work/horizon-attempt/receipt.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: observation-horizons-${{ github.run_id }}-${{ github.run_attempt }}
+          path: work/horizon-attempt/
+          retention-days: 90
+
   observation_resume_request:
     if: github.event_name == 'workflow_dispatch' && inputs.mode == 'observation_resume' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
