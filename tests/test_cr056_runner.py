@@ -10,7 +10,7 @@ from unittest.mock import patch
 from types import SimpleNamespace
 from services.contracts.market_data import canonical_fingerprint
 from services.ledger.cr056 import review_watch
-from services.scanner.cr056_runner import run_snapshot, save_report
+from services.scanner.cr056_runner import run_snapshot, save_report, revise_saved_watch_permissions
 from tests.test_cr056_strategy import facts, states
 
 
@@ -96,6 +96,29 @@ class RunnerTests(unittest.TestCase):
         self.assertIn('no_pullback_60d', by['NEW']['reason_codes'])
         self.assertEqual(by['AAA']['origin']['date'], '2026-08-28')
         self.assertFalse(by['AAA']['new_nomination'])
+
+    def test_saved_fact_revision_matches_fresh_permission_without_mutating_history(self):
+        f = facts(); f['prior_60_high'] = 81
+        f['monthly']['completed_through'] = '2026-08-31'; f['weekly']['completed_through'] = '2026-09-04'
+        tracking = {'eligible':True, 'as_of':f['as_of'], 'records':[{'state':'active'}]}
+        with patch('services.scanner.cr056_runner.collect_direction_facts',return_value=f), \
+             patch('services.scanner.cr056_runner.assess_entry',return_value={'eligible':True,'paths':[],'reason_codes':[]}), \
+             patch('services.scanner.cr056_runner.track_entry_structures',return_value=tracking), \
+             patch('services.scanner.cr056_runner.evaluate_period_factors',return_value=states()):
+            with patch('services.scanner.cr056_runner.assess_watch_permission',side_effect=lambda p,t:p):
+                old=self.run_report()
+            fresh=self.run_report()
+        frozen=copy.deepcopy(old)
+        revised=revise_saved_watch_permissions(old,code_commit='test')
+        self.assertEqual(old,frozen)
+        self.assertEqual(revised['ranked_symbols'],fresh['ranked_symbols'])
+        for before,after,full in zip(old['reviews'],revised['reviews'],fresh['reviews']):
+            self.assertEqual(after.get('score'),full.get('score'))
+            for key in ('origin','entry_tracking','factor_states','nomination_observation'):
+                self.assertEqual(before.get(key),after.get(key))
+        broken=copy.deepcopy(old);broken['as_of']='2026-09-03'
+        with self.assertRaisesRegex(ValueError,'fingerprint'):
+            revise_saved_watch_permissions(broken,code_commit='test')
 
     def test_real_producers_run_on_long_synthetic_history(self):
         result = self.run_report()

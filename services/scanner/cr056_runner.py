@@ -4,6 +4,7 @@ Outputs are derived comparison reports. Existing histories/public data are read
 only; no supplier, deployment, notification or new-trade entry is called here.
 """
 import argparse
+import copy
 from collections import Counter
 import hashlib
 import json
@@ -19,6 +20,50 @@ from services.ranking.cr056 import score_candidate
 from services.ledger.cr056 import review_watch, track_entry_structures
 from services.scanner.factor_detectors import evaluate_period_factors
 from services.scanner.cr056_inputs import normalized_comparison_rows
+
+
+def rank_reviews(reviews):
+    """One ordering for both daily snapshots and saved-fact permission revisions."""
+    for row in reviews:
+        row.pop('rank', None)
+    ranked = [r for r in reviews if r.get('score', {}).get('total_score') is not None]
+    ranked.sort(key=lambda r: (-r['score']['total_score'],
+        -r['score']['timeframes']['monthly_completed']['normalized'],
+        -r['score']['timeframes']['weekly_completed']['normalized'], r['instrument_id']))
+    for rank, row in enumerate(ranked, 1): row['rank'] = rank
+    return ranked
+
+
+def revise_saved_watch_permissions(source, *, code_commit):
+    """Reuse immutable same-policy facts; do not rescan prices or invent signals."""
+    fingerprint = source.get('snapshot_fingerprint')
+    if canonical_fingerprint({k:v for k,v in source.items() if k != 'snapshot_fingerprint'}) != fingerprint:
+        raise ValueError('source snapshot fingerprint mismatch')
+    if source.get('policy_fingerprint') != POLICY_FINGERPRINT or source.get('result_role') != 'legacy_comparison':
+        raise ValueError('saved facts policy mismatch')
+    result = copy.deepcopy(source)
+    for row in result['reviews']:
+        if not row.get('origin') or not row.get('score') or not row.get('entry_tracking'):
+            continue
+        permission = assess_watch_permission(row['permission'], row['entry_tracking'])
+        if permission == row['permission']: continue
+        score = score_candidate(row['factor_states'], permission)
+        row.update(permission=permission, score=score, status=score['score_status'], reason_codes=score['reason_codes'],
+                   reused_fact_code_commit=row.get('code_commit'), code_commit=code_commit)
+        if row.get('watch'):
+            row['watch'] = review_watch(symbol=row['symbol'], as_of=result['as_of'], origin=row['origin'],
+                score=score, previous=row['watch'], reference_sessions=[result['as_of']],
+                policy_revision=True, entry_tracking=row['entry_tracking'])
+    ranked = rank_reviews(result['reviews'])
+    result.update(code_commit=code_commit, watch_permission_version=WATCH_PERMISSION_VERSION,
+        previous_snapshot_fingerprint=fingerprint, reused_fact_snapshot=fingerprint,
+        counts=dict(Counter(r['status'] for r in result['reviews'])),
+        ranked_symbols=[r['symbol'] for r in ranked], selected_symbols=[r['symbol'] for r in ranked[:5]],
+        new_nomination_symbols=[r['symbol'] for r in ranked if r['new_nomination']],
+        continuing_ranked_symbols=[r['symbol'] for r in ranked if not r['new_nomination']])
+    result.pop('snapshot_fingerprint')
+    result['snapshot_fingerprint'] = canonical_fingerprint(result)
+    return result
 
 
 def nomination_observation(rows, origin, as_of):
@@ -168,11 +213,7 @@ def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previo
                     entry_tracking=item.get('entry_tracking') or (prior.get(symbol) or {}).get('entry_tracking'))
         counts[item['status']] += 1
         reviews.append(item)
-    ranked = [r for r in reviews if r.get('score', {}).get('total_score') is not None]
-    ranked.sort(key=lambda r: (-r['score']['total_score'],
-        -r['score']['timeframes']['monthly_completed']['normalized'],
-        -r['score']['timeframes']['weekly_completed']['normalized'], r['instrument_id']))
-    for rank, r in enumerate(ranked, 1): r['rank'] = rank
+    ranked = rank_reviews(reviews)
     report = {'schema_version': 'cr056-backend-report-1.0.0', 'result_role': 'legacy_comparison',
         'as_of': as_of, 'code_commit': code_commit, 'policy_version': POLICY_VERSION,
         'policy_fingerprint': POLICY_FINGERPRINT, 'watch_permission_version': WATCH_PERMISSION_VERSION,
