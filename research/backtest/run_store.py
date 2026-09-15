@@ -105,6 +105,23 @@ def validate_receipt(receipt):
                 raise ValueError('invalid_observation_signal')
             if set(event.get('outcomes',{}))!={'5d','10d','20d','5w','10w','20w','3m','6m','9m','12m'}:
                 raise ValueError('observation_windows_missing')
+            extra=event.get('horizon_outcomes',{})
+            if extra:
+                analysis=receipt.get('horizon_analysis',{})
+                if (analysis.get('version')!='horizon-curves-v1' or event['timeframe']!='daily'
+                        or set(extra)!={'15d','30d','40d','60d'}
+                        or analysis.get('parent_id')!='34766761296-2'
+                        or analysis.get('parent_content_sha256')!='213761ec14fb849e0545afef1282c123e60bde318d65da2db256fd152b3f70ee'):
+                    raise ValueError('invalid_horizon_extension')
+                for outcome in extra.values():
+                    if outcome.get('status') not in ('complete','immature','missing_prices','unavailable'):
+                        raise ValueError('invalid_horizon_status')
+                    if outcome['status']=='unavailable' and not outcome.get('reason'):
+                        raise ValueError('horizon_missing_reason')
+                    if outcome['status']=='complete' and (any(not _number(outcome.get(k)) for k in ('return','spy_return','excess','mfe','mae'))
+                            or not event['signal_date']<outcome.get('target_date','')<=receipt['observation']['as_of']
+                            or not math.isclose(outcome['excess'],outcome['return']-outcome['spy_return'],abs_tol=1e-12)):
+                        raise ValueError('invalid_horizon_outcome')
             for outcome in event['outcomes'].values():
                 if outcome.get('status') not in ('complete','immature','missing_prices'):raise ValueError('invalid_observation_status')
                 if outcome['status']=='complete' and (any(not _number(outcome.get(k)) for k in ('return','spy_return','excess','mfe','mae')) or outcome.get('target_date','')<=event['signal_date']):
@@ -187,7 +204,7 @@ def trade_csv(receipt):
         writer.writerow(['symbol','signal_date','episode_id','timeframe','score','monthly_score','weekly_score','daily_score','signal_close','structure_floor','entry_paths','window','status','target_date','return','spy_return','excess','mfe','mae','days_to_10pct'])
         for e in receipt.get('events',[]):
             scores=e['timeframe_scores'];paths=';'.join(p['timeframe']+':'+p['path'] for p in e['entry_gate']['paths'])
-            for window,o in e['outcomes'].items():
+            for window,o in {**e['outcomes'],**e.get('horizon_outcomes',{})}.items():
                 writer.writerow([e['symbol'],e['signal_date'],e['episode_id'],e['timeframe'],e['score'],scores.get('monthly_completed'),scores.get('weekly_completed'),scores.get('daily'),e['signal_close'],e['floor'],paths,window,o['status'],*[o.get(k) for k in ('target_date','return','spy_return','excess','mfe','mae','days_to_10pct')]])
         return ('\ufeff'+out.getvalue()).encode('utf-8')
     entry_columns=receipt.get('request',{}).get('strategy')==CANDIDATE_POLICY
