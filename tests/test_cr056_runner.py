@@ -80,6 +80,23 @@ class RunnerTests(unittest.TestCase):
         self.assertFalse(row['new_nomination'])
         self.assertNotIn('NEW',result['ranked_symbols'])
 
+    def test_existing_watch_survives_recovery_but_new_entry_still_requires_pullback(self):
+        f = facts(); f['prior_60_high'] = 81
+        f['monthly']['completed_through'] = '2026-08-31'
+        f['weekly']['completed_through'] = '2026-09-04'
+        tracking = {'eligible': True, 'as_of': f['as_of'], 'records': [{'state': 'active'}]}
+        with patch('services.scanner.cr056_runner.collect_direction_facts', return_value=f), \
+             patch('services.scanner.cr056_runner.assess_entry', return_value={'eligible':True,'paths':[],'reason_codes':[]}), \
+             patch('services.scanner.cr056_runner.track_entry_structures', return_value=tracking), \
+             patch('services.scanner.cr056_runner.evaluate_period_factors', return_value=states()):
+            result = self.run_report()
+        by = {r['symbol']:r for r in result['reviews']}
+        self.assertIn('AAA', result['continuing_ranked_symbols'])
+        self.assertNotIn('NEW', result['ranked_symbols'])
+        self.assertIn('no_pullback_60d', by['NEW']['reason_codes'])
+        self.assertEqual(by['AAA']['origin']['date'], '2026-08-28')
+        self.assertFalse(by['AAA']['new_nomination'])
+
     def test_real_producers_run_on_long_synthetic_history(self):
         result = self.run_report()
         by = {r['symbol']: r for r in result['reviews']}

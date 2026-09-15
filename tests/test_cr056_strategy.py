@@ -1,7 +1,7 @@
 import copy
 import unittest
 from services.contracts.cr056_policy import WHITE_LIST, MAPPED_FACTORS, CAPS
-from services.selectors.cr056 import direction_permission, assess_permission
+from services.selectors.cr056 import direction_permission, assess_permission, assess_watch_permission
 from services.ranking.cr056 import score_candidate
 from services.gates.long_term_state import completed_period_bars, period_closed_at_session
 
@@ -23,6 +23,26 @@ def states():
             for fid in MAPPED_FACTORS]
 
 class PermissionTests(unittest.TestCase):
+    def test_initial_pullback_only_waived_for_current_surviving_watch(self):
+        f = facts(); f['prior_60_high'] = 81
+        original = assess_permission(f)
+        self.assertIn('no_pullback_60d', original['reason_codes'])
+        active = {'as_of': f['as_of'], 'records': [{'state': 'active'}]}
+        continued = assess_watch_permission(original, active)
+        self.assertTrue(continued['eligible'])
+        self.assertIn('no_pullback_60d', original['reason_codes'])
+        self.assertIsNotNone(score_candidate(states(), continued)['total_score'])
+        self.assertIsNone(score_candidate(states(), original)['total_score'])
+        for tracking in (None, {'as_of': '2026-09-03', 'records': [{'state': 'active'}]},
+                         {'as_of': f['as_of'], 'records': [{'state': 'invalidated'}]}):
+            self.assertEqual(assess_watch_permission(original, tracking), original)
+        f['local_structure']['classification'] = 'structure_broken'
+        retained = assess_watch_permission(assess_permission(f), active)
+        self.assertFalse(retained['eligible'])
+        self.assertIn('structure_broken', retained['reason_codes'])
+        f['monthly']['completed_count'] = 5
+        self.assertEqual(assess_watch_permission(assess_permission(f), active)['permission'], 'unavailable')
+
     def test_month_shrinking_and_new_bear_block_but_old_negative_improvement_allows(self):
         for h, expected in [([.5, 1, .8], 'blocked'), ([.5, .1, -.1], 'blocked'),
                             ([-3, -2, -1], 'allowed'), ([-3, -2, -2], 'blocked')]:

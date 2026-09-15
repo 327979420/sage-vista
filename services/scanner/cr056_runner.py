@@ -14,7 +14,7 @@ from services.contracts.market_data import canonical_fingerprint
 from services.market_data.storage import require_shadow_root
 from services.gates.baseline import exact_daily_macd_bull_cross, MIN_HISTORY_SESSIONS, MIN_CLOSE, MIN_DOLLAR_VOLUME
 from services.factors.cr056 import collect_direction_facts, collect_entry_facts
-from services.selectors.cr056 import assess_permission, assess_entry
+from services.selectors.cr056 import assess_permission, assess_entry, assess_watch_permission, WATCH_PERMISSION_VERSION
 from services.ranking.cr056 import score_candidate
 from services.ledger.cr056 import review_watch, track_entry_structures
 from services.scanner.factor_detectors import evaluate_period_factors
@@ -119,11 +119,14 @@ def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previo
                              'diagnostic_score_omitted':True})
                 counts[item['status']] += 1; reviews.append(item); continue
             tracking = (prior.get(symbol) or {}).get('entry_tracking')
-            if symbol in origins and (tracking is not None or permission['eligible']):
+            if symbol in origins and (tracking is not None or permission['eligible'] or
+                                      'no_pullback_60d' in permission['reason_codes']):
                 tracking = track_entry_structures(rows, as_of=as_of, previous=tracking)
                 if not tracking['eligible']:
                     permission = {**permission, 'eligible':False, 'permission':'blocked',
                                   'reason_codes':permission['reason_codes']+['no_surviving_new_rule_structure']}
+                elif permission['checks'].get('pullback', {}).get('reason') == 'no_pullback_60d':
+                    permission = assess_watch_permission(permission, tracking)
             elif symbol not in origins and entry['eligible'] and permission['eligible']:
                 # The first actual nomination starts its own observation. Legacy
                 # migration above is explicitly labelled retrospective research.
@@ -172,7 +175,8 @@ def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previo
     for rank, r in enumerate(ranked, 1): r['rank'] = rank
     report = {'schema_version': 'cr056-backend-report-1.0.0', 'result_role': 'legacy_comparison',
         'as_of': as_of, 'code_commit': code_commit, 'policy_version': POLICY_VERSION,
-        'policy_fingerprint': POLICY_FINGERPRINT, 'input_report_fingerprint': canonical_fingerprint(input_report),
+        'policy_fingerprint': POLICY_FINGERPRINT, 'watch_permission_version': WATCH_PERMISSION_VERSION,
+        'input_report_fingerprint': canonical_fingerprint(input_report),
         'historical_ranking_fingerprint': canonical_fingerprint(history),
         'previous_snapshot_fingerprint': previous.get('snapshot_fingerprint') if previous else None,
         'input_coverage': {k: input_report[k] for k in ('repaired_count', 'excluded_count')},

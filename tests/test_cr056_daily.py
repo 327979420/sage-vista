@@ -80,6 +80,14 @@ class DailyCandidateTests(unittest.TestCase):
         self.assertEqual(self.run_daily('2026-09-04')['result'],'already_current')
         self.assertEqual(self.checkpoint()['reviews'][0]['watch']['origin'],self.seed_origin)
 
+    def test_tracking_policy_upgrade_refreshes_same_day_without_resetting_origin(self):
+        old=json.loads(self.public.read_text());old.pop('watch_permission_version',None)
+        self.public.write_bytes(encoded(old))
+        with self.producers('2026-09-04',False): result=self.run_daily('2026-09-04')
+        self.assertEqual(result['result'],'updated',result)
+        self.assertEqual(self.checkpoint()['reviews'][0]['watch']['origin'],self.seed_origin)
+        self.assertEqual(self.run_daily('2026-09-04')['result'],'already_current')
+
     def test_same_day_needs_no_source_and_does_not_recreate_watches(self):
         before=self.state.read_bytes()
         result=self.run_daily('2026-09-04',fetch_reference=lambda *a:self.fail('no request'))

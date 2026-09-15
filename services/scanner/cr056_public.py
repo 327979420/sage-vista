@@ -62,6 +62,7 @@ def project_report(report):
             if not item.get(flag): item.pop(flag, None)
         reviews.append(item)
     return {'view_version': VIEW_VERSION, 'as_of': report['as_of'], 'result_role': report['result_role'],
+        'watch_permission_version': report.get('watch_permission_version'),
         'policy_version': report['policy_version'], 'policy_fingerprint': report['policy_fingerprint'], 'source_snapshot': report['snapshot_fingerprint'],
         'source_commit': report['code_commit'], 'automatic_updates_connected': False,
         'input_coverage': report['input_coverage'], 'counts': report['counts'],
