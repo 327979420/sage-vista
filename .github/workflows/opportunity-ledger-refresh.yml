@@ -14,7 +14,7 @@ on:
       horizon_study:
         description: Observation horizons only — original groups or opportunity-level study
         type: choice
-        options: [original_horizons, opportunity_levels, prior_high]
+        options: [original_horizons, opportunity_levels, prior_high, account_ledger_replay]
         default: original_horizons
       resume_run:
         description: Original observation run ID to continue without changing its code
@@ -46,7 +46,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
-        with: {python-version: '3.13'}
+        with:
+          python-version: ${{ inputs.horizon_study == 'account_ledger_replay' && '3.14' || '3.13' }}
       - name: Restore only the original observation price vintage
         if: inputs.horizon_study != 'opportunity_levels'
         uses: actions/cache/restore@v4
@@ -96,8 +97,22 @@ jobs:
           name: prior-high-${{ github.run_id }}-${{ github.run_attempt }}
           path: work/prior-high-attempt/
           retention-days: 90
+      - name: Install existing locked account libraries
+        if: inputs.horizon_study == 'account_ledger_replay'
+        run: python3 -m pip install --only-binary=:all: --require-hashes -r research/backtest/dependencies/vectorbt-requirements.lock -r research/backtest/dependencies/quantstats-requirements.lock
+      - name: Reproduce the frozen legacy account and trace every day
+        if: inputs.horizon_study == 'account_ledger_replay'
+        env:
+          MPLBACKEND: Agg
+        run: python3 -m research.backtest.account_ledger_replay
+      - uses: actions/upload-artifact@v4
+        if: always() && inputs.horizon_study == 'account_ledger_replay'
+        with:
+          name: account-ledger-${{ github.run_id }}-${{ github.run_attempt }}
+          path: work/account-ledger-attempt/
+          retention-days: 90
       - name: Publish through the existing immutable result index
-        if: github.ref == 'refs/heads/main' && inputs.horizon_study != 'prior_high'
+        if: github.ref == 'refs/heads/main' && (inputs.horizon_study == 'original_horizons' || inputs.horizon_study == 'opportunity_levels')
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 -m research.backtest.publish_attempt --receipt work/horizon-attempt/receipt.json

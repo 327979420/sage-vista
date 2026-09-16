@@ -73,6 +73,9 @@ def validate_receipt(receipt):
     fp = receipt.get('content_sha256')
     if fp != sha256(encode({k: v for k, v in receipt.items() if k != 'content_sha256'})):
         raise ValueError('receipt_fingerprint_mismatch')
+    if 'portfolio_ledger' in receipt:
+        from research.backtest.account_ledger import validate_ledger_receipt
+        validate_ledger_receipt(receipt)
     audit = receipt.get('audit')
     if audit is not None:
         if (not isinstance(audit, dict) or audit.get('version') != 'trade-signal-audit-v1'

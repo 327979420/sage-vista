@@ -83,9 +83,14 @@ def order_callback():
     from vectorbt.portfolio import nb
     from vectorbt.portfolio.enums import Direction, NoOrder
     @njit
-    def orders(c, enter, leave, entry_price, exit_price, symbol_ids, reasons, nominal, fee, max_positions, fractional):
+    def orders(c, enter, leave, entry_price, exit_price, symbol_ids, reasons, nominal, fee, max_positions, fractional, decision_cash, decision_positions, executable):
         col = c.col
         if c.i == enter[col]:
+            decision_cash[col] = c.cash_now
+            decision_positions[col] = np.sum(c.last_position > 0)
+            if not executable[col]:
+                reasons[col] = 4
+                return NoOrder
             held = 0
             for other in range(len(enter)):
                 if c.last_position[other] > 0:
@@ -110,7 +115,7 @@ def order_callback():
     return orders
 
 
-def account(events, rows_by_symbol, sessions, config):
+def account(events, rows_by_symbol, sessions, config, *, with_ledger=False):
     """Pure deterministic scenario over normalized bars; no files or downloads."""
     import numpy as np
     import pandas as pd
@@ -159,6 +164,7 @@ def account(events, rows_by_symbol, sessions, config):
     n = max(1, len(trades))
     close = np.full((len(sessions)*3, n), np.nan)
     enter = np.full(n, -1, dtype=np.int64); leave = enter.copy()
+    executable = np.zeros(n,dtype=np.bool_)
     entry_price = np.zeros(n); exit_price = np.zeros(n)
     symbols = sorted({t['symbol'] for t in trades})
     symbol_ids = np.array([symbols.index(t['symbol']) for t in trades] or [-1], dtype=np.int64)
@@ -169,17 +175,20 @@ def account(events, rows_by_symbol, sessions, config):
             # never fabricated market prices or a held-asset forward fill.
             close[i*3: i*3+3,col] = [rows[d]['open'], rows[d]['close'], rows[d]['close']] if d in rows else np.nan
         ex = t['execution']
+        enter[col] = sessions.index(t['entry_date'])*3
         if ex.get('executable'):
-            enter[col] = sessions.index(t['entry_date'])*3
+            executable[col] = True
             entry_price[col] = t['entry_price']
             if ex['status'] == 'resolved':
                 leave[col] = sessions.index(ex['exit_date'])*3+1
                 exit_price[col] = ex['exit_price']
     reasons = np.zeros(n,dtype=np.int64)
+    decision_cash = np.full(n, np.nan)
+    decision_positions = np.full(n, -1, dtype=np.int64)
     nominal = params['initial_cash']*params['allocation_fraction']
     fee = params['cost_rate']; max_positions = params['max_positions']; fractional = params['fractional_shares']
 
-    pf = vbt.Portfolio.from_order_func(pd.DataFrame(close), order_callback(), enter, leave, entry_price, exit_price, symbol_ids, reasons, nominal, fee, max_positions, fractional, init_cash=params['initial_cash'],
+    pf = vbt.Portfolio.from_order_func(pd.DataFrame(close), order_callback(), enter, leave, entry_price, exit_price, symbol_ids, reasons, nominal, fee, max_positions, fractional, decision_cash, decision_positions, executable, init_cash=params['initial_cash'],
                                      cash_sharing=True, group_by=True, ffill_val_price=False)
     # Only the final phase is a daily account observation. Intraday phases must
     # never be fed into QuantStats as daily returns.
@@ -197,6 +206,11 @@ def account(events, rows_by_symbol, sessions, config):
             t.update(status='closed' if int(r['status']) == 1 else 'open', quantity=float(r['size']),
                      net_pnl=float(r['pnl']), net_return=float(r['return']),
                      entry_fees=float(r['entry_fees']), exit_fees=float(r['exit_fees']))
+    if with_ledger:
+        from research.backtest.account_ledger import build_ledger
+        ledger = build_ledger(pf, events, trades, pending, rows_by_symbol, sessions, config,
+                              decision_cash, decision_positions, reasons)
+        return equity, daily, trades+pending, ledger
     return equity, daily, trades+pending
 
 
@@ -255,13 +269,16 @@ def execute(request, config, cache_dir, ledger_path, *, out, run_id, attempt, co
         if any(r['date'] not in sessions for r in rows[symbol]):
             raise ValueError('asset_date_missing_from_reference_calendar')
         sources[symbol] = sha256(encode(window))
-    equity,daily,trades = account(events,rows,sessions,config)
+    equity,daily,trades,portfolio_ledger = account(events,rows,sessions,config,with_ledger=True)
     attach_signal_audit(trades, events)
     versions = sorted({d['model_version'] for d in scan_days})
-    implementation = {name: sha256((ROOT/name).read_bytes()) for name in ("research/backtest/account_runner.py", "services/scanner/support_risk.py", "research/backtest/quantstats_report.py", "research/backtest/dependencies/vectorbt-requirements.lock", "research/backtest/dependencies/quantstats-requirements.lock")}
+    implementation = {name: sha256((ROOT/name).read_bytes()) for name in ("research/backtest/account_runner.py", "research/backtest/account_ledger.py", "services/scanner/support_risk.py", "research/backtest/quantstats_report.py", "research/backtest/dependencies/vectorbt-requirements.lock", "research/backtest/dependencies/quantstats-requirements.lock")}
     experiment = {"request":request,"account_parameters":scenario_values(config),"selection_versions":versions,"implementation":implementation,"scan_days_sha256":sha256(encode(scan_days)),"signal_snapshots_sha256":sha256(encode([t["signal_snapshot"] for t in trades])),"price_windows_sha256":sources,"reference_sha256":sha256(encode(reference))}
     audit = {"version":"trade-signal-audit-v1", "account_algorithm":"legacy-shared-cash-v1", "selection_versions":versions, "execution_policy":POLICY, "experiment_key":sha256(encode(experiment)), "experiment_identity":experiment}
     output = Path(out); output.mkdir(parents=True,exist_ok=True)
+    (output/'daily-portfolio-ledger.json').write_bytes(encode(portfolio_ledger))
+    from research.backtest.account_ledger import render_ledger
+    (output/'daily-portfolio-ledger.html').write_text(render_ledger(portfolio_ledger, synthetic=synthetic))
     report_path = output/'report.html'
     summary = render_daily_report(equity,daily,config['initial_cash'],report_path,title='CR056 new nominations / legacy exits' if request['strategy']==CANDIDATE_POLICY else 'Legacy account research',synthetic=synthetic)
     closed = [t for t in trades if t['status'] == 'closed']
@@ -274,12 +291,14 @@ def execute(request, config, cache_dir, ledger_path, *, out, run_id, attempt, co
              "<p>保守记账约定：原排名新入场先于当日退出，不用当日卖出款资助新买入；不代表真实盘中现金顺序。只做多，无杠杆，无部分成交；未平仓收益按窗口末有效收盘估值。</p></section>")
     if request['strategy']==CANDIDATE_POLICY:
         intro=intro.replace('窗口原信号', '新版首次合格门票信号').replace('其余政策不混入本回测。',f'选股{POLICY_VERSION}，年度/窗口开始观察池为空；不是完整历史市场，使用现有缓存观测股票，存在幸存者偏差。')
+    trace_body = render_ledger(portfolio_ledger, synthetic=synthetic).split('</style>',1)[1].removesuffix('</html>')
+    intro += '<details><summary>每日交易明细 / Trades</summary>'+trace_body+'</details>'
     report_path.write_text(report_path.read_text().replace('<body>','<body>'+intro,1))
     receipt = seal({'schema_version':'legacy-research-run-v1','id':f'{run_id}-{attempt}','result_role':'legacy/research',
                     'status':'completed','request':request,'summary':summary,'code_commit':code_commit,
                     'scenario':config,'selection':{'window_events':len(window_events),'eligible_policy_events':len(events),'excluded_other_policy':len(window_events)-len(events),'entered_trades':sum(t['status'] in ('open','closed') for t in trades)},'source':{'ledger_sha256':sha256(raw),'cache_key':cache_key,'windows_sha256':sources,'reference_sessions_sha256':sha256(encode(sessions)),'scan_file_sha256':sha256(scan_bytes),'scan_days_sha256':sha256(encode(scan_days)),'historical_raw_revision_proven':False},
                     'daily_account':[{'date':d,'equity':float(v),'return':float(r)} for d,v,r in zip(sessions,equity,daily)],
-                    'trades':trades,'synthetic':synthetic,'audit':audit,
+                    'trades':trades,'synthetic':synthetic,'audit':audit,'portfolio_ledger':portfolio_ledger,
                     'report':{'path':f'{run_id}-{attempt}/report.html','sha256':sha256(report_path.read_bytes())}})
     csv_bytes=trade_csv(receipt)
     receipt=seal({**receipt,'research_input':{'role':scan_doc.get('history_role','legacy_saved_signals'),'excluded_source_count':len(scan_doc.get('excluded_sources',{})),'incomplete_source_days':sum(bool(d.get('missing_session_symbols') or d.get('unavailable')) for d in scan_days),'coverage_note':'observed cached universe; not complete historical market; latest adjusted history revision'},'downloads':{'trades_csv':{'path':f'{run_id}-{attempt}/trades.csv','sha256':sha256(csv_bytes)}}})
