@@ -60,7 +60,8 @@ def build_ledger(pf, events, trades, pending, rows, sessions, config, decision_c
             else:
                 if eid not in positions:raise ValueError('sell_without_position')
                 pos=positions.pop(eid);close(pos['quantity'],f['quantity'],'sell_quantity')
-                realised+=gross-fee-pos['cost_basis'];cash+=gross-fee
+                f['realised_pnl']=gross-fee-pos['cost_basis']
+                realised+=f['realised_pnl'];cash+=gross-fee
         snapshots=[]
         for eid,pos in positions.items():
             bar=prices[pos['symbol']].get(day)
@@ -130,6 +131,25 @@ def render_ledger(ledger,synthetic=False):
     days=ledger['days'];last=days[-1];cash=ledger['initial_cash'];pnl=last['ending_portfolio_value']-cash
     label='人工样例：只验证记账，不是策略业绩' if synthetic else '旧规则账户基线：不是已验证的新分周期策略'
     parts=['<!doctype html><html lang="zh"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>每天的钱去了哪里</title><style>body{max-width:1050px;margin:auto;padding:24px;background:#f3f6f8;color:#20303b;font:16px/1.8 system-ui}section{background:white;padding:20px;margin:20px 0;border-radius:12px}table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:9px;border-bottom:1px solid #ddd;text-align:right}summary{cursor:pointer;font-weight:bold}.scroll{overflow:auto}</style><h1>每天的钱去了哪里？</h1><p>'+label+'</p>',f'<section><h2>先看钱有没有变多</h2><p>开始 ${cash:,.2f} → 最后 ${last["ending_portfolio_value"]:,.2f}；合计{"赚" if pnl>=0 else "亏"} ${abs(pnl):,.2f}。</p><p>已经卖出的盈亏 ${last["realised_pnl"]:,.2f}；仍持有的账面盈亏 ${last["unrealised_pnl"]:,.2f}。</p><p>现金 ${last["ending_cash"]:,.2f}；股票市值 ${last["market_value"]:,.2f}。两项相加等于账户总值。</p><p>点击下面任意一天，可查看当天买卖和没有买的原因。今天收盘出现的信号，最早下一交易日开盘处理。</p></section>']
+    contributions={}
+    for d in days:
+        for f in d['executed_sells']:
+            contributions[f['symbol']]=contributions.get(f['symbol'],0)+f['realised_pnl']
+    for p in last['positions']:
+        contributions[p['symbol']]=contributions.get(p['symbol'],0)+p['unrealised_pnl']
+    skipped={}
+    for d in days:
+        for decision in d['skipped_signals']:
+            reason=decision['reason'];skipped[reason]=skipped.get(reason,0)+1
+    parts.append('<section><h2>钱主要赚在哪里、亏在哪里？</h2>')
+    for symbol,value in sorted(contributions.items(),key=lambda x:x[1],reverse=True):
+        parts.append(f'<p>{html.escape(symbol)}：合计盈亏 ${value:,.2f}（已卖出加仍持有，已扣实际发生的成本）。</p>')
+    m=ledger['metrics']
+    parts.append(f'<p>平均有 {m["average_capital_utilisation"]:.1%} 的资金放在股票里；其余留作现金。期间账户从最高点最多回落 {abs(m["max_drawdown"]):.2%}。</p>')
+    parts.append(f'<p>实际买入 {m["entered_trades"]} 笔；已卖出 {m["closed_trades"]} 笔；仍持有 {m["open_trades"]} 笔。</p>')
+    for reason,count in skipped.items():
+        parts.append(f'<p>没买的原因：{ZH.get(reason,html.escape(reason))}，共 {count} 次。</p>')
+    parts.append('<p>这些记录说明钱如何变化。是否应该更早卖、或被跳过的股票是否更好，需要另做对照实验，不能仅凭这份账决定。</p></section>')
     for d in days:
         parts.append(f'<section><details><summary>{d["date"]} · 当日盈亏 ${d["daily_pnl"]:,.2f} · 账户 ${d["ending_portfolio_value"]:,.2f}</summary>')
         parts.append(f'<p>开始现金 ${d["starting_cash"]:,.2f}，持仓{len(d["starting_positions"])}笔；结束现金 ${d["ending_cash"]:,.2f}，持仓{len(d["positions"])}笔。</p>')
