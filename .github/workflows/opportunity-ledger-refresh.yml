@@ -14,7 +14,7 @@ on:
       horizon_study:
         description: Observation horizons only — original groups or opportunity-level study
         type: choice
-        options: [original_horizons, opportunity_levels]
+        options: [original_horizons, opportunity_levels, prior_high]
         default: original_horizons
       resume_run:
         description: Original observation run ID to continue without changing its code
@@ -63,9 +63,9 @@ jobs:
           key: observation-horizons-v1-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: observation-horizons-v1-${{ github.sha }}-${{ github.run_id }}-
       - name: Validate the affected calculation and original observer
-        run: python3 -m unittest tests.test_observation_horizons tests.test_selection_observation tests.test_observation_level_horizons
+        run: python3 -m unittest tests.test_observation_horizons tests.test_selection_observation tests.test_observation_level_horizons tests.test_observation_prior_high
       - name: Derive curves from the frozen receipt and matching prices
-        if: inputs.horizon_study != 'opportunity_levels'
+        if: inputs.horizon_study == 'original_horizons'
         run: python3 -m research.backtest.observation_horizons --parent research/backtest/output/reusable-runs/34766761296-2/receipt.json
       - name: Reuse saved windows for frozen opportunity-level groups
         if: inputs.horizon_study == 'opportunity_levels'
@@ -75,8 +75,29 @@ jobs:
         with:
           path: work/horizon-checkpoints
           key: observation-horizons-v1-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Restore prior-high per-stock checkpoints
+        if: inputs.horizon_study == 'prior_high'
+        uses: actions/cache/restore@v4
+        with:
+          path: work/prior-high-checkpoints
+          key: prior-high-v1-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: prior-high-v1-${{ github.sha }}-${{ github.run_id }}-
+      - name: Study return to frozen pre-decline highs without rescanning
+        if: inputs.horizon_study == 'prior_high'
+        run: python3 -m research.backtest.observation_prior_high
+      - uses: actions/cache/save@v4
+        if: always() && inputs.horizon_study == 'prior_high'
+        with:
+          path: work/prior-high-checkpoints
+          key: prior-high-v1-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+      - uses: actions/upload-artifact@v4
+        if: always() && inputs.horizon_study == 'prior_high'
+        with:
+          name: prior-high-${{ github.run_id }}-${{ github.run_attempt }}
+          path: work/prior-high-attempt/
+          retention-days: 90
       - name: Publish through the existing immutable result index
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && inputs.horizon_study != 'prior_high'
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 -m research.backtest.publish_attempt --receipt work/horizon-attempt/receipt.json
