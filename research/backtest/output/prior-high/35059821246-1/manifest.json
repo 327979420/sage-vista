@@ -1,0 +1,18 @@
+{
+  "calculation_code": "e2a35aadfe0ab424a51c3b4cf8965414bf423803",
+  "calculation_run": "35059821246-1",
+  "files": {
+    "analysis.json": "8f916a2bce5cabbc6af21ffa984c43d8427280b62e94b001557fd030e3ebebfd",
+    "report.html": "7414e7e084689723970178ee60fa9b6d8b787801c68dba83f237d9ac556b7443"
+  },
+  "presentation_script_sha256": "c92e75f3501dd7c4590140ba87fc50f86eb194f2c11ba079aff5927e3df877aa",
+  "source_manifest": {
+    "code": "e2a35aadfe0ab424a51c3b4cf8965414bf423803",
+    "files": {
+      "analysis.json": "7bc28b0dc870e19cddd67d55718fe944ee0847d890a94e41382eaa018d17ae80",
+      "report.html": "b61713be4110fe164f21f72f9c06aba65a14913d49cb2d358ccce931256cf5da"
+    },
+    "script": "ab6ccef9787046537c19197fe1ac367df85cc91b5ed031da1dbb0190be81e5ed",
+    "source": "6d86df8d0cde21b1b5680facca1c7dce004870b0e8393729f0198e39ba9e25af"
+  }
+}

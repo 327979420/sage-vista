@@ -12,6 +12,9 @@ from services.scanner.cr056_inputs import normalized_comparison_rows
 from services.scanner.macd_factor_backtest import completed_groups
 
 VERSION='prior-high-v1'
+STATUS_NAMES={'complete':'资料完整，已纳入统计','no_frozen_bottom_anchor':'原记录缺少对应底部','no_matching_confirmed_high':'无法对应已确认前高','already_touched_on_signal':'门票当天已摸到前高','missing_followup_prices':'后续价格缺失','immature':'观察时间未满','invalid_completed_cutoff':'周期完成日期异常','missing_signal_price':'门票当天价格缺失'}
+def label(w):
+    return w[:-1]+{'d':'个交易日','w':'周','m':'个月'}[w[-1]]
 WINDOWS={'daily':[(f'{n}d',n,'d') for n in (5,10,20,30,40,60)],
  'weekly_completed':[(f'{n}w',n,'w') for n in (5,10,20)],
  'monthly_completed':[(f'{n}m',n,'m') for n in (1,2,3,6,9,12)]}
@@ -105,22 +108,30 @@ def summarize(events,comp):
 
 def render(result):
     parts=['<!doctype html><html lang="zh"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>多久能回到下跌前的高点？</title><style>body{font:17px/1.8 system-ui;background:#f2f5f7;color:#192d38;max-width:1050px;margin:auto;padding:24px}section{background:white;border-radius:14px;padding:24px;margin:20px 0}h1{font-size:30px}h2{font-size:24px}.scroll{overflow:auto}table{border-collapse:collapse;width:100%;font-size:15px}th,td{padding:10px;border-bottom:1px solid #ddd;text-align:right;white-space:nowrap}td:first-child,th:first-child{text-align:left}.note{background:#fff2ce;padding:14px}summary{cursor:pointer;font-weight:bold}small{color:#52616a}</style><h1>多久能回到下跌前的高点？</h1><p>比如从100跌下来，出现门票时是60。我们看它能不能回到原来的100，等多久，途中先跌多少。</p><p>这是原20年候选的补充研究，没有重新选股。“摸到”指当天最高价碰到前高，不代表能按该价格成交。</p>']
+    parts.append('<section><h2>先看结论</h2><p><b>日线回前高比较常见；周线、月线在本轮观察期限内，多数没有回去。</b>这不等于周月线没有涨，而是它们的前高通常远得多。</p>')
+    parts.append(table(result['comparisons']['10'],[('机会',lambda g:NAMES[g['timeframe']]),('这次能算的次数',lambda g:g['n']),('观察多久',lambda g:label(WINDOWS[g['timeframe']][-1][0])),('摸到前高',lambda g:f"{g['hit_n']}次（{g['hit_n']/g['n']:.0%}）" if g['n'] else '—'),('需要上涨多少 / 中位',lambda g:pct(g['target_distance_median']))]))
+    parts.append('<p><b>月线需要纠正：</b>86次可算机会中，3个月内只有10次回到前高（约12%）；一年内21次（约24%）。之前“多数3个月涨过10%”不能解释成“多数3个月回到前高”。</p><p><b>现在可用于实验的结论：</b>日线优先比较20、30、40交易日的检查点，60日保留长等待对照；周线和月线需要比较途中退出，不能把一直等到前高作为默认有效规则。实际买点还没有加入。</p><p>分数领先门槛换成5分或15分，最大观察期内命中率仍约为：日线70%—71%，周线28%—30%，月线24%—28%。这个总体区别没有因为门槛小改就消失，但三组目标远近与观察时长不同，不能据此排名策略优劣。</p><p class="note">本轮是机器按原结构对应的前高，尚未逐例人工确认。日线原693次中441次纳入；周线246次中213次；月线102次中86次。门票当天已经摸到、或无法确认对应前高的，单独列在下方。比例只适用于这些可计算的机会。</p></section>')
     for g in result['comparisons']['10']:
         n=g['n'];tf=g['timeframe'];h=g['hit_n'];med=g['population_median_days']
         parts.append('<section><h2>'+NAMES[tf]+'机会</h2>')
         if not n:parts.append('<p>没有可完整计算的样本，不能给结论。</p></section>');continue
-        parts.append(f'<p><b>① 能回去多少？</b>可计算的{n}次中，在{WINDOWS[tf][-1][0]}内，{h}次摸到前高（{h/n:.0%}），{n-h}次没摸到。</p>')
+        parts.append(f'<p><b>① 能回去多少？</b>可计算的{n}次中，在{label(WINDOWS[tf][-1][0])}内，{h}次摸到前高（{h/n:.0%}），{n-h}次没摸到。</p>')
         parts.append('<p><b>② 一般要等多久？</b>'+ (f'等到第{med}个交易日，才累计有一半机会摸到前高。' if med is not None else '观察到最后，仍不到一半摸到；不能说“通常等这么久就能回去”。')+'</p>')
         parts.append(f'<p><b>③ 回去前会先跌多少？</b>在最终摸到的{h}次中，触及前最低跌幅的中位约为{pct(g["hit_downside_before"])}至{pct(g["hit_downside_including"])}（相对门票收盘）。这个范围来自触及当天先涨还是先跌无法确定。</p>')
         parts.append(f'<p>没有摸到的{n-h}次，整个观察期途中最低跌幅中位是{pct(g["nonhit_downside"])}。这是原价下跌，不是账户回撤。</p>')
-        parts.append('<h3>每等一段时间，有多少回去了？</h3>'+table(g['windows'],[('等到',lambda r:r['window']),('曾摸到 / 全部',lambda r:f"{r['hits']} / {r['n']}"),('比例',lambda r:f"{r['hits']/r['n']:.0%}"),('收盘也到过',lambda r:f"{r['close_hits']} / {r['n']}")]))
-        parts.append('<h3>还没回去的，再等有没有用？</h3><p>每行只看当时还没摸到的机会。下跌从该检查点收盘重新算，观察至下一检查点；即使中间摸到，也继续观察这段下跌。</p>'+table(g['wait'],[('继续等',lambda r:r['start']+' → '+r['end']),('还没到的次数',lambda r:r['n']),('后来摸到的次数',lambda r:r['hits']),('后来摸到比例',lambda r:f"{r['hits']/r['n']:.0%}" if r['n'] else '—'),('期间下跌中位',lambda r:pct(r['downside_median']))]))
+        parts.append('<h3>每等一段时间，有多少回去了？</h3>'+table(g['windows'],[('等到',lambda r:label(r['window'])),('曾摸到 / 全部',lambda r:f"{r['hits']} / {r['n']}"),('比例',lambda r:f"{r['hits']/r['n']:.0%}"),('收盘也到过',lambda r:f"{r['close_hits']} / {r['n']}")]))
+        parts.append('<h3>还没回去的，再等有没有用？</h3><p>每行只看当时还没摸到的机会。下跌从该检查点收盘重新算，观察至下一检查点；即使中间摸到，也继续观察这段下跌。</p>'+table(g['wait'],[('继续等',lambda r:label(r['start'])+' → '+label(r['end'])),('还没到的次数',lambda r:r['n']),('后来摸到的次数',lambda r:r['hits']),('后来摸到比例',lambda r:f"{r['hits']/r['n']:.0%}" if r['n'] else '—'),('期间下跌中位',lambda r:pct(r['downside_median']))]))
         parts.append('<p class="note">怎么用：命中机会增加得少、等待下跌却大时，值得测试缩短等待；不是直接规定卖出。这轮还没有比较买点、止损或资金占用。</p>')
-        parts.append('<details><summary>哪些没算进来？结果稳不稳？</summary><p>原明确研究组'+str(g['selected'])+'次，可计算'+str(n)+'次。原因：'+str(g['statuses'])+'。目标在信号当天已摸到的，不混入未来等待。</p><p>前高离信号收盘的距离中位：'+pct(g['target_distance_median'])+'。已摸到者的耗时中位：'+str(g['hit_only_median_days'])+'交易日；这只描述成功者，不能代替全部机会。</p>'+table(g['periods'],[('信号年份',lambda r:r['period']),('次数',lambda r:str(r['n'])+(' · 样本少' if r['n']<30 else '')),('最大窗口内摸到',lambda r:f"{r['hits']}/{r['n']}")]))
+        parts.append('<details><summary>哪些没算进来？结果稳不稳？</summary><p>原明确研究组'+str(g['selected'])+'次，可计算'+str(n)+'次。原因：'+'；'.join(STATUS_NAMES.get(k,k)+'：'+str(v)+'次' for k,v in g['statuses'].items())+'。目标在信号当天已摸到的，不混入未来等待。</p><p>前高离信号收盘的距离中位：'+pct(g['target_distance_median'])+'。已摸到者的耗时中位：'+str(g['hit_only_median_days'])+'交易日；这只描述成功者，不能代替全部机会。</p>'+table(g['periods'],[('信号年份',lambda r:r['period']),('次数',lambda r:str(r['n'])+(' · 样本少' if r['n']<30 else '')),('最大窗口内摸到',lambda r:f"{r['hits']}/{r['n']}")]))
         for gap in ('5','15'):
             v=next(x for x in result['comparisons'][gap] if x['timeframe']==tf)
             parts.append(f'<p>领先{gap}分对照：可计算{v["n"]}次，摸到{v["hit_n"]}次；一半样本所需交易日{v["population_median_days"] if v["population_median_days"] is not None else "未达到"}。</p>')
-        parts.append('</details></section>')
+        parts.append('</details><details><summary>具体例子：我们用的是哪个前高？</summary>')
+        main_ids=set(result.get('main_ids',[]))
+        sample=[e for e in result['events'] if e['timeframe']==tf and e['status']=='complete' and (not main_ids or e['episode_id'] in main_ids)]
+        sample=sorted(sample,key=lambda e:(e['signal_date'],e['episode_id']))
+        chosen=[next((e for e in sample if (e['hit_day'] is not None)==hit),None) for hit in (True,False)]
+        parts.append('<p>按日期选最早命中与最早未命中的事件，只解释计算，不能当作策略证明。</p>'+table([e for e in chosen if e],[('股票',lambda e:e['symbol']),('门票日期',lambda e:e['signal_date']),('前高所在周期结束日',lambda e:e['target']['date']),('前高价格',lambda e:round(e['target']['price'],2)),('首次摸到',lambda e:e['hit_date'] or '期限内没有摸到')])+'</details></section>')
     parts.append('<section><h2>这次结论的边界</h2><p>日、周、月使用各自结构的下跌前高。机器用冻结下降趋势第一高点，或首底之前最近确认高点来对应；它是可复核的代理，不保证每个案例都等于人眼判断。找不到就单列，不用一年最高价顶替。</p><p>d是交易日，w是周，m是月。少于30次仅作线索。历史年份已经看过；同股重复、行情重叠、股票池幸存者偏差尚存在，比例不是未来保证。等待长短结论需要结合实际入场实验。</p><p>来源35048162507-1，指纹'+SOURCE_HASH+'。计算版本'+VERSION+'。原行情只读复用；逐文件身份核验且原窗口复现。<a href="analysis.json">完整统计和逐事件前高/日期</a></p></section></html>')
     return ''.join(parts)
 
@@ -155,7 +166,7 @@ def main():
             batch.append(evaluate(e,rows,sessions))
         saved.write_bytes(encode({'identity':identity,'events':batch,'hash':sha256(encode(batch))}));events.extend(batch)
         if count%50==0:print(f'Verified and reused {count}/{len(groups)} stocks',flush=True)
-    result={'version':VERSION,'source_hash':SOURCE_HASH,'code':os.environ.get('GITHUB_SHA'),'verified_symbols':len(groups),'events':events,
+    result={'version':VERSION,'source_hash':SOURCE_HASH,'code':os.environ.get('GITHUB_SHA'),'verified_symbols':len(groups),'events':events,'main_ids':[eid for c in receipt['level_study']['comparisons'] if c['minimum_gap']==10 for eid,v in c['classification'].items() if v['research_label']],
        'comparisons':{str(c['minimum_gap']):summarize(events,c) for c in receipt['level_study']['comparisons']}}
     (out/'analysis.json').write_bytes(encode(result));(out/'report.html').write_text(render(result))
     (out/'manifest.json').write_bytes(encode({'source':SOURCE_HASH,'script':code,'code':result['code'],'files':{f.name:sha256(f.read_bytes()) for f in (out/'analysis.json',out/'report.html')}}))
