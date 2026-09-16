@@ -1,0 +1,9 @@
+{
+  "run": "35067189075-1",
+  "code": "7c89460",
+  "consistency_verdict": "FAIL_ELV_MIXED_PRICE_VINTAGE",
+  "files": {
+    "price-world-audit.json": "23fee1492e1702ccc932ca1fabe8815b959949873b90f28856429bb72f51e7a2",
+    "\u7ed3\u8bba.md": "b840019c742b748ff8731c6b0062d92e882efc2263ae734f1cea4d7c3ab4f35c"
+  }
+}
