@@ -1,0 +1,40 @@
+{
+  "files": {
+    "daily-portfolio-ledger.json": "076b5b0054e8156df82b1505d757bab2bd5f7fb9f25262090513c6af13ea8693",
+    "report.html": "d48b39d8fceecbb967381660e36b63ffbfc627aadfdb25e7c38e7dc98c3627f0"
+  },
+  "provenance": {
+    "changed_price_symbols": [
+      "ELV"
+    ],
+    "code": "fc138f9875ad2285c013cf033e20c9489c226480",
+    "exact_price_window_hashes": false,
+    "experiment_kind": "same_frozen_signals_revised_prices",
+    "original_equity_and_trades_reproduced": false,
+    "price_cache": "observation-history-v1-34766761296-1",
+    "price_window_hashes": {
+      "ANF": "59e93033997d90388609395578fe4e089f91e2bc03935079b78fcb67d7cf3ab6",
+      "AR": "41af3ff1da274fa96a8e4cbc31b5c7657b939805cd7d351ebe50c48829ad08fd",
+      "BMRN": "ca0310bd190d2cef14142bd993745400250644411d844e090c2322d8ccadc800",
+      "CNC": "1c0ed88729b503f2a3c2213329c1317f731900bdf01490a25685c7406e94c48f",
+      "COO": "1b9e114fecd7b8ae4c9e20cd4891d48e06a2878e940bb5f71128df75556cdbc4",
+      "DNLI": "0c659a3835017fa2786a7e4440f21c2c93cf18199ea38006e6ee32f5a745be4b",
+      "DOC": "41df2c66f115ec79e518e97f7fcc8a3e3cd5bc32d52234442027aee16ae09381",
+      "ELV": "af0264ae58fdcd3ff494cfb34d4356f05dd61be4820424bb7bbeb243a0eeb839",
+      "GKOS": "10ffe792fc9663587a1b623a4fbebf1ad1ca28eb8e5a66f9909a84cd87d320c3",
+      "MRNA": "7d1955b2d5b531016a05569922a619522d12d927985ec1825e73a6e57cfe405d",
+      "MXL": "2cb44190216237f469a6502edd1578d4ab1f721091adf89fe44e4508a3a7168c",
+      "NVAX": "616c591c5db57196ffa39e92aa333be2847c240109f5f9235768a4d343002c9f",
+      "PNFP": "bcb15fe8a510684701603b0288ea21c18f0acc2faac2640aec44cf11c0c1feb8",
+      "REGN": "69d94d917d4155803dc2a4c9c35e8d636d385ccbf1688fb8f0c101078f1223e2",
+      "SBUX": "b47b8340aec0e0bb16d1ed009e725908cf90877789d3fcba9f72ef27ff1551f8",
+      "SGML": "05f95d5805a3d9df15b426eb492dfdbb6bea00c91c2fe8a7a6f0d913642dad71",
+      "VCEL": "d7b9db2ae35828f7c56730a27aa9ae8ee04d3b7357d3b1bc36d02767d7ed55c1",
+      "WEX": "b1f7f928ed2eb0eef04ec2071876cf211ad74dc7ec2e7a5e96b0c6619f1df273"
+    },
+    "run": "35064720576",
+    "source_ending_value": 101991.62861955992,
+    "source_hash": "55162377b4187a23cbe4b8a69aa694d88c38e7a5dd074a86ca49e1b14271b499",
+    "source_receipt": "34240123213-1"
+  }
+}
