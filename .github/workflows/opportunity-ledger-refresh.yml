@@ -11,6 +11,11 @@ on:
         type: choice
         options: [refresh, comparison, research, observation, observation_benchmark, observation_resume, observation_horizons]
         default: refresh
+      horizon_study:
+        description: Observation horizons only — original groups or opportunity-level study
+        type: choice
+        options: [original_horizons, opportunity_levels]
+        default: original_horizons
       resume_run:
         description: Original observation run ID to continue without changing its code
         type: string
@@ -43,6 +48,7 @@ jobs:
       - uses: actions/setup-python@v7
         with: {python-version: '3.13'}
       - name: Restore only the original observation price vintage
+        if: inputs.horizon_study != 'opportunity_levels'
         uses: actions/cache/restore@v4
         with:
           path: |
@@ -51,16 +57,21 @@ jobs:
             work/observation-history.json
           key: observation-history-v1-34766761296-1
       - uses: actions/cache/restore@v4
+        if: inputs.horizon_study != 'opportunity_levels'
         with:
           path: work/horizon-checkpoints
           key: observation-horizons-v1-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: observation-horizons-v1-${{ github.sha }}-${{ github.run_id }}-
       - name: Validate the affected calculation and original observer
-        run: python3 -m unittest tests.test_observation_horizons tests.test_selection_observation
+        run: python3 -m unittest tests.test_observation_horizons tests.test_selection_observation tests.test_observation_level_horizons
       - name: Derive curves from the frozen receipt and matching prices
+        if: inputs.horizon_study != 'opportunity_levels'
         run: python3 -m research.backtest.observation_horizons --parent research/backtest/output/reusable-runs/34766761296-2/receipt.json
+      - name: Reuse saved windows for frozen opportunity-level groups
+        if: inputs.horizon_study == 'opportunity_levels'
+        run: python3 -m research.backtest.observation_level_horizons
       - uses: actions/cache/save@v4
-        if: always()
+        if: always() && inputs.horizon_study != 'opportunity_levels'
         with:
           path: work/horizon-checkpoints
           key: observation-horizons-v1-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}

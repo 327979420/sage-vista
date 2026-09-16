@@ -156,6 +156,19 @@ def validate_receipt(receipt):
             raise ValueError('invalid_report_reference')
         if not re.fullmatch(r'[0-9a-f]{64}', report.get('sha256', '')):
             raise ValueError('invalid_report_fingerprint')
+    level_study=receipt.get('level_study')
+    if level_study is not None:
+        from research.backtest.observation_classification import classify
+        if (level_study.get('version')!='opportunity-level-horizons-v1'
+                or level_study.get('source_id')!='34938700564-1'
+                or level_study.get('source_content_sha256')!='61aa16522ecbb1909bc197606f683028d318f3a28016b160dd4f47f2ad1db27a'
+                or level_study.get('main_gap')!=10
+                or [c.get('minimum_gap') for c in level_study.get('comparisons',[])]!=[5,10,15]):
+            raise ValueError('invalid_level_study_identity')
+        for comparison in level_study['comparisons']:
+            expected={e['episode_id']:classify(e,comparison['minimum_gap']) for e in receipt['events']}
+            if comparison.get('classification')!=expected:
+                raise ValueError('level_classification_not_signal_time')
     downloads=receipt.get('downloads')
     if downloads is not None:
         item=downloads.get('trades_csv',{})
@@ -201,11 +214,18 @@ def trade_csv(receipt):
     import csv, io
     out=io.StringIO(newline=''); writer=csv.writer(out)
     if receipt.get('request',{}).get('strategy') == 'cr056-selection-observation-v1':
-        writer.writerow(['symbol','signal_date','episode_id','timeframe','score','monthly_score','weekly_score','daily_score','signal_close','structure_floor','entry_paths','window','status','target_date','return','spy_return','excess','mfe','mae','days_to_10pct'])
+        level=receipt.get('level_study')
+        candidates={c['minimum_gap']:c['classification'] for c in level['comparisons']} if level else {}
+        extra_columns=['research_level_5','research_level_10','research_level_15','classification_reason_10','score_leader','score_gap'] if level else []
+        writer.writerow(['symbol','signal_date','episode_id','timeframe','score','monthly_score','weekly_score','daily_score','signal_close','structure_floor','entry_paths','window','status','target_date','return','spy_return','excess','mfe','mae','days_to_10pct']+extra_columns)
         for e in receipt.get('events',[]):
             scores=e['timeframe_scores'];paths=';'.join(p['timeframe']+':'+p['path'] for p in e['entry_gate']['paths'])
+            extra_values=[]
+            if level:
+                main=candidates[10][e['episode_id']]
+                extra_values=[candidates[g][e['episode_id']]['research_label'] for g in (5,10,15)]+[main['reason'],main['score_leader'],main['score_gap']]
             for window,o in {**e['outcomes'],**e.get('horizon_outcomes',{})}.items():
-                writer.writerow([e['symbol'],e['signal_date'],e['episode_id'],e['timeframe'],e['score'],scores.get('monthly_completed'),scores.get('weekly_completed'),scores.get('daily'),e['signal_close'],e['floor'],paths,window,o['status'],*[o.get(k) for k in ('target_date','return','spy_return','excess','mfe','mae','days_to_10pct')]])
+                writer.writerow([e['symbol'],e['signal_date'],e['episode_id'],e['timeframe'],e['score'],scores.get('monthly_completed'),scores.get('weekly_completed'),scores.get('daily'),e['signal_close'],e['floor'],paths,window,o['status'],*[o.get(k) for k in ('target_date','return','spy_return','excess','mfe','mae','days_to_10pct')]]+extra_values)
         return ('\ufeff'+out.getvalue()).encode('utf-8')
     entry_columns=receipt.get('request',{}).get('strategy')==CANDIDATE_POLICY
     writer.writerow(['symbol','signal_date','entry_date','entry_price','status','exit_date','exit_price','quantity','net_pnl','net_return','signal_score','original_rank','model_version','monthly_score','weekly_score','daily_score','reason']+(['entry_paths','entry_policy_fingerprint'] if entry_columns else []))

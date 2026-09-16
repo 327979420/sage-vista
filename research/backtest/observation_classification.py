@@ -54,3 +54,21 @@ if __name__=='__main__':
     buffer=io.StringIO();writer=csv.DictWriter(buffer,fieldnames=list(rows[0]));writer.writeheader();writer.writerows(rows)
     (out/'events.csv').write_text('\ufeff'+buffer.getvalue())
     print(json.dumps(result,ensure_ascii=False))
+
+
+def classify(event, minimum_gap=10):
+    """Signal-time research classification; never reads outcomes or total score."""
+    import math
+    if minimum_gap not in (5,10,15):raise ValueError('unregistered_classification_gap')
+    scores=event.get('timeframe_scores',{})
+    base={'original_label':event['timeframe'],'research_label':None,'minimum_gap':minimum_gap}
+    if any(type(scores.get(tf)) not in (int,float) or not math.isfinite(scores[tf]) or not 0<=scores[tf]<=100 for tf in FRAMES):
+        return {**base,'reason':'scores_unavailable','score_gap':None,'score_leader':None}
+    order=sorted(FRAMES,key=lambda tf:scores[tf],reverse=True)
+    gap=scores[order[0]]-scores[order[1]];base.update(score_gap=gap,score_leader=order[0] if gap>0 else None)
+    if gap==0:return {**base,'reason':'tied_scores'}
+    if gap<minimum_gap:return {**base,'reason':'lead_too_small'}
+    paths=event.get('entry_gate',{}).get('paths',[])
+    if not any(p.get('timeframe')==order[0] and type(p.get('structure_floor')) in (int,float) and math.isfinite(p['structure_floor']) and p['structure_floor']>0 for p in paths):
+        return {**base,'reason':'leader_without_matching_ticket'}
+    return {**base,'research_label':order[0],'reason':'classified'}
