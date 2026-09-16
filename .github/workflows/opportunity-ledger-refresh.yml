@@ -106,6 +106,9 @@ jobs:
         env:
           MPLBACKEND: Agg
         run: python3 -m research.backtest.account_ledger_replay
+      - name: Audit signal support and account price consistency
+        if: inputs.horizon_study == 'account_ledger_replay'
+        run: python3 -m research.backtest.price_world_audit
       - uses: actions/upload-artifact@v4
         if: always() && inputs.horizon_study == 'account_ledger_replay'
         with:
