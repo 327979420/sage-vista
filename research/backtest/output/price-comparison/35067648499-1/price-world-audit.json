@@ -1,0 +1,1933 @@
+{
+  "limits": [
+    "Recomputed support uses current full history: history length changes may alter EMA seeds or profile.",
+    "Signal score/eligibility is not revalidated by a support match.",
+    "Historical provider revisions are not reconstructed by as_of filtering.",
+    "Prior-high is not an input to this legacy account."
+  ],
+  "observation_hash": "6d86df8d0cde21b1b5680facca1c7dce004870b0e8393729f0198e39ba9e25af",
+  "records": [
+    {
+      "close_ratio_new_over_old": 1.0,
+      "current_source_hash": "73455b15dedd468303469a09b7c1bccc89e9dd361828d216c7d798403e962afd",
+      "equal_fields": {
+        "candidates": true,
+        "level": true,
+        "signal_close": true,
+        "source": true,
+        "structural_stop": true,
+        "volume_profile": true
+      },
+      "full_support_equal": true,
+      "history_first": "2000-08-21",
+      "history_rows": 6197,
+      "matches_observation_source": true,
+      "old_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 1.99,
+            "level": 95.6469,
+            "source": "EMA200"
+          },
+          {
+            "distance_pct": 1.995,
+            "level": 95.6425,
+            "source": "volume-profile-poc"
+          },
+          {
+            "distance_pct": 2.157,
+            "level": 95.4905,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 3.038,
+            "level": 94.674,
+            "source": "EMA50"
+          },
+          {
+            "distance_pct": 6.035,
+            "level": 91.9977,
+            "source": "prior-20D-low"
+          },
+          {
+            "distance_pct": 6.035,
+            "level": 91.9977,
+            "source": "confirmed-swing-low"
+          }
+        ],
+        "level": 95.6469,
+        "max_loss_pct": 10,
+        "signal_close": 97.5502,
+        "source": "EMA200",
+        "structural_stop": 90.8646,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 1.9946,
+          "hit": true,
+          "level": 95.642469,
+          "lookback_sessions": 250,
+          "near_price": true,
+          "peak_share": 0.100545,
+          "pulled_back": true
+        }
+      },
+      "recomputed_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 1.99,
+            "level": 95.6469,
+            "source": "EMA200"
+          },
+          {
+            "distance_pct": 1.995,
+            "level": 95.6425,
+            "source": "volume-profile-poc"
+          },
+          {
+            "distance_pct": 2.157,
+            "level": 95.4905,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 3.038,
+            "level": 94.674,
+            "source": "EMA50"
+          },
+          {
+            "distance_pct": 6.035,
+            "level": 91.9977,
+            "source": "prior-20D-low"
+          },
+          {
+            "distance_pct": 6.035,
+            "level": 91.9977,
+            "source": "confirmed-swing-low"
+          }
+        ],
+        "level": 95.6469,
+        "max_loss_pct": 10,
+        "signal_close": 97.5502,
+        "source": "EMA200",
+        "structural_stop": 90.8646,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 1.9946,
+          "hit": true,
+          "level": 95.642469,
+          "lookback_sessions": 250,
+          "near_price": true,
+          "peak_share": 0.100545,
+          "pulled_back": true
+        }
+      },
+      "signal_date": "2026-02-03",
+      "symbol": "PNFP",
+      "window_hash_equal": true
+    },
+    {
+      "close_ratio_new_over_old": 1.0,
+      "current_source_hash": "b009357a0ba703765bebc7f26f79ca9be7956e586174545add26a080158f8ff5",
+      "equal_fields": {
+        "candidates": true,
+        "level": true,
+        "signal_close": true,
+        "source": true,
+        "structural_stop": true,
+        "volume_profile": true
+      },
+      "full_support_equal": true,
+      "history_first": "2000-01-03",
+      "history_rows": 6561,
+      "matches_observation_source": true,
+      "old_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 0.965,
+            "level": 57.0594,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 1.926,
+            "level": 56.5212,
+            "source": "EMA50"
+          },
+          {
+            "distance_pct": 4.215,
+            "level": 55.28,
+            "source": "confirmed-swing-low"
+          },
+          {
+            "distance_pct": 6.547,
+            "level": 54.07,
+            "source": "prior-20D-low"
+          }
+        ],
+        "level": 57.0594,
+        "max_loss_pct": 10,
+        "signal_close": 57.61,
+        "source": "EMA21",
+        "structural_stop": 54.2064,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 4.0674,
+          "hit": false,
+          "level": 55.358333,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.089602,
+          "pulled_back": true
+        }
+      },
+      "recomputed_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 0.965,
+            "level": 57.0594,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 1.926,
+            "level": 56.5212,
+            "source": "EMA50"
+          },
+          {
+            "distance_pct": 4.215,
+            "level": 55.28,
+            "source": "confirmed-swing-low"
+          },
+          {
+            "distance_pct": 6.547,
+            "level": 54.07,
+            "source": "prior-20D-low"
+          }
+        ],
+        "level": 57.0594,
+        "max_loss_pct": 10,
+        "signal_close": 57.61,
+        "source": "EMA21",
+        "structural_stop": 54.2064,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 4.0674,
+          "hit": false,
+          "level": 55.358333,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.089602,
+          "pulled_back": true
+        }
+      },
+      "signal_date": "2026-02-03",
+      "symbol": "BMRN",
+      "window_hash_equal": true
+    },
+    {
+      "close_ratio_new_over_old": 1.0,
+      "current_source_hash": "f56f185d09a0a47c93e165952934ada446d41fbc300fdff65eab14a368da78c8",
+      "equal_fields": {
+        "candidates": true,
+        "level": true,
+        "signal_close": true,
+        "source": true,
+        "structural_stop": true,
+        "volume_profile": true
+      },
+      "full_support_equal": true,
+      "history_first": "2000-01-03",
+      "history_rows": 6562,
+      "matches_observation_source": true,
+      "old_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 2.212,
+            "level": 755.3651,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 4.53,
+            "level": 738.6154,
+            "source": "EMA50"
+          },
+          {
+            "distance_pct": 5.953,
+            "level": 728.6906,
+            "source": "confirmed-swing-low"
+          },
+          {
+            "distance_pct": 7.89,
+            "level": 715.6112,
+            "source": "prior-20D-low"
+          }
+        ],
+        "level": 755.3651,
+        "max_loss_pct": 10,
+        "signal_close": 772.0727,
+        "source": "EMA21",
+        "structural_stop": 717.5968,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 38.5674,
+          "hit": false,
+          "level": 557.182232,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.104214,
+          "pulled_back": true
+        }
+      },
+      "recomputed_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 2.212,
+            "level": 755.3651,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 4.53,
+            "level": 738.6154,
+            "source": "EMA50"
+          },
+          {
+            "distance_pct": 5.953,
+            "level": 728.6906,
+            "source": "confirmed-swing-low"
+          },
+          {
+            "distance_pct": 7.89,
+            "level": 715.6112,
+            "source": "prior-20D-low"
+          }
+        ],
+        "level": 755.3651,
+        "max_loss_pct": 10,
+        "signal_close": 772.0727,
+        "source": "EMA21",
+        "structural_stop": 717.5968,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 38.5674,
+          "hit": false,
+          "level": 557.182232,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.104214,
+          "pulled_back": true
+        }
+      },
+      "signal_date": "2026-02-04",
+      "symbol": "REGN",
+      "window_hash_equal": true
+    },
+    {
+      "close_ratio_new_over_old": 1.0,
+      "current_source_hash": "cd1d3d57191bc0c2808dd9db5d26a761436428eea5721337e6ca4e21c262074e",
+      "equal_fields": {
+        "candidates": true,
+        "level": true,
+        "signal_close": true,
+        "source": true,
+        "structural_stop": true,
+        "volume_profile": true
+      },
+      "full_support_equal": true,
+      "history_first": "2000-01-03",
+      "history_rows": 6563,
+      "matches_observation_source": true,
+      "old_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 2.452,
+            "level": 96.7278,
+            "source": "EMA200"
+          },
+          {
+            "distance_pct": 6.904,
+            "level": 92.7,
+            "source": "prior-20D-low"
+          },
+          {
+            "distance_pct": 6.904,
+            "level": 92.7,
+            "source": "confirmed-swing-low"
+          }
+        ],
+        "level": 96.7278,
+        "max_loss_pct": 10,
+        "signal_close": 99.1,
+        "source": "EMA200",
+        "structural_stop": 91.8914,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 5.181,
+          "hit": false,
+          "level": 94.218542,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.081104,
+          "pulled_back": true
+        }
+      },
+      "recomputed_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 2.452,
+            "level": 96.7278,
+            "source": "EMA200"
+          },
+          {
+            "distance_pct": 6.904,
+            "level": 92.7,
+            "source": "prior-20D-low"
+          },
+          {
+            "distance_pct": 6.904,
+            "level": 92.7,
+            "source": "confirmed-swing-low"
+          }
+        ],
+        "level": 96.7278,
+        "max_loss_pct": 10,
+        "signal_close": 99.1,
+        "source": "EMA200",
+        "structural_stop": 91.8914,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 5.181,
+          "hit": false,
+          "level": 94.218542,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.081104,
+          "pulled_back": true
+        }
+      },
+      "signal_date": "2026-02-05",
+      "symbol": "ANF",
+      "window_hash_equal": true
+    },
+    {
+      "close_ratio_new_over_old": 1.0,
+      "current_source_hash": "74b6a6f74d984c7454cd0fafc68fb1153e102807701a0ec7ccadba3a4eb495d1",
+      "equal_fields": {
+        "candidates": true,
+        "level": true,
+        "signal_close": true,
+        "source": true,
+        "structural_stop": true,
+        "volume_profile": true
+      },
+      "full_support_equal": true,
+      "history_first": "2000-01-03",
+      "history_rows": 6564,
+      "matches_observation_source": true,
+      "old_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 6.339,
+            "level": 91.8531,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 9.744,
+            "level": 89.0034,
+            "source": "confirmed-swing-low"
+          },
+          {
+            "distance_pct": 10.127,
+            "level": 88.6941,
+            "source": "EMA50"
+          },
+          {
+            "distance_pct": 16.166,
+            "level": 84.0827,
+            "source": "prior-20D-low"
+          }
+        ],
+        "level": 91.8531,
+        "max_loss_pct": 10,
+        "signal_close": 97.6759,
+        "source": "EMA21",
+        "structural_stop": 87.2604,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 18.6812,
+          "hit": false,
+          "level": 82.301043,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.093935,
+          "pulled_back": true
+        }
+      },
+      "recomputed_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 6.339,
+            "level": 91.8531,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 9.744,
+            "level": 89.0034,
+            "source": "confirmed-swing-low"
+          },
+          {
+            "distance_pct": 10.127,
+            "level": 88.6941,
+            "source": "EMA50"
+          },
+          {
+            "distance_pct": 16.166,
+            "level": 84.0827,
+            "source": "prior-20D-low"
+          }
+        ],
+        "level": 91.8531,
+        "max_loss_pct": 10,
+        "signal_close": 97.6759,
+        "source": "EMA21",
+        "structural_stop": 87.2604,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 18.6812,
+          "hit": false,
+          "level": 82.301043,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.093935,
+          "pulled_back": true
+        }
+      },
+      "signal_date": "2026-02-06",
+      "symbol": "SBUX",
+      "window_hash_equal": true
+    },
+    {
+      "close_ratio_new_over_old": 1.0,
+      "current_source_hash": "ea927276dfc678c402baa2aeea9341c69703bb6225ef708ed9b1894230160d2e",
+      "equal_fields": {
+        "candidates": true,
+        "level": true,
+        "signal_close": true,
+        "source": true,
+        "structural_stop": true,
+        "volume_profile": true
+      },
+      "full_support_equal": true,
+      "history_first": "2000-01-03",
+      "history_rows": 6567,
+      "matches_observation_source": true,
+      "old_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 2.004,
+            "level": 81.4185,
+            "source": "volume-profile-poc"
+          },
+          {
+            "distance_pct": 2.01,
+            "level": 81.4134,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 3.5,
+            "level": 80.2417,
+            "source": "EMA50"
+          },
+          {
+            "distance_pct": 5.407,
+            "level": 78.79,
+            "source": "prior-20D-low"
+          },
+          {
+            "distance_pct": 5.407,
+            "level": 78.79,
+            "source": "confirmed-swing-low"
+          },
+          {
+            "distance_pct": 6.127,
+            "level": 78.2556,
+            "source": "EMA200"
+          }
+        ],
+        "level": 81.4185,
+        "max_loss_pct": 10,
+        "signal_close": 83.05,
+        "source": "volume-profile-poc",
+        "structural_stop": 77.3476,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 2.0038,
+          "hit": true,
+          "level": 81.4185,
+          "lookback_sessions": 250,
+          "near_price": true,
+          "peak_share": 0.064166,
+          "pulled_back": true
+        }
+      },
+      "recomputed_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 2.004,
+            "level": 81.4185,
+            "source": "volume-profile-poc"
+          },
+          {
+            "distance_pct": 2.01,
+            "level": 81.4134,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 3.5,
+            "level": 80.2417,
+            "source": "EMA50"
+          },
+          {
+            "distance_pct": 5.407,
+            "level": 78.79,
+            "source": "prior-20D-low"
+          },
+          {
+            "distance_pct": 5.407,
+            "level": 78.79,
+            "source": "confirmed-swing-low"
+          },
+          {
+            "distance_pct": 6.127,
+            "level": 78.2556,
+            "source": "EMA200"
+          }
+        ],
+        "level": 81.4185,
+        "max_loss_pct": 10,
+        "signal_close": 83.05,
+        "source": "volume-profile-poc",
+        "structural_stop": 77.3476,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 2.0038,
+          "hit": true,
+          "level": 81.4185,
+          "lookback_sessions": 250,
+          "near_price": true,
+          "peak_share": 0.064166,
+          "pulled_back": true
+        }
+      },
+      "signal_date": "2026-02-11",
+      "symbol": "COO",
+      "window_hash_equal": true
+    },
+    {
+      "close_ratio_new_over_old": 1.0,
+      "current_source_hash": "633a0dc65413b7d30eab5f43ce405f59d9b3c8a92f5dd4650de56572456bd9b9",
+      "equal_fields": {
+        "candidates": true,
+        "level": true,
+        "signal_close": true,
+        "source": true,
+        "structural_stop": true,
+        "volume_profile": true
+      },
+      "full_support_equal": true,
+      "history_first": "2010-03-24",
+      "history_rows": 3997,
+      "matches_observation_source": true,
+      "old_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 5.337,
+            "level": 18.4171,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 8.089,
+            "level": 17.9482,
+            "source": "EMA50"
+          },
+          {
+            "distance_pct": 20.422,
+            "level": 16.11,
+            "source": "prior-20D-low"
+          },
+          {
+            "distance_pct": 20.422,
+            "level": 16.11,
+            "source": "confirmed-swing-low"
+          }
+        ],
+        "level": 18.4171,
+        "max_loss_pct": 10,
+        "signal_close": 19.4,
+        "source": "EMA21",
+        "structural_stop": 17.4963,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 21.2554,
+          "hit": false,
+          "level": 15.999292,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.082597,
+          "pulled_back": true
+        }
+      },
+      "recomputed_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 5.337,
+            "level": 18.4171,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 8.089,
+            "level": 17.9482,
+            "source": "EMA50"
+          },
+          {
+            "distance_pct": 20.422,
+            "level": 16.11,
+            "source": "prior-20D-low"
+          },
+          {
+            "distance_pct": 20.422,
+            "level": 16.11,
+            "source": "confirmed-swing-low"
+          }
+        ],
+        "level": 18.4171,
+        "max_loss_pct": 10,
+        "signal_close": 19.4,
+        "source": "EMA21",
+        "structural_stop": 17.4963,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 21.2554,
+          "hit": false,
+          "level": 15.999292,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.082597,
+          "pulled_back": true
+        }
+      },
+      "signal_date": "2026-02-11",
+      "symbol": "MXL",
+      "window_hash_equal": true
+    },
+    {
+      "close_ratio_new_over_old": 1.0,
+      "current_source_hash": "f4fb1690aa4e1adfdf6cb44180b65a83fffe25893b2becd38da0f34f2f2a5385",
+      "equal_fields": {
+        "candidates": true,
+        "level": true,
+        "signal_close": true,
+        "source": true,
+        "structural_stop": true,
+        "volume_profile": true
+      },
+      "full_support_equal": true,
+      "history_first": "2013-10-10",
+      "history_rows": 3103,
+      "matches_observation_source": true,
+      "old_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 2.782,
+            "level": 34.1597,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 2.862,
+            "level": 34.1329,
+            "source": "EMA200"
+          },
+          {
+            "distance_pct": 3.178,
+            "level": 34.0285,
+            "source": "EMA50"
+          },
+          {
+            "distance_pct": 5.913,
+            "level": 33.15,
+            "source": "confirmed-swing-low"
+          },
+          {
+            "distance_pct": 12.713,
+            "level": 31.15,
+            "source": "prior-20D-low"
+          }
+        ],
+        "level": 34.1597,
+        "max_loss_pct": 10,
+        "signal_close": 35.11,
+        "source": "EMA21",
+        "structural_stop": 32.4517,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 8.0945,
+          "hit": false,
+          "level": 32.480833,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.080129,
+          "pulled_back": true
+        }
+      },
+      "recomputed_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 2.782,
+            "level": 34.1597,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 2.862,
+            "level": 34.1329,
+            "source": "EMA200"
+          },
+          {
+            "distance_pct": 3.178,
+            "level": 34.0285,
+            "source": "EMA50"
+          },
+          {
+            "distance_pct": 5.913,
+            "level": 33.15,
+            "source": "confirmed-swing-low"
+          },
+          {
+            "distance_pct": 12.713,
+            "level": 31.15,
+            "source": "prior-20D-low"
+          }
+        ],
+        "level": 34.1597,
+        "max_loss_pct": 10,
+        "signal_close": 35.11,
+        "source": "EMA21",
+        "structural_stop": 32.4517,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 8.0945,
+          "hit": false,
+          "level": 32.480833,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.080129,
+          "pulled_back": true
+        }
+      },
+      "signal_date": "2026-02-11",
+      "symbol": "AR",
+      "window_hash_equal": true
+    },
+    {
+      "close_ratio_new_over_old": 1.0,
+      "current_source_hash": "3d928d1093fdba9a64f1f2f582288856aec4c06dd23700776519ada00e163b3d",
+      "equal_fields": {
+        "candidates": true,
+        "level": true,
+        "signal_close": true,
+        "source": true,
+        "structural_stop": true,
+        "volume_profile": true
+      },
+      "full_support_equal": true,
+      "history_first": "2018-07-03",
+      "history_rows": 1914,
+      "matches_observation_source": true,
+      "old_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 4.083,
+            "level": 12.6726,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 8.952,
+            "level": 12.1063,
+            "source": "EMA50"
+          },
+          {
+            "distance_pct": 14.199,
+            "level": 11.55,
+            "source": "confirmed-swing-low"
+          },
+          {
+            "distance_pct": 23.85,
+            "level": 10.65,
+            "source": "prior-20D-low"
+          }
+        ],
+        "level": 12.6726,
+        "max_loss_pct": 10,
+        "signal_close": 13.19,
+        "source": "EMA21",
+        "structural_stop": 12.039,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 120.7224,
+          "hit": false,
+          "level": 5.975833,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.084602,
+          "pulled_back": true
+        }
+      },
+      "recomputed_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 4.083,
+            "level": 12.6726,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 8.952,
+            "level": 12.1063,
+            "source": "EMA50"
+          },
+          {
+            "distance_pct": 14.199,
+            "level": 11.55,
+            "source": "confirmed-swing-low"
+          },
+          {
+            "distance_pct": 23.85,
+            "level": 10.65,
+            "source": "prior-20D-low"
+          }
+        ],
+        "level": 12.6726,
+        "max_loss_pct": 10,
+        "signal_close": 13.19,
+        "source": "EMA21",
+        "structural_stop": 12.039,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 120.7224,
+          "hit": false,
+          "level": 5.975833,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.084602,
+          "pulled_back": true
+        }
+      },
+      "signal_date": "2026-02-12",
+      "symbol": "SGML",
+      "window_hash_equal": true
+    },
+    {
+      "close_ratio_new_over_old": 1.0,
+      "current_source_hash": "114becdf187a5de326b243d1e290f4adf72fd81be7f4f3acf436f3cfcc4b8c80",
+      "equal_fields": {
+        "candidates": true,
+        "level": true,
+        "signal_close": true,
+        "source": true,
+        "structural_stop": true,
+        "volume_profile": true
+      },
+      "full_support_equal": true,
+      "history_first": "2005-02-16",
+      "history_rows": 5284,
+      "matches_observation_source": true,
+      "old_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 1.509,
+            "level": 156.6258,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 1.6,
+            "level": 156.487,
+            "source": "EMA200"
+          },
+          {
+            "distance_pct": 2.158,
+            "level": 155.6315,
+            "source": "volume-profile-poc"
+          },
+          {
+            "distance_pct": 2.419,
+            "level": 155.2351,
+            "source": "EMA50"
+          },
+          {
+            "distance_pct": 5.291,
+            "level": 151.0,
+            "source": "confirmed-swing-low"
+          },
+          {
+            "distance_pct": 12.095,
+            "level": 141.835,
+            "source": "prior-20D-low"
+          }
+        ],
+        "level": 156.6258,
+        "max_loss_pct": 10,
+        "signal_close": 158.99,
+        "source": "EMA21",
+        "structural_stop": 148.7945,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 2.158,
+          "hit": true,
+          "level": 155.631458,
+          "lookback_sessions": 250,
+          "near_price": true,
+          "peak_share": 0.090237,
+          "pulled_back": true
+        }
+      },
+      "recomputed_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 1.509,
+            "level": 156.6258,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 1.6,
+            "level": 156.487,
+            "source": "EMA200"
+          },
+          {
+            "distance_pct": 2.158,
+            "level": 155.6315,
+            "source": "volume-profile-poc"
+          },
+          {
+            "distance_pct": 2.419,
+            "level": 155.2351,
+            "source": "EMA50"
+          },
+          {
+            "distance_pct": 5.291,
+            "level": 151.0,
+            "source": "confirmed-swing-low"
+          },
+          {
+            "distance_pct": 12.095,
+            "level": 141.835,
+            "source": "prior-20D-low"
+          }
+        ],
+        "level": 156.6258,
+        "max_loss_pct": 10,
+        "signal_close": 158.99,
+        "source": "EMA21",
+        "structural_stop": 148.7945,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 2.158,
+          "hit": true,
+          "level": 155.631458,
+          "lookback_sessions": 250,
+          "near_price": true,
+          "peak_share": 0.090237,
+          "pulled_back": true
+        }
+      },
+      "signal_date": "2026-02-18",
+      "symbol": "WEX",
+      "window_hash_equal": true
+    },
+    {
+      "close_ratio_new_over_old": 0.9956661945669434,
+      "current_source_hash": "dcf308ae9a89b9ad705c5d0fddd7ad1eb3c6775f04ce05c910456727d1084956",
+      "equal_fields": {
+        "candidates": false,
+        "level": false,
+        "signal_close": false,
+        "source": true,
+        "structural_stop": false,
+        "volume_profile": false
+      },
+      "full_support_equal": false,
+      "history_first": "2000-01-03",
+      "history_rows": 6571,
+      "matches_observation_source": true,
+      "old_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 0.034,
+            "level": 342.608,
+            "source": "EMA50"
+          },
+          {
+            "distance_pct": 0.52,
+            "level": 340.9519,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 7.096,
+            "level": 320.0171,
+            "source": "confirmed-swing-low"
+          },
+          {
+            "distance_pct": 9.757,
+            "level": 312.2567,
+            "source": "prior-20D-low"
+          }
+        ],
+        "level": 342.608,
+        "max_loss_pct": 10,
+        "signal_close": 342.7242,
+        "source": "EMA50",
+        "structural_stop": 325.4776,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": -6.8158,
+          "hit": false,
+          "level": 367.792223,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.067474,
+          "pulled_back": true
+        }
+      },
+      "recomputed_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 0.034,
+            "level": 341.1233,
+            "source": "EMA50"
+          },
+          {
+            "distance_pct": 0.52,
+            "level": 339.4743,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 7.096,
+            "level": 318.6303,
+            "source": "confirmed-swing-low"
+          },
+          {
+            "distance_pct": 9.757,
+            "level": 310.9035,
+            "source": "prior-20D-low"
+          }
+        ],
+        "level": 341.1233,
+        "max_loss_pct": 10,
+        "signal_close": 341.2389,
+        "source": "EMA50",
+        "structural_stop": 324.0671,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": -6.8158,
+          "hit": false,
+          "level": 366.198358,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.067444,
+          "pulled_back": true
+        }
+      },
+      "signal_date": "2026-02-18",
+      "symbol": "ELV",
+      "window_hash_equal": false
+    },
+    {
+      "close_ratio_new_over_old": 1.0,
+      "current_source_hash": "a9663b36779c5c254792b83de6b3c64d6720cf1338bdfce0d07e536814aec479",
+      "equal_fields": {
+        "candidates": true,
+        "level": true,
+        "signal_close": true,
+        "source": true,
+        "structural_stop": true,
+        "volume_profile": true
+      },
+      "full_support_equal": true,
+      "history_first": "2000-01-03",
+      "history_rows": 6571,
+      "matches_observation_source": true,
+      "old_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 1.629,
+            "level": 36.8103,
+            "source": "EMA50"
+          },
+          {
+            "distance_pct": 2.74,
+            "level": 36.4123,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 11.406,
+            "level": 33.58,
+            "source": "prior-20D-low"
+          },
+          {
+            "distance_pct": 11.406,
+            "level": 33.58,
+            "source": "confirmed-swing-low"
+          }
+        ],
+        "level": 36.8103,
+        "max_loss_pct": 10,
+        "signal_close": 37.41,
+        "source": "EMA50",
+        "structural_stop": 34.9698,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 3.0292,
+          "hit": false,
+          "level": 36.310083,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.141839,
+          "pulled_back": true
+        }
+      },
+      "recomputed_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 1.629,
+            "level": 36.8103,
+            "source": "EMA50"
+          },
+          {
+            "distance_pct": 2.74,
+            "level": 36.4123,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 11.406,
+            "level": 33.58,
+            "source": "prior-20D-low"
+          },
+          {
+            "distance_pct": 11.406,
+            "level": 33.58,
+            "source": "confirmed-swing-low"
+          }
+        ],
+        "level": 36.8103,
+        "max_loss_pct": 10,
+        "signal_close": 37.41,
+        "source": "EMA50",
+        "structural_stop": 34.9698,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 3.0292,
+          "hit": false,
+          "level": 36.310083,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.141839,
+          "pulled_back": true
+        }
+      },
+      "signal_date": "2026-02-18",
+      "symbol": "VCEL",
+      "window_hash_equal": true
+    },
+    {
+      "close_ratio_new_over_old": 1.0,
+      "current_source_hash": "0127777783fa8397f8ead8312f99f7a2572bf954c640c283514a0f3fed9d4672",
+      "equal_fields": {
+        "candidates": true,
+        "level": true,
+        "signal_close": true,
+        "source": true,
+        "structural_stop": true,
+        "volume_profile": true
+      },
+      "full_support_equal": true,
+      "history_first": "2000-01-03",
+      "history_rows": 6572,
+      "matches_observation_source": true,
+      "old_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 0.905,
+            "level": 16.3822,
+            "source": "EMA50"
+          },
+          {
+            "distance_pct": 0.942,
+            "level": 16.3762,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 6.039,
+            "level": 15.5891,
+            "source": "prior-20D-low"
+          },
+          {
+            "distance_pct": 6.039,
+            "level": 15.5891,
+            "source": "confirmed-swing-low"
+          }
+        ],
+        "level": 16.3822,
+        "max_loss_pct": 10,
+        "signal_close": 16.5305,
+        "source": "EMA50",
+        "structural_stop": 15.5631,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 4.2056,
+          "hit": false,
+          "level": 15.863353,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.073801,
+          "pulled_back": true
+        }
+      },
+      "recomputed_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 0.905,
+            "level": 16.3822,
+            "source": "EMA50"
+          },
+          {
+            "distance_pct": 0.942,
+            "level": 16.3762,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 6.039,
+            "level": 15.5891,
+            "source": "prior-20D-low"
+          },
+          {
+            "distance_pct": 6.039,
+            "level": 15.5891,
+            "source": "confirmed-swing-low"
+          }
+        ],
+        "level": 16.3822,
+        "max_loss_pct": 10,
+        "signal_close": 16.5305,
+        "source": "EMA50",
+        "structural_stop": 15.5631,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 4.2056,
+          "hit": false,
+          "level": 15.863353,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.073801,
+          "pulled_back": true
+        }
+      },
+      "signal_date": "2026-02-19",
+      "symbol": "DOC",
+      "window_hash_equal": true
+    },
+    {
+      "close_ratio_new_over_old": 1.0,
+      "current_source_hash": "4cd83417559ea08f8de8abd9025e7805b6c61c87e9d96d625daccc967b81fb67",
+      "equal_fields": {
+        "candidates": true,
+        "level": true,
+        "signal_close": true,
+        "source": true,
+        "structural_stop": true,
+        "volume_profile": true
+      },
+      "full_support_equal": true,
+      "history_first": "2018-12-07",
+      "history_rows": 1809,
+      "matches_observation_source": true,
+      "old_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 35.589,
+            "level": 36.655,
+            "source": "prior-20D-low"
+          },
+          {
+            "distance_pct": 35.589,
+            "level": 36.655,
+            "source": "confirmed-swing-low"
+          }
+        ],
+        "level": 36.655,
+        "max_loss_pct": 10,
+        "signal_close": 49.7,
+        "source": "prior-20D-low",
+        "structural_stop": 34.8222,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 82.6638,
+          "hit": false,
+          "level": 27.208458,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.114234,
+          "pulled_back": true
+        }
+      },
+      "recomputed_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 35.589,
+            "level": 36.655,
+            "source": "prior-20D-low"
+          },
+          {
+            "distance_pct": 35.589,
+            "level": 36.655,
+            "source": "confirmed-swing-low"
+          }
+        ],
+        "level": 36.655,
+        "max_loss_pct": 10,
+        "signal_close": 49.7,
+        "source": "prior-20D-low",
+        "structural_stop": 34.8222,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 82.6638,
+          "hit": false,
+          "level": 27.208458,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.114234,
+          "pulled_back": true
+        }
+      },
+      "signal_date": "2026-02-19",
+      "symbol": "MRNA",
+      "window_hash_equal": true
+    },
+    {
+      "close_ratio_new_over_old": 1.0,
+      "current_source_hash": "c7c723a8dacefaf22ad2fcc14274ff79fcd2379e09426210981b6b4596b50ea6",
+      "equal_fields": {
+        "candidates": true,
+        "level": true,
+        "signal_close": true,
+        "source": true,
+        "structural_stop": true,
+        "volume_profile": true
+      },
+      "full_support_equal": true,
+      "history_first": "2001-12-13",
+      "history_rows": 6084,
+      "matches_observation_source": true,
+      "old_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 2.319,
+            "level": 42.6898,
+            "source": "EMA200"
+          },
+          {
+            "distance_pct": 4.387,
+            "level": 41.8441,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 5.339,
+            "level": 41.4661,
+            "source": "EMA50"
+          },
+          {
+            "distance_pct": 12.432,
+            "level": 38.85,
+            "source": "confirmed-swing-low"
+          },
+          {
+            "distance_pct": 21.131,
+            "level": 36.06,
+            "source": "prior-20D-low"
+          }
+        ],
+        "level": 42.6898,
+        "max_loss_pct": 10,
+        "signal_close": 43.68,
+        "source": "EMA200",
+        "structural_stop": 40.5553,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 23.5085,
+          "hit": false,
+          "level": 35.366,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.088986,
+          "pulled_back": true
+        }
+      },
+      "recomputed_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 2.319,
+            "level": 42.6898,
+            "source": "EMA200"
+          },
+          {
+            "distance_pct": 4.387,
+            "level": 41.8441,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 5.339,
+            "level": 41.4661,
+            "source": "EMA50"
+          },
+          {
+            "distance_pct": 12.432,
+            "level": 38.85,
+            "source": "confirmed-swing-low"
+          },
+          {
+            "distance_pct": 21.131,
+            "level": 36.06,
+            "source": "prior-20D-low"
+          }
+        ],
+        "level": 42.6898,
+        "max_loss_pct": 10,
+        "signal_close": 43.68,
+        "source": "EMA200",
+        "structural_stop": 40.5553,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 23.5085,
+          "hit": false,
+          "level": 35.366,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.088986,
+          "pulled_back": true
+        }
+      },
+      "signal_date": "2026-02-19",
+      "symbol": "CNC",
+      "window_hash_equal": true
+    },
+    {
+      "close_ratio_new_over_old": 1.0,
+      "current_source_hash": "5c5c39e866236f4b5e136d82f8722245ec804cdead6840f3acad7db61c80a57a",
+      "equal_fields": {
+        "candidates": true,
+        "level": true,
+        "signal_close": true,
+        "source": true,
+        "structural_stop": true,
+        "volume_profile": true
+      },
+      "full_support_equal": true,
+      "history_first": "2015-06-25",
+      "history_rows": 2680,
+      "matches_observation_source": true,
+      "old_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 4.64,
+            "level": 114.9367,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 7.139,
+            "level": 112.2565,
+            "source": "EMA50"
+          },
+          {
+            "distance_pct": 16.147,
+            "level": 103.55,
+            "source": "prior-20D-low"
+          },
+          {
+            "distance_pct": 16.147,
+            "level": 103.55,
+            "source": "confirmed-swing-low"
+          }
+        ],
+        "level": 114.9367,
+        "max_loss_pct": 10,
+        "signal_close": 120.27,
+        "source": "EMA21",
+        "structural_stop": 109.1899,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 33.8683,
+          "hit": false,
+          "level": 89.842,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.066488,
+          "pulled_back": true
+        }
+      },
+      "recomputed_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 4.64,
+            "level": 114.9367,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 7.139,
+            "level": 112.2565,
+            "source": "EMA50"
+          },
+          {
+            "distance_pct": 16.147,
+            "level": 103.55,
+            "source": "prior-20D-low"
+          },
+          {
+            "distance_pct": 16.147,
+            "level": 103.55,
+            "source": "confirmed-swing-low"
+          }
+        ],
+        "level": 114.9367,
+        "max_loss_pct": 10,
+        "signal_close": 120.27,
+        "source": "EMA21",
+        "structural_stop": 109.1899,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 33.8683,
+          "hit": false,
+          "level": 89.842,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.066488,
+          "pulled_back": true
+        }
+      },
+      "signal_date": "2026-02-20",
+      "symbol": "GKOS",
+      "window_hash_equal": true
+    },
+    {
+      "close_ratio_new_over_old": 1.0,
+      "current_source_hash": "fc7acbc7b4be9b482e303017038a6cdf8c9adb48c595a72238e39071e561a384",
+      "equal_fields": {
+        "candidates": true,
+        "level": true,
+        "signal_close": true,
+        "source": true,
+        "structural_stop": true,
+        "volume_profile": true
+      },
+      "full_support_equal": true,
+      "history_first": "2000-01-03",
+      "history_rows": 6574,
+      "matches_observation_source": true,
+      "old_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 7.19,
+            "level": 8.7321,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 13.455,
+            "level": 8.25,
+            "source": "confirmed-swing-low"
+          },
+          {
+            "distance_pct": 19.388,
+            "level": 7.84,
+            "source": "prior-20D-low"
+          }
+        ],
+        "level": 8.7321,
+        "max_loss_pct": 10,
+        "signal_close": 9.36,
+        "source": "EMA21",
+        "structural_stop": 8.2955,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 19.1832,
+          "hit": false,
+          "level": 7.853458,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.084313,
+          "pulled_back": true
+        }
+      },
+      "recomputed_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 7.19,
+            "level": 8.7321,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 13.455,
+            "level": 8.25,
+            "source": "confirmed-swing-low"
+          },
+          {
+            "distance_pct": 19.388,
+            "level": 7.84,
+            "source": "prior-20D-low"
+          }
+        ],
+        "level": 8.7321,
+        "max_loss_pct": 10,
+        "signal_close": 9.36,
+        "source": "EMA21",
+        "structural_stop": 8.2955,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 19.1832,
+          "hit": false,
+          "level": 7.853458,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.084313,
+          "pulled_back": true
+        }
+      },
+      "signal_date": "2026-02-23",
+      "symbol": "NVAX",
+      "window_hash_equal": true
+    },
+    {
+      "close_ratio_new_over_old": 1.0,
+      "current_source_hash": "d4705a057949387ab56cffb80d36e3f672e6f2b231cae97a316b14b40c29aa44",
+      "equal_fields": {
+        "candidates": true,
+        "level": true,
+        "signal_close": true,
+        "source": true,
+        "structural_stop": true,
+        "volume_profile": true
+      },
+      "full_support_equal": true,
+      "history_first": "2017-12-08",
+      "history_rows": 2063,
+      "matches_observation_source": true,
+      "old_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 9.946,
+            "level": 20.2736,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 19.774,
+            "level": 18.61,
+            "source": "prior-20D-low"
+          },
+          {
+            "distance_pct": 19.774,
+            "level": 18.61,
+            "source": "confirmed-swing-low"
+          }
+        ],
+        "level": 20.2736,
+        "max_loss_pct": 10,
+        "signal_close": 22.29,
+        "source": "EMA21",
+        "structural_stop": 19.2599,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 56.7589,
+          "hit": false,
+          "level": 14.219292,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.089835,
+          "pulled_back": true
+        }
+      },
+      "recomputed_support": {
+        "available": true,
+        "candidates": [
+          {
+            "distance_pct": 9.946,
+            "level": 20.2736,
+            "source": "EMA21"
+          },
+          {
+            "distance_pct": 19.774,
+            "level": 18.61,
+            "source": "prior-20D-low"
+          },
+          {
+            "distance_pct": 19.774,
+            "level": 18.61,
+            "source": "confirmed-swing-low"
+          }
+        ],
+        "level": 20.2736,
+        "max_loss_pct": 10,
+        "signal_close": 22.29,
+        "source": "EMA21",
+        "structural_stop": 19.2599,
+        "support_buffer_pct": 5,
+        "volume_profile": {
+          "available": true,
+          "bins": 40,
+          "concentrated": true,
+          "distance_pct": 56.7589,
+          "hit": false,
+          "level": 14.219292,
+          "lookback_sessions": 250,
+          "near_price": false,
+          "peak_share": 0.089835,
+          "pulled_back": true
+        }
+      },
+      "signal_date": "2026-02-25",
+      "symbol": "DNLI",
+      "window_hash_equal": true
+    }
+  ],
+  "source_account": "34240123213-1",
+  "source_account_hash": "55162377b4187a23cbe4b8a69aa694d88c38e7a5dd074a86ca49e1b14271b499"
+}

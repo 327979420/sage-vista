@@ -1,0 +1,15 @@
+{
+  "run": "35067648499-1",
+  "code": "f28bf70",
+  "decision": "BLOCK_DEPENDENT_ARTIFACT_VERSION_MISMATCH",
+  "next_stage_allowed": false,
+  "source_account": "35064720576-1",
+  "old_raw_available": false,
+  "files": {
+    "comparison.md": "9569734db0f9238ca13b669274c79465fd9bea70d8b15577211f203ce1253835",
+    "price-world-audit.json": "23fee1492e1702ccc932ca1fabe8815b959949873b90f28856429bb72f51e7a2",
+    "decision-impact.json": "7c7d5fd148d35607c6600953699c04bed4fd18566985a99dbabe656525724a2f",
+    "comparison.csv": "2319fa58fcfa866f4b77a2ceaa14f4ba9b59dbea1627170554af11b56dc9a041",
+    "ELV-known-field-differences.csv": "7d9c58aaa1b808d5bfe9b28ec856ca906e07508cb6a2f0a1ee8591a88879d3ee"
+  }
+}

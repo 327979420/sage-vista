@@ -101,3 +101,5 @@
 历史对照已完成：35064720576-1，详见需求账本及research/backtest/output/account-ledger/35064720576-1/结论.md。ELV原行情窗口不一致，旧结果精确复现失败；新行情对照仅验账，不作策略有效性证据。
 
 2026-09-16后续价格口径审计：已确认ELV旧支撑与新成交行情混用（旧止损325.4776，新行情同法重算324.0671）。账户数值对账通过不构成价格一致性通过；102034.82美元不可用作有效策略绩效。17只完整支撑重算吻合，信号资格与排名未完整重验。详见research/backtest/output/price-world-audit/35067189075-1/结论.md；修复输入绑定之前，完整V0仍未验收。
+
+最小影响审查35067648499-1：ELV卖出日期/股数不变，但卖价和盈亏改变40.86美元，触发用户指定停止条件。comparison artifact见research/backtest/output/price-comparison/35067648499-1/comparison.md。next_stage_allowed=false；分周期baseline holding-period定义与接入暂不启动，先统一signal/support/拟用prior-high依赖。新support对照仅诊断，未认证新账户基准。

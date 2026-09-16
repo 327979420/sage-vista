@@ -1,0 +1,3 @@
+﻿symbol,date,field,old,new,evidence
+ELV,2026-02-18,adjusted_close,342.7242,341.2389,frozen_support_signal_close; both rounded to 4 decimals
+ELV,2026-02-19,adjusted_open,343.33790358435294,341.8499660348096,original_receipt_entry_price
