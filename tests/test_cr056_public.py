@@ -37,6 +37,20 @@ class PublicProjectionTests(unittest.TestCase):
         self.assertNotIn('never publish',str(public))
         self.assertNotIn('new_nomination',public['reviews'][0])
         self.assertNotIn('high_score_eligible',public['reviews'][0])
+        unranked=copy.deepcopy(report)
+        unranked['reviews'][0]['rank']=None
+        unranked['ranked_symbols']=[]
+        unranked.pop('snapshot_fingerprint')
+        unranked['snapshot_fingerprint']=canonical_fingerprint(unranked)
+        frozen=copy.deepcopy(unranked)
+        compact=project_report(unranked)['reviews'][0]
+        for key in ('watch_entries','watch_history_start','watch_as_of'):
+            self.assertNotIn(key,compact)
+            self.assertIn(key,public['reviews'][0])
+        self.assertEqual(compact['total'],public['reviews'][0]['total'])
+        self.assertEqual(compact['frames'],public['reviews'][0]['frames'])
+        self.assertEqual(project_details(unranked)['reviews']['AAA'],details)
+        self.assertEqual(unranked,frozen)
         affirmative=copy.deepcopy(report)
         affirmative['reviews'][0]['new_nomination']=True
         affirmative['reviews'][0]['score']['high_score_eligible']=True

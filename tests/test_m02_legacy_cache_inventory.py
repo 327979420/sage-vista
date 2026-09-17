@@ -23,6 +23,8 @@ EXPECTED_PYTHON_REFERENCES = frozenset({
     "research/backtest/selection_observation.py::prepare_history",
     "research/backtest/selection_observation.py::shard",
     "research/backtest/selection_observation.py::benchmark",
+    # Frozen observation horizons: hash-checked read-only replay; no production input.
+    "research/backtest/observation_horizons.py::<module>",
     "services/scanner/cr056_inputs.py::main",
     "services/scanner/cr056_daily.py::main",
     "services/scanner/cr056_daily.py::existing_bulk",

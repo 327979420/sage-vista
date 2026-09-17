@@ -419,6 +419,8 @@ repository.prepare_snapshot(universe_id, as_of, adjustment_policy)
 
 ### 4. 包H直接旧入口清单与M12切换边界
 
+2026-09-17补登记：`research/backtest/observation_horizons.py::<module>`的CLI默认读取`work/eodhd-cache`。已核对其`verify_parent`及`supplement`：限定冻结父收据、校验逐股来源和原观察结果，仅补研究期限，不生成生产信号、不写回原行情。沿用legacy研究边界；未来M12迁移前继续由机械清单检查保护。此前入口已随428ee7a进入main，本次登记修复发布检查的清单遗漏，不放宽新入口检测。
+
 精准搜索确认以下入口仍直接依赖旧缓存、bulk或下载器。它们本轮全部保留，不能因为影子桥存在就写成“已经迁移”：
 
 | 类别 | 仍直接使用旧入口的消费者 |
