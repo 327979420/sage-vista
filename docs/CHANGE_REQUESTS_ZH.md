@@ -1061,3 +1061,5 @@
 - 实施：仅在rank存在时向首页投影watch_entries/watch_history_start/watch_as_of；不删除股票行、不改分数、排序、价格、原因或后台观察账本。未排名股票按用户要求不展示这些历史详情。
 - 冻结真实报告验证：运行35079528462由966222降至654928字节；35173843160由922475降至649604字节。两天均47只排名。除获准移除的三个字段外全部输出逐项相同，project_details完全相同，原报告未修改。证据research/validation/ranking-history-size/real-report-regression.json。
 - tests.test_cr056_public与tests.test_cr056_daily共16项通过（131.193秒），git diff --check通过。本次使用独立fix/ranking-history-size分支，避免将账户研究带入生产；尚未合并或部署。
+
+- 用户批准合并发布后，PR完整检查947项发现main已有observation_horizons缓存入口漏登（428ee7a），其余检查无失败。核对仅冻结来源只读研究后补入包H清单及说明，未关闭或放宽检查；清单与horizon定向6项通过。
