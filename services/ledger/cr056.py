@@ -80,7 +80,7 @@ def validate_watch_checkpoint(checkpoint):
     return checkpoint
 
 
-def track_entry_structures(rows, *, as_of, previous=None, start_date=None):
+def track_entry_structures(rows, *, as_of, previous=None, start_date=None, progress=None):
     """Reconstruct or increment the existing watch ledger using the shared gate.
 
     Price observations are not filled trades. Invalidated episodes stay in the
@@ -102,9 +102,16 @@ def track_entry_structures(rows, *, as_of, previous=None, start_date=None):
     first = cutoff+1 if compatible else MIN_HISTORY_SESSIONS-1
     if start_date and not compatible:
         first = max(first, next((i for i,r in enumerate(rows) if r['date']>=start_date),len(rows)))
+    frame_cache = {}  # Existing content-checked native-period cache, scoped to one stock.
+    if progress:
+        progress({'stage':'watch_history','mode':'incremental' if compatible else 'reconstruct',
+                  'sessions_to_process':max(0,len(rows)-first),'as_of':as_of})
     for i in range(first,len(rows)):
         day = rows[i]['date']
-        facts = collect_entry_facts(rows[:i+1],as_of=day,complete_session=True)
+        facts = collect_entry_facts(rows[:i+1],as_of=day,complete_session=True,frame_cache=frame_cache)
+        if progress and ((i-first+1)%250==0 or i==len(rows)-1):
+            progress({'stage':'watch_history_progress','processed':i-first+1,
+                      'total':len(rows)-first,'through':day})
         for record in records:
             frame = facts['frames'][record['timeframe']]
             if (record['state']=='active' and frame['completed_through']

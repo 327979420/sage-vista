@@ -1,0 +1,8 @@
+{
+  "rows": 5200,
+  "records": 114,
+  "uncached_seconds": 49.01995137473568,
+  "cached_seconds": 46.064764792099595,
+  "exact_full_output_parity": true,
+  "role": "synthetic_single_stock_not_production_speed_forecast"
+}
