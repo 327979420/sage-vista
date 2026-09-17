@@ -1,0 +1,24 @@
+[
+  {
+    "run": "35079528462",
+    "as_of": "2026-09-15",
+    "source_sha256": "4a422aac06d34219e5961ad805ae6ae1bde84335b52c2fec49a1b17ff98e3367",
+    "before_bytes": 966222,
+    "after_bytes": 654928,
+    "ranked": 47,
+    "all_other_fields_identical": true,
+    "details_identical": true,
+    "input_unmodified": true
+  },
+  {
+    "run": "35173843160",
+    "as_of": "2026-09-16",
+    "source_sha256": "091ceab5e9aea091270e30d97f16ce96923b65dcfea9e09c79f79ac8d28ef598",
+    "before_bytes": 922475,
+    "after_bytes": 649604,
+    "ranked": 47,
+    "all_other_fields_identical": true,
+    "details_identical": true,
+    "input_unmodified": true
+  }
+]

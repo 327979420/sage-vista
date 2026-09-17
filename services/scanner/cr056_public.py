@@ -24,8 +24,9 @@ def project_report(report):
         permission = row.get('permission', {})
         item = {k: row.get(k) for k in ('symbol', 'rank', 'price', 'status', 'new_nomination', 'periods')}
         tracking = row.get('entry_tracking') or (row.get('watch') or {}).get('entry_tracking')
-        if tracking:
-            # Keep the public table compact; full episode history stays in the ledger.
+        if tracking and row.get('rank'):
+            # Only ranked rows need historical entry details in the list payload.
+            # Full episode history remains in the report and durable watch ledger.
             active = [r for r in tracking['records'] if r['state']=='active']
             latest = {}
             for record in sorted(active or tracking['records'],key=lambda r:r['trigger_date']):
