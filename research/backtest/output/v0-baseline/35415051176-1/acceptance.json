@@ -1,0 +1,15 @@
+{
+  "baseline_registry": "research/backtest/v0-baseline.json",
+  "cloud_account_and_identity_tests": 35,
+  "cloud_observation_tests": 22,
+  "cloud_result": "success",
+  "cloud_two_candidate_outputs_identical": true,
+  "human_report_sha256": "63ed983dc4738b3251f9a57e1c91463494a515aca7dab6a9673efdcf97e5a6fe",
+  "local_additional_tests_passed": 17,
+  "local_candidate_bytes_equal_cloud": true,
+  "local_optional_tests_skipped": 1,
+  "old_accounts_role": "historical_comparison_only",
+  "price_version": "sha256:c287c7b91604d5881e04e5929cf55b848550febd17603284b7d45eed96220a7a",
+  "receipt_content_sha256": "6fe1d04901b0615dd2c29cc9877493fdd4f1cd85eb1d074792c7f23e2ce7fc32",
+  "run": "35415051176-1"
+}

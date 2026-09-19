@@ -1,0 +1,14 @@
+{
+  "files": {
+    "candidates.json": "a1bb3fa39f07024538c79fa0c580bd2f4fb82de0ae57243e622f768bc0f134e2",
+    "comparison.csv": "3bc0abd63728b67055cd3edba7035f535c7a6f9c28456917a0aaa1fb34e5a09f",
+    "comparison.json": "fd18ad627819ffb8e2dfa8bc0cbd0cd43a900b0732889cb75889fc860abf4303",
+    "daily-ledger.html": "9857ad50cbb4a72b4940f2df352e86c2dc5e104d312c89f0cda942394c08b981",
+    "price-manifest.json": "9d7b511095a31b1323ff62d02bfeab4f8a0ad727d0f6e62125cffdb61b56aabe",
+    "receipt.json": "d7eee2100ce83e418d81890cb315163847821cb82b8c3c62814a2b0cb402ac27",
+    "report.html": "045ee41db1bc7ef7dad2b533b70e248844b1851a03dffb91c94218919d9f6ec1",
+    "trades.csv": "b563580551fb857f277a1c4593b66291fd65b99fbac0cdecdfb124948a940bfe"
+  },
+  "price_version": "sha256:c287c7b91604d5881e04e5929cf55b848550febd17603284b7d45eed96220a7a",
+  "run": "35415051176-1"
+}

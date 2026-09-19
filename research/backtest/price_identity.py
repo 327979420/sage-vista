@@ -51,6 +51,8 @@ def validate_baseline_receipt(receipt):
     if contract['account']['payload'] != receipt.get('portfolio_ledger'):
         raise ValueError('price_contract_wrong_account')
     events = {e['event_id']: e for e in contract['signal']['payload']}
+    if len(events) != len(contract['signal']['payload']):
+        raise ValueError('price_contract_duplicate_signal')
     supports = contract['support']['payload']
     for trade in receipt.get('trades', []):
         event = events.get(trade['event_id'], {})

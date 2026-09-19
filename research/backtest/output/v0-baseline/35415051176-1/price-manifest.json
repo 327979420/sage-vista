@@ -1,0 +1,147 @@
+{
+  "basis": "normalized_adjusted_OHLCV",
+  "files": {
+    "ANF": {
+      "first": "2000-01-03",
+      "last": "2026-09-11",
+      "normalized_sha256": "78f7546be95fa96dbe3db128803c9a600ace7d3758d9041183f7076eefa6f826",
+      "raw_sha256": "cd1d3d57191bc0c2808dd9db5d26a761436428eea5721337e6ca4e21c262074e",
+      "rows": 6713
+    },
+    "AR": {
+      "first": "2013-10-10",
+      "last": "2026-09-11",
+      "normalized_sha256": "da5ab2443393f814ad377dc727e3672eaea70d02012fb801af3054220773f403",
+      "raw_sha256": "f4fb1690aa4e1adfdf6cb44180b65a83fffe25893b2becd38da0f34f2f2a5385",
+      "rows": 3249
+    },
+    "BMRN": {
+      "first": "2000-01-03",
+      "last": "2026-09-11",
+      "normalized_sha256": "3daade44ff4efc30e4596bc1bcb7939a494d368639efdc3738db56527c521c22",
+      "raw_sha256": "b009357a0ba703765bebc7f26f79ca9be7956e586174545add26a080158f8ff5",
+      "rows": 6713
+    },
+    "CNC": {
+      "first": "2001-12-13",
+      "last": "2026-09-11",
+      "normalized_sha256": "4c36eef38f3e53333fcb77076a2c31d2e48104b385e264898df523627407bd44",
+      "raw_sha256": "c7c723a8dacefaf22ad2fcc14274ff79fcd2379e09426210981b6b4596b50ea6",
+      "rows": 6225
+    },
+    "COO": {
+      "first": "2000-01-03",
+      "last": "2026-09-11",
+      "normalized_sha256": "b85022151e0415f266d37123530a35fb67913aeca2a14627617e55f96afd72bd",
+      "raw_sha256": "ea927276dfc678c402baa2aeea9341c69703bb6225ef708ed9b1894230160d2e",
+      "rows": 6713
+    },
+    "DNLI": {
+      "first": "2017-12-08",
+      "last": "2026-09-11",
+      "normalized_sha256": "102df992fbfc3c97af8f8adc564042dd3b68ec3f8e5a6dc85f35e1b364fa3c76",
+      "raw_sha256": "d4705a057949387ab56cffb80d36e3f672e6f2b231cae97a316b14b40c29aa44",
+      "rows": 2200
+    },
+    "DOC": {
+      "first": "2000-01-03",
+      "last": "2026-09-11",
+      "normalized_sha256": "7f3118bd3d768b3b53977f56fadd7e6e7b973dcd06605a652e166954543252ea",
+      "raw_sha256": "0127777783fa8397f8ead8312f99f7a2572bf954c640c283514a0f3fed9d4672",
+      "rows": 6713
+    },
+    "ELV": {
+      "first": "2000-01-03",
+      "last": "2026-09-11",
+      "normalized_sha256": "2c0d6cc120d8029ea22cec646873b590df4bc578ad07b9ecfdda110e4fa578d3",
+      "raw_sha256": "dcf308ae9a89b9ad705c5d0fddd7ad1eb3c6775f04ce05c910456727d1084956",
+      "rows": 6713
+    },
+    "GKOS": {
+      "first": "2015-06-25",
+      "last": "2026-09-11",
+      "normalized_sha256": "ca7346dc92182499ff4983be2e7388c4597b27bd3b7b841dccd0c773ca59f712",
+      "raw_sha256": "5c5c39e866236f4b5e136d82f8722245ec804cdead6840f3acad7db61c80a57a",
+      "rows": 2820
+    },
+    "MRNA": {
+      "first": "2018-12-07",
+      "last": "2026-09-11",
+      "normalized_sha256": "80a24be28ddfd00752865883e06e8ca6bfb35f6d878f93809a0d44716118757a",
+      "raw_sha256": "4cd83417559ea08f8de8abd9025e7805b6c61c87e9d96d625daccc967b81fb67",
+      "rows": 1950
+    },
+    "MXL": {
+      "first": "2010-03-24",
+      "last": "2026-09-11",
+      "normalized_sha256": "d84eb0e5dcb11c72fd1fb12b71030856aa56d39229c699a332ac5214f6f1f7b9",
+      "raw_sha256": "633a0dc65413b7d30eab5f43ce405f59d9b3c8a92f5dd4650de56572456bd9b9",
+      "rows": 4143
+    },
+    "NVAX": {
+      "first": "2000-01-03",
+      "last": "2026-09-11",
+      "normalized_sha256": "88c26ef9044b5591bf6133ceddb7d77f990329ecbacd4a31733125897ea36cc7",
+      "raw_sha256": "fc7acbc7b4be9b482e303017038a6cdf8c9adb48c595a72238e39071e561a384",
+      "rows": 6713
+    },
+    "PNFP": {
+      "first": "2000-08-21",
+      "last": "2026-09-11",
+      "normalized_sha256": "e0659ea6677ff6ce82249dd7e2d98a51ff71e347d0f02978dbcd63c5089b3169",
+      "raw_sha256": "73455b15dedd468303469a09b7c1bccc89e9dd361828d216c7d798403e962afd",
+      "rows": 6349
+    },
+    "REGN": {
+      "first": "2000-01-03",
+      "last": "2026-09-11",
+      "normalized_sha256": "fc2d105543e411dac9a097e4108939552a25603d507d87163a8b898f814b43dd",
+      "raw_sha256": "f56f185d09a0a47c93e165952934ada446d41fbc300fdff65eab14a368da78c8",
+      "rows": 6713
+    },
+    "SBUX": {
+      "first": "2000-01-03",
+      "last": "2026-09-11",
+      "normalized_sha256": "332919dc4090db1bf02bc1adc4f7267cda2efbe0b2d14b769aaa273d77939bf1",
+      "raw_sha256": "74b6a6f74d984c7454cd0fafc68fb1153e102807701a0ec7ccadba3a4eb495d1",
+      "rows": 6713
+    },
+    "SGML": {
+      "first": "2018-07-03",
+      "last": "2026-09-11",
+      "normalized_sha256": "2c22b9b455c95ecb83fc9b94630a38a50f185a2df72771e2b42bba6b51f54a2b",
+      "raw_sha256": "3d928d1093fdba9a64f1f2f582288856aec4c06dd23700776519ada00e163b3d",
+      "rows": 2059
+    },
+    "SPY": {
+      "first": "2000-01-03",
+      "last": "2026-09-11",
+      "normalized_sha256": "46af9afdb3216564baad5900edc1b3e48d3a9bce9332697ad6a86156a87b4215",
+      "raw_sha256": "08dd22415cc75167a259cf617112ac214df4d84956279545f4cca6541f1de8fb",
+      "rows": 6713
+    },
+    "VCEL": {
+      "first": "2000-01-03",
+      "last": "2026-09-11",
+      "normalized_sha256": "de6b1a46120ce7596ee4016c3becd7c6312f89fe95c2a942c2b39067a0bee5e6",
+      "raw_sha256": "a9663b36779c5c254792b83de6b3c64d6720cf1338bdfce0d07e536814aec479",
+      "rows": 6713
+    },
+    "WEX": {
+      "first": "2005-02-16",
+      "last": "2026-09-11",
+      "normalized_sha256": "2ba31fc89f890e2d22aef91fb3a3e8acc2ef0ad0da55bec2b934f4a4337c5d6d",
+      "raw_sha256": "114becdf187a5de326b243d1e290f4adf72fd81be7f4f3acf436f3cfcc4b8c80",
+      "rows": 5426
+    }
+  },
+  "price_version": "sha256:c287c7b91604d5881e04e5929cf55b848550febd17603284b7d45eed96220a7a",
+  "schema": "price-world-v1",
+  "source": {
+    "account_run": "35064720576-1",
+    "audit_run": "35067648499-1",
+    "cache_key": "observation-history-v1-34766761296-1",
+    "historical_as_published_vintage_proven": false,
+    "scope": "18_account_symbols_plus_SPY"
+  }
+}

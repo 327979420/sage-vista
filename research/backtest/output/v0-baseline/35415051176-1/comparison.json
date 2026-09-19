@@ -1,0 +1,4155 @@
+[
+  {
+    "new_eligibility": true,
+    "new_rank": 1,
+    "new_score": 46.3542,
+    "new_signal_date": "2026-02-05",
+    "new_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 2.452,
+          "level": 96.7278,
+          "source": "EMA200"
+        },
+        {
+          "distance_pct": 6.904,
+          "level": 92.7,
+          "source": "prior-20D-low"
+        },
+        {
+          "distance_pct": 6.904,
+          "level": 92.7,
+          "source": "confirmed-swing-low"
+        }
+      ],
+      "level": 96.7278,
+      "max_loss_pct": 10,
+      "signal_close": 99.1,
+      "source": "EMA200",
+      "structural_stop": 91.8914,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 5.181,
+        "hit": false,
+        "level": 94.218542,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.081104,
+        "pulled_back": true
+      }
+    },
+    "new_trade": {
+      "entry_date": "2026-02-06",
+      "entry_fees": 9.999,
+      "entry_price": 99.0,
+      "event_id": "CR056-ANF-2026-02-05",
+      "execution": {
+        "entry": 99.0,
+        "executable": true,
+        "exit_date": "2026-02-09",
+        "exit_price": 91.89141,
+        "exit_reason": "stop",
+        "holding_sessions": 2,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 89.1,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "r_multiple": -1.0,
+        "return": -0.07180394,
+        "risk_pct": 0.07180394,
+        "status": "resolved",
+        "stop": 91.89141,
+        "stop_source": "EMA200",
+        "structural_stop": 91.89141,
+        "support_level": 96.7278,
+        "support_source": "EMA200",
+        "target": 113.21718,
+        "target_r": 2.0
+      },
+      "exit_fees": 9.28103241,
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "net_pnl": -737.2476224100002,
+      "net_return": -0.07373213545454547,
+      "quantity": 101.0,
+      "rank": 1,
+      "signal_date": "2026-02-05",
+      "signal_snapshot": {
+        "as_of": "2026-02-05",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:ebe5da6ce361d6c11b29039ed5af97444f01667dd9696a2acaeba3ec19410721",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 2.452,
+                "level": 96.7278,
+                "source": "EMA200"
+              },
+              {
+                "distance_pct": 6.904,
+                "level": 92.7,
+                "source": "prior-20D-low"
+              },
+              {
+                "distance_pct": 6.904,
+                "level": 92.7,
+                "source": "confirmed-swing-low"
+              }
+            ],
+            "level": 96.7278,
+            "max_loss_pct": 10,
+            "signal_close": 99.1,
+            "source": "EMA200",
+            "structural_stop": 91.8914,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 5.181,
+              "hit": false,
+              "level": 94.218542,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.081104,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 46.3542,
+          "timeframe_scores": {
+            "daily": 25.0,
+            "monthly_completed": 56.25,
+            "weekly_completed": 42.1875
+          }
+        }
+      },
+      "signal_snapshot_sha256": "b0d8b45cf252238dc407260936fd71690aabc69562d02534edf31b0b91da80d5",
+      "status": "closed",
+      "symbol": "ANF"
+    },
+    "old_eligibility": true,
+    "old_rank": 1,
+    "old_score": 46.3542,
+    "old_signal_date": "2026-02-05",
+    "old_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 2.452,
+          "level": 96.7278,
+          "source": "EMA200"
+        },
+        {
+          "distance_pct": 6.904,
+          "level": 92.7,
+          "source": "prior-20D-low"
+        },
+        {
+          "distance_pct": 6.904,
+          "level": 92.7,
+          "source": "confirmed-swing-low"
+        }
+      ],
+      "level": 96.7278,
+      "max_loss_pct": 10,
+      "signal_close": 99.1,
+      "source": "EMA200",
+      "structural_stop": 91.8914,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 5.181,
+        "hit": false,
+        "level": 94.218542,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.081104,
+        "pulled_back": true
+      }
+    },
+    "old_trade": {
+      "entry_date": "2026-02-06",
+      "entry_fees": 9.999,
+      "entry_price": 99.0,
+      "event_id": "CR056-ANF-2026-02-05",
+      "execution": {
+        "entry": 99.0,
+        "executable": true,
+        "exit_date": "2026-02-09",
+        "exit_price": 91.89141,
+        "exit_reason": "stop",
+        "holding_sessions": 2,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 89.1,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "r_multiple": -1.0,
+        "return": -0.07180394,
+        "risk_pct": 0.07180394,
+        "status": "resolved",
+        "stop": 91.89141,
+        "stop_source": "EMA200",
+        "structural_stop": 91.89141,
+        "support_level": 96.7278,
+        "support_source": "EMA200",
+        "target": 113.21718,
+        "target_r": 2.0
+      },
+      "exit_fees": 9.28103241,
+      "net_pnl": -737.2476224100002,
+      "net_return": -0.07373213545454547,
+      "quantity": 101.0,
+      "rank": 1,
+      "signal_date": "2026-02-05",
+      "status": "closed",
+      "symbol": "ANF"
+    },
+    "ticker": "ANF",
+    "trade_changed_vs_mixed": false
+  },
+  {
+    "new_eligibility": true,
+    "new_rank": 3,
+    "new_score": 22.3958,
+    "new_signal_date": "2026-02-11",
+    "new_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 2.782,
+          "level": 34.1597,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 2.862,
+          "level": 34.1329,
+          "source": "EMA200"
+        },
+        {
+          "distance_pct": 3.178,
+          "level": 34.0285,
+          "source": "EMA50"
+        },
+        {
+          "distance_pct": 5.913,
+          "level": 33.15,
+          "source": "confirmed-swing-low"
+        },
+        {
+          "distance_pct": 12.713,
+          "level": 31.15,
+          "source": "prior-20D-low"
+        }
+      ],
+      "level": 34.1597,
+      "max_loss_pct": 10,
+      "signal_close": 35.11,
+      "source": "EMA21",
+      "structural_stop": 32.4517,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 8.0945,
+        "hit": false,
+        "level": 32.480833,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.080129,
+        "pulled_back": true
+      }
+    },
+    "new_trade": {
+      "entry_date": "2026-02-12",
+      "entry_fees": 9.997160000000001,
+      "entry_price": 34.12,
+      "event_id": "CR056-AR-2026-02-11",
+      "execution": {
+        "entry": 34.12,
+        "executable": true,
+        "holding_sessions": 11,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 30.708,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.04889464,
+        "status": "observing",
+        "stop": 32.451715,
+        "stop_source": "EMA21",
+        "structural_stop": 32.451715,
+        "support_level": 34.1597,
+        "support_source": "EMA21",
+        "target": 37.45657,
+        "target_r": 2.0
+      },
+      "exit_fees": 0.0,
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "net_pnl": 778.1728400000001,
+      "net_return": 0.07783939038686988,
+      "quantity": 293.0,
+      "rank": 3,
+      "signal_date": "2026-02-11",
+      "signal_snapshot": {
+        "as_of": "2026-02-11",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 3,
+          "reasons": [],
+          "score_fingerprint": "sha256:4d1aecb14658cd7b0781dea268c27a1302d4f9007e9f9c30fb7d9ee1d16aa451",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 2.782,
+                "level": 34.1597,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 2.862,
+                "level": 34.1329,
+                "source": "EMA200"
+              },
+              {
+                "distance_pct": 3.178,
+                "level": 34.0285,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 5.913,
+                "level": 33.15,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 12.713,
+                "level": 31.15,
+                "source": "prior-20D-low"
+              }
+            ],
+            "level": 34.1597,
+            "max_loss_pct": 10,
+            "signal_close": 35.11,
+            "source": "EMA21",
+            "structural_stop": 32.4517,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 8.0945,
+              "hit": false,
+              "level": 32.480833,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.080129,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 22.3958,
+          "timeframe_scores": {
+            "daily": 31.25,
+            "monthly_completed": 18.75,
+            "weekly_completed": 23.4375
+          }
+        }
+      },
+      "signal_snapshot_sha256": "9f7941b1036ab42b6ea8816c059538ce66e87fb0265bb9f416c565a38ab51f9c",
+      "status": "open",
+      "symbol": "AR"
+    },
+    "old_eligibility": true,
+    "old_rank": 3,
+    "old_score": 22.3958,
+    "old_signal_date": "2026-02-11",
+    "old_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 2.782,
+          "level": 34.1597,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 2.862,
+          "level": 34.1329,
+          "source": "EMA200"
+        },
+        {
+          "distance_pct": 3.178,
+          "level": 34.0285,
+          "source": "EMA50"
+        },
+        {
+          "distance_pct": 5.913,
+          "level": 33.15,
+          "source": "confirmed-swing-low"
+        },
+        {
+          "distance_pct": 12.713,
+          "level": 31.15,
+          "source": "prior-20D-low"
+        }
+      ],
+      "level": 34.1597,
+      "max_loss_pct": 10,
+      "signal_close": 35.11,
+      "source": "EMA21",
+      "structural_stop": 32.4517,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 8.0945,
+        "hit": false,
+        "level": 32.480833,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.080129,
+        "pulled_back": true
+      }
+    },
+    "old_trade": {
+      "entry_date": "2026-02-12",
+      "entry_fees": 9.997160000000001,
+      "entry_price": 34.12,
+      "event_id": "CR056-AR-2026-02-11",
+      "execution": {
+        "entry": 34.12,
+        "executable": true,
+        "holding_sessions": 11,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 30.708,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.04889464,
+        "status": "observing",
+        "stop": 32.451715,
+        "stop_source": "EMA21",
+        "structural_stop": 32.451715,
+        "support_level": 34.1597,
+        "support_source": "EMA21",
+        "target": 37.45657,
+        "target_r": 2.0
+      },
+      "exit_fees": 0.0,
+      "net_pnl": 778.1728400000001,
+      "net_return": 0.07783939038686988,
+      "quantity": 293.0,
+      "rank": 3,
+      "signal_date": "2026-02-11",
+      "status": "open",
+      "symbol": "AR"
+    },
+    "ticker": "AR",
+    "trade_changed_vs_mixed": false
+  },
+  {
+    "new_eligibility": true,
+    "new_rank": 2,
+    "new_score": 33.3333,
+    "new_signal_date": "2026-02-03",
+    "new_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 0.965,
+          "level": 57.0594,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 1.926,
+          "level": 56.5212,
+          "source": "EMA50"
+        },
+        {
+          "distance_pct": 4.215,
+          "level": 55.28,
+          "source": "confirmed-swing-low"
+        },
+        {
+          "distance_pct": 6.547,
+          "level": 54.07,
+          "source": "prior-20D-low"
+        }
+      ],
+      "level": 57.0594,
+      "max_loss_pct": 10,
+      "signal_close": 57.61,
+      "source": "EMA21",
+      "structural_stop": 54.2064,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 4.0674,
+        "hit": false,
+        "level": 55.358333,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.089602,
+        "pulled_back": true
+      }
+    },
+    "new_trade": {
+      "entry_date": "2026-02-04",
+      "entry_fees": 9.948480000000002,
+      "entry_price": 57.84,
+      "event_id": "CR056-BMRN-2026-02-03",
+      "execution": {
+        "entry": 57.84,
+        "executable": true,
+        "exit_date": "2026-02-23",
+        "exit_price": 65.10714,
+        "exit_reason": "target",
+        "holding_sessions": 13,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 52.056,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "r_multiple": 2.0,
+        "return": 0.12564212,
+        "risk_pct": 0.06282106,
+        "status": "resolved",
+        "stop": 54.20643,
+        "stop_source": "EMA21",
+        "structural_stop": 54.20643,
+        "support_level": 57.0594,
+        "support_source": "EMA21",
+        "target": 65.10714,
+        "target_r": 2.0
+      },
+      "exit_fees": 11.19842808,
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "net_pnl": 1228.8011719199983,
+      "net_return": 0.12351647406638985,
+      "quantity": 172.0,
+      "rank": 2,
+      "signal_date": "2026-02-03",
+      "signal_snapshot": {
+        "as_of": "2026-02-03",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 2,
+          "reasons": [],
+          "score_fingerprint": "sha256:6561f9c2b07d48a851bf3e299072d7f693d1628471a242bd6ad7ffd7f7ff81f4",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 0.965,
+                "level": 57.0594,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 1.926,
+                "level": 56.5212,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 4.215,
+                "level": 55.28,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 6.547,
+                "level": 54.07,
+                "source": "prior-20D-low"
+              }
+            ],
+            "level": 57.0594,
+            "max_loss_pct": 10,
+            "signal_close": 57.61,
+            "source": "EMA21",
+            "structural_stop": 54.2064,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 4.0674,
+              "hit": false,
+              "level": 55.358333,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.089602,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 33.3333,
+          "timeframe_scores": {
+            "daily": 68.75,
+            "monthly_completed": 25.0,
+            "weekly_completed": 28.125
+          }
+        }
+      },
+      "signal_snapshot_sha256": "e2e1794c278d4fd7bc0b5b01f69ed1e27d454b268a694cee671d36c72db75c82",
+      "status": "closed",
+      "symbol": "BMRN"
+    },
+    "old_eligibility": true,
+    "old_rank": 2,
+    "old_score": 30.2083,
+    "old_signal_date": "2026-02-03",
+    "old_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 0.965,
+          "level": 57.0594,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 1.926,
+          "level": 56.5212,
+          "source": "EMA50"
+        },
+        {
+          "distance_pct": 4.215,
+          "level": 55.28,
+          "source": "confirmed-swing-low"
+        },
+        {
+          "distance_pct": 6.547,
+          "level": 54.07,
+          "source": "prior-20D-low"
+        }
+      ],
+      "level": 57.0594,
+      "max_loss_pct": 10,
+      "signal_close": 57.61,
+      "source": "EMA21",
+      "structural_stop": 54.2064,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 4.0674,
+        "hit": false,
+        "level": 55.358333,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.089602,
+        "pulled_back": true
+      }
+    },
+    "old_trade": {
+      "entry_date": "2026-02-04",
+      "entry_fees": 9.948480000000002,
+      "entry_price": 57.84,
+      "event_id": "CR056-BMRN-2026-02-03",
+      "execution": {
+        "entry": 57.84,
+        "executable": true,
+        "exit_date": "2026-02-23",
+        "exit_price": 65.10714,
+        "exit_reason": "target",
+        "holding_sessions": 13,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 52.056,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "r_multiple": 2.0,
+        "return": 0.12564212,
+        "risk_pct": 0.06282106,
+        "status": "resolved",
+        "stop": 54.20643,
+        "stop_source": "EMA21",
+        "structural_stop": 54.20643,
+        "support_level": 57.0594,
+        "support_source": "EMA21",
+        "target": 65.10714,
+        "target_r": 2.0
+      },
+      "exit_fees": 11.19842808,
+      "net_pnl": 1228.8011719199983,
+      "net_return": 0.12351647406638985,
+      "quantity": 172.0,
+      "rank": 2,
+      "signal_date": "2026-02-03",
+      "status": "closed",
+      "symbol": "BMRN"
+    },
+    "ticker": "BMRN",
+    "trade_changed_vs_mixed": false
+  },
+  {
+    "new_eligibility": true,
+    "new_rank": 3,
+    "new_score": 28.125,
+    "new_signal_date": "2026-02-19",
+    "new_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 2.319,
+          "level": 42.6898,
+          "source": "EMA200"
+        },
+        {
+          "distance_pct": 4.387,
+          "level": 41.8441,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 5.339,
+          "level": 41.4661,
+          "source": "EMA50"
+        },
+        {
+          "distance_pct": 12.432,
+          "level": 38.85,
+          "source": "confirmed-swing-low"
+        },
+        {
+          "distance_pct": 21.131,
+          "level": 36.06,
+          "source": "prior-20D-low"
+        }
+      ],
+      "level": 42.6898,
+      "max_loss_pct": 10,
+      "signal_close": 43.68,
+      "source": "EMA200",
+      "structural_stop": 40.5553,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 23.5085,
+        "hit": false,
+        "level": 35.366,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.088986,
+        "pulled_back": true
+      }
+    },
+    "new_trade": {
+      "entry_date": "2026-02-20",
+      "entry_price": 43.33,
+      "event_id": "CR056-CNC-2026-02-19",
+      "execution": {
+        "entry": 43.33,
+        "executable": true,
+        "holding_sessions": 6,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 38.997,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.06403623,
+        "status": "observing",
+        "stop": 40.55531,
+        "stop_source": "EMA200",
+        "structural_stop": 40.55531,
+        "support_level": 42.6898,
+        "support_source": "EMA200",
+        "target": 48.87938,
+        "target_r": 2.0
+      },
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "rank": 3,
+      "reason": "position_limit",
+      "signal_date": "2026-02-19",
+      "signal_snapshot": {
+        "as_of": "2026-02-19",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 3,
+          "reasons": [],
+          "score_fingerprint": "sha256:752c8a778daca1fbd4429459b6971cfa7b39868a7f3b6fe2c63ecb1676171b86",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 2.319,
+                "level": 42.6898,
+                "source": "EMA200"
+              },
+              {
+                "distance_pct": 4.387,
+                "level": 41.8441,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 5.339,
+                "level": 41.4661,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 12.432,
+                "level": 38.85,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 21.131,
+                "level": 36.06,
+                "source": "prior-20D-low"
+              }
+            ],
+            "level": 42.6898,
+            "max_loss_pct": 10,
+            "signal_close": 43.68,
+            "source": "EMA200",
+            "structural_stop": 40.5553,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 23.5085,
+              "hit": false,
+              "level": 35.366,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.088986,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 28.125,
+          "timeframe_scores": {
+            "daily": 37.5,
+            "monthly_completed": 31.25,
+            "weekly_completed": 18.75
+          }
+        }
+      },
+      "signal_snapshot_sha256": "9cb0ab6553199c1ae1200fbd61ec6318a8a8a26c2f7327cd1c55876c51cb5fde",
+      "status": "skipped",
+      "symbol": "CNC"
+    },
+    "old_eligibility": true,
+    "old_rank": 3,
+    "old_score": 21.875,
+    "old_signal_date": "2026-02-19",
+    "old_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 2.319,
+          "level": 42.6898,
+          "source": "EMA200"
+        },
+        {
+          "distance_pct": 4.387,
+          "level": 41.8441,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 5.339,
+          "level": 41.4661,
+          "source": "EMA50"
+        },
+        {
+          "distance_pct": 12.432,
+          "level": 38.85,
+          "source": "confirmed-swing-low"
+        },
+        {
+          "distance_pct": 21.131,
+          "level": 36.06,
+          "source": "prior-20D-low"
+        }
+      ],
+      "level": 42.6898,
+      "max_loss_pct": 10,
+      "signal_close": 43.68,
+      "source": "EMA200",
+      "structural_stop": 40.5553,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 23.5085,
+        "hit": false,
+        "level": 35.366,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.088986,
+        "pulled_back": true
+      }
+    },
+    "old_trade": {
+      "entry_date": "2026-02-20",
+      "entry_price": 43.33,
+      "event_id": "CR056-CNC-2026-02-19",
+      "execution": {
+        "entry": 43.33,
+        "executable": true,
+        "holding_sessions": 6,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 38.997,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.06403623,
+        "status": "observing",
+        "stop": 40.55531,
+        "stop_source": "EMA200",
+        "structural_stop": 40.55531,
+        "support_level": 42.6898,
+        "support_source": "EMA200",
+        "target": 48.87938,
+        "target_r": 2.0
+      },
+      "rank": 3,
+      "reason": "position_limit",
+      "signal_date": "2026-02-19",
+      "status": "skipped",
+      "symbol": "CNC"
+    },
+    "ticker": "CNC",
+    "trade_changed_vs_mixed": false
+  },
+  {
+    "new_eligibility": true,
+    "new_rank": 1,
+    "new_score": 40.625,
+    "new_signal_date": "2026-02-11",
+    "new_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 2.004,
+          "level": 81.4185,
+          "source": "volume-profile-poc"
+        },
+        {
+          "distance_pct": 2.01,
+          "level": 81.4134,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 3.5,
+          "level": 80.2417,
+          "source": "EMA50"
+        },
+        {
+          "distance_pct": 5.407,
+          "level": 78.79,
+          "source": "prior-20D-low"
+        },
+        {
+          "distance_pct": 5.407,
+          "level": 78.79,
+          "source": "confirmed-swing-low"
+        },
+        {
+          "distance_pct": 6.127,
+          "level": 78.2556,
+          "source": "EMA200"
+        }
+      ],
+      "level": 81.4185,
+      "max_loss_pct": 10,
+      "signal_close": 83.05,
+      "source": "volume-profile-poc",
+      "structural_stop": 77.3476,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 2.0038,
+        "hit": true,
+        "level": 81.4185,
+        "lookback_sessions": 250,
+        "near_price": true,
+        "peak_share": 0.064166,
+        "pulled_back": true
+      }
+    },
+    "new_trade": {
+      "entry_date": "2026-02-12",
+      "entry_fees": 9.9888,
+      "entry_price": 83.24,
+      "event_id": "CR056-COO-2026-02-11",
+      "execution": {
+        "entry": 83.24,
+        "executable": true,
+        "holding_sessions": 11,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 74.916,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.07078838,
+        "status": "observing",
+        "stop": 77.347575,
+        "stop_source": "volume-profile-poc",
+        "structural_stop": 77.347575,
+        "support_level": 81.4185,
+        "support_source": "volume-profile-poc",
+        "target": 95.02485,
+        "target_r": 2.0
+      },
+      "exit_fees": 0.0,
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "net_pnl": 41.611200000000366,
+      "net_return": 0.004165785679961594,
+      "quantity": 120.0,
+      "rank": 1,
+      "signal_date": "2026-02-11",
+      "signal_snapshot": {
+        "as_of": "2026-02-11",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:222840c0a2eb44cdc8b83c267a8d064892f6c2172c0c48da69f614dc53d55c13",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 2.004,
+                "level": 81.4185,
+                "source": "volume-profile-poc"
+              },
+              {
+                "distance_pct": 2.01,
+                "level": 81.4134,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 3.5,
+                "level": 80.2417,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 5.407,
+                "level": 78.79,
+                "source": "prior-20D-low"
+              },
+              {
+                "distance_pct": 5.407,
+                "level": 78.79,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 6.127,
+                "level": 78.2556,
+                "source": "EMA200"
+              }
+            ],
+            "level": 81.4185,
+            "max_loss_pct": 10,
+            "signal_close": 83.05,
+            "source": "volume-profile-poc",
+            "structural_stop": 77.3476,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 2.0038,
+              "hit": true,
+              "level": 81.4185,
+              "lookback_sessions": 250,
+              "near_price": true,
+              "peak_share": 0.064166,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 40.625,
+          "timeframe_scores": {
+            "daily": 56.25,
+            "monthly_completed": 43.75,
+            "weekly_completed": 28.125
+          }
+        }
+      },
+      "signal_snapshot_sha256": "5fa159bc7d6f34468c5744eab40029191816736d4f6cf68f564a57b530012ace",
+      "status": "open",
+      "symbol": "COO"
+    },
+    "old_eligibility": true,
+    "old_rank": 1,
+    "old_score": 40.625,
+    "old_signal_date": "2026-02-11",
+    "old_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 2.004,
+          "level": 81.4185,
+          "source": "volume-profile-poc"
+        },
+        {
+          "distance_pct": 2.01,
+          "level": 81.4134,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 3.5,
+          "level": 80.2417,
+          "source": "EMA50"
+        },
+        {
+          "distance_pct": 5.407,
+          "level": 78.79,
+          "source": "prior-20D-low"
+        },
+        {
+          "distance_pct": 5.407,
+          "level": 78.79,
+          "source": "confirmed-swing-low"
+        },
+        {
+          "distance_pct": 6.127,
+          "level": 78.2556,
+          "source": "EMA200"
+        }
+      ],
+      "level": 81.4185,
+      "max_loss_pct": 10,
+      "signal_close": 83.05,
+      "source": "volume-profile-poc",
+      "structural_stop": 77.3476,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 2.0038,
+        "hit": true,
+        "level": 81.4185,
+        "lookback_sessions": 250,
+        "near_price": true,
+        "peak_share": 0.064166,
+        "pulled_back": true
+      }
+    },
+    "old_trade": {
+      "entry_date": "2026-02-12",
+      "entry_fees": 9.9888,
+      "entry_price": 83.24,
+      "event_id": "CR056-COO-2026-02-11",
+      "execution": {
+        "entry": 83.24,
+        "executable": true,
+        "holding_sessions": 11,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 74.916,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.07078838,
+        "status": "observing",
+        "stop": 77.347575,
+        "stop_source": "volume-profile-poc",
+        "structural_stop": 77.347575,
+        "support_level": 81.4185,
+        "support_source": "volume-profile-poc",
+        "target": 95.02485,
+        "target_r": 2.0
+      },
+      "exit_fees": 0.0,
+      "net_pnl": 41.611200000000366,
+      "net_return": 0.004165785679961594,
+      "quantity": 120.0,
+      "rank": 1,
+      "signal_date": "2026-02-11",
+      "status": "open",
+      "symbol": "COO"
+    },
+    "ticker": "COO",
+    "trade_changed_vs_mixed": false
+  },
+  {
+    "new_eligibility": true,
+    "new_rank": 1,
+    "new_score": 35.4167,
+    "new_signal_date": "2026-02-25",
+    "new_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 9.946,
+          "level": 20.2736,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 19.774,
+          "level": 18.61,
+          "source": "prior-20D-low"
+        },
+        {
+          "distance_pct": 19.774,
+          "level": 18.61,
+          "source": "confirmed-swing-low"
+        }
+      ],
+      "level": 20.2736,
+      "max_loss_pct": 10,
+      "signal_close": 22.29,
+      "source": "EMA21",
+      "structural_stop": 19.2599,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 56.7589,
+        "hit": false,
+        "level": 14.219292,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.089835,
+        "pulled_back": true
+      }
+    },
+    "new_trade": {
+      "entry_date": "2026-02-26",
+      "entry_fees": 9.99,
+      "entry_price": 22.2,
+      "event_id": "CR056-DNLI-2026-02-25",
+      "execution": {
+        "entry": 22.2,
+        "executable": true,
+        "holding_sessions": 2,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 19.98,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.1,
+        "status": "observing",
+        "stop": 19.98,
+        "stop_source": "max-loss-10pct-cap",
+        "structural_stop": 19.25992,
+        "support_level": 20.2736,
+        "support_source": "EMA21",
+        "target": 26.64,
+        "target_r": 2.0
+      },
+      "exit_fees": 0.0,
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "net_pnl": -468.99,
+      "net_return": -0.04694594594594595,
+      "quantity": 450.0,
+      "rank": 1,
+      "signal_date": "2026-02-25",
+      "signal_snapshot": {
+        "as_of": "2026-02-25",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:8fdaf1d8e8a9b94881c09798318bb4f68ba330f7c2dc333681c100140a478ccb",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 9.946,
+                "level": 20.2736,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 19.774,
+                "level": 18.61,
+                "source": "prior-20D-low"
+              },
+              {
+                "distance_pct": 19.774,
+                "level": 18.61,
+                "source": "confirmed-swing-low"
+              }
+            ],
+            "level": 20.2736,
+            "max_loss_pct": 10,
+            "signal_close": 22.29,
+            "source": "EMA21",
+            "structural_stop": 19.2599,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 56.7589,
+              "hit": false,
+              "level": 14.219292,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.089835,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 35.4167,
+          "timeframe_scores": {
+            "daily": 25.0,
+            "monthly_completed": 43.75,
+            "weekly_completed": 28.125
+          }
+        }
+      },
+      "signal_snapshot_sha256": "f6c31b196405588006987ab9f2c637688084fc00cc5058867852f8b7d8afaff2",
+      "status": "open",
+      "symbol": "DNLI"
+    },
+    "old_eligibility": true,
+    "old_rank": 1,
+    "old_score": 35.4167,
+    "old_signal_date": "2026-02-25",
+    "old_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 9.946,
+          "level": 20.2736,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 19.774,
+          "level": 18.61,
+          "source": "prior-20D-low"
+        },
+        {
+          "distance_pct": 19.774,
+          "level": 18.61,
+          "source": "confirmed-swing-low"
+        }
+      ],
+      "level": 20.2736,
+      "max_loss_pct": 10,
+      "signal_close": 22.29,
+      "source": "EMA21",
+      "structural_stop": 19.2599,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 56.7589,
+        "hit": false,
+        "level": 14.219292,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.089835,
+        "pulled_back": true
+      }
+    },
+    "old_trade": {
+      "entry_date": "2026-02-26",
+      "entry_fees": 9.99,
+      "entry_price": 22.2,
+      "event_id": "CR056-DNLI-2026-02-25",
+      "execution": {
+        "entry": 22.2,
+        "executable": true,
+        "holding_sessions": 2,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 19.98,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.1,
+        "status": "observing",
+        "stop": 19.98,
+        "stop_source": "max-loss-10pct-cap",
+        "structural_stop": 19.25992,
+        "support_level": 20.2736,
+        "support_source": "EMA21",
+        "target": 26.64,
+        "target_r": 2.0
+      },
+      "exit_fees": 0.0,
+      "net_pnl": -468.99,
+      "net_return": -0.04694594594594595,
+      "quantity": 450.0,
+      "rank": 1,
+      "signal_date": "2026-02-25",
+      "status": "open",
+      "symbol": "DNLI"
+    },
+    "ticker": "DNLI",
+    "trade_changed_vs_mixed": false
+  },
+  {
+    "new_eligibility": true,
+    "new_rank": 1,
+    "new_score": 44.7917,
+    "new_signal_date": "2026-02-19",
+    "new_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 0.905,
+          "level": 16.3822,
+          "source": "EMA50"
+        },
+        {
+          "distance_pct": 0.942,
+          "level": 16.3762,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 6.039,
+          "level": 15.5891,
+          "source": "prior-20D-low"
+        },
+        {
+          "distance_pct": 6.039,
+          "level": 15.5891,
+          "source": "confirmed-swing-low"
+        }
+      ],
+      "level": 16.3822,
+      "max_loss_pct": 10,
+      "signal_close": 16.5305,
+      "source": "EMA50",
+      "structural_stop": 15.5631,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 4.2056,
+        "hit": false,
+        "level": 15.863353,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.073801,
+        "pulled_back": true
+      }
+    },
+    "new_trade": {
+      "entry_date": "2026-02-20",
+      "entry_price": 16.549806238964095,
+      "event_id": "CR056-DOC-2026-02-19",
+      "execution": {
+        "entry": 16.549806,
+        "executable": true,
+        "holding_sessions": 6,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 14.894826,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.05962101,
+        "status": "observing",
+        "stop": 15.56309,
+        "stop_source": "EMA50",
+        "structural_stop": 15.56309,
+        "support_level": 16.3822,
+        "support_source": "EMA50",
+        "target": 18.523239,
+        "target_r": 2.0
+      },
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "rank": 1,
+      "reason": "position_limit",
+      "signal_date": "2026-02-19",
+      "signal_snapshot": {
+        "as_of": "2026-02-19",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:6827aee8f812a61e6117dddad5188632acd2d6baaa3833f50fda6a691d1f4729",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 0.905,
+                "level": 16.3822,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 0.942,
+                "level": 16.3762,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 6.039,
+                "level": 15.5891,
+                "source": "prior-20D-low"
+              },
+              {
+                "distance_pct": 6.039,
+                "level": 15.5891,
+                "source": "confirmed-swing-low"
+              }
+            ],
+            "level": 16.3822,
+            "max_loss_pct": 10,
+            "signal_close": 16.5305,
+            "source": "EMA50",
+            "structural_stop": 15.5631,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 4.2056,
+              "hit": false,
+              "level": 15.863353,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.073801,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 44.7917,
+          "timeframe_scores": {
+            "daily": 62.5,
+            "monthly_completed": 56.25,
+            "weekly_completed": 18.75
+          }
+        }
+      },
+      "signal_snapshot_sha256": "ebb1cb1c7ec98e2246a09c42f2375856088006a0692f4a37e81cb3ba3e04082e",
+      "status": "skipped",
+      "symbol": "DOC"
+    },
+    "old_eligibility": true,
+    "old_rank": 1,
+    "old_score": 44.7917,
+    "old_signal_date": "2026-02-19",
+    "old_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 0.905,
+          "level": 16.3822,
+          "source": "EMA50"
+        },
+        {
+          "distance_pct": 0.942,
+          "level": 16.3762,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 6.039,
+          "level": 15.5891,
+          "source": "prior-20D-low"
+        },
+        {
+          "distance_pct": 6.039,
+          "level": 15.5891,
+          "source": "confirmed-swing-low"
+        }
+      ],
+      "level": 16.3822,
+      "max_loss_pct": 10,
+      "signal_close": 16.5305,
+      "source": "EMA50",
+      "structural_stop": 15.5631,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 4.2056,
+        "hit": false,
+        "level": 15.863353,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.073801,
+        "pulled_back": true
+      }
+    },
+    "old_trade": {
+      "entry_date": "2026-02-20",
+      "entry_price": 16.549806238964095,
+      "event_id": "CR056-DOC-2026-02-19",
+      "execution": {
+        "entry": 16.549806,
+        "executable": true,
+        "holding_sessions": 6,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 14.894826,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.05962101,
+        "status": "observing",
+        "stop": 15.56309,
+        "stop_source": "EMA50",
+        "structural_stop": 15.56309,
+        "support_level": 16.3822,
+        "support_source": "EMA50",
+        "target": 18.523239,
+        "target_r": 2.0
+      },
+      "rank": 1,
+      "reason": "position_limit",
+      "signal_date": "2026-02-19",
+      "status": "skipped",
+      "symbol": "DOC"
+    },
+    "ticker": "DOC",
+    "trade_changed_vs_mixed": false
+  },
+  {
+    "new_eligibility": true,
+    "new_rank": 2,
+    "new_score": 33.8542,
+    "new_signal_date": "2026-02-18",
+    "new_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 0.034,
+          "level": 341.1233,
+          "source": "EMA50"
+        },
+        {
+          "distance_pct": 0.52,
+          "level": 339.4743,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 7.096,
+          "level": 318.6303,
+          "source": "confirmed-swing-low"
+        },
+        {
+          "distance_pct": 9.757,
+          "level": 310.9035,
+          "source": "prior-20D-low"
+        }
+      ],
+      "level": 341.1233,
+      "max_loss_pct": 10,
+      "signal_close": 341.2389,
+      "source": "EMA50",
+      "structural_stop": 324.0671,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": -6.8158,
+        "hit": false,
+        "level": 366.198358,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.067444,
+        "pulled_back": true
+      }
+    },
+    "new_trade": {
+      "entry_date": "2026-02-19",
+      "entry_fees": 9.913649015009478,
+      "entry_price": 341.8499660348096,
+      "event_id": "CR056-ELV-2026-02-18",
+      "execution": {
+        "entry": 341.849966,
+        "executable": true,
+        "exit_date": "2026-02-24",
+        "exit_price": 324.067135,
+        "exit_reason": "stop",
+        "holding_sessions": 4,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 307.664969,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "r_multiple": -1.0,
+        "return": -0.0520194,
+        "risk_pct": 0.0520194,
+        "status": "resolved",
+        "stop": 324.067135,
+        "stop_source": "EMA50",
+        "structural_stop": 324.067135,
+        "support_level": 341.1233,
+        "support_source": "EMA50",
+        "target": 377.415628,
+        "target_r": 2.0
+      },
+      "exit_fees": 9.397946915,
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "net_pnl": -535.0136959394869,
+      "net_return": -0.0539673832641709,
+      "quantity": 29.0,
+      "rank": 2,
+      "signal_date": "2026-02-18",
+      "signal_snapshot": {
+        "as_of": "2026-02-18",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 2,
+          "reasons": [],
+          "score_fingerprint": "sha256:62872695b424df0b9cb779a7dd8db430a8c193afcf192109a29d1fe010e11a54",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 0.034,
+                "level": 341.1233,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 0.52,
+                "level": 339.4743,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 7.096,
+                "level": 318.6303,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 9.757,
+                "level": 310.9035,
+                "source": "prior-20D-low"
+              }
+            ],
+            "level": 341.1233,
+            "max_loss_pct": 10,
+            "signal_close": 341.2389,
+            "source": "EMA50",
+            "structural_stop": 324.0671,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": -6.8158,
+              "hit": false,
+              "level": 366.198358,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.067444,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 33.8542,
+          "timeframe_scores": {
+            "daily": 62.5,
+            "monthly_completed": 18.75,
+            "weekly_completed": 42.1875
+          }
+        }
+      },
+      "signal_snapshot_sha256": "ad5aab01df3e7f62af142130e80be8dd9a6d00ae92902411817e480b901eabca",
+      "status": "closed",
+      "symbol": "ELV"
+    },
+    "old_eligibility": true,
+    "old_rank": 2,
+    "old_score": 33.8542,
+    "old_signal_date": "2026-02-18",
+    "old_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 0.034,
+          "level": 342.608,
+          "source": "EMA50"
+        },
+        {
+          "distance_pct": 0.52,
+          "level": 340.9519,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 7.096,
+          "level": 320.0171,
+          "source": "confirmed-swing-low"
+        },
+        {
+          "distance_pct": 9.757,
+          "level": 312.2567,
+          "source": "prior-20D-low"
+        }
+      ],
+      "level": 342.608,
+      "max_loss_pct": 10,
+      "signal_close": 342.7242,
+      "source": "EMA50",
+      "structural_stop": 325.4776,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": -6.8158,
+        "hit": false,
+        "level": 367.792223,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.067474,
+        "pulled_back": true
+      }
+    },
+    "old_trade": {
+      "entry_date": "2026-02-19",
+      "entry_fees": 9.913649015009478,
+      "entry_price": 341.8499660348096,
+      "event_id": "CR056-ELV-2026-02-18",
+      "execution": {
+        "entry": 341.849966,
+        "executable": true,
+        "exit_date": "2026-02-24",
+        "exit_price": 325.4776,
+        "exit_reason": "stop",
+        "holding_sessions": 4,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 307.664969,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "r_multiple": -1.0,
+        "return": -0.04789343,
+        "risk_pct": 0.04789343,
+        "status": "resolved",
+        "stop": 325.4776,
+        "stop_source": "EMA50",
+        "structural_stop": 325.4776,
+        "support_level": 342.608,
+        "support_source": "EMA50",
+        "target": 374.594698,
+        "target_r": 2.0
+      },
+      "exit_fees": 9.4388504,
+      "net_pnl": -494.1511144244879,
+      "net_return": -0.04984553252554458,
+      "quantity": 29.0,
+      "rank": 2,
+      "signal_date": "2026-02-18",
+      "status": "closed",
+      "symbol": "ELV"
+    },
+    "ticker": "ELV",
+    "trade_changed_vs_mixed": true
+  },
+  {
+    "new_eligibility": true,
+    "new_rank": 1,
+    "new_score": 31.25,
+    "new_signal_date": "2026-02-20",
+    "new_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 4.64,
+          "level": 114.9367,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 7.139,
+          "level": 112.2565,
+          "source": "EMA50"
+        },
+        {
+          "distance_pct": 16.147,
+          "level": 103.55,
+          "source": "prior-20D-low"
+        },
+        {
+          "distance_pct": 16.147,
+          "level": 103.55,
+          "source": "confirmed-swing-low"
+        }
+      ],
+      "level": 114.9367,
+      "max_loss_pct": 10,
+      "signal_close": 120.27,
+      "source": "EMA21",
+      "structural_stop": 109.1899,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 33.8683,
+        "hit": false,
+        "level": 89.842,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.066488,
+        "pulled_back": true
+      }
+    },
+    "new_trade": {
+      "entry_date": "2026-02-23",
+      "entry_price": 119.12,
+      "event_id": "CR056-GKOS-2026-02-20",
+      "execution": {
+        "entry": 119.12,
+        "executable": true,
+        "holding_sessions": 5,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 107.208,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.08336245,
+        "status": "observing",
+        "stop": 109.189865,
+        "stop_source": "EMA21",
+        "structural_stop": 109.189865,
+        "support_level": 114.9367,
+        "support_source": "EMA21",
+        "target": 138.98027,
+        "target_r": 2.0
+      },
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "rank": 1,
+      "reason": "position_limit",
+      "signal_date": "2026-02-20",
+      "signal_snapshot": {
+        "as_of": "2026-02-20",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:dae3bdc09b8592811c4e5fb5b8d03a790484b18bccac33a54d1850b9efb3885b",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 4.64,
+                "level": 114.9367,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 7.139,
+                "level": 112.2565,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 16.147,
+                "level": 103.55,
+                "source": "prior-20D-low"
+              },
+              {
+                "distance_pct": 16.147,
+                "level": 103.55,
+                "source": "confirmed-swing-low"
+              }
+            ],
+            "level": 114.9367,
+            "max_loss_pct": 10,
+            "signal_close": 120.27,
+            "source": "EMA21",
+            "structural_stop": 109.1899,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 33.8683,
+              "hit": false,
+              "level": 89.842,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.066488,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 31.25,
+          "timeframe_scores": {
+            "daily": 43.75,
+            "monthly_completed": 31.25,
+            "weekly_completed": 25.0
+          }
+        }
+      },
+      "signal_snapshot_sha256": "704b1623bfee4085879138adc6ef7195029b889ebf959c135b214289fed913f5",
+      "status": "skipped",
+      "symbol": "GKOS"
+    },
+    "old_eligibility": true,
+    "old_rank": 1,
+    "old_score": 31.25,
+    "old_signal_date": "2026-02-20",
+    "old_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 4.64,
+          "level": 114.9367,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 7.139,
+          "level": 112.2565,
+          "source": "EMA50"
+        },
+        {
+          "distance_pct": 16.147,
+          "level": 103.55,
+          "source": "prior-20D-low"
+        },
+        {
+          "distance_pct": 16.147,
+          "level": 103.55,
+          "source": "confirmed-swing-low"
+        }
+      ],
+      "level": 114.9367,
+      "max_loss_pct": 10,
+      "signal_close": 120.27,
+      "source": "EMA21",
+      "structural_stop": 109.1899,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 33.8683,
+        "hit": false,
+        "level": 89.842,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.066488,
+        "pulled_back": true
+      }
+    },
+    "old_trade": {
+      "entry_date": "2026-02-23",
+      "entry_price": 119.12,
+      "event_id": "CR056-GKOS-2026-02-20",
+      "execution": {
+        "entry": 119.12,
+        "executable": true,
+        "holding_sessions": 5,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 107.208,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.08336245,
+        "status": "observing",
+        "stop": 109.189865,
+        "stop_source": "EMA21",
+        "structural_stop": 109.189865,
+        "support_level": 114.9367,
+        "support_source": "EMA21",
+        "target": 138.98027,
+        "target_r": 2.0
+      },
+      "rank": 1,
+      "reason": "position_limit",
+      "signal_date": "2026-02-20",
+      "status": "skipped",
+      "symbol": "GKOS"
+    },
+    "ticker": "GKOS",
+    "trade_changed_vs_mixed": false
+  },
+  {
+    "new_eligibility": true,
+    "new_rank": 2,
+    "new_score": 33.3333,
+    "new_signal_date": "2026-02-19",
+    "new_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 35.589,
+          "level": 36.655,
+          "source": "prior-20D-low"
+        },
+        {
+          "distance_pct": 35.589,
+          "level": 36.655,
+          "source": "confirmed-swing-low"
+        }
+      ],
+      "level": 36.655,
+      "max_loss_pct": 10,
+      "signal_close": 49.7,
+      "source": "prior-20D-low",
+      "structural_stop": 34.8222,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 82.6638,
+        "hit": false,
+        "level": 27.208458,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.114234,
+        "pulled_back": true
+      }
+    },
+    "new_trade": {
+      "entry_date": "2026-02-20",
+      "entry_price": 49.16,
+      "event_id": "CR056-MRNA-2026-02-19",
+      "execution": {
+        "entry": 49.16,
+        "executable": true,
+        "holding_sessions": 6,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 44.244,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.1,
+        "status": "observing",
+        "stop": 44.244,
+        "stop_source": "max-loss-10pct-cap",
+        "structural_stop": 34.82225,
+        "support_level": 36.655,
+        "support_source": "prior-20D-low",
+        "target": 58.992,
+        "target_r": 2.0
+      },
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "rank": 2,
+      "reason": "position_limit",
+      "signal_date": "2026-02-19",
+      "signal_snapshot": {
+        "as_of": "2026-02-19",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 2,
+          "reasons": [],
+          "score_fingerprint": "sha256:87b234b50924403d0ad5791278b32c86a3f2c42333f067d45e6cbf9ab6a7a98d",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 35.589,
+                "level": 36.655,
+                "source": "prior-20D-low"
+              },
+              {
+                "distance_pct": 35.589,
+                "level": 36.655,
+                "source": "confirmed-swing-low"
+              }
+            ],
+            "level": 36.655,
+            "max_loss_pct": 10,
+            "signal_close": 49.7,
+            "source": "prior-20D-low",
+            "structural_stop": 34.8222,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 82.6638,
+              "hit": false,
+              "level": 27.208458,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.114234,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 33.3333,
+          "timeframe_scores": {
+            "daily": 12.5,
+            "monthly_completed": 56.25,
+            "weekly_completed": 9.375
+          }
+        }
+      },
+      "signal_snapshot_sha256": "c86c6127ccbfd9776027c10d74bfe777a7814dfec7e8e8f3a7a2170075a58a20",
+      "status": "skipped",
+      "symbol": "MRNA"
+    },
+    "old_eligibility": true,
+    "old_rank": 2,
+    "old_score": 33.3333,
+    "old_signal_date": "2026-02-19",
+    "old_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 35.589,
+          "level": 36.655,
+          "source": "prior-20D-low"
+        },
+        {
+          "distance_pct": 35.589,
+          "level": 36.655,
+          "source": "confirmed-swing-low"
+        }
+      ],
+      "level": 36.655,
+      "max_loss_pct": 10,
+      "signal_close": 49.7,
+      "source": "prior-20D-low",
+      "structural_stop": 34.8222,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 82.6638,
+        "hit": false,
+        "level": 27.208458,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.114234,
+        "pulled_back": true
+      }
+    },
+    "old_trade": {
+      "entry_date": "2026-02-20",
+      "entry_price": 49.16,
+      "event_id": "CR056-MRNA-2026-02-19",
+      "execution": {
+        "entry": 49.16,
+        "executable": true,
+        "holding_sessions": 6,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 44.244,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.1,
+        "status": "observing",
+        "stop": 44.244,
+        "stop_source": "max-loss-10pct-cap",
+        "structural_stop": 34.82225,
+        "support_level": 36.655,
+        "support_source": "prior-20D-low",
+        "target": 58.992,
+        "target_r": 2.0
+      },
+      "rank": 2,
+      "reason": "position_limit",
+      "signal_date": "2026-02-19",
+      "status": "skipped",
+      "symbol": "MRNA"
+    },
+    "ticker": "MRNA",
+    "trade_changed_vs_mixed": false
+  },
+  {
+    "new_eligibility": true,
+    "new_rank": 2,
+    "new_score": 36.4583,
+    "new_signal_date": "2026-02-11",
+    "new_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 5.337,
+          "level": 18.4171,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 8.089,
+          "level": 17.9482,
+          "source": "EMA50"
+        },
+        {
+          "distance_pct": 20.422,
+          "level": 16.11,
+          "source": "prior-20D-low"
+        },
+        {
+          "distance_pct": 20.422,
+          "level": 16.11,
+          "source": "confirmed-swing-low"
+        }
+      ],
+      "level": 18.4171,
+      "max_loss_pct": 10,
+      "signal_close": 19.4,
+      "source": "EMA21",
+      "structural_stop": 17.4963,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 21.2554,
+        "hit": false,
+        "level": 15.999292,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.082597,
+        "pulled_back": true
+      }
+    },
+    "new_trade": {
+      "entry_date": "2026-02-12",
+      "entry_fees": 9.988439999999999,
+      "entry_price": 19.74,
+      "event_id": "CR056-MXL-2026-02-11",
+      "execution": {
+        "entry": 19.74,
+        "executable": true,
+        "exit_date": "2026-02-23",
+        "exit_price": 17.766,
+        "exit_reason": "stop",
+        "holding_sessions": 7,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 17.766,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "r_multiple": -1.0,
+        "return": -0.1,
+        "risk_pct": 0.1,
+        "status": "resolved",
+        "stop": 17.766,
+        "stop_source": "max-loss-10pct-cap",
+        "structural_stop": 17.496245,
+        "support_level": 18.4171,
+        "support_source": "EMA21",
+        "target": 23.688,
+        "target_r": 2.0
+      },
+      "exit_fees": 8.989596,
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "net_pnl": -1017.8220359999991,
+      "net_return": -0.10189999999999992,
+      "quantity": 506.0,
+      "rank": 2,
+      "signal_date": "2026-02-11",
+      "signal_snapshot": {
+        "as_of": "2026-02-11",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 2,
+          "reasons": [],
+          "score_fingerprint": "sha256:753531cd8aedbf5f71332e01eee870e79d94464a89a209de7607706c26decbda",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 5.337,
+                "level": 18.4171,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 8.089,
+                "level": 17.9482,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 20.422,
+                "level": 16.11,
+                "source": "prior-20D-low"
+              },
+              {
+                "distance_pct": 20.422,
+                "level": 16.11,
+                "source": "confirmed-swing-low"
+              }
+            ],
+            "level": 18.4171,
+            "max_loss_pct": 10,
+            "signal_close": 19.4,
+            "source": "EMA21",
+            "structural_stop": 17.4963,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 21.2554,
+              "hit": false,
+              "level": 15.999292,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.082597,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 36.4583,
+          "timeframe_scores": {
+            "daily": 50.0,
+            "monthly_completed": 37.5,
+            "weekly_completed": 28.125
+          }
+        }
+      },
+      "signal_snapshot_sha256": "00fde33d18677d963ac5c7d16b35df4d4708a0bd174f8f751207e5fd5538bd6d",
+      "status": "closed",
+      "symbol": "MXL"
+    },
+    "old_eligibility": true,
+    "old_rank": 2,
+    "old_score": 36.4583,
+    "old_signal_date": "2026-02-11",
+    "old_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 5.337,
+          "level": 18.4171,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 8.089,
+          "level": 17.9482,
+          "source": "EMA50"
+        },
+        {
+          "distance_pct": 20.422,
+          "level": 16.11,
+          "source": "prior-20D-low"
+        },
+        {
+          "distance_pct": 20.422,
+          "level": 16.11,
+          "source": "confirmed-swing-low"
+        }
+      ],
+      "level": 18.4171,
+      "max_loss_pct": 10,
+      "signal_close": 19.4,
+      "source": "EMA21",
+      "structural_stop": 17.4963,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 21.2554,
+        "hit": false,
+        "level": 15.999292,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.082597,
+        "pulled_back": true
+      }
+    },
+    "old_trade": {
+      "entry_date": "2026-02-12",
+      "entry_fees": 9.988439999999999,
+      "entry_price": 19.74,
+      "event_id": "CR056-MXL-2026-02-11",
+      "execution": {
+        "entry": 19.74,
+        "executable": true,
+        "exit_date": "2026-02-23",
+        "exit_price": 17.766,
+        "exit_reason": "stop",
+        "holding_sessions": 7,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 17.766,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "r_multiple": -1.0,
+        "return": -0.1,
+        "risk_pct": 0.1,
+        "status": "resolved",
+        "stop": 17.766,
+        "stop_source": "max-loss-10pct-cap",
+        "structural_stop": 17.496245,
+        "support_level": 18.4171,
+        "support_source": "EMA21",
+        "target": 23.688,
+        "target_r": 2.0
+      },
+      "exit_fees": 8.989596,
+      "net_pnl": -1017.8220359999991,
+      "net_return": -0.10189999999999992,
+      "quantity": 506.0,
+      "rank": 2,
+      "signal_date": "2026-02-11",
+      "status": "closed",
+      "symbol": "MXL"
+    },
+    "ticker": "MXL",
+    "trade_changed_vs_mixed": false
+  },
+  {
+    "new_eligibility": true,
+    "new_rank": 1,
+    "new_score": 33.0729,
+    "new_signal_date": "2026-02-23",
+    "new_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 7.19,
+          "level": 8.7321,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 13.455,
+          "level": 8.25,
+          "source": "confirmed-swing-low"
+        },
+        {
+          "distance_pct": 19.388,
+          "level": 7.84,
+          "source": "prior-20D-low"
+        }
+      ],
+      "level": 8.7321,
+      "max_loss_pct": 10,
+      "signal_close": 9.36,
+      "source": "EMA21",
+      "structural_stop": 8.2955,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 19.1832,
+        "hit": false,
+        "level": 7.853458,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.084313,
+        "pulled_back": true
+      }
+    },
+    "new_trade": {
+      "entry_date": "2026-02-24",
+      "entry_fees": 9.99515,
+      "entry_price": 9.35,
+      "event_id": "CR056-NVAX-2026-02-23",
+      "execution": {
+        "entry": 9.35,
+        "executable": true,
+        "exit_date": "2026-02-26",
+        "exit_price": 11.22,
+        "exit_reason": "target",
+        "holding_sessions": 3,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 8.415,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "r_multiple": 2.0,
+        "return": 0.2,
+        "risk_pct": 0.1,
+        "status": "resolved",
+        "stop": 8.415,
+        "stop_source": "max-loss-10pct-cap",
+        "structural_stop": 8.295495,
+        "support_level": 8.7321,
+        "support_source": "EMA21",
+        "target": 11.22,
+        "target_r": 2.0
+      },
+      "exit_fees": 11.99418,
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "net_pnl": 1977.0406700000008,
+      "net_return": 0.1978000000000001,
+      "quantity": 1069.0,
+      "rank": 1,
+      "signal_date": "2026-02-23",
+      "signal_snapshot": {
+        "as_of": "2026-02-23",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:3e5d3345703230efd40b115e7576ce8eb833504843bc920c6f0d5d0db5228cc9",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 7.19,
+                "level": 8.7321,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 13.455,
+                "level": 8.25,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 19.388,
+                "level": 7.84,
+                "source": "prior-20D-low"
+              }
+            ],
+            "level": 8.7321,
+            "max_loss_pct": 10,
+            "signal_close": 9.36,
+            "source": "EMA21",
+            "structural_stop": 8.2955,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 19.1832,
+              "hit": false,
+              "level": 7.853458,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.084313,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 33.0729,
+          "timeframe_scores": {
+            "daily": 45.3125,
+            "monthly_completed": 25.0,
+            "weekly_completed": 39.0625
+          }
+        }
+      },
+      "signal_snapshot_sha256": "78dd6ae16acfb3aafa8d4ca378197a1295858a45cdfaea3e48df1c96f21e695d",
+      "status": "closed",
+      "symbol": "NVAX"
+    },
+    "old_eligibility": true,
+    "old_rank": 1,
+    "old_score": 33.0729,
+    "old_signal_date": "2026-02-23",
+    "old_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 7.19,
+          "level": 8.7321,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 13.455,
+          "level": 8.25,
+          "source": "confirmed-swing-low"
+        },
+        {
+          "distance_pct": 19.388,
+          "level": 7.84,
+          "source": "prior-20D-low"
+        }
+      ],
+      "level": 8.7321,
+      "max_loss_pct": 10,
+      "signal_close": 9.36,
+      "source": "EMA21",
+      "structural_stop": 8.2955,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 19.1832,
+        "hit": false,
+        "level": 7.853458,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.084313,
+        "pulled_back": true
+      }
+    },
+    "old_trade": {
+      "entry_date": "2026-02-24",
+      "entry_fees": 9.99515,
+      "entry_price": 9.35,
+      "event_id": "CR056-NVAX-2026-02-23",
+      "execution": {
+        "entry": 9.35,
+        "executable": true,
+        "exit_date": "2026-02-26",
+        "exit_price": 11.22,
+        "exit_reason": "target",
+        "holding_sessions": 3,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 8.415,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "r_multiple": 2.0,
+        "return": 0.2,
+        "risk_pct": 0.1,
+        "status": "resolved",
+        "stop": 8.415,
+        "stop_source": "max-loss-10pct-cap",
+        "structural_stop": 8.295495,
+        "support_level": 8.7321,
+        "support_source": "EMA21",
+        "target": 11.22,
+        "target_r": 2.0
+      },
+      "exit_fees": 11.99418,
+      "net_pnl": 1977.0406700000008,
+      "net_return": 0.1978000000000001,
+      "quantity": 1069.0,
+      "rank": 1,
+      "signal_date": "2026-02-23",
+      "status": "closed",
+      "symbol": "NVAX"
+    },
+    "ticker": "NVAX",
+    "trade_changed_vs_mixed": false
+  },
+  {
+    "new_eligibility": true,
+    "new_rank": 1,
+    "new_score": 54.9479,
+    "new_signal_date": "2026-02-03",
+    "new_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 1.99,
+          "level": 95.6469,
+          "source": "EMA200"
+        },
+        {
+          "distance_pct": 1.995,
+          "level": 95.6425,
+          "source": "volume-profile-poc"
+        },
+        {
+          "distance_pct": 2.157,
+          "level": 95.4905,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 3.038,
+          "level": 94.674,
+          "source": "EMA50"
+        },
+        {
+          "distance_pct": 6.035,
+          "level": 91.9977,
+          "source": "prior-20D-low"
+        },
+        {
+          "distance_pct": 6.035,
+          "level": 91.9977,
+          "source": "confirmed-swing-low"
+        }
+      ],
+      "level": 95.6469,
+      "max_loss_pct": 10,
+      "signal_close": 97.5502,
+      "source": "EMA200",
+      "structural_stop": 90.8646,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 1.9946,
+        "hit": true,
+        "level": 95.642469,
+        "lookback_sessions": 250,
+        "near_price": true,
+        "peak_share": 0.100545,
+        "pulled_back": true
+      }
+    },
+    "new_trade": {
+      "entry_date": "2026-02-04",
+      "entry_fees": 9.902325486465283,
+      "entry_price": 98.04282659866617,
+      "event_id": "CR056-PNFP-2026-02-03",
+      "execution": {
+        "entry": 98.042827,
+        "executable": true,
+        "exit_date": "2026-02-27",
+        "exit_price": 90.864555,
+        "exit_reason": "stop",
+        "holding_sessions": 17,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 88.238544,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "r_multiple": -1.0,
+        "return": -0.07321567,
+        "risk_pct": 0.07321567,
+        "status": "resolved",
+        "stop": 90.864555,
+        "stop_source": "EMA200",
+        "structural_stop": 90.864555,
+        "support_level": 95.6469,
+        "support_source": "EMA200",
+        "target": 112.39937,
+        "target_r": 2.0
+      },
+      "exit_fees": 9.177320055000001,
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "net_pnl": -744.0850770067478,
+      "net_return": -0.07514245800380727,
+      "quantity": 101.0,
+      "rank": 1,
+      "signal_date": "2026-02-03",
+      "signal_snapshot": {
+        "as_of": "2026-02-03",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:9334958ce8219adb33f11121818403a7394cc76e8b59e1c6da2c932714d26c9d",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 1.99,
+                "level": 95.6469,
+                "source": "EMA200"
+              },
+              {
+                "distance_pct": 1.995,
+                "level": 95.6425,
+                "source": "volume-profile-poc"
+              },
+              {
+                "distance_pct": 2.157,
+                "level": 95.4905,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 3.038,
+                "level": 94.674,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 6.035,
+                "level": 91.9977,
+                "source": "prior-20D-low"
+              },
+              {
+                "distance_pct": 6.035,
+                "level": 91.9977,
+                "source": "confirmed-swing-low"
+              }
+            ],
+            "level": 95.6469,
+            "max_loss_pct": 10,
+            "signal_close": 97.5502,
+            "source": "EMA200",
+            "structural_stop": 90.8646,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 1.9946,
+              "hit": true,
+              "level": 95.642469,
+              "lookback_sessions": 250,
+              "near_price": true,
+              "peak_share": 0.100545,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 54.9479,
+          "timeframe_scores": {
+            "daily": 62.5,
+            "monthly_completed": 51.5625,
+            "weekly_completed": 56.25
+          }
+        }
+      },
+      "signal_snapshot_sha256": "86fc988fe08142e4d4977b0d078d02b0a488b37171200437448d9db40709b092",
+      "status": "closed",
+      "symbol": "PNFP"
+    },
+    "old_eligibility": true,
+    "old_rank": 1,
+    "old_score": 51.0417,
+    "old_signal_date": "2026-02-03",
+    "old_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 1.99,
+          "level": 95.6469,
+          "source": "EMA200"
+        },
+        {
+          "distance_pct": 1.995,
+          "level": 95.6425,
+          "source": "volume-profile-poc"
+        },
+        {
+          "distance_pct": 2.157,
+          "level": 95.4905,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 3.038,
+          "level": 94.674,
+          "source": "EMA50"
+        },
+        {
+          "distance_pct": 6.035,
+          "level": 91.9977,
+          "source": "prior-20D-low"
+        },
+        {
+          "distance_pct": 6.035,
+          "level": 91.9977,
+          "source": "confirmed-swing-low"
+        }
+      ],
+      "level": 95.6469,
+      "max_loss_pct": 10,
+      "signal_close": 97.5502,
+      "source": "EMA200",
+      "structural_stop": 90.8646,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 1.9946,
+        "hit": true,
+        "level": 95.642469,
+        "lookback_sessions": 250,
+        "near_price": true,
+        "peak_share": 0.100545,
+        "pulled_back": true
+      }
+    },
+    "old_trade": {
+      "entry_date": "2026-02-04",
+      "entry_fees": 9.902325486465283,
+      "entry_price": 98.04282659866617,
+      "event_id": "CR056-PNFP-2026-02-03",
+      "execution": {
+        "entry": 98.042827,
+        "executable": true,
+        "exit_date": "2026-02-27",
+        "exit_price": 90.864555,
+        "exit_reason": "stop",
+        "holding_sessions": 17,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 88.238544,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "r_multiple": -1.0,
+        "return": -0.07321567,
+        "risk_pct": 0.07321567,
+        "status": "resolved",
+        "stop": 90.864555,
+        "stop_source": "EMA200",
+        "structural_stop": 90.864555,
+        "support_level": 95.6469,
+        "support_source": "EMA200",
+        "target": 112.39937,
+        "target_r": 2.0
+      },
+      "exit_fees": 9.177320055000001,
+      "net_pnl": -744.0850770067478,
+      "net_return": -0.07514245800380727,
+      "quantity": 101.0,
+      "rank": 1,
+      "signal_date": "2026-02-03",
+      "status": "closed",
+      "symbol": "PNFP"
+    },
+    "ticker": "PNFP",
+    "trade_changed_vs_mixed": false
+  },
+  {
+    "new_eligibility": true,
+    "new_rank": 1,
+    "new_score": 29.1667,
+    "new_signal_date": "2026-02-04",
+    "new_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 2.212,
+          "level": 755.3651,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 4.53,
+          "level": 738.6154,
+          "source": "EMA50"
+        },
+        {
+          "distance_pct": 5.953,
+          "level": 728.6906,
+          "source": "confirmed-swing-low"
+        },
+        {
+          "distance_pct": 7.89,
+          "level": 715.6112,
+          "source": "prior-20D-low"
+        }
+      ],
+      "level": 755.3651,
+      "max_loss_pct": 10,
+      "signal_close": 772.0727,
+      "source": "EMA21",
+      "structural_stop": 717.5968,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 38.5674,
+        "hit": false,
+        "level": 557.182232,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.104214,
+        "pulled_back": true
+      }
+    },
+    "new_trade": {
+      "entry_date": "2026-02-05",
+      "entry_fees": 9.297984385938458,
+      "entry_price": 774.8320321615382,
+      "event_id": "CR056-REGN-2026-02-04",
+      "execution": {
+        "entry": 774.832032,
+        "executable": true,
+        "holding_sessions": 16,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 697.348829,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.07386786,
+        "status": "observing",
+        "stop": 717.596845,
+        "stop_source": "EMA21",
+        "structural_stop": 717.596845,
+        "support_level": 755.3651,
+        "support_source": "EMA21",
+        "target": 889.302406,
+        "target_r": 2.0
+      },
+      "exit_fees": 0.0,
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "net_pnl": 47.84442967560333,
+      "net_return": 0.005145677567275709,
+      "quantity": 12.0,
+      "rank": 1,
+      "signal_date": "2026-02-04",
+      "signal_snapshot": {
+        "as_of": "2026-02-04",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:d14927beca4a96346720214a1a61d94416f303203a160ecd7854be204329256e",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 2.212,
+                "level": 755.3651,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 4.53,
+                "level": 738.6154,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 5.953,
+                "level": 728.6906,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 7.89,
+                "level": 715.6112,
+                "source": "prior-20D-low"
+              }
+            ],
+            "level": 755.3651,
+            "max_loss_pct": 10,
+            "signal_close": 772.0727,
+            "source": "EMA21",
+            "structural_stop": 717.5968,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 38.5674,
+              "hit": false,
+              "level": 557.182232,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.104214,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 29.1667,
+          "timeframe_scores": {
+            "daily": 43.75,
+            "monthly_completed": 37.5,
+            "weekly_completed": 9.375
+          }
+        }
+      },
+      "signal_snapshot_sha256": "9cb9fbf93a52e5a0f07b89bd44158f46e800c23b6bc468ac5476684274f85397",
+      "status": "open",
+      "symbol": "REGN"
+    },
+    "old_eligibility": true,
+    "old_rank": 1,
+    "old_score": 29.1667,
+    "old_signal_date": "2026-02-04",
+    "old_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 2.212,
+          "level": 755.3651,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 4.53,
+          "level": 738.6154,
+          "source": "EMA50"
+        },
+        {
+          "distance_pct": 5.953,
+          "level": 728.6906,
+          "source": "confirmed-swing-low"
+        },
+        {
+          "distance_pct": 7.89,
+          "level": 715.6112,
+          "source": "prior-20D-low"
+        }
+      ],
+      "level": 755.3651,
+      "max_loss_pct": 10,
+      "signal_close": 772.0727,
+      "source": "EMA21",
+      "structural_stop": 717.5968,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 38.5674,
+        "hit": false,
+        "level": 557.182232,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.104214,
+        "pulled_back": true
+      }
+    },
+    "old_trade": {
+      "entry_date": "2026-02-05",
+      "entry_fees": 9.297984385938458,
+      "entry_price": 774.8320321615382,
+      "event_id": "CR056-REGN-2026-02-04",
+      "execution": {
+        "entry": 774.832032,
+        "executable": true,
+        "holding_sessions": 16,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 697.348829,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.07386786,
+        "status": "observing",
+        "stop": 717.596845,
+        "stop_source": "EMA21",
+        "structural_stop": 717.596845,
+        "support_level": 755.3651,
+        "support_source": "EMA21",
+        "target": 889.302406,
+        "target_r": 2.0
+      },
+      "exit_fees": 0.0,
+      "net_pnl": 47.84442967560333,
+      "net_return": 0.005145677567275709,
+      "quantity": 12.0,
+      "rank": 1,
+      "signal_date": "2026-02-04",
+      "status": "open",
+      "symbol": "REGN"
+    },
+    "ticker": "REGN",
+    "trade_changed_vs_mixed": false
+  },
+  {
+    "new_eligibility": true,
+    "new_rank": 1,
+    "new_score": 44.7917,
+    "new_signal_date": "2026-02-06",
+    "new_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 6.339,
+          "level": 91.8531,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 9.744,
+          "level": 89.0034,
+          "source": "confirmed-swing-low"
+        },
+        {
+          "distance_pct": 10.127,
+          "level": 88.6941,
+          "source": "EMA50"
+        },
+        {
+          "distance_pct": 16.166,
+          "level": 84.0827,
+          "source": "prior-20D-low"
+        }
+      ],
+      "level": 91.8531,
+      "max_loss_pct": 10,
+      "signal_close": 97.6759,
+      "source": "EMA21",
+      "structural_stop": 87.2604,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 18.6812,
+        "hit": false,
+        "level": 82.301043,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.093935,
+        "pulled_back": true
+      }
+    },
+    "new_trade": {
+      "entry_date": "2026-02-09",
+      "entry_fees": 9.920867621317436,
+      "entry_price": 97.26340805213174,
+      "event_id": "CR056-SBUX-2026-02-06",
+      "execution": {
+        "entry": 97.263408,
+        "executable": true,
+        "holding_sessions": 14,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 87.537067,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.1,
+        "status": "observing",
+        "stop": 87.537067,
+        "stop_source": "max-loss-10pct-cap",
+        "structural_stop": 87.260445,
+        "support_level": 91.8531,
+        "support_source": "EMA21",
+        "target": 116.71609,
+        "target_r": 2.0
+      },
+      "exit_fees": 0.0,
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "net_pnl": -47.784088938754344,
+      "net_return": -0.004816523187556541,
+      "quantity": 102.0,
+      "rank": 1,
+      "signal_date": "2026-02-06",
+      "signal_snapshot": {
+        "as_of": "2026-02-06",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:af13c7ec04d6b3ad4996c398be4a0561659520709fa35d030ed38255a975bf2c",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 6.339,
+                "level": 91.8531,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 9.744,
+                "level": 89.0034,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 10.127,
+                "level": 88.6941,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 16.166,
+                "level": 84.0827,
+                "source": "prior-20D-low"
+              }
+            ],
+            "level": 91.8531,
+            "max_loss_pct": 10,
+            "signal_close": 97.6759,
+            "source": "EMA21",
+            "structural_stop": 87.2604,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 18.6812,
+              "hit": false,
+              "level": 82.301043,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.093935,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 44.7917,
+          "timeframe_scores": {
+            "daily": 50.0,
+            "monthly_completed": 18.75,
+            "weekly_completed": 81.25
+          }
+        }
+      },
+      "signal_snapshot_sha256": "4bc2981f403e7920da61c373dd22f8ea0869dadf6a6360b32cefe78fe0894f46",
+      "status": "open",
+      "symbol": "SBUX"
+    },
+    "old_eligibility": true,
+    "old_rank": 1,
+    "old_score": 44.7917,
+    "old_signal_date": "2026-02-06",
+    "old_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 6.339,
+          "level": 91.8531,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 9.744,
+          "level": 89.0034,
+          "source": "confirmed-swing-low"
+        },
+        {
+          "distance_pct": 10.127,
+          "level": 88.6941,
+          "source": "EMA50"
+        },
+        {
+          "distance_pct": 16.166,
+          "level": 84.0827,
+          "source": "prior-20D-low"
+        }
+      ],
+      "level": 91.8531,
+      "max_loss_pct": 10,
+      "signal_close": 97.6759,
+      "source": "EMA21",
+      "structural_stop": 87.2604,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 18.6812,
+        "hit": false,
+        "level": 82.301043,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.093935,
+        "pulled_back": true
+      }
+    },
+    "old_trade": {
+      "entry_date": "2026-02-09",
+      "entry_fees": 9.920867621317436,
+      "entry_price": 97.26340805213174,
+      "event_id": "CR056-SBUX-2026-02-06",
+      "execution": {
+        "entry": 97.263408,
+        "executable": true,
+        "holding_sessions": 14,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 87.537067,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.1,
+        "status": "observing",
+        "stop": 87.537067,
+        "stop_source": "max-loss-10pct-cap",
+        "structural_stop": 87.260445,
+        "support_level": 91.8531,
+        "support_source": "EMA21",
+        "target": 116.71609,
+        "target_r": 2.0
+      },
+      "exit_fees": 0.0,
+      "net_pnl": -47.784088938754344,
+      "net_return": -0.004816523187556541,
+      "quantity": 102.0,
+      "rank": 1,
+      "signal_date": "2026-02-06",
+      "status": "open",
+      "symbol": "SBUX"
+    },
+    "ticker": "SBUX",
+    "trade_changed_vs_mixed": false
+  },
+  {
+    "new_eligibility": true,
+    "new_rank": 1,
+    "new_score": 26.5625,
+    "new_signal_date": "2026-02-12",
+    "new_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 4.083,
+          "level": 12.6726,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 8.952,
+          "level": 12.1063,
+          "source": "EMA50"
+        },
+        {
+          "distance_pct": 14.199,
+          "level": 11.55,
+          "source": "confirmed-swing-low"
+        },
+        {
+          "distance_pct": 23.85,
+          "level": 10.65,
+          "source": "prior-20D-low"
+        }
+      ],
+      "level": 12.6726,
+      "max_loss_pct": 10,
+      "signal_close": 13.19,
+      "source": "EMA21",
+      "structural_stop": 12.039,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 120.7224,
+        "hit": false,
+        "level": 5.975833,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.084602,
+        "pulled_back": true
+      }
+    },
+    "new_trade": {
+      "entry_date": "2026-02-13",
+      "entry_fees": 9.990450000000001,
+      "entry_price": 13.41,
+      "event_id": "CR056-SGML-2026-02-12",
+      "execution": {
+        "entry": 13.41,
+        "executable": true,
+        "exit_date": "2026-02-25",
+        "exit_price": 16.092,
+        "exit_reason": "target",
+        "holding_sessions": 8,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 12.069,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "r_multiple": 2.0,
+        "return": 0.2,
+        "risk_pct": 0.1,
+        "status": "resolved",
+        "stop": 12.069,
+        "stop_source": "max-loss-10pct-cap",
+        "structural_stop": 12.03897,
+        "support_level": 12.6726,
+        "support_source": "EMA21",
+        "target": 16.092,
+        "target_r": 2.0
+      },
+      "exit_fees": 11.988539999999999,
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "net_pnl": 1976.1110099999983,
+      "net_return": 0.1977999999999998,
+      "quantity": 745.0,
+      "rank": 1,
+      "signal_date": "2026-02-12",
+      "signal_snapshot": {
+        "as_of": "2026-02-12",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:786290a3aba105c031304fd5b6507cad658d1f297dea671405143522db86d820",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 4.083,
+                "level": 12.6726,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 8.952,
+                "level": 12.1063,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 14.199,
+                "level": 11.55,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 23.85,
+                "level": 10.65,
+                "source": "prior-20D-low"
+              }
+            ],
+            "level": 12.6726,
+            "max_loss_pct": 10,
+            "signal_close": 13.19,
+            "source": "EMA21",
+            "structural_stop": 12.039,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 120.7224,
+              "hit": false,
+              "level": 5.975833,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.084602,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 26.5625,
+          "timeframe_scores": {
+            "daily": 37.5,
+            "monthly_completed": 37.5,
+            "weekly_completed": 4.6875
+          }
+        }
+      },
+      "signal_snapshot_sha256": "b398ded260d2b638f60a262bbfdef65541fab85173a128032aee0188d8e91c3a",
+      "status": "closed",
+      "symbol": "SGML"
+    },
+    "old_eligibility": true,
+    "old_rank": 1,
+    "old_score": 26.5625,
+    "old_signal_date": "2026-02-12",
+    "old_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 4.083,
+          "level": 12.6726,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 8.952,
+          "level": 12.1063,
+          "source": "EMA50"
+        },
+        {
+          "distance_pct": 14.199,
+          "level": 11.55,
+          "source": "confirmed-swing-low"
+        },
+        {
+          "distance_pct": 23.85,
+          "level": 10.65,
+          "source": "prior-20D-low"
+        }
+      ],
+      "level": 12.6726,
+      "max_loss_pct": 10,
+      "signal_close": 13.19,
+      "source": "EMA21",
+      "structural_stop": 12.039,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 120.7224,
+        "hit": false,
+        "level": 5.975833,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.084602,
+        "pulled_back": true
+      }
+    },
+    "old_trade": {
+      "entry_date": "2026-02-13",
+      "entry_fees": 9.990450000000001,
+      "entry_price": 13.41,
+      "event_id": "CR056-SGML-2026-02-12",
+      "execution": {
+        "entry": 13.41,
+        "executable": true,
+        "exit_date": "2026-02-25",
+        "exit_price": 16.092,
+        "exit_reason": "target",
+        "holding_sessions": 8,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 12.069,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "r_multiple": 2.0,
+        "return": 0.2,
+        "risk_pct": 0.1,
+        "status": "resolved",
+        "stop": 12.069,
+        "stop_source": "max-loss-10pct-cap",
+        "structural_stop": 12.03897,
+        "support_level": 12.6726,
+        "support_source": "EMA21",
+        "target": 16.092,
+        "target_r": 2.0
+      },
+      "exit_fees": 11.988539999999999,
+      "net_pnl": 1976.1110099999983,
+      "net_return": 0.1977999999999998,
+      "quantity": 745.0,
+      "rank": 1,
+      "signal_date": "2026-02-12",
+      "status": "closed",
+      "symbol": "SGML"
+    },
+    "ticker": "SGML",
+    "trade_changed_vs_mixed": false
+  },
+  {
+    "new_eligibility": true,
+    "new_rank": 3,
+    "new_score": 30.7292,
+    "new_signal_date": "2026-02-18",
+    "new_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 1.629,
+          "level": 36.8103,
+          "source": "EMA50"
+        },
+        {
+          "distance_pct": 2.74,
+          "level": 36.4123,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 11.406,
+          "level": 33.58,
+          "source": "prior-20D-low"
+        },
+        {
+          "distance_pct": 11.406,
+          "level": 33.58,
+          "source": "confirmed-swing-low"
+        }
+      ],
+      "level": 36.8103,
+      "max_loss_pct": 10,
+      "signal_close": 37.41,
+      "source": "EMA50",
+      "structural_stop": 34.9698,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 3.0292,
+        "hit": false,
+        "level": 36.310083,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.141839,
+        "pulled_back": true
+      }
+    },
+    "new_trade": {
+      "entry_date": "2026-02-19",
+      "entry_price": 37.23,
+      "event_id": "CR056-VCEL-2026-02-18",
+      "execution": {
+        "entry": 37.23,
+        "executable": true,
+        "holding_sessions": 7,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 33.507,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.06070951,
+        "status": "observing",
+        "stop": 34.969785,
+        "stop_source": "EMA50",
+        "structural_stop": 34.969785,
+        "support_level": 36.8103,
+        "support_source": "EMA50",
+        "target": 41.75043,
+        "target_r": 2.0
+      },
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "rank": 3,
+      "reason": "position_limit",
+      "signal_date": "2026-02-18",
+      "signal_snapshot": {
+        "as_of": "2026-02-18",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 3,
+          "reasons": [],
+          "score_fingerprint": "sha256:58d12b234909fd62bc921bc54819262516a101a3871edd934e53884ca233656d",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 1.629,
+                "level": 36.8103,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 2.74,
+                "level": 36.4123,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 11.406,
+                "level": 33.58,
+                "source": "prior-20D-low"
+              },
+              {
+                "distance_pct": 11.406,
+                "level": 33.58,
+                "source": "confirmed-swing-low"
+              }
+            ],
+            "level": 36.8103,
+            "max_loss_pct": 10,
+            "signal_close": 37.41,
+            "source": "EMA50",
+            "structural_stop": 34.9698,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 3.0292,
+              "hit": false,
+              "level": 36.310083,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.141839,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 30.7292,
+          "timeframe_scores": {
+            "daily": 53.125,
+            "monthly_completed": 25.0,
+            "weekly_completed": 28.125
+          }
+        }
+      },
+      "signal_snapshot_sha256": "6a32e37f44c0a15f831070ccd403d2bdea50c55d175d7654841e5660c075507b",
+      "status": "skipped",
+      "symbol": "VCEL"
+    },
+    "old_eligibility": true,
+    "old_rank": 3,
+    "old_score": 30.7292,
+    "old_signal_date": "2026-02-18",
+    "old_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 1.629,
+          "level": 36.8103,
+          "source": "EMA50"
+        },
+        {
+          "distance_pct": 2.74,
+          "level": 36.4123,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 11.406,
+          "level": 33.58,
+          "source": "prior-20D-low"
+        },
+        {
+          "distance_pct": 11.406,
+          "level": 33.58,
+          "source": "confirmed-swing-low"
+        }
+      ],
+      "level": 36.8103,
+      "max_loss_pct": 10,
+      "signal_close": 37.41,
+      "source": "EMA50",
+      "structural_stop": 34.9698,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 3.0292,
+        "hit": false,
+        "level": 36.310083,
+        "lookback_sessions": 250,
+        "near_price": false,
+        "peak_share": 0.141839,
+        "pulled_back": true
+      }
+    },
+    "old_trade": {
+      "entry_date": "2026-02-19",
+      "entry_price": 37.23,
+      "event_id": "CR056-VCEL-2026-02-18",
+      "execution": {
+        "entry": 37.23,
+        "executable": true,
+        "holding_sessions": 7,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 33.507,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "risk_pct": 0.06070951,
+        "status": "observing",
+        "stop": 34.969785,
+        "stop_source": "EMA50",
+        "structural_stop": 34.969785,
+        "support_level": 36.8103,
+        "support_source": "EMA50",
+        "target": 41.75043,
+        "target_r": 2.0
+      },
+      "rank": 3,
+      "reason": "position_limit",
+      "signal_date": "2026-02-18",
+      "status": "skipped",
+      "symbol": "VCEL"
+    },
+    "ticker": "VCEL",
+    "trade_changed_vs_mixed": false
+  },
+  {
+    "new_eligibility": true,
+    "new_rank": 1,
+    "new_score": 41.6667,
+    "new_signal_date": "2026-02-18",
+    "new_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 1.509,
+          "level": 156.6258,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 1.6,
+          "level": 156.487,
+          "source": "EMA200"
+        },
+        {
+          "distance_pct": 2.158,
+          "level": 155.6315,
+          "source": "volume-profile-poc"
+        },
+        {
+          "distance_pct": 2.419,
+          "level": 155.2351,
+          "source": "EMA50"
+        },
+        {
+          "distance_pct": 5.291,
+          "level": 151.0,
+          "source": "confirmed-swing-low"
+        },
+        {
+          "distance_pct": 12.095,
+          "level": 141.835,
+          "source": "prior-20D-low"
+        }
+      ],
+      "level": 156.6258,
+      "max_loss_pct": 10,
+      "signal_close": 158.99,
+      "source": "EMA21",
+      "structural_stop": 148.7945,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 2.158,
+        "hit": true,
+        "level": 155.631458,
+        "lookback_sessions": 250,
+        "near_price": true,
+        "peak_share": 0.090237,
+        "pulled_back": true
+      }
+    },
+    "new_trade": {
+      "entry_date": "2026-02-19",
+      "entry_fees": 9.8595,
+      "entry_price": 156.5,
+      "event_id": "CR056-WEX-2026-02-18",
+      "execution": {
+        "entry": 156.5,
+        "executable": true,
+        "exit_date": "2026-02-25",
+        "exit_price": 148.79451,
+        "exit_reason": "stop",
+        "holding_sessions": 5,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 140.85,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "r_multiple": -1.0,
+        "return": -0.04923636,
+        "risk_pct": 0.04923636,
+        "status": "resolved",
+        "stop": 148.79451,
+        "stop_source": "EMA21",
+        "structural_stop": 148.79451,
+        "support_level": 156.6258,
+        "support_source": "EMA21",
+        "target": 171.91098,
+        "target_r": 2.0
+      },
+      "exit_fees": 9.374054130000001,
+      "exit_score": {
+        "reason": "not_recorded_at_exit",
+        "status": "unavailable"
+      },
+      "net_pnl": -504.6794241299996,
+      "net_return": -0.05118712146964852,
+      "quantity": 63.0,
+      "rank": 1,
+      "signal_date": "2026-02-18",
+      "signal_snapshot": {
+        "as_of": "2026-02-18",
+        "basis": "signal_close_before_next_open",
+        "selection": {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:fb11b82f55928a2e91f603d0d240e625be6ce1edb8da45fa35c555fe45bbe162",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 1.509,
+                "level": 156.6258,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 1.6,
+                "level": 156.487,
+                "source": "EMA200"
+              },
+              {
+                "distance_pct": 2.158,
+                "level": 155.6315,
+                "source": "volume-profile-poc"
+              },
+              {
+                "distance_pct": 2.419,
+                "level": 155.2351,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 5.291,
+                "level": 151.0,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 12.095,
+                "level": 141.835,
+                "source": "prior-20D-low"
+              }
+            ],
+            "level": 156.6258,
+            "max_loss_pct": 10,
+            "signal_close": 158.99,
+            "source": "EMA21",
+            "structural_stop": 148.7945,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 2.158,
+              "hit": true,
+              "level": 155.631458,
+              "lookback_sessions": 250,
+              "near_price": true,
+              "peak_share": 0.090237,
+              "pulled_back": true
+            }
+          },
+          "technical_score": 41.6667,
+          "timeframe_scores": {
+            "daily": 62.5,
+            "monthly_completed": 37.5,
+            "weekly_completed": 37.5
+          }
+        }
+      },
+      "signal_snapshot_sha256": "8a5027e538d3f8c296b859cc7cc4bc758023c3f69ead1a89ac96682521dbf269",
+      "status": "closed",
+      "symbol": "WEX"
+    },
+    "old_eligibility": true,
+    "old_rank": 1,
+    "old_score": 41.6667,
+    "old_signal_date": "2026-02-18",
+    "old_support": {
+      "available": true,
+      "candidates": [
+        {
+          "distance_pct": 1.509,
+          "level": 156.6258,
+          "source": "EMA21"
+        },
+        {
+          "distance_pct": 1.6,
+          "level": 156.487,
+          "source": "EMA200"
+        },
+        {
+          "distance_pct": 2.158,
+          "level": 155.6315,
+          "source": "volume-profile-poc"
+        },
+        {
+          "distance_pct": 2.419,
+          "level": 155.2351,
+          "source": "EMA50"
+        },
+        {
+          "distance_pct": 5.291,
+          "level": 151.0,
+          "source": "confirmed-swing-low"
+        },
+        {
+          "distance_pct": 12.095,
+          "level": 141.835,
+          "source": "prior-20D-low"
+        }
+      ],
+      "level": 156.6258,
+      "max_loss_pct": 10,
+      "signal_close": 158.99,
+      "source": "EMA21",
+      "structural_stop": 148.7945,
+      "support_buffer_pct": 5,
+      "volume_profile": {
+        "available": true,
+        "bins": 40,
+        "concentrated": true,
+        "distance_pct": 2.158,
+        "hit": true,
+        "level": 155.631458,
+        "lookback_sessions": 250,
+        "near_price": true,
+        "peak_share": 0.090237,
+        "pulled_back": true
+      }
+    },
+    "old_trade": {
+      "entry_date": "2026-02-19",
+      "entry_fees": 9.8595,
+      "entry_price": 156.5,
+      "event_id": "CR056-WEX-2026-02-18",
+      "execution": {
+        "entry": 156.5,
+        "executable": true,
+        "exit_date": "2026-02-25",
+        "exit_price": 148.79451,
+        "exit_reason": "stop",
+        "holding_sessions": 5,
+        "max_hold_sessions": 40,
+        "max_loss_stop": 140.85,
+        "policy_version": "support-5pct-cap-10pct-2r-v1",
+        "r_multiple": -1.0,
+        "return": -0.04923636,
+        "risk_pct": 0.04923636,
+        "status": "resolved",
+        "stop": 148.79451,
+        "stop_source": "EMA21",
+        "structural_stop": 148.79451,
+        "support_level": 156.6258,
+        "support_source": "EMA21",
+        "target": 171.91098,
+        "target_r": 2.0
+      },
+      "exit_fees": 9.374054130000001,
+      "net_pnl": -504.6794241299996,
+      "net_return": -0.05118712146964852,
+      "quantity": 63.0,
+      "rank": 1,
+      "signal_date": "2026-02-18",
+      "status": "closed",
+      "symbol": "WEX"
+    },
+    "ticker": "WEX",
+    "trade_changed_vs_mixed": false
+  }
+]

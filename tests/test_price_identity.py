@@ -29,6 +29,12 @@ class PriceIdentityTests(unittest.TestCase):
         c=self.contract()
         with self.assertRaisesRegex(ValueError,'wrong_account'):
             validate_baseline_receipt({'price_consistency':c,'portfolio_ledger':{'other':456}})
+    def test_duplicate_signal_bindings_rejected(self):
+        from research.backtest.price_identity import validate_baseline_receipt
+        c=self.contract();e={'event_id':'duplicate'}
+        c['signal']=bind([e,e],c['manifest'],symbols=['ELV'],verified=True)
+        with self.assertRaisesRegex(ValueError,'duplicate_signal'):
+            validate_baseline_receipt({'price_consistency':c,'portfolio_ledger':c['account']['payload']})
     def test_actual_trade_bindings_are_required(self):
         from research.backtest.price_identity import validate_baseline_receipt
         c=self.contract();m=c['manifest']

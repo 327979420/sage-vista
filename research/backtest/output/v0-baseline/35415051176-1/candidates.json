@@ -1,0 +1,5421 @@
+{
+  "days": [
+    {
+      "candidate_count": 0,
+      "checks": [
+        {
+          "input_fingerprint": "sha256:2344fba993038679f79d181b229f44e093ef3967a3a4840290730e669935b7d3",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ANF"
+        },
+        {
+          "input_fingerprint": "sha256:99a8a00cb51597604a71fd51e0a7368d6bfc02b3e5ee753fead5b34729a3d5d5",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "AR"
+        },
+        {
+          "input_fingerprint": "sha256:8f62df37ca58b53d23b0e2b9a623491b7d2460d2501575fdd8e22c74568433e6",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "BMRN"
+        },
+        {
+          "input_fingerprint": "sha256:250161f30a92c70ec1ab7ffbceebbb9d2bafe30f37e10128716cf3f7a519834a",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "CNC"
+        },
+        {
+          "input_fingerprint": "sha256:5cedbeb2db0fcf80a4cbcb5373f87772fef420f9ba9bed826f3d8a0586357620",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "COO"
+        },
+        {
+          "input_fingerprint": "sha256:ecf9043d5d162ba5ae777dbc0df4cb71ddb7ba11c1caaf25a89909dbc935c34e",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DNLI"
+        },
+        {
+          "input_fingerprint": "sha256:e7437d3aa6c48a1f735a70d1090f2f5cadb53531a6d63340c9c08462d8297df9",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DOC"
+        },
+        {
+          "input_fingerprint": "sha256:103e71e130069f6f4f9f0d768fd0061a31ae8b8f1f0e128decd88265a08e5abf",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ELV"
+        },
+        {
+          "input_fingerprint": "sha256:5888be6973db62443660298adb2a4948af8e5e889ca29b2bcb5bcb4e90e00818",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "GKOS"
+        },
+        {
+          "input_fingerprint": "sha256:6bb98ed2cbb175567ab58126cd4d26c94d15ffd8b2d86604ed096a2074ca9529",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MRNA"
+        },
+        {
+          "input_fingerprint": "sha256:22fee4841fa67096ebff0788afda0fedde4a54f4e315c9a3c90728e765acc4b4",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MXL"
+        },
+        {
+          "input_fingerprint": "sha256:d1adaa538754f90affa97547bf83737a32d546e2f1962b9cc80a20b92eb9cc9c",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "NVAX"
+        },
+        {
+          "input_fingerprint": "sha256:ca22e9448b84f6e8a9e2e7a92d655887ad3ddcdc3929de3e8233d3d511641996",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "PNFP"
+        },
+        {
+          "input_fingerprint": "sha256:f5ae3f37e8c74473c10e031e1b4fb8b09ea77ff7c8cda72d49a3ab00f0d13f1f",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "REGN"
+        },
+        {
+          "input_fingerprint": "sha256:b9feb5fda8b7cc662890056cd1295c9ae8905e14877c768b610562b15ac28b36",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SBUX"
+        },
+        {
+          "input_fingerprint": "sha256:870ffb8226666d8640b786f6a802b015047d606f6f92b102a1d81e90592297ef",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SGML"
+        },
+        {
+          "input_fingerprint": "sha256:e8beea55bc2e861266af571f7722cf12e5d18f27966f38202b9831415d9774f2",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "VCEL"
+        },
+        {
+          "input_fingerprint": "sha256:5e8684923c57b1774b3d4e5397b722eb194743bfbdd0381e3c5921396797ab38",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "WEX"
+        }
+      ],
+      "date": "2026-02-02",
+      "ranking": []
+    },
+    {
+      "candidate_count": 2,
+      "checks": [
+        {
+          "input_fingerprint": "sha256:b61e4406e76f55160fb6bb72958cb8a0d546a35415dd5c65e27ac7a193709a6c",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ANF"
+        },
+        {
+          "input_fingerprint": "sha256:f0e857ce50d59ac670bfce08f3df798287a87c389864796e735b0308e221e16f",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "AR"
+        },
+        {
+          "input_fingerprint": "sha256:a9d0a7a744bdea71f8351197cddacb9538798ed1374e1632b986e48b92d4f536",
+          "reason_codes": [],
+          "rule_eligible": true,
+          "status": "scored",
+          "symbol": "BMRN"
+        },
+        {
+          "input_fingerprint": "sha256:06c9717feeb114021ef3a366644810477c3c855f9a757f4a8454391815ab0f47",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "CNC"
+        },
+        {
+          "input_fingerprint": "sha256:75e7eec91b7ee9ecb57cea64ae26690740339eb693abfdb7fce3289e2bc0c60d",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "COO"
+        },
+        {
+          "input_fingerprint": "sha256:98c87776b4aa1da40dc735b75423817e104dc710cf2404449848425cb6a2a2c5",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DNLI"
+        },
+        {
+          "input_fingerprint": "sha256:256c83a286a8338369a68f8a03506f44c16f8630597d484964cd0fe847411e23",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DOC"
+        },
+        {
+          "input_fingerprint": "sha256:007c9ecf8ed27c762d6c3c6125368c843c351b9efb2d06adbc7a6b4868fa5a80",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ELV"
+        },
+        {
+          "input_fingerprint": "sha256:031f9143eb6f730a3b89f9c0a30e06a317510d99a9f92834a584497269211aea",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "GKOS"
+        },
+        {
+          "input_fingerprint": "sha256:1994a26b8c02f0bcc2e68df32d22c2ee60f91d0efbe59182653b86f6dc4bd142",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MRNA"
+        },
+        {
+          "input_fingerprint": "sha256:5ebb1b21ea25f18753d1cf9f0473d5b21c8c38fbaf496e4c1809f07eaba12b25",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MXL"
+        },
+        {
+          "input_fingerprint": "sha256:784b12ba1397028fa32c1b77d851d235fc01d2b75d3db17cd8c01f85be66fe03",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "NVAX"
+        },
+        {
+          "input_fingerprint": "sha256:a8864353ace17bec790c712662ac520a08d89fc2708ca96e4d9c05ecfb3acf0c",
+          "reason_codes": [],
+          "rule_eligible": true,
+          "status": "scored",
+          "symbol": "PNFP"
+        },
+        {
+          "input_fingerprint": "sha256:6b8fdcb730a5c8e65873728aee3da23c9e9d48b90ebf0799a441174981d45de1",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "REGN"
+        },
+        {
+          "input_fingerprint": "sha256:378b0954f8252b06adf41a9247118029cc734bb66d91442f16fac756d6bc9e15",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SBUX"
+        },
+        {
+          "input_fingerprint": "sha256:71584f910cf57d880b6ed84768aab1834428ae94e44e25dfecdafb3d03a5984e",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SGML"
+        },
+        {
+          "input_fingerprint": "sha256:b7243293482ae7551c0e1a411c8a278995b68a5797e482a26b4f31937ce11429",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "VCEL"
+        },
+        {
+          "input_fingerprint": "sha256:1a19cf5c6d604e599610cfeef99a958113d014747bc16300d764ddcc115e0a48",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "WEX"
+        }
+      ],
+      "date": "2026-02-03",
+      "ranking": [
+        {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:9334958ce8219adb33f11121818403a7394cc76e8b59e1c6da2c932714d26c9d",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 1.99,
+                "level": 95.6469,
+                "source": "EMA200"
+              },
+              {
+                "distance_pct": 1.995,
+                "level": 95.6425,
+                "source": "volume-profile-poc"
+              },
+              {
+                "distance_pct": 2.157,
+                "level": 95.4905,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 3.038,
+                "level": 94.674,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 6.035,
+                "level": 91.9977,
+                "source": "prior-20D-low"
+              },
+              {
+                "distance_pct": 6.035,
+                "level": 91.9977,
+                "source": "confirmed-swing-low"
+              }
+            ],
+            "level": 95.6469,
+            "max_loss_pct": 10,
+            "signal_close": 97.5502,
+            "source": "EMA200",
+            "structural_stop": 90.8646,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 1.9946,
+              "hit": true,
+              "level": 95.642469,
+              "lookback_sessions": 250,
+              "near_price": true,
+              "peak_share": 0.100545,
+              "pulled_back": true
+            }
+          },
+          "symbol": "PNFP",
+          "technical_score": 54.9479,
+          "timeframe_scores": {
+            "daily": 62.5,
+            "monthly_completed": 51.5625,
+            "weekly_completed": 56.25
+          }
+        },
+        {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 2,
+          "reasons": [],
+          "score_fingerprint": "sha256:6561f9c2b07d48a851bf3e299072d7f693d1628471a242bd6ad7ffd7f7ff81f4",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 0.965,
+                "level": 57.0594,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 1.926,
+                "level": 56.5212,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 4.215,
+                "level": 55.28,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 6.547,
+                "level": 54.07,
+                "source": "prior-20D-low"
+              }
+            ],
+            "level": 57.0594,
+            "max_loss_pct": 10,
+            "signal_close": 57.61,
+            "source": "EMA21",
+            "structural_stop": 54.2064,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 4.0674,
+              "hit": false,
+              "level": 55.358333,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.089602,
+              "pulled_back": true
+            }
+          },
+          "symbol": "BMRN",
+          "technical_score": 33.3333,
+          "timeframe_scores": {
+            "daily": 68.75,
+            "monthly_completed": 25.0,
+            "weekly_completed": 28.125
+          }
+        }
+      ]
+    },
+    {
+      "candidate_count": 1,
+      "checks": [
+        {
+          "input_fingerprint": "sha256:a7f36762f15dbf4d757b3b82e54bb6b25ae7e992f85fbf6afde959966af02204",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ANF"
+        },
+        {
+          "input_fingerprint": "sha256:bcdc613612e0d722fd7557a7836b509c74967bf1ab46bedfd83ee62057a340a6",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "AR"
+        },
+        {
+          "input_fingerprint": "sha256:4711004c1d548e45d0c6e8721e535109d07641247d7f971e9183263218ee1fa1",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "BMRN"
+        },
+        {
+          "input_fingerprint": "sha256:ab815564203f0fe584757f098ea975ff793834d9b7a4d682f5009b43d5a8462f",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "CNC"
+        },
+        {
+          "input_fingerprint": "sha256:7a5b551ced004b6f7e51624e93a3be0e362d4a7a77703b125768c9b6c2c69b4d",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "COO"
+        },
+        {
+          "input_fingerprint": "sha256:fcbd9771bf7da9bb1400844f72bc046d332de1d0f427509518846ac464f5cb2d",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DNLI"
+        },
+        {
+          "input_fingerprint": "sha256:e74f21edf83b2c474e309ad77437a17db8f512ff83737a6d883e920dd5fbbb7e",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DOC"
+        },
+        {
+          "input_fingerprint": "sha256:9414bbddd05cd8a4df310041d311af36ca3c2a8b8e14d8ef99757b8819b14a45",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ELV"
+        },
+        {
+          "input_fingerprint": "sha256:945c5e3ffd8f085b35a7f065f25b64ea465e0de6ab8e328df7356a7424b014be",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "GKOS"
+        },
+        {
+          "input_fingerprint": "sha256:130f2d636d5d593208c0407ef1d0717810066b86fc3691888723642fb4f3c952",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MRNA"
+        },
+        {
+          "input_fingerprint": "sha256:8538eb3fafc49f48117a782c39c39e9e1cba4d88411489884cad889a1790d94a",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MXL"
+        },
+        {
+          "input_fingerprint": "sha256:d28a83ca3668525cd5dbd4737d68f5ca97b468f608346d6414b8d15f1d10e247",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "NVAX"
+        },
+        {
+          "input_fingerprint": "sha256:b3baad89839da233027ffd58b76d7b02acb659fa9558054ffc2f20fd85cff50e",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "PNFP"
+        },
+        {
+          "input_fingerprint": "sha256:cab517134db085c79f19e86be125a81c66d7eab42a81bfccfc0472239b23c436",
+          "reason_codes": [],
+          "rule_eligible": true,
+          "status": "scored",
+          "symbol": "REGN"
+        },
+        {
+          "input_fingerprint": "sha256:208703863e6e366f82eb535b4f634ac1d4601e3b572fc22e9484baf604619aea",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SBUX"
+        },
+        {
+          "input_fingerprint": "sha256:007d6533f188328e56927b56dc7ede0300a81ae30ccce10c505c67407559183f",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SGML"
+        },
+        {
+          "input_fingerprint": "sha256:017a5af7c052afe8124caf3fa2942b352aca03afb67b213cd5c6aabbb6bba343",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "VCEL"
+        },
+        {
+          "input_fingerprint": "sha256:9f31c0a66fd920bd48a7fd0c90ac7163141671d53412bd25fa26707ce3dde5cd",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "WEX"
+        }
+      ],
+      "date": "2026-02-04",
+      "ranking": [
+        {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:d14927beca4a96346720214a1a61d94416f303203a160ecd7854be204329256e",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 2.212,
+                "level": 755.3651,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 4.53,
+                "level": 738.6154,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 5.953,
+                "level": 728.6906,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 7.89,
+                "level": 715.6112,
+                "source": "prior-20D-low"
+              }
+            ],
+            "level": 755.3651,
+            "max_loss_pct": 10,
+            "signal_close": 772.0727,
+            "source": "EMA21",
+            "structural_stop": 717.5968,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 38.5674,
+              "hit": false,
+              "level": 557.182232,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.104214,
+              "pulled_back": true
+            }
+          },
+          "symbol": "REGN",
+          "technical_score": 29.1667,
+          "timeframe_scores": {
+            "daily": 43.75,
+            "monthly_completed": 37.5,
+            "weekly_completed": 9.375
+          }
+        }
+      ]
+    },
+    {
+      "candidate_count": 1,
+      "checks": [
+        {
+          "input_fingerprint": "sha256:e77d779ee63702740407edea86b95b55b77ece48bac5642f2c28ff457d71720c",
+          "reason_codes": [],
+          "rule_eligible": true,
+          "status": "scored",
+          "symbol": "ANF"
+        },
+        {
+          "input_fingerprint": "sha256:77787f198da3b5b4eda22e3c89016296c457741589a450e1cc2df143804a5ccf",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "AR"
+        },
+        {
+          "input_fingerprint": "sha256:3a47f2f38f7c1343028e63e942aeb08639c0b8defb392dc1ab5bb95eac884539",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "BMRN"
+        },
+        {
+          "input_fingerprint": "sha256:00cb246dfcb97433a9fe48dbc104a5e95ea0fb393555fa22c883ccafd1ef17ad",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "CNC"
+        },
+        {
+          "input_fingerprint": "sha256:ab41e35765d11a12dd6229f336270d8ae64bca1c2f91a8cfbc7668812b089b66",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "COO"
+        },
+        {
+          "input_fingerprint": "sha256:f7551815845dcfc7c1f6805d66e027b9e530ded31c81c940729a510f96fa1493",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DNLI"
+        },
+        {
+          "input_fingerprint": "sha256:c2dac4f508cf0a42292594e3c67850a515a32dbf3862e0c11ec52570d49edc75",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DOC"
+        },
+        {
+          "input_fingerprint": "sha256:b20c6b25a1f77ede2b51d3e4a630e53c9653eda548c2914d3fbacbd4721cac91",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ELV"
+        },
+        {
+          "input_fingerprint": "sha256:b3b48994b342530628d4c9ccb00ce280878cd5632e42b93651e38e7958fbbc2a",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "GKOS"
+        },
+        {
+          "input_fingerprint": "sha256:7f09c6fb401756ec19c46f2b5eaf31cca2f149746c73a6b9895c89986074c95f",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MRNA"
+        },
+        {
+          "input_fingerprint": "sha256:f1a897e6034c5d5f59becc4abd23b9722b0b6fde1aef3e4e514cfdd7b6103aea",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MXL"
+        },
+        {
+          "input_fingerprint": "sha256:061df65241905894b73d816ba1493a909ee576c968e8d3a106493eff7efe25d6",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "NVAX"
+        },
+        {
+          "input_fingerprint": "sha256:ce0e1d0aad732d13086115006f72a7e5f725fe9078456ced4661c3cbf1bb44ce",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "PNFP"
+        },
+        {
+          "input_fingerprint": "sha256:08de85484c250ab94574dbe110a1cf626333d901fce5278ec3d583db03e34aab",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "REGN"
+        },
+        {
+          "input_fingerprint": "sha256:69d906b1b146acd548adb5f6384ff2026f3c8293f6f46ec6d1721af70852f2e2",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SBUX"
+        },
+        {
+          "input_fingerprint": "sha256:1d21f1c4a3500b1843f2f4cc3ccbe639d84061a0209a84d804dc6332d64bb0df",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SGML"
+        },
+        {
+          "input_fingerprint": "sha256:963052780ad33210cb8033a1ff751d5ce430c202bebee2025a326ff63a4b664f",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "VCEL"
+        },
+        {
+          "input_fingerprint": "sha256:5571d76aed0fd899e819d61e55518e35df95b6ef71f8c4d8afa99d3f5e9db1ab",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "WEX"
+        }
+      ],
+      "date": "2026-02-05",
+      "ranking": [
+        {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:ebe5da6ce361d6c11b29039ed5af97444f01667dd9696a2acaeba3ec19410721",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 2.452,
+                "level": 96.7278,
+                "source": "EMA200"
+              },
+              {
+                "distance_pct": 6.904,
+                "level": 92.7,
+                "source": "prior-20D-low"
+              },
+              {
+                "distance_pct": 6.904,
+                "level": 92.7,
+                "source": "confirmed-swing-low"
+              }
+            ],
+            "level": 96.7278,
+            "max_loss_pct": 10,
+            "signal_close": 99.1,
+            "source": "EMA200",
+            "structural_stop": 91.8914,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 5.181,
+              "hit": false,
+              "level": 94.218542,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.081104,
+              "pulled_back": true
+            }
+          },
+          "symbol": "ANF",
+          "technical_score": 46.3542,
+          "timeframe_scores": {
+            "daily": 25.0,
+            "monthly_completed": 56.25,
+            "weekly_completed": 42.1875
+          }
+        }
+      ]
+    },
+    {
+      "candidate_count": 1,
+      "checks": [
+        {
+          "input_fingerprint": "sha256:b3ddc1d9099250268f6334a86bca4a42c06131d05990eda32e0903431d210e71",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ANF"
+        },
+        {
+          "input_fingerprint": "sha256:92ddacad7118929afaf9e66673629ec33069f1148e648c8b951a766417af36f3",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "AR"
+        },
+        {
+          "input_fingerprint": "sha256:5ba06c6cab8354cd666d9dd991722425264cb2136491885caddce601f07347cb",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "BMRN"
+        },
+        {
+          "input_fingerprint": "sha256:9aae24e71bc5da7c7fb34fc1975bf1ce405dad7a421e119a65c297945e103239",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "CNC"
+        },
+        {
+          "input_fingerprint": "sha256:8476bc51398aa346d5fdde185006c6fec49a1e494c18045fd04ada50dfe125e7",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "COO"
+        },
+        {
+          "input_fingerprint": "sha256:139db7468126946fa91cb862aed2e3f31ffedc4d1ee5b542084a01c154dcc076",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DNLI"
+        },
+        {
+          "input_fingerprint": "sha256:cfafc2653a868711ff0ad91ab622c585cefd87b43837c4282d0061591b8ef5ea",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DOC"
+        },
+        {
+          "input_fingerprint": "sha256:e2aeda2992bfb2f8488fc08114838ce96d9330b0e66d5291a553775ff8c509d4",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ELV"
+        },
+        {
+          "input_fingerprint": "sha256:6c4e4ca82a1d2716342f3622b8397e42e074d346ce1e0c790b8cfada69712a06",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "GKOS"
+        },
+        {
+          "input_fingerprint": "sha256:996fcf14df4ff16d69d96e7f02e8e225e2abc5ce89899031e75c2e0000cca275",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MRNA"
+        },
+        {
+          "input_fingerprint": "sha256:9f87e7ee93f126ef06ed21c3b1afd9e7ac8fc10da58bcff821c0d601b03d330b",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MXL"
+        },
+        {
+          "input_fingerprint": "sha256:c304ba9dffad8fb7da4b8c03349cefcd518a469643de5073e7cd1513cc65ac80",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "NVAX"
+        },
+        {
+          "input_fingerprint": "sha256:89648fca095eeff79f336b63dd435683b068d259d3345d1db06a4942c011e952",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "PNFP"
+        },
+        {
+          "input_fingerprint": "sha256:80c10427e86625f4ee2736b2a9ee2aa29d121f175625fc26b9e3d0e343064c24",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "REGN"
+        },
+        {
+          "input_fingerprint": "sha256:9a7b5ad4d201b9929fb6417583645ba104feb9b5981ad0a5917f8530777f0f51",
+          "reason_codes": [],
+          "rule_eligible": true,
+          "status": "scored",
+          "symbol": "SBUX"
+        },
+        {
+          "input_fingerprint": "sha256:e098610a5935afab9872afb56f0b598a507ff9b650365ff21fc08041c64e4af2",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SGML"
+        },
+        {
+          "input_fingerprint": "sha256:8373fd643bc413c8a5de9a2cd1dafefb3b54607604c87e5b4b536ea32a65ada7",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "VCEL"
+        },
+        {
+          "input_fingerprint": "sha256:71da6463d6e51f905affe0cf90845166f919332a7dc1370d10f7b788afe3e1e9",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "WEX"
+        }
+      ],
+      "date": "2026-02-06",
+      "ranking": [
+        {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:af13c7ec04d6b3ad4996c398be4a0561659520709fa35d030ed38255a975bf2c",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 6.339,
+                "level": 91.8531,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 9.744,
+                "level": 89.0034,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 10.127,
+                "level": 88.6941,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 16.166,
+                "level": 84.0827,
+                "source": "prior-20D-low"
+              }
+            ],
+            "level": 91.8531,
+            "max_loss_pct": 10,
+            "signal_close": 97.6759,
+            "source": "EMA21",
+            "structural_stop": 87.2604,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 18.6812,
+              "hit": false,
+              "level": 82.301043,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.093935,
+              "pulled_back": true
+            }
+          },
+          "symbol": "SBUX",
+          "technical_score": 44.7917,
+          "timeframe_scores": {
+            "daily": 50.0,
+            "monthly_completed": 18.75,
+            "weekly_completed": 81.25
+          }
+        }
+      ]
+    },
+    {
+      "candidate_count": 0,
+      "checks": [
+        {
+          "input_fingerprint": "sha256:47ea9fba54664556abc311633229ead3bcff900eb08e8e69fa6114f0df6244b1",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ANF"
+        },
+        {
+          "input_fingerprint": "sha256:3b160f6e7474ad92ad3e5264e9c45b51c18bd3998a05dcd54048e53af9d8f32b",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "AR"
+        },
+        {
+          "input_fingerprint": "sha256:d6657d9e2087c91b27f944413a1bb4e4efa31796579a6e4a147d4cbf51ba1b8a",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "BMRN"
+        },
+        {
+          "input_fingerprint": "sha256:9d11c81d5aa7f3563330741dbc540e443d52fd8b9188165a0cee5a935874b754",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "CNC"
+        },
+        {
+          "input_fingerprint": "sha256:70818449b4aecdaa923bef211fd6d80a0d87eec877e5547a1abc619bde72855e",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "COO"
+        },
+        {
+          "input_fingerprint": "sha256:2fb120b9944ebfadbbcbf39aee0e05e995664c85452502c1d39797e6a41c7b92",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DNLI"
+        },
+        {
+          "input_fingerprint": "sha256:932eb8ac0c1df6f0efc158ba90691feb8ce40a430baf26e4e0eee45d6aef3259",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DOC"
+        },
+        {
+          "input_fingerprint": "sha256:51a55f8c6499fb70dc9bcb73bbfba6d7e636032b7e83ed8a7286945cc82ff2c6",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ELV"
+        },
+        {
+          "input_fingerprint": "sha256:5102acbd08d2d08ce152af79219efe776eaedc516b9640b117d84df9d413a4b1",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "GKOS"
+        },
+        {
+          "input_fingerprint": "sha256:1caa2c3c680f102c561b972dd9914a06b259895da8465b63701f2933ca3a0c5e",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MRNA"
+        },
+        {
+          "input_fingerprint": "sha256:852dc6b62c47ba62c7e9eaf7359c6b5e4d2925b7d188e20f7bd71e7305f3e55c",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MXL"
+        },
+        {
+          "input_fingerprint": "sha256:e0065521f703392c86bc18e37ccb00296fdf027af34506a238100e59ca7af0c8",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "NVAX"
+        },
+        {
+          "input_fingerprint": "sha256:0f1e47bac3db4c2ce48c59196d644f5b3b6b423e51939e7d5972019f50a13f59",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "PNFP"
+        },
+        {
+          "input_fingerprint": "sha256:2baae34af0ed80e98e7356b880bd993afbc2d722367f380829972baf6263eba3",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "REGN"
+        },
+        {
+          "input_fingerprint": "sha256:16d0ed2a6eb506197c70eb0be13bb8000ed9b996cee4b32324d4b5a80e033e97",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SBUX"
+        },
+        {
+          "input_fingerprint": "sha256:f30ba15eec6622c1debe4e9fa714bf61eeb3036098e61b2be921e797f992a8fd",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SGML"
+        },
+        {
+          "input_fingerprint": "sha256:e9dc73d8cd9088c3cbe207da41948fe43a2863a2c0a27242bc27da54ebe3d6dc",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "VCEL"
+        },
+        {
+          "input_fingerprint": "sha256:2e8b58d513329f05719196b427789e850539d8b6338637bf934f333e69a1f2e1",
+          "reason_codes": [
+            "no_pullback_60d"
+          ],
+          "rule_eligible": false,
+          "status": "excluded",
+          "symbol": "WEX"
+        }
+      ],
+      "date": "2026-02-09",
+      "ranking": []
+    },
+    {
+      "candidate_count": 0,
+      "checks": [
+        {
+          "input_fingerprint": "sha256:45968115f19b6ac6c9da1d1121ceb5fc9f1cedbf650e15728bd0ae9a1d630cf7",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ANF"
+        },
+        {
+          "input_fingerprint": "sha256:190a9c611913cef6a3c22ed508a3e7bd5999b3ad861e6719371fd6eab3136719",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "AR"
+        },
+        {
+          "input_fingerprint": "sha256:d94828865c38931608a0307b88828eb927d885ba3b5854b7a7f275fbb72b08b3",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "BMRN"
+        },
+        {
+          "input_fingerprint": "sha256:a09a3f865300e63dfb6a761d47ceb594da53c3a39fd5e31c4de245cdc739f61e",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "CNC"
+        },
+        {
+          "input_fingerprint": "sha256:1f7e3eba4f28d18cb30a1a747bec7c8f498eb287a3464cba7b4dc2dacc69375b",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "COO"
+        },
+        {
+          "input_fingerprint": "sha256:422de1b6804b258aa184b3836abc49f87c4ac66b11ccc81da76980a7ca2667e9",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DNLI"
+        },
+        {
+          "input_fingerprint": "sha256:f262cd3d7614b2626cd9cc48c30e33a7371a4e9b7d559f85c256263a5da44337",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DOC"
+        },
+        {
+          "input_fingerprint": "sha256:81c7792aa592749f0d238072ce1fee1605940e78943028953f152c86c0bd4e17",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ELV"
+        },
+        {
+          "input_fingerprint": "sha256:f42b011fe3e7d6c8aaa5312799a6da33ccca12357c4884ef995645be90777c0e",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "GKOS"
+        },
+        {
+          "input_fingerprint": "sha256:0d0b8422c0a8685457a05ad0d3d3a9a7d324be51eba16590540235f341217030",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MRNA"
+        },
+        {
+          "input_fingerprint": "sha256:17cd2f741588c5c8d47bec575f3b2191624c0ae64b38a28a1bbf4743d9a13387",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MXL"
+        },
+        {
+          "input_fingerprint": "sha256:43b2189978b0266def9891bb33a9e14d93bea09e40eb6571d859deb1da75860b",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "NVAX"
+        },
+        {
+          "input_fingerprint": "sha256:e59c38df3b9d972174655312ef2597bd5cd244d2544394e2efc2d282a5381274",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "PNFP"
+        },
+        {
+          "input_fingerprint": "sha256:f93a64e2521167768692ec365fa6fe47ef19b2d19c786dd9b10fc143b7d71f35",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "REGN"
+        },
+        {
+          "input_fingerprint": "sha256:0b8356323e2e534add7a80d638ba786c06faf1bd4cf88e9ff486de564dfeda8a",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SBUX"
+        },
+        {
+          "input_fingerprint": "sha256:690c243b30c76b392356bdb16121c1235a66364a36b3b61bfe6dc49510cd8fbd",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SGML"
+        },
+        {
+          "input_fingerprint": "sha256:9bd1534341b8634db5788c6b86d94660205f5eaaf848dd0cb8617ecf0f453446",
+          "reason_codes": [
+            "daily_tradability_not_met"
+          ],
+          "rule_eligible": false,
+          "status": "excluded",
+          "symbol": "VCEL"
+        },
+        {
+          "input_fingerprint": "sha256:04ebbf62f64d49b2f1502c9fc6f315339b4025e48b0ef1678f0aa959ab21ff58",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "WEX"
+        }
+      ],
+      "date": "2026-02-10",
+      "ranking": []
+    },
+    {
+      "candidate_count": 3,
+      "checks": [
+        {
+          "input_fingerprint": "sha256:45a8e8d862d726d28656dac7500b10ec3aba9f47b01cfaa1cb584a9230056440",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ANF"
+        },
+        {
+          "input_fingerprint": "sha256:033b14a7c49ef3d1acbbbb8dccc9dcfa283e8ecfc3a7fff6bcf007e6d3942bb8",
+          "reason_codes": [],
+          "rule_eligible": true,
+          "status": "partial",
+          "symbol": "AR"
+        },
+        {
+          "input_fingerprint": "sha256:8701df1f8d71020aa5a3fdeabbf4a9fac9b56cfecea08bbc3591d9d7eac6ce87",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "BMRN"
+        },
+        {
+          "input_fingerprint": "sha256:4d29af8a5754a1aec796f69048983588d6176ae810e55d499a36c736cd441f37",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "CNC"
+        },
+        {
+          "input_fingerprint": "sha256:46fa3a44894b4e3d5cedaa470c695711b1cf38ca63c718692327b524fa6e3ce7",
+          "reason_codes": [],
+          "rule_eligible": true,
+          "status": "scored",
+          "symbol": "COO"
+        },
+        {
+          "input_fingerprint": "sha256:fd837111b80e1e2b9b21fc2a313f068cf54d1faf27ff6e22e686d36566bb8d91",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DNLI"
+        },
+        {
+          "input_fingerprint": "sha256:e5f7c52ee2b6d99cce47f85b7453d0c87ad150c692ec7dc6fa70e27c2a7eb02e",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DOC"
+        },
+        {
+          "input_fingerprint": "sha256:758d06c41508db892353e878f184fc6dc2166d0e8f03be247f8e84b480bee4ca",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ELV"
+        },
+        {
+          "input_fingerprint": "sha256:b2ae4a7f837b8767308640f10b76aa757bc6b177d76da282077b12c68dfb0b1a",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "GKOS"
+        },
+        {
+          "input_fingerprint": "sha256:52babde3a2e732a250baee0fe305c1f46995184f5d4178f8a2d74ecd725d9dbd",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MRNA"
+        },
+        {
+          "input_fingerprint": "sha256:8967aa9df1199deced127e00b529fd4ef07aa92b722e55d8bb85051a8e23e786",
+          "reason_codes": [],
+          "rule_eligible": true,
+          "status": "partial",
+          "symbol": "MXL"
+        },
+        {
+          "input_fingerprint": "sha256:98c42247769f46ea804bfcc394e89baad18fb7448d146d0f138e2a4143d49cd0",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "NVAX"
+        },
+        {
+          "input_fingerprint": "sha256:f5a2da58b9fe7c694d5c53c428213583131badfacb8f9d2e8515842fc74db240",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "PNFP"
+        },
+        {
+          "input_fingerprint": "sha256:b5580e3ed962a4de29a6f06514c9c2faa60f6f7cb89df70e4b17fc7c44b6f280",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "REGN"
+        },
+        {
+          "input_fingerprint": "sha256:a37eef436417a51745cbc4436f9f9065b35f2d565e5a7629f5046c1bbbd13ed6",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SBUX"
+        },
+        {
+          "input_fingerprint": "sha256:8483e718cfdcbbf7095ceab7ab2d42855d1657daeb200f62aa0e8009ea4ec524",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SGML"
+        },
+        {
+          "input_fingerprint": "sha256:2a82f502d8de154db1f08f8126ce7ee61ecfe3f7989afe1271a1bee6bd3f336e",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "VCEL"
+        },
+        {
+          "input_fingerprint": "sha256:db8f7d640d8626aa9ed3b36191ff81853eb6d2fa0ae6cdf475ea41c70496f6bb",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "WEX"
+        }
+      ],
+      "date": "2026-02-11",
+      "ranking": [
+        {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:222840c0a2eb44cdc8b83c267a8d064892f6c2172c0c48da69f614dc53d55c13",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 2.004,
+                "level": 81.4185,
+                "source": "volume-profile-poc"
+              },
+              {
+                "distance_pct": 2.01,
+                "level": 81.4134,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 3.5,
+                "level": 80.2417,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 5.407,
+                "level": 78.79,
+                "source": "prior-20D-low"
+              },
+              {
+                "distance_pct": 5.407,
+                "level": 78.79,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 6.127,
+                "level": 78.2556,
+                "source": "EMA200"
+              }
+            ],
+            "level": 81.4185,
+            "max_loss_pct": 10,
+            "signal_close": 83.05,
+            "source": "volume-profile-poc",
+            "structural_stop": 77.3476,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 2.0038,
+              "hit": true,
+              "level": 81.4185,
+              "lookback_sessions": 250,
+              "near_price": true,
+              "peak_share": 0.064166,
+              "pulled_back": true
+            }
+          },
+          "symbol": "COO",
+          "technical_score": 40.625,
+          "timeframe_scores": {
+            "daily": 56.25,
+            "monthly_completed": 43.75,
+            "weekly_completed": 28.125
+          }
+        },
+        {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 2,
+          "reasons": [],
+          "score_fingerprint": "sha256:753531cd8aedbf5f71332e01eee870e79d94464a89a209de7607706c26decbda",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 5.337,
+                "level": 18.4171,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 8.089,
+                "level": 17.9482,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 20.422,
+                "level": 16.11,
+                "source": "prior-20D-low"
+              },
+              {
+                "distance_pct": 20.422,
+                "level": 16.11,
+                "source": "confirmed-swing-low"
+              }
+            ],
+            "level": 18.4171,
+            "max_loss_pct": 10,
+            "signal_close": 19.4,
+            "source": "EMA21",
+            "structural_stop": 17.4963,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 21.2554,
+              "hit": false,
+              "level": 15.999292,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.082597,
+              "pulled_back": true
+            }
+          },
+          "symbol": "MXL",
+          "technical_score": 36.4583,
+          "timeframe_scores": {
+            "daily": 50.0,
+            "monthly_completed": 37.5,
+            "weekly_completed": 28.125
+          }
+        },
+        {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 3,
+          "reasons": [],
+          "score_fingerprint": "sha256:4d1aecb14658cd7b0781dea268c27a1302d4f9007e9f9c30fb7d9ee1d16aa451",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 2.782,
+                "level": 34.1597,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 2.862,
+                "level": 34.1329,
+                "source": "EMA200"
+              },
+              {
+                "distance_pct": 3.178,
+                "level": 34.0285,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 5.913,
+                "level": 33.15,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 12.713,
+                "level": 31.15,
+                "source": "prior-20D-low"
+              }
+            ],
+            "level": 34.1597,
+            "max_loss_pct": 10,
+            "signal_close": 35.11,
+            "source": "EMA21",
+            "structural_stop": 32.4517,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 8.0945,
+              "hit": false,
+              "level": 32.480833,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.080129,
+              "pulled_back": true
+            }
+          },
+          "symbol": "AR",
+          "technical_score": 22.3958,
+          "timeframe_scores": {
+            "daily": 31.25,
+            "monthly_completed": 18.75,
+            "weekly_completed": 23.4375
+          }
+        }
+      ]
+    },
+    {
+      "candidate_count": 1,
+      "checks": [
+        {
+          "input_fingerprint": "sha256:9597614ab3dc7adcd1a17d51155bcd48905338691db37e126c62dde82e4b085b",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ANF"
+        },
+        {
+          "input_fingerprint": "sha256:47b0a9bcc1f0d67bd2fe211cf52c11aaf6862b5e6404ae67915a55a37352fbdb",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "AR"
+        },
+        {
+          "input_fingerprint": "sha256:2285f90636116ac6b3260eaa21508c59ccaf098c9f54f15cf6ad33685c5e0c69",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "BMRN"
+        },
+        {
+          "input_fingerprint": "sha256:d2356d948afdcdd753efd5b993445801eb29761f0e1a9a315fed49df42c07eaa",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "CNC"
+        },
+        {
+          "input_fingerprint": "sha256:0003e4409869c854c4a5d85f48e5b5acb4598e2ff42f864c0e2ed96c0ee4b505",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "COO"
+        },
+        {
+          "input_fingerprint": "sha256:65612f8892f2de7e7ff541a5aae6f1759733ca897707d1b06d53c7bcd115a7a8",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DNLI"
+        },
+        {
+          "input_fingerprint": "sha256:464e0458370ab53c2ef8131f1131ff048a27360fb388832faff84a1f34a71550",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DOC"
+        },
+        {
+          "input_fingerprint": "sha256:4051276856744b693558db59c65f112d1dd1b1dbc6096d1c862cd20b3b16d094",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ELV"
+        },
+        {
+          "input_fingerprint": "sha256:92acda078ca1ac4db381c816886a9195efb1109ab539a60d4a6de934004d7280",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "GKOS"
+        },
+        {
+          "input_fingerprint": "sha256:bc3e250ffaa41820e18b9e34e0a484c7daa8357d6fffcf147a5855ea6a585552",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MRNA"
+        },
+        {
+          "input_fingerprint": "sha256:c63ab3c402ab56d78e48079e2396ec0baab829ced0f7b06c06d43996c1953a7a",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MXL"
+        },
+        {
+          "input_fingerprint": "sha256:105ee44e69a77ce7378e846147824776724c8949f8231ec40d93f52c51836940",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "NVAX"
+        },
+        {
+          "input_fingerprint": "sha256:6a4fbc773569a958681f7a829cb58e6222962172e0e622be074def1e969d01f8",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "PNFP"
+        },
+        {
+          "input_fingerprint": "sha256:03117dd66e5bbea4d3d6814829bd5647360797a486e5c7568da98cfac89082fd",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "REGN"
+        },
+        {
+          "input_fingerprint": "sha256:720b21c81fd79f178b276689a1ef314c1db02bd38c8a6c41cf529ef8807744b5",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SBUX"
+        },
+        {
+          "input_fingerprint": "sha256:91f7e6d92b2f35de5bc716d02e946fae1762b73e20ece603bc13f8e0f30ea914",
+          "reason_codes": [],
+          "rule_eligible": true,
+          "status": "partial",
+          "symbol": "SGML"
+        },
+        {
+          "input_fingerprint": "sha256:44081981b97586ccd2c5c8d50f8ed5cf6512c7f97b40cd91727f86290716f71b",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "VCEL"
+        },
+        {
+          "input_fingerprint": "sha256:7786a6ab5858061942bb25a0b178ea01f2a135602f6a688ffe68a9fe1781740b",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "WEX"
+        }
+      ],
+      "date": "2026-02-12",
+      "ranking": [
+        {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:786290a3aba105c031304fd5b6507cad658d1f297dea671405143522db86d820",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 4.083,
+                "level": 12.6726,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 8.952,
+                "level": 12.1063,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 14.199,
+                "level": 11.55,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 23.85,
+                "level": 10.65,
+                "source": "prior-20D-low"
+              }
+            ],
+            "level": 12.6726,
+            "max_loss_pct": 10,
+            "signal_close": 13.19,
+            "source": "EMA21",
+            "structural_stop": 12.039,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 120.7224,
+              "hit": false,
+              "level": 5.975833,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.084602,
+              "pulled_back": true
+            }
+          },
+          "symbol": "SGML",
+          "technical_score": 26.5625,
+          "timeframe_scores": {
+            "daily": 37.5,
+            "monthly_completed": 37.5,
+            "weekly_completed": 4.6875
+          }
+        }
+      ]
+    },
+    {
+      "candidate_count": 0,
+      "checks": [
+        {
+          "input_fingerprint": "sha256:4db4371c9f696788e812c3641fcdb073a2110f022a21e8f319a071b2e59505c2",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ANF"
+        },
+        {
+          "input_fingerprint": "sha256:5e02b475ab5ae118e9cfe526f718271611084b4b01cefa74dc635db6c376cd80",
+          "reason_codes": [],
+          "rule_eligible": true,
+          "status": "partial",
+          "symbol": "AR"
+        },
+        {
+          "input_fingerprint": "sha256:fe9dc0a72d8231cbd72447147bb3ef0aac6d51bd15c1558f1cf3263dc5fd22fe",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "BMRN"
+        },
+        {
+          "input_fingerprint": "sha256:791aa21756eb4eb6f9dfba1a3ff0296dfbf1a8f1933f25cec11e4807fe6bf5d8",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "CNC"
+        },
+        {
+          "input_fingerprint": "sha256:9b36d3024a94d43af939b7dbf7c8bf5a5befae9105e86561d52bb32312e21adc",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "COO"
+        },
+        {
+          "input_fingerprint": "sha256:7fd99f26c9c735b44e7b7f4f1b91087ab4ce51d19ddf9ff9156dd1309784f2c8",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DNLI"
+        },
+        {
+          "input_fingerprint": "sha256:c3636ca8d13722791e9ac960fc9c4eb1db90e51e15725be0c75fbaf656dcec06",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DOC"
+        },
+        {
+          "input_fingerprint": "sha256:b7f5a4722b1712831296b31c9fb182b454a60a562a93db479ee9b4a9236a74e2",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ELV"
+        },
+        {
+          "input_fingerprint": "sha256:0bbf1756a40ef16bdbb32cf1c9e9ddcef17bedc4dfd0767814a5da0291de664c",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "GKOS"
+        },
+        {
+          "input_fingerprint": "sha256:3a8bdb60cc44c392e0abda4a372908b3f5ad55e408652ccbcea033e8189f9000",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MRNA"
+        },
+        {
+          "input_fingerprint": "sha256:c78142528c65171d4f6f13bc65342eff7a1801ffd9548515d4d7e63042b7f9ac",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MXL"
+        },
+        {
+          "input_fingerprint": "sha256:1c18d477df7195bafcb40d39dfd731cfe2fb66c206553bc5ecd9e70f729863d6",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "NVAX"
+        },
+        {
+          "input_fingerprint": "sha256:6e3fe41f4fb0e17e3be4a53bb36b53cf458f20285fac927c6173eeb6df314da1",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "PNFP"
+        },
+        {
+          "input_fingerprint": "sha256:6cca66d43e855258c139247c714a773e11e09ee95ff65e7ae7211198a9ff2dcb",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "REGN"
+        },
+        {
+          "input_fingerprint": "sha256:d65a69a7752b6503037d9e144499174ee4e43cd263a71c01abe7cb5d15372d43",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SBUX"
+        },
+        {
+          "input_fingerprint": "sha256:323f2b844ae6e3c42641ae638c3c45ab6ffff5d65b3efe3ab160df153f647ceb",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SGML"
+        },
+        {
+          "input_fingerprint": "sha256:b8c40f374c75eee3a32d9871d2ab990ac8b0c66a435497cb73c1fc9ae03e6d2f",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "VCEL"
+        },
+        {
+          "input_fingerprint": "sha256:0c07eabd00bb3a8930cc8b3e30cb0ea1264b1c44fda730e07f7af38025133c15",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "WEX"
+        }
+      ],
+      "date": "2026-02-13",
+      "ranking": []
+    },
+    {
+      "candidate_count": 0,
+      "checks": [
+        {
+          "input_fingerprint": "sha256:cb6faa28c6837f7d7c61ef3962d2ce220a16458f255359f1cf0f1c59198b2b80",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ANF"
+        },
+        {
+          "input_fingerprint": "sha256:d77b9d818623721421e5e5c93a645b549fbbebb2f9aac82091caab94c9d25f7b",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "AR"
+        },
+        {
+          "input_fingerprint": "sha256:cca0d497cc4788296030975e2dd21338a76d5ac2e19bd4ca0fc0905b8d7b01b6",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "BMRN"
+        },
+        {
+          "input_fingerprint": "sha256:88b0300a3ee44201975f88582bcea80aae92a01325240e97e5bc1bd67e30fb49",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "CNC"
+        },
+        {
+          "input_fingerprint": "sha256:81e5c80d23465b1166735bf392fa8806025e4c9520bc4453e2001503312037a0",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "COO"
+        },
+        {
+          "input_fingerprint": "sha256:40ed01cb4a83f636d27c0fa68c791c971fbbdabd6886a4a776598f1fb23cdc34",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DNLI"
+        },
+        {
+          "input_fingerprint": "sha256:d4b3b315ea53f2cc7e0eac7c327b24cf01f1b37ce1525fdecdaad45d0bd6e311",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DOC"
+        },
+        {
+          "input_fingerprint": "sha256:c2a38e0e6c96c53680501e947cd30d9b6bbb81f0401079111a426479ef297f0d",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ELV"
+        },
+        {
+          "input_fingerprint": "sha256:0e568a8f0c62103170de98162c2a527633fce18c6612f3595adb3cc2fdb0a8bc",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "GKOS"
+        },
+        {
+          "input_fingerprint": "sha256:b50ed54a29a782b38e6402a214c2a0b5236ae63cb8bde99e587672eda7e43264",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MRNA"
+        },
+        {
+          "input_fingerprint": "sha256:5d574883eafb269fa2242d93ef5b2436b6d969dc26fecaadf77aaa989922e88c",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MXL"
+        },
+        {
+          "input_fingerprint": "sha256:a4a2fa2d52b33564cc7bdb32c21e5d5e86f2ff40ae83d5754dbd30cd55fe3daf",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "NVAX"
+        },
+        {
+          "input_fingerprint": "sha256:ce134c0de56108ead365fa355a6273f747147d6ac667e018ee0db8ddebc419ca",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "PNFP"
+        },
+        {
+          "input_fingerprint": "sha256:d09ad34e43010cd621d9f2c983f00acf37fef5afae21f124c917820378922ec3",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "REGN"
+        },
+        {
+          "input_fingerprint": "sha256:7e795313f3c98d1b0b58ba3f9ed598bcfd1f376a9e6075753940b82b2e140e36",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SBUX"
+        },
+        {
+          "input_fingerprint": "sha256:9c745b7c36d154c7da01114b7940a703b8f30666eb44d4a2b6dcfffdc44e61e6",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SGML"
+        },
+        {
+          "input_fingerprint": "sha256:cb579f9a3bfe1ef7c0137f2001770f0b986ae173fee62dde5fbccced52fe67ec",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "VCEL"
+        },
+        {
+          "input_fingerprint": "sha256:02492ebd5b7c4d6207abff7514f69b2339b6509ba3517bdc50b59d927368d8be",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "WEX"
+        }
+      ],
+      "date": "2026-02-17",
+      "ranking": []
+    },
+    {
+      "candidate_count": 3,
+      "checks": [
+        {
+          "input_fingerprint": "sha256:98db09e06250b1130b8c402fd095b22211005a75f82495d16142dae343946940",
+          "reason_codes": [
+            "weekly_not_confirmed",
+            "structure_broken"
+          ],
+          "rule_eligible": false,
+          "status": "excluded",
+          "symbol": "ANF"
+        },
+        {
+          "input_fingerprint": "sha256:0245a85b8f7c6ff2b18bf5a812af44387c06b1a06b4a063c1dddbfb80d78b384",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "AR"
+        },
+        {
+          "input_fingerprint": "sha256:e20e010bce3b5d9896bbe3c4165b8b473e12a35cbca28c4957a27ae0a99b3acc",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "BMRN"
+        },
+        {
+          "input_fingerprint": "sha256:cd971126ba05771a87ba43c7cc0c80ce1be7d4f1029e630985dbc87b657d1e93",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "CNC"
+        },
+        {
+          "input_fingerprint": "sha256:f4fc873a38d35641ef3ef68004cfb779f680dab6f6175408b6e98f9f2cf62c2b",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "COO"
+        },
+        {
+          "input_fingerprint": "sha256:a6e3b4cebaee9f8afa1ccfc619d2819777e682df7a3d29bb6e39c4900552a265",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DNLI"
+        },
+        {
+          "input_fingerprint": "sha256:a0a14d078973fa2703dabc372f36ba164c2372c6b95144dc8b26bc93298bbc75",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DOC"
+        },
+        {
+          "input_fingerprint": "sha256:3a2e7b4c143b689a792f7c5e7377dad1635a02d75bdc786ead69520b11c5cc6b",
+          "reason_codes": [],
+          "rule_eligible": true,
+          "status": "scored",
+          "symbol": "ELV"
+        },
+        {
+          "input_fingerprint": "sha256:5af7e9b26a70aa7b49c9071f6c5374ca74b109a8a8314743b3d02ae0033f7091",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "GKOS"
+        },
+        {
+          "input_fingerprint": "sha256:4f3bd320cb106696c7053e74ba6baf7fd881b983d0c5166bba0b3b33fe7d7ff7",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MRNA"
+        },
+        {
+          "input_fingerprint": "sha256:965c139677712cc2e85f717ea696da17a9084b3b00b4f2a76726a47d4ca04472",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MXL"
+        },
+        {
+          "input_fingerprint": "sha256:f764b486c04f23bed269f2e71e8faa25997b93686977e91701eb91aabf92d5e9",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "NVAX"
+        },
+        {
+          "input_fingerprint": "sha256:03e98b1695eea6efa4777bd1440ce9b16a159a145d45a02078c866dfcf840dc4",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "PNFP"
+        },
+        {
+          "input_fingerprint": "sha256:9e79dee796d62837c01af492ab5f20c57c6ddb374bd43e92e2e47bc7224ea9be",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "REGN"
+        },
+        {
+          "input_fingerprint": "sha256:c3de66e4c5ade2754f080325d3c5860b6625288b03d404fd8047454240771ae0",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SBUX"
+        },
+        {
+          "input_fingerprint": "sha256:946648c742116772da98e9d02326c88143a72fbca0268461225ec86c786a4a6d",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SGML"
+        },
+        {
+          "input_fingerprint": "sha256:8e189c5cd92133c1fc873b779e4432f7698ad1f29257ededaf562c5a22087b4d",
+          "reason_codes": [],
+          "rule_eligible": true,
+          "status": "scored",
+          "symbol": "VCEL"
+        },
+        {
+          "input_fingerprint": "sha256:f9b00dfe801eb08a3f516fe000d056841d7d06b5d49518f491a0b82c04dba419",
+          "reason_codes": [],
+          "rule_eligible": true,
+          "status": "scored",
+          "symbol": "WEX"
+        }
+      ],
+      "date": "2026-02-18",
+      "ranking": [
+        {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:fb11b82f55928a2e91f603d0d240e625be6ce1edb8da45fa35c555fe45bbe162",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 1.509,
+                "level": 156.6258,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 1.6,
+                "level": 156.487,
+                "source": "EMA200"
+              },
+              {
+                "distance_pct": 2.158,
+                "level": 155.6315,
+                "source": "volume-profile-poc"
+              },
+              {
+                "distance_pct": 2.419,
+                "level": 155.2351,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 5.291,
+                "level": 151.0,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 12.095,
+                "level": 141.835,
+                "source": "prior-20D-low"
+              }
+            ],
+            "level": 156.6258,
+            "max_loss_pct": 10,
+            "signal_close": 158.99,
+            "source": "EMA21",
+            "structural_stop": 148.7945,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 2.158,
+              "hit": true,
+              "level": 155.631458,
+              "lookback_sessions": 250,
+              "near_price": true,
+              "peak_share": 0.090237,
+              "pulled_back": true
+            }
+          },
+          "symbol": "WEX",
+          "technical_score": 41.6667,
+          "timeframe_scores": {
+            "daily": 62.5,
+            "monthly_completed": 37.5,
+            "weekly_completed": 37.5
+          }
+        },
+        {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 2,
+          "reasons": [],
+          "score_fingerprint": "sha256:62872695b424df0b9cb779a7dd8db430a8c193afcf192109a29d1fe010e11a54",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 0.034,
+                "level": 341.1233,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 0.52,
+                "level": 339.4743,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 7.096,
+                "level": 318.6303,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 9.757,
+                "level": 310.9035,
+                "source": "prior-20D-low"
+              }
+            ],
+            "level": 341.1233,
+            "max_loss_pct": 10,
+            "signal_close": 341.2389,
+            "source": "EMA50",
+            "structural_stop": 324.0671,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": -6.8158,
+              "hit": false,
+              "level": 366.198358,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.067444,
+              "pulled_back": true
+            }
+          },
+          "symbol": "ELV",
+          "technical_score": 33.8542,
+          "timeframe_scores": {
+            "daily": 62.5,
+            "monthly_completed": 18.75,
+            "weekly_completed": 42.1875
+          }
+        },
+        {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 3,
+          "reasons": [],
+          "score_fingerprint": "sha256:58d12b234909fd62bc921bc54819262516a101a3871edd934e53884ca233656d",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 1.629,
+                "level": 36.8103,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 2.74,
+                "level": 36.4123,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 11.406,
+                "level": 33.58,
+                "source": "prior-20D-low"
+              },
+              {
+                "distance_pct": 11.406,
+                "level": 33.58,
+                "source": "confirmed-swing-low"
+              }
+            ],
+            "level": 36.8103,
+            "max_loss_pct": 10,
+            "signal_close": 37.41,
+            "source": "EMA50",
+            "structural_stop": 34.9698,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 3.0292,
+              "hit": false,
+              "level": 36.310083,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.141839,
+              "pulled_back": true
+            }
+          },
+          "symbol": "VCEL",
+          "technical_score": 30.7292,
+          "timeframe_scores": {
+            "daily": 53.125,
+            "monthly_completed": 25.0,
+            "weekly_completed": 28.125
+          }
+        }
+      ]
+    },
+    {
+      "candidate_count": 3,
+      "checks": [
+        {
+          "input_fingerprint": "sha256:f8a4e6197cb8e4f8a57760626fdbaa304181c4a62fb67191f05814c3125b6268",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ANF"
+        },
+        {
+          "input_fingerprint": "sha256:4b22eab9f9bd687d31879ca1d74808d24b31b8f087a7e119290078d72958b89d",
+          "reason_codes": [],
+          "rule_eligible": true,
+          "status": "partial",
+          "symbol": "AR"
+        },
+        {
+          "input_fingerprint": "sha256:6e57b54bf51dfba392696dc02e90bed41781f74c65801f52c7d696806f9ce2d4",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "BMRN"
+        },
+        {
+          "input_fingerprint": "sha256:7fff02c10be439ad1cf56f1c85c043420c05d5b3931871a6e9caa560d32c7b5c",
+          "reason_codes": [],
+          "rule_eligible": true,
+          "status": "scored",
+          "symbol": "CNC"
+        },
+        {
+          "input_fingerprint": "sha256:27bd510ceda876977ca5ec48dc2b07a1ac838e1cd29714eb0d13eeddbf2fd8df",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "COO"
+        },
+        {
+          "input_fingerprint": "sha256:8fc0d22677ba42bfc2c1178990e42e6910534b6ea93c296104c2f7f80640d07c",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DNLI"
+        },
+        {
+          "input_fingerprint": "sha256:1ac13524c43b7b116060a192799f7f2bdaefefbeb1375640d91cbe62aac8dbd4",
+          "reason_codes": [],
+          "rule_eligible": true,
+          "status": "scored",
+          "symbol": "DOC"
+        },
+        {
+          "input_fingerprint": "sha256:ef831ab9d00f2fba87a05cbede3e6fb0f892711f5b5d6eb561e45eacf81d2783",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ELV"
+        },
+        {
+          "input_fingerprint": "sha256:d13452e8b688416d297e853d6dac00dd204c76ad83bdc74bd51bd00f4de2652b",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "GKOS"
+        },
+        {
+          "input_fingerprint": "sha256:7afe17a3957e2d2c134ab666d640e994deaf0d855442019be4ee0326495f74f5",
+          "reason_codes": [],
+          "rule_eligible": true,
+          "status": "partial",
+          "symbol": "MRNA"
+        },
+        {
+          "input_fingerprint": "sha256:f32790f354d0f98c2c0ccdb336541ce0a23cde19bb6dedfd3078d1076096d3df",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MXL"
+        },
+        {
+          "input_fingerprint": "sha256:c20884128ba24e687c3915983220439c6859de545313332a106e0801dcac9dd1",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "NVAX"
+        },
+        {
+          "input_fingerprint": "sha256:8493b23929dfbbd4a72ece25b31d72ce7e57c02c5cc01d4e4d7c0985260bd888",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "PNFP"
+        },
+        {
+          "input_fingerprint": "sha256:8023ab1f7ebdf12638f30ebecdbd6011403c1d0cbc41f26fcb9340043d22ffc1",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "REGN"
+        },
+        {
+          "input_fingerprint": "sha256:5d5474e9c929ee235da8325efcdb92b8df7e275d1be28dee37e2dbc168c0c20b",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SBUX"
+        },
+        {
+          "input_fingerprint": "sha256:8bcb92a95ccbae13216ccb6f2d24694cf3f5957d7a8d5779eaf9e5db768caefa",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SGML"
+        },
+        {
+          "input_fingerprint": "sha256:278b337eb5cffaa6dfaefbb55b7a2ad03780ee50263eb20d03d42f4f87ab0a0a",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "VCEL"
+        },
+        {
+          "input_fingerprint": "sha256:e96850e0a9095665128a4ca721132fae1e39686d2f94cd80736f6e17f16e7a02",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "WEX"
+        }
+      ],
+      "date": "2026-02-19",
+      "ranking": [
+        {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:6827aee8f812a61e6117dddad5188632acd2d6baaa3833f50fda6a691d1f4729",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 0.905,
+                "level": 16.3822,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 0.942,
+                "level": 16.3762,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 6.039,
+                "level": 15.5891,
+                "source": "prior-20D-low"
+              },
+              {
+                "distance_pct": 6.039,
+                "level": 15.5891,
+                "source": "confirmed-swing-low"
+              }
+            ],
+            "level": 16.3822,
+            "max_loss_pct": 10,
+            "signal_close": 16.5305,
+            "source": "EMA50",
+            "structural_stop": 15.5631,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 4.2056,
+              "hit": false,
+              "level": 15.863353,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.073801,
+              "pulled_back": true
+            }
+          },
+          "symbol": "DOC",
+          "technical_score": 44.7917,
+          "timeframe_scores": {
+            "daily": 62.5,
+            "monthly_completed": 56.25,
+            "weekly_completed": 18.75
+          }
+        },
+        {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 2,
+          "reasons": [],
+          "score_fingerprint": "sha256:87b234b50924403d0ad5791278b32c86a3f2c42333f067d45e6cbf9ab6a7a98d",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 35.589,
+                "level": 36.655,
+                "source": "prior-20D-low"
+              },
+              {
+                "distance_pct": 35.589,
+                "level": 36.655,
+                "source": "confirmed-swing-low"
+              }
+            ],
+            "level": 36.655,
+            "max_loss_pct": 10,
+            "signal_close": 49.7,
+            "source": "prior-20D-low",
+            "structural_stop": 34.8222,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 82.6638,
+              "hit": false,
+              "level": 27.208458,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.114234,
+              "pulled_back": true
+            }
+          },
+          "symbol": "MRNA",
+          "technical_score": 33.3333,
+          "timeframe_scores": {
+            "daily": 12.5,
+            "monthly_completed": 56.25,
+            "weekly_completed": 9.375
+          }
+        },
+        {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 3,
+          "reasons": [],
+          "score_fingerprint": "sha256:752c8a778daca1fbd4429459b6971cfa7b39868a7f3b6fe2c63ecb1676171b86",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 2.319,
+                "level": 42.6898,
+                "source": "EMA200"
+              },
+              {
+                "distance_pct": 4.387,
+                "level": 41.8441,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 5.339,
+                "level": 41.4661,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 12.432,
+                "level": 38.85,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 21.131,
+                "level": 36.06,
+                "source": "prior-20D-low"
+              }
+            ],
+            "level": 42.6898,
+            "max_loss_pct": 10,
+            "signal_close": 43.68,
+            "source": "EMA200",
+            "structural_stop": 40.5553,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 23.5085,
+              "hit": false,
+              "level": 35.366,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.088986,
+              "pulled_back": true
+            }
+          },
+          "symbol": "CNC",
+          "technical_score": 28.125,
+          "timeframe_scores": {
+            "daily": 37.5,
+            "monthly_completed": 31.25,
+            "weekly_completed": 18.75
+          }
+        }
+      ]
+    },
+    {
+      "candidate_count": 1,
+      "checks": [
+        {
+          "input_fingerprint": "sha256:b89b069a91cd4b8d30cac8b063c414d24e4aac54822a49185826aade8c6fe321",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ANF"
+        },
+        {
+          "input_fingerprint": "sha256:bfab05279b2d68374e6ee2990e3be10ffa7f2971d3a36b0f51ad4616540e1e9f",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "AR"
+        },
+        {
+          "input_fingerprint": "sha256:9b8f5d928b4a0d85e768de80825435cf9ce598cea877c4f902c13fef29e9b13d",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "BMRN"
+        },
+        {
+          "input_fingerprint": "sha256:59f2e40a1df15d7accb435f3b2a7bfd83860628c84608ad6e1938dc78d380b82",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "CNC"
+        },
+        {
+          "input_fingerprint": "sha256:4d7efd5560369daf8063f6f11becc75c33b548d610b68b35ace1cb169b33b2b6",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "COO"
+        },
+        {
+          "input_fingerprint": "sha256:ac984e71b80a7de034e58dc75bb24264da2e7b036a8e48cc67085f29b53da5cb",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DNLI"
+        },
+        {
+          "input_fingerprint": "sha256:4ca3fbb81f94c124707b14c155c1e3d549e3a415169f978cf8c46dd34882a534",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DOC"
+        },
+        {
+          "input_fingerprint": "sha256:94aeb3e732571242d78af661b808b708f1168ec7590475ad015616aa13070ce9",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ELV"
+        },
+        {
+          "input_fingerprint": "sha256:0a8e62c5a1d98933c754fec22414a01aae36aae7837d2c690059227392c3cf46",
+          "reason_codes": [],
+          "rule_eligible": true,
+          "status": "partial",
+          "symbol": "GKOS"
+        },
+        {
+          "input_fingerprint": "sha256:047ea087b94ab6e5bec414dcdd74cfcc66e063c3df7c505c5d5529c914b219f2",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MRNA"
+        },
+        {
+          "input_fingerprint": "sha256:71331795ea16f74b9bc522521636bab246c9b2a980f9562af51cdbb61ec8106f",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MXL"
+        },
+        {
+          "input_fingerprint": "sha256:5770dd9646195ddb914fd184eac3c1e89d8394dae1a1c34910473ec7b397e6cb",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "NVAX"
+        },
+        {
+          "input_fingerprint": "sha256:f572020308c3f36ae26798f60e06c4dc59e4a5c740158a33caf60010fcb5d81b",
+          "reason_codes": [],
+          "rule_eligible": true,
+          "status": "scored",
+          "symbol": "PNFP"
+        },
+        {
+          "input_fingerprint": "sha256:887cc4f748bf12eeedd24c45bb2ef3ad1d3f89653b43e33753da4053991b7cff",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "REGN"
+        },
+        {
+          "input_fingerprint": "sha256:46e28effb6aaaaa6798fe559f1d02fdb9d01f23e4ae9e6af0f3d7f1603550df3",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SBUX"
+        },
+        {
+          "input_fingerprint": "sha256:273a3848e7ef3a1aad50dcf68ef2c0fc672abc387cdf678ce741f970dc7df336",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SGML"
+        },
+        {
+          "input_fingerprint": "sha256:3706bbf0bfd97075ec9653271a14a64a363ca2b234a321c36fed7df67416a235",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "VCEL"
+        },
+        {
+          "input_fingerprint": "sha256:6ef645117add7ae98f3bdff7bf2bf13cc574ed33de1cb5de780bf9f6397bd67d",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "WEX"
+        }
+      ],
+      "date": "2026-02-20",
+      "ranking": [
+        {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:dae3bdc09b8592811c4e5fb5b8d03a790484b18bccac33a54d1850b9efb3885b",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 4.64,
+                "level": 114.9367,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 7.139,
+                "level": 112.2565,
+                "source": "EMA50"
+              },
+              {
+                "distance_pct": 16.147,
+                "level": 103.55,
+                "source": "prior-20D-low"
+              },
+              {
+                "distance_pct": 16.147,
+                "level": 103.55,
+                "source": "confirmed-swing-low"
+              }
+            ],
+            "level": 114.9367,
+            "max_loss_pct": 10,
+            "signal_close": 120.27,
+            "source": "EMA21",
+            "structural_stop": 109.1899,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 33.8683,
+              "hit": false,
+              "level": 89.842,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.066488,
+              "pulled_back": true
+            }
+          },
+          "symbol": "GKOS",
+          "technical_score": 31.25,
+          "timeframe_scores": {
+            "daily": 43.75,
+            "monthly_completed": 31.25,
+            "weekly_completed": 25.0
+          }
+        }
+      ]
+    },
+    {
+      "candidate_count": 1,
+      "checks": [
+        {
+          "input_fingerprint": "sha256:193423c5a98dc25423dee8a57175c9929a79737322dbda5f2556f24ffd6b37ae",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ANF"
+        },
+        {
+          "input_fingerprint": "sha256:fd950557dae67f13154837a5e438258613e415c79c1fa175bc760f8cba0ff7dd",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "AR"
+        },
+        {
+          "input_fingerprint": "sha256:727e2dbd0d405c4e8cb049b4079ce9b32f2781ba8431072db264f34127a7634f",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "BMRN"
+        },
+        {
+          "input_fingerprint": "sha256:2506891aa8417e714f11a499599665b35ac557dfd1e1be8a4a5234b7f408aeed",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "CNC"
+        },
+        {
+          "input_fingerprint": "sha256:2a25adb269a408bf9e377c52486d287404f33fd3b766615d86d49fd46ea60545",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "COO"
+        },
+        {
+          "input_fingerprint": "sha256:bcbb4ba4905d5c46494327c413c8f5b06905948507fbf2496e5c63be35983ade",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DNLI"
+        },
+        {
+          "input_fingerprint": "sha256:28c9f3f2de12cdbac25f025656365d7a05a2714cf4b3b6b507d8e128c23b4a28",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DOC"
+        },
+        {
+          "input_fingerprint": "sha256:61fec2baa738fb7f7cb597aedba91c2211a3fa29e9ddc750f8d4e4741c8aa63b",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ELV"
+        },
+        {
+          "input_fingerprint": "sha256:d91c0ebbcf37e60452a54d5c828a9791401f5a0eb7918c11e23d45a2a4c46769",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "GKOS"
+        },
+        {
+          "input_fingerprint": "sha256:b0b14695aeeb36375f09610c9fab612ca0e195b1464e5f63c813f0a015ec0e0e",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MRNA"
+        },
+        {
+          "input_fingerprint": "sha256:3bdca702fbe41633205b07aa67e42e6f7852bb1e7d49eef185d41fd056628bc1",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MXL"
+        },
+        {
+          "input_fingerprint": "sha256:e2d0da80b9009b5ef40e241efb9aec84ec654581fb5e9437b290bc47044c4928",
+          "reason_codes": [],
+          "rule_eligible": true,
+          "status": "scored",
+          "symbol": "NVAX"
+        },
+        {
+          "input_fingerprint": "sha256:cc9e010299119509c539271a998b011e6bb0f57d9e674a7f719a1d9d3741b711",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "PNFP"
+        },
+        {
+          "input_fingerprint": "sha256:e1c66441c83604695d848b2745535bafbd5f680a4c8a8d12af8edf76e7aaa5c4",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "REGN"
+        },
+        {
+          "input_fingerprint": "sha256:6b022152f5f92eee7b90bd23dd74d10a399feaf0d4dc2bea53f5cc151675a3d8",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SBUX"
+        },
+        {
+          "input_fingerprint": "sha256:809042ae9cbb301271a33f5cd668852927f6ab6b5ff78e0f5877b0a5e30b86c8",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SGML"
+        },
+        {
+          "input_fingerprint": "sha256:a95321c718306a229d6b4e9d288b20cebaea1905744f914810f6bac6f6559e58",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "VCEL"
+        },
+        {
+          "input_fingerprint": "sha256:e7f75ecd8005577d34554e804c2241b8a3676b736cc08c4ac1390847d3e4d821",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "WEX"
+        }
+      ],
+      "date": "2026-02-23",
+      "ranking": [
+        {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:3e5d3345703230efd40b115e7576ce8eb833504843bc920c6f0d5d0db5228cc9",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 7.19,
+                "level": 8.7321,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 13.455,
+                "level": 8.25,
+                "source": "confirmed-swing-low"
+              },
+              {
+                "distance_pct": 19.388,
+                "level": 7.84,
+                "source": "prior-20D-low"
+              }
+            ],
+            "level": 8.7321,
+            "max_loss_pct": 10,
+            "signal_close": 9.36,
+            "source": "EMA21",
+            "structural_stop": 8.2955,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 19.1832,
+              "hit": false,
+              "level": 7.853458,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.084313,
+              "pulled_back": true
+            }
+          },
+          "symbol": "NVAX",
+          "technical_score": 33.0729,
+          "timeframe_scores": {
+            "daily": 45.3125,
+            "monthly_completed": 25.0,
+            "weekly_completed": 39.0625
+          }
+        }
+      ]
+    },
+    {
+      "candidate_count": 0,
+      "checks": [
+        {
+          "input_fingerprint": "sha256:aabdbfaeb249b589d7ebf17a256adb5e310f060785a9f357fdaa206258233a5b",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ANF"
+        },
+        {
+          "input_fingerprint": "sha256:bcf525a293dc7a7fc1d10e4cc112ac53b879e01854341878b0f2f25ef7b50299",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "AR"
+        },
+        {
+          "input_fingerprint": "sha256:f8009c2e0fd05544bf7eea4e05a71f1cab94434497ca3c54ca25a485191914ba",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "BMRN"
+        },
+        {
+          "input_fingerprint": "sha256:a0e20e211cc3fdb5eef137b041f414e013a1b1ab479b25b703160002be3359a7",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "CNC"
+        },
+        {
+          "input_fingerprint": "sha256:5006d878167a5109e0a3e88c9136b92206e8a9048c5c1b3bc224352711d31c0a",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "COO"
+        },
+        {
+          "input_fingerprint": "sha256:e809c95b84449676b257d027e84bfbfe43920dfa202c41fcce09a5f17f7d6c10",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DNLI"
+        },
+        {
+          "input_fingerprint": "sha256:6d37ec859a4bef9437cfac42b367ec8d9a38745293b08a8c581d4b554630943d",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DOC"
+        },
+        {
+          "input_fingerprint": "sha256:f96fd5b1073136ac6bcf047120ff0f17a5f4a9221b8972ae73b3f9b943bdd44d",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ELV"
+        },
+        {
+          "input_fingerprint": "sha256:fa046591ecf0da1257e2a31c00acbb3999afd0a8f2f9c4d6ae75b02405549f08",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "GKOS"
+        },
+        {
+          "input_fingerprint": "sha256:256cad34e86cc2ce3bba5f9eb3e4625972ecdac5126a6ecc091c7fc028e67d03",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MRNA"
+        },
+        {
+          "input_fingerprint": "sha256:c39bd45f415a54f9f76f8bf96794b66bd47926950358f1ec81ccc4f1001e517e",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MXL"
+        },
+        {
+          "input_fingerprint": "sha256:fe2a349de8c22f1001f30bf51a233e8c3f01ca032dc3656b4e6e962938e86147",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "NVAX"
+        },
+        {
+          "input_fingerprint": "sha256:a5c2bcc249b655db04a0262e0738e52284d1bf03bf8263c89c6754e3cb1ac1d2",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "PNFP"
+        },
+        {
+          "input_fingerprint": "sha256:4cb2fcc94d53ebff36b2d2fa79d87547267c6d17dfa5a70bcd6f0d1ab0a01806",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "REGN"
+        },
+        {
+          "input_fingerprint": "sha256:dbe7dc205894862f79ff3e281b986fedb0d52e40a5cb45fcf347e25c1d241b5f",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SBUX"
+        },
+        {
+          "input_fingerprint": "sha256:d97e6a75f187943ee01c4b2042345782d6d806c62c2fa4882c367370b657cd2b",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SGML"
+        },
+        {
+          "input_fingerprint": "sha256:0e6ee319e3cc1023dca29a8d2bd3aece687fe07c7727a912931e66d00cc2eca1",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "VCEL"
+        },
+        {
+          "input_fingerprint": "sha256:9d00459945a01393c4ea077291d14a5d6f6a8235dd3f71180c5bc943daf8e62a",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "WEX"
+        }
+      ],
+      "date": "2026-02-24",
+      "ranking": []
+    },
+    {
+      "candidate_count": 1,
+      "checks": [
+        {
+          "input_fingerprint": "sha256:9813d72fbf630f50991775308ab24edc5913d79b18ffb8fff2b551e148a081a3",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ANF"
+        },
+        {
+          "input_fingerprint": "sha256:e1c5895ed8745ebcee25ff17f5b38fefdc3b32bf55e57e993736178e44467c06",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "AR"
+        },
+        {
+          "input_fingerprint": "sha256:88dafce658987ca9f51212aa623637fa3eb7fc361c45a234136f295b85897afc",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "BMRN"
+        },
+        {
+          "input_fingerprint": "sha256:3c39e98178a4ef06d1bbabc4d6b79af86c1eb14e94b05e166331bc39d89372df",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "CNC"
+        },
+        {
+          "input_fingerprint": "sha256:63409f0741c67daba9fb8aa81bf39b1f86f6a1dedd42eedb3c28964de4d94003",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "COO"
+        },
+        {
+          "input_fingerprint": "sha256:d545f74dfe0cdf58be4878fddd3f4c5d7312c5ad6fc03294db7c1e9b63c7e00c",
+          "reason_codes": [],
+          "rule_eligible": true,
+          "status": "partial",
+          "symbol": "DNLI"
+        },
+        {
+          "input_fingerprint": "sha256:cf23aaf679511149f15e7b0de623ec17a11bfe1e590afcc5b9ad6f94274fc2da",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DOC"
+        },
+        {
+          "input_fingerprint": "sha256:bc83b2f3ba810a702b9e17a0fa804c9aa11ebf2b3554cce08f55026da4e63aea",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ELV"
+        },
+        {
+          "input_fingerprint": "sha256:1017b967d60f1379f78ba5e0dd10221e10e09d1edad825c99594c16151656bb9",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "GKOS"
+        },
+        {
+          "input_fingerprint": "sha256:5cc806fafa6fa2ad533b48bddca7374dbbfa54dc7b7062b3c45b024d88afbb4f",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MRNA"
+        },
+        {
+          "input_fingerprint": "sha256:0889d3e54718fed47823dab93de4ebf66a7fe8980969f3eab7da52f5cedadf91",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MXL"
+        },
+        {
+          "input_fingerprint": "sha256:28227fa05e82baa879bcd578af8ad8b76ee043660c7b76a4b06a171e23a4c309",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "NVAX"
+        },
+        {
+          "input_fingerprint": "sha256:5ec665dfe0cc7d4ff14f6d00a7f1cc1a05cde4cfc29fa5196c754513be695984",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "PNFP"
+        },
+        {
+          "input_fingerprint": "sha256:fd051ac5c444d2194a863119b979779b2361a4a9819ad5fccd64b2605d3cbc0f",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "REGN"
+        },
+        {
+          "input_fingerprint": "sha256:ac493e11be547db3ef3946a707d4aabdd5be3937b216cfff785f80222dcd00f9",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SBUX"
+        },
+        {
+          "input_fingerprint": "sha256:5cc306ecc2b48f9ca500822b091ba9467646fe651acc5a9bfe62855b248d1b77",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SGML"
+        },
+        {
+          "input_fingerprint": "sha256:70f9a81aab46c8fde147a1fd84e464b0b29ed1950b31802dd536ed2fbff36319",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "VCEL"
+        },
+        {
+          "input_fingerprint": "sha256:f0a9cffbf90e5d7d1f211c9d77e74cc74b14eb71816de3bab74ff9107a7a2cc2",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "WEX"
+        }
+      ],
+      "date": "2026-02-25",
+      "ranking": [
+        {
+          "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+          "model_version": "cr056-policy-2.0.0-candidate",
+          "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+          "rank": 1,
+          "reasons": [],
+          "score_fingerprint": "sha256:8fdaf1d8e8a9b94881c09798318bb4f68ba330f7c2dc333681c100140a478ccb",
+          "support_plan": {
+            "available": true,
+            "candidates": [
+              {
+                "distance_pct": 9.946,
+                "level": 20.2736,
+                "source": "EMA21"
+              },
+              {
+                "distance_pct": 19.774,
+                "level": 18.61,
+                "source": "prior-20D-low"
+              },
+              {
+                "distance_pct": 19.774,
+                "level": 18.61,
+                "source": "confirmed-swing-low"
+              }
+            ],
+            "level": 20.2736,
+            "max_loss_pct": 10,
+            "signal_close": 22.29,
+            "source": "EMA21",
+            "structural_stop": 19.2599,
+            "support_buffer_pct": 5,
+            "volume_profile": {
+              "available": true,
+              "bins": 40,
+              "concentrated": true,
+              "distance_pct": 56.7589,
+              "hit": false,
+              "level": 14.219292,
+              "lookback_sessions": 250,
+              "near_price": false,
+              "peak_share": 0.089835,
+              "pulled_back": true
+            }
+          },
+          "symbol": "DNLI",
+          "technical_score": 35.4167,
+          "timeframe_scores": {
+            "daily": 25.0,
+            "monthly_completed": 43.75,
+            "weekly_completed": 28.125
+          }
+        }
+      ]
+    },
+    {
+      "candidate_count": 0,
+      "checks": [
+        {
+          "input_fingerprint": "sha256:b49a24753a6a0333dbd87c8c4ffa08b43f619996b8c15302b1b4af4a088a4375",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ANF"
+        },
+        {
+          "input_fingerprint": "sha256:60b8982f15d8c7e2411b444dcb51b7c7e6e74ce41d89949a1e22be935ae0f6dd",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "AR"
+        },
+        {
+          "input_fingerprint": "sha256:b39150e4a36ae9e68ccde0369abd8a40bcf9e5b7f9ac17f38359f1a4a3b7f271",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "BMRN"
+        },
+        {
+          "input_fingerprint": "sha256:ce1834e6dc4c783d173631f92f5d55bcb66d4b548d4744c7f4034081a8a97356",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "CNC"
+        },
+        {
+          "input_fingerprint": "sha256:0f04dd3be24cbd0abefd6361f77021a678b9000a565bae5905e9d02daea5e62f",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "COO"
+        },
+        {
+          "input_fingerprint": "sha256:c5a6f7ac4a6bd592ee00ce2f264f7ed1f2d8b8fd6429c5566cbc8bcc92e8960d",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DNLI"
+        },
+        {
+          "input_fingerprint": "sha256:c698334684a2e6def58ed04dfa88d1c12fb48c09c985ec5d95da3a2270245534",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DOC"
+        },
+        {
+          "input_fingerprint": "sha256:c01efddae626a66bbd20f0ed15fc0fd4edf5ed973c164fc72ce2c3f303fb2668",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ELV"
+        },
+        {
+          "input_fingerprint": "sha256:e83266e61f39469dd31c83898957044600cb3262e3d0d04357699a1d2b4ab775",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "GKOS"
+        },
+        {
+          "input_fingerprint": "sha256:0e4d85e2d71ad51119f71f4017163d1707a64521762331af633ff7e794f92785",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MRNA"
+        },
+        {
+          "input_fingerprint": "sha256:a9a915c92d9190fbcb3d4921c26703f6dfc70a2503d022c08f6dd93078060ceb",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MXL"
+        },
+        {
+          "input_fingerprint": "sha256:b941d7e73799f685aa45e566139372ec5070f992286509f97d1eef6b0e3a3328",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "NVAX"
+        },
+        {
+          "input_fingerprint": "sha256:05bfd5623d84c6c85886ba5840c7320c847e42fe488ab63493a8900d3f4aff23",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "PNFP"
+        },
+        {
+          "input_fingerprint": "sha256:d347980a468d803fe5336fdddf9ef3bd8a9a4b58d4379ce89ec836e597555b20",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "REGN"
+        },
+        {
+          "input_fingerprint": "sha256:fc620c353404bfd7556c8660b2b6c4176471eea12e67f00cc664d3dfe6e7edc2",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SBUX"
+        },
+        {
+          "input_fingerprint": "sha256:64a194846bf324680f47527c6e94813e039a867380da3854dba83a67ef4916ad",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SGML"
+        },
+        {
+          "input_fingerprint": "sha256:ad787386953a4ba6b9a6aefe6aabf7760985d3b1eb32481636934c6abe27d86b",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "VCEL"
+        },
+        {
+          "input_fingerprint": "sha256:619b54ca5e90a01fa73b819cd2df6deff7f161cde4d41a493cb0b978c64cedc9",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "WEX"
+        }
+      ],
+      "date": "2026-02-26",
+      "ranking": []
+    },
+    {
+      "candidate_count": 0,
+      "checks": [
+        {
+          "input_fingerprint": "sha256:436cd96093f682653e711555e87cbbe83d2a3820e5853b412604936cbd6fb6db",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ANF"
+        },
+        {
+          "input_fingerprint": "sha256:e6f7b3e29ff3fc1112dc059a9f5b383c9b2b567b3f93f4f84dffe163aff16b94",
+          "reason_codes": [
+            "no_pullback_60d"
+          ],
+          "rule_eligible": false,
+          "status": "excluded",
+          "symbol": "AR"
+        },
+        {
+          "input_fingerprint": "sha256:8cf52600e1d58bd2c56262a665c37d08421d4319928b55503477fab71ec03778",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "BMRN"
+        },
+        {
+          "input_fingerprint": "sha256:7ae0a856da374dd5c61eb055ce037ede7a261450ed4a08cd49b42e41a1490c38",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "CNC"
+        },
+        {
+          "input_fingerprint": "sha256:b1b788afb083725f833dc0888c8a9af2cade3adb487f1bec41c3b5f215482972",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "COO"
+        },
+        {
+          "input_fingerprint": "sha256:98ccb85d5913ad533b3a155a5b4a05fd970cab77f1f6600fe5e051a2fa7e2b8f",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DNLI"
+        },
+        {
+          "input_fingerprint": "sha256:31c17ad32ef3e08c6f80f6a073369cfb34b9ee197ae0581f3db7517f9d51f4b2",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "DOC"
+        },
+        {
+          "input_fingerprint": "sha256:926bbac0ebf679a9cf76b9c7329897378e43025989486ee58cd037a9bade18a0",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "ELV"
+        },
+        {
+          "input_fingerprint": "sha256:ae2867f4094f7738d0080571e650fe62b2cb741ac784d77828e17b5c60348b56",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "GKOS"
+        },
+        {
+          "input_fingerprint": "sha256:fc4cd9272f2a461261d047d6c51c85737cc48a045adc795d77f6d0fafe555f9d",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MRNA"
+        },
+        {
+          "input_fingerprint": "sha256:a45ee1f225ecc9cc5f9d8ead86dba24561781680b742e9a1c1c47b518ae8cbba",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "MXL"
+        },
+        {
+          "input_fingerprint": "sha256:c2da9f9c74a8b14b0488a6d10b5c6beb1e437937394b2b5f5ddfae4518beaf14",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "NVAX"
+        },
+        {
+          "input_fingerprint": "sha256:0de2a428d53765ca159cb93751de0ea227c8cc3c669c3a28daff13bdf460595c",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "PNFP"
+        },
+        {
+          "input_fingerprint": "sha256:883d469be9bcc1d016b67fdb320405a8bc32ad9a34b6551b0b96557d9eee30a8",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "REGN"
+        },
+        {
+          "input_fingerprint": "sha256:51d56907715b2ce2d25db55595d725d90aed44a0e5a4d623a6495849da876e70",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SBUX"
+        },
+        {
+          "input_fingerprint": "sha256:727d591601e6e14e2d13ff790775e3bed051071adf2ca968e620588f78e56eff",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "SGML"
+        },
+        {
+          "input_fingerprint": "sha256:8736fbb06f67bbdb061de04aa41e639ab002fd8e6e9c9c82f7d2b6bd16485f60",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "VCEL"
+        },
+        {
+          "input_fingerprint": "sha256:8b0ec15644e2e468f398e8070736aa175eab6e6a8b5a6ec96e55f722d750f110",
+          "reason_codes": [
+            "no_initial_daily_cross"
+          ],
+          "rule_eligible": false,
+          "status": "not_nominated",
+          "symbol": "WEX"
+        }
+      ],
+      "date": "2026-02-27",
+      "ranking": []
+    }
+  ],
+  "events": [
+    {
+      "event_id": "CR056-PNFP-2026-02-03",
+      "selection": {
+        "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+        "model_version": "cr056-policy-2.0.0-candidate",
+        "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+        "rank": 1,
+        "reasons": [],
+        "score_fingerprint": "sha256:9334958ce8219adb33f11121818403a7394cc76e8b59e1c6da2c932714d26c9d",
+        "support_plan": {
+          "available": true,
+          "candidates": [
+            {
+              "distance_pct": 1.99,
+              "level": 95.6469,
+              "source": "EMA200"
+            },
+            {
+              "distance_pct": 1.995,
+              "level": 95.6425,
+              "source": "volume-profile-poc"
+            },
+            {
+              "distance_pct": 2.157,
+              "level": 95.4905,
+              "source": "EMA21"
+            },
+            {
+              "distance_pct": 3.038,
+              "level": 94.674,
+              "source": "EMA50"
+            },
+            {
+              "distance_pct": 6.035,
+              "level": 91.9977,
+              "source": "prior-20D-low"
+            },
+            {
+              "distance_pct": 6.035,
+              "level": 91.9977,
+              "source": "confirmed-swing-low"
+            }
+          ],
+          "level": 95.6469,
+          "max_loss_pct": 10,
+          "signal_close": 97.5502,
+          "source": "EMA200",
+          "structural_stop": 90.8646,
+          "support_buffer_pct": 5,
+          "volume_profile": {
+            "available": true,
+            "bins": 40,
+            "concentrated": true,
+            "distance_pct": 1.9946,
+            "hit": true,
+            "level": 95.642469,
+            "lookback_sessions": 250,
+            "near_price": true,
+            "peak_share": 0.100545,
+            "pulled_back": true
+          }
+        },
+        "technical_score": 54.9479,
+        "timeframe_scores": {
+          "daily": 62.5,
+          "monthly_completed": 51.5625,
+          "weekly_completed": 56.25
+        }
+      },
+      "signal_date": "2026-02-03",
+      "symbol": "PNFP"
+    },
+    {
+      "event_id": "CR056-BMRN-2026-02-03",
+      "selection": {
+        "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+        "model_version": "cr056-policy-2.0.0-candidate",
+        "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+        "rank": 2,
+        "reasons": [],
+        "score_fingerprint": "sha256:6561f9c2b07d48a851bf3e299072d7f693d1628471a242bd6ad7ffd7f7ff81f4",
+        "support_plan": {
+          "available": true,
+          "candidates": [
+            {
+              "distance_pct": 0.965,
+              "level": 57.0594,
+              "source": "EMA21"
+            },
+            {
+              "distance_pct": 1.926,
+              "level": 56.5212,
+              "source": "EMA50"
+            },
+            {
+              "distance_pct": 4.215,
+              "level": 55.28,
+              "source": "confirmed-swing-low"
+            },
+            {
+              "distance_pct": 6.547,
+              "level": 54.07,
+              "source": "prior-20D-low"
+            }
+          ],
+          "level": 57.0594,
+          "max_loss_pct": 10,
+          "signal_close": 57.61,
+          "source": "EMA21",
+          "structural_stop": 54.2064,
+          "support_buffer_pct": 5,
+          "volume_profile": {
+            "available": true,
+            "bins": 40,
+            "concentrated": true,
+            "distance_pct": 4.0674,
+            "hit": false,
+            "level": 55.358333,
+            "lookback_sessions": 250,
+            "near_price": false,
+            "peak_share": 0.089602,
+            "pulled_back": true
+          }
+        },
+        "technical_score": 33.3333,
+        "timeframe_scores": {
+          "daily": 68.75,
+          "monthly_completed": 25.0,
+          "weekly_completed": 28.125
+        }
+      },
+      "signal_date": "2026-02-03",
+      "symbol": "BMRN"
+    },
+    {
+      "event_id": "CR056-REGN-2026-02-04",
+      "selection": {
+        "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+        "model_version": "cr056-policy-2.0.0-candidate",
+        "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+        "rank": 1,
+        "reasons": [],
+        "score_fingerprint": "sha256:d14927beca4a96346720214a1a61d94416f303203a160ecd7854be204329256e",
+        "support_plan": {
+          "available": true,
+          "candidates": [
+            {
+              "distance_pct": 2.212,
+              "level": 755.3651,
+              "source": "EMA21"
+            },
+            {
+              "distance_pct": 4.53,
+              "level": 738.6154,
+              "source": "EMA50"
+            },
+            {
+              "distance_pct": 5.953,
+              "level": 728.6906,
+              "source": "confirmed-swing-low"
+            },
+            {
+              "distance_pct": 7.89,
+              "level": 715.6112,
+              "source": "prior-20D-low"
+            }
+          ],
+          "level": 755.3651,
+          "max_loss_pct": 10,
+          "signal_close": 772.0727,
+          "source": "EMA21",
+          "structural_stop": 717.5968,
+          "support_buffer_pct": 5,
+          "volume_profile": {
+            "available": true,
+            "bins": 40,
+            "concentrated": true,
+            "distance_pct": 38.5674,
+            "hit": false,
+            "level": 557.182232,
+            "lookback_sessions": 250,
+            "near_price": false,
+            "peak_share": 0.104214,
+            "pulled_back": true
+          }
+        },
+        "technical_score": 29.1667,
+        "timeframe_scores": {
+          "daily": 43.75,
+          "monthly_completed": 37.5,
+          "weekly_completed": 9.375
+        }
+      },
+      "signal_date": "2026-02-04",
+      "symbol": "REGN"
+    },
+    {
+      "event_id": "CR056-ANF-2026-02-05",
+      "selection": {
+        "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+        "model_version": "cr056-policy-2.0.0-candidate",
+        "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+        "rank": 1,
+        "reasons": [],
+        "score_fingerprint": "sha256:ebe5da6ce361d6c11b29039ed5af97444f01667dd9696a2acaeba3ec19410721",
+        "support_plan": {
+          "available": true,
+          "candidates": [
+            {
+              "distance_pct": 2.452,
+              "level": 96.7278,
+              "source": "EMA200"
+            },
+            {
+              "distance_pct": 6.904,
+              "level": 92.7,
+              "source": "prior-20D-low"
+            },
+            {
+              "distance_pct": 6.904,
+              "level": 92.7,
+              "source": "confirmed-swing-low"
+            }
+          ],
+          "level": 96.7278,
+          "max_loss_pct": 10,
+          "signal_close": 99.1,
+          "source": "EMA200",
+          "structural_stop": 91.8914,
+          "support_buffer_pct": 5,
+          "volume_profile": {
+            "available": true,
+            "bins": 40,
+            "concentrated": true,
+            "distance_pct": 5.181,
+            "hit": false,
+            "level": 94.218542,
+            "lookback_sessions": 250,
+            "near_price": false,
+            "peak_share": 0.081104,
+            "pulled_back": true
+          }
+        },
+        "technical_score": 46.3542,
+        "timeframe_scores": {
+          "daily": 25.0,
+          "monthly_completed": 56.25,
+          "weekly_completed": 42.1875
+        }
+      },
+      "signal_date": "2026-02-05",
+      "symbol": "ANF"
+    },
+    {
+      "event_id": "CR056-SBUX-2026-02-06",
+      "selection": {
+        "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+        "model_version": "cr056-policy-2.0.0-candidate",
+        "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+        "rank": 1,
+        "reasons": [],
+        "score_fingerprint": "sha256:af13c7ec04d6b3ad4996c398be4a0561659520709fa35d030ed38255a975bf2c",
+        "support_plan": {
+          "available": true,
+          "candidates": [
+            {
+              "distance_pct": 6.339,
+              "level": 91.8531,
+              "source": "EMA21"
+            },
+            {
+              "distance_pct": 9.744,
+              "level": 89.0034,
+              "source": "confirmed-swing-low"
+            },
+            {
+              "distance_pct": 10.127,
+              "level": 88.6941,
+              "source": "EMA50"
+            },
+            {
+              "distance_pct": 16.166,
+              "level": 84.0827,
+              "source": "prior-20D-low"
+            }
+          ],
+          "level": 91.8531,
+          "max_loss_pct": 10,
+          "signal_close": 97.6759,
+          "source": "EMA21",
+          "structural_stop": 87.2604,
+          "support_buffer_pct": 5,
+          "volume_profile": {
+            "available": true,
+            "bins": 40,
+            "concentrated": true,
+            "distance_pct": 18.6812,
+            "hit": false,
+            "level": 82.301043,
+            "lookback_sessions": 250,
+            "near_price": false,
+            "peak_share": 0.093935,
+            "pulled_back": true
+          }
+        },
+        "technical_score": 44.7917,
+        "timeframe_scores": {
+          "daily": 50.0,
+          "monthly_completed": 18.75,
+          "weekly_completed": 81.25
+        }
+      },
+      "signal_date": "2026-02-06",
+      "symbol": "SBUX"
+    },
+    {
+      "event_id": "CR056-COO-2026-02-11",
+      "selection": {
+        "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+        "model_version": "cr056-policy-2.0.0-candidate",
+        "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+        "rank": 1,
+        "reasons": [],
+        "score_fingerprint": "sha256:222840c0a2eb44cdc8b83c267a8d064892f6c2172c0c48da69f614dc53d55c13",
+        "support_plan": {
+          "available": true,
+          "candidates": [
+            {
+              "distance_pct": 2.004,
+              "level": 81.4185,
+              "source": "volume-profile-poc"
+            },
+            {
+              "distance_pct": 2.01,
+              "level": 81.4134,
+              "source": "EMA21"
+            },
+            {
+              "distance_pct": 3.5,
+              "level": 80.2417,
+              "source": "EMA50"
+            },
+            {
+              "distance_pct": 5.407,
+              "level": 78.79,
+              "source": "prior-20D-low"
+            },
+            {
+              "distance_pct": 5.407,
+              "level": 78.79,
+              "source": "confirmed-swing-low"
+            },
+            {
+              "distance_pct": 6.127,
+              "level": 78.2556,
+              "source": "EMA200"
+            }
+          ],
+          "level": 81.4185,
+          "max_loss_pct": 10,
+          "signal_close": 83.05,
+          "source": "volume-profile-poc",
+          "structural_stop": 77.3476,
+          "support_buffer_pct": 5,
+          "volume_profile": {
+            "available": true,
+            "bins": 40,
+            "concentrated": true,
+            "distance_pct": 2.0038,
+            "hit": true,
+            "level": 81.4185,
+            "lookback_sessions": 250,
+            "near_price": true,
+            "peak_share": 0.064166,
+            "pulled_back": true
+          }
+        },
+        "technical_score": 40.625,
+        "timeframe_scores": {
+          "daily": 56.25,
+          "monthly_completed": 43.75,
+          "weekly_completed": 28.125
+        }
+      },
+      "signal_date": "2026-02-11",
+      "symbol": "COO"
+    },
+    {
+      "event_id": "CR056-MXL-2026-02-11",
+      "selection": {
+        "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+        "model_version": "cr056-policy-2.0.0-candidate",
+        "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+        "rank": 2,
+        "reasons": [],
+        "score_fingerprint": "sha256:753531cd8aedbf5f71332e01eee870e79d94464a89a209de7607706c26decbda",
+        "support_plan": {
+          "available": true,
+          "candidates": [
+            {
+              "distance_pct": 5.337,
+              "level": 18.4171,
+              "source": "EMA21"
+            },
+            {
+              "distance_pct": 8.089,
+              "level": 17.9482,
+              "source": "EMA50"
+            },
+            {
+              "distance_pct": 20.422,
+              "level": 16.11,
+              "source": "prior-20D-low"
+            },
+            {
+              "distance_pct": 20.422,
+              "level": 16.11,
+              "source": "confirmed-swing-low"
+            }
+          ],
+          "level": 18.4171,
+          "max_loss_pct": 10,
+          "signal_close": 19.4,
+          "source": "EMA21",
+          "structural_stop": 17.4963,
+          "support_buffer_pct": 5,
+          "volume_profile": {
+            "available": true,
+            "bins": 40,
+            "concentrated": true,
+            "distance_pct": 21.2554,
+            "hit": false,
+            "level": 15.999292,
+            "lookback_sessions": 250,
+            "near_price": false,
+            "peak_share": 0.082597,
+            "pulled_back": true
+          }
+        },
+        "technical_score": 36.4583,
+        "timeframe_scores": {
+          "daily": 50.0,
+          "monthly_completed": 37.5,
+          "weekly_completed": 28.125
+        }
+      },
+      "signal_date": "2026-02-11",
+      "symbol": "MXL"
+    },
+    {
+      "event_id": "CR056-AR-2026-02-11",
+      "selection": {
+        "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+        "model_version": "cr056-policy-2.0.0-candidate",
+        "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+        "rank": 3,
+        "reasons": [],
+        "score_fingerprint": "sha256:4d1aecb14658cd7b0781dea268c27a1302d4f9007e9f9c30fb7d9ee1d16aa451",
+        "support_plan": {
+          "available": true,
+          "candidates": [
+            {
+              "distance_pct": 2.782,
+              "level": 34.1597,
+              "source": "EMA21"
+            },
+            {
+              "distance_pct": 2.862,
+              "level": 34.1329,
+              "source": "EMA200"
+            },
+            {
+              "distance_pct": 3.178,
+              "level": 34.0285,
+              "source": "EMA50"
+            },
+            {
+              "distance_pct": 5.913,
+              "level": 33.15,
+              "source": "confirmed-swing-low"
+            },
+            {
+              "distance_pct": 12.713,
+              "level": 31.15,
+              "source": "prior-20D-low"
+            }
+          ],
+          "level": 34.1597,
+          "max_loss_pct": 10,
+          "signal_close": 35.11,
+          "source": "EMA21",
+          "structural_stop": 32.4517,
+          "support_buffer_pct": 5,
+          "volume_profile": {
+            "available": true,
+            "bins": 40,
+            "concentrated": true,
+            "distance_pct": 8.0945,
+            "hit": false,
+            "level": 32.480833,
+            "lookback_sessions": 250,
+            "near_price": false,
+            "peak_share": 0.080129,
+            "pulled_back": true
+          }
+        },
+        "technical_score": 22.3958,
+        "timeframe_scores": {
+          "daily": 31.25,
+          "monthly_completed": 18.75,
+          "weekly_completed": 23.4375
+        }
+      },
+      "signal_date": "2026-02-11",
+      "symbol": "AR"
+    },
+    {
+      "event_id": "CR056-SGML-2026-02-12",
+      "selection": {
+        "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+        "model_version": "cr056-policy-2.0.0-candidate",
+        "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+        "rank": 1,
+        "reasons": [],
+        "score_fingerprint": "sha256:786290a3aba105c031304fd5b6507cad658d1f297dea671405143522db86d820",
+        "support_plan": {
+          "available": true,
+          "candidates": [
+            {
+              "distance_pct": 4.083,
+              "level": 12.6726,
+              "source": "EMA21"
+            },
+            {
+              "distance_pct": 8.952,
+              "level": 12.1063,
+              "source": "EMA50"
+            },
+            {
+              "distance_pct": 14.199,
+              "level": 11.55,
+              "source": "confirmed-swing-low"
+            },
+            {
+              "distance_pct": 23.85,
+              "level": 10.65,
+              "source": "prior-20D-low"
+            }
+          ],
+          "level": 12.6726,
+          "max_loss_pct": 10,
+          "signal_close": 13.19,
+          "source": "EMA21",
+          "structural_stop": 12.039,
+          "support_buffer_pct": 5,
+          "volume_profile": {
+            "available": true,
+            "bins": 40,
+            "concentrated": true,
+            "distance_pct": 120.7224,
+            "hit": false,
+            "level": 5.975833,
+            "lookback_sessions": 250,
+            "near_price": false,
+            "peak_share": 0.084602,
+            "pulled_back": true
+          }
+        },
+        "technical_score": 26.5625,
+        "timeframe_scores": {
+          "daily": 37.5,
+          "monthly_completed": 37.5,
+          "weekly_completed": 4.6875
+        }
+      },
+      "signal_date": "2026-02-12",
+      "symbol": "SGML"
+    },
+    {
+      "event_id": "CR056-WEX-2026-02-18",
+      "selection": {
+        "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+        "model_version": "cr056-policy-2.0.0-candidate",
+        "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+        "rank": 1,
+        "reasons": [],
+        "score_fingerprint": "sha256:fb11b82f55928a2e91f603d0d240e625be6ce1edb8da45fa35c555fe45bbe162",
+        "support_plan": {
+          "available": true,
+          "candidates": [
+            {
+              "distance_pct": 1.509,
+              "level": 156.6258,
+              "source": "EMA21"
+            },
+            {
+              "distance_pct": 1.6,
+              "level": 156.487,
+              "source": "EMA200"
+            },
+            {
+              "distance_pct": 2.158,
+              "level": 155.6315,
+              "source": "volume-profile-poc"
+            },
+            {
+              "distance_pct": 2.419,
+              "level": 155.2351,
+              "source": "EMA50"
+            },
+            {
+              "distance_pct": 5.291,
+              "level": 151.0,
+              "source": "confirmed-swing-low"
+            },
+            {
+              "distance_pct": 12.095,
+              "level": 141.835,
+              "source": "prior-20D-low"
+            }
+          ],
+          "level": 156.6258,
+          "max_loss_pct": 10,
+          "signal_close": 158.99,
+          "source": "EMA21",
+          "structural_stop": 148.7945,
+          "support_buffer_pct": 5,
+          "volume_profile": {
+            "available": true,
+            "bins": 40,
+            "concentrated": true,
+            "distance_pct": 2.158,
+            "hit": true,
+            "level": 155.631458,
+            "lookback_sessions": 250,
+            "near_price": true,
+            "peak_share": 0.090237,
+            "pulled_back": true
+          }
+        },
+        "technical_score": 41.6667,
+        "timeframe_scores": {
+          "daily": 62.5,
+          "monthly_completed": 37.5,
+          "weekly_completed": 37.5
+        }
+      },
+      "signal_date": "2026-02-18",
+      "symbol": "WEX"
+    },
+    {
+      "event_id": "CR056-ELV-2026-02-18",
+      "selection": {
+        "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+        "model_version": "cr056-policy-2.0.0-candidate",
+        "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+        "rank": 2,
+        "reasons": [],
+        "score_fingerprint": "sha256:62872695b424df0b9cb779a7dd8db430a8c193afcf192109a29d1fe010e11a54",
+        "support_plan": {
+          "available": true,
+          "candidates": [
+            {
+              "distance_pct": 0.034,
+              "level": 341.1233,
+              "source": "EMA50"
+            },
+            {
+              "distance_pct": 0.52,
+              "level": 339.4743,
+              "source": "EMA21"
+            },
+            {
+              "distance_pct": 7.096,
+              "level": 318.6303,
+              "source": "confirmed-swing-low"
+            },
+            {
+              "distance_pct": 9.757,
+              "level": 310.9035,
+              "source": "prior-20D-low"
+            }
+          ],
+          "level": 341.1233,
+          "max_loss_pct": 10,
+          "signal_close": 341.2389,
+          "source": "EMA50",
+          "structural_stop": 324.0671,
+          "support_buffer_pct": 5,
+          "volume_profile": {
+            "available": true,
+            "bins": 40,
+            "concentrated": true,
+            "distance_pct": -6.8158,
+            "hit": false,
+            "level": 366.198358,
+            "lookback_sessions": 250,
+            "near_price": false,
+            "peak_share": 0.067444,
+            "pulled_back": true
+          }
+        },
+        "technical_score": 33.8542,
+        "timeframe_scores": {
+          "daily": 62.5,
+          "monthly_completed": 18.75,
+          "weekly_completed": 42.1875
+        }
+      },
+      "signal_date": "2026-02-18",
+      "symbol": "ELV"
+    },
+    {
+      "event_id": "CR056-VCEL-2026-02-18",
+      "selection": {
+        "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+        "model_version": "cr056-policy-2.0.0-candidate",
+        "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+        "rank": 3,
+        "reasons": [],
+        "score_fingerprint": "sha256:58d12b234909fd62bc921bc54819262516a101a3871edd934e53884ca233656d",
+        "support_plan": {
+          "available": true,
+          "candidates": [
+            {
+              "distance_pct": 1.629,
+              "level": 36.8103,
+              "source": "EMA50"
+            },
+            {
+              "distance_pct": 2.74,
+              "level": 36.4123,
+              "source": "EMA21"
+            },
+            {
+              "distance_pct": 11.406,
+              "level": 33.58,
+              "source": "prior-20D-low"
+            },
+            {
+              "distance_pct": 11.406,
+              "level": 33.58,
+              "source": "confirmed-swing-low"
+            }
+          ],
+          "level": 36.8103,
+          "max_loss_pct": 10,
+          "signal_close": 37.41,
+          "source": "EMA50",
+          "structural_stop": 34.9698,
+          "support_buffer_pct": 5,
+          "volume_profile": {
+            "available": true,
+            "bins": 40,
+            "concentrated": true,
+            "distance_pct": 3.0292,
+            "hit": false,
+            "level": 36.310083,
+            "lookback_sessions": 250,
+            "near_price": false,
+            "peak_share": 0.141839,
+            "pulled_back": true
+          }
+        },
+        "technical_score": 30.7292,
+        "timeframe_scores": {
+          "daily": 53.125,
+          "monthly_completed": 25.0,
+          "weekly_completed": 28.125
+        }
+      },
+      "signal_date": "2026-02-18",
+      "symbol": "VCEL"
+    },
+    {
+      "event_id": "CR056-DOC-2026-02-19",
+      "selection": {
+        "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+        "model_version": "cr056-policy-2.0.0-candidate",
+        "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+        "rank": 1,
+        "reasons": [],
+        "score_fingerprint": "sha256:6827aee8f812a61e6117dddad5188632acd2d6baaa3833f50fda6a691d1f4729",
+        "support_plan": {
+          "available": true,
+          "candidates": [
+            {
+              "distance_pct": 0.905,
+              "level": 16.3822,
+              "source": "EMA50"
+            },
+            {
+              "distance_pct": 0.942,
+              "level": 16.3762,
+              "source": "EMA21"
+            },
+            {
+              "distance_pct": 6.039,
+              "level": 15.5891,
+              "source": "prior-20D-low"
+            },
+            {
+              "distance_pct": 6.039,
+              "level": 15.5891,
+              "source": "confirmed-swing-low"
+            }
+          ],
+          "level": 16.3822,
+          "max_loss_pct": 10,
+          "signal_close": 16.5305,
+          "source": "EMA50",
+          "structural_stop": 15.5631,
+          "support_buffer_pct": 5,
+          "volume_profile": {
+            "available": true,
+            "bins": 40,
+            "concentrated": true,
+            "distance_pct": 4.2056,
+            "hit": false,
+            "level": 15.863353,
+            "lookback_sessions": 250,
+            "near_price": false,
+            "peak_share": 0.073801,
+            "pulled_back": true
+          }
+        },
+        "technical_score": 44.7917,
+        "timeframe_scores": {
+          "daily": 62.5,
+          "monthly_completed": 56.25,
+          "weekly_completed": 18.75
+        }
+      },
+      "signal_date": "2026-02-19",
+      "symbol": "DOC"
+    },
+    {
+      "event_id": "CR056-MRNA-2026-02-19",
+      "selection": {
+        "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+        "model_version": "cr056-policy-2.0.0-candidate",
+        "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+        "rank": 2,
+        "reasons": [],
+        "score_fingerprint": "sha256:87b234b50924403d0ad5791278b32c86a3f2c42333f067d45e6cbf9ab6a7a98d",
+        "support_plan": {
+          "available": true,
+          "candidates": [
+            {
+              "distance_pct": 35.589,
+              "level": 36.655,
+              "source": "prior-20D-low"
+            },
+            {
+              "distance_pct": 35.589,
+              "level": 36.655,
+              "source": "confirmed-swing-low"
+            }
+          ],
+          "level": 36.655,
+          "max_loss_pct": 10,
+          "signal_close": 49.7,
+          "source": "prior-20D-low",
+          "structural_stop": 34.8222,
+          "support_buffer_pct": 5,
+          "volume_profile": {
+            "available": true,
+            "bins": 40,
+            "concentrated": true,
+            "distance_pct": 82.6638,
+            "hit": false,
+            "level": 27.208458,
+            "lookback_sessions": 250,
+            "near_price": false,
+            "peak_share": 0.114234,
+            "pulled_back": true
+          }
+        },
+        "technical_score": 33.3333,
+        "timeframe_scores": {
+          "daily": 12.5,
+          "monthly_completed": 56.25,
+          "weekly_completed": 9.375
+        }
+      },
+      "signal_date": "2026-02-19",
+      "symbol": "MRNA"
+    },
+    {
+      "event_id": "CR056-CNC-2026-02-19",
+      "selection": {
+        "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+        "model_version": "cr056-policy-2.0.0-candidate",
+        "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+        "rank": 3,
+        "reasons": [],
+        "score_fingerprint": "sha256:752c8a778daca1fbd4429459b6971cfa7b39868a7f3b6fe2c63ecb1676171b86",
+        "support_plan": {
+          "available": true,
+          "candidates": [
+            {
+              "distance_pct": 2.319,
+              "level": 42.6898,
+              "source": "EMA200"
+            },
+            {
+              "distance_pct": 4.387,
+              "level": 41.8441,
+              "source": "EMA21"
+            },
+            {
+              "distance_pct": 5.339,
+              "level": 41.4661,
+              "source": "EMA50"
+            },
+            {
+              "distance_pct": 12.432,
+              "level": 38.85,
+              "source": "confirmed-swing-low"
+            },
+            {
+              "distance_pct": 21.131,
+              "level": 36.06,
+              "source": "prior-20D-low"
+            }
+          ],
+          "level": 42.6898,
+          "max_loss_pct": 10,
+          "signal_close": 43.68,
+          "source": "EMA200",
+          "structural_stop": 40.5553,
+          "support_buffer_pct": 5,
+          "volume_profile": {
+            "available": true,
+            "bins": 40,
+            "concentrated": true,
+            "distance_pct": 23.5085,
+            "hit": false,
+            "level": 35.366,
+            "lookback_sessions": 250,
+            "near_price": false,
+            "peak_share": 0.088986,
+            "pulled_back": true
+          }
+        },
+        "technical_score": 28.125,
+        "timeframe_scores": {
+          "daily": 37.5,
+          "monthly_completed": 31.25,
+          "weekly_completed": 18.75
+        }
+      },
+      "signal_date": "2026-02-19",
+      "symbol": "CNC"
+    },
+    {
+      "event_id": "CR056-GKOS-2026-02-20",
+      "selection": {
+        "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+        "model_version": "cr056-policy-2.0.0-candidate",
+        "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+        "rank": 1,
+        "reasons": [],
+        "score_fingerprint": "sha256:dae3bdc09b8592811c4e5fb5b8d03a790484b18bccac33a54d1850b9efb3885b",
+        "support_plan": {
+          "available": true,
+          "candidates": [
+            {
+              "distance_pct": 4.64,
+              "level": 114.9367,
+              "source": "EMA21"
+            },
+            {
+              "distance_pct": 7.139,
+              "level": 112.2565,
+              "source": "EMA50"
+            },
+            {
+              "distance_pct": 16.147,
+              "level": 103.55,
+              "source": "prior-20D-low"
+            },
+            {
+              "distance_pct": 16.147,
+              "level": 103.55,
+              "source": "confirmed-swing-low"
+            }
+          ],
+          "level": 114.9367,
+          "max_loss_pct": 10,
+          "signal_close": 120.27,
+          "source": "EMA21",
+          "structural_stop": 109.1899,
+          "support_buffer_pct": 5,
+          "volume_profile": {
+            "available": true,
+            "bins": 40,
+            "concentrated": true,
+            "distance_pct": 33.8683,
+            "hit": false,
+            "level": 89.842,
+            "lookback_sessions": 250,
+            "near_price": false,
+            "peak_share": 0.066488,
+            "pulled_back": true
+          }
+        },
+        "technical_score": 31.25,
+        "timeframe_scores": {
+          "daily": 43.75,
+          "monthly_completed": 31.25,
+          "weekly_completed": 25.0
+        }
+      },
+      "signal_date": "2026-02-20",
+      "symbol": "GKOS"
+    },
+    {
+      "event_id": "CR056-NVAX-2026-02-23",
+      "selection": {
+        "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+        "model_version": "cr056-policy-2.0.0-candidate",
+        "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+        "rank": 1,
+        "reasons": [],
+        "score_fingerprint": "sha256:3e5d3345703230efd40b115e7576ce8eb833504843bc920c6f0d5d0db5228cc9",
+        "support_plan": {
+          "available": true,
+          "candidates": [
+            {
+              "distance_pct": 7.19,
+              "level": 8.7321,
+              "source": "EMA21"
+            },
+            {
+              "distance_pct": 13.455,
+              "level": 8.25,
+              "source": "confirmed-swing-low"
+            },
+            {
+              "distance_pct": 19.388,
+              "level": 7.84,
+              "source": "prior-20D-low"
+            }
+          ],
+          "level": 8.7321,
+          "max_loss_pct": 10,
+          "signal_close": 9.36,
+          "source": "EMA21",
+          "structural_stop": 8.2955,
+          "support_buffer_pct": 5,
+          "volume_profile": {
+            "available": true,
+            "bins": 40,
+            "concentrated": true,
+            "distance_pct": 19.1832,
+            "hit": false,
+            "level": 7.853458,
+            "lookback_sessions": 250,
+            "near_price": false,
+            "peak_share": 0.084313,
+            "pulled_back": true
+          }
+        },
+        "technical_score": 33.0729,
+        "timeframe_scores": {
+          "daily": 45.3125,
+          "monthly_completed": 25.0,
+          "weekly_completed": 39.0625
+        }
+      },
+      "signal_date": "2026-02-23",
+      "symbol": "NVAX"
+    },
+    {
+      "event_id": "CR056-DNLI-2026-02-25",
+      "selection": {
+        "execution_policy_version": "support-5pct-cap-10pct-2r-v1",
+        "model_version": "cr056-policy-2.0.0-candidate",
+        "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+        "rank": 1,
+        "reasons": [],
+        "score_fingerprint": "sha256:8fdaf1d8e8a9b94881c09798318bb4f68ba330f7c2dc333681c100140a478ccb",
+        "support_plan": {
+          "available": true,
+          "candidates": [
+            {
+              "distance_pct": 9.946,
+              "level": 20.2736,
+              "source": "EMA21"
+            },
+            {
+              "distance_pct": 19.774,
+              "level": 18.61,
+              "source": "prior-20D-low"
+            },
+            {
+              "distance_pct": 19.774,
+              "level": 18.61,
+              "source": "confirmed-swing-low"
+            }
+          ],
+          "level": 20.2736,
+          "max_loss_pct": 10,
+          "signal_close": 22.29,
+          "source": "EMA21",
+          "structural_stop": 19.2599,
+          "support_buffer_pct": 5,
+          "volume_profile": {
+            "available": true,
+            "bins": 40,
+            "concentrated": true,
+            "distance_pct": 56.7589,
+            "hit": false,
+            "level": 14.219292,
+            "lookback_sessions": 250,
+            "near_price": false,
+            "peak_share": 0.089835,
+            "pulled_back": true
+          }
+        },
+        "technical_score": 35.4167,
+        "timeframe_scores": {
+          "daily": 25.0,
+          "monthly_completed": 43.75,
+          "weekly_completed": 28.125
+        }
+      },
+      "signal_date": "2026-02-25",
+      "symbol": "DNLI"
+    }
+  ],
+  "future_data_used": false,
+  "policy": "cr056-policy-2.0.0-candidate",
+  "policy_fingerprint": "sha256:d2b2bc0ca7da5c3fcde3266ecfbb0d61deea3ace2ff5169761e86a20a45b2f6c",
+  "sessions": [
+    "2026-02-02",
+    "2026-02-03",
+    "2026-02-04",
+    "2026-02-05",
+    "2026-02-06",
+    "2026-02-09",
+    "2026-02-10",
+    "2026-02-11",
+    "2026-02-12",
+    "2026-02-13",
+    "2026-02-17",
+    "2026-02-18",
+    "2026-02-19",
+    "2026-02-20",
+    "2026-02-23",
+    "2026-02-24",
+    "2026-02-25",
+    "2026-02-26",
+    "2026-02-27"
+  ],
+  "symbols": [
+    "ANF",
+    "AR",
+    "BMRN",
+    "CNC",
+    "COO",
+    "DNLI",
+    "DOC",
+    "ELV",
+    "GKOS",
+    "MRNA",
+    "MXL",
+    "NVAX",
+    "PNFP",
+    "REGN",
+    "SBUX",
+    "SGML",
+    "VCEL",
+    "WEX"
+  ]
+}

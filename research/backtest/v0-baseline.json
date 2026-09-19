@@ -1,0 +1,15 @@
+{
+  "content_sha256": "6fe1d04901b0615dd2c29cc9877493fdd4f1cd85eb1d074792c7f23e2ce7fc32",
+  "historical_comparisons_only": [
+    "34240123213-1",
+    "35064720576-1",
+    "35411630136-1"
+  ],
+  "holding_research_status": "resumed_no_new_account_parameters",
+  "price_version": "sha256:c287c7b91604d5881e04e5929cf55b848550febd17603284b7d45eed96220a7a",
+  "receipt": "research/backtest/output/v0-baseline/35415051176-1/receipt.json",
+  "run": "35415051176-1",
+  "scope": "V0_frozen_18_stock_2026_02_only_not_M10_production",
+  "status": "accepted",
+  "supersedes_old_accounts_as_baseline": true
+}
