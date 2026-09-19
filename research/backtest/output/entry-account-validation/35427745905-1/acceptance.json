@@ -1,0 +1,56 @@
+{
+  "book_checks": {
+    "checks": [
+      "cloud artifact hashes",
+      "strict AB inputs",
+      "signal/support/execution/account bindings",
+      "actual daily ledger and fees",
+      "fill-relative holding count",
+      "P&L attribution sum",
+      "identical path before first monthly divergence"
+    ],
+    "closed_trades_fill_clock_checked": 1662,
+    "monthly_terminal_states": {
+      "CLOSED": 71,
+      "INVALIDATED": 2,
+      "ORDER_REJECTED": 27
+    },
+    "pnl_difference": 10926.23169498361,
+    "price_version": "sha256:a98e4afd03985acd275f1272f50151dd33a9ec696bdd0b1183a11d54cf27f257",
+    "run": "35427745905-1",
+    "status": "passed"
+  },
+  "cloud_tests": {
+    "account_and_identity": 45,
+    "observation": 22
+  },
+  "computation_commit": "32b715022ee216a7d24b96b47b63de3067e79696",
+  "decision": "KEEP AS CHALLENGER / NEED MORE DATA",
+  "files": {
+    "A-book.json.gz": "3ea1879a544fca0a50c320ff5b11af064833bccf72481862343c7bb602baf279",
+    "B-book.json.gz": "8e034e6348324a744f2ce2ff12776239b38edae4c9d72e6237d789ec611b9d3b",
+    "README.md": "7b65219406283d336318ab34274619a39659039fb209e2e7128e5ecc0cb13f38",
+    "all-trade-attribution.csv": "8e7ed446807a9b29bd8ff4d35ff7d715b174e719ec6abf5b09cf958bda0e8924",
+    "comparison.json.gz": "31e5b9a485baaf060eb0e8b71eb8a109027488cd86f92b8a9ab21b9a194100e5",
+    "daily-comparison.csv": "995b697d1a7a86bbe06ac34023fd484d71068146764ee5da25e13113d5086a26",
+    "decision.json": "809bca8782f6d06086583958cc01f06e9715845a447e3c5d0b857a341a0fa931",
+    "manifest.json": "9cc8f78d00df01d63f16ae67a2f10b88bc6299728544dad69b2b61a829297ff4",
+    "monthly-attribution.csv": "74a27ced4bd774508b47b0a0acf421ded088ce8bfa8554756fc168d76c273e7e",
+    "monthly-lifecycle.json": "46526f3bd4d79e40ce8f08226b39ae791094f592d8dceff01beba71246562b65",
+    "price-manifest.json": "1d3b897dbf26364ac0d3573bf3a56385fba6f842c3077db9d331d9b9dfda6ce7",
+    "summary.json": "0914dfa05480de460a35df0cf471f3c73044a9b51ad001b3a43e78103fe061fb",
+    "verification.json": "de728d0c9ed40de1ffea67669eccbd9f91d602b49cb00bbae21bcb05c8a81657",
+    "完整报表.md": "bdec7c2d8e3141e350bcc9c9b63e340a05cb67d65133ce16c519677ff0f98be2",
+    "月线逐笔.csv": "acd85a7670281b3a5e4535c9bcd9a6cd74c4f90e422a89b33e8b62a5f67d16d6",
+    "结论.md": "6481c234cdf08c1939a69106943e8d5e9156a3cee8d7c4e3e8f45c9d7d81c700"
+  },
+  "formal_v0_parity": {
+    "all_daily_equity_unchanged": true,
+    "ending_equity": 101993.95937717063
+  },
+  "local_focused_tests": 9,
+  "production_changed": false,
+  "run": "35427745905-1",
+  "status": "completed_and_verified",
+  "workflow_contract_tests": 5
+}

@@ -1,0 +1,14 @@
+{
+  "files": {
+    "A-book.json.gz": "3ea1879a544fca0a50c320ff5b11af064833bccf72481862343c7bb602baf279",
+    "B-book.json.gz": "8e034e6348324a744f2ce2ff12776239b38edae4c9d72e6237d789ec611b9d3b",
+    "all-trade-attribution.csv": "8e7ed446807a9b29bd8ff4d35ff7d715b174e719ec6abf5b09cf958bda0e8924",
+    "comparison.json.gz": "31e5b9a485baaf060eb0e8b71eb8a109027488cd86f92b8a9ab21b9a194100e5",
+    "daily-comparison.csv": "995b697d1a7a86bbe06ac34023fd484d71068146764ee5da25e13113d5086a26",
+    "monthly-attribution.csv": "74a27ced4bd774508b47b0a0acf421ded088ce8bfa8554756fc168d76c273e7e",
+    "price-manifest.json": "1d3b897dbf26364ac0d3573bf3a56385fba6f842c3077db9d331d9b9dfda6ce7",
+    "summary.json": "0914dfa05480de460a35df0cf471f3c73044a9b51ad001b3a43e78103fe061fb"
+  },
+  "price_version": "sha256:a98e4afd03985acd275f1272f50151dd33a9ec696bdd0b1183a11d54cf27f257",
+  "run": "35427745905-1"
+}

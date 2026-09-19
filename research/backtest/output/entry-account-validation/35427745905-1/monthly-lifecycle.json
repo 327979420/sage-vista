@@ -1,0 +1,4392 @@
+[
+  {
+    "event_id": "e16ad5580addbfcf730b7d761f7a16acfe058f15753eae8318d7f9afb8ac056f",
+    "events": [
+      {
+        "date": "2005-10-10",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2005-10-10",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2005-10-10",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2005-10-14",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2005-10-14",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2005-10-17",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2005-11-02",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2005-11-02",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "LGND"
+  },
+  {
+    "event_id": "b7df5d03845939f7a81551566c96915098c4ee3b31f9713f7684e3957ecf5a8f",
+    "events": [
+      {
+        "date": "2006-02-03",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2006-02-03",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2006-02-03",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2006-03-24",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2006-03-24",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2006-03-27",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2006-03-31",
+        "reason": "target",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2006-03-31",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "TSM"
+  },
+  {
+    "event_id": "47b948a88d88fc4e04f645c42e1bf9fa1e29038fc61e9525d12a64d0d3758790",
+    "events": [
+      {
+        "date": "2006-09-08",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2006-09-08",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2006-09-08",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2007-04-11",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2007-04-11",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2007-04-12",
+        "reason": "position_limit",
+        "state": "ORDER_REJECTED"
+      }
+    ],
+    "terminal_state": "ORDER_REJECTED",
+    "ticker": "AGCO"
+  },
+  {
+    "event_id": "e1e0a1ca97f575bb8b6eae0a7c90ecd1a101e29b57fa6444941d86f5d78242fe",
+    "events": [
+      {
+        "date": "2006-11-03",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2006-11-03",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2006-11-03",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2006-11-22",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2006-11-22",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2006-11-24",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2007-01-24",
+        "reason": "time_40d",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2007-01-24",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "EAT"
+  },
+  {
+    "event_id": "12641688e88f9535c1b111633b6ec518a5166c1c5d60f568d7c9348136accce1",
+    "events": [
+      {
+        "date": "2007-05-21",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2007-05-21",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2007-05-21",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2007-06-20",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2007-06-20",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2007-06-21",
+        "reason": "entry_at_or_below_planned_stop",
+        "state": "ORDER_REJECTED"
+      }
+    ],
+    "terminal_state": "ORDER_REJECTED",
+    "ticker": "PRMB"
+  },
+  {
+    "event_id": "624cad9e91b54c043731123d3af486f3d1fbc7347064a222386ea0474f6db1df",
+    "events": [
+      {
+        "date": "2007-07-17",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2007-07-17",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2007-07-17",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2007-08-24",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2007-08-24",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2007-08-27",
+        "reason": "entry_at_or_below_planned_stop",
+        "state": "ORDER_REJECTED"
+      }
+    ],
+    "terminal_state": "ORDER_REJECTED",
+    "ticker": "WMT"
+  },
+  {
+    "event_id": "d357d3b0b6550f1bfdef49cfa5a9268ba91bbdc331207aeaf65f9816aade62a1",
+    "events": [
+      {
+        "date": "2007-07-31",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2007-07-31",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2007-07-31",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2007-08-24",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2007-08-24",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2007-08-27",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2007-10-22",
+        "reason": "time_40d",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2007-10-22",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "PAYX"
+  },
+  {
+    "event_id": "1e60f9b017ad48c21a724eb2d4b46186ccfcb80fa70dc67fa8347cb0841db641",
+    "events": [
+      {
+        "date": "2007-08-03",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2007-08-03",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2007-08-03",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2007-08-06",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2007-08-06",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2007-08-07",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2007-09-12",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2007-09-12",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "LUV"
+  },
+  {
+    "event_id": "c2fc2b0f40b4ccdac076dabc2de316d236bd01291e6a2535139748e4dd94081a",
+    "events": [
+      {
+        "date": "2008-02-06",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2008-02-06",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2008-02-06",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2008-02-15",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2008-02-15",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2008-02-19",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2008-02-25",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2008-02-25",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "DKS"
+  },
+  {
+    "event_id": "f8a3c4946a50487fd65a4766b49bff939e3585faacfebaeb384d1334d1f50f81",
+    "events": [
+      {
+        "date": "2008-05-20",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2008-05-20",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2008-05-20",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2008-06-13",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2008-06-13",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2008-06-16",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2008-06-20",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2008-06-20",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "HRB"
+  },
+  {
+    "event_id": "710fdb31335f71e459c12bb2e7697d9877df7e0bdda1165a7fa6ee5832025545",
+    "events": [
+      {
+        "date": "2008-08-12",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2008-08-12",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2008-08-12",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2008-09-05",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2008-09-05",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2008-09-08",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2008-09-10",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2008-09-10",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "VLY"
+  },
+  {
+    "event_id": "41e226ce07c2d2c16cb37e8880c8f275f93c745a0754351f735ee11ed87f3651",
+    "events": [
+      {
+        "date": "2009-03-31",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2009-03-31",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2009-03-31",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2009-04-21",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2009-04-21",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2009-04-22",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2009-04-30",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2009-04-30",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "MTZ"
+  },
+  {
+    "event_id": "d6231ab429cf8db3a39cd71d8dc643498181095ad2a6921d306a436f2d9dccd0",
+    "events": [
+      {
+        "date": "2009-05-29",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2009-05-29",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2009-05-29",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2009-06-25",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2009-06-25",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2009-06-26",
+        "reason": "cash_or_whole_share_insufficient",
+        "state": "ORDER_REJECTED"
+      }
+    ],
+    "terminal_state": "ORDER_REJECTED",
+    "ticker": "CAKE"
+  },
+  {
+    "event_id": "d52db91fbbe7669a0d0667a2a391bfdc3c4658a69fa591aaeb400eaa598f79d9",
+    "events": [
+      {
+        "date": "2009-07-06",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2009-07-06",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2009-07-06",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2009-08-13",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2009-08-13",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2009-08-14",
+        "reason": "position_limit",
+        "state": "ORDER_REJECTED"
+      }
+    ],
+    "terminal_state": "ORDER_REJECTED",
+    "ticker": "TER"
+  },
+  {
+    "event_id": "7ea08f73a467102e93d2aa5ce7ec7f347ab4a2b8f47a9b1340770bdf581bae4a",
+    "events": [
+      {
+        "date": "2009-08-05",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2009-08-05",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2009-08-05",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2009-08-19",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2009-08-19",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2009-08-20",
+        "reason": "position_limit",
+        "state": "ORDER_REJECTED"
+      }
+    ],
+    "terminal_state": "ORDER_REJECTED",
+    "ticker": "ALV"
+  },
+  {
+    "event_id": "39647f83806b59a8605d470f2e9ca1f72be34f99255570f73bfbd2589eef8cc2",
+    "events": [
+      {
+        "date": "2009-08-06",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2009-08-06",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2009-08-06",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2009-08-31",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2009-08-31",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2009-09-01",
+        "reason": "position_limit",
+        "state": "ORDER_REJECTED"
+      }
+    ],
+    "terminal_state": "ORDER_REJECTED",
+    "ticker": "EHC"
+  },
+  {
+    "event_id": "7418806c83faf4e51ded1803790260cda9a3a474aa534990f8675c7044ed866c",
+    "events": [
+      {
+        "date": "2009-08-06",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2009-08-06",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2009-08-06",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2009-08-18",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2009-08-18",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2009-08-19",
+        "reason": "position_limit",
+        "state": "ORDER_REJECTED"
+      }
+    ],
+    "terminal_state": "ORDER_REJECTED",
+    "ticker": "SLF"
+  },
+  {
+    "event_id": "1335d95f8b2988b701c0ffae144b883935a6462e0b79af7fe5c5110bd67934de",
+    "events": [
+      {
+        "date": "2009-08-10",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2009-08-10",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2009-08-10",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2009-09-04",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2009-09-04",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2009-09-08",
+        "reason": "position_limit",
+        "state": "ORDER_REJECTED"
+      }
+    ],
+    "terminal_state": "ORDER_REJECTED",
+    "ticker": "LEN"
+  },
+  {
+    "event_id": "024dae87f5b2502b44888b664312d3614b5a608a75a2987af7f1c511609d5412",
+    "events": [
+      {
+        "date": "2009-08-11",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2009-08-11",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2009-08-11",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2009-08-19",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2009-08-19",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2009-08-20",
+        "reason": "position_limit",
+        "state": "ORDER_REJECTED"
+      }
+    ],
+    "terminal_state": "ORDER_REJECTED",
+    "ticker": "AES"
+  },
+  {
+    "event_id": "8a45a54865cce181e52697e7cead6ea6aa55dcd36a653a28ae1123e1abeda729",
+    "events": [
+      {
+        "date": "2009-08-14",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2009-08-14",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2009-08-14",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2009-09-03",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2009-09-03",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2009-09-04",
+        "reason": "position_limit",
+        "state": "ORDER_REJECTED"
+      }
+    ],
+    "terminal_state": "ORDER_REJECTED",
+    "ticker": "CACI"
+  },
+  {
+    "event_id": "5758d817ae63d897cb8157a00de26e86faa76b3dfd6afdd779cf7535961501c6",
+    "events": [
+      {
+        "date": "2009-08-26",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2009-08-26",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2009-08-26",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2009-09-03",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2009-09-03",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2009-09-04",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2009-10-30",
+        "reason": "time_40d",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2009-10-30",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "SJM"
+  },
+  {
+    "event_id": "088bbead26cbfaa3900536a14359b6f96782db19db97ea9632f7f51dfb2446b1",
+    "events": [
+      {
+        "date": "2009-09-11",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2009-09-11",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2009-09-11",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2009-11-23",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2009-11-23",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2009-11-24",
+        "reason": "entry_at_or_below_planned_stop",
+        "state": "ORDER_REJECTED"
+      }
+    ],
+    "terminal_state": "ORDER_REJECTED",
+    "ticker": "CX"
+  },
+  {
+    "event_id": "3f331040d60e1fbd291c41bfce7f64e7bb5876675d7c5bd6c420316b8ad7b951",
+    "events": [
+      {
+        "date": "2009-09-24",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2009-09-24",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2009-09-24",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2009-10-05",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2009-10-05",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2009-10-06",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2009-12-01",
+        "reason": "time_40d",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2009-12-01",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "IFF"
+  },
+  {
+    "event_id": "364ee9d35629b626561acb08206594bf59bfffc9fa730650b19151bc626ef939",
+    "events": [
+      {
+        "date": "2009-09-30",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2009-09-30",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2009-09-30",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2009-12-11",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2009-12-11",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2009-12-14",
+        "reason": "entry_at_or_below_planned_stop",
+        "state": "ORDER_REJECTED"
+      }
+    ],
+    "terminal_state": "ORDER_REJECTED",
+    "ticker": "BYD"
+  },
+  {
+    "event_id": "febeebeeaf9e66c7a2dafd137ee2549fc4d28684a14624b94b3f38d57495140c",
+    "events": [
+      {
+        "date": "2009-09-30",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2009-09-30",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2009-09-30",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2009-10-02",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2009-10-02",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2009-10-05",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2009-11-30",
+        "reason": "time_40d",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2009-11-30",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "CLP"
+  },
+  {
+    "event_id": "f04e26042d70c8a63ef90891f480f6c94adc0daf920b0a58b3405be4382176f0",
+    "events": [
+      {
+        "date": "2009-10-05",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2009-10-05",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2009-10-05",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2009-10-05",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2009-10-05",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2009-10-06",
+        "reason": "position_limit",
+        "state": "ORDER_REJECTED"
+      }
+    ],
+    "terminal_state": "ORDER_REJECTED",
+    "ticker": "HMY"
+  },
+  {
+    "event_id": "445aba26fca290c4b56a00593c21611586b4c566e885e491f1bd00795593b22f",
+    "events": [
+      {
+        "date": "2009-10-07",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2009-10-07",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2009-10-07",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2009-10-29",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2009-10-29",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2009-10-30",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2009-12-28",
+        "reason": "time_40d",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2009-12-28",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "CAT"
+  },
+  {
+    "event_id": "1ba25a656da5ef805e2c1fc256d0f0f2918465fd75072493504942407b60f0fb",
+    "events": [
+      {
+        "date": "2009-10-08",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2009-10-08",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2009-10-08",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2009-10-15",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2009-10-15",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2009-10-16",
+        "reason": "position_limit",
+        "state": "ORDER_REJECTED"
+      }
+    ],
+    "terminal_state": "ORDER_REJECTED",
+    "ticker": "INCY"
+  },
+  {
+    "event_id": "2cce405929b1e8d51c86edbd2695bd3059ed269fd1e62b0914f47255145d2188",
+    "events": [
+      {
+        "date": "2009-10-08",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2009-10-08",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2009-10-08",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2010-02-25",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2010-02-25",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2010-02-26",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2010-04-22",
+        "reason": "target",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2010-04-22",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "RJF"
+  },
+  {
+    "event_id": "bfb248307cd2b61d426870e46a8b936e47bfc8616d90933218c75778b4abc8df",
+    "events": [
+      {
+        "date": "2009-10-30",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2009-10-30",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2009-10-30",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2009-11-30",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2009-11-30",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2009-12-01",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2010-01-28",
+        "reason": "time_40d",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2010-01-28",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "AKAM"
+  },
+  {
+    "event_id": "6afae4ee351be2691a761fa3f364289d1ce29988c57f1d233ddbadd6e171691c",
+    "events": [
+      {
+        "date": "2011-01-07",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2011-01-07",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2011-01-07",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2011-02-16",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2011-02-16",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2011-02-17",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2011-03-11",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2011-03-11",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "NYT"
+  },
+  {
+    "event_id": "52095235e0ae274d1f8d6fccf47c05a6b679d4f0eacde0d22458f08eeddc17cc",
+    "events": [
+      {
+        "date": "2012-01-12",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2012-01-12",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2012-01-12",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2012-02-23",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2012-02-23",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2012-02-24",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2012-03-05",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2012-03-05",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "WNC"
+  },
+  {
+    "event_id": "3a594d0ab106e01b0757a399d0b177826beb4ad0d058ec254d2ac13227ae1ae4",
+    "events": [
+      {
+        "date": "2012-02-21",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2012-02-21",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2012-02-21",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2012-03-07",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2012-03-07",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2012-03-08",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2012-03-23",
+        "reason": "stop_gap",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2012-03-23",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "KBH"
+  },
+  {
+    "event_id": "11aff7f935f8ac049f4a43322760b01f9de9a846628ecf9b50a55bacb4babdec",
+    "events": [
+      {
+        "date": "2012-03-14",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2012-03-14",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2012-03-14",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2012-04-05",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2012-04-05",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2012-04-09",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2012-05-03",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2012-05-03",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "CME"
+  },
+  {
+    "event_id": "d95f182c308c227d7554aa5a8a11ec58cac5c5fce60d02fc3bd2da0e7fcea405",
+    "events": [
+      {
+        "date": "2012-05-04",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2012-05-04",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2012-05-04",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2012-12-05",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2012-12-05",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2012-12-06",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2013-02-04",
+        "reason": "time_40d",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2013-02-04",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "BNY"
+  },
+  {
+    "event_id": "f6ec26747ee28c055af14984ca7ac2f651f8a2555db9168d037327210e674968",
+    "events": [
+      {
+        "date": "2012-12-03",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2012-12-03",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2012-12-03",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2012-12-21",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2012-12-21",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2012-12-24",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2013-02-21",
+        "reason": "time_40d",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2013-02-21",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "ITRI"
+  },
+  {
+    "event_id": "1338906f9dc069563ce3b991aea4bf1c4932521d65581cfd68ee0d39c8ae739e",
+    "events": [
+      {
+        "date": "2013-02-11",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2013-02-11",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2013-02-11",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2013-04-19",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2013-04-19",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2013-04-22",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2013-05-15",
+        "reason": "target",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2013-05-15",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "MNKD"
+  },
+  {
+    "event_id": "d9eee99e88bc9d70265c931087c297a893a0aed15632fe57f60a1f52a0a1fc80",
+    "events": [
+      {
+        "date": "2013-02-19",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2013-02-19",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2013-02-19",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2013-04-30",
+        "reason": null,
+        "state": "INVALIDATED"
+      }
+    ],
+    "terminal_state": "INVALIDATED",
+    "ticker": "MT"
+  },
+  {
+    "event_id": "fe334e038ce26d20b9a070d84b1ced569c974efd76f0135fdc0856c1ffb8acd7",
+    "events": [
+      {
+        "date": "2013-06-12",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2013-06-12",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2013-06-12",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2014-04-16",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2014-04-16",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2014-04-17",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2014-06-13",
+        "reason": "time_40d",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2014-06-13",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "BR"
+  },
+  {
+    "event_id": "5bdc2c3c141fc5fbe5acc67443c795119b01cd2dd9094c6abd2f511fa1614143",
+    "events": [
+      {
+        "date": "2014-03-11",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2014-03-11",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2014-03-11",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2014-04-03",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2014-04-03",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2014-04-04",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2014-04-04",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2014-04-04",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "AEM"
+  },
+  {
+    "event_id": "8660f01e374130c4ca02cecd88e01d235fd668c001f6def486f40fd17c429fb6",
+    "events": [
+      {
+        "date": "2014-04-11",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2014-04-11",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2014-04-11",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2014-09-03",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2014-09-03",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2014-09-04",
+        "reason": "entry_at_or_below_planned_stop",
+        "state": "ORDER_REJECTED"
+      }
+    ],
+    "terminal_state": "ORDER_REJECTED",
+    "ticker": "CYTK"
+  },
+  {
+    "event_id": "8b4c23b0ee14e85d17540751ac9ccfb59f3f62572d1be8037562317a3280cb74",
+    "events": [
+      {
+        "date": "2014-07-21",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2014-07-21",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2014-07-21",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2014-08-26",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2014-08-26",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2014-08-27",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2014-09-08",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2014-09-08",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "EGO"
+  },
+  {
+    "event_id": "323d3f5410adb22028a33e67343574f5355dd3a4726baf730863b51455f41a76",
+    "events": [
+      {
+        "date": "2015-02-09",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2015-02-09",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2015-02-09",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2015-02-10",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2015-02-10",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2015-02-11",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2015-02-23",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2015-02-23",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "WPM"
+  },
+  {
+    "event_id": "095c7ae6772ef43784d7147c8617784920dfd786fb3a7f614af2d23656ffa49f",
+    "events": [
+      {
+        "date": "2015-11-23",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2015-11-23",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2015-11-23",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2015-12-21",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2015-12-21",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2015-12-22",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2016-01-13",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2016-01-13",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "PODD"
+  },
+  {
+    "event_id": "0071b45208ea17430ed86c898fe01f672144fc0fbc40b46f12d5b2da4a5aa723",
+    "events": [
+      {
+        "date": "2016-05-03",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2016-05-03",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2016-05-03",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2016-06-02",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2016-06-02",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2016-06-03",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2016-06-14",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2016-06-14",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "EGO"
+  },
+  {
+    "event_id": "695c3a3aa2444c47cfe2c6dc3a163adada3471f540d7165bfe64251acd38fe51",
+    "events": [
+      {
+        "date": "2016-05-19",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2016-05-19",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2016-05-19",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2016-06-14",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2016-06-14",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2016-06-15",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2016-08-10",
+        "reason": "time_40d",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2016-08-10",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "CNQ"
+  },
+  {
+    "event_id": "16909c1244b14b6791da537b0f4150eeadc7d88ccf1ce786495cb67c42c5e2ae",
+    "events": [
+      {
+        "date": "2016-06-10",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2016-06-10",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2016-06-10",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2017-04-17",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2017-04-17",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2017-04-18",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2017-04-27",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2017-04-27",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "OVV"
+  },
+  {
+    "event_id": "bd2b75003b2a1a1292d0bcb9ff42db9c13f735bfb99ef7f8c4b03886459be701",
+    "events": [
+      {
+        "date": "2016-08-19",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2016-08-19",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2016-08-19",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2016-08-29",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2016-08-29",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2016-08-30",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2016-09-09",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2016-09-09",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "ATI"
+  },
+  {
+    "event_id": "6064e3e733b5a344cc06be4cf6fd3d662001bba06e7de0781f42fa687d76844d",
+    "events": [
+      {
+        "date": "2016-09-13",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2016-09-13",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2016-09-13",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2016-09-27",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2016-09-27",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2016-09-28",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2016-09-29",
+        "reason": "target",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2016-09-29",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "DXPE"
+  },
+  {
+    "event_id": "380476fdd370c6c61599acda3fe8bb772dde4d57d6efdbe8d696b6416b7676b7",
+    "events": [
+      {
+        "date": "2016-12-02",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2016-12-02",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2016-12-02",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2017-02-08",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2017-02-08",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2017-02-09",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2017-04-06",
+        "reason": "time_40d",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2017-04-06",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "WLK"
+  },
+  {
+    "event_id": "bf3574682bc72cd4bf5e3c7324736fcd2c47e0594e6bdae72ea716411b6a912d",
+    "events": [
+      {
+        "date": "2017-07-19",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2017-07-19",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2017-07-19",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2017-08-22",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2017-08-22",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2017-08-23",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2017-09-27",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2017-09-27",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "NOK"
+  },
+  {
+    "event_id": "874181c9384b221439ed198f160eed8dfd0f8f1e104ad5c86b1ec6442e3e20af",
+    "events": [
+      {
+        "date": "2018-06-11",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2018-06-11",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2018-06-11",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2018-06-18",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2018-06-18",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2018-06-19",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2018-06-20",
+        "reason": "target",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2018-06-20",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "CVE"
+  },
+  {
+    "event_id": "b1317da2a7c615e19627e331b138a817e646d731dc0ee7f0342e2f7a5a1db19a",
+    "events": [
+      {
+        "date": "2019-08-29",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2019-08-29",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2019-08-29",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2019-09-11",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2019-09-11",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2019-09-12",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2019-09-12",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2019-09-12",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "CDE"
+  },
+  {
+    "event_id": "697ab1959a77c749caf74ad22cf32f98da47e8264cba62aaf438b0a3b4184857",
+    "events": [
+      {
+        "date": "2019-09-05",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2019-09-05",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2019-09-05",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2019-10-11",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2019-10-11",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2019-10-14",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2019-11-07",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2019-11-07",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "PSLV"
+  },
+  {
+    "event_id": "91e11659454ff8c6571b27e4d5081ed3f4a7fa47668b3c019f0c06b4a03472a1",
+    "events": [
+      {
+        "date": "2019-11-26",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2019-11-26",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2019-11-26",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2020-02-14",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2020-02-14",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2020-02-18",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2020-02-25",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2020-02-25",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "ESI"
+  },
+  {
+    "event_id": "834f77fe59f27eaa495b8204c69b931c98ecf1e17955402038fe41f2193b5dc4",
+    "events": [
+      {
+        "date": "2019-12-11",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2019-12-11",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2019-12-11",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2020-01-23",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2020-01-23",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2020-01-24",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2020-02-27",
+        "reason": "stop_gap",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2020-02-27",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "GE"
+  },
+  {
+    "event_id": "42ac93beaf995d521056856a84add406eb21cdf1177a909082733311d6810eba",
+    "events": [
+      {
+        "date": "2019-12-30",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2019-12-30",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2019-12-30",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2020-05-04",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2020-05-04",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2020-05-05",
+        "reason": "entry_at_or_below_planned_stop",
+        "state": "ORDER_REJECTED"
+      }
+    ],
+    "terminal_state": "ORDER_REJECTED",
+    "ticker": "IRWD"
+  },
+  {
+    "event_id": "8eb68ecfa47fec3b88c94ad64b15bf276b20632bf62dc31f8e5161d94783eda9",
+    "events": [
+      {
+        "date": "2020-01-28",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2020-01-28",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2020-01-28",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2020-07-22",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2020-07-22",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2020-07-23",
+        "reason": "entry_at_or_below_planned_stop",
+        "state": "ORDER_REJECTED"
+      }
+    ],
+    "terminal_state": "ORDER_REJECTED",
+    "ticker": "LUMN"
+  },
+  {
+    "event_id": "789d5a9edbee679849c2ff31552fbdbe8fe3649e90972a5f0c14053903de9bcb",
+    "events": [
+      {
+        "date": "2020-05-21",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2020-05-21",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2020-05-21",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2020-08-25",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2020-08-25",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2020-08-26",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2020-08-28",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2020-08-28",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "LRN"
+  },
+  {
+    "event_id": "28c347793f1fe459ce51f261dfade29134cab02949d30b960078df7d52f4087f",
+    "events": [
+      {
+        "date": "2020-05-29",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2020-05-29",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2020-05-29",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2020-07-30",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2020-07-30",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2020-07-31",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2020-08-05",
+        "reason": "target",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2020-08-05",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "TEVA"
+  },
+  {
+    "event_id": "d63a875c130585b2be9c199622970246e6973937dadee32dd73c4b9c26a45bd3",
+    "events": [
+      {
+        "date": "2020-08-10",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2020-08-10",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2020-08-10",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2020-08-17",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2020-08-17",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2020-08-18",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2020-08-18",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2020-08-18",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "RIGL"
+  },
+  {
+    "event_id": "3ba61174440e27f57037080d3c283c7a6a5a749719e2896f5c7135b9fcb76b83",
+    "events": [
+      {
+        "date": "2020-09-25",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2020-09-25",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2020-09-25",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2021-02-18",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2021-02-18",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2021-02-19",
+        "reason": "position_limit",
+        "state": "ORDER_REJECTED"
+      }
+    ],
+    "terminal_state": "ORDER_REJECTED",
+    "ticker": "SIG"
+  },
+  {
+    "event_id": "2c9855934ecebd21ef87d206fde71099738dd4fe3418ec3545236052b9127f28",
+    "events": [
+      {
+        "date": "2020-10-19",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2020-10-19",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2020-10-19",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2020-11-02",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2020-11-02",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2020-11-03",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2020-12-30",
+        "reason": "time_40d",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2020-12-30",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "JAZZ"
+  },
+  {
+    "event_id": "a4204ec8b3b6729fc4016e97a424183192711af011a161298c2d44af0acc1e46",
+    "events": [
+      {
+        "date": "2020-12-01",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2020-12-01",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2020-12-01",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2021-05-19",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2021-05-19",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2021-05-20",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2021-07-16",
+        "reason": "time_40d",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2021-07-16",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "AGX"
+  },
+  {
+    "event_id": "9bcb260107c640478457d049c33b128b60e3649f559890a96c9162bf16c98b74",
+    "events": [
+      {
+        "date": "2020-12-18",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2020-12-18",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2020-12-18",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2021-01-25",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2021-01-25",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2021-01-26",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2021-01-26",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2021-01-26",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "VSTM"
+  },
+  {
+    "event_id": "1e3db6c26f864a8784efc31007e2dec6c2e7ee4748ecc660d0695477de87817a",
+    "events": [
+      {
+        "date": "2020-12-31",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2020-12-31",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2020-12-31",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2021-02-01",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2021-02-01",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2021-02-02",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2021-02-25",
+        "reason": "target",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2021-02-25",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "BRX"
+  },
+  {
+    "event_id": "93567291ce48eff66c600fe564bc3369cff0aa0c8d77dc0f29ecf1b0fa914fef",
+    "events": [
+      {
+        "date": "2021-01-04",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2021-01-04",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2021-01-04",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2021-03-05",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2021-03-05",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2021-03-08",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2021-05-03",
+        "reason": "time_40d",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2021-05-03",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "KSS"
+  },
+  {
+    "event_id": "f07bc9851cf3cd3fc37352dfd06c490957183440cd5397075005caf96c264253",
+    "events": [
+      {
+        "date": "2021-01-15",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2021-01-15",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2021-01-15",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2021-01-28",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2021-01-28",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2021-01-29",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2021-02-16",
+        "reason": "target",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2021-02-16",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "FANG"
+  },
+  {
+    "event_id": "09426cde877e271ab0af0c2d411cd59593ede4fdb5b031647c69da98f9893627",
+    "events": [
+      {
+        "date": "2021-02-26",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2021-02-26",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2021-02-26",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2021-04-14",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2021-04-14",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2021-04-15",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2021-06-10",
+        "reason": "time_40d",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2021-06-10",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "COP"
+  },
+  {
+    "event_id": "70c13786d109f0c90a47479dd7cefa99e1474e7306c545c5ec9a399c92a2a026",
+    "events": [
+      {
+        "date": "2021-02-26",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2021-02-26",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2021-02-26",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2021-04-21",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2021-04-21",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2021-04-22",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2021-05-25",
+        "reason": "target",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2021-05-25",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "EMBJ"
+  },
+  {
+    "event_id": "90cee61a25b31fd27055732bb5d13b899fd9d9104f3ba01536e98725b4b6c676",
+    "events": [
+      {
+        "date": "2021-03-31",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2021-03-31",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2021-03-31",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2021-04-21",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2021-04-21",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2021-04-22",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2021-04-22",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2021-04-22",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "PBF"
+  },
+  {
+    "event_id": "a6c6c5a06687c0f99b04ccdec11dc5670931b697f7bb5e0074cdbb2362319452",
+    "events": [
+      {
+        "date": "2022-04-20",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2022-04-20",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2022-04-20",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2022-04-29",
+        "reason": null,
+        "state": "INVALIDATED"
+      }
+    ],
+    "terminal_state": "INVALIDATED",
+    "ticker": "VSAT"
+  },
+  {
+    "event_id": "eca9c58711aa01c66e6d103526d396255f1a23a4ab3eb4daaf863ee548c9d40f",
+    "events": [
+      {
+        "date": "2022-12-19",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2022-12-19",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2022-12-19",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2023-02-17",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2023-02-17",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2023-02-21",
+        "reason": "entry_at_or_below_planned_stop",
+        "state": "ORDER_REJECTED"
+      }
+    ],
+    "terminal_state": "ORDER_REJECTED",
+    "ticker": "NTNX"
+  },
+  {
+    "event_id": "7829f69a7dacea4b7fe9c640bc865e5503b63b686c821e5528f725f3e4c0f297",
+    "events": [
+      {
+        "date": "2023-08-01",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2023-08-01",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2023-08-01",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2023-08-29",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2023-08-29",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2023-08-30",
+        "reason": "entry_at_or_below_planned_stop",
+        "state": "ORDER_REJECTED"
+      }
+    ],
+    "terminal_state": "ORDER_REJECTED",
+    "ticker": "HUT"
+  },
+  {
+    "event_id": "1792b9db98356b3fdbc3eb49d3956559dd0fb1888d0fd53f9a8d739198db425b",
+    "events": [
+      {
+        "date": "2023-11-14",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2023-11-14",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2023-11-14",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2023-12-13",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2023-12-13",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2023-12-14",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2024-01-17",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2024-01-17",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "KGC"
+  },
+  {
+    "event_id": "5a3a002f17ae5bbac859b604450b99f3fc17009344369fc11d9ee3f8cc74381a",
+    "events": [
+      {
+        "date": "2024-01-02",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2024-01-02",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2024-01-02",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2024-01-08",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2024-01-08",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2024-01-09",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2024-01-11",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2024-01-11",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "EAT"
+  },
+  {
+    "event_id": "89a8f9c1d146638c8b98e82062d3028bb7b7cc7383b1fbe52a0d841b23bf34b5",
+    "events": [
+      {
+        "date": "2024-01-04",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2024-01-04",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2024-01-04",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2024-02-05",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2024-02-05",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2024-02-06",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2024-02-16",
+        "reason": "target",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2024-02-16",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "RARE"
+  },
+  {
+    "event_id": "5b27739b4806dbf31462b373793e80dda10a9ec49d145b564a5c11bd6c8aba8a",
+    "events": [
+      {
+        "date": "2024-01-12",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2024-01-12",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2024-01-12",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2024-05-09",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2024-05-09",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2024-05-10",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2024-06-03",
+        "reason": "target",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2024-06-03",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "COHR"
+  },
+  {
+    "event_id": "80a23c631b8061227e98b859895311a44c1c4511e5756a2d7f12c39b7c736d57",
+    "events": [
+      {
+        "date": "2024-01-25",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2024-01-25",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2024-01-25",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2024-05-22",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2024-05-22",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2024-05-23",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2024-06-06",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2024-06-06",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "TGTX"
+  },
+  {
+    "event_id": "4d6abf95e8ead3708b17215872d5eee87a72ccded24d2557c1ca69c9da015aba",
+    "events": [
+      {
+        "date": "2024-01-29",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2024-01-29",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2024-01-29",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2024-01-29",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2024-01-29",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2024-01-30",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2024-02-02",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2024-02-02",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "IOVA"
+  },
+  {
+    "event_id": "6b36145d738016f57c865366f5bef16b66e811da2c1f2f72bca4a8b7b82a6c46",
+    "events": [
+      {
+        "date": "2024-01-31",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2024-01-31",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2024-01-31",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2024-03-01",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2024-03-01",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2024-03-04",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2024-04-02",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2024-04-02",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "MYGN"
+  },
+  {
+    "event_id": "e7b6ee73d2d1616a835c4204f468131d1ce1b722c5e303b80ce0046650f3ad8c",
+    "events": [
+      {
+        "date": "2024-02-01",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2024-02-01",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2024-02-01",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2024-02-08",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2024-02-08",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2024-02-09",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2024-03-27",
+        "reason": "target",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2024-03-27",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "KEY"
+  },
+  {
+    "event_id": "03307c7015ebfaa4105c2bb2be7b47984036c0c2810e70e865ed08e0e477deb3",
+    "events": [
+      {
+        "date": "2024-02-05",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2024-02-05",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2024-02-05",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2024-06-11",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2024-06-11",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2024-06-12",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2024-07-15",
+        "reason": "target",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2024-07-15",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "MARA"
+  },
+  {
+    "event_id": "6b41504efa4fc340c0c0bf46e1aaef9df814b6b361a29234928c9eb72eb8ef78",
+    "events": [
+      {
+        "date": "2024-04-01",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2024-04-01",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2024-04-01",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2024-04-16",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2024-04-16",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2024-04-17",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2024-05-03",
+        "reason": "target",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2024-05-03",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "TNDM"
+  },
+  {
+    "event_id": "c383cc17e36d860f4c926d30bbbe4b3cee6e5b3bff8bce212c405511f5db00f6",
+    "events": [
+      {
+        "date": "2024-05-31",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2024-05-31",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2024-05-31",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2024-09-05",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2024-09-05",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2024-09-06",
+        "reason": "entry_at_or_below_planned_stop",
+        "state": "ORDER_REJECTED"
+      }
+    ],
+    "terminal_state": "ORDER_REJECTED",
+    "ticker": "CGNX"
+  },
+  {
+    "event_id": "36c0d8eef7074356a447949a1cfbfa7a2b992d67599640b703f77d0e9b7d6661",
+    "events": [
+      {
+        "date": "2024-06-06",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2024-06-06",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2024-06-06",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2024-10-03",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2024-10-03",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2024-10-04",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2024-11-06",
+        "reason": "stop_gap",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2024-11-06",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "HL"
+  },
+  {
+    "event_id": "694914c23ec37cbac32a44ff1ca10be7fbccc99f4fe1b745973e4f63e63b6871",
+    "events": [
+      {
+        "date": "2024-06-07",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2024-06-07",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2024-06-07",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2024-08-01",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2024-08-01",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2024-08-02",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2024-08-05",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2024-08-05",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "ECHO"
+  },
+  {
+    "event_id": "af3d3bae5e72b19e61df4ea61c947e89a62feeb4c351878db935857123c1c1a0",
+    "events": [
+      {
+        "date": "2024-06-12",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2024-06-12",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2024-06-12",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2024-10-02",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2024-10-02",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2024-10-03",
+        "reason": "entry_at_or_below_planned_stop",
+        "state": "ORDER_REJECTED"
+      }
+    ],
+    "terminal_state": "ORDER_REJECTED",
+    "ticker": "BE"
+  },
+  {
+    "event_id": "0e5677b4a8f71cbe4011ec9fd64c4c09f18b3b846bc417378c55ab873d1495cb",
+    "events": [
+      {
+        "date": "2024-07-12",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2024-07-12",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2024-07-12",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2024-10-07",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2024-10-07",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2024-10-08",
+        "reason": "entry_at_or_below_planned_stop",
+        "state": "ORDER_REJECTED"
+      }
+    ],
+    "terminal_state": "ORDER_REJECTED",
+    "ticker": "ST"
+  },
+  {
+    "event_id": "a51881c4c9ef22a95faec43b83370f86e69ef1bf10f6693db554e8e9037e5be3",
+    "events": [
+      {
+        "date": "2024-07-18",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2024-07-18",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2024-07-18",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2024-09-20",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2024-09-20",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2024-09-23",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2024-09-25",
+        "reason": "target",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2024-09-25",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "APLD"
+  },
+  {
+    "event_id": "73851078925c3e933da3f91a843d5f5337ad0e987197eace5e3ed10e89cad45f",
+    "events": [
+      {
+        "date": "2024-08-01",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2024-08-01",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2024-08-01",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2024-09-23",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2024-09-23",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2024-09-24",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2024-10-01",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2024-10-01",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "RUN"
+  },
+  {
+    "event_id": "1427ab082f98aa0a3080bec80c748533bc0e16e3e7a786d9b8d25285e0fa66e7",
+    "events": [
+      {
+        "date": "2024-09-06",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2024-09-06",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2024-09-06",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2024-09-20",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2024-09-20",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2024-09-23",
+        "reason": "entry_at_or_below_planned_stop",
+        "state": "ORDER_REJECTED"
+      }
+    ],
+    "terminal_state": "ORDER_REJECTED",
+    "ticker": "GME"
+  },
+  {
+    "event_id": "f05a5f6d78fa2c560918bd0225e85222864dcfa0f5a3df27c921d456949e3c5c",
+    "events": [
+      {
+        "date": "2024-10-31",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2024-10-31",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2024-10-31",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2024-11-05",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2024-11-05",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2024-11-06",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2024-11-06",
+        "reason": "stop",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2024-11-06",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "BNTX"
+  },
+  {
+    "event_id": "7395cfa99cbae5b9f6e967047921ac38d749d79db3d29ce88b4867a0d6f88553",
+    "events": [
+      {
+        "date": "2024-11-29",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2024-11-29",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2024-11-29",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2025-01-02",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2025-01-02",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2025-01-03",
+        "reason": "entry_at_or_below_planned_stop",
+        "state": "ORDER_REJECTED"
+      }
+    ],
+    "terminal_state": "ORDER_REJECTED",
+    "ticker": "LYFT"
+  },
+  {
+    "event_id": "5ed8279e350f9522dcfc2d32f1030875a198f9fc9797603bbb05c1a3c3245d9c",
+    "events": [
+      {
+        "date": "2025-01-03",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2025-01-03",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2025-01-03",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2025-01-10",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2025-01-10",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2025-01-13",
+        "reason": "entry_at_or_below_planned_stop",
+        "state": "ORDER_REJECTED"
+      }
+    ],
+    "terminal_state": "ORDER_REJECTED",
+    "ticker": "BILL"
+  },
+  {
+    "event_id": "be58e3b2a3ae361e80aefaa2e37b9cd3a1c67dd3acc6d1322f52d3e498396a87",
+    "events": [
+      {
+        "date": "2025-01-06",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2025-01-06",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2025-01-06",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2025-01-10",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2025-01-10",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2025-01-13",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2025-01-17",
+        "reason": "target",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2025-01-17",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "MXL"
+  },
+  {
+    "event_id": "245df0f7240cab380d26c11e20f4ce174bd28e215d3711834abea72d40d726bc",
+    "events": [
+      {
+        "date": "2025-04-23",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2025-04-23",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2025-04-23",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2025-04-29",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2025-04-29",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2025-04-30",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2025-05-02",
+        "reason": "stop_gap",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2025-05-02",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "MSEX"
+  },
+  {
+    "event_id": "0d451ccb363a2ab689a74992ac980d6effa76b597d59cb8b895cc30f6d59c6d9",
+    "events": [
+      {
+        "date": "2025-07-11",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2025-07-11",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2025-07-11",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2025-08-01",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2025-08-01",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2025-08-04",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2025-09-15",
+        "reason": "target",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2025-09-15",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "AEG"
+  },
+  {
+    "event_id": "faa660a790a10fa742156bf0670d2ab259a16a3f0b49009974f8264699dd2f78",
+    "events": [
+      {
+        "date": "2025-08-18",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2025-08-18",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2025-08-18",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2025-09-04",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2025-09-04",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2025-09-05",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2025-10-07",
+        "reason": "target",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2025-10-07",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "BEPC"
+  },
+  {
+    "event_id": "504dc32c7ddf8fdf06c9b7b22a7ba5a8cbd921c4bf8535ee35059bba00a29b81",
+    "events": [
+      {
+        "date": "2025-09-09",
+        "reason": null,
+        "state": "DETECTED"
+      },
+      {
+        "date": "2025-09-09",
+        "reason": null,
+        "state": "ACTIVE_SETUP"
+      },
+      {
+        "date": "2025-09-09",
+        "reason": null,
+        "state": "WAITING_FOR_DAILY_CONFIRMATION"
+      },
+      {
+        "date": "2025-11-21",
+        "reason": null,
+        "state": "ENTRY_READY"
+      },
+      {
+        "date": "2025-11-21",
+        "reason": null,
+        "state": "ORDER_PENDING"
+      },
+      {
+        "date": "2025-11-24",
+        "reason": null,
+        "state": "OPEN_POSITION"
+      },
+      {
+        "date": "2025-12-04",
+        "reason": "target",
+        "state": "EXIT_READY"
+      },
+      {
+        "date": "2025-12-04",
+        "reason": null,
+        "state": "CLOSED"
+      }
+    ],
+    "terminal_state": "CLOSED",
+    "ticker": "EBS"
+  }
+]

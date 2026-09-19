@@ -1,0 +1,21 @@
+{
+  "checks": [
+    "cloud artifact hashes",
+    "strict AB inputs",
+    "signal/support/execution/account bindings",
+    "actual daily ledger and fees",
+    "fill-relative holding count",
+    "P&L attribution sum",
+    "identical path before first monthly divergence"
+  ],
+  "closed_trades_fill_clock_checked": 1662,
+  "monthly_terminal_states": {
+    "CLOSED": 71,
+    "INVALIDATED": 2,
+    "ORDER_REJECTED": 27
+  },
+  "pnl_difference": 10926.23169498361,
+  "price_version": "sha256:a98e4afd03985acd275f1272f50151dd33a9ec696bdd0b1183a11d54cf27f257",
+  "run": "35427745905-1",
+  "status": "passed"
+}

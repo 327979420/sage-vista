@@ -1,0 +1,800 @@
+{
+  "attribution_categories": {
+    "daily_weekly_A_only": -5667.768146457667,
+    "daily_weekly_B_only": 8313.623700694248,
+    "daily_weekly_both": 0.0,
+    "daily_weekly_neither": 0,
+    "monthly_A_only": 10340.574850451538,
+    "monthly_B_only": 5372.337145698758,
+    "monthly_both": -7432.535855403053,
+    "monthly_neither": 0
+  },
+  "commit": "32b715022ee216a7d24b96b47b63de3067e79696",
+  "decision": "PENDING_REVIEW",
+  "entry_confirmation": {
+    "B_skip_reasons": {
+      "INVALIDATED": 2,
+      "cash_or_whole_share_insufficient": 1,
+      "original_plan_not_executable": 15,
+      "position_limit": 11
+    },
+    "actual_fill_wait_mean": 33.859154929577464,
+    "actual_fill_wait_median": 20,
+    "confirmation_wait_mean": 35.326530612244895,
+    "confirmation_wait_median": 20.0,
+    "direct_entries_A": 88,
+    "expired": 0,
+    "filled_B": 71,
+    "invalidated": 2,
+    "later_capacity_pnl_B": 8313.623700694248,
+    "later_nonmonthly_fills_enabled_by_capacity": 20,
+    "missed_baseline_results": {
+      "loss": 18,
+      "profit": 3
+    },
+    "monthly_setups": 100,
+    "prior_high_available": 84,
+    "prior_high_touched_before_confirmation": 5,
+    "triggered_B": 98
+  },
+  "limitations": [
+    "saved nominee cohort only, not full historical watchlist",
+    "same conservative 64 merged events excluded in both books",
+    "single previously examined history, no independent holdout",
+    "fixed $10000 nominal position; no fresh setups after 2025-09-11",
+    "no new holding rule or support refresh; actual fills drive existing 40-session exits"
+  ],
+  "metrics": {
+    "A": {
+      "annualised_volatility": 0.07719152372027013,
+      "average_capital_utilisation": 0.24096939137893517,
+      "average_cash_balance": 101558.71947230067,
+      "average_closed_holding_sessions": 19.219832735961766,
+      "average_gross_exposure": 0.24096939137893517,
+      "average_loser_dollars": -694.0729853979988,
+      "average_open_positions": 2.8866174522051864,
+      "average_winner_dollars": 1118.5374133190862,
+      "cagr": 0.018888479944556336,
+      "closed_trades": 837,
+      "completely_idle_cash_fraction": 0.2051864470944539,
+      "completely_idle_cash_sessions": 1084,
+      "conventions": "252 sessions per year; rf/Sortino target=0; CAGR uses QuantStats session-count convention; profit factor unavailable if no losses; costs included; trade statistics use closed trades only",
+      "daily_sessions": 5283,
+      "ending_portfolio_value": 148036.7195767038,
+      "entered_trades": 837,
+      "expectancy_dollars": 57.39154071290747,
+      "gross_turnover": 127.94297919033221,
+      "largest_losing_streak": 15,
+      "longest_all_cash_period": {
+        "end": "2026-09-11",
+        "sessions": 228,
+        "start": "2025-10-15"
+      },
+      "max_drawdown": -0.23985637437180818,
+      "max_positions_periods": [
+        {
+          "end": "2006-02-14",
+          "sessions": 1,
+          "start": "2006-02-14"
+        },
+        {
+          "end": "2006-02-21",
+          "sessions": 3,
+          "start": "2006-02-16"
+        },
+        {
+          "end": "2006-03-01",
+          "sessions": 4,
+          "start": "2006-02-24"
+        },
+        {
+          "end": "2006-12-12",
+          "sessions": 8,
+          "start": "2006-12-01"
+        },
+        {
+          "end": "2007-01-24",
+          "sessions": 4,
+          "start": "2007-01-19"
+        },
+        {
+          "end": "2007-02-07",
+          "sessions": 2,
+          "start": "2007-02-06"
+        },
+        {
+          "end": "2007-02-15",
+          "sessions": 2,
+          "start": "2007-02-14"
+        },
+        {
+          "end": "2007-02-26",
+          "sessions": 3,
+          "start": "2007-02-22"
+        },
+        {
+          "end": "2007-04-02",
+          "sessions": 3,
+          "start": "2007-03-29"
+        },
+        {
+          "end": "2007-04-19",
+          "sessions": 10,
+          "start": "2007-04-05"
+        },
+        {
+          "end": "2007-10-01",
+          "sessions": 1,
+          "start": "2007-10-01"
+        },
+        {
+          "end": "2007-10-12",
+          "sessions": 8,
+          "start": "2007-10-03"
+        },
+        {
+          "end": "2007-12-11",
+          "sessions": 9,
+          "start": "2007-11-29"
+        },
+        {
+          "end": "2008-09-04",
+          "sessions": 1,
+          "start": "2008-09-04"
+        },
+        {
+          "end": "2009-09-21",
+          "sessions": 1,
+          "start": "2009-09-21"
+        },
+        {
+          "end": "2009-10-01",
+          "sessions": 5,
+          "start": "2009-09-25"
+        },
+        {
+          "end": "2009-10-28",
+          "sessions": 15,
+          "start": "2009-10-08"
+        },
+        {
+          "end": "2009-11-11",
+          "sessions": 2,
+          "start": "2009-11-10"
+        },
+        {
+          "end": "2009-12-03",
+          "sessions": 3,
+          "start": "2009-12-01"
+        },
+        {
+          "end": "2009-12-16",
+          "sessions": 8,
+          "start": "2009-12-07"
+        },
+        {
+          "end": "2010-01-05",
+          "sessions": 1,
+          "start": "2010-01-05"
+        },
+        {
+          "end": "2010-01-07",
+          "sessions": 1,
+          "start": "2010-01-07"
+        },
+        {
+          "end": "2016-06-10",
+          "sessions": 1,
+          "start": "2016-06-10"
+        },
+        {
+          "end": "2020-07-20",
+          "sessions": 3,
+          "start": "2020-07-16"
+        },
+        {
+          "end": "2020-07-22",
+          "sessions": 1,
+          "start": "2020-07-22"
+        },
+        {
+          "end": "2020-07-27",
+          "sessions": 1,
+          "start": "2020-07-27"
+        },
+        {
+          "end": "2020-08-06",
+          "sessions": 4,
+          "start": "2020-08-03"
+        },
+        {
+          "end": "2020-08-11",
+          "sessions": 1,
+          "start": "2020-08-11"
+        },
+        {
+          "end": "2020-09-01",
+          "sessions": 6,
+          "start": "2020-08-25"
+        },
+        {
+          "end": "2020-09-03",
+          "sessions": 1,
+          "start": "2020-09-03"
+        },
+        {
+          "end": "2020-09-09",
+          "sessions": 1,
+          "start": "2020-09-09"
+        },
+        {
+          "end": "2020-09-21",
+          "sessions": 1,
+          "start": "2020-09-21"
+        },
+        {
+          "end": "2020-10-09",
+          "sessions": 5,
+          "start": "2020-10-05"
+        },
+        {
+          "end": "2020-10-22",
+          "sessions": 3,
+          "start": "2020-10-20"
+        },
+        {
+          "end": "2020-10-29",
+          "sessions": 4,
+          "start": "2020-10-26"
+        },
+        {
+          "end": "2020-11-09",
+          "sessions": 2,
+          "start": "2020-11-06"
+        },
+        {
+          "end": "2020-12-21",
+          "sessions": 1,
+          "start": "2020-12-21"
+        },
+        {
+          "end": "2020-12-30",
+          "sessions": 4,
+          "start": "2020-12-24"
+        },
+        {
+          "end": "2021-01-06",
+          "sessions": 3,
+          "start": "2021-01-04"
+        },
+        {
+          "end": "2021-01-25",
+          "sessions": 2,
+          "start": "2021-01-22"
+        },
+        {
+          "end": "2021-02-22",
+          "sessions": 3,
+          "start": "2021-02-18"
+        },
+        {
+          "end": "2022-11-11",
+          "sessions": 5,
+          "start": "2022-11-07"
+        },
+        {
+          "end": "2022-12-15",
+          "sessions": 19,
+          "start": "2022-11-18"
+        },
+        {
+          "end": "2022-12-28",
+          "sessions": 6,
+          "start": "2022-12-20"
+        },
+        {
+          "end": "2023-02-01",
+          "sessions": 8,
+          "start": "2023-01-23"
+        },
+        {
+          "end": "2023-02-09",
+          "sessions": 1,
+          "start": "2023-02-09"
+        },
+        {
+          "end": "2023-02-13",
+          "sessions": 1,
+          "start": "2023-02-13"
+        },
+        {
+          "end": "2023-02-21",
+          "sessions": 4,
+          "start": "2023-02-15"
+        },
+        {
+          "end": "2024-02-02",
+          "sessions": 1,
+          "start": "2024-02-02"
+        },
+        {
+          "end": "2024-02-06",
+          "sessions": 1,
+          "start": "2024-02-06"
+        },
+        {
+          "end": "2025-09-02",
+          "sessions": 2,
+          "start": "2025-08-29"
+        }
+      ],
+      "max_positions_sessions": 190,
+      "maximum_single_stock_account_weight": 0.12948164946060456,
+      "open_trades": 0,
+      "profit_factor": 1.141244687010681,
+      "realised_pnl": 48036.7195767037,
+      "sector_concentration": null,
+      "sector_status": "historical_sector_data_not_provided",
+      "sharpe": 0.2810125155854107,
+      "sortino": 0.40390997579317645,
+      "total_return": 0.4803671957670379,
+      "turnover_definition": "sum buy+sell notional / mean daily equity; not annualised or halved",
+      "unrealised_pnl": 0,
+      "win_loss_ratio": 1.6115558980842468,
+      "win_rate": 0.4145758661887694
+    },
+    "B": {
+      "annualised_volatility": 0.07490243819262675,
+      "average_capital_utilisation": 0.23328429246194846,
+      "average_cash_balance": 104127.98333357886,
+      "average_closed_holding_sessions": 19.22909090909091,
+      "average_gross_exposure": 0.23328429246194846,
+      "average_loser_dollars": -687.0642190532817,
+      "average_open_positions": 2.8466780238500853,
+      "average_winner_dollars": 1116.3678616114007,
+      "cagr": 0.02235529242799572,
+      "closed_trades": 825,
+      "completely_idle_cash_fraction": 0.20348286958167708,
+      "completely_idle_cash_sessions": 1075,
+      "conventions": "252 sessions per year; rf/Sortino target=0; CAGR uses QuantStats session-count convention; profit factor unavailable if no losses; costs included; trade statistics use closed trades only",
+      "daily_sessions": 5283,
+      "ending_portfolio_value": 158962.9512716874,
+      "entered_trades": 825,
+      "expectancy_dollars": 71.47024396568168,
+      "gross_turnover": 124.13312367438466,
+      "largest_losing_streak": 15,
+      "longest_all_cash_period": {
+        "end": "2026-09-11",
+        "sessions": 193,
+        "start": "2025-12-04"
+      },
+      "max_drawdown": -0.23157924792089257,
+      "max_positions_periods": [
+        {
+          "end": "2006-03-01",
+          "sessions": 3,
+          "start": "2006-02-27"
+        },
+        {
+          "end": "2006-12-12",
+          "sessions": 8,
+          "start": "2006-12-01"
+        },
+        {
+          "end": "2007-01-24",
+          "sessions": 7,
+          "start": "2007-01-16"
+        },
+        {
+          "end": "2007-02-15",
+          "sessions": 2,
+          "start": "2007-02-14"
+        },
+        {
+          "end": "2007-02-26",
+          "sessions": 3,
+          "start": "2007-02-22"
+        },
+        {
+          "end": "2007-04-02",
+          "sessions": 3,
+          "start": "2007-03-29"
+        },
+        {
+          "end": "2007-04-19",
+          "sessions": 10,
+          "start": "2007-04-05"
+        },
+        {
+          "end": "2007-10-01",
+          "sessions": 5,
+          "start": "2007-09-25"
+        },
+        {
+          "end": "2007-10-12",
+          "sessions": 8,
+          "start": "2007-10-03"
+        },
+        {
+          "end": "2007-12-11",
+          "sessions": 9,
+          "start": "2007-11-29"
+        },
+        {
+          "end": "2008-07-31",
+          "sessions": 4,
+          "start": "2008-07-28"
+        },
+        {
+          "end": "2008-08-04",
+          "sessions": 1,
+          "start": "2008-08-04"
+        },
+        {
+          "end": "2008-08-07",
+          "sessions": 2,
+          "start": "2008-08-06"
+        },
+        {
+          "end": "2008-09-04",
+          "sessions": 1,
+          "start": "2008-09-04"
+        },
+        {
+          "end": "2008-09-12",
+          "sessions": 5,
+          "start": "2008-09-08"
+        },
+        {
+          "end": "2008-09-16",
+          "sessions": 1,
+          "start": "2008-09-16"
+        },
+        {
+          "end": "2009-08-25",
+          "sessions": 8,
+          "start": "2009-08-14"
+        },
+        {
+          "end": "2009-09-02",
+          "sessions": 4,
+          "start": "2009-08-28"
+        },
+        {
+          "end": "2009-09-09",
+          "sessions": 3,
+          "start": "2009-09-04"
+        },
+        {
+          "end": "2009-09-21",
+          "sessions": 1,
+          "start": "2009-09-21"
+        },
+        {
+          "end": "2009-10-01",
+          "sessions": 5,
+          "start": "2009-09-25"
+        },
+        {
+          "end": "2009-10-08",
+          "sessions": 3,
+          "start": "2009-10-06"
+        },
+        {
+          "end": "2009-10-19",
+          "sessions": 6,
+          "start": "2009-10-12"
+        },
+        {
+          "end": "2009-10-23",
+          "sessions": 3,
+          "start": "2009-10-21"
+        },
+        {
+          "end": "2009-11-11",
+          "sessions": 1,
+          "start": "2009-11-11"
+        },
+        {
+          "end": "2009-12-01",
+          "sessions": 1,
+          "start": "2009-12-01"
+        },
+        {
+          "end": "2009-12-07",
+          "sessions": 1,
+          "start": "2009-12-07"
+        },
+        {
+          "end": "2009-12-16",
+          "sessions": 3,
+          "start": "2009-12-14"
+        },
+        {
+          "end": "2009-12-28",
+          "sessions": 1,
+          "start": "2009-12-28"
+        },
+        {
+          "end": "2010-01-05",
+          "sessions": 3,
+          "start": "2009-12-31"
+        },
+        {
+          "end": "2010-01-07",
+          "sessions": 1,
+          "start": "2010-01-07"
+        },
+        {
+          "end": "2016-06-10",
+          "sessions": 1,
+          "start": "2016-06-10"
+        },
+        {
+          "end": "2020-07-20",
+          "sessions": 3,
+          "start": "2020-07-16"
+        },
+        {
+          "end": "2020-07-22",
+          "sessions": 1,
+          "start": "2020-07-22"
+        },
+        {
+          "end": "2020-07-27",
+          "sessions": 1,
+          "start": "2020-07-27"
+        },
+        {
+          "end": "2020-08-05",
+          "sessions": 3,
+          "start": "2020-08-03"
+        },
+        {
+          "end": "2020-08-28",
+          "sessions": 3,
+          "start": "2020-08-26"
+        },
+        {
+          "end": "2020-09-01",
+          "sessions": 1,
+          "start": "2020-09-01"
+        },
+        {
+          "end": "2020-09-03",
+          "sessions": 1,
+          "start": "2020-09-03"
+        },
+        {
+          "end": "2020-09-09",
+          "sessions": 1,
+          "start": "2020-09-09"
+        },
+        {
+          "end": "2020-10-09",
+          "sessions": 5,
+          "start": "2020-10-05"
+        },
+        {
+          "end": "2020-10-22",
+          "sessions": 4,
+          "start": "2020-10-19"
+        },
+        {
+          "end": "2020-10-29",
+          "sessions": 4,
+          "start": "2020-10-26"
+        },
+        {
+          "end": "2020-11-09",
+          "sessions": 2,
+          "start": "2020-11-06"
+        },
+        {
+          "end": "2020-12-21",
+          "sessions": 1,
+          "start": "2020-12-21"
+        },
+        {
+          "end": "2020-12-30",
+          "sessions": 4,
+          "start": "2020-12-24"
+        },
+        {
+          "end": "2021-01-06",
+          "sessions": 1,
+          "start": "2021-01-06"
+        },
+        {
+          "end": "2021-02-16",
+          "sessions": 10,
+          "start": "2021-02-02"
+        },
+        {
+          "end": "2021-02-22",
+          "sessions": 3,
+          "start": "2021-02-18"
+        },
+        {
+          "end": "2022-11-11",
+          "sessions": 5,
+          "start": "2022-11-07"
+        },
+        {
+          "end": "2022-12-15",
+          "sessions": 19,
+          "start": "2022-11-18"
+        },
+        {
+          "end": "2022-12-28",
+          "sessions": 4,
+          "start": "2022-12-22"
+        },
+        {
+          "end": "2023-02-01",
+          "sessions": 8,
+          "start": "2023-01-23"
+        },
+        {
+          "end": "2023-02-09",
+          "sessions": 1,
+          "start": "2023-02-09"
+        },
+        {
+          "end": "2023-02-13",
+          "sessions": 1,
+          "start": "2023-02-13"
+        },
+        {
+          "end": "2023-02-21",
+          "sessions": 4,
+          "start": "2023-02-15"
+        },
+        {
+          "end": "2024-02-13",
+          "sessions": 3,
+          "start": "2024-02-09"
+        }
+      ],
+      "max_positions_sessions": 210,
+      "maximum_single_stock_account_weight": 0.1213118071810443,
+      "open_trades": 0,
+      "profit_factor": 1.1795370085102814,
+      "realised_pnl": 58962.95127168744,
+      "sector_concentration": null,
+      "sector_status": "historical_sector_data_not_provided",
+      "sharpe": 0.3326209585220333,
+      "sortino": 0.48210670002439776,
+      "total_return": 0.589629512716874,
+      "turnover_definition": "sum buy+sell notional / mean daily equity; not annualised or halved",
+      "unrealised_pnl": 0,
+      "win_loss_ratio": 1.6248377235386589,
+      "win_rate": 0.4206060606060606
+    }
+  },
+  "period": {
+    "end": "2026-09-11",
+    "sessions": 5283,
+    "start": "2005-09-12"
+  },
+  "run": "35427745905-1",
+  "stability": [
+    {
+      "A": {
+        "average_capital_utilisation": 0.5172457297416092,
+        "buys": 290,
+        "drawdown_within_period": -0.23985637437180818,
+        "ending_value": 108635.46035718251,
+        "pnl": 8635.460357182514,
+        "return": 0.08635460357182523,
+        "starting_value": 100000.0
+      },
+      "B": {
+        "average_capital_utilisation": 0.4967520293182687,
+        "buys": 289,
+        "drawdown_within_period": -0.23157924792089257,
+        "ending_value": 110253.52621304992,
+        "pnl": 10253.526213049918,
+        "return": 0.10253526213049913,
+        "starting_value": 100000.0
+      },
+      "end": "2009-12-31",
+      "pnl_difference": 1618.065855867404,
+      "start": "2005-09-12"
+    },
+    {
+      "A": {
+        "average_capital_utilisation": 0.16326889821858426,
+        "buys": 124,
+        "drawdown_within_period": -0.06808105386692453,
+        "ending_value": 139733.0061119989,
+        "pnl": 31097.545754816383,
+        "return": 0.2862559393826911,
+        "starting_value": 108635.46035718251
+      },
+      "B": {
+        "average_capital_utilisation": 0.16148074735846335,
+        "buys": 121,
+        "drawdown_within_period": -0.07496011027298477,
+        "ending_value": 141240.51026721427,
+        "pnl": 30986.98405416435,
+        "return": 0.28105209074480064,
+        "starting_value": 110253.52621304992
+      },
+      "end": "2014-12-31",
+      "pnl_difference": -110.56170065203332,
+      "start": "2010-01-01"
+    },
+    {
+      "A": {
+        "average_capital_utilisation": 0.13654981803628596,
+        "buys": 133,
+        "drawdown_within_period": -0.09191296448639585,
+        "ending_value": 132301.95226189244,
+        "pnl": -7431.053850106458,
+        "return": -0.05318037632533512,
+        "starting_value": 139733.0061119989
+      },
+      "B": {
+        "average_capital_utilisation": 0.13099128377470437,
+        "buys": 130,
+        "drawdown_within_period": -0.08292801890049983,
+        "ending_value": 133533.14448671383,
+        "pnl": -7707.365780500433,
+        "return": -0.05456908762166601,
+        "starting_value": 141240.51026721427
+      },
+      "end": "2019-12-31",
+      "pnl_difference": -276.31193039397476,
+      "start": "2015-01-01"
+    },
+    {
+      "A": {
+        "average_capital_utilisation": 0.22192157349909922,
+        "buys": 290,
+        "drawdown_within_period": -0.20186543750249875,
+        "ending_value": 148036.7195767038,
+        "pnl": 15734.767314811354,
+        "return": 0.1189307266128945,
+        "starting_value": 132301.95226189244
+      },
+      "B": {
+        "average_capital_utilisation": 0.2158721154513443,
+        "buys": 285,
+        "drawdown_within_period": -0.1915423789632028,
+        "ending_value": 158962.9512716874,
+        "pnl": 25429.806784973567,
+        "return": 0.1904381633692731,
+        "starting_value": 133533.14448671383
+      },
+      "end": "2025-12-31",
+      "pnl_difference": 9695.039470162214,
+      "start": "2020-01-01"
+    },
+    {
+      "A": {
+        "average_capital_utilisation": 0.0,
+        "buys": 0,
+        "drawdown_within_period": 0,
+        "ending_value": 148036.7195767038,
+        "pnl": 0.0,
+        "return": 0.0,
+        "starting_value": 148036.7195767038
+      },
+      "B": {
+        "average_capital_utilisation": 0.0,
+        "buys": 0,
+        "drawdown_within_period": 0,
+        "ending_value": 158962.9512716874,
+        "pnl": 0.0,
+        "return": 0.0,
+        "starting_value": 158962.9512716874
+      },
+      "end": "2026-09-11",
+      "pnl_difference": 0.0,
+      "start": "2026-01-01"
+    }
+  ],
+  "status": "completed",
+  "version": "monthly-support-account-ab-v1"
+}

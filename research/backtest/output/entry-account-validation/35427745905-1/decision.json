@@ -1,0 +1,51 @@
+{
+  "2020_2025_share_of_net_advantage": 0.8873177634163978,
+  "A_only_monthly_skip_breakdown": {
+    "INVALIDATED": {
+      "baseline_pnl": -1671.2115928022936,
+      "baseline_profitable": 0,
+      "count": 2
+    },
+    "entry_at_or_below_planned_stop": {
+      "baseline_pnl": -7556.626083183385,
+      "baseline_profitable": 2,
+      "count": 14
+    },
+    "position_limit": {
+      "baseline_pnl": -1112.7371744658599,
+      "baseline_profitable": 1,
+      "count": 5
+    }
+  },
+  "account_effect": {
+    "capital_utilisation_change_pp": -0.768509891698671,
+    "ending_value_difference": 10926.23169498361,
+    "maximum_drawdown_improvement_pp": 0.8277126450915606,
+    "trade_count_difference": -12
+  },
+  "category_counts": {
+    "daily_weekly_A_only": 15,
+    "daily_weekly_B_only": 20,
+    "daily_weekly_both": 734,
+    "daily_weekly_neither": 108,
+    "monthly_A_only": 21,
+    "monthly_B_only": 4,
+    "monthly_both": 67,
+    "monthly_neither": 8
+  },
+  "comparison_sha256": "31e5b9a485baaf060eb0e8b71eb8a109027488cd86f92b8a9ab21b9a194100e5",
+  "decision": "KEEP AS CHALLENGER / NEED MORE DATA",
+  "formal_baseline_replaced": false,
+  "later_capacity_trades_with_overlapping_monthly_wait": 8,
+  "monthly_both": {
+    "cheaper_entries": 26,
+    "count": 67,
+    "dearer_entries": 40,
+    "pnl_difference": -7432.535855403053
+  },
+  "next_stage": "保持这两套规则不变，用独立未参与挑选的样本或未来新机会检验；不激活生产、不改正式V0。",
+  "reason": "正收益差、小幅降回撤、整体交易数未大幅下降，值得保留；但共同成交月线合计更差，避亏部分来自旧止损可执行性，约89%净优势集中2020-2025，同一历史已被看过且无完整榜单/独立留样，不能PROMOTE。",
+  "source_manifest_sha256": "9cc8f78d00df01d63f16ae67a2f10b88bc6299728544dad69b2b61a829297ff4",
+  "source_run": "35427745905-1",
+  "status": "review_completed"
+}
