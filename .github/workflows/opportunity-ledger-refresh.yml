@@ -14,7 +14,7 @@ on:
       horizon_study:
         description: Observation horizons only — original groups or opportunity-level study
         type: choice
-        options: [original_horizons, opportunity_levels, prior_high, account_ledger_replay, elv_price_alignment, v0_baseline]
+        options: [original_horizons, opportunity_levels, prior_high, account_ledger_replay, elv_price_alignment, v0_baseline, entry_confirmation]
         default: original_horizons
       resume_run:
         description: Original observation run ID to continue without changing its code
@@ -42,7 +42,7 @@ jobs:
   observation_horizons:
     if: github.event_name == 'workflow_dispatch' && inputs.mode == 'observation_horizons'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v7
         with: {fetch-depth: 0}
@@ -97,6 +97,30 @@ jobs:
         with:
           name: prior-high-${{ github.run_id }}-${{ github.run_attempt }}
           path: work/prior-high-attempt/
+          retention-days: 90
+      - name: Validate entry lifecycle and fill-relative observations
+        if: inputs.horizon_study == 'entry_confirmation'
+        run: python3 -m unittest tests.test_entry_confirmation
+      - name: Restore entry research checkpoints
+        if: inputs.horizon_study == 'entry_confirmation'
+        uses: actions/cache/restore@v4
+        with:
+          path: work/entry-confirmation/checkpoints
+          key: entry-confirmation-v1-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: entry-confirmation-v1-${{ github.sha }}-${{ github.run_id }}-
+      - name: Compare daily confirmations on frozen opportunity windows
+        if: inputs.horizon_study == 'entry_confirmation'
+        run: python3 -m research.backtest.entry_confirmation
+      - uses: actions/cache/save@v4
+        if: always() && inputs.horizon_study == 'entry_confirmation'
+        with:
+          path: work/entry-confirmation/checkpoints
+          key: entry-confirmation-v1-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+      - uses: actions/upload-artifact@v4
+        if: always() && inputs.horizon_study == 'entry_confirmation'
+        with:
+          name: entry-confirmation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: work/entry-confirmation/
           retention-days: 90
       - name: Install existing locked account libraries
         if: inputs.horizon_study == 'account_ledger_replay' || inputs.horizon_study == 'elv_price_alignment' || inputs.horizon_study == 'v0_baseline'
