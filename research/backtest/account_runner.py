@@ -295,7 +295,7 @@ def execute(request, config, cache_dir, ledger_path, *, out, run_id, attempt, co
     intro += '<details><summary>每日交易明细 / Trades</summary>'+trace_body+'</details>'
     report_path.write_text(report_path.read_text().replace('<body>','<body>'+intro,1))
     receipt = seal({'schema_version':'legacy-research-run-v1','id':f'{run_id}-{attempt}','result_role':'legacy/research',
-                    'status':'completed','request':request,'summary':summary,'code_commit':code_commit,
+                    'status':'completed','baseline_eligible':False,'baseline_status':'diagnostic_unverified_price_dependencies','request':request,'summary':summary,'code_commit':code_commit,
                     'scenario':config,'selection':{'window_events':len(window_events),'eligible_policy_events':len(events),'excluded_other_policy':len(window_events)-len(events),'entered_trades':sum(t['status'] in ('open','closed') for t in trades)},'source':{'ledger_sha256':sha256(raw),'cache_key':cache_key,'windows_sha256':sources,'reference_sessions_sha256':sha256(encode(sessions)),'scan_file_sha256':sha256(scan_bytes),'scan_days_sha256':sha256(encode(scan_days)),'historical_raw_revision_proven':False},
                     'daily_account':[{'date':d,'equity':float(v),'return':float(r)} for d,v,r in zip(sessions,equity,daily)],
                     'trades':trades,'synthetic':synthetic,'audit':audit,'portfolio_ledger':portfolio_ledger,

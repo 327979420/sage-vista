@@ -14,7 +14,7 @@ on:
       horizon_study:
         description: Observation horizons only — original groups or opportunity-level study
         type: choice
-        options: [original_horizons, opportunity_levels, prior_high, account_ledger_replay]
+        options: [original_horizons, opportunity_levels, prior_high, account_ledger_replay, elv_price_alignment]
         default: original_horizons
       resume_run:
         description: Original observation run ID to continue without changing its code
@@ -45,9 +45,10 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
+        with: {fetch-depth: 0}
       - uses: actions/setup-python@v7
         with:
-          python-version: ${{ inputs.horizon_study == 'account_ledger_replay' && '3.14' || '3.13' }}
+          python-version: ${{ (inputs.horizon_study == 'account_ledger_replay' || inputs.horizon_study == 'elv_price_alignment') && '3.14' || '3.13' }}
       - name: Restore only the original observation price vintage
         if: inputs.horizon_study != 'opportunity_levels'
         uses: actions/cache/restore@v4
@@ -98,9 +99,20 @@ jobs:
           path: work/prior-high-attempt/
           retention-days: 90
       - name: Install existing locked account libraries
-        if: inputs.horizon_study == 'account_ledger_replay'
+        if: inputs.horizon_study == 'account_ledger_replay' || inputs.horizon_study == 'elv_price_alignment'
         run: |
           python3 -m pip install --only-binary=:all: --require-hashes -r research/backtest/dependencies/vectorbt-requirements.lock -r research/backtest/dependencies/quantstats-requirements.lock
+      - name: Freeze audited prices and rebuild only ELV dependencies
+        if: inputs.horizon_study == 'elv_price_alignment'
+        run: |
+          python3 -m unittest tests.test_price_identity
+          python3 -m research.backtest.elv_price_alignment
+      - uses: actions/upload-artifact@v4
+        if: always() && inputs.horizon_study == 'elv_price_alignment'
+        with:
+          name: elv-price-alignment-${{ github.run_id }}-${{ github.run_attempt }}
+          path: work/elv-alignment/
+          retention-days: 90
       - name: Reproduce the frozen legacy account and trace every day
         if: inputs.horizon_study == 'account_ledger_replay'
         env:
