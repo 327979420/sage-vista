@@ -1,0 +1,24 @@
+{
+  "computation_commit": "2d9859703734848bbdafd27c8919de00e3d8a360",
+  "files": {
+    ".gitignore": "3f4a9a15f508ed1cf34cb6394b2891b6c0d563b390c7944a0aaab8a972a2817f",
+    "analysis.json.gz": "8399b8fb901759306347bcf8fee49183061c126c4aecabdc439692d7524abd6d",
+    "candidates.json": "6555c6fa56a29e61f9d67dcbe3afb63ead1e2f04712b1a88ded20ff3be48ea86",
+    "comparison.csv": "7ba967343db1db38f01f2f66746b9c218059209fffd7f2cb72d2068ab27a7bc6",
+    "delayed-only.json": "08bac044009cfc90de7d046f0b8cf4f54633fb2ca38a044d6f563e1170495960",
+    "manifest.json": "83811044d51c55d9fed272f4109abbb0945f7bc13588e11ac93021903a352548",
+    "report.html": "9594d209d82b8aafaa1b396dc88ab6b6c9df2a97ff405af7739347a8f0dc5902",
+    "verification.json": "b70a31c311f879746d02ad54b94717d53375d830e11c5fd7a9226b6c11e08485",
+    "结论.md": "d94e9c53bd64ad6608a30111b0694d28d59164c3050ee83ae545c8c9381192ac",
+    "详细数据.md": "5f7b3da1fa32547dac5aa93e9b91d904c1ffaa4197f7613042fdd9e5744ab8ed"
+  },
+  "formal_account_unchanged": "35415051176-1",
+  "presentation_validation": "Chinese report rendered and HTML structure checked; optional browser file preview was blocked by browser URL policy, so no visual browser verification is claimed",
+  "raw_analysis_sha256": "998f7b9566da39ab3a478f7c69d00d22e12fac55e4e76429d8b2a52db44ea053",
+  "role": "entry_observation_not_account_baseline",
+  "run": "35425024708-1",
+  "status": "completed_and_verified",
+  "supplement": "delayed-only.json is a post-run descriptive diagnostic; primary tables unchanged",
+  "url": "https://github.com/327979420/sage-vista/actions/runs/35425024708",
+  "verification": "local/cloud artifact hashes, frozen policy, coverage, activation times, single opportunity and fill timing; compressed copy roundtrip verified"
+}

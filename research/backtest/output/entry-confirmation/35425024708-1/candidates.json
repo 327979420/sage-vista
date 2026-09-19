@@ -1,0 +1,54 @@
+{
+  "candidates": [
+    {
+      "id": "direct_control",
+      "reason": "保留原买点对照，不表示应当立即买入",
+      "role": "control",
+      "timeframes": [
+        "daily",
+        "weekly_completed",
+        "monthly_completed"
+      ],
+      "trigger": "setup close -> next valid session open"
+    },
+    {
+      "id": "monthly_daily_support_reversal",
+      "reason": "月线覆盖98/100、等待中位21交易日，配对20日收益+0.63pp，跌幅改善+0.21pp；不确定区间跨0，历史阶段不稳定",
+      "role": "exploratory_challenger",
+      "timeframes": [
+        "monthly_completed"
+      ],
+      "trigger": "active source and daily.support_reversal -> next valid session open"
+    }
+  ],
+  "deferred": {
+    "breakout": "月线等待中位73交易日，30日配对收益-2.89pp；周线未稳定改善",
+    "daily_extra_wait": "结果后真正延后子组没有改善线索",
+    "momentum": "周线19/月线18成交，覆盖少；月线配对20日收益-4.60pp"
+  },
+  "holding_candidates": {
+    "daily": [
+      "30d",
+      "40d",
+      "60d"
+    ],
+    "monthly_completed": [
+      "3m",
+      "6m",
+      "12m"
+    ],
+    "weekly_completed": [
+      "5w",
+      "20w"
+    ]
+  },
+  "next_account_requirements": [
+    "measure holding from actual fill",
+    "preserve existing position sizing and exits",
+    "retain declared holding comparisons",
+    "measure costs and cash constraints",
+    "resolve conservative overlap exclusion for continuous account replay"
+  ],
+  "source_run": "35425024708-1",
+  "status": "research_candidates_not_approved_trading_rules"
+}

@@ -42,7 +42,7 @@ jobs:
   observation_horizons:
     if: github.event_name == 'workflow_dispatch' && inputs.mode == 'observation_horizons'
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: ${{ inputs.horizon_study == 'entry_confirmation' && 90 || 20 }}
     steps:
       - uses: actions/checkout@v7
         with: {fetch-depth: 0}

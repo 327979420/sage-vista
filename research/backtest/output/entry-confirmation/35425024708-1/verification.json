@@ -1,0 +1,9 @@
+{
+  "analysis_sha256": "998f7b9566da39ab3a478f7c69d00d22e12fac55e4e76429d8b2a52db44ea053",
+  "fills_across_four_counterfactual_methods": 2330,
+  "merged_events_not_activated": 57,
+  "scope": "identity, coverage, single opportunity, activation dates, lifecycle, fill timing, denominators; not strategy proof",
+  "source_events": 1041,
+  "status": "passed",
+  "unified_opportunities": 977
+}

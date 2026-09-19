@@ -50,6 +50,17 @@ class EntryConfirmationTests(unittest.TestCase):
     def test_invalidation_terminal_and_future_source_not_applied(self):
         self.rows[1]['close']=80
         self.assertEqual(self.run_op()['methods']['support']['status'],'invalidated')
+    def test_fill_precedes_same_day_close_invalidation(self):
+        self.rows[1]['close']=80
+        self.assertEqual(self.run_op()['methods']['direct']['status'],'filled')
+    def test_future_sources_do_not_resurrect_invalidated_wait(self):
+        import copy
+        later=copy.deepcopy(self.event);later['episode_id']='e2';later['signal_date']=self.days[2]
+        later['entry_gate']['paths'][0].update(structure_key='future',structure_floor=50,confirmed_through=self.days[2])
+        self.op['source_events'].append(later);self.rows[1]['close']=80
+        result=self.run_op()
+        self.assertEqual(result['methods']['breakout']['status'],'invalidated')
+        self.assertNotIn('e2',result['applied_event_ids'])
     def test_last_day_trigger_executes_following_open(self):
         self.op['wait_end']=self.days[2]
         self.assertEqual(self.run_op()['methods']['breakout']['fill_date'],self.days[3])

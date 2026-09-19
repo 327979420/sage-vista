@@ -787,3 +787,7 @@
 - 分2005–09/2010–14/2015–19/2020–25、Daily/Weekly/Monthly列样本；少于30仅作线索。配对差值采用ticker整组bootstrap（1000次、固定seed）95%区间，承认市场日期重叠、幸存者偏差、历史已看过，并非独立留样。
 - 状态：DETECTED→ACTIVE_SETUP→WAITING_FOR_DAILY_CONFIRMATION→ENTRY_READY→ORDER_PENDING→OPEN_POSITION→EXIT_READY→CLOSED；INVALIDATED/EXPIRED为分支。状态事件记录日期，OPEN只能由模拟fill产生；各5/10/20/30d是独立观察分支，主生命周期展示30d，不影响未来账户规则。
 - 架构参考：LEAN分离机会/资金/执行 https://www.quantconnect.com/docs/v1/algorithm-framework/overview ；Backtrader下一根开盘 https://www.backtrader.com/docu/order-creation-execution/order-creation-execution/ ；Nautilus订单成交形成仓位 https://nautilustrader.io/docs/latest/concepts/positions/ 。仅借用职责划分，VectorBT账户不改。
+
+### 日线确认 v1 结果后的解释性拆分
+
+35425024708-1 完成后发现日线组混有“原信号日已经满足该确认、成交日期未改变”的样本，配对中位数出现大量0。保留所有预登记主表不动，另用同一结果按实际fill是否延后拆分，写入delayed-only.json，明示为结果后描述性诊断，不重跑行情、不调整触发条件、不将此拆分冒充预登记显著性检验。
