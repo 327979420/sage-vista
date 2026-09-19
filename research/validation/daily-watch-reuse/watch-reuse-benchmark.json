@@ -1,0 +1,23 @@
+{
+  "uncached_seconds": 0.5441031251102686,
+  "cached_seconds": 0.5552523750811815,
+  "incremental_seconds": 0.005060750059783459,
+  "rows": 643,
+  "records": 0,
+  "progress": [
+    {
+      "stage": "watch_history",
+      "mode": "incremental",
+      "sessions_to_process": 1,
+      "as_of": "2022-06-17"
+    },
+    {
+      "stage": "watch_history_progress",
+      "processed": 1,
+      "total": 1,
+      "through": "2022-06-17"
+    }
+  ],
+  "exact_full_output_parity": true,
+  "role": "synthetic_single_stock_not_production_speed_forecast"
+}

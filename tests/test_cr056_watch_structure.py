@@ -33,8 +33,12 @@ class StructureWatchTests(unittest.TestCase):
   with patch('services.factors.cr056.collect_entry_facts',side_effect=self.facts) as detect:
    old=track_entry_structures(self.rows[:423],as_of=self.rows[422]['date'])
    detect.reset_mock()
-   incremental=track_entry_structures(self.rows,as_of=self.rows[-1]['date'],previous=old)
+   progress=[]
+   incremental=track_entry_structures(self.rows,as_of=self.rows[-1]['date'],previous=old,progress=progress.append)
    self.assertEqual(detect.call_count,3)
+   self.assertEqual(progress[0]['mode'],'incremental')
+   self.assertEqual(progress[0]['sessions_to_process'],3)
+   self.assertEqual(progress[-1]['processed'],3)
    full=track_entry_structures(self.rows,as_of=self.rows[-1]['date'])
    self.assertEqual(incremental,full)
    detect.reset_mock()
@@ -47,6 +51,23 @@ class StructureWatchTests(unittest.TestCase):
    detect.reset_mock();new=track_entry_structures(revised,as_of=revised[-1]['date'],previous=old)
    self.assertGreater(detect.call_count,0);self.assertEqual(old,frozen)
    self.assertEqual(new['records'][0]['trigger_close'],101.)
+
+ def test_native_cache_preserves_full_history_output(self):
+  import math
+  from services.factors.cr056 import collect_entry_facts
+  rows=[];day=date(2019,1,1)
+  while len(rows)<490:
+   if day.weekday()<5:
+    i=len(rows);close=80+i*.01+8*math.sin(i/15)
+    rows.append({'date':str(day),'open':close,'high':close+2,'low':close-2,'close':close,'volume':1000000})
+   day+=timedelta(days=1)
+  cached=track_entry_structures(rows,as_of=rows[-1]['date'])
+  def uncached(values,**kwargs):
+   kwargs['frame_cache']=None
+   return collect_entry_facts(values,**kwargs)
+  with patch('services.factors.cr056.collect_entry_facts',side_effect=uncached):
+   reference=track_entry_structures(rows,as_of=rows[-1]['date'])
+  self.assertEqual(cached,reference)
  def test_missing_gate_never_grandfathers_an_old_nomination(self):
   def no_signal(rows,**kwargs):
    f=self.facts(rows,**kwargs);f['frames']['daily'].update(macd_valid=False,support_reversal=False);return f

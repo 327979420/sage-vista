@@ -67,7 +67,7 @@ def prepare_inputs(*, base_cache, cache, stage, previous_date, as_of, reference_
 
 
 def refresh(*, as_of, code_commit, public_path, state_path, archive_dir, work_dir,
-            base_cache, fetch_reference, fetch_bulk, runner=run_snapshot):
+            base_cache, fetch_reference, fetch_bulk, runner=run_snapshot, progress=None):
     original_public = public_path.read_bytes()
     detail_path = public_path.parent/'cr056-factor-details.json.gz'
     original_details = detail_path.read_bytes() if detail_path.exists() else None
@@ -110,7 +110,9 @@ def refresh(*, as_of, code_commit, public_path, state_path, archive_dir, work_di
             source, input_report = prepare_inputs(base_cache=base_cache, cache=cache, stage=stage,
                 previous_date=previous['as_of'], as_of=as_of, reference_sessions=sessions, fetch_bulk=bulk)
             report = runner(source, as_of=as_of, history={'days':[]}, code_commit=code_commit,
-                            input_report=input_report, previous=previous, **({"policy_revision":True} if policy_revision and previous["as_of"] == as_of else {}))
+                            input_report=input_report, previous=previous,
+                            **({'progress':progress} if progress else {}),
+                            **({"policy_revision":True} if policy_revision and previous["as_of"] == as_of else {}))
             # Preserve completed derived work even if display validation fails.
             replace_bytes(work_dir/'daily-report.json.gz', gzip.compress(encoded(report),mtime=0))
             replace_bytes(work_dir/'input-report.json', encoded(input_report))
@@ -183,10 +185,13 @@ def main():
         shared = ROOT/'work/eodhd-bulk'/f'{day}.json'
         if shared.exists(): return json.loads(shared.read_text())
         return bulk_day(day, cache_dir=str(private_bulk), strict=True)
+    import sys
+    def progress(event):
+        print(json.dumps(event,sort_keys=True),file=sys.stderr,flush=True)
     result=refresh(as_of=args.as_of, code_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
         public_path=ROOT/'public/cr056-ranking.json', state_path=ROOT/'automation/cr056-watch-state.json.gz',
         archive_dir=ROOT/'research/generated/cr056-daily', work_dir=ROOT/'work/cr056-daily',
-        base_cache=ROOT/'work/eodhd-cache', fetch_reference=lambda start,end:prices('SPY',start,end), fetch_bulk=existing_bulk)
+        base_cache=ROOT/'work/eodhd-cache', fetch_reference=lambda start,end:prices('SPY',start,end), fetch_bulk=existing_bulk, progress=progress)
     print(json.dumps(result))
 
 if __name__=='__main__':main()

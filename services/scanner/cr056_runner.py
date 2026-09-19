@@ -92,7 +92,7 @@ def historical_origins(history, *, as_of):
     return result
 
 
-def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previous=None, policy_revision=False, factor_cache=None, selection_only=False):
+def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previous=None, policy_revision=False, factor_cache=None, selection_only=False, progress=None):
     if input_report.get('as_of') != as_of or input_report.get('result_role') != 'legacy_comparison_input_repair':
         raise ValueError('repaired input report date or role mismatch')
     if previous and (previous.get('result_role') != 'legacy_comparison' or previous['as_of'] > as_of):
@@ -113,7 +113,11 @@ def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previo
     if not reference_sessions or reference_sessions[-1] != as_of:
         raise ValueError('reference latest complete session missing')
     reviews, counts = [], Counter()
-    for symbol in sorted(set(sources) | set(origins) | set(input_report.get('excluded', {}))):
+    symbols = sorted(set(sources) | set(origins) | set(input_report.get('excluded', {})))
+    for position, symbol in enumerate(symbols,1):
+        if progress:
+            progress({'stage':'stock_start','symbol':symbol,'position':position,'total':len(symbols)})
+        tracking_progress = (lambda event: progress({**event,'symbol':symbol})) if progress else None
         source = sources.get(symbol)
         item = {'symbol': symbol, 'instrument_id': 'legacy-observed:'+symbol, 'as_of': as_of,
             'origin': origins.get(symbol), 'code_commit': code_commit, 'new_nomination': False,
@@ -149,7 +153,10 @@ def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previo
             item['entry_gate'] = entry
             if missing is None and symbol not in origins and not entry['eligible'] and not structure_wait:
                 item['status'] = 'not_nominated'; item['reason_codes'] = entry['reason_codes']
-                counts['not_nominated'] += 1; reviews.append(item); continue
+                counts['not_nominated'] += 1; reviews.append(item)
+                if progress:
+                    progress({'stage':'stock_complete','symbol':symbol,'processed':position,'total':len(symbols)})
+                continue
             if missing is not None: raise ValueError(missing)
             facts = collect_direction_facts(rows, as_of=as_of, complete_session=True)
             permission = assess_permission(facts)
@@ -163,11 +170,14 @@ def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previo
                 item.update({'status':'excluded' if permission['permission']=='blocked' else 'unavailable',
                              'permission':permission, 'reason_codes':permission['reason_codes'],
                              'diagnostic_score_omitted':True})
-                counts[item['status']] += 1; reviews.append(item); continue
+                counts[item['status']] += 1; reviews.append(item)
+                if progress:
+                    progress({'stage':'stock_complete','symbol':symbol,'processed':position,'total':len(symbols)})
+                continue
             tracking = (prior.get(symbol) or {}).get('entry_tracking')
             if symbol in origins and (tracking is not None or permission['eligible'] or
                                       'no_pullback_60d' in permission['reason_codes']):
-                tracking = track_entry_structures(rows, as_of=as_of, previous=tracking)
+                tracking = track_entry_structures(rows, as_of=as_of, previous=tracking, progress=tracking_progress)
                 if not tracking['eligible']:
                     permission = {**permission, 'eligible':False, 'permission':'blocked',
                                   'reason_codes':permission['reason_codes']+['no_surviving_new_rule_structure']}
@@ -176,7 +186,7 @@ def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previo
             elif symbol not in origins and entry['eligible'] and permission['eligible']:
                 # The first actual nomination starts its own observation. Legacy
                 # migration above is explicitly labelled retrospective research.
-                tracking = track_entry_structures(rows, as_of=as_of, start_date=as_of)
+                tracking = track_entry_structures(rows, as_of=as_of, start_date=as_of, progress=tracking_progress)
             item['entry_tracking'] = tracking
             states = evaluate_period_factors(rows, as_of, complete_session=True, raw_cache=factor_cache)
             score = score_candidate(states, permission)
@@ -214,6 +224,8 @@ def run_snapshot(cache_dir, *, as_of, history, code_commit, input_report, previo
                     entry_tracking=item.get('entry_tracking') or (prior.get(symbol) or {}).get('entry_tracking'))
         counts[item['status']] += 1
         reviews.append(item)
+        if progress:
+            progress({'stage':'stock_complete','symbol':symbol,'processed':position,'total':len(symbols)})
     ranked = rank_reviews(reviews)
     report = {'schema_version': 'cr056-backend-report-1.0.0', 'result_role': 'legacy_comparison',
         'as_of': as_of, 'code_commit': code_commit, 'policy_version': POLICY_VERSION,
