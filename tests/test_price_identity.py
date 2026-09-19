@@ -29,6 +29,17 @@ class PriceIdentityTests(unittest.TestCase):
         c=self.contract()
         with self.assertRaisesRegex(ValueError,'wrong_account'):
             validate_baseline_receipt({'price_consistency':c,'portfolio_ledger':{'other':456}})
+    def test_actual_trade_bindings_are_required(self):
+        from research.backtest.price_identity import validate_baseline_receipt
+        c=self.contract();m=c['manifest']
+        event={'event_id':'e','symbol':'ELV','signal_date':'2026-02-18','selection':{'support_plan':{'level':341}}}
+        c['signal']=bind([event],m,symbols=['ELV'],verified=True)
+        c['support']=bind({'ELV':event['selection']['support_plan']},m,symbols=['ELV'],verified=True)
+        r={'price_consistency':c,'portfolio_ledger':c['account']['payload'],'trades':[
+            {'event_id':'e','symbol':'ELV','signal_date':'2026-02-18','signal_snapshot':{'selection':event['selection']}}]}
+        self.assertEqual(validate_baseline_receipt(r),m['price_version'])
+        r['trades'][0]['signal_date']='2026-02-19'
+        with self.assertRaisesRegex(ValueError,'wrong_signal'):validate_baseline_receipt(r)
     def test_formal_receipt_without_price_contract_is_rejected(self):
         import json
         from pathlib import Path

@@ -1,0 +1,51 @@
+{
+  "payload": {
+    "available": true,
+    "candidates": [
+      {
+        "distance_pct": 0.034,
+        "level": 341.1233,
+        "source": "EMA50"
+      },
+      {
+        "distance_pct": 0.52,
+        "level": 339.4743,
+        "source": "EMA21"
+      },
+      {
+        "distance_pct": 7.096,
+        "level": 318.6303,
+        "source": "confirmed-swing-low"
+      },
+      {
+        "distance_pct": 9.757,
+        "level": 310.9035,
+        "source": "prior-20D-low"
+      }
+    ],
+    "level": 341.1233,
+    "max_loss_pct": 10,
+    "signal_close": 341.2389,
+    "source": "EMA50",
+    "structural_stop": 324.0671,
+    "support_buffer_pct": 5,
+    "volume_profile": {
+      "available": true,
+      "bins": 40,
+      "concentrated": true,
+      "distance_pct": -6.8158,
+      "hit": false,
+      "level": 366.198358,
+      "lookback_sessions": 250,
+      "near_price": false,
+      "peak_share": 0.067444,
+      "pulled_back": true
+    }
+  },
+  "payload_sha256": "50ca0a6be2143b150ab73d76818f56e14be3f160d49b3f80a79a8b9458344a52",
+  "price_version": "sha256:c287c7b91604d5881e04e5929cf55b848550febd17603284b7d45eed96220a7a",
+  "symbols": [
+    "ELV"
+  ],
+  "verified": true
+}

@@ -1,0 +1,18 @@
+{
+  "run": "35411630136-1",
+  "code": "8078711",
+  "price_version": "sha256:c287c7b91604d5881e04e5929cf55b848550febd17603284b7d45eed96220a7a",
+  "files": {
+    "comparison.md": "7c8607e5badac91d7f0f859ae53ebfdf3e221b8dee5c97db873c275c251519f5",
+    "regenerated-account.json": "ad2469fce101eeb828268c7444b545c9370d11407959ce799d324c460aad30fd",
+    "elv-support.json": "fed9df26b653385d903b9183b98a9c07e19ed32d71df85d544ce3bbf1435aad0",
+    "legacy-elv-probe.json": "2e1e50dbf1716e36196615975daf8b20b31ffc63d783c3545c643f6fe2fd4a85",
+    "price-consistency.json": "b61b6b06f72652bdcc076417efd5bd33ad13065f34658c643c38f8a2eec3ceb9",
+    "\u7ed3\u8bba.md": "3835a51ce6ff9c95188a3d1e454d682a90021490fe35ac5cae8b92c50ede9169",
+    "comparison.json": "b1205c2cf821fc8c44a287c3cd8c39eebfe286875d1d157561fbdfde3d3d7f77",
+    "price-manifest.json": "9d7b511095a31b1323ff62d02bfeab4f8a0ad727d0f6e62125cffdb61b56aabe",
+    "comparison.csv": "0888aa86bcb2ff80185bde0c6a8f675a2ac3207fc2991f6d33cff252980d366a",
+    "elv-signal.json": "f1526c281e16112e51fadebadf8dfe2b9b586ac76c96594e7774ecf640a4d6a6"
+  },
+  "baseline_eligible": false
+}
