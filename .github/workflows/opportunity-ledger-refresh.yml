@@ -14,7 +14,7 @@ on:
       horizon_study:
         description: Observation horizons only — original groups or opportunity-level study
         type: choice
-        options: [original_horizons, opportunity_levels, prior_high, account_ledger_replay, elv_price_alignment, v0_baseline, entry_confirmation]
+        options: [original_horizons, opportunity_levels, prior_high, account_ledger_replay, elv_price_alignment, v0_baseline, entry_confirmation, entry_account_validation]
         default: original_horizons
       resume_run:
         description: Original observation run ID to continue without changing its code
@@ -42,13 +42,13 @@ jobs:
   observation_horizons:
     if: github.event_name == 'workflow_dispatch' && inputs.mode == 'observation_horizons'
     runs-on: ubuntu-latest
-    timeout-minutes: ${{ inputs.horizon_study == 'entry_confirmation' && 90 || 20 }}
+    timeout-minutes: ${{ (inputs.horizon_study == 'entry_confirmation' || inputs.horizon_study == 'entry_account_validation') && 90 || 20 }}
     steps:
       - uses: actions/checkout@v7
         with: {fetch-depth: 0}
       - uses: actions/setup-python@v7
         with:
-          python-version: ${{ (inputs.horizon_study == 'account_ledger_replay' || inputs.horizon_study == 'elv_price_alignment' || inputs.horizon_study == 'v0_baseline') && '3.14' || '3.13' }}
+          python-version: ${{ (inputs.horizon_study == 'account_ledger_replay' || inputs.horizon_study == 'elv_price_alignment' || inputs.horizon_study == 'v0_baseline' || inputs.horizon_study == 'entry_account_validation') && '3.14' || '3.13' }}
       - name: Restore only the original observation price vintage
         if: inputs.horizon_study != 'opportunity_levels' && inputs.horizon_study != 'v0_baseline'
         uses: actions/cache/restore@v4
@@ -123,9 +123,21 @@ jobs:
           path: work/entry-confirmation/
           retention-days: 90
       - name: Install existing locked account libraries
-        if: inputs.horizon_study == 'account_ledger_replay' || inputs.horizon_study == 'elv_price_alignment' || inputs.horizon_study == 'v0_baseline'
+        if: inputs.horizon_study == 'account_ledger_replay' || inputs.horizon_study == 'elv_price_alignment' || inputs.horizon_study == 'v0_baseline' || inputs.horizon_study == 'entry_account_validation'
         run: |
           python3 -m pip install --only-binary=:all: --require-hashes -r research/backtest/dependencies/vectorbt-requirements.lock -r research/backtest/dependencies/quantstats-requirements.lock
+      - name: Validate strict entry-only AB and existing account
+        if: inputs.horizon_study == 'entry_account_validation'
+        run: python3 -m unittest tests.test_entry_account_validation tests.test_parameterized_account tests.test_account_ledger tests.test_price_identity
+      - name: Run two unchanged accounts on frozen saved opportunities
+        if: inputs.horizon_study == 'entry_account_validation'
+        run: python3 -m research.backtest.entry_account_validation
+      - uses: actions/upload-artifact@v4
+        if: always() && inputs.horizon_study == 'entry_account_validation'
+        with:
+          name: entry-account-validation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: work/entry-account-validation/
+          retention-days: 90
       - name: Restore exact frozen V0 artifact, not current provider data
         if: inputs.horizon_study == 'v0_baseline'
         env:
