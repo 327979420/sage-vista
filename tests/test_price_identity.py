@@ -24,6 +24,11 @@ class PriceIdentityTests(unittest.TestCase):
     def test_incomplete_symbols_fail(self):
         c=self.contract();c['account']['symbols']=[]
         with self.assertRaisesRegex(ValueError,'unverified'):require_consistent_baseline(c)
+    def test_contract_cannot_be_attached_to_an_unrelated_account(self):
+        from research.backtest.price_identity import validate_baseline_receipt
+        c=self.contract()
+        with self.assertRaisesRegex(ValueError,'wrong_account'):
+            validate_baseline_receipt({'price_consistency':c,'portfolio_ledger':{'other':456}})
     def test_formal_receipt_without_price_contract_is_rejected(self):
         import json
         from pathlib import Path

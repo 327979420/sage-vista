@@ -42,7 +42,7 @@ def main():
         'scope': '18_account_symbols_plus_SPY', 'historical_as_published_vintage_proven': False})
     (out / 'price-manifest.json').write_bytes(encode(manifest))
     legacy = ROOT / 'work/elv-legacy-code'; legacy.mkdir(parents=True, exist_ok=True)
-    archive = subprocess.check_output(['git', 'archive', LEGACY, 'services', 'research'])
+    archive = subprocess.check_output(['git', 'archive', LEGACY, 'services', 'research', 'config'])
     subprocess.run(['tar', '-x', '-C', str(legacy)], input=archive, check=True)
     env = {**os.environ, 'PYTHONPATH': str(legacy)}
     subprocess.run([sys.executable, str(ROOT/'research/backtest/elv_legacy_probe.py'), str(frozen), str(out)], cwd=legacy, env=env, check=True)

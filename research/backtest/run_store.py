@@ -77,8 +77,8 @@ def validate_receipt(receipt):
         from research.backtest.account_ledger import validate_ledger_receipt
         validate_ledger_receipt(receipt)
     if receipt.get('baseline_eligible') is True or receipt.get('baseline_status') == 'formal':
-        from research.backtest.price_identity import require_consistent_baseline
-        require_consistent_baseline(receipt.get('price_consistency'))
+        from research.backtest.price_identity import validate_baseline_receipt
+        validate_baseline_receipt(receipt)
     audit = receipt.get('audit')
     if audit is not None:
         if (not isinstance(audit, dict) or audit.get('version') != 'trade-signal-audit-v1'
