@@ -14,7 +14,7 @@ on:
       horizon_study:
         description: Observation horizons only — original groups or opportunity-level study
         type: choice
-        options: [original_horizons, opportunity_levels, prior_high, account_ledger_replay, elv_price_alignment]
+        options: [original_horizons, opportunity_levels, prior_high, account_ledger_replay, elv_price_alignment, v0_baseline]
         default: original_horizons
       resume_run:
         description: Original observation run ID to continue without changing its code
@@ -48,9 +48,9 @@ jobs:
         with: {fetch-depth: 0}
       - uses: actions/setup-python@v7
         with:
-          python-version: ${{ (inputs.horizon_study == 'account_ledger_replay' || inputs.horizon_study == 'elv_price_alignment') && '3.14' || '3.13' }}
+          python-version: ${{ (inputs.horizon_study == 'account_ledger_replay' || inputs.horizon_study == 'elv_price_alignment' || inputs.horizon_study == 'v0_baseline') && '3.14' || '3.13' }}
       - name: Restore only the original observation price vintage
-        if: inputs.horizon_study != 'opportunity_levels'
+        if: inputs.horizon_study != 'opportunity_levels' && inputs.horizon_study != 'v0_baseline'
         uses: actions/cache/restore@v4
         with:
           path: |
@@ -59,7 +59,7 @@ jobs:
             work/observation-history.json
           key: observation-history-v1-34766761296-1
       - uses: actions/cache/restore@v4
-        if: inputs.horizon_study != 'opportunity_levels'
+        if: inputs.horizon_study != 'opportunity_levels' && inputs.horizon_study != 'v0_baseline'
         with:
           path: work/horizon-checkpoints
           key: observation-horizons-v1-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -73,7 +73,7 @@ jobs:
         if: inputs.horizon_study == 'opportunity_levels'
         run: python3 -m research.backtest.observation_level_horizons
       - uses: actions/cache/save@v4
-        if: always() && inputs.horizon_study != 'opportunity_levels'
+        if: always() && inputs.horizon_study != 'opportunity_levels' && inputs.horizon_study != 'v0_baseline'
         with:
           path: work/horizon-checkpoints
           key: observation-horizons-v1-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -99,9 +99,27 @@ jobs:
           path: work/prior-high-attempt/
           retention-days: 90
       - name: Install existing locked account libraries
-        if: inputs.horizon_study == 'account_ledger_replay' || inputs.horizon_study == 'elv_price_alignment'
+        if: inputs.horizon_study == 'account_ledger_replay' || inputs.horizon_study == 'elv_price_alignment' || inputs.horizon_study == 'v0_baseline'
         run: |
           python3 -m pip install --only-binary=:all: --require-hashes -r research/backtest/dependencies/vectorbt-requirements.lock -r research/backtest/dependencies/quantstats-requirements.lock
+      - name: Restore exact frozen V0 artifact, not current provider data
+        if: inputs.horizon_study == 'v0_baseline'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run download 35411630136 --name elv-price-alignment-35411630136-1 --dir work/v0-frozen
+      - name: Regenerate bounded candidates twice and validate V0 baseline
+        if: inputs.horizon_study == 'v0_baseline'
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python3 -m unittest tests.test_price_identity tests.test_account_ledger tests.test_parameterized_account
+          python3 -m research.backtest.v0_baseline
+      - uses: actions/upload-artifact@v4
+        if: always() && inputs.horizon_study == 'v0_baseline'
+        with:
+          name: v0-baseline-${{ github.run_id }}-${{ github.run_attempt }}
+          path: work/v0-baseline/
+          retention-days: 90
       - name: Freeze audited prices and rebuild only ELV dependencies
         if: inputs.horizon_study == 'elv_price_alignment'
         run: |
