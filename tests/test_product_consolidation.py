@@ -21,7 +21,7 @@ class ProductConsolidationTests(unittest.TestCase):
  def test_fast_production_json_fetches_are_no_store(self):
   consumers={
    "cr056-ranking.json":"app/zh/watch/resonance/rare-opportunities/cr056-ranking.tsx",
-   "favorite-pattern.json":"app/zh/watch/resonance/favorite-pattern/page.tsx",
+   "daily-shape-picker.json":"app/zh/watch/resonance/favorite-pattern/page.tsx",
    "industry-radar.json":"app/zh/watch/industry-radar/page.tsx",
    "market-etf-watch.json":"app/zh/watch/industry-radar/page.tsx",
    "update-status.json":"app/zh/watch/resonance/tracker-ui.tsx",

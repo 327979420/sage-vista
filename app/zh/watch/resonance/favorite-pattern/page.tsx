@@ -17,6 +17,8 @@ type Picker = {
   state_counts:Record<string,number>;
   universe:{eligible_covered_count:number; selected_activity_count:number; cached_common_count:number};
 };
+class PickerLoadError extends Error {}
+
 const money = (n:number)=>`$${n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
 const turnover = (n:number)=>n>=1e8?`${(n/1e8).toFixed(1)} 亿美元`:`${(n/1e4).toFixed(0)} 万美元`;
 
@@ -53,12 +55,12 @@ export default function FavoritePatternPage() {
   useEffect(()=>{
     const controller=new AbortController();
     Promise.all([fetch("/daily-shape-picker.json",{cache:"no-store",signal:controller.signal}),fetch("/update-status.json",{cache:"no-store",signal:controller.signal})])
-      .then(async responses=>{if(responses.some(r=>!r.ok))throw new Error("形态数据暂时没有加载成功。");return Promise.all(responses.map(r=>r.json()))})
+      .then(async responses=>{if(responses.some(r=>!r.ok))throw new PickerLoadError("形态数据暂时没有加载成功。");return Promise.all(responses.map(r=>r.json()))})
       .then(([picker,status])=>{
-        if(picker.version!=="daily-shape-picker-v1"||!Array.isArray(picker.rows))throw new Error("形态数据格式有误，正在等待完整更新。");
-        if(picker.as_of!==status.source_latest_complete_date)throw new Error(`形态数据仍停留在 ${picker.as_of}，尚未与最新收盘日同步。`);
+        if(picker.version!=="daily-shape-picker-v1"||!Array.isArray(picker.rows))throw new PickerLoadError("形态数据格式有误，正在等待完整更新。");
+        if(picker.as_of!==status.source_latest_complete_date)throw new PickerLoadError(`形态数据仍停留在 ${picker.as_of}，尚未与最新收盘日同步。`);
         if(!controller.signal.aborted)setData(picker);
-      }).catch(e=>{if(!controller.signal.aborted)setError(e instanceof Error?e.message:"加载失败，请重试。")});
+      }).catch(e=>{if(!controller.signal.aborted)setError(e instanceof PickerLoadError?e.message:"形态数据暂时无法读取，请重试。")});
     return ()=>controller.abort();
   },[attempt]);
   const rows=useMemo(()=>data?.rows.filter(row=>(group==="waiting"?row.state==="waiting":row.state!=="waiting")&&row.symbol.toLowerCase().includes(query.trim().toLowerCase()))??[],[data,group,query]);
