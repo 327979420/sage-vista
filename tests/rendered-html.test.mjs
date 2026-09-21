@@ -77,13 +77,10 @@ test("server-renders the independent favorite-pattern tracker", async () => {
   assert.equal(response.status, 200);
   const html = await response.text();
   assert.match(html, /我最喜欢形态/);
-  assert.match(html, /只看你最关心的四件事/);
-  assert.match(html, /生产权重 0/);
-  assert.match(html, /发生回调/);
-  assert.match(html, /形成双底/);
-  assert.match(html, /三推突破/);
-  assert.match(html, /踩到位置/);
-  assert.match(html, /4\/4不是胜率/);
+  assert.match(html, /热门股 · 日线 · 形态/);
+  assert.match(html, /先确认底部/);
+  assert.match(html, /正在读取日线形态/);
+  assert.doesNotMatch(html, /4\/4|生产权重 0/);
 });
 
 test("experiment pages are retired from the website", async () => {

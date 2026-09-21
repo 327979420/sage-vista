@@ -39,8 +39,8 @@ class TrackerOutputContractTests(unittest.TestCase):
         self.assertIn("favorite-pattern-v3.0.0", source)
         self.assertIn("PERSONAL_TRADING_SYSTEM_ZH", rules)
         self.assertIn("不登记为第40个因子", rules)
-        self.assertIn("生产权重 0", page)
-        self.assertIn("4/4不是胜率", page)
+        self.assertIn("daily-shape-picker.json", page)
+        self.assertIn("底部确认不保证", (ROOT / "services/scanner/daily_shape_public.py").read_text())
 
     def test_tracker_and_radar_dates_match(self):
         tracker = json.loads((ROOT / "public/resonance-tracker.json").read_text())
