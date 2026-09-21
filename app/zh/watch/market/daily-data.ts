@@ -1,6 +1,23 @@
 "use client";
 import {useCallback,useEffect,useState} from 'react';
 
+// Avoid AbortSignal.any/timeout: older Safari versions do not implement them.
+export async function fetchDailyAsset(path:string, parent:AbortSignal, timeoutMs=15000){
+ const request=new AbortController();
+ const abort=()=>request.abort();
+ if(parent.aborted)abort();
+ else parent.addEventListener('abort',abort,{once:true});
+ const timer=setTimeout(abort,timeoutMs);
+ try{
+  const response=await fetch(path,{cache:'no-store',signal:request.signal});
+  if(!response.ok)throw new Error('daily_asset_unavailable');
+  return await response.json();
+ }finally{
+  clearTimeout(timer);
+  parent.removeEventListener('abort',abort);
+ }
+}
+
 // Pages read published daily assets. They never fetch prices or scan securities.
 export function useDailyData(paths:readonly string[]){
  const [reports,setReports]=useState<Record<string,unknown>>({});
@@ -10,11 +27,7 @@ export function useDailyData(paths:readonly string[]){
   let active=true;let busy=false;const controller=new AbortController();
   const load=async()=>{
    if(busy)return;busy=true;
-   const results=await Promise.allSettled(paths.map(async path=>{
-    const response=await fetch(path,{cache:'no-store',signal:AbortSignal.any([controller.signal,AbortSignal.timeout(15000)])});
-    if(!response.ok)throw new Error('daily_asset_unavailable');
-    return response.json();
-   }));
+   const results=await Promise.allSettled(paths.map(path=>fetchDailyAsset(path,controller.signal)));
    if(active){setReports(Object.fromEntries(paths.map((p,i)=>[p,results[i].status==='fulfilled'?results[i].value:null])));setLoading(false)}
    busy=false;
   };
