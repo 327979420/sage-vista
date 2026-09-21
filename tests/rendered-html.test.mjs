@@ -1,14 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-async function render(path = "/") {
+async function render(path = "/", cookie = "") {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
   workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
   const { default: worker } = await import(workerUrl.href);
 
   return worker.fetch(
     new Request(`http://localhost${path}`, {
-      headers: { accept: "text/html" },
+      headers: { accept: "text/html", cookie },
     }),
     {
       ASSETS: {
@@ -138,4 +138,16 @@ test("industry owns its title and excludes the market hero", async()=>{
  assert.match(html,/<title>Sage Vista — 行业<\/title>/);
  assert.match(html,/每日行业速览/);
  assert.doesNotMatch(html,/大盘环境 ·|行业与大盘/);
+});
+
+
+test("language cookie controls first render and never leaks between requests", async()=>{
+ const pages=[['/','Market'],['/zh/watch/market','Market'],['/zh/watch/industry-radar','Industries'],['/zh/watch/resonance/rare-opportunities','Candidates'],['/zh/watch/resonance/favorite-pattern','Daily Patterns'],['/zh/backtest','Backtests']];
+ for(const[path,title]of pages){
+  const response=await render(path,'sv-language=en');assert.equal(response.status,200);
+  const html=await response.text();assert.match(html,/<html lang="en">/);assert.ok(html.includes(title));assert.match(html,/lang="en" aria-pressed="true"/);
+  assert.doesNotMatch(html.split('</head>')[1].split('<script')[0].replace(/>中文</g,'>Chinese<'),/[\u3400-\u9fff]/);
+ }
+ const zh=await (await render('/','sv-language=zh')).text();assert.match(zh,/<html lang="zh-CN">/);assert.match(zh,/正在读取今日快照/);
+ const invalid=await (await render('/','sv-language=invalid')).text();assert.match(invalid,/<html lang="zh-CN">/);
 });

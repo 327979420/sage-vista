@@ -1,5 +1,7 @@
 /* eslint-disable @next/next/no-html-link-for-pages -- vinext beta client routing is broken in the deployed worker; full-page navigation is intentional. */
 import type { Metadata } from "next";
+import {cookies} from "next/headers";
+import {LanguageSwitch, LocaleProvider, Localized} from "./i18n/locale";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "./product-v2.css";
@@ -46,28 +48,31 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = (await cookies()).get("sv-language")?.value === "en" ? "en" : "zh";
   return (
-    <html lang="zh-CN">
+    <html lang={locale === "en" ? "en" : "zh-CN"}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <LocaleProvider initialLocale={locale}>
         <div className="siteVersionBar">
           <b>{`Sage Vista ${UI_VERSION}`}</b>
-          <span>{`Build ${(process.env.GITHUB_SHA ?? "local").slice(0, 7)}`}</span>
+          <div className="siteUtilities"><span>{`Build ${(process.env.GITHUB_SHA ?? "local").slice(0, 7)}`}</span><LanguageSwitch/></div>
         </div>
-        <div className="globalnav">
+        <Localized><div className="globalnav">
           <a href="/">今日市场与机会</a>
           <a href="/zh/watch/resonance/rare-opportunities">多因子机会</a>
           <a href="/zh/watch/resonance/favorite-pattern">我最喜欢形态</a>
           <a href="/zh/watch/industry-radar">行业</a>
           <a href="/zh/backtest">回测</a>
-        </div>
+        </div></Localized>
         {children}
+        </LocaleProvider>
       </body>
     </html>
   );

@@ -1,19 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import fs from 'node:fs';
-import {createRequire} from 'node:module';
-import ts from 'typescript';
+import {loadTs} from './helpers/load-ts.mjs';
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
-const require=createRequire(import.meta.url);
-const source=fs.readFileSync(new URL('../app/zh/watch/resonance/rare-opportunities/cr056-ranking.tsx',import.meta.url),'utf8');
-const compiled=ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
-const compiledModule={exports:{}};
-const contextSource=fs.readFileSync(new URL('../app/zh/watch/industry-radar/context.tsx',import.meta.url),'utf8');
-const contextCode=ts.transpileModule(contextSource,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
-const contextModule={exports:{}};
-new Function('require','exports','module',contextCode)(require,contextModule.exports,contextModule);
-new Function('require','exports','module',compiled)(id=>id==='../../industry-radar/context'?contextModule.exports:require(id),compiledModule.exports,compiledModule);
+const compiledModule={exports:loadTs('app/zh/watch/resonance/rare-opportunities/cr056-ranking.tsx')};
+const contextModule={exports:loadTs('app/zh/watch/industry-radar/context.tsx')};
 const data=JSON.parse(fs.readFileSync(new URL('../public/cr056-ranking.json',import.meta.url),'utf8'));
 
 test('real candidate projection renders its date, same backend scores and daily-update boundary',()=>{

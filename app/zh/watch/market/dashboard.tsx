@@ -1,4 +1,5 @@
 "use client";
+import {Localized} from '../../../i18n/locale';
 import {useEffect,useRef,useState,type ReactNode} from 'react';
 import {TrackerShell} from '../resonance/tracker-ui';
 import {useDailyData} from './daily-data';
@@ -20,13 +21,13 @@ function Icon({kind}:{kind:string}){
 
 export function Chart({dates,lines,unit='',bars=false,zero=false}:{dates:string[];lines:Line[];unit?:string;bars?:boolean;zero?:boolean}){
  const [hover,setHover]=useState<number|null>(null); const all=lines.flatMap(l=>l.values).filter(finite);
- if(!all.length)return <div className="cockpitEmpty">暂无可验证数据</div>;
+ if(!all.length)return <Localized><div className="cockpitEmpty">暂无可验证数据</div></Localized>;
  const index=hover!==null&&hover<dates.length?hover:dates.length-1;
  let low=Math.min(...all,...(zero?[0]:[])),high=Math.max(...all,...(zero?[0]:[]));
  const pad=(high-low)*.13||1;low=all.every(v=>v>=0)&&!zero?Math.max(0,low-pad):low-pad;high+=pad;
  const left=49,right=490,top=16,bottom=145;
  const x=(i:number)=>left+(i+(bars?.5:0))*(right-left)/Math.max(dates.length-(bars?0:1),1),y=(v:number)=>bottom-(v-low)/(high-low)*(bottom-top);
- return <div className="cockpitChart">
+ return <Localized><div className="cockpitChart">
   <div className="cockpitLegend">{lines.map(l=><span key={l.label}><i style={{background:l.color}}/>{l.label} <b>{num(l.values[index])}{unit}</b></span>)}<time>{dates[index]}</time></div>
   <svg viewBox="0 0 510 178" role="img" aria-label={`${lines.map(l=>l.label).join('、')}，${dates[0]}至${dates.at(-1)}，单位${unit||'数值'}`} onMouseLeave={()=>setHover(null)}>
    {[low,(low+high)/2,high].map(v=><g key={v}><line x1={left} x2={right} y1={y(v)} y2={y(v)} stroke="#e9edf1"/><text x={left-9} y={y(v)+4} textAnchor="end">{num(v,Math.abs(v)<10?1:0)}</text></g>)}
@@ -37,27 +38,27 @@ export function Chart({dates,lines,unit='',bars=false,zero=false}:{dates:string[
    {dates.map((d,i)=><rect key={d} x={x(i)-Math.max((right-left)/dates.length,8)/2} y={top} width={Math.max((right-left)/dates.length,8)} height={bottom-top} fill="transparent" onMouseEnter={()=>setHover(i)}><title>{`${d}\n${lines.map(l=>`${l.label}: ${num(l.values[i])}${unit}`).join('\n')}`}</title></rect>)}
    <text x={left} y="172">{dates[0]}</text><text x={right} y="172" textAnchor="end">{dates.at(-1)}</text>
   </svg>
- </div>
+ </div></Localized>
 }
 
 function Drawer({title,children,onClose}:{title:string;children:ReactNode;onClose:()=>void}){
  const ref=useRef<HTMLDialogElement>(null);
  useEffect(()=>{const previous=document.activeElement as HTMLElement|null;const dialog=ref.current;const dismiss=(e:MouseEvent)=>{if(e.target===dialog&&dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)onClose()}};dialog?.addEventListener('click',dismiss);dialog?.showModal();const overflow=document.body.style.overflow;document.body.style.overflow='hidden';return()=>{dialog?.removeEventListener('click',dismiss);dialog?.close();document.body.style.overflow=overflow;previous?.focus()}},[onClose]);
- return <dialog ref={ref} className="cockpitDrawer" aria-labelledby="cockpit-detail-title" onCancel={onClose}>
+ return <Localized><dialog ref={ref} className="cockpitDrawer" aria-labelledby="cockpit-detail-title" onCancel={onClose}>
   <header><div><span className="cockpitEyebrow">详细观察</span><h2 id="cockpit-detail-title">{title}</h2></div><button aria-label="关闭详情" onClick={onClose}>×</button></header>{children}
- </dialog>
+ </dialog></Localized>
 }
 function DataTable({dates,lines,unit}:{dates:string[];lines:Line[];unit:string}){
- return <div className="cockpitTableWrap"><table><caption>最近记录 · {unit}</caption><thead><tr><th>日期</th>{lines.map(l=><th key={l.label}>{l.label}</th>)}</tr></thead><tbody>{dates.map((d,i)=>({d,i})).reverse().slice(0,26).map(({d,i})=><tr key={d}><td>{d}</td>{lines.map(l=><td key={l.label}>{num(l.values[i])}</td>)}</tr>)}</tbody></table></div>
+ return <Localized><div className="cockpitTableWrap"><table><caption>最近记录 · {unit}</caption><thead><tr><th>日期</th>{lines.map(l=><th key={l.label}>{l.label}</th>)}</tr></thead><tbody>{dates.map((d,i)=>({d,i})).reverse().slice(0,26).map(({d,i})=><tr key={d}><td>{d}</td>{lines.map(l=><td key={l.label}>{num(l.values[i])}</td>)}</tr>)}</tbody></table></div></Localized>
 }
-function Missing({panel}:{panel?:Panel|null}){return <div className="cockpitEmpty"><b>这项数据暂未取得</b><span>本次更新未通过核对，恢复后自动补充。</span>{panel?.observation_date&&<span>上次观察 {panel.observation_date}</span>}</div>}
+function Missing({panel}:{panel?:Panel|null}){return <Localized><div className="cockpitEmpty"><b>这项数据暂未取得</b><span>本次更新未通过核对，恢复后自动补充。</span>{panel?.observation_date&&<span>上次观察 {panel.observation_date}</span>}</div></Localized>}
 function Card({id,title,subtitle,date:day,frequency,status,children,onOpen,button='查看详情'}:{id:string;title:string;subtitle:string;date?:string|null;frequency:string;status?:string;children:ReactNode;onOpen:()=>void;button?:string}){
- return <section className="cockpitCard" aria-labelledby={`card-${id}`}><header><div className="cockpitTitle"><Icon kind={id}/><div><h2 id={`card-${id}`}>{title}</h2><p>{subtitle}</p></div></div><span className="cockpitFrequency">{frequency} · {day?day.slice(5).replace('-','/'):'待更新'}{status==='stale'?' · 延迟':''}</span></header><div className="cockpitBody">{children}</div><footer><span>{status==='stale'?'数据更新滞后，暂不判断当前状态':''}</span><button onClick={onOpen} aria-label={`查看${title}详情`}>{button} <span aria-hidden="true">↗</span></button></footer></section>
+ return <Localized><section className="cockpitCard" aria-labelledby={`card-${id}`}><header><div className="cockpitTitle"><Icon kind={id}/><div><h2 id={`card-${id}`}>{title}</h2><p>{subtitle}</p></div></div><span className="cockpitFrequency">{frequency} · {day?day.slice(5).replace('-','/'):'待更新'}{status==='stale'?' · 延迟':''}</span></header><div className="cockpitBody">{children}</div><footer><span>{status==='stale'?'数据更新滞后，暂不判断当前状态':''}</span><button onClick={onOpen} aria-label={`查看${title}详情`}>{button} <span aria-hidden="true">↗</span></button></footer></section></Localized>
 }
 function Conclusion({reading}:{reading:Reading}){
- return <><div className="marketConclusion" data-level={reading.tone}><i/>{reading.level}</div><p className="marketConclusionExplain">{reading.explanation}</p>{reading.evidence.length>0&&<div className="marketEvidence">{reading.evidence.map(e=><div key={e.label}><span>{e.label}</span><strong>{e.value}</strong></div>)}</div>}<div className="marketDirection"><b>{reading.direction.arrow} {reading.direction.label}</b><span>{reading.direction.detail}</span></div></>
+ return <Localized><><div className="marketConclusion" data-level={reading.tone}><i/>{reading.level}</div><p className="marketConclusionExplain">{reading.explanation}</p>{reading.evidence.length>0&&<div className="marketEvidence">{reading.evidence.map(e=><div key={e.label}><span>{e.label}</span><strong>{e.value}</strong></div>)}</div>}<div className="marketDirection"><b>{reading.direction.arrow} {reading.direction.label}</b><span>{reading.direction.detail}</span></div></></Localized>
 }
-function GroupHeading({id,title,subtitle}:{id:string;title:string;subtitle:string}){return <header className="marketFrequencyHeading"><h2 id={id}>{title}</h2><p>{subtitle}</p></header>}
+function GroupHeading({id,title,subtitle}:{id:string;title:string;subtitle:string}){return <Localized><header className="marketFrequencyHeading"><h2 id={id}>{title}</h2><p>{subtitle}</p></header></Localized>}
 
 export function MarketView({cockpit,sample,targetDate}:{cockpit:CockpitReport|null;sample:SampleReport|null;targetDate:string}){
  const [detail,setDetail]=useState<string|null>(null),[contractIndex,setContractIndex]=useState(0),[window,setWindow]=useState(63);
@@ -106,7 +107,7 @@ export function MarketView({cockpit,sample,targetDate}:{cockpit:CockpitReport|nu
   {date:positions?.observation_date,frequency:'每周',text:reading.positions.available?`${contract?.label}：${reading.positions.explanation}`:''},
   {date:margin?.observation_date,frequency:'每月',text:reading.margin.available?`${reading.margin.level}。${reading.margin.explanation}`:''},
  ].filter(r=>r.text);
- return <div className="marketDashboard cockpit marketSummaryPage">
+ return <Localized><div className="marketDashboard cockpit marketSummaryPage">
   <div className="cockpitToolbar"><span>收盘日 <b>{targetDate}</b><small>各模块按自己的发布频率更新</small></span><span className="marketReadingOrder">每日 → 每周 → 每月</span></div>
   <section aria-labelledby="daily-market"><GroupHeading id="daily-market" title="每日 · 市场内部" subtitle="先看当前状态，再看最近变化"/><div className="cockpitGrid">
    <Card id="breadth" title={titles.breadth} subtitle={`固定样本 · ${num(latest?.quality.universe_size,0)} 只股票`} frequency="每日" date={latest?.date} onOpen={open('breadth')}><Conclusion reading={reading.breadth}/><p className="cockpitNote">固定样本，不代表整个美股市场</p></Card>
@@ -131,10 +132,10 @@ export function MarketView({cockpit,sample,targetDate}:{cockpit:CockpitReport|nu
   </div></details>
   {!current(flows)&&<section aria-labelledby="pending-market"><GroupHeading id="pending-market" title="待接通的数据" subtitle="缺失保持空白，恢复后按频率归位"/>{flowCard}</section>}
   {detail&&<Drawer title={titles[detail]} onClose={()=>setDetail(null)}><p className="cockpitExplanation">{descriptions[detail]}</p>{reading[detail]&&<p className="marketMethodNote">{reading[detail].basis}</p>}{detail==='positions'&&contract&&<div className="marketEvidence">{(['leveraged','asset'] as const).map((key,i)=><div key={key}><span>{i?'资产管理':'杠杆基金'} · 此前{contract.percentile_weeks}周历史位置</span><strong>{num(contract.percentiles[key],0)}%</strong></div>)}</div>}{detailData&&<><Chart dates={detailData.dates} lines={detailData.lines} unit={detailData.unit} bars={detail==='flows'} zero={detail==='flows'}/><DataTable {...detailData}/></>}{detail==='breadth'&&<><h3 className="marketDetailSubheading">累计上涨减下跌 · 只看方向</h3><Chart dates={history.map(r=>r.date)} lines={[breadthLine]} unit="家" zero/><p className="cockpitNote">平盘 {latest?.counts.unchanged??'—'} 只；累计线已将图中起点设为0。</p></>}{detail==='sectors'&&heatmap}<details className="marketSourceDetails"><summary>数据口径与记录</summary><p>页面核对收盘日：{targetDate}。观察日期：{sourcePanel?.observation_date??latest?.date??'未取得'}。</p>{sourcePanel?.sources?.length?sourcePanel.sources.map(s=><div key={s.sha256}><a href={s.url} target="_blank" rel="noreferrer">{s.provider}</a><p>读取：{s.fetched_at}</p><code>{s.sha256}</code></div>):<p>{detail==='breadth'||detail==='highs'?'固定样本的已保存行情统计，非全市场。':'本次未取得可核验来源记录。'}</p>}</details><p className="cockpitNote">周报、月报保留实际统计日期。状态和变化只是事实描述，不是预测。</p></Drawer>}
- </div>
+ </div></Localized>
 }
 export default function MarketDashboard(){
  const {reports,loading,refresh}=useDailyData(PATHS);
  const targetDate=(reports[PATHS[0]] as {source_latest_complete_date?:string}|null)?.source_latest_complete_date??'';
- return <TrackerShell active="大盘" title="大盘" subtitle="先看每日参与，再看周度仓位与月度融资。" overview><div className="mvpPageTitle"><div><h1>大盘</h1><p>先看结论，再看证据</p></div><button className="mvpRefresh" onClick={refresh}>↻ 刷新</button></div>{loading?<p className="marketLoading" role="status">正在读取今日快照…</p>:!targetDate?<div className="marketError" role="alert">暂时无法核对收盘日，请刷新重试。</div>:<MarketView cockpit={reports[PATHS[1]] as CockpitReport|null} sample={reports[PATHS[2]] as SampleReport|null} targetDate={targetDate}/>}</TrackerShell>
+ return <Localized><TrackerShell active="大盘" title="大盘" subtitle="先看每日参与，再看周度仓位与月度融资。" overview><div className="mvpPageTitle"><div><h1>大盘</h1><p>先看结论，再看证据</p></div><button className="mvpRefresh" onClick={refresh}>↻ 刷新</button></div>{loading?<p className="marketLoading" role="status">正在读取今日快照…</p>:!targetDate?<div className="marketError" role="alert">暂时无法核对收盘日，请刷新重试。</div>:<MarketView cockpit={reports[PATHS[1]] as CockpitReport|null} sample={reports[PATHS[2]] as SampleReport|null} targetDate={targetDate}/>}</TrackerShell></Localized>
 }

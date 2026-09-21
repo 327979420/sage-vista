@@ -1,4 +1,5 @@
 "use client";
+import {Localized} from '../../../i18n/locale';
 import {useEffect,useState} from "react";
 
 export type Fund={symbol:string;as_of:string;available:boolean;state:string;latest_bar:string|null;row_count:number;pullback_from_60d_high?:number;support_levels?:string[]};
@@ -27,7 +28,7 @@ export function ContextView({context,market,symbol,asOf,candidates=[],candidateD
    <footer className="industryContextSources">{t.source_url&&<a href={t.source_url} target="_blank" rel="noreferrer">官方ETF来源 ↗</a>}{t.membership_source_url&&<a href={t.membership_source_url} target="_blank" rel="noreferrer">持仓来源 ↗</a>}{!t.source_url&&!t.membership_source_url&&<span>来源待补</span>}</footer>
   </article>;
  };
- return <section className={`svPanel industryContext ${symbol?"industryContextCompact":""}`} aria-label="独立行业与大盘背景">
+ return <Localized><section className={`svPanel industryContext ${symbol?"industryContextCompact":""}`} aria-label="独立行业与大盘背景">
   <header className="industryContextHeader"><div><small>独立决策背景</small><h2>{symbol?`${symbol} · 行业与大盘背景`:"行业—ETF—股票对照"}</h2><p>背景单独展示，不改变技术分、排名或入榜门槛。</p></div>{context&&<span className="industryContextDate">数据日 {context.as_of}</span>}</header>
   {context&&!symbol&&<div className="industryContextSummary"><div><small>ETF行情可用</small><strong>{context.coverage.available_etfs}<span> / {context.coverage.reference_etfs}</span></strong></div><div><small>注册主题</small><strong>{context.coverage.themes}</strong></div><div><small>有日期持仓的主题</small><strong>{context.coverage.dated_membership_themes}</strong></div></div>}
   {market?<div className="industryContextMarket"><b>大盘 {market.as_of} · {market.funds.length} ETF</b><span>趋势 · {labels[market.layers.trend.state]??market.layers.trend.state}</span><span>广度 · {labels[market.layers.breadth.state]??market.layers.breadth.state}</span><span>风险偏好 · {labels[market.layers.risk_appetite.state]??market.layers.risk_appetite.state}</span></div>:<p className="industryContextNotice">大盘背景暂不可用</p>}
@@ -40,7 +41,7 @@ export function ContextView({context,market,symbol,asOf,candidates=[],candidateD
    {symbol&&!themes.length&&<p className="industryContextNotice">没有该股票的带日期官方 ETF 持仓关联；不据此排除候选，也不由公司分类猜测持仓。</p>}
    <footer className="industryContextBoundary">ETF趋势是独立背景，不能冒称全行业热度。成员广度仍以原数据覆盖为准；5个人工主题不自动匹配代理。旧快照仅有代码身份，不代表新版 M06 formal 历史接入。</footer>
   </>:<p className="industryContextNotice" role="status">行业对照暂不可用，等待背景产物更新。</p>}
- </section>;
+ </section></Localized>;
 }
 
 export default function IndustryContext({symbol,asOf}:{symbol?:string;asOf?:string}){
@@ -53,5 +54,5 @@ export default function IndustryContext({symbol,asOf}:{symbol?:string;asOf?:stri
   if(overview)fetch("/cr056-ranking.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>{if(active){setCandidates(d?.ranked_symbols??[]);setCandidateDate(d?.as_of)}}).catch(()=>{});
   return ()=>{active=false};
  },[overview]);
- return <ContextView context={context} market={market} symbol={symbol} asOf={asOf} candidates={candidates} candidateDate={candidateDate}/>;
+ return <Localized><ContextView context={context} market={market} symbol={symbol} asOf={asOf} candidates={candidates} candidateDate={candidateDate}/></Localized>;
 }

@@ -1,4 +1,5 @@
 "use client";
+import {Localized} from '../../../../i18n/locale';
 import IndustryContext from "../../industry-radar/context";
 import {useEffect,useState,useRef} from "react";
 
@@ -12,7 +13,7 @@ function GateTags({row}:{row:Row}){
  const paths=row.watch_entries?.filter(p=>p.state==="active");
  const items=paths?.length?paths:row.entry_paths??[];
  const kinds=[...new Set(items.map(p=>p.path))];
- return <span className="candidateGateTags">{kinds.map(kind=><span className={`candidateGateTag gate-${kind}`} key={kind}>{(kind==="support_reversal"&&items.some(p=>p.path===kind&&p.confirmation_kinds?.includes("negative_histogram_pullback"))?"支撑反转·动能改善":pathNames[kind]??kind)} · {["monthly_completed","weekly_completed","daily"].filter(tf=>items.some(p=>p.path===kind&&p.timeframe===tf)).map(tf=>frameNames[tf].replace("线","")).join("/")}</span>)}</span>;
+ return <Localized><span className="candidateGateTags">{kinds.map(kind=><span className={`candidateGateTag gate-${kind}`} key={kind}>{(kind==="support_reversal"&&items.some(p=>p.path===kind&&p.confirmation_kinds?.includes("negative_histogram_pullback"))?"支撑反转·动能改善":pathNames[kind]??kind)} · {["monthly_completed","weekly_completed","daily"].filter(tf=>items.some(p=>p.path===kind&&p.timeframe===tf)).map(tf=>frameNames[tf].replace("线","")).join("/")}</span>)}</span></Localized>;
 }
 const returnText=(v:number|null|undefined)=>v===null||v===undefined?"—":`${v>=0?"+":""}${(v*100).toFixed(2)}%`;
 const reasons:Record<string,string>={
@@ -43,12 +44,12 @@ function PeriodFactors({data,symbol}:{data:CandidateData;symbol:string}){
   }).catch(()=>{if(active)setFailed(true)});return()=>{active=false};
  },[data.detail_path,data.source_snapshot]);
  if(!data.detail_path)return null;
- if(failed)return <p role="status">本次快照的分项暂不可用，请刷新；未混用其他版本证据。</p>;
- if(!bundle)return <p role="status">正在读取月、周、日因子明细…</p>;
- const detail=bundle.reviews[symbol];if(!detail)return <p>该股票尚未通过门票或数据检查，本次没有深度检测结果。</p>;
+ if(failed)return <Localized><p role="status">本次快照的分项暂不可用，请刷新；未混用其他版本证据。</p></Localized>;
+ if(!bundle)return <Localized><p role="status">正在读取月、周、日因子明细…</p></Localized>;
+ const detail=bundle.reviews[symbol];if(!detail)return <Localized><p>该股票尚未通过门票或数据检查，本次没有深度检测结果。</p></Localized>;
  const strengths=Object.assign({},...detail.groups.map(g=>g.strengths));
  const momentum=detail.entry_gate?.evidence?.daily?.pullback_momentum;
- return <div className="v2Ledger periodFactorLedger">{momentum&&<section><h4>突破回踩动能检查</h4><p>三根负柱：{momentum.momentum.histogram.map(v=>v.toFixed(4)).join(" → ")}<small>{momentum.momentum.dates.join(" / ")}</small></p><p>{momentum.confirmed?"满足突破回踩动能门票":explain(momentum.reason)}</p><p>大实体双短影阴线：{!momentum.bearish_candle.available?"证据不足":momentum.bearish_candle.blocked?"有，阻止本次动能门票":"未发现"}</p><small>满足门票后仍需通过方向与位置检查，不代表已执行买入。</small></section>}{detail.checks&&<section><h4>本次准入检查（含排除原因）</h4>{Object.entries(detail.checks).map(([key,c])=><p key={key}><span>{explain(c.reason)}</span><b>{c.status==="allowed"?"通过":c.status==="blocked"?"未通过":"证据不足"}</b></p>)}</section>}<details><summary>核对门票原始结构底部</summary><small>这里是旧门票保存的结构底，不是当前回踩支撑或已确定的交易止损。当前回踩支撑规则正在核对。</small>{detail.structures?.filter(p=>p.state==="active").map((p,i)=><p key={i}><span>{frameNames[p.timeframe]} · {pathNames[p.path]}<small>触发 {p.trigger_date}</small></span><b>${p.structure_floor.toFixed(2)}</b></p>)}</details><label className="factorVisibility"><input type="checkbox" checked={showAll} onChange={e=>setShowAll(e.target.checked)}/> 显示全部检查（含未命中与缺数据）</label>{Object.entries(frameNames).map(([tf,name])=>{
+ return <Localized><div className="v2Ledger periodFactorLedger">{momentum&&<section><h4>突破回踩动能检查</h4><p>三根负柱：{momentum.momentum.histogram.map(v=>v.toFixed(4)).join(" → ")}<small>{momentum.momentum.dates.join(" / ")}</small></p><p>{momentum.confirmed?"满足突破回踩动能门票":explain(momentum.reason)}</p><p>大实体双短影阴线：{!momentum.bearish_candle.available?"证据不足":momentum.bearish_candle.blocked?"有，阻止本次动能门票":"未发现"}</p><small>满足门票后仍需通过方向与位置检查，不代表已执行买入。</small></section>}{detail.checks&&<section><h4>本次准入检查（含排除原因）</h4>{Object.entries(detail.checks).map(([key,c])=><p key={key}><span>{explain(c.reason)}</span><b>{c.status==="allowed"?"通过":c.status==="blocked"?"未通过":"证据不足"}</b></p>)}</section>}<details><summary>核对门票原始结构底部</summary><small>这里是旧门票保存的结构底，不是当前回踩支撑或已确定的交易止损。当前回踩支撑规则正在核对。</small>{detail.structures?.filter(p=>p.state==="active").map((p,i)=><p key={i}><span>{frameNames[p.timeframe]} · {pathNames[p.path]}<small>触发 {p.trigger_date}</small></span><b>${p.structure_floor.toFixed(2)}</b></p>)}</details><label className="factorVisibility"><input type="checkbox" checked={showAll} onChange={e=>setShowAll(e.target.checked)}/> 显示全部检查（含未命中与缺数据）</label>{Object.entries(frameNames).map(([tf,name])=>{
   const factors=detail.factors.filter(f=>data.factor_catalog[f.factor_id]?.timeframe===tf);
   return <details key={tf} open><summary>{name} · {factors.length}项检查 · {factors.filter(f=>f.available&&f.hit).length}项当前命中</summary>
    <p className="periodFactorNote">截至 {factors[0]?.completed_through??"—"}；窗口按{name}K线根数计算。近期命中保留发生日期。</p>
@@ -61,7 +62,7 @@ function PeriodFactors({data,symbol}:{data:CandidateData;symbol:string}){
      f.hit||f.recent_hit?"检测命中，依赖或去重后未计入":"未命中";
     return <p key={f.factor_id}><i>{f.available&&f.hit?"✓":"○"}</i><span>{meta?.name.replace(/(\d+)日/g,"$1根")??f.factor_id}<small>{f.evidence?.stage?`${({forming:"形成中（部分结构分）",confirmed:"突破已确认",retest:"突破后回踩",invalidated:"结构已失效",deep_sweep_rejected:"深刺支撑区，本轮排除",not_detected:"未识别",unavailable:"数据不足"} as Record<string,string>)[f.evidence.stage]??f.evidence.stage} · `:""}{f.evidence?.anchors?.map(a=>`${({left_shoulder:"左肩",head:"头部",right_shoulder:"右肩",historical_support:"历史支撑",bottom:"底部测试",trendline_high:"趋势线高点"} as Record<string,string>)[a.role??""]??"锚点"} ${a.date} / ${a.price.toFixed(2)}`).join("；")}{f.evidence?.structure_start?` · 本轮起点 ${f.evidence.structure_start}${f.evidence.start_source==="three_push_anchor"?"（趋势线首锚点）":""}`:""}{f.evidence?.bottom_count?` · ${f.evidence.bottom_count}次独立测试${f.evidence.last_bottom_higher?" · 末底抬高":""}`:""}{typeof f.evidence?.zone_lower==="number"&&typeof f.evidence?.zone_upper==="number"?` · 支撑区 ${f.evidence.zone_lower.toFixed(2)}—${f.evidence.zone_upper.toFixed(2)}`:""}{f.evidence?.breakout_date?` · 突破 ${f.evidence.breakout_date}`:""}{f.evidence?.invalidated_at?` · 失效 ${f.evidence.invalidated_at}`:""}{f.latest_hit_date?`最近命中 ${f.latest_hit_date} · `:""}{meta?.research_status?`原研究：${researchNames[meta.research_status]??meta.research_status}`:""}{typeof f.evidence?.ratio==="number"?` · 本期成交量比 ${f.evidence.ratio.toFixed(2)}`:""}{typeof f.evidence?.histogram==="number"&&typeof f.evidence?.previous_histogram==="number"?` · MACD柱 ${f.evidence.previous_histogram.toFixed(2)} → ${f.evidence.histogram.toFixed(2)}`:""}</small></span><b>{state}</b></p>})}
   </details>
- })}</div>
+ })}</div></Localized>
 }
 
 export function filterCandidateRows(rows:Row[],filters:{from:string;to:string;minimum:string;maximum:string;sort:string}){
@@ -89,7 +90,7 @@ export function CandidateView({data,latestDate,initialQuery=""}:{data:CandidateD
  const visible=filtered.slice(0,50);const selected=visible.find(r=>r.symbol===symbol)??visible[0];
  const periods=listed.find(r=>r.periods)?.periods??data.reviews.find(r=>r.periods)?.periods;
  const stale=Boolean(latestDate&&latestDate>data.as_of);
- return <div className="candidateSurface">
+ return <Localized><div className="candidateSurface">
   {(stale||!data.automatic_updates_connected||data.refresh_status?.status==="failed")&&<div className="candidateNotice" role="status">{stale&&<span>更新落后：已有 {latestDate} 行情，本榜仍为 {data.as_of}</span>}{!data.automatic_updates_connected&&<span>新榜自动日更尚未接通</span>}{data.refresh_status?.status==="failed"&&<span>{data.refresh_status.target_as_of} 自动复评未完成，保留 {data.as_of} 榜单</span>}</div>}
   <section className="researchReplay candidateWorkspace">
    <div className="candidateToolbar"><div className="candidateTabs" role="group" aria-label="候选范围">{[["new","新提名",data.new_nomination_symbols.length],["continuing","持续观察",data.continuing_ranked_symbols.length]].map(([id,label,count])=><button key={id} type="button" aria-pressed={mode===id} onClick={()=>{setMode(String(id));setQuery("")}}>{label} <b>{count}只</b></button>)}</div><label>查找股票 <input aria-label="查找股票" value={query} onChange={e=>setQuery(e.target.value.trim())} placeholder="代码，含未入榜原因"/></label></div>
@@ -125,7 +126,7 @@ export function CandidateView({data,latestDate,initialQuery=""}:{data:CandidateD
    <details className="candidateSecondary"><summary>数据与评分说明</summary><p>候选策略仅供人工复核，尚未验证收益。完整月线 {periods?.monthly??"—"} · 完整周线 {periods?.weekly??"—"}。警报还要求完整覆盖及至少两个证据家族。股票来源为现有观察池，不代表完整市场；失格退出排名，原提名保留。</p></details>
    <footer>政策 {data.policy_version} · 行情来源 EODHD · 新评分未覆盖旧提名记录。{data.automatic_updates_connected?"本页按每次成功复评更新；失败保留原日期与榜单。":"自动复评接通前，此页仅展示本次已核快照。"}</footer>
   </section>
- </div>;
+ </div></Localized>;
 }
 
 export default function CandidateRanking(){
@@ -137,5 +138,5 @@ export default function CandidateRanking(){
   fetch("/update-status.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>{if(active)setLatestDate(d?.source_latest_complete_date)}).catch(()=>{});
   return ()=>{active=false};
  },[]);
- return data?<CandidateView data={data} latestDate={latestDate} initialQuery={initialQuery}/>:<section className="rareEmpty" role="status"><b>{error?"新模型快照暂时不可用":"正在读取已核新模型快照"}</b><p>{error?"请稍后刷新；没有把旧版排行当作新榜。":"新提名和持续观察将使用同一份后台结果。"}</p></section>;
+ return <Localized>{data?<CandidateView data={data} latestDate={latestDate} initialQuery={initialQuery}/>:<section className="rareEmpty" role="status"><b>{error?"新模型快照暂时不可用":"正在读取已核新模型快照"}</b><p>{error?"请稍后刷新；没有把旧版排行当作新榜。":"新提名和持续观察将使用同一份后台结果。"}</p></section>}</Localized>;
 }

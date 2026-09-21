@@ -1,8 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {createRequire} from 'node:module';
-import ts from 'typescript';
+import {loadTs} from './helpers/load-ts.mjs';
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import yaml from 'js-yaml';
@@ -25,9 +24,7 @@ test('comparison mode is isolated from all legacy refresh and production actions
 });
 
 test('real comparison report renders differences, costs and path limitations',()=>{
- const source=fs.readFileSync(new URL('app/zh/backtest/comparison.tsx',root),'utf8');
- const code=ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
- const mod={exports:{}};new Function('require','exports','module',code)(createRequire(import.meta.url),mod.exports,mod);
+ const mod={exports:loadTs('app/zh/backtest/comparison.tsx')};
  const {reports}=JSON.parse(fs.readFileSync(new URL('public/vectorbt-comparison.json',root),'utf8'));
  const html=renderToStaticMarkup(React.createElement(mod.exports.ComparisonView,{reports}));
  assert.match(html,/平均每笔毛收益/);assert.match(html,/\+5\.73%/);assert.match(html,/70%/);assert.match(html,/3\.95/);assert.match(html,/这不是完整回测/);assert.match(html,/有差异/);assert.match(html,/真实费用与数量缺失/);

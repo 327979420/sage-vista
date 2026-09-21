@@ -2,23 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import fs from 'node:fs';
 import path from 'node:path';
-import {createRequire} from 'node:module';
-import ts from 'typescript';
+import {loadTs as load} from './helpers/load-ts.mjs';
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
-const require=createRequire(import.meta.url);
-const cache=new Map();
-function load(file){
- if(cache.has(file))return cache.get(file);
- const result={exports:{}};cache.set(file,result.exports);
- const compiled=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
- new Function('require','exports','module',compiled)(id=>{
-  if(!id.startsWith('.'))return require(id);
-  const root=path.resolve(path.dirname(file),id);const target=['.tsx','.ts'].map(ext=>root+ext).find(fs.existsSync);
-  return load(target);
- },result.exports,result);
- return result.exports;
-}
 const root=path.resolve('app/zh/watch');
 const dashboard=load(path.join(root,'market/dashboard.tsx'));
 const interpretation=load(path.join(root,'market/interpretation.ts'));
