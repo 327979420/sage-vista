@@ -1,31 +1,88 @@
 # Sage Vista
 
-个人美股技术研究与日终选股工具：查看候选及依据，结合大盘与行业背景，持续追踪和验证交易经验。项目不自动下单，不把匹配分数当作收益概率。
+### From market noise to a short list of explainable trade setups.
 
-生产站点：<https://sage-vista-parallel.gizmo-allied-0s.workers.dev>。实际数据日和部署状态需核验，不能以本地版本代替。
+Sage Vista is a quantitative trading research platform that scans U.S. equities, surfaces setups worth investigating, explains the evidence behind them, and tracks what happens next.
 
-## 文档入口
+**[Live Demo](https://sage-vista-parallel.gizmo-allied-0s.workers.dev) · [中文](./README.zh-CN.md) · [Documentation](./docs/SAGE_VISTA_RULEBOOK_ZH.md)**
 
-- [当前状态](docs/CURRENT_STATUS_ZH.md)：日期、版本、回测断点及机器来源。
-- [产品与模块地图](docs/SAGE_VISTA_RULEBOOK_ZH.md)：项目做什么；按需进入具体业务规则。
-- [执行与文档维护](docs/rules/01_GOVERNANCE.md)：唯一工作流程。Codex 从 [AGENTS.md](AGENTS.md) 接手。
+<!-- Screenshot 1: English multi-factor opportunity / ranking page (hero).
+     Reserved path: docs/assets/product/opportunity-ranking.en.png
+     Add the image after the English interface is ready. -->
 
-定位实现时查 [代码地图](docs/CODEBASE_MAP_ZH.md)；任务进度查 [需求账本](docs/CHANGE_REQUESTS_ZH.md) 对应条目。历史设计与案例按需查阅；早期产品规格合并到 [产品历史](docs/archive/product-history.md)，已完成验收合并到 [验收历史](docs/archive/acceptance-history.md)。[研究记录](research/README.md) 保留原路径，不是日常接手清单。
+> **Scan → Rank → Explain → Test → Improve**
 
-动态因子数量、参数和状态不在 README 重复维护。文档目录不是待完成任务清单，旧设计不自动成为当前要求。
+## Research Snapshot
 
-## 本地运行
+| Historical Events Audited | Registered Factors | Registered Experiments | 2026 20-Day Samples |
+|---:|---:|---:|---:|
+| **62,000+** | **39** | **41** | **1,166** |
+
+**Archived 2026 baseline · 20-trading-day holding window**
+
+**54.3% win rate · 1.51 profit factor · +2.10% average event return before costs**
+
+Daily MACD cross events, entered at the next session's adjusted open; repeat events per stock are excluded within 120 trading days. The study ends on **28 August 2026**. Average event return falls to **+1.60%** with a 0.50% cost assumption.
+
+These are historical event-study results, not live or paper portfolio returns or evidence that today's ranking predicts returns. Higher scores did not consistently produce better outcomes in this study; historical delisted-stock coverage is partial.
+
+[Study & limitations](./research/preregistrations/score-timeframe-attribution-v2.md) · [Result data](./research/backtest/output/score-timeframe-attribution-v2.json). Factor count: [registry v0.10.0](./public/factor-registry.json); experiments: [13 September 2026 catalogue](./research/generated/experiment-catalog.json), including unfinished work.
+
+## What Sage Vista Does
+
+- **Discover** — Turn a broad stock universe into a focused research list.
+- **Explain** — See chart structure, signals across timeframes and supporting factors.
+- **Add context** — Evaluate market, sector and risk conditions alongside each setup.
+- **Validate** — Backtest ideas and track signals, preserving successes and failures.
+
+## How It Works
+
+**Market Data → Screening → Pattern & Factor Analysis → Market / Sector Context → Ranking → Tracking → Validation**
+
+Scores summarize evidence within the model. They are not probabilities of profit or guarantees of returns.
+
+## Product
+
+### Pattern & Evidence
+
+<!-- Screenshot 2: English pattern / evidence detail.
+     Reserved path: docs/assets/product/pattern-evidence.en.png -->
+
+Understand why a setup was selected through price structure and signals across monthly, weekly and daily timeframes.
+
+### Market & Sector Context
+
+<!-- Screenshot 3: English market / sector context.
+     Reserved path: docs/assets/product/market-sector-context.en.png -->
+
+See whether the broader environment supports or challenges the setup, with stock-level evidence kept distinct.
+
+### Research & Validation
+
+<!-- Screenshot 4: English research / backtesting view.
+     Reserved path: docs/assets/product/research-validation.en.png -->
+
+Explore historical tests and signal tracking, including failed ideas and results that need more evidence.
+
+## Where It's Going
+
+Sage Vista started as a stock picker and is evolving toward a fuller trading system:
+
+**Research → Decision → Trade Plan → Paper Execution → Risk Management → Performance Analysis**
+
+Today's focus is research, testing and human decision support. Live automated order execution is not part of the system.
+
+## Tech & Development
+
+`Python` · `TypeScript` · `React` · `Cloudflare`
+
+Run the web app locally with **Node.js 22.13.0 or newer**:
 
 ```bash
 npm install
 npm run dev
 ```
 
-## 验证入口
+Explore the [product & methodology](./docs/SAGE_VISTA_RULEBOOK_ZH.md), [architecture](./docs/SYSTEM_ARCHITECTURE_ZH.md), [research](./research/README.md) and [recorded project status](./docs/CURRENT_STATUS_ZH.md). Most detailed documentation and the current demo are in Chinese; English-interface screenshots will follow.
 
-```bash
-python3 -m unittest discover -s tests
-npm test
-```
-
-按影响范围选择必要检查；以上是完整检查入口，并非每次文档或局部修改都要执行。
+Contributor and agent workflow: [AGENTS.md](./AGENTS.md) · [governance](./docs/rules/01_GOVERNANCE.md).
