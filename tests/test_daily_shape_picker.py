@@ -75,6 +75,17 @@ class PickerTests(unittest.TestCase):
         for a in result['three_push']['anchors']:
             self.assertLessEqual(a['confirmed_at'],rows[159]['date'])
 
+    def test_post_breakout_pullback_is_not_a_first_waiting_setup(self):
+        rows=bars()
+        for i,p in ((125,115),(140,111),(155,107)):
+            rows[i].update(high=p,close=p-2,open=p-3,low=p-4)
+        rows[163].update(open=101,close=107,high=108,low=100)
+        rows[-1].update(open=100,high=101,low=98,close=99)
+        result=evaluate_shape(rows,as_of=rows[-1]['date'])
+        self.assertTrue(result['selected'])
+        self.assertEqual(result['state'],'retest')
+        self.assertEqual(result['three_push']['breakout_date'],rows[163]['date'])
+
     def test_turnover_uses_unadjusted_price_and_prior_volume(self):
         rows=raw_rows(bars()); rows[-1].update(close=100,adjusted_close=50,volume=2000000)
         self.assertEqual(liquidity(rows,as_of=rows[-1]['date'])['dollar_volume'],200000000)

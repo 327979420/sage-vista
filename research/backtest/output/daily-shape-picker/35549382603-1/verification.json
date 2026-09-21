@@ -1,0 +1,23 @@
+{
+  "run_id": "35549382603",
+  "calculation_commit": "9b4d793868b23b7699e908575cc05b5934987216",
+  "comparison_sha256": "6fc8eb6476e5916aa8fa5e5e1d5e511fa67a2f25fef767f1150802a83c3282ca",
+  "price_version": "sha256:395343007ad699353d3221efe129aa6878a3714b38897d6530c25b6672424588",
+  "verified_real_cases": 104,
+  "exact_shared_daily_zone_parity": true,
+  "state_and_line_reproduction": true,
+  "future_confirmation_checked": true,
+  "human_accuracy_verified": false,
+  "tests_passed": 24,
+  "production_changed": false,
+  "browser_checks": {
+    "search_symbol": true,
+    "clear_search_waiting_count": 19,
+    "excluded_count": 41,
+    "empty_result": true,
+    "bottom_confirmation_details": true
+  },
+  "render_changes": "Only display grouping, current-structure chart zoom and Chinese explanation; original cloud calculations unchanged.",
+  "cloud_tests_passed": 23,
+  "post_breakout_pullback_test": true
+}
