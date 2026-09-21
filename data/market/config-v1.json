@@ -32,7 +32,8 @@
     "minimum_members": 500,
     "minimum_coverage": 0.95,
     "maximum_coverage_drop": 0.05,
-    "percentile_minimum": 60
+    "percentile_minimum": 60,
+    "maximum_recovery_sessions": 5
   },
   "universe_policy": {
     "minimum_price": 5,

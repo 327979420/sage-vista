@@ -1,7 +1,7 @@
 # 05｜大盘环境规则
 
-版本：`1.2.1`
-最后更新：2026-09-08
+版本：`1.3.0`
+最后更新：2026-09-21
 
 ## 本文件负责
 
@@ -71,3 +71,5 @@ M06影子上下文只能从M02已验证、不可变的ETF点时行情生成。�
 - 每日只新增当日快照，保留来源指纹、配置、代码版本、成员版本、各指标值/状态/趋势。相同日幂等重用，历史文件不能覆盖；代码/配置或成员变更要求新series版本。允许一次性从现有缓存重建最多126日以供趋势展示，明确“当前成员回看、非当时记录”，不得作为点时策略/交易基准。实时追加的观察与重建记录区分。
 - 历史百分位至少60个此前可比有效快照；样本不足显示不足。温度与各指标1D/5D使用交易日，缺口不跳过；A/D Line从本系列0起累计，缺口后不伪造连续曲线。
 - 官方参考：[EODHD Bulk](https://eodhd.com/financial-apis/bulk-api-eod-splits-dividends)、[EOD价格口径](https://eodhd.com/financial-apis/api-for-historical-data-and-volumes)、[TRIN公式](https://chartschool.stockcharts.com/table-of-contents/market-indicators/arms-index-trin)。阈值和权重是SV V1观察配置，并非上述来源验证的预测模型。
+
+- 日更若漏跑，允许仅用已验证缓存补记最多5个缺失交易日（配置项），标记 `recovered_eod` 与实际补记时间；不覆盖已有记录。超过此范围停止追加，要求显式恢复，避免无限重扫。

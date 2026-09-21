@@ -152,7 +152,8 @@ def run(*, cache_dir, index_path, common_path, etf_dir, as_of, state_dir, out, c
         stocks,etfs,sessions,source=load_inputs(cache_dir,index_path,common_path,etf_dir,as_of,universe['members'] if universe else None)
         if not universe:universe=freeze_universe(stocks,sessions,as_of,config,source)
         days=[d for d in sessions if d>prior[-1]['date']] if prior else sessions[-bootstrap_sessions:]
-        if prior and days!=[as_of]:raise ValueError('market_missing_daily_snapshots_explicit_recovery_required')
+        if prior and len(days)>config['quality']['maximum_recovery_sessions']:
+            raise ValueError('market_missing_daily_snapshots_explicit_recovery_required')
         # Chain only the day's already-completed observations, never future bars.
         chain='market-price-prefix-v1'; price_versions={}
         for day in sessions:
@@ -166,7 +167,7 @@ def run(*, cache_dir, index_path, common_path, etf_dir, as_of, state_dir, out, c
             item=calc.snapshot(raw,day=day,sessions=sessions,universe=universe,config=config,prior=prior+generated,
                 identity={'price_version':price_versions[day],'logic_fingerprint':logic,'provider':'EODHD',
                           'source_manifest_fingerprint':canonical_fingerprint(source)},
-                observation_kind='observed_eod' if day==as_of else 'reconstructed_current_membership')
+                observation_kind='observed_eod' if day==as_of else 'recovered_eod' if prior else 'reconstructed_current_membership')
             item['recorded_at']=recorded_at
             item['fingerprint']=canonical_fingerprint({k:v for k,v in item.items() if k!='fingerprint'})
             generated.append(item)

@@ -63,6 +63,13 @@ class MarketFactsTests(unittest.TestCase):
         self.assertEqual([r['close'] for r in result.values()],[50,50])
         self.assertEqual(result[self.days[-2]]['raw_close'],100)
         self.assertEqual(daily.prepared(raw+[{'date':'2099-01-01','close':'bad'}],self.days[-1]),result)
+    def test_config_rejects_invalid_weights_and_unsorted_risk_knots(self):
+        c=daily.read(daily.CONFIG_PATH);calc.validate_config(c)
+        c['subscores']['extension']['weight']=.9
+        with self.assertRaisesRegex(ValueError,'weights'):calc.validate_config(c)
+        c=daily.read(daily.CONFIG_PATH);c['indicators']['above20']['risk_knots'].reverse()
+        with self.assertRaisesRegex(ValueError,'risk_curve'):calc.validate_config(c)
+
     def test_indicator_interpretations_are_not_uniform(self):
         c=daily.read(daily.CONFIG_PATH)['indicators']
         self.assertGreater(calc.risk(90,c['above20']['risk_knots']),70)
@@ -105,6 +112,15 @@ class MarketPersistenceTests(unittest.TestCase):
         self.run_it();self.assertEqual(daily.read(self.args['out'])['history'][:-1],before)
         c=daily.read(self.config);c['quality']['minimum_members']=2;self.config.write_text(json.dumps(c))
         with self.assertRaisesRegex(ValueError,'new_series'):self.run_it()
+    def test_short_eod_gap_is_recovered_without_overwriting_history(self):
+        self.args['as_of']=self.days[-4]
+        idx=daily.read(self.index);idx['as_of']=self.args['as_of'];self.index.write_text(json.dumps(idx))
+        self.run_it();old=daily.read(self.args['out'])['history']
+        self.args['as_of']=self.days[-1];idx['as_of']=self.args['as_of'];self.index.write_text(json.dumps(idx))
+        self.run_it();new=daily.read(self.args['out'])['history']
+        self.assertEqual(new[:-3],old)
+        self.assertEqual([s['observation_kind'] for s in new[-3:]],['recovered_eod','recovered_eod','observed_eod'])
+
     def test_missing_fixed_member_degrades_and_never_drops_denominator(self):
         self.run_it();(self.cache/'A.json').unlink()
         self.args['as_of']=self.days[-1];i=daily.read(self.index);i['as_of']=self.days[-1];self.index.write_text(json.dumps(i))
@@ -117,6 +133,14 @@ class MarketPersistenceTests(unittest.TestCase):
         with (self.cache/'A.json').open('a') as f:f.write(' ')
         self.args['state_dir']=self.root/'fresh'
         with self.assertRaisesRegex(ValueError,'hash_mismatch'):self.run_it()
+    def test_rsp_status_uses_configurable_five_day_bands(self):
+        c=daily.read(self.config)
+        c['indicators']['rsp_spy']['levels']=[{'maximum':1000000,'label':'configured-band','tone':'yellow'}]
+        self.config.write_text(json.dumps(c));self.run_it()
+        item=daily.read(self.args['out'])['history'][-1]['indicators']['rsp_spy']
+        self.assertEqual(item['level'],{'label':'configured-band','tone':'yellow'})
+        self.assertIsNotNone(item['change_5d'])
+
     def test_forged_quality_cannot_publish_score(self):
         self.run_it();p=daily.read(self.args['out']);p['history'][-1]['quality']['coverage']=0.1
         last=p['history'][-1];last['fingerprint']=canonical_fingerprint({k:v for k,v in last.items() if k!='fingerprint'})
