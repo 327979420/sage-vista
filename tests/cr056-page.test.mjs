@@ -18,7 +18,8 @@ const data=JSON.parse(fs.readFileSync(new URL('../public/cr056-ranking.json',imp
 
 test('real candidate projection renders its date, same backend scores and daily-update boundary',()=>{
  const html=renderToStaticMarkup(React.createElement(compiledModule.exports.CandidateView,{data,latestDate:new Date(Date.parse(data.as_of+'T00:00:00Z')+7*86400000).toISOString().slice(0,10)}));
- assert.match(html,data.automatic_updates_connected?/随现有日终流程自动复评/:/新榜自动日更尚未接通/);
+ if(!data.automatic_updates_connected)assert.match(html,/新榜自动日更尚未接通/);
+ assert.doesNotMatch(html,/月定方向 · 周确认 · 日择时|达到60分警报线|回测与收益报告|已核验快照|随现有日终流程自动复评|class="candidateHeading"/);
  assert.match(html,/更新落后/);
  assert.ok(html.includes(data.as_of));
  const first=data.reviews.find(r=>r.symbol===data.ranked_symbols[0]);
@@ -50,7 +51,7 @@ test('all ranked and selected display rows preserve backend identity and exclude
 test('daily refresh failure retains the actual snapshot date and shows failure',()=>{
  const current={...data,automatic_updates_connected:true,refresh_status:{status:'failed',target_as_of:'2026-09-08'}};
  const html=renderToStaticMarkup(React.createElement(compiledModule.exports.CandidateView,{data:current,latestDate:new Date(Date.parse(data.as_of+'T00:00:00Z')+7*86400000).toISOString().slice(0,10)}));
- assert.match(html,/随现有日终流程自动复评/);assert.match(html,/自动复评未完成/);
+ assert.doesNotMatch(html,/已核验快照|随现有日终流程自动复评/);assert.match(html,/自动复评未完成/);
  assert.ok(html.includes(data.as_of));assert.match(html,/更新落后/);
 });
 

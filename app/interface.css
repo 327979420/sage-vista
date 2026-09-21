@@ -272,3 +272,29 @@ body, body:has(.rtPage) {
 .rtPage .v2Ledger p > span { min-width: 0; overflow-wrap: anywhere; }
 .rtPage .v2Ledger p small, .rtPage .candidateDetail .periodFactorNote { font-size: 13px; color: var(--sv-muted); }
 .rtPage .candidateDetail > header small, .rtPage .candidateDetail > header p { color: var(--sv-muted); font-size: 13px; }
+
+/* One candidate heading; toolbar, filters and grid share one padded workspace. */
+.rtPage .candidateWorkspace { margin-top: 0; padding: 24px; border-radius: 12px; }
+.rtPage .candidateToolbar { padding: 0 0 14px; align-items: center; }
+.rtPage .candidateCoverage { margin: 0 0 14px; font-size: 13px; color: var(--sv-muted); }
+.candidateNotice { display: grid; gap: 6px; margin-bottom: 16px; padding: 14px 18px; border: 1px solid #e7c990; border-radius: 8px; background: #fff7e7; color: #795312; font-size: 14px; }
+.rtPage .candidateWorkspace .v2RankRow {
+  grid-template-columns: minmax(180px,1.3fr) 76px 180px 116px 148px minmax(260px,2fr);
+  min-width: 1066px;
+  column-gap: 14px;
+  padding: 16px 18px;
+  align-items: start;
+  text-align: left;
+}
+.rtPage .candidateWorkspace .v2RankRow > * { min-width: 0; }
+.rtPage .candidateWorkspace .replayHead { align-items: center; min-height: 56px; }
+.rtPage .candidateWorkspace .replayHead > span { white-space: nowrap; }
+.rtPage .candidateWorkspace .v2RankRow > :nth-child(3),
+.rtPage .candidateWorkspace .v2RankRow > :nth-child(4) { white-space: nowrap; }
+.rtPage .candidateWorkspace .v2RankRow > :last-child { line-height: 1.7; overflow-wrap: anywhere; }
+@media(max-width:650px) {
+  .rtPage .candidateWorkspace { padding: 16px; }
+  .rtPage .candidateToolbar { align-items: stretch; }
+  .rtPage .candidateToolbar > label { display: flex; width: 100%; }
+  .rtPage .candidateToolbar input { min-width: 0; flex: 1; }
+}

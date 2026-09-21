@@ -88,13 +88,12 @@ export function CandidateView({data,latestDate,initialQuery=""}:{data:CandidateD
  const filtered=mode==="continuing"?filterCandidateRows(searched,filters):searched;
  const visible=filtered.slice(0,50);const selected=visible.find(r=>r.symbol===symbol)??visible[0];
  const periods=listed.find(r=>r.periods)?.periods??data.reviews.find(r=>r.periods)?.periods;
- const alerts=data.reviews.filter(r=>r.high_score_eligible).length;
  const stale=Boolean(latestDate&&latestDate>data.as_of);
  return <div className="candidateSurface">
-  <div className="candidateHeading"><div><small>月定方向 · 周确认 · 日择时</small><h2>候选榜</h2><p>{data.as_of} 收盘 · 达到60分警报线 {alerts}只</p></div><a href="/zh/backtest">回测与收益报告 →</a></div>
-  <div className="replayCoverage" role="status"><mark>{stale?`更新落后：已有 ${latestDate} 行情，本榜仍为 ${data.as_of}`:"已核验快照"}</mark><span>{data.automatic_updates_connected?"随现有日终流程自动复评":"新榜自动日更尚未接通"}</span>{data.refresh_status?.status==="failed"&&<mark>{data.refresh_status.target_as_of} 自动复评未完成，保留 {data.as_of} 榜单</mark>}<span>行情可用 {data.input_coverage.repaired_count}只／来源排除 {data.input_coverage.excluded_count}只</span></div>
+  {(stale||!data.automatic_updates_connected||data.refresh_status?.status==="failed")&&<div className="candidateNotice" role="status">{stale&&<span>更新落后：已有 {latestDate} 行情，本榜仍为 {data.as_of}</span>}{!data.automatic_updates_connected&&<span>新榜自动日更尚未接通</span>}{data.refresh_status?.status==="failed"&&<span>{data.refresh_status.target_as_of} 自动复评未完成，保留 {data.as_of} 榜单</span>}</div>}
   <section className="researchReplay candidateWorkspace">
    <div className="candidateToolbar"><div className="candidateTabs" role="group" aria-label="候选范围">{[["new","新提名",data.new_nomination_symbols.length],["continuing","持续观察",data.continuing_ranked_symbols.length]].map(([id,label,count])=><button key={id} type="button" aria-pressed={mode===id} onClick={()=>{setMode(String(id));setQuery("")}}>{label} <b>{count}只</b></button>)}</div><label>查找股票 <input aria-label="查找股票" value={query} onChange={e=>setQuery(e.target.value.trim())} placeholder="代码，含未入榜原因"/></label></div>
+   <p className="candidateCoverage">行情可用 {data.input_coverage.repaired_count}只／来源排除 {data.input_coverage.excluded_count}只</p>
    {mode==="continuing"&&<details className="candidateFilters"><summary>筛选与排序 · {filtered.length}只{(filters.from||filters.to||filters.minimum||filters.maximum)?" · 已筛选":""}</summary><div>
     <label>排列方式<select aria-label="排列方式" value={filters.sort} onChange={e=>setFilters({...filters,sort:e.target.value})}><option value="score_high">分数从高到低</option><option value="score_low">分数从低到高</option><option value="date_new">最近提名优先</option><option value="date_old">最早提名优先</option></select></label>
     <label>原提名从<input aria-label="原提名开始日期" type="date" value={filters.from} onInput={e=>setFilters({...filters,from:e.currentTarget.value})}/></label>
