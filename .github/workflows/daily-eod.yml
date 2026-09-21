@@ -23,7 +23,7 @@ on:
         required: true
         default: preview
         type: choice
-        options: [preview, candidate_preview, update, deploy]
+        options: [preview, candidate_preview, picker_preview, update, deploy]
       notify:
         description: Send Discord only after a verified website release
         required: true
@@ -413,7 +413,7 @@ jobs:
 
 
   candidate_preview:
-    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'candidate_preview'
+    if: github.event_name == 'workflow_dispatch' && (inputs.mode == 'candidate_preview' || inputs.mode == 'picker_preview')
     runs-on: ubuntu-latest
     timeout-minutes: 180
     permissions:
@@ -438,6 +438,7 @@ jobs:
           key: cr056-daily-inputs-v1-${{ github.run_id }}
           restore-keys: cr056-daily-inputs-v1-
       - name: Recompute candidate policy against checked-out complete-session bundle
+        if: inputs.mode == 'candidate_preview'
         run: |
           mkdir -p work/candidate-preview
           cp public/cr056-ranking.json work/candidate-preview/before-ranking.json
@@ -452,8 +453,24 @@ jobs:
           ranking=json.load(open('public/cr056-ranking.json'))
           if ranking['policy_fingerprint']!=POLICY_FINGERPRINT:raise SystemExit('preview policy mismatch')
           PYCODE
+      - name: Calibrate daily shape picker from verified saved histories
+        if: inputs.mode == 'picker_preview'
+        run: |
+          python3 -m unittest discover -s tests -p 'test_daily_shape_picker.py'
+          python3 -m unittest discover -s tests -p 'test_monthly_structure_credit.py'
+          target=$(python3 -c 'import json;print(json.load(open("work/cr056-daily/cache/index.json"))["as_of"])')
+          python3 -m services.scanner.daily_shape_picker --cache-dir work/cr056-daily/cache/eodhd-cache --index-path work/cr056-daily/cache/index.json --as-of "$target"
+          git rev-parse HEAD > work/daily-shape-picker/code-commit.txt
+      - name: Upload picker calibration only
+        if: inputs.mode == 'picker_preview'
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-shape-picker-${{ github.run_id }}
+          path: work/daily-shape-picker/
+          retention-days: 30
+          if-no-files-found: error
       - name: Upload derived preview only; never publish, notify, or export raw histories
-        if: always()
+        if: always() && inputs.mode == 'candidate_preview'
         uses: actions/upload-artifact@v4
         with:
           name: candidate-preview-${{ github.run_id }}

@@ -807,3 +807,7 @@
 - 输出判定仅PROMOTE/REJECT/KEEP AS CHALLENGER / NEED MORE DATA；一次样本总收益不用于自动PROMOTE。原18股基准、main、UI、生产、broker均不改。
 
 - 本轮最终状态记录拆开setup资格与执行结果：有确认但现金/名额/原止损计划拒绝的，执行层记ORDER_REJECTED，不伪装成INVALIDATED或成交；原云端waiting状态保留，monthly-lifecycle.json追加真实fill/exit后的状态。纯描述性记录，不增加重试入场规则。
+
+### 2026-09-21｜热门股日线形态 picker 校准预登记
+
+实验身份 `daily-shape-picker-v1-calibration`：固定恢复的行情缓存日期，比较成交额前100普通股及既有四个教学案例的旧V3与共享日线结构结果。报告底部确认日、三推锚点、等待/突破/失效与排除原因；不统计或宣称交易收益。名单只代表已验证缓存覆盖；教学案例不是独立有效性验证。第一轮不接账户、不改主榜、不上线。事实定义见03同名条目。
