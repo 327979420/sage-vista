@@ -23,7 +23,7 @@ on:
         required: true
         default: preview
         type: choice
-        options: [preview, candidate_preview, update, deploy]
+        options: [preview, candidate_preview, picker_preview, update, deploy]
       notify:
         description: Send Discord only after a verified website release
         required: true
@@ -136,19 +136,22 @@ jobs:
         id: candidate_update
         run: |
           python3 -m services.scanner.cr056_daily --as-of "${{ steps.update_result.outputs.as_of }}" > cr056-update-result.json
+          python3 -m services.scanner.daily_shape_picker --live --as-of "${{ steps.update_result.outputs.as_of }}" --index-path work/cr056-daily/cache/index.json --out public/daily-shape-picker.json > picker-update-result.json
           python3 - <<'PYCODE'
           import json,os
           result=json.load(open("cr056-update-result.json"))
+          picker=json.load(open('picker-update-result.json'))
+          if picker.get('result') not in ('updated','already_current'):raise SystemExit('picker update incomplete')
           if result.get("result") not in ("updated","already_current"):raise SystemExit("candidate refresh incomplete; retain the entire previous production release")
           target=os.environ['TARGET_AS_OF']
-          if result.get('as_of')!=target:raise SystemExit('candidate result date mismatch')
-          for path in ('public/market-etf-watch.json','public/industry-radar.json','public/cr056-ranking.json'):
+          if result.get('as_of')!=target or picker.get('as_of')!=target:raise SystemExit('candidate or picker result date mismatch')
+          for path in ('public/market-etf-watch.json','public/industry-radar.json','public/cr056-ranking.json','public/daily-shape-picker.json'):
               payload=json.load(open(path))
               if payload.get('as_of')!=target:raise SystemExit(f'bundle date mismatch: {path}')
               if path.endswith('industry-radar.json') and payload.get('display_context',{}).get('as_of')!=target:raise SystemExit('industry ETF background date mismatch')
               if path.endswith('cr056-ranking.json') and payload.get('refresh_status',{}).get('status')=='failed':raise SystemExit('candidate snapshot still marked failed')
           with open(os.environ["GITHUB_OUTPUT"],"a") as out:
-              out.write(f"needs_release={str(result['changed'] or os.environ['LEGACY_RELEASE']=='true' or os.environ['BACKGROUND_CHANGED']=='true').lower()}\n")
+              out.write(f"needs_release={str(result['changed'] or picker['changed'] or os.environ['LEGACY_RELEASE']=='true' or os.environ['BACKGROUND_CHANGED']=='true').lower()}\n")
               out.write(f"cache_ready={str(result['cache_ready']).lower()}\n")
               out.write(f"result={result['result']}\n")
               out.write(f"as_of={result['as_of']}\n")
@@ -171,6 +174,7 @@ jobs:
           name: cr056-eod-${{ github.run_id }}
           path: |
             cr056-update-result.json
+            picker-update-result.json
             work/cr056-daily/daily-report.json.gz
             work/cr056-daily/input-report.json
           if-no-files-found: warn
@@ -221,7 +225,7 @@ jobs:
         run: |
           git config user.name "sage-vista-bot"
           git config user.email "sage-vista-bot@users.noreply.github.com"
-          git add public/resonance-tracker.json public/favorite-pattern.json public/daily-factor-snapshot.json public/rare-opportunity-radar.json public/industry-radar.json public/market-etf-watch.json public/signal-history.json public/signal-history-summary.json public/update-status.json public/factor-registry.json public/unified-v2-rankings.json public/unified-v2-latest.json public/opportunity-ledger.json public/opportunity-ledger-latest.json public/cr056-ranking.json automation/cr056-watch-state.json.gz docs/CURRENT_STATUS_ZH.md
+          git add public/resonance-tracker.json public/favorite-pattern.json public/daily-shape-picker.json public/daily-factor-snapshot.json public/rare-opportunity-radar.json public/industry-radar.json public/market-etf-watch.json public/signal-history.json public/signal-history-summary.json public/update-status.json public/factor-registry.json public/unified-v2-rankings.json public/unified-v2-latest.json public/opportunity-ledger.json public/opportunity-ledger-latest.json public/cr056-ranking.json automation/cr056-watch-state.json.gz docs/CURRENT_STATUS_ZH.md
           if [ -f public/cr056-factor-details.json.gz ]; then git add public/cr056-factor-details.json.gz; fi
           if [ -d research/generated/cr056-daily ]; then git add research/generated/cr056-daily; fi
           if ! git diff --cached --quiet; then
@@ -413,7 +417,7 @@ jobs:
 
 
   candidate_preview:
-    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'candidate_preview'
+    if: github.event_name == 'workflow_dispatch' && (inputs.mode == 'candidate_preview' || inputs.mode == 'picker_preview')
     runs-on: ubuntu-latest
     timeout-minutes: 180
     permissions:
@@ -438,6 +442,7 @@ jobs:
           key: cr056-daily-inputs-v1-${{ github.run_id }}
           restore-keys: cr056-daily-inputs-v1-
       - name: Recompute candidate policy against checked-out complete-session bundle
+        if: inputs.mode == 'candidate_preview'
         run: |
           mkdir -p work/candidate-preview
           cp public/cr056-ranking.json work/candidate-preview/before-ranking.json
@@ -452,8 +457,29 @@ jobs:
           ranking=json.load(open('public/cr056-ranking.json'))
           if ranking['policy_fingerprint']!=POLICY_FINGERPRINT:raise SystemExit('preview policy mismatch')
           PYCODE
+      - name: Reproduce approved picker against verified saved inputs
+        if: inputs.mode == 'picker_preview'
+        run: |
+          mkdir -p work/picker-release-preview
+          target=$(python3 -c 'import json;print(json.load(open("public/update-status.json"))["source_latest_complete_date"])')
+          python3 -m services.scanner.daily_shape_picker --live --as-of "$target" --index-path work/cr056-daily/cache/index.json --out work/picker-release-preview/daily-shape-picker.json
+          python3 - <<'PYCODE'
+          import json
+          from services.scanner.daily_shape_public import validate
+          expected=json.load(open('public/daily-shape-picker.json'))
+          actual=json.load(open('work/picker-release-preview/daily-shape-picker.json'))
+          validate(actual,expected['as_of'])
+          if actual['content_fingerprint']!=expected['content_fingerprint']:raise SystemExit('live picker differs from approved frozen preview')
+          PYCODE
+      - name: Upload reproduced picker
+        if: inputs.mode == 'picker_preview'
+        uses: actions/upload-artifact@v4
+        with:
+          name: picker-release-preview-${{ github.run_id }}
+          path: work/picker-release-preview/
+          if-no-files-found: error
       - name: Upload derived preview only; never publish, notify, or export raw histories
-        if: always()
+        if: always() && inputs.mode == 'candidate_preview'
         uses: actions/upload-artifact@v4
         with:
           name: candidate-preview-${{ github.run_id }}
