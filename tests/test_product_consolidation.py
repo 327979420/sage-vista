@@ -1,4 +1,4 @@
-import hashlib,pathlib,re,unittest
+import pathlib,re,unittest
 
 ROOT=pathlib.Path(__file__).parents[1]
 
@@ -7,12 +7,12 @@ class ProductConsolidationTests(unittest.TestCase):
   self.assertFalse((ROOT/"app/stock-board.tsx").exists())
   self.assertFalse((ROOT/"app/data.ts").exists())
   root=(ROOT/"app/page.tsx").read_text()
-  self.assertNotIn("StockBoard",root);self.assertIn("Overview",root)
+  self.assertNotIn("StockBoard",root);self.assertIn("./zh/watch/market/page",root)
 
  def test_navigation_has_the_four_current_products(self):
   nav=(ROOT/"app/zh/watch/resonance/tracker-ui.tsx").read_text()
   self.assertNotRegex(nav,re.compile(r"US Equity Signals|Signal Board|个股研究",re.I))
-  for label in ("今日研究总览","多因子机会","我最喜欢形态","行业与大盘"):self.assertIn(label,nav)
+  for label in ("大盘","多因子机会","我最喜欢形态","行业与大盘"):self.assertIn(label,nav)
   self.assertNotIn("历史与实验",nav)
   self.assertFalse((ROOT/"app/zh/watch/resonance/macd/page.tsx").exists())
   self.assertNotIn("/zh/watch/resonance/macd",(ROOT/"app/layout.tsx").read_text())
@@ -30,9 +30,10 @@ class ProductConsolidationTests(unittest.TestCase):
    text=(ROOT/path).read_text();match=re.search(rf'fetch\("/{re.escape(asset)}"[^)]*\)',text)
    self.assertIsNotNone(match,asset);self.assertIn('cache:"no-store"',match.group(0),asset)
   self.assertNotIn("resonance-tracker.json",(ROOT/"app/zh/watch/resonance/tracker-ui.tsx").read_text())
-  home=(ROOT/"app/zh/watch/resonance/page.tsx").read_text()
-  self.assertIn("/unified-v2-latest.json",home);self.assertIn("/signal-history-summary.json",home)
-  self.assertNotIn('json("/unified-v2-rankings.json")',home);self.assertNotIn('json("/signal-history.json")',home)
+  home=(ROOT/"app/zh/watch/market/dashboard.tsx").read_text()
+  self.assertIn("/market-internals.json",home)
+  for retired in ('/unified-v2-latest.json','/signal-history-summary.json','/rare-opportunity-radar.json'):
+   self.assertNotIn(retired,home)
 
  def test_experiment_payloads_are_git_only(self):
   self.assertFalse((ROOT/"public/experiment-catalog.json").exists())
@@ -42,11 +43,12 @@ class ProductConsolidationTests(unittest.TestCase):
   self.assertTrue((ROOT/"research/backtest/output/macd-factor-backtest.json").exists())
   self.assertIn('redirect("/")',(ROOT/"app/zh/watch/resonance/research/page.tsx").read_text())
 
- def test_home_context_does_not_modify_tracker_ranking(self):
-  tracker=ROOT/"services/scanner/resonance_tracker.py"
-  before=hashlib.sha256(tracker.read_bytes()).hexdigest()
-  home=(ROOT/"app/zh/watch/resonance/page.tsx").read_text()
-  self.assertIn("ticker_context",home);self.assertNotIn("ranking_score=",home)
-  self.assertEqual(hashlib.sha256(tracker.read_bytes()).hexdigest(),before)
+ def test_market_module_is_separate_from_candidate_and_trading_inputs(self):
+  from services.scanner import market_internals_daily
+  import inspect
+  text=inspect.getsource(market_internals_daily)
+  for forbidden in ('cr056-ranking.json','account_runner','unified_v2_scan','daily_shape_picker','factor_scoring'):
+   self.assertNotIn(forbidden,text)
+  self.assertFalse((ROOT/"app/home-v3.css").exists())
 
 if __name__=="__main__":unittest.main()

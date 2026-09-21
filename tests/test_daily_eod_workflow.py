@@ -158,10 +158,11 @@ class DailyEodWorkflowTests(unittest.TestCase):
    root=pathlib.Path(directory);out=root/'outputs'
    (root/'public').mkdir()
    target='2026-09-08'
-   for name in ('market-etf-watch','industry-radar','cr056-ranking','daily-shape-picker'):
+   for name in ('market-etf-watch','industry-radar','cr056-ranking','daily-shape-picker','market-internals'):
     (root/'public'/f'{name}.json').write_text(json.dumps({'as_of':target,'display_context':{'as_of':target}}))
    env={**os.environ,'GITHUB_OUTPUT':str(out),'LEGACY_RELEASE':'false','BACKGROUND_CHANGED':'false','TARGET_AS_OF':target}
    (root/'picker-update-result.json').write_text(json.dumps({'result':'updated','as_of':target,'changed':False}))
+   (root/'market-update-result.json').write_text(json.dumps({'result':'updated','as_of':target,'changed':False}))
    def run(result):
     (root/'cr056-update-result.json').write_text(json.dumps(result))
     if out.exists():out.unlink()
@@ -169,6 +170,10 @@ class DailyEodWorkflowTests(unittest.TestCase):
    good={'result':'updated','as_of':target,'changed':True,'cache_ready':True}
    self.assertEqual(run(good).returncode,0)
    self.assertIn('needs_release=true',out.read_text())
+   market_path=root/'market-update-result.json';saved_market=market_path.read_text()
+   market_path.write_text(json.dumps({'result':'updated','as_of':'2026-09-04','changed':True}))
+   self.assertNotEqual(run(good).returncode,0);self.assertFalse(out.exists())
+   market_path.write_text(saved_market)
    picker_path=root/'picker-update-result.json';saved_picker=picker_path.read_text()
    picker_path.write_text(json.dumps({'result':'updated','as_of':'2026-09-04','changed':True}))
    self.assertNotEqual(run(good).returncode,0);self.assertFalse(out.exists())
@@ -176,7 +181,7 @@ class DailyEodWorkflowTests(unittest.TestCase):
    for result in ({**good,'result':'retained_previous'},{**good,'as_of':'2026-09-04'}):
     self.assertNotEqual(run(result).returncode,0)
     self.assertFalse(out.exists())
-   for name in ('market-etf-watch','industry-radar','cr056-ranking','daily-shape-picker'):
+   for name in ('market-etf-watch','industry-radar','cr056-ranking','daily-shape-picker','market-internals'):
     path=root/'public'/f'{name}.json';before=path.read_text()
     path.write_text(json.dumps({'as_of':'2026-09-04','display_context':{'as_of':target}}))
     self.assertNotEqual(run(good).returncode,0);self.assertFalse(out.exists())

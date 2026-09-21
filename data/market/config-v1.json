@@ -1,0 +1,737 @@
+{
+  "version": "market-internals-v1",
+  "series_id": "market-internals-v1-cache-panel",
+  "temperature_bands": [
+    {
+      "maximum": 30,
+      "label": "CALM",
+      "tone": "green"
+    },
+    {
+      "maximum": 50,
+      "label": "NORMAL",
+      "tone": "green"
+    },
+    {
+      "maximum": 65,
+      "label": "ELEVATED",
+      "tone": "yellow"
+    },
+    {
+      "maximum": 80,
+      "label": "HOT",
+      "tone": "orange"
+    },
+    {
+      "maximum": 100,
+      "label": "EXTREME",
+      "tone": "red"
+    }
+  ],
+  "quality": {
+    "minimum_members": 500,
+    "minimum_coverage": 0.95,
+    "maximum_coverage_drop": 0.05,
+    "percentile_minimum": 60
+  },
+  "universe_policy": {
+    "minimum_price": 5,
+    "minimum_average_dollar_volume": 10000000,
+    "liquidity_sessions": 20,
+    "membership": "fixed_at_initialization",
+    "scope": "cached_primary_exchange_common_stocks"
+  },
+  "indicators": {
+    "above20": {
+      "label": "高于20日均线",
+      "group": "BREADTH",
+      "unit": "%",
+      "formula": "复权收盘 > 含当日20日简单均线的家数 / 20日有效家数 × 100",
+      "risk_knots": [
+        [
+          0,
+          90
+        ],
+        [
+          30,
+          35
+        ],
+        [
+          50,
+          10
+        ],
+        [
+          70,
+          30
+        ],
+        [
+          85,
+          70
+        ],
+        [
+          100,
+          100
+        ]
+      ],
+      "levels": [
+        {
+          "maximum": 30,
+          "label": "参与偏弱",
+          "tone": "orange"
+        },
+        {
+          "maximum": 70,
+          "label": "参与正常",
+          "tone": "green"
+        },
+        {
+          "maximum": 85,
+          "label": "短期扩张",
+          "tone": "yellow"
+        },
+        {
+          "maximum": 100,
+          "label": "短期偏热",
+          "tone": "orange"
+        }
+      ],
+      "trend": "risk"
+    },
+    "above50": {
+      "label": "高于50日均线",
+      "group": "BREADTH",
+      "unit": "%",
+      "formula": "复权收盘 > 含当日50日简单均线的家数 / 50日有效家数 × 100",
+      "risk_knots": [
+        [
+          0,
+          100
+        ],
+        [
+          30,
+          70
+        ],
+        [
+          50,
+          30
+        ],
+        [
+          70,
+          10
+        ],
+        [
+          90,
+          35
+        ],
+        [
+          100,
+          65
+        ]
+      ],
+      "levels": [
+        {
+          "maximum": 30,
+          "label": "广度偏弱",
+          "tone": "orange"
+        },
+        {
+          "maximum": 50,
+          "label": "仍待修复",
+          "tone": "yellow"
+        },
+        {
+          "maximum": 100,
+          "label": "广度健康",
+          "tone": "green"
+        }
+      ],
+      "trend": "higher_healthy"
+    },
+    "above200": {
+      "label": "高于200日均线",
+      "group": "BREADTH",
+      "unit": "%",
+      "formula": "复权收盘 > 含当日200日简单均线的家数 / 200日有效家数 × 100",
+      "risk_knots": [
+        [
+          0,
+          100
+        ],
+        [
+          30,
+          75
+        ],
+        [
+          50,
+          35
+        ],
+        [
+          70,
+          5
+        ],
+        [
+          100,
+          0
+        ]
+      ],
+      "levels": [
+        {
+          "maximum": 30,
+          "label": "长期偏弱",
+          "tone": "orange"
+        },
+        {
+          "maximum": 50,
+          "label": "长期待修复",
+          "tone": "yellow"
+        },
+        {
+          "maximum": 100,
+          "label": "长期健康",
+          "tone": "green"
+        }
+      ],
+      "trend": "higher_healthy"
+    },
+    "ad_ratio": {
+      "label": "上涨 / 下跌家数",
+      "group": "BREADTH",
+      "unit": "倍",
+      "formula": "复权收盘上涨家数 / 下跌家数；平盘不计",
+      "risk_knots": [
+        [
+          0,
+          100
+        ],
+        [
+          0.5,
+          70
+        ],
+        [
+          1,
+          25
+        ],
+        [
+          2,
+          5
+        ],
+        [
+          5,
+          10
+        ]
+      ],
+      "levels": [
+        {
+          "maximum": 0.5,
+          "label": "下跌占优",
+          "tone": "orange"
+        },
+        {
+          "maximum": 1,
+          "label": "上涨不足",
+          "tone": "yellow"
+        },
+        {
+          "maximum": 100000,
+          "label": "上涨占优",
+          "tone": "green"
+        }
+      ],
+      "trend": "higher_healthy"
+    },
+    "ad_line": {
+      "label": "A/D 累计线",
+      "group": "BREADTH",
+      "unit": "家",
+      "formula": "从本系列零起点累计：上涨家数 − 下跌家数；缺口后累计不可用",
+      "risk_knots": [],
+      "levels": [
+        {
+          "maximum": 1000000000000.0,
+          "label": "观察累计趋势",
+          "tone": "neutral"
+        }
+      ],
+      "trend": "higher_healthy"
+    },
+    "up_volume": {
+      "label": "上涨成交量占比",
+      "group": "PARTICIPATION",
+      "unit": "%",
+      "formula": "上涨股成交量 / (上涨股成交量 + 下跌股成交量) × 100；原始股数",
+      "risk_knots": [
+        [
+          0,
+          100
+        ],
+        [
+          25,
+          75
+        ],
+        [
+          45,
+          25
+        ],
+        [
+          60,
+          10
+        ],
+        [
+          80,
+          45
+        ],
+        [
+          100,
+          90
+        ]
+      ],
+      "levels": [
+        {
+          "maximum": 25,
+          "label": "抛压集中",
+          "tone": "red"
+        },
+        {
+          "maximum": 45,
+          "label": "卖盘偏多",
+          "tone": "orange"
+        },
+        {
+          "maximum": 75,
+          "label": "参与正常",
+          "tone": "green"
+        },
+        {
+          "maximum": 90,
+          "label": "买盘集中",
+          "tone": "yellow"
+        },
+        {
+          "maximum": 100,
+          "label": "买盘极端集中",
+          "tone": "orange"
+        }
+      ],
+      "trend": "risk"
+    },
+    "median_rvol": {
+      "label": "成交活跃度中位数",
+      "group": "PARTICIPATION",
+      "unit": "倍",
+      "formula": "每股当日股数 / 前20日平均股数（不含当日），再取中位数",
+      "risk_knots": [
+        [
+          0,
+          60
+        ],
+        [
+          0.6,
+          35
+        ],
+        [
+          1,
+          10
+        ],
+        [
+          1.5,
+          50
+        ],
+        [
+          2.5,
+          100
+        ]
+      ],
+      "levels": [
+        {
+          "maximum": 0.6,
+          "label": "交投清淡",
+          "tone": "yellow"
+        },
+        {
+          "maximum": 1.3,
+          "label": "交投正常",
+          "tone": "green"
+        },
+        {
+          "maximum": 1.8,
+          "label": "明显放量",
+          "tone": "yellow"
+        },
+        {
+          "maximum": 1000000.0,
+          "label": "极端放量",
+          "tone": "orange"
+        }
+      ],
+      "trend": "risk"
+    },
+    "rvol_breadth": {
+      "label": "明显放量股票占比",
+      "group": "PARTICIPATION",
+      "unit": "%",
+      "formula": "RVOL > 1.5 的家数 / RVOL有效家数 × 100",
+      "risk_knots": [
+        [
+          0,
+          15
+        ],
+        [
+          20,
+          10
+        ],
+        [
+          40,
+          50
+        ],
+        [
+          70,
+          100
+        ],
+        [
+          100,
+          100
+        ]
+      ],
+      "levels": [
+        {
+          "maximum": 30,
+          "label": "放量平稳",
+          "tone": "green"
+        },
+        {
+          "maximum": 50,
+          "label": "放量扩散",
+          "tone": "yellow"
+        },
+        {
+          "maximum": 100,
+          "label": "集中放量",
+          "tone": "orange"
+        }
+      ],
+      "trend": "risk"
+    },
+    "new_high_low": {
+      "label": "52周新高 / 新低",
+      "group": "LEADERSHIP",
+      "unit": "百分点",
+      "formula": "(252日新高家数 − 252日新低家数) / 252日有效家数 × 100；含当日复权高/低",
+      "risk_knots": [
+        [
+          -100,
+          100
+        ],
+        [
+          -10,
+          90
+        ],
+        [
+          0,
+          35
+        ],
+        [
+          10,
+          5
+        ],
+        [
+          100,
+          0
+        ]
+      ],
+      "levels": [
+        {
+          "maximum": -5,
+          "label": "新低扩散",
+          "tone": "red"
+        },
+        {
+          "maximum": 0,
+          "label": "新低偏多",
+          "tone": "yellow"
+        },
+        {
+          "maximum": 100,
+          "label": "新高占优",
+          "tone": "green"
+        }
+      ],
+      "trend": "higher_healthy"
+    },
+    "rsp_spy": {
+      "label": "RSP / SPY",
+      "group": "LEADERSHIP",
+      "unit": "比值",
+      "formula": "同日RSP复权收盘 / SPY复权收盘；状态与风险按比值5日涨跌(%)",
+      "risk_knots": [],
+      "levels": [
+        {
+          "maximum": 1000000000.0,
+          "label": "观察等权强弱",
+          "tone": "neutral"
+        }
+      ],
+      "trend": "higher_healthy"
+    },
+    "dispersion": {
+      "label": "个股涨跌分化",
+      "group": "STRUCTURE",
+      "unit": "%",
+      "formula": "同日个股复权收益率的横截面总体标准差 × 100",
+      "risk_knots": [
+        [
+          0,
+          5
+        ],
+        [
+          1,
+          10
+        ],
+        [
+          2,
+          35
+        ],
+        [
+          3,
+          65
+        ],
+        [
+          5,
+          100
+        ]
+      ],
+      "levels": [
+        {
+          "maximum": 2,
+          "label": "分化正常",
+          "tone": "green"
+        },
+        {
+          "maximum": 3,
+          "label": "分化升高",
+          "tone": "yellow"
+        },
+        {
+          "maximum": 5,
+          "label": "分化明显",
+          "tone": "orange"
+        },
+        {
+          "maximum": 1000000.0,
+          "label": "分化极端",
+          "tone": "red"
+        }
+      ],
+      "trend": "lower_healthy"
+    },
+    "trin": {
+      "label": "TRIN 买卖压力",
+      "group": "PARTICIPATION",
+      "unit": "倍",
+      "formula": "(上涨家数 / 下跌家数) / (上涨股数 / 下跌股数)；任一分母零则缺失",
+      "risk_knots": [
+        [
+          0,
+          85
+        ],
+        [
+          0.5,
+          45
+        ],
+        [
+          0.8,
+          10
+        ],
+        [
+          1.2,
+          10
+        ],
+        [
+          2,
+          75
+        ],
+        [
+          3,
+          100
+        ]
+      ],
+      "levels": [
+        {
+          "maximum": 0.5,
+          "label": "买盘集中",
+          "tone": "orange"
+        },
+        {
+          "maximum": 1.2,
+          "label": "量价正常",
+          "tone": "green"
+        },
+        {
+          "maximum": 2,
+          "label": "卖压升高",
+          "tone": "orange"
+        },
+        {
+          "maximum": 1000000.0,
+          "label": "卖压集中",
+          "tone": "red"
+        }
+      ],
+      "trend": "risk"
+    }
+  },
+  "derived_risks": {
+    "extension20": [
+      [
+        0,
+        0
+      ],
+      [
+        50,
+        5
+      ],
+      [
+        70,
+        35
+      ],
+      [
+        85,
+        75
+      ],
+      [
+        100,
+        100
+      ]
+    ],
+    "extension50": [
+      [
+        0,
+        0
+      ],
+      [
+        50,
+        5
+      ],
+      [
+        70,
+        20
+      ],
+      [
+        90,
+        65
+      ],
+      [
+        100,
+        100
+      ]
+    ],
+    "ad5": [
+      [
+        -100,
+        100
+      ],
+      [
+        -30,
+        80
+      ],
+      [
+        0,
+        30
+      ],
+      [
+        30,
+        5
+      ],
+      [
+        100,
+        0
+      ]
+    ],
+    "breadth50_5d": [
+      [
+        -100,
+        100
+      ],
+      [
+        -10,
+        80
+      ],
+      [
+        0,
+        20
+      ],
+      [
+        10,
+        0
+      ],
+      [
+        100,
+        0
+      ]
+    ],
+    "rsp_spy_5d": [
+      [
+        -100,
+        100
+      ],
+      [
+        -3,
+        90
+      ],
+      [
+        -1,
+        55
+      ],
+      [
+        0,
+        20
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        100,
+        0
+      ]
+    ]
+  },
+  "subscores": {
+    "extension": {
+      "label": "短期过热",
+      "weight": 0.3,
+      "components": {
+        "extension20": 0.65,
+        "extension50": 0.35
+      }
+    },
+    "breadth": {
+      "label": "广度恶化",
+      "weight": 0.3,
+      "components": {
+        "above200": 0.15,
+        "above50": 0.25,
+        "ad5": 0.25,
+        "breadth50_5d": 0.2,
+        "new_high_low": 0.15
+      }
+    },
+    "participation": {
+      "label": "成交失衡",
+      "weight": 0.2,
+      "components": {
+        "up_volume": 0.45,
+        "median_rvol": 0.3,
+        "rvol_breadth": 0.1,
+        "trin": 0.15
+      }
+    },
+    "leadership": {
+      "label": "领导力收窄 / 分化",
+      "weight": 0.2,
+      "components": {
+        "rsp_spy_5d": 0.6,
+        "dispersion": 0.4
+      }
+    }
+  }
+}

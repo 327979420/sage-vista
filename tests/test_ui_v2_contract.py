@@ -3,11 +3,13 @@ import json,pathlib,re,unittest
 ROOT=pathlib.Path(__file__).parents[1]
 
 class UiV2ContractTests(unittest.TestCase):
- def test_home_puts_market_risk_before_stock_research(self):
-  text=(ROOT/"app/zh/watch/resonance/page.tsx").read_text()
-  self.assertLess(text.index("overviewHero"),text.index("opportunityWorkspace"))
-  for label in ("TODAY&apos;S DECISION","精选机会，不追高","现在能用什么","今日多因子共振机会","WHY IT RANKS HERE"):
-   self.assertIn(label,text)
+ def test_market_page_keeps_risk_reason_and_trend_layers(self):
+  text=(ROOT/"app/zh/watch/market/dashboard.tsx").read_text()
+  self.assertLess(text.index('<section className="marketTemperature"'),text.index('<div className="marketSignalsHeading"'))
+  self.assertLess(text.index('<div className="marketSignalsHeading"'),text.index('<section className="marketHistory"'))
+  self.assertIn('不代表整个美股市场',text)
+  self.assertIn('分数越高',text)
+  self.assertNotIn('今日研究总览',(ROOT/"app/zh/watch/resonance/tracker-ui.tsx").read_text())
 
  def test_experiment_archive_is_git_only(self):
   text=(ROOT/"app/zh/watch/resonance/research/page.tsx").read_text()

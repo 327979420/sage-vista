@@ -28,9 +28,9 @@ test("server-renders the Sage Vista application", async () => {
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /<title>Sage Vista — 今日研究总览<\/title>/i);
+  assert.match(html, /<title>Sage Vista — 大盘<\/title>/i);
   assert.match(html, /SAGE VISTA/i);
-  assert.match(html, /今日研究总览/i);
+  assert.match(html, /大盘/i);
   assert.match(html, /Sage Vista UI v6\.1/);
   assert.match(html, /Build (?:local|[0-9a-f]{7})/);
   const expectedCommit = process.env.SAGE_DEPLOYMENT_COMMIT ?? process.env.GITHUB_SHA ?? "local";
@@ -61,7 +61,7 @@ test("retired product routes redirect to maintained modules", async () => {
     ["/technical", "/zh/watch/resonance/rare-opportunities"],
     ["/data-quality", "/"],
     ["/zh", "/"],
-    ["/zh/watch/market", "/zh/watch/industry-radar"],
+    ["/zh/watch/resonance", "/zh/watch/market"],
     ["/zh/watch/resonance/rsi", "/zh/watch/resonance/rare-opportunities"],
   ];
 
@@ -119,4 +119,15 @@ test("renders research history with pending account entry and retained compariso
 test("old research bookmark redirects to independent backtest page", async()=>{
  const response=await render("/zh/watch/resonance/strategy-backtest-v2");
  assert.equal(response.status,307); assert.equal(response.headers.get("location"),"/zh/backtest");
+});
+
+
+test("Market is a real product page and the retired overview is absent", async () => {
+ const response=await render("/zh/watch/market");
+ assert.equal(response.status,200);
+ const html=await response.text();
+ assert.match(html,/Market Overview/);
+ assert.match(html,/正在读取大盘日终快照/);
+ assert.match(html,/href="\/zh\/watch\/market"/);
+ assert.doesNotMatch(html,/今日研究总览|精选机会，不追高/);
 });

@@ -28,6 +28,8 @@ EXPECTED_PYTHON_REFERENCES = frozenset({
     "services/scanner/cr056_inputs.py::main",
     # Approved daily picker: current common-stock membership, checked CR056 cache; no new provider calls.
     "services/scanner/daily_shape_picker.py::main",
+    # Independent fixed Market panel: read-only verified histories, never writes shared caches.
+    "services/scanner/market_internals_daily.py::main",
     "services/scanner/cr056_daily.py::main",
     "services/scanner/cr056_daily.py::existing_bulk",
     "services/scanner/cache_theme_etfs.py::run",

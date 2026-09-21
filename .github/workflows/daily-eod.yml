@@ -23,7 +23,7 @@ on:
         required: true
         default: preview
         type: choice
-        options: [preview, candidate_preview, picker_preview, update, deploy]
+        options: [preview, candidate_preview, picker_preview, market_preview, update, deploy]
       notify:
         description: Send Discord only after a verified website release
         required: true
@@ -137,21 +137,24 @@ jobs:
         run: |
           python3 -m services.scanner.cr056_daily --as-of "${{ steps.update_result.outputs.as_of }}" > cr056-update-result.json
           python3 -m services.scanner.daily_shape_picker --live --as-of "${{ steps.update_result.outputs.as_of }}" --index-path work/cr056-daily/cache/index.json --out public/daily-shape-picker.json > picker-update-result.json
+          python3 -m services.scanner.market_internals_daily --as-of "${{ steps.update_result.outputs.as_of }}" > market-update-result.json
           python3 - <<'PYCODE'
           import json,os
           result=json.load(open("cr056-update-result.json"))
           picker=json.load(open('picker-update-result.json'))
+          market=json.load(open('market-update-result.json'))
+          if market.get('result') not in ('updated','already_current'):raise SystemExit('market snapshot update incomplete')
           if picker.get('result') not in ('updated','already_current'):raise SystemExit('picker update incomplete')
           if result.get("result") not in ("updated","already_current"):raise SystemExit("candidate refresh incomplete; retain the entire previous production release")
           target=os.environ['TARGET_AS_OF']
-          if result.get('as_of')!=target or picker.get('as_of')!=target:raise SystemExit('candidate or picker result date mismatch')
-          for path in ('public/market-etf-watch.json','public/industry-radar.json','public/cr056-ranking.json','public/daily-shape-picker.json'):
+          if result.get('as_of')!=target or picker.get('as_of')!=target or market.get('as_of')!=target:raise SystemExit('candidate or picker result date mismatch')
+          for path in ('public/market-etf-watch.json','public/industry-radar.json','public/cr056-ranking.json','public/daily-shape-picker.json','public/market-internals.json'):
               payload=json.load(open(path))
               if payload.get('as_of')!=target:raise SystemExit(f'bundle date mismatch: {path}')
               if path.endswith('industry-radar.json') and payload.get('display_context',{}).get('as_of')!=target:raise SystemExit('industry ETF background date mismatch')
               if path.endswith('cr056-ranking.json') and payload.get('refresh_status',{}).get('status')=='failed':raise SystemExit('candidate snapshot still marked failed')
           with open(os.environ["GITHUB_OUTPUT"],"a") as out:
-              out.write(f"needs_release={str(result['changed'] or picker['changed'] or os.environ['LEGACY_RELEASE']=='true' or os.environ['BACKGROUND_CHANGED']=='true').lower()}\n")
+              out.write(f"needs_release={str(result['changed'] or picker['changed'] or market['changed'] or os.environ['LEGACY_RELEASE']=='true' or os.environ['BACKGROUND_CHANGED']=='true').lower()}\n")
               out.write(f"cache_ready={str(result['cache_ready']).lower()}\n")
               out.write(f"result={result['result']}\n")
               out.write(f"as_of={result['as_of']}\n")
@@ -225,7 +228,7 @@ jobs:
         run: |
           git config user.name "sage-vista-bot"
           git config user.email "sage-vista-bot@users.noreply.github.com"
-          git add public/resonance-tracker.json public/favorite-pattern.json public/daily-shape-picker.json public/daily-factor-snapshot.json public/rare-opportunity-radar.json public/industry-radar.json public/market-etf-watch.json public/signal-history.json public/signal-history-summary.json public/update-status.json public/factor-registry.json public/unified-v2-rankings.json public/unified-v2-latest.json public/opportunity-ledger.json public/opportunity-ledger-latest.json public/cr056-ranking.json automation/cr056-watch-state.json.gz docs/CURRENT_STATUS_ZH.md
+          git add data/market public/market-internals.json public/resonance-tracker.json public/favorite-pattern.json public/daily-shape-picker.json public/daily-factor-snapshot.json public/rare-opportunity-radar.json public/industry-radar.json public/market-etf-watch.json public/signal-history.json public/signal-history-summary.json public/update-status.json public/factor-registry.json public/unified-v2-rankings.json public/unified-v2-latest.json public/opportunity-ledger.json public/opportunity-ledger-latest.json public/cr056-ranking.json automation/cr056-watch-state.json.gz docs/CURRENT_STATUS_ZH.md
           if [ -f public/cr056-factor-details.json.gz ]; then git add public/cr056-factor-details.json.gz; fi
           if [ -d research/generated/cr056-daily ]; then git add research/generated/cr056-daily; fi
           if ! git diff --cached --quiet; then
@@ -417,7 +420,7 @@ jobs:
 
 
   candidate_preview:
-    if: github.event_name == 'workflow_dispatch' && (inputs.mode == 'candidate_preview' || inputs.mode == 'picker_preview')
+    if: github.event_name == 'workflow_dispatch' && (inputs.mode == 'candidate_preview' || inputs.mode == 'picker_preview' || inputs.mode == 'market_preview')
     runs-on: ubuntu-latest
     timeout-minutes: 180
     permissions:
@@ -471,6 +474,29 @@ jobs:
           validate(actual,expected['as_of'])
           if actual['content_fingerprint']!=expected['content_fingerprint']:raise SystemExit('live picker differs from approved frozen preview')
           PYCODE
+      - name: Build Market Internals from verified saved histories
+        if: inputs.mode == 'market_preview'
+        run: |
+          target=$(python3 -c 'import json;print(json.load(open("public/update-status.json"))["source_latest_complete_date"])')
+          python3 -m services.scanner.market_internals_daily --as-of "$target" > market-update-result.json
+          python3 - <<'PYCODE'
+          import json
+          from services.scanner.market_internals_daily import validate_public
+          payload=json.load(open('public/market-internals.json'))
+          validate_public(payload)
+          print(json.dumps({'as_of':payload['as_of'],'members':len(payload['universe']['members']),'latest':payload['history'][-1]['quality'],'temperature':payload['history'][-1]['temperature']['score']}))
+          PYCODE
+      - name: Upload Market derived snapshots only
+        if: inputs.mode == 'market_preview'
+        uses: actions/upload-artifact@v4
+        with:
+          name: market-preview-${{ github.run_id }}
+          path: |
+            public/market-internals.json
+            data/market/
+            market-update-result.json
+          if-no-files-found: error
+          retention-days: 30
       - name: Upload reproduced picker
         if: inputs.mode == 'picker_preview'
         uses: actions/upload-artifact@v4
