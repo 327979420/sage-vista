@@ -1,0 +1,184 @@
+{
+  "audit_date": "2026-09-21",
+  "target_session": "2026-09-18",
+  "purpose": "Determine which external breadth feeds can be used automatically with verified dates and scope",
+  "result": "PARTIAL: existing Cboe feed works; no additional breadth source accepted for scheduled production",
+  "sources": [
+    {
+      "provider": "Finviz",
+      "url": "https://finviz.com/",
+      "retrieval": "public HTML read successfully",
+      "scope": "Publisher labels NYSE, Nasdaq and AMEX issues; per-metric denominators differ",
+      "observation_date": null,
+      "findings": {
+        "advances": 2055,
+        "declines": 3323,
+        "above_50dma_count": 1976,
+        "below_50dma_count": 3627,
+        "above_200dma_count": 2462,
+        "below_200dma_count": 3141
+      },
+      "decision": "DO_NOT_CONNECT",
+      "reason": "No reliable aggregate observation date verified. Page retrieval time cannot be substituted. Public display/data access rights not established.",
+      "source_sha256": "28e09d8ab4fdd0f301e2fb0d57eec87e62a0101b0de4f6ef9ab1111e8d97b094",
+      "source_bytes": 204859
+    },
+    {
+      "provider": "StockMarketWatch",
+      "url": "https://stockmarketwatch.com/exchanges/nasdaq/today",
+      "retrieval": "public HTML read successfully",
+      "scope": "Nasdaq exchange; equities and ETFs per publisher methodology",
+      "observation_date": "2026-09-18",
+      "observation_date_applies_to": "breadthRows only, not the separate advance/decline totals",
+      "decision": "DO_NOT_CONNECT",
+      "reason": "Terms explicitly require written permission for systematic retrieval including scraping.",
+      "terms_url": "https://stockmarketwatch.com/terms",
+      "source_sha256": "bd455f57fe92c45c552437b051248b820c83a4774bcab91a4cff297cc2276448",
+      "source_bytes": 179931
+    },
+    {
+      "provider": "DeanFinancials/deanfi-data",
+      "url": "https://raw.githubusercontent.com/DeanFinancials/deanfi-data/main/advance-decline/daily_breadth.json",
+      "retrieval": "public JSON read successfully",
+      "scope": "Publisher-reported S&P 500, 503 securities, Yahoo Finance (yfinance)",
+      "observation_date": "2026-09-18",
+      "findings": {
+        "advances": 156,
+        "declines": 346,
+        "unchanged": 1,
+        "above_50dma": {
+          "count": 144,
+          "percentage": 28.63,
+          "interpretation": ">70% = strong intermediate trend, <30% = weak trend"
+        },
+        "above_200dma": {
+          "count": 263,
+          "percentage": 52.29,
+          "interpretation": ">70% = strong long-term trend, <30% = weak trend"
+        }
+      },
+      "checks": "Count totals and rounded percentages pass; independent membership/calculation verification not performed",
+      "decision": "RESEARCH_ONLY",
+      "reason": "Community-calculated data, not independently verified official breadth. Near-52-week-high/low fields mean within 1%, not new highs/lows. Not adopted as formal website source.",
+      "source_sha256": "d0c76982689590abaac17bba49e248f2de4445371600e6ccc66c5e8d1fca65b9",
+      "source_bytes": 3001
+    },
+    {
+      "provider": "IndexIndicators",
+      "url": "https://www.indexindicators.com/data/sp500-vs-sp500-stocks-above-50d-sma-params-x--x-/",
+      "retrieval": "public Data form returned subscription promotion, no dated data table",
+      "scope": "S&P 500",
+      "observation_date": null,
+      "decision": "DO_NOT_CONNECT",
+      "reason": "Downloads refer to MarketCharts paid plans from USD 19/month. This does not establish API access or public redistribution rights.",
+      "source_sha256": "f8b5d3b1775094a77d0fa2ca15f09c948589a335629ebc2c8dca1cac73bd8683",
+      "source_bytes": 167149
+    },
+    {
+      "provider": "Barchart OnDemand",
+      "url": "https://www.barchart.com/ondemand/api/getMomentum",
+      "retrieval": "Official API documentation verified in indexed official search result; no authenticated API request made",
+      "scope": "US market, optional exchanges filter; membership and per-metric definitions require confirmation",
+      "observation_date": null,
+      "decision": "CANDIDATE_PENDING_VENDOR_ACCESS",
+      "reason": "API documents advance/decline/unchanged and above-20/50/100/150/200-day averages. No credentials or quote; actual observation timestamps and public display rights must be verified before integrating. Pricing is usage-based, not a verified flat monthly fee.",
+      "pricing_url": "https://www.barchart.com/ondemand"
+    }
+  ],
+  "changes_to_production": false,
+  "raw_response_note": "Digests refer to local work/market-breadth-audit downloads. Full third-party pages are not committed or redistributed; they can change on later retrieval.",
+  "cockpit_execution": {
+    "status": "local_mvp_partial_source_coverage",
+    "as_of": "2026-09-18",
+    "fingerprint": "sha256:9fa8f18bc572f099ef7644aefdaff5de6fd8d010d3d53ca096f7a77831d42bdb",
+    "source_status": {
+      "flows": "unavailable",
+      "margin": "available",
+      "options": "available",
+      "positions": "available",
+      "quotes": "available"
+    },
+    "ici_http_status": 403,
+    "quote_provider": "Yahoo Finance",
+    "eodhd_live_tested": false,
+    "raw_archive": "data/market/cockpit-v1/raw",
+    "source_documents": {
+      "occ_layout": "https://www.theocc.com/getmedia/7dc99c7b-8f5a-4b9a-913a-1dce224b52d1/onn-volume-vol-only-totals-record-layout.pdf",
+      "occ_batch": "https://www.theocc.com/market-data/market-data-reports/other-market-data-info/batch-processing/volume-by-account-type-download-batch-processing",
+      "cftc": "https://publicreporting.cftc.gov/resource/gpe5-46if.json",
+      "ici": "https://www.ici.org/research/stats/combined_flows",
+      "finra": "https://www.finra.org/rules-guidance/key-topics/margin-accounts/margin-statistics"
+    },
+    "checks": {
+      "python": 59,
+      "node": 37,
+      "lint": "passed",
+      "typecheck": "passed",
+      "build": "passed",
+      "desktop_width": 1280,
+      "desktop_horizontal_overflow": false,
+      "mobile_frame_width": 390
+    },
+    "deployed": false
+  },
+  "fund_flow_alternative_probe": {
+    "date": "2026-09-21",
+    "attempts": [
+      {
+        "key": "etf_tool",
+        "url": "https://www.etf.com/etfanalytics/etf-fund-flows-tool",
+        "status": 403,
+        "error": "HTTPError"
+      },
+      {
+        "key": "etf_result",
+        "url": "https://www.etf.com/etfanalytics/etf-fund-flows-tool-result",
+        "status": 200,
+        "bytes": 79842,
+        "sha256": "13b9e45d51ea433b00e2adeef11e838c9f5fbe976622fb75bca794fd580dd2dc",
+        "tables": 0
+      },
+      {
+        "key": "ici",
+        "url": "https://www.ici.org/research/stats/combined_flows",
+        "status": 403,
+        "error": "HTTPError"
+      }
+    ],
+    "result_page": "HTTP200 shell: FundFlowResultSummary, FundFlowResultFlowChart, FundFlowResultOutputTable are client placeholders, no directly verifiable flow observations",
+    "decision": "not_connected; unavailable/stale/mismatched fund-flow card moves to end; no source or scope substitution"
+  },
+  "conclusion_first_ux": {
+    "date": "2026-09-21",
+    "cadence_order": [
+      "daily_core",
+      "daily_options_collapsed",
+      "weekly",
+      "monthly",
+      "optional_trends",
+      "unavailable_flows"
+    ],
+    "calculations": "app/zh/watch/market/interpretation.ts",
+    "semantics_rule": "docs/rules/05_MARKET_REGIME.md",
+    "checks": {
+      "node": 45,
+      "python": 10,
+      "typecheck": "passed",
+      "targeted_lint": "passed",
+      "build": "passed",
+      "desktop_width": 1082,
+      "desktop_overflow": false,
+      "mobile_frame_width": 390
+    },
+    "data_sha256": {
+      "public/market-internals.json": "60b2d43fc2c6845541fb96be30d30cb8ae6019c0d2ef29f5f2a57d5e130e1887",
+      "public/market-cockpit.json": "61c3d1e46afa1bd0e0d63fbd4df046f1b16061d97071867c0e916952b2eaad70",
+      "public/market-etf-watch.json": "c4de0a2b6fe63997f0eb322434fa0b7f5abd9203f7458e2499f46f3312c8e007",
+      "public/industry-radar.json": "f2c012f6aa0c3f603715117426366ade20270e82e3fe3742aa4c880cabd9591b",
+      "public/cr056-ranking.json": "903a635dc44ff6f6b281ea2cbab95ef0421c877ee051c8627661f27e5b9dbcb6"
+    },
+    "data_regenerated": false,
+    "trading_changed": false,
+    "deployed": false
+  }
+}

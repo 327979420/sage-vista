@@ -207,3 +207,6 @@ body:has(.rtPage) { background:#f3f5f8; color:#172033; }
 .candidateGateTag.gate-three_push_breakout{background:#ede9fe;color:#5b21b6}
 .candidateGateTag.gate-support_reversal{background:#fff7ed;color:#9a3412}
 .candidateWatchReturns{padding:12px 0}.candidateWatchReturns>p{display:flex;justify-content:space-between;gap:16px}.candidateWatchReturns small{display:block;font-size:12px;color:#526277}
+
+/* Shared site identity bar, retained from retired overview stylesheet. */
+.siteVersionBar{display:flex;justify-content:space-between;align-items:center;padding:7px max(18px,calc((100vw - 1180px)/2));background:#101722;color:#dce4ef;font-size:11px;letter-spacing:.04em}.siteVersionBar b{color:#fff}.siteVersionBar span{font-family:var(--font-geist-mono),monospace;color:#94a2b7}

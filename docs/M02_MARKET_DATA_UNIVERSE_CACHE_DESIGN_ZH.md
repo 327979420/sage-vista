@@ -548,3 +548,7 @@ M12负责候选目录、真实ReleaseManifest、工作流缓存键切换、网�
 CR056已审隔离对照入口：`services/scanner/cr056_inputs.py::main`只读旧缓存，最多10日尾部补数写入独立目录；复权锚点异常排除，不覆盖原缓存、不冒充formal行情接入。
 
 2026-09-21已审新增消费者：`services/scanner/daily_shape_picker.py::main`读取现有普通股名单，实际行情由CR056已验证缓存/index提供；无数据供应商调用、不写原缓存，不把名单冒称历史点时宇宙。用户已批准独立日线形态picker上线，仍不是formal M02/M05迁移。登记到现有缓存消费者清单，日期/hash不符则日终发布失败。
+
+### 2026-09-21 Market Internals只读消费者登记
+
+`market_internals_daily.py::main`仅从既有经过index SHA核验的个股缓存、ordinary common名录及SPY/RSP ETF缓存读取。复用M02复权校验，不写共享缓存，不新增下载。Market成员独立固定并公开覆盖偏差；只追加自身版本化日快照。未迁移或重建任何历史账户数据。

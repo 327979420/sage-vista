@@ -3,11 +3,12 @@ import json,pathlib,re,unittest
 ROOT=pathlib.Path(__file__).parents[1]
 
 class UiV2ContractTests(unittest.TestCase):
- def test_home_puts_market_risk_before_stock_research(self):
-  text=(ROOT/"app/zh/watch/resonance/page.tsx").read_text()
-  self.assertLess(text.index("overviewHero"),text.index("opportunityWorkspace"))
-  for label in ("TODAY&apos;S DECISION","精选机会，不追高","现在能用什么","今日多因子共振机会","WHY IT RANKS HERE"):
+ def test_market_mvp_keeps_scope_date_and_separate_observation_layers(self):
+  text=(ROOT/"app/zh/watch/market/dashboard.tsx").read_text()
+  for label in ('固定样本','不代表整个美股市场','targetDate','market-cockpit-v1','Chart','期权成交结构'):
    self.assertIn(label,text)
+  self.assertNotIn('source_page',text)
+  self.assertNotIn('今日研究总览',(ROOT/"app/zh/watch/resonance/tracker-ui.tsx").read_text())
 
  def test_experiment_archive_is_git_only(self):
   text=(ROOT/"app/zh/watch/resonance/research/page.tsx").read_text()
@@ -16,12 +17,12 @@ class UiV2ContractTests(unittest.TestCase):
   self.assertTrue((ROOT/"research/experiments.jsonl").exists())
   self.assertFalse((ROOT/"public/experiment-catalog.json").exists())
 
- def test_industry_page_starts_with_market_decision_and_practical_groups(self):
-  text=(ROOT/"app/zh/watch/industry-radar/page.tsx").read_text()
-  for label in ("/market-etf-watch.json","SPY","QQQ","IWM","RSP","SOXX","旧快照成员广度","独立背景，不改当前排名"):
+ def test_industry_page_is_dedicated_to_industry_and_reuses_daily_assets(self):
+  text=(ROOT/"app/zh/watch/industry-radar/dashboard.tsx").read_text()
+  for label in ('/industry-radar.json','useDailyData','待补数据的主题','相关候选','candidateDate===targetDate'):
    self.assertIn(label,text)
-  self.assertLess(text.index("marketDecisionHero"),text.index("<IndustryContext/>"))
-  self.assertLess(text.index("<IndustryContext/>"),text.index("旧成员广度证据"))
+  for label in ('marketDecisionHero','/market-etf-watch.json','行业与大盘'):
+   self.assertNotIn(label,text)
 
  def test_multifactor_keeps_only_the_current_decision_surface(self):
   self.assertFalse((ROOT/"app/zh/watch/resonance/macd/page.tsx").exists())

@@ -67,6 +67,33 @@ def verify_picker_asset(base, expected, deployment_commit):
  return {'as_of':live['as_of'],'content_fingerprint':live['content_fingerprint'],
          'price_version':live['price_version'],'waiting':live['state_counts'].get('waiting',0)}
 
+def verify_market_asset(base, expected, deployment_commit):
+ from .market_internals_daily import validate_public
+ path=pathlib.Path(__file__).resolve().parents[2]/'public/market-internals.json'
+ local=validate_public(json.loads(path.read_bytes()),expected)
+ live=validate_public(fetch(base,'market-internals.json',deployment_commit,attempts=1),expected)
+ if live['content_fingerprint']!=local['content_fingerprint']:raise RuntimeError('Live Market Internals differs from reviewed snapshots')
+ latest=live['history'][-1]
+ return {'as_of':expected,'content_fingerprint':live['content_fingerprint'],'universe_id':live['universe']['id'],'quality':latest['quality']['status'],'temperature':latest['temperature']['score']}
+
+def verify_external_market_asset(base, expected, deployment_commit):
+ from .market_external import validate
+ path=pathlib.Path(__file__).resolve().parents[2]/'public/market-external.json'
+ local=validate(json.loads(path.read_bytes()),expected)
+ live=validate(fetch(base,'market-external.json',deployment_commit,attempts=1),expected)
+ if live['content_fingerprint']!=local['content_fingerprint']:raise RuntimeError('Live external Market differs from reviewed observations')
+ return {'as_of':expected,'content_fingerprint':live['content_fingerprint'],
+         'source_status':{k:v['status'] for k,v in live['indicators'].items()}}
+
+def verify_cockpit_asset(base, expected, deployment_commit):
+ from .market_cockpit import validate
+ path=pathlib.Path(__file__).resolve().parents[2]/'public/market-cockpit.json'
+ local=validate(json.loads(path.read_bytes()),expected)
+ live=validate(fetch(base,'market-cockpit.json',deployment_commit,attempts=1),expected)
+ if live['content_fingerprint']!=local['content_fingerprint']:raise RuntimeError('Live Market cockpit differs from reviewed observations')
+ return {'as_of':expected,'content_fingerprint':live['content_fingerprint'],
+         'source_status':{k:v['status'] for k,v in live['panels'].items()}}
+
 def verify_once(base,expected,deployment_commit):
  if not deployment_commit:raise RuntimeError("Deployment commit evidence is required")
  # Fetch the whole published bundle on every attempt. A deployment can briefly
@@ -106,7 +133,10 @@ def verify_once(base,expected,deployment_commit):
                     "content_fingerprint":"sha256:"+hashlib.sha256(local_content).hexdigest()}
  picker=verify_picker_asset(base,expected,deployment_commit)
  candidate=verify_candidate_asset(base,expected,deployment_commit)
- return {"daily_shape_picker":picker,"industry_context":industry_receipt,"candidate_snapshot":candidate,"result":"verified","as_of":expected,"site_url":base,"website_version":website_version,"deployment_commit":deployment_commit,"tracker_details":len(details),"favorite_pattern_watchlist":favorite.get("summary",{}).get("watchlist"),"favorite_pattern_entry_ready":favorite.get("summary",{}).get("entry_ready"),"factor_symbols":snapshot.get("triggered_count"),"eligible_universe":snapshot.get("eligible_count"),"forward_cases":len(history.get("cases",[])),"opportunity_events":len(ledger.get("events",[]))}
+ market_internals=verify_market_asset(base,expected,deployment_commit)
+ external_market=verify_external_market_asset(base,expected,deployment_commit)
+ cockpit=verify_cockpit_asset(base,expected,deployment_commit)
+ return {"market_cockpit":cockpit,"external_market":external_market,"market_internals":market_internals,"daily_shape_picker":picker,"industry_context":industry_receipt,"candidate_snapshot":candidate,"result":"verified","as_of":expected,"site_url":base,"website_version":website_version,"deployment_commit":deployment_commit,"tracker_details":len(details),"favorite_pattern_watchlist":favorite.get("summary",{}).get("watchlist"),"favorite_pattern_entry_ready":favorite.get("summary",{}).get("entry_ready"),"factor_symbols":snapshot.get("triggered_count"),"eligible_universe":snapshot.get("eligible_count"),"forward_cases":len(history.get("cases",[])),"opportunity_events":len(ledger.get("events",[]))}
 
 def verify(base,expected,deployment_commit,attempts=12,delay_seconds=5):
  if not deployment_commit:raise RuntimeError("Deployment commit evidence is required")
