@@ -181,9 +181,15 @@ def snapshot(raw, *, day, sessions, universe, config, prior, identity, observati
     for offset in (1,5):
         p=earlier(offset); old=p['temperature']['score'] if p else None
         temperature[f'change_{offset}d'] = round(score-old,1) if score is not None and old is not None else None
-    drivers = sorted(((v['score'], config['subscores'][k]['label']) for k,v in subscores.items() if v['score'] is not None),reverse=True)
-    explanation = ('数据尚不完整，暂不显示风险温度。' if reasons else
-                   '当前主要压力来自'+drivers[0][1]+'；'+('50日广度仍健康，但最近5日正在下降。' if raw['values']['above50']>=50 and (change('above50',5) or 0)<0 else '请结合各项趋势观察变化。'))
+    b50=raw['values']['above50']; b50_delta=change('above50',5)
+    if reasons:
+        explanation='数据尚不完整，暂不显示风险温度。'
+    else:
+        heat='短期不热' if subscores['extension']['score']<=config['temperature_bands'][0]['maximum'] else '短期扩张偏高'
+        breadth='广度偏弱' if b50<50 else '多数股票仍在50日均线上方'
+        drift=f"，5日{'下降' if b50_delta<0 else '增加'}{abs(b50_delta):.1f}个百分点" if b50_delta is not None else ''
+        joiner='但' if b50<50 else '且'
+        explanation=f"{heat}，{joiner}{breadth}：{b50:.0f}%个股高于50日均线{drift}。"
     result={'date':day,'universe_id':universe['id'],'calculation_version':CALCULATION_VERSION,
             'config_fingerprint':canonical_fingerprint(config),'identity':identity,'observation_kind':observation_kind,
             'quality':{'status':'incomplete' if reasons else 'complete','reasons':list(dict.fromkeys(reasons)),

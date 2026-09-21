@@ -733,5 +733,19 @@
         "dispersion": 0.4
       }
     }
-  }
+  },
+  "indicator_order": [
+    "above20",
+    "above50",
+    "above200",
+    "ad_ratio",
+    "ad_line",
+    "up_volume",
+    "median_rvol",
+    "rvol_breadth",
+    "new_high_low",
+    "rsp_spy",
+    "dispersion",
+    "trin"
+  ]
 }
