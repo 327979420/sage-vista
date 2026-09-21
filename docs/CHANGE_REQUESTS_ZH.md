@@ -1121,4 +1121,4 @@
 - 根因：rtPage子项1220px、Market1320px与mvpPageTitle左右零margin互相冲突；多处10–12px浅灰文字降低可读性。
 - 范围：统一五个主要页面框架、导航位置与图标、中文字体层级、卡片边界、控件高度、表格/详情/小屏排版；仅展示层。参考 https://www.tradingview.com/markets/stocks-usa/sectorandindustry-industry/ 与 https://www.koyfin.com/features/ 。
 - 验收：网站构建及既有交互/渲染检查、主要颜色对比、窄屏容器规则、正式资源版本；浏览器工具当前因环境启动失败，若不能恢复则明确不声称完成目视验收。
-- 状态：本地实现完成，待发布。50项网站检查及lint/typecheck/build通过，28项受影响Python页面合同通过；主/次文字及状态文字对比实算5.49–10.35，导航选中态6.84。统一1280px内容框与16px手机边距，标题/导航/卡片共用同一父框；导航补aria-current，页面语言修正为zh-CN。浏览器工具仍因TIOCSTI运行环境错误无法启动，未完成本轮截图和真实点击复核。
+- 状态：已上线（Build 6826172）。[发布35572859965](https://github.com/327979420/sage-vista/actions/runs/35572859965)全部成功，五个主要路由均HTTP200、同一Build及zh-CN语言；实际加载同一index.BEABUWcu.css，内含1280px框架和新字号，样式SHA256前缀8708ff7c7ac140f9。整包日期及数据指纹核验通过，原数据/策略未改。50项网站检查及lint/typecheck/build通过，28项受影响Python页面合同通过；主/次文字及状态文字对比实算5.49–10.35，导航选中态6.84。统一1280px内容框与16px手机边距，标题/导航/卡片共用同一父框；导航补aria-current，页面语言修正为zh-CN。浏览器工具仍因TIOCSTI运行环境错误无法启动，未完成本轮截图和真实点击复核。
