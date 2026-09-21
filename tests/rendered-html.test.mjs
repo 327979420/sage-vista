@@ -30,6 +30,7 @@ test("server-renders the Sage Vista application", async () => {
   const html = await response.text();
   assert.match(html, /<title>Sage Vista — 大盘<\/title>/i);
   assert.match(html, /SAGE VISTA/i);
+  assert.match(html, /<html lang="zh-CN">/);
   assert.match(html, /大盘/i);
   assert.match(html, /Sage Vista UI v6\.1/);
   assert.match(html, /Build (?:local|[0-9a-f]{7})/);
@@ -113,7 +114,7 @@ test("renders research history with pending account entry and retained compariso
   const response=await render("/zh/backtest");
   assert.equal(response.status,200);
   const html=await response.text();
-  assert.match(html,/class="active" href="\/zh\/backtest"/);assert.match(html,/正在读取研究配置/);assert.match(html,/早期20笔成交工程对账/);
+  assert.match(html,/class="active" aria-current="page" href="\/zh\/backtest"/);assert.match(html,/正在读取研究配置/);assert.match(html,/早期20笔成交工程对账/);
 });
 
 test("old research bookmark redirects to independent backtest page", async()=>{
