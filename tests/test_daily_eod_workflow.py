@@ -163,6 +163,15 @@ class DailyEodWorkflowTests(unittest.TestCase):
    env={**os.environ,'GITHUB_OUTPUT':str(out),'LEGACY_RELEASE':'false','BACKGROUND_CHANGED':'false','TARGET_AS_OF':target}
    (root/'picker-update-result.json').write_text(json.dumps({'result':'updated','as_of':target,'changed':False}))
    (root/'market-update-result.json').write_text(json.dumps({'result':'updated','as_of':target,'changed':False}))
+   from services.scanner.market_external import run as build_external
+   build_external(target,out=root/'public/market-external.json',state=root/'archive',fetcher=lambda _:b'DATE,CLOSE\n09/08/2026,15\n')
+   (root/'market-external-update-result.json').write_text(json.dumps({'result':'updated','as_of':target,'changed':False}))
+   from services.scanner.market_cockpit import run as build_cockpit
+   def missing_source(*args):raise OSError('fixture: provider unavailable')
+   build_cockpit(target,out=root/'public/market-cockpit.json',state=root/'cockpit-archive',collector=missing_source)
+   (root/'market-cockpit-update-result.json').write_text(json.dumps({'result':'updated','as_of':target,'changed':False}))
+   env['PYTHONPATH']=str(WORKFLOW.parents[2])
+
    def run(result):
     (root/'cr056-update-result.json').write_text(json.dumps(result))
     if out.exists():out.unlink()
@@ -181,7 +190,7 @@ class DailyEodWorkflowTests(unittest.TestCase):
    for result in ({**good,'result':'retained_previous'},{**good,'as_of':'2026-09-04'}):
     self.assertNotEqual(run(result).returncode,0)
     self.assertFalse(out.exists())
-   for name in ('market-etf-watch','industry-radar','cr056-ranking','daily-shape-picker','market-internals'):
+   for name in ('market-etf-watch','industry-radar','cr056-ranking','daily-shape-picker','market-internals','market-external'):
     path=root/'public'/f'{name}.json';before=path.read_text()
     path.write_text(json.dumps({'as_of':'2026-09-04','display_context':{'as_of':target}}))
     self.assertNotEqual(run(good).returncode,0);self.assertFalse(out.exists())

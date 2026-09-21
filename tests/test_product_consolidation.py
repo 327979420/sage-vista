@@ -12,7 +12,7 @@ class ProductConsolidationTests(unittest.TestCase):
  def test_navigation_has_the_four_current_products(self):
   nav=(ROOT/"app/zh/watch/resonance/tracker-ui.tsx").read_text()
   self.assertNotRegex(nav,re.compile(r"US Equity Signals|Signal Board|个股研究",re.I))
-  for label in ("大盘","多因子机会","我最喜欢形态","行业与大盘"):self.assertIn(label,nav)
+  for label in ("大盘","多因子机会","我最喜欢形态","行业"):self.assertIn(label,nav)
   self.assertNotIn("历史与实验",nav)
   self.assertFalse((ROOT/"app/zh/watch/resonance/macd/page.tsx").exists())
   self.assertNotIn("/zh/watch/resonance/macd",(ROOT/"app/layout.tsx").read_text())
@@ -22,16 +22,20 @@ class ProductConsolidationTests(unittest.TestCase):
   consumers={
    "cr056-ranking.json":"app/zh/watch/resonance/rare-opportunities/cr056-ranking.tsx",
    "daily-shape-picker.json":"app/zh/watch/resonance/favorite-pattern/page.tsx",
-   "industry-radar.json":"app/zh/watch/industry-radar/page.tsx",
-   "market-etf-watch.json":"app/zh/watch/industry-radar/page.tsx",
    "update-status.json":"app/zh/watch/resonance/tracker-ui.tsx",
   }
   for asset,path in consumers.items():
    text=(ROOT/path).read_text();match=re.search(rf'fetch\("/{re.escape(asset)}"[^)]*\)',text)
    self.assertIsNotNone(match,asset);self.assertIn('cache:"no-store"',match.group(0),asset)
+  for page in ('market/dashboard.tsx','industry-radar/dashboard.tsx'):
+   self.assertIn('useDailyData',(ROOT/'app/zh/watch'/page).read_text())
+  daily=(ROOT/'app/zh/watch/market/daily-data.ts').read_text()
+  self.assertIn("cache:'no-store'",daily)
+  self.assertIn('Promise.allSettled',daily)
   self.assertNotIn("resonance-tracker.json",(ROOT/"app/zh/watch/resonance/tracker-ui.tsx").read_text())
   home=(ROOT/"app/zh/watch/market/dashboard.tsx").read_text()
-  self.assertIn("/market-internals.json",home)
+  self.assertIn("/market-cockpit.json",home)
+  self.assertIn("/market-internals.json",(ROOT/"app/zh/watch/market/sample-dashboard.tsx").read_text())
   for retired in ('/unified-v2-latest.json','/signal-history-summary.json','/rare-opportunity-radar.json'):
    self.assertNotIn(retired,home)
 

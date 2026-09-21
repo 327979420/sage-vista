@@ -1,82 +1,140 @@
 "use client";
-import {useEffect,useState} from "react";
-import {TrackerShell} from "../resonance/tracker-ui";
+import {useEffect,useRef,useState,type ReactNode} from 'react';
+import {TrackerShell} from '../resonance/tracker-ui';
+import {useDailyData} from './daily-data';
 
-type Level={label:string;tone:string};
-type Indicator={value:number|null;valid_count:number;reliable:boolean;level:Level;risk:number|null;change_1d:number|null;change_5d:number|null;trend:string;percentile:number|null;percentile_samples:number};
-type Snapshot={date:string;recorded_at?:string;observation_kind:string;spy:number|null;explanation:string;quality:{status:string;reasons:string[];universe_size:number;valid_ticker_count:number;missing_ticker_count:number;coverage:number};temperature:{score:number|null;status:Level;change_1d:number|null;change_5d:number|null;subscores:Record<string,{score:number|null;weight:number}>};indicators:Record<string,Indicator>;counts:{advances:number;declines:number;unchanged:number;new_highs:number;new_lows:number}};
-type Spec={label:string;group:string;unit:string;formula:string};
-type Report={schema_version:string;as_of:string;universe:{name:string;observed_at:string;members:string[];common_list_count:number;limitation:string};config:{version:string;indicators:Record<string,Spec>;subscores:Record<string,{label:string;weight:number}>;indicator_order:string[];temperature_bands:{maximum:number;label:string;tone:string}[]};history:Snapshot[]};
-const GROUPS=[['BREADTH','多少股票在参与'],['PARTICIPATION','成交是否活跃'],['LEADERSHIP','上涨是否集中'],['STRUCTURE','股票之间有多分化']] as const;
-const PERIODS=[['1M',21],['3M',63],['6M',126],['1Y',252]] as const;
-function num(v:number|null,digits=1){return v===null||!Number.isFinite(v)?'—':v.toLocaleString('en-US',{minimumFractionDigits:digits,maximumFractionDigits:digits})}
-function delta(v:number|null,unit=''){return v===null?'—':`${v>0?'↑ +':v<0?'↓ ':'→ '}${num(v)}${unit}`}
-function Sparkline({values,label}:{values:(number|null)[];label:string}){
- const data=values.filter((v):v is number=>v!==null);if(data.length<2)return <span className="marketSparkEmpty">趋势积累中</span>;
- const low=Math.min(...data),high=Math.max(...data),span=high-low||1;
- const points=values.map((v,i)=>v===null?null:`${i/(values.length-1)*140},${32-(v-low)/span*28}`);
- const segments:string[][]=[];for(const p of points){if(p===null){segments.push([])}else{if(!segments.length)segments.push([]);segments.at(-1)!.push(p)}}
- return <svg className="marketSpark" viewBox="0 0 140 36" role="img" aria-label={label}>{segments.map((p,i)=><polyline key={i} points={p.join(' ')} fill="none" stroke="currentColor" strokeWidth="2"/>)}</svg>
-}
-
+import {complete,participation,breakouts,leadership,sectorReading,positionReading,marginReading,unavailable,type Reading,type Panel,type CockpitReport,type SampleReport} from './interpretation';
+export type {CockpitReport} from './interpretation';
 type Line={label:string;color:string;values:(number|null)[]};
-function TrendChart({title,description,dates,lines,fixedRange}:{title:string;description:string;dates:string[];lines:Line[];fixedRange?:[number,number]}){
- const [hover,setHover]=useState<number|null>(null);
- const all=lines.flatMap(l=>l.values).filter((v):v is number=>v!==null);
- const low=fixedRange?.[0]??Math.floor(Math.min(...all,100)-2), high=fixedRange?.[1]??Math.ceil(Math.max(...all,100)+2),span=high-low||1;
- const left=44,right=870,top=24,bottom=188, x=(i:number)=>left+i/Math.max(dates.length-1,1)*(right-left), y=(v:number)=>bottom-(v-low)/span*(bottom-top);
- const active=hover!==null&&hover<dates.length?hover:dates.length-1;
- return <article className="marketChart"><header><h3>{title}</h3><p>{description}</p></header>
-  <div className="marketChartLegend">{lines.map(l=><span key={l.label}><i style={{background:l.color}}/>{l.label} <b>{num(l.values[active]??null)}</b></span>)}<time>{dates[active]}</time></div>
-  {all.length<2?<p className="marketChartEmpty">有效历史不足，正在积累。数据缺口不会补成零。</p>:<svg viewBox="0 0 900 220" role="img" aria-label={`${title}，${dates[0]}至${dates.at(-1)}`} onMouseLeave={()=>setHover(null)}>
-   {[0,1,2,3,4].map(i=>{const v=low+span*i/4;return <g key={i}><line x1={left} x2={right} y1={y(v)} y2={y(v)} stroke="#e6ebe8"/><text x={left-10} y={y(v)+4} textAnchor="end">{num(v,0)}</text></g>})}
-   {lines.map(l=>{const segments:string[][]=[];l.values.forEach((v,i)=>{if(v===null){segments.push([])}else{if(!segments.length)segments.push([]);segments.at(-1)!.push(`${x(i)},${y(v)}`)}});return <g key={l.label}>{segments.map((s,i)=><polyline key={i} points={s.join(' ')} fill="none" stroke={l.color} strokeWidth="2.3" strokeLinejoin="round"/>)}</g>})}
-   {dates.map((d,i)=><rect key={d} x={x(i)-(right-left)/Math.max(dates.length,1)/2} y={top} width={(right-left)/Math.max(dates.length-1,1)} height={bottom-top} fill="transparent" onMouseEnter={()=>setHover(i)}><title>{d+'\n'+lines.map(l=>l.label+': '+num(l.values[i])).join('\n')}</title></rect>)}
-   {hover!==null&&hover<dates.length&&<line x1={x(hover)} x2={x(hover)} y1={top} y2={bottom} stroke="#899b94" strokeDasharray="3 3"/>}
-   <text x={left} y="212">{dates[0]}</text><text x={right} y="212" textAnchor="end">{dates.at(-1)}</text>
-  </svg>}
- </article>
+const PATHS=['/update-status.json','/market-cockpit.json','/market-internals.json'] as const;
+const BLUE='#4979d1',TEAL='#148979',PURPLE='#8b68b4',RED='#bd6264';
+const finite=(v:unknown):v is number=>typeof v==='number'&&Number.isFinite(v);
+const num=(v:number|null|undefined,d=1)=>finite(v)?v.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}):'—';
+const sign=(v:number|null|undefined,d=1)=>finite(v)?`${Math.abs(v)<.5*10**(-d)?'':v>0?'+':''}${num(Math.abs(v)<.5*10**(-d)?0:v,d)}`:'—';
+const pct=(v:number|null|undefined)=>finite(v)?`${sign(v)}%`:'—';
+
+function Icon({kind}:{kind:string}){
+ const paths:Record<string,string>={flows:'M4 7h15m-4-4 4 4-4 4M20 17H5m4-4-4 4 4 4',positions:'M4 20V9h4v11m4 0V4h4v16m4 0v-7',margin:'M4 17 9 12l4 3 7-10m-6 0h6v6',options:'M5 4v16m7-16v16m7-16v16M2 9h6m1 6h6m1-8h6',breadth:'M4 20V12m5 8V4m6 16v-6m5 6V8',highs:'m3 9 5-5 5 5M8 4v16m6-5 5 5 4-5m-4 5V4',relative:'M3 18 8 12l5 3 8-10M3 9l6 2 6-6 6 3',sectors:'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z'};
+ return <svg viewBox="0 0 24 24" aria-hidden="true" className="cockpitIcon"><path d={paths[kind]} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
 }
 
-function Card({id,spec,item,history,latest}:{id:string;spec:Spec;item:Indicator;history:Snapshot[];latest:Snapshot}){
- const value=id==='new_high_low'?`${latest.counts.new_highs} / ${latest.counts.new_lows}`:num(item.value,id==='rsp_spy'?3:id==='ad_line'?0:1);
- const changeUnit=spec.unit==='%'||id==='new_high_low'?'百分点':id==='rsp_spy'?'%':spec.unit;
- return <article className="marketSignal" data-tone={item.reliable?item.level.tone:'neutral'}>
-  <header><h3>{spec.label}</h3><span className="marketLevel">{item.level.label}</span></header>
-  <div className="marketSignalValue"><strong>{value}</strong>{id!=='new_high_low'&&<small>{spec.unit}</small>}</div>
-  <div className="marketSignalTrend"><span>5日 {delta(item.change_5d,changeUnit)}</span><b data-worse={['恶化','压力升高'].includes(item.trend)} data-better={['改善','压力下降'].includes(item.trend)}>{item.trend}</b></div>
-  <div className="marketSignalBottom"><small>1日 {delta(item.change_1d,changeUnit)}<br/>{id==='ad_line'?'累计线只看方向':item.percentile===null?'历史分位：样本不足':`历史分位 ${num(item.percentile,0)}%`}</small><Sparkline values={history.slice(-21).map(s=>s.indicators[id].reliable?s.indicators[id].value:null)} label={`${spec.label}最近21个交易日趋势`}/></div>
-  <details><summary>怎么看这个指标</summary><p>{spec.formula}。</p><p>有效样本 {item.valid_count}；历史分位是当前值在此前有效记录中的位置，不是风险概率。{id==='rsp_spy'?'状态按比值5日涨跌判断。':''}{id==='new_high_low'?'变化与趋势使用净新高占比（新高减新低）。':''}{id==='ad_line'?'累计起点为本系列首日；这里只解释方向，不用绝对值判断风险。':''}</p></details>
- </article>
+export function Chart({dates,lines,unit='',bars=false,zero=false}:{dates:string[];lines:Line[];unit?:string;bars?:boolean;zero?:boolean}){
+ const [hover,setHover]=useState<number|null>(null); const all=lines.flatMap(l=>l.values).filter(finite);
+ if(!all.length)return <div className="cockpitEmpty">暂无可验证数据</div>;
+ const index=hover!==null&&hover<dates.length?hover:dates.length-1;
+ let low=Math.min(...all,...(zero?[0]:[])),high=Math.max(...all,...(zero?[0]:[]));
+ const pad=(high-low)*.13||1;low=all.every(v=>v>=0)&&!zero?Math.max(0,low-pad):low-pad;high+=pad;
+ const left=49,right=490,top=16,bottom=145;
+ const x=(i:number)=>left+(i+(bars?.5:0))*(right-left)/Math.max(dates.length-(bars?0:1),1),y=(v:number)=>bottom-(v-low)/(high-low)*(bottom-top);
+ return <div className="cockpitChart">
+  <div className="cockpitLegend">{lines.map(l=><span key={l.label}><i style={{background:l.color}}/>{l.label} <b>{num(l.values[index])}{unit}</b></span>)}<time>{dates[index]}</time></div>
+  <svg viewBox="0 0 510 178" role="img" aria-label={`${lines.map(l=>l.label).join('、')}，${dates[0]}至${dates.at(-1)}，单位${unit||'数值'}`} onMouseLeave={()=>setHover(null)}>
+   {[low,(low+high)/2,high].map(v=><g key={v}><line x1={left} x2={right} y1={y(v)} y2={y(v)} stroke="#e9edf1"/><text x={left-9} y={y(v)+4} textAnchor="end">{num(v,Math.abs(v)<10?1:0)}</text></g>)}
+   {low<0&&high>0&&<line x1={left} x2={right} y1={y(0)} y2={y(0)} stroke="#adb7c3" strokeDasharray="3 3"/>}
+   {lines.map(l=>{let d='',gap=true;l.values.forEach((v,i)=>{if(!finite(v)){gap=true;return}d+=`${gap?'M':'L'}${x(i)},${y(v)} `;gap=false});return <g key={l.label}>
+    {bars?l.values.map((v,i)=>finite(v)?<rect key={i} x={x(i)-(right-left)/dates.length*.31} y={Math.min(y(v),y(0))} width={(right-left)/dates.length*.62} height={Math.max(Math.abs(y(v)-y(0)),1)} rx="2" fill={v>=0?TEAL:RED}/>:null):<><path d={d} fill="none" stroke={l.color} strokeWidth="2.6" strokeLinejoin="round"/>{l.values.map((v,i)=>finite(v)&&(i===index||dates.length===1)?<circle key={i} cx={x(i)} cy={y(v)} r="3.5" fill={l.color}/>:null)}</>}
+   </g>})}
+   {dates.map((d,i)=><rect key={d} x={x(i)-Math.max((right-left)/dates.length,8)/2} y={top} width={Math.max((right-left)/dates.length,8)} height={bottom-top} fill="transparent" onMouseEnter={()=>setHover(i)}><title>{`${d}\n${lines.map(l=>`${l.label}: ${num(l.values[i])}${unit}`).join('\n')}`}</title></rect>)}
+   <text x={left} y="172">{dates[0]}</text><text x={right} y="172" textAnchor="end">{dates.at(-1)}</text>
+  </svg>
+ </div>
 }
 
+function Drawer({title,children,onClose}:{title:string;children:ReactNode;onClose:()=>void}){
+ const ref=useRef<HTMLDialogElement>(null);
+ useEffect(()=>{const previous=document.activeElement as HTMLElement|null;const dialog=ref.current;const dismiss=(e:MouseEvent)=>{if(e.target===dialog&&dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)onClose()}};dialog?.addEventListener('click',dismiss);dialog?.showModal();const overflow=document.body.style.overflow;document.body.style.overflow='hidden';return()=>{dialog?.removeEventListener('click',dismiss);dialog?.close();document.body.style.overflow=overflow;previous?.focus()}},[onClose]);
+ return <dialog ref={ref} className="cockpitDrawer" aria-labelledby="cockpit-detail-title" onCancel={onClose}>
+  <header><div><span className="cockpitEyebrow">详细观察</span><h2 id="cockpit-detail-title">{title}</h2></div><button aria-label="关闭详情" onClick={onClose}>×</button></header>{children}
+ </dialog>
+}
+function DataTable({dates,lines,unit}:{dates:string[];lines:Line[];unit:string}){
+ return <div className="cockpitTableWrap"><table><caption>最近记录 · {unit}</caption><thead><tr><th>日期</th>{lines.map(l=><th key={l.label}>{l.label}</th>)}</tr></thead><tbody>{dates.map((d,i)=>({d,i})).reverse().slice(0,26).map(({d,i})=><tr key={d}><td>{d}</td>{lines.map(l=><td key={l.label}>{num(l.values[i])}</td>)}</tr>)}</tbody></table></div>
+}
+function Missing({panel}:{panel?:Panel|null}){return <div className="cockpitEmpty"><b>这项数据暂未取得</b><span>本次更新未通过核对，恢复后自动补充。</span>{panel?.observation_date&&<span>上次观察 {panel.observation_date}</span>}</div>}
+function Card({id,title,subtitle,date:day,frequency,status,children,onOpen,button='查看详情'}:{id:string;title:string;subtitle:string;date?:string|null;frequency:string;status?:string;children:ReactNode;onOpen:()=>void;button?:string}){
+ return <section className="cockpitCard" aria-labelledby={`card-${id}`}><header><div className="cockpitTitle"><Icon kind={id}/><div><h2 id={`card-${id}`}>{title}</h2><p>{subtitle}</p></div></div><span className="cockpitFrequency">{frequency} · {day?day.slice(5).replace('-','/'):'待更新'}{status==='stale'?' · 延迟':''}</span></header><div className="cockpitBody">{children}</div><footer><span>{status==='stale'?'数据更新滞后，暂不判断当前状态':''}</span><button onClick={onOpen} aria-label={`查看${title}详情`}>{button} <span aria-hidden="true">↗</span></button></footer></section>
+}
+function Conclusion({reading}:{reading:Reading}){
+ return <><div className="marketConclusion" data-level={reading.tone}><i/>{reading.level}</div><p className="marketConclusionExplain">{reading.explanation}</p>{reading.evidence.length>0&&<div className="marketEvidence">{reading.evidence.map(e=><div key={e.label}><span>{e.label}</span><strong>{e.value}</strong></div>)}</div>}<div className="marketDirection"><b>{reading.direction.arrow} {reading.direction.label}</b><span>{reading.direction.detail}</span></div></>
+}
+function GroupHeading({id,title,subtitle}:{id:string;title:string;subtitle:string}){return <header className="marketFrequencyHeading"><h2 id={id}>{title}</h2><p>{subtitle}</p></header>}
+
+export function MarketView({cockpit,sample,targetDate}:{cockpit:CockpitReport|null;sample:SampleReport|null;targetDate:string}){
+ const [detail,setDetail]=useState<string|null>(null),[contractIndex,setContractIndex]=useState(0),[window,setWindow]=useState(63);
+ const valid=cockpit?.schema_version==='market-cockpit-v1'&&cockpit.as_of===targetDate;
+ const panel=(key:string)=>{const p=valid?cockpit.panels[key]:null;return p&&(!p.observation_date||p.observation_date<=targetDate)?p:null};
+ const usable=(p:Panel|null)=>!!p&&p.status!=='unavailable'&&!!p.observation_date;
+ const current=(p:Panel|null)=>usable(p)&&p?.status==='available';
+ const flows=panel('flows'),margin=panel('margin'),options=panel('options'),positions=panel('positions'),quotes=panel('quotes');
+ const contract=usable(positions)?positions?.contracts?.[contractIndex]:null;
+ const pos=contract?.history.at(-1),priorPos=contract?.history.at(-2),posHistory=contract?.history.slice(-52)??[];
+ const savedHistory=sample?.as_of===targetDate?sample.history.filter(s=>s.date<=targetDate):[];
+ const latest=savedHistory.at(-1)?.date===targetDate?savedHistory.at(-1):null;
+ const previous=savedHistory.at(-6),history=savedHistory.slice(-window);
+ const breadth=history.map(s=>complete(s)&&s.indicators.ad_line?.reliable?s.indicators.ad_line.value:null);
+ const base=breadth.find(finite),breadthLine={label:'累计上涨家数减下跌家数',color:BLUE,values:breadth.map(v=>finite(v)&&finite(base)?v-base:null)};
+ const upLine={label:'上涨股票占比',color:BLUE,values:history.map(s=>complete(s)?s.counts.advances/s.quality.valid_ticker_count*100:null)};
+ const highLines=[{label:'新高',color:TEAL,values:history.map(s=>complete(s)&&s.indicators.new_high_low?.reliable?s.counts.new_highs:null)},{label:'新低',color:RED,values:history.map(s=>complete(s)&&s.indicators.new_high_low?.reliable?s.counts.new_lows:null)}];
+ const funds=current(quotes)?quotes?.funds??[]:[],spy=funds.find(f=>f.ticker==='SPY');
+ const relativeDates=spy?.history.slice(-window).map(r=>r.date)??[];
+ const relativeLines=['RSP','IWM'].map((id,i)=>{const fund=funds.find(f=>f.ticker===id),rows=fund?.history.slice(-window)??[],benchmark=spy?.history.slice(-window)??[];const baseRatio=rows[0]&&benchmark[0]?rows[0].value/benchmark[0].value:null;return {label:i?'小盘 / 标普':'等权 / 标普',color:i?PURPLE:BLUE,values:rows.map((r,n)=>baseRatio&&benchmark[n]?.date===r.date?r.value/benchmark[n].value/baseRatio*100:null)}});
+ const sectors=funds.filter(f=>!['SPY','RSP','IWM'].includes(f.ticker));
+ const strongest=[...sectors].sort((a,b)=>b.returns['5']-a.returns['5']).slice(0,3),weakest=[...sectors].sort((a,b)=>a.returns['5']-b.returns['5']).slice(0,3);
+ const optionLast=current(options)?options?.history?.at(-1):null;
+ const reading:Record<string,Reading>={breadth:participation(latest,previous),highs:breakouts(latest,previous),relative:leadership(funds),sectors:sectorReading(funds),positions:current(positions)?positionReading(contract):unavailable('仓位数据缺失或发布延迟，暂不判断当前方向。'),margin:current(margin)?marginReading(margin):unavailable('融资数据缺失或发布延迟，暂不判断当前方向。')};
+ const titles:Record<string,string>={flows:'资金流向',positions:'机构仓位',margin:'市场融资',options:'期权成交结构',breadth:'市场参与',highs:'市场突破',relative:'市场领导力',sectors:'行业扩散'};
+ const descriptions:Record<string,string>={
+  flows:'美国国内股票基金与 ETF 的周度净流入估计。正数为净流入，负数为净流出；不是整个股市的买卖资金总量。近4周仅在四周连续时合计。',
+  positions:'杠杆基金与资产管理机构分开观察；期货可能用于对冲，不能代表机构全部股票仓位。历史位置比较此前最多156周，至少需要52周；80%表示高于此前约80%的记录，不是上涨概率。',
+  margin:'客户融资余额按月发布，通常滞后到次月第三周。包含个人与机构客户，不能识别纯散户仓位。图中单位为十亿美元，主卡T表示万亿美元。',
+  options:'Customer包含个人和机构账户，不代表散户。这里是客户、券商自营、做市商的分类成交占比，不是净买入、成交金额或持仓；不据此判断看涨或看跌。历史从真实日度记录积累。',
+  breadth:'固定样本来自现有行情缓存，不代表整个美股市场。早期历史为当前成员回看，有存续和覆盖偏差。累计线起点设为0，只看参与方向。',
+  highs:'新高、新低按过去252个交易日高低点比较；两组并非互斥。固定样本不代表整个美股市场。',
+  relative:'等权标普和小盘 ETF 分别除以标普500 ETF，历史图共同起点设为100。线往上表示相对标普更强。使用同源、同日的复权价格。',
+  sectors:'11个基本行业 ETF 与行业页的主题 ETF 范围不同。涨跌幅和相对收益都从保存的同源复权价格计算；颜色表示正负，不是买卖信号。'};
+ const open=(id:string)=>()=>setDetail(id);
+ const series=(p:Panel|null,label:string,color=BLUE):Line[]=>[{label,color,values:usable(p)?p?.history?.map(r=>r.value)??[]:[]}];
+ const periodButtons=<div className="cockpitTabs" role="group" aria-label="参与趋势区间">{[[21,'1个月'],[63,'3个月'],[126,'6个月']].map(([n,label])=><button key={n} aria-pressed={window===n} onClick={()=>setWindow(Number(n))}>{label}</button>)}</div>;
+ const detailData=detail==='flows'?{dates:flows?.history?.map(r=>r.date)??[],lines:series(flows,'周净流入'),unit:'十亿美元'}:detail==='margin'?{dates:margin?.history?.map(r=>r.date)??[],lines:series(margin,'融资余额'),unit:'十亿美元'}:detail==='options'?{dates:options?.history?.map(r=>r.date)??[],lines:series(options,'客户成交占比'),unit:'%'}:detail==='positions'?{dates:posHistory.map(r=>r.date),lines:[{label:'杠杆基金',color:BLUE,values:posHistory.map(r=>r.leveraged)},{label:'资产管理',color:TEAL,values:posHistory.map(r=>r.asset)}],unit:'%'}:detail==='breadth'?{dates:history.map(r=>r.date),lines:[upLine],unit:'%'}:detail==='highs'?{dates:history.map(r=>r.date),lines:highLines,unit:'家'}:detail==='relative'?{dates:relativeDates,lines:relativeLines,unit:'起点100'}:null;
+ const sourcePanel=detail==='relative'||detail==='sectors'?quotes:detail?panel(detail):null;
+ const flowCard=<Card id="flows" title={titles.flows} subtitle="美国股票基金 + ETF" frequency="每周" date={flows?.observation_date} status={flows?.status} onOpen={open('flows')}>
+  {current(flows)?<><div className="marketConclusion" data-level="neutral">{(flows?.value??0)>0?'本周净流入':(flows?.value??0)<0?'本周净流出':'本周净流量为零'}</div><div className="marketEvidence"><div><span>本周 · 十亿美元</span><strong>{sign(flows?.value)}</strong></div><div><span>连续4周 · 十亿美元</span><strong>{sign(flows?.sum_4w)}</strong></div></div></>:<Missing panel={flows}/>}
+ </Card>;
+ const heatmap=<div className="cockpitHeatmap" role="table" aria-label="行业ETF涨跌幅"><div role="row"><span role="columnheader">行业</span>{['1日','5日','20日'].map(t=><span role="columnheader" key={t}>{t}</span>)}</div>{sectors.map(f=><div role="row" key={f.ticker}><span role="rowheader">{f.label}<small>{f.ticker}</small></span>{['1','5','20'].map(n=><span role="cell" key={n} data-sign={f.returns[n]>0?'positive':f.returns[n]<0?'negative':'flat'}>{pct(f.returns[n])}</span>)}</div>)}</div>;
+ const marketRead=[
+  {date:targetDate,frequency:'每日',text:['breadth','relative','highs','sectors'].filter(id=>reading[id].available).map(id=>`${titles[id]}：${reading[id].level}`).join('；')},
+  {date:positions?.observation_date,frequency:'每周',text:reading.positions.available?`${contract?.label}：${reading.positions.explanation}`:''},
+  {date:margin?.observation_date,frequency:'每月',text:reading.margin.available?`${reading.margin.level}。${reading.margin.explanation}`:''},
+ ].filter(r=>r.text);
+ return <div className="marketDashboard cockpit marketSummaryPage">
+  <div className="cockpitToolbar"><span>收盘日 <b>{targetDate}</b><small>各模块按自己的发布频率更新</small></span><span className="marketReadingOrder">每日 → 每周 → 每月</span></div>
+  <section aria-labelledby="daily-market"><GroupHeading id="daily-market" title="每日 · 市场内部" subtitle="先看当前状态，再看最近变化"/><div className="cockpitGrid">
+   <Card id="breadth" title={titles.breadth} subtitle={`SV Fixed Universe · ${num(latest?.quality.universe_size,0)} stocks`} frequency="每日" date={latest?.date} onOpen={open('breadth')}><Conclusion reading={reading.breadth}/><p className="cockpitNote">固定样本，不代表整个美股市场</p></Card>
+   <Card id="relative" title={titles.relative} subtitle="等权、小盘与标普比较" frequency="每日" date={quotes?.observation_date} onOpen={open('relative')}><Conclusion reading={reading.relative}/></Card>
+   <Card id="highs" title={titles.highs} subtitle={`52周可比样本 · ${num(latest?.indicators.new_high_low?.valid_count,0)}只`} frequency="每日" date={latest?.date} onOpen={open('highs')}><Conclusion reading={reading.highs}/></Card>
+   <Card id="sectors" title={titles.sectors} subtitle="11个基本行业 ETF" frequency="每日" date={quotes?.observation_date} onOpen={open('sectors')} button="查看全部"><Conclusion reading={reading.sectors}/>{reading.sectors.available&&<div className="marketSectorShortlist">{[['最强3个',strongest],['最弱3个',weakest]].map(([label,items])=><div key={String(label)}><h3>{String(label)}<span>近5日</span></h3>{(items as typeof sectors).map(f=><p key={f.ticker}><span>{f.label}</span><b data-positive={f.returns['5']>0}>{pct(f.returns['5'])}</b></p>)}</div>)}</div>}</Card>
+  </div></section>
+  <section className="marketRead" aria-label="市场概况"><h2>市场概况</h2>{marketRead.length?marketRead.map(r=><p key={r.frequency}><span>{r.frequency} · {r.date}</span>{r.text}</p>):<p>有效数据不足，暂不生成市场判断。</p>}<small>状态描述已有事实；颜色与箭头不代表买卖信号。</small></section>
+  <details className="marketSecondary"><summary><span>每日辅助 · 期权成交结构</span><small>账户类别成交占比 · {options?.observation_date??'待更新'}</small></summary><Card id="options" title={titles.options} subtitle="辅助观察，不参与核心市场结论" frequency="每日" date={options?.observation_date} status={options?.status} onOpen={open('options')}>
+   {optionLast?<div className="cockpitAccountMix" aria-label="客户、券商自营、做市商成交占比">{[['客户 Customer',optionLast.customer,BLUE],['自营 Firm',optionLast.firm,PURPLE],['做市商 Market Maker',optionLast.market_maker,'#aab8ca']].map(([label,v,color])=><div key={String(label)}><span>{label}</span><div><i style={{width:`${Number(v)/(optionLast.total||1)*100}%`,background:String(color)}}/></div><b>{num(Number(v)/(optionLast.total||1)*100)}%</b></div>)}</div>:<Missing panel={options}/>}<p className="cockpitNote">Customer包含个人和机构账户，不代表散户；成交量不等于仓位。</p>{optionLast&&(options?.history?.length??0)<2&&<p className="cockpitNote">已有1个交易日记录，历史逐日积累。</p>}</Card></details>
+  <section aria-labelledby="weekly-market"><GroupHeading id="weekly-market" title="每周 · 机构仓位" subtitle="报告日期与日度行情不同，分开观察"/><div className="cockpitGrid marketSlowerGrid">
+   <Card id="positions" title={titles.positions} subtitle="股指期货净敞口" frequency="每周" date={positions?.observation_date} status={positions?.status} onOpen={open('positions')}>
+    {positions?.contracts&&<div className="cockpitTabs" role="group" aria-label="期货合约">{positions.contracts.map((c,i)=><button key={c.code} aria-pressed={contractIndex===i} onClick={()=>setContractIndex(i)}>{c.label}</button>)}</div>}<Conclusion reading={reading.positions}/>{reading.positions.available&&pos&&<p className="marketAuxiliary">资产管理：{pos.asset>0?'净多':pos.asset<0?'净空':'净仓为零'} {pct(pos.asset)}{priorPos&&reading.positions.direction.label!=='待比较'?` · 较上周 ${sign(pos.asset-priorPos.asset)}个百分点`:''}</p>}
+   </Card>{current(flows)&&flowCard}
+  </div></section>
+  <section aria-labelledby="monthly-market"><GroupHeading id="monthly-market" title="每月 · 融资背景" subtitle="更新较慢，用来观察融资规模"/><div className="cockpitGrid marketSlowerGrid"><Card id="margin" title={titles.margin} subtitle="客户证券融资账户" frequency="每月" date={margin?.observation_date} status={margin?.status} onOpen={open('margin')}><Conclusion reading={reading.margin}/><p className="cockpitNote">FINRA customer margin accounts · 不代表纯散户</p></Card></div></section>
+  <details className="marketTrendSection"><summary>趋势与详情 <span>需要时再展开</span></summary><div className="marketTrendToolbar"><p>日度趋势统一区间；周度保留近一年历史。</p>{periodButtons}</div><div className="cockpitGrid">
+   <article><h3>市场参与 · 上涨占比</h3><p className="cockpitNote">当前 {num(upLine.values.at(-1))}% · {reading.breadth.direction.label}</p><Chart dates={history.map(r=>r.date)} lines={[upLine]} unit="%"/></article>
+   <article><h3>市场领导力 · 共同起点100</h3><p className="cockpitNote">上升表示相对标普更强 · {reading.relative.direction.label}</p><Chart dates={relativeDates} lines={relativeLines}/></article>
+   <article><h3>机构仓位 · {contract?.label??'等待数据'}</h3><p className="cockpitNote">杠杆基金历史位置 {num(contract?.percentiles.leveraged,0)}% · 此前{contract?.percentile_weeks??0}周 · {reading.positions.direction.label}</p><Chart dates={posHistory.map(r=>r.date)} lines={[{label:'杠杆基金',color:BLUE,values:posHistory.map(r=>r.leveraged)},{label:'资产管理',color:TEAL,values:posHistory.map(r=>r.asset)}]} unit="%" zero/></article>
+   <article><h3>行业扩散 · 近20日相对标普</h3><div className="marketSectorRelative">{sectors.map(f=>{const v=spy?((1+f.returns['20']/100)/(1+spy.returns['20']/100)-1)*100:null;return <div key={f.ticker}><span>{f.label}</span><b>{pct(v)}</b></div>})}</div></article>
+  </div></details>
+  {!current(flows)&&<section aria-labelledby="pending-market"><GroupHeading id="pending-market" title="待接通的数据" subtitle="缺失保持空白，恢复后按频率归位"/>{flowCard}</section>}
+  {detail&&<Drawer title={titles[detail]} onClose={()=>setDetail(null)}><p className="cockpitExplanation">{descriptions[detail]}</p>{reading[detail]&&<p className="marketMethodNote">{reading[detail].basis}</p>}{detail==='positions'&&contract&&<div className="marketEvidence">{(['leveraged','asset'] as const).map((key,i)=><div key={key}><span>{i?'资产管理':'杠杆基金'} · 此前{contract.percentile_weeks}周历史位置</span><strong>{num(contract.percentiles[key],0)}%</strong></div>)}</div>}{detailData&&<><Chart dates={detailData.dates} lines={detailData.lines} unit={detailData.unit} bars={detail==='flows'} zero={detail==='flows'}/><DataTable {...detailData}/></>}{detail==='breadth'&&<><h3 className="marketDetailSubheading">累计上涨减下跌 · 只看方向</h3><Chart dates={history.map(r=>r.date)} lines={[breadthLine]} unit="家" zero/><p className="cockpitNote">平盘 {latest?.counts.unchanged??'—'} 只；累计线已将图中起点设为0。</p></>}{detail==='sectors'&&heatmap}<details className="marketSourceDetails"><summary>数据口径与记录</summary><p>页面核对收盘日：{targetDate}。观察日期：{sourcePanel?.observation_date??latest?.date??'未取得'}。</p>{sourcePanel?.sources?.length?sourcePanel.sources.map(s=><div key={s.sha256}><a href={s.url} target="_blank" rel="noreferrer">{s.provider}</a><p>读取：{s.fetched_at}</p><code>{s.sha256}</code></div>):<p>{detail==='breadth'||detail==='highs'?'固定样本的已保存行情统计，非全市场。':'本次未取得可核验来源记录。'}</p>}</details><p className="cockpitNote">周报、月报保留实际统计日期。状态和变化只是事实描述，不是预测。</p></Drawer>}
+ </div>
+}
 export default function MarketDashboard(){
- const [report,setReport]=useState<Report|null>(null),[error,setError]=useState(''),[attempt,setAttempt]=useState(0),[period,setPeriod]=useState(126);
- useEffect(()=>{let active=true;Promise.all([fetch('/market-internals.json',{cache:'no-store'}),fetch('/update-status.json',{cache:'no-store'})]).then(async([r,s])=>{if(!r.ok||!s.ok)throw new Error('暂时读不到大盘数据，请稍后重试。');const data=await r.json(),status=await s.json();if(data.schema_version!=='market-internals-public-v1'||!data.history?.length)throw new Error('大盘数据格式不完整，暂不显示风险温度。');if(data.as_of!==status.source_latest_complete_date)throw new Error(`大盘数据仍在 ${data.as_of}，正在等待与最新收盘日同步。`);if(active){setReport(data);setError('')}}).catch(e=>{if(active)setError(e instanceof Error&&e.message.startsWith('大盘')?e.message:'暂时读不到大盘数据，请稍后重试。')});return()=>{active=false}},[attempt]);
- const latest=report?.history.at(-1), temp=latest?.temperature,history=report?.history.slice(-period)??[];
- const dates=history.map(s=>s.date), safe=(id:string)=>history.map(s=>s.indicators[id].reliable?s.indicators[id].value:null);
- const spyStart=history.find(s=>s.spy!==null&&s.indicators.above50.reliable&&s.indicators.above50.value!==null&&s.indicators.above50.value>0);
- const norm=(value:number|null,base:number|null|undefined)=>value===null||!base?null:value/base*100;
- return <TrackerShell active="大盘" title="大盘" subtitle="Market Overview · 看市场内部，有多少股票在一起走。">
-  <div className="marketDashboard">
-   {error?<div className="marketError" role="alert"><h2>大盘数据暂不可用</h2><p>{error}</p><button onClick={()=>{setError('');setAttempt(n=>n+1)}}>重新读取</button></div>:!report||!latest||!temp?<p role="status" className="marketLoading">正在读取大盘日终快照…</p>:<>
-    <section className="marketTemperature" data-tone={temp.status.tone} aria-label="Market Temperature">
-     <div className="marketTemperatureMain"><p className="marketEyebrow">MARKET TEMPERATURE <span>市场风险温度</span></p><div className="marketScore"><strong>{num(temp.score,1)}</strong><span>/ 100</span><b>{temp.status.label}</b></div><h2>{latest.explanation}</h2><p className="marketScoreNote">分数越高，综合压力越大。NORMAL 不代表所有指标健康，也不是涨跌预测。</p>
-      <div className="marketTemperatureFoot"><span>今日 <b>{delta(temp.change_1d)}</b></span><span>5日 <b>{delta(temp.change_5d)}</b></span><span>收盘 <b>{report.as_of}</b></span></div>
-     </div>
-     <aside className="marketDimensions"><h3>压力来自哪里</h3>{['extension','breadth','participation','leadership'].map(id=>{const s=temp.subscores[id];const tone=s.score===null?'neutral':report.config.temperature_bands.find(b=>s.score!==null&&s.score<=b.maximum)?.tone??'neutral';return <div key={id} data-tone={tone}><span>{report.config.subscores[id].label}<small>{num(s.weight*100,0)}%</small></span><b>{num(s.score,0)}</b><meter min="0" max="100" value={s.score??0} aria-label={`${report.config.subscores[id].label} ${num(s.score,0)}`}/></div>})}</aside>
-    </section>
-    <section className="marketCoverage" aria-label="数据覆盖"><div><b>{report.universe.name}</b><span>有效 {latest.quality.valid_ticker_count.toLocaleString()} / {latest.quality.universe_size.toLocaleString()} 只 · {num(latest.quality.coverage*100,1)}%</span><span className="marketCoverageState" data-complete={latest.quality.status==='complete'}>{latest.quality.status==='complete'?'样本覆盖达标':'数据不完整'}</span></div><p>这批股票来自现有行情缓存，<strong>不代表整个美股市场</strong>，也不是选股候选池。{latest.quality.reasons.length>0&&latest.quality.reasons.join('；')+'。'}</p><details><summary>范围与更新时间</summary><p>{report.universe.limitation} 成员于 {report.universe.observed_at} 冻结。普通股名录 {report.universe.common_list_count.toLocaleString()} 只；本面板不是该名录的完整覆盖。</p><p>本页记录时间：{latest.recorded_at?new Date(latest.recorded_at).toLocaleString('zh-CN',{timeZone:'Australia/Melbourne',hour12:false})+'（墨尔本）':'未提供'}。缺失 {latest.quality.missing_ticker_count} 只；不同指标所需历史长度不同，有效数量在各卡片中显示。</p></details></section>
-    <div className="marketSignalsHeading"><h2>市场参与信号</h2><p><span className="marketColorKey" data-tone="green"/>正常 / 健康 <span className="marketColorKey" data-tone="yellow"/>留意 <span className="marketColorKey" data-tone="orange"/>压力升高 <span className="marketColorKey" data-tone="red"/>极端压力</p></div>
-    {GROUPS.map(([group,label])=><section className="marketGroup" key={group}><header><h2>{label}</h2><small>{group}</small></header><div className="marketCards">{report.config.indicator_order.filter(id=>report.config.indicators[id].group===group).map(id=><Card key={id} id={id} spec={report.config.indicators[id]} item={latest.indicators[id]} history={report.history} latest={latest}/>)}</div></section>)}
-    <section className="marketHistory"><header className="marketHistoryHeading"><div><p className="marketEyebrow">THE BIGGER PICTURE</p><h2>把今天放回趋势里</h2></div><div className="marketPeriods" role="group" aria-label="历史区间">{PERIODS.map(([label,n])=><button key={label} aria-pressed={period===n} onClick={()=>setPeriod(n)}>{label}</button>)}</div></header>
-     <p className="marketHistoryNotice">{report.history.some(s=>s.observation_kind==='reconstructed_current_membership')?'初始历史由当前固定成员回看得出，存在存续和覆盖偏差，并非当时已记录的全市场状态。':'历史为逐日保存的观察快照。'} 现有 {report.history.length} 个交易日；缺失处留空，未来每天追加。</p>
-     <TrendChart title="市场风险温度" description="分数上升表示压力增加；历史不足时不生成温度。" dates={dates} fixedRange={[0,100]} lines={[{label:'风险温度',color:'#b5682f',values:history.map(s=>s.temperature.score)}]}/>
-     <TrendChart title="市场广度" description="看短、中、长期有多少股票站在均线上方。" dates={dates} fixedRange={[0,100]} lines={[{label:'高于20日均线 %',color:'#567dca',values:safe('above20')},{label:'高于50日均线 %',color:'#28735c',values:safe('above50')},{label:'高于200日均线 %',color:'#ac8851',values:safe('above200')}]}/>
-     <TrendChart title="SPY 与内部参与" description="共同有效起点设为100。若SPY上升、50日广度下降，指数和内部参与正在背离。" dates={dates} lines={[{label:'SPY（起点100）',color:'#536a97',values:history.map(s=>spyStart&&s.date>=spyStart.date?norm(s.spy,spyStart.spy):null)},{label:'50日广度（起点100）',color:'#28735c',values:history.map(s=>spyStart&&s.date>=spyStart.date&&s.indicators.above50.reliable?norm(s.indicators.above50.value,spyStart.indicators.above50.value):null)}]}/>
-    </section>
-    <details className="marketMethod"><summary>风险温度怎么计算</summary><p>将各指标按自己的风险解释换算，再按四个维度加权。长期广度高通常是健康；短期广度极高可能是过热，不使用“数值越高越红”的统一规则。</p><p>{Object.values(report.config.subscores).map(s=>`${s.label} ${s.weight*100}%`).join(' · ')}。权重与阈值是V1观察规则，尚未用收益验证。</p><p>{report.config.temperature_bands.map((b,i)=>`${i===0?0:report.config.temperature_bands[i-1].maximum+1}–${b.maximum} ${b.label}`).join(' · ')}</p><a href="/market-internals.json">下载当前快照与计算配置</a></details>
-   </>}
-  </div>
- </TrackerShell>
+ const {reports,loading,refresh}=useDailyData(PATHS);
+ const targetDate=(reports[PATHS[0]] as {source_latest_complete_date?:string}|null)?.source_latest_complete_date??'';
+ return <TrackerShell active="大盘" title="大盘" subtitle="先看每日参与，再看周度仓位与月度融资。" overview><div className="mvpPageTitle"><div><h1>大盘</h1><p>先看结论，再看证据</p></div><button className="mvpRefresh" onClick={refresh}>↻ 刷新</button></div>{loading?<p className="marketLoading" role="status">正在读取今日快照…</p>:!targetDate?<div className="marketError" role="alert">暂时无法核对收盘日，请刷新重试。</div>:<MarketView cockpit={reports[PATHS[1]] as CockpitReport|null} sample={reports[PATHS[2]] as SampleReport|null} targetDate={targetDate}/>}</TrackerShell>
 }

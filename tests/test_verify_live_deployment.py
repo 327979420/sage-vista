@@ -26,6 +26,10 @@ def bundle(tracker_date=DATE):
 class LiveDeploymentVerificationTests(unittest.TestCase):
  def setUp(self):
   market_guard=patch("services.scanner.verify_live_deployment.verify_market_asset",return_value={"as_of":DATE})
+  external_guard=patch("services.scanner.verify_live_deployment.verify_external_market_asset",return_value={"as_of":DATE})
+  external_guard.start();self.addCleanup(external_guard.stop)
+  cockpit_guard=patch("services.scanner.verify_live_deployment.verify_cockpit_asset",return_value={"as_of":DATE})
+  cockpit_guard.start();self.addCleanup(cockpit_guard.stop)
   market_guard.start();self.addCleanup(market_guard.stop)
   picker_guard=patch("services.scanner.verify_live_deployment.verify_picker_asset",return_value={"as_of":DATE,"waiting":0})
   picker_guard.start();self.addCleanup(picker_guard.stop)

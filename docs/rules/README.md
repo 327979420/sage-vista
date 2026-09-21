@@ -12,7 +12,7 @@
 | 02 数据扫描 | `daily_tracker_update.py`、`eodhd.py`、`factor_snapshot.py` | `update-status.json`、`daily-factor-snapshot.json` | `test_eodhd.py`、`test_factor_snapshot.py` |
 | 03 因子模型 | `factor_registry.py`、`factor_detectors.py`；研究候选另见`research/factor_lab/` | `factor-registry.json`、`research/factor-candidates-v2.json` | `test_factor_snapshot.py`、`test_factor_scoring.py`、`test_factor_strategy_lab_v2.py` |
 | 04 评分 | `factor_scoring.py`、`unified_v2_scan.py` | `unified-v2-rankings.json` | `test_factor_scoring.py`、`test_unified_v2_scan.py` |
-| 05 大盘 | `market_internals_daily.py`、`market_internals.py`；旧ETF上下文`market_etf_watch.py` | `market-internals.json`、`data/market/`；`market-etf-watch.json` | `test_market_internals.py`、`test_market_public.py`、`test_market_etf_watch.py` |
+| 05 大盘 | `market_external.py`、`market_internals_daily.py`、`market_internals.py`；旧ETF上下文`market_etf_watch.py` | `market-external.json`、`market-internals.json`、`data/market/`；`market-etf-watch.json` | `test_market_external.py`、`test_market_internals.py`、`test_market_public.py`、`test_market_etf_watch.py` |
 | 06 行业 | `industry_radar.py`、`industry_membership.py` | `industry-radar.json` | `test_industry_radar.py` |
 | 07 排行追踪 | `unified_v2_scan.py`、`opportunity_ledger.py`、`signal_history.py` | `unified-v2-rankings.json`、`opportunity-ledger.json`、`signal-history.json` | `test_opportunity_ledger.py`、`test_signal_history.py` |
 | 08 回测实验 | `research/backtest/`、`experiment_catalog.py`、`backtest_progress.py` | `research/experiments.jsonl`、`backtest-state.json`、`research/generated/experiment-catalog.json` | `test_backtest_progress.py`、`test_experiment_catalog.py` |
