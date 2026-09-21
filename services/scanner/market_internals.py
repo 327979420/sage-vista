@@ -10,6 +10,29 @@ from services.contracts.market_data import canonical_fingerprint
 CALCULATION_VERSION = 'market-internals-calc-1.0.0'
 
 
+def validate_config(config):
+    """Reject accidental weight/threshold edits before appending a new series."""
+    groups=config['subscores']
+    if abs(sum(g['weight'] for g in groups.values())-1)>1e-9:
+        raise ValueError('market_group_weights_must_sum_to_one')
+    for g in groups.values():
+        if g['weight']<0 or any(w<0 for w in g['components'].values()) or abs(sum(g['components'].values())-1)>1e-9:
+            raise ValueError('market_component_weights_invalid')
+    q=config['quality']
+    if not 0<q['minimum_coverage']<=1 or q['minimum_members']<1 or q['percentile_minimum']<1:
+        raise ValueError('market_quality_config_invalid')
+    bands=config['temperature_bands']
+    if [b['maximum'] for b in bands]!=sorted(set(b['maximum'] for b in bands)) or bands[-1]['maximum']!=100:
+        raise ValueError('market_temperature_bands_invalid')
+    for spec in config['indicators'].values():
+        levels=spec['levels']
+        if [b['maximum'] for b in levels]!=sorted(set(b['maximum'] for b in levels)):
+            raise ValueError('market_indicator_bands_invalid')
+    for knots in [s['risk_knots'] for s in config['indicators'].values()]+list(config['derived_risks'].values()):
+        if [k[0] for k in knots]!=sorted(set(k[0] for k in knots)) or any(not 0<=k[1]<=100 for k in knots):
+            raise ValueError('market_risk_curve_invalid')
+
+
 def ratio(a, b, scale=1):
     return a / b * scale if b else None
 
@@ -144,9 +167,7 @@ def snapshot(raw, *, day, sessions, universe, config, prior, identity, observati
         level = band(value, spec['levels'])
         if key == 'rsp_spy':
             r = risk(delta5, config['derived_risks']['rsp_spy_5d'])
-            level = ({'label':'等权转弱','tone':'orange'} if delta5 is not None and delta5 < -1 else
-                     {'label':'等权略弱','tone':'yellow'} if delta5 is not None and delta5 < 0 else
-                     {'label':'等权改善','tone':'green'} if delta5 is not None else band(None, []))
+            level = band(delta5, spec['levels'])
         comparable = [p['indicators'][key]['value'] for p in prior[-252:]
                       if p['indicators'][key]['reliable'] and p['indicators'][key]['value'] is not None]
         percentile = ratio(sum(v < value for v in comparable)+sum(v == value for v in comparable)/2, len(comparable), 100) if reliable and len(comparable)>=q['percentile_minimum'] and key!='ad_line' else None

@@ -112,6 +112,7 @@ def validate_public(payload, expected=None):
     if payload['schema_version']!='market-internals-public-v1': raise ValueError('market_schema_mismatch')
     if expected and payload['as_of']!=expected:raise ValueError('market_public_date_mismatch')
     config=payload['config']; universe=payload['universe']; rows=payload['history']
+    calc.validate_config(config)
     if canonical_fingerprint({k:v for k,v in universe.items() if k!='id'})!=universe['id']:raise ValueError('market_universe_hash_mismatch')
     if not rows or rows[-1]['date']!=payload['as_of']:raise ValueError('market_latest_missing')
     dates=[r['date'] for r in rows]
@@ -136,7 +137,7 @@ def validate_public(payload, expected=None):
 
 
 def run(*, cache_dir, index_path, common_path, etf_dir, as_of, state_dir, out, config_path=CONFIG_PATH, bootstrap_sessions=126):
-    require_date(as_of,'as_of'); config=read(config_path); logic=logic_fingerprint()
+    require_date(as_of,'as_of'); config=read(config_path); calc.validate_config(config); logic=logic_fingerprint()
     if bootstrap_sessions<1 or bootstrap_sessions>126:raise ValueError('market_bootstrap_budget_exceeded')
     state=Path(state_dir)/config['series_id']; manifest_path=state/'manifest.json'
     expected={'calculation_version':calc.CALCULATION_VERSION,'config_fingerprint':canonical_fingerprint(config),'logic_fingerprint':logic}

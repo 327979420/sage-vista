@@ -465,12 +465,23 @@
       "risk_knots": [],
       "levels": [
         {
-          "maximum": 1000000000.0,
-          "label": "观察等权强弱",
-          "tone": "neutral"
+          "maximum": -1,
+          "label": "等权转弱",
+          "tone": "orange"
+        },
+        {
+          "maximum": 0,
+          "label": "等权略弱",
+          "tone": "yellow"
+        },
+        {
+          "maximum": 1000000,
+          "label": "等权改善",
+          "tone": "green"
         }
       ],
-      "trend": "higher_healthy"
+      "trend": "higher_healthy",
+      "level_metric": "change_5d"
     },
     "dispersion": {
       "label": "个股涨跌分化",
