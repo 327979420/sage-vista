@@ -44,7 +44,7 @@ function Card({id,spec,item,history,latest}:{id:string;spec:Spec;item:Indicator;
  return <article className="marketSignal" data-tone={item.reliable?item.level.tone:'neutral'}>
   <header><h3>{spec.label}</h3><span className="marketLevel">{item.level.label}</span></header>
   <div className="marketSignalValue"><strong>{value}</strong>{id!=='new_high_low'&&<small>{spec.unit}</small>}</div>
-  <div className="marketSignalTrend"><span>5日 {delta(item.change_5d,changeUnit)}</span><b data-worse={['恶化','压力升高'].includes(item.trend)}>{item.trend}</b></div>
+  <div className="marketSignalTrend"><span>5日 {delta(item.change_5d,changeUnit)}</span><b data-worse={['恶化','压力升高'].includes(item.trend)} data-better={['改善','压力下降'].includes(item.trend)}>{item.trend}</b></div>
   <div className="marketSignalBottom"><small>1日 {delta(item.change_1d,changeUnit)}<br/>{id==='ad_line'?'累计线只看方向':item.percentile===null?'历史分位：样本不足':`历史分位 ${num(item.percentile,0)}%`}</small><Sparkline values={history.slice(-21).map(s=>s.indicators[id].reliable?s.indicators[id].value:null)} label={`${spec.label}最近21个交易日趋势`}/></div>
   <details><summary>怎么看这个指标</summary><p>{spec.formula}。</p><p>有效样本 {item.valid_count}；历史分位是当前值在此前有效记录中的位置，不是风险概率。{id==='rsp_spy'?'状态按比值5日涨跌判断。':''}{id==='new_high_low'?'变化与趋势使用净新高占比（新高减新低）。':''}{id==='ad_line'?'累计起点为本系列首日；这里只解释方向，不用绝对值判断风险。':''}</p></details>
  </article>
