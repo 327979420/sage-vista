@@ -77,7 +77,7 @@ test('candidate query selects the linked stock without changing backend ranking'
  const target=data.ranked_symbols.at(-1);
  const before=JSON.stringify(data);
  const html=renderToStaticMarkup(React.createElement(compiledModule.exports.CandidateView,{data,initialQuery:target}));
- assert.ok(html.includes(`${target} · 分项与原因`));
+ assert.ok(html.includes(`${target} · 候选摘要`));
  assert.equal((html.match(/class="v2RankRow isSelected"/g)||[]).length,1);
  assert.equal(JSON.stringify(data),before);
 });
@@ -92,4 +92,16 @@ test('view filters preserve original ranks and inputs, use nomination dates, and
  assert.deepEqual(filter(rows,{...base,from:'2026-08-01',to:'2026-09-01',minimum:'60',maximum:'60'}).map(r=>r.rank),[2,3]);
  assert.deepEqual(filter(rows,{...base,from:'2026-09-02',to:'2026-08-01'}),[]);
  assert.equal(JSON.stringify(rows),before);
+});
+
+
+test('candidate summary keeps the decision visible and defers raw evidence',()=>{
+ const before=JSON.stringify(data);
+ const html=renderToStaticMarkup(React.createElement(compiledModule.exports.CandidateView,{data}));
+ assert.match(html,/可继续观察/);assert.match(html,/候选观察，不代表买入确认/);
+ assert.match(html,/历史记录与评分依据/);assert.match(html,/详细检查与风险/);
+ assert.doesNotMatch(html,/class="candidateWatchReturns"|突破回踩动能检查|证据组贡献|正在读取月、周、日因子明细/);
+ const list=html.split('class="replayTable candidateList"')[1].split('<article')[0];
+ assert.doesNotMatch(list,/candidateGateTags|不重复要求回调|原门票结构/);
+ assert.equal(JSON.stringify(data),before);
 });

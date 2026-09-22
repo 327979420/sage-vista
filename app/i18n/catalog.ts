@@ -1,5 +1,19 @@
 // Reviewed display translations. Business identifiers and saved artifacts stay unchanged.
 export const catalog: Record<string, string> = {
+  "最近三根MACD柱：": "Last three MACD histogram bars:",
+  "按评分查看候选，点击股票查看摘要。": "Browse by score. Select a stock for its summary.",
+  "摘要": "Summary",
+  "· 候选摘要": "\u00b7 Candidate summary",
+  "复核评分": "Review score",
+  "可继续观察": "Keep on watchlist",
+  "暂不进入候选": "Not on the watchlist",
+  "候选观察，不代表买入确认。": "Watchlist eligibility is not a confirmed entry.",
+  "首次上榜": "First listed",
+  "复评截至": "Reviewed through",
+  "历史记录与评分依据": "History and scoring",
+  "上榜收盘基准：": "Listing close baseline:",
+  "详细检查与风险": "Detailed checks and risks",
+
   "大盘": "Market",
   "多因子机会": "Candidates",
   "我最喜欢形态": "Daily Patterns",
