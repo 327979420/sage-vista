@@ -1,61 +1,106 @@
+<div align="center">
+
 # Sage Vista
 
-### From market noise to a short list of explainable trade setups.
+### From market noise to explainable trade setups.
 
-Sage Vista is a quantitative trading research platform that scans U.S. equities, surfaces setups worth investigating, explains the evidence behind them, and tracks what happens next.
+Sage Vista scans U.S. equities, surfaces setups worth investigating, explains the evidence behind them, and tracks what happens next.
 
-**[Live Demo](https://sage-vista-parallel.gizmo-allied-0s.workers.dev/zh/watch/resonance/rare-opportunities) · [中文](./README.zh-CN.md) · [Documentation](./docs/SAGE_VISTA_RULEBOOK_ZH.md)**
+**[🌐 Live Demo](https://sage-vista-parallel.gizmo-allied-0s.workers.dev/zh/watch/resonance/rare-opportunities) · [中文](./README.zh-CN.md) · [Documentation](./docs/SAGE_VISTA_RULEBOOK_ZH.md)**
 
 Choose **English** in the top-right language switch.
 
-<!-- Screenshot 1: English multi-factor opportunity / ranking page (hero).
-     Reserved path: docs/assets/product/opportunity-ranking.en.png
-     Pending a verified capture of the production English interface. -->
+</div>
 
-> **Scan → Rank → Explain → Test → Improve**
+<br>
 
-## What Sage Vista Does
+![Candidates — ranked watchlist with setup labels, timeframe scores and selection reasons](./docs/assets/product/candidates.en.jpeg)
 
-- **Discover** — Turn a broad stock universe into a focused research list.
-- **Explain** — See chart structure, signals across timeframes and supporting factors.
-- **Add context** — Evaluate market, sector and risk conditions alongside each setup.
-- **Validate** — Backtest ideas and track signals, preserving successes and failures.
+**Find opportunities.** Start with a focused research list, then see the evidence behind each candidate.
 
-## How It Works
+<div align="center">
+
+**Scan → Understand → Prioritise → Track → Learn**
+
+</div>
+
+<br>
+
+## ✨ What Sage Vista does
+
+- **Discover** — Find technical setups without manually scanning thousands of tickers.
+- **Understand** — See price structure, timeframe alignment and supporting evidence.
+- **Add context** — Read the market and sector conditions around a setup.
+- **Learn** — Test ideas and track signals, keeping both successful and failed cases.
+
+<br>
+
+## 👀 See it in action
+
+### Understand the setup
+
+![Daily Patterns — three-push pullback, support zone and confirmed pivots](./docs/assets/product/daily-patterns.en.jpeg)
+
+**Why is this stock here?** Inspect the pattern, support zone and confirmation dates behind the setup.
+
+<br>
+
+### Read the market
+
+![Market — participation, leadership, breakouts and sector breadth](./docs/assets/product/market.en.jpeg)
+
+See whether market participation and leadership support the setup or call for caution.
+
+<br>
+
+### Follow the industries
+
+![Industries — sector ETF trends, pullbacks and related candidates](./docs/assets/product/industries.en.jpeg)
+
+Compare industry trends and pullbacks, then explore related candidates.
+
+<br>
+
+### Test and learn
+
+![Backtests — saved research runs with completed and failed results](./docs/assets/product/backtests.en.jpeg)
+
+Review saved studies, including failed runs and missing results, before drawing conclusions.
+
+*Screenshots supplied by the project owner; the displayed market close is 18 September 2026.*
+
+<br>
+
+## What is Sage Vista looking for?
+
+> **Is the larger trend still healthy?**<br>
+> **Has the pullback reached meaningful support?**<br>
+> **Is selling pressure fading?**<br>
+> **Are buyers beginning to regain control?**<br>
+> **Do other signals support the same story?**
+
+No single indicator decides the trade. Scores summarise evidence; they are **not probabilities of profit or predictions of return**.
+
+<br>
+
+## ⚙️ How it works
 
 **Market Data → Screening → Pattern & Factor Analysis → Market / Sector Context → Ranking → Tracking → Validation**
 
-Scores summarize evidence within the model. They are not probabilities of profit or guarantees of returns.
+Sage Vista started as a stock picker. Its goal is to understand whether the setups it finds can become part of a repeatable trading process.
 
-## Product
+<br>
 
-### Pattern & Evidence
+## 📊 Research behind the product
 
-<!-- Screenshot 2: English pattern / evidence detail.
-     Reserved path: docs/assets/product/pattern-evidence.en.png -->
+| Historical Events Audited | Registered Factors | Registered Experiments |
+|---:|---:|---:|
+| **62,000+** | **39** | **41** |
 
-Understand why a setup was selected through price structure and signals across monthly, weekly and daily timeframes.
-
-### Market & Sector Context
-
-<!-- Screenshot 3: English market / sector context.
-     Reserved path: docs/assets/product/market-sector-context.en.png -->
-
-See whether the broader environment supports or challenges the setup, with stock-level evidence kept distinct.
-
-### Research & Validation
-
-<!-- Screenshot 4: English research / backtesting view.
-     Reserved path: docs/assets/product/research-validation.en.png -->
-
-Explore historical tests and signal tracking, including failed ideas and results that need more evidence.
+An archived 2026 baseline study contains **1,166 mature events** measured over a **20-trading-day window**.
 
 <details>
-<summary>Research snapshot: archived results, methodology & limitations</summary>
-
-| Historical Events Audited | Registered Factors | Registered Experiments | 2026 20-Day Samples |
-|---:|---:|---:|---:|
-| **62,000+** | **39** | **41** | **1,166** |
+<summary><strong>Research results, methodology & limitations</strong></summary>
 
 **Archived 2026 baseline · 20-trading-day holding window**
 
@@ -69,15 +114,19 @@ These are historical event-study results, not live or paper portfolio returns or
 
 </details>
 
-## Where It's Going
+<br>
 
-Sage Vista started as a stock picker and is evolving toward a fuller trading system:
+## 🚀 Where it's going
+
+The project is evolving toward a fuller trading workflow:
 
 **Research → Decision → Trade Plan → Paper Execution → Risk Management → Performance Analysis**
 
-Today's focus is research, testing and human decision support. Live automated order execution is not part of the system.
+Today, Sage Vista focuses on **research, testing and human decision support**. Live automated order execution is not part of the system.
 
-## Tech & Development
+<br>
+
+## 🛠 Built with
 
 `Python` · `TypeScript` · `React` · `Cloudflare`
 
