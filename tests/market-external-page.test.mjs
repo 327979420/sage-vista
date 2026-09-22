@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import fs from 'node:fs';
 import path from 'node:path';
+import {gunzipSync} from 'node:zlib';
 import {loadTs as load} from './helpers/load-ts.mjs';
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
@@ -9,7 +10,7 @@ const root=path.resolve('app/zh/watch');
 const dashboard=load(path.join(root,'market/dashboard.tsx'));
 const interpretation=load(path.join(root,'market/interpretation.ts'));
 const industry=load(path.join(root,'industry-radar/dashboard.tsx'));
-const data=name=>JSON.parse(fs.readFileSync(`public/${name}.json`,'utf8'));
+const data=name=>JSON.parse(gunzipSync(fs.readFileSync(`tests/fixtures/market-2026-09-18/${name}.json.gz`)).toString('utf8'));
 const cockpit=data('market-cockpit'),sample=data('market-internals'),context=data('industry-radar').display_context;
 const render=(Component,props)=>renderToStaticMarkup(React.createElement(Component,props));
 test('cockpit renders actual observations in eight distinct cards without the rejected indicators',()=>{

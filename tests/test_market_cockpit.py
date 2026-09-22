@@ -1,5 +1,5 @@
 import copy
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 import gzip
 import json
 from pathlib import Path
@@ -10,6 +10,9 @@ from services.scanner import market_cockpit as m
 
 ROOT=Path(__file__).resolve().parents[1]
 DAY='2026-09-18'
+FROZEN=ROOT/'tests/fixtures/market-2026-09-18/market-cockpit.json.gz'
+
+def frozen_payload():return json.loads(gzip.decompress(FROZEN.read_bytes()))
 
 
 def options(day=DAY,customer=60):
@@ -63,7 +66,7 @@ class CockpitTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'missing_session'):m.quote_metrics(histories,DAY)
 
     def test_actual_frozen_sources_roundtrip(self):
-        payload=json.loads((ROOT/'public/market-cockpit.json').read_text());m.validate(payload,DAY)
+        payload=frozen_payload();m.validate(payload,DAY)
         for key,parser in [('margin',m.parse_margin),('positions',m.parse_positions),('options',m.parse_options)]:
             panel=payload['panels'][key];s=panel['sources'][-1]
             raw=gzip.decompress((ROOT/'data/market/cockpit-v1/raw'/f"{s['sha256']}.gz").read_bytes())
@@ -73,10 +76,27 @@ class CockpitTests(unittest.TestCase):
             if 'value' in parsed:self.assertEqual(parsed['value'],panel['value'])
 
     def test_validator_rejects_future_mixed_quotes_and_false_shares(self):
-        original=json.loads((ROOT/'public/market-cockpit.json').read_text())
+        original=frozen_payload()
         for mutate in [lambda p:p['panels']['margin'].update(observation_date='2099-01-01'),lambda p:p['panels']['quotes']['sources'][0].update(provider='Other'),lambda p:p['panels']['options']['history'][-1].update(customer=1),lambda p:p['panels']['positions']['contracts'][0]['percentiles'].update(asset=999)]:
             p=copy.deepcopy(original);mutate(p);p['content_fingerprint']=m.canonical_fingerprint({k:v for k,v in p.items() if k!='content_fingerprint'})
             with self.assertRaises(ValueError):m.validate(p)
+
+    def test_next_day_with_unavailable_options_remains_valid_but_old_target_is_rejected(self):
+        payload=frozen_payload()
+        target='2026-09-21'
+        payload['as_of']=target
+        payload['panels']['options']={'id':'options','frequency':'daily','status':'unavailable','sources':[], 'observation_date':None,'error_type':'OSError'}
+        histories={f['ticker']:f['history']+[dict(f['history'][-1],date=target)] for f in payload['panels']['quotes']['funds']}
+        payload['panels']['quotes'].update(m.quote_metrics(histories,target))
+        payload['content_fingerprint']=m.canonical_fingerprint({k:v for k,v in payload.items() if k!='content_fingerprint'})
+        m.validate(payload,target)
+        from services.scanner.verify_live_deployment import verify_cockpit_asset
+        with patch.object(Path,'read_bytes',return_value=json.dumps(payload).encode()),patch('services.scanner.verify_live_deployment.fetch',return_value=payload):
+            self.assertEqual(verify_cockpit_asset('https://example.com',target,'abc')['as_of'],target)
+        with self.assertRaisesRegex(ValueError,'cockpit_target_date'):m.validate(payload,DAY)
+        broken=copy.deepcopy(payload);broken['panels']['options']['value']=0
+        broken['content_fingerprint']=m.canonical_fingerprint({k:v for k,v in broken.items() if k!='content_fingerprint'})
+        with self.assertRaisesRegex(ValueError,'unavailable_with_data'):m.validate(broken,target)
 
     def test_daily_reuse_failure_isolation_and_recovery_preserves_history(self):
         calls=[];fail=[False]
@@ -110,8 +130,9 @@ class CockpitTests(unittest.TestCase):
         self.assertIn("or cockpit['changed']",workflow)
         from services.scanner.verify_live_deployment import verify_cockpit_asset
         payload=json.loads((ROOT/'public/market-cockpit.json').read_text())
-        with patch('services.scanner.verify_live_deployment.fetch',return_value=payload):self.assertEqual(verify_cockpit_asset('https://example.com',DAY,'abc')['as_of'],DAY)
-        broken=copy.deepcopy(payload);broken['checked_at']='2026-09-20T00:00:00+00:00';broken['content_fingerprint']=m.canonical_fingerprint({k:v for k,v in broken.items() if k!='content_fingerprint'})
-        with patch('services.scanner.verify_live_deployment.fetch',return_value=broken),self.assertRaisesRegex(RuntimeError,'differs'):verify_cockpit_asset('https://example.com',DAY,'abc')
+        target=json.loads((ROOT/'public/update-status.json').read_text())['source_latest_complete_date']
+        with patch('services.scanner.verify_live_deployment.fetch',return_value=payload):self.assertEqual(verify_cockpit_asset('https://example.com',target,'abc')['as_of'],target)
+        broken=copy.deepcopy(payload);broken['checked_at']=(datetime.fromisoformat(payload['checked_at'])+timedelta(seconds=1)).isoformat();broken['content_fingerprint']=m.canonical_fingerprint({k:v for k,v in broken.items() if k!='content_fingerprint'})
+        with patch('services.scanner.verify_live_deployment.fetch',return_value=broken),self.assertRaisesRegex(RuntimeError,'differs'):verify_cockpit_asset('https://example.com',target,'abc')
 
 if __name__=='__main__':unittest.main()
