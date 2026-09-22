@@ -4,29 +4,15 @@
 
 Sage Vista 是一个量化交易研究平台：扫描美股，筛选值得研究的机会，解释背后的依据，并持续追踪后续表现。
 
-**[在线演示](https://sage-vista-parallel.gizmo-allied-0s.workers.dev) · [English](./README.md) · [项目文档](./docs/SAGE_VISTA_RULEBOOK_ZH.md)**
+**[在线演示](https://sage-vista-parallel.gizmo-allied-0s.workers.dev/zh/watch/resonance/rare-opportunities) · [English](./README.md) · [项目文档](./docs/SAGE_VISTA_RULEBOOK_ZH.md)**
+
+点击页面右上角 **English / 中文** 切换语言。
 
 <!-- 截图 1：英文版多因子机会／排行榜（首屏）。
      预留路径：docs/assets/product/opportunity-ranking.en.png
-     英文界面就绪后再添加图片。 -->
+     待完成线上英文界面的真实截图后添加。 -->
 
 > **扫描 → 排序 → 解释 → 检验 → 改进**
-
-## 研究概览
-
-| 已审计历史事件 | 已登记因子 | 已登记实验 | 2026 年 20 日样本 |
-|---:|---:|---:|---:|
-| **62,000+** | **39** | **41** | **1,166** |
-
-**已归档的 2026 年基线 · 持有 20 个交易日**
-
-**胜率 54.3% · 盈利因子 1.51 · 成本前单事件平均收益 +2.10%**
-
-以日线 MACD 金叉为事件，下一交易日复权开盘进入；同一股票在 120 个交易日内去重。研究截至 **2026 年 8 月 28 日**。计入 0.50% 的成本假设后，单事件平均收益为 **+1.60%**。
-
-这些是历史事件研究结果，不是实盘或模拟组合收益，也不证明当前排行榜能预测收益。该研究中，高分并未持续对应更好的表现；历史退市股票覆盖仍不完整。
-
-[研究方法与限制](./research/preregistrations/score-timeframe-attribution-v2.md) · [结果数据](./research/backtest/output/score-timeframe-attribution-v2.json)。因子数来自[注册表 v0.10.0](./public/factor-registry.json)；实验数来自 [2026 年 9 月 13 日目录](./research/generated/experiment-catalog.json)，包含尚未完成的实验。
 
 ## Sage Vista 能做什么
 
@@ -64,6 +50,25 @@ Sage Vista 是一个量化交易研究平台：扫描美股，筛选值得研究
 
 查看历史检验与信号追踪，包括失败的想法和仍需更多证据的结果。
 
+<details>
+<summary>研究概览：查看归档结果、口径与限制</summary>
+
+| 已审计历史事件 | 已登记因子 | 已登记实验 | 2026 年 20 日样本 |
+|---:|---:|---:|---:|
+| **62,000+** | **39** | **41** | **1,166** |
+
+**已归档的 2026 年基线 · 持有 20 个交易日**
+
+**胜率 54.3% · 盈利因子 1.51 · 成本前单事件平均收益 +2.10%**
+
+以日线 MACD 金叉为事件，下一交易日复权开盘进入；同一股票在 120 个交易日内去重。研究截至 **2026 年 8 月 28 日**。计入 0.50% 的成本假设后，单事件平均收益为 **+1.60%**。
+
+这些是历史事件研究结果，不是实盘或模拟组合收益，也不证明当前排行榜能预测收益。该研究中，高分并未持续对应更好的表现；历史退市股票覆盖仍不完整。
+
+[研究方法与限制](./research/preregistrations/score-timeframe-attribution-v2.md) · [结果数据](./research/backtest/output/score-timeframe-attribution-v2.json)。因子数来自[注册表 v0.10.0](./public/factor-registry.json)；实验数来自 [2026 年 9 月 13 日目录](./research/generated/experiment-catalog.json)，包含尚未完成的实验。
+
+</details>
+
 ## 未来方向
 
 Sage Vista 从选股工具起步，正逐步向更完整的交易系统发展：
@@ -83,6 +88,6 @@ npm install
 npm run dev
 ```
 
-进一步了解[产品与方法](./docs/SAGE_VISTA_RULEBOOK_ZH.md)、[系统架构](./docs/SYSTEM_ARCHITECTURE_ZH.md)、[研究记录](./research/README.md)和[已记录的项目状态](./docs/CURRENT_STATUS_ZH.md)。详细文档和当前演示主要为中文；英文界面截图将在就绪后补充。
+进一步了解[产品与方法](./docs/SAGE_VISTA_RULEBOOK_ZH.md)、[系统架构](./docs/SYSTEM_ARCHITECTURE_ZH.md)、[研究记录](./research/README.md)和[已记录的项目状态](./docs/CURRENT_STATUS_ZH.md)。在线演示支持中英文切换；详细文档和归档报告主要为中文。
 
 贡献者与智能体工作流程：[AGENTS.md](./AGENTS.md) · [执行规范](./docs/rules/01_GOVERNANCE.md)。
