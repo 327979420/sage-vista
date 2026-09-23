@@ -1202,3 +1202,5 @@
 - 保留真实截图来源、日期与原图；封面用可复现HTML排版，截图内容不合成、不改数值。验证小尺寸图标、实际图片尺寸、公开地址及爬虫收到的元数据。浏览器插件因TIOCSTI无法启动，已使用独立无登录Chrome完成真实截图与视觉检查。
 - 本地验收：65项网站检查通过（含中英文服务端HTML的公开分享地址及图标回归），最终构建与diff检查通过；部署副本与源资产逐字节一致。分享封面1200×630、121,529字节；真实截图日期2026-09-22，保留固定样本范围说明。SVG及16/32/48 ICO、32/192 PNG、180 Apple图标已导出，封面和SV图标已实际查看。待线上发布核验。
 - 已上线：Build `4c9cc64`，[发布35818740967](https://github.com/327979420/sage-vista/actions/runs/35818740967)成功，生产收据2576279。独立线上整包校验result=verified、日期2026-09-22；默认/英文请求及模拟LinkedInBot的分享元数据均指向正式域名。7个公开图标/封面URL均200、MIME正确且与本地源字节相等。未在LinkedIn实际发帖或确认其缓存预览；另行全仓CI35818740943仍运行，不列为已通过。
+- Safari跟进：用户关闭重开仍无图标，不能只归因缓存。实测初始head及图标HTTP正常；确认此前缺少固定标签页mask-icon。补齐Apple要求的16×16单层黑色透明SVG及显式color（vinext的icons.other不输出color），普通标签改用16/32 PNG并使用新文件路径，ICO与Apple图标同步换路径；旧URL继续可用。尚不能确认用户普通标签不显示的唯一根因，也不把HTTP通过等同Safari视觉验收。参考：https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/pinnedTabs/pinnedTabs.html 。
+- Safari兼容修改本地验收：65项网站检查通过，包含初始head内PNG图标、固定标签SVG及color；未改变业务数据。浏览器连接工具仍因TIOCSTI失败，不能宣称已在用户Safari标签栏目视确认。

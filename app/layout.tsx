@@ -47,13 +47,13 @@ export const metadata: Metadata = {
     images: ["https://sage.freddyliang.com/sage-vista-share-v1.png"],
   },
   icons: {
+    // Bitmap icons work in Safari versions predating SVG favicon support.
     icon: [
-      { url: "/favicon.ico?v=sv1", sizes: "16x16 32x32 48x48" },
-      { url: "/favicon-32.png?v=sv1", type: "image/png", sizes: "32x32" },
-      { url: "/favicon.svg?v=sv1", type: "image/svg+xml", sizes: "any" },
+      { url: "/brand/sv-v2/icon-16.png", type: "image/png", sizes: "16x16" },
+      { url: "/brand/sv-v2/icon-32.png", type: "image/png", sizes: "32x32" },
     ],
-    shortcut: "/favicon.ico?v=sv1",
-    apple: [{ url: "/apple-touch-icon.png?v=sv1", sizes: "180x180" }],
+    shortcut: "/brand/sv-v2/favicon.ico",
+    apple: [{ url: "/brand/sv-v2/apple-touch-icon.png", sizes: "180x180" }],
   },
 };
 
@@ -65,6 +65,10 @@ export default async function RootLayout({
   const locale = (await cookies()).get("sv-language")?.value === "en" ? "en" : "zh";
   return (
     <html lang={locale === "en" ? "en" : "zh-CN"}>
+      <head>
+        {/* vinext metadata currently omits the mask icon's color attribute. */}
+        <link rel="mask-icon" href="/brand/sv-v2/pinned-tab.svg" color="#19293f" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

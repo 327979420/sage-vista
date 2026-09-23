@@ -51,9 +51,18 @@ test("share crawlers receive public image URLs and browser-compatible SV icons",
       assert.doesNotMatch(tag, /localhost|127\.0\.0\.1/);
     }
     assert.match(html, /<meta property="og:url" content="https:\/\/sage\.freddyliang\.com\/?"/);
-    assert.match(html, /favicon\.ico\?v=sv1/);
-    assert.match(html, /favicon-32\.png\?v=sv1/);
-    assert.match(html, /apple-touch-icon\.png\?v=sv1/);
+    const head = html.slice(0, html.indexOf("</head>"));
+    assert.match(head, /href="\/brand\/sv-v2\/favicon\.ico"/);
+    assert.match(head, /href="\/brand\/sv-v2\/icon-16\.png"/);
+    assert.match(head, /href="\/brand\/sv-v2\/icon-32\.png"/);
+    assert.match(head, /href="\/brand\/sv-v2\/apple-touch-icon\.png"/);
+    const mask = head.match(/<link[^>]*rel="mask-icon"[^>]*>/)?.[0];
+    assert.ok(mask, "Safari pinned icon must be available in the initial head");
+    assert.match(mask, /href="\/brand\/sv-v2\/pinned-tab\.svg"/);
+    assert.match(mask, /color="#19293f"/);
+    const icons = head.match(/<link[^>]*rel="icon"[^>]*>/g) ?? [];
+    assert.equal(icons.length, 2);
+    for (const icon of icons) assert.match(icon, /type="image\/png"/);
     assert.doesNotMatch(html, /NORTHSTAR/);
   }
 });
