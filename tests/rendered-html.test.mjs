@@ -41,6 +41,23 @@ test("server-renders the Sage Vista application", async () => {
   assert.doesNotMatch(html, /DISCORD_WEBHOOK_URL|EODHD_API_TOKEN/i);
 });
 
+test("share crawlers receive public image URLs and browser-compatible SV icons", async () => {
+  for (const cookie of ["", "sv-language=en"]) {
+    const html = await (await render("/", cookie)).text();
+    for (const property of ["og:image", "twitter:image"]) {
+      const tag = html.match(new RegExp(`<meta (?:property|name)="${property}"[^>]*>`))?.[0];
+      assert.ok(tag, `Missing ${property}`);
+      assert.match(tag, /content="https:\/\/sage\.freddyliang\.com\/sage-vista-share-v1\.png"/);
+      assert.doesNotMatch(tag, /localhost|127\.0\.0\.1/);
+    }
+    assert.match(html, /<meta property="og:url" content="https:\/\/sage\.freddyliang\.com\/?"/);
+    assert.match(html, /favicon\.ico\?v=sv1/);
+    assert.match(html, /favicon-32\.png\?v=sv1/);
+    assert.match(html, /apple-touch-icon\.png\?v=sv1/);
+    assert.doesNotMatch(html, /NORTHSTAR/);
+  }
+});
+
 test("server-renders the four-product navigation", async () => {
   const html = await (await render("/")).text();
   assert.doesNotMatch(html, /个股研究/);

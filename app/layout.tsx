@@ -22,29 +22,38 @@ const geistMono = Geist_Mono({
 const UI_VERSION = "UI v6.1";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://sage.freddyliang.com"),
   title: "Sage Vista — 大盘",
   description: "市场参与、风险温度与个股研究。",
   openGraph: {
-    title: "Sage Vista — 大盘",
-    description: "市场、行业、技术机会与多因子证据的可复核研究摘要。",
+    type: "website",
+    siteName: "Sage Vista",
+    url: "https://sage.freddyliang.com",
+    title: "Sage Vista | Daily market insights & stock screening",
+    description: "Explore market participation, sector trends and stock setups in one daily dashboard.",
     images: [
       {
-        url: "/og.png",
+        url: "https://sage.freddyliang.com/sage-vista-share-v1.png",
         width: 1200,
         height: 630,
-        alt: "Sage Vista 大盘",
+        alt: "Sage Vista with a real English market dashboard snapshot from September 22, 2026.",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Sage Vista — 大盘",
-    description: "市场、行业、技术机会与多因子证据的可复核研究摘要。",
-    images: ["/og.png"],
+    title: "Sage Vista | Daily market insights & stock screening",
+    description: "Explore market participation, sector trends and stock setups in one daily dashboard.",
+    images: ["https://sage.freddyliang.com/sage-vista-share-v1.png"],
   },
   icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    icon: [
+      { url: "/favicon.ico?v=sv1", sizes: "16x16 32x32 48x48" },
+      { url: "/favicon-32.png?v=sv1", type: "image/png", sizes: "32x32" },
+      { url: "/favicon.svg?v=sv1", type: "image/svg+xml", sizes: "any" },
+    ],
+    shortcut: "/favicon.ico?v=sv1",
+    apple: [{ url: "/apple-touch-icon.png?v=sv1", sizes: "180x180" }],
   },
 };
 

@@ -1195,3 +1195,9 @@
 - 当前绑定未完成：Wrangler未登录；浏览器工具启动失败（TIOCSTI），无法操作用户Cloudflare会话。公开DNS确认主域名由Cloudflare管理，sage当前无记录。需用户在现有Worker的Settings → Domains & Routes → Add → Custom Domain中添加sage.freddyliang.com。当前健康日更仍在进行，本地配置暂不推送；域名绑定/证书与部署权限核验后再发布并验证新旧两个入口。
 - 用户已在后台完成绑定并提供截图；外网HTTPS首页与update-status.json均200，日期2026-09-22，新旧地址均可访问。健康日更35813729820已完成并同步。将正式发布核验、日更与独立新鲜度巡检目标改为sage.freddyliang.com；Wrangler日志仍严格核对原Worker身份，避免把自定义域名误当成workers.dev导致日更失败。待配置发布及双入口整包复核。
 - 已上线：58ce1a0，[发布35815435677](https://github.com/327979420/sage-vista/actions/runs/35815435677)成功，生产收据c49bfe1将正式网址保存为https://sage.freddyliang.com。64项网站检查、32项更新/发布Python检查通过；新增实际执行日更URL解析器的回归，确认自定义域名正确输出、错误Worker拒绝。另将真实本次部署日志输入解析器验证通过。新域名HTTPS首页及五个主功能页均200、Build一致；新旧两入口整包校验均result=verified、日期2026-09-22、同一部署及业务数据。根域名和www均不在本次精确路由中，留给个人网站；未重算数据或启动历史研究。
+
+### CR-2026-09-23｜SV 图标与 LinkedIn 分享封面
+- 用户选择A：Sage Vista名称、Daily market insights & stock screening英文介绍、真实英文大盘截图组成分享封面；深蓝底白色SV作为小图标。
+- 修复线上og:image/twitter:image错误指向localhost的根因，使用正式HTTPS域名和绝对图片地址。替换旧NORTHSTAR封面，提供SVG、PNG、ICO及Apple触摸图标；仅品牌资产和分享元数据，不改变界面业务、数据、策略或排名。
+- 保留真实截图来源、日期与原图；封面用可复现HTML排版，截图内容不合成、不改数值。验证小尺寸图标、实际图片尺寸、公开地址及爬虫收到的元数据。浏览器插件因TIOCSTI无法启动，已使用独立无登录Chrome完成真实截图与视觉检查。
+- 本地验收：65项网站检查通过（含中英文服务端HTML的公开分享地址及图标回归），最终构建与diff检查通过；部署副本与源资产逐字节一致。分享封面1200×630、121,529字节；真实截图日期2026-09-22，保留固定样本范围说明。SVG及16/32/48 ICO、32/192 PNG、180 Apple图标已导出，封面和SV图标已实际查看。待线上发布核验。

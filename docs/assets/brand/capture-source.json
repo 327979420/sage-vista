@@ -1,0 +1,14 @@
+{
+  "url": "https://sage.freddyliang.com/zh/watch/market",
+  "capturedAt": "2026-09-23T04:26:52.917Z",
+  "locale": "en",
+  "title": "Sage Vista \u2014 Market",
+  "viewport": {
+    "width": 1360,
+    "height": 1050
+  },
+  "marketClose": "2026-09-22",
+  "productionBuild": "58ce1a0",
+  "screenshotScope": "First two complete daily market cards; no text, numeric data or DOM content changed",
+  "screenshotSha256": "8ab239210f20abfb30b6f82fa5477f496ea807c737cb2c351a702664dc5f275c"
+}
