@@ -80,6 +80,19 @@ test('unknown routes pass through; missing archives fail clearly; development ca
   assert.deepEqual(await (await servePublicArchive(new Request('https://sv.test/signal-history.json'), dev)).json(), { ok: true });
 });
 
+test('Cloudflare header normalization cannot override a client refusing gzip', async () => {
+  const content = Buffer.from('{"ok":true}');
+  const assets = { fetch: async () => new Response(gzipSync(content)) };
+  for (const encoding of ['gzip;q=0', 'identity', 'br', '']) {
+    const request = new Request('https://sv.test/signal-history.json', { headers: { 'Accept-Encoding': 'br, gzip' } });
+    Object.defineProperty(request, 'cf', { value: { clientAcceptEncoding: encoding } });
+    const response = await servePublicArchive(request, assets);
+    assert.equal(response.headers.get('Content-Encoding'), null);
+    assert.equal(response.headers.get('Cache-Control'), 'no-cache, no-transform');
+    assert.deepEqual(Buffer.from(await response.arrayBuffer()), content);
+  }
+});
+
 test('production build packages the actual public archives byte for byte', () => {
   for (const name of policy.archives) {
     const compressed = readFileSync(path.join('dist/client', policy.assetPrefix, `${name}.gz`));

@@ -29,10 +29,12 @@ export async function servePublicArchive(request: Request, assets: AssetBinding)
     return new Response('Archive unavailable', { status: 503, headers: { 'Cache-Control': 'no-store' } });
   }
   if (!archive.ok || !archive.body) return new Response('Archive unavailable', { status: 503, headers: { 'Cache-Control': 'no-store' } });
-  const gzip = acceptsGzip(request.headers.get('Accept-Encoding'));
+  // Cloudflare normalizes the header; its cf field preserves the client's choice.
+  const originalEncoding = (request as Request & { cf?: { clientAcceptEncoding?: string } }).cf?.clientAcceptEncoding;
+  const gzip = acceptsGzip(originalEncoding ?? request.headers.get('Accept-Encoding'));
   const headers = new Headers({
     'Content-Type': 'application/json; charset=utf-8',
-    'Cache-Control': 'no-cache',
+    'Cache-Control': 'no-cache, no-transform',
     'Vary': 'Accept-Encoding',
     'X-Content-Type-Options': 'nosniff',
   });
