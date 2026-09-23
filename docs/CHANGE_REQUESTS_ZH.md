@@ -1194,3 +1194,4 @@
 - 本地配置显式保留workers_dev并添加精确custom_domain路由；不修改根域名、www、DNS其他记录、数据或策略。生产构建及git diff --check通过，生成配置核实仅含sage.freddyliang.com这一精确域名且workers_dev=true；尚未发布。
 - 当前绑定未完成：Wrangler未登录；浏览器工具启动失败（TIOCSTI），无法操作用户Cloudflare会话。公开DNS确认主域名由Cloudflare管理，sage当前无记录。需用户在现有Worker的Settings → Domains & Routes → Add → Custom Domain中添加sage.freddyliang.com。当前健康日更仍在进行，本地配置暂不推送；域名绑定/证书与部署权限核验后再发布并验证新旧两个入口。
 - 用户已在后台完成绑定并提供截图；外网HTTPS首页与update-status.json均200，日期2026-09-22，新旧地址均可访问。健康日更35813729820已完成并同步。将正式发布核验、日更与独立新鲜度巡检目标改为sage.freddyliang.com；Wrangler日志仍严格核对原Worker身份，避免把自定义域名误当成workers.dev导致日更失败。待配置发布及双入口整包复核。
+- 已上线：58ce1a0，[发布35815435677](https://github.com/327979420/sage-vista/actions/runs/35815435677)成功，生产收据c49bfe1将正式网址保存为https://sage.freddyliang.com。64项网站检查、32项更新/发布Python检查通过；新增实际执行日更URL解析器的回归，确认自定义域名正确输出、错误Worker拒绝。另将真实本次部署日志输入解析器验证通过。新域名HTTPS首页及五个主功能页均200、Build一致；新旧两入口整包校验均result=verified、日期2026-09-22、同一部署及业务数据。根域名和www均不在本次精确路由中，留给个人网站；未重算数据或启动历史研究。
