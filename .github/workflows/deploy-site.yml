@@ -6,6 +6,9 @@ on:
     branches: [main]
     paths:
       - "app/**"
+      - "worker/**"
+      - "services/automation/package_public_archives.mjs"
+      - "services/automation/public-archive-policy.json"
       - "services/scanner/project_status.py"
       - "docs/CURRENT_STATUS_ZH.md"
       - "package.json"

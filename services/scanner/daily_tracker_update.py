@@ -18,6 +18,7 @@ from .market_etf_watch import run as run_market_context, refreshed_rows
 from .rare_opportunity_scanner import run as run_radar
 from .resonance_tracker import run as run_tracker
 from .signal_history import SCHEMA_VERSION as SIGNAL_HISTORY_SCHEMA_VERSION,build as build_signal_history,validate as validate_signal_history
+from .public_asset_limits import validate_asset
 
 PUBLIC=pathlib.Path("public")
 TRIGGER_SOURCES={"manual","cloudflare_cron","freshness_recovery","github_schedule"}
@@ -29,7 +30,7 @@ def read_json(path):
 def write_history_asset(path,history):
  """Lossless compact JSON; fail before replacing the public bundle if too large."""
  encoded=json.dumps(history,ensure_ascii=False,separators=(",",":" )).encode("utf-8")
- if len(encoded)>25*1024*1024:raise ValueError("Signal history exceeds the hosting limit even after lossless compaction")
+ validate_asset("signal-history.json",encoded)
  pathlib.Path(path).write_bytes(encoded)
 
 

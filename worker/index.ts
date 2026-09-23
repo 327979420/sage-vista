@@ -1,6 +1,7 @@
 /** Cloudflare Worker entry point for Sage Vista. */
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
+import { servePublicArchive } from "./public-archives";
 
 interface Env {
   ASSETS: {
@@ -29,6 +30,8 @@ interface ExecutionContext {
 const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
+    const archive = await servePublicArchive(request, env.ASSETS);
+    if (archive) return archive;
 
     if (url.pathname === "/_vinext/image") {
       const allowedWidths = [...DEFAULT_DEVICE_SIZES, ...DEFAULT_IMAGE_SIZES];

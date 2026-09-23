@@ -8,6 +8,7 @@ const localBindingConfig = {
   main: "./worker/index.ts",
   compatibility_flags: ["nodejs_compat"],
   r2_buckets: [],
+  assets: { binding: "ASSETS" },
 };
 
 export default defineConfig(async () => {

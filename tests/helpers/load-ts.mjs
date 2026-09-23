@@ -7,6 +7,7 @@ const require=createRequire(import.meta.url),cache=new Map();
 export function loadTs(file){
  file=path.resolve(file instanceof URL?fileURLToPath(file):file);
  if(cache.has(file))return cache.get(file).exports;
+ if(file.endsWith('.json'))return JSON.parse(fs.readFileSync(file,'utf8'));
  const loadedModule={exports:{}};cache.set(file,loadedModule);
  const code=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
  new Function('require','exports','module',code)(id=>{
