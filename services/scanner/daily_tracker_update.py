@@ -26,6 +26,13 @@ def read_json(path):
  path=pathlib.Path(path)
  return json.loads(path.read_text()) if path.exists() else {}
 
+def write_history_asset(path,history):
+ """Lossless compact JSON; fail before replacing the public bundle if too large."""
+ encoded=json.dumps(history,ensure_ascii=False,separators=(",",":" )).encode("utf-8")
+ if len(encoded)>25*1024*1024:raise ValueError("Signal history exceeds the hosting limit even after lossless compaction")
+ pathlib.Path(path).write_bytes(encoded)
+
+
 def compact_favorite_pattern(tracker):
  favorite=tracker.get("favorite_pattern_tracker",{})
  return {key:value for key,value in favorite.items() if key!="candidates"}
@@ -141,7 +148,8 @@ def run(target=1000,as_of=None,trigger_source="manual"):
   (folder/"favorite-pattern.json").write_text(json.dumps(compact_favorite_pattern(tracker),ensure_ascii=False,separators=(",",":"))+"\n")
   history_tracker,favorite_forward_deferred=tracker_for_forward_history(current_tracker,current_history,tracker,authoritative)
   history=build_signal_history(current_history,history_tracker,radar,snapshot,industry,market,authoritative)
-  (folder/"signal-history.json").write_text(json.dumps(history,ensure_ascii=False,indent=2))
+  # Keep every historical field; indentation alone was exceeding the host asset limit.
+  write_history_asset(folder/"signal-history.json",history)
   (folder/"signal-history-summary.json").write_text(json.dumps(compact_signal_history(history),ensure_ascii=False,separators=(",",":"))+"\n")
   # This is the publish gate: no file crosses into public/ until all datasets
   # agree on the same completed session and prove they used no future rows.
