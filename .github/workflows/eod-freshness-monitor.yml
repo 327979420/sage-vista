@@ -34,7 +34,7 @@ jobs:
         id: freshness
         shell: bash
         run: |
-          python3 -m services.scanner.freshness_monitor --url https://sage-vista-parallel.gizmo-allied-0s.workers.dev > freshness-result.json
+          python3 -m services.scanner.freshness_monitor --url https://sage.freddyliang.com > freshness-result.json
           python3 - <<'PY'
           import json,os
           result=json.load(open("freshness-result.json"))

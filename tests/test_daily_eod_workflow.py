@@ -4,6 +4,26 @@ WORKFLOW=pathlib.Path(__file__).parents[1]/".github/workflows/daily-eod.yml"
 ROOT=WORKFLOW.parents[2]
 
 class DailyEodWorkflowTests(unittest.TestCase):
+ def test_custom_domain_release_keeps_strict_worker_identity_check(self):
+  import os,subprocess,sys,tempfile,textwrap
+  step=WORKFLOW.read_text().split('name: Deploy production to Cloudflare Workers',1)[1].split('name: Verify live Cloudflare dates and audits',1)[0]
+  script=textwrap.dedent(step.split("python3 - <<'PY'\n",1)[1].split('\n          PY',1)[0])
+  with tempfile.TemporaryDirectory() as folder:
+   root=pathlib.Path(folder);output=root/'outputs'
+   origin='https://sage-vista-parallel.gizmo-allied-0s.workers.dev'
+   site='https://sage.freddyliang.com'
+   env={**os.environ,'WORKER_ORIGIN_URL':origin,'PRODUCTION_SITE_URL':site,'GITHUB_OUTPUT':str(output)}
+   for reported in (origin,'https://wrong-worker.example.workers.dev'):
+    (root/'cloudflare-deploy.log').write_text(f'Deployed\n  {reported}\n  sage.freddyliang.com (custom domain)\n')
+    output.write_text('')
+    result=subprocess.run([sys.executable,'-c',script],cwd=root,env=env,capture_output=True,text=True)
+    if reported==origin:
+     self.assertEqual(result.returncode,0,result.stderr)
+     self.assertEqual(output.read_text(),f'site_url={site}\n')
+    else:
+     self.assertNotEqual(result.returncode,0)
+     self.assertEqual(output.read_text(),'')
+
  def test_scoring_changes_validate_without_triggering_market_or_publication(self):
   text=WORKFLOW.read_text()
   self.assertIn('pull_request:',text)

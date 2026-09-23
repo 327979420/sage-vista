@@ -25,7 +25,7 @@ concurrency:
 
 env:
   NODE_VERSION: "22.13.0"
-  PRODUCTION_SITE_URL: https://sage-vista-parallel.gizmo-allied-0s.workers.dev
+  PRODUCTION_SITE_URL: https://sage.freddyliang.com
 
 jobs:
   deploy:

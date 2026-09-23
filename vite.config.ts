@@ -9,6 +9,8 @@ const localBindingConfig = {
   compatibility_flags: ["nodejs_compat"],
   r2_buckets: [],
   assets: { binding: "ASSETS" },
+  workers_dev: true,
+  routes: [{ pattern: "sage.freddyliang.com", custom_domain: true }],
 };
 
 export default defineConfig(async () => {

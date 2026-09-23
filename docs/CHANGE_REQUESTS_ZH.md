@@ -1188,3 +1188,9 @@
 - 首次发布b2c2080／35811819450成功，线上整包result=verified。额外协议核验发现Cloudflare会规范化Accept-Encoding，gzip;q=0被误读；按官方request.cf.clientAcceptEncoding恢复原客户端要求，并加no-transform阻止后续转换。新增相应回归，64项网页检查通过；兼容修正待发布复核。参考：https://developers.cloudflare.com/fundamentals/reference/http-headers/#accept-encoding 。
 - 最终已上线：Build `480c2d9`，[发布35812147385](https://github.com/327979420/sage-vista/actions/runs/35812147385)成功，收盘日仍2026-09-22。64项网站检查、34项针对性Python检查通过；压缩修复的完整CI35811819414通过1006项Python（沿用既有跳过）及5项调度检查。额外线上整包验证result=verified；三条历史原URL共15次gzip/identity/空编码及HEAD检查全部通过，解压后SHA256与public原文件一致。最大的实际部署资产9,454,182字节，原始public档案、历史记录和业务规则均未修改。生产收据7446b18。
 - 已知托管边界：线上gzip;q=0仍被托管链路按gzip处理；未改动的daily-factor-snapshot和industry-radar静态文件同样如此，非本次新增回归。Worker对原客户端偏好的本地/单元检查通过；线上普通浏览器gzip、审计工具identity及空编码均已实测，不把特殊q=0的端到端协商标成通过。
+
+### CR-2026-09-23｜Sage Vista 独立子域名
+- 用户确认拥有Cloudflare中的freddyliang.com，要求主域名留给个人网站、SV使用独立子域名公开访问。采用sage.freddyliang.com，仅绑定既有sage-vista-parallel Worker，保留workers.dev地址及原有日更。
+- 本地配置显式保留workers_dev并添加精确custom_domain路由；不修改根域名、www、DNS其他记录、数据或策略。生产构建及git diff --check通过，生成配置核实仅含sage.freddyliang.com这一精确域名且workers_dev=true；尚未发布。
+- 当前绑定未完成：Wrangler未登录；浏览器工具启动失败（TIOCSTI），无法操作用户Cloudflare会话。公开DNS确认主域名由Cloudflare管理，sage当前无记录。需用户在现有Worker的Settings → Domains & Routes → Add → Custom Domain中添加sage.freddyliang.com。当前健康日更仍在进行，本地配置暂不推送；域名绑定/证书与部署权限核验后再发布并验证新旧两个入口。
+- 用户已在后台完成绑定并提供截图；外网HTTPS首页与update-status.json均200，日期2026-09-22，新旧地址均可访问。健康日更35813729820已完成并同步。将正式发布核验、日更与独立新鲜度巡检目标改为sage.freddyliang.com；Wrangler日志仍严格核对原Worker身份，避免把自定义域名误当成workers.dev导致日更失败。待配置发布及双入口整包复核。

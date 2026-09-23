@@ -46,7 +46,8 @@ concurrency:
 
 env:
   NODE_VERSION: "22.13.0"
-  PRODUCTION_SITE_URL: https://sage-vista-parallel.gizmo-allied-0s.workers.dev
+  PRODUCTION_SITE_URL: https://sage.freddyliang.com
+  WORKER_ORIGIN_URL: https://sage-vista-parallel.gizmo-allied-0s.workers.dev
   CLOUDFLARE_WORKER_NAME: sage-vista-parallel
 
 jobs:
@@ -292,8 +293,9 @@ jobs:
           text=open("cloudflare-deploy.log").read()
           urls=re.findall(r"https://[a-z0-9.-]+\.workers\.dev",text,re.I)
           if not urls:raise SystemExit("Wrangler did not return a workers.dev production URL")
-          actual=urls[-1].rstrip("/");expected=os.environ["PRODUCTION_SITE_URL"].rstrip("/")
-          if actual!=expected:raise SystemExit(f"Unexpected production URL: {actual}")
+          actual=urls[-1].rstrip("/");origin=os.environ["WORKER_ORIGIN_URL"].rstrip("/")
+          if actual!=origin:raise SystemExit(f"Unexpected production Worker: {actual}")
+          expected=os.environ["PRODUCTION_SITE_URL"].rstrip("/")
           with open(os.environ["GITHUB_OUTPUT"],"a") as out:out.write(f"site_url={expected}\n")
           PY
       - name: Verify live Cloudflare dates and audits
