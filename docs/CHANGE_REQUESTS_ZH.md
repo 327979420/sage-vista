@@ -1205,3 +1205,8 @@
 - Safari跟进：用户关闭重开仍无图标，不能只归因缓存。实测初始head及图标HTTP正常；确认此前缺少固定标签页mask-icon。补齐Apple要求的16×16单层黑色透明SVG及显式color（vinext的icons.other不输出color），普通标签改用16/32 PNG并使用新文件路径，ICO与Apple图标同步换路径；旧URL继续可用。尚不能确认用户普通标签不显示的唯一根因，也不把HTTP通过等同Safari视觉验收。参考：https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/pinnedTabs/pinnedTabs.html 。
 - Safari兼容修改本地验收：65项网站检查通过，包含初始head内PNG图标、固定标签SVG及color；未改变业务数据。浏览器连接工具仍因TIOCSTI失败，不能宣称已在用户Safari标签栏目视确认。
 - Safari兼容修复已上线：Build35c41d3，[发布35820714523](https://github.com/327979420/sage-vista/actions/runs/35820714523)成功，生产收据786ab15。新旧两域名首页/大盘共20次图标核验通过；初始head含PNG和带color的mask-icon，线上字节与源文件相等。独立Chrome中5种图标均成功解码，水合后head仍正确。用户本机Safari标签栏仍待确认，不宣称视觉问题已被证实解决。
+
+### CR-2026-09-24｜部署前公开文件体积检查
+- 目标：日更与网站发布在提交/部署前失败即止，避免再次因单文件超过Cloudflare 25MiB限制在部署阶段反复失败。
+- 范围：新增`services/automation/check_public_sizes.mjs`；`public/`下任何超过20MiB且不在`public-archive-policy.json`归档名单的文件直接失败并给出文件名、体积及处理办法；名单内档案按与打包相同的gzip -9报告压缩后体积、占限额百分比与余量（≥80%标WARN，超限失败）。接入daily-eod（测试与提交前）、deploy-site（构建前）及PR检查；不改数据、评分或交易规则。
+- 验收：`tests/public-size-check.test.mjs`6项及工作流顺序回归通过；当前真实public三档压缩后分别占限额3.6%／4.5%／3.3%。
