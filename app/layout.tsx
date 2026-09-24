@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-html-link-for-pages -- vinext beta client routing is broken in the deployed worker; full-page navigation is intentional. */
 import type { Metadata } from "next";
-import {cookies} from "next/headers";
+import {requestLocale} from './i18n/server';
 import {LanguageSwitch, LocaleProvider, Localized} from "./i18n/locale";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -23,8 +23,8 @@ const UI_VERSION = "UI v6.1";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://sage.freddyliang.com"),
-  title: "Sage Vista — 大盘",
-  description: "市场参与、风险温度与个股研究。",
+  title: "Sage Vista — Market",
+  description: "Market participation, risk conditions and stock research.",
   openGraph: {
     type: "website",
     siteName: "Sage Vista",
@@ -46,15 +46,6 @@ export const metadata: Metadata = {
     description: "Explore market participation, sector trends and stock setups in one daily dashboard.",
     images: ["https://sage.freddyliang.com/sage-vista-share-v1.png"],
   },
-  icons: {
-    // Bitmap icons work in Safari versions predating SVG favicon support.
-    icon: [
-      { url: "/brand/sv-v2/icon-16.png", type: "image/png", sizes: "16x16" },
-      { url: "/brand/sv-v2/icon-32.png", type: "image/png", sizes: "32x32" },
-    ],
-    shortcut: "/brand/sv-v2/favicon.ico",
-    apple: [{ url: "/brand/sv-v2/apple-touch-icon.png", sizes: "180x180" }],
-  },
 };
 
 export default async function RootLayout({
@@ -62,10 +53,15 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const locale = (await cookies()).get("sv-language")?.value === "en" ? "en" : "zh";
+  const locale = await requestLocale();
   return (
     <html lang={locale === "en" ? "en" : "zh-CN"}>
       <head>
+        {/* Keep bitmap icons in the initial head even when localized metadata streams. */}
+        <link rel="icon" href="/brand/sv-v2/icon-16.png" type="image/png" sizes="16x16" />
+        <link rel="icon" href="/brand/sv-v2/icon-32.png" type="image/png" sizes="32x32" />
+        <link rel="shortcut icon" href="/brand/sv-v2/favicon.ico" />
+        <link rel="apple-touch-icon" href="/brand/sv-v2/apple-touch-icon.png" sizes="180x180" />
         {/* vinext metadata currently omits the mask icon's color attribute. */}
         <link rel="mask-icon" href="/brand/sv-v2/pinned-tab.svg" color="#19293f" />
       </head>

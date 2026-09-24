@@ -3,7 +3,10 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {loadTs} from './helpers/load-ts.mjs';
 import React from 'react';
-import {renderToStaticMarkup} from 'react-dom/server';
+import {renderToStaticMarkup as renderMarkup} from 'react-dom/server';
+const {LocaleProvider}=loadTs('app/i18n/locale.tsx');
+// These assertions verify the explicitly selected Chinese interface.
+const renderToStaticMarkup=element=>renderMarkup(React.createElement(LocaleProvider,{initialLocale:'zh'},element));
 const source=fs.readFileSync(new URL('../app/zh/backtest/research-runs.tsx',import.meta.url),'utf8');
 const mod={exports:loadTs('app/zh/backtest/research-runs.tsx')};
 const {checkedIndex,ResearchRunList,default:ResearchRuns}=mod.exports;

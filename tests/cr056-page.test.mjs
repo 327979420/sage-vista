@@ -3,7 +3,10 @@ import test from 'node:test';
 import fs from 'node:fs';
 import {loadTs} from './helpers/load-ts.mjs';
 import React from 'react';
-import {renderToStaticMarkup} from 'react-dom/server';
+import {renderToStaticMarkup as renderMarkup} from 'react-dom/server';
+const {LocaleProvider}=loadTs('app/i18n/locale.tsx');
+// These assertions verify the explicitly selected Chinese interface.
+const renderToStaticMarkup=element=>renderMarkup(React.createElement(LocaleProvider,{initialLocale:'zh'},element));
 const compiledModule={exports:loadTs('app/zh/watch/resonance/rare-opportunities/cr056-ranking.tsx')};
 const contextModule={exports:loadTs('app/zh/watch/industry-radar/context.tsx')};
 const data=JSON.parse(fs.readFileSync(new URL('../public/cr056-ranking.json',import.meta.url),'utf8'));

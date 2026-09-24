@@ -1,1 +1,1 @@
-export {metadata,default} from './zh/watch/market/page';
+export {generateMetadata,default} from './zh/watch/market/page';

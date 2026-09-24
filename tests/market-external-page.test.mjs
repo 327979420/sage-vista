@@ -5,7 +5,10 @@ import path from 'node:path';
 import {gunzipSync} from 'node:zlib';
 import {loadTs as load} from './helpers/load-ts.mjs';
 import React from 'react';
-import {renderToStaticMarkup} from 'react-dom/server';
+import {renderToStaticMarkup as renderMarkup} from 'react-dom/server';
+const {LocaleProvider}=load('app/i18n/locale.tsx');
+// These assertions verify the explicitly selected Chinese interface.
+const renderToStaticMarkup=element=>renderMarkup(React.createElement(LocaleProvider,{initialLocale:'zh'},element));
 const root=path.resolve('app/zh/watch');
 const dashboard=load(path.join(root,'market/dashboard.tsx'));
 const interpretation=load(path.join(root,'market/interpretation.ts'));

@@ -2,15 +2,15 @@
 import {cloneElement, createContext, Fragment, isValidElement, useContext, useEffect, useState, type ReactNode, type ReactElement} from 'react';
 import {translate, type Locale} from './messages';
 
-export const LOCALE_COOKIE = 'sv-language';
+import {DEFAULT_LOCALE, LOCALE_COOKIE} from './settings';
+export {LOCALE_COOKIE, normalizeLocale} from './settings';
 export function saveLocalePreference(locale: Locale) {
  try {document.cookie = `${LOCALE_COOKIE}=${locale}; Path=/; Max-Age=31536000; SameSite=Lax${window.location.protocol === 'https:' ? '; Secure' : ''}`;} catch { /* Storage may be disabled; the current page still switches. */ }
 }
-export const normalizeLocale = (value: unknown): Locale => value === 'en' ? 'en' : 'zh';
-const LocaleContext = createContext<{locale: Locale; setLocale: (locale: Locale) => void}>({locale: 'zh', setLocale: () => {}});
+const LocaleContext = createContext<{locale: Locale; setLocale: (locale: Locale) => void}>({locale: DEFAULT_LOCALE, setLocale: () => {}});
 export const useLocale = () => useContext(LocaleContext);
 
-export function LocaleProvider({initialLocale = 'zh', children}: {initialLocale?: Locale; children: ReactNode}) {
+export function LocaleProvider({initialLocale = DEFAULT_LOCALE, children}: {initialLocale?: Locale; children: ReactNode}) {
  const [locale, setLocale] = useState<Locale>(initialLocale);
  useEffect(() => {
   document.documentElement.lang = locale === 'en' ? 'en' : 'zh-CN';

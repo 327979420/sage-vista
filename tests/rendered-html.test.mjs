@@ -1,14 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-async function render(path = "/", cookie = "") {
+async function render(path = "/", cookie = "sv-language=zh", headers = {}) {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
   workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
   const { default: worker } = await import(workerUrl.href);
 
   return worker.fetch(
     new Request(`http://localhost${path}`, {
-      headers: { accept: "text/html", cookie },
+      headers: { accept: "text/html", cookie, ...headers },
     }),
     {
       ASSETS: {
@@ -42,7 +42,7 @@ test("server-renders the Sage Vista application", async () => {
 });
 
 test("share crawlers receive public image URLs and browser-compatible SV icons", async () => {
-  for (const cookie of ["", "sv-language=en"]) {
+  for (const cookie of ["", "sv-language=en", "sv-language=zh"]) {
     const html = await (await render("/", cookie)).text();
     for (const property of ["og:image", "twitter:image"]) {
       const tag = html.match(new RegExp(`<meta (?:property|name)="${property}"[^>]*>`))?.[0];
@@ -170,10 +170,12 @@ test("industry owns its title and excludes the market hero", async()=>{
 test("language cookie controls first render and never leaks between requests", async()=>{
  const pages=[['/','Market'],['/zh/watch/market','Market'],['/zh/watch/industry-radar','Industries'],['/zh/watch/resonance/rare-opportunities','Candidates'],['/zh/watch/resonance/favorite-pattern','Daily Patterns'],['/zh/backtest','Backtests']];
  for(const[path,title]of pages){
-  const response=await render(path,'sv-language=en');assert.equal(response.status,200);
-  const html=await response.text();assert.match(html,/<html lang="en">/);assert.ok(html.includes(title));assert.match(html,/lang="en" aria-pressed="true"/);
-  assert.doesNotMatch(html.split('</head>')[1].split('<script')[0].replace(/>中文</g,'>Chinese<'),/[\u3400-\u9fff]/);
+  for(const cookie of ['', 'sv-language=en', 'sv-language=invalid']){
+   const response=await render(path,cookie,{'Accept-Language':'zh-CN,zh;q=0.9','Referer':'https://www.linkedin.com/'});assert.equal(response.status,200);
+   const html=await response.text();assert.match(html,/<html lang="en">/);assert.ok(html.includes(title));assert.match(html,/lang="en" aria-pressed="true"/);
+   assert.doesNotMatch(html.split('</head>')[1].split('<script')[0].replace(/>中文</g,'>Chinese<'),/[\u3400-\u9fff]/);
+  }
  }
  const zh=await (await render('/','sv-language=zh')).text();assert.match(zh,/<html lang="zh-CN">/);assert.match(zh,/正在读取今日快照/);
- const invalid=await (await render('/','sv-language=invalid')).text();assert.match(invalid,/<html lang="zh-CN">/);
+ const fresh=await (await render('/?utm_source=linkedin&lang=zh','')).text();assert.match(fresh,/<html lang="en">/);assert.match(fresh,/<title>Sage Vista — Market<\/title>/);
 });

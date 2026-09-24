@@ -72,7 +72,9 @@ test('display localization preserves React keys, callbacks, input values and bus
 test('switch has accessible pressed state; preference works across paths and storage denial is harmless',()=>{
  const en=render(LanguageSwitch),zh=render(LanguageSwitch,{},'zh');
  assert.match(en,/lang="en" aria-pressed="true"/);assert.match(zh,/lang="zh-CN" aria-pressed="true"/);
- assert.equal(normalizeLocale('en'),'en');assert.equal(normalizeLocale('unexpected'),'zh');
+ assert.equal(normalizeLocale('en'),'en');assert.equal(normalizeLocale('unexpected'),'en');assert.equal(normalizeLocale(undefined),'en');assert.equal(normalizeLocale('zh'),'zh');
+ const fallback=renderToStaticMarkup(React.createElement(LocaleProvider,null,React.createElement(LanguageSwitch)));
+ assert.match(fallback,/lang="en" aria-pressed="true"/);
  const oldDocument=Object.getOwnPropertyDescriptor(globalThis,'document'),oldWindow=Object.getOwnPropertyDescriptor(globalThis,'window');
  try{
   Object.defineProperty(globalThis,'document',{value:{cookie:''},configurable:true});Object.defineProperty(globalThis,'window',{value:{location:{protocol:'https:'}},configurable:true});
