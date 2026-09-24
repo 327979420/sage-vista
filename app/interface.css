@@ -199,7 +199,6 @@ body, body:has(.rtPage) {
 .rtPage :is(.svPanel,.svAuditDetails,.shapeWorkspace,.shapeSummary>div) { border-color: var(--sv-line); border-radius: 12px; }
 .rtPage .svPanel { padding: 24px; }
 .rtPage :is(.candidateHeading p,.candidateHint,.shapeIntro,.shapeScope,.shapeCount,.shapeLegend,.shapeNote) { color: var(--sv-muted); font-size: 14px; }
-.candidateHeading h2 { font-size: 26px; }
 .rtPage :is(.candidateToolbar label,.candidateFilters label,.v2RankRow small,.shapeWorkspace>aside small,.shapeSummary small,.shapeFacts small,.shapeDetail header small) { font-size: 13px; color: var(--sv-muted); }
 .rtPage :is(.candidateToolbar input,.candidateFilters input,.candidateFilters select,.shapeControls input,.tradeComparison select) { border-color: #bac7d9; color: var(--sv-ink); background: white; border-radius: 8px; }
 .rtPage :is(.candidateTabs button,.shapeTabs button,.researchTabs button) { min-height: 44px; font-size: 14px; }
@@ -280,7 +279,6 @@ body, body:has(.rtPage) {
 /* One candidate heading; toolbar, filters and grid share one padded workspace. */
 .rtPage .candidateWorkspace { margin-top: 0; padding: 24px; border-radius: 12px; }
 .rtPage .candidateToolbar { padding: 0 0 14px; align-items: center; }
-.rtPage .candidateCoverage { margin: 0 0 14px; font-size: 13px; color: var(--sv-muted); }
 .candidateNotice { display: grid; gap: 6px; margin-bottom: 16px; padding: 14px 18px; border: 1px solid #e7c990; border-radius: 8px; background: #fff7e7; color: #795312; font-size: 14px; }
 .rtPage .candidateWorkspace .v2RankRow {
   grid-template-columns: minmax(180px,1.3fr) 76px 180px 116px 148px minmax(260px,2fr);
@@ -319,7 +317,6 @@ html[lang="en"] .cockpitTitle h2 {line-height:1.35;}
 html[lang="en"] .mvpState {white-space:normal; text-align:center; max-width:150px;}
 html[lang="en"] .mvpIndustryCard header {align-items:flex-start;}
 html[lang="en"] .mvpIndustryMetric > span {max-width:65%;}
-html[lang="en"] .shapeStockButton {white-space:normal;}
 .originalReportNote {font-size:14px; color:var(--sv-muted);}
 @media (max-width:640px) {
  .siteUtilities {gap:8px;}
@@ -332,7 +329,6 @@ html[lang="en"] .shapeStockButton {white-space:normal;}
 .rtPage .candidateList { max-height: 480px; overflow: auto; overscroll-behavior: contain; }
 .rtPage .candidateList .v2RankRow { grid-template-columns: minmax(150px,1.2fr) 76px minmax(170px,1.2fr) 126px minmax(120px,1fr) 54px; min-width: 810px; padding: 14px 18px; }
 .candidateList .replayHead { position: sticky; top: 0; z-index: 1; }
-.candidateList .candidateRowAction { font-size: 21px; text-align: center; color: #315f94; }
 .candidateList .v2RankRow:focus-visible { outline: 2px solid #315f94; outline-offset: -3px; }
 .rtPage .candidateDetail { scroll-margin-top: 24px; padding: 28px; }
 .rtPage .candidateDetail > header { gap: 20px; align-items: center; }
