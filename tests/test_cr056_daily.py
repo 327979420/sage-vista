@@ -171,20 +171,6 @@ class DailyCandidateTests(unittest.TestCase):
         result=self.run_daily('2026-10-01',fetch_reference=lambda *a:self.fail('long history download forbidden'))
         self.assertEqual(result['reason'],'refresh_gap_exceeds_bounded_recovery')
 
-    def test_committed_checkpoint_matches_reviewed_view_and_has_no_raw_bars(self):
-        root=Path(__file__).resolve().parents[1]
-        checkpoint=validate_watch_checkpoint(json.loads(gzip.decompress((root/'automation/cr056-watch-state.json.gz').read_bytes())))
-        public=json.loads((root/'public/cr056-ranking.json').read_text())
-        self.assertEqual(checkpoint['as_of'],public['as_of'])
-        self.assertEqual(checkpoint['snapshot_fingerprint'],public['source_snapshot'])
-        def check(value):
-            if isinstance(value,dict):
-                self.assertFalse({'open','high','low','close','volume'}<=value.keys())
-                for v in value.values():check(v)
-            elif isinstance(value,list):
-                for v in value:check(v)
-        check(checkpoint)
-
     def test_partial_local_write_is_rolled_back_before_failure_view(self):
         from services.scanner.cr056_daily import replace_bytes
         before=self.state.read_bytes();failed=False

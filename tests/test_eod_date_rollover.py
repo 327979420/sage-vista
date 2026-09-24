@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class EodDateRolloverTests(unittest.TestCase):
     def test_daily_date_and_record_growth_do_not_invalidate_contract_regressions(self):
-        public = ROOT / 'public'
+        public = ROOT / 'tests' / 'fixtures' / 'public-2026-09-23'
         paths = [public / name for name in FROZEN_RELEASE_NAMES]
         before = {p: hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
         current = date.fromisoformat(json.loads((public/'update-status.json').read_bytes())['source_latest_complete_date'])

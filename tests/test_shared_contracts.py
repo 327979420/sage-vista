@@ -19,6 +19,8 @@ from services.contracts.manifest import FROZEN_RELEASE_NAMES
 
 
 ROOT = Path(__file__).parents[1]
+# Frozen real release: contract logic must not depend on the moving public/ output.
+PUBLIC = ROOT / "tests" / "fixtures" / "public-2026-09-23"
 
 
 def experiment_ids():
@@ -106,16 +108,16 @@ class SharedContractTests(unittest.TestCase):
 
     def test_current_files_adapt_without_modification(self):
         paths = [
-            ROOT / "public" / "update-status.json",
-            ROOT / "public" / "unified-v2-latest.json",
-            ROOT / "public" / "daily-factor-snapshot.json",
-            ROOT / "public" / "favorite-pattern.json",
-            ROOT / "public" / "market-etf-watch.json",
-            ROOT / "public" / "industry-radar.json",
-            ROOT / "public" / "opportunity-ledger.json",
-            ROOT / "public" / "opportunity-ledger-latest.json",
-            ROOT / "public" / "signal-history.json",
-            ROOT / "public" / "signal-history-summary.json",
+            PUBLIC / "update-status.json",
+            PUBLIC / "unified-v2-latest.json",
+            PUBLIC / "daily-factor-snapshot.json",
+            PUBLIC / "favorite-pattern.json",
+            PUBLIC / "market-etf-watch.json",
+            PUBLIC / "industry-radar.json",
+            PUBLIC / "opportunity-ledger.json",
+            PUBLIC / "opportunity-ledger-latest.json",
+            PUBLIC / "signal-history.json",
+            PUBLIC / "signal-history-summary.json",
         ]
         before = {path: path.read_bytes() for path in paths}
         adapted = [adapt_legacy_file(path) for path in paths]
@@ -152,7 +154,7 @@ class SharedContractTests(unittest.TestCase):
                 build_shadow_manifest([first, second], allow_partial=True)
 
     def test_shadow_manifest_has_exact_hashes_and_roles(self):
-        paths = [ROOT / "public" / "update-status.json", ROOT / "public" / "signal-history-summary.json"]
+        paths = [PUBLIC / "update-status.json", PUBLIC / "signal-history-summary.json"]
         manifest = build_shadow_manifest(paths, generated_at="2026-08-30T00:00:00Z", allow_partial=True)
         self.assertTrue(manifest["shadow_only"])
         self.assertEqual(manifest["as_of"], json.loads(paths[0].read_bytes())["source_latest_complete_date"])
@@ -161,7 +163,7 @@ class SharedContractTests(unittest.TestCase):
         for entry in manifest["files"]:
             self.assertEqual(entry["sha256"], hashlib.sha256(original_bytes[entry["path"]]).hexdigest())
             self.assertEqual(entry["size_bytes"], len(original_bytes[entry["path"]]))
-        verify_shadow_manifest(manifest, ROOT / "public", allow_partial=True)
+        verify_shadow_manifest(manifest, PUBLIC, allow_partial=True)
 
     def test_manifest_missing_file_and_hash_mismatch_fail(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -183,7 +185,7 @@ class SharedContractTests(unittest.TestCase):
 
     def test_shadow_writer_rejects_public_and_allows_work(self):
         manifest = build_shadow_manifest(
-            [ROOT / "public" / "update-status.json"], generated_at="2026-08-30T00:00:00Z", allow_partial=True
+            [PUBLIC / "update-status.json"], generated_at="2026-08-30T00:00:00Z", allow_partial=True
         )
         with self.assertRaises(ContractError):
             write_shadow_manifest(manifest, ROOT / "public" / "release-manifest.json", ROOT)
@@ -202,17 +204,17 @@ class SharedContractTests(unittest.TestCase):
 
     def test_shadow_verifier_requires_an_explicit_shadow_identity(self):
         manifest = build_shadow_manifest(
-            [ROOT / "public" / "update-status.json"],
+            [PUBLIC / "update-status.json"],
             generated_at="2026-08-30T00:00:00Z",
             allow_partial=True,
         )
         manifest["shadow_only"] = False
         with self.assertRaises(ContractError):
-            verify_shadow_manifest(manifest, ROOT / "public", allow_partial=True)
+            verify_shadow_manifest(manifest, PUBLIC, allow_partial=True)
 
     def test_manifest_entry_major_and_boolean_are_strict(self):
         manifest = build_shadow_manifest(
-            [ROOT / "public" / "update-status.json"],
+            [PUBLIC / "update-status.json"],
             generated_at="2026-08-30T00:00:00Z",
             allow_partial=True,
         )
@@ -230,7 +232,7 @@ class SharedContractTests(unittest.TestCase):
 
     def test_manifest_entry_schema_major_follows_every_declared_contract_type(self):
         manifest = build_shadow_manifest(
-            [ROOT / "public" / "update-status.json"],
+            [PUBLIC / "update-status.json"],
             generated_at="2026-08-30T00:00:00Z",
             allow_partial=True,
         )
@@ -264,7 +266,7 @@ class SharedContractTests(unittest.TestCase):
 
     def test_native_manifest_entry_may_omit_legacy_adapter_identity(self):
         manifest = build_shadow_manifest(
-            [ROOT / "public" / "update-status.json"],
+            [PUBLIC / "update-status.json"],
             generated_at="2026-08-30T00:00:00Z",
             allow_partial=True,
         )
@@ -295,7 +297,7 @@ class SharedContractTests(unittest.TestCase):
 
     def test_manifest_metadata_must_match_the_same_real_file_bytes(self):
         manifest = build_shadow_manifest(
-            [ROOT / "public" / "update-status.json"],
+            [PUBLIC / "update-status.json"],
             generated_at="2026-08-30T00:00:00Z",
             allow_partial=True,
         )
@@ -306,10 +308,10 @@ class SharedContractTests(unittest.TestCase):
         # actual source file date and must fail byte-backed verification.
         validate_contract("ReleaseManifest", manifest, allow_partial_manifest=True)
         with self.assertRaises(ContractError):
-            verify_shadow_manifest(manifest, ROOT / "public", allow_partial=True)
+            verify_shadow_manifest(manifest, PUBLIC, allow_partial=True)
 
     def test_manifest_identity_is_independent_of_input_and_entry_order(self):
-        paths = [ROOT / "public" / "update-status.json", ROOT / "public" / "signal-history-summary.json"]
+        paths = [PUBLIC / "update-status.json", PUBLIC / "signal-history-summary.json"]
         forward = build_shadow_manifest(
             paths, generated_at="2026-08-30T00:00:00Z", allow_partial=True
         )
@@ -326,14 +328,14 @@ class SharedContractTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             folder_path = Path(folder)
             factor = folder_path / "daily-factor-snapshot.json"
-            factor_payload = json.loads((ROOT / "public" / factor.name).read_text())
+            factor_payload = json.loads((PUBLIC / factor.name).read_text())
             factor_payload["symbols"] = "corrupted-not-a-list"
             factor.write_text(json.dumps(factor_payload))
             with self.assertRaises(ContractError):
                 build_shadow_manifest([factor], allow_partial=True)
 
             unified = folder_path / "unified-v2-latest.json"
-            unified_payload = json.loads((ROOT / "public" / unified.name).read_text())
+            unified_payload = json.loads((PUBLIC / unified.name).read_text())
             unified_payload["factor_registry_versions"] = "0.10.0"
             unified.write_text(json.dumps(unified_payload))
             with self.assertRaises(ContractError):
@@ -369,11 +371,11 @@ class SharedContractTests(unittest.TestCase):
 
     def test_full_current_shadow_release_uses_three_temporal_classes(self):
         manifest = build_shadow_manifest(
-            [ROOT / "public" / name for name in FROZEN_RELEASE_NAMES],
+            [PUBLIC / name for name in FROZEN_RELEASE_NAMES],
             generated_at="2026-08-30T00:00:00Z",
             known_experiment_ids=experiment_ids(),
         )
-        verify_shadow_manifest(manifest, ROOT / "public", known_experiment_ids=experiment_ids())
+        verify_shadow_manifest(manifest, PUBLIC, known_experiment_ids=experiment_ids())
         entries = {entry["path"]: entry for entry in manifest["files"]}
         self.assertEqual(len(entries), 15)
 
@@ -399,7 +401,7 @@ class SharedContractTests(unittest.TestCase):
 
     def test_d1_daily_snapshot_wrong_date_or_future_evidence_fails(self):
         manifest = build_shadow_manifest(
-            [ROOT / "public" / name for name in FROZEN_RELEASE_NAMES],
+            [PUBLIC / name for name in FROZEN_RELEASE_NAMES],
             generated_at="2026-08-30T00:00:00Z",
             known_experiment_ids=experiment_ids(),
         )
@@ -415,11 +417,11 @@ class SharedContractTests(unittest.TestCase):
     def test_d1_registry_version_mismatch_fails_without_daily_fields(self):
         with tempfile.TemporaryDirectory() as folder:
             replacement = Path(folder) / "factor-registry.json"
-            payload = json.loads((ROOT / "public" / "factor-registry.json").read_text())
+            payload = json.loads((PUBLIC / "factor-registry.json").read_text())
             payload["registry_version"] = "mismatched-version"
             replacement.write_text(json.dumps(payload))
             paths = [
-                replacement if name == replacement.name else ROOT / "public" / name
+                replacement if name == replacement.name else PUBLIC / name
                 for name in FROZEN_RELEASE_NAMES
             ]
             with self.assertRaises(ContractError):
@@ -432,12 +434,12 @@ class SharedContractTests(unittest.TestCase):
     def test_d1_research_summary_future_coverage_or_missing_source_fails(self):
         with tempfile.TemporaryDirectory() as folder:
             replacement = Path(folder) / "decision-summary.json"
-            payload = json.loads((ROOT / "public" / "decision-summary.json").read_text())
-            source_day = json.loads((ROOT / "public/update-status.json").read_bytes())["source_latest_complete_date"]
+            payload = json.loads((PUBLIC / "decision-summary.json").read_text())
+            source_day = json.loads((PUBLIC / "update-status.json").read_bytes())["source_latest_complete_date"]
             payload["coverage"]["end"] = (date.fromisoformat(source_day) + timedelta(days=1)).isoformat()
             replacement.write_text(json.dumps(payload))
             paths = [
-                replacement if name == replacement.name else ROOT / "public" / name
+                replacement if name == replacement.name else PUBLIC / name
                 for name in FROZEN_RELEASE_NAMES
             ]
             with self.assertRaises(ContractError):
@@ -458,7 +460,7 @@ class SharedContractTests(unittest.TestCase):
 
     def test_d1b_full_verifier_rejects_missing_and_extra_members(self):
         missing_name = "daily-factor-snapshot.json"
-        paths = [ROOT / "public" / name for name in sorted(FROZEN_RELEASE_NAMES)]
+        paths = [PUBLIC / name for name in sorted(FROZEN_RELEASE_NAMES)]
         partial = build_shadow_manifest(
             [path for path in paths if path.name != missing_name],
             generated_at="2026-08-30T00:00:00Z",
@@ -466,7 +468,7 @@ class SharedContractTests(unittest.TestCase):
             known_experiment_ids=experiment_ids(),
         )
         with self.assertRaises(ContractError):
-            verify_shadow_manifest(partial, ROOT / "public", known_experiment_ids=experiment_ids())
+            verify_shadow_manifest(partial, PUBLIC, known_experiment_ids=experiment_ids())
 
         complete = build_shadow_manifest(
             paths,
@@ -477,7 +479,7 @@ class SharedContractTests(unittest.TestCase):
         extra["path"] = "extra.json"
         complete["files"].append(extra)
         with self.assertRaises(ContractError):
-            verify_shadow_manifest(complete, ROOT / "public", known_experiment_ids=experiment_ids())
+            verify_shadow_manifest(complete, PUBLIC, known_experiment_ids=experiment_ids())
 
     def test_d1c_partial_registry_comparisons_are_deterministic_when_related_files_are_missing(self):
         for missing_name in (
@@ -487,7 +489,7 @@ class SharedContractTests(unittest.TestCase):
         ):
             with self.subTest(missing=missing_name):
                 paths = [
-                    ROOT / "public" / name
+                    PUBLIC / name
                     for name in sorted(FROZEN_RELEASE_NAMES)
                     if name != missing_name
                 ]
@@ -504,7 +506,7 @@ class SharedContractTests(unittest.TestCase):
 
     def test_d1b_manifest_paths_must_be_safe_canonical_relative_paths(self):
         manifest = build_shadow_manifest(
-            [ROOT / "public" / name for name in FROZEN_RELEASE_NAMES],
+            [PUBLIC / name for name in FROZEN_RELEASE_NAMES],
             generated_at="2026-08-30T00:00:00Z",
             known_experiment_ids=experiment_ids(),
         )
@@ -512,25 +514,25 @@ class SharedContractTests(unittest.TestCase):
             candidate = copy.deepcopy(manifest)
             candidate["files"][0]["path"] = unsafe
             with self.subTest(path=unsafe), self.assertRaises(ContractError):
-                verify_shadow_manifest(candidate, ROOT / "public", known_experiment_ids=experiment_ids())
+                verify_shadow_manifest(candidate, PUBLIC, known_experiment_ids=experiment_ids())
 
     def test_d1b_release_id_is_recomputed_from_complete_entries(self):
         manifest = build_shadow_manifest(
-            [ROOT / "public" / name for name in FROZEN_RELEASE_NAMES],
+            [PUBLIC / name for name in FROZEN_RELEASE_NAMES],
             generated_at="2026-08-30T00:00:00Z",
             known_experiment_ids=experiment_ids(),
         )
         declared = copy.deepcopy(manifest)
         declared["release_id"] = "sha256:" + "0" * 64
         with self.assertRaises(ContractError):
-            verify_shadow_manifest(declared, ROOT / "public", known_experiment_ids=experiment_ids())
+            verify_shadow_manifest(declared, PUBLIC, known_experiment_ids=experiment_ids())
         changed_entry = copy.deepcopy(manifest)
         changed_entry["files"][0]["roles"] = ["audit"]
         with self.assertRaises(ContractError):
-            verify_shadow_manifest(changed_entry, ROOT / "public", known_experiment_ids=experiment_ids())
+            verify_shadow_manifest(changed_entry, PUBLIC, known_experiment_ids=experiment_ids())
 
     def test_d1b_research_experiment_must_exist_in_injected_authority(self):
-        paths = [ROOT / "public" / name for name in FROZEN_RELEASE_NAMES]
+        paths = [PUBLIC / name for name in FROZEN_RELEASE_NAMES]
         with self.assertRaises(ContractError):
             build_shadow_manifest(
                 paths,
@@ -542,7 +544,7 @@ class SharedContractTests(unittest.TestCase):
             generated_at="2026-08-30T00:00:00Z",
             known_experiment_ids=experiment_ids(),
         )
-        verify_shadow_manifest(manifest, ROOT / "public", known_experiment_ids=experiment_ids())
+        verify_shadow_manifest(manifest, PUBLIC, known_experiment_ids=experiment_ids())
 
 
 if __name__ == "__main__":

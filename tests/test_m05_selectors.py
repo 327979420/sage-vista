@@ -281,8 +281,8 @@ class M05SelectorTests(unittest.TestCase):
 
     def test_legacy_adapter_does_not_modify_current_outputs(self):
         paths = [
-            ROOT / "public" / "favorite-pattern.json",
-            ROOT / "public" / "unified-v2-latest.json",
+            ROOT / "tests/fixtures/public-2026-09-23" / "favorite-pattern.json",
+            ROOT / "tests/fixtures/public-2026-09-23" / "unified-v2-latest.json",
         ]
         before = {path: path.read_bytes() for path in paths}
         for path in paths:

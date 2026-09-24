@@ -43,6 +43,14 @@ class DailyEodWorkflowTests(unittest.TestCase):
   self.assertLess(text.index("Check public file sizes before deploy"),text.index("Commit audited website data"))
   self.assertIn("node --test tests/public-size-check.test.mjs",text.split('  check_changes:',1)[1].split('  update:',1)[0])
 
+ def test_release_contract_gates_live_data_before_commit_and_deploy(self):
+  text=WORKFLOW.read_text()
+  step=text.index("name: Validate release contract on generated data")
+  self.assertIn('python3 -m services.scanner.release_contract --as-of "${{ steps.update_result.outputs.as_of }}"',text[step:text.index("name: Run all Python tests")])
+  for later in ("Run all Python tests","Commit audited website data","Deploy production to Cloudflare Workers"):
+   self.assertLess(step,text.index(f"name: {later}"))
+  self.assertGreater(step,text.index("name: Refresh pre-deployment machine status"))
+
  def test_retry_window_uses_independent_crons(self):
   text=WORKFLOW.read_text();crons=re.findall(r'- cron: "([^"]+)"',text)
   self.assertEqual(crons,["47 23 * * 1-5","17 0 * * 2-6","47 0 * * 2-6","17 1 * * 2-6","47 1 * * 2-6","17 2 * * 2-6","17 3 * * 2-6"])

@@ -214,6 +214,9 @@ jobs:
       - name: Check public file sizes before deploy
         if: steps.candidate_update.outputs.needs_release == 'true'
         run: node services/automation/check_public_sizes.mjs
+      - name: Validate release contract on generated data
+        if: steps.candidate_update.outputs.needs_release == 'true'
+        run: python3 -m services.scanner.release_contract --as-of "${{ steps.update_result.outputs.as_of }}"
       - name: Run all Python tests
         id: python_tests
         if: steps.candidate_update.outputs.needs_release == 'true'
