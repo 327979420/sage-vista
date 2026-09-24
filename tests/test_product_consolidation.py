@@ -35,7 +35,7 @@ class ProductConsolidationTests(unittest.TestCase):
   self.assertNotIn("resonance-tracker.json",(ROOT/"app/zh/watch/resonance/tracker-ui.tsx").read_text())
   home=(ROOT/"app/zh/watch/market/dashboard.tsx").read_text()
   self.assertIn("/market-cockpit.json",home)
-  self.assertIn("/market-internals.json",(ROOT/"app/zh/watch/market/sample-dashboard.tsx").read_text())
+  self.assertIn("/market-internals.json",home)
   for retired in ('/unified-v2-latest.json','/signal-history-summary.json','/rare-opportunity-radar.json'):
    self.assertNotIn(retired,home)
 

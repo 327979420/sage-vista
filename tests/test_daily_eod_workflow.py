@@ -180,6 +180,16 @@ class DailyEodWorkflowTests(unittest.TestCase):
   self.assertIn("weekly checkpoint",nightly)
   self.assertIn("failure does not advance progress",nightly)
   self.assertNotIn("timeout-minutes",nightly)
+ def test_nightly_commits_every_opportunity_ledger_output(self):
+  # 30 Aug-24 Sep: the latest view was written but not staged, so every nightly
+  # commit failed at git pull --rebase and backtest progress stopped.
+  from services.scanner import opportunity_ledger
+  nightly=(WORKFLOW.parent/"nightly-backtest.yml").read_text()
+  commit=nightly.split("name: Commit the successful week and its next cursor",1)[1].split("      - name:",1)[0]
+  for path in (opportunity_ledger.DEFAULT_OUT,opportunity_ledger.DEFAULT_LATEST_OUT):
+   self.assertIn(str(path),commit.split("git commit",1)[0])
+  self.assertLess(commit.index("git status --porcelain"),commit.index("git pull --rebase"))
+
  def test_saved_week_recovery_does_not_recalculate_history(self):
   recovery=(WORKFLOW.parent/"recover-unified-v2-backfill.yml").read_text()
   self.assertIn("gh run download",recovery)

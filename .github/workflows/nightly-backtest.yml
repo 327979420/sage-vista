@@ -69,9 +69,11 @@ jobs:
         run: |
           git config user.name "sage-vista-bot"
           git config user.email "sage-vista-bot@users.noreply.github.com"
-          git add public/unified-v2-rankings.json public/opportunity-ledger.json automation/backtest-state.json automation/backtest-progress.json docs/CURRENT_STATUS_ZH.md
+          git add public/unified-v2-rankings.json public/opportunity-ledger.json public/opportunity-ledger-latest.json automation/backtest-state.json automation/backtest-progress.json docs/CURRENT_STATUS_ZH.md
           git diff --cached --quiet && exit 0
           git commit -m "data: nightly backtest ${{ steps.plan.outputs.start }} to ${{ steps.plan.outputs.end }}"
+          # Name any produced file missing from the add list instead of failing inside git pull.
+          if [ -n "$(git status --porcelain --untracked-files=no)" ]; then echo "Uncommitted tracked outputs:"; git status --short --untracked-files=no; exit 1; fi
           git pull --rebase origin main
           python3 -m services.scanner.project_status > /dev/null
           git add docs/CURRENT_STATUS_ZH.md
