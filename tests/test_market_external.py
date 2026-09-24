@@ -69,7 +69,10 @@ class ExternalMarketTests(unittest.TestCase):
  def test_published_asset_and_source_identity_are_valid(self):
   p=validate(json.loads((ROOT/'public/market-external.json').read_bytes()))
   for key in SOURCES:
-   bad=copy.deepcopy(p);bad['indicators'][key]['status']='stale'
+   bad=copy.deepcopy(p)
+   original=bad['indicators'][key]['status']
+   bad['indicators'][key]['status']='current' if original=='stale' else 'stale'
+   self.assertNotEqual(bad['indicators'][key]['status'],original)
    with self.assertRaises(ValueError):validate(bad)
   with self.assertRaisesRegex(ValueError,'target_date'):validate(p,'2099-01-01')
   with patch('services.scanner.verify_live_deployment.fetch',return_value=p):
@@ -77,5 +80,21 @@ class ExternalMarketTests(unittest.TestCase):
   bad=copy.deepcopy(p);bad['fetched_at']='2026-09-22T00:00:00Z';bad['content_fingerprint']=canonical_fingerprint({k:v for k,v in bad.items() if k!='content_fingerprint'})
   with patch('services.scanner.verify_live_deployment.fetch',return_value=bad),self.assertRaises(RuntimeError):
    verify_external_market_asset('https://example.test',p['as_of'],'a'*40)
+
+ def test_status_tampering_is_rejected_for_current_and_stale_observations(self):
+  for target,expected in [('2026-09-18','current'),('2026-09-20','stale')]:
+   with self.subTest(status=expected),tempfile.TemporaryDirectory() as d:
+    out=Path(d)/'public.json'
+    run(target,out=out,state=Path(d)/'archive',fetcher=lambda _:CSV)
+    payload=validate(json.loads(out.read_bytes()),target)
+    for key in SOURCES:
+     self.assertEqual(payload['indicators'][key]['status'],expected)
+     bad=copy.deepcopy(payload)
+     bad['indicators'][key]['status']='stale' if expected=='current' else 'current'
+     # Re-sign to prove the freshness contract rejects the lie independently
+     # of the fingerprint check, including legitimately delayed providers.
+     bad['content_fingerprint']=canonical_fingerprint({k:v for k,v in bad.items() if k!='content_fingerprint'})
+     with self.assertRaisesRegex(ValueError,'external_freshness_mismatch'):
+      validate(bad,target)
 
 if __name__=='__main__':unittest.main()

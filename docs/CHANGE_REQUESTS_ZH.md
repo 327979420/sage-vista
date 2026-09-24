@@ -1205,3 +1205,8 @@
 - Safari跟进：用户关闭重开仍无图标，不能只归因缓存。实测初始head及图标HTTP正常；确认此前缺少固定标签页mask-icon。补齐Apple要求的16×16单层黑色透明SVG及显式color（vinext的icons.other不输出color），普通标签改用16/32 PNG并使用新文件路径，ICO与Apple图标同步换路径；旧URL继续可用。尚不能确认用户普通标签不显示的唯一根因，也不把HTTP通过等同Safari视觉验收。参考：https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/pinnedTabs/pinnedTabs.html 。
 - Safari兼容修改本地验收：65项网站检查通过，包含初始head内PNG图标、固定标签SVG及color；未改变业务数据。浏览器连接工具仍因TIOCSTI失败，不能宣称已在用户Safari标签栏目视确认。
 - Safari兼容修复已上线：Build35c41d3，[发布35820714523](https://github.com/327979420/sage-vista/actions/runs/35820714523)成功，生产收据786ab15。新旧两域名首页/大盘共20次图标核验通过；初始head含PNG和带color的mask-icon，线上字节与源文件相等。独立Chrome中5种图标均成功解码，水合后head仍正确。用户本机Safari标签栏仍待确认，不宣称视觉问题已被证实解决。
+
+### CR-2026-09-24｜外部指标延迟导致日更测试误报
+- 主动巡检确认35935317692在Python测试失败：test_market_external把已是stale的真实指标再次写为stale，未发生任何改动，却要求validate抛错；因此合法的供应商延迟状态挡住整包发布。
+- 最小修复仅修改测试：按原状态选择不同状态，确保篡改确实发生；增加current/stale两类固定样本，重新计算指纹后仍必须拒绝错误的新鲜度状态。不改校验器、真实数据、评分、交易规则或缺失值处理。
+- 本地9项外部指标测试通过，并独立复现旧测试stale→stale仍合法、修复后stale→current被external_freshness_mismatch拒绝。网站仍为2026-09-22；现有重试正在跑旧测试，将由已排队更新同步最新main，不额外重复启动。线上恢复尚待核验。
