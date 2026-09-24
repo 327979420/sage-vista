@@ -16,9 +16,9 @@ export function LocaleProvider({initialLocale = DEFAULT_LOCALE, children}: {init
   document.documentElement.lang = locale === 'en' ? 'en' : 'zh-CN';
   const titles: Record<string, [string, string]> = {
    '/': ['大盘', 'Market'], '/zh/watch/market': ['大盘', 'Market'],
-   '/zh/watch/industry-radar': ['行业', 'Industries'],
-   '/zh/watch/resonance/rare-opportunities': ['候选榜', 'Candidates'],
-   '/zh/watch/resonance/favorite-pattern': ['日线形态', 'Daily Patterns'],
+   '/zh/watch/industry-radar': ['行业', 'Sectors'],
+   '/zh/watch/resonance/rare-opportunities': ['多因子机会', 'Multi-Factor Opportunities'],
+   '/zh/watch/resonance/favorite-pattern': ['我最喜欢形态', 'Daily Setups'],
    '/zh/backtest': ['回测', 'Backtests'],
   };
   const title = titles[window.location.pathname.replace(/\/$/, '') || '/'];

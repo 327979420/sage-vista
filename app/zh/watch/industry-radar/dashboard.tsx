@@ -32,7 +32,7 @@ export function IndustryView({context,targetDate,candidates=[],candidateDate}:{c
   </article>
  };
  return <Localized><div className="marketDashboard mvpDashboard">
-  <section className="mvpIntro"><div><p className="marketEyebrow">SECTOR OVERVIEW</p><h2>哪些行业向上，哪些正在回调？</h2><p>用行业 ETF 看方向，展开卡片看相关候选。</p></div><span className="mvpDate">收盘日 {targetDate||'待更新'}</span></section>
+  <section className="mvpIntro"><div><p className="marketEyebrow">SECTOR OVERVIEW</p><h2>看看哪些板块正在走强，哪些正在走弱。</h2><p>比较板块表现，寻找资金关注从一个板块转向另一个板块的轮动机会。</p></div><span className="mvpDate">收盘日 {targetDate||'待更新'}</span></section>
   {!current&&<p className="marketError" role="status">行业数据等待更新{context?`，目前保存至 ${context.as_of}`:''}。</p>}
   <section className="mvpKpis mvpIndustryTotals" aria-label="行业状态概览"><article className="mvpKpi"><header>已更新</header><strong>{ready.length}<small> / {context?.themes.length??'—'}</small></strong><footer>行业与主题</footer></article><article className="mvpKpi"><header>趋势向上</header><strong data-direction="up">{ready.filter(strong).length}</strong><footer>保持上行</footer></article><article className="mvpKpi"><header>回调中</header><strong>{ready.filter(pullback).length}</strong><footer>观察是否企稳</footer></article><article className="mvpKpi"><header>偏弱 / 待确认</header><strong>{ready.filter(t=>fund(t)!.state==='Weak Or Unconfirmed').length}</strong><footer>方向仍需确认</footer></article></section>
   <div className="mvpToolbar"><div className="mvpTabs" role="group" aria-label="行业状态筛选">{FILTERS.map(([key,label])=><button key={key} onClick={()=>setFilter(key)} aria-pressed={filter===key}>{label}</button>)}</div><label className="mvpSearch"><span>搜索</span><input aria-label="搜索行业或ETF" placeholder="行业 / ETF，如半导体、SOXX" value={search} onChange={e=>setSearch(e.target.value)}/></label></div>
@@ -48,7 +48,7 @@ export default function IndustryRadar(){
  const industry=reports[PATHS[1]] as {as_of:string;future_data_used:boolean;display_context:Context}|null;
  const rank=reports[PATHS[2]] as {as_of:string;ranked_symbols:string[]}|null;
  return <Localized><TrackerShell active="行业" title="行业" subtitle="行业方向与相关机会。" overview>
-  <div className="mvpPageTitle"><div><h1>行业</h1><p>每日行业速览</p></div><button className="mvpRefresh" onClick={refresh}>↻ 刷新</button></div>
+  <div className="mvpPageTitle"><div><h1>行业</h1></div><button className="mvpRefresh" onClick={refresh}>↻ 刷新</button></div>
   {loading?<p className="marketLoading" role="status">正在读取行业快照…</p>:<IndustryView context={industry&&!industry.future_data_used&&industry.as_of===targetDate?industry.display_context:null} targetDate={targetDate} candidates={rank?.ranked_symbols??[]} candidateDate={rank?.as_of}/>}
  </TrackerShell></Localized>
 }

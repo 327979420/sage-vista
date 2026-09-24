@@ -73,7 +73,7 @@ export function DailyPatternView({data,error="",onRetry}: {data:Picker|null;erro
   const selected=rows.find(r=>r.symbol===symbol)??rows[0];
   const waiting=data?.state_counts.waiting??0;
   const tracking=(data?.rows.length??0)-waiting;
-  return <Localized><TrackerShell active="我最喜欢形态" title="热门股 · 日线 · 形态" subtitle="先确认底部，在突破前发现值得观察的日线形态。">
+  return <Localized><TrackerShell active="我最喜欢形态" title="我最喜欢形态" subtitle="从热门股票里，快速寻找短线机会。" description="聚焦日线回调形态，优先找底部已确认、尚未突破的股票，方便你进一步看图判断。">
     <div className="shapePicker">
       <p className="shapeIntro">从成交活跃的股票里，找三推回调、多底支撑。点一只股票，就能核对形态和底部确认日期。</p>
       {error?<div className="shapeMessage" role="alert"><p>{error}</p><button type="button" onClick={onRetry}>重新加载</button></div>:!data?<div className="shapeMessage" role="status">正在读取日线形态…</div>:<>

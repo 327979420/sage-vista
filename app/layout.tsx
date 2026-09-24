@@ -75,9 +75,9 @@ export default async function RootLayout({
         </div>
         <Localized><div className="globalnav">
           <a href="/">今日市场与机会</a>
+          <a href="/zh/watch/industry-radar">行业</a>
           <a href="/zh/watch/resonance/rare-opportunities">多因子机会</a>
           <a href="/zh/watch/resonance/favorite-pattern">我最喜欢形态</a>
-          <a href="/zh/watch/industry-radar">行业</a>
           <a href="/zh/backtest">回测</a>
         </div></Localized>
         {children}

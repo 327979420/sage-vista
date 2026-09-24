@@ -104,8 +104,8 @@ test("server-renders the independent favorite-pattern tracker", async () => {
   assert.equal(response.status, 200);
   const html = await response.text();
   assert.match(html, /我最喜欢形态/);
-  assert.match(html, /热门股 · 日线 · 形态/);
-  assert.match(html, /先确认底部/);
+  assert.match(html, /从热门股票里，快速寻找短线机会/);
+  assert.match(html, /底部已确认、尚未突破/);
   assert.match(html, /正在读取日线形态/);
   assert.doesNotMatch(html, /4\/4|生产权重 0/);
 });
@@ -153,7 +153,7 @@ test("Market is a real product page and the retired overview is absent", async (
  const response=await render("/zh/watch/market");
  assert.equal(response.status,200);
  const html=await response.text();
- assert.match(html,/先看结论，再看证据/);
+ assert.match(html,/看清整个市场，再决定去哪里找机会/);
  assert.match(html,/正在读取今日快照/);
  assert.match(html,/href="\/zh\/watch\/market"/);
  assert.doesNotMatch(html,/今日研究总览|精选机会，不追高/);
@@ -162,13 +162,13 @@ test("Market is a real product page and the retired overview is absent", async (
 test("industry owns its title and excludes the market hero", async()=>{
  const html=await (await render('/zh/watch/industry-radar')).text();
  assert.match(html,/<title>Sage Vista — 行业<\/title>/);
- assert.match(html,/每日行业速览/);
+ assert.match(html,/行业/);
  assert.doesNotMatch(html,/大盘环境 ·|行业与大盘/);
 });
 
 
 test("language cookie controls first render and never leaks between requests", async()=>{
- const pages=[['/','Market'],['/zh/watch/market','Market'],['/zh/watch/industry-radar','Industries'],['/zh/watch/resonance/rare-opportunities','Candidates'],['/zh/watch/resonance/favorite-pattern','Daily Patterns'],['/zh/backtest','Backtests']];
+ const pages=[['/','Market'],['/zh/watch/market','Market'],['/zh/watch/industry-radar','Sectors'],['/zh/watch/resonance/rare-opportunities','Multi-Factor Opportunities'],['/zh/watch/resonance/favorite-pattern','Daily Setups'],['/zh/backtest','Backtests']];
  for(const[path,title]of pages){
   for(const cookie of ['', 'sv-language=en', 'sv-language=invalid']){
    const response=await render(path,cookie,{'Accept-Language':'zh-CN,zh;q=0.9','Referer':'https://www.linkedin.com/'});assert.equal(response.status,200);

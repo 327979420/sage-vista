@@ -3,4 +3,4 @@ import {TrackerShell} from "../watch/resonance/tracker-ui";
 import Comparison from "./comparison";
 import ResearchRuns from "./research-runs";
 
-export default function Page(){return <Localized><TrackerShell active="回测" title="回测" subtitle="选择已有策略和日期，查看收益、回撤与交易明细；研究结论不自动激活生产规则。"><ResearchRuns/><details className="svPanel"><summary>早期20笔成交工程对账</summary><Comparison/></details></TrackerShell></Localized>}
+export default function Page(){return <Localized><TrackerShell active="回测" title="回测" subtitle="看看策略过去表现如何。" description="查看历史研究中的收益和亏损，了解策略的风险，以及哪些结论还需要验证。"><ResearchRuns/><details className="svPanel"><summary>早期20笔成交工程对账</summary><Comparison/></details></TrackerShell></Localized>}

@@ -1,5 +1,16 @@
 // Reviewed display translations. Business identifiers and saved artifacts stay unchanged.
 export const catalog: Record<string, string> = {
+  "看清整个市场，再决定去哪里找机会。": "Understand the broader market before deciding where to look for opportunities.",
+  "了解有多少股票在上涨、资金流入还是流出，以及机构仓位的变化。": "See how widely stocks are rising, whether money is flowing in or out, and how institutional positioning is changing.",
+  "看看哪些板块正在走强，哪些正在走弱。": "See which sectors are gaining strength and which are weakening.",
+  "比较板块表现，寻找资金关注从一个板块转向另一个板块的轮动机会。": "Compare sector performance to spot potential rotation as investor interest shifts between sectors.",
+  "SV 的核心：寻找值得深入研究的中长期投资机会。": "The core of SV: find potential medium- to long-term investments worth researching.",
+  "综合月线、周线和日线的多个指标，为股票评分和排序，帮你缩小选股范围。评分提供研究线索，是否值得买入，仍需人工判断。": "Combine indicators across monthly, weekly and daily timeframes to score and rank stocks, helping you narrow your search. Scores guide your research; deciding whether to buy still requires human judgment.",
+  "从热门股票里，快速寻找短线机会。": "Quickly find short-term opportunities in actively traded stocks.",
+  "聚焦日线回调形态，优先找底部已确认、尚未突破的股票，方便你进一步看图判断。": "Focus on daily pullback patterns, prioritizing confirmed bottoms before a breakout so you can review the chart and make your own judgment.",
+  "看看策略过去表现如何。": "See how strategies performed in the past.",
+  "查看历史研究中的收益和亏损，了解策略的风险，以及哪些结论还需要验证。": "Review gains and losses in historical research to understand the risks and which findings still need validation.",
+
   "最近三根MACD柱：": "Last three MACD histogram bars:",
   "按评分查看候选，点击股票查看摘要。": "Browse by score. Select a stock for its summary.",
   "摘要": "Summary",
@@ -15,9 +26,9 @@ export const catalog: Record<string, string> = {
   "详细检查与风险": "Detailed checks and risks",
 
   "大盘": "Market",
-  "多因子机会": "Candidates",
-  "我最喜欢形态": "Daily Patterns",
-  "行业": "Industries",
+  "多因子机会": "Multi-Factor Opportunities",
+  "我最喜欢形态": "Daily Setups",
+  "行业": "Sectors",
   "回测": "Backtests",
   "主要功能": "Main navigation",
   "Sage Vista · 功能介绍": "Sage Vista · About",

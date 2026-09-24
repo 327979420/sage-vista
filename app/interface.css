@@ -90,7 +90,11 @@ body, body:has(.rtPage) {
 .rtSubHero h1, .mvpPageTitle h1 { font-size: 32px; font-weight: 750; line-height: 1.3; letter-spacing: -.025em; color: var(--sv-ink); }
 .rtSubHero a { color: var(--sv-blue); font-size: 13px; }
 .rtSubHero p { color: var(--sv-muted); font-size: 12px; margin: 12px 0 6px; }
-.rtSubHero strong { color: var(--sv-muted); font-size: 15px; line-height: 1.7; font-weight: 400; }
+.rtSubHero strong, .svHeroLead { display: block; color: var(--sv-ink); font-size: 17px; line-height: 1.6; font-weight: 650; margin-top: 10px; }
+.rtSubHero p.rtHeroDescription { font-size: 15px; line-height: 1.75; letter-spacing: normal; font-weight: 400; margin: 10px 0 0; max-width: 70ch; }
+.mvpPageTitle > div { min-width: 0; }
+.mvpPageTitle .mvpRefresh { flex-shrink: 0; }
+.mvpPageTitle p { max-width: 75ch; line-height: 1.75; }
 .rtSubHero aside, .rtSubHero aside.isCurrent { max-width: 350px; min-width: 260px; background: #f6f8fc; border-color: var(--sv-line); padding: 14px 18px; }
 .rtSubHero aside :is(small,span,time) { color: var(--sv-muted); font-size: 13px; }
 .rtSubHero aside b { color: var(--sv-ink); font-size: 22px; }
