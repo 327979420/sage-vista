@@ -41,11 +41,7 @@ class UiV2ContractTests(unittest.TestCase):
   self.assertEqual(themes["semiconductors"]["membership_source"]["fund"],"SOXX")
   self.assertEqual(themes["ai-infrastructure"]["status"],"manual_curated_required")
   self.assertNotIn("membership_source",themes["ai-infrastructure"])
-  radar=json.loads((ROOT/"public/industry-radar.json").read_text())
-  semi=next(x for x in radar["themes"] if x["theme_id"]=="semiconductors")
-  self.assertEqual(semi["source_status"],"available")
-  self.assertGreaterEqual(semi["member_count"],5)
-  if semi["valid_member_count"]<5:self.assertEqual(semi["state"],"Unavailable")
-  self.assertFalse(radar["future_data_used"])
+  # Live membership availability is a release warning, and the <5-member
+  # Unavailable rule is gated by services.scanner.release_contract.
 
 if __name__=="__main__":unittest.main()

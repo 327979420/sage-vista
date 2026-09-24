@@ -6,10 +6,9 @@ import unittest
 from unittest.mock import patch
 from services.scanner.market_external import parse_history, observation, run, validate, SOURCES
 from services.scanner.verify_live_deployment import verify_external_market_asset
-from services.contracts.market_data import canonical_fingerprint
+from tests.public_fixture import changed, local_public, reseal
 
 CSV=b'DATE,OPEN,HIGH,LOW,CLOSE\n09/17/2026,16,17,15,15.44\n09/18/2026,15,16,14,14.81\n09/21/2026,15,16,14,99\n'
-ROOT=Path(__file__).resolve().parents[1]
 
 class ExternalMarketTests(unittest.TestCase):
  def test_future_rows_excluded_and_changes_use_only_observed_rows(self):
@@ -66,35 +65,32 @@ class ExternalMarketTests(unittest.TestCase):
    calls.clear();run('2026-09-21',out=out,state=archive,fetcher=recovered)
    self.assertEqual(calls,['vix','vix9d'])
    self.assertEqual(len(list(archive.glob('*.json'))),3)
- def test_published_asset_and_source_identity_are_valid(self):
-  p=validate(json.loads((ROOT/'public/market-external.json').read_bytes()))
-  for key in SOURCES:
-   bad=copy.deepcopy(p)
-   original=bad['indicators'][key]['status']
-   bad['indicators'][key]['status']='current' if original=='stale' else 'stale'
-   self.assertNotEqual(bad['indicators'][key]['status'],original)
-   with self.assertRaises(ValueError):validate(bad)
-  with self.assertRaisesRegex(ValueError,'target_date'):validate(p,'2099-01-01')
-  with patch('services.scanner.verify_live_deployment.fetch',return_value=p):
-   self.assertEqual(verify_external_market_asset('https://example.test',p['as_of'],'a'*40)['content_fingerprint'],p['content_fingerprint'])
-  bad=copy.deepcopy(p);bad['fetched_at']='2026-09-22T00:00:00Z';bad['content_fingerprint']=canonical_fingerprint({k:v for k,v in bad.items() if k!='content_fingerprint'})
-  with patch('services.scanner.verify_live_deployment.fetch',return_value=bad),self.assertRaises(RuntimeError):
-   verify_external_market_asset('https://example.test',p['as_of'],'a'*40)
-
- def test_status_tampering_is_rejected_for_current_and_stale_observations(self):
-  for target,expected in [('2026-09-18','current'),('2026-09-20','stale')]:
-   with self.subTest(status=expected),tempfile.TemporaryDirectory() as d:
-    out=Path(d)/'public.json'
-    run(target,out=out,state=Path(d)/'archive',fetcher=lambda _:CSV)
-    payload=validate(json.loads(out.read_bytes()),target)
-    for key in SOURCES:
-     self.assertEqual(payload['indicators'][key]['status'],expected)
-     bad=copy.deepcopy(payload)
-     bad['indicators'][key]['status']='stale' if expected=='current' else 'current'
-     # Re-sign to prove the freshness contract rejects the lie independently
-     # of the fingerprint check, including legitimately delayed providers.
-     bad['content_fingerprint']=canonical_fingerprint({k:v for k,v in bad.items() if k!='content_fingerprint'})
-     with self.assertRaisesRegex(ValueError,'external_freshness_mismatch'):
-      validate(bad,target)
+ def known_good(self,d,fetcher=lambda _:CSV):
+  """Known-good payload built by the real producer, independent of public/."""
+  out=Path(d)/'public.json';run('2026-09-18',out=out,state=Path(d)/'archive',fetcher=fetcher)
+  return validate(json.loads(out.read_bytes()),'2026-09-18')
+ def test_asset_tampering_and_source_identity_fail(self):
+  with tempfile.TemporaryDirectory() as d:
+   p=self.known_good(d)
+   for key in SOURCES:
+    bad=reseal(changed(p,lambda x:x['indicators'][key].update(status='stale' if x['indicators'][key]['status']=='current' else 'current')))
+    with self.subTest(key=key),self.assertRaisesRegex(ValueError,'external_freshness_mismatch'):validate(bad)
+    bad=reseal(changed(p,lambda x:x['indicators'][key].update(provider='Other')))
+    with self.subTest(key=key),self.assertRaisesRegex(ValueError,'external_source_identity'):validate(bad)
+   with self.assertRaisesRegex(ValueError,'target_date'):validate(p,'2099-01-01')
+   with local_public({'market-external.json':p}):
+    with patch('services.scanner.verify_live_deployment.fetch',return_value=p):
+     self.assertEqual(verify_external_market_asset('https://example.test',p['as_of'],'a'*40)['content_fingerprint'],p['content_fingerprint'])
+    bad=reseal(changed(p,lambda x:x.update(fetched_at='2026-09-22T00:00:00Z')))
+    with patch('services.scanner.verify_live_deployment.fetch',return_value=bad),self.assertRaisesRegex(RuntimeError,'differs'):
+     verify_external_market_asset('https://example.test',p['as_of'],'a'*40)
+ def test_stale_source_tamper_is_a_real_change(self):
+  # 23 Sep regression: flipping an already-stale source to 'stale' was a no-op.
+  late=b'DATE,CLOSE\n09/17/2026,15\n'
+  with tempfile.TemporaryDirectory() as d:
+   p=self.known_good(d,fetcher=lambda key:late if key=='vix' else CSV)
+   self.assertEqual(p['indicators']['vix']['status'],'stale')
+   bad=reseal(changed(p,lambda x:x['indicators']['vix'].update(status='current')))
+   with self.assertRaisesRegex(ValueError,'external_freshness_mismatch'):validate(bad)
 
 if __name__=='__main__':unittest.main()

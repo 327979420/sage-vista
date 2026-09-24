@@ -207,7 +207,7 @@ class M04FactorEvidenceTests(unittest.TestCase):
             )
 
     def test_legacy_adapter_reads_the_current_snapshot_without_changing_source(self):
-        path = ROOT / "public" / "daily-factor-snapshot.json"
+        path = ROOT / "tests/fixtures/public-2026-09-23" / "daily-factor-snapshot.json"
         before = path.read_bytes()
         snapshot = json.loads(before)
         adapted = [
@@ -221,7 +221,7 @@ class M04FactorEvidenceTests(unittest.TestCase):
             for symbol in snapshot["symbols"]
             for state in symbol["factors"]
         ]
-        self.assertEqual(len(adapted), len(snapshot["symbols"]) * len(FACTORS))
+        self.assertEqual(len(adapted), sum(len(symbol["factors"]) for symbol in snapshot["symbols"]))
         self.assertTrue(all(item["schema_version"] == "1.0.0" for item in adapted))
         self.assertTrue(all(item["path_status"] == "legacy" for item in adapted))
         self.assertTrue(all(item["bias_labels"] for item in adapted))

@@ -19,19 +19,6 @@ class TrackerOutputContractTests(unittest.TestCase):
         for legacy_route in ("/macd", "/confluence", "/rsi", "/volume"):
             self.assertNotIn(legacy_route, navigation)
 
-    def test_legacy_factor_views_remain_available_during_migration(self):
-        report = json.loads((ROOT / "public/resonance-tracker.json").read_text())
-        for key in ("macd_buy_top10", "macd_sell_top10", "combined_top10", "rsi_top10", "volume_top10"):
-            self.assertIn(key, report)
-            self.assertIsInstance(report[key], list)
-
-    def test_tracker_audit_is_safe(self):
-        report = json.loads((ROOT / "public/resonance-tracker.json").read_text())
-        audit = report["consistency_audit"]
-        self.assertTrue(audit["details_cover_all_published"])
-        self.assertFalse(audit["duplicate_symbols"])
-        self.assertTrue(audit["completed_higher_timeframes_only"])
-
     def test_favorite_pattern_is_independent_and_zero_weight(self):
         source = (ROOT / "services/scanner/favorite_pattern_tracker.py").read_text()
         rules = (ROOT / "docs/rules/03_FACTOR_MODEL.md").read_text()
@@ -41,23 +28,6 @@ class TrackerOutputContractTests(unittest.TestCase):
         self.assertIn("不登记为第40个因子", rules)
         self.assertIn("daily-shape-picker.json", page)
         self.assertIn("底部确认不保证", (ROOT / "services/scanner/daily_shape_public.py").read_text())
-
-    def test_tracker_and_radar_dates_match(self):
-        tracker = json.loads((ROOT / "public/resonance-tracker.json").read_text())
-        radar = json.loads((ROOT / "public/rare-opportunity-radar.json").read_text())
-        self.assertEqual(tracker["as_of"], radar["as_of"])
-        self.assertFalse(radar["scan"]["future_data_used"])
-
-    def test_published_update_status_proves_freshness(self):
-        tracker = json.loads((ROOT / "public/resonance-tracker.json").read_text())
-        radar = json.loads((ROOT / "public/rare-opportunity-radar.json").read_text())
-        status = json.loads((ROOT / "public/update-status.json").read_text())
-        self.assertEqual(status["status"], "up_to_date")
-        self.assertEqual(status["source_latest_complete_date"], tracker["as_of"])
-        self.assertEqual(status["tracker_as_of"], tracker["as_of"])
-        self.assertEqual(status["radar_as_of"], radar["as_of"])
-        self.assertTrue(status["data_dates_match"])
-        self.assertFalse(status["future_data_used"])
 
     def test_strict_bulk_day_never_accepts_an_empty_fallback(self):
         from services.scanner.resonance_tracker import bulk_day

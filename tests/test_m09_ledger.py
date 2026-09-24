@@ -507,8 +507,8 @@ class M09LedgerTests(unittest.TestCase):
         self.assertTrue(all(not item.formal_eligible for item in (*opportunity.records, *signal.records)))
 
     def test_current_legacy_samples_adapt_without_writing_or_formal_promotion(self):
-        opportunity_path = ROOT / "public/opportunity-ledger.json"
-        signal_path = ROOT / "public/signal-history.json"
+        opportunity_path = ROOT / "tests/fixtures/public-2026-09-23/opportunity-ledger.json"
+        signal_path = ROOT / "tests/fixtures/public-2026-09-23/signal-history.json"
         opportunity_raw = opportunity_path.read_bytes()
         signal_raw = signal_path.read_bytes()
         opportunity = adapt_legacy_opportunity_ledger(opportunity_raw)

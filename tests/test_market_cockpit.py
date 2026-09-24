@@ -9,6 +9,8 @@ from unittest.mock import patch
 from services.scanner import market_cockpit as m
 
 ROOT=Path(__file__).resolve().parents[1]
+from tests.public_fixture import changed, local_public, reseal
+
 DAY='2026-09-18'
 FROZEN=ROOT/'tests/fixtures/market-2026-09-18/market-cockpit.json.gz'
 
@@ -129,10 +131,11 @@ class CockpitTests(unittest.TestCase):
         self.assertEqual(workflow.count('python3 -m services.scanner.market_cockpit --as-of'),2)
         self.assertIn("or cockpit['changed']",workflow)
         from services.scanner.verify_live_deployment import verify_cockpit_asset
-        payload=json.loads((ROOT/'public/market-cockpit.json').read_text())
-        target=json.loads((ROOT/'public/update-status.json').read_text())['source_latest_complete_date']
-        with patch('services.scanner.verify_live_deployment.fetch',return_value=payload):self.assertEqual(verify_cockpit_asset('https://example.com',target,'abc')['as_of'],target)
-        broken=copy.deepcopy(payload);broken['checked_at']=(datetime.fromisoformat(payload['checked_at'])+timedelta(seconds=1)).isoformat();broken['content_fingerprint']=m.canonical_fingerprint({k:v for k,v in broken.items() if k!='content_fingerprint'})
-        with patch('services.scanner.verify_live_deployment.fetch',return_value=broken),self.assertRaisesRegex(RuntimeError,'differs'):verify_cockpit_asset('https://example.com',target,'abc')
+        # Frozen reviewed payload; the live generated asset is checked by the release contract.
+        payload=frozen_payload();target=payload['as_of']
+        with local_public({'market-cockpit.json':payload}):
+            with patch('services.scanner.verify_live_deployment.fetch',return_value=payload):self.assertEqual(verify_cockpit_asset('https://example.com',target,'abc')['as_of'],target)
+            broken=reseal(changed(payload,lambda p:p.update(checked_at=(datetime.fromisoformat(payload['checked_at'])+timedelta(seconds=1)).isoformat())))
+            with patch('services.scanner.verify_live_deployment.fetch',return_value=broken),self.assertRaisesRegex(RuntimeError,'differs'):verify_cockpit_asset('https://example.com',target,'abc')
 
 if __name__=='__main__':unittest.main()
