@@ -51,6 +51,8 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci
+      - name: Check public file sizes before deploy
+        run: node services/automation/check_public_sizes.mjs
       - name: Build and test website
         env:
           SAGE_DEPLOYMENT_COMMIT: ${{ steps.production_head.outputs.deployment_commit }}

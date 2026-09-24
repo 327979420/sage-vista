@@ -34,6 +34,15 @@ class DailyEodWorkflowTests(unittest.TestCase):
   self.assertNotIn('secrets.',checks)
   self.assertNotIn('deploy production',checks.lower())
 
+ def test_public_size_check_gates_commit_and_deploy(self):
+  for workflow in (WORKFLOW,WORKFLOW.parent/"deploy-site.yml"):
+   text=workflow.read_text()
+   self.assertIn("node services/automation/check_public_sizes.mjs",text)
+   self.assertLess(text.index("Check public file sizes before deploy"),text.index("Require deployment secrets"))
+  text=WORKFLOW.read_text()
+  self.assertLess(text.index("Check public file sizes before deploy"),text.index("Commit audited website data"))
+  self.assertIn("node --test tests/public-size-check.test.mjs",text.split('  check_changes:',1)[1].split('  update:',1)[0])
+
  def test_retry_window_uses_independent_crons(self):
   text=WORKFLOW.read_text();crons=re.findall(r'- cron: "([^"]+)"',text)
   self.assertEqual(crons,["47 23 * * 1-5","17 0 * * 2-6","47 0 * * 2-6","17 1 * * 2-6","47 1 * * 2-6","17 2 * * 2-6","17 3 * * 2-6"])
