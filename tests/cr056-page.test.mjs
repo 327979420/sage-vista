@@ -97,6 +97,16 @@ test('view filters preserve original ranks and inputs, use nomination dates, and
  assert.equal(JSON.stringify(rows),before);
 });
 
+test('header sorts order by return or original rank and keep missing returns last',()=>{
+ const rows=[{symbol:'A',rank:3,total:50,watch_return:0.1},{symbol:'B',rank:1,total:70,watch_return:-0.2},{symbol:'C',rank:2,total:60,watch_return:null},{symbol:'D',rank:4,total:40,watch_return:0.3}];
+ const before=JSON.stringify(rows), base={from:'',to:'',minimum:'',maximum:'',sort:'score_high'};
+ const filter=compiledModule.exports.filterCandidateRows;
+ assert.deepEqual(filter(rows,{...base,sort:'return_high'}).map(r=>r.symbol),['D','A','B','C']);
+ assert.deepEqual(filter(rows,{...base,sort:'return_low'}).map(r=>r.symbol),['B','A','D','C']);
+ assert.deepEqual(filter(rows,{...base,sort:'rank'}).map(r=>r.symbol),['B','C','A','D']);
+ assert.equal(JSON.stringify(rows),before);
+});
+
 
 test('candidate summary keeps the decision visible and defers raw evidence',()=>{
  const before=JSON.stringify(data);

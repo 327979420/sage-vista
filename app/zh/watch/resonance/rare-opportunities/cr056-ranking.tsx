@@ -80,20 +80,46 @@ export function filterCandidateRows(rows:Row[],filters:{from:string;to:string;mi
    if(a.origin_date===null||b.origin_date===null)return a.origin_date===b.origin_date?tie:a.origin_date===null?1:-1;
    return (filters.sort==="date_new"?b.origin_date.localeCompare(a.origin_date):a.origin_date.localeCompare(b.origin_date))||tie;
   }
+  if(filters.sort==="rank")return tie;
+  if(filters.sort.startsWith("return")){
+   const x=a.watch_return??null,y=b.watch_return??null;
+   if(x===null||y===null)return x===y?tie:x===null?1:-1;
+   return (filters.sort==="return_low"?x-y:y-x)||tie;
+  }
   if(a.total===null||b.total===null)return a.total===b.total?tie:a.total===null?1:-1;
   return (filters.sort==="score_low"?a.total-b.total:b.total-a.total)||tie;
  });
+}
+
+// Quick filters narrow the current view only; ranks and scores are unchanged.
+const quickFilters:[string,string][]=[["all","全部"],["review","优先复核"],["up","上榜后上涨"],["down","上榜后下跌"],["strong_month","月线强势"]];
+function quickMatch(id:string,r:Row,review:string[]){
+ if(id==="review")return review.includes(r.symbol);
+ if(id==="up")return (r.watch_return??0)>0;
+ if(id==="down")return (r.watch_return??0)<0;
+ if(id==="strong_month")return (r.frames?.monthly_completed??0)>=0.65;
+ return true;
+}
+// Header click toggles high/low for the same column; a new column starts at its natural order.
+const headerSorts:Record<string,[string,string]>={rank:["rank","rank"],score:["score_high","score_low"],return:["return_high","return_low"]};
+function nextSort(column:string,current:string){const [first,second]=headerSorts[column];return current===first&&first!==second?second:first;}
+function SortHeader({column,label,sort,onSort}:{column:string;label:string;sort:string;onSort:(s:string)=>void}){
+ const [first,second]=headerSorts[column];const on=sort===first||sort===second;
+ const direction=column==="rank"?"ascending":sort===second?"ascending":"descending";
+ return <Localized><span><button type="button" aria-pressed={on} className={on?"candidateSortHead isSorted":"candidateSortHead"} onClick={()=>onSort(nextSort(column,sort))}>{label}<i aria-hidden="true">{on?(direction==="ascending"?"↑":"↓"):"⇅"}</i></button></span></Localized>;
 }
 
 export function CandidateView({data,latestDate,initialQuery=""}:{data:CandidateData;latestDate?:string;initialQuery?:string}){
  const observationReady=data.view_version==="nomination-observation-1";
  const detailRef=useRef<HTMLElement>(null);
  const [filters,setFilters]=useState({from:"",to:"",minimum:"",maximum:"",sort:"score_high"});
- const [mode,setMode]=useState("continuing");const [query,setQuery]=useState(initialQuery);const [symbol,setSymbol]=useState(initialQuery);const [expanded,setExpanded]=useState<string|null>(null);
+ const [mode,setMode]=useState("continuing");const [query,setQuery]=useState(initialQuery);const [symbol,setSymbol]=useState(initialQuery);const [expanded,setExpanded]=useState<string|null>(null);const [quick,setQuick]=useState("all");
  const bySymbol=new Map(data.reviews.map(r=>[r.symbol,r]));
  const listed=(mode==="new"?data.new_nomination_symbols:mode==="continuing"?data.continuing_ranked_symbols:data.ranked_symbols).map(s=>bySymbol.get(s)!).filter(Boolean);
  const searched=(query?data.reviews:listed).filter(r=>initialQuery&&query===initialQuery?r.symbol.toUpperCase()===initialQuery.toUpperCase():r.symbol.toLowerCase().includes(query.toLowerCase()));
- const filtered=mode==="continuing"?filterCandidateRows(searched,filters):searched;
+ const sorted=mode==="continuing"?filterCandidateRows(searched,filters):searched;
+ const filtered=mode==="continuing"?sorted.filter(r=>quickMatch(quick,r,data.selected_symbols)):sorted;
+ const setSort=(sort:string)=>setFilters({...filters,sort});
  const visible=filtered.slice(0,50);const selected=visible.find(r=>r.symbol===symbol)??visible[0];
  const periods=listed.find(r=>r.periods)?.periods??data.reviews.find(r=>r.periods)?.periods;
  const stale=Boolean(latestDate&&latestDate>data.as_of);
@@ -102,16 +128,17 @@ export function CandidateView({data,latestDate,initialQuery=""}:{data:CandidateD
   <section className="researchReplay candidateWorkspace">
    <div className="candidateToolbar"><div className="candidateTabs" role="group" aria-label="候选范围">{[["new","新提名",data.new_nomination_symbols.length],["continuing","持续观察",data.continuing_ranked_symbols.length]].map(([id,label,count])=><button key={id} type="button" aria-pressed={mode===id} onClick={()=>{setMode(String(id));setQuery("")}}>{label} <b>{count}只</b></button>)}</div><label>查找股票 <input aria-label="查找股票" value={query} onChange={e=>setQuery(e.target.value.trim())} placeholder="代码，含未入榜原因"/></label></div>
    {mode==="continuing"&&<details className="candidateFilters"><summary>筛选与排序 · {filtered.length}只{(filters.from||filters.to||filters.minimum||filters.maximum)?" · 已筛选":""}</summary><div>
-    <label>排列方式<select aria-label="排列方式" value={filters.sort} onChange={e=>setFilters({...filters,sort:e.target.value})}><option value="score_high">分数从高到低</option><option value="score_low">分数从低到高</option><option value="date_new">最近提名优先</option><option value="date_old">最早提名优先</option></select></label>
+    <label>排列方式<select aria-label="排列方式" value={filters.sort} onChange={e=>setFilters({...filters,sort:e.target.value})}><option value="score_high">分数从高到低</option><option value="score_low">分数从低到高</option><option value="date_new">最近提名优先</option><option value="date_old">最早提名优先</option><option value="return_high">上榜后涨幅从高到低</option><option value="return_low">上榜后涨幅从低到高</option><option value="rank">按原排名</option></select></label>
     <label>原提名从<input aria-label="原提名开始日期" type="date" value={filters.from} onInput={e=>setFilters({...filters,from:e.currentTarget.value})}/></label>
     <label>到<input aria-label="原提名结束日期" type="date" value={filters.to} onInput={e=>setFilters({...filters,to:e.currentTarget.value})}/></label>
     <label>最低分<input aria-label="最低分" type="number" min="0" max="100" value={filters.minimum} onChange={e=>setFilters({...filters,minimum:e.target.value})}/></label>
     <label>最高分<input aria-label="最高分" type="number" min="0" max="100" value={filters.maximum} onChange={e=>setFilters({...filters,maximum:e.target.value})}/></label>
-    <button type="button" onClick={()=>setFilters({from:"",to:"",minimum:"",maximum:"",sort:"score_high"})}>重置筛选</button>
+    <button type="button" onClick={()=>{setFilters({from:"",to:"",minimum:"",maximum:"",sort:"score_high"});setQuick("all")}}>重置筛选</button>
    </div><p>时间指原提名日期；#编号保留后台原排名。筛选只改变当前视图。</p></details>}
+   {mode==="continuing"&&!query&&<div className="candidateQuick" role="group" aria-label="快速筛选">{quickFilters.map(([id,label])=><button type="button" key={id} aria-pressed={quick===id} onClick={()=>setQuick(id)}>{label}<b>{sorted.filter(r=>quickMatch(id,r,data.selected_symbols)).length}</b></button>)}</div>}
    {!observationReady&&<p className="candidateHint">上榜收益基准更新中，暂不显示旧口径涨跌。</p>}
    <p className="candidateHint">{query?"搜索包含未入榜股票；诊断结果不代表获准入榜。":"按评分查看候选，点击股票展开摘要。"}</p>
-   {visible.length?<div className="replayTable candidateList"><div className="v2RankRow replayHead"><span>股票／排名</span><span>总分</span><span>月／周／日</span><span>上榜后涨跌</span><span>当前状态</span><span>摘要</span></div>{visible.map(r=><Fragment key={r.symbol}><button type="button" aria-expanded={expanded===r.symbol} className={["v2RankRow",selected?.symbol===r.symbol&&"isSelected",r.rank&&r.rank<=3&&"isTopRank"].filter(Boolean).join(" ")} onClick={()=>{setSymbol(r.symbol);setExpanded(expanded===r.symbol?null:r.symbol)}}><b>{r.rank?`#${r.rank} · `:""}{r.symbol}{data.selected_symbols.includes(r.symbol)&&<mark>优先复核</mark>}<small>{r.price===null?"价格不可用":`$${r.price}`}</small></b><strong className="candidateScoreCell">{r.total?.toFixed(2)??"—"}{r.total!==null&&<i className="candidateScoreTrack" aria-hidden="true"><i style={{width:`${Math.max(0,Math.min(100,r.total))}%`}}/></i>}</strong><span className="candidateFrameChips">{r.frames?(["monthly_completed","weekly_completed","daily"].map(tf=><i key={tf} className={frameTone(r.frames![tf])}>{(r.frames![tf]*100).toFixed(1)}</i>)):"—"}</span><span className={returnTone(observationReady?r.watch_return:null)}>{returnText(observationReady?r.watch_return:null)}<small>{r.origin_date?`${r.origin_date}`:"尚无上榜日期"}</small>{r.watch_as_of&&r.watch_as_of!==data.as_of&&<small>截至 {r.watch_as_of}</small>}</span><span>{statusName(r)}</span><span className="candidateRowAction" aria-hidden="true">{expanded===r.symbol?"−":"+"}</span></button>
+   {visible.length?<div className="replayTable candidateList"><div className="v2RankRow replayHead">{mode==="continuing"?<SortHeader column="rank" label="股票／排名" sort={filters.sort} onSort={setSort}/>:<span>股票／排名</span>}{mode==="continuing"?<SortHeader column="score" label="总分" sort={filters.sort} onSort={setSort}/>:<span>总分</span>}<span>月／周／日</span>{mode==="continuing"?<SortHeader column="return" label="上榜后涨跌" sort={filters.sort} onSort={setSort}/>:<span>上榜后涨跌</span>}<span>当前状态</span><span>摘要</span></div>{visible.map(r=><Fragment key={r.symbol}><button type="button" aria-expanded={expanded===r.symbol} className={["v2RankRow",selected?.symbol===r.symbol&&"isSelected",r.rank&&r.rank<=3&&"isTopRank"].filter(Boolean).join(" ")} onClick={()=>{setSymbol(r.symbol);setExpanded(expanded===r.symbol?null:r.symbol)}}><b>{r.rank?`#${r.rank} · `:""}{r.symbol}{data.selected_symbols.includes(r.symbol)&&<mark>优先复核</mark>}<small>{r.price===null?"价格不可用":`$${r.price}`}</small></b><strong className="candidateScoreCell">{r.total?.toFixed(2)??"—"}{r.total!==null&&<i className="candidateScoreTrack" aria-hidden="true"><i style={{width:`${Math.max(0,Math.min(100,r.total))}%`}}/></i>}</strong><span className="candidateFrameChips">{r.frames?(["monthly_completed","weekly_completed","daily"].map(tf=><i key={tf} className={frameTone(r.frames![tf])}>{(r.frames![tf]*100).toFixed(1)}</i>)):"—"}</span><span className={returnTone(observationReady?r.watch_return:null)}>{returnText(observationReady?r.watch_return:null)}<small>{r.origin_date?`${r.origin_date}`:"尚无上榜日期"}</small>{r.watch_as_of&&r.watch_as_of!==data.as_of&&<small>截至 {r.watch_as_of}</small>}</span><span>{statusName(r)}</span><span className="candidateRowAction" aria-hidden="true">{expanded===r.symbol?"−":"+"}</span></button>
     {expanded===r.symbol&&<div className="candidateInline"><div className="candidateDecision" data-eligible={Boolean(r.rank)}><strong>{r.rank?"可继续观察":"暂不进入候选"}</strong><p>{r.reason_codes.length?r.reason_codes.map(explain).join("；"):r.rank?"所有必要方向与位置许可均已通过。":"当前未获准入榜，请核对计分覆盖与状态。"}</p></div><GateTags row={r}/><button type="button" className="candidateInlineMore" onClick={()=>requestAnimationFrame(()=>detailRef.current?.scrollIntoView({behavior:"smooth",block:"start"}))}>查看完整摘要 ↓</button></div>}</Fragment>)}</div>:<div className="rareEmpty"><b>{mode==="new"&&!query?"当日没有合格新提名":"没有匹配股票"}</b><p>{mode==="new"&&!query?"计算已完成；可切换持续观察查看旧提名的最新复评。":"可切换范围或修改股票代码。"}</p></div>}
    {filtered.length>50&&<p>共 {filtered.length}只，当前显示前50只；输入股票代码可缩小范围。</p>}
    {selected&&<article ref={detailRef} className="v2Audit candidateDetail" key={selected.symbol}><header><div><small>{data.as_of} · {statusName(selected)}</small><h3>{selected.symbol} · 候选摘要</h3><p>{selected.price===null?"价格不可用":`$${selected.price}`}</p></div><strong>{selected.total?.toFixed(2)??"未入榜"}<small>{selected.total===null?"分项仅供诊断":"复核评分"}</small></strong></header>
