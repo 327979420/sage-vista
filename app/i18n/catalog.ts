@@ -12,7 +12,9 @@ export const catalog: Record<string, string> = {
   "查看历史研究中的收益和亏损，了解策略的风险，以及哪些结论还需要验证。": "Review gains and losses in historical research to understand the risks and which findings still need validation.",
 
   "最近三根MACD柱：": "Last three MACD histogram bars:",
-  "按评分查看候选，点击股票查看摘要。": "Browse by score. Select a stock for its summary.",
+  "按评分查看候选，点击股票展开摘要。": "Browse by score. Select a stock to expand its summary.",
+  "核心": "Core",
+  "查看完整摘要 ↓": "Full summary ↓",
   "摘要": "Summary",
   "· 候选摘要": "\u00b7 Candidate summary",
   "复核评分": "Review score",

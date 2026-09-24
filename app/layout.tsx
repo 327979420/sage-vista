@@ -8,6 +8,7 @@ import "./product-v2.css";
 import "./market.css";
 import "./favorite-pattern.css";
 import "./interface.css";
+import "./multifactor.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

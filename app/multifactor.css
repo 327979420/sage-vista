@@ -1,0 +1,51 @@
+/* Multi-factor opportunities: SV's star product. Uses the existing SV palette;
+   colour only encodes meaning (strength bands, return direction, rank). */
+
+/* Star tab in the module navigation, visible on every page. */
+/* Outlined elsewhere so it never looks like the current page; filled when open. */
+.rtModuleNav a.isStar { background: #f1f5ff; color: var(--sv-ink); box-shadow: inset 0 0 0 1.5px var(--sv-ink); }
+.rtModuleNav a.isStar:hover { background: #e3ebfb; color: var(--sv-ink); }
+.rtModuleNav a.isStar.active { background: var(--sv-ink); color: #fff; box-shadow: inset 0 0 0 2px #6d9bf0, inset 0 -3px #6d9bf0; }
+.rtModuleNav a.isStar.active .rtStarBadge { background: #cfe0ff; color: #12306b; }
+.rtStarBadge { padding: 1px 8px; border-radius: 999px; background: var(--sv-ink); color: #fff; font-size: 11px; font-style: normal; font-weight: 700; letter-spacing: .02em; }
+
+/* Navy page header on the featured page only. */
+.rtFeaturedPage .rtSubHero { background: var(--sv-ink); border-color: var(--sv-ink); color: #fff; }
+.rtFeaturedPage .rtSubHero h1 { color: #fff; }
+.rtFeaturedPage .rtSubHero a { color: #a9c6ff; }
+.rtFeaturedPage .rtSubHero p { color: #b9c7dc; }
+.rtFeaturedPage .rtSubHero strong { color: #e6edf8; }
+.rtFeaturedPage .rtSubHero p.rtHeroDescription { color: #c9d4e4; }
+.rtFeaturedPage .rtSubHero aside, .rtFeaturedPage .rtSubHero aside.isCurrent { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.2); }
+.rtFeaturedPage .rtSubHero aside :is(small,span,time) { color: #b9c7dc; }
+.rtFeaturedPage .rtSubHero aside b { color: #fff; }
+.rtFeaturedPage .rtSubHero aside .rtSyncState { color: #7fe0b5; }
+.rtFeaturedPage .rtSubHero aside.needsCheck .rtSyncState { color: #f3c479; }
+
+/* Ranking table: score bar, timeframe strength chips, return direction. */
+.candidateList .candidateScoreCell { display: flex; flex-direction: column; gap: 6px; }
+.candidateList .candidateScoreCell .candidateScoreTrack { width: 58px; height: 6px; }
+.candidateList .candidateScoreTrack > i { background: var(--sv-blue); transform-origin: left; animation: svGrow .5s ease-out; }
+.candidateFrameChips { display: flex; gap: 5px; }
+.candidateFrameChips i { padding: 2px 7px; border-radius: 6px; font-size: 13px; font-style: normal; font-variant-numeric: tabular-nums; }
+.candidateFrameChips .isStrong { background: #e1f5ee; color: #0b5a45; }
+.candidateFrameChips .isMid { background: #fbf0de; color: #6b4a10; }
+.candidateFrameChips .isWeak { background: #eef1f5; color: var(--sv-muted); }
+.candidateList .v2RankRow > .isUp { color: var(--sv-positive); }
+.candidateList .v2RankRow > .isDown { color: var(--sv-negative); }
+.candidateList .v2RankRow:hover { background: #f6f9ff; }
+.candidateList .v2RankRow.isTopRank { box-shadow: inset 3px 0 #3267cd; }
+.candidateList .v2RankRow.isTopRank > b { color: var(--sv-ink); }
+.candidateList .v2RankRow[aria-expanded="true"] { background: #eef4ff; }
+
+/* Inline summary under an expanded row. */
+.candidateInline { display: grid; gap: 10px; min-width: 810px; padding: 12px 18px 16px 36px; border-bottom: 1px solid var(--sv-line); background: #f6f9ff; animation: svExpand .18s ease-out; }
+.candidateInline .candidateDecision { margin: 0; }
+.candidateInlineMore { justify-self: start; padding: 0; border: 0; background: none; color: var(--sv-blue); font-weight: 650; cursor: pointer; }
+.candidateInlineMore:hover { text-decoration: underline; }
+
+@keyframes svGrow { from { transform: scaleX(0); } }
+@keyframes svExpand { from { opacity: 0; transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) {
+  .candidateList .candidateScoreTrack > i, .candidateInline { animation: none; }
+}
