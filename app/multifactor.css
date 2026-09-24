@@ -22,6 +22,10 @@
 .rtFeaturedPage .rtSubHero aside .rtSyncState { color: #7fe0b5; }
 .rtFeaturedPage .rtSubHero aside.needsCheck .rtSyncState { color: #f3c479; }
 
+/* Ranking table: five evenly weighted columns (the row itself expands). */
+.rtPage .candidateList .v2RankRow { grid-template-columns: minmax(170px,1.2fr) minmax(120px,1fr) minmax(170px,1.2fr) minmax(130px,1fr) minmax(110px,1fr); min-width: 760px; }
+.candidateInline { min-width: 760px; }
+
 /* Ranking table: score bar, timeframe strength chips, return direction. */
 .candidateList .candidateScoreCell { display: flex; flex-direction: column; gap: 6px; }
 .candidateList .candidateScoreCell .candidateScoreTrack { width: 58px; height: 6px; }
@@ -39,7 +43,7 @@
 .candidateList .v2RankRow[aria-expanded="true"] { background: #eef4ff; }
 
 /* Inline summary under an expanded row. */
-.candidateInline { display: grid; gap: 10px; min-width: 810px; padding: 12px 18px 16px 36px; border-bottom: 1px solid var(--sv-line); background: #f6f9ff; animation: svExpand .18s ease-out; }
+.candidateInline { display: grid; gap: 10px; padding: 12px 18px 16px 36px; border-bottom: 1px solid var(--sv-line); background: #f6f9ff; animation: svExpand .18s ease-out; }
 .candidateInline .candidateDecision { margin: 0; }
 .candidateInlineMore { justify-self: start; padding: 0; border: 0; background: none; color: var(--sv-blue); font-weight: 650; cursor: pointer; }
 .candidateInlineMore:hover { text-decoration: underline; }
