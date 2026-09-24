@@ -49,3 +49,20 @@
 @media (prefers-reduced-motion: reduce) {
   .candidateList .candidateScoreTrack > i, .candidateInline { animation: none; }
 }
+
+/* Phase 2: live count on the star tab, sortable headers, quick filters. */
+.rtStarCount { min-width: 22px; padding: 1px 7px; border-radius: 999px; background: #e3ebfb; color: var(--sv-ink); font-size: 12px; font-style: normal; font-weight: 700; font-variant-numeric: tabular-nums; text-align: center; }
+.rtModuleNav a.isStar.active .rtStarCount { background: rgba(255,255,255,.16); color: #fff; }
+.rtStarNew { width: 8px; height: 8px; border-radius: 50%; background: var(--sv-positive); box-shadow: 0 0 0 2px #fff; animation: svPulse 2s ease-in-out infinite; }
+.candidateSortHead { display: inline-flex; align-items: center; gap: 5px; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
+.candidateSortHead i { color: #9aa8bb; font-size: 12px; font-style: normal; }
+.candidateSortHead:hover, .candidateSortHead.isSorted { color: var(--sv-blue); }
+.candidateSortHead.isSorted i { color: var(--sv-blue); }
+.candidateQuick { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 12px; }
+.candidateQuick button { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border: 1px solid var(--sv-line); border-radius: 999px; background: #fff; color: var(--sv-text); font-size: 14px; cursor: pointer; }
+.candidateQuick button b { color: var(--sv-muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.candidateQuick button:hover { border-color: #9db6e6; background: #f6f9ff; }
+.candidateQuick button[aria-pressed="true"] { border-color: var(--sv-ink); background: var(--sv-ink); color: #fff; }
+.candidateQuick button[aria-pressed="true"] b { color: #cfe0ff; }
+@keyframes svPulse { 50% { opacity: .45; } }
+@media (prefers-reduced-motion: reduce) { .rtStarNew { animation: none; } }
