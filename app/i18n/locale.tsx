@@ -2,16 +2,21 @@
 import {cloneElement, createContext, Fragment, isValidElement, useContext, useEffect, useState, type ReactNode, type ReactElement} from 'react';
 import {translate, type Locale} from './messages';
 
-import {DEFAULT_LOCALE, LOCALE_COOKIE} from './settings';
+import {DEFAULT_LOCALE, LEGACY_LOCALE_COOKIE, LOCALE_COOKIE} from './settings';
 export {LOCALE_COOKIE, normalizeLocale} from './settings';
 export function saveLocalePreference(locale: Locale) {
- try {document.cookie = `${LOCALE_COOKIE}=${locale}; Path=/; Max-Age=31536000; SameSite=Lax${window.location.protocol === 'https:' ? '; Secure' : ''}`;} catch { /* Storage may be disabled; the current page still switches. */ }
+ // No Max-Age: a session cookie, so the next visit starts in English again.
+ try {document.cookie = `${LOCALE_COOKIE}=${locale}; Path=/; SameSite=Lax${window.location.protocol === 'https:' ? '; Secure' : ''}`;} catch { /* Storage may be disabled; the current page still switches. */ }
+}
+export function clearLegacyLocalePreference() {
+ try {document.cookie = `${LEGACY_LOCALE_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax`;} catch { /* Nothing to clear when storage is disabled. */ }
 }
 const LocaleContext = createContext<{locale: Locale; setLocale: (locale: Locale) => void}>({locale: DEFAULT_LOCALE, setLocale: () => {}});
 export const useLocale = () => useContext(LocaleContext);
 
 export function LocaleProvider({initialLocale = DEFAULT_LOCALE, children}: {initialLocale?: Locale; children: ReactNode}) {
  const [locale, setLocale] = useState<Locale>(initialLocale);
+ useEffect(() => { clearLegacyLocalePreference(); }, []);
  useEffect(() => {
   document.documentElement.lang = locale === 'en' ? 'en' : 'zh-CN';
   const titles: Record<string, [string, string]> = {

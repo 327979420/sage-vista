@@ -78,8 +78,9 @@ test('switch has accessible pressed state; preference works across paths and sto
  const oldDocument=Object.getOwnPropertyDescriptor(globalThis,'document'),oldWindow=Object.getOwnPropertyDescriptor(globalThis,'window');
  try{
   Object.defineProperty(globalThis,'document',{value:{cookie:''},configurable:true});Object.defineProperty(globalThis,'window',{value:{location:{protocol:'https:'}},configurable:true});
-  saveLocalePreference('en');assert.equal(document.cookie,'sv-language=en; Path=/; Max-Age=31536000; SameSite=Lax; Secure');
-  saveLocalePreference('zh');assert.match(document.cookie,/^sv-language=zh;/);
+  // Session cookie only: no Max-Age/Expires, so every new visit opens in English.
+  saveLocalePreference('en');assert.equal(document.cookie,'sv-language-session=en; Path=/; SameSite=Lax; Secure');
+  saveLocalePreference('zh');assert.match(document.cookie,/^sv-language-session=zh;/);assert.doesNotMatch(document.cookie,/Max-Age|Expires/i);
   Object.defineProperty(document,'cookie',{set(){throw Error('Storage disabled')},configurable:true});assert.doesNotThrow(()=>saveLocalePreference('en'));
  }finally{if(oldDocument)Object.defineProperty(globalThis,'document',oldDocument);else delete globalThis.document;if(oldWindow)Object.defineProperty(globalThis,'window',oldWindow);else delete globalThis.window;}
 });
