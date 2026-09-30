@@ -109,3 +109,21 @@ test('active UI copy has reviewed English entries, including rare states and det
   };visit(source);
  }
 });
+
+
+test('composite Market Read translates complete leadership labels before list punctuation',()=>{
+ for(const [label,english] of [['等权、小盘更弱','Equal weight and small caps lag'],['等权、小盘更强','Equal weight and small caps lead']]){
+  const source=`市场领导力：${label}；行业扩散：范围较窄`;
+  assert.equal(translate(source,'en'),`Market Leadership: ${english}; Sector Participation: Narrow participation`);
+  assert.equal(translate(source,'zh'),source);
+ }
+});
+
+test('a falling market with lagging equal weight and small caps renders an English Market Read',()=>{
+ const cockpit=data('market-cockpit');
+ for(const [ticker,value] of [['SPY',-5],['RSP',-10],['IWM',-15]])cockpit.panels.quotes.funds.find(f=>f.ticker===ticker).returns['20']=value;
+ const html=render(market.MarketView,{cockpit,sample,targetDate:sample.as_of});
+ assertEnglish(html);
+ const read=html.split('aria-label="Market Read"')[1].split('</section>')[0];
+ assert.match(read,/Market Leadership: Equal weight and small caps lag/);
+});

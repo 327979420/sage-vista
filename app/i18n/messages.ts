@@ -21,9 +21,13 @@ export function translate(text: string, locale: Locale, depth = 0): string {
    break;
   }
  }
- // Composite conclusions keep sentence punctuation so complete messages still match.
- if (result === undefined && /[；：、／\n]|: /.test(key)) {
-  result = key.split(/([；：、／\n]|: )/).map(part => part === '；' ? '; ' : part === '：' ? ': ' : part === '、' ? ', ' : part === '／' ? ' / ' : translate(part, locale, depth + 1)).join('');
+ // Split outer clauses first: a reviewed label may itself contain 、 or ／.
+ // Recursion then gets a chance to translate the whole label before splitting it.
+ if (result === undefined && /[；：\n]|: /.test(key)) {
+  result = key.split(/([；：\n]|: )/).map(part => part === '；' ? '; ' : part === '：' ? ': ' : translate(part, locale, depth + 1)).join('');
+ }
+ if (result === undefined && /[、／]/.test(key)) {
+  result = key.split(/([、／])/).map(part => part === '、' ? ', ' : part === '／' ? ' / ' : translate(part, locale, depth + 1)).join('');
  }
  if (result === undefined && key.includes('。')) {
   const sentences = key.match(/[^。]+。?|。/g) ?? [];
