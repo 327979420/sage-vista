@@ -6,7 +6,9 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {loadTs} from './helpers/load-ts.mjs';
 const {LocaleProvider,Localized,LanguageSwitch,localizeNodes,saveLocalePreference,normalizeLocale}=loadTs('app/i18n/locale.tsx');
 const {translate}=loadTs('app/i18n/messages.ts');
-const data=name=>JSON.parse(fs.readFileSync(`public/${name}.json`,'utf8'));
+import {fixture} from './helpers/public-fixture.mjs';
+// Daily assets come from the frozen fixture; vectorbt-comparison is static research output.
+const data=name=>name==='vectorbt-comparison'?JSON.parse(fs.readFileSync('public/vectorbt-comparison.json','utf8')):fixture(name);
 const market=loadTs('app/zh/watch/market/dashboard.tsx');
 const industry=loadTs('app/zh/watch/industry-radar/dashboard.tsx');
 const candidate=loadTs('app/zh/watch/resonance/rare-opportunities/cr056-ranking.tsx');

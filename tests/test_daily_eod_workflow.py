@@ -51,6 +51,13 @@ class DailyEodWorkflowTests(unittest.TestCase):
    self.assertLess(step,text.index(f"name: {later}"))
   self.assertGreater(step,text.index("name: Refresh pre-deployment machine status"))
 
+ def test_untranslated_text_is_reported_but_never_blocks_release(self):
+  text=WORKFLOW.read_text()
+  step=text.split("name: Report untranslated English text (warning only)",1)[1].split("      - name:",1)[0]
+  self.assertIn("continue-on-error: true",step)
+  self.assertIn("node services/automation/report_untranslated.mjs",step)
+  self.assertLess(text.index("Report untranslated English text"),text.index("Deploy production to Cloudflare Workers"))
+
  def test_retry_window_uses_independent_crons(self):
   text=WORKFLOW.read_text();crons=re.findall(r'- cron: "([^"]+)"',text)
   self.assertEqual(crons,["47 23 * * 1-5","17 0 * * 2-6","47 0 * * 2-6","17 1 * * 2-6","47 1 * * 2-6","17 2 * * 2-6","17 3 * * 2-6"])

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import fs from 'node:fs';
 import vm from 'node:vm';
+import {fixture} from './helpers/public-fixture.mjs';
 import ts from 'typescript';
 
 const compiled=ts.transpileModule(fs.readFileSync('app/zh/watch/market/daily-data.ts','utf8'),{
@@ -29,7 +30,7 @@ test('Market and Industry load real saved assets without modern AbortSignal stat
  const requests=[];
  const env=browser(async(path,options)=>{
   requests.push(path);assert.equal(options.cache,'no-store');assert.equal(options.signal.aborted,false);
-  return response(JSON.parse(fs.readFileSync(`public${path}`,'utf8')));
+  return response(fixture(path.slice(1,-'.json'.length)));
  });
  env.useDailyData(paths);const cleanup=env.effects[0]();await tick();
  assert.equal(requests.length,3);assert.equal(env.states[1],false);
