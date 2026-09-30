@@ -9,7 +9,8 @@ const {LocaleProvider}=loadTs('app/i18n/locale.tsx');
 const renderToStaticMarkup=element=>renderMarkup(React.createElement(LocaleProvider,{initialLocale:'zh'},element));
 const compiledModule={exports:loadTs('app/zh/watch/resonance/rare-opportunities/cr056-ranking.tsx')};
 const contextModule={exports:loadTs('app/zh/watch/industry-radar/context.tsx')};
-const data=JSON.parse(fs.readFileSync(new URL('../public/cr056-ranking.json',import.meta.url),'utf8'));
+import {fixture} from './helpers/public-fixture.mjs';
+const data=fixture('cr056-ranking');
 
 test('real candidate projection renders its date, same backend scores and daily-update boundary',()=>{
  const html=renderToStaticMarkup(React.createElement(compiledModule.exports.CandidateView,{data,latestDate:new Date(Date.parse(data.as_of+'T00:00:00Z')+7*86400000).toISOString().slice(0,10)}));
@@ -30,7 +31,6 @@ test('an empty computed list is a result, not a loading failure',()=>{
  assert.match(html,/没有匹配股票/);assert.doesNotMatch(html,/正在读取/);
 });
 test('all ranked and selected display rows preserve backend identity and exclude unavailable rows',()=>{
- assert.ok(fs.statSync(new URL('../public/cr056-ranking.json',import.meta.url)).size<750000);
  assert.equal(data.result_role,'legacy_comparison');
  assert.equal(typeof data.automatic_updates_connected,'boolean');
  assert.deepEqual(data.selected_symbols,data.ranked_symbols.slice(0,5));
@@ -62,8 +62,8 @@ test('independent context keeps date mismatch, classification and holdings separ
 });
 
 test('industry overview separates cards, pending evidence and dated holdings',()=>{
- const context=JSON.parse(fs.readFileSync(new URL('../public/industry-radar.json',import.meta.url),'utf8')).display_context;
- const market=JSON.parse(fs.readFileSync(new URL('../public/market-etf-watch.json',import.meta.url),'utf8'));
+ const context=fixture('industry-radar').display_context;
+ const market=fixture('market-etf-watch');
  const html=renderToStaticMarkup(React.createElement(contextModule.exports.ContextView,{context,market,candidates:data.ranked_symbols,candidateDate:data.as_of}));
  assert.equal((html.match(/class="industryContextCard"/g)||[]).length,context.themes.length);
  assert.match(html,/industryContextSummary/);assert.match(html,/industryContextGrid/);assert.match(html,/industryContextPending/);

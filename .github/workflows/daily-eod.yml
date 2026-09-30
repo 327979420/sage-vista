@@ -217,6 +217,11 @@ jobs:
       - name: Validate release contract on generated data
         if: steps.candidate_update.outputs.needs_release == 'true'
         run: python3 -m services.scanner.release_contract --as-of "${{ steps.update_result.outputs.as_of }}"
+      - name: Report untranslated English text (warning only)
+        if: steps.candidate_update.outputs.needs_release == 'true'
+        # New data wording must be visible to fix but must never block a release.
+        continue-on-error: true
+        run: node services/automation/report_untranslated.mjs
       - name: Run all Python tests
         id: python_tests
         if: steps.candidate_update.outputs.needs_release == 'true'

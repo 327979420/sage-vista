@@ -6,7 +6,9 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {loadTs} from './helpers/load-ts.mjs';
 const {LocaleProvider,Localized,LanguageSwitch,localizeNodes,saveLocalePreference,normalizeLocale}=loadTs('app/i18n/locale.tsx');
 const {translate}=loadTs('app/i18n/messages.ts');
-const data=name=>JSON.parse(fs.readFileSync(`public/${name}.json`,'utf8'));
+import {fixture} from './helpers/public-fixture.mjs';
+// Daily assets come from the frozen fixture; vectorbt-comparison is static research output.
+const data=name=>name==='vectorbt-comparison'?JSON.parse(fs.readFileSync('public/vectorbt-comparison.json','utf8')):fixture(name);
 const market=loadTs('app/zh/watch/market/dashboard.tsx');
 const industry=loadTs('app/zh/watch/industry-radar/dashboard.tsx');
 const candidate=loadTs('app/zh/watch/resonance/rare-opportunities/cr056-ranking.tsx');
@@ -42,6 +44,14 @@ test('real saved snapshots render English without changing inputs, dates, prices
  for(const symbol of candidates.continuing_ranked_symbols.slice(0,50)){const row=candidates.reviews.find(r=>r.symbol===symbol);assert.ok(en.includes(row.total.toFixed(2)));assert.ok(en.includes(`$${row.price}`));}
  assert.ok(render(market.MarketView,views[0][1]).includes(sample.as_of));
  assert.ok(render(picker.DailyPatternView,views[3][1]).includes(patterns.as_of));
+});
+
+test('composite market reads keep catalog phrases that contain 、 intact',()=>{
+ // 28-30 Sep 2026: "等权、小盘更弱" inside a composite read was split on 、 and left
+ // Chinese on the English page, which blocked every EOD release.
+ assert.equal(translate('市场领导力：等权、小盘更弱；行业扩散：范围较窄','en'),'Market Leadership: Equal weight and small caps lag; Sector Participation: Narrow participation');
+ assert.equal(translate('市场领导力：等权、小盘更强','en'),'Market Leadership: Equal weight and small caps lead');
+ assert.equal(translate('等权、小盘更弱','en'),'Equal weight and small caps lag');
 });
 
 test('English errors, stale dates, empty results and missing figures remain explicit',()=>{

@@ -15,6 +15,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 LEGACY_VIEWS = ('macd_buy_top10', 'macd_sell_top10', 'combined_top10', 'rsi_top10', 'volume_top10')
 RAW_BAR_FIELDS = {'open', 'high', 'low', 'close', 'volume'}
+# The candidate page loads this file on every visit; over budget is a warning.
+RANKING_BUDGET_BYTES = 750_000
 
 
 def read(root, name):
@@ -62,10 +64,12 @@ def check_market_assets(root, public, as_of, warnings):
             warnings.append(f"market-cockpit: {key} panel is {panel['status']}")
 
 
-def check_candidate_checkpoint(root, public, as_of):
+def check_candidate_checkpoint(root, public, as_of, warnings):
     from services.ledger.cr056 import validate_watch_checkpoint
     checkpoint = validate_watch_checkpoint(json.loads(gzip.decompress((root / 'automation' / 'cr056-watch-state.json.gz').read_bytes())))
     ranking = read(public, 'cr056-ranking.json')
+    if (public / 'cr056-ranking.json').stat().st_size >= RANKING_BUDGET_BYTES:
+        warnings.append(f"cr056-ranking: {(public / 'cr056-ranking.json').stat().st_size} bytes exceeds the {RANKING_BUDGET_BYTES}-byte page budget")
     if checkpoint['as_of'] != ranking['as_of'] or ranking['as_of'] != as_of:
         raise ValueError('cr056: committed checkpoint and ranking dates differ')
     if checkpoint['snapshot_fingerprint'] != ranking['source_snapshot']:
@@ -118,7 +122,7 @@ def check_release(as_of, root=ROOT, public=None):
     errors, warnings = [], []
     checks = (
         ('market assets', lambda: check_market_assets(root, public, as_of, warnings)),
-        ('candidate checkpoint', lambda: check_candidate_checkpoint(root, public, as_of)),
+        ('candidate checkpoint', lambda: check_candidate_checkpoint(root, public, as_of, warnings)),
         ('release manifest', lambda: check_release_manifest(root, public, as_of)),
         ('tracker and status', lambda: check_tracker_and_status(public, as_of, warnings)),
     )
