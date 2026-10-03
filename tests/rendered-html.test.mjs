@@ -28,7 +28,7 @@ test("server-renders the Sage Vista application", async () => {
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /<title>Sage Vista — 大盘<\/title>/i);
+  assert.match(html, /<title>Sage Vista — 多因子机会<\/title>/i);
   assert.match(html, /SAGE VISTA/i);
   assert.match(html, /<html lang="zh-CN">/);
   assert.match(html, /大盘/i);
@@ -168,7 +168,7 @@ test("industry owns its title and excludes the market hero", async()=>{
 
 
 test("language cookie controls first render and never leaks between requests", async()=>{
- const pages=[['/','Market'],['/zh/watch/market','Market'],['/zh/watch/industry-radar','Sectors'],['/zh/watch/resonance/rare-opportunities','Multi-Factor Opportunities'],['/zh/watch/resonance/favorite-pattern','Daily Setups'],['/zh/backtest','Backtests']];
+ const pages=[['/','Multi-Factor Opportunities'],['/zh/watch/market','Market'],['/zh/watch/industry-radar','Sectors'],['/zh/watch/resonance/rare-opportunities','Multi-Factor Opportunities'],['/zh/watch/resonance/favorite-pattern','Daily Setups'],['/zh/backtest','Backtests']];
  for(const[path,title]of pages){
   // A year-long cookie from before English became the per-visit default must not force Chinese.
   for(const cookie of ['', 'sv-language-session=en', 'sv-language-session=invalid', 'sv-language=zh']){
@@ -177,6 +177,6 @@ test("language cookie controls first render and never leaks between requests", a
    assert.doesNotMatch(html.split('</head>')[1].split('<script')[0].replace(/>中文</g,'>Chinese<'),/[\u3400-\u9fff]/);
   }
  }
- const zh=await (await render('/','sv-language-session=zh')).text();assert.match(zh,/<html lang="zh-CN">/);assert.match(zh,/正在读取今日快照/);
- const fresh=await (await render('/?utm_source=linkedin&lang=zh','')).text();assert.match(fresh,/<html lang="en">/);assert.match(fresh,/<title>Sage Vista — Market<\/title>/);
+ const zh=await (await render('/','sv-language-session=zh')).text();assert.match(zh,/<html lang="zh-CN">/);assert.match(zh,/正在读取已核新模型快照/);assert.match(zh,/关于多因子机会/);
+ const fresh=await (await render('/?utm_source=linkedin&lang=zh','')).text();assert.match(fresh,/<html lang="en">/);assert.match(fresh,/<title>Sage Vista — Multi-Factor Opportunities<\/title>/);assert.match(fresh,/About Multi-Factor Opportunities/);
 });

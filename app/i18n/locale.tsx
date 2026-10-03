@@ -20,7 +20,7 @@ export function LocaleProvider({initialLocale = DEFAULT_LOCALE, children}: {init
  useEffect(() => {
   document.documentElement.lang = locale === 'en' ? 'en' : 'zh-CN';
   const titles: Record<string, [string, string]> = {
-   '/': ['大盘', 'Market'], '/zh/watch/market': ['大盘', 'Market'],
+   '/': ['多因子机会', 'Multi-Factor Opportunities'], '/zh/watch/market': ['大盘', 'Market'],
    '/zh/watch/industry-radar': ['行业', 'Sectors'],
    '/zh/watch/resonance/rare-opportunities': ['多因子机会', 'Multi-Factor Opportunities'],
    '/zh/watch/resonance/favorite-pattern': ['我最喜欢形态', 'Daily Setups'],
