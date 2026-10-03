@@ -71,17 +71,20 @@
 @keyframes svPulse { 50% { opacity: .45; } }
 @media (prefers-reduced-motion: reduce) { .rtStarNew { animation: none; } }
 
-/* Teaser at the bottom of the multi-factor page (also the home page). */
-.mfIntro { margin-top: 24px; padding: 24px 28px; border: 1px solid var(--sv-line); border-radius: 12px; background: #fff; }
-.mfIntro > small { color: var(--sv-blue); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-.mfIntro h2 { margin: 6px 0 8px; color: var(--sv-ink); font-size: 22px; font-weight: 750; letter-spacing: -.015em; }
-.mfIntro p { max-width: 75ch; margin: 0 0 14px; color: var(--sv-text); font-size: 15px; line-height: 1.75; }
-.mfIntro a { display: inline-flex; padding: 9px 16px; border-radius: 999px; background: var(--sv-ink); color: #fff; font-size: 14px; font-weight: 650; text-decoration: none; }
-.mfIntro a:hover { background: #22395a; }
-
-/* About SV button in the top bar, on every page. */
-.siteAboutButton { padding: 5px 13px; border-radius: 999px; background: var(--sv-blue); color: #fff; font-size: 12px; font-weight: 700; letter-spacing: .02em; text-decoration: none; white-space: nowrap; }
-.siteAboutButton:hover { background: #3a72e0; }
+/* Site footer: About SV and site links as quiet reading options (every page). */
+.siteFooter { margin-top: 56px; padding: 44px max(16px, calc((100vw - var(--sv-content)) / 2)) 28px; border-top: 1px solid var(--sv-line); background: #fff; }
+.siteFooterColumns { display: grid; grid-template-columns: repeat(3, minmax(0, 300px)); gap: 32px; }
+.siteFooter h2 { margin: 0 0 18px; color: var(--sv-ink); font-size: 15px; font-weight: 700; }
+.siteFooter ul { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.siteFooter a { color: #6b7686; font-size: 15px; text-decoration: none; }
+.siteFooter a:hover { color: var(--sv-ink); }
+.siteFooterBottom { display: flex; flex-wrap: wrap; gap: 8px 28px; margin-top: 48px; color: #6b7686; font-size: 13px; }
+.siteFooterBottom span:first-child { color: var(--sv-ink); }
+@media (max-width: 700px) {
+  .siteFooter { padding-top: 32px; }
+  .siteFooterColumns { grid-template-columns: 1fr 1fr; gap: 28px 20px; }
+  .siteFooterBottom { flex-direction: column; margin-top: 32px; }
+}
 
 /* About SV page. */
 .svAbout { display: grid; gap: 20px; }
@@ -114,5 +117,4 @@
 @media (max-width: 700px) {
   .svAboutLead, .svAboutSection { padding: 20px; }
   .svAboutPillars, .svAboutChecks { grid-template-columns: 1fr; }
-  .siteAboutButton { padding: 4px 10px; }
 }
