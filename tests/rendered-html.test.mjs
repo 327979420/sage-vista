@@ -177,8 +177,8 @@ test("language cookie controls first render and never leaks between requests", a
    assert.doesNotMatch(html.split('</head>')[1].split('<script')[0].replace(/>中文</g,'>Chinese<'),/[\u3400-\u9fff]/);
   }
  }
- const zh=await (await render('/','sv-language-session=zh')).text();assert.match(zh,/<html lang="zh-CN">/);assert.match(zh,/正在读取已核新模型快照/);assert.match(zh,/三重滤网式的顺势回调系统/);assert.match(zh,/关于 SV/);
- const fresh=await (await render('/?utm_source=linkedin&lang=zh','')).text();assert.match(fresh,/<html lang="en">/);assert.match(fresh,/<title>Sage Vista — Multi-Factor Opportunities<\/title>/);assert.match(fresh,/How to use SV/);assert.match(fresh,/class="siteAboutButton" href="\/zh\/watch\/resonance\/about">About SV</);
+ const zh=await (await render('/','sv-language-session=zh')).text();assert.match(zh,/<html lang="zh-CN">/);assert.match(zh,/正在读取已核新模型快照/);assert.match(zh,/<footer class="siteFooter">/);assert.match(zh,/如何使用 SV/);
+ const fresh=await (await render('/?utm_source=linkedin&lang=zh','')).text();assert.match(fresh,/<html lang="en">/);assert.match(fresh,/<title>Sage Vista — Multi-Factor Opportunities<\/title>/);assert.match(fresh,/href="\/zh\/watch\/resonance\/about#how-to-use">How to use SV</);assert.doesNotMatch(fresh,/siteAboutButton/);
 });
 
 test("About SV explains the system in each language and cites Triple Screen", async()=>{

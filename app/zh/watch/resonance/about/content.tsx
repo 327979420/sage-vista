@@ -94,7 +94,7 @@ export default function AboutContent(){
  const {locale}=useLocale();
  const c=locale==="en"?en:zh;
  return <article className="svAbout">
-  <section className="svAboutLead">{c.lead.map((p,i)=><p key={i}>{rich(p)}</p>)}
+  <section className="svAboutLead" id="what-is-sv">{c.lead.map((p,i)=><p key={i}>{rich(p)}</p>)}
    <p>{c.pillarsIntro}</p>
    <ul className="svAboutPillars">{c.pillars.map(p=><li key={p.title}><span aria-hidden="true">{p.icon}</span><b>{p.title}</b><p>{p.body}</p></li>)}</ul>
    <p>{c.pillarsOutro}</p>
@@ -103,13 +103,13 @@ export default function AboutContent(){
    <ol className="svAboutSteps">{c.how.map((s,i)=><li key={s.title}><span className="svAboutStepNo">{i+1}</span><h3><span aria-hidden="true">{s.icon}</span> {s.title}</h3><p>{rich(s.body)}</p></li>)}</ol>
    <p className="svAboutTip">{rich(c.tip)}</p>
   </section>
-  <section className="svAboutSection"><h2>{c.defineTitle}</h2><p>{rich(c.define)}</p>
+  <section className="svAboutSection" id="opportunity"><h2>{c.defineTitle}</h2><p>{rich(c.define)}</p>
    <div className="svAboutChecklist"><p>{rich(c.checklistIntro)}</p><ul>{c.checklist.map(x=><li key={x}><span aria-hidden="true">✅</span> {x}</li>)}</ul><p>{c.checklistOutro}</p></div>
-   <div className="svAboutStages">{c.stages.map(s=><div key={s.title}><h3><span aria-hidden="true">{s.icon}</span> {s.title}</h3><p>{rich(s.body)}</p></div>)}</div>
+   <div className="svAboutStages">{c.stages.map((s,i)=><div key={s.title} id={["setup","confluence","re-scoring"][i]}><h3><span aria-hidden="true">{s.icon}</span> {s.title}</h3><p>{rich(s.body)}</p></div>)}</div>
   </section>
-  <section className="svAboutSection"><h2>{c.checkTitle}</h2>
+  <section className="svAboutSection" id="checked"><h2>{c.checkTitle}</h2>
    <ul className="svAboutChecks">{c.checks.map(s=><li key={s.title}><span aria-hidden="true">{s.icon}</span><b>{s.title}</b><p>{s.body}</p></li>)}</ul>
   </section>
-  <p className="svAboutNote">{c.disclaimer}</p>
+  <p className="svAboutNote" id="disclaimer">{c.disclaimer}</p>
  </article>;
 }

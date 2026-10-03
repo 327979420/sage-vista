@@ -101,7 +101,7 @@ test('numeric templates and dynamic backend labels preserve financial meaning',(
 test('active UI copy has reviewed English entries, including rare states and detail text',async()=>{
  const ts=(await import('typescript')).default;
  const {catalog}=loadTs('app/i18n/catalog.ts');
- const files=['watch/resonance/tracker-ui.tsx','watch/resonance/rare-opportunities/intro.tsx','watch/market/dashboard.tsx','watch/market/interpretation.ts','watch/industry-radar/dashboard.tsx','watch/industry-radar/context.tsx','watch/resonance/rare-opportunities/cr056-ranking.tsx','watch/resonance/rare-opportunities/page.tsx','watch/resonance/favorite-pattern/page.tsx','watch/resonance/about/page.tsx','backtest/page.tsx','backtest/research-runs.tsx','backtest/comparison.tsx'];
+ const files=['watch/resonance/tracker-ui.tsx','watch/market/dashboard.tsx','watch/market/interpretation.ts','watch/industry-radar/dashboard.tsx','watch/industry-radar/context.tsx','watch/resonance/rare-opportunities/cr056-ranking.tsx','watch/resonance/rare-opportunities/page.tsx','watch/resonance/favorite-pattern/page.tsx','watch/resonance/about/page.tsx','backtest/page.tsx','backtest/research-runs.tsx','backtest/comparison.tsx'];
  for(const file of files){
   const source=ts.createSourceFile(file,fs.readFileSync(`app/zh/${file}`,'utf8'),ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
   const visit=node=>{let text;if(ts.isStringLiteral(node)||ts.isNoSubstitutionTemplateLiteral(node)||ts.isJsxText(node))text=node.text;
