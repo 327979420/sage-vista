@@ -70,3 +70,49 @@
 .candidateQuick button[aria-pressed="true"] b { color: #cfe0ff; }
 @keyframes svPulse { 50% { opacity: .45; } }
 @media (prefers-reduced-motion: reduce) { .rtStarNew { animation: none; } }
+
+/* Teaser at the bottom of the multi-factor page (also the home page). */
+.mfIntro { margin-top: 24px; padding: 24px 28px; border: 1px solid var(--sv-line); border-radius: 12px; background: #fff; }
+.mfIntro > small { color: var(--sv-blue); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.mfIntro h2 { margin: 6px 0 8px; color: var(--sv-ink); font-size: 22px; font-weight: 750; letter-spacing: -.015em; }
+.mfIntro p { max-width: 75ch; margin: 0 0 14px; color: var(--sv-text); font-size: 15px; line-height: 1.75; }
+.mfIntro a { display: inline-flex; padding: 9px 16px; border-radius: 999px; background: var(--sv-ink); color: #fff; font-size: 14px; font-weight: 650; text-decoration: none; }
+.mfIntro a:hover { background: #22395a; }
+
+/* About SV button in the top bar, on every page. */
+.siteAboutButton { padding: 5px 13px; border-radius: 999px; background: var(--sv-blue); color: #fff; font-size: 12px; font-weight: 700; letter-spacing: .02em; text-decoration: none; white-space: nowrap; }
+.siteAboutButton:hover { background: #3a72e0; }
+
+/* About SV page. */
+.svAbout { display: grid; gap: 20px; }
+.svAbout p { margin: 0; color: var(--sv-text); font-size: 16px; line-height: 1.8; }
+.svAbout b { color: var(--sv-ink); }
+.svAboutLead, .svAboutSection { padding: 28px 32px; border: 1px solid var(--sv-line); border-radius: 12px; background: #fff; }
+.svAboutLead { display: grid; gap: 14px; }
+.svAboutLead > p:first-child { font-size: 17px; }
+.svAboutSection > h2 { margin: 0 0 16px; color: var(--sv-ink); font-size: 22px; font-weight: 750; letter-spacing: -.015em; }
+.svAboutSection > p { max-width: 80ch; }
+.svAboutPillars, .svAboutChecks { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+.svAboutPillars li, .svAboutChecks li { padding: 16px 18px; border-radius: 10px; background: #f1f5ff; }
+.svAboutPillars span, .svAboutChecks span { display: block; margin-bottom: 6px; font-size: 22px; }
+.svAboutPillars b, .svAboutChecks b { display: block; margin-bottom: 4px; font-size: 16px; }
+.svAboutPillars p, .svAboutChecks p { font-size: 14px; line-height: 1.65; }
+.svAboutSteps { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }
+.svAboutSteps li { position: relative; padding: 18px 18px 18px; border: 1px solid var(--sv-line); border-top: 3px solid var(--sv-ink); border-radius: 0 0 10px 10px; background: #fbfcfe; }
+.svAboutStepNo { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--sv-ink); color: #fff; font-size: 13px; font-weight: 700; }
+.svAboutSteps h3, .svAboutStages h3 { margin: 10px 0 6px; color: var(--sv-ink); font-size: 17px; font-weight: 700; }
+.svAboutSteps p, .svAboutStages p { font-size: 14.5px; line-height: 1.75; }
+.svAboutTip { margin-top: 14px !important; padding: 12px 16px; border-radius: 10px; background: #fff8e8; }
+.svAboutChecklist { display: grid; gap: 8px; margin: 18px 0; padding: 16px 20px; border-left: 3px solid var(--sv-positive); border-radius: 0; background: #f3faf7; }
+.svAboutChecklist ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; color: var(--sv-text); font-size: 15px; }
+.svAboutStages { display: grid; gap: 12px; }
+.svAboutStages > div { padding: 4px 0 14px; border-bottom: 1px solid var(--sv-line); }
+.svAboutStages > div:last-child { border-bottom: 0; padding-bottom: 0; }
+.svAboutStages h3 { margin-top: 4px; }
+.svAboutNote { padding: 14px 18px; border-radius: 10px; background: #fff; border: 1px solid var(--sv-line); font-size: 14px !important; color: var(--sv-muted) !important; }
+@media (max-width: 1000px) { .svAboutSteps { grid-template-columns: 1fr; } }
+@media (max-width: 700px) {
+  .svAboutLead, .svAboutSection { padding: 20px; }
+  .svAboutPillars, .svAboutChecks { grid-template-columns: 1fr; }
+  .siteAboutButton { padding: 4px 10px; }
+}

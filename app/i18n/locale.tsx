@@ -20,11 +20,12 @@ export function LocaleProvider({initialLocale = DEFAULT_LOCALE, children}: {init
  useEffect(() => {
   document.documentElement.lang = locale === 'en' ? 'en' : 'zh-CN';
   const titles: Record<string, [string, string]> = {
-   '/': ['大盘', 'Market'], '/zh/watch/market': ['大盘', 'Market'],
+   '/': ['多因子机会', 'Multi-Factor Opportunities'], '/zh/watch/market': ['大盘', 'Market'],
    '/zh/watch/industry-radar': ['行业', 'Sectors'],
    '/zh/watch/resonance/rare-opportunities': ['多因子机会', 'Multi-Factor Opportunities'],
    '/zh/watch/resonance/favorite-pattern': ['我最喜欢形态', 'Daily Setups'],
    '/zh/backtest': ['回测', 'Backtests'],
+   '/zh/watch/resonance/about': ['关于 SV', 'About SV'],
   };
   const title = titles[window.location.pathname.replace(/\/$/, '') || '/'];
   if (title) document.title = `Sage Vista — ${title[locale === 'en' ? 1 : 0]}`;

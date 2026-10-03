@@ -7,7 +7,7 @@ class ProductConsolidationTests(unittest.TestCase):
   self.assertFalse((ROOT/"app/stock-board.tsx").exists())
   self.assertFalse((ROOT/"app/data.ts").exists())
   root=(ROOT/"app/page.tsx").read_text()
-  self.assertNotIn("StockBoard",root);self.assertIn("./zh/watch/market/page",root)
+  self.assertNotIn("StockBoard",root);self.assertIn("./zh/watch/resonance/rare-opportunities/page",root)
 
  def test_navigation_has_the_four_current_products(self):
   nav=(ROOT/"app/zh/watch/resonance/tracker-ui.tsx").read_text()
