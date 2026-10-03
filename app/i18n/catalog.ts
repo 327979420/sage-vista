@@ -15,6 +15,7 @@ export const catalog: Record<string, string> = {
   "按评分查看候选，点击股票展开摘要。": "Browse by score. Select a stock to expand its summary.",
   "核心": "Core",
   "关于 SV": "About SV",
+  "新手导览": "Take the tour",
   "SV 是什么": "What is SV",
   "如何使用 SV": "How to use SV",
   "SV 如何定义机会": "How SV defines an opportunity",

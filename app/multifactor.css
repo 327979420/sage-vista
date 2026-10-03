@@ -86,35 +86,81 @@
   .siteFooterBottom { flex-direction: column; margin-top: 32px; }
 }
 
-/* About SV page. */
-.svAbout { display: grid; gap: 20px; }
-.svAbout p { margin: 0; color: var(--sv-text); font-size: 16px; line-height: 1.8; }
-.svAbout b { color: var(--sv-ink); }
-.svAboutLead, .svAboutSection { padding: 28px 32px; border: 1px solid var(--sv-line); border-radius: 12px; background: #fff; }
-.svAboutLead { display: grid; gap: 14px; }
-.svAboutLead > p:first-child { font-size: 17px; }
-.svAboutSection > h2 { margin: 0 0 16px; color: var(--sv-ink); font-size: 22px; font-weight: 750; letter-spacing: -.015em; }
-.svAboutSection > p { max-width: 80ch; }
-.svAboutPillars, .svAboutChecks { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
-.svAboutPillars li, .svAboutChecks li { padding: 16px 18px; border-radius: 10px; background: #f1f5ff; }
-.svAboutPillars span, .svAboutChecks span { display: block; margin-bottom: 6px; font-size: 22px; }
-.svAboutPillars b, .svAboutChecks b { display: block; margin-bottom: 4px; font-size: 16px; }
-.svAboutPillars p, .svAboutChecks p { font-size: 14px; line-height: 1.65; }
-.svAboutSteps { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }
-.svAboutSteps li { position: relative; padding: 18px 18px 18px; border: 1px solid var(--sv-line); border-top: 3px solid var(--sv-ink); border-radius: 0 0 10px 10px; background: #fbfcfe; }
-.svAboutStepNo { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--sv-ink); color: #fff; font-size: 13px; font-weight: 700; }
-.svAboutSteps h3, .svAboutStages h3 { margin: 10px 0 6px; color: var(--sv-ink); font-size: 17px; font-weight: 700; }
-.svAboutSteps p, .svAboutStages p { font-size: 14.5px; line-height: 1.75; }
-.svAboutTip { margin-top: 14px !important; padding: 12px 16px; border-radius: 10px; background: #fff8e8; }
-.svAboutChecklist { display: grid; gap: 8px; margin: 18px 0; padding: 16px 20px; border-left: 3px solid var(--sv-positive); border-radius: 0; background: #f3faf7; }
-.svAboutChecklist ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; color: var(--sv-text); font-size: 15px; }
-.svAboutStages { display: grid; gap: 12px; }
-.svAboutStages > div { padding: 4px 0 14px; border-bottom: 1px solid var(--sv-line); }
-.svAboutStages > div:last-child { border-bottom: 0; padding-bottom: 0; }
-.svAboutStages h3 { margin-top: 4px; }
-.svAboutNote { padding: 14px 18px; border-radius: 10px; background: #fff; border: 1px solid var(--sv-line); font-size: 14px !important; color: var(--sv-muted) !important; }
-@media (max-width: 1000px) { .svAboutSteps { grid-template-columns: 1fr; } }
+/* About SV page: short cards that mirror the footer groups. */
+.svAboutLayout { display: grid; grid-template-columns: 200px minmax(0,1fr); gap: 32px; align-items: start; }
+.svAboutNav { position: sticky; top: 20px; display: grid; gap: 2px; font-size: 14px; }
+.svAboutNav b { margin: 14px 0 6px; color: var(--sv-ink); font-size: 13px; }
+.svAboutNav b:first-child { margin-top: 0; }
+.svAboutNav a { padding: 5px 0; color: #6b7686; text-decoration: none; }
+.svAboutNav a:hover { color: var(--sv-ink); }
+.svAboutNavLast { margin-top: 12px; }
+.svAboutMain { display: grid; gap: 16px; min-width: 0; }
+.svCard { scroll-margin-top: 20px; padding: 26px 28px; border: 1px solid var(--sv-line); border-radius: 14px; background: #fff; }
+.svCard > small { color: var(--sv-blue); font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.svCard h2 { margin: 4px 0 10px; color: var(--sv-ink); font-size: 24px; font-weight: 750; letter-spacing: -.015em; }
+.svCard h3 { margin: 4px 0 8px; color: var(--sv-ink); font-size: 18px; font-weight: 700; }
+.svCard p { max-width: 70ch; margin: 0 0 8px; color: var(--sv-text); font-size: 15px; line-height: 1.7; }
+.svCard .svLead { color: var(--sv-ink); font-size: 17px; }
+.svStats { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; margin: 18px 0; }
+.svStats div { padding: 14px 16px; border-radius: 10px; background: #f1f5ff; }
+.svStats b { display: block; color: var(--sv-ink); font-size: 26px; font-weight: 750; font-variant-numeric: tabular-nums; }
+.svStats span { color: var(--sv-muted); font-size: 13px; }
+.svTools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.svTools span { margin-right: 2px; color: var(--sv-muted); font-size: 13px; }
+.svTools span:not(:first-child) { margin-left: 10px; }
+.svTools a { padding: 6px 12px; border: 1px solid var(--sv-line); border-radius: 999px; color: var(--sv-text); font-size: 14px; text-decoration: none; }
+.svTools a.isMain { border-color: var(--sv-ink); background: var(--sv-ink); color: #fff; }
+.svFlow { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; margin: 16px 0 12px; padding: 0; list-style: none; counter-reset: none; }
+.svFlow li { position: relative; padding: 16px; border-radius: 12px; background: #f6f8fc; }
+.svFlow li:not(:last-child)::after { content: "→"; position: absolute; top: 50%; right: -11px; z-index: 1; color: #9aa8bb; font-size: 14px; transform: translateY(-50%); }
+.svFlowNo { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--sv-ink); color: #fff; font-size: 12px; font-weight: 700; }
+.svFlow h3 { margin: 10px 0 4px; font-size: 16px; }
+.svFlow p { margin: 0; font-size: 14px; line-height: 1.6; }
+.svHint { margin: 0 !important; padding: 10px 14px; border-radius: 10px; background: #fff8e8; font-size: 14px !important; }
+.svGroupTitle { margin: 12px 0 0; color: var(--sv-ink); font-size: 20px; font-weight: 750; }
+.svMethodGrid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
+.svMethod { display: flex; flex-direction: column; }
+.svMethod > :last-child { margin-top: auto; padding-top: 12px; }
+.svVisScreens, .svVisTimeline { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 6px; margin: 0; padding: 0; list-style: none; }
+.svVisScreens li, .svVisTimeline li { padding: 8px 10px; border-radius: 8px; background: #f1f5ff; }
+.svVisScreens b, .svVisTimeline b { display: block; color: var(--sv-ink); font-size: 13px; }
+.svVisScreens span, .svVisTimeline span { color: var(--sv-muted); font-size: 12px; }
+.svVisScreens li:nth-child(1) { background: #dfe8fb; } .svVisScreens li:nth-child(2) { background: #e9effc; }
+.svVisChips, .svVisPills { display: flex; flex-wrap: wrap; gap: 6px; }
+.svVisChips span, .svVisPills span { padding: 4px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 600; }
+.svVisChips .isBlue { background: #e3f0fb; color: #0c447c; } .svVisChips .isViolet { background: #efeafb; color: #4a3a8c; } .svVisChips .isAmber { background: #fcefe2; color: #8a4b12; }
+.svVisPills span { background: #f1f5ff; color: var(--sv-ink); }
+.svVisWeights { display: flex; gap: 4px; }
+.svVisWeights span { padding: 8px 10px; border-radius: 8px; background: var(--sv-ink); color: #fff; font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+.svVisWeights span:nth-child(2) { background: #3d5a85; } .svVisWeights span:nth-child(3) { background: #7d93b5; }
+.svVisTimeline li:last-child { background: #e1f5ee; }
+.svAboutNote { margin: 4px 0 0; color: var(--sv-muted); font-size: 13px; scroll-margin-top: 20px; }
+@media (max-width: 1000px) { .svAboutLayout { grid-template-columns: 1fr; } .svAboutNav { display: none; } .svFlow { grid-template-columns: repeat(2,minmax(0,1fr)); } .svFlow li::after { display: none; } }
 @media (max-width: 700px) {
-  .svAboutLead, .svAboutSection { padding: 20px; }
-  .svAboutPillars, .svAboutChecks { grid-template-columns: 1fr; }
+  .svCard { padding: 20px; }
+  .svStats, .svFlow, .svMethodGrid { grid-template-columns: 1fr; }
 }
+
+/* Less space between the last panel and the footer. */
+.rtPage { padding-bottom: 40px; }
+.rtPage > :last-child { margin-bottom: 0; }
+.siteFooter { margin-top: 0 !important; }
+
+/* First-visit tour (client-only dialog). */
+.svTourBackdrop { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; background: rgba(16,23,34,.55); }
+.svTour { width: min(680px,100%); max-height: calc(100vh - 32px); overflow: auto; border-radius: 16px; background: #fff; box-shadow: 0 24px 60px rgba(16,23,34,.3); }
+.svTourWelcome { display: grid; gap: 10px; padding: 28px; }
+.svTourWelcome h2, .svTourStep h2 { margin: 0; color: var(--sv-ink); font-size: 21px; font-weight: 750; }
+.svTourWelcome p, .svTourStep p { margin: 0 0 6px; color: var(--sv-text); font-size: 15px; line-height: 1.6; }
+.svTour button { padding: 10px 16px; border: 1px solid var(--sv-line); border-radius: 10px; background: #fff; color: var(--sv-ink); font-size: 14px; font-weight: 650; cursor: pointer; }
+.svTour button.isPrimary { border-color: var(--sv-ink); background: var(--sv-ink); color: #fff; }
+.svTour button.isQuiet { border-color: transparent; background: none; color: var(--sv-muted); font-weight: 500; }
+.svTourStep { display: grid; gap: 10px; padding: 20px 22px 18px; }
+.svTourStep small { color: var(--sv-blue); font-size: 12px; font-weight: 700; letter-spacing: .04em; }
+.svTourStep img { display: block; width: 100%; height: auto; border: 1px solid var(--sv-line); border-radius: 10px; background: #f6f8fc; }
+.svTourDots { display: flex; gap: 6px; }
+.svTourDots i { width: 7px; height: 7px; border-radius: 50%; background: #d3dbe7; }
+.svTourDots i.isOn { background: var(--sv-ink); }
+.svTourActions { display: flex; justify-content: space-between; align-items: center; }
+.svTourActions span { display: flex; gap: 8px; }
+@media (max-width: 700px) { .svTourBackdrop { padding: 0; align-items: end; } .svTour { border-radius: 16px 16px 0 0; } }

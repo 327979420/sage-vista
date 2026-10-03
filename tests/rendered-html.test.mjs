@@ -184,8 +184,14 @@ test("language cookie controls first render and never leaks between requests", a
 test("About SV explains the system in each language and cites Triple Screen", async()=>{
  const en=await (await render('/zh/watch/resonance/about','')).text();
  assert.match(en,/<title>Sage Vista — About SV<\/title>/);
- for(const phrase of ['Triple Screen trading system','How to use SV','Market: is it a good day to look for longs?','Multi-timeframe confluence score','Built to be checked','not investment advice'])assert.ok(en.includes(phrase),phrase);
+ for(const phrase of ['Triple Screen trading system','How to use SV','Is the market strong?','Multi-timeframe confluence score','Point-in-time and out-of-sample testing','not investment advice'])assert.ok(en.includes(phrase),phrase);
  assert.doesNotMatch(en.split('</head>')[1].split('<script')[0].replace(/>中文</g,'>Chinese<'),/[\u3400-\u9fff]/);
  const zh=await (await render('/zh/watch/resonance/about','sv-language-session=zh')).text();
  for(const phrase of ['三重滤网交易系统','如何使用 SV','多周期共振评分','不构成投资建议'])assert.ok(zh.includes(phrase),phrase);
+});
+
+test("the first-visit tour is client-only and the footer offers a replay", async()=>{
+ const html=await (await render('/','')).text();
+ assert.doesNotMatch(html,/svTourBackdrop|role="dialog"/);
+ assert.match(html,/href="\/\?tour=1">Take the tour</);
 });

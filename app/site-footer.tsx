@@ -3,7 +3,7 @@ import {Localized} from './i18n/locale';
 // Quiet site footer: About SV lives here as reading links, not a header button.
 const ABOUT = '/zh/watch/resonance/about';
 const columns: [string, [string, string][]][] = [
- ['关于 SV', [['SV 是什么', `${ABOUT}#what-is-sv`], ['如何使用 SV', `${ABOUT}#how-to-use`], ['SV 如何定义机会', `${ABOUT}#opportunity`], ['可以被检验', `${ABOUT}#checked`], ['免责声明', `${ABOUT}#disclaimer`]]],
+ ['关于 SV', [['SV 是什么', `${ABOUT}#what-is-sv`], ['如何使用 SV', `${ABOUT}#how-to-use`], ['免责声明', `${ABOUT}#disclaimer`], ['新手导览', '/?tour=1']]],
  ['探索', [['多因子机会', '/'], ['大盘', '/zh/watch/market'], ['行业', '/zh/watch/industry-radar'], ['我最喜欢形态', '/zh/watch/resonance/favorite-pattern'], ['回测', '/zh/backtest']]],
  ['方法', [['三重滤网交易系统', `${ABOUT}#opportunity`], ['顺势回调形态', `${ABOUT}#setup`], ['多周期共振评分', `${ABOUT}#confluence`], ['板块轮动与每日复评', `${ABOUT}#re-scoring`], ['时点数据与样本外验证', `${ABOUT}#checked`]]],
 ];
