@@ -1,24 +1,12 @@
+import {localizedMetadata} from '../../../../i18n/server';
 import {TrackerShell} from "../tracker-ui";
+import AboutContent from "./content";
 
-const sections=[
- {number:"01",title:"先看总览",body:"先确认数据日期和系统状态，再看今天是否出现值得复核的 MACD 或多因子候选。没有信号是正常结果。"},
- {number:"02",title:"再核验证据",body:"复杂版看因子颗数、家族与跨周期共振；简单版只看回调、双底、三推突破和位置。分数不代表收益概率。"},
- {number:"03",title:"最后做人工复核",body:"逐项检查命中、风险和具体图形，再把赢家、输家与边界案例反馈到下一轮冻结实验。"},
-];
+export const generateMetadata=()=>localizedMetadata(
+ {title:'Sage Vista — 关于 SV',description:'三重滤网式的顺势回调交易系统：SV 是什么、如何运作、如何使用。'},
+ {title:'Sage Vista — About SV',description:'A Triple Screen–style trend-pullback trading system: what SV is, how it works and how to use it.'}
+);
 
 export default function About(){
- return <TrackerShell active="功能介绍" title="如何使用 Sage Vista" subtitle="一个可解释、可人工复核的美股 MACD 日终研究工具。">
-  <section className="rtAboutLead">
-   <div><small>使用原则</small><h2>先确认数据，再看机会；先核验证据，再谈结论。</h2></div>
-   <p>Sage Vista 不自动下单，也不把规则匹配分数包装成胜率。所有信号只使用当时已经完整收盘的数据；历史回测按下一交易日复权开盘价进入。</p>
-  </section>
-  <section className="rtAboutSteps">{sections.map(x=><article key={x.number}><small>{x.number}</small><h2>{x.title}</h2><p>{x.body}</p></article>)}</section>
-  <section className="rtAboutGrid">
-   <article><small>总览</small><h2>今天有什么值得看</h2><p>汇总最新交易日、候选数量、系统健康和最值得优先复核的对象。</p></article>
-   <article><small>MACD</small><h2>方向与时机</h2><p>查看完整日线、周线和月线状态，以及金叉或死叉是否仍然新鲜有效。</p></article>
-   <article><small>复杂多因子</small><h2>多颗证据与周期共振</h2><p>MACD金叉与长期趋势作共同门票；其余客观命中都计颗数，再看家族、重复确认和日周月共振。</p></article>
-   <article><small>最喜欢形态</small><h2>简单四项形态</h2><p>回调、双底、三推收盘突破、Golden Pocket或EMA承接，四项齐全后再过独立风险闸门。</p></article>
-  </section>
-  <details className="rtAboutDetails"><summary>数据、评分与风险说明</summary><div><p><b>数据周期：</b>日线主要观察 20 和 100 个交易日；周线、月线只使用当时已经完成的周期 K 线。</p><p><b>评分含义：</b>分数表示规则证据的组合，不等于买入建议、胜率或预期收益。</p><p><b>研究分段：</b>2000—2024 为开发期，2025 为独立验证期，2026 为前向观察期。</p><p><b>主要风险：</b>样本重叠、市场长期漂移、数据覆盖和成交成本都可能影响结果，必须结合研究页复核。</p></div></details>
- </TrackerShell>
+ return <TrackerShell active="功能介绍" title="关于 Sage Vista" subtitle="三重滤网式的顺势回调系统。"><AboutContent/></TrackerShell>;
 }

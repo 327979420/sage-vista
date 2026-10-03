@@ -168,7 +168,7 @@ test("industry owns its title and excludes the market hero", async()=>{
 
 
 test("language cookie controls first render and never leaks between requests", async()=>{
- const pages=[['/','Multi-Factor Opportunities'],['/zh/watch/market','Market'],['/zh/watch/industry-radar','Sectors'],['/zh/watch/resonance/rare-opportunities','Multi-Factor Opportunities'],['/zh/watch/resonance/favorite-pattern','Daily Setups'],['/zh/backtest','Backtests']];
+ const pages=[['/','Multi-Factor Opportunities'],['/zh/watch/market','Market'],['/zh/watch/industry-radar','Sectors'],['/zh/watch/resonance/rare-opportunities','Multi-Factor Opportunities'],['/zh/watch/resonance/favorite-pattern','Daily Setups'],['/zh/backtest','Backtests'],['/zh/watch/resonance/about','About SV']];
  for(const[path,title]of pages){
   // A year-long cookie from before English became the per-visit default must not force Chinese.
   for(const cookie of ['', 'sv-language-session=en', 'sv-language-session=invalid', 'sv-language=zh']){
@@ -177,6 +177,15 @@ test("language cookie controls first render and never leaks between requests", a
    assert.doesNotMatch(html.split('</head>')[1].split('<script')[0].replace(/>中文</g,'>Chinese<'),/[\u3400-\u9fff]/);
   }
  }
- const zh=await (await render('/','sv-language-session=zh')).text();assert.match(zh,/<html lang="zh-CN">/);assert.match(zh,/正在读取已核新模型快照/);assert.match(zh,/关于多因子机会/);
- const fresh=await (await render('/?utm_source=linkedin&lang=zh','')).text();assert.match(fresh,/<html lang="en">/);assert.match(fresh,/<title>Sage Vista — Multi-Factor Opportunities<\/title>/);assert.match(fresh,/About Multi-Factor Opportunities/);
+ const zh=await (await render('/','sv-language-session=zh')).text();assert.match(zh,/<html lang="zh-CN">/);assert.match(zh,/正在读取已核新模型快照/);assert.match(zh,/三重滤网式的顺势回调系统/);assert.match(zh,/关于 SV/);
+ const fresh=await (await render('/?utm_source=linkedin&lang=zh','')).text();assert.match(fresh,/<html lang="en">/);assert.match(fresh,/<title>Sage Vista — Multi-Factor Opportunities<\/title>/);assert.match(fresh,/How to use SV/);assert.match(fresh,/class="siteAboutButton" href="\/zh\/watch\/resonance\/about">About SV</);
+});
+
+test("About SV explains the system in each language and cites Triple Screen", async()=>{
+ const en=await (await render('/zh/watch/resonance/about','')).text();
+ assert.match(en,/<title>Sage Vista — About SV<\/title>/);
+ for(const phrase of ['Triple Screen trading system','How to use SV','Market: is it a good day to look for longs?','Multi-timeframe confluence score','Built to be checked','not investment advice'])assert.ok(en.includes(phrase),phrase);
+ assert.doesNotMatch(en.split('</head>')[1].split('<script')[0].replace(/>中文</g,'>Chinese<'),/[\u3400-\u9fff]/);
+ const zh=await (await render('/zh/watch/resonance/about','sv-language-session=zh')).text();
+ for(const phrase of ['三重滤网交易系统','如何使用 SV','多周期共振评分','不构成投资建议'])assert.ok(zh.includes(phrase),phrase);
 });

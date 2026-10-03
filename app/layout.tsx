@@ -72,7 +72,7 @@ export default async function RootLayout({
         <LocaleProvider initialLocale={locale}>
         <div className="siteVersionBar">
           <b>{`Sage Vista ${UI_VERSION}`}</b>
-          <div className="siteUtilities"><span>{`Build ${(process.env.GITHUB_SHA ?? "local").slice(0, 7)}`}</span><LanguageSwitch/></div>
+          <div className="siteUtilities"><Localized><a className="siteAboutButton" href="/zh/watch/resonance/about">关于 SV</a></Localized><span>{`Build ${(process.env.GITHUB_SHA ?? "local").slice(0, 7)}`}</span><LanguageSwitch/></div>
         </div>
         <Localized><div className="globalnav">
           <a href="/">今日市场与机会</a>

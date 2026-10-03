@@ -25,6 +25,7 @@ export function LocaleProvider({initialLocale = DEFAULT_LOCALE, children}: {init
    '/zh/watch/resonance/rare-opportunities': ['多因子机会', 'Multi-Factor Opportunities'],
    '/zh/watch/resonance/favorite-pattern': ['我最喜欢形态', 'Daily Setups'],
    '/zh/backtest': ['回测', 'Backtests'],
+   '/zh/watch/resonance/about': ['关于 SV', 'About SV'],
   };
   const title = titles[window.location.pathname.replace(/\/$/, '') || '/'];
   if (title) document.title = `Sage Vista — ${title[locale === 'en' ? 1 : 0]}`;
