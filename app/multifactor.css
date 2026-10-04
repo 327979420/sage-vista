@@ -146,21 +146,43 @@
 .rtPage > :last-child { margin-bottom: 0; }
 .siteFooter { margin-top: 0 !important; }
 
-/* First-visit tour (client-only dialog). */
-.svTourBackdrop { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; background: rgba(16,23,34,.55); }
-.svTour { width: min(680px,100%); max-height: calc(100vh - 32px); overflow: auto; border-radius: 16px; background: #fff; box-shadow: 0 24px 60px rgba(16,23,34,.3); }
-.svTourWelcome { display: grid; gap: 10px; padding: 28px; }
-.svTourWelcome h2, .svTourStep h2 { margin: 0; color: var(--sv-ink); font-size: 21px; font-weight: 750; }
-.svTourWelcome p, .svTourStep p { margin: 0 0 6px; color: var(--sv-text); font-size: 15px; line-height: 1.6; }
-.svTour button { padding: 10px 16px; border: 1px solid var(--sv-line); border-radius: 10px; background: #fff; color: var(--sv-ink); font-size: 14px; font-weight: 650; cursor: pointer; }
+/* First-visit tour (client-only dialog): large cards, clear choices. */
+.svTourBackdrop { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 20px; background: rgba(16,23,34,.6); }
+.svTour { width: min(1000px,100%); max-height: calc(100vh - 40px); overflow: auto; border-radius: 20px; background: #fff; box-shadow: 0 30px 80px rgba(16,23,34,.35); }
+.svTour button { padding: 13px 22px; border: 1px solid var(--sv-line); border-radius: 12px; background: #fff; color: var(--sv-ink); font-size: 16px; font-weight: 650; cursor: pointer; }
 .svTour button.isPrimary { border-color: var(--sv-ink); background: var(--sv-ink); color: #fff; }
 .svTour button.isQuiet { border-color: transparent; background: none; color: var(--sv-muted); font-weight: 500; }
-.svTourStep { display: grid; gap: 10px; padding: 20px 22px 18px; }
-.svTourStep small { color: var(--sv-blue); font-size: 12px; font-weight: 700; letter-spacing: .04em; }
-.svTourStep img { display: block; width: 100%; height: auto; border: 1px solid var(--sv-line); border-radius: 10px; background: #f6f8fc; }
-.svTourDots { display: flex; gap: 6px; }
-.svTourDots i { width: 7px; height: 7px; border-radius: 50%; background: #d3dbe7; }
-.svTourDots i.isOn { background: var(--sv-ink); }
+.svTour button:focus-visible { outline: 3px solid #6d9bf0; outline-offset: 2px; }
+.svTourWelcome { display: grid; gap: 12px; max-width: 760px; margin: 0 auto; padding: 48px 48px 36px; text-align: center; }
+.svTourWelcome h2 { margin: 0; color: var(--sv-ink); font-size: 34px; font-weight: 750; letter-spacing: -.02em; }
+.svTourWelcome > p { margin: 0 0 18px; color: var(--sv-text); font-size: 19px; }
+.svTourChoices { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
+.svTour .svTourChoice { display: grid; justify-items: center; gap: 8px; min-height: 190px; padding: 30px 22px; border: 2px solid var(--sv-line); border-radius: 18px; background: #fff; text-align: center; transition: border-color .15s, background .15s, transform .15s; }
+.svTourChoice span { font-size: 40px; line-height: 1; }
+.svTourChoice b { color: var(--sv-ink); font-size: 21px; }
+.svTourChoice small { color: var(--sv-muted); font-size: 15px; font-weight: 500; }
+.svTour .svTourChoice:hover { border-color: var(--sv-ink); background: #f6f9ff; transform: translateY(-2px); }
+.svTour .svTourChoice.isNew { border-color: var(--sv-ink); background: #f1f5ff; }
+.svTourSkip { justify-self: center; margin-top: 6px; font-size: 15px !important; }
+.svTourStep { display: grid; gap: 14px; padding: 28px 32px 26px; }
+.svTourStep small { color: var(--sv-blue); font-size: 14px; font-weight: 700; letter-spacing: .04em; }
+.svTourStep img { display: block; width: 100%; height: auto; max-height: max(200px, calc(100vh - 340px)); object-fit: contain; border: 1px solid var(--sv-line); border-radius: 12px; background: #f6f8fc; }
+.svTourStep h2 { margin: 4px 0 0; color: var(--sv-ink); font-size: 28px; font-weight: 750; letter-spacing: -.015em; }
+.svTourStep p { margin: 0; color: var(--sv-text); font-size: 19px; line-height: 1.55; }
+.svTourDots { display: flex; gap: 8px; }
+.svTourDots i { width: 9px; height: 9px; border-radius: 50%; background: #d3dbe7; }
+.svTourDots i.isOn { width: 24px; border-radius: 9px; background: var(--sv-ink); }
 .svTourActions { display: flex; justify-content: space-between; align-items: center; }
-.svTourActions span { display: flex; gap: 8px; }
-@media (max-width: 700px) { .svTourBackdrop { padding: 0; align-items: end; } .svTour { border-radius: 16px 16px 0 0; } }
+.svTourActions span { display: flex; gap: 10px; }
+@media (prefers-reduced-motion: reduce) { .svTour .svTourChoice { transition: none; } }
+@media (max-width: 700px) {
+  .svTourBackdrop { padding: 0; align-items: end; }
+  .svTour { border-radius: 20px 20px 0 0; }
+  .svTourWelcome { padding: 32px 20px 24px; }
+  .svTourWelcome h2 { font-size: 26px; }
+  .svTourChoices { grid-template-columns: 1fr; }
+  .svTour .svTourChoice { min-height: 0; padding: 20px; }
+  .svTourStep { padding: 20px; }
+  .svTourStep h2 { font-size: 22px; }
+  .svTourStep p { font-size: 16px; }
+}

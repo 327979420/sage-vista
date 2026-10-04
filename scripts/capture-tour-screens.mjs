@@ -10,10 +10,10 @@ import path from 'node:path';
 const base = process.argv[2] ?? 'http://localhost:5173';
 const chromePath = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const shots = [
- {image: 'multi-factor', url: '/', selector: '.candidateWorkspace', height: 620},
- {image: 'search', url: '/zh/watch/resonance/rare-opportunities?symbol=BJ', selector: '.candidateWorkspace', height: 680},
- {image: 'daily-setups', url: '/zh/watch/resonance/favorite-pattern', selector: '.shapeWorkspace', height: 620},
- {image: 'market', url: '/zh/watch/market', selector: '.cockpitGrid', height: 620},
+ {image: 'multi-factor', url: '/', selector: '.candidateWorkspace', height: 460},
+ {image: 'search', url: '/zh/watch/resonance/rare-opportunities?symbol=BJ', selector: '.candidateWorkspace', height: 470},
+ {image: 'daily-setups', url: '/zh/watch/resonance/favorite-pattern', selector: '.shapeWorkspace', height: 460},
+ {image: 'market', url: '/zh/watch/market', selector: '.cockpitGrid', height: 460},
 ];
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
