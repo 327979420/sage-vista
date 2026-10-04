@@ -51,15 +51,18 @@ export default function Tour() {
   <div className="svTour" role="dialog" aria-modal="true" aria-labelledby="svTourTitle" ref={dialog}>
    {stage === 'welcome' && <div className="svTourWelcome">
     <h2 id="svTourTitle">{t('welcome')}</h2><p>{t('question')}</p>
-    <button type="button" className="isPrimary" onClick={() => close(true)}>{t('yes')}</button>
-    <button type="button" onClick={() => setStage(0)}>{t('no')}</button>
-    <button type="button" className="isQuiet" onClick={() => close(false)}>{t('skip')}</button>
+    {/* Two equal choice tiles, so new and returning visitors decide at a glance. */}
+    <div className="svTourChoices">
+     <button type="button" className="svTourChoice isNew" onClick={() => setStage(0)}><span aria-hidden="true">👋</span><b>{t('no')}</b><small>{t('noSub')}</small></button>
+     <button type="button" className="svTourChoice" onClick={() => close(true)}><span aria-hidden="true">🚀</span><b>{t('yes')}</b><small>{t('yesSub')}</small></button>
+    </div>
+    <button type="button" className="isQuiet svTourSkip" onClick={() => close(false)}>{t('skip')}</button>
    </div>}
    {step && typeof stage === 'number' && <div className="svTourStep">
     <small>{lang === 'en' ? `${t('step')} ${stage + 1} ${t('of')} ${TOUR_STEPS.length}` : `${t('step')} ${stage + 1} 步 ${t('of')} ${TOUR_STEPS.length}`}</small>
     {/* Static, pre-sized screenshot loaded only when the tour is open. */}
     {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img src={`/tour/${lang}/${step.image}.webp`} alt="" width={1200} height={680}/>
+    <img src={`/tour/${lang}/${step.image}.webp`} alt="" width={1240} height={460}/>
     <h2 id="svTourTitle"><span aria-hidden="true">{step.icon}</span> {step.title[lang]}</h2>
     <p>{step.text[lang]}</p>
     <div className="svTourDots" aria-hidden="true">{TOUR_STEPS.map((s, i) => <i key={s.id} className={i === stage ? 'isOn' : ''}/>)}</div>
