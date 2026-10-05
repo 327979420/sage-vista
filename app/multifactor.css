@@ -80,6 +80,8 @@
 .siteFooter a:hover { color: var(--sv-ink); }
 .siteFooterBottom { display: flex; flex-wrap: wrap; gap: 8px 28px; margin-top: 48px; color: #6b7686; font-size: 13px; }
 .siteFooterBottom span:first-child { color: var(--sv-ink); }
+.siteFooterPrivacy button { padding: 0; border: 0; background: none; color: inherit; font: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.siteFooterPrivacy button:hover, .siteFooterPrivacy button:focus-visible { color: var(--sv-ink); }
 @media (max-width: 700px) {
   .siteFooter { padding-top: 32px; }
   .siteFooterColumns { grid-template-columns: 1fr 1fr; gap: 28px 20px; }

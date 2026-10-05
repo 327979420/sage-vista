@@ -1,4 +1,5 @@
 import {Localized} from './i18n/locale';
+import PrivacyNote from './privacy-note';
 
 // Quiet site footer: About SV lives here as reading links, not a header button.
 const ABOUT = '/zh/watch/resonance/about';
@@ -11,6 +12,6 @@ const columns: [string, [string, string][]][] = [
 export default function SiteFooter() {
  return <Localized><footer className="siteFooter">
   <div className="siteFooterColumns">{columns.map(([title, links]) => <nav key={title} aria-label={title}><h2>{title}</h2><ul>{links.map(([label, href]) => <li key={label}><a href={href}>{label}</a></li>)}</ul></nav>)}</div>
-  <div className="siteFooterBottom"><span>© 2026 Sage Vista</span><span>研究工具，不构成投资建议</span><span>数据来源：EODHD、FINRA、CFTC、ICI、OCC</span><span>每个美股交易日收盘后更新</span></div>
+  <div className="siteFooterBottom"><span>© 2026 Sage Vista</span><span>研究工具，不构成投资建议</span><span>数据来源：EODHD、FINRA、CFTC、ICI、OCC</span><span>每个美股交易日收盘后更新</span><PrivacyNote/></div>
  </footer></Localized>;
 }

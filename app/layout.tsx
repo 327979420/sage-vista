@@ -4,6 +4,7 @@ import {requestLocale} from './i18n/server';
 import {LanguageSwitch, LocaleProvider, Localized} from "./i18n/locale";
 import SiteFooter from "./site-footer";
 import Tour from "./tour";
+import Analytics from "./analytics";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "./product-v2.css";
@@ -86,6 +87,7 @@ export default async function RootLayout({
         {children}
         <SiteFooter/>
         <Tour/>
+        <Analytics/>
         </LocaleProvider>
       </body>
     </html>
