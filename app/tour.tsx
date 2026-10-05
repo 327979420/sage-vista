@@ -1,6 +1,7 @@
 "use client";
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {useLocale} from './i18n/locale';
+import {trackEvent} from './analytics';
 import {TOUR_COPY, TOUR_SEEN_KEY, TOUR_STEPS, tourSeen} from './tour-steps';
 
 type Stage = 'closed' | 'welcome' | number | 'done';
@@ -29,11 +30,19 @@ export default function Tour() {
  }, []);
 
  const close = useCallback((goToList: boolean) => {
+  trackEvent('tour_closed', {go_to_list: goToList});
   remember();
   setStage('closed');
   if (new URLSearchParams(location.search).has('tour')) history.replaceState(null, '', location.pathname + location.hash);
   if (goToList && location.pathname !== '/') location.href = '/';
  }, []);
+
+ // Tour funnel: welcome → steps → done; `tour_closed` marks where visitors leave.
+ useEffect(() => {
+  if (stage === 'welcome') trackEvent('tour_welcome_shown');
+  else if (typeof stage === 'number') trackEvent('tour_step_viewed', {step: TOUR_STEPS[stage].id, number: stage + 1});
+  else if (stage === 'done') trackEvent('tour_completed');
+ }, [stage]);
 
  useEffect(() => {
   if (stage === 'closed') return;

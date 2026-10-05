@@ -1,6 +1,7 @@
 "use client";
 import {cloneElement, createContext, Fragment, isValidElement, useContext, useEffect, useState, type ReactNode, type ReactElement} from 'react';
 import {translate, type Locale} from './messages';
+import {trackEvent} from '../analytics';
 
 import {DEFAULT_LOCALE, LEGACY_LOCALE_COOKIE, LOCALE_COOKIE} from './settings';
 export {LOCALE_COOKIE, normalizeLocale} from './settings';
@@ -31,6 +32,7 @@ export function LocaleProvider({initialLocale = DEFAULT_LOCALE, children}: {init
   if (title) document.title = `Sage Vista — ${title[locale === 'en' ? 1 : 0]}`;
  }, [locale]);
  const choose = (next: Locale) => {
+  if (next !== locale) trackEvent('language_switched', {to: next});
   setLocale(next);
   // A cookie also makes full-page navigation and the first server render agree.
   saveLocalePreference(next);
