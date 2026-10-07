@@ -32,13 +32,19 @@ def expand(series):
     return [{"date": d, **{k: series[k][i] for k in FIELDS}} for i, d in enumerate(series["date"])]
 
 
-def build_from_ledger(ledger_path, cache_dir, dataset_id):
-    """Production ledger events with their frozen support plans and cached prices."""
+def build_from_ledger(ledger_path, cache_dir, dataset_id, signal_from=None):
+    """Production ledger events with their frozen support plans and cached prices.
+
+    `signal_from` keeps only later signals, for a forward holdout that is
+    registered before its data exists.
+    """
     ledger = json.loads(pathlib.Path(ledger_path).read_text())
     events, prices = [], {}
     for e in ledger["events"]:
         sel = e.get("selection") or {}
         if sel.get("exclude_from_effectiveness") or not sel.get("support_plan"):
+            continue
+        if signal_from and e["signal_date"] < signal_from:
             continue
         events.append({"event_id": e["event_id"], "symbol": e["symbol"], "signal_date": e["signal_date"], "support_plan": sel["support_plan"]})
     for symbol in sorted({e["symbol"] for e in events}):
@@ -70,6 +76,18 @@ def build_from_observation(trades_csv, dataset_id, fetch):
     return {"dataset_id": dataset_id, "source": f"{trades_csv} events + EODHD full adjusted history",
             "price_basis": "EODHD adjusted daily OHLCV", "missing_symbols": sorted({e['symbol'] for e in events.values()} - set(prices)),
             "events": kept, "prices": prices}
+
+
+def build_from_symbols(symbols, dataset_id, fetch):
+    """Reference series only (for example SPY as the benchmark); no events."""
+    prices = {}
+    for symbol in symbols:
+        rows = adjusted_rows(fetch(symbol))
+        if not rows:
+            raise ValueError(f"benchmark_prices_missing: {symbol}")
+        prices[symbol] = _compact(rows)
+    return {"dataset_id": dataset_id, "source": f"EODHD full adjusted history for {', '.join(symbols)}",
+            "price_basis": "EODHD adjusted daily OHLCV", "events": [], "prices": prices}
 
 
 def save(dataset, out_dir):

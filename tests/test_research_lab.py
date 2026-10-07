@@ -1,9 +1,13 @@
+import csv
 import datetime as dt
+import gzip
+import io
 import json
 import pathlib
 import random
 import tempfile
 import unittest
+from unittest import mock
 
 from research.lab import datasets, run_queue
 from research.lab.exit_rules import simulate
@@ -102,6 +106,39 @@ class MetricsTests(unittest.TestCase):
         self.assertFalse(failing["passed"])
         self.assertFalse(failing["checks"]["every_split_positive"])
 
+    def test_excess_over_the_benchmark_is_clustered_by_month_and_checked_per_split(self):
+        trades = [{"status": "resolved", "net_return": 0.05, "r_multiple": 0.5, "held": 20, "exit_reason": "time",
+                   "excess_return": x, "cluster": month} for month, x in [("2020-01", 0.02), ("2020-01", 0.04), ("2020-02", 0.01), ("2020-03", -0.01)]]
+        s = summarise(trades)
+        self.assertEqual(s["mean_return_per_day"], 0.0025)
+        self.assertEqual((s["benchmark_trades"], s["excess_months"]), (4, 3))
+        self.assertAlmostEqual(s["mean_excess"], 0.015)
+        self.assertEqual(s["beat_benchmark_rate"], 0.75)
+        # Monthly means 0.03, 0.01, -0.01: mean 0.01, sample sd 0.02, t = 0.01 / (0.02 / sqrt(3)).
+        self.assertAlmostEqual(s["excess_t_monthly"], round(0.01 / (0.02 / 3 ** 0.5), 3))
+        criteria = {"min_expectancy_r": 0, "min_profit_factor": 0, "min_sqn": -9, "min_split_trades": 1, "min_trades": 1,
+                    "min_excess_t": 0.5, "every_split_beats_benchmark": True}
+        self.assertTrue(evaluate(s, {"a": s}, [], criteria)["passed"])
+        lagging = evaluate(s, {"a": s, "b": {**s, "mean_excess": -0.001}}, [], criteria)
+        self.assertFalse(lagging["checks"]["every_split_beats_benchmark"])
+        self.assertNotIn("excess_t", evaluate(s, {}, [], {k: v for k, v in criteria.items() if k != "min_excess_t"})["checks"])
+
+
+class BenchmarkTests(unittest.TestCase):
+    SERIES = {"date": ["2020-01-01", "2020-01-02", "2020-01-03", "2020-01-06"],
+              "open": [100.0, 102.0, 104.0, 110.0], "close": [101.0, 103.0, 105.0, 111.0]}
+
+    def test_benchmark_is_held_over_the_same_days_and_fractions(self):
+        fills = [{"date": "2020-01-03", "fraction": 0.5, "reason": "target"}, {"date": "2020-01-06", "fraction": 0.5, "reason": "stop_gap"}]
+        # Buy at the 01-02 open (102); half sold at the 01-03 close (105), half at the 01-06 open (110).
+        expected = 0.5 * (105 / 102 - 1) + 0.5 * (110 / 102 - 1)
+        self.assertAlmostEqual(run_queue.benchmark_gross(self.SERIES, "2020-01-02", fills), expected)
+
+    def test_a_day_the_benchmark_did_not_trade_uses_its_last_close(self):
+        fills = [{"date": "2020-01-05", "fraction": 1.0, "reason": "stop_gap"}]
+        self.assertAlmostEqual(run_queue.benchmark_gross(self.SERIES, "2020-01-01", fills), 105 / 100 - 1)
+        self.assertIsNone(run_queue.benchmark_gross(self.SERIES, "2019-12-31", fills))
+
 
 class QueueAndDatasetTests(unittest.TestCase):
     def test_eod_window_blocks_publishing(self):
@@ -131,6 +168,39 @@ class QueueAndDatasetTests(unittest.TestCase):
         self.assertIn(result["champion"], [None, *result["variants"]])
         self.assertTrue(trades_csv)
 
+    def test_spec_with_a_benchmark_reports_excess_for_every_trade(self):
+        prices, events = {}, []
+        for k in range(12):
+            bars = walk(2000 + k, n=260)
+            prices[f"S{k}"] = {"date": [b["date"] for b in bars], **{f: [b[f] for b in bars] for f in datasets.FIELDS}}
+            events.append({"event_id": f"S{k}", "symbol": f"S{k}", "signal_date": bars[100]["date"]})
+        spy = prices["S0"]
+        spec = json.loads((ROOT / "research/lab/queue/a2-room-time-20y-v1.json").read_text())
+        spec["splits"] = [{"id": "all", "from": "2000-01-01", "to": "2100-01-01"}]
+        entry = {"dataset_id": "synthetic", "asset": "-", "sha256": "-", "events": 12, "symbols": 12}
+        result, trades_csv = run_queue.run_spec(spec, {"events": events, "prices": prices}, entry, 0.001,
+                                                {"symbol": "SPY", "series": spy, "entry": entry})
+        self.assertEqual(result["benchmark"]["symbol"], "SPY")
+        self.assertEqual(result["selection_rule"], "highest overall mean_return_per_day among variants passing every pre-registered check")
+        for v in result["variants"].values():
+            self.assertEqual(v["overall"]["benchmark_trades"], v["overall"]["resolved"])
+            self.assertIn("excess_t", v["verdict"]["checks"])
+        rows = list(csv.DictReader(io.StringIO(gzip.decompress(trades_csv).decode())))
+        # A trade in the benchmark itself has zero excess when both fill at the same open or close
+        # (an intraday stop fills at the stop price, the benchmark at that close).
+        same_price = [r for r in rows if r["symbol"] == "S0" and r["exit_reason"] in ("time", "stop_gap")]
+        self.assertTrue(same_price and all(abs(float(r["excess_return"])) < 1e-7 for r in same_price))
+
+    def test_a_forward_spec_waits_for_its_date(self):
+        with tempfile.TemporaryDirectory() as folder:
+            queue = pathlib.Path(folder) / "queue"
+            queue.mkdir()
+            (queue / "later.json").write_text(json.dumps({"id": "later", "not_before": "2027-04-15"}))
+            (queue / "now.json").write_text(json.dumps({"id": "now"}))
+            with mock.patch.object(run_queue, "QUEUE", queue), mock.patch.object(run_queue, "RESULTS", pathlib.Path(folder) / "results"):
+                self.assertEqual([s["id"] for _, s in run_queue.pending_specs("2027-04-14")], ["now"])
+                self.assertEqual([s["id"] for _, s in run_queue.pending_specs("2027-04-15")], ["later", "now"])
+
     def test_every_queued_spec_is_complete_and_linked_to_a_registered_experiment(self):
         registered = {json.loads(line)["experiment_id"] for line in (ROOT / "research/experiments.jsonl").read_text().splitlines() if line.strip()}
         for path in (ROOT / "research/lab/queue").glob("*.json"):
@@ -142,6 +212,10 @@ class QueueAndDatasetTests(unittest.TestCase):
                 self.assertTrue({vid, *neighbours} <= ids, path.name)
             for key in ("min_expectancy_r", "min_profit_factor", "min_sqn", "min_split_trades", "min_trades"):
                 self.assertIn(key, spec["criteria"])
+            if "benchmark" in spec:
+                self.assertTrue(spec["benchmark"]["symbol"] in spec["benchmark"]["dataset"]["symbols"], path.name)
+            if "not_before" in spec:
+                dt.date.fromisoformat(spec["not_before"])
 
 
 if __name__ == "__main__":

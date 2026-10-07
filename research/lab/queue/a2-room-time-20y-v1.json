@@ -1,0 +1,449 @@
+{
+ "id": "a2-room-time-20y-v1",
+ "experiment_id": "lab-a2-room-time-20y-v1-2026-10-08",
+ "priority": 10,
+ "question": "Second look at twenty years after A-exits found that room and time help: which part of the current rule costs most (stop, 2R target or 40-day limit), where is the best stop-width and holding-time region, and does any exit beat simply holding SPY over the same days in every era?",
+ "dataset": {
+  "id": "observation-2005-2025-v1",
+  "builder": "observation",
+  "events_csv": "research/backtest/output/reusable-runs/34766761296-2/trades.csv"
+ },
+ "benchmark": {
+  "symbol": "SPY",
+  "dataset": {
+   "id": "benchmark-spy-2004-to-2026-10-v1",
+   "builder": "symbols",
+   "symbols": [
+    "SPY"
+   ],
+   "start": "2004-01-01"
+  }
+ },
+ "splits": [
+  {
+   "id": "2005-2009",
+   "from": "2005-01-01",
+   "to": "2009-12-31"
+  },
+  {
+   "id": "2010-2014",
+   "from": "2010-01-01",
+   "to": "2014-12-31"
+  },
+  {
+   "id": "2015-2019",
+   "from": "2015-01-01",
+   "to": "2019-12-31"
+  },
+  {
+   "id": "2020-2024",
+   "from": "2020-01-01",
+   "to": "2024-12-31"
+  },
+  {
+   "id": "2025-2026",
+   "from": "2025-01-01",
+   "to": "2026-12-31"
+  }
+ ],
+ "group": "A-exits",
+ "baseline": "A0",
+ "cost_per_side": 0.001,
+ "champion_metric": "mean_return_per_day",
+ "neighbours": {
+  "P15-40": [
+   "P20-40",
+   "P15-60"
+  ],
+  "P15-60": [
+   "P20-60",
+   "P15-40",
+   "P15-90"
+  ],
+  "P15-90": [
+   "P20-90",
+   "P15-60",
+   "P15-120"
+  ],
+  "P15-120": [
+   "P20-120",
+   "P15-90"
+  ],
+  "P20-40": [
+   "P15-40",
+   "P25-40",
+   "P20-60"
+  ],
+  "P20-60": [
+   "P15-60",
+   "P25-60",
+   "P20-40",
+   "P20-90"
+  ],
+  "P20-90": [
+   "P15-90",
+   "P25-90",
+   "P20-60",
+   "P20-120"
+  ],
+  "P20-120": [
+   "P15-120",
+   "P25-120",
+   "P20-90"
+  ],
+  "P25-40": [
+   "P20-40",
+   "P25-60"
+  ],
+  "P25-60": [
+   "P20-60",
+   "P25-40",
+   "P25-90"
+  ],
+  "P25-90": [
+   "P20-90",
+   "P25-60",
+   "P25-120"
+  ],
+  "P25-120": [
+   "P20-120",
+   "P25-90"
+  ],
+  "N2.0-60": [
+   "N2.5-60",
+   "N2.0-90"
+  ],
+  "N2.0-90": [
+   "N2.5-90",
+   "N2.0-60"
+  ],
+  "N2.5-60": [
+   "N2.0-60",
+   "N3.0-60",
+   "N2.5-90"
+  ],
+  "N2.5-90": [
+   "N2.0-90",
+   "N3.0-90",
+   "N2.5-60"
+  ],
+  "N3.0-60": [
+   "N2.5-60",
+   "N3.0-90"
+  ],
+  "N3.0-90": [
+   "N2.5-90",
+   "N3.0-60"
+  ],
+  "D3": [
+   "D1",
+   "D2"
+  ],
+  "C60": [
+   "C40"
+  ]
+ },
+ "criteria": {
+  "min_expectancy_r": 0.2,
+  "min_profit_factor": 1.3,
+  "min_sqn": 2.0,
+  "min_split_trades": 30,
+  "min_trades": 200,
+  "min_excess_t": 3.0,
+  "every_split_beats_benchmark": true
+ },
+ "variants": [
+  {
+   "id": "A0",
+   "family": "A0",
+   "label": "Current rule: support -5% (max 10%), sell all at 2R, 40 days",
+   "stop": {
+    "kind": "support_cap",
+    "buffer": 0.05,
+    "cap": 0.1
+   },
+   "targets": [
+    {
+     "r": 2.0,
+     "fraction": 1.0
+    }
+   ],
+   "max_hold": 40
+  },
+  {
+   "id": "D1",
+   "family": "D",
+   "label": "Current stop, no 2R target, 40 days",
+   "stop": {
+    "kind": "support_cap",
+    "buffer": 0.05,
+    "cap": 0.1
+   },
+   "targets": [],
+   "max_hold": 40
+  },
+  {
+   "id": "D2",
+   "family": "D",
+   "label": "Current stop and 2R target, 60 days",
+   "stop": {
+    "kind": "support_cap",
+    "buffer": 0.05,
+    "cap": 0.1
+   },
+   "targets": [
+    {
+     "r": 2.0,
+     "fraction": 1.0
+    }
+   ],
+   "max_hold": 60
+  },
+  {
+   "id": "D3",
+   "family": "D",
+   "label": "Current stop, no target, 60 days",
+   "stop": {
+    "kind": "support_cap",
+    "buffer": 0.05,
+    "cap": 0.1
+   },
+   "targets": [],
+   "max_hold": 60
+  },
+  {
+   "id": "C40",
+   "family": "C",
+   "label": "Catastrophe stop -50% only, 40 days",
+   "stop": {
+    "kind": "pct",
+    "pct": 0.5
+   },
+   "targets": [],
+   "max_hold": 40
+  },
+  {
+   "id": "C60",
+   "family": "C",
+   "label": "Catastrophe stop -50% only, 60 days",
+   "stop": {
+    "kind": "pct",
+    "pct": 0.5
+   },
+   "targets": [],
+   "max_hold": 60
+  },
+  {
+   "id": "P15-40",
+   "family": "P",
+   "label": "Emergency stop -15%, time exit 40 days",
+   "stop": {
+    "kind": "pct",
+    "pct": 0.15
+   },
+   "targets": [],
+   "max_hold": 40
+  },
+  {
+   "id": "P15-60",
+   "family": "P",
+   "label": "Emergency stop -15%, time exit 60 days",
+   "stop": {
+    "kind": "pct",
+    "pct": 0.15
+   },
+   "targets": [],
+   "max_hold": 60
+  },
+  {
+   "id": "P15-90",
+   "family": "P",
+   "label": "Emergency stop -15%, time exit 90 days",
+   "stop": {
+    "kind": "pct",
+    "pct": 0.15
+   },
+   "targets": [],
+   "max_hold": 90
+  },
+  {
+   "id": "P15-120",
+   "family": "P",
+   "label": "Emergency stop -15%, time exit 120 days",
+   "stop": {
+    "kind": "pct",
+    "pct": 0.15
+   },
+   "targets": [],
+   "max_hold": 120
+  },
+  {
+   "id": "P20-40",
+   "family": "P",
+   "label": "Emergency stop -20%, time exit 40 days",
+   "stop": {
+    "kind": "pct",
+    "pct": 0.2
+   },
+   "targets": [],
+   "max_hold": 40
+  },
+  {
+   "id": "P20-60",
+   "family": "P",
+   "label": "Emergency stop -20%, time exit 60 days",
+   "stop": {
+    "kind": "pct",
+    "pct": 0.2
+   },
+   "targets": [],
+   "max_hold": 60
+  },
+  {
+   "id": "P20-90",
+   "family": "P",
+   "label": "Emergency stop -20%, time exit 90 days",
+   "stop": {
+    "kind": "pct",
+    "pct": 0.2
+   },
+   "targets": [],
+   "max_hold": 90
+  },
+  {
+   "id": "P20-120",
+   "family": "P",
+   "label": "Emergency stop -20%, time exit 120 days",
+   "stop": {
+    "kind": "pct",
+    "pct": 0.2
+   },
+   "targets": [],
+   "max_hold": 120
+  },
+  {
+   "id": "P25-40",
+   "family": "P",
+   "label": "Emergency stop -25%, time exit 40 days",
+   "stop": {
+    "kind": "pct",
+    "pct": 0.25
+   },
+   "targets": [],
+   "max_hold": 40
+  },
+  {
+   "id": "P25-60",
+   "family": "P",
+   "label": "Emergency stop -25%, time exit 60 days",
+   "stop": {
+    "kind": "pct",
+    "pct": 0.25
+   },
+   "targets": [],
+   "max_hold": 60
+  },
+  {
+   "id": "P25-90",
+   "family": "P",
+   "label": "Emergency stop -25%, time exit 90 days",
+   "stop": {
+    "kind": "pct",
+    "pct": 0.25
+   },
+   "targets": [],
+   "max_hold": 90
+  },
+  {
+   "id": "P25-120",
+   "family": "P",
+   "label": "Emergency stop -25%, time exit 120 days",
+   "stop": {
+    "kind": "pct",
+    "pct": 0.25
+   },
+   "targets": [],
+   "max_hold": 120
+  },
+  {
+   "id": "N2.0-60",
+   "family": "N",
+   "label": "Stop 2.0xATR(20), time exit 60 days",
+   "stop": {
+    "kind": "atr",
+    "mult": 2.0,
+    "period": 20
+   },
+   "targets": [],
+   "max_hold": 60
+  },
+  {
+   "id": "N2.0-90",
+   "family": "N",
+   "label": "Stop 2.0xATR(20), time exit 90 days",
+   "stop": {
+    "kind": "atr",
+    "mult": 2.0,
+    "period": 20
+   },
+   "targets": [],
+   "max_hold": 90
+  },
+  {
+   "id": "N2.5-60",
+   "family": "N",
+   "label": "Stop 2.5xATR(20), time exit 60 days",
+   "stop": {
+    "kind": "atr",
+    "mult": 2.5,
+    "period": 20
+   },
+   "targets": [],
+   "max_hold": 60
+  },
+  {
+   "id": "N2.5-90",
+   "family": "N",
+   "label": "Stop 2.5xATR(20), time exit 90 days",
+   "stop": {
+    "kind": "atr",
+    "mult": 2.5,
+    "period": 20
+   },
+   "targets": [],
+   "max_hold": 90
+  },
+  {
+   "id": "N3.0-60",
+   "family": "N",
+   "label": "Stop 3.0xATR(20), time exit 60 days",
+   "stop": {
+    "kind": "atr",
+    "mult": 3.0,
+    "period": 20
+   },
+   "targets": [],
+   "max_hold": 60
+  },
+  {
+   "id": "N3.0-90",
+   "family": "N",
+   "label": "Stop 3.0xATR(20), time exit 90 days",
+   "stop": {
+    "kind": "atr",
+    "mult": 3.0,
+    "period": 20
+   },
+   "targets": [],
+   "max_hold": 90
+  }
+ ],
+ "notes": [
+  "Same frozen 20-year dataset as a-exits-20y-v1, already seen once: this is exploration. A passing variant becomes a holdout candidate, not a production rule.",
+  "D variants change one part of the current rule at a time; C variants measure what any stop is worth; P and N are grids around the A1-60 and A2 findings.",
+  "R-multiples are not comparable across stop widths, so the champion is the passing variant with the highest mean net return per day held (capital efficiency).",
+  "Benchmark: SPY bought at the open of the same entry day and sold at the same exit days and fractions; same costs on both, so excess = trade gross minus SPY gross.",
+  "The excess t value uses monthly averages, because signals in the same month share one market; 3.0 is the Harvey, Liu and Zhu (2016) hurdle for many tested variants.",
+  "Same pass bar as A-exits plus two market checks, frozen before the run."
+ ]
+}
