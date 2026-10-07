@@ -152,7 +152,9 @@ def write_outputs(root, result, trades_csv, event, manifests):
     (out / "result.json").write_text(json.dumps(result, indent=1, ensure_ascii=False) + "\n")
     (out / "trades.csv.gz").write_bytes(trades_csv)
     for entry in manifests:
-        (pathlib.Path(root) / "research/lab/datasets" / f"{entry['dataset_id']}.json").write_text(json.dumps(entry, indent=1) + "\n")
+        record = pathlib.Path(root) / "research/lab/datasets" / f"{entry['dataset_id']}.json"
+        record.parent.mkdir(parents=True, exist_ok=True)
+        record.write_text(json.dumps(entry, indent=1) + "\n")
     events = pathlib.Path(root) / "research/experiment-events.jsonl"
     if event["details"]["spec_sha256"] not in events.read_text():
         with events.open("a") as handle:
