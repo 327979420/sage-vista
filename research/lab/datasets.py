@@ -14,6 +14,7 @@ import hashlib
 import json
 import pathlib
 import subprocess
+import tempfile
 
 from services.scanner.macd_factor_backtest import adjusted_rows
 
@@ -98,10 +99,20 @@ def manifest(dataset_id):
 
 
 def upload(path):
-    """Upload once; an existing asset name is never overwritten."""
-    if subprocess.run(["gh", "release", "view", RELEASE_TAG], capture_output=True).returncode != 0:
+    """Upload once; an existing asset is never overwritten, only verified."""
+    path = pathlib.Path(path)
+    view = subprocess.run(["gh", "release", "view", RELEASE_TAG, "--json", "assets", "-q", ".assets[].name"], capture_output=True, text=True)
+    if view.returncode != 0:
         subprocess.run(["gh", "release", "create", RELEASE_TAG, "--prerelease", "--title", "Research datasets",
                         "--notes", "Frozen, content-addressed research datasets. Assets are never replaced."], check=True)
+    elif path.name in view.stdout.split():
+        # Same name means same SHA256 prefix; confirm the full hash before reusing it.
+        with tempfile.TemporaryDirectory() as folder:
+            subprocess.run(["gh", "release", "download", RELEASE_TAG, "-p", path.name, "-D", folder], check=True)
+            remote = hashlib.sha256((pathlib.Path(folder) / path.name).read_bytes()).hexdigest()
+        if remote != hashlib.sha256(path.read_bytes()).hexdigest():
+            raise ValueError(f"release_asset_conflict: {path.name}")
+        return
     subprocess.run(["gh", "release", "upload", RELEASE_TAG, str(path)], check=True)
 
 
