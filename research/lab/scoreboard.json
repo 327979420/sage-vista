@@ -1,0 +1,50 @@
+{
+ "schema_version": "1.0.0",
+ "experiments": [
+  {
+   "spec_id": "a-exits-ledger-1y-v1",
+   "experiment_id": "lab-a-exits-ledger-1y-v1-2026-10-07",
+   "group": "A-exits",
+   "completed_at": "2026-10-07T07:10:17+00:00",
+   "champion": "A1-60",
+   "dataset": "ledger-2025-10-to-2026-10"
+  }
+ ],
+ "champions": {
+  "A-exits": {
+   "spec_id": "a-exits-ledger-1y-v1",
+   "variant": "A1-60",
+   "rule": {
+    "id": "A1-60",
+    "family": "A1",
+    "label": "Time exit 60 days, emergency stop -20%",
+    "stop": {
+     "kind": "pct",
+     "pct": 0.2
+    },
+    "targets": [],
+    "max_hold": 60
+   },
+   "overall": {
+    "events": 4222,
+    "resolved": 3636,
+    "skipped": 0,
+    "observing": 556,
+    "win_rate": 0.5556,
+    "mean_return": 0.052521,
+    "median_return": 0.025636,
+    "p10_return": -0.202,
+    "profit_factor": 1.9064,
+    "expectancy_r": 0.2626,
+    "sd_r": 1.2971,
+    "sqn": 2.025,
+    "t_stat": 12.208,
+    "avg_hold": 53.69,
+    "stop_rate": 0.1997,
+    "trail_rate": 0.0,
+    "target_rate": 0.0,
+    "time_rate": 0.8003
+   }
+  }
+ }
+}

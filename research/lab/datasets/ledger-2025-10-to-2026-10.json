@@ -1,0 +1,12 @@
+{
+ "dataset_id": "ledger-2025-10-to-2026-10",
+ "asset": "ledger-2025-10-to-2026-10-24208dee8d4a.json.gz",
+ "sha256": "24208dee8d4a7741cf155a0fcf10326fe2dcd2515e2cf7a21957f2f1d7c89a74",
+ "bytes": 59912806,
+ "release": "research-datasets",
+ "events": 4222,
+ "symbols": 1360,
+ "source": "public/opportunity-ledger.json + work/eodhd-cache (adjusted_rows)",
+ "price_basis": "EODHD adjusted daily OHLCV",
+ "missing_symbols": 0
+}
