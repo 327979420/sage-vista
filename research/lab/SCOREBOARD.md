@@ -27,3 +27,27 @@ Exploration on the live year: which exit keeps the most of the edge that 60-day 
 
 Champion: **A1-60**
 
+## a-exits-20y-v1 (observation-2005-2025-v1)
+
+Decision run on twenty years (2005-2025 signals): does any exit pass every pre-registered check across all five eras, and beat the current rule?
+
+| Variant | Trades | Win | Mean | Median | PF | E[R] | SQN | Splits + | Passed |
+|---|---|---|---|---|---|---|---|---|---|
+| A0 Current rule: support -5% (max 10%), sell all at 2R, 40 days | 3110 | 44.53% | 0.90% | -4.21% | 1.2343 | 0.1242 | 0.908 | no | no |
+| A1-40 Time exit 40 days, emergency stop -20% | 3115 | 56.53% | 2.79% | 2.17% | 1.5652 | 0.1393 | 1.407 | yes | no |
+| A1-60 Time exit 60 days, emergency stop -20% | 3114 | 56.17% | 3.88% | 2.96% | 1.6644 | 0.1942 | 1.607 | yes | no |
+| A2-1.5 Turtle-style stop 1.5xATR(20), 60 days | 3115 | 27.77% | 2.06% | -4.09% | 1.5049 | 0.3537 | 1.233 | yes | no |
+| A2-2.0 Turtle-style stop 2xATR(20), 60 days | 3115 | 35.51% | 2.65% | -4.87% | 1.5638 | 0.348 | 1.494 | yes | no |
+| A2-2.5 Turtle-style stop 2.5xATR(20), 60 days | 3115 | 41.38% | 3.13% | -5.02% | 1.6134 | 0.3321 | 1.684 | yes | no |
+| A3-2.5 Chandelier trail 2.5xATR(22), up to 100 days | 3115 | 39.78% | 0.62% | -2.01% | 1.1786 | 0.0722 | 0.606 | no | no |
+| A3-3.0 Chandelier trail 3xATR(22), up to 100 days | 3115 | 41.09% | 1.03% | -2.10% | 1.2612 | 0.1061 | 0.893 | yes | no |
+| A3-3.5 Chandelier trail 3.5xATR(22), up to 100 days | 3115 | 43.15% | 1.73% | -1.99% | 1.4033 | 0.1474 | 1.225 | yes | no |
+| A4 Stop 2xATR(20), exit on close below EMA50, up to 100 days | 3115 | 31.24% | 1.45% | -1.90% | 1.4831 | 0.1649 | 0.869 | yes | no |
+| A5 Current stop, sell 50% at 2R, chandelier 3xATR on the rest | 3110 | 41.86% | 1.43% | -5.39% | 1.3322 | 0.1955 | 1.192 | yes | no |
+| A6 Current stop, sell 90% at 2R, chandelier 3xATR on 10% | 3110 | 41.86% | 1.25% | -5.39% | 1.2888 | 0.1722 | 1.144 | yes | no |
+| A7-6 Current stop, 6% closing trail, up to 100 days | 3110 | 37.59% | 0.40% | -2.27% | 1.1465 | 0.062 | 0.479 | yes | no |
+| A7-8 Current stop, 8% closing trail, up to 100 days | 3110 | 36.98% | 0.79% | -3.10% | 1.2372 | 0.1193 | 0.757 | yes | no |
+| A7-10 Current stop, 10% closing trail, up to 100 days | 3110 | 36.85% | 1.38% | -4.03% | 1.3697 | 0.2075 | 1.08 | yes | no |
+
+Champion: **none passed; baseline stays**
+

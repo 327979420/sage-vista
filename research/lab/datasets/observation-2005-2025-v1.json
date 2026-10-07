@@ -1,0 +1,12 @@
+{
+ "dataset_id": "observation-2005-2025-v1",
+ "asset": "observation-2005-2025-v1-d5262d06cb38.json.gz",
+ "sha256": "d5262d06cb381463188d010272813150cd6667fe6371ae4911e4836eb7bebd6d",
+ "bytes": 122001140,
+ "release": "research-datasets",
+ "events": 3115,
+ "symbols": 1223,
+ "source": "/home/runner/work/sage-vista/sage-vista/research/backtest/output/reusable-runs/34766761296-2/trades.csv events + EODHD full adjusted history",
+ "price_basis": "EODHD adjusted daily OHLCV",
+ "missing_symbols": 0
+}

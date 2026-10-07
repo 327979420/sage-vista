@@ -8,6 +8,14 @@
    "completed_at": "2026-10-07T07:10:17+00:00",
    "champion": "A1-60",
    "dataset": "ledger-2025-10-to-2026-10"
+  },
+  {
+   "spec_id": "a-exits-20y-v1",
+   "experiment_id": "lab-a-exits-20y-v1-2026-10-07",
+   "group": "A-exits",
+   "completed_at": "2026-10-07T07:22:57+00:00",
+   "champion": null,
+   "dataset": "observation-2005-2025-v1"
   }
  ],
  "champions": {
