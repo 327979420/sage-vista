@@ -176,6 +176,14 @@
 .svTourDots i.isOn { width: 24px; border-radius: 9px; background: var(--sv-ink); }
 .svTourActions { display: flex; justify-content: space-between; align-items: center; }
 .svTourActions span { display: flex; gap: 10px; }
+/* Language switch inside the tour, restyled for the white card. */
+.svTourTop { display: flex; justify-content: flex-end; padding: 16px 20px 0; }
+.svTour .languageSwitch { border-color: var(--sv-line); background: #f6f8fc; }
+.svTour .languageSwitch button { min-height: 32px; padding: 4px 12px; border: 0; border-radius: 6px; background: transparent; color: var(--sv-muted); font-size: 13px; font-weight: 600; }
+.svTour .languageSwitch button:hover { background: #e8eef8; color: var(--sv-ink); }
+.svTour .languageSwitch button[aria-pressed="true"] { background: var(--sv-ink); color: #fff; }
+.svTour .svTourWelcome { padding-top: 16px; }
+.svTour .svTourStep { padding-top: 8px; }
 @media (prefers-reduced-motion: reduce) { .svTour .svTourChoice { transition: none; } }
 @media (max-width: 700px) {
   .svTourBackdrop { padding: 0; align-items: end; }
