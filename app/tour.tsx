@@ -1,6 +1,6 @@
 "use client";
 import {useCallback, useEffect, useRef, useState} from 'react';
-import {useLocale} from './i18n/locale';
+import {LanguageSwitch, useLocale} from './i18n/locale';
 import {trackEvent} from './analytics';
 import {TOUR_COPY, TOUR_SEEN_KEY, TOUR_STEPS, tourSeen} from './tour-steps';
 
@@ -46,7 +46,8 @@ export default function Tour() {
 
  useEffect(() => {
   if (stage === 'closed') return;
-  dialog.current?.querySelector<HTMLElement>('button')?.focus();
+  // Focus the main choice, not the language switch that sits first in the card.
+  dialog.current?.querySelector<HTMLElement>('.svTourChoice, .svTourActions .isPrimary, .svTourWelcome .isPrimary')?.focus();
   const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') close(false); };
   window.addEventListener('keydown', onKey);
   return () => window.removeEventListener('keydown', onKey);
@@ -58,6 +59,8 @@ export default function Tour() {
 
  return <div className="svTourBackdrop">
   <div className="svTour" role="dialog" aria-modal="true" aria-labelledby="svTourTitle" ref={dialog}>
+   {/* The site's own switch: choosing here changes the card and every page behind it. */}
+   <div className="svTourTop"><LanguageSwitch/></div>
    {stage === 'welcome' && <div className="svTourWelcome">
     <h2 id="svTourTitle">{t('welcome')}</h2><p>{t('question')}</p>
     {/* Two equal choice tiles, so new and returning visitors decide at a glance. */}
