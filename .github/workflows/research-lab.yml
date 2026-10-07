@@ -1,0 +1,47 @@
+name: Research Lab
+
+# Runs pre-registered experiments from research/lab/queue in the background.
+# Each spec runs once per frozen content; results, the cumulative scoreboard and
+# the experiment lifecycle are committed to main. Scheduled outside the EOD
+# window (23:30-04:30 UTC); the runner also refuses to publish inside it.
+on:
+  schedule:
+    - cron: "15 8 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sage-vista-research-lab
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      EODHD_API_TOKEN: ${{ secrets.EODHD_API_TOKEN }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-python@v7
+        with: { python-version: "3.13" }
+      - name: Restore the daily price cache read-only (ledger datasets)
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            work/eodhd-cache
+            work/eodhd-active-common.json
+          key: eodhd-history-v1-research-lab-${{ github.run_id }}
+          restore-keys: eodhd-history-v1-
+      - name: Validate the lab engine before using it
+        run: python3 -m unittest tests.test_research_lab tests.test_experiment_catalog
+      - name: Run pending experiments and publish results
+        run: python3 -m research.lab.run_queue --publish --max-specs 3
+      - name: Summarise
+        if: always()
+        run: |
+          echo "## Research lab" >> "$GITHUB_STEP_SUMMARY"
+          git fetch -q origin main && git show origin/main:research/lab/SCOREBOARD.md >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || echo "No scoreboard yet." >> "$GITHUB_STEP_SUMMARY"
