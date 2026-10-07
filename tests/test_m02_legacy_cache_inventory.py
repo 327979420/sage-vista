@@ -83,6 +83,7 @@ EXPECTED_WORKFLOW_REFERENCES = frozenset({
     ".github/workflows/opportunity-ledger-refresh.yml",
     ".github/workflows/pullback-context-backtest.yml",
     ".github/workflows/recover-unified-v2-backfill.yml",
+    ".github/workflows/research-lab.yml",
     ".github/workflows/reused-factor-backtest.yml",
     ".github/workflows/trailing-stop-backtest.yml",
     ".github/workflows/unified-v2-backfill.yml",

@@ -1,15 +1,15 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-09-13T15:49:44Z",
+  "generated_at": "2026-10-07T06:41:44.592245+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 41,
+  "experiment_count": 43,
   "summary": {
-    "completed": 26,
-    "in_progress": 15,
+    "completed": 27,
+    "in_progress": 16,
     "candidate": 10,
     "not_validated_or_unstable": 12
   },
@@ -21,6 +21,113 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "lab-a-exits-ledger-1y-v1-2026-10-07",
+      "created_at": "2026-10-07",
+      "status": "pre_registered",
+      "change": "Quant research lab Group A (exits), exploration on the live year",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#quant-research-program",
+        "lab_spec": "research/lab/queue/a-exits-ledger-1y-v1.json",
+        "dataset": "ledger-2025-10-to-2026-10 (built once, frozen as a release asset)",
+        "baseline": "A0 support-5pct-cap-10pct-2r-v1",
+        "variants": 15,
+        "role": "exploration; cannot alone change production"
+      },
+      "known_limitations": [
+        "event-level: overlapping signals, not a capital-constrained portfolio",
+        "entry fixed at next open; only exits change",
+        "daily bars only: stop is assumed before target on the same bar",
+        "cost 0.1% per side, with a 0.2% stress result reported",
+        "one market year; quarterly splits are not independent regimes"
+      ],
+      "human_summary": {
+        "title_zh": "研究实验室A组：退出规则（近一年探索）",
+        "family": "quant_lab_exits",
+        "family_zh": "量化研究实验室",
+        "question_zh": "在相同入场下，哪种止损/止盈/持有规则能保住60日持有显示的优势，并优于现行支撑-5%/2R/40日？",
+        "result_zh": "已预登记，等待后台自动运行。",
+        "use_zh": "仅作探索参考，不能单独改变生产规则。",
+        "next_zh": "与20年决策实验对照。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-07T06:41:44.592245+00:00",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-10-07T06:41:44.592245+00:00",
+        "time_source": "assistant_registration",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "lab-a-exits-ledger-1y-v1-2026-10-07",
+            "event": "registered",
+            "event_at": "2026-10-07T06:41:44.592245+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/a-exits-ledger-1y-v1.json",
+              "note": "variants and pass bar frozen before any run"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "lab-a-exits-20y-v1-2026-10-07",
+      "created_at": "2026-10-07",
+      "status": "pre_registered",
+      "change": "Quant research lab Group A (exits), decision run on twenty years",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#quant-research-program",
+        "lab_spec": "research/lab/queue/a-exits-20y-v1.json",
+        "dataset": "observation-2005-2025-v1: events from receipt 34766761296-2, prices re-fetched once from EODHD and frozen",
+        "baseline": "A0 support-5pct-cap-10pct-2r-v1",
+        "variants": 15,
+        "splits": "2005-09, 2010-14, 2015-19, 2020-24, 2025-26",
+        "role": "decision run; a passing champion goes to a shadow paper account before any production change"
+      },
+      "known_limitations": [
+        "event-level: overlapping signals, not a capital-constrained portfolio",
+        "entry fixed at next open; only exits change",
+        "daily bars only: stop is assumed before target on the same bar",
+        "cost 0.1% per side, with a 0.2% stress result reported",
+        "re-fetched adjusted prices are a new vintage, not the 2026-09 cache",
+        "partial delisted coverage (survivorship)",
+        "2025-26 was already seen in earlier descriptive studies"
+      ],
+      "human_summary": {
+        "title_zh": "研究实验室A组：退出规则（20年决策）",
+        "family": "quant_lab_exits",
+        "family_zh": "量化研究实验室",
+        "question_zh": "15种预登记退出方案在2005—2026五个时期中，是否有方案全部通过冻结标准并优于现行规则？",
+        "result_zh": "已预登记，等待后台自动运行（首次需冻结20年行情数据）。",
+        "use_zh": "通过者进入影子模拟账户前向验证，不直接改生产。",
+        "next_zh": "冠军方案进入B组（入场时机）作为新基线。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-07T06:41:44.592245+00:00",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-10-07T06:41:44.592245+00:00",
+        "time_source": "assistant_registration",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "lab-a-exits-20y-v1-2026-10-07",
+            "event": "registered",
+            "event_at": "2026-10-07T06:41:44.592245+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/a-exits-20y-v1.json",
+              "note": "variants and pass bar frozen before any run"
+            }
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "cr056-selection-observation-v1-2026-09-13",
       "created_at": "2026-09-13",
@@ -69,19 +176,19 @@
         "family": "selection_observation",
         "family_zh": "选股效果观察",
         "question_zh": "新版门票和评分产生的候选，在不同主导周期和观察窗口表现如何？",
-        "result_zh": "多年任务进行中，尚无完整收益结论；小样本暂停续跑一致性已验证。",
-        "use_zh": "沿原运行断点接续，完成后读取既有回测报告和全部窗口CSV；不作为模拟账户收益。",
-        "next_zh": "完成全部分片、校验覆盖与缺失，再比较各形态和周期的收益分布。",
-        "verdict": "pre_registered"
+        "result_zh": "原20年3115事件完整保留；分级期限35048162507-1已完成。领先10分且有对应门票的研究组1041事件（日693/周246/月102），另列5/15分敏感度和年份分段。",
+        "use_zh": "日30/40/60交易日、周5/10周留作下轮对照；月线没有稳定最佳持有期，不能定6月强制退出。沿原回测页查看曲线与CSV。",
+        "next_zh": "固定研究分组后比较等待日线确认的入场，记录未触发与错过上涨；成交后重新研究期限。",
+        "verdict": "in_progress"
       },
       "lifecycle": {
         "registered_at": "2026-09-13",
         "started_at": "2026-09-13T15:49:44Z",
-        "completed_at": null,
-        "latest_event": "started",
-        "latest_event_at": "2026-09-13T15:49:44Z",
+        "completed_at": "2026-09-16T02:32:20.728408+00:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-09-16T02:32:20.728408+00:00",
         "time_source": "github_actions",
-        "event_count": 2,
+        "event_count": 7,
         "events": [
           {
             "experiment_id": "cr056-selection-observation-v1-2026-09-13",
@@ -98,6 +205,151 @@
             "time_source": "github_actions",
             "source_ref": "https://github.com/327979420/sage-vista/actions/runs/34766761296",
             "result": "冻结ddb129c原运行；保留每股检查点，未完成分片接续。"
+          },
+          {
+            "experiment_id": "cr056-selection-observation-v1-2026-09-13",
+            "event": "registered",
+            "event_at": "2026-09-15T06:30:56.221111+00:00",
+            "time_source": "execution_registration",
+            "details": {
+              "round": "horizon-curves-v1",
+              "parent_receipt": "34766761296-2",
+              "parent_content_sha256": "213761ec14fb849e0545afef1282c123e60bde318d65da2db256fd152b3f70ee",
+              "fixed": "Original episodes, signal classification, scoring code ddb129c9ca847e83e1356ed995907e12428cb3c5 and per-symbol source hashes; no trading",
+              "windows": {
+                "daily": [
+                  "5d",
+                  "10d",
+                  "15d",
+                  "20d",
+                  "30d",
+                  "40d",
+                  "60d"
+                ],
+                "weekly_completed": [
+                  "5w",
+                  "10w",
+                  "20w"
+                ],
+                "monthly_completed": [
+                  "3m",
+                  "6m",
+                  "9m",
+                  "12m"
+                ]
+              },
+              "cohorts": [
+                "available per window",
+                "common complete across available windows",
+                "common complete across all planned windows"
+              ],
+              "metrics": [
+                "mean/median return",
+                "mean/median paired SPY excess",
+                "positive return fraction",
+                "mean/median adverse excursion clipped at zero",
+                "return p10",
+                "events and distinct symbols"
+              ],
+              "missing": "Never zero fill; cached source identity required, saved outcomes must reproduce before new windows; cache miss retains saved-only report",
+              "interpretation": "Descriptive previously seen sample; no optimal exit claim"
+            }
+          },
+          {
+            "experiment_id": "cr056-selection-observation-v1-2026-09-13",
+            "event": "completed",
+            "event_at": "2026-09-15T06:41:12.155786+00:00",
+            "time_source": "github_actions",
+            "source_ref": "https://github.com/327979420/sage-vista/actions/runs/34937814836",
+            "details": {
+              "round": "horizon-curves-v1",
+              "receipt": "34937814836-1",
+              "parent": "34766761296-2",
+              "daily_exact_parity_events": 1248,
+              "daily_matched_symbols": 731,
+              "csv_rows": 36142,
+              "publication": "artifact_complete_main_publication_pending_user_authorization"
+            }
+          },
+          {
+            "experiment_id": "cr056-selection-observation-v1-2026-09-13",
+            "event": "registered",
+            "event_at": "2026-09-15T08:03:22.217185+00:00",
+            "time_source": "user_requirement",
+            "details": {
+              "round": "opportunity-level-input-diagnostic-v1",
+              "parent_receipt": "34766761296-2",
+              "basis": "signal-time unweighted 0-100 frame scores, all three compared; preserve tickets and old labels",
+              "score_gap_bands": [
+                0,
+                5,
+                10,
+                15
+              ],
+              "returns_used": false,
+              "changes_selection": false,
+              "purpose": "quantify classification coverage before freezing distinct timeframe trade models"
+            }
+          },
+          {
+            "experiment_id": "cr056-selection-observation-v1-2026-09-13",
+            "event": "registered",
+            "event_at": "2026-09-16T02:22:49.488598+00:00",
+            "time_source": "user_approved_execution",
+            "details": {
+              "round": "opportunity-level-horizons-v1",
+              "parents": [
+                "34766761296-2",
+                "34938700564-1"
+              ],
+              "classification": "unique top among all three unweighted normalized scores and qualifying original ticket with positive floor",
+              "main_score_gap": 10,
+              "sensitivity_gaps": [
+                5,
+                15
+              ],
+              "periods": [
+                [
+                  2005,
+                  2009
+                ],
+                [
+                  2010,
+                  2014
+                ],
+                [
+                  2015,
+                  2019
+                ],
+                [
+                  2020,
+                  2025
+                ]
+              ],
+              "cohorts": [
+                "per_window",
+                "common_available",
+                "common_planned"
+              ],
+              "new_prices_or_selection": false,
+              "production_classification_changed": false
+            }
+          },
+          {
+            "experiment_id": "cr056-selection-observation-v1-2026-09-13",
+            "event": "completed",
+            "event_at": "2026-09-16T02:32:20.728408+00:00",
+            "time_source": "github_actions",
+            "source_ref": "https://github.com/327979420/sage-vista/actions/runs/35048162507",
+            "details": {
+              "round": "opportunity-level-horizons-v1",
+              "receipt": "35048162507-1",
+              "main_gap": 10,
+              "classified_events": 1041,
+              "unclassified_retained": 2074,
+              "production_changed": false,
+              "conclusion": "daily 30/40/60d and weekly 5/10w remain experimental comparisons; monthly holding optimum not established; entry tests pending"
+            }
           }
         ]
       }
@@ -3210,6 +3462,8 @@
     "favorite-pattern-simple-v3.0.0-2026-08-30",
     "favorite-pattern-tracker-v1.0.0-2026-08-29",
     "full-line-backtest-v1.0.2-2026-08-28",
+    "lab-a-exits-20y-v1-2026-10-07",
+    "lab-a-exits-ledger-1y-v1-2026-10-07",
     "macd-rollout-04-double-chip-confirmation-2026-08-25",
     "multi-factor-count-resonance-v1.0.0-2026-08-30",
     "pullback-context-backtest-v2.0.0-2026-08-28",
