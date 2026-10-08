@@ -1,0 +1,153 @@
+{
+ "id": "p1-size-risk-20y-v1",
+ "experiment_id": "lab-p1-size-risk-20y-v1-2026-10-08",
+ "kind": "account",
+ "priority": 10,
+ "question": "Portfolio step 1: with round 2's best selling rule (current stop, no 2R target, 40 days), how big should each position be and how much should each trade and the whole account risk? Settings are taken from the ranges mature programs use, and a rule fixed before the run picks one.",
+ "dataset": {
+  "id": "observation-2005-2025-v1",
+  "builder": "observation",
+  "events_csv": "research/backtest/output/reusable-runs/34766761296-2/trades.csv"
+ },
+ "benchmark": {
+  "symbol": "SPY",
+  "dataset": {
+   "id": "benchmark-spy-2004-to-2026-10-v1",
+   "builder": "symbols",
+   "symbols": [
+    "SPY"
+   ],
+   "start": "2004-01-01"
+  }
+ },
+ "splits": [
+  {
+   "id": "2005-2009",
+   "from": "2005-01-01",
+   "to": "2009-12-31"
+  },
+  {
+   "id": "2010-2014",
+   "from": "2010-01-01",
+   "to": "2014-12-31"
+  },
+  {
+   "id": "2015-2019",
+   "from": "2015-01-01",
+   "to": "2019-12-31"
+  },
+  {
+   "id": "2020-2024",
+   "from": "2020-01-01",
+   "to": "2024-12-31"
+  },
+  {
+   "id": "2025-2026",
+   "from": "2025-01-01",
+   "to": "2026-12-31"
+  }
+ ],
+ "window": {
+  "start": "2005-09-12",
+  "end": "2026-01-16"
+ },
+ "group": "P-portfolio",
+ "baseline": "A0",
+ "cost_per_side": 0.001,
+ "champion_metric": "sharpe",
+ "prior_trials": 24,
+ "seed": 20261009,
+ "criteria": {
+  "min_trades": 200,
+  "max_drawdown": 0.25,
+  "beat_baseline": [
+   "sharpe",
+   "calmar"
+  ],
+  "beat_benchmark": [
+   "sharpe",
+   "calmar"
+  ],
+  "mc_runs": 200,
+  "mc_p5_cagr_min": 0.0,
+  "every_split_positive": true,
+  "min_deflated_sharpe": 0.95
+ },
+ "variants": [
+  {
+   "id": "A0",
+   "family": "A0",
+   "label": "Current rule: support -5% (max 10%), sell all at 2R, 40 days",
+   "stop": {
+    "kind": "support_cap",
+    "buffer": 0.05,
+    "cap": 0.1
+   },
+   "targets": [
+    {
+     "r": 2.0,
+     "fraction": 1.0
+    }
+   ],
+   "max_hold": 40
+  },
+  {
+   "id": "D1",
+   "family": "D",
+   "label": "Round 2 best: current stop, no 2R target, 40 days (approved $10k positions)",
+   "stop": {
+    "kind": "support_cap",
+    "buffer": 0.05,
+    "cap": 0.1
+   },
+   "targets": [],
+   "max_hold": 40
+  }
+ ],
+ "grid": {
+  "exit": {
+   "stop": {
+    "kind": "support_cap",
+    "buffer": 0.05,
+    "cap": 0.1
+   },
+   "targets": [],
+   "max_hold": 40
+  },
+  "settings": {
+   "risk_per_trade": [
+    0.005,
+    0.01,
+    0.02
+   ],
+   "position_cap": [
+    0.05,
+    0.1
+   ],
+   "max_positions": [
+    10,
+    15,
+    20
+   ],
+   "heat_cap": [
+    0.06,
+    0.1
+   ]
+  }
+ },
+ "selection": {
+  "metric": "luck-check median Sharpe averaged with neighbouring settings",
+  "max_drawdown": 0.25,
+  "tie_tolerance": 0.01,
+  "tie_break": "smaller worst fall"
+ },
+ "next_step": "Step 2: sector limits on top of the setting carried forward here: at most 25% of the account per sector, or each sector within 5 or 10 points of SPY's sector weight, with SV score deciding within a sector and a monthly-trim version. Uses today's sector labels for research only (approved 2026-10-08).",
+ "notes": [
+  "Grid settings come from the ranges used by mature programs: risk per trade 0.5-2% (Elder's 2% rule, Van Tharp about 1%, the Turtles 2% per unit at the stop, Minervini 1.25-2.5%); size per stock 5-10%; 10-20 stocks; total open risk 6-10% (Elder's 6% rule).",
+  "Grid positions are sized from the previous session's account value: shares = min(cap x value / price, risk x value / (price - stop)), whole shares, 0.1% per side, no leverage. A trade is skipped when the stock is held, slots are full, total open risk would exceed the limit, or cash is short.",
+  "Choice for the next step (fixed before the run): among settings with a worst fall of at most 25% (all settings if none), the best average of the luck-check median Sharpe over the setting and its one-step neighbours; settings within 0.01 count as tied and the smaller worst fall wins. The full pass bar is the same as round 2.",
+  "Deflated Sharpe counts 62 trials on this dataset: 24 earlier plus these 38.",
+  "References: A0 (current rule) and D1 (round 2 best) on the approved preset of $10k positions; the user agreed on 2026-10-08 that this step tests sizing from the current account value as mature programs do.",
+  "Window fixed to round 2's account window (2005-09-12 to 2026-01-16) so every portfolio step is compared on the same days."
+ ]
+}
