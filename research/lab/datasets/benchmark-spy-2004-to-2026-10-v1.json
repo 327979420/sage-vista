@@ -1,0 +1,12 @@
+{
+ "dataset_id": "benchmark-spy-2004-to-2026-10-v1",
+ "asset": "benchmark-spy-2004-to-2026-10-v1-18e2da65a4ab.json.gz",
+ "sha256": "18e2da65a4aba2b8fc7382972f9fdb03472cdae98e2be0909961fbc3ea32cc41",
+ "bytes": 144453,
+ "release": "research-datasets",
+ "events": 0,
+ "symbols": 1,
+ "source": "EODHD full adjusted history for SPY",
+ "price_basis": "EODHD adjusted daily OHLCV",
+ "missing_symbols": 0
+}

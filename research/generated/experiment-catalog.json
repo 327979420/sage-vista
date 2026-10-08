@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-07T23:24:04+00:00",
+  "generated_at": "2026-10-08T12:43:31+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
@@ -8,8 +8,8 @@
   ],
   "experiment_count": 45,
   "summary": {
-    "completed": 29,
-    "in_progress": 16,
+    "completed": 30,
+    "in_progress": 15,
     "candidate": 11,
     "not_validated_or_unstable": 13
   },
@@ -21,6 +21,76 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "lab-a2-account-20y-v1-2026-10-08",
+      "created_at": "2026-10-08",
+      "status": "pre_registered",
+      "change": "Quant research lab Group A round 2 at account level: each selling rule trades the approved $100k account; the current rule is taken apart",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#quant-research-program",
+        "lab_spec": "research/lab/queue/a2-account-20y-v1.json",
+        "dataset": "observation-2005-2025-v1 (frozen, already seen once) + benchmark-spy-2004-to-2026-10-v1",
+        "account": "research/backtest/account-scenario.json (approved 2026-09-08)",
+        "baseline": "A0 support-5pct-cap-10pct-2r-v1",
+        "variants": 9,
+        "champion_metric": "account Sharpe",
+        "role": "exploration on seen data; a passing rule becomes a forward-test candidate only"
+      },
+      "success_criteria": "Account Sharpe and Calmar above the current rule and SPY buy-and-hold; max drawdown <= 25%; luck check (200 shuffled same-day orders) median Sharpe above the current rule and worst-5% CAGR > 0; every five-year period positive; deflated Sharpe probability >= 0.95 over 24 trials. Trade statistics are diagnostics only.",
+      "known_limitations": [
+        "one account path per rule; same-day order by SV score, with 200 shuffled orders as the luck check",
+        "approved account sizes every position at 10% of initial cash (no compounding of position size)",
+        "a held stock whose prices stop (for example a delisting) is sold at its last close; real delisting returns are unknown",
+        "same 20-year dataset as round 1, so not an independent test",
+        "partial delisted coverage (survivorship)",
+        "daily bars only: stop is assumed before target on the same bar"
+      ],
+      "human_summary": {
+        "title_zh": "研究实验室A组第二轮：10万美元账户层检验（20年，含SPY）",
+        "family": "quant_lab_exits",
+        "family_zh": "量化研究实验室",
+        "question_zh": "哪种卖出规则在已批准的10万美元账户中，扣除风险后让资金增长最好，并同时优于现行规则和直接持有SPY？现行规则拆开看：2R目标与40日上限各自的代价。",
+        "result_zh": "已预登记，等待后台自动运行。",
+        "use_zh": "账户层结果作决定，逐笔统计只作诊断；同一20年数据第二次使用，通过者只成为前向检验候选。",
+        "next_zh": "通过者进入2027-04-15前向检验；若回撤普遍超限，优先做C组市场过滤。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-07T23:24:04+00:00",
+        "started_at": null,
+        "completed_at": "2026-10-08T12:43:31+00:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-10-08T12:43:31+00:00",
+        "time_source": "github_actions",
+        "event_count": 2,
+        "events": [
+          {
+            "experiment_id": "lab-a2-account-20y-v1-2026-10-08",
+            "event": "registered",
+            "event_at": "2026-10-07T23:24:04+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/a2-account-20y-v1.json",
+              "note": "rules, account, benchmark and pass bar frozen before any run; pass bar approved by the user 2026-10-08"
+            }
+          },
+          {
+            "experiment_id": "lab-a2-account-20y-v1-2026-10-08",
+            "event": "completed",
+            "event_at": "2026-10-08T12:43:31+00:00",
+            "time_source": "github_actions",
+            "source_ref": "https://github.com/327979420/sage-vista/actions/runs/37778497483",
+            "details": {
+              "lab_spec": "a2-account-20y-v1",
+              "spec_sha256": "1b48ea616af7ea73e2591bd6e8b6823ef6c4311f8814e873ec522918daf26f2c",
+              "result": "research/lab/results/a2-account-20y-v1/result.json",
+              "dataset": "observation-2005-2025-v1",
+              "champion": null
+            }
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "lab-a-exits-ledger-1y-v1-2026-10-07",
       "created_at": "2026-10-07",
@@ -176,62 +246,6 @@
             },
             "result": "3,115 signals, 1,223 stocks, 2005-2025. No variant passed every check. A0: win 44.5%, mean +0.90%, median -4.21%, PF 1.23, E[R] 0.124, SQN 0.91, 2015-19 negative. Near misses: A1-60 win 56.2%, mean +3.88%, median +2.96%, PF 1.66, E[R] 0.194, SQN 1.61, all five eras positive; A2-2.5 (2.5xATR, 60 days) mean +3.13%, E[R] 0.33, PF 1.61, SQN 1.68, all eras positive. Wider room and longer holding beat A0 in every era; trailing stops and partial targets did not. A1-60 shrank from the live-year exploration (E[R] 0.263 to 0.194).",
             "decision": "Production exit unchanged. Near misses carried into lab-a2-room-time-20y-v1 (with same-days SPY comparison) and the forward holdout; the edge is not yet shown to exceed holding SPY over the same days."
-          }
-        ]
-      }
-    },
-    {
-      "experiment_id": "lab-a2-account-20y-v1-2026-10-08",
-      "created_at": "2026-10-08",
-      "status": "pre_registered",
-      "change": "Quant research lab Group A round 2 at account level: each selling rule trades the approved $100k account; the current rule is taken apart",
-      "specification": {
-        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#quant-research-program",
-        "lab_spec": "research/lab/queue/a2-account-20y-v1.json",
-        "dataset": "observation-2005-2025-v1 (frozen, already seen once) + benchmark-spy-2004-to-2026-10-v1",
-        "account": "research/backtest/account-scenario.json (approved 2026-09-08)",
-        "baseline": "A0 support-5pct-cap-10pct-2r-v1",
-        "variants": 9,
-        "champion_metric": "account Sharpe",
-        "role": "exploration on seen data; a passing rule becomes a forward-test candidate only"
-      },
-      "success_criteria": "Account Sharpe and Calmar above the current rule and SPY buy-and-hold; max drawdown <= 25%; luck check (200 shuffled same-day orders) median Sharpe above the current rule and worst-5% CAGR > 0; every five-year period positive; deflated Sharpe probability >= 0.95 over 24 trials. Trade statistics are diagnostics only.",
-      "known_limitations": [
-        "one account path per rule; same-day order by SV score, with 200 shuffled orders as the luck check",
-        "approved account sizes every position at 10% of initial cash (no compounding of position size)",
-        "a held stock whose prices stop (for example a delisting) is sold at its last close; real delisting returns are unknown",
-        "same 20-year dataset as round 1, so not an independent test",
-        "partial delisted coverage (survivorship)",
-        "daily bars only: stop is assumed before target on the same bar"
-      ],
-      "human_summary": {
-        "title_zh": "研究实验室A组第二轮：10万美元账户层检验（20年，含SPY）",
-        "family": "quant_lab_exits",
-        "family_zh": "量化研究实验室",
-        "question_zh": "哪种卖出规则在已批准的10万美元账户中，扣除风险后让资金增长最好，并同时优于现行规则和直接持有SPY？现行规则拆开看：2R目标与40日上限各自的代价。",
-        "result_zh": "已预登记，等待后台自动运行。",
-        "use_zh": "账户层结果作决定，逐笔统计只作诊断；同一20年数据第二次使用，通过者只成为前向检验候选。",
-        "next_zh": "通过者进入2027-04-15前向检验；若回撤普遍超限，优先做C组市场过滤。",
-        "verdict": "pre_registered"
-      },
-      "lifecycle": {
-        "registered_at": "2026-10-07T23:24:04+00:00",
-        "started_at": null,
-        "completed_at": null,
-        "latest_event": "registered",
-        "latest_event_at": "2026-10-07T23:24:04+00:00",
-        "time_source": "assistant_registration",
-        "event_count": 1,
-        "events": [
-          {
-            "experiment_id": "lab-a2-account-20y-v1-2026-10-08",
-            "event": "registered",
-            "event_at": "2026-10-07T23:24:04+00:00",
-            "time_source": "assistant_registration",
-            "details": {
-              "lab_spec": "research/lab/queue/a2-account-20y-v1.json",
-              "note": "rules, account, benchmark and pass bar frozen before any run; pass bar approved by the user 2026-10-08"
-            }
           }
         ]
       }

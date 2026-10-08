@@ -16,6 +16,14 @@
    "completed_at": "2026-10-07T07:22:57+00:00",
    "champion": null,
    "dataset": "observation-2005-2025-v1"
+  },
+  {
+   "spec_id": "a2-account-20y-v1",
+   "experiment_id": "lab-a2-account-20y-v1-2026-10-08",
+   "group": "A-exits",
+   "completed_at": "2026-10-08T12:43:31+00:00",
+   "champion": null,
+   "dataset": "observation-2005-2025-v1"
   }
  ],
  "champions": {
