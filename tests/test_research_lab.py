@@ -11,7 +11,7 @@ import tempfile
 import unittest
 from unittest import mock
 
-from research.lab import account, datasets, run_queue
+from research.lab import account, allocation, datasets, run_queue
 from research.lab.exit_rules import simulate
 from research.lab.metrics import evaluate, summarise
 from services.scanner.support_risk import simulate_execution
@@ -358,6 +358,77 @@ class AccountTests(unittest.TestCase):
             self.assertAlmostEqual(ours, theirs, places=4)
 
 
+def monthly_series(closes, start="2020-01-31"):
+    """One session per month end, plus a mid-month session, with given month-end closes."""
+    dates, opens, out = [], [], []
+    day = dt.date.fromisoformat(start)
+    for c in closes:
+        mid = day.replace(day=15)
+        dates += [mid.isoformat(), day.isoformat()]
+        opens += [c, c]
+        out += [c, c]
+        day = (day + dt.timedelta(days=32)).replace(day=1) - dt.timedelta(days=1)
+        day = (day.replace(day=28) + dt.timedelta(days=4))
+        day = day - dt.timedelta(days=day.day)
+    return {"date": dates, "open": opens, "close": out}
+
+
+class AllocationTests(unittest.TestCase):
+    def test_static_weights_drift_between_rebalances_and_costs_come_out_of_the_account(self):
+        prices = allocation.Prices({"A": {"date": ["2020-01-01", "2020-01-02", "2020-01-03"], "open": [10.0, 10.0, 20.0], "close": [10.0, 20.0, 20.0]},
+                                    "B": {"date": ["2020-01-01", "2020-01-02", "2020-01-03"], "open": [10.0, 10.0, 10.0], "close": [10.0, 10.0, 10.0]}})
+        run = allocation.simulate({"rule": "static", "rebalance": "annual", "weights": {"A": 0.5, "B": 0.5}}, prices, ["2020-01-02", "2020-01-03"], 0.01, 1000.0, "2020-01-01")
+        invest = 1000 - 1000 * 0.01  # the cost estimate on 1000 of buying comes out of the value first
+        left = 1000 - invest * 1.01  # actual cost is on the 990 bought, so 0.10 stays in cash
+        self.assertAlmostEqual(run["equity"][0], left + invest / 2 / 10 * 20 + invest / 2)  # A doubled, no rebalance until December
+        self.assertGreaterEqual(left, 0)
+        self.assertAlmostEqual(run["equity"][1], run["equity"][0])
+
+    def test_faber_timing_moves_a_slice_to_cash_below_its_ten_month_average(self):
+        rising = monthly_series([10 + i for i in range(12)])
+        falling = monthly_series([30 - i for i in range(12)])
+        cash = monthly_series([1.0] * 12)
+        prices = allocation.Prices({"UP": rising, "DOWN": falling, "CASH": cash})
+        day = rising["date"][-1]
+        w = allocation.target_weights({"rule": "timing", "weights": {"UP": 0.5, "DOWN": 0.5}, "months": 10, "cash": "CASH"}, prices, day)
+        self.assertEqual(w, {"UP": 0.5, "CASH": 0.5})
+
+    def test_dual_momentum_picks_the_stronger_stock_fund_or_bonds(self):
+        n = 14
+        prices = allocation.Prices({"US": monthly_series([100 + 2 * i for i in range(n)]), "INTL": monthly_series([100 + 3 * i for i in range(n)]),
+                                    "BOND": monthly_series([100.0] * n), "CASH": monthly_series([100 + 0.1 * i for i in range(n)])})
+        rule = {"rule": "dual_momentum", "risky": ["US", "INTL"], "safe": "BOND", "cash": "CASH", "months": 12}
+        day = prices.series["US"]["date"][-1]
+        self.assertEqual(allocation.target_weights(rule, prices, day), {"INTL": 1.0})
+        weak = allocation.Prices({**prices.series, "US": monthly_series([100 - i for i in range(n)])})
+        self.assertEqual(allocation.target_weights(rule, weak, day), {"BOND": 1.0})
+
+    def test_proven_portfolio_spec_runs_end_to_end(self):
+        spec = json.loads((ROOT / "research/lab/queue/c1-proven-portfolios-v1.json").read_text())
+        symbols = spec["dataset"]["symbols"]
+        prices = {}
+        for k, symbol in enumerate(symbols):
+            bars = walk(5000 + k, n=900, drift=0.0003, vol=0.01)
+            day = dt.date(2005, 1, 3)
+            dates = []
+            while len(dates) < 900:
+                if day.weekday() < 5:
+                    dates.append(day.isoformat())
+                day += dt.timedelta(days=1)
+            prices[symbol] = {"date": dates, **{f: [b[f] for b in bars] for f in datasets.FIELDS}}
+        spec["window"] = {"start": "2006-06-01", "end": "2008-06-30"}
+        spec["splits"] = [{"id": "all", "from": "2000-01-01", "to": "2100-01-01"}]
+        entry = {"dataset_id": "synthetic", "asset": "-", "sha256": "-", "events": 0, "symbols": len(symbols)}
+        result, rebalances = run_queue.run_allocation_spec(spec, {"events": [], "prices": prices}, entry, 0.001)
+        self.assertEqual(set(result["variants"]), {p["id"] for p in spec["portfolios"]})
+        self.assertEqual(result["kind"], "allocation")
+        self.assertIn(result["chosen"] and result["chosen"]["variant"], [None, *result["variants"]])
+        self.assertAlmostEqual(result["variants"]["SPY"]["versus_spy"]["beta"], 1.0, places=6)
+        report = run_queue.render_report({**result, "completed_at": "2026-10-09T00:00:00+00:00"})
+        self.assertIn("## Account results", report)
+        self.assertTrue(gzip.decompress(rebalances).startswith(b"portfolio,date,weights"))
+
+
 def statistics_cdf(x):
     return 0.5 * (1 + math.erf(x / math.sqrt(2)))
 
@@ -430,6 +501,14 @@ class QueueAndDatasetTests(unittest.TestCase):
         for path in (ROOT / "research/lab/queue").glob("*.json"):
             spec = json.loads(path.read_text())
             self.assertIn(spec["experiment_id"], registered, path.name)
+            if spec.get("kind") == "allocation":
+                ids = {p["id"] for p in spec["portfolios"]}
+                self.assertIn(spec["benchmark_portfolio"], ids, path.name)
+                self.assertTrue(all(set(p.get("weights", {})) <= set(spec["dataset"]["symbols"]) for p in spec["portfolios"]), path.name)
+                for p in spec["portfolios"]:
+                    if p.get("weights"):
+                        self.assertAlmostEqual(sum(p["weights"].values()), 1.0, msg=p["id"])
+                continue
             ids = {v["id"] for v in spec["variants"]}
             self.assertIn(spec["baseline"], ids)
             for vid, neighbours in spec.get("neighbours", {}).items():

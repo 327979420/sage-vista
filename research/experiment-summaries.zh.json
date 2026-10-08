@@ -460,6 +460,16 @@
    "use_zh": "选出的设置带入第2步（行业上限）；同一20年数据，属探索。",
    "next_zh": "第2步：行业上限。",
    "verdict": "pre_registered"
+  },
+  "lab-c1-proven-portfolios-v1-2026-10-08": {
+   "title_zh": "成熟组合同期检验（核心组合候选）",
+   "family": "quant_lab_portfolio",
+   "family_zh": "量化研究实验室",
+   "question_zh": "8个已发表的成熟组合（SPY、60/40、永久组合、全天候、Ivy、Faber择时、标普择时、双动量）在同一19年里，按与SV账户相同的标准，哪个最好？",
+   "result_zh": "已预登记，等待后台自动运行。",
+   "use_zh": "最佳者作为核心组合，SV个股须能改进它才保留。",
+   "next_zh": "第B步：SV个股作为卫星（0/20/35/50%），保留5%常备现金。",
+   "verdict": "pre_registered"
   }
  }
 }

@@ -1,15 +1,15 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-08T14:36:40+00:00",
+  "generated_at": "2026-10-08T14:54:32+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 46,
+  "experiment_count": 47,
   "summary": {
     "completed": 30,
-    "in_progress": 16,
+    "in_progress": 17,
     "candidate": 11,
     "not_validated_or_unstable": 14
   },
@@ -21,6 +21,67 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "lab-c1-proven-portfolios-v1-2026-10-08",
+      "created_at": "2026-10-08",
+      "status": "pre_registered",
+      "change": "Proven-portfolio comparison: eight published portfolios on the same 19 years, judged like the SV account; the best becomes the core SV must improve",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#portfolio-roadmap",
+        "lab_spec": "research/lab/queue/c1-proven-portfolios-v1.json",
+        "dataset": "etf-core-2002-to-2026-10-v1 (SPY, EFA, AGG, IEF, TLT, SHY, GLD, DBC, VNQ; built once and frozen)",
+        "portfolios": [
+          "SPY",
+          "60/40",
+          "Permanent Portfolio (Browne)",
+          "All Weather (Dalio)",
+          "Ivy (Faber and Richardson)",
+          "GTAA timing (Faber)",
+          "S&P 500 timing (Faber)",
+          "Dual Momentum GEM (Antonacci)"
+        ],
+        "window": "2007-01-03 to 2026-01-16",
+        "role": "chooses the core for step B"
+      },
+      "success_criteria": "Choice for step B: highest Sharpe among portfolios with worst fall <= 25%, within 0.02 the higher Calmar. Goal 1 check: Sharpe and Calmar at least SPY's, worst fall <= 25%, every period positive, deflated Sharpe >= 0.95.",
+      "known_limitations": [
+        "fund implementations of the published portfolios",
+        "window starts in 2007 because the commodity fund began in 2006 and timing rules need 10-12 months of history",
+        "SHY stands in for cash and T-bills",
+        "month-end signals traded at the next open; 0.1% per side"
+      ],
+      "human_summary": {
+        "title_zh": "成熟组合同期检验（核心组合候选）",
+        "family": "quant_lab_portfolio",
+        "family_zh": "量化研究实验室",
+        "question_zh": "8个已发表的成熟组合（SPY、60/40、永久组合、全天候、Ivy、Faber择时、标普择时、双动量）在同一19年里，按与SV账户相同的标准，哪个最好？",
+        "result_zh": "已预登记，等待后台自动运行。",
+        "use_zh": "最佳者作为核心组合，SV个股须能改进它才保留。",
+        "next_zh": "第B步：SV个股作为卫星（0/20/35/50%），保留5%常备现金。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-08T14:54:32+00:00",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-10-08T14:54:32+00:00",
+        "time_source": "assistant_registration",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "lab-c1-proven-portfolios-v1-2026-10-08",
+            "event": "registered",
+            "event_at": "2026-10-08T14:54:32+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/c1-proven-portfolios-v1.json",
+              "note": "published rules and the choice rule frozen before any run; user asked to start from proven portfolios 2026-10-08"
+            }
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "lab-a2-account-20y-v1-2026-10-08",
       "created_at": "2026-10-08",
@@ -3739,6 +3800,7 @@
     "lab-a-exits-ledger-1y-v1-2026-10-07",
     "lab-a-holdout-forward-v1-2026-10-08",
     "lab-a2-account-20y-v1-2026-10-08",
+    "lab-c1-proven-portfolios-v1-2026-10-08",
     "lab-p1-size-risk-20y-v1-2026-10-08",
     "macd-rollout-04-double-chip-confirmation-2026-08-25",
     "multi-factor-count-resonance-v1.0.0-2026-08-30",

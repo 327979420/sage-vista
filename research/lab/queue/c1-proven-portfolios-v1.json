@@ -1,0 +1,188 @@
+{
+ "id": "c1-proven-portfolios-v1",
+ "experiment_id": "lab-c1-proven-portfolios-v1-2026-10-08",
+ "kind": "allocation",
+ "priority": 5,
+ "question": "Which published, proven portfolio does best on the same 19 years, judged like the SV account (Sharpe, Calmar, worst fall within 25%, every period)? The best becomes the core that SV's stock picks must improve.",
+ "dataset": {
+  "id": "etf-core-2002-to-2026-10-v1",
+  "builder": "symbols",
+  "symbols": [
+   "SPY",
+   "EFA",
+   "AGG",
+   "IEF",
+   "TLT",
+   "SHY",
+   "GLD",
+   "DBC",
+   "VNQ"
+  ],
+  "start": "2002-01-01"
+ },
+ "benchmark_symbol": "SPY",
+ "benchmark_portfolio": "SPY",
+ "splits": [
+  {
+   "id": "2007-2009",
+   "from": "2007-01-01",
+   "to": "2009-12-31"
+  },
+  {
+   "id": "2010-2014",
+   "from": "2010-01-01",
+   "to": "2014-12-31"
+  },
+  {
+   "id": "2015-2019",
+   "from": "2015-01-01",
+   "to": "2019-12-31"
+  },
+  {
+   "id": "2020-2024",
+   "from": "2020-01-01",
+   "to": "2024-12-31"
+  },
+  {
+   "id": "2025-2026",
+   "from": "2025-01-01",
+   "to": "2026-12-31"
+  }
+ ],
+ "window": {
+  "start": "2007-01-03",
+  "end": "2026-01-16"
+ },
+ "group": "C-core",
+ "cost_per_side": 0.001,
+ "prior_trials": 0,
+ "criteria": {
+  "min_trades": 0,
+  "max_drawdown": 0.25,
+  "beat_benchmark": [
+   "sharpe",
+   "calmar"
+  ],
+  "every_split_positive": true,
+  "min_deflated_sharpe": 0.95
+ },
+ "selection": {
+  "metric": "Sharpe among portfolios with a worst fall within 25%",
+  "tie_tolerance": 0.02,
+  "tie_break": "higher Calmar"
+ },
+ "portfolios": [
+  {
+   "id": "SPY",
+   "label": "S&P 500 only (benchmark)",
+   "source": "SPY",
+   "rule": "static",
+   "rebalance": "annual",
+   "weights": {
+    "SPY": 1.0
+   }
+  },
+  {
+   "id": "6040",
+   "label": "60/40: 60% US stocks, 40% US bonds",
+   "source": "Classic balanced portfolio",
+   "rule": "static",
+   "rebalance": "annual",
+   "weights": {
+    "SPY": 0.6,
+    "AGG": 0.4
+   }
+  },
+  {
+   "id": "PERM",
+   "label": "Permanent Portfolio: stocks, long bonds, gold, cash 25% each",
+   "source": "Harry Browne",
+   "rule": "static",
+   "rebalance": "annual",
+   "weights": {
+    "SPY": 0.25,
+    "TLT": 0.25,
+    "GLD": 0.25,
+    "SHY": 0.25
+   }
+  },
+  {
+   "id": "AW",
+   "label": "All Weather: 30% stocks, 55% bonds, 15% gold and commodities",
+   "source": "Ray Dalio (as published by Tony Robbins, 2014)",
+   "rule": "static",
+   "rebalance": "annual",
+   "weights": {
+    "SPY": 0.3,
+    "TLT": 0.4,
+    "IEF": 0.15,
+    "GLD": 0.075,
+    "DBC": 0.075
+   }
+  },
+  {
+   "id": "IVY",
+   "label": "Ivy Portfolio: 5 asset classes, 20% each, always held",
+   "source": "Faber and Richardson, The Ivy Portfolio",
+   "rule": "static",
+   "rebalance": "monthly",
+   "weights": {
+    "SPY": 0.2,
+    "EFA": 0.2,
+    "IEF": 0.2,
+    "DBC": 0.2,
+    "VNQ": 0.2
+   }
+  },
+  {
+   "id": "GTAA5",
+   "label": "Faber timing: the Ivy 5, each held only above its 10-month average",
+   "source": "Meb Faber, A Quantitative Approach to Tactical Asset Allocation",
+   "rule": "timing",
+   "rebalance": "monthly",
+   "weights": {
+    "SPY": 0.2,
+    "EFA": 0.2,
+    "IEF": 0.2,
+    "DBC": 0.2,
+    "VNQ": 0.2
+   },
+   "months": 10,
+   "cash": "SHY"
+  },
+  {
+   "id": "SPYT",
+   "label": "Faber timing on the S&P 500 alone: SPY above its 10-month average, else cash",
+   "source": "Meb Faber",
+   "rule": "timing",
+   "rebalance": "monthly",
+   "weights": {
+    "SPY": 1.0
+   },
+   "months": 10,
+   "cash": "SHY"
+  },
+  {
+   "id": "GEM",
+   "label": "Dual Momentum: US or international stocks when beating cash over 12 months, else bonds",
+   "source": "Gary Antonacci, Dual Momentum Investing",
+   "rule": "dual_momentum",
+   "rebalance": "monthly",
+   "risky": [
+    "SPY",
+    "EFA"
+   ],
+   "safe": "AGG",
+   "cash": "SHY",
+   "months": 12
+  }
+ ],
+ "next_step": "Step B: put SV's stock picks inside the chosen core as a satellite of 0%, 20%, 35% or 50% of the account, with a standing 5% cash reserve and position sizes from step 1. SV stays only if it improves the core's Sharpe and Calmar.",
+ "notes": [
+  "Portfolios are implemented with US-listed funds as commonly done: SPY (US stocks), EFA (international developed), AGG (US bonds), IEF (7-10 year Treasuries), TLT (20+ year Treasuries), SHY (1-3 year Treasuries, the cash proxy), GLD (gold), DBC (commodities), VNQ (US real estate).",
+  "The window starts in January 2007 because the commodity fund began in February 2006 and the timing rules need 10 to 12 months of history; it ends on 2026-01-16 like the SV account tests.",
+  "Signals use month-end closes and trade at the next open; cost 0.1% per side on the amount traded; adjusted prices include dividends and coupons.",
+  "Choice for the next step (fixed before the run): the highest Sharpe among portfolios with a worst fall within 25%; within 0.02 Sharpe, the higher Calmar.",
+  "These are the authors' published rules, not tuned here; published results came from different periods, so this run compares them on the same days."
+ ]
+}
