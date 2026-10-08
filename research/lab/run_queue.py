@@ -27,7 +27,7 @@ import statistics
 import subprocess
 
 from services.scanner.support_risk import signal_support_plan
-from research.lab import account, datasets
+from research.lab import account, allocation, datasets
 from research.lab.exit_rules import OPEN_FILLS, simulate
 from research.lab.metrics import evaluate, summarise
 
@@ -340,6 +340,71 @@ def run_account_spec(spec, data, dataset_entry, cost, benchmark):
     return result, gzip.compress(csv_buffer.getvalue().encode(), 9, mtime=0)
 
 
+def run_allocation_spec(spec, data, dataset_entry, cost, benchmark=None):
+    """Published portfolios on fund prices, compared with SPY on the same days.
+
+    The core for the next step is chosen by the rule fixed in the spec:
+    the highest Sharpe among portfolios within the drawdown limit, near-ties
+    to the higher Calmar.
+    """
+    prices = allocation.Prices(data["prices"])
+    initial, criteria = 100000.0, spec["criteria"]
+    spy_dates = data["prices"][spec["benchmark_symbol"]]["date"]
+    dates = [d for d in spy_dates if spec["window"]["start"] <= d <= spec["window"]["end"]]
+    signal_day = spy_dates[spy_dates.index(dates[0]) - 1]
+    runs = {p["id"]: allocation.simulate(p, prices, dates, cost, initial, signal_day) for p in spec["portfolios"]}
+    spy_id = spec["benchmark_portfolio"]
+    spy_equity = runs[spy_id]["equity"]
+    spy_rets = account.returns_from(spy_equity, initial)
+    spy = account.curve_stats(spy_equity, dates, initial) | {"splits": account.period_returns(spy_equity, dates, initial, spec["splits"])}
+    curve_dates, _ = monthly(dates, spy_equity)
+    curves = {"dates": curve_dates}
+    summary = {}
+    for p in spec["portfolios"]:
+        run = runs[p["id"]]
+        stats = account.curve_stats(run["equity"], dates, initial)
+        rets = account.returns_from(run["equity"], initial)
+        summary[p["id"]] = {"label": p["label"], "family": p.get("source", p["id"]), "rule": p,
+                            "account": stats | {"trades_taken": len(run["rebalances"]), "average_exposure": 1.0,
+                                                "turnover_per_year": round(run["turnover"] / initial / max(stats["sessions"] / 252, 1e-9), 3)},
+                            "versus_spy": account.versus(rets, spy_rets) | {"cagr_difference": round(stats["cagr"] - spy["cagr"], 6)},
+                            "splits": account.period_returns(run["equity"], dates, initial, spec["splits"]),
+                            "monte_carlo": None, "last_weights": run["rebalances"][-1]["weights"],
+                            "goal_1": {"sharpe_vs_spy": round((stats["sharpe"] or 0) - spy["sharpe"], 4),
+                                       "calmar_vs_spy": round((stats["calmar"] or 0) - spy["calmar"], 4),
+                                       "met": (stats["sharpe"] or 0) >= spy["sharpe"] and (stats["calmar"] or 0) >= spy["calmar"]
+                                              and stats["max_drawdown"] <= criteria["max_drawdown"]}}
+        curves[p["id"]] = monthly(dates, run["equity"])[1]
+    n_trials = spec.get("prior_trials", 0) + len(summary)
+    trial_variance = statistics.pvariance([item["account"]["daily_sharpe"] for item in summary.values()])
+    for vid, item in summary.items():
+        a = item["account"]
+        item["deflated_sharpe"] = account.deflated_sharpe(a["daily_sharpe"], a["sessions"], a["skew"], a["kurtosis"], n_trials, trial_variance)
+        item["verdict"] = account.evaluate(item, summary[spy_id], spy, criteria)
+    pool = [v for v in summary if v != spy_id and summary[v]["account"]["max_drawdown"] <= criteria["max_drawdown"]]
+    chosen = None
+    if pool:
+        best = max(summary[v]["account"]["sharpe"] for v in pool)
+        close = [v for v in pool if summary[v]["account"]["sharpe"] >= best - spec["selection"]["tie_tolerance"]]
+        pick = max(close, key=lambda v: (summary[v]["account"]["calmar"] or 0, v))
+        chosen = {"variant": pick, "settings": {"portfolio": pick}, "within_drawdown_limit": True, "rule": spec["selection"]}
+    passed = [v for v, item in summary.items() if item["verdict"]["passed"] and v != spy_id]
+    champion = max(passed, key=lambda v: summary[v]["account"]["sharpe"]) if passed else None
+    csv_buffer = io.StringIO()
+    writer = csv.writer(csv_buffer)
+    writer.writerow(["portfolio", "date", "weights"])
+    for vid, run in runs.items():
+        writer.writerows([vid, r["date"], json.dumps(r["weights"], sort_keys=True)] for r in run["rebalances"])
+    result = {"spec_id": spec["id"], "experiment_id": spec["experiment_id"], "group": spec["group"], "question": spec["question"], "kind": "allocation",
+              "dataset": {k: dataset_entry[k] for k in ("dataset_id", "asset", "sha256", "events", "symbols")},
+              "benchmark": {"symbol": spec["benchmark_symbol"], "dataset_id": dataset_entry["dataset_id"], "asset": dataset_entry["asset"], "sha256": dataset_entry["sha256"]},
+              "window": {"start": dates[0], "end": dates[-1], "sessions": len(dates)}, "cost_per_side": cost, "initial_cash": initial,
+              "baseline": spy_id, "criteria": criteria, "n_trials": n_trials, "spy": spy, "variants": summary, "curves": curves,
+              "champion": champion, "selection_rule": "portfolios passing every pre-registered check, highest Sharpe",
+              "chosen": chosen, "next_step": spec.get("next_step")}
+    return result, gzip.compress(csv_buffer.getvalue().encode(), 9, mtime=0)
+
+
 def _account_table(result):
     pct = lambda x, d=1: "—" if x is None else f"{x * 100:.{d}f}%"
     num = lambda x: "—" if x is None else f"{x:.2f}"
@@ -385,8 +450,10 @@ def render_report(result):
              "## The short answer", ""]
     if result["champion"]:
         lines.append(f"- **{result['champion']}** ({variants[result['champion']]['label']}) passed every check written down before the run.")
+    elif result.get("kind") == "allocation":
+        lines.append("- No portfolio passed every check written down before the run.")
     else:
-        lines.append(f"- No rule passed every check written down before the run, so the current rule stays.")
+        lines.append("- No rule passed every check written down before the run, so the current rule stays.")
     if chosen:
         lines.append(f"- Carried to the next step: **{chosen}** ({variants[chosen]['label']}), picked by the rule fixed before the run "
                      f"(best luck-check Sharpe averaged with its neighbouring settings{'' if result['chosen']['within_drawdown_limit'] else '; no setting stayed within the drawdown limit'}).")
@@ -435,8 +502,8 @@ def render_scoreboard(results):
         if result["champion"]:
             v = result["variants"][result["champion"]]
             board["champions"][result["group"]] = {"spec_id": result["spec_id"], "variant": result["champion"], "rule": v["rule"],
-                                                   "overall": v["account"] if result.get("kind") == "account" else v["overall"]}
-        if result.get("kind") == "account":
+                                                   "overall": v["account"] if result.get("kind") in ("account", "allocation") else v["overall"]}
+        if result.get("kind") in ("account", "allocation"):
             w = result["window"]
             lines += [f"## {result['spec_id']} ({result['dataset']['dataset_id']}, $100k account {w['start']} to {w['end']})", "", result["question"], "",
                       *_account_table(result), "", f"Champion: **{result['champion'] or 'none passed; current rule stays'}**", ""]
@@ -460,7 +527,7 @@ def write_outputs(root, result, trades_csv, event, manifests):
     out.mkdir(parents=True, exist_ok=True)
     (out / "result.json").write_text(json.dumps(result, indent=1, ensure_ascii=False) + "\n")
     (out / "trades.csv.gz").write_bytes(trades_csv)
-    if result.get("kind") == "account":
+    if result.get("kind") in ("account", "allocation"):
         (out / "REPORT.md").write_text(render_report(result))
     for entry in manifests:
         record = pathlib.Path(root) / "research/lab/datasets" / f"{entry['dataset_id']}.json"
@@ -516,7 +583,7 @@ def main(argv=None):
             symbol = spec["benchmark"]["symbol"]
             benchmark = {"symbol": symbol, "series": bench_data["prices"][symbol], "entry": bench_entry}
             manifests += [bench_new] if bench_new else []
-        run = run_account_spec if spec.get("kind") == "account" else run_spec
+        run = {"account": run_account_spec, "allocation": run_allocation_spec}.get(spec.get("kind"), run_spec)
         result, trades_csv = run(spec, data, entry, spec.get("cost_per_side", 0.001), benchmark)
         now = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
         result |= {"spec_sha256": sha, "completed_at": now, "code_commit": os.environ.get("GITHUB_SHA", "local")}
