@@ -151,9 +151,9 @@ def dated(prices, start="2025-01-01"):
     return out
 
 
-def trade(symbol, entry_date, price, fills, closes, priority=0, event_id=None):
+def trade(symbol, entry_date, price, fills, closes, priority=0, event_id=None, stop=None):
     return {"event_id": event_id or f"{symbol}-{entry_date}", "symbol": symbol, "signal_date": entry_date, "priority": priority,
-            "entry_date": entry_date, "entry_price": price, "fills": fills, "closes": closes}
+            "entry_date": entry_date, "entry_price": price, "stop": price * 0.9 if stop is None else stop, "fills": fills, "closes": closes}
 
 
 class AccountTests(unittest.TestCase):
@@ -204,6 +204,38 @@ class AccountTests(unittest.TestCase):
         shares = math.floor(995 / 10)
         expected = 1000 - shares * 10 * 1.01 + math.floor(shares * 0.5) * 12 * 0.99 + (shares - math.floor(shares * 0.5)) * 13 * 0.99
         self.assertAlmostEqual(path["equity"][-1], expected)
+
+    def test_risk_sizing_uses_the_previous_close_value_with_caps_and_an_open_risk_limit(self):
+        c = self.CAL
+        scenario = {**self.SCENARIO, "cost_rate": 0.0}
+        rules = {"risk_per_trade": 0.01, "position_cap": 0.25, "max_positions": 5, "heat_cap": 0.015}
+        trades = [trade("A", c[1], 100.0, [(c[4], 100.0, 1.0)], [(c[i], 100.0) for i in range(1, 5)], priority=1, stop=95.0),   # risk $5 a share
+                  trade("B", c[1], 50.0, [(c[4], 50.0, 1.0)], [(c[i], 50.0) for i in range(1, 5)], priority=2, stop=40.0),     # risk $10 a share
+                  trade("C", c[2], 10.0, [(c[4], 10.0, 1.0)], [(c[i], 10.0) for i in range(2, 5)], priority=1, stop=5.0)]
+        path = account.run_account(account.align(trades, c)[0], len(c), scenario, rules=rules)
+        # A: min(25% x 1000 / 100 = 2.5, 1% x 1000 / 5 = 2) -> 2 shares, $10 at risk.
+        # B: min(25% x 1000 / 50 = 5, 1% x 1000 / 10 = 1) -> 1 share; open risk 10 + 10 = 20 > 15 -> skipped.
+        # C: min(25 shares, 10 / 5 = 2) -> 2 shares; open risk 10 + 10 = 20 > 15 -> skipped.
+        self.assertEqual(path["skipped"], {"open_risk_limit": 2})
+        self.assertEqual(path["trades"][0]["shares"], 2)
+        loose = account.run_account(account.align(trades, c)[0], len(c), scenario, rules={**rules, "heat_cap": 0.05})
+        self.assertEqual(sorted(t["shares"] for t in loose["trades"]), [1, 2, 2])
+
+    def test_grid_variants_neighbours_and_plateau_choice(self):
+        spec = {"variants": [{"id": "A0"}], "grid": {"exit": {"stop": {"kind": "pct", "pct": 0.1}, "targets": [], "max_hold": 40},
+                                                   "settings": {"risk_per_trade": [0.005, 0.01], "max_positions": [10, 20]}}}
+        variants, neighbours = run_queue.expand_variants(spec)
+        self.assertEqual(sorted(neighbours), ["R0.5-M10", "R0.5-M20", "R1-M10", "R1-M20"])
+        self.assertEqual(sorted(neighbours["R0.5-M10"]), ["R0.5-M20", "R1-M10"])
+        self.assertEqual(variants["R1-M20"]["account"], {"risk_per_trade": 0.01, "max_positions": 20})
+        self.assertEqual(variants["R1-M20"]["label"], "Risk 1%, up to 20 stocks")
+        sharpe = {"R0.5-M10": 0.50, "R0.5-M20": 0.52, "R1-M10": 0.70, "R1-M20": 0.51}
+        dd = {"R0.5-M10": 0.20, "R0.5-M20": 0.22, "R1-M10": 0.30, "R1-M20": 0.24}
+        summary = {v: {"monte_carlo": {"sharpe": {"median": sharpe[v]}}, "account": {"max_drawdown": dd[v]}, "rule": variants[v]} for v in sharpe}
+        chosen = run_queue.choose_plateau(summary, neighbours, {"max_drawdown": 0.25, "tie_tolerance": 0.01})
+        # R1-M10 is the single peak but falls 30%; among the rest the best neighbourhood average wins.
+        self.assertEqual(chosen["variant"], "R0.5-M10")
+        self.assertTrue(chosen["within_drawdown_limit"])
 
     def test_curve_statistics_benchmark_and_deflated_sharpe(self):
         dates = ["2020-01-01", "2020-07-01", "2021-01-01"]
@@ -265,6 +297,31 @@ class AccountTests(unittest.TestCase):
         self.assertEqual(len(first["curves"]["dates"]), len(first["curves"]["SPY"]))
         board, markdown = run_queue.render_scoreboard([{**first, "completed_at": "2026-10-08T00:00:00+00:00"}])
         self.assertIn("SPY buy and hold", markdown)
+
+    def test_sizing_grid_spec_runs_and_writes_a_plain_language_report(self):
+        prices, events = {}, []
+        for k in range(12):
+            bars = walk(4000 + k, n=300)
+            prices[f"S{k}"] = {"date": [b["date"] for b in bars], **{f: [b[f] for b in bars] for f in datasets.FIELDS}}
+            for at in (60, 120, 180):
+                events.append({"event_id": f"S{k}-{at}", "symbol": f"S{k}", "signal_date": bars[at]["date"], "score": (k * 5 + at) % 40})
+        spec = json.loads((ROOT / "research/lab/queue/p1-size-risk-20y-v1.json").read_text())
+        spec["splits"] = [{"id": "all", "from": "2000-01-01", "to": "2100-01-01"}]
+        spec["criteria"] = {**spec["criteria"], "mc_runs": 3, "min_trades": 1}
+        spec.pop("window")
+        entry = {"dataset_id": "synthetic", "asset": "-", "sha256": "-", "events": len(events), "symbols": 12}
+        result, _ = run_queue.run_account_spec(spec, {"events": events, "prices": prices}, entry, 0.001, {"symbol": "SPY", "series": prices["S0"], "entry": entry})
+        self.assertEqual(len(result["variants"]), 38)
+        self.assertIn(result["chosen"]["variant"], result["variants"])
+        self.assertEqual(result["variants"][result["chosen"]["variant"]]["family"], "grid")
+        for v in result["variants"].values():
+            self.assertIn("met", v["goal_1"])
+        with self.assertRaisesRegex(ValueError, "window_ends_before_last_trade"):
+            short = {**spec, "window": {"start": "2000-01-01", "end": "2020-01-02"}, "grid": {**spec["grid"], "settings": {"risk_per_trade": [0.01]}}}
+            run_queue.run_account_spec(short, {"events": events, "prices": prices}, entry, 0.001, {"symbol": "SPY", "series": prices["S0"], "entry": entry})
+        report = run_queue.render_report({**result, "completed_at": "2026-10-09T00:00:00+00:00"})
+        for heading in ("## The short answer", "## The benchmark", "## Account results", "## Next step (planned before the run)", "carried forward"):
+            self.assertIn(heading, report)
 
     @unittest.skipUnless(importlib.util.find_spec("vectorbt"), "VectorBT is installed only in the isolated account environment")
     def test_lab_account_matches_the_approved_vectorbt_account(self):

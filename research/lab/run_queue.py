@@ -190,39 +190,111 @@ def monthly(dates, values):
     return [dates[i] for i in keep], [round(values[i]) for i in keep]
 
 
+EXIT_KEYS = ("stop", "targets", "trail", "trail_after_target", "max_hold")
+SETTING_LABELS = {"risk_per_trade": ("Risk", "%"), "position_cap": ("cap", "%"), "max_positions": ("up to", " stocks"), "heat_cap": ("open risk", "%")}
+
+
+def expand_variants(spec):
+    """Explicit variants plus a full grid of account settings on one exit rule.
+
+    Returns (variants by id, grid neighbours by id). Neighbours differ in one
+    setting by one step, so a choice can be checked for a plateau, not a peak.
+    """
+    variants = {v["id"]: v for v in spec["variants"]}
+    neighbours = {}
+    grid = spec.get("grid")
+    if not grid:
+        return variants, neighbours
+    names = list(grid["settings"])
+    values = [grid["settings"][n] for n in names]
+
+    def vid(combo):
+        return "-".join(f"{n[0].upper()}{v * 100:g}" if isinstance(v, float) else f"{n[0].upper()}{v}" for n, v in zip(names, combo))
+
+    def label(combo):
+        parts = []
+        for n, v in zip(names, combo):
+            word, unit = SETTING_LABELS.get(n, (n, ""))
+            parts.append(f"{word} {v * 100:g}{unit}" if unit == "%" else f"{word} {v}{unit}")
+        return ", ".join(parts)
+
+    combos = [()]
+    for vals in values:
+        combos = [c + (v,) for c in combos for v in vals]
+    for combo in combos:
+        variants[vid(combo)] = {**grid["exit"], "id": vid(combo), "family": "grid", "label": label(combo), "account": dict(zip(names, combo))}
+        near = []
+        for i, vals in enumerate(values):
+            j = vals.index(combo[i])
+            for k in (j - 1, j + 1):
+                if 0 <= k < len(vals):
+                    near.append(vid(combo[:i] + (vals[k],) + combo[i + 1:]))
+        neighbours[vid(combo)] = near
+    return variants, neighbours
+
+
+def choose_plateau(summary, neighbours, selection):
+    """Pick the grid setting whose own and neighbours' luck-check median Sharpe is best on average.
+
+    Only settings within the drawdown limit are eligible (all, if none is);
+    near-ties go to the smaller worst fall.
+    """
+    sharpe = lambda v: summary[v]["monte_carlo"]["sharpe"]["median"]
+    grid = list(neighbours)
+    eligible = [v for v in grid if summary[v]["account"]["max_drawdown"] <= selection["max_drawdown"]]
+    pool = eligible or grid
+    score = {v: statistics.fmean([sharpe(v), *(sharpe(n) for n in neighbours[v])]) for v in pool}
+    best = max(score.values())
+    close = [v for v in pool if score[v] >= best - selection["tie_tolerance"]]
+    chosen = min(close, key=lambda v: (summary[v]["account"]["max_drawdown"], v))
+    return {"variant": chosen, "settings": summary[chosen]["rule"].get("account"), "plateau_score": round(score[chosen], 4),
+            "within_drawdown_limit": bool(eligible), "rule": selection}
+
+
 def run_account_spec(spec, data, dataset_entry, cost, benchmark):
-    """Account-level experiment: each rule trades the approved $100k account day by day.
+    """Account-level experiment: each rule trades the $100k research account day by day.
 
     Account results decide (CAGR, drawdown, Sharpe, Calmar, SPY, a Monte Carlo
     luck check and the deflated Sharpe ratio); trade statistics are kept only
-    as diagnostics.
+    as diagnostics. Variants with an `account` block use those sizing rules;
+    the others use the approved preset.
     """
     if not benchmark:
         raise ValueError("account_spec_requires_benchmark")
     scenario = account.approved_scenario()
     if abs(scenario["cost_rate"] - cost) > 1e-12:
         raise ValueError("cost_differs_from_approved_account")
-    variants = {v["id"]: v for v in spec["variants"]}
-    trades = {vid: [] for vid in variants}
-    candidates = {vid: [] for vid in variants}
+    variants, neighbours = expand_variants(spec)
+    # Variants sharing an exit rule share one simulation of every trade.
+    signature = {vid: json.dumps({k: v.get(k) for k in EXIT_KEYS}, sort_keys=True) for vid, v in variants.items()}
+    exits = {sig: {"id": sig, **json.loads(sig)} for sig in signature.values()}
+    trades = {sig: [] for sig in exits}
+    candidates = {sig: [] for sig in exits}
     data_end = max(series["date"][-1] for series in data["prices"].values())
-    for vid, event, bars, entry_index, result in variant_results(spec, data, cost, benchmark):
-        trades[vid].append(result)
+    for sig, event, bars, entry_index, result in variant_results({**spec, "variants": list(exits.values())}, data, cost, benchmark):
+        trades[sig].append(result)
         if result["status"] in ("resolved", "observing"):
-            candidates[vid].append(account.candidate(event, bars, entry_index, result, signal_priority(event), data_end))
+            candidates[sig].append(account.candidate(event, bars, entry_index, result, signal_priority(event), data_end))
     series, initial, criteria = benchmark["series"], scenario["initial_cash"], spec["criteria"]
     start = min(e["signal_date"] for e in data["events"])
     end = max(c["closes"][-1][0] for items in candidates.values() for c in items)
+    if spec.get("window"):
+        # A fixed window keeps steps comparable; it must still hold every trade to its exit.
+        if spec["window"]["end"] < end:
+            raise ValueError(f"window_ends_before_last_trade: {end}")
+        start, end = spec["window"]["start"], spec["window"]["end"]
     dates = [d for d in series["date"] if start <= d <= end]
     spy_rets = account.benchmark_returns(series, dates)
     spy_equity = account.compound(spy_rets, initial)
     spy = account.curve_stats(spy_equity, dates, initial) | {"splits": account.period_returns(spy_equity, dates, initial, spec["splits"])}
     curve_dates, spy_curve = monthly(dates, spy_equity)
     curves = {"dates": curve_dates, benchmark["symbol"]: spy_curve}
+    aligned = {sig: account.align(items, dates) for sig, items in candidates.items()}
     summary, rows_out = {}, []
     for vid, variant in variants.items():
-        aligned, notes = account.align(candidates[vid], dates)
-        main = account.run_account(aligned, len(dates), scenario)
+        book, notes = aligned[signature[vid]]
+        rules = variant.get("account")
+        main = account.run_account(book, len(dates), scenario, rules=rules)
         stats = account.curve_stats(main["equity"], dates, initial)
         rets = account.returns_from(main["equity"], initial)
         # The benchmark held with the same share of the account invested, one session behind.
@@ -233,8 +305,11 @@ def run_account_spec(spec, data, dataset_entry, cost, benchmark):
                         "versus_spy": account.versus(rets, spy_rets) | {"cagr_difference": round(stats["cagr"] - spy["cagr"], 6)},
                         "same_exposure_spy": account.curve_stats(matched, dates, initial),
                         "splits": account.period_returns(main["equity"], dates, initial, spec["splits"]),
-                        "monte_carlo": account.monte_carlo(aligned, dates, scenario, criteria["mc_runs"], spec.get("seed", 0)) if criteria.get("mc_runs") else None,
-                        "trade_diagnostics": summarise(trades[vid])}
+                        "monte_carlo": account.monte_carlo(book, dates, scenario, criteria["mc_runs"], spec.get("seed", 0), rules) if criteria.get("mc_runs") else None,
+                        "trade_diagnostics": summarise(trades[signature[vid]]),
+                        "goal_1": {"sharpe_vs_spy": round((stats["sharpe"] or 0) - spy["sharpe"], 4), "calmar_vs_spy": round((stats["calmar"] or 0) - spy["calmar"], 4),
+                                   "met": (stats["sharpe"] or 0) >= spy["sharpe"] and (stats["calmar"] or 0) >= spy["calmar"]
+                                          and stats["max_drawdown"] <= criteria["max_drawdown"]}}
         curves[vid] = monthly(dates, main["equity"])[1]
         rows_out += [[vid, t["event_id"], t["symbol"], t["signal_date"], t["shares"], t["pnl"], t["return"]] for t in main["trades"]]
     # Deflated Sharpe: the best of many tried rules looks better than it is.
@@ -259,7 +334,9 @@ def run_account_spec(spec, data, dataset_entry, cost, benchmark):
               "account_scenario": scenario | {"source": "research/backtest/account-scenario.json"},
               "window": {"start": dates[0], "end": dates[-1], "sessions": len(dates)}, "cost_per_side": cost,
               "baseline": spec["baseline"], "criteria": criteria, "n_trials": n_trials, "spy": spy, "variants": summary, "curves": curves,
-              "champion": champion, "selection_rule": f"highest account {metric} among variants passing every pre-registered check"}
+              "champion": champion, "selection_rule": f"highest account {metric} among variants passing every pre-registered check",
+              "chosen": choose_plateau(summary, neighbours, spec["selection"]) if spec.get("selection") and neighbours else None,
+              "next_step": spec.get("next_step")}
     return result, gzip.compress(csv_buffer.getvalue().encode(), 9, mtime=0)
 
 
@@ -277,6 +354,75 @@ def _account_table(result):
                      f"{num((mc.get('sharpe') or {}).get('median'))} | {pct((mc.get('cagr') or {}).get('p5'))} | {num(v.get('deflated_sharpe'))} | "
                      f"{'**yes**' if v['verdict']['passed'] else 'no'} |")
     return lines
+
+
+CHECK_WORDS = {
+    "enough_trades": "Enough trades to judge",
+    "max_drawdown": "Worst fall within the limit",
+    "sharpe_beats_current_rule": "Better Sharpe than the current rule",
+    "calmar_beats_current_rule": "Better growth per worst fall (Calmar) than the current rule",
+    "sharpe_beats_spy": "Better Sharpe than holding SPY",
+    "calmar_beats_spy": "Better growth per worst fall than holding SPY",
+    "luck_check_median_sharpe_beats_current_rule": "Still beats the current rule when same-day signal order is shuffled",
+    "luck_check_worst_5pct_still_grows": "Even the unluckiest 5% of shuffled runs still grow",
+    "every_period_positive": "Account grew in every five-year period",
+    "deflated_sharpe": "Not explained by having tried many rules",
+}
+
+
+def render_report(result):
+    """Plain-language account report written next to every account result."""
+    money = lambda x: f"${x:,.0f}"
+    pct = lambda x, d=1: "—" if x is None else f"{x * 100:.{d}f}%"
+    num = lambda x: "—" if x is None else f"{x:.2f}"
+    spy, w, variants = result["spy"], result["window"], result["variants"]
+    chosen = (result.get("chosen") or {}).get("variant")
+    met = [vid for vid, v in variants.items() if v.get("goal_1", {}).get("met")]
+    best = max(variants, key=lambda v: variants[v]["account"]["sharpe"] or -9)
+    lines = [f"# {result['spec_id']}", "",
+             f"Plain-language report written by the research lab on {result.get('completed_at', '—')[:10]}. Every number comes from `result.json` in this folder.", "",
+             "## The question", "", result["question"], "",
+             "## The short answer", ""]
+    if result["champion"]:
+        lines.append(f"- **{result['champion']}** ({variants[result['champion']]['label']}) passed every check written down before the run.")
+    else:
+        lines.append(f"- No rule passed every check written down before the run, so the current rule stays.")
+    if chosen:
+        lines.append(f"- Carried to the next step: **{chosen}** ({variants[chosen]['label']}), picked by the rule fixed before the run "
+                     f"(best luck-check Sharpe averaged with its neighbouring settings{'' if result['chosen']['within_drawdown_limit'] else '; no setting stayed within the drawdown limit'}).")
+    lines.append(f"- Goal 1 (match SPY's Sharpe {num(spy['sharpe'])} and Calmar {num(spy['calmar'])} with a worst fall of at most {pct(result['criteria']['max_drawdown'], 0)}): "
+                 + (f"met by {', '.join(met)}." if met else f"not met yet. Closest Sharpe: {best} at {num(variants[best]['account']['sharpe'])}."))
+    lines += ["", "## The benchmark", "",
+              f"Holding SPY from {w['start']} to {w['end']} turned $100,000 into {money(spy['final_equity'])}: {pct(spy['cagr'])} a year, "
+              f"worst fall {pct(spy['max_drawdown'])}, Sharpe {num(spy['sharpe'])}, Calmar {num(spy['calmar'])}.", "",
+              "## Account results", "",
+              "| Rule | $100k became | Growth a year | Worst fall | Sharpe | Calmar | Money invested | Checks passed |",
+              "|---|---|---|---|---|---|---|---|"]
+    explicit = [v for v in variants if variants[v].get("family") != "grid"]
+    grid = sorted((v for v in variants if variants[v].get("family") == "grid"),
+                  key=lambda v: -(variants[v]["monte_carlo"] or {}).get("sharpe", {}).get("median", -9))
+    shown = list(dict.fromkeys(explicit + ([chosen] if chosen else []) + grid[:5]))
+    for vid in shown:
+        v, a = variants[vid], variants[vid]["account"]
+        checks = v["verdict"]["checks"]
+        mark = " (carried forward)" if vid == chosen else ""
+        lines.append(f"| {vid}{mark}: {v['label']} | {money(a['final_equity'])} | {pct(a['cagr'])} | {pct(a['max_drawdown'])} | {num(a['sharpe'])} | "
+                     f"{num(a['calmar'])} | {pct(a['average_exposure'], 0)} | {sum(checks.values())} of {len(checks)} |")
+    if len(variants) > len(shown):
+        lines.append(f"\nShowing {len(shown)} of {len(variants)} rules: the references, the one carried forward and the five best luck-check results. All are in `result.json` and the scoreboard.")
+    focus = chosen or best
+    lines += ["", f"## Checks for {focus}", ""]
+    for key, ok in variants[focus]["verdict"]["checks"].items():
+        lines.append(f"- {'✓' if ok else '✗'} {CHECK_WORDS.get(key, key)}")
+    if result.get("next_step"):
+        lines += ["", "## Next step (planned before the run)", "", result["next_step"]]
+    lines += ["", "## Words used", "",
+              "- **Sharpe**: return per unit of day-to-day swing; higher is smoother growth.",
+              "- **Calmar**: growth per year divided by the worst fall.",
+              "- **Worst fall**: the biggest drop from a previous high, in percent of the account.",
+              "- **Luck check**: the same rule re-run 200 times with same-day signals in shuffled order.",
+              "- **Money invested**: the average share of the account in stocks; the rest is cash."]
+    return "\n".join(lines) + "\n"
 
 
 def render_scoreboard(results):
@@ -314,6 +460,8 @@ def write_outputs(root, result, trades_csv, event, manifests):
     out.mkdir(parents=True, exist_ok=True)
     (out / "result.json").write_text(json.dumps(result, indent=1, ensure_ascii=False) + "\n")
     (out / "trades.csv.gz").write_bytes(trades_csv)
+    if result.get("kind") == "account":
+        (out / "REPORT.md").write_text(render_report(result))
     for entry in manifests:
         record = pathlib.Path(root) / "research/lab/datasets" / f"{entry['dataset_id']}.json"
         record.parent.mkdir(parents=True, exist_ok=True)

@@ -1,17 +1,17 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-08T12:43:31+00:00",
+  "generated_at": "2026-10-08T14:36:40+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 45,
+  "experiment_count": 46,
   "summary": {
     "completed": 30,
-    "in_progress": 15,
+    "in_progress": 16,
     "candidate": 11,
-    "not_validated_or_unstable": 13
+    "not_validated_or_unstable": 14
   },
   "policy": {
     "append_only": true,
@@ -50,19 +50,19 @@
         "family": "quant_lab_exits",
         "family_zh": "量化研究实验室",
         "question_zh": "哪种卖出规则在已批准的10万美元账户中，扣除风险后让资金增长最好，并同时优于现行规则和直接持有SPY？现行规则拆开看：2R目标与40日上限各自的代价。",
-        "result_zh": "已预登记，等待后台自动运行。",
-        "use_zh": "账户层结果作决定，逐笔统计只作诊断；同一20年数据第二次使用，通过者只成为前向检验候选。",
-        "next_zh": "通过者进入2027-04-15前向检验；若回撤普遍超限，优先做C组市场过滤。",
-        "verdict": "pre_registered"
+        "result_zh": "10万美元账户（2005-09至2026-01）：无规则通过，现行规则保留。SPY年化10.8%、最大回撤55%、Sharpe 0.63。现行规则年化3.9%、回撤32%、Sharpe 0.44，不如同等投入的SPY。最佳为“现行止损、去掉2R目标、40日”：年化5.8%、回撤43%、Sharpe 0.52，打乱顺序200次均优于现行。宽止损在账户层反而更差。所有规则2007—09年回撤32%—60%；平均只有43%—73%资金在用。",
+        "use_zh": "现行退出不变；“去掉2R目标”作为组合第1步的卖出规则。",
+        "next_zh": "组合路线图第1步：仓位与风险（p1-size-risk-20y）。",
+        "verdict": "not_validated"
       },
       "lifecycle": {
         "registered_at": "2026-10-07T23:24:04+00:00",
         "started_at": null,
         "completed_at": "2026-10-08T12:43:31+00:00",
-        "latest_event": "completed",
-        "latest_event_at": "2026-10-08T12:43:31+00:00",
-        "time_source": "github_actions",
-        "event_count": 2,
+        "latest_event": "checkpoint",
+        "latest_event_at": "2026-10-08T14:36:40+00:00",
+        "time_source": "assistant_review",
+        "event_count": 3,
         "events": [
           {
             "experiment_id": "lab-a2-account-20y-v1-2026-10-08",
@@ -86,6 +86,95 @@
               "result": "research/lab/results/a2-account-20y-v1/result.json",
               "dataset": "observation-2005-2025-v1",
               "champion": null
+            }
+          },
+          {
+            "experiment_id": "lab-a2-account-20y-v1-2026-10-08",
+            "event": "checkpoint",
+            "event_at": "2026-10-08T14:36:40+00:00",
+            "time_source": "assistant_review",
+            "source_ref": "research/lab/results/a2-account-20y-v1/REPORT.md",
+            "details": {
+              "note": "researcher review of the account-level round 2"
+            },
+            "result": "$100k account 2005-09-12 to 2026-01-16. SPY: CAGR 10.8%, worst fall 55.2%, Sharpe 0.63, Calmar 0.20. Current rule A0: CAGR 3.9%, worst fall 31.9%, Sharpe 0.44, 43% invested on average, below SPY held at the same exposure (Sharpe 0.48). Best: D1 (current stop, no 2R target, 40 days) CAGR 5.8%, worst fall 43.1%, Sharpe 0.52, luck-check Sharpe 0.47-0.60 (all above A0's median 0.39), deflated Sharpe 0.97, 6 of 10 checks; C60 CAGR 6.4%, Sharpe 0.49. Wide stops (P20-40/60/90, N2.5-60) scored below the current rule at account level. Every rule fell 32-60% in 2007-09; 43-73% of the account was invested on average because positions are fixed at 10% of initial cash.",
+            "decision": "No rule passed; production unchanged. D1 becomes the exit rule for portfolio step 1. The gaps to Goal 1 are drawdown and idle cash, addressed by the portfolio roadmap (sizing, sector limits, SPY core, market filter)."
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "lab-p1-size-risk-20y-v1-2026-10-08",
+      "created_at": "2026-10-08",
+      "status": "pre_registered",
+      "change": "Portfolio step 1: position size, risk per trade, number of stocks and total open risk for the $100k account, chosen from the ranges mature programs use",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#portfolio-roadmap",
+        "lab_spec": "research/lab/queue/p1-size-risk-20y-v1.json",
+        "dataset": "observation-2005-2025-v1 + benchmark-spy-2004-to-2026-10-v1",
+        "exit_rule": "D1 from lab-a2-account-20y-v1 (current stop, no 2R target, 40 days)",
+        "grid": {
+          "risk_per_trade": [
+            0.005,
+            0.01,
+            0.02
+          ],
+          "position_cap": [
+            0.05,
+            0.1
+          ],
+          "max_positions": [
+            10,
+            15,
+            20
+          ],
+          "heat_cap": [
+            0.06,
+            0.1
+          ]
+        },
+        "references": [
+          "A0 current rule, approved preset",
+          "D1, approved preset"
+        ],
+        "window": "2005-09-12 to 2026-01-16 (same as round 2)",
+        "role": "chooses the sizing carried to step 2; exploration on seen data"
+      },
+      "success_criteria": "Choice carried forward: best luck-check median Sharpe averaged with one-step neighbours among settings with worst fall <= 25% (all if none), ties within 0.01 to the smaller worst fall. Full pass bar as round 2 (Sharpe and Calmar above the current rule and SPY, worst fall <= 25%, luck check, every period positive, deflated Sharpe >= 0.95 over 62 trials).",
+      "known_limitations": [
+        "same 20-year dataset as rounds 1 and 2",
+        "no SPY core yet, so uninvested money stays in cash",
+        "partial delisted coverage (survivorship)",
+        "a held stock whose prices stop is sold at its last close",
+        "daily bars only"
+      ],
+      "human_summary": {
+        "title_zh": "组合第1步：仓位、单笔风险、持股数与总风险",
+        "family": "quant_lab_portfolio",
+        "family_zh": "量化研究实验室",
+        "question_zh": "沿用第二轮最佳卖出规则，每只股票占多大、每笔和整个账户承担多少风险？取值来自成熟交易体系的常用范围，由事先固定的规则选出。",
+        "result_zh": "已预登记，等待后台自动运行。",
+        "use_zh": "选出的设置带入第2步（行业上限）；同一20年数据，属探索。",
+        "next_zh": "第2步：行业上限。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-08T14:36:40+00:00",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-10-08T14:36:40+00:00",
+        "time_source": "assistant_registration",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "lab-p1-size-risk-20y-v1-2026-10-08",
+            "event": "registered",
+            "event_at": "2026-10-08T14:36:40+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/p1-size-risk-20y-v1.json",
+              "note": "grid from mature programs' ranges, choice rule and pass bar frozen before any run; method approved by the user 2026-10-08"
             }
           }
         ]
@@ -3650,6 +3739,7 @@
     "lab-a-exits-ledger-1y-v1-2026-10-07",
     "lab-a-holdout-forward-v1-2026-10-08",
     "lab-a2-account-20y-v1-2026-10-08",
+    "lab-p1-size-risk-20y-v1-2026-10-08",
     "macd-rollout-04-double-chip-confirmation-2026-08-25",
     "multi-factor-count-resonance-v1.0.0-2026-08-30",
     "pullback-context-backtest-v2.0.0-2026-08-28",
