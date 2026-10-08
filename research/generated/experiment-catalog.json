@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-08T14:58:17+00:00",
+  "generated_at": "2026-10-08T15:00:14+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
@@ -10,7 +10,7 @@
   "summary": {
     "completed": 31,
     "in_progress": 16,
-    "candidate": 11,
+    "candidate": 12,
     "not_validated_or_unstable": 14
   },
   "policy": {
@@ -71,19 +71,19 @@
         "family": "quant_lab_portfolio",
         "family_zh": "量化研究实验室",
         "question_zh": "沿用第二轮最佳卖出规则，每只股票占多大、每笔和整个账户承担多少风险？取值来自成熟交易体系的常用范围，由事先固定的规则选出。",
-        "result_zh": "已预登记，等待后台自动运行。",
-        "use_zh": "选出的设置带入第2步（行业上限）；同一20年数据，属探索。",
-        "next_zh": "第2步：行业上限。",
-        "verdict": "pre_registered"
+        "result_zh": "按账户当前价值定仓位后明显改善。每只5%、最多10只（单笔风险0.5%—2%与总风险6%—10%结果完全相同，因为SV止损只有5%—10%，5%上限先起作用）：Sharpe 0.635（SPY 0.632）、Calmar 0.200（SPY 0.197）、最大回撤25.7%、年化5.1%、平均只投入36.5%。增长最高为每只10%、最多20只：年化8.0%、Calmar 0.22、回撤36%。没有设置回撤≤25%，未全部通过。",
+        "use_zh": "按事先规则带入下一步：每只5%、最多10只。风险收益比已追平SPY，回撤只差0.7个百分点；增长需由核心组合提供。",
+        "next_zh": "成熟组合同期检验（c1），再做SV卫星（第B步）。",
+        "verdict": "candidate"
       },
       "lifecycle": {
         "registered_at": "2026-10-08T14:36:40+00:00",
         "started_at": null,
         "completed_at": "2026-10-08T14:58:17+00:00",
-        "latest_event": "completed",
-        "latest_event_at": "2026-10-08T14:58:17+00:00",
-        "time_source": "github_actions",
-        "event_count": 2,
+        "latest_event": "checkpoint",
+        "latest_event_at": "2026-10-08T15:00:14+00:00",
+        "time_source": "assistant_review",
+        "event_count": 3,
         "events": [
           {
             "experiment_id": "lab-p1-size-risk-20y-v1-2026-10-08",
@@ -108,6 +108,18 @@
               "dataset": "observation-2005-2025-v1",
               "champion": null
             }
+          },
+          {
+            "experiment_id": "lab-p1-size-risk-20y-v1-2026-10-08",
+            "event": "checkpoint",
+            "event_at": "2026-10-08T15:00:14+00:00",
+            "time_source": "assistant_review",
+            "source_ref": "research/lab/results/p1-size-risk-20y-v1/REPORT.md",
+            "details": {
+              "note": "researcher review of portfolio step 1"
+            },
+            "result": "Exit D1, 38 settings, 2005-09-12 to 2026-01-16, sized from the current account value. 5% per stock, up to 10 stocks (identical for every risk 0.5-2% and open-risk 6-10% setting, because the 5% cap binds with SV's 5-10% stops): Sharpe 0.635 (SPY 0.632), Calmar 0.200 (SPY 0.197), worst fall 25.7%, CAGR 5.1%, 36.5% invested, beta 0.24, alpha 2.5% a year, above SPY held at the same exposure (Sharpe 0.60), -8.3% in 2005-09. Highest growth: 10% per stock, up to 20 stocks, risk 0.5%, open risk 10%: CAGR 8.0%, Calmar 0.22, Sharpe 0.62, worst fall 36%. No setting stayed within a 25% worst fall; no setting passed every check.",
+            "decision": "Carried forward by the pre-registered plateau rule: R0.5-P5-M10-H10 (5% per stock, up to 10 stocks). Goal 1: Sharpe and Calmar reached SPY's; the worst fall is 0.7 points over the limit. With only 36.5% invested, growth must come from the core (proven-portfolio comparison, then step B)."
           }
         ]
       }
