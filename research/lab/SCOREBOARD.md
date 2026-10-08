@@ -71,3 +71,51 @@ Which selling rule grows the approved $100k account best after risk over twenty 
 
 Champion: **none passed; current rule stays**
 
+## p1-size-risk-20y-v1 (observation-2005-2025-v1, $100k account 2005-09-12 to 2026-01-16)
+
+Portfolio step 1: with round 2's best selling rule (current stop, no 2R target, 40 days), how big should each position be and how much should each trade and the whole account risk? Settings are taken from the ranges mature programs use, and a rule fixed before the run picks one.
+
+| Rule | CAGR | Max drawdown | Sharpe | Calmar | CAGR vs SPY | Invested | Trades | Luck check: median Sharpe | Luck check: worst-5% CAGR | Deflated Sharpe | Passed |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SPY buy and hold | 10.8% | 55.2% | 0.63 | 0.20 | — | 100% | — | — | — | — | benchmark |
+| A0 Current rule: support -5% (max 10%), sell all at 2R, 40 days | 3.9% | 31.9% | 0.44 | 0.12 | -7.0% | 43% | 1708 | 0.39 | 3.0% | 0.92 | no |
+| D1 Round 2 best: current stop, no 2R target, 40 days (approved $10k positions) | 5.8% | 43.1% | 0.52 | 0.13 | -5.0% | 52% | 1419 | 0.53 | 5.3% | 0.96 | no |
+| R0.5-P5-M10-H6 Risk 0.5%, cap 5%, up to 10 stocks, open risk 6% | 5.1% | 25.7% | 0.64 | 0.20 | -5.7% | 37% | 1475 | 0.62 | 4.3% | 0.99 | no |
+| R0.5-P5-M10-H10 Risk 0.5%, cap 5%, up to 10 stocks, open risk 10% | 5.1% | 25.7% | 0.64 | 0.20 | -5.7% | 37% | 1475 | 0.62 | 4.3% | 0.99 | no |
+| R0.5-P5-M15-H6 Risk 0.5%, cap 5%, up to 15 stocks, open risk 6% | 4.8% | 30.9% | 0.49 | 0.15 | -6.1% | 47% | 1917 | 0.56 | 5.0% | 0.95 | no |
+| R0.5-P5-M15-H10 Risk 0.5%, cap 5%, up to 15 stocks, open risk 10% | 5.1% | 31.6% | 0.52 | 0.16 | -5.7% | 47% | 1914 | 0.57 | 5.1% | 0.96 | no |
+| R0.5-P5-M20-H6 Risk 0.5%, cap 5%, up to 20 stocks, open risk 6% | 6.3% | 33.1% | 0.59 | 0.19 | -4.5% | 51% | 2073 | 0.59 | 5.6% | 0.98 | no |
+| R0.5-P5-M20-H10 Risk 0.5%, cap 5%, up to 20 stocks, open risk 10% | 6.3% | 32.7% | 0.56 | 0.19 | -4.6% | 53% | 2156 | 0.58 | 6.1% | 0.98 | no |
+| R0.5-P10-M10-H6 Risk 0.5%, cap 10%, up to 10 stocks, open risk 6% | 6.7% | 33.3% | 0.62 | 0.20 | -4.1% | 53% | 1475 | 0.61 | 5.7% | 0.99 | no |
+| R0.5-P10-M10-H10 Risk 0.5%, cap 10%, up to 10 stocks, open risk 10% | 6.7% | 33.3% | 0.62 | 0.20 | -4.1% | 53% | 1475 | 0.61 | 5.7% | 0.99 | no |
+| R0.5-P10-M15-H6 Risk 0.5%, cap 10%, up to 15 stocks, open risk 6% | 7.0% | 31.6% | 0.59 | 0.22 | -3.8% | 59% | 1672 | 0.58 | 6.0% | 0.98 | no |
+| R0.5-P10-M15-H10 Risk 0.5%, cap 10%, up to 15 stocks, open risk 10% | 7.6% | 36.0% | 0.60 | 0.21 | -3.3% | 62% | 1762 | 0.62 | 7.0% | 0.98 | no |
+| R0.5-P10-M20-H6 Risk 0.5%, cap 10%, up to 20 stocks, open risk 6% | 7.0% | 31.6% | 0.59 | 0.22 | -3.8% | 59% | 1672 | 0.58 | 6.0% | 0.98 | no |
+| R0.5-P10-M20-H10 Risk 0.5%, cap 10%, up to 20 stocks, open risk 10% | 8.0% | 36.0% | 0.62 | 0.22 | -2.9% | 62% | 1769 | 0.63 | 7.2% | 0.99 | no |
+| R1-P5-M10-H6 Risk 1%, cap 5%, up to 10 stocks, open risk 6% | 5.1% | 25.7% | 0.64 | 0.20 | -5.7% | 37% | 1475 | 0.62 | 4.3% | 0.99 | no |
+| R1-P5-M10-H10 Risk 1%, cap 5%, up to 10 stocks, open risk 10% | 5.1% | 25.7% | 0.64 | 0.20 | -5.7% | 37% | 1475 | 0.62 | 4.3% | 0.99 | no |
+| R1-P5-M15-H6 Risk 1%, cap 5%, up to 15 stocks, open risk 6% | 4.8% | 30.9% | 0.49 | 0.15 | -6.1% | 47% | 1917 | 0.56 | 5.0% | 0.95 | no |
+| R1-P5-M15-H10 Risk 1%, cap 5%, up to 15 stocks, open risk 10% | 5.1% | 31.6% | 0.52 | 0.16 | -5.7% | 47% | 1914 | 0.57 | 5.1% | 0.96 | no |
+| R1-P5-M20-H6 Risk 1%, cap 5%, up to 20 stocks, open risk 6% | 6.3% | 33.1% | 0.59 | 0.19 | -4.5% | 51% | 2073 | 0.59 | 5.6% | 0.98 | no |
+| R1-P5-M20-H10 Risk 1%, cap 5%, up to 20 stocks, open risk 10% | 6.3% | 32.7% | 0.56 | 0.19 | -4.6% | 53% | 2156 | 0.58 | 6.1% | 0.98 | no |
+| R1-P10-M10-H6 Risk 1%, cap 10%, up to 10 stocks, open risk 6% | 6.7% | 38.7% | 0.53 | 0.17 | -4.2% | 64% | 1292 | 0.60 | 6.0% | 0.97 | no |
+| R1-P10-M10-H10 Risk 1%, cap 10%, up to 10 stocks, open risk 10% | 7.5% | 45.9% | 0.54 | 0.16 | -3.4% | 67% | 1378 | 0.58 | 6.4% | 0.97 | no |
+| R1-P10-M15-H6 Risk 1%, cap 10%, up to 15 stocks, open risk 6% | 6.7% | 38.7% | 0.53 | 0.17 | -4.2% | 64% | 1292 | 0.60 | 6.0% | 0.97 | no |
+| R1-P10-M15-H10 Risk 1%, cap 10%, up to 15 stocks, open risk 10% | 7.5% | 45.9% | 0.54 | 0.16 | -3.4% | 67% | 1378 | 0.58 | 6.4% | 0.97 | no |
+| R1-P10-M20-H6 Risk 1%, cap 10%, up to 20 stocks, open risk 6% | 6.7% | 38.7% | 0.53 | 0.17 | -4.2% | 64% | 1292 | 0.60 | 6.0% | 0.97 | no |
+| R1-P10-M20-H10 Risk 1%, cap 10%, up to 20 stocks, open risk 10% | 7.5% | 45.9% | 0.54 | 0.16 | -3.4% | 67% | 1378 | 0.58 | 6.4% | 0.97 | no |
+| R2-P5-M10-H6 Risk 2%, cap 5%, up to 10 stocks, open risk 6% | 5.1% | 25.7% | 0.64 | 0.20 | -5.7% | 37% | 1475 | 0.62 | 4.3% | 0.99 | no |
+| R2-P5-M10-H10 Risk 2%, cap 5%, up to 10 stocks, open risk 10% | 5.1% | 25.7% | 0.64 | 0.20 | -5.7% | 37% | 1475 | 0.62 | 4.3% | 0.99 | no |
+| R2-P5-M15-H6 Risk 2%, cap 5%, up to 15 stocks, open risk 6% | 4.8% | 30.9% | 0.49 | 0.15 | -6.1% | 47% | 1917 | 0.56 | 5.0% | 0.95 | no |
+| R2-P5-M15-H10 Risk 2%, cap 5%, up to 15 stocks, open risk 10% | 5.1% | 31.6% | 0.52 | 0.16 | -5.7% | 47% | 1914 | 0.57 | 5.1% | 0.96 | no |
+| R2-P5-M20-H6 Risk 2%, cap 5%, up to 20 stocks, open risk 6% | 6.3% | 33.1% | 0.59 | 0.19 | -4.5% | 51% | 2073 | 0.59 | 5.6% | 0.98 | no |
+| R2-P5-M20-H10 Risk 2%, cap 5%, up to 20 stocks, open risk 10% | 6.3% | 32.7% | 0.56 | 0.19 | -4.6% | 53% | 2156 | 0.58 | 6.1% | 0.98 | no |
+| R2-P10-M10-H6 Risk 2%, cap 10%, up to 10 stocks, open risk 6% | 6.7% | 38.7% | 0.53 | 0.17 | -4.2% | 64% | 1292 | 0.60 | 6.0% | 0.97 | no |
+| R2-P10-M10-H10 Risk 2%, cap 10%, up to 10 stocks, open risk 10% | 7.5% | 45.9% | 0.54 | 0.16 | -3.4% | 67% | 1378 | 0.58 | 6.4% | 0.97 | no |
+| R2-P10-M15-H6 Risk 2%, cap 10%, up to 15 stocks, open risk 6% | 6.7% | 38.7% | 0.53 | 0.17 | -4.2% | 64% | 1292 | 0.60 | 6.0% | 0.97 | no |
+| R2-P10-M15-H10 Risk 2%, cap 10%, up to 15 stocks, open risk 10% | 7.5% | 45.9% | 0.54 | 0.16 | -3.4% | 67% | 1378 | 0.58 | 6.4% | 0.97 | no |
+| R2-P10-M20-H6 Risk 2%, cap 10%, up to 20 stocks, open risk 6% | 6.7% | 38.7% | 0.53 | 0.17 | -4.2% | 64% | 1292 | 0.60 | 6.0% | 0.97 | no |
+| R2-P10-M20-H10 Risk 2%, cap 10%, up to 20 stocks, open risk 10% | 7.5% | 45.9% | 0.54 | 0.16 | -3.4% | 67% | 1378 | 0.58 | 6.4% | 0.97 | no |
+
+Champion: **none passed; current rule stays**
+
