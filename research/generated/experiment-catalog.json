@@ -1,17 +1,17 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-07T07:22:57+00:00",
+  "generated_at": "2026-10-07T23:24:04+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 43,
+  "experiment_count": 45,
   "summary": {
     "completed": 29,
-    "in_progress": 14,
-    "candidate": 10,
-    "not_validated_or_unstable": 12
+    "in_progress": 16,
+    "candidate": 11,
+    "not_validated_or_unstable": 13
   },
   "policy": {
     "append_only": true,
@@ -21,6 +21,84 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "lab-a-exits-ledger-1y-v1-2026-10-07",
+      "created_at": "2026-10-07",
+      "status": "pre_registered",
+      "change": "Quant research lab Group A (exits), exploration on the live year",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#quant-research-program",
+        "lab_spec": "research/lab/queue/a-exits-ledger-1y-v1.json",
+        "dataset": "ledger-2025-10-to-2026-10 (built once, frozen as a release asset)",
+        "baseline": "A0 support-5pct-cap-10pct-2r-v1",
+        "variants": 15,
+        "role": "exploration; cannot alone change production"
+      },
+      "known_limitations": [
+        "event-level: overlapping signals, not a capital-constrained portfolio",
+        "entry fixed at next open; only exits change",
+        "daily bars only: stop is assumed before target on the same bar",
+        "cost 0.1% per side, with a 0.2% stress result reported",
+        "one market year; quarterly splits are not independent regimes"
+      ],
+      "human_summary": {
+        "title_zh": "研究实验室A组：退出规则（近一年探索）",
+        "family": "quant_lab_exits",
+        "family_zh": "量化研究实验室",
+        "question_zh": "在相同入场下，哪种止损/止盈/持有规则能保住60日持有显示的优势，并优于现行支撑-5%/2R/40日？",
+        "result_zh": "4,222个近一年信号：A1-60（−20%应急止损、持有60日）通过探索标准，平均+5.25%、中位+2.56%、PF 1.91、E[R] 0.263；现行A0平均+0.58%、中位−4.78%。追踪止损与分批止盈不优于现行。",
+        "use_zh": "仅作探索参考；A1-60已送入20年决策，未通过。",
+        "next_zh": "与20年结果一起进入第二轮（同期SPY对比）和前向留样。",
+        "verdict": "candidate"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-07T06:41:44.592245+00:00",
+        "started_at": null,
+        "completed_at": "2026-10-07T07:10:17+00:00",
+        "latest_event": "checkpoint",
+        "latest_event_at": "2026-10-07T23:24:04+00:00",
+        "time_source": "assistant_review",
+        "event_count": 3,
+        "events": [
+          {
+            "experiment_id": "lab-a-exits-ledger-1y-v1-2026-10-07",
+            "event": "registered",
+            "event_at": "2026-10-07T06:41:44.592245+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/a-exits-ledger-1y-v1.json",
+              "note": "variants and pass bar frozen before any run"
+            }
+          },
+          {
+            "experiment_id": "lab-a-exits-ledger-1y-v1-2026-10-07",
+            "event": "completed",
+            "event_at": "2026-10-07T07:10:17+00:00",
+            "time_source": "github_actions",
+            "source_ref": "https://github.com/327979420/sage-vista/actions/runs/37585561463",
+            "details": {
+              "lab_spec": "a-exits-ledger-1y-v1",
+              "spec_sha256": "3868b15529259259576ac9c0321cf99c454c70ffd5ca515809613d79317d57c7",
+              "result": "research/lab/results/a-exits-ledger-1y-v1/result.json",
+              "dataset": "ledger-2025-10-to-2026-10",
+              "champion": "A1-60"
+            }
+          },
+          {
+            "experiment_id": "lab-a-exits-ledger-1y-v1-2026-10-07",
+            "event": "checkpoint",
+            "event_at": "2026-10-07T23:24:04+00:00",
+            "time_source": "assistant_review",
+            "source_ref": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#quant-research-program",
+            "details": {
+              "note": "researcher review: exploration champion A1-60 sent to the 20-year decision run"
+            },
+            "result": "4,222 live-year signals. Champion A1-60 (emergency stop -20%, 60-day time exit): win 55.6%, mean +5.25%, median +2.56%, PF 1.91, E[R] 0.263, SQN 2.03, every quarter positive. Current rule A0: win 44.5%, mean +0.58%, median -4.78%, PF 1.14, E[R] 0.085. Trailing stops and partial targets did not beat A0.",
+            "decision": "Exploration only: A1-60 went to the 20-year decision run, where it did not pass; production unchanged."
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "lab-a-exits-20y-v1-2026-10-07",
       "created_at": "2026-10-07",
@@ -49,19 +127,19 @@
         "family": "quant_lab_exits",
         "family_zh": "量化研究实验室",
         "question_zh": "15种预登记退出方案在2005—2026五个时期中，是否有方案全部通过冻结标准并优于现行规则？",
-        "result_zh": "已预登记，等待后台自动运行（首次需冻结20年行情数据）。",
-        "use_zh": "通过者进入影子模拟账户前向验证，不直接改生产。",
-        "next_zh": "冠军方案进入B组（入场时机）作为新基线。",
-        "verdict": "pre_registered"
+        "result_zh": "3,115个信号（2005—2025）：15个方案无一全部通过，现行规则保留。现行A0平均+0.90%、中位−4.21%、2015—19为负。A1-60平均+3.88%、中位+2.96%、五个时期全部为正，只差E[R] 0.194与SQN 1.61；A2-2.5 E[R] 0.33、只差SQN。给更大空间和更长时间在每个时期都更好。",
+        "use_zh": "现行退出不变；接近通过的方案进入第二轮与前向留样，尚未证明跑赢同期SPY。",
+        "next_zh": "第二轮a2-room-time-20y加入同期SPY对比；2027-04-15前向留样自动运行。",
+        "verdict": "not_validated"
       },
       "lifecycle": {
         "registered_at": "2026-10-07T06:41:44.592245+00:00",
         "started_at": null,
         "completed_at": "2026-10-07T07:22:57+00:00",
-        "latest_event": "completed",
-        "latest_event_at": "2026-10-07T07:22:57+00:00",
-        "time_source": "github_actions",
-        "event_count": 2,
+        "latest_event": "checkpoint",
+        "latest_event_at": "2026-10-07T23:24:04+00:00",
+        "time_source": "assistant_review",
+        "event_count": 3,
         "events": [
           {
             "experiment_id": "lab-a-exits-20y-v1-2026-10-07",
@@ -86,71 +164,135 @@
               "dataset": "observation-2005-2025-v1",
               "champion": null
             }
+          },
+          {
+            "experiment_id": "lab-a-exits-20y-v1-2026-10-07",
+            "event": "checkpoint",
+            "event_at": "2026-10-07T23:24:04+00:00",
+            "time_source": "assistant_review",
+            "source_ref": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#quant-research-program",
+            "details": {
+              "note": "researcher review: no variant passed; production unchanged; near misses A1-60 and A2-2.5 carried into round 2 and the forward holdout"
+            },
+            "result": "3,115 signals, 1,223 stocks, 2005-2025. No variant passed every check. A0: win 44.5%, mean +0.90%, median -4.21%, PF 1.23, E[R] 0.124, SQN 0.91, 2015-19 negative. Near misses: A1-60 win 56.2%, mean +3.88%, median +2.96%, PF 1.66, E[R] 0.194, SQN 1.61, all five eras positive; A2-2.5 (2.5xATR, 60 days) mean +3.13%, E[R] 0.33, PF 1.61, SQN 1.68, all eras positive. Wider room and longer holding beat A0 in every era; trailing stops and partial targets did not. A1-60 shrank from the live-year exploration (E[R] 0.263 to 0.194).",
+            "decision": "Production exit unchanged. Near misses carried into lab-a2-room-time-20y-v1 (with same-days SPY comparison) and the forward holdout; the edge is not yet shown to exceed holding SPY over the same days."
           }
         ]
       }
     },
     {
-      "experiment_id": "lab-a-exits-ledger-1y-v1-2026-10-07",
-      "created_at": "2026-10-07",
+      "experiment_id": "lab-a2-account-20y-v1-2026-10-08",
+      "created_at": "2026-10-08",
       "status": "pre_registered",
-      "change": "Quant research lab Group A (exits), exploration on the live year",
+      "change": "Quant research lab Group A round 2 at account level: each selling rule trades the approved $100k account; the current rule is taken apart",
       "specification": {
         "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#quant-research-program",
-        "lab_spec": "research/lab/queue/a-exits-ledger-1y-v1.json",
-        "dataset": "ledger-2025-10-to-2026-10 (built once, frozen as a release asset)",
+        "lab_spec": "research/lab/queue/a2-account-20y-v1.json",
+        "dataset": "observation-2005-2025-v1 (frozen, already seen once) + benchmark-spy-2004-to-2026-10-v1",
+        "account": "research/backtest/account-scenario.json (approved 2026-09-08)",
         "baseline": "A0 support-5pct-cap-10pct-2r-v1",
-        "variants": 15,
-        "role": "exploration; cannot alone change production"
+        "variants": 9,
+        "champion_metric": "account Sharpe",
+        "role": "exploration on seen data; a passing rule becomes a forward-test candidate only"
       },
+      "success_criteria": "Account Sharpe and Calmar above the current rule and SPY buy-and-hold; max drawdown <= 25%; luck check (200 shuffled same-day orders) median Sharpe above the current rule and worst-5% CAGR > 0; every five-year period positive; deflated Sharpe probability >= 0.95 over 24 trials. Trade statistics are diagnostics only.",
+      "known_limitations": [
+        "one account path per rule; same-day order by SV score, with 200 shuffled orders as the luck check",
+        "approved account sizes every position at 10% of initial cash (no compounding of position size)",
+        "a held stock whose prices stop (for example a delisting) is sold at its last close; real delisting returns are unknown",
+        "same 20-year dataset as round 1, so not an independent test",
+        "partial delisted coverage (survivorship)",
+        "daily bars only: stop is assumed before target on the same bar"
+      ],
+      "human_summary": {
+        "title_zh": "研究实验室A组第二轮：10万美元账户层检验（20年，含SPY）",
+        "family": "quant_lab_exits",
+        "family_zh": "量化研究实验室",
+        "question_zh": "哪种卖出规则在已批准的10万美元账户中，扣除风险后让资金增长最好，并同时优于现行规则和直接持有SPY？现行规则拆开看：2R目标与40日上限各自的代价。",
+        "result_zh": "已预登记，等待后台自动运行。",
+        "use_zh": "账户层结果作决定，逐笔统计只作诊断；同一20年数据第二次使用，通过者只成为前向检验候选。",
+        "next_zh": "通过者进入2027-04-15前向检验；若回撤普遍超限，优先做C组市场过滤。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-07T23:24:04+00:00",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-10-07T23:24:04+00:00",
+        "time_source": "assistant_registration",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "lab-a2-account-20y-v1-2026-10-08",
+            "event": "registered",
+            "event_at": "2026-10-07T23:24:04+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/a2-account-20y-v1.json",
+              "note": "rules, account, benchmark and pass bar frozen before any run; pass bar approved by the user 2026-10-08"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "lab-a-holdout-forward-v1-2026-10-08",
+      "created_at": "2026-10-08",
+      "status": "pre_registered_forward_only",
+      "change": "Quant research lab Group A forward holdout at account level on live signals from 2026-10-08",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#quant-research-program",
+        "lab_spec": "research/lab/queue/a-holdout-forward-v1.json",
+        "dataset": "ledger-forward-from-2026-10-08-v1 (built on first run) + benchmark-spy-2025-to-2027-04-v1",
+        "baseline": "A0 support-5pct-cap-10pct-2r-v1",
+        "variants": [
+          "A0",
+          "P20-40",
+          "P20-60",
+          "N2.5-60",
+          "D3"
+        ],
+        "not_before": "2027-04-15",
+        "role": "true out-of-sample test before any shadow paper account",
+        "account": "research/backtest/account-scenario.json (approved 2026-09-08)"
+      },
+      "success_criteria": "Account max drawdown <= 25%; account Sharpe above the current rule and SPY buy-and-hold; luck check median Sharpe above the current rule; at least 30 closed trades",
       "known_limitations": [
         "event-level: overlapping signals, not a capital-constrained portfolio",
         "entry fixed at next open; only exits change",
         "daily bars only: stop is assumed before target on the same bar",
         "cost 0.1% per side, with a 0.2% stress result reported",
-        "one market year; quarterly splits are not independent regimes"
+        "about six months of signals; quarters are not independent regimes",
+        "variants may change before 2027-04-15 only from completed lab experiments, each change recorded as an event"
       ],
       "human_summary": {
-        "title_zh": "研究实验室A组：退出规则（近一年探索）",
+        "title_zh": "研究实验室A组前向留样（2026-10-08起实时信号）",
         "family": "quant_lab_exits",
         "family_zh": "量化研究实验室",
-        "question_zh": "在相同入场下，哪种止损/止盈/持有规则能保住60日持有显示的优势，并优于现行支撑-5%/2R/40日？",
-        "result_zh": "已预登记，等待后台自动运行。",
-        "use_zh": "仅作探索参考，不能单独改变生产规则。",
-        "next_zh": "与20年决策实验对照。",
+        "question_zh": "在登记时尚不存在的实时信号上，领先的卖出规则在10万美元账户中是否仍优于现行规则和SPY，且回撤不超过25%？",
+        "result_zh": "已预登记，2027-04-15后由后台自动运行一次。",
+        "use_zh": "真正的样本外检验；通过者才进入影子模拟账户。",
+        "next_zh": "影子模拟账户，经用户批准后才改生产。",
         "verdict": "pre_registered"
       },
       "lifecycle": {
-        "registered_at": "2026-10-07T06:41:44.592245+00:00",
+        "registered_at": "2026-10-07T23:24:04+00:00",
         "started_at": null,
-        "completed_at": "2026-10-07T07:10:17+00:00",
-        "latest_event": "completed",
-        "latest_event_at": "2026-10-07T07:10:17+00:00",
-        "time_source": "github_actions",
-        "event_count": 2,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-10-07T23:24:04+00:00",
+        "time_source": "assistant_registration",
+        "event_count": 1,
         "events": [
           {
-            "experiment_id": "lab-a-exits-ledger-1y-v1-2026-10-07",
+            "experiment_id": "lab-a-holdout-forward-v1-2026-10-08",
             "event": "registered",
-            "event_at": "2026-10-07T06:41:44.592245+00:00",
+            "event_at": "2026-10-07T23:24:04+00:00",
             "time_source": "assistant_registration",
             "details": {
-              "lab_spec": "research/lab/queue/a-exits-ledger-1y-v1.json",
-              "note": "variants and pass bar frozen before any run"
-            }
-          },
-          {
-            "experiment_id": "lab-a-exits-ledger-1y-v1-2026-10-07",
-            "event": "completed",
-            "event_at": "2026-10-07T07:10:17+00:00",
-            "time_source": "github_actions",
-            "source_ref": "https://github.com/327979420/sage-vista/actions/runs/37585561463",
-            "details": {
-              "lab_spec": "a-exits-ledger-1y-v1",
-              "spec_sha256": "3868b15529259259576ac9c0321cf99c454c70ffd5ca515809613d79317d57c7",
-              "result": "research/lab/results/a-exits-ledger-1y-v1/result.json",
-              "dataset": "ledger-2025-10-to-2026-10",
-              "champion": "A1-60"
+              "lab_spec": "research/lab/queue/a-holdout-forward-v1.json",
+              "note": "variants, benchmark and pass bar frozen before any run"
             }
           }
         ]
@@ -3492,6 +3634,8 @@
     "full-line-backtest-v1.0.2-2026-08-28",
     "lab-a-exits-20y-v1-2026-10-07",
     "lab-a-exits-ledger-1y-v1-2026-10-07",
+    "lab-a-holdout-forward-v1-2026-10-08",
+    "lab-a2-account-20y-v1-2026-10-08",
     "macd-rollout-04-double-chip-confirmation-2026-08-25",
     "multi-factor-count-resonance-v1.0.0-2026-08-30",
     "pullback-context-backtest-v2.0.0-2026-08-28",

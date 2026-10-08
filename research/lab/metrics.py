@@ -3,11 +3,16 @@
 Every variant in every experiment is summarised the same way, so results from
 different months and datasets stay directly comparable on the scoreboard.
 Event-level results overlap and are not a capital-constrained portfolio.
+
+R-multiples depend on the stop distance, so E[R] is only comparable between
+variants with similar stops; mean return per day held and the return over the
+same trade in the benchmark (SPY) compare every variant on one scale.
 """
 from __future__ import annotations
 
 import math
 import statistics
+from collections import defaultdict
 
 
 def summarise(trades):
@@ -41,7 +46,32 @@ def summarise(trades):
         target_rate=round(sum(r == "target" for r in reasons) / len(reasons), 4),
         time_rate=round(sum(r == "time" for r in reasons) / len(reasons), 4),
     )
+    out["mean_return_per_day"] = round(out["mean_return"] / out["avg_hold"], 6) if out["avg_hold"] else None
+    out.update(_excess(resolved))
     return out
+
+
+def _excess(resolved):
+    """Trade return minus the benchmark held over the same days.
+
+    Signals in the same month share one market, so the t value is computed on
+    monthly averages (clustered) rather than treating overlapping trades as
+    independent.
+    """
+    excess = [t for t in resolved if t.get("excess_return") is not None]
+    if not excess:
+        return {}
+    values = [t["excess_return"] for t in excess]
+    by_month = defaultdict(list)
+    for t in excess:
+        by_month[t.get("cluster", "all")].append(t["excess_return"])
+    months = [statistics.fmean(v) for v in by_month.values()]
+    sd_month = statistics.stdev(months) if len(months) > 1 else 0.0
+    return {"benchmark_trades": len(values), "mean_excess": round(statistics.fmean(values), 6),
+            "median_excess": round(statistics.median(values), 6),
+            "beat_benchmark_rate": round(sum(x > 0 for x in values) / len(values), 4),
+            "excess_months": len(months),
+            "excess_t_monthly": round(statistics.fmean(months) / (sd_month / math.sqrt(len(months))), 3) if sd_month else None}
 
 
 def evaluate(overall, splits, neighbours, criteria):
@@ -54,4 +84,10 @@ def evaluate(overall, splits, neighbours, criteria):
         "enough_trades": overall.get("resolved", 0) >= criteria["min_trades"],
         "neighbours_positive": all((n.get("expectancy_r") or -1) > 0 for n in neighbours),
     }
+    # Benchmark checks apply only to specs that pre-register them.
+    if "min_excess_t" in criteria:
+        checks["excess_t"] = (overall.get("excess_t_monthly") or -9) >= criteria["min_excess_t"]
+    if criteria.get("every_split_beats_benchmark"):
+        checks["every_split_beats_benchmark"] = all((s.get("mean_excess") or -1) > 0 for s in splits.values()
+                                                    if s.get("resolved", 0) >= criteria["min_split_trades"])
     return {"passed": all(checks.values()), "checks": checks}

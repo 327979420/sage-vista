@@ -1,0 +1,128 @@
+{
+ "id": "a-holdout-forward-v1",
+ "experiment_id": "lab-a-holdout-forward-v1-2026-10-08",
+ "priority": 5,
+ "not_before": "2027-04-15",
+ "question": "True out-of-sample test: on live signals from 2026-10-08 onward, which nobody had seen when this was registered, does the leading selling rule still grow the $100k account better than the current rule and SPY after risk?",
+ "dataset": {
+  "id": "ledger-forward-from-2026-10-08-v1",
+  "builder": "ledger",
+  "signal_from": "2026-10-08"
+ },
+ "benchmark": {
+  "symbol": "SPY",
+  "dataset": {
+   "id": "benchmark-spy-2025-to-2027-04-v1",
+   "builder": "symbols",
+   "symbols": [
+    "SPY"
+   ],
+   "start": "2025-01-01"
+  }
+ },
+ "splits": [
+  {
+   "id": "2026Q4",
+   "from": "2026-10-08",
+   "to": "2026-12-31"
+  },
+  {
+   "id": "2027Q1",
+   "from": "2027-01-01",
+   "to": "2027-03-31"
+  },
+  {
+   "id": "2027Q2",
+   "from": "2027-04-01",
+   "to": "2027-06-30"
+  }
+ ],
+ "group": "A-exits-holdout",
+ "baseline": "A0",
+ "cost_per_side": 0.001,
+ "champion_metric": "sharpe",
+ "criteria": {
+  "min_trades": 30,
+  "max_drawdown": 0.25,
+  "beat_baseline": [
+   "sharpe"
+  ],
+  "beat_benchmark": [
+   "sharpe"
+  ],
+  "mc_runs": 200
+ },
+ "variants": [
+  {
+   "id": "A0",
+   "family": "A0",
+   "label": "Current rule: support -5% (max 10%), sell all at 2R, 40 days",
+   "stop": {
+    "kind": "support_cap",
+    "buffer": 0.05,
+    "cap": 0.1
+   },
+   "targets": [
+    {
+     "r": 2.0,
+     "fraction": 1.0
+    }
+   ],
+   "max_hold": 40
+  },
+  {
+   "id": "P20-40",
+   "family": "P",
+   "label": "Emergency stop -20%, time exit 40 days",
+   "stop": {
+    "kind": "pct",
+    "pct": 0.2
+   },
+   "targets": [],
+   "max_hold": 40
+  },
+  {
+   "id": "P20-60",
+   "family": "P",
+   "label": "Emergency stop -20%, time exit 60 days",
+   "stop": {
+    "kind": "pct",
+    "pct": 0.2
+   },
+   "targets": [],
+   "max_hold": 60
+  },
+  {
+   "id": "N2.5-60",
+   "family": "N",
+   "label": "Stop 2.5xATR(20), time exit 60 days",
+   "stop": {
+    "kind": "atr",
+    "mult": 2.5,
+    "period": 20
+   },
+   "targets": [],
+   "max_hold": 60
+  },
+  {
+   "id": "D3",
+   "family": "D",
+   "label": "Current stop, no target, 60 days",
+   "stop": {
+    "kind": "support_cap",
+    "buffer": 0.05,
+    "cap": 0.1
+   },
+   "targets": [],
+   "max_hold": 60
+  }
+ ],
+ "notes": [
+  "Runs once, automatically, on the first lab run on or after not_before; the runner never runs it earlier.",
+  "Same approved $100k account as round 2. Same-day signals take free slots in SV ledger rank order; trades still open on the data date stay in the account at their last close.",
+  "Variants may be added or removed only before not_before and only from completed lab experiments; every change is recorded as an experiment event.",
+  "About six months of data: drawdown, Sharpe against the current rule and SPY, and the luck check decide; per-period and deflated Sharpe checks need a longer record."
+ ],
+ "kind": "account",
+ "seed": 20270415
+}

@@ -14,6 +14,9 @@ from __future__ import annotations
 
 from services.scanner.support_risk import executable_stop
 
+# Exits that fill at the session open; every other exit fills during or at the close of its bar.
+OPEN_FILLS = {"stop_gap", "trail_gap", "trend_exit"}
+
 
 def atr(bars, end, period):
     """Simple average true range over `period` completed bars ending at `end`."""
@@ -124,6 +127,6 @@ def simulate(bars, entry_index, variant, support_plan=None, cost_per_side=0.001)
             if candidate and candidate < c:
                 trail_stop = max(trail_stop or 0, candidate)
     net = gross - 2 * cost_per_side
-    return {"status": "resolved", "entry": round(entry, 6), "stop": round(stop, 6), "risk_pct": round(risk / entry, 8),
+    return {"status": "resolved", "entry_date": bars[entry_index]["date"], "entry": round(entry, 6), "stop": round(stop, 6), "risk_pct": round(risk / entry, 8),
             "gross_return": round(gross, 8), "net_return": round(net, 8), "r_multiple": round(net / (risk / entry), 6),
             "held": held, "exit_reason": fills[-1]["reason"], "fills": fills}

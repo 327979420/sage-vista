@@ -27,7 +27,7 @@ jobs:
       - uses: actions/checkout@v7
         with: { fetch-depth: 0 }
       - uses: actions/setup-python@v7
-        with: { python-version: "3.13" }
+        with: { python-version: "3.14" }
       - name: Restore the daily price cache read-only (ledger datasets)
         uses: actions/cache/restore@v4
         with:
@@ -38,6 +38,11 @@ jobs:
           restore-keys: eodhd-history-v1-
       - name: Validate the lab engine before using it
         run: python3 -m unittest tests.test_research_lab tests.test_experiment_catalog
+      - name: Check the lab account still matches the approved VectorBT account
+        run: |
+          python3 -m venv work/vectorbt-env
+          work/vectorbt-env/bin/python -m pip install --only-binary=:all: --require-hashes -r research/backtest/dependencies/vectorbt-requirements.lock
+          work/vectorbt-env/bin/python -m unittest tests.test_research_lab.AccountTests
       - name: Run pending experiments and publish results
         run: python3 -m research.lab.run_queue --publish --max-specs 3
       - name: Summarise
