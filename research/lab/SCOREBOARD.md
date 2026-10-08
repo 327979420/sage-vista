@@ -71,6 +71,24 @@ Which selling rule grows the approved $100k account best after risk over twenty 
 
 Champion: **none passed; current rule stays**
 
+## c1-proven-portfolios-v1 (etf-core-2002-to-2026-10-v1, $100k account 2007-01-03 to 2026-01-16)
+
+Which published, proven portfolio does best on the same 19 years, judged like the SV account (Sharpe, Calmar, worst fall within 25%, every period)? The best becomes the core that SV's stock picks must improve.
+
+| Rule | CAGR | Max drawdown | Sharpe | Calmar | CAGR vs SPY | Invested | Trades | Luck check: median Sharpe | Luck check: worst-5% CAGR | Deflated Sharpe | Passed |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SPY buy and hold | 10.7% | 55.2% | 0.61 | 0.19 | — | 100% | — | — | — | — | benchmark |
+| SPY S&P 500 only (benchmark) | 10.7% | 55.2% | 0.61 | 0.19 | 0.0% | 100% | 20 | — | — | 0.94 | no |
+| 6040 60/40: 60% US stocks, 40% US bonds | 8.0% | 33.8% | 0.73 | 0.24 | -2.7% | 100% | 20 | — | — | 0.98 | no |
+| PERM Permanent Portfolio: stocks, long bonds, gold, cash 25% each | 7.3% | 18.4% | 1.00 | 0.40 | -3.4% | 100% | 20 | — | — | 1.00 | **yes** |
+| AW All Weather: 30% stocks, 55% bonds, 15% gold and commodities | 6.7% | 23.0% | 0.84 | 0.29 | -4.0% | 100% | 20 | — | — | 0.99 | **yes** |
+| IVY Ivy Portfolio: 5 asset classes, 20% each, always held | 5.7% | 47.1% | 0.45 | 0.12 | -5.0% | 100% | 229 | — | — | 0.81 | no |
+| GTAA5 Faber timing: the Ivy 5, each held only above its 10-month average | 4.7% | 13.8% | 0.61 | 0.34 | -6.0% | 100% | 229 | — | — | 0.94 | no |
+| SPYT Faber timing on the S&P 500 alone: SPY above its 10-month average, else cash | 8.1% | 28.1% | 0.67 | 0.29 | -2.6% | 100% | 229 | — | — | 0.97 | no |
+| GEM Dual Momentum: US or international stocks when beating cash over 12 months, else bonds | 6.5% | 34.8% | 0.48 | 0.19 | -4.2% | 100% | 229 | — | — | 0.83 | no |
+
+Champion: **PERM**
+
 ## p1-size-risk-20y-v1 (observation-2005-2025-v1, $100k account 2005-09-12 to 2026-01-16)
 
 Portfolio step 1: with round 2's best selling rule (current stop, no 2R target, 40 days), how big should each position be and how much should each trade and the whole account risk? Settings are taken from the ranges mature programs use, and a rule fixed before the run picks one.

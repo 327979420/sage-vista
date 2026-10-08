@@ -1,0 +1,12 @@
+{
+ "dataset_id": "etf-core-2002-to-2026-10-v1",
+ "asset": "etf-core-2002-to-2026-10-v1-e3a01c581c9e.json.gz",
+ "sha256": "e3a01c581c9e2235860a016155b1486f4272e28a5a3a83b98b5d52e15307d673",
+ "bytes": 1141300,
+ "release": "research-datasets",
+ "events": 0,
+ "symbols": 9,
+ "source": "EODHD full adjusted history for SPY, EFA, AGG, IEF, TLT, SHY, GLD, DBC, VNQ",
+ "price_basis": "EODHD adjusted daily OHLCV",
+ "missing_symbols": 0
+}
