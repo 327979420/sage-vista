@@ -24,6 +24,14 @@
    "completed_at": "2026-10-08T12:43:31+00:00",
    "champion": null,
    "dataset": "observation-2005-2025-v1"
+  },
+  {
+   "spec_id": "p1-size-risk-20y-v1",
+   "experiment_id": "lab-p1-size-risk-20y-v1-2026-10-08",
+   "group": "P-portfolio",
+   "completed_at": "2026-10-08T14:58:17+00:00",
+   "champion": null,
+   "dataset": "observation-2005-2025-v1"
   }
  ],
  "champions": {
