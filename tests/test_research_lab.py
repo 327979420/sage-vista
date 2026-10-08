@@ -1,15 +1,17 @@
 import csv
 import datetime as dt
 import gzip
+import importlib.util
 import io
 import json
+import math
 import pathlib
 import random
 import tempfile
 import unittest
 from unittest import mock
 
-from research.lab import datasets, run_queue
+from research.lab import account, datasets, run_queue
 from research.lab.exit_rules import simulate
 from research.lab.metrics import evaluate, summarise
 from services.scanner.support_risk import simulate_execution
@@ -140,6 +142,169 @@ class BenchmarkTests(unittest.TestCase):
         self.assertIsNone(run_queue.benchmark_gross(self.SERIES, "2019-12-31", fills))
 
 
+def dated(prices, start="2025-01-01"):
+    day = dt.date.fromisoformat(start)
+    out = []
+    for o, h, l, c in prices:
+        out.append({"date": day.isoformat(), "open": o, "high": h, "low": l, "close": c, "volume": 1})
+        day += dt.timedelta(days=1)
+    return out
+
+
+def trade(symbol, entry_date, price, fills, closes, priority=0, event_id=None):
+    return {"event_id": event_id or f"{symbol}-{entry_date}", "symbol": symbol, "signal_date": entry_date, "priority": priority,
+            "entry_date": entry_date, "entry_price": price, "fills": fills, "closes": closes}
+
+
+class AccountTests(unittest.TestCase):
+    CAL = [f"2025-01-0{i}" for i in range(1, 7)]
+    SCENARIO = {"initial_cash": 1000.0, "allocation_fraction": 0.5, "max_positions": 1, "cost_rate": 0.01, "fractional_shares": False}
+
+    def test_entries_before_exits_slots_same_stock_whole_shares_and_fees(self):
+        c = self.CAL
+        trades = [
+            trade("A", c[1], 100.0, [(c[3], 110.0, 1.0)], [(c[1], 101.0), (c[2], 104.0), (c[3], 109.0)], priority=1),
+            trade("B", c[1], 50.0, [(c[2], 55.0, 1.0)], [(c[1], 50.0), (c[2], 55.0)], priority=2),   # slot taken by A
+            trade("A", c[2], 104.0, [(c[4], 100.0, 1.0)], [(c[2], 104.0), (c[3], 100.0), (c[4], 100.0)], event_id="A-again"),  # A still held
+            trade("C", c[3], 20.0, [(c[4], 21.0, 1.0)], [(c[3], 20.0), (c[4], 21.0)]),  # A exits the same day, after entries
+            trade("A", c[4], 120.0, [], [(c[4], 121.0)]),  # open at the end, valued at the last close
+        ]
+        aligned, notes = account.align(trades, c)
+        path = account.run_account(aligned, len(c), self.SCENARIO)
+        cash_after_a = 1000 - 5 * 100 * 1.01 + 5 * 110 * 0.99
+        cash_after_last = cash_after_a - 4 * 120 * 1.01
+        self.assertEqual(path["skipped"], {"position_limit": 2, "same_stock_held": 1})
+        self.assertEqual([round(v, 6) for v in path["equity"]],
+                         [1000.0, round(495 + 5 * 101, 6), round(495 + 5 * 104, 6), round(cash_after_a, 6),
+                          round(cash_after_last + 4 * 121, 6), round(cash_after_last + 4 * 121, 6)])
+        self.assertEqual(path["open_at_end"], 1)
+        self.assertEqual(len(path["trades"]), 1)
+        self.assertAlmostEqual(path["trades"][0]["pnl"], 5 * 110 * 0.99 - 505, places=4)
+        self.assertEqual(notes["stale_valuations"], 1)  # the open trade has no bar on the last calendar day
+
+    def test_a_stock_whose_prices_stop_is_sold_at_its_last_close(self):
+        bars = dated([(100, 101, 99, 100)] * 5 + [(100, 102, 99, 101), (101, 103, 100, 102)])
+        variant = {"stop": {"kind": "pct", "pct": 0.5}, "targets": [], "max_hold": 60}
+        result = simulate(bars, 5, variant, cost_per_side=0)
+        self.assertEqual(result["status"], "observing")
+        event = {"event_id": "X", "symbol": "X", "signal_date": bars[4]["date"]}
+        delisted = account.candidate(event, bars, 5, result, 0, "2025-03-01")
+        self.assertTrue(delisted["data_ended"])
+        self.assertEqual(delisted["fills"], [(bars[6]["date"], 102.0, 1.0)])
+        still_open = account.candidate(event, bars, 5, result, 0, bars[6]["date"])
+        self.assertEqual((still_open["data_ended"], still_open["fills"]), (False, []))
+
+    def test_cash_shortfall_and_partial_fills(self):
+        c = self.CAL
+        tight = {**self.SCENARIO, "allocation_fraction": 0.995, "max_positions": 2}
+        trades = [trade("A", c[1], 10.0, [(c[2], 12.0, 0.5), (c[3], 13.0, 0.5)], [(c[1], 10.0), (c[2], 12.0), (c[3], 13.0)], priority=1),
+                  trade("B", c[1], 10.0, [(c[2], 11.0, 1.0)], [(c[1], 10.0), (c[2], 11.0)], priority=2)]
+        path = account.run_account(account.align(trades, c)[0], len(c), tight)
+        self.assertEqual(path["skipped"], {"cash_or_whole_share_insufficient": 1})
+        shares = math.floor(995 / 10)
+        expected = 1000 - shares * 10 * 1.01 + math.floor(shares * 0.5) * 12 * 0.99 + (shares - math.floor(shares * 0.5)) * 13 * 0.99
+        self.assertAlmostEqual(path["equity"][-1], expected)
+
+    def test_curve_statistics_benchmark_and_deflated_sharpe(self):
+        dates = ["2020-01-01", "2020-07-01", "2021-01-01"]
+        stats = account.curve_stats([1100.0, 990.0, 1188.0], dates, 1000.0)
+        self.assertAlmostEqual(stats["max_drawdown"], 0.1)
+        self.assertAlmostEqual(stats["total_return"], 0.188)
+        self.assertAlmostEqual(stats["cagr"], round(1.188 ** (365.25 / 366) - 1, 6))
+        rets = [0.1, -0.1, 0.2]
+        mean, sd = sum(rets) / 3, (sum((r - 0.0666666667) ** 2 for r in rets) / 2) ** 0.5
+        self.assertAlmostEqual(stats["sharpe"], round(mean / sd * 252 ** 0.5, 4), places=3)
+        series = {"date": dates, "open": [100.0, 0, 0], "close": [102.0, 51.0, 102.0]}
+        self.assertEqual([round(r, 6) for r in account.benchmark_returns(series, dates)], [0.02, -0.5, 1.0])
+        one = account.deflated_sharpe(0.05, 1000, 0.0, 3.0, 1, 0.0)
+        self.assertAlmostEqual(one, round(statistics_cdf(0.05 * math.sqrt(999) / math.sqrt(1 + 2 / 4 * 0.0025)), 4))
+        self.assertLess(account.deflated_sharpe(0.05, 1000, 0.0, 3.0, 24, 0.0004), one)
+        v = account.versus([0.02, -0.01, 0.03], [0.01, -0.005, 0.015])
+        self.assertAlmostEqual(v["beta"], 2.0)
+        self.assertAlmostEqual(v["alpha_annual"], 0.0)
+
+    def test_account_checks(self):
+        base = {"account": {"trades_taken": 500, "max_drawdown": 0.2, "sharpe": 0.5, "calmar": 0.3}, "monte_carlo": {"sharpe": {"median": 0.5}, "cagr": {"p5": 0.01}}}
+        good = {"account": {"trades_taken": 500, "max_drawdown": 0.2, "sharpe": 0.8, "calmar": 0.5}, "monte_carlo": {"sharpe": {"median": 0.7}, "cagr": {"p5": 0.02}},
+                "splits": {"a": 0.1, "b": 0.05}, "deflated_sharpe": 0.97}
+        spy = {"sharpe": 0.6, "calmar": 0.2}
+        criteria = {"min_trades": 200, "max_drawdown": 0.25, "beat_baseline": ["sharpe", "calmar"], "beat_benchmark": ["sharpe", "calmar"],
+                    "mc_runs": 5, "mc_p5_cagr_min": 0.0, "every_split_positive": True, "min_deflated_sharpe": 0.95}
+        self.assertTrue(account.evaluate(good, base, spy, criteria)["passed"])
+        deep = {**good, "account": {**good["account"], "max_drawdown": 0.3}}
+        self.assertFalse(account.evaluate(deep, base, spy, criteria)["checks"]["max_drawdown"])
+        weak_period = {**good, "splits": {"a": 0.1, "b": -0.01}}
+        self.assertFalse(account.evaluate(weak_period, base, spy, criteria)["checks"]["every_period_positive"])
+        lucky = {**good, "deflated_sharpe": 0.9}
+        self.assertFalse(account.evaluate(lucky, base, spy, criteria)["passed"])
+
+    def test_account_spec_end_to_end_is_deterministic(self):
+        prices, events = {}, []
+        for k in range(16):
+            bars = walk(3000 + k, n=320)
+            prices[f"S{k}"] = {"date": [b["date"] for b in bars], **{f: [b[f] for b in bars] for f in datasets.FIELDS}}
+            for at in (60, 110, 160):
+                events.append({"event_id": f"S{k}-{at}", "symbol": f"S{k}", "signal_date": bars[at]["date"], "score": (k * 7 + at) % 50})
+        spec = json.loads((ROOT / "research/lab/queue/a2-account-20y-v1.json").read_text())
+        spec["splits"] = [{"id": "all", "from": "2000-01-01", "to": "2100-01-01"}]
+        spec["criteria"] = {**spec["criteria"], "mc_runs": 4, "min_trades": 1}
+        entry = {"dataset_id": "synthetic", "asset": "-", "sha256": "-", "events": len(events), "symbols": 16}
+        bench = {"symbol": "SPY", "series": prices["S0"], "entry": entry}
+        first, csv_one = run_queue.run_account_spec(spec, {"events": events, "prices": prices}, entry, 0.001, bench)
+        second, csv_two = run_queue.run_account_spec(spec, {"events": events, "prices": prices}, entry, 0.001, bench)
+        self.assertEqual(first, second)
+        self.assertEqual(csv_one, csv_two)
+        self.assertEqual(first["kind"], "account")
+        self.assertEqual(first["n_trials"], 15 + len(spec["variants"]))
+        self.assertIn(first["champion"], [None, *first["variants"]])
+        for v in first["variants"].values():
+            a = v["account"]
+            self.assertLessEqual(a["trades_taken"] + a["open_at_end"] + sum(a["skipped"].values()), len(events))
+            self.assertEqual(v["monte_carlo"]["runs"], 4)
+            self.assertIn("luck_check_median_sharpe_beats_current_rule", v["verdict"]["checks"])
+        self.assertEqual(len(first["curves"]["dates"]), len(first["curves"]["SPY"]))
+        board, markdown = run_queue.render_scoreboard([{**first, "completed_at": "2026-10-08T00:00:00+00:00"}])
+        self.assertIn("SPY buy and hold", markdown)
+
+    @unittest.skipUnless(importlib.util.find_spec("vectorbt"), "VectorBT is installed only in the isolated account environment")
+    def test_lab_account_matches_the_approved_vectorbt_account(self):
+        from research.backtest.account_runner import account as legacy_account
+        from research.backtest.run_store import POLICY
+        days = [d.isoformat() for d in (dt.date(2025, 1, 2) + dt.timedelta(days=i) for i in range(200)) if d.weekday() < 5][:120]
+        rows = {}
+        for k, symbol in enumerate("ABCD"):
+            rng, price, series = random.Random(k), 100.0, []
+            for d in days:
+                o = price * (1 + rng.gauss(0, 0.01))
+                c = o * (1 + rng.gauss(0.001, 0.02))
+                series.append({"date": d, "open": o, "high": max(o, c) * 1.01, "low": min(o, c) * 0.99, "close": c, "adjusted_close": c, "volume": 1})
+                price = c
+            rows[symbol] = series
+        events = [{"event_id": f"{s}-{i}", "symbol": s, "signal_date": days[i],
+                   "selection": {"rank": r, "execution_policy_version": POLICY, "support_plan": {"level": rows[s][i]["close"] * 0.95}}}
+                  for i in (5, 20, 35, 50, 70, 90) for r, s in enumerate("ABCD", 1)]
+        config = {"initial_cash": 1000.0, "allocation_fraction": 0.3, "max_positions": 2, "cost_rate": 0.001, "fractional_shares": False}
+        equity, _, _ = legacy_account(events, rows, days, config)
+        candidates = []
+        for e in events:
+            bars = rows[e["symbol"]]
+            entry_index = days.index(e["signal_date"]) + 1
+            result = simulate(bars, entry_index, A0, e["selection"]["support_plan"], cost_per_side=0.001)
+            if result["status"] in ("resolved", "observing"):
+                candidates.append(account.candidate(e, bars, entry_index, result, e["selection"]["rank"], days[-1]))
+        path = account.run_account(account.align(candidates, days)[0], len(days), config)
+        self.assertEqual(len(path["equity"]), len(equity))
+        self.assertGreater(len(path["trades"]), 5)
+        self.assertGreater(sum(path["skipped"].values()), 5)
+        # Lab fills are stored to 6 decimals, so values agree to a hundredth of a cent.
+        for ours, theirs in zip(path["equity"], equity.tolist()):
+            self.assertAlmostEqual(ours, theirs, places=4)
+
+
+def statistics_cdf(x):
+    return 0.5 * (1 + math.erf(x / math.sqrt(2)))
+
+
 class QueueAndDatasetTests(unittest.TestCase):
     def test_eod_window_blocks_publishing(self):
         for hhmm, blocked in [("23:29", False), ("23:30", True), ("02:00", True), ("04:29", True), ("04:30", False), ("12:00", False)]:
@@ -175,8 +340,10 @@ class QueueAndDatasetTests(unittest.TestCase):
             prices[f"S{k}"] = {"date": [b["date"] for b in bars], **{f: [b[f] for b in bars] for f in datasets.FIELDS}}
             events.append({"event_id": f"S{k}", "symbol": f"S{k}", "signal_date": bars[100]["date"]})
         spy = prices["S0"]
-        spec = json.loads((ROOT / "research/lab/queue/a2-room-time-20y-v1.json").read_text())
+        spec = json.loads((ROOT / "research/lab/queue/a-exits-20y-v1.json").read_text())
         spec["splits"] = [{"id": "all", "from": "2000-01-01", "to": "2100-01-01"}]
+        spec["criteria"] = {**spec["criteria"], "min_excess_t": 3.0, "every_split_beats_benchmark": True}
+        spec["champion_metric"] = "mean_return_per_day"
         entry = {"dataset_id": "synthetic", "asset": "-", "sha256": "-", "events": 12, "symbols": 12}
         result, trades_csv = run_queue.run_spec(spec, {"events": events, "prices": prices}, entry, 0.001,
                                                 {"symbol": "SPY", "series": spy, "entry": entry})
@@ -210,8 +377,13 @@ class QueueAndDatasetTests(unittest.TestCase):
             self.assertIn(spec["baseline"], ids)
             for vid, neighbours in spec.get("neighbours", {}).items():
                 self.assertTrue({vid, *neighbours} <= ids, path.name)
-            for key in ("min_expectancy_r", "min_profit_factor", "min_sqn", "min_split_trades", "min_trades"):
-                self.assertIn(key, spec["criteria"])
+            if spec.get("kind") == "account":
+                self.assertIn("benchmark", spec, path.name)
+                for key in ("min_trades", "max_drawdown", "beat_baseline", "beat_benchmark"):
+                    self.assertIn(key, spec["criteria"], path.name)
+            else:
+                for key in ("min_expectancy_r", "min_profit_factor", "min_sqn", "min_split_trades", "min_trades"):
+                    self.assertIn(key, spec["criteria"], path.name)
             if "benchmark" in spec:
                 self.assertTrue(spec["benchmark"]["symbol"] in spec["benchmark"]["dataset"]["symbols"], path.name)
             if "not_before" in spec:

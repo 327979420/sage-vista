@@ -3,7 +3,7 @@
  "experiment_id": "lab-a-holdout-forward-v1-2026-10-08",
  "priority": 5,
  "not_before": "2027-04-15",
- "question": "True out-of-sample test: on live signals from 2026-10-08 onward, which nobody had seen when this was registered, do the leading exits still beat the current rule and SPY over the same days?",
+ "question": "True out-of-sample test: on live signals from 2026-10-08 onward, which nobody had seen when this was registered, does the leading selling rule still grow the $100k account better than the current rule and SPY after risk?",
  "dataset": {
   "id": "ledger-forward-from-2026-10-08-v1",
   "builder": "ledger",
@@ -40,16 +40,17 @@
  "group": "A-exits-holdout",
  "baseline": "A0",
  "cost_per_side": 0.001,
- "champion_metric": "mean_return_per_day",
- "neighbours": {},
+ "champion_metric": "sharpe",
  "criteria": {
-  "min_expectancy_r": 0.2,
-  "min_profit_factor": 1.3,
-  "min_sqn": 2.0,
-  "min_split_trades": 30,
-  "min_trades": 200,
-  "min_excess_t": 2.0,
-  "every_split_beats_benchmark": true
+  "min_trades": 30,
+  "max_drawdown": 0.25,
+  "beat_baseline": [
+   "sharpe"
+  ],
+  "beat_benchmark": [
+   "sharpe"
+  ],
+  "mc_runs": 200
  },
  "variants": [
   {
@@ -118,8 +119,10 @@
  ],
  "notes": [
   "Runs once, automatically, on the first lab run on or after not_before; the runner never runs it earlier.",
+  "Same approved $100k account as round 2. Same-day signals take free slots in SV ledger rank order; trades still open on the data date stay in the account at their last close.",
   "Variants may be added or removed only before not_before and only from completed lab experiments; every change is recorded as an experiment event.",
-  "A handful of pre-chosen variants on unseen data, so the excess t hurdle is 2.0 rather than 3.0.",
-  "Signals still open on the data date are observing and are not counted as wins or losses."
- ]
+  "About six months of data: drawdown, Sharpe against the current rule and SPY, and the luck check decide; per-period and deflated Sharpe checks need a longer record."
+ ],
+ "kind": "account",
+ "seed": 20270415
 }

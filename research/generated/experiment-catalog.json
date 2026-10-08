@@ -181,37 +181,37 @@
       }
     },
     {
-      "experiment_id": "lab-a2-room-time-20y-v1-2026-10-08",
+      "experiment_id": "lab-a2-account-20y-v1-2026-10-08",
       "created_at": "2026-10-08",
       "status": "pre_registered",
-      "change": "Quant research lab Group A round 2: decompose the current exit, grid stop width x holding time, compare with SPY over the same days",
+      "change": "Quant research lab Group A round 2 at account level: each selling rule trades the approved $100k account; the current rule is taken apart",
       "specification": {
         "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#quant-research-program",
-        "lab_spec": "research/lab/queue/a2-room-time-20y-v1.json",
+        "lab_spec": "research/lab/queue/a2-account-20y-v1.json",
         "dataset": "observation-2005-2025-v1 (frozen, already seen once) + benchmark-spy-2004-to-2026-10-v1",
+        "account": "research/backtest/account-scenario.json (approved 2026-09-08)",
         "baseline": "A0 support-5pct-cap-10pct-2r-v1",
-        "variants": 24,
-        "champion_metric": "mean_return_per_day",
-        "role": "exploration on seen data; a passing variant becomes a forward-holdout candidate only"
+        "variants": 9,
+        "champion_metric": "account Sharpe",
+        "role": "exploration on seen data; a passing rule becomes a forward-test candidate only"
       },
-      "success_criteria": "A-exits bar (E[R]>=0.20, PF>=1.30, SQN>=2.0, >=200 trades, every era positive, neighbours positive) plus monthly-clustered SPY excess t>=3.0 and every era beating SPY",
+      "success_criteria": "Account Sharpe and Calmar above the current rule and SPY buy-and-hold; max drawdown <= 25%; luck check (200 shuffled same-day orders) median Sharpe above the current rule and worst-5% CAGR > 0; every five-year period positive; deflated Sharpe probability >= 0.95 over 24 trials. Trade statistics are diagnostics only.",
       "known_limitations": [
-        "event-level: overlapping signals, not a capital-constrained portfolio",
-        "entry fixed at next open; only exits change",
-        "daily bars only: stop is assumed before target on the same bar",
-        "cost 0.1% per side, with a 0.2% stress result reported",
-        "same 20-year dataset as a-exits-20y-v1, so not an independent test",
-        "SPY comparison uses the SPY close for intraday stop and target fills",
-        "partial delisted coverage (survivorship)"
+        "one account path per rule; same-day order by SV score, with 200 shuffled orders as the luck check",
+        "approved account sizes every position at 10% of initial cash (no compounding of position size)",
+        "a held stock whose prices stop (for example a delisting) is sold at its last close; real delisting returns are unknown",
+        "same 20-year dataset as round 1, so not an independent test",
+        "partial delisted coverage (survivorship)",
+        "daily bars only: stop is assumed before target on the same bar"
       ],
       "human_summary": {
-        "title_zh": "研究实验室A组第二轮：空间与时间（20年，含同期SPY）",
+        "title_zh": "研究实验室A组第二轮：10万美元账户层检验（20年，含SPY）",
         "family": "quant_lab_exits",
         "family_zh": "量化研究实验室",
-        "question_zh": "现行规则输在哪里（止损、2R目标还是40日上限）？止损宽度与持有期的最佳区域在哪？扣除同期SPY后是否在每个时期都仍有优势？",
+        "question_zh": "哪种卖出规则在已批准的10万美元账户中，扣除风险后让资金增长最好，并同时优于现行规则和直接持有SPY？现行规则拆开看：2R目标与40日上限各自的代价。",
         "result_zh": "已预登记，等待后台自动运行。",
-        "use_zh": "同一20年数据第二次使用，属探索；通过者只成为前向留样候选。",
-        "next_zh": "通过者加入前向留样。",
+        "use_zh": "账户层结果作决定，逐笔统计只作诊断；同一20年数据第二次使用，通过者只成为前向检验候选。",
+        "next_zh": "通过者进入2027-04-15前向检验；若回撤普遍超限，优先做C组市场过滤。",
         "verdict": "pre_registered"
       },
       "lifecycle": {
@@ -224,13 +224,13 @@
         "event_count": 1,
         "events": [
           {
-            "experiment_id": "lab-a2-room-time-20y-v1-2026-10-08",
+            "experiment_id": "lab-a2-account-20y-v1-2026-10-08",
             "event": "registered",
             "event_at": "2026-10-07T23:24:04+00:00",
             "time_source": "assistant_registration",
             "details": {
-              "lab_spec": "research/lab/queue/a2-room-time-20y-v1.json",
-              "note": "variants, benchmark and pass bar frozen before any run"
+              "lab_spec": "research/lab/queue/a2-account-20y-v1.json",
+              "note": "rules, account, benchmark and pass bar frozen before any run; pass bar approved by the user 2026-10-08"
             }
           }
         ]
@@ -240,7 +240,7 @@
       "experiment_id": "lab-a-holdout-forward-v1-2026-10-08",
       "created_at": "2026-10-08",
       "status": "pre_registered_forward_only",
-      "change": "Quant research lab Group A forward holdout on live signals from 2026-10-08",
+      "change": "Quant research lab Group A forward holdout at account level on live signals from 2026-10-08",
       "specification": {
         "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#quant-research-program",
         "lab_spec": "research/lab/queue/a-holdout-forward-v1.json",
@@ -254,9 +254,10 @@
           "D3"
         ],
         "not_before": "2027-04-15",
-        "role": "true out-of-sample test before any shadow paper account"
+        "role": "true out-of-sample test before any shadow paper account",
+        "account": "research/backtest/account-scenario.json (approved 2026-09-08)"
       },
-      "success_criteria": "A-exits bar plus monthly-clustered SPY excess t>=2.0 and every quarter beating SPY",
+      "success_criteria": "Account max drawdown <= 25%; account Sharpe above the current rule and SPY buy-and-hold; luck check median Sharpe above the current rule; at least 30 closed trades",
       "known_limitations": [
         "event-level: overlapping signals, not a capital-constrained portfolio",
         "entry fixed at next open; only exits change",
@@ -269,7 +270,7 @@
         "title_zh": "研究实验室A组前向留样（2026-10-08起实时信号）",
         "family": "quant_lab_exits",
         "family_zh": "量化研究实验室",
-        "question_zh": "在登记时尚不存在的实时信号上，领先的退出方案是否仍优于现行规则并跑赢同期SPY？",
+        "question_zh": "在登记时尚不存在的实时信号上，领先的卖出规则在10万美元账户中是否仍优于现行规则和SPY，且回撤不超过25%？",
         "result_zh": "已预登记，2027-04-15后由后台自动运行一次。",
         "use_zh": "真正的样本外检验；通过者才进入影子模拟账户。",
         "next_zh": "影子模拟账户，经用户批准后才改生产。",
@@ -3634,7 +3635,7 @@
     "lab-a-exits-20y-v1-2026-10-07",
     "lab-a-exits-ledger-1y-v1-2026-10-07",
     "lab-a-holdout-forward-v1-2026-10-08",
-    "lab-a2-room-time-20y-v1-2026-10-08",
+    "lab-a2-account-20y-v1-2026-10-08",
     "macd-rollout-04-double-chip-confirmation-2026-08-25",
     "multi-factor-count-resonance-v1.0.0-2026-08-30",
     "pullback-context-backtest-v2.0.0-2026-08-28",

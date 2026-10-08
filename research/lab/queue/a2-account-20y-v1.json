@@ -1,0 +1,196 @@
+{
+ "id": "a2-account-20y-v1",
+ "experiment_id": "lab-a2-account-20y-v1-2026-10-08",
+ "kind": "account",
+ "priority": 10,
+ "question": "Which selling rule grows the approved $100k account best after risk over twenty years, and does it beat the current rule and simply holding SPY? The current rule is also taken apart (2R target, 40-day limit) to see which part costs most.",
+ "dataset": {
+  "id": "observation-2005-2025-v1",
+  "builder": "observation",
+  "events_csv": "research/backtest/output/reusable-runs/34766761296-2/trades.csv"
+ },
+ "benchmark": {
+  "symbol": "SPY",
+  "dataset": {
+   "id": "benchmark-spy-2004-to-2026-10-v1",
+   "builder": "symbols",
+   "symbols": [
+    "SPY"
+   ],
+   "start": "2004-01-01"
+  }
+ },
+ "splits": [
+  {
+   "id": "2005-2009",
+   "from": "2005-01-01",
+   "to": "2009-12-31"
+  },
+  {
+   "id": "2010-2014",
+   "from": "2010-01-01",
+   "to": "2014-12-31"
+  },
+  {
+   "id": "2015-2019",
+   "from": "2015-01-01",
+   "to": "2019-12-31"
+  },
+  {
+   "id": "2020-2024",
+   "from": "2020-01-01",
+   "to": "2024-12-31"
+  },
+  {
+   "id": "2025-2026",
+   "from": "2025-01-01",
+   "to": "2026-12-31"
+  }
+ ],
+ "group": "A-exits",
+ "baseline": "A0",
+ "cost_per_side": 0.001,
+ "champion_metric": "sharpe",
+ "prior_trials": 15,
+ "seed": 20261008,
+ "criteria": {
+  "min_trades": 200,
+  "max_drawdown": 0.25,
+  "beat_baseline": [
+   "sharpe",
+   "calmar"
+  ],
+  "beat_benchmark": [
+   "sharpe",
+   "calmar"
+  ],
+  "mc_runs": 200,
+  "mc_p5_cagr_min": 0.0,
+  "every_split_positive": true,
+  "min_deflated_sharpe": 0.95
+ },
+ "variants": [
+  {
+   "id": "A0",
+   "family": "A0",
+   "label": "Current rule: support -5% (max 10%), sell all at 2R, 40 days",
+   "stop": {
+    "kind": "support_cap",
+    "buffer": 0.05,
+    "cap": 0.1
+   },
+   "targets": [
+    {
+     "r": 2.0,
+     "fraction": 1.0
+    }
+   ],
+   "max_hold": 40
+  },
+  {
+   "id": "D1",
+   "family": "D",
+   "label": "Current stop, no 2R target, 40 days",
+   "stop": {
+    "kind": "support_cap",
+    "buffer": 0.05,
+    "cap": 0.1
+   },
+   "targets": [],
+   "max_hold": 40
+  },
+  {
+   "id": "D2",
+   "family": "D",
+   "label": "Current stop and 2R target, 60 days",
+   "stop": {
+    "kind": "support_cap",
+    "buffer": 0.05,
+    "cap": 0.1
+   },
+   "targets": [
+    {
+     "r": 2.0,
+     "fraction": 1.0
+    }
+   ],
+   "max_hold": 60
+  },
+  {
+   "id": "D3",
+   "family": "D",
+   "label": "Current stop, no target, 60 days",
+   "stop": {
+    "kind": "support_cap",
+    "buffer": 0.05,
+    "cap": 0.1
+   },
+   "targets": [],
+   "max_hold": 60
+  },
+  {
+   "id": "P20-40",
+   "family": "P",
+   "label": "Emergency stop -20%, time exit 40 days",
+   "stop": {
+    "kind": "pct",
+    "pct": 0.2
+   },
+   "targets": [],
+   "max_hold": 40
+  },
+  {
+   "id": "P20-60",
+   "family": "P",
+   "label": "Emergency stop -20%, time exit 60 days",
+   "stop": {
+    "kind": "pct",
+    "pct": 0.2
+   },
+   "targets": [],
+   "max_hold": 60
+  },
+  {
+   "id": "P20-90",
+   "family": "P",
+   "label": "Emergency stop -20%, time exit 90 days",
+   "stop": {
+    "kind": "pct",
+    "pct": 0.2
+   },
+   "targets": [],
+   "max_hold": 90
+  },
+  {
+   "id": "N2.5-60",
+   "family": "N",
+   "label": "Stop 2.5xATR(20), time exit 60 days",
+   "stop": {
+    "kind": "atr",
+    "mult": 2.5,
+    "period": 20
+   },
+   "targets": [],
+   "max_hold": 60
+  },
+  {
+   "id": "C60",
+   "family": "C",
+   "label": "Disaster stop -50% only, sell after 60 days",
+   "stop": {
+    "kind": "pct",
+    "pct": 0.5
+   },
+   "targets": [],
+   "max_hold": 60
+  }
+ ],
+ "notes": [
+  "Account: research/backtest/account-scenario.json as approved 2026-09-08 ($100,000, 10% of initial cash per position, whole shares, at most 10 positions, 0.1% per side, no leverage, skip when the stock is held or cash or slots run out).",
+  "Same-day signals take free slots in SV score order (higher first), as live. The luck check re-runs each account 200 times with same-day order shuffled (fixed seeds).",
+  "Pass bar, approved by the user on 2026-10-08: Sharpe and Calmar both above the current rule and SPY buy-and-hold; max drawdown at most 25%; luck check median Sharpe above the current rule's and its worst 5% CAGR above zero; every five-year period positive; deflated Sharpe probability at least 0.95.",
+  "Deflated Sharpe (Bailey and Lopez de Prado 2014) counts 24 trials: the 15 rules of round 1 on this dataset plus these 9.",
+  "Trade statistics are kept as diagnostics only. Same frozen 20-year data as round 1, so a passing rule becomes a forward-test candidate, not a production rule.",
+  "SPY is also held at the same share of the account each day, to separate skill from simply being invested."
+ ]
+}

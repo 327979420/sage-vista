@@ -46,7 +46,8 @@ def build_from_ledger(ledger_path, cache_dir, dataset_id, signal_from=None):
             continue
         if signal_from and e["signal_date"] < signal_from:
             continue
-        events.append({"event_id": e["event_id"], "symbol": e["symbol"], "signal_date": e["signal_date"], "support_plan": sel["support_plan"]})
+        events.append({"event_id": e["event_id"], "symbol": e["symbol"], "signal_date": e["signal_date"], "support_plan": sel["support_plan"],
+                       "rank": sel.get("rank")})
     for symbol in sorted({e["symbol"] for e in events}):
         path = pathlib.Path(cache_dir) / f"{symbol}.json"
         if path.exists():
