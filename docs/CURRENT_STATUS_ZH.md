@@ -31,7 +31,10 @@
 
 ## 实验
 
-- 总数 50；已完成 35；待运行 / 进行中 15。
+- 总数 53；已完成 35；待运行 / 进行中 18。
+- `lab-e1b-selection-vs-tradable-random-v1-2026-10-10`：修正版：SV选股对“可交易”随机选股。
+- `lab-e3-graded-exposure-v1-2026-10-10`：渐进调整股票比例（趋势与波动）。
+- `lab-e4-sector-rotation-v1-2026-10-10`：行业ETF轮动。
 - `lab-a-holdout-forward-v1-2026-10-08`：研究实验室A组前向留样（2026-10-08起实时信号）。
 - `cr056-history-new-nominations-legacy-exit-v1-2026-09-09`：CR056新版提名与旧退出历史验证。
 - `cr056-three-paths-v3-2026-09-09`：底部反转三路径统一门票。
@@ -71,4 +74,4 @@
 - `public/factor-registry.json`
 - `research/generated/experiment-catalog.json`
 
-来源时间：生产数据更新 2026-10-08T23:57:37.749852+00:00；实验目录生成 2026-10-09T14:34:55+00:00。
+来源时间：生产数据更新 2026-10-08T23:57:37.749852+00:00；实验目录生成 2026-10-09T14:39:43+00:00。

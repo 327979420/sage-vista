@@ -450,8 +450,20 @@ def run_allocation_spec(spec, data, dataset_entry, cost, benchmark=None):
         a = item["account"]
         item["deflated_sharpe"] = account.deflated_sharpe(a["daily_sharpe"], a["sessions"], a["skew"], a["kurtosis"], n_trials, trial_variance)
         item["verdict"] = account.evaluate(item, summary[spy_id], spy, criteria)
+    sel = spec["selection"]
     pool = [v for v in summary if v != spy_id and summary[v]["account"]["max_drawdown"] <= criteria["max_drawdown"]]
     chosen = None
+    if sel.get("kind") == "improve_on":
+        # Keep the baseline unless a candidate is better on the chosen measure without a lower Sharpe or a deeper fall.
+        base = summary[sel["baseline"]]["account"]
+        better = [v for v in sel["candidates"] if v in summary
+                  and (summary[v]["account"]["sharpe"] or -9) >= (base["sharpe"] or -9) - sel.get("sharpe_tolerance", 0.0)
+                  and summary[v]["account"]["max_drawdown"] <= criteria["max_drawdown"]
+                  and (summary[v]["account"][sel["metric"]] or -9) > (base[sel["metric"]] or -9)]
+        pick = max(better, key=lambda v: (summary[v]["account"][sel["metric"]] or -9, v)) if better else sel["baseline"]
+        chosen = {"variant": pick, "settings": {"portfolio": pick}, "improved": bool(better),
+                  "within_drawdown_limit": summary[pick]["account"]["max_drawdown"] <= criteria["max_drawdown"], "rule": sel}
+        pool = []
     if pool:
         best = max(summary[v]["account"]["sharpe"] for v in pool)
         close = [v for v in pool if summary[v]["account"]["sharpe"] >= best - spec["selection"]["tie_tolerance"]]
@@ -474,14 +486,21 @@ def run_allocation_spec(spec, data, dataset_entry, cost, benchmark=None):
               "sources": data.get("chains")}
     if spec.get("rolling"):
         r = spec["rolling"]
-        roll = allocation.rolling({k: run["equity"] for k, run in runs.items()}, dates, r["years"], r.get("step_sessions", 21), spy_id, r["core"])
-        core = roll["per_portfolio"][r["core"]]
-        roll["core_checks"] = {
-            "worst_fall_within_limit": core["worst_fall"] <= r["max_window_drawdown"],
-            "every_window_positive": core["share_positive"] == 1.0,
-            "sharpe_beats_benchmark_often": roll["core_sharpe_beats_benchmark_share"] >= r["min_share_sharpe_vs_benchmark"]}
-        roll["core_passed"] = all(roll["core_checks"].values()) and summary[r["core"]]["goal_1"]["met"]
+        roll = allocation.rolling({k: run["equity"] for k, run in runs.items()}, dates, r["years"], r.get("step_sessions", 21), spy_id, r.get("core"))
+        if r.get("core"):
+            core = roll["per_portfolio"][r["core"]]
+            roll["core"] = r["core"]
+            roll["core_checks"] = {
+                "worst_fall_within_limit": core["worst_fall"] <= r["max_window_drawdown"],
+                "every_window_positive": core["share_positive"] == 1.0,
+                "sharpe_beats_benchmark_often": roll["core_sharpe_beats_benchmark_share"] >= r["min_share_sharpe_vs_benchmark"]}
+            roll["core_passed"] = all(roll["core_checks"].values()) and summary[r["core"]]["goal_1"]["met"]
         result["rolling"] = roll
+    if spec.get("comparisons"):
+        # Pre-registered pairwise questions, e.g. "does rotation beat SPY on Sharpe".
+        result["comparisons"] = [{**c, "a_value": summary[c["a"]]["account"][c["metric"]], "b_value": summary[c["b"]]["account"][c["metric"]],
+                                  "holds": (summary[c["a"]]["account"][c["metric"]] or -9) > (summary[c["b"]]["account"][c["metric"]] or -9)}
+                                 for c in spec["comparisons"] if c["a"] in summary and c["b"] in summary]
     return result, gzip.compress(csv_buffer.getvalue().encode(), 9, mtime=0)
 
 
@@ -497,6 +516,12 @@ def run_selection_spec(spec, data, dataset_entry, cost, benchmark, style_data=No
     series = benchmark["series"]
     dates = [d for d in series["date"] if spec["window"]["start"] <= d <= spec["window"]["end"]]
     data_end = max(s["date"][-1] for s in data["prices"].values())
+    pool_rules = dict(spec.get("pool") or {})
+    flagged = sorted(selection.impossible_jumps(data["prices"])) if pool_rules.pop("exclude_impossible_jumps", False) else []
+    if flagged:
+        # Provider adjustment errors: dropped from both SV's picks and the random pool.
+        pool_rules["exclude"] = set(flagged)
+        data = {**data, "events": [e for e in data["events"] if e["symbol"] not in pool_rules["exclude"]]}
     events, sv_trades = [], []
     for _, event, bars, entry_index, result in variant_results({**spec, "variants": [{"id": "SV", **variant}]}, data, cost):
         if result["status"] in ("resolved", "observing"):
@@ -508,7 +533,7 @@ def run_selection_spec(spec, data, dataset_entry, cost, benchmark, style_data=No
     sv_path = account.run_account(sv_book, len(dates), scenario, rules=rules)
     sv = account.curve_stats(sv_path["equity"], dates, initial) | {"trades_taken": len(sv_path["trades"]),
                                                                     "average_exposure": round(statistics.fmean(sv_path["exposure"]), 4), **notes}
-    picks = selection.draws(events, data["prices"], spec["random_runs"], spec["seed"])
+    picks = selection.draws(events, data["prices"], spec["random_runs"], spec["seed"], pool_rules or None)
     needed = {(p, e["signal_date"]) for run in picks for p, e in zip(run, events) if p}
     lookup = selection.outcomes(needed, data["prices"], variant, cost, data_end)
     runs, same_day = [], [[] for _ in events]
@@ -534,7 +559,10 @@ def run_selection_spec(spec, data, dataset_entry, cost, benchmark, style_data=No
         clusters.append(event["signal_date"][:7])
         sv_rets.append(trade["net_return"])
         rnd_rets += rnd
-    mean_diff, t_diff = selection.clustered_t(diffs, clusters)
+    raw_mean_diff = statistics.fmean(diffs) if diffs else 0.0
+    robust = criteria.get("trade_stat") == "winsorized"
+    mean_diff, t_diff = selection.clustered_t(selection.winsorize(diffs) if robust and diffs else diffs, clusters)
+    median_diff = statistics.median(diffs) if diffs else 0.0
     rets = account.returns_from(sv_path["equity"], initial)
     style = {}
     if style_data:
@@ -550,7 +578,7 @@ def run_selection_spec(spec, data, dataset_entry, cost, benchmark, style_data=No
     else:
         style_regression = None
     checks = {"beats_random_accounts": beat("sharpe", lambda a, b: (a or -9) > (b or -9)) >= criteria["min_random_percentile"],
-              "trades_beat_random_same_day": t_diff >= criteria["min_trade_excess_t"] and mean_diff > 0}
+              "trades_beat_random_same_day": t_diff >= criteria["min_trade_excess_t"] and mean_diff > 0 and (not robust or median_diff > 0)}
     dist = lambda key: account.distribution([r[key] for r in runs])
     csv_buffer = io.StringIO()
     writer = csv.writer(csv_buffer)
@@ -564,7 +592,10 @@ def run_selection_spec(spec, data, dataset_entry, cost, benchmark, style_data=No
               "random": {"runs": len(runs), "seed": spec["seed"], "sharpe": dist("sharpe"), "cagr": dist("cagr"), "max_drawdown": dist("max_drawdown"),
                          "final_equity": dist("final_equity"), "sv_beats_share_sharpe": beat("sharpe", lambda a, b: (a or -9) > (b or -9)),
                          "sv_beats_share_cagr": beat("cagr", lambda a, b: a > b)},
+              "pool": {**{k: v for k, v in pool_rules.items() if k != "exclude"}, "excluded_symbols": flagged},
               "trade_level": {"signals": len(diffs), "mean_excess_vs_random": round(mean_diff, 6), "t_monthly": round(t_diff, 3),
+                              "statistic": "winsorized at 1%/99%" if robust else "mean", "raw_mean_excess": round(raw_mean_diff, 6),
+                              "median_excess": round(median_diff, 6),
                               "sv_mean": round(statistics.fmean(sv_rets), 6) if sv_rets else None,
                               "random_mean": round(statistics.fmean(rnd_rets), 6) if rnd_rets else None,
                               "sv_win_rate": round(sum(r > 0 for r in sv_rets) / len(sv_rets), 4) if sv_rets else None,
@@ -593,7 +624,11 @@ def render_selection_report(result):
              f"| Random picks, best 5% | {num(rnd['sharpe']['p95'])} | {pct(rnd['cagr']['p95'])} | {pct(rnd['max_drawdown']['p5'])} |",
              f"| Random picks, worst 5% | {num(rnd['sharpe']['p5'])} | {pct(rnd['cagr']['p5'])} | {pct(rnd['max_drawdown']['p95'])} |", "",
              "## Trade by trade", "",
-             f"{tl['signals']} SV signals. Average trade: SV {pct(tl['sv_mean'], 2)}, random {pct(tl['random_mean'], 2)}. Winning trades: SV {pct(tl['sv_win_rate'])}, random {pct(tl['random_win_rate'])}."]
+             f"{tl['signals']} SV signals. Average trade: SV {pct(tl['sv_mean'], 2)}, random {pct(tl['random_mean'], 2)}. Winning trades: SV {pct(tl['sv_win_rate'])}, random {pct(tl['random_win_rate'])}."
+             + (f" Statistic: {tl['statistic']}; median difference {pct(tl.get('median_excess'), 2)}; raw average difference {pct(tl.get('raw_mean_excess'), 2)}." if tl.get("statistic") else "")]
+    if result.get("pool", {}).get("excluded_symbols"):
+        lines += ["", f"Random picks use SV's tradability floor on the signal day ({', '.join(f'{k} {v}' for k, v in result['pool'].items() if k != 'excluded_symbols')}). "
+                  f"Excluded from both sides for provider price errors: {', '.join(result['pool']['excluded_symbols'])}."]
     reg = result["style"].get("regression")
     if reg:
         lines += ["", "## Style check", "",
@@ -691,8 +726,13 @@ def render_report(result):
         for name, v in roll["per_portfolio"].items():
             lines.append(f"| {name} | {num(v['sharpe_median'])} | {num(v['sharpe_p5'])} | {pct(v['worst_fall'])} | {pct(v['lowest_return'])} | {pct(v['share_positive'], 0)} |")
         if roll.get("core_checks"):
-            lines += ["", f"Core checks ({result['rolling'].get('core', '') or 'core'}): " + ", ".join(f"{'✓' if ok else '✗'} {k.replace('_', ' ')}" for k, ok in roll["core_checks"].items()),
+            lines += ["", f"Core checks ({roll.get('core', 'core')}): " + ", ".join(f"{'✓' if ok else '✗'} {k.replace('_', ' ')}" for k, ok in roll["core_checks"].items()),
                       f"Core Sharpe at least the benchmark's in {pct(roll['core_sharpe_beats_benchmark_share'], 0)} of windows. Core confirmed: **{'yes' if roll['core_passed'] else 'no'}**."]
+    if result.get("comparisons"):
+        lines += ["", "## Questions fixed before the run", ""]
+        lines += [f"- {'✓' if c['holds'] else '✗'} {c['question']} ({c['a']} {num(c['a_value'])} vs {c['b']} {num(c['b_value'])})" for c in result["comparisons"]]
+    if result.get("chosen") and result["chosen"].get("rule", {}).get("kind") == "improve_on":
+        lines += ["", f"Improvement over {result['chosen']['rule']['baseline']}: **{'yes, ' + result['chosen']['variant'] if result['chosen']['improved'] else 'no, the baseline stays'}**."]
     if result.get("excluded"):
         lines += ["", "Not tested on this window: " + "; ".join(f"{e['portfolio']} ({e['reason']})" for e in result["excluded"]) + "."]
     if result.get("next_step"):

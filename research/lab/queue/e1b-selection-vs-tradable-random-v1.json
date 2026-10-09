@@ -1,0 +1,87 @@
+{
+ "id": "e1b-selection-vs-tradable-random-v1",
+ "experiment_id": "lab-e1b-selection-vs-tradable-random-v1-2026-10-10",
+ "kind": "selection",
+ "priority": 3,
+ "question": "Corrected selection-skill test: does SV pick better stocks than random picks drawn from the stocks SV could actually have picked that day (at least 420 sessions of history, close of at least $5, at least $10M traded), with stocks that have provider price errors removed from both sides?",
+ "dataset": {
+  "id": "observation-2005-2025-v1",
+  "builder": "observation",
+  "events_csv": "research/backtest/output/reusable-runs/34766761296-2/trades.csv"
+ },
+ "benchmark": {
+  "symbol": "SPY",
+  "dataset": {
+   "id": "etf-style-1999-to-2026-10-v1",
+   "builder": "symbols",
+   "symbols": [
+    "SPY",
+    "QQQ",
+    "IWM",
+    "RSP"
+   ],
+   "start": "1999-01-01"
+  }
+ },
+ "style": {
+  "dataset": {
+   "id": "etf-style-1999-to-2026-10-v1",
+   "builder": "symbols",
+   "symbols": [
+    "SPY",
+    "QQQ",
+    "IWM",
+    "RSP"
+   ],
+   "start": "1999-01-01"
+  },
+  "symbols": [
+   "SPY",
+   "QQQ",
+   "IWM",
+   "RSP"
+  ]
+ },
+ "window": {
+  "start": "2005-09-12",
+  "end": "2026-01-16"
+ },
+ "group": "E-foundations",
+ "cost_per_side": 0.001,
+ "exit": {
+  "stop": {
+   "kind": "support_cap",
+   "buffer": 0.05,
+   "cap": 0.1
+  },
+  "targets": [],
+  "max_hold": 40
+ },
+ "account": {
+  "risk_per_trade": 0.005,
+  "position_cap": 0.05,
+  "max_positions": 10,
+  "heat_cap": 0.1
+ },
+ "random_runs": 200,
+ "seed": 20261011,
+ "criteria": {
+  "min_random_percentile": 0.95,
+  "min_trade_excess_t": 2.0,
+  "trade_stat": "winsorized"
+ },
+ "next_step": "If selection skill is shown: E2, SV fills the 25% stock slice of the core with SPY filling the gaps. If not: SV's stock picks are not built on; research continues with the market and sector reading (E3, E4) and with why the picks fall short.",
+ "notes": [
+  "Why a second version: E1's random pool used any stock with a year of history, while SV's signals came from stocks passing SV's tradability floor (cr056: 420 sessions, close >= $5, close x volume >= $10M). E1 also drew 18 stocks with provider adjustment errors (one-day moves above 4x or below -90%, e.g. MEL, ALT, CLSK), which made the random trade average absurd. E1's result is kept unchanged; this version fixes the null.",
+  "Pre-registered success (both must hold): SV's account Sharpe beats at least 95% of 200 random accounts; SV's trades beat random trades bought the same day, using per-signal differences winsorized at 1% and 99% with a month-clustered t of at least 2, and a positive median difference.",
+  "Stocks with a one-day move above 4x or below -90% anywhere in their history are removed from SV's signals and from the random pool alike; the count is reported.",
+  "Tradability uses adjusted closes and volume on the signal day, which slightly understates older dollar volume (conservative).",
+  "New seed (20261011); same account, exit, window and style check as E1."
+ ],
+ "pool": {
+  "min_history": 420,
+  "min_close": 5.0,
+  "min_dollar_volume": 10000000.0,
+  "exclude_impossible_jumps": true
+ }
+}

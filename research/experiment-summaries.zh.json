@@ -486,19 +486,49 @@
    "family": "quant_lab_portfolio",
    "family_zh": "量化研究实验室",
    "question_zh": "用能拿到的最长历史（基金成立前用老基金或现货接上），并检查每个滚动5年，永久组合是否仍然优于SPY、回撤不超过25%？",
-   "result_zh": "已预登记，等待后台自动运行。",
-   "use_zh": "通过则继续作为核心；不通过则先重新比较核心组合，再谈SV。",
-   "next_zh": "E2（SV替换25%股票部分）或重新选核心。",
-   "verdict": "pre_registered"
+   "result_zh": "1993—2026年（33年）：永久组合年化7.5%、最大回撤18%、Sharpe 1.10；337个滚动5年窗口全部赚钱（最差+14.6%），76%的窗口风险收益比不低于SPY；2000—02年+11.7%、2008—09年+9.7%、2022年−13.5%。SPY年化10.7%、回撤55%。",
+   "use_zh": "核心组合通过全部预设检查，包括选它时没看过的1993—2006年。",
+   "next_zh": "E3渐进仓位、E4行业轮动在此基础上检验。",
+   "verdict": "candidate"
   },
   "lab-e1-selection-vs-random-v1-2026-10-10": {
    "title_zh": "SV选股是否比随机选股更好",
    "family": "quant_lab_portfolio",
    "family_zh": "量化研究实验室",
    "question_zh": "同一天、同样买卖规则，只把SV选的股票换成同一股票池里随机的一只，重复200次；SV能否明显胜过随机？",
+   "result_zh": "SV账户Sharpe 0.635，胜过86.5%的随机账户（要求95%），未通过。逐笔比较无效：随机池抽到18只价格数据出错的股票，随机平均每笔+189%。同样投入比例持有QQQ的Sharpe 0.72，高于SV。",
+   "use_zh": "随机池比SV实际可选的股票更宽且含错误数据，结论不确定；原结果保留，另登记修正版E1b。",
+   "next_zh": "E1b修正版选股测试。",
+   "verdict": "not_validated"
+  },
+  "lab-e1b-selection-vs-tradable-random-v1-2026-10-10": {
+   "title_zh": "修正版：SV选股对“可交易”随机选股",
+   "family": "quant_lab_portfolio",
+   "family_zh": "量化研究实验室",
+   "question_zh": "随机股票只从SV当天实际能选的股票里抽（≥420天历史、股价≥5美元、成交额≥1000万美元），两边都去掉价格出错的股票；SV还能胜过随机吗？",
    "result_zh": "已预登记，等待后台自动运行。",
-   "use_zh": "通过才值得做E2；不通过则不以SV选股为基础，转向市场与行业判断。",
-   "next_zh": "E2或转向行业ETF轮动、渐进仓位。",
+   "use_zh": "通过才做E2。",
+   "next_zh": "E2或转向市场与行业判断。",
+   "verdict": "pre_registered"
+  },
+  "lab-e3-graded-exposure-v1-2026-10-10": {
+   "title_zh": "渐进调整股票比例（趋势与波动）",
+   "family": "quant_lab_portfolio",
+   "family_zh": "量化研究实验室",
+   "question_zh": "市场转坏时按已发表的规则一步步降低股票（及长债、黄金）比例，能否减少大跌又不降低风险收益比？",
+   "result_zh": "已预登记，等待后台自动运行。",
+   "use_zh": "只有Calmar更高、Sharpe不降、回撤≤25%才替换固定核心。",
+   "next_zh": "改进则加入模拟账户。",
+   "verdict": "pre_registered"
+  },
+  "lab-e4-sector-rotation-v1-2026-10-10": {
+   "title_zh": "行业ETF轮动",
+   "family": "quant_lab_portfolio",
+   "family_zh": "量化研究实验室",
+   "question_zh": "每月持有9个行业里最强的3个，单独看和作为核心的25%股票部分，能否胜过直接持有SPY？",
+   "result_zh": "已预登记，等待后台自动运行。",
+   "use_zh": "只有核心的Sharpe提高且回撤≤25%才替换SPY。",
+   "next_zh": "改进则加入模拟账户。",
    "verdict": "pre_registered"
   }
  }

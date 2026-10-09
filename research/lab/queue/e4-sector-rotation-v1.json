@@ -1,0 +1,271 @@
+{
+ "id": "e4-sector-rotation-v1",
+ "experiment_id": "lab-e4-sector-rotation-v1-2026-10-10",
+ "kind": "allocation",
+ "priority": 4,
+ "question": "Does holding the strongest US sectors (industry momentum) beat holding the whole market, on its own and as the 25% stock slice of the core? Sector funds have no survivorship problem and full daily history, so this tests SV's 'sector strength' idea cleanly with price momentum as the measure.",
+ "dataset": {
+  "id": "sector-etf-1998-to-2026-10-v1",
+  "builder": "symbols",
+  "symbols": [
+   "SPY",
+   "SHY",
+   "TLT",
+   "GLD",
+   "XLB",
+   "XLE",
+   "XLF",
+   "XLI",
+   "XLK",
+   "XLP",
+   "XLU",
+   "XLV",
+   "XLY"
+  ],
+  "start": "1998-12-01"
+ },
+ "benchmark_symbol": "SPY",
+ "benchmark_portfolio": "SPY",
+ "splits": [
+  {
+   "id": "2006-2009",
+   "from": "2006-01-01",
+   "to": "2009-12-31"
+  },
+  {
+   "id": "2010-2014",
+   "from": "2010-01-01",
+   "to": "2014-12-31"
+  },
+  {
+   "id": "2015-2019",
+   "from": "2015-01-01",
+   "to": "2019-12-31"
+  },
+  {
+   "id": "2020-2024",
+   "from": "2020-01-01",
+   "to": "2024-12-31"
+  },
+  {
+   "id": "2025-2026",
+   "from": "2025-01-01",
+   "to": "2026-12-31"
+  }
+ ],
+ "window": {
+  "start": "auto",
+  "warmup_months": 13,
+  "end": "2026-01-16"
+ },
+ "group": "E-sectors",
+ "cost_per_side": 0.001,
+ "prior_trials": 0,
+ "criteria": {
+  "min_trades": 0,
+  "max_drawdown": 0.25,
+  "beat_benchmark": [
+   "sharpe",
+   "calmar"
+  ],
+  "every_split_positive": false,
+  "min_deflated_sharpe": 0.95
+ },
+ "selection": {
+  "kind": "improve_on",
+  "baseline": "PERM",
+  "metric": "sharpe",
+  "sharpe_tolerance": 0.0,
+  "candidates": [
+   "PERM-ROT"
+  ],
+  "rule": "The rotation slice replaces SPY in the core only if the core's Sharpe rises with a worst fall within 25%."
+ },
+ "comparisons": [
+  {
+   "question": "Sector rotation beats SPY on Sharpe",
+   "a": "ROT",
+   "b": "SPY",
+   "metric": "sharpe"
+  },
+  {
+   "question": "Sector rotation beats equal-weight sectors on Sharpe",
+   "a": "ROT",
+   "b": "EW9",
+   "metric": "sharpe"
+  },
+  {
+   "question": "Rotation with the cash test beats SPY on Calmar",
+   "a": "ROT-ABS",
+   "b": "SPY",
+   "metric": "calmar"
+  },
+  {
+   "question": "Core with a rotation slice beats the core with SPY on Calmar",
+   "a": "PERM-ROT",
+   "b": "PERM",
+   "metric": "calmar"
+  },
+  {
+   "question": "Core with equal-weight sectors beats the core with SPY on Sharpe",
+   "a": "PERM-EW9",
+   "b": "PERM",
+   "metric": "sharpe"
+  }
+ ],
+ "portfolios": [
+  {
+   "id": "SPY",
+   "label": "S&P 500 (benchmark)",
+   "source": "SPY",
+   "rule": "static",
+   "rebalance": "annual",
+   "weights": {
+    "SPY": 1.0
+   }
+  },
+  {
+   "id": "EW9",
+   "label": "Nine sector funds, equal weight, rebalanced monthly",
+   "source": "control",
+   "rule": "static",
+   "rebalance": "monthly",
+   "weights": {
+    "XLB": 0.1111111111111111,
+    "XLE": 0.1111111111111111,
+    "XLF": 0.1111111111111111,
+    "XLI": 0.1111111111111111,
+    "XLK": 0.1111111111111111,
+    "XLP": 0.1111111111111111,
+    "XLU": 0.1111111111111111,
+    "XLV": 0.1111111111111111,
+    "XLY": 0.1111111111111111
+   }
+  },
+  {
+   "id": "ROT",
+   "label": "Top 3 of 9 sectors by average 3/6/12-month return, rebalanced monthly",
+   "source": "Moskowitz and Grinblatt (industry momentum); Faber (sector rotation)",
+   "rule": "rotation",
+   "rebalance": "monthly",
+   "universe": [
+    "XLB",
+    "XLE",
+    "XLF",
+    "XLI",
+    "XLK",
+    "XLP",
+    "XLU",
+    "XLV",
+    "XLY"
+   ],
+   "top": 3,
+   "lookbacks_months": [
+    3,
+    6,
+    12
+   ],
+   "sleeve": 1.0,
+   "cash": "SHY"
+  },
+  {
+   "id": "ROT-ABS",
+   "label": "Same, but a pick is held only if it beat short-term Treasuries, else cash",
+   "source": "plus Antonacci's absolute momentum",
+   "rule": "rotation",
+   "rebalance": "monthly",
+   "universe": [
+    "XLB",
+    "XLE",
+    "XLF",
+    "XLI",
+    "XLK",
+    "XLP",
+    "XLU",
+    "XLV",
+    "XLY"
+   ],
+   "top": 3,
+   "lookbacks_months": [
+    3,
+    6,
+    12
+   ],
+   "sleeve": 1.0,
+   "cash": "SHY",
+   "absolute": true
+  },
+  {
+   "id": "PERM",
+   "label": "Permanent Portfolio with SPY as the stock slice (current core)",
+   "source": "Harry Browne",
+   "rule": "static",
+   "rebalance": "annual",
+   "weights": {
+    "SPY": 0.25,
+    "TLT": 0.25,
+    "GLD": 0.25,
+    "SHY": 0.25
+   }
+  },
+  {
+   "id": "PERM-ROT",
+   "label": "Core with the stock slice as the top 3 sectors (8.33% each)",
+   "source": "core + rotation",
+   "rule": "rotation",
+   "rebalance": "monthly",
+   "universe": [
+    "XLB",
+    "XLE",
+    "XLF",
+    "XLI",
+    "XLK",
+    "XLP",
+    "XLU",
+    "XLV",
+    "XLY"
+   ],
+   "top": 3,
+   "lookbacks_months": [
+    3,
+    6,
+    12
+   ],
+   "sleeve": 0.25,
+   "cash": "SHY",
+   "weights": {
+    "TLT": 0.25,
+    "GLD": 0.25,
+    "SHY": 0.25
+   }
+  },
+  {
+   "id": "PERM-EW9",
+   "label": "Core with the stock slice as nine sectors equal weight",
+   "source": "control",
+   "rule": "static",
+   "rebalance": "monthly",
+   "weights": {
+    "XLB": 0.027777777777777776,
+    "XLE": 0.027777777777777776,
+    "XLF": 0.027777777777777776,
+    "XLI": 0.027777777777777776,
+    "XLK": 0.027777777777777776,
+    "XLP": 0.027777777777777776,
+    "XLU": 0.027777777777777776,
+    "XLV": 0.027777777777777776,
+    "XLY": 0.027777777777777776,
+    "TLT": 0.25,
+    "GLD": 0.25,
+    "SHY": 0.25
+   }
+  }
+ ],
+ "next_step": "If rotation helps the core, it joins the forward paper accounts and SV's live sector score can later be tested the same way. If not, the core keeps SPY as its stock slice.",
+ "notes": [
+  "The nine original Select Sector funds exist since December 1998, so the data has no survivorship problem; real estate (2015) and communication services (2018) funds are left out because they start later.",
+  "The window starts once gold's fund (GLD, November 2004) has 13 months of history, so all portfolios share the same days.",
+  "Published defaults only: top 3 of 9, average of 3/6/12-month returns, monthly; 0.1% per side on the amount traded.",
+  "Momentum here stands in for SV's sector strength, whose live score has too little history to test."
+ ]
+}
