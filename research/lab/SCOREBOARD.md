@@ -71,6 +71,25 @@ Which selling rule grows the approved $100k account best after risk over twenty 
 
 Champion: **none passed; current rule stays**
 
+## b1-core-satellite-v1 (observation-2005-2025-v1, $100k account 2007-01-03 to 2026-01-16)
+
+Step B: do SV's stock picks improve a proven portfolio? SV takes 0, 20, 35 or 50% of the account (5% per stock, up to 0, 4, 7 or 10 stocks), the rest sits in the core (the Permanent Portfolio, with All Weather as a check) and 5% is always kept in cash.
+
+| Rule | CAGR | Max drawdown | Sharpe | Calmar | CAGR vs SPY | Invested | Trades | Luck check: median Sharpe | Luck check: worst-5% CAGR | Deflated Sharpe | Passed |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SPY buy and hold | 10.7% | 55.2% | 0.61 | 0.19 | — | 100% | — | — | — | — | benchmark |
+| SV SV picks alone, step 1 setting (5% per stock, up to 10), rest in cash | 4.9% | 26.9% | 0.60 | 0.18 | -5.8% | 36% | 1369 | 0.57 | 3.8% | 0.93 | no |
+| CPERM-M0 Core PERM, no SV stocks | 7.1% | 17.7% | 1.01 | 0.40 | -3.6% | 0% | 0 | 1.01 | 7.1% | 1.00 | no |
+| CPERM-M4 Core PERM, up to 4 stocks | 7.8% | 21.3% | 0.95 | 0.37 | -2.8% | 17% | 636 | 0.90 | 6.3% | 1.00 | no |
+| CPERM-M7 Core PERM, up to 7 stocks | 7.6% | 23.8% | 0.82 | 0.32 | -3.1% | 27% | 1048 | 0.82 | 6.7% | 0.99 | no |
+| CPERM-M10 Core PERM, up to 10 stocks | 8.9% | 27.0% | 0.84 | 0.33 | -1.8% | 36% | 1369 | 0.82 | 7.8% | 0.99 | no |
+| CAW-M0 Core AW, no SV stocks | 6.5% | 22.2% | 0.85 | 0.29 | -4.2% | 0% | 0 | 0.85 | 6.5% | 0.99 | no |
+| CAW-M4 Core AW, up to 4 stocks | 7.4% | 24.4% | 0.86 | 0.30 | -3.3% | 17% | 636 | 0.81 | 5.9% | 0.99 | no |
+| CAW-M7 Core AW, up to 7 stocks | 7.2% | 24.0% | 0.76 | 0.30 | -3.5% | 27% | 1048 | 0.76 | 6.4% | 0.98 | no |
+| CAW-M10 Core AW, up to 10 stocks | 8.6% | 27.6% | 0.80 | 0.31 | -2.1% | 36% | 1369 | 0.78 | 7.5% | 0.99 | no |
+
+Champion: **none passed; current rule stays**
+
 ## c1-proven-portfolios-v1 (etf-core-2002-to-2026-10-v1, $100k account 2007-01-03 to 2026-01-16)
 
 Which published, proven portfolio does best on the same 19 years, judged like the SV account (Sharpe, Calmar, worst fall within 25%, every period)? The best becomes the core that SV's stock picks must improve.

@@ -26,6 +26,14 @@
    "dataset": "observation-2005-2025-v1"
   },
   {
+   "spec_id": "b1-core-satellite-v1",
+   "experiment_id": "lab-b1-core-satellite-v1-2026-10-09",
+   "group": "B-core-satellite",
+   "completed_at": "2026-10-09T09:43:54+00:00",
+   "champion": null,
+   "dataset": "observation-2005-2025-v1"
+  },
+  {
    "spec_id": "c1-proven-portfolios-v1",
    "experiment_id": "lab-c1-proven-portfolios-v1-2026-10-08",
    "group": "C-core",
