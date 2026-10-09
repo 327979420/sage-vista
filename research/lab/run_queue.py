@@ -191,7 +191,7 @@ def monthly(dates, values):
 
 
 EXIT_KEYS = ("stop", "targets", "trail", "trail_after_target", "max_hold")
-SETTING_LABELS = {"risk_per_trade": ("Risk", "%"), "position_cap": ("cap", "%"), "max_positions": ("up to", " stocks"), "heat_cap": ("open risk", "%")}
+SETTING_LABELS = {"risk_per_trade": ("Risk", "%"), "position_cap": ("cap", "%"), "max_positions": ("up to", " stocks"), "heat_cap": ("open risk", "%"), "core": ("Core", "")}
 
 
 def expand_variants(spec):
@@ -215,14 +215,18 @@ def expand_variants(spec):
         parts = []
         for n, v in zip(names, combo):
             word, unit = SETTING_LABELS.get(n, (n, ""))
-            parts.append(f"{word} {v * 100:g}{unit}" if unit == "%" else f"{word} {v}{unit}")
+            if n == "max_positions" and v == 0:
+                parts.append("no SV stocks")
+            else:
+                parts.append(f"{word} {v * 100:g}{unit}" if unit == "%" else f"{word} {v}{unit}")
         return ", ".join(parts)
 
     combos = [()]
     for vals in values:
         combos = [c + (v,) for c in combos for v in vals]
     for combo in combos:
-        variants[vid(combo)] = {**grid["exit"], "id": vid(combo), "family": "grid", "label": label(combo), "account": dict(zip(names, combo))}
+        variants[vid(combo)] = {**grid["exit"], "id": vid(combo), "family": "grid", "label": label(combo),
+                                "account": {**grid.get("fixed", {}), **dict(zip(names, combo))}}
         near = []
         for i, vals in enumerate(values):
             j = vals.index(combo[i])
@@ -251,7 +255,46 @@ def choose_plateau(summary, neighbours, selection):
             "within_drawdown_limit": bool(eligible), "rule": selection}
 
 
-def run_account_spec(spec, data, dataset_entry, cost, benchmark):
+def choose_satellite(summary, variants, selection):
+    """Keep SV only if a satellite beats the same core without SV on Sharpe and Calmar within the drawdown limit.
+
+    Near-ties (Sharpe within the tolerance) go to the smaller satellite. The
+    same share is then checked on every other core, so a choice that only works
+    on one core is visible.
+    """
+    by = {(v["account"]["core"], v["account"]["max_positions"]): vid for vid, v in variants.items() if (v.get("account") or {}).get("core")}
+    core = selection["core"]
+    plain = summary[by[(core, 0)]]["account"]
+    better = lambda a, b: (a["sharpe"] or -9) > (b["sharpe"] or -9) and (a["calmar"] or -9) > (b["calmar"] or -9)
+    sizes = sorted(m for c, m in by if c == core and m > 0)
+    ok = [m for m in sizes if better(summary[by[(core, m)]]["account"], plain) and summary[by[(core, m)]]["account"]["max_drawdown"] <= selection["max_drawdown"]]
+    if ok:
+        best = max(summary[by[(core, m)]]["account"]["sharpe"] for m in ok)
+        m = min(x for x in ok if summary[by[(core, x)]]["account"]["sharpe"] >= best - selection["tie_tolerance"])
+    else:
+        m = 0
+    others = {c: better(summary[by[(c, m)]]["account"], summary[by[(c, 0)]]["account"]) for c, mm in by if c != core and mm == m and m > 0}
+    vid = by[(core, m)]
+    return {"variant": vid, "settings": summary[vid]["rule"]["account"], "sv_added": m > 0, "also_better_on": others,
+            "within_drawdown_limit": summary[vid]["account"]["max_drawdown"] <= selection["max_drawdown"], "rule": selection}
+
+
+def core_series(spec, core_data, dates, cost):
+    """Daily returns of each core portfolio and of the cash reserve on the account calendar."""
+    prices = allocation.Prices(core_data["prices"])
+    spy_dates = core_data["prices"][spec["benchmark"]["symbol"]]["date"]
+    signal_day = spy_dates[spy_dates.index(dates[0]) - 1]
+    out = {}
+    for name, portfolio in spec["core"]["portfolios"].items():
+        run = allocation.simulate(portfolio, prices, dates, cost, 1.0, signal_day)
+        out[name] = account.returns_from(run["equity"], 1.0)
+    cash = account.benchmark_returns(core_data["prices"][spec["core"]["cash_symbol"]], dates)
+    month_ends = {i for i, d in enumerate(dates) if i < len(dates) - 1 and d[:7] != dates[i + 1][:7]}
+    return {name: {"returns": r, "cash_returns": cash, "cash_buffer": spec["core"]["cash_buffer"], "cost": cost, "month_ends": month_ends}
+            for name, r in out.items()}
+
+
+def run_account_spec(spec, data, dataset_entry, cost, benchmark, core_data=None):
     """Account-level experiment: each rule trades the $100k research account day by day.
 
     Account results decide (CAGR, drawdown, Sharpe, Calmar, SPY, a Monte Carlo
@@ -290,11 +333,13 @@ def run_account_spec(spec, data, dataset_entry, cost, benchmark):
     curve_dates, spy_curve = monthly(dates, spy_equity)
     curves = {"dates": curve_dates, benchmark["symbol"]: spy_curve}
     aligned = {sig: account.align(items, dates) for sig, items in candidates.items()}
+    cores = core_series(spec, core_data, dates, cost) if spec.get("core") else {}
     summary, rows_out = {}, []
     for vid, variant in variants.items():
         book, notes = aligned[signature[vid]]
         rules = variant.get("account")
-        main = account.run_account(book, len(dates), scenario, rules=rules)
+        core = cores[rules["core"]] if rules and rules.get("core") else None
+        main = account.run_account(book, len(dates), scenario, rules=rules, core=core)
         stats = account.curve_stats(main["equity"], dates, initial)
         rets = account.returns_from(main["equity"], initial)
         # The benchmark held with the same share of the account invested, one session behind.
@@ -305,7 +350,7 @@ def run_account_spec(spec, data, dataset_entry, cost, benchmark):
                         "versus_spy": account.versus(rets, spy_rets) | {"cagr_difference": round(stats["cagr"] - spy["cagr"], 6)},
                         "same_exposure_spy": account.curve_stats(matched, dates, initial),
                         "splits": account.period_returns(main["equity"], dates, initial, spec["splits"]),
-                        "monte_carlo": account.monte_carlo(book, dates, scenario, criteria["mc_runs"], spec.get("seed", 0), rules) if criteria.get("mc_runs") else None,
+                        "monte_carlo": account.monte_carlo(book, dates, scenario, criteria["mc_runs"], spec.get("seed", 0), rules, core) if criteria.get("mc_runs") else None,
                         "trade_diagnostics": summarise(trades[signature[vid]]),
                         "goal_1": {"sharpe_vs_spy": round((stats["sharpe"] or 0) - spy["sharpe"], 4), "calmar_vs_spy": round((stats["calmar"] or 0) - spy["calmar"], 4),
                                    "met": (stats["sharpe"] or 0) >= spy["sharpe"] and (stats["calmar"] or 0) >= spy["calmar"]
@@ -335,7 +380,8 @@ def run_account_spec(spec, data, dataset_entry, cost, benchmark):
               "window": {"start": dates[0], "end": dates[-1], "sessions": len(dates)}, "cost_per_side": cost,
               "baseline": spec["baseline"], "criteria": criteria, "n_trials": n_trials, "spy": spy, "variants": summary, "curves": curves,
               "champion": champion, "selection_rule": f"highest account {metric} among variants passing every pre-registered check",
-              "chosen": choose_plateau(summary, neighbours, spec["selection"]) if spec.get("selection") and neighbours else None,
+              "chosen": (choose_satellite(summary, variants, spec["selection"]) if (spec.get("selection") or {}).get("kind") == "satellite"
+                         else choose_plateau(summary, neighbours, spec["selection"]) if spec.get("selection") and neighbours else None),
               "next_step": spec.get("next_step")}
     return result, gzip.compress(csv_buffer.getvalue().encode(), 9, mtime=0)
 
@@ -455,8 +501,10 @@ def render_report(result):
     else:
         lines.append("- No rule passed every check written down before the run, so the current rule stays.")
     if chosen:
+        rule = result["chosen"]["rule"]
+        how = rule.get("rule") or rule.get("metric") or "best luck-check Sharpe averaged with its neighbouring settings"
         lines.append(f"- Carried to the next step: **{chosen}** ({variants[chosen]['label']}), picked by the rule fixed before the run "
-                     f"(best luck-check Sharpe averaged with its neighbouring settings{'' if result['chosen']['within_drawdown_limit'] else '; no setting stayed within the drawdown limit'}).")
+                     f"({how}{'' if result['chosen']['within_drawdown_limit'] else '; no setting stayed within the drawdown limit'}).")
     lines.append(f"- Goal 1 (match SPY's Sharpe {num(spy['sharpe'])} and Calmar {num(spy['calmar'])} with a worst fall of at most {pct(result['criteria']['max_drawdown'], 0)}): "
                  + (f"met by {', '.join(met)}." if met else f"not met yet. Closest Sharpe: {best} at {num(variants[best]['account']['sharpe'])}."))
     lines += ["", "## The benchmark", "",
@@ -584,7 +632,12 @@ def main(argv=None):
             benchmark = {"symbol": symbol, "series": bench_data["prices"][symbol], "entry": bench_entry}
             manifests += [bench_new] if bench_new else []
         run = {"account": run_account_spec, "allocation": run_allocation_spec}.get(spec.get("kind"), run_spec)
-        result, trades_csv = run(spec, data, entry, spec.get("cost_per_side", 0.001), benchmark)
+        extra = {}
+        if spec.get("core"):
+            core_data, _, core_new = ensure_dataset(spec["core"]["dataset"], args.publish)
+            manifests += [core_new] if core_new and core_new not in manifests else []
+            extra["core_data"] = core_data
+        result, trades_csv = run(spec, data, entry, spec.get("cost_per_side", 0.001), benchmark, **extra)
         now = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
         result |= {"spec_sha256": sha, "completed_at": now, "code_commit": os.environ.get("GITHUB_SHA", "local")}
         run_url = f"{os.environ.get('GITHUB_SERVER_URL', '')}/{os.environ.get('GITHUB_REPOSITORY', '')}/actions/runs/{os.environ.get('GITHUB_RUN_ID', '')}"

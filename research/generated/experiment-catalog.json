@@ -1,16 +1,16 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-08T15:12:35+00:00",
+  "generated_at": "2026-10-09T09:27:17+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 47,
+  "experiment_count": 48,
   "summary": {
     "completed": 32,
-    "in_progress": 15,
-    "candidate": 12,
+    "in_progress": 16,
+    "candidate": 13,
     "not_validated_or_unstable": 14
   },
   "policy": {
@@ -55,19 +55,19 @@
         "family": "quant_lab_portfolio",
         "family_zh": "量化研究实验室",
         "question_zh": "8个已发表的成熟组合（SPY、60/40、永久组合、全天候、Ivy、Faber择时、标普择时、双动量）在同一19年里，按与SV账户相同的标准，哪个最好？",
-        "result_zh": "已预登记，等待后台自动运行。",
-        "use_zh": "最佳者作为核心组合，SV个股须能改进它才保留。",
-        "next_zh": "第B步：SV个股作为卫星（0/20/35/50%），保留5%常备现金。",
-        "verdict": "pre_registered"
+        "result_zh": "2007-01至2026-01：永久组合（股票、长债、黄金、现金各25%）年化7.3%、最大回撤18%、Sharpe 1.00，每个时期都为正，全部检查通过；全天候Sharpe 0.84、回撤23%。SPY年化10.7%、回撤55%、Sharpe 0.61。双动量表现最差之一（Sharpe 0.48）。",
+        "use_zh": "永久组合按事先规则成为核心组合；全天候也达到目标1。黄金在此期间涨约6倍，抬高了两者，第B步同时用全天候检验。",
+        "next_zh": "第B步：SV作为卫星放入核心。",
+        "verdict": "candidate"
       },
       "lifecycle": {
         "registered_at": "2026-10-08T14:54:32+00:00",
         "started_at": null,
         "completed_at": "2026-10-08T15:12:35+00:00",
-        "latest_event": "completed",
-        "latest_event_at": "2026-10-08T15:12:35+00:00",
-        "time_source": "github_actions",
-        "event_count": 2,
+        "latest_event": "checkpoint",
+        "latest_event_at": "2026-10-09T09:27:17+00:00",
+        "time_source": "assistant_review",
+        "event_count": 3,
         "events": [
           {
             "experiment_id": "lab-c1-proven-portfolios-v1-2026-10-08",
@@ -91,6 +91,78 @@
               "result": "research/lab/results/c1-proven-portfolios-v1/result.json",
               "dataset": "etf-core-2002-to-2026-10-v1",
               "champion": "PERM"
+            }
+          },
+          {
+            "experiment_id": "lab-c1-proven-portfolios-v1-2026-10-08",
+            "event": "checkpoint",
+            "event_at": "2026-10-09T09:27:17+00:00",
+            "time_source": "assistant_review",
+            "source_ref": "research/lab/results/c1-proven-portfolios-v1/REPORT.md",
+            "details": {
+              "note": "researcher review of the proven-portfolio comparison"
+            },
+            "result": "2007-01-03 to 2026-01-16, fund prices, 0.1% per side. Permanent Portfolio: $100k to $384k, 7.3% a year, worst fall 18.4%, Sharpe 1.00, Calmar 0.40, every period positive, every check passed. All Weather: 6.7%, worst fall 23.0%, Sharpe 0.84. 60/40: 8.0%, 33.8%, 0.73. Faber timing on SPY: 8.1%, 28.1%, 0.67. SPY: 10.7%, 55.2%, 0.61. GTAA5: 4.7%, 13.8%, 0.61. Dual Momentum: 6.5%, 34.8%, 0.48. Ivy: 5.7%, 47.1%, 0.45.",
+            "decision": "Permanent Portfolio chosen as the core by the pre-registered rule; it meets Goal 1 alone, as does All Weather. Gold rose about six-fold in this window, flattering both, so step B is also run on All Weather. Dual Momentum's published record did not repeat here."
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "lab-b1-core-satellite-v1-2026-10-09",
+      "created_at": "2026-10-09",
+      "status": "pre_registered",
+      "change": "Step B: SV's stock picks as a satellite inside a proven core (Permanent Portfolio; All Weather as a check) with a 5% cash reserve",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#portfolio-roadmap",
+        "lab_spec": "research/lab/queue/b1-core-satellite-v1.json",
+        "datasets": [
+          "observation-2005-2025-v1",
+          "etf-core-2002-to-2026-10-v1"
+        ],
+        "satellite": "0, 4, 7 or 10 SV stocks at 5% of the account each (step 1 setting)",
+        "cores": [
+          "PERM",
+          "AW"
+        ],
+        "window": "2007-01-03 to 2026-01-16",
+        "role": "decides whether SV is added to the proven core"
+      },
+      "success_criteria": "SV is added only if a satellite beats the Permanent core without SV on both Sharpe and Calmar with a worst fall within 25% (near-ties within 0.01 Sharpe to the smaller satellite); full pass bar as before against the core without SV and SPY; deflated Sharpe over 71 trials.",
+      "known_limitations": [
+        "same 20-year signals as earlier SV tests",
+        "the core's strong result depends partly on gold's 2007-2026 run",
+        "core flows modelled at the core's daily return with 0.1% per move",
+        "cash reserve held in SHY",
+        "partial delisted coverage (survivorship)"
+      ],
+      "human_summary": {
+        "title_zh": "第B步：SV个股作为卫星放入成熟核心组合",
+        "family": "quant_lab_portfolio",
+        "family_zh": "量化研究实验室",
+        "question_zh": "SV个股占账户0/20/35/50%（每只5%），其余放在永久组合（以全天候作对照），并始终保留5%现金，能否让核心组合更好？",
+        "result_zh": "已预登记，等待后台自动运行。",
+        "use_zh": "只有提高核心组合的Sharpe与Calmar且回撤≤25%，SV才加入。",
+        "next_zh": "加入则做行业上限；不加入则核心单独进入前向检验，SV研究回到选股与入场。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-09T09:27:17+00:00",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-10-09T09:27:17+00:00",
+        "time_source": "assistant_registration",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "lab-b1-core-satellite-v1-2026-10-09",
+            "event": "registered",
+            "event_at": "2026-10-09T09:27:17+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/b1-core-satellite-v1.json",
+              "note": "satellite shares, cores, cash reserve, choice rule and pass bar frozen before any run"
             }
           }
         ]
@@ -3840,6 +3912,7 @@
     "lab-a-exits-ledger-1y-v1-2026-10-07",
     "lab-a-holdout-forward-v1-2026-10-08",
     "lab-a2-account-20y-v1-2026-10-08",
+    "lab-b1-core-satellite-v1-2026-10-09",
     "lab-c1-proven-portfolios-v1-2026-10-08",
     "lab-p1-size-risk-20y-v1-2026-10-08",
     "macd-rollout-04-double-chip-confirmation-2026-08-25",

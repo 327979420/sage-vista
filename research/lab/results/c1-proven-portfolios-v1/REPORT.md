@@ -9,7 +9,7 @@ Which published, proven portfolio does best on the same 19 years, judged like th
 ## The short answer
 
 - **PERM** (Permanent Portfolio: stocks, long bonds, gold, cash 25% each) passed every check written down before the run.
-- Carried to the next step: **PERM** (Permanent Portfolio: stocks, long bonds, gold, cash 25% each), picked by the rule fixed before the run (best luck-check Sharpe averaged with its neighbouring settings).
+- Carried to the next step: **PERM** (Permanent Portfolio: stocks, long bonds, gold, cash 25% each), picked by the rule fixed before the run (Sharpe among portfolios with a worst fall within 25%).
 - Goal 1 (match SPY's Sharpe 0.61 and Calmar 0.19 with a worst fall of at most 25%): met by PERM, AW.
 
 ## The benchmark

@@ -15,6 +15,12 @@ session's account value at its stop (Elder, Van Tharp, the Turtles), is
 capped at `position_cap` of that value, at most `max_positions` are held, and
 the total loss if every open stop hit stays within `heat_cap`.
 
+With `core` (core + satellite, as in Vanguard's model portfolios), money not
+in SV stocks sits in a proven portfolio and a cash reserve: a stock purchase
+is paid for by selling the core, sale proceeds go back into it (cost per side
+on each move), and the reserve is reset to its share of the account at each
+month end.
+
 The legacy account books the same rules through VectorBT. The lab uses this
 small pure-Python equivalent because a Monte Carlo check runs the account
 hundreds of times per rule (tests compare the two where VectorBT is installed).
@@ -70,7 +76,7 @@ def align(candidates, calendar):
     aligned, mismatched, stale, data_ended = [], 0, 0, 0
     for c in candidates:
         entry_ci = bisect.bisect_left(calendar, c["entry_date"])
-        if entry_ci >= len(calendar):
+        if entry_ci >= len(calendar) or c["entry_date"] < calendar[0]:
             continue
         mismatched += calendar[entry_ci] != c["entry_date"]
         data_ended += c.get("data_ended", False)
@@ -90,10 +96,12 @@ def align(candidates, calendar):
     return aligned, {"calendar_mismatches": mismatched, "stale_valuations": stale, "sold_when_prices_ended": data_ended}
 
 
-def run_account(trades, n_days, scenario, rng=None, rules=None):
+def run_account(trades, n_days, scenario, rng=None, rules=None, core=None):
     """Book one account path. `rng` shuffles same-day signals (Monte Carlo); None keeps priority order.
 
     `rules` None keeps the approved preset (a fixed 10% of initial cash per position).
+    `core`: {"returns", "cash_returns", "cash_buffer", "cost", "month_ends"}, daily
+    returns on the same calendar for the core portfolio and the cash reserve.
     """
     entries = defaultdict(list)
     for k, t in enumerate(trades):
@@ -105,6 +113,9 @@ def run_account(trades, n_days, scenario, rng=None, rules=None):
             ks.sort(key=lambda k: trades[k]["event_id"])
             rng.shuffle(ks)
     cash = float(scenario["initial_cash"])
+    core_value = 0.0
+    if core:
+        cash, core_value = cash * core["cash_buffer"], cash * (1 - core["cash_buffer"])
     nominal = scenario["initial_cash"] * scenario["allocation_fraction"]
     fee = scenario["cost_rate"]
     limit = rules["max_positions"] if rules else scenario["max_positions"]
@@ -133,12 +144,20 @@ def run_account(trades, n_days, scenario, rng=None, rules=None):
                     skipped["open_risk_limit"] += 1
                     continue
             cost = qty * t["entry_price"] * (1 + fee)
-            if qty <= 0 or cost > cash + 1e-9:
+            # With a core, the purchase is paid for by selling that much of the core.
+            funding = cost / (1 - core["cost"]) if core else cost
+            if qty <= 0 or funding > (core_value if core else cash) + 1e-9:
                 skipped["cash_or_whole_share_insufficient"] += 1
                 continue
-            cash -= cost
+            if core:
+                core_value -= funding
+            else:
+                cash -= cost
             held[t["symbol"]] = {"t": t, "shares": qty, "original": qty, "next": 0, "cost": cost, "proceeds": 0.0,
                                  "risk_per_share": per_share_risk}
+        if core:
+            core_value *= 1 + core["returns"][ci]
+            cash *= 1 + core["cash_returns"][ci]
         for symbol in list(held):
             p = held[symbol]
             t = p["t"]
@@ -148,7 +167,10 @@ def run_account(trades, n_days, scenario, rng=None, rules=None):
                 last = p["next"] == len(t["exits"])
                 qty = p["shares"] if last else min(p["shares"], math.floor(p["original"] * fraction))
                 proceeds = qty * price * (1 - fee)
-                cash += proceeds
+                if core:
+                    core_value += proceeds * (1 - core["cost"])
+                else:
+                    cash += proceeds
                 p["proceeds"] += proceeds
                 p["shares"] -= qty
             if t["exits"] and p["next"] == len(t["exits"]):
@@ -156,7 +178,12 @@ def run_account(trades, n_days, scenario, rng=None, rules=None):
                                "pnl": round(p["proceeds"] - p["cost"], 4), "return": round(p["proceeds"] / p["cost"] - 1, 6)})
                 del held[symbol]
         invested = sum(p["shares"] * p["t"]["values"][ci - p["t"]["entry_ci"]] for p in held.values())
-        nav = cash + invested
+        nav = cash + core_value + invested
+        if core and ci in core["month_ends"]:
+            move = core["cash_buffer"] * nav - cash
+            cash += move
+            core_value -= move + abs(move) * core["cost"]
+            nav -= abs(move) * core["cost"]
         equity.append(nav)
         exposure.append(invested / nav if nav > 0 else 0.0)
     return {"equity": equity, "exposure": exposure, "trades": booked, "open_at_end": len(held), "skipped": dict(skipped)}
@@ -263,11 +290,11 @@ def distribution(values):
     return {"p5": round(pick(0.05), 6), "median": round(pick(0.5), 6), "p95": round(pick(0.95), 6)}
 
 
-def monte_carlo(trades, dates, scenario, runs, seed, rules=None):
+def monte_carlo(trades, dates, scenario, runs, seed, rules=None, core=None):
     """Same rule, same signals; only which same-day signals win the free slots changes."""
     stats = {"cagr": [], "max_drawdown": [], "sharpe": []}
     for run in range(runs):
-        path = run_account(trades, len(dates), scenario, random.Random(seed + run), rules)
+        path = run_account(trades, len(dates), scenario, random.Random(seed + run), rules, core)
         s = curve_stats(path["equity"], dates, scenario["initial_cash"])
         for key in stats:
             stats[key].append(s[key])
