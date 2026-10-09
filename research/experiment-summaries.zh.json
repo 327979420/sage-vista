@@ -560,6 +560,26 @@
    "use_zh": "未通过：新旧两版模型的选股都没有胜过随机，新版过去一年明显更差。SV选股不进账户，SV定位为市场信息与观察工具；网站展示如何调整由用户决定。",
    "next_zh": "找新的选股想法，必须先通过同样的随机对照。",
    "verdict": "not_validated"
+  },
+  "lab-e7-timeframe-holding-v1-2026-10-10": {
+   "title_zh": "按机会级别交易：日线、周线、月线各按自己的周期拿",
+   "family": "quant_lab_portfolio",
+   "family_zh": "量化研究实验室",
+   "question_zh": "月线机会按月线拿（至少3个月）、只有月线收盘跌破结构底部才卖，周线、日线同理，不设2R止盈；再加上Weinstein、O'Neil、Faber、海龟、时间序列动量的趋势结束卖出法。这样SV能否胜过同样规则的随机股票？",
+   "result_zh": "已预登记，等待后台自动运行。",
+   "use_zh": "通过的做法进入模拟账户；按级别、大盘、行业的拆分只作线索。",
+   "next_zh": "根据结果决定SV机会怎么做模拟交易。",
+   "verdict": "pre_registered"
+  },
+  "lab-e8-factor-slice-v1-2026-10-10": {
+   "title_zh": "因子基金替换核心里的SPY",
+   "family": "quant_lab_portfolio",
+   "family_zh": "量化研究实验室",
+   "question_zh": "用低波动、质量、动量、股息成长、等权等成熟因子基金代替SPY当核心的股票部分，能否提高风险收益比？",
+   "result_zh": "已预登记，等待后台自动运行。",
+   "use_zh": "改进则加入模拟账户。",
+   "next_zh": "—",
+   "verdict": "pre_registered"
   }
  }
 }

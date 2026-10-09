@@ -1,15 +1,15 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-09T15:44:51+00:00",
+  "generated_at": "2026-10-09T22:34:48+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 56,
+  "experiment_count": 58,
   "summary": {
     "completed": 40,
-    "in_progress": 16,
+    "in_progress": 18,
     "candidate": 15,
     "not_validated_or_unstable": 20
   },
@@ -21,6 +21,117 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "lab-e7-timeframe-holding-v1-2026-10-10",
+      "created_at": "2026-10-10",
+      "status": "pre_registered",
+      "change": "SV opportunities traded by their own daily, weekly or monthly timeframe (structure-floor closes, no profit target), five exit families including published trend-ending rules, each against same-rule tradable random picks",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#research-roadmap-2026-10-10",
+        "lab_spec": "research/lab/queue/e7-timeframe-holding-v1.json",
+        "dataset": "observation-2005-2025-v1 + structure floors from receipt 34766761296-2",
+        "families": [
+          "short 20d/5w/3m",
+          "medium 40d/10w/6m",
+          "long 60d/20w/12m",
+          "trend-slow: 20-day low / 30-week / 10-month (Turtles, Weinstein, Faber)",
+          "trend-fast: 50-day / 10-week / 12-month momentum (O'Neil, Minervini, TSMOM)"
+        ],
+        "random_runs": {
+          "short": 200,
+          "medium": 200,
+          "long": 200,
+          "trend-slow": 100,
+          "trend-fast": 100
+        }
+      },
+      "success_criteria": "Per family (five tested): account Sharpe beats at least 99% of random accounts and trades beat same-day random trades with month-clustered t >= 2.6, positive winsorized mean and median. Segment leads (timeframe, market trend, volatility, sector) need >= 100 signals and t >= 3 and must be confirmed on unseen data.",
+      "known_limitations": [
+        "same 20-year signal set as E1b/E5a",
+        "structure floors from the older 3.5 observation receipt",
+        "today's sector labels (research only)",
+        "trades still open at the data end leave the trade comparison"
+      ],
+      "human_summary": {
+        "title_zh": "按机会级别交易：日线、周线、月线各按自己的周期拿",
+        "family": "quant_lab_portfolio",
+        "family_zh": "量化研究实验室",
+        "question_zh": "月线机会按月线拿（至少3个月）、只有月线收盘跌破结构底部才卖，周线、日线同理，不设2R止盈；再加上Weinstein、O'Neil、Faber、海龟、时间序列动量的趋势结束卖出法。这样SV能否胜过同样规则的随机股票？",
+        "result_zh": "已预登记，等待后台自动运行。",
+        "use_zh": "通过的做法进入模拟账户；按级别、大盘、行业的拆分只作线索。",
+        "next_zh": "根据结果决定SV机会怎么做模拟交易。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-09T22:34:48+00:00",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-10-09T22:34:48+00:00",
+        "time_source": "assistant_registration",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "lab-e7-timeframe-holding-v1-2026-10-10",
+            "event": "registered",
+            "event_at": "2026-10-09T22:34:48+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/e7-timeframe-holding-v1.json",
+              "note": "design and success rule frozen before any run; user asked for timeframe-matched holding and mature-system exits on 2026-10-10"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "lab-e8-factor-slice-v1-2026-10-10",
+      "created_at": "2026-10-10",
+      "status": "pre_registered",
+      "change": "Published factor funds (minimum volatility, quality, momentum, low volatility, dividend growers, equal weight, multi-factor) as the core's 25% stock slice",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#research-roadmap-2026-10-10",
+        "lab_spec": "research/lab/queue/e8-factor-slice-v1.json",
+        "dataset": "factor-etf-2010-to-2026-10-v1",
+        "window": "auto, about 2014 onward"
+      },
+      "success_criteria": "A factor slice replaces SPY only if the core's Sharpe rises with worst fall within 25%; six standalone comparisons with SPY reported.",
+      "known_limitations": [
+        "about 12 years only",
+        "one market regime dominated by large US technology"
+      ],
+      "human_summary": {
+        "title_zh": "因子基金替换核心里的SPY",
+        "family": "quant_lab_portfolio",
+        "family_zh": "量化研究实验室",
+        "question_zh": "用低波动、质量、动量、股息成长、等权等成熟因子基金代替SPY当核心的股票部分，能否提高风险收益比？",
+        "result_zh": "已预登记，等待后台自动运行。",
+        "use_zh": "改进则加入模拟账户。",
+        "next_zh": "—",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-09T22:34:48+00:00",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-10-09T22:34:48+00:00",
+        "time_source": "assistant_registration",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "lab-e8-factor-slice-v1-2026-10-10",
+            "event": "registered",
+            "event_at": "2026-10-09T22:34:48+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/e8-factor-slice-v1.json",
+              "note": "design and success rule frozen before any run; user asked for timeframe-matched holding and mature-system exits on 2026-10-10"
+            }
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "lab-e1c-live-model-vs-tradable-random-v1-2026-10-10",
       "created_at": "2026-10-10",
@@ -4561,6 +4672,8 @@
     "lab-e4-sector-rotation-v1-2026-10-10",
     "lab-e5a-high-score-vs-tradable-random-v1-2026-10-10",
     "lab-e6-forward-paper-v1-2026-10-10",
+    "lab-e7-timeframe-holding-v1-2026-10-10",
+    "lab-e8-factor-slice-v1-2026-10-10",
     "lab-p1-size-risk-20y-v1-2026-10-08",
     "macd-rollout-04-double-chip-confirmation-2026-08-25",
     "multi-factor-count-resonance-v1.0.0-2026-08-30",

@@ -27,7 +27,7 @@ import statistics
 import subprocess
 
 from services.scanner.support_risk import signal_support_plan
-from research.lab import account, allocation, datasets, selection
+from research.lab import account, allocation, datasets, selection, timeframe
 from research.lab.exit_rules import OPEN_FILLS, simulate
 from research.lab.metrics import evaluate, summarise
 
@@ -610,6 +610,19 @@ def run_selection_spec(spec, data, dataset_entry, cost, benchmark, style_data=No
     return result, gzip.compress(csv_buffer.getvalue().encode(), 9, mtime=0)
 
 
+def run_timeframe_spec(spec, data, dataset_entry, cost, benchmark):
+    """SV's opportunities traded by their own daily, weekly or monthly timeframe, against random picks with the same rules."""
+    result = timeframe.run(spec, data, dataset_entry, cost, benchmark, ROOT, signal_priority)
+    csv_buffer = io.StringIO()
+    writer = csv.writer(csv_buffer)
+    writer.writerow(["family", "segment", "group", "signals", "sv_mean", "random_mean", "difference_winsorized", "t_monthly", "median_difference"])
+    for name, f in result["families"].items():
+        for seg, groups in f["segments"].items():
+            for label, v in groups.items():
+                writer.writerow([name, seg, label, v.get("signals"), v.get("sv_mean"), v.get("random_mean"), v.get("difference_winsorized"), v.get("t_monthly"), v.get("median_difference")])
+    return result, gzip.compress(csv_buffer.getvalue().encode(), 9, mtime=0)
+
+
 def render_selection_report(result):
     pct = lambda x, d=1: "—" if x is None else f"{x * 100:.{d}f}%"
     num = lambda x: "—" if x is None else f"{x:.2f}"
@@ -761,6 +774,10 @@ def render_scoreboard(results):
             v = result["variants"][result["champion"]]
             board["champions"][result["group"]] = {"spec_id": result["spec_id"], "variant": result["champion"], "rule": v["rule"],
                                                    "overall": v["account"] if result.get("kind") in ("account", "allocation") else v["overall"]}
+        if result.get("kind") == "timeframe":
+            lines += [f"## {result['spec_id']} ({result['dataset']['dataset_id']}, opportunities traded by their own timeframe vs random picks)", "", result["question"], "",
+                      "Families passing: " + (", ".join(result["passed_families"]) or "none"), ""]
+            continue
         if result.get("kind") == "selection":
             r, sv = result["random"], result["sv"]
             lines += [f"## {result['spec_id']} ({result['dataset']['dataset_id']}, SV against {r['runs']} random-pick accounts)", "", result["question"], "",
@@ -795,6 +812,8 @@ def write_outputs(root, result, trades_csv, event, manifests):
         (out / "REPORT.md").write_text(render_report(result))
     elif result.get("kind") == "selection":
         (out / "REPORT.md").write_text(render_selection_report(result))
+    elif result.get("kind") == "timeframe":
+        (out / "REPORT.md").write_text(timeframe.render(result))
     for entry in manifests:
         record = pathlib.Path(root) / "research/lab/datasets" / f"{entry['dataset_id']}.json"
         record.parent.mkdir(parents=True, exist_ok=True)
@@ -857,7 +876,8 @@ def main(argv=None):
             bench_data, bench_entry, _ = load(spec["benchmark"]["dataset"])
             symbol = spec["benchmark"]["symbol"]
             benchmark = {"symbol": symbol, "series": bench_data["prices"][symbol], "entry": bench_entry}
-        run = {"account": run_account_spec, "allocation": run_allocation_spec, "selection": run_selection_spec}.get(spec.get("kind"), run_spec)
+        run = {"account": run_account_spec, "allocation": run_allocation_spec, "selection": run_selection_spec,
+               "timeframe": run_timeframe_spec}.get(spec.get("kind"), run_spec)
         extra = {}
         if spec.get("core"):
             extra["core_data"] = load(spec["core"]["dataset"])[0]
