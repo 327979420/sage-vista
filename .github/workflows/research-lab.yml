@@ -6,6 +6,8 @@ name: Research Lab
 # window (23:30-04:30 UTC); the runner also refuses to publish inside it.
 on:
   schedule:
+    # Right after the 23:30-04:30 UTC EOD window closes, and again later in case GitHub skips a run.
+    - cron: "45 4 * * *"
     - cron: "15 8 * * *"
   workflow_dispatch:
 
