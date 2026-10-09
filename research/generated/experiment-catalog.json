@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-09T14:39:43+00:00",
+  "generated_at": "2026-10-09T15:03:23+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
@@ -8,8 +8,8 @@
   ],
   "experiment_count": 53,
   "summary": {
-    "completed": 35,
-    "in_progress": 18,
+    "completed": 36,
+    "in_progress": 17,
     "candidate": 14,
     "not_validated_or_unstable": 16
   },
@@ -21,6 +21,71 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "lab-e1b-selection-vs-tradable-random-v1-2026-10-10",
+      "created_at": "2026-10-10",
+      "status": "pre_registered",
+      "change": "Corrected selection-skill test: random picks drawn from the stocks SV could actually have picked (SV's tradability floor), price-error stocks removed from both sides, robust trade statistics",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#research-roadmap-2026-10-10",
+        "lab_spec": "research/lab/queue/e1b-selection-vs-tradable-random-v1.json",
+        "pool": "420 sessions of history, close >= $5, close x volume >= $10M on the signal day; stocks with one-day moves above 4x or below -90% excluded",
+        "random_runs": 200,
+        "seed": 20261011,
+        "role": "gate for E2; replaces E1's inconclusive null"
+      },
+      "success_criteria": "Both: SV account Sharpe beats at least 95% of random accounts; per-signal differences winsorized at 1%/99% beat zero with a month-clustered t of at least 2 and a positive median.",
+      "known_limitations": [
+        "same 20-year signal set",
+        "tradability on adjusted prices",
+        "universe of stocks that ever produced an SV signal"
+      ],
+      "human_summary": {
+        "title_zh": "修正版：SV选股对“可交易”随机选股",
+        "family": "quant_lab_portfolio",
+        "family_zh": "量化研究实验室",
+        "question_zh": "随机股票只从SV当天实际能选的股票里抽（≥420天历史、股价≥5美元、成交额≥1000万美元），两边都去掉价格出错的股票；SV还能胜过随机吗？",
+        "result_zh": "已预登记，等待后台自动运行。",
+        "use_zh": "通过才做E2。",
+        "next_zh": "E2或转向市场与行业判断。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-09T14:39:43+00:00",
+        "started_at": null,
+        "completed_at": "2026-10-09T15:03:23+00:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-10-09T15:03:23+00:00",
+        "time_source": "github_actions",
+        "event_count": 2,
+        "events": [
+          {
+            "experiment_id": "lab-e1b-selection-vs-tradable-random-v1-2026-10-10",
+            "event": "registered",
+            "event_at": "2026-10-09T14:39:43+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/e1b-selection-vs-tradable-random-v1.json",
+              "note": "design and success rule frozen before any run"
+            }
+          },
+          {
+            "experiment_id": "lab-e1b-selection-vs-tradable-random-v1-2026-10-10",
+            "event": "completed",
+            "event_at": "2026-10-09T15:03:23+00:00",
+            "time_source": "github_actions",
+            "source_ref": "https://github.com/327979420/sage-vista/actions/runs/37947548062",
+            "details": {
+              "lab_spec": "e1b-selection-vs-tradable-random-v1",
+              "spec_sha256": "92c0196890542092b3c9cbbbc5ce0b8c4cdc4fa749caee791e61c7f6ed141bcf",
+              "result": "research/lab/results/e1b-selection-vs-tradable-random-v1/result.json",
+              "dataset": "observation-2005-2025-v1",
+              "champion": null
+            }
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "lab-e0-core-long-history-v1-2026-10-10",
       "created_at": "2026-10-10",
@@ -180,57 +245,6 @@
             },
             "result": "SV account Sharpe 0.635 (5.1% a year) against 200 random accounts: median 0.485, top 5% 0.688; SV beat 86.5% (needed 95%). Trade level invalid: the random pool included 18 stocks with provider price errors (e.g. MEL, ALT, CLSK), so the random average was +189% per trade; win rate SV 40.8% vs random 43.1%. Same exposure in QQQ: Sharpe 0.72; SPY 0.60; RSP 0.51; IWM 0.39. SV alpha after market, Nasdaq-100 and small-cap tilts 2.9% a year (t 1.95).",
             "decision": "Not passed as registered, but not conclusive: the random pool was wider than SV's own tradable universe (no $5 / $10M floor) and included price-error stocks. Result kept unchanged; corrected version E1b registered before any run. E2 waits for E1b. Notable either way: holding QQQ with SV's exposure pattern did better than SV's picks."
-          }
-        ]
-      }
-    },
-    {
-      "experiment_id": "lab-e1b-selection-vs-tradable-random-v1-2026-10-10",
-      "created_at": "2026-10-10",
-      "status": "pre_registered",
-      "change": "Corrected selection-skill test: random picks drawn from the stocks SV could actually have picked (SV's tradability floor), price-error stocks removed from both sides, robust trade statistics",
-      "specification": {
-        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#research-roadmap-2026-10-10",
-        "lab_spec": "research/lab/queue/e1b-selection-vs-tradable-random-v1.json",
-        "pool": "420 sessions of history, close >= $5, close x volume >= $10M on the signal day; stocks with one-day moves above 4x or below -90% excluded",
-        "random_runs": 200,
-        "seed": 20261011,
-        "role": "gate for E2; replaces E1's inconclusive null"
-      },
-      "success_criteria": "Both: SV account Sharpe beats at least 95% of random accounts; per-signal differences winsorized at 1%/99% beat zero with a month-clustered t of at least 2 and a positive median.",
-      "known_limitations": [
-        "same 20-year signal set",
-        "tradability on adjusted prices",
-        "universe of stocks that ever produced an SV signal"
-      ],
-      "human_summary": {
-        "title_zh": "修正版：SV选股对“可交易”随机选股",
-        "family": "quant_lab_portfolio",
-        "family_zh": "量化研究实验室",
-        "question_zh": "随机股票只从SV当天实际能选的股票里抽（≥420天历史、股价≥5美元、成交额≥1000万美元），两边都去掉价格出错的股票；SV还能胜过随机吗？",
-        "result_zh": "已预登记，等待后台自动运行。",
-        "use_zh": "通过才做E2。",
-        "next_zh": "E2或转向市场与行业判断。",
-        "verdict": "pre_registered"
-      },
-      "lifecycle": {
-        "registered_at": "2026-10-09T14:39:43+00:00",
-        "started_at": null,
-        "completed_at": null,
-        "latest_event": "registered",
-        "latest_event_at": "2026-10-09T14:39:43+00:00",
-        "time_source": "assistant_registration",
-        "event_count": 1,
-        "events": [
-          {
-            "experiment_id": "lab-e1b-selection-vs-tradable-random-v1-2026-10-10",
-            "event": "registered",
-            "event_at": "2026-10-09T14:39:43+00:00",
-            "time_source": "assistant_registration",
-            "details": {
-              "lab_spec": "research/lab/queue/e1b-selection-vs-tradable-random-v1.json",
-              "note": "design and success rule frozen before any run"
-            }
           }
         ]
       }

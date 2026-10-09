@@ -58,6 +58,14 @@
    "dataset": "observation-2005-2025-v1"
   },
   {
+   "spec_id": "e1b-selection-vs-tradable-random-v1",
+   "experiment_id": "lab-e1b-selection-vs-tradable-random-v1-2026-10-10",
+   "group": "E-foundations",
+   "completed_at": "2026-10-09T15:03:23+00:00",
+   "champion": null,
+   "dataset": "observation-2005-2025-v1"
+  },
+  {
    "spec_id": "p1-size-risk-20y-v1",
    "experiment_id": "lab-p1-size-risk-20y-v1-2026-10-08",
    "group": "P-portfolio",

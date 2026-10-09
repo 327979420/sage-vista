@@ -128,6 +128,12 @@ Does SV pick better stocks than chance? Every SV signal is copied with a random 
 
 SV Sharpe 0.6352 beat 86% of random accounts; trade-level excess -187.35% (t -1.001). Selection skill shown: **no**
 
+## e1b-selection-vs-tradable-random-v1 (observation-2005-2025-v1, SV against 200 random-pick accounts)
+
+Corrected selection-skill test: does SV pick better stocks than random picks drawn from the stocks SV could actually have picked that day (at least 420 sessions of history, close of at least $5, at least $10M traded), with stocks that have provider price errors removed from both sides?
+
+SV Sharpe 0.5746 beat 93% of random accounts; trade-level excess 0.08% (t -0.074). Selection skill shown: **no**
+
 ## p1-size-risk-20y-v1 (observation-2005-2025-v1, $100k account 2005-09-12 to 2026-01-16)
 
 Portfolio step 1: with round 2's best selling rule (current stop, no 2R target, 40 days), how big should each position be and how much should each trade and the whole account risk? Settings are taken from the ranges mature programs use, and a rule fixed before the run picks one.
