@@ -522,6 +522,9 @@ def run_selection_spec(spec, data, dataset_entry, cost, benchmark, style_data=No
         # Provider adjustment errors: dropped from both SV's picks and the random pool.
         pool_rules["exclude"] = set(flagged)
         data = {**data, "events": [e for e in data["events"] if e["symbol"] not in pool_rules["exclude"]]}
+    if spec.get("event_filter"):
+        # A pre-registered subset of SV's own signals, e.g. only the higher fixed score groups.
+        data = {**data, "events": [e for e in data["events"] if (e.get("score") or 0) >= spec["event_filter"]["min_score"]]}
     events, sv_trades = [], []
     for _, event, bars, entry_index, result in variant_results({**spec, "variants": [{"id": "SV", **variant}]}, data, cost):
         if result["status"] in ("resolved", "observing"):
@@ -593,6 +596,7 @@ def run_selection_spec(spec, data, dataset_entry, cost, benchmark, style_data=No
                          "final_equity": dist("final_equity"), "sv_beats_share_sharpe": beat("sharpe", lambda a, b: (a or -9) > (b or -9)),
                          "sv_beats_share_cagr": beat("cagr", lambda a, b: a > b)},
               "pool": {**{k: v for k, v in pool_rules.items() if k != "exclude"}, "excluded_symbols": flagged},
+              "event_filter": spec.get("event_filter"), "signals_used": len(events),
               "trade_level": {"signals": len(diffs), "mean_excess_vs_random": round(mean_diff, 6), "t_monthly": round(t_diff, 3),
                               "statistic": "winsorized at 1%/99%" if robust else "mean", "raw_mean_excess": round(raw_mean_diff, 6),
                               "median_excess": round(median_diff, 6),

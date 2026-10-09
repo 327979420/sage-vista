@@ -1342,5 +1342,6 @@
 ### CR-2026-10-10c｜E6模拟账户
 
 - 依据：研究路线修订中“从现在起积累真正未见数据”的建议，用户同意今晚推进。
-- 交付：`research/lab/forward.py` 与 `research/lab/forward/config.json`（SPY、永久组合、永久组合＋5%现金、60/40，2026-10-12起）；`research-lab.yml` 新增每日前向记录步骤（EOD窗口内不发布）；只增不改的 `history.jsonl` 与每次重算的 `latest.json`；08模块1.40.0。
+- 结论：E1b未通过（SV选股本事未被证明，E2不做）；E3的三份趋势调整按预登记算改进但增长更慢，加入模拟账户并排；E4未通过。预登记E5a（45分及以上信号对可交易随机）。
+- 交付：`research/lab/forward.py` 与 `research/lab/forward/config.json`（SPY、永久组合、永久组合＋5%现金、60/40、E3候选，2026-10-12起）；`research-lab.yml` 新增每日前向记录步骤（EOD窗口内不发布）；只增不改的 `history.jsonl` 与每次重算的 `latest.json`；08模块1.40.0。
 - 验证：新增起始日前不记录、同日只记一次、重算覆盖最新的测试。不改生产评分、排名、交易规则、数据生产或public/数据。

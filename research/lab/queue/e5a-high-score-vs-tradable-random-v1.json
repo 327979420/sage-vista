@@ -1,0 +1,89 @@
+{
+ "id": "e5a-high-score-vs-tradable-random-v1",
+ "experiment_id": "lab-e5a-high-score-vs-tradable-random-v1-2026-10-10",
+ "kind": "selection",
+ "priority": 3,
+ "question": "Do SV's higher-scored signals pick better stocks than chance? Only signals in the fixed score groups of 45 and above (519 of 3,115) are traded, against random picks from the stocks SV could actually have picked that day.",
+ "dataset": {
+  "id": "observation-2005-2025-v1",
+  "builder": "observation",
+  "events_csv": "research/backtest/output/reusable-runs/34766761296-2/trades.csv"
+ },
+ "benchmark": {
+  "symbol": "SPY",
+  "dataset": {
+   "id": "etf-style-1999-to-2026-10-v1",
+   "builder": "symbols",
+   "symbols": [
+    "SPY",
+    "QQQ",
+    "IWM",
+    "RSP"
+   ],
+   "start": "1999-01-01"
+  }
+ },
+ "style": {
+  "dataset": {
+   "id": "etf-style-1999-to-2026-10-v1",
+   "builder": "symbols",
+   "symbols": [
+    "SPY",
+    "QQQ",
+    "IWM",
+    "RSP"
+   ],
+   "start": "1999-01-01"
+  },
+  "symbols": [
+   "SPY",
+   "QQQ",
+   "IWM",
+   "RSP"
+  ]
+ },
+ "window": {
+  "start": "2005-09-12",
+  "end": "2026-01-16"
+ },
+ "group": "E-foundations",
+ "cost_per_side": 0.001,
+ "exit": {
+  "stop": {
+   "kind": "support_cap",
+   "buffer": 0.05,
+   "cap": 0.1
+  },
+  "targets": [],
+  "max_hold": 40
+ },
+ "account": {
+  "risk_per_trade": 0.005,
+  "position_cap": 0.05,
+  "max_positions": 10,
+  "heat_cap": 0.1
+ },
+ "random_runs": 200,
+ "seed": 20261012,
+ "criteria": {
+  "min_random_percentile": 0.95,
+  "min_trade_excess_t": 2.0,
+  "trade_stat": "winsorized"
+ },
+ "next_step": "If the high-score signals pass: E2 with only those signals filling the core's 25% stock slice. If not: SV's stock picks are not used for the account; SV stays a market-information and watch-list tool while research looks for a different edge.",
+ "notes": [
+  "The score groups (<30, 30-45, 45-60, >=60) were fixed in the 2026-09-13 selection-observation rules, before any of these results; >=60 has only 21 signals, so 45 and above (498 + 21) is the high group.",
+  "Pre-registered success, same as E1b: SV's account Sharpe beats at least 95% of 200 random accounts on the same days; winsorized per-signal differences beat zero with a month-clustered t of at least 2 and a positive median.",
+  "Same tradable random pool, price-error exclusion, account, exit, window and style check as E1b; new seed (20261012).",
+  "With about 25 signals a year the account is mostly idle, so account statistics are noisier than in E1b; the trade-level check carries more of the weight."
+ ],
+ "pool": {
+  "min_history": 420,
+  "min_close": 5.0,
+  "min_dollar_volume": 10000000.0,
+  "exclude_impossible_jumps": true
+ },
+ "event_filter": {
+  "min_score": 45
+ }
+}
