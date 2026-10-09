@@ -127,11 +127,13 @@
  },
  "next_step": "A family that passes goes to the forward paper accounts as an SV satellite inside the core (E2 with timeframe rules), forward only. Leads by timeframe, market state or sector are confirmed on the live model's ledger and the forward record before any use. If nothing passes, SV's opportunities are not traded for the account under any of the tested holding rules.",
  "notes": [
+  "PAUSED 2026-10-09 before any run: the design conflicts with docs/rules/09_RISK_AND_EXECUTION.md (daily-first stops 2% below the daily support zone, no wider single-trade risk for weekly or monthly opportunities, approved holding windows by dominant timeframe). It will be redesigned with the user and re-registered under a new id; this spec never runs.",
   "The user asked (2026-10-10) to trade each opportunity by its own level, holding a monthly one for at least three monthly bars, with no 2R target, and to learn from other trading systems.",
   "Holding: short = 20 days / 5 weeks / 3 months; medium = 40 days / 10 weeks / 6 months; long = 60 days / 20 weeks / 12 months (sessions 20/25/63, 40/50/126, 60/100/252). trend-slow sells at the next open after a daily close below the prior 20-day low (Turtle System 2), a weekly close below the 30-week average (Weinstein) or a monthly close below the 10-month average (Faber); trend-fast after a daily close below the 50-day average (O'Neil, Minervini), a weekly close below the 10-week average (O'Neil) or a month-end close below the close 12 months earlier (time-series momentum); both cap at two years.",
   "Every family also sells at the next open after a close of the opportunity's own timeframe below its structure floor (from the frozen observation receipt), and intraday at a 25% disaster stop. No profit target.",
   "Random null: same signal day and order, a random stock from SV's tradable pool that day (420 sessions, close >= $5, >= $10M traded), the same holding rule, a floor the same percentage below its own signal-day close, the same disaster stop. Price-error stocks are removed from both sides.",
   "Account: risk 0.5% per trade measured to the nearer of the floor and the disaster stop, at most 5% per stock and 10 stocks, total open risk 10%; signals open on 2026-10-06 stay in the account at their last close and are left out of the trade comparison.",
   "Five families are tested, so a family passes only if SV's account beats at least 99% of random accounts and its trades beat same-day random trades with a month-clustered t of at least 2.6 (winsorized mean and median both positive). Splits by timeframe, market trend (SPY vs its 200-day average), market volatility and sector (today's labels, research only) are exploratory; a group with at least 100 signals and t of at least 3 is a lead to confirm on unseen data, not a rule."
- ]
+ ],
+ "not_before": "2099-01-01"
 }
