@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-09T22:34:48+00:00",
+  "generated_at": "2026-10-09T23:08:49+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
@@ -66,10 +66,10 @@
         "registered_at": "2026-10-09T22:34:48+00:00",
         "started_at": null,
         "completed_at": null,
-        "latest_event": "registered",
-        "latest_event_at": "2026-10-09T22:34:48+00:00",
-        "time_source": "assistant_registration",
-        "event_count": 1,
+        "latest_event": "blocked",
+        "latest_event_at": "2026-10-09T23:08:49+00:00",
+        "time_source": "assistant_review",
+        "event_count": 2,
         "events": [
           {
             "experiment_id": "lab-e7-timeframe-holding-v1-2026-10-10",
@@ -79,6 +79,15 @@
             "details": {
               "lab_spec": "research/lab/queue/e7-timeframe-holding-v1.json",
               "note": "design and success rule frozen before any run; user asked for timeframe-matched holding and mature-system exits on 2026-10-10"
+            }
+          },
+          {
+            "experiment_id": "lab-e7-timeframe-holding-v1-2026-10-10",
+            "event": "blocked",
+            "event_at": "2026-10-09T23:08:49+00:00",
+            "time_source": "assistant_review",
+            "details": {
+              "note": "paused before any run: conflicts with 09 rules (daily-first stop 2% below the daily chip-density support zone; weekly/monthly opportunities may get more time but not wider single-trade risk; approved windows daily about 20 days, weekly 15-60 days, monthly 60-120 days). To be redesigned with the user."
             }
           }
         ]
