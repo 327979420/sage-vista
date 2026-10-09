@@ -686,6 +686,30 @@ class SelectionTests(unittest.TestCase):
         self.assertIn("random-pick accounts", markdown)
 
 
+class ForwardTests(unittest.TestCase):
+    def test_forward_accounts_start_on_the_registered_date_and_log_each_day_once(self):
+        from research.lab import forward
+        days = trading_days(600, dt.date(2025, 1, 2))
+        prices = {}
+        for k, s in enumerate(("SPY", "TLT", "GLD", "SHY", "AGG")):
+            bars = walk(9100 + k, n=600, drift=0.0002, vol=0.008)
+            prices[s] = {"date": days, **{f: [b[f] for b in bars] for f in ("open", "high", "low", "close")}}
+        config = json.loads((ROOT / "research/lab/forward/config.json").read_text())
+        config = {**config, "start": days[500]}
+        self.assertIsNone(forward.compute(config, prices, as_of_limit=days[499]))
+        snap = forward.compute(config, prices)
+        self.assertEqual((snap["as_of"], snap["sessions"]), (days[-1], 100))
+        self.assertEqual(set(snap["portfolios"]), {p["id"] for p in config["portfolios"]})
+        with tempfile.TemporaryDirectory() as folder:
+            forward.write(folder, config, snap, "t1")
+            forward.write(folder, config, snap, "t2")  # same day again: logged once
+            later = forward.compute(config, {k: {f: v[:-1] if isinstance(v, list) else v for f, v in s.items()} for k, s in prices.items()})
+            forward.write(folder, config, later, "t3")
+            lines = (pathlib.Path(folder) / "research/lab/forward/history.jsonl").read_text().splitlines()
+            self.assertEqual([json.loads(l)["as_of"] for l in lines], [days[-1], days[-2]])
+            self.assertEqual(json.loads((pathlib.Path(folder) / "research/lab/forward/latest.json").read_text())["computed_at"], "t3")
+
+
 def statistics_cdf(x):
     return 0.5 * (1 + math.erf(x / math.sqrt(2)))
 

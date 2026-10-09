@@ -506,29 +506,49 @@
    "family": "quant_lab_portfolio",
    "family_zh": "量化研究实验室",
    "question_zh": "随机股票只从SV当天实际能选的股票里抽（≥420天历史、股价≥5美元、成交额≥1000万美元），两边都去掉价格出错的股票；SV还能胜过随机吗？",
-   "result_zh": "已预登记，等待后台自动运行。",
-   "use_zh": "通过才做E2。",
-   "next_zh": "E2或转向市场与行业判断。",
-   "verdict": "pre_registered"
+   "result_zh": "去掉18只价格出错的股票后：SV账户Sharpe 0.575，胜过93%的可交易随机账户（要求95%）；逐笔与随机几乎一样（中位数反而低2.2%），胜率41%对45%。同样投入持有QQQ的Sharpe 0.73。",
+   "use_zh": "未通过：SV在它能选的股票里，选股本事没有被证明。不做E2。",
+   "next_zh": "E5a：只看45分以上的信号。",
+   "verdict": "not_validated"
   },
   "lab-e3-graded-exposure-v1-2026-10-10": {
    "title_zh": "渐进调整股票比例（趋势与波动）",
    "family": "quant_lab_portfolio",
    "family_zh": "量化研究实验室",
    "question_zh": "市场转坏时按已发表的规则一步步降低股票（及长债、黄金）比例，能否减少大跌又不降低风险收益比？",
-   "result_zh": "已预登记，等待后台自动运行。",
-   "use_zh": "只有Calmar更高、Sharpe不降、回撤≤25%才替换固定核心。",
-   "next_zh": "改进则加入模拟账户。",
-   "verdict": "pre_registered"
+   "result_zh": "1993—2026：对股票、长债、黄金三份都按1/3/12个月趋势逐步调整，最大回撤从18.4%降到11.5%，Sharpe 1.10→1.16，但年化从7.5%降到5.8%，最差的5年只赚2.7%。只调股票那一份的做法都没有改进。",
+   "use_zh": "按事先规则算改进，但增长更慢；放进模拟账户与固定核心并排跑，不直接替换。",
+   "next_zh": "E6模拟账户里对比。",
+   "verdict": "candidate"
   },
   "lab-e4-sector-rotation-v1-2026-10-10": {
    "title_zh": "行业ETF轮动",
    "family": "quant_lab_portfolio",
    "family_zh": "量化研究实验室",
    "question_zh": "每月持有9个行业里最强的3个，单独看和作为核心的25%股票部分，能否胜过直接持有SPY？",
+   "result_zh": "行业前3名轮动Sharpe 0.57，不如SPY（0.63）和等权行业（0.62）；放进核心里Sharpe 0.93，也不如用SPY（1.03）。",
+   "use_zh": "不采用。",
+   "next_zh": "—",
+   "verdict": "not_validated"
+  },
+  "lab-e6-forward-paper-v1-2026-10-10": {
+   "title_zh": "模拟账户：从2026-10-12起每天记录",
+   "family": "quant_lab_portfolio",
+   "family_zh": "量化研究实验室",
+   "question_zh": "SPY、永久组合、永久组合＋5%现金、60/40，以及E3候选（三份都按趋势调整），在规则定好之后的真实未来里表现如何？",
+   "result_zh": "已预登记，从2026-10-12起由后台每天记录。",
+   "use_zh": "每季度复核；至少满12个月才下结论。",
+   "next_zh": "E2/E3/E4的胜出者可另设起始日加入。",
+   "verdict": "pre_registered"
+  },
+  "lab-e5a-high-score-vs-tradable-random-v1-2026-10-10": {
+   "title_zh": "SV高分信号（45分以上）对可交易随机选股",
+   "family": "quant_lab_portfolio",
+   "family_zh": "量化研究实验室",
+   "question_zh": "只用45分及以上的SV信号（519个），能否胜过同一天可交易的随机股票？",
    "result_zh": "已预登记，等待后台自动运行。",
-   "use_zh": "只有核心的Sharpe提高且回撤≤25%才替换SPY。",
-   "next_zh": "改进则加入模拟账户。",
+   "use_zh": "通过则只用高分信号做E2；不通过则SV选股不进账户。",
+   "next_zh": "E2或SV转为信息工具。",
    "verdict": "pre_registered"
   }
  }

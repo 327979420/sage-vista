@@ -1,0 +1,106 @@
+{
+ "id": "forward-v1",
+ "experiment_id": "lab-e6-forward-paper-v1-2026-10-10",
+ "registered": "2026-10-10",
+ "start": "2026-10-12",
+ "initial_cash": 100000,
+ "cost_per_side": 0.001,
+ "history_from": "2025-01-01",
+ "calendar": "SPY",
+ "portfolios": [
+  {
+   "id": "SPY",
+   "label": "S&P 500 only (benchmark)",
+   "rule": "static",
+   "rebalance": "annual",
+   "weights": {
+    "SPY": 1.0
+   }
+  },
+  {
+   "id": "PERM",
+   "label": "Permanent Portfolio, 25% each (confirmed core)",
+   "rule": "static",
+   "rebalance": "annual",
+   "weights": {
+    "SPY": 0.25,
+    "TLT": 0.25,
+    "GLD": 0.25,
+    "SHY": 0.25
+   }
+  },
+  {
+   "id": "PERM-CASH5",
+   "label": "Permanent core with a 5% cash reserve (in short-term Treasuries)",
+   "rule": "static",
+   "rebalance": "annual",
+   "weights": {
+    "SPY": 0.2375,
+    "TLT": 0.2375,
+    "GLD": 0.2375,
+    "SHY": 0.2875
+   }
+  },
+  {
+   "id": "6040",
+   "label": "60/40 stocks and bonds",
+   "rule": "static",
+   "rebalance": "annual",
+   "weights": {
+    "SPY": 0.6,
+    "AGG": 0.4
+   }
+  },
+  {
+   "id": "PERM-ALL-TSMOM",
+   "label": "Permanent core with stocks, long bonds and gold each stepped by 1/3/12-month trend (E3 candidate)",
+   "rule": "overlay",
+   "rebalance": "monthly",
+   "weights": {
+    "SPY": 0.25,
+    "TLT": 0.25,
+    "GLD": 0.25,
+    "SHY": 0.25
+   },
+   "cash": "SHY",
+   "overlay": {
+    "SPY": {
+     "trend": {
+      "kind": "tsmom",
+      "lookbacks_months": [
+       1,
+       3,
+       12
+      ]
+     }
+    },
+    "TLT": {
+     "trend": {
+      "kind": "tsmom",
+      "lookbacks_months": [
+       1,
+       3,
+       12
+      ]
+     }
+    },
+    "GLD": {
+     "trend": {
+      "kind": "tsmom",
+      "lookbacks_months": [
+       1,
+       3,
+       12
+      ]
+     }
+    }
+   }
+  }
+ ],
+ "notes": [
+  "Registered on 2026-10-10 before any forward price existed; starts with the first session on or after 2026-10-12.",
+  "Same simulation as the lab's proven-portfolio tests: month-end signals, trades at the next session, 0.1% per side, adjusted prices.",
+  "New portfolios (for example an E3 or E4 winner) may be added later with their own start date; existing lines are never removed or restarted.",
+  "PERM-ALL-TSMOM added on 2026-10-10, before the start, as E3's improvement candidate; it runs next to the fixed core and replaces nothing until the forward record agrees."
+ ]
+}
