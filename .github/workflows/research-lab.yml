@@ -45,6 +45,8 @@ jobs:
           work/vectorbt-env/bin/python -m unittest tests.test_research_lab.AccountTests
       - name: Run pending experiments and publish results
         run: python3 -m research.lab.run_queue --publish --max-specs 3
+      - name: Update the forward paper accounts
+        run: python3 -m research.lab.forward --publish
       - name: Summarise
         if: always()
         run: |

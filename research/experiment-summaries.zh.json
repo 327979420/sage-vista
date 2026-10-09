@@ -530,6 +530,16 @@
    "use_zh": "只有核心的Sharpe提高且回撤≤25%才替换SPY。",
    "next_zh": "改进则加入模拟账户。",
    "verdict": "pre_registered"
+  },
+  "lab-e6-forward-paper-v1-2026-10-10": {
+   "title_zh": "模拟账户：从2026-10-12起每天记录",
+   "family": "quant_lab_portfolio",
+   "family_zh": "量化研究实验室",
+   "question_zh": "SPY、永久组合、永久组合＋5%现金、60/40四个账户，在规则定好之后的真实未来里表现如何？",
+   "result_zh": "已预登记，从2026-10-12起由后台每天记录。",
+   "use_zh": "每季度复核；至少满12个月才下结论。",
+   "next_zh": "E2/E3/E4的胜出者可另设起始日加入。",
+   "verdict": "pre_registered"
   }
  }
 }

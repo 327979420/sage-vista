@@ -6,10 +6,10 @@
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 53,
+  "experiment_count": 54,
   "summary": {
     "completed": 38,
-    "in_progress": 15,
+    "in_progress": 16,
     "candidate": 14,
     "not_validated_or_unstable": 16
   },
@@ -214,6 +214,59 @@
               "result": "research/lab/results/e1b-selection-vs-tradable-random-v1/result.json",
               "dataset": "observation-2005-2025-v1",
               "champion": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "lab-e6-forward-paper-v1-2026-10-10",
+      "created_at": "2026-10-10",
+      "status": "pre_registered_forward_only",
+      "change": "Forward paper accounts: SPY, the Permanent core, the core with a 5% cash reserve and 60/40, tracked daily on live prices from 2026-10-12",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#research-roadmap-2026-10-10",
+        "config": "research/lab/forward/config.json",
+        "outputs": [
+          "research/lab/forward/latest.json (recomputed each run)",
+          "research/lab/forward/history.jsonl (append-only, one line per as-of date)"
+        ],
+        "start": "2026-10-12",
+        "role": "the only data nobody had seen when the rules were fixed"
+      },
+      "success_criteria": "Reviewed quarterly; no pass or fail before at least 12 months. Compared with the backtest's expected range (Sharpe, worst fall) and with SPY.",
+      "known_limitations": [
+        "daily runs depend on GitHub's scheduler and can be late or skipped; history.jsonl then has gaps, latest.json still covers every session",
+        "adjusted prices can be revised; history.jsonl keeps the values as recorded",
+        "no SV stocks yet; candidates from E2/E3/E4 may be added with their own start dates"
+      ],
+      "human_summary": {
+        "title_zh": "模拟账户：从2026-10-12起每天记录",
+        "family": "quant_lab_portfolio",
+        "family_zh": "量化研究实验室",
+        "question_zh": "SPY、永久组合、永久组合＋5%现金、60/40四个账户，在规则定好之后的真实未来里表现如何？",
+        "result_zh": "已预登记，从2026-10-12起由后台每天记录。",
+        "use_zh": "每季度复核；至少满12个月才下结论。",
+        "next_zh": "E2/E3/E4的胜出者可另设起始日加入。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-09T14:54:08+00:00",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-10-09T14:54:08+00:00",
+        "time_source": "assistant_registration",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "lab-e6-forward-paper-v1-2026-10-10",
+            "event": "registered",
+            "event_at": "2026-10-09T14:54:08+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "config": "research/lab/forward/config.json",
+              "note": "portfolios and start date fixed before any forward price existed"
             }
           }
         ]
@@ -4306,6 +4359,7 @@
     "lab-e1b-selection-vs-tradable-random-v1-2026-10-10",
     "lab-e3-graded-exposure-v1-2026-10-10",
     "lab-e4-sector-rotation-v1-2026-10-10",
+    "lab-e6-forward-paper-v1-2026-10-10",
     "lab-p1-size-risk-20y-v1-2026-10-08",
     "macd-rollout-04-double-chip-confirmation-2026-08-25",
     "multi-factor-count-resonance-v1.0.0-2026-08-30",
