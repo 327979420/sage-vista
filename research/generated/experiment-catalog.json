@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-09T15:07:19+00:00",
+  "generated_at": "2026-10-09T15:24:48+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
@@ -8,8 +8,8 @@
   ],
   "experiment_count": 55,
   "summary": {
-    "completed": 38,
-    "in_progress": 17,
+    "completed": 39,
+    "in_progress": 16,
     "candidate": 15,
     "not_validated_or_unstable": 18
   },
@@ -21,6 +21,70 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "lab-e5a-high-score-vs-tradable-random-v1-2026-10-10",
+      "created_at": "2026-10-10",
+      "status": "pre_registered",
+      "change": "Selection skill of SV's higher-scored signals (fixed groups 45 and above) against tradable random picks on the same days",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#research-roadmap-2026-10-10",
+        "lab_spec": "research/lab/queue/e5a-high-score-vs-tradable-random-v1.json",
+        "signals": "score >= 45 (519 of 3,115)",
+        "random_runs": 200,
+        "seed": 20261012
+      },
+      "success_criteria": "Same as E1b: account Sharpe beats at least 95% of random accounts; winsorized per-signal differences with month-clustered t of at least 2 and a positive median.",
+      "known_limitations": [
+        "about 25 signals a year, so the account is mostly idle",
+        "score groups fixed earlier but the same signals were described before (cr056 observation)",
+        "same 20-year signal set"
+      ],
+      "human_summary": {
+        "title_zh": "SV高分信号（45分以上）对可交易随机选股",
+        "family": "quant_lab_portfolio",
+        "family_zh": "量化研究实验室",
+        "question_zh": "只用45分及以上的SV信号（519个），能否胜过同一天可交易的随机股票？",
+        "result_zh": "已预登记，等待后台自动运行。",
+        "use_zh": "通过则只用高分信号做E2；不通过则SV选股不进账户。",
+        "next_zh": "E2或SV转为信息工具。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-09T15:07:19+00:00",
+        "started_at": null,
+        "completed_at": "2026-10-09T15:24:48+00:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-10-09T15:24:48+00:00",
+        "time_source": "github_actions",
+        "event_count": 2,
+        "events": [
+          {
+            "experiment_id": "lab-e5a-high-score-vs-tradable-random-v1-2026-10-10",
+            "event": "registered",
+            "event_at": "2026-10-09T15:07:19+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/e5a-high-score-vs-tradable-random-v1.json",
+              "note": "score threshold from groups fixed on 2026-09-13; design and success rule frozen before any run"
+            }
+          },
+          {
+            "experiment_id": "lab-e5a-high-score-vs-tradable-random-v1-2026-10-10",
+            "event": "completed",
+            "event_at": "2026-10-09T15:24:48+00:00",
+            "time_source": "github_actions",
+            "source_ref": "https://github.com/327979420/sage-vista/actions/runs/37951151757",
+            "details": {
+              "lab_spec": "e5a-high-score-vs-tradable-random-v1",
+              "spec_sha256": "571bfcc0a5eb4ceb5f6b0a678251d17ad04865410fbffd879346c977abf40d3f",
+              "result": "research/lab/results/e5a-high-score-vs-tradable-random-v1/result.json",
+              "dataset": "observation-2005-2025-v1",
+              "champion": null
+            }
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "lab-e1b-selection-vs-tradable-random-v1-2026-10-10",
       "created_at": "2026-10-10",
@@ -313,56 +377,6 @@
             "details": {
               "config": "research/lab/forward/config.json",
               "note": "E3 candidate PERM-ALL-TSMOM added before the 2026-10-12 start"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "experiment_id": "lab-e5a-high-score-vs-tradable-random-v1-2026-10-10",
-      "created_at": "2026-10-10",
-      "status": "pre_registered",
-      "change": "Selection skill of SV's higher-scored signals (fixed groups 45 and above) against tradable random picks on the same days",
-      "specification": {
-        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#research-roadmap-2026-10-10",
-        "lab_spec": "research/lab/queue/e5a-high-score-vs-tradable-random-v1.json",
-        "signals": "score >= 45 (519 of 3,115)",
-        "random_runs": 200,
-        "seed": 20261012
-      },
-      "success_criteria": "Same as E1b: account Sharpe beats at least 95% of random accounts; winsorized per-signal differences with month-clustered t of at least 2 and a positive median.",
-      "known_limitations": [
-        "about 25 signals a year, so the account is mostly idle",
-        "score groups fixed earlier but the same signals were described before (cr056 observation)",
-        "same 20-year signal set"
-      ],
-      "human_summary": {
-        "title_zh": "SV高分信号（45分以上）对可交易随机选股",
-        "family": "quant_lab_portfolio",
-        "family_zh": "量化研究实验室",
-        "question_zh": "只用45分及以上的SV信号（519个），能否胜过同一天可交易的随机股票？",
-        "result_zh": "已预登记，等待后台自动运行。",
-        "use_zh": "通过则只用高分信号做E2；不通过则SV选股不进账户。",
-        "next_zh": "E2或SV转为信息工具。",
-        "verdict": "pre_registered"
-      },
-      "lifecycle": {
-        "registered_at": "2026-10-09T15:07:19+00:00",
-        "started_at": null,
-        "completed_at": null,
-        "latest_event": "registered",
-        "latest_event_at": "2026-10-09T15:07:19+00:00",
-        "time_source": "assistant_registration",
-        "event_count": 1,
-        "events": [
-          {
-            "experiment_id": "lab-e5a-high-score-vs-tradable-random-v1-2026-10-10",
-            "event": "registered",
-            "event_at": "2026-10-09T15:07:19+00:00",
-            "time_source": "assistant_registration",
-            "details": {
-              "lab_spec": "research/lab/queue/e5a-high-score-vs-tradable-random-v1.json",
-              "note": "score threshold from groups fixed on 2026-09-13; design and success rule frozen before any run"
             }
           }
         ]

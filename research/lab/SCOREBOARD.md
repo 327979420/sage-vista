@@ -151,6 +151,12 @@ Corrected selection-skill test: does SV pick better stocks than random picks dra
 
 SV Sharpe 0.5746 beat 93% of random accounts; trade-level excess 0.08% (t -0.074). Selection skill shown: **no**
 
+## e5a-high-score-vs-tradable-random-v1 (observation-2005-2025-v1, SV against 200 random-pick accounts)
+
+Do SV's higher-scored signals pick better stocks than chance? Only signals in the fixed score groups of 45 and above (519 of 3,115) are traded, against random picks from the stocks SV could actually have picked that day.
+
+SV Sharpe 0.0867 beat 10% of random accounts; trade-level excess -1.02% (t -1.383). Selection skill shown: **no**
+
 ## e4-sector-rotation-v1 (sector-etf-1998-to-2026-10-v1, $100k account 2005-12-01 to 2026-01-16)
 
 Does holding the strongest US sectors (industry momentum) beat holding the whole market, on its own and as the 25% stock slice of the core? Sector funds have no survivorship problem and full daily history, so this tests SV's 'sector strength' idea cleanly with price momentum as the measure.

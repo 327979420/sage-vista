@@ -1,0 +1,169 @@
+{
+ "spec_id": "e5a-high-score-vs-tradable-random-v1",
+ "experiment_id": "lab-e5a-high-score-vs-tradable-random-v1-2026-10-10",
+ "group": "E-foundations",
+ "question": "Do SV's higher-scored signals pick better stocks than chance? Only signals in the fixed score groups of 45 and above (519 of 3,115) are traded, against random picks from the stocks SV could actually have picked that day.",
+ "kind": "selection",
+ "dataset": {
+  "dataset_id": "observation-2005-2025-v1",
+  "asset": "observation-2005-2025-v1-d5262d06cb38.json.gz",
+  "sha256": "d5262d06cb381463188d010272813150cd6667fe6371ae4911e4836eb7bebd6d",
+  "events": 3115,
+  "symbols": 1223
+ },
+ "benchmark": {
+  "symbol": "SPY",
+  "dataset_id": "etf-style-1999-to-2026-10-v1",
+  "asset": "etf-style-1999-to-2026-10-v1-afd785df831d.json.gz",
+  "sha256": "afd785df831dd0d289d348d3cc9d32b5861bd1ae1a9753dceeacbe2b24122e11"
+ },
+ "window": {
+  "start": "2005-09-12",
+  "end": "2026-01-16",
+  "sessions": 5120
+ },
+ "cost_per_side": 0.001,
+ "account_rules": {
+  "risk_per_trade": 0.005,
+  "position_cap": 0.05,
+  "max_positions": 10,
+  "heat_cap": 0.1
+ },
+ "exit": {
+  "stop": {
+   "kind": "support_cap",
+   "buffer": 0.05,
+   "cap": 0.1
+  },
+  "targets": [],
+  "max_hold": 40
+ },
+ "criteria": {
+  "min_random_percentile": 0.95,
+  "min_trade_excess_t": 2.0,
+  "trade_stat": "winsorized"
+ },
+ "sv": {
+  "final_equity": 105464.96,
+  "total_return": 0.05465,
+  "cagr": 0.002619,
+  "max_drawdown": 0.160732,
+  "sharpe": 0.0867,
+  "sortino": 0.1201,
+  "calmar": 0.0163,
+  "daily_sharpe": 0.00546319,
+  "skew": -0.4063,
+  "kurtosis": 18.6417,
+  "sessions": 5120,
+  "trades_taken": 484,
+  "average_exposure": 0.1171,
+  "calendar_mismatches": 0,
+  "stale_valuations": 0,
+  "sold_when_prices_ended": 0
+ },
+ "random": {
+  "runs": 200,
+  "seed": 20261012,
+  "sharpe": {
+   "p5": 0.041,
+   "median": 0.2743,
+   "p95": 0.4968
+  },
+  "cagr": {
+   "p5": 0.000831,
+   "median": 0.010166,
+   "p95": 0.019633
+  },
+  "max_drawdown": {
+   "p5": 0.132343,
+   "median": 0.175281,
+   "p95": 0.216199
+  },
+  "final_equity": {
+   "p5": 101704.12,
+   "median": 122849.36,
+   "p95": 148522.25
+  },
+  "sv_beats_share_sharpe": 0.1,
+  "sv_beats_share_cagr": 0.1
+ },
+ "pool": {
+  "min_history": 420,
+  "min_close": 5.0,
+  "min_dollar_volume": 10000000.0,
+  "excluded_symbols": [
+   "ALT",
+   "APLD",
+   "CAPR",
+   "CATX",
+   "CHRD",
+   "CLSK",
+   "COGT",
+   "CYTK",
+   "LDOS",
+   "MDXG",
+   "MEL",
+   "PSKY",
+   "QNRX",
+   "QRVO",
+   "SYRE",
+   "VNDA",
+   "WFRD",
+   "WT"
+  ]
+ },
+ "event_filter": {
+  "min_score": 45
+ },
+ "signals_used": 513,
+ "trade_level": {
+  "signals": 513,
+  "mean_excess_vs_random": -0.010162,
+  "t_monthly": -1.383,
+  "statistic": "winsorized at 1%/99%",
+  "raw_mean_excess": -0.007884,
+  "median_excess": -0.02962,
+  "sv_mean": 0.002601,
+  "random_mean": 0.010484,
+  "sv_win_rate": 0.3723,
+  "random_win_rate": 0.4373
+ },
+ "style": {
+  "same_exposure": {
+   "SPY": {
+    "same_exposure_sharpe": 0.2852
+   },
+   "QQQ": {
+    "same_exposure_sharpe": 0.3955
+   },
+   "IWM": {
+    "same_exposure_sharpe": 0.2468
+   },
+   "RSP": {
+    "same_exposure_sharpe": 0.2581
+   }
+  },
+  "regression": {
+   "alpha_annual": -0.004182,
+   "alpha_t": -0.54,
+   "betas": {
+    "SPY": 0.07,
+    "QQQ-SPY": -0.0034,
+    "IWM-SPY": 0.0738
+   }
+  }
+ },
+ "verdict": {
+  "checks": {
+   "beats_random_accounts": false,
+   "trades_beat_random_same_day": false
+  },
+  "passed": false
+ },
+ "champion": null,
+ "chosen": null,
+ "next_step": "If the high-score signals pass: E2 with only those signals filling the core's 25% stock slice. If not: SV's stock picks are not used for the account; SV stays a market-information and watch-list tool while research looks for a different edge.",
+ "spec_sha256": "571bfcc0a5eb4ceb5f6b0a678251d17ad04865410fbffd879346c977abf40d3f",
+ "completed_at": "2026-10-09T15:24:48+00:00",
+ "code_commit": "df2f0d7b0fa0cc3037206f380ad0700a8bed13e2"
+}

@@ -74,6 +74,14 @@
    "dataset": "observation-2005-2025-v1"
   },
   {
+   "spec_id": "e5a-high-score-vs-tradable-random-v1",
+   "experiment_id": "lab-e5a-high-score-vs-tradable-random-v1-2026-10-10",
+   "group": "E-foundations",
+   "completed_at": "2026-10-09T15:24:48+00:00",
+   "champion": null,
+   "dataset": "observation-2005-2025-v1"
+  },
+  {
    "spec_id": "e4-sector-rotation-v1",
    "experiment_id": "lab-e4-sector-rotation-v1-2026-10-10",
    "group": "E-sectors",
