@@ -151,6 +151,23 @@ Corrected selection-skill test: does SV pick better stocks than random picks dra
 
 SV Sharpe 0.5746 beat 93% of random accounts; trade-level excess 0.08% (t -0.074). Selection skill shown: **no**
 
+## e4-sector-rotation-v1 (sector-etf-1998-to-2026-10-v1, $100k account 2005-12-01 to 2026-01-16)
+
+Does holding the strongest US sectors (industry momentum) beat holding the whole market, on its own and as the 25% stock slice of the core? Sector funds have no survivorship problem and full daily history, so this tests SV's 'sector strength' idea cleanly with price momentum as the measure.
+
+| Rule | CAGR | Max drawdown | Sharpe | Calmar | CAGR vs SPY | Invested | Trades | Luck check: median Sharpe | Luck check: worst-5% CAGR | Deflated Sharpe | Passed |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SPY buy and hold | 10.9% | 55.2% | 0.63 | 0.20 | — | 100% | — | — | — | — | benchmark |
+| SPY S&P 500 (benchmark) | 10.9% | 55.2% | 0.63 | 0.20 | 0.0% | 100% | 22 | — | — | 0.95 | no |
+| EW9 Nine sector funds, equal weight, rebalanced monthly | 10.3% | 53.5% | 0.62 | 0.19 | -0.6% | 100% | 242 | — | — | 0.95 | no |
+| ROT Top 3 of 9 sectors by average 3/6/12-month return, rebalanced monthly | 9.1% | 46.8% | 0.57 | 0.20 | -1.8% | 100% | 242 | — | — | 0.91 | no |
+| ROT-ABS Same, but a pick is held only if it beat short-term Treasuries, else cash | 8.7% | 25.3% | 0.61 | 0.34 | -2.2% | 100% | 242 | — | — | 0.94 | no |
+| PERM Permanent Portfolio with SPY as the stock slice (current core) | 7.6% | 18.4% | 1.03 | 0.41 | -3.3% | 100% | 22 | — | — | 1.00 | **yes** |
+| PERM-ROT Core with the stock slice as the top 3 sectors (8.33% each) | 6.9% | 15.2% | 0.93 | 0.45 | -4.0% | 100% | 242 | — | — | 1.00 | **yes** |
+| PERM-EW9 Core with the stock slice as nine sectors equal weight | 7.2% | 16.3% | 0.99 | 0.44 | -3.6% | 100% | 242 | — | — | 1.00 | **yes** |
+
+Champion: **PERM**
+
 ## p1-size-risk-20y-v1 (observation-2005-2025-v1, $100k account 2005-09-12 to 2026-01-16)
 
 Portfolio step 1: with round 2's best selling rule (current stop, no 2R target, 40 days), how big should each position be and how much should each trade and the whole account risk? Settings are taken from the ranges mature programs use, and a rule fixed before the run picks one.

@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-09T15:03:42+00:00",
+  "generated_at": "2026-10-09T15:04:06+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
@@ -8,8 +8,8 @@
   ],
   "experiment_count": 53,
   "summary": {
-    "completed": 37,
-    "in_progress": 16,
+    "completed": 38,
+    "in_progress": 15,
     "candidate": 14,
     "not_validated_or_unstable": 16
   },
@@ -21,6 +21,69 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "lab-e4-sector-rotation-v1-2026-10-10",
+      "created_at": "2026-10-10",
+      "status": "pre_registered",
+      "change": "Sector rotation: top 3 of 9 sector funds by average 3/6/12-month return, alone and as the core's 25% stock slice",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#research-roadmap-2026-10-10",
+        "lab_spec": "research/lab/queue/e4-sector-rotation-v1.json",
+        "dataset": "sector-etf-1998-to-2026-10-v1",
+        "window": "auto, about 2006 onward"
+      },
+      "success_criteria": "Rotation slice replaces SPY in the core only if the core's Sharpe rises with a worst fall within 25%; five pairwise questions fixed before the run are reported.",
+      "known_limitations": [
+        "nine original sector funds only (real estate and communication services start later)",
+        "price momentum stands in for SV's live sector score",
+        "window limited by gold's fund (2004)"
+      ],
+      "human_summary": {
+        "title_zh": "行业ETF轮动",
+        "family": "quant_lab_portfolio",
+        "family_zh": "量化研究实验室",
+        "question_zh": "每月持有9个行业里最强的3个，单独看和作为核心的25%股票部分，能否胜过直接持有SPY？",
+        "result_zh": "已预登记，等待后台自动运行。",
+        "use_zh": "只有核心的Sharpe提高且回撤≤25%才替换SPY。",
+        "next_zh": "改进则加入模拟账户。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-09T14:39:43+00:00",
+        "started_at": null,
+        "completed_at": "2026-10-09T15:04:06+00:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-10-09T15:04:06+00:00",
+        "time_source": "github_actions",
+        "event_count": 2,
+        "events": [
+          {
+            "experiment_id": "lab-e4-sector-rotation-v1-2026-10-10",
+            "event": "registered",
+            "event_at": "2026-10-09T14:39:43+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/e4-sector-rotation-v1.json",
+              "note": "design and success rule frozen before any run"
+            }
+          },
+          {
+            "experiment_id": "lab-e4-sector-rotation-v1-2026-10-10",
+            "event": "completed",
+            "event_at": "2026-10-09T15:04:06+00:00",
+            "time_source": "github_actions",
+            "source_ref": "https://github.com/327979420/sage-vista/actions/runs/37947548062",
+            "details": {
+              "lab_spec": "e4-sector-rotation-v1",
+              "spec_sha256": "959bc7bf17e97df571b02dfc8a4e8ebb6bec36c17f14002b68049d8ba49d2e3a",
+              "result": "research/lab/results/e4-sector-rotation-v1/result.json",
+              "dataset": "sector-etf-1998-to-2026-10-v1",
+              "champion": "PERM"
+            }
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "lab-e3-graded-exposure-v1-2026-10-10",
       "created_at": "2026-10-10",
@@ -315,55 +378,6 @@
             },
             "result": "SV account Sharpe 0.635 (5.1% a year) against 200 random accounts: median 0.485, top 5% 0.688; SV beat 86.5% (needed 95%). Trade level invalid: the random pool included 18 stocks with provider price errors (e.g. MEL, ALT, CLSK), so the random average was +189% per trade; win rate SV 40.8% vs random 43.1%. Same exposure in QQQ: Sharpe 0.72; SPY 0.60; RSP 0.51; IWM 0.39. SV alpha after market, Nasdaq-100 and small-cap tilts 2.9% a year (t 1.95).",
             "decision": "Not passed as registered, but not conclusive: the random pool was wider than SV's own tradable universe (no $5 / $10M floor) and included price-error stocks. Result kept unchanged; corrected version E1b registered before any run. E2 waits for E1b. Notable either way: holding QQQ with SV's exposure pattern did better than SV's picks."
-          }
-        ]
-      }
-    },
-    {
-      "experiment_id": "lab-e4-sector-rotation-v1-2026-10-10",
-      "created_at": "2026-10-10",
-      "status": "pre_registered",
-      "change": "Sector rotation: top 3 of 9 sector funds by average 3/6/12-month return, alone and as the core's 25% stock slice",
-      "specification": {
-        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#research-roadmap-2026-10-10",
-        "lab_spec": "research/lab/queue/e4-sector-rotation-v1.json",
-        "dataset": "sector-etf-1998-to-2026-10-v1",
-        "window": "auto, about 2006 onward"
-      },
-      "success_criteria": "Rotation slice replaces SPY in the core only if the core's Sharpe rises with a worst fall within 25%; five pairwise questions fixed before the run are reported.",
-      "known_limitations": [
-        "nine original sector funds only (real estate and communication services start later)",
-        "price momentum stands in for SV's live sector score",
-        "window limited by gold's fund (2004)"
-      ],
-      "human_summary": {
-        "title_zh": "行业ETF轮动",
-        "family": "quant_lab_portfolio",
-        "family_zh": "量化研究实验室",
-        "question_zh": "每月持有9个行业里最强的3个，单独看和作为核心的25%股票部分，能否胜过直接持有SPY？",
-        "result_zh": "已预登记，等待后台自动运行。",
-        "use_zh": "只有核心的Sharpe提高且回撤≤25%才替换SPY。",
-        "next_zh": "改进则加入模拟账户。",
-        "verdict": "pre_registered"
-      },
-      "lifecycle": {
-        "registered_at": "2026-10-09T14:39:43+00:00",
-        "started_at": null,
-        "completed_at": null,
-        "latest_event": "registered",
-        "latest_event_at": "2026-10-09T14:39:43+00:00",
-        "time_source": "assistant_registration",
-        "event_count": 1,
-        "events": [
-          {
-            "experiment_id": "lab-e4-sector-rotation-v1-2026-10-10",
-            "event": "registered",
-            "event_at": "2026-10-09T14:39:43+00:00",
-            "time_source": "assistant_registration",
-            "details": {
-              "lab_spec": "research/lab/queue/e4-sector-rotation-v1.json",
-              "note": "design and success rule frozen before any run"
-            }
           }
         ]
       }
