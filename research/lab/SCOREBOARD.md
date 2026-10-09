@@ -157,6 +157,12 @@ Do SV's higher-scored signals pick better stocks than chance? Only signals in th
 
 SV Sharpe 0.0867 beat 10% of random accounts; trade-level excess -1.02% (t -1.383). Selection skill shown: **no**
 
+## e1c-live-model-vs-tradable-random-v1 (ledger-2025-10-to-2026-10, SV against 200 random-pick accounts)
+
+Does SV's current live model pick better stocks than chance? Its real signals from the past year (2025-10 to 2026-10, 4,222 signals) against random picks from the stocks it could have picked the same day, with the same rules on both sides.
+
+SV Sharpe 0.0376 beat 34% of random accounts; trade-level excess -0.87% (t -2.407). Selection skill shown: **no**
+
 ## e4-sector-rotation-v1 (sector-etf-1998-to-2026-10-v1, $100k account 2005-12-01 to 2026-01-16)
 
 Does holding the strongest US sectors (industry momentum) beat holding the whole market, on its own and as the 25% stock slice of the core? Sector funds have no survivorship problem and full daily history, so this tests SV's 'sector strength' idea cleanly with price momentum as the measure.

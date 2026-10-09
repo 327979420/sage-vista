@@ -1,0 +1,173 @@
+{
+ "spec_id": "e1c-live-model-vs-tradable-random-v1",
+ "experiment_id": "lab-e1c-live-model-vs-tradable-random-v1-2026-10-10",
+ "group": "E-foundations",
+ "question": "Does SV's current live model pick better stocks than chance? Its real signals from the past year (2025-10 to 2026-10, 4,222 signals) against random picks from the stocks it could have picked the same day, with the same rules on both sides.",
+ "kind": "selection",
+ "dataset": {
+  "dataset_id": "ledger-2025-10-to-2026-10",
+  "asset": "ledger-2025-10-to-2026-10-24208dee8d4a.json.gz",
+  "sha256": "24208dee8d4a7741cf155a0fcf10326fe2dcd2515e2cf7a21957f2f1d7c89a74",
+  "events": 4222,
+  "symbols": 1360
+ },
+ "benchmark": {
+  "symbol": "SPY",
+  "dataset_id": "etf-style-1999-to-2026-10-v1",
+  "asset": "etf-style-1999-to-2026-10-v1-afd785df831d.json.gz",
+  "sha256": "afd785df831dd0d289d348d3cc9d32b5861bd1ae1a9753dceeacbe2b24122e11"
+ },
+ "window": {
+  "start": "2025-10-06",
+  "end": "2026-10-06",
+  "sessions": 252
+ },
+ "cost_per_side": 0.001,
+ "account_rules": {
+  "risk_per_trade": 0.005,
+  "position_cap": 0.05,
+  "max_positions": 10,
+  "heat_cap": 0.1
+ },
+ "exit": {
+  "stop": {
+   "kind": "support_cap",
+   "buffer": 0.05,
+   "cap": 0.1
+  },
+  "targets": [],
+  "max_hold": 40
+ },
+ "criteria": {
+  "min_random_percentile": 0.95,
+  "min_trade_excess_t": 2.0,
+  "trade_stat": "winsorized"
+ },
+ "sv": {
+  "final_equity": 99897.56,
+  "total_return": -0.001024,
+  "cagr": -0.001025,
+  "max_drawdown": 0.079306,
+  "sharpe": 0.0376,
+  "sortino": 0.052,
+  "calmar": -0.0129,
+  "daily_sharpe": 0.00236742,
+  "skew": -0.3695,
+  "kurtosis": 6.1912,
+  "sessions": 252,
+  "trades_taken": 80,
+  "average_exposure": 0.3613,
+  "calendar_mismatches": 0,
+  "stale_valuations": 116,
+  "sold_when_prices_ended": 2
+ },
+ "random": {
+  "runs": 200,
+  "seed": 20261013,
+  "sharpe": {
+   "p5": -0.9244,
+   "median": 0.4063,
+   "p95": 1.6613
+  },
+  "cagr": {
+   "p5": -0.073489,
+   "median": 0.029753,
+   "p95": 0.185483
+  },
+  "max_drawdown": {
+   "p5": 0.043096,
+   "median": 0.070821,
+   "p95": 0.113388
+  },
+  "final_equity": {
+   "p5": 92655.94,
+   "median": 102973.19,
+   "p95": 118534.54
+  },
+  "sv_beats_share_sharpe": 0.34,
+  "sv_beats_share_cagr": 0.34
+ },
+ "pool": {
+  "min_history": 420,
+  "min_close": 5.0,
+  "min_dollar_volume": 10000000.0,
+  "excluded_symbols": [
+   "ABVX",
+   "APLD",
+   "BACA",
+   "BMNR",
+   "CAPR",
+   "CHRD",
+   "CLSK",
+   "COGT",
+   "DFTX",
+   "DMRA",
+   "ENLT",
+   "GLXY",
+   "INDV",
+   "JBIO",
+   "ONDS",
+   "ORKA",
+   "PHVS",
+   "QUBT",
+   "SHAZ",
+   "SRRK",
+   "SYRE",
+   "VERA",
+   "VNDA",
+   "WFRD"
+  ]
+ },
+ "event_filter": null,
+ "signals_used": 4122,
+ "trade_level": {
+  "signals": 3714,
+  "mean_excess_vs_random": -0.008708,
+  "t_monthly": -2.407,
+  "statistic": "winsorized at 1%/99%",
+  "raw_mean_excess": -0.005461,
+  "median_excess": -0.048464,
+  "sv_mean": 0.015069,
+  "random_mean": 0.022247,
+  "sv_win_rate": 0.3813,
+  "random_win_rate": 0.3983
+ },
+ "style": {
+  "same_exposure": {
+   "SPY": {
+    "same_exposure_sharpe": 1.1129
+   },
+   "QQQ": {
+    "same_exposure_sharpe": 1.5411
+   },
+   "IWM": {
+    "same_exposure_sharpe": 0.6808
+   },
+   "RSP": {
+    "same_exposure_sharpe": 0.472
+   }
+  },
+  "regression": {
+   "alpha_annual": -0.045588,
+   "alpha_t": -0.576,
+   "betas": {
+    "SPY": 0.3991,
+    "QQQ-SPY": -0.184,
+    "IWM-SPY": 0.2448
+   }
+  }
+ },
+ "verdict": {
+  "checks": {
+   "beats_random_accounts": false,
+   "trades_beat_random_same_day": false
+  },
+  "passed": false
+ },
+ "champion": null,
+ "chosen": null,
+ "next_step": "If the live model passes: E2 with live signals filling the core's 25% stock slice, forward only. If not: SV's stock picks are not used for the account under either model; SV's value is as a market-information and watch-list tool, and any new selection idea must first beat this same random test.",
+ "spec_sha256": "bd42a7b537bde10a2cd93b0638cbe7fa5c41d9e49269200793706351c2eea950",
+ "completed_at": "2026-10-09T15:43:12+00:00",
+ "code_commit": "21e5cb595f63a99d4dc4a2f46cf89ac2bf10c799"
+}

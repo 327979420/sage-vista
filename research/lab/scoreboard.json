@@ -82,6 +82,14 @@
    "dataset": "observation-2005-2025-v1"
   },
   {
+   "spec_id": "e1c-live-model-vs-tradable-random-v1",
+   "experiment_id": "lab-e1c-live-model-vs-tradable-random-v1-2026-10-10",
+   "group": "E-foundations",
+   "completed_at": "2026-10-09T15:43:12+00:00",
+   "champion": null,
+   "dataset": "ledger-2025-10-to-2026-10"
+  },
+  {
    "spec_id": "e4-sector-rotation-v1",
    "experiment_id": "lab-e4-sector-rotation-v1-2026-10-10",
    "group": "E-sectors",
