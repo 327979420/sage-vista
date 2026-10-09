@@ -1,0 +1,86 @@
+{
+ "id": "e1c-live-model-vs-tradable-random-v1",
+ "experiment_id": "lab-e1c-live-model-vs-tradable-random-v1-2026-10-10",
+ "kind": "selection",
+ "priority": 3,
+ "question": "Does SV's current live model pick better stocks than chance? Its real signals from the past year (2025-10 to 2026-10, 4,222 signals) against random picks from the stocks it could have picked the same day, with the same rules on both sides.",
+ "dataset": {
+  "id": "ledger-2025-10-to-2026-10",
+  "builder": "ledger"
+ },
+ "benchmark": {
+  "symbol": "SPY",
+  "dataset": {
+   "id": "etf-style-1999-to-2026-10-v1",
+   "builder": "symbols",
+   "symbols": [
+    "SPY",
+    "QQQ",
+    "IWM",
+    "RSP"
+   ],
+   "start": "1999-01-01"
+  }
+ },
+ "style": {
+  "dataset": {
+   "id": "etf-style-1999-to-2026-10-v1",
+   "builder": "symbols",
+   "symbols": [
+    "SPY",
+    "QQQ",
+    "IWM",
+    "RSP"
+   ],
+   "start": "1999-01-01"
+  },
+  "symbols": [
+   "SPY",
+   "QQQ",
+   "IWM",
+   "RSP"
+  ]
+ },
+ "window": {
+  "start": "2025-10-06",
+  "end": "2026-10-06"
+ },
+ "group": "E-foundations",
+ "cost_per_side": 0.001,
+ "exit": {
+  "stop": {
+   "kind": "support_cap",
+   "buffer": 0.05,
+   "cap": 0.1
+  },
+  "targets": [],
+  "max_hold": 40
+ },
+ "account": {
+  "risk_per_trade": 0.005,
+  "position_cap": 0.05,
+  "max_positions": 10,
+  "heat_cap": 0.1
+ },
+ "random_runs": 200,
+ "seed": 20261013,
+ "criteria": {
+  "min_random_percentile": 0.95,
+  "min_trade_excess_t": 2.0,
+  "trade_stat": "winsorized"
+ },
+ "next_step": "If the live model passes: E2 with live signals filling the core's 25% stock slice, forward only. If not: SV's stock picks are not used for the account under either model; SV's value is as a market-information and watch-list tool, and any new selection idea must first beat this same random test.",
+ "notes": [
+  "Why: E1b and E5a used the 20-year signal set from the older 3.5 score; the website now runs a newer model, whose only history is the live ledger.",
+  "Same pre-registered success as E1b: account Sharpe beats at least 95% of 200 random accounts; winsorized per-signal differences beat zero with a month-clustered t of at least 2 and a positive median. With one year of data the account check is noisy, so the trade-level check (thousands of signals) carries the weight.",
+  "SV's trades use the support plan frozen in the ledger at signal time; random picks compute theirs from bars up to the signal day with the same function family. Same tradable pool rules and price-error screen as E1b.",
+  "Ledger events carry no score in this frozen dataset, so same-day signals keep their stored order; trades still open on 2026-10-06 stay in the account at their last close and are left out of the trade-level comparison.",
+  "This year's signals were seen in earlier descriptive work, but never compared with random picks."
+ ],
+ "pool": {
+  "min_history": 420,
+  "min_close": 5.0,
+  "min_dollar_volume": 10000000.0,
+  "exclude_impossible_jumps": true
+ }
+}
