@@ -9,7 +9,7 @@ Portfolio step 1: with round 2's best selling rule (current stop, no 2R target, 
 ## The short answer
 
 - No rule passed every check written down before the run, so the current rule stays.
-- Carried to the next step: **R0.5-P5-M10-H10** (Risk 0.5%, cap 5%, up to 10 stocks, open risk 10%), picked by the rule fixed before the run (best luck-check Sharpe averaged with its neighbouring settings; no setting stayed within the drawdown limit).
+- Carried to the next step: **R0.5-P5-M10-H10** (Risk 0.5%, cap 5%, up to 10 stocks, open risk 10%), picked by the rule fixed before the run (luck-check median Sharpe averaged with neighbouring settings; no setting stayed within the drawdown limit).
 - Goal 1 (match SPY's Sharpe 0.63 and Calmar 0.20 with a worst fall of at most 25%): not met yet. Closest Sharpe: R0.5-P5-M10-H6 at 0.64.
 
 ## The benchmark

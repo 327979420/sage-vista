@@ -221,6 +221,48 @@ class AccountTests(unittest.TestCase):
         loose = account.run_account(account.align(trades, c)[0], len(c), scenario, rules={**rules, "heat_cap": 0.05})
         self.assertEqual(sorted(t["shares"] for t in loose["trades"]), [1, 2, 2])
 
+    def test_core_funds_purchases_takes_proceeds_and_keeps_the_cash_reserve(self):
+        c = self.CAL
+        scenario = {**self.SCENARIO, "cost_rate": 0.0}
+        rules = {"risk_per_trade": 1.0, "position_cap": 0.10, "max_positions": 2}
+        core = {"returns": [0.0, 0.01, 0.0, 0.0, 0.0, 0.0], "cash_returns": [0.0] * 6, "cash_buffer": 0.05, "cost": 0.01, "month_ends": {3}}
+        trades = [trade("A", c[1], 10.0, [(c[2], 12.0, 1.0)], [(c[1], 10.0), (c[2], 12.0)], stop=5.0)]
+        path = account.run_account(account.align(trades, c)[0], len(c), scenario, rules=rules, core=core)
+        cash, core_value = 50.0, 950.0
+        self.assertAlmostEqual(path["equity"][0], 1000.0)
+        # Day 1: 10 shares (10% of 1000) paid by selling 100 / 0.99 of the core, then the core gains 1%.
+        core_value = (core_value - 100 / 0.99) * 1.01
+        self.assertAlmostEqual(path["equity"][1], cash + core_value + 10 * 10.0)
+        # Day 2: sold for 120; 120 x 0.99 goes back into the core.
+        core_value += 120 * 0.99
+        self.assertAlmostEqual(path["equity"][2], cash + core_value)
+        # Day 3 is a month end: the reserve is reset to 5% and the move costs 1%.
+        nav = cash + core_value
+        move = 0.05 * nav - cash
+        self.assertAlmostEqual(path["equity"][3], nav - abs(move) * 0.01)
+        no_stocks = account.run_account(account.align(trades, c)[0], len(c), scenario, rules={**rules, "max_positions": 0}, core=core)
+        self.assertEqual(no_stocks["skipped"], {"position_limit": 1})
+        self.assertAlmostEqual(no_stocks["equity"][1], 50 + 950 * 1.01)
+
+    def test_signals_before_the_window_are_not_traded(self):
+        c = self.CAL
+        early = trade("A", "2024-12-31", 10.0, [(c[1], 11.0, 1.0)], [("2024-12-31", 10.0), (c[0], 10.5), (c[1], 11.0)])
+        self.assertEqual(account.align([early], c)[0], [])
+
+    def test_satellite_is_added_only_when_it_beats_the_same_core_without_sv(self):
+        variants = {f"C{core}-M{m}": {"account": {"core": core, "max_positions": m}, "rule": {"account": {"core": core, "max_positions": m}}}
+                    for core in ("PERM", "AW") for m in (0, 4, 7)}
+        stats = {"CPERM-M0": (1.00, 0.40, 0.18), "CPERM-M4": (1.05, 0.41, 0.19), "CPERM-M7": (1.055, 0.42, 0.21),
+                 "CAW-M0": (0.84, 0.29, 0.23), "CAW-M4": (0.80, 0.30, 0.24), "CAW-M7": (0.86, 0.31, 0.24)}
+        summary = {k: {"account": {"sharpe": a, "calmar": b, "max_drawdown": d}, "rule": variants[k]["rule"]} for k, (a, b, d) in stats.items()}
+        chosen = run_queue.choose_satellite(summary, variants, {"core": "PERM", "max_drawdown": 0.25, "tie_tolerance": 0.01})
+        self.assertEqual(chosen["variant"], "CPERM-M4")  # M7 is better by less than the tolerance, so the smaller satellite wins
+        self.assertTrue(chosen["sv_added"])
+        self.assertEqual(chosen["also_better_on"], {"AW": False})
+        summary["CPERM-M4"]["account"]["calmar"] = 0.39
+        summary["CPERM-M7"]["account"]["max_drawdown"] = 0.30
+        self.assertFalse(run_queue.choose_satellite(summary, variants, {"core": "PERM", "max_drawdown": 0.25, "tie_tolerance": 0.01})["sv_added"])
+
     def test_grid_variants_neighbours_and_plateau_choice(self):
         spec = {"variants": [{"id": "A0"}], "grid": {"exit": {"stop": {"kind": "pct", "pct": 0.1}, "targets": [], "max_hold": 40},
                                                    "settings": {"risk_per_trade": [0.005, 0.01], "max_positions": [10, 20]}}}
@@ -403,6 +445,35 @@ class AllocationTests(unittest.TestCase):
         weak = allocation.Prices({**prices.series, "US": monthly_series([100 - i for i in range(n)])})
         self.assertEqual(allocation.target_weights(rule, weak, day), {"BOND": 1.0})
 
+    def test_core_satellite_spec_runs_end_to_end(self):
+        spec = json.loads((ROOT / "research/lab/queue/b1-core-satellite-v1.json").read_text())
+        etf, prices, events = {}, {}, []
+        day, dates = dt.date(2005, 1, 3), []
+        while len(dates) < 900:
+            if day.weekday() < 5:
+                dates.append(day.isoformat())
+            day += dt.timedelta(days=1)
+        for k, symbol in enumerate(spec["core"]["dataset"]["symbols"]):
+            bars = walk(6000 + k, n=900, drift=0.0003, vol=0.01)
+            etf[symbol] = {"date": dates, **{f: [b[f] for b in bars] for f in datasets.FIELDS}}
+        for k in range(10):
+            bars = walk(7000 + k, n=900)
+            prices[f"S{k}"] = {"date": dates, **{f: [b[f] for b in bars] for f in datasets.FIELDS}}
+            for at in range(420, 860, 45):
+                events.append({"event_id": f"S{k}-{at}", "symbol": f"S{k}", "signal_date": dates[at], "score": (k * 3 + at) % 17})
+        spec["window"] = {"start": dates[400], "end": dates[-1]}
+        spec["splits"] = [{"id": "all", "from": "2000-01-01", "to": "2100-01-01"}]
+        spec["criteria"] = {**spec["criteria"], "mc_runs": 2, "min_trades": 1}
+        entry = {"dataset_id": "synthetic", "asset": "-", "sha256": "-", "events": len(events), "symbols": 10}
+        bench = {"symbol": "SPY", "series": etf["SPY"], "entry": entry}
+        result, _ = run_queue.run_account_spec(spec, {"events": events, "prices": prices}, entry, 0.001, bench, core_data={"prices": etf})
+        self.assertEqual(len(result["variants"]), 9)
+        self.assertEqual(result["variants"]["CPERM-M0"]["account"]["trades_taken"], 0)
+        self.assertGreater(result["variants"]["CPERM-M10"]["account"]["trades_taken"], 0)
+        self.assertIn(result["chosen"]["variant"], ("CPERM-M0", "CPERM-M4", "CPERM-M7", "CPERM-M10"))
+        report = run_queue.render_report({**result, "completed_at": "2026-10-09T00:00:00+00:00"})
+        self.assertIn("## Account results", report)
+
     def test_proven_portfolio_spec_runs_end_to_end(self):
         spec = json.loads((ROOT / "research/lab/queue/c1-proven-portfolios-v1.json").read_text())
         symbols = spec["dataset"]["symbols"]
@@ -509,7 +580,7 @@ class QueueAndDatasetTests(unittest.TestCase):
                     if p.get("weights"):
                         self.assertAlmostEqual(sum(p["weights"].values()), 1.0, msg=p["id"])
                 continue
-            ids = {v["id"] for v in spec["variants"]}
+            ids = set(run_queue.expand_variants(spec)[0])
             self.assertIn(spec["baseline"], ids)
             for vid, neighbours in spec.get("neighbours", {}).items():
                 self.assertTrue({vid, *neighbours} <= ids, path.name)

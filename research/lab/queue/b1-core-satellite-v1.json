@@ -1,0 +1,195 @@
+{
+ "id": "b1-core-satellite-v1",
+ "experiment_id": "lab-b1-core-satellite-v1-2026-10-09",
+ "kind": "account",
+ "priority": 5,
+ "question": "Step B: do SV's stock picks improve a proven portfolio? SV takes 0, 20, 35 or 50% of the account (5% per stock, up to 0, 4, 7 or 10 stocks), the rest sits in the core (the Permanent Portfolio, with All Weather as a check) and 5% is always kept in cash.",
+ "dataset": {
+  "id": "observation-2005-2025-v1",
+  "builder": "observation",
+  "events_csv": "research/backtest/output/reusable-runs/34766761296-2/trades.csv"
+ },
+ "benchmark": {
+  "symbol": "SPY",
+  "dataset": {
+   "id": "etf-core-2002-to-2026-10-v1",
+   "builder": "symbols",
+   "symbols": [
+    "SPY",
+    "EFA",
+    "AGG",
+    "IEF",
+    "TLT",
+    "SHY",
+    "GLD",
+    "DBC",
+    "VNQ"
+   ],
+   "start": "2002-01-01"
+  }
+ },
+ "core": {
+  "dataset": {
+   "id": "etf-core-2002-to-2026-10-v1",
+   "builder": "symbols",
+   "symbols": [
+    "SPY",
+    "EFA",
+    "AGG",
+    "IEF",
+    "TLT",
+    "SHY",
+    "GLD",
+    "DBC",
+    "VNQ"
+   ],
+   "start": "2002-01-01"
+  },
+  "portfolios": {
+   "PERM": {
+    "id": "PERM",
+    "label": "Permanent Portfolio: stocks, long bonds, gold, cash 25% each",
+    "source": "Harry Browne",
+    "rule": "static",
+    "rebalance": "annual",
+    "weights": {
+     "SPY": 0.25,
+     "TLT": 0.25,
+     "GLD": 0.25,
+     "SHY": 0.25
+    }
+   },
+   "AW": {
+    "id": "AW",
+    "label": "All Weather: 30% stocks, 55% bonds, 15% gold and commodities",
+    "source": "Ray Dalio (as published by Tony Robbins, 2014)",
+    "rule": "static",
+    "rebalance": "annual",
+    "weights": {
+     "SPY": 0.3,
+     "TLT": 0.4,
+     "IEF": 0.15,
+     "GLD": 0.075,
+     "DBC": 0.075
+    }
+   }
+  },
+  "cash_symbol": "SHY",
+  "cash_buffer": 0.05
+ },
+ "splits": [
+  {
+   "id": "2007-2009",
+   "from": "2007-01-01",
+   "to": "2009-12-31"
+  },
+  {
+   "id": "2010-2014",
+   "from": "2010-01-01",
+   "to": "2014-12-31"
+  },
+  {
+   "id": "2015-2019",
+   "from": "2015-01-01",
+   "to": "2019-12-31"
+  },
+  {
+   "id": "2020-2024",
+   "from": "2020-01-01",
+   "to": "2024-12-31"
+  },
+  {
+   "id": "2025-2026",
+   "from": "2025-01-01",
+   "to": "2026-12-31"
+  }
+ ],
+ "window": {
+  "start": "2007-01-03",
+  "end": "2026-01-16"
+ },
+ "group": "B-core-satellite",
+ "baseline": "CPERM-M0",
+ "cost_per_side": 0.001,
+ "champion_metric": "sharpe",
+ "prior_trials": 62,
+ "seed": 20261009,
+ "criteria": {
+  "min_trades": 200,
+  "max_drawdown": 0.25,
+  "beat_baseline": [
+   "sharpe",
+   "calmar"
+  ],
+  "beat_benchmark": [
+   "sharpe",
+   "calmar"
+  ],
+  "mc_runs": 200,
+  "mc_p5_cagr_min": 0.0,
+  "every_split_positive": true,
+  "min_deflated_sharpe": 0.95
+ },
+ "variants": [
+  {
+   "id": "SV",
+   "family": "SV",
+   "label": "SV picks alone, step 1 setting (5% per stock, up to 10), rest in cash",
+   "stop": {
+    "kind": "support_cap",
+    "buffer": 0.05,
+    "cap": 0.1
+   },
+   "targets": [],
+   "max_hold": 40,
+   "account": {
+    "risk_per_trade": 0.005,
+    "position_cap": 0.05,
+    "heat_cap": 0.1,
+    "max_positions": 10
+   }
+  }
+ ],
+ "grid": {
+  "exit": {
+   "stop": {
+    "kind": "support_cap",
+    "buffer": 0.05,
+    "cap": 0.1
+   },
+   "targets": [],
+   "max_hold": 40
+  },
+  "fixed": {
+   "risk_per_trade": 0.005,
+   "position_cap": 0.05,
+   "heat_cap": 0.1
+  },
+  "settings": {
+   "core": [
+    "PERM",
+    "AW"
+   ],
+   "max_positions": [
+    0,
+    4,
+    7,
+    10
+   ]
+  }
+ },
+ "selection": {
+  "kind": "satellite",
+  "core": "PERM",
+  "max_drawdown": 0.25,
+  "tie_tolerance": 0.01,
+  "rule": "SV is added only if a satellite beats the Permanent core without SV on both Sharpe and Calmar with a worst fall within 25%; within 0.01 Sharpe the smaller satellite wins; the same share is reported on All Weather."
+ },
+ "next_step": "If SV is added: sector limits on the satellite (step 2), then the forward test and practice account. If not: the core alone goes forward, and SV research returns to what it buys (entries and signal quality) before trying again.",
+ "notes": [
+  "Core + satellite as in Vanguard's model portfolios. The core is the proven portfolio chosen in c1-proven-portfolios-v1 (Permanent Portfolio), with All Weather as a robustness check because gold's strong run flatters both.",
+  "Each SV stock is 5% of the account (risk 0.5% at the stop, total open risk 10%), the step 1 choice; buying a stock sells that much of the core and a sale buys it back, 0.1% per side on each move. The 5% cash reserve (in SHY, short-term Treasuries) is reset at each month end.",
+  "Same signals, selling rule (current stop, no 2R target, 40 days) and luck check as before; window 2007-01-03 to 2026-01-16 like the proven-portfolio test; signals before 2007 are not traded.",
+  "Deflated Sharpe counts 71 trials: 62 SV account tests on this signal set plus these 9."
+ ]
+}
