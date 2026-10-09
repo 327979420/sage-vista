@@ -11,7 +11,7 @@ import tempfile
 import unittest
 from unittest import mock
 
-from research.lab import account, allocation, datasets, run_queue, selection
+from research.lab import account, allocation, datasets, run_queue, selection, timeframe
 from research.lab.exit_rules import simulate
 from research.lab.metrics import evaluate, summarise
 from services.scanner.support_risk import simulate_execution
@@ -686,6 +686,68 @@ class SelectionTests(unittest.TestCase):
         self.assertIn("random-pick accounts", markdown)
 
 
+class TimeframeTests(unittest.TestCase):
+    def test_structure_floor_only_counts_on_closes_of_the_opportunitys_timeframe(self):
+        days = trading_days(80, dt.date(2024, 1, 1))
+        prices = [(100, 101, 99, 100)] * 30 + [(100, 101, 89, 90)] * 2 + [(95, 96, 94, 95)] * 48  # dips below 92 mid-month, recovers before month end
+        bars = [{"date": d, "open": o, "high": h, "low": l, "close": c, "volume": 1} for d, (o, h, l, c) in zip(days, prices)]
+        monthly = {"stop": {"kind": "structure", "floor": 92.0, "period": "month", "disaster": 0.25}, "targets": [], "max_hold": 40}
+        daily = {**monthly, "stop": {**monthly["stop"], "period": "day"}}
+        self.assertEqual(simulate(bars, 25, monthly, cost_per_side=0)["exit_reason"], "time")
+        r = simulate(bars, 25, daily, cost_per_side=0)
+        self.assertEqual((r["exit_reason"], r["fills"][-1]["date"]), ("structure_exit", days[31]))  # next open after the first daily close below 92
+        crash = bars[:30] + [{"date": days[30], "open": 70, "high": 71, "low": 69, "close": 70, "volume": 1}] + bars[31:]
+        self.assertEqual(simulate(crash, 25, monthly, cost_per_side=0)["exit_reason"], "stop_gap")  # the 25% disaster stop still guards gaps
+
+    def test_published_trend_exits(self):
+        days = trading_days(400, dt.date(2020, 1, 1))
+        up = [100 * 1.002 ** i for i in range(300)]
+        down = [up[-1] * 0.99 ** (i + 1) for i in range(100)]
+        closes = up + down
+        bars = [{"date": d, "open": c, "high": c * 1.001, "low": c * 0.999, "close": c, "volume": 1} for d, c in zip(days, closes)]
+        base = {"stop": {"kind": "pct", "pct": 0.9}, "targets": [], "max_hold": 300}
+        for trend, latest in ([{"kind": "daily_sma", "length": 50}, 310], [{"kind": "prior_low", "length": 20}, 305],
+                              [{"kind": "period_sma", "period": "week", "length": 10}, 330], [{"kind": "period_momentum", "period": "month", "length": 3}, 380]):
+            r = simulate(bars, 250, {**base, "trend_exit": trend}, cost_per_side=0)
+            self.assertEqual(r["exit_reason"], "trend_exit", trend)
+            exit_day = days.index(r["fills"][-1]["date"])
+            self.assertTrue(300 < exit_day <= latest, (trend, exit_day))  # only after the uptrend ends, and soon after
+
+    def test_timeframe_spec_runs_end_to_end_with_segments(self):
+        import csv as _csv
+        days = trading_days(900, dt.date(2005, 1, 3))
+        prices, events = {}, []
+        rows = []
+        for k in range(10):
+            bars = walk(9500 + k, n=900, drift=0.0004, vol=0.015)
+            prices[f"S{k}"] = {"date": days, **{f: [b[f] * 10 for b in bars] for f in ("open", "high", "low", "close")}, "volume": [5_000_000] * 900}
+            for at, tf in ((480, "daily"), (560, "weekly_completed"), (640, "monthly_completed")):
+                eid = f"S{k}-{days[at]}-{at}"
+                events.append({"event_id": eid, "symbol": f"S{k}", "signal_date": days[at], "timeframe": tf, "score": 40})
+                close = prices[f"S{k}"]["close"][at]
+                rows.append({"symbol": f"S{k}", "signal_date": days[at], "episode_id": str(at), "structure_floor": close * 0.85, "signal_close": close})
+        spy_bars = walk(9900, n=900)
+        spy = {"date": days, **{f: [b[f] for b in spy_bars] for f in ("open", "high", "low", "close")}}
+        spec = json.loads((ROOT / "research/lab/queue/e7-timeframe-holding-v1.json").read_text())
+        spec["runs"] = {k: 2 for k in spec["runs"]}
+        spec["window"] = {"start": days[300], "end": days[-1]}
+        with tempfile.TemporaryDirectory() as folder:
+            path = pathlib.Path(folder) / "trades.csv"
+            with path.open("w", newline="") as handle:
+                w = _csv.DictWriter(handle, fieldnames=list(rows[0]))
+                w.writeheader()
+                w.writerows(rows)
+            spec["structure_csv"] = str(path)
+            entry = {"dataset_id": "synthetic", "asset": "-", "sha256": "-", "events": len(events), "symbols": 10}
+            result, _ = run_queue.run_timeframe_spec(spec, {"events": events, "prices": prices}, entry, 0.001, {"symbol": "SPY", "series": spy, "entry": entry})
+        self.assertEqual(set(result["families"]), set(spec["families"]))
+        self.assertEqual(result["signals"], 30)
+        seg = result["families"]["short"]["segments"]
+        self.assertEqual(set(seg["timeframe"]), {"daily", "weekly", "monthly"})
+        self.assertTrue(set(seg["market_trend"]) <= {"SPY above 200-day", "SPY below 200-day", "unknown"})
+        self.assertIn("## short: by segment (exploratory)", timeframe.render({**result, "completed_at": "2026-10-10T00:00:00+00:00"}))
+
+
 class ForwardTests(unittest.TestCase):
     def test_forward_accounts_start_on_the_registered_date_and_log_each_day_once(self):
         from research.lab import forward
@@ -719,6 +781,12 @@ class QueueAndDatasetTests(unittest.TestCase):
         for hhmm, blocked in [("23:29", False), ("23:30", True), ("02:00", True), ("04:29", True), ("04:30", False), ("12:00", False)]:
             h, m = map(int, hhmm.split(":"))
             self.assertEqual(run_queue.in_eod_window(dt.datetime(2026, 10, 7, h, m, tzinfo=dt.timezone.utc)), blocked, hhmm)
+
+    def test_publishing_refuses_inside_the_eod_window(self):
+        with mock.patch.object(run_queue, "in_eod_window", return_value=True), mock.patch.object(run_queue.subprocess, "run") as git:
+            with self.assertRaisesRegex(RuntimeError, "EOD window"):
+                run_queue.publish({"spec_id": "x"}, b"", {"details": {"spec_sha256": "-"}}, [])
+            git.assert_not_called()
 
     def test_dataset_round_trip_rejects_tampering(self):
         data = {"dataset_id": "t", "source": "s", "price_basis": "p", "events": [], "prices": {}}
@@ -782,6 +850,14 @@ class QueueAndDatasetTests(unittest.TestCase):
         for path in (ROOT / "research/lab/queue").glob("*.json"):
             spec = json.loads(path.read_text())
             self.assertIn(spec["experiment_id"], registered, path.name)
+            if spec.get("kind") == "timeframe":
+                self.assertEqual(set(spec["families"]), set(spec["runs"]), path.name)
+                self.assertTrue((ROOT / spec["structure_csv"]).exists(), path.name)
+                for family in spec["families"].values():
+                    self.assertEqual(set(family["hold"]), {"daily", "weekly", "monthly"})
+                for key in ("min_random_percentile", "min_trade_excess_t", "lead_t", "min_lead_signals"):
+                    self.assertIn(key, spec["criteria"], path.name)
+                continue
             if spec.get("kind") == "selection":
                 for key in ("min_random_percentile", "min_trade_excess_t"):
                     self.assertIn(key, spec["criteria"], path.name)

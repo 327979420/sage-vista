@@ -32,6 +32,22 @@ def expand(series):
     return [{"date": d, **{k: series[k][i] for k in FIELDS}} for i, d in enumerate(series["date"])]
 
 
+class BarsView:
+    """Read-only bar access over a compact series without building every bar up front."""
+
+    def __init__(self, series):
+        self.series = series
+
+    def __len__(self):
+        return len(self.series["date"])
+
+    def __getitem__(self, i):
+        s = self.series
+        if i < 0:
+            i += len(s["date"])
+        return {"date": s["date"][i], **{k: s[k][i] for k in FIELDS if k in s}}
+
+
 def build_from_ledger(ledger_path, cache_dir, dataset_id, signal_from=None):
     """Production ledger events with their frozen support plans and cached prices.
 

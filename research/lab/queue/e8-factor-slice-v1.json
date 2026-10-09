@@ -1,0 +1,304 @@
+{
+ "id": "e8-factor-slice-v1",
+ "experiment_id": "lab-e8-factor-slice-v1-2026-10-10",
+ "kind": "allocation",
+ "priority": 4,
+ "question": "Can a published factor fund (low volatility, quality, momentum, dividend growers, equal weight) replace SPY as the core's 25% stock slice and raise its risk-adjusted result without picking single stocks?",
+ "dataset": {
+  "id": "factor-etf-2010-to-2026-10-v1",
+  "builder": "symbols",
+  "symbols": [
+   "SPY",
+   "TLT",
+   "GLD",
+   "SHY",
+   "USMV",
+   "QUAL",
+   "MTUM",
+   "SPLV",
+   "VIG",
+   "RSP"
+  ],
+  "start": "2010-01-01"
+ },
+ "benchmark_symbol": "SPY",
+ "benchmark_portfolio": "SPY",
+ "splits": [
+  {
+   "id": "2014-2016",
+   "from": "2014-01-01",
+   "to": "2016-12-31"
+  },
+  {
+   "id": "2017-2019",
+   "from": "2017-01-01",
+   "to": "2019-12-31"
+  },
+  {
+   "id": "2020-2022",
+   "from": "2020-01-01",
+   "to": "2022-12-31"
+  },
+  {
+   "id": "2023-2026",
+   "from": "2023-01-01",
+   "to": "2026-12-31"
+  }
+ ],
+ "window": {
+  "start": "auto",
+  "warmup_months": 13,
+  "end": "2026-01-16"
+ },
+ "group": "E-factors",
+ "cost_per_side": 0.001,
+ "prior_trials": 0,
+ "criteria": {
+  "min_trades": 0,
+  "max_drawdown": 0.25,
+  "beat_benchmark": [
+   "sharpe",
+   "calmar"
+  ],
+  "every_split_positive": false,
+  "min_deflated_sharpe": 0.95
+ },
+ "selection": {
+  "kind": "improve_on",
+  "baseline": "PERM",
+  "metric": "sharpe",
+  "sharpe_tolerance": 0.0,
+  "candidates": [
+   "PERM-USMV",
+   "PERM-QUAL",
+   "PERM-MTUM",
+   "PERM-SPLV",
+   "PERM-VIG",
+   "PERM-RSP",
+   "PERM-MULTI"
+  ],
+  "rule": "A factor slice replaces SPY in the core only if the core's Sharpe rises with a worst fall within 25%; among those, the highest Sharpe."
+ },
+ "comparisons": [
+  {
+   "question": "USMV beats SPY on Sharpe on its own",
+   "a": "USMV",
+   "b": "SPY",
+   "metric": "sharpe"
+  },
+  {
+   "question": "QUAL beats SPY on Sharpe on its own",
+   "a": "QUAL",
+   "b": "SPY",
+   "metric": "sharpe"
+  },
+  {
+   "question": "MTUM beats SPY on Sharpe on its own",
+   "a": "MTUM",
+   "b": "SPY",
+   "metric": "sharpe"
+  },
+  {
+   "question": "SPLV beats SPY on Sharpe on its own",
+   "a": "SPLV",
+   "b": "SPY",
+   "metric": "sharpe"
+  },
+  {
+   "question": "VIG beats SPY on Sharpe on its own",
+   "a": "VIG",
+   "b": "SPY",
+   "metric": "sharpe"
+  },
+  {
+   "question": "RSP beats SPY on Sharpe on its own",
+   "a": "RSP",
+   "b": "SPY",
+   "metric": "sharpe"
+  }
+ ],
+ "portfolios": [
+  {
+   "id": "SPY",
+   "label": "S&P 500 (benchmark)",
+   "source": "SPY",
+   "rule": "static",
+   "rebalance": "annual",
+   "weights": {
+    "SPY": 1.0
+   }
+  },
+  {
+   "id": "USMV",
+   "label": "US minimum volatility (USMV)",
+   "source": "low-volatility anomaly: Baker, Bradley and Wurgler; Frazzini and Pedersen",
+   "rule": "static",
+   "rebalance": "annual",
+   "weights": {
+    "USMV": 1.0
+   }
+  },
+  {
+   "id": "QUAL",
+   "label": "US quality (QUAL)",
+   "source": "quality: Asness, Frazzini and Pedersen, Quality Minus Junk",
+   "rule": "static",
+   "rebalance": "annual",
+   "weights": {
+    "QUAL": 1.0
+   }
+  },
+  {
+   "id": "MTUM",
+   "label": "US momentum (MTUM)",
+   "source": "momentum: Jegadeesh and Titman",
+   "rule": "static",
+   "rebalance": "annual",
+   "weights": {
+    "MTUM": 1.0
+   }
+  },
+  {
+   "id": "SPLV",
+   "label": "S&P 500 low volatility (SPLV)",
+   "source": "low-volatility anomaly",
+   "rule": "static",
+   "rebalance": "annual",
+   "weights": {
+    "SPLV": 1.0
+   }
+  },
+  {
+   "id": "VIG",
+   "label": "Dividend growers (VIG)",
+   "source": "dividend growth / quality",
+   "rule": "static",
+   "rebalance": "annual",
+   "weights": {
+    "VIG": 1.0
+   }
+  },
+  {
+   "id": "RSP",
+   "label": "S&P 500 equal weight (RSP)",
+   "source": "size and rebalancing effect",
+   "rule": "static",
+   "rebalance": "annual",
+   "weights": {
+    "RSP": 1.0
+   }
+  },
+  {
+   "id": "PERM",
+   "label": "Permanent core with SPY (current core)",
+   "source": "Harry Browne",
+   "rule": "static",
+   "rebalance": "annual",
+   "weights": {
+    "SPY": 0.25,
+    "TLT": 0.25,
+    "GLD": 0.25,
+    "SHY": 0.25
+   }
+  },
+  {
+   "id": "PERM-USMV",
+   "label": "Core with minimum volatility as the stock slice",
+   "source": "factor slice",
+   "rule": "static",
+   "rebalance": "annual",
+   "weights": {
+    "USMV": 0.25,
+    "TLT": 0.25,
+    "GLD": 0.25,
+    "SHY": 0.25
+   }
+  },
+  {
+   "id": "PERM-QUAL",
+   "label": "Core with quality as the stock slice",
+   "source": "factor slice",
+   "rule": "static",
+   "rebalance": "annual",
+   "weights": {
+    "QUAL": 0.25,
+    "TLT": 0.25,
+    "GLD": 0.25,
+    "SHY": 0.25
+   }
+  },
+  {
+   "id": "PERM-MTUM",
+   "label": "Core with momentum as the stock slice",
+   "source": "factor slice",
+   "rule": "static",
+   "rebalance": "annual",
+   "weights": {
+    "MTUM": 0.25,
+    "TLT": 0.25,
+    "GLD": 0.25,
+    "SHY": 0.25
+   }
+  },
+  {
+   "id": "PERM-SPLV",
+   "label": "Core with S&P 500 low volatility as the stock slice",
+   "source": "factor slice",
+   "rule": "static",
+   "rebalance": "annual",
+   "weights": {
+    "SPLV": 0.25,
+    "TLT": 0.25,
+    "GLD": 0.25,
+    "SHY": 0.25
+   }
+  },
+  {
+   "id": "PERM-VIG",
+   "label": "Core with dividend growers as the stock slice",
+   "source": "factor slice",
+   "rule": "static",
+   "rebalance": "annual",
+   "weights": {
+    "VIG": 0.25,
+    "TLT": 0.25,
+    "GLD": 0.25,
+    "SHY": 0.25
+   }
+  },
+  {
+   "id": "PERM-RSP",
+   "label": "Core with equal weight as the stock slice",
+   "source": "factor slice",
+   "rule": "static",
+   "rebalance": "annual",
+   "weights": {
+    "RSP": 0.25,
+    "TLT": 0.25,
+    "GLD": 0.25,
+    "SHY": 0.25
+   }
+  },
+  {
+   "id": "PERM-MULTI",
+   "label": "Core with a third each of minimum volatility, quality and momentum",
+   "source": "multi-factor slice",
+   "rule": "static",
+   "rebalance": "annual",
+   "weights": {
+    "USMV": 0.08333333333333333,
+    "QUAL": 0.08333333333333333,
+    "MTUM": 0.08333333333333333,
+    "TLT": 0.25,
+    "GLD": 0.25,
+    "SHY": 0.25
+   }
+  }
+ ],
+ "next_step": "If a factor slice improves the core, it joins the forward paper accounts next to the fixed core. Factor funds are diversified and need no stock picking, so they avoid the selection problem SV's picks showed.",
+ "notes": [
+  "Window starts once the youngest funds (QUAL and MTUM, 2013) have 13 months of history, so about 12 years; shorter than the core's 33-year test, so treat results as a first look.",
+  "Published factor funds only, held as they are; 0.1% per side; annual reset of the core like the Permanent Portfolio.",
+  "Factor funds launched after the research that motivated them, so their live records are out of sample for those papers."
+ ]
+}

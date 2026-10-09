@@ -8,14 +8,34 @@ stop with a single 2R target reproduces exactly):
 - entry at the open of `bars[entry_index]` (the session after the signal);
 - daily bars only, so a stop is checked before a target on the same bar;
 - an open below the stop fills at that open; a target fills at the target;
-- trailing stops and indicators use completed bars only and never move down.
+- trailing stops and indicators use completed bars only and never move down;
+- a "structure" stop holds the opportunity until a close of its own
+  timeframe (day, week or month) ends below the opportunity's structure
+  floor, then sells at the next open; a wide disaster stop guards gaps;
+- an optional `trend_exit` sells at the next open once the trend ends, in
+  the published forms: a weekly or monthly close below its N-period average
+  (Weinstein's 30 weeks, O'Neil's 10 weeks, Faber's 10 months), a daily close
+  below the prior N-day low (Turtle System 2) or the N-day average, or a
+  month-end close below the close N months earlier (time-series momentum).
 """
 from __future__ import annotations
+
+import datetime as _dt
 
 from services.scanner.support_risk import executable_stop
 
 # Exits that fill at the session open; every other exit fills during or at the close of its bar.
-OPEN_FILLS = {"stop_gap", "trail_gap", "trend_exit"}
+OPEN_FILLS = {"stop_gap", "trail_gap", "trend_exit", "structure_exit"}
+
+
+def period_key(day, period):
+    if period == "day":
+        return day
+    if period == "week":
+        return _dt.date.fromisoformat(day).isocalendar()[:2]
+    if period == "month":
+        return day[:7]
+    raise ValueError(f"unknown period {period}")
 
 
 def atr(bars, end, period):
@@ -54,7 +74,28 @@ def initial_stop(bars, entry_index, entry, stop_rule, support_plan):
         return stop if stop and 0 < stop < entry else None
     if kind == "pct":
         return entry * (1 - stop_rule["pct"])
+    if kind == "structure":
+        # Only the disaster level is an intraday stop; the floor is checked on period closes.
+        return entry * (1 - stop_rule["disaster"])
     raise ValueError(f"unknown stop kind {kind}")
+
+
+def trend_ended(trend, i, close, start, prefix, lows, period_pos, period_close):
+    """True when the completed bar `i` ends the trend under the published rule."""
+    n, kind = trend["length"], trend["kind"]
+    k = i - start
+    if kind == "daily_sma":
+        return k + 1 >= n and close < (prefix[k + 1] - prefix[k + 1 - n]) / n
+    if kind == "prior_low":
+        return k >= n and close < min(lows[k - n:k])
+    if i not in period_pos:
+        return False
+    m = period_pos[i]
+    if kind == "period_sma":
+        return m + 1 >= n and close < sum(period_close[m - n + 1:m + 1]) / n
+    if kind == "period_momentum":
+        return m >= n and close < period_close[m - n]
+    raise ValueError(f"unknown trend exit {kind}")
 
 
 def simulate(bars, entry_index, variant, support_plan=None, cost_per_side=0.001):
@@ -69,15 +110,36 @@ def simulate(bars, entry_index, variant, support_plan=None, cost_per_side=0.001)
     stop = initial_stop(bars, entry_index, entry, variant["stop"], support_plan)
     if stop is None:
         return {"status": "skipped", "reason": "no_executable_stop"}
-    risk = entry - stop
+    structure = variant["stop"] if variant["stop"]["kind"] == "structure" else None
+    # Risk is measured to the nearer of the floor and the disaster stop.
+    risk_stop = max(stop, min(structure["floor"], entry * 0.999)) if structure else stop
+    risk = entry - risk_stop
     targets = sorted(({"price": entry + t["r"] * risk, "fraction": t["fraction"]} for t in variant.get("targets", [])), key=lambda t: t["price"])
     trail, trail_after = variant.get("trail"), variant.get("trail_after_target", False)
     max_hold = variant["max_hold"]
-    closes = [float(b["close"]) for b in bars]
-    ema = ema_series(closes, trail["period"]) if trail and trail["kind"] == "ma_close" else None
+    # Only the moving-average exit needs the whole close history.
+    ema = ema_series([float(b["close"]) for b in bars], trail["period"]) if trail and trail["kind"] == "ma_close" else None
+    trend = variant.get("trend_exit")
+    if trend:
+        # Precompute only the stretch of history the trend rule can look at.
+        per_period = {"day": 1, "week": 5, "month": 21}[trend.get("period", "day")]
+        start = max(0, entry_index - (trend["length"] + 2) * per_period - 5)
+        end = min(len(bars) - 1, entry_index + max_hold)
+        window = [float(bars[j]["close"]) for j in range(start, end + 1)]
+        prefix = [0.0]
+        for v in window:
+            prefix.append(prefix[-1] + v)
+        lows = [float(bars[j]["low"]) for j in range(start, end + 1)] if trend["kind"] == "prior_low" else None
+        period_pos, period_close = {}, []
+        if trend["kind"] in ("period_sma", "period_momentum"):
+            keys = [period_key(bars[j]["date"], trend["period"]) for j in range(start, min(len(bars) - 1, end + 1) + 1)]
+            for j in range(start, end + 1):
+                if j + 1 - start < len(keys) and keys[j - start] != keys[j + 1 - start]:
+                    period_pos[j] = len(period_close)
+                    period_close.append(window[j - start])
     remaining, gross, fills, highest = 1.0, 0.0, [], entry
     trailing_active = bool(trail) and not trail_after
-    trail_stop, exit_next_open = None, False
+    trail_stop, exit_next_open, exit_reason_next = None, False, "trend_exit"
 
     def fill(price, fraction, reason, day):
         nonlocal remaining, gross
@@ -88,11 +150,11 @@ def simulate(bars, entry_index, variant, support_plan=None, cost_per_side=0.001)
     for held in range(1, max_hold + 1):
         i = entry_index + held - 1
         if i >= len(bars):
-            return {"status": "observing", "entry": entry, "stop": stop, "held": held - 1}
+            return {"status": "observing", "entry": entry, "stop": risk_stop, "held": held - 1}
         bar = bars[i]
         o, h, l, c = (float(bar[k]) for k in ("open", "high", "low", "close"))
         if exit_next_open:
-            fill(o, remaining, "trend_exit", bar["date"])
+            fill(o, remaining, exit_reason_next, bar["date"])
             break
         active_stop = max(stop, trail_stop) if trail_stop else stop
         if o <= active_stop:
@@ -112,6 +174,13 @@ def simulate(bars, entry_index, variant, support_plan=None, cost_per_side=0.001)
         if held == max_hold:
             fill(c, remaining, "time", bar["date"])
             break
+        if structure and i + 1 < len(bars) and c < structure["floor"] \
+                and period_key(bar["date"], structure["period"]) != period_key(bars[i + 1]["date"], structure["period"]):
+            exit_next_open = True
+            exit_reason_next = "structure_exit"
+        if trend and not exit_next_open and trend_ended(trend, i, c, start, prefix, lows, period_pos, period_close):
+            exit_next_open = True
+            exit_reason_next = "trend_exit"
         # Update exits for the next bar from this completed bar only.
         highest = max(highest, c)
         if trail and trailing_active:
@@ -127,6 +196,6 @@ def simulate(bars, entry_index, variant, support_plan=None, cost_per_side=0.001)
             if candidate and candidate < c:
                 trail_stop = max(trail_stop or 0, candidate)
     net = gross - 2 * cost_per_side
-    return {"status": "resolved", "entry_date": bars[entry_index]["date"], "entry": round(entry, 6), "stop": round(stop, 6), "risk_pct": round(risk / entry, 8),
+    return {"status": "resolved", "entry_date": bars[entry_index]["date"], "entry": round(entry, 6), "stop": round(risk_stop, 6), "risk_pct": round(risk / entry, 8),
             "gross_return": round(gross, 8), "net_return": round(net, 8), "r_multiple": round(net / (risk / entry), 6),
             "held": held, "exit_reason": fills[-1]["reason"], "fills": fills}
