@@ -1,0 +1,12 @@
+{
+ "dataset_id": "core-long-chains-v1",
+ "asset": "core-long-chains-v1-bd7783bc75b5.json.gz",
+ "sha256": "bd7783bc75b5179e3126471bcc4118dcaf104589c7aae7025d8568f13bce7b23",
+ "bytes": 1306360,
+ "release": "research-datasets",
+ "events": 0,
+ "symbols": 7,
+ "source": "EODHD adjusted daily history by role; before a fund existed, its role follows an older fund or spot price",
+ "price_basis": "EODHD adjusted daily OHLCV, spliced by daily returns",
+ "missing_symbols": 0
+}

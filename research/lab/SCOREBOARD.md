@@ -108,6 +108,20 @@ Which published, proven portfolio does best on the same 19 years, judged like th
 
 Champion: **PERM**
 
+## e0-core-long-history-v1 (core-long-chains-v1, $100k account 1993-01-04 to 2026-01-16)
+
+Is the Permanent Portfolio core robust beyond 2007-2026? Same portfolios on the longest history the data allows (older funds or spot prices before today's funds existed), with every rolling 5-year window checked, including the 1994 bond crash, 2000-02 and 2022.
+
+| Rule | CAGR | Max drawdown | Sharpe | Calmar | CAGR vs SPY | Invested | Trades | Luck check: median Sharpe | Luck check: worst-5% CAGR | Deflated Sharpe | Passed |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SPY buy and hold | 10.7% | 55.2% | 0.64 | 0.19 | — | 100% | — | — | — | — | benchmark |
+| SPY US stocks only (benchmark) | 10.7% | 55.2% | 0.64 | 0.19 | 0.0% | 100% | 34 | — | — | 0.98 | no |
+| 6040 60/40: 60% US stocks, 40% US bonds | 8.6% | 33.8% | 0.81 | 0.25 | -2.1% | 100% | 34 | — | — | 1.00 | no |
+| PERM Permanent Portfolio: stocks, long bonds, gold, cash 25% each | 7.5% | 18.4% | 1.10 | 0.41 | -3.2% | 100% | 34 | — | — | 1.00 | **yes** |
+| SPYT Faber timing on US stocks: above the 10-month average, else short bonds | 10.0% | 28.1% | 0.81 | 0.35 | -0.7% | 100% | 397 | — | — | 1.00 | no |
+
+Champion: **PERM**
+
 ## p1-size-risk-20y-v1 (observation-2005-2025-v1, $100k account 2005-09-12 to 2026-01-16)
 
 Portfolio step 1: with round 2's best selling rule (current stop, no 2R target, 40 days), how big should each position be and how much should each trade and the whole account risk? Settings are taken from the ranges mature programs use, and a rule fixed before the run picks one.

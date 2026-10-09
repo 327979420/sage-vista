@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-09T14:00:50+00:00",
+  "generated_at": "2026-10-09T14:17:53+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
@@ -8,8 +8,8 @@
   ],
   "experiment_count": 50,
   "summary": {
-    "completed": 33,
-    "in_progress": 17,
+    "completed": 34,
+    "in_progress": 16,
     "candidate": 13,
     "not_validated_or_unstable": 15
   },
@@ -21,6 +21,76 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "lab-e0-core-long-history-v1-2026-10-10",
+      "created_at": "2026-10-10",
+      "status": "pre_registered",
+      "change": "Foundation check: is the Permanent Portfolio core robust on the longest available history, in every rolling 5-year window?",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#research-roadmap-2026-10-10",
+        "lab_spec": "research/lab/queue/e0-core-long-history-v1.json",
+        "dataset": "core-long-chains-v1 (today's funds spliced back with older funds or spot prices by daily returns; built once and frozen)",
+        "portfolios": [
+          "SPY",
+          "60/40",
+          "Permanent Portfolio",
+          "Faber timing on stocks",
+          "All Weather (if commodity history allows)"
+        ],
+        "role": "confirms or rejects the core before any SV integration"
+      },
+      "success_criteria": "Core confirmed only if: whole window Sharpe and Calmar at least SPY's and worst fall within 25%; every rolling 5-year window gains with a worst fall within 25%; core Sharpe at least SPY's in at least 60% of windows.",
+      "known_limitations": [
+        "proxy funds and spot prices before today's funds existed",
+        "providers may lack some proxies; the window starts when every required series exists",
+        "2007-2026 overlaps the earlier core test"
+      ],
+      "human_summary": {
+        "title_zh": "地基检验：永久组合在更长历史中是否稳健",
+        "family": "quant_lab_portfolio",
+        "family_zh": "量化研究实验室",
+        "question_zh": "用能拿到的最长历史（基金成立前用老基金或现货接上），并检查每个滚动5年，永久组合是否仍然优于SPY、回撤不超过25%？",
+        "result_zh": "已预登记，等待后台自动运行。",
+        "use_zh": "通过则继续作为核心；不通过则先重新比较核心组合，再谈SV。",
+        "next_zh": "E2（SV替换25%股票部分）或重新选核心。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-09T14:00:50+00:00",
+        "started_at": null,
+        "completed_at": "2026-10-09T14:17:53+00:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-10-09T14:17:53+00:00",
+        "time_source": "github_actions",
+        "event_count": 2,
+        "events": [
+          {
+            "experiment_id": "lab-e0-core-long-history-v1-2026-10-10",
+            "event": "registered",
+            "event_at": "2026-10-09T14:00:50+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/e0-core-long-history-v1.json",
+              "note": "portfolios, data sources, rolling checks and success rule frozen before any run; user approved 2026-10-10"
+            }
+          },
+          {
+            "experiment_id": "lab-e0-core-long-history-v1-2026-10-10",
+            "event": "completed",
+            "event_at": "2026-10-09T14:17:53+00:00",
+            "time_source": "github_actions",
+            "source_ref": "https://github.com/327979420/sage-vista/actions/runs/37942883739",
+            "details": {
+              "lab_spec": "e0-core-long-history-v1",
+              "spec_sha256": "8feede8c6cf8c68c2b0cde1669790d67bdf171e19682516268858bb32e43a59f",
+              "result": "research/lab/results/e0-core-long-history-v1/result.json",
+              "dataset": "core-long-chains-v1",
+              "champion": "PERM"
+            }
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "lab-b1-core-satellite-v1-2026-10-09",
       "created_at": "2026-10-09",
@@ -103,62 +173,6 @@
             },
             "result": "2007-01-03 to 2026-01-16. Permanent core + 5% cash: $100k to $367k, 7.1% a year, worst fall 17.7%, Sharpe 1.01, Calmar 0.40, every period positive. With up to 4 SV stocks: $421k, 7.8%, 21.3%, Sharpe 0.95; up to 10: $505k, 8.9%, 27.0%, 0.84. In 2007-09 the core alone gained 23.1% while core + 10 SV stocks lost 10.5%. On All Weather, 4 SV stocks: Sharpe 0.855 vs 0.850.",
             "decision": "SV not added by the pre-registered rule; the core alone goes forward. Design limitation found in review: adding SV also raised the account's stock share above the core's 25%, so the result mixes 'more stocks' with 'SV's choice of stocks'; an equal amount of SPY was never tested. Follow-ups E1 (SV vs random picks) and E2 (SV inside the 25% stock slice) separate the two."
-          }
-        ]
-      }
-    },
-    {
-      "experiment_id": "lab-e0-core-long-history-v1-2026-10-10",
-      "created_at": "2026-10-10",
-      "status": "pre_registered",
-      "change": "Foundation check: is the Permanent Portfolio core robust on the longest available history, in every rolling 5-year window?",
-      "specification": {
-        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#research-roadmap-2026-10-10",
-        "lab_spec": "research/lab/queue/e0-core-long-history-v1.json",
-        "dataset": "core-long-chains-v1 (today's funds spliced back with older funds or spot prices by daily returns; built once and frozen)",
-        "portfolios": [
-          "SPY",
-          "60/40",
-          "Permanent Portfolio",
-          "Faber timing on stocks",
-          "All Weather (if commodity history allows)"
-        ],
-        "role": "confirms or rejects the core before any SV integration"
-      },
-      "success_criteria": "Core confirmed only if: whole window Sharpe and Calmar at least SPY's and worst fall within 25%; every rolling 5-year window gains with a worst fall within 25%; core Sharpe at least SPY's in at least 60% of windows.",
-      "known_limitations": [
-        "proxy funds and spot prices before today's funds existed",
-        "providers may lack some proxies; the window starts when every required series exists",
-        "2007-2026 overlaps the earlier core test"
-      ],
-      "human_summary": {
-        "title_zh": "地基检验：永久组合在更长历史中是否稳健",
-        "family": "quant_lab_portfolio",
-        "family_zh": "量化研究实验室",
-        "question_zh": "用能拿到的最长历史（基金成立前用老基金或现货接上），并检查每个滚动5年，永久组合是否仍然优于SPY、回撤不超过25%？",
-        "result_zh": "已预登记，等待后台自动运行。",
-        "use_zh": "通过则继续作为核心；不通过则先重新比较核心组合，再谈SV。",
-        "next_zh": "E2（SV替换25%股票部分）或重新选核心。",
-        "verdict": "pre_registered"
-      },
-      "lifecycle": {
-        "registered_at": "2026-10-09T14:00:50+00:00",
-        "started_at": null,
-        "completed_at": null,
-        "latest_event": "registered",
-        "latest_event_at": "2026-10-09T14:00:50+00:00",
-        "time_source": "assistant_registration",
-        "event_count": 1,
-        "events": [
-          {
-            "experiment_id": "lab-e0-core-long-history-v1-2026-10-10",
-            "event": "registered",
-            "event_at": "2026-10-09T14:00:50+00:00",
-            "time_source": "assistant_registration",
-            "details": {
-              "lab_spec": "research/lab/queue/e0-core-long-history-v1.json",
-              "note": "portfolios, data sources, rolling checks and success rule frozen before any run; user approved 2026-10-10"
-            }
           }
         ]
       }

@@ -42,6 +42,14 @@
    "dataset": "etf-core-2002-to-2026-10-v1"
   },
   {
+   "spec_id": "e0-core-long-history-v1",
+   "experiment_id": "lab-e0-core-long-history-v1-2026-10-10",
+   "group": "E-foundations",
+   "completed_at": "2026-10-09T14:17:53+00:00",
+   "champion": "PERM",
+   "dataset": "core-long-chains-v1"
+  },
+  {
    "spec_id": "p1-size-risk-20y-v1",
    "experiment_id": "lab-p1-size-risk-20y-v1-2026-10-08",
    "group": "P-portfolio",
@@ -117,6 +125,39 @@
     "trades_taken": 20,
     "average_exposure": 1.0,
     "turnover_per_year": 0.255
+   }
+  },
+  "E-foundations": {
+   "spec_id": "e0-core-long-history-v1",
+   "variant": "PERM",
+   "rule": {
+    "id": "PERM",
+    "label": "Permanent Portfolio: stocks, long bonds, gold, cash 25% each",
+    "source": "Harry Browne",
+    "rule": "static",
+    "rebalance": "annual",
+    "weights": {
+     "STOCKS": 0.25,
+     "LONG": 0.25,
+     "GOLD": 0.25,
+     "CASH": 0.25
+    }
+   },
+   "overall": {
+    "final_equity": 1080058.17,
+    "total_return": 9.800582,
+    "cagr": 0.074697,
+    "max_drawdown": 0.18375,
+    "sharpe": 1.0952,
+    "sortino": 1.5959,
+    "calmar": 0.4065,
+    "daily_sharpe": 0.06899033,
+    "skew": -0.1368,
+    "kurtosis": 6.77,
+    "sessions": 8318,
+    "trades_taken": 34,
+    "average_exposure": 1.0,
+    "turnover_per_year": 0.42
    }
   }
  }
