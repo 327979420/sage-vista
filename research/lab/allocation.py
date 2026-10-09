@@ -54,6 +54,45 @@ class Prices:
         return [self.close(symbol, d) for d in ends[-count:]]
 
 
+def roles(portfolio):
+    """Every price series a portfolio can hold."""
+    out = set(portfolio.get("weights", {})) | set(portfolio.get("risky", []))
+    out |= {portfolio[k] for k in ("cash", "safe") if portfolio.get(k)}
+    return out
+
+
+def rolling(equities, dates, years, step, benchmark, core):
+    """Rolling windows of `years`: Sharpe, total return and worst fall for every portfolio, plus the core against the benchmark."""
+    length = int(years * 252)
+    starts = list(range(0, len(dates) - length, step))
+    per, beats = {}, 0
+    for name, equity in equities.items():
+        sharpes, totals, falls = [], [], []
+        for a in starts:
+            window = equity[a:a + length + 1]
+            rets = [window[i] / window[i - 1] - 1 for i in range(1, len(window))]
+            mean = sum(rets) / len(rets)
+            sd = (sum((r - mean) ** 2 for r in rets) / (len(rets) - 1)) ** 0.5
+            peak, fall = window[0], 0.0
+            for v in window:
+                peak = max(peak, v)
+                fall = max(fall, 1 - v / peak)
+            sharpes.append(mean / sd * 252 ** 0.5 if sd else 0.0)
+            totals.append(window[-1] / window[0] - 1)
+            falls.append(fall)
+        per[name] = {"sharpe": sharpes, "total": totals, "fall": falls}
+    if core in per and benchmark in per:
+        beats = sum(c >= b for c, b in zip(per[core]["sharpe"], per[benchmark]["sharpe"]))
+    summary = {name: {"sharpe_p5": round(sorted(v["sharpe"])[int(0.05 * (len(v["sharpe"]) - 1))], 4) if v["sharpe"] else None,
+                      "sharpe_median": round(sorted(v["sharpe"])[len(v["sharpe"]) // 2], 4) if v["sharpe"] else None,
+                      "worst_fall": round(max(v["fall"]), 6) if v["fall"] else None,
+                      "lowest_return": round(min(v["total"]), 6) if v["total"] else None,
+                      "share_positive": round(sum(t > 0 for t in v["total"]) / len(v["total"]), 4) if v["total"] else None}
+               for name, v in per.items()}
+    return {"years": years, "windows": len(starts), "first_window": dates[starts[0]] if starts else None, "last_window": dates[starts[-1]] if starts else None,
+            "per_portfolio": summary, "core_sharpe_beats_benchmark_share": round(beats / len(starts), 4) if starts else None}
+
+
 def target_weights(portfolio, prices, day):
     rule = portfolio["rule"]
     if rule == "static":

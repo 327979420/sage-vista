@@ -27,7 +27,7 @@ import statistics
 import subprocess
 
 from services.scanner.support_risk import signal_support_plan
-from research.lab import account, allocation, datasets
+from research.lab import account, allocation, datasets, selection
 from research.lab.exit_rules import OPEN_FILLS, simulate
 from research.lab.metrics import evaluate, summarise
 
@@ -79,6 +79,9 @@ def ensure_dataset(ds, publish):
     elif source == "symbols":
         from services.scanner.eodhd import prices
         data = datasets.build_from_symbols(ds["symbols"], ds["id"], lambda s: prices(s, start=ds.get("start", "2004-01-01")))
+    elif source == "chains":
+        from services.scanner.eodhd import get
+        data = datasets.build_from_chains(ds["chains"], ds["id"], lambda t: get(f"eod/{t}", **{"from": ds.get("start", "1980-01-01"), "period": "d"}))
     else:
         raise ValueError(f"unknown dataset builder {source}")
     path, entry = datasets.save(data, WORK)
@@ -128,7 +131,7 @@ def variant_results(spec, data, cost, benchmark=None):
         if signal >= len(dates) or dates[signal] != event["signal_date"]:
             continue
         plan = event.get("support_plan") or signal_support_plan(bars, end=signal)
-        split = next((s["id"] for s in spec["splits"] if s["from"] <= event["signal_date"] <= s["to"]), None)
+        split = next((s["id"] for s in spec.get("splits", []) if s["from"] <= event["signal_date"] <= s["to"]), None)
         for vid, variant in variants.items():
             result = simulate(bars, signal + 1, variant, support_plan=plan, cost_per_side=cost)
             result["split"], result["cluster"] = split, event["signal_date"][:7]
@@ -352,8 +355,8 @@ def run_account_spec(spec, data, dataset_entry, cost, benchmark, core_data=None)
                         "splits": account.period_returns(main["equity"], dates, initial, spec["splits"]),
                         "monte_carlo": account.monte_carlo(book, dates, scenario, criteria["mc_runs"], spec.get("seed", 0), rules, core) if criteria.get("mc_runs") else None,
                         "trade_diagnostics": summarise(trades[signature[vid]]),
-                        "goal_1": {"sharpe_vs_spy": round((stats["sharpe"] or 0) - spy["sharpe"], 4), "calmar_vs_spy": round((stats["calmar"] or 0) - spy["calmar"], 4),
-                                   "met": (stats["sharpe"] or 0) >= spy["sharpe"] and (stats["calmar"] or 0) >= spy["calmar"]
+                        "goal_1": {"sharpe_vs_spy": round((stats["sharpe"] or 0) - (spy["sharpe"] or 0), 4), "calmar_vs_spy": round((stats["calmar"] or 0) - (spy["calmar"] or 0), 4),
+                                   "met": (stats["sharpe"] or 0) >= (spy["sharpe"] or 0) and (stats["calmar"] or 0) >= (spy["calmar"] or 0)
                                           and stats["max_drawdown"] <= criteria["max_drawdown"]}}
         curves[vid] = monthly(dates, main["equity"])[1]
         rows_out += [[vid, t["event_id"], t["symbol"], t["signal_date"], t["shares"], t["pnl"], t["return"]] for t in main["trades"]]
@@ -396,9 +399,29 @@ def run_allocation_spec(spec, data, dataset_entry, cost, benchmark=None):
     prices = allocation.Prices(data["prices"])
     initial, criteria = 100000.0, spec["criteria"]
     spy_dates = data["prices"][spec["benchmark_symbol"]]["date"]
-    dates = [d for d in spy_dates if spec["window"]["start"] <= d <= spec["window"]["end"]]
+    portfolios, excluded = spec["portfolios"], []
+    start = spec["window"]["start"]
+    if start == "auto":
+        # The window opens once every required series exists, plus a warm-up for 10-12 month signals.
+        first = {role: data["prices"][role]["date"][0] for role in data["prices"]}
+        required = set().union(*(allocation.roles(p) for p in portfolios if not p.get("optional")))
+        missing = sorted(r for r in required if r not in first)
+        if missing:
+            raise ValueError(f"required_series_missing: {missing}")
+        opened = max(first[r] for r in required)
+        y, m = int(opened[:4]), int(opened[5:7]) + spec["window"].get("warmup_months", 13)
+        start = f"{y + (m - 1) // 12:04d}-{(m - 1) % 12 + 1:02d}-01"
+        kept = []
+        for p in portfolios:
+            late = sorted(r for r in allocation.roles(p) if r not in first or first[r] > opened)
+            if p.get("optional") and late:
+                excluded.append({"portfolio": p["id"], "reason": f"history too short: {', '.join(late)}"})
+            else:
+                kept.append(p)
+        portfolios = kept
+    dates = [d for d in spy_dates if start <= d <= spec["window"]["end"]]
     signal_day = spy_dates[spy_dates.index(dates[0]) - 1]
-    runs = {p["id"]: allocation.simulate(p, prices, dates, cost, initial, signal_day) for p in spec["portfolios"]}
+    runs = {p["id"]: allocation.simulate(p, prices, dates, cost, initial, signal_day) for p in portfolios}
     spy_id = spec["benchmark_portfolio"]
     spy_equity = runs[spy_id]["equity"]
     spy_rets = account.returns_from(spy_equity, initial)
@@ -406,7 +429,7 @@ def run_allocation_spec(spec, data, dataset_entry, cost, benchmark=None):
     curve_dates, _ = monthly(dates, spy_equity)
     curves = {"dates": curve_dates}
     summary = {}
-    for p in spec["portfolios"]:
+    for p in portfolios:
         run = runs[p["id"]]
         stats = account.curve_stats(run["equity"], dates, initial)
         rets = account.returns_from(run["equity"], initial)
@@ -416,9 +439,9 @@ def run_allocation_spec(spec, data, dataset_entry, cost, benchmark=None):
                             "versus_spy": account.versus(rets, spy_rets) | {"cagr_difference": round(stats["cagr"] - spy["cagr"], 6)},
                             "splits": account.period_returns(run["equity"], dates, initial, spec["splits"]),
                             "monte_carlo": None, "last_weights": run["rebalances"][-1]["weights"],
-                            "goal_1": {"sharpe_vs_spy": round((stats["sharpe"] or 0) - spy["sharpe"], 4),
-                                       "calmar_vs_spy": round((stats["calmar"] or 0) - spy["calmar"], 4),
-                                       "met": (stats["sharpe"] or 0) >= spy["sharpe"] and (stats["calmar"] or 0) >= spy["calmar"]
+                            "goal_1": {"sharpe_vs_spy": round((stats["sharpe"] or 0) - (spy["sharpe"] or 0), 4),
+                                       "calmar_vs_spy": round((stats["calmar"] or 0) - (spy["calmar"] or 0), 4),
+                                       "met": (stats["sharpe"] or 0) >= (spy["sharpe"] or 0) and (stats["calmar"] or 0) >= (spy["calmar"] or 0)
                                               and stats["max_drawdown"] <= criteria["max_drawdown"]}}
         curves[p["id"]] = monthly(dates, run["equity"])[1]
     n_trials = spec.get("prior_trials", 0) + len(summary)
@@ -447,8 +470,138 @@ def run_allocation_spec(spec, data, dataset_entry, cost, benchmark=None):
               "window": {"start": dates[0], "end": dates[-1], "sessions": len(dates)}, "cost_per_side": cost, "initial_cash": initial,
               "baseline": spy_id, "criteria": criteria, "n_trials": n_trials, "spy": spy, "variants": summary, "curves": curves,
               "champion": champion, "selection_rule": "portfolios passing every pre-registered check, highest Sharpe",
-              "chosen": chosen, "next_step": spec.get("next_step")}
+              "chosen": chosen, "next_step": spec.get("next_step"), "excluded": excluded,
+              "sources": data.get("chains")}
+    if spec.get("rolling"):
+        r = spec["rolling"]
+        roll = allocation.rolling({k: run["equity"] for k, run in runs.items()}, dates, r["years"], r.get("step_sessions", 21), spy_id, r["core"])
+        core = roll["per_portfolio"][r["core"]]
+        roll["core_checks"] = {
+            "worst_fall_within_limit": core["worst_fall"] <= r["max_window_drawdown"],
+            "every_window_positive": core["share_positive"] == 1.0,
+            "sharpe_beats_benchmark_often": roll["core_sharpe_beats_benchmark_share"] >= r["min_share_sharpe_vs_benchmark"]}
+        roll["core_passed"] = all(roll["core_checks"].values()) and summary[r["core"]]["goal_1"]["met"]
+        result["rolling"] = roll
     return result, gzip.compress(csv_buffer.getvalue().encode(), 9, mtime=0)
+
+
+def run_selection_spec(spec, data, dataset_entry, cost, benchmark, style_data=None):
+    """SV's picks against random picks from the same universe on the same days, plus a style check.
+
+    Passes only if SV's account Sharpe beats the pre-registered share of
+    random accounts and SV's trades beat the random trades bought the same
+    day by a clear margin (t value clustered by signal month).
+    """
+    scenario = account.approved_scenario()
+    rules, variant, initial, criteria = spec["account"], spec["exit"], scenario["initial_cash"], spec["criteria"]
+    series = benchmark["series"]
+    dates = [d for d in series["date"] if spec["window"]["start"] <= d <= spec["window"]["end"]]
+    data_end = max(s["date"][-1] for s in data["prices"].values())
+    events, sv_trades = [], []
+    for _, event, bars, entry_index, result in variant_results({**spec, "variants": [{"id": "SV", **variant}]}, data, cost):
+        if result["status"] in ("resolved", "observing"):
+            c = account.candidate(event, bars, entry_index, result, signal_priority(event), data_end)
+            c["net_return"] = result.get("net_return")
+            sv_trades.append(c)
+            events.append(event)
+    sv_book, notes = account.align(sv_trades, dates)
+    sv_path = account.run_account(sv_book, len(dates), scenario, rules=rules)
+    sv = account.curve_stats(sv_path["equity"], dates, initial) | {"trades_taken": len(sv_path["trades"]),
+                                                                    "average_exposure": round(statistics.fmean(sv_path["exposure"]), 4), **notes}
+    picks = selection.draws(events, data["prices"], spec["random_runs"], spec["seed"])
+    needed = {(p, e["signal_date"]) for run in picks for p, e in zip(run, events) if p}
+    lookup = selection.outcomes(needed, data["prices"], variant, cost, data_end)
+    runs, same_day = [], [[] for _ in events]
+    for k, run in enumerate(picks):
+        candidates = []
+        for j, (symbol, event) in enumerate(zip(run, events)):
+            o = lookup.get((symbol, event["signal_date"])) if symbol else None
+            if not o:
+                continue
+            candidates.append({**o, "event_id": f"{event['event_id']}~{k}", "signal_date": event["signal_date"], "priority": signal_priority(event)})
+            if o["net_return"] is not None:
+                same_day[j].append(o["net_return"])
+        path = account.run_account(account.align(candidates, dates)[0], len(dates), scenario, rules=rules)
+        st = account.curve_stats(path["equity"], dates, initial)
+        runs.append({"run": k, "sharpe": st["sharpe"], "cagr": st["cagr"], "max_drawdown": st["max_drawdown"], "final_equity": st["final_equity"],
+                     "trades_taken": len(path["trades"])})
+    beat = lambda key, better: round(sum(better(sv[key], r[key]) for r in runs) / len(runs), 4)
+    diffs, clusters, sv_rets, rnd_rets = [], [], [], []
+    for trade, event, rnd in zip(sv_trades, events, same_day):
+        if trade["net_return"] is None or not rnd:
+            continue
+        diffs.append(trade["net_return"] - statistics.fmean(rnd))
+        clusters.append(event["signal_date"][:7])
+        sv_rets.append(trade["net_return"])
+        rnd_rets += rnd
+    mean_diff, t_diff = selection.clustered_t(diffs, clusters)
+    rets = account.returns_from(sv_path["equity"], initial)
+    style = {}
+    if style_data:
+        style_rets = {s: account.benchmark_returns(style_data["prices"][s], dates) for s in spec["style"]["symbols"]}
+        for s, r in style_rets.items():
+            matched = account.compound([0.0] + [x * v for x, v in zip(sv_path["exposure"], r[1:])], initial)
+            style[s] = {"same_exposure_sharpe": account.curve_stats(matched, dates, initial)["sharpe"]}
+        spy = style_rets["SPY"]
+        factors = {"SPY": spy, **{f"{s}-SPY": [a - b for a, b in zip(style_rets[s], spy)] for s in spec["style"]["symbols"] if s not in ("SPY", "RSP")}}
+        beta, t = selection.ols(rets, list(factors.values()))
+        style_regression = {"alpha_annual": round(beta[0] * 252, 6), "alpha_t": round(t[0], 3),
+                            "betas": {name: round(b, 4) for name, b in zip(factors, beta[1:])}}
+    else:
+        style_regression = None
+    checks = {"beats_random_accounts": beat("sharpe", lambda a, b: (a or -9) > (b or -9)) >= criteria["min_random_percentile"],
+              "trades_beat_random_same_day": t_diff >= criteria["min_trade_excess_t"] and mean_diff > 0}
+    dist = lambda key: account.distribution([r[key] for r in runs])
+    csv_buffer = io.StringIO()
+    writer = csv.writer(csv_buffer)
+    writer.writerow(["run", "sharpe", "cagr", "max_drawdown", "final_equity", "trades_taken"])
+    writer.writerows([r["run"], r["sharpe"], r["cagr"], r["max_drawdown"], r["final_equity"], r["trades_taken"]] for r in runs)
+    result = {"spec_id": spec["id"], "experiment_id": spec["experiment_id"], "group": spec["group"], "question": spec["question"], "kind": "selection",
+              "dataset": {k: dataset_entry[k] for k in ("dataset_id", "asset", "sha256", "events", "symbols")},
+              "benchmark": {"symbol": benchmark["symbol"], **{k: benchmark["entry"][k] for k in ("dataset_id", "asset", "sha256")}},
+              "window": {"start": dates[0], "end": dates[-1], "sessions": len(dates)}, "cost_per_side": cost, "account_rules": rules, "exit": variant,
+              "criteria": criteria, "sv": sv,
+              "random": {"runs": len(runs), "seed": spec["seed"], "sharpe": dist("sharpe"), "cagr": dist("cagr"), "max_drawdown": dist("max_drawdown"),
+                         "final_equity": dist("final_equity"), "sv_beats_share_sharpe": beat("sharpe", lambda a, b: (a or -9) > (b or -9)),
+                         "sv_beats_share_cagr": beat("cagr", lambda a, b: a > b)},
+              "trade_level": {"signals": len(diffs), "mean_excess_vs_random": round(mean_diff, 6), "t_monthly": round(t_diff, 3),
+                              "sv_mean": round(statistics.fmean(sv_rets), 6) if sv_rets else None,
+                              "random_mean": round(statistics.fmean(rnd_rets), 6) if rnd_rets else None,
+                              "sv_win_rate": round(sum(r > 0 for r in sv_rets) / len(sv_rets), 4) if sv_rets else None,
+                              "random_win_rate": round(sum(r > 0 for r in rnd_rets) / len(rnd_rets), 4) if rnd_rets else None},
+              "style": {"same_exposure": style, "regression": style_regression},
+              "verdict": {"checks": checks, "passed": all(checks.values())}, "champion": None, "chosen": None,
+              "next_step": spec.get("next_step")}
+    return result, gzip.compress(csv_buffer.getvalue().encode(), 9, mtime=0)
+
+
+def render_selection_report(result):
+    pct = lambda x, d=1: "—" if x is None else f"{x * 100:.{d}f}%"
+    num = lambda x: "—" if x is None else f"{x:.2f}"
+    sv, rnd, tl, w = result["sv"], result["random"], result["trade_level"], result["window"]
+    lines = [f"# {result['spec_id']}", "",
+             f"Plain-language report written by the research lab on {result.get('completed_at', '—')[:10]}. Every number comes from `result.json` in this folder.", "",
+             "## The question", "", result["question"], "",
+             "## The short answer", "",
+             f"- SV's account Sharpe {num(sv['sharpe'])} beat {pct(rnd['sv_beats_share_sharpe'], 0)} of {rnd['runs']} random accounts (needed {pct(result['criteria']['min_random_percentile'], 0)}).",
+             f"- Trade by trade, SV's picks returned {pct(tl['mean_excess_vs_random'], 2)} more than random stocks bought the same day (t {num(tl['t_monthly'])}, needed {num(result['criteria']['min_trade_excess_t'])}).",
+             f"- Selection skill shown: **{'yes' if result['verdict']['passed'] else 'no'}**.", "",
+             "## Account, " + f"{w['start']} to {w['end']}", "",
+             "| Account | Sharpe | Growth a year | Worst fall |", "|---|---|---|---|",
+             f"| SV picks | {num(sv['sharpe'])} | {pct(sv['cagr'])} | {pct(sv['max_drawdown'])} |",
+             f"| Random picks, middle result | {num(rnd['sharpe']['median'])} | {pct(rnd['cagr']['median'])} | {pct(rnd['max_drawdown']['median'])} |",
+             f"| Random picks, best 5% | {num(rnd['sharpe']['p95'])} | {pct(rnd['cagr']['p95'])} | {pct(rnd['max_drawdown']['p5'])} |",
+             f"| Random picks, worst 5% | {num(rnd['sharpe']['p5'])} | {pct(rnd['cagr']['p5'])} | {pct(rnd['max_drawdown']['p95'])} |", "",
+             "## Trade by trade", "",
+             f"{tl['signals']} SV signals. Average trade: SV {pct(tl['sv_mean'], 2)}, random {pct(tl['random_mean'], 2)}. Winning trades: SV {pct(tl['sv_win_rate'])}, random {pct(tl['random_win_rate'])}."]
+    reg = result["style"].get("regression")
+    if reg:
+        lines += ["", "## Style check", "",
+                  "Same share of the account in each fund on the same days: " + ", ".join(f"{k} Sharpe {num(v['same_exposure_sharpe'])}" for k, v in result["style"]["same_exposure"].items()) + ".",
+                  f"After removing market, Nasdaq-100 and small-cap tilts, SV's extra return is {pct(reg['alpha_annual'], 2)} a year (t {num(reg['alpha_t'])})."]
+    if result.get("next_step"):
+        lines += ["", "## Next step (planned before the run)", "", result["next_step"]]
+    return "\n".join(lines) + "\n"
 
 
 def _account_table(result):
@@ -529,6 +682,19 @@ def render_report(result):
     lines += ["", f"## Checks for {focus}", ""]
     for key, ok in variants[focus]["verdict"]["checks"].items():
         lines.append(f"- {'✓' if ok else '✗'} {CHECK_WORDS.get(key, key)}")
+    if result.get("rolling"):
+        roll = result["rolling"]
+        lines += ["", f"## Rolling {roll['years']}-year windows", "",
+                  f"{roll['windows']} windows, starting monthly from {roll['first_window']} to {roll['last_window']}.", "",
+                  "| Portfolio | Median Sharpe | Worst 5% Sharpe | Worst fall in any window | Lowest window return | Windows with a gain |",
+                  "|---|---|---|---|---|---|"]
+        for name, v in roll["per_portfolio"].items():
+            lines.append(f"| {name} | {num(v['sharpe_median'])} | {num(v['sharpe_p5'])} | {pct(v['worst_fall'])} | {pct(v['lowest_return'])} | {pct(v['share_positive'], 0)} |")
+        if roll.get("core_checks"):
+            lines += ["", f"Core checks ({result['rolling'].get('core', '') or 'core'}): " + ", ".join(f"{'✓' if ok else '✗'} {k.replace('_', ' ')}" for k, ok in roll["core_checks"].items()),
+                      f"Core Sharpe at least the benchmark's in {pct(roll['core_sharpe_beats_benchmark_share'], 0)} of windows. Core confirmed: **{'yes' if roll['core_passed'] else 'no'}**."]
+    if result.get("excluded"):
+        lines += ["", "Not tested on this window: " + "; ".join(f"{e['portfolio']} ({e['reason']})" for e in result["excluded"]) + "."]
     if result.get("next_step"):
         lines += ["", "## Next step (planned before the run)", "", result["next_step"]]
     lines += ["", "## Words used", "",
@@ -551,6 +717,12 @@ def render_scoreboard(results):
             v = result["variants"][result["champion"]]
             board["champions"][result["group"]] = {"spec_id": result["spec_id"], "variant": result["champion"], "rule": v["rule"],
                                                    "overall": v["account"] if result.get("kind") in ("account", "allocation") else v["overall"]}
+        if result.get("kind") == "selection":
+            r, sv = result["random"], result["sv"]
+            lines += [f"## {result['spec_id']} ({result['dataset']['dataset_id']}, SV against {r['runs']} random-pick accounts)", "", result["question"], "",
+                      f"SV Sharpe {sv['sharpe']} beat {r['sv_beats_share_sharpe'] * 100:.0f}% of random accounts; trade-level excess {result['trade_level']['mean_excess_vs_random'] * 100:.2f}% "
+                      f"(t {result['trade_level']['t_monthly']}). Selection skill shown: **{'yes' if result['verdict']['passed'] else 'no'}**", ""]
+            continue
         if result.get("kind") in ("account", "allocation"):
             w = result["window"]
             lines += [f"## {result['spec_id']} ({result['dataset']['dataset_id']}, $100k account {w['start']} to {w['end']})", "", result["question"], "",
@@ -577,6 +749,8 @@ def write_outputs(root, result, trades_csv, event, manifests):
     (out / "trades.csv.gz").write_bytes(trades_csv)
     if result.get("kind") in ("account", "allocation"):
         (out / "REPORT.md").write_text(render_report(result))
+    elif result.get("kind") == "selection":
+        (out / "REPORT.md").write_text(render_selection_report(result))
     for entry in manifests:
         record = pathlib.Path(root) / "research/lab/datasets" / f"{entry['dataset_id']}.json"
         record.parent.mkdir(parents=True, exist_ok=True)
@@ -623,20 +797,28 @@ def main(argv=None):
     ran = 0
     for path, spec in pending_specs()[: args.max_specs]:
         sha = spec_sha(path)
-        data, entry, new_manifest = ensure_dataset(spec["dataset"], args.publish)
-        manifests = [new_manifest] if new_manifest else []
+        loaded, manifests = {}, []
+
+        def load(ds):
+            # One build per dataset id per run, even when a spec names it twice.
+            if ds["id"] not in loaded:
+                loaded[ds["id"]] = ensure_dataset(ds, args.publish)
+                if loaded[ds["id"]][2]:
+                    manifests.append(loaded[ds["id"]][2])
+            return loaded[ds["id"]]
+
+        data, entry, _ = load(spec["dataset"])
         benchmark = None
         if spec.get("benchmark"):
-            bench_data, bench_entry, bench_new = ensure_dataset(spec["benchmark"]["dataset"], args.publish)
+            bench_data, bench_entry, _ = load(spec["benchmark"]["dataset"])
             symbol = spec["benchmark"]["symbol"]
             benchmark = {"symbol": symbol, "series": bench_data["prices"][symbol], "entry": bench_entry}
-            manifests += [bench_new] if bench_new else []
-        run = {"account": run_account_spec, "allocation": run_allocation_spec}.get(spec.get("kind"), run_spec)
+        run = {"account": run_account_spec, "allocation": run_allocation_spec, "selection": run_selection_spec}.get(spec.get("kind"), run_spec)
         extra = {}
         if spec.get("core"):
-            core_data, _, core_new = ensure_dataset(spec["core"]["dataset"], args.publish)
-            manifests += [core_new] if core_new and core_new not in manifests else []
-            extra["core_data"] = core_data
+            extra["core_data"] = load(spec["core"]["dataset"])[0]
+        if spec.get("style"):
+            extra["style_data"] = load(spec["style"]["dataset"])[0]
         result, trades_csv = run(spec, data, entry, spec.get("cost_per_side", 0.001), benchmark, **extra)
         now = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
         result |= {"spec_sha256": sha, "completed_at": now, "code_commit": os.environ.get("GITHUB_SHA", "local")}

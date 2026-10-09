@@ -91,6 +91,69 @@ def build_from_symbols(symbols, dataset_id, fetch):
             "price_basis": "EODHD adjusted daily OHLCV", "events": [], "prices": prices}
 
 
+def _with_open(raw):
+    """Mutual funds and spot prices may report only a close; use it for the missing open, high and low."""
+    out = []
+    for x in raw or []:
+        x = dict(x)
+        for key in ("open", "high", "low"):
+            if not x.get(key):
+                x[key] = x.get("close")
+        if x.get("close") and not x.get("adjusted_close"):
+            x["adjusted_close"] = x["close"]
+        out.append(x)
+    return out
+
+
+def splice(base, proxy):
+    """Extend `base` rows back in time with `proxy` rows, scaled so the two meet on base's first day.
+
+    Returns the extended rows and the proxy dates used. Before the base fund
+    existed, the series moves exactly like the proxy did.
+    """
+    first = base[0]["date"]
+    anchor = next((r for r in reversed(proxy) if r["date"] <= first), None)
+    earlier = [r for r in proxy if r["date"] < first]
+    if anchor is None or not earlier:
+        return base, None
+    ratio = base[0]["close"] / anchor["close"]
+    scaled = [{**r, **{k: r[k] * ratio for k in ("open", "high", "low", "close")}} for r in earlier]
+    return scaled + base, (earlier[0]["date"], earlier[-1]["date"])
+
+
+def build_from_chains(chains, dataset_id, fetch):
+    """Long reference series by role: the first ticker where it trades, older proxies before that.
+
+    `chains`: {role: [ticker, proxy, older proxy, ...]} with full EODHD tickers
+    such as "TLT.US", "VUSTX.US" or "XAUUSD.FOREX". A ticker the provider
+    lacks is recorded as unavailable instead of failing the build.
+    """
+    prices, used = {}, {}
+    for role, tickers in chains.items():
+        series, notes = None, []
+        for ticker in tickers:
+            try:
+                rows = adjusted_rows(_with_open(fetch(ticker)))
+            except Exception:  # an unknown ticker is reported, not fatal
+                rows = []
+            if not rows:
+                notes.append({"ticker": ticker, "available": False})
+                continue
+            if series is None:
+                series = rows
+                notes.append({"ticker": ticker, "available": True, "from": rows[0]["date"], "to": rows[-1]["date"], "role": "main"})
+                continue
+            series, span = splice(series, rows)
+            notes.append({"ticker": ticker, "available": True, "from": rows[0]["date"], "to": rows[-1]["date"],
+                          "role": "earlier history" if span else "not needed", **({"used_from": span[0], "used_to": span[1]} if span else {})})
+        if series:
+            prices[role] = _compact(series)
+        used[role] = notes
+    return {"dataset_id": dataset_id, "source": "EODHD adjusted daily history by role; before a fund existed, its role follows an older fund or spot price",
+            "price_basis": "EODHD adjusted daily OHLCV, spliced by daily returns", "events": [], "prices": prices, "chains": used,
+            "missing_symbols": sorted(role for role in chains if role not in prices)}
+
+
 def save(dataset, out_dir):
     raw = json.dumps(dataset, sort_keys=True, separators=(",", ":")).encode()
     blob = gzip.compress(raw, 9, mtime=0)
