@@ -1,0 +1,80 @@
+{
+ "id": "e1-selection-vs-random-v1",
+ "experiment_id": "lab-e1-selection-vs-random-v1-2026-10-10",
+ "kind": "selection",
+ "priority": 3,
+ "question": "Does SV pick better stocks than chance? Every SV signal is copied with a random stock from the same universe that traded that day, bought and sold by the same rules; SV's account is ranked against 200 such random accounts, and its trades against random trades bought the same day.",
+ "dataset": {
+  "id": "observation-2005-2025-v1",
+  "builder": "observation",
+  "events_csv": "research/backtest/output/reusable-runs/34766761296-2/trades.csv"
+ },
+ "benchmark": {
+  "symbol": "SPY",
+  "dataset": {
+   "id": "etf-style-1999-to-2026-10-v1",
+   "builder": "symbols",
+   "symbols": [
+    "SPY",
+    "QQQ",
+    "IWM",
+    "RSP"
+   ],
+   "start": "1999-01-01"
+  }
+ },
+ "style": {
+  "dataset": {
+   "id": "etf-style-1999-to-2026-10-v1",
+   "builder": "symbols",
+   "symbols": [
+    "SPY",
+    "QQQ",
+    "IWM",
+    "RSP"
+   ],
+   "start": "1999-01-01"
+  },
+  "symbols": [
+   "SPY",
+   "QQQ",
+   "IWM",
+   "RSP"
+  ]
+ },
+ "window": {
+  "start": "2005-09-12",
+  "end": "2026-01-16"
+ },
+ "group": "E-foundations",
+ "cost_per_side": 0.001,
+ "exit": {
+  "stop": {
+   "kind": "support_cap",
+   "buffer": 0.05,
+   "cap": 0.1
+  },
+  "targets": [],
+  "max_hold": 40
+ },
+ "account": {
+  "risk_per_trade": 0.005,
+  "position_cap": 0.05,
+  "max_positions": 10,
+  "heat_cap": 0.1
+ },
+ "random_runs": 200,
+ "seed": 20261010,
+ "criteria": {
+  "min_random_percentile": 0.95,
+  "min_trade_excess_t": 2.0
+ },
+ "next_step": "If selection skill is shown: E2, SV fills the 25% stock slice of the core with SPY filling the gaps. If not: SV's stock picks are not built on; research turns to SV's market and sector reading (graded exposure, sector-fund rotation) and to finding why the picks fail.",
+ "notes": [
+  "Pre-registered success (both must hold): SV's account Sharpe beats at least 95% of the 200 random accounts, and SV's trades return more than random trades bought the same day with a t value of at least 2 (signal months as clusters).",
+  "Random picks: same signal days and same-day order as SV, a random stock from the 1,223-stock universe with a bar that day and a year of history, the same next-open entry, its own support stop from bars up to the signal day, no 2R target and a 40-day exit; same account (5% per stock, up to 10, risk 0.5%, open risk 10%).",
+  "Both sides share the universe's survivorship and selection biases, so the comparison isolates which stock was chosen.",
+  "Style check (reported, not a pass condition): the same share of the account in SPY, QQQ, IWM or RSP on the same days, and SV's daily returns regressed on SPY, QQQ minus SPY and IWM minus SPY.",
+  "Same window and settings as step 1 (2005-09-12 to 2026-01-16), so SV's own account reproduces step 1's carried-forward result."
+ ]
+}

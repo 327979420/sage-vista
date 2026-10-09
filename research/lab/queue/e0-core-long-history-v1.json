@@ -1,0 +1,188 @@
+{
+ "id": "e0-core-long-history-v1",
+ "experiment_id": "lab-e0-core-long-history-v1-2026-10-10",
+ "kind": "allocation",
+ "priority": 3,
+ "question": "Is the Permanent Portfolio core robust beyond 2007-2026? Same portfolios on the longest history the data allows (older funds or spot prices before today's funds existed), with every rolling 5-year window checked, including the 1994 bond crash, 2000-02 and 2022.",
+ "dataset": {
+  "id": "core-long-chains-v1",
+  "builder": "chains",
+  "start": "1980-01-01",
+  "chains": {
+   "STOCKS": [
+    "SPY.US",
+    "VFINX.US"
+   ],
+   "LONG": [
+    "TLT.US",
+    "VUSTX.US"
+   ],
+   "MID": [
+    "IEF.US",
+    "VFITX.US"
+   ],
+   "CASH": [
+    "SHY.US",
+    "VFISX.US"
+   ],
+   "BONDS": [
+    "AGG.US",
+    "VBMFX.US"
+   ],
+   "GOLD": [
+    "GLD.US",
+    "XAUUSD.FOREX",
+    "GC.COMM"
+   ],
+   "COMM": [
+    "DBC.US",
+    "PCRIX.US"
+   ]
+  }
+ },
+ "benchmark_symbol": "STOCKS",
+ "benchmark_portfolio": "SPY",
+ "splits": [
+  {
+   "id": "before-2000",
+   "from": "1980-01-01",
+   "to": "1999-12-31"
+  },
+  {
+   "id": "2000-2002",
+   "from": "2000-01-01",
+   "to": "2002-12-31"
+  },
+  {
+   "id": "2003-2007",
+   "from": "2003-01-01",
+   "to": "2007-12-31"
+  },
+  {
+   "id": "2008-2009",
+   "from": "2008-01-01",
+   "to": "2009-12-31"
+  },
+  {
+   "id": "2010-2019",
+   "from": "2010-01-01",
+   "to": "2019-12-31"
+  },
+  {
+   "id": "2020-2021",
+   "from": "2020-01-01",
+   "to": "2021-12-31"
+  },
+  {
+   "id": "2022",
+   "from": "2022-01-01",
+   "to": "2022-12-31"
+  },
+  {
+   "id": "2023-2026",
+   "from": "2023-01-01",
+   "to": "2026-12-31"
+  }
+ ],
+ "window": {
+  "start": "auto",
+  "warmup_months": 13,
+  "end": "2026-01-16"
+ },
+ "group": "E-foundations",
+ "cost_per_side": 0.001,
+ "prior_trials": 8,
+ "criteria": {
+  "min_trades": 0,
+  "max_drawdown": 0.25,
+  "beat_benchmark": [
+   "sharpe",
+   "calmar"
+  ],
+  "every_split_positive": false,
+  "min_deflated_sharpe": 0.95
+ },
+ "selection": {
+  "metric": "Sharpe among portfolios with a worst fall within 25%",
+  "tie_tolerance": 0.02,
+  "tie_break": "higher Calmar"
+ },
+ "rolling": {
+  "years": 5,
+  "step_sessions": 21,
+  "core": "PERM",
+  "max_window_drawdown": 0.25,
+  "min_share_sharpe_vs_benchmark": 0.6
+ },
+ "portfolios": [
+  {
+   "id": "SPY",
+   "label": "US stocks only (benchmark)",
+   "source": "SPY, Vanguard 500 fund before 1993",
+   "rule": "static",
+   "rebalance": "annual",
+   "weights": {
+    "STOCKS": 1.0
+   }
+  },
+  {
+   "id": "6040",
+   "label": "60/40: 60% US stocks, 40% US bonds",
+   "source": "Classic balanced portfolio",
+   "rule": "static",
+   "rebalance": "annual",
+   "weights": {
+    "STOCKS": 0.6,
+    "BONDS": 0.4
+   }
+  },
+  {
+   "id": "PERM",
+   "label": "Permanent Portfolio: stocks, long bonds, gold, cash 25% each",
+   "source": "Harry Browne",
+   "rule": "static",
+   "rebalance": "annual",
+   "weights": {
+    "STOCKS": 0.25,
+    "LONG": 0.25,
+    "GOLD": 0.25,
+    "CASH": 0.25
+   }
+  },
+  {
+   "id": "SPYT",
+   "label": "Faber timing on US stocks: above the 10-month average, else short bonds",
+   "source": "Meb Faber",
+   "rule": "timing",
+   "rebalance": "monthly",
+   "weights": {
+    "STOCKS": 1.0
+   },
+   "months": 10,
+   "cash": "CASH"
+  },
+  {
+   "id": "AW",
+   "label": "All Weather: 30% stocks, 55% bonds, 15% gold and commodities",
+   "source": "Ray Dalio (as published by Tony Robbins, 2014)",
+   "rule": "static",
+   "rebalance": "annual",
+   "optional": true,
+   "weights": {
+    "STOCKS": 0.3,
+    "LONG": 0.4,
+    "MID": 0.15,
+    "GOLD": 0.075,
+    "COMM": 0.075
+   }
+  }
+ ],
+ "next_step": "If the core is confirmed, it stays the foundation and E2 (SV filling the 25% stock slice) uses it. If not, compare cores again on the long window (All Weather, 60/40, risk-based weights) before any SV integration.",
+ "notes": [
+  "Pre-registered success (the core is confirmed only if all hold): over the whole long window the Permanent Portfolio has Sharpe and Calmar at least SPY's and a worst fall within 25%; in rolling 5-year windows (monthly steps) its worst fall stays within 25%, every window gains, and its Sharpe is at least SPY's in at least 60% of windows.",
+  "Before today's funds existed, each role follows an older fund or spot price by daily returns: US stocks Vanguard 500 (VFINX), long Treasuries Vanguard Long-Term Treasury (VUSTX), mid Treasuries VFITX, short Treasuries VFISX, all US bonds VBMFX, gold spot or futures, commodities PIMCO CommodityRealReturn. Tickers the provider lacks are recorded and the window starts when every required series exists.",
+  "All Weather is optional: it is dropped if commodities history is too short, and the report says so.",
+  "Mutual funds trade at their daily price; signals use month-end closes and trade the next session; 0.1% per side on the amount traded.",
+  "This window was not used to choose the core, except 2007-2026 which overlaps the earlier test; the earlier years are new evidence."
+ ]
+}

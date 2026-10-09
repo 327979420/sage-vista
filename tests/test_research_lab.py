@@ -11,7 +11,7 @@ import tempfile
 import unittest
 from unittest import mock
 
-from research.lab import account, allocation, datasets, run_queue
+from research.lab import account, allocation, datasets, run_queue, selection
 from research.lab.exit_rules import simulate
 from research.lab.metrics import evaluate, summarise
 from services.scanner.support_risk import simulate_execution
@@ -500,6 +500,121 @@ class AllocationTests(unittest.TestCase):
         self.assertTrue(gzip.decompress(rebalances).startswith(b"portfolio,date,weights"))
 
 
+def trading_days(n, start=dt.date(2000, 1, 3)):
+    days, day = [], start
+    while len(days) < n:
+        if day.weekday() < 5:
+            days.append(day.isoformat())
+        day += dt.timedelta(days=1)
+    return days
+
+
+class LongHistoryTests(unittest.TestCase):
+    def test_splice_follows_the_proxy_before_the_fund_existed_and_records_missing_tickers(self):
+        proxy = [{"date": d, "open": 0, "high": 0, "low": 0, "close": c, "adjusted_close": c, "volume": 0}
+                 for d, c in [("2000-01-03", 50.0), ("2000-01-04", 55.0), ("2000-01-05", 60.0)]]
+        fund = [{"date": d, "open": c, "high": c, "low": c, "close": c, "adjusted_close": c, "volume": 1}
+                for d, c in [("2000-01-05", 120.0), ("2000-01-06", 126.0)]]
+        feeds = {"FUND.US": fund, "OLD.US": proxy}
+        def fetch(t):
+            if t not in feeds:
+                raise RuntimeError("unknown ticker")
+            return feeds[t]
+        data = datasets.build_from_chains({"X": ["FUND.US", "GONE.US", "OLD.US"], "Y": ["NOPE.US"]}, "t", fetch)
+        x = data["prices"]["X"]
+        self.assertEqual(x["date"], ["2000-01-03", "2000-01-04", "2000-01-05", "2000-01-06"])
+        self.assertAlmostEqual(x["close"][1] / x["close"][0], 55 / 50)  # proxy's move, scaled
+        self.assertAlmostEqual(x["close"][2], 120.0)  # meets the fund on its first day
+        self.assertEqual(x["open"][0], x["close"][0])  # a close-only proxy uses its close as the open
+        self.assertEqual([n["available"] for n in data["chains"]["X"]], [True, False, True])
+        self.assertEqual(data["missing_symbols"], ["Y"])
+
+    def test_auto_window_drops_optional_portfolios_and_checks_rolling_windows(self):
+        days = trading_days(2600)
+        def series(seed, start=0, vol=0.01):
+            bars = walk(seed, n=len(days) - start, drift=0.0004, vol=vol)
+            return {"date": days[start:], **{f: [b[f] for b in bars] for f in ("open", "high", "low", "close")}}
+        prices = {"STOCKS": series(1), "CASH": series(2, vol=0.0005), "LATE": series(3, start=1500)}
+        spec = {"id": "t", "experiment_id": "t", "group": "t", "question": "q", "benchmark_symbol": "STOCKS", "benchmark_portfolio": "SPY",
+                "splits": [{"id": "all", "from": "1990-01-01", "to": "2100-01-01"}], "window": {"start": "auto", "warmup_months": 13, "end": days[-1]},
+                "criteria": {"min_trades": 0, "max_drawdown": 0.25, "beat_benchmark": ["sharpe"]}, "selection": {"tie_tolerance": 0.02},
+                "rolling": {"years": 5, "step_sessions": 21, "core": "MIX", "max_window_drawdown": 0.25, "min_share_sharpe_vs_benchmark": 0.6},
+                "portfolios": [{"id": "SPY", "label": "s", "rule": "static", "rebalance": "annual", "weights": {"STOCKS": 1.0}},
+                               {"id": "MIX", "label": "m", "rule": "static", "rebalance": "annual", "weights": {"STOCKS": 0.5, "CASH": 0.5}},
+                               {"id": "OPT", "label": "o", "rule": "static", "rebalance": "annual", "optional": True, "weights": {"LATE": 1.0}}]}
+        entry = {"dataset_id": "t", "asset": "-", "sha256": "-", "events": 0, "symbols": 3}
+        result, _ = run_queue.run_allocation_spec(spec, {"events": [], "prices": prices}, entry, 0.0)
+        self.assertEqual(result["window"]["start"][:7], "2001-02")  # data from Jan 2000 plus 13 months
+        self.assertEqual([e["portfolio"] for e in result["excluded"]], ["OPT"])
+        roll = result["rolling"]
+        self.assertGreater(roll["windows"], 10)
+        self.assertGreaterEqual(roll["per_portfolio"]["MIX"]["share_positive"], 0.0)
+        self.assertEqual(set(roll["per_portfolio"]), {"SPY", "MIX"})
+        self.assertIn("core_passed", roll)
+        self.assertIn("## Rolling 5-year windows", run_queue.render_report({**result, "completed_at": "2026-10-10T00:00:00+00:00"}))
+
+
+class SelectionTests(unittest.TestCase):
+    def test_random_draws_are_reproducible_and_only_from_stocks_that_traded_that_day(self):
+        days = trading_days(400)
+        prices = {"A": {"date": days, "close": [1.0] * 400}, "B": {"date": days[100:], "close": [1.0] * 300}, "C": {"date": days[:300], "close": [1.0] * 300}}
+        self.assertEqual(sorted(selection.eligible_pool(prices, days[299])), ["A"])  # B lacks a year of history, C has no next bar
+        self.assertEqual(sorted(selection.eligible_pool(prices, days[380])), ["A", "B"])
+        events = [{"signal_date": days[380]}, {"signal_date": days[299]}]
+        self.assertEqual(selection.draws(events, prices, 3, 7), selection.draws(events, prices, 3, 7))
+        self.assertTrue(all(run[1] == "A" for run in selection.draws(events, prices, 5, 7)))
+
+    def test_random_trade_matches_the_account_candidate_for_the_same_stock(self):
+        bars = walk(11, n=420)
+        series = {"date": [b["date"] for b in bars], **{f: [b[f] for b in bars] for f in datasets.FIELDS}}
+        variant = {"stop": {"kind": "support_cap", "buffer": 0.05, "cap": 0.1}, "targets": [], "max_hold": 40}
+        day = series["date"][300]
+        o = selection.outcomes({("S", day)}, {"S": series}, variant, 0.001, series["date"][-1])[("S", day)]
+        expanded = datasets.expand(series)
+        from services.scanner.support_risk import signal_support_plan
+        result = simulate(expanded, 301, variant, support_plan=signal_support_plan(expanded, end=300), cost_per_side=0.001)
+        c = account.candidate({"event_id": "S", "symbol": "S", "signal_date": day}, expanded, 301, result, 0, series["date"][-1])
+        self.assertEqual((o["entry_date"], o["entry_price"], o["stop"], o["fills"]), (c["entry_date"], c["entry_price"], c["stop"], c["fills"]))
+        self.assertEqual([o["closes"][j] for j in range(len(o["closes"]))], c["closes"])
+
+    def test_least_squares_and_clustered_t(self):
+        x = [float(i % 7) for i in range(60)]
+        y = [0.5 + 2.0 * v + (0.01 if i % 2 else -0.01) for i, v in enumerate(x)]
+        beta, t = selection.ols(y, [x])
+        self.assertAlmostEqual(beta[0], 0.5, places=2)
+        self.assertAlmostEqual(beta[1], 2.0, places=3)
+        mean, tval = selection.clustered_t([1.0, 3.0, 2.0, 2.0], ["a", "a", "b", "c"])
+        self.assertAlmostEqual(mean, 2.0)
+        self.assertEqual(tval, 0.0)  # every month averages 2, so no spread: reported as 0, not infinite
+
+    def test_selection_spec_runs_end_to_end(self):
+        days = trading_days(900, dt.date(2005, 1, 3))
+        prices, events = {}, []
+        for k in range(14):
+            bars = walk(8000 + k, n=900)
+            prices[f"S{k}"] = {"date": days, **{f: [b[f] for b in bars] for f in datasets.FIELDS}}
+            if k < 6:
+                for at in range(300, 860, 37):
+                    events.append({"event_id": f"S{k}-{at}", "symbol": f"S{k}", "signal_date": days[at], "score": (k + at) % 11})
+        style = {s: {"date": days, **{f: [b[f] for b in walk(9000 + i, n=900)] for f in datasets.FIELDS}} for i, s in enumerate(("SPY", "QQQ", "IWM", "RSP"))}
+        spec = json.loads((ROOT / "research/lab/queue/e1-selection-vs-random-v1.json").read_text())
+        spec["window"] = {"start": days[250], "end": days[-1]}
+        spec["random_runs"] = 6
+        entry = {"dataset_id": "synthetic", "asset": "-", "sha256": "-", "events": len(events), "symbols": 14}
+        bench = {"symbol": "SPY", "series": style["SPY"], "entry": entry}
+        first, rows = run_queue.run_selection_spec(spec, {"events": events, "prices": prices}, entry, 0.001, bench, style_data={"prices": style})
+        second, _ = run_queue.run_selection_spec(spec, {"events": events, "prices": prices}, entry, 0.001, bench, style_data={"prices": style})
+        self.assertEqual(first, second)
+        self.assertEqual(first["random"]["runs"], 6)
+        self.assertIn("passed", first["verdict"])
+        self.assertEqual(set(first["style"]["same_exposure"]), {"SPY", "QQQ", "IWM", "RSP"})
+        self.assertEqual(set(first["style"]["regression"]["betas"]), {"SPY", "QQQ-SPY", "IWM-SPY"})
+        report = run_queue.render_selection_report({**first, "completed_at": "2026-10-10T00:00:00+00:00"})
+        self.assertIn("## Trade by trade", report)
+        board, markdown = run_queue.render_scoreboard([{**first, "completed_at": "2026-10-10T00:00:00+00:00"}])
+        self.assertIn("random-pick accounts", markdown)
+
+
 def statistics_cdf(x):
     return 0.5 * (1 + math.erf(x / math.sqrt(2)))
 
@@ -572,10 +687,16 @@ class QueueAndDatasetTests(unittest.TestCase):
         for path in (ROOT / "research/lab/queue").glob("*.json"):
             spec = json.loads(path.read_text())
             self.assertIn(spec["experiment_id"], registered, path.name)
+            if spec.get("kind") == "selection":
+                for key in ("min_random_percentile", "min_trade_excess_t"):
+                    self.assertIn(key, spec["criteria"], path.name)
+                self.assertGreaterEqual(spec["random_runs"], 100)
+                continue
             if spec.get("kind") == "allocation":
                 ids = {p["id"] for p in spec["portfolios"]}
                 self.assertIn(spec["benchmark_portfolio"], ids, path.name)
-                self.assertTrue(all(set(p.get("weights", {})) <= set(spec["dataset"]["symbols"]) for p in spec["portfolios"]), path.name)
+                series = set(spec["dataset"].get("symbols") or spec["dataset"].get("chains"))
+                self.assertTrue(all(allocation.roles(p) <= series for p in spec["portfolios"]), path.name)
                 for p in spec["portfolios"]:
                     if p.get("weights"):
                         self.assertAlmostEqual(sum(p["weights"].values()), 1.0, msg=p["id"])
