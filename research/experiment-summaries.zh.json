@@ -546,9 +546,19 @@
    "family": "quant_lab_portfolio",
    "family_zh": "量化研究实验室",
    "question_zh": "只用45分及以上的SV信号（519个），能否胜过同一天可交易的随机股票？",
+   "result_zh": "45分及以上的513个信号：SV账户只胜过10%的随机账户；每笔平均0.26%对随机1.05%，胜率37%对44%。高分信号反而比随机差。",
+   "use_zh": "未通过：3.5版评分不能挑出更好的股票。不做E2。",
+   "next_zh": "E1c：用现在网站上的新版模型过去一年的信号再测。",
+   "verdict": "not_validated"
+  },
+  "lab-e1c-live-model-vs-tradable-random-v1-2026-10-10": {
+   "title_zh": "新版模型（网站现用）过去一年的信号对可交易随机",
+   "family": "quant_lab_portfolio",
+   "family_zh": "量化研究实验室",
+   "question_zh": "网站现在用的新版模型，过去一年4,222个真实信号，能否胜过同一天可交易的随机股票？",
    "result_zh": "已预登记，等待后台自动运行。",
-   "use_zh": "通过则只用高分信号做E2；不通过则SV选股不进账户。",
-   "next_zh": "E2或SV转为信息工具。",
+   "use_zh": "通过则只在前向模拟中试E2；不通过则SV选股不进账户，SV定位为市场信息与观察工具。",
+   "next_zh": "根据结果决定SV的角色。",
    "verdict": "pre_registered"
   }
  }
