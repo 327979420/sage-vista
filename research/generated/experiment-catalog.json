@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-09T14:17:53+00:00",
+  "generated_at": "2026-10-09T14:34:55+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
@@ -8,8 +8,8 @@
   ],
   "experiment_count": 50,
   "summary": {
-    "completed": 34,
-    "in_progress": 16,
+    "completed": 35,
+    "in_progress": 15,
     "candidate": 13,
     "not_validated_or_unstable": 15
   },
@@ -21,6 +21,75 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "lab-e1-selection-vs-random-v1-2026-10-10",
+      "created_at": "2026-10-10",
+      "status": "pre_registered",
+      "change": "Selection-skill check: SV's picks against 200 random-pick accounts from the same universe on the same days, plus a style check",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#research-roadmap-2026-10-10",
+        "lab_spec": "research/lab/queue/e1-selection-vs-random-v1.json",
+        "datasets": [
+          "observation-2005-2025-v1",
+          "etf-style-1999-to-2026-10-v1"
+        ],
+        "account": "step 1 setting: 5% per stock, up to 10, risk 0.5%, open risk 10%",
+        "exit": "current stop, no 2R target, 40 days",
+        "random_runs": 200,
+        "role": "decides whether SV's stock picks are worth building on (gate for E2)"
+      },
+      "success_criteria": "Both: SV account Sharpe beats at least 95% of random accounts; SV trades beat random trades bought the same day with a month-clustered t of at least 2. Style regression and same-exposure fund comparisons reported.",
+      "known_limitations": [
+        "universe of 1,223 stocks that ever produced an SV signal, partly survivor-biased (shared by both sides)",
+        "same 20-year signal set as earlier SV tests",
+        "random stocks use their own support stops computed only from bars up to the signal day"
+      ],
+      "human_summary": {
+        "title_zh": "SV选股是否比随机选股更好",
+        "family": "quant_lab_portfolio",
+        "family_zh": "量化研究实验室",
+        "question_zh": "同一天、同样买卖规则，只把SV选的股票换成同一股票池里随机的一只，重复200次；SV能否明显胜过随机？",
+        "result_zh": "已预登记，等待后台自动运行。",
+        "use_zh": "通过才值得做E2；不通过则不以SV选股为基础，转向市场与行业判断。",
+        "next_zh": "E2或转向行业ETF轮动、渐进仓位。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-09T14:00:50+00:00",
+        "started_at": null,
+        "completed_at": "2026-10-09T14:34:55+00:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-10-09T14:34:55+00:00",
+        "time_source": "github_actions",
+        "event_count": 2,
+        "events": [
+          {
+            "experiment_id": "lab-e1-selection-vs-random-v1-2026-10-10",
+            "event": "registered",
+            "event_at": "2026-10-09T14:00:50+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/e1-selection-vs-random-v1.json",
+              "note": "random design, 200 runs, seed, account and success rule frozen before any run; an engineering check confirmed SV's own account reproduces step 1 (Sharpe 0.6352) without looking at random results"
+            }
+          },
+          {
+            "experiment_id": "lab-e1-selection-vs-random-v1-2026-10-10",
+            "event": "completed",
+            "event_at": "2026-10-09T14:34:55+00:00",
+            "time_source": "github_actions",
+            "source_ref": "https://github.com/327979420/sage-vista/actions/runs/37942883739",
+            "details": {
+              "lab_spec": "e1-selection-vs-random-v1",
+              "spec_sha256": "0494779f31f03de67559bcf69305dd45d6a66e6f092eebe7e02c02fb44a8e10b",
+              "result": "research/lab/results/e1-selection-vs-random-v1/result.json",
+              "dataset": "observation-2005-2025-v1",
+              "champion": null
+            }
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "lab-e0-core-long-history-v1-2026-10-10",
       "created_at": "2026-10-10",
@@ -173,61 +242,6 @@
             },
             "result": "2007-01-03 to 2026-01-16. Permanent core + 5% cash: $100k to $367k, 7.1% a year, worst fall 17.7%, Sharpe 1.01, Calmar 0.40, every period positive. With up to 4 SV stocks: $421k, 7.8%, 21.3%, Sharpe 0.95; up to 10: $505k, 8.9%, 27.0%, 0.84. In 2007-09 the core alone gained 23.1% while core + 10 SV stocks lost 10.5%. On All Weather, 4 SV stocks: Sharpe 0.855 vs 0.850.",
             "decision": "SV not added by the pre-registered rule; the core alone goes forward. Design limitation found in review: adding SV also raised the account's stock share above the core's 25%, so the result mixes 'more stocks' with 'SV's choice of stocks'; an equal amount of SPY was never tested. Follow-ups E1 (SV vs random picks) and E2 (SV inside the 25% stock slice) separate the two."
-          }
-        ]
-      }
-    },
-    {
-      "experiment_id": "lab-e1-selection-vs-random-v1-2026-10-10",
-      "created_at": "2026-10-10",
-      "status": "pre_registered",
-      "change": "Selection-skill check: SV's picks against 200 random-pick accounts from the same universe on the same days, plus a style check",
-      "specification": {
-        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#research-roadmap-2026-10-10",
-        "lab_spec": "research/lab/queue/e1-selection-vs-random-v1.json",
-        "datasets": [
-          "observation-2005-2025-v1",
-          "etf-style-1999-to-2026-10-v1"
-        ],
-        "account": "step 1 setting: 5% per stock, up to 10, risk 0.5%, open risk 10%",
-        "exit": "current stop, no 2R target, 40 days",
-        "random_runs": 200,
-        "role": "decides whether SV's stock picks are worth building on (gate for E2)"
-      },
-      "success_criteria": "Both: SV account Sharpe beats at least 95% of random accounts; SV trades beat random trades bought the same day with a month-clustered t of at least 2. Style regression and same-exposure fund comparisons reported.",
-      "known_limitations": [
-        "universe of 1,223 stocks that ever produced an SV signal, partly survivor-biased (shared by both sides)",
-        "same 20-year signal set as earlier SV tests",
-        "random stocks use their own support stops computed only from bars up to the signal day"
-      ],
-      "human_summary": {
-        "title_zh": "SV选股是否比随机选股更好",
-        "family": "quant_lab_portfolio",
-        "family_zh": "量化研究实验室",
-        "question_zh": "同一天、同样买卖规则，只把SV选的股票换成同一股票池里随机的一只，重复200次；SV能否明显胜过随机？",
-        "result_zh": "已预登记，等待后台自动运行。",
-        "use_zh": "通过才值得做E2；不通过则不以SV选股为基础，转向市场与行业判断。",
-        "next_zh": "E2或转向行业ETF轮动、渐进仓位。",
-        "verdict": "pre_registered"
-      },
-      "lifecycle": {
-        "registered_at": "2026-10-09T14:00:50+00:00",
-        "started_at": null,
-        "completed_at": null,
-        "latest_event": "registered",
-        "latest_event_at": "2026-10-09T14:00:50+00:00",
-        "time_source": "assistant_registration",
-        "event_count": 1,
-        "events": [
-          {
-            "experiment_id": "lab-e1-selection-vs-random-v1-2026-10-10",
-            "event": "registered",
-            "event_at": "2026-10-09T14:00:50+00:00",
-            "time_source": "assistant_registration",
-            "details": {
-              "lab_spec": "research/lab/queue/e1-selection-vs-random-v1.json",
-              "note": "random design, 200 runs, seed, account and success rule frozen before any run; an engineering check confirmed SV's own account reproduces step 1 (Sharpe 0.6352) without looking at random results"
-            }
           }
         ]
       }

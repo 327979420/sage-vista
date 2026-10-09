@@ -122,6 +122,12 @@ Is the Permanent Portfolio core robust beyond 2007-2026? Same portfolios on the 
 
 Champion: **PERM**
 
+## e1-selection-vs-random-v1 (observation-2005-2025-v1, SV against 200 random-pick accounts)
+
+Does SV pick better stocks than chance? Every SV signal is copied with a random stock from the same universe that traded that day, bought and sold by the same rules; SV's account is ranked against 200 such random accounts, and its trades against random trades bought the same day.
+
+SV Sharpe 0.6352 beat 86% of random accounts; trade-level excess -187.35% (t -1.001). Selection skill shown: **no**
+
 ## p1-size-risk-20y-v1 (observation-2005-2025-v1, $100k account 2005-09-12 to 2026-01-16)
 
 Portfolio step 1: with round 2's best selling rule (current stop, no 2R target, 40 days), how big should each position be and how much should each trade and the whole account risk? Settings are taken from the ranges mature programs use, and a rule fixed before the run picks one.

@@ -1,0 +1,136 @@
+{
+ "spec_id": "e1-selection-vs-random-v1",
+ "experiment_id": "lab-e1-selection-vs-random-v1-2026-10-10",
+ "group": "E-foundations",
+ "question": "Does SV pick better stocks than chance? Every SV signal is copied with a random stock from the same universe that traded that day, bought and sold by the same rules; SV's account is ranked against 200 such random accounts, and its trades against random trades bought the same day.",
+ "kind": "selection",
+ "dataset": {
+  "dataset_id": "observation-2005-2025-v1",
+  "asset": "observation-2005-2025-v1-d5262d06cb38.json.gz",
+  "sha256": "d5262d06cb381463188d010272813150cd6667fe6371ae4911e4836eb7bebd6d",
+  "events": 3115,
+  "symbols": 1223
+ },
+ "benchmark": {
+  "symbol": "SPY",
+  "dataset_id": "etf-style-1999-to-2026-10-v1",
+  "asset": "etf-style-1999-to-2026-10-v1-afd785df831d.json.gz",
+  "sha256": "afd785df831dd0d289d348d3cc9d32b5861bd1ae1a9753dceeacbe2b24122e11"
+ },
+ "window": {
+  "start": "2005-09-12",
+  "end": "2026-01-16",
+  "sessions": 5120
+ },
+ "cost_per_side": 0.001,
+ "account_rules": {
+  "risk_per_trade": 0.005,
+  "position_cap": 0.05,
+  "max_positions": 10,
+  "heat_cap": 0.1
+ },
+ "exit": {
+  "stop": {
+   "kind": "support_cap",
+   "buffer": 0.05,
+   "cap": 0.1
+  },
+  "targets": [],
+  "max_hold": 40
+ },
+ "criteria": {
+  "min_random_percentile": 0.95,
+  "min_trade_excess_t": 2.0
+ },
+ "sv": {
+  "final_equity": 277394.77,
+  "total_return": 1.773948,
+  "cagr": 0.051427,
+  "max_drawdown": 0.257131,
+  "sharpe": 0.6352,
+  "sortino": 0.9359,
+  "calmar": 0.2,
+  "daily_sharpe": 0.04001621,
+  "skew": 0.3248,
+  "kurtosis": 8.524,
+  "sessions": 5120,
+  "trades_taken": 1475,
+  "average_exposure": 0.3652,
+  "calendar_mismatches": 0,
+  "stale_valuations": 0,
+  "sold_when_prices_ended": 0
+ },
+ "random": {
+  "runs": 200,
+  "seed": 20261010,
+  "sharpe": {
+   "p5": 0.2509,
+   "median": 0.485,
+   "p95": 0.6877
+  },
+  "cagr": {
+   "p5": 0.019632,
+   "median": 0.039827,
+   "p95": 0.068061
+  },
+  "max_drawdown": {
+   "p5": 0.252969,
+   "median": 0.312987,
+   "p95": 0.36858
+  },
+  "final_equity": {
+   "p5": 148520.18,
+   "median": 221348.04,
+   "p95": 381753.73
+  },
+  "sv_beats_share_sharpe": 0.865,
+  "sv_beats_share_cagr": 0.77
+ },
+ "trade_level": {
+  "signals": 3110,
+  "mean_excess_vs_random": -1.873462,
+  "t_monthly": -1.001,
+  "sv_mean": 0.017235,
+  "random_mean": 1.893825,
+  "sv_win_rate": 0.4084,
+  "random_win_rate": 0.4307
+ },
+ "style": {
+  "same_exposure": {
+   "SPY": {
+    "same_exposure_sharpe": 0.6025
+   },
+   "QQQ": {
+    "same_exposure_sharpe": 0.724
+   },
+   "IWM": {
+    "same_exposure_sharpe": 0.3861
+   },
+   "RSP": {
+    "same_exposure_sharpe": 0.5086
+   }
+  },
+  "regression": {
+   "alpha_annual": 0.029137,
+   "alpha_t": 1.946,
+   "betas": {
+    "SPY": 0.2059,
+    "QQQ-SPY": 0.0431,
+    "IWM-SPY": 0.2155
+   }
+  }
+ },
+ "verdict": {
+  "checks": {
+   "beats_random_accounts": false,
+   "trades_beat_random_same_day": false
+  },
+  "passed": false
+ },
+ "champion": null,
+ "chosen": null,
+ "next_step": "If selection skill is shown: E2, SV fills the 25% stock slice of the core with SPY filling the gaps. If not: SV's stock picks are not built on; research turns to SV's market and sector reading (graded exposure, sector-fund rotation) and to finding why the picks fail.",
+ "spec_sha256": "0494779f31f03de67559bcf69305dd45d6a66e6f092eebe7e02c02fb44a8e10b",
+ "completed_at": "2026-10-09T14:34:55+00:00",
+ "code_commit": "875021bd3b04aa153f348ba47a06e26fc0758e56"
+}
