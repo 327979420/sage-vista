@@ -832,6 +832,9 @@ def publish(result, trades_csv, event, manifests, attempts=3):
     def git(*args, check=True):
         return subprocess.run(["git", *args], cwd=ROOT, check=check, text=True, capture_output=True)
     for _ in range(attempts):
+        # A long run can cross into the EOD window; never push to main inside it.
+        if in_eod_window():
+            raise RuntimeError("inside the 23:30-04:30 UTC EOD window; result not published, the spec stays pending")
         git("fetch", "origin", "main")
         git("switch", "--detach", "--force", "origin/main")
         write_outputs(ROOT, result, trades_csv, event, manifests)

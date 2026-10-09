@@ -782,6 +782,12 @@ class QueueAndDatasetTests(unittest.TestCase):
             h, m = map(int, hhmm.split(":"))
             self.assertEqual(run_queue.in_eod_window(dt.datetime(2026, 10, 7, h, m, tzinfo=dt.timezone.utc)), blocked, hhmm)
 
+    def test_publishing_refuses_inside_the_eod_window(self):
+        with mock.patch.object(run_queue, "in_eod_window", return_value=True), mock.patch.object(run_queue.subprocess, "run") as git:
+            with self.assertRaisesRegex(RuntimeError, "EOD window"):
+                run_queue.publish({"spec_id": "x"}, b"", {"details": {"spec_sha256": "-"}}, [])
+            git.assert_not_called()
+
     def test_dataset_round_trip_rejects_tampering(self):
         data = {"dataset_id": "t", "source": "s", "price_basis": "p", "events": [], "prices": {}}
         with tempfile.TemporaryDirectory() as folder:

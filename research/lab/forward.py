@@ -77,7 +77,10 @@ def fetch_prices(config):
 def publish(config, snapshot, now, attempts=3):
     def git(*args, check=True):
         return subprocess.run(["git", *args], cwd=ROOT, check=check, text=True, capture_output=True)
+    from research.lab.run_queue import in_eod_window
     for _ in range(attempts):
+        if in_eod_window():
+            raise RuntimeError("inside the 23:30-04:30 UTC EOD window; forward accounts not published")
         git("fetch", "origin", "main")
         git("switch", "--detach", "--force", "origin/main")
         write(ROOT, config, snapshot, now)
