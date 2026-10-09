@@ -554,7 +554,78 @@ class LongHistoryTests(unittest.TestCase):
         self.assertIn("## Rolling 5-year windows", run_queue.render_report({**result, "completed_at": "2026-10-10T00:00:00+00:00"}))
 
 
+class DynamicAndSectorTests(unittest.TestCase):
+    def test_overlay_steps_a_slice_down_by_trend_and_volatility(self):
+        n = 14
+        up = monthly_series([100 + 5 * i for i in range(n)])
+        flat_cash = monthly_series([100 + 0.1 * i for i in range(n)])
+        mixed = monthly_series([100 + 5 * i for i in range(n - 2)] + [120, 110])  # 12-month up, 1- and 3-month down
+        prices = allocation.Prices({"UP": up, "MIX": mixed, "CASH": flat_cash})
+        day = up["date"][-1]
+        rule = {"rule": "overlay", "weights": {"UP": 0.5, "MIX": 0.5}, "cash": "CASH",
+                "overlay": {"UP": {"trend": {"kind": "tsmom", "lookbacks_months": [1, 3, 12]}}, "MIX": {"trend": {"kind": "tsmom", "lookbacks_months": [1, 3, 12]}}}}
+        w = allocation.target_weights(rule, prices, day)
+        self.assertAlmostEqual(w["UP"], 0.5)
+        self.assertAlmostEqual(w["MIX"], 0.5 / 3)  # only the 12-month return beats cash
+        self.assertAlmostEqual(w["CASH"], 0.5 * 2 / 3)
+        days = trading_days(80)
+        calm = {"date": days, "close": [100 * 1.0002 ** i for i in range(80)]}
+        vol_prices = allocation.Prices({"X": calm})
+        scale = allocation.vol_scale(vol_prices, "X", days[-1], {"target": 0.15, "days": 63, "cap": 1.0})
+        self.assertEqual(scale, 1.0)  # quiet market: never above full size
+        wild_closes = [100.0]
+        for i in range(1, 80):
+            wild_closes.append(wild_closes[-1] * (1.05 if i % 2 else 0.95))
+        wild = {"date": days, "close": wild_closes}
+        self.assertLess(allocation.vol_scale(allocation.Prices({"X": wild}), "X", days[-1], {"target": 0.15, "days": 63, "cap": 1.0}), 0.3)
+
+    def test_rotation_holds_the_strongest_funds_and_cash_when_none_beats_it(self):
+        n = 14
+        prices = allocation.Prices({"A": monthly_series([100 + 1 * i for i in range(n)]), "B": monthly_series([100 + 3 * i for i in range(n)]),
+                                    "C": monthly_series([100 + 2 * i for i in range(n)]), "CASH": monthly_series([100 + 0.5 * i for i in range(n)]),
+                                    "T": monthly_series([100.0] * n)})
+        day = prices.series["A"]["date"][-1]
+        rule = {"rule": "rotation", "universe": ["A", "B", "C"], "top": 2, "lookbacks_months": [3, 6, 12], "sleeve": 0.5, "cash": "CASH", "weights": {"T": 0.5}}
+        self.assertEqual(allocation.target_weights(rule, prices, day), {"T": 0.5, "B": 0.25, "C": 0.25})
+        weak = allocation.Prices({**prices.series, "CASH": monthly_series([100 + 5 * i for i in range(n)])})
+        self.assertEqual(allocation.target_weights({**rule, "absolute": True}, weak, day), {"T": 0.5, "CASH": 0.5})
+        self.assertEqual(allocation.roles(rule), {"A", "B", "C", "CASH", "T"})
+
+    def test_improve_on_keeps_the_baseline_unless_a_candidate_is_better_without_lower_sharpe(self):
+        days = trading_days(900)
+        def series(seed, vol):
+            bars = walk(seed, n=900, drift=0.0004, vol=vol)
+            return {"date": days, **{f: [b[f] for b in bars] for f in ("open", "high", "low", "close")}}
+        prices = {"STOCKS": series(1, 0.012), "CASH": series(2, 0.0004)}
+        spec = {"id": "t", "experiment_id": "t", "group": "t", "question": "q", "benchmark_symbol": "STOCKS", "benchmark_portfolio": "SPY",
+                "splits": [], "window": {"start": days[300], "end": days[-1]}, "criteria": {"min_trades": 0, "max_drawdown": 0.9},
+                "selection": {"kind": "improve_on", "baseline": "BASE", "metric": "calmar", "candidates": ["SAME"]},
+                "comparisons": [{"question": "same beats base", "a": "SAME", "b": "BASE", "metric": "sharpe"}],
+                "portfolios": [{"id": "SPY", "label": "s", "rule": "static", "rebalance": "annual", "weights": {"STOCKS": 1.0}},
+                               {"id": "BASE", "label": "b", "rule": "static", "rebalance": "annual", "weights": {"STOCKS": 0.5, "CASH": 0.5}},
+                               {"id": "SAME", "label": "same as base", "rule": "static", "rebalance": "annual", "weights": {"STOCKS": 0.5, "CASH": 0.5}}]}
+        entry = {"dataset_id": "t", "asset": "-", "sha256": "-", "events": 0, "symbols": 2}
+        result, _ = run_queue.run_allocation_spec(spec, {"events": [], "prices": prices}, entry, 0.001)
+        self.assertEqual(result["chosen"]["variant"], "BASE")  # an identical candidate is not "better"
+        self.assertFalse(result["chosen"]["improved"])
+        self.assertFalse(result["comparisons"][0]["holds"])
+        self.assertIn("Improvement over BASE", run_queue.render_report({**result, "completed_at": "2026-10-10T00:00:00+00:00"}))
+
+
 class SelectionTests(unittest.TestCase):
+    def test_tradable_pool_and_price_error_screen(self):
+        days = trading_days(500)
+        good = {"date": days, "close": [10.0] * 500, "volume": [2_000_000] * 500}
+        cheap = {"date": days, "close": [3.0] * 500, "volume": [9_000_000] * 500}
+        thin = {"date": days, "close": [10.0] * 500, "volume": [500_000] * 500}
+        broken = {"date": days, "close": [10.0] * 250 + [80.0] * 250, "volume": [2_000_000] * 500}
+        prices = {"GOOD": good, "CHEAP": cheap, "THIN": thin, "BROKEN": broken}
+        self.assertEqual(selection.impossible_jumps(prices), {"BROKEN"})
+        rules = {"min_history": 420, "min_close": 5.0, "min_dollar_volume": 10_000_000.0, "exclude": {"BROKEN"}}
+        self.assertEqual(selection.eligible_pool(prices, days[450], rules), ["GOOD"])
+        self.assertEqual(selection.eligible_pool(prices, days[400], rules), [])  # not yet 420 sessions of history
+        self.assertEqual(selection.winsorize([1.0] * 98 + [1000.0, -1000.0]), [1.0] * 100)
+
     def test_random_draws_are_reproducible_and_only_from_stocks_that_traded_that_day(self):
         days = trading_days(400)
         prices = {"A": {"date": days, "close": [1.0] * 400}, "B": {"date": days[100:], "close": [1.0] * 300}, "C": {"date": days[:300], "close": [1.0] * 300}}
@@ -699,7 +770,8 @@ class QueueAndDatasetTests(unittest.TestCase):
                 self.assertTrue(all(allocation.roles(p) <= series for p in spec["portfolios"]), path.name)
                 for p in spec["portfolios"]:
                     if p.get("weights"):
-                        self.assertAlmostEqual(sum(p["weights"].values()), 1.0, msg=p["id"])
+                        # A rotation sleeve fills whatever the fixed weights leave.
+                        self.assertAlmostEqual(sum(p["weights"].values()) + p.get("sleeve", 0.0), 1.0, msg=p["id"])
                 continue
             ids = set(run_queue.expand_variants(spec)[0])
             self.assertIn(spec["baseline"], ids)

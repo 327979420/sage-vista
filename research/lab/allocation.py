@@ -9,7 +9,14 @@ A portfolio is data in the spec, never new code:
   slice moves to the cash fund;
 - `dual_momentum`: Gary Antonacci's Global Equities Momentum; at each month
   end, if US stocks beat cash over 12 months, hold the stronger of US and
-  international stocks, otherwise hold bonds.
+  international stocks, otherwise hold bonds;
+- `overlay`: fixed weights where some slices are scaled down step by step:
+  by trend (Faber's 10-month average, or the share of 1/3/12-month returns
+  above cash as in Hurst, Ooi and Pedersen) and/or by volatility (target
+  divided by recent volatility, Moreira and Muir); the rest goes to cash;
+- `rotation`: each month hold the top few funds of a list by average past
+  return (industry momentum, Moskowitz and Grinblatt), optionally only those
+  beating cash, inside a sleeve next to fixed weights.
 
 Signals use month-end closes known at that close and trade at the next
 session's open, with the lab's cost per side on the amount traded. Between
@@ -45,6 +52,14 @@ class Prices:
             return s["open"][i]
         return self.close(symbol, day)
 
+    def daily_closes(self, symbol, day, count):
+        """The last `count` daily closes up to and including `day`."""
+        s = self.series[symbol]
+        i = bisect.bisect_right(s["date"], day)
+        if i < count:
+            raise ValueError(f"not_enough_history:{symbol}:{day}")
+        return s["close"][i - count:i]
+
     def month_end_closes(self, symbol, day, count):
         """The last `count` month-end closes up to and including `day`."""
         s = self.series[symbol]
@@ -56,7 +71,7 @@ class Prices:
 
 def roles(portfolio):
     """Every price series a portfolio can hold."""
-    out = set(portfolio.get("weights", {})) | set(portfolio.get("risky", []))
+    out = set(portfolio.get("weights", {})) | set(portfolio.get("risky", [])) | set(portfolio.get("universe", []))
     out |= {portfolio[k] for k in ("cash", "safe") if portfolio.get(k)}
     return out
 
@@ -90,11 +105,60 @@ def rolling(equities, dates, years, step, benchmark, core):
                       "share_positive": round(sum(t > 0 for t in v["total"]) / len(v["total"]), 4) if v["total"] else None}
                for name, v in per.items()}
     return {"years": years, "windows": len(starts), "first_window": dates[starts[0]] if starts else None, "last_window": dates[starts[-1]] if starts else None,
-            "per_portfolio": summary, "core_sharpe_beats_benchmark_share": round(beats / len(starts), 4) if starts else None}
+            "per_portfolio": summary, "core_sharpe_beats_benchmark_share": round(beats / len(starts), 4) if starts and core in per else None}
+
+
+def _change(prices, symbol, day, months):
+    closes = prices.month_end_closes(symbol, day, months + 1)
+    return closes[-1] / closes[0] - 1
+
+
+def trend_score(prices, symbol, day, trend, cash):
+    """1 when the trend is fully up, 0 when down, in steps between for several lookbacks."""
+    if trend["kind"] == "sma":
+        closes = prices.month_end_closes(symbol, day, trend["months"])
+        return 1.0 if closes[-1] > sum(closes) / len(closes) else 0.0
+    if trend["kind"] == "tsmom":
+        hits = [_change(prices, symbol, day, m) > _change(prices, cash, day, m) for m in trend["lookbacks_months"]]
+        return sum(hits) / len(hits)
+    raise ValueError(f"unknown trend kind {trend['kind']}")
+
+
+def vol_scale(prices, symbol, day, vol):
+    closes = prices.daily_closes(symbol, day, vol["days"] + 1)
+    rets = [closes[i] / closes[i - 1] - 1 for i in range(1, len(closes))]
+    mean = sum(rets) / len(rets)
+    realized = (sum((r - mean) ** 2 for r in rets) / (len(rets) - 1)) ** 0.5 * 252 ** 0.5
+    return min(vol.get("cap", 1.0), vol["target"] / realized) if realized else 1.0
 
 
 def target_weights(portfolio, prices, day):
     rule = portfolio["rule"]
+    if rule == "overlay":
+        out = dict(portfolio["weights"])
+        cash = portfolio["cash"]
+        for symbol, rules in portfolio["overlay"].items():
+            scale = 1.0
+            if rules.get("trend"):
+                scale *= trend_score(prices, symbol, day, rules["trend"], cash)
+            if rules.get("vol"):
+                scale *= vol_scale(prices, symbol, day, rules["vol"])
+            moved = out[symbol] * (1 - scale)
+            out[symbol] -= moved
+            out[cash] = out.get(cash, 0.0) + moved
+        return {s: w for s, w in out.items() if w > 0}
+    if rule == "rotation":
+        out = dict(portfolio.get("weights", {}))
+        score = {s: sum(_change(prices, s, day, m) for m in portfolio["lookbacks_months"]) / len(portfolio["lookbacks_months"]) for s in portfolio["universe"]}
+        picks = sorted(portfolio["universe"], key=lambda s: (-score[s], s))[: portfolio["top"]]
+        share = portfolio["sleeve"] / portfolio["top"]
+        cash = portfolio.get("cash")
+        hurdle = (sum(_change(prices, cash, day, m) for m in portfolio["lookbacks_months"]) / len(portfolio["lookbacks_months"])
+                  if portfolio.get("absolute") else None)
+        for s in picks:
+            held = cash if hurdle is not None and score[s] <= hurdle else s
+            out[held] = out.get(held, 0.0) + share
+        return out
     if rule == "static":
         return dict(portfolio["weights"])
     if rule == "timing":

@@ -36,17 +36,48 @@ class Closes:
         return self.dates[i], float(self.closes[i])
 
 
-def eligible_pool(prices, day):
-    """Stocks with a bar on `day`, a year of history before it and at least one bar after it."""
+def eligible_pool(prices, day, rules=None):
+    """Stocks with a bar on `day`, enough history before it and at least one bar after it.
+
+    `rules` (optional) applies SV's own tradability floor on that day, so the
+    random picks come from the stocks SV could actually have picked:
+    {"min_history", "min_close", "min_dollar_volume", "exclude"}.
+    """
+    rules = rules or {}
+    history = rules.get("min_history", MIN_HISTORY)
+    excluded = rules.get("exclude", ())
     pool = []
     for symbol, series in prices.items():
+        if symbol in excluded:
+            continue
         i = bisect.bisect_left(series["date"], day)
-        if i < len(series["date"]) and series["date"][i] == day and i >= MIN_HISTORY and i + 1 < len(series["date"]):
-            pool.append(symbol)
+        if not (i < len(series["date"]) and series["date"][i] == day and i >= history and i + 1 < len(series["date"])):
+            continue
+        if rules.get("min_close") or rules.get("min_dollar_volume"):
+            close = float(series["close"][i])
+            if close < rules.get("min_close", 0) or close * float(series["volume"][i]) < rules.get("min_dollar_volume", 0):
+                continue
+        pool.append(symbol)
     return pool
 
 
-def draws(events, prices, runs, seed):
+def impossible_jumps(prices, up=4.0, down=0.1):
+    """Stocks whose close ever moves more than 4x up or 90% down in one session: provider adjustment errors."""
+    bad = set()
+    for symbol, series in prices.items():
+        c = series["close"]
+        if any(c[i - 1] > 0 and not (down <= c[i] / c[i - 1] <= up) for i in range(1, len(c))):
+            bad.add(symbol)
+    return bad
+
+
+def winsorize(values, low=0.01, high=0.99):
+    ordered = sorted(values)
+    lo, hi = ordered[round(low * (len(ordered) - 1))], ordered[round(high * (len(ordered) - 1))]
+    return [min(max(v, lo), hi) for v in values]
+
+
+def draws(events, prices, runs, seed, rules=None):
     """runs x events random symbols, one per SV signal, reproducible from the seed."""
     pools = {}
     out = []
@@ -56,7 +87,7 @@ def draws(events, prices, runs, seed):
         for e in events:
             day = e["signal_date"]
             if day not in pools:
-                pools[day] = eligible_pool(prices, day)
+                pools[day] = eligible_pool(prices, day, rules)
             picks.append(rng.choice(pools[day]) if pools[day] else None)
         out.append(picks)
     return out

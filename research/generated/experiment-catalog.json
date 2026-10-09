@@ -1,17 +1,17 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-09T14:34:55+00:00",
+  "generated_at": "2026-10-09T14:39:43+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 50,
+  "experiment_count": 53,
   "summary": {
     "completed": 35,
-    "in_progress": 15,
-    "candidate": 13,
-    "not_validated_or_unstable": 15
+    "in_progress": 18,
+    "candidate": 14,
+    "not_validated_or_unstable": 16
   },
   "policy": {
     "append_only": true,
@@ -21,75 +21,6 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
-    {
-      "experiment_id": "lab-e1-selection-vs-random-v1-2026-10-10",
-      "created_at": "2026-10-10",
-      "status": "pre_registered",
-      "change": "Selection-skill check: SV's picks against 200 random-pick accounts from the same universe on the same days, plus a style check",
-      "specification": {
-        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#research-roadmap-2026-10-10",
-        "lab_spec": "research/lab/queue/e1-selection-vs-random-v1.json",
-        "datasets": [
-          "observation-2005-2025-v1",
-          "etf-style-1999-to-2026-10-v1"
-        ],
-        "account": "step 1 setting: 5% per stock, up to 10, risk 0.5%, open risk 10%",
-        "exit": "current stop, no 2R target, 40 days",
-        "random_runs": 200,
-        "role": "decides whether SV's stock picks are worth building on (gate for E2)"
-      },
-      "success_criteria": "Both: SV account Sharpe beats at least 95% of random accounts; SV trades beat random trades bought the same day with a month-clustered t of at least 2. Style regression and same-exposure fund comparisons reported.",
-      "known_limitations": [
-        "universe of 1,223 stocks that ever produced an SV signal, partly survivor-biased (shared by both sides)",
-        "same 20-year signal set as earlier SV tests",
-        "random stocks use their own support stops computed only from bars up to the signal day"
-      ],
-      "human_summary": {
-        "title_zh": "SV选股是否比随机选股更好",
-        "family": "quant_lab_portfolio",
-        "family_zh": "量化研究实验室",
-        "question_zh": "同一天、同样买卖规则，只把SV选的股票换成同一股票池里随机的一只，重复200次；SV能否明显胜过随机？",
-        "result_zh": "已预登记，等待后台自动运行。",
-        "use_zh": "通过才值得做E2；不通过则不以SV选股为基础，转向市场与行业判断。",
-        "next_zh": "E2或转向行业ETF轮动、渐进仓位。",
-        "verdict": "pre_registered"
-      },
-      "lifecycle": {
-        "registered_at": "2026-10-09T14:00:50+00:00",
-        "started_at": null,
-        "completed_at": "2026-10-09T14:34:55+00:00",
-        "latest_event": "completed",
-        "latest_event_at": "2026-10-09T14:34:55+00:00",
-        "time_source": "github_actions",
-        "event_count": 2,
-        "events": [
-          {
-            "experiment_id": "lab-e1-selection-vs-random-v1-2026-10-10",
-            "event": "registered",
-            "event_at": "2026-10-09T14:00:50+00:00",
-            "time_source": "assistant_registration",
-            "details": {
-              "lab_spec": "research/lab/queue/e1-selection-vs-random-v1.json",
-              "note": "random design, 200 runs, seed, account and success rule frozen before any run; an engineering check confirmed SV's own account reproduces step 1 (Sharpe 0.6352) without looking at random results"
-            }
-          },
-          {
-            "experiment_id": "lab-e1-selection-vs-random-v1-2026-10-10",
-            "event": "completed",
-            "event_at": "2026-10-09T14:34:55+00:00",
-            "time_source": "github_actions",
-            "source_ref": "https://github.com/327979420/sage-vista/actions/runs/37942883739",
-            "details": {
-              "lab_spec": "e1-selection-vs-random-v1",
-              "spec_sha256": "0494779f31f03de67559bcf69305dd45d6a66e6f092eebe7e02c02fb44a8e10b",
-              "result": "research/lab/results/e1-selection-vs-random-v1/result.json",
-              "dataset": "observation-2005-2025-v1",
-              "champion": null
-            }
-          }
-        ]
-      }
-    },
     {
       "experiment_id": "lab-e0-core-long-history-v1-2026-10-10",
       "created_at": "2026-10-10",
@@ -119,19 +50,19 @@
         "family": "quant_lab_portfolio",
         "family_zh": "量化研究实验室",
         "question_zh": "用能拿到的最长历史（基金成立前用老基金或现货接上），并检查每个滚动5年，永久组合是否仍然优于SPY、回撤不超过25%？",
-        "result_zh": "已预登记，等待后台自动运行。",
-        "use_zh": "通过则继续作为核心；不通过则先重新比较核心组合，再谈SV。",
-        "next_zh": "E2（SV替换25%股票部分）或重新选核心。",
-        "verdict": "pre_registered"
+        "result_zh": "1993—2026年（33年）：永久组合年化7.5%、最大回撤18%、Sharpe 1.10；337个滚动5年窗口全部赚钱（最差+14.6%），76%的窗口风险收益比不低于SPY；2000—02年+11.7%、2008—09年+9.7%、2022年−13.5%。SPY年化10.7%、回撤55%。",
+        "use_zh": "核心组合通过全部预设检查，包括选它时没看过的1993—2006年。",
+        "next_zh": "E3渐进仓位、E4行业轮动在此基础上检验。",
+        "verdict": "candidate"
       },
       "lifecycle": {
         "registered_at": "2026-10-09T14:00:50+00:00",
         "started_at": null,
         "completed_at": "2026-10-09T14:17:53+00:00",
-        "latest_event": "completed",
-        "latest_event_at": "2026-10-09T14:17:53+00:00",
-        "time_source": "github_actions",
-        "event_count": 2,
+        "latest_event": "checkpoint",
+        "latest_event_at": "2026-10-09T14:39:43+00:00",
+        "time_source": "assistant_review",
+        "event_count": 3,
         "events": [
           {
             "experiment_id": "lab-e0-core-long-history-v1-2026-10-10",
@@ -155,6 +86,255 @@
               "result": "research/lab/results/e0-core-long-history-v1/result.json",
               "dataset": "core-long-chains-v1",
               "champion": "PERM"
+            }
+          },
+          {
+            "experiment_id": "lab-e0-core-long-history-v1-2026-10-10",
+            "event": "checkpoint",
+            "event_at": "2026-10-09T14:39:43+00:00",
+            "time_source": "assistant_review",
+            "source_ref": "research/lab/results/e0-core-long-history-v1/REPORT.md",
+            "details": {
+              "note": "researcher review of the long-history core test"
+            },
+            "result": "1993-01-04 to 2026-01-16 (gold before 2004 from spot XAUUSD, long Treasuries before 2002 from VUSTX, short Treasuries from VFISX, stocks before 1993 from VFINX). Permanent Portfolio: $100k to $1.08M, 7.5% a year, worst fall 18.4%, Sharpe 1.10, Calmar 0.41; all 337 rolling 5-year windows gained (lowest +14.6%), worst fall in any window 18.4%, Sharpe at least SPY's in 76% of windows; 2000-02 +11.7%, 2008-09 +9.7%, 2022 -13.5%. SPY 10.7%, worst fall 55.2%, Sharpe 0.64; 60/40 8.6%, 33.8%, 0.81; Faber timing on SPY 10.0%, 28.1%, 0.81. All Weather not tested (commodities only from 2002).",
+            "decision": "Core confirmed by every pre-registered check, including 1993-2006 years it was not chosen on (1994 bond crash, 2000-02 bear market, a falling gold price until 2001)."
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "lab-e1-selection-vs-random-v1-2026-10-10",
+      "created_at": "2026-10-10",
+      "status": "pre_registered",
+      "change": "Selection-skill check: SV's picks against 200 random-pick accounts from the same universe on the same days, plus a style check",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#research-roadmap-2026-10-10",
+        "lab_spec": "research/lab/queue/e1-selection-vs-random-v1.json",
+        "datasets": [
+          "observation-2005-2025-v1",
+          "etf-style-1999-to-2026-10-v1"
+        ],
+        "account": "step 1 setting: 5% per stock, up to 10, risk 0.5%, open risk 10%",
+        "exit": "current stop, no 2R target, 40 days",
+        "random_runs": 200,
+        "role": "decides whether SV's stock picks are worth building on (gate for E2)"
+      },
+      "success_criteria": "Both: SV account Sharpe beats at least 95% of random accounts; SV trades beat random trades bought the same day with a month-clustered t of at least 2. Style regression and same-exposure fund comparisons reported.",
+      "known_limitations": [
+        "universe of 1,223 stocks that ever produced an SV signal, partly survivor-biased (shared by both sides)",
+        "same 20-year signal set as earlier SV tests",
+        "random stocks use their own support stops computed only from bars up to the signal day"
+      ],
+      "human_summary": {
+        "title_zh": "SV选股是否比随机选股更好",
+        "family": "quant_lab_portfolio",
+        "family_zh": "量化研究实验室",
+        "question_zh": "同一天、同样买卖规则，只把SV选的股票换成同一股票池里随机的一只，重复200次；SV能否明显胜过随机？",
+        "result_zh": "SV账户Sharpe 0.635，胜过86.5%的随机账户（要求95%），未通过。逐笔比较无效：随机池抽到18只价格数据出错的股票，随机平均每笔+189%。同样投入比例持有QQQ的Sharpe 0.72，高于SV。",
+        "use_zh": "随机池比SV实际可选的股票更宽且含错误数据，结论不确定；原结果保留，另登记修正版E1b。",
+        "next_zh": "E1b修正版选股测试。",
+        "verdict": "not_validated"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-09T14:00:50+00:00",
+        "started_at": null,
+        "completed_at": "2026-10-09T14:34:55+00:00",
+        "latest_event": "checkpoint",
+        "latest_event_at": "2026-10-09T14:39:43+00:00",
+        "time_source": "assistant_review",
+        "event_count": 3,
+        "events": [
+          {
+            "experiment_id": "lab-e1-selection-vs-random-v1-2026-10-10",
+            "event": "registered",
+            "event_at": "2026-10-09T14:00:50+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/e1-selection-vs-random-v1.json",
+              "note": "random design, 200 runs, seed, account and success rule frozen before any run; an engineering check confirmed SV's own account reproduces step 1 (Sharpe 0.6352) without looking at random results"
+            }
+          },
+          {
+            "experiment_id": "lab-e1-selection-vs-random-v1-2026-10-10",
+            "event": "completed",
+            "event_at": "2026-10-09T14:34:55+00:00",
+            "time_source": "github_actions",
+            "source_ref": "https://github.com/327979420/sage-vista/actions/runs/37942883739",
+            "details": {
+              "lab_spec": "e1-selection-vs-random-v1",
+              "spec_sha256": "0494779f31f03de67559bcf69305dd45d6a66e6f092eebe7e02c02fb44a8e10b",
+              "result": "research/lab/results/e1-selection-vs-random-v1/result.json",
+              "dataset": "observation-2005-2025-v1",
+              "champion": null
+            }
+          },
+          {
+            "experiment_id": "lab-e1-selection-vs-random-v1-2026-10-10",
+            "event": "checkpoint",
+            "event_at": "2026-10-09T14:39:43+00:00",
+            "time_source": "assistant_review",
+            "source_ref": "research/lab/results/e1-selection-vs-random-v1/REPORT.md",
+            "details": {
+              "note": "researcher review of the selection test, including a flaw in the null"
+            },
+            "result": "SV account Sharpe 0.635 (5.1% a year) against 200 random accounts: median 0.485, top 5% 0.688; SV beat 86.5% (needed 95%). Trade level invalid: the random pool included 18 stocks with provider price errors (e.g. MEL, ALT, CLSK), so the random average was +189% per trade; win rate SV 40.8% vs random 43.1%. Same exposure in QQQ: Sharpe 0.72; SPY 0.60; RSP 0.51; IWM 0.39. SV alpha after market, Nasdaq-100 and small-cap tilts 2.9% a year (t 1.95).",
+            "decision": "Not passed as registered, but not conclusive: the random pool was wider than SV's own tradable universe (no $5 / $10M floor) and included price-error stocks. Result kept unchanged; corrected version E1b registered before any run. E2 waits for E1b. Notable either way: holding QQQ with SV's exposure pattern did better than SV's picks."
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "lab-e1b-selection-vs-tradable-random-v1-2026-10-10",
+      "created_at": "2026-10-10",
+      "status": "pre_registered",
+      "change": "Corrected selection-skill test: random picks drawn from the stocks SV could actually have picked (SV's tradability floor), price-error stocks removed from both sides, robust trade statistics",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#research-roadmap-2026-10-10",
+        "lab_spec": "research/lab/queue/e1b-selection-vs-tradable-random-v1.json",
+        "pool": "420 sessions of history, close >= $5, close x volume >= $10M on the signal day; stocks with one-day moves above 4x or below -90% excluded",
+        "random_runs": 200,
+        "seed": 20261011,
+        "role": "gate for E2; replaces E1's inconclusive null"
+      },
+      "success_criteria": "Both: SV account Sharpe beats at least 95% of random accounts; per-signal differences winsorized at 1%/99% beat zero with a month-clustered t of at least 2 and a positive median.",
+      "known_limitations": [
+        "same 20-year signal set",
+        "tradability on adjusted prices",
+        "universe of stocks that ever produced an SV signal"
+      ],
+      "human_summary": {
+        "title_zh": "修正版：SV选股对“可交易”随机选股",
+        "family": "quant_lab_portfolio",
+        "family_zh": "量化研究实验室",
+        "question_zh": "随机股票只从SV当天实际能选的股票里抽（≥420天历史、股价≥5美元、成交额≥1000万美元），两边都去掉价格出错的股票；SV还能胜过随机吗？",
+        "result_zh": "已预登记，等待后台自动运行。",
+        "use_zh": "通过才做E2。",
+        "next_zh": "E2或转向市场与行业判断。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-09T14:39:43+00:00",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-10-09T14:39:43+00:00",
+        "time_source": "assistant_registration",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "lab-e1b-selection-vs-tradable-random-v1-2026-10-10",
+            "event": "registered",
+            "event_at": "2026-10-09T14:39:43+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/e1b-selection-vs-tradable-random-v1.json",
+              "note": "design and success rule frozen before any run"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "lab-e3-graded-exposure-v1-2026-10-10",
+      "created_at": "2026-10-10",
+      "status": "pre_registered",
+      "change": "Graded exposure: the core's stock (and bond, gold) slices stepped down by published trend and volatility rules",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#research-roadmap-2026-10-10",
+        "lab_spec": "research/lab/queue/e3-graded-exposure-v1.json",
+        "dataset": "core-long-chains-v1",
+        "window": "auto, 1993 onward",
+        "variants": [
+          "Faber 10-month on/off",
+          "1/3/12-month trend steps",
+          "15% volatility target",
+          "trend x volatility",
+          "trend steps on stocks, long bonds and gold"
+        ]
+      },
+      "success_criteria": "A variant replaces the fixed core only if Calmar is higher, Sharpe not lower and worst fall within 25%; highest Calmar among those.",
+      "known_limitations": [
+        "proxy history before today's funds",
+        "published defaults only, not tuned",
+        "monthly decisions"
+      ],
+      "human_summary": {
+        "title_zh": "渐进调整股票比例（趋势与波动）",
+        "family": "quant_lab_portfolio",
+        "family_zh": "量化研究实验室",
+        "question_zh": "市场转坏时按已发表的规则一步步降低股票（及长债、黄金）比例，能否减少大跌又不降低风险收益比？",
+        "result_zh": "已预登记，等待后台自动运行。",
+        "use_zh": "只有Calmar更高、Sharpe不降、回撤≤25%才替换固定核心。",
+        "next_zh": "改进则加入模拟账户。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-09T14:39:43+00:00",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-10-09T14:39:43+00:00",
+        "time_source": "assistant_registration",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "lab-e3-graded-exposure-v1-2026-10-10",
+            "event": "registered",
+            "event_at": "2026-10-09T14:39:43+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/e3-graded-exposure-v1.json",
+              "note": "design and success rule frozen before any run"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "lab-e4-sector-rotation-v1-2026-10-10",
+      "created_at": "2026-10-10",
+      "status": "pre_registered",
+      "change": "Sector rotation: top 3 of 9 sector funds by average 3/6/12-month return, alone and as the core's 25% stock slice",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#research-roadmap-2026-10-10",
+        "lab_spec": "research/lab/queue/e4-sector-rotation-v1.json",
+        "dataset": "sector-etf-1998-to-2026-10-v1",
+        "window": "auto, about 2006 onward"
+      },
+      "success_criteria": "Rotation slice replaces SPY in the core only if the core's Sharpe rises with a worst fall within 25%; five pairwise questions fixed before the run are reported.",
+      "known_limitations": [
+        "nine original sector funds only (real estate and communication services start later)",
+        "price momentum stands in for SV's live sector score",
+        "window limited by gold's fund (2004)"
+      ],
+      "human_summary": {
+        "title_zh": "行业ETF轮动",
+        "family": "quant_lab_portfolio",
+        "family_zh": "量化研究实验室",
+        "question_zh": "每月持有9个行业里最强的3个，单独看和作为核心的25%股票部分，能否胜过直接持有SPY？",
+        "result_zh": "已预登记，等待后台自动运行。",
+        "use_zh": "只有核心的Sharpe提高且回撤≤25%才替换SPY。",
+        "next_zh": "改进则加入模拟账户。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-09T14:39:43+00:00",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-10-09T14:39:43+00:00",
+        "time_source": "assistant_registration",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "lab-e4-sector-rotation-v1-2026-10-10",
+            "event": "registered",
+            "event_at": "2026-10-09T14:39:43+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/e4-sector-rotation-v1.json",
+              "note": "design and success rule frozen before any run"
             }
           }
         ]
@@ -4081,6 +4261,9 @@
     "lab-c1-proven-portfolios-v1-2026-10-08",
     "lab-e0-core-long-history-v1-2026-10-10",
     "lab-e1-selection-vs-random-v1-2026-10-10",
+    "lab-e1b-selection-vs-tradable-random-v1-2026-10-10",
+    "lab-e3-graded-exposure-v1-2026-10-10",
+    "lab-e4-sector-rotation-v1-2026-10-10",
     "lab-p1-size-risk-20y-v1-2026-10-08",
     "macd-rollout-04-double-chip-confirmation-2026-08-25",
     "multi-factor-count-resonance-v1.0.0-2026-08-30",
