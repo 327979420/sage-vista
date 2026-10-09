@@ -108,6 +108,23 @@ Which published, proven portfolio does best on the same 19 years, judged like th
 
 Champion: **PERM**
 
+## e3-graded-exposure-v1 (core-long-chains-v1, $100k account 1993-01-04 to 2026-01-16)
+
+Can the core step its stock (and bond and gold) exposure down gradually when markets turn bad, cutting the worst falls without lowering Sharpe? Published rules only: Faber's 10-month average, the share of 1/3/12-month returns above cash (Hurst, Ooi and Pedersen), and volatility targeting (Moreira and Muir).
+
+| Rule | CAGR | Max drawdown | Sharpe | Calmar | CAGR vs SPY | Invested | Trades | Luck check: median Sharpe | Luck check: worst-5% CAGR | Deflated Sharpe | Passed |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SPY buy and hold | 10.7% | 55.2% | 0.64 | 0.19 | — | 100% | — | — | — | — | benchmark |
+| SPY US stocks only (benchmark) | 10.7% | 55.2% | 0.64 | 0.19 | 0.0% | 100% | 34 | — | — | 0.97 | no |
+| PERM Permanent Portfolio, fixed 25% each (current core) | 7.5% | 18.4% | 1.10 | 0.41 | -3.2% | 100% | 34 | — | — | 1.00 | **yes** |
+| PERM-SMA Core, stock slice on/off by Faber's 10-month average | 7.0% | 18.6% | 1.08 | 0.38 | -3.7% | 100% | 397 | — | — | 1.00 | **yes** |
+| PERM-TSMOM Core, stock slice stepped by 1/3/12-month trend (0, 1/3, 2/3 or all) | 6.7% | 18.4% | 1.06 | 0.36 | -4.0% | 100% | 397 | — | — | 1.00 | **yes** |
+| PERM-VOL Core, stock slice scaled to 15% volatility (never above full) | 6.9% | 17.8% | 1.08 | 0.39 | -3.8% | 100% | 397 | — | — | 1.00 | **yes** |
+| PERM-TSMOM-VOL Core, stock slice stepped by trend and scaled by volatility | 6.4% | 17.6% | 1.03 | 0.37 | -4.3% | 100% | 397 | — | — | 1.00 | **yes** |
+| PERM-ALL-TSMOM Core, stocks, long bonds and gold each stepped by 1/3/12-month trend | 5.8% | 11.5% | 1.16 | 0.50 | -4.9% | 100% | 397 | — | — | 1.00 | **yes** |
+
+Champion: **PERM-ALL-TSMOM**
+
 ## e0-core-long-history-v1 (core-long-chains-v1, $100k account 1993-01-04 to 2026-01-16)
 
 Is the Permanent Portfolio core robust beyond 2007-2026? Same portfolios on the longest history the data allows (older funds or spot prices before today's funds existed), with every rolling 5-year window checked, including the 1994 bond crash, 2000-02 and 2022.
