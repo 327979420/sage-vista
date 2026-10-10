@@ -576,30 +576,30 @@
    "family": "quant_lab_portfolio",
    "family_zh": "量化研究实验室",
    "question_zh": "用低波动、质量、动量、股息成长、等权等成熟因子基金代替SPY当核心的股票部分，能否提高风险收益比？",
-   "result_zh": "已预登记，等待后台自动运行。",
-   "use_zh": "改进则加入模拟账户。",
+   "result_zh": "没有因子基金能改进核心：永久组合（Sharpe 1.00、最多跌18%）维持；单独的因子基金也都没有胜过SPY的Sharpe。",
+   "use_zh": "核心维持永久组合。",
    "next_zh": "—",
-   "verdict": "pre_registered"
+   "verdict": "not_validated"
   },
   "lab-e7b-case-acceptance-v1-2026-10-10": {
    "title_zh": "E7b案例验收：机器判定是否符合人工复盘",
    "family": "quant_lab_portfolio",
    "family_zh": "量化研究实验室",
    "question_zh": "深跌未筑底、宽幅箱体两项否决和三项风险标记，能否让MRNA、BTDR被拒绝，TTD、AEVA、DLTR被标出风险，ADBE、CGEM被接受？",
-   "result_zh": "已预登记，等待后台运行（BTDR首次取数检验）。",
+   "result_zh": "7个案例全部符合：MRNA、BTDR拒绝，TTD、AEVA、DLTR标出风险，ADBE、CGEM接受。BTDR由深跌规则拒绝，宽幅箱体规则未触发。",
    "use_zh": "只验收规则是否照人工复盘执行，不证明收益。",
-   "next_zh": "全部符合则E7b照原规则运行；不符合则就已见案例修正一次并记录原因。",
-   "verdict": "pre_registered"
+   "next_zh": "E7b已按原规则运行。",
+   "verdict": "completed_research_only"
   },
   "lab-e7b-level-rules-20y-v1-2026-10-10": {
    "title_zh": "E7b按用户规则、按机会级别交易：SV对同规则随机股票",
    "family": "quant_lab_portfolio",
    "family_zh": "量化研究实验室",
    "question_zh": "按用户的止损（120日价值区下沿下2%）、每只仓位5%且打到止损最多亏账户2%、按级别持有（日≤20日、周15—60日、月3—5根月K）、不设止盈、加案例否决，SV的机会能否胜过同日同规则的随机股票？成熟系统的趋势结束卖出有没有帮助？胜率和盈亏比如何？能否至少某个时期好过SPY？",
-   "result_zh": "已预登记，案例验收通过后由后台自动运行（2026-10-10起）。",
-   "use_zh": "通过的做法先在新版模型一年账本确认方向，再进模拟账户；拆分结果只作线索。",
-   "next_zh": "根据结果决定SV机会怎么做模拟交易，再优化持有时间和止损。",
-   "verdict": "pre_registered"
+   "result_zh": "9项无一通过：按用户规则交易，SV选股仍与同规则随机相当（T0只胜过49.5%随机账户，逐笔多0.07%、t 0.41）。趋势持有（T4）与大盘过滤改善收益或回撤，但对随机股票同样有效；所有做法的Sharpe都低于同等投入的SPY。胜率与盈亏比SV与随机几乎一样。",
+   "use_zh": "SV机会不进账户；改善来自卖出与大盘规则，不来自选股。",
+   "next_zh": "用户复盘具体案例，找出机器与人工形态的差别，再把新选股定义作为新假设与随机比较。",
+   "verdict": "not_validated"
   }
  }
 }
