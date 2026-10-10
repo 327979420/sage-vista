@@ -179,6 +179,8 @@ def run(spec, data, dataset_entry, cost, benchmark, root, signal_priority):
     data_end = max(s["date"][-1] for s in prices.values())
     markets = timeframe.market_labels(series, sorted({e["signal_date"] for e in events}))
     sectors = timeframe.sector_labels(root)
+    # Faber's market filter, judged on the completed signal-day close.
+    market_ok = {day for day, (trend, _) in markets.items() if trend == "SPY above 200-day"}
     base_rules = _rules(spec)
     supply = {}
     for e in events:
@@ -188,16 +190,21 @@ def run(spec, data, dataset_entry, cost, benchmark, root, signal_priority):
             supply[e["event_id"]] = structure.assess(s, i, base_rules["structure"])["flags"]
     labels = {"timeframe": lambda e: LEVEL[e["timeframe"]], "market_trend": lambda e: markets[e["signal_date"]][0],
               "market_volatility": lambda e: markets[e["signal_date"]][1], "sector": lambda e: sectors.get(e["symbol"], "unknown"),
-              "supply_flag": lambda e: "flagged" if supply.get(e["event_id"]) else "not flagged"}
-    arms = [{"id": "main", "families": list(spec["families"]), "rules": base_rules, "vetoes": True, "account": acct}]
+              "supply_flag": lambda e: "flagged" if supply.get(e["event_id"]) else "not flagged",
+              # The fixed score groups of the 08 rules (E5a found higher scores did worse under the old rule).
+              "score_group": lambda e: "<30" if e.get("score", 0) < 30 else "30-45" if e["score"] < 45 else "45-60" if e["score"] < 60 else ">=60"}
+    arms = [{"id": "main", "families": list(spec["families"]), "rules": base_rules, "vetoes": True, "account": acct, "market_filter": False}]
     for check in spec.get("extra_checks", []):
         arms.append({"id": check["id"], "families": [check["family"]], "rules": _rules(spec, check.get("rules")), "vetoes": check.get("vetoes", True),
-                     "account": {**acct, **check.get("account", {})}})
+                     "account": {**acct, **check.get("account", {})}, "market_filter": check.get("market_filter", False)})
     out_arms = {}
     for arm in arms:
         rules = arm["rules"]
         plans, skipped = {}, defaultdict(Counter)
         for e in events:
+            if arm["market_filter"] and e["signal_date"] not in market_ok:
+                skipped[LEVEL[e["timeframe"]]]["market_filter"] += 1
+                continue
             p = plan(prices[e["symbol"]], e["signal_date"], rules, arm["vetoes"])
             if "skip" in p:
                 skipped[LEVEL[e["timeframe"]]][p["skip"]] += 1
@@ -273,11 +280,13 @@ def run(spec, data, dataset_entry, cost, benchmark, root, signal_priority):
                                                     "random": win_loss(rnd_pool)},
                 "segments": segments, "sv_exit_reasons": dict(Counter(w for w in sv_exit if w)),
                 "held_median_sessions": {lv: statistics.median(v) for lv, v in sv_held.items() if v},
+                "goal_1": {"sharpe_vs_spy": round((sv["sharpe"] or 0) - (spy["sharpe"] or 0), 4), "calmar_vs_spy": round((sv["calmar"] or 0) - (spy["calmar"] or 0), 4),
+                           "met": (sv["sharpe"] or -9) >= (spy["sharpe"] or 9) and (sv["calmar"] or -9) >= (spy["calmar"] or 9) and sv["max_drawdown"] <= 0.25},
                 "periods": periods, "goal_2_some_period_beats_spy": any(v["sv_sharpe_above_spy"] for v in periods.values()),
                 "leads": [{"segment": seg, "label": lab, **vals} for seg, groups in segments.items() for lab, vals in groups.items()
                           if vals.get("signals", 0) >= criteria["min_lead_signals"] and vals.get("t_monthly", 0) >= criteria["lead_t"]],
                 "verdict": {"checks": checks, "passed": all(checks.values())}}
-        out_arms[arm["id"]] = {"vetoes": arm["vetoes"], "account": arm["account"], "rules": {k: v for k, v in rules.items() if k != "structure"} | {"structure": rules["structure"] if arm["vetoes"] else None},
+        out_arms[arm["id"]] = {"vetoes": arm["vetoes"], "account": arm["account"], "market_filter": arm["market_filter"], "rules": {k: v for k, v in rules.items() if k != "structure"} | {"structure": rules["structure"] if arm["vetoes"] else None},
                                "skipped_by_level": {lv: dict(c) for lv, c in skipped.items()}, "traded": len(taken),
                                "random_unmatched": sum(1 for run in picks for x in run if x is None),
                                "stop_distance": {"p10": round(statistics.quantiles(distances, n=10)[0], 4), "median": round(statistics.median(distances), 4),
@@ -289,6 +298,14 @@ def run(spec, data, dataset_entry, cost, benchmark, root, signal_priority):
     if champion:
         close = [n for n in passed if (main[champion]["sv"]["sharpe"] or 0) - (main[n]["sv"]["sharpe"] or 0) <= criteria.get("tie_sharpe", 0.01)]
         champion = min(close, key=lambda n: main[n]["sv"]["max_drawdown"])
+    # One pre-registered choice across everything that passed (families and extra checks): evidence, not preference, picks the rule.
+    passing = [(a, n) for a, arm in out_arms.items() for n, f in arm["families"].items() if f["verdict"]["passed"]]
+    chosen = None
+    if passing:
+        best = max((out_arms[a]["families"][n]["sv"]["sharpe"] or -9) for a, n in passing)
+        close = [(a, n) for a, n in passing if best - (out_arms[a]["families"][n]["sv"]["sharpe"] or -9) <= criteria.get("tie_sharpe", 0.01)]
+        a, n = min(close, key=lambda x: out_arms[x[0]]["families"][x[1]]["sv"]["max_drawdown"])
+        chosen = {"arm": a, "family": n, "sv": out_arms[a]["families"][n]["sv"]}
     vetoes_help = None
     off_check = next((c for c in spec.get("extra_checks", []) if c["id"] == "veto_off"), None)
     if off_check:
@@ -302,7 +319,7 @@ def run(spec, data, dataset_entry, cost, benchmark, root, signal_priority):
             "pool": dict(spec["pool"]), "excluded_symbols": sorted(flagged), "signals": len(events), "spy": spy,
             "supply_flagged_signals": sum(1 for v in supply.values() if v), "criteria": criteria, "arms": out_arms,
             "passed_families": passed, "extra_checks_passed": [a for a in out_arms if a != "main" and all(f["verdict"]["passed"] for f in out_arms[a]["families"].values())],
-            "vetoes_help": vetoes_help, "champion": champion, "chosen": None, "next_step": spec.get("next_step")}
+            "vetoes_help": vetoes_help, "champion": champion, "chosen": chosen, "next_step": spec.get("next_step")}
 
 
 def run_cases(spec, data, dataset_entry):
@@ -343,7 +360,10 @@ def render(result):
              "## The question", "", result["question"], "", "## The short answer", "",
              f"- Families that beat random picks under the pre-registered bar: {', '.join(result['passed_families']) or 'none'}.",
              f"- Extra checks that passed: {', '.join(result['extra_checks_passed']) or 'none'}.",
-             f"- Champion (highest SV Sharpe among passing families): {result['champion'] or 'none'}.", ""]
+             f"- Champion (highest SV Sharpe among passing families): {result['champion'] or 'none'}.",
+             f"- Rule chosen across every passing family and extra check: {(result['chosen'] or {}).get('arm', 'none')} {(result['chosen'] or {}).get('family', '')}.",
+             f"- SPY bought and held over the same window: Sharpe {_num(result['spy']['sharpe'])}, CAGR {_pct(result['spy']['cagr'])}, worst fall {_pct(result['spy']['max_drawdown'])}, "
+             f"Calmar {_num(result['spy']['calmar'])}.", ""]
     if result.get("vetoes_help"):
         v = result["vetoes_help"]
         lines += [f"- Hard checks (deep fall, wide box) on vs off, same family: Sharpe {_num(v['sharpe_with'])} vs {_num(v['sharpe_without'])}, "
@@ -352,13 +372,13 @@ def render(result):
         lines += [f"## {arm_id}: account and trades against random picks", "",
                   f"Signals traded: {arm['traded']}; median stop distance {_pct((arm['stop_distance'] or {}).get('median'))}; "
                   f"bought after waiting for a reclaim: {arm['waited_for_reclaim']}.", "",
-                  "| Family | SV Sharpe | SV CAGR | SV worst fall | Beats random accounts | Trade difference (winsorized) | t | Median difference | Some period beats SPY | Passed |",
-                  "|---|---|---|---|---|---|---|---|---|---|"]
+                  "| Family | SV Sharpe | SV CAGR | SV worst fall | Beats random accounts | Trade difference (winsorized) | t | Median difference | Goal 1 vs SPY | Some period beats SPY | Passed |",
+                  "|---|---|---|---|---|---|---|---|---|---|---|"]
         for name, f in arm["families"].items():
             tl = f["trade_level"]
             lines.append(f"| {name} | {_num(f['sv']['sharpe'])} | {_pct(f['sv']['cagr'])} | {_pct(f['sv']['max_drawdown'])} | {_pct(f['random']['sv_beats_share_sharpe'], 1)} | "
                          f"{_pct(tl.get('difference_winsorized'), 2)} | {_num(tl.get('t_monthly'))} | {_pct(tl.get('median_difference'), 2)} | "
-                         f"{'yes' if f['goal_2_some_period_beats_spy'] else 'no'} | {'**yes**' if f['verdict']['passed'] else 'no'} |")
+                         f"{'yes' if f['goal_1']['met'] else 'no'} | {'yes' if f['goal_2_some_period_beats_spy'] else 'no'} | {'**yes**' if f['verdict']['passed'] else 'no'} |")
         lines += ["", "Win rate and reward against risk (SV trades vs all random trades; returns are per trade, before position size):", "",
                   "| Family | SV win rate | SV avg win | SV avg loss | SV payoff | SV profit factor | SV E[R] | Random win rate | Random payoff | Random profit factor | Random E[R] |",
                   "|---|---|---|---|---|---|---|---|---|---|---|"]
