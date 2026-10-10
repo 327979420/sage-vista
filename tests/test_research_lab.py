@@ -969,6 +969,7 @@ class LevelsTests(unittest.TestCase):
         self.assertEqual(sum(c.get("market_filter", 0) for c in skipped.values()) + result["arms"]["market_filter"]["traded"]
                          + sum(v for c in skipped.values() for k, v in c.items() if k not in ("market_filter", "traded")), 30)
         self.assertIn("score_group", result["arms"]["main"]["families"]["T0"]["segments"])
+        self.assertIn("run_up_10d", result["arms"]["main"]["families"]["T0"]["segments"])
         self.assertIn("met", result["arms"]["main"]["families"]["T0"]["goal_1"])
         self.assertEqual(result["arms"]["risk_0.5pct"]["account"]["risk_per_trade"], 0.005)  # an extra check can change the risk budget
         self.assertEqual(result["arms"]["main"]["account"]["risk_per_trade"], spec["account"]["risk_per_trade"])

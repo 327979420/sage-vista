@@ -182,16 +182,20 @@ def run(spec, data, dataset_entry, cost, benchmark, root, signal_priority):
     # Faber's market filter, judged on the completed signal-day close.
     market_ok = {day for day, (trend, _) in markets.items() if trend == "SPY above 200-day"}
     base_rules = _rules(spec)
-    supply = {}
+    supply, run_up = {}, {}
     for e in events:
         s = prices[e["symbol"]]
         i = bisect.bisect_left(s["date"], e["signal_date"])
         if i < len(s["date"]) and s["date"][i] == e["signal_date"]:
             supply[e["event_id"]] = structure.assess(s, i, base_rules["structure"])["flags"]
+            # How far the signal close already sits above the last ten sessions' low: is the signal late?
+            run_up[e["event_id"]] = s["close"][i] / min(s["low"][max(0, i - 9):i + 1]) - 1
     labels = {"timeframe": lambda e: LEVEL[e["timeframe"]], "market_trend": lambda e: markets[e["signal_date"]][0],
               "market_volatility": lambda e: markets[e["signal_date"]][1], "sector": lambda e: sectors.get(e["symbol"], "unknown"),
               "supply_flag": lambda e: "flagged" if supply.get(e["event_id"]) else "not flagged",
               # The fixed score groups of the 08 rules (E5a found higher scores did worse under the old rule).
+              "run_up_10d": lambda e: "unknown" if e["event_id"] not in run_up else "<3%" if run_up[e["event_id"]] < 0.03 else "3-6%" if run_up[e["event_id"]] < 0.06
+                                       else "6-10%" if run_up[e["event_id"]] < 0.10 else ">=10%",
               "score_group": lambda e: "<30" if e.get("score", 0) < 30 else "30-45" if e["score"] < 45 else "45-60" if e["score"] < 60 else ">=60"}
     arms = [{"id": "main", "families": list(spec["families"]), "rules": base_rules, "vetoes": True, "account": acct, "market_filter": False}]
     for check in spec.get("extra_checks", []):
