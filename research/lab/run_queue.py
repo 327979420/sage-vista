@@ -58,6 +58,16 @@ def pending_specs(today=None):
     return [item[2:] for item in sorted(out, key=lambda x: (x[0], x[1]))]
 
 
+def requirements_met(spec, results=None):
+    """A spec with `requires` runs only after each named spec has a saved result that passed (for example a case acceptance check)."""
+    results = results or RESULTS
+    for required in spec.get("requires", []):
+        path = pathlib.Path(results) / required / "result.json"
+        if not path.exists() or json.loads(path.read_text()).get("passed") is not True:
+            return False
+    return True
+
+
 def in_eod_window(now=None):
     """Never publish while the daily EOD release may be pushing to main."""
     now = now or dt.datetime.now(dt.timezone.utc)
@@ -907,6 +917,9 @@ def main(argv=None):
         return
     ran = 0
     for path, spec in pending_specs()[: args.max_specs]:
+        if not requirements_met(spec):
+            print(f"{spec['id']}: waiting for {', '.join(spec['requires'])} to pass; left pending.")
+            continue
         sha = spec_sha(path)
         loaded, manifests = {}, []
 

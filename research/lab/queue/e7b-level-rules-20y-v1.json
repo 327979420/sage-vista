@@ -261,7 +261,11 @@
   "Win rate, average win and loss, payoff ratio, profit factor and expectancy in R are reported for SV and random trades in every family (the user judges a wider stop by win rate and reward against risk); they explain the result and are not pass conditions.",
   "One pre-registered choice across everything that passes (families and extra checks): the highest SV account Sharpe, within 0.01 the smaller worst fall. The user asked on 2026-10-10 that results, not their stated preferences (such as the 2% risk budget), decide. Goal 1 of the portfolio roadmap (Sharpe and Calmar at least SPY's, worst fall at most 25%) is reported for every family; it is not a pass condition here.",
   "Exploratory split by the fixed score groups of the 08 rules (<30, 30-45, 45-60, >=60) re-asks E5a's question under these rules; it is a lead only.",
-  "Exploratory split by how far the signal close already sat above its last ten sessions' low (<3%, 3-6%, 6-10%, >=10%): the user saw today's top-ranked BEKE flagged after a rise of about 10% from its bottom and asked whether late signals are worse. A lead only; if confirmed on unseen data, a 'too late' filter becomes a candidate rule."
+  "Exploratory split by how far the signal close already sat above its last ten sessions' low (<3%, 3-6%, 6-10%, >=10%): the user saw today's top-ranked BEKE flagged after a rise of about 10% from its bottom and asked whether late signals are worse. A lead only; if confirmed on unseen data, a 'too late' filter becomes a candidate rule.",
+  "Runs only after lab-e7b-case-acceptance-v1 has a saved result with every case as expected (the user asked on 2026-10-10 to start today rather than the next day); if a case fails, E7b stays pending until the definition is corrected once and recorded."
  ],
- "not_before": "2026-10-11"
+ "not_before": "2026-10-10",
+ "requires": [
+  "e7b-case-acceptance-v1"
+ ]
 }

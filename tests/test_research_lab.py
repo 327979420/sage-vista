@@ -1010,6 +1010,17 @@ def statistics_cdf(x):
 
 
 class QueueAndDatasetTests(unittest.TestCase):
+    def test_a_spec_waits_until_its_required_check_has_passed(self):
+        spec = {"id": "x", "requires": ["gate"]}
+        with tempfile.TemporaryDirectory() as folder:
+            self.assertFalse(run_queue.requirements_met(spec, folder))
+            (pathlib.Path(folder) / "gate").mkdir()
+            (pathlib.Path(folder) / "gate" / "result.json").write_text(json.dumps({"passed": False}))
+            self.assertFalse(run_queue.requirements_met(spec, folder))
+            (pathlib.Path(folder) / "gate" / "result.json").write_text(json.dumps({"passed": True}))
+            self.assertTrue(run_queue.requirements_met(spec, folder))
+        self.assertTrue(run_queue.requirements_met({"id": "free"}))
+
     def test_eod_window_blocks_publishing(self):
         for hhmm, blocked in [("23:29", False), ("23:30", True), ("02:00", True), ("04:29", True), ("04:30", False), ("12:00", False)]:
             h, m = map(int, hhmm.split(":"))
