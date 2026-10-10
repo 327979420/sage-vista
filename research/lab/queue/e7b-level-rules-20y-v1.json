@@ -1,0 +1,271 @@
+{
+ "id": "e7b-level-rules-20y-v1",
+ "experiment_id": "lab-e7b-level-rules-20y-v1-2026-10-10",
+ "kind": "levels",
+ "priority": 3,
+ "seed": 20261011,
+ "question": "Under the user's own rules (stop 2% below the daily volume profile's value-area low, positions of 5% of the account losing at most 2% of it at the stop, holding by opportunity level, no profit target, the case ledger's hard checks) do SV's opportunities beat random stocks traded the same day under the same rules, and do the exits of mature trading systems help? Secondary: does the SV account beat SPY in at least one five-year period, and how do win rate and reward against risk compare?",
+ "dataset": {
+  "id": "observation-2005-2025-v1",
+  "builder": "observation",
+  "events_csv": "research/backtest/output/reusable-runs/34766761296-2/trades.csv"
+ },
+ "benchmark": {
+  "symbol": "SPY",
+  "dataset": {
+   "id": "etf-style-1999-to-2026-10-v1",
+   "builder": "symbols",
+   "symbols": [
+    "SPY",
+    "QQQ",
+    "IWM",
+    "RSP"
+   ],
+   "start": "1999-01-01"
+  }
+ },
+ "window": {
+  "start": "2005-09-12",
+  "end": "2026-10-06"
+ },
+ "group": "E-levels",
+ "cost_per_side": 0.001,
+ "account": {
+  "risk_per_trade": 0.02,
+  "position_cap": 0.05,
+  "max_positions": 10,
+  "heat_cap": 0.2
+ },
+ "pool": {
+  "min_history": 420,
+  "min_close": 5.0,
+  "min_dollar_volume": 10000000.0
+ },
+ "rules": {
+  "value_area": {
+   "lookback": 120,
+   "bins": 50,
+   "share": 0.7
+  },
+  "buffer": 0.02,
+  "max_stop_distance": 0.4,
+  "reclaim_sessions": 3,
+  "structure": {
+   "deep_drawdown": {
+    "lookback": 1260,
+    "drop": 0.7,
+    "retrace": 0.618,
+    "base": 252
+   },
+   "wide_box": {
+    "sessions": 252,
+    "min_ratio": 2.0,
+    "zone": 0.25,
+    "min_traversals": 2,
+    "near_high": 0.75
+   },
+   "bearish_pressure": {
+    "lookback": 40,
+    "min_rounds": 2,
+    "big_body_atr": 0.6,
+    "follow": 2,
+    "gap": 3
+   },
+   "multiple_tops": {
+    "lookback": 120,
+    "tolerance": 0.06,
+    "min_tops": 3,
+    "valley": 0.08,
+    "recent": 20
+   },
+   "gap_supply": {
+    "lookback": 504,
+    "min_gaps": 3,
+    "size": 0.04,
+    "key_window": 120
+   }
+  }
+ },
+ "hold": {
+  "daily": {
+   "max_hold": 20
+  },
+  "weekly": {
+   "min_hold": 15,
+   "max_hold": 60
+  },
+  "monthly": {
+   "min_periods": {
+    "period": "month",
+    "count": 3
+   },
+   "max_periods": {
+    "period": "month",
+    "count": 5
+   },
+   "max_hold": 140
+  }
+ },
+ "families": {
+  "T0": {
+   "label": "Time only: the approved windows by level",
+   "exits": {}
+  },
+  "T1": {
+   "label": "T0 + BTDR no-progress exit for weekly opportunities (no close 5% above entry by session 20)",
+   "exits": {
+    "weekly": {
+     "no_progress": {
+      "sessions": 20,
+      "gain": 0.05
+     }
+    }
+   }
+  },
+  "T2": {
+   "label": "T0 + fast trend end: daily close below the 50-day average (O'Neil, Minervini), weekly close below the 10-week average (O'Neil), month-end close below the close 12 months earlier (time-series momentum)",
+   "exits": {
+    "daily": {
+     "trend": {
+      "kind": "daily_sma",
+      "length": 50
+     }
+    },
+    "weekly": {
+     "trend": {
+      "kind": "period_sma",
+      "period": "week",
+      "length": 10
+     }
+    },
+    "monthly": {
+     "trend": {
+      "kind": "period_momentum",
+      "period": "month",
+      "length": 12
+     }
+    }
+   }
+  },
+  "T3": {
+   "label": "T0 + slow trend end: daily close below the prior 20-day low (Turtle System 2), weekly close below the 30-week average (Weinstein), month-end close below the 10-month average (Faber)",
+   "exits": {
+    "daily": {
+     "trend": {
+      "kind": "prior_low",
+      "length": 20
+     }
+    },
+    "weekly": {
+     "trend": {
+      "kind": "period_sma",
+      "period": "week",
+      "length": 30
+     }
+    },
+    "monthly": {
+     "trend": {
+      "kind": "period_sma",
+      "period": "month",
+      "length": 10
+     }
+    }
+   }
+  },
+  "T4": {
+   "label": "Sell only when the trend ends (T3's exits) with no time cap, at most two years: deliberately challenges the 09 maximum windows",
+   "uncapped": {
+    "max_hold": 504
+   },
+   "exits": {
+    "daily": {
+     "trend": {
+      "kind": "prior_low",
+      "length": 20
+     }
+    },
+    "weekly": {
+     "trend": {
+      "kind": "period_sma",
+      "period": "week",
+      "length": 30
+     }
+    },
+    "monthly": {
+     "trend": {
+      "kind": "period_sma",
+      "period": "month",
+      "length": 10
+     }
+    }
+   }
+  }
+ },
+ "extra_checks": [
+  {
+   "id": "veto_off",
+   "family": "T0",
+   "vetoes": false
+  },
+  {
+   "id": "stop_va60",
+   "family": "T0",
+   "rules": {
+    "value_area": {
+     "lookback": 60
+    }
+   }
+  },
+  {
+   "id": "risk_0.5pct",
+   "family": "T0",
+   "account": {
+    "risk_per_trade": 0.005,
+    "heat_cap": 0.1
+   },
+   "rules": {
+    "max_stop_distance": 0.15
+   }
+  },
+  {
+   "id": "market_filter",
+   "family": "T0",
+   "market_filter": true
+  }
+ ],
+ "runs": {
+  "T0": 200,
+  "T1": 200,
+  "T2": 200,
+  "T3": 200,
+  "T4": 200
+ },
+ "max_draws": 30,
+ "criteria": {
+  "min_random_percentile": 0.995,
+  "min_trade_excess_t": 2.8,
+  "lead_t": 3.0,
+  "min_lead_signals": 100,
+  "tie_sharpe": 0.01
+ },
+ "next_step": "The chosen rule (if any) is confirmed in direction on the live model's one-year ledger (registered before it runs). For the SPY goal it then goes into E2 under these rules: SV fills the stock slice of the core (SPY fills whatever SV leaves), judged against SPY bought and held and against the core alone, then forward paper accounts. Its holding windows are tuned with the 09 rule (the shortest window reaching 90% of the best cost-adjusted expectancy, stable on validation). Leads by level, market state, sector, supply flag or score group are confirmed on unseen data before any use. If nothing passes, SV's opportunities are not traded for the account under these rules, and the next round tests the 4B stop (nearest high-volume node) or the extra check that came closest.",
+ "notes": [
+  "User decisions of 2026-10-10 (provisional, to be optimised by later experiments): 1B risk sized by the stop (revised the same day: each position is 5% of the account and may lose at most 2% of it at the stop, so a stop more than 40% below the entry is skipped; the first choice, 0.5% risk with a 15% limit, is kept as an extra check); 2B an open at or below the stop waits up to 3 sessions for a close back above it, then buys at the next open if that open is above the stop; 3A no value area below the signal close means no support and no trade; 4A the stop is 2% below the value-area low (70% of volume) of the last 120 daily bars; 5 holding windows daily <=20 sessions, weekly 15-60 sessions, monthly 3-5 full monthly bars after the entry month; 6 test the uncapped trend family T4; 7 the 20-day no-progress exit is not applied to monthly opportunities (it is moot for daily ones, which are held at most 20 sessions); 8A supply flags are labels only.",
+  "Account: Step 1's structure (positions capped at 5% of the current account, at most 10) with the user's revised risk budget: up to 2% of the account per trade, open risk at most 20% (10 x 2%). Same-day signals take free slots in SV score order.",
+  "Random null: same signal day, same level rules, from SV's tradable pool that day (420 sessions, close >= $5, >= $10M traded; price-error stocks removed from both sides). A random stock gets its own value-area stop. A pick the same rules would skip is redrawn from that day's pool, up to 30 draws.",
+  "Nine comparisons against random are judged (five families and four extra checks), so the bar is a Bonferroni-style 0.05/9: SV's account Sharpe must beat at least 99.5% of 200 random accounts, and SV's trades must beat same-day random trades with a month-clustered t of at least 2.8, with the winsorized mean and the median difference both positive.",
+  "Extra checks (T0 only): veto_off runs the same rules without the hard checks on both sides; the checks help if SV's account Sharpe and Calmar are both higher with them. stop_va60 uses a 60-session value area (a tighter stop: does a wider stop really avoid early stop-outs?). risk_0.5pct keeps the user's first choice, 0.5% risk per trade with stops at most 15% away and open risk at most 10%. market_filter opens new trades only while SPY closes above its 200-day average on the signal day (Faber; the 08 plan's group C), aimed at the 2007-09 drawdowns that kept every earlier rule from matching SPY. A pre-run count (no returns looked at) showed the 120-session value-area low sits a median 15-19% below the close, so about half the signals exceed a 15% limit but very few exceed 40%.",
+  "Goal 2 (secondary, reported, not part of passing): in at least one of the five fixed periods (2005-09, 2010-14, 2015-19, 2020-24, 2025-26) the SV account's Sharpe beats SPY bought and held over the same sessions.",
+  "Splits by level, market trend (SPY vs its 200-day average), market volatility, sector (today's labels, research only) and supply flag are exploratory: a group with at least 100 signals and t >= 3 is a lead to confirm on unseen data, not a rule.",
+  "Opportunity levels are the frozen receipt's labels (the old 3.5 proxy: the highest unweighted timeframe score among those with a ticket). Monthly holds use full calendar months after the entry month; positions open on 2026-10-06 stay in the account at their last close and are left out of the trade comparison.",
+  "Win rate, average win and loss, payoff ratio, profit factor and expectancy in R are reported for SV and random trades in every family (the user judges a wider stop by win rate and reward against risk); they explain the result and are not pass conditions.",
+  "One pre-registered choice across everything that passes (families and extra checks): the highest SV account Sharpe, within 0.01 the smaller worst fall. The user asked on 2026-10-10 that results, not their stated preferences (such as the 2% risk budget), decide. Goal 1 of the portfolio roadmap (Sharpe and Calmar at least SPY's, worst fall at most 25%) is reported for every family; it is not a pass condition here.",
+  "Exploratory split by the fixed score groups of the 08 rules (<30, 30-45, 45-60, >=60) re-asks E5a's question under these rules; it is a lead only.",
+  "Exploratory split by how far the signal close already sat above its last ten sessions' low (<3%, 3-6%, 6-10%, >=10%): the user saw today's top-ranked BEKE flagged after a rise of about 10% from its bottom and asked whether late signals are worse. A lead only; if confirmed on unseen data, a 'too late' filter becomes a candidate rule.",
+  "Runs only after lab-e7b-case-acceptance-v1 has a saved result with every case as expected (the user asked on 2026-10-10 to start today rather than the next day); if a case fails, E7b stays pending until the definition is corrected once and recorded."
+ ],
+ "not_before": "2026-10-10",
+ "requires": [
+  "e7b-case-acceptance-v1"
+ ]
+}
