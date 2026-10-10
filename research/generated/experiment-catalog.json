@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-10T05:23:54+00:00",
+  "generated_at": "2026-10-10T05:26:07+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
@@ -11,7 +11,7 @@
     "completed": 43,
     "in_progress": 17,
     "candidate": 15,
-    "not_validated_or_unstable": 20
+    "not_validated_or_unstable": 22
   },
   "policy": {
     "append_only": true,
@@ -42,19 +42,19 @@
         "family": "quant_lab_portfolio",
         "family_zh": "量化研究实验室",
         "question_zh": "用低波动、质量、动量、股息成长、等权等成熟因子基金代替SPY当核心的股票部分，能否提高风险收益比？",
-        "result_zh": "已预登记，等待后台自动运行。",
-        "use_zh": "改进则加入模拟账户。",
+        "result_zh": "没有因子基金能改进核心：永久组合（Sharpe 1.00、最多跌18%）维持；单独的因子基金也都没有胜过SPY的Sharpe。",
+        "use_zh": "核心维持永久组合。",
         "next_zh": "—",
-        "verdict": "pre_registered"
+        "verdict": "not_validated"
       },
       "lifecycle": {
         "registered_at": "2026-10-09T22:34:48+00:00",
         "started_at": null,
         "completed_at": "2026-10-10T05:23:54+00:00",
-        "latest_event": "completed",
-        "latest_event_at": "2026-10-10T05:23:54+00:00",
-        "time_source": "github_actions",
-        "event_count": 2,
+        "latest_event": "checkpoint",
+        "latest_event_at": "2026-10-10T05:26:07+00:00",
+        "time_source": "assistant_review",
+        "event_count": 3,
         "events": [
           {
             "experiment_id": "lab-e8-factor-slice-v1-2026-10-10",
@@ -78,6 +78,100 @@
               "result": "research/lab/results/e8-factor-slice-v1/result.json",
               "dataset": "factor-etf-2010-to-2026-10-v1",
               "champion": null
+            }
+          },
+          {
+            "experiment_id": "lab-e8-factor-slice-v1-2026-10-10",
+            "event": "checkpoint",
+            "event_at": "2026-10-10T05:26:07+00:00",
+            "time_source": "assistant_review",
+            "details": {
+              "note": "reviewed: no factor slice improves the Permanent core; the core stays"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "lab-e7b-case-acceptance-v1-2026-10-10",
+      "created_at": "2026-10-10",
+      "status": "pre_registered",
+      "change": "Acceptance check of E7b's hard checks and supply flags on the user's reviewed cases (no returns computed)",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#e7b-preregistration",
+        "lab_spec": "research/lab/queue/e7b-case-acceptance-v1.json",
+        "dataset": "cases-ledger-v1 (EODHD adjusted daily history of MRNA, BTDR, TTD, AEVA, DLTR, ADBE, CGEM, built once in the lab)",
+        "cases": {
+          "reject": [
+            "MRNA 2024-04-24",
+            "BTDR 2024-03-15"
+          ],
+          "flag": [
+            "TTD 2025-01-17",
+            "AEVA 2026-07-01",
+            "DLTR 2024-04-01"
+          ],
+          "accept": [
+            "ADBE 2023-05-18",
+            "CGEM 2024-04-17"
+          ]
+        }
+      },
+      "success_criteria": "Every case gets the ledger's verdict: reject cases rejected; flag cases flagged (or rejected, reported as stricter); accept cases not rejected (flags reported).",
+      "known_limitations": [
+        "seen cases used to calibrate the parameters (six on frozen research data); acceptance only, never evidence",
+        "BTDR is a young listing; its first check happens in this run"
+      ],
+      "human_summary": {
+        "title_zh": "E7b案例验收：机器判定是否符合人工复盘",
+        "family": "quant_lab_portfolio",
+        "family_zh": "量化研究实验室",
+        "question_zh": "深跌未筑底、宽幅箱体两项否决和三项风险标记，能否让MRNA、BTDR被拒绝，TTD、AEVA、DLTR被标出风险，ADBE、CGEM被接受？",
+        "result_zh": "7个案例全部符合：MRNA、BTDR拒绝，TTD、AEVA、DLTR标出风险，ADBE、CGEM接受。BTDR由深跌规则拒绝，宽幅箱体规则未触发。",
+        "use_zh": "只验收规则是否照人工复盘执行，不证明收益。",
+        "next_zh": "E7b已按原规则运行。",
+        "verdict": "completed_research_only"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-10T00:18:37+00:00",
+        "started_at": null,
+        "completed_at": "2026-10-10T04:45:33+00:00",
+        "latest_event": "checkpoint",
+        "latest_event_at": "2026-10-10T05:26:07+00:00",
+        "time_source": "assistant_review",
+        "event_count": 3,
+        "events": [
+          {
+            "experiment_id": "lab-e7b-case-acceptance-v1-2026-10-10",
+            "event": "registered",
+            "event_at": "2026-10-10T00:18:37+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/e7b-case-acceptance-v1.json",
+              "note": "expected verdicts from docs/CASE_REVIEW_LEDGER_ZH.md frozen before the run; parameters calibrated on six seen cases, BTDR checked for the first time"
+            }
+          },
+          {
+            "experiment_id": "lab-e7b-case-acceptance-v1-2026-10-10",
+            "event": "completed",
+            "event_at": "2026-10-10T04:45:33+00:00",
+            "time_source": "github_actions",
+            "source_ref": "https://github.com/327979420/sage-vista/actions/runs/38025081863",
+            "details": {
+              "lab_spec": "e7b-case-acceptance-v1",
+              "spec_sha256": "6e41dd48af7c1b45e29df4573eb409793f009a38170575ca6afe76b5fe20e378",
+              "result": "research/lab/results/e7b-case-acceptance-v1/result.json",
+              "dataset": "cases-ledger-v1",
+              "champion": null
+            }
+          },
+          {
+            "experiment_id": "lab-e7b-case-acceptance-v1-2026-10-10",
+            "event": "checkpoint",
+            "event_at": "2026-10-10T05:26:07+00:00",
+            "time_source": "assistant_review",
+            "details": {
+              "note": "all seven cases as expected; BTDR rejected by the deep-fall rule, the wide-box rule did not fire on it"
             }
           }
         ]
@@ -123,19 +217,19 @@
         "family": "quant_lab_portfolio",
         "family_zh": "量化研究实验室",
         "question_zh": "按用户的止损（120日价值区下沿下2%）、每只仓位5%且打到止损最多亏账户2%、按级别持有（日≤20日、周15—60日、月3—5根月K）、不设止盈、加案例否决，SV的机会能否胜过同日同规则的随机股票？成熟系统的趋势结束卖出有没有帮助？胜率和盈亏比如何？能否至少某个时期好过SPY？",
-        "result_zh": "已预登记，案例验收通过后由后台自动运行（2026-10-10起）。",
-        "use_zh": "通过的做法先在新版模型一年账本确认方向，再进模拟账户；拆分结果只作线索。",
-        "next_zh": "根据结果决定SV机会怎么做模拟交易，再优化持有时间和止损。",
-        "verdict": "pre_registered"
+        "result_zh": "9项无一通过：按用户规则交易，SV选股仍与同规则随机相当（T0只胜过49.5%随机账户，逐笔多0.07%、t 0.41）。趋势持有（T4）与大盘过滤改善收益或回撤，但对随机股票同样有效；所有做法的Sharpe都低于同等投入的SPY。胜率与盈亏比SV与随机几乎一样。",
+        "use_zh": "SV机会不进账户；改善来自卖出与大盘规则，不来自选股。",
+        "next_zh": "用户复盘具体案例，找出机器与人工形态的差别，再把新选股定义作为新假设与随机比较。",
+        "verdict": "not_validated"
       },
       "lifecycle": {
         "registered_at": "2026-10-10T00:18:37+00:00",
         "started_at": null,
         "completed_at": "2026-10-10T05:23:46+00:00",
-        "latest_event": "completed",
-        "latest_event_at": "2026-10-10T05:23:46+00:00",
-        "time_source": "github_actions",
-        "event_count": 2,
+        "latest_event": "checkpoint",
+        "latest_event_at": "2026-10-10T05:26:07+00:00",
+        "time_source": "assistant_review",
+        "event_count": 3,
         "events": [
           {
             "experiment_id": "lab-e7b-level-rules-20y-v1-2026-10-10",
@@ -160,81 +254,15 @@
               "dataset": "observation-2005-2025-v1",
               "champion": null
             }
-          }
-        ]
-      }
-    },
-    {
-      "experiment_id": "lab-e7b-case-acceptance-v1-2026-10-10",
-      "created_at": "2026-10-10",
-      "status": "pre_registered",
-      "change": "Acceptance check of E7b's hard checks and supply flags on the user's reviewed cases (no returns computed)",
-      "specification": {
-        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#e7b-preregistration",
-        "lab_spec": "research/lab/queue/e7b-case-acceptance-v1.json",
-        "dataset": "cases-ledger-v1 (EODHD adjusted daily history of MRNA, BTDR, TTD, AEVA, DLTR, ADBE, CGEM, built once in the lab)",
-        "cases": {
-          "reject": [
-            "MRNA 2024-04-24",
-            "BTDR 2024-03-15"
-          ],
-          "flag": [
-            "TTD 2025-01-17",
-            "AEVA 2026-07-01",
-            "DLTR 2024-04-01"
-          ],
-          "accept": [
-            "ADBE 2023-05-18",
-            "CGEM 2024-04-17"
-          ]
-        }
-      },
-      "success_criteria": "Every case gets the ledger's verdict: reject cases rejected; flag cases flagged (or rejected, reported as stricter); accept cases not rejected (flags reported).",
-      "known_limitations": [
-        "seen cases used to calibrate the parameters (six on frozen research data); acceptance only, never evidence",
-        "BTDR is a young listing; its first check happens in this run"
-      ],
-      "human_summary": {
-        "title_zh": "E7b案例验收：机器判定是否符合人工复盘",
-        "family": "quant_lab_portfolio",
-        "family_zh": "量化研究实验室",
-        "question_zh": "深跌未筑底、宽幅箱体两项否决和三项风险标记，能否让MRNA、BTDR被拒绝，TTD、AEVA、DLTR被标出风险，ADBE、CGEM被接受？",
-        "result_zh": "已预登记，等待后台运行（BTDR首次取数检验）。",
-        "use_zh": "只验收规则是否照人工复盘执行，不证明收益。",
-        "next_zh": "全部符合则E7b照原规则运行；不符合则就已见案例修正一次并记录原因。",
-        "verdict": "pre_registered"
-      },
-      "lifecycle": {
-        "registered_at": "2026-10-10T00:18:37+00:00",
-        "started_at": null,
-        "completed_at": "2026-10-10T04:45:33+00:00",
-        "latest_event": "completed",
-        "latest_event_at": "2026-10-10T04:45:33+00:00",
-        "time_source": "github_actions",
-        "event_count": 2,
-        "events": [
-          {
-            "experiment_id": "lab-e7b-case-acceptance-v1-2026-10-10",
-            "event": "registered",
-            "event_at": "2026-10-10T00:18:37+00:00",
-            "time_source": "assistant_registration",
-            "details": {
-              "lab_spec": "research/lab/queue/e7b-case-acceptance-v1.json",
-              "note": "expected verdicts from docs/CASE_REVIEW_LEDGER_ZH.md frozen before the run; parameters calibrated on six seen cases, BTDR checked for the first time"
-            }
           },
           {
-            "experiment_id": "lab-e7b-case-acceptance-v1-2026-10-10",
-            "event": "completed",
-            "event_at": "2026-10-10T04:45:33+00:00",
-            "time_source": "github_actions",
-            "source_ref": "https://github.com/327979420/sage-vista/actions/runs/38025081863",
+            "experiment_id": "lab-e7b-level-rules-20y-v1-2026-10-10",
+            "event": "checkpoint",
+            "event_at": "2026-10-10T05:26:07+00:00",
+            "time_source": "assistant_review",
             "details": {
-              "lab_spec": "e7b-case-acceptance-v1",
-              "spec_sha256": "6e41dd48af7c1b45e29df4573eb409793f009a38170575ca6afe76b5fe20e378",
-              "result": "research/lab/results/e7b-case-acceptance-v1/result.json",
-              "dataset": "cases-ledger-v1",
-              "champion": null
+              "note": "reviewed: none of nine comparisons passed; SV selection matches same-rule random; trend holding and the market filter help SV and random alike; every SV account below same-exposure SPY Sharpe; no leads (IT under T2 negative, t -3.18). SV opportunities stay out of the account; next step is the user's case review, then a new selection hypothesis against random.",
+              "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#e7b-e8-results"
             }
           }
         ]
