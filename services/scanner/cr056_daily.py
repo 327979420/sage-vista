@@ -15,12 +15,15 @@ import subprocess
 import tempfile
 import zlib
 from services.ledger.cr056 import watch_checkpoint, validate_watch_checkpoint
-from services.scanner.cr056_inputs import repair_existing_cache, normalized_comparison_rows
+from services.scanner.cr056_inputs import repair_existing_cache, normalized_comparison_rows, reseed_excluded
 from services.scanner.cr056_runner import run_snapshot
 from services.scanner.cr056_public import project_report, project_details, VIEW_VERSION
 from services.contracts.cr056_policy import POLICY_VERSION, POLICY_FINGERPRINT
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+RESEED_BUDGET = 400
 
 
 def encoded(value):
@@ -47,13 +50,13 @@ def checked_cached_inputs(cache):
     return index
 
 
-def prepare_inputs(*, base_cache, cache, stage, previous_date, as_of, reference_sessions, fetch_bulk):
+def prepare_inputs(*, base_cache, cache, stage, previous_date, as_of, reference_sessions, fetch_bulk, fetch_history=None, reseed_budget=0):
     cached = checked_cached_inputs(cache)
     if cached and cached['as_of'] > as_of: raise ValueError('private_cache_from_future')
     inherited = cached['excluded'] if cached else {}
     source = cache/'eodhd-cache' if cached else base_cache
     # A missing accelerator may rebuild only the recent, already-observed seed.
-    # This is not permission to download whole per-stock histories or revive old tails.
+    # The one full-history download is the bounded reseed below (02 rules, cr056-input-reseed).
     if not cached:
         seed = repair_existing_cache(source, stage/'seed', as_of=previous_date,
                                     reference_sessions=reference_sessions, fetch_bulk=fetch_bulk)
@@ -63,11 +66,20 @@ def prepare_inputs(*, base_cache, cache, stage, previous_date, as_of, reference_
     report['excluded'] = {**inherited, **report['excluded']}
     for item in report['repaired']: report['excluded'].pop(item['symbol'], None)
     report['excluded_count'] = len(report['excluded'])
+    if fetch_history and reseed_budget:
+        # 02 rules (cr056-input-reseed): bounded full-history recovery, busiest stocks first.
+        traded = {}
+        for row in fetch_bulk(as_of):
+            code = row.get('code') or row.get('Code')
+            try: traded[code] = float(row['adjusted_close']) * float(row['volume'])
+            except (KeyError, TypeError, ValueError): continue
+        reseed_excluded(report, stage/'current'/'eodhd-cache', as_of=as_of, fetch_history=fetch_history,
+                        budget=reseed_budget, traded_value=traded)
     return stage/'current'/'eodhd-cache', report
 
 
 def refresh(*, as_of, code_commit, public_path, state_path, archive_dir, work_dir,
-            base_cache, fetch_reference, fetch_bulk, runner=run_snapshot):
+            base_cache, fetch_reference, fetch_bulk, runner=run_snapshot, fetch_history=None, reseed_budget=0):
     original_public = public_path.read_bytes()
     detail_path = public_path.parent/'cr056-factor-details.json.gz'
     original_details = detail_path.read_bytes() if detail_path.exists() else None
@@ -108,7 +120,8 @@ def refresh(*, as_of, code_commit, public_path, state_path, archive_dir, work_di
                     fetched[day] = json.loads(anchor.read_text()) if anchor.exists() else fetch_bulk(day, stage/'bulk')
                 return fetched[day]
             source, input_report = prepare_inputs(base_cache=base_cache, cache=cache, stage=stage,
-                previous_date=previous['as_of'], as_of=as_of, reference_sessions=sessions, fetch_bulk=bulk)
+                previous_date=previous['as_of'], as_of=as_of, reference_sessions=sessions, fetch_bulk=bulk,
+                fetch_history=fetch_history, reseed_budget=reseed_budget)
             report = runner(source, as_of=as_of, history={'days':[]}, code_commit=code_commit,
                             input_report=input_report, previous=previous, **({"policy_revision":True} if policy_revision and previous["as_of"] == as_of else {}))
             # Preserve completed derived work even if display validation fails.
@@ -186,7 +199,10 @@ def main():
     result=refresh(as_of=args.as_of, code_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
         public_path=ROOT/'public/cr056-ranking.json', state_path=ROOT/'automation/cr056-watch-state.json.gz',
         archive_dir=ROOT/'research/generated/cr056-daily', work_dir=ROOT/'work/cr056-daily',
-        base_cache=ROOT/'work/eodhd-cache', fetch_reference=lambda start,end:prices('SPY',start,end), fetch_bulk=existing_bulk)
+        base_cache=ROOT/'work/eodhd-cache', fetch_reference=lambda start,end:prices('SPY',start,end), fetch_bulk=existing_bulk,
+        # One full adjusted download per excluded stock, at most 400 a run (02 rules, cr056-input-reseed).
+        fetch_history=lambda symbol:prices(symbol,(date.fromisoformat(args.as_of)-timedelta(days=3300)).isoformat(),args.as_of),
+        reseed_budget=RESEED_BUDGET)
     print(json.dumps(result))
 
 if __name__=='__main__':main()

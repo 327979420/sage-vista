@@ -1,7 +1,9 @@
 """Bounded repair of existing recent EOD histories into a private comparison cache.
 
 Only this explicitly invoked data step may call the existing supplier. It never
-changes the original cache, uploads raw data, or downloads per-stock histories.
+changes the original cache or uploads raw data. Per-stock full histories are
+downloaded only by `reseed_excluded`: one request per stock excluded for a
+curable reason, bounded per run (02 rules, cr056-input-reseed).
 """
 import argparse
 from datetime import date, timedelta
@@ -57,6 +59,54 @@ def merge_recent_history(raw, bulk_by_day, *, as_of, expected_sessions):
     output = [before[day] for day in sorted(before)]
     normalized_comparison_rows(output, as_of=as_of)
     return output
+
+
+# Exclusions a fresh full adjusted history can cure (02 rules, cr056-input-reseed).
+RESEEDABLE = {'historical_adjustment_changed', 'recent_session_missing', 'adjustment_anchor_missing', 'invalid_adjustment_anchor',
+              'empty_invalid_or_old_cache', 'old_tail_not_automatically_revived', 'no_history_at_as_of', 'empty_cached_history',
+              'merge_or_adjustment_inconsistent'}
+RESEED_ROWS = 2200
+
+
+def reseed_excluded(report, cache_dir, *, as_of, fetch_history, budget, traded_value):
+    """Bounded recovery of excluded stocks from one fresh full adjusted download each.
+
+    A dividend or split restates a stock's whole adjusted history, so the
+    recent-day merge rightly refuses it, and without this step the stock never
+    returns. Only stocks excluded for a curable reason and trading on `as_of`
+    (keys of `traded_value`) are tried, busiest first, at most `budget` per run.
+    The download must end exactly at `as_of` and pass the same strict
+    validation as every other input; otherwise the stock keeps its original
+    exclusion reason and is tried again on the next run.
+    """
+    excluded = report['excluded']
+    pending = sorted((s for s, reason in excluded.items() if reason in RESEEDABLE and s in traded_value),
+                     key=lambda s: (-traded_value[s], s))
+    restored, failed = [], {}
+    for symbol in pending[:budget]:
+        try:
+            raw = [r for r in (fetch_history(symbol) or []) if r.get('date', '') <= as_of][-RESEED_ROWS:]
+            if not raw or raw[-1]['date'] != as_of:
+                raise ValueError('reseed_not_current')
+            normalized_comparison_rows(raw, as_of=as_of)
+            content = json.dumps(raw, separators=(',', ':')).encode()
+            dest = Path(cache_dir) / f'{symbol}.json'
+            if dest.exists():
+                raise ValueError('reseed_target_exists')
+            dest.write_bytes(content)
+            report['repaired'].append({'symbol': symbol, 'old_tail': None, 'new_tail': as_of, 'rows': len(raw), 'source_sha256': None,
+                                       'repaired_sha256': hashlib.sha256(content).hexdigest(), 'source': 'full_history_reseed',
+                                       'previous_reason': excluded[symbol]})
+            restored.append(symbol)
+        except (ValueError, TypeError, KeyError, ZeroDivisionError, RuntimeError, OSError) as error:
+            failed[symbol] = str(error) if isinstance(error, ValueError) and str(error).replace('_', '').isalnum() else type(error).__name__
+    for symbol in restored:
+        excluded.pop(symbol)
+    report['repaired_count'] = len(report['repaired'])
+    report['excluded_count'] = len(excluded)
+    report['reseed'] = {'budget': budget, 'eligible': len(pending), 'attempted': min(budget, len(pending)),
+                        'restored': restored, 'failed': failed}
+    return report
 
 
 def repair_existing_cache(cache_dir, private_dir, *, as_of, fetch_bulk, reference_sessions=None):
