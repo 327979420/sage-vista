@@ -1,15 +1,15 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-09T23:08:49+00:00",
+  "generated_at": "2026-10-10T00:18:37+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 58,
+  "experiment_count": 60,
   "summary": {
     "completed": 40,
-    "in_progress": 18,
+    "in_progress": 20,
     "candidate": 15,
     "not_validated_or_unstable": 20
   },
@@ -57,19 +57,19 @@
         "family": "quant_lab_portfolio",
         "family_zh": "量化研究实验室",
         "question_zh": "月线机会按月线拿（至少3个月）、只有月线收盘跌破结构底部才卖，周线、日线同理，不设2R止盈；再加上Weinstein、O'Neil、Faber、海龟、时间序列动量的趋势结束卖出法。这样SV能否胜过同样规则的随机股票？",
-        "result_zh": "已预登记，等待后台自动运行。",
+        "result_zh": "运行前已暂停：设计违反09规则（用结构底部和25%灾难止损放宽了风险）。由E7b按用户规则重做，本规格永不运行。",
         "use_zh": "通过的做法进入模拟账户；按级别、大盘、行业的拆分只作线索。",
-        "next_zh": "根据结果决定SV机会怎么做模拟交易。",
+        "next_zh": "见E7b。",
         "verdict": "pre_registered"
       },
       "lifecycle": {
         "registered_at": "2026-10-09T22:34:48+00:00",
         "started_at": null,
         "completed_at": null,
-        "latest_event": "blocked",
-        "latest_event_at": "2026-10-09T23:08:49+00:00",
+        "latest_event": "checkpoint",
+        "latest_event_at": "2026-10-10T00:18:37+00:00",
         "time_source": "assistant_review",
-        "event_count": 2,
+        "event_count": 3,
         "events": [
           {
             "experiment_id": "lab-e7-timeframe-holding-v1-2026-10-10",
@@ -88,6 +88,142 @@
             "time_source": "assistant_review",
             "details": {
               "note": "paused before any run: conflicts with 09 rules (daily-first stop 2% below the daily chip-density support zone; weekly/monthly opportunities may get more time but not wider single-trade risk; approved windows daily about 20 days, weekly 15-60 days, monthly 60-120 days). To be redesigned with the user."
+            }
+          },
+          {
+            "experiment_id": "lab-e7-timeframe-holding-v1-2026-10-10",
+            "event": "checkpoint",
+            "event_at": "2026-10-10T00:18:37+00:00",
+            "time_source": "assistant_review",
+            "details": {
+              "note": "superseded by lab-e7b-level-rules-20y-v1-2026-10-10; this spec never runs (not_before 2099-01-01)"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "lab-e7b-case-acceptance-v1-2026-10-10",
+      "created_at": "2026-10-10",
+      "status": "pre_registered",
+      "change": "Acceptance check of E7b's hard checks and supply flags on the user's reviewed cases (no returns computed)",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#e7b-preregistration",
+        "lab_spec": "research/lab/queue/e7b-case-acceptance-v1.json",
+        "dataset": "cases-ledger-v1 (EODHD adjusted daily history of MRNA, BTDR, TTD, AEVA, DLTR, ADBE, CGEM, built once in the lab)",
+        "cases": {
+          "reject": [
+            "MRNA 2024-04-24",
+            "BTDR 2024-03-15"
+          ],
+          "flag": [
+            "TTD 2025-01-17",
+            "AEVA 2026-07-01",
+            "DLTR 2024-04-01"
+          ],
+          "accept": [
+            "ADBE 2023-05-18",
+            "CGEM 2024-04-17"
+          ]
+        }
+      },
+      "success_criteria": "Every case gets the ledger's verdict: reject cases rejected; flag cases flagged (or rejected, reported as stricter); accept cases not rejected (flags reported).",
+      "known_limitations": [
+        "seen cases used to calibrate the parameters (six on frozen research data); acceptance only, never evidence",
+        "BTDR is a young listing; its first check happens in this run"
+      ],
+      "human_summary": {
+        "title_zh": "E7b案例验收：机器判定是否符合人工复盘",
+        "family": "quant_lab_portfolio",
+        "family_zh": "量化研究实验室",
+        "question_zh": "深跌未筑底、宽幅箱体两项否决和三项风险标记，能否让MRNA、BTDR被拒绝，TTD、AEVA、DLTR被标出风险，ADBE、CGEM被接受？",
+        "result_zh": "已预登记，等待后台运行（BTDR首次取数检验）。",
+        "use_zh": "只验收规则是否照人工复盘执行，不证明收益。",
+        "next_zh": "全部符合则E7b照原规则运行；不符合则就已见案例修正一次并记录原因。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-10T00:18:37+00:00",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-10-10T00:18:37+00:00",
+        "time_source": "assistant_registration",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "lab-e7b-case-acceptance-v1-2026-10-10",
+            "event": "registered",
+            "event_at": "2026-10-10T00:18:37+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/e7b-case-acceptance-v1.json",
+              "note": "expected verdicts from docs/CASE_REVIEW_LEDGER_ZH.md frozen before the run; parameters calibrated on six seen cases, BTDR checked for the first time"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "lab-e7b-level-rules-20y-v1-2026-10-10",
+      "created_at": "2026-10-10",
+      "status": "pre_registered",
+      "change": "SV opportunities traded by level under the user's rules (value-area stop 2% below the 120-day 70% value-area low, 0.5% risk per trade with a 15% stop-distance limit, holding windows by level, no profit target, case-ledger hard checks), five exit families including mature trend-ending rules, two extra checks, each against same-rule tradable random picks",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#e7b-preregistration",
+        "settings": "docs/rules/09_RISK_AND_EXECUTION.md#e7b-research-settings",
+        "lab_spec": "research/lab/queue/e7b-level-rules-20y-v1.json",
+        "dataset": "observation-2005-2025-v1",
+        "families": [
+          "T0 time only: daily <=20 sessions, weekly 15-60, monthly 3-5 full months",
+          "T1 + weekly 20-day no-progress exit",
+          "T2 + fast trend end: 50-day / 10-week / 12-month momentum",
+          "T3 + slow trend end: prior 20-day low / 30-week / 10-month",
+          "T4 T3 exits without a time cap (two years at most)"
+        ],
+        "extra_checks": [
+          "veto_off: T0 without the hard checks on both sides",
+          "stop_va60: T0 with a 60-session value area"
+        ],
+        "random_runs": 200,
+        "account": "R0.5-P5-M10-H10"
+      },
+      "success_criteria": "Seven comparisons (five families, two extra checks), Bonferroni-style 0.05/7: SV account Sharpe beats at least 99.5% of 200 random accounts, and trades beat same-day random trades with month-clustered t >= 2.7, positive winsorized mean and median. Hard checks help if SV account Sharpe and Calmar are both higher with them. Champion: highest SV Sharpe among passing families (0.01 tie to lower drawdown). Goal 2, reported only: SV account Sharpe above SPY's in at least one of five fixed periods. Leads need >= 100 signals and t >= 3 and confirmation on unseen data.",
+      "known_limitations": [
+        "same 20-year signal set as E1b/E5a",
+        "levels are the old 3.5 receipt labels",
+        "today's sector labels (research only)",
+        "survivor bias in the stock pool",
+        "trades open at the data end are valued at the last close and left out of the trade comparison",
+        "pre-run counts (no returns) showed about half the signals exceed the 15% stop-distance limit under the 120-day value area"
+      ],
+      "human_summary": {
+        "title_zh": "E7b按用户规则、按机会级别交易：SV对同规则随机股票",
+        "family": "quant_lab_portfolio",
+        "family_zh": "量化研究实验室",
+        "question_zh": "按用户的止损（120日价值区下沿下2%）、按级别持有（日≤20日、周15—60日、月3—5根月K）、不设止盈、加案例否决，SV的机会能否胜过同日同规则的随机股票？成熟系统的趋势结束卖出有没有帮助？能否至少某个时期好过SPY？",
+        "result_zh": "已预登记，2026-10-11起由后台自动运行。",
+        "use_zh": "通过的做法先在新版模型一年账本确认方向，再进模拟账户；拆分结果只作线索。",
+        "next_zh": "根据结果决定SV机会怎么做模拟交易，再优化持有时间和止损。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-10T00:18:37+00:00",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-10-10T00:18:37+00:00",
+        "time_source": "assistant_registration",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "lab-e7b-level-rules-20y-v1-2026-10-10",
+            "event": "registered",
+            "event_at": "2026-10-10T00:18:37+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/e7b-level-rules-20y-v1.json",
+              "note": "user confirmed the design and provisional settings 1B 2B 3A 4A 5 6 7 8A on 2026-10-10; success rule frozen before any run; pre-run engineering check counted skips and runtime only, no returns or comparisons were looked at"
             }
           }
         ]
@@ -4682,6 +4818,8 @@
     "lab-e5a-high-score-vs-tradable-random-v1-2026-10-10",
     "lab-e6-forward-paper-v1-2026-10-10",
     "lab-e7-timeframe-holding-v1-2026-10-10",
+    "lab-e7b-case-acceptance-v1-2026-10-10",
+    "lab-e7b-level-rules-20y-v1-2026-10-10",
     "lab-e8-factor-slice-v1-2026-10-10",
     "lab-p1-size-risk-20y-v1-2026-10-08",
     "macd-rollout-04-double-chip-confirmation-2026-08-25",

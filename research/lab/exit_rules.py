@@ -17,6 +17,19 @@ stop with a single 2R target reproduces exactly):
   (Weinstein's 30 weeks, O'Neil's 10 weeks, Faber's 10 months), a daily close
   below the prior N-day low (Turtle System 2) or the N-day average, or a
   month-end close below the close N months earlier (time-series momentum).
+
+Options for trading by opportunity level (E7b), all off unless given:
+- a "level" stop: a fixed price frozen at the signal (for example 2% below the
+  daily volume profile's value-area low), checked intraday like any stop;
+- `min_hold` sessions and `min_periods` ({"period", "count"}: full weeks or
+  months after the entry's own period) before any exit other than the stop;
+- `max_periods`: a time exit at the close that completes that many full
+  periods after the entry's period (for example five monthly bars);
+- `no_progress` ({"sessions", "gain"}): if no close reached entry x (1 + gain)
+  by the close of that session, sell at the next open (case ledger BTDR);
+- `"arm": true` on a trend exit: it can only fire after a completed bar on the
+  right side of its line, because a pullback buy often starts below it while
+  the published systems buy above it.
 """
 from __future__ import annotations
 
@@ -25,7 +38,7 @@ import datetime as _dt
 from services.scanner.support_risk import executable_stop
 
 # Exits that fill at the session open; every other exit fills during or at the close of its bar.
-OPEN_FILLS = {"stop_gap", "trail_gap", "trend_exit", "structure_exit"}
+OPEN_FILLS = {"stop_gap", "trail_gap", "trend_exit", "structure_exit", "no_progress"}
 
 
 def period_key(day, period):
@@ -77,6 +90,8 @@ def initial_stop(bars, entry_index, entry, stop_rule, support_plan):
     if kind == "structure":
         # Only the disaster level is an intraday stop; the floor is checked on period closes.
         return entry * (1 - stop_rule["disaster"])
+    if kind == "level":
+        return stop_rule["price"] if 0 < stop_rule["price"] < entry else None
     raise ValueError(f"unknown stop kind {kind}")
 
 
@@ -96,6 +111,28 @@ def trend_ended(trend, i, close, start, prefix, lows, period_pos, period_close):
     if kind == "period_momentum":
         return m >= n and close < period_close[m - n]
     raise ValueError(f"unknown trend exit {kind}")
+
+
+def trend_state(trend, i, close, start, prefix, lows, period_pos, period_close):
+    """True when bar `i` ends the trend, False when it is on the trend's side of the line, None when the rule cannot judge this bar."""
+    n, kind = trend["length"], trend["kind"]
+    k = i - start
+    if kind == "daily_sma":
+        return close < (prefix[k + 1] - prefix[k + 1 - n]) / n if k + 1 >= n else None
+    if kind == "prior_low":
+        return close < min(lows[k - n:k]) if k >= n else None
+    if i not in period_pos:
+        return None
+    m = period_pos[i]
+    if kind == "period_sma":
+        return close < sum(period_close[m - n + 1:m + 1]) / n if m + 1 >= n else None
+    if kind == "period_momentum":
+        return close < period_close[m - n] if m >= n else None
+    raise ValueError(f"unknown trend exit {kind}")
+
+
+def _period_end(bars, i, period):
+    return i + 1 < len(bars) and period_key(bars[i]["date"], period) != period_key(bars[i + 1]["date"], period)
 
 
 def simulate(bars, entry_index, variant, support_plan=None, cost_per_side=0.001):
@@ -140,6 +177,11 @@ def simulate(bars, entry_index, variant, support_plan=None, cost_per_side=0.001)
     remaining, gross, fills, highest = 1.0, 0.0, [], entry
     trailing_active = bool(trail) and not trail_after
     trail_stop, exit_next_open, exit_reason_next = None, False, "trend_exit"
+    min_hold, min_periods, max_periods = variant.get("min_hold", 0), variant.get("min_periods"), variant.get("max_periods")
+    no_progress = variant.get("no_progress")
+    counted = min_periods or max_periods
+    entry_period = period_key(bars[entry_index]["date"], counted["period"]) if counted else None
+    periods_done, armed, best_close = 0, False, 0.0
 
     def fill(price, fraction, reason, day):
         nonlocal remaining, gross
@@ -171,16 +213,31 @@ def simulate(bars, entry_index, variant, support_plan=None, cost_per_side=0.001)
                     trailing_active = True
         if remaining <= 1e-9:
             break
-        if held == max_hold:
+        if counted and _period_end(bars, i, counted["period"]) and period_key(bar["date"], counted["period"]) != entry_period:
+            periods_done += 1
+        if held == max_hold or (max_periods and periods_done >= max_periods["count"]):
             fill(c, remaining, "time", bar["date"])
             break
+        # Exits other than the stop wait for the minimum holding period.
+        allowed = held >= min_hold and (not min_periods or periods_done >= min_periods["count"])
+        best_close = max(best_close, c)
+        if no_progress and held == no_progress["sessions"] and allowed and best_close < entry * (1 + no_progress["gain"]) and i + 1 < len(bars):
+            exit_next_open = True
+            exit_reason_next = "no_progress"
         if structure and i + 1 < len(bars) and c < structure["floor"] \
                 and period_key(bar["date"], structure["period"]) != period_key(bars[i + 1]["date"], structure["period"]):
             exit_next_open = True
             exit_reason_next = "structure_exit"
-        if trend and not exit_next_open and trend_ended(trend, i, c, start, prefix, lows, period_pos, period_close):
-            exit_next_open = True
-            exit_reason_next = "trend_exit"
+        if trend and not exit_next_open:
+            if trend.get("arm") or min_hold or min_periods:
+                state = trend_state(trend, i, c, start, prefix, lows, period_pos, period_close)
+                armed = armed or state is False
+                if state and allowed and (armed or not trend.get("arm")):
+                    exit_next_open = True
+                    exit_reason_next = "trend_exit"
+            elif trend_ended(trend, i, c, start, prefix, lows, period_pos, period_close):
+                exit_next_open = True
+                exit_reason_next = "trend_exit"
         # Update exits for the next bar from this completed bar only.
         highest = max(highest, c)
         if trail and trailing_active:

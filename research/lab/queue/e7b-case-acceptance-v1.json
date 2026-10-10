@@ -1,0 +1,82 @@
+{
+ "id": "e7b-case-acceptance-v1",
+ "experiment_id": "lab-e7b-case-acceptance-v1-2026-10-10",
+ "kind": "cases",
+ "priority": 1,
+ "question": "Do E7b's hard checks and supply flags give the user's reviewed cases the verdicts the case ledger asks for: reject MRNA and BTDR, flag TTD, AEVA and DLTR, accept ADBE and CGEM?",
+ "dataset": {
+  "id": "cases-ledger-v1",
+  "builder": "symbols",
+  "symbols": [
+   "MRNA",
+   "BTDR",
+   "TTD",
+   "AEVA",
+   "DLTR",
+   "ADBE",
+   "CGEM"
+  ],
+  "start": "2015-01-01"
+ },
+ "group": "E-levels",
+ "rules": {
+  "value_area": {
+   "lookback": 120,
+   "bins": 50,
+   "share": 0.7
+  },
+  "buffer": 0.02,
+  "max_stop_distance": 0.15,
+  "reclaim_sessions": 3,
+  "structure": {
+   "deep_drawdown": {
+    "lookback": 1260,
+    "drop": 0.7,
+    "retrace": 0.618,
+    "base": 252
+   },
+   "wide_box": {
+    "sessions": 252,
+    "min_ratio": 2.0,
+    "zone": 0.25,
+    "min_traversals": 2,
+    "near_high": 0.75
+   },
+   "bearish_pressure": {
+    "lookback": 40,
+    "min_rounds": 2,
+    "big_body_atr": 0.6,
+    "follow": 2,
+    "gap": 3
+   },
+   "multiple_tops": {
+    "lookback": 120,
+    "tolerance": 0.06,
+    "min_tops": 3,
+    "valley": 0.08,
+    "recent": 20
+   },
+   "gap_supply": {
+    "lookback": 504,
+    "min_gaps": 3,
+    "size": 0.04,
+    "key_window": 120
+   }
+  }
+ },
+ "cases": [
+  {"symbol": "MRNA", "signal_date": "2024-04-24", "expect": "reject", "ledger": "十一、MRNA：深跌近90%后的熊市反弹，主动放弃"},
+  {"symbol": "BTDR", "signal_date": "2024-03-15", "expect": "reject", "ledger": "十、BTDR：宽幅箱体不是趋势突破"},
+  {"symbol": "TTD", "signal_date": "2025-01-17", "expect": "flag", "ledger": "五、TTD：多轮看跌卖压没有修复"},
+  {"symbol": "AEVA", "signal_date": "2026-07-01", "expect": "flag", "ledger": "六、AEVA：多重顶和顶部耗竭"},
+  {"symbol": "DLTR", "signal_date": "2024-04-01", "expect": "flag", "ledger": "九、DLTR：多年反复向下跳空的空头供给"},
+  {"symbol": "ADBE", "signal_date": "2023-05-18", "expect": "accept", "ledger": "四、ADBE：先转变、再重置、再启动"},
+  {"symbol": "CGEM", "signal_date": "2024-04-17", "expect": "accept", "ledger": "十二、CGEM：长期筑底完成后日线回调再启动"}
+ ],
+ "next_step": "If every case gets the expected verdict, E7b runs with these exact rules. If a case does not, the definition is corrected once on these seen cases, the change and its reason are recorded, both specs are updated before E7b runs, and the cases are never counted as evidence of returns.",
+ "notes": [
+  "Seen cases: they check that the machine rules do what the user's reviews say. They were used to calibrate the parameters (MRNA, TTD, AEVA, DLTR, ADBE and CGEM on the frozen research datasets; BTDR has no frozen prices yet and is checked here for the first time), so they are acceptance, never evidence.",
+  "'flag' passes when the case is flagged or rejected (rejected is stricter than asked and is reported); 'accept' passes when the case is not rejected (any flags are reported).",
+  "No trade returns are computed."
+ ]
+}

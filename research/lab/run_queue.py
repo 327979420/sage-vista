@@ -27,7 +27,7 @@ import statistics
 import subprocess
 
 from services.scanner.support_risk import signal_support_plan
-from research.lab import account, allocation, datasets, selection, timeframe
+from research.lab import account, allocation, datasets, levels, selection, timeframe
 from research.lab.exit_rules import OPEN_FILLS, simulate
 from research.lab.metrics import evaluate, summarise
 
@@ -623,6 +623,35 @@ def run_timeframe_spec(spec, data, dataset_entry, cost, benchmark):
     return result, gzip.compress(csv_buffer.getvalue().encode(), 9, mtime=0)
 
 
+def run_levels_spec(spec, data, dataset_entry, cost, benchmark):
+    """SV's opportunities traded by level under the user's rules (E7b), against random picks with the same rules."""
+    result = levels.run(spec, data, dataset_entry, cost, benchmark, ROOT, signal_priority)
+    csv_buffer = io.StringIO()
+    writer = csv.writer(csv_buffer)
+    writer.writerow(["arm", "family", "segment", "group", "signals", "sv_mean", "random_mean", "difference_winsorized", "t_monthly", "median_difference"])
+    for arm_id, arm in result["arms"].items():
+        for name, f in arm["families"].items():
+            tl = f["trade_level"]
+            writer.writerow([arm_id, name, "all", "all", tl.get("signals"), tl.get("sv_mean"), tl.get("random_mean"), tl.get("difference_winsorized"),
+                             tl.get("t_monthly"), tl.get("median_difference")])
+            for seg, groups in f["segments"].items():
+                for label, v in groups.items():
+                    writer.writerow([arm_id, name, seg, label, v.get("signals"), v.get("sv_mean"), v.get("random_mean"), v.get("difference_winsorized"),
+                                     v.get("t_monthly"), v.get("median_difference")])
+    return result, gzip.compress(csv_buffer.getvalue().encode(), 9, mtime=0)
+
+
+def run_cases_spec(spec, data, dataset_entry, cost, benchmark):
+    """The case-ledger acceptance check for the E7b structure rules (no returns are computed)."""
+    result = levels.run_cases(spec, data, dataset_entry)
+    csv_buffer = io.StringIO()
+    writer = csv.writer(csv_buffer)
+    writer.writerow(["symbol", "signal_date", "expect", "got", "reason", "flags", "stop_distance_from_close", "passed"])
+    for r in result["cases"]:
+        writer.writerow([r["symbol"], r["signal_date"], r["expect"], r["got"], r.get("reason"), ";".join(r.get("flags") or []), r.get("stop_distance_from_close"), r["passed"]])
+    return result, gzip.compress(csv_buffer.getvalue().encode(), 9, mtime=0)
+
+
 def render_selection_report(result):
     pct = lambda x, d=1: "—" if x is None else f"{x * 100:.{d}f}%"
     num = lambda x: "—" if x is None else f"{x:.2f}"
@@ -770,13 +799,25 @@ def render_scoreboard(results):
              "Account tables trade the approved $100k research account day by day and are the deciding test.", ""]
     for result in sorted(results, key=lambda r: (r["group"], r["completed_at"])):
         board["experiments"].append({k: result[k] for k in ("spec_id", "experiment_id", "group", "completed_at", "champion")} | {"dataset": result["dataset"]["dataset_id"]})
-        if result["champion"]:
+        if result["champion"] and result.get("kind") == "levels":
+            f = result["arms"]["main"]["families"][result["champion"]]
+            board["champions"][result["group"]] = {"spec_id": result["spec_id"], "variant": result["champion"], "rule": f["rule"], "overall": f["sv"]}
+        elif result["champion"]:
             v = result["variants"][result["champion"]]
             board["champions"][result["group"]] = {"spec_id": result["spec_id"], "variant": result["champion"], "rule": v["rule"],
                                                    "overall": v["account"] if result.get("kind") in ("account", "allocation") else v["overall"]}
         if result.get("kind") == "timeframe":
             lines += [f"## {result['spec_id']} ({result['dataset']['dataset_id']}, opportunities traded by their own timeframe vs random picks)", "", result["question"], "",
                       "Families passing: " + (", ".join(result["passed_families"]) or "none"), ""]
+            continue
+        if result.get("kind") == "levels":
+            lines += [f"## {result['spec_id']} ({result['dataset']['dataset_id']}, opportunities traded by level under the user's rules vs random picks)", "",
+                      result["question"], "", "Families passing: " + (", ".join(result["passed_families"]) or "none") + "; extra checks passing: "
+                      + (", ".join(result["extra_checks_passed"]) or "none"), ""]
+            continue
+        if result.get("kind") == "cases":
+            lines += [f"## {result['spec_id']} ({result['dataset']['dataset_id']}, case-ledger acceptance)", "", result["question"], "",
+                      "All cases as expected: " + ("yes" if result["passed"] else "no") + " (" + ", ".join(f"{r['symbol']} {r['got'] or 'no data'}" for r in result["cases"]) + ")", ""]
             continue
         if result.get("kind") == "selection":
             r, sv = result["random"], result["sv"]
@@ -814,6 +855,10 @@ def write_outputs(root, result, trades_csv, event, manifests):
         (out / "REPORT.md").write_text(render_selection_report(result))
     elif result.get("kind") == "timeframe":
         (out / "REPORT.md").write_text(timeframe.render(result))
+    elif result.get("kind") == "levels":
+        (out / "REPORT.md").write_text(levels.render(result))
+    elif result.get("kind") == "cases":
+        (out / "REPORT.md").write_text(levels.render_cases(result))
     for entry in manifests:
         record = pathlib.Path(root) / "research/lab/datasets" / f"{entry['dataset_id']}.json"
         record.parent.mkdir(parents=True, exist_ok=True)
@@ -880,7 +925,7 @@ def main(argv=None):
             symbol = spec["benchmark"]["symbol"]
             benchmark = {"symbol": symbol, "series": bench_data["prices"][symbol], "entry": bench_entry}
         run = {"account": run_account_spec, "allocation": run_allocation_spec, "selection": run_selection_spec,
-               "timeframe": run_timeframe_spec}.get(spec.get("kind"), run_spec)
+               "timeframe": run_timeframe_spec, "levels": run_levels_spec, "cases": run_cases_spec}.get(spec.get("kind"), run_spec)
         extra = {}
         if spec.get("core"):
             extra["core_data"] = load(spec["core"]["dataset"])[0]

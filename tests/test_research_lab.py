@@ -11,7 +11,7 @@ import tempfile
 import unittest
 from unittest import mock
 
-from research.lab import account, allocation, datasets, run_queue, selection, timeframe
+from research.lab import account, allocation, datasets, levels, run_queue, selection, structure, timeframe
 from research.lab.exit_rules import simulate
 from research.lab.metrics import evaluate, summarise
 from services.scanner.support_risk import simulate_execution
@@ -772,6 +772,222 @@ class ForwardTests(unittest.TestCase):
             self.assertEqual(json.loads((pathlib.Path(folder) / "research/lab/forward/latest.json").read_text())["computed_at"], "t3")
 
 
+def ohlcv(rows, start=dt.date(2020, 1, 1)):
+    """Column series from (open, high, low, close, volume) rows on consecutive trading days."""
+    days = trading_days(len(rows), start)
+    return {"date": days, **{k: [float(r[j]) for r in rows] for j, k in enumerate(("open", "high", "low", "close", "volume"))}}
+
+
+def closes_only(closes, volume=1000.0, start=dt.date(2020, 1, 1)):
+    return ohlcv([(c, c + 0.5, c - 0.5, c, volume) for c in closes], start)
+
+
+def ramp(a, b, n):
+    return [a + (b - a) * (k + 1) / n for k in range(n)]
+
+
+class StructureTests(unittest.TestCase):
+    def test_value_area_holds_seventy_percent_around_the_busiest_prices(self):
+        s = ohlcv([(51, 52, 50, 51, 1000)] * 100 + [(61, 62, 60, 61, 10)] * 20)
+        va = structure.value_area(s, 119, lookback=120, bins=50)
+        self.assertTrue(va["available"])
+        self.assertTrue(50 <= va["val"] < va["poc"] < va["vah"] <= 52.5, va)  # the quiet 60-62 zone stays outside
+        self.assertGreaterEqual(va["share"], 0.7)
+        self.assertEqual(structure.value_area(s, 50, lookback=120)["reason"], "insufficient_history")
+        self.assertEqual(structure.value_area(ohlcv([(51, 52, 50, 51, 0)] * 120), 119)["reason"], "volume_unavailable")
+
+    def test_deep_drawdown_rejects_until_the_fall_is_repaired_or_based(self):
+        fall = [100.0] * 50 + ramp(100, 20, 80)
+        hit = structure.deep_drawdown(closes_only(fall + [20.0] * 10 + [30.0] * 5), 144)
+        self.assertTrue(hit["reject"] and not hit["repaired"] and not hit["based"])
+        self.assertFalse(structure.deep_drawdown(closes_only(fall + [25.0] * 300), 429)["reject"])  # a year-long base since the low
+        self.assertFalse(structure.deep_drawdown(closes_only(fall + ramp(20, 75, 40)), 169)["reject"])  # reclaimed 0.618 of the fall
+        self.assertFalse(structure.deep_drawdown(closes_only([100.0] * 50 + ramp(100, 40, 80)), 129)["reject"])  # fell only 60%
+
+    def test_wide_box_needs_a_wide_range_crossed_twice_and_a_signal_well_below_the_top(self):
+        box = [10.0] * 5 + ramp(10, 30, 40) + ramp(30, 10, 40) + ramp(10, 30, 40) + ramp(30, 15, 30)
+        self.assertTrue(structure.wide_box(closes_only(box), len(box) - 1)["reject"])
+        trend = [10.0] * 5 + ramp(10, 30, 120) + ramp(30, 20, 30)
+        self.assertEqual(structure.wide_box(closes_only(trend), len(trend) - 1)["traversals"], 1)
+        self.assertFalse(structure.wide_box(closes_only(trend), len(trend) - 1)["reject"])
+        near_top = box[:-30] + ramp(30, 28, 30)
+        self.assertFalse(structure.wide_box(closes_only(near_top), len(near_top) - 1)["reject"])  # within 25% of the top
+
+    def test_bearish_pressure_needs_two_unrepaired_rounds(self):
+        rows = [(100, 101, 99, 100, 1)] * 80
+        rows += [(100, 100.5, 94.5, 95, 1), (95, 95.5, 93.5, 94, 1)] + [(94, 95, 93, 94, 1)] * 10
+        rows += [(94, 94.5, 88.5, 89, 1), (89, 89.5, 87.5, 88, 1)] + [(88, 89, 87, 88, 1)] * 20
+        weak = ohlcv(rows)
+        result = structure.bearish_pressure(weak, len(rows) - 1)
+        self.assertTrue(result["flag"], result)
+        self.assertEqual(len(result["rounds"]), 2)
+        repaired = ohlcv(rows + [(110, 111, 109, 110, 1)] * 30)
+        self.assertFalse(structure.bearish_pressure(repaired, len(rows) + 29)["flag"])
+
+    def test_multiple_tops_need_separate_tests_and_recent_exhaustion(self):
+        def path(dip):
+            closes = [80.0] * 10 + ramp(80, 100, 15) + ramp(100, dip, 10) + ramp(dip, 99, 10) + ramp(99, dip, 10) + ramp(dip, 99.5, 10) + ramp(99.5, 96, 8)
+            rows = [(c, c + 0.5, c - 0.5, c, 1) for c in closes] + [(96, 99.5, 95.5, 95.8, 1)]  # a shooting star back near the tops
+            return ohlcv(rows)
+        tops = path(90)
+        self.assertTrue(structure.multiple_tops(tops, len(tops["date"]) - 1)["flag"])
+        shallow = path(97)  # dips under 8% do not separate the tests
+        self.assertFalse(structure.multiple_tops(shallow, len(shallow["date"]) - 1)["flag"])
+
+    def test_gap_supply_needs_a_chain_with_the_latest_gap_unfilled(self):
+        def chain(fill):
+            closes = [100.0] * 100 + [95.0] * 200 + [90.0] * 200 + [85.0] * 60 + ([95.0] * 10 if fill else [85.0] * 10)
+            rows = []
+            for k, c in enumerate(closes):
+                gap = k and c < closes[k - 1] - 2
+                rows.append((c, c + 0.4, c - 0.4, c, 1) if gap else (c, c + 0.5, c - 0.5, c, 1))
+            return ohlcv(rows)
+        self.assertTrue(structure.gap_supply(chain(False), 569)["flag"])
+        self.assertFalse(structure.gap_supply(chain(True), 569)["flag"])
+
+    def test_assess_reports_the_first_rejection_and_every_flag(self):
+        fall = closes_only([100.0] * 50 + ramp(100, 20, 80) + [20.0] * 10 + [30.0] * 5)
+        verdict = structure.assess(fall, 144)
+        self.assertEqual(verdict["reject"], "deep_drawdown")
+        self.assertEqual(structure.rejection(fall, 144), "deep_drawdown")
+        self.assertEqual(set(verdict["details"]), {"deep_drawdown", "wide_box", "bearish_pressure", "multiple_tops", "gap_supply"})
+
+
+def level_bars(closes, start=dt.date(2024, 1, 2)):
+    days = trading_days(len(closes), start)
+    return [{"date": d, "open": c, "high": c * 1.001, "low": c * 0.999, "close": c, "volume": 1} for d, c in zip(days, closes)]
+
+
+class LevelExitTests(unittest.TestCase):
+    def test_a_level_stop_sells_intraday_even_inside_the_minimum_hold(self):
+        bars = level_bars([100.0] * 12 + [95.0, 96.0] + [100.0] * 30)
+        bars[13] = {**bars[13], "low": 89.0}  # dips through the stop during the session
+        rule = {"stop": {"kind": "level", "price": 90.0}, "targets": [], "max_hold": 30, "min_hold": 15, "trend_exit": {"kind": "daily_sma", "length": 5, "arm": True}}
+        r = simulate(bars, 10, rule, cost_per_side=0)
+        self.assertEqual((r["exit_reason"], r["fills"][-1]["price"]), ("stop", 90.0))
+        self.assertIsNone(simulate(bars, 10, {**rule, "stop": {"kind": "level", "price": 120.0}}, cost_per_side=0).get("exit_reason"))
+
+    def test_trend_exits_wait_for_the_minimum_and_arm_only_above_their_line(self):
+        down = [100 - k for k in range(30)]
+        bars = level_bars([100.0] * 10 + down + [70.0] * 30)
+        rule = {"stop": {"kind": "level", "price": 1.0}, "targets": [], "max_hold": 50, "trend_exit": {"kind": "daily_sma", "length": 5}}
+        # Bought during the decline, already below the 5-day average.
+        self.assertEqual(simulate(bars, 13, rule, cost_per_side=0)["held"], 2)  # unarmed: below the line at the first close, sold at the next open
+        armed = simulate(bars, 13, {**rule, "trend_exit": {**rule["trend_exit"], "arm": True}}, cost_per_side=0)
+        self.assertEqual(armed["exit_reason"], "time")  # it never closed back above the line after a close below it
+        later = simulate(bars, 13, {**rule, "min_hold": 15}, cost_per_side=0)
+        self.assertEqual((later["exit_reason"], later["held"]), ("trend_exit", 16))  # judged from session 15, sold at the next open
+
+    def test_monthly_minimum_and_maximum_count_full_months_after_the_entry_month(self):
+        bars = level_bars([100 - 0.05 * k for k in range(200)], start=dt.date(2024, 1, 2))
+        entry = next(i for i, b in enumerate(bars) if b["date"] >= "2024-01-16")
+        rule = {"stop": {"kind": "level", "price": 1.0}, "targets": [], "max_hold": 199,
+                "min_periods": {"period": "month", "count": 3}, "max_periods": {"period": "month", "count": 5}}
+        timed = simulate(bars, entry, rule, cost_per_side=0)
+        self.assertEqual((timed["exit_reason"], timed["fills"][-1]["date"][:7]), ("time", "2024-06"))  # Feb-Jun are the five full months
+        trend = simulate(bars, entry, {**rule, "trend_exit": {"kind": "daily_sma", "length": 5}}, cost_per_side=0)
+        self.assertEqual((trend["exit_reason"], trend["fills"][-1]["date"][:7]), ("trend_exit", "2024-05"))  # first chance after April closes
+
+    def test_no_progress_sells_after_twenty_sessions_without_a_five_percent_close(self):
+        flat = level_bars([100.0] * 50)
+        rule = {"stop": {"kind": "level", "price": 80.0}, "targets": [], "max_hold": 40, "no_progress": {"sessions": 20, "gain": 0.05}}
+        r = simulate(flat, 5, rule, cost_per_side=0)
+        self.assertEqual((r["exit_reason"], r["held"]), ("no_progress", 21))
+        moved = level_bars([100.0] * 12 + [106.0] + [100.0] * 37)
+        self.assertEqual(simulate(moved, 5, rule, cost_per_side=0)["exit_reason"], "time")
+
+
+def level_stock(n=700, seed=1, start=dt.date(2005, 1, 3), scale=10.0, volume=5_000_000):
+    days = trading_days(n, start)
+    bars = walk(seed, n=n, drift=0.0004, vol=0.015)
+    return {"date": days, **{f: [b[f] * scale for b in bars] for f in ("open", "high", "low", "close")}, "volume": [float(volume)] * n}
+
+
+class LevelsTests(unittest.TestCase):
+    RULES = levels._rules({"rules": json.loads((ROOT / "research/lab/queue/e7b-level-rules-20y-v1.json").read_text())["rules"]})
+
+    def test_plan_skips_rejections_missing_support_wide_stops_and_unreclaimed_gaps(self):
+        s = level_stock(seed=11)
+        day = s["date"][500]
+        p = levels.plan(s, day, self.RULES)
+        if "skip" not in p:
+            self.assertGreater(p["entry_index"], 500)
+            self.assertLess(p["stop"], s["open"][p["entry_index"]])
+        self.assertEqual(levels.plan(s, day, {**self.RULES, "max_stop_distance": 0.0})["skip"], "stop_too_wide")
+        fall = closes_only([100.0] * 400 + ramp(100, 20, 80) + [20.0] * 10 + [30.0] * 5 + [30.0] * 10, volume=5e6, start=dt.date(2005, 1, 3))
+        self.assertEqual(levels.plan(fall, fall["date"][494], self.RULES)["skip"], "veto_deep_drawdown")
+        below = closes_only([50.0] * 300 + ramp(50, 30, 30) + [30.0] * 10, volume=5e6, start=dt.date(2005, 1, 3))
+        self.assertEqual(levels.plan(below, below["date"][334], self.RULES, vetoes=False)["skip"], "no_support")
+        self.assertEqual(levels.plan(s, "1999-01-01", self.RULES)["skip"], "no_signal_bar")
+
+    def test_an_open_below_the_stop_waits_for_a_close_back_above_it(self):
+        base = [(50, 50.5, 49.5, 50, 1e6)] * 200
+        rules = {**self.RULES, "max_stop_distance": 0.5}
+        signal = 199
+        va = structure.value_area(ohlcv(base), signal, **rules["value_area"])
+        stop = va["val"] * (1 - rules["buffer"])
+        gap = [(stop - 2, stop - 1, stop - 3, stop - 2, 1e6), (stop - 2, stop + 2, stop - 3, stop + 1, 1e6), (stop + 0.5, stop + 1, stop, stop + 0.5, 1e6)]
+        p = levels.plan(ohlcv(base + gap + [(50, 50.5, 49.5, 50, 1e6)] * 5), ohlcv(base)["date"][signal], rules, vetoes=False)
+        self.assertEqual((p["entry_index"], p["waited"]), (signal + 3, 2))
+        never = [(stop - 2, stop - 1, stop - 3, stop - 2, 1e6)] * 5
+        self.assertEqual(levels.plan(ohlcv(base + never), ohlcv(base)["date"][signal], rules, vetoes=False)["skip"], "opened_below_stop")
+
+    def test_family_exits_by_level_and_the_uncapped_family(self):
+        spec = json.loads((ROOT / "research/lab/queue/e7b-level-rules-20y-v1.json").read_text())
+        hold, fam = spec["hold"], spec["families"]
+        self.assertEqual(levels.variant("daily", fam["T0"], hold, 9.0), {"stop": {"kind": "level", "price": 9.0}, "targets": [], "max_hold": 20})
+        self.assertNotIn("no_progress", levels.variant("monthly", fam["T1"], hold, 9.0))  # the user kept the 20-day exit off monthly opportunities
+        self.assertEqual(levels.variant("weekly", fam["T1"], hold, 9.0)["no_progress"], {"sessions": 20, "gain": 0.05})
+        self.assertTrue(levels.variant("weekly", fam["T3"], hold, 9.0)["trend_exit"]["arm"])
+        uncapped = levels.variant("monthly", fam["T4"], hold, 9.0)
+        self.assertEqual((uncapped["max_hold"], "max_periods" in uncapped, uncapped["min_periods"]["count"]), (504, False, 3))
+
+    def test_levels_spec_runs_end_to_end_with_extra_checks_periods_and_segments(self):
+        days = trading_days(900, dt.date(2005, 1, 3))
+        prices, events = {}, []
+        for k in range(10):
+            prices[f"S{k}"] = {**level_stock(900, 9500 + k), "date": days}
+            for at, tf in ((480, "daily"), (560, "weekly_completed"), (640, "monthly_completed")):
+                events.append({"event_id": f"S{k}-{days[at]}-{at}", "symbol": f"S{k}", "signal_date": days[at], "timeframe": tf, "score": 40})
+        spy_bars = walk(9900, n=900)
+        spy = {"date": days, **{f: [b[f] for b in spy_bars] for f in ("open", "high", "low", "close")}}
+        spec = json.loads((ROOT / "research/lab/queue/e7b-level-rules-20y-v1.json").read_text())
+        spec["runs"] = {k: 2 for k in spec["runs"]}
+        spec["window"] = {"start": days[300], "end": days[-1]}
+        entry = {"dataset_id": "synthetic", "asset": "-", "sha256": "-", "events": len(events), "symbols": 10}
+        result, csv_gz = run_queue.run_levels_spec(spec, {"events": events, "prices": prices}, entry, 0.001, {"symbol": "SPY", "series": spy, "entry": entry})
+        self.assertEqual(set(result["arms"]), {"main", "veto_off", "stop_va60"})
+        self.assertEqual(set(result["arms"]["main"]["families"]), set(spec["families"]))
+        self.assertEqual(set(result["arms"]["veto_off"]["families"]), {"T0"})
+        main = result["arms"]["main"]["families"]["T0"]
+        self.assertTrue(set(main["segments"]) >= {"timeframe", "market_trend", "market_volatility", "sector", "supply_flag"})
+        self.assertIn("goal_2_some_period_beats_spy", main)
+        self.assertIsNotNone(result["vetoes_help"])
+        self.assertEqual(result["signals"], 30)
+        again, _ = run_queue.run_levels_spec(spec, {"events": events, "prices": prices}, entry, 0.001, {"symbol": "SPY", "series": spy, "entry": entry})
+        self.assertEqual(json.dumps(again, sort_keys=True), json.dumps(result, sort_keys=True))  # deterministic from the seed
+        report = levels.render({**result, "completed_at": "2026-10-11T05:00:00+00:00"})
+        self.assertIn("## main: account and trades against random picks", report)
+        self.assertIn("five-year periods against SPY", report)
+        self.assertTrue(gzip.decompress(csv_gz).decode().startswith("arm,family,segment"))
+
+    def test_case_acceptance_reports_each_expected_verdict(self):
+        spec = json.loads((ROOT / "research/lab/queue/e7b-case-acceptance-v1.json").read_text())
+        fall = closes_only([100.0] * 400 + ramp(100, 20, 80) + [20.0] * 10 + [30.0] * 5, volume=5e6, start=dt.date(2020, 1, 1))
+        calm = level_stock(495, seed=3, start=dt.date(2020, 1, 1))
+        spec["cases"] = [{"symbol": "FALL", "signal_date": fall["date"][-1], "expect": "reject"},
+                         {"symbol": "CALM", "signal_date": calm["date"][-1], "expect": "accept"},
+                         {"symbol": "GONE", "signal_date": "2024-01-02", "expect": "accept"}]
+        entry = {"dataset_id": "synthetic", "asset": "-", "sha256": "-", "events": 0, "symbols": 2}
+        result, _ = run_queue.run_cases_spec(spec, {"events": [], "prices": {"FALL": fall, "CALM": calm}}, entry, 0.001, None)
+        got = {r["symbol"]: (r["got"], r["passed"]) for r in result["cases"]}
+        self.assertEqual(got["FALL"], ("reject", True))
+        self.assertTrue(got["CALM"][1])
+        self.assertEqual(got["GONE"], (None, False))
+        self.assertFalse(result["passed"])
+        self.assertIn("As expected", levels.render_cases({**result, "completed_at": "2026-10-10T05:00:00+00:00"}))
+
+
 def statistics_cdf(x):
     return 0.5 * (1 + math.erf(x / math.sqrt(2)))
 
@@ -857,6 +1073,19 @@ class QueueAndDatasetTests(unittest.TestCase):
                     self.assertEqual(set(family["hold"]), {"daily", "weekly", "monthly"})
                 for key in ("min_random_percentile", "min_trade_excess_t", "lead_t", "min_lead_signals"):
                     self.assertIn(key, spec["criteria"], path.name)
+                continue
+            if spec.get("kind") == "levels":
+                self.assertEqual(set(spec["families"]), set(spec["runs"]), path.name)
+                self.assertEqual(set(spec["hold"]), {"daily", "weekly", "monthly"})
+                self.assertTrue(all(c["family"] in spec["families"] for c in spec.get("extra_checks", [])), path.name)
+                for key in ("min_random_percentile", "min_trade_excess_t", "lead_t", "min_lead_signals"):
+                    self.assertIn(key, spec["criteria"], path.name)
+                cases = [json.loads(p.read_text()) for p in (ROOT / "research/lab/queue").glob("*.json") if json.loads(p.read_text()).get("kind") == "cases"]
+                # The acceptance check must test exactly the rules the experiment trades.
+                self.assertTrue(any(c["rules"] == spec["rules"] for c in cases), path.name)
+                continue
+            if spec.get("kind") == "cases":
+                self.assertTrue(all(c["expect"] in ("reject", "flag", "accept") for c in spec["cases"]), path.name)
                 continue
             if spec.get("kind") == "selection":
                 for key in ("min_random_percentile", "min_trade_excess_t"):
