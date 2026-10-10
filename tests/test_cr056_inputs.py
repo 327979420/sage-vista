@@ -3,7 +3,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from services.scanner.cr056_inputs import merge_recent_history, repair_existing_cache, normalized_comparison_rows
+from services.scanner.cr056_inputs import merge_recent_history, repair_existing_cache, normalized_comparison_rows, reseed_excluded
 
 
 def bar(day, adjustment=10):
@@ -40,6 +40,28 @@ class InputRepairTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'adjustment_anchor_missing'):
             merge_recent_history([bar('2026-08-28')], {d: bar(d) for d in days},
                                  as_of=days[-1], expected_sessions=days)
+
+    def test_reseed_is_bounded_busiest_first_and_failures_keep_their_reason(self):
+        days = ['2026-09-01', '2026-09-02', '2026-09-03', '2026-09-04']
+        fresh = [bar(d) for d in days]
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp)
+            report = {'repaired': [], 'excluded': {'A': 'historical_adjustment_changed', 'B': 'recent_session_missing',
+                                                   'C': 'ambiguous_bulk_symbol', 'D': 'historical_adjustment_changed',
+                                                   'E': 'recent_session_missing'}}
+            calls = []
+            def fetch(symbol):
+                calls.append(symbol)
+                return fresh[:-1] if symbol == 'A' else fresh + [bar('2026-09-08')]  # A stops a day early; later rows are cut
+            reseed_excluded(report, out, as_of='2026-09-04', fetch_history=fetch, budget=2,
+                            traded_value={'A': 5.0, 'B': 9.0, 'C': 100.0, 'D': 1.0})  # E did not trade today
+            self.assertEqual(calls, ['B', 'A'])  # busiest first, within the budget; C's reason is not curable
+            self.assertEqual(report['reseed']['restored'], ['B'])
+            self.assertEqual(report['reseed']['failed'], {'A': 'reseed_not_current'})
+            self.assertNotIn('B', report['excluded'])
+            self.assertEqual(report['excluded']['A'], 'historical_adjustment_changed')  # tried again next run
+            self.assertEqual(json.loads((out/'B.json').read_text())[-1]['date'], '2026-09-04')  # nothing after as_of
+            self.assertEqual((report['repaired'][0]['source'], report['repaired_count'], report['excluded_count']), ('full_history_reseed', 1, 4))
 
     def test_private_repair_reports_anchor_failure_and_keeps_original_bytes(self):
         with tempfile.TemporaryDirectory() as tmp:

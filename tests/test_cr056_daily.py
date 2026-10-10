@@ -185,6 +185,38 @@ class DailyCandidateTests(unittest.TestCase):
         self.assertEqual(before,self.state.read_bytes())
         self.assertEqual(json.loads(self.public.read_text())['as_of'],'2026-09-04')
 
+    def test_adjustment_changed_stock_returns_through_one_full_download(self):
+        import shutil
+        with self.producers('2026-09-08',False):self.run_daily('2026-09-08')
+        shutil.rmtree(self.root/'work'/'cache')
+        original_bulk=self.bulk
+        def revised(day,directory):
+            rows=original_bulk(day,directory)
+            if day=='2026-09-04':
+                for row in rows:
+                    if row['code']=='AAA':row['adjusted_close']/=2
+            return rows
+        self.bulk=revised
+        base=json.loads((self.base/'AAA.json').read_text())
+        def history(symbol):
+            self.assertEqual(symbol,'AAA')
+            return base+[dict(base[-1],date=d) for d in ('2026-09-08','2026-09-09')]
+        with self.producers('2026-09-09',False):
+            result=refresh(as_of='2026-09-09',code_commit='reviewed',public_path=self.public,state_path=self.state,
+                           archive_dir=self.root/'archive',work_dir=self.root/'work',base_cache=self.base,
+                           fetch_reference=self.reference,fetch_bulk=self.bulk,fetch_history=history,reseed_budget=5)
+        self.assertEqual(result['result'],'updated',result)
+        report=json.loads((self.root/'work'/'input-report.json').read_text())
+        self.assertEqual(report['reseed']['restored'],['AAA'])
+        aaa=next(r for r in json.loads(self.public.read_text())['reviews'] if r['symbol']=='AAA')
+        self.assertNotIn('historical_adjustment_changed',aaa['reason_codes'] or [])
+        # The next day merges onto the reseeded history under the usual anchor checks.
+        self.bulk=original_bulk
+        with self.producers('2026-09-10',False):result=self.run_daily('2026-09-10')
+        self.assertEqual(result['result'],'updated',result)
+        report=json.loads((self.root/'work'/'input-report.json').read_text())
+        self.assertNotIn('AAA',report['excluded'])
+
     def test_cache_loss_cannot_bypass_adjustment_anchor_checks(self):
         import shutil
         with self.producers('2026-09-08',False):self.run_daily('2026-09-08')
