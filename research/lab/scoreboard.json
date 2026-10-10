@@ -50,6 +50,14 @@
    "dataset": "core-long-chains-v1"
   },
   {
+   "spec_id": "e8-factor-slice-v1",
+   "experiment_id": "lab-e8-factor-slice-v1-2026-10-10",
+   "group": "E-factors",
+   "completed_at": "2026-10-10T05:23:54+00:00",
+   "champion": null,
+   "dataset": "factor-etf-2010-to-2026-10-v1"
+  },
+  {
    "spec_id": "e0-core-long-history-v1",
    "experiment_id": "lab-e0-core-long-history-v1-2026-10-10",
    "group": "E-foundations",

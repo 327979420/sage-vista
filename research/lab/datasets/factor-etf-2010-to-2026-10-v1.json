@@ -1,0 +1,12 @@
+{
+ "dataset_id": "factor-etf-2010-to-2026-10-v1",
+ "asset": "factor-etf-2010-to-2026-10-v1-dd624fd85649.json.gz",
+ "sha256": "dd624fd8564974d6253c6f76befae13f7efc7bc30b3e5817f45fb549099f698d",
+ "bytes": 898779,
+ "release": "research-datasets",
+ "events": 0,
+ "symbols": 10,
+ "source": "EODHD full adjusted history for SPY, TLT, GLD, SHY, USMV, QUAL, MTUM, SPLV, VIG, RSP",
+ "price_basis": "EODHD adjusted daily OHLCV",
+ "missing_symbols": 0
+}

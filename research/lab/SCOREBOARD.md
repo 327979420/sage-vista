@@ -125,6 +125,31 @@ Can the core step its stock (and bond and gold) exposure down gradually when mar
 
 Champion: **PERM-ALL-TSMOM**
 
+## e8-factor-slice-v1 (factor-etf-2010-to-2026-10-v1, $100k account 2014-08-01 to 2026-01-16)
+
+Can a published factor fund (low volatility, quality, momentum, dividend growers, equal weight) replace SPY as the core's 25% stock slice and raise its risk-adjusted result without picking single stocks?
+
+| Rule | CAGR | Max drawdown | Sharpe | Calmar | CAGR vs SPY | Invested | Trades | Luck check: median Sharpe | Luck check: worst-5% CAGR | Deflated Sharpe | Passed |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SPY buy and hold | 13.7% | 33.7% | 0.82 | 0.41 | — | 100% | — | — | — | — | benchmark |
+| SPY S&P 500 (benchmark) | 13.7% | 33.7% | 0.82 | 0.41 | 0.0% | 100% | 13 | — | — | 0.98 | no |
+| USMV US minimum volatility (USMV) | 10.6% | 33.1% | 0.78 | 0.32 | -3.1% | 100% | 13 | — | — | 0.97 | no |
+| QUAL US quality (QUAL) | 13.4% | 34.1% | 0.80 | 0.39 | -0.4% | 100% | 13 | — | — | 0.98 | no |
+| MTUM US momentum (MTUM) | 14.5% | 34.1% | 0.78 | 0.43 | 0.8% | 100% | 13 | — | — | 0.97 | no |
+| SPLV S&P 500 low volatility (SPLV) | 9.2% | 36.3% | 0.66 | 0.25 | -4.5% | 100% | 13 | — | — | 0.94 | no |
+| VIG Dividend growers (VIG) | 12.2% | 31.7% | 0.81 | 0.39 | -1.5% | 100% | 13 | — | — | 0.98 | no |
+| RSP S&P 500 equal weight (RSP) | 10.8% | 39.0% | 0.66 | 0.28 | -3.0% | 100% | 13 | — | — | 0.94 | no |
+| PERM Permanent core with SPY (current core) | 7.2% | 18.4% | 1.00 | 0.39 | -6.6% | 100% | 13 | — | — | 1.00 | no |
+| PERM-USMV Core with minimum volatility as the stock slice | 6.4% | 16.9% | 0.91 | 0.38 | -7.4% | 100% | 13 | — | — | 0.99 | no |
+| PERM-QUAL Core with quality as the stock slice | 7.1% | 19.6% | 0.99 | 0.36 | -6.6% | 100% | 13 | — | — | 1.00 | no |
+| PERM-MTUM Core with momentum as the stock slice | 7.3% | 20.0% | 0.96 | 0.37 | -6.4% | 100% | 13 | — | — | 0.99 | no |
+| PERM-SPLV Core with S&P 500 low volatility as the stock slice | 6.0% | 16.4% | 0.85 | 0.37 | -7.7% | 100% | 13 | — | — | 0.99 | no |
+| PERM-VIG Core with dividend growers as the stock slice | 6.7% | 17.4% | 0.97 | 0.39 | -7.0% | 100% | 13 | — | — | 1.00 | no |
+| PERM-RSP Core with equal weight as the stock slice | 6.4% | 17.7% | 0.90 | 0.36 | -7.3% | 100% | 13 | — | — | 0.99 | no |
+| PERM-MULTI Core with a third each of minimum volatility, quality and momentum | 6.9% | 18.7% | 0.97 | 0.37 | -6.8% | 100% | 13 | — | — | 1.00 | no |
+
+Champion: **none passed; current rule stays**
+
 ## e0-core-long-history-v1 (core-long-chains-v1, $100k account 1993-01-04 to 2026-01-16)
 
 Is the Permanent Portfolio core robust beyond 2007-2026? Same portfolios on the longest history the data allows (older funds or spot prices before today's funds existed), with every rolling 5-year window checked, including the 1994 bond crash, 2000-02 and 2022.
