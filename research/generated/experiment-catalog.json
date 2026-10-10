@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-10T04:45:33+00:00",
+  "generated_at": "2026-10-10T05:23:46+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
@@ -8,8 +8,8 @@
   ],
   "experiment_count": 60,
   "summary": {
-    "completed": 41,
-    "in_progress": 19,
+    "completed": 42,
+    "in_progress": 18,
     "candidate": 15,
     "not_validated_or_unstable": 20
   },
@@ -21,6 +21,87 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "lab-e7b-level-rules-20y-v1-2026-10-10",
+      "created_at": "2026-10-10",
+      "status": "pre_registered",
+      "change": "SV opportunities traded by level under the user's rules (value-area stop 2% below the 120-day 70% value-area low, positions of 5% of the account losing at most 2% of it at the stop, holding windows by level, no profit target, case-ledger hard checks), five exit families including mature trend-ending rules, four extra checks, each against same-rule tradable random picks",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#e7b-preregistration",
+        "settings": "docs/rules/09_RISK_AND_EXECUTION.md#e7b-research-settings",
+        "lab_spec": "research/lab/queue/e7b-level-rules-20y-v1.json",
+        "dataset": "observation-2005-2025-v1",
+        "families": [
+          "T0 time only: daily <=20 sessions, weekly 15-60, monthly 3-5 full months",
+          "T1 + weekly 20-day no-progress exit",
+          "T2 + fast trend end: 50-day / 10-week / 12-month momentum",
+          "T3 + slow trend end: prior 20-day low / 30-week / 10-month",
+          "T4 T3 exits without a time cap (two years at most)"
+        ],
+        "extra_checks": [
+          "veto_off: T0 without the hard checks on both sides",
+          "stop_va60: T0 with a 60-session value area",
+          "risk_0.5pct: T0 with the first choice, 0.5% risk and a 15% stop-distance limit",
+          "market_filter: T0, new trades only while SPY closes above its 200-day average (Faber)"
+        ],
+        "random_runs": 200,
+        "account": "positions <= 5% of the account, at most 2% of it lost at the stop (stop <= 40% below entry), 10 positions, open risk <= 20%"
+      },
+      "success_criteria": "Nine comparisons (five families, four extra checks), Bonferroni-style 0.05/9: SV account Sharpe beats at least 99.5% of 200 random accounts, and trades beat same-day random trades with month-clustered t >= 2.8, positive winsorized mean and median. One choice across everything that passes: highest SV account Sharpe, 0.01 tie to the smaller worst fall; the user's stated preferences do not override results. Hard checks help if SV account Sharpe and Calmar are both higher with them. Reported, not pass conditions: Goal 1 vs SPY (Sharpe and Calmar at least SPY's, worst fall <= 25%), Goal 2 (SV Sharpe above SPY's in at least one of five fixed periods), win rate, payoff ratio, profit factor and expectancy in R for SV and random trades. Leads (level, market trend and volatility, sector, supply flag, fixed score group) need >= 100 signals and t >= 3 and confirmation on unseen data.",
+      "known_limitations": [
+        "same 20-year signal set as E1b/E5a",
+        "levels are the old 3.5 receipt labels",
+        "today's sector labels (research only)",
+        "survivor bias in the stock pool",
+        "trades open at the data end are valued at the last close and left out of the trade comparison",
+        "pre-run counts (no returns): the 120-day value-area low sits a median 15-19% below the close; a 15% limit would skip about half the signals, the 40% limit about 2%"
+      ],
+      "human_summary": {
+        "title_zh": "E7b按用户规则、按机会级别交易：SV对同规则随机股票",
+        "family": "quant_lab_portfolio",
+        "family_zh": "量化研究实验室",
+        "question_zh": "按用户的止损（120日价值区下沿下2%）、每只仓位5%且打到止损最多亏账户2%、按级别持有（日≤20日、周15—60日、月3—5根月K）、不设止盈、加案例否决，SV的机会能否胜过同日同规则的随机股票？成熟系统的趋势结束卖出有没有帮助？胜率和盈亏比如何？能否至少某个时期好过SPY？",
+        "result_zh": "已预登记，案例验收通过后由后台自动运行（2026-10-10起）。",
+        "use_zh": "通过的做法先在新版模型一年账本确认方向，再进模拟账户；拆分结果只作线索。",
+        "next_zh": "根据结果决定SV机会怎么做模拟交易，再优化持有时间和止损。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-10T00:18:37+00:00",
+        "started_at": null,
+        "completed_at": "2026-10-10T05:23:46+00:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-10-10T05:23:46+00:00",
+        "time_source": "github_actions",
+        "event_count": 2,
+        "events": [
+          {
+            "experiment_id": "lab-e7b-level-rules-20y-v1-2026-10-10",
+            "event": "registered",
+            "event_at": "2026-10-10T00:18:37+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/e7b-level-rules-20y-v1.json",
+              "note": "user confirmed the design and provisional settings 1B 2B 3A 4A 5 6 7 8A on 2026-10-10; success rule frozen before any run; pre-run engineering check counted skips and runtime only, no returns or comparisons were looked at"
+            }
+          },
+          {
+            "experiment_id": "lab-e7b-level-rules-20y-v1-2026-10-10",
+            "event": "completed",
+            "event_at": "2026-10-10T05:23:46+00:00",
+            "time_source": "github_actions",
+            "source_ref": "https://github.com/327979420/sage-vista/actions/runs/38025081863",
+            "details": {
+              "lab_spec": "e7b-level-rules-20y-v1",
+              "spec_sha256": "56bd414c67c63ec5de9bf3b053e7136c8145ba98411d9ad42807c03d16282cbd",
+              "result": "research/lab/results/e7b-level-rules-20y-v1/result.json",
+              "dataset": "observation-2005-2025-v1",
+              "champion": null
+            }
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "lab-e7b-case-acceptance-v1-2026-10-10",
       "created_at": "2026-10-10",
@@ -173,73 +254,6 @@
             "time_source": "assistant_review",
             "details": {
               "note": "superseded by lab-e7b-level-rules-20y-v1-2026-10-10; this spec never runs (not_before 2099-01-01)"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "experiment_id": "lab-e7b-level-rules-20y-v1-2026-10-10",
-      "created_at": "2026-10-10",
-      "status": "pre_registered",
-      "change": "SV opportunities traded by level under the user's rules (value-area stop 2% below the 120-day 70% value-area low, positions of 5% of the account losing at most 2% of it at the stop, holding windows by level, no profit target, case-ledger hard checks), five exit families including mature trend-ending rules, four extra checks, each against same-rule tradable random picks",
-      "specification": {
-        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#e7b-preregistration",
-        "settings": "docs/rules/09_RISK_AND_EXECUTION.md#e7b-research-settings",
-        "lab_spec": "research/lab/queue/e7b-level-rules-20y-v1.json",
-        "dataset": "observation-2005-2025-v1",
-        "families": [
-          "T0 time only: daily <=20 sessions, weekly 15-60, monthly 3-5 full months",
-          "T1 + weekly 20-day no-progress exit",
-          "T2 + fast trend end: 50-day / 10-week / 12-month momentum",
-          "T3 + slow trend end: prior 20-day low / 30-week / 10-month",
-          "T4 T3 exits without a time cap (two years at most)"
-        ],
-        "extra_checks": [
-          "veto_off: T0 without the hard checks on both sides",
-          "stop_va60: T0 with a 60-session value area",
-          "risk_0.5pct: T0 with the first choice, 0.5% risk and a 15% stop-distance limit",
-          "market_filter: T0, new trades only while SPY closes above its 200-day average (Faber)"
-        ],
-        "random_runs": 200,
-        "account": "positions <= 5% of the account, at most 2% of it lost at the stop (stop <= 40% below entry), 10 positions, open risk <= 20%"
-      },
-      "success_criteria": "Nine comparisons (five families, four extra checks), Bonferroni-style 0.05/9: SV account Sharpe beats at least 99.5% of 200 random accounts, and trades beat same-day random trades with month-clustered t >= 2.8, positive winsorized mean and median. One choice across everything that passes: highest SV account Sharpe, 0.01 tie to the smaller worst fall; the user's stated preferences do not override results. Hard checks help if SV account Sharpe and Calmar are both higher with them. Reported, not pass conditions: Goal 1 vs SPY (Sharpe and Calmar at least SPY's, worst fall <= 25%), Goal 2 (SV Sharpe above SPY's in at least one of five fixed periods), win rate, payoff ratio, profit factor and expectancy in R for SV and random trades. Leads (level, market trend and volatility, sector, supply flag, fixed score group) need >= 100 signals and t >= 3 and confirmation on unseen data.",
-      "known_limitations": [
-        "same 20-year signal set as E1b/E5a",
-        "levels are the old 3.5 receipt labels",
-        "today's sector labels (research only)",
-        "survivor bias in the stock pool",
-        "trades open at the data end are valued at the last close and left out of the trade comparison",
-        "pre-run counts (no returns): the 120-day value-area low sits a median 15-19% below the close; a 15% limit would skip about half the signals, the 40% limit about 2%"
-      ],
-      "human_summary": {
-        "title_zh": "E7b按用户规则、按机会级别交易：SV对同规则随机股票",
-        "family": "quant_lab_portfolio",
-        "family_zh": "量化研究实验室",
-        "question_zh": "按用户的止损（120日价值区下沿下2%）、每只仓位5%且打到止损最多亏账户2%、按级别持有（日≤20日、周15—60日、月3—5根月K）、不设止盈、加案例否决，SV的机会能否胜过同日同规则的随机股票？成熟系统的趋势结束卖出有没有帮助？胜率和盈亏比如何？能否至少某个时期好过SPY？",
-        "result_zh": "已预登记，案例验收通过后由后台自动运行（2026-10-10起）。",
-        "use_zh": "通过的做法先在新版模型一年账本确认方向，再进模拟账户；拆分结果只作线索。",
-        "next_zh": "根据结果决定SV机会怎么做模拟交易，再优化持有时间和止损。",
-        "verdict": "pre_registered"
-      },
-      "lifecycle": {
-        "registered_at": "2026-10-10T00:18:37+00:00",
-        "started_at": null,
-        "completed_at": null,
-        "latest_event": "registered",
-        "latest_event_at": "2026-10-10T00:18:37+00:00",
-        "time_source": "assistant_registration",
-        "event_count": 1,
-        "events": [
-          {
-            "experiment_id": "lab-e7b-level-rules-20y-v1-2026-10-10",
-            "event": "registered",
-            "event_at": "2026-10-10T00:18:37+00:00",
-            "time_source": "assistant_registration",
-            "details": {
-              "lab_spec": "research/lab/queue/e7b-level-rules-20y-v1.json",
-              "note": "user confirmed the design and provisional settings 1B 2B 3A 4A 5 6 7 8A on 2026-10-10; success rule frozen before any run; pre-run engineering check counted skips and runtime only, no returns or comparisons were looked at"
             }
           }
         ]

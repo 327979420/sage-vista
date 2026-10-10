@@ -98,6 +98,14 @@
    "dataset": "cases-ledger-v1"
   },
   {
+   "spec_id": "e7b-level-rules-20y-v1",
+   "experiment_id": "lab-e7b-level-rules-20y-v1-2026-10-10",
+   "group": "E-levels",
+   "completed_at": "2026-10-10T05:23:46+00:00",
+   "champion": null,
+   "dataset": "observation-2005-2025-v1"
+  },
+  {
    "spec_id": "e4-sector-rotation-v1",
    "experiment_id": "lab-e4-sector-rotation-v1-2026-10-10",
    "group": "E-sectors",

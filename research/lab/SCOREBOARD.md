@@ -169,6 +169,12 @@ Do E7b's hard checks and supply flags give the user's reviewed cases the verdict
 
 All cases as expected: yes (MRNA reject, BTDR reject, TTD flag, AEVA flag, DLTR flag, ADBE accept, CGEM flag)
 
+## e7b-level-rules-20y-v1 (observation-2005-2025-v1, opportunities traded by level under the user's rules vs random picks)
+
+Under the user's own rules (stop 2% below the daily volume profile's value-area low, positions of 5% of the account losing at most 2% of it at the stop, holding by opportunity level, no profit target, the case ledger's hard checks) do SV's opportunities beat random stocks traded the same day under the same rules, and do the exits of mature trading systems help? Secondary: does the SV account beat SPY in at least one five-year period, and how do win rate and reward against risk compare?
+
+Families passing: none; extra checks passing: none
+
 ## e4-sector-rotation-v1 (sector-etf-1998-to-2026-10-v1, $100k account 2005-12-01 to 2026-01-16)
 
 Does holding the strongest US sectors (industry momentum) beat holding the whole market, on its own and as the 25% stock slice of the core? Sector funds have no survivorship problem and full daily history, so this tests SV's 'sector strength' idea cleanly with price momentum as the measure.
