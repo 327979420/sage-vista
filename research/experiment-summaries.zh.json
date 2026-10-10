@@ -566,9 +566,9 @@
    "family": "quant_lab_portfolio",
    "family_zh": "量化研究实验室",
    "question_zh": "月线机会按月线拿（至少3个月）、只有月线收盘跌破结构底部才卖，周线、日线同理，不设2R止盈；再加上Weinstein、O'Neil、Faber、海龟、时间序列动量的趋势结束卖出法。这样SV能否胜过同样规则的随机股票？",
-   "result_zh": "已预登记，等待后台自动运行。",
+   "result_zh": "运行前已暂停：设计违反09规则（用结构底部和25%灾难止损放宽了风险）。由E7b按用户规则重做，本规格永不运行。",
    "use_zh": "通过的做法进入模拟账户；按级别、大盘、行业的拆分只作线索。",
-   "next_zh": "根据结果决定SV机会怎么做模拟交易。",
+   "next_zh": "见E7b。",
    "verdict": "pre_registered"
   },
   "lab-e8-factor-slice-v1-2026-10-10": {
@@ -579,6 +579,26 @@
    "result_zh": "已预登记，等待后台自动运行。",
    "use_zh": "改进则加入模拟账户。",
    "next_zh": "—",
+   "verdict": "pre_registered"
+  },
+  "lab-e7b-case-acceptance-v1-2026-10-10": {
+   "title_zh": "E7b案例验收：机器判定是否符合人工复盘",
+   "family": "quant_lab_portfolio",
+   "family_zh": "量化研究实验室",
+   "question_zh": "深跌未筑底、宽幅箱体两项否决和三项风险标记，能否让MRNA、BTDR被拒绝，TTD、AEVA、DLTR被标出风险，ADBE、CGEM被接受？",
+   "result_zh": "已预登记，等待后台运行（BTDR首次取数检验）。",
+   "use_zh": "只验收规则是否照人工复盘执行，不证明收益。",
+   "next_zh": "全部符合则E7b照原规则运行；不符合则就已见案例修正一次并记录原因。",
+   "verdict": "pre_registered"
+  },
+  "lab-e7b-level-rules-20y-v1-2026-10-10": {
+   "title_zh": "E7b按用户规则、按机会级别交易：SV对同规则随机股票",
+   "family": "quant_lab_portfolio",
+   "family_zh": "量化研究实验室",
+   "question_zh": "按用户的止损（120日价值区下沿下2%）、每只仓位5%且打到止损最多亏账户2%、按级别持有（日≤20日、周15—60日、月3—5根月K）、不设止盈、加案例否决，SV的机会能否胜过同日同规则的随机股票？成熟系统的趋势结束卖出有没有帮助？胜率和盈亏比如何？能否至少某个时期好过SPY？",
+   "result_zh": "已预登记，案例验收通过后由后台自动运行（2026-10-10起）。",
+   "use_zh": "通过的做法先在新版模型一年账本确认方向，再进模拟账户；拆分结果只作线索。",
+   "next_zh": "根据结果决定SV机会怎么做模拟交易，再优化持有时间和止损。",
    "verdict": "pre_registered"
   }
  }
