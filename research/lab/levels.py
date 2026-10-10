@@ -124,6 +124,22 @@ def random_picks(events, prices, pool_rules, runs, seed, rules, vetoes, cache, m
     return out
 
 
+def win_loss(trades):
+    """Win rate, average win and loss, payoff ratio, profit factor and expectancy in R from (net return, stop distance) pairs."""
+    if not trades:
+        return {"trades": 0}
+    wins = [n for n, _ in trades if n > 0]
+    losses = [n for n, _ in trades if n <= 0]
+    avg_win = statistics.fmean(wins) if wins else None
+    avg_loss = statistics.fmean(losses) if losses else None
+    lost = -sum(losses)
+    rs = [n / d for n, d in trades if d > 0]
+    return {"trades": len(trades), "win_rate": round(len(wins) / len(trades), 4), "average_win": round(avg_win, 6) if avg_win is not None else None,
+            "average_loss": round(avg_loss, 6) if avg_loss is not None else None,
+            "payoff_ratio": round(avg_win / -avg_loss, 3) if avg_win is not None and avg_loss else None,
+            "profit_factor": round(sum(wins) / lost, 3) if lost > 0 else None, "expectancy_r": round(statistics.fmean(rs), 4) if rs else None}
+
+
 def period_stats(equity, dates, initial, spy_equity):
     """Each five-year period: the account and SPY bought and held over the same sessions."""
     out = {}
@@ -173,9 +189,10 @@ def run(spec, data, dataset_entry, cost, benchmark, root, signal_priority):
     labels = {"timeframe": lambda e: LEVEL[e["timeframe"]], "market_trend": lambda e: markets[e["signal_date"]][0],
               "market_volatility": lambda e: markets[e["signal_date"]][1], "sector": lambda e: sectors.get(e["symbol"], "unknown"),
               "supply_flag": lambda e: "flagged" if supply.get(e["event_id"]) else "not flagged"}
-    arms = [{"id": "main", "families": list(spec["families"]), "rules": base_rules, "vetoes": True}]
+    arms = [{"id": "main", "families": list(spec["families"]), "rules": base_rules, "vetoes": True, "account": acct}]
     for check in spec.get("extra_checks", []):
-        arms.append({"id": check["id"], "families": [check["family"]], "rules": _rules(spec, check.get("rules")), "vetoes": check.get("vetoes", True)})
+        arms.append({"id": check["id"], "families": [check["family"]], "rules": _rules(spec, check.get("rules")), "vetoes": check.get("vetoes", True),
+                     "account": {**acct, **check.get("account", {})}})
     out_arms = {}
     for arm in arms:
         rules = arm["rules"]
@@ -206,11 +223,11 @@ def run(spec, data, dataset_entry, cost, benchmark, root, signal_priority):
                     sv_cands.append(c)
                 if held:
                     sv_held[lv].append(held)
-            sv_path = account.run_account(account.align(sv_cands, dates)[0], len(dates), scenario, rules=acct)
+            sv_path = account.run_account(account.align(sv_cands, dates)[0], len(dates), scenario, rules=arm["account"])
             sv = account.curve_stats(sv_path["equity"], dates, initial) | {"trades_taken": len(sv_path["trades"]),
                                                                            "average_exposure": round(statistics.fmean(sv_path["exposure"]), 4)}
             matched = account.compound([0.0] + [x * r for x, r in zip(sv_path["exposure"], account.benchmark_returns(series, dates)[1:])], initial)
-            outcomes, sums, counts, accounts = {}, [0.0] * len(taken), [0] * len(taken), []
+            outcomes, sums, counts, accounts, rnd_pool = {}, [0.0] * len(taken), [0] * len(taken), [], []
             for k in range(spec["runs"][name]):
                 cands = []
                 for j, (symbol, e) in enumerate(zip(picks[k], taken)):
@@ -226,7 +243,8 @@ def run(spec, data, dataset_entry, cost, benchmark, root, signal_priority):
                     if net is not None:
                         sums[j] += net
                         counts[j] += 1
-                st = account.curve_stats(account.run_account(account.align(cands, dates)[0], len(dates), scenario, rules=acct)["equity"], dates, initial)
+                        rnd_pool.append((net, cache[(symbol, e["signal_date"])]["distance"]))
+                st = account.curve_stats(account.run_account(account.align(cands, dates)[0], len(dates), scenario, rules=arm["account"])["equity"], dates, initial)
                 accounts.append({"sharpe": st["sharpe"], "cagr": st["cagr"], "max_drawdown": st["max_drawdown"]})
             rows = [(e, sv_net[j], sums[j] / counts[j]) for j, e in enumerate(taken) if sv_net[j] is not None and counts[j]]
 
@@ -251,13 +269,15 @@ def run(spec, data, dataset_entry, cost, benchmark, root, signal_priority):
                 "random": {"runs": spec["runs"][name], "sharpe": account.distribution([a["sharpe"] for a in accounts]),
                            "cagr": account.distribution([a["cagr"] for a in accounts]),
                            "max_drawdown": account.distribution([a["max_drawdown"] for a in accounts]), "sv_beats_share_sharpe": beats},
-                "trade_level": trades, "segments": segments, "sv_exit_reasons": dict(Counter(w for w in sv_exit if w)),
+                "trade_level": trades, "win_loss": {"sv": win_loss([(n, plans[e["event_id"]]["distance"]) for n, e in zip(sv_net, taken) if n is not None]),
+                                                    "random": win_loss(rnd_pool)},
+                "segments": segments, "sv_exit_reasons": dict(Counter(w for w in sv_exit if w)),
                 "held_median_sessions": {lv: statistics.median(v) for lv, v in sv_held.items() if v},
                 "periods": periods, "goal_2_some_period_beats_spy": any(v["sv_sharpe_above_spy"] for v in periods.values()),
                 "leads": [{"segment": seg, "label": lab, **vals} for seg, groups in segments.items() for lab, vals in groups.items()
                           if vals.get("signals", 0) >= criteria["min_lead_signals"] and vals.get("t_monthly", 0) >= criteria["lead_t"]],
                 "verdict": {"checks": checks, "passed": all(checks.values())}}
-        out_arms[arm["id"]] = {"vetoes": arm["vetoes"], "rules": {k: v for k, v in rules.items() if k != "structure"} | {"structure": rules["structure"] if arm["vetoes"] else None},
+        out_arms[arm["id"]] = {"vetoes": arm["vetoes"], "account": arm["account"], "rules": {k: v for k, v in rules.items() if k != "structure"} | {"structure": rules["structure"] if arm["vetoes"] else None},
                                "skipped_by_level": {lv: dict(c) for lv, c in skipped.items()}, "traded": len(taken),
                                "random_unmatched": sum(1 for run in picks for x in run if x is None),
                                "stop_distance": {"p10": round(statistics.quantiles(distances, n=10)[0], 4), "median": round(statistics.median(distances), 4),
@@ -339,6 +359,14 @@ def render(result):
             lines.append(f"| {name} | {_num(f['sv']['sharpe'])} | {_pct(f['sv']['cagr'])} | {_pct(f['sv']['max_drawdown'])} | {_pct(f['random']['sv_beats_share_sharpe'], 1)} | "
                          f"{_pct(tl.get('difference_winsorized'), 2)} | {_num(tl.get('t_monthly'))} | {_pct(tl.get('median_difference'), 2)} | "
                          f"{'yes' if f['goal_2_some_period_beats_spy'] else 'no'} | {'**yes**' if f['verdict']['passed'] else 'no'} |")
+        lines += ["", "Win rate and reward against risk (SV trades vs all random trades; returns are per trade, before position size):", "",
+                  "| Family | SV win rate | SV avg win | SV avg loss | SV payoff | SV profit factor | SV E[R] | Random win rate | Random payoff | Random profit factor | Random E[R] |",
+                  "|---|---|---|---|---|---|---|---|---|---|---|"]
+        for name, f in arm["families"].items():
+            sv, rnd = f["win_loss"]["sv"], f["win_loss"]["random"]
+            lines.append(f"| {name} | {_pct(sv.get('win_rate'))} | {_pct(sv.get('average_win'))} | {_pct(sv.get('average_loss'))} | {_num(sv.get('payoff_ratio'))} | "
+                         f"{_num(sv.get('profit_factor'))} | {_num(sv.get('expectancy_r'))} | {_pct(rnd.get('win_rate'))} | {_num(rnd.get('payoff_ratio'))} | "
+                         f"{_num(rnd.get('profit_factor'))} | {_num(rnd.get('expectancy_r'))} |")
         lines += ["", "Signals by level and what happened to them:", "", "| Level | " + " | ".join(sorted({k for c in arm["skipped_by_level"].values() for k in c})) + " |"]
         keys = sorted({k for c in arm["skipped_by_level"].values() for k in c})
         lines.append("|---|" + "---|" * len(keys))

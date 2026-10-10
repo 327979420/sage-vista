@@ -26,7 +26,7 @@
    "share": 0.7
   },
   "buffer": 0.02,
-  "max_stop_distance": 0.15,
+  "max_stop_distance": 0.4,
   "reclaim_sessions": 3,
   "structure": {
    "deep_drawdown": {
@@ -65,13 +65,48 @@
   }
  },
  "cases": [
-  {"symbol": "MRNA", "signal_date": "2024-04-24", "expect": "reject", "ledger": "十一、MRNA：深跌近90%后的熊市反弹，主动放弃"},
-  {"symbol": "BTDR", "signal_date": "2024-03-15", "expect": "reject", "ledger": "十、BTDR：宽幅箱体不是趋势突破"},
-  {"symbol": "TTD", "signal_date": "2025-01-17", "expect": "flag", "ledger": "五、TTD：多轮看跌卖压没有修复"},
-  {"symbol": "AEVA", "signal_date": "2026-07-01", "expect": "flag", "ledger": "六、AEVA：多重顶和顶部耗竭"},
-  {"symbol": "DLTR", "signal_date": "2024-04-01", "expect": "flag", "ledger": "九、DLTR：多年反复向下跳空的空头供给"},
-  {"symbol": "ADBE", "signal_date": "2023-05-18", "expect": "accept", "ledger": "四、ADBE：先转变、再重置、再启动"},
-  {"symbol": "CGEM", "signal_date": "2024-04-17", "expect": "accept", "ledger": "十二、CGEM：长期筑底完成后日线回调再启动"}
+  {
+   "symbol": "MRNA",
+   "signal_date": "2024-04-24",
+   "expect": "reject",
+   "ledger": "十一、MRNA：深跌近90%后的熊市反弹，主动放弃"
+  },
+  {
+   "symbol": "BTDR",
+   "signal_date": "2024-03-15",
+   "expect": "reject",
+   "ledger": "十、BTDR：宽幅箱体不是趋势突破"
+  },
+  {
+   "symbol": "TTD",
+   "signal_date": "2025-01-17",
+   "expect": "flag",
+   "ledger": "五、TTD：多轮看跌卖压没有修复"
+  },
+  {
+   "symbol": "AEVA",
+   "signal_date": "2026-07-01",
+   "expect": "flag",
+   "ledger": "六、AEVA：多重顶和顶部耗竭"
+  },
+  {
+   "symbol": "DLTR",
+   "signal_date": "2024-04-01",
+   "expect": "flag",
+   "ledger": "九、DLTR：多年反复向下跳空的空头供给"
+  },
+  {
+   "symbol": "ADBE",
+   "signal_date": "2023-05-18",
+   "expect": "accept",
+   "ledger": "四、ADBE：先转变、再重置、再启动"
+  },
+  {
+   "symbol": "CGEM",
+   "signal_date": "2024-04-17",
+   "expect": "accept",
+   "ledger": "十二、CGEM：长期筑底完成后日线回调再启动"
+  }
  ],
  "next_step": "If every case gets the expected verdict, E7b runs with these exact rules. If a case does not, the definition is corrected once on these seen cases, the change and its reason are recorded, both specs are updated before E7b runs, and the cases are never counted as evidence of returns.",
  "notes": [

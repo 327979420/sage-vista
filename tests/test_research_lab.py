@@ -904,6 +904,14 @@ def level_stock(n=700, seed=1, start=dt.date(2005, 1, 3), scale=10.0, volume=5_0
 
 
 class LevelsTests(unittest.TestCase):
+    def test_win_loss_reports_win_rate_payoff_profit_factor_and_r(self):
+        stats = levels.win_loss([(0.10, 0.05), (-0.05, 0.05), (0.04, 0.10), (-0.02, 0.10)])
+        self.assertEqual((stats["trades"], stats["win_rate"]), (4, 0.5))
+        self.assertAlmostEqual(stats["payoff_ratio"], 0.07 / 0.035, places=3)
+        self.assertAlmostEqual(stats["profit_factor"], 0.14 / 0.07, places=3)
+        self.assertAlmostEqual(stats["expectancy_r"], (2 - 1 + 0.4 - 0.2) / 4, places=4)
+        self.assertEqual(levels.win_loss([]), {"trades": 0})
+
     RULES = levels._rules({"rules": json.loads((ROOT / "research/lab/queue/e7b-level-rules-20y-v1.json").read_text())["rules"]})
 
     def test_plan_skips_rejections_missing_support_wide_stops_and_unreclaimed_gaps(self):
@@ -956,12 +964,15 @@ class LevelsTests(unittest.TestCase):
         spec["window"] = {"start": days[300], "end": days[-1]}
         entry = {"dataset_id": "synthetic", "asset": "-", "sha256": "-", "events": len(events), "symbols": 10}
         result, csv_gz = run_queue.run_levels_spec(spec, {"events": events, "prices": prices}, entry, 0.001, {"symbol": "SPY", "series": spy, "entry": entry})
-        self.assertEqual(set(result["arms"]), {"main", "veto_off", "stop_va60"})
+        self.assertEqual(set(result["arms"]), {"main", "veto_off", "stop_va60", "risk_0.5pct"})
+        self.assertEqual(result["arms"]["risk_0.5pct"]["account"]["risk_per_trade"], 0.005)  # an extra check can change the risk budget
+        self.assertEqual(result["arms"]["main"]["account"]["risk_per_trade"], spec["account"]["risk_per_trade"])
         self.assertEqual(set(result["arms"]["main"]["families"]), set(spec["families"]))
         self.assertEqual(set(result["arms"]["veto_off"]["families"]), {"T0"})
         main = result["arms"]["main"]["families"]["T0"]
         self.assertTrue(set(main["segments"]) >= {"timeframe", "market_trend", "market_volatility", "sector", "supply_flag"})
         self.assertIn("goal_2_some_period_beats_spy", main)
+        self.assertTrue({"win_rate", "payoff_ratio", "profit_factor", "expectancy_r"} <= set(main["win_loss"]["sv"]))
         self.assertIsNotNone(result["vetoes_help"])
         self.assertEqual(result["signals"], 30)
         again, _ = run_queue.run_levels_spec(spec, {"events": events, "prices": prices}, entry, 0.001, {"symbol": "SPY", "series": spy, "entry": entry})

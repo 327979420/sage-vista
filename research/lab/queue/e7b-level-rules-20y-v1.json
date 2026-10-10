@@ -4,7 +4,7 @@
  "kind": "levels",
  "priority": 3,
  "seed": 20261011,
- "question": "Under the user's own rules (stop 2% below the daily volume profile's value-area low, holding by opportunity level, no profit target, the case ledger's hard checks) do SV's opportunities beat random stocks traded the same day under the same rules, and do the exits of mature trading systems help? Secondary: does the SV account beat SPY in at least one five-year period?",
+ "question": "Under the user's own rules (stop 2% below the daily volume profile's value-area low, positions of 5% of the account losing at most 2% of it at the stop, holding by opportunity level, no profit target, the case ledger's hard checks) do SV's opportunities beat random stocks traded the same day under the same rules, and do the exits of mature trading systems help? Secondary: does the SV account beat SPY in at least one five-year period, and how do win rate and reward against risk compare?",
  "dataset": {
   "id": "observation-2005-2025-v1",
   "builder": "observation",
@@ -31,10 +31,10 @@
  "group": "E-levels",
  "cost_per_side": 0.001,
  "account": {
-  "risk_per_trade": 0.005,
+  "risk_per_trade": 0.02,
   "position_cap": 0.05,
   "max_positions": 10,
-  "heat_cap": 0.1
+  "heat_cap": 0.2
  },
  "pool": {
   "min_history": 420,
@@ -48,7 +48,7 @@
    "share": 0.7
   },
   "buffer": 0.02,
-  "max_stop_distance": 0.15,
+  "max_stop_distance": 0.4,
   "reclaim_sessions": 3,
   "structure": {
    "deep_drawdown": {
@@ -215,6 +215,17 @@
      "lookback": 60
     }
    }
+  },
+  {
+   "id": "risk_0.5pct",
+   "family": "T0",
+   "account": {
+    "risk_per_trade": 0.005,
+    "heat_cap": 0.1
+   },
+   "rules": {
+    "max_stop_distance": 0.15
+   }
   }
  ],
  "runs": {
@@ -227,21 +238,22 @@
  "max_draws": 30,
  "criteria": {
   "min_random_percentile": 0.995,
-  "min_trade_excess_t": 2.7,
+  "min_trade_excess_t": 2.75,
   "lead_t": 3.0,
   "min_lead_signals": 100,
   "tie_sharpe": 0.01
  },
  "next_step": "A family that passes is confirmed in direction on the live model's one-year ledger (registered before it runs) and then goes to the forward paper accounts as an SV satellite inside the core, forward only. Its holding windows are then tuned with the 09 rule (the shortest window reaching 90% of the best cost-adjusted expectancy, stable on validation). Leads by level, market state, sector or supply flag are confirmed on unseen data before any use. If nothing passes, SV's opportunities are not traded for the account under these rules, and the next round tests the 4B stop (nearest high-volume node) or the extra check that came closest.",
  "notes": [
-  "User decisions of 2026-10-10 (provisional, to be optimised by later experiments): 1B a stop more than 15% below the entry is skipped, otherwise each trade risks 0.5% of the account (capped at 5% of it); 2B an open at or below the stop waits up to 3 sessions for a close back above it, then buys at the next open if that open is above the stop; 3A no value area below the signal close means no support and no trade; 4A the stop is 2% below the value-area low (70% of volume) of the last 120 daily bars; 5 holding windows daily <=20 sessions, weekly 15-60 sessions, monthly 3-5 full monthly bars after the entry month; 6 test the uncapped trend family T4; 7 the 20-day no-progress exit is not applied to monthly opportunities (it is moot for daily ones, which are held at most 20 sessions); 8A supply flags are labels only.",
-  "Account: Step 1's chosen setting R0.5-P5-M10-H10 (lab-p1-size-risk-20y-v1). Same-day signals take free slots in SV score order.",
+  "User decisions of 2026-10-10 (provisional, to be optimised by later experiments): 1B risk sized by the stop (revised the same day: each position is 5% of the account and may lose at most 2% of it at the stop, so a stop more than 40% below the entry is skipped; the first choice, 0.5% risk with a 15% limit, is kept as an extra check); 2B an open at or below the stop waits up to 3 sessions for a close back above it, then buys at the next open if that open is above the stop; 3A no value area below the signal close means no support and no trade; 4A the stop is 2% below the value-area low (70% of volume) of the last 120 daily bars; 5 holding windows daily <=20 sessions, weekly 15-60 sessions, monthly 3-5 full monthly bars after the entry month; 6 test the uncapped trend family T4; 7 the 20-day no-progress exit is not applied to monthly opportunities (it is moot for daily ones, which are held at most 20 sessions); 8A supply flags are labels only.",
+  "Account: Step 1's structure (positions capped at 5% of the current account, at most 10) with the user's revised risk budget: up to 2% of the account per trade, open risk at most 20% (10 x 2%). Same-day signals take free slots in SV score order.",
   "Random null: same signal day, same level rules, from SV's tradable pool that day (420 sessions, close >= $5, >= $10M traded; price-error stocks removed from both sides). A random stock gets its own value-area stop. A pick the same rules would skip is redrawn from that day's pool, up to 30 draws.",
-  "Seven comparisons against random are judged (five families and two extra checks), so the bar is a Bonferroni-style 0.05/7: SV's account Sharpe must beat at least 99.5% of 200 random accounts, and SV's trades must beat same-day random trades with a month-clustered t of at least 2.7, with the winsorized mean and the median difference both positive.",
-  "Extra checks (T0 only): veto_off runs the same rules without the hard checks on both sides; the checks help if SV's account Sharpe and Calmar are both higher with them. stop_va60 uses a 60-session value area, because a pre-run count (no returns looked at) showed the 120-session value-area low sits a median 15-19% below the close, so about half the signals exceed the 15% limit.",
+  "Eight comparisons against random are judged (five families and three extra checks), so the bar is a Bonferroni-style 0.05/8: SV's account Sharpe must beat at least 99.5% of 200 random accounts, and SV's trades must beat same-day random trades with a month-clustered t of at least 2.75, with the winsorized mean and the median difference both positive.",
+  "Extra checks (T0 only): veto_off runs the same rules without the hard checks on both sides; the checks help if SV's account Sharpe and Calmar are both higher with them. stop_va60 uses a 60-session value area (a tighter stop: does a wider stop really avoid early stop-outs?). risk_0.5pct keeps the user's first choice, 0.5% risk per trade with stops at most 15% away and open risk at most 10%. A pre-run count (no returns looked at) showed the 120-session value-area low sits a median 15-19% below the close, so about half the signals exceed a 15% limit but very few exceed 40%.",
   "Goal 2 (secondary, reported, not part of passing): in at least one of the five fixed periods (2005-09, 2010-14, 2015-19, 2020-24, 2025-26) the SV account's Sharpe beats SPY bought and held over the same sessions.",
   "Splits by level, market trend (SPY vs its 200-day average), market volatility, sector (today's labels, research only) and supply flag are exploratory: a group with at least 100 signals and t >= 3 is a lead to confirm on unseen data, not a rule.",
-  "Opportunity levels are the frozen receipt's labels (the old 3.5 proxy: the highest unweighted timeframe score among those with a ticket). Monthly holds use full calendar months after the entry month; positions open on 2026-10-06 stay in the account at their last close and are left out of the trade comparison."
+  "Opportunity levels are the frozen receipt's labels (the old 3.5 proxy: the highest unweighted timeframe score among those with a ticket). Monthly holds use full calendar months after the entry month; positions open on 2026-10-06 stay in the account at their last close and are left out of the trade comparison.",
+  "Win rate, average win and loss, payoff ratio, profit factor and expectancy in R are reported for SV and random trades in every family (the user judges a wider stop by win rate and reward against risk); they explain the result and are not pass conditions."
  ],
  "not_before": "2026-10-11"
 }
