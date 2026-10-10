@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-10T00:18:37+00:00",
+  "generated_at": "2026-10-10T04:45:33+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
@@ -8,8 +8,8 @@
   ],
   "experiment_count": 60,
   "summary": {
-    "completed": 40,
-    "in_progress": 20,
+    "completed": 41,
+    "in_progress": 19,
     "candidate": 15,
     "not_validated_or_unstable": 20
   },
@@ -21,6 +21,82 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "lab-e7b-case-acceptance-v1-2026-10-10",
+      "created_at": "2026-10-10",
+      "status": "pre_registered",
+      "change": "Acceptance check of E7b's hard checks and supply flags on the user's reviewed cases (no returns computed)",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#e7b-preregistration",
+        "lab_spec": "research/lab/queue/e7b-case-acceptance-v1.json",
+        "dataset": "cases-ledger-v1 (EODHD adjusted daily history of MRNA, BTDR, TTD, AEVA, DLTR, ADBE, CGEM, built once in the lab)",
+        "cases": {
+          "reject": [
+            "MRNA 2024-04-24",
+            "BTDR 2024-03-15"
+          ],
+          "flag": [
+            "TTD 2025-01-17",
+            "AEVA 2026-07-01",
+            "DLTR 2024-04-01"
+          ],
+          "accept": [
+            "ADBE 2023-05-18",
+            "CGEM 2024-04-17"
+          ]
+        }
+      },
+      "success_criteria": "Every case gets the ledger's verdict: reject cases rejected; flag cases flagged (or rejected, reported as stricter); accept cases not rejected (flags reported).",
+      "known_limitations": [
+        "seen cases used to calibrate the parameters (six on frozen research data); acceptance only, never evidence",
+        "BTDR is a young listing; its first check happens in this run"
+      ],
+      "human_summary": {
+        "title_zh": "E7b案例验收：机器判定是否符合人工复盘",
+        "family": "quant_lab_portfolio",
+        "family_zh": "量化研究实验室",
+        "question_zh": "深跌未筑底、宽幅箱体两项否决和三项风险标记，能否让MRNA、BTDR被拒绝，TTD、AEVA、DLTR被标出风险，ADBE、CGEM被接受？",
+        "result_zh": "已预登记，等待后台运行（BTDR首次取数检验）。",
+        "use_zh": "只验收规则是否照人工复盘执行，不证明收益。",
+        "next_zh": "全部符合则E7b照原规则运行；不符合则就已见案例修正一次并记录原因。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-10T00:18:37+00:00",
+        "started_at": null,
+        "completed_at": "2026-10-10T04:45:33+00:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-10-10T04:45:33+00:00",
+        "time_source": "github_actions",
+        "event_count": 2,
+        "events": [
+          {
+            "experiment_id": "lab-e7b-case-acceptance-v1-2026-10-10",
+            "event": "registered",
+            "event_at": "2026-10-10T00:18:37+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/e7b-case-acceptance-v1.json",
+              "note": "expected verdicts from docs/CASE_REVIEW_LEDGER_ZH.md frozen before the run; parameters calibrated on six seen cases, BTDR checked for the first time"
+            }
+          },
+          {
+            "experiment_id": "lab-e7b-case-acceptance-v1-2026-10-10",
+            "event": "completed",
+            "event_at": "2026-10-10T04:45:33+00:00",
+            "time_source": "github_actions",
+            "source_ref": "https://github.com/327979420/sage-vista/actions/runs/38025081863",
+            "details": {
+              "lab_spec": "e7b-case-acceptance-v1",
+              "spec_sha256": "6e41dd48af7c1b45e29df4573eb409793f009a38170575ca6afe76b5fe20e378",
+              "result": "research/lab/results/e7b-case-acceptance-v1/result.json",
+              "dataset": "cases-ledger-v1",
+              "champion": null
+            }
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "lab-e7-timeframe-holding-v1-2026-10-10",
       "created_at": "2026-10-10",
@@ -97,68 +173,6 @@
             "time_source": "assistant_review",
             "details": {
               "note": "superseded by lab-e7b-level-rules-20y-v1-2026-10-10; this spec never runs (not_before 2099-01-01)"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "experiment_id": "lab-e7b-case-acceptance-v1-2026-10-10",
-      "created_at": "2026-10-10",
-      "status": "pre_registered",
-      "change": "Acceptance check of E7b's hard checks and supply flags on the user's reviewed cases (no returns computed)",
-      "specification": {
-        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#e7b-preregistration",
-        "lab_spec": "research/lab/queue/e7b-case-acceptance-v1.json",
-        "dataset": "cases-ledger-v1 (EODHD adjusted daily history of MRNA, BTDR, TTD, AEVA, DLTR, ADBE, CGEM, built once in the lab)",
-        "cases": {
-          "reject": [
-            "MRNA 2024-04-24",
-            "BTDR 2024-03-15"
-          ],
-          "flag": [
-            "TTD 2025-01-17",
-            "AEVA 2026-07-01",
-            "DLTR 2024-04-01"
-          ],
-          "accept": [
-            "ADBE 2023-05-18",
-            "CGEM 2024-04-17"
-          ]
-        }
-      },
-      "success_criteria": "Every case gets the ledger's verdict: reject cases rejected; flag cases flagged (or rejected, reported as stricter); accept cases not rejected (flags reported).",
-      "known_limitations": [
-        "seen cases used to calibrate the parameters (six on frozen research data); acceptance only, never evidence",
-        "BTDR is a young listing; its first check happens in this run"
-      ],
-      "human_summary": {
-        "title_zh": "E7b案例验收：机器判定是否符合人工复盘",
-        "family": "quant_lab_portfolio",
-        "family_zh": "量化研究实验室",
-        "question_zh": "深跌未筑底、宽幅箱体两项否决和三项风险标记，能否让MRNA、BTDR被拒绝，TTD、AEVA、DLTR被标出风险，ADBE、CGEM被接受？",
-        "result_zh": "已预登记，等待后台运行（BTDR首次取数检验）。",
-        "use_zh": "只验收规则是否照人工复盘执行，不证明收益。",
-        "next_zh": "全部符合则E7b照原规则运行；不符合则就已见案例修正一次并记录原因。",
-        "verdict": "pre_registered"
-      },
-      "lifecycle": {
-        "registered_at": "2026-10-10T00:18:37+00:00",
-        "started_at": null,
-        "completed_at": null,
-        "latest_event": "registered",
-        "latest_event_at": "2026-10-10T00:18:37+00:00",
-        "time_source": "assistant_registration",
-        "event_count": 1,
-        "events": [
-          {
-            "experiment_id": "lab-e7b-case-acceptance-v1-2026-10-10",
-            "event": "registered",
-            "event_at": "2026-10-10T00:18:37+00:00",
-            "time_source": "assistant_registration",
-            "details": {
-              "lab_spec": "research/lab/queue/e7b-case-acceptance-v1.json",
-              "note": "expected verdicts from docs/CASE_REVIEW_LEDGER_ZH.md frozen before the run; parameters calibrated on six seen cases, BTDR checked for the first time"
             }
           }
         ]

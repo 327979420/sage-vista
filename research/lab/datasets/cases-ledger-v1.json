@@ -1,0 +1,12 @@
+{
+ "dataset_id": "cases-ledger-v1",
+ "asset": "cases-ledger-v1-e7afcbb40f81.json.gz",
+ "sha256": "e7afcbb40f817d9eabc16518bcd63bb3e89a9d9fffd3709236f286ff6441e4d5",
+ "bytes": 239192,
+ "release": "research-datasets",
+ "events": 0,
+ "symbols": 7,
+ "source": "EODHD full adjusted history for MRNA, BTDR, TTD, AEVA, DLTR, ADBE, CGEM",
+ "price_basis": "EODHD adjusted daily OHLCV",
+ "missing_symbols": 0
+}

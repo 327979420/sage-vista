@@ -1,0 +1,583 @@
+{
+ "kind": "cases",
+ "spec_id": "e7b-case-acceptance-v1",
+ "experiment_id": "lab-e7b-case-acceptance-v1-2026-10-10",
+ "group": "E-levels",
+ "question": "Do E7b's hard checks and supply flags give the user's reviewed cases the verdicts the case ledger asks for: reject MRNA and BTDR, flag TTD, AEVA and DLTR, accept ADBE and CGEM?",
+ "dataset": {
+  "dataset_id": "cases-ledger-v1",
+  "asset": "cases-ledger-v1-e7afcbb40f81.json.gz",
+  "sha256": "e7afcbb40f817d9eabc16518bcd63bb3e89a9d9fffd3709236f286ff6441e4d5",
+  "events": 0,
+  "symbols": 7
+ },
+ "rules": {
+  "value_area": {
+   "lookback": 120,
+   "bins": 50,
+   "share": 0.7
+  },
+  "buffer": 0.02,
+  "max_stop_distance": 0.4,
+  "reclaim_sessions": 3,
+  "structure": {
+   "value_area": {
+    "lookback": 120,
+    "bins": 50,
+    "share": 0.7
+   },
+   "deep_drawdown": {
+    "lookback": 1260,
+    "drop": 0.7,
+    "retrace": 0.618,
+    "base": 252
+   },
+   "wide_box": {
+    "sessions": 252,
+    "min_ratio": 2.0,
+    "zone": 0.25,
+    "min_traversals": 2,
+    "near_high": 0.75
+   },
+   "bearish_pressure": {
+    "lookback": 40,
+    "min_rounds": 2,
+    "big_body_atr": 0.6,
+    "follow": 2,
+    "gap": 3
+   },
+   "multiple_tops": {
+    "lookback": 120,
+    "tolerance": 0.06,
+    "min_tops": 3,
+    "valley": 0.08,
+    "recent": 20
+   },
+   "gap_supply": {
+    "lookback": 504,
+    "min_gaps": 3,
+    "size": 0.04,
+    "key_window": 120
+   }
+  }
+ },
+ "cases": [
+  {
+   "symbol": "MRNA",
+   "signal_date": "2024-04-24",
+   "expect": "reject",
+   "ledger": "十一、MRNA：深跌近90%后的熊市反弹，主动放弃",
+   "available": true,
+   "got": "reject",
+   "reason": "deep_drawdown",
+   "flags": [
+    "multiple_tops"
+   ],
+   "passed": true,
+   "signal_close": 108.85,
+   "value_area": {
+    "available": true,
+    "val": 86.0548,
+    "poc": 103.6834,
+    "vah": 113.8332,
+    "share": 0.7099,
+    "lookback": 120,
+    "bins": 50
+   },
+   "stop": 84.3337,
+   "stop_distance_from_close": 0.2252,
+   "details": {
+    "deep_drawdown": {
+     "reject": true,
+     "fall": 0.8565,
+     "high_date": "2021-08-09",
+     "low_date": "2023-11-09",
+     "reclaim_level": 325.9553,
+     "sessions_since_low": 113,
+     "repaired": false,
+     "based": false
+    },
+    "wide_box": {
+     "reject": false,
+     "ratio": 2.283,
+     "traversals": 1,
+     "box_top": 142.79,
+     "box_bottom": 62.55,
+     "sessions": 252,
+     "below_top_zone": false
+    },
+    "bearish_pressure": {
+     "flag": false,
+     "rounds": [
+      "2024-03-13",
+      "2024-03-26"
+     ],
+     "ema20_below_ema50": false
+    },
+    "multiple_tops": {
+     "flag": true,
+     "tops": [
+      "2024-01-02",
+      "2024-01-08",
+      "2024-01-12",
+      "2024-03-11",
+      "2024-03-28",
+      "2024-04-09"
+     ],
+     "exhaustion": [
+      "2024-03-28",
+      "2024-04-10"
+     ]
+    },
+    "gap_supply": {
+     "flag": false,
+     "big_gaps": [
+      "2023-02-17",
+      "2023-11-02"
+     ],
+     "latest_unfilled": false
+    }
+   }
+  },
+  {
+   "symbol": "BTDR",
+   "signal_date": "2024-03-15",
+   "expect": "reject",
+   "ledger": "十、BTDR：宽幅箱体不是趋势突破",
+   "available": true,
+   "got": "reject",
+   "reason": "deep_drawdown",
+   "flags": [
+    "bearish_pressure"
+   ],
+   "passed": true,
+   "signal_close": 8.0,
+   "value_area": {
+    "available": true,
+    "val": 5.3,
+    "poc": 7.945,
+    "vah": 9.21,
+    "share": 0.712,
+    "lookback": 120,
+    "bins": 50
+   },
+   "stop": 5.194,
+   "stop_distance_from_close": 0.3508,
+   "details": {
+    "deep_drawdown": {
+     "reject": true,
+     "fall": 0.7952,
+     "high_date": "2023-08-16",
+     "low_date": "2023-10-23",
+     "reclaim_level": 9.9628,
+     "sessions_since_low": 99,
+     "repaired": false,
+     "based": false
+    },
+    "wide_box": {
+     "reject": true,
+     "ratio": 5.325,
+     "traversals": 3,
+     "box_top": 14.75,
+     "box_bottom": 2.77,
+     "sessions": 252,
+     "below_top_zone": true
+    },
+    "bearish_pressure": {
+     "flag": true,
+     "rounds": [
+      "2024-02-15",
+      "2024-02-28",
+      "2024-03-11"
+     ],
+     "ema20_below_ema50": true
+    },
+    "multiple_tops": {
+     "flag": false,
+     "tops": [
+      "2023-12-27"
+     ],
+     "exhaustion": []
+    },
+    "gap_supply": {
+     "flag": false,
+     "big_gaps": [
+      "2023-04-11"
+     ],
+     "latest_unfilled": false
+    }
+   }
+  },
+  {
+   "symbol": "TTD",
+   "signal_date": "2025-01-17",
+   "expect": "flag",
+   "ledger": "五、TTD：多轮看跌卖压没有修复",
+   "available": true,
+   "got": "flag",
+   "reason": null,
+   "flags": [
+    "bearish_pressure"
+   ],
+   "passed": true,
+   "signal_close": 124.42,
+   "value_area": {
+    "available": true,
+    "val": 105.4548,
+    "poc": 118.983,
+    "vah": 138.9532,
+    "share": 0.7006,
+    "lookback": 120,
+    "bins": 50
+   },
+   "stop": 103.3457,
+   "stop_distance_from_close": 0.1694,
+   "details": {
+    "deep_drawdown": {
+     "reject": false,
+     "fall": 0.1631,
+     "high_date": "2024-12-04",
+     "low_date": "2025-01-14",
+     "reclaim_level": 130.8195,
+     "sessions_since_low": 3,
+     "repaired": false,
+     "based": false
+    },
+    "wide_box": {
+     "reject": false,
+     "ratio": 2.224,
+     "traversals": 1,
+     "box_top": 141.53,
+     "box_bottom": 63.625,
+     "sessions": 252,
+     "below_top_zone": false
+    },
+    "bearish_pressure": {
+     "flag": true,
+     "rounds": [
+      "2024-12-18",
+      "2025-01-07"
+     ],
+     "ema20_below_ema50": true
+    },
+    "multiple_tops": {
+     "flag": false,
+     "tops": [
+      "2024-12-04"
+     ],
+     "exhaustion": []
+    },
+    "gap_supply": {
+     "flag": false,
+     "big_gaps": [
+      "2023-11-10",
+      "2024-11-08"
+     ],
+     "latest_unfilled": false
+    }
+   }
+  },
+  {
+   "symbol": "AEVA",
+   "signal_date": "2026-07-01",
+   "expect": "flag",
+   "ledger": "六、AEVA：多重顶和顶部耗竭",
+   "available": true,
+   "got": "flag",
+   "reason": null,
+   "flags": [
+    "multiple_tops"
+   ],
+   "passed": true,
+   "signal_close": 27.8,
+   "value_area": {
+    "available": true,
+    "val": 11.9896,
+    "poc": 13.39765,
+    "vah": 21.2425,
+    "share": 0.7165,
+    "lookback": 120,
+    "bins": 50
+   },
+   "stop": 11.7498,
+   "stop_distance_from_close": 0.5773,
+   "details": {
+    "deep_drawdown": {
+     "reject": false,
+     "fall": 0.9601,
+     "high_date": "2021-06-24",
+     "low_date": "2024-07-02",
+     "reclaim_level": 36.3789,
+     "sessions_since_low": 500,
+     "repaired": false,
+     "based": true
+    },
+    "wide_box": {
+     "reject": false,
+     "ratio": 4.105,
+     "traversals": 1,
+     "box_top": 36.251,
+     "box_bottom": 8.83,
+     "sessions": 252,
+     "below_top_zone": false
+    },
+    "bearish_pressure": {
+     "flag": false,
+     "rounds": [
+      "2026-05-07",
+      "2026-05-18",
+      "2026-06-03",
+      "2026-06-16"
+     ],
+     "ema20_below_ema50": false
+    },
+    "multiple_tops": {
+     "flag": true,
+     "tops": [
+      "2026-05-27",
+      "2026-06-02",
+      "2026-06-15"
+     ],
+     "exhaustion": [
+      "2026-06-15",
+      "2026-07-01"
+     ]
+    },
+    "gap_supply": {
+     "flag": false,
+     "big_gaps": [
+      "2024-08-02",
+      "2025-08-01"
+     ],
+     "latest_unfilled": false
+    }
+   }
+  },
+  {
+   "symbol": "DLTR",
+   "signal_date": "2024-04-01",
+   "expect": "flag",
+   "ledger": "九、DLTR：多年反复向下跳空的空头供给",
+   "available": true,
+   "got": "flag",
+   "reason": null,
+   "flags": [
+    "gap_supply"
+   ],
+   "passed": true,
+   "signal_close": 135.91,
+   "value_area": {
+    "available": true,
+    "val": 123.9115,
+    "poc": 127.20675,
+    "vah": 150.2735,
+    "share": 0.7082,
+    "lookback": 120,
+    "bins": 50
+   },
+   "stop": 121.4333,
+   "stop_distance_from_close": 0.1065,
+   "details": {
+    "deep_drawdown": {
+     "reject": false,
+     "fall": 0.4046,
+     "high_date": "2022-04-20",
+     "low_date": "2023-10-03",
+     "reclaim_level": 147.1719,
+     "sessions_since_low": 123,
+     "repaired": false,
+     "based": false
+    },
+    "wide_box": {
+     "reject": false,
+     "ratio": 1.568,
+     "traversals": 2,
+     "box_top": 161.1,
+     "box_bottom": 102.77,
+     "sessions": 252,
+     "below_top_zone": false
+    },
+    "bearish_pressure": {
+     "flag": false,
+     "rounds": [],
+     "ema20_below_ema50": true
+    },
+    "multiple_tops": {
+     "flag": false,
+     "tops": [
+      "2024-01-02",
+      "2024-03-05"
+     ],
+     "exhaustion": [
+      "2024-03-12"
+     ]
+    },
+    "gap_supply": {
+     "flag": true,
+     "big_gaps": [
+      "2022-05-18",
+      "2022-08-25",
+      "2022-11-22",
+      "2023-05-25",
+      "2023-08-24",
+      "2024-03-13"
+     ],
+     "latest_unfilled": true
+    }
+   }
+  },
+  {
+   "symbol": "ADBE",
+   "signal_date": "2023-05-18",
+   "expect": "accept",
+   "ledger": "四、ADBE：先转变、再重置、再启动",
+   "available": true,
+   "got": "accept",
+   "reason": null,
+   "flags": [],
+   "passed": true,
+   "signal_close": 360.43,
+   "value_area": {
+    "available": true,
+    "val": 321.9556,
+    "poc": 344.6059,
+    "vah": 367.2562,
+    "share": 0.7122,
+    "lookback": 120,
+    "bins": 50
+   },
+   "stop": 315.5165,
+   "stop_distance_from_close": 0.1246,
+   "details": {
+    "deep_drawdown": {
+     "reject": false,
+     "fall": 0.6002,
+     "high_date": "2021-11-19",
+     "low_date": "2022-09-30",
+     "reclaim_level": 530.5391,
+     "sessions_since_low": 158,
+     "repaired": false,
+     "based": false
+    },
+    "wide_box": {
+     "reject": false,
+     "ratio": 1.642,
+     "traversals": 1,
+     "box_top": 451.15,
+     "box_bottom": 274.73,
+     "sessions": 252,
+     "below_top_zone": false
+    },
+    "bearish_pressure": {
+     "flag": false,
+     "rounds": [
+      "2023-05-02"
+     ],
+     "ema20_below_ema50": true
+    },
+    "multiple_tops": {
+     "flag": false,
+     "tops": [
+      "2023-02-02",
+      "2023-02-15",
+      "2023-04-05"
+     ],
+     "exhaustion": []
+    },
+    "gap_supply": {
+     "flag": false,
+     "big_gaps": [
+      "2021-12-16",
+      "2022-03-23",
+      "2022-06-13",
+      "2022-09-15",
+      "2023-02-24"
+     ],
+     "latest_unfilled": false
+    }
+   }
+  },
+  {
+   "symbol": "CGEM",
+   "signal_date": "2024-04-17",
+   "expect": "accept",
+   "ledger": "十二、CGEM：长期筑底完成后日线回调再启动",
+   "available": true,
+   "got": "flag",
+   "reason": null,
+   "flags": [
+    "multiple_tops"
+   ],
+   "passed": true,
+   "signal_close": 17.88,
+   "value_area": {
+    "available": true,
+    "val": 12.3128,
+    "poc": 16.8558,
+    "vah": 20.62,
+    "share": 0.7017,
+    "lookback": 120,
+    "bins": 50
+   },
+   "stop": 12.0665,
+   "stop_distance_from_close": 0.3251,
+   "details": {
+    "deep_drawdown": {
+     "reject": false,
+     "fall": 0.8632,
+     "high_date": "2021-03-10",
+     "low_date": "2022-05-11",
+     "reclaim_level": 35.806,
+     "sessions_since_low": 485,
+     "repaired": false,
+     "based": true
+    },
+    "wide_box": {
+     "reject": false,
+     "ratio": 2.699,
+     "traversals": 1,
+     "box_top": 20.62,
+     "box_bottom": 7.64,
+     "sessions": 252,
+     "below_top_zone": false
+    },
+    "bearish_pressure": {
+     "flag": false,
+     "rounds": [
+      "2024-03-07",
+      "2024-03-15",
+      "2024-03-28",
+      "2024-04-12"
+     ],
+     "ema20_below_ema50": false
+    },
+    "multiple_tops": {
+     "flag": true,
+     "tops": [
+      "2024-02-12",
+      "2024-02-15",
+      "2024-02-28",
+      "2024-03-06"
+     ],
+     "exhaustion": [
+      "2024-04-17"
+     ]
+    },
+    "gap_supply": {
+     "flag": false,
+     "big_gaps": [
+      "2022-06-16"
+     ],
+     "latest_unfilled": false
+    }
+   }
+  }
+ ],
+ "passed": true,
+ "champion": null,
+ "chosen": null,
+ "next_step": "If every case gets the expected verdict, E7b runs with these exact rules. If a case does not, the definition is corrected once on these seen cases, the change and its reason are recorded, both specs are updated before E7b runs, and the cases are never counted as evidence of returns.",
+ "spec_sha256": "6e41dd48af7c1b45e29df4573eb409793f009a38170575ca6afe76b5fe20e378",
+ "completed_at": "2026-10-10T04:45:33+00:00",
+ "code_commit": "c0307669a4852cce4c8c11697c1ffd12f8fb4509"
+}

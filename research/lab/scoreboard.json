@@ -90,6 +90,14 @@
    "dataset": "ledger-2025-10-to-2026-10"
   },
   {
+   "spec_id": "e7b-case-acceptance-v1",
+   "experiment_id": "lab-e7b-case-acceptance-v1-2026-10-10",
+   "group": "E-levels",
+   "completed_at": "2026-10-10T04:45:33+00:00",
+   "champion": null,
+   "dataset": "cases-ledger-v1"
+  },
+  {
    "spec_id": "e4-sector-rotation-v1",
    "experiment_id": "lab-e4-sector-rotation-v1-2026-10-10",
    "group": "E-sectors",

@@ -163,6 +163,12 @@ Does SV's current live model pick better stocks than chance? Its real signals fr
 
 SV Sharpe 0.0376 beat 34% of random accounts; trade-level excess -0.87% (t -2.407). Selection skill shown: **no**
 
+## e7b-case-acceptance-v1 (cases-ledger-v1, case-ledger acceptance)
+
+Do E7b's hard checks and supply flags give the user's reviewed cases the verdicts the case ledger asks for: reject MRNA and BTDR, flag TTD, AEVA and DLTR, accept ADBE and CGEM?
+
+All cases as expected: yes (MRNA reject, BTDR reject, TTD flag, AEVA flag, DLTR flag, ADBE accept, CGEM flag)
+
 ## e4-sector-rotation-v1 (sector-etf-1998-to-2026-10-v1, $100k account 2005-12-01 to 2026-01-16)
 
 Does holding the strongest US sectors (industry momentum) beat holding the whole market, on its own and as the 25% stock slice of the core? Sector funds have no survivorship problem and full daily history, so this tests SV's 'sector strength' idea cleanly with price momentum as the measure.
