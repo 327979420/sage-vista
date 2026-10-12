@@ -27,7 +27,7 @@ import statistics
 import subprocess
 
 from services.scanner.support_risk import signal_support_plan
-from research.lab import account, allocation, datasets, levels, selection, timeframe
+from research.lab import account, allocation, coverage, datasets, levels, selection, timeframe
 from research.lab.exit_rules import OPEN_FILLS, simulate
 from research.lab.metrics import evaluate, summarise
 
@@ -89,6 +89,12 @@ def ensure_dataset(ds, publish):
     elif source == "symbols":
         from services.scanner.eodhd import prices
         data = datasets.build_from_symbols(ds["symbols"], ds["id"], lambda s: prices(s, start=ds.get("start", "2004-01-01")))
+    elif source == "universe":
+        from services.scanner.eodhd import prices
+        listed = (ROOT / ds["symbols_file"]).read_text().split()
+        symbols = sorted(set(listed) | set(ds.get("extra_symbols", [])))
+        data = datasets.build_from_universe(symbols, ds["id"], lambda s: prices(s, start=ds["start"]),
+                                            f"EODHD full adjusted history from {ds['start']} for {ds['symbols_file']} plus {len(ds.get('extra_symbols', []))} extra symbols")
     elif source == "chains":
         from services.scanner.eodhd import get
         data = datasets.build_from_chains(ds["chains"], ds["id"], lambda t: get(f"eod/{t}", **{"from": ds.get("start", "1980-01-01"), "period": "d"}))
@@ -662,6 +668,17 @@ def run_cases_spec(spec, data, dataset_entry, cost, benchmark):
     return result, gzip.compress(csv_buffer.getvalue().encode(), 9, mtime=0)
 
 
+def run_coverage_spec(spec, data, dataset_entry, cost, benchmark):
+    """How much history a long dataset gives each year (engineering check; no returns are computed)."""
+    result = coverage.run(spec, data, dataset_entry)
+    csv_buffer = io.StringIO()
+    writer = csv.writer(csv_buffer)
+    writer.writerow(["symbol", "first_bar", "last_bar", "bars"])
+    for symbol, series in sorted(data["prices"].items()):
+        writer.writerow([symbol, series["date"][0], series["date"][-1], len(series["date"])])
+    return result, gzip.compress(csv_buffer.getvalue().encode(), 9, mtime=0)
+
+
 def render_selection_report(result):
     pct = lambda x, d=1: "—" if x is None else f"{x * 100:.{d}f}%"
     num = lambda x: "—" if x is None else f"{x:.2f}"
@@ -825,6 +842,13 @@ def render_scoreboard(results):
                       result["question"], "", "Families passing: " + (", ".join(result["passed_families"]) or "none") + "; extra checks passing: "
                       + (", ".join(result["extra_checks_passed"]) or "none"), ""]
             continue
+        if result.get("kind") == "coverage":
+            last = result["years"][-1] if result["years"] else {}
+            lines += [f"## {result['spec_id']} ({result['dataset']['dataset_id']}, data coverage check)", "", result["question"], "",
+                      f"Built {result['symbols']['built']} of {result['symbols']['requested']} symbols; in {last.get('year')}, "
+                      f"{last.get('with_200_months')} of {last.get('trading')} trading stocks had 200 months of history. Passed: "
+                      + ("yes" if result["passed"] else "no"), ""]
+            continue
         if result.get("kind") == "cases":
             lines += [f"## {result['spec_id']} ({result['dataset']['dataset_id']}, case-ledger acceptance)", "", result["question"], "",
                       "All cases as expected: " + ("yes" if result["passed"] else "no") + " (" + ", ".join(f"{r['symbol']} {r['got'] or 'no data'}" for r in result["cases"]) + ")", ""]
@@ -869,6 +893,8 @@ def write_outputs(root, result, trades_csv, event, manifests):
         (out / "REPORT.md").write_text(levels.render(result))
     elif result.get("kind") == "cases":
         (out / "REPORT.md").write_text(levels.render_cases(result))
+    elif result.get("kind") == "coverage":
+        (out / "REPORT.md").write_text(coverage.render(result))
     for entry in manifests:
         record = pathlib.Path(root) / "research/lab/datasets" / f"{entry['dataset_id']}.json"
         record.parent.mkdir(parents=True, exist_ok=True)
@@ -938,7 +964,8 @@ def main(argv=None):
             symbol = spec["benchmark"]["symbol"]
             benchmark = {"symbol": symbol, "series": bench_data["prices"][symbol], "entry": bench_entry}
         run = {"account": run_account_spec, "allocation": run_allocation_spec, "selection": run_selection_spec,
-               "timeframe": run_timeframe_spec, "levels": run_levels_spec, "cases": run_cases_spec}.get(spec.get("kind"), run_spec)
+               "timeframe": run_timeframe_spec, "levels": run_levels_spec, "cases": run_cases_spec,
+               "coverage": run_coverage_spec}.get(spec.get("kind"), run_spec)
         extra = {}
         if spec.get("core"):
             extra["core_data"] = load(spec["core"]["dataset"])[0]

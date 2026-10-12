@@ -107,6 +107,22 @@ def build_from_symbols(symbols, dataset_id, fetch):
             "price_basis": "EODHD adjusted daily OHLCV", "events": [], "prices": prices}
 
 
+def build_from_universe(symbols, dataset_id, fetch, source):
+    """Many stocks' long histories, no events; a symbol the provider cannot serve is listed as missing, not fatal."""
+    prices, missing = {}, []
+    for symbol in symbols:
+        try:
+            rows = adjusted_rows(fetch(symbol))
+        except Exception:  # keep going; missing symbols are counted, not hidden
+            rows = []
+        if rows:
+            prices[symbol] = _compact(rows)
+        else:
+            missing.append(symbol)
+    return {"dataset_id": dataset_id, "source": source, "price_basis": "EODHD adjusted daily OHLCV",
+            "missing_symbols": missing, "events": [], "prices": prices}
+
+
 def _with_open(raw):
     """Mutual funds and spot prices may report only a close; use it for the missing open, high and low."""
     out = []
