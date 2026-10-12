@@ -33,7 +33,7 @@ PARAMS = {
     "wing": 2,
     "a": {"rise_months": 6, "min_months_ema200": 200, "high_lookback": 24, "leg_lookback": 60, "min_pullback": 0.15,
           "touch_pct": 0.02, "touch_atr": 0.5, "gp": [0.5, 0.7]},
-    "b": {"lookback": 36, "tol_pct": 0.03, "tol_atr": 0.5, "min_gap": 3, "follow_bars": 3, "follow_body_atr": 0.5, "min_pushes": 3,
+    "b": {"lookback": 36, "tol_pct": 0.03, "tol_atr": 0.5, "min_gap": 3, "follow_bars": 3, "follow_body_atr": 0.5, "min_pushes": 3, "fresh_months": 6,
           "compression_months": 6},
     "trendline": {"anchor_lookback": {"month": 36, "week": 52}, "min_gap": 3, "break_pct": 0.01, "touch_pct": 0.02, "touch_atr": 0.5},
     "sync": {"before": 3, "after": 3, "slow_after": 6, "rising_bars": 3},
@@ -42,7 +42,7 @@ PARAMS = {
               "fill_weeks": 3, "limit_bars": {"week": 6, "month": 3}, "t4_low_weeks": 8},
     "veto": {"chase_atr": 2.0, "up_weeks": 3, "up_months": 5, "big_bear_atr": 1.5, "recent_bars": 3, "box_weeks": 52,
              "box_slope": 0.03, "box_ratio": 0.5},
-    "risk": {"buffer_pct": 0.01, "buffer_atr": 0.25, "min_rr": 1.5, "max_stop": 0.40, "fvg_weeks": 104, "fvg_min_atr": 0.5, "shelf_bins": 50},
+    "risk": {"buffer_pct": 0.01, "buffer_atr": 0.25, "min_rr": 1.5, "max_stop": 0.40},
     "hold": {"month": 252, "week": 130},
 }
 
@@ -240,7 +240,8 @@ def background(M, m, p, lows, W=None, w=None):
         in_gp = a["gp"][0] <= retrace <= a["gp"][1]
         if depth >= a["min_pullback"] or touched or in_gp:
             return {"kind": "A", "trend_basis": trend_basis, "swing_high": (M["date"][h_idx], round(high, 4)), "pullback_low": round(low_after, 4),
-                    "depth": round(depth, 4), "touched": sorted(set(touched)), "retrace": round(retrace, 4), "structure_low": low_after}, None
+                    "depth": round(depth, 4), "touched": sorted(set(touched)), "retrace": round(retrace, 4), "structure_low": low_after,
+                    "_first": h_idx, "_top": h_idx}, None
     # B: base completed (two lows in the base zone, the later one confirmed by a strong follow-through bar).
     # Only lows after the decline's starting high count (an older crash low belongs to another cycle).
     top = max(range(max(0, m - bp["lookback"]), m + 1), key=lambda i: (M["high"][i], i))
@@ -261,9 +262,10 @@ def background(M, m, p, lows, W=None, w=None):
                 follow = [f for f in range(second + 1, min(second + bp["follow_bars"], m) + 1)
                           if c[f] > M["open"][f] and c[f] > c[second] and c[f] - M["open"][f] >= bp["follow_body_atr"] * M["atr"][f]]
                 if follow:
-                    return {"kind": "B", "path": "second_bottom", "first_bottom": (M["date"][first], round(lo[first], 4)),
+                    return {"kind": "B", "path": "second_bottom", "decline_high": (M["date"][top], round(M["high"][top], 4)),
+                            "first_bottom": (M["date"][first], round(lo[first], 4)),
                             "second_bottom": (M["date"][second], round(lo[second], 4)), "follow_through": M["date"][follow[0]],
-                            "neckline": round(max(between), 4), "structure_low": base}, None
+                            "neckline": round(max(between), 4), "structure_low": base, "_first": first, "_top": top, "_second": second}, None
     return None, "no_uptrend_pullback_or_base"
 
 
@@ -279,7 +281,8 @@ def compression_base(M, m, monthly_setups, p):
         if lows.index(floor) + a > s["breakout"] - 3:
             continue  # the lowest low is the breakout's own leg: not a base
         return {"kind": "B", "path": "compression", "pushes": s["line"]["pushes"], "breakout": M["date"][s["breakout"]],
-                "structure_low": floor, "first_bottom": (M["date"][lows.index(floor) + a], round(floor, 4))}
+                "structure_low": floor, "first_bottom": (M["date"][lows.index(floor) + a], round(floor, 4)),
+                "decline_high": (M["date"][a], round(M["high"][a], 4)), "_first": lows.index(floor) + a, "_top": a}
     return None
 
 
@@ -429,67 +432,74 @@ def vetoes(D, W, M, w, m, day, bg, trig, p, lows_m):
 
 # ---------------------------------------------------------------- gate 5: stop, target, R
 
-def _targets(D, W, M, day, w, m, entry, setup, bg, p):
-    """Real overhead levels (document gate 5): the trendline's starting high, the neckline, 0.618 of the decline,
-    unfilled weekly bearish fair value gaps and the 120-day value area. The nearest one above the entry is the first target."""
-    rp, out = p["risk"], []
-    line = setup["line"]
-    L = M if setup["period"] == "month" else W
-    a = line["anchor"]
-    out.append(("trendline_start", L["high"][a]))
-    if bg.get("neckline"):
-        out.append(("neckline", bg["neckline"]))
-    low_after = min(L["low"][a:setup["breakout"] + 1])
-    out.append(("fib_0.618", low_after + 0.618 * (L["high"][a] - low_after)))
-    # Unfilled weekly bearish fair value gaps: bar i-2's low above bar i's high, and price has not traded back up through it.
-    for i in range(max(2, w - rp["fvg_weeks"]), w + 1):
-        top, bottom = W["low"][i - 2], W["high"][i]
-        later = W["high"][i + 1:w + 1]
-        if top > bottom and top - bottom >= rp["fvg_min_atr"] * W["atr"][i] and (not later or max(later) < top):
-            out.append(("unfilled_fvg", max([bottom] + later)))
-    shelf = volume_shelf(D, L["start"][a], day, entry, rp["shelf_bins"])
-    if shelf:
-        out.append(("volume_shelf", shelf))
-    above = [(n, v) for n, v in out if v > entry * 1.005]
-    return min(above, key=lambda x: x[1]) if above else (None, None), out
+def opportunity_level(setup, bg, m=None, p=None):
+    """Monthly when the pattern being traded is monthly: a monthly trendline breakout, or a monthly second bottom formed within
+    the last few months (DVN 2013). Otherwise the weekly pattern defines it (BABA 2025, PG 2026: the user's weekly opportunities)."""
+    if setup["period"] == "month":
+        return "month"
+    fresh = (p or PARAMS)["b"]["fresh_months"]
+    if bg.get("path") == "second_bottom" and m is not None and m - bg["_second"] <= fresh:
+        return "month"
+    return "week"
 
 
-def volume_shelf(D, first, last, entry, bins):
-    """The busiest price bin above `entry` in the volume profile from the decline's starting high to the decision day."""
-    lo, hi = min(D["low"][first:last + 1]), max(D["high"][first:last + 1])
-    if hi <= entry or hi <= lo:
-        return None
-    width = (hi - lo) / bins
-    volume = [0.0] * bins
-    for i in range(first, last + 1):
-        a, b = int((D["low"][i] - lo) / width), int((D["high"][i] - lo) / width)
-        a, b = min(a, bins - 1), min(b, bins - 1)
-        share = D["volume"][i] / (b - a + 1)
-        for k in range(a, b + 1):
-            volume[k] += share
-    above = [k for k in range(bins) if lo + k * width > entry * 1.005]
-    if not above:
-        return None
-    k = max(above, key=lambda k: (volume[k], -k))
-    return lo + (k + 0.5) * width
+def stop_level(trig, setup, bg, M, m, entry, base_lows):
+    """The structure the stop sits under (user, 2026-10-12). A monthly opportunity: the nearest monthly low below the entry
+    since the base began (TT's July 2009 low, AVTR's prior low); a weekly opportunity: its trigger's weekly structure."""
+    if opportunity_level(setup, bg, m) == "month":
+        since = bg.get("_first", 0)
+        # Only lows that later prices never broke still count as support.
+        lows = [M["low"][j] for j in _known(base_lows, m, 1)
+                if j >= since and M["low"][j] < entry * 0.995 and min(M["low"][j:m + 1]) >= M["low"][j]]
+        if lows:
+            return max(lows), "nearest_monthly_low"
+        return bg["structure_low"], "monthly_structure_low"
+    return trig["stop_base"], "weekly_trigger_structure"
 
 
-def plan(D, W, M, day, w, m, trig, setup, bg, p):
+def targets(D, W, M, setup, bg, day, m):
+    """First target: 0.618 of the decline leg; final target: the prior high, or a base's neckline when it sits between
+    (user, 2026-10-12). A monthly opportunity measures the whole monthly decline (AVTR: 44.36 to 16.43, 0.618 = 33.61);
+    a weekly one measures from the weekly trendline's start."""
+    if opportunity_level(setup, bg, m) == "month":
+        start_day = M["start"][setup["line"]["anchor"]] if setup["period"] == "month" else M["start"][bg["_top"]]
+    else:
+        start_day = W["start"][setup["line"]["anchor"]]
+    # The prior high is the highest high since the decline began (after a breakout it can be the breakout's own high, BABA 2025-03);
+    # the leg runs from it to the lowest low after it.
+    window_highs = D["high"][start_day:day + 1]
+    top = start_day + max(range(len(window_highs)), key=lambda i: (window_highs[i], -i))
+    leg_high, leg_low = D["high"][top], min(D["low"][top:day + 1])
+    first = leg_low + 0.618 * (leg_high - leg_low)
+    final, neck = leg_high, bg.get("neckline")
+    if neck and first < neck < leg_high:
+        final = neck
+    return {"leg_high": leg_high, "leg_low": leg_low, "fib_0.618": first, "final": final, "final_source": "neckline" if final == neck else "prior_high"}
+
+
+def plan(D, W, M, day, w, m, trig, setup, bg, p, base_lows):
     rp = p["risk"]
     entry = trig["entry"]
-    buffer = max(rp["buffer_pct"] * trig["stop_base"], rp["buffer_atr"] * W["atr"][w])
-    stop = trig["stop_base"] - buffer
+    base, basis = stop_level(trig, setup, bg, M, m, entry, base_lows)
+    buffer = max(rp["buffer_pct"] * base, rp["buffer_atr"] * W["atr"][w])
+    stop = base - buffer
     if not 0 < stop < entry:
         return None, "no_stop_below_entry"
     if (entry - stop) / entry > rp["max_stop"]:
-        return None, "stop_too_far"
-    (name, target), _ = _targets(D, W, M, day, w, m, entry, setup, bg, p)
-    if target is None:
-        return None, "no_target_above"
-    rr = (target - entry) / (entry - stop)
-    if rr < rp["min_rr"]:
-        return {"stop": stop, "target": target, "target_source": name, "rr": rr}, "rr_below_1.5"
-    return {"stop": stop, "target": target, "target_source": name, "rr": rr}, None
+        return {"stop": stop, "stop_basis": basis}, "stop_too_far"
+    t = targets(D, W, M, setup, bg, day, m)
+    first, final = t["fib_0.618"], t["final"]
+    if entry >= final * 0.995:
+        return {"stop": stop, "stop_basis": basis, **t}, "no_target_above"
+    if entry >= first * 0.995:
+        first = final  # already past 0.618: one target
+    risk = entry - stop
+    rr1, rr2 = (first - entry) / risk, (final - entry) / risk
+    out = {"stop": stop, "stop_basis": basis, "target": first, "target2": final, "target_source": "fib_0.618" if first != final else t["final_source"],
+           "target2_source": t["final_source"], "rr": rr1, "rr2": rr2, "level": opportunity_level(setup, bg, m)}
+    if rr1 < rp["min_rr"]:
+        return out, "rr_below_1.5"
+    return out, None
 
 
 # ---------------------------------------------------------------- scan
@@ -543,7 +553,7 @@ def scan(D, p=None, start=None, end=None):
                 misses.append(_card(D, W, M, setup, bg, trig, None, ["structure_broken"], None, day))
                 continue
             vetoed, checks = vetoes(D, W, M, w, m, day, bg, trig, p, lows_m)
-            risk, reason = plan(D, W, M, day, w, m, trig, setup, bg, p)
+            risk, reason = plan(D, W, M, day, w, m, trig, setup, bg, p, base_lows)
             if vetoed or reason:
                 misses.append(_card(D, W, M, setup, bg, trig, risk, vetoed, reason, day, checks))
                 continue
@@ -560,7 +570,7 @@ def _card(D, W, M, setup, bg, trig, risk, vetoed, reason, day, checks=None):
     T = M if tb == "month" else W
     card = {
         "decision_date": D["date"][day], "fill_date": D["date"][trig["fill_day"]], "entry": round(trig["entry"], 4),
-        "level": setup["period"], "background": {k: v for k, v in bg.items() if k != "structure_low"},
+        "level": setup["period"], "background": {k: v for k, v in bg.items() if k != "structure_low" and not k.startswith("_")},
         "trendline": {"start": (L["date"][line["anchor"]], round(L["high"][line["anchor"]], 4)),
                       "second": (L["date"][line["second"]], round(L["high"][line["second"]], 4)), "pushes": line["pushes"]},
         "breakout": L["date"][setup["breakout"]], "sync": setup["sync"], "sync_date": L["date"][setup["valid"]],
@@ -570,6 +580,12 @@ def _card(D, W, M, setup, bg, trig, risk, vetoed, reason, day, checks=None):
         "flags": (checks or {}).get("flags", []),
     }
     if risk:
-        card["stop"], card["target"], card["target_source"], card["rr"] = round(risk["stop"], 4), round(risk["target"], 4), risk["target_source"], round(risk["rr"], 2)
+        for key in ("stop", "target", "target2", "rr", "rr2"):
+            if risk.get(key) is not None:
+                card[key] = round(risk[key], 4 if key not in ("rr", "rr2") else 2)
+        for key in ("stop_basis", "target_source", "target2_source"):
+            if risk.get(key):
+                card[key] = risk[key]
+        card["opportunity_level"] = risk.get("level")
     card["passed"] = not vetoed and reason is None
     return card
