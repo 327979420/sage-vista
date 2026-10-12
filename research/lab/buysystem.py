@@ -31,7 +31,7 @@ from research.lab import structure
 
 PARAMS = {
     "wing": 2,
-    "a": {"rise_months": 6, "min_months_ema200": 200, "high_lookback": 24, "leg_lookback": 60, "min_pullback": 0.15,
+    "a": {"rise_months": 6, "min_months_ema200": 200, "high_lookback": 24, "leg_lookback": 60, "min_pullback": 0.15, "max_pullback": 0.50,
           "touch_pct": 0.02, "touch_atr": 0.5, "gp": [0.5, 0.7]},
     "b": {"lookback": 36, "tol_pct": 0.03, "tol_atr": 0.5, "min_gap": 3, "follow_bars": 3, "follow_body_atr": 0.5, "min_pushes": 3, "fresh_months": 6,
           "compression_months": 6},
@@ -42,7 +42,9 @@ PARAMS = {
               "fill_weeks": 3, "limit_bars": {"week": 6, "month": 3}, "t4_low_weeks": 8},
     "veto": {"chase_atr": 2.0, "up_weeks": 3, "up_months": 5, "big_bear_atr": 1.5, "recent_bars": 3, "box_weeks": 52,
              "box_slope": 0.03, "box_ratio": 0.5},
-    "risk": {"buffer_pct": 0.01, "buffer_atr": 0.25, "min_rr": 1.5, "max_stop": 0.40},
+    "risk": {"buffer_pct": 0.01, "buffer_atr": 0.25, "min_rr": 1.5, "max_stop": 0.40, "fibs": [0.382, 0.5, 0.618, 0.786],
+             "confirm_pct": 0.03, "confirm_bars": 2},
+    "exit": {"first_fraction": 2 / 3, "runner_ma_weeks": {"month": 30, "week": 10}, "max_sessions": 5040},
     "hold": {"month": 252, "week": 130},
 }
 
@@ -220,6 +222,7 @@ def background(M, m, p, lows, W=None, w=None):
     a, bp = p["a"], p["b"]
     c, lo = M["close"], M["low"]
     # A: long-term uptrend with a real pullback.
+    found_a = None
     if m + 1 >= a["min_months_ema200"]:
         up = M["ema50"][m] > M["ema200"][m] and M["ema200"][m] > M["ema200"][m - a["rise_months"]] and c[m] >= M["ema200"][m]
         trend_basis = "monthly_ema200"
@@ -227,21 +230,22 @@ def background(M, m, p, lows, W=None, w=None):
         weekly_up = W is not None and w is not None and w >= 35 and W["sma30"][w] > W["sma30"][w - 5] and W["close"][w] >= W["sma30"][w]
         up = M["ema50"][m] > M["ema50"][m - a["rise_months"]] and c[m] >= M["ema50"][m] * 0.9 and weekly_up
         trend_basis = "fallback_ema50_and_30_week"
-    if up:
-        start = max(0, m - a["high_lookback"])
-        h_idx = max(range(start, m + 1), key=lambda i: (M["high"][i], i))
+    start = max(0, m - a["high_lookback"])
+    h_idx = max(range(start, m + 1), key=lambda i: (M["high"][i], i))
+    if up and h_idx < m:  # the pullback has to come after the high's own bar
         high = M["high"][h_idx]
-        low_after = min(lo[h_idx:m + 1])
+        low_after = min(lo[h_idx + 1:m + 1])
         depth = 1 - low_after / high
-        touched = [n for n in ("ema20", "ema50") for t in range(h_idx, m + 1)
+        touched = [n for n in ("ema20", "ema50") for t in range(h_idx + 1, m + 1)
                    if lo[t] <= M[n][t] + _tol(M, t, a["touch_pct"], a["touch_atr"], M[n][t])]
         leg_low = min(lo[max(0, h_idx - a["leg_lookback"]):h_idx + 1])
         retrace = (high - low_after) / (high - leg_low) if high > leg_low else 0
         in_gp = a["gp"][0] <= retrace <= a["gp"][1]
-        if depth >= a["min_pullback"] or touched or in_gp:
-            return {"kind": "A", "trend_basis": trend_basis, "swing_high": (M["date"][h_idx], round(high, 4)), "pullback_low": round(low_after, 4),
+        # A pullback, not a collapse: deeper than max_pullback has to qualify as a completed base (B) instead (RIG 2010, TT 2009).
+        if depth <= a["max_pullback"] and (depth >= a["min_pullback"] or touched or in_gp):
+            found_a = {"kind": "A", "trend_basis": trend_basis, "swing_high": (M["date"][h_idx], round(high, 4)), "pullback_low": round(low_after, 4),
                     "depth": round(depth, 4), "touched": sorted(set(touched)), "retrace": round(retrace, 4), "structure_low": low_after,
-                    "_first": h_idx, "_top": h_idx}, None
+                    "_first": h_idx, "_top": h_idx}
     # B: base completed (two lows in the base zone, the later one confirmed by a strong follow-through bar).
     # Only lows after the decline's starting high count (an older crash low belongs to another cycle).
     top = max(range(max(0, m - bp["lookback"]), m + 1), key=lambda i: (M["high"][i], i))
@@ -262,10 +266,12 @@ def background(M, m, p, lows, W=None, w=None):
                 follow = [f for f in range(second + 1, min(second + bp["follow_bars"], m) + 1)
                           if c[f] > M["open"][f] and c[f] > c[second] and c[f] - M["open"][f] >= bp["follow_body_atr"] * M["atr"][f]]
                 if follow:
-                    return {"kind": "B", "path": "second_bottom", "decline_high": (M["date"][top], round(M["high"][top], 4)),
+                    return {"kind": "B", "path": "second_bottom", "uptrend_context": bool(found_a), "decline_high": (M["date"][top], round(M["high"][top], 4)),
                             "first_bottom": (M["date"][first], round(lo[first], 4)),
                             "second_bottom": (M["date"][second], round(lo[second], 4)), "follow_through": M["date"][follow[0]],
                             "neckline": round(max(between), 4), "structure_low": base, "_first": first, "_top": top, "_second": second}, None
+    if found_a:
+        return found_a, None
     return None, "no_uptrend_pullback_or_base"
 
 
@@ -306,7 +312,8 @@ def _fill_limit(D, level, first_day, last_day):
 def triggers(D, W, M, setup, p, w_from, w_to, line_level, valid_day):
     """Entry candidates inside the setup window, earliest fill first."""
     ep, out = p["entry"], []
-    fill_days = lambda w: (W["end"][w] + 1, W["end"][min(w + ep["fill_weeks"], len(W["end"]) - 1)])
+    # Orders are placed only after the setup is known (no fill on or before the day it became valid).
+    fill_days = lambda w: (max(W["end"][w], valid_day) + 1, W["end"][min(w + ep["fill_weeks"], len(W["end"]) - 1)])
     level = setup["period"]
     L = M if level == "month" else W
     k = setup["breakout"]
@@ -342,7 +349,7 @@ def triggers(D, W, M, setup, p, w_from, w_to, line_level, valid_day):
         if body > 0 and (_bull_engulf(W, w) or body >= ep["confirm_body_atr"] * W["atr"][w]):
             half = W["open"][w] + body / 2
             last = W["end"][min(w + ep["limit_bars"]["week"], len(W["end"]) - 1)]
-            f = _fill_limit(D, half, W["end"][w] + 1, last)
+            f = _fill_limit(D, half, max(W["end"][w], valid_day) + 1, last)
             if f:
                 out.append({"type": "T3", "bar": ("week", w), "candle": "engulfing" if _bull_engulf(W, w) else "big_body", "limit": round(half, 4),
                             "fill_day": f[0], "entry": f[1], "stop_base": W["low"][w], "limit_fill": True})
@@ -363,7 +370,7 @@ def triggers(D, W, M, setup, p, w_from, w_to, line_level, valid_day):
             if body > 0 and (_bull_engulf(M, m) or body >= ep["confirm_body_atr"] * M["atr"][m]) and M["end"][m] >= valid_day:
                 half = M["open"][m] + body / 2
                 last = M["end"][min(m + ep["limit_bars"]["month"], len(M["end"]) - 1)]
-                f = _fill_limit(D, half, M["end"][m] + 1, last)
+                f = _fill_limit(D, half, max(M["end"][m], valid_day) + 1, last)
                 if f:
                     out.append({"type": "T3", "bar": ("month", m), "candle": "engulfing" if _bull_engulf(M, m) else "big_body", "limit": round(half, 4),
                                 "fill_day": f[0], "entry": f[1], "stop_base": M["low"][m], "limit_fill": True})
@@ -443,9 +450,9 @@ def opportunity_level(setup, bg, m=None, p=None):
     return "week"
 
 
-def stop_level(trig, setup, bg, M, m, entry, base_lows):
-    """The structure the stop sits under (user, 2026-10-12). A monthly opportunity: the nearest monthly low below the entry
-    since the base began (TT's July 2009 low, AVTR's prior low); a weekly opportunity: its trigger's weekly structure."""
+def stop_level(trig, setup, bg, M, m, entry, base_lows, W=None, w=None, wing=2):
+    """The structure the stop sits under (user, 2026-10-12). A monthly opportunity: the nearest unbroken monthly low below the
+    entry since the base began (TT's July 2009 low, AVTR's prior low); a weekly opportunity: the nearest unbroken weekly swing low."""
     if opportunity_level(setup, bg, m) == "month":
         since = bg.get("_first", 0)
         # Only lows that later prices never broke still count as support.
@@ -454,49 +461,70 @@ def stop_level(trig, setup, bg, M, m, entry, base_lows):
         if lows:
             return max(lows), "nearest_monthly_low"
         return bg["structure_low"], "monthly_structure_low"
+    # A weekly opportunity: the nearest weekly swing low (two higher weeks on each side) that later prices never broke.
+    if W is not None and w is not None:
+        lows = [W["low"][j] for j in _known(pivots(W["low"], "low", wing), w, wing)
+                if W["low"][j] < entry * 0.995 and min(W["low"][j:w + 1]) >= W["low"][j]]
+        if lows:
+            return max(lows), "nearest_weekly_low"
     return trig["stop_base"], "weekly_trigger_structure"
 
 
-def targets(D, W, M, setup, bg, day, m):
-    """First target: 0.618 of the decline leg; final target: the prior high, or a base's neckline when it sits between
-    (user, 2026-10-12). A monthly opportunity measures the whole monthly decline (AVTR: 44.36 to 16.43, 0.618 = 33.61);
-    a weekly one measures from the weekly trendline's start."""
-    if opportunity_level(setup, bg, m) == "month":
+def resistance(D, W, M, setup, bg, day, m, w, entry, p):
+    """Overhead resistance (user, 2026-10-12): draw the Fibonacci retracements of the decline (its highest high to the lowest low
+    after it); a line is resistance when at least two completed bars of the opportunity's own timeframe topped out within 3% of it
+    (DVN 2013: 42.74 under the 2011-09, 10, 12 and 2012-01 highs). The prior high and a base's neckline are resistance too.
+    Returns the resistance prices above the entry, nearest first, with what confirms each."""
+    rp = p["risk"]
+    monthly = opportunity_level(setup, bg, m) == "month"
+    if monthly:
         start_day = M["start"][setup["line"]["anchor"]] if setup["period"] == "month" else M["start"][bg["_top"]]
     else:
         start_day = W["start"][setup["line"]["anchor"]]
-    # The prior high is the highest high since the decline began (after a breakout it can be the breakout's own high, BABA 2025-03);
-    # the leg runs from it to the lowest low after it.
-    window_highs = D["high"][start_day:day + 1]
-    top = start_day + max(range(len(window_highs)), key=lambda i: (window_highs[i], -i))
+    highs = D["high"][start_day:day + 1]
+    top = start_day + max(range(len(highs)), key=lambda i: (highs[i], -i))
     leg_high, leg_low = D["high"][top], min(D["low"][top:day + 1])
-    first = leg_low + 0.618 * (leg_high - leg_low)
-    final, neck = leg_high, bg.get("neckline")
-    if neck and first < neck < leg_high:
-        final = neck
-    return {"leg_high": leg_high, "leg_low": leg_low, "fib_0.618": first, "final": final, "final_source": "neckline" if final == neck else "prior_high"}
+    T, last = (M, m) if monthly else (W, w)
+    first = completed(T, top - 1, len(D["close"])) + 1
+    bars = [(T["date"][j], T["high"][j]) for j in range(max(0, first), last + 1)]
+    levels = []
+    for f in rp["fibs"]:
+        price = leg_low + f * (leg_high - leg_low)
+        near = [d for d, h in bars if abs(h - price) <= rp["confirm_pct"] * price]
+        if len(near) >= rp["confirm_bars"]:
+            levels.append({"price": price, "source": f"fib_{f}", "confirmed_by": near})
+    levels.append({"price": leg_high, "source": "prior_high", "confirmed_by": [D["date"][top]]})
+    if bg.get("neckline"):
+        levels.append({"price": bg["neckline"], "source": "neckline", "confirmed_by": []})
+    # Buying inside a resistance band (the entry within 3% under a confirmed level) is buying into resistance (QLYS 2021-10).
+    inside = [x for x in levels if x["price"] * (1 - rp["confirm_pct"]) <= entry < x["price"]]
+    above = sorted((x for x in levels if x["price"] > entry * 1.005), key=lambda x: x["price"])
+    return above, {"leg_high": leg_high, "leg_high_date": D["date"][top], "leg_low": leg_low, "timeframe": "month" if monthly else "week",
+                   "inside": inside}
 
 
 def plan(D, W, M, day, w, m, trig, setup, bg, p, base_lows):
     rp = p["risk"]
     entry = trig["entry"]
-    base, basis = stop_level(trig, setup, bg, M, m, entry, base_lows)
+    base, basis = stop_level(trig, setup, bg, M, m, entry, base_lows, W, w, p["wing"])
     buffer = max(rp["buffer_pct"] * base, rp["buffer_atr"] * W["atr"][w])
     stop = base - buffer
     if not 0 < stop < entry:
         return None, "no_stop_below_entry"
     if (entry - stop) / entry > rp["max_stop"]:
         return {"stop": stop, "stop_basis": basis}, "stop_too_far"
-    t = targets(D, W, M, setup, bg, day, m)
-    first, final = t["fib_0.618"], t["final"]
-    if entry >= final * 0.995:
-        return {"stop": stop, "stop_basis": basis, **t}, "no_target_above"
-    if entry >= first * 0.995:
-        first = final  # already past 0.618: one target
+    zones, leg = resistance(D, W, M, setup, bg, day, m, w, entry, p)
+    if leg["inside"]:
+        return {"stop": stop, "stop_basis": basis, "inside": leg["inside"]}, "entry_inside_resistance"
+    if not zones:
+        return {"stop": stop, "stop_basis": basis, **leg}, "no_resistance_target_above"
+    first = zones[0]["price"]
+    final = zones[1]["price"] if len(zones) > 1 else first
     risk = entry - stop
     rr1, rr2 = (first - entry) / risk, (final - entry) / risk
-    out = {"stop": stop, "stop_basis": basis, "target": first, "target2": final, "target_source": "fib_0.618" if first != final else t["final_source"],
-           "target2_source": t["final_source"], "rr": rr1, "rr2": rr2, "level": opportunity_level(setup, bg, m)}
+    out = {"stop": stop, "stop_basis": basis, "target": first, "target2": final, "target_source": zones[0]["source"],
+           "target_confirmed_by": zones[0]["confirmed_by"], "target2_source": zones[1]["source"] if len(zones) > 1 else "same",
+           "rr": rr1, "rr2": rr2, "level": opportunity_level(setup, bg, m), "leg": leg}
     if rr1 < rp["min_rr"]:
         return out, "rr_below_1.5"
     return out, None
@@ -537,6 +565,8 @@ def scan(D, p=None, start=None, end=None):
             day = trig["fill_day"] if limit else trig["fill_day"] - 1
             if trig["fill_day"] in used or (start and D["date"][trig["fill_day"]] < start) or (end and D["date"][trig["fill_day"]] > end):
                 continue
+            if day < valid_day or trig["fill_day"] <= valid_day:
+                continue  # never trade on a setup before it is known
             seen = day - 1 if limit else day  # a limit order is placed before its fill day opens
             w, m = completed(W, seen, n), completed(M, seen, n)
             if m < 12:
@@ -583,9 +613,28 @@ def _card(D, W, M, setup, bg, trig, risk, vetoed, reason, day, checks=None):
         for key in ("stop", "target", "target2", "rr", "rr2"):
             if risk.get(key) is not None:
                 card[key] = round(risk[key], 4 if key not in ("rr", "rr2") else 2)
-        for key in ("stop_basis", "target_source", "target2_source"):
+        for key in ("stop_basis", "target_source", "target2_source", "target_confirmed_by", "leg"):
             if risk.get(key):
                 card[key] = risk[key]
         card["opportunity_level"] = risk.get("level")
     card["passed"] = not vetoed and reason is None
     return card
+
+
+def trade(D, card, p=None, cost_per_side=0.001):
+    """Run one signal through the confirmed exits (user, 2026-10-12): two thirds at the first resistance, then the stop moves to
+    the entry and the last third rides until a weekly close below its moving average (30 weeks for a monthly opportunity,
+    10 weeks for a weekly one), sold at the next open; no time limit."""
+    from research.lab.datasets import BarsView
+    from research.lab.exit_rules import simulate
+    p = p or PARAMS
+    ep = p["exit"]
+    i = D["date"].index(card["fill_date"])
+    variant = {"stop": {"kind": "level", "price": card["stop"]},
+               "targets": [{"price": card["target"], "fraction": ep["first_fraction"]}],
+               "breakeven_after_target": True, "trend_after_target": True,
+               "trend_exit": {"kind": "period_sma", "period": "week", "length": ep["runner_ma_weeks"][card["opportunity_level"]]},
+               "max_hold": ep["max_sessions"]}
+    limit = card["trigger"].get("limit_fill")
+    return simulate(BarsView(D), i, variant, cost_per_side=cost_per_side, entry_price=card["entry"] if limit else None)
+

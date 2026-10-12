@@ -29,7 +29,9 @@ Options for trading by opportunity level (E7b), all off unless given:
   by the close of that session, sell at the next open (case ledger BTDR);
 - `"arm": true` on a trend exit: it can only fire after a completed bar on the
   right side of its line, because a pullback buy often starts below it while
-  the published systems buy above it.
+  the published systems buy above it;
+- `trend_after_target`: the trend exit only manages what is left after a
+  target has been reached (the monthly-led buy system's runner).
 """
 from __future__ import annotations
 
@@ -180,6 +182,7 @@ def simulate(bars, entry_index, variant, support_plan=None, cost_per_side=0.001,
                     period_pos[j] = len(period_close)
                     period_close.append(window[j - start])
     remaining, gross, fills, highest = 1.0, 0.0, [], entry
+    target_hit = False
     trailing_active = bool(trail) and not trail_after
     trail_stop, exit_next_open, exit_reason_next = None, False, "trend_exit"
     min_hold, min_periods, max_periods = variant.get("min_hold", 0), variant.get("min_periods"), variant.get("max_periods")
@@ -216,6 +219,7 @@ def simulate(bars, entry_index, variant, support_plan=None, cost_per_side=0.001,
                     fill(target["price"], min(target["fraction"], remaining), "target", bar["date"])
                     target["fraction"] = 0
                 target["arm"] = False
+                target_hit = True
                 if trail and trail_after:
                     trailing_active = True
                 if variant.get("breakeven_after_target"):
@@ -237,7 +241,7 @@ def simulate(bars, entry_index, variant, support_plan=None, cost_per_side=0.001,
                 and period_key(bar["date"], structure["period"]) != period_key(bars[i + 1]["date"], structure["period"]):
             exit_next_open = True
             exit_reason_next = "structure_exit"
-        if trend and not exit_next_open:
+        if trend and not exit_next_open and (target_hit or not variant.get("trend_after_target")):
             if trend.get("arm") or min_hold or min_periods:
                 state = trend_state(trend, i, c, start, prefix, lows, period_pos, period_close)
                 armed = armed or state is False
