@@ -38,10 +38,11 @@ PARAMS = {
     "trendline": {"anchor_lookback": {"month": 36, "week": 52}, "min_gap": 3, "break_pct": 0.01, "touch_pct": 0.02, "touch_atr": 0.5},
     "sync": {"before": 3, "after": 3, "slow_after": 6, "rising_bars": 3},
     "window": {"month": 6, "week": 13},
+    "daily": {"window": 10, "zone_atr": 1.0, "gap_atr": 1.0},
     "entry": {"tol_pct": 0.02, "tol_atr": 0.5, "min_pullback_atr": 1.0, "confirm_body_atr": 1.0, "converge_pct": 0.02, "converge_atr": 1.0,
-              "fill_weeks": 3, "limit_bars": {"week": 6, "month": 3}, "t4_low_weeks": 8},
+              "limit_bars": {"week": 6, "month": 3}, "t4_low_weeks": 8},
     "veto": {"chase_atr": 2.0, "up_weeks": 3, "up_months": 5, "big_bear_atr": 1.5, "recent_bars": 3, "box_weeks": 52,
-             "box_slope": 0.03, "box_ratio": 0.5},
+             "box_slope": 0.03, "box_ratio": 0.5, "ema50_lost_weeks": 8},
     "risk": {"buffer_pct": 0.01, "buffer_atr": 0.25, "min_rr": 1.5, "max_stop": 0.40, "fibs": [0.382, 0.5, 0.618, 0.786],
              "confirm_pct": 0.03, "confirm_bars": 2},
     "exit": {"first_fraction": 2 / 3, "runner_ma_weeks": {"month": 30, "week": 10}, "max_sessions": 5040},
@@ -294,31 +295,44 @@ def compression_base(M, m, monthly_setups, p):
 
 # ---------------------------------------------------------------- gate 3: entries
 
-def _fill_above(D, level, first_day, last_day):
-    """First daily close above `level` in [first_day, last_day]; entry at the next open."""
-    for i in range(first_day, min(last_day, len(D["close"]) - 2) + 1):
-        if D["close"][i] > level:
-            return i + 1, D["open"][i + 1]
+def daily_entry(D, Dd, first, p):
+    """The daily layer (user, 2026-10-12): within the window after the weekly place is reached, the first day that closes above the
+    previous day's high while the daily MACD histogram rises; buy at the next open. If that open gaps down by more than one daily
+    ATR from the signal close, the order is cancelled for that day and the search goes on."""
+    dp = p["daily"]
+    last = min(first + dp["window"] - 1, len(D["close"]) - 2)
+    for i in range(max(1, first), last + 1):
+        if D["close"][i] > D["high"][i - 1] and Dd["hist"][i] > Dd["hist"][i - 1]:
+            if D["open"][i + 1] < D["close"][i] - dp["gap_atr"] * Dd["atr"][i]:
+                continue
+            return i, i + 1, D["open"][i + 1]
     return None
 
 
-def _fill_limit(D, level, first_day, last_day):
-    for i in range(first_day, min(last_day, len(D["close"]) - 1) + 1):
-        if D["low"][i] <= level:
-            return i, min(D["open"][i], level)
+def _zone_touch(D, Dd, level, first, last, atr_mult):
+    """First day whose range reaches `level` +/- atr_mult daily ATRs (price came back to the half of a confirming candle)."""
+    for i in range(first, min(last, len(D["close"]) - 1) + 1):
+        a = atr_mult * Dd["atr"][i]
+        if D["low"][i] <= level + a and D["high"][i] >= level - a:
+            return i
     return None
 
 
-def triggers(D, W, M, setup, p, w_from, w_to, line_level, valid_day):
-    """Entry candidates inside the setup window, earliest fill first."""
+def triggers(D, Dd, W, M, setup, p, w_from, w_to, line_level, valid_day):
+    """The weekly layer finds the place (T1 retest, T2 engulfing with follow-through, T3 back to half of a confirming candle,
+    T4 launch from converged EMAs); the daily layer then times the entry. Earliest fill first. Nothing is known before the setup is."""
     ep, out = p["entry"], []
-    # Orders are placed only after the setup is known (no fill on or before the day it became valid).
-    fill_days = lambda w: (max(W["end"][w], valid_day) + 1, W["end"][min(w + ep["fill_weeks"], len(W["end"]) - 1)])
+
+    def add(kind, bar, place_day, stop_base, **info):
+        found = daily_entry(D, Dd, max(place_day, valid_day + 1), p)
+        if found:
+            out.append({"type": kind, "bar": bar, "place_day": place_day, "signal_day": found[0], "fill_day": found[1], "entry": found[2],
+                        "stop_base": stop_base, **info})
+
     level = setup["period"]
-    L = M if level == "month" else W
-    k = setup["breakout"]
     post_high = None
     for w in range(w_from, w_to + 1):
+        known = max(W["end"][w], valid_day)
         # T1: first retest after a real pullback.
         post_high = W["high"][w] if post_high is None else max(post_high, W["high"][w])
         if post_high - W["low"][w] >= ep["min_pullback_atr"] * W["atr"][w]:
@@ -328,41 +342,29 @@ def triggers(D, W, M, setup, p, w_from, w_to, line_level, valid_day):
                     continue
                 tol = _tol(W, w, ep["tol_pct"], ep["tol_atr"], sup)
                 if sup - tol <= W["low"][w] <= sup + tol and W["close"][w] > sup:
-                    f = _fill_above(D, W["high"][w], *fill_days(w))
-                    if f:
-                        out.append({"type": "T1", "bar": ("week", w), "support": name, "support_level": round(sup, 4), "trigger_level": W["high"][w],
-                                    "fill_day": f[0], "entry": f[1], "stop_base": W["low"][w]})
+                    add("T1", ("week", w), known, W["low"][w], support=name, support_level=round(sup, 4))
                     break
         # T2: bullish engulfing with follow-through, or two engulfings.
         if _bull_engulf(W, w - 1) and W["close"][w] > W["close"][w - 1]:
-            f = _fill_above(D, W["high"][w], *fill_days(w))
-            if f:
-                out.append({"type": "T2", "bar": ("week", w), "pattern": "engulfing_follow_through", "trigger_level": W["high"][w],
-                            "fill_day": f[0], "entry": f[1], "stop_base": min(W["low"][w - 1], W["low"][w])})
+            add("T2", ("week", w), known, min(W["low"][w - 1], W["low"][w]), pattern="engulfing_follow_through")
         elif _bull_engulf(W, w) and _bull_engulf(W, w - 1):
-            f = _fill_above(D, W["high"][w], *fill_days(w))
-            if f:
-                out.append({"type": "T2", "bar": ("week", w), "pattern": "double_engulfing", "trigger_level": W["high"][w],
-                            "fill_day": f[0], "entry": f[1], "stop_base": min(W["low"][w - 1], W["low"][w])})
-        # T3: half of a confirming weekly candle.
+            add("T2", ("week", w), known, min(W["low"][w - 1], W["low"][w]), pattern="double_engulfing")
+        # T3: back to half of a confirming weekly candle.
         body = W["close"][w] - W["open"][w]
         if body > 0 and (_bull_engulf(W, w) or body >= ep["confirm_body_atr"] * W["atr"][w]):
             half = W["open"][w] + body / 2
             last = W["end"][min(w + ep["limit_bars"]["week"], len(W["end"]) - 1)]
-            f = _fill_limit(D, half, max(W["end"][w], valid_day) + 1, last)
-            if f:
-                out.append({"type": "T3", "bar": ("week", w), "candle": "engulfing" if _bull_engulf(W, w) else "big_body", "limit": round(half, 4),
-                            "fill_day": f[0], "entry": f[1], "stop_base": W["low"][w], "limit_fill": True})
+            touch = _zone_touch(D, Dd, half, known + 1, last, p["daily"]["zone_atr"])
+            if touch is not None:
+                add("T3", ("week", w), touch, W["low"][w], candle="engulfing" if _bull_engulf(W, w) else "big_body", half=round(half, 4),
+                    touched=D["date"][touch])
         # T4: launch from converged weekly EMAs with a cross that week.
         if w >= 1:
             e = (W["ema20"][w - 1], W["ema50"][w - 1], W["ema200"][w - 1])
             spread = max(e) - min(e)
             if (spread <= ep["converge_pct"] * W["close"][w - 1] or spread <= ep["converge_atr"] * W["atr"][w - 1]) \
                     and W["close"][w] > max(W["ema20"][w], W["ema50"][w], W["ema200"][w]) and W["dif"][w - 1] <= W["dea"][w - 1] and W["dif"][w] > W["dea"][w]:
-                f = _fill_above(D, W["high"][w], *fill_days(w))
-                if f:
-                    out.append({"type": "T4", "bar": ("week", w), "spread": round(spread / W["close"][w - 1], 4), "trigger_level": W["high"][w],
-                                "fill_day": f[0], "entry": f[1], "stop_base": min(W["low"][max(0, w - ep["t4_low_weeks"] + 1):w + 1])})
+                add("T4", ("week", w), known, min(W["low"][max(0, w - ep["t4_low_weeks"] + 1):w + 1]), spread=round(spread / W["close"][w - 1], 4))
     # T3 on the monthly candle of a monthly setup.
     if level == "month":
         for m in range(setup["valid"], min(setup["valid"] + p["window"]["month"], len(M["close"]) - 1) + 1):
@@ -370,17 +372,17 @@ def triggers(D, W, M, setup, p, w_from, w_to, line_level, valid_day):
             if body > 0 and (_bull_engulf(M, m) or body >= ep["confirm_body_atr"] * M["atr"][m]) and M["end"][m] >= valid_day:
                 half = M["open"][m] + body / 2
                 last = M["end"][min(m + ep["limit_bars"]["month"], len(M["end"]) - 1)]
-                f = _fill_limit(D, half, max(M["end"][m], valid_day) + 1, last)
-                if f:
-                    out.append({"type": "T3", "bar": ("month", m), "candle": "engulfing" if _bull_engulf(M, m) else "big_body", "limit": round(half, 4),
-                                "fill_day": f[0], "entry": f[1], "stop_base": M["low"][m], "limit_fill": True})
+                touch = _zone_touch(D, Dd, half, M["end"][m] + 1, last, p["daily"]["zone_atr"])
+                if touch is not None:
+                    add("T3", ("month", m), touch, M["low"][m], candle="engulfing" if _bull_engulf(M, m) else "big_body", half=round(half, 4),
+                        touched=D["date"][touch])
     return sorted(out, key=lambda t: t["fill_day"])
 
 
 # ---------------------------------------------------------------- gate 4: vetoes
 
 def vetoes(D, W, M, w, m, day, bg, trig, p, lows_m):
-    limit = trig.get("limit_fill", False)
+    """Monthly direction checks, then the weekly layer's conditions, at the daily signal's close."""
     entry = trig["entry"]
     vp, out = p["veto"], []
     # Monthly still falling (lower low without a base), or a base whose MACD has not turned.
@@ -405,7 +407,7 @@ def vetoes(D, W, M, w, m, day, bg, trig, p, lows_m):
             run += 1
         else:
             break
-    if run >= vp["up_weeks"] and not limit:
+    if run >= vp["up_weeks"]:
         out.append(f"up_{run}_weeks_in_a_row")
     run = 0
     for i in range(m, 0, -1):
@@ -413,18 +415,18 @@ def vetoes(D, W, M, w, m, day, bg, trig, p, lows_m):
             run += 1
         else:
             break
-    if run >= vp["up_months"] and not limit:
+    if run >= vp["up_months"]:
         out.append(f"up_{run}_months_in_a_row")
     # Upper half of a sideways box.
     lo_w = max(0, w - vp["box_weeks"] + 1)
     hi, lo = max(W["high"][lo_w:w + 1]), min(W["low"][lo_w:w + 1])
     if w >= 13 and abs(W["ema50"][w] / W["ema50"][w - 13] - 1) <= vp["box_slope"] and hi / lo - 1 <= vp["box_ratio"] and W["close"][w] > lo + (hi - lo) / 2:
         out.append("upper_half_of_box")
-    # Momentum fading.
-    T, t = (M, m) if trig["bar"][0] == "month" else (W, w)
-    h = T["hist"]
-    if h[t] > 0 and h[t] < h[t - 1] < h[t - 2]:
-        out.append(f"{'monthly' if T is M else 'weekly'}_macd_fading")
+    # Weekly momentum (user, 2026-10-12): the histogram is higher than last week, or the fast line is above the slow line and
+    # the histogram has not shrunk two weeks running.
+    h = W["hist"]
+    if not (h[w] > h[w - 1] or (W["dif"][w] > W["dea"][w] and not (h[w] < h[w - 1] < h[w - 2]))):
+        out.append("weekly_macd_weakening")
     # A bearish bar not taken back (unless a retest came after it).
     retest_at = trig["bar"][1] if trig["type"] == "T1" else -1
     for i in range(max(1, w - vp["recent_bars"] + 1), w + 1):
@@ -432,8 +434,13 @@ def vetoes(D, W, M, w, m, day, bg, trig, p, lows_m):
         if (_bear_engulf(W, i) or big) and W["close"][w] < W["open"][i] and retest_at <= i:
             out.append("bearish_bar_not_reclaimed")
             break
-    if W["close"][w] < W["ema50"][w]:
-        out.append("below_weekly_ema50")
+    # EMA50 lost and not taken back (AEVA, POWL): a weekly close fell through EMA50 from above within the last weeks and every
+    # close since stayed below it. A base still rising from below EMA50 has not "lost" it.
+    for j in range(w, max(1, w - vp["ema50_lost_weeks"] + 1) - 1, -1):
+        if W["close"][j - 1] >= W["ema50"][j - 1] and W["close"][j] < W["ema50"][j]:
+            if all(W["close"][x] < W["ema50"][x] for x in range(j, w + 1)):
+                out.append("weekly_ema50_lost")
+            break
     return out, checks
 
 
@@ -537,6 +544,7 @@ def scan(D, p=None, start=None, end=None):
     p = p or PARAMS
     n = len(D["close"])
     W, M = periods(D, "week"), periods(D, "month")
+    Dd = _indicators({k: list(D[k]) for k in ("date",) + FIELDS})
     lows_m = pivots(M["low"], "low", p["wing"])
     base_lows = pivots(M["low"], "low", p["wing"], right=1)
     month_setups, week_setups = setups(M, "month", p), setups(W, "week", p)
@@ -560,15 +568,13 @@ def scan(D, p=None, start=None, end=None):
             if period == "week":
                 return line["line"](w)
             return line["line"](completed(M, W["end"][w], n) + 1)
-        for trig in triggers(D, W, M, setup, p, w0, max(w0, w_to), line_level, valid_day):
-            limit = trig.get("limit_fill", False)
-            day = trig["fill_day"] if limit else trig["fill_day"] - 1
+        for trig in triggers(D, Dd, W, M, setup, p, w0, max(w0, w_to), line_level, valid_day):
+            day = trig["signal_day"]  # the daily signal's close: every layer is checked with what is known then
             if trig["fill_day"] in used or (start and D["date"][trig["fill_day"]] < start) or (end and D["date"][trig["fill_day"]] > end):
                 continue
-            if day < valid_day or trig["fill_day"] <= valid_day:
+            if day <= valid_day:
                 continue  # never trade on a setup before it is known
-            seen = day - 1 if limit else day  # a limit order is placed before its fill day opens
-            w, m = completed(W, seen, n), completed(M, seen, n)
+            w, m = completed(W, day, n), completed(M, day, n)
             if m < 12:
                 continue
             # Gate 1 is checked when the order is placed.
@@ -605,7 +611,8 @@ def _card(D, W, M, setup, bg, trig, risk, vetoed, reason, day, checks=None):
                       "second": (L["date"][line["second"]], round(L["high"][line["second"]], 4)), "pushes": line["pushes"]},
         "breakout": L["date"][setup["breakout"]], "sync": setup["sync"], "sync_date": L["date"][setup["valid"]],
         "entry_type": trig["type"], "trigger_bar": (tb, T["date"][ti]),
-        "trigger": {k: v for k, v in trig.items() if k not in ("bar", "fill_day", "entry", "stop_base")},
+        "trigger": {**{k: v for k, v in trig.items() if k not in ("bar", "fill_day", "entry", "stop_base", "place_day", "signal_day")},
+                    "place_date": D["date"][trig["place_day"]], "daily_signal_date": D["date"][trig["signal_day"]]},
         "vetoes": vetoed, "gate5": reason,
         "flags": (checks or {}).get("flags", []),
     }
@@ -635,6 +642,5 @@ def trade(D, card, p=None, cost_per_side=0.001):
                "breakeven_after_target": True, "trend_after_target": True,
                "trend_exit": {"kind": "period_sma", "period": "week", "length": ep["runner_ma_weeks"][card["opportunity_level"]]},
                "max_hold": ep["max_sessions"]}
-    limit = card["trigger"].get("limit_fill")
-    return simulate(BarsView(D), i, variant, cost_per_side=cost_per_side, entry_price=card["entry"] if limit else None)
+    return simulate(BarsView(D), i, variant, cost_per_side=cost_per_side)
 
