@@ -135,15 +135,19 @@ def _period_end(bars, i, period):
     return i + 1 < len(bars) and period_key(bars[i]["date"], period) != period_key(bars[i + 1]["date"], period)
 
 
-def simulate(bars, entry_index, variant, support_plan=None, cost_per_side=0.001):
+def simulate(bars, entry_index, variant, support_plan=None, cost_per_side=0.001, entry_price=None):
     """Return one trade record, or a skipped/observing status.
 
     `variant`: {"stop": {...}, "targets": [{"r": 2.0, "fraction": 1.0}],
     "trail": {...} | None, "trail_after_target": bool, "max_hold": int}.
+    A target may name a `price` instead of `r`; `"arm": true` with fraction 0
+    sells nothing but starts the trail (and, with `breakeven_after_target`,
+    lifts the stop to the entry) once reached. `entry_price` fills a limit
+    order inside the entry bar instead of at its open.
     """
     if entry_index <= 0 or entry_index >= len(bars):
         return {"status": "no_entry"}
-    entry = float(bars[entry_index]["open"])
+    entry = float(entry_price) if entry_price is not None else float(bars[entry_index]["open"])
     stop = initial_stop(bars, entry_index, entry, variant["stop"], support_plan)
     if stop is None:
         return {"status": "skipped", "reason": "no_executable_stop"}
@@ -151,7 +155,8 @@ def simulate(bars, entry_index, variant, support_plan=None, cost_per_side=0.001)
     # Risk is measured to the nearer of the floor and the disaster stop.
     risk_stop = max(stop, min(structure["floor"], entry * 0.999)) if structure else stop
     risk = entry - risk_stop
-    targets = sorted(({"price": entry + t["r"] * risk, "fraction": t["fraction"]} for t in variant.get("targets", [])), key=lambda t: t["price"])
+    targets = sorted(({"price": float(t["price"]) if "price" in t else entry + t["r"] * risk, "fraction": t["fraction"], "arm": t.get("arm", False)}
+                      for t in variant.get("targets", [])), key=lambda t: t["price"])
     trail, trail_after = variant.get("trail"), variant.get("trail_after_target", False)
     max_hold = variant["max_hold"]
     # Only the moving-average exit needs the whole close history.
@@ -206,11 +211,15 @@ def simulate(bars, entry_index, variant, support_plan=None, cost_per_side=0.001)
             fill(active_stop, remaining, "stop" if active_stop == stop else "trail", bar["date"])
             break
         for target in targets:
-            if target["fraction"] and (o >= target["price"] or h >= target["price"]):
-                fill(target["price"], min(target["fraction"], remaining), "target", bar["date"])
-                target["fraction"] = 0
+            if (target["fraction"] or target["arm"]) and (o >= target["price"] or h >= target["price"]):
+                if target["fraction"]:
+                    fill(target["price"], min(target["fraction"], remaining), "target", bar["date"])
+                    target["fraction"] = 0
+                target["arm"] = False
                 if trail and trail_after:
                     trailing_active = True
+                if variant.get("breakeven_after_target"):
+                    stop = max(stop, entry)
         if remaining <= 1e-9:
             break
         if counted and _period_end(bars, i, counted["period"]) and period_key(bar["date"], counted["period"]) != entry_period:
