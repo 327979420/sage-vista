@@ -1,0 +1,371 @@
+{
+ "spec_id": "data-long-history-v1",
+ "experiment_id": "lab-data-long-history-v1-2026-10-11",
+ "group": "data",
+ "question": "Build the long-history price dataset the monthly-led buy system needs (the 1,223 stocks of the 20-year observation set plus the reviewed-case stocks it lacks, adjusted daily bars from 1985) and report, for every year 2005-2025, how many stocks had 50, 120 and 200 months of history (monthly EMA200 needs about 200), and how much history each reviewed case had on its date. Engineering check only; no returns are computed.",
+ "kind": "coverage",
+ "dataset": {
+  "dataset_id": "universe-1985-v1",
+  "asset": "universe-1985-v1-6b7fce35b46d.json.gz",
+  "sha256": "6b7fce35b46de8e97853c349c9b972076993bb7f091d5a2f4b3966f2d6af536f",
+  "bytes": 163014764,
+  "release": "research-datasets",
+  "events": 0,
+  "symbols": 1228,
+  "source": "EODHD full adjusted history from 1985-01-01 for research/lab/universes/observation-2005-2025-v1.txt plus 5 extra symbols",
+  "price_basis": "EODHD adjusted daily OHLCV",
+  "missing_symbols": 0
+ },
+ "champion": null,
+ "passed": true,
+ "symbols": {
+  "requested": 1228,
+  "built": 1228,
+  "missing": [],
+  "missing_share": 0.0
+ },
+ "earliest_first_bar": "1985-01-02",
+ "years": [
+  {
+   "year": 2005,
+   "trading": 827,
+   "with_50_months": 713,
+   "with_120_months": 528,
+   "with_200_months": 381
+  },
+  {
+   "year": 2006,
+   "trading": 858,
+   "with_50_months": 739,
+   "with_120_months": 569,
+   "with_200_months": 386
+  },
+  {
+   "year": 2007,
+   "trading": 885,
+   "with_50_months": 759,
+   "with_120_months": 595,
+   "with_200_months": 401
+  },
+  {
+   "year": 2008,
+   "trading": 902,
+   "with_50_months": 773,
+   "with_120_months": 631,
+   "with_200_months": 414
+  },
+  {
+   "year": 2009,
+   "trading": 909,
+   "with_50_months": 802,
+   "with_120_months": 653,
+   "with_200_months": 442
+  },
+  {
+   "year": 2010,
+   "trading": 943,
+   "with_50_months": 825,
+   "with_120_months": 684,
+   "with_200_months": 475
+  },
+  {
+   "year": 2011,
+   "trading": 960,
+   "with_50_months": 856,
+   "with_120_months": 715,
+   "with_200_months": 514
+  },
+  {
+   "year": 2012,
+   "trading": 989,
+   "with_50_months": 880,
+   "with_120_months": 741,
+   "with_200_months": 535
+  },
+  {
+   "year": 2013,
+   "trading": 1024,
+   "with_50_months": 901,
+   "with_120_months": 763,
+   "with_200_months": 574
+  },
+  {
+   "year": 2014,
+   "trading": 1061,
+   "with_50_months": 908,
+   "with_120_months": 775,
+   "with_200_months": 606
+  },
+  {
+   "year": 2015,
+   "trading": 1103,
+   "with_50_months": 940,
+   "with_120_months": 803,
+   "with_200_months": 638
+  },
+  {
+   "year": 2016,
+   "trading": 1128,
+   "with_50_months": 958,
+   "with_120_months": 827,
+   "with_200_months": 661
+  },
+  {
+   "year": 2017,
+   "trading": 1152,
+   "with_50_months": 986,
+   "with_120_months": 859,
+   "with_200_months": 693
+  },
+  {
+   "year": 2018,
+   "trading": 1188,
+   "with_50_months": 1020,
+   "with_120_months": 884,
+   "with_200_months": 716
+  },
+  {
+   "year": 2019,
+   "trading": 1214,
+   "with_50_months": 1056,
+   "with_120_months": 899,
+   "with_200_months": 744
+  },
+  {
+   "year": 2020,
+   "trading": 1223,
+   "with_50_months": 1101,
+   "with_120_months": 908,
+   "with_200_months": 763
+  },
+  {
+   "year": 2021,
+   "trading": 1225,
+   "with_50_months": 1127,
+   "with_120_months": 941,
+   "with_200_months": 783
+  },
+  {
+   "year": 2022,
+   "trading": 1224,
+   "with_50_months": 1149,
+   "with_120_months": 960,
+   "with_200_months": 807
+  },
+  {
+   "year": 2023,
+   "trading": 1224,
+   "with_50_months": 1183,
+   "with_120_months": 987,
+   "with_200_months": 840
+  },
+  {
+   "year": 2024,
+   "trading": 1224,
+   "with_50_months": 1210,
+   "with_120_months": 1023,
+   "with_200_months": 869
+  },
+  {
+   "year": 2025,
+   "trading": 1224,
+   "with_50_months": 1222,
+   "with_120_months": 1063,
+   "with_200_months": 892
+  }
+ ],
+ "cases": [
+  {
+   "symbol": "MGY",
+   "date": "2024-04-17",
+   "first_bar": "2017-06-29",
+   "months_before": 82,
+   "monthly_ema200_ready": false
+  },
+  {
+   "symbol": "HUBB",
+   "date": "2019-05-21",
+   "first_bar": "1985-01-02",
+   "months_before": 412,
+   "monthly_ema200_ready": true
+  },
+  {
+   "symbol": "SHEL",
+   "date": "2006-05-30",
+   "first_bar": "1985-01-02",
+   "months_before": 256,
+   "monthly_ema200_ready": true
+  },
+  {
+   "symbol": "ZBH",
+   "date": "2007-05-14",
+   "first_bar": "2001-07-25",
+   "months_before": 70,
+   "monthly_ema200_ready": false
+  },
+  {
+   "symbol": "AVTR",
+   "date": "2024-08-01",
+   "first_bar": "2019-05-16",
+   "months_before": 63,
+   "monthly_ema200_ready": false
+  },
+  {
+   "symbol": "TT",
+   "date": "2009-07-17",
+   "first_bar": "1985-01-02",
+   "months_before": 294,
+   "monthly_ema200_ready": true
+  },
+  {
+   "symbol": "DLR",
+   "date": "2009-11-04",
+   "first_bar": "2004-10-29",
+   "months_before": 61,
+   "monthly_ema200_ready": false
+  },
+  {
+   "symbol": "QTWO",
+   "date": "2020-07-13",
+   "first_bar": "2014-03-20",
+   "months_before": 76,
+   "monthly_ema200_ready": false
+  },
+  {
+   "symbol": "YPF",
+   "date": "2012-02-10",
+   "first_bar": "1993-06-29",
+   "months_before": 224,
+   "monthly_ema200_ready": true
+  },
+  {
+   "symbol": "COLB",
+   "date": "2019-03-14",
+   "first_bar": "1992-06-16",
+   "months_before": 321,
+   "monthly_ema200_ready": true
+  },
+  {
+   "symbol": "DVN",
+   "date": "2012-04-02",
+   "first_bar": "1985-07-22",
+   "months_before": 321,
+   "monthly_ema200_ready": true
+  },
+  {
+   "symbol": "EIX",
+   "date": "2021-01-07",
+   "first_bar": "1985-01-02",
+   "months_before": 432,
+   "monthly_ema200_ready": true
+  },
+  {
+   "symbol": "TT",
+   "date": "2009-03-31",
+   "first_bar": "1985-01-02",
+   "months_before": 290,
+   "monthly_ema200_ready": true
+  },
+  {
+   "symbol": "AVTR",
+   "date": "2023-11-30",
+   "first_bar": "2019-05-16",
+   "months_before": 54,
+   "monthly_ema200_ready": false
+  },
+  {
+   "symbol": "COLB",
+   "date": "2019-05-31",
+   "first_bar": "1992-06-16",
+   "months_before": 323,
+   "monthly_ema200_ready": true
+  },
+  {
+   "symbol": "DVN",
+   "date": "2013-01-31",
+   "first_bar": "1985-07-22",
+   "months_before": 330,
+   "monthly_ema200_ready": true
+  },
+  {
+   "symbol": "AXSM",
+   "date": "2022-10-31",
+   "first_bar": "2015-11-19",
+   "months_before": 83,
+   "monthly_ema200_ready": false
+  },
+  {
+   "symbol": "VICR",
+   "date": "2025-04-30",
+   "first_bar": "1990-04-03",
+   "months_before": 420,
+   "monthly_ema200_ready": true
+  },
+  {
+   "symbol": "BABA",
+   "date": "2025-07-14",
+   "first_bar": "2014-09-18",
+   "months_before": 130,
+   "monthly_ema200_ready": false
+  },
+  {
+   "symbol": "PG",
+   "date": "2026-10-09",
+   "first_bar": "1985-01-02",
+   "months_before": 501,
+   "monthly_ema200_ready": true
+  },
+  {
+   "symbol": "ADBE",
+   "date": "2023-05-18",
+   "first_bar": "1986-08-13",
+   "months_before": 441,
+   "monthly_ema200_ready": true
+  },
+  {
+   "symbol": "TTD",
+   "date": "2025-01-17",
+   "first_bar": "2016-09-21",
+   "months_before": 100,
+   "monthly_ema200_ready": false
+  },
+  {
+   "symbol": "AEVA",
+   "date": "2026-07-01",
+   "first_bar": "2020-02-27",
+   "months_before": 77,
+   "monthly_ema200_ready": false
+  },
+  {
+   "symbol": "MRNA",
+   "date": "2024-04-24",
+   "first_bar": "2018-12-07",
+   "months_before": 64,
+   "monthly_ema200_ready": false
+  },
+  {
+   "symbol": "BTDR",
+   "date": "2024-03-15",
+   "first_bar": "2021-07-28",
+   "months_before": 32,
+   "monthly_ema200_ready": false
+  },
+  {
+   "symbol": "CGEM",
+   "date": "2024-04-17",
+   "first_bar": "2021-01-08",
+   "months_before": 39,
+   "monthly_ema200_ready": false
+  },
+  {
+   "symbol": "DLTR",
+   "date": "2024-04-01",
+   "first_bar": "1995-03-07",
+   "months_before": 349,
+   "monthly_ema200_ready": true
+  }
+ ],
+ "spec_sha256": "64ec8382c1608f92d6db67d43abd9069126da6acea28d0f1960fe7a2a0af4aac",
+ "completed_at": "2026-10-12T06:22:28+00:00",
+ "code_commit": "1eb2d90122b0781ca80dfbe8e805c2b14537af6b"
+}

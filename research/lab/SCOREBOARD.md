@@ -265,3 +265,9 @@ Portfolio step 1: with round 2's best selling rule (current stop, no 2R target, 
 
 Champion: **none passed; current rule stays**
 
+## data-long-history-v1 (universe-1985-v1, data coverage check)
+
+Build the long-history price dataset the monthly-led buy system needs (the 1,223 stocks of the 20-year observation set plus the reviewed-case stocks it lacks, adjusted daily bars from 1985) and report, for every year 2005-2025, how many stocks had 50, 120 and 200 months of history (monthly EMA200 needs about 200), and how much history each reviewed case had on its date. Engineering check only; no returns are computed.
+
+Built 1228 of 1228 symbols; in 2025, 892 of 1224 trading stocks had 200 months of history. Passed: yes
+

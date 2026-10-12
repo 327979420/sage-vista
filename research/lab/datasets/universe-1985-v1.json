@@ -1,0 +1,12 @@
+{
+ "dataset_id": "universe-1985-v1",
+ "asset": "universe-1985-v1-6b7fce35b46d.json.gz",
+ "sha256": "6b7fce35b46de8e97853c349c9b972076993bb7f091d5a2f4b3966f2d6af536f",
+ "bytes": 163014764,
+ "release": "research-datasets",
+ "events": 0,
+ "symbols": 1228,
+ "source": "EODHD full adjusted history from 1985-01-01 for research/lab/universes/observation-2005-2025-v1.txt plus 5 extra symbols",
+ "price_basis": "EODHD adjusted daily OHLCV",
+ "missing_symbols": 0
+}

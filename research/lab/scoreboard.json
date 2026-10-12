@@ -128,6 +128,14 @@
    "completed_at": "2026-10-08T14:58:17+00:00",
    "champion": null,
    "dataset": "observation-2005-2025-v1"
+  },
+  {
+   "spec_id": "data-long-history-v1",
+   "experiment_id": "lab-data-long-history-v1-2026-10-11",
+   "group": "data",
+   "completed_at": "2026-10-12T06:22:28+00:00",
+   "champion": null,
+   "dataset": "universe-1985-v1"
   }
  ],
  "champions": {

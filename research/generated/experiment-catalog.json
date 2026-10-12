@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-12T03:45:49+00:00",
+  "generated_at": "2026-10-12T06:22:28+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
@@ -8,8 +8,8 @@
   ],
   "experiment_count": 61,
   "summary": {
-    "completed": 43,
-    "in_progress": 18,
+    "completed": 44,
+    "in_progress": 17,
     "candidate": 15,
     "not_validated_or_unstable": 22
   },
@@ -50,11 +50,11 @@
       "lifecycle": {
         "registered_at": "2026-10-12T03:45:49+00:00",
         "started_at": null,
-        "completed_at": null,
-        "latest_event": "registered",
-        "latest_event_at": "2026-10-12T03:45:49+00:00",
-        "time_source": "assistant_registration",
-        "event_count": 1,
+        "completed_at": "2026-10-12T06:22:28+00:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-10-12T06:22:28+00:00",
+        "time_source": "github_actions",
+        "event_count": 2,
         "events": [
           {
             "experiment_id": "lab-data-long-history-v1-2026-10-11",
@@ -64,6 +64,20 @@
             "details": {
               "lab_spec": "research/lab/queue/data-long-history-v1.json",
               "note": "data build and coverage count only; no strategy result is looked at"
+            }
+          },
+          {
+            "experiment_id": "lab-data-long-history-v1-2026-10-11",
+            "event": "completed",
+            "event_at": "2026-10-12T06:22:28+00:00",
+            "time_source": "github_actions",
+            "source_ref": "https://github.com/327979420/sage-vista/actions/runs/38211348122",
+            "details": {
+              "lab_spec": "data-long-history-v1",
+              "spec_sha256": "64ec8382c1608f92d6db67d43abd9069126da6acea28d0f1960fe7a2a0af4aac",
+              "result": "research/lab/results/data-long-history-v1/result.json",
+              "dataset": "universe-1985-v1",
+              "champion": null
             }
           }
         ]
