@@ -11,7 +11,7 @@ import tempfile
 import unittest
 from unittest import mock
 
-from research.lab import account, allocation, datasets, levels, run_queue, selection, structure, timeframe
+from research.lab import account, allocation, coverage, datasets, levels, run_queue, selection, structure, timeframe
 from research.lab.exit_rules import simulate
 from research.lab.metrics import evaluate, summarise
 from services.scanner.support_risk import simulate_execution
@@ -1032,6 +1032,65 @@ class QueueAndDatasetTests(unittest.TestCase):
                 run_queue.publish({"spec_id": "x"}, b"", {"details": {"spec_sha256": "-"}}, [])
             git.assert_not_called()
 
+    def test_universe_builder_lists_symbols_the_provider_cannot_serve(self):
+        bars = [{"date": "1990-01-02", "open": 1, "high": 1, "low": 1, "close": 1, "adjusted_close": 1, "volume": 10}]
+
+        def fetch(symbol):
+            if symbol == "GONE":
+                raise RuntimeError("404")
+            return [] if symbol == "EMPTY" else bars
+        data = datasets.build_from_universe(["AAA", "GONE", "EMPTY"], "u", fetch, "test")
+        self.assertEqual(sorted(data["prices"]), ["AAA"])
+        self.assertEqual(data["missing_symbols"], ["GONE", "EMPTY"])
+        self.assertEqual(data["events"], [])
+
+    def test_universe_dataset_reads_the_symbol_file_plus_extras_from_the_start_date(self):
+        calls = []
+
+        def prices(symbol, start):
+            calls.append((symbol, start))
+            return [{"date": "1985-01-02", "open": 2, "high": 2, "low": 2, "close": 2, "adjusted_close": 2, "volume": 5}]
+        with tempfile.TemporaryDirectory() as folder:
+            listing = pathlib.Path(folder) / "u.txt"
+            listing.write_text("BBB\nAAA\n")
+            ds = {"id": "u-test", "builder": "universe", "symbols_file": str(listing), "extra_symbols": ["CCC", "AAA"], "start": "1985-01-01"}
+            with mock.patch.object(run_queue, "WORK", pathlib.Path(folder)), mock.patch("services.scanner.eodhd.prices", prices):
+                data, entry, built = run_queue.ensure_dataset(ds, publish=False)
+        self.assertEqual(calls, [("AAA", "1985-01-01"), ("BBB", "1985-01-01"), ("CCC", "1985-01-01")])
+        self.assertEqual(entry["symbols"], 3)
+        self.assertIsNotNone(built)
+
+    def test_coverage_counts_history_by_year_and_case(self):
+        self.assertEqual(coverage.months_before("1990-03-15", "2007-01-01"), 202)
+        self.assertEqual(coverage.months_before("2010-05-03", "2007-01-01"), 0)
+        prices = {"OLD": {"date": ["1988-01-04", "2025-12-31"]}, "MID": {"date": ["2000-06-01", "2025-12-31"]},
+                  "NEW": {"date": ["2020-01-02", "2025-12-31"]}, "DEAD": {"date": ["1990-01-02", "2010-06-30"]}}
+        spec = {"id": "c", "experiment_id": "e", "group": "data", "question": "q", "years": [2009, 2021],
+                "cases": [{"symbol": "OLD", "date": "2009-03-31"}, {"symbol": "NEW", "date": "2025-07-14"}, {"symbol": "NONE", "date": "2020-01-01"}],
+                "criteria": {"max_missing_share": 0.25}}
+        result = coverage.run(spec, {"prices": prices, "missing_symbols": ["X"]}, {"dataset_id": "u"})
+        y2009 = next(r for r in result["years"] if r["year"] == 2009)
+        self.assertEqual((y2009["trading"], y2009["with_50_months"], y2009["with_120_months"], y2009["with_200_months"]), (3, 3, 2, 2))
+        y2021 = next(r for r in result["years"] if r["year"] == 2021)
+        self.assertEqual((y2021["trading"], y2021["with_200_months"]), (3, 2))
+        self.assertEqual([c["monthly_ema200_ready"] for c in result["cases"]], [True, False, False])
+        self.assertIsNone(result["cases"][2]["first_bar"])
+        self.assertTrue(result["passed"])
+        self.assertEqual(result["symbols"]["missing_share"], 0.2)
+        self.assertFalse(coverage.run({**spec, "criteria": {"max_missing_share": 0.1}}, {"prices": prices, "missing_symbols": ["X"]}, {"dataset_id": "u"})["passed"])
+        report = coverage.render({**result, "completed_at": "2026-10-11T00:00:00+00:00"})
+        self.assertIn("| 2009 | 3 | 3 | 2 | 2 |", report)
+        self.assertIn("| NONE | 2020-01-01 | no data |", report)
+
+    def test_coverage_spec_writes_a_report_and_scoreboard_line(self):
+        prices = {"OLD": {"date": ["1988-01-04", "2025-12-31"]}}
+        spec = json.loads((ROOT / "research/lab/queue/data-long-history-v1.json").read_text())
+        result, csv_gz = run_queue.run_coverage_spec(spec, {"prices": prices, "missing_symbols": []}, {"dataset_id": "universe-1985-v1"}, 0.001, None)
+        self.assertIn("OLD,1988-01-04,2025-12-31,2", gzip.decompress(csv_gz).decode())
+        board, markdown = run_queue.render_scoreboard([{**result, "completed_at": "2026-10-11T00:00:00+00:00"}])
+        self.assertIn("data coverage check", markdown)
+        self.assertIsNone(board["experiments"][0]["champion"])
+
     def test_dataset_round_trip_rejects_tampering(self):
         data = {"dataset_id": "t", "source": "s", "price_basis": "p", "events": [], "prices": {}}
         with tempfile.TemporaryDirectory() as folder:
@@ -1114,6 +1173,11 @@ class QueueAndDatasetTests(unittest.TestCase):
                 continue
             if spec.get("kind") == "cases":
                 self.assertTrue(all(c["expect"] in ("reject", "flag", "accept") for c in spec["cases"]), path.name)
+                continue
+            if spec.get("kind") == "coverage":
+                self.assertEqual(spec["dataset"]["builder"], "universe", path.name)
+                self.assertTrue((ROOT / spec["dataset"]["symbols_file"]).exists(), path.name)
+                self.assertIn("max_missing_share", spec["criteria"], path.name)
                 continue
             if spec.get("kind") == "selection":
                 for key in ("min_random_percentile", "min_trade_excess_t"):

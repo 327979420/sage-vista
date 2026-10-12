@@ -1,0 +1,138 @@
+{
+ "id": "data-long-history-v1",
+ "experiment_id": "lab-data-long-history-v1-2026-10-11",
+ "kind": "coverage",
+ "priority": 1,
+ "question": "Build the long-history price dataset the monthly-led buy system needs (the 1,223 stocks of the 20-year observation set plus the reviewed-case stocks it lacks, adjusted daily bars from 1985) and report, for every year 2005-2025, how many stocks had 50, 120 and 200 months of history (monthly EMA200 needs about 200), and how much history each reviewed case had on its date. Engineering check only; no returns are computed.",
+ "dataset": {
+  "id": "universe-1985-v1",
+  "builder": "universe",
+  "symbols_file": "research/lab/universes/observation-2005-2025-v1.txt",
+  "extra_symbols": [
+   "AEVA",
+   "BTDR",
+   "CGEM",
+   "POWL",
+   "BEKE"
+  ],
+  "start": "1985-01-01"
+ },
+ "group": "data",
+ "years": [
+  2005,
+  2025
+ ],
+ "cases": [
+  {
+   "symbol": "MGY",
+   "date": "2024-04-17"
+  },
+  {
+   "symbol": "HUBB",
+   "date": "2019-05-21"
+  },
+  {
+   "symbol": "SHEL",
+   "date": "2006-05-30"
+  },
+  {
+   "symbol": "ZBH",
+   "date": "2007-05-14"
+  },
+  {
+   "symbol": "AVTR",
+   "date": "2024-08-01"
+  },
+  {
+   "symbol": "TT",
+   "date": "2009-07-17"
+  },
+  {
+   "symbol": "DLR",
+   "date": "2009-11-04"
+  },
+  {
+   "symbol": "QTWO",
+   "date": "2020-07-13"
+  },
+  {
+   "symbol": "YPF",
+   "date": "2012-02-10"
+  },
+  {
+   "symbol": "COLB",
+   "date": "2019-03-14"
+  },
+  {
+   "symbol": "DVN",
+   "date": "2012-04-02"
+  },
+  {
+   "symbol": "EIX",
+   "date": "2021-01-07"
+  },
+  {
+   "symbol": "TT",
+   "date": "2009-03-31"
+  },
+  {
+   "symbol": "AVTR",
+   "date": "2023-11-30"
+  },
+  {
+   "symbol": "COLB",
+   "date": "2019-05-31"
+  },
+  {
+   "symbol": "DVN",
+   "date": "2013-01-31"
+  },
+  {
+   "symbol": "AXSM",
+   "date": "2022-10-31"
+  },
+  {
+   "symbol": "VICR",
+   "date": "2025-04-30"
+  },
+  {
+   "symbol": "BABA",
+   "date": "2025-07-14"
+  },
+  {
+   "symbol": "PG",
+   "date": "2026-10-09"
+  },
+  {
+   "symbol": "ADBE",
+   "date": "2023-05-18"
+  },
+  {
+   "symbol": "TTD",
+   "date": "2025-01-17"
+  },
+  {
+   "symbol": "AEVA",
+   "date": "2026-07-01"
+  },
+  {
+   "symbol": "MRNA",
+   "date": "2024-04-24"
+  },
+  {
+   "symbol": "BTDR",
+   "date": "2024-03-15"
+  },
+  {
+   "symbol": "CGEM",
+   "date": "2024-04-17"
+  },
+  {
+   "symbol": "DLTR",
+   "date": "2024-04-01"
+  }
+ ],
+ "criteria": {
+  "max_missing_share": 0.05
+ }
+}

@@ -600,6 +600,16 @@
    "use_zh": "SV机会不进账户；改善来自卖出与大盘规则，不来自选股。",
    "next_zh": "用户复盘具体案例，找出机器与人工形态的差别，再把新选股定义作为新假设与随机比较。",
    "verdict": "not_validated"
+  },
+  "lab-data-long-history-v1-2026-10-11": {
+   "title_zh": "长历史数据：月线主导买入系统的数据准备",
+   "family": "quant_lab_portfolio",
+   "family_zh": "量化研究实验室",
+   "question_zh": "把20年观察集的1,223只股票（加上案例里缺的AEVA、BTDR、CGEM、POWL、BEKE）的复权日线补到1985年起，并统计2005—2025每年有多少只股票的历史够算月线EMA200（约200个月），以及每个复盘案例当时有多少历史。",
+   "result_zh": "待运行。",
+   "use_zh": "只是数据准备与覆盖统计，不计算收益，不证明任何规则。",
+   "next_zh": "数据就绪后编写五关检测与依据卡，先跑用户案例。",
+   "verdict": "pre_registered"
   }
  }
 }
