@@ -636,9 +636,49 @@
    "family": "quant_lab_portfolio",
    "family_zh": "量化研究实验室",
    "question_zh": "和 v1 同样的候选；下载失败的慢速重试一次并记录原因（供应商没有数据 / 出错）；$5 门槛改用未复权的真实价格。",
-   "result_zh": "待运行。",
+   "result_zh": "通过：21,503 个候选，3,352 个是供应商没有历史（退市代码，幸存者缺口，照实报告），0 个出错；按真实价格判断 $5 门槛，留下 5,500 只，分 4 份（1,500/1,500/1,500/1,000）。",
    "use_zh": "只是数据准备，不计算收益；之后每份冻结成数据集，用来考周线 V3。",
-   "next_zh": "每份注册为冻结数据集（1995 年起，保留未复权价）。",
+   "next_zh": "4 份分别冻结成数据集（1995 年起，保留未复权价）。",
+   "verdict": "passed"
+  },
+  "lab-data-fresh-a-v1-2026-10-14": {
+   "title_zh": "新股票池第 a 份：冻结成数据集",
+   "family": "quant_lab_portfolio",
+   "family_zh": "量化研究实验室",
+   "question_zh": "把扩大股票池的第 a 份（1500 只，机器从没见过）冻结成数据集：1995 年起的日线，并保留未复权价。",
+   "result_zh": "待运行。",
+   "use_zh": "只是数据准备，不计算收益；只用于周线 V3 的最终考试。",
+   "next_zh": "四份都建好后，登记周线 V3 的考试。",
+   "verdict": "pre_registered"
+  },
+  "lab-data-fresh-b-v1-2026-10-14": {
+   "title_zh": "新股票池第 b 份：冻结成数据集",
+   "family": "quant_lab_portfolio",
+   "family_zh": "量化研究实验室",
+   "question_zh": "把扩大股票池的第 b 份（1500 只，机器从没见过）冻结成数据集：1995 年起的日线，并保留未复权价。",
+   "result_zh": "待运行。",
+   "use_zh": "只是数据准备，不计算收益；只用于周线 V3 的最终考试。",
+   "next_zh": "四份都建好后，登记周线 V3 的考试。",
+   "verdict": "pre_registered"
+  },
+  "lab-data-fresh-c-v1-2026-10-14": {
+   "title_zh": "新股票池第 c 份：冻结成数据集",
+   "family": "quant_lab_portfolio",
+   "family_zh": "量化研究实验室",
+   "question_zh": "把扩大股票池的第 c 份（1500 只，机器从没见过）冻结成数据集：1995 年起的日线，并保留未复权价。",
+   "result_zh": "待运行。",
+   "use_zh": "只是数据准备，不计算收益；只用于周线 V3 的最终考试。",
+   "next_zh": "四份都建好后，登记周线 V3 的考试。",
+   "verdict": "pre_registered"
+  },
+  "lab-data-fresh-d-v1-2026-10-14": {
+   "title_zh": "新股票池第 d 份：冻结成数据集",
+   "family": "quant_lab_portfolio",
+   "family_zh": "量化研究实验室",
+   "question_zh": "把扩大股票池的第 d 份（1000 只，机器从没见过）冻结成数据集：1995 年起的日线，并保留未复权价。",
+   "result_zh": "待运行。",
+   "use_zh": "只是数据准备，不计算收益；只用于周线 V3 的最终考试。",
+   "next_zh": "四份都建好后，登记周线 V3 的考试。",
    "verdict": "pre_registered"
   }
  }

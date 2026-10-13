@@ -1,0 +1,32 @@
+{
+ "id": "data-fresh-a-v1",
+ "experiment_id": "lab-data-fresh-a-v1-2026-10-14",
+ "kind": "coverage",
+ "priority": 1,
+ "question": "Freeze shard a of the wider universe (1500 US stocks no rule has seen, from data-fresh-universe-v2) as a dataset with daily history from 1995 and the unadjusted close, and report how much history each year has. (Engineering check: no returns.)",
+ "dataset": {
+  "id": "fresh-a-1995-v1",
+  "builder": "universe",
+  "symbols_file": "research/lab/universes/fresh-2005-2025-v2-a.txt",
+  "start": "1995-01-01",
+  "keep_raw": true
+ },
+ "group": "data",
+ "years": [
+  2005,
+  2025
+ ],
+ "cases": [],
+ "criteria": {
+  "max_missing_share": 0.05
+ },
+ "requires": [
+  "data-fresh-universe-v2"
+ ],
+ "next_step": "Used only for the final test of the frozen weekly V3 pattern against same-day random stocks from the same shard.",
+ "notes": [
+  "Daily history from 1995 so that the weekly EMA200 (about four years) is ready in 2005.",
+  "The dataset keeps the provider's unadjusted close as raw_close; the $5 floor of later experiments uses it.",
+  "Passed if at most 5% of the shard's symbols cannot be built; the coverage table is reported whatever it shows."
+ ]
+}

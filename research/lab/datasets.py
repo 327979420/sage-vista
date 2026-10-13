@@ -107,16 +107,24 @@ def build_from_symbols(symbols, dataset_id, fetch):
             "price_basis": "EODHD adjusted daily OHLCV", "events": [], "prices": prices}
 
 
-def build_from_universe(symbols, dataset_id, fetch, source):
-    """Many stocks' long histories, no events; a symbol the provider cannot serve is listed as missing, not fatal."""
+def build_from_universe(symbols, dataset_id, fetch, source, keep_raw=False):
+    """Many stocks' long histories, no events; a symbol the provider cannot serve is listed as missing, not fatal.
+
+    `keep_raw` also stores the provider's unadjusted close as `raw_close`, so a price floor can be judged on the price
+    traders saw; a split-adjusted close drops the early years of stocks that later split (2026-10-14).
+    """
     prices, missing = {}, []
     for symbol in symbols:
         try:
-            rows = adjusted_rows(fetch(symbol))
+            raw = fetch(symbol)
+            rows = adjusted_rows(raw)
         except Exception:  # keep going; missing symbols are counted, not hidden
-            rows = []
+            raw, rows = [], []
         if rows:
             prices[symbol] = _compact(rows)
+            if keep_raw:
+                unadjusted = {x["date"]: x.get("close") for x in raw}
+                prices[symbol]["raw_close"] = [round(float(unadjusted[r["date"]]), 6) for r in rows]
         else:
             missing.append(symbol)
     return {"dataset_id": dataset_id, "source": source, "price_basis": "EODHD adjusted daily OHLCV",
