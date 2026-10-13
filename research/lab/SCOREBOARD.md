@@ -71,6 +71,12 @@ Which selling rule grows the approved $100k account best after risk over twenty 
 
 Champion: **none passed; current rule stays**
 
+## buysystem-train-v1 (universe-1985-v1, buy system trained 2005-01-01 to 2016-12-31, tested once 2017-01-01 to 2025-06-30)
+
+Does the buy system 0.2.0 (monthly and weekly opportunities, every layer must pass; docs/BUY_SYSTEM_ZH.md) pick better trades than random stocks bought the same day with the same stop distance, target multiple and exits? Train on 2005-2016: compare the baseline with seven one-change variants and adopt a change only if it clearly helps; then run the chosen rule once on 2017 to mid-2025.
+
+Adopted on training: none. Test: Sharpe 0.5606, beats 26% of random accounts, trade excess t 0.639. Passed: no
+
 ## b1-core-satellite-v1 (observation-2005-2025-v1, $100k account 2007-01-03 to 2026-01-16)
 
 Step B: do SV's stock picks improve a proven portfolio? SV takes 0, 20, 35 or 50% of the account (5% per stock, up to 0, 4, 7 or 10 stocks), the rest sits in the core (the Permanent Portfolio, with All Weather as a check) and 5% is always kept in cash.

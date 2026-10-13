@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-13T08:29:39+00:00",
+  "generated_at": "2026-10-13T09:15:31+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
@@ -8,8 +8,8 @@
   ],
   "experiment_count": 62,
   "summary": {
-    "completed": 44,
-    "in_progress": 18,
+    "completed": 45,
+    "in_progress": 17,
     "candidate": 15,
     "not_validated_or_unstable": 22
   },
@@ -61,11 +61,11 @@
       "lifecycle": {
         "registered_at": "2026-10-13T08:29:39+00:00",
         "started_at": null,
-        "completed_at": null,
-        "latest_event": "registered",
-        "latest_event_at": "2026-10-13T08:29:39+00:00",
-        "time_source": "assistant_registration",
-        "event_count": 1,
+        "completed_at": "2026-10-13T09:15:31+00:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-10-13T09:15:31+00:00",
+        "time_source": "github_actions",
+        "event_count": 2,
         "events": [
           {
             "experiment_id": "lab-buysystem-train-v1-2026-10-13",
@@ -75,6 +75,20 @@
             "details": {
               "lab_spec": "research/lab/queue/buysystem-train-v1.json",
               "note": "registered before any account, random or return figure was looked at; local checks were timing and signal counts only"
+            }
+          },
+          {
+            "experiment_id": "lab-buysystem-train-v1-2026-10-13",
+            "event": "completed",
+            "event_at": "2026-10-13T09:15:31+00:00",
+            "time_source": "github_actions",
+            "source_ref": "https://github.com/327979420/sage-vista/actions/runs/38372056931",
+            "details": {
+              "lab_spec": "buysystem-train-v1",
+              "spec_sha256": "0ecd6fc8d96c8ada87b45915f9d3b436ffcddc5850e5c856f38af6564dbfeffa",
+              "result": "research/lab/results/buysystem-train-v1/result.json",
+              "dataset": "universe-1985-v1",
+              "champion": null
             }
           }
         ]

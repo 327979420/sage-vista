@@ -26,6 +26,14 @@
    "dataset": "observation-2005-2025-v1"
   },
   {
+   "spec_id": "buysystem-train-v1",
+   "experiment_id": "lab-buysystem-train-v1-2026-10-13",
+   "group": "B-buysystem",
+   "completed_at": "2026-10-13T09:15:31+00:00",
+   "champion": null,
+   "dataset": "universe-1985-v1"
+  },
+  {
    "spec_id": "b1-core-satellite-v1",
    "experiment_id": "lab-b1-core-satellite-v1-2026-10-09",
    "group": "B-core-satellite",
