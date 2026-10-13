@@ -1,0 +1,181 @@
+{
+ "spec_id": "data-fresh-a-v1",
+ "experiment_id": "lab-data-fresh-a-v1-2026-10-14",
+ "group": "data",
+ "question": "Freeze shard a of the wider universe (1500 US stocks no rule has seen, from data-fresh-universe-v2) as a dataset with daily history from 1995 and the unadjusted close, and report how much history each year has. (Engineering check: no returns.)",
+ "kind": "coverage",
+ "dataset": {
+  "dataset_id": "fresh-a-1995-v1",
+  "asset": "fresh-a-1995-v1-8562cf5807f0.json.gz",
+  "sha256": "8562cf5807f02fd81ef4c6030635be874f40b6b4ef7e1318b909530e44bbea8c",
+  "bytes": 96659619,
+  "release": "research-datasets",
+  "events": 0,
+  "symbols": 1500,
+  "source": "EODHD full adjusted history from 1995-01-01 for research/lab/universes/fresh-2005-2025-v2-a.txt plus 0 extra symbols, with the unadjusted close",
+  "price_basis": "EODHD adjusted daily OHLCV",
+  "missing_symbols": 0
+ },
+ "champion": null,
+ "passed": true,
+ "symbols": {
+  "requested": 1500,
+  "built": 1500,
+  "missing": [],
+  "missing_share": 0.0
+ },
+ "earliest_first_bar": "1995-01-02",
+ "years": [
+  {
+   "year": 2005,
+   "trading": 767,
+   "with_50_months": 583,
+   "with_120_months": 182,
+   "with_200_months": 0
+  },
+  {
+   "year": 2006,
+   "trading": 805,
+   "with_50_months": 604,
+   "with_120_months": 210,
+   "with_200_months": 0
+  },
+  {
+   "year": 2007,
+   "trading": 823,
+   "with_50_months": 612,
+   "with_120_months": 230,
+   "with_200_months": 0
+  },
+  {
+   "year": 2008,
+   "trading": 799,
+   "with_50_months": 622,
+   "with_120_months": 384,
+   "with_200_months": 0
+  },
+  {
+   "year": 2009,
+   "trading": 794,
+   "with_50_months": 631,
+   "with_120_months": 431,
+   "with_200_months": 0
+  },
+  {
+   "year": 2010,
+   "trading": 807,
+   "with_50_months": 655,
+   "with_120_months": 459,
+   "with_200_months": 0
+  },
+  {
+   "year": 2011,
+   "trading": 810,
+   "with_50_months": 678,
+   "with_120_months": 486,
+   "with_200_months": 0
+  },
+  {
+   "year": 2012,
+   "trading": 807,
+   "with_50_months": 692,
+   "with_120_months": 492,
+   "with_200_months": 189
+  },
+  {
+   "year": 2013,
+   "trading": 831,
+   "with_50_months": 684,
+   "with_120_months": 498,
+   "with_200_months": 217
+  },
+  {
+   "year": 2014,
+   "trading": 866,
+   "with_50_months": 683,
+   "with_120_months": 522,
+   "with_200_months": 229
+  },
+  {
+   "year": 2015,
+   "trading": 883,
+   "with_50_months": 686,
+   "with_120_months": 533,
+   "with_200_months": 335
+  },
+  {
+   "year": 2016,
+   "trading": 882,
+   "with_50_months": 674,
+   "with_120_months": 537,
+   "with_200_months": 361
+  },
+  {
+   "year": 2017,
+   "trading": 864,
+   "with_50_months": 643,
+   "with_120_months": 532,
+   "with_200_months": 356
+  },
+  {
+   "year": 2018,
+   "trading": 853,
+   "with_50_months": 640,
+   "with_120_months": 525,
+   "with_200_months": 355
+  },
+  {
+   "year": 2019,
+   "trading": 820,
+   "with_50_months": 633,
+   "with_120_months": 479,
+   "with_200_months": 344
+  },
+  {
+   "year": 2020,
+   "trading": 858,
+   "with_50_months": 611,
+   "with_120_months": 451,
+   "with_200_months": 324
+  },
+  {
+   "year": 2021,
+   "trading": 866,
+   "with_50_months": 570,
+   "with_120_months": 417,
+   "with_200_months": 308
+  },
+  {
+   "year": 2022,
+   "trading": 775,
+   "with_50_months": 525,
+   "with_120_months": 376,
+   "with_200_months": 289
+  },
+  {
+   "year": 2023,
+   "trading": 700,
+   "with_50_months": 502,
+   "with_120_months": 345,
+   "with_200_months": 271
+  },
+  {
+   "year": 2024,
+   "trading": 633,
+   "with_50_months": 469,
+   "with_120_months": 331,
+   "with_200_months": 258
+  },
+  {
+   "year": 2025,
+   "trading": 573,
+   "with_50_months": 468,
+   "with_120_months": 325,
+   "with_200_months": 245
+  }
+ ],
+ "cases": [],
+ "spec_sha256": "12c361ecb40fed567406e3f8f4372293eb8d055710723d5ff4f91d534fb561ef",
+ "completed_at": "2026-10-13T18:03:47+00:00",
+ "code_commit": "72387db389c926e56788b9fad1479b3190eb52c5"
+}

@@ -289,3 +289,9 @@ Same list as data-fresh-universe-v1, with the failed downloads retried and their
 
 Kept 5500 of 21503 candidates in 4 shards; failed downloads 3352. Passed: yes
 
+## data-fresh-a-v1 (fresh-a-1995-v1, data coverage check)
+
+Freeze shard a of the wider universe (1500 US stocks no rule has seen, from data-fresh-universe-v2) as a dataset with daily history from 1995 and the unadjusted close, and report how much history each year has. (Engineering check: no returns.)
+
+Built 1500 of 1500 symbols; in 2025, 245 of 573 trading stocks had 200 months of history. Passed: yes
+

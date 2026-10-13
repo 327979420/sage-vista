@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-13T17:11:09+00:00",
+  "generated_at": "2026-10-13T18:03:47+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
@@ -8,8 +8,8 @@
   ],
   "experiment_count": 68,
   "summary": {
-    "completed": 47,
-    "in_progress": 21,
+    "completed": 48,
+    "in_progress": 20,
     "candidate": 15,
     "not_validated_or_unstable": 24
   },
@@ -47,11 +47,11 @@
       "lifecycle": {
         "registered_at": "2026-10-13T17:11:09+00:00",
         "started_at": null,
-        "completed_at": null,
-        "latest_event": "registered",
-        "latest_event_at": "2026-10-13T17:11:09+00:00",
-        "time_source": "assistant_registration",
-        "event_count": 1,
+        "completed_at": "2026-10-13T18:03:47+00:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-10-13T18:03:47+00:00",
+        "time_source": "github_actions",
+        "event_count": 2,
         "events": [
           {
             "experiment_id": "lab-data-fresh-a-v1-2026-10-14",
@@ -61,6 +61,20 @@
             "details": {
               "lab_spec": "research/lab/queue/data-fresh-a-v1.json",
               "note": "data build and coverage count only"
+            }
+          },
+          {
+            "experiment_id": "lab-data-fresh-a-v1-2026-10-14",
+            "event": "completed",
+            "event_at": "2026-10-13T18:03:47+00:00",
+            "time_source": "github_actions",
+            "source_ref": "https://github.com/327979420/sage-vista/actions/runs/38438454789",
+            "details": {
+              "lab_spec": "data-fresh-a-v1",
+              "spec_sha256": "12c361ecb40fed567406e3f8f4372293eb8d055710723d5ff4f91d534fb561ef",
+              "result": "research/lab/results/data-fresh-a-v1/result.json",
+              "dataset": "fresh-a-1995-v1",
+              "champion": null
             }
           }
         ]
