@@ -283,3 +283,9 @@ Which US common stocks, listed today or delisted, met the research pool's floor 
 
 Kept 5743 of 21499 candidates in 4 shards; failed downloads 3352. Passed: no
 
+## data-fresh-universe-v2 (wider universe screen, engineering check)
+
+Same list as data-fresh-universe-v1, with the failed downloads retried and their reasons recorded, and the $5 floor judged on the unadjusted close (v1 judged the split-adjusted close, which drops the early years of stocks that later split). Engineering check: lists and counts only, no returns.
+
+Kept 5500 of 21503 candidates in 4 shards; failed downloads 3352. Passed: yes
+

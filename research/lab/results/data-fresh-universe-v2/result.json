@@ -1,0 +1,129 @@
+{
+ "kind": "screen",
+ "spec_id": "data-fresh-universe-v2",
+ "experiment_id": "lab-data-fresh-universe-v2-2026-10-14",
+ "group": "data",
+ "question": "Same list as data-fresh-universe-v1, with the failed downloads retried and their reasons recorded, and the $5 floor judged on the unadjusted close (v1 judged the split-adjusted close, which drops the early years of stocks that later split). Engineering check: lists and counts only, no returns.",
+ "dataset": {
+  "dataset_id": "universe-1985-v1",
+  "asset": "universe-1985-v1-6b7fce35b46d.json.gz",
+  "sha256": "6b7fce35b46de8e97853c349c9b972076993bb7f091d5a2f4b3966f2d6af536f",
+  "symbols": 1228
+ },
+ "window": [
+  "2005-01-01",
+  "2025-06-30"
+ ],
+ "pool": {
+  "min_close": 5.0,
+  "min_dollar_volume": 10000000.0
+ },
+ "min_sessions": 60,
+ "provider_counts": {
+  "listed": 6079,
+  "delisted": 16619,
+  "reused": 0
+ },
+ "candidates": 21503,
+ "downloaded": 18151,
+ "failed": 3352,
+ "failed_share": 0.1559,
+ "failed_empty": 3352,
+ "failed_errors": 0,
+ "error_share": 0.0,
+ "failed_examples": {
+  "AAAB": "empty",
+  "AAB": "empty",
+  "AACBU_old": "empty",
+  "AAC_old1": "empty",
+  "AAGIY1": "empty",
+  "AAI_old": "empty",
+  "AAP1": "empty",
+  "AATI_old": "empty",
+  "AATT": "empty",
+  "AAV_old": "empty",
+  "ABACF": "empty",
+  "ABAN": "empty",
+  "ABBBY": "empty",
+  "ABCC": "empty",
+  "ABCL_old": "empty",
+  "ABCO_old": "empty",
+  "ABCR": "empty",
+  "ABD": "empty",
+  "ABDR_old": "empty",
+  "ABG2": "empty",
+  "ABHH": "empty",
+  "ABIO_old": "empty",
+  "ABIZA": "empty",
+  "ABI_old2": "empty",
+  "ABNKQ": "empty",
+  "ABOV": "empty",
+  "ABP_old": "empty",
+  "ABRX_old": "empty",
+  "ABR_old": "empty",
+  "ABSC": "empty",
+  "ABTC_old": "empty",
+  "ABTE": "empty",
+  "ABTX_old": "empty",
+  "ACAM_old": "empty",
+  "ACCS2": "empty",
+  "ACEE": "empty",
+  "ACEI_old": "empty",
+  "ACEP_old": "empty",
+  "ACHI": "empty",
+  "ACLE_old": "empty"
+ },
+ "raw_price_floor": true,
+ "kept": 5500,
+ "shards": [
+  {
+   "file": "research/lab/universes/fresh-2005-2025-v2-a.txt",
+   "symbols": 1500
+  },
+  {
+   "file": "research/lab/universes/fresh-2005-2025-v2-b.txt",
+   "symbols": 1500
+  },
+  {
+   "file": "research/lab/universes/fresh-2005-2025-v2-c.txt",
+   "symbols": 1500
+  },
+  {
+   "file": "research/lab/universes/fresh-2005-2025-v2-d.txt",
+   "symbols": 1000
+  }
+ ],
+ "first_bar_year_of_kept": {
+  "2004": 2552,
+  "2005": 167,
+  "2006": 154,
+  "2007": 162,
+  "2008": 66,
+  "2009": 65,
+  "2010": 121,
+  "2011": 122,
+  "2012": 111,
+  "2013": 190,
+  "2014": 247,
+  "2015": 139,
+  "2016": 141,
+  "2017": 147,
+  "2018": 144,
+  "2019": 163,
+  "2020": 385,
+  "2021": 296,
+  "2022": 33,
+  "2023": 40,
+  "2024": 47,
+  "2025": 8
+ },
+ "criteria": {
+  "max_error_share": 0.02,
+  "min_kept": 1000
+ },
+ "passed": true,
+ "champion": null,
+ "spec_sha256": "83aae1c88b42d8ff42146d74e80c3d07a4cf049966fe13d3dced868f105f52fd",
+ "completed_at": "2026-10-13T17:08:26+00:00",
+ "code_commit": "d7061d167f53b2af2c01b40bfec1b108014ecdbd"
+}
