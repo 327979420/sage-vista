@@ -1412,3 +1412,8 @@
 - 用户要求：按已同意的训练方案在后台跑；有测试也给用户看；需要人工核对的案例现在给用户看。
 - 交付：预登记`lab-buysystem-train-v1-2026-10-13`（规格`research/lab/queue/buysystem-train-v1.json`；08规则`#buysystem-train`，1.51.0）；新增`research/lab/buytrain.py`（全市场扫描两类机会、练习段比较基准与7个单项改动、按事先规则采用、考试段只跑一次、同日随机对照）与`run_queue`的`buysystem_train`运行；`buysystem.py`增加快速扫描（先算止损目标再查否决，信号不变）、`place.t4`与`veto.place_macd`开关、最近未破低点的线性算法（2,000个随机情形与旧算法一致）；`tests/test_buytrain.py`（快速交易模拟与共用模拟在800笔随机交易上逐笔一致、参数覆盖、采用规则、大盘过滤、小样本端到端且交易不越过窗口）。
 - 研究用；不改生产评分、排名、交易规则、数据或网站。
+
+### CR-2026-10-13d｜买入系统训练与考试结果
+- 结果：`lab-buysystem-train-v1-2026-10-13`未通过（报告`research/lab/results/buysystem-train-v1/REPORT.md`）。练习段基准差于全部随机账户、逐笔t −2.57；7个改动无一采用；考试段只胜过26%随机账户，逐笔t 0.64。
+- 交付：08规则1.52.0记录结果；实验摘要改为未验证；`docs/START_HERE_ZH.md`、`docs/BUY_SYSTEM_ZH.md`状态更新。
+- 仅文档；不改生产、代码或规则参数。
