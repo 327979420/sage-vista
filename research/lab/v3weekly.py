@@ -1,4 +1,7 @@
-"""Weekly V3, second definition (the user's CSGP 2007 lesson, 2026-10-14). DRAFT: the user is labelling candidates; not yet
+"""Weekly V3, third draft (2026-10-14 after batch 1: location is a plus, stop under the nearest support, doji or engulfing
+signal bar, equal bottoms count, MACD crossed or red bars shrinking, targets: prior high and fixed 1.5R both kept for the test).
+Buy below the rebound high between the two bottoms (no chasing; ROP 2010 and HPQ 2016 bought after the move).
+Second definition (the user's CSGP 2007 lesson, 2026-10-14). DRAFT: the user is labelling candidates; not yet
 used by any registered experiment. Run: python3 -m research.lab.v3weekly OUT.json [SYMBOL]
 
 1 Two bottom ZONES: the second bottom is the lowest low of the last 12 weeks before the signal week; the first is the lowest low
@@ -34,13 +37,10 @@ def pivots(vals, mode, left=2, right=2):
 
 
 def macd_ok(h, dif, dea, k):
+    """The user's rule (2026-10-14): crossed, or the red bars at least shrinking; never red bars growing."""
     if dif[k] > dea[k]:
         return "crossed"
-    j = k
-    while j > 0 and h[j - 1] < 0:
-        j -= 1
-    trough = min(h[j:k + 1])
-    return "about" if h[k] > h[k - 1] > h[k - 2] and abs(h[k]) <= abs(trough) / 3 else None
+    return "rising" if h[k] > h[k - 1] else None
 
 
 def bullish_engulf(r, k):
@@ -49,6 +49,16 @@ def bullish_engulf(r, k):
     doji = abs(a["close"] - a["open"]) <= 0.1 * max(a["high"] - a["low"], 1e-9)
     return (b["close"] > b["open"] and (a["close"] < a["open"] or doji) and b["open"] <= min(a["open"], a["close"]) * 1.005
             and b["close"] >= max(a["open"], a["close"]) * 0.995)
+
+
+def doji(r, k):
+    b = r[k]
+    return abs(b["close"] - b["open"]) <= 0.1 * max(b["high"] - b["low"], 1e-9)
+
+
+def signal_bar(r, k):
+    """A weekly bullish engulfing or a doji (user, 2026-10-14: STNG); the buy-stop goes above its high."""
+    return "engulfing" if bullish_engulf(r, k) else "doji" if doji(r, k) else None
 
 
 def zone(rows, j, tol, last=None):
@@ -64,7 +74,10 @@ def zone(rows, j, tol, last=None):
     return s, e
 
 
-def best_line(rows, highs, start, t, entry_week):
+def best_line(rows, highs, start, t, entry_week, bottoms=None):
+    """The three-or-more-push line. With `bottoms` (j1, L1, j2, L2) it must also make a visible triangle with them (user,
+    2026-10-14): the first bottom falls between the first and the last push, and the gap between this line and the line
+    through the two bottoms at the signal week is at most half the gap at the first push."""
     cand = [p for p in highs if start <= p <= t - 2]
     best = None
     for a, b, c in itertools.combinations(cand, 3):
@@ -75,8 +88,16 @@ def best_line(rows, highs, start, t, entry_week):
         if abs(v[1] / (v[0] + slope * (b - a)) - 1) > 0.08:
             continue
         line = lambda j: v[0] + slope * (j - a)
-        if any(rows[j]["close"] > line(j) * 1.01 for j in range(a + 1, c)):
-            continue
+        if any(rows[j]["close"] > line(j) * 1.01 for j in range(a + 1, t)):
+            continue  # a line already closed above before the signal week is stale, not the breakout line (TRN 2005)
+        if bottoms:
+            j1, L1, j2, L2 = bottoms
+            if not a < j1 < c:
+                continue
+            lower = lambda j: L1 + (L2 - L1) / (j2 - j1) * (j - j1)
+            gap_a, gap_t = line(a) - lower(a), line(t) - lower(t)
+            if gap_a <= 0 or gap_t > 0.5 * gap_a:
+                continue
         key = (v[0], c)
         if best is None or key > best["key"]:
             best = {"key": key, "idx": [a, b, c], "level_next": line(entry_week), "prices": v, "a": v[0], "slope": slope}
@@ -98,7 +119,8 @@ def scan_symbol(symbol):
     M = B.periods(s, "month")
     out, last = [], -99
     for t in range(80, n - 1):
-        if t - last < 8 or not bullish_engulf(rows, t):
+        kind_t = signal_bar(rows, t) if t - last >= 8 else None
+        if not kind_t:
             continue
         state = macd_ok(h, dif, dea, t)
         if not state:
@@ -106,15 +128,15 @@ def scan_symbol(symbol):
         j2 = min(range(t - 12, t), key=lambda j: (rows[j]["low"], -j))
         L2 = rows[j2]["low"]
         tol = max(0.06, atr[j2] / rows[j2]["close"])
-        if t - j2 > 10:
-            continue  # the engulfing comes within ten weeks of the second bottom, in the zone (CSGP) or at the breakout (NLY)
+        if t - j2 > 12:
+            continue  # the signal bar comes within twelve weeks of the second bottom, in the zone (CSGP) or at the breakout (NLY)
         j1 = min(range(max(0, j2 - 60), j2 - 6 + 1), key=lambda j: (rows[j]["low"], j))
         L1 = rows[j1]["low"]
         H = max(r["high"] for r in rows[j1 + 1:j2])
         if H < max(L1, L2) * 1.10 or H - max(L1, L2) < 2 * atr[j2]:
             continue
-        if L2 <= L1 or L2 > L1 + 0.75 * (H - L1):
-            continue  # the user's rule: a higher second bottom (the short-term decline can no longer make a lower low)
+        if L2 < L1 - atr[j2] or L2 > L1 + 0.75 * (H - L1):
+            continue  # the second bottom is not lower than the first by more than one weekly ATR (equal bottoms count: CHRW 2012)
         if min(r["low"] for r in rows[j1:j2 + 1]) < min(L1, L2):
             continue
         z1, z2 = zone(rows, j1, tol, j2 - 1), zone(rows, j2, tol, t)  # no week after the signal is looked at
@@ -129,23 +151,28 @@ def scan_symbol(symbol):
         base = rows[base_i]["low"]
         retr = (prior_high - lower) / (prior_high - base) if prior_high > base else None
         gp = retr is not None and 0.5 <= retr <= 0.7
-        if not (gp or ema_hits):
-            continue
+        location = bool(gp or ema_hits)  # a plus for ranking, not a filter (user, 2026-10-14)
         if lower < base * 0.9:
             continue  # too deep: the prior advance's start broken by more than 10%
         if (prior_high - L1) / prior_high < 0.15:
             continue  # a real pullback into the first bottom (V3's objective pullback, weekly scale)
-        line = best_line(rows, highs, max(0, prior_i - 4), t, t + 1)
+        line = best_line(rows, highs, max(0, prior_i - 4), t, t + 1, (j1, L1, j2, L2))
         if not line:
             continue
         if not (e200[t] > e200[t - 26] and rows[t]["close"] > e200[t]):
             continue  # the user's bet: the long-term uptrend continues (weekly EMA200 rising, price above it)
         day_t = W["end"][t]
         mk = B.completed(M, day_t, day_t + 1)
-        stop = L2 * 0.99
+        supports = [("signal_low", rows[t]["low"] * 0.99), ("second_bottom", L2 * 0.99)]
+        if e200[t] < rows[t]["high"]:
+            supports.append(("ema200", e200[t] * 0.99))
         fill_day = None
         # buy-stop above the engulfing week's high and the line, alive for up to three weeks (user, 2026-10-14);
         # cancelled if price reaches the stop first
+        far_enough = [(nm, v) for nm, v in supports if v <= rows[t]["high"] * 1.001 - 0.5 * atr[t]]
+        if not far_enough:
+            continue
+        stop_name, stop = max(far_enough, key=lambda x: x[1])  # the nearest support below the entry (user, 2026-10-14)
         for w in range(t + 1, min(t + 4, n)):
             level = max(rows[t]["high"], line["a"] + line["slope"] * (w - line["idx"][0])) * 1.001
             for d in range(W["start"][w], W["end"][w] + 1):
@@ -159,6 +186,10 @@ def scan_symbol(symbol):
             break
         if fill_day is None:
             continue
+        if entry - stop < 0.5 * atr[t]:
+            continue
+        if entry > H:
+            continue  # no chasing: the buy stays below the rebound high between the two bottoms (CSGP, NLY, CHRW all bought below it)
         rr = (prior_high - entry) / (entry - stop) if entry > stop else None
         if rr is None or rr < 1.5:
             continue
@@ -167,6 +198,7 @@ def scan_symbol(symbol):
                     "target": round(prior_high, 4), "rr": round(rr, 2), "prior_high_week": rows[prior_i]["date"],
                     "zone1": [rows[z1[0]]["date"], rows[z1[1]]["date"]], "zone2": [rows[z2[0]]["date"], rows[z2[1]]["date"]], "L1": round(L1, 4), "L2": round(L2, 4),
                     "pushes": [rows[x]["date"] for x in line["idx"]], "push_prices": [round(x, 4) for x in line["prices"]], "macd": state,
+                    "signal_bar": kind_t, "stop_basis": stop_name, "location": location, "target_1_5r": round(entry + 1.5 * (entry - stop), 4),
                     "gp": gp, "ema_hits": ema_hits, "risk_blocked": risk["blocked"], "monthly_cross": M["dif"][mk] > M["dea"][mk]})
         last = t
     return out
@@ -186,7 +218,9 @@ if __name__ == "__main__":
     out = []
     for c in (c for ch in chunks for c in ch):
         s = PRICES[c["symbol"]]; d = bisect.bisect_left(s["date"], c["fill"]) - 1
-        if d >= 420 and s["close"][d] >= 5 and s["close"][d] * s["volume"][d] >= 1e7:
+        # dollar volume only: the $5 floor on split-adjusted prices drops the early years of stocks that later split (look-ahead);
+        # it returns once the datasets keep the unadjusted close (2026-10-14)
+        if d >= 420 and s["close"][d] * s["volume"][d] >= 1e7:
             out.append(c)
     json.dump(out, open(sys.argv[1], "w"))
     from collections import Counter

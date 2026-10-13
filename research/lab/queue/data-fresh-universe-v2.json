@@ -1,0 +1,53 @@
+{
+ "id": "data-fresh-universe-v2",
+ "experiment_id": "lab-data-fresh-universe-v2-2026-10-14",
+ "kind": "screen",
+ "question": "Same list as data-fresh-universe-v1, with the failed downloads retried and their reasons recorded, and the $5 floor judged on the unadjusted close (v1 judged the split-adjusted close, which drops the early years of stocks that later split). Engineering check: lists and counts only, no returns.",
+ "dataset": {
+  "id": "universe-1985-v1",
+  "builder": "universe",
+  "symbols_file": "research/lab/universes/observation-2005-2025-v1.txt",
+  "extra_symbols": [
+   "AEVA",
+   "BTDR",
+   "CGEM",
+   "POWL",
+   "BEKE"
+  ],
+  "start": "1985-01-01"
+ },
+ "group": "data",
+ "fetch_start": "2004-01-01",
+ "window": [
+  "2005-01-01",
+  "2025-06-30"
+ ],
+ "pool": {
+  "min_close": 5.0,
+  "min_dollar_volume": 10000000.0
+ },
+ "min_sessions": 60,
+ "workers": 3,
+ "shard_size": 1500,
+ "shard_dir": "research/lab/universes",
+ "shard_prefix": "fresh-2005-2025-v2",
+ "criteria": {
+  "max_error_share": 0.02,
+  "min_kept": 1000
+ },
+ "requires": [
+  "data-long-history-v1"
+ ],
+ "next_step": "Each v2 shard becomes a frozen dataset (daily history from 1995, keeping the unadjusted close) registered separately; the frozen weekly V3 pattern is tested on these unseen stocks.",
+ "notes": [
+  "data-fresh-universe-v1 did not pass its own criterion: 3,352 of 21,499 downloads failed (15.6% > 10%); it kept 5,743 stocks. The result stays as recorded.",
+  "Version 2: the same candidates; downloads use five attempts with three parallel requests, and every failure gets one more slow pass. A failure is either 'empty' (the provider has no history for that code, mostly delisted '_old' codes: a survivorship gap that is reported, not hidden) or an error (HTTP or timeout).",
+  "Passed if errors after the retry are at most 2% of candidates and at least 1,000 stocks are kept; empty histories are reported separately.",
+  "The $5 floor uses the provider's unadjusted close; the $10M floor uses the adjusted close times the provider's split-adjusted volume, as in v1.",
+  "Tickers the provider marks as reused carry suffixes (_old, _old1, a trailing digit), so no ticker joins two companies."
+ ],
+ "raw_price_floor": true,
+ "retry_failed": true,
+ "attempts": 5,
+ "priority": 1
+}
