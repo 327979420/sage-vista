@@ -70,6 +70,17 @@ class ScreenVersionTwoTests(unittest.TestCase):
         self.assertEqual(kept_adjusted, [])  # version 1 judged the $3 adjusted price and dropped it
 
 
+class RawCloseDatasetTests(unittest.TestCase):
+    def test_a_universe_build_can_keep_the_unadjusted_close(self):
+        from research.lab import datasets
+        raw = [{"date": "2010-01-04", "open": 30, "high": 31, "low": 29, "close": 30.0, "adjusted_close": 3.0, "volume": 1000},
+               {"date": "2010-01-05", "open": 31, "high": 32, "low": 30, "close": 31.0, "adjusted_close": 3.1, "volume": 1000}]
+        data = datasets.build_from_universe(["A"], "d", lambda s: raw, "src", keep_raw=True)
+        self.assertEqual(data["prices"]["A"]["close"], [3.0, 3.1])
+        self.assertEqual(data["prices"]["A"]["raw_close"], [30.0, 31.0])
+        self.assertNotIn("raw_close", datasets.build_from_universe(["A"], "d", lambda s: raw, "src")["prices"]["A"])
+
+
 class V3WeeklyHelperTests(unittest.TestCase):
     def test_engulfing_zone_and_macd_helpers(self):
         from research.lab import v3weekly as V

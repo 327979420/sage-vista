@@ -94,7 +94,8 @@ def ensure_dataset(ds, publish):
         listed = (ROOT / ds["symbols_file"]).read_text().split()
         symbols = sorted(set(listed) | set(ds.get("extra_symbols", [])))
         data = datasets.build_from_universe(symbols, ds["id"], lambda s: prices(s, start=ds["start"]),
-                                            f"EODHD full adjusted history from {ds['start']} for {ds['symbols_file']} plus {len(ds.get('extra_symbols', []))} extra symbols")
+                                            f"EODHD full adjusted history from {ds['start']} for {ds['symbols_file']} plus {len(ds.get('extra_symbols', []))} extra symbols"
+                                            + (", with the unadjusted close" if ds.get("keep_raw") else ""), keep_raw=ds.get("keep_raw", False))
     elif source == "chains":
         from services.scanner.eodhd import get
         data = datasets.build_from_chains(ds["chains"], ds["id"], lambda t: get(f"eod/{t}", **{"from": ds.get("start", "1980-01-01"), "period": "d"}))
