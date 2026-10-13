@@ -1407,3 +1407,8 @@
 - 交付：新增 `docs/START_HERE_ZH.md`（这是什么、现在的结论、买入系统一句话、现行文档、已淘汰或只作历史的东西、工作规矩、研究代码地图、给用户看的页面、新对话怎样接上）；`AGENTS.md`、`docs/NEXT_SESSION_HANDOFF_ZH.md`、两份 README 改为先指向它（删去过期的“本轮接手”）；23 份历史或工程设计文档开头加状态说明（现行／历史／只作证据），不删除、不搬动文件，链接与测试不受影响；08 规则 1.50.0。
 - 同日：用户核对页 `https://claude.ai/artifact/YJMwf3jKVEzmZYbiwRUehf`（买入系统 0.2.0 与用户判断不一致的 5 个案例：DVN、AVTR、TT、BABA 未报出，EIX 报出后止损），待用户逐个选择或交给训练。
 - 仅文档；不改生产、规则语义或代码。
+
+### CR-2026-10-13c｜买入系统训练与考试登记
+- 用户要求：按已同意的训练方案在后台跑；有测试也给用户看；需要人工核对的案例现在给用户看。
+- 交付：预登记`lab-buysystem-train-v1-2026-10-13`（规格`research/lab/queue/buysystem-train-v1.json`；08规则`#buysystem-train`，1.51.0）；新增`research/lab/buytrain.py`（全市场扫描两类机会、练习段比较基准与7个单项改动、按事先规则采用、考试段只跑一次、同日随机对照）与`run_queue`的`buysystem_train`运行；`buysystem.py`增加快速扫描（先算止损目标再查否决，信号不变）、`place.t4`与`veto.place_macd`开关、最近未破低点的线性算法（2,000个随机情形与旧算法一致）；`tests/test_buytrain.py`（快速交易模拟与共用模拟在800笔随机交易上逐笔一致、参数覆盖、采用规则、大盘过滤、小样本端到端且交易不越过窗口）。
+- 研究用；不改生产评分、排名、交易规则、数据或网站。

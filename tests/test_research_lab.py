@@ -1179,6 +1179,18 @@ class QueueAndDatasetTests(unittest.TestCase):
                 self.assertTrue((ROOT / spec["dataset"]["symbols_file"]).exists(), path.name)
                 self.assertIn("max_missing_share", spec["criteria"], path.name)
                 continue
+            if spec.get("kind") == "buysystem_train":
+                from research.lab import buysystem, buytrain
+                for changes in spec["variants"].values():
+                    buytrain.override(buysystem.PARAMS, buytrain.engine_changes(changes))  # every changed parameter exists
+                self.assertLess(spec["windows"]["train"][1], spec["windows"]["test"][0], path.name)
+                self.assertGreaterEqual(spec["random"]["runs"], 100)
+                self.assertTrue(spec["benchmark"]["symbol"] in spec["benchmark"]["dataset"]["symbols"], path.name)
+                for key in ("min_trades", "sharpe_gain", "beat_share_gain"):
+                    self.assertIn(key, spec["selection"], path.name)
+                for key in ("min_random_share", "min_trade_excess_t", "min_test_signals"):
+                    self.assertIn(key, spec["criteria"], path.name)
+                continue
             if spec.get("kind") == "selection":
                 for key in ("min_random_percentile", "min_trade_excess_t"):
                     self.assertIn(key, spec["criteria"], path.name)

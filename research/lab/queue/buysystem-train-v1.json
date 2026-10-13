@@ -1,0 +1,110 @@
+{
+ "id": "buysystem-train-v1",
+ "experiment_id": "lab-buysystem-train-v1-2026-10-13",
+ "kind": "buysystem_train",
+ "priority": 1,
+ "question": "Does the buy system 0.2.0 (monthly and weekly opportunities, every layer must pass; docs/BUY_SYSTEM_ZH.md) pick better trades than random stocks bought the same day with the same stop distance, target multiple and exits? Train on 2005-2016: compare the baseline with seven one-change variants and adopt a change only if it clearly helps; then run the chosen rule once on 2017 to mid-2025.",
+ "dataset": {
+  "id": "universe-1985-v1",
+  "builder": "universe",
+  "symbols_file": "research/lab/universes/observation-2005-2025-v1.txt",
+  "extra_symbols": [
+   "AEVA",
+   "BTDR",
+   "CGEM",
+   "POWL",
+   "BEKE"
+  ],
+  "start": "1985-01-01"
+ },
+ "benchmark": {
+  "symbol": "SPY",
+  "dataset": {
+   "id": "etf-style-1999-to-2026-10-v1",
+   "builder": "symbols",
+   "symbols": [
+    "SPY",
+    "QQQ",
+    "IWM",
+    "RSP"
+   ],
+   "start": "1999-01-01"
+  }
+ },
+ "group": "B-buysystem",
+ "cost_per_side": 0.001,
+ "windows": {
+  "train": [
+   "2005-01-01",
+   "2016-12-31"
+  ],
+  "test": [
+   "2017-01-01",
+   "2025-06-30"
+  ]
+ },
+ "pool": {
+  "min_history": 420,
+  "min_close": 5.0,
+  "min_dollar_volume": 10000000.0
+ },
+ "account": {
+  "risk_per_trade": 0.02,
+  "position_cap": 0.05,
+  "max_positions": 10,
+  "heat_cap": 0.2
+ },
+ "random": {
+  "runs": 200,
+  "seed": 20261013,
+  "max_draws": 30
+ },
+ "variants": {
+  "V1_week_pullback_8pct": {
+   "kinds.week.a.min_pullback": 0.08
+  },
+  "V2_daily_wait_5": {
+   "daily.window": 5
+  },
+  "V3_chase_3atr": {
+   "veto.chase_atr": 3.0
+  },
+  "V4_no_place_macd_veto": {
+   "veto.place_macd": false
+  },
+  "V5_no_t4": {
+   "place.t4": false
+  },
+  "V6_rs_rank": {
+   "account.rank": "rs_6m"
+  },
+  "V7_market_filter": {
+   "account.market_filter": true
+  }
+ },
+ "selection": {
+  "min_trades": 60,
+  "sharpe_gain": 0.05,
+  "beat_share_gain": 0.05
+ },
+ "criteria": {
+  "min_random_share": 0.95,
+  "min_trade_excess_t": 2.0,
+  "min_test_signals": 60
+ },
+ "requires": [
+  "data-long-history-v1"
+ ],
+ "next_step": "If the test passes: reverse blind review (10 random signals of the chosen rule; the user must approve at least 8), then forward paper trading next to E6 before any account use. If it fails: the buy system does not go into the account; the failure is kept, the user's disagreement cases and the trade list are reviewed for a definition error, and any new version is registered as a new experiment with a fresh test period (2025-07 onward, forward).",
+ "notes": [
+  "Rules followed (user decisions, docs/BUY_SYSTEM_ZH.md 0.2.0): monthly direction, weekly place, daily timing for monthly opportunities; month not against, weekly direction, daily place and timing for weekly ones; buy only after every layer passes; monthly opportunities first on the same day; stop under the nearest unbroken swing low of the direction timeframe; first target at a price-confirmed resistance, R >= 1.5; two thirds sold at the first target, then breakeven, the last third rides the kind's trend line; 2% risk, 5% cap, 10 positions, open risk 20%.",
+  "Rules challenged (each one change at a time on the training window): V1 weekly pullback floor 8% instead of 15%; V2 daily wait 5 days instead of 10; V3 chase limit 3 weekly ATRs instead of 2; V4 no place-timeframe MACD veto; V5 no T4 (moving-average convergence) place; V6 same-day order by six-month strength against SPY (O'Neil, Minervini) instead of by kind only; V7 new trades only while SPY closes above its 200-day average on the decision day (Faber; E7b extra check).",
+  "Signals: one scan per engine setting over 2005-01-01 to 2025-06-30 (fill dates), both kinds, inside the tradable pool on the decision day (420 sessions, close >= $5, >= $10M traded); stocks with impossible one-day jumps are removed from both sides. Trades are cut at their window's last session (open positions are valued at that close), so the training window never uses a test-window price.",
+  "Random null: for each signal, a stock drawn from that day's tradable pool, bought at the open of the same fill day, stop at the same number of weekly ATRs below the entry, first target at the same R multiple, same exits and the same same-day order; a draw that cannot be traded (no bar, stop over 40%) is redrawn up to 30 times. 200 random accounts per rule; trade-level differences use a month-clustered t on winsorized differences.",
+  "Adoption (training window only, written before the run): a variant is adopted if it has at least 60 account trades, its account Sharpe is at least 0.05 above the baseline's and its share of random accounts beaten is at least 5 points above the baseline's. Adopted changes are combined; if none is adopted the baseline goes to the test.",
+  "Test (run once): the chosen rule passes if its account Sharpe beats at least 95% of 200 random accounts, its trades beat same-day random trades with t >= 2 and both the winsorized mean and the median difference positive, and it has at least 60 signals. One rule is tested, so no multiple-test correction is applied to the test; the seven training comparisons are a selection step, not a claim.",
+  "Reported, not pass conditions: SPY and SPY at the account's exposure over the same sessions; goal 1 of the portfolio roadmap (Sharpe and Calmar at least SPY's, worst fall at most 25%); win rate, payoff and expectancy in R for both sides; exit reasons and median holding by kind.",
+  "Known limitations: the universe is the 1,228 stocks that once produced SV signals (survivorship); adjusted prices; the engine's definitions were corrected on about 30 user-reviewed cases and several of them fall in 2017-2025 (for example COLB 2019, QTWO 2020, EIX 2021, AXSM 2022, AVTR 2023-24), so the test window is not fully unseen by the rule design; a forward test from 2025-07 onward is the clean check.",
+  "Engineering checks only were run locally (timing and counts: 1,082 signals, 195 monthly and 887 weekly; 500 fill in the training window). No account, random or return figure was looked at before registration."
+ ]
+}
