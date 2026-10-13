@@ -7,8 +7,8 @@ used by any registered experiment. Run: python3 -m research.lab.v3weekly OUT.jso
   within the tolerance (max 6%, 1 weekly ATR) of the zone's lowest low.
 2 Location (V3): a bottom within 6% of the weekly EMA20/50/200, or the lower bottom at 50-70% of the prior advance.
 3 Three-or-more-push downtrend line from descending weekly highs, no weekly close above it between the pushes.
-4 Signal week t: a weekly bullish engulfing within the second zone (its low within the tolerance of the second low), 0-8 weeks
-  after the second low; weekly MACD crossed or about to cross at t.
+4 Signal week t: a weekly bullish engulfing (after a bearish or doji week) 1-10 weeks after the second low, inside the zone (CSGP)
+  or at the breakout (NLY); weekly MACD crossed or about to cross at t.
 5 Entry: a buy-stop at the higher of week t's high and the line's level, alive for three weeks, cancelled if the stop is hit first
   (gap above: the open).
 6 Stop at the second zone's low; first target the prior high (highest high of the 52 weeks before the first bottom); R >= 1.5.
@@ -44,8 +44,11 @@ def macd_ok(h, dif, dea, k):
 
 
 def bullish_engulf(r, k):
+    """A bullish body that covers the previous bearish (or doji) body (0.5% tolerance; NLY 2009-05-01 follows a doji)."""
     a, b = r[k - 1], r[k]
-    return b["close"] > b["open"] and a["close"] < a["open"] and b["open"] <= a["close"] * 1.005 and b["close"] >= a["open"] * 0.995
+    doji = abs(a["close"] - a["open"]) <= 0.1 * max(a["high"] - a["low"], 1e-9)
+    return (b["close"] > b["open"] and (a["close"] < a["open"] or doji) and b["open"] <= min(a["open"], a["close"]) * 1.005
+            and b["close"] >= max(a["open"], a["close"]) * 0.995)
 
 
 def zone(rows, j, tol, last=None):
@@ -103,8 +106,8 @@ def scan_symbol(symbol):
         j2 = min(range(t - 12, t), key=lambda j: (rows[j]["low"], -j))
         L2 = rows[j2]["low"]
         tol = max(0.06, atr[j2] / rows[j2]["close"])
-        if rows[t]["low"] > L2 * (1 + tol) or t - j2 > 8:
-            continue
+        if t - j2 > 10:
+            continue  # the engulfing comes within ten weeks of the second bottom, in the zone (CSGP) or at the breakout (NLY)
         j1 = min(range(max(0, j2 - 60), j2 - 6 + 1), key=lambda j: (rows[j]["low"], j))
         L1 = rows[j1]["low"]
         H = max(r["high"] for r in rows[j1 + 1:j2])
