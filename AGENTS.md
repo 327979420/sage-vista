@@ -4,6 +4,7 @@ Follow the user's current instructions and existing authorization. The single ex
 
 ## Minimum reading
 
+- Start with `docs/START_HERE_ZH.md`: what the project is, current conclusions, which documents are current and which are retired, the working rules and the research code map.
 - Check Git status in the actual working directory and read `docs/CURRENT_STATUS_ZH.md`; verify only the machine sources relevant to the task. Local, other worktrees and production may differ. Protect other tasks' changes.
 - Use `docs/rules/README.md` to choose the one affected business rule (for example `docs/rules/04_SCORING.md` for scoring). Use `docs/CODEBASE_MAP_ZH.md` only to locate the implementation.
 - Read only the relevant entry in `docs/CHANGE_REQUESTS_ZH.md`. Continue already authorized work without another approval round.
