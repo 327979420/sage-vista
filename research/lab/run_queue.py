@@ -27,7 +27,7 @@ import statistics
 import subprocess
 
 from services.scanner.support_risk import signal_support_plan
-from research.lab import account, allocation, coverage, datasets, levels, selection, timeframe
+from research.lab import account, allocation, buytrain, coverage, datasets, levels, selection, timeframe
 from research.lab.exit_rules import OPEN_FILLS, simulate
 from research.lab.metrics import evaluate, summarise
 
@@ -679,6 +679,18 @@ def run_coverage_spec(spec, data, dataset_entry, cost, benchmark):
     return result, gzip.compress(csv_buffer.getvalue().encode(), 9, mtime=0)
 
 
+def run_buysystem_train_spec(spec, data, dataset_entry, cost, benchmark):
+    """The buy system's training and one-time test against same-day random stocks (docs/BUY_SYSTEM_ZH.md)."""
+    result, rows = buytrain.run(spec, data, dataset_entry, cost, benchmark)
+    csv_buffer = io.StringIO()
+    writer = csv.writer(csv_buffer)
+    fields = ["arm", "window", "symbol", "kind", "decision_date", "fill_date", "entry", "stop", "target", "rr", "atr_multiple", "net", "exit", "held"]
+    writer.writerow(fields)
+    for r in rows:
+        writer.writerow([r[f] for f in fields])
+    return result, gzip.compress(csv_buffer.getvalue().encode(), 9, mtime=0)
+
+
 def render_selection_report(result):
     pct = lambda x, d=1: "—" if x is None else f"{x * 100:.{d}f}%"
     num = lambda x: "—" if x is None else f"{x:.2f}"
@@ -829,6 +841,9 @@ def render_scoreboard(results):
         if result["champion"] and result.get("kind") == "levels":
             f = result["arms"]["main"]["families"][result["champion"]]
             board["champions"][result["group"]] = {"spec_id": result["spec_id"], "variant": result["champion"], "rule": f["rule"], "overall": f["sv"]}
+        elif result["champion"] and result.get("kind") == "buysystem_train":
+            board["champions"][result["group"]] = {"spec_id": result["spec_id"], "variant": result["champion"], "rule": result["final_changes"],
+                                                   "overall": result["test"]["sv"]}
         elif result["champion"]:
             v = result["variants"][result["champion"]]
             board["champions"][result["group"]] = {"spec_id": result["spec_id"], "variant": result["champion"], "rule": v["rule"],
@@ -841,6 +856,14 @@ def render_scoreboard(results):
             lines += [f"## {result['spec_id']} ({result['dataset']['dataset_id']}, opportunities traded by level under the user's rules vs random picks)", "",
                       result["question"], "", "Families passing: " + (", ".join(result["passed_families"]) or "none") + "; extra checks passing: "
                       + (", ".join(result["extra_checks_passed"]) or "none"), ""]
+            continue
+        if result.get("kind") == "buysystem_train":
+            t = result["test"]
+            lines += [f"## {result['spec_id']} ({result['dataset']['dataset_id']}, buy system trained {result['windows']['train'][0]} to "
+                      f"{result['windows']['train'][1]}, tested once {result['windows']['test'][0]} to {result['windows']['test'][1]})", "", result["question"], "",
+                      f"Adopted on training: {', '.join(result['adopted']) or 'none'}. Test: Sharpe {t['sv']['sharpe']}, beats "
+                      f"{(t['random']['sv_beats_share_sharpe'] or 0) * 100:.0f}% of random accounts, trade excess t {t['trade_level'].get('t_monthly')}. Passed: "
+                      + ("yes" if result["passed"] else "no"), ""]
             continue
         if result.get("kind") == "coverage":
             last = result["years"][-1] if result["years"] else {}
@@ -895,6 +918,8 @@ def write_outputs(root, result, trades_csv, event, manifests):
         (out / "REPORT.md").write_text(levels.render_cases(result))
     elif result.get("kind") == "coverage":
         (out / "REPORT.md").write_text(coverage.render(result))
+    elif result.get("kind") == "buysystem_train":
+        (out / "REPORT.md").write_text(buytrain.render(result))
     for entry in manifests:
         record = pathlib.Path(root) / "research/lab/datasets" / f"{entry['dataset_id']}.json"
         record.parent.mkdir(parents=True, exist_ok=True)
@@ -965,7 +990,7 @@ def main(argv=None):
             benchmark = {"symbol": symbol, "series": bench_data["prices"][symbol], "entry": bench_entry}
         run = {"account": run_account_spec, "allocation": run_allocation_spec, "selection": run_selection_spec,
                "timeframe": run_timeframe_spec, "levels": run_levels_spec, "cases": run_cases_spec,
-               "coverage": run_coverage_spec}.get(spec.get("kind"), run_spec)
+               "coverage": run_coverage_spec, "buysystem_train": run_buysystem_train_spec}.get(spec.get("kind"), run_spec)
         extra = {}
         if spec.get("core"):
             extra["core_data"] = load(spec["core"]["dataset"])[0]

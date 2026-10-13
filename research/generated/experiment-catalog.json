@@ -1,15 +1,15 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-12T06:22:28+00:00",
+  "generated_at": "2026-10-13T08:29:39+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 61,
+  "experiment_count": 62,
   "summary": {
     "completed": 44,
-    "in_progress": 17,
+    "in_progress": 18,
     "candidate": 15,
     "not_validated_or_unstable": 22
   },
@@ -21,6 +21,65 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "lab-buysystem-train-v1-2026-10-13",
+      "created_at": "2026-10-13",
+      "status": "pre_registered",
+      "change": "Buy system 0.2.0 trained on 2005-2016 (baseline plus seven one-change variants, pre-registered adoption rule) and tested once on 2017 to 2025-06 against same-day random stocks with the same stop distance in weekly ATRs, the same target multiple and the same exits",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#buysystem-train",
+        "lab_spec": "research/lab/queue/buysystem-train-v1.json",
+        "engine": "research/lab/buysystem.py (docs/BUY_SYSTEM_ZH.md 0.2.0)",
+        "runner": "research/lab/buytrain.py",
+        "dataset": "universe-1985-v1 (1,228 stocks, EODHD adjusted daily history from 1985)",
+        "variants": [
+          "V1 weekly pullback floor 8%",
+          "V2 daily wait 5 days",
+          "V3 chase limit 3 weekly ATRs",
+          "V4 no place MACD veto",
+          "V5 no T4 place",
+          "V6 six-month relative strength order",
+          "V7 SPY above its 200-day average"
+        ]
+      },
+      "success_criteria": "Adoption on 2005-2016: at least 60 account trades, account Sharpe at least 0.05 above the baseline and share of 200 random accounts beaten at least 5 points above the baseline. Test on 2017-01 to 2025-06, run once: account Sharpe beats at least 95% of 200 random accounts; trades beat same-day random trades with a month-clustered t of at least 2 and positive winsorized mean and median difference; at least 60 signals.",
+      "known_limitations": [
+        "the universe is the stocks that once produced SV signals (survivorship)",
+        "adjusted prices differ from the user's charting software",
+        "several user-reviewed cases used to correct definitions fall in the test window, so it is not fully unseen; a forward test from 2025-07 is the clean check"
+      ],
+      "human_summary": {
+        "title_zh": "买入系统 0.2.0 训练与考试：对同日随机股票",
+        "family": "quant_lab_portfolio",
+        "family_zh": "量化研究实验室",
+        "question_zh": "按用户的三层规则（月线机会：月定方向、周找位置、日定时机；周线机会：月线不作对、周定方向、日找位置和时机）买入，止损放在结构下、第一目标看被验证的阻力，能否胜过同一天、同交易池、同止损距离（周线ATR倍数）、同目标倍数、同卖出规则的随机股票？2005—2016练习：基准加7个单项改动（周线回调8%、日线等5天、追高3个ATR、去掉位置MACD否决、去掉T4、相对强度排序、大盘过滤），按事先写好的规则选；2017—2025年6月考试只跑一次。",
+        "result_zh": "待运行。",
+        "use_zh": "研究用；不进入生产评分、排名、交易规则或网站。考试通过后还要用户反向盲评（10个认可至少8个）和前向模拟。",
+        "next_zh": "通过：反向盲评，然后与E6一起前向模拟。不通过：失败照实保留，复查交易清单和用户不同意的案例找定义错误，新版本另行登记，用2025年7月以后的数据考试。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-13T08:29:39+00:00",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-10-13T08:29:39+00:00",
+        "time_source": "assistant_registration",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "lab-buysystem-train-v1-2026-10-13",
+            "event": "registered",
+            "event_at": "2026-10-13T08:29:39+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/buysystem-train-v1.json",
+              "note": "registered before any account, random or return figure was looked at; local checks were timing and signal counts only"
+            }
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "lab-data-long-history-v1-2026-10-11",
       "created_at": "2026-10-11",
@@ -4942,6 +5001,7 @@
     "lab-a-holdout-forward-v1-2026-10-08",
     "lab-a2-account-20y-v1-2026-10-08",
     "lab-b1-core-satellite-v1-2026-10-09",
+    "lab-buysystem-train-v1-2026-10-13",
     "lab-c1-proven-portfolios-v1-2026-10-08",
     "lab-data-long-history-v1-2026-10-11",
     "lab-e0-core-long-history-v1-2026-10-10",

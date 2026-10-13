@@ -36,10 +36,10 @@ PARAMS = {
     "trendline": {"anchor_lookback": {"month": 36, "week": 52}, "min_gap": 3, "break_pct": 0.01, "touch_pct": 0.02, "touch_atr": 0.5},
     "sync": {"before": 3, "after": 3, "slow_after": 6, "rising_bars": 3},
     "place": {"tol_pct": 0.02, "tol_atr": 0.5, "min_pullback_atr": 1.0, "confirm_body_atr": 1.0, "converge_pct": 0.02, "converge_atr": 1.0,
-              "t3_place_bars": {"week": 6, "day": 10}, "t3_direction_bars": 3, "t4_low_bars": {"week": 8, "day": 40}},
+              "t3_place_bars": {"week": 6, "day": 10}, "t3_direction_bars": 3, "t4_low_bars": {"week": 8, "day": 40}, "t4": True},
     "daily": {"window": 10, "zone_atr": 1.0, "gap_atr": 1.0},
     "veto": {"chase_atr": 2.0, "up_weeks": 3, "up_months": 5, "recent_bars": 3, "big_bear_atr": 1.5, "ema50_lost_bars": 8,
-             "box_weeks": 52, "box_slope": 0.03, "box_ratio": 0.5},
+             "box_weeks": 52, "box_slope": 0.03, "box_ratio": 0.5, "place_macd": True},
     "risk": {"buffer_pct": 0.01, "buffer_atr": 0.25, "min_rr": 1.5, "max_stop": 0.40, "fibs": [0.382, 0.5, 0.618, 0.786],
              "confirm_pct": 0.03, "confirm_bars": 2},
     "exit": {"first_fraction": 2 / 3, "max_sessions": 5040},
@@ -368,7 +368,7 @@ def places(D, Dd, X, P, setup, kind, p, valid_day, last_day):
                 add("T3", (place_tf, j), touch, P["low"][j], candle="engulfing" if _bull_engulf(P, j) else "big_body", half=round(half, 4))
         e = (P["ema20"][j - 1], P["ema50"][j - 1], P["ema200"][j - 1])
         spread = max(e) - min(e)
-        if (spread <= pp["converge_pct"] * P["close"][j - 1] or spread <= pp["converge_atr"] * P["atr"][j - 1]) \
+        if pp["t4"] and (spread <= pp["converge_pct"] * P["close"][j - 1] or spread <= pp["converge_atr"] * P["atr"][j - 1]) \
                 and P["close"][j] > max(P["ema20"][j], P["ema50"][j], P["ema200"][j]) and P["dif"][j - 1] <= P["dea"][j - 1] and P["dif"][j] > P["dea"][j]:
             add("T4", (place_tf, j), place_day, min(P["low"][max(0, j - pp["t4_low_bars"][place_tf] + 1):j + 1]), spread=round(spread / P["close"][j - 1], 4))
     for k in range(setup["valid"], min(setup["valid"] + p["kinds"][kind]["window"], len(X["close"]) - 1) + 1):
@@ -429,7 +429,7 @@ def vetoes(D, Dd, bars, kind, day, entry, bg, p, lows):
         out.append("upper_half_of_box")
     # Place timeframe: momentum, a bearish bar not taken back, EMA50 lost and not taken back.
     h = P["hist"]
-    if not (h[j] > h[j - 1] or (P["dif"][j] > P["dea"][j] and not (h[j] < h[j - 1] < h[j - 2]))):
+    if vp["place_macd"] and not (h[j] > h[j - 1] or (P["dif"][j] > P["dea"][j] and not (h[j] < h[j - 1] < h[j - 2]))):
         out.append("macd_weakening")
     for i in range(max(1, j - vp["recent_bars"] + 1), j + 1):
         big = P["open"][i] - P["close"][i] >= vp["big_bear_atr"] * P["atr"][i]
@@ -468,14 +468,28 @@ def confluence(D, T, last, start_day, day, entry, neckline, rp):
     return above, {"leg_high": leg_high, "leg_high_date": D["date"][top], "leg_low": leg_low, "inside": inside}
 
 
+def nearest_unbroken_low(low, known, k, below):
+    """The highest swing low under `below` that no later bar (up to k) traded under; one backward pass over the swing lows."""
+    best, running, upto = None, float("inf"), k
+    for j in reversed(known):
+        if upto > j:
+            running = min(running, min(low[j + 1:upto + 1]))
+            upto = j
+        if low[j] <= running and low[j] < below and (best is None or low[j] > best):
+            best = low[j]
+        if best is not None and running < best:
+            break  # every earlier unbroken low is at most `running`, so none can beat `best`
+    return best
+
+
 def plan(D, bars, kind, day, entry, setup, bg, p, lows):
     """Stop under the nearest unbroken swing low of the direction timeframe; first target at the nearest confirmed resistance."""
     rp, cfg, n = p["risk"], p["kinds"][kind], len(D["close"])
     X, W = bars[cfg["direction"]], bars["week"]
     k, w = completed(X, day, n), completed(W, day, n)
     right = p["swing"]["right"]
-    unbroken = [X["low"][j] for j in _known(lows[cfg["direction"]], k, right) if X["low"][j] < entry * 0.995 and min(X["low"][j:k + 1]) >= X["low"][j]]
-    base, basis = (max(unbroken), "nearest_unbroken_low") if unbroken else (bg["structure_low"], "structure_low")
+    nearest = nearest_unbroken_low(X["low"], _known(lows[cfg["direction"]], k, right), k, entry * 0.995)
+    base, basis = (nearest, "nearest_unbroken_low") if nearest is not None else (bg["structure_low"], "structure_low")
     stop = base - max(rp["buffer_pct"] * base, rp["buffer_atr"] * W["atr"][w])
     if not 0 < stop < entry:
         return None, "no_stop_below_entry"
@@ -498,8 +512,9 @@ def plan(D, bars, kind, day, entry, setup, bg, p, lows):
 
 # ---------------------------------------------------------------- scan and trade
 
-def scan(D, kind="month", p=None, start=None, end=None):
-    """Signals and near misses of one kind for one stock (daily columns), with fill dates inside [start, end]."""
+def scan(D, kind="month", p=None, start=None, end=None, fast=False):
+    """Signals and near misses of one kind for one stock (daily columns), with fill dates inside [start, end].
+    `fast` returns the same signals without near-miss cards (the stop and target are checked before the slower vetoes)."""
     p = p or PARAMS
     cfg, n = p["kinds"][kind], len(D["close"])
     W, M, Dd = periods(D, "week"), periods(D, "month"), daily_bars(D)
@@ -524,17 +539,22 @@ def scan(D, kind="month", p=None, start=None, end=None):
                 continue
             bg, why = background(X, k, cfg, lows[cfg["direction"]], W if kind == "month" else None, completed(W, day, n))
             if bg is None:
-                misses.append(_card(D, bars, kind, setup, {"kind": None, "reason": why}, trig, None, ["no_background"], None, day))
+                if not fast:
+                    misses.append(_card(D, bars, kind, setup, {"kind": None, "reason": why}, trig, None, ["no_background"], None, day))
                 continue
             if min(D["low"][valid_day:day + 1]) < bg["structure_low"] * (1 - cfg["b"]["tol_pct"]):
-                misses.append(_card(D, bars, kind, setup, bg, trig, None, ["structure_broken"], None, day))
+                if not fast:
+                    misses.append(_card(D, bars, kind, setup, bg, trig, None, ["structure_broken"], None, day))
+                continue
+            risk, reason = plan(D, bars, kind, day, trig["entry"], setup, bg, p, lows)
+            if fast and reason:
                 continue
             vetoed, checks = vetoes(D, Dd, bars, kind, day, trig["entry"], bg, p, lows)
-            risk, reason = plan(D, bars, kind, day, trig["entry"], setup, bg, p, lows)
-            card = _card(D, bars, kind, setup, bg, trig, risk, vetoed, reason, day, checks)
             if vetoed or reason:
-                misses.append(card)
+                if not fast:
+                    misses.append(_card(D, bars, kind, setup, bg, trig, risk, vetoed, reason, day, checks))
                 continue
+            card = _card(D, bars, kind, setup, bg, trig, risk, vetoed, reason, day, checks)
             signals.append(card)
             used.update(range(trig["fill_day"] - 10, trig["fill_day"] + 11))
             break
