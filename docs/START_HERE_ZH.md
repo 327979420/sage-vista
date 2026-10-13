@@ -16,7 +16,8 @@ Sage Vista（SV）是用户（Freddy）的美股研究系统，分两部分：
 | 账户核心放什么 | **永久组合**（股票、长债、黄金、短债各 25%），1993—2026 年化 7.5%、最大回撤 18%、Sharpe 1.10 | 实验 E0、C1、E8 |
 | 旧的 SV 多因子选股能不能用来买股票 | **不能**。四次检验（E1b、E5a、E1c、E7b）都没胜过同规则的随机选股；网站上的机会排行只作观察 | 08 规则"E7b、E8 结论" |
 | 买入系统 0.2.0 能不能用 | **不能**。训练与考试未通过：2005—2016 明显差于同日随机股票，7 个改动都没帮上；2017—2025 和随机差不多。止损、目标、分批卖出对随机股票同样有效 | 实验 `lab-buysystem-train-v1`、08 规则 `#buysystem-train` |
-| 下一步 | 待用户决定：反向盲评（区分是机器没学会用户的眼光，还是这种买法本身没有优势）；任何新版本另行登记，用 2025 年 7 月以后的数据前向考试 | 需求账本 CR-2026-10-13d |
+| 现在在做 | **只做一个固定形态：用户的 V3，用周线做**（两个底区、第二个底更高、三推以上趋势线、底区周线看涨吞噬加 MACD、突破吞噬高点买、止损第二个底、目标前高）。用户在标注页逐个选“做/不做”来教机器；同时扩大股票池（含退市股票）作为考试数据 | 案例账本第十七节、`research/lab/v3weekly.py`、08 规则 `#fresh-universe` |
+| 反向盲评 | 用户认可 10 个里 3 个：机器还没学会用户的眼光，先修定义 | 案例账本第十七节 |
 | 模拟账户 | E6 自 2026-10-12 起每天记录（SPY、永久组合、60/40 等，不含 SV 信号） | `research/lab/forward/` |
 
 ## 3. 买入系统一句话
@@ -79,6 +80,8 @@ Sage Vista（SV）是用户（Freddy）的美股研究系统，分两部分：
 | `datasets.py` | 冻结数据集（存在 GitHub release `research-datasets`，按 SHA256 校验）；`universe-1985-v1` 是 1,228 只股票从 1985 年起的复权日线 |
 | `buysystem.py` | **买入系统 0.2.0**：月线机会和周线机会的扫描、依据卡、交易模拟 |
 | `buytrain.py` | 买入系统的训练与考试：全市场扫描、练习段比较改动、考试段一次、同日随机对照 |
+| `v3weekly.py` | 周线 V3 候选扫描（草稿，标注中） |
+| `screen.py` | 扩大股票池：找出从没见过的美股（含退市），分份 |
 | `exit_rules.py` | 通用交易模拟（止损、目标、跟踪、趋势卖出、时间卖出） |
 | `account.py` | 10 万美元账户逐日模拟（仓位、风险上限） |
 | `selection.py`、`levels.py`、`timeframe.py` | 与随机选股对比的实验（E1b、E7b 等） |
@@ -92,6 +95,8 @@ Sage Vista（SV）是用户（Freddy）的美股研究系统，分两部分：
 |---|---|
 | 研究进度（每次实验后更新） | <https://claude.ai/artifact/DAvLFAzoaQt7vfLsUaWC7V> |
 | 需要用户核对的案例（买入系统 0.2.0） | <https://claude.ai/artifact/YJMwf3jKVEzmZYbiwRUehf> |
+| 周线 V3 标注（用户选“做/不做”，自动保存） | <https://claude.ai/artifact/YNNtUwXBuRvAehRDvK2KD8> |
+| 反向盲评、结果、为什么输给随机 | <https://claude.ai/artifact/LsWT2mAZmV1HVS8Byw5vo5> |
 | 交易演练：JLL 2009（三层规则） | <https://claude.ai/artifact/J92pfNvWT3zgyEWtVmqF2z> |
 | 交易演练：INCY 2020（旧两层规则，已被取代） | <https://claude.ai/artifact/4AsyQr7XtaY4tY64LkK39W> |
 | 盲评打分页（2026-10-11，12 个案例） | <https://claude.ai/artifact/61aLnbsym85tvoupxPHZXm> |

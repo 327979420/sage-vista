@@ -1179,6 +1179,12 @@ class QueueAndDatasetTests(unittest.TestCase):
                 self.assertTrue((ROOT / spec["dataset"]["symbols_file"]).exists(), path.name)
                 self.assertIn("max_missing_share", spec["criteria"], path.name)
                 continue
+            if spec.get("kind") == "screen":
+                self.assertEqual(spec["dataset"]["builder"], "universe", path.name)
+                self.assertTrue(spec["shard_dir"].startswith("research/lab/"), path.name)
+                for key in ("max_failed_share", "min_kept"):
+                    self.assertIn(key, spec["criteria"], path.name)
+                continue
             if spec.get("kind") == "buysystem_train":
                 from research.lab import buysystem, buytrain
                 for changes in spec["variants"].values():

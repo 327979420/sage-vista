@@ -1,15 +1,15 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-13T09:15:31+00:00",
+  "generated_at": "2026-10-13T14:37:40+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 62,
+  "experiment_count": 63,
   "summary": {
     "completed": 45,
-    "in_progress": 17,
+    "in_progress": 18,
     "candidate": 15,
     "not_validated_or_unstable": 23
   },
@@ -21,6 +21,54 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "lab-data-fresh-universe-v1-2026-10-14",
+      "created_at": "2026-10-14",
+      "status": "pre_registered",
+      "change": "Engineering check: list the US common stocks (listed and delisted) that met the research pool floor on at least 60 sessions in 2005 to mid-2025 and are not in the 1,228-stock universe, as shards for new frozen datasets (no returns computed)",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#fresh-universe",
+        "lab_spec": "research/lab/queue/data-fresh-universe-v1.json",
+        "runner": "research/lab/screen.py"
+      },
+      "success_criteria": "At most 10% of downloads fail and at least 1,000 stocks are kept; the lists are reported whatever they show.",
+      "known_limitations": [
+        "tickers reused by two companies are left out entirely",
+        "the provider's symbol lists are today's; a company that changed ticker appears under its last ticker",
+        "volume is the provider's daily volume against split- and dividend-adjusted prices, the same convention as the existing pool"
+      ],
+      "human_summary": {
+        "title_zh": "扩大股票池：找出从没见过的美股",
+        "family": "quant_lab_portfolio",
+        "family_zh": "量化研究实验室",
+        "question_zh": "把在美国主板上市过的普通股（含已退市）逐只下载一次，留下 2005—2025 年 6 月至少 60 个交易日满足交易池门槛（收盘≥5 美元、成交额≥1000 万美元）、又不在现有 1,228 只里的股票，分成每份约 1,500 只。去掉代码被两家公司用过的股票。",
+        "result_zh": "待运行。",
+        "use_zh": "只是数据准备，不计算收益。之后每份冻结成数据集，用来考周线 V3 形态（新股票，机器从没见过）。",
+        "next_zh": "每份注册为冻结数据集（1995 年起日线）；V3 周线定义按用户标注冻结后，在这些股票上和同日随机比。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-13T14:37:40+00:00",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-10-13T14:37:40+00:00",
+        "time_source": "assistant_registration",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "lab-data-fresh-universe-v1-2026-10-14",
+            "event": "registered",
+            "event_at": "2026-10-13T14:37:40+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/data-fresh-universe-v1.json",
+              "note": "symbol lists and counts only; no price result is looked at"
+            }
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "lab-buysystem-train-v1-2026-10-13",
       "created_at": "2026-10-13",
@@ -5017,6 +5065,7 @@
     "lab-b1-core-satellite-v1-2026-10-09",
     "lab-buysystem-train-v1-2026-10-13",
     "lab-c1-proven-portfolios-v1-2026-10-08",
+    "lab-data-fresh-universe-v1-2026-10-14",
     "lab-data-long-history-v1-2026-10-11",
     "lab-e0-core-long-history-v1-2026-10-10",
     "lab-e1-selection-vs-random-v1-2026-10-10",
