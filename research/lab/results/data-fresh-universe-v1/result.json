@@ -1,0 +1,83 @@
+{
+ "kind": "screen",
+ "spec_id": "data-fresh-universe-v1",
+ "experiment_id": "lab-data-fresh-universe-v1-2026-10-14",
+ "group": "data",
+ "question": "Which US common stocks, listed today or delisted, met the research pool's floor often enough in 2005 to mid-2025 to belong to a wider universe that no rule has seen? (Engineering check: lists and counts only, no returns.)",
+ "dataset": {
+  "dataset_id": "universe-1985-v1",
+  "asset": "universe-1985-v1-6b7fce35b46d.json.gz",
+  "sha256": "6b7fce35b46de8e97853c349c9b972076993bb7f091d5a2f4b3966f2d6af536f",
+  "symbols": 1228
+ },
+ "window": [
+  "2005-01-01",
+  "2025-06-30"
+ ],
+ "pool": {
+  "min_close": 5.0,
+  "min_dollar_volume": 10000000.0
+ },
+ "min_sessions": 60,
+ "provider_counts": {
+  "listed": 6079,
+  "delisted": 16615,
+  "reused": 0
+ },
+ "candidates": 21499,
+ "downloaded": 18147,
+ "failed": 3352,
+ "failed_share": 0.1559,
+ "kept": 5743,
+ "shards": [
+  {
+   "file": "research/lab/universes/fresh-2005-2025-v1-a.txt",
+   "symbols": 1500
+  },
+  {
+   "file": "research/lab/universes/fresh-2005-2025-v1-b.txt",
+   "symbols": 1500
+  },
+  {
+   "file": "research/lab/universes/fresh-2005-2025-v1-c.txt",
+   "symbols": 1500
+  },
+  {
+   "file": "research/lab/universes/fresh-2005-2025-v1-d.txt",
+   "symbols": 1243
+  }
+ ],
+ "first_bar_year_of_kept": {
+  "2004": 2615,
+  "2005": 173,
+  "2006": 158,
+  "2007": 167,
+  "2008": 74,
+  "2009": 68,
+  "2010": 130,
+  "2011": 128,
+  "2012": 116,
+  "2013": 198,
+  "2014": 259,
+  "2015": 152,
+  "2016": 166,
+  "2017": 160,
+  "2018": 159,
+  "2019": 169,
+  "2020": 397,
+  "2021": 313,
+  "2022": 38,
+  "2023": 43,
+  "2024": 51,
+  "2025": 9
+ },
+ "criteria": {
+  "max_failed_share": 0.1,
+  "min_kept": 1000
+ },
+ "passed": false,
+ "champion": null,
+ "spec_sha256": "33edfb396c37c484cdac40077da2c95dccb20ba906969975092d67e80219d3ce",
+ "completed_at": "2026-10-13T15:24:14+00:00",
+ "code_commit": "c2a1e9f978ccb058a8b8dc32245ec9650dda3ca2"
+}

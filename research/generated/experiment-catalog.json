@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-13T14:37:40+00:00",
+  "generated_at": "2026-10-13T15:24:14+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
@@ -8,8 +8,8 @@
   ],
   "experiment_count": 63,
   "summary": {
-    "completed": 45,
-    "in_progress": 18,
+    "completed": 46,
+    "in_progress": 17,
     "candidate": 15,
     "not_validated_or_unstable": 23
   },
@@ -50,11 +50,11 @@
       "lifecycle": {
         "registered_at": "2026-10-13T14:37:40+00:00",
         "started_at": null,
-        "completed_at": null,
-        "latest_event": "registered",
-        "latest_event_at": "2026-10-13T14:37:40+00:00",
-        "time_source": "assistant_registration",
-        "event_count": 1,
+        "completed_at": "2026-10-13T15:24:14+00:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-10-13T15:24:14+00:00",
+        "time_source": "github_actions",
+        "event_count": 2,
         "events": [
           {
             "experiment_id": "lab-data-fresh-universe-v1-2026-10-14",
@@ -64,6 +64,20 @@
             "details": {
               "lab_spec": "research/lab/queue/data-fresh-universe-v1.json",
               "note": "symbol lists and counts only; no price result is looked at"
+            }
+          },
+          {
+            "experiment_id": "lab-data-fresh-universe-v1-2026-10-14",
+            "event": "completed",
+            "event_at": "2026-10-13T15:24:14+00:00",
+            "time_source": "github_actions",
+            "source_ref": "https://github.com/327979420/sage-vista/actions/runs/38418387082",
+            "details": {
+              "lab_spec": "data-fresh-universe-v1",
+              "spec_sha256": "33edfb396c37c484cdac40077da2c95dccb20ba906969975092d67e80219d3ce",
+              "result": "research/lab/results/data-fresh-universe-v1/result.json",
+              "dataset": "universe-1985-v1",
+              "champion": null
             }
           }
         ]

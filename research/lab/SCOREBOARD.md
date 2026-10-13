@@ -277,3 +277,9 @@ Build the long-history price dataset the monthly-led buy system needs (the 1,223
 
 Built 1228 of 1228 symbols; in 2025, 892 of 1224 trading stocks had 200 months of history. Passed: yes
 
+## data-fresh-universe-v1 (wider universe screen, engineering check)
+
+Which US common stocks, listed today or delisted, met the research pool's floor often enough in 2005 to mid-2025 to belong to a wider universe that no rule has seen? (Engineering check: lists and counts only, no returns.)
+
+Kept 5743 of 21499 candidates in 4 shards; failed downloads 3352. Passed: no
+
