@@ -1,0 +1,12 @@
+{
+ "dataset_id": "fresh-d-1995-v1",
+ "asset": "fresh-d-1995-v1-a6b3046e18e2.json.gz",
+ "sha256": "a6b3046e18e218f6a0e2b5b6bc861b46b456036f82494027c7e406b6e67f578b",
+ "bytes": 61431742,
+ "release": "research-datasets",
+ "events": 0,
+ "symbols": 1000,
+ "source": "EODHD full adjusted history from 1995-01-01 for research/lab/universes/fresh-2005-2025-v2-d.txt plus 0 extra symbols, with the unadjusted close",
+ "price_basis": "EODHD adjusted daily OHLCV",
+ "missing_symbols": 0
+}

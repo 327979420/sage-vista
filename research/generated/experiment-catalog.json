@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-13T18:20:01+00:00",
+  "generated_at": "2026-10-13T18:32:17+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
@@ -8,8 +8,8 @@
   ],
   "experiment_count": 68,
   "summary": {
-    "completed": 50,
-    "in_progress": 18,
+    "completed": 51,
+    "in_progress": 17,
     "candidate": 15,
     "not_validated_or_unstable": 24
   },
@@ -21,6 +21,65 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "lab-data-fresh-d-v1-2026-10-14",
+      "created_at": "2026-10-14",
+      "status": "pre_registered",
+      "change": "Engineering check: freeze shard d of the wider universe as dataset fresh-d-1995-v1 (daily history from 1995 with the unadjusted close; no returns computed)",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#fresh-universe",
+        "lab_spec": "research/lab/queue/data-fresh-d-v1.json"
+      },
+      "success_criteria": "At most 5% of the shard's symbols cannot be built; the coverage table is reported whatever it shows.",
+      "known_limitations": [
+        "delisted stocks without provider history are not in the shard (counted by data-fresh-universe-v2)"
+      ],
+      "human_summary": {
+        "title_zh": "新股票池第 d 份：冻结成数据集",
+        "family": "quant_lab_portfolio",
+        "family_zh": "量化研究实验室",
+        "question_zh": "把扩大股票池的第 d 份（1000 只，机器从没见过）冻结成数据集：1995 年起的日线，并保留未复权价。",
+        "result_zh": "待运行。",
+        "use_zh": "只是数据准备，不计算收益；只用于周线 V3 的最终考试。",
+        "next_zh": "四份都建好后，登记周线 V3 的考试。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-13T17:11:09+00:00",
+        "started_at": null,
+        "completed_at": "2026-10-13T18:32:17+00:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-10-13T18:32:17+00:00",
+        "time_source": "github_actions",
+        "event_count": 2,
+        "events": [
+          {
+            "experiment_id": "lab-data-fresh-d-v1-2026-10-14",
+            "event": "registered",
+            "event_at": "2026-10-13T17:11:09+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/data-fresh-d-v1.json",
+              "note": "data build and coverage count only"
+            }
+          },
+          {
+            "experiment_id": "lab-data-fresh-d-v1-2026-10-14",
+            "event": "completed",
+            "event_at": "2026-10-13T18:32:17+00:00",
+            "time_source": "github_actions",
+            "source_ref": "https://github.com/327979420/sage-vista/actions/runs/38445918835",
+            "details": {
+              "lab_spec": "data-fresh-d-v1",
+              "spec_sha256": "d03ea100465e5ac18601a9def2506de921fe2a687282a66664c6ecc0dff101ff",
+              "result": "research/lab/results/data-fresh-d-v1/result.json",
+              "dataset": "fresh-d-1995-v1",
+              "champion": null
+            }
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "lab-data-fresh-c-v1-2026-10-14",
       "created_at": "2026-10-14",
@@ -193,51 +252,6 @@
               "result": "research/lab/results/data-fresh-a-v1/result.json",
               "dataset": "fresh-a-1995-v1",
               "champion": null
-            }
-          }
-        ]
-      }
-    },
-    {
-      "experiment_id": "lab-data-fresh-d-v1-2026-10-14",
-      "created_at": "2026-10-14",
-      "status": "pre_registered",
-      "change": "Engineering check: freeze shard d of the wider universe as dataset fresh-d-1995-v1 (daily history from 1995 with the unadjusted close; no returns computed)",
-      "specification": {
-        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#fresh-universe",
-        "lab_spec": "research/lab/queue/data-fresh-d-v1.json"
-      },
-      "success_criteria": "At most 5% of the shard's symbols cannot be built; the coverage table is reported whatever it shows.",
-      "known_limitations": [
-        "delisted stocks without provider history are not in the shard (counted by data-fresh-universe-v2)"
-      ],
-      "human_summary": {
-        "title_zh": "新股票池第 d 份：冻结成数据集",
-        "family": "quant_lab_portfolio",
-        "family_zh": "量化研究实验室",
-        "question_zh": "把扩大股票池的第 d 份（1000 只，机器从没见过）冻结成数据集：1995 年起的日线，并保留未复权价。",
-        "result_zh": "待运行。",
-        "use_zh": "只是数据准备，不计算收益；只用于周线 V3 的最终考试。",
-        "next_zh": "四份都建好后，登记周线 V3 的考试。",
-        "verdict": "pre_registered"
-      },
-      "lifecycle": {
-        "registered_at": "2026-10-13T17:11:09+00:00",
-        "started_at": null,
-        "completed_at": null,
-        "latest_event": "registered",
-        "latest_event_at": "2026-10-13T17:11:09+00:00",
-        "time_source": "assistant_registration",
-        "event_count": 1,
-        "events": [
-          {
-            "experiment_id": "lab-data-fresh-d-v1-2026-10-14",
-            "event": "registered",
-            "event_at": "2026-10-13T17:11:09+00:00",
-            "time_source": "assistant_registration",
-            "details": {
-              "lab_spec": "research/lab/queue/data-fresh-d-v1.json",
-              "note": "data build and coverage count only"
             }
           }
         ]
