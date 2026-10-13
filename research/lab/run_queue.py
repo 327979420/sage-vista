@@ -27,7 +27,7 @@ import statistics
 import subprocess
 
 from services.scanner.support_risk import signal_support_plan
-from research.lab import account, allocation, buytrain, coverage, datasets, levels, selection, timeframe
+from research.lab import account, allocation, buytrain, coverage, datasets, levels, screen, selection, timeframe
 from research.lab.exit_rules import OPEN_FILLS, simulate
 from research.lab.metrics import evaluate, summarise
 
@@ -679,6 +679,19 @@ def run_coverage_spec(spec, data, dataset_entry, cost, benchmark):
     return result, gzip.compress(csv_buffer.getvalue().encode(), 9, mtime=0)
 
 
+def run_screen_spec(spec, data, dataset_entry, cost, benchmark):
+    """A wider universe of stocks never seen by any rule (engineering check; no returns are computed)."""
+    result, stats, failed = screen.run(spec, data, dataset_entry, ROOT)
+    csv_buffer = io.StringIO()
+    writer = csv.writer(csv_buffer)
+    writer.writerow(["symbol", "good_sessions", "first_bar", "last_bar", "bars", "kept", "failed"])
+    for symbol, info in sorted(stats.items()):
+        writer.writerow([symbol, info["good_sessions"], info["first"], info["last"], info["bars"], int(info["good_sessions"] >= spec["min_sessions"]), 0])
+    for symbol in failed:
+        writer.writerow([symbol, "", "", "", "", 0, 1])
+    return result, gzip.compress(csv_buffer.getvalue().encode(), 9, mtime=0)
+
+
 def run_buysystem_train_spec(spec, data, dataset_entry, cost, benchmark):
     """The buy system's training and one-time test against same-day random stocks (docs/BUY_SYSTEM_ZH.md)."""
     result, rows = buytrain.run(spec, data, dataset_entry, cost, benchmark)
@@ -857,6 +870,11 @@ def render_scoreboard(results):
                       result["question"], "", "Families passing: " + (", ".join(result["passed_families"]) or "none") + "; extra checks passing: "
                       + (", ".join(result["extra_checks_passed"]) or "none"), ""]
             continue
+        if result.get("kind") == "screen":
+            lines += [f"## {result['spec_id']} (wider universe screen, engineering check)", "", result["question"], "",
+                      f"Kept {result['kept']} of {result['candidates']} candidates in {len(result['shards'])} shards; failed downloads {result['failed']}. Passed: "
+                      + ("yes" if result["passed"] else "no"), ""]
+            continue
         if result.get("kind") == "buysystem_train":
             t = result["test"]
             lines += [f"## {result['spec_id']} ({result['dataset']['dataset_id']}, buy system trained {result['windows']['train'][0]} to "
@@ -920,6 +938,8 @@ def write_outputs(root, result, trades_csv, event, manifests):
         (out / "REPORT.md").write_text(coverage.render(result))
     elif result.get("kind") == "buysystem_train":
         (out / "REPORT.md").write_text(buytrain.render(result))
+    elif result.get("kind") == "screen":
+        (out / "REPORT.md").write_text(screen.render(result))
     for entry in manifests:
         record = pathlib.Path(root) / "research/lab/datasets" / f"{entry['dataset_id']}.json"
         record.parent.mkdir(parents=True, exist_ok=True)
@@ -990,7 +1010,8 @@ def main(argv=None):
             benchmark = {"symbol": symbol, "series": bench_data["prices"][symbol], "entry": bench_entry}
         run = {"account": run_account_spec, "allocation": run_allocation_spec, "selection": run_selection_spec,
                "timeframe": run_timeframe_spec, "levels": run_levels_spec, "cases": run_cases_spec,
-               "coverage": run_coverage_spec, "buysystem_train": run_buysystem_train_spec}.get(spec.get("kind"), run_spec)
+               "coverage": run_coverage_spec, "buysystem_train": run_buysystem_train_spec,
+               "screen": run_screen_spec}.get(spec.get("kind"), run_spec)
         extra = {}
         if spec.get("core"):
             extra["core_data"] = load(spec["core"]["dataset"])[0]
