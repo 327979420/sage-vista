@@ -168,6 +168,14 @@
    "completed_at": "2026-10-13T18:03:47+00:00",
    "champion": null,
    "dataset": "fresh-a-1995-v1"
+  },
+  {
+   "spec_id": "data-fresh-b-v1",
+   "experiment_id": "lab-data-fresh-b-v1-2026-10-14",
+   "group": "data",
+   "completed_at": "2026-10-13T18:11:36+00:00",
+   "champion": null,
+   "dataset": "fresh-b-1995-v1"
   }
  ],
  "champions": {

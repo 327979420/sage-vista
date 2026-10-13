@@ -295,3 +295,9 @@ Freeze shard a of the wider universe (1500 US stocks no rule has seen, from data
 
 Built 1500 of 1500 symbols; in 2025, 245 of 573 trading stocks had 200 months of history. Passed: yes
 
+## data-fresh-b-v1 (fresh-b-1995-v1, data coverage check)
+
+Freeze shard b of the wider universe (1500 US stocks no rule has seen, from data-fresh-universe-v2) as a dataset with daily history from 1995 and the unadjusted close, and report how much history each year has. (Engineering check: no returns.)
+
+Built 1500 of 1500 symbols; in 2025, 244 of 562 trading stocks had 200 months of history. Passed: yes
+
