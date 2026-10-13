@@ -1,17 +1,17 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-13T15:24:14+00:00",
+  "generated_at": "2026-10-13T15:27:06+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 63,
+  "experiment_count": 64,
   "summary": {
     "completed": 46,
-    "in_progress": 17,
+    "in_progress": 18,
     "candidate": 15,
-    "not_validated_or_unstable": 23
+    "not_validated_or_unstable": 24
   },
   "policy": {
     "append_only": true,
@@ -21,6 +21,53 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "lab-data-fresh-universe-v2-2026-10-14",
+      "created_at": "2026-10-14",
+      "status": "pre_registered",
+      "change": "Engineering check: the wider-universe list again with failed downloads retried and classified, and the $5 floor on the unadjusted close (no returns computed)",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#fresh-universe",
+        "lab_spec": "research/lab/queue/data-fresh-universe-v2.json",
+        "runner": "research/lab/screen.py"
+      },
+      "success_criteria": "Download errors after a retry at most 2% of candidates and at least 1,000 stocks kept; empty provider histories are reported separately.",
+      "known_limitations": [
+        "delisted codes with no provider history cannot be included (survivorship gap, counted)",
+        "a company that changed ticker appears under its last ticker"
+      ],
+      "human_summary": {
+        "title_zh": "扩大股票池 v2：重试失败、用真实价格",
+        "family": "quant_lab_portfolio",
+        "family_zh": "量化研究实验室",
+        "question_zh": "和 v1 同样的候选；下载失败的慢速重试一次并记录原因（供应商没有数据 / 出错）；$5 门槛改用未复权的真实价格。",
+        "result_zh": "待运行。",
+        "use_zh": "只是数据准备，不计算收益；之后每份冻结成数据集，用来考周线 V3。",
+        "next_zh": "每份注册为冻结数据集（1995 年起，保留未复权价）。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-13T15:27:06+00:00",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-10-13T15:27:06+00:00",
+        "time_source": "assistant_registration",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "lab-data-fresh-universe-v2-2026-10-14",
+            "event": "registered",
+            "event_at": "2026-10-13T15:27:06+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/data-fresh-universe-v2.json",
+              "note": "lists and counts only; registered after v1 missed its download criterion"
+            }
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "lab-data-fresh-universe-v1-2026-10-14",
       "created_at": "2026-10-14",
@@ -42,10 +89,10 @@
         "family": "quant_lab_portfolio",
         "family_zh": "量化研究实验室",
         "question_zh": "把在美国主板上市过的普通股（含已退市）逐只下载一次，留下 2005—2025 年 6 月至少 60 个交易日满足交易池门槛（收盘≥5 美元、成交额≥1000 万美元）、又不在现有 1,228 只里的股票，分成每份约 1,500 只。去掉代码被两家公司用过的股票。",
-        "result_zh": "待运行。",
+        "result_zh": "未通过事先的标准：21,499 个候选里 3,352 个下载失败（15.6%，标准是 10% 以内）；留下 5,743 只（约为现有股票池的 4.7 倍），分 4 份。失败的大多是退市代码（带 _old 等后缀）。$5 门槛用的是复权价（之后发现会漏掉后来拆股的股票）。",
         "use_zh": "只是数据准备，不计算收益。之后每份冻结成数据集，用来考周线 V3 形态（新股票，机器从没见过）。",
-        "next_zh": "每份注册为冻结数据集（1995 年起日线）；V3 周线定义按用户标注冻结后，在这些股票上和同日随机比。",
-        "verdict": "pre_registered"
+        "next_zh": "已登记 v2：失败的重试并记录原因，$5 门槛改用未复权价。",
+        "verdict": "not_validated"
       },
       "lifecycle": {
         "registered_at": "2026-10-13T14:37:40+00:00",
@@ -5080,6 +5127,7 @@
     "lab-buysystem-train-v1-2026-10-13",
     "lab-c1-proven-portfolios-v1-2026-10-08",
     "lab-data-fresh-universe-v1-2026-10-14",
+    "lab-data-fresh-universe-v2-2026-10-14",
     "lab-data-long-history-v1-2026-10-11",
     "lab-e0-core-long-history-v1-2026-10-10",
     "lab-e1-selection-vs-random-v1-2026-10-10",

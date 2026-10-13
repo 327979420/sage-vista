@@ -51,6 +51,25 @@ class ScreenTests(unittest.TestCase):
             self.assertTrue(screen.render(result).startswith("# s"))
 
 
+class ScreenVersionTwoTests(unittest.TestCase):
+    def test_the_price_floor_uses_the_unadjusted_close_and_failures_keep_their_reason(self):
+        # a stock that later split 10:1: adjusted close 3, real close 30, split-adjusted volume 1M -> $3M traded... and 4M shares
+        days = [f"2008-03-{d:02d}" for d in range(1, 29)]
+        raw_rows = [{"date": d, "open": 30.0, "high": 30.0, "low": 30.0, "close": 30.0, "adjusted_close": 3.0, "volume": 4_000_000} for d in days]
+        pool = {"min_close": 5.0, "min_dollar_volume": 1e7}
+
+        def fetch(symbol):
+            if symbol == "BAD":
+                raise RuntimeError("EODHD request failed for eod/BAD.US (HTTP 429)")
+            return [] if symbol == "NONE" else raw_rows
+        reasons = {}
+        kept, stats, failed = screen.screen(["SPL", "BAD", "NONE"], fetch, ("2005-01-01", "2025-06-30"), pool, 10, workers=1, raw_floor=True, reasons=reasons)
+        self.assertEqual(kept, ["SPL"])  # $30 real price, $12M traded (3 x 4M): kept
+        self.assertEqual(reasons, {"BAD": "EODHD request failed for eod/BAD.US (HTTP 429)", "NONE": "empty"})
+        kept_adjusted, _, _ = screen.screen(["SPL"], fetch, ("2005-01-01", "2025-06-30"), pool, 10, workers=1)
+        self.assertEqual(kept_adjusted, [])  # version 1 judged the $3 adjusted price and dropped it
+
+
 class V3WeeklyHelperTests(unittest.TestCase):
     def test_engulfing_zone_and_macd_helpers(self):
         from research.lab import v3weekly as V
@@ -60,10 +79,12 @@ class V3WeeklyHelperTests(unittest.TestCase):
         self.assertFalse(V.bullish_engulf(rows, 2))
         lows = [{"low": x} for x in (12, 10.3, 10.0, 10.5, 13, 14)]
         self.assertEqual(V.zone(lows, 2, 0.06), (1, 3))
-        hist = [-5, -4, -3, -1.0]
-        self.assertEqual(V.macd_ok(hist, [0, 0, 0, -1], [0, 0, 0, 0], 3), "about")
-        self.assertEqual(V.macd_ok(hist, [0, 0, 0, 1], [0, 0, 0, 0], 3), "crossed")
-        self.assertIsNone(V.macd_ok([-5, -4, -4.5, -3], [0, 0, 0, -1], [0, 0, 0, 0], 3))
+        # the user's rule: crossed, or the red bars at least shrinking; red bars growing is never enough
+        self.assertEqual(V.macd_ok([-5, -4, -3, -1.0], [0, 0, 0, -1], [0, 0, 0, 0], 3), "rising")
+        self.assertEqual(V.macd_ok([-5, -4, -3, -1.0], [0, 0, 0, 1], [0, 0, 0, 0], 3), "crossed")
+        self.assertIsNone(V.macd_ok([-5, -4, -3, -3.5], [0, 0, 0, -1], [0, 0, 0, 0], 3))
+        bars = [{"open": 10.5, "high": 11, "low": 9.8, "close": 10.2}, {"open": 10, "high": 11, "low": 9, "close": 10.05}]
+        self.assertEqual(V.signal_bar(bars, 1), "doji")
 
 
 if __name__ == "__main__":
