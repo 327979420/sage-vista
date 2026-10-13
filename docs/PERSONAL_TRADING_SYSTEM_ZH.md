@@ -1,5 +1,7 @@
 # Sage Vista 个人交易系统
 
+> 状态（2026-10-13）：网站上仍作日线形态观察；**不再作买入依据**，买入规则见 [BUY_SYSTEM_ZH.md](BUY_SYSTEM_ZH.md)。日线"小带大"暂缓。入口见 [START_HERE_ZH.md](START_HERE_ZH.md)。
+
 版本：`2.0.0`
 最后更新：2026-08-30
 

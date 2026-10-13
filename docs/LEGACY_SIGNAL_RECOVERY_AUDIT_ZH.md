@@ -1,5 +1,7 @@
 # 旧生产信号恢复审计
 
+> 状态（2026-10-13）：**一次性审计记录**，只作历史证据。入口见 [START_HERE_ZH.md](START_HERE_ZH.md)。
+
 审计日期：2026-08-27  
 来源：Git 历史中的 `public/rare-opportunity-radar.json` 生产输出
 

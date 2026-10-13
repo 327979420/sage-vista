@@ -12,6 +12,9 @@ Choose **English** in the top-right language switch.
 
 </div>
 
+> **Handover:** new people and AI sessions start at [`docs/START_HERE_ZH.md`](docs/START_HERE_ZH.md) (Chinese): current conclusions, which documents are current or retired, and the working rules.
+
+
 <br>
 
 ![Candidates — ranked watchlist with setup labels, timeframe scores and selection reasons](./docs/assets/product/candidates.en.jpeg)
