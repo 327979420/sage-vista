@@ -1032,6 +1032,20 @@ class QueueAndDatasetTests(unittest.TestCase):
                 run_queue.publish({"spec_id": "x"}, b"", {"details": {"spec_sha256": "-"}}, [])
             git.assert_not_called()
 
+    def test_a_hand_started_run_waits_for_the_window_to_close_before_publishing(self):
+        at = lambda hhmm: dt.datetime(2026, 10, 7, *map(int, hhmm.split(":")), tzinfo=dt.timezone.utc)
+        self.assertEqual([run_queue.minutes_to_window_end(at(x)) for x in ("03:00", "23:45", "04:30", "12:00")], [90, 285, 0, 0])
+        with mock.patch.object(run_queue, "minutes_to_window_end", return_value=20), mock.patch.object(run_queue, "in_eod_window", return_value=True), \
+                mock.patch.object(run_queue.time, "sleep") as sleep, mock.patch.object(run_queue.subprocess, "run") as git:
+            with self.assertRaisesRegex(RuntimeError, "EOD window"):  # 20 minutes left but only 10 allowed: no wait, no push
+                run_queue.publish({"spec_id": "x"}, b"", {"details": {"spec_sha256": "-"}}, [], wait_minutes=10)
+            sleep.assert_not_called()
+            git.assert_not_called()
+            with self.assertRaisesRegex(RuntimeError, "EOD window"):  # waited, but the clock (mocked) still says inside: still no push
+                run_queue.publish({"spec_id": "x"}, b"", {"details": {"spec_sha256": "-"}}, [], attempts=1, wait_minutes=150)
+            sleep.assert_called_once_with(21 * 60)
+            git.assert_not_called()
+
     def test_universe_builder_lists_symbols_the_provider_cannot_serve(self):
         bars = [{"date": "1990-01-02", "open": 1, "high": 1, "low": 1, "close": 1, "adjusted_close": 1, "volume": 10}]
 
@@ -1184,6 +1198,24 @@ class QueueAndDatasetTests(unittest.TestCase):
                 self.assertTrue(spec["shard_dir"].startswith("research/lab/"), path.name)
                 self.assertIn("min_kept", spec["criteria"], path.name)
                 self.assertTrue({"max_failed_share", "max_error_share"} & set(spec["criteria"]), path.name)
+                continue
+            if spec.get("kind") == "triangle_exam":
+                from research.lab import triangle_exam
+                for changes in spec["variants"].values():
+                    triangle_exam.apply([], changes)  # every change is known
+                    triangle_exam.params(changes)
+                self.assertLess(spec["windows"]["train"][1], spec["windows"]["holdout"][0], path.name)
+                self.assertGreaterEqual(spec["random"]["runs"], 100)
+                self.assertTrue(spec["benchmark"]["symbol"] in spec["benchmark"]["dataset"]["symbols"], path.name)
+                self.assertTrue(spec["pool"].get("raw_close"), path.name)
+                # the exam shards are frozen datasets nobody has traded, distinct from the training stocks
+                for ds in spec["exam_datasets"]:
+                    self.assertTrue((ROOT / "research/lab/datasets" / f"{ds['id']}.json").exists(), path.name)
+                    self.assertNotEqual(ds["id"], spec["dataset"]["id"], path.name)
+                for key in ("min_trades", "sharpe_gain", "beat_share_gain"):
+                    self.assertIn(key, spec["selection"], path.name)
+                for key in ("min_random_share", "min_shards", "min_trade_excess_t", "min_exam_trades"):
+                    self.assertIn(key, spec["criteria"], path.name)
                 continue
             if spec.get("kind") == "buysystem_train":
                 from research.lab import buysystem, buytrain

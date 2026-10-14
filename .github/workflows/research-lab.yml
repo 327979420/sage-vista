@@ -10,6 +10,11 @@ on:
     - cron: "45 4 * * *"
     - cron: "15 8 * * *"
   workflow_dispatch:
+    inputs:
+      wait_for_window:
+        description: "Started inside the 23:30-04:30 UTC EOD window: minutes the run may wait at the end for the window to close before publishing (0 = do not start inside it)"
+        required: false
+        default: "0"
 
 permissions:
   contents: write
@@ -21,7 +26,7 @@ concurrency:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 340
     env:
       EODHD_API_TOKEN: ${{ secrets.EODHD_API_TOKEN }}
       GH_TOKEN: ${{ github.token }}
@@ -46,7 +51,9 @@ jobs:
           work/vectorbt-env/bin/python -m pip install --only-binary=:all: --require-hashes -r research/backtest/dependencies/vectorbt-requirements.lock
           work/vectorbt-env/bin/python -m unittest tests.test_research_lab.AccountTests
       - name: Run pending experiments and publish results
-        run: python3 -m research.lab.run_queue --publish --max-specs 3
+        env:
+          WAIT_FOR_WINDOW: ${{ inputs.wait_for_window || '0' }}
+        run: python3 -m research.lab.run_queue --publish --max-specs 3 --wait-for-window "$WAIT_FOR_WINDOW"
       - name: Update the forward paper accounts
         run: python3 -m research.lab.forward --publish
       - name: Summarise

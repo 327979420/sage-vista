@@ -25,9 +25,10 @@ import os
 import pathlib
 import statistics
 import subprocess
+import time
 
 from services.scanner.support_risk import signal_support_plan
-from research.lab import account, allocation, buytrain, coverage, datasets, levels, screen, selection, timeframe
+from research.lab import account, allocation, buytrain, coverage, datasets, levels, screen, selection, timeframe, triangle_exam
 from research.lab.exit_rules import OPEN_FILLS, simulate
 from research.lab.metrics import evaluate, summarise
 
@@ -73,6 +74,15 @@ def in_eod_window(now=None):
     now = now or dt.datetime.now(dt.timezone.utc)
     minutes = now.hour * 60 + now.minute
     return minutes >= 23 * 60 + 30 or minutes < 4 * 60 + 30
+
+
+def minutes_to_window_end(now=None):
+    """Minutes until the EOD window closes at 04:30 UTC (0 outside it)."""
+    now = now or dt.datetime.now(dt.timezone.utc)
+    minutes = now.hour * 60 + now.minute
+    if minutes >= 23 * 60 + 30:
+        return 24 * 60 - minutes + 4 * 60 + 30
+    return 4 * 60 + 30 - minutes if minutes < 4 * 60 + 30 else 0
 
 
 def ensure_dataset(ds, publish):
@@ -705,6 +715,18 @@ def run_buysystem_train_spec(spec, data, dataset_entry, cost, benchmark):
     return result, gzip.compress(csv_buffer.getvalue().encode(), 9, mtime=0)
 
 
+def run_triangle_exam_spec(spec, data, dataset_entry, cost, benchmark, load_exam):
+    """The weekly triangle trained on the known stocks and examined once on four shards of unseen stocks (research/lab/triangle_exam.py)."""
+    result, rows = triangle_exam.run(spec, data, dataset_entry, cost, benchmark, load_exam)
+    csv_buffer = io.StringIO()
+    writer = csv.writer(csv_buffer)
+    fields = ["arm", "window", "symbol", "decision_date", "fill_date", "entry", "stop", "target", "rr", "atr_multiple", "net", "random_net", "exit", "held"]
+    writer.writerow(fields)
+    for r in rows:
+        writer.writerow([r[f] for f in fields])
+    return result, gzip.compress(csv_buffer.getvalue().encode(), 9, mtime=0)
+
+
 def render_selection_report(result):
     pct = lambda x, d=1: "—" if x is None else f"{x * 100:.{d}f}%"
     num = lambda x: "—" if x is None else f"{x:.2f}"
@@ -855,6 +877,9 @@ def render_scoreboard(results):
         if result["champion"] and result.get("kind") == "levels":
             f = result["arms"]["main"]["families"][result["champion"]]
             board["champions"][result["group"]] = {"spec_id": result["spec_id"], "variant": result["champion"], "rule": f["rule"], "overall": f["sv"]}
+        elif result["champion"] and result.get("kind") == "triangle_exam":
+            board["champions"][result["group"]] = {"spec_id": result["spec_id"], "variant": result["champion"], "rule": result["final_changes"],
+                                                   "overall": result["exam"]["pooled_trades"]}
         elif result["champion"] and result.get("kind") == "buysystem_train":
             board["champions"][result["group"]] = {"spec_id": result["spec_id"], "variant": result["champion"], "rule": result["final_changes"],
                                                    "overall": result["test"]["sv"]}
@@ -882,6 +907,14 @@ def render_scoreboard(results):
                       f"{result['windows']['train'][1]}, tested once {result['windows']['test'][0]} to {result['windows']['test'][1]})", "", result["question"], "",
                       f"Adopted on training: {', '.join(result['adopted']) or 'none'}. Test: Sharpe {t['sv']['sharpe']}, beats "
                       f"{(t['random']['sv_beats_share_sharpe'] or 0) * 100:.0f}% of random accounts, trade excess t {t['trade_level'].get('t_monthly')}. Passed: "
+                      + ("yes" if result["passed"] else "no"), ""]
+            continue
+        if result.get("kind") == "triangle_exam":
+            ex = result["exam"]
+            lines += [f"## {result['spec_id']} ({result['dataset']['dataset_id']}, weekly triangle trained {result['windows']['train'][0]} to "
+                      f"{result['windows']['train'][1]}, examined once on {len(ex['shards'])} shards of unseen stocks)", "", result["question"], "",
+                      f"Adopted on training: {', '.join(result['adopted']) or 'none'}. Exam: Sharpe by shard "
+                      + ", ".join(str(s["sv"]["sharpe"]) for s in ex["shards"]) + f"; pooled trade excess t {ex['pooled_trades'].get('t_monthly')}. Passed: "
                       + ("yes" if result["passed"] else "no"), ""]
             continue
         if result.get("kind") == "coverage":
@@ -939,6 +972,8 @@ def write_outputs(root, result, trades_csv, event, manifests):
         (out / "REPORT.md").write_text(coverage.render(result))
     elif result.get("kind") == "buysystem_train":
         (out / "REPORT.md").write_text(buytrain.render(result))
+    elif result.get("kind") == "triangle_exam":
+        (out / "REPORT.md").write_text(triangle_exam.render(result))
     elif result.get("kind") == "screen":
         (out / "REPORT.md").write_text(screen.render(result))
     for entry in manifests:
@@ -955,11 +990,16 @@ def write_outputs(root, result, trades_csv, event, manifests):
     (pathlib.Path(root) / "research/lab/SCOREBOARD.md").write_text(markdown)
 
 
-def publish(result, trades_csv, event, manifests, attempts=3):
+def publish(result, trades_csv, event, manifests, attempts=3, wait_minutes=0):
     def git(*args, check=True):
         return subprocess.run(["git", *args], cwd=ROOT, check=check, text=True, capture_output=True)
     for _ in range(attempts):
-        # A long run can cross into the EOD window; never push to main inside it.
+        # A long run can cross into the EOD window; never push to main inside it. A run started by hand inside the window
+        # (--wait-for-window) waits for it to close when that is at most `wait_minutes` away.
+        left = minutes_to_window_end()
+        if left and left <= wait_minutes:
+            print(f"Waiting {left} minutes for the EOD window to close before publishing.", flush=True)
+            time.sleep((left + 1) * 60)
         if in_eod_window():
             raise RuntimeError("inside the 23:30-04:30 UTC EOD window; result not published, the spec stays pending")
         git("fetch", "origin", "main")
@@ -983,8 +1023,10 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--publish", action="store_true")
     parser.add_argument("--max-specs", type=int, default=3)
+    parser.add_argument("--wait-for-window", type=int, default=0, metavar="MINUTES",
+                        help="start inside the EOD window and publish only after it closes, waiting at most this long at the end")
     args = parser.parse_args(argv)
-    if args.publish and in_eod_window():
+    if args.publish and in_eod_window() and not args.wait_for_window:
         print("Inside the 23:30-04:30 UTC EOD window; nothing published.")
         return
     ran = 0
@@ -1012,12 +1054,15 @@ def main(argv=None):
         run = {"account": run_account_spec, "allocation": run_allocation_spec, "selection": run_selection_spec,
                "timeframe": run_timeframe_spec, "levels": run_levels_spec, "cases": run_cases_spec,
                "coverage": run_coverage_spec, "buysystem_train": run_buysystem_train_spec,
-               "screen": run_screen_spec}.get(spec.get("kind"), run_spec)
+               "screen": run_screen_spec, "triangle_exam": run_triangle_exam_spec}.get(spec.get("kind"), run_spec)
         extra = {}
         if spec.get("core"):
             extra["core_data"] = load(spec["core"]["dataset"])[0]
         if spec.get("style"):
             extra["style_data"] = load(spec["style"]["dataset"])[0]
+        if spec.get("exam_datasets"):
+            # exam shards load one at a time and are not kept (they are already frozen, so no new manifest)
+            extra["load_exam"] = lambda ds: ensure_dataset(ds, args.publish)[:2]
         result, trades_csv = run(spec, data, entry, spec.get("cost_per_side", 0.001), benchmark, **extra)
         now = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
         result |= {"spec_sha256": sha, "completed_at": now, "code_commit": os.environ.get("GITHUB_SHA", "local")}
@@ -1028,7 +1073,7 @@ def main(argv=None):
                  "details": {"lab_spec": spec["id"], "spec_sha256": sha, "result": f"research/lab/results/{spec['id']}/result.json",
                              "dataset": entry["dataset_id"], "champion": result["champion"]}}
         if args.publish:
-            publish(result, trades_csv, event, manifests)
+            publish(result, trades_csv, event, manifests, wait_minutes=args.wait_for_window)
         else:
             (WORK / "preview").mkdir(parents=True, exist_ok=True)
             (WORK / "preview" / f"{spec['id']}.json").write_text(json.dumps(result, indent=1, ensure_ascii=False))

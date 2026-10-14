@@ -1,0 +1,154 @@
+{
+ "note": "The user's own buy points for the weekly triangle (2026-10-13/14 chats). Weeks are TradingView Monday labels; a buy must fill inside one of the windows (one week either side was the user's tolerance). stop is the price the user named, where they named one (adjusted prices are used for checks). expect=none means the machine must not offer a buy there.",
+ "cases": [
+  {
+   "symbol": "CSGP",
+   "expect": "buy",
+   "windows": [
+    [
+     "2007-04-30",
+     "2007-05-11"
+    ]
+   ],
+   "stop": 4.3,
+   "why": "engulfing week of 2007-04-23 + weekly MACD cross, buy above its high next week; stop at the second bottom's low"
+  },
+  {
+   "symbol": "NLY",
+   "expect": "buy",
+   "windows": [
+    [
+     "2009-04-27",
+     "2009-05-15"
+    ]
+   ],
+   "why": "breakout engulfing week of 2009-04-27 after a doji, follow-through next week, MACD cross"
+  },
+  {
+   "symbol": "CHRW",
+   "expect": "none",
+   "windows": [
+    [
+     "2012-03-05",
+     "2012-04-13"
+    ]
+   ],
+   "stop": null,
+   "why": "no buy in March 2012 (user: no golden cross, no bullish engulfing, the week of 03-12 is a bearish engulfing). The user's April signal (engulfing + cross, week of 2012-04-16) is right, but the next week gapped down with a high of 47.42 under the 48.11 buy-stop, so the order would not fill."
+  },
+  {
+   "symbol": "AMZN",
+   "expect": "buy",
+   "windows": [
+    [
+     "2008-08-11",
+     "2008-08-22"
+    ]
+   ],
+   "why": "engulfing week of 2008-08-04 with MACD cross, buy above its high the next week"
+  },
+  {
+   "symbol": "AME",
+   "expect": "buy",
+   "windows": [
+    [
+     "2009-10-19",
+     "2009-11-13"
+    ],
+    [
+     "2010-01-04",
+     "2010-01-29"
+    ]
+   ],
+   "why": "breakout week of 2009-10-19 and retest the next week; or the January 2010 MACD cross"
+  },
+  {
+   "symbol": "LEU",
+   "expect": "buy",
+   "windows": [
+    [
+     "2006-10-16",
+     "2006-10-27"
+    ],
+    [
+     "2006-11-06",
+     "2006-11-17"
+    ],
+    [
+     "2007-01-29",
+     "2007-02-09"
+    ]
+   ],
+   "why": "trendline breakout or retest (week of 2006-11-06) or the retest of 2007-01-29; the machine's 2006-10-18 bottom-cross buy was accepted by the user"
+  },
+  {
+   "symbol": "A",
+   "expect": "buy",
+   "windows": [
+    [
+     "2005-05-16",
+     "2005-05-27"
+    ]
+   ],
+   "stop": 11.95,
+   "why": "bottoms Aug 2004 and Apr 2005; week of 2005-05-16 MACD cross and breakout; stop at the 2005-04-11 week low"
+  },
+  {
+   "symbol": "STNG",
+   "expect": "buy",
+   "windows": [
+    [
+     "2015-11-16",
+     "2015-11-27"
+    ]
+   ],
+   "why": "doji week of 2015-11-09 at the EMA200, buy above its high next week; stop under the EMA200",
+   "loose": true
+  },
+  {
+   "symbol": "AMGN",
+   "expect": "buy",
+   "windows": [
+    [
+     "2016-04-11",
+     "2016-06-30"
+    ]
+   ],
+   "why": "big trendline broken the week of 2016-04-11, then a retest (nested small and big triangles); user: count a pullback within one weekly ATR of the line as the retest"
+  },
+  {
+   "symbol": "BNS",
+   "expect": "buy",
+   "windows": [
+    [
+     "2012-08-20",
+     "2012-09-07"
+    ]
+   ],
+   "why": "the machine's 2012-09-11 buy was one to two weeks late",
+   "loose": true
+  },
+  {
+   "symbol": "AXTA",
+   "expect": "buy",
+   "windows": [
+    [
+     "2016-12-12",
+     "2016-12-30"
+    ]
+   ],
+   "why": "one of the two most beautiful patterns in batch 2; the machine's 2016-12-19 timing was not criticised"
+  },
+  {
+   "symbol": "DHI",
+   "expect": "none",
+   "windows": [
+    [
+     "2014-09-01",
+     "2014-12-31"
+    ]
+   ],
+   "why": "second bottom lower than the first: not the pattern"
+  }
+ ]
+}

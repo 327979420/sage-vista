@@ -1,0 +1,151 @@
+{
+ "id": "triangle-exam-v1",
+ "experiment_id": "lab-triangle-exam-v1-2026-10-14",
+ "kind": "triangle_exam",
+ "priority": 1,
+ "question": "Does the user's weekly triangle (research/lab/triangle.py 1.0, frozen 2026-10-14 after matching the user's own buy points: buy C at the bottom on a weekly MACD golden cross, or B on the retest after the breakout; never the breakout itself) pick better trades than random stocks bought the same day with the same stop distance, target multiple and exits? Train on the 1,228 known stocks in 2005-2016 (the frozen rule against seven one-change variants taken from the user's open choices and from published methods), then run the chosen rule once on 5,500 stocks no rule has seen, in four shards, 2005 to mid-2025.",
+ "dataset": {
+  "id": "universe-1985-v1",
+  "builder": "universe",
+  "symbols_file": "research/lab/universes/observation-2005-2025-v1.txt",
+  "extra_symbols": [
+   "AEVA",
+   "BTDR",
+   "CGEM",
+   "POWL",
+   "BEKE"
+  ],
+  "start": "1985-01-01"
+ },
+ "exam_datasets": [
+  {
+   "id": "fresh-a-1995-v1",
+   "builder": "universe",
+   "symbols_file": "research/lab/universes/fresh-2005-2025-v2-a.txt",
+   "start": "1995-01-01",
+   "keep_raw": true
+  },
+  {
+   "id": "fresh-b-1995-v1",
+   "builder": "universe",
+   "symbols_file": "research/lab/universes/fresh-2005-2025-v2-b.txt",
+   "start": "1995-01-01",
+   "keep_raw": true
+  },
+  {
+   "id": "fresh-c-1995-v1",
+   "builder": "universe",
+   "symbols_file": "research/lab/universes/fresh-2005-2025-v2-c.txt",
+   "start": "1995-01-01",
+   "keep_raw": true
+  },
+  {
+   "id": "fresh-d-1995-v1",
+   "builder": "universe",
+   "symbols_file": "research/lab/universes/fresh-2005-2025-v2-d.txt",
+   "start": "1995-01-01",
+   "keep_raw": true
+  }
+ ],
+ "benchmark": {
+  "symbol": "SPY",
+  "dataset": {
+   "id": "etf-style-1999-to-2026-10-v1",
+   "builder": "symbols",
+   "symbols": [
+    "SPY",
+    "QQQ",
+    "IWM",
+    "RSP"
+   ],
+   "start": "1999-01-01"
+  }
+ },
+ "group": "B-triangle",
+ "cost_per_side": 0.001,
+ "windows": {
+  "train": [
+   "2005-01-01",
+   "2016-12-31"
+  ],
+  "holdout": [
+   "2017-01-01",
+   "2025-06-30"
+  ],
+  "exam": [
+   "2005-01-01",
+   "2025-06-30"
+  ]
+ },
+ "pool": {
+  "min_history": 420,
+  "min_close": 5.0,
+  "min_dollar_volume": 10000000.0,
+  "raw_close": true
+ },
+ "account": {
+  "risk_per_trade": 0.02,
+  "position_cap": 0.05,
+  "max_positions": 10,
+  "heat_cap": 0.2
+ },
+ "random": {
+  "runs": 200,
+  "seed": 20261014,
+  "max_draws": 30
+ },
+ "variants": {
+  "V1_c_only": {
+   "options": [
+    "C"
+   ]
+  },
+  "V2_b_only": {
+   "options": [
+    "B"
+   ]
+  },
+  "V3_target_1_5r": {
+   "target_r": 1.5
+  },
+  "V4_volume_1_25x": {
+   "min_volume_ratio": 1.25
+  },
+  "V5_confluence_4": {
+   "min_confluence": 4
+  },
+  "V6_market_filter": {
+   "market_filter": true
+  },
+  "V7_time_stop_26w": {
+   "max_sessions": 130
+  }
+ },
+ "selection": {
+  "min_trades": 60,
+  "sharpe_gain": 0.05,
+  "beat_share_gain": 0.05
+ },
+ "criteria": {
+  "min_random_share": 0.95,
+  "min_shards": 3,
+  "min_trade_excess_t": 2.0,
+  "min_exam_trades": 200
+ },
+ "requires": [
+  "data-fresh-a-v1",
+  "data-fresh-b-v1",
+  "data-fresh-c-v1",
+  "data-fresh-d-v1"
+ ],
+ "next_step": "If it passes, the triangle goes to forward paper observation beside the E6 accounts (no production change without the user's approval). If it fails, the report shows which part lost (C or B, target, timing) and no rule is changed on the exam shards.",
+ "notes": [
+  "Frozen before the run: the pattern (research/lab/triangle.py 1.0, 10 of 12 on research/lab/cases/triangle-answer-key-v1.json, every firm user case right), the seven variants, the adoption rule and the exam criteria.",
+  "Variants: V1/V2 the user's two buys alone; V3 the user's open target choice (first high or a fixed 1.5R, 2026-10-14); V4 breakout or cross-week volume at least 1.25 times its ten-week average (O'Neil, Bulkowski); V5 at least four of the five confluence pluses (the user's pluses as a filter; about three in ten buys); V6 SPY above its 200-day average (Faber); V7 a 26-week time stop (Bulkowski's failure window).",
+  "Exits are the buy system's: two thirds at the target, the stop to the entry, the rest until a daily close under the 50-day average; the stop is the pattern's structural stop. Entries are buy-stop fills at the order price; a stop touched on the fill day counts as hit.",
+  "Random twins: a stock from the same pool on the signal's decision day, bought at the fill day's open with the same stop distance in weekly ATRs, the same reward-to-risk target and the same exits. Account priority: nested first, then more confluence pluses.",
+  "Pool: 420 sessions of history, $10M daily dollar volume, and a $5 floor on the unadjusted close where the dataset keeps it (the exam shards do; the training dataset does not, so training uses the adjusted close on both sides).",
+  "Passed if at least 3 of the 4 shards beat 95% of their 200 random accounts on Sharpe, and the pooled exam trades beat same-day random trades (month-clustered t at least 2, median and winsorized mean above zero), with at least 200 exam trades. The user's goal (Sharpe at least SPY's) is reported per shard beside it.",
+  "The known stocks after training (2017 to mid-2025) are reported, not judged."
+ ]
+}
