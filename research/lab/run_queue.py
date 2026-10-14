@@ -25,6 +25,7 @@ import os
 import pathlib
 import statistics
 import subprocess
+import time
 
 from services.scanner.support_risk import signal_support_plan
 from research.lab import account, allocation, buytrain, coverage, datasets, levels, screen, selection, timeframe, triangle_exam
@@ -73,6 +74,15 @@ def in_eod_window(now=None):
     now = now or dt.datetime.now(dt.timezone.utc)
     minutes = now.hour * 60 + now.minute
     return minutes >= 23 * 60 + 30 or minutes < 4 * 60 + 30
+
+
+def minutes_to_window_end(now=None):
+    """Minutes until the EOD window closes at 04:30 UTC (0 outside it)."""
+    now = now or dt.datetime.now(dt.timezone.utc)
+    minutes = now.hour * 60 + now.minute
+    if minutes >= 23 * 60 + 30:
+        return 24 * 60 - minutes + 4 * 60 + 30
+    return 4 * 60 + 30 - minutes if minutes < 4 * 60 + 30 else 0
 
 
 def ensure_dataset(ds, publish):
@@ -980,11 +990,16 @@ def write_outputs(root, result, trades_csv, event, manifests):
     (pathlib.Path(root) / "research/lab/SCOREBOARD.md").write_text(markdown)
 
 
-def publish(result, trades_csv, event, manifests, attempts=3):
+def publish(result, trades_csv, event, manifests, attempts=3, wait_minutes=0):
     def git(*args, check=True):
         return subprocess.run(["git", *args], cwd=ROOT, check=check, text=True, capture_output=True)
     for _ in range(attempts):
-        # A long run can cross into the EOD window; never push to main inside it.
+        # A long run can cross into the EOD window; never push to main inside it. A run started by hand inside the window
+        # (--wait-for-window) waits for it to close when that is at most `wait_minutes` away.
+        left = minutes_to_window_end()
+        if left and left <= wait_minutes:
+            print(f"Waiting {left} minutes for the EOD window to close before publishing.", flush=True)
+            time.sleep((left + 1) * 60)
         if in_eod_window():
             raise RuntimeError("inside the 23:30-04:30 UTC EOD window; result not published, the spec stays pending")
         git("fetch", "origin", "main")
@@ -1008,8 +1023,10 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--publish", action="store_true")
     parser.add_argument("--max-specs", type=int, default=3)
+    parser.add_argument("--wait-for-window", type=int, default=0, metavar="MINUTES",
+                        help="start inside the EOD window and publish only after it closes, waiting at most this long at the end")
     args = parser.parse_args(argv)
-    if args.publish and in_eod_window():
+    if args.publish and in_eod_window() and not args.wait_for_window:
         print("Inside the 23:30-04:30 UTC EOD window; nothing published.")
         return
     ran = 0
@@ -1056,7 +1073,7 @@ def main(argv=None):
                  "details": {"lab_spec": spec["id"], "spec_sha256": sha, "result": f"research/lab/results/{spec['id']}/result.json",
                              "dataset": entry["dataset_id"], "champion": result["champion"]}}
         if args.publish:
-            publish(result, trades_csv, event, manifests)
+            publish(result, trades_csv, event, manifests, wait_minutes=args.wait_for_window)
         else:
             (WORK / "preview").mkdir(parents=True, exist_ok=True)
             (WORK / "preview" / f"{spec['id']}.json").write_text(json.dumps(result, indent=1, ensure_ascii=False))

@@ -1032,6 +1032,20 @@ class QueueAndDatasetTests(unittest.TestCase):
                 run_queue.publish({"spec_id": "x"}, b"", {"details": {"spec_sha256": "-"}}, [])
             git.assert_not_called()
 
+    def test_a_hand_started_run_waits_for_the_window_to_close_before_publishing(self):
+        at = lambda hhmm: dt.datetime(2026, 10, 7, *map(int, hhmm.split(":")), tzinfo=dt.timezone.utc)
+        self.assertEqual([run_queue.minutes_to_window_end(at(x)) for x in ("03:00", "23:45", "04:30", "12:00")], [90, 285, 0, 0])
+        with mock.patch.object(run_queue, "minutes_to_window_end", return_value=20), mock.patch.object(run_queue, "in_eod_window", return_value=True), \
+                mock.patch.object(run_queue.time, "sleep") as sleep, mock.patch.object(run_queue.subprocess, "run") as git:
+            with self.assertRaisesRegex(RuntimeError, "EOD window"):  # 20 minutes left but only 10 allowed: no wait, no push
+                run_queue.publish({"spec_id": "x"}, b"", {"details": {"spec_sha256": "-"}}, [], wait_minutes=10)
+            sleep.assert_not_called()
+            git.assert_not_called()
+            with self.assertRaisesRegex(RuntimeError, "EOD window"):  # waited, but the clock (mocked) still says inside: still no push
+                run_queue.publish({"spec_id": "x"}, b"", {"details": {"spec_sha256": "-"}}, [], attempts=1, wait_minutes=150)
+            sleep.assert_called_once_with(21 * 60)
+            git.assert_not_called()
+
     def test_universe_builder_lists_symbols_the_provider_cannot_serve(self):
         bars = [{"date": "1990-01-02", "open": 1, "high": 1, "low": 1, "close": 1, "adjusted_close": 1, "volume": 10}]
 
