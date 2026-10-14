@@ -42,6 +42,14 @@
    "dataset": "observation-2005-2025-v1"
   },
   {
+   "spec_id": "triangle-exam-v1",
+   "experiment_id": "lab-triangle-exam-v1-2026-10-14",
+   "group": "B-triangle",
+   "completed_at": "2026-10-14T03:21:33+00:00",
+   "champion": null,
+   "dataset": "universe-1985-v1"
+  },
+  {
    "spec_id": "c1-proven-portfolios-v1",
    "experiment_id": "lab-c1-proven-portfolios-v1-2026-10-08",
    "group": "C-core",

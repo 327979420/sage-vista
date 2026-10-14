@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-14T00:49:08+00:00",
+  "generated_at": "2026-10-14T03:21:33+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
@@ -8,8 +8,8 @@
   ],
   "experiment_count": 69,
   "summary": {
-    "completed": 51,
-    "in_progress": 18,
+    "completed": 52,
+    "in_progress": 17,
     "candidate": 15,
     "not_validated_or_unstable": 24
   },
@@ -63,11 +63,11 @@
       "lifecycle": {
         "registered_at": "2026-10-14T00:49:08+00:00",
         "started_at": null,
-        "completed_at": null,
-        "latest_event": "registered",
-        "latest_event_at": "2026-10-14T00:49:08+00:00",
-        "time_source": "assistant_registration",
-        "event_count": 1,
+        "completed_at": "2026-10-14T03:21:33+00:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-10-14T03:21:33+00:00",
+        "time_source": "github_actions",
+        "event_count": 2,
         "events": [
           {
             "experiment_id": "lab-triangle-exam-v1-2026-10-14",
@@ -77,6 +77,20 @@
             "details": {
               "lab_spec": "research/lab/queue/triangle-exam-v1.json",
               "note": "registered before any account, random or return figure was looked at; local checks were timing, memory and signal counts on the known stocks only; the exam shards were never downloaded locally"
+            }
+          },
+          {
+            "experiment_id": "lab-triangle-exam-v1-2026-10-14",
+            "event": "completed",
+            "event_at": "2026-10-14T03:21:33+00:00",
+            "time_source": "github_actions",
+            "source_ref": "https://github.com/327979420/sage-vista/actions/runs/38504404110",
+            "details": {
+              "lab_spec": "triangle-exam-v1",
+              "spec_sha256": "aa790519daab1b97aa413f036eff765e9e3237293b0709f8f96288f76b647f19",
+              "result": "research/lab/results/triangle-exam-v1/result.json",
+              "dataset": "universe-1985-v1",
+              "champion": null
             }
           }
         ]

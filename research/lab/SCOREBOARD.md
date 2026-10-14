@@ -96,6 +96,12 @@ Step B: do SV's stock picks improve a proven portfolio? SV takes 0, 20, 35 or 50
 
 Champion: **none passed; current rule stays**
 
+## triangle-exam-v1 (universe-1985-v1, weekly triangle trained 2005-01-01 to 2016-12-31, examined once on 4 shards of unseen stocks)
+
+Does the user's weekly triangle (research/lab/triangle.py 1.0, frozen 2026-10-14 after matching the user's own buy points: buy C at the bottom on a weekly MACD golden cross, or B on the retest after the breakout; never the breakout itself) pick better trades than random stocks bought the same day with the same stop distance, target multiple and exits? Train on the 1,228 known stocks in 2005-2016 (the frozen rule against seven one-change variants taken from the user's open choices and from published methods), then run the chosen rule once on 5,500 stocks no rule has seen, in four shards, 2005 to mid-2025.
+
+Adopted on training: V2_b_only, V4_volume_1_25x, V6_market_filter. Exam: Sharpe by shard 0.0885, 0.1815, 0.0051, 0.4017; pooled trade excess t 0.859. Passed: no
+
 ## c1-proven-portfolios-v1 (etf-core-2002-to-2026-10-v1, $100k account 2007-01-03 to 2026-01-16)
 
 Which published, proven portfolio does best on the same 19 years, judged like the SV account (Sharpe, Calmar, worst fall within 25%, every period)? The best becomes the core that SV's stock picks must improve.

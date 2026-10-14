@@ -1,0 +1,2592 @@
+{
+ "kind": "triangle_exam",
+ "spec_id": "triangle-exam-v1",
+ "experiment_id": "lab-triangle-exam-v1-2026-10-14",
+ "group": "B-triangle",
+ "question": "Does the user's weekly triangle (research/lab/triangle.py 1.0, frozen 2026-10-14 after matching the user's own buy points: buy C at the bottom on a weekly MACD golden cross, or B on the retest after the breakout; never the breakout itself) pick better trades than random stocks bought the same day with the same stop distance, target multiple and exits? Train on the 1,228 known stocks in 2005-2016 (the frozen rule against seven one-change variants taken from the user's open choices and from published methods), then run the chosen rule once on 5,500 stocks no rule has seen, in four shards, 2005 to mid-2025.",
+ "dataset": {
+  "dataset_id": "universe-1985-v1",
+  "asset": "universe-1985-v1-6b7fce35b46d.json.gz",
+  "sha256": "6b7fce35b46de8e97853c349c9b972076993bb7f091d5a2f4b3966f2d6af536f",
+  "symbols": 1228
+ },
+ "benchmark": {
+  "symbol": "SPY",
+  "dataset_id": "etf-style-1999-to-2026-10-v1",
+  "asset": "etf-style-1999-to-2026-10-v1-afd785df831d.json.gz",
+  "sha256": "afd785df831dd0d289d348d3cc9d32b5861bd1ae1a9753dceeacbe2b24122e11"
+ },
+ "engine": {
+  "pattern": {
+   "lows_tol": 0.01,
+   "push_drop": 0.995,
+   "push_fit": 0.08,
+   "min_pushes": 3,
+   "min_bottoms": 2,
+   "converge": 0.5,
+   "span": [
+    10,
+    104
+   ],
+   "min_pullback": 0.1,
+   "retest_weeks": 8,
+   "order_weeks": 3,
+   "retest_atr": 1.0,
+   "min_rr": 1.5,
+   "stop_min_atr": 0.5
+  },
+  "document": "research/lab/triangle.py 1.0",
+  "exit": {
+   "first_fraction": 0.6666666666666666,
+   "max_sessions": 5040
+  },
+  "runner": {
+   "kind": "daily_sma",
+   "length": 50
+  }
+ },
+ "windows": {
+  "train": [
+   "2005-01-01",
+   "2016-12-31"
+  ],
+  "holdout": [
+   "2017-01-01",
+   "2025-06-30"
+  ],
+  "exam": [
+   "2005-01-01",
+   "2025-06-30"
+  ]
+ },
+ "pool": {
+  "min_history": 420,
+  "min_close": 5.0,
+  "min_dollar_volume": 10000000.0,
+  "raw_close": true
+ },
+ "account_rules": {
+  "risk_per_trade": 0.02,
+  "position_cap": 0.05,
+  "max_positions": 10,
+  "heat_cap": 0.2
+ },
+ "cost_per_side": 0.001,
+ "excluded_symbols": [
+  "AG",
+  "AGX",
+  "ALT",
+  "AN",
+  "APLD",
+  "ARWR",
+  "AU",
+  "AXON",
+  "CAPR",
+  "CATX",
+  "CHRD",
+  "CLSK",
+  "COGT",
+  "CVX",
+  "CYTK",
+  "DXPE",
+  "EGO",
+  "EHC",
+  "FTI",
+  "HUBB",
+  "INSM",
+  "LDOS",
+  "MCO",
+  "MDXG",
+  "MEL",
+  "MIDD",
+  "NEU",
+  "OVV",
+  "PSKY",
+  "QNRX",
+  "STZ",
+  "SU",
+  "SVRA",
+  "SYRE",
+  "VNDA",
+  "WFRD",
+  "WT",
+  "WTFC"
+ ],
+ "train_raw_close": false,
+ "selection": {
+  "min_trades": 60,
+  "sharpe_gain": 0.05,
+  "beat_share_gain": 0.05
+ },
+ "criteria": {
+  "min_random_share": 0.95,
+  "min_shards": 3,
+  "min_trade_excess_t": 2.0,
+  "min_exam_trades": 200
+ },
+ "train": {
+  "baseline": {
+   "window": {
+    "start": "2005-01-03",
+    "end": "2016-12-30",
+    "sessions": 3021
+   },
+   "signals": 2215,
+   "skipped": {},
+   "by_kind": {
+    "week": 2215
+   },
+   "sv": {
+    "final_equity": 145165.1,
+    "total_return": 0.451651,
+    "cagr": 0.031575,
+    "max_drawdown": 0.294967,
+    "sharpe": 0.4213,
+    "sortino": 0.5904,
+    "calmar": 0.107,
+    "daily_sharpe": 0.02654019,
+    "skew": -0.1827,
+    "kurtosis": 5.8827,
+    "sessions": 3021,
+    "trades_taken": 267,
+    "open_at_end": 0,
+    "average_exposure": 0.4535,
+    "skipped": {
+     "position_limit": 1890,
+     "cash_or_whole_share_insufficient": 1,
+     "same_stock_held": 57
+    }
+   },
+   "spy": {
+    "final_equity": 234684.8,
+    "total_return": 1.346848,
+    "cagr": 0.073747,
+    "max_drawdown": 0.551891,
+    "sharpe": 0.4628,
+    "sortino": 0.6545,
+    "calmar": 0.1336,
+    "daily_sharpe": 0.02915184,
+    "skew": 0.2042,
+    "kurtosis": 18.7706,
+    "sessions": 3021
+   },
+   "same_exposure_spy": {
+    "final_equity": 164876.99,
+    "total_return": 0.64877,
+    "cagr": 0.042589,
+    "max_drawdown": 0.241234,
+    "sharpe": 0.5925,
+    "sortino": 0.8323,
+    "calmar": 0.1765,
+    "daily_sharpe": 0.03732144,
+    "skew": -0.2269,
+    "kurtosis": 6.7021,
+    "sessions": 3021
+   },
+   "random": {
+    "runs": 200,
+    "unmatched": 0,
+    "sharpe": {
+     "p5": 0.3789,
+     "median": 0.5843,
+     "p95": 0.8065
+    },
+    "cagr": {
+     "p5": 0.030798,
+     "median": 0.049547,
+     "p95": 0.068207
+    },
+    "max_drawdown": {
+     "p5": 0.209001,
+     "median": 0.272349,
+     "p95": 0.341056
+    },
+    "sv_beats_share_sharpe": 0.095
+   },
+   "trade_level": {
+    "signals": 2078,
+    "difference_winsorized": -0.012425,
+    "t_monthly": -2.784,
+    "median_difference": -0.024812,
+    "sv_mean": 0.04241,
+    "sv_median": -0.050563,
+    "random_mean": 0.053719,
+    "sv_win_rate": 0.3345
+   },
+   "win_loss": {
+    "sv": {
+     "trades": 2079,
+     "win_rate": 0.3343,
+     "average_win": 0.290187,
+     "average_loss": -0.082146,
+     "payoff_ratio": 3.533,
+     "profit_factor": 1.774,
+     "expectancy_r": 0.5925
+    },
+    "random": {
+     "trades": 417667,
+     "win_rate": 0.3409,
+     "average_win": 0.31049,
+     "average_loss": -0.080757,
+     "payoff_ratio": 3.845,
+     "profit_factor": 1.988,
+     "expectancy_r": 0.6315
+    }
+   },
+   "exit_reasons": {
+    "stop": 1196,
+    "stop_gap": 196,
+    "trend_exit": 687
+   },
+   "held_median_sessions": {
+    "week": 54
+   },
+   "goal_1": {
+    "sharpe_vs_spy": -0.0415,
+    "met": false
+   },
+   "by_option": {
+    "B": 1420,
+    "C": 795
+   },
+   "changes": {}
+  },
+  "V1_c_only": {
+   "window": {
+    "start": "2005-01-03",
+    "end": "2016-12-30",
+    "sessions": 3021
+   },
+   "signals": 795,
+   "skipped": {},
+   "by_kind": {
+    "week": 795
+   },
+   "sv": {
+    "final_equity": 124771.59,
+    "total_return": 0.247716,
+    "cagr": 0.018631,
+    "max_drawdown": 0.283492,
+    "sharpe": 0.2735,
+    "sortino": 0.3799,
+    "calmar": 0.0657,
+    "daily_sharpe": 0.01722689,
+    "skew": -0.2874,
+    "kurtosis": 5.1509,
+    "sessions": 3021,
+    "trades_taken": 219,
+    "open_at_end": 0,
+    "average_exposure": 0.4354,
+    "skipped": {
+     "position_limit": 561,
+     "same_stock_held": 15
+    }
+   },
+   "spy": {
+    "final_equity": 234684.8,
+    "total_return": 1.346848,
+    "cagr": 0.073747,
+    "max_drawdown": 0.551891,
+    "sharpe": 0.4628,
+    "sortino": 0.6545,
+    "calmar": 0.1336,
+    "daily_sharpe": 0.02915184,
+    "skew": 0.2042,
+    "kurtosis": 18.7706,
+    "sessions": 3021
+   },
+   "same_exposure_spy": {
+    "final_equity": 153289.76,
+    "total_return": 0.532898,
+    "cagr": 0.036271,
+    "max_drawdown": 0.251082,
+    "sharpe": 0.5402,
+    "sortino": 0.7492,
+    "calmar": 0.1445,
+    "daily_sharpe": 0.03402669,
+    "skew": -0.4164,
+    "kurtosis": 6.6882,
+    "sessions": 3021
+   },
+   "random": {
+    "runs": 200,
+    "unmatched": 0,
+    "sharpe": {
+     "p5": 0.347,
+     "median": 0.5741,
+     "p95": 0.7849
+    },
+    "cagr": {
+     "p5": 0.025134,
+     "median": 0.044145,
+     "p95": 0.063903
+    },
+    "max_drawdown": {
+     "p5": 0.204699,
+     "median": 0.26472,
+     "p95": 0.334612
+    },
+    "sv_beats_share_sharpe": 0.025
+   },
+   "trade_level": {
+    "signals": 727,
+    "difference_winsorized": -0.023121,
+    "t_monthly": -3.216,
+    "median_difference": -0.025211,
+    "sv_mean": 0.046856,
+    "sv_median": -0.069438,
+    "random_mean": 0.068852,
+    "sv_win_rate": 0.3865
+   },
+   "win_loss": {
+    "sv": {
+     "trades": 728,
+     "win_rate": 0.386,
+     "average_win": 0.302859,
+     "average_loss": -0.11449,
+     "payoff_ratio": 2.645,
+     "profit_factor": 1.663,
+     "expectancy_r": 0.455
+    },
+    "random": {
+     "trades": 146848,
+     "win_rate": 0.4089,
+     "average_win": 0.323636,
+     "average_loss": -0.110795,
+     "payoff_ratio": 2.921,
+     "profit_factor": 2.021,
+     "expectancy_r": 0.5617
+    }
+   },
+   "exit_reasons": {
+    "stop": 379,
+    "stop_gap": 68,
+    "trend_exit": 281
+   },
+   "held_median_sessions": {
+    "week": 85.5
+   },
+   "goal_1": {
+    "sharpe_vs_spy": -0.1893,
+    "met": false
+   },
+   "by_option": {
+    "C": 795
+   },
+   "changes": {
+    "options": [
+     "C"
+    ]
+   }
+  },
+  "V2_b_only": {
+   "window": {
+    "start": "2005-01-03",
+    "end": "2016-12-30",
+    "sessions": 3021
+   },
+   "signals": 1420,
+   "skipped": {},
+   "by_kind": {
+    "week": 1420
+   },
+   "sv": {
+    "final_equity": 191401.55,
+    "total_return": 0.914016,
+    "cagr": 0.055643,
+    "max_drawdown": 0.300148,
+    "sharpe": 0.7084,
+    "sortino": 1.0076,
+    "calmar": 0.1854,
+    "daily_sharpe": 0.04462653,
+    "skew": -0.1732,
+    "kurtosis": 5.866,
+    "sessions": 3021,
+    "trades_taken": 316,
+    "open_at_end": 0,
+    "average_exposure": 0.4196,
+    "skipped": {
+     "cash_or_whole_share_insufficient": 2,
+     "position_limit": 1072,
+     "same_stock_held": 30
+    }
+   },
+   "spy": {
+    "final_equity": 234684.8,
+    "total_return": 1.346848,
+    "cagr": 0.073747,
+    "max_drawdown": 0.551891,
+    "sharpe": 0.4628,
+    "sortino": 0.6545,
+    "calmar": 0.1336,
+    "daily_sharpe": 0.02915184,
+    "skew": 0.2042,
+    "kurtosis": 18.7706,
+    "sessions": 3021
+   },
+   "same_exposure_spy": {
+    "final_equity": 168396.53,
+    "total_return": 0.683965,
+    "cagr": 0.044428,
+    "max_drawdown": 0.216422,
+    "sharpe": 0.6703,
+    "sortino": 0.9412,
+    "calmar": 0.2053,
+    "daily_sharpe": 0.04222182,
+    "skew": -0.2963,
+    "kurtosis": 6.9361,
+    "sessions": 3021
+   },
+   "random": {
+    "runs": 200,
+    "unmatched": 0,
+    "sharpe": {
+     "p5": 0.3722,
+     "median": 0.5982,
+     "p95": 0.8608
+    },
+    "cagr": {
+     "p5": 0.028784,
+     "median": 0.050443,
+     "p95": 0.073326
+    },
+    "max_drawdown": {
+     "p5": 0.189229,
+     "median": 0.259809,
+     "p95": 0.323878
+    },
+    "sv_beats_share_sharpe": 0.775
+   },
+   "trade_level": {
+    "signals": 1351,
+    "difference_winsorized": -0.006363,
+    "t_monthly": -1.037,
+    "median_difference": -0.025969,
+    "sv_mean": 0.040017,
+    "sv_median": -0.047613,
+    "random_mean": 0.04558,
+    "sv_win_rate": 0.3064
+   },
+   "win_loss": {
+    "sv": {
+     "trades": 1351,
+     "win_rate": 0.3064,
+     "average_win": 0.281586,
+     "average_loss": -0.066716,
+     "payoff_ratio": 4.221,
+     "profit_factor": 1.865,
+     "expectancy_r": 0.6667
+    },
+    "random": {
+     "trades": 271036,
+     "win_rate": 0.3036,
+     "average_win": 0.30101,
+     "average_loss": -0.066956,
+     "payoff_ratio": 4.496,
+     "profit_factor": 1.96,
+     "expectancy_r": 0.6708
+    }
+   },
+   "exit_reasons": {
+    "stop": 817,
+    "stop_gap": 128,
+    "trend_exit": 406
+   },
+   "held_median_sessions": {
+    "week": 40
+   },
+   "goal_1": {
+    "sharpe_vs_spy": 0.2456,
+    "met": false
+   },
+   "by_option": {
+    "B": 1420
+   },
+   "changes": {
+    "options": [
+     "B"
+    ]
+   }
+  },
+  "V3_target_1_5r": {
+   "window": {
+    "start": "2005-01-03",
+    "end": "2016-12-30",
+    "sessions": 3021
+   },
+   "signals": 2215,
+   "skipped": {},
+   "by_kind": {
+    "week": 2215
+   },
+   "sv": {
+    "final_equity": 130624.74,
+    "total_return": 0.306247,
+    "cagr": 0.022534,
+    "max_drawdown": 0.242916,
+    "sharpe": 0.3767,
+    "sortino": 0.53,
+    "calmar": 0.0928,
+    "daily_sharpe": 0.02373262,
+    "skew": -0.1312,
+    "kurtosis": 6.0583,
+    "sessions": 3021,
+    "trades_taken": 452,
+    "open_at_end": 0,
+    "average_exposure": 0.347,
+    "skipped": {
+     "position_limit": 1703,
+     "cash_or_whole_share_insufficient": 1,
+     "same_stock_held": 59
+    }
+   },
+   "spy": {
+    "final_equity": 234684.8,
+    "total_return": 1.346848,
+    "cagr": 0.073747,
+    "max_drawdown": 0.551891,
+    "sharpe": 0.4628,
+    "sortino": 0.6545,
+    "calmar": 0.1336,
+    "daily_sharpe": 0.02915184,
+    "skew": 0.2042,
+    "kurtosis": 18.7706,
+    "sessions": 3021
+   },
+   "same_exposure_spy": {
+    "final_equity": 139395.56,
+    "total_return": 0.393956,
+    "cagr": 0.028091,
+    "max_drawdown": 0.215936,
+    "sharpe": 0.5097,
+    "sortino": 0.7122,
+    "calmar": 0.1301,
+    "daily_sharpe": 0.03210729,
+    "skew": -0.2351,
+    "kurtosis": 9.3909,
+    "sessions": 3021
+   },
+   "random": {
+    "runs": 200,
+    "unmatched": 0,
+    "sharpe": {
+     "p5": 0.3188,
+     "median": 0.562,
+     "p95": 0.7786
+    },
+    "cagr": {
+     "p5": 0.020845,
+     "median": 0.039007,
+     "p95": 0.055388
+    },
+    "max_drawdown": {
+     "p5": 0.162488,
+     "median": 0.239206,
+     "p95": 0.302295
+    },
+    "sv_beats_share_sharpe": 0.095
+   },
+   "trade_level": {
+    "signals": 2124,
+    "difference_winsorized": -0.001906,
+    "t_monthly": -1.582,
+    "median_difference": -0.001886,
+    "sv_mean": 0.020003,
+    "sv_median": 0.022423,
+    "random_mean": 0.021749,
+    "sv_win_rate": 0.5033
+   },
+   "win_loss": {
+    "sv": {
+     "trades": 2125,
+     "win_rate": 0.5031,
+     "average_win": 0.122691,
+     "average_loss": -0.084098,
+     "payoff_ratio": 1.459,
+     "profit_factor": 1.477,
+     "expectancy_r": 0.2609
+    },
+    "random": {
+     "trades": 427180,
+     "win_rate": 0.4946,
+     "average_win": 0.127181,
+     "average_loss": -0.082229,
+     "payoff_ratio": 1.547,
+     "profit_factor": 1.514,
+     "expectancy_r": 0.217
+    }
+   },
+   "exit_reasons": {
+    "stop": 1051,
+    "stop_gap": 163,
+    "trend_exit": 911
+   },
+   "held_median_sessions": {
+    "week": 42
+   },
+   "goal_1": {
+    "sharpe_vs_spy": -0.0861,
+    "met": false
+   },
+   "by_option": {
+    "B": 1420,
+    "C": 795
+   },
+   "changes": {
+    "target_r": 1.5
+   }
+  },
+  "V4_volume_1_25x": {
+   "window": {
+    "start": "2005-01-03",
+    "end": "2016-12-30",
+    "sessions": 3021
+   },
+   "signals": 412,
+   "skipped": {},
+   "by_kind": {
+    "week": 412
+   },
+   "sv": {
+    "final_equity": 155184.43,
+    "total_return": 0.551844,
+    "cagr": 0.037334,
+    "max_drawdown": 0.193722,
+    "sharpe": 0.5559,
+    "sortino": 0.7948,
+    "calmar": 0.1927,
+    "daily_sharpe": 0.03501858,
+    "skew": -0.1153,
+    "kurtosis": 4.415,
+    "sessions": 3021,
+    "trades_taken": 204,
+    "open_at_end": 0,
+    "average_exposure": 0.3816,
+    "skipped": {
+     "position_limit": 196,
+     "same_stock_held": 11,
+     "cash_or_whole_share_insufficient": 1
+    }
+   },
+   "spy": {
+    "final_equity": 234684.8,
+    "total_return": 1.346848,
+    "cagr": 0.073747,
+    "max_drawdown": 0.551891,
+    "sharpe": 0.4628,
+    "sortino": 0.6545,
+    "calmar": 0.1336,
+    "daily_sharpe": 0.02915184,
+    "skew": 0.2042,
+    "kurtosis": 18.7706,
+    "sessions": 3021
+   },
+   "same_exposure_spy": {
+    "final_equity": 163019.08,
+    "total_return": 0.630191,
+    "cagr": 0.041604,
+    "max_drawdown": 0.145601,
+    "sharpe": 0.7515,
+    "sortino": 1.0489,
+    "calmar": 0.2857,
+    "daily_sharpe": 0.04733752,
+    "skew": -0.4663,
+    "kurtosis": 5.5681,
+    "sessions": 3021
+   },
+   "random": {
+    "runs": 200,
+    "unmatched": 0,
+    "sharpe": {
+     "p5": 0.4296,
+     "median": 0.6656,
+     "p95": 0.8857
+    },
+    "cagr": {
+     "p5": 0.027704,
+     "median": 0.04494,
+     "p95": 0.061663
+    },
+    "max_drawdown": {
+     "p5": 0.134917,
+     "median": 0.19719,
+     "p95": 0.243598
+    },
+    "sv_beats_share_sharpe": 0.225
+   },
+   "trade_level": {
+    "signals": 375,
+    "difference_winsorized": -0.02261,
+    "t_monthly": -2.121,
+    "median_difference": -0.033114,
+    "sv_mean": 0.031726,
+    "sv_median": -0.051193,
+    "random_mean": 0.053307,
+    "sv_win_rate": 0.32
+   },
+   "win_loss": {
+    "sv": {
+     "trades": 375,
+     "win_rate": 0.32,
+     "average_win": 0.279333,
+     "average_loss": -0.084795,
+     "payoff_ratio": 3.294,
+     "profit_factor": 1.55,
+     "expectancy_r": 0.4526
+    },
+    "random": {
+     "trades": 76411,
+     "win_rate": 0.3481,
+     "average_win": 0.296,
+     "average_loss": -0.080327,
+     "payoff_ratio": 3.685,
+     "profit_factor": 1.967,
+     "expectancy_r": 0.6138
+    }
+   },
+   "exit_reasons": {
+    "stop": 218,
+    "stop_gap": 38,
+    "trend_exit": 119
+   },
+   "held_median_sessions": {
+    "week": 54
+   },
+   "goal_1": {
+    "sharpe_vs_spy": 0.0931,
+    "met": true
+   },
+   "by_option": {
+    "B": 300,
+    "C": 112
+   },
+   "changes": {
+    "min_volume_ratio": 1.25
+   }
+  },
+  "V5_confluence_4": {
+   "window": {
+    "start": "2005-01-03",
+    "end": "2016-12-30",
+    "sessions": 3021
+   },
+   "signals": 591,
+   "skipped": {},
+   "by_kind": {
+    "week": 591
+   },
+   "sv": {
+    "final_equity": 128948.65,
+    "total_return": 0.289487,
+    "cagr": 0.021433,
+    "max_drawdown": 0.213878,
+    "sharpe": 0.3937,
+    "sortino": 0.5476,
+    "calmar": 0.1002,
+    "daily_sharpe": 0.02480014,
+    "skew": -0.3693,
+    "kurtosis": 5.7141,
+    "sessions": 3021,
+    "trades_taken": 261,
+    "open_at_end": 0,
+    "average_exposure": 0.3419,
+    "skipped": {
+     "same_stock_held": 39,
+     "position_limit": 290,
+     "cash_or_whole_share_insufficient": 1
+    }
+   },
+   "spy": {
+    "final_equity": 234684.8,
+    "total_return": 1.346848,
+    "cagr": 0.073747,
+    "max_drawdown": 0.551891,
+    "sharpe": 0.4628,
+    "sortino": 0.6545,
+    "calmar": 0.1336,
+    "daily_sharpe": 0.02915184,
+    "skew": 0.2042,
+    "kurtosis": 18.7706,
+    "sessions": 3021
+   },
+   "same_exposure_spy": {
+    "final_equity": 143863.85,
+    "total_return": 0.438638,
+    "cagr": 0.030801,
+    "max_drawdown": 0.148878,
+    "sharpe": 0.6261,
+    "sortino": 0.8607,
+    "calmar": 0.2069,
+    "daily_sharpe": 0.03943876,
+    "skew": -0.5981,
+    "kurtosis": 6.9617,
+    "sessions": 3021
+   },
+   "random": {
+    "runs": 200,
+    "unmatched": 0,
+    "sharpe": {
+     "p5": 0.3412,
+     "median": 0.5835,
+     "p95": 0.8051
+    },
+    "cagr": {
+     "p5": 0.022445,
+     "median": 0.041547,
+     "p95": 0.057515
+    },
+    "max_drawdown": {
+     "p5": 0.150719,
+     "median": 0.20228,
+     "p95": 0.262705
+    },
+    "sv_beats_share_sharpe": 0.105
+   },
+   "trade_level": {
+    "signals": 555,
+    "difference_winsorized": -0.009752,
+    "t_monthly": -1.725,
+    "median_difference": -0.024725,
+    "sv_mean": 0.039012,
+    "sv_median": -0.049488,
+    "random_mean": 0.0496,
+    "sv_win_rate": 0.3514
+   },
+   "win_loss": {
+    "sv": {
+     "trades": 555,
+     "win_rate": 0.3514,
+     "average_win": 0.264995,
+     "average_loss": -0.083396,
+     "payoff_ratio": 3.178,
+     "profit_factor": 1.721,
+     "expectancy_r": 0.662
+    },
+    "random": {
+     "trades": 111861,
+     "win_rate": 0.3457,
+     "average_win": 0.297304,
+     "average_loss": -0.083748,
+     "payoff_ratio": 3.55,
+     "profit_factor": 1.876,
+     "expectancy_r": 0.62
+    }
+   },
+   "exit_reasons": {
+    "stop": 305,
+    "stop_gap": 59,
+    "trend_exit": 191
+   },
+   "held_median_sessions": {
+    "week": 51
+   },
+   "goal_1": {
+    "sharpe_vs_spy": -0.0691,
+    "met": false
+   },
+   "by_option": {
+    "B": 350,
+    "C": 241
+   },
+   "changes": {
+    "min_confluence": 4
+   }
+  },
+  "V6_market_filter": {
+   "window": {
+    "start": "2005-01-03",
+    "end": "2016-12-30",
+    "sessions": 3021
+   },
+   "signals": 1811,
+   "skipped": {
+    "market_filter": 404
+   },
+   "by_kind": {
+    "week": 1811
+   },
+   "sv": {
+    "final_equity": 159231.85,
+    "total_return": 0.592319,
+    "cagr": 0.039564,
+    "max_drawdown": 0.170856,
+    "sharpe": 0.6113,
+    "sortino": 0.8801,
+    "calmar": 0.2316,
+    "daily_sharpe": 0.03850584,
+    "skew": -0.0456,
+    "kurtosis": 5.416,
+    "sessions": 3021,
+    "trades_taken": 258,
+    "open_at_end": 0,
+    "average_exposure": 0.3885,
+    "skipped": {
+     "position_limit": 1514,
+     "cash_or_whole_share_insufficient": 1,
+     "same_stock_held": 38
+    }
+   },
+   "spy": {
+    "final_equity": 234684.8,
+    "total_return": 1.346848,
+    "cagr": 0.073747,
+    "max_drawdown": 0.551891,
+    "sharpe": 0.4628,
+    "sortino": 0.6545,
+    "calmar": 0.1336,
+    "daily_sharpe": 0.02915184,
+    "skew": 0.2042,
+    "kurtosis": 18.7706,
+    "sessions": 3021
+   },
+   "same_exposure_spy": {
+    "final_equity": 156236.67,
+    "total_return": 0.562367,
+    "cagr": 0.037919,
+    "max_drawdown": 0.127852,
+    "sharpe": 0.6909,
+    "sortino": 0.9626,
+    "calmar": 0.2966,
+    "daily_sharpe": 0.04352191,
+    "skew": -0.4067,
+    "kurtosis": 6.0612,
+    "sessions": 3021
+   },
+   "random": {
+    "runs": 200,
+    "unmatched": 0,
+    "sharpe": {
+     "p5": 0.3641,
+     "median": 0.6109,
+     "p95": 0.8452
+    },
+    "cagr": {
+     "p5": 0.024571,
+     "median": 0.042284,
+     "p95": 0.06135
+    },
+    "max_drawdown": {
+     "p5": 0.131354,
+     "median": 0.167726,
+     "p95": 0.219599
+    },
+    "sv_beats_share_sharpe": 0.505
+   },
+   "trade_level": {
+    "signals": 1691,
+    "difference_winsorized": -0.008259,
+    "t_monthly": -1.267,
+    "median_difference": -0.027749,
+    "sv_mean": 0.042966,
+    "sv_median": -0.048006,
+    "random_mean": 0.049967,
+    "sv_win_rate": 0.34
+   },
+   "win_loss": {
+    "sv": {
+     "trades": 1691,
+     "win_rate": 0.34,
+     "average_win": 0.27334,
+     "average_loss": -0.07573,
+     "payoff_ratio": 3.609,
+     "profit_factor": 1.86,
+     "expectancy_r": 0.6062
+    },
+    "random": {
+     "trades": 341313,
+     "win_rate": 0.3419,
+     "average_win": 0.28491,
+     "average_loss": -0.07311,
+     "payoff_ratio": 3.897,
+     "profit_factor": 2.025,
+     "expectancy_r": 0.6464
+    }
+   },
+   "exit_reasons": {
+    "stop": 959,
+    "stop_gap": 164,
+    "trend_exit": 568
+   },
+   "held_median_sessions": {
+    "week": 56
+   },
+   "goal_1": {
+    "sharpe_vs_spy": 0.1485,
+    "met": true
+   },
+   "by_option": {
+    "B": 1191,
+    "C": 620
+   },
+   "changes": {
+    "market_filter": true
+   }
+  },
+  "V7_time_stop_26w": {
+   "window": {
+    "start": "2005-01-03",
+    "end": "2016-12-30",
+    "sessions": 3021
+   },
+   "signals": 2215,
+   "skipped": {},
+   "by_kind": {
+    "week": 2215
+   },
+   "sv": {
+    "final_equity": 142635.46,
+    "total_return": 0.426355,
+    "cagr": 0.030064,
+    "max_drawdown": 0.293307,
+    "sharpe": 0.4105,
+    "sortino": 0.5757,
+    "calmar": 0.1025,
+    "daily_sharpe": 0.02586085,
+    "skew": -0.1894,
+    "kurtosis": 5.5173,
+    "sessions": 3021,
+    "trades_taken": 439,
+    "open_at_end": 0,
+    "average_exposure": 0.4272,
+    "skipped": {
+     "position_limit": 1710,
+     "cash_or_whole_share_insufficient": 1,
+     "same_stock_held": 65
+    }
+   },
+   "spy": {
+    "final_equity": 234684.8,
+    "total_return": 1.346848,
+    "cagr": 0.073747,
+    "max_drawdown": 0.551891,
+    "sharpe": 0.4628,
+    "sortino": 0.6545,
+    "calmar": 0.1336,
+    "daily_sharpe": 0.02915184,
+    "skew": 0.2042,
+    "kurtosis": 18.7706,
+    "sessions": 3021
+   },
+   "same_exposure_spy": {
+    "final_equity": 154823.83,
+    "total_return": 0.548238,
+    "cagr": 0.037133,
+    "max_drawdown": 0.244354,
+    "sharpe": 0.5556,
+    "sortino": 0.7783,
+    "calmar": 0.152,
+    "daily_sharpe": 0.03500057,
+    "skew": -0.2237,
+    "kurtosis": 7.4576,
+    "sessions": 3021
+   },
+   "random": {
+    "runs": 200,
+    "unmatched": 0,
+    "sharpe": {
+     "p5": 0.3479,
+     "median": 0.5377,
+     "p95": 0.7405
+    },
+    "cagr": {
+     "p5": 0.025692,
+     "median": 0.044007,
+     "p95": 0.063906
+    },
+    "max_drawdown": {
+     "p5": 0.189414,
+     "median": 0.262172,
+     "p95": 0.331121
+    },
+    "sv_beats_share_sharpe": 0.135
+   },
+   "trade_level": {
+    "signals": 2114,
+    "difference_winsorized": -0.004206,
+    "t_monthly": -1.733,
+    "median_difference": -0.021983,
+    "sv_mean": 0.026452,
+    "sv_median": -0.044422,
+    "random_mean": 0.029029,
+    "sv_win_rate": 0.3846
+   },
+   "win_loss": {
+    "sv": {
+     "trades": 2115,
+     "win_rate": 0.3844,
+     "average_win": 0.193012,
+     "average_loss": -0.077679,
+     "payoff_ratio": 2.485,
+     "profit_factor": 1.552,
+     "expectancy_r": 0.4006
+    },
+    "random": {
+     "trades": 425784,
+     "win_rate": 0.3896,
+     "average_win": 0.193267,
+     "average_loss": -0.0767,
+     "payoff_ratio": 2.52,
+     "profit_factor": 1.608,
+     "expectancy_r": 0.3576
+    }
+   },
+   "exit_reasons": {
+    "stop": 1082,
+    "stop_gap": 174,
+    "time": 544,
+    "trend_exit": 315
+   },
+   "held_median_sessions": {
+    "week": 57
+   },
+   "goal_1": {
+    "sharpe_vs_spy": -0.0523,
+    "met": false
+   },
+   "by_option": {
+    "B": 1420,
+    "C": 795
+   },
+   "changes": {
+    "max_sessions": 130
+   }
+  }
+ },
+ "adopted": [
+  "V2_b_only",
+  "V4_volume_1_25x",
+  "V6_market_filter"
+ ],
+ "final_changes": {
+  "options": [
+   "B"
+  ],
+  "market_filter": true,
+  "min_volume_ratio": 1.25
+ },
+ "holdout_known_stocks": {
+  "window": {
+   "start": "2017-01-03",
+   "end": "2025-06-30",
+   "sessions": 2134
+  },
+  "signals": 392,
+  "skipped": {
+   "market_filter": 66
+  },
+  "by_kind": {
+   "week": 392
+  },
+  "sv": {
+   "final_equity": 114856.78,
+   "total_return": 0.148568,
+   "cagr": 0.016454,
+   "max_drawdown": 0.149393,
+   "sharpe": 0.304,
+   "sortino": 0.4242,
+   "calmar": 0.1101,
+   "daily_sharpe": 0.01914762,
+   "skew": -0.0957,
+   "kurtosis": 8.1161,
+   "sessions": 2134,
+   "trades_taken": 209,
+   "open_at_end": 3,
+   "average_exposure": 0.2917,
+   "skipped": {
+    "same_stock_held": 2,
+    "position_limit": 178
+   }
+  },
+  "spy": {
+   "final_equity": 315327.46,
+   "total_return": 2.153275,
+   "cagr": 0.144894,
+   "max_drawdown": 0.337174,
+   "sharpe": 0.8144,
+   "sortino": 1.1454,
+   "calmar": 0.4297,
+   "daily_sharpe": 0.05130252,
+   "skew": -0.3047,
+   "kurtosis": 17.2028,
+   "sessions": 2134
+  },
+  "same_exposure_spy": {
+   "final_equity": 130656.56,
+   "total_return": 0.306566,
+   "cagr": 0.032008,
+   "max_drawdown": 0.072198,
+   "sharpe": 0.731,
+   "sortino": 0.9957,
+   "calmar": 0.4433,
+   "daily_sharpe": 0.04604894,
+   "skew": -0.7964,
+   "kurtosis": 8.6241,
+   "sessions": 2134
+  },
+  "random": {
+   "runs": 200,
+   "unmatched": 0,
+   "sharpe": {
+    "p5": 0.1407,
+    "median": 0.4749,
+    "p95": 0.8339
+   },
+   "cagr": {
+    "p5": 0.006441,
+    "median": 0.026596,
+    "p95": 0.052393
+   },
+   "max_drawdown": {
+    "p5": 0.083546,
+    "median": 0.123868,
+    "p95": 0.183714
+   },
+   "sv_beats_share_sharpe": 0.2
+  },
+  "trade_level": {
+   "signals": 386,
+   "difference_winsorized": -0.013658,
+   "t_monthly": -0.665,
+   "median_difference": -0.042256,
+   "sv_mean": 0.002874,
+   "sv_median": -0.052493,
+   "random_mean": 0.0138,
+   "sv_win_rate": 0.2409
+  },
+  "win_loss": {
+   "sv": {
+    "trades": 386,
+    "win_rate": 0.2409,
+    "average_win": 0.232566,
+    "average_loss": -0.070032,
+    "payoff_ratio": 3.321,
+    "profit_factor": 1.054,
+    "expectancy_r": 0.0369
+   },
+   "random": {
+    "trades": 77015,
+    "win_rate": 0.2585,
+    "average_win": 0.255418,
+    "average_loss": -0.070136,
+    "payoff_ratio": 3.642,
+    "profit_factor": 1.269,
+    "expectancy_r": 0.2122
+   }
+  },
+  "exit_reasons": {
+   "stop": 249,
+   "stop_gap": 48,
+   "trend_exit": 89
+  },
+  "held_median_sessions": {
+   "week": 25.0
+  },
+  "goal_1": {
+   "sharpe_vs_spy": -0.5104,
+   "met": false
+  },
+  "by_option": {
+   "B": 392
+  }
+ },
+ "exam": {
+  "shards": [
+   {
+    "dataset": {
+     "dataset_id": "fresh-a-1995-v1",
+     "asset": "fresh-a-1995-v1-8562cf5807f0.json.gz",
+     "sha256": "8562cf5807f02fd81ef4c6030635be874f40b6b4ef7e1318b909530e44bbea8c",
+     "symbols": 1500
+    },
+    "raw_close": true,
+    "excluded_symbols": [
+     "AAM_old",
+     "ACF",
+     "ACHR-WS",
+     "ACIC-WS",
+     "ACIC_old",
+     "ACL",
+     "ACRX",
+     "ADLR",
+     "ADMP",
+     "ADRO",
+     "AENZ",
+     "AFX",
+     "AGII",
+     "AGIXQ",
+     "AGR",
+     "AIG-WS",
+     "AI_old1",
+     "AKTSQ",
+     "ALBO",
+     "ALQA",
+     "ALR",
+     "ALTI_old",
+     "ALTO",
+     "ALXA",
+     "ALY",
+     "AMAM",
+     "AMBTQ",
+     "AMC",
+     "AMRH",
+     "AMRK_old",
+     "AMRN",
+     "AMRS",
+     "ANAC",
+     "ANG",
+     "AOBC",
+     "AOI",
+     "APL",
+     "APRI",
+     "AQB",
+     "AQXP",
+     "ARCH",
+     "ARDM",
+     "ARGO",
+     "ARNA",
+     "ARTA",
+     "ARVL",
+     "ASPL",
+     "ASRT",
+     "ASTH",
+     "ASTR",
+     "ATHN",
+     "ATNX",
+     "ATNY",
+     "ATTO_old",
+     "ATU",
+     "ATVI",
+     "AUPH",
+     "AUTO",
+     "AUY",
+     "AVL_old",
+     "AVNR",
+     "AVO_old",
+     "AVTA",
+     "AVYA",
+     "AXLL",
+     "BABY",
+     "BAC-WS-B",
+     "BAS",
+     "BBBB",
+     "BBD",
+     "BBLN",
+     "BBX",
+     "BCOR_old",
+     "BEC_old",
+     "BED",
+     "BFX",
+     "BIOC",
+     "BIR",
+     "BIRD",
+     "BKUNA",
+     "BLFS",
+     "BLL",
+     "BLNK",
+     "BNGO",
+     "BOP",
+     "BORR",
+     "BOUBYAN",
+     "BPI_old",
+     "BPY",
+     "BRCD",
+     "BRDS",
+     "BRLCQ",
+     "BRMK-WS",
+     "BTCT",
+     "BTRX",
+     "BUCY",
+     "BULL",
+     "BURG",
+     "BVH",
+     "BXRX",
+     "BYRN",
+     "C-WS-A",
+     "CAA",
+     "CABL",
+     "CACB",
+     "CADMQ",
+     "CAJ",
+     "CALL",
+     "CANOQ",
+     "CBAK",
+     "CBAT",
+     "CBB",
+     "CBD",
+     "CBE",
+     "CBI",
+     "CBMX",
+     "CCBL",
+     "CCBN",
+     "CCCL",
+     "CCG",
+     "CCIV-U",
+     "CCIV-WS",
+     "CCME",
+     "CDO",
+     "CDR",
+     "CEC",
+     "CEMI",
+     "CENN",
+     "CEO",
+     "CEQP",
+     "CETV",
+     "CFAC",
+     "CFC",
+     "CFRX",
+     "CGA",
+     "CGE",
+     "CGG",
+     "CGIX",
+     "CGRN",
+     "CGS",
+     "CHKAQ",
+     "CHL",
+     "CIDM",
+     "CK",
+     "CLD",
+     "CLE",
+     "CMBM",
+     "CMO",
+     "CMPC",
+     "CMPO",
+     "CNAT",
+     "CND-UN",
+     "CNG",
+     "CNGL",
+     "CNST",
+     "COB",
+     "COH",
+     "CONNQ",
+     "CORSQ",
+     "CPSL_old",
+     "CPXX",
+     "CRG",
+     "CRIS",
+     "CRR",
+     "CRTX",
+     "CSCW",
+     "CSU",
+     "CTXS",
+     "CXR",
+     "CYRN",
+     "CZZ",
+     "DAC",
+     "DATA",
+     "DATS",
+     "DBD_old",
+     "DCAR",
+     "DCH_old",
+     "DCIX",
+     "DCM",
+     "DCPH",
+     "DFBG",
+     "DFTX",
+     "DHCP",
+     "DHOXY",
+     "DJT",
+     "DLM"
+    ],
+    "window": {
+     "start": "2005-01-03",
+     "end": "2025-06-30",
+     "sessions": 5155
+    },
+    "signals": 224,
+    "skipped": {
+     "market_filter": 26
+    },
+    "by_kind": {
+     "week": 224
+    },
+    "sv": {
+     "final_equity": 105439.27,
+     "total_return": 0.054393,
+     "cagr": 0.002589,
+     "max_drawdown": 0.183594,
+     "sharpe": 0.0885,
+     "sortino": 0.1189,
+     "calmar": 0.0141,
+     "daily_sharpe": 0.0055737,
+     "skew": -0.9665,
+     "kurtosis": 15.1984,
+     "sessions": 5155,
+     "trades_taken": 215,
+     "open_at_end": 2,
+     "average_exposure": 0.1154,
+     "skipped": {
+      "cash_or_whole_share_insufficient": 3,
+      "position_limit": 2,
+      "same_stock_held": 2
+     }
+    },
+    "spy": {
+     "final_equity": 745024.64,
+     "total_return": 6.450246,
+     "cagr": 0.102989,
+     "max_drawdown": 0.551891,
+     "sharpe": 0.6072,
+     "sortino": 0.8569,
+     "calmar": 0.1866,
+     "daily_sharpe": 0.03824926,
+     "skew": 0.0043,
+     "kurtosis": 18.181,
+     "sessions": 5155
+    },
+    "same_exposure_spy": {
+     "final_equity": 125083.75,
+     "total_return": 0.250838,
+     "cagr": 0.010984,
+     "max_drawdown": 0.043057,
+     "sharpe": 0.569,
+     "sortino": 0.7659,
+     "calmar": 0.2551,
+     "daily_sharpe": 0.03584229,
+     "skew": -1.3261,
+     "kurtosis": 19.8582,
+     "sessions": 5155
+    },
+    "random": {
+     "runs": 200,
+     "unmatched": 0,
+     "sharpe": {
+      "p5": -0.0706,
+      "median": 0.2255,
+      "p95": 0.5029
+     },
+     "cagr": {
+      "p5": -0.003668,
+      "median": 0.008631,
+      "p95": 0.024344
+     },
+     "max_drawdown": {
+      "p5": 0.090895,
+      "median": 0.145092,
+      "p95": 0.240181
+     },
+     "sv_beats_share_sharpe": 0.235
+    },
+    "trade_level": {
+     "signals": 217,
+     "difference_winsorized": -0.008016,
+     "t_monthly": -0.335,
+     "median_difference": -0.049046,
+     "sv_mean": 0.000637,
+     "sv_median": -0.059383,
+     "random_mean": 0.008847,
+     "sv_win_rate": 0.2028
+    },
+    "win_loss": {
+     "sv": {
+      "trades": 217,
+      "win_rate": 0.2028,
+      "average_win": 0.313858,
+      "average_loss": -0.079027,
+      "payoff_ratio": 3.972,
+      "profit_factor": 1.01,
+      "expectancy_r": 0.1681
+     },
+     "random": {
+      "trades": 42724,
+      "win_rate": 0.2308,
+      "average_win": 0.317441,
+      "average_loss": -0.08458,
+      "payoff_ratio": 3.753,
+      "profit_factor": 1.126,
+      "expectancy_r": 0.1234
+     }
+    },
+    "exit_reasons": {
+     "stop": 154,
+     "stop_gap": 23,
+     "trend_exit": 40
+    },
+    "held_median_sessions": {
+     "week": 26
+    },
+    "goal_1": {
+     "sharpe_vs_spy": -0.5187,
+     "met": false
+    },
+    "by_option": {
+     "B": 224
+    }
+   },
+   {
+    "dataset": {
+     "dataset_id": "fresh-b-1995-v1",
+     "asset": "fresh-b-1995-v1-c4428b5d9cb1.json.gz",
+     "sha256": "c4428b5d9cb13ea29fa693afdad5960cd4b9bc622f14f15db7aa1e52100b663b",
+     "symbols": 1500
+    },
+    "raw_close": true,
+    "excluded_symbols": [
+     "DRL",
+     "DRWI",
+     "DS",
+     "DTRM",
+     "DTY",
+     "DVAX",
+     "DWACW",
+     "DXTR",
+     "DYN_old",
+     "EARS",
+     "EBIX",
+     "ECR",
+     "ECT",
+     "EDGE_old",
+     "EDO",
+     "EGIO",
+     "EGIOQ",
+     "EGLE_old",
+     "ELE_old",
+     "ELMS",
+     "ELON_old",
+     "ELP",
+     "EMWP",
+     "ENA",
+     "ENCO",
+     "ENFY",
+     "ENRJ",
+     "EQC",
+     "ERNA",
+     "ESGC",
+     "ESLRQ",
+     "ESTE",
+     "EXPI",
+     "EXXI",
+     "EYES_old",
+     "FAL",
+     "FBNK",
+     "FBR",
+     "FCAU",
+     "FCSC",
+     "FFIE",
+     "FH",
+     "FIXX_old",
+     "FLA",
+     "FNCX",
+     "FORG",
+     "FRAN",
+     "FSNN",
+     "FTCH",
+     "FTCHF",
+     "FTFT",
+     "FTK",
+     "FUBO",
+     "FVAC",
+     "FVE",
+     "GBOX",
+     "GBT",
+     "GEC",
+     "GIII",
+     "GIX-U",
+     "GIX-UN",
+     "GIX-WS",
+     "GIX_old1",
+     "GLG",
+     "GLT",
+     "GLXY",
+     "GLYC",
+     "GMCR",
+     "GNCA",
+     "GND",
+     "GNUS",
+     "GOLLQ",
+     "GOV",
+     "GPL",
+     "GPORQ",
+     "GPOR_old",
+     "GPT_old",
+     "GRTSQ",
+     "GSKNF",
+     "GSS",
+     "GTK",
+     "GTT",
+     "GTXI",
+     "HAI",
+     "HAWK_old",
+     "HCD",
+     "HEC",
+     "HEP",
+     "HGEN",
+     "HH",
+     "HK",
+     "HKD",
+     "HKT",
+     "HLBZ",
+     "HMB",
+     "HOGS",
+     "HOLO",
+     "HOTR",
+     "HPC",
+     "HQCL",
+     "HRH",
+     "HROW",
+     "HTBX",
+     "HTGM",
+     "HTV",
+     "HTZ-R-W",
+     "HUD",
+     "HUG",
+     "HUMANSOFT",
+     "HYGS",
+     "IAM",
+     "ICCM_old",
+     "ICT",
+     "IDRA",
+     "IFMI",
+     "IGL",
+     "IGOI",
+     "IIVI",
+     "ILA",
+     "IMBI",
+     "IMG",
+     "IMH",
+     "IMNN",
+     "IMUX",
+     "INBK",
+     "INDV",
+     "INFIQ",
+     "INHX",
+     "INO",
+     "INSU",
+     "IO",
+     "IPAS",
+     "IPL",
+     "IPOF-WT",
+     "IRLA",
+     "IRNT",
+     "ISA",
+     "ISUN",
+     "ITUB",
+     "ITWO_old",
+     "IVC",
+     "IVT",
+     "JE",
+     "JH",
+     "JNP",
+     "JONE_old",
+     "JRJC",
+     "JWA",
+     "KARO_old",
+     "KBAY",
+     "KBL",
+     "KBLM",
+     "KCS",
+     "KDNY",
+     "KEG",
+     "KMPH",
+     "KNDI",
+     "KNL",
+     "KODK",
+     "KODK-WS",
+     "KODK-WS-A",
+     "KOSS",
+     "KRB",
+     "KRG",
+     "KRI",
+     "KRTX",
+     "KRX",
+     "KSE",
+     "KSL",
+     "KSU",
+     "KTC",
+     "KZR",
+     "LAF",
+     "LBPH",
+     "LCAP_old",
+     "LCI",
+     "LDG",
+     "LEAF",
+     "LEH",
+     "LFG",
+     "LFMD",
+     "LFT_old",
+     "LGCY_old",
+     "LGF",
+     "LHC-UN",
+     "LHN",
+     "LILM",
+     "LIME_old",
+     "LK",
+     "LMNL",
+     "LMS",
+     "LOCM",
+     "LPI",
+     "LRI",
+     "LWLG"
+    ],
+    "window": {
+     "start": "2005-01-03",
+     "end": "2025-06-30",
+     "sessions": 5155
+    },
+    "signals": 214,
+    "skipped": {
+     "market_filter": 36
+    },
+    "by_kind": {
+     "week": 214
+    },
+    "sv": {
+     "final_equity": 113913.06,
+     "total_return": 0.139131,
+     "cagr": 0.006379,
+     "max_drawdown": 0.142774,
+     "sharpe": 0.1815,
+     "sortino": 0.3001,
+     "calmar": 0.0447,
+     "daily_sharpe": 0.0114307,
+     "skew": 9.6655,
+     "kurtosis": 359.3827,
+     "sessions": 5155,
+     "trades_taken": 205,
+     "open_at_end": 1,
+     "average_exposure": 0.1228,
+     "skipped": {
+      "cash_or_whole_share_insufficient": 2,
+      "position_limit": 6
+     }
+    },
+    "spy": {
+     "final_equity": 745024.64,
+     "total_return": 6.450246,
+     "cagr": 0.102989,
+     "max_drawdown": 0.551891,
+     "sharpe": 0.6072,
+     "sortino": 0.8569,
+     "calmar": 0.1866,
+     "daily_sharpe": 0.03824926,
+     "skew": 0.0043,
+     "kurtosis": 18.181,
+     "sessions": 5155
+    },
+    "same_exposure_spy": {
+     "final_equity": 127650.41,
+     "total_return": 0.276504,
+     "cagr": 0.011987,
+     "max_drawdown": 0.040271,
+     "sharpe": 0.6298,
+     "sortino": 0.8442,
+     "calmar": 0.2977,
+     "daily_sharpe": 0.03967294,
+     "skew": -1.6123,
+     "kurtosis": 21.4319,
+     "sessions": 5155
+    },
+    "random": {
+     "runs": 200,
+     "unmatched": 0,
+     "sharpe": {
+      "p5": -0.2468,
+      "median": 0.039,
+      "p95": 0.3576
+     },
+     "cagr": {
+      "p5": -0.009497,
+      "median": 0.000762,
+      "p95": 0.014428
+     },
+     "max_drawdown": {
+      "p5": 0.109855,
+      "median": 0.16118,
+      "p95": 0.248818
+     },
+     "sv_beats_share_sharpe": 0.795
+    },
+    "trade_level": {
+     "signals": 208,
+     "difference_winsorized": 0.012206,
+     "t_monthly": 0.794,
+     "median_difference": -0.035054,
+     "sv_mean": 0.008469,
+     "sv_median": -0.063564,
+     "random_mean": -0.006988,
+     "sv_win_rate": 0.1971
+    },
+    "win_loss": {
+     "sv": {
+      "trades": 208,
+      "win_rate": 0.1971,
+      "average_win": 0.368331,
+      "average_loss": -0.07988,
+      "payoff_ratio": 4.611,
+      "profit_factor": 1.132,
+      "expectancy_r": 0.0711
+     },
+     "random": {
+      "trades": 41092,
+      "win_rate": 0.2049,
+      "average_win": 0.307142,
+      "average_loss": -0.086884,
+      "payoff_ratio": 3.535,
+      "profit_factor": 0.911,
+      "expectancy_r": -57.5545
+     }
+    },
+    "exit_reasons": {
+     "stop": 139,
+     "stop_gap": 30,
+     "trend_exit": 39
+    },
+    "held_median_sessions": {
+     "week": 26.0
+    },
+    "goal_1": {
+     "sharpe_vs_spy": -0.4257,
+     "met": false
+    },
+    "by_option": {
+     "B": 214
+    }
+   },
+   {
+    "dataset": {
+     "dataset_id": "fresh-c-1995-v1",
+     "asset": "fresh-c-1995-v1-fb893c3b4a7e.json.gz",
+     "sha256": "fb893c3b4a7ee094187c9d0ed7132b48f00a097d19f6f458e84a0be73ad473a9",
+     "symbols": 1500
+    },
+    "raw_close": true,
+    "excluded_symbols": [
+     "LX",
+     "MABANEE",
+     "MAG",
+     "MAXS",
+     "MAY",
+     "MAYA",
+     "MBOT",
+     "MCC",
+     "MCEP",
+     "MCF",
+     "MCRB",
+     "MDVL",
+     "MDVLQ",
+     "MDVN",
+     "MECK",
+     "MER",
+     "MESO",
+     "MFA",
+     "MGG",
+     "MGI",
+     "MHL",
+     "MHLD",
+     "MI",
+     "MIC_old",
+     "MIFI",
+     "MIL",
+     "MLHR",
+     "MMAT",
+     "MNMD",
+     "MOSY",
+     "MPEL",
+     "MR",
+     "MRH",
+     "MRIC",
+     "MRIN",
+     "MRS",
+     "MTBL",
+     "MTBLY",
+     "MTEMQ",
+     "MTSL",
+     "MVL",
+     "MVST",
+     "MYL",
+     "MYSE",
+     "MYT",
+     "NAL",
+     "NATI",
+     "NBEV",
+     "NBRV",
+     "NCR",
+     "NCS",
+     "NDN",
+     "NEW",
+     "NFP",
+     "NGNE",
+     "NHP_old",
+     "NIND",
+     "NLC",
+     "NLCS",
+     "NLG",
+     "NLTX",
+     "NM",
+     "NMTR",
+     "NNDM",
+     "NOG",
+     "NOGN",
+     "NOVA",
+     "NPA",
+     "NP_old",
+     "NRL",
+     "NRPH",
+     "NRTLQ",
+     "NSE",
+     "NSPH",
+     "NSR",
+     "NTEC",
+     "NTEST",
+     "NTN",
+     "NUTX",
+     "NVE",
+     "NVEC",
+     "NVTK",
+     "NXGN",
+     "NXU",
+     "NYNY_old",
+     "OAS",
+     "OBLN",
+     "OCAT",
+     "OCHTQ",
+     "OCNW",
+     "OIG",
+     "OMNT",
+     "ONCS",
+     "ONCT",
+     "OPRX",
+     "OREX",
+     "ORGO",
+     "ORIG",
+     "ORMP",
+     "OSB",
+     "OS_old",
+     "OTRK",
+     "OUST-WS",
+     "PACD",
+     "PALDF",
+     "PALM",
+     "PAS",
+     "PAYS",
+     "PBG",
+     "PDB",
+     "PDLI",
+     "PDM",
+     "PDSB",
+     "PEIX",
+     "PFWD",
+     "PFX_old2",
+     "PGE",
+     "PGL",
+     "PGSW",
+     "PHC",
+     "PKD",
+     "PLX",
+     "PNB",
+     "PNX",
+     "POG",
+     "POL",
+     "POLY",
+     "POT",
+     "POWW",
+     "POW_old",
+     "PPP",
+     "PPTA",
+     "PRGN",
+     "PRMX",
+     "PRPO",
+     "PRTK",
+     "PRTO_old",
+     "PSTH-WS",
+     "PSTI",
+     "PSTV",
+     "PSV",
+     "PTI",
+     "PTT",
+     "PUB",
+     "PVX",
+     "PWAVQ",
+     "PWI",
+     "PXT",
+     "QNCX",
+     "QTWW",
+     "QUBT",
+     "QXO",
+     "Q_old1",
+     "RAAS",
+     "RAD",
+     "RAL_old",
+     "RAVN",
+     "RCAPQ",
+     "RCAT",
+     "RCF-UN",
+     "RENN",
+     "RENX_old",
+     "REV",
+     "REXN",
+     "REXX",
+     "RGC",
+     "RGS",
+     "RGSE",
+     "RHT",
+     "RICO",
+     "RLOG",
+     "RNOW",
+     "ROSG",
+     "RPTP",
+     "RRD",
+     "RSH",
+     "RTN",
+     "RTSX",
+     "RTW",
+     "RX",
+     "RXII",
+     "SASI",
+     "SBER",
+     "SBLX",
+     "SBSA",
+     "SCU",
+     "SEAT",
+     "SESN",
+     "SFD_old",
+     "SFI",
+     "SFT",
+     "SFUNY",
+     "SGP_old1",
+     "SGT",
+     "SGTX",
+     "SGY",
+     "SHS",
+     "SIEN",
+     "SIR",
+     "SIRF",
+     "SK",
+     "SKLZ",
+     "SKS",
+     "SLAI",
+     "SLAIY",
+     "SLNO",
+     "SMT",
+     "SNCE",
+     "SNDE"
+    ],
+    "window": {
+     "start": "2005-01-03",
+     "end": "2025-06-30",
+     "sessions": 5155
+    },
+    "signals": 217,
+    "skipped": {
+     "market_filter": 36
+    },
+    "by_kind": {
+     "week": 217
+    },
+    "sv": {
+     "final_equity": 99276.74,
+     "total_return": -0.007233,
+     "cagr": -0.000354,
+     "max_drawdown": 0.188612,
+     "sharpe": 0.0051,
+     "sortino": 0.0072,
+     "calmar": -0.0019,
+     "daily_sharpe": 0.00032272,
+     "skew": 0.0664,
+     "kurtosis": 13.5171,
+     "sessions": 5155,
+     "trades_taken": 210,
+     "open_at_end": 1,
+     "average_exposure": 0.1028,
+     "skipped": {
+      "cash_or_whole_share_insufficient": 4,
+      "same_stock_held": 2
+     }
+    },
+    "spy": {
+     "final_equity": 745024.64,
+     "total_return": 6.450246,
+     "cagr": 0.102989,
+     "max_drawdown": 0.551891,
+     "sharpe": 0.6072,
+     "sortino": 0.8569,
+     "calmar": 0.1866,
+     "daily_sharpe": 0.03824926,
+     "skew": 0.0043,
+     "kurtosis": 18.181,
+     "sessions": 5155
+    },
+    "same_exposure_spy": {
+     "final_equity": 121780.8,
+     "total_return": 0.217808,
+     "cagr": 0.009665,
+     "max_drawdown": 0.02941,
+     "sharpe": 0.5659,
+     "sortino": 0.7717,
+     "calmar": 0.3286,
+     "daily_sharpe": 0.0356471,
+     "skew": -1.3384,
+     "kurtosis": 23.6607,
+     "sessions": 5155
+    },
+    "random": {
+     "runs": 200,
+     "unmatched": 0,
+     "sharpe": {
+      "p5": -0.238,
+      "median": 0.0403,
+      "p95": 0.3472
+     },
+     "cagr": {
+      "p5": -0.009505,
+      "median": 0.000808,
+      "p95": 0.013787
+     },
+     "max_drawdown": {
+      "p5": 0.104742,
+      "median": 0.173353,
+      "p95": 0.257479
+     },
+     "sv_beats_share_sharpe": 0.41
+    },
+    "trade_level": {
+     "signals": 212,
+     "difference_winsorized": 0.001258,
+     "t_monthly": -0.572,
+     "median_difference": -0.032531,
+     "sv_mean": -0.003913,
+     "sv_median": -0.060577,
+     "random_mean": -0.006798,
+     "sv_win_rate": 0.2123
+    },
+    "win_loss": {
+     "sv": {
+      "trades": 212,
+      "win_rate": 0.2123,
+      "average_win": 0.28133,
+      "average_loss": -0.080774,
+      "payoff_ratio": 3.483,
+      "profit_factor": 0.939,
+      "expectancy_r": -0.0875
+     },
+     "random": {
+      "trades": 41545,
+      "win_rate": 0.2166,
+      "average_win": 0.292303,
+      "average_loss": -0.088959,
+      "payoff_ratio": 3.286,
+      "profit_factor": 0.908,
+      "expectancy_r": -0.0479
+     }
+    },
+    "exit_reasons": {
+     "stop": 142,
+     "stop_gap": 25,
+     "trend_exit": 45
+    },
+    "held_median_sessions": {
+     "week": 25.0
+    },
+    "goal_1": {
+     "sharpe_vs_spy": -0.6021,
+     "met": false
+    },
+    "by_option": {
+     "B": 217
+    }
+   },
+   {
+    "dataset": {
+     "dataset_id": "fresh-d-1995-v1",
+     "asset": "fresh-d-1995-v1-a6b3046e18e2.json.gz",
+     "sha256": "a6b3046e18e218f6a0e2b5b6bc861b46b456036f82494027c7e406b6e67f578b",
+     "symbols": 1000
+    },
+    "raw_close": true,
+    "excluded_symbols": [
+     "SPAQ-WS",
+     "SPEX",
+     "SPI",
+     "SPM",
+     "SPRT",
+     "SPWRQ",
+     "SQBG",
+     "SQZ",
+     "SRA",
+     "SRCI",
+     "SRRA",
+     "SRRK",
+     "SRVY",
+     "SRX",
+     "SSE",
+     "SSN",
+     "SSNT",
+     "SSP",
+     "SSW",
+     "STAR",
+     "STCK_old",
+     "STEC_old1",
+     "STI-WS-A",
+     "STI-WS-B",
+     "STL",
+     "STMP",
+     "STR",
+     "STSA_old",
+     "SUG",
+     "SUNL",
+     "SUNW",
+     "SUR",
+     "SWBI",
+     "SWN",
+     "TALO",
+     "TBRA",
+     "TCB",
+     "TCDA",
+     "TCR",
+     "TCT",
+     "TCTM",
+     "TGC",
+     "TGICQ",
+     "THRY",
+     "TIC_old",
+     "TIE",
+     "TIN",
+     "TKMR",
+     "TMA",
+     "TMBR",
+     "TNI",
+     "TNM",
+     "TNT",
+     "TOCA",
+     "TORC",
+     "TPGY-WS",
+     "TPGY-WT",
+     "TPST",
+     "TPTX",
+     "TRA",
+     "TRH",
+     "TRIT",
+     "TRLA",
+     "TRMR_old",
+     "TRPX",
+     "TRQ",
+     "TSE",
+     "TSSI",
+     "TST",
+     "TUPBQ",
+     "TWO",
+     "TXM",
+     "TXMD",
+     "UAVS",
+     "UCAP",
+     "UCAR",
+     "UCG",
+     "UFS",
+     "UMRX",
+     "UNT",
+     "UNXL",
+     "UONE",
+     "UPL",
+     "USAT",
+     "USWS",
+     "UWMC-WS",
+     "VANI",
+     "VERA",
+     "VIEW",
+     "VISN_old",
+     "VIVO",
+     "VLY-WS",
+     "VNA",
+     "VPI",
+     "VRML",
+     "VRMMQ",
+     "VSA",
+     "VSCN",
+     "VSTNQ",
+     "VTL",
+     "VTNR",
+     "VTNRQ",
+     "VVC",
+     "VVPR",
+     "WAC",
+     "WATT",
+     "WAVX",
+     "WBK",
+     "WDR",
+     "WEBM",
+     "WETF",
+     "WFRD_old",
+     "WFT",
+     "WGBS",
+     "WIN",
+     "WLL",
+     "WMC",
+     "WNTR_old",
+     "WORK",
+     "WTR",
+     "WTRH",
+     "WWY",
+     "XBKS",
+     "XINGF",
+     "XPEL",
+     "XRF",
+     "XTLB",
+     "YCC",
+     "YRCW",
+     "YUMA",
+     "ZAZZT",
+     "ZBZZT",
+     "ZCZZT",
+     "ZEST",
+     "ZEV",
+     "ZIOP",
+     "ZJZZT",
+     "ZQKSQ",
+     "ZSAN",
+     "ZSANQ",
+     "ZVZZT",
+     "ZYXI"
+    ],
+    "window": {
+     "start": "2005-01-03",
+     "end": "2025-06-30",
+     "sessions": 5155
+    },
+    "signals": 148,
+    "skipped": {
+     "market_filter": 28
+    },
+    "by_kind": {
+     "week": 148
+    },
+    "sv": {
+     "final_equity": 131342.02,
+     "total_return": 0.31342,
+     "cagr": 0.013396,
+     "max_drawdown": 0.078198,
+     "sharpe": 0.4017,
+     "sortino": 0.5959,
+     "calmar": 0.1713,
+     "daily_sharpe": 0.02530182,
+     "skew": 0.9033,
+     "kurtosis": 28.8109,
+     "sessions": 5155,
+     "trades_taken": 141,
+     "open_at_end": 2,
+     "average_exposure": 0.1032,
+     "skipped": {
+      "same_stock_held": 4,
+      "cash_or_whole_share_insufficient": 1
+     }
+    },
+    "spy": {
+     "final_equity": 745024.64,
+     "total_return": 6.450246,
+     "cagr": 0.102989,
+     "max_drawdown": 0.551891,
+     "sharpe": 0.6072,
+     "sortino": 0.8569,
+     "calmar": 0.1866,
+     "daily_sharpe": 0.03824926,
+     "skew": 0.0043,
+     "kurtosis": 18.181,
+     "sessions": 5155
+    },
+    "same_exposure_spy": {
+     "final_equity": 126719.7,
+     "total_return": 0.267197,
+     "cagr": 0.011626,
+     "max_drawdown": 0.035592,
+     "sharpe": 0.6712,
+     "sortino": 0.9315,
+     "calmar": 0.3266,
+     "daily_sharpe": 0.04228209,
+     "skew": -0.5365,
+     "kurtosis": 9.8478,
+     "sessions": 5155
+    },
+    "random": {
+     "runs": 200,
+     "unmatched": 0,
+     "sharpe": {
+      "p5": -0.1939,
+      "median": 0.0711,
+      "p95": 0.4306
+     },
+     "cagr": {
+      "p5": -0.006621,
+      "median": 0.00173,
+      "p95": 0.014611
+     },
+     "max_drawdown": {
+      "p5": 0.073697,
+      "median": 0.1256,
+      "p95": 0.195023
+     },
+     "sv_beats_share_sharpe": 0.935
+    },
+    "trade_level": {
+     "signals": 140,
+     "difference_winsorized": 0.017983,
+     "t_monthly": 1.188,
+     "median_difference": -0.03603,
+     "sv_mean": 0.016039,
+     "sv_median": -0.057327,
+     "random_mean": -0.002011,
+     "sv_win_rate": 0.2143
+    },
+    "win_loss": {
+     "sv": {
+      "trades": 140,
+      "win_rate": 0.2143,
+      "average_win": 0.384598,
+      "average_loss": -0.084477,
+      "payoff_ratio": 4.553,
+      "profit_factor": 1.242,
+      "expectancy_r": 0.1085
+     },
+     "random": {
+      "trades": 27996,
+      "win_rate": 0.2104,
+      "average_win": 0.317299,
+      "average_loss": -0.088798,
+      "payoff_ratio": 3.573,
+      "profit_factor": 0.952,
+      "expectancy_r": -0.019
+     }
+    },
+    "exit_reasons": {
+     "stop": 89,
+     "stop_gap": 21,
+     "trend_exit": 30
+    },
+    "held_median_sessions": {
+     "week": 28.0
+    },
+    "goal_1": {
+     "sharpe_vs_spy": -0.2055,
+     "met": false
+    },
+    "by_option": {
+     "B": 148
+    }
+   }
+  ],
+  "pooled_trades": {
+   "signals": 777,
+   "difference_winsorized": 0.004853,
+   "t_monthly": 0.859,
+   "median_difference": -0.038142,
+   "sv_mean": 0.004267,
+   "sv_median": -0.060057,
+   "random_mean": -0.001617,
+   "sv_win_rate": 0.2059
+  },
+  "checks": {
+   "shards_beating_random_accounts": false,
+   "trades_beat_random_same_day": false,
+   "enough_trades": true
+  },
+  "passed": false,
+  "goal": {
+   "shards_meeting_goal_1": 0,
+   "shards_sharpe_at_least_spy": 0,
+   "met": false
+  }
+ },
+ "passed": false,
+ "champion": null,
+ "next_step": "If it passes, the triangle goes to forward paper observation beside the E6 accounts (no production change without the user's approval). If it fails, the report shows which part lost (C or B, target, timing) and no rule is changed on the exam shards.",
+ "spec_sha256": "aa790519daab1b97aa413f036eff765e9e3237293b0709f8f96288f76b647f19",
+ "completed_at": "2026-10-14T03:21:33+00:00",
+ "code_commit": "ff8938d8f490a3e606fa1571efdb1f968fab9807"
+}
