@@ -1185,6 +1185,24 @@ class QueueAndDatasetTests(unittest.TestCase):
                 self.assertIn("min_kept", spec["criteria"], path.name)
                 self.assertTrue({"max_failed_share", "max_error_share"} & set(spec["criteria"]), path.name)
                 continue
+            if spec.get("kind") == "triangle_exam":
+                from research.lab import triangle_exam
+                for changes in spec["variants"].values():
+                    triangle_exam.apply([], changes)  # every change is known
+                    triangle_exam.params(changes)
+                self.assertLess(spec["windows"]["train"][1], spec["windows"]["holdout"][0], path.name)
+                self.assertGreaterEqual(spec["random"]["runs"], 100)
+                self.assertTrue(spec["benchmark"]["symbol"] in spec["benchmark"]["dataset"]["symbols"], path.name)
+                self.assertTrue(spec["pool"].get("raw_close"), path.name)
+                # the exam shards are frozen datasets nobody has traded, distinct from the training stocks
+                for ds in spec["exam_datasets"]:
+                    self.assertTrue((ROOT / "research/lab/datasets" / f"{ds['id']}.json").exists(), path.name)
+                    self.assertNotEqual(ds["id"], spec["dataset"]["id"], path.name)
+                for key in ("min_trades", "sharpe_gain", "beat_share_gain"):
+                    self.assertIn(key, spec["selection"], path.name)
+                for key in ("min_random_share", "min_shards", "min_trade_excess_t", "min_exam_trades"):
+                    self.assertIn(key, spec["criteria"], path.name)
+                continue
             if spec.get("kind") == "buysystem_train":
                 from research.lab import buysystem, buytrain
                 for changes in spec["variants"].values():

@@ -44,7 +44,11 @@ def engine_changes(changes):
 
 
 def tradable(series, i, pool):
-    return i >= pool["min_history"] and series["close"][i] >= pool["min_close"] and series["close"][i] * series["volume"][i] >= pool["min_dollar_volume"]
+    """SV's floor on day i. With `raw_close` in the pool rules the $5 price floor reads the unadjusted close when the dataset keeps it
+    (a stock that later split 10:1 traded at ten times its adjusted price); dollar volume stays adjusted close times split-adjusted
+    volume."""
+    price = series["raw_close"][i] if pool.get("raw_close") and "raw_close" in series else series["close"][i]
+    return i >= pool["min_history"] and price >= pool["min_close"] and series["close"][i] * series["volume"][i] >= pool["min_dollar_volume"]
 
 
 def _scan_one(args):
@@ -88,14 +92,16 @@ class WeeklyATR:
         return W["atr"][w] if w >= 0 else None
 
 
-def simulate(series, limit, entry_index, stop, target, fraction, runner, max_hold, cost_per_side):
+def simulate(series, limit, entry_index, stop, target, fraction, runner, max_hold, cost_per_side, entry_price=None):
     """The buy system's exit (exit_rules.simulate with a level stop, one price target, breakeven and the runner's trend exit after
     the target) on plain columns, cut at `limit` sessions. Same results as exit_rules.simulate (tests/test_buytrain.py checks it);
-    it exists because the random null trades a few hundred thousand times."""
+    it exists because the random null trades a few hundred thousand times.
+    `entry_price` is a buy-stop filled during the entry session instead of at its open: that session's open came before the buy, and
+    a low at or under the stop that session counts as stopped (the order of the high and the low is unknown; the worse reading)."""
     date, opens, highs, lows, closes = series["date"], series["open"], series["high"], series["low"], series["close"]
     if entry_index <= 0 or entry_index >= limit:
         return {"status": "no_entry"}
-    entry = float(opens[entry_index])
+    entry = float(opens[entry_index]) if entry_price is None else float(entry_price)
     if not 0 < stop < entry:
         return {"status": "skipped", "reason": "no_executable_stop"}
     risk_stop, risk, n = stop, entry - stop, runner["length"]
@@ -134,7 +140,7 @@ def simulate(series, limit, entry_index, stop, target, fraction, runner, max_hol
         if exit_next_open:
             fill(o, remaining, "trend_exit", date[i])
             break
-        if o <= stop:
+        if o <= stop and not (entry_price is not None and held == 1):
             fill(o, remaining, "stop_gap", date[i])
             break
         if l <= stop:
@@ -175,8 +181,9 @@ def candidate(series, limit, entry_index, result, event_id, symbol, signal_date,
             "closes": list(zip(series["date"][entry_index:last + 1], map(float, series["close"][entry_index:last + 1])))}
 
 
-def trade(series, limit, entry_index, kind, stop, target, p, cost):
-    return simulate(series, limit, entry_index, stop, target, p["exit"]["first_fraction"], p["kinds"][kind]["runner"], p["exit"]["max_sessions"], cost)
+def trade(series, limit, entry_index, kind, stop, target, p, cost, entry_price=None):
+    return simulate(series, limit, entry_index, stop, target, p["exit"]["first_fraction"], p["kinds"][kind]["runner"], p["exit"]["max_sessions"], cost,
+                    entry_price)
 
 
 def random_trade(series, card, atr_multiple, p, cost, limit, atr, symbol):
@@ -247,8 +254,10 @@ def evaluate(signals, prices, p, spec, window, spy, atr, scenario, cost, flagged
     for n, card in enumerate(taken):
         s, symbol = prices[card["symbol"]], card["symbol"]
         i = bisect.bisect_left(s["date"], card["fill_date"])
-        priority = (0 if card["kind"] == "month" else 1, -round(rank(card), 6) if rank else 0.0)
-        result = trade(s, limit_of(symbol), i, card["kind"], card["stop"], card["target"], p, cost)
+        # a card may carry its own priority (the weekly triangle: nested first, then more confluence) and a buy-stop entry price
+        priority = card["priority"] if "priority" in card else (0 if card["kind"] == "month" else 1, -round(rank(card), 6) if rank else 0.0)
+        result = trade(s, limit_of(symbol), i, card["kind"], card["stop"], card["target"], p, cost,
+                       card["entry"] if card.get("entry_at") == "stop_order" else None)
         if result["status"] in ("resolved", "observing"):
             sv_cands.append(candidate(s, limit_of(symbol), i, result, f"sv-{n:05d}", symbol, card["decision_date"], priority, end))
         w_atr = atr.at(symbol, i - 1)
@@ -291,7 +300,9 @@ def evaluate(signals, prices, p, spec, window, spy, atr, scenario, cost, flagged
                 rnd_pool.append((res["net_return"], risk))
         st = account.curve_stats(account.run_account(account.align(cands, dates)[0], len(dates), scenario, rules=rules)["equity"], dates, initial)
         accounts.append({"sharpe": st["sharpe"], "cagr": st["cagr"], "max_drawdown": st["max_drawdown"]})
-    paired = [(row, row["net"], sums[j] / counts[j]) for j, row in enumerate(rows) if row["net"] is not None and counts[j]]
+    for j, row in enumerate(rows):
+        row["random_net"] = sums[j] / counts[j] if counts[j] else None
+    paired = [(row, row["net"], row["random_net"]) for row in rows if row["net"] is not None and row["random_net"] is not None]
     trades = timeframe.compare([a - b for _, a, b in paired], [r["decision_date"][:7] for r, _, _ in paired], [a for _, a, _ in paired], [b for _, _, b in paired])
     beats = round(sum((sv["sharpe"] or -9) > (a["sharpe"] or -9) for a in accounts) / len(accounts), 4) if accounts else None
     summary = {"window": {"start": dates[0], "end": dates[-1], "sessions": len(dates)}, "signals": len(taken), "skipped": dict(skipped),

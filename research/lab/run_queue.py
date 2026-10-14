@@ -27,7 +27,7 @@ import statistics
 import subprocess
 
 from services.scanner.support_risk import signal_support_plan
-from research.lab import account, allocation, buytrain, coverage, datasets, levels, screen, selection, timeframe
+from research.lab import account, allocation, buytrain, coverage, datasets, levels, screen, selection, timeframe, triangle_exam
 from research.lab.exit_rules import OPEN_FILLS, simulate
 from research.lab.metrics import evaluate, summarise
 
@@ -705,6 +705,18 @@ def run_buysystem_train_spec(spec, data, dataset_entry, cost, benchmark):
     return result, gzip.compress(csv_buffer.getvalue().encode(), 9, mtime=0)
 
 
+def run_triangle_exam_spec(spec, data, dataset_entry, cost, benchmark, load_exam):
+    """The weekly triangle trained on the known stocks and examined once on four shards of unseen stocks (research/lab/triangle_exam.py)."""
+    result, rows = triangle_exam.run(spec, data, dataset_entry, cost, benchmark, load_exam)
+    csv_buffer = io.StringIO()
+    writer = csv.writer(csv_buffer)
+    fields = ["arm", "window", "symbol", "decision_date", "fill_date", "entry", "stop", "target", "rr", "atr_multiple", "net", "random_net", "exit", "held"]
+    writer.writerow(fields)
+    for r in rows:
+        writer.writerow([r[f] for f in fields])
+    return result, gzip.compress(csv_buffer.getvalue().encode(), 9, mtime=0)
+
+
 def render_selection_report(result):
     pct = lambda x, d=1: "—" if x is None else f"{x * 100:.{d}f}%"
     num = lambda x: "—" if x is None else f"{x:.2f}"
@@ -855,6 +867,9 @@ def render_scoreboard(results):
         if result["champion"] and result.get("kind") == "levels":
             f = result["arms"]["main"]["families"][result["champion"]]
             board["champions"][result["group"]] = {"spec_id": result["spec_id"], "variant": result["champion"], "rule": f["rule"], "overall": f["sv"]}
+        elif result["champion"] and result.get("kind") == "triangle_exam":
+            board["champions"][result["group"]] = {"spec_id": result["spec_id"], "variant": result["champion"], "rule": result["final_changes"],
+                                                   "overall": result["exam"]["pooled_trades"]}
         elif result["champion"] and result.get("kind") == "buysystem_train":
             board["champions"][result["group"]] = {"spec_id": result["spec_id"], "variant": result["champion"], "rule": result["final_changes"],
                                                    "overall": result["test"]["sv"]}
@@ -882,6 +897,14 @@ def render_scoreboard(results):
                       f"{result['windows']['train'][1]}, tested once {result['windows']['test'][0]} to {result['windows']['test'][1]})", "", result["question"], "",
                       f"Adopted on training: {', '.join(result['adopted']) or 'none'}. Test: Sharpe {t['sv']['sharpe']}, beats "
                       f"{(t['random']['sv_beats_share_sharpe'] or 0) * 100:.0f}% of random accounts, trade excess t {t['trade_level'].get('t_monthly')}. Passed: "
+                      + ("yes" if result["passed"] else "no"), ""]
+            continue
+        if result.get("kind") == "triangle_exam":
+            ex = result["exam"]
+            lines += [f"## {result['spec_id']} ({result['dataset']['dataset_id']}, weekly triangle trained {result['windows']['train'][0]} to "
+                      f"{result['windows']['train'][1]}, examined once on {len(ex['shards'])} shards of unseen stocks)", "", result["question"], "",
+                      f"Adopted on training: {', '.join(result['adopted']) or 'none'}. Exam: Sharpe by shard "
+                      + ", ".join(str(s["sv"]["sharpe"]) for s in ex["shards"]) + f"; pooled trade excess t {ex['pooled_trades'].get('t_monthly')}. Passed: "
                       + ("yes" if result["passed"] else "no"), ""]
             continue
         if result.get("kind") == "coverage":
@@ -939,6 +962,8 @@ def write_outputs(root, result, trades_csv, event, manifests):
         (out / "REPORT.md").write_text(coverage.render(result))
     elif result.get("kind") == "buysystem_train":
         (out / "REPORT.md").write_text(buytrain.render(result))
+    elif result.get("kind") == "triangle_exam":
+        (out / "REPORT.md").write_text(triangle_exam.render(result))
     elif result.get("kind") == "screen":
         (out / "REPORT.md").write_text(screen.render(result))
     for entry in manifests:
@@ -1012,12 +1037,15 @@ def main(argv=None):
         run = {"account": run_account_spec, "allocation": run_allocation_spec, "selection": run_selection_spec,
                "timeframe": run_timeframe_spec, "levels": run_levels_spec, "cases": run_cases_spec,
                "coverage": run_coverage_spec, "buysystem_train": run_buysystem_train_spec,
-               "screen": run_screen_spec}.get(spec.get("kind"), run_spec)
+               "screen": run_screen_spec, "triangle_exam": run_triangle_exam_spec}.get(spec.get("kind"), run_spec)
         extra = {}
         if spec.get("core"):
             extra["core_data"] = load(spec["core"]["dataset"])[0]
         if spec.get("style"):
             extra["style_data"] = load(spec["style"]["dataset"])[0]
+        if spec.get("exam_datasets"):
+            # exam shards load one at a time and are not kept (they are already frozen, so no new manifest)
+            extra["load_exam"] = lambda ds: ensure_dataset(ds, args.publish)[:2]
         result, trades_csv = run(spec, data, entry, spec.get("cost_per_side", 0.001), benchmark, **extra)
         now = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
         result |= {"spec_sha256": sha, "completed_at": now, "code_commit": os.environ.get("GITHUB_SHA", "local")}

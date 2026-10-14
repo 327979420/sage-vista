@@ -55,7 +55,9 @@ def eligible_pool(prices, day, rules=None):
             continue
         if rules.get("min_close") or rules.get("min_dollar_volume"):
             close = float(series["close"][i])
-            if close < rules.get("min_close", 0) or close * float(series["volume"][i]) < rules.get("min_dollar_volume", 0):
+            # `raw_close`: the price floor reads the unadjusted close when the dataset keeps it (buytrain.tradable)
+            price = float(series["raw_close"][i]) if rules.get("raw_close") and "raw_close" in series else close
+            if price < rules.get("min_close", 0) or close * float(series["volume"][i]) < rules.get("min_dollar_volume", 0):
                 continue
         pool.append(symbol)
     return pool

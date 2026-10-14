@@ -21,7 +21,7 @@ concurrency:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 340
     env:
       EODHD_API_TOKEN: ${{ secrets.EODHD_API_TOKEN }}
       GH_TOKEN: ${{ github.token }}

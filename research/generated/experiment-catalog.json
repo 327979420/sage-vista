@@ -1,15 +1,15 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-13T18:32:17+00:00",
+  "generated_at": "2026-10-14T00:49:08+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 68,
+  "experiment_count": 69,
   "summary": {
     "completed": 51,
-    "in_progress": 17,
+    "in_progress": 18,
     "candidate": 15,
     "not_validated_or_unstable": 24
   },
@@ -21,6 +21,67 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "lab-triangle-exam-v1-2026-10-14",
+      "created_at": "2026-10-14",
+      "status": "pre_registered",
+      "change": "The user's weekly triangle (research/lab/triangle.py 1.0, frozen after matching 10 of the user's 12 answer-key cases; buys only C bottom golden cross and B retest) trained on 2005-2016 known stocks (baseline plus seven one-change variants, pre-registered adoption rule) and examined once on four shards of 5,500 unseen stocks (2005 to 2025-06) against same-day random stocks with the same stop distance in weekly ATRs, the same target multiple and the same exits",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#triangle-exam",
+        "lab_spec": "research/lab/queue/triangle-exam-v1.json",
+        "engine": "research/lab/triangle.py 1.0",
+        "runner": "research/lab/triangle_exam.py",
+        "answer_key": "research/lab/cases/triangle-answer-key-v1.json",
+        "dataset": "universe-1985-v1 (training); fresh-a/b/c/d-1995-v1 (exam, 5,500 stocks never used by any rule)",
+        "variants": [
+          "V1 C only",
+          "V2 B only",
+          "V3 fixed 1.5R target",
+          "V4 cross or breakout week volume at least 1.25x its ten-week average",
+          "V5 at least four confluence pluses",
+          "V6 SPY above its 200-day average",
+          "V7 26-week time stop"
+        ]
+      },
+      "success_criteria": "Adoption on 2005-2016: at least 60 account trades, account Sharpe at least 0.05 above the baseline and share of 200 random accounts beaten at least 5 points above the baseline. Exam, run once: at least 3 of 4 shards beat 95% of their 200 random accounts on Sharpe; pooled exam trades beat same-day random trades with a month-clustered t of at least 2 and positive winsorized mean and median difference; at least 200 exam trades. Sharpe against SPY per shard is reported beside it.",
+      "known_limitations": [
+        "the answer key that shaped the rule comes from the training stocks, so training figures are optimistic; only the exam shards are unseen",
+        "the training dataset has no unadjusted close, so its $5 floor uses adjusted prices on both sides",
+        "delisted stocks without provider history are missing from the exam shards (survivor gap, counted by data-fresh-universe-v2)",
+        "daily bars cannot tell whether the high or the low came first on a buy-stop fill day; a stop touched that day counts as hit"
+      ],
+      "human_summary": {
+        "title_zh": "周线三角形：练习与一次考试",
+        "family": "quant_lab_portfolio",
+        "family_zh": "量化研究实验室",
+        "question_zh": "用户的周线三角形（三推以上下降压力线、两个以上的底、后一个底最多低 1%；只买 C 底部金叉和 B 突破后回踩，不买突破本身、不追高），能否胜过同一天、同交易池、同止损距离（周线 ATR 倍数）、同目标倍数、同卖法的随机股票？2005—2016 在 1,228 只已知股票上练习：冻结规则加 7 个单项改动（只做 C、只做 B、目标固定 1.5 倍、放量、共振至少 4 项、大盘过滤、26 周时间止损），按事先写好的标准挑；挑出的规则在 5,500 只从没见过的股票上（分 4 份）只考一次。",
+        "result_zh": "待运行。",
+        "use_zh": "通过则进入前向模拟观察；生产不改，除非用户另行批准。",
+        "next_zh": "考试跑完后照实报告：哪种买点、哪种目标、哪一份赢或输。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-14T00:49:08+00:00",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-10-14T00:49:08+00:00",
+        "time_source": "assistant_registration",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "lab-triangle-exam-v1-2026-10-14",
+            "event": "registered",
+            "event_at": "2026-10-14T00:49:08+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/triangle-exam-v1.json",
+              "note": "registered before any account, random or return figure was looked at; local checks were timing, memory and signal counts on the known stocks only; the exam shards were never downloaded locally"
+            }
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "lab-data-fresh-d-v1-2026-10-14",
       "created_at": "2026-10-14",
@@ -39,10 +100,10 @@
         "family": "quant_lab_portfolio",
         "family_zh": "量化研究实验室",
         "question_zh": "把扩大股票池的第 d 份（1000 只，机器从没见过）冻结成数据集：1995 年起的日线，并保留未复权价。",
-        "result_zh": "待运行。",
+        "result_zh": "完成：1000 只全部建成，没有缺失。",
         "use_zh": "只是数据准备，不计算收益；只用于周线 V3 的最终考试。",
-        "next_zh": "四份都建好后，登记周线 V3 的考试。",
-        "verdict": "pre_registered"
+        "next_zh": "已登记周线三角形的一次考试（lab-triangle-exam-v1）。",
+        "verdict": "passed"
       },
       "lifecycle": {
         "registered_at": "2026-10-13T17:11:09+00:00",
@@ -98,10 +159,10 @@
         "family": "quant_lab_portfolio",
         "family_zh": "量化研究实验室",
         "question_zh": "把扩大股票池的第 c 份（1500 只，机器从没见过）冻结成数据集：1995 年起的日线，并保留未复权价。",
-        "result_zh": "待运行。",
+        "result_zh": "完成：1500 只全部建成，没有缺失。",
         "use_zh": "只是数据准备，不计算收益；只用于周线 V3 的最终考试。",
-        "next_zh": "四份都建好后，登记周线 V3 的考试。",
-        "verdict": "pre_registered"
+        "next_zh": "已登记周线三角形的一次考试（lab-triangle-exam-v1）。",
+        "verdict": "passed"
       },
       "lifecycle": {
         "registered_at": "2026-10-13T17:11:09+00:00",
@@ -157,10 +218,10 @@
         "family": "quant_lab_portfolio",
         "family_zh": "量化研究实验室",
         "question_zh": "把扩大股票池的第 b 份（1500 只，机器从没见过）冻结成数据集：1995 年起的日线，并保留未复权价。",
-        "result_zh": "待运行。",
+        "result_zh": "完成：1500 只全部建成，没有缺失。",
         "use_zh": "只是数据准备，不计算收益；只用于周线 V3 的最终考试。",
-        "next_zh": "四份都建好后，登记周线 V3 的考试。",
-        "verdict": "pre_registered"
+        "next_zh": "已登记周线三角形的一次考试（lab-triangle-exam-v1）。",
+        "verdict": "passed"
       },
       "lifecycle": {
         "registered_at": "2026-10-13T17:11:09+00:00",
@@ -216,10 +277,10 @@
         "family": "quant_lab_portfolio",
         "family_zh": "量化研究实验室",
         "question_zh": "把扩大股票池的第 a 份（1500 只，机器从没见过）冻结成数据集：1995 年起的日线，并保留未复权价。",
-        "result_zh": "待运行。",
+        "result_zh": "完成：1500 只全部建成，没有缺失。",
         "use_zh": "只是数据准备，不计算收益；只用于周线 V3 的最终考试。",
-        "next_zh": "四份都建好后，登记周线 V3 的考试。",
-        "verdict": "pre_registered"
+        "next_zh": "已登记周线三角形的一次考试（lab-triangle-exam-v1）。",
+        "verdict": "passed"
       },
       "lifecycle": {
         "registered_at": "2026-10-13T17:11:09+00:00",
@@ -474,10 +535,10 @@
         "family": "quant_lab_portfolio",
         "family_zh": "量化研究实验室",
         "question_zh": "把20年观察集的1,223只股票（加上案例里缺的AEVA、BTDR、CGEM、POWL、BEKE）的复权日线补到1985年起，并统计2005—2025每年有多少只股票的历史够算月线EMA200（约200个月），以及每个复盘案例当时有多少历史。",
-        "result_zh": "待运行。",
+        "result_zh": "完成：1228 只全部建成（1985 年起），没有缺失。",
         "use_zh": "只是数据准备与覆盖统计，不计算收益，不证明任何规则。",
         "next_zh": "数据就绪后编写五关检测与依据卡，先跑用户案例。",
-        "verdict": "pre_registered"
+        "verdict": "passed"
       },
       "lifecycle": {
         "registered_at": "2026-10-12T03:45:49+00:00",
@@ -5396,6 +5457,7 @@
     "lab-e7b-level-rules-20y-v1-2026-10-10",
     "lab-e8-factor-slice-v1-2026-10-10",
     "lab-p1-size-risk-20y-v1-2026-10-08",
+    "lab-triangle-exam-v1-2026-10-14",
     "macd-rollout-04-double-chip-confirmation-2026-08-25",
     "multi-factor-count-resonance-v1.0.0-2026-08-30",
     "pullback-context-backtest-v2.0.0-2026-08-28",
