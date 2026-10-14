@@ -710,6 +710,7 @@ ZBH另记为以后做空或卖出的逻辑：月线连涨多根后第一根阴�
 - `research/lab/cases/triangle-answer-key-v1.json`：12 个例子（CSGP、NLY、CHRW、AMZN、AME、LEU、A、STNG、AMGN、BNS、AXTA、DHI），每个写明用户的买入时间窗、止损或"不该买"。`python3 -m research.lab.answer_key` 打分。
 - `research/lab/triangle.py` 1.0：对上 10 个；用户明确确认的全部对上，漏 STNG 2015、BNS 2012（用户都说宽松）。
 - 这些例子用来修定义，对上它们不能证明有效。冻结后登记 `lab-triangle-exam-v1-2026-10-14`（08 规则 `#triangle-exam`）：老股票 2005—2016 练习，4 份新股票（5,500 只）各考一次。
+- **考试结果（2026-10-14）：未通过**（见 `research/lab/results/triangle-exam-v1/REPORT.md`）。练习段 C 底部金叉明显差于同日随机（t −3.22），B 回踩和随机差不多；考试 4 份都没有胜过 95% 的随机账户，合并逐笔 t 0.86。形态选出的股票，胜率（21%）和同日随机一样。
 
 ## 十四、以后每张案例卡的固定格式
 
