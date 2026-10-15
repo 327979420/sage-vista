@@ -1,0 +1,12 @@
+{
+ "id": "triangle-forward-v1",
+ "registered": "2026-10-15",
+ "start": "2026-10-12",
+ "calendar_from": "2026-10-01",
+ "datasets": ["universe-1985-v1", "fresh-a-1995-v1", "fresh-b-1995-v1", "fresh-c-1995-v1", "fresh-d-1995-v1"],
+ "shape": "1.5 (research/lab/triangle15.py)",
+ "trade_rule": "1.7 (research/lab/triangle15.py plan/trade)",
+ "taste_model": "research/lab/cases/taste-model-v1.json",
+ "random_twins": 30,
+ "note": "Signals with a signal week from 2026-10-12 (after the frozen data) are recorded once in signals.jsonl; outcomes.json is recomputed each run. The user's blind do/no answers are added to judgements.jsonl by hand ({id, choice, judged_at}); the user's 'do' group is the forward test of the user's eye with rule 1.7."
+}
