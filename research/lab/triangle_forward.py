@@ -1,6 +1,8 @@
 """Weekly triangle forward record (the user's request, 2026-10-15): every new shape-1.5 signal after the frozen data ends is recorded
 once, with the rule-1.7 order, the taste score, the daily and monthly MACD state and an anonymous chart for the user's blind judging;
 each run then replays every recorded order on the latest prices and compares it with 30 same-day random stocks given the same order.
+Rule 1.8 candidate (2026-10-15): rule 1.7 only when SPY is over its 200-day average and more than half of the stocks are over theirs;
+each record keeps that market state and the summary reports 1.7 and 1.8 side by side.
 
 Prices: the five frozen datasets (research/lab/datasets) plus one EODHD bulk end-of-day file per later session (cached in
 work/triangle-bulk). A stock whose bar jumps by more than 1.67x or under 0.6x against its last close (a split after the freeze) stops
@@ -30,6 +32,24 @@ FOLDER = "research/lab/forward/triangle"
 CONFIG = ROOT / FOLDER / "config.json"
 BULK = ROOT / "work/triangle-bulk"
 PX = None
+SPY = None
+BREADTH = {}
+
+
+def market(day):
+    """Rule 1.8's market state at the signal day: SPY over its 200-day average, and the share of the dataset's stocks over their
+    own 200-day average (300 sampled per day)."""
+    c = SPY["close"]; i = min(bisect.bisect_left(SPY["date"], day), len(c) - 1)
+    if day not in BREADTH:
+        up = n = 0
+        for sym in random.Random(day).sample(sorted(PX), min(300, len(PX))):
+            q = PX[sym]; j = bisect.bisect_left(q["date"], day)
+            if j < len(q["date"]) and q["date"][j] == day and j >= 200:
+                n += 1; up += q["close"][j] > statistics.fmean(q["close"][j - 199:j + 1])
+        BREADTH[day] = up / n if n else None
+    b = BREADTH[day]
+    spy200 = c[i] > statistics.fmean(c[i - 199:i + 1])
+    return {"spy_over_200d": spy200, "breadth": round(b, 3) if b is not None else None, "ok": spy200 and b is not None and b > 0.5}
 
 
 def bulk_day(day, fetch):
@@ -86,6 +106,7 @@ def scan(symbol):
         out.append({"symbol": symbol, "week": sig["week"], "signal_day": s["date"][d0], "close": s["close"][d0],
                     "plan": {k: (round(v, 4) if isinstance(v, float) else v) for k, v in p.items()},
                     "taste": round(N.taste(W, sig), 4), "daily": N.daily_state(s, d0), "monthly_veto": N.monthly_veto(s, d0),
+                    "market": market(s["date"][d0]),
                     "chart": {"bars": [[round(W[f][j] * sc, 3) for f in ("open", "high", "low", "close")]
                                        + [round(W["dif"][j] * sc, 4), round(W["dea"][j] * sc, 4), int(W["volume"][j]), round(W["ema20"][j] * sc, 3)]
                                        for j in range(lo, t + 1)],
@@ -134,7 +155,7 @@ def outcome(rec, pool, n_twins=30):
 
 def run(config, fetch_day, calendar):
     """Returns (new records, outcomes) for every dataset."""
-    global PX, SCAN_START
+    global PX, SCAN_START, SPY
     SCAN_START = config["start"]
     folder = ROOT / FOLDER
     known = {}
@@ -147,6 +168,9 @@ def run(config, fetch_day, calendar):
         e0 = datasets.manifest(ds)
         PX = datasets.load(datasets.download(e0, ROOT / "work/lab"), e0["sha256"])["prices"]
         extend(PX, calendar, lambda d: bulk_day(d, fetch_day))
+        if "SPY" in PX:
+            SPY = PX["SPY"]
+        BREADTH.clear()
         flagged = selection.impossible_jumps(PX)
         syms = sorted(x for x in PX if x not in flagged and x not in N.FUNDS and PX[x]["date"][-1] >= config["start"])
         with multiprocessing.get_context("fork").Pool() as pool:
@@ -177,7 +201,9 @@ def summary(records, outcomes, judgements):
                 "random_mean_R": round(statistics.fmean(B), 4) if B else None}
     ids = [r["id"] for r in records]
     do = [i for i in ids if judgements.get(i) == "do"]; no = [i for i in ids if judgements.get(i) == "no"]
+    ok = {r["id"] for r in records if r.get("market", {}).get("ok")}
     return {"signals": len(ids), "judged": len(do) + len(no), "all": group(ids), "user_do": group(do), "user_no": group(no),
+            "rule18_all": group([i for i in ids if i in ok]), "rule18_user_do": group([i for i in do if i in ok]),
             "open": sum(by.get(i, {}).get("status") in ("waiting", "open") for i in ids)}
 
 
