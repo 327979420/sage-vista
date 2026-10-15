@@ -2,7 +2,8 @@
 once, with the rule-1.7 order, the taste score, the daily and monthly MACD state and an anonymous chart for the user's blind judging;
 each run then replays every recorded order on the latest prices and compares it with 30 same-day random stocks given the same order.
 Rule 1.8 candidate (2026-10-15): rule 1.7 only when SPY is over its 200-day average and more than half of the stocks are over theirs;
-each record keeps that market state and the summary reports 1.7 and 1.8 side by side.
+each record keeps that market state and the summary reports 1.7 and 1.8 side by side. Rule 1.9 candidate: 1.8 with everything sold
+at 3R and up to 26 weeks (same order and stop), reported next to them.
 
 Prices: the five frozen datasets (research/lab/datasets) plus one EODHD bulk end-of-day file per later session (cached in
 work/triangle-bulk). A stock whose bar jumps by more than 1.67x or under 0.6x against its last close (a split after the freeze) stops
@@ -118,21 +119,8 @@ def scan(symbol):
 SCAN_START = "2026-10-12"
 
 
-def outcome(rec, pool, n_twins=30):
-    s = PX[rec["symbol"]]
-    d0 = s["date"].index(rec["signal_day"])
-    p = rec["plan"]
-    if not p["go"]:
-        return {"id": rec["id"], "status": "skipped", "why": p["why"]}
-    got = N.trade(s, d0, p["level"], p["stop"], p["t1"])
-    out = {"id": rec["id"], **{k: got[k] for k in ("status", "R", "why") if k in got}}
-    if "fill_day" in got:
-        out.update(fill=s["date"][got["fill_day"]], exit=s["date"][got["exit_day"]])
-    if got.get("R") is None:
-        return out
-    W = BS.periods(s, "week")
-    t = W["date"].index(rec["week"])
-    m = (p["level"] - p["stop"]) / W["atr"][t]; r1 = (p["t1"] - p["level"]) / (p["level"] - p["stop"])
+def _twins(rec, pool, n_twins, m, r_target, hold):
+    """Mean R of same-day random stocks given the same order (stop in the same weekly-ATR multiple, target in the same R multiple)."""
     Rs = []
     seed = int(hashlib.sha256(rec["id"].encode()).hexdigest()[:8], 16)
     for sym in random.Random(seed).sample(pool, min(n_twins, len(pool))):
@@ -145,10 +133,33 @@ def outcome(rec, pool, n_twins=30):
         L = q["close"][i0] * 0.98; st = L - m * Q["atr"][j]
         if st <= 0 or (L - st) / L > 0.4:
             continue
-        g = N.trade(q, i0, L, st, L + r1 * (L - st))
+        g = N.trade(q, i0, L, st, L + r_target * (L - st), hold=hold)
         if g.get("R") is not None and g["status"] in ("win", "loss", "time"):
             Rs.append(g["R"])
-    out["random_R"] = round(statistics.fmean(Rs), 4) if Rs else None
+    return round(statistics.fmean(Rs), 4) if Rs else None
+
+
+def outcome(rec, pool, n_twins=30):
+    s = PX[rec["symbol"]]
+    d0 = s["date"].index(rec["signal_day"])
+    p = rec["plan"]
+    if not p["go"]:
+        return {"id": rec["id"], "status": "skipped", "why": p["why"]}
+    got = N.trade(s, d0, p["level"], p["stop"], p["t1"])
+    out = {"id": rec["id"], **{k: got[k] for k in ("status", "R", "why") if k in got}}
+    # 1.9 candidate: same order and stop, everything sold at 3R, held up to 26 weeks
+    g19 = N.trade(s, d0, p["level"], p["stop"], p["level"] + 3 * (p["level"] - p["stop"]), hold=130)
+    out["r19"] = {k: (round(g19[k], 4) if k == "R" else g19[k]) for k in ("status", "R") if k in g19}
+    if "fill_day" in got:
+        out.update(fill=s["date"][got["fill_day"]], exit=s["date"][got["exit_day"]])
+    if got.get("R") is None:
+        return out
+    W = BS.periods(s, "week")
+    t = W["date"].index(rec["week"])
+    m = (p["level"] - p["stop"]) / W["atr"][t]; r1 = (p["t1"] - p["level"]) / (p["level"] - p["stop"])
+    out["random_R"] = _twins(rec, pool, n_twins, m, r1, N.HOLD)
+    if out["r19"].get("status") in ("win", "loss", "time"):
+        out["r19"]["random_R"] = _twins(rec, pool, n_twins, m, 3.0, 130)
     out["R"] = round(out["R"], 4)
     return out
 
@@ -192,8 +203,9 @@ def run(config, fetch_day, calendar):
 
 def summary(records, outcomes, judgements):
     by = {o["id"]: o for o in outcomes}
-    def group(ids):
-        done = [by[i] for i in ids if by.get(i, {}).get("status") in ("win", "loss", "time")]
+    def group(ids, rule=None):
+        pick = (lambda o: o.get(rule) or {}) if rule else (lambda o: o)
+        done = [pick(by[i]) for i in ids if pick(by.get(i, {})).get("status") in ("win", "loss", "time")]
         if not done:
             return {"trades": 0}
         R = [min(5.0, o["R"]) for o in done]; B = [min(5.0, o["random_R"]) for o in done if o.get("random_R") is not None]
@@ -204,6 +216,7 @@ def summary(records, outcomes, judgements):
     ok = {r["id"] for r in records if r.get("market", {}).get("ok")}
     return {"signals": len(ids), "judged": len(do) + len(no), "all": group(ids), "user_do": group(do), "user_no": group(no),
             "rule18_all": group([i for i in ids if i in ok]), "rule18_user_do": group([i for i in do if i in ok]),
+            "rule19_all": group([i for i in ids if i in ok], "r19"), "rule19_user_do": group([i for i in do if i in ok], "r19"),
             "open": sum(by.get(i, {}).get("status") in ("waiting", "open") for i in ids)}
 
 

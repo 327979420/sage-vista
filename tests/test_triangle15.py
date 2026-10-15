@@ -86,7 +86,8 @@ class ForwardTests(unittest.TestCase):
 
     def test_summary_groups_by_the_users_answers(self):
         recs = [{"id": "a", "market": {"ok": True}}, {"id": "b", "market": {"ok": False}}, {"id": "c"}]
-        outs = [{"id": "a", "status": "win", "R": 2.0, "random_R": 0.1}, {"id": "b", "status": "loss", "R": -1.0, "random_R": 0.0},
+        outs = [{"id": "a", "status": "win", "R": 2.0, "random_R": 0.1, "r19": {"status": "win", "R": 3.0, "random_R": 0.2}},
+                {"id": "b", "status": "loss", "R": -1.0, "random_R": 0.0},
                 {"id": "c", "status": "waiting"}]
         s = F.summary(recs, outs, {"a": "do", "b": "no"})
         self.assertEqual(s["user_do"]["trades"], 1)
@@ -94,6 +95,7 @@ class ForwardTests(unittest.TestCase):
         self.assertEqual(s["open"], 1)
         self.assertEqual(s["rule18_all"]["trades"], 1)
         self.assertEqual(s["rule18_user_do"]["mean_R"], 2.0)
+        self.assertEqual(s["rule19_user_do"]["mean_R"], 3.0)
 
 
 if __name__ == "__main__":
