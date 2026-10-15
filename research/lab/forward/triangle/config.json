@@ -8,5 +8,6 @@
  "trade_rule": "1.7 (research/lab/triangle15.py plan/trade)",
  "taste_model": "research/lab/cases/taste-model-v1.json",
  "random_twins": 30,
+ "rule_18_candidate": "1.7 plus SPY over its 200-day average and market breadth over half (added 2026-10-15; case ledger section 17, factor mining)",
  "note": "Signals with a signal week from 2026-10-12 (after the frozen data) are recorded once in signals.jsonl; outcomes.json is recomputed each run. The user's blind do/no answers are added to judgements.jsonl by hand ({id, choice, judged_at}); the user's 'do' group is the forward test of the user's eye with rule 1.7."
 }
