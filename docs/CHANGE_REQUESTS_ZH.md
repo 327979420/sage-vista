@@ -1460,3 +1460,8 @@
 - 交付：`research/lab/triangle_forward.py` 每条记录另算 1.9（同一张单，全部卖在 3R，最多 26 周）和同日随机对照，汇总并列 1.7、1.8、1.9；测试更新；08 规则 1.60.0。
 - 研究用；不改生产评分、排名、交易规则、数据或网站。
 
+### CR-2026-10-16a｜冻结 3W 1.9 并把用户的决定写进仓库（验证审计第 1、2 步）
+- 用户要求（2026-10-16）：审计发现前向记录没有版本冻结、用户的决定不在仓库里；用户同意按计划执行。
+- 交付：`research/lab/triangle_forward.py` 行为指纹与 `check_frozen`（`config.json` 的 `frozen`，版本 `3w-1.9`），每条记录带版本；`--page` 生成每周盲判页（模板 `research/lab/forward/triangle/judge_page.html`），`--judge` 把答案追加进 `judgements.jsonl`；`research/lab/cases/3w-user-decisions-2026-10.json`（207 个决定）；测试；08 规则 1.61.0。
+- 研究用；不改生产评分、排名、交易规则、数据或网站。
+

@@ -3,12 +3,27 @@
  "registered": "2026-10-15",
  "start": "2026-10-12",
  "calendar_from": "2026-10-01",
- "datasets": ["universe-1985-v1", "fresh-a-1995-v1", "fresh-b-1995-v1", "fresh-c-1995-v1", "fresh-d-1995-v1"],
+ "datasets": [
+  "universe-1985-v1",
+  "fresh-a-1995-v1",
+  "fresh-b-1995-v1",
+  "fresh-c-1995-v1",
+  "fresh-d-1995-v1"
+ ],
  "shape": "1.5 (research/lab/triangle15.py)",
  "trade_rule": "1.7 (research/lab/triangle15.py plan/trade)",
  "taste_model": "research/lab/cases/taste-model-v1.json",
  "random_twins": 30,
  "rule_19_candidate": "1.8 with everything sold at 3R, held up to 26 weeks (added 2026-10-15; case ledger section 17, buy/sell test)",
  "rule_18_candidate": "1.7 plus SPY over its 200-day average and market breadth over half (added 2026-10-15; case ledger section 17, factor mining)",
- "note": "Signals with a signal week from 2026-10-12 (after the frozen data) are recorded once in signals.jsonl; outcomes.json is recomputed each run. The user's blind do/no answers are added to judgements.jsonl by hand ({id, choice, judged_at}); the user's 'do' group is the forward test of the user's eye with rule 1.7."
+ "note": "Signals with a signal week from 2026-10-12 (after the frozen data) are recorded once in signals.jsonl; outcomes.json is recomputed each run. The user's blind do/no answers are added to judgements.jsonl by hand ({id, choice, judged_at}); the user's 'do' group is the forward test of the user's eye with rule 1.7.",
+ "frozen": {
+  "version": "3w-1.9",
+  "frozen_at": "2026-10-16",
+  "rules": "shape 1.5 (3W); order: 2% pullback limit, 8 weeks; stop 1% under the last bottom, >= 0.5 weekly ATR; skip under 1.5R to the nearest swing high or on a monthly MACD veto; outcomes for 1.7 (nearest swing high, 13 weeks), 1.8 (1.7 + market filter) and 1.9 (1.8 sold at 3R, up to 26 weeks)",
+  "dataset": "universe-1985-v1",
+  "symbols": 60,
+  "fingerprint": "8b4a73b550df281528c2e8558f114a852c53e7c41c71e1987a608b7b9f654657",
+  "how_to_change": "Never edit this block for a rule change: copy the folder to a new version (new id, start date after the change, new fingerprint from `python3 -m research.lab.triangle_forward --fingerprint`)."
+ }
 }

@@ -4,6 +4,8 @@ each run then replays every recorded order on the latest prices and compares it 
 Rule 1.8 candidate (2026-10-15): rule 1.7 only when SPY is over its 200-day average and more than half of the stocks are over theirs;
 each record keeps that market state and the summary reports 1.7 and 1.8 side by side. Rule 1.9 candidate: 1.8 with everything sold
 at 3R and up to 26 weeks (same order and stop), reported next to them.
+Version freeze (2026-10-16): config["frozen"] holds the version name and a behaviour fingerprint (see fingerprint()); every run checks
+it before recording and every record carries the version. A rule change means a new version with its own start date.
 
 Prices: the five frozen datasets (research/lab/datasets) plus one EODHD bulk end-of-day file per later session (cached in
 work/triangle-bulk). A stock whose bar jumps by more than 1.67x or under 0.6x against its last close (a split after the freeze) stops
@@ -164,6 +166,48 @@ def outcome(rec, pool, n_twins=30):
     return out
 
 
+def fingerprint(prices, n=60, end="2024-06-30"):
+    """Behaviour fingerprint of 3W (version freeze): on the frozen first dataset before any extension, the first `n` stocks' shape
+    signals from 2005 to `end` with their rule-1.7 plan, the 1.7 and 1.9 trades, taste score, daily and monthly MACD state and market
+    state, plus the random comparison of the first three taken orders. Any code change anywhere that alters 3W's behaviour changes it;
+    unrelated edits do not. Returns (sha256, number of signals)."""
+    global PX, SPY
+    PX, SPY = prices, prices.get("SPY")
+    BREADTH.clear()
+    rows, recs = [], []
+    r6 = lambda v: round(v, 6) if isinstance(v, float) else v
+    for sym in sorted(x for x in prices if x not in N.FUNDS)[:n]:
+        s = prices[sym]
+        for sig in N.signals(s, start="2005-01-01", end=end):
+            W = BS.periods(s, "week")
+            p = N.plan(s, sig, W["atr"][sig["t"]])
+            g7 = N.trade(s, sig["day"], p["level"], p["stop"], p["t1"]) if p["go"] else {}
+            g9 = N.trade(s, sig["day"], p["level"], p["stop"], p["level"] + 3 * (p["level"] - p["stop"]), hold=130) if p["go"] else {}
+            rows.append([sym, sig["week"], r6(sig["stop"]), r6(sig["t1"]), [r6(p[k]) for k in ("level", "stop", "rr", "go", "why")],
+                         g7.get("status"), r6(g7.get("R")), g9.get("status"), r6(g9.get("R")), r6(N.taste(W, sig)),
+                         N.daily_state(s, sig["day"]), N.monthly_veto(s, sig["day"]), market(s["date"][sig["day"]]) if SPY else None])
+            if p["go"] and len(recs) < 3:
+                recs.append({"id": f"{sym}|{sig['week']}", "symbol": sym, "week": sig["week"], "signal_day": s["date"][sig["day"]],
+                             "plan": {k: p[k] for k in ("level", "stop", "t1", "go", "why")}})
+    if recs:
+        flagged = selection.impossible_jumps(prices)
+        rules = {**N.POOL, "exclude": flagged | N.FUNDS}
+        for rec in recs:
+            pool = [x for x in selection.eligible_pool(prices, rec["signal_day"], rules) if x != rec["symbol"]]
+            rows.append(outcome(rec, pool))
+    return hashlib.sha256(json.dumps(rows, sort_keys=True, default=str).encode()).hexdigest(), len(rows)
+
+
+def check_frozen(config, prices):
+    """Refuse to record under a version whose behaviour no longer matches its frozen fingerprint."""
+    frozen = config["frozen"]
+    got, n = fingerprint(prices, frozen["symbols"])
+    if got != frozen["fingerprint"]:
+        raise RuntimeError(f"3W behaviour changed: fingerprint {got[:12]} ({n} rows) is not the frozen {frozen['fingerprint'][:12]} of "
+                           f"{frozen['version']}. Record a new version (new id, start date and fingerprint) instead of changing this one.")
+    return got
+
+
 def run(config, fetch_day, calendar):
     """Returns (new records, outcomes) for every dataset."""
     global PX, SCAN_START, SPY
@@ -178,6 +222,8 @@ def run(config, fetch_day, calendar):
     for ds in config["datasets"]:
         e0 = datasets.manifest(ds)
         PX = datasets.load(datasets.download(e0, ROOT / "work/lab"), e0["sha256"])["prices"]
+        if ds == config["frozen"]["dataset"]:
+            check_frozen(config, PX)
         extend(PX, calendar, lambda d: bulk_day(d, fetch_day))
         if "SPY" in PX:
             SPY = PX["SPY"]
@@ -189,6 +235,7 @@ def run(config, fetch_day, calendar):
         for r in found:
             r["id"] = hashlib.sha256(f"{r['symbol']}|{r['week']}".encode()).hexdigest()[:10]
             r["dataset"] = ds
+            r["version"] = config["frozen"]["version"]
             if r["id"] not in known:
                 known[r["id"]] = r; new.append(r)
         rules = {**N.POOL, "exclude": flagged | N.FUNDS}
@@ -233,8 +280,59 @@ def write(root, config, new, outcomes, now):
         for line in jpath.read_text().splitlines():
             if line.strip():
                 j = json.loads(line); judgements[j["id"]] = j["choice"]
-    (folder / "outcomes.json").write_text(json.dumps({"id": config["id"], "computed_at": now, "summary": summary(records, outcomes, judgements),
+    (folder / "outcomes.json").write_text(json.dumps({"id": config["id"], "version": config["frozen"]["version"], "computed_at": now, "summary": summary(records, outcomes, judgements),
                                                      "outcomes": sorted(outcomes, key=lambda o: o["id"])}, indent=1, ensure_ascii=False) + "\n")
+
+
+def load_records(root=ROOT):
+    path = pathlib.Path(root) / FOLDER / "signals.jsonl"
+    return [json.loads(line) for line in path.read_text().splitlines() if line.strip()] if path.exists() else []
+
+
+def load_judgements(root=ROOT):
+    path = pathlib.Path(root) / FOLDER / "judgements.jsonl"
+    return [json.loads(line) for line in path.read_text().splitlines() if line.strip()] if path.exists() else []
+
+
+def page(out, week=None, root=ROOT):
+    """The user's blind page for every recorded signal not judged yet (or one signal week): anonymous charts, do / no, reasons."""
+    config = json.loads(CONFIG.read_text())
+    done = {j["id"] for j in load_judgements(root)}
+    recs = [r for r in load_records(root) if r["id"] not in done and (week is None or r["week"] == week)]
+    items = [{"id": r["id"], **{k: r["chart"][k] for k in ("bars", "sig", "pushes", "bottoms", "line")}} for r in sorted(recs, key=lambda r: (r["week"], r["id"]))]
+    label = week or (f"{recs[0]['week']}—{recs[-1]['week']}" if recs else "无")
+    html = (pathlib.Path(root, FOLDER, "judge_page.html").read_text().replace("__ITEMS__", json.dumps(items, ensure_ascii=False, separators=(",", ":")))
+            .replace("__COL__", "w3fwd").replace("__WEEK__", label).replace("__NCASES__", str(len(items))).replace("__VERSION__", config["frozen"]["version"]))
+    pathlib.Path(out).write_text(html)
+    return len(items)
+
+
+def judge(answers, now, root=ROOT):
+    """Append the user's answers (exported page documents: {id: {shape, reasons, grade, note, at, ...}}) to judgements.jsonl. The first
+    answer per signal is final; each line keeps the answer time and whether the order had already filled by then."""
+    config = json.loads(CONFIG.read_text())
+    recs = {r["id"]: r for r in load_records(root)}
+    done = {j["id"] for j in load_judgements(root)}
+    fills = {}
+    out_path = pathlib.Path(root) / FOLDER / "outcomes.json"
+    if out_path.exists():
+        fills = {o["id"]: o.get("fill") for o in json.loads(out_path.read_text())["outcomes"]}
+    lines = []
+    for rid, a in sorted(answers.items()):
+        if rid not in recs or rid in done or a.get("shape") not in ("ok", "no"):
+            continue
+        at = a.get("at") or now
+        fill = fills.get(rid)
+        lines.append({"id": rid, "choice": "do" if a["shape"] == "ok" else "no", "reasons": a.get("reasons", []), "grade": a.get("grade"),
+                      "note": a.get("note", ""), "own_order_rebased": {k: a.get(k) for k in ("entry", "stop", "t1", "t2", "share")} if a.get("entry") is not None else None,
+                      "judged_at": at, "recorded_at": now, "version": recs[rid].get("version", config["frozen"]["version"]),
+                      "judged_after_fill": bool(fill and at[:10] > fill)})
+    if lines:
+        path = pathlib.Path(root) / FOLDER / "judgements.jsonl"
+        with path.open("a") as handle:
+            for line in lines:
+                handle.write(json.dumps(line, ensure_ascii=False) + "\n")
+    return len(lines)
 
 
 def calendar_since(day):
@@ -271,8 +369,24 @@ def main(argv=None):
     from research.lab.run_queue import in_eod_window
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--publish", action="store_true")
+    parser.add_argument("--fingerprint", action="store_true", help="print the behaviour fingerprint on the frozen first dataset and exit")
+    parser.add_argument("--page", metavar="OUT.html", help="write the user's blind page for every signal not judged yet and exit")
+    parser.add_argument("--week", help="with --page: only this signal week")
+    parser.add_argument("--judge", metavar="DIR", help="append the user's exported page answers (one JSON file per signal id) to judgements.jsonl and exit")
     args = parser.parse_args(argv)
+    if args.page:
+        print(f"{page(args.page, args.week)} signals on the page")
+        return
+    if args.judge:
+        answers = {p.stem: json.loads(p.read_text()) for p in pathlib.Path(args.judge).rglob("*.json")}
+        print(f"{judge(answers, dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds'))} answers recorded")
+        return
     config = json.loads(CONFIG.read_text())
+    if args.fingerprint:
+        ds = config["frozen"]["dataset"]; e0 = datasets.manifest(ds)
+        fp, n = fingerprint(datasets.load(datasets.download(e0, ROOT / "work/lab"), e0["sha256"])["prices"], config["frozen"]["symbols"])
+        print(f"{fp} ({n} rows on {ds})")
+        return
     if args.publish and in_eod_window():
         print("Inside the 23:30-04:30 UTC EOD window; nothing published.")
         return

@@ -98,5 +98,51 @@ class ForwardTests(unittest.TestCase):
         self.assertEqual(s["rule19_user_do"]["mean_R"], 3.0)
 
 
+class WeeklyFlowTests(unittest.TestCase):
+    def test_page_lists_unjudged_signals_and_judge_appends_once(self):
+        import pathlib, shutil, tempfile
+        root = pathlib.Path(tempfile.mkdtemp())
+        folder = root / F.FOLDER
+        folder.mkdir(parents=True)
+        shutil.copy(F.ROOT / F.FOLDER / "judge_page.html", folder / "judge_page.html")
+        chart = {"bars": [[100, 101, 99, 100, 0, 0, 1, 100]], "sig": 0, "pushes": [0], "bottoms": [0], "line": [0, 101, 0]}
+        recs = [{"id": "aaaa", "week": "2026-10-16", "version": "3w-1.9", "chart": chart}, {"id": "bbbb", "week": "2026-10-16", "version": "3w-1.9", "chart": chart}]
+        (folder / "signals.jsonl").write_text("".join(json.dumps(r) + "\n" for r in recs))
+        (folder / "outcomes.json").write_text(json.dumps({"outcomes": [{"id": "aaaa", "fill": "2026-10-19"}]}))
+        out = root / "page.html"
+        self.assertEqual(F.page(out, root=root), 2)
+        html = out.read_text()
+        self.assertIn('"id":"aaaa"', html)
+        self.assertNotIn("__ITEMS__", html)
+        answers = {"aaaa": {"shape": "ok", "reasons": [], "at": "2026-10-20T01:00:00Z"}, "bbbb": {"shape": "no", "reasons": ["long"], "at": "2026-10-18T01:00:00Z"},
+                   "zzzz": {"shape": "ok"}}
+        self.assertEqual(F.judge(answers, "2026-10-20T02:00:00Z", root=root), 2)
+        self.assertEqual(F.judge(answers, "2026-10-21T02:00:00Z", root=root), 0)
+        lines = F.load_judgements(root)
+        self.assertEqual([l["choice"] for l in lines], ["do", "no"])
+        self.assertTrue(lines[0]["judged_after_fill"])
+        self.assertEqual(lines[1]["reasons"], ["long"])
+        self.assertEqual(F.page(out, root=root), 0)
+
+
+class FreezeTests(unittest.TestCase):
+    def test_a_changed_behaviour_is_refused(self):
+        config = {"frozen": {"version": "3w-test", "fingerprint": "a" * 64, "symbols": 1}}
+        original = F.fingerprint
+        try:
+            F.fingerprint = lambda prices, n=60, end="2024-06-30": ("b" * 64, 1)
+            with self.assertRaises(RuntimeError):
+                F.check_frozen(config, {})
+            F.fingerprint = lambda prices, n=60, end="2024-06-30": ("a" * 64, 1)
+            self.assertEqual(F.check_frozen(config, {}), "a" * 64)
+        finally:
+            F.fingerprint = original
+
+    def test_the_live_config_is_frozen(self):
+        config = json.loads(F.CONFIG.read_text())
+        self.assertEqual(config["frozen"]["dataset"], config["datasets"][0])
+        self.assertEqual(len(config["frozen"]["fingerprint"]), 64)
+
+
 if __name__ == "__main__":
     unittest.main()
