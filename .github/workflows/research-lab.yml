@@ -56,6 +56,17 @@ jobs:
         run: python3 -m research.lab.run_queue --publish --max-specs 3 --wait-for-window "$WAIT_FOR_WINDOW"
       - name: Update the forward paper accounts
         run: python3 -m research.lab.forward --publish
+      - name: Restore the frozen datasets and daily bulk bars for the triangle forward record
+        uses: actions/cache@v4
+        with:
+          path: |
+            work/lab/universe-1985-v1-*.json.gz
+            work/lab/fresh-*-1995-v1-*.json.gz
+            work/triangle-bulk
+          key: triangle-forward-v1-${{ github.run_id }}
+          restore-keys: triangle-forward-v1-
+      - name: Update the weekly triangle forward record
+        run: python3 -m research.lab.triangle_forward --publish
       - name: Summarise
         if: always()
         run: |
