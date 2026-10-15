@@ -1,0 +1,426 @@
+<title>3W 每周盲判 · __WEEK__</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&display=swap">
+<style>
+/* Layout: one column of chart cards, a sticky progress bar; the chart is the instrument, everything else stays quiet */
+:root {
+  --bg: #F3F4F1; --surface: #FFFFFF; --ink: #171C1F; --muted: #5D676E; --line: #D9DEDF; --soft: #ECEFEC; --grid: #E6E9E7;
+  --accent: #245CA8; --accent-soft: #DFE8F5; --up: #1E8A5A; --down: #C7453A; --dea: #D9822B; --ema: #8A6D1F; --mark: #6A4FB3; --mine: #D2610F;
+  --band: rgba(36, 92, 168, 0.10); --vol: #B8C0C4; --win: rgba(30, 138, 90, 0.16); --loss: rgba(199, 69, 58, 0.15);
+  --ok: #1D7A4C; --ok-soft: #DDF0E5; --bad: #B23A30; --bad-soft: #F6E1DE;
+  --sans: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101416; --surface: #171D21; --ink: #E5EAED; --muted: #99A4AC; --line: #2A333A; --soft: #1D252A; --grid: #222A30;
+    --accent: #84B0EA; --accent-soft: #1D2B3E; --up: #4CC38A; --down: #F07E72; --dea: #F0A85A; --ema: #D8BC6A; --mark: #B9A2F2; --mine: #FF9A4D;
+    --band: rgba(132, 176, 234, 0.14); --vol: #3A454C; --win: rgba(76, 195, 138, 0.18); --loss: rgba(240, 126, 114, 0.17);
+    --ok: #5EC58F; --ok-soft: #15301F; --bad: #EE8074; --bad-soft: #3A1D1A; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #101416; --surface: #171D21; --ink: #E5EAED; --muted: #99A4AC; --line: #2A333A; --soft: #1D252A; --grid: #222A30;
+  --accent: #84B0EA; --accent-soft: #1D2B3E; --up: #4CC38A; --down: #F07E72; --dea: #F0A85A; --ema: #D8BC6A; --mark: #B9A2F2; --mine: #FF9A4D;
+  --band: rgba(132, 176, 234, 0.14); --vol: #3A454C; --win: rgba(76, 195, 138, 0.18); --loss: rgba(240, 126, 114, 0.17);
+  --ok: #5EC58F; --ok-soft: #15301F; --bad: #EE8074; --bad-soft: #3A1D1A; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.65; margin: 0; }
+.page { max-width: 860px; margin: 0 auto; padding-inline: 18px; padding-block: 0 64px; display: grid; gap: 18px; }
+@media (max-width: 480px) { .page { padding-inline: 16px; } }
+h1 { font-size: clamp(1.5rem, 5vw, 2rem); line-height: 1.25; margin: 0; text-wrap: balance; }
+h2 { font-size: 1.2rem; margin: 0; text-wrap: balance; }
+p { margin: 0; max-width: 44em; }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 2; background: var(--bg); border-bottom: 1px solid var(--line); padding-block: 12px; display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; }
+.bar b { font-family: var(--mono); font-size: 1.1rem; }
+.bar .status { font-size: 0.85rem; color: var(--muted); }
+.track { flex: 1 1 160px; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; min-width: 120px; }
+.track i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .2s; }
+header { display: grid; gap: 10px; padding-top: 22px; }
+.how { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 6px; font-size: 0.94rem; }
+.how ul { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; }
+.note { font-size: 0.85rem; color: var(--muted); }
+.list { display: grid; gap: 14px; }
+.item { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 10px; min-width: 0; }
+.item[data-shape="ok"] { border-color: var(--ok); }
+.item[data-shape="no"] { border-color: var(--bad); }
+.head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.head .n { font-family: var(--mono); font-size: 1.15rem; font-weight: 700; }
+.toggles { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.85rem; color: var(--muted); margin-left: auto; }
+.toggles label { display: inline-flex; gap: 5px; align-items: center; cursor: pointer; }
+figure { margin: 0; display: grid; gap: 4px; min-width: 0; }
+figure svg { width: 100%; height: auto; display: block; touch-action: manipulation; }
+figure[data-mode] svg { cursor: crosshair; }
+.legend { display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: 0.78rem; color: var(--muted); }
+.legend i { display: inline-block; width: 14px; height: 0; border-top: 2px solid; margin-right: 5px; vertical-align: middle; }
+svg text { font-family: var(--mono); font-size: 11px; fill: var(--muted); }
+svg .lbl { font-size: 12px; font-weight: 500; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.row > .note { min-width: 3.5em; }
+button { font: inherit; font-weight: 700; border-radius: 8px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); padding: 7px 16px; cursor: pointer; }
+button.small { font-weight: 500; font-size: 0.86rem; padding: 4px 11px; }
+button:focus-visible, textarea:focus-visible, input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.ok[aria-pressed="true"] { background: var(--ok-soft); border-color: var(--ok); color: var(--ok); }
+button.bad[aria-pressed="true"] { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); }
+button.pick[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+button.mark[aria-pressed="true"] { background: var(--mine); border-color: var(--mine); color: var(--surface); }
+.reasons { display: flex; flex-wrap: wrap; gap: 6px; }
+.reasons label { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; padding: 3px 12px 3px 8px; font-size: 0.88rem; cursor: pointer; background: var(--bg); }
+.reasons label:has(input:checked) { border-color: var(--bad); background: var(--bad-soft); color: var(--bad); }
+.reasons input { accent-color: var(--bad); margin: 0; }
+textarea { font: inherit; font-size: 0.92rem; width: 100%; min-height: 2.4em; resize: vertical; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: var(--bg); color: var(--ink); }
+.marks, .rr { font-size: 0.85rem; color: var(--muted); }
+.result { border-top: 1px dashed var(--line); padding-top: 10px; display: grid; gap: 6px; font-size: 0.92rem; }
+.pos { color: var(--ok); } .neg { color: var(--bad); }
+.lv { display: inline-flex; gap: 5px; align-items: center; }
+.lv input { font: inherit; font-family: var(--mono); font-size: 0.86rem; width: 5.2em; border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px; background: var(--bg); color: var(--ink); }
+.lv input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.summary { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+th, td { text-align: left; padding: 6px 10px; border-top: 1px solid var(--line); }
+thead th { border-top: 0; color: var(--muted); font-size: 0.8rem; }
+td.n { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.copy pre { margin: 0; font-family: var(--mono); font-size: 0.85rem; background: var(--soft); border-radius: 8px; padding: 10px 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (prefers-reduced-motion: reduce) { .track i { transition: none; } }
+</style>
+<div class="page">
+  <div class="bar" role="status" aria-live="polite">
+    <span>已判 <b id="count">0</b><span class="num"> / __NCASES__</span></span>
+    <div class="track" aria-hidden="true"><i id="fill"></i></div>
+    <span class="status" id="save">连接保存中…</span>
+  </div>
+  <header>
+    <h1>3W 每周盲判 · __WEEK__（__NCASES__ 个）</h1>
+    <p>这些是这周机器找到的新 3W 形态（前向记录 __VERSION__，还没有任何结果）。没有股票名和日期，价格换算成"信号那周收盘 = 100"。</p>
+    <div class="how">
+      <b>你要做的</b>
+      <ul>
+        <li>每个只判<b>做</b>或<b>不做</b>。不做的话勾一下原因。</li>
+        <li>可选：用<b>做多工具</b>下单练盘感；正式结果按冻结的规则计算，不看你画的框。</li>
+      </ul>
+      <p class="note">你的答案会连同时间写进项目（judgements.jsonl），之后不能改。图：周线 K、成交量、周线 MACD、周线 EMA20。</p>
+    </div>
+  </header>
+  <section class="list" id="list" aria-label="案例"></section>
+  <section class="summary" id="summary">
+    <h2>这一批的统计</h2>
+    <p id="tally">还没有判断。</p>
+    <div class="tablewrap" id="reasonTable" hidden></div>
+  </section>
+  <section class="summary copy">
+    <b>结果文字</b>
+    <p class="note">点选会自动保存，我这边能直接读到。保存不了就复制下面这段给我。</p>
+    <pre id="copytext">（还没有选择）</pre>
+  </section>
+</div>
+<script>
+const ITEMS = __ITEMS__;
+const REASONS = [["converge", "收敛三角（底一个比一个高）"], ["sideways", "横盘 / 死水 / trading zone"], ["swing", "起伏不够 / 太紧"], ["messy", "太乱"], ["long", "战线太长"], ["close", "两个底太近"], ["unfinished", "底部没走完 / 最新的底失守"], ["deep", "跌太深"], ["line", "趋势线画错"], ["macd", "MACD 不配合"], ["other", "其他（写在备注）"]];
+const RES = {};
+const LEVELS = ["entry", "stop", "t1", "t2"], SHARES = [["33", "1/3"], ["50", "1/2"], ["67", "2/3"], ["100", "全部"]];
+const GRADES = [["pass", "及格"], ["good", "好"], ["love", "最喜欢"]];
+const COL = "__COL__", KEY = "trainer-__COL__";
+const state = {}, busy = {}, view = {};
+let db = null, writable = true;
+const $ = id => document.getElementById(id);
+const NS = "http://www.w3.org/2000/svg";
+function svgEl(tag, attrs, text) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; return e; }
+function chart(it, replay) {
+  const s = state[it.id] || {}, v = view[it.id] || (view[it.id] = { machine: true, ema: true, mode: null });
+  const res = RES[it.id], bars = replay ? it.bars.concat(res.after) : it.bars, n = bars.length, sig = it.sig;
+  const W = 780, H1 = 300, HV = 44, H2 = 84, gap = 10, padL = 6, padR = 46, padT = 22, padB = 20;
+  const svg = svgEl("svg", { viewBox: `0 0 ${W} ${H1 + gap + HV + gap + H2 + padB}`, role: "img", "aria-label": `第 ${(ITEMS.indexOf(it) + 1)} 个，周线图` });
+  const FUT = replay ? 2 : Math.max(30, Math.round(n * 0.4)), cw = (W - padL - padR) / (n + FUT), x = i => padL + cw * (i + 0.5);
+  const [a, va, slope] = it.line, lineAt = i => va + slope * (i - a);
+  let lo = Math.min(...bars.map(b => b[2])), hi = Math.max(...bars.map(b => b[1]));
+  LEVELS.forEach(k => { if (s[k] != null) { lo = Math.min(lo, s[k]); hi = Math.max(hi, s[k]); } });
+  const pad = (hi - lo) * 0.07; lo -= pad; hi += pad + (hi - lo) * 0.12;
+  const price = py => hi - (py - padT) / (H1 - padT - 4) * (hi - lo);
+  const y = val => padT + (hi - val) / (hi - lo) * (H1 - padT - 4);
+  for (let k = 0; k <= 4; k++) { const val = lo + (hi - lo) * k / 4; svg.appendChild(svgEl("line", { x1: padL, x2: W - padR, y1: y(val), y2: y(val), stroke: "var(--grid)" })); svg.appendChild(svgEl("text", { x: W - padR + 4, y: y(val) + 4 }, val.toFixed(0))); }
+  svg.appendChild(svgEl("rect", { x: x(sig) - cw / 2, y: padT - 14, width: Math.max(cw, 2), height: H1 + gap + HV + gap + H2 - padT + 14, fill: "var(--band)" }));
+  svg.appendChild(svgEl("text", { x: x(sig) - cw / 2, y: padT - 4, "text-anchor": "end", class: "lbl", style: "fill: var(--accent)" }, "信号"));
+  bars.forEach((b, i) => {
+    const col = b[3] >= b[0] ? "var(--up)" : "var(--down)";
+    svg.appendChild(svgEl("line", { x1: x(i), x2: x(i), y1: y(b[1]), y2: y(b[2]), stroke: col }));
+    svg.appendChild(svgEl("rect", { x: x(i) - Math.max(cw * 0.32, 0.6), y: y(Math.max(b[0], b[3])), width: Math.max(cw * 0.64, 1.2), height: Math.max(1, Math.abs(y(b[0]) - y(b[3]))), fill: col }));
+  });
+  if (v.ema) svg.appendChild(svgEl("path", { d: bars.map((b, i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + y(b[7]).toFixed(1)).join(" "), fill: "none", stroke: "var(--ema)", "stroke-width": 1.4 }));
+  if (v.machine) {
+    svg.appendChild(svgEl("line", { x1: x(a), y1: y(lineAt(a)), x2: x(sig), y2: y(lineAt(sig)), stroke: "var(--accent)", "stroke-width": 1.6, "stroke-dasharray": "6 4" }));
+    it.pushes.forEach((p, k) => svg.appendChild(svgEl("text", { x: x(p), y: y(bars[p][1]) - 6, "text-anchor": "middle", class: "lbl", style: "fill: var(--mark)" }, "①②③④⑤⑥"[k] || "•")));
+    it.bottoms.forEach(p => svg.appendChild(svgEl("text", { x: x(p), y: y(bars[p][2]) + 15, "text-anchor": "middle", class: "lbl", style: "fill: var(--mark)" }, "底")));
+  }
+  const mine = (list, top) => (list || []).forEach(off => { const i = sig + off; if (i < 0 || i >= n) return;
+    const py = top ? y(bars[i][1]) - 20 : y(bars[i][2]) + 22;
+    svg.appendChild(svgEl("circle", { cx: x(i), cy: py, r: 7, fill: "var(--mine)" }));
+    svg.appendChild(svgEl("text", { x: x(i), y: py + 4, "text-anchor": "middle", style: "fill: var(--surface); font-size: 10px; font-weight: 700" }, top ? "推" : "底")); });
+  mine(s.pushes, true); mine(s.bottoms, false);
+  // long-position tool (like TradingView): entry line, green zone up to the targets, red zone down to the stop; lines drag up and down
+  const g = svgEl("g", {}), bx0 = x(sig) - cw / 2, bx1 = W - padR, bw = bx1 - bx0;
+  const drawPos = q => {
+    g.replaceChildren();
+    if (q.entry == null) return;
+    const e = q.entry, risk = q.stop != null && q.stop < e ? e - q.stop : null;
+    const pc = val => "(" + (val >= e ? "+" : "−") + Math.abs((val / e - 1) * 100).toFixed(1) + "%)";
+    const rr = val => risk ? " 盈亏比" + ((val - e) / risk).toFixed(2) : "";
+    const zone = (a1, a2, fill) => g.appendChild(svgEl("rect", { x: bx0, y: Math.min(y(a1), y(a2)), width: bw, height: Math.abs(y(a1) - y(a2)), fill }));
+    if (q.t1 != null) zone(e, q.t1, "var(--win)");
+    if (q.t2 != null && q.t1 != null) zone(q.t1, q.t2, "var(--win)");
+    if (q.stop != null) zone(e, q.stop, "var(--loss)");
+    const line = (key, val, col, label, dash) => {
+      if (val == null) return;
+      g.appendChild(svgEl("line", { x1: bx0, x2: bx1, y1: y(val), y2: y(val), stroke: col, "stroke-width": 1.6, "stroke-dasharray": dash || "" }));
+      const above = key === "entry" ? true : val >= e;
+      g.appendChild(svgEl("text", { x: key === "entry" ? bx1 - 4 : bx0 + 4, y: y(val) + (above ? -5 : 14), "text-anchor": key === "entry" ? "end" : "start", style: `fill: ${col}; font-size: 10.5px; font-weight: 500` }, label));
+      g.appendChild(svgEl("rect", { x: bx0, y: y(val) - 7, width: bw, height: 14, fill: "transparent", "data-level": key, style: "cursor: ns-resize; touch-action: none" }));
+    };
+    line("stop", q.stop, "var(--down)", q.stop != null ? `止损 ${q.stop.toFixed(1)} ${pc(q.stop)}` : "");
+    const p1 = q.share != null ? q.share : null, sell = v => v == null ? "" : ` 卖${v}%`;
+    line("t1", q.t1, "var(--up)", q.t1 != null ? `止盈1 ${q.t1.toFixed(1)} ${pc(q.t1)}${rr(q.t1)}${sell(q.t2 != null ? p1 : 100)}` : "");
+    line("t2", q.t2, "var(--up)", q.t2 != null ? `止盈2 ${q.t2.toFixed(1)} ${pc(q.t2)}${rr(q.t2)}${sell(p1 == null ? null : 100 - p1)}` : "", "6 3");
+    line("entry", e, "var(--ink)", `入场 ${e.toFixed(1)}`);
+  };
+  svg.appendChild(g); drawPos(s);
+  const toSvg = ev => { const pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()); };
+  svg.addEventListener("pointerdown", ev => {
+    const h = ev.target.closest ? ev.target.closest("[data-level]") : null;
+    if (!h || view[it.id].mode || replay) return;
+    ev.preventDefault();
+    const key = h.getAttribute("data-level"), q = { ...(state[it.id] || {}) };
+    svg.setPointerCapture(ev.pointerId);
+    const move = m => { q[key] = Math.round(Math.max(lo, Math.min(hi, price(toSvg(m).y))) * 10) / 10; drawPos(q); $(it.id).querySelector(".rr").textContent = rrText(q); };
+    const up = () => { svg.removeEventListener("pointermove", move); svg.removeEventListener("pointerup", up); svg.removeEventListener("pointercancel", up); dragged = true; save(it.id, { [key]: q[key] }); };
+    svg.addEventListener("pointermove", move); svg.addEventListener("pointerup", up); svg.addEventListener("pointercancel", up);
+  });
+  let dragged = false;
+  const topV = H1 + gap, vmax = Math.max(...bars.map(b => b[6])) || 1;
+  bars.forEach((b, i) => { const hgt = b[6] / vmax * (HV - 2); svg.appendChild(svgEl("rect", { x: x(i) - Math.max(cw * 0.3, 0.5), y: topV + HV - hgt, width: Math.max(cw * 0.6, 1), height: Math.max(0.5, hgt), fill: "var(--vol)" })); });
+  svg.appendChild(svgEl("text", { x: W - padR + 4, y: topV + 12 }, "量"));
+  const top2 = topV + HV + gap, md = bars.map(b => [b[4], b[5], b[4] - b[5]]);
+  const mmax = Math.max(...md.flat().map(Math.abs)) || 1, y2 = val => top2 + H2 / 2 - val / mmax * (H2 / 2 - 3);
+  svg.appendChild(svgEl("line", { x1: padL, x2: W - padR, y1: y2(0), y2: y2(0), stroke: "var(--muted)", "stroke-dasharray": "2 3" }));
+  svg.appendChild(svgEl("text", { x: W - padR + 4, y: y2(0) + 4 }, "0"));
+  md.forEach(([, , hh], i) => svg.appendChild(svgEl("rect", { x: x(i) - Math.max(cw * 0.3, 0.5), y: Math.min(y2(hh), y2(0)), width: Math.max(cw * 0.6, 1), height: Math.max(0.5, Math.abs(y2(hh) - y2(0))), fill: hh >= 0 ? "var(--up)" : "var(--down)", opacity: 0.55 })));
+  const path = k => md.map((m, i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + y2(m[k]).toFixed(1)).join(" ");
+  svg.appendChild(svgEl("path", { d: path(0), fill: "none", stroke: "var(--ink)", "stroke-width": 1.2 }));
+  svg.appendChild(svgEl("path", { d: path(1), fill: "none", stroke: "var(--dea)", "stroke-width": 1.2 }));
+  svg.appendChild(svgEl("text", { x: W - padR + 4, y: top2 + 12 }, "MACD"));
+  for (let w = -Math.floor(sig / 26) * 26; w <= n - 1 - sig; w += 26) svg.appendChild(svgEl("text", { x: x(sig + w), y: top2 + H2 + 15, "text-anchor": w === 0 && !replay ? "end" : "middle" }, w === 0 ? "信号" : (w > 0 ? "+" : "") + w + "周"));
+  if (replay && res && res.filled) {
+    const fi = Math.min(n - 1, sig + 1 + Math.floor(res.fill_week)), xi = Math.min(n - 1, fi + Math.round(res.hold_weeks));
+    svg.appendChild(svgEl("text", { x: x(fi), y: y(bars[fi][2]) + 16, "text-anchor": "middle", class: "lbl", style: "fill: var(--ink)" }, "▲买"));
+    svg.appendChild(svgEl("text", { x: x(xi), y: y(bars[xi][1]) - 8, "text-anchor": "middle", class: "lbl", style: `fill: ${res.R > 0 ? "var(--up)" : "var(--down)"}` }, "▼出"));
+  }
+  svg.addEventListener("click", ev => {
+    const mode = view[it.id].mode; if (replay || !mode || dragged) { dragged = false; return; }
+    const p = toSvg(ev);
+    if (mode === "long") {
+      if (p.y > H1) return;
+      const e = Math.round(price(p.y) * 10) / 10, cur = state[it.id] || {};
+      view[it.id].mode = null;
+      save(it.id, { entry: e, stop: cur.stop != null && cur.stop < e ? cur.stop : Math.round(e * 0.92 * 10) / 10, t1: cur.t1 != null && cur.t1 > e ? cur.t1 : Math.round(e * 1.12 * 10) / 10 });
+      return;
+    }
+    const i = Math.max(0, Math.min(n - 1, Math.round((p.x - padL) / cw - 0.5))), off = i - sig;
+    const list = [...((state[it.id] || {})[mode] || [])], k = list.indexOf(off);
+    if (k >= 0) list.splice(k, 1); else list.push(off);
+    list.sort((u, w) => u - w);
+    save(it.id, { [mode]: list });
+  });
+  return svg;
+}
+function drawFig(it) {
+  const f = $(it.id).querySelector("figure"), v = view[it.id];
+  if (v && v.mode) f.dataset.mode = v.mode; else delete f.dataset.mode;
+  f.replaceChild(chart(it), f.firstChild);
+}
+function card(it) {
+  const el = document.createElement("article");
+  el.className = "item"; el.id = it.id;
+  const no = (ITEMS.indexOf(it) + 1);
+  el.innerHTML = `
+    <div class="head"><span class="n">第 ${no} 个</span>
+      <span class="toggles"><label><input type="checkbox" id="${it.id}-m" checked> 机器的线</label><label><input type="checkbox" id="${it.id}-e" checked> EMA20</label></span></div>
+    <figure><svg></svg><div class="legend"><span><i style="border-color: var(--accent); border-top-style: dashed"></i>机器的压力线</span><span><i style="border-color: var(--ema)"></i>EMA20</span><span><i style="border-color: var(--ink)"></i>DIF</span><span><i style="border-color: var(--dea)"></i>DEA</span><span style="color: var(--mine)">● 你标的点</span><span><i style="border-color: var(--ink)"></i>你的入场</span><span><i style="border-color: var(--down)"></i>你的止损</span><span><i style="border-color: var(--up)"></i>你的止盈</span></div></figure>
+    <div class="row" role="group" aria-label="第 ${no} 个的形态">
+      <span class="note">形态</span>
+      <button class="ok" data-k="shape" data-v="ok" aria-pressed="false">做</button>
+      <button class="bad" data-k="shape" data-v="no" aria-pressed="false">不做</button>
+    </div>
+    <div class="row grades" role="group" aria-label="合格程度" hidden>
+      <span class="note">程度</span>
+      ${GRADES.map(([v, t]) => `<button class="pick small" data-k="grade" data-v="${v}" aria-pressed="false">${t}</button>`).join("")}
+    </div>
+    <div class="reasons" role="group" aria-label="不做的原因" hidden>
+      ${REASONS.map(([v, t]) => `<label><input type="checkbox" value="${v}" id="${it.id}-r-${v}">${t}</label>`).join("")}
+    </div>
+    <div class="row" role="group" aria-label="在图上标点（可选）">
+      <span class="note">标点</span>
+      <button class="mark small" data-mode="pushes" aria-pressed="false">我点三推高点</button>
+      <button class="mark small" data-mode="bottoms" aria-pressed="false">我点底</button>
+      <button class="small" data-clear="1">清除我的点</button>
+      <span class="marks"></span>
+    </div>
+    <div class="row levels" role="group" aria-label="入场、止损、止盈（可选）">
+      <span class="note">交易</span>
+      <button class="mark small" data-mode="long" aria-pressed="false">做多工具</button>
+      <button class="small" data-addt2="1">加止盈2</button>
+      <button class="small" data-clearlv="1">删除</button>
+    </div>
+    <div class="row levels" role="group" aria-label="精确价格">
+      ${[["entry", "入场"], ["stop", "止损"], ["t1", "止盈1"], ["t2", "止盈2"]].map(([k, t]) => `<label class="lv"><span class="note">${t}</span><input type="number" step="0.1" min="0" id="${it.id}-${k}" data-level="${k}" placeholder="—"></label>`).join("")}
+    </div>
+    <div class="row" role="group" aria-label="仓位分配">
+      <label class="lv"><span class="note">止盈1卖</span><input type="number" step="1" min="0" max="100" id="${it.id}-share" data-share="1" placeholder="—"><span class="note">%</span></label>
+      ${SHARES.map(([v, t]) => `<button class="pick small" data-k="share" data-v="${v}" aria-pressed="false">${t}</button>`).join("")}
+      <span class="note split"></span>
+    </div>
+    <p class="rr num"></p>
+    <textarea id="${it.id}-note" aria-label="备注（可选）" placeholder="备注（可选）"></textarea>
+    <div class="result" hidden></div>`;
+  el.querySelectorAll("button[data-k]").forEach(b => b.addEventListener("click", () => {
+    const cur = (state[it.id] || {})[b.dataset.k];
+    const val = b.dataset.k === "share" ? Number(b.dataset.v) : b.dataset.v;
+    save(it.id, { [b.dataset.k]: cur === val && (b.dataset.k === "grade" || b.dataset.k === "share") ? null : val });
+  }));
+  el.querySelectorAll("button[data-mode]").forEach(b => b.addEventListener("click", () => {
+    const v = view[it.id]; v.mode = v.mode === b.dataset.mode ? null : b.dataset.mode; render(); drawFig(it);
+  }));
+  el.querySelector("button[data-clear]").addEventListener("click", () => save(it.id, { pushes: [], bottoms: [] }));
+  el.querySelector("button[data-clearlv]").addEventListener("click", () => save(it.id, { entry: null, stop: null, t1: null, t2: null, share: null }));
+  el.querySelector("button[data-addt2]").addEventListener("click", () => { const q = state[it.id] || {};
+    if (q.t2 != null) return save(it.id, { t2: null });
+    if (q.entry == null || q.t1 == null) return;
+    save(it.id, { t2: Math.round((q.t1 + (q.t1 - q.entry) * 0.6) * 10) / 10 }); });
+  el.querySelector("input[data-share]").addEventListener("change", e => { const v = parseFloat(e.target.value);
+    save(it.id, { share: isFinite(v) ? Math.max(0, Math.min(100, Math.round(v))) : null }); });
+  el.querySelectorAll("input[data-level]").forEach(inp => inp.addEventListener("change", () => {
+    const val = parseFloat(inp.value); save(it.id, { [inp.dataset.level]: isFinite(val) && val > 0 ? Math.round(val * 10) / 10 : null }); }));
+  el.querySelectorAll(".reasons input").forEach(c => c.addEventListener("change", () =>
+    save(it.id, { reasons: [...el.querySelectorAll(".reasons input:checked")].map(x => x.value) })));
+  el.querySelector(`#${it.id}-m`).addEventListener("change", e => { view[it.id].machine = e.target.checked; drawFig(it); });
+  el.querySelector(`#${it.id}-e`).addEventListener("change", e => { view[it.id].ema = e.target.checked; drawFig(it); });
+  const ta = el.querySelector("textarea");
+  ta.addEventListener("change", () => save(it.id, { note: ta.value.trim() }));
+  return el;
+}
+const RN = Object.fromEntries(REASONS);
+function rrText(s) {
+  const e = s.entry; if (e == null) return "";
+  const bits = [`入场 ${e.toFixed(1)}（信号收盘 100 的 ${e >= 100 ? "+" : "−"}${Math.abs(e - 100).toFixed(1)}%）`];
+  if (s.stop != null) bits.push(s.stop < e ? `止损 −${((1 - s.stop / e) * 100).toFixed(1)}%` : "止损要在入场下面");
+  const risk = s.stop != null && s.stop < e ? e - s.stop : null;
+  [["t1", "止盈1"], ["t2", "止盈2"]].forEach(([k, t]) => { if (s[k] != null) bits.push(s[k] > e ? `${t} +${((s[k] / e - 1) * 100).toFixed(1)}%${risk ? "，盈亏比 " + ((s[k] - e) / risk).toFixed(2) : ""}` : `${t}要在入场上面`); });
+  if (risk && s.t1 > e && s.t2 > e && s.share != null) bits.push(`按 ${s.share}% / ${100 - s.share}% 分批，两个止盈都到的合计盈亏比 ${((s.share / 100 * (s.t1 - e) + (1 - s.share / 100) * (s.t2 - e)) / risk).toFixed(2)}`);
+  return bits.join("；");
+}
+function render() {
+  let n = 0, ok = 0;
+  const tally = {};
+  ITEMS.forEach(it => {
+    const s = state[it.id] || {}, el = $(it.id), v = view[it.id] || {};
+    if (s.shape) n++;
+    if (s.shape === "ok") ok++;
+    if (s.shape === "no") (s.reasons || []).forEach(r => tally[r] = (tally[r] || 0) + 1);
+    el.dataset.shape = s.shape || "";
+    el.querySelectorAll("button[data-k]").forEach(b => b.setAttribute("aria-pressed", String(String(s[b.dataset.k]) === b.dataset.v)));
+    el.querySelectorAll("button[data-mode]").forEach(b => b.setAttribute("aria-pressed", String(v.mode === b.dataset.mode)));
+    el.querySelector(".grades").hidden = s.shape !== "ok";
+    el.querySelector(".reasons").hidden = s.shape !== "no";
+    el.querySelectorAll(".reasons input").forEach(c => c.checked = (s.reasons || []).includes(c.value));
+    const np = (s.pushes || []).length, nb = (s.bottoms || []).length;
+    el.querySelector(".marks").textContent = v.mode && v.mode !== "long" ? `点图上的 K 线标${v.mode === "pushes" ? "高点" : "底"}，再点一次取消` : (np || nb ? `已标：高点 ${np} 个，底 ${nb} 个` : "");
+    el.querySelectorAll("input[data-level]").forEach(inp => { const val = s[inp.dataset.level]; if (document.activeElement !== inp) inp.value = val == null ? "" : val; });
+    el.querySelector(".rr").textContent = v.mode === "long" ? "点图上你要入场的价格位置" : (s.entry != null ? rrText(s) : "");
+    const sh = el.querySelector("input[data-share]"); if (document.activeElement !== sh) sh.value = s.share == null ? "" : s.share;
+    el.querySelector(".split").textContent = s.share == null ? "" : (s.share >= 100 ? "全部在止盈1卖" : `止盈2卖剩下的 ${100 - s.share}%`);
+    el.querySelector("button[data-addt2]").textContent = s.t2 != null ? "去掉止盈2" : "加止盈2";
+    el.querySelector("button[data-addt2]").disabled = s.entry == null;
+    const ta = el.querySelector("textarea");
+    if (document.activeElement !== ta && (s.note || "") !== ta.value) ta.value = s.note || "";
+  });
+  $("count").textContent = n;
+  $("fill").style.width = (n / ITEMS.length * 100) + "%";
+  $("tally").textContent = n ? `已判 ${n} 个：做 ${ok}，不做 ${n - ok}。` : "还没有判断。";
+  const rows = Object.entries(tally).sort((u, w) => w[1] - u[1]);
+  $("reasonTable").hidden = !rows.length;
+  $("reasonTable").innerHTML = rows.length ? `<table><thead><tr><th>不做的原因</th><th>次数</th></tr></thead><tbody>${rows.map(([r, c]) => `<tr><td>${RN[r]}</td><td class="n">${c}</td></tr>`).join("")}</tbody></table>` : "";
+  const GN = Object.fromEntries(GRADES);
+  const lines = ITEMS.map(it => { const s = state[it.id]; if (!s || !s.shape) return null;
+    const bits = [s.shape === "ok" ? "做" + (s.grade ? "（" + GN[s.grade] + "）" : "") : "不做" + ((s.reasons || []).length ? "（" + s.reasons.map(r => RN[r]).join("、") + "）" : "")];
+    if ((s.pushes || []).length) bits.push("高点 " + s.pushes.join(","));
+    if ((s.bottoms || []).length) bits.push("底 " + s.bottoms.join(","));
+    if (s.entry != null) bits.push(LEVELS.filter(k => s[k] != null).map(k => ({ entry: "入场", stop: "止损", t1: "止盈1", t2: "止盈2" })[k] + " " + s[k]).join(" ") + (s.share != null ? `，止盈1卖 ${s.share}%、止盈2卖 ${100 - s.share}%` : ""));
+    return `${it.id} ${bits.join("；")}${s.note ? "：" + s.note : ""}`; }).filter(Boolean);
+  $("copytext").textContent = lines.length ? lines.join("\n") : "（还没有选择）";
+}
+function doc(s) { return { shape: s.shape || null, grade: s.grade || null, reasons: s.reasons || [], pushes: s.pushes || [], bottoms: s.bottoms || [], entry: s.entry ?? null, stop: s.stop ?? null, t1: s.t1 ?? null, t2: s.t2 ?? null, share: s.share ?? null, note: s.note || "", at: new Date().toISOString() }; }
+async function save(id, patch) {
+  state[id] = { ...(state[id] || {}), ...patch };
+  render();
+  if (["pushes", "bottoms", "share", ...LEVELS].some(k => k in patch)) drawFig(ITEMS.find(it => it.id === id));
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+  if (!db || !writable) return;
+  if (busy[id]) { busy[id].again = true; return; }
+  busy[id] = { again: false };
+  while (true) {
+    try {
+      await db.collection(COL).doc(id).set(doc(state[id]));
+      $("save").textContent = "已保存";
+    } catch (e) {
+      if (e && (e.code === "not_granted" || e.code === "invalid_argument")) { writable = false; $("save").textContent = "这个视图不能保存，请把下方文字复制给我"; }
+      else $("save").textContent = "保存失败，请稍后再点一次，或复制下方文字";
+      break;
+    }
+    if (busy[id].again) { busy[id].again = false; continue; }
+    break;
+  }
+  delete busy[id];
+}
+ITEMS.forEach(it => { $("list").appendChild(card(it)); view[it.id] = { machine: true, ema: true, mode: null }; });
+try { Object.assign(state, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
+ITEMS.forEach(drawFig);
+render();
+const fR = v => (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(2) + "R", fP = v => (v >= 0 ? "+" : "−") + Math.abs(v * 100).toFixed(1) + "%";
+function showResult(it) {
+  const r = RES[it.id], box = $(it.id).querySelector(".result");
+  if (!r) return;
+  const lines = [];
+  if (r.shape === "ok" && r.order) {
+    const o = r.order, kind = o.type === "limit" ? "限价买（低于信号收盘，等价格回来）" : "突破挂单（高于信号收盘）";
+    if (r.filled) {
+      const how = r.R > 0 ? (r.hit2 ? "止盈1、止盈2 都到了" : (o.t2 != null ? "到了止盈1，剩下的回到成本出" : "到了止盈1")) : (r.hit1 ? "到了止盈1，剩下的回到成本出" : "先到止损");
+      lines.push(`<b>你的单</b>：${kind} ${o.entry}，止损 ${o.stop}，止盈1 ${o.t1}${o.t2 != null ? "，止盈2 " + o.t2 + "（止盈1卖 " + o.share + "%）" : ""}。信号后约 ${Math.round(r.fill_week)} 周成交，${how}，<b class="${r.R > 0 ? "pos" : "neg"}">${fR(r.R)}</b>，持有约 ${Math.round(r.hold_weeks)} 周。`);
+    } else lines.push(`<b>你的单</b>：${kind} ${o.entry}，8 周内没成交（或成交前先到止损 / 止盈1 被取消），不算交易。`);
+    if (r.base_R != null) lines.push(`同一天随机股票用同样的单：平均 ${fR(r.base_R)}（成交率 ${Math.round(r.base_fill * 100)}%）。`);
+  } else if (r.shape === "no") lines.push("<b>你判不合格</b>，没有下单。");
+  lines.push(`只看形态：信号后 20 周 ${fP(r.ret20)}（同一天全部股票平均 ${fP(r.base20)}）。`);
+  const m = r.machine;
+  if (m) lines.push(`机器 1.4 照做：买 ${m.entry}、止损 ${m.stop}、止盈1 ${m.t1}，${m.filled ? "结果 " + fR(m.R) : "没成交"}。`);
+  box.innerHTML = lines.map(t => `<p>${t}</p>`).join("");
+  const f = document.createElement("figure"); f.appendChild(chart(it, true)); box.appendChild(f);
+  box.hidden = false;
+}
+if (Object.keys(RES).length) ITEMS.forEach(showResult);
+(async () => {
+  db = await window.claude?.use?.("db") ?? null;
+  if (!db) { $("save").textContent = "这里不能自动保存，请把下方文字复制给我"; return; }
+  $("save").textContent = "会自动保存";
+  db.collection(COL).onSnapshot(snap => {
+    let marks = false;
+    snap.docs.forEach(d => { const x = d.data(); if (!x || !ITEMS.some(it => it.id === d.id) || busy[d.id]) return;
+      const old = state[d.id] || {};
+      const nxt = { shape: x.shape || undefined, grade: x.grade || undefined, reasons: x.reasons || [], pushes: x.pushes || [], bottoms: x.bottoms || [],
+        entry: x.entry ?? null, stop: x.stop ?? null, t1: x.t1 ?? null, t2: x.t2 ?? null, share: x.share ?? null, note: x.note || "" };
+      if (["pushes", "bottoms", "share", ...LEVELS].some(k => JSON.stringify(old[k] ?? null) !== JSON.stringify(nxt[k] ?? null))) marks = true;
+      state[d.id] = nxt; });
+    render();
+    if (marks) ITEMS.forEach(drawFig);
+  }, () => { $("save").textContent = "读取已保存的选择失败；新的点选仍会尝试保存"; });
+})();
+</script>
