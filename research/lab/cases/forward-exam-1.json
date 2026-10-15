@@ -1,0 +1,28 @@
+{
+ "id": "forward-exam-1-2026-10-15",
+ "registered": "2026-10-15, before running; first use of the reserved data (signal weeks from 2025-07-01)",
+ "run": "local, PYTHONPATH=. python3 work/v3w/forward_exam1.py (exploratory scripts in work/v3w are not in the repo; sha256 prefixes below)",
+ "code_sha256_prefix": {
+  "work/v3w/forward_exam1.py": "ee1135e80345becd",
+  "work/v3w/v13.py": "bbfcf572893c16da",
+  "work/v3w/taste.py": "7c0a4b2eb1b59eb7",
+  "work/v3w/rule16.py": "2880b67b4b0a1c3c",
+  "work/v3w/exits15.py": "cef684c7f229202a",
+  "research/lab/cases/taste-model-v1.json": "cfa48dc74121efa6"
+ },
+ "shapes": "draft 1.5: 1.4 C bottom golden cross (flat bottoms <= +10%, fresh cross after >= 4 weeks under DEA, decline <= 60%, span <= 90 weeks, swing targets) with DIF < 0 at the signal week",
+ "universe": "universe-1985-v1 + fresh-a..d-1995-v1 (~6,700 US stocks, ETFs removed), data to 2026-10-09 / 2026-10-12",
+ "ranking": "taste model v1 (research/lab/cases/taste-model-v1.json): L2 logistic regression on 24 pre-signal features, trained once on the user's 130 blind judgements",
+ "trade_rule": "1.6: limit 2% under the signal close, alive 8 weeks, cancelled if the stop or target trades first; stop 1% under the last bottom and at least 0.5 weekly ATR under the entry; target = nearest swing high -3% at least 7% over the signal close, all sold; skip if planned R:R < 1.5; 13-week time stop",
+ "counted": "signals whose 105 sessions after the signal are inside the data; later ones are listed as open",
+ "baselines": "30 same-day random stocks per trade with the same mechanics; SPY over the same holding days",
+ "averages": "R capped at +5 on both sides",
+ "pass": "taste group (p >= 0.5): >= 30 trades, mean R > 0, mean R minus random mean R > 0 with month-clustered t >= 2.0",
+ "secondary": [
+  "all rule-1.6 trades",
+  "taste p >= 0.5 vs p < 0.5",
+  "win rate, payoff, profit factor",
+  "SPY"
+ ],
+ "reading": "pass -> propose weekly paper trading with this setup (needs the user's approval); not passed but taste group better than p < 0.5 -> keep collecting forward (paper) trades; otherwise rethink the shape and ranking"
+}
