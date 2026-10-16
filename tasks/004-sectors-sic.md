@@ -32,6 +32,12 @@ examples (symbol, EODHD name, SEC name) for a human sanity check, and your Conce
   name(s) in `cik-lookup-data.txt` scores >= 0.80; otherwise ignore the ticker hit and use the name route above.
 - Exact normalised name hitting one CIK = `matched`; hitting several CIKs = `ambiguous`.
 
+## Scope extended by the owner (2026-10-17): all US stocks
+Match every US symbol in the union of `research/lab/universes/fresh-*.txt` and `observation-2005-2025-v1.txt` (about 6.7k unique),
+plus the 497 3W symbols (most are already inside). Do NOT use `hk-*.txt`. Symbols and company names only: never load or read any
+price file (the 1985-2004 and HK price data stay locked). Report the 3W 497 and the full set separately; phase B's pass rule
+applies to the 497, the full set is reported for coverage only.
+
 ## Phase B (after Claude's fetch; for information now)
 SIC -> FF12 via `Siccodes12.txt`; validation against the Nasdaq snapshot with this crosswalk fixed in advance:
 Health Care->Hlth; Technology->BusEq; Finance->Money; Utilities->Utils; Energy->Enrgy; Telecommunications->Telcm;
