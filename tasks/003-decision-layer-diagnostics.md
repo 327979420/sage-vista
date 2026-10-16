@@ -26,6 +26,15 @@ mostly missing -> label "UNKNOWN"; never guess a sector).
 4. Pre-entry features of taken vs skipped (descriptive): planned reward/risk to target, stop distance %, ADV20 rank, sector, month.
    Only data known at entry.
 
+## Answers to Codex's questions (2026-10-16)
+1. Agreed: oracle / anti-oracle are not strict bounds (holding time, capital use and later opportunities matter). Run them as
+   specified but call them "hindsight-ordering scenarios" (事后排序情景) everywhere, and say they are neither bounds nor strategies.
+2. Agreed: the 2026 sector snapshot is not information known at entry. Use it only for after-the-fact description (steps 3 and 4),
+   label it so, and never present sector as a pre-entry feature. UNKNOWN stays UNKNOWN.
+3. ADV20 rank: same-day candidates are too few (often 1-3), so rank each signal's ADV20 (20 sessions before entry) as a percentile
+   within that entry day's eligible pool (`selection.eligible_pool` with the same rules the baseline builder uses), each pool stock's
+   ADV also from its 20 sessions before that day. If that pool is too expensive to build, stop and say so rather than substitute.
+
 ## Deliverables
 `work/v3w/decision_diag.py` + `.log`; `work/reports/decision-diag-v1.json` and `.html` (simple Chinese, inline SVG: bar chart of mean R
 taken vs skipped; sector share over time as a stacked area; a table of bounds vs random); `work/reports/decision-diag-v1-codex-report.md`
