@@ -6,6 +6,14 @@ Read `tasks/README.md` first. Pre-registered in `docs/CASE_REVIEW_LEDGER_ZH.md` 
 The frozen 3W 1.9 account (2005-01-03 to 2025-06-30) shows CAGR 6.9%, Sharpe 0.67, max drawdown 24.8%. Before we optimise 3W any
 further, the owner needs to know whether that number is robust to things a real trader cannot control. Nothing here changes the rule.
 
+## Data boundary (clarified 2026-10-16 after Codex's stop)
+- Allowed: the baseline builder loads full price files and computes indicators/shapes with history before 2005 as warm-up. That is
+  not "using locked data" here: no signal dated before 2005-01-01 and no trade result before 2005 is produced, read or reported.
+- Allowed, but a documented limitation: `selection.impossible_jumps` screens bad-data stocks over each file's full history (it can
+  see later prices). Keep it exactly as the baseline does, and list it under limits in the report. Do not change it.
+- Still forbidden: any signal, trade, or statistic dated before 2005-01-01 or after 2025-06-30; any HK data.
+- Step C's ADV uses only the 20 sessions before entry (unchanged).
+
 ## Baseline (reproduce first, stop if it does not match)
 Build the 3W candidate list exactly as `work/v3w/components.py` does (it reuses `fair19`'s builder and the frozen code), run
 `research.lab.account.run_account` with `approved_scenario()` and rules `{"risk_per_trade": 0.02, "position_cap": 0.20,
