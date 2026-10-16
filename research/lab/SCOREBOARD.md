@@ -319,3 +319,9 @@ Freeze shard d of the wider universe (1000 US stocks no rule has seen, from data
 
 Built 1000 of 1000 symbols; in 2025, 154 of 369 trading stocks had 200 months of history. Passed: yes
 
+## data-hk-universe-v1 (wider universe screen, engineering check)
+
+Hong Kong market for the overseas exam of the frozen 3W (3w-1.9): every common stock EODHD lists for HK, listed today or delisted, downloaded once and kept if it met an HK version of the research pool (unadjusted close >= HK$1, >= HK$78M traded, about US$10M) on enough sessions in 2005-01..2025-06. Engineering check: lists and counts only, no returns.
+
+Kept 881 of 4151 candidates in 1 shards; failed downloads 3. Passed: yes
+

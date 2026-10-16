@@ -200,6 +200,14 @@
    "completed_at": "2026-10-13T18:32:17+00:00",
    "champion": null,
    "dataset": "fresh-d-1995-v1"
+  },
+  {
+   "spec_id": "data-hk-universe-v1",
+   "experiment_id": "lab-data-hk-universe-v1-2026-10-16",
+   "group": "data",
+   "completed_at": "2026-10-16T11:47:13+00:00",
+   "champion": null,
+   "dataset": "universe-1985-v1"
   }
  ],
  "champions": {

@@ -1,0 +1,80 @@
+{
+ "kind": "screen",
+ "spec_id": "data-hk-universe-v1",
+ "experiment_id": "lab-data-hk-universe-v1-2026-10-16",
+ "group": "data",
+ "question": "Hong Kong market for the overseas exam of the frozen 3W (3w-1.9): every common stock EODHD lists for HK, listed today or delisted, downloaded once and kept if it met an HK version of the research pool (unadjusted close >= HK$1, >= HK$78M traded, about US$10M) on enough sessions in 2005-01..2025-06. Engineering check: lists and counts only, no returns.",
+ "dataset": {
+  "dataset_id": "universe-1985-v1",
+  "asset": "universe-1985-v1-6b7fce35b46d.json.gz",
+  "sha256": "6b7fce35b46de8e97853c349c9b972076993bb7f091d5a2f4b3966f2d6af536f",
+  "symbols": 1228
+ },
+ "window": [
+  "2005-01-01",
+  "2025-06-30"
+ ],
+ "pool": {
+  "min_close": 1.0,
+  "min_dollar_volume": 78000000.0
+ },
+ "min_sessions": 60,
+ "provider_counts": {
+  "listed": 3515,
+  "delisted": 636,
+  "reused": 0
+ },
+ "candidates": 4151,
+ "downloaded": 4148,
+ "failed": 3,
+ "failed_share": 0.0007,
+ "failed_empty": 3,
+ "failed_errors": 0,
+ "error_share": 0.0,
+ "failed_examples": {
+  "2929": "empty",
+  "4228": "empty",
+  "4231": "empty"
+ },
+ "raw_price_floor": true,
+ "kept": 881,
+ "shards": [
+  {
+   "file": "research/lab/universes/hk-2005-2025-v1-a.txt",
+   "symbols": 881
+  }
+ ],
+ "first_bar_year_of_kept": {
+  "2004": 359,
+  "2005": 26,
+  "2006": 30,
+  "2007": 45,
+  "2008": 19,
+  "2009": 37,
+  "2010": 45,
+  "2011": 22,
+  "2012": 16,
+  "2013": 29,
+  "2014": 31,
+  "2015": 21,
+  "2016": 15,
+  "2017": 18,
+  "2018": 30,
+  "2019": 32,
+  "2020": 40,
+  "2021": 25,
+  "2022": 13,
+  "2023": 15,
+  "2024": 10,
+  "2025": 3
+ },
+ "criteria": {
+  "max_error_share": 0.02,
+  "min_kept": 300
+ },
+ "passed": true,
+ "champion": null,
+ "spec_sha256": "3af5dc4843aa8947f1d2f1c6bd45a11d623b56f50e7fe8b8027bddda18d55613",
+ "completed_at": "2026-10-16T11:47:13+00:00",
+ "code_commit": "6f75708bc23d336adfca977b12cd3f7a2a21d8a6"
+}

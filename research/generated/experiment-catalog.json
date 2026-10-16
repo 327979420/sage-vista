@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-16T11:04:31+00:00",
+  "generated_at": "2026-10-16T11:47:13+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
@@ -8,8 +8,8 @@
   ],
   "experiment_count": 70,
   "summary": {
-    "completed": 52,
-    "in_progress": 18,
+    "completed": 53,
+    "in_progress": 17,
     "candidate": 15,
     "not_validated_or_unstable": 25
   },
@@ -48,11 +48,11 @@
       "lifecycle": {
         "registered_at": "2026-10-16T11:04:31+00:00",
         "started_at": null,
-        "completed_at": null,
-        "latest_event": "registered",
-        "latest_event_at": "2026-10-16T11:04:31+00:00",
-        "time_source": "assistant_registration",
-        "event_count": 1,
+        "completed_at": "2026-10-16T11:47:13+00:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-10-16T11:47:13+00:00",
+        "time_source": "github_actions",
+        "event_count": 2,
         "events": [
           {
             "experiment_id": "lab-data-hk-universe-v1-2026-10-16",
@@ -62,6 +62,20 @@
             "details": {
               "lab_spec": "research/lab/queue/data-hk-universe-v1.json",
               "note": "data list / build and coverage count only"
+            }
+          },
+          {
+            "experiment_id": "lab-data-hk-universe-v1-2026-10-16",
+            "event": "completed",
+            "event_at": "2026-10-16T11:47:13+00:00",
+            "time_source": "github_actions",
+            "source_ref": "https://github.com/327979420/sage-vista/actions/runs/38894104994",
+            "details": {
+              "lab_spec": "data-hk-universe-v1",
+              "spec_sha256": "3af5dc4843aa8947f1d2f1c6bd45a11d623b56f50e7fe8b8027bddda18d55613",
+              "result": "research/lab/results/data-hk-universe-v1/result.json",
+              "dataset": "universe-1985-v1",
+              "champion": null
             }
           }
         ]
