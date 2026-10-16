@@ -47,3 +47,17 @@ agreement on comparable known symbols is >= 75%.
 
 ## Forbidden
 No network, no commits, no changes outside `work/` and `tasks/`. Do not touch prices, frozen code or locked data.
+
+## Phase B instructions (2026-10-17, Claude)
+Input added: `work/data/sec-2026-10-16/sic_by_cik.json` (SEC submissions head: sic, sicDescription, name, entityType per CIK).
+1. Fix first (your TSO finding): normalisation must also strip EDGAR state/status tags in slashes (`/NEW/`, `/DE/`, `/MD/`, `/ADR/`
+   etc.). Re-run phase A with this fix only (same thresholds) and report how the counts changed and whether TSO now resolves to
+   TESORO CORP /NEW/.
+2. SIC -> FF12 via `Siccodes12.txt`; SIC missing or "0000" -> no industry.
+3. Ambiguous symbols: if every candidate CIK that has a SIC maps to the same FF12 industry, assign it with
+   `method = "ambiguous_same_industry"`; otherwise leave unassigned. Never pick between different industries.
+4. Validation with the crosswalk fixed in the card, on symbols that have a Nasdaq-snapshot sector and an FF12 industry.
+5. Output `data/industry/ff12-sic-v1.json` (per symbol: ff12 code+name, sic, sicDescription, cik, method, status) - this one IS meant
+   for the repo (no price data, public SEC data) - plus `work/reports/sectors-sic-v1.{json,html,-codex-report.md}`.
+6. Pass rule unchanged (>= 85% of the 497 get an FF12 industry; agreement >= 75%). Report the full-set coverage separately.
+No network, no commits.
