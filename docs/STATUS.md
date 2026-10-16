@@ -6,7 +6,7 @@ this file mirrors it). Updated 2026-10-16.
 ## In progress
 | Task | Owner | Status | Next |
 |---|---|---|---|
-| HK data: list and freeze | Claude | blocked — the lab run finished but no HK list appeared; cause not checked yet | find the cause, fix, rerun; then register A/B split |
+| HK data: list and freeze | Claude | list exists (881); check the 1,228-stock exclusion | then register the A/B split (owner decision ADR-2) |
 | Weekly forward record (3w-1.9, frozen) | GitHub (daily) | running — freeze check passed on CI; 0 signals so far | first signals after Monday 2026-10-19 data; weekly blind page |
 
 ## Queued
@@ -26,6 +26,9 @@ this file mirrors it). Updated 2026-10-16.
 - HK: split into groups A and B; lock B and HK before 2005.
 
 ## Done recently
+003 Decision-layer diagnostics accepted 2026-10-16: ordering same-day signals has little upside (hindsight-best Sharpe 0.71 vs
+random median 0.65); sector concentration is common (industrials 75% at the 2018-20 drawdown peak). EODHD plan has no fundamentals
+(403) -> sector source still open. HK list exists (881 stocks); check the 1,228 'already in US pool' exclusion.
 002 3W reality check accepted 2026-10-16: robust to slot luck, 0.25% costs and $1M capacity; typical drawdown ~26% (24.8% was lucky); 47% of
 signals never get a slot -> signal selection is the next 3W optimisation candidate. Owner's direction: optimise US 3W only (ADR-7).
 001 Portfolio layer accepted 2026-10-16: P1 (equal) and P3 (inverse vol + 10% vol target) pass the pre-registered test, P2 misses by
