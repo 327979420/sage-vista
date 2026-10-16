@@ -1,14 +1,14 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-16T11:47:13+00:00",
+  "generated_at": "2026-10-16T16:22:13+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 70,
+  "experiment_count": 71,
   "summary": {
-    "completed": 53,
+    "completed": 54,
     "in_progress": 17,
     "candidate": 15,
     "not_validated_or_unstable": 25
@@ -21,6 +21,66 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "lab-data-hk-a-v1-2026-10-16",
+      "created_at": "2026-10-17",
+      "status": "pre_registered",
+      "change": "Engineering check: freeze HK exam group A (441 of the 881 kept HK stocks, seed-20261017 split; group B locked) plus the Tracker Fund 2800 as a dataset from 1995 (pre-2005 = warm-up only), for the overseas exam of the frozen 3W (no returns computed)",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#hk-exam",
+        "lab_spec": "research/lab/queue/data-hk-a-v1.json"
+      },
+      "success_criteria": "At most 5% of symbols cannot be built; the coverage table is reported whatever it shows.",
+      "known_limitations": [
+        "group B (research/lab/universes/hk-exam-b-v1.txt) stays locked for a later version",
+        "HK prices before 2005 are warm-up only"
+      ],
+      "human_summary": {
+        "title_zh": "港股考试 A 组：冻结数据",
+        "family": "quant_lab_portfolio",
+        "family_zh": "量化研究实验室",
+        "question_zh": "把 881 只港股用固定种子 20261017 平分成 A、B 两组；A 组（441 只）加盈富基金 2800 下载日线并冻结成数据集（1995 年起，2005 年以前只用于指标热身）。B 组锁定，留给以后的新版本。",
+        "result_zh": "待运行。",
+        "use_zh": "只是数据准备，不计算收益；只用于冻结 3W 的港股考试（只考一次）。",
+        "next_zh": "登记 3W 港股考试（A 组）后再跑。",
+        "verdict": "pending"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-16T16:20:00+00:00",
+        "started_at": null,
+        "completed_at": "2026-10-16T16:22:13+00:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-10-16T16:22:13+00:00",
+        "time_source": "github_actions",
+        "event_count": 2,
+        "events": [
+          {
+            "experiment_id": "lab-data-hk-a-v1-2026-10-16",
+            "event": "registered",
+            "event_at": "2026-10-16T16:20:00+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/data-hk-a-v1.json",
+              "note": "owner decision ADR-2 (A/B split); data build and coverage count only"
+            }
+          },
+          {
+            "experiment_id": "lab-data-hk-a-v1-2026-10-16",
+            "event": "completed",
+            "event_at": "2026-10-16T16:22:13+00:00",
+            "time_source": "github_actions",
+            "source_ref": "https://github.com/327979420/sage-vista/actions/runs/38930530874",
+            "details": {
+              "lab_spec": "data-hk-a-v1",
+              "spec_sha256": "87fb0d3e307e02c46afc31eb78c0caff3902983b5e32e2749364cd5a93db814f",
+              "result": "research/lab/results/data-hk-a-v1/result.json",
+              "dataset": "hk-a-1995-v1",
+              "champion": null
+            }
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "lab-data-hk-universe-v1-2026-10-16",
       "created_at": "2026-10-16",
@@ -5517,6 +5577,7 @@
     "lab-data-fresh-d-v1-2026-10-14",
     "lab-data-fresh-universe-v1-2026-10-14",
     "lab-data-fresh-universe-v2-2026-10-14",
+    "lab-data-hk-a-v1-2026-10-16",
     "lab-data-hk-universe-v1-2026-10-16",
     "lab-data-long-history-v1-2026-10-11",
     "lab-e0-core-long-history-v1-2026-10-10",

@@ -1,0 +1,12 @@
+{
+ "dataset_id": "hk-a-1995-v1",
+ "asset": "hk-a-1995-v1-126aaad00676.json.gz",
+ "sha256": "126aaad006765e53a746ea84f9584191d749df78723eaf7b7071b51819fa17cb",
+ "bytes": 33658865,
+ "release": "research-datasets",
+ "events": 0,
+ "symbols": 442,
+ "source": "EODHD full adjusted history from 1995-01-01 for research/lab/universes/hk-exam-a-v1.txt plus 1 extra symbols, with the unadjusted close",
+ "price_basis": "EODHD adjusted daily OHLCV",
+ "missing_symbols": 0
+}

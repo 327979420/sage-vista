@@ -325,3 +325,9 @@ Hong Kong market for the overseas exam of the frozen 3W (3w-1.9): every common s
 
 Kept 881 of 4151 candidates in 1 shards; failed downloads 3. Passed: yes
 
+## data-hk-a-v1 (hk-a-1995-v1, data coverage check)
+
+Freeze HK exam group A (half of the 881 stocks kept by data-hk-universe-v1, split with seed 20261017; group B research/lab/universes/hk-exam-b-v1.txt stays locked) plus the Tracker Fund of Hong Kong (2800) as the market proxy, as a dataset with daily history from 1995 and the unadjusted close, and report how much history each year has. (Engineering check: no returns.)
+
+Built 442 of 442 symbols; in 2025, 198 of 383 trading stocks had 200 months of history. Passed: yes
+

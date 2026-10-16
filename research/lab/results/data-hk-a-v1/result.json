@@ -1,0 +1,181 @@
+{
+ "spec_id": "data-hk-a-v1",
+ "experiment_id": "lab-data-hk-a-v1-2026-10-16",
+ "group": "data",
+ "question": "Freeze HK exam group A (half of the 881 stocks kept by data-hk-universe-v1, split with seed 20261017; group B research/lab/universes/hk-exam-b-v1.txt stays locked) plus the Tracker Fund of Hong Kong (2800) as the market proxy, as a dataset with daily history from 1995 and the unadjusted close, and report how much history each year has. (Engineering check: no returns.)",
+ "kind": "coverage",
+ "dataset": {
+  "dataset_id": "hk-a-1995-v1",
+  "asset": "hk-a-1995-v1-126aaad00676.json.gz",
+  "sha256": "126aaad006765e53a746ea84f9584191d749df78723eaf7b7071b51819fa17cb",
+  "bytes": 33658865,
+  "release": "research-datasets",
+  "events": 0,
+  "symbols": 442,
+  "source": "EODHD full adjusted history from 1995-01-01 for research/lab/universes/hk-exam-a-v1.txt plus 1 extra symbols, with the unadjusted close",
+  "price_basis": "EODHD adjusted daily OHLCV",
+  "missing_symbols": 0
+ },
+ "champion": null,
+ "passed": true,
+ "symbols": {
+  "requested": 442,
+  "built": 442,
+  "missing": [],
+  "missing_share": 0.0
+ },
+ "earliest_first_bar": "1995-01-03",
+ "years": [
+  {
+   "year": 2005,
+   "trading": 196,
+   "with_50_months": 132,
+   "with_120_months": 43,
+   "with_200_months": 0
+  },
+  {
+   "year": 2006,
+   "trading": 212,
+   "with_50_months": 142,
+   "with_120_months": 44,
+   "with_200_months": 0
+  },
+  {
+   "year": 2007,
+   "trading": 233,
+   "with_50_months": 154,
+   "with_120_months": 58,
+   "with_200_months": 0
+  },
+  {
+   "year": 2008,
+   "trading": 241,
+   "with_50_months": 164,
+   "with_120_months": 67,
+   "with_200_months": 0
+  },
+  {
+   "year": 2009,
+   "trading": 263,
+   "with_50_months": 181,
+   "with_120_months": 71,
+   "with_200_months": 0
+  },
+  {
+   "year": 2010,
+   "trading": 290,
+   "with_50_months": 194,
+   "with_120_months": 120,
+   "with_200_months": 0
+  },
+  {
+   "year": 2011,
+   "trading": 301,
+   "with_50_months": 210,
+   "with_120_months": 133,
+   "with_200_months": 0
+  },
+  {
+   "year": 2012,
+   "trading": 306,
+   "with_50_months": 229,
+   "with_120_months": 146,
+   "with_200_months": 43
+  },
+  {
+   "year": 2013,
+   "trading": 321,
+   "with_50_months": 241,
+   "with_120_months": 156,
+   "with_200_months": 47
+  },
+  {
+   "year": 2014,
+   "trading": 341,
+   "with_50_months": 261,
+   "with_120_months": 165,
+   "with_200_months": 63
+  },
+  {
+   "year": 2015,
+   "trading": 349,
+   "with_50_months": 287,
+   "with_120_months": 182,
+   "with_200_months": 69
+  },
+  {
+   "year": 2016,
+   "trading": 356,
+   "with_50_months": 298,
+   "with_120_months": 197,
+   "with_200_months": 71
+  },
+  {
+   "year": 2017,
+   "trading": 363,
+   "with_50_months": 305,
+   "with_120_months": 212,
+   "with_200_months": 126
+  },
+  {
+   "year": 2018,
+   "trading": 374,
+   "with_50_months": 314,
+   "with_120_months": 233,
+   "with_200_months": 138
+  },
+  {
+   "year": 2019,
+   "trading": 381,
+   "with_50_months": 330,
+   "with_120_months": 240,
+   "with_200_months": 147
+  },
+  {
+   "year": 2020,
+   "trading": 391,
+   "with_50_months": 336,
+   "with_120_months": 258,
+   "with_200_months": 155
+  },
+  {
+   "year": 2021,
+   "trading": 391,
+   "with_50_months": 331,
+   "with_120_months": 271,
+   "with_200_months": 159
+  },
+  {
+   "year": 2022,
+   "trading": 380,
+   "with_50_months": 321,
+   "with_120_months": 265,
+   "with_200_months": 158
+  },
+  {
+   "year": 2023,
+   "trading": 389,
+   "with_50_months": 330,
+   "with_120_months": 268,
+   "with_200_months": 171
+  },
+  {
+   "year": 2024,
+   "trading": 390,
+   "with_50_months": 337,
+   "with_120_months": 277,
+   "with_200_months": 182
+  },
+  {
+   "year": 2025,
+   "trading": 383,
+   "with_50_months": 343,
+   "with_120_months": 290,
+   "with_200_months": 198
+  }
+ ],
+ "cases": [],
+ "spec_sha256": "87fb0d3e307e02c46afc31eb78c0caff3902983b5e32e2749364cd5a93db814f",
+ "completed_at": "2026-10-16T16:22:13+00:00",
+ "code_commit": "7b1a780f37cc9f90e57a54292246306cde58261f"
+}
