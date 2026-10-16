@@ -35,6 +35,9 @@ mostly missing -> label "UNKNOWN"; never guess a sector).
    within that entry day's eligible pool (`selection.eligible_pool` with the same rules the baseline builder uses), each pool stock's
    ADV also from its 20 sessions before that day. If that pool is too expensive to build, stop and say so rather than substitute.
 
+4. (Second question on 3.) Use the pool of the **session before entry**: `selection.eligible_pool(prices, previous_session, rules)`,
+   and every pool stock's ADV20 over the 20 sessions ending at that previous session. Then the rank is fully pre-entry. No label needed.
+
 ## Deliverables
 `work/v3w/decision_diag.py` + `.log`; `work/reports/decision-diag-v1.json` and `.html` (simple Chinese, inline SVG: bar chart of mean R
 taken vs skipped; sector share over time as a stacked area; a table of bounds vs random); `work/reports/decision-diag-v1-codex-report.md`

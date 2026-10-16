@@ -33,6 +33,9 @@ The owner wants two experts, not one expert and a typist. Be careful and profess
 - Before running, say in one line if you think the test design itself is flawed, even when the card is clear.
 - In every report add "Concerns" (what could make this result misleading) even when everything passed.
 - Claude answers your questions, updates the card and records the answer, so the next card is clearer.
+- When to stop vs decide yourself: **stop** if the issue could change a conclusion, touches locked data or frozen code, or needs a
+  new parameter/criterion. **Decide yourself** (choose the stricter, no-look-ahead option, note it under "Deviations" and continue)
+  for small conventions: labels, which earlier day to use so a feature is strictly pre-entry, quantile methods, chart choices.
 
 ## Reports for the owner
 The owner reads simple Chinese and is not a programmer. When a card asks for an HTML report: self-contained, no external libraries,
