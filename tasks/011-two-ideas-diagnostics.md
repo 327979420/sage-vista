@@ -16,6 +16,11 @@ fully finished (last fill) before this signal's date and within the previous 104
 standalone R (task 003 definition: from its own fills, before account fees) for first vs second: count, mean, median, win rate,
 by decade; plus the 10 seconds with the largest and smallest R (symbols hidden, dates shown). Descriptive only.
 
+### Answer to Codex (2026-10-17): date convention for A
+Use the cached `entry_date` (fill date) as the date of each signal. For trading, what matters is "a new 3W trade was entered after
+the previous 3W trade on the same stock had fully closed"; the fill can be up to 8 weeks after the pattern week, small against the
+104-week window. Do not rebuild candidates. State this convention in the report.
+
 ## B. Head-and-shoulders TOP during a 3W holding (as a sell warning)
 Mirror the bottom detector without editing it: build mirrored weekly bars (open/high/low/close -> negatives, high and low swapped)
 and call `head_shoulders_bottom` on them; a mirrored "confirmed" (neckline break) is a TOP neckline break. For each of the 571
