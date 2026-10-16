@@ -1,0 +1,36 @@
+{
+ "id": "data-hk-a-v1",
+ "experiment_id": "lab-data-hk-a-v1-2026-10-16",
+ "kind": "coverage",
+ "priority": 1,
+ "question": "Freeze HK exam group A (half of the 881 stocks kept by data-hk-universe-v1, split with seed 20261017; group B research/lab/universes/hk-exam-b-v1.txt stays locked) plus the Tracker Fund of Hong Kong (2800) as the market proxy, as a dataset with daily history from 1995 and the unadjusted close, and report how much history each year has. (Engineering check: no returns.)",
+ "dataset": {
+  "id": "hk-a-1995-v1",
+  "builder": "universe",
+  "exchange": "HK",
+  "symbols_file": "research/lab/universes/hk-exam-a-v1.txt",
+  "extra_symbols": [
+   "2800"
+  ],
+  "start": "1995-01-01",
+  "keep_raw": true
+ },
+ "group": "data",
+ "years": [
+  2005,
+  2025
+ ],
+ "cases": [],
+ "criteria": {
+  "max_missing_share": 0.05
+ },
+ "requires": [
+  "data-hk-universe-v1"
+ ],
+ "next_step": "Used once for the overseas exam of the frozen 3W (3w-1.9), registered in the case ledger before it runs.",
+ "notes": [
+  "Daily history from 1995 so the weekly EMA200 is ready in 2005.",
+  "Passed if at most 5% of the symbols cannot be built; the coverage table is reported whatever it shows.",
+  "Owner decision ADR-2 (2026-10-17): split A/B with random.Random(20261017) over the sorted list; A = first ceil(n/2) after shuffling. Pre-2005 HK prices are warm-up only (locked for signals and results)."
+ ]
+}
