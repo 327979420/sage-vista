@@ -19,6 +19,19 @@ class BacktestProgressTests(unittest.TestCase):
   self.assertEqual(done["next_window"]["start"],"2026-04-20")
   self.assertTrue(done["policy"]["completed_weeks_never_recomputed_automatically"])
 
+ def test_a_holiday_only_window_is_recorded_and_not_retried(self):
+  # 2025-09-01 was Labor Day: coverage starts 2025-09-02, the planned window is that Monday alone and yields no sessions.
+  initial=build_state(self.report("2025-09-02","2026-10-14"),completed_at="2026-10-11T00:00:00Z")
+  self.assertEqual(initial["next_window"],{"label":"2025-09-01_to_2025-09-01","start":"2025-09-01","end":"2025-09-01"})
+  done=build_state(self.report("2025-09-02","2026-10-14"),initial,initial["next_window"],"2026-10-12T00:00:00Z")
+  batch=done["last_successful_batch"]
+  self.assertEqual(batch["sessions"],0)
+  self.assertEqual(batch["model_versions"],["old-model"])
+  self.assertTrue(batch["factor_registry_versions"])
+  self.assertEqual(done["scanned_start"],"2025-09-01")
+  self.assertEqual(done["next_window"],{"label":"2025-08-25_to_2025-08-31","start":"2025-08-25","end":"2025-08-31"})
+  self.assertEqual(plan(self.report("2025-09-02","2026-10-14"),done)["next_window"]["start"],"2025-08-25")
+
  def test_state_and_internal_mirror_are_identical(self):
   with tempfile.TemporaryDirectory() as folder:
    root=Path(folder);report=root/"report.json";state=root/"state.json";mirror=root/"mirror.json"
