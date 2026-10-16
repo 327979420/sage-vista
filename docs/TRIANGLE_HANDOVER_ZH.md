@@ -10,7 +10,7 @@
 - **美股组合的候选结构**：核心 50% = 10 个行业 ETF 各看自己 200 日线（Faber 2007，单独就有用：Sharpe 0.78、回撤 17%）；卫星 50% = 3W 账户；每月调回各半。Sharpe 0.83、回撤 14.5%，**比单拿趋势篮子只高 0.000004（等于平手），主要好处是回撤更小；未在锁定数据上考过**。
 - **真实成本**：moomoo 澳洲每笔约 1 美元；换汇差价 0.55% 是最大一项（美元留在账户里）。研究里的每边 0.1% 已经偏保守。
 - **数据**：EODHD 价格数据已搬到私有仓库 `327979420/sage-vista-data`（等用户放令牌后切换）；行业用 SEC SIC → Fama-French 12 类（`data/industry/ff12-sic-v1.json`）；Ken French 因子在 `work/data/ff-2026-10-16/`。
-- **锁着的考卷**：美股 1985—2004；港股 B 组（`research/lab/universes/hk-exam-b-v1.txt`）和港股 2005 年以前。港股 A 组（441 只）正在冻结，之后用冻结的 3W 考一次。
+- **锁着的考卷**：美股 1985—2004；港股 B 组（`research/lab/universes/hk-exam-b-v1.txt`）和港股 2005 年以前。**港股 A 组考试已考（2026-10-17）：没通过**（Sharpe p 0.089，20 年只有 14 笔交易、样本太小，只能说"没证明"）；A 组已用掉，B 组仍锁着。
 - **工作方式**：用户（产品经理）在工作台 https://claude.ai/artifact/BdbVybVXiShDN5MtaqtVUQ 下决定、签字；Claude 写任务卡、验收；Codex 按 `tasks/` 里的卡实现，是第二个专家，可以停下来提问。每轮记在 `docs/COLLAB-LOG.md`，现状在 `docs/STATUS.md`，全部结果在案例账本第十七节。研究脚本在本地 `work/v3w/` 和私有仓库 `sage-vista-data/research-work/`（用户决定不公开）。
 
 ## 一、现状一句话

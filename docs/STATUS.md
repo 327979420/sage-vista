@@ -13,13 +13,15 @@ this file mirrors it). Updated 2026-10-17. Owner's priority order: factor attrib
 ## Queued
 | Task | Owner | Waits for |
 |---|---|---|
-| HK A/B split + HK exam | Claude / Codex | owner decision ADR-2 |
-| Move study scripts into the public repo (SV-8) | owner decision | scripts are backed up in the private repo `sage-vista-data/research-work/` |
+| Owner decisions pending | owner | core+satellite as the candidate US portfolio? exam on locked data; second-push / head-and-shoulders-top ideas into the backlog? |
 
 ## Paused
 Website redesign and Discord digest (ADR-5, ADR-1). The multi-factor ranking stays on the site for now.
 
 ## Done recently
+- 2026-10-17 overnight: requirements audit (62 groups, none forgotten); sector baskets (3W in basket slots: not useful); sector trend
+  basket (Faber 2007): useful (Sharpe 0.78, DD 17%); core+satellite 50/50 with 3W: tie on Sharpe, lower drawdown (14.5%); moomoo AU
+  costs (US$0.99/order, FX 0.55%); HK exam group A: FAIL (p 0.089, 14 trades). Codex's review caught 3 bugs in Claude's basket code.
 - 004 sectors (FF12 from SEC SIC, `data/industry/ff12-sic-v1.json`); 006 private-datasets code; 007 point-in-time filter check: small
   effect by the pre-set rule, but describe 3W conservatively (~6.3%/yr, Sharpe ~0.62, typical max drawdown ~29%).
 - 005 Decision-layer test (2026-10-17): sector cap, gaps-first and swaps all fail; swaps sell future winners. 3W does not need a
