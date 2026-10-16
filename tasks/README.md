@@ -25,6 +25,15 @@ result: `docs/CASE_REVIEW_LEDGER_ZH.md` section 17 (Chinese), `docs/TRIANGLE_HAN
 9. The sandbox has no network. Datasets are in `work/lab/` (load them with `research.lab.datasets` as the existing scripts do).
 10. Report honestly: what you did, check numbers vs targets, results, anything that differed from the card, commands to reproduce.
 
+## You are the second expert (owner's instruction, 2026-10-16)
+The owner wants two experts, not one expert and a typist. Be careful and professional:
+- If anything in a card is unclear, risky or could bias the result (overfitting, look-ahead, survivorship, locked data, a weak
+  baseline, a pass rule that is too easy or too hard), **stop and ask** with a short question and your recommended answer. Asking
+  is always better than guessing. Your stop on card 002 (data boundary) is the example to follow.
+- Before running, say in one line if you think the test design itself is flawed, even when the card is clear.
+- In every report add "Concerns" (what could make this result misleading) even when everything passed.
+- Claude answers your questions, updates the card and records the answer, so the next card is clearer.
+
 ## Reports for the owner
 The owner reads simple Chinese and is not a programmer. When a card asks for an HTML report: self-contained, no external libraries,
 inline SVG charts, a plain one-sentence conclusion, and a short list of limits. Never overstate: say "not proven" when it is not.

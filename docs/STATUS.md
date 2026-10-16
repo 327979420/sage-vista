@@ -26,6 +26,8 @@ this file mirrors it). Updated 2026-10-16.
 - HK: split into groups A and B; lock B and HK before 2005.
 
 ## Done recently
+002 3W reality check accepted 2026-10-16: robust to slot luck, 0.25% costs and $1M capacity; typical drawdown ~26% (24.8% was lucky); 47% of
+signals never get a slot -> signal selection is the next 3W optimisation candidate. Owner's direction: optimise US 3W only (ADR-7).
 001 Portfolio layer accepted 2026-10-16: P1 (equal) and P3 (inverse vol + 10% vol target) pass the pre-registered test, P2 misses by
 0.013 Sharpe in 2005-14; Sharpe ~0.90 vs best single 0.75, drawdown 15-19% vs 28%; not proven (DSR 0.88). Ledger section 17.
 Strategy tournament (PR #97); fair tests (PR #94); daily/monthly 3W not adopted (PR #95); 3W frozen as 3w-1.9 and the owner's 207
