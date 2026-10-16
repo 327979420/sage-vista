@@ -41,7 +41,10 @@ def plan(report, state=None):
   raise ValueError("Published historical report has no coverage")
  state = state or {}
  enabled = state.get("enabled", True)
- window = previous_week(coverage["start"], state.get("target_start", TARGET_START))
+ # A scanned window with no trading sessions (e.g. a market holiday) leaves published coverage unchanged; the cursor
+ # `scanned_start` records it so the next night moves on instead of retrying the same holiday forever.
+ earliest = min(coverage["start"], state.get("scanned_start") or coverage["start"])
+ window = previous_week(earliest, state.get("target_start", TARGET_START))
  return {
   "enabled": enabled,
   "status": "paused" if not enabled else "complete" if not window else "scheduled",
@@ -52,6 +55,10 @@ def plan(report, state=None):
 
 def build_state(report, previous=None, completed_window=None, completed_at=None):
  previous = previous or {}
+ scanned_start = previous.get("scanned_start")
+ if completed_window:
+  scanned_start = min(filter(None, [scanned_start, completed_window["start"]]))
+ previous = {**previous, "scanned_start": scanned_start} if scanned_start else previous
  current_plan = plan(report, previous)
  batches = list(previous.get("completed_batches", []))
  if not batches:
@@ -75,8 +82,8 @@ def build_state(report, previous=None, completed_window=None, completed_at=None)
     "end": completed_window["end"],
     "sessions": len(days),
     "completed_at": completed_at or datetime.now(timezone.utc).isoformat(),
-    "model_versions": sorted({day.get("model_version", report.get("version")) for day in days}),
-    "factor_registry_versions": sorted({day.get("factor_registry_version", "legacy_unrecorded") for day in days}),
+    "model_versions": sorted({day.get("model_version", report.get("version")) for day in days}) or [report.get("version") or MODEL_VERSION],
+    "factor_registry_versions": sorted({day.get("factor_registry_version", "legacy_unrecorded") for day in days}) or [REGISTRY_VERSION],
     "source": "nightly_resumable_week",
     "time_source": "workflow_completion",
    })
@@ -91,6 +98,7 @@ def build_state(report, previous=None, completed_window=None, completed_at=None)
   "direction": "backward",
   "step": "natural_week",
   "target_start": previous.get("target_start", TARGET_START),
+  "scanned_start": scanned_start,
   "coverage": refreshed["coverage"],
   "next_window": refreshed["next_window"],
   "last_successful_batch": batches[-1],
