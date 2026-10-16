@@ -25,6 +25,13 @@ STOP after phase A and report counts (matched by ticker / by exact name / by fuz
 examples (symbol, EODHD name, SEC name) for a human sanity check, and your Concerns. Claude then fetches SIC for `sic_ciks.txt`
 (network) and gives you phase B.
 
+## Answer to Codex (2026-10-17): match thresholds
+- Fuzzy: a candidate is plausible at score >= 0.92. `matched` only if the best CIK is >= 0.92 AND leads the best *different* CIK by
+  >= 0.05; otherwise `ambiguous` (keep up to 3 candidates). Below 0.92 everywhere -> `unmatched`.
+- Ticker route (ticker reuse risk): accept the `company_tickers.json` CIK only if the normalised EODHD name vs that CIK's SEC
+  name(s) in `cik-lookup-data.txt` scores >= 0.80; otherwise ignore the ticker hit and use the name route above.
+- Exact normalised name hitting one CIK = `matched`; hitting several CIKs = `ambiguous`.
+
 ## Phase B (after Claude's fetch; for information now)
 SIC -> FF12 via `Siccodes12.txt`; validation against the Nasdaq snapshot with this crosswalk fixed in advance:
 Health Care->Hlth; Technology->BusEq; Finance->Money; Utilities->Utils; Energy->Enrgy; Telecommunications->Telcm;
