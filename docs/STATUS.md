@@ -1,37 +1,32 @@
 # Sage Vista status (mirror of the owner's workbench)
 
 Maintained by Claude; the owner's interactive workbench is https://claude.ai/artifact/BdbVybVXiShDN5MtaqtVUQ (Codex cannot open it, so
-this file mirrors it). Updated 2026-10-16.
+this file mirrors it). Updated 2026-10-17. Owner's priority order: factor attribution, then the portfolio decision layer.
 
 ## In progress
 | Task | Owner | Status | Next |
 |---|---|---|---|
-| HK data: list and freeze | Claude | list exists (881); check the 1,228-stock exclusion | then register the A/B split (owner decision ADR-2) |
-| Weekly forward record (3w-1.9, frozen) | GitHub (daily) | running — freeze check passed on CI; 0 signals so far | first signals after Monday 2026-10-19 data; weekly blind page |
+| 004 Sectors from SEC SIC -> Fama-French 12 (SV-20) | Codex | phase B running | Claude acceptance; feeds task 005 |
+| Private datasets (SV-21, ADR-10) | Claude + Codex | private repo `sage-vista-data` created, assets uploading; card 006 queued for Codex | owner creates token + secret `DATA_REPO_TOKEN`; then merge, verify, remove public copies (owner OK) |
+| Nightly backtest fix (SV-22, PR #101) | Claude | stuck since 10-12 on the 2025-09-01 holiday; fixed | owner approves the merge (touches the site data pipeline) |
+| Weekly forward record (3w-1.9, frozen) | GitHub (daily) | running, 0 signals so far | first signals after Monday 2026-10-19 data; weekly blind page |
 
 ## Queued
 | Task | Owner | Waits for |
 |---|---|---|
-| HK exam (frozen 3W, group A once) | Codex | HK data frozen |
-| Factor attribution (Fama-French) | Codex | Claude downloads the public factor data |
-| One standard report tool; move tournament and fair tests into the repo | Codex | owner's priority call (001 accepted) |
+| 005 Decision-layer test: sector cap / gaps first / swaps (registered) | Codex | task 004 accepted |
+| 006 Private datasets code change | Codex | task 004 finished (one Codex task at a time) |
+| HK A/B split + HK exam | Claude / Codex | owner decision ADR-2 |
+| Point-in-time bad-data filter (SV-17); report tool + move scripts into repo (SV-8) | Codex | later |
 
 ## Paused
-- Website redesign (3W home, tutorial, desktop app) — after the tournament / portfolio results decide the site's main feature. The
-  multi-factor ranking stays on the site for now (owner's decision).
-- Discord daily digest — owner to confirm the new content.
-
-## Waiting for the owner
-- Discord digest new content (draft on the workbench).
-- HK: split into groups A and B; lock B and HK before 2005.
+Website redesign and Discord digest (ADR-5, ADR-1). The multi-factor ranking stays on the site for now.
 
 ## Done recently
-003 Decision-layer diagnostics accepted 2026-10-16: ordering same-day signals has little upside (hindsight-best Sharpe 0.71 vs
-random median 0.65); sector concentration is common (industrials 75% at the 2018-20 drawdown peak). EODHD plan has no fundamentals
-(403) -> sector source still open. HK list exists (881 stocks); check the 1,228 'already in US pool' exclusion.
-002 3W reality check accepted 2026-10-16: robust to slot luck, 0.25% costs and $1M capacity; typical drawdown ~26% (24.8% was lucky); 47% of
-signals never get a slot -> signal selection is the next 3W optimisation candidate. Owner's direction: optimise US 3W only (ADR-7).
-001 Portfolio layer accepted 2026-10-16: P1 (equal) and P3 (inverse vol + 10% vol target) pass the pre-registered test, P2 misses by
-0.013 Sharpe in 2005-14; Sharpe ~0.90 vs best single 0.75, drawdown 15-19% vs 28%; not proven (DSR 0.88). Ledger section 17.
-Strategy tournament (PR #97); fair tests (PR #94); daily/monthly 3W not adopted (PR #95); 3W frozen as 3w-1.9 and the owner's 207
-decisions committed (PR #93).
+- Factor attribution (Claude, 2026-10-17): 3W alpha +4.2%/yr after FF5 + momentum, t 1.88 -> "hint, not significant"; small-cap tilt,
+  84% idiosyncratic. Ledger section 17.
+- 003 Decision-layer diagnostics: little upside from ordering same-day signals; sector concentration common.
+- 002 3W reality check: robust to slot luck, 0.25% costs, $1M capacity; typical drawdown ~26%.
+- 001 Portfolio layer: P1/P3 pass, P2 not; not proven.
+- Workbench: board ranking, report library, bilingual, live "who is doing what" panel.
+- Backup of `work/` (33MB zip) in the owner's Baidu Netdisk; GitHub secret scanning + push protection enabled by the owner.
