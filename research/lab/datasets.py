@@ -12,6 +12,7 @@ import csv
 import gzip
 import hashlib
 import json
+import os
 import pathlib
 import subprocess
 import tempfile
@@ -220,27 +221,41 @@ def manifest(dataset_id):
     return json.loads(path.read_text()) if path.exists() else None
 
 
+def _run_release(args, **kwargs):
+    """Scope the optional data repository and credential to this gh subprocess.
+
+    The private repository is used only when both the repo and its token are set, so a workflow whose secret is not
+    configured yet keeps reading the public release instead of failing.
+    """
+    repo = os.environ.get("SV_DATA_REPO")
+    token = os.environ.get("SV_DATA_TOKEN")
+    if repo and token:
+        args = [*args, "-R", repo]
+        kwargs["env"] = {**os.environ, "GH_TOKEN": token}
+    return subprocess.run(args, **kwargs)
+
+
 def upload(path):
     """Upload once; an existing asset is never overwritten, only verified."""
     path = pathlib.Path(path)
-    view = subprocess.run(["gh", "release", "view", RELEASE_TAG, "--json", "assets", "-q", ".assets[].name"], capture_output=True, text=True)
+    view = _run_release(["gh", "release", "view", RELEASE_TAG, "--json", "assets", "-q", ".assets[].name"], capture_output=True, text=True)
     if view.returncode != 0:
-        subprocess.run(["gh", "release", "create", RELEASE_TAG, "--prerelease", "--title", "Research datasets",
+        _run_release(["gh", "release", "create", RELEASE_TAG, "--prerelease", "--title", "Research datasets",
                         "--notes", "Frozen, content-addressed research datasets. Assets are never replaced."], check=True)
     elif path.name in view.stdout.split():
         # Same name means same SHA256 prefix; confirm the full hash before reusing it.
         with tempfile.TemporaryDirectory() as folder:
-            subprocess.run(["gh", "release", "download", RELEASE_TAG, "-p", path.name, "-D", folder], check=True)
+            _run_release(["gh", "release", "download", RELEASE_TAG, "-p", path.name, "-D", folder], check=True)
             remote = hashlib.sha256((pathlib.Path(folder) / path.name).read_bytes()).hexdigest()
         if remote != hashlib.sha256(path.read_bytes()).hexdigest():
             raise ValueError(f"release_asset_conflict: {path.name}")
         return
-    subprocess.run(["gh", "release", "upload", RELEASE_TAG, str(path)], check=True)
+    _run_release(["gh", "release", "upload", RELEASE_TAG, str(path)], check=True)
 
 
 def download(entry, out_dir):
     out = pathlib.Path(out_dir) / entry["asset"]
     if not out.exists():
         out.parent.mkdir(parents=True, exist_ok=True)
-        subprocess.run(["gh", "release", "download", entry["release"], "-p", entry["asset"], "-D", str(out.parent)], check=True)
+        _run_release(["gh", "release", "download", entry["release"], "-p", entry["asset"], "-D", str(out.parent)], check=True)
     return out
