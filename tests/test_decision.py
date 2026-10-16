@@ -83,6 +83,11 @@ class DecisionTests(unittest.TestCase):
         self.assertAlmostEqual(out['trades'][0]['pnl'],-496.505)
 
 
+# The report script lives in the git-ignored work/ folder, so these checks run only where it exists (not on CI).
+_REPORT = __import__("pathlib").Path(__file__).resolve().parents[1] / "work/v3w/decision_test.py"
+
+
+@unittest.skipUnless(_REPORT.exists(), "work/v3w/decision_test.py is local-only")
 class ReportTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
