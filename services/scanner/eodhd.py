@@ -25,11 +25,11 @@ def get(path,**params):
                 # Never expose the request URL: it contains EODHD_API_TOKEN.
                 raise RuntimeError(f"EODHD request failed for {path}{detail}") from None
             time.sleep(2**attempt)
-def symbols(delisted=False):return get("exchange-symbol-list/US",delisted=int(delisted))
-def prices(code,start="2000-01-01",end=None):
+def symbols(delisted=False,exchange="US"):return get(f"exchange-symbol-list/{exchange}",delisted=int(delisted))
+def prices(code,start="2000-01-01",end=None,exchange="US"):
     params={"from":start,"period":"d"}
     if end:params["to"]=end
-    return get(f"eod/{code}.US",**params)
+    return get(f"eod/{code}.{exchange}",**params)
 def latest_reference_day(code="SPY",lookback_days=14,today=None):
     """Return the provider's latest completed US daily bar using a small query."""
     end=today or date.today();start=end-timedelta(days=lookback_days)

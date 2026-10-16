@@ -1,0 +1,49 @@
+{
+ "id": "data-hk-universe-v1",
+ "experiment_id": "lab-data-hk-universe-v1-2026-10-16",
+ "kind": "screen",
+ "question": "Hong Kong market for the overseas exam of the frozen 3W (3w-1.9): every common stock EODHD lists for HK, listed today or delisted, downloaded once and kept if it met an HK version of the research pool (unadjusted close >= HK$1, >= HK$78M traded, about US$10M) on enough sessions in 2005-01..2025-06. Engineering check: lists and counts only, no returns.",
+ "dataset": {
+  "id": "universe-1985-v1",
+  "builder": "universe",
+  "symbols_file": "research/lab/universes/observation-2005-2025-v1.txt",
+  "extra_symbols": [
+   "AEVA",
+   "BTDR",
+   "CGEM",
+   "POWL",
+   "BEKE"
+  ],
+  "start": "1985-01-01"
+ },
+ "group": "data",
+ "exchange": "HK",
+ "fetch_start": "2004-01-01",
+ "window": [
+  "2005-01-01",
+  "2025-06-30"
+ ],
+ "pool": {
+  "min_close": 1.0,
+  "min_dollar_volume": 78000000.0
+ },
+ "raw_price_floor": true,
+ "min_sessions": 60,
+ "workers": 3,
+ "attempts": 5,
+ "retry_failed": true,
+ "shard_size": 4000,
+ "shard_dir": "research/lab/universes",
+ "shard_prefix": "hk-2005-2025-v1",
+ "criteria": {
+  "max_error_share": 0.02,
+  "min_kept": 300
+ },
+ "requires": [],
+ "next_step": "The kept list becomes the frozen dataset hk-a-1995-v1 (data-hk-a-v1); the frozen 3W 1.9 is then examined once on it against same-day random HK stocks.",
+ "notes": [
+  "HK floors are the US pool translated, fixed before any HK data is seen: HK$1 avoids penny stocks (the US $5 floor's purpose); HK$78M per day is about US$10M at 7.8 HKD/USD.",
+  "No primary-exchange filter: the provider's HK list is one exchange. Tickers in both the listed and delisted lists are left out (reused codes).",
+  "Passed if errors after the retry are at most 2% of candidates and at least 300 stocks are kept; empty histories are reported separately."
+ ]
+}

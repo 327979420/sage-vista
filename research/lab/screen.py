@@ -1,6 +1,6 @@
 """Find the stocks for a wider, unseen universe (engineering check; no returns are computed).
 
-Every US common stock the provider lists on a primary exchange, listed today or delisted, is downloaded once and kept if it met the
+Every common stock the provider lists (US: on a primary exchange; another market with the spec's "exchange", e.g. HK), listed today or delisted, is downloaded once and kept if it met the
 research pool's floor (close >= $5, >= $10M traded) on enough sessions inside the window. Tickers that appear in both the listed and
 the delisted lists are left out, because a reused ticker can join two companies' prices (the 2026 EODHD audit's warning); stocks
 already in the frozen research universe are left out, so the result has never been seen by any rule. The kept stocks are written
@@ -16,9 +16,10 @@ from services.scanner.macd_factor_backtest import adjusted_rows
 PRIMARY = {"NASDAQ", "NYSE", "AMEX", "NYSE MKT", "NYSE ARCA"}
 
 
-def candidates(listed, delisted, exclude):
-    """Primary-exchange common stocks, without reused tickers or already-known symbols, in a fixed order."""
-    common = lambda rows: {x["Code"] for x in rows if x.get("Type") == "Common Stock" and x.get("Exchange") in PRIMARY and x.get("Code")}
+def candidates(listed, delisted, exclude, primary=PRIMARY):
+    """Primary-exchange common stocks, without reused tickers or already-known symbols, in a fixed order. `primary` None keeps every
+    exchange in the provider's list (non-US lists are per exchange already, e.g. HK)."""
+    common = lambda rows: {x["Code"] for x in rows if x.get("Type") == "Common Stock" and (primary is None or x.get("Exchange") in primary) and x.get("Code")}
     live, gone = common(listed), common(delisted)
     reused = live & gone
     return sorted((live | gone) - reused - set(exclude)), {"listed": len(live), "delisted": len(gone), "reused": len(reused)}
@@ -71,11 +72,13 @@ def shards(symbols, size):
 
 
 def run(spec, data, dataset_entry, root, listed=None, delisted=None, fetch=None):
+    exchange = spec.get("exchange", "US")
+    primary = PRIMARY if exchange == "US" else (set(spec["primary_exchanges"]) if spec.get("primary_exchanges") else None)
     if fetch is None:
         from services.scanner.eodhd import get, symbols
-        listed, delisted = symbols(False), symbols(True)
-        fetch = lambda s: get(f"eod/{s}.US", **{"from": spec["fetch_start"], "period": "d", "_attempts": spec.get("attempts", 3)})
-    names, counts = candidates(listed, delisted, data["prices"].keys())
+        listed, delisted = symbols(False, exchange), symbols(True, exchange)
+        fetch = lambda s: get(f"eod/{s}.{exchange}", **{"from": spec["fetch_start"], "period": "d", "_attempts": spec.get("attempts", 3)})
+    names, counts = candidates(listed, delisted, data["prices"].keys(), primary)
     reasons = {}
     kept, stats, failed = screen(names, fetch, spec["window"], spec["pool"], spec["min_sessions"], spec.get("workers", 4), spec.get("raw_price_floor", False), reasons)
     if spec.get("retry_failed"):

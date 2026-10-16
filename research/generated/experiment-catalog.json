@@ -1,15 +1,15 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-14T03:21:33+00:00",
+  "generated_at": "2026-10-16T11:04:31+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 69,
+  "experiment_count": 70,
   "summary": {
     "completed": 52,
-    "in_progress": 17,
+    "in_progress": 18,
     "candidate": 15,
     "not_validated_or_unstable": 25
   },
@@ -21,6 +21,52 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "lab-data-hk-universe-v1-2026-10-16",
+      "created_at": "2026-10-16",
+      "status": "pre_registered",
+      "change": "Engineering check: list every Hong Kong common stock (listed and delisted) meeting an HK version of the research pool, for the overseas exam of the frozen 3W (no returns computed)",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#hk-exam",
+        "lab_spec": "research/lab/queue/data-hk-universe-v1.json"
+      },
+      "success_criteria": "Errors after the retry at most 2% of candidates and at least 300 stocks kept; empty histories reported separately.",
+      "known_limitations": [
+        "delisted HK stocks without provider history cannot be included",
+        "reused HK codes are left out"
+      ],
+      "human_summary": {
+        "title_zh": "港股股票池：为 3W 海外考试准备",
+        "family": "quant_lab_portfolio",
+        "family_zh": "量化研究实验室",
+        "question_zh": "列出 EODHD 上所有港股普通股（含退市），按港股版的交易池（未复权价 ≥ 1 港元、日成交 ≥ 7,800 万港元，约 1,000 万美元）筛选。",
+        "result_zh": "待运行。",
+        "use_zh": "只是数据准备，不计算收益；只用于冻结 3W 的港股考试。",
+        "next_zh": "冻结成数据集 hk-a-1995-v1。",
+        "verdict": "pending"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-16T11:04:31+00:00",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-10-16T11:04:31+00:00",
+        "time_source": "assistant_registration",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "lab-data-hk-universe-v1-2026-10-16",
+            "event": "registered",
+            "event_at": "2026-10-16T11:04:31+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/data-hk-universe-v1.json",
+              "note": "data list / build and coverage count only"
+            }
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "lab-triangle-exam-v1-2026-10-14",
       "created_at": "2026-10-14",
@@ -5457,6 +5503,7 @@
     "lab-data-fresh-d-v1-2026-10-14",
     "lab-data-fresh-universe-v1-2026-10-14",
     "lab-data-fresh-universe-v2-2026-10-14",
+    "lab-data-hk-universe-v1-2026-10-16",
     "lab-data-long-history-v1-2026-10-11",
     "lab-e0-core-long-history-v1-2026-10-10",
     "lab-e1-selection-vs-random-v1-2026-10-10",
