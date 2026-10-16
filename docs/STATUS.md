@@ -14,7 +14,6 @@ this file mirrors it). Updated 2026-10-17. Owner's priority order: factor attrib
 ## Queued
 | Task | Owner | Waits for |
 |---|---|---|
-| 005 Decision-layer test: sector cap / gaps first / swaps (registered) | Codex | task 004 accepted |
 | 006 Private datasets code change | Codex | task 004 finished (one Codex task at a time) |
 | HK A/B split + HK exam | Claude / Codex | owner decision ADR-2 |
 | Point-in-time bad-data filter (SV-17); report tool + move scripts into repo (SV-8) | Codex | later |
@@ -23,6 +22,8 @@ this file mirrors it). Updated 2026-10-17. Owner's priority order: factor attrib
 Website redesign and Discord digest (ADR-5, ADR-1). The multi-factor ranking stays on the site for now.
 
 ## Done recently
+- 005 Decision-layer test (2026-10-17): sector cap, gaps-first and swaps all fail; swaps sell future winners. 3W does not need a
+  decision layer at its current size (few holdings). Private datasets uploaded to `sage-vista-data` (14 assets, verified).
 - Factor attribution (Claude, 2026-10-17): 3W alpha +4.2%/yr after FF5 + momentum, t 1.88 -> "hint, not significant"; small-cap tilt,
   84% idiosyncratic. Ledger section 17.
 - 003 Decision-layer diagnostics: little upside from ordering same-day signals; sector concentration common.
