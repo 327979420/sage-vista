@@ -16,6 +16,12 @@ This is an EXAM: run it once. If you find a bug or anything unclear, STOP and re
   code as `fair19.market_ok`); 2800 is a fund and is never a candidate; cost 0.2% per side; the same full-history bad-data filter
   as the US baseline (`selection.impossible_jumps`), listed as a limitation.
 
+## Answer to Codex (2026-10-17): signal window
+Use exactly the US validation convention of the frozen pipeline: signals are scanned 2005-01-01 .. 2024-06-30 (as `fair19.scan`),
+and the account (and the random accounts) are marked to market through 2025-06-30, so every trade can finish inside the data.
+Do not extend the scan; no open trade is left at the end, nothing after 2025-06-30 is used. The "Period" line above is replaced
+by this. Report the number of trades whose last fill is the final day (if any) as a check.
+
 ## Measure
 1. The 3W account on group A: CAGR, Sharpe, max drawdown, trades, exposure; decades 2005-2014 / 2015-2025.
 2. Luck: 1,000 random accounts (each taken signal replaced by a random same-day HK pool stock, same mechanics, as fair19 step 3),
