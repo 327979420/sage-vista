@@ -100,3 +100,16 @@ class V3WeeklyHelperTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class OtherExchangeTests(unittest.TestCase):
+    def test_no_primary_filter_keeps_every_exchange_in_the_list(self):
+        listed = [{"Code": "0700", "Type": "Common Stock", "Exchange": "HK"}, {"Code": "2800", "Type": "ETF", "Exchange": "HK"},
+                  {"Code": "0005", "Type": "Common Stock", "Exchange": "HKEX"}]
+        delisted = [{"Code": "0001", "Type": "Common Stock", "Exchange": "HK"}, {"Code": "0005", "Type": "Common Stock", "Exchange": "HK"}]
+        names, counts = screen.candidates(listed, delisted, exclude=set(), primary=None)
+        self.assertEqual(names, ["0001", "0700"])
+        self.assertEqual(counts["reused"], 1)
+        us_names, _ = screen.candidates(listed, delisted, exclude=set())
+        self.assertEqual(us_names, [])
+

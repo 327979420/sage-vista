@@ -1465,3 +1465,8 @@
 - 交付：`research/lab/triangle_forward.py` 行为指纹与 `check_frozen`（`config.json` 的 `frozen`，版本 `3w-1.9`），每条记录带版本；`--page` 生成每周盲判页（模板 `research/lab/forward/triangle/judge_page.html`），`--judge` 把答案追加进 `judgements.jsonl`；`research/lab/cases/3w-user-decisions-2026-10.json`（207 个决定）；测试；08 规则 1.61.0。
 - 研究用；不改生产评分、排名、交易规则、数据或网站。
 
+### CR-2026-10-16b｜3W 港股考试：先建港股数据
+- 用户（2026-10-16）：海外考试先考港股；EODHD 现有套餐（全球日线）已包含港股，不用另外花钱。
+- 交付：EODHD 工具、股票池筛选和数据构建器支持其他交易所（默认仍是美股，原行为不变）；港股股票池 spec 与登记（冻结数据集在股票池跑完后另行登记）；测试；08 规则 1.62.0 `#hk-exam`。考试本身等数据冻结后另行登记。
+- 研究用；不改生产评分、排名、交易规则、网站。
+
