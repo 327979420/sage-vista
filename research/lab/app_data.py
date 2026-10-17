@@ -13,6 +13,7 @@ import datetime as dt
 import gzip
 import json
 import os
+import random
 from pathlib import Path
 import subprocess
 import tempfile
@@ -69,13 +70,19 @@ def market_state(prices, day):
     spy = prices.get('SPY')
     q = quote(spy, day)
     if q['stale'] or q['sma200'] is None:
-        return dict(spy_over_200d=None, breadth=None, ok=None, light=None, **q)
+        return dict(spy_over_200d=None, breadth=None, breadth_sample=None, ok=None, light=None, **q)
     # The frozen function owns the exact sampling, inclusion and rounding rules.
     old = triangle_forward.PX, triangle_forward.SPY, triangle_forward.BREADTH
     try:
         triangle_forward.PX, triangle_forward.SPY, triangle_forward.BREADTH = prices, spy, {}
         state = triangle_forward.market(day)
         breadth = triangle_forward.BREADTH[day]
+        # Read-only denominator projection of the frozen sampler; no new market rule.
+        sample = random.Random(day).sample(sorted(prices), min(300, len(prices)))
+        state['breadth_sample'] = sum(
+            i >= 200 and i < len(prices[symbol]['date']) and prices[symbol]['date'][i] == day
+            for symbol in sample
+            for i in [bisect.bisect_left(prices[symbol]['date'], day)])
         state["breadth_over_half"] = breadth > 0.5 if breadth is not None else None
     finally:
         triangle_forward.PX, triangle_forward.SPY, triangle_forward.BREADTH = old
@@ -159,7 +166,7 @@ def portfolio(prices, day):
                             would_switch=(current['hold'] != previous['hold'])
                             if current['hold'] and previous['hold'] else None))
     return dict(status='candidate', month_end_signal_as_of=month_end,
-                rebalance_due=due, calendar_basis='regular_NYSE_holidays',
+                rebalance_due=due, next_session=next_session(day), calendar_basis='regular_NYSE_holidays',
                 sleeves=sleeves, shy=quote(prices.get('SHY'), day))
 
 
@@ -211,19 +218,58 @@ def signal_rows(records, outcomes, prices_by_dataset, day):
     return result
 
 
+def completed_signal_week(day):
+    """Last completed regular NYSE week, labeled by its final session date."""
+    end = dt.date.fromisoformat(day)
+    while True:
+        previous = (end - dt.timedelta(days=1)).isoformat()
+        if (next_session(previous) == end.isoformat()
+                and dt.date.fromisoformat(next_session(end.isoformat())).isocalendar()[:2]
+                != end.isocalendar()[:2]):
+            return end.isoformat()
+        end -= dt.timedelta(days=1)
+
+
+def stale_inputs(universe, book, signals, day):
+    """Source-qualified names preserve missing dates as null, never as fresh."""
+    stale = {}
+    def add(name, q):
+        if q['stale']:
+            stale[name] = q['price_as_of']
+    add('market.SPY', quote(universe.get('SPY'), day))
+    for sleeve in book['sleeves']:
+        for period in ('today', 'month_end'):
+            add(f"sectors.{sleeve['symbol']}.{period}", sleeve[period])
+    add('sectors.SHY', book['shy'])
+    for signal in signals:
+        add(f"signals.{signal['id']}.{signal['symbol']}", signal['quote'])
+    return stale
+
+
 def build(*, sectors, universe, records, outcomes, prices_by_dataset, facts, as_of, generated_at):
     header = dict(schema_version=1, generated_at=generated_at, as_of=as_of)
     book = portfolio(sectors, as_of)
     signals = signal_rows(records, outcomes, prices_by_dataset, as_of)
-    iso_week = dt.date.fromisoformat(as_of).isocalendar()[:2]
+    signal_week = completed_signal_week(as_of)
+    week_key = dt.date.fromisoformat(signal_week).isocalendar()[:2]
+    def in_signal_week(record):
+        return (record['signal_day'] <= as_of
+                and dt.date.fromisoformat(record['week']).isocalendar()[:2] == week_key)
     actions = [dict(kind='new_order', signal_id=s['id'], symbol=s['symbol'], text='挂限价单')
                for s in signals if s['status'] == 'waiting' and s['order']['eligible']
-               and dt.date.fromisoformat(s['signal_day']).isocalendar()[:2] == iso_week]
+               and in_signal_week(s)]
+    orders_to_place = len(actions)
+    new_signals = sum(r.get('version') == VERSION and in_signal_week(r) for r in records)
     if book['rebalance_due']:
         actions.append(dict(kind='month_end_rebalance', text='月底调仓'))
     counts = Counter(s['status'] for s in signals)
     return {
-        'today.json': {**header, 'breadth_source': UNIVERSE, 'market': market_state(universe, as_of), 'this_week': actions},
+        'today.json': {**header, 'breadth_source': UNIVERSE, 'market': market_state(universe, as_of), 'this_week': actions,
+                       'signal_week': signal_week, 'new_signals_this_week': new_signals,
+                       'orders_to_place': orders_to_place,
+                       'month_end': {k: book[k] for k in ('rebalance_due', 'next_session')} | {
+                           'would_switch': [s['symbol'] for s in book['sleeves'] if s['would_switch'] is True]},
+                       'stale': stale_inputs(universe, book, signals, as_of)},
         'signals.json': {**header, 'outcomes_as_of': outcomes['computed_at'], 'signals': signals},
         'portfolio.json': {**header, **book},
         'record.json': {**header, 'facts': facts, 'forward': {

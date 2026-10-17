@@ -30,6 +30,18 @@
 
 ## 当前条目
 
+### CR-2026-10-17-015｜今日与我的组合独立入口
+
+- 用户原意：执行 `tasks/015-app-pages-today-portfolio.md` 与末尾 Decision；新增 `/app`、`/app/portfolio`，不接入现有导航。
+- 状态：verified；分支 `app/pages-today-portfolio`，未提交、未发布。用户转述 Claude 已完成 1440 / 375 px 浏览器评审、无横向滚动，本轮落实七项验收修正。
+- 主模块：10 UI；获批扩展 `research/lab/app_data.py` 数据投影，不改变交易参数、冻结代码或现有页面。
+- 实现：新页面、共享五入口页头、局部响应式样式及 `app/app/strings.ts` 集中文案。客户端只请求各自的 today / portfolio / signals 文件；超时、HTTP 错误、无效 JSON 或合同缺失显示“数据还没生成”。独立加载组合与卫星，保留空仓、缺失数值、stale 与来源说明。
+- 数据：最近完成信号周按常规 NYSE 日历计算，以该周最后交易日标记；统计该周全部 3w-1.9 记录，安静周为 0。`orders_to_place` 与新信号数共用同一个 `signal_week` 与过滤函数。月底摘要复用唯一 portfolio 计算，next_session 同时加入 portfolio 输出。
+- 评审修正：补充三色冻结规则结论；宽度显示整数百分比及过半说明；信号卡去重并简化文案；行业来源仅在标题下显示一次，距离保留一位小数；从月底日期生成“本月持有”说明，切换卡显示实际目标 ETF / SHY。文案仍集中在 strings.ts。
+- 验证：`npm run lint`、`npm run typecheck`、`npm run build` 全通过；`node --test tests/*.test.mjs` 89 项通过（含 8 项新增，两个 vinext 路由服务端渲染）；`python3 -m unittest tests.test_app_data` 23 项通过。固定 `--generated-at 2026-10-17T00:00:00Z` 独立重建四文件逐字节一致；today / signals / portfolio / record 为 534 / 138 / 4160 / 3257 字节，均小于 2 MB。本轮只重建 work/app-data；public/app 本地副本不进入交付变更集。
+- Deviations：无范围偏离。按任务卡 Decision 的精确定义使用最近已完成周，未沿用“最近有记录的一周”；stale 仅覆盖 SPY、十个行业篮子、SHY 与 3w-1.9 信号股票报价，缺失日期保留 null；宽度股票池成员不列入 stale。新增 breadth_sample 投影冻结规则的有效样本数，不能计算时为 null。
+- Concerns：样例 as_of 为 2026-10-08，不是实时行情；宽度样本数是对冻结采样及纳入规则的只读投影，已用冻结函数实际计算次数核对。日历不推断临时休市。Claude 的浏览器验收来自用户报告，本轮修改以渲染测试验证，未另做浏览器复验；根布局既有导航、页脚、tour、analytics 继续继承，均未修改。没有网络、提交或发布。
+
 ### CR-2026-10-17-014｜App 第一阶段数据层
 
 - 用户原意：执行 `tasks/014-app-data-layer.md` 及其两项已批准决定，只生成四份小型页面数据。
