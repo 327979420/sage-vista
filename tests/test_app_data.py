@@ -37,10 +37,10 @@ class AppDataTests(unittest.TestCase):
         self.records = [json.loads(line) for line in (FIXTURES / 'signals.jsonl').read_text().splitlines()]
         self.outcomes = json.loads((FIXTURES / 'outcomes.json').read_text())
 
-    def build(self):
+    def build(self, as_of='2026-10-16'):
         return app.build(sectors=self.prices, universe=self.prices, records=self.records,
                          outcomes=self.outcomes, prices_by_dataset={app.UNIVERSE: self.prices},
-                         facts=[], as_of='2026-10-16', generated_at='2026-10-17T08:00:00Z')
+                         facts=[], as_of=as_of, generated_at='2026-10-17T08:00:00Z')
 
     def test_market_reuses_frozen_function_and_restores_globals(self):
         old = triangle_forward.PX, triangle_forward.SPY, triangle_forward.BREADTH
@@ -224,6 +224,97 @@ class AppDataTests(unittest.TestCase):
             self.assertEqual(updated['portfolio.json']['as_of'],'2026-10-19')
             self.assertEqual(updated['portfolio.json']['sleeves'][0]['today']['close'],121)
             self.assertTrue(updated['portfolio.json']['sleeves'][1]['stale'])
+
+    def test_today_counts_all_latest_completed_week_records(self):
+        today = self.build()['today.json']
+        self.assertEqual(today['signal_week'], '2026-10-16')
+        self.assertEqual(today['new_signals_this_week'], 8)
+        self.assertEqual(today['orders_to_place'], 1)
+        self.records.append(dict(self.records[0], id='older-version', version='3w-1.8'))
+        self.assertEqual(self.build()['today.json']['new_signals_this_week'], 8)
+        self.outcomes['outcomes'] = []
+        today = self.build()['today.json']
+        self.assertEqual(today['new_signals_this_week'], 8)
+        self.assertEqual(today['orders_to_place'], 0)
+
+    def test_completed_signal_week_quiet_week_and_holidays(self):
+        for day, expected in [('2026-10-16','2026-10-16'),('2026-10-19','2026-10-16'),
+                              ('2026-10-15','2026-10-09'),('2024-03-28','2024-03-28'),
+                              ('2024-03-29','2024-03-28'),('2027-01-01','2026-12-31')]:
+            self.assertEqual(app.completed_signal_week(day), expected)
+        for r in self.records:
+            r['week'] = '2026-10-09'
+        self.assertEqual(self.build()['today.json']['new_signals_this_week'], 0)
+        for r in self.records:
+            r['week'] = '2026-10-16'
+            r['signal_day'] = '2026-10-19'
+        self.assertEqual(self.build()['today.json']['new_signals_this_week'], 0)
+
+    def test_today_month_end_is_shared_portfolio_projection(self):
+        with patch.object(app, 'portfolio', wraps=app.portfolio) as call:
+            result = self.build()
+        call.assert_called_once()
+        book, today = result['portfolio.json'], result['today.json']
+        self.assertEqual(today['month_end'], dict(rebalance_due=book['rebalance_due'],
+                         next_session=book['next_session'],
+                         would_switch=[r['symbol'] for r in book['sleeves'] if r['would_switch']]))
+        self.assertEqual(book['next_session'], '2026-10-19')
+
+    def test_today_stale_sources_dates_and_missing(self):
+        self.assertEqual(self.build()['today.json']['stale'], {})
+        for values in self.prices['XLB'].values():
+            values.pop()
+        del self.prices['SHY']
+        stale = self.build()['today.json']['stale']
+        self.assertNotIn('market.XLB', stale)
+        self.assertEqual(stale['sectors.XLB.today'], '2026-10-15')
+        self.assertEqual(stale['signals.open.XLB'], '2026-10-15')
+        self.assertIsNone(stale['sectors.SHY'])
+        i = self.prices['XLE']['date'].index('2026-09-30')
+        for values in self.prices['XLE'].values():
+            del values[i]
+        self.assertEqual(self.build()['today.json']['stale']['sectors.XLE.month_end'], '2026-09-29')
+
+    def test_stale_excludes_breadth_only_members_but_keeps_signal_stocks(self):
+        self.prices['BRL'] = dict(date=['2008-12-22'], close=[10])
+        self.prices['VER'] = dict(date=['2021-10-29'], close=[10])
+        self.assertEqual(self.build()['today.json']['stale'], {})
+        # A stock absent from the current breadth sample still matters if it is a signal.
+        self.records[0]['symbol'] = 'MISSING'
+        stale = self.build()['today.json']['stale']
+        self.assertEqual(stale, {'signals.wait.MISSING': None})
+        self.records[0]['version'] = '3w-1.8'
+        self.assertEqual(self.build()['today.json']['stale'], {})
+        del self.prices['SPY']
+        self.assertIsNone(self.build()['today.json']['stale']['market.SPY'])
+
+    def test_breadth_sample_matches_frozen_denominator(self):
+        # The frozen function calls fmean once per included breadth stock and once for SPY.
+        for i in range(350):
+            self.prices[f'S{i:03}'] = dict(date=['2008-12-22'], close=[10]) if i % 3 else self.prices['XLB']
+        with patch.object(triangle_forward.statistics, 'fmean', wraps=triangle_forward.statistics.fmean) as mean:
+            market = app.market_state(self.prices, '2026-10-16')
+        self.assertEqual(market['breadth_sample'], mean.call_count - 1)
+        self.assertGreater(market['breadth_sample'], 0)
+        self.assertLess(market['breadth_sample'], 300)
+        self.assertIsNone(app.market_state(self.prices, '2026-10-19')['breadth_sample'])
+
+    def test_orders_and_new_signals_share_completed_week_on_monday_and_quiet_week(self):
+        monday = self.build('2026-10-19')['today.json']
+        self.assertEqual(monday['signal_week'], '2026-10-16')
+        self.assertEqual(monday['new_signals_this_week'], 8)
+        self.assertEqual(monday['orders_to_place'], 1)
+        self.assertEqual([a['signal_id'] for a in monday['this_week']], ['wait'])
+        quiet = self.build('2026-10-23')['today.json']
+        self.assertEqual(quiet['new_signals_this_week'], 0)
+        self.assertEqual(quiet['orders_to_place'], 0)
+        self.assertEqual(quiet['this_week'], [])
+        # An incomplete current-week record cannot enter either counter.
+        self.records[0]['week'] = '2026-10-19'
+        self.records[0]['signal_day'] = '2026-10-19'
+        monday = self.build('2026-10-19')['today.json']
+        self.assertEqual(monday['new_signals_this_week'], 7)
+        self.assertEqual(monday['orders_to_place'], 0)
 
     def test_record_facts_have_exact_ledger_headings(self):
         ledger = (app.ROOT / 'docs/CASE_REVIEW_LEDGER_ZH.md').read_text()

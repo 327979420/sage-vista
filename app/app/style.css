@@ -1,0 +1,14 @@
+.svApp{max-width:1200px;margin:auto;padding:24px 24px 100px;color:var(--ink);line-height:1.6}
+.svAppHeader>span{font-size:12px;font-weight:800;letter-spacing:.12em;color:var(--green)}
+.svAppHeader nav{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 30px;border-bottom:1px solid var(--line);padding-bottom:16px}
+.svAppHeader a,.svAppHeader button{display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:8px;font-size:14px;text-decoration:none;color:var(--ink)}
+.svAppHeader a[aria-current=page]{background:#173d2d;color:white}.svAppHeader button:disabled{color:#68756e;cursor:default}.svAppHeader small{font-size:10px}
+.svApp a:focus-visible,.svApp summary:focus-visible{outline:3px solid #4979d1;outline-offset:4px}.svApp summary{cursor:pointer}
+.svApp h1{font-size:clamp(28px,4vw,38px);margin:0}.svApp h2{font-size:20px;margin:0 0 16px}.svApp h3{font-size:19px;margin:0 0 12px}.svApp h3 span{font-size:14px;font-weight:500}
+.svAppGrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.svAppCard{padding:22px;background:white;border:1px solid var(--line);border-radius:16px;min-width:0}.svAppCard p{margin:10px 0}
+.svAppLight{display:inline-block;font-weight:800;font-size:26px;padding:8px 20px;border-radius:12px;background:#eef1ef}.svAppLight[data-light=green]{background:#e0f1e6;color:#176b4d}.svAppLight[data-light=amber]{background:#fff0cc;color:#805412}.svAppLight[data-light=red]{background:#fbe5e4;color:#a23d37}
+.svAppMeta,.svAppSource{color:#58685f;font-size:12px}.svAppSource{display:block;margin-top:12px;overflow-wrap:anywhere}.svAppMetrics{display:flex;gap:28px;flex-wrap:wrap}.svAppMetrics span{display:block;font-size:13px;color:#58685f}.svAppMetrics strong{font-size:30px;font-variant-numeric:tabular-nums}
+.svAppWarning{padding:12px 16px;border-left:3px solid #b78326;background:#fff6df;font-size:13px;margin:16px 0;overflow-wrap:anywhere}.svAppWarning ul{max-height:220px;overflow:auto}.svAppEmpty{padding:28px;background:#edf2ee;border-radius:12px}.svAppBadge{display:inline-block;background:#fff0cc;color:#805412;padding:4px 9px;border-radius:6px;font-size:12px}
+.svAppSleeves{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}.svApp dl{margin:12px 0}.svApp dl>div{display:flex;justify-content:space-between;gap:8px}.svApp dt{color:#58685f;font-size:13px}.svApp dd{margin:0;font-variant-numeric:tabular-nums;text-align:right}.svAppSatellite{margin-top:36px}
+@media(max-width:760px){.svApp{padding:18px 16px 100px}.svAppGrid{grid-template-columns:1fr}.svAppSleeves{grid-template-columns:repeat(2,minmax(0,1fr))}.svAppHeader a,.svAppHeader button{padding:8px}.svAppCard{padding:18px}}
+@media(max-width:460px){.svAppSleeves{grid-template-columns:1fr}.svAppHeader nav{gap:4px}.svAppHeader a,.svAppHeader button{font-size:13px}.svAppHeader button{flex-direction:column;gap:0}.svAppHeader a{align-self:center}}
