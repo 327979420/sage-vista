@@ -20,26 +20,6 @@ export const modules=[
 // Multi-factor opportunities is SV's core product and is styled as the star tab.
 export const featuredModule="多因子机会";
 
-const modulePaths=[
- "M3 17V7m6 10V3m6 14v-6m6 6V5",
- "M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z",
- "M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9zM19 15l.8 2.2 2.2.8-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z",
- "m3 16 4-7 5 8 5-12 4 5",
- "M4 4v16h17M8 15l4-5 4 2 5-7",
-];
-
-// Live watchlist count for the star tab, fetched when the browser is idle.
-function useStarCounts(){
- const [counts,setCounts]=useState<{watch:number;fresh:number}|null>(null);
- useEffect(()=>{let active=true;
-  const load=()=>fetch("/cr056-ranking.json").then(x=>x.ok?x.json():null).then(d=>{if(active&&d&&Array.isArray(d.continuing_ranked_symbols)&&Array.isArray(d.new_nomination_symbols))setCounts({watch:d.continuing_ranked_symbols.length,fresh:d.new_nomination_symbols.length})}).catch(()=>{});
-  const idle=(window as Window&{requestIdleCallback?:(cb:()=>void)=>number}).requestIdleCallback;
-  if(idle)idle(load);else setTimeout(load,800);
-  return()=>{active=false};
- },[]);
- return counts;
-}
-
 function useUpdateStatus(){
  const [status,setStatus]=useState<UpdateStatus|null>(null);
  useEffect(()=>{fetch("/update-status.json",{cache:"no-store"}).then(x=>x.ok?x.json():null).then(setStatus).catch(()=>setStatus(null))},[]);
@@ -48,10 +28,9 @@ function useUpdateStatus(){
 
 export function TrackerShell({active,title,subtitle,description,children,overview=false}:{active:string;title:string;subtitle:string;description?:string;children:ReactNode;overview?:boolean}){
  const status=useUpdateStatus();
- const counts=useStarCounts();
  const synced=status?.status==="up_to_date"&&status.data_dates_match;
  return <Localized><main className={["rtPage",overview&&"rtOverviewPage",active===featuredModule&&"rtFeaturedPage"].filter(Boolean).join(" ")}>
-  <nav className="rtModuleNav" aria-label="主要功能">{modules.map(([label,url],index)=><a key={url} className={[active===label&&"active",label===featuredModule&&"isStar"].filter(Boolean).join(" ")||undefined} aria-current={active===label?"page":undefined} href={url}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={modulePaths[index]}/></svg><span>{label}</span>{label===featuredModule&&<><em className="rtStarBadge">核心</em>{counts&&<em className="rtStarCount" title="持续观察股票数">{counts.watch}</em>}{counts&&counts.fresh>0&&<i className="rtStarNew" title="今日有新提名" aria-label="今日有新提名"/>}</>}</a>)}</nav>
+
   {!overview&&<header className="rtSubHero"><div><a href="/zh/watch/resonance/about">Sage Vista · 功能介绍</a><p>DAILY TRADING RESEARCH</p><h1>{title}</h1><strong>{subtitle}</strong>{description&&<p className="rtHeroDescription">{description}</p>}</div>{status&&<aside className={synced?"isCurrent":"needsCheck"}><small>最新完整美股收盘</small><b>{status.source_latest_complete_date}</b><span className="rtSyncState">{synced?"✓ 核心数据已同步":"! 更新状态待核验"}</span><span>多因子、形态、行业使用同一收盘日；大盘覆盖单独核验</span>{status.last_successful_update_at&&<time dateTime={status.last_successful_update_at}>成功更新 {new Date(status.last_successful_update_at).toLocaleString("zh-CN",{timeZone:"Australia/Melbourne",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false})}（墨尔本）</time>}</aside>}</header>}
   {!status&&active!=="功能介绍"&&<div className="rtLoading">行情状态载入中，页面功能可以正常使用。</div>}
   {children}

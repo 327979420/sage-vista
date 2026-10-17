@@ -1,4 +1,2 @@
-import TodayPage from './today';
-import {strings} from './strings';
-export const metadata={title:`${strings.brand} — ${strings.today}`};
-export default function Page() {return <TodayPage/>}
+import {redirect} from "next/navigation";
+export default function Page() {redirect("/")}
