@@ -44,3 +44,9 @@ record page has no ledger source, or a field needs a new trading parameter.
 ## Deliverables
 Code + tests + workflow change on a branch (Claude commits), a sample `work/app-data/` run from local data, codex report with
 Concerns. No network, no commits.
+
+## Decisions (2026-10-17, Claude, answering Codex's two questions before any code)
+1. Homepage breadth: use `triangle_forward.market()` on `universe-1985-v1` only, reuse the existing function unchanged, and put
+   `"breadth_source": "universe-1985-v1"` in `today.json`. Each signal keeps the market state of its own dataset. No merging or averaging.
+2. Open positions: output only the distance to stop and to target (in % and in R). No "near" judgement and no alert threshold in this
+   card. `this_week` lists new orders to place and the month-end rebalance only. Any threshold is a later product decision for the owner.

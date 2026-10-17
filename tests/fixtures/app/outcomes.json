@@ -1,0 +1,77 @@
+{
+  "computed_at": "2026-10-16T09:21:52+00:00",
+  "outcomes": [
+    {
+      "id": "wait",
+      "status": "loss",
+      "R": -1,
+      "r19": {
+        "status": "waiting",
+        "R": null
+      }
+    },
+    {
+      "id": "open",
+      "status": "loss",
+      "R": -1,
+      "r19": {
+        "status": "open",
+        "R": 1
+      }
+    },
+    {
+      "id": "win",
+      "status": "loss",
+      "R": -1,
+      "r19": {
+        "status": "win",
+        "R": 3
+      }
+    },
+    {
+      "id": "loss",
+      "status": "loss",
+      "R": -1,
+      "r19": {
+        "status": "loss",
+        "R": -1
+      }
+    },
+    {
+      "id": "time",
+      "status": "loss",
+      "R": -1,
+      "r19": {
+        "status": "time",
+        "R": 0.5
+      }
+    },
+    {
+      "id": "cancel",
+      "status": "loss",
+      "R": -1,
+      "r19": {
+        "status": "cancelled",
+        "R": null
+      }
+    },
+    {
+      "id": "veto",
+      "status": "loss",
+      "R": -1,
+      "r19": {
+        "status": "waiting",
+        "R": null
+      }
+    },
+    {
+      "id": "skip",
+      "status": "loss",
+      "R": -1,
+      "r19": {
+        "status": "skipped",
+        "R": null
+      }
+    }
+  ]
+}

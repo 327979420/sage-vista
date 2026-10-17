@@ -64,11 +64,14 @@ jobs:
           path: |
             work/lab/universe-1985-v1-*.json.gz
             work/lab/fresh-*-1995-v1-*.json.gz
+            work/lab/sector-etf-1998-to-2026-10-v1-*.json.gz
             work/triangle-bulk
           key: triangle-forward-v1-${{ github.run_id }}
           restore-keys: triangle-forward-v1-
       - name: Update the weekly triangle forward record
         run: python3 -m research.lab.triangle_forward --publish
+      - name: Build the app data
+        run: python3 -m research.lab.app_data --publish
       - name: Summarise
         if: always()
         run: |
