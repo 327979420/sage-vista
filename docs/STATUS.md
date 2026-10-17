@@ -6,19 +6,21 @@ this file mirrors it). Updated 2026-10-17. Owner's priority order: factor attrib
 ## In progress
 | Task | Owner | Status | Next |
 |---|---|---|---|
-| Private datasets (SV-21, ADR-10) | owner | assets in `sage-vista-data` (verified); code merged (#104), switches only once the secret exists | owner creates token + secret `DATA_REPO_TOKEN`; Claude verifies; public copies removed only with owner OK |
+| Private datasets (SV-21, ADR-10) | owner | assets in `sage-vista-data` (verified); code merged (#104), switches only once the secret exists | token set and verified 2026-10-17; public copies removed only with owner OK |
 | Nightly backtest fix (SV-22, PR #101) | Claude | stuck since 10-12 on the 2025-09-01 holiday; fixed | owner approves the merge (touches the site data pipeline) |
 | Weekly forward record (3w-1.9, frozen) | GitHub (daily) | running, 0 signals so far | first signals after Monday 2026-10-19 data; weekly blind page |
 
 ## Queued
 | Task | Owner | Waits for |
 |---|---|---|
-| Owner decisions pending | owner | core+satellite as the candidate US portfolio? exam on locked data; second-push / head-and-shoulders-top ideas into the backlog? |
+| App phase 1 (014 data layer, then pages) | Codex | task 013 accepted |
 
 ## Paused
 Website redesign and Discord digest (ADR-5, ADR-1). The multi-factor ranking stays on the site for now.
 
 ## Done recently
+- 2026-10-17 locked-data exam (013, US 1994-2004, once): 3W FAIL (p 0.59, 23 trades; second independent non-confirmation after HK);
+  sector trend basket useful (Sharpe 0.50 vs 0.26, DD 18% vs 37%); core+satellite useful (Sharpe 0.60, DD 12%). 1985-2004 is no longer unseen.
 - 2026-10-17 overnight: requirements audit (62 groups, none forgotten); sector baskets (3W in basket slots: not useful); sector trend
   basket (Faber 2007): useful (Sharpe 0.78, DD 17%); core+satellite 50/50 with 3W: tie on Sharpe, lower drawdown (14.5%); moomoo AU
   costs (US$0.99/order, FX 0.55%); HK exam group A: FAIL (p 0.089, 14 trades). Codex's review caught 3 bugs in Claude's basket code.
