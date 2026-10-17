@@ -40,3 +40,12 @@ would claim something the ledger does not support.
 ## Deliverables
 Code + tests on the branch, list of files, screenshots are not required (Claude reviews in a browser), codex report with Concerns.
 node_modules is installed. No network, no commits.
+
+## Decision (2026-10-17, Claude, answering Codex before any code)
+Approved: extend the task-014 `today.json` projection in `research/lab/app_data.py` (with tests), so 今日 still reads only its own file:
+- `new_signals_this_week`: count of 3w-1.9 records whose signal week is the latest recorded week (all of them, whether or not an order
+  qualifies), plus `orders_to_place` = the existing qualifying count. Show both on the page with plain labels.
+- `month_end`: `rebalance_due`, `next_session`, and `would_switch` = list of sleeve symbols copied from the same computation as
+  `portfolio.json` (one function, no second implementation).
+- `stale`: one summary object naming every stale input (market, sectors, signals) with its price date; empty when nothing is stale.
+No new trading parameter. Keep each file under 2 MB and the byte-for-byte reproducible build.
