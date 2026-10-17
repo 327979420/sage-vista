@@ -22,3 +22,7 @@ p-values, NO account runs (that would be tuning on used data). HK group B, HK be
 `work/v3w/hk_pool.py` + log, `work/reports/hk-pool-v1.{json,html}` (simple Chinese), a draft pre-registration paragraph (Chinese) for
 a future "3W HK version" exam on group B: the rule, the cost, the single verdict (same as task 010: Sharpe p <= 0.05 vs 1,000 random
 accounts). Claude and the owner decide whether to register and spend group B. Codex report with Concerns. No network, no commits.
+
+## Decision (2026-10-18, Claude)
+Same basis as tasks 010/016: pre-2005 bars only as indicator warm-up and frozen cooldown state (as the original HK exam ran); nothing
+before 2005 is counted, reported or examined. The baseline row must reproduce 124 HK signals.
