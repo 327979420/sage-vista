@@ -21,6 +21,13 @@ Verdict A: PASS if the full-period Sharpe p-value <= 0.05. Report CAGR, Sharpe, 
 Window 1999-11-01 .. 2004-12-31 (200-day SMA ready). Compare SECT-TREND vs EQ-SECT vs SPY (and TREND).
 Verdict B: useful if Sharpe >= EQ-SECT + 0.10 and max DD <= EQ-SECT - 15 pp (same rule as registered for 2005-2025).
 
+### Amendment 1 (2026-10-17 00:35 UTC, decided by Claude before any exam number was computed)
+SHY starts 2002-07-26, after the window starts. Rule: before SHY has a close, an off-trend sleeve holds **cash at 0% return**.
+Selling the ETF into cash pays the normal 0.1% ETF cost; cash itself has no cost. From the first monthly rebalance whose trade
+day has a SHY close, off-trend sleeves (and any sleeve sitting in cash) move into SHY at the normal cost. This is the stricter
+choice (1999-2002 T-bill yields were ~1.7-6%, so it understates SECT-TREND against EQ-SECT); state it as a limitation. No other
+variant is run. Part A does not use SHY and runs as written.
+
 ## Part C - core + satellite 50/50 (as `work/v3w/core_satellite.py` v2: first-day cost kept, exact Sharpe)
 Same window as B, using Part A's 3W account curve over that window (rescaled to start 100,000) and Part B's SECT-TREND.
 Verdict C: Sharpe >= max(core, 3W) + 0.05 and max DD <= min(core, 3W) + 5 pp.
