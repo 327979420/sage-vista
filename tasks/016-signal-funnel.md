@@ -30,3 +30,9 @@ decisive, say so as a fact only; any rule change would be a new version with its
 
 ## Deliverables
 `work/v3w/funnel.py` + log, the report, codex report with Concerns. No network, no commits, no tests importing `work/`.
+
+## Decision (2026-10-17, Claude, answering Codex before any work)
+`signals()` scans shapes from week 60 and filters by date afterwards, so pre-2005 shapes set the 13-week cooldown. Reuse that exactly
+(it is how 2,716 / 124 were produced, not a new use of locked data). Count and report only signal weeks inside the window; gates 1-5
+count only in-window stock-weeks; a cooldown started before the window is one number ("weeks blocked by a cooldown that started before
+the window"), with no pre-2005 detail. State this in the report's 口径 section and the script docstring.
