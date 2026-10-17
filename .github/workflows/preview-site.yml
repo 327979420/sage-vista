@@ -1,0 +1,55 @@
+name: Preview Website Branch
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: site-preview
+  cancel-in-progress: false
+jobs:
+  preview:
+    if: github.event_name == 'workflow_dispatch' && github.ref_type == 'branch' && github.ref != 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22.13.0'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+        env:
+          SAGE_DEPLOYMENT_COMMIT: ${{ github.sha }}
+      - name: Create isolated preview config
+        run: node scripts/site-preview-config.mjs
+      - name: Publish separate workers.dev preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          test -n "$CLOUDFLARE_API_TOKEN"
+          test -n "$CLOUDFLARE_ACCOUNT_ID"
+          ./node_modules/.bin/wrangler deploy --config dist/server/wrangler.preview.json 2>&1 | tee preview-deploy.log
+      - name: Save preview address and identity
+        id: preview-address
+        run: |
+          echo "Preview of $GITHUB_SHA on $GITHUB_REF" >> "$GITHUB_STEP_SUMMARY"
+          echo "Worker: sv-preview (public, static data snapshot; overwritten on each dispatch)" >> "$GITHUB_STEP_SUMMARY"
+          node scripts/site-preview-screenshots.mjs --resolve-url preview-deploy.log
+      - name: Install pinned Playwright Chromium
+        run: ./node_modules/.bin/playwright install --with-deps chromium
+      - name: Capture preview screenshots and overflow
+        env:
+          PREVIEW_URL: ${{ steps.preview-address.outputs.url }}
+        run: node scripts/site-preview-screenshots.mjs "$PREVIEW_URL"
+      - name: Upload preview screenshots
+        if: ${{ always() && steps.preview-address.outputs.url != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-preview-screenshots
+          path: site-preview-screenshots/
+          if-no-files-found: error
+          retention-days: 14
