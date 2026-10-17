@@ -318,11 +318,12 @@ def load_build(root=ROOT, *, allow_download=False, generated_at=None):
                  prices_by_dataset=price_sets, facts=facts, as_of=as_of, generated_at=generated_at)
 
 
-def publish(encoded, root=ROOT):
+def publish(encoded, root=ROOT) -> bool:
     """Commit only four app paths with an isolated index; never switch branches.
 
     Refuse stale forward inputs and non-fast-forward races. This is deliberately
-    fail-closed: the next scheduled run can build a new snapshot.
+    fail-closed: the next scheduled run can build a new snapshot. Return whether
+    a new commit was pushed successfully.
     """
     if in_eod_window():
         raise RuntimeError('inside the 23:30-04:30 UTC EOD window')
@@ -342,7 +343,7 @@ def publish(encoded, root=ROOT):
             git('update-index', '--add', '--cacheinfo', f'100644,{oid},public/app/{name}', env=env)
         tree = git('write-tree', env=env).decode().strip()
         if tree == git('rev-parse', f'{parent}^{{tree}}').decode().strip():
-            return
+            return False
         if in_eod_window():
             raise RuntimeError('inside the 23:30-04:30 UTC EOD window')
         commit = git('-c', 'user.name=sage-vista-bot', '-c',
@@ -351,6 +352,7 @@ def publish(encoded, root=ROOT):
         if in_eod_window():
             raise RuntimeError('inside the 23:30-04:30 UTC EOD window')
         git('push', 'origin', f'{commit}:refs/heads/main')
+        return True
 
 
 def main(argv=None):
@@ -364,7 +366,10 @@ def main(argv=None):
         raise RuntimeError('inside the 23:30-04:30 UTC EOD window')
     encoded = encode(load_build(allow_download=args.publish, generated_at=args.generated_at))
     if args.publish:
-        publish(encoded)
+        pushed = publish(encoded)
+        if os.environ.get('GITHUB_OUTPUT'):
+            with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+                output.write(f'pushed={str(pushed).lower()}\n')
     else:
         write(encoded, ROOT / 'work/app-data')
     for name, data in encoded.items():
