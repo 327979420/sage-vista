@@ -1,8 +1,10 @@
 import datetime as dt
 import gzip
 import json
+import os
 from pathlib import Path
 import tempfile
+import textwrap
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -189,7 +191,7 @@ class AppDataTests(unittest.TestCase):
                 out = b'object\n'
             return SimpleNamespace(stdout=out)
         with patch.object(app,'in_eod_window',return_value=False), patch.object(app.subprocess,'run',side_effect=git):
-            app.publish({name:b'{}\n' for name in app.FILES})
+            self.assertIs(app.publish({name:b'{}\n' for name in app.FILES}), True)
         paths = [a[-1].split(',',2)[-1] for a,k in commands if a[1] == 'update-index']
         self.assertEqual(paths, ['public/app/'+name for name in app.FILES])
         self.assertFalse(any('switch' in a or 'checkout' in a for a,k in commands))
@@ -197,6 +199,69 @@ class AppDataTests(unittest.TestCase):
             if args[1] in ('read-tree','update-index','write-tree'):
                 self.assertIn('GIT_INDEX_FILE',kwargs['env'])
         self.assertEqual(commands[-1][0],['git','push','origin','object:refs/heads/main'])
+
+        def unchanged(args, **kwargs):
+            result = git(args, **kwargs)
+            if args[1] == 'write-tree':
+                return SimpleNamespace(stdout=b'oldtree\n')
+            return result
+        commands.clear()
+        with patch.object(app,'in_eod_window',return_value=False), patch.object(app.subprocess,'run',side_effect=unchanged):
+            self.assertIs(app.publish({name:b'{}\n' for name in app.FILES}), False)
+        self.assertFalse(any('push' in a or 'commit-tree' in a for a,k in commands))
+
+        def failed_push(args, **kwargs):
+            if args[1] == 'push':
+                raise app.subprocess.CalledProcessError(1, args)
+            return git(args, **kwargs)
+        with patch.object(app,'in_eod_window',return_value=False), patch.object(app.subprocess,'run',side_effect=failed_push):
+            with self.assertRaises(app.subprocess.CalledProcessError):
+                app.publish({name:b'{}\n' for name in app.FILES})
+
+    def test_publish_step_output(self):
+        for pushed in (False, True):
+            with self.subTest(pushed=pushed), tempfile.TemporaryDirectory() as tmp:
+                output = Path(tmp) / 'output'
+                output.write_text('existing=value\n')
+                with patch.dict(os.environ, GITHUB_OUTPUT=str(output)), \
+                     patch.object(app, 'in_eod_window', return_value=False), \
+                     patch.object(app, 'load_build', return_value={}), \
+                     patch.object(app, 'encode', return_value={}), \
+                     patch.object(app, 'publish', return_value=pushed):
+                    app.main(['--publish'])
+                self.assertEqual(output.read_text(), f'existing=value\npushed={str(pushed).lower()}\n')
+                output.write_text('')
+                with patch.dict(os.environ, GITHUB_OUTPUT=str(output)), \
+                     patch.object(app, 'in_eod_window', return_value=False), \
+                     patch.object(app, 'load_build', return_value={}), \
+                     patch.object(app, 'encode', return_value={}), \
+                     patch.object(app, 'publish', side_effect=RuntimeError('push failed')):
+                    with self.assertRaisesRegex(RuntimeError, 'push failed'):
+                        app.main(['--publish'])
+                self.assertEqual(output.read_text(), '')
+
+    def test_deploy_workflow_guard(self):
+        workflow = (app.ROOT / '.github/workflows/research-lab.yml').read_text()
+        self.assertIn('    permissions:\n      contents: write\n      actions: write\n', workflow)
+        build = workflow.split('      - name: Build the app data\n', 1)[1].split('      - name:', 1)[0]
+        self.assertIn('        id: app_data\n', build)
+        self.assertIn('run: python3 -m research.lab.app_data --publish', build)
+        step = workflow.split('      - name: Deploy changed app data\n', 1)[1].split('      - name:', 1)[0]
+        self.assertIn("        if: steps.app_data.outputs.pushed == 'true'\n", step)
+        self.assertIn('          GH_TOKEN: ${{ github.token }}\n', step)
+        script = textwrap.dedent(step.split("python3 - <<'PY'\n", 1)[1].rsplit('          PY', 1)[0])
+        from research.lab import run_queue
+        for hour, minute, blocked in [(23,29,False),(23,30,True),(0,0,True),(4,29,True),(4,30,False)]:
+            now = dt.datetime(2026,10,17,hour,minute,tzinfo=dt.timezone.utc)
+            with self.subTest(time=now), patch.object(run_queue, 'in_eod_window', return_value=run_queue.in_eod_window(now)), \
+                 patch.object(app.subprocess, 'run') as run:
+                if blocked:
+                    with self.assertRaises(SystemExit):
+                        exec(script, {})
+                    run.assert_not_called()
+                else:
+                    exec(script, {})
+                    run.assert_called_once_with(['gh','workflow','run','deploy-site.yml','--ref','main'], check=True)
 
     def test_publish_rejects_changed_upstream_inputs(self):
         with patch.object(app,'in_eod_window',return_value=False), patch.object(app.subprocess,'run',return_value=SimpleNamespace(stdout=b'changed')) as run:

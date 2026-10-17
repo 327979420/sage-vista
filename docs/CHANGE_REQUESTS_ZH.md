@@ -30,6 +30,16 @@
 
 ## 当前条目
 
+### CR-2026-10-18-017｜App 数据推送后派发网站部署
+
+- 用户原意：执行 `tasks/017-deploy-app-data.md`；数据实际推送后派发既有网站部署。
+- 状态：verified；分支 `app/deploy-app-data`，未提交、未发布。
+- 主模块：10 UI 运维；不改变业务规则、EOD 工作流、deploy-site 触发器或部署并发组。
+- 实现：`publish()` 无变化返回 False，成功推送后返回 True；CLI 经 GITHUB_OUTPUT 输出 pushed。研究工作流仅在 true 时派发 main 的 deploy-site，增加 job actions: write，派发前复用 EOD 窗口检查。
+- 验证：`python3 -m unittest tests.test_app_data` 25 项通过；覆盖无变化、成功和失败推送、步骤输出及窗口边界。Ruby YAML 解析核验派发条件和权限通过；`git diff --check` 通过。
+- Deviations：无范围偏离；窗口内派发明确失败，不添加等待或重试机制。
+- Concerns：离线测试不证明 GitHub 权限和真实部署成功。若推送后进入窗口或派发失败，本轮不会部署；后续无变化运行不会重新派发，需后续数据推送或既有部署流程恢复。
+
 ### CR-2026-10-17-015｜今日与我的组合独立入口
 
 - 用户原意：执行 `tasks/015-app-pages-today-portfolio.md` 与末尾 Decision；新增 `/app`、`/app/portfolio`，不接入现有导航。

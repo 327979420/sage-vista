@@ -26,6 +26,9 @@ concurrency:
 jobs:
   run:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
     timeout-minutes: 340
     env:
       EODHD_API_TOKEN: ${{ secrets.EODHD_API_TOKEN }}
@@ -71,7 +74,21 @@ jobs:
       - name: Update the weekly triangle forward record
         run: python3 -m research.lab.triangle_forward --publish
       - name: Build the app data
+        id: app_data
         run: python3 -m research.lab.app_data --publish
+      - name: Deploy changed app data
+        if: steps.app_data.outputs.pushed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import subprocess
+          from research.lab.run_queue import in_eod_window
+
+          if in_eod_window():
+              raise SystemExit('Deployment deferred: inside the 23:30-04:30 UTC EOD window')
+          subprocess.run(['gh', 'workflow', 'run', 'deploy-site.yml', '--ref', 'main'], check=True)
+          PY
       - name: Summarise
         if: always()
         run: |
