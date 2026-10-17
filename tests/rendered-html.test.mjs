@@ -28,7 +28,7 @@ test("server-renders the Sage Vista application", async () => {
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /<title>Sage Vista — 多因子机会<\/title>/i);
+  assert.match(html, /<title>Sage Vista — 今日<\/title>/i);
   assert.match(html, /SAGE VISTA/i);
   assert.match(html, /<html lang="zh-CN">/);
   assert.match(html, /大盘/i);
@@ -140,7 +140,7 @@ test("renders research history with pending account entry and retained compariso
   const response=await render("/zh/backtest");
   assert.equal(response.status,200);
   const html=await response.text();
-  assert.match(html,/class="active" aria-current="page" href="\/zh\/backtest"/);assert.match(html,/正在读取研究配置/);assert.match(html,/早期20笔成交工程对账/);
+  assert.match(html,/href="\/archive" class="isStar active" aria-current="page"/);assert.match(html,/正在读取研究配置/);assert.match(html,/早期20笔成交工程对账/);
 });
 
 test("old research bookmark redirects to independent backtest page", async()=>{
@@ -168,7 +168,7 @@ test("industry owns its title and excludes the market hero", async()=>{
 
 
 test("language cookie controls first render and never leaks between requests", async()=>{
- const pages=[['/','Multi-Factor Opportunities'],['/zh/watch/market','Market'],['/zh/watch/industry-radar','Sectors'],['/zh/watch/resonance/rare-opportunities','Multi-Factor Opportunities'],['/zh/watch/resonance/favorite-pattern','Daily Setups'],['/zh/backtest','Backtests'],['/zh/watch/resonance/about','About SV']];
+ const pages=[['/','Today'],['/portfolio','My Portfolio'],['/opportunities','3W Opportunities'],['/scorecard','Scorecard'],['/learn','Learn'],['/archive','Research Archive'],['/zh/watch/market','Market'],['/zh/watch/industry-radar','Sectors'],['/zh/watch/resonance/rare-opportunities','Multi-Factor Opportunities'],['/zh/watch/resonance/favorite-pattern','Daily Setups'],['/zh/backtest','Backtests'],['/zh/watch/resonance/about','About SV']];
  for(const[path,title]of pages){
   // A year-long cookie from before English became the per-visit default must not force Chinese.
   for(const cookie of ['', 'sv-language-session=en', 'sv-language-session=invalid', 'sv-language=zh']){
@@ -177,8 +177,8 @@ test("language cookie controls first render and never leaks between requests", a
    assert.doesNotMatch(html.split('</head>')[1].split('<script')[0].replace(/>中文</g,'>Chinese<'),/[\u3400-\u9fff]/);
   }
  }
- const zh=await (await render('/','sv-language-session=zh')).text();assert.match(zh,/<html lang="zh-CN">/);assert.match(zh,/正在读取已核新模型快照/);assert.match(zh,/<footer class="siteFooter">/);assert.match(zh,/如何使用 SV/);
- const fresh=await (await render('/?utm_source=linkedin&lang=zh','')).text();assert.match(fresh,/<html lang="en">/);assert.match(fresh,/<title>Sage Vista — Multi-Factor Opportunities<\/title>/);assert.match(fresh,/href="\/zh\/watch\/resonance\/about#how-to-use">How to use SV</);assert.doesNotMatch(fresh,/siteAboutButton/);
+ const zh=await (await render('/','sv-language-session=zh')).text();assert.match(zh,/<html lang="zh-CN">/);assert.match(zh,/正在读取数据/);assert.match(zh,/<footer class="siteFooter">/);assert.match(zh,/如何使用 SV/);
+ const fresh=await (await render('/?utm_source=linkedin&lang=zh','')).text();assert.match(fresh,/<html lang="en">/);assert.match(fresh,/<title>Sage Vista — Today<\/title>/);assert.match(fresh,/href="\/zh\/watch\/resonance\/about#how-to-use">How to use SV</);assert.doesNotMatch(fresh,/siteAboutButton/);
 });
 
 test("About SV explains the system in each language and cites Triple Screen", async()=>{

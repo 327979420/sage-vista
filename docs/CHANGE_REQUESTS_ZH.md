@@ -1504,6 +1504,32 @@
 - 交付：EODHD 工具、股票池筛选和数据构建器支持其他交易所（默认仍是美股，原行为不变）；港股股票池 spec 与登记（冻结数据集在股票池跑完后另行登记）；测试；08 规则 1.62.0 `#hk-exam`。考试本身等数据冻结后另行登记。
 - 研究用；不改生产评分、排名、交易规则、网站。
 
+
+### CR-2026-10-18-018｜网站 v2 第一阶段：隔离预览与设计评审
+- 用户原意：现有 /app 太粗糙；先做真实网站的分支预览、今日/组合两个静态设计稿及迁移计划，第一阶段后停止。
+- 状态：design_review（本地方案与检查完成；指定 work 路径写入受沙箱阻止，未部署、未 UAT）。
+- 主模块：10 UI 运维；授权以 tasks/018-site-v2.md 与本轮指令为准，不改生产页面、部署、EOD 或业务规则。
+- 交付：`.github/workflows/preview-site.yml`、`scripts/site-preview-config.mjs`、`tests/site-preview.test.mjs`、`site-v2-review/{today,portfolio}.html`。设计、预览风险、全部路由处理与 phase-2 验收计划见 `site-v2-review/README.md`。
+- 验证：npm test（lint/typecheck/build，91 Node tests）通过；补齐构建模块配置后 2 个针对性测试及 Wrangler deploy --dry-run 通过，仅 ASSETS 绑定。没有网络、提交、发布；浏览器不可用，未做截图或键盘实测。
+- 限制：work 为外部私有目录符号链接，mkdir 被拒；指定 work/site-v2 路径尚未交付。新 workflow 的默认分支注册与账户授权未验证；需要生产配置或凭据变更时必须停止询问。owner UAT 前不进入 phase 2。
+
+### CR-2026-10-18-021｜网站 v2 Phase A：沿用现有主题
+- 授权：tasks/021-site-v2-phase-a.md；仅 site/v2 本地实现，无网络、提交、部署。
+- 范围：今日首页、我的组合、六项主导航、研究档案入口、未完成页面占位及旧 /app 跳转；复用既有市场卡片、导航、标题、数字、徽章与空状态，不改数据或计算。
+- 预览独立文件：.github/workflows/preview-site.yml、scripts/site-preview-config.mjs、tests/site-preview.test.mjs；固定 sv-preview，并以统一并发组串行覆盖，保留非 main 手动触发及配置白名单隔离。
+- 验收：lint、typecheck、build、Node 测试及 UI 合同测试；390/1440px 截图、键盘与无横向滚动实测由 Claude 完成，当前不声称浏览器验收。
+- 实际结果：最终 lint（无警告）、typecheck、build 通过；全部 Node 93/93 通过；`python3 -m unittest tests.test_ui_v2_contract tests.test_tracker_contract tests.test_app_data` 42/42 通过；`git diff --check` 通过。未运行全仓库 Python 研究测试，未联网或进行浏览器测试。
+- 文件清单（本任务）：`app/{layout.tsx,page.tsx,site-navigation.tsx,site-footer.tsx,coming-soon.tsx}`；`app/{archive,portfolio,opportunities,scorecard,learn}/page.tsx`；`app/app/{layout.tsx,page.tsx,shared.tsx,strings.ts,style.css,today.tsx,portfolio/page.tsx,portfolio/portfolio.tsx}`；`app/i18n/{catalog.ts,locale.tsx}`；`app/zh/watch/resonance/tracker-ui.tsx`；`tests/{app-pages,rendered-html}.test.mjs`；本需求账本；以及上列 3 个独立预览文件。
+- Concerns：新内容仍按 task 015 中文优先（已标记 lang），全站导航保留中英文；390/1440px、键盘与真实溢出检查待 Claude；预览地址、权限与线上覆盖行为尚未实际部署验证。原有 work 符号链接与既有未提交修改保留。
+
+- 021 复核修订：保留 Claude 的导航 `min-height: 0` 与相邻页面顶部修复；今日/组合复用深色 rtSubHero、面包屑、eyebrow 与右侧真实数据摘要。导航恢复同套 SVG 图标、isStar active 深色选中态和真实信号/持仓计数（复用页面请求，不增加 JSON 请求）。
+- 组合篮子改为 researchReplay 白色面板内的语义表格，复用 candidateToolbar、candidateTabs、candidateScoreTrack、candidateFrameChips；距离保留正负值，缺失不画条，条长只表示绝对百分比、最多填满，不新增交易阈值。表格区域可键盘聚焦滚动。
+- 新页面正文、动态缺失/滞后文案、来源、占位页、档案及标题均接入现有 LocaleProvider/Localized 与中英文词典；替代上轮“中文优先”限制。新增 app/navigation-count.tsx 共享页面真实计数。
+- 修订验证：lint、typecheck、build 通过；Node 95/95（含双语数据状态、六个导航图标、深色选中态、摘要、语义表格及导航高度回归）；相关 Python 42/42；diff check 通过。无网络、提交或部署；保留 3 个预览文件独立待提交。Concerns：没有浏览器对照截图，1440/390px 视觉、实际键盘与溢出仍交 Claude 复核，不能据静态测试声称完全匹配线上。
+
+- 021 预览自动截图：部署后从日志提取唯一 sv-preview URL，固定 Playwright 1.63.0 Chromium，中文、sv-onboarded=1，捕获 `/`、`/portfolio`、`/zh/watch/resonance/rare-opportunities` 各 1440x900 / 390x844 全页 PNG。artifact `site-preview-screenshots` 含 6 张截图及逐页尺寸的 overflow.json（scrollWidth/clientWidth/横向溢出与捕获错误），摘要写预览 URL 与 artifact 名；捕获失败仍尝试上传已生成诊断。
+- 独立预览提交集完整清单：`.github/workflows/preview-site.yml`、`scripts/site-preview-config.mjs`、`scripts/site-preview-screenshots.mjs`、`tests/site-preview.test.mjs`、`tests/site-preview-screenshots.test.mjs`、`package.json`、`package-lock.json`。本需求账本仍归网站任务，不混入小预览提交。
+- 本地离线缓存安装依赖；lint、typecheck、build、99/99 Node 测试及 diff check 通过。未联网、提交、dispatch 或运行浏览器截图；首次 CI 运行才可验证 Chromium 安装、预览访问与 artifact 实际上传。
 ### CR-2026-10-18-hk-pool｜Task 019 港股相对流动性池（设计，未登记）
 - 按任务019及用户确认复用任务010/016暖机与冷却口径；仅HK A数量统计，不读取B组或US行情，不运行收益、显著性检验或账户。
 - `work/v3w/hk_pool.py`及日志、`work/reports/hk-pool-v1.{json,html}`：原HK$7,800万门槛日均50.95只、124信号；前50%＋HK$780万日均95.87只、237信号；前25%＋HK$780万日均48.24只、121信号。分母为通过原历史/价格条件的A组当日股票，非全港股。

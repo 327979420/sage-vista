@@ -21,15 +21,16 @@ function load(file) {
   return mod.exports;
 }
 const data=load('app/app/data.ts');
-const {TodayView}=load('app/app/today.tsx');
-const {SleeveView,SatelliteView}=load('app/app/portfolio/portfolio.tsx');
+const {TodayView,TodaySummary}=load('app/app/today.tsx');
+const {SleeveView,SatelliteView,PortfolioSummary}=load('app/app/portfolio/portfolio.tsx');
 const {Missing,Header}=load('app/app/shared.tsx');
 const q={close:110,sma200:100,distance_pct:10,price_as_of:'2026-10-16',stale:false};
 const today={schema_version:1,as_of:'2026-10-16',breadth_source:'universe-1985-v1',market:{...q,light:'amber',spy_over_200d:true,breadth:.431,breadth_sample:290},signal_week:'2026-10-16',new_signals_this_week:8,orders_to_place:1,month_end:{rebalance_due:false,next_session:'2026-10-19',would_switch:['XLB']},stale:{},this_week:[]};
 const sleeves=['XLB','XLE','XLF','XLI','XLK','XLP','XLU','XLV','XLY','SPY'].map(symbol=>({symbol,today:{...q,hold:symbol},month_end:{...q,hold:'SHY'},stale:false,would_switch:true}));
 const portfolio={schema_version:1,as_of:'2026-10-16',status:'candidate',month_end_signal_as_of:'2026-09-30',sleeves};
 const signals={schema_version:1,as_of:'2026-10-16',signals:[]};
-const render=(C,props)=>renderToStaticMarkup(React.createElement(C,props));
+const {LocaleProvider}=load('app/i18n/locale.tsx');
+const render=(C,props,locale='zh')=>renderToStaticMarkup(React.createElement(LocaleProvider,{initialLocale:locale},React.createElement(C,props)));
 test('all light states are words; counts, dates, source and empty tasks render',()=>{
   for(const [light,word] of [['green','绿灯'],['amber','黄灯'],['red','红灯'],[null,'暂无数据']]) {
     const html=render(TodayView,{data:{...today,market:{...today.market,light}}});
@@ -90,16 +91,53 @@ test('only owned JSON endpoints requested and valid schema accepted',async()=>{
   assert.equal(data.validReport('portfolio',{...portfolio,sleeves:[null]}),false);
   assert.equal(data.validReport('signals',{...signals,signals:[{}]}),false);
 });
-test('shared navigation exposes only two live links and three disabled tabs',()=>{
+test('shared page header reuses the site hero without a duplicate navigation',()=>{
   const html=render(Header,{current:'portfolio'});
-  assert.equal((html.match(/<a /g)||[]).length,2);assert.equal((html.match(/disabled=""/g)||[]).length,3);
-  assert.ok(html.includes('aria-current="page"'));assert.ok(html.includes('即将上线'));
+  assert.ok(html.includes('rtSubHero'));assert.ok(html.includes('我的组合'));
+  assert.ok(!html.includes('<nav'));
 });
-test('both new routes server-render in vinext without modifying existing routing',async()=>{
+test('new routes render and legacy app routes redirect',async()=>{
   const {default:worker}=await import('../dist/server/index.js');
-  for(const route of ['/app','/app/portfolio']) {
-    const response=await worker.fetch(new Request(`http://localhost${route}`,{headers:{accept:'text/html'}}),{ASSETS:{fetch:async()=>new Response('Not found',{status:404})}},{waitUntil(){},passThroughOnException(){}});
-    assert.equal(response.status,200);
-    const html=await response.text();assert.ok(html.includes('应用导航'));assert.ok(html.includes('正在读取数据'));assert.ok(html.includes('lang="zh-CN"'));
+  const request=route=>worker.fetch(new Request(`http://localhost${route}`,{headers:{accept:'text/html',cookie:'sv-language-session=zh'}}),{ASSETS:{fetch:async()=>new Response('Not found',{status:404})}},{waitUntil(){},passThroughOnException(){}});
+  for(const route of ['/','/portfolio']) {
+    const response=await request(route);assert.equal(response.status,200);
+    const html=await response.text();assert.ok(html.includes('正在读取数据'));assert.ok(html.includes('rtSubHero'));
+    assert.equal((html.match(/aria-label="主要功能"/g)||[]).length,1);
+    const nav=html.match(/<nav class="rtModuleNav"[\s\S]*?<\/nav>/)?.[0];
+    assert.ok(nav);assert.equal((nav.match(/<svg /g)||[]).length,6);assert.ok(nav.includes('class="isStar active"'));
+    assert.ok(html.includes('rtFeaturedPage'));assert.ok(html.includes('<aside>'));
+    for(const href of ['/opportunities','/portfolio','/scorecard','/learn','/archive'])assert.ok(html.includes(`href="${href}"`));
   }
+  for(const [route,target] of [['/app','/'],['/app/portfolio','/portfolio']]) {
+    const response=await request(route);assert.equal(response.status,307);assert.equal(response.headers.get('location'),target);
+  }
+  for(const route of ['/opportunities','/scorecard','/learn']) {
+    const response=await request(route);assert.equal(response.status,200);assert.ok((await response.text()).includes('即将上线'));
+  }
+  const archive=await (await request('/archive')).text();
+  for(const route of ['/zh/watch/market','/zh/watch/industry-radar','/zh/watch/resonance/rare-opportunities','/zh/watch/resonance/favorite-pattern','/zh/backtest','/zh/watch/resonance/about'])assert.ok(archive.includes(`href="${route}"`));
+});
+
+test('all new data states and summaries follow the shared language toggle',()=>{
+ const staleToday={...today,stale:{'market.SPY':null,'sectors.XLB.today':'2026-10-15','signals.ABC.month_end':'2026-10-14'},this_week:[{kind:'new_order',symbol:'XLB'},{kind:'month_end_rebalance'}]};
+ const states=[
+  [TodayView,{data:staleToday}], [TodaySummary,{data:today}],
+  [SleeveView,{data:portfolio}], [SleeveView,{data:{...portfolio,sleeves:[{...sleeves[0],today:{...q,close:null,distance_pct:null},month_end:{...q,hold:null,stale:true},would_switch:null}]}}],
+  [SatelliteView,{data:signals}], [PortfolioSummary,{data:signals,portfolio}],
+  [SatelliteView,{data:{...signals,signals:[{id:'a',symbol:'XLB',status:'open',quote:{...q,stale:true},distances:{to_stop_pct:null,to_target_pct:10,to_stop_R:null,to_target_R:2}}]}}],
+  [Header,{current:'today'}], [Header,{current:'portfolio'}], [Missing,{}], [Missing,{loading:true}],
+ ];
+ for(const [C,props] of states){
+  assert.doesNotMatch(render(C,props,'en'),/[\u3400-\u9fff]/,C.name);
+  assert.match(render(C,props,'zh'),/[\u3400-\u9fff]/,C.name);
+ }
+ for(const light of ['green','amber','red',null])assert.doesNotMatch(render(TodayView,{data:{...today,market:{...today.market,light,spy_over_200d:null,breadth:null}}},'en'),/[\u3400-\u9fff]/);
+});
+test('sleeves retain signed numbers in a semantic table with native chips and bars',()=>{
+ const html=render(SleeveView,{data:{...portfolio,sleeves:[{...sleeves[0],today:{...q,distance_pct:-8.5}}]}});
+ for(const token of ['<table>','scope="col"','scope="row"','candidateScoreTrack','candidateFrameChips','-8.5%','width:8.5%','SHY','aria-pressed="true"'])assert.ok(html.includes(token),token);
+ const missing=render(SleeveView,{data:{...portfolio,sleeves:[{...sleeves[0],today:{...q,distance_pct:null}}]}});
+ assert.ok(!missing.includes('candidateScoreTrack'));
+ assert.ok(render(Header,{current:'today',children:React.createElement(TodaySummary,{data:today})}).includes('<aside>'));
+ const css=fs.readFileSync('app/app/style.css','utf8');assert.match(css,/\.svNavigation \{[^}]*min-height: 0/);
 });

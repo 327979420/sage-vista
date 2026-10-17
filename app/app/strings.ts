@@ -1,4 +1,7 @@
 export const strings = {
+  allSleeves:'全部篮子', sector:'行业',
+  todayIntro: '先看大盘条件，再看本周信号与月底调仓。', portfolioIntro: '行业趋势候选组合与冻结规则的 3W 卫星持仓。',
+  archive: '研究档案', archiveIntro: '保留原有页面与研究说明，按原口径查看。',
   brand: 'Sage Vista', nav: '应用导航', today: '今日', portfolio: '我的组合', opportunities: '3W 机会',
   record: '成绩单', learn: '学习', soon: '即将上线', loading: '正在读取数据…', missing: '数据还没生成',
   missingDetail: '暂时无法读取这项数据，请稍后刷新页面。', date: '数据日期', source: '来源',

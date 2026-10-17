@@ -1,2 +1,4 @@
-// Multi-factor opportunities is SV's core product and the home page.
-export {generateMetadata,default} from './zh/watch/resonance/rare-opportunities/page';
+import TodayPage from './app/today';
+import {localizedMetadata} from './i18n/server';
+export const generateMetadata=()=>localizedMetadata({title:'Sage Vista — 今日'},{title:'Sage Vista — Today'});
+export default TodayPage;
