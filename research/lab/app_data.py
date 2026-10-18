@@ -14,11 +14,12 @@ import gzip
 import json
 import os
 import random
+import re
 from pathlib import Path
 import subprocess
 import tempfile
 
-from research.lab import datasets, factor_tags, triangle_forward
+from research.lab import datasets, factor_tags, triangle_forward, triangle15
 from research.lab.run_queue import in_eod_window
 from services.scanner.public_asset_limits import validate_asset
 
@@ -66,8 +67,8 @@ def quote(series, day):
                 stale=series['date'][i] != day)
 
 
-def market_state(prices, day):
-    spy = prices.get('SPY')
+def market_state(prices, day, *, spy=None):
+    spy = prices.get('SPY', spy)
     q = quote(spy, day)
     if q['stale'] or q['sma200'] is None:
         return dict(spy_over_200d=None, breadth=None, breadth_sample=None, ok=None, light=None, **q)
@@ -278,13 +279,241 @@ def build(*, sectors, universe, records, outcomes, prices_by_dataset, facts, as_
     }
 
 
+# Ticket evidence is a projection only. Frozen helpers remain the decision authority.
+TICKET_MAX_BYTES = 60_000
+
+
+def ticket_name(ident):
+    if not re.fullmatch(r'[A-Za-z0-9_-]+', ident) or ident == 'index':
+        raise ValueError(f'unsafe ticket id: {ident!r}')
+    return f'tickets/{ident}.json'
+
+
+def ticket_outcome(rec, series, outcomes):
+    """Replay the rounded recorded order, exactly as forward.outcome does.
+
+    r19 is rounded to four decimals by the recorder. Missing R is not zero;
+    waiting/cancelled orders can only be verified by matching their raw status.
+    Market-blocked trades are counterfactual and must stay skipped.
+    """
+    p = rec['plan']
+    base = dict(status='unverified', fill_date=None, exit_date=None, exit=None, R=None,
+                source='outcomes.json r19 unavailable')
+    if not p['go']:
+        return {**base, 'status': 'skipped', 'source': 'recorded plan', 'why': p['why']}
+    raw = next((o.get('r19') for o in outcomes['outcomes'] if o['id'] == rec['id']), None)
+    d = series['date'].index(rec['signal_day'])
+    got = triangle15.trade(series, d, p['level'], p['stop'],
+                           p['level'] + 3 * (p['level'] - p['stop']), hold=130)
+    actual_r = round(got['R'], 4) if got.get('R') is not None else None
+    if raw is None or actual_r != raw.get('R') or got['status'] != raw.get('status'):
+        return {**base, 'source': 'frozen trade() recompute mismatch',
+                'mismatch': dict(recorded=raw, recomputed=dict(status=got['status'], R=actual_r))}
+    matched = actual_r is not None
+    base.update(source=('frozen trade() recompute, R matches outcomes.json' if matched else
+                        'frozen trade() recompute, status matches outcomes.json; R unavailable'),
+                source_status=got['status'], R=actual_r)
+    if not rec['market']['ok']:
+        return {**base, 'status': 'skipped', 'R': None, 'why': 'market filter',
+                'counterfactual_R': actual_r}
+    status = {'open': 'filled', 'win': 'closed', 'loss': 'closed', 'time': 'closed'}.get(got['status'], got['status'])
+    return {**base, 'status': status,
+            'fill_date': series['date'][got['fill_day']] if 'fill_day' in got else None,
+            # For open positions exit_day/exit are a mark, not an executed exit.
+            'exit_date': series['date'][got['exit_day']] if status == 'closed' else None,
+            'exit': got.get('exit') if status == 'closed' else None,
+            'mark_date': series['date'][got['exit_day']] if status == 'filled' else None,
+            'mark': got.get('exit') if status == 'filled' else None}
+
+
+def shape_evidence(rows, highs, atr, ln, bots, t):
+    """Derived numeric projections, checked against frozen _shape on boundary fixtures."""
+    N, T = triangle15, triangle15.T
+    p = ln['pushes']
+    H1, L1, Lk = rows[p[0]]['high'], min(v for _, v in bots), bots[-1][1]
+    level, stop = rows[t]['high'] * 1.001, Lk * .99
+    prior_low = min(r['low'] for r in rows[max(0, p[0] - 156):p[0] + 1])
+    piv = sorted(set([i for i in highs if p[0] <= i <= t - 2] + p))
+    cands = sorted({rows[i]['high'] * .97 for i in piv if rows[i]['high'] * .97 >= rows[t]['close'] * 1.07})
+    t1 = cands[0] if cands else None
+    checks = []
+    def add(key, value, passed, derived=True):
+        checks.append(dict(id=key, value=value, **{'pass': bool(passed)}, derived=derived))
+    pullback=(H1-L1)/H1
+    add('pullback_pct', dict(pct=100*pullback, minimum=100*T.P['min_pullback'], maximum=60), T.P['min_pullback'] <= pullback <= .60)
+    add('flat_bottom_pct', dict(pct=100*(Lk/L1-1), maximum=10), Lk <= L1*1.10)
+    add('bottom_count', dict(count=len(bots), minimum=2), len(bots)>=2)
+    add('not_three_year_low', dict(bottom=L1, prior_low=prior_low, floor=prior_low*.9), L1 >= prior_low*.9)
+    add('shape_stop_atr', dict(distance=level-stop, atr=atr[t], minimum_multiple=T.P['stop_min_atr']), level-stop >= T.P['stop_min_atr']*atr[t])
+    add('target_at_least_7pct', dict(candidates=cands, target=t1, close=rows[t]['close'],
+        pct=(t1/rows[t]['close']-1)*100 if t1 is not None else None, minimum_pct=7), bool(cands) and t1>stop)
+    if t1 is None or level <= stop:
+        return checks
+    needs_adjustment = t1 <= level or (t1-level)/(level-stop)<1.5
+    adjusted_distance=(t1+1.5*stop)/2.5-stop
+    add('shape_reward_to_risk', dict(rr=(t1-level)/(level-stop), minimum=1.5,
+                                  adjustment_needed=needs_adjustment, adjusted_stop_distance=adjusted_distance,
+                                  minimum_distance=T.P['stop_min_atr']*atr[t]),
+        not needs_adjustment or adjusted_distance >= T.P['stop_min_atr']*atr[t])
+    shape = N._shape(rows,highs,atr,ln,bots,t)
+    add('shape_helper', shape, shape is not None, False)
+    return checks
+
+
+def ticket_checks(series, sig, market, *, start, end):
+    """Measured projections in signals/_shape/plan order; derived fields are explicit.
+
+    Replay the pre-zero-line shape cooldown with the frozen helpers: rejected
+    positive-DIF shapes still reserve 13 weeks. Do not infer it from accepted signals.
+    """
+    N, T, BS = triangle15, triangle15.T, triangle15.BS
+    W = BS.periods(series, 'week')
+    t, d = sig['t'], sig['day']
+    rows = [dict(date=W['date'][i], **{f: W[f][i] for f in ('open', 'high', 'low', 'close')})
+            for i in range(len(W['close']) - 1)]
+    atr = N._atr(rows)  # Preserve the two frozen call sites, even when values coincide.
+    highs = N.pivots([r['high'] for r in rows], 'high')
+    hist = [a - b for a, b in zip(W['dif'], W['dea'])]
+    last = -99
+    for j in range(60, t):
+        if not rows[j]['close'] > rows[j]['open'] or j - last < 13 or not (
+                hist[j] > 0 and all(hist[k] < 0 for k in range(j - 4, j))):
+            continue
+        for ln in T.push_lines(rows, highs, j, broken=None):
+            bots = T.bottoms_of(rows, ln['pushes'], j + 1)
+            if (bots and bots[-1][0] < j and rows[j]['low'] <= bots[-1][1] + 1.5 * atr[j]
+                    and T.converging(ln['line'], bots, ln['pushes'][0], j)
+                    and N._shape(rows, highs, atr, ln, bots, j)):
+                last = j
+                break
+    p = sig['pushes']
+    ln = next((ln for ln in T.push_lines(rows, highs, t, broken=None) if ln['pushes'] == p), None)
+    if ln is None:
+        raise ValueError('recorded push line cannot be reproduced')
+    bots = T.bottoms_of(rows, p, t + 1)
+    if not bots or [j for j, _ in bots] != sig['bottoms']:
+        raise ValueError('recorded bottoms cannot be reproduced')
+    checks = []
+    def add(key, value, passed, derived=True):
+        checks.append(dict(id=key, value=value, **{'pass': bool(passed)}, derived=derived))
+    add('weekly_history', dict(completed_bars=len(rows), minimum=80, signal_index=t), len(rows) >= 80 and 60 <= t < len(rows) - 1)
+    add('bullish_week', dict(open=rows[t]['open'], close=rows[t]['close']), rows[t]['close'] > rows[t]['open'])
+    add('cooldown', dict(previous_shape_index=last if last != -99 else None, weeks=t-last, minimum=13), t-last >= 13)
+    add('golden_cross', dict(histogram=hist[t-4:t+1], minimum_weeks_under=4), hist[t] > 0 and all(x < 0 for x in hist[t-4:t]))
+    add('push_line', dict(pushes=p, span=t-p[0], span_range=list(T.P['span']),
+                         drop_ratios=[rows[b]['high']/rows[a]['high'] for a,b in zip(p,p[1:])],
+                         middle_deviation=abs(rows[p[1]]['high']/ln['line'](p[1])-1),
+                         max_close_to_line=max(rows[j]['close']/ln['line'](j) for j in range(p[0]+1,t)),
+                         maximum_drop_ratio=T.P['push_drop'],maximum_middle_deviation=T.P['push_fit'],
+                         maximum_close_to_line=1.01), True)
+    add('bottoms', dict(indices=sig['bottoms'], prices=[v for _,v in bots], count=len(bots)), bool(bots), False)
+    add('bottom_before_signal', dict(last_bottom=bots[-1][0], signal=t), bots[-1][0] < t)
+    add('near_bottom', dict(low=rows[t]['low'], last_bottom=bots[-1][1], shape_atr=atr[t], max_atr=1.5), rows[t]['low'] <= bots[-1][1]+1.5*atr[t])
+    add('converging', dict(anchors=[[W['date'][j],v] for j,v in bots], first_push=p[0], signal=t), T.converging(ln['line'],bots,p[0],t), False)
+    checks.extend(shape_evidence(rows, highs, atr, ln, bots, t))
+    add('dif_under_zero', W['dif'][t], W['dif'][t]<0)
+    add('signal_window', dict(week=sig['week'],start=start,end=end), start<=sig['week']<=end)
+    pool=N.POOL
+    add('tradable_pool', dict(history_index=d, minimum_history=pool['min_history'],
+        price=series.get('raw_close',series['close'])[d], raw_close_available='raw_close' in series,
+        minimum_close=pool['min_close'], dollar_volume=series['close'][d]*series['volume'][d],
+        minimum_dollar_volume=pool['min_dollar_volume']), N.buytrain.tradable(series,d,pool), True)
+    plan=N.plan(series,sig,W['atr'][t])
+    add('plan_stop', dict(limit=plan['level'],stop=plan['stop'],bottom_stop=sig['stop'],plan_atr=W['atr'][t],minimum_atr=.5),
+        plan['stop']==min(sig['stop'],plan['level']-.5*W['atr'][t]))
+    add('plan_geometry', dict(limit=plan['level'],stop=plan['stop'],t1=plan['t1']), 0<plan['stop']<plan['level']<plan['t1'])
+    M=BS.periods(series,'month'); m=BS.completed(M,d,len(series['close']))
+    add('monthly_macd_veto', dict(veto=N.monthly_veto(series,d), completed_month=M['date'][m] if m>=0 else None,
+        dif=M['dif'][m] if m>=0 else None, hist=[M['dif'][j]-M['dea'][j] for j in range(max(0,m-2),m+1)]),
+        not N.monthly_veto(series,d),False)
+    add('plan_reward_to_risk', dict(rr=plan['rr'],minimum=1.5),plan['rr'] is not None and plan['rr']>=1.5,False)
+    add('spy_over_200d', dict(close=market['close'],sma200=market['sma200'],price_as_of=market['price_as_of']), market['spy_over_200d'],False)
+    add('breadth_over_half', dict(fraction=market['breadth'],sample_size=market['breadth_sample'],minimum_exclusive=.5),market.get('breadth_over_half'),True)
+    return checks, W, plan
+
+
+def build_ticket(rec, prices, outcomes, *, start, end, example=False, spy=None):
+    series=prices[rec['symbol']]
+    # Bounds select signal weeks, not indicator warm-up. The input is the same
+    # frozen series as the recorder; example inputs are explicitly cut to development data.
+    sig=next((s for s in triangle15.signals(series,start=start,end=end) if s['week']==rec['week']),None)
+    if sig is None:
+        raise ValueError(f"signal cannot be reproduced: {rec['id']}")
+    market=market_state(prices,rec['signal_day'],spy=spy)
+    if any(market[k] != rec['market'][k] for k in ('spy_over_200d','breadth','ok')):
+        raise ValueError(f"market evidence changed: {rec['id']}")
+    checks,W,plan=ticket_checks(series,sig,market,start=start,end=end)
+    rounded={k:round(v,4) if isinstance(v,float) else v for k,v in plan.items()}
+    if rounded != rec['plan']:
+        raise ValueError(f"recorded plan changed: {rec['id']}")
+    p=rec['plan']; risk=p['level']-p['stop']
+    def point(j,field):
+        return dict(date=W['date'][j],price=W[field][j])
+    until=rec['signal_day']
+    for _ in range(triangle15.WAIT):
+        until=next_session(until)
+    return dict(schema_version=1,id=rec['id'],symbol=rec['symbol'],version=VERSION,dataset=rec['dataset'],
+        signal_week=rec['week'],signal_day=rec['signal_day'],example=example,checks=checks,
+        pushes=[point(j,'high') for j in sig['pushes']],bottoms=[point(j,'low') for j in sig['bottoms']],
+        trend_line=[point(sig['pushes'][j],'high') for j in (0,2)],
+        order=dict(limit=p['level'],stop=p['stop'],target=p['level']+3*risk,R=risk,R_multiple=3,
+                   valid_until=until,valid_until_basis='regular_NYSE_sessions_estimate',wait_sessions=triangle15.WAIT,
+                   max_hold_sessions=130,eligible=p['go'] and rec['market']['ok']),
+        weekly=[dict(date=W['date'][j],**{f:W[f][j] for f in ('open','high','low','close','dif','dea')})
+                for j in range(max(0,sig['t']-59),sig['t']+1)],
+        outcome=ticket_outcome(rec,series,outcomes))
+
+
+def ticket_payloads(records, outcomes, price_sets, folder, *, start):
+    payloads={}
+    for rec in sorted(records,key=lambda r:(r['week'],r['id'])):
+        if rec.get('version')!=VERSION:
+            continue
+        name=ticket_name(rec['id']); path=folder/name
+        if path.exists():
+            ticket=json.loads(path.read_text())
+            ticket['outcome']=ticket_outcome(rec,price_sets[rec['dataset']][rec['symbol']],outcomes)
+        else:
+            ticket=build_ticket(rec,price_sets[rec['dataset']],outcomes,start=start,end=rec['week'],
+                                spy=price_sets[UNIVERSE].get('SPY'))
+        payloads[name]=ticket
+    payloads['tickets/index.json']=[dict(id=t['id'],symbol=t['symbol'],signal_week=t['signal_week'],
+                                      status=t['outcome']['status'],R=t['outcome']['R']) for t in payloads.values()]
+    return payloads
+
+
+def preserve_ticket(previous, current):
+    """Only outcome can change, including when another publisher created it first."""
+    old=json.loads(previous); new=json.loads(current)
+    if any(old.get(k)!=new.get(k) for k in ('id','symbol','signal_week','version','dataset','example')):
+        raise ValueError('ticket identity changed')
+    if old.get('outcome')==new.get('outcome'):
+        return previous
+    old['outcome']=new['outcome']
+    return json_bytes(old)
+
+
+def json_bytes(payload):
+    return (json.dumps(payload,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False)+'\n').encode()
+
+
+def validate_ticket_bytes(name, data):
+    if len(data)>=TICKET_MAX_BYTES:
+        raise ValueError(f'ticket exceeds 60 KB: {name} ({len(data)} bytes)')
+
+
+
 def encode(payloads):
-    if set(payloads) != set(FILES):
-        raise ValueError('expected exactly four app files')
+    if not set(FILES) <= set(payloads):
+        raise ValueError('expected four app files')
+    for name in set(payloads) - set(FILES):
+        if name != 'tickets/index.json' and name != ticket_name(Path(name).stem):
+            raise ValueError(f'unexpected app path: {name}')
     encoded = {}
-    for name in FILES:
-        data = (json.dumps(payloads[name], ensure_ascii=False, sort_keys=True,
-                           separators=(',', ':'), allow_nan=False) + '\n').encode()
+    for name in payloads:
+        data = json_bytes(payloads[name])
+        if name.startswith('tickets/') and name != 'tickets/index.json':
+            validate_ticket_bytes(name, data)
         validate_asset(f'app/{name}', data)
         if len(data) > MAX_BYTES:
             raise ValueError(f'app file exceeds 2 MB: {name} ({len(data)} bytes)')
@@ -294,10 +523,16 @@ def encode(payloads):
 
 def write(encoded, folder):
     folder.mkdir(parents=True, exist_ok=True)
-    for name in FILES:
+    for name, content in encoded.items():
         path = folder / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if name.startswith('tickets/') and name != 'tickets/index.json' and path.exists():
+            content = preserve_ticket(path.read_bytes(), content)
+            validate_ticket_bytes(name, content)
+        if path.exists() and path.read_bytes() == content:
+            continue
         temporary = path.with_suffix('.tmp')
-        temporary.write_bytes(encoded[name])
+        temporary.write_bytes(content)
         temporary.replace(path)
 
 
@@ -314,12 +549,16 @@ def load_build(root=ROOT, *, allow_download=False, generated_at=None):
     price_sets = {UNIVERSE: universe}
     for ds in sorted({r['dataset'] for r in records if r.get('version') == VERSION} - {UNIVERSE}):
         price_sets[ds] = extend_prices(frozen_prices(ds, root, allow_download=allow_download), files)
-    return build(sectors=sectors, universe=universe, records=records, outcomes=outcomes,
+    payloads = build(sectors=sectors, universe=universe, records=records, outcomes=outcomes,
                  prices_by_dataset=price_sets, facts=facts, as_of=as_of, generated_at=generated_at)
+    config_path = root / FORWARD / 'config.json'
+    start = json.loads(config_path.read_text())['start'] if config_path.exists() else '2026-10-12'
+    payloads.update(ticket_payloads(records, outcomes, price_sets, root / 'public/app', start=start))
+    return payloads
 
 
 def publish(encoded, root=ROOT) -> bool:
-    """Commit only four app paths with an isolated index; never switch branches.
+    """Commit app projections and tickets with an isolated index; never switch branches.
 
     Refuse stale forward inputs and non-fast-forward races. This is deliberately
     fail-closed: the next scheduled run can build a new snapshot. Return whether
@@ -335,10 +574,22 @@ def publish(encoded, root=ROOT) -> bool:
                 Path('research/lab/app/record_facts.json')]:
         if git('show', f'{parent}:{rel}') != (root / rel).read_bytes():
             raise RuntimeError(f'upstream input changed: {rel}')
+    remote_tickets = set()
+    if 'tickets/index.json' in encoded:
+        remote_tickets = set(git('ls-tree', '-r', '--name-only', parent, '--', 'public/app/tickets').decode().splitlines())
+        missing = remote_tickets - {'public/app/' + name for name in encoded}
+        if missing:
+            raise RuntimeError(f'existing tickets absent from snapshot: {sorted(missing)}')
     with tempfile.TemporaryDirectory() as tmp:
         env = {**os.environ, 'GIT_INDEX_FILE': str(Path(tmp) / 'index')}
         git('read-tree', parent, env=env)
         for name, content in encoded.items():
+            if name.startswith('tickets/') and name != 'tickets/index.json':
+                if json.loads(content).get('example'):
+                    raise ValueError('example tickets cannot be published')
+                if f'public/app/{name}' in remote_tickets:
+                    content = preserve_ticket(git('show', f'{parent}:public/app/{name}'), content)
+                validate_ticket_bytes(name, content)
             oid = git('hash-object', '-w', '--stdin', input=content).decode().strip()
             git('update-index', '--add', '--cacheinfo', f'100644,{oid},public/app/{name}', env=env)
         tree = git('write-tree', env=env).decode().strip()
@@ -364,7 +615,11 @@ def main(argv=None):
         dt.datetime.fromisoformat(args.generated_at.replace('Z', '+00:00'))
     if args.publish and in_eod_window():
         raise RuntimeError('inside the 23:30-04:30 UTC EOD window')
-    encoded = encode(load_build(allow_download=args.publish, generated_at=args.generated_at))
+    payloads = load_build(allow_download=args.publish, generated_at=args.generated_at)
+    encoded = encode(payloads)
+    for name, payload in payloads.items():
+        if name.startswith('tickets/') and name != 'tickets/index.json' and payload['outcome'].get('mismatch'):
+            print(f"UNVERIFIED {payload['id']}: {json.dumps(payload['outcome']['mismatch'], sort_keys=True)}")
     if args.publish:
         pushed = publish(encoded)
         if os.environ.get('GITHUB_OUTPUT'):
