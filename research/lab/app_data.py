@@ -650,9 +650,21 @@ def example_ticket(root=ROOT):
     """
     fixture = json.loads((root / 'tests/fixtures/app/ticket.json').read_text())
     rec = fixture['record']
-    return build_ticket(rec, {rec['symbol']: fixture['series']}, {'outcomes': []},
+    ticket = build_ticket(rec, {rec['symbol']: fixture['series']}, {'outcomes': []},
                         start='2005-01-01', end='2025-06-30', example=True,
                         market_evidence=fixture['market'])
+    # Owner-approved example-only replay, never evidence of a real forward trade.
+    series, plan = fixture['series'], rec['plan']
+    got = triangle15.trade(series, series['date'].index(rec['signal_day']),
+        plan['level'], plan['stop'], plan['level'] + 3 * (plan['level'] - plan['stop']), hold=130)
+    closed = got['status'] in ('win', 'loss', 'time')
+    ticket['outcome'] = dict(status='closed' if closed else {'open': 'filled'}.get(got['status'], got['status']),
+        source='historical example: frozen trade() recompute; not a forward record',
+        source_status=got['status'],
+        fill_date=series['date'][got['fill_day']] if 'fill_day' in got else None,
+        exit_date=series['date'][got['exit_day']] if closed else None,
+        exit=got.get('exit') if closed else None, R=got.get('R') if closed else None)
+    return ticket
 
 
 

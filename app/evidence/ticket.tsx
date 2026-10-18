@@ -34,16 +34,24 @@ export function checkValue(c:Check) {
   default:return '—';
  }
 }
+export function KeyChecks({checks}:{checks:Check[]}) {
+ const groups=[['三推下降线',['push_line']],['底部平',['flat_bottom_pct','bottom_count']],['金叉在零轴下',['golden_cross','dif_under_zero']],['盈亏比',['plan_reward_to_risk']],['大盘',['spy_over_200d','breadth_over_half']]] as const;
+ return <Localized><section className="svKeyChecks"><h3>为什么触发</h3><ul className="svEvidenceChecks">{groups.map(([label,ids])=>{
+  const found=ids.map(id=>checks.find(c=>c.id===id));const pass=found.every(c=>c?.pass);
+  return <li key={label}><span className={pass?'isPass':'isFail'} aria-label={pass?'通过':'未通过'}>{pass?'✓':'×'}</span><span>{label}</span><span className="svCheckValue">{found.map(c=>c?checkValue(c):'—').join(' · ')}</span></li>;
+ })}</ul></section></Localized>;
+}
 export function TicketView({ticket,chart=true}:{ticket:Ticket;chart?:boolean}) {
  const t=ticket,o=t.outcome;
- return <Localized><article className="cockpitCard svTicket" aria-label="信号凭证详情"><header className="svTicketHead"><h2>{t.symbol} · <span>信号凭证</span></h2>{t.example&&<span className="svEvidenceChip isWarning">历史示例</span>}<Status status={o.status}/><span className="svAppMeta">{t.signal_week} · {t.version}</span></header>
- {t.example&&<p className="svAppWarning">这是历史示例，不计入真实前向信号或成绩。历史结果缺少前向记录核验，因此不展示为已验证收益。</p>}
- <div className="svTicketColumns"><section><h3>为什么触发</h3><ul className="svEvidenceChecks">{t.checks.map(c=><li key={c.id}><span className={c.pass?'isPass':'isFail'} aria-label={c.pass?'通过':'未通过'}>{c.pass?'✓':'×'}</span><span>{labels[c.id]??c.id}</span><span className="svCheckValue">{checkValue(c)}</span></li>)}</ul></section>
- <section><h3>订单计划</h3><dl className="svOrder"><div><dt>限价</dt><dd>{num(t.order.limit)}</dd></div><div><dt>止损</dt><dd>{num(t.order.stop)}</dd></div><div><dt>目标 · 3R</dt><dd>{num(t.order.target)}</dd></div><div><dt>每股风险 · 1R</dt><dd>{num(t.order.R)}</dd></div><div><dt>有效至（估计）</dt><dd>{t.order.valid_until}</dd></div><div><dt>最长持有</dt><dd>{t.order.max_hold_sessions} <span>交易日</span></dd></div></dl><p>{t.order.eligible?'信号通过挂单条件。':'这张信号不满足挂单条件。'}</p><p className="svAppSource">有效期按40个交易日；临时休市或缺价可能改变实际日期。</p>
- <h3>后来怎样</h3><ol className="svOutcomeSteps"><li><span>信号</span> {t.signal_day}</li><li><span>成交</span> {o.fill_date??'—'}</li><li><span>退出</span> {o.exit_date??'—'}</li><li><Status status={o.status}/> {rText(o.R)}</li></ol>
+ return <Localized><article className="cockpitCard svTicket" aria-label="信号凭证详情"><header className="svTicketHead"><h2>{t.symbol} · <span>信号凭证</span></h2>{t.example&&<span className="svEvidenceChip isWarning">历史示例 · 冻结规则重算</span>}<Status status={o.status}/><span className="svAppMeta">{t.signal_week} · {t.version}</span></header>
+ {t.example&&<p className="svAppWarning">这是历史示例，不计入真实前向信号或成绩。成交、退出和R按冻结规则重算。</p>}
+ {chart&&<EvidenceChart ticket={t}/>}
+ <KeyChecks checks={t.checks}/>
+ <div className="svTicketColumns"><section><h3>订单计划</h3><dl className="svOrder"><div><dt>限价</dt><dd>{num(t.order.limit)}</dd></div><div><dt>止损</dt><dd>{num(t.order.stop)}</dd></div><div><dt>目标 · 3R</dt><dd>{num(t.order.target)}</dd></div><div><dt>每股风险 · 1R</dt><dd>{num(t.order.R)}</dd></div><div><dt>有效至（估计）</dt><dd>{t.order.valid_until}</dd></div><div><dt>最长持有</dt><dd>{t.order.max_hold_sessions} <span>交易日</span></dd></div></dl><p>{t.order.eligible?'信号通过挂单条件。':'这张信号不满足挂单条件。'}</p><p className="svAppSource">有效期按40个交易日；临时休市或缺价可能改变实际日期。</p></section>
+ <section><h3>后来怎样</h3><ol className="svOutcomeSteps"><li><span>信号</span> {t.signal_day}</li><li><span>成交</span> {o.fill_date??'—'}</li><li><span>退出</span> {o.exit_date??'—'}</li><li><Status status={o.status}/> {rText(o.R)}</li></ol>
  {o.status==='unverified'&&<p className="svAppWarning">结果尚未通过记录核验，日期、退出价和R暂不展示。</p>}
  {o.status==='closed'&&<p><span>退出价</span> {num(o.exit)} · <span>结果</span> {rText(o.R)}</p>}
- {o.status==='filled'&&<p><span>最新估值（未平仓）</span> {num(o.mark)} · {o.mark_date??'—'}</p>}
- {chart&&<EvidenceChart ticket={t}/>}
- <div className="svAnchors"><p><strong>三推</strong> {t.pushes.map((p,i)=><span key={p.date}>{i+1}: {p.date} · {num(p.price)} </span>)}</p><p><strong>底部</strong> {t.bottoms.map((p,i)=><span key={p.date}>{i+1}: {p.date} · {num(p.price)} </span>)}</p></div></section></div></article></Localized>;
+ {o.status==='filled'&&<p><span>最新估值（未平仓）</span> {num(o.mark)} · {o.mark_date??'—'}</p>}</section></div>
+ <details className="svAllChecks"><summary>{`全部 ${t.checks.length} 条`}</summary><ul className="svEvidenceChecks">{t.checks.map(c=><li key={c.id}><span className={c.pass?'isPass':'isFail'} aria-label={c.pass?'通过':'未通过'}>{c.pass?'✓':'×'}</span><span>{labels[c.id]??c.id}</span><span className="svCheckValue">{checkValue(c)}</span></li>)}</ul>
+ <div className="svAnchors"><p><strong>三推</strong> {t.pushes.map((p,i)=><span key={p.date}>{i+1}: {p.date} · {num(p.price)} </span>)}</p><p><strong>底部</strong> {t.bottoms.map((p,i)=><span key={p.date}>{i+1}: {p.date} · {num(p.price)} </span>)}</p></div></details></article></Localized>;
 }

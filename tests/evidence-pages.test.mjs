@@ -35,9 +35,9 @@ test('owned artifacts validate; malformed and failed requests resolve to missing
  for(const value of [null,{}, {...forward,summary:null},{...forward,cumulative_R:[null]}])assert.equal(data.validForward(value),false);
  for(const fetcher of [async()=>({ok:false}),async()=>{throw Error('offline')},async()=>({ok:true,json:async()=>({})})])assert.equal(await data.fetchEvidence('/app/forward.json',data.validForward,new AbortController().signal,fetcher),null);
 });
-test('historical ticket shows checks, blocked gates, prices, dates and unverified outcome',()=>{
+test('historical ticket shows checks, blocked gates, prices, dates and example replay',()=>{
  const html=render(TicketView,{ticket,chart:false});
- for(const text of ['历史示例','不计入真实前向信号','为什么触发','订单计划','未核验','2012-09-14','三推','底部'])assert.ok(html.includes(text),text);
+ for(const text of ['历史示例','不计入真实前向信号','为什么触发','订单计划','冻结规则重算','2012-09-14','三推','底部'])assert.ok(html.includes(text),text);
  assert.ok(!html.includes('undefined'));assert.ok(!html.includes('[object Object]'));
  const blocked=structuredClone(ticket);blocked.checks[0].pass=false;blocked.order.eligible=false;
  assert.ok(render(TicketView,{ticket:blocked,chart:false}).includes('不满足挂单条件'));
@@ -77,4 +77,20 @@ test('chart crosshair dates accept the library BusinessDay event format',()=>{
  const {chartDate}=load('app/evidence/chart.tsx');
  assert.equal(chartDate({year:2012,month:9,day:14}),'2012-09-14');
  assert.equal(chartDate('2012-09-14'),'2012-09-14');assert.equal(chartDate(undefined),undefined);
+});
+
+test('ticket prioritizes full-width chart, five checks, order/outcome, then collapsed details',()=>{
+ const html=render(TicketView,{ticket});
+ const positions=['svTicketHead','svEvidenceFigure','svKeyChecks','svTicketColumns','svAllChecks'].map(x=>html.indexOf(x));
+ assert.ok(positions.every((p,i)=>p>=0&&(!i||p>positions[i-1])));
+ assert.equal((html.split('svKeyChecks')[1].split('</section>')[0].match(/<li/g)||[]).length,5);
+ assert.ok(html.includes('<summary>全部 26 条</summary>'));assert.doesNotMatch(html,/<details[^>]*open/);
+ assert.ok(html.includes(ticket.outcome.fill_date));assert.ok(html.includes(ticket.outcome.exit_date));assert.ok(html.includes('-1.00R'));
+ const {shapeRange,futureWeeks}=load('app/evidence/chart.tsx');
+ const range=shapeRange(ticket);
+ assert.equal(range.from,ticket.weekly.findIndex(b=>b.date===ticket.pushes[0].date)-8);
+ assert.equal(range.to,ticket.weekly.findIndex(b=>b.date===ticket.signal_week)+12);
+ assert.equal(futureWeeks(ticket.signal_week).length,12);
+ assert.ok(futureWeeks(ticket.signal_week).every(b=>Object.keys(b).join()==='time'));
+ const css=fs.readFileSync('app/evidence/style.css','utf8');assert.ok(css.includes('height:420px'));assert.ok(css.includes('height:300px'));
 });

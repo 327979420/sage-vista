@@ -1,5 +1,12 @@
 // Reviewed display translations. Business identifiers and saved artifacts stay unchanged.
 export const catalog: Record<string, string> = {
+  "历史示例 · 冻结规则重算": "Historical example · frozen-rule replay",
+  "这是历史示例，不计入真实前向信号或成绩。成交、退出和R按冻结规则重算。": "This historical example is excluded from real forward signals and results. Fill, exit and R are recomputed under frozen rules.",
+  "底部平": "Flat bottoms",
+  "金叉在零轴下": "Bullish crossover below zero",
+  "盈亏比": "Reward/risk",
+  "全部 {0} 条": "All {0} checks",
+  "蜡烛只显示截至信号周的数据；右侧12周为空白观察区。": "Candles stop at the signal week; the next 12 weeks are blank observation space.",
   "已平仓": "Closed",
   "对照中位": "Twin median",
   "对照退出": "Twin exits",

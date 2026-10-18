@@ -114,10 +114,18 @@ class ForwardTests(unittest.TestCase):
         self.assertNotIn('commit-tree',commands)
         self.assertNotIn('push',commands)
 
-    def test_example_is_generated_separately_and_never_verified(self):
+    def test_example_is_generated_separately_with_frozen_replay(self):
         t=app.example_ticket()
         self.assertTrue(t['example'])
-        self.assertEqual(t['outcome']['status'],'unverified')
+        self.assertEqual(t['outcome']['status'],'closed')
+        p=self.rec['plan']
+        got=app.triangle15.trade(self.s,self.s['date'].index(self.rec['signal_day']),
+            p['level'],p['stop'],p['level']+3*(p['level']-p['stop']),hold=130)
+        self.assertEqual(t['outcome']['fill_date'],self.s['date'][got['fill_day']])
+        self.assertEqual(t['outcome']['exit_date'],self.s['date'][got['exit_day']])
+        self.assertEqual(t['outcome']['exit'],got['exit'])
+        self.assertEqual(t['outcome']['R'],got['R'])
+        self.assertIn('not a forward record',t['outcome']['source'])
         self.assertLess(len(app.json_bytes(t)),60_000)
         self.assertEqual(json.loads(Path('public/app/tickets/index.json').read_text()),[])
 

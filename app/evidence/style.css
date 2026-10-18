@@ -18,7 +18,7 @@
 .svOutcomeSteps li { border:1px solid var(--sv-line,#dce2e8);padding:6px 10px;border-radius:999px; }
 .svEvidence .svOrder { margin-bottom:24px; }.svOrder > div { padding:8px 0;border-bottom:1px solid var(--sv-line,#dce2e8); }
 .svEvidenceFigure { margin:24px 0 0;min-width:0; }.svEvidenceFigure figcaption { font-weight:600;margin-bottom:12px; }.svEvidenceFigure small { color:var(--sv-muted);font-size:12px; }
-.svPriceChart,.svMacdChart { width:100%;min-width:0;overflow:hidden; }.svPriceChart { min-height:330px; }.svMacdChart { min-height:150px; }
+.svPriceChart,.svMacdChart { width:100%;min-width:0;overflow:hidden; }.svPriceChart { height:420px; }.svMacdChart { height:140px; }
 .svAnchors { font-size:12px;color:var(--sv-muted); }.svAnchors span { display:block; }
 .svTicketList > div { display:flex;flex-wrap:wrap;gap:10px; }.svTicketList button { display:flex;align-items:center;flex-wrap:wrap;gap:12px;padding:12px;border:1px solid var(--sv-line,#dce2e8);border-radius:10px;background:transparent;color:inherit;cursor:pointer;min-height:44px; }.svTicketList button[aria-pressed=true] { border-color:var(--sv-blue); }
 .svForwardTiles { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px; }.svForwardTiles strong { display:block;font-size:28px;margin-top:12px; }.svForwardTiles span { color:var(--sv-muted);font-size:13px; }
@@ -26,3 +26,7 @@
 .svForwardTable { width:100%;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain; }.svForwardTable table { min-width:1160px;width:100%;border-collapse:collapse; }.svForwardTable th,.svForwardTable td { padding:12px 10px;text-align:left;border-bottom:1px solid var(--sv-line,#dce2e8);font-size:13px;white-space:nowrap; }.svForwardTable small { display:block;color:var(--sv-muted); }.svForwardTable:focus-visible { outline:2px solid var(--sv-blue); }
 @media(max-width:900px) { .svTicketColumns { grid-template-columns:minmax(0,1fr); }.svForwardTiles { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media(max-width:460px) { .svForwardTiles { gap:10px; }.svForwardTiles .cockpitCard { padding:14px;margin:0; }.svForwardTiles strong { font-size:23px; }.svTicketHead .svAppMeta { margin-left:0; } }
+
+.svKeyChecks { margin-top:28px; }.svKeyChecks .svEvidenceChecks { display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px; }
+.svAllChecks { margin-top:28px;border-top:1px solid var(--sv-line,#dce2e8);padding-top:18px; }.svAllChecks summary { cursor:pointer;font-weight:600; }.svAllChecks > .svEvidenceChecks { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 28px; }
+@media(max-width:700px) { .svPriceChart { height:300px; }.svKeyChecks .svEvidenceChecks,.svAllChecks > .svEvidenceChecks { grid-template-columns:minmax(0,1fr);gap:0; } }
