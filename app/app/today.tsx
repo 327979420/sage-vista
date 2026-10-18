@@ -1,4 +1,6 @@
 'use client';
+import {validForward,type Forward} from '../evidence/data';
+import {useEvidence} from '../evidence/shared';
 import {usePageCount} from '../navigation-count';
 import {Localized} from '../i18n/locale';
 import type {Today} from './data';
@@ -18,4 +20,7 @@ export function TodaySummary({data}:{data:Today}) {
  const m=data.market;
  return <Localized><small>{s.market}</small><b>{m.light?s.lights[m.light]:s.unavailable}</b><span>{m.spy_over_200d===null?s.spyMissing:m.spy_over_200d?s.spyAbove:s.spyBelow}</span><span>{m.breadth===null?s.breadthMissing:s.breadth(percent(m.breadth*100,0))}</span><time>{s.date}：{data.as_of}</time></Localized>;
 }
-export default function TodayPage() {const state=useReport('today');usePageCount('/',state.data?.new_signals_this_week??null);return <Localized><main className="rtPage rtFeaturedPage cockpit marketSummaryPage svApp"><Header current="today">{state.data?<TodaySummary data={state.data}/>:<Missing loading={state.loading}/>}</Header>{state.data?<TodayView data={state.data}/>:<Missing loading={state.loading}/>}</main></Localized>}
+export function ForwardSummary({data}:{data:Forward}) {
+ return <Localized><a className="researchReplay svForwardSummary" href="/forward"><span>前向记录：已记录</span> <strong>{data.summary.signals}</strong> <span>个信号，最近一次检查</span> <time>{data.outcomes_as_of.slice(0,10)}</time><span aria-hidden="true"> →</span></a></Localized>;
+}
+export default function TodayPage() {const state=useReport('today'),forward=useEvidence('/app/forward.json',validForward);usePageCount('/',state.data?.new_signals_this_week??null);return <Localized><main className="rtPage rtFeaturedPage cockpit marketSummaryPage svApp"><Header current="today">{state.data?<TodaySummary data={state.data}/>:<Missing loading={state.loading}/>}</Header>{forward.data&&<ForwardSummary data={forward.data}/>} {state.data?<TodayView data={state.data}/>:<Missing loading={state.loading}/>}</main></Localized>}

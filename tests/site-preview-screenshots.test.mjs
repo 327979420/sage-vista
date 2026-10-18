@@ -4,14 +4,17 @@ import {readFileSync} from 'node:fs';
 import {ARTIFACT_NAME, PAGES, VIEWPORTS, TOUR_SEEN_KEY, previewOrigin, previewUrlFromLog} from '../scripts/site-preview-screenshots.mjs';
 const read = path => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('preview captures exactly three pages at the two review sizes', () => {
+test('preview captures six pages at the two review sizes', () => {
   assert.deepEqual(PAGES, [
     {name: 'today', path: '/'},
     {name: 'portfolio', path: '/portfolio'},
+    {name: 'signals', path: '/signals'},
+    {name: 'forward', path: '/forward'},
+    {name: 'patterns', path: '/patterns'},
     {name: 'reference', path: '/zh/watch/resonance/rare-opportunities'},
   ]);
   assert.deepEqual(VIEWPORTS, [{width: 1440, height: 900}, {width: 390, height: 844}]);
-  assert.equal(new Set(PAGES.flatMap(p => VIEWPORTS.map(v => `${p.name}-${v.width}x${v.height}.png`))).size, 6);
+  assert.equal(new Set(PAGES.flatMap(p => VIEWPORTS.map(v => `${p.name}-${v.width}x${v.height}.png`))).size, 12);
 });
 test('tour bypass matches the current app flag and screenshot version is exactly locked', () => {
   assert.ok(read('app/tour-steps.ts').includes(`TOUR_SEEN_KEY = '${TOUR_SEEN_KEY}'`));

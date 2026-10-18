@@ -140,7 +140,7 @@ test("renders research history with pending account entry and retained compariso
   const response=await render("/zh/backtest");
   assert.equal(response.status,200);
   const html=await response.text();
-  assert.match(html,/href="\/archive" class="isStar active" aria-current="page"/);assert.match(html,/正在读取研究配置/);assert.match(html,/早期20笔成交工程对账/);
+  assert.match(html,/<details class="svNavMore"/);assert.match(html,/href="\/archive"/);assert.match(html,/正在读取研究配置/);assert.match(html,/早期20笔成交工程对账/);
 });
 
 test("old research bookmark redirects to independent backtest page", async()=>{
@@ -168,7 +168,7 @@ test("industry owns its title and excludes the market hero", async()=>{
 
 
 test("language cookie controls first render and never leaks between requests", async()=>{
- const pages=[['/','Today'],['/portfolio','My Portfolio'],['/opportunities','3W Opportunities'],['/scorecard','Scorecard'],['/learn','Learn'],['/archive','Research Archive'],['/zh/watch/market','Market'],['/zh/watch/industry-radar','Sectors'],['/zh/watch/resonance/rare-opportunities','Multi-Factor Opportunities'],['/zh/watch/resonance/favorite-pattern','Daily Setups'],['/zh/backtest','Backtests'],['/zh/watch/resonance/about','About SV']];
+ const pages=[['/','Today'],['/portfolio','My Portfolio'],['/opportunities','Signal evidence'],['/scorecard','Scorecard'],['/patterns','Daily Setups'],['/learn','Learn'],['/archive','Research Archive'],['/zh/watch/market','Market'],['/zh/watch/industry-radar','Sectors'],['/zh/watch/resonance/rare-opportunities','Multi-Factor Opportunities'],['/zh/watch/resonance/favorite-pattern','Daily Setups'],['/zh/backtest','Backtests'],['/zh/watch/resonance/about','About SV']];
  for(const[path,title]of pages){
   // A year-long cookie from before English became the per-visit default must not force Chinese.
   for(const cookie of ['', 'sv-language-session=en', 'sv-language-session=invalid', 'sv-language=zh']){
@@ -194,4 +194,14 @@ test("the first-visit tour is client-only and the footer offers a replay", async
  const html=await (await render('/','')).text();
  assert.doesNotMatch(html,/svTourBackdrop|role="dialog"/);
  assert.match(html,/href="\/\?tour=1">Take the tour</);
+});
+
+test('cleanup navigation exposes forward and patterns independently',async()=>{
+ const html=await (await render('/patterns')).text();
+ const nav=html.split('<nav class="rtModuleNav"')[1].split('</nav>')[0];
+ const labels=['今日','3W 信号','前向记录','形态速览','我的组合','成绩单','更多'];
+ const positions=labels.map(label=>nav.indexOf(label));
+ assert.ok(positions.every((p,i)=>p>=0&&(!i||p>positions[i-1])));
+ assert.match(nav,/href="\/patterns" class="isStar active" aria-current="page"/);
+ assert.match(html,/从热门股票里，快速寻找短线机会/);
 });

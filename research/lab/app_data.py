@@ -11,6 +11,8 @@ import bisect
 from collections import Counter
 import datetime as dt
 import gzip
+import hashlib
+import statistics
 import json
 import os
 import random
@@ -19,7 +21,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 
-from research.lab import datasets, factor_tags, triangle_forward, triangle15
+from research.lab import datasets, factor_tags, triangle_forward, triangle15, selection
 from research.lab.run_queue import in_eod_window
 from services.scanner.public_asset_limits import validate_asset
 
@@ -432,14 +434,16 @@ def ticket_checks(series, sig, market, *, start, end):
     return checks, W, plan
 
 
-def build_ticket(rec, prices, outcomes, *, start, end, example=False, spy=None):
+def build_ticket(rec, prices, outcomes, *, start, end, example=False, spy=None, market_evidence=None):
     series=prices[rec['symbol']]
     # Bounds select signal weeks, not indicator warm-up. The input is the same
     # frozen series as the recorder; example inputs are explicitly cut to development data.
     sig=next((s for s in triangle15.signals(series,start=start,end=end) if s['week']==rec['week']),None)
     if sig is None:
         raise ValueError(f"signal cannot be reproduced: {rec['id']}")
-    market=market_state(prices,rec['signal_day'],spy=spy)
+    if market_evidence is not None and not example:
+        raise ValueError('cached market evidence is only for the historical example')
+    market=market_evidence if market_evidence is not None else market_state(prices,rec['signal_day'],spy=spy)
     if any(market[k] != rec['market'][k] for k in ('spy_over_200d','breadth','ok')):
         raise ValueError(f"market evidence changed: {rec['id']}")
     checks,W,plan=ticket_checks(series,sig,market,start=start,end=end)
@@ -503,11 +507,172 @@ def validate_ticket_bytes(name, data):
 
 
 
+def horizon_moves(series, signal_day, as_of):
+    """Calendar weeks from signal close; exact next regular session or unavailable."""
+    d = bisect.bisect_left(series['date'], signal_day)
+    if d >= len(series['date']) or series['date'][d] != signal_day:
+        return {f'{w}w': None for w in (1, 4, 13)}
+    result = {}
+    for w in (1, 4, 13):
+        target = dt.date.fromisoformat(signal_day) + dt.timedelta(weeks=w)
+        day = next_session((target - dt.timedelta(days=1)).isoformat())
+        i = bisect.bisect_left(series['date'], day)
+        result[f'{w}w'] = (dict(date=day, move_pct=(series['close'][i] / series['close'][d] - 1) * 100)
+                          if day <= as_of and i < len(series['date']) and series['date'][i] == day else None)
+    return result
+
+
+def replay_twins(rec, prices, pool, as_of, n_twins=30):
+    """Projection of triangle_forward._twins, preserving its seed AND pool order.
+
+    Each sampled name is visited once; no replacement for rejected or unfinished
+    trades. Only closed Rs enter the frozen mean and the descriptive median.
+    """
+    N, BS = triangle15, triangle15.BS
+    s = prices[rec['symbol']]
+    W = BS.periods(s, 'week')
+    t = W['date'].index(rec['week'])
+    m = (rec['plan']['level'] - rec['plan']['stop']) / W['atr'][t]
+    seed = int(hashlib.sha256(rec['id'].encode()).hexdigest()[:8], 16)
+    samples = []
+    for sym in random.Random(seed).sample(pool, min(n_twins, len(pool))):
+        q = prices[sym]
+        i0 = bisect.bisect_left(q['date'], rec['signal_day'])
+        row = dict(symbol=sym, status='unavailable', R=None, outcome=None,
+                   moves=horizon_moves(q, rec['signal_day'], as_of))
+        samples.append(row)
+        if i0 >= len(q['date']) or q['date'][i0] != rec['signal_day']:
+            continue
+        Q = BS.periods(q, 'week')
+        j = BS.completed(Q, i0, len(q['close']))
+        if j < 20 or not Q['atr'][j]:
+            continue
+        level = q['close'][i0] * .98
+        stop = level - m * Q['atr'][j]
+        if stop <= 0 or (level - stop) / level > .4:
+            continue
+        got = N.trade(q, i0, level, stop, level + 3.0 * (level - stop), hold=130)
+        row.update(status=got['status'], outcome=exit_kind(got['status']))
+        if got.get('R') is not None and got['status'] in ('win', 'loss', 'time'):
+            row['R'] = got['R']
+    return samples
+
+
+def exit_kind(status):
+    return {'win': 'target', 'loss': 'stop', 'time': 'time'}.get(status)
+
+
+def twin_projection(rec, prices, pool, recorded, signal_outcome, as_of, n_twins=30):
+    samples = replay_twins(rec, prices, pool, as_of, n_twins)
+    Rs = [s['R'] for s in samples if s['R'] is not None]
+    mean = round(statistics.fmean(Rs), 4) if Rs else None
+    expected = recorded.get('r19', {}).get('random_R')
+    base = dict(twins='unverified', sampled=len(samples), closed=len(Rs), median_R=None,
+                beat_share=None, mean_R=None, moves={f'{w}w': None for w in (1, 4, 13)},
+                exits=None, samples=None)
+    if expected is None or mean != expected:
+        return {**base, 'mismatch': dict(recorded_mean_R=expected, recomputed_mean_R=mean)}
+    closed_signal = signal_outcome['status'] == 'closed' and signal_outcome['R'] is not None
+    moves = {}
+    for key in base['moves']:
+        values = [s['moves'][key]['move_pct'] for s in samples if s['moves'][key] is not None]
+        moves[key] = dict(median_pct=statistics.median(values), sample=len(values)) if values else None
+    return {**base, 'twins': 'verified', 'mean_R': mean, 'median_R': statistics.median(Rs),
+            'beat_share': sum(signal_outcome['R'] > r for r in Rs) / len(Rs) if closed_signal else None,
+            'moves': moves, 'exits': dict(Counter(s['outcome'] for s in samples if s['outcome'])),
+            'samples': samples}
+
+
+def forward_data(records, outcomes, price_sets, judgements, facts, as_of, generated_at, *, n_twins=30):
+    by_id = {o['id']: o for o in outcomes['outcomes']}
+    calls = {}
+    for call in judgements:
+        calls.setdefault(call['id'], call)  # First recorded call is final, like the recorder.
+    rules_by_dataset = {}
+    pools = {}
+    rows = []
+    for rec in sorted(records, key=lambda r: (r['signal_day'], r['id'])):
+        if rec.get('version') != VERSION:
+            continue
+        px = price_sets[rec['dataset']]
+        s = px[rec['symbol']]
+        outcome = ticket_outcome(rec, s, outcomes)
+        call = calls.get(rec['id'], {})
+        choice = call.get('choice') if call.get('choice') in ('do', 'no') else None
+        closed = outcome['status'] == 'closed' and outcome['R'] is not None
+        score = ('right' if (outcome['R'] > 0) == (choice == 'do') else 'wrong') if closed and choice else 'not yet scored'
+        if rec['dataset'] not in rules_by_dataset:
+            rules_by_dataset[rec['dataset']] = {**triangle15.POOL,
+                'exclude': selection.impossible_jumps(px) | triangle15.FUNDS}
+        key = rec['dataset'], rec['signal_day']
+        if key not in pools:
+            pools[key] = selection.eligible_pool(px, rec['signal_day'], rules_by_dataset[rec['dataset']])
+        pool = [symbol for symbol in pools[key] if symbol != rec['symbol']]
+        twins = (twin_projection(rec, px, pool, by_id.get(rec['id'], {}), outcome, as_of, n_twins)
+                 if rec['plan']['go'] else dict(twins='unavailable', sampled=0, closed=0, median_R=None,
+                    beat_share=None, mean_R=None, moves={f'{w}w': None for w in (1,4,13)}, exits=None, samples=None))
+        rows.append(dict(id=rec['id'], symbol=rec['symbol'], signal_week=rec['week'],
+                         status=outcome['status'], moves=horizon_moves(s, rec['signal_day'], as_of),
+                         outcome=exit_kind(outcome.get('source_status')) if closed else None,
+                         R=outcome['R'] if closed else None, exit_date=outcome.get('exit_date'),
+                         verification=outcome['source'], outcome_mismatch=outcome.get('mismatch'),
+                         random=twins, blind=dict(choice=choice, score=score,
+                             judged_at=call.get('judged_at'), judged_after_fill=call.get('judged_after_fill'))))
+    done = sorted((r for r in rows if r['status'] == 'closed' and r['R'] is not None),
+                  key=lambda r: (r['exit_date'], r['id']))
+    total = 0.0
+    daily = {}
+    for r in done:
+        total += r['R']
+        daily[r['exit_date']] = total
+    shares = [r['random']['beat_share'] for r in done if r['random']['beat_share'] is not None]
+    expectation = next((f for f in facts if f['id'] == 'forward-expectation'), None)
+    return dict(schema_version=1, version=VERSION, as_of=as_of, generated_at=generated_at,
+                outcomes_as_of=outcomes['computed_at'], next_check='every Friday close',
+                conventions=dict(moves='calendar weeks; next regular NYSE session; missing exact bar is null',
+                    random='frozen sampled pool order; closed twins only for R; strict signal R > twin R',
+                    summary='unweighted mean of per-signal beat shares, verified closed signals only',
+                    blind='做: closed R > 0; 不做: closed R <= 0; never filled or open: not yet scored',
+                    cumulative='sum of verified closed signal R by exit date; not an account return'),
+                expectation=expectation, summary=dict(signals=len(rows), closed=len(done),
+                    average_R=statistics.fmean(r['R'] for r in done) if done else None,
+                    win_rate=sum(r['R'] > 0 for r in done)/len(done) if done else None,
+                    beat_random_share=statistics.fmean(shares) if shares else None,
+                    beat_random_signals=len(shares)),
+                cumulative_R=[dict(date=day,R=value) for day,value in daily.items()], signals=rows)
+
+
+def example_ticket(root=ROOT):
+    """Build the task-022 historical example from its checked-in source fixture.
+
+    Its full-universe market observation is frozen in that fixture. It is never
+    counted as a real signal and has no forward outcome record to verify against.
+    """
+    fixture = json.loads((root / 'tests/fixtures/app/ticket.json').read_text())
+    rec = fixture['record']
+    ticket = build_ticket(rec, {rec['symbol']: fixture['series']}, {'outcomes': []},
+                        start='2005-01-01', end='2025-06-30', example=True,
+                        market_evidence=fixture['market'])
+    # Owner-approved example-only replay, never evidence of a real forward trade.
+    series, plan = fixture['series'], rec['plan']
+    got = triangle15.trade(series, series['date'].index(rec['signal_day']),
+        plan['level'], plan['stop'], plan['level'] + 3 * (plan['level'] - plan['stop']), hold=130)
+    closed = got['status'] in ('win', 'loss', 'time')
+    ticket['outcome'] = dict(status='closed' if closed else {'open': 'filled'}.get(got['status'], got['status']),
+        source='historical example: frozen trade() recompute; not a forward record',
+        source_status=got['status'],
+        fill_date=series['date'][got['fill_day']] if 'fill_day' in got else None,
+        exit_date=series['date'][got['exit_day']] if closed else None,
+        exit=got.get('exit') if closed else None, R=got.get('R') if closed else None)
+    return ticket
+
+
+
 def encode(payloads):
     if not set(FILES) <= set(payloads):
         raise ValueError('expected four app files')
     for name in set(payloads) - set(FILES):
-        if name != 'tickets/index.json' and name != ticket_name(Path(name).stem):
+        if name not in ('tickets/index.json', 'forward.json') and name != ticket_name(Path(name).stem):
             raise ValueError(f'unexpected app path: {name}')
     encoded = {}
     for name in payloads:
@@ -554,6 +719,8 @@ def load_build(root=ROOT, *, allow_download=False, generated_at=None):
     config_path = root / FORWARD / 'config.json'
     start = json.loads(config_path.read_text())['start'] if config_path.exists() else '2026-10-12'
     payloads.update(ticket_payloads(records, outcomes, price_sets, root / 'public/app', start=start))
+    payloads['forward.json'] = forward_data(records, outcomes, price_sets, triangle_forward.load_judgements(root),
+        facts, as_of, generated_at, n_twins=json.loads(config_path.read_text()).get('random_twins',30) if config_path.exists() else 30)
     return payloads
 
 
@@ -573,6 +740,11 @@ def publish(encoded, root=ROOT) -> bool:
     for rel in [FORWARD / 'signals.jsonl', FORWARD / 'outcomes.json', FORWARD / 'config.json',
                 Path('research/lab/app/record_facts.json')]:
         if git('show', f'{parent}:{rel}') != (root / rel).read_bytes():
+            raise RuntimeError(f'upstream input changed: {rel}')
+    if 'forward.json' in encoded:
+        rel = FORWARD / 'judgements.jsonl'
+        exists = str(rel) in git('ls-tree', '-r', '--name-only', parent, '--', str(rel)).decode().splitlines()
+        if exists != (root / rel).exists() or (exists and git('show', f'{parent}:{rel}') != (root / rel).read_bytes()):
             raise RuntimeError(f'upstream input changed: {rel}')
     remote_tickets = set()
     if 'tickets/index.json' in encoded:
@@ -609,8 +781,17 @@ def publish(encoded, root=ROOT) -> bool:
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--publish', action='store_true')
+    parser.add_argument('--example-only', action='store_true', help='build the historical UI example without loading datasets')
     parser.add_argument('--generated-at', help='fixed ISO timestamp for reproducible builds')
     args = parser.parse_args(argv)
+    if args.example_only:
+        if args.publish:
+            raise ValueError('the UI example is never a forward publication')
+        data = json_bytes(example_ticket())
+        validate_ticket_bytes('ticket-example.json',data)
+        write({'ticket-example.json': data}, ROOT / 'public/app')
+        print(f'ticket-example.json: {len(data)} bytes; historical example only')
+        return
     if args.generated_at:
         dt.datetime.fromisoformat(args.generated_at.replace('Z', '+00:00'))
     if args.publish and in_eod_window():
@@ -620,6 +801,9 @@ def main(argv=None):
     for name, payload in payloads.items():
         if name.startswith('tickets/') and name != 'tickets/index.json' and payload['outcome'].get('mismatch'):
             print(f"UNVERIFIED {payload['id']}: {json.dumps(payload['outcome']['mismatch'], sort_keys=True)}")
+    for row in payloads.get('forward.json', {}).get('signals', []):
+        if row['random'].get('mismatch'):
+            print(f"TWINS UNVERIFIED {row['id']}: {json.dumps(row['random']['mismatch'],sort_keys=True)}")
     if args.publish:
         pushed = publish(encoded)
         if os.environ.get('GITHUB_OUTPUT'):

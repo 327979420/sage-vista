@@ -377,3 +377,10 @@ html[lang="en"] .mvpIndustryMetric > span {max-width:65%;}
  .rtPage .periodFactorLedger .factorEvidenceRow > b { grid-column: 2; }
  .rtPage .periodFactorLedger p > b { text-align: left; }
 }
+
+/* Keep the existing tab treatment; the secondary links open inside the nav. */
+.svNavMore { flex:1 0 auto; }
+.svNavMore summary { cursor:pointer;padding:10px 16px;min-height:48px;border-radius:7px;color:#46556b;font-weight:650; }
+.svNavMore summary:hover,.svNavMore summary.active { background:#eaf0fd;color:#204da8; }
+.svNavMore > div { display:flex;flex-direction:column; }
+.svNavMore summary:focus-visible { outline:2px solid var(--sv-blue); }

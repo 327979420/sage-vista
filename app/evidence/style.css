@@ -1,0 +1,106 @@
+/* Ticket checklist, split evidence and outcome steps follow the approved prototype. */
+.svEvidenceNav { display:flex;gap:10px;margin:16px 0 24px; }
+.svEvidenceNav a { padding:8px 14px;border:1px solid var(--sv-line,#dce2e8);border-radius:999px; }
+.svEvidenceNav a[aria-current=page] { color:var(--sv-blue);font-weight:700; }
+.svEvidence .cockpitCard { margin:20px 0; }
+.svEvidenceChip { display:inline-block;padding:3px 10px;border:1px solid var(--sv-line,#dce2e8);border-radius:999px;font-size:12px;white-space:nowrap; }
+.svEvidenceChip.isWarning { color:var(--sv-caution); }
+.svTicketHead { display:flex;align-items:center;flex-wrap:wrap;gap:12px;border-bottom:1px dashed var(--sv-line,#dce2e8);padding-bottom:16px; }
+.svTicketHead h2 { margin:0!important; }
+.svTicketHead .svAppMeta { margin-left:auto; }
+.svTicketColumns { display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:28px;margin-top:24px; }
+.svTicketColumns > section { min-width:0; }
+.svEvidenceChecks { list-style:none;padding:0;margin:0; }
+.svEvidenceChecks li { display:grid;grid-template-columns:20px minmax(0,1fr);gap:4px 8px;padding:10px 0;border-bottom:1px solid var(--sv-line,#dce2e8);font-size:14px; }
+.svEvidenceChecks .svCheckValue { grid-column:2;color:var(--sv-muted);font-size:12px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere; }
+.svEvidenceChecks .isPass { color:var(--sv-positive); }.svEvidenceChecks .isFail { color:var(--sv-negative); }
+.svEvidence .svOrder { margin-bottom:24px; }.svOrder > div { padding:8px 0;border-bottom:1px solid var(--sv-line,#dce2e8); }
+.svEvidenceFigure { margin:24px 0 0;min-width:0; }.svEvidenceFigure figcaption { font-weight:600;margin-bottom:12px; }.svEvidenceFigure small { color:var(--sv-muted);font-size:12px; }
+.svPriceChart,.svMacdChart { width:100%;min-width:0;overflow:hidden; }.svPriceChart { height:420px; }.svMacdChart { height:140px; }
+.svAnchors { font-size:12px;color:var(--sv-muted); }.svAnchors span { display:block; }
+.svTicketList > div { display:flex;flex-wrap:wrap;gap:10px; }.svTicketList button { display:flex;align-items:center;flex-wrap:wrap;gap:12px;padding:12px;border:1px solid var(--sv-line,#dce2e8);border-radius:10px;background:transparent;color:inherit;cursor:pointer;min-height:44px; }.svTicketList button[aria-pressed=true] { border-color:var(--sv-blue); }
+.svForwardTiles { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px; }.svForwardTiles strong { display:block;font-size:28px;margin-top:12px; }.svForwardTiles span { color:var(--sv-muted);font-size:13px; }
+.svCumulative { margin:0; }.svCumulative svg { display:block;width:100%;height:auto;color:var(--sv-muted); }.svCumulative text { fill:currentColor;font-size:12px; }.svCumulative figcaption { font-size:13px;color:var(--sv-muted); }
+.svForwardTable { width:100%;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain; }.svForwardTable table { min-width:1160px;width:100%;border-collapse:collapse; }.svForwardTable th,.svForwardTable td { padding:12px 10px;text-align:left;border-bottom:1px solid var(--sv-line,#dce2e8);font-size:13px;white-space:nowrap; }.svForwardTable small { display:block;color:var(--sv-muted); }.svForwardTable:focus-visible { outline:2px solid var(--sv-blue); }
+@media(max-width:900px) { .svTicketColumns { grid-template-columns:minmax(0,1fr); }.svForwardTiles { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:460px) { .svForwardTiles { gap:10px; }.svForwardTiles .cockpitCard { padding:14px;margin:0; }.svForwardTiles strong { font-size:23px; }.svTicketHead .svAppMeta { margin-left:0; } }
+
+.svKeyChecks { margin-top:28px; }.svKeyChecks .svEvidenceChecks { display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px; }
+.svAllChecks { margin-top:28px;border-top:1px solid var(--sv-line,#dce2e8);padding-top:18px; }.svAllChecks summary { cursor:pointer;font-weight:600; }.svAllChecks > .svEvidenceChecks { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 28px; }
+@media(max-width:700px) { .svPriceChart { height:300px; }.svKeyChecks .svEvidenceChecks,.svAllChecks > .svEvidenceChecks { grid-template-columns:minmax(0,1fr);gap:0; } }
+
+.svEvidence .svOrder { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px;margin:12px 0; }
+.svOrder dt { font-size:12px;color:var(--sv-muted); }
+.svOrder dd { margin:5px 0 0;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap; }
+.svForwardSample { color:var(--sv-muted);background:var(--sv-bg,#f5f7fa); }
+.svForwardSummary { display:block;margin:16px 0;padding:16px 20px;font-size:14px;font-variant-numeric:tabular-nums; }
+
+.svEvidence .svOrder > div { display:block; }
+
+.svStepperScroll { max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;padding:8px 3px; }
+.svOutcomeSteps { --step-size:36px;display:grid;grid-template-columns:repeat(4,minmax(76px,1fr));list-style:none;margin:8px 0;padding:0;min-width:304px; }
+.svOutcomeSteps li { position:relative;display:flex;align-items:center;flex-direction:column;min-width:0; }
+.svOutcomeSteps li + li::before { content:'';position:absolute;top:calc(var(--step-size)/2 - 2px);right:50%;width:100%;height:3px;background:var(--sv-line,#dce2e8); }
+.svOutcomeSteps li.isDone::before { background:var(--sv-blue); }
+.svStepNode { position:relative;z-index:1;display:grid;place-items:center;width:var(--step-size);height:var(--step-size);border-radius:50%;background:var(--sv-line,#dce2e8);color:var(--sv-muted); }
+.svStepNode svg { width:20px;height:20px; }
+.svOutcomeSteps .isDone .svStepNode { background:var(--sv-blue);color:white; }
+.svOutcomeSteps .isCurrent .svStepNode { outline:2px solid var(--sv-blue);outline-offset:3px; }
+.svOutcomeSteps .isResult[data-result=positive] .svStepNode { background:var(--sv-positive);outline-color:var(--sv-positive); }
+.svOutcomeSteps .isResult[data-result=negative] .svStepNode { background:var(--sv-negative);outline-color:var(--sv-negative); }
+.svOutcomeSteps .isResult[data-result=neutral] .svStepNode { background:var(--sv-line,#dce2e8);color:var(--sv-muted);outline-color:var(--sv-muted); }
+.svStepDetail { margin-top:12px;text-align:center;color:var(--sv-muted);font-size:11px;font-variant-numeric:tabular-nums;white-space:nowrap; }
+.svStepDetail time,.svStepDetail strong { display:block; }
+.svStepDetail strong { margin-top:4px;font-size:12px;font-weight:600;color:var(--sv-ink); }
+.isMini .svOutcomeSteps { --step-size:24px;grid-template-columns:repeat(4,34px);min-width:136px;margin:3px 0; }
+.isMini .svStepNode svg { width:14px;height:14px; }
+
+/* Polish (Claude, 2026-10-18): cards here hold content directly, so give them the inner spacing the market cards get from their
+   header/body wrappers; one font stack for Latin + Chinese; a calmer type scale. */
+.svEvidence { font-family: var(--font-geist-sans), "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif; color:#24324a; }
+.svEvidence .cockpitCard { padding:24px 28px; gap:0; }
+.svEvidence .cockpitCard > h2, .svEvidence .cockpitCard h3 { margin:0 0 14px; font-size:15px; font-weight:600; color:#2c3c55; letter-spacing:0; display:flex; align-items:center; gap:10px; }
+.svEvidence .cockpitCard section + section h3 { margin-top:0; }
+.svEvidence .svTicketHead { margin:-4px 0 0; }
+.svEvidence .svTicketHead h2 { font-size:19px; font-weight:650; }
+.svEvidence .svAppWarning { margin:16px 0 4px; padding:10px 14px; border-radius:0 8px 8px 0; font-size:13px; }
+.svEvidence .svAppSource { font-size:12px; line-height:1.7; color:#7b889b; margin-top:14px; }
+.svEvidence .svEvidenceFigure { margin-top:22px; }
+.svEvidence .svEvidenceFigure figcaption { font-size:13px; color:#55657c; }
+.svEvidence .svEvidenceFigure small { display:block; margin-top:8px; }
+.svKeyChecks { margin-top:24px; padding-top:20px; border-top:1px solid #eef1f5; }
+.svKeyChecks .svEvidenceChecks li { border:1px solid #e8edf3; border-radius:10px; padding:12px 14px; background:#fafbfd; align-content:start; }
+.svEvidenceChecks li > span:nth-child(2) { font-weight:600; color:#33445e; font-size:13px; }
+.svEvidenceChecks .svCheckValue { margin-top:4px; line-height:1.5; }
+.svTicketColumns { margin-top:24px; padding-top:20px; border-top:1px solid #eef1f5; gap:40px; }
+.svEvidence .svOrder { gap:10px; margin:0; }
+.svEvidence .svOrder > div { border:1px solid #e8edf3; border-radius:10px; padding:10px 14px; background:#fafbfd; }
+.svOrder dt { color:#7b889b; }
+.svOrder dd { font-size:17px; color:#22324b; margin-top:4px; }
+.svOrder dd span { font-size:12px; font-weight:500; color:#7b889b; margin-left:2px; }
+.svStepperScroll { padding:14px 4px 4px; }
+.svAllChecks { margin-top:24px; padding-top:16px; }
+.svAllChecks summary { font-size:14px; color:#44546c; }
+.svAllChecks > .svEvidenceChecks { margin-top:12px; }
+.svAllChecks .svEvidenceChecks li { padding:10px 2px; }
+.svAnchors { margin-top:14px; line-height:1.8; }
+.svEvidence .cockpitEmpty { padding:24px; min-height:0; gap:6px; }
+.svEvidence .cockpitEmpty strong { font-size:15px; font-weight:600; color:#55657c; }
+.svEvidence .cockpitEmpty p { margin:0; font-size:13px; }
+.svForwardTiles .cockpitCard { padding:18px 20px; margin:0; }
+.svForwardTiles span { font-size:12px; }
+.svForwardTiles strong { font-size:26px; font-weight:600; color:#22324b; font-variant-numeric:tabular-nums; margin-top:8px; }
+.svCumulativeEmpty { display:grid; place-items:center; height:180px; border:1px dashed #d8dfe8; border-radius:12px; background:repeating-linear-gradient(135deg,#fafbfd,#fafbfd 12px,#f6f8fb 12px,#f6f8fb 13px); color:#8a97a8; font-size:13px; }
+.svCumulative svg { max-height:300px; }
+.svCumulative text { font-size:11px; }
+.svForwardTable { margin:0 -4px; }
+.svForwardTable th { font-size:12px; font-weight:600; color:#5d6c82; background:#f6f8fb; }
+.svForwardTable td, .svForwardTable th { padding:12px 14px; }
+.svForwardTable small { font-size:11px; margin-top:3px; }
+.svTicketList > div { gap:8px; }
+.svTicketList button { padding:10px 14px; font-size:13px; }
+@media(max-width:700px) {
+  .svEvidence .cockpitCard { padding:18px 16px; }
+  .svTicketColumns { gap:24px; }
+  .svOrder dd { font-size:16px; }
+}
