@@ -22,7 +22,7 @@ const outcomeLabels:Record<string,string>={target:'止盈',stop:'止损',time:'�
 export function ForwardView({data}:{data:Forward}) {
  const s=data.summary,f=data.expectation;
  return <Localized><><div className="svForwardTiles">{[['真实信号',s.signals],['已平仓',s.closed],['平均每笔R',rText(s.average_R)],['胜过随机对照比例',pct(s.beat_random_share===null?null:s.beat_random_share*100)]].map(([label,value])=><section className="cockpitCard" key={label}><span>{label}</span><strong>{value}</strong></section>)}</div>
- <p className="svAppSource"><span>数据日期</span> {data.as_of} · <span>结果更新</span> {data.outcomes_as_of}</p>
+ <p className="svAppSource"><span>数据日期</span> {data.as_of} · <span>结果更新</span> {data.outcomes_as_of.slice(0,10)}</p>
  {f&&<section className="cockpitCard"><h2>与回测参考比较</h2><p><span>历史平均</span> {rText(f.average_R)} · <span>胜率</span> {pct(f.win_rate*100)} · {f.trades} <span>笔</span></p><p>{f.label}</p><p className="svAppSource">{f.note}</p><details><summary>账本来源</summary><p>{f.ledger_heading}</p></details></section>}
  {s.signals===0&&<div className="cockpitEmpty" role="status"><strong>还没有真实前向信号</strong><p><span>下次检查：周五收盘后</span>（{nextFriday(data.outcomes_as_of)}）</p></div>}
  <section className="cockpitCard svForwardCurve"><h2>累计R</h2><CumulativeChart points={data.cumulative_R} example={s.signals===0}/></section>
