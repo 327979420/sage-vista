@@ -30,6 +30,20 @@
 
 ## 当前条目
 
+### CR-2026-10-18-022｜3W 信号凭证数据
+
+- 用户原意：执行 `tasks/022-signal-tickets.md`；补充授权按冻结 `trade()` 的 3R / hold=130 重算日期和退出价，并与 `outcomes.json` 的 r19 核对。
+- 状态：verified；分支 `app/signal-tickets`，未提交、未发布、未联网。
+- 主模块：08 研究数据投影；不改变业务规则、冻结代码、前向配置或页面。
+- 实现：`research/lab/app_data.py` 在同一构建/发布入口输出 `tickets/<id>.json` 和索引；复用窗口保护及隔离 index。已有凭证只更新 outcome，无变化保留原字节；上游已有凭证也受保护。单票严格小于 60,000 bytes，历史 example 拒绝发布。
+- Schema：标识/版本/信号日期；checks 按冻结执行顺序保存 id、value、pass、derived；pushes/bottoms 日期价格、trend_line 两锚点；order 限价/止损/3R目标/风险额/40交易日有效期/130交易日最长持有；weekly 为截至信号周的 60 根 OHLC、DIF、DEA；outcome 保存状态、R、成交/退出日期、退出价、来源，未平仓估值另列 mark。
+- 核对：复用记录中四位小数的计划，R 按前向记录四位小数比较，并额外核对原始状态。数值或状态不符、缺失 r19 均 unverified，日期/退出价/R 留空并记录 mismatch；等待/取消且无 R 时只声明状态匹配。计划拒绝或大盘拒绝仍是 skipped，不把反事实交易当实际成交。
+- 数据：fresh-a 至 d 沿用 universe 的 SPY，但不把 SPY 加入各自宽度抽样池。所有新增派生投影标 derived；测试覆盖冻结 `_shape` 54 组边界及信号拒绝门槛、冷却期、交易重算匹配/不匹配、未来行情不进入证据、不可改写、大小和发布窗口。
+- 样例：`work/app-data/tickets/example-*.json` 两张，仅使用 2005-01-01 至 2025-06-30 开发数据：A 2012-09-14、AA 2012-12-14，宽度样本 232 / 238；两者均 example=true。真实前向记录为 0，`public/app/tickets/index.json` 为 []。历史示例没有前向 outcomes.json 对应记录，均标 unverified（缺失基准，不是数值不一致）；测试夹具另保存冻结重算期望值。
+- 验证：`python3 -m unittest tests.test_app_data tests.test_signal_tickets`：41 项通过（原有 25 + 新增 16）；`git diff --check` 通过；冻结文件与配置无 diff。离线 `load_build` + `encode` 成功；没有执行 publish。
+- Deviations：挂单日期按已有常规 NYSE 日历估计，40 个实际股票数据交易日仍是冻结有效期定义；票面明确标注估计。图表只保留信号及之前 60 周。历史缺少权威 r19 时从严显示 unverified，不用同一次模拟冒充独立核对。
+- Concerns：前向真实样本为 0，未验证线上发布；历史示例不能当作前向业绩。临时休市/股票缺价可能令估计有效日期不同于实际第 40 个观测交易日。原型浏览器访问被 URL 安全策略拦截，仅静态阅读源码，未宣称视觉验收。既有 `tests/test_reality3w.py` 未修改。
+
 ### CR-2026-10-18-017｜App 数据推送后派发网站部署
 
 - 用户原意：执行 `tasks/017-deploy-app-data.md`；数据实际推送后派发既有网站部署。
