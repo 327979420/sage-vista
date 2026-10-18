@@ -1,0 +1,28 @@
+/* Ticket checklist, split evidence and outcome steps follow the approved prototype. */
+.svEvidenceNav { display:flex;gap:10px;margin:16px 0 24px; }
+.svEvidenceNav a { padding:8px 14px;border:1px solid var(--sv-line,#dce2e8);border-radius:999px; }
+.svEvidenceNav a[aria-current=page] { color:var(--sv-blue);font-weight:700; }
+.svEvidence .cockpitCard { margin:20px 0; }
+.svEvidenceChip { display:inline-block;padding:3px 10px;border:1px solid var(--sv-line,#dce2e8);border-radius:999px;font-size:12px;white-space:nowrap; }
+.svEvidenceChip.isWarning { color:var(--sv-caution); }
+.svTicketHead { display:flex;align-items:center;flex-wrap:wrap;gap:12px;border-bottom:1px dashed var(--sv-line,#dce2e8);padding-bottom:16px; }
+.svTicketHead h2 { margin:0!important; }
+.svTicketHead .svAppMeta { margin-left:auto; }
+.svTicketColumns { display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:28px;margin-top:24px; }
+.svTicketColumns > section { min-width:0; }
+.svEvidenceChecks { list-style:none;padding:0;margin:0; }
+.svEvidenceChecks li { display:grid;grid-template-columns:20px minmax(0,1fr);gap:4px 8px;padding:10px 0;border-bottom:1px solid var(--sv-line,#dce2e8);font-size:14px; }
+.svEvidenceChecks .svCheckValue { grid-column:2;color:var(--sv-muted);font-size:12px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere; }
+.svEvidenceChecks .isPass { color:var(--sv-positive); }.svEvidenceChecks .isFail { color:var(--sv-negative); }
+.svOutcomeSteps { list-style:none;display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;padding:0;font-size:12px; }
+.svOutcomeSteps li { border:1px solid var(--sv-line,#dce2e8);padding:6px 10px;border-radius:999px; }
+.svEvidence .svOrder { margin-bottom:24px; }.svOrder > div { padding:8px 0;border-bottom:1px solid var(--sv-line,#dce2e8); }
+.svEvidenceFigure { margin:24px 0 0;min-width:0; }.svEvidenceFigure figcaption { font-weight:600;margin-bottom:12px; }.svEvidenceFigure small { color:var(--sv-muted);font-size:12px; }
+.svPriceChart,.svMacdChart { width:100%;min-width:0;overflow:hidden; }.svPriceChart { min-height:330px; }.svMacdChart { min-height:150px; }
+.svAnchors { font-size:12px;color:var(--sv-muted); }.svAnchors span { display:block; }
+.svTicketList > div { display:flex;flex-wrap:wrap;gap:10px; }.svTicketList button { display:flex;align-items:center;flex-wrap:wrap;gap:12px;padding:12px;border:1px solid var(--sv-line,#dce2e8);border-radius:10px;background:transparent;color:inherit;cursor:pointer;min-height:44px; }.svTicketList button[aria-pressed=true] { border-color:var(--sv-blue); }
+.svForwardTiles { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px; }.svForwardTiles strong { display:block;font-size:28px;margin-top:12px; }.svForwardTiles span { color:var(--sv-muted);font-size:13px; }
+.svCumulative { margin:0; }.svCumulative svg { display:block;width:100%;height:auto;color:var(--sv-muted); }.svCumulative text { fill:currentColor;font-size:12px; }.svCumulative figcaption { font-size:13px;color:var(--sv-muted); }
+.svForwardTable { width:100%;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain; }.svForwardTable table { min-width:1160px;width:100%;border-collapse:collapse; }.svForwardTable th,.svForwardTable td { padding:12px 10px;text-align:left;border-bottom:1px solid var(--sv-line,#dce2e8);font-size:13px;white-space:nowrap; }.svForwardTable small { display:block;color:var(--sv-muted); }.svForwardTable:focus-visible { outline:2px solid var(--sv-blue); }
+@media(max-width:900px) { .svTicketColumns { grid-template-columns:minmax(0,1fr); }.svForwardTiles { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:460px) { .svForwardTiles { gap:10px; }.svForwardTiles .cockpitCard { padding:14px;margin:0; }.svForwardTiles strong { font-size:23px; }.svTicketHead .svAppMeta { margin-left:0; } }

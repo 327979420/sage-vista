@@ -3,8 +3,8 @@ import {useNavigationCount} from './navigation-count';
 import {usePathname} from 'next/navigation';
 import {Localized} from './i18n/locale';
 export const siteLinks = [
- ['今日', '/'], ['3W 机会', '/opportunities'], ['我的组合', '/portfolio'],
- ['成绩单', '/scorecard'], ['学习', '/learn'], ['研究档案', '/archive'],
+ ['今日', '/'], ['3W 机会', '/signals'], ['我的组合', '/portfolio'],
+ ['成绩单', '/forward'], ['学习', '/learn'], ['研究档案', '/archive'],
 ] as const;
 const icons=[
  'M3 17V7m6 10V3m6 14v-6m6 6V5',
@@ -17,7 +17,7 @@ const icons=[
 export default function SiteNavigation() {
  const path=usePathname(),count=useNavigationCount();
  return <Localized><div className="rtPage svNavigation"><nav className="rtModuleNav" aria-label="主要功能">{siteLinks.map(([label,href],index)=>{
- const active=path===href||(href==='/archive'&&path.startsWith('/zh/'));
+ const active=path===href||(href==='/signals'&&path==='/opportunities')||(href==='/forward'&&path==='/scorecard')||(href==='/archive'&&path.startsWith('/zh/'));
  return <a key={href} href={href} className={active?'isStar active':undefined} aria-current={active?'page':undefined}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={icons[index]}/></svg><span>{label}</span>{active&&count?.path===href&&<em className="rtStarCount" title={href==='/'?'新信号':'持仓'}>{count.value}</em>}</a>;
  })}</nav></div></Localized>;
 }

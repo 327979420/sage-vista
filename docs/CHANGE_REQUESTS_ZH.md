@@ -1549,3 +1549,14 @@
 - `work/v3w/hk_pool.py`及日志、`work/reports/hk-pool-v1.{json,html}`：原HK$7,800万门槛日均50.95只、124信号；前50%＋HK$780万日均95.87只、237信号；前25%＋HK$780万日均48.24只、121信号。分母为通过原历史/价格条件的A组当日股票，非全港股。
 - 原124信号逐股完整字段与冻结入口一致；阈值、同额、空池、时间独立性及历史/价格门槛合成检查通过；冻结源码指纹不变。首次统计因2800日期未覆盖全部股票日期而停止，修复为候选股票记录日期并集后通过，原失败保留日志。
 - 报告内提供未登记草稿；每边0.2%成本不能由日线验证，小额容量假设不覆盖原账户最大订单，正式登记前由Claude及用户决定。未改生产或US冻结规则；无网络、无提交。
+
+
+### CR-2026-10-18-023｜信号凭证与前向记录页面
+- 授权：tasks/023-evidence-pages.md 及其 Decisions；本地 site/evidence 实现，无网络、提交、部署；冻结源码和配置不变。
+- 交付：`app/evidence/*`、`app/signals/*`、`app/forward/*`；导航及原 opportunities/scorecard 入口复用新页面；沿用主题、双语词典。周线蜡烛、推/底/信号标记、下降虚线、订单价位及同步 MACD；无真实账户数据。
+- 数据：app_data.py 新增 forward.json：schema_version/version/as_of/outcomes_as_of、summary、expectation（含 ledger_heading）、signals、cumulative_R。每行含 id/symbol/signal_week/status、1w/4w/13w moves、outcome/R/exit_date、核验来源、random（抽样数/平仓数/均值/中位R/胜出比例/涨跌中位/退出分布/各对照结果）、blind（第一次 choice、score、时间、是否成交后判断）。失败核验保留 mismatch，数值为 null。
+- 历史示例由 prebuild 从任务022源 fixture 重建 ticket-example.json，独立于真实票据索引与成绩。forward.json <2MB；现有隔离发布路径加入可选 judgements 输入一致性保护。
+- 截图列表加入 /signals 与 /forward，各1440/390宽；共5页10张。离线本地未运行部署及浏览器截图，不声称视觉或真实溢出验收。
+- 样本：真实信号0、平仓0、已核验随机比较0；历史示例1。当前本地行情到2026-10-08，outcomes更新到2026-10-18，页面分别保留日期；真实均值不匹配0（尚无信号）。冻结全历史异常跳价排除口径继承，非新研究结论。
+- 验证：`python3 -m unittest tests.test_app_data tests.test_signal_tickets tests.test_forward_data` 48/48；`npm run lint`、`npm run typecheck`、`npm run build` 通过；`node --test tests/*.test.mjs` 106/106；`git diff --check` 通过。测试覆盖冻结抽样均值匹配/不匹配、0信号、等待/持仓、胜/负/零R、盲判有无、输入发布保护、双语、路由、空值及截图列表。既有 tests/test_reality3w.py 未修改。
+- Deviations：无阻塞或范围扩展；1/4/13周采用日历周及下一正常交易日，缺价为null。沿用凭证60根周线窗口，超出窗口的早期锚点仍以日期/价格列出。回测参考采用账本明确提供的287笔子样本，未推算全体信号的胜率。

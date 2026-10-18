@@ -14,6 +14,7 @@ import "./favorite-pattern.css";
 import "./interface.css";
 import "./multifactor.css";
 import "./app/style.css";
+import "./evidence/style.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
