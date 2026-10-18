@@ -24,3 +24,9 @@ for signals, or US 1985-2004.
 Deliverables: `work/v3w/standard_v1.py` + log, `work/reports/standard-v1-calibration.{json,html}` (simple Chinese), the rules text and
 the ledger paragraph (in Chinese) as file changes on this branch, codex report with Concerns. Stop and ask if anything could change a
 conclusion. No network, no commits.
+
+## Decisions (2026-10-18, Claude, before any number)
+1. Same data basis as tasks 010/016/019 (pre-2005 bars only as warm-up and frozen cooldown; signals 2005-01..2024-06; outcomes to 2025-06).
+2. Twins: mean over valid twins (frozen sampler, six attempts); events with no valid twin excluded and counted.
+3. Power: assume HK-B valid events = HK-A valid events (labelled assumption); minimum mean d for p<=0.05 and, separately, for 80% power.
+4. Bootstrap by signal week (resample whole weeks; 10,000; seed 20261018); per-signal bootstrap p is description only.
