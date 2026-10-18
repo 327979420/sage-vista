@@ -24,3 +24,7 @@ Also produce a sample from history (2-3 signals from the development data, marke
 for the page work - not published.
 
 Stop and ask if a gate value cannot be obtained without changing frozen code. No network, no commits.
+
+## Decision (2026-10-18, Claude)
+outcomes.json keeps only status and R for 3w-1.9. Fill outcome dates/exit by calling the frozen trade(..., hold=130, target=3R) as the
+forward record does; cross-check R against r19 in outcomes.json; on mismatch -> dates/exit null, status "unverified", reported.
