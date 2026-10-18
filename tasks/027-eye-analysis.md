@@ -14,8 +14,7 @@ owner seems to look at" summary - as hypotheses only.
 
 ## Part B - can the machine be more like the owner? (one comparison, registered here)
 Target: predict the owner's 做/不做 (all 207, outcomes not used). Compare taste v1 (as is) vs a "taste v2" = L2 logistic regression on
-the Part-A features (fixed list above, standardised, C=1.0, no tuning). Metric: leave-one-week-out cross-validated accuracy and AUC.
-v2 counts as "more like the owner" only if CV AUC improves by >= 0.05 over v1. Report the 73-trade outcome of v2's 做 picks as
+the Part-A features (fixed list above, standardised, C=1.0, no tuning). Metric: v1 stays as is, with descriptive accuracy and AUC only (training labels overlap these cases). v2 gets real leave-one-week-out cross-validated accuracy and AUC. List v2 CV AUC minus v1 descriptive AUC, but make no formal verdict on "more like the owner". This replaces the original >= 0.05 pass criterion, per Claude/owner clarification on 2026-10-18. Report the 73-trade outcome of v2's 做 picks as
 description only (in-sample, cannot prove value). Nothing is deployed.
 
 ## Deliverables
