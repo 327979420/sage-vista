@@ -1595,3 +1595,12 @@
 - 交付：`task030-staging/v3w/veto_v1.py`、日志、6项测试及日志；`task030-staging/reports/veto-v1.{json,html}`、`losers-gallery-v1.html`（20+8张）、`validation.json`。work符号链接写入被拒绝，按授权暂存；先前停止记录保留供审计，不是最终状态。
 - 验证：6项针对性测试通过；逐笔特征/掩码/均值、覆盖标记、28张图卡与退出日边界、源文件哈希和自包含结构检查通过；git diff --check通过。Chrome headless退出134，未获得浏览器截图，不声称视觉验收。
 - Concerns：开发数据反复使用及多重尝试、跨周相关、全历史坏跳点筛查、覆盖/成本局限仍在；周典型价成交量是代理；短历史5笔可比性较弱；刻意挑选输家的图集不能用于证明规则有效。
+
+### CR-2026-10-19｜任务031：冻结3W交易的因子扫描
+
+- 授权：执行 `tasks/031-factor-scan.md`；用户补充按 |z| 降序，正负方向同等晋级且在发现段固定，已写入任务卡。离线、前台运行、无提交。
+- 实现：`task031-staging/v3w/factor_scan.py`；复用原因子评估器当前 hit/available 和任务030特征，发现段中位数固定后用于验证。`work/` 指向沙箱外，使用任务卡批准的 staging 路径。
+- 验收：500笔冻结成交凭证与净R全部重放匹配，任务030的1500个特征值全部匹配；发现233笔、验证267笔。6项新增测试、13项原因子测试通过；来源哈希未变，发现锁定文件与最终报告一致，HTML自包含静态检查通过，未做浏览器视觉验收。
+- 结果：37项扫描，27项可估排名；10项稀疏因子无一满足两侧各30笔，推断不可估时不补抽。晋级周MACD柱改善（避开）、突然放量（避开）、Fibonacci 0.5支撑（偏好）；Holm p分别0.5214、0.9646、0.4425，全部未通过，候选0项。任务030前高数、量比分别第11、23，筹码占比第26。
+- 产物：`task031-staging/reports/factor-scan-v1.{json,html}`、`factor-scan-v1-discovery-lock.json`、`verification.json`；运行日志 `task031-staging/v3w/factor_scan.log`。复现：`PYTHONPATH=. python3 -u task031-staging/v3w/factor_scan.py`（脚本保护已有最终报告，复现须使用另一个空产物目录/checkout）；测试：`PYTHONPATH=. python3 task031-staging/v3w/test_factor_scan.py`。
+- Concerns：500笔已多次用于开发；Holm不消除历史探索偏差。周抽样未覆盖跨周同股/重叠持仓依赖，沿用原股票池与已披露坏跳点筛选局限；没有调整生产或交易规则。

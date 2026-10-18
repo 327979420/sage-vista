@@ -13,6 +13,7 @@ continuous features split at their discovery-half median (fixed from the discove
 1. Discovery half = signals 2005-01..2014-12. For every factor: mean R with the tag minus mean R without; week-block bootstrap
    (10,000, seed 20261023). Rank by the bootstrap z. Take at most the top 3 with |difference| >= 0.15R and at least 30 trades on each
    side. Direction is fixed by discovery.
+   Owner clarification: rank descending by |z| = |mean-R difference| / bootstrap standard error; either sign can be promoted, and that sign is fixed for validation (avoid and prefer count equally).
 2. Validation half = signals 2015-01..2024-06. For each of the (<=3) promoted factors, the same difference in the SAME direction,
    one-sided week-block bootstrap (10,000, seed 20261024); Holm correction over the promoted factors at 0.05.
 3. A factor is a "candidate" only if it passes validation. Candidates are NOT added to the rules here; they go to a later registered
