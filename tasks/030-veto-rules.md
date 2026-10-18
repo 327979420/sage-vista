@@ -7,6 +7,7 @@ gap / FVG). Blind v2 hint: losers' signal-week volume ratio median 0.84 vs 1.00 
 ## Sample
 The 500 completed US events of research standard v1 (task 024, frozen 3w-1.9, US cost 0.1%), already used = development data.
 Point-in-time only: every feature uses data up to the signal week close.
+Owner-approved coverage convention (2026-10-19): retain all 500 trades; for DBX, HOOD, HOUS, PSUN and SWFT use the available 93–98 prior weeks without padding, label coverage in JSON/gallery, and resolve similar small coverage questions conservatively with disclosure unless the verdict definition would change.
 
 ## Features (fixed now)
 F1 overhead supply: weekly volume-at-price over the 104 weeks before the signal; share of that volume traded at prices between the
@@ -15,6 +16,7 @@ F2 overhead highs: number of swing highs (frozen `pivots` highs) in the 104 week
    price and the 3R target, excluding the three pushes.
 F3 signal-week volume ratio: signal-week volume / mean volume of the 10 prior weeks.
 Also describe (no test): an unfilled weekly gap (FVG) above the limit price within the target range (yes/no); stop distance in ATR.
+Owner-confirmed FVG convention (2026-10-19): use three-bar weekly FVGs within the 104 weeks up to the signal week, show only the remaining unfilled portions overlapping the limit-to-3R range, include both directions labelled bullish or bearish in the gallery, and keep this description outside the registered test.
 
 ## The registered test (ledger section 17 BEFORE computing anything)
 Veto rules (thresholds fixed now, terciles computed on the full 500 once):
