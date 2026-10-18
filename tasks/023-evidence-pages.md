@@ -26,3 +26,11 @@ Replace the "coming soon" for 3W 机会 with these. Phone layout per the prototy
 lint, typecheck, build, node + Python tests; the preview workflow's automatic screenshots must include /signals and /forward at 1440 and
 390 (add them to the page list). No production deploy. No network, no commits. Stop and ask before inventing a visual pattern that is
 neither in the prototype nor on the live site. Report: files, data schema, tests, Concerns.
+
+## Decisions (2026-10-18, Claude, answering Codex before any code)
+1. `lightweight-charts@4.1.3` is installed (exact pin in package.json; Claude ran npm with network).
+2. Random twins: reproduce the frozen sampling (same seeds and code path as `triangle_forward.py`) in the new projection to get each
+   twin's R, then the median and the share the signal beat. Cross-check the reproduced mean R against the recorded mean for every
+   signal; on any mismatch publish median/share as null with `"twins": "unverified"` and report it.
+3. Blind call scoring (defined now, before any real signal exists): 做 is right if the closed trade's R > 0; 不做 is right if R <= 0;
+   signals never filled or still open are "not yet scored". Show the rule under the table. The owner may change it later.
