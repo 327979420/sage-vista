@@ -13,6 +13,8 @@ export const catalog: Record<string, string> = {
   "后来怎么样": "What happened next",
   "结果 R": "Result R",
   "累计R图表框架": "Cumulative R chart frame",
+  "累计R图表": "Cumulative R chart",
+  "有信号平仓后，这里画出累计 R 曲线": "The cumulative R curve appears here once signals close",
   "示例": "Example",
   "下次检查：周五收盘后": "Next check: after Friday close",
   "前向记录：已记录": "Forward record:",

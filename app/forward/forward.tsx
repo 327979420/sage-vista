@@ -11,7 +11,7 @@ export function nextFriday(date:string) {
  return day.toISOString().slice(5,10);
 }
 export function CumulativeChart({points,example=false}:{points:Forward['cumulative_R'];example?:boolean}) {
- if(!points.length)return <Localized><figure className="svCumulative svForwardSample"><svg viewBox="0 0 640 220" role="img" aria-label="累计R图表框架"><path d="M40 20V170H600M40 95H600" fill="none" stroke="currentColor" opacity=".25"/><text x="8" y="174">0R</text><text x="320" y="90" textAnchor="middle">{example?'示例':'还没有已核验的平仓结果'}</text></svg></figure></Localized>;
+ if(!points.length)return <Localized><figure className="svCumulative"><div className="svCumulativeEmpty" role="img" aria-label="累计R图表">{example?'有信号平仓后，这里画出累计 R 曲线':'还没有已核验的平仓结果'}</div></figure></Localized>;
  const low=Math.min(0,...points.map(p=>p.R)),high=Math.max(0,...points.map(p=>p.R));
  const y=(v:number)=>170-(v-low)/(high-low||1)*140;
  const start=Date.parse(points[0].date),span=Date.parse(points[points.length-1].date)-start;

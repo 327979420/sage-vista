@@ -54,3 +54,53 @@
 .svStepDetail strong { margin-top:4px;font-size:12px;font-weight:600;color:var(--sv-ink); }
 .isMini .svOutcomeSteps { --step-size:24px;grid-template-columns:repeat(4,34px);min-width:136px;margin:3px 0; }
 .isMini .svStepNode svg { width:14px;height:14px; }
+
+/* Polish (Claude, 2026-10-18): cards here hold content directly, so give them the inner spacing the market cards get from their
+   header/body wrappers; one font stack for Latin + Chinese; a calmer type scale. */
+.svEvidence { font-family: var(--font-geist-sans), "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif; color:#24324a; }
+.svEvidence .cockpitCard { padding:24px 28px; gap:0; }
+.svEvidence .cockpitCard > h2, .svEvidence .cockpitCard h3 { margin:0 0 14px; font-size:15px; font-weight:600; color:#2c3c55; letter-spacing:0; display:flex; align-items:center; gap:10px; }
+.svEvidence .cockpitCard section + section h3 { margin-top:0; }
+.svEvidence .svTicketHead { margin:-4px 0 0; }
+.svEvidence .svTicketHead h2 { font-size:19px; font-weight:650; }
+.svEvidence .svAppWarning { margin:16px 0 4px; padding:10px 14px; border-radius:0 8px 8px 0; font-size:13px; }
+.svEvidence .svAppSource { font-size:12px; line-height:1.7; color:#7b889b; margin-top:14px; }
+.svEvidence .svEvidenceFigure { margin-top:22px; }
+.svEvidence .svEvidenceFigure figcaption { font-size:13px; color:#55657c; }
+.svEvidence .svEvidenceFigure small { display:block; margin-top:8px; }
+.svKeyChecks { margin-top:24px; padding-top:20px; border-top:1px solid #eef1f5; }
+.svKeyChecks .svEvidenceChecks li { border:1px solid #e8edf3; border-radius:10px; padding:12px 14px; background:#fafbfd; align-content:start; }
+.svEvidenceChecks li > span:nth-child(2) { font-weight:600; color:#33445e; font-size:13px; }
+.svEvidenceChecks .svCheckValue { margin-top:4px; line-height:1.5; }
+.svTicketColumns { margin-top:24px; padding-top:20px; border-top:1px solid #eef1f5; gap:40px; }
+.svEvidence .svOrder { gap:10px; margin:0; }
+.svEvidence .svOrder > div { border:1px solid #e8edf3; border-radius:10px; padding:10px 14px; background:#fafbfd; }
+.svOrder dt { color:#7b889b; }
+.svOrder dd { font-size:17px; color:#22324b; margin-top:4px; }
+.svOrder dd span { font-size:12px; font-weight:500; color:#7b889b; margin-left:2px; }
+.svStepperScroll { padding:14px 4px 4px; }
+.svAllChecks { margin-top:24px; padding-top:16px; }
+.svAllChecks summary { font-size:14px; color:#44546c; }
+.svAllChecks > .svEvidenceChecks { margin-top:12px; }
+.svAllChecks .svEvidenceChecks li { padding:10px 2px; }
+.svAnchors { margin-top:14px; line-height:1.8; }
+.svEvidence .cockpitEmpty { padding:24px; min-height:0; gap:6px; }
+.svEvidence .cockpitEmpty strong { font-size:15px; font-weight:600; color:#55657c; }
+.svEvidence .cockpitEmpty p { margin:0; font-size:13px; }
+.svForwardTiles .cockpitCard { padding:18px 20px; margin:0; }
+.svForwardTiles span { font-size:12px; }
+.svForwardTiles strong { font-size:26px; font-weight:600; color:#22324b; font-variant-numeric:tabular-nums; margin-top:8px; }
+.svCumulativeEmpty { display:grid; place-items:center; height:180px; border:1px dashed #d8dfe8; border-radius:12px; background:repeating-linear-gradient(135deg,#fafbfd,#fafbfd 12px,#f6f8fb 12px,#f6f8fb 13px); color:#8a97a8; font-size:13px; }
+.svCumulative svg { max-height:300px; }
+.svCumulative text { font-size:11px; }
+.svForwardTable { margin:0 -4px; }
+.svForwardTable th { font-size:12px; font-weight:600; color:#5d6c82; background:#f6f8fb; }
+.svForwardTable td, .svForwardTable th { padding:12px 14px; }
+.svForwardTable small { font-size:11px; margin-top:3px; }
+.svTicketList > div { gap:8px; }
+.svTicketList button { padding:10px 14px; font-size:13px; }
+@media(max-width:700px) {
+  .svEvidence .cockpitCard { padding:18px 16px; }
+  .svTicketColumns { gap:24px; }
+  .svOrder dd { font-size:16px; }
+}
