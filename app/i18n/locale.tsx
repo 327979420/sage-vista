@@ -21,7 +21,7 @@ export function LocaleProvider({initialLocale = DEFAULT_LOCALE, children}: {init
  useEffect(() => {
   document.documentElement.lang = locale === 'en' ? 'en' : 'zh-CN';
   const titles: Record<string, [string, string]> = {
-   '/signals':['信号凭证','Signal Evidence'], '/forward':['前向记录','Forward Record'],
+   '/patterns':['形态速览','Daily Setups'], '/signals':['信号凭证','Signal Evidence'], '/forward':['前向记录','Forward Record'],
    '/portfolio':['我的组合','My Portfolio'], '/opportunities':['3W 机会','3W Opportunities'], '/scorecard':['成绩单','Scorecard'], '/learn':['学习','Learn'], '/archive':['研究档案','Research Archive'],
    '/': ['今日', 'Today'], '/zh/watch/market': ['大盘', 'Market'],
    '/zh/watch/industry-radar': ['行业', 'Sectors'],

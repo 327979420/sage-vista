@@ -2,7 +2,8 @@
 import {Localized} from '../i18n/locale';
 import type {Check,Ticket} from './data';
 import {EvidenceChart} from './chart';
-import {num,rText,Status} from './shared';
+import {OutcomeStepper} from './stepper';
+import {num,Status} from './shared';
 const labels:Record<string,string>={weekly_history:'周线历史足够',bullish_week:'信号周收阳',cooldown:'距上次形态至少13周',golden_cross:'金叉前至少4周在DEA下方',push_line:'三推下降线',bottoms:'底部结构',bottom_before_signal:'最后底部早于信号',near_bottom:'靠近最后底部',converging:'上下边界收敛',pullback_pct:'回撤10%—60%',flat_bottom_pct:'最后底部不高于最低底10%',bottom_count:'至少两个底部',not_three_year_low:'未显著跌破前三年低点',shape_stop_atr:'形态止损距离足够',target_at_least_7pct:'最近目标至少高7%',shape_reward_to_risk:'形态盈亏比或调整条件',shape_helper:'完整形态核对',dif_under_zero:'DIF在零轴下',signal_window:'信号在记录窗口内',tradable_pool:'价格、历史与成交额门槛',plan_stop:'限价及止损计划',plan_geometry:'止损、限价、目标顺序有效',monthly_macd_veto:'月线MACD不否决',plan_reward_to_risk:'计划盈亏比至少1.5',spy_over_200d:'SPY高于200日均线',breadth_over_half:'超过一半股票高于200日线'};
 export function checkValue(c:Check) {
  if(typeof c.value==='number')return num(c.value,4);
@@ -44,14 +45,11 @@ export function KeyChecks({checks}:{checks:Check[]}) {
 export function TicketView({ticket,chart=true}:{ticket:Ticket;chart?:boolean}) {
  const t=ticket,o=t.outcome;
  return <Localized><article className="cockpitCard svTicket" aria-label="信号凭证详情"><header className="svTicketHead"><h2>{t.symbol} · <span>信号凭证</span></h2>{t.example&&<span className="svEvidenceChip isWarning">历史示例 · 冻结规则重算</span>}<Status status={o.status}/><span className="svAppMeta">{t.signal_week} · {t.version}</span></header>
- {t.example&&<p className="svAppWarning">这是历史示例，不计入真实前向信号或成绩。成交、退出和R按冻结规则重算。</p>}
+ {t.example&&<p className="svAppWarning">历史示例，不计入真实前向信号。</p>}
  {chart&&<EvidenceChart ticket={t}/>}
  <KeyChecks checks={t.checks}/>
- <div className="svTicketColumns"><section><h3>订单计划</h3><dl className="svOrder"><div><dt>限价</dt><dd>{num(t.order.limit)}</dd></div><div><dt>止损</dt><dd>{num(t.order.stop)}</dd></div><div><dt>目标 · 3R</dt><dd>{num(t.order.target)}</dd></div><div><dt>每股风险 · 1R</dt><dd>{num(t.order.R)}</dd></div><div><dt>有效至（估计）</dt><dd>{t.order.valid_until}</dd></div><div><dt>最长持有</dt><dd>{t.order.max_hold_sessions} <span>交易日</span></dd></div></dl><p>{t.order.eligible?'信号通过挂单条件。':'这张信号不满足挂单条件。'}</p><p className="svAppSource">有效期按40个交易日；临时休市或缺价可能改变实际日期。</p></section>
- <section><h3>后来怎样</h3><ol className="svOutcomeSteps"><li><span>信号</span> {t.signal_day}</li><li><span>成交</span> {o.fill_date??'—'}</li><li><span>退出</span> {o.exit_date??'—'}</li><li><Status status={o.status}/> {rText(o.R)}</li></ol>
- {o.status==='unverified'&&<p className="svAppWarning">结果尚未通过记录核验，日期、退出价和R暂不展示。</p>}
- {o.status==='closed'&&<p><span>退出价</span> {num(o.exit)} · <span>结果</span> {rText(o.R)}</p>}
- {o.status==='filled'&&<p><span>最新估值（未平仓）</span> {num(o.mark)} · {o.mark_date??'—'}</p>}</section></div>
+ <div className="svTicketColumns"><section><h3>订单计划</h3><dl className="svOrder"><div><dt>限价</dt><dd>{num(t.order.limit)}</dd></div><div><dt>止损</dt><dd>{num(t.order.stop)}</dd></div><div><dt>目标 3R</dt><dd>{num(t.order.target)}</dd></div><div><dt>每股风险</dt><dd>{num(t.order.R)}</dd></div><div><dt>挂单到期</dt><dd>{t.order.valid_until}</dd></div><div><dt>最长持有</dt><dd>{t.order.max_hold_sessions} <span>交易日</span></dd></div></dl><p className="svAppSource">{t.order.eligible?'挂单到期为估计日期。':'不满足挂单条件。'}</p></section>
+ <section><h3>后来怎么样</h3><OutcomeStepper status={o.status} signalDate={t.signal_day} fillDate={o.fill_date} exitDate={o.exit_date} exitPrice={o.exit} R={o.R} outcome={o.source_status}/></section></div>
  <details className="svAllChecks"><summary>{`全部 ${t.checks.length} 条`}</summary><ul className="svEvidenceChecks">{t.checks.map(c=><li key={c.id}><span className={c.pass?'isPass':'isFail'} aria-label={c.pass?'通过':'未通过'}>{c.pass?'✓':'×'}</span><span>{labels[c.id]??c.id}</span><span className="svCheckValue">{checkValue(c)}</span></li>)}</ul>
  <div className="svAnchors"><p><strong>三推</strong> {t.pushes.map((p,i)=><span key={p.date}>{i+1}: {p.date} · {num(p.price)} </span>)}</p><p><strong>底部</strong> {t.bottoms.map((p,i)=><span key={p.date}>{i+1}: {p.date} · {num(p.price)} </span>)}</p></div></details></article></Localized>;
 }

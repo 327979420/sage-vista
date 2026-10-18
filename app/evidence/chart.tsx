@@ -57,5 +57,5 @@ export function EvidenceChart({ticket}:{ticket:Ticket}) {
   }).catch(()=>{if(active)setFailed(true)});
   return()=>{active=false;observer?.disconnect();price?.remove();macd?.remove()};
  },[ticket,locale]);
- return <Localized><figure className="svEvidenceFigure"><figcaption>周线凭证 · 价格与 MACD 同步</figcaption><div ref={priceRef} className="svPriceChart" role="img" aria-label="周线蜡烛图、三推、底部、信号和订单价位"/><div ref={macdRef} className="svMacdChart" role="img" aria-label="周线 DIF 与 DEA"/>{failed&&<p role="status">图表暂时无法加载，证据数值仍可查看。</p>}<small>蜡烛只显示截至信号周的数据；右侧12周为空白观察区。</small><p className="svAppSource">TradingView Lightweight Charts™ · <a href="https://www.tradingview.com/" target="_blank" rel="noreferrer">TradingView</a></p></figure></Localized>;
+ return <Localized><figure className="svEvidenceFigure"><figcaption>周线凭证 · 价格与 MACD 同步</figcaption><div ref={priceRef} className="svPriceChart" role="img" aria-label="周线蜡烛图、三推、底部、信号和订单价位"/><div ref={macdRef} className="svMacdChart" role="img" aria-label="周线 DIF 与 DEA"/>{failed&&<p role="status">图表暂时无法加载，证据数值仍可查看。</p>}<small>蜡烛只显示截至信号周的数据；右侧12周为空白观察区。</small></figure></Localized>;
 }

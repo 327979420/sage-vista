@@ -9,6 +9,7 @@ export const PAGES = [
   {name: 'portfolio', path: '/portfolio'},
   {name: 'signals', path: '/signals'},
   {name: 'forward', path: '/forward'},
+    {name: 'patterns', path: '/patterns'},
   {name: 'reference', path: '/zh/watch/resonance/rare-opportunities'},
 ];
 export const VIEWPORTS = [{width: 1440, height: 900}, {width: 390, height: 844}];

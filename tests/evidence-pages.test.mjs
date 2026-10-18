@@ -53,7 +53,7 @@ test('index is newest first and does not mutate the input',()=>{
 const row={id:'test',symbol:'ABC',signal_week:'2026-10-02',status:'closed',moves:{'1w':{date:'2026-10-09',move_pct:10},'4w':null,'13w':null},outcome:'target',R:3,exit_date:'2026-10-16',random:{twins:'verified',sampled:30,closed:20,median_R:-1,beat_share:.75,mean_R:0},blind:{choice:'do',score:'right',judged_at:null,judged_after_fill:false}};
 test('forward empty state, verified and mismatched twins, scoring rule and own scroll region',()=>{
  const html=render(ForwardView,{data:forward});
- for(const text of ['还没有真实前向信号','每周五收盘后','未成交或仍持仓','287','0.44R'])assert.ok(html.includes(text),text);
+ for(const text of ['还没有真实前向信号','下次检查：周五收盘后','未成交或仍持仓','287','0.44R'])assert.ok(html.includes(text),text);
  const report={...forward,signals:[row],cumulative_R:[{date:'2026-10-16',R:3}],summary:{signals:1,closed:1,average_R:3,win_rate:1,beat_random_share:.75,beat_random_signals:1}};
  assert.ok(data.validForward(report));
  const active=render(ForwardView,{data:report});
@@ -94,3 +94,44 @@ test('ticket prioritizes full-width chart, five checks, order/outcome, then coll
  assert.ok(futureWeeks(ticket.signal_week).every(b=>Object.keys(b).join()==='time'));
  const css=fs.readFileSync('app/evidence/style.css','utf8');assert.ok(css.includes('height:420px'));assert.ok(css.includes('height:300px'));
 });
+
+ test('next check uses record date and always advances to the next Friday',()=>{
+ const {nextFriday}=load('app/forward/forward.tsx');
+ for(const [date,expected] of [['2026-10-18T09:10:48Z','10-23'],['2026-10-23','10-30'],['2026-12-31','01-01']])assert.equal(nextFriday(date),expected);
+ const html=render(ForwardView,{data:forward});assert.ok(html.includes('10-23'));assert.ok(html.includes('svForwardSample'));
+ const {ForwardSummary}=load('app/app/today.tsx');
+ const summary=render(ForwardSummary,{data:forward});assert.ok(summary.includes('href="/forward"'));assert.ok(summary.includes('2026-10-18'));
+ assert.doesNotMatch(render(ForwardSummary,{data:forward},'en'),/[\u3400-\u9fff]/);
+ });
+
+test('ticket uses six order fields and one four-stage outcome without body credit',()=>{
+ const html=render(TicketView,{ticket});
+ const order=html.split('<dl class="svOrder">')[1].split('</dl>')[0];
+ assert.equal((order.match(/<dt>/g)||[]).length,6);
+ const timeline=html.split('<ol class="svOutcomeSteps"')[1].split('</ol>')[0];
+ assert.equal((timeline.match(/<li /g)||[]).length,4);
+ assert.equal((html.match(/-1.00R/g)||[]).length,1);
+ assert.ok(!html.includes('TradingView Lightweight Charts'));
+ assert.ok(fs.readFileSync('app/site-footer.tsx','utf8').includes('https://www.tradingview.com/'));
+});
+
+ test('stepper distinguishes waiting, open, terminal and unverified outcomes',()=>{
+ const {OutcomeStepper}=load('app/evidence/stepper.tsx');
+ const base={signalDate:'2026-10-02',fillDate:'2026-10-05',exitDate:'2026-10-16',fillPrice:10,exitPrice:13,R:3};
+ for(const [status,done,current] of [['waiting',1,1],['open',2,1],['filled',2,1],['closed',4,1],['cancelled',1,0],['skipped',1,0],['unverified',1,0]]){
+  const html=render(OutcomeStepper,{...base,status});
+  assert.equal((html.match(/class="isDone/g)||[]).length,done,status);
+  assert.equal((html.match(/aria-current="step"/g)||[]).length,current,status);
+  assert.equal((html.match(/<svg/g)||[]).length,4);
+  if(status!=='closed'){assert.ok(html.includes('data-result="neutral"'));assert.ok(!html.includes('3.00R'));assert.ok(!html.includes('2026-10-16'));}
+ }
+ const {stepIcons}=load('app/site-icon.tsx');
+ for(const [outcome,R,colour,icon] of [['win',3,'positive','target'],['loss',-1,'negative','stop'],['time',.5,'positive','time'],['time',-.5,'negative','time'],['time',0,'neutral','time']]){
+  const props={...base,status:'closed',outcome,R};const html=render(OutcomeStepper,props);
+  assert.ok(html.includes(`data-result="${colour}"`));assert.ok(html.includes(`d="${stepIcons[icon]}"`));
+  const mini=render(OutcomeStepper,{...props,mini:true});assert.ok(mini.includes('isMini'));assert.ok(!mini.includes('<time>'));assert.ok(!mini.includes('<strong>'));assert.equal((mini.match(/<svg/g)||[]).length,4);
+  assert.doesNotMatch(render(OutcomeStepper,props,'en'),/[\u3400-\u9fff]/);
+ }
+ const report={...forward,signals:[row]};assert.ok(render(ForwardView,{data:report}).includes('svStepperScroll isMini'));
+ const unknown=render(OutcomeStepper,{status:'filled',signalDate:'2026-10-02',R:null});assert.ok(!unknown.includes('NaN'));assert.ok(unknown.includes('—'));
+ });

@@ -1,5 +1,23 @@
 // Reviewed display translations. Business identifiers and saved artifacts stay unchanged.
 export const catalog: Record<string, string> = {
+  "3W 信号": "3W Signals",
+  "形态速览": "Daily Setups",
+  "更多": "More",
+  "网站导航": "Site navigation",
+  "历史示例，不计入真实前向信号。": "Historical example; excluded from forward signals.",
+  "目标 3R": "Target 3R",
+  "每股风险": "Risk per share",
+  "挂单到期": "Order expires",
+  "挂单到期为估计日期。": "Expiry date is estimated.",
+  "不满足挂单条件。": "Order conditions not met.",
+  "后来怎么样": "What happened next",
+  "结果 R": "Result R",
+  "累计R图表框架": "Cumulative R chart frame",
+  "示例": "Example",
+  "下次检查：周五收盘后": "Next check: after Friday close",
+  "前向记录：已记录": "Forward record:",
+  "个信号，最近一次检查": "signals recorded; last checked",
+
   "历史示例 · 冻结规则重算": "Historical example · frozen-rule replay",
   "这是历史示例，不计入真实前向信号或成绩。成交、退出和R按冻结规则重算。": "This historical example is excluded from real forward signals and results. Fill, exit and R are recomputed under frozen rules.",
   "底部平": "Flat bottoms",
