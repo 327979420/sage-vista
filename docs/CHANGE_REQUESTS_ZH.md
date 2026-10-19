@@ -1650,3 +1650,13 @@
 - 验证：`python3 -m unittest tests.test_japan_screen tests.test_screen tests.test_eodhd_client tests.test_research_lab tests.test_datasets_repo -q`：97项，96通过、1跳过；新增16项全部通过。首次运行因缺机器登记失败，补登记后通过。另用`git show HEAD:research/lab/screen.py`加载旧模块，与当前模块分别运行US/HK合成样例（含重复/失败重试/空历史/名称关键词）：result、stats、failed、render报告、分片文件完全相同。`git diff --check`通过。
 - Claude触发前：审查本地diff、预登记和上述约定；运行仅`data-jp-universe-v1`，不得提前运行考试。冻结前STOP 2审查全部review_flags及provider名称、失败/空历史/未决公司数量；如调整，先写带日期说明，再使用价格生成信号。确认>2000才按20261019分组，B锁定；本轮未建Step2 spec。信号/成交/退出均为1306交易日的检查只预登记，属于Step3。
 - Concerns：provider退市覆盖、类型/名称可能不完整；子串可能误杀公司；company key不是公司身份核验；复权与TOPIX ETF代理局限仍在。真实TSE接口尚未在线验证。已有timeframe.py未关闭文件ResourceWarning未改；套件“Waiting 20 minutes”来自模拟调度测试，没有真实等待/发布。未暂存/提交，无生产及冻结文件修改。
+
+### CR-2026-10-19-kr-exam-step1｜Task043 韩国考试 Step 1
+
+- 授权：仅在sv-wt-036、codex/kr-exam、基点b849055实现Step 1，停在STOP 1；无网络，不暂存/提交，不改冻结代码或.github。
+- 交付：08规则1.64.0 `#kr-exam` 与账本§17逐字固定值、Step3判据预登记；记录037因无日本覆盖关闭。新增KO/KQ联合screen spec和三份机器登记；screen扩展及16项合成测试。eodhd原实现无需修改；既有日本测试只修正停放spec路径。
+- 工程口径：股票身份始终带.KO/.KQ；公司键保留六位及前导零，只去点后缀。遇非六字符代码直接报错，不补零或猜身份。第六位非0计入“非普通股代码”；各名称词按唯一板块代码计数，原因可重叠，并报告并集。代理069500即使被误标Common Stock也排除。US参考股票名不作为韩国排除列表。
+- 去重：沿用037有效日线定义（合法日期、正且有限OHLC/adjusted_close、有限非负量、重复日期仅首条有效行）；只统计2005-01-01..2025-06-30有效日线，最多者胜，同数KO。重试后失败别名覆盖未知，同公司成功代码列unresolved_company而不替代。good_sessions下载时计数，门槛只在选定代表后应用，不回退更短的高流动性板块。
+- 验证：`TMPDIR="$PWD/work/kr-step1/tmp" PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests.test_korea_screen tests.test_japan_screen tests.test_screen tests.test_eodhd_client tests.test_research_lab tests.test_datasets_repo -q`：114项，113通过/1跳过。新增16项全部通过；字节回归用git show b849055加载旧模块，在US/HK/TSE各开启/关闭重试共6组合成输入上比较result/stats/failed序列化、REPORT及分片文件字节。保护文件与b849055逐字节核对，证据work/kr-step1/protected.json；git diff --check通过。未读真实价格，未运行screen队列或收益研究。
+- Claude触发前：核查diff、逐字预登记、六字符报错约定、失败别名处理；确保Actions检出合并后的版本，选择仅data-kr-universe-v1，不能触发已停放日本spec或考试。KO/KQ请求均截至2025-06-30，suffix只一次；真实provider接口未在线验证。STOP 2冻结前审查全部review_flags、类型/名称排除、失败/空历史/未决公司；如改规则先记日期。分片不是A/B；分组与冻结另按Step2，min_history420及代理交易日检查属后续考试。
+- Concerns：退市覆盖可能不全；名称子串可能误杀或漏掉非普通股；公司键只是代码代理；全窗口覆盖/流动性筛选含事后样本选择局限。涨跌停使止损可能无法成交、KOSDAQ小盘、069500代理适配按卡保留，不建新模型。既有timeframe.py ResourceWarning未修；测试“Waiting 20 minutes”来自mock，没有等待/发布。无策略结论。

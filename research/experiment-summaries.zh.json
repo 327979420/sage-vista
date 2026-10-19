@@ -720,6 +720,16 @@
    "use_zh": "用于冻结 3w-1.9 的独立日股考试；不是策略收益结果。",
    "next_zh": "STOP 1 待 Claude 核查并触发 screen；冻结前复核所有提示代码。",
    "verdict": "pre_registered"
-  }
+  },
+  "lab-data-kr-universe-v1-2026-10-19": {
+   "title_zh": "3W 韩股考试股票池预登记",
+   "family": "data",
+   "family_zh": "数据工程",
+   "question_zh": "KO/KQ联合筛选、公司去重后是否达到覆盖门槛？",
+   "result_zh": "尚未运行；仅Step 1工程准备。",
+   "use_zh": "冻结3w-1.9的独立韩国考试，不是收益结果。",
+   "next_zh": "STOP 1待Claude核查；STOP 2冻结前审查提示名称。",
+   "verdict": "pre_registered"
+}
  }
 }

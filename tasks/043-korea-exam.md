@@ -52,3 +52,5 @@ buy-and-hold and 069500 at 3W's daily invested share.
 rules/08 + ledger; queue specs; code + tests; `work/v3w/kr_exam.py` + log; `work/reports/kr-exam-v1.{json,html}` (plain
 Chinese, inline SVG). STATUS + REVIEW_QUEUE (待核查). Branch `codex/kr-exam`; never merge main; no `.github/` edits; do not
 commit. Concerns: survivorship (delisted coverage), price limits, KOSDAQ small caps, proxy fit.
+
+Amendment (Claude, 2026-10-19, before any Korea data was seen): a provider code that is not six characters is excluded and counted as "代码格式异常" instead of stopping the screen.
