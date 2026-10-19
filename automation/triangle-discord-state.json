@@ -1,1 +1,9 @@
-{"schema_version": 1, "notifications": {}}
+{
+  "notifications": {
+    "simulation:3w-1.9:brief-v1": {
+      "reserved_at": "2026-10-19T00:27:12.652964+00:00",
+      "status": "reserved"
+    }
+  },
+  "schema_version": 1
+}
