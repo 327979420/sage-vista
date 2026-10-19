@@ -7,16 +7,24 @@ class ProductConsolidationTests(unittest.TestCase):
   self.assertFalse((ROOT/"app/stock-board.tsx").exists())
   self.assertFalse((ROOT/"app/data.ts").exists())
   root=(ROOT/"app/page.tsx").read_text()
-  self.assertNotIn("StockBoard",root);self.assertIn("./zh/watch/resonance/rare-opportunities/page",root)
+  self.assertNotIn("StockBoard",root);self.assertIn("./app/today",root)
+  self.assertIn("export default TodayPage;",root)
 
- def test_navigation_has_the_four_current_products(self):
+ def test_legacy_products_remain_available_with_current_navigation(self):
   nav=(ROOT/"app/zh/watch/resonance/tracker-ui.tsx").read_text()
   self.assertNotRegex(nav,re.compile(r"US Equity Signals|Signal Board|个股研究",re.I))
   for label in ("大盘","多因子机会","我最喜欢形态","行业"):self.assertIn(label,nav)
   self.assertNotIn("历史与实验",nav)
   self.assertFalse((ROOT/"app/zh/watch/resonance/macd/page.tsx").exists())
   self.assertNotIn("/zh/watch/resonance/macd",(ROOT/"app/layout.tsx").read_text())
-  self.assertIn("/zh/watch/resonance/favorite-pattern",(ROOT/"app/layout.tsx").read_text())
+  layout=(ROOT/"app/layout.tsx").read_text()
+  self.assertIn("import SiteNavigation from './site-navigation'",layout)
+  self.assertIn("<SiteNavigation/>",layout)
+  current=(ROOT/"app/site-navigation.tsx").read_text()
+  for label,path in (("今日","/"),("3W 信号","/signals"),("前向记录","/forward"),
+                     ("形态速览","/patterns"),("我的组合","/portfolio"),("成绩单","/scorecard")):
+   self.assertIn(f"['{label}', '{path}']",current)
+  self.assertIn("/zh/watch/resonance/favorite-pattern",current)
 
  def test_fast_production_json_fetches_are_no_store(self):
   consumers={

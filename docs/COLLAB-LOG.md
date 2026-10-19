@@ -33,3 +33,5 @@ Claude directs and accepts; Codex implements (Codex plugin). Each round: task ca
 - 用户确认短版模板；新增独立 Actions 模拟入口和 PR 测试。模拟仅使用 TEST 虚构价格，独立去重，不触发历史研究。GitHub Secret 名称 DISCORD_OPPORTUNITY 已实时核实存在，未读取或输出值。
 
 - 用户明确答复“本次允许例外，检查通过后合并发送”。例外限本次合并及一条模拟消息，手动 workflow 需显式 allow_eod_window=true，生产通知默认保护不变。
+
+- CI 发现 main 原有两条过时页面断言（旧首页导向与导航内联位置），并导致 release-contract 的嵌套测试失败；对应应用文件与 main 无差异，已本地复现。仅更新 tests/test_product_consolidation.py 为 main 现有 TodayPage／SiteNavigation 合同，保留旧页面退役及兼容检查，不修改网站或策略。
