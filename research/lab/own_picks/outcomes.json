@@ -1,0 +1,73 @@
+{
+  "verdict": "继续记录，未证明",
+  "completed": 0,
+  "scored": 0,
+  "unscorable": 0,
+  "mismatched": 0,
+  "no_frozen_check": 0,
+  "checkpoint": false,
+  "checkpoints": [],
+  "next_checkpoint": 30,
+  "to_go": 30,
+  "mean_d": null,
+  "t": null,
+  "alarm1": false,
+  "alarm2": "未提供",
+  "win_rate": null,
+  "payoff_ratio": null,
+  "profit_factor": null,
+  "mean_net_R": null,
+  "random_net_R": null,
+  "gross_check": null,
+  "paper": {
+    "status": "未提供"
+  },
+  "rows": [],
+  "all_trades": {
+    "completed": 0,
+    "net_R_available": 0,
+    "win_rate": null,
+    "mean_net_R": null,
+    "payoff_ratio": null,
+    "profit_factor": null
+  },
+  "registered": 0,
+  "cancel_events": 0,
+  "status_counts": {
+    "waiting": 0,
+    "cancelled": 0,
+    "open": 0,
+    "win": 0,
+    "loss": 0,
+    "time": 0
+  },
+  "triangle": {
+    "verdict": "继续记录，未证明",
+    "completed": 0,
+    "scored": 0,
+    "unscorable": 0,
+    "mismatched": 0,
+    "no_frozen_check": 0,
+    "checkpoint": false,
+    "checkpoints": [],
+    "next_checkpoint": 30,
+    "to_go": 30,
+    "mean_d": null,
+    "t": null,
+    "alarm1": false,
+    "alarm2": "未提供",
+    "win_rate": null,
+    "payoff_ratio": null,
+    "profit_factor": null,
+    "mean_net_R": null,
+    "random_net_R": null,
+    "gross_check": null,
+    "paper": {
+      "status": "未提供"
+    },
+    "rows": []
+  },
+  "computed_at": "2026-10-19T06:46:59.089827+00:00",
+  "price_as_of": "2026-10-18",
+  "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}
