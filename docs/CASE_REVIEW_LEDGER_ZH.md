@@ -1553,6 +1553,38 @@ Always report win rate, payoff ratio, profit factor, mean R, exposure, max drawd
 
 工程边界：本轮只预登记、准备 screen spec、交易所适配与过滤测试；STOP 1 等 Claude 核查后触发 Actions。分组及冻结数据集属 Step 2；1306 信号/成交/退出日检查属 Step 3，不在 screen 中计算信号或收益。
 
+### 3W 韩股考试（2026-10-19 登记，看到任何韩股数据前）
+- Amendment (Claude, 2026-10-19, before any Korea data was seen): a provider code that is not six characters is excluded and counted as "代码格式异常" instead of stopping the screen.
+
+Task037 已关闭：provider 无日本覆盖；没有下载日本数据，原 spec 保留在 queue-parked。Task043 仅执行 Step 1，停在 STOP 1。
+
+   - Exchanges: EODHD `KO` and `KQ`, screened as ONE universe. Provider Type == "Common Stock" only, listed and delisted;
+     tickers in both the listed and delisted list of the same exchange left out (reused codes).
+   - Company key = the 6-character code (suffix after "." removed). A company listed on both KO and KQ over time (board move)
+     keeps the listing with the most valid daily bars in 2005-01-01..2025-06-30 (tie -> KO); dedupe before the liquidity screen.
+   - Preferred shares: KRX common-share codes end in "0"; exclude any code whose 6th character is not "0" (preferred and other
+     classes), counted as "非普通股代码".
+   - Name exclusions (case-insensitive): ETF, ETN, REIT, FUND, INDEX, SPAC, ACQUISITION, KODEX, TIGER, 스팩, 리츠. Count each.
+     Review flag only (not an exclusion): list every kept name containing PREF, 우, HOLDINGS or 지주 for Claude at STOP 2.
+   - Korea pool (US pool translated, fixed before any Korea data): unadjusted close ≥ ₩1,000; ≥ ₩13 billion traded per day
+     (≈ US$10M at 1,300 KRW/USD); min_sessions 60 in 2005-01..2025-06; min_history 420 as HK.
+   - Market proxy: KODEX 200 ETF `069500` (KO), replacing SPY in the market filter (same code path as HK's 2800); never a
+     candidate. Exclude a candidate whose signal, fill or exit day is not a 069500 session.
+   - Cost 0.2% per side (same as HK; covers the sell-side transaction tax).
+   - Group split: if more than 2,000 companies are kept, split A/B like ADR-2 (sorted, `random.Random(20261019)`, A = first
+     ceil(n/2)); B LOCKED. Otherwise use all.
+   - Pre-2005 prices: indicator warm-up only.
+   - Known limitation (report, do not model): daily price limits (±15% before 2015-06-15, ±30% after) can make a stop
+     unfillable at the stop price on a limit-down day; the frozen daily-OHLC fill rules are kept unchanged.
+
+As Task 010/037: frozen pipeline, signals 2005-01-01..2024-06-30, accounts marked to 2025-06-30; 100,000 start, 2% risk,
+20% cap, 10 positions, 10% heat; 1,000 random accounts (same-day random Korea-pool stock per taken signal); benchmarks 069500
+buy-and-hold and 069500 at 3W's daily invested share.
+**Verdict (pre-registered):** PASS if full-period Sharpe p ≤ 0.05 vs random AND at least 100 trades; under 100 trades
+"样本不足，未证明". Everything else descriptive; always report win rate, payoff, profit factor, mean R, exposure, max drawdown.
+
+工程边界：仅准备联合股票池 screen；分组、冻结、代理交易日检查和考试执行留待后续步骤。有效日线及失败别名处理沿用 Task037；带 KO/KQ 后缀保留板块身份，不剥离前导零。
+
 ## 十四、以后每张案例卡的固定格式
 
 ```text

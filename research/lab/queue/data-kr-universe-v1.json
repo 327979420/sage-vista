@@ -1,0 +1,55 @@
+{
+  "id": "data-kr-universe-v1",
+  "experiment_id": "lab-data-kr-universe-v1-2026-10-19",
+  "kind": "screen",
+  "question": "Korea KO + KQ common-stock universe engineering screen; company dedupe before liquidity. No signals or returns.",
+  "dataset": {
+    "id": "universe-1985-v1",
+    "builder": "universe",
+    "symbols_file": "research/lab/universes/observation-2005-2025-v1.txt",
+    "extra_symbols": [
+      "AEVA",
+      "BTDR",
+      "CGEM",
+      "POWL",
+      "BEKE"
+    ],
+    "start": "1985-01-01"
+  },
+  "group": "data",
+  "fetch_start": "2004-01-01",
+  "window": [
+    "2005-01-01",
+    "2025-06-30"
+  ],
+  "pool": {
+    "min_close": 1000.0,
+    "min_dollar_volume": 13000000000.0
+  },
+  "raw_price_floor": true,
+  "min_sessions": 60,
+  "workers": 3,
+  "attempts": 5,
+  "retry_failed": true,
+  "shard_size": 4000,
+  "shard_dir": "research/lab/universes",
+  "shard_prefix": "kr-2005-2025-v1",
+  "criteria": {
+    "max_error_share": 0.02,
+    "min_kept": 300
+  },
+  "requires": [],
+  "next_step": "STOP 1: Claude reviews, merges and triggers this screen only. STOP 2: review flags before freezing; >2000 companies split sorted/random.Random(20261019), A first ceil(n/2), B locked. No Step 2 spec yet.",
+  "notes": [
+    "Task043 fixed values: docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#kr-exam and ledger section 17. Task037 closed: no Japan coverage.",
+    "Provider Common Stock only; six-character company key preserves leading zeros, sixth character 0; same-exchange reused codes excluded.",
+    "Name exclusions ETF/ETN/REIT/FUND/INDEX/SPAC/ACQUISITION/KODEX/TIGER/스팩/리츠; kept PREF/우/HOLDINGS/지주 names flagged only.",
+    "Most valid daily bars in window wins across KO/KQ, tie KO, before liquidity. Failed alias coverage unresolved; no substitution.",
+    "Screen min_sessions 60; frozen exam min_history 420, raw close 1000 KRW, turnover 13 billion KRW, 069500.KO proxy never a candidate, cost 0.2% per side.",
+    "Pre-2005 warm-up only. Daily price limits remain a reported limitation; no signals or returns."
+  ],
+  "exchanges": [
+    "KO",
+    "KQ"
+  ]
+}

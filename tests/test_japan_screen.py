@@ -20,7 +20,7 @@ def stock(code, name='Company', kind='Common Stock'):
 
 class JapanScreenTests(unittest.TestCase):
     def spec(self):
-        spec = json.loads(pathlib.Path('research/lab/queue/data-jp-universe-v1.json').read_text())
+        spec = json.loads(pathlib.Path('research/lab/queue-parked/data-jp-universe-v1.json').read_text())
         spec.update(min_sessions=1, workers=1, shard_dir='u')
         spec['criteria'] = dict(max_error_share=.02, min_kept=1)
         return spec

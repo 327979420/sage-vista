@@ -101,6 +101,76 @@ def jp_review_flags(kept, names):
     return flags
 
 
+KR_NAME_EXCLUSIONS = ("ETF", "ETN", "REIT", "FUND", "INDEX", "SPAC", "ACQUISITION", "KODEX", "TIGER", "스팩", "리츠")
+KR_REVIEW_TERMS = ("PREF", "우", "HOLDINGS", "지주")
+
+
+def kr_company_key(code):
+    return str(code).split(".", 1)[0]
+
+
+def kr_candidates(listed, delisted):
+    """Exchange-keyed provider lists; qualified identities keep board moves distinct."""
+    names = {}
+    bad_type, bad_class, proxy, reused, bad_format = set(), set(), set(), set(), set()
+    matches = {term: set() for term in KR_NAME_EXCLUSIONS}
+    live, gone = set(), set()
+    for board in ("KO", "KQ"):
+        for source, target in ((listed[board], live), (delisted[board], gone)):
+            for row in source:
+                if row.get("Code") is None:
+                    continue
+                key = kr_company_key(row["Code"])
+                code = f"{key}.{board}"
+                if len(key) != 6:
+                    # Amendment 2026-10-19 (Claude, before any Korea data): exclude and count, never abort the screen.
+                    bad_format.add(code)
+                    names[code] = str(row.get("Name") or "")
+                    target.add(code)
+                    continue
+                target.add(code)
+                names[code] = str(row.get("Name") or "")
+                if row.get("Type") != "Common Stock":
+                    bad_type.add(code)
+                if key[5] != "0":
+                    bad_class.add(code)
+                if key == "069500":
+                    proxy.add(code)
+                for term in matches:
+                    if term in names[code].upper():
+                        matches[term].add(code)
+    reused = live & gone
+    bad_name = set().union(*matches.values())
+    excluded = reused | bad_type | bad_class | bad_name | proxy | bad_format
+    return sorted((live | gone) - excluded), {
+        "listed": len(live), "delisted": len(gone), "reused": len(reused),
+        "non_common_type": len(bad_type), "非普通股代码": len(bad_class), "代码格式异常": len(bad_format),
+        "excluded_name": len(bad_name), "market_proxy": len(proxy),
+        "name_matches": {term: len(codes) for term, codes in matches.items()},
+        "excluded_metadata_union": len(excluded),
+    }, names
+
+
+def kr_dedupe(stats, failed):
+    groups = {}
+    for code in sorted(set(stats) | set(failed)):
+        groups.setdefault(kr_company_key(code), []).append(code)
+    winners, removed, unresolved = [], [], []
+    for codes in groups.values():
+        if any(code in failed for code in codes):
+            unresolved.extend(code for code in codes if code in stats)
+            continue
+        winner = min(codes, key=lambda c: (-stats[c]["window_bars"], c.rsplit(".", 1)[1] != "KO", c))
+        winners.append(winner)
+        removed.extend(c for c in codes if c != winner)
+    return sorted(winners), sorted(removed), sorted(unresolved)
+
+
+def kr_review_flags(kept, names):
+    return [{"code": c, "name": names[c]} for c in kept
+            if any(term in names[c].upper() for term in KR_REVIEW_TERMS)]
+
+
 def qualifies(rows, window, pool, raw=None):
     """Sessions inside the window that meet the pool floor. With `raw` (the provider's rows, version 2) the $5 floor uses the
     unadjusted close, because a split-adjusted close drops the early years of stocks that later split (a look-ahead); the dollar
@@ -153,37 +223,49 @@ def shards(symbols, size):
 
 
 def run(spec, data, dataset_entry, root, listed=None, delisted=None, fetch=None):
+    korea = "exchanges" in spec
+    if korea and spec["exchanges"] != ["KO", "KQ"]:
+        raise ValueError('Only the registered exchanges ["KO", "KQ"] are supported')
     exchange = spec.get("exchange", "US")
     primary = PRIMARY if exchange == "US" else (set(spec["primary_exchanges"]) if spec.get("primary_exchanges") else None)
     if fetch is None:
         from services.scanner.eodhd import get, symbols, eod_symbol
-        listed, delisted = symbols(False, exchange), symbols(True, exchange)
-        fetch = lambda s: get(f"eod/{eod_symbol(s, exchange)}", **{"from": spec["fetch_start"], "period": "d", "_attempts": spec.get("attempts", 3),
-                                                               **({"to": spec["window"][1]} if exchange == "TSE" else {})})
+        if korea:
+            listed = {board: symbols(False, board) for board in spec["exchanges"]}
+            delisted = {board: symbols(True, board) for board in spec["exchanges"]}
+        else:
+            listed, delisted = symbols(False, exchange), symbols(True, exchange)
+        fetch = lambda s: get(f"eod/{s if korea else eod_symbol(s, exchange)}", **{"from": spec["fetch_start"], "period": "d", "_attempts": spec.get("attempts", 3),
+                                                               **({"to": spec["window"][1]} if exchange == "TSE" or korea else {})})
     japan = exchange == "TSE"
-    if japan:
+    if korea:
+        names, counts, provider_names = kr_candidates(listed, delisted)
+    elif japan:
         names, counts, provider_names = jp_candidates(listed, delisted)
     else:
         names, counts = candidates(listed, delisted, data["prices"].keys(), primary)
     reasons = {}
-    kept, stats, failed = screen(names, fetch, spec["window"], spec["pool"], spec["min_sessions"], spec.get("workers", 4), spec.get("raw_price_floor", False), reasons, japan=japan)
+    kept, stats, failed = screen(names, fetch, spec["window"], spec["pool"], spec["min_sessions"], spec.get("workers", 4), spec.get("raw_price_floor", False), reasons, japan=japan or korea)
     if spec.get("retry_failed"):
         # a second, slower pass over the failures; what still fails keeps its reason
         retry_reasons = {}
-        k2, s2, failed = screen(failed, fetch, spec["window"], spec["pool"], spec["min_sessions"], 1, spec.get("raw_price_floor", False), retry_reasons, japan=japan)
+        k2, s2, failed = screen(failed, fetch, spec["window"], spec["pool"], spec["min_sessions"], 1, spec.get("raw_price_floor", False), retry_reasons, japan=japan or korea)
         stats.update(s2)
         kept = sorted(set(kept) | set(k2))
         reasons = retry_reasons
     extra = {}
-    if japan:
+    if japan or korea:
         # Coverage alone selects the company representative. Liquidity never selects
         # a shorter alias as fallback (good_sessions is only a download-time tally).
-        winners, duplicates, unresolved = jp_dedupe(stats, failed)
+        winners, duplicates, unresolved = (kr_dedupe if korea else jp_dedupe)(stats, failed)
         kept = sorted(s for s in winners if stats[s]["good_sessions"] >= spec["min_sessions"])
         counts.update(company_duplicates=len(duplicates), unresolved_company=len(unresolved),
                       below_liquidity=len(winners) - len(kept))
         extra = {"exchange": "TSE", "currency": "JPY", "company_duplicates": duplicates,
-                 "unresolved_company": unresolved, "review_flags": jp_review_flags(kept, provider_names)}
+                 "unresolved_company": unresolved, "review_flags": [] if korea else jp_review_flags(kept, provider_names)}
+        if korea:
+            extra = {"exchanges": ["KO", "KQ"], "currency": "KRW", "company_duplicates": duplicates,
+                     "unresolved_company": unresolved, "review_flags": kr_review_flags(kept, provider_names)}
     files = []
     for k, part in enumerate(shards(kept, spec["shard_size"])):
         path = pathlib.Path(root) / spec["shard_dir"] / f"{spec['shard_prefix']}-{chr(97 + k)}.txt"
@@ -235,4 +317,15 @@ def render(result):
                   *[f"| {x['code']} | {x['name'].replace('|', '/').replace(chr(10), ' ')} |" for x in result["review_flags"]]]
         if not result["review_flags"]:
             lines.append("No kept codes in the review ranges.")
+    if result.get("exchanges") == ["KO", "KQ"]:
+        lines = [line.replace("$", "KRW ").replace("Provider lists (primary-exchange common stocks)", "Provider lists (all types; exclusions below)") for line in lines]
+        lines = [f"- KO + KQ candidates after metadata exclusions: {result['candidates']}; US reference symbols are not excluded." if line.startswith("- Candidates after") else line for line in lines]
+        lines += ["", "## Korea exclusion counts", "", "Counts can overlap; name_matches counts unique listings per substring.",
+                  *[f"- {k}: {v}" for k, v in result["provider_counts"].items()],
+                  "", "## Review flags only — Claude must review before freezing at STOP 2", "",
+                  "PREF, 우, HOLDINGS, 지주 are flags, not exclusions.", "",
+                  "| Code | Provider name |", "|---|---|",
+                  *[f"| {x['code']} | {x['name'].replace('|', '/').replace(chr(10), ' ')} |" for x in result["review_flags"]]]
+        if not result["review_flags"]:
+            lines.append("No kept names match the review terms.")
     return "\n".join(lines) + "\n"
