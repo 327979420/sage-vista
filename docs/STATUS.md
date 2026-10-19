@@ -1,36 +1,45 @@
-# Sage Vista - the baton (read first, update last)
+# Sage Vista — 接力棒（开始先读，结束前更新）
 
-The owner switches between Claude and Codex. **Whoever works on Sage Vista reads this file first and updates it before stopping.**
-Keep it short and current; history belongs in `docs/COLLAB-LOG.md` and ledger section 17. Owner's live board (Claude updates it):
-https://claude.ai/artifact/BdbVybVXiShDN5MtaqtVUQ - Codex cannot open it, so this file is the shared truth.
+更新：2026-10-19，Codex；Claude 合并 #134 时补充。用户在 Claude 与 Codex 之间切换时，以本文件和[核查队列](REVIEW_QUEUE.md)交接。
+在线工作台：<https://claude.ai/artifact/BdbVybVXiShDN5MtaqtVUQ>；本轮没有直接修改或读取其在线内容。
+机器日期、版本和运行断点仍以 [CURRENT_STATUS_ZH.md](CURRENT_STATUS_ZH.md) 及其机器来源为准；本文件只记工作状态。
 
-Last updated: 2026-10-19 by Claude.
+## 当前阶段
 
-## Mode
-Run-and-record (ADR-16, 2026-10-19). 3W rule 3w-1.9 is frozen and runs mechanically. No new rule mining on old data unless the owner
-explicitly asks. Paper account = sector trend core 50% + 3W satellite 50% (in the owner's cockpit). Evidence comes from the forward record.
+运行和记录（用户 2026-10-19 决定）。3W `3w-1.9` 冻结，机械执行；模拟账户方向为行业趋势篮子核心 50% + 3W 卫星 50%。
+不自行在旧数据上找新规则；新研究必须先在[案例账本第十七节](CASE_REVIEW_LEDGER_ZH.md)登记。港股 B 组继续锁定。
 
-## In progress (owner / agent / next step)
-| Item | Who | Next step |
+## 本轮已完成
+
+- **Discord 机会提醒已上线**：基础链路 [#135](https://github.com/327979420/sage-vista/pull/135)，用户确认的纵向版 [#136](https://github.com/327979420/sage-vista/pull/136) 已合并；正式模板为普通纵向文本，入场、止损、3R 止盈各一行，有效期前留白，不显示版本号或“非真实机会”。规则、价格计算和生产去重未改。
+- **模拟送达已验证**：[纵向版发送记录](https://github.com/327979420/sage-vista/actions/runs/39182916981)成功。真实新机会的自动送达仍需等首个符合条件的真实信号验收；不要把模拟送达记成这项验收已完成。
+- **核查队列已建立**：[#132](https://github.com/327979420/sage-vista/pull/132) 已合并；[#137](https://github.com/327979420/sage-vista/pull/137) 补入已上线内容与待 Claude 复核条目。交接文档整理不等于独立核查通过。
+
+## 持续运行 / 等待验收
+
+| 事项 | 当前状态 | 下一步 |
 |---|---|---|
-| Weekly routine (SV-52) | Claude, scheduled every Saturday 10:00 Melbourne | first run 2026-10-24: signals, cockpit, review queue, weekly report |
-| Month-end rebalance | Claude (in the weekly routine) | decided at the 2026-10-30 close; at current prices XLB and XLP switch from SHY back to ETFs |
-| Forward record (3w-1.9) | GitHub, daily | 0 signals so far; next weekly check after the Friday 2026-10-23 close |
+| 冻结 3W 前向记录 | GitHub 原有日常任务持续运行 | 按正常节奏检查信号和结果，每周复核；无信号如实记无信号 |
+| Discord 真实机会闭环 | 发送、格式与去重已测试，尚无首个真实机会送达验收 | 首次真实信号时核对网站 / 记录 / 消息一致，不伪造机会或清账重发 |
+| 夜间回测修复 SV-22 | #101 早已合并，不再等待用户批准；最近失败涉及的旧页面断言已在 #135 修正 | 等下一次正常夜间续跑成功后补验收，本轮不触发、不修改 |
+| 盘感训练器（日线 daily1，任务 033） | Claude 已核查通过并发布（真实保存已在测试副本实测）；分支 codex/daily-trainer 未合并 | owner 继续做题；每满十题出总结 |
+| 混合训练器（日/周/月 mixed1，任务 035） | Codex 进行中，分支 codex/training-followup | 交付后 Claude 按清单核查并实测线上保存 |
+| 周期比较研究（任务 034） | **owner 2026-10-19 取消**（出结果之前）；其周期规则只供 035 出题 | 不再运行 |
+| 周六例行（SV-52） | Claude 定时任务，每周六 10:00 墨尔本 | 首次 2026-10-24：信号、驾驶舱、周报、核查队列；10-30 收盘月末再平衡 |
+| Codex 独立核查 | 见 [REVIEW_QUEUE.md](REVIEW_QUEUE.md)，本轮条目均待 Claude 复核 | 用户要求“核查”时，Claude 按行核对并回填结论 |
 
-## Waiting for review (see docs/REVIEW_QUEUE.md)
-(none)
+## 明确暂缓 / 本轮不处理
 
-## Open owner decisions
-- Delete the public copies of the datasets (SV-21) - needs the owner's explicit OK.
-- Portfolio label: drop "候选" for the sector basket? (owner deferred)
-- HK group B stays locked; Korea data not downloaded (deferred).
+- 手机安装 / 离线、框架升级、完整交易记账及其他产品工作：仅保留原待办，不在本轮启动。
 
-## Recently finished (one line each; details in ledger section 17)
-- 2026-10-19 factor scan v1: 0 candidates. Veto rules v1: not useful. Blind test v2 (88): FAIL (d -0.37R). Edge decomposition: 3W's
-  +0.23R/trade is mostly market tailwind + rules. Exchange calendars + weekly report generator (task 032).
-- 2026-10-18 site: 信号凭证, 前向记录, 形态速览 live; research standard v1 registered.
+## 待用户决定
 
-## Session checklist (both agents)
-Start: read this file, `git status`, open PRs (`gh pr list`), `docs/REVIEW_QUEUE.md`.
-End: update this file (In progress / Waiting / Decisions / Recently finished), add a review-queue row for finished work, commit on a
-branch, never leave uncommitted changes without saying so here.
+- 是否删除公开数据副本（SV-21）：仍需明确批准；本轮未删除。
+- 行业篮子的“候选”标签是否调整：沿用暂缓决定。
+- 港股 B 组继续锁定；韩国数据等新研究不启动。
+
+## 下次接手
+
+先读本文件、[REVIEW_QUEUE.md](REVIEW_QUEUE.md)、[交接第零节](TRIANGLE_HANDOVER_ZH.md)与[任务规则](../tasks/README.md)，再查 Git 状态和对应 PR。
+结束前更新本文件，只把实际完成的工作加入核查队列；历史留在 [COLLAB-LOG.md](COLLAB-LOG.md)。
+本轮授权范围已用完：纵向 Discord 正式合并、接力棒与核查队列整理。其他事项等待用户下一条指令。

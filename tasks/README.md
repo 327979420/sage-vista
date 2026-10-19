@@ -40,3 +40,7 @@ The owner wants two experts, not one expert and a typist. Be careful and profess
 ## Reports for the owner
 The owner reads simple Chinese and is not a programmer. When a card asks for an HTML report: self-contained, no external libraries,
 inline SVG charts, a plain one-sentence conclusion, and a short list of limits. Never overstate: say "not proven" when it is not.
+
+## Working directly with the owner (since 2026-10-19)
+When the owner gives you work directly (not through a Claude task card), follow `docs/REVIEW_QUEUE.md`: read the handover §0,
+pre-register in the ledger, work on a `codex/<topic>` branch, and add a review-queue row when done so Claude can verify it later.
