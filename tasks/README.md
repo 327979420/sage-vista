@@ -44,3 +44,22 @@ inline SVG charts, a plain one-sentence conclusion, and a short list of limits. 
 ## Working directly with the owner (since 2026-10-19)
 When the owner gives you work directly (not through a Claude task card), follow `docs/REVIEW_QUEUE.md`: read the handover §0,
 pre-register in the ledger, work on a `codex/<topic>` branch, and add a review-queue row when done so Claude can verify it later.
+
+## Lessons from Claude's reviews (read every time; added 2026-10-19)
+Mistakes Codex made that Claude had to fix. Do not repeat them.
+1. **Never commit `work/`.** It is the owner's private research folder (owner decision: research scripts stay private) and the repo is
+   PUBLIC. Task 033 force-added the generator, the answer key (= all quiz answers) and page sources; Claude had to rewrite the branch.
+   Commit only `tasks/`, `docs/`, `tests/`, `research/`, `scripts/`, `app/` etc. List `work/` deliverables in the review-queue row.
+   Before every commit run `git status` and check that no `work/` path is staged (`git diff --cached --name-only | grep '^work/'` must be
+   empty).
+2. **Test in the real target environment, not only a mock.** Artifact pages run in a sandbox: downloads (`<a download>`, blob URLs) do
+   not work, `alert/confirm` do nothing, only `window.claude.use("db")` persists. Task 033's "下载答案备份" could never work there; use
+   copy-to-clipboard. Say clearly which checks were mock-only.
+3. **"First answer can't be overwritten" must hold on the server, not just in one window.** The db `set` is last-writer-wins. Use the
+   pattern `ref.acquire({holder, ttlMs})` -> `ref.get()` -> `set` only if no valid answer exists (see work/site-v2/daily-trainer-1.html).
+4. **Don't stall silently.** When a script hits an assertion or a boundary (blind v2 stopped 40 minutes at the 2005 chart boundary), report
+   it at once with the proposed conservative fix instead of waiting.
+5. **Small data-coverage questions: decide conservatively and continue** (note it in the report). Stop and ask only when the answer could
+   change a verdict, a rule, the sampling or the trade calculation.
+6. **Keep visual quality with the live Sage Vista theme**: text must never touch card edges (cards here have no built-in padding - give
+   content containers padding), one font stack for Chinese and Latin, labels small and muted, numbers tabular. Check 390 px and 1440 px.
