@@ -1,0 +1,274 @@
+{
+ "exchanges": [
+  "KO",
+  "KQ"
+ ],
+ "currency": "KRW",
+ "company_duplicates": [
+  "003230.KQ",
+  "005930.KQ",
+  "012330.KQ",
+  "105560.KQ",
+  "112610.KQ",
+  "128940.KQ",
+  "138930.KQ",
+  "204320.KQ"
+ ],
+ "unresolved_company": [
+  "006400.KO",
+  "015760.KO",
+  "259960.KO",
+  "307950.KO"
+ ],
+ "review_flags": [
+  {
+   "code": "000210.KO",
+   "name": "DL Holdings CO. LTD."
+  },
+  {
+   "code": "000230.KO",
+   "name": "Ildong Holdings Co Ltd"
+  },
+  {
+   "code": "000700.KO",
+   "name": "Eusu Holdings"
+  },
+  {
+   "code": "003380.KQ",
+   "name": "Harim Holdings Co. Ltd"
+  },
+  {
+   "code": "005490.KO",
+   "name": "POSCO Holdings"
+  },
+  {
+   "code": "007700.KO",
+   "name": "F&F Holdings Co. Ltd"
+  },
+  {
+   "code": "012630.KO",
+   "name": "HDC Holdings Co Ltd"
+  },
+  {
+   "code": "015860.KO",
+   "name": "Iljin Holdings"
+  },
+  {
+   "code": "028080.KQ",
+   "name": "Humax Holdings Co. Ltd"
+  },
+  {
+   "code": "030530.KQ",
+   "name": "Wonik Holdings Co. Ltd"
+  },
+  {
+   "code": "031980.KQ",
+   "name": "PSK HOLDINGS Inc"
+  },
+  {
+   "code": "034730.KO",
+   "name": "SK Holdings Co Ltd"
+  },
+  {
+   "code": "035810.KQ",
+   "name": "EASY HOLDINGS Co. Ltd"
+  },
+  {
+   "code": "036830.KQ",
+   "name": "Soulbrain Holdings Co. Ltd"
+  },
+  {
+   "code": "038870.KQ",
+   "name": "EcoBio Holdings Co. Ltd"
+  },
+  {
+   "code": "039020.KQ",
+   "name": "Eagon Holdings Co.Ltd"
+  },
+  {
+   "code": "042420.KQ",
+   "name": "NEOWIZ HOLDINGS Corporation"
+  },
+  {
+   "code": "051780.KQ",
+   "name": "Curo Holdings Co. Ltd"
+  },
+  {
+   "code": "054620.KQ",
+   "name": "APS Holdings Corporation"
+  },
+  {
+   "code": "060560.KQ",
+   "name": "Home Center Holdings Co.Ltd"
+  },
+  {
+   "code": "060980.KO",
+   "name": "Halla Holdings Corp"
+  },
+  {
+   "code": "071050.KO",
+   "name": "Korea Investment Holdings Co"
+  },
+  {
+   "code": "078930.KO",
+   "name": "GS Holdings"
+  },
+  {
+   "code": "081660.KO",
+   "name": "Fila Holdings Corp"
+  },
+  {
+   "code": "084690.KO",
+   "name": "Daesang Holdings Co Ltd"
+  },
+  {
+   "code": "117670.KQ",
+   "name": "Alpha Holdings Inc"
+  },
+  {
+   "code": "267250.KO",
+   "name": "Hyundai Heavy Industries Holdings Co Ltd"
+  },
+  {
+   "code": "900140.KO",
+   "name": "LVMC Holdings"
+  }
+ ],
+ "kind": "screen",
+ "spec_id": "data-kr-universe-v1",
+ "experiment_id": "lab-data-kr-universe-v1-2026-10-19",
+ "group": "data",
+ "question": "Korea KO + KQ common-stock universe engineering screen; company dedupe before liquidity. No signals or returns.",
+ "dataset": {
+  "dataset_id": "universe-1985-v1",
+  "asset": "universe-1985-v1-6b7fce35b46d.json.gz",
+  "sha256": "6b7fce35b46de8e97853c349c9b972076993bb7f091d5a2f4b3966f2d6af536f",
+  "symbols": 1228
+ },
+ "window": [
+  "2005-01-01",
+  "2025-06-30"
+ ],
+ "pool": {
+  "min_close": 1000.0,
+  "min_dollar_volume": 13000000000.0
+ },
+ "min_sessions": 60,
+ "provider_counts": {
+  "listed": 3915,
+  "delisted": 776,
+  "reused": 0,
+  "non_common_type": 1361,
+  "非普通股代码": 209,
+  "代码格式异常": 67,
+  "excluded_name": 1357,
+  "market_proxy": 1,
+  "name_matches": {
+   "ETF": 902,
+   "ETN": 80,
+   "REIT": 39,
+   "FUND": 20,
+   "INDEX": 42,
+   "SPAC": 79,
+   "ACQUISITION": 167,
+   "KODEX": 240,
+   "TIGER": 241,
+   "스팩": 0,
+   "리츠": 0
+  },
+  "excluded_metadata_union": 1827,
+  "company_duplicates": 8,
+  "unresolved_company": 4,
+  "below_liquidity": 1246
+ },
+ "candidates": 2864,
+ "downloaded": 2789,
+ "failed": 75,
+ "failed_share": 0.0262,
+ "failed_empty": 75,
+ "failed_errors": 0,
+ "error_share": 0.0,
+ "failed_examples": {
+  "0001A0.KQ": "empty",
+  "0004V0.KQ": "empty",
+  "0007C0.KQ": "empty",
+  "0007J0.KQ": "empty",
+  "0008Z0.KQ": "empty",
+  "0009K0.KQ": "empty",
+  "0010F0.KQ": "empty",
+  "0010V0.KQ": "empty",
+  "0011A0.KQ": "empty",
+  "0011T0.KQ": "empty",
+  "0013V0.KQ": "empty",
+  "0015G0.KQ": "empty",
+  "0015N0.KQ": "empty",
+  "0015S0.KQ": "empty",
+  "0017J0.KQ": "empty",
+  "0039P0.KQ": "empty",
+  "006400.KQ": "empty",
+  "0082N0.KQ": "empty",
+  "0088M0.KQ": "empty",
+  "0117P0.KQ": "empty",
+  "0120G0.KO": "empty",
+  "0120X0.KO": "empty",
+  "0126Z0.KO": "empty",
+  "014950.KQ": "empty",
+  "015760.KQ": "empty",
+  "0168K0.KO": "empty",
+  "0216K0.KO": "empty",
+  "0220W0.KO": "empty",
+  "061090.KQ": "empty",
+  "125490.KQ": "empty",
+  "153890.KQ": "empty",
+  "217590.KO": "empty",
+  "234030.KQ": "empty",
+  "259960.KQ": "empty",
+  "261520.KQ": "empty",
+  "279570.KO": "empty",
+  "288180.KQ": "empty",
+  "307950.KQ": "empty",
+  "317450.KO": "empty",
+  "318060.KQ": "empty"
+ },
+ "raw_price_floor": true,
+ "kept": 1531,
+ "shards": [
+  {
+   "file": "research/lab/universes/kr-2005-2025-v1-a.txt",
+   "symbols": 1531
+  }
+ ],
+ "first_bar_year_of_kept": {
+  "2004": 699,
+  "2005": 46,
+  "2006": 43,
+  "2007": 43,
+  "2008": 28,
+  "2009": 41,
+  "2010": 54,
+  "2011": 45,
+  "2012": 17,
+  "2013": 27,
+  "2014": 47,
+  "2015": 61,
+  "2016": 39,
+  "2017": 48,
+  "2018": 50,
+  "2019": 51,
+  "2020": 41,
+  "2021": 46,
+  "2022": 36,
+  "2023": 41,
+  "2024": 26,
+  "2025": 2
+ },
+ "criteria": {
+  "max_error_share": 0.02,
+  "min_kept": 300
+ },
+ "passed": true,
+ "champion": null,
+ "spec_sha256": "e305d0eadbc06696bdc30f5ab9e353c06a989171805d918605f5a7a7029867f2",
+ "completed_at": "2026-10-19T10:33:36+00:00",
+ "code_commit": "b7b26dc108745b46dce35d36310d54b138cca72a"
+}

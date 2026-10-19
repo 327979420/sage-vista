@@ -216,6 +216,14 @@
    "completed_at": "2026-10-16T16:22:13+00:00",
    "champion": null,
    "dataset": "hk-a-1995-v1"
+  },
+  {
+   "spec_id": "data-kr-universe-v1",
+   "experiment_id": "lab-data-kr-universe-v1-2026-10-19",
+   "group": "data",
+   "completed_at": "2026-10-19T10:33:36+00:00",
+   "champion": null,
+   "dataset": "universe-1985-v1"
   }
  ],
  "champions": {

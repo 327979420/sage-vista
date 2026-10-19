@@ -331,3 +331,9 @@ Freeze HK exam group A (half of the 881 stocks kept by data-hk-universe-v1, spli
 
 Built 442 of 442 symbols; in 2025, 198 of 383 trading stocks had 200 months of history. Passed: yes
 
+## data-kr-universe-v1 (wider universe screen, engineering check)
+
+Korea KO + KQ common-stock universe engineering screen; company dedupe before liquidity. No signals or returns.
+
+Kept 1531 of 2864 candidates in 1 shards; failed downloads 75. Passed: yes
+

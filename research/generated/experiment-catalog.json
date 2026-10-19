@@ -1,15 +1,15 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-16T16:22:13+00:00",
+  "generated_at": "2026-10-19T10:33:36+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 71,
+  "experiment_count": 73,
   "summary": {
-    "completed": 54,
-    "in_progress": 17,
+    "completed": 55,
+    "in_progress": 18,
     "candidate": 15,
     "not_validated_or_unstable": 25
   },
@@ -21,6 +21,113 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "lab-data-kr-universe-v1-2026-10-19",
+      "created_at": "2026-10-19",
+      "status": "pre_registered",
+      "change": "Task043 Korea KO + KQ engineering screen, Step 1 only; no signals or returns",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#kr-exam",
+        "lab_spec": "research/lab/queue/data-kr-universe-v1.json"
+      },
+      "success_criteria": "Errors after retry at most 2% of candidates and at least 300 companies kept; empty histories separately reported.",
+      "known_limitations": [
+        "Delisted coverage; name substring exclusions; company key is not verified corporate identity",
+        "Daily price limits, KOSDAQ small caps and proxy fit; unresolved failed aliases are not substituted"
+      ],
+      "human_summary": {
+        "title_zh": "3W 韩股考试股票池预登记",
+        "family": "data",
+        "family_zh": "数据工程",
+        "question_zh": "KO/KQ联合筛选、公司去重后是否达到覆盖门槛？",
+        "result_zh": "尚未运行；仅Step 1工程准备。",
+        "use_zh": "冻结3w-1.9的独立韩国考试，不是收益结果。",
+        "next_zh": "STOP 1待Claude核查；STOP 2冻结前审查提示名称。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-19T10:16:41.581869+00:00",
+        "started_at": null,
+        "completed_at": "2026-10-19T10:33:36+00:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-10-19T10:33:36+00:00",
+        "time_source": "github_actions",
+        "event_count": 2,
+        "events": [
+          {
+            "experiment_id": "lab-data-kr-universe-v1-2026-10-19",
+            "event": "registered",
+            "event_at": "2026-10-19T10:16:41.581869+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/data-kr-universe-v1.json",
+              "note": "Task043 Step 1 only; no Korea data fetched; STOP 1"
+            }
+          },
+          {
+            "experiment_id": "lab-data-kr-universe-v1-2026-10-19",
+            "event": "completed",
+            "event_at": "2026-10-19T10:33:36+00:00",
+            "time_source": "github_actions",
+            "source_ref": "https://github.com/327979420/sage-vista/actions/runs/39237780214",
+            "details": {
+              "lab_spec": "data-kr-universe-v1",
+              "spec_sha256": "e305d0eadbc06696bdc30f5ab9e353c06a989171805d918605f5a7a7029867f2",
+              "result": "research/lab/results/data-kr-universe-v1/result.json",
+              "dataset": "universe-1985-v1",
+              "champion": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "experiment_id": "lab-data-jp-universe-v1-2026-10-19",
+      "created_at": "2026-10-19",
+      "status": "pre_registered",
+      "change": "Japan universe engineering screen for frozen 3w-1.9; Task037 Step 1 only, no signals or returns",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#jp-exam",
+        "lab_spec": "research/lab/queue/data-jp-universe-v1.json"
+      },
+      "success_criteria": "Errors after retry at most 2% of candidates and at least 300 stocks kept; empty histories separately reported.",
+      "known_limitations": [
+        "Provider delisted coverage and classification may be incomplete",
+        "Name substring filters may over-exclude; flagged ranges need Claude review before freezing",
+        "Company key is a code proxy, not verified corporate identity; unresolved failed aliases are not substituted"
+      ],
+      "human_summary": {
+        "title_zh": "3W 日股考试股票池预登记",
+        "family": "data",
+        "family_zh": "数据工程",
+        "question_zh": "按登记的类型、名称及公司键规则筛选日股，能否达到覆盖门槛？",
+        "result_zh": "尚未运行；只完成 Step 1 本地准备，不计算信号或收益。",
+        "use_zh": "用于冻结 3w-1.9 的独立日股考试；不是策略收益结果。",
+        "next_zh": "STOP 1 待 Claude 核查并触发 screen；冻结前复核所有提示代码。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-19T06:55:41.024370+00:00",
+        "started_at": null,
+        "completed_at": null,
+        "latest_event": "registered",
+        "latest_event_at": "2026-10-19T06:55:41.024370+00:00",
+        "time_source": "assistant_registration",
+        "event_count": 1,
+        "events": [
+          {
+            "experiment_id": "lab-data-jp-universe-v1-2026-10-19",
+            "event": "registered",
+            "event_at": "2026-10-19T06:55:41.024370+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/data-jp-universe-v1.json",
+              "note": "Task037 Step 1; no Japan data fetched, STOP 1 before Claude Actions run"
+            }
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "lab-data-hk-a-v1-2026-10-16",
       "created_at": "2026-10-17",
@@ -5579,6 +5686,8 @@
     "lab-data-fresh-universe-v2-2026-10-14",
     "lab-data-hk-a-v1-2026-10-16",
     "lab-data-hk-universe-v1-2026-10-16",
+    "lab-data-jp-universe-v1-2026-10-19",
+    "lab-data-kr-universe-v1-2026-10-19",
     "lab-data-long-history-v1-2026-10-11",
     "lab-e0-core-long-history-v1-2026-10-10",
     "lab-e1-selection-vs-random-v1-2026-10-10",
