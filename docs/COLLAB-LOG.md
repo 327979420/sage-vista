@@ -100,3 +100,10 @@ Claude directs and accepts; Codex implements (Codex plugin). Each round: task ca
 - 只读既有候选与Task002结果完成Step2样本量估算，验证缓存哈希及整数样本量边界；未重跑旧研究或生成新策略结果。
 - 检查冻结前向输出发现r19.R及random_R均未扣费且无随机孪生成交价，无法还原卡指定净R差；按Step3要求停止并向owner询问，等待Claude补卡。未创建计分脚本或冒称测试通过。
 - Concerns与方法限制在判卷计划及私有报告。冻结目录/代码和.github未改，其他任务未纳入提交。
+
+## 2026-10-19 — mixed1 单次构建与复盘答题原图
+
+- 按owner维护要求读取私有MAINTAINING与接力棒，在codex/mixed-feedback-build维护。纯UI/构建工作，无新研究、抽样或尝试次数。
+- feedback-v2作为正常源模块由原模板/build一次打包；旧build_feedback_v2入口报停且不写文件。锁定题库/键哈希，仅重建发布页面。已揭晓图窗可切换答题原图，直接使用答题的chart(item)，没有未来K线进入原图。
+- 21项Python、两个Node mock套件通过；390/1440真实本地截图检查四类场景及原图。导入新增/重复保留、9/10/11门控与模拟刷新、原图SVG一致通过。真实云端不可访问、未接触owner答案。
+- Concerns：磁盘旧发布HTML与Claude反馈源不同步，已保留源内既有排版/弹窗置顶修正。合并前的新旧流程当前源输出字节一致；新增图切换有明确预期外观差异。待Claude发布同一mixed1网址并验收；work、截图、脚本和数据全部私有。
