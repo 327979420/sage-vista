@@ -40,6 +40,37 @@ Use only results that already exist for the frozen 3w-1.9 (Task 002 baseline can
   only at a checkpoint and only with mean < 0 and t ≤ −2; "证明有效" impossible below 100 trades; alarm 2 at >25% satellite
   drawdown; missing paper file.
 
+## Clarification 2026-10-19 (Claude, after Codex's stop) — replaces Step 3's data source; thresholds unchanged
+Codex was right: `triangle15.trade()` R is gross; `outcome()["r19"]` keeps only `status`, `R`, `random_R` (gross twin mean), no
+1.9 entry/exit and no per-twin detail. Also: when the rule-1.7 order never fills, `outcome()` returns early, so a filled 1.9 trade
+has no `r19.random_R`. The ledger §17 and `docs/FORWARD_JUDGING_PLAN_ZH.md` now carry the dated clarification (Chinese).
+
+The main metric stays **net R difference** (no definition change). Build it like this:
+1. New `research/lab/forward_judge.py` (not frozen). A function `recompute(PX, records, outcomes, config)` that, for each record,
+   calls the frozen `triangle15.trade` read-only with the same inputs `outcome()` uses for 1.9
+   (`level`, `stop`, `level + 3*(level-stop)`, `hold=130`) and re-draws the twins exactly as `_twins` does: same pool rule as
+   `run()` (`selection.eligible_pool` with `{**N.POOL, "exclude": flagged | N.FUNDS}`, minus the symbol), seed
+   `int(sha256(rec["id"])[:8], 16)`, `random.Random(seed).sample(pool, min(30, len(pool)))`, same skips, same weekly-ATR stop
+   multiple `m`, target 3.0R, hold 130, completed = win/loss/time. Keep e, x, stop, status per trade and per twin. Copy the loop
+   logic into the new module; never edit frozen files (tests may set `triangle_forward.PX` to compare with `_twins`).
+2. Net R = (x*(1-c) - e*(1+c)) / (e - stop), c = 0.001, both for 3W and each twin. Twin net mean = mean over completed twins.
+   d = 3W net R - twin net mean. Metric = mean(d); t = mean / (sd(n-1) / sqrt(n)).
+3. Reproduction gate: recomputed 3W gross R == `r19.R` and recomputed gross twin mean == `r19.random_R` (round 4). Mismatch →
+   "对照不一致". Frozen `random_R` absent (1.7 never filled) → still recompute, flag "无冻结核对", count separately.
+4. Counting: completed trades / checkpoints = rule-1.9 sample (same ids as `summary()["rule19_all"]`: plan go and
+   `market.ok`) with `r19.status` in win/loss/time — every one, twins or not. Scored (enters mean and t): has 3W net R,
+   >= 1 completed twin, no mismatch. If unscorable > 10% of completed at a checkpoint → verdict "暂停判断（对照不足）" for that
+   checkpoint (no alarm 1, no "证明有效"); alarm 2 unaffected. Never drop trades to make a checkpoint.
+5. Report gross R difference only as a check line labelled "毛 R 差（未扣费，仅核对用）".
+6. Tests (add to the list above): net-R formula on a hand example; twin draw identical to `_twins` (assert gross mean equals the
+   value from calling the frozen `_twins` on the same synthetic PX/pool); the 1.7-unfilled case; mismatch → excluded but counted;
+   the 10% pause rule at a checkpoint. Engineering check allowed: on the three records `fingerprint()` builds from
+   `universe-1985-v1`, gross values equal frozen `outcome()` output — equality only, report no R statistics from it.
+7. Formal scoring needs the forward run's extended prices, so it must run in the forward Actions job right after
+   `triangle_forward`. No `.github/` edits: put the workflow patch in your report. Status until the owner approves the patch:
+   "已实现，尚不能正式计分". With 0 forward signals nothing is lost.
+8. Step 2 numbers stay as a limited waiting-time estimate (net-R SD stand-in, not a power guarantee); keep its limits text.
+
 ## Deliverables
 Ledger §17 entry + `docs/FORWARD_JUDGING_PLAN_ZH.md`; `research/lab/forward_judge.py` + tests; Step 2 numbers in
 `work/reports/forward-sample-size-v1.{json,md}` (plain Chinese, conclusion first). Update `docs/STATUS.md` and add a
