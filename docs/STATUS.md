@@ -13,7 +13,7 @@
 
 ## 进行中 / 下一步
 
-- **Task043 Step2本地准备完成，待Claude核查/触发构建**（2026-10-19）：screen run39237780214通过，1,531家公司全名单（KO514/KQ1017），28提示全保留，4未决公司继续排除，不分A/B。新增data-kr-a-v1规格：kr-a-1995-v1、全名单+069500.KO共1,532个代码、1995日起、keep_raw=true、max_missing_share=.05。Claude批准的run_queue.py最小适配仅对dataset.exchanges启用，按注册后缀路由；旧路径不变。5项新测试全部通过；相关119项中118通过/1跳过；全部1,532请求与raw_close核对，旧US/HK请求及合成输出逐字节一致。证据work/kr-step2/tests.log。75个空历史记录为“KO and KQ, mixed code formats”。未联网、未构建真实数据集、未考试、未暂存/提交；本轮到此停止。
+- **Task043 韩国一次考试完成：样本不足，未证明，待Claude核查**（2026-10-19）：资金澄清先登记，真实/1,000随机账户均₩130,000,000；合成自测后仅运行一次。29笔，CAGR0.4463%、Sharpe0.1744、最大回撤11.3249%、平均在场3.2861%，全期Sharpe p=.171828；不足100笔，按预登记不通过证明门槛。报告work/reports/kr-exam-v1.{json,html}、脚本/日志work/v3w/kr_exam.py及kr_exam.log，验证work/v3w/kr043/verification.json；详见§17。冻结代码不改，无网络/暂存/提交；不得重跑。
 
 - **Task037 已关闭（日本无覆盖）**：按Task043记录，provider不覆盖日本，未下载日本数据；原spec保留在 `research/lab/queue-parked/`，TSE代码保留。不可再触发日本screen。
 
@@ -35,7 +35,7 @@
 | 1 | [036](../tasks/036-forward-judging-plan.md) | 前向判卷：预登记、样本量、计分脚本已实现 | `codex/forward-judging` | SV-54 | 已实现，尚不能正式计分；等待 Claude 核查 |
 | 2 | [038](../tasks/038-owner-eye-and-own-picks.md) | owner 眼光判定 + 自选股前向记录 | `codex/owner-eye` | SV-55 | 本地完成；待Claude核查与Actions接入 |
 | 3 | [039](../tasks/039-hk-training-bank.md) | 港股 A 组盲训练34题（公司去重修订，目标60） | `codex/hk-trainer` | SV-56 | 本地完成；待Claude截图、核查与发布 |
-| 4 | [043](../tasks/043-korea-exam.md) | 冻结 3W 韩国考试，替代已关闭037 | `codex/kr-exam` | SV-57 | Step2本地准备完成，待Claude核查/构建 |
+| 4 | [043](../tasks/043-korea-exam.md) | 冻结 3W 韩国考试，替代已关闭037 | `codex/kr-exam` | SV-57 | 一次考试完成：样本不足，未证明；待Claude核查 |
 
 Claude 自己：发布混合训练器 v2 到原地址并实测保存（SV-58）；每张卡交付后独立抽查重算再验收。规则：同一时间只有一个 Codex 任务改代码；owner 自己开的 Codex 线程（每小时训练跟进）只读，不改这些分支。
 
@@ -76,7 +76,7 @@ Claude 自己：发布混合训练器 v2 到原地址并实测保存（SV-58）�
 
 - 是否删除公开数据副本（SV-21）：仍需明确批准；本轮未删除。
 - 行业篮子的“候选”标签是否调整：沿用暂缓决定。
-- 港股 B 组继续锁定；韩国Task043 Step2本地准备完成；实际构建由Claude触发，考试未启动。
+- 港股 B 组继续锁定；韩国Task043一次考试已完成，结论样本不足、未证明；不得重跑或调参。
 
 ## 下次接手
 

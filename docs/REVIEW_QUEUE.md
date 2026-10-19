@@ -20,6 +20,8 @@
 
 | 日期 | 事项 | 分支 / PR | 验证证据与核查重点 | 交付状态 | 独立核查 |
 |---|---|---|---|---|---|
+| 2026-10-19 | Task043 韩国一次考试结果 | `codex/kr-exam-3`，sv-wt-036 | 资金澄清先登记；合成自测通过后一次运行。29笔，Sharpe p=.171828，样本不足未证明。work/reports/kr-exam-v1.{json,html}、work/v3w/kr_exam.log、kr043/verification.json；保存结果p值及净盈亏加总核对，1,000随机账户，代理日期检查。核查随机抽样/日历排除、净R与固定资本、全窗口排除偏差 | 本地完成，无网络/提交/冻结代码改动；不重跑考试。HTML结构检查，真实浏览器截图未验收 | 待核查 |
+| 2026-10-19 | Task043 Step3运行前检查（资金单位阻断） | `codex/kr-exam-3`，sv-wt-036，d839338 | 本地gzip完整hash匹配manifest；4项合成自测，work/v3w/kr043/preflight.json；₩100000整股账户的20%上限导致₩50000合成股票不能买1股 | 仅前置检查完成；未解压行情/扫描/运行考试，暂无结果报告。待Claude明确初始资本单位；建议₩130000000，未应用。未提交 | 待核查 |
 | 2026-10-19 | Task043 Step2数据集规格及板块路由 | `codex/kr-exam`，sv-wt-036，基点8afc6d4 | 新增5项测试；相关119项：118通过/1跳过。全部1,532个mock请求均为CODE.KO/KQ一次后缀，raw_close保留；错误后缀在请求前拒绝。US默认/显式US/HK相对基点请求与合成输出字节一致；work/kr-step2/tests.log及protected.json | 仅本地准备完成；spec全名单+069500.KO、不分组、1995起、keep_raw、5%缺失门槛；未联网/实际构建/考试/暂存/提交。Claude核查后触发data-kr-a-v1 | 待核查 |
 | 2026-10-19 | Task043 韩国考试 Step 1 | `codex/kr-exam`，sv-wt-036，基点`b849055` | 原值逐字测试；新增16项；相关114项：113通过/1跳过。US/HK/TSE×重试开关6组合成结果、stats、failed、REPORT、shard字节一致。`work/kr-step1/tests.log`、`protected.json`；核查六字符/前导零、同板重用、KO平局、去重先于流动性、失败别名不替代及名称提示 | 仅STOP 1本地完成，未暂存/提交；无网络/真实韩股/分组/冻结/考试。037已关闭。核查后仅触发韩国screen，STOP 2冻结前审查全部review_flags与失败覆盖 | 待核查 |
 | 2026-10-19 | Task037 Step 1 日股screen预登记及工程准备 | `codex/jp-exam`（sv-wt-039） | 任务卡/08/§17原值及两条Claude澄清逐字测试；`tests/test_japan_screen.py`新增16项，相关套件97项：96通过/1跳过；US/HK与HEAD合成基线结果、stats、failed、REPORT及shards相同。检查名称子串误杀、失败别名不替代、有效日线定义；核实Actions使用此spec，冻结前审查所有review_flags并记日期 | 仅STOP 1本地完成；无网络/真实日股数据/信号/分组/冻结；未暂存/提交。builder原逻辑模拟验证，真实provider未验收 | 待核查 |
@@ -47,3 +49,4 @@
 4. 回填“通过”或“退回：原因”，记录核查人和日期，再同步在线工作台。Codex 不代填 Claude 的结论。
 
 生产模拟样例已经去重。检查格式请直接调用 `brief_payload()` 或看既有发送记录，不清空通知账本，也不为核查另发消息。
+| 2026-10-19 | Task043 韩股考试 Claude 核查 | `codex/kr-exam-3` | 报告字段核对；入场日来自冻结 trade() 的成交日（信号日之后），无前视。交易明细的 `signal_date` 栏被写成入场日，仅标签错误，不影响账户与结论 | 结论「样本不足，未证明」（29 笔，Sharpe p 0.172）按预登记成立 | 已核查 |
