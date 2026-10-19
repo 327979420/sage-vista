@@ -1,26 +1,35 @@
-# Review queue: Codex works with the owner, Claude checks later
+# 核查队列：Codex 与用户直接工作，Claude 随后复核
 
-Since 2026-10-19 the owner also works with Codex directly. This file keeps Codex and Claude in sync. **Codex adds a row for every
-finished piece of work; Claude reviews rows when the owner says "核查" (or during the Saturday routine) and fills in the verdict.**
-Nothing here replaces the rules in `tasks/README.md` and `docs/rules/01_GOVERNANCE.md`.
+本文件记录实际完成的工作，区分“已合并 / 已上线 / 已送达”和“独立核查通过”。
+只有 Claude 实际核查并回填结论后，才将核查状态改为“通过”或“退回：原因”；用户批准发布不替代独立核查。
+执行规则仍见 [tasks/README.md](../tasks/README.md) 与[治理规则](rules/01_GOVERNANCE.md)。
 
-## Codex: before you start any research
-1. Read `docs/TRIANGLE_HANDOVER_ZH.md` §0 (current state: run-and-record mode, ADR-16 - no new rule mining on development data unless
-   the owner explicitly asks; frozen 3w-1.9 is not changed).
-2. Pre-register in `docs/CASE_REVIEW_LEDGER_ZH.md` section 17 BEFORE computing: question, data, the single verdict and threshold.
-3. Never load locked data (HK group B, HK pre-2005 for signals) and never change frozen code, `research/lab/account.py`, `services/`
-   or the website unless the owner asks for that change in this conversation.
-4. Work on a branch named `codex/<topic>`; never push to main.
+## 开始工作前
 
-## Codex: when you finish
-Add a row below (newest first) and write the result paragraph into ledger section 17. If you cannot commit, leave the files and the row
-uncommitted and tell the owner "等 Claude 核查".
+1. 读 [STATUS.md](STATUS.md) 与 [TRIANGLE_HANDOVER_ZH.md](TRIANGLE_HANDOVER_ZH.md) 第零节：当前为运行和记录，冻结 3w-1.9 不改，未经用户明确要求不再挖掘旧数据。
+2. 新研究必须在[案例账本第十七节](CASE_REVIEW_LEDGER_ZH.md)先登记问题、数据、唯一判据和门槛，再计算；锁定数据不得擅自使用。
+3. 只处理本轮授权的文件和事项；在 `codex/<主题>` 分支上工作，通过 PR 合并，不直接在 main 编辑或推送人工修改。
 
-| Date | Topic | Branch / files | Ledger heading | What to check | Status |
+## 完成后怎样记录
+
+- 每件已完成工作新增一行，附分支 / PR、验证证据、核查重点和真实交付状态，最新在前。
+- **研究结果**写入案例账本第十七节；**纯通知、界面、运维和文档工作**写入原需求记录及 [COLLAB-LOG.md](COLLAB-LOG.md)，不伪装成研究结果。
+- 尚未提交或合并必须明说；例子、计划、建议不写成已完成，不把“待核查”改成“通过”。
+
+## 当前队列
+
+| 日期 | 事项 | 分支 / PR | 验证证据与核查重点 | 交付状态 | 独立核查 |
 |---|---|---|---|---|---|
-| (example) 2026-10-20 | short name | `codex/topic`, `work/...` | exact heading | numbers to reproduce, tests to run | 待核查 |
+| 2026-10-19 | 接力棒与核查队列收尾 | [#137](https://github.com/327979420/sage-vista/pull/137)，`codex/baton-review-cleanup`；队列入口 #132 | 链接有效；#101 不再写等待合并；#133 与 #134 的未授权部分仍暂停；本表不冒称 Claude 已核查 | 文档已整理，合并状态见对应 PR | 待 Claude 核查 |
+| 2026-10-19 | Discord 纵向正式模板 | [#136](https://github.com/327979420/sage-vista/pull/136)，`codex/3w-discord-card-layout` | 通知测试 15 项通过；[同一提交的 Actions](https://github.com/327979420/sage-vista/actions/runs/39182916981)验证及纵向样例送达成功；价格各一行，去掉版本号 / 冗余提示；价格精度、规则与生产去重未变 | 已合并并用于正式通知；用户认可样式 | 待 Claude 核查 |
+| 2026-10-19 | 冻结 1.9 机会提醒及持久去重 | [#135](https://github.com/327979420/sage-vista/pull/135)，`services/scanner/triangle_discord.py`、研究任务通知 job | 核对仅允许新鲜、合格、waiting、未过期机会；止盈为计划入场 + 3R；发送前 reserved，成功后 sent，结果不确定时不自动重发；[基础模拟回执](https://github.com/327979420/sage-vista/actions/runs/39180740698)为 sent / count=1 | 已上线，模拟已送达；真实信号自动送达待首例验收 | 待 Claude 核查 |
+| 2026-10-19 | 旧页面测试断言修正 | #135 中 `tests/test_product_consolidation.py` | 旧断言在 main 原样复现失败，仅对齐已有 TodayPage 和 SiteNavigation，未改页面；[完整回归](https://github.com/327979420/sage-vista/actions/runs/39179871983)共 1230 项、跳过 16 项，通过 | 已合并；夜间续跑仍待正常任务验收 | 待 Claude 核查 |
 
-## Claude: how to review a row
-Reproduce the key numbers (or rerun the tests), check the pre-registration came first, check no locked data or frozen code was touched,
-then set Status to `通过` / `退回：原因`, merge the branch if it passes (respecting the 23:30-04:30 UTC window and any running EOD job),
-and update the workbench ticket.
+## Claude 怎样核查
+
+1. 核对该行原始授权、PR 的最终差异和证据；研究行另核对预登记时间、数据边界与唯一判据。
+2. 运行该行相关测试或复算关键数字；按治理规则只扩大到受影响问题，不默认重跑无关研究。
+3. 已合并 / 已上线的行只复核，不重复合并；未合并的改动核查通过后，按实际授权、EOD 窗口及日更运行状态处理。
+4. 回填“通过”或“退回：原因”，记录核查人和日期，再同步在线工作台。Codex 不代填 Claude 的结论。
+
+生产模拟样例已经去重。检查格式请直接调用 `brief_payload()` 或看既有发送记录，不清空通知账本，也不为核查另发消息。
