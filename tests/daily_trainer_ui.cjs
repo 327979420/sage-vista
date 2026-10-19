@@ -38,7 +38,7 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
    if(name!=='daily1')throw Error('collection');
    return {
     onSnapshot:cb=>{window.mockSnapshot=cb;cb({docs:[]})},
-    doc:id=>({set:async a=>{
+    doc:id=>({acquire:async()=>{if(window.mockFail)throw Error('offline');return {acquired:true}},get:async()=>({exists:id in window.mockSaved,data:()=>window.mockSaved[id]}),set:async a=>{
      if(window.mockFail)throw Error('offline');
      window.mockSaved[id]=a;
      window.mockSnapshot({docs:Object.entries(window.mockSaved).map(([id,a])=>({id,data:()=>a}))});
