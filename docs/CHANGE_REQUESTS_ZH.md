@@ -1617,3 +1617,10 @@
 - 复现：`work/vectorbt-env/bin/python scripts/build_calendars.py`；`MPLCONFIGDIR=/private/tmp/task032-mpl work/vectorbt-env/bin/python -m research.lab.weekly_report --cockpit tests/fixtures/weekly/cockpit.json --outcomes tests/fixtures/weekly/outcomes.json --date 2026-10-17`。输出 `work/reports/weekly/2026-10-17.html`；完整历史合成示例 `work/reports/weekly/fixture-history-2026-10-17.html`。页面标注合成夹具，不是真实账户。
 - 验证：`python3 -m unittest tests.test_calendars tests.test_app_data tests.test_signal_tickets tests.test_forward_data` 52 项通过；`MPLCONFIGDIR=/private/tmp/task032-mpl work/vectorbt-env/bin/python -m unittest tests.test_weekly_report` 7 项通过。覆盖法定/临时休市、HK 春节、月底和边界、真实 QuantStats、首日亏损回撤、缺价、未来记录、资金不一致、重复/冲突历史、HTML 转义和禁网。两份日历重新导出完全一致；周报 CLI 使用本地 sector 数据成功；`git diff --check` 通过。
 - Concerns：日历仅反映库 4.11.1 已知安排，未来临时休市需要重新导出；没有真实 cockpit 日历史，不能宣称账户已有绩效。周报未进行浏览器视觉验收；仅验证生成、内容与自包含。默认 forward 输入日期晚于历史报告日时明确拒用。保留原未跟踪 `tests/test_reality3w.py`，不修改其他任务。
+
+### CR-2026-10-19-discord-baton｜纵向机会提醒与交接收尾
+
+- 授权：用户确认实际 Discord 纵向样例，要求先合并上线，再整理接力棒 / 核查队列；其他事项先不动。
+- 交付：通知格式经 #136 合并（ad36b15），价格分行、有效期前留白，无版本号或冗余提示；冻结规则、计算、门槛与生产去重不变。#132 已合并，本轮更新 STATUS / REVIEW_QUEUE 并补待 Claude 核查条目。
+- 验证：同源提交 fcf0ea5 的 Actions 39182916981 验证和实际样例发送成功；通知模块 15 项测试通过。文档只检查链接、范围、状态和证据，不触发研究、日历 / 周报修复、额外发送或网站部署。
+- 验收边界：正式模板已采用用户确认版本；独立核查仍待 Claude，真实机会自动送达仍待首例。#133 和 #134 的额外保护机制不纳入本轮。
