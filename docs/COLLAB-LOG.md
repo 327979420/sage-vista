@@ -42,3 +42,5 @@ Claude directs and accepts; Codex implements (Codex plugin). Each round: task ca
 - 仅调整显示模板及对应断言，不改变冻结规则、价格计算、通知触发或去重账本，不重发已发样例。
 
 - 用户要求“发一条试试”：通过预览分支的显式 card_preview 模式，仅发送一条标注模拟的 TEST 卡片；任务仅有读取仓库权限，不写 main 或生产去重账本，GitHub 同次运行的重跑不发送。
+
+- 用户提供真实频道截图后确认纵向文本版：取消 Embed 窄卡与三列布局，三个价格各占一行、有效期前留白、移除版本号；通过已授权的分支预览再发一条，不改生产去重记录。

@@ -57,12 +57,13 @@ class NotificationTests(unittest.TestCase):
 
     def test_short_template_and_subcent_precision(self):
         payload = D.brief_payload('TEST', 98.1234, 90.1, 122.1936, '2026-12-14')
-        embed = payload['embeds'][0]
-        fields = embed['fields']
-        self.assertEqual([f['value'] for f in fields[:3]], ['**$98.1234**', '**$90.10**', '**$122.1936**'])
-        self.assertTrue(all(f['inline'] for f in fields[:3]))
-        self.assertFalse(fields[3]['inline'])
-        self.assertEqual(embed['footer']['text'], '3w-1.9 · USD')
+        text = payload['content']
+        self.assertIn('限价入场　**$98.1234**\n', text)
+        self.assertIn('止损　　　**$90.10**\n', text)
+        self.assertIn('止盈　　　**$122.1936** · 3R\n\n', text)
+        self.assertIn('有效至约 **2026-12-14**', text)
+        self.assertNotIn(D.VERSION, text)
+        self.assertNotIn('embeds', payload)
 
     def test_simulation_works_without_market_data_and_deduplicates(self):
         (self.root / 'public/app/signals.json').unlink()
@@ -70,7 +71,7 @@ class NotificationTests(unittest.TestCase):
         result = D.run(self.root, now=NOW, simulate=True)
         notice = result['notices'][0]
         self.assertTrue(notice['key'].startswith('simulation:'))
-        self.assertIn('模拟', notice['payload']['embeds'][0]['title'])
+        self.assertIn('模拟', notice['payload']['content'])
         self.assertNotIn('非真实机会', json.dumps(notice['payload'], ensure_ascii=False))
         self.assertEqual(before, (self.root / D.STATE).read_bytes())
         self.state['notifications'][notice['key']] = {'status': 'sent'}
