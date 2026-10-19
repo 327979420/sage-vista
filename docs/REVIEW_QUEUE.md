@@ -20,6 +20,7 @@
 
 | 日期 | 事项 | 分支 / PR | 验证证据与核查重点 | 交付状态 | 独立核查 |
 |---|---|---|---|---|---|
+| 2026-10-19 | Task043 Step2数据集规格及板块路由 | `codex/kr-exam`，sv-wt-036，基点8afc6d4 | 新增5项测试；相关119项：118通过/1跳过。全部1,532个mock请求均为CODE.KO/KQ一次后缀，raw_close保留；错误后缀在请求前拒绝。US默认/显式US/HK相对基点请求与合成输出字节一致；work/kr-step2/tests.log及protected.json | 仅本地准备完成；spec全名单+069500.KO、不分组、1995起、keep_raw、5%缺失门槛；未联网/实际构建/考试/暂存/提交。Claude核查后触发data-kr-a-v1 | 待核查 |
 | 2026-10-19 | Task043 韩国考试 Step 1 | `codex/kr-exam`，sv-wt-036，基点`b849055` | 原值逐字测试；新增16项；相关114项：113通过/1跳过。US/HK/TSE×重试开关6组合成结果、stats、failed、REPORT、shard字节一致。`work/kr-step1/tests.log`、`protected.json`；核查六字符/前导零、同板重用、KO平局、去重先于流动性、失败别名不替代及名称提示 | 仅STOP 1本地完成，未暂存/提交；无网络/真实韩股/分组/冻结/考试。037已关闭。核查后仅触发韩国screen，STOP 2冻结前审查全部review_flags与失败覆盖 | 待核查 |
 | 2026-10-19 | Task037 Step 1 日股screen预登记及工程准备 | `codex/jp-exam`（sv-wt-039） | 任务卡/08/§17原值及两条Claude澄清逐字测试；`tests/test_japan_screen.py`新增16项，相关套件97项：96通过/1跳过；US/HK与HEAD合成基线结果、stats、failed、REPORT及shards相同。检查名称子串误杀、失败别名不替代、有效日线定义；核实Actions使用此spec，冻结前审查所有review_flags并记日期 | 仅STOP 1本地完成；无网络/真实日股数据/信号/分组/冻结；未暂存/提交。builder原逻辑模拟验证，真实provider未验收 | 待核查 |
 | 2026-10-19 | Task038眼光判卷与自选股前向记录 | `codex/owner-eye` | §17原文预登记、限价/期限/参考价及compute抽孪生澄清；`work/own-picks-038/README.md`、tests.log、protected-before/after（103文件一致），`work/eye-judge/latest.{json,md}`。71项测试：A揭晓顺序/末4题/合计门槛，B/C退出日全部检查点，C追加/迟到/跳空/限价/持有/无前视/冻结池种子。复核市价开盘已越止损时R不可计分处理、B开盘前盲判证据及孪生可用性 | 本地完成，正式前向0、自选0；真实训练90题只能参考。workflow仅建议，未暂存/提交/发布；首次既有回归曾使用系统临时目录，最终测试TMPDIR固定在工作树 | 待核查 |

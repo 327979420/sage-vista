@@ -1660,3 +1660,15 @@
 - 验证：`TMPDIR="$PWD/work/kr-step1/tmp" PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests.test_korea_screen tests.test_japan_screen tests.test_screen tests.test_eodhd_client tests.test_research_lab tests.test_datasets_repo -q`：114项，113通过/1跳过。新增16项全部通过；字节回归用git show b849055加载旧模块，在US/HK/TSE各开启/关闭重试共6组合成输入上比较result/stats/failed序列化、REPORT及分片文件字节。保护文件与b849055逐字节核对，证据work/kr-step1/protected.json；git diff --check通过。未读真实价格，未运行screen队列或收益研究。
 - Claude触发前：核查diff、逐字预登记、六字符报错约定、失败别名处理；确保Actions检出合并后的版本，选择仅data-kr-universe-v1，不能触发已停放日本spec或考试。KO/KQ请求均截至2025-06-30，suffix只一次；真实provider接口未在线验证。STOP 2冻结前审查全部review_flags、类型/名称排除、失败/空历史/未决公司；如改规则先记日期。分片不是A/B；分组与冻结另按Step2，min_history420及代理交易日检查属后续考试。
 - Concerns：退市覆盖可能不全；名称子串可能误杀或漏掉非普通股；公司键只是代码代理；全窗口覆盖/流动性筛选含事后样本选择局限。涨跌停使止损可能无法成交、KOSDAQ小盘、069500代理适配按卡保留，不建新模型。既有timeframe.py ResourceWarning未修；测试“Waiting 20 minutes”来自mock，没有等待/发布。无策略结论。
+
+### CR-2026-10-19-kr-exam-step2｜韩国数据集准备（本地完成）
+
+- 用户已批准screen review及Step2：1,531全名单+069500.KO，不分组；1995日起、keep_raw=true、max_missing_share=.05。审查决定已写§17。
+- 只读核验通过：1,531唯一代码，28提示全在名单，4未决公司全排除，proxy未混入候选，板块均为KO/KQ；证据work/kr-step2/preflight.json。
+- 阻断：run_queue.ensure_dataset的universe入口仅支持统一exchange；eodhd.eod_symbol只对TSE识别已有后缀。KO/KQ带后缀代码会拼成如000020.KO.US或000020.KO.KO。chains入口不能保留raw_close，不能用作替代。
+- 建议：仅在run_queue.py的universe入口加入显式exchanges=[KO,KQ]模式，拆分代码后缀验证板块，将裸代码及对应exchange传给原prices函数，保留数据集的完整带后缀key；旧单exchange路径不变。补1,532符号mock请求与raw_close测试。此前用户规定超出screen扩展先问，故本轮停在此边界，没有创建不可运行spec或修改代码，无网络/提交。
+
+- Claude后续明确批准：仅dataset.exchanges列表启用按.KO/.KQ后缀路由；未注册后缀报错；无exchanges的旧路径保持原样。已在run_queue.py universe入口实施，先验证所有代码再调用原prices与build_from_universe，避免路由错误被当作missing吞掉；eodhd.py、datasets.py无需修改。
+- 已新增data-kr-a-v1.json及三份机器实验预登记。1,531名单+069500.KO共1,532代码，原列表不改；1995-01-01起、keep_raw=true、max_missing_share=.05；不分组。75空历史按确认记为“KO and KQ, mixed code formats”。
+- 验证：TMPDIR固定本worktree/work/kr-step2/tmp，PYTHONDONTWRITEBYTECODE=1，运行python3 -m unittest tests.test_korea_dataset tests.test_korea_screen tests.test_japan_screen tests.test_screen tests.test_eodhd_client tests.test_research_lab tests.test_datasets_repo -q：119项，118通过/1跳过。新增5项全部通过：规格/批准名单、1,532逐代码请求及raw_close、非法后缀零请求、非法exchanges声明、旧US/HK相对8afc6d4字节回归。mock了provider、manifest、save/upload，无实际下载/数据集保存/上传。证据work/kr-step2/tests.log；git diff --check通过。
+- 本轮停在Step2准备完成，待Claude触发构建并审查coverage；实际缺失比例未知，screen通过不等于dataset覆盖通过。冻结代码/.github/现有screen产物/名单与基点字节一致，见protected.json；无网络、暂存或提交，无Step3运行。既有timeframe ResourceWarning未改；测试中的发布等待文本来自mock，无真实等待或发布。

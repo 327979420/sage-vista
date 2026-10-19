@@ -103,7 +103,21 @@ def ensure_dataset(ds, publish):
         from services.scanner.eodhd import prices
         listed = (ROOT / ds["symbols_file"]).read_text().split()
         symbols = sorted(set(listed) | set(ds.get("extra_symbols", [])))
-        data = datasets.build_from_universe(symbols, ds["id"], lambda s: prices(s, start=ds["start"], **({"exchange": ds["exchange"]} if ds.get("exchange", "US") != "US" else {})),
+        fetch = lambda s: prices(s, start=ds["start"], **({"exchange": ds["exchange"]} if ds.get("exchange", "US") != "US" else {}))
+        if "exchanges" in ds:
+            exchanges = ds["exchanges"]
+            if not isinstance(exchanges, list) or not exchanges or any(x not in ("KO", "KQ") for x in exchanges):
+                raise ValueError("dataset.exchanges must be a non-empty list of KO/KQ boards")
+            routes = {}
+            # Validate the entire list before downloads: build_from_universe catches
+            # fetch errors as missing histories, but invalid routing is a spec error.
+            for symbol in symbols:
+                code, sep, board = symbol.rpartition(".")
+                if not sep or not code or "." in code or board not in exchanges:
+                    raise ValueError(f"Symbol has no registered exchange suffix: {symbol}")
+                routes[symbol] = (code, board)
+            fetch = lambda s: prices(routes[s][0], start=ds["start"], exchange=routes[s][1])
+        data = datasets.build_from_universe(symbols, ds["id"], fetch,
                                             f"EODHD full adjusted history from {ds['start']} for {ds['symbols_file']} plus {len(ds.get('extra_symbols', []))} extra symbols"
                                             + (", with the unadjusted close" if ds.get("keep_raw") else ""), keep_raw=ds.get("keep_raw", False))
     elif source == "chains":

@@ -1,0 +1,41 @@
+{
+  "id": "data-kr-a-v1",
+  "experiment_id": "lab-data-kr-a-v1-2026-10-19",
+  "kind": "coverage",
+  "priority": 1,
+  "question": "Freeze all 1,531 Korea screen companies (no A/B split) plus 069500.KO as market proxy, with daily history from 1995 and unadjusted close. Engineering coverage only; no signals or returns.",
+  "dataset": {
+    "id": "kr-a-1995-v1",
+    "builder": "universe",
+    "exchanges": [
+      "KO",
+      "KQ"
+    ],
+    "symbols_file": "research/lab/universes/kr-2005-2025-v1-a.txt",
+    "extra_symbols": [
+      "069500.KO"
+    ],
+    "start": "1995-01-01",
+    "keep_raw": true
+  },
+  "group": "data",
+  "years": [
+    2005,
+    2025
+  ],
+  "cases": [],
+  "criteria": {
+    "max_missing_share": 0.05
+  },
+  "requires": [
+    "data-kr-universe-v1"
+  ],
+  "next_step": "Step 2 preparation only. Claude triggers the dataset build and reviews coverage; do not run the Step 3 exam.",
+  "notes": [
+    "Claude review 2026-10-19, run 39237780214: 1531 kept, 0 errors, 75 empty histories (KO and KQ, mixed code formats).",
+    "All 28 holding-company flags approved; 006400, 015760, 259960, 307950 remain excluded: failed alias not substituted.",
+    "1531 <= 2000: no A/B split. All kept companies plus proxy 069500.KO = 1532 dataset symbols; proxy is never a candidate.",
+    "Daily history from 1995; pre-2005 is indicator warm-up only. Exam signals/results remain bounded by the registered windows.",
+    "At most 5% missing symbols; report coverage regardless of outcome. Explicit exchanges routes qualified symbols by suffix; no unregistered suffix allowed."
+  ]
+}
