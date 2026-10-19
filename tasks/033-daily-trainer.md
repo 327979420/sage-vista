@@ -40,6 +40,13 @@ only at runtime inside the generator process (never edit the files).
 | Market filter (SPY / breadth) | yes | **not used** (owner) |
 | Liquidity pool | `triangle15.POOL`: >= 420 days history, raw close >= $5, close*volume >= $10M on the signal day | same |
 
+**Price floor decision (Claude, 2026-10-19, answering Codex):** the datasets without a `raw_close` field (e.g. `universe-1985-v1`) use
+the existing `buytrain.tradable` fallback to the adjusted close for the $5 floor - exactly what the frozen 3W runs have always done on
+these datasets, so it stays consistent with them. Do not look for or build a raw-price supplement. Record the limitation in
+`work/v3w/daily1.md`: for stocks that later split or paid large dividends the adjusted price is lower than the price traded at the time,
+so a few stocks that really traded above $5 may be excluded (it can only remove cases, never add a sub-$5 stock); report how many
+candidates per dataset used the fallback.
+
 ## 2. Data range and sampling
 - Universe: the five frozen US datasets (`universe-1985-v1`, `fresh-a..d-1995-v1`), US only. Never HK.
 - Historical: signal days **2005-01-01..2024-06-30** (yes, include 2005-2014: this is training, and the earlier exclusion only applied
