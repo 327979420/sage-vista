@@ -41,3 +41,45 @@ python3 -m services.scanner.discord_daily_digest
 ```
 
 正式自动化必须在网站部署成功之后调用发送命令；部署失败、数据日期不一致或测试失败时不得发送。
+
+## 3W 冻结机会提醒（2026-10-19）
+
+用户授权独立接入 3W 机会提醒；旧 MACD／多因子摘要的暂停状态不变。
+新增 `services/scanner/triangle_discord.py`，只读 `public/app/signals.json` 和已有的信号票据，
+不扫描历史、不调整规则、不修改冻结代码或 `research/lab/forward/`。
+
+- 仅发送 `3w-1.9`、允许下单、仍 waiting、行情新鲜、票据重放核对通过且未过期的机会。
+- 入场和止损照抄冻结记录；目标必须等于计划入场价 + 3 ×（计划入场价 − 止损），不使用旧版 t1。
+- 有效期为信号后 40 个交易日；日期照用票据的常规 NYSE 交易日历估算并明确标注；最多持仓 130 个交易日。
+- 形态出现但未通过大盘或原计划门槛，不发送；已成交、取消、结束、状态未核实和示例均不作为新挂单机会发送。
+- 当前交易日行情缺失、价格或版本不一致、时间异常均阻断。无机会则不发送空消息。
+- `Research Lab` 成功后独立 job 从 main 重新取已发布的 app 数据，先测试、预览并留 artifact，再发送。
+  不依赖旧多因子通知，也不要求网站部署产生变化；生产 job 成功仍是前提。
+- Secrets 优先 `DISCORD_WEBHOOK_URL`，其次原有 `DISCORD_OPPORTUNITY`；不读本地 `.env`，缺失则明确失败。
+
+预览（不读密钥、不写状态、不联网）：
+
+```sh
+python3 -m services.scanner.triangle_discord
+python3 -m unittest tests.test_triangle_discord tests.test_triangle15 tests.test_app_data tests.test_discord_digest
+```
+
+### 去重与异常核查
+
+`automation/triangle-discord-state.json` 永久按 `3w-1.9:信号ID` 保存通知记录，不按股票终身去重：
+同一机会不重发，未来同股的新信号可以通知。发送前先通过独立 Git index 将 `reserved` 状态推送到 main；
+成功回执后再保存 `sent`。并发或推送失败时不得调用 Discord。运行时遵守 EOD 禁推窗口。
+
+Discord HTTP 与 Git 之间无法做原子事务：超时、发送后进程终止或结果保存失败时，可能已送达也可能漏发。
+为了遵守用户“不重复发”，`reserved` 不自动重发；下次运行报告待核查并令 job 失败。
+人工先按消息中的机会编号检查频道：已收到则将该记录改为 `sent`；确定未收到时才解除该条保留并重跑。
+解除保留仍须经过最新行情、waiting 与有效期检查，过期或已成交的机会不会补成可下单消息。
+不要清空整个账本。常规单元测试只模拟 HTTP。用户明确请求时，可从 `3W Discord preview and simulation` 手动选择 `simulate`，通过 GitHub Secrets 向真实频道发送一条清楚标注“模拟／非真实机会”的 TEST 样例。
+
+短版消息固定为标题加三行：入场／止损／3R 止盈、预计到期日（40交易日）、规则版本。价格保留至少两位、最多四位小数，不丢失记录中的四位精度。
+
+模拟使用独立去重键 `simulation:3w-1.9:brief-v1`，与真实机会的状态隔离；再次运行同一样例不会重发，也不写入信号、行情或账户记录。手动 `preview` 只生成样例 artifact，不发送。模拟运行不依赖扫描／回测／网站部署。
+
+上线流程：PR 上运行通知及现有消费者测试，验证无 Secret 的短版预览；随后按用户 2026-10-19 明确授权提交、推送、合并，在 main 上手动运行 `mode=simulate`。仍遵守 EOD 禁推窗口。
+
+本次用户明确批准 EOD 窗口例外：手动模拟可设置 `allow_eod_window=true`，仅对模拟命令生效；默认 false，真实机会提醒不能使用该例外。

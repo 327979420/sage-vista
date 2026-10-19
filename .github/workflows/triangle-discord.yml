@@ -1,0 +1,73 @@
+name: 3W Discord preview and simulation
+
+on:
+  pull_request:
+    paths:
+      - services/scanner/triangle_discord.py
+      - tests/test_triangle_discord.py
+      - automation/triangle-discord-state.json
+      - .github/workflows/triangle-discord.yml
+      - .github/workflows/research-lab.yml
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Preview only, or send the deduplicated synthetic TEST sample
+        type: choice
+        required: true
+        default: preview
+        options: [preview, simulate]
+      allow_eod_window:
+        description: Owner explicitly authorized this simulation during the EOD publication window
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+# Share the producer's lock so state writes do not overlap its publications.
+concurrency:
+  group: ${{ github.event_name == 'workflow_dispatch' && 'sage-vista-research-lab' || format('triangle-discord-pr-{0}', github.event.pull_request.number) }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with: { python-version: "3.14" }
+      - name: Test notifications and frozen-rule consumers
+        run: python3 -m unittest tests.test_triangle_discord tests.test_triangle15 tests.test_app_data tests.test_discord_digest
+      - name: Preview the short synthetic message without a secret
+        run: python3 -m services.scanner.triangle_discord --simulate > triangle-discord-preview.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: triangle-discord-preview
+          path: triangle-discord-preview.json
+          retention-days: 7
+
+  notify:
+    needs: validate
+    permissions:
+      contents: write
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with: { python-version: "3.14" }
+      - name: Send the explicitly requested synthetic message once
+        if: inputs.mode == 'simulate'
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL || secrets.DISCORD_OPPORTUNITY }}
+          ALLOW_EOD_WINDOW: ${{ inputs.allow_eod_window }}
+        run: |
+          args=(--simulate --send)
+          if [ "$ALLOW_EOD_WINDOW" = "true" ]; then args+=(--allow-eod-window); fi
+          python3 -m services.scanner.triangle_discord "${args[@]}"
