@@ -46,17 +46,15 @@ def money(value):
 
 
 def brief_payload(symbol, entry, stop, target, until, *, simulated=False):
-    label = '🧪 模拟｜3W' if simulated else '3W 挂单机会'
-    suffix = ' · 非真实机会' if simulated else ' · 日终模拟账户'
-    return {'allowed_mentions': {'parse': []}, 'embeds': [{
-        'title': f'{label} · {symbol}',
-        'description': (
-            f'入场 ${money(entry)}｜止损 ${money(stop)}｜止盈 ${money(target)}（3R）\n'
-            f'挂单有效至约 {until}（40交易日）\n'
-            f'规则 {VERSION}{suffix}'
-        ),
-        'color': 14197855 if simulated else 5763719,
-    }]}
+    label = '🧪 3W 模拟' if simulated else '3W 挂单机会'
+    # Normal message text avoids the narrow, auto-sized embed seen in Discord.
+    return {'allowed_mentions': {'parse': []}, 'content': (
+        f'**{label} · {symbol}**\n\n'
+        f'限价入场　**${money(entry)}**\n'
+        f'止损　　　**${money(stop)}**\n'
+        f'止盈　　　**${money(target)}** · 3R\n\n'
+        f'有效至约 **{until}** · 40 个交易日'
+    )}
 
 
 def simulation_notices(state):

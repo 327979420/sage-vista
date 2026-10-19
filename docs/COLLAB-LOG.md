@@ -35,3 +35,12 @@ Claude directs and accepts; Codex implements (Codex plugin). Each round: task ca
 - 用户明确答复“本次允许例外，检查通过后合并发送”。例外限本次合并及一条模拟消息，手动 workflow 需显式 allow_eod_window=true，生产通知默认保护不变。
 
 - CI 发现 main 原有两条过时页面断言（旧首页导向与导航内联位置），并导致 release-contract 的嵌套测试失败；对应应用文件与 main 无差异，已本地复现。仅更新 tests/test_product_consolidation.py 为 main 现有 TodayPage／SiteNavigation 合同，保留旧页面退役及兼容检查，不修改网站或策略。
+
+## 2026-10-19 — Discord 消息排版调整
+
+- 根据用户对已发样例的反馈，参考 Discord 官方 Embed 字段结构，将三个价格拆为独立字段，有效期单独一行，版本移至页脚；删除“非真实机会”，保留标题“模拟”。
+- 仅调整显示模板及对应断言，不改变冻结规则、价格计算、通知触发或去重账本，不重发已发样例。
+
+- 用户要求“发一条试试”：通过预览分支的显式 card_preview 模式，仅发送一条标注模拟的 TEST 卡片；任务仅有读取仓库权限，不写 main 或生产去重账本，GitHub 同次运行的重跑不发送。
+
+- 用户提供真实频道截图后确认纵向文本版：取消 Embed 窄卡与三列布局，三个价格各占一行、有效期前留白、移除版本号；通过已授权的分支预览再发一条，不改生产去重记录。

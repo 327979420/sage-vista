@@ -50,18 +50,20 @@ class NotificationTests(unittest.TestCase):
         before = (self.root / D.STATE).read_bytes()
         result = D.run(self.root, now=NOW)
         text = json.dumps(result, ensure_ascii=False)
-        for value in ('98.00', '90.00', '122.00', '40交易日', self.order['valid_until']):
+        for value in ('98.00', '90.00', '122.00', '40 个交易日', self.order['valid_until']):
             self.assertIn(value, text)
         self.assertEqual(before, (self.root / D.STATE).read_bytes())
         self.assertEqual(result['notices'][0]['payload']['allowed_mentions'], {'parse': []})
 
     def test_short_template_and_subcent_precision(self):
         payload = D.brief_payload('TEST', 98.1234, 90.1, 122.1936, '2026-12-14')
-        embed = payload['embeds'][0]
-        self.assertEqual(len(embed['description'].splitlines()), 3)
-        self.assertIn('$98.1234', embed['description'])
-        self.assertIn('$90.10', embed['description'])
-        self.assertNotIn('fields', embed)
+        text = payload['content']
+        self.assertIn('限价入场　**$98.1234**\n', text)
+        self.assertIn('止损　　　**$90.10**\n', text)
+        self.assertIn('止盈　　　**$122.1936** · 3R\n\n', text)
+        self.assertIn('有效至约 **2026-12-14**', text)
+        self.assertNotIn(D.VERSION, text)
+        self.assertNotIn('embeds', payload)
 
     def test_simulation_works_without_market_data_and_deduplicates(self):
         (self.root / 'public/app/signals.json').unlink()
@@ -69,8 +71,8 @@ class NotificationTests(unittest.TestCase):
         result = D.run(self.root, now=NOW, simulate=True)
         notice = result['notices'][0]
         self.assertTrue(notice['key'].startswith('simulation:'))
-        self.assertIn('模拟', notice['payload']['embeds'][0]['title'])
-        self.assertIn('非真实机会', notice['payload']['embeds'][0]['description'])
+        self.assertIn('模拟', notice['payload']['content'])
+        self.assertNotIn('非真实机会', json.dumps(notice['payload'], ensure_ascii=False))
         self.assertEqual(before, (self.root / D.STATE).read_bytes())
         self.state['notifications'][notice['key']] = {'status': 'sent'}
         self.write()
