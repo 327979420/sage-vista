@@ -1,0 +1,44 @@
+name: EODHD exchanges probe
+
+# Read-only, manual: lists the exchanges the EODHD plan covers (owner approved 2026-10-19, task 037).
+# Prints public exchange metadata only; the token never appears in the output.
+on:
+  workflow_dispatch:
+    inputs:
+      country:
+        description: "Country to highlight (case-insensitive substring)"
+        required: false
+        default: "Japan"
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      EODHD_API_TOKEN: ${{ secrets.EODHD_API_TOKEN }}
+      COUNTRY: ${{ inputs.country || 'Japan' }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with: { python-version: "3.13" }
+      - name: List covered exchanges
+        run: |
+          python3 - <<'PY'
+          import os
+          from services.scanner.eodhd import get
+          rows = get("exchanges-list/")
+          want = os.environ["COUNTRY"].lower()
+          out = [f"Exchanges covered: {len(rows)}", "", "| Code | Name | Country | Currency | MIC |", "|---|---|---|---|---|"]
+          for r in sorted(rows, key=lambda r: (str(r.get("Country")), str(r.get("Code")))):
+              line = f"| {r.get('Code')} | {r.get('Name')} | {r.get('Country')} | {r.get('Currency')} | {r.get('OperatingMIC')} |"
+              out.append(line + (" ◀" if want in str(r.get("Country", "")).lower() else ""))
+          hits = [r for r in rows if want in str(r.get("Country", "")).lower()]
+          out.insert(1, f"Matching '{os.environ['COUNTRY']}': " + (", ".join(str(r.get("Code")) for r in hits) or "none"))
+          text = "\n".join(out)
+          print(text)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:
+              f.write("## EODHD exchanges\n\n" + text + "\n")
+          PY
