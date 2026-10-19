@@ -20,6 +20,7 @@
 
 | 日期 | 事项 | 分支 / PR | 验证证据与核查重点 | 交付状态 | 独立核查 |
 |---|---|---|---|---|---|
+| 2026-10-19 | Task 033 日线盘感训练器 | `codex/daily-trainer`（未合并 main） | 100 题=历史 70+新 30；10 项 Python、统计与浏览器交互检查通过；已判周排除 6 / 撤单 810 / 未完成 5；核查第二推触线、成交顺序、5 美元回退（universe 2,718 候选，其余 0）、盲态和每 10 题复盘。交付：`work/v3w/daily_trainer.py`、`daily_trainer.log`、`daily1-keys.json`、`daily1.md`、`daily1-src/`；`work/site-v2/daily-trainer-1.html`。`work/` 通常被忽略，本轮仅按明确交付授权定向纳入上述文件，不含原始数据缓存 | 本地生成与测试完成；分支交付，待 Claude 发布及验证真实 db 保存 | 待核查 |
 | 2026-10-19 | 接力棒与核查队列收尾 | [#137](https://github.com/327979420/sage-vista/pull/137)，`codex/baton-review-cleanup`；队列入口 #132 | 链接有效；#101 不再写等待合并；#133 与 #134 的未授权部分仍暂停；本表不冒称 Claude 已核查 | 文档已整理，合并状态见对应 PR | 待 Claude 核查 |
 | 2026-10-19 | Discord 纵向正式模板 | [#136](https://github.com/327979420/sage-vista/pull/136)，`codex/3w-discord-card-layout` | 通知测试 15 项通过；[同一提交的 Actions](https://github.com/327979420/sage-vista/actions/runs/39182916981)验证及纵向样例送达成功；价格各一行，去掉版本号 / 冗余提示；价格精度、规则与生产去重未变 | 已合并并用于正式通知；用户认可样式 | 待 Claude 核查 |
 | 2026-10-19 | 冻结 1.9 机会提醒及持久去重 | [#135](https://github.com/327979420/sage-vista/pull/135)，`services/scanner/triangle_discord.py`、研究任务通知 job | 核对仅允许新鲜、合格、waiting、未过期机会；止盈为计划入场 + 3R；发送前 reserved，成功后 sent，结果不确定时不自动重发；[基础模拟回执](https://github.com/327979420/sage-vista/actions/runs/39180740698)为 sent / count=1 | 已上线，模拟已送达；真实信号自动送达待首例验收 | 待 Claude 核查 |

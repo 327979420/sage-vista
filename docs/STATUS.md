@@ -11,6 +11,8 @@
 
 ## 本轮已完成
 
+- **Task 033 日线盘感训练器：100 题（历史 70 / 新数据 30），每股一题；已判股票周排除 6、撤单 810、未完成 5；另因 2005 年前形态锚点排除 74、流动性门槛排除 5,751。** 分支 `codex/daily-trainer`，未合并 main。本地页面 `work/site-v2/daily-trainer-1.html` 与题库已生成；10 项 Python 测试、汇总统计与浏览器交互测试通过。详情见核查队列；Claude 接手发布并验证真实答案保存。
+
 - **Discord 机会提醒已上线**：基础链路 [#135](https://github.com/327979420/sage-vista/pull/135)，用户确认的纵向版 [#136](https://github.com/327979420/sage-vista/pull/136) 已合并；正式模板为普通纵向文本，入场、止损、3R 止盈各一行，有效期前留白，不显示版本号或“非真实机会”。规则、价格计算和生产去重未改。
 - **模拟送达已验证**：[纵向版发送记录](https://github.com/327979420/sage-vista/actions/runs/39182916981)成功。真实新机会的自动送达仍需等首个符合条件的真实信号验收；不要把模拟送达记成这项验收已完成。
 - **核查队列已建立**：[#132](https://github.com/327979420/sage-vista/pull/132) 已合并；[#137](https://github.com/327979420/sage-vista/pull/137) 补入已上线内容与待 Claude 复核条目。交接文档整理不等于独立核查通过。
@@ -41,4 +43,4 @@
 
 先读本文件、[REVIEW_QUEUE.md](REVIEW_QUEUE.md)、[交接第零节](TRIANGLE_HANDOVER_ZH.md)与[任务规则](../tasks/README.md)，再查 Git 状态和对应 PR。
 结束前更新本文件，只把实际完成的工作加入核查队列；历史留在 [COLLAB-LOG.md](COLLAB-LOG.md)。
-本轮授权范围已用完：纵向 Discord 正式合并、接力棒与核查队列整理。其他事项等待用户下一条指令。
+Task 033 按用户追加授权完成本地生成与分支交付；在线发布及真实数据库保存验收交给 Claude。训练结果不改冻结 3W，不用于在旧数据上定新规则。
