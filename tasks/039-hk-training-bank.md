@@ -5,8 +5,8 @@ conditions). Owner asked 2026-10-19: keep practising, with charts from other mar
 never changes the frozen 3w-1.9 or any rule (ADR-16). Results feed Task 038 part A as their own bank (`hk1`).
 
 ## Fixed (do not change)
-- Data: `hk-a-1995-v1` only (local in `work/lab/`). HK group B (`research/lab/universes/hk-exam-b-v1.txt`) stays LOCKED: never
-  load it. Tracker Fund 2800 is the market proxy and never a question. Japan is NOT used here (its exam, Task 037, comes first;
+- Data: `hk-a-1995-v1` only (local in `work/lab/`). HK group B stays LOCKED: never load, list or
+  name its file. Tracker Fund 2800 is the market proxy and never a question. Japan is NOT used here (its exam, Task 037, comes first;
   a Japan group-A bank may follow as a new card after that exam).
 - Candidates: Task 034/035 templates and gates exactly (timeframe-scaled shape, 8-bar order, 26-bar holding, daily OHLC
   execution), with the HK local conditions from Task 010: pool unadjusted close >= HK$1 and >= HK$78M traded, 2800 replaces SPY
