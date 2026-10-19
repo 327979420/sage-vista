@@ -1,0 +1,44 @@
+{
+  "as_of": "2026-10-16",
+  "accounts": {
+    "paper": {
+      "start_cash": 10000,
+      "cash": 9100
+    }
+  },
+  "positions": [
+    {
+      "account": "paper",
+      "symbol": "SPY",
+      "source": "trend",
+      "qty": 10,
+      "entry": 100,
+      "opened": "2026-10-01",
+      "status": "open"
+    },
+    {
+      "account": "paper",
+      "symbol": "XLB",
+      "source": "3W",
+      "qty": 10,
+      "entry": 50,
+      "opened": "2026-10-01",
+      "status": "closed",
+      "closed": "2026-10-15",
+      "exit": 60
+    }
+  ],
+  "prices": {
+    "SPY": {
+      "close": 110,
+      "date": "2026-10-16"
+    }
+  },
+  "journal": [
+    {
+      "at": "2026-10-15T12:00:00Z",
+      "text": "测试记录 <script>alert(1)</script>"
+    }
+  ],
+  "fixture": true
+}

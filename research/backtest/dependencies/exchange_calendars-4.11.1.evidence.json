@@ -1,0 +1,9 @@
+{
+  "package": "exchange_calendars",
+  "version": "4.11.1",
+  "source": "https://pypi.org/project/exchange-calendars/4.11.1/",
+  "license": "Apache-2.0",
+  "license_sha256": "e35c4578f7db4498e62e278978f6c42e0fce6f21f9993a060b08a33549cd3044",
+  "license_bytes": 11347,
+  "evidence_basis": "installed distribution metadata; offline"
+}

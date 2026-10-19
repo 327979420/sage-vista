@@ -2,6 +2,10 @@
 
 Follow the user's current instructions and existing authorization. The single execution policy is [docs/rules/01_GOVERNANCE.md](docs/rules/01_GOVERNANCE.md); read it once per task. Do not load every module for a single-module change.
 
+## Baton (always)
+
+The owner switches between Claude and Codex. Start every session by reading `docs/STATUS.md` (the baton) and `docs/REVIEW_QUEUE.md`; end every session by updating the baton and adding a review-queue row for finished work. GitHub runs `.github/workflows/guardrails.yml` on every PR: it fails if frozen 3W code or locked data references change without the `owner-approved` label.
+
 ## Minimum reading
 
 - Start with `docs/START_HERE_ZH.md`: what the project is, current conclusions, which documents are current and which are retired, the working rules and the research code map.

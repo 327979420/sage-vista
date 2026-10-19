@@ -1605,6 +1605,19 @@
 - 产物：`task031-staging/reports/factor-scan-v1.{json,html}`、`factor-scan-v1-discovery-lock.json`、`verification.json`；运行日志 `task031-staging/v3w/factor_scan.log`。复现：`PYTHONPATH=. python3 -u task031-staging/v3w/factor_scan.py`（脚本保护已有最终报告，复现须使用另一个空产物目录/checkout）；测试：`PYTHONPATH=. python3 task031-staging/v3w/test_factor_scan.py`。
 - Concerns：500笔已多次用于开发；Holm不消除历史探索偏差。周抽样未覆盖跨周同股/重叠持仓依赖，沿用原股票池与已披露坏跳点筛选局限；没有调整生产或交易规则。
 
+### CR-2026-10-19-032｜离线交易所日历与模拟账户周报
+
+- 授权：`tasks/032-calendars-and-weekly-report.md`，ADR-16 run-and-record；仅研究端实现，不改交易规则、冻结代码、生产服务，不联网、不提交。
+- 实现：`scripts/build_calendars.py` 导出 exchange_calendars 4.11.1 的 XNYS / XHKG 2005-01-03..2030-12-31 会话及提前收市 UTC 时间。XNYS 6,538 日 / 56 次提前收市；XHKG 6,409 日 / 50 次。JSON header 的 SHA256 覆盖规范化 sessions + early_closes；stdlib `research/lab/calendars.py` 校验哈希并拒绝范围外日期。依赖证据与 Apache-2.0 原文来自本地安装包，未在线核验。
+- `app_data.py` 的下一交易日、月底判断使用新日历；现有 app 夹具除 `portfolio.calendar_basis` 更新为 `exchange_calendars_4.11.1_XNYS` 外完全一致。
+- 全区间逐日比较 next_session（2005-01-03..2030-12-30）：10 个输入日不同，均为旧代码遗漏特殊休市：2006-12-29..2007-01-01 原指向 2007-01-02，现为 01-03；2012-10-26..28 原为 10-29、10-29 原为 10-30，现均为 10-31；2018-12-04 原为 12-05，现为 12-06；2025-01-08 原为 01-09，现为 01-10。2025-09-01 与 2026-11-26 原研究端已正确。月底后的周末输入改为返回真实月底会话（例如 2026-05-31 返回 05-29），不再将周末标作信号日；`rebalance_due` 沿用月底已到的语义。
+- 旧手写日历/工作日近似清单：`research/lab/app_data.py:next_session/month_state` 已替换；`services/scanner/cr056_inputs.py` 工作日候选、`services/scanner/resonance_tracker.py` 工作日回看、`services/gates/long_term_state.py:period_closed_at_session` 周五/工作日月底判断均未改。`services/scanner/backtest_progress.py:previous_week` 是自然周切片，当前已有 `scanned_start` 空交易周推进修复，未发现仍用假交易日绕过 2025-09-01 的逻辑；`services/scanner/date_partitions.py` 与 `research/backtest/score_factor_study_v1.py` 为自然周分组，不是交易所假日日历。
+- 周报：`research/lab/weekly_report.py` 读取 cockpit、outcomes、相邻 signals.jsonl（缺失明确标注）及本地校验哈希的 sector dataset，输出中文 navy/cards 单文件 HTML。账户净值、分 source 持仓毛损益、日志、信号、月底状态、前向状态及真实 QuantStats 日收益/回撤/月收益；无外部脚本或图表资源。未观察月份显示缺失，不伪装零收益。
+- 保守约定：单次 cockpit 导出无法提供每日净值。可用 `--history <目录>` 传入每日原形导出，增加 `as_of` 会话日期；至少 21 个连续收盘快照产生 20 个日收益。每周快照不插值；历史缺价、资金变化未核对、重复日期或当前快照冲突均不生成误导收益。策略组损益不分摊费用或共享现金，不将持仓当信号。当前总资产变动不称为净投资收益。
+- 复现：`work/vectorbt-env/bin/python scripts/build_calendars.py`；`MPLCONFIGDIR=/private/tmp/task032-mpl work/vectorbt-env/bin/python -m research.lab.weekly_report --cockpit tests/fixtures/weekly/cockpit.json --outcomes tests/fixtures/weekly/outcomes.json --date 2026-10-17`。输出 `work/reports/weekly/2026-10-17.html`；完整历史合成示例 `work/reports/weekly/fixture-history-2026-10-17.html`。页面标注合成夹具，不是真实账户。
+- 验证：`python3 -m unittest tests.test_calendars tests.test_app_data tests.test_signal_tickets tests.test_forward_data` 52 项通过；`MPLCONFIGDIR=/private/tmp/task032-mpl work/vectorbt-env/bin/python -m unittest tests.test_weekly_report` 7 项通过。覆盖法定/临时休市、HK 春节、月底和边界、真实 QuantStats、首日亏损回撤、缺价、未来记录、资金不一致、重复/冲突历史、HTML 转义和禁网。两份日历重新导出完全一致；周报 CLI 使用本地 sector 数据成功；`git diff --check` 通过。
+- Concerns：日历仅反映库 4.11.1 已知安排，未来临时休市需要重新导出；没有真实 cockpit 日历史，不能宣称账户已有绩效。周报未进行浏览器视觉验收；仅验证生成、内容与自包含。默认 forward 输入日期晚于历史报告日时明确拒用。保留原未跟踪 `tests/test_reality3w.py`，不修改其他任务。
+
 ### CR-2026-10-19-discord-baton｜纵向机会提醒与交接收尾
 
 - 授权：用户确认实际 Discord 纵向样例，要求先合并上线，再整理接力棒 / 核查队列；其他事项先不动。
