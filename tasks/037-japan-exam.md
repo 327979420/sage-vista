@@ -20,6 +20,10 @@ three STOP points — stop there, report, and wait.
    - Group split: if more than 2,000 stocks are kept, split A/B exactly like ADR-2 (sorted list, `random.Random(20261019)`,
      A = first ceil(n/2)); B is LOCKED. If 2,000 or fewer, use all of them (no B group). Fixed now, before counts are seen.
    - Pre-2005 Japan prices: indicator warm-up only.
+   - Lessons from the HK bank (Task 039, 2026-10-19): one code per company (company key = code without suffix, leading zeros
+     stripped; keep the code with the most sessions), and exclude anything the provider does not type as "Common Stock" plus
+     any code a TSE code range marks as ETF/ETN/REIT/fund. Exclude a candidate whose signal, fill or exit day is not a 1306
+     session (no look-ahead in the market filter). Report each exclusion count. Fixed now, before any Japan data is seen.
 3. Write `research/lab/queue/data-jp-universe-v1.json` modelled on `data-hk-universe-v1.json` (kind `screen`, exchange `TSE`,
    fetch_start 2004-01-01, shard_prefix `jp-2005-2025-v1`, criteria max_error_share 0.02, min_kept 300).
 4. Check `services/scanner/eodhd.py` and the dataset builder handle `TSE` symbols (numeric codes, any suffix rules). Only add
