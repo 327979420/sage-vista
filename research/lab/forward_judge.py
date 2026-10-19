@@ -168,7 +168,11 @@ def judge_checkpoint(done, paper):
             "mean_d": avg, "t": t, "alarm1": alarm1, "verdict": verdict}
 
 
-def score(rows, paper=None):
+def score(rows, paper=None, *, checkpoint_judge=None):
+    """Shared exit-ordered checkpoint traversal; optional task-specific verdict.
+
+    The default remains Task036, including its paper-account requirement.
+    """
     paper = paper or {"status": "未提供"}
     done = [r for r in rows if r["eligible"] and r["completed"]]
     if any(not r.get("exit_date") for r in done):
@@ -177,7 +181,8 @@ def score(rows, paper=None):
     scored = [r for r in done if r["scored"]]
     n = len(done)
     reached = [k for k in (30, 60) if k <= n] + list(range(100, n + 1, 100))
-    checkpoints = [judge_checkpoint(done[:k], paper) for k in reached]
+    judge = checkpoint_judge or judge_checkpoint
+    checkpoints = [judge(done[:k], paper) for k in reached]
     latest = checkpoints[-1] if checkpoints else None
     checkpoint = bool(checkpoints)
     nxt = next((x for x in (30, 60, 100) if x > n), (n // 100 + 1) * 100)

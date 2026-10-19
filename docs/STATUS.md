@@ -13,6 +13,8 @@
 
 ## 进行中 / 下一步
 
+- **Task038 本地实现完成，待Claude核查；尚未接入Actions正式计分**（2026-10-19）：`codex/owner-eye`。§17原文预登记及两次澄清保留；新增训练/前向眼光判卷和自选股追加日志CLI，B/C共用Task036按退出日期的全部检查点遍历。真实答案daily1/mixed1/hk1揭晓10/80/0题，合计90题，仅供参考；前向0笔、自选股0笔。私有结果 `work/eye-judge/latest.{json,md}`，测试/报告/保护哈希 `work/own-picks-038/`；71项测试通过，103保护文件哈希一致。用法见 `OWN_PICKS_HOWTO_ZH.md`。孪生在compute时按冻结池/种子抽，登记参数不看未来；未应用workflow补丁，未暂存、提交或连接真实DB。
+
 - **Task040 daily1共享模板迁移本地完成，待Claude核查/截图/发布**（2026-10-19）：`codex/daily1-template`，新页 `work/site-v2/daily-trainer-2.html`。共享profile新增daily1及独立`daily1_reflections`；100题原盲图、题序、交易和keys保持不变，累计账户/心得/日线眼光/原图与后续图均复用mixed模块。48个保护文件哈希不变，mixed1/hk1重建逐字节相同；真实十份答案副本仅mock恢复锁定，四项账户指标吻合原报告，第11题和心得写入隔离通过。Python9+21项、daily Node8组、mixed2套及hk10组通过，100/100可见文本盲检通过。证据 `work/v3w/daily040/README.md`。第59题有1股票日缺价，保留冻结引擎前收盘估值并记录；不改原行情。真实390/1440截图按指令交Claude，未发布、未碰真实DB、未暂存或提交。
 
 - **Task039 退回修订完成，待Claude复核/截图/发布**（2026-10-19）：按公司键去重及指定非普通股代码段规则，hk1重抽34题（日20/周12/月2；目标60、缺26），最后4题全部答完才揭晓并计入账户/心得/眼光。新增候选排除：同公司重复4、非普通股代码段3。全A数据51组重复公司键涉及105代码（冗余54），区间代码9含代理、非代理8；Task010有同样股票池局限，仅报告合计62个应排除代码，不重跑/不改结果。页面 `work/site-v2/hk-trainer-1.html`；证据 `work/v3w/hk039/README.md`。五题独立重算、5组账户对账、34题盲态mock、22+9项Python及10+2组Node通过；16个保护文件前后哈希相同，mixed1默认构建逐字节相同。旧36题版本完整归档。截图/真实保存仍交Claude；未发布、未暂存或提交。
@@ -27,7 +29,7 @@
 | 顺序 | 卡 | 内容 | 分支 | 工作台 | 状态 |
 |---|---|---|---|---|---|
 | 1 | [036](../tasks/036-forward-judging-plan.md) | 前向判卷：预登记、样本量、计分脚本已实现 | `codex/forward-judging` | SV-54 | 已实现，尚不能正式计分；等待 Claude 核查 |
-| 2 | [038](../tasks/038-owner-eye-and-own-picks.md) | owner 眼光判定 + 自选股前向记录 | `codex/owner-eye` | SV-55 | 待派 |
+| 2 | [038](../tasks/038-owner-eye-and-own-picks.md) | owner 眼光判定 + 自选股前向记录 | `codex/owner-eye` | SV-55 | 本地完成；待Claude核查与Actions接入 |
 | 3 | [039](../tasks/039-hk-training-bank.md) | 港股 A 组盲训练34题（公司去重修订，目标60） | `codex/hk-trainer` | SV-56 | 本地完成；待Claude截图、核查与发布 |
 | 4 | [037](../tasks/037-japan-exam.md) | 冻结 3W 日股考试（3 个 STOP 点，Claude 触发 Actions） | `codex/jp-exam` | SV-57 | 待派 |
 
