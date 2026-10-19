@@ -13,6 +13,8 @@
 
 ## 进行中 / 下一步
 
+- **Task037 Step 1 本地完成，停在 STOP 1，待 Claude 核查**（2026-10-19）：当前 `codex/jp-exam`，仅在 sv-wt-039 工作树实施。任务卡、08 `#jp-exam`、账本§17已保留原固定值并加入 Claude 当日两条澄清；新增 `data-jp-universe-v1` screen spec 和机器实验预登记。TSE 类型/名称过滤、窗口内公司键去重、代码段仅提示及后缀请求适配完成；dataset builder 原有 exchange 入口无需修改，模拟集成测试通过。97项测试中96通过、1跳过（新增16项均通过）；US/HK与HEAD合成基线的结果/统计/失败/报告/分片逐字节一致。未联网、未读真实日股、未建Step2 spec、未分A/B、未冻结数据或计算信号；未暂存/提交。Claude核查后才能触发screen；STOP 2冻结前须审查报告全部提示代码。具体边界/复现见核查队列及CR-2026-10-19-jp-exam-step1。
+
 - **Task038 本地实现完成，待Claude核查；尚未接入Actions正式计分**（2026-10-19）：`codex/owner-eye`。§17原文预登记及两次澄清保留；新增训练/前向眼光判卷和自选股追加日志CLI，B/C共用Task036按退出日期的全部检查点遍历。真实答案daily1/mixed1/hk1揭晓10/80/0题，合计90题，仅供参考；前向0笔、自选股0笔。私有结果 `work/eye-judge/latest.{json,md}`，测试/报告/保护哈希 `work/own-picks-038/`；71项测试通过，103保护文件哈希一致。用法见 `OWN_PICKS_HOWTO_ZH.md`。孪生在compute时按冻结池/种子抽，登记参数不看未来；未应用workflow补丁，未暂存、提交或连接真实DB。
 
 - **Task040 daily1共享模板迁移本地完成，待Claude核查/截图/发布**（2026-10-19）：`codex/daily1-template`，新页 `work/site-v2/daily-trainer-2.html`。共享profile新增daily1及独立`daily1_reflections`；100题原盲图、题序、交易和keys保持不变，累计账户/心得/日线眼光/原图与后续图均复用mixed模块。48个保护文件哈希不变，mixed1/hk1重建逐字节相同；真实十份答案副本仅mock恢复锁定，四项账户指标吻合原报告，第11题和心得写入隔离通过。Python9+21项、daily Node8组、mixed2套及hk10组通过，100/100可见文本盲检通过。证据 `work/v3w/daily040/README.md`。第59题有1股票日缺价，保留冻结引擎前收盘估值并记录；不改原行情。真实390/1440截图按指令交Claude，未发布、未碰真实DB、未暂存或提交。
@@ -31,7 +33,7 @@
 | 1 | [036](../tasks/036-forward-judging-plan.md) | 前向判卷：预登记、样本量、计分脚本已实现 | `codex/forward-judging` | SV-54 | 已实现，尚不能正式计分；等待 Claude 核查 |
 | 2 | [038](../tasks/038-owner-eye-and-own-picks.md) | owner 眼光判定 + 自选股前向记录 | `codex/owner-eye` | SV-55 | 本地完成；待Claude核查与Actions接入 |
 | 3 | [039](../tasks/039-hk-training-bank.md) | 港股 A 组盲训练34题（公司去重修订，目标60） | `codex/hk-trainer` | SV-56 | 本地完成；待Claude截图、核查与发布 |
-| 4 | [037](../tasks/037-japan-exam.md) | 冻结 3W 日股考试（3 个 STOP 点，Claude 触发 Actions） | `codex/jp-exam` | SV-57 | 待派 |
+| 4 | [037](../tasks/037-japan-exam.md) | 冻结 3W 日股考试（3 个 STOP 点，Claude 触发 Actions） | `codex/jp-exam` | SV-57 | Step 1本地完成，STOP 1待核查/触发screen |
 
 Claude 自己：发布混合训练器 v2 到原地址并实测保存（SV-58）；每张卡交付后独立抽查重算再验收。规则：同一时间只有一个 Codex 任务改代码；owner 自己开的 Codex 线程（每小时训练跟进）只读，不改这些分支。
 

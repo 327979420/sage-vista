@@ -1516,6 +1516,43 @@ Concerns：开发数据与 HK A 已被研究人员分析，本次是新的用户
 
 **Task038 本地交付（2026-10-19，待Claude核查）**：A按原页作答顺序及完整批次揭晓，hk1末4题只在34题全答完计入；逐题净R只读现成键。真实揭晓daily1/mixed1/hk1为10/80/0，合计90题，未达100题，只标“样本太少，仅供参考”；个人统计保留私有 `work/eye-judge/latest.{json,md}`。B/C复用Task036按退出日期/id排序及所有已到检查点的前k笔逻辑；B以冻结1.9合格已结束交易为检查点，t取开盘前盲判do组对孪生；C不附加036账户Sharpe条件。C孪生抽取已按最新澄清移到compute，不改冻结股票池。登记/撤单只追加，真实日志为空；前向0笔。新增tests与冻结回归共71项通过，103保护文件哈希不变；用法见 `OWN_PICKS_HOWTO_ZH.md`，建议Actions补丁和Concerns见私有 `work/own-picks-038/README.md`，未应用、未提交。小约定：bootstrap百分位线性插值，空组重抽不补抽并披露数量；缺行情停止不补价；市价成交开盘已越止损即开盘退出，实际风险非正时R不可计分、已结束计数保留。首次既有回归使用默认系统临时目录，之后及最终测试TMPDIR固定工作树；未改冻结文件、题库或真实答案。
 
+### 3W 日股考试（2026-10-19 登记，看到任何日股数据前）
+
+Step 1 only; no Japan data fetched or examined. Original fixed values retained verbatim below; the dated Claude answers override only the specified points.
+
+   - Exchange: EODHD `TSE` (Tokyo). Common stocks only, listed and delisted; tickers in both lists left out (reused codes);
+     ETFs/REITs/funds are never candidates.
+   - Japan pool (US pool translated, fixed before seeing data): unadjusted close ≥ ¥100; ≥ ¥1.5 billion traded per day
+     (≈ US$10M at 150 JPY/USD); min_sessions 60 in 2005-01..2025-06; same min_history 420 as HK.
+   - Market proxy: NEXT FUNDS TOPIX ETF `1306` (replaces SPY in the market filter, same code path as HK's 2800).
+   - Cost 0.2% per side (same as HK).
+   - Group split: if more than 2,000 stocks are kept, split A/B exactly like ADR-2 (sorted list, `random.Random(20261019)`,
+     A = first ceil(n/2)); B is LOCKED. If 2,000 or fewer, use all of them (no B group). Fixed now, before counts are seen.
+   - Pre-2005 Japan prices: indicator warm-up only.
+   - Lessons from the HK bank (Task 039, 2026-10-19): one code per company (company key = code without suffix, leading zeros
+     stripped; keep the code with the most sessions), and exclude anything the provider does not type as "Common Stock" plus
+     any code a TSE code range marks as ETF/ETN/REIT/fund. Exclude a candidate whose signal, fill or exit day is not a 1306
+     session (no look-ahead in the market filter). Report each exclusion count. Fixed now, before any Japan data is seen.
+
+#### Claude answers (2026-10-19; before any Japan data is seen)
+
+These replace the code-range exclusion and clarify the dedupe rule in the original HK-lessons bullet above; all other fixed values remain unchanged.
+
+1. Non-common stocks: I cannot verify a complete official TSE code-range list offline, so NO code-range exclusion. Rule instead, fixed now: keep only provider Type == "Common Stock", and additionally exclude any symbol whose provider Name contains (case-insensitive) ETF, ETN, REIT, FUND, TRUST, INDEX, 投資法人, 上場投信, ファンド, 指数. Count each exclusion. Then, as a review flag only (not an exclusion), list every kept code in 1300-1699, 2500-2599 or 8950-8999 with its provider name in the screen report; Claude reviews that list at STOP 2 before the dataset is frozen, and any change is a dated note made before any price is used for signals.
+2. Dedupe window: count valid daily bars in 2005-01-01..2025-06-30; tie -> lexicographically smallest code; dedupe runs before the liquidity screen. Company key = code without suffix after "." or "-", leading zeros stripped.
+   Amendment (Claude, 2026-10-19, before any Japan data was seen): "TRUST" is removed from the name exclusions, because it would drop real common stocks such as trust banks (e.g. Sumitomo Mitsui Trust Holdings). The other terms stand.
+
+Exactly as Task 010 with the Japan values: frozen pipeline (`work/v3w/fair19.py` path), signals 2005-01-01..2024-06-30, account
+and random accounts marked to 2025-06-30; 100,000 start, 2% risk, 20% cap, 10 positions, 10% heat; 1,000 random accounts (same-day
+random Japan-pool stock per taken signal); benchmarks 1306 buy-and-hold and 1306 at 3W's daily invested share.
+
+**Pre-registered verdict**: PASS if full-period Sharpe p ≤ 0.05 vs random **and** at least 100 trades. Under 100 trades the
+verdict is "样本不足，未证明" whatever p is. Everything else (CAGR, decades, vs 1306) is descriptive.
+Always report win rate, payoff ratio, profit factor, mean R, exposure, max drawdown.
+
+
+工程边界：本轮只预登记、准备 screen spec、交易所适配与过滤测试；STOP 1 等 Claude 核查后触发 Actions。分组及冻结数据集属 Step 2；1306 信号/成交/退出日检查属 Step 3，不在 screen 中计算信号或收益。
+
 ## 十四、以后每张案例卡的固定格式
 
 ```text

@@ -710,6 +710,16 @@
    "use_zh": "只是数据准备，不计算收益；只用于冻结 3W 的港股考试（只考一次）。",
    "next_zh": "登记 3W 港股考试（A 组）后再跑。",
    "verdict": "pending"
+  },
+  "lab-data-jp-universe-v1-2026-10-19": {
+   "title_zh": "3W 日股考试股票池预登记",
+   "family": "data",
+   "family_zh": "数据工程",
+   "question_zh": "按登记的类型、名称及公司键规则筛选日股，能否达到覆盖门槛？",
+   "result_zh": "尚未运行；只完成 Step 1 本地准备，不计算信号或收益。",
+   "use_zh": "用于冻结 3w-1.9 的独立日股考试；不是策略收益结果。",
+   "next_zh": "STOP 1 待 Claude 核查并触发 screen；冻结前复核所有提示代码。",
+   "verdict": "pre_registered"
   }
  }
 }

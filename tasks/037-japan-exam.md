@@ -30,6 +30,14 @@ three STOP points — stop there, report, and wait.
    what is missing, keep the default US/HK behaviour unchanged, unit tests for the new path. If the change goes beyond an
    exchange parameter, stop and ask.
 
+## Claude answers (2026-10-19; before any Japan data is seen)
+
+These replace the code-range exclusion and clarify the dedupe rule in the original HK-lessons bullet above; all other fixed values remain unchanged.
+
+1. Non-common stocks: I cannot verify a complete official TSE code-range list offline, so NO code-range exclusion. Rule instead, fixed now: keep only provider Type == "Common Stock", and additionally exclude any symbol whose provider Name contains (case-insensitive) ETF, ETN, REIT, FUND, TRUST, INDEX, 投資法人, 上場投信, ファンド, 指数. Count each exclusion. Then, as a review flag only (not an exclusion), list every kept code in 1300-1699, 2500-2599 or 8950-8999 with its provider name in the screen report; Claude reviews that list at STOP 2 before the dataset is frozen, and any change is a dated note made before any price is used for signals.
+2. Dedupe window: count valid daily bars in 2005-01-01..2025-06-30; tie -> lexicographically smallest code; dedupe runs before the liquidity screen. Company key = code without suffix after "." or "-", leading zeros stripped.
+   Amendment (Claude, 2026-10-19, before any Japan data was seen): "TRUST" is removed from the name exclusions, because it would drop real common stocks such as trust banks (e.g. Sumitomo Mitsui Trust Holdings). The other terms stand.
+
 **STOP 1** — report; Claude reviews and triggers the research-lab run.
 
 ## Step 2 — Freeze the dataset (after the screen passes)
