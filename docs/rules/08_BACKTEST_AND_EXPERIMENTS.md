@@ -1,7 +1,7 @@
 # 08｜回测与实验规则
 
-版本：`1.62.0`
-最后更新：2026-10-16
+版本：`1.63.0`
+最后更新：2026-10-19
 
 ## 本文件负责
 
@@ -770,11 +770,53 @@ E[R]≥0.20、PF≥1.30、SQN≥2.0、全体已平仓≥200笔、每个时期（
 - 考试本身在数据冻结后、跑之前单独登记（案例账本第十七节）：规则不改，只换本地条件（港股交易池、2800 代替 SPY 做大盘过滤、每边成本 0.2%），通过标准与美股公平检验相同。
 - 工程：`services/scanner/eodhd.py` 的 `symbols` / `prices` 加可选的交易所参数（默认 US，原行为不变）；`research/lab/screen.py` 与数据构建器支持 spec 的 `exchange`。
 
+<a id="jp-exam"></a>
+## 3W 日股考试（2026-10-19 登记，看到任何日股数据前）
+
+Step 1 only; no Japan data fetched or examined. Original fixed values retained verbatim below; the dated Claude answers override only the specified points.
+
+   - Exchange: EODHD `TSE` (Tokyo). Common stocks only, listed and delisted; tickers in both lists left out (reused codes);
+     ETFs/REITs/funds are never candidates.
+   - Japan pool (US pool translated, fixed before seeing data): unadjusted close ≥ ¥100; ≥ ¥1.5 billion traded per day
+     (≈ US$10M at 150 JPY/USD); min_sessions 60 in 2005-01..2025-06; same min_history 420 as HK.
+   - Market proxy: NEXT FUNDS TOPIX ETF `1306` (replaces SPY in the market filter, same code path as HK's 2800).
+   - Cost 0.2% per side (same as HK).
+   - Group split: if more than 2,000 stocks are kept, split A/B exactly like ADR-2 (sorted list, `random.Random(20261019)`,
+     A = first ceil(n/2)); B is LOCKED. If 2,000 or fewer, use all of them (no B group). Fixed now, before counts are seen.
+   - Pre-2005 Japan prices: indicator warm-up only.
+   - Lessons from the HK bank (Task 039, 2026-10-19): one code per company (company key = code without suffix, leading zeros
+     stripped; keep the code with the most sessions), and exclude anything the provider does not type as "Common Stock" plus
+     any code a TSE code range marks as ETF/ETN/REIT/fund. Exclude a candidate whose signal, fill or exit day is not a 1306
+     session (no look-ahead in the market filter). Report each exclusion count. Fixed now, before any Japan data is seen.
+
+## Claude answers (2026-10-19; before any Japan data is seen)
+
+These replace the code-range exclusion and clarify the dedupe rule in the original HK-lessons bullet above; all other fixed values remain unchanged.
+
+1. Non-common stocks: I cannot verify a complete official TSE code-range list offline, so NO code-range exclusion. Rule instead, fixed now: keep only provider Type == "Common Stock", and additionally exclude any symbol whose provider Name contains (case-insensitive) ETF, ETN, REIT, FUND, TRUST, INDEX, 投資法人, 上場投信, ファンド, 指数. Count each exclusion. Then, as a review flag only (not an exclusion), list every kept code in 1300-1699, 2500-2599 or 8950-8999 with its provider name in the screen report; Claude reviews that list at STOP 2 before the dataset is frozen, and any change is a dated note made before any price is used for signals.
+2. Dedupe window: count valid daily bars in 2005-01-01..2025-06-30; tie -> lexicographically smallest code; dedupe runs before the liquidity screen. Company key = code without suffix after "." or "-", leading zeros stripped.
+   Amendment (Claude, 2026-10-19, before any Japan data was seen): "TRUST" is removed from the name exclusions, because it would drop real common stocks such as trust banks (e.g. Sumitomo Mitsui Trust Holdings). The other terms stand.
+
+Exactly as Task 010 with the Japan values: frozen pipeline (`work/v3w/fair19.py` path), signals 2005-01-01..2024-06-30, account
+and random accounts marked to 2025-06-30; 100,000 start, 2% risk, 20% cap, 10 positions, 10% heat; 1,000 random accounts (same-day
+random Japan-pool stock per taken signal); benchmarks 1306 buy-and-hold and 1306 at 3W's daily invested share.
+
+**Pre-registered verdict**: PASS if full-period Sharpe p ≤ 0.05 vs random **and** at least 100 trades. Under 100 trades the
+verdict is "样本不足，未证明" whatever p is. Everything else (CAGR, decades, vs 1306) is descriptive.
+Always report win rate, payoff ratio, profit factor, mean R, exposure, max drawdown.
+
+
+工程边界：本轮只预登记、准备 screen spec、交易所适配与过滤测试；STOP 1 等 Claude 核查后触发 Actions。分组及冻结数据集属 Step 2；1306 信号/成交/退出日检查属 Step 3，不在 screen 中计算信号或收益。
+
 ## 联动条件
 
 任何会改变筛选、分数、风险或实际结果的模块改动，都必须联动本文件中的预登记与归档流程。只改页面排版无需新实验。
 
 ## 变更记录
+
+### 1.63.0 — 2026-10-19
+
+- Task037 日股考试预登记及 Claude 类型/名称过滤、代码段只提示、窗口内公司去重澄清；仅准备 Step 1。
 
 ### 1.62.0 — 2026-10-16
 

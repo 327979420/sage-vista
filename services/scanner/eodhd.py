@@ -26,10 +26,21 @@ def get(path,**params):
                 raise RuntimeError(f"EODHD request failed for {path}{detail}") from None
             time.sleep(2**attempt)
 def symbols(delisted=False,exchange="US"):return get(f"exchange-symbol-list/{exchange}",delisted=int(delisted))
+def eod_symbol(code, exchange="US"):
+    """TSE keeps provider codes (including hyphen suffixes); do not append .TSE twice.
+
+    Company-key normalization is only for dedupe, never for requesting prices.
+    US/HK retain their original formatting.
+    """
+    code = str(code)
+    if exchange == "TSE" and code.upper().endswith(".TSE"):
+        return code[:-4] + ".TSE"
+    return f"{code}.{exchange}"
+
 def prices(code,start="2000-01-01",end=None,exchange="US"):
     params={"from":start,"period":"d"}
     if end:params["to"]=end
-    return get(f"eod/{code}.{exchange}",**params)
+    return get(f"eod/{eod_symbol(code, exchange)}",**params)
 def latest_reference_day(code="SPY",lookback_days=14,today=None):
     """Return the provider's latest completed US daily bar using a small query."""
     end=today or date.today();start=end-timedelta(days=lookback_days)
