@@ -1,10 +1,14 @@
 import copy
 import json
 from pathlib import Path
+import importlib.util
 import unittest
 from unittest.mock import patch
 from research.lab import calendars as c, weekly_report as w
 from tests.test_app_data import prices
+
+# QuantStats needs pandas; CI has neither, the weekly routine runs these locally in work/vectorbt-env.
+NEEDS_PANDAS = unittest.skipUnless(importlib.util.find_spec("pandas") and importlib.util.find_spec("quantstats"), "needs pandas + QuantStats")
 
 FIXTURE = Path(__file__).parent / 'fixtures/weekly/cockpit.json'
 
@@ -26,6 +30,8 @@ class WeeklyTests(unittest.TestCase):
         for day in ('2026-10-15', '2026-10-19'):
             self.export['prices']['SPY']['date'] = day
             self.assertIsNone(w.valuation(self.export, '2026-10-16')['equity'])
+
+    @NEEDS_PANDAS
 
     def test_short_report_escape_and_signals(self):
         signals = [{'symbol':'SPY', 'version':'3w-1.9', 'signal_day':'2026-10-15'},
@@ -51,6 +57,8 @@ class WeeklyTests(unittest.TestCase):
         sectors['SPY'] = dict(date=days, close=[100+i*.25 for i in range(len(days))])
         return exports, sectors
 
+    @NEEDS_PANDAS
+
     def test_real_quantstats(self):
         history, sectors = self.histories()
         self.assertEqual(len(history), 21)
@@ -63,6 +71,8 @@ class WeeklyTests(unittest.TestCase):
         self.assertEqual(min(metrics['drawdown']), 0)
         self.assertIn('<svg', html)
         self.assertIn('月度收益', html)
+
+    @NEEDS_PANDAS
 
     def test_history_gaps_cashflows_missing_spy_and_duplicates(self):
         history, sectors = self.histories()
@@ -78,6 +88,8 @@ class WeeklyTests(unittest.TestCase):
         sectors['SPY']['date'].pop()
         self.assertIn('SPY', w.history_metrics(history, sectors, '2026-10-16')[1])
 
+    @NEEDS_PANDAS
+
     def test_first_loss_drawdown_and_conflicting_history(self):
         history, sectors = self.histories()
         history[1]['prices']['SPY']['close'] = 90
@@ -87,6 +99,8 @@ class WeeklyTests(unittest.TestCase):
         conflicting['accounts']['paper']['cash'] += 10
         with self.assertRaisesRegex(ValueError, 'conflicts'):
             w.render(conflicting, self.outcomes, sectors, '2026-10-17', history=history)
+
+    @NEEDS_PANDAS
 
     def test_future_outcomes_and_wrong_export_date(self):
         self.outcomes['computed_at'] = '2026-10-19'
