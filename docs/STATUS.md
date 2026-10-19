@@ -13,8 +13,8 @@
 
 ## 进行中 / 下一步
 
-- **Task036 部分完成，等待口径澄清**：已在账本§17和 `docs/FORWARD_JUDGING_PLAN_ZH.md` 原文预登记，数字未改；只读既有结果完成样本估算（全部候选每年27.87笔，+0.07R粗估2862笔/102.7年，非功效保证）。冻结前向输出的 `r19.R/random_R` 未扣费且缺随机逐笔成交价格，不能计算卡要求的净R主指标；遵卡停止Step3，未创建计分脚本/测试或改冻结代码。已向owner询问，待Claude补卡后继续。私有结果 `work/reports/forward-sample-size-v1.{json,md}`。
-  - **口径已补（Claude 2026-10-19）**：Codex 判断核实无误，另发现 1.7 未成交时没有 `r19.random_R`。主指标保持净 R 差，由新的非冻结模块只读调用冻结 `trade` 重算入场/退出价和孪生逐笔结果，先过复现闸门；缺对照的交易照样计入检查点，不可计分超过 10% 则该检查点暂停判断。见任务卡 036「Clarification」和账本§17。计分脚本仍未实现；正式计分需要 owner 批准前向 workflow 补丁。
+- **Task036 已实现，尚不能正式计分；等待 Claude 核查**：Step1/2 保留不变。Step3 新增非冻结 `research/lab/forward_judge.py`，只读重算 1.9 与同日孪生的实际成交/退出价、净R差，四位毛R复现闸门；全部已结束规则1.9交易计入检查点，不可计分超过10%暂停该检查点判断，警报2独立。`python3 -m unittest tests.test_forward_judge tests.test_triangle15 -q`：28项通过（新增16项、冻结交易回归12项）。获准三条工程记录 A/2008-04-25、A/2012-09-14、AA/2012-12-14 的3W毛R及孪生毛R均值逐条均相等；未报告收益统计。
+  - 当前0笔，CLI正常生成「继续记录，未证明」。`work` 是共享目录符号链接，沙箱拒绝写入默认路径，实际报告暂存 `/private/tmp/task036-forward-judge/latest.{json,md}`；默认目标仍为 `work/forward-judge/latest.{json,md}`。未改符号链接、冻结文件或workflow，未暂存、未提交；建议workflow补丁随交付报告提供，待owner批准后由Claude接入。正式使用须紧接前向运行，读取同次本地延伸缓存；未提供paper时明确标注未提供。
 - **Task 035 本地完成，等待 Claude 核查与发布**：独立 mixed1 共80题（日33/周34/月13，owner因月线覆盖不足明确批准），80只股票、八批；周期隐藏，真实周期8根挂单/26根持有，累计10万美元冻结账户。含每题揭晓后60日走势图、每批可编辑心得、仅已揭晓题的分周期做/不做平均净R与小样本提示。17项Python测试（含真实80题账户对账）及两个Node mock套件通过；正式盲图与mock复盘在390/1440实际截图检查，取消遮挡MACD的悬浮作答栏。页面 `work/site-v2/mixed-trainer-1.html`；题库/构建/验证 `work/v3w/mixed035/`。没有发布、没有真实云端保存验收，daily1页面和真实答案未改。
 - **Task 034 研究已取消**（owner 2026-10-19，比较结果出来前）：已停止比较运行，三账户汇总尚未执行，没有比较结果/报告；尝试次数不增加。冻结周线BASE已复现并保留。034模板只供035生成训练题，已有候选检查点可复用；不再做周期系统收益/胜率表、随机对照或优劣结论。
 
@@ -22,7 +22,7 @@
 
 | 顺序 | 卡 | 内容 | 分支 | 工作台 | 状态 |
 |---|---|---|---|---|---|
-| 1 | [036](../tasks/036-forward-judging-plan.md) | 前向判卷：预登记、样本量（已完成），计分脚本（进行中） | `codex/forward-judging` | SV-54 | Codex 进行中（Claude 经插件派发，独立工作树） |
+| 1 | [036](../tasks/036-forward-judging-plan.md) | 前向判卷：预登记、样本量、计分脚本已实现 | `codex/forward-judging` | SV-54 | 已实现，尚不能正式计分；等待 Claude 核查 |
 | 2 | [038](../tasks/038-owner-eye-and-own-picks.md) | owner 眼光判定 + 自选股前向记录 | `codex/owner-eye` | SV-55 | 待派 |
 | 3 | [039](../tasks/039-hk-training-bank.md) | 港股 A 组 60 道盲训练题 | `codex/hk-trainer` | SV-56 | 待派 |
 | 4 | [037](../tasks/037-japan-exam.md) | 冻结 3W 日股考试（3 个 STOP 点，Claude 触发 Actions） | `codex/jp-exam` | SV-57 | 待派 |
