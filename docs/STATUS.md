@@ -18,15 +18,16 @@
 - **Task 035 本地完成，等待 Claude 核查与发布**：独立 mixed1 共80题（日33/周34/月13，owner因月线覆盖不足明确批准），80只股票、八批；周期隐藏，真实周期8根挂单/26根持有，累计10万美元冻结账户。含每题揭晓后60日走势图、每批可编辑心得、仅已揭晓题的分周期做/不做平均净R与小样本提示。17项Python测试（含真实80题账户对账）及两个Node mock套件通过；正式盲图与mock复盘在390/1440实际截图检查，取消遮挡MACD的悬浮作答栏。页面 `work/site-v2/mixed-trainer-1.html`；题库/构建/验证 `work/v3w/mixed035/`。没有发布、没有真实云端保存验收，daily1页面和真实答案未改。
 - **Task 034 研究已取消**（owner 2026-10-19，比较结果出来前）：已停止比较运行，三账户汇总尚未执行，没有比较结果/报告；尝试次数不增加。冻结周线BASE已复现并保留。034模板只供035生成训练题，已有候选检查点可复用；不再做周期系统收益/胜率表、随机对照或优劣结论。
 
-## 待 Codex 执行的任务卡（Claude 2026-10-19 写，owner 批准方向）
+## 待 Codex 执行的任务卡（Claude 统筹，2026-10-19 起一次只派一张）
 
-| 卡 | 内容 | 分支 |
-|---|---|---|
-| [036](../tasks/036-forward-judging-plan.md) | 前向记录判卷规则预登记 + 样本量估算 + 计分脚本 | `codex/forward-judging` |
-| [037](../tasks/037-japan-exam.md) | 冻结 3W 日股考试（三个 STOP 点，联网步骤由 Claude 触发 Actions） | `codex/jp-exam` |
-| [038](../tasks/038-owner-eye-and-own-picks.md) | owner 眼光判定 + 自选股前向记录 | `codex/owner-eye` |
+| 顺序 | 卡 | 内容 | 分支 | 工作台 | 状态 |
+|---|---|---|---|---|---|
+| 1 | [036](../tasks/036-forward-judging-plan.md) | 前向判卷：预登记、样本量（已完成），计分脚本（进行中） | `codex/forward-judging` | SV-54 | Codex 进行中（Claude 经插件派发，独立工作树） |
+| 2 | [038](../tasks/038-owner-eye-and-own-picks.md) | owner 眼光判定 + 自选股前向记录 | `codex/owner-eye` | SV-55 | 待派 |
+| 3 | [039](../tasks/039-hk-training-bank.md) | 港股 A 组 60 道盲训练题 | `codex/hk-trainer` | SV-56 | 待派 |
+| 4 | [037](../tasks/037-japan-exam.md) | 冻结 3W 日股考试（3 个 STOP 点，Claude 触发 Actions） | `codex/jp-exam` | SV-57 | 待派 |
 
-建议顺序 036 → 038 → 037。三张卡都是先登记再写代码；都不改冻结 3W、不挖旧数据（ADR-16）。
+Claude 自己：发布混合训练器 v2 到原地址并实测保存（SV-58）；每张卡交付后独立抽查重算再验收。规则：同一时间只有一个 Codex 任务改代码；owner 自己开的 Codex 线程（每小时训练跟进）只读，不改这些分支。
 
 ## 本轮已完成
 
