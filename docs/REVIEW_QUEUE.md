@@ -20,7 +20,7 @@
 
 | 日期 | 事项 | 分支 / PR | 验证证据与核查重点 | 交付状态 | 独立核查 |
 |---|---|---|---|---|---|
-| 2026-10-19 | 接力棒与核查队列收尾 | `codex/baton-review-cleanup`；队列入口 #132 | 链接有效；#101 不再写等待合并；#133 与 #134 的未授权部分仍暂停；本表不冒称 Claude 已核查 | 文档已整理，合并状态见对应 PR | 待 Claude 核查 |
+| 2026-10-19 | 接力棒与核查队列收尾 | [#137](https://github.com/327979420/sage-vista/pull/137)，`codex/baton-review-cleanup`；队列入口 #132 | 链接有效；#101 不再写等待合并；#133 与 #134 的未授权部分仍暂停；本表不冒称 Claude 已核查 | 文档已整理，合并状态见对应 PR | 待 Claude 核查 |
 | 2026-10-19 | Discord 纵向正式模板 | [#136](https://github.com/327979420/sage-vista/pull/136)，`codex/3w-discord-card-layout` | 通知测试 15 项通过；[同一提交的 Actions](https://github.com/327979420/sage-vista/actions/runs/39182916981)验证及纵向样例送达成功；价格各一行，去掉版本号 / 冗余提示；价格精度、规则与生产去重未变 | 已合并并用于正式通知；用户认可样式 | 待 Claude 核查 |
 | 2026-10-19 | 冻结 1.9 机会提醒及持久去重 | [#135](https://github.com/327979420/sage-vista/pull/135)，`services/scanner/triangle_discord.py`、研究任务通知 job | 核对仅允许新鲜、合格、waiting、未过期机会；止盈为计划入场 + 3R；发送前 reserved，成功后 sent，结果不确定时不自动重发；[基础模拟回执](https://github.com/327979420/sage-vista/actions/runs/39180740698)为 sent / count=1 | 已上线，模拟已送达；真实信号自动送达待首例验收 | 待 Claude 核查 |
 | 2026-10-19 | 旧页面测试断言修正 | #135 中 `tests/test_product_consolidation.py` | 旧断言在 main 原样复现失败，仅对齐已有 TodayPage 和 SiteNavigation，未改页面；[完整回归](https://github.com/327979420/sage-vista/actions/runs/39179871983)共 1230 项、跳过 16 项，通过 | 已合并；夜间续跑仍待正常任务验收 | 待 Claude 核查 |
