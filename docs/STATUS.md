@@ -13,6 +13,8 @@
 
 ## 进行中 / 下一步
 
+- **Task042 自动交易复盘本地完成，待Claude核查与截图**（2026-10-19）：`codex/trade-review`。新增 `research/lab/trade_review.py`，复用036/038交易、孪生及净R；cockpit可选，缺文件「未提供」、缺字段「缺数据」。按Claude澄清以提醒风险统一计算偏差影响，明确跳过实际盈亏为0。合成3笔周报及空周样例 `work/trade-review/synthetic/`；真实空周 `work/trade-review/weekly-2026-10-19.html`（0笔，无cockpit）。最终一次重跑89项测试通过，303个保护文件哈希不变；HTML结构检查通过，截图交Claude，未做浏览器视觉验收。报告/证据/未应用Actions补丁 `work/trade-review/`。MFE/MAE为首尾日完整OHLC范围，精确盘中值缺数据；未暂存、提交、联网或修改生产/冻结代码/workflow。
+
 - **Task038 本地实现完成，待Claude核查；尚未接入Actions正式计分**（2026-10-19）：`codex/owner-eye`。§17原文预登记及两次澄清保留；新增训练/前向眼光判卷和自选股追加日志CLI，B/C共用Task036按退出日期的全部检查点遍历。真实答案daily1/mixed1/hk1揭晓10/80/0题，合计90题，仅供参考；前向0笔、自选股0笔。私有结果 `work/eye-judge/latest.{json,md}`，测试/报告/保护哈希 `work/own-picks-038/`；71项测试通过，103保护文件哈希一致。用法见 `OWN_PICKS_HOWTO_ZH.md`。孪生在compute时按冻结池/种子抽，登记参数不看未来；未应用workflow补丁，未暂存、提交或连接真实DB。
 
 - **Task040 daily1共享模板迁移本地完成，待Claude核查/截图/发布**（2026-10-19）：`codex/daily1-template`，新页 `work/site-v2/daily-trainer-2.html`。共享profile新增daily1及独立`daily1_reflections`；100题原盲图、题序、交易和keys保持不变，累计账户/心得/日线眼光/原图与后续图均复用mixed模块。48个保护文件哈希不变，mixed1/hk1重建逐字节相同；真实十份答案副本仅mock恢复锁定，四项账户指标吻合原报告，第11题和心得写入隔离通过。Python9+21项、daily Node8组、mixed2套及hk10组通过，100/100可见文本盲检通过。证据 `work/v3w/daily040/README.md`。第59题有1股票日缺价，保留冻结引擎前收盘估值并记录；不改原行情。真实390/1440截图按指令交Claude，未发布、未碰真实DB、未暂存或提交。
