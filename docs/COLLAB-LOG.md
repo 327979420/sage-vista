@@ -31,3 +31,5 @@ Claude directs and accepts; Codex implements (Codex plugin). Each round: task ca
 - 验证：相关回归 55 项通过；补充 Git 持久化集成测试后通知模块 12 项通过（与前述回归有重叠）；workflow YAML 解析、git diff --check 通过；冻结路径无差异。当前真实数据 preview 为 0 条通知，合成 TEST 样例仅供格式审核，未发送。
 
 - 用户确认短版模板；新增独立 Actions 模拟入口和 PR 测试。模拟仅使用 TEST 虚构价格，独立去重，不触发历史研究。GitHub Secret 名称 DISCORD_OPPORTUNITY 已实时核实存在，未读取或输出值。
+
+- 用户明确答复“本次允许例外，检查通过后合并发送”。例外限本次合并及一条模拟消息，手动 workflow 需显式 allow_eod_window=true，生产通知默认保护不变。

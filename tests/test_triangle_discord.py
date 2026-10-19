@@ -192,6 +192,18 @@ class NotificationTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, 'EOD'):
                 D.publish_state(self.root, self.state)
 
+    def test_eod_exception_is_simulation_only_and_explicit(self):
+        with self.assertRaisesRegex(ValueError, 'simulations'):
+            D.run(self.root, allow_eod_window=True, now=NOW)
+        with patch.dict('os.environ', {'GITHUB_ACTIONS': 'true', 'GITHUB_REF': 'refs/heads/main',
+                                      'DISCORD_WEBHOOK_URL': 'synthetic-secret'}, clear=True):
+            with patch.object(D, 'publish_state') as persist, patch.object(D, 'post') as post:
+                result = D.run(self.root, send=True, simulate=True, allow_eod_window=True, now=NOW)
+                self.assertEqual(result['result'], 'sent')
+                self.assertEqual(post.call_count, 1)
+                self.assertEqual(persist.call_count, 2)
+                self.assertTrue(all(call.kwargs['allow_eod_window'] for call in persist.call_args_list))
+
     def test_send_restricted_and_secret_missing(self):
         with patch.dict('os.environ', {'GITHUB_ACTIONS': 'false'}, clear=True):
             with self.assertRaisesRegex(RuntimeError, 'restricted'): D.run(self.root, send=True, now=NOW)

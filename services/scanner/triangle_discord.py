@@ -139,9 +139,9 @@ def deliver(notices, state, persist, sender, now):
         persist(state)
 
 
-def publish_state(root, state):
+def publish_state(root, state, *, allow_eod_window=False):
     """CAS push on main with an isolated index; never commit other work."""
-    if in_eod_window():
+    if in_eod_window() and not allow_eod_window:
         raise RuntimeError('state publication blocked in EOD window')
     def git(*args, **kwargs):
         return subprocess.run(['git', *args], cwd=root, check=True, capture_output=True, **kwargs).stdout
@@ -163,13 +163,15 @@ def publish_state(root, state):
         tree = git('write-tree', env=env).decode().strip()
         commit = git('-c', 'user.name=sage-vista-bot', '-c', 'user.email=sage-vista-bot@users.noreply.github.com',
                      'commit-tree', tree, '-p', parent, '-m', 'state: 3W Discord delivery [skip ci]').decode().strip()
-        if in_eod_window():
+        if in_eod_window() and not allow_eod_window:
             raise RuntimeError('state publication blocked in EOD window')
         git('push', 'origin', f'{commit}:refs/heads/main')
     (Path(root) / STATE).write_bytes(data)
 
 
-def run(root, send=False, now=None, simulate=False):
+def run(root, send=False, now=None, simulate=False, allow_eod_window=False):
+    if allow_eod_window and not simulate:
+        raise ValueError('EOD exception is restricted to explicitly authorized simulations')
     now = now or dt.datetime.now(dt.timezone.utc)
     state = read(Path(root) / STATE)
     if state.get('schema_version') != 1 or not isinstance(state.get('notifications'), dict):
@@ -183,7 +185,7 @@ def run(root, send=False, now=None, simulate=False):
     webhook = os.environ.get('DISCORD_WEBHOOK_URL') or os.environ.get('DISCORD_OPPORTUNITY')
     if not webhook:
         raise RuntimeError('Discord webhook secret is not configured')
-    deliver(notices, state, lambda s: publish_state(root, s), lambda p: post(webhook, p), now)
+    deliver(notices, state, lambda s: publish_state(root, s, allow_eod_window=allow_eod_window), lambda p: post(webhook, p), now)
     if held:
         raise RuntimeError('previous deliveries require reconciliation; see notification ledger')
     return {'result': 'sent' if notices else 'no_new_opportunities', 'count': len(notices)}
@@ -193,6 +195,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--send', action='store_true')
     parser.add_argument('--simulate', action='store_true', help='fixed, clearly labeled synthetic sample; deduplicated separately')
+    parser.add_argument('--allow-eod-window', action='store_true', help='explicit owner exception, simulation only')
     parser.add_argument('--root', type=Path, default=Path('.'))
     args = parser.parse_args()
-    print(json.dumps(run(args.root, args.send, simulate=args.simulate), ensure_ascii=False, indent=2))
+    print(json.dumps(run(args.root, args.send, simulate=args.simulate, allow_eod_window=args.allow_eod_window), ensure_ascii=False, indent=2))

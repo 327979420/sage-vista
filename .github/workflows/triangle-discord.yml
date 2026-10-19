@@ -16,6 +16,11 @@ on:
         required: true
         default: preview
         options: [preview, simulate]
+      allow_eod_window:
+        description: Owner explicitly authorized this simulation during the EOD publication window
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -61,4 +66,8 @@ jobs:
         if: inputs.mode == 'simulate'
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL || secrets.DISCORD_OPPORTUNITY }}
-        run: python3 -m services.scanner.triangle_discord --simulate --send
+          ALLOW_EOD_WINDOW: ${{ inputs.allow_eod_window }}
+        run: |
+          args=(--simulate --send)
+          if [ "$ALLOW_EOD_WINDOW" = "true" ]; then args+=(--allow-eod-window); fi
+          python3 -m services.scanner.triangle_discord "${args[@]}"
