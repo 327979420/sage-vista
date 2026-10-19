@@ -20,6 +20,7 @@
 
 | 日期 | 事项 | 分支 / PR | 验证证据与核查重点 | 交付状态 | 独立核查 |
 |---|---|---|---|---|---|
+| 2026-10-19 | Task036 预登记与样本量估算（计分暂停） | `codex/forward-judging` | 预登记逐字比对通过；571候选缓存哈希与既有Task002报告一致，287笔账户交易直接读取既有结果。仅算样本量公式与历史频率，整数门槛/年数反算检查通过，无新扫描/账户/变体。输出 `work/reports/forward-sample-size-v1.{json,md}`，私有脚本 `work/forward-judge/sample_size.py` | 部分交付；冻结前向R未扣费、随机逐笔成交价格未保存，无法实现卡中净R主指标。按卡暂停Step3等待补充口径，没有计分脚本或对应合成测试；未改冻结/工作流 | 待核查 |
 | 2026-10-19 | Task035 混合训练80题；Task034研究取消 | `codex/training-followup` | 账本§17先登记及取消/80题批准；80题=日33/周34/月13，80只股票；已判周排除73候选（日5/周68），期末未完成排除12（日7/周4/月1），排除映射426股票周。私有 `work/v3w/mixed035/` 的 build-report、keys、bank、tests.log、README；候选来源 `work/v3w/timeframe034/candidate_only.py`、training-audit、CANCELLED。17项候选边界测试、17项训练Python测试（含真实bank逐日账户对账）、2套Node mock通过；390/1440浏览器实际截图检查 | 页面 `work/site-v2/mixed-trainer-1.html` 本地完成未发布。新增累计账户/后续图/可编辑每批心得/仅揭晓题按周期眼光表；真实云端保存由Claude隔离副本验收，mock不能替代。旧daily1与真实答案不改；研究取消于比较结果前，未跑三账户/随机对照/周期表现表，尝试次数不增加；BASE保留。work全部私有 | 待核查 |
 | 2026-10-19 | 首十题退出后走势图 | `codex/training-followup` | 私有 `work/v3w/daily1_replay.py`、`daily1_replay_view.js`、`daily1-first-ten-replay.json`、`test_daily1_replay.py`；原缓存哈希与逐笔身份核对，4项边界测试通过；390/1440实际截图查看，移动端横滑默认定位后续，价格标签避免重叠 | 已给owner独立本地首十题图集；原daily1页面及DB未改。固定退出后5/20/60日观察，不改原盈亏；个人答案和结果不公开 | 待核查 |
 | 2026-10-19 | 累计总览与首批真实复盘 | `codex/training-followup` | 私有报告总表优先、明细折叠；18 项本地回归通过。真实正式页已恢复十题；通过已揭晓明细核对题号/名字/日期/展示 R，原始美股缓存哈希验证后按冻结引擎算累计。证据 `work/v3w/daily1-first-batch-observed.json`、`daily1-overall-10.json`；个人答案与成绩保持私有 | 真实来源为可见批次明细；复制按钮显示成功但工具剪贴板为空，没有伪造导出哈希或 answered_at。只读、无 DB 修改。报告在本线程送达；网页本身未升级美元总览 | 待核查 |
