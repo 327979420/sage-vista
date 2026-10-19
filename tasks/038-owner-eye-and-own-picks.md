@@ -7,9 +7,9 @@ Do not touch the trainer pages, banks or cloud answers of Task 033 (`daily1`) or
 ## Step 1 — Pre-register (before code; copy verbatim into ledger §17, dated 2026-10-19)
 
 ### 预登记（owner 眼光与自选股判定规则，2026-10-19 写定）
-**A. 训练眼光（033 日线、035 混合周期，各自单独算，另算合计）**
+**A. 训练眼光（033 日线 daily1、035 混合周期 mixed1、039 港股 hk1，各自单独描述，结论用合计）**
 - 指标：已揭晓题中，选「做」的平均净 R − 选「不做」的平均净 R（同一题库自带的冻结交易结果）。
-- 只在已揭晓 ≥ 100 题时下结论；之前只描述，标「样本太少，仅供参考」。
+- 结论只用三套题合计（已揭晓 ≥ 100 题时才下）；每套题单独只描述，题数不足 100 的标「样本太少，仅供参考」（mixed1 只有 80 题、hk1 只有 34 题，永远单独到不了 100）。（2026-10-19 Claude 补充，原因：题库实际题数。）
 - 「眼光有用」：差值 ≥ +0.3R 且 bootstrap（10,000 次，种子 20261019，按题重抽）95% 区间下限 > 0。
 - 「眼光有害」：差值 ≤ −0.3R 且 95% 区间上限 < 0。其余：「未证明」。
 - 035 按日/周/月分格只描述，不单独下结论（每格样本太少）。
@@ -26,7 +26,7 @@ Do not touch the trainer pages, banks or cloud answers of Task 033 (`daily1`) or
 - 始终报告笔数、胜率、盈亏比、profit factor、平均 R。
 
 ## Step 2 — Eye scorecard (A and B)
-`research/lab/eye_judge.py`: inputs are exported answer files (`--daily1 path`, `--mixed1 path`, the private exports already in
+`research/lab/eye_judge.py`: inputs are exported answer files (`--daily1 path`, `--mixed1 path`, `--hk1 path`, the private exports already in
 `work/v3w/`, e.g. `daily1-overall-10.json`; never read the cloud yourself) and the forward `outcomes.json` + `judgements.jsonl`.
 Only revealed cases count; unrevealed or unanswered cases are excluded and counted. Output `work/eye-judge/latest.{json,md}`.
 If an export lacks the per-case net R or the choice, stop and report — do not recompute outcomes from prices.
