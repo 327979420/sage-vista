@@ -1423,6 +1423,64 @@ Concerns：开发数据与 HK A 已被研究人员分析，本次是新的用户
 - **样本量估算**保留，作为带限制的等待时间粗估：用的是净 R 标准差代替配对差标准差，方向不确定；只是「期望 t 达到 2」的粗估，不是功效保证；30 笔 1.37% 只是单次检查的误报概率。
 - **正式计分的运行位置**：重算需要前向那次运行的价格，所以正式计分要放在前向 Actions 任务里、紧接 `triangle_forward` 之后运行。改 `.github/` 需要 owner 另行批准；批准前状态是「已实现，尚不能正式计分」。目前前向信号为 0，暂时没有损失。
 
+### 2026-10-19｜Task 039 港股 A 组训练题库预登记（构建前）
+
+以下为任务卡 Fixed 原文，执行以此为准。
+
+```text
+## Fixed (do not change)
+- Data: `hk-a-1995-v1` only (local in `work/lab/`). HK group B stays LOCKED: never load, list or
+  name its file. Tracker Fund 2800 is the market proxy and never a question. Japan is NOT used here (its exam, Task 037, comes first;
+  a Japan group-A bank may follow as a new card after that exam).
+- Candidates: Task 034/035 templates and gates exactly (timeframe-scaled shape, 8-bar order, 26-bar holding, daily OHLC
+  execution), with the HK local conditions from Task 010: pool unadjusted close >= HK$1 and >= HK$78M traded, 2800 replaces SPY
+  in the market filter, cost 0.2% per side. Signal dates 2005-01-01..2024-06-30; account marked to 2025-06-30.
+  Training-eligible only if filled AND completed. Never sample on win/loss.
+- Bank `hk1`, target 60 questions: 20 daily / 20 weekly / 20 monthly, shuffled with seed 20261028; one stock per question.
+  If a timeframe has fewer eligible cases, report the shortfall; no substitutions, no relaxation.
+- Blind view as in 035: hide ticker, dates, timeframe AND market during answering; price axis shows relative % from the signal
+  close (not HK$ levels). Reveal ticker, market, timeframe and dates only after each completed ten.
+- Same page features as the current mixed trainer (`work/site-v2/mixed-trainer-2.html` build): first-answer lock with cloud
+  get-before-set, cumulative $100k account first (frozen account rules .02/.20/10/.10, but cost 0.2% per side for HK), batch
+  reflections, "我的眼光（按周期）", original chart / later-move toggle. Reuse the 035 build module; do not fork a second copy of
+  the page code. New page `work/site-v2/hk-trainer-1.html`, private scripts in `work/v3w/hk039/`.
+- Never touch `daily1` or `mixed1` banks, keys or cloud answers.
+```
+
+#### 2026-10-19｜Task039 执行澄清（Claude批准，原Fixed不改）
+
+- 本工作区的 `work/` 已隔离为独立、私有、Git忽略目录；仅在此工作区读写所需本地材料，不访问共享work目录。
+- 候选的信号日没有同日2800价格时排除；成交日或退出日不是2800交易日时也排除，三个原因分别计数。绝不移动日期、补成交价或编辑原始K线；市场过滤不得读取后一日价格。
+- 另存A组全数据中所有「股票有K线、2800同日无K线」的股票/日期清单及数量，仅为数据质量报告，不改变Task010已记录结果。
+- 盲图允许2005年前K线作为图表背景和指标暖机；信号与结果仍严格使用已登记窗口。
+- 保留现有批次揭晓行为。Claude指出目标60题为六个完整十题批次，不涉及末批不足十题提前揭晓；若实际不足60题，仍按Fixed如实报告缺口，不补题、不放宽。
+
+#### 2026-10-19｜Task039 数量与末批批准（Claude，抽样后构建前）
+
+- 目标60题（日/周/月各20），实际保留36题：日20、周13、月3，不替换、不放宽。扫描合格日96笔/74股、周14笔/14股、月3笔/3股；按035月→周→日、固定种子20261028、每股一题抽样，月线占用一只周线合格股票，周线剩13股。月线缺17题、周线缺7题，总缺24题。
+- hk1的一批定义为10题，或题库最后剩余的全部题。最后6题全部作答后揭晓，并与其他批次一样计入累计账户、心得和眼光表；35/36不得揭晓第四批，36/36必须揭晓并计入。页面明确显示「共36题」「最后一批6题」。此澄清取代上条关于60题不会出现末批的假设，仅作用于hk1，不改daily1/mixed1。
+
+#### 2026-10-19｜Task039 本地交付记录（待Claude核查）
+
+- 实际36题（日20/周13/月3），按批准的最后6题规则完成。信号候选通过计划与大盘日140/周18/月4，成交且完成日96/周14/月3。未成交撤单日44/周4/月1；另排除信号日无同日代理日4/周0/月0，成交/退出日排除均0。完整股票池、形态及抽样排除见私有 `work/v3w/hk039/README.md`。
+- 复用035默认不变的构建模块；新hk1每边费用0.2%，独立collection及键。17项hk Python、9项035构建回归、10组hk Node及2组原Node通过；五题原价重算、五组账户对账、36题mock盲态扫描通过，16个保护文件哈希前后相同。
+- 真实浏览器390/1440截图依Claude明确指令跳过并移交其验收；未发布、未真实保存测试、未提交。这里只记录训练工程验收，不计算周期系统比较、不修改Task010考试结果。
+- 数据质量清单69227条，其中66523条早于代理首条记录，不能统称坏数据；代理覆盖期内2704条。入选持仓途中1条非代理交易日K线依批准口径保留；冻结账户3个缺价会话沿用上一收盘。全部证据保持私有，核查队列待核查。
+
+#### 2026-10-19｜Task039 退回修订：公司去重与非普通股代码段（抽样前登记）
+
+- Claude复核后要求：公司键为代码去掉首个 `-` 及其后缀，再去除前导零（0003、00003、3均为3）。在全份 `hk-a-1995-v1` 中，每家公司只保留日线交易记录天数最多的代码；相同时选代码字符串最短者，再按字典序。其他代码的候选计入「同公司重复代码」。不得因保留代码没有合格候选而回退到别名；每题必须对应不同公司键。
+- 数字公司键落在7200–7599或2800–3199的代码不作为普通股题目，计入「非普通股代码段」；2800仅保留大盘代理用途。逐个被排除代码写入 `data-quality.json`。若代码同时属于两类，候选排除主原因优先记非普通股，重复身份仍保留在公司质量清单，避免重复计数。
+- 本次修复发生在抽样前，不改变已有形态、订单、账户、市场广度计算或Task010已记录结果。固定种子20261028、月→周→日顺序、每家公司一题、不替换、不放宽；抽样后追加实际数量。旧36题键、页面及证据归档于私有 `work/v3w/hk039/archive/2026-10-19-before-company-fix/`，不覆盖历史证据。
+- Task010使用的同一A组股票池也有公司别名和非普通股代码问题：只报告全数据受影响代码数量及局限，不重跑Task010、不修改其结论。
+
+#### 2026-10-19｜Task039 退回修订完成（公司去重后34题，待核查）
+
+- 本次重抽实际日20/周12/月2，共34家公司/34题，目标60、缺26；最后一批4题，33/34不揭晓第四批，34/34揭晓并计入账户、心得、眼光。取代上次36题交付，旧版本完整归档；seed20261028和月→周→日顺序未改，无补题。
+- 新增候选排除「同公司重复代码」日1/周2/月1，共4；「非普通股代码段」日3/周0/月0，共3。修订后合格日92/周12/月2；原始扫描及其排除数未改。原价五题按同一2日/2周/1月规则重选，5/5通过；5组账户对账、34题盲态mock检查通过，22+9项Python与10+2组Node通过，16个保护文件哈希不变。
+- **Task010局限追加（不改其结果）**：全A数据有51组重复公司键，涉及105个代码、冗余别名54；指定非普通股区间9代码含2800代理，另8个应排除。两类合计62个应排除代码；若含重复组保留代表，共113个非代理代码涉及核对。不是受影响交易数量；未重跑Task010。名单和完整日线天数排序见私有 `work/v3w/hk039/data-quality.json`。
+- 严格按连字符/前导零规则；4个非数字公司键代码单列保留，未自行扩展下划线或字母别名处理。代表代码天数以全缓存计数，交易仍只到原期末。截图和真实保存继续交Claude，未发布、未暂存、未提交。证据 `work/v3w/hk039/README.md`；当前持仓途中非代理日K线1条、缺收盘估值会话0。
+
 ## 十四、以后每张案例卡的固定格式
 
 ```text
