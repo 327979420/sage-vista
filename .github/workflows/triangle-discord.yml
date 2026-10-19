@@ -15,7 +15,7 @@ on:
         type: choice
         required: true
         default: preview
-        options: [preview, simulate]
+        options: [preview, simulate, card_preview]
       allow_eod_window:
         description: Owner explicitly authorized this simulation during the EOD publication window
         type: boolean
@@ -71,3 +71,37 @@ jobs:
           args=(--simulate --send)
           if [ "$ALLOW_EOD_WINDOW" = "true" ]; then args+=(--allow-eod-window); fi
           python3 -m services.scanner.triangle_discord "${args[@]}"
+
+  card_preview:
+    name: Send the explicitly requested card preview
+    if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main' && inputs.mode == 'card_preview' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with: { python-version: "3.14" }
+      - name: Check the card template and notification safety
+        run: python3 -m unittest tests.test_triangle_discord
+      - name: Send one labeled synthetic card without changing production state
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_OPPORTUNITY }}
+        run: |
+          python3 - <<'PYCODE'
+          import json, os
+          from services.scanner.triangle_discord import brief_payload
+          from services.scanner.discord_daily_digest import post
+          webhook = os.environ.get('DISCORD_WEBHOOK_URL')
+          if not webhook:
+              raise SystemExit('Discord secret is not configured')
+          payload = brief_payload('TEST', 98, 90, 122, '2026-12-14', simulated=True)
+          try:
+              post(webhook, payload)
+          except Exception:
+              raise SystemExit('Preview delivery unconfirmed; check channel before requesting another') from None
+          print(json.dumps({'result': 'sent', 'count': 1, 'template': 'card-preview', 'production_state_changed': False}))
+          PYCODE

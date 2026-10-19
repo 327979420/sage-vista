@@ -50,7 +50,7 @@ class NotificationTests(unittest.TestCase):
         before = (self.root / D.STATE).read_bytes()
         result = D.run(self.root, now=NOW)
         text = json.dumps(result, ensure_ascii=False)
-        for value in ('98.00', '90.00', '122.00', '40交易日', self.order['valid_until']):
+        for value in ('98.00', '90.00', '122.00', '40 个交易日', self.order['valid_until']):
             self.assertIn(value, text)
         self.assertEqual(before, (self.root / D.STATE).read_bytes())
         self.assertEqual(result['notices'][0]['payload']['allowed_mentions'], {'parse': []})
@@ -58,10 +58,11 @@ class NotificationTests(unittest.TestCase):
     def test_short_template_and_subcent_precision(self):
         payload = D.brief_payload('TEST', 98.1234, 90.1, 122.1936, '2026-12-14')
         embed = payload['embeds'][0]
-        self.assertEqual(len(embed['description'].splitlines()), 3)
-        self.assertIn('$98.1234', embed['description'])
-        self.assertIn('$90.10', embed['description'])
-        self.assertNotIn('fields', embed)
+        fields = embed['fields']
+        self.assertEqual([f['value'] for f in fields[:3]], ['**$98.1234**', '**$90.10**', '**$122.1936**'])
+        self.assertTrue(all(f['inline'] for f in fields[:3]))
+        self.assertFalse(fields[3]['inline'])
+        self.assertEqual(embed['footer']['text'], '3w-1.9 · USD')
 
     def test_simulation_works_without_market_data_and_deduplicates(self):
         (self.root / 'public/app/signals.json').unlink()
@@ -70,7 +71,7 @@ class NotificationTests(unittest.TestCase):
         notice = result['notices'][0]
         self.assertTrue(notice['key'].startswith('simulation:'))
         self.assertIn('模拟', notice['payload']['embeds'][0]['title'])
-        self.assertIn('非真实机会', notice['payload']['embeds'][0]['description'])
+        self.assertNotIn('非真实机会', json.dumps(notice['payload'], ensure_ascii=False))
         self.assertEqual(before, (self.root / D.STATE).read_bytes())
         self.state['notifications'][notice['key']] = {'status': 'sent'}
         self.write()

@@ -46,15 +46,16 @@ def money(value):
 
 
 def brief_payload(symbol, entry, stop, target, until, *, simulated=False):
-    label = '🧪 模拟｜3W' if simulated else '3W 挂单机会'
-    suffix = ' · 非真实机会' if simulated else ' · 日终模拟账户'
+    label = '🧪 3W 模拟' if simulated else '3W 挂单机会'
     return {'allowed_mentions': {'parse': []}, 'embeds': [{
         'title': f'{label} · {symbol}',
-        'description': (
-            f'入场 ${money(entry)}｜止损 ${money(stop)}｜止盈 ${money(target)}（3R）\n'
-            f'挂单有效至约 {until}（40交易日）\n'
-            f'规则 {VERSION}{suffix}'
-        ),
+        'fields': [
+            {'name': '限价入场', 'value': f'**${money(entry)}**', 'inline': True},
+            {'name': '止损', 'value': f'**${money(stop)}**', 'inline': True},
+            {'name': '止盈 · 3R', 'value': f'**${money(target)}**', 'inline': True},
+            {'name': '挂单有效期', 'value': f'约 **{until}** · 40 个交易日', 'inline': False},
+        ],
+        'footer': {'text': f'{VERSION} · USD'},
         'color': 14197855 if simulated else 5763719,
     }]}
 
