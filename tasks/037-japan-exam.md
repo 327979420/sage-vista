@@ -62,3 +62,6 @@ rules/08 + ledger entries; queue specs; code + tests; `work/v3w/jp_exam.py` + `.
 Chinese, inline SVG, no pre-2005 results, no group-B symbols). Update `docs/STATUS.md`, add a `docs/REVIEW_QUEUE.md` row (待核查).
 Branch `codex/jp-exam`; never merge main. No `.github/` edits. Report with Concerns (survivorship: delisted coverage; split
 adjustment; the TOPIX ETF as proxy).
+
+## Closed 2026-10-19
+The EODHD plan has no Japan coverage (probe run 39234457098: 70 exchanges, none in Japan). No Japan data was downloaded. The owner moved the overseas exam to Korea: see `tasks/043-korea-exam.md`. The Japan screen spec stays parked in `research/lab/queue-parked/`.
