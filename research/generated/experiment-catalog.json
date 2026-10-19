@@ -1,14 +1,14 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-10-19T10:33:36+00:00",
+  "generated_at": "2026-10-19T11:09:25+00:00",
   "sources": [
     "research/experiments.jsonl",
     "research/experiment-events.jsonl",
     "research/experiment-summaries.zh.json"
   ],
-  "experiment_count": 73,
+  "experiment_count": 74,
   "summary": {
-    "completed": 55,
+    "completed": 56,
     "in_progress": 18,
     "candidate": 15,
     "not_validated_or_unstable": 25
@@ -21,6 +21,67 @@
     "historical_backtest_separate_from_production_forward": true
   },
   "experiments": [
+    {
+      "experiment_id": "lab-data-kr-a-v1-2026-10-19",
+      "created_at": "2026-10-19",
+      "status": "pre_registered",
+      "change": "Freeze all 1,531 Korea screen companies (no A/B split) plus 069500.KO as market proxy, with daily history from 1995 and unadjusted close. Engineering coverage only; no signals or returns.",
+      "specification": {
+        "rule": "docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#kr-exam",
+        "lab_spec": "research/lab/queue/data-kr-a-v1.json"
+      },
+      "success_criteria": "At most 5% of symbols cannot be built; always report coverage.",
+      "known_limitations": [
+        "Pre-2005 prices are warm-up only",
+        "No A/B split; all 1531 kept companies used",
+        "Provider coverage, price limits, KOSDAQ small caps, proxy fit"
+      ],
+      "human_summary": {
+        "title_zh": "韩国考试全名单数据集准备",
+        "family": "data",
+        "family_zh": "数据工程",
+        "question_zh": "1531家公司加069500.KO的历史覆盖是否达标？",
+        "result_zh": "仅预登记，尚未构建数据集。",
+        "use_zh": "冻结3W考试数据准备，无收益结果。",
+        "next_zh": "Claude触发构建并核查覆盖；不运行考试。",
+        "verdict": "pre_registered"
+      },
+      "lifecycle": {
+        "registered_at": "2026-10-19T10:38:22.357114+00:00",
+        "started_at": null,
+        "completed_at": "2026-10-19T11:09:25+00:00",
+        "latest_event": "completed",
+        "latest_event_at": "2026-10-19T11:09:25+00:00",
+        "time_source": "github_actions",
+        "event_count": 2,
+        "events": [
+          {
+            "experiment_id": "lab-data-kr-a-v1-2026-10-19",
+            "event": "registered",
+            "event_at": "2026-10-19T10:38:22.357114+00:00",
+            "time_source": "assistant_registration",
+            "details": {
+              "lab_spec": "research/lab/queue/data-kr-a-v1.json",
+              "note": "Claude cleared Step 2 preparation; no dataset built locally"
+            }
+          },
+          {
+            "experiment_id": "lab-data-kr-a-v1-2026-10-19",
+            "event": "completed",
+            "event_at": "2026-10-19T11:09:25+00:00",
+            "time_source": "github_actions",
+            "source_ref": "https://github.com/327979420/sage-vista/actions/runs/39240488171",
+            "details": {
+              "lab_spec": "data-kr-a-v1",
+              "spec_sha256": "05c6ec0e736c8ad85445146544dd7c01b9495e9ec64352601cefd8a3c1aa2c3a",
+              "result": "research/lab/results/data-kr-a-v1/result.json",
+              "dataset": "kr-a-1995-v1",
+              "champion": null
+            }
+          }
+        ]
+      }
+    },
     {
       "experiment_id": "lab-data-kr-universe-v1-2026-10-19",
       "created_at": "2026-10-19",
@@ -5687,6 +5748,7 @@
     "lab-data-hk-a-v1-2026-10-16",
     "lab-data-hk-universe-v1-2026-10-16",
     "lab-data-jp-universe-v1-2026-10-19",
+    "lab-data-kr-a-v1-2026-10-19",
     "lab-data-kr-universe-v1-2026-10-19",
     "lab-data-long-history-v1-2026-10-11",
     "lab-e0-core-long-history-v1-2026-10-10",

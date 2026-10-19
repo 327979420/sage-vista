@@ -337,3 +337,9 @@ Korea KO + KQ common-stock universe engineering screen; company dedupe before li
 
 Kept 1531 of 2864 candidates in 1 shards; failed downloads 75. Passed: yes
 
+## data-kr-a-v1 (kr-a-1995-v1, data coverage check)
+
+Freeze all 1,531 Korea screen companies (no A/B split) plus 069500.KO as market proxy, with daily history from 1995 and unadjusted close. Engineering coverage only; no signals or returns.
+
+Built 1532 of 1532 symbols; in 2025, 790 of 1429 trading stocks had 200 months of history. Passed: yes
+

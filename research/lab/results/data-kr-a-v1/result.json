@@ -1,0 +1,181 @@
+{
+ "spec_id": "data-kr-a-v1",
+ "experiment_id": "lab-data-kr-a-v1-2026-10-19",
+ "group": "data",
+ "question": "Freeze all 1,531 Korea screen companies (no A/B split) plus 069500.KO as market proxy, with daily history from 1995 and unadjusted close. Engineering coverage only; no signals or returns.",
+ "kind": "coverage",
+ "dataset": {
+  "dataset_id": "kr-a-1995-v1",
+  "asset": "kr-a-1995-v1-cecd0e7a4051.json.gz",
+  "sha256": "cecd0e7a405157271b02e808d7277db1589c259ceb18646d2bf4ddba74585a37",
+  "bytes": 164644845,
+  "release": "research-datasets",
+  "events": 0,
+  "symbols": 1532,
+  "source": "EODHD full adjusted history from 1995-01-01 for research/lab/universes/kr-2005-2025-v1-a.txt plus 1 extra symbols, with the unadjusted close",
+  "price_basis": "EODHD adjusted daily OHLCV",
+  "missing_symbols": 0
+ },
+ "champion": null,
+ "passed": true,
+ "symbols": {
+  "requested": 1532,
+  "built": 1532,
+  "missing": [],
+  "missing_share": 0.0
+ },
+ "earliest_first_bar": "1995-12-01",
+ "years": [
+  {
+   "year": 2005,
+   "trading": 748,
+   "with_50_months": 468,
+   "with_120_months": 0,
+   "with_200_months": 0
+  },
+  {
+   "year": 2006,
+   "trading": 791,
+   "with_50_months": 537,
+   "with_120_months": 235,
+   "with_200_months": 0
+  },
+  {
+   "year": 2007,
+   "trading": 834,
+   "with_50_months": 619,
+   "with_120_months": 253,
+   "with_200_months": 0
+  },
+  {
+   "year": 2008,
+   "trading": 862,
+   "with_50_months": 660,
+   "with_120_months": 265,
+   "with_200_months": 0
+  },
+  {
+   "year": 2009,
+   "trading": 902,
+   "with_50_months": 695,
+   "with_120_months": 268,
+   "with_200_months": 0
+  },
+  {
+   "year": 2010,
+   "trading": 956,
+   "with_50_months": 740,
+   "with_120_months": 281,
+   "with_200_months": 0
+  },
+  {
+   "year": 2011,
+   "trading": 1001,
+   "with_50_months": 785,
+   "with_120_months": 487,
+   "with_200_months": 0
+  },
+  {
+   "year": 2012,
+   "trading": 1018,
+   "with_50_months": 830,
+   "with_120_months": 563,
+   "with_200_months": 0
+  },
+  {
+   "year": 2013,
+   "trading": 1044,
+   "with_50_months": 861,
+   "with_120_months": 637,
+   "with_200_months": 238
+  },
+  {
+   "year": 2014,
+   "trading": 1090,
+   "with_50_months": 895,
+   "with_120_months": 669,
+   "with_200_months": 253
+  },
+  {
+   "year": 2015,
+   "trading": 1151,
+   "with_50_months": 948,
+   "with_120_months": 708,
+   "with_200_months": 266
+  },
+  {
+   "year": 2016,
+   "trading": 1190,
+   "with_50_months": 994,
+   "with_120_months": 752,
+   "with_200_months": 269
+  },
+  {
+   "year": 2017,
+   "trading": 1237,
+   "with_50_months": 1016,
+   "with_120_months": 792,
+   "with_200_months": 296
+  },
+  {
+   "year": 2018,
+   "trading": 1285,
+   "with_50_months": 1035,
+   "with_120_months": 833,
+   "with_200_months": 499
+  },
+  {
+   "year": 2019,
+   "trading": 1330,
+   "with_50_months": 1062,
+   "with_120_months": 858,
+   "with_200_months": 581
+  },
+  {
+   "year": 2020,
+   "trading": 1357,
+   "with_50_months": 1110,
+   "with_120_months": 890,
+   "with_200_months": 631
+  },
+  {
+   "year": 2021,
+   "trading": 1393,
+   "with_50_months": 1154,
+   "with_120_months": 938,
+   "with_200_months": 658
+  },
+  {
+   "year": 2022,
+   "trading": 1419,
+   "with_50_months": 1191,
+   "with_120_months": 968,
+   "with_200_months": 688
+  },
+  {
+   "year": 2023,
+   "trading": 1448,
+   "with_50_months": 1229,
+   "with_120_months": 974,
+   "with_200_months": 733
+  },
+  {
+   "year": 2024,
+   "trading": 1452,
+   "with_50_months": 1256,
+   "with_120_months": 983,
+   "with_200_months": 759
+  },
+  {
+   "year": 2025,
+   "trading": 1429,
+   "with_50_months": 1272,
+   "with_120_months": 1011,
+   "with_200_months": 790
+  }
+ ],
+ "cases": [],
+ "spec_sha256": "05c6ec0e736c8ad85445146544dd7c01b9495e9ec64352601cefd8a3c1aa2c3a",
+ "completed_at": "2026-10-19T11:09:25+00:00",
+ "code_commit": "f1a77b76e751eb44989385ced45e1a4ee32f1f79"
+}
