@@ -21,3 +21,13 @@ Claude directs and accepts; Codex implements (Codex plugin). Each round: task ca
 | 015 | App pages 今日 + 我的组合 (new routes /app, /app/portfolio) | tasks/015-app-pages-today-portfolio.md | codex-rescue agent af6b37c8a2b593b39 | app/app/ | **Accepted 2026-10-17.** Codex stopped first: today.json lacked the new-signal count, month-end switches and a stale summary (approved as additions; Claude corrected the signal-week definition). Claude reviewed in a browser at 1440/375 px and sent 7 fixes (stale list showed delisted breadth names; one week for counts; plain verdict sentence; month logic). Lint, typecheck, build, 89 node + 23 Python tests pass. Not linked from the site until owner UAT. |
 | 016 | Signal funnel (US dev data vs HK group A, description only) | tasks/016-signal-funnel.md | codex-rescue agent afd0a53c003060b5f | work/reports/signal-funnel-v1.json (local) | **Accepted 2026-10-17.** Exact reconciliation (2,716/571; 124/14; per-dataset signal and trade hashes equal). HK shapes are not rarer; HK loses on the liquidity pool (21% of stock-weeks vs 50%) and the market filter (36% vs 63%). Codex stopped twice on data boundaries (pre-window cooldown; full-data jump filter) - both answered "mirror the original run exactly". |
 | 019 | Market-relative HK liquidity pool (design only) | tasks/019-hk-pool-threshold.md | codex-rescue agent a999634c66970fd07 | work/reports/hk-pool-v1.json (local) | **Accepted 2026-10-18.** Baseline reproduces 124 signals. Top-50% turnover + HK$7.8M floor: ~96 stocks/day, 237 signals; top-25%: ~48, 121. No returns computed. Codex stopped once on the pre-2005 basis (answered: same as 010/016). Cost for less liquid names unverified. |
+
+## 2026-10-19 — Codex：3W Discord 机会提醒（用户直接授权）
+
+- 分支 `codex/3w-discord-alerts`；范围：读取现有 app 信号与票据，按冻结 1.9 提醒入场、止损、3R 止盈、40 交易日有效期；增加独立通知 job、持久去重、预览与测试。
+- 本轮不是新研究，不跑旧数据找规则；冻结代码/config、港股 B、现有未跟踪 `tests/test_reality3w.py` 均不改。
+- 去重选择：先持久化 reserved 再 HTTP，回执成功后 sent；不确定送达须人工核查，不自动重发。
+- Concerns：到期日期为已有交易日历估算；日终 waiting 不代表收到消息时仍未成交；Webhook/真实频道未验证；本地实现未上线。用户随后明确授权提交、推送、合并上线及通过 Actions 发送一条模拟消息；原“不提交、不推送”限制对本任务解除，EOD 窗口仍遵守。
+- 验证：相关回归 55 项通过；补充 Git 持久化集成测试后通知模块 12 项通过（与前述回归有重叠）；workflow YAML 解析、git diff --check 通过；冻结路径无差异。当前真实数据 preview 为 0 条通知，合成 TEST 样例仅供格式审核，未发送。
+
+- 用户确认短版模板；新增独立 Actions 模拟入口和 PR 测试。模拟仅使用 TEST 虚构价格，独立去重，不触发历史研究。GitHub Secret 名称 DISCORD_OPPORTUNITY 已实时核实存在，未读取或输出值。

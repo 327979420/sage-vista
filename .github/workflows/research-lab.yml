@@ -94,3 +94,33 @@ jobs:
         run: |
           echo "## Research lab" >> "$GITHUB_STEP_SUMMARY"
           git fetch -q origin main && git show origin/main:research/lab/SCOREBOARD.md >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || echo "No scoreboard yet." >> "$GITHUB_STEP_SUMMARY"
+
+  triangle_discord:
+    name: Notify frozen 3W opportunities
+    needs: run
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      # The producer publishes via an isolated index; use a fresh main snapshot.
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with: { python-version: "3.14" }
+      - name: Test frozen 3W notifications
+        run: python3 -m unittest tests.test_triangle_discord tests.test_triangle15 tests.test_app_data
+      - name: Preview 3W notifications without a secret
+        run: python3 -m services.scanner.triangle_discord > triangle-discord-preview.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: triangle-discord-preview
+          path: triangle-discord-preview.json
+          retention-days: 7
+      - name: Send new opportunities with durable deduplication
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL || secrets.DISCORD_OPPORTUNITY }}
+        run: python3 -m services.scanner.triangle_discord --send
