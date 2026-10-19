@@ -1,0 +1,52 @@
+{
+  "id": "data-jp-universe-v1",
+  "experiment_id": "lab-data-jp-universe-v1-2026-10-19",
+  "kind": "screen",
+  "question": "Japan universe engineering screen for the frozen 3w-1.9 exam; provider common stocks, listed and delisted, with pre-registered name exclusions and company-key dedupe before liquidity. No signals or returns.",
+  "dataset": {
+    "id": "universe-1985-v1",
+    "builder": "universe",
+    "symbols_file": "research/lab/universes/observation-2005-2025-v1.txt",
+    "extra_symbols": [
+      "AEVA",
+      "BTDR",
+      "CGEM",
+      "POWL",
+      "BEKE"
+    ],
+    "start": "1985-01-01"
+  },
+  "group": "data",
+  "exchange": "TSE",
+  "fetch_start": "2004-01-01",
+  "window": [
+    "2005-01-01",
+    "2025-06-30"
+  ],
+  "pool": {
+    "min_close": 100.0,
+    "min_dollar_volume": 1500000000.0
+  },
+  "raw_price_floor": true,
+  "min_sessions": 60,
+  "workers": 3,
+  "attempts": 5,
+  "retry_failed": true,
+  "shard_size": 4000,
+  "shard_dir": "research/lab/universes",
+  "shard_prefix": "jp-2005-2025-v1",
+  "criteria": {
+    "max_error_share": 0.02,
+    "min_kept": 300
+  },
+  "requires": [],
+  "next_step": "STOP 1: Claude reviews and triggers screen. Before freezing at STOP 2, review all flagged codes; split only if kept > 2000, sorted then random.Random(20261019), A first ceil(n/2), B locked. Step 2 spec is not created yet.",
+  "notes": [
+    "Fixed before Japan data: docs/rules/08_BACKTEST_AND_EXPERIMENTS.md#jp-exam and ledger section 17, including Claude answers 2026-10-19.",
+    "TSE-only filters: exact Common Stock type, case-insensitive name substrings ETF/ETN/REIT/FUND/INDEX/投資法人/上場投信/ファンド/指数; no range exclusion.",
+    "Company key strips suffix after dot or hyphen and leading zeros; most valid window daily bars wins, lexical tie, before liquidity.",
+    "Ranges 1300-1699, 2500-2599, 8950-8999 are review flags only, all kept names reported.",
+    "Screen uses 60 qualifying sessions; frozen exam uses min_history 420, raw close floor 100, daily turnover 1.5 billion JPY, 1306 proxy, 0.2% per side.",
+    "Pre-2005 prices are warm-up only. This screen computes no signals or returns."
+  ]
+}

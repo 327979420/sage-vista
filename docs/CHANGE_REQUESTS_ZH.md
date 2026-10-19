@@ -1640,3 +1640,13 @@
 - 唯一任务规格：`tasks/040-daily1-on-mixed-template.md`。UI迁移，不是研究或生产变更；daily1原题和答案身份保持不变。
 - 共享profile及私有适配器复用mixed模板，新增独立心得集合；Python30项、daily Node8组、mixed2套/hk10组、100题可见文本盲检通过。保护输入与mixed1/hk1成品逐字节相同。
 - 证据：`work/v3w/daily040/README.md`。真实390/1440截图、发布及云端只读恢复由Claude完成；1个持仓日缺价延用冻结估值，未改行情。
+
+### CR-2026-10-19-jp-exam-step1｜Task037 日股考试 Step 1
+
+- 授权：仅执行 Step 1，按 Claude 2026-10-19 两条回答更新卡并预登记；停止在 STOP 1，无网络、不提交、不改冻结代码或 `.github/`。
+- 交付：任务卡、08规则1.63.0 `#jp-exam`、账本§17、screen queue spec、三份机器登记；TSE专用类型/名称过滤、公司键去重和代码段review_flags、EODHD后缀适配、16项新增合成测试。原dataset builder已传递exchange，未改实现；模拟ensure_dataset验证TSE及raw_close路径。尚无真实screen结果。
+- 口径：名称各关键词按唯一代码计数，原因可重叠，同时报告排除并集；代码段只提示。公司代表只由窗口交易日数/字典序决定，下载时good_sessions仅作统计，最终流动性门槛在公司代表确定后应用，绝不回退到更短别名。screen分片不是随机A/B分组，分组留待Step2。
+- 工程小约定（保守处理）：有效日线须日期合法，OHLC及复权close有限且正，volume有限非负；重复日期只计一次、保留首个有效行。重试后仍失败的别名无法比较覆盖，同键成功代码也暂不保留并单列unresolved_company，不暗中替代。TSE请求截至窗口末日；保留provider代码及连字符后缀，只避免重复.TSE，不用company_key请求价格。以上交Claude核查，不新增PASS阈值。
+- 验证：`python3 -m unittest tests.test_japan_screen tests.test_screen tests.test_eodhd_client tests.test_research_lab tests.test_datasets_repo -q`：97项，96通过、1跳过；新增16项全部通过。首次运行因缺机器登记失败，补登记后通过。另用`git show HEAD:research/lab/screen.py`加载旧模块，与当前模块分别运行US/HK合成样例（含重复/失败重试/空历史/名称关键词）：result、stats、failed、render报告、分片文件完全相同。`git diff --check`通过。
+- Claude触发前：审查本地diff、预登记和上述约定；运行仅`data-jp-universe-v1`，不得提前运行考试。冻结前STOP 2审查全部review_flags及provider名称、失败/空历史/未决公司数量；如调整，先写带日期说明，再使用价格生成信号。确认>2000才按20261019分组，B锁定；本轮未建Step2 spec。信号/成交/退出均为1306交易日的检查只预登记，属于Step3。
+- Concerns：provider退市覆盖、类型/名称可能不完整；子串可能误杀公司；company key不是公司身份核验；复权与TOPIX ETF代理局限仍在。真实TSE接口尚未在线验证。已有timeframe.py未关闭文件ResourceWarning未改；套件“Waiting 20 minutes”来自模拟调度测试，没有真实等待/发布。未暂存/提交，无生产及冻结文件修改。

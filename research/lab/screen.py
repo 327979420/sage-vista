@@ -10,6 +10,9 @@ from __future__ import annotations
 
 import concurrent.futures
 import pathlib
+import re
+import math
+import datetime
 
 from services.scanner.macd_factor_backtest import adjusted_rows
 
@@ -23,6 +26,79 @@ def candidates(listed, delisted, exclude, primary=PRIMARY):
     live, gone = common(listed), common(delisted)
     reused = live & gone
     return sorted((live | gone) - reused - set(exclude)), {"listed": len(live), "delisted": len(gone), "reused": len(reused)}
+
+
+NAME_EXCLUSIONS = ("ETF", "ETN", "REIT", "FUND", "INDEX", "投資法人", "上場投信", "ファンド", "指数")
+
+
+def company_key(code):
+    return re.split(r"[.\-]", str(code), maxsplit=1)[0].lstrip("0") or "0"
+
+
+def jp_candidates(listed, delisted):
+    # Reused codes are checked across the full lists, regardless of provider type.
+    live = {str(x["Code"]) for x in listed if x.get("Code") is not None}
+    gone = {str(x["Code"]) for x in delisted if x.get("Code") is not None}
+    reused = live & gone
+    rows = listed + delisted
+    bad_type = {str(x["Code"]) for x in rows if x.get("Code") is not None and x.get("Type") != "Common Stock"}
+    matches = {term: {str(x["Code"]) for x in rows if x.get("Code") is not None and term in str(x.get("Name") or "").upper()} for term in NAME_EXCLUSIONS}
+    bad_name = set().union(*matches.values())
+    names = {str(x["Code"]): str(x.get("Name") or "") for x in rows if x.get("Code") is not None}
+    return sorted((live | gone) - reused - bad_type - bad_name), {
+        "listed": len(live), "delisted": len(gone), "reused": len(reused),
+        "non_common_type": len(bad_type), "excluded_name": len(bad_name),
+        "name_matches": {term: len(codes) for term, codes in matches.items()},
+        "excluded_metadata_union": len(reused | bad_type | bad_name),
+    }, names
+
+
+def valid_jp_rows(raw):
+    """One finite, positive OHLC daily bar per date; zero volume is valid.
+
+    Invalid/missing bars do not contribute to the dedupe window or liquidity.
+    Duplicate dates use the first valid provider row, counted once.
+    """
+    out = {}
+    for row in raw:
+        try:
+            day = row["date"]
+            if datetime.date.fromisoformat(day).isoformat() != day:
+                continue
+            if not all(math.isfinite(float(row[k])) and float(row[k]) > 0 for k in ("open", "high", "low", "close", "adjusted_close")):
+                continue
+            volume = float(row["volume"])
+            if not math.isfinite(volume) or volume < 0:
+                continue
+            out.setdefault(day, row)
+        except (KeyError, TypeError, ValueError):
+            continue
+    return [out[d] for d in sorted(out)]
+
+
+def jp_dedupe(stats, failed):
+    groups = {}
+    for code in sorted(set(stats) | set(failed)):
+        groups.setdefault(company_key(code), []).append(code)
+    winners, removed, unresolved = [], [], []
+    for codes in groups.values():
+        # A failed alias has unknown coverage: never silently substitute another alias.
+        if any(code in failed for code in codes):
+            unresolved.extend(code for code in codes if code in stats)
+            continue
+        winner = min(codes, key=lambda c: (-stats[c]["window_bars"], c))
+        winners.append(winner)
+        removed.extend(c for c in codes if c != winner)
+    return sorted(winners), sorted(removed), sorted(unresolved)
+
+
+def jp_review_flags(kept, names):
+    flags = []
+    for code in kept:
+        key = company_key(code)
+        if key.isdigit() and any(lo <= int(key) <= hi for lo, hi in ((1300, 1699), (2500, 2599), (8950, 8999))):
+            flags.append({"code": code, "name": names[code]})
+    return flags
 
 
 def qualifies(rows, window, pool, raw=None):
@@ -41,19 +117,24 @@ def qualifies(rows, window, pool, raw=None):
     return good
 
 
-def screen(symbols, fetch, window, pool, min_sessions, workers=6, raw_floor=False, reasons=None):
+def screen(symbols, fetch, window, pool, min_sessions, workers=6, raw_floor=False, reasons=None, japan=False):
     """Download each symbol once (in parallel), keep the ones with at least `min_sessions` pool sessions; failures are counted.
     `reasons` (a dict) receives why each failure happened: the provider's error text or "empty" for no history."""
     def one(symbol):
         try:
             raw = fetch(symbol)
+            if japan:
+                raw = valid_jp_rows(raw)
             rows = adjusted_rows(raw)
         except Exception as error:
             return symbol, None, str(error)[:80]
         if not rows:
             return symbol, None, "empty"
         good = qualifies(rows, window, pool, raw if raw_floor else None)
-        return symbol, {"good_sessions": good, "first": rows[0]["date"], "last": rows[-1]["date"], "bars": len(rows)}, None
+        info = {"good_sessions": good, "first": rows[0]["date"], "last": rows[-1]["date"], "bars": len(rows)}
+        if japan:
+            info["window_bars"] = sum(window[0] <= r["date"] <= window[1] for r in rows)
+        return symbol, info, None
     stats, failed = {}, []
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as ex:
         for symbol, info, why in ex.map(one, symbols):
@@ -63,7 +144,7 @@ def screen(symbols, fetch, window, pool, min_sessions, workers=6, raw_floor=Fals
                     reasons[symbol] = why
             else:
                 stats[symbol] = info
-    kept = sorted(s for s, info in stats.items() if info["good_sessions"] >= min_sessions)
+    kept = sorted(stats) if japan else sorted(s for s, info in stats.items() if info["good_sessions"] >= min_sessions)
     return kept, stats, sorted(failed)
 
 
@@ -75,19 +156,34 @@ def run(spec, data, dataset_entry, root, listed=None, delisted=None, fetch=None)
     exchange = spec.get("exchange", "US")
     primary = PRIMARY if exchange == "US" else (set(spec["primary_exchanges"]) if spec.get("primary_exchanges") else None)
     if fetch is None:
-        from services.scanner.eodhd import get, symbols
+        from services.scanner.eodhd import get, symbols, eod_symbol
         listed, delisted = symbols(False, exchange), symbols(True, exchange)
-        fetch = lambda s: get(f"eod/{s}.{exchange}", **{"from": spec["fetch_start"], "period": "d", "_attempts": spec.get("attempts", 3)})
-    names, counts = candidates(listed, delisted, data["prices"].keys(), primary)
+        fetch = lambda s: get(f"eod/{eod_symbol(s, exchange)}", **{"from": spec["fetch_start"], "period": "d", "_attempts": spec.get("attempts", 3),
+                                                               **({"to": spec["window"][1]} if exchange == "TSE" else {})})
+    japan = exchange == "TSE"
+    if japan:
+        names, counts, provider_names = jp_candidates(listed, delisted)
+    else:
+        names, counts = candidates(listed, delisted, data["prices"].keys(), primary)
     reasons = {}
-    kept, stats, failed = screen(names, fetch, spec["window"], spec["pool"], spec["min_sessions"], spec.get("workers", 4), spec.get("raw_price_floor", False), reasons)
+    kept, stats, failed = screen(names, fetch, spec["window"], spec["pool"], spec["min_sessions"], spec.get("workers", 4), spec.get("raw_price_floor", False), reasons, japan=japan)
     if spec.get("retry_failed"):
         # a second, slower pass over the failures; what still fails keeps its reason
         retry_reasons = {}
-        k2, s2, failed = screen(failed, fetch, spec["window"], spec["pool"], spec["min_sessions"], 1, spec.get("raw_price_floor", False), retry_reasons)
+        k2, s2, failed = screen(failed, fetch, spec["window"], spec["pool"], spec["min_sessions"], 1, spec.get("raw_price_floor", False), retry_reasons, japan=japan)
         stats.update(s2)
         kept = sorted(set(kept) | set(k2))
         reasons = retry_reasons
+    extra = {}
+    if japan:
+        # Coverage alone selects the company representative. Liquidity never selects
+        # a shorter alias as fallback (good_sessions is only a download-time tally).
+        winners, duplicates, unresolved = jp_dedupe(stats, failed)
+        kept = sorted(s for s in winners if stats[s]["good_sessions"] >= spec["min_sessions"])
+        counts.update(company_duplicates=len(duplicates), unresolved_company=len(unresolved),
+                      below_liquidity=len(winners) - len(kept))
+        extra = {"exchange": "TSE", "currency": "JPY", "company_duplicates": duplicates,
+                 "unresolved_company": unresolved, "review_flags": jp_review_flags(kept, provider_names)}
     files = []
     for k, part in enumerate(shards(kept, spec["shard_size"])):
         path = pathlib.Path(root) / spec["shard_dir"] / f"{spec['shard_prefix']}-{chr(97 + k)}.txt"
@@ -104,7 +200,7 @@ def run(spec, data, dataset_entry, root, listed=None, delisted=None, fetch=None)
     errors = len(failed) - empty
     error_share = errors / max(len(names), 1)
     passed = (error_share <= crit["max_error_share"] if "max_error_share" in crit else fail_share <= crit["max_failed_share"]) and len(kept) >= crit["min_kept"]
-    return {"kind": "screen", "spec_id": spec["id"], "experiment_id": spec["experiment_id"], "group": spec["group"], "question": spec["question"],
+    return {**extra, "kind": "screen", "spec_id": spec["id"], "experiment_id": spec["experiment_id"], "group": spec["group"], "question": spec["question"],
             "dataset": {k: dataset_entry[k] for k in ("dataset_id", "asset", "sha256", "symbols")}, "window": spec["window"], "pool": spec["pool"],
             "min_sessions": spec["min_sessions"], "provider_counts": counts, "candidates": len(names), "downloaded": len(stats), "failed": len(failed),
             "failed_share": round(fail_share, 4), "failed_empty": empty, "failed_errors": errors, "error_share": round(error_share, 4),
@@ -128,4 +224,15 @@ def render(result):
              "", f"**Passed: {'yes' if result['passed'] else 'no'}** ("
              + (f"download errors at most {result['criteria']['max_error_share'] * 100:.0f}% after a retry" if "max_error_share" in result["criteria"] else f"failed downloads at most {result['criteria']['max_failed_share'] * 100:.0f}%")
              + f", at least {result['criteria']['min_kept']} stocks kept)."]
+    if result.get("exchange") == "TSE":
+        lines = [line.replace("$", "JPY ").replace("Provider lists (primary-exchange common stocks)", "Provider lists (all types; exclusions below)") for line in lines]
+        lines[lines.index(next(x for x in lines if x.startswith("- Candidates after")))] = f"- TSE candidates after provider metadata exclusions: {result['candidates']}; US dataset symbols are not a cross-market exclusion list."
+        lines += ["", "## TSE exclusion counts", "", "Counts by reason can overlap; name_matches count unique symbols per substring.",
+                  *[f"- {k}: {v}" for k, v in result["provider_counts"].items()],
+                  "", "## Review flags only — Claude must review before freezing at STOP 2", "",
+                  "These ranges do not exclude stocks. Any change needs a dated pre-signal note.", "",
+                  "| Code | Provider name |", "|---|---|",
+                  *[f"| {x['code']} | {x['name'].replace('|', '/').replace(chr(10), ' ')} |" for x in result["review_flags"]]]
+        if not result["review_flags"]:
+            lines.append("No kept codes in the review ranges.")
     return "\n".join(lines) + "\n"
