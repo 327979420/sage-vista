@@ -55,7 +55,12 @@ jobs:
           python3 -m venv work/vectorbt-env
           work/vectorbt-env/bin/python -m pip install --only-binary=:all: --require-hashes -r research/backtest/dependencies/vectorbt-requirements.lock
           work/vectorbt-env/bin/python -m unittest tests.test_research_lab.AccountTests
+      # Owner approved 2026-10-19: one failing queue spec must not skip the daily forward record and scoring.
+      # The failure is reported as an error annotation and in the summary; the job is not failed, so the Discord job
+      # that needs it still runs.
       - name: Run pending experiments and publish results
+        id: queue
+        continue-on-error: true
         env:
           WAIT_FOR_WINDOW: ${{ inputs.wait_for_window || '0' }}
         run: python3 -m research.lab.run_queue --publish --max-specs 3 --wait-for-window "$WAIT_FOR_WINDOW"
@@ -111,6 +116,11 @@ jobs:
         run: |
           echo "## Research lab" >> "$GITHUB_STEP_SUMMARY"
           git fetch -q origin main && git show origin/main:research/lab/SCOREBOARD.md >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || echo "No scoreboard yet." >> "$GITHUB_STEP_SUMMARY"
+      - name: Report a failed experiment queue
+        if: steps.queue.outcome == 'failure'
+        run: |
+          echo "::error::The experiment queue failed; the forward record and scoring still ran. See the 'Run pending experiments' step."
+          echo "**Experiment queue failed** — forward record and scoring still ran." >> "$GITHUB_STEP_SUMMARY"
 
   triangle_discord:
     name: Notify frozen 3W opportunities
