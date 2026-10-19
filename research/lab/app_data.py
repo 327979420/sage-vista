@@ -21,7 +21,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 
-from research.lab import datasets, factor_tags, triangle_forward, triangle15, selection
+from research.lab import calendars, datasets, factor_tags, triangle_forward, triangle15, selection
 from research.lab.run_queue import in_eod_window
 from services.scanner.public_asset_limits import validate_asset
 
@@ -104,53 +104,17 @@ def light(state):
 
 
 def next_session(day):
-    """Next regular US equity session; unexpected exchange closures are unknown."""
-    def holidays(year):
-        def nth(month, weekday, n):
-            first = dt.date(year, month, 1)
-            return first + dt.timedelta(days=(weekday - first.weekday()) % 7 + 7 * (n - 1))
-        def observed(month, day):
-            d = dt.date(year, month, day)
-            return d + dt.timedelta(days=-1 if d.weekday() == 5 else 1 if d.weekday() == 6 else 0)
-        # Gregorian Easter (Good Friday is two days earlier).
-        a, b, c = year % 19, year // 100, year % 100
-        d, e = b // 4, b % 4
-        f = (b + 8) // 25
-        g = (b - f + 1) // 3
-        h = (19 * a + b - d - g + 15) % 30
-        i, k = c // 4, c % 4
-        l = (32 + 2 * e + 2 * i - h - k) % 7
-        m = (a + 11 * h + 22 * l) // 451
-        easter = dt.date(year, (h + l - 7 * m + 114) // 31, (h + l - 7 * m + 114) % 31 + 1)
-        memorial = dt.date(year, 5, 31)
-        memorial -= dt.timedelta(days=memorial.weekday())
-        dates = {nth(2, 0, 3), easter - dt.timedelta(days=2), memorial,
-                 observed(7, 4), nth(9, 0, 1), nth(11, 3, 4), observed(12, 25)}
-        new_year = dt.date(year, 1, 1)
-        # NYSE does not observe a Saturday New Year on the preceding Friday.
-        dates.add(new_year + dt.timedelta(days=1 if new_year.weekday() == 6 else 0))
-        if year >= 1998:
-            dates.add(nth(1, 0, 3))
-        if year >= 2022:
-            dates.add(observed(6, 19))
-        return dates
-    following = dt.date.fromisoformat(day) + dt.timedelta(days=1)
-    while following.weekday() >= 5 or following in holidays(following.year):
-        following += dt.timedelta(days=1)
-    return following.isoformat()
+    """Next NYSE session from the versioned offline exchange calendar."""
+    return calendars.next_session('XNYS', day)
 
 
 def month_state(prices, day):
     """Month-end decision, executed next session. Never use a later price."""
-    due = next_session(day)[:7] != day[:7]
-    if due:
-        return day, True
+    boundary = calendars.last_session_of_month('XNYS', day)
+    if day >= boundary:
+        return boundary, True
     previous = dt.date.fromisoformat(day).replace(day=1) - dt.timedelta(days=1)
-    # A missing SPY quote must not move the month-end signal to an earlier day.
-    # The quote at this scheduled boundary will instead be explicitly stale.
-    while next_session((previous - dt.timedelta(days=1)).isoformat()) != previous.isoformat():
-        previous -= dt.timedelta(days=1)
-    return previous.isoformat(), False
+    return calendars.last_session_of_month('XNYS', previous.isoformat()), False
 
 
 
@@ -169,7 +133,7 @@ def portfolio(prices, day):
                             would_switch=(current['hold'] != previous['hold'])
                             if current['hold'] and previous['hold'] else None))
     return dict(status='candidate', month_end_signal_as_of=month_end,
-                rebalance_due=due, next_session=next_session(day), calendar_basis='regular_NYSE_holidays',
+                rebalance_due=due, next_session=next_session(day), calendar_basis='exchange_calendars_4.11.1_XNYS',
                 sleeves=sleeves, shy=quote(prices.get('SHY'), day))
 
 
