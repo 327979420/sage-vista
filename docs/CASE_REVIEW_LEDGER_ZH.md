@@ -1585,6 +1585,15 @@ buy-and-hold and 069500 at 3W's daily invested share.
 
 工程边界：仅准备联合股票池 screen；分组、冻结、代理交易日检查和考试执行留待后续步骤。有效日线及失败别名处理沿用 Task037；带 KO/KQ 后缀保留板块身份，不剥离前导零。
 
+### 3W 韩股 Step 2 审查决定（2026-10-19，Claude 经用户转述确认）
+
+- Screen run `39237780214`：本地 `research/lab/results/data-kr-universe-v1/result.json` 核对通过，保留1,531家公司，单分片 `research/lab/universes/kr-2005-2025-v1-a.txt`；errors=0，empty histories=75。
+- Claude 已审查全部28个review flags，均为合法普通股控股公司，全部保留。4个未决公司006400、015760、259960、307950继续排除，遵守失败别名不替代规则。
+- 1,531 ≤ 2,000，不做A/B划分，全部保留名单作为考试组。目标数据集 `kr-a-1995-v1` = 该名单 + `069500.KO`，共1,532个代码；日线从1995年起，keep_raw=true，max_missing_share=0.05。2005年前仅预热，不用于信号或结果。
+- 75个空历史的确认描述："KO and KQ, mixed code formats"（KO和KQ，混合代码格式）；不改变名单及排除决定。
+- Claude批准（2026-10-19）：仅dataset显式声明exchanges列表时，按每个符号.KO/.KQ后缀路由，无已登记后缀即报错；无exchanges的旧US/HK路径不变。允许run_queue.py最小适配及1,532符号mock测试；仅准备Step2，不联网、构建真实数据或考试。
+- Step2本地准备完成：新增data-kr-a-v1规格与最小路由，1,532请求mock及US/HK旧路径字节回归通过；真实数据集尚未构建，缺失率尚未验收，不运行Step3。
+
 ## 十四、以后每张案例卡的固定格式
 
 ```text

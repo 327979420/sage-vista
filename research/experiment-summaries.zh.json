@@ -730,6 +730,16 @@
    "use_zh": "冻结3w-1.9的独立韩国考试，不是收益结果。",
    "next_zh": "STOP 1待Claude核查；STOP 2冻结前审查提示名称。",
    "verdict": "pre_registered"
-}
+  },
+  "lab-data-kr-a-v1-2026-10-19": {
+   "title_zh": "韩国考试全名单数据集准备",
+   "family": "data",
+   "family_zh": "数据工程",
+   "question_zh": "1531家公司加069500.KO的历史覆盖是否达标？",
+   "result_zh": "仅预登记，尚未构建数据集。",
+   "use_zh": "冻结3W考试数据准备，无收益结果。",
+   "next_zh": "Claude触发构建并核查覆盖；不运行考试。",
+   "verdict": "pre_registered"
+  }
  }
 }
