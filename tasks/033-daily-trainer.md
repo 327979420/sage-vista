@@ -13,6 +13,8 @@ answer bar under the chart, case grid, D/N keys, "三推/线画错了" toggle, c
 - Detect three-push shapes on DAILY bars with the existing detector code applied to daily rows (`research/lab/triangle.py`
   push_lines/bottoms_of, same parameters scaled from weeks to days only where they are spans: span 10..90 weeks -> 20..180 trading
   days; state every scaling in the card). Signal = daily bullish bar + daily MACD golden cross after >= 4 days under, under zero.
+- No market filter (owner, 2026-10-19: "不受大盘影响"): include cases whatever SPY / breadth were; show nothing about the market.
+  Dates are shuffled and hidden.
 - Order (training defaults, shown on the chart): limit 1% under the signal close valid 10 trading days; stop 1% under the last bottom;
   target 3R; max hold 60 trading days. Only cases whose order filled and finished.
 - Sources: US stocks, signals 2025-07-01..2026-08-31 (new data the owner has not judged) plus US development data 2015-2024, never
