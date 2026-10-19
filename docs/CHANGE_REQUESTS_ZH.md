@@ -1672,3 +1672,11 @@
 - 已新增data-kr-a-v1.json及三份机器实验预登记。1,531名单+069500.KO共1,532代码，原列表不改；1995-01-01起、keep_raw=true、max_missing_share=.05；不分组。75空历史按确认记为“KO and KQ, mixed code formats”。
 - 验证：TMPDIR固定本worktree/work/kr-step2/tmp，PYTHONDONTWRITEBYTECODE=1，运行python3 -m unittest tests.test_korea_dataset tests.test_korea_screen tests.test_japan_screen tests.test_screen tests.test_eodhd_client tests.test_research_lab tests.test_datasets_repo -q：119项，118通过/1跳过。新增5项全部通过：规格/批准名单、1,532逐代码请求及raw_close、非法后缀零请求、非法exchanges声明、旧US/HK相对8afc6d4字节回归。mock了provider、manifest、save/upload，无实际下载/数据集保存/上传。证据work/kr-step2/tests.log；git diff --check通过。
 - 本轮停在Step2准备完成，待Claude触发构建并审查coverage；实际缺失比例未知，screen通过不等于dataset覆盖通过。冻结代码/.github/现有screen产物/名单与基点字节一致，见protected.json；无网络、暂存或提交，无Step3运行。既有timeframe ResourceWarning未改；测试中的发布等待文本来自mock，无真实等待或发布。
+
+### CR-2026-10-19-kr-exam-step3｜一次考试（运行前停止）
+
+- 授权Step3，已读卡、hk_exam/fair19及冻结账户；数据文件完整哈希与manifest匹配，未解压行情。发现initial_cash100000的币种歧义会在整股/20%限制下改变可交易股票与样本量。
+- 仅执行合成机械自测4项，证据work/v3w/kr043/currency_self_test.py、preflight.json。正式运行0次，无信号/账户/考试成绩或报告。建议固定1300单位换算资本为₩130000000，等Claude确认并预登记后继续；不改冻结代码，无网络、无提交。详见§17停止记录。
+
+- Claude已批准资金澄清并先写§17：真实和随机账户均₩130000000，无汇兑收益。新增私有kr_exam.py，沿用HK/fair19，代理会话排除应用真实与随机交易；只一次正式运行，结果29笔、Sharpe p=.171828，按登记“样本不足，未证明”。全部成绩/排除/局限见§17和work/reports/kr-exam-v1.{json,html}。
+- 验证：PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 python3 work/v3w/kr_exam.py --self-test先通过，再唯一一次运行（kr_exam.log）。后续仅读已保存报告重算p值/核对交易净盈亏加总、1,000账户和源哈希，未重跑；verification.json保存保护核对。HTML仅修正净R分母括号文本及结构检查，无浏览器截图。无网络/提交/冻结文件修改。
