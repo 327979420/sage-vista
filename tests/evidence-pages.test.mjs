@@ -98,10 +98,12 @@ test('ticket prioritizes full-width chart, five checks, order/outcome, then coll
  test('next check uses record date and always advances to the next Friday',()=>{
  const {nextFriday}=load('app/forward/forward.tsx');
  for(const [date,expected] of [['2026-10-18T09:10:48Z','10-23'],['2026-10-23','10-30'],['2026-12-31','01-01']])assert.equal(nextFriday(date),expected);
- const html=render(ForwardView,{data:forward});assert.ok(html.includes('10-23'));assert.ok(html.includes('svForwardSample'));
+ // Exercise this date and empty state independently of the daily published record.
+ const datedForward={...forward,outcomes_as_of:'2026-10-18T09:10:48Z',summary:{...forward.summary,signals:0}};
+ const html=render(ForwardView,{data:datedForward});assert.ok(html.includes('10-23'));assert.ok(html.includes('svForwardSample'));
  const {ForwardSummary}=load('app/app/today.tsx');
- const summary=render(ForwardSummary,{data:forward});assert.ok(summary.includes('href="/forward"'));assert.ok(summary.includes('2026-10-18'));
- assert.doesNotMatch(render(ForwardSummary,{data:forward},'en'),/[\u3400-\u9fff]/);
+ const summary=render(ForwardSummary,{data:datedForward});assert.ok(summary.includes('href="/forward"'));assert.ok(summary.includes('2026-10-18'));
+ assert.doesNotMatch(render(ForwardSummary,{data:datedForward},'en'),/[\u3400-\u9fff]/);
  });
 
 test('ticket uses six order fields and one four-stage outcome without body credit',()=>{

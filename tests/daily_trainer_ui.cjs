@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- This local-only .cjs harness intentionally uses CommonJS, including NODE_PATH resolution. */
 // Local-only browser checks. Set NODE_PATH to an installed Playwright package directory.
 const {chromium}=require('playwright');
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
@@ -11,6 +12,8 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
  assert.match(await page.locator('#status').innerText(),/刷新会丢失/);
  assert.equal(await page.locator('#cells button').count(),100);
  assert.equal(await page.locator('#chart svg').count(),1);
+ // BANK is a lexical global in the trainer page; this callback runs in that browser context.
+ // eslint-disable-next-line no-undef
  const symbol=await page.evaluate(()=>BANK.cases[0].result.symbol);
  assert(!((await page.locator('main').innerText()).includes(symbol)));
  await page.locator('#note').fill('<img src=x onerror=alert(1)>');
