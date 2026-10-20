@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- This local-only .cjs harness intentionally uses CommonJS. */
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const context={module:{exports:{}}};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../work/v3w/daily1-src/stats.js'),'utf8'),context);const S=context.module.exports;
