@@ -1,5 +1,6 @@
 import pathlib
 import re
+import shlex
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -118,3 +119,34 @@ class PublishAuditedDataTests(unittest.TestCase):
         self.assertLess(block.index('services.scanner.publish_audited_data'),
                         block.index('echo "deployment_commit='))
         self.assertNotIn('git push', block)
+
+    def test_workflow_commits_the_example_rebuilt_by_npm_before_publication(self):
+        text = (pathlib.Path(__file__).parents[1] / '.github/workflows/daily-eod.yml').read_text()
+        block = text.split('name: Commit audited website data', 1)[1].split('- name:', 1)[0]
+        stage = shlex.split(next(line.strip() for line in block.splitlines()
+                                 if line.strip().startswith('git add data/market ')))
+        example = 'public/app/ticket-example.json'
+        # Reproduce the actual workflow's staging allowlist in an isolated repo.
+        for name in set(stage[2:]) | {example}:
+            path = self.worker / name
+            if name == 'data/market':
+                path /= 'fixture.json'
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text('{"version":"committed"}\n')
+        p.git(self.worker, 'add', '.')
+        p.git(self.worker, 'commit', '-m', 'seed workflow paths')
+        p.git(self.worker, 'push', 'origin', 'HEAD:main')
+        base = p.git(self.worker, 'rev-parse', 'HEAD').stdout.strip()
+        rebuilt = '{"version":"rebuilt and validated"}\n'
+        (self.worker / example).write_text(rebuilt)
+        p.git(self.worker, *stage[1:])
+        if p.git(self.worker, 'diff', '--cached', '--quiet', check=False).returncode:
+            p.git(self.worker, 'commit', '-m', 'audited build artifacts')
+        sha = p.publish(self.worker, base)
+        self.assertEqual(p.git(self.remote, 'rev-parse', 'main').stdout.strip(), sha)
+        self.assertEqual(p.git(self.remote, 'show', f'main:{example}').stdout, rebuilt)
+
+    def test_uncommitted_unlisted_file_still_blocks_publication(self):
+        (self.worker / 'README.md').write_text('unreviewed change\n')
+        with self.assertRaisesRegex(RuntimeError, 'Commit all tracked changes'):
+            p.publish(self.worker, self.base)
