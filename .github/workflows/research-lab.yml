@@ -86,6 +86,23 @@ jobs:
         run: |
           python3 -m research.lab.forward_judge
           python3 -m research.lab.own_picks compute
+      - name: Build the weekly trade review after scoring
+        id: trade_review
+        if: steps.scoring.outcome == 'success' && github.event.schedule == '45 4 * * *'
+        run: |
+          if [ "$(date -u +%u)" = 6 ]; then
+            python3 -m research.lab.trade_review
+            echo "written=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Keep the weekly trade review
+        if: steps.trade_review.outputs.written == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: trade-review-${{ github.run_id }}
+          path: |
+            work/trade-review/weekly-*.html
+            work/trade-review/weekly-*.json
+          if-no-files-found: error
       - name: Keep the forward scorecards
         if: always()
         uses: actions/upload-artifact@v4

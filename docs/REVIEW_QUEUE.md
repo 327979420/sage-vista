@@ -20,6 +20,7 @@
 
 | 日期 | 事项 | 分支 / PR | 验证证据与核查重点 | 交付状态 | 独立核查 |
 |---|---|---|---|---|---|
+| 2026-10-19 | Task042 自动交易复盘与周报 | `codex/trade-review` | §17含Claude日期澄清；`work/trade-review/REPORT.md`、tests.log（最终89项通过，33项新增）、protected-before/after（303文件一致）、validation.json。核对统一提醒风险影响、跳过零盈亏、036/038复用、缺字段/无孪生/空周、各退出与滑点、OHLC范围限制。合成样例 `work/trade-review/synthetic/weekly-2026-10-18.html` 与空周 `weekly-2026-10-25.html` | 本地完成；真实空周0笔且cockpit未提供。截图交Claude；workflow.patch仅建议并通过apply --check，未应用。未暂存/提交/发布，work保持私有 | 已核查 |
 | 2026-10-20 | 日更运维恢复 | PR #147、#148 | 两种失败均先复现再修复；111项网站、30项定向发布检查通过；恢复运行1341项Python检查通过（22跳过）。线上四模块10/19，Build4f55f4a与收据一致；原发布保护保留 | 已合入、已上线；补更39426266704成功，notify=false；CR-2026-10-20含完整证据 | 待核查 |
 | 2026-10-19 | Task043 韩国一次考试结果 | `codex/kr-exam-3`，sv-wt-036 | 资金澄清先登记；合成自测通过后一次运行。29笔，Sharpe p=.171828，样本不足未证明。work/reports/kr-exam-v1.{json,html}、work/v3w/kr_exam.log、kr043/verification.json；保存结果p值及净盈亏加总核对，1,000随机账户，代理日期检查。核查随机抽样/日历排除、净R与固定资本、全窗口排除偏差 | 本地完成，无网络/提交/冻结代码改动；不重跑考试。HTML结构检查，真实浏览器截图未验收 | 待核查 |
 | 2026-10-19 | Task043 Step3运行前检查（资金单位阻断） | `codex/kr-exam-3`，sv-wt-036，d839338 | 本地gzip完整hash匹配manifest；4项合成自测，work/v3w/kr043/preflight.json；₩100000整股账户的20%上限导致₩50000合成股票不能买1股 | 仅前置检查完成；未解压行情/扫描/运行考试，暂无结果报告。待Claude明确初始资本单位；建议₩130000000，未应用。未提交 | 待核查 |
