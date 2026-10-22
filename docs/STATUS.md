@@ -1,6 +1,6 @@
 # Sage Vista — 接力棒（开始先读，结束前更新）
 
-更新：2026-10-19，Codex；Claude 合并 #134 时补充。用户在 Claude 与 Codex 之间切换时，以本文件和[核查队列](REVIEW_QUEUE.md)交接。
+更新：2026-10-22，Codex（Task045）；此前 Claude 合并 #134 时补充。用户在 Claude 与 Codex 之间切换时，以本文件和[核查队列](REVIEW_QUEUE.md)交接。
 在线工作台：<https://claude.ai/artifact/BdbVybVXiShDN5MtaqtVUQ>；本轮没有直接修改或读取其在线内容。
 机器日期、版本和运行断点仍以 [CURRENT_STATUS_ZH.md](CURRENT_STATUS_ZH.md) 及其机器来源为准；本文件只记工作状态。
 
@@ -12,6 +12,8 @@
 不自行在旧数据上找新规则；新研究必须先在[案例账本第十七节](CASE_REVIEW_LEDGER_ZH.md)登记。港股 B 组继续锁定。
 
 ## 进行中 / 下一步
+
+- **Task045 公开前向判卷页本地完成，待Claude核查/预览及owner UAT**（2026-10-22，`codex/forward-page`，基于449059d）：新增Task036计分白名单投影、全部检查点、缺失/过期计分降级、净R曲线/信号/孪生、Task044短ID和ticket生命周期；删除公开盲判字段，中英双语。按本轮Claude追加授权，仅用新版app_data从已核实0信号生成 `public/app/forward.json`；0/30、还差30笔、继续记录未证明，警报1未触发，警报2/有效性均提示需模拟账户、不公开。Python54项、npm112项（含lint/typecheck/build）通过；日志/空记录生成脚本在私有 `work/task045-*`。无网络/暂存/提交；未改其他public文件、冻结代码/规则或workflow。完整数据集不在本worktree，未运行完整app_data行情构建；读取接线有合成测试，390/1440真实预览交Claude，owner验收后才能上线。
 
 - **Task044 Discord生命周期本地完成，待Claude核查/Actions预览**（2026-10-22，`codex/discord-lifecycle`）：澄清已记§17；唯一来源app-data ticket outcomes，补成交价/撤单投影，保留冻结第41日确认到期、第40日为到期日。稳定alert ID写入消息/状态；10万美元模拟及可选实盘股数；六类后续事件有序持久去重，模拟独立账本。70项测试通过，两份workflow YAML解析通过；预览 `work/task044/preview.json`、日志 `work/task044/tests.log`。未接Task042，未改冻结代码/规则，无网络/暂存/提交/真实送达；Claude合并前运行card_preview。
 

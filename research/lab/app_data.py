@@ -21,7 +21,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 
-from research.lab import calendars, datasets, factor_tags, triangle_forward, triangle15, selection
+from research.lab import calendars, datasets, factor_tags, triangle_forward, triangle15, selection, forward_judge
 from research.lab.run_queue import in_eod_window
 from services.scanner.public_asset_limits import validate_asset
 
@@ -513,7 +513,7 @@ def replay_twins(rec, prices, pool, as_of, n_twins=30):
     for sym in random.Random(seed).sample(pool, min(n_twins, len(pool))):
         q = prices[sym]
         i0 = bisect.bisect_left(q['date'], rec['signal_day'])
-        row = dict(symbol=sym, status='unavailable', R=None, outcome=None,
+        row = dict(symbol=sym, status='unavailable', R=None, net_R=None, outcome=None,
                    moves=horizon_moves(q, rec['signal_day'], as_of))
         samples.append(row)
         if i0 >= len(q['date']) or q['date'][i0] != rec['signal_day']:
@@ -530,6 +530,7 @@ def replay_twins(rec, prices, pool, as_of, n_twins=30):
         row.update(status=got['status'], outcome=exit_kind(got['status']))
         if got.get('R') is not None and got['status'] in ('win', 'loss', 'time'):
             row['R'] = got['R']
+            row['net_R'] = forward_judge.net_r(got['entry'], got['exit'], stop)
     return samples
 
 
@@ -552,17 +553,58 @@ def twin_projection(rec, prices, pool, recorded, signal_outcome, as_of, n_twins=
     for key in base['moves']:
         values = [s['moves'][key]['move_pct'] for s in samples if s['moves'][key] is not None]
         moves[key] = dict(median_pct=statistics.median(values), sample=len(values)) if values else None
-    return {**base, 'twins': 'verified', 'mean_R': mean, 'median_R': statistics.median(Rs),
-            'beat_share': sum(signal_outcome['R'] > r for r in Rs) / len(Rs) if closed_signal else None,
+    net_rs = [s['net_R'] for s in samples if s['net_R'] is not None]
+    signal_net = (forward_judge.net_r(signal_outcome['fill_price'], signal_outcome['exit'], rec['plan']['stop'])
+                  if closed_signal else None)
+    return {**base, 'twins': 'verified', 'gross_mean_R': mean,
+            'mean_R': statistics.fmean(net_rs), 'median_R': statistics.median(net_rs),
+            'beat_share': sum(signal_net > r for r in net_rs) / len(net_rs) if closed_signal else None,
             'moves': moves, 'exits': dict(Counter(s['outcome'] for s in samples if s['outcome'])),
-            'samples': samples}
+            'samples': [{**s, 'gross_R': s['R'], 'R': s['net_R']} for s in samples]}
 
 
-def forward_data(records, outcomes, price_sets, judgements, facts, as_of, generated_at, *, n_twins=30):
+PUBLIC_PAPER = '需模拟账户，不在公开页'
+
+
+def public_judging(scorecard, outcomes):
+    """Explicit public allowlist: never serialize account metrics or raw rows."""
+    thresholds = dict(checkpoints=[30, 60, 100], checkpoint_step=100,
+                      alarm1_mean_lt=0, alarm1_t_lte=-2, proof_min_trades=100,
+                      proof_t_gte=2, satellite_drawdown_gt=.25, unscorable_fraction_gt=.1)
+    base = dict(status='missing', completed=None, scored=None, unscorable=None,
+                next_checkpoint=None, to_go=None, checkpoints=[], alarm1=None,
+                verdict='本次运行未生成计分', alarm2=PUBLIC_PAPER, proof=PUBLIC_PAPER,
+                thresholds=thresholds)
+    # A leftover scorecard must not masquerade as this run's scorecard.
+    if scorecard is None or scorecard.get('computed_at') != outcomes['computed_at']:
+        return base
+    def verdict(value):
+        if value == '证明有效':
+            return PUBLIC_PAPER
+        if value not in ('继续记录，未证明', '失效警报1', '暂停判断（对照不足）'):
+            raise ValueError('unknown forward verdict')
+        return value
+    checkpoints = [{**{k: c[k] for k in ('k', 'scored', 'unscorable', 'mean_d', 't', 'alarm1')},
+                    'verdict': verdict(c['verdict'])} for c in scorecard['checkpoints']]
+    return {**base, **{k: scorecard[k] for k in
+            ('completed', 'scored', 'unscorable', 'next_checkpoint', 'to_go', 'alarm1')},
+            'status': 'available', 'checkpoints': checkpoints, 'verdict': verdict(scorecard['verdict'])}
+
+
+def load_scorecard(root, outcomes):
+    path = root / 'work/forward-judge/latest.json'
+    if not path.exists():
+        return None
+    value = json.loads(path.read_text())
+    return value if value.get('computed_at') == outcomes['computed_at'] else None
+
+
+def forward_data(records, outcomes, price_sets, judgements, facts, as_of, generated_at, *, n_twins=30, scorecard=None, discord_state=None):
     by_id = {o['id']: o for o in outcomes['outcomes']}
-    calls = {}
-    for call in judgements:
-        calls.setdefault(call['id'], call)  # First recorded call is final, like the recorder.
+    # Import lazily: Discord itself consumes app_data ticket helpers. No delivery calls.
+    from services.scanner.triangle_discord import alert_ids
+    ids = alert_ids({'signals': [r for r in records if r.get('version') == VERSION]},
+                    discord_state or {'notifications': {}})
     rules_by_dataset = {}
     pools = {}
     rows = []
@@ -572,10 +614,14 @@ def forward_data(records, outcomes, price_sets, judgements, facts, as_of, genera
         px = price_sets[rec['dataset']]
         s = px[rec['symbol']]
         outcome = ticket_outcome(rec, s, outcomes)
-        call = calls.get(rec['id'], {})
-        choice = call.get('choice') if call.get('choice') in ('do', 'no') else None
         closed = outcome['status'] == 'closed' and outcome['R'] is not None
-        score = ('right' if (outcome['R'] > 0) == (choice == 'do') else 'wrong') if closed and choice else 'not yet scored'
+        net = forward_judge.net_r(outcome['fill_price'], outcome['exit'], rec['plan']['stop']) if closed else None
+        lifecycle = outcome['status']
+        if lifecycle == 'closed':
+            lifecycle = {'win': 'target', 'loss': 'stopped', 'time': 'time'}[outcome['source_status']]
+        elif lifecycle == 'cancelled' and outcome.get('cancel_reason') == 'no fill in 8 weeks':
+            lifecycle = 'expired'
+        event_date = (outcome.get('exit_date') or outcome.get('cancel_date') or outcome.get('fill_date'))
         if rec['dataset'] not in rules_by_dataset:
             rules_by_dataset[rec['dataset']] = {**triangle15.POOL,
                 'exclude': selection.impossible_jumps(px) | triangle15.FUNDS}
@@ -589,10 +635,10 @@ def forward_data(records, outcomes, price_sets, judgements, facts, as_of, genera
         rows.append(dict(id=rec['id'], symbol=rec['symbol'], signal_week=rec['week'],
                          status=outcome['status'], moves=horizon_moves(s, rec['signal_day'], as_of),
                          outcome=exit_kind(outcome.get('source_status')) if closed else None,
-                         R=outcome['R'] if closed else None, exit_date=outcome.get('exit_date'),
+                         R=net, gross_R=outcome['R'] if closed else None, exit_date=outcome.get('exit_date'),
+                         alert_id=ids[rec['id']], lifecycle=dict(status=lifecycle, date=event_date),
                          verification=outcome['source'], outcome_mismatch=outcome.get('mismatch'),
-                         random=twins, blind=dict(choice=choice, score=score,
-                             judged_at=call.get('judged_at'), judged_after_fill=call.get('judged_after_fill'))))
+                         random=twins))
     done = sorted((r for r in rows if r['status'] == 'closed' and r['R'] is not None),
                   key=lambda r: (r['exit_date'], r['id']))
     total = 0.0
@@ -605,11 +651,11 @@ def forward_data(records, outcomes, price_sets, judgements, facts, as_of, genera
     return dict(schema_version=1, version=VERSION, as_of=as_of, generated_at=generated_at,
                 outcomes_as_of=outcomes['computed_at'], next_check='every Friday close',
                 conventions=dict(moves='calendar weeks; next regular NYSE session; missing exact bar is null',
-                    random='frozen sampled pool order; closed twins only for R; strict signal R > twin R',
+                    random='frozen sampled pool order; closed twins only for net R; strict signal net R > twin net R',
                     summary='unweighted mean of per-signal beat shares, verified closed signals only',
-                    blind='做: closed R > 0; 不做: closed R <= 0; never filled or open: not yet scored',
-                    cumulative='sum of verified closed signal R by exit date; not an account return'),
-                expectation=expectation, summary=dict(signals=len(rows), closed=len(done),
+                    R='net R; 0.1% per side; actual fill risk; gross_R is secondary verification only',
+                    cumulative='sum of verified closed signal net R by exit date; not an account return'),
+                judging=public_judging(scorecard, outcomes), expectation=expectation, summary=dict(signals=len(rows), closed=len(done),
                     average_R=statistics.fmean(r['R'] for r in done) if done else None,
                     win_rate=sum(r['R'] > 0 for r in done)/len(done) if done else None,
                     beat_random_share=statistics.fmean(shares) if shares else None,
@@ -694,8 +740,11 @@ def load_build(root=ROOT, *, allow_download=False, generated_at=None):
     config_path = root / FORWARD / 'config.json'
     start = json.loads(config_path.read_text())['start'] if config_path.exists() else '2026-10-12'
     payloads.update(ticket_payloads(records, outcomes, price_sets, root / 'public/app', start=start))
-    payloads['forward.json'] = forward_data(records, outcomes, price_sets, triangle_forward.load_judgements(root),
-        facts, as_of, generated_at, n_twins=json.loads(config_path.read_text()).get('random_twins',30) if config_path.exists() else 30)
+    state_path = root / 'automation/triangle-discord-state.json'
+    discord_state = json.loads(state_path.read_text()) if state_path.exists() else None
+    payloads['forward.json'] = forward_data(records, outcomes, price_sets, (),
+        facts, as_of, generated_at, n_twins=json.loads(config_path.read_text()).get('random_twins',30) if config_path.exists() else 30,
+        scorecard=load_scorecard(root, outcomes), discord_state=discord_state)
     return payloads
 
 
