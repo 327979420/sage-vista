@@ -123,7 +123,7 @@ jobs:
           echo "**Experiment queue failed** — forward record and scoring still ran." >> "$GITHUB_STEP_SUMMARY"
 
   triangle_discord:
-    name: Notify frozen 3W opportunities
+    name: Notify frozen 3W lifecycle
     needs: run
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -147,7 +147,8 @@ jobs:
           name: triangle-discord-preview
           path: triangle-discord-preview.json
           retention-days: 7
-      - name: Send new opportunities with durable deduplication
+      - name: Send opportunities and ticket outcomes with durable deduplication
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL || secrets.DISCORD_OPPORTUNITY }}
+          SV_ACCOUNT_EQUITY_USD: ${{ secrets.SV_ACCOUNT_EQUITY_USD }}
         run: python3 -m services.scanner.triangle_discord --send

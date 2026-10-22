@@ -13,6 +13,8 @@
 
 ## 进行中 / 下一步
 
+- **Task044 Discord生命周期本地完成，待Claude核查/Actions预览**（2026-10-22，`codex/discord-lifecycle`）：澄清已记§17；唯一来源app-data ticket outcomes，补成交价/撤单投影，保留冻结第41日确认到期、第40日为到期日。稳定alert ID写入消息/状态；10万美元模拟及可选实盘股数；六类后续事件有序持久去重，模拟独立账本。70项测试通过，两份workflow YAML解析通过；预览 `work/task044/preview.json`、日志 `work/task044/tests.log`。未接Task042，未改冻结代码/规则，无网络/暂存/提交/真实送达；Claude合并前运行card_preview。
+
 - **10/20 网站日更已恢复**：用户心跳授权的运维修复#147/#148已合入；补更39426266704成功，notify=false。独立核对四模块均为10/19、Build4f55f4a与收据一致；发布核验通过，最大gzip3.43MiB。恢复常规巡检；证据见CR-2026-10-20，独立同行核查待Claude，其他研究任务保持原状态。
 
 - **Task043 韩国一次考试完成：样本不足，未证明，待Claude核查**（2026-10-19）：资金澄清先登记，真实/1,000随机账户均₩130,000,000；合成自测后仅运行一次。29笔，CAGR0.4463%、Sharpe0.1744、最大回撤11.3249%、平均在场3.2861%，全期Sharpe p=.171828；不足100笔，按预登记不通过证明门槛。报告work/reports/kr-exam-v1.{json,html}、脚本/日志work/v3w/kr_exam.py及kr_exam.log，验证work/v3w/kr043/verification.json；详见§17。冻结代码不改，无网络/暂存/提交；不得重跑。

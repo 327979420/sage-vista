@@ -40,7 +40,7 @@ jobs:
         with: { python-version: "3.14" }
       - name: Test notifications and frozen-rule consumers
         run: python3 -m unittest tests.test_triangle_discord tests.test_triangle15 tests.test_app_data tests.test_discord_digest
-      - name: Preview the short synthetic message without a secret
+      - name: Preview all synthetic lifecycle templates without a secret
         run: python3 -m services.scanner.triangle_discord --simulate > triangle-discord-preview.json
       - uses: actions/upload-artifact@v4
         with:
@@ -87,21 +87,49 @@ jobs:
         with: { python-version: "3.14" }
       - name: Check the card template and notification safety
         run: python3 -m unittest tests.test_triangle_discord
-      - name: Send one labeled synthetic card without changing production state
+      - name: Reserve this preview run before HTTP
         env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_OPPORTUNITY }}
+          ALLOW_EOD_WINDOW: ${{ inputs.allow_eod_window }}
         run: |
           python3 - <<'PYCODE'
           import json, os
-          from services.scanner.triangle_discord import brief_payload
+          from pathlib import Path
+          from research.lab.run_queue import in_eod_window
+          from services.scanner.triangle_discord import simulation_notices
+          if in_eod_window() and os.environ.get('ALLOW_EOD_WINDOW') != 'true':
+              raise SystemExit('Preview blocked in EOD window')
+          notices = simulation_notices({'schema_version': 1, 'notifications': {}})
+          Path('preview-reservation').mkdir()
+          Path('preview-reservation/state.json').write_text(json.dumps({
+              n['key']: {'status': 'reserved', 'alert_id': n['alert_id']} for n in notices}))
+          PYCODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lifecycle-preview-reservation-${{ github.run_id }}
+          path: preview-reservation/state.json
+          if-no-files-found: error
+      - name: Send labeled synthetic templates without changing production state
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_OPPORTUNITY }}
+          ALLOW_EOD_WINDOW: ${{ inputs.allow_eod_window }}
+        run: |
+          python3 - <<'PYCODE'
+          import json, os
+          from services.scanner.triangle_discord import simulation_notices
           from services.scanner.discord_daily_digest import post
+          from research.lab.run_queue import in_eod_window
+          if in_eod_window() and os.environ.get('ALLOW_EOD_WINDOW') != 'true':
+              raise SystemExit('Preview blocked in EOD window')
           webhook = os.environ.get('DISCORD_WEBHOOK_URL')
           if not webhook:
               raise SystemExit('Discord secret is not configured')
-          payload = brief_payload('TEST', 98, 90, 122, '2026-12-14', simulated=True)
+          notices = simulation_notices({'schema_version': 1, 'notifications': {}})
           try:
-              post(webhook, payload)
+              for notice in notices:
+                  if in_eod_window() and os.environ.get('ALLOW_EOD_WINDOW') != 'true':
+                      raise RuntimeError('EOD window')
+                  post(webhook, notice['payload'])
           except Exception:
               raise SystemExit('Preview delivery unconfirmed; check channel before requesting another') from None
-          print(json.dumps({'result': 'sent', 'count': 1, 'template': 'card-preview', 'production_state_changed': False}))
+          print(json.dumps({'result': 'sent', 'count': len(notices), 'template': 'lifecycle-preview', 'production_state_changed': False}))
           PYCODE

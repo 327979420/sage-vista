@@ -627,6 +627,18 @@ ZBH另记为以后做空或卖出的逻辑：月线连涨多根后第一根阴�
 
 ## 十七、2026-10-13—14 反向盲评与周线 V3 定义（用户逐条确认）
 
+### Task044 通知扩展预检（2026-10-22；等待澄清，非研究结果）
+
+**Claude澄清（2026-10-22，owner转达，实施授权）**：①只在冻结引擎确认到期时发送（第40日后下一交易日），消息到期日为第40个实际行情交易日，不提前判断；②trade_review.py随PR #150另行合入，本卡仅在消息/状态保存alert ID，不接Task042；③唯一事件源为app-data ticket outcomes，允许补成交价和撤单字段；④纸账户固定使用$100,000 模拟回退，不替代为其他组合权益。
+
+**实施完成（2026-10-22，待核查）**：仅通知及缺失outcome字段投影。alert ID按6位/碰撞8位派生，已发送ID保留，8位仍碰撞时拒绝发送；ID随预约写入状态。纸账户固定$100,000模拟；实盘秘密值仅发送阶段读取，预览/状态/结果均不保存权益或衍生实盘股数。唯一来源ticket outcomes，补fill_price、cancel_reason/date/price、confirmed_date；净R按实际成交价风险和每边0.1%计算。成交先于同次退出；无机会key不跟进；预约失败不HTTP、送达不确定保留预约。六类模拟加机会共七条，主分支模拟使用独立automation/triangle-discord-simulation-state.json；分支card_preview按run_id先上传七事件预约artifact、run_attempt==1且保留EOD限制，重复手动dispatch为新的明确预览请求；不写生产账本。
+
+工作流：producer→最新main checkout→无秘密预览→发送顺序不变；仅发送步骤注入可选SV_ACCOUNT_EQUITY_USD；card_preview扩展为七模板。验证命令 `TMPDIR="$PWD/work/task044" python3 -m unittest tests.test_triangle_discord tests.test_triangle15 tests.test_app_data tests.test_discord_digest`：70项通过；ruby YAML解析两workflow通过；git diff --check通过。私有产物work/task044/preview.json、tests.log；测试临时仓库均在worktree内，仅隔离fixture使用本地Git remote，无外网；项目本身未暂存/提交。冻结3W文件/规则无diff，未读取秘密值或发送真实消息。限制：只有合成和本地Git证据，Actions/真实首信号待Claude验收；缺价导致stale仍拒绝发送；只建议单笔股数，不代算组合风险/持仓上限；状态不确定需人工核对，不自动重试。
+
+以下为保留的实施前阻断记录（上述澄清已解除）：
+
+仅通知变更，不改冻结规则。当前分支 `codex/discord-lifecycle`，代码尚未修改，测试未运行。建议使用定时 app-data ticket outcomes 唯一事件源，并补足缺失投影字段；Discord job 保持在 producer 成功后读取最新 main。阻断：冻结 trade() 在第40交易日仍 waiting、下一交易日才确认 no-fill cancelled，需确认通知时点和日期；卡要求读取的 trade_review.py 不存在。建议保持冻结确认时点，以第40个实际行情交易日标记有效期届满；缺少3W权益来源时采用卡内 $100,000 模拟。等待用户/Claude澄清后实施；无网络、暂存、提交或冻结文件改动。
+
 **反向盲评（买入系统 0.2.0 的 10 个信号，种子 20261013，月线 5、周线 5，不给结果）**
 
 | # | 股票 | 机会 | 用户 | 机器结果 | 同日随机均值 |
