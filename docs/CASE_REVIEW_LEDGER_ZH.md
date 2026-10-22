@@ -638,6 +638,29 @@ ZBH另记为以后做空或卖出的逻辑：月线连涨多根后第一根阴�
 以下为保留的实施前阻断记录（上述澄清已解除）：
 
 仅通知变更，不改冻结规则。当前分支 `codex/discord-lifecycle`，代码尚未修改，测试未运行。建议使用定时 app-data ticket outcomes 唯一事件源，并补足缺失投影字段；Discord job 保持在 producer 成功后读取最新 main。阻断：冻结 trade() 在第40交易日仍 waiting、下一交易日才确认 no-fill cancelled，需确认通知时点和日期；卡要求读取的 trade_review.py 不存在。建议保持冻结确认时点，以第40个实际行情交易日标记有效期届满；缺少3W权益来源时采用卡内 $100,000 模拟。等待用户/Claude澄清后实施；无网络、暂存、提交或冻结文件改动。
+### Task042 自动复盘：澄清与本地交付（2026-10-19）
+
+#### Claude 澄清已批准（2026-10-19，实施前）
+
+- cockpit 可选增加 `closed`（日期）、`alert_id`、`exit_reason`、`stop_history`（`[{date, stop}]`）及明确跳过记录（`{alert_id, skipped: true, date, note}`）。缺字段显示「缺数据」；绝不从缺持仓推断跳过。Claude 从现在开始保存这些字段。未提供 cockpit 文件时显示「未提供」。
+- 实际净R使用实际成交价减原始止损作分母；提醒净R使用提醒入场价减提醒止损作分母。两边每边成本均为0.1%，复用036/038。
+- 偏差影响统一以提醒风险计：`impact_R = (实际每股净盈亏 − 提醒每股净盈亏) / (提醒入场价 − 提醒止损)`。明确跳过的实际盈亏为0。页面标明单位，不直接相减两个不同风险单位的净R。
+- 本任务仅复盘，不提供建议或新增规则；合成样例不代表真实交易。按以上澄清继续实施和测试，不提交。
+
+#### 原阻塞记录（已由上述澄清解除；以下方案保留作历史）
+
+- 授权范围：只读前向、自选股和可选 cockpit 导出；复用036/038孪生及净R；合成交易测试、空周周报，不新增交易规则或研究结论。
+- 暂停原因：cockpit 所列 positions 字段不足以可靠确定退出日期、匹配提醒、移动止损或明确跳过；偏差影响的实际R与提醒R分母尚未明确。按用户要求 STOP，未计算或实现。
+- 待确认方案：可选补充 closed、alert_id、exit_reason、stop_history 与明确 skipped 记录；缺失显示「缺数据」，不按缺持仓推断跳过。两边净R分别复用036的实际成交价减原始止损分母，差值注明两边风险单位可能不同。以上仅为待确认方案。
+
+#### 实施与验证（2026-10-19，本地完成、待核查）
+
+- 新增 `research/lab/trade_review.py` 与 `tests/test_trade_review.py`；直接复用 `forward_judge.recompute`、`own_picks.compute`、`forward_judge.net_r`。cockpit `positions` 加可选 `skips` 数组；也接受 positions 内的明确 skipped 记录。只按 alert_id 关联，不按代码猜测；stop_history最早的入场当日或之前记录作为原始止损，缺历史时不把当前stop当原始止损。
+- 周报按报告日所在周的周一至报告日；累计只纳入退出日期已知且不晚于报告日的交易。缺退出日期/无法确定结束状态的记录单列。跳过或提前退出的提醒后来结束时，在对照完成那一周再次列出影响；同笔多个偏差只列一次合计影响，不作原因归因。
+- 合成周报含3W、自选和real三张卡；3W样例入98、出122、净R 2.9725、持有8交易日、日线范围MFE 4.625R / MAE −0.125R、孪生2.9725R。real样例三个偏差合计影响 −1.623625提醒风险R；独立跳过案例为 −2.9725提醒风险R。均为合成工程验证，非真实业绩。
+- 真实输入当前0笔，`work/trade-review/weekly-2026-10-19.html` 显示无已结束交易及cockpit「未提供」；另有保留累计记录的合成空周样例。脚本、样例、报告、保护哈希、测试日志及未应用workflow补丁在私有 `work/trade-review/`。
+- 最终按owner要求仅重跑一次 `python3 -m unittest tests.test_trade_review tests.test_forward_judge tests.test_own_picks tests.test_triangle15 -q`：89项通过（新增33）；TMPDIR限制在当前worktree。303个保护文件哈希一致；HTML结构/无外部资源检查通过，workflow补丁通过 `git apply --check`，未应用。
+- 局限：日线首尾整根K线不能还原真实持仓内极值，页面明确标注日线范围及精确盘中MFE/MAE「缺数据」；退出后20日不足不补价。真实cockpit尚无验证。此前Chrome截图进程失败；本次按owner指令不再截图，390/1440视觉验收交Claude。未暂存、提交、联网、改冻结代码、生产或.github。
 
 **反向盲评（买入系统 0.2.0 的 10 个信号，种子 20261013，月线 5、周线 5，不给结果）**
 
