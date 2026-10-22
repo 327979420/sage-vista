@@ -283,7 +283,18 @@ def ticket_outcome(rec, series, outcomes):
         return {**base, 'status': 'skipped', 'R': None, 'why': 'market filter',
                 'counterfactual_R': actual_r}
     status = {'open': 'filled', 'win': 'closed', 'loss': 'closed', 'time': 'closed'}.get(got['status'], got['status'])
-    return {**base, 'status': status,
+    cancel = dict(cancel_reason=None, cancel_date=None, confirmed_date=None, cancel_price=None)
+    if got['status'] == 'cancelled':
+        # Only project an engine-confirmed event. Expiry remains waiting through
+        # session 40; its confirmation is session 41, its effective date is 40.
+        event_day = got.get('day')
+        cancel.update(cancel_reason=got['why'],
+                      cancel_date=series['date'][event_day if event_day is not None else d + 40],
+                      confirmed_date=series['date'][event_day if event_day is not None else d + 41])
+        if event_day is not None:
+            cancel['cancel_price'] = (series['open'][event_day] if got['why'] == 'stop before the fill'
+                                      else p['level'] + 3 * (p['level'] - p['stop']))
+    return {**base, **cancel, 'status': status, 'fill_price': got.get('entry'),
             'fill_date': series['date'][got['fill_day']] if 'fill_day' in got else None,
             # For open positions exit_day/exit are a mark, not an executed exit.
             'exit_date': series['date'][got['exit_day']] if status == 'closed' else None,
