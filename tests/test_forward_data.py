@@ -5,6 +5,7 @@ import json
 import random
 import statistics
 import unittest
+import tempfile
 from pathlib import Path
 from unittest.mock import patch
 from research.lab import app_data as app
@@ -51,41 +52,98 @@ class ForwardTests(unittest.TestCase):
         signal=app.ticket_outcome(self.rec,self.s,self.out)
         result=app.twin_projection(self.rec,self.px,pool,{'r19':{'random_R':expected}},signal,self.asof)
         self.assertEqual(result['twins'],'verified')
-        self.assertEqual(result['mean_R'],expected)
+        self.assertEqual(result['gross_mean_R'],expected)
         seed=int(hashlib.sha256(self.rec['id'].encode()).hexdigest()[:8],16)
         self.assertEqual([r['symbol'] for r in result['samples']],random.Random(seed).sample(pool,30))
-        rs=[r['R'] for r in result['samples'] if r['R'] is not None]
+        rs=[r['net_R'] for r in result['samples'] if r['net_R'] is not None]
         self.assertEqual(result['median_R'],statistics.median(rs))
-        self.assertEqual(result['beat_share'],sum(signal['R']>r for r in rs)/len(rs))
+        self.assertEqual(result['beat_share'],sum(app.forward_judge.net_r(signal['fill_price'],signal['exit'],self.rec['plan']['stop'])>r for r in rs)/len(rs))
         for recorded in (99,None):
             bad=app.twin_projection(self.rec,self.px,pool,{'r19':{'random_R':recorded}},signal,self.asof)
             self.assertEqual(bad['twins'],'unverified')
             for key in ('median_R','beat_share','samples','mean_R'): self.assertIsNone(bad[key])
             self.assertEqual(bad['mismatch']['recomputed_mean_R'],expected)
 
-    def test_scoring_closed_win_loss_zero_and_unfilled(self):
-        for status,R,choice,score in [('closed',3,'do','right'),('closed',-1,'do','wrong'),
-            ('closed',-1,'no','right'),('closed',0,'no','right'),('closed',0,'do','wrong'),
-            ('closed',3,None,'not yet scored'),('waiting',None,'do','not yet scored'),
-            ('filled',.2,'no','not yet scored'),('skipped',None,'no','not yet scored')]:
-            outcome=dict(status=status,R=R,source='fixture',source_status='win' if R and R>0 else 'loss',exit_date='2013-01-01' if status=='closed' else None)
-            with patch.object(app,'ticket_outcome',return_value=outcome):
-                result=self.project(calls=[dict(id=self.rec['id'],choice=choice)])
-            row=result['signals'][0]
-            self.assertEqual(row['blind']['score'],score,(status,R,choice))
-            self.assertEqual(result['summary']['closed'],int(status=='closed'))
-            if status!='closed':self.assertIsNone(row['R'])
-
-    def test_first_blind_call_and_real_outcome_mismatch(self):
-        calls=[dict(id=self.rec['id'],choice='no'),dict(id=self.rec['id'],choice='do')]
-        r=self.project(calls=calls)
-        self.assertEqual(r['signals'][0]['blind']['score'],'right')
-        self.assertEqual(r['cumulative_R'][0]['R'],-1)
+    def test_net_r_and_no_private_calls_in_public_output(self):
+        calls=[dict(id=self.rec['id'],choice='no',private_marker='NEVER_PUBLIC')]
+        result=self.project(calls=calls)
+        row=result['signals'][0]
+        outcome=app.ticket_outcome(self.rec,self.s,self.out)
+        e,x,stop=outcome['fill_price'],outcome['exit'],self.rec['plan']['stop']
+        expected=(x*.999-e*1.001)/(e-stop)
+        self.assertAlmostEqual(row['R'],expected)
+        self.assertEqual(row['gross_R'],-1)
+        self.assertAlmostEqual(result['cumulative_R'][0]['R'],expected)
+        self.assertAlmostEqual(result['summary']['average_R'],expected)
+        self.assertEqual(row['lifecycle'],dict(status='stopped',date=outcome['exit_date']))
+        self.assertEqual(row['alert_id'],'A-'+self.rec['id'][:6])
+        self.assertNotIn('blind',app.json_bytes(result).decode())
+        self.assertNotIn('NEVER_PUBLIC',app.json_bytes(result).decode())
         self.out['outcomes'][0]['r19']['R']=42
-        r=self.project(calls=calls)
-        self.assertEqual(r['signals'][0]['status'],'unverified')
-        self.assertEqual(r['signals'][0]['blind']['score'],'not yet scored')
-        self.assertEqual(r['cumulative_R'],[])
+        result=self.project(calls=calls)
+        self.assertEqual(result['signals'][0]['status'],'unverified')
+        self.assertIsNone(result['signals'][0]['R'])
+        self.assertEqual(result['cumulative_R'],[])
+
+    def test_lifecycle_and_saved_alert_id(self):
+        for status,kind,day in [('waiting','waiting',None),('filled','filled','2013-01-01'),
+                                ('cancelled','expired','2013-01-02'),('skipped','skipped',None)]:
+            o=dict(status=status,R=None,source='fixture',fill_date=day if status=='filled' else None,
+                   cancel_date=day if status=='cancelled' else None,cancel_reason='no fill in 8 weeks')
+            with patch.object(app,'ticket_outcome',return_value=o):
+                r=app.forward_data([self.rec],self.out,{self.rec['dataset']:self.px},(),[],self.asof,'fixed',
+                    discord_state={'notifications':{'3w-1.9:'+self.rec['id']:{'alert_id':'A-12345678'}}})['signals'][0]
+            self.assertEqual(r['alert_id'],'A-12345678')
+            self.assertEqual(r['lifecycle'],dict(status=kind,date=day))
+            self.assertIsNone(r['R'])
+
+    def test_judging_missing_stale_empty_and_private_allowlist(self):
+        empty=app.forward_judge.score([])
+        empty['computed_at']=self.out['computed_at']
+        for card in (None,dict(empty,computed_at='old')):
+            result=app.public_judging(card,self.out)
+            self.assertEqual(result['verdict'],'本次运行未生成计分')
+            self.assertIsNone(result['completed'])
+            self.assertIsNone(result['alarm1'])
+        result=app.public_judging(empty,self.out)
+        self.assertEqual((result['completed'],result['next_checkpoint'],result['to_go']),(0,30,30))
+        self.assertEqual(result['verdict'],'继续记录，未证明')
+        self.assertFalse(result['alarm1'])
+        empty.update(verdict='证明有效',paper={'satellite':{'secret':'NEVER_PUBLIC'}},rows=[{'secret':'NEVER_PUBLIC'}],
+                     checkpoints=[dict(k=100,scored=100,unscorable=0,mean_d=.5,t=2,alarm1=False,verdict='证明有效',secret='NEVER_PUBLIC')])
+        result=app.public_judging(empty,self.out)
+        self.assertEqual(result['verdict'],app.PUBLIC_PAPER)
+        self.assertEqual(result['checkpoints'][0]['verdict'],app.PUBLIC_PAPER)
+        self.assertNotIn('NEVER_PUBLIC',app.json_bytes(result).decode())
+        self.assertEqual(result['thresholds']['satellite_drawdown_gt'],.25)
+        with tempfile.TemporaryDirectory(dir=app.ROOT/'work') as folder:
+            root=Path(folder)
+            self.assertIsNone(app.load_scorecard(root,self.out))
+            (root/'work/forward-judge').mkdir(parents=True)
+            path=root/'work/forward-judge/latest.json'
+            path.write_text(json.dumps(empty))
+            self.assertEqual(app.load_scorecard(root,self.out),empty)
+            self.assertIsNone(app.load_scorecard(root,{'computed_at':'other run'}))
+
+    def test_scheduled_loader_reads_scorecard_without_reading_private_judgements(self):
+        with tempfile.TemporaryDirectory(dir=app.ROOT/'work') as folder:
+            root=Path(folder)
+            (root/app.FORWARD).mkdir(parents=True)
+            (root/app.FORWARD/'outcomes.json').write_text(json.dumps(self.out))
+            (root/'research/lab/app').mkdir()
+            (root/'research/lab/app/record_facts.json').write_text('[]')
+            (root/'work/forward-judge').mkdir(parents=True)
+            card=dict(app.forward_judge.score([]),computed_at=self.out['computed_at'])
+            (root/'work/forward-judge/latest.json').write_text(json.dumps(card))
+            with patch.object(app.triangle_forward,'load_records',return_value=[]), \
+                 patch.object(app.triangle_forward,'load_judgements',side_effect=AssertionError('private calls')), \
+                 patch.object(app,'frozen_prices',return_value={}), \
+                 patch.object(app,'extend_prices',return_value={'SPY':{'date':['2013-01-01']}}), \
+                 patch.object(app,'build',return_value={}),patch.object(app,'ticket_payloads',return_value={}):
+                payload=app.load_build(root,generated_at='fixed')['forward.json']
+            self.assertEqual(payload['judging']['completed'],0)
+            self.assertEqual(payload['judging']['status'],'available')
+            self.assertNotIn('blind',payload['conventions'])
 
     def test_horizons_require_exact_mature_session(self):
         s={'date':['2026-10-02','2026-10-09','2026-10-30'],'close':[100,110,90]}

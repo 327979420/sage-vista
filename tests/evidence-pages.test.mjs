@@ -50,16 +50,16 @@ test('index is newest first and does not mutate the input',()=>{
  const html=render(TicketList,{rows,selected:'new',onSelect(){}});
  assert.ok(html.indexOf('2026-10-16')<html.indexOf('2026-10-02'));assert.ok(html.includes('aria-pressed="true"'));
 });
-const row={id:'test',symbol:'ABC',signal_week:'2026-10-02',status:'closed',moves:{'1w':{date:'2026-10-09',move_pct:10},'4w':null,'13w':null},outcome:'target',R:3,exit_date:'2026-10-16',random:{twins:'verified',sampled:30,closed:20,median_R:-1,beat_share:.75,mean_R:0},blind:{choice:'do',score:'right',judged_at:null,judged_after_fill:false}};
+const row={id:'test',symbol:'ABC',signal_week:'2026-10-02',status:'closed',moves:{'1w':{date:'2026-10-09',move_pct:10},'4w':null,'13w':null},outcome:'target',R:3,exit_date:'2026-10-16',random:{twins:'verified',sampled:30,closed:20,median_R:-1,beat_share:.75,mean_R:0},gross_R:3.02,alert_id:'A-abcdef',lifecycle:{status:'target',date:'2026-10-16'}};
 test('forward empty state, verified and mismatched twins, scoring rule and own scroll region',()=>{
  const html=render(ForwardView,{data:forward});
- for(const text of ['还没有真实前向信号','下次检查：周五收盘后','未成交或仍持仓','287','0.44R'])assert.ok(html.includes(text),text);
+ for(const text of ['还没有真实前向信号','下次检查：周五收盘后','继续记录，未证明','需模拟账户，不在公开页','已结束 / 下一检查点','287','0.44R'])assert.ok(html.includes(text),text);
  const report={...forward,signals:[row],cumulative_R:[{date:'2026-10-16',R:3}],summary:{signals:1,closed:1,average_R:3,win_rate:1,beat_random_share:.75,beat_random_signals:1}};
  assert.ok(data.validForward(report));
  const active=render(ForwardView,{data:report});
  for(const text of ['75.00%','-1.00R','10.00%','20/30','tabindex="0"'])assert.ok(active.includes(text),text);
- report.signals=[{...row,random:{...row.random,twins:'unverified',median_R:null,beat_share:null,mean_R:null},blind:{...row.blind,score:'not yet scored'}}];
- const missing=render(ForwardView,{data:report});assert.ok(missing.includes('未核验'));assert.ok(missing.includes('尚未计分'));assert.ok(!missing.includes('-1.00R'));
+ report.signals=[{...row,random:{...row.random,twins:'unverified',median_R:null,beat_share:null,mean_R:null}}];
+ const missing=render(ForwardView,{data:report});assert.ok(missing.includes('未核验'));assert.ok(!missing.includes('盲判'));assert.ok(!missing.includes('-1.00R'));
  const curve=render(CumulativeChart,{points:[{date:'2026-10-01',R:1},{date:'2026-10-02',R:2},{date:'2026-10-11',R:3}]});assert.ok(curve.includes('L94,'),'date spacing, not equal point spacing');
 });
 test('evidence content follows the existing language toggle',()=>{
@@ -137,3 +137,16 @@ test('ticket uses six order fields and one four-stage outcome without body credi
  const report={...forward,signals:[row]};assert.ok(render(ForwardView,{data:report}).includes('svStepperScroll isMini'));
  const unknown=render(OutcomeStepper,{status:'filled',signalDate:'2026-10-02',R:null});assert.ok(!unknown.includes('NaN'));assert.ok(unknown.includes('—'));
  });
+
+test('judging schema, missing scorecard and all reached checkpoints are bilingual',()=>{
+ const missing={...forward,judging:{...forward.judging,status:'missing',completed:null,scored:null,unscorable:null,next_checkpoint:null,to_go:null,alarm1:null,verdict:'本次运行未生成计分'}};
+ assert.ok(data.validForward(missing));assert.ok(render(ForwardView,{data:missing}).includes('本次运行未生成计分'));
+ assert.doesNotMatch(render(ForwardView,{data:missing},'en'),/[\u3400-\u9fff]/);
+ const checkpoints=[30,60,100].map(k=>({k,scored:k,unscorable:0,mean_d:-.5,t:-2.1,alarm1:true,verdict:'失效警报1'}));
+ const reached={...forward,judging:{...forward.judging,completed:101,scored:101,unscorable:0,next_checkpoint:200,to_go:99,alarm1:true,verdict:'失效警报1',checkpoints}};
+ assert.ok(data.validForward(reached));assert.ok(render(ForwardView,{data:reached}).includes('-2.10'));
+ assert.doesNotMatch(render(ForwardView,{data:reached},'en'),/[\u3400-\u9fff]/);
+ for(const bad of [{...reached.judging,to_go:100},{...reached.judging,checkpoints:checkpoints.slice(1)},{...forward.judging,completed:-1},{...forward.judging,alarm1:null},{...forward.judging,thresholds:{...forward.judging.thresholds,proof_t_gte:1}}])assert.equal(data.validForward({...forward,judging:bad}),false);
+ assert.equal(data.validForward({...forward,judging:null}),false);
+ assert.equal(data.validForward({...forward,signals:[{...row,blind:{choice:'do'}}]}),false);
+});

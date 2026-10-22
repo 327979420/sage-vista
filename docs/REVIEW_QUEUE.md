@@ -20,6 +20,7 @@
 
 | 日期 | 事项 | 分支 / PR | 验证证据与核查重点 | 交付状态 | 独立核查 |
 |---|---|---|---|---|---|
+| 2026-10-22 | Task045 公开前向判卷页 | `codex/forward-page`，449059d起点 | Python54项、npm112项（lint/typecheck/build）通过；日志work/task045-python-test.log、task045-npm-test.log；核查计分白名单/同次时间、全部检查点、净R及毛R核对、Discord稳定ID、ticket生命周期、缺失计分、中英文本；public仅forward.json，经追加授权由空记录生成 | 本地完成；未联网/暂存/提交/发布；Claude运行preview-site并核查390/1440，owner UAT待做；§17有范围澄清 | 待核查 |
 | 2026-10-22 | Task044 Discord生命周期实施 | `codex/discord-lifecycle`，sv-wt-036 | 70项单测通过；两份workflow YAML解析、diff检查通过；核查ticket唯一来源、40/41日边界、短ID碰撞/稳定、实盘权益不落盘、失败预约保留、模拟独立账本；私有预览work/task044/preview.json、日志tests.log | 本地完成；未联网/暂存/提交，未发送；Claude合并前Actions card_preview | 待核查 |
 | 2026-10-22 | Task044 实施前预检（阻断） | `codex/discord-lifecycle`，sv-wt-036 | 只读核对工作流、ticket_outcome及冻结trade；第40交易日仍waiting、缺trade_review.py；建议ticket唯一来源、10万美元模拟回退，见§17 | 仅预检完成；等待澄清，代码/模板/测试尚未完成；无网络或提交 | 待核查 |
 | 2026-10-19 | Task042 自动交易复盘与周报 | `codex/trade-review` | §17含Claude日期澄清；`work/trade-review/REPORT.md`、tests.log（最终89项通过，33项新增）、protected-before/after（303文件一致）、validation.json。核对统一提醒风险影响、跳过零盈亏、036/038复用、缺字段/无孪生/空周、各退出与滑点、OHLC范围限制。合成样例 `work/trade-review/synthetic/weekly-2026-10-18.html` 与空周 `weekly-2026-10-25.html` | 本地完成；真实空周0笔且cockpit未提供。截图交Claude；workflow.patch仅建议并通过apply --check，未应用。未暂存/提交/发布，work保持私有 | 已核查 |

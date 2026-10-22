@@ -1653,6 +1653,16 @@ buy-and-hold and 069500 at 3W's daily invested share.
 - 交付：work/v3w/kr_exam.py、kr_exam.log、work/reports/kr-exam-v1.json及.html（中文/内联SVG）；私有、不提交。冻结代码与.github保持不变，核对详见work/v3w/kr043/verification.json。HTML做结构检查，未做真实浏览器截图验收。
 - Concerns：样本少且平均在场低；provider退市覆盖、历史全窗口股票池及坏数据排除存在事后选择偏差；涨跌停可能无法按止损价成交；KOSDAQ小盘/大盘ETF代理适配；随机对照沿用HK/fair19、最多6次抽样、无行业匹配；无法完成交易排除及停牌估值限制。结果不能证明真实交易优势。
 
+### Task045 公开前向判卷页（2026-10-22，纯展示变更，不改规则）
+
+- 授权：执行tasks/045-forward-page.md；冻结3w-1.9、判卷门槛、研究judgements.jsonl路径均不改，无新研究/回测/联网。公开页只含冻结3W前向记录，禁止自选股、实盘、cockpit及眼光数据。
+- 范围澄清：预览workflow仅构建静态快照、不运行app_data；旧forward.json无法满足新合同。Codex按STOP要求询问，Claude在本轮明确批准只增加 `public/app/forward.json` 一个公开文件；必须由新版app_data从核实的0信号记录生成，不能手编JSON，其他public文件及workflow不改。已照此执行；生成脚本私有 `work/task045-generate.py`。
+- 实施：app_data读取同任务 `work/forward-judge/latest.json`，computed_at须等于冻结outcomes时间；缺失/旧文件显示“本次运行未生成计分”。仅白名单投影计数、进度、全部检查点、警报1及门槛；不输出paper或原始scorecard rows，即使输入证明有效，也只公开“需模拟账户，不在公开页”。信号、随机对照与累计曲线改净R（每边0.1%，实际成交风险），毛R独立作核对；短ID复用Task044分配，生命周期取ticket_outcome。盲判字段移除，研究记录路径保留。
+- JSON差异：顶层新增judging；conventions删除blind、增加R并明确净R；信号合同删除blind、增加gross_R/alert_id/lifecycle（status/date），R改净R；random.mean_R/median_R/beat_share改净R，保留gross_mean_R核对，样本R也为净R且独立gross_R。现有0信号故signals/cumulative_R仍为空。judging键为status/completed/scored/unscorable/next_checkpoint/to_go/checkpoints/alarm1/verdict/alarm2/proof/thresholds；每检查点k/scored/unscorable/mean_d/t/alarm1/verdict。
+- 当前公开快照：读取冻结outcomes（2026-10-21T09:43:49+00:00）及空signals，由forward_judge CLI产生0笔计分后调用app_data.forward_data生成；0/30、还差30、可计分0/不可计分0、警报1未触发、继续记录未证明；警报2/有效性均不公开判断。价格日期保留已有2026-10-20，未声称刷新行情。等待估算引用既有27.87笔/年、2862笔约数，标粗估非保证；HK14/p.089、韩国29/p.172均样本不足未证明。
+- 验证：`python3 -m unittest tests.test_app_data tests.test_forward_data tests.test_forward_judge -q` 54项通过；`WRANGLER_SEND_METRICS=false npm test` 112项通过（含lint、typecheck、build）；`git diff --check`通过。合成测试覆盖净R手算、冻结孪生核对、生命周期、私有字段排除、计分缺失/旧文件、调度读取接线、双语及各检查点。日志私有work/task045-python-test.log、task045-npm-test.log。未暂存/提交。
+- Concerns：0笔不能说明有效或无效；本worktree无完整行情数据集，未运行完整load_build行情重放，读取接线为mock测试，真实空记录投影已生成。390/1440浏览器验收与preview-site由Claude完成，owner UAT前不发布。多检查点累计误报和样本量估算限制照旧，不改门槛。
+
 ## 十四、以后每张案例卡的固定格式
 
 ```text
