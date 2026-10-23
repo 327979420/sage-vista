@@ -1,0 +1,23 @@
+{
+ "id": "paper-core-sat-v1",
+ "registered": "2026-10-24",
+ "start": "2026-10-26",
+ "initial_cash": 100000,
+ "cost_per_side": 0.001,
+ "history_from": "2025-06-01",
+ "core": {
+  "weight": 0.5,
+  "sleeves": ["SPY", "XLB", "XLE", "XLF", "XLI", "XLK", "XLP", "XLU", "XLV", "XLY"],
+  "sleeve_share_of_core": 0.1,
+  "safe": "SHY",
+  "signal": "last NYSE session of the month: close strictly above its own 200-day simple moving average of closes",
+  "execution": "next session open, whole shares, sells before buys"
+ },
+ "satellite": {
+  "weight": 0.5,
+  "source": "frozen 3w-1.9 forward record, rule-1.9 orders (plan go and market ok) filled on or after the start",
+  "rules": {"risk_per_trade": 0.02, "position_cap": 0.2, "max_positions": 10, "heat_cap": 0.1},
+  "engine": "research.lab.account.run_account (entries at the open, then same-day exits); idle cash earns 0%"
+ },
+ "note": "Registered 2026-10-24 (task 046, ADR-17) before its start; never backdated. The cockpit's hand-kept paper account from 2026-10-08 stays as history."
+}
