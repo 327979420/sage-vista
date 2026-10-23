@@ -78,13 +78,19 @@ jobs:
           restore-keys: triangle-forward-v1-
       - name: Update the weekly triangle forward record
         run: python3 -m research.lab.triangle_forward --publish
+      # Owner approved 2026-10-24 (task 046): the core + 3W paper account, from the same local caches plus EODHD ETF
+      # prices. It feeds alarm 2 and "proof" in the scorecard; a failure leaves them "未提供" and blocks nothing.
+      - name: Update the core + 3W paper account
+        id: paper
+        continue-on-error: true
+        run: python3 -m research.lab.paper --publish
       # Owner approved 2026-10-19 (tasks 036/038). Scoring reads the caches the forward step just used; a scoring
       # failure must not block the app data below, so it is reported instead of stopping the job.
       - name: Score the frozen forward record and owner picks from the same local caches
         id: scoring
         continue-on-error: true
         run: |
-          python3 -m research.lab.forward_judge
+          python3 -m research.lab.forward_judge --paper work/paper/series.json
           python3 -m research.lab.own_picks compute
       - name: Build the weekly trade review after scoring
         id: trade_review

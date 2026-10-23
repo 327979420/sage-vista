@@ -8,12 +8,13 @@ first). Today Claude updates this account by hand in the cockpit and it is stale
 ## Pre-register first (ledger §17, dated 2026-10-24, before any value is computed)
 - Account `paper-core-sat-v1`, $100,000, start = first regular NYSE session after this card merges (state the date in the
   ledger when merging; never backdate). Cost 0.1% per side, whole shares, cash never negative, previous-close values.
-- Core 50%: SPY, XLB, XLE, XLF, XLI, XLK, XLP, XLU, XLV, XLY, 5% each of the account at each rebalance. Signal at the last
+- Core 50%: SPY, XLB, XLE, XLF, XLI, XLK, XLP, XLU, XLV, XLY, each 10% of the core sleeve's previous-close equity at each
+  rebalance (5% of the account at the start). Signal at the last
   regular session close of each month: a sleeve holds its ETF if that close is above its own 200-day simple moving average of
   closes, else holds SHY. Trades at the next session's open. Initial positions use the latest month-end signal before start.
 - Satellite 50%: the frozen 3w-1.9 forward record. Every rule-1.9 order (plan go and market ok) the forward record emits from
   the start date is taken with the frozen account rules on the satellite sleeve's own equity (2% risk, 20% cap, 10% heat,
-  ≤ 10 positions, previous-close equity, same-day exits before entries as in `account.py`). Fills, stops, targets and 26-week
+  ≤ 10 positions, previous-close equity; as in `account.py`, entries at the open come before that session's exits). Fills, stops, targets and 26-week
   exits come from the same daily-OHLC replay the forward record uses (no second implementation of trade logic). Idle
   satellite cash earns 0%.
 - No rebalancing between core and satellite; each sleeve keeps its own equity.
@@ -34,3 +35,7 @@ missing price → stop the run with an error, never guess. Existing tests stay g
 ## Delivery
 Workflow change allowed: one step after the forward record, before scoring. Branch `codex/paper-account`; do not commit; no
 network. Ledger §17, STATUS, REVIEW_QUEUE (待核查). Claude updates the cockpit from `latest.json` in the Saturday routine.
+
+## Clarified 2026-10-24 (Claude, before the start)
+Engine order as in account.py; core sleeves sized on core equity; start 2026-10-26 fixed in config, no computation before it.
+Implemented by Claude directly (owner's instruction): `research/lab/paper.py`, `tests/test_paper.py`.

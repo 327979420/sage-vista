@@ -13,6 +13,8 @@
 
 ## 进行中 / 下一步
 
+- **Task046 模拟账户自动化已实现（Claude 直接实现，2026-10-24）**：`research/lab/paper.py` + `tests/test_paper.py`；账户 paper-core-sat-v1 登记 10-24、起算 10-26（不倒推）；每日 research-lab 在前向记录后计算并把序列传给 `forward_judge --paper`，补上警报 2 与「证明有效」。合并后首个真实值在 10-26 收盘后的运行产生。
+
 - **Task045 公开前向判卷页本地完成，待Claude核查/预览及owner UAT**（2026-10-22，`codex/forward-page`，基于449059d）：新增Task036计分白名单投影、全部检查点、缺失/过期计分降级、净R曲线/信号/孪生、Task044短ID和ticket生命周期；删除公开盲判字段，中英双语。按本轮Claude追加授权，仅用新版app_data从已核实0信号生成 `public/app/forward.json`；0/30、还差30笔、继续记录未证明，警报1未触发，警报2/有效性均提示需模拟账户、不公开。Python54项、npm112项（含lint/typecheck/build）通过；日志/空记录生成脚本在私有 `work/task045-*`。无网络/暂存/提交；未改其他public文件、冻结代码/规则或workflow。完整数据集不在本worktree，未运行完整app_data行情构建；读取接线有合成测试，390/1440真实预览交Claude，owner验收后才能上线。
 
 - **Task044 Discord生命周期本地完成，待Claude核查/Actions预览**（2026-10-22，`codex/discord-lifecycle`）：澄清已记§17；唯一来源app-data ticket outcomes，补成交价/撤单投影，保留冻结第41日确认到期、第40日为到期日。稳定alert ID写入消息/状态；10万美元模拟及可选实盘股数；六类后续事件有序持久去重，模拟独立账本。70项测试通过，两份workflow YAML解析通过；预览 `work/task044/preview.json`、日志 `work/task044/tests.log`。未接Task042，未改冻结代码/规则，无网络/暂存/提交/真实送达；Claude合并前运行card_preview。

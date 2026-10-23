@@ -1663,6 +1663,27 @@ buy-and-hold and 069500 at 3W's daily invested share.
 - 验证：`python3 -m unittest tests.test_app_data tests.test_forward_data tests.test_forward_judge -q` 54项通过；`WRANGLER_SEND_METRICS=false npm test` 112项通过（含lint、typecheck、build）；`git diff --check`通过。合成测试覆盖净R手算、冻结孪生核对、生命周期、私有字段排除、计分缺失/旧文件、调度读取接线、双语及各检查点。日志私有work/task045-python-test.log、task045-npm-test.log。未暂存/提交。
 - Concerns：0笔不能说明有效或无效；本worktree无完整行情数据集，未运行完整load_build行情重放，读取接线为mock测试，真实空记录投影已生成。390/1440浏览器验收与preview-site由Claude完成，owner UAT前不发布。多检查点累计误报和样本量估算限制照旧，不改门槛。
 
+### 2026-10-24 Task046：paper-core-sat-v1 预登记及实施前阻断
+
+本记录先于任何实现代码、合成账户计算或真实账户计算；任务卡 `tasks/046-paper-account.md` 为范围依据。当前仅完成只读预检，未启动账户，以下未决项不以建议代替批准。
+
+- 初始资金 $100,000；起点为任务合并后的首个 NYSE 正常交易日，合并时补记实际日期，绝不回填。每边成本 0.1%，整股、现金非负、使用前收盘权益。
+- 核心初始 50%：SPY、XLB、XLE、XLF、XLI、XLK、XLP、XLU、XLV、XLY。卡片原文每只在再平衡时占账户 5%；月末最后正常交易日收盘严格高于自身200日收盘SMA才持有，否则SHY；次日开盘交易，初始采用起点前最近月末信号。
+- 卫星初始50%：起点起冻结3w-1.9前向记录的 plan go 且 market ok 订单；以卫星自身前收盘权益计算2%单笔风险、20%仓位上限、10%热度、最多10仓；闲置现金收益0。成交、止损、3R及130交易日退出复用冻结重放与forward_judge，不新建交易引擎。两袖不互相再平衡，各自保留权益。
+- 输出仅新 `research/lab/paper/`：config、每次运行追加history、latest及计分用逐日 `{date, core, satellite, total, spy}` 列表；SPY为同日起始10万美元买入持有。只允许新增一个前向之后/计分之前workflow步骤及计分参数接线；公开页和冻结forward目录不改。
+- 验收仅合成行情：SMA高/低/相等、月末到下一开盘、SHY切换、仓位/热度/10仓、止损与目标、防回填、缺价硬失败，以及相关现有测试。不联网、不跑历史收益、不提交。
+
+**阻断（等待Claude/owner澄清）**：
+1. 卡片称“先退出后入场，如account.py”，但 `account.run_account` 实际先入场后退出，且文档明确当天卖出资金不供当天入场。建议沿用现有引擎顺序并更正卡片；不修改account.py或另写引擎。
+2. “每ETF占总账户5%”与“两袖不再平衡”在两袖收益分化后不相容。建议每ETF目标为核心自身前收盘权益10%（初始等于总账户5%），费用由核心承担，卫星不补款。
+3. 起始日机制未指定。建议合并时由Claude写入合并时间、按NYSE日历确定的下一正常交易日，并在本节补记；未激活或日期不合法时拒绝计算，禁止程序用首次运行日回推起点。卫星日终净值建议明确为现金加持仓当日收盘市值，缺价报错；前收盘仅用于次日仓位计算。
+
+**已核实的数据接线**：workflow已恢复 `sector-etf-1998-to-2026-10-v1` 缓存；manifest列出全部所需ETF（含SHY），并恢复 `work/triangle-bulk`。`forward_judge.cached_prices`可校验manifest并复用 `triangle_forward.extend` 延伸。未读取真实价格计算或验证Actions实际缓存齐全；本地缺缓存/持仓缺价须硬失败，不下载或沿用旧价。现有allocation采用小数股/开盘估值且价格读取有旧收盘回退，不能直接将其simulate视为符合本卡。
+
+设计评价：前向登记方向可行，但上述顺序/权重冲突会改变账户结果，必须先解决。此次未产生收益或检验结论。
+
+**Claude 定论（2026-10-24，账户起算前，owner 授权 Claude 直接实现）**：三项均按建议。① 沿用 `account.run_account` 顺序：开盘先入场、再当日出场，当天卖出所得不供当天入场；任务卡原句写反，已更正。② 核心每只 ETF 的目标为核心自身前收盘权益的 10%（起始时等于总账户 5%），费用由核心承担，两袖永不互相补款。③ 起点写入 `research/lab/paper/config.json`：registered 2026-10-24，start 2026-10-26（登记后的首个 NYSE 正常交易日）；`today < start` 时程序不计算、不写任何值；卫星日终权益 = 现金 + 持仓当日收盘市值，次日按前收盘权益定仓位；缺价直接报错。核心 ETF 价格取 EODHD 复权日线（与既有 `research/lab/forward.py` 同法），卫星成交与出场取 `forward_judge.recompute` 同次前向缓存的日线重放。实现：`research/lab/paper.py`、`tests/test_paper.py`（11 项）、research-lab 新增一步并把序列传给 `forward_judge --paper`。
+
 ## 十四、以后每张案例卡的固定格式
 
 ```text
