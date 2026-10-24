@@ -104,3 +104,12 @@
   .svTicketColumns { gap:24px; }
   .svOrder dd { font-size:16px; }
 }
+/* Learn page (task: SV-35 learn). Reuses the evidence tokens; text wraps, nothing scrolls sideways except the cost table. */
+.svLearnSteps { list-style:none;margin:0;padding:0;display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); }
+.svLearnSteps li h3 { margin:0 0 6px;font-size:15px; }.svLearnSteps li p { margin:0;line-height:1.7; }
+.svLearnGlossary { display:grid;gap:10px 20px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));margin:0; }
+.svLearnGlossary div { padding:10px 0;border-bottom:1px solid var(--sv-line,#dce2e8); }.svLearnGlossary dt { font-weight:650; }.svLearnGlossary dd { margin:4px 0 0;color:var(--sv-muted);line-height:1.6; }
+.svLearnTable { width:100%;overflow-x:auto; }.svLearnTable table { width:100%;min-width:560px;border-collapse:collapse; }
+.svLearnTable th,.svLearnTable td { padding:10px;text-align:left;vertical-align:top;border-bottom:1px solid var(--sv-line,#dce2e8);font-size:13px;line-height:1.6; }
+.svLearnTax,.svLearnSources { margin:0;padding-left:1.2em;display:grid;gap:6px;line-height:1.7; }
+.svLearn h3 { margin:18px 0 8px;font-size:15px; }

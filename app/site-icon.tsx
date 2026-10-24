@@ -6,6 +6,7 @@ export const navigationIcons=[
  'M4 4v16h17M8 15l4-5 4 2 5-7',
  'm3 16 4-7 5 8 5-12 4 5',
  'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
+ 'M4 5a2 2 0 0 1 2-2h5v17H6a2 2 0 0 0-2 2zM20 5a2 2 0 0 0-2-2h-5v17h5a2 2 0 0 1 2 2z',
 ];
 export const stepIcons = {
  signal: navigationIcons[1],
