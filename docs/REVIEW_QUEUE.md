@@ -20,6 +20,7 @@
 
 | 日期 | 事项 | 分支 / PR | 验证证据与核查重点 | 交付状态 | 独立核查 |
 |---|---|---|---|---|---|
+| 2026-10-26 | Task047 周报数据源与前向日期修复 | `codex/weekly-report-fix` | Claude 2026-10-26 确认：history.jsonl 的 values.spy 为「SPY 买入持有账户净值（含少量现金）」、与账户同期归一；as_of / price_as_of 对估值日防未来，generated_at 仅展示；forward UTC日期允许报告日+1。37项通过（周报12 + app_data25），命令见下；diff检查通过。覆盖未来portfolio、+1/+2及UTC偏移、缺基准、NAV归一及显式冻结回退 | 本地完成；样例 work/task047/2026-10-24.html：XLB/XLP候选变化、无过期、未到期；10-25前向0记录接受；基准不可用。无真实cockpit，仅合成夹具适配估值日且保留旧价，账户估值不可用；未联网/暂存/提交，未验证真实冻结dataset或浏览器视觉 | 待核查 |
 | 2026-10-24 | Task046 实施前预检与预登记（阻断） | `codex/paper-account`，sv-wt-036 | §17记录account.py入场/退出顺序冲突、核心权重冲突、起点及盯市建议；workflow/ETF manifest静态核对，未计算账户值 | 仅预检和登记完成；代码、测试、JSON、workflow接线待澄清；未联网/暂存/提交 | **通过（Claude，2026-10-24）**：已由 Task046 实施（#153 合并）取代，冲突按 §17 定论处理，不单独复核。 |
 | 2026-10-22 | Task045 公开前向判卷页 | `codex/forward-page`，449059d起点 | Python54项、npm112项（lint/typecheck/build）通过；日志work/task045-python-test.log、task045-npm-test.log；核查计分白名单/同次时间、全部检查点、净R及毛R核对、Discord稳定ID、ticket生命周期、缺失计分、中英文本；public仅forward.json，经追加授权由空记录生成 | 本地完成；未联网/暂存/提交/发布；Claude运行preview-site并核查390/1440，owner UAT待做；§17有范围澄清 | 待核查 |
 | 2026-10-22 | Task044 Discord生命周期实施 | `codex/discord-lifecycle`，sv-wt-036 | 70项单测通过；两份workflow YAML解析、diff检查通过；核查ticket唯一来源、40/41日边界、短ID碰撞/稳定、实盘权益不落盘、失败预约保留、模拟独立账本；私有预览work/task044/preview.json、日志tests.log | 本地完成；未联网/暂存/提交，未发送；Claude合并前Actions card_preview | 待核查 |
@@ -46,6 +47,19 @@
 | 2026-10-19 | Discord 纵向正式模板 | [#136](https://github.com/327979420/sage-vista/pull/136)，`codex/3w-discord-card-layout` | 通知测试 15 项通过；[同一提交的 Actions](https://github.com/327979420/sage-vista/actions/runs/39182916981)验证及纵向样例送达成功；价格各一行，去掉版本号 / 冗余提示；价格精度、规则与生产去重未变 | 已合并并用于正式通知；用户认可样式 | **通过（Claude，2026-10-24）**：已合并、检查通过；main 上 Discord 相关 39 项单测（triangle_discord/discord_digest/product_consolidation）通过。 |
 | 2026-10-19 | 冻结 1.9 机会提醒及持久去重 | [#135](https://github.com/327979420/sage-vista/pull/135)，`services/scanner/triangle_discord.py`、研究任务通知 job | 核对仅允许新鲜、合格、waiting、未过期机会；止盈为计划入场 + 3R；发送前 reserved，成功后 sent，结果不确定时不自动重发；[基础模拟回执](https://github.com/327979420/sage-vista/actions/runs/39180740698)为 sent / count=1 | 已上线，模拟已送达；真实信号自动送达待首例验收 | **通过（Claude，2026-10-24）**：已合并、检查通过；同上 39 项单测通过。真实信号自动送达仍待首例（前向至今 0 信号）。 |
 | 2026-10-19 | 旧页面测试断言修正 | #135 中 `tests/test_product_consolidation.py` | 旧断言在 main 原样复现失败，仅对齐已有 TodayPage 和 SiteNavigation，未改页面；[完整回归](https://github.com/327979420/sage-vista/actions/runs/39179871983)共 1230 项、跳过 16 项，通过 | 已合并；夜间续跑仍待正常任务验收 | **通过（Claude，2026-10-24）**：test_product_consolidation 在 main 通过；夜间回测 10-23 成功。 |
+
+
+### Task047 本地复现（2026-10-26）
+
+仅读取本地已有依赖环境，不安装依赖；缓存、测试临时文件及产物全部位于本 worktree。测试日志：`work/task047/tests.log`。
+
+```sh
+SV_PY=/Users/xianpeil/Documents/Codex/2026-09-23/files-pasted-by-the-user-you/work/github-portfolio/sage-vista/work/vectorbt-env/bin/python
+PYTHONDONTWRITEBYTECODE=1 MPLCONFIGDIR="$PWD/work/task047/mpl" XDG_CACHE_HOME="$PWD/work/task047/cache" "$SV_PY" -m unittest tests.test_weekly_report tests.test_app_data -q
+PYTHONDONTWRITEBYTECODE=1 python3 -m research.lab.weekly_report --cockpit work/task047/cockpit-fixture.json --date 2026-10-24 --output-dir work/task047
+```
+
+样例来源：`public/app/portfolio.json`、`public/app/today.json`、`research/lab/forward/triangle/{outcomes.json,signals.jsonl}`。账户输入由 `tests/fixtures/weekly/cockpit.json` 复制，只将 as_of 适配为 2026-10-23、日志改为合成夹具说明；旧持仓/价格保留，所以缺 10-23 收盘价、总资产不可用。paper 历史当前未提交，公共 SPY 仅 09-30/10-23 两个日期，不足每日历史；不补价、不计算绩效。保护边界：Git 差异仅四个授权文件；`work/task047/` 私有产物未暂存。
 
 ## Claude 怎样核查
 
