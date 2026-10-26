@@ -13,6 +13,8 @@
 
 ## 进行中 / 下一步
 
+- **Task047 周报修复本地完成，待 Claude 核查（2026-10-26）**：`codex/weekly-report-fix`。默认读取已发布 portfolio；paper `history.jsonl` 的 `values.spy` 按「SPY 买入持有账户净值（含少量现金）」展示并同期归一；缺完整同期基准显示不可用，不拼接净值与收盘价。行情按 as_of / price_as_of 拒绝未来，generated_at 仅展示；forward 按 UTC 日期允许报告日 +1，+2 拒绝；显式 `--sectors-frozen` 保留离线回退。Claude 两项澄清已记录核查队列。周报12项 + app_data25项共37项全通过，`git diff --check` 通过。样例 `work/task047/2026-10-24.html` 使用今日仓库的 portfolio/today/forward：月底未到期、变化 XLB/XLP、过期无；10-25 computed_at 接受、0记录；基准不可用。无真实 cockpit，样例仅适配已提交合成夹具的估值日、保留旧价，账户估值明确不可用；输入夹具与测试日志在 `work/task047/`。未做浏览器视觉验收；冻结回退 CLI 用合成行情验证，未加载真实离线 dataset。仅改获准四文件，无网络、新依赖、暂存、提交或冻结/workflow改动。
+
 - **Task046 模拟账户自动化已实现（Claude 直接实现，2026-10-24）**：`research/lab/paper.py` + `tests/test_paper.py`；账户 paper-core-sat-v1 登记 10-24、起算 10-26（不倒推）；每日 research-lab 在前向记录后计算并把序列传给 `forward_judge --paper`，补上警报 2 与「证明有效」。合并后首个真实值在 10-26 收盘后的运行产生。
 
 - **Task045 公开前向判卷页本地完成，待Claude核查/预览及owner UAT**（2026-10-22，`codex/forward-page`，基于449059d）：新增Task036计分白名单投影、全部检查点、缺失/过期计分降级、净R曲线/信号/孪生、Task044短ID和ticket生命周期；删除公开盲判字段，中英双语。按本轮Claude追加授权，仅用新版app_data从已核实0信号生成 `public/app/forward.json`；0/30、还差30笔、继续记录未证明，警报1未触发，警报2/有效性均提示需模拟账户、不公开。Python54项、npm112项（含lint/typecheck/build）通过；日志/空记录生成脚本在私有 `work/task045-*`。无网络/暂存/提交；未改其他public文件、冻结代码/规则或workflow。完整数据集不在本worktree，未运行完整app_data行情构建；读取接线有合成测试，390/1440真实预览交Claude，owner验收后才能上线。

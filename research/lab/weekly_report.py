@@ -59,10 +59,73 @@ def valuation(export, day):
     return dict(cash=cash, start=start, equity=equity, sleeves=dict(sleeves), issues=issues)
 
 
-def history_metrics(exports, sector_prices, end):
-    import pandas as pd
-    import quantstats as qs
+SPY_NAV_LABEL = 'SPY 买入持有账户净值（含少量现金）'
 
+
+def source_dates(value):
+    """Valuation/signal dates only; generated_at and next_session are not prices."""
+    found = []
+    if isinstance(value, dict):
+        for key, item in value.items():
+            if key in ('as_of', 'price_as_of', 'signal_as_of', 'month_end_signal_as_of') and item:
+                found.append(str(item))
+            elif isinstance(item, (dict, list)):
+                found.extend(source_dates(item))
+    elif isinstance(value, list):
+        for item in value:
+            found.extend(source_dates(item))
+    return found
+
+
+def published_inputs(root, day):
+    """Read existing published files only. Never splice NAV and price series."""
+    def read(path):
+        return json.loads(path.read_text()) if path.exists() else None
+    portfolio = read(root / 'public/app/portfolio.json')
+    today = read(root / 'public/app/today.json')
+    path = root / 'research/lab/paper/history.jsonl'
+    records = [json.loads(line) for line in path.read_text().splitlines() if line.strip()] if path.exists() else []
+    spy, notes = {}, []
+    if not records:
+        notes.append("paper history.jsonl 未提供或为空")
+    for record in records:
+        date = record.get('as_of', '')
+        values = record.get('values', {})
+        notes.append(f'paper as_of {date}；recorded_at {record.get("recorded_at", "未提供")}')
+        if not date or date > day or values.get('date') != date:
+            notes.append('拒用日期缺失、冲突或晚于估值日的 paper 记录')
+            continue
+        value = values.get('spy')
+        if value is not None:
+            if date in spy:
+                raise ValueError(f'duplicate paper session: {date}')
+            spy[date] = number(value)
+    label = SPY_NAV_LABEL
+    if not spy:
+        label = 'SPY 收盘价'
+        for name, payload in (('today.json', today), ('portfolio.json', portfolio)):
+            if payload is None:
+                notes.append(f'{name} 未提供')
+                continue
+            notes.append(f'{name} as_of {payload.get("as_of", "未提供")}；generated_at {payload.get("generated_at", "未提供")}')
+            if not payload.get('as_of') or any(d > day for d in source_dates(payload)):
+                notes.append(f'{name} 行情日期缺失或晚于估值日，拒用')
+                continue
+            quotes = ([payload.get('market', {})] if name == 'today.json' else
+                      [s[k] for s in payload.get('sleeves', []) if s['symbol'] == 'SPY' for k in ('month_end', 'today')])
+            for quote in quotes:
+                date, close = quote.get('price_as_of'), quote.get('close')
+                if date and date <= day and close is not None:
+                    value = number(close)
+                    if date in spy and spy[date] != value:
+                        raise ValueError(f'conflicting SPY closes: {date}')
+                    spy[date] = value
+    dates = sorted(spy)
+    return portfolio, dict(SPY=dict(date=dates, close=[spy[d] for d in dates]),
+                           label=label, notes=notes)
+
+
+def history_metrics(exports, sector_prices, end):
     dated = {}
     for export in exports:
         day = export['as_of']
@@ -89,9 +152,12 @@ def history_metrics(exports, sector_prices, end):
             return None, '历史现金与持仓损益不一致（可能有费用或资金进出）；不计算未经调整的收益。'
     if len({v['start'] for v in dated.values()}) != 1:
         return None, '历史起始资金发生变化；不计算未经调整的收益。'
-    spy = dict(zip(sector_prices['SPY']['date'], sector_prices['SPY']['close']))
-    if any(day not in spy or spy[day] <= 0 for day in days):
-        return None, 'SPY 同期行情缺失；不使用未来价格或联网补价。'
+    series = (sector_prices or {}).get('SPY', {})
+    spy = dict(zip(series.get('date', []), series.get('close', [])))
+    if any(day not in spy or not math.isfinite(spy[day]) or spy[day] <= 0 for day in days):
+        return None, 'SPY 同期基准不可用；不使用未来价格或联网补价。'
+    import pandas as pd
+    import quantstats as qs
     index = pd.to_datetime(days)
     equity = pd.Series([dated[d]['equity'] for d in days], index=index)
     benchmark = pd.Series([spy[d] for d in days], index=index)
@@ -125,7 +191,7 @@ def chart(lines, percent=False):
     return f'<svg viewBox="0 0 740 195" role="img" aria-label="净值或回撤走势"><text x="685" y="30">{fmt(high)}</text><text x="685" y="170">{fmt(low)}</text>{"".join(paths)}</svg>'
 
 
-def render(export, outcomes, sectors, report_date, *, history=(), signals=None):
+def render(export, outcomes, sectors, report_date, *, history=(), signals=None, portfolio=None, benchmark=None):
     report_day = dt.date.fromisoformat(report_date)
     day = report_date if calendars.is_session('XNYS', report_date) else calendars.previous_session('XNYS', report_date)
     if export.get('as_of', day) != day:
@@ -149,28 +215,51 @@ def render(export, outcomes, sectors, report_date, *, history=(), signals=None):
     card('本周信号', signal_text)
     journal = [j for j in rows(export.get('journal', [])) if start <= j['at'][:10] <= report_date]
     card('本周日志', '<ul>' + ''.join(f'<li>{escape(j["at"])} · {escape(j["text"])}</li>' for j in journal) + '</ul>')
-    portfolio = app_data.portfolio(sectors, day)
-    changes = [s['symbol'] for s in portfolio['sleeves'] if s['would_switch']]
-    stale = [s['symbol'] for s in portfolio['sleeves'] if s['stale'] or s['month_end']['stale'] or s['today']['hold'] is None]
-    card('月底再平衡', f'<p>最近月底判断：{portfolio["month_end_signal_as_of"]}；当前是否到期：{"是" if portfolio["rebalance_due"] else "否"}；下一交易日：{portfolio["next_session"]}。</p><p>与月底相比的候选变化：{escape("、".join(changes) or "无")}。行情不足或过期：{escape("、".join(stale) or "无")}。这里只展示状态，不生成交易。</p>')
-    computed = outcomes.get('computed_at', '')
-    if not computed or computed[:10] > report_date:
+    if portfolio is None and sectors is not None:
+        portfolio = dict(app_data.portfolio(sectors, day), as_of=day, generated_at='离线冻结回退')
+    if portfolio is None:
+        card('月底再平衡', '<p>portfolio.json 未提供；不可用。</p>')
+    else:
+        provenance = f'as_of {portfolio.get("as_of", "未提供")}；generated_at {portfolio.get("generated_at", "未提供")}；行情/信号日期 {"、".join(sorted(set(source_dates(portfolio))))}'
+        if not portfolio.get('as_of') or any(d > day for d in source_dates(portfolio)):
+            card('月底再平衡', f'<p>{escape(provenance)}</p><p>行情日期缺失或晚于估值日，拒用；不可用。</p>')
+        else:
+            changes = [s['symbol'] for s in portfolio['sleeves'] if s['would_switch']]
+            stale = [s['symbol'] for s in portfolio['sleeves'] if s['stale'] or s['month_end']['stale'] or s['today']['hold'] is None]
+            card('月底再平衡', f'<p>{escape(provenance)}</p><p>最近月底判断：{portfolio["month_end_signal_as_of"]}；当前是否到期：{"是" if portfolio["rebalance_due"] else "否"}；下一交易日：{portfolio["next_session"]}。</p><p>与月底相比的候选变化：{escape("、".join(changes) or "无")}。行情不足或过期：{escape("、".join(stale) or "无")}。这里只展示状态，不生成交易。</p>')
+    computed = outcomes.get('computed_at') or ''
+    try:
+        stamp = dt.datetime.fromisoformat(computed.replace('Z', '+00:00'))
+        computed_day = (stamp.astimezone(dt.timezone.utc).date() if stamp.tzinfo else stamp.date())
+    except (ValueError, TypeError):
+        computed_day = None
+    if computed_day is None or computed_day > report_day + dt.timedelta(days=1):
         forward = '前向记录日期缺失或晚于报告日，不能用于本期报告。'
     else:
         statuses = Counter(o.get('r19', {}).get('status', o.get('status', 'unknown')) for o in outcomes.get('outcomes', []))
         forward = f'来源日期 {computed}；版本 {outcomes.get("version", "未注明")}；记录 {len(outcomes.get("outcomes", []))}；状态 {dict(statuses)}。尚不能据此证明策略有效。'
-    card('前向记录', f'<p>{escape(forward)}</p>')
+    card('前向记录', f'<p>computed_at {escape(computed or "未提供")}</p><p>{escape(forward)}</p>')
     snapshots = list(history)
     for snapshot in snapshots:
         if snapshot.get('as_of') == day and valuation(snapshot, day) != book:
             raise ValueError('current export conflicts with history valuation')
     if not any(x.get('as_of') == day for x in snapshots):
         snapshots.append(dict(export, as_of=day))
-    metrics, reason = history_metrics(snapshots, sectors, day)
+    benchmark = benchmark if benchmark is not None else dict(sectors or {}, label='SPY 收盘价（离线冻结回退）', notes=[])
+    series = benchmark.get('SPY', {})
+    spy = dict(zip(series.get('date', []), series.get('close', [])))
+    required = sorted({x['as_of'] for x in snapshots if x['as_of'] <= day})
+    available = len(required) >= 2 and all(d in spy and math.isfinite(spy[d]) and spy[d] > 0 for d in required)
+    label = benchmark.get('label', SPY_NAV_LABEL)
+    dates = sorted(d for d in spy if d <= day)
+    card('SPY 基准', f'<p>{escape(label)}；{"同期覆盖完整，首个共同日期归一为 1" if available else "不可用：缺少完整同期每日历史"}。</p>'
+         + f'<p>基准日期：{escape("、".join(dates) or "未提供")}。</p>'
+         + ''.join(f'<p>{escape(note)}</p>' for note in benchmark.get('notes', [])))
+    metrics, reason = history_metrics(snapshots, benchmark, day)
     if metrics is None:
         card('QuantStats', f'<p>{reason}</p>')
     else:
-        card('QuantStats', f'<p>{metrics["days"][0]} — {day}；区间收益 {metrics["total"]:.2%}，SPY {metrics["benchmark"]:.2%}。蓝色：账户；绿色：SPY。首个净值归一为 1。</p>'
+        card('QuantStats', f'<p>{metrics["days"][0]} — {day}；区间收益 {metrics["total"]:.2%}，{escape(label)} {metrics["benchmark"]:.2%}。蓝色：账户；绿色：SPY。首个净值归一为 1。</p>'
              + chart([('#2563eb', metrics['equity']), ('#059669', metrics['spy'])]))
         card('回撤', chart([('#dc2626', metrics['drawdown'])], percent=True))
         monthly = metrics['monthly']
@@ -186,12 +275,17 @@ def main():
     parser.add_argument('--outcomes', type=Path, default=app_data.ROOT / app_data.FORWARD / 'outcomes.json')
     parser.add_argument('--signals', type=Path, help='Defaults to signals.jsonl beside outcomes')
     parser.add_argument('--output-dir', type=Path, default=app_data.ROOT / 'work/reports/weekly')
+    parser.add_argument('--sectors-frozen', action='store_true', help='Explicit offline frozen-price fallback only')
     args = parser.parse_args()
     read = lambda p: json.loads(p.read_text())
     signals_path = args.signals or args.outcomes.with_name('signals.jsonl')
     signals = [json.loads(line) for line in signals_path.read_text().splitlines() if line.strip()] if signals_path.exists() else None
     history = [read(p) for p in sorted(args.history.glob('*.json'))] if args.history else []
-    html = render(read(args.cockpit), read(args.outcomes), app_data.frozen_prices(app_data.SECTOR), args.date, history=history, signals=signals)
+    day = args.date if calendars.is_session('XNYS', args.date) else calendars.previous_session('XNYS', args.date)
+    sectors = app_data.frozen_prices(app_data.SECTOR) if args.sectors_frozen else None
+    portfolio, benchmark = (None, None) if args.sectors_frozen else published_inputs(app_data.ROOT, day)
+    html = render(read(args.cockpit), read(args.outcomes), sectors, args.date, history=history, signals=signals,
+                  portfolio=portfolio, benchmark=benchmark)
     args.output_dir.mkdir(parents=True, exist_ok=True)
     path = args.output_dir / f'{args.date}.html'
     path.write_text(html, encoding='utf-8')
