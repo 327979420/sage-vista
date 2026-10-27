@@ -1,0 +1,59 @@
+{
+ "id": "paper-core-sat-v1",
+ "computed_at": "2026-10-27T10:08:20+00:00",
+ "as_of": "2026-10-26",
+ "start": "2026-10-26",
+ "sessions": 1,
+ "core": {
+  "shares": {
+   "SHY": 305,
+   "SPY": 6,
+   "XLE": 72,
+   "XLF": 89,
+   "XLK": 27,
+   "XLV": 27
+  },
+  "cash": 768.6,
+  "last_rebalance": {
+   "date": "2026-10-26",
+   "signal": "2026-09-30",
+   "targets": {
+    "SPY": "SPY",
+    "XLB": "SHY",
+    "XLE": "XLE",
+    "XLF": "XLF",
+    "XLI": "SHY",
+    "XLK": "XLK",
+    "XLP": "SHY",
+    "XLU": "SHY",
+    "XLV": "XLV",
+    "XLY": "SHY"
+   },
+   "shares": {
+    "SHY": 305,
+    "SPY": 6,
+    "XLE": 72,
+    "XLF": 89,
+    "XLK": 27,
+    "XLV": 27
+   }
+  }
+ },
+ "satellite": {
+  "open_positions": 0,
+  "trades": [],
+  "skipped": {},
+  "checks": {
+   "calendar_mismatches": 0,
+   "stale_valuations": 0,
+   "sold_when_prices_ended": 0
+  }
+ },
+ "values": {
+  "date": "2026-10-26",
+  "core": 50083.28,
+  "satellite": 50000.0,
+  "total": 100083.28,
+  "spy": 100308.87
+ }
+}
