@@ -1,9 +1,9 @@
 {
  "id": "triangle-forward-v1",
  "version": "3w-1.9",
- "computed_at": "2026-10-26T10:35:46+00:00",
+ "computed_at": "2026-10-27T10:07:57+00:00",
  "summary": {
-  "signals": 0,
+  "signals": 3,
   "judged": 0,
   "all": {
    "trades": 0
@@ -26,7 +26,32 @@
   "rule19_user_do": {
    "trades": 0
   },
-  "open": 0
+  "open": 3
  },
- "outcomes": []
+ "outcomes": [
+  {
+   "id": "52a8813ff8",
+   "status": "waiting",
+   "why": "no fill in 8 weeks",
+   "r19": {
+    "status": "waiting"
+   }
+  },
+  {
+   "id": "a38f18141d",
+   "status": "waiting",
+   "why": "no fill in 8 weeks",
+   "r19": {
+    "status": "waiting"
+   }
+  },
+  {
+   "id": "eb628bec31",
+   "status": "waiting",
+   "why": "no fill in 8 weeks",
+   "r19": {
+    "status": "waiting"
+   }
+  }
+ ]
 }
