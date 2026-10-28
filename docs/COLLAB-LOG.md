@@ -116,3 +116,8 @@ Claude directs and accepts; Codex implements (Codex plugin). Each round: task ca
 - 周报：https://claude.ai/artifact/GJMaRc7PkbyMosVf25fu9X 。`research/lab/weekly_report.py` 能运行（账户总值一致），但只用离线行情（把全部篮子标为过期），且拒绝 computed_at 晚于报告日的前向记录；本周报告改为手写，问题已交 owner 决定是否修。
 - 核查队列：#135、#136、#147/#148、#137、旧断言修正 → 通过（main 上 39 项 Discord/整合单测通过；日更 10-23 连续成功）。Task046 预检行 → 已被 #153 取代。
 - 其余 Codex 本地研究/界面行（Task033 后续、035、036、038—045）保持待核查：都需要在对应工作树里复现，超出周例行的用量，留待专门核查轮次，不在此改判。
+
+
+## 2026-10-28 — Codex：日更示例隔离测试修复
+
+用户心跳明确授权运维修复和notify=false发布。40674674385显示行情/候选已到10/27，唯一失败为test_forward_data对真实前向索引的空列表断言。已在最新main复现，改为隔离CLI输出的空/非空索引保存测试；保留原冻结示例回放断言。不修改任何运行、评分、研究策略或公开数据；不恢复研究任务。PR与最终线上验收待完成，见CR-2026-10-28；同行审核待Claude。
