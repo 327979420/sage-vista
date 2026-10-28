@@ -1,7 +1,7 @@
 {
  "id": "triangle-forward-v1",
  "version": "3w-1.9",
- "computed_at": "2026-10-27T10:07:57+00:00",
+ "computed_at": "2026-10-28T10:54:40+00:00",
  "summary": {
   "signals": 3,
   "judged": 0,
@@ -39,11 +39,15 @@
   },
   {
    "id": "a38f18141d",
-   "status": "waiting",
-   "why": "no fill in 8 weeks",
+   "status": "open",
+   "R": -0.6166,
    "r19": {
-    "status": "waiting"
-   }
+    "status": "open",
+    "R": -0.6166
+   },
+   "fill": "2026-10-27",
+   "exit": "2026-10-27",
+   "random_R": -1.0
   },
   {
    "id": "eb628bec31",
