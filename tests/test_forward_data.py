@@ -185,6 +185,27 @@ class ForwardTests(unittest.TestCase):
         self.assertEqual(t['outcome']['R'],got['R'])
         self.assertIn('not a forward record',t['outcome']['source'])
         self.assertLess(len(app.json_bytes(t)),60_000)
-        self.assertEqual(json.loads(Path('public/app/tickets/index.json').read_text()),[])
+
+    def test_example_cli_preserves_empty_and_populated_forward_tickets(self):
+        # Forward records can grow; the example must never replace or join them.
+        for index in ([], [dict(id='forward-fixture', symbol='TEST',
+                                signal_week='2026-10-16', status='skipped', R=None)]):
+            with self.subTest(populated=bool(index)), tempfile.TemporaryDirectory() as folder:
+                root=Path(folder)
+                tickets=root/'public/app/tickets'
+                tickets.mkdir(parents=True)
+                (tickets/'index.json').write_bytes(app.json_bytes(index))
+                if index:
+                    (tickets/'forward-fixture.json').write_bytes(b'{"id":"forward-fixture"}\n')
+                before={p.name:p.read_bytes() for p in tickets.iterdir()}
+                # example_ticket's default root still reads the frozen source fixture;
+                # redirect only the CLI output root to this isolated directory.
+                with patch.object(app,'ROOT',root):
+                    app.main(['--example-only'])
+                self.assertEqual({p.name:p.read_bytes() for p in tickets.iterdir()},before)
+                self.assertEqual(json.loads((root/'public/app/ticket-example.json').read_bytes()),
+                                 app.example_ticket())
+                self.assertEqual({p.name for p in (root/'public/app').iterdir()},
+                                 {'tickets','ticket-example.json'})
 
 if __name__=='__main__': unittest.main()

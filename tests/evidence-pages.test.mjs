@@ -28,6 +28,14 @@ const {ForwardView,CumulativeChart}=load('app/forward/forward.tsx');
 const {EvidenceHeader}=load('app/evidence/shared.tsx');
 const ticket=JSON.parse(fs.readFileSync('public/app/ticket-example.json'));
 const forward=JSON.parse(fs.readFileSync('public/app/forward.json'));
+// Empty-state presentation must not depend on the growing published record.
+const emptyForward={...forward,as_of:'2026-10-16',outcomes_as_of:'2026-10-18T09:10:48Z',
+ signals:[],cumulative_R:[],
+ summary:{signals:0,closed:0,average_R:null,win_rate:null,beat_random_share:null,beat_random_signals:0},
+ judging:{...forward.judging,status:'available',completed:0,scored:0,unscorable:0,
+ next_checkpoint:30,to_go:30,alarm1:false,checkpoints:[],verdict:'继续记录，未证明',
+ alarm2:'需模拟账户，不在公开页',proof:'需模拟账户，不在公开页'}};
+
 const render=(C,props,locale='zh')=>renderToStaticMarkup(React.createElement(LocaleProvider,{initialLocale:locale},React.createElement(C,props)));
 test('owned artifacts validate; malformed and failed requests resolve to missing',async()=>{
  assert.ok(data.validTicket(ticket));assert.ok(data.validForward(forward));assert.ok(data.validIndex([]));
@@ -52,11 +60,13 @@ test('index is newest first and does not mutate the input',()=>{
 });
 const row={id:'test',symbol:'ABC',signal_week:'2026-10-02',status:'closed',moves:{'1w':{date:'2026-10-09',move_pct:10},'4w':null,'13w':null},outcome:'target',R:3,exit_date:'2026-10-16',random:{twins:'verified',sampled:30,closed:20,median_R:-1,beat_share:.75,mean_R:0},gross_R:3.02,alert_id:'A-abcdef',lifecycle:{status:'target',date:'2026-10-16'}};
 test('forward empty state, verified and mismatched twins, scoring rule and own scroll region',()=>{
- const html=render(ForwardView,{data:forward});
+ assert.ok(data.validForward(emptyForward));
+ const html=render(ForwardView,{data:emptyForward});
  for(const text of ['还没有真实前向信号','下次检查：周五收盘后','继续记录，未证明','需模拟账户，不在公开页','已结束 / 下一检查点','287','0.44R'])assert.ok(html.includes(text),text);
  const report={...forward,signals:[row],cumulative_R:[{date:'2026-10-16',R:3}],summary:{signals:1,closed:1,average_R:3,win_rate:1,beat_random_share:.75,beat_random_signals:1}};
  assert.ok(data.validForward(report));
  const active=render(ForwardView,{data:report});
+ assert.ok(!active.includes('还没有真实前向信号'));
  for(const text of ['75.00%','-1.00R','10.00%','20/30','tabindex="0"'])assert.ok(active.includes(text),text);
  report.signals=[{...row,random:{...row.random,twins:'unverified',median_R:null,beat_share:null,mean_R:null}}];
  const missing=render(ForwardView,{data:report});assert.ok(missing.includes('未核验'));assert.ok(!missing.includes('盲判'));assert.ok(!missing.includes('-1.00R'));
@@ -99,7 +109,7 @@ test('ticket prioritizes full-width chart, five checks, order/outcome, then coll
  const {nextFriday}=load('app/forward/forward.tsx');
  for(const [date,expected] of [['2026-10-18T09:10:48Z','10-23'],['2026-10-23','10-30'],['2026-12-31','01-01']])assert.equal(nextFriday(date),expected);
  // Exercise this date and empty state independently of the daily published record.
- const datedForward={...forward,outcomes_as_of:'2026-10-18T09:10:48Z',summary:{...forward.summary,signals:0}};
+ const datedForward=emptyForward;
  const html=render(ForwardView,{data:datedForward});assert.ok(html.includes('10-23'));assert.ok(html.includes('svForwardSample'));
  const {ForwardSummary}=load('app/app/today.tsx');
  const summary=render(ForwardSummary,{data:datedForward});assert.ok(summary.includes('href="/forward"'));assert.ok(summary.includes('2026-10-18'));
