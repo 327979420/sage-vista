@@ -38,6 +38,7 @@ export function JudgingPanel({judging:j}:{judging:Judging}) {
 export function ForwardView({data}:{data:Forward}) {
  const s=data.summary,f=data.expectation;
  return <Localized><><JudgingPanel judging={data.judging}/><div className="svForwardTiles">{[['真实信号',s.signals],['已平仓',s.closed],['平均每笔净R',rText(s.average_R)],['胜过随机对照比例',pct(s.beat_random_share===null?null:s.beat_random_share*100)]].map(([label,value])=><section className="cockpitCard" key={label}><span>{label}</span><strong>{value}</strong></section>)}</div>
+ <p className="svAppSource"><span>实际能做到（信号认出后才挂单）</span>：{data.executable?<><span>已平仓</span> {data.executable.trades} · <span>平均每笔净R</span> {rText(data.executable.mean_R)}</>:<span>暂无</span>}</p>
  <p className="svAppSource"><span>数据日期</span> {data.as_of} · <span>结果更新</span> {data.outcomes_as_of.slice(0,10)}</p>
  {f&&<section className="cockpitCard" style={{padding:24}}><h2>与回测参考比较</h2><p><span>历史平均</span> {rText(f.average_R)} · <span>胜率</span> {pct(f.win_rate*100)} · {f.trades} <span>笔</span></p><p>{f.label}</p><p className="svAppSource">{f.note}</p><details><summary>账本来源</summary><p>{f.ledger_heading}</p></details></section>}
  {s.signals===0&&<div className="cockpitEmpty" role="status"><strong>还没有真实前向信号</strong><p><span>下次检查：周五收盘后</span>（{nextFriday(data.outcomes_as_of)}）</p></div>}

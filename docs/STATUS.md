@@ -13,6 +13,8 @@
 
 ## 进行中 / 下一步
 
+- **Task048 前向记录「实际能做到」一栏（2026-10-29，`claude/forward-executable`）**：信号要到信号周之后第二周首个交易日收盘后才认得出，冻结重放却从信号日挂单；按 §17 预登记新增 `research/lab/forward_exec.py`，从认出后的下一交易日起挂单（挂单前已破止损/已到止盈则跳过），其余复用冻结 `trade()`；只并排展示，不进警报/证明，模拟账户不变。research-lab 加一步（continue-on-error），/forward 页加一行。Codex 实现（中途配额用尽），Claude 验收：历史对照 571→484 笔逐笔对上，冻结指纹不变，Python 109 项、npm 115 项通过。待 owner 批准合并（含 workflow 改动）。
+
 - **Task047 周报修复本地完成，待 Claude 核查（2026-10-26）**：`codex/weekly-report-fix`。默认读取已发布 portfolio；paper `history.jsonl` 的 `values.spy` 按「SPY 买入持有账户净值（含少量现金）」展示并同期归一；缺完整同期基准显示不可用，不拼接净值与收盘价。行情按 as_of / price_as_of 拒绝未来，generated_at 仅展示；forward 按 UTC 日期允许报告日 +1，+2 拒绝；显式 `--sectors-frozen` 保留离线回退。Claude 两项澄清已记录核查队列。周报12项 + app_data25项共37项全通过，`git diff --check` 通过。样例 `work/task047/2026-10-24.html` 使用今日仓库的 portfolio/today/forward：月底未到期、变化 XLB/XLP、过期无；10-25 computed_at 接受、0记录；基准不可用。无真实 cockpit，样例仅适配已提交合成夹具的估值日、保留旧价，账户估值明确不可用；输入夹具与测试日志在 `work/task047/`。未做浏览器视觉验收；冻结回退 CLI 用合成行情验证，未加载真实离线 dataset。仅改获准四文件，无网络、新依赖、暂存、提交或冻结/workflow改动。
 
 - **Task046 模拟账户自动化已实现（Claude 直接实现，2026-10-24）**：`research/lab/paper.py` + `tests/test_paper.py`；账户 paper-core-sat-v1 登记 10-24、起算 10-26（不倒推）；每日 research-lab 在前向记录后计算并把序列传给 `forward_judge --paper`，补上警报 2 与「证明有效」。合并后首个真实值在 10-26 收盘后的运行产生。

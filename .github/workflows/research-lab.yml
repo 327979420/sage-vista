@@ -78,6 +78,9 @@ jobs:
           restore-keys: triangle-forward-v1-
       - name: Update the weekly triangle forward record
         run: python3 -m research.lab.triangle_forward --publish
+      - name: Update the executable forward column
+        continue-on-error: true
+        run: python3 -m research.lab.forward_exec --publish
       # Owner approved 2026-10-24 (task 046): the core + 3W paper account, from the same local caches plus EODHD ETF
       # prices. It feeds alarm 2 and "proof" in the scorecard; a failure leaves them "未提供" and blocks nothing.
       - name: Update the core + 3W paper account
