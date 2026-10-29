@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "version": "3w-1.9",
+  "computed_at": "2026-10-29T11:10:50+00:00",
+  "outcomes_computed_at": "2026-10-29T11:10:47+00:00",
+  "rows": [],
+  "summary": {
+    "trades": 0,
+    "wins": 0,
+    "mean_R": null,
+    "sum_R": 0,
+    "skipped_stop": 0,
+    "skipped_target": 0,
+    "waiting": 0,
+    "open": 0
+  }
+}
