@@ -14,6 +14,7 @@ export type Judging = {status:'available'|'missing';completed:number|null;scored
  checkpoints:{k:number;scored:number;unscorable:number;mean_d:number|null;t:number|null;alarm1:boolean;verdict:string}[];
  thresholds:{checkpoints:number[];checkpoint_step:number;alarm1_mean_lt:number;alarm1_t_lte:number;proof_min_trades:number;proof_t_gte:number;satellite_drawdown_gt:number;unscorable_fraction_gt:number}};
 export type Forward = {schema_version:1;judging:Judging;as_of:string;outcomes_as_of:string;next_check:string;
+ executable?:{computed_at:string;trades:number;wins:number;mean_R:number|null;sum_R:number;skipped_stop:number;skipped_target:number;waiting:number;open:number}|null;
  summary:{signals:number;closed:number;average_R:number|null;win_rate:number|null;beat_random_share:number|null;beat_random_signals:number};
  expectation:{average_R:number;win_rate:number;trades:number;label:string;note:string;ledger_heading:string}|null;
  cumulative_R:{date:string;R:number}[];signals:ForwardRow[]};
@@ -50,6 +51,8 @@ function validJudging(v:unknown):v is Judging {
 }
 export function validForward(v:unknown):v is Forward {
  if(!obj(v)||!validJudging(v.judging)||v.schema_version!==1||!date(v.as_of)||typeof v.outcomes_as_of!=='string'||typeof v.next_check!=='string'||!obj(v.summary))return false;
+ const e=v.executable;
+ if(e!==undefined&&e!==null&&(!obj(e)||typeof e.computed_at!=='string'||!['trades','wins','sum_R','skipped_stop','skipped_target','waiting','open'].every(k=>finite(e[k]))||!optionalNumber(e.mean_R)))return false;
  const s=v.summary;
  if(!['signals','closed','beat_random_signals'].every(k=>finite(s[k]))||!['average_R','win_rate','beat_random_share'].every(k=>optionalNumber(s[k])))return false;
  if(v.expectation!==null&&(!obj(v.expectation)||!['average_R','win_rate','trades'].every(k=>finite((v.expectation as Record<string,unknown>)[k]))||!['label','note','ledger_heading'].every(k=>typeof (v.expectation as Record<string,unknown>)[k]==='string')))return false;

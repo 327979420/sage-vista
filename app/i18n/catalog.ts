@@ -1,5 +1,7 @@
 // Reviewed display translations. Business identifiers and saved artifacts stay unchanged.
 export const catalog: Record<string, string> = {
+  "暂无": "Unavailable",
+  "实际能做到（信号认出后才挂单）": "Executable (orders placed after signal recognition)",
   "主指标：每笔净R减去同日随机孪生的平均净R。": "Primary metric: each trade’s net R minus the mean net R of its same-day random twins.",
   "前向判卷": "Forward judging",
   "已结束 / 下一检查点": "Completed / next checkpoint",

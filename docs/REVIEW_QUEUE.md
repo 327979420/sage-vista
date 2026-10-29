@@ -71,3 +71,4 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m research.lab.weekly_report --cockpit work/t
 生产模拟样例已经去重。检查格式请直接调用 `brief_payload()` 或看既有发送记录，不清空通知账本，也不为核查另发消息。
 | 2026-10-19 | Task043 韩股考试 Claude 核查 | `codex/kr-exam-3` | 报告字段核对；入场日来自冻结 trade() 的成交日（信号日之后），无前视。交易明细的 `signal_date` 栏被写成入场日，仅标签错误，不影响账户与结论 | 结论「样本不足，未证明」（29 笔，Sharpe p 0.172）按预登记成立 | 已核查 |
 | 2026-10-24 | Task046 模拟账户自动化（Claude 实现） | `codex/paper-account` | `tests/test_paper.py` 11 项 + forward_judge/research_lab 相关共 103 项通过；三项冲突按 §17 定论处理；冻结代码与 research/lab/forward/ 未改 | 起算 10-26，首个真实值待合并后运行验收 | 已核查（Claude 自写，owner 可抽查） |
+| 2026-10-29 | Task048 前向「实际能做到」一栏 | `claude/forward-executable` | 历史对照（5 个数据集，信号 2005—2024-06）原口径 571 笔 +0.244R、能做到口径 484 笔 +0.262R 与 Claude 脚本逐笔一致；`--fingerprint` 未变；Python 109 / npm 115 通过；冻结代码与 research/lab/forward/ 未改 | 待 owner 批准合并（workflow 新增一步） | 已核查（Claude） |

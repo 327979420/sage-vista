@@ -173,6 +173,7 @@ class ForwardTests(unittest.TestCase):
         self.assertNotIn('push',commands)
 
     def test_example_is_generated_separately_with_frozen_replay(self):
+        before = Path('public/app/tickets/index.json').read_bytes()
         t=app.example_ticket()
         self.assertTrue(t['example'])
         self.assertEqual(t['outcome']['status'],'closed')
@@ -185,6 +186,6 @@ class ForwardTests(unittest.TestCase):
         self.assertEqual(t['outcome']['R'],got['R'])
         self.assertIn('not a forward record',t['outcome']['source'])
         self.assertLess(len(app.json_bytes(t)),60_000)
-        self.assertEqual(json.loads(Path('public/app/tickets/index.json').read_text()),[])
+        self.assertEqual(Path('public/app/tickets/index.json').read_bytes(), before)
 
 if __name__=='__main__': unittest.main()
