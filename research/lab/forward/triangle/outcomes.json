@@ -1,12 +1,16 @@
 {
  "id": "triangle-forward-v1",
  "version": "3w-1.9",
- "computed_at": "2026-10-28T10:54:40+00:00",
+ "computed_at": "2026-10-29T11:10:47+00:00",
  "summary": {
   "signals": 3,
   "judged": 0,
   "all": {
-   "trades": 0
+   "trades": 1,
+   "wins": 0,
+   "mean_R": -1.0,
+   "sum_R": -1.0,
+   "random_mean_R": -1.0
   },
   "user_do": {
    "trades": 0
@@ -26,7 +30,7 @@
   "rule19_user_do": {
    "trades": 0
   },
-  "open": 3
+  "open": 2
  },
  "outcomes": [
   {
@@ -39,14 +43,15 @@
   },
   {
    "id": "a38f18141d",
-   "status": "open",
-   "R": -0.6166,
+   "status": "loss",
+   "R": -1.0,
    "r19": {
-    "status": "open",
-    "R": -0.6166
+    "status": "loss",
+    "R": -1.0,
+    "random_R": -1.0
    },
    "fill": "2026-10-27",
-   "exit": "2026-10-27",
+   "exit": "2026-10-28",
    "random_R": -1.0
   },
   {
