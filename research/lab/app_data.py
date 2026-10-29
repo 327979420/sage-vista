@@ -599,7 +599,21 @@ def load_scorecard(root, outcomes):
     return value if value.get('computed_at') == outcomes['computed_at'] else None
 
 
-def forward_data(records, outcomes, price_sets, judgements, facts, as_of, generated_at, *, n_twins=30, scorecard=None, discord_state=None):
+def load_executable(root, outcomes):
+    """Only the same forward run's summary can enter the public projection."""
+    from research.lab.forward_exec import SUMMARY_FIELDS
+    path = root / 'research/lab/forward_exec/latest.json'
+    if not path.exists():
+        return None
+    value = json.loads(path.read_text())
+    if value.get('outcomes_computed_at') != outcomes['computed_at']:
+        return None
+    if value.get('schema_version') != 1 or value.get('version') != VERSION:
+        return None
+    return {**{k: value['summary'][k] for k in SUMMARY_FIELDS}, 'computed_at': value['computed_at']}
+
+
+def forward_data(records, outcomes, price_sets, judgements, facts, as_of, generated_at, *, n_twins=30, scorecard=None, discord_state=None, executable=None):
     by_id = {o['id']: o for o in outcomes['outcomes']}
     # Import lazily: Discord itself consumes app_data ticket helpers. No delivery calls.
     from services.scanner.triangle_discord import alert_ids
@@ -655,7 +669,7 @@ def forward_data(records, outcomes, price_sets, judgements, facts, as_of, genera
                     summary='unweighted mean of per-signal beat shares, verified closed signals only',
                     R='net R; 0.1% per side; actual fill risk; gross_R is secondary verification only',
                     cumulative='sum of verified closed signal net R by exit date; not an account return'),
-                judging=public_judging(scorecard, outcomes), expectation=expectation, summary=dict(signals=len(rows), closed=len(done),
+                executable=executable, judging=public_judging(scorecard, outcomes), expectation=expectation, summary=dict(signals=len(rows), closed=len(done),
                     average_R=statistics.fmean(r['R'] for r in done) if done else None,
                     win_rate=sum(r['R'] > 0 for r in done)/len(done) if done else None,
                     beat_random_share=statistics.fmean(shares) if shares else None,
@@ -744,7 +758,7 @@ def load_build(root=ROOT, *, allow_download=False, generated_at=None):
     discord_state = json.loads(state_path.read_text()) if state_path.exists() else None
     payloads['forward.json'] = forward_data(records, outcomes, price_sets, (),
         facts, as_of, generated_at, n_twins=json.loads(config_path.read_text()).get('random_twins',30) if config_path.exists() else 30,
-        scorecard=load_scorecard(root, outcomes), discord_state=discord_state)
+        scorecard=load_scorecard(root, outcomes), discord_state=discord_state, executable=load_executable(root, outcomes))
     return payloads
 
 
