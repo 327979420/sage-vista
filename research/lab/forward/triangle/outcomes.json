@@ -1,7 +1,7 @@
 {
  "id": "triangle-forward-v1",
  "version": "3w-1.9",
- "computed_at": "2026-10-30T11:05:20+00:00",
+ "computed_at": "2026-10-31T10:40:32+00:00",
  "summary": {
   "signals": 3,
   "judged": 0,
@@ -36,13 +36,13 @@
   {
    "id": "52a8813ff8",
    "status": "open",
-   "R": 0.1068,
+   "R": 0.1159,
    "r19": {
     "status": "open",
-    "R": 0.1068
+    "R": 0.1159
    },
    "fill": "2026-10-29",
-   "exit": "2026-10-29",
+   "exit": "2026-10-30",
    "random_R": null
   },
   {
