@@ -1,41 +1,47 @@
 {
  "id": "paper-core-sat-v1",
- "computed_at": "2026-11-02T18:23:26+00:00",
- "as_of": "2026-10-30",
+ "computed_at": "2026-11-03T12:27:53+00:00",
+ "as_of": "2026-11-02",
  "start": "2026-10-26",
- "sessions": 5,
+ "sessions": 6,
  "core": {
   "shares": {
-   "SHY": 305,
+   "SHY": 122,
    "SPY": 6,
    "XLE": 72,
-   "XLF": 89,
+   "XLF": 87,
    "XLK": 27,
-   "XLV": 27
+   "XLV": 27,
+   "XLB": 94,
+   "XLP": 55,
+   "XLY": 42
   },
-  "cash": 846.05,
+  "cash": 981.44,
   "last_rebalance": {
-   "date": "2026-10-26",
-   "signal": "2026-09-30",
+   "date": "2026-11-02",
+   "signal": "2026-10-30",
    "targets": {
     "SPY": "SPY",
-    "XLB": "SHY",
+    "XLB": "XLB",
     "XLE": "XLE",
     "XLF": "XLF",
     "XLI": "SHY",
     "XLK": "XLK",
-    "XLP": "SHY",
+    "XLP": "XLP",
     "XLU": "SHY",
     "XLV": "XLV",
-    "XLY": "SHY"
+    "XLY": "XLY"
    },
    "shares": {
-    "SHY": 305,
+    "SHY": 122,
     "SPY": 6,
     "XLE": 72,
-    "XLF": 89,
+    "XLF": 87,
     "XLK": 27,
-    "XLV": 27
+    "XLV": 27,
+    "XLB": 94,
+    "XLP": 55,
+    "XLY": 42
    }
   }
  },
@@ -50,10 +56,10 @@
   }
  },
  "values": {
-  "date": "2026-10-30",
-  "core": 50130.37,
+  "date": "2026-11-02",
+  "core": 49973.37,
   "satellite": 50000.0,
-  "total": 100130.37,
-  "spy": 99044.72
+  "total": 99973.37,
+  "spy": 98570.5
  }
 }
