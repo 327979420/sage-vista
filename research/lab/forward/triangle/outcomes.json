@@ -1,9 +1,9 @@
 {
  "id": "triangle-forward-v1",
  "version": "3w-1.9",
- "computed_at": "2026-11-02T12:56:39+00:00",
+ "computed_at": "2026-11-03T12:27:10+00:00",
  "summary": {
-  "signals": 3,
+  "signals": 9,
   "judged": 0,
   "all": {
    "trades": 1,
@@ -30,20 +30,67 @@
   "rule19_user_do": {
    "trades": 0
   },
-  "open": 2
+  "open": 4
  },
  "outcomes": [
   {
-   "id": "52a8813ff8",
+   "id": "269b256024",
    "status": "open",
-   "R": 0.1159,
+   "R": 0.5526,
    "r19": {
     "status": "open",
-    "R": 0.1159
+    "R": 0.5526
+   },
+   "fill": "2026-10-26",
+   "exit": "2026-11-02",
+   "random_R": -1.5182
+  },
+  {
+   "id": "52a8813ff8",
+   "status": "open",
+   "R": 0.5864,
+   "r19": {
+    "status": "open",
+    "R": 0.5864
    },
    "fill": "2026-10-29",
-   "exit": "2026-10-30",
+   "exit": "2026-11-02",
    "random_R": null
+  },
+  {
+   "id": "61931583f7",
+   "status": "cancelled",
+   "why": "stop before the fill",
+   "r19": {
+    "status": "cancelled"
+   }
+  },
+  {
+   "id": "6fc28b7273",
+   "status": "skipped",
+   "why": "R:R under 1.5"
+  },
+  {
+   "id": "71f6c53ae9",
+   "status": "skipped",
+   "why": "monthly veto"
+  },
+  {
+   "id": "956700b433",
+   "status": "open",
+   "R": 0.7764,
+   "r19": {
+    "status": "open",
+    "R": 0.7764
+   },
+   "fill": "2026-10-26",
+   "exit": "2026-11-02",
+   "random_R": -1.0
+  },
+  {
+   "id": "998494ee77",
+   "status": "skipped",
+   "why": "R:R under 1.5"
   },
   {
    "id": "a38f18141d",
