@@ -9,6 +9,11 @@ from services.scanner.factor_registry import FACTORS_BY_ID
 
 VIEW_VERSION = 'nomination-observation-1'
 
+# Ranked rows carry their watch entries, so a month-end close that completes many
+# monthly triggers can multiply the list (2026-10-30: 53 -> 145 ranked, 909 kB).
+# About 100 kB after gzip; far below the 20 MiB pre-deploy file gate.
+PUBLIC_SIZE_BUDGET = 1_500_000
+
 def project_report(report):
     body = {k: v for k, v in report.items() if k != 'snapshot_fingerprint'}
     if canonical_fingerprint(body) != report.get('snapshot_fingerprint'):
@@ -102,7 +107,7 @@ def main():
     p.add_argument('--output', default='public/cr056-ranking.json'); args = p.parse_args()
     result = project_report(json.loads(Path(args.source).read_text()))
     data = json.dumps(result, ensure_ascii=False, separators=(',', ':'))+'\n'
-    if len(data.encode()) > 750_000: raise ValueError('public projection exceeds size budget')
+    if len(data.encode()) > PUBLIC_SIZE_BUDGET: raise ValueError('public projection exceeds size budget')
     Path(args.output).write_text(data)
     print(f'{len(data.encode())} bytes; {len(result["ranked_symbols"])} ranked')
 

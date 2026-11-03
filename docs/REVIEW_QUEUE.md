@@ -20,6 +20,7 @@
 
 | 日期 | 事项 | 分支 / PR | 验证证据与核查重点 | 交付状态 | 独立核查 |
 |---|---|---|---|---|---|
+| 2026-11-03 | 网站日更：候选榜大小上限 750 kB→1.5 MB | `claude/eod-cache-index` | 失败运行 41575853396 审计产物：cr056 结果 retained_previous / public_projection_size_budget_exceeded；11-02 投影 908,864 字节、gzip 86,869；观察历史子集检查通过。`python3 -m unittest tests.test_cr056_daily tests.test_cr056_public tests.test_release_contract` 22 项通过；guardrails ok | 已实现，待 CI 与合并；合并后看下一次 EOD 运行 | 待核查 |
 | 2026-10-26 | Task047 周报数据源与前向日期修复 | `codex/weekly-report-fix` | Claude 2026-10-26 确认：history.jsonl 的 values.spy 为「SPY 买入持有账户净值（含少量现金）」、与账户同期归一；as_of / price_as_of 对估值日防未来，generated_at 仅展示；forward UTC日期允许报告日+1。37项通过（周报12 + app_data25），命令见下；diff检查通过。覆盖未来portfolio、+1/+2及UTC偏移、缺基准、NAV归一及显式冻结回退 | 本地完成；样例 work/task047/2026-10-24.html：XLB/XLP候选变化、无过期、未到期；10-25前向0记录接受；基准不可用。无真实cockpit，仅合成夹具适配估值日且保留旧价，账户估值不可用；未联网/暂存/提交，未验证真实冻结dataset或浏览器视觉 | 待核查 |
 | 2026-10-24 | Task046 实施前预检与预登记（阻断） | `codex/paper-account`，sv-wt-036 | §17记录account.py入场/退出顺序冲突、核心权重冲突、起点及盯市建议；workflow/ETF manifest静态核对，未计算账户值 | 仅预检和登记完成；代码、测试、JSON、workflow接线待澄清；未联网/暂存/提交 | **通过（Claude，2026-10-24）**：已由 Task046 实施（#153 合并）取代，冲突按 §17 定论处理，不单独复核。 |
 | 2026-10-22 | Task045 公开前向判卷页 | `codex/forward-page`，449059d起点 | Python54项、npm112项（lint/typecheck/build）通过；日志work/task045-python-test.log、task045-npm-test.log；核查计分白名单/同次时间、全部检查点、净R及毛R核对、Discord稳定ID、ticket生命周期、缺失计分、中英文本；public仅forward.json，经追加授权由空记录生成 | 本地完成；未联网/暂存/提交/发布；Claude运行preview-site并核查390/1440，owner UAT待做；§17有范围澄清 | 待核查 |

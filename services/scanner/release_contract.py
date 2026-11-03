@@ -12,11 +12,13 @@ import json
 import os
 from pathlib import Path
 
+from services.scanner.cr056_public import PUBLIC_SIZE_BUDGET
+
 ROOT = Path(__file__).resolve().parents[2]
 LEGACY_VIEWS = ('macd_buy_top10', 'macd_sell_top10', 'combined_top10', 'rsi_top10', 'volume_top10')
 RAW_BAR_FIELDS = {'open', 'high', 'low', 'close', 'volume'}
 # The candidate page loads this file on every visit; over budget is a warning.
-RANKING_BUDGET_BYTES = 750_000
+RANKING_BUDGET_BYTES = PUBLIC_SIZE_BUDGET
 
 
 def read(root, name):
