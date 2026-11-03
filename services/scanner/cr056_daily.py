@@ -17,7 +17,7 @@ import zlib
 from services.ledger.cr056 import watch_checkpoint, validate_watch_checkpoint
 from services.scanner.cr056_inputs import repair_existing_cache, normalized_comparison_rows, reseed_excluded
 from services.scanner.cr056_runner import run_snapshot
-from services.scanner.cr056_public import project_report, project_details, VIEW_VERSION
+from services.scanner.cr056_public import project_report, project_details, VIEW_VERSION, PUBLIC_SIZE_BUDGET
 from services.contracts.cr056_policy import POLICY_VERSION, POLICY_FINGERPRINT
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -139,7 +139,7 @@ def refresh(*, as_of, code_commit, public_path, state_path, archive_dir, work_di
             public.update(automatic_updates_connected=True,
                           refresh_status={'status':'updated', 'target_as_of':as_of})
             public_bytes = encoded(public)
-            if len(public_bytes)>750_000: raise ValueError('public_projection_size_budget_exceeded')
+            if len(public_bytes)>PUBLIC_SIZE_BUDGET: raise ValueError('public_projection_size_budget_exceeded')
             checkpoint = validate_watch_checkpoint(watch_checkpoint(report))
             if not {r['symbol'] for r in previous['reviews']} <= {r['symbol'] for r in checkpoint['reviews']}:
                 raise ValueError('watch_history_would_be_lost')

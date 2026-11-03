@@ -131,6 +131,17 @@ class DailyCandidateTests(unittest.TestCase):
         with self.producers('2026-09-08',False):result=self.run_daily('2026-09-08')
         self.assertEqual(result['result'],'updated',result)
 
+    def test_public_size_budget_keeps_previous_view_and_checkpoint(self):
+        before=json.loads(self.public.read_text());state=self.state.read_bytes()
+        with self.producers('2026-09-08',False),patch('services.scanner.cr056_daily.PUBLIC_SIZE_BUDGET',100):
+            result=self.run_daily('2026-09-08')
+        self.assertEqual(result['result'],'retained_previous')
+        self.assertEqual(result['reason'],'public_projection_size_budget_exceeded')
+        self.assertEqual(state,self.state.read_bytes())
+        self.assertEqual(json.loads(self.public.read_text())['reviews'],before['reviews'])
+        with self.producers('2026-09-08',False):result=self.run_daily('2026-09-08')
+        self.assertEqual(result['result'],'updated',result)
+
     def test_missing_or_corrupt_checkpoint_never_reimports_legacy_history(self):
         self.state.write_bytes(gzip.compress(b'{}'))
         result=self.run_daily('2026-09-08',fetch_reference=lambda *a:self.fail('no request'))
