@@ -1,7 +1,7 @@
 {
  "id": "triangle-forward-v1",
  "version": "3w-1.9",
- "computed_at": "2026-11-04T12:38:59+00:00",
+ "computed_at": "2026-11-05T12:49:16+00:00",
  "summary": {
   "signals": 9,
   "judged": 0,
@@ -30,32 +30,32 @@
   "rule19_user_do": {
    "trades": 0
   },
-  "open": 4
+  "open": 3
  },
  "outcomes": [
   {
    "id": "269b256024",
    "status": "open",
-   "R": 0.5798,
+   "R": 1.2276,
    "r19": {
     "status": "open",
-    "R": 0.5798
+    "R": 1.2276
    },
    "fill": "2026-10-26",
-   "exit": "2026-11-03",
-   "random_R": -1.5182
+   "exit": "2026-11-04",
+   "random_R": -0.381
   },
   {
    "id": "52a8813ff8",
    "status": "open",
-   "R": 0.4569,
+   "R": 0.8856,
    "r19": {
     "status": "open",
-    "R": 0.4569
+    "R": 0.8856
    },
    "fill": "2026-10-29",
-   "exit": "2026-11-03",
-   "random_R": 0.4803
+   "exit": "2026-11-04",
+   "random_R": 0.9358
   },
   {
    "id": "61931583f7",
@@ -78,14 +78,14 @@
   {
    "id": "956700b433",
    "status": "open",
-   "R": 0.5026,
+   "R": 1.644,
    "r19": {
     "status": "open",
-    "R": 0.5026
+    "R": 1.644
    },
    "fill": "2026-10-26",
-   "exit": "2026-11-03",
-   "random_R": -1.0
+   "exit": "2026-11-04",
+   "random_R": -1.4214
   },
   {
    "id": "998494ee77",
@@ -99,7 +99,7 @@
    "r19": {
     "status": "loss",
     "R": -1.0,
-    "random_R": -1.0
+    "random_R": 1.0817
    },
    "fill": "2026-10-27",
    "exit": "2026-10-28",
@@ -107,8 +107,8 @@
   },
   {
    "id": "eb628bec31",
-   "status": "waiting",
-   "why": "no fill in 8 weeks",
+   "status": "cancelled",
+   "why": "target before the fill",
    "r19": {
     "status": "waiting"
    }
