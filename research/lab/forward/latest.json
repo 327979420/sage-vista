@@ -1,6 +1,6 @@
 {
  "id": "forward-v1",
- "computed_at": "2026-11-06T12:32:13+00:00",
+ "computed_at": "2026-11-06T15:56:33+00:00",
  "as_of": "2026-11-05",
  "sessions": 19,
  "start": "2026-10-12",
@@ -54,14 +54,14 @@
   },
   "PERM-ALL-TSMOM": {
    "label": "Permanent core with stocks, long bonds and gold each stepped by 1/3/12-month trend (E3 candidate)",
-   "value": 98326.15,
-   "return": -0.016738,
-   "max_drawdown": 0.016738,
+   "value": 98338.31,
+   "return": -0.016617,
+   "max_drawdown": 0.016617,
    "sharpe": null,
    "weights": {
-    "SHY": 0.6667,
+    "SHY": 0.75,
     "SPY": 0.1667,
-    "TLT": 0.1667
+    "TLT": 0.0833
    }
   }
  }
