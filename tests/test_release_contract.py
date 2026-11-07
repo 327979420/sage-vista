@@ -95,6 +95,14 @@ class Bundle:
         radar['display_context']['funds']['SOXX']['available'] = False
         self.write('industry-radar.json', radar)
 
+    def every_theme_unavailable(self):
+        # The radar saw SPY one session behind, so no member shared its last bar.
+        radar = self.read('industry-radar.json')
+        for item in radar['themes']:
+            item['state'] = 'Unavailable'
+        radar.setdefault('price_data_audit', {})['benchmark_latest_bar'] = '2026-09-22'
+        self.write('industry-radar.json', radar)
+
     def options_panel_missing(self):
         cockpit = self.read('market-cockpit.json')
         cockpit['panels']['options'] = {'id': 'options', 'frequency': 'daily', 'status': 'unavailable',
@@ -114,7 +122,7 @@ class Bundle:
 
 
 BAD_DAYS = ('vix_and_vix9d_stale', 'one_cboe_source_unavailable', 'ishares_semiconductors_unavailable',
-            'options_panel_missing', 'us_holiday_provider_date_unchanged')
+            'every_theme_unavailable', 'options_panel_missing', 'us_holiday_provider_date_unchanged')
 
 
 class ReleaseContractTests(unittest.TestCase):
@@ -132,6 +140,7 @@ class ReleaseContractTests(unittest.TestCase):
             'vix_and_vix9d_stale': ['market-external: vix is stale', 'market-external: vix9d is stale'],
             'one_cboe_source_unavailable': ['market-external: vix9d is unavailable'],
             'ishares_semiconductors_unavailable': ['industry-radar: semiconductors membership unavailable', 'ETF context unavailable for SOXX'],
+            'every_theme_unavailable': ['industry-radar: every theme is Unavailable (SPY last bar 2026-09-22)'],
             'options_panel_missing': ['market-cockpit: options panel is unavailable'],
             'us_holiday_provider_date_unchanged': [],
         }

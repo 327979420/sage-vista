@@ -119,7 +119,9 @@ def calculate(snapshot,price_data,spy_rows,as_of,etf_funds=None):
   for symbol in source["members"]:ticker_context.setdefault(symbol,[]).append({"theme_id":theme["theme_id"],"state":theme["state"],"etf_context":theme["etf_context"]})
  return themes,dict(sorted(ticker_context.items()))
 
-def run(out="public/industry-radar.json",as_of=None,snapshot_dir=DEFAULT_SNAPSHOT_DIR,loader=adjusted_rows,registry=DEFAULT_REGISTRY):
+def run(out="public/industry-radar.json",as_of=None,snapshot_dir=DEFAULT_SNAPSHOT_DIR,loader=adjusted_rows,registry=DEFAULT_REGISTRY,benchmark_loader=None):
+ """``benchmark_loader`` supplies SPY. Every member must share SPY's exact last
+ bar, so a cached SPY one session behind withholds every theme."""
  as_of=as_of or latest_reference_day();snapshot=select_snapshot(as_of,snapshot_dir)
  if snapshot is None:
   report={"as_of":as_of,"generated_at":datetime.now(timezone.utc).isoformat(),"membership_version":None,"future_data_used":False,"historical_membership_safe":False,"status":"unavailable_no_membership_snapshot","themes":[],"ticker_context":{}}
@@ -131,13 +133,14 @@ def run(out="public/industry-radar.json",as_of=None,snapshot_dir=DEFAULT_SNAPSHO
     (fetched if data[symbol] else unavailable).append(symbol)
    except Exception:
     data[symbol]=[];unavailable.append(symbol)
-  try:spy=loader("SPY")
+  try:spy=(benchmark_loader or loader)("SPY")
   except Exception:spy=[]
+  spy_rows=rows_as_of(spy,as_of);spy_latest=spy_rows[-1]["date"] if spy_rows else None
   themes,ticker_context=calculate(snapshot,data,spy,as_of,funds)
   taxonomy=select_finance_database_snapshot(as_of);classifications=classification_by_ticker(taxonomy)
   sufficient={symbol for symbol in symbols if member_metrics(data[symbol],spy,as_of)} if spy else set()
   report={"schema_version":"2.1.0","as_of":as_of,"generated_at":datetime.now(timezone.utc).isoformat(),"membership_version":snapshot["version"],"membership_effective_from":snapshot["effective_from"],"future_data_used":False,"historical_membership_safe":True,"mode":"decision_context_not_technical_score","status":"research_prototype_not_validated_alpha" if spy else "market_data_unavailable_safe","config":CONFIG,
-   "price_data_audit":{"provider":"EODHD","requested_tickers":symbols,"fetched_tickers":fetched,"unavailable_tickers":unavailable,"insufficient_history_tickers":sorted(set(fetched)-sufficient),"errors_redacted":True},
+   "price_data_audit":{"provider":"EODHD","requested_tickers":symbols,"fetched_tickers":fetched,"unavailable_tickers":unavailable,"insufficient_history_tickers":sorted(set(fetched)-sufficient),"benchmark_latest_bar":spy_latest,"errors_redacted":True},
    "themes":themes,"ticker_context":ticker_context,"classification_by_ticker":classifications,"classification_snapshot":{"source":"FinanceDatabase" if taxonomy else None,"effective_from":taxonomy.get("effective_from") if taxonomy else None,"matched_symbols":taxonomy.get("matched_symbols") if taxonomy else 0,"historical_backfill_allowed":False},"membership_overlap":snapshot.get("overlap_analysis",[]),"audit":{"exact_as_of_required":True,"minimum_valid_member_ratio":CONFIG["min_valid_member_ratio"],"future_rows_used":False,"state_model":"industry-state-v2","etf_position_model":"theme-etf-position-v1","industry_candidate_weight_cap":1,"production_score_changed":False}}
  pathlib.Path(out).parent.mkdir(parents=True,exist_ok=True);pathlib.Path(out).write_text(json.dumps(report,indent=2)+"\n")
  return report

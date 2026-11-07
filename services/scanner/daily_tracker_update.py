@@ -141,7 +141,9 @@ def run(target=1000,as_of=None,trigger_source="manual"):
   folder=pathlib.Path(folder)
   # Universe expansion is an internal preparation audit, not a website asset.
   expand_universe(target,authoritative,out=folder/"universe-expansion.json")
-  tracker=run_tracker(folder/"resonance-tracker.json",authoritative);snapshot=run_factor_snapshot(folder/"daily-factor-snapshot.json",authoritative);radar=run_radar(folder/"rare-opportunity-radar.json",authoritative,snapshot);industry=run_industry_radar(folder/"industry-radar.json",authoritative)
+  tracker=run_tracker(folder/"resonance-tracker.json",authoritative);snapshot=run_factor_snapshot(folder/"daily-factor-snapshot.json",authoritative);radar=run_radar(folder/"rare-opportunity-radar.json",authoritative,snapshot);industry=run_industry_radar(folder/"industry-radar.json",authoritative,benchmark_loader=lambda code:refreshed_rows(code,persist=False))
+  # The radar reads SPY above from the provider: the shared cache only receives
+  # today's SPY here, after the stock scans.
   publish_market_cache(authoritative)
   industry["display_context"]=background
   (folder/"industry-radar.json").write_text(json.dumps(industry,indent=2)+"\n")

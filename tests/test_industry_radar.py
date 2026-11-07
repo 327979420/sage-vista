@@ -154,6 +154,19 @@ class IndustryRadarTests(unittest.TestCase):
    self.assertEqual(report["price_data_audit"]["unavailable_tickers"],["B","C"])
    self.assertNotIn("secret-bearing",json.dumps(report))
 
+ def test_spy_from_benchmark_loader_keeps_themes_available(self):
+  # The shared cache gets today's SPY only after the stock scans (2026-11 incident).
+  with tempfile.TemporaryDirectory() as folder:
+   snapshot={"version":"v1","effective_from":"2026-01-01","themes":[theme()]};Path(folder,"v1.json").write_text(json.dumps(snapshot))
+   loader=lambda symbol:series(0,89) if symbol=="SPY" else series()
+   stale=run(Path(folder,"stale.json"),"2026-03-31",folder,loader=loader)
+   fresh=run(Path(folder,"fresh.json"),"2026-03-31",folder,loader=loader,benchmark_loader=lambda _:series(0))
+  self.assertEqual(stale["themes"][0]["state"],"Unavailable")
+  self.assertEqual(stale["price_data_audit"]["benchmark_latest_bar"],"2026-03-30")
+  self.assertNotEqual(fresh["themes"][0]["state"],"Unavailable")
+  self.assertEqual(fresh["themes"][0]["valid_member_count"],5)
+  self.assertEqual(fresh["price_data_audit"]["benchmark_latest_bar"],"2026-03-31")
+
  def test_member_metric_is_point_in_time(self):
   rows=series();future={"date":"2027-01-01","close":1_000_000};rows.append(future)
   result=member_metrics(rows,series(0),"2026-03-31")
