@@ -1,9 +1,9 @@
 {
  "id": "triangle-forward-v1",
  "version": "3w-1.9",
- "computed_at": "2026-11-09T13:28:05+00:00",
+ "computed_at": "2026-11-10T13:03:48+00:00",
  "summary": {
-  "signals": 9,
+  "signals": 12,
   "judged": 0,
   "all": {
    "trades": 1,
@@ -34,28 +34,43 @@
  },
  "outcomes": [
   {
+   "id": "17922a6a98",
+   "status": "skipped",
+   "why": "R:R under 1.5"
+  },
+  {
+   "id": "1ceb19c4ce",
+   "status": "skipped",
+   "why": "R:R under 1.5"
+  },
+  {
+   "id": "1f07d0140a",
+   "status": "skipped",
+   "why": "R:R under 1.5"
+  },
+  {
    "id": "269b256024",
    "status": "open",
-   "R": 0.9917,
+   "R": 0.988,
    "r19": {
     "status": "open",
-    "R": 0.9917
+    "R": 0.988
    },
    "fill": "2026-10-26",
-   "exit": "2026-11-06",
+   "exit": "2026-11-09",
    "random_R": -0.381
   },
   {
    "id": "52a8813ff8",
    "status": "open",
-   "R": 0.4387,
+   "R": 0.4205,
    "r19": {
     "status": "open",
-    "R": 0.4387
+    "R": 0.4205
    },
    "fill": "2026-10-29",
-   "exit": "2026-11-06",
-   "random_R": 1.1672
+   "exit": "2026-11-09",
+   "random_R": 1.3031
   },
   {
    "id": "61931583f7",
@@ -78,13 +93,13 @@
   {
    "id": "956700b433",
    "status": "open",
-   "R": 0.2006,
+   "R": 0.738,
    "r19": {
     "status": "open",
-    "R": 0.2006
+    "R": 0.738
    },
    "fill": "2026-10-26",
-   "exit": "2026-11-06",
+   "exit": "2026-11-09",
    "random_R": -1.436
   },
   {
