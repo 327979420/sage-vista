@@ -1,26 +1,26 @@
 {
  "id": "forward-v1",
- "computed_at": "2026-11-11T16:10:45+00:00",
- "as_of": "2026-11-10",
- "sessions": 22,
+ "computed_at": "2026-11-12T13:19:38+00:00",
+ "as_of": "2026-11-11",
+ "sessions": 23,
  "start": "2026-10-12",
  "portfolios": {
   "SPY": {
    "label": "S&P 500 only (benchmark)",
-   "value": 96198.01,
-   "return": -0.03802,
+   "value": 97466.67,
+   "return": -0.025333,
    "max_drawdown": 0.059724,
-   "sharpe": -2.0132,
+   "sharpe": -1.231,
    "weights": {
     "SPY": 1.0
    }
   },
   "PERM": {
    "label": "Permanent Portfolio, 25% each (confirmed core)",
-   "value": 99318.92,
-   "return": -0.006811,
+   "value": 99372.39,
+   "return": -0.006276,
    "max_drawdown": 0.015408,
-   "sharpe": -0.7143,
+   "sharpe": -0.6402,
    "weights": {
     "GLD": 0.25,
     "SHY": 0.25,
@@ -30,10 +30,10 @@
   },
   "PERM-CASH5": {
    "label": "Permanent core with a 5% cash reserve (in short-term Treasuries)",
-   "value": 99372.23,
-   "return": -0.006278,
+   "value": 99422.41,
+   "return": -0.005776,
    "max_drawdown": 0.014389,
-   "sharpe": -0.693,
+   "sharpe": -0.6202,
    "weights": {
     "GLD": 0.2375,
     "SHY": 0.2875,
@@ -43,10 +43,10 @@
   },
   "6040": {
    "label": "60/40 stocks and bonds",
-   "value": 98389.73,
-   "return": -0.016103,
+   "value": 99133.96,
+   "return": -0.00866,
    "max_drawdown": 0.025986,
-   "sharpe": -1.4689,
+   "sharpe": -0.7222,
    "weights": {
     "AGG": 0.4,
     "SPY": 0.6
@@ -54,10 +54,10 @@
   },
   "PERM-ALL-TSMOM": {
    "label": "Permanent core with stocks, long bonds and gold each stepped by 1/3/12-month trend (E3 candidate)",
-   "value": 98198.81,
-   "return": -0.018012,
+   "value": 98413.0,
+   "return": -0.01587,
    "max_drawdown": 0.018012,
-   "sharpe": -3.511,
+   "sharpe": -2.9773,
    "weights": {
     "SHY": 0.6667,
     "SPY": 0.1667,
