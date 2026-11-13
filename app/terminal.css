@@ -427,3 +427,64 @@ html.svDark .svTerminalPage { padding-top: 26px; }
 .dsLine { fill: none; stroke: var(--t-ink); stroke-width: 1.4; }
 .dsFoot { display: flex; justify-content: space-between; color: var(--t-ink-3); font-family: var(--t-mono); font-size: 11px; }
 @media (prefers-reduced-motion: reduce) { .dsCard { animation: none; opacity: 1; } .dsStages > div { transition: none; } }
+
+/* Learn: four-step stepper over one schematic chart. */
+.lnSteps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.lnSteps button { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 12px 14px; border: 1px solid var(--t-line); background: var(--t-panel); color: var(--t-ink-2); text-align: left; font-size: 14px; cursor: pointer; overflow: hidden; }
+.lnSteps button small { color: var(--t-ink-4); font-family: var(--t-mono); font-size: 11px; }
+.lnSteps button[aria-selected="true"] { border-color: var(--t-go); color: #fff; background: var(--t-raise); }
+.lnSteps button:focus-visible, .lnNav button:focus-visible { outline: 2px solid var(--t-ink); outline-offset: 2px; }
+.lnTimer { position: absolute; left: 0; bottom: 0; height: 2px; background: var(--t-go); animation: lnTimer 6s linear forwards; }
+@keyframes lnTimer { from { width: 0; } to { width: 100%; } }
+.lnGrid { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
+.lnChart svg { width: 100%; height: auto; }
+.lnChart text { fill: var(--t-ink-2); font-family: var(--t-mono); font-size: 11px; }
+.lnPrice { fill: none; stroke: var(--t-ink); stroke-width: 2; stroke-linejoin: round; }
+.lnTrend { stroke: #c9a7ff; stroke-width: 1.5; stroke-dasharray: 6 4; }
+.lnPush { fill: #c9a7ff; } .lnBottom { fill: var(--t-go); }
+.lnFloor { stroke: var(--t-go); stroke-width: 1; stroke-dasharray: 3 3; }
+.lnSignal { fill: none; stroke: #fff; stroke-width: 2; }
+.lnLimit { stroke: var(--t-wait); stroke-width: 2; } .lnStopLine { stroke: var(--t-loss); stroke-width: 2; } .lnTarget { stroke: var(--t-go); stroke-width: 2; }
+.lnRisk { fill: rgba(255, 138, 92, .35); } .lnReward { fill: rgba(95, 211, 138, .25); }
+.lnChart g { opacity: .12; transition: opacity .6s; }
+.lnChart[data-step="0"] .lnS0, .lnChart[data-step="1"] .lnS0, .lnChart[data-step="1"] .lnS1, .lnChart[data-step="2"] .lnS0, .lnChart[data-step="2"] .lnS1, .lnChart[data-step="2"] .lnS2 { opacity: 1; }
+.lnChart[data-step="1"] .lnS0, .lnChart[data-step="2"] .lnS0 { opacity: .45; }
+.lnPayoff { display: flex; flex-direction: column; gap: 14px; padding: 6px 4px; }
+.lnPayoff p { margin: 0; color: var(--t-ink-2); font-size: 14px; }
+.lnBars { display: flex; align-items: center; gap: 10px; height: 160px; }
+.lnBars > div { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; height: 100%; opacity: 0; animation: ovReveal .4s ease forwards; }
+.lnBars i { width: 100%; max-width: 34px; background: var(--t-loss); transform: translateY(50%); }
+.lnBars i[data-up] { background: var(--t-go); transform: translateY(-50%); }
+.lnBars small { position: absolute; bottom: 0; color: var(--t-ink-3); font-family: var(--t-mono); font-size: 10px; }
+.lnSum b { color: var(--t-go); font-family: var(--t-mono); font-size: 22px; font-weight: 400; }
+.lnText small { color: var(--t-ink-3); font-family: var(--t-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+.lnText h3 { margin: 4px 0 0; font-size: 20px; font-weight: 400; }
+.lnText p { margin: 0; color: var(--t-ink-2); font-size: 14px; line-height: 1.7; }
+.lnNav { display: flex; justify-content: space-between; margin-top: auto; }
+.lnNav button { padding: 6px 12px; border: 1px solid var(--t-line); background: transparent; color: var(--t-ink-2); font-family: var(--t-mono); font-size: 12px; cursor: pointer; }
+.lnNav button:hover { color: #fff; border-color: var(--t-line-2); }
+@media (max-width: 1000px) { .lnGrid { grid-template-columns: minmax(0, 1fr); } .lnSteps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (prefers-reduced-motion: reduce) { .lnTimer, .lnBars > div { animation: none; opacity: 1; } .lnChart g { transition: none; } }
+
+/* Reading pages: archive grid, About figures, backtest verdicts. */
+.rhGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.rhCard { display: flex; flex-direction: column; gap: 8px; padding: 18px; border: 1px solid var(--t-line); border-radius: 3px; background: var(--t-panel); color: var(--t-ink); text-decoration: none; opacity: 0; animation: ovReveal .5s ease forwards; transition: border-color .2s, background .2s, transform .2s; }
+.rhCard:hover { border-color: var(--t-go); background: var(--t-raise); transform: translateY(-2px); }
+.rhCard:focus-visible { outline: 2px solid var(--t-ink); outline-offset: 2px; }
+.rhCard small { color: var(--t-ink-4); font-family: var(--t-mono); font-size: 11px; }
+.rhCard b { font-size: 18px; font-weight: 500; }
+.rhCard span { color: var(--t-ink-2); font-size: 13px; line-height: 1.6; }
+.rhCard em { margin-top: auto; color: var(--t-ink-4); font-family: var(--t-mono); font-size: 11px; font-style: normal; }
+.rhStats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.rhStats small { color: var(--t-ink-3); font-family: var(--t-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+.rhStats b { font-family: var(--t-mono); font-size: 22px; font-weight: 300; }
+.rhVerdicts { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.rhVerdicts .ovPanel { gap: 6px; border-top: 3px solid var(--t-line-2); opacity: 0; animation: ovReveal .5s ease forwards; }
+.rhVerdicts [data-tone-border="loss"] { border-top-color: var(--t-loss); } .rhVerdicts [data-tone-border="go"] { border-top-color: var(--t-go); }
+.rhVerdicts small { color: var(--t-ink-4); font-family: var(--t-mono); font-size: 11px; }
+.rhVerdicts b { font-size: 15px; font-weight: 500; }
+.rhVerdicts em { font-family: var(--t-mono); font-size: 12px; font-style: normal; }
+.rhVerdicts span { color: var(--t-ink-3); font-family: var(--t-mono); font-size: 11px; }
+.rhVerdicts p { margin: 0; color: var(--t-ink-2); font-size: 13px; line-height: 1.6; }
+@media (max-width: 900px) { .rhStats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (prefers-reduced-motion: reduce) { .rhCard, .rhVerdicts .ovPanel { animation: none; opacity: 1; } }
