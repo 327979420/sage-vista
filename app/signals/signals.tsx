@@ -3,10 +3,10 @@ import {useState} from 'react';
 import {Localized} from '../i18n/locale';
 import {Missing} from '../app/shared';
 import {orderedTickets,validIndex,validTicket,type TicketIndex} from '../evidence/data';
-import {EvidenceHeader,Status,useEvidence} from '../evidence/shared';
+import {Status,useEvidence} from '../evidence/shared';
 import {TicketView} from '../evidence/ticket';
 import {useSignalRows} from '../app/signal-rows';
-import SignalBoard from './board';
+import SignalBoard,{SignalsHead} from './board';
 export function TicketList({rows,selected,onSelect}:{rows:TicketIndex;selected:string|null;onSelect:(id:string)=>void}) {
  const sorted=orderedTickets(rows);
  return <Localized><section className="cockpitCard svTicketList" aria-label="全部信号"><h2>信号列表 · 最新一周在前</h2><div>{sorted.map(r=><button key={r.id} type="button" aria-pressed={r.id===selected} onClick={()=>onSelect(r.id)}><strong>{r.symbol}</strong><time>{r.signal_week}</time><Status status={r.status}/></button>)}</div></section></Localized>;
@@ -19,7 +19,7 @@ export default function SignalsPage() {
  const url=rows?(empty?'/app/ticket-example.json':id?`/app/tickets/${encodeURIComponent(id)}.json`:null):null;
  const detail=useEvidence(url,validTicket);
  const validDetail=detail.data&&(empty?detail.data.example:!detail.data.example&&detail.data.id===id);
- return <Localized><main className="rtPage rtFeaturedPage cockpit marketSummaryPage svApp svEvidence"><EvidenceHeader/>
+ return <Localized><main className="rtPage rtFeaturedPage cockpit marketSummaryPage svApp svEvidence svTerminalPage"><SignalsHead rows={board.rows}/>
  {index.loading?<Missing loading/>:!rows?<Missing/>:<>{empty?<div className="cockpitEmpty" role="status"><strong>目前没有真实前向信号</strong><p>每周五收盘后检查。下面展示一张历史示例，帮助理解凭证。</p></div>:board.rows?.length?<SignalBoard rows={board.rows} selected={id??null} onSelect={setSelected}/>:<TicketList rows={rows} selected={id??null} onSelect={setSelected}/>}
  {detail.loading?<Missing loading/>:validDetail&&detail.data?<TicketView ticket={detail.data}/>:<Missing/>}</>}</main></Localized>;
 }

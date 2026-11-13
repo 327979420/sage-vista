@@ -90,3 +90,13 @@ export default function SignalBoard({rows,selected,onSelect}:{rows:SignalRow[];s
   </div>
  </section>;
 }
+
+export function SignalsHead({rows}:{rows:SignalRow[]|null}) {
+ const {locale}=useLocale(), en=locale==='en';
+ const orders=rows?.filter(r=>r.status!=='skipped').length??0;
+ return <section className="ovHead sbHead"><div>
+  <small>{en?'3W · Signals · frozen rule 3w-1.9':'3W · 信号 · 冻结规则 3w-1.9'}</small>
+  <h2>{rows?(en?`${rows.length} signals, ${orders} orders.`:`${rows.length} 个信号，${orders} 个下单。`):(en?'Signal evidence':'信号凭证')}</h2>
+  <p>{en?'Each card is one signal’s plan: where to buy, where to stop, where to take profit, and its latest price. Pick a card to see which checks it passed and where it stopped.':'每张卡是一个信号的计划：在哪挂单、在哪止损、目标在哪，以及它现在的价格。点一张卡，右边会一步步亮出它过了哪些关、卡在哪一关。'}</p>
+ </div></section>;
+}

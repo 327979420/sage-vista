@@ -199,3 +199,34 @@ html.svDark .rtSubHero p.rtHeroDescription { color: var(--t-ink-2); font-family:
 .sbNowLine { margin: 0; padding-top: 10px; border-top: 1px solid var(--t-line); color: var(--t-ink-2); font-size: 13px; line-height: 1.6; }
 @media (max-width: 1000px) { .sbLayout { grid-template-columns: minmax(0, 1fr); } .sbDetail { position: static; } }
 @media (prefers-reduced-motion: reduce) { .sbTrace li { animation: none; opacity: 1; transform: none; } .sbNow, .sbNowLabel { transition: none; } }
+
+/* Daily scan web: radar sweep reveals each stock's real result. */
+@property --ov-a { syntax: '<angle>'; inherits: true; initial-value: 0deg; }
+.ovWebBody { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(220px, 1fr); gap: 20px; align-items: center; }
+.ovWebStage { position: relative; width: 100%; max-width: 620px; aspect-ratio: 1; margin: 0 auto; cursor: crosshair; }
+.ovWebStage svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ovSweep { position: absolute; inset: 0; animation: ovSweep 9s cubic-bezier(.35, .1, .25, 1) forwards; }
+.ovBeam { position: absolute; inset: 2%; border-radius: 50%; background: conic-gradient(from calc(var(--ov-a) - 50deg), transparent 0deg, rgba(95, 211, 138, .05) 30deg, rgba(95, 211, 138, .32) 50deg, transparent 50.4deg); animation: ovBeam 9s linear forwards; }
+.ovLit { position: absolute; inset: 0; -webkit-mask-image: conic-gradient(#000 var(--ov-a), transparent 0); mask-image: conic-gradient(#000 var(--ov-a), transparent 0); }
+.ovTop { position: absolute; color: #fff; font-family: var(--t-mono); font-size: 11px; white-space: nowrap; pointer-events: none; }
+.ovCore { position: absolute; left: calc(50% - 4px); top: calc(50% - 4px); width: 8px; height: 8px; border-radius: 50%; background: var(--t-go); box-shadow: 0 0 12px var(--t-go); }
+.ovCore::after { content: ""; position: absolute; inset: -4px; border: 1px solid var(--t-go); border-radius: 50%; animation: ovRing 2.4s ease-out infinite; }
+.ovHover { position: absolute; width: 12px; height: 12px; margin: -6px 0 0 -6px; border: 1px solid #fff; border-radius: 50%; pointer-events: none; }
+.ovWebSide { display: flex; flex-direction: column; gap: 14px; }
+.ovWebLead { margin: 0; color: var(--t-ink-2); font-size: 14px; line-height: 1.6; }
+.ovLegend { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.ovLegend li { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 10px; align-items: center; color: var(--t-ink-2); font-size: 13px; }
+.ovLegend i { width: 8px; height: 8px; border-radius: 50%; }
+.ovLegend b { color: var(--t-ink); font-family: var(--t-mono); font-weight: 400; }
+.ovWebHover { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; min-height: 48px; padding-top: 12px; border-top: 1px solid var(--t-line); color: var(--t-ink-3); font-size: 13px; }
+.ovWebHover b { color: #fff; font-family: var(--t-mono); font-size: 18px; font-weight: 500; }
+.ovWebHover small { flex-basis: 100%; color: var(--t-ink-3); }
+@keyframes ovSweep { from { --ov-a: 0deg; } to { --ov-a: 360deg; } }
+@keyframes ovBeam { 0%, 96% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes ovRing { 0% { transform: scale(.6); opacity: .8; } 100% { transform: scale(2.4); opacity: 0; } }
+.ovMore { margin-top: 18px; border-top: 1px solid var(--t-line); }
+.ovMore > summary { padding: 14px 0; color: var(--t-ink-3); font-family: var(--t-mono); font-size: 12px; letter-spacing: .08em; cursor: pointer; }
+.ovMore > summary:hover { color: var(--t-ink); }
+html.svDark .svTerminalPage { padding-top: 26px; }
+@media (max-width: 800px) { .ovWebBody { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .ovSweep { animation: none; --ov-a: 360deg; } .ovBeam { display: none; } .ovCore::after { animation: none; } }

@@ -3,6 +3,7 @@ import {useEffect,useMemo,useState} from 'react';
 import {useLocale} from '../i18n/locale';
 import type {Today} from './data';
 import {closeAt,scanDay,type SignalRow} from './signal-rows';
+import CrawlWeb from './crawl-web';
 
 // Terminal overview on top of Today: one headline, the signal funnel, the market gate as a
 // field of stocks, a replay of the latest scan and the daily pipeline. Public data only.
@@ -98,7 +99,7 @@ function Pipeline({today,rows,en}:{today:Today;rows:SignalRow[]|null;en:boolean}
   [en?'Paper account':'模拟账户', en?'Running':'运行中', 'go', en?'Core 50% follows the sector trend basket, rebalanced monthly; satellite 50% trades 3W signals.':'核心 50% 跟行业趋势篮子，每月底调仓；卫星 50% 按 3W 信号下单。'],
  ];
  return <section className="ovPanel ovPipe" aria-label={en?'Daily pipeline':'每日流程'}>
-  <header><small>{en?'03 · How a day runs · click a step':'03 · 每天怎么跑 · 点一步看说明'}</small></header>
+  <header><small>{en?'04 · How a day runs · click a step':'04 · 每天怎么跑 · 点一步看说明'}</small></header>
   <div className="ovStations">{S.map(([name,status,tone],i)=><button key={name} type="button" aria-pressed={i===sel} onClick={()=>setSel(i)}>
    <small>{pad(i+1)}</small><b>{name}</b><span data-tone={tone}>{status}</span></button>)}</div>
   <p className="ovExplain"><b>{S[sel][0]}</b> {S[sel][3]}</p>
@@ -120,6 +121,7 @@ export default function Overview({today,rows}:Props) {
   </section>
   {rows&&<Funnel rows={rows} en={en}/>}
   <div className="ovGrid"><GateField today={today} en={en}/>{rows&&<ScanReplay rows={rows} en={en}/>}</div>
+  <CrawlWeb en={en}/>
   <Pipeline today={today} rows={rows} en={en}/>
  </div>;
 }
