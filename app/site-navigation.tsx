@@ -3,6 +3,7 @@ import {useEffect,useState} from 'react';
 import {useNavigationCount} from './navigation-count';
 import {usePathname} from 'next/navigation';
 import {LanguageSwitch,useLocale} from './i18n/locale';
+import {sharedJson} from './json-cache';
 
 // Terminal shell: top status bar, a strip of real events and five sections in a side menu.
 // [zh label, en label, path]; each section lists the pages it absorbed.
@@ -21,7 +22,7 @@ type Today = {signal_week?: string; new_signals_this_week?: number; orders_to_pl
  market?: {light?: string; breadth?: number; distance_pct?: number}; month_end?: {rebalance_due?: boolean}};
 type Record_ = {forward?: {signals?: number; counts?: {closed?: number; open?: number; waiting?: number}}};
 
-const getJson = <T,>(url: string) => fetch(url, {cache: 'no-store'}).then(r => r.ok ? r.json() as Promise<T> : null).catch(() => null);
+const getJson = <T,>(url: string) => sharedJson<T>(url);
 const shift = (iso: string, days: number) => { const d = new Date(iso + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + days); return d.toISOString().slice(5, 10); };
 const pct = (v: number) => (v > 0 ? '+' : '') + v.toFixed(1) + '%';
 

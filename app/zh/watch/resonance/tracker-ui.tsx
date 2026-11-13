@@ -1,6 +1,7 @@
 "use client";
 import {Localized} from '../../../i18n/locale';
 import {ReactNode,useEffect,useState} from "react";
+import {sharedJson} from "../../../json-cache";
 
 type UpdateStatus={
  status:"up_to_date"|"stale"|"failed";
@@ -22,7 +23,7 @@ export const featuredModule="多因子机会";
 
 function useUpdateStatus(){
  const [status,setStatus]=useState<UpdateStatus|null>(null);
- useEffect(()=>{fetch("/update-status.json",{cache:"no-store"}).then(x=>x.ok?x.json():null).then(setStatus).catch(()=>setStatus(null))},[]);
+ useEffect(()=>{void sharedJson<UpdateStatus>("/update-status.json",()=>fetch("/update-status.json",{cache:"no-store"})).then(setStatus)},[]);
  return status;
 }
 

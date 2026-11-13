@@ -49,7 +49,7 @@ export default function MarketTerminal({internals,external,watch,today}:Props) {
  return <div className="ovRoot">
   <section className="ovHead"><div>
    <small>{en?`Market · ${last.date}`:`市场 · 大盘 · ${last.date}`}</small>
-   <h2>{en?`${last.date.slice(5)}: ${mood}.`:`${last.date.slice(5)}：${mood}。`}</h2>
+   <h1>{en?`${last.date.slice(5)}: ${mood}.`:`${last.date.slice(5)}：${mood}。`}</h1>
    <p>{en?'One question on this page: is the market with us or against us? All numbers are from the daily close.':'这一页只回答一个问题：市场现在顺不顺。数字都来自每天收盘后的真实数据。'}</p>
   </div></section>
   <div className="mkKpis">

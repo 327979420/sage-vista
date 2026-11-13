@@ -50,7 +50,7 @@ export default function IndustryRadar(){
  const rank=reports[PATHS[2]] as {as_of:string;ranked_symbols:string[]}|null;
  return <Localized><TrackerShell active="行业" title="行业" subtitle="行业方向与相关机会。" overview>
   {!loading&&industry&&industry.as_of===targetDate&&<SectorTerminal data={industry as Industry}/>}
-  <div className="mvpPageTitle"><div><h1>行业</h1></div><button className="mvpRefresh" onClick={refresh}>↻ 刷新</button></div>
+  <div className="mvpPageTitle"><div><h2>行业</h2></div><button className="mvpRefresh" onClick={refresh}>↻ 刷新</button></div>
   {loading?<p className="marketLoading" role="status">正在读取行业快照…</p>:<IndustryView context={industry&&!industry.future_data_used&&industry.as_of===targetDate?industry.display_context:null} targetDate={targetDate} candidates={rank?.ranked_symbols??[]} candidateDate={rank?.as_of}/>}
  </TrackerShell></Localized>
 }

@@ -34,7 +34,7 @@ export default function SetupWall({asOf,rows,counts,covered,onPick}:Props) {
  return <div className="ovRoot">
   <section className="ovHead"><div>
    <small>{en?`Candidates · Daily setups · ${asOf}`:`候选 · 形态 · ${asOf}`}</small>
-   <h2>{en?`${counts.waiting??0} setups waiting to break out, ${counts.broken_out??0} already through.`:`${counts.waiting??0} 只等待突破，${counts.broken_out??0} 只已经突破。`}</h2>
+   <h1>{en?`${counts.waiting??0} setups waiting to break out, ${counts.broken_out??0} already through.`:`${counts.waiting??0} 只等待突破，${counts.broken_out??0} 只已经突破。`}</h1>
    <p>{en?`From the 100 most-traded of ${covered.toLocaleString()} covered stocks: three-push pullbacks onto confirmed multi-bottom support. Click a chart to open it.`:`在 ${covered.toLocaleString()} 只已覆盖股票里成交最活跃的 100 只中，找三推回调、多底支撑。点任意一张图打开看。`}</p>
   </div></section>
   <div className="dsStages" aria-label={en?'Stages':'阶段'}>{stages.map(([k,zh,enL,c])=><div key={k} style={{flex:`${ready?(counts[k]??0)/total*100:33} 1 0`,borderTopColor:c}}><b style={{color:c}}>{counts[k]??0}</b><span>{en?enL:zh}</span></div>)}</div>

@@ -1,5 +1,6 @@
 'use client';
 import {useEffect,useMemo,useState,type MouseEvent} from 'react';
+import {sharedJson} from '../json-cache';
 
 // The daily candidate scan as a spider web: every dot is one stock the scan reviewed (public
 // cr056-ranking.json). The closer to the centre, the further it got; a radar sweep lights the
@@ -38,7 +39,7 @@ export default function CrawlWeb({en}:{en:boolean}) {
  const [data,setData]=useState<Ranking|null>(null);
  const [hover,setHover]=useState<number>(-1);
  const [run,setRun]=useState(0);
- useEffect(()=>{let active=true;fetch('/cr056-ranking.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then((d:Ranking|null)=>{if(active&&d&&Array.isArray(d.reviews))setData(d)}).catch(()=>{});return()=>{active=false}},[]);
+ useEffect(()=>{let active=true;void sharedJson<Ranking>('/cr056-ranking.json').then(d=>{if(active&&d&&Array.isArray(d.reviews))setData(d)});return()=>{active=false}},[]);
  const web=useMemo(()=>data?layout(data.reviews):null,[data]);
  if(!data||!web)return null;
  const h=hover>=0?web.dots[hover]:null;

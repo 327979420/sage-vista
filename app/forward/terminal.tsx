@@ -2,6 +2,7 @@
 import {useEffect,useState} from 'react';
 import {useLocale} from '../i18n/locale';
 import type {Forward} from '../evidence/data';
+import {sharedJson} from '../json-cache';
 
 // Forward record, terminal view: how far from proof, what happened to every signal, and the
 // evidence so far. Reads forward.json and record.json, both already public.
@@ -27,7 +28,7 @@ export default function ForwardTerminal({data}:{data:Forward}) {
  const [sel,setSel]=useState<string|null>(null);
  const [open,setOpen]=useState<string|null>(null);
  const [ready,setReady]=useState(false);
- useEffect(()=>{let active=true;fetch('/app/record.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(d=>{if(active&&validRecord(d))setRecord(d)}).catch(()=>{});const t=setTimeout(()=>setReady(true),150);return()=>{active=false;clearTimeout(t)}},[]);
+ useEffect(()=>{let active=true;void sharedJson<unknown>('/app/record.json').then(d=>{if(active&&validRecord(d))setRecord(d)});const t=setTimeout(()=>setReady(true),150);return()=>{active=false;clearTimeout(t)}},[]);
  const j=data.judging, t=j.thresholds, closed=data.summary.closed, goal=t.proof_min_trades;
  const count=(st:string)=>data.signals.filter(s=>s.status===st).length;
  const flow:[string,number,string,string][]=[
@@ -47,7 +48,7 @@ export default function ForwardTerminal({data}:{data:Forward}) {
  return <div className="ovRoot">
   <section className="ovHead"><div>
    <small>{en?'3W · Forward record · after the rule froze':'3W · 前向记录 · 规则冻结之后'}</small>
-   <h2>{verdict}</h2>
+   <h1>{verdict}</h1>
    <p>{en?`Only new signals after the freeze count. ${goal} closed trades with t ≥ ${t.proof_t_gte} prove it; a negative average with t ≤ ${t.alarm1_t_lte} raises an alarm.`:`只算规则冻结之后的新信号。平仓满 ${goal} 笔、t 值到 ${t.proof_t_gte} 才算证明有效；平均为负且 t 到 ${t.alarm1_t_lte} 就拉警报。`}</p>
   </div></section>
   <section className="ovPanel fwProof" aria-label={en?'Progress to proof':'证明进度'}>

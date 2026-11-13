@@ -1,5 +1,6 @@
 "use client";
 import {Localized} from '../../../../i18n/locale';
+import {sharedJson} from "../../../../json-cache";
 import IndustryContext from "../../industry-radar/context";
 import {Fragment,useEffect,useState,useRef,type ReactNode} from "react";
 
@@ -169,7 +170,7 @@ export default function CandidateRanking(){
  const [data,setData]=useState<CandidateData|null>(null);const [error,setError]=useState(false);const [latestDate,setLatestDate]=useState<string>();
  useEffect(()=>{
   let active=true;
-  fetch("/cr056-ranking.json",{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error("missing");return r.json()}).then(d=>{if(d.result_role!=="legacy_comparison"||!Array.isArray(d.ranked_symbols)||!Array.isArray(d.reviews))throw new Error("invalid");if(active)setData(d)}).catch(()=>{if(active)setError(true)});
+  sharedJson<Awaited<ReturnType<Response["json"]>>>("/cr056-ranking.json",()=>fetch("/cr056-ranking.json",{cache:"no-store"})).then(d=>{if(!d)throw new Error("missing");return d}).then(d=>{if(d.result_role!=="legacy_comparison"||!Array.isArray(d.ranked_symbols)||!Array.isArray(d.reviews))throw new Error("invalid");if(active)setData(d)}).catch(()=>{if(active)setError(true)});
   fetch("/update-status.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>{if(active)setLatestDate(d?.source_latest_complete_date)}).catch(()=>{});
   return ()=>{active=false};
  },[]);
