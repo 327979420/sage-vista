@@ -3,7 +3,9 @@ import {Localized} from '../i18n/locale';
 import {Missing} from '../app/shared';
 import {validForward,type Forward,type Judging} from '../evidence/data';
 import {OutcomeStepper} from '../evidence/stepper';
-import {EvidenceHeader,pct,rText,useEvidence} from '../evidence/shared';
+import {pct,rText,useEvidence} from '../evidence/shared';
+import ForwardTerminal from './terminal';
+import MoreDetails from '../app/more-details';
 // The record update date is the last check, distinct from the older price-data date.
 export function nextFriday(date:string) {
  const day=new Date(`${date.slice(0,10)}T00:00:00Z`);
@@ -48,4 +50,4 @@ export function ForwardView({data}:{data:Forward}) {
 
  <p className="svAppSource">净R扣除每边0.1%成本，以实际成交风险计算；毛R仅供核对。涨跌从信号收盘价起算，未到期或缺价显示—。随机净R只统计已平仓对照，最多抽30只；毛R均值核对失败显示未核验。胜过对照使用净R严格大于，平手不算胜出。</p></section></></Localized>;
 }
-export default function ForwardPage(){const state=useEvidence('/app/forward.json',validForward);return <Localized><main className="rtPage rtFeaturedPage cockpit marketSummaryPage svApp svEvidence"><EvidenceHeader forward/>{state.loading?<Missing loading/>:state.data?<ForwardView data={state.data}/>:<Missing/>}</main></Localized>}
+export default function ForwardPage(){const state=useEvidence('/app/forward.json',validForward);return <Localized><main className="rtPage rtFeaturedPage cockpit marketSummaryPage svApp svEvidence svTerminalPage">{state.loading?<Missing loading/>:state.data?<><ForwardTerminal data={state.data}/><MoreDetails zh="详细数据（判卷细节、逐个信号表）" en="Detailed data (judging details, signal table)"><ForwardView data={state.data}/></MoreDetails></>:<Missing/>}</main></Localized>}

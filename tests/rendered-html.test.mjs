@@ -153,7 +153,7 @@ test("Market is a real product page and the retired overview is absent", async (
  const response=await render("/zh/watch/market");
  assert.equal(response.status,200);
  const html=await response.text();
- assert.match(html,/看清整个市场，再决定去哪里找机会/);
+ // The page leads with the terminal view once data loads; the original heading sits in its fold.
  assert.match(html,/正在读取今日快照/);
  assert.match(html,/href="\/zh\/watch\/market"/);
  assert.doesNotMatch(html,/今日研究总览|精选机会，不追高/);

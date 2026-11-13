@@ -230,3 +230,97 @@ html.svDark .rtSubHero p.rtHeroDescription { color: var(--t-ink-2); font-family:
 html.svDark .svTerminalPage { padding-top: 26px; }
 @media (max-width: 800px) { .ovWebBody { grid-template-columns: minmax(0, 1fr); } }
 @media (prefers-reduced-motion: reduce) { .ovSweep { animation: none; --ov-a: 360deg; } .ovBeam { display: none; } .ovCore::after { animation: none; } }
+
+/* Forward record: proof track, flow, what skipped signals did, evidence list. */
+.fwNext { color: var(--t-ink-3); font-family: var(--t-mono); font-size: 12px; }
+.fwCount { color: var(--t-ink); font-family: var(--t-mono); font-size: 44px; font-weight: 300; line-height: 1; }
+.fwCount span { color: var(--t-ink-4); font-size: 18px; }
+.fwTrack { position: relative; height: 10px; margin: 26px 0 30px; border: 1px solid var(--t-line); background: #11161b; }
+.fwFill { position: absolute; inset: 0 auto 0 0; background: var(--t-go); transition: width 1.2s cubic-bezier(.2, .8, .2, 1); }
+.fwScan { position: absolute; top: 0; bottom: 0; width: 70px; background: linear-gradient(90deg, transparent, rgba(95, 211, 138, .22), transparent); animation: fwScan 4s linear infinite; }
+.fwCheck { position: absolute; top: -7px; width: 2px; height: 22px; margin-left: -1px; background: var(--t-line-2); }
+.fwCheck[data-final] { background: var(--t-ink); }
+.fwCheck em { position: absolute; top: 26px; left: 0; transform: translateX(-50%); color: var(--t-ink-3); font-family: var(--t-mono); font-size: 10px; font-style: normal; white-space: nowrap; }
+.fwCheck[data-final] em { transform: translateX(-100%); color: var(--t-ink); }
+.fwNow { position: absolute; top: -3px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: var(--t-go); box-shadow: 0 0 12px var(--t-go); transition: left 1.2s cubic-bezier(.2, .8, .2, 1); }
+.fwNow::after { content: ""; position: absolute; inset: -4px; border: 1px solid var(--t-go); border-radius: 50%; animation: ovRing 2.4s ease-out infinite; }
+.fwNow em { position: absolute; bottom: 20px; left: 0; color: var(--t-go); font-family: var(--t-mono); font-size: 10px; font-style: normal; }
+.fwFlow { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.fwGrid { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+.fwSpans { display: flex; gap: 4px; }
+.fwSpans button { padding: 3px 9px; border: 1px solid var(--t-line); background: transparent; color: var(--t-ink-3); font-family: var(--t-mono); font-size: 11px; cursor: pointer; }
+.fwSpans button[aria-pressed="true"] { border-color: var(--t-ink); color: #fff; }
+.fwSpans button:disabled { opacity: .35; cursor: default; }
+.fwLead { margin: 0; color: var(--t-ink-3); font-size: 13px; line-height: 1.6; }
+.fwPlot { position: relative; height: 210px; margin: 6px 0 4px; }
+.fwPlot::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--t-line-2); }
+.fwZero { position: absolute; left: 50%; top: 10px; bottom: 22px; width: 1px; background: var(--t-ink-4); }
+.fwAxis { position: absolute; bottom: 0; transform: translateX(-50%); color: var(--t-ink-4); font-family: var(--t-mono); font-size: 10px; font-style: normal; }
+.fwDot { position: absolute; width: 12px; height: 12px; margin: -6px 0 0 -6px; padding: 0; border: 0; border-radius: 50%; background: var(--t-loss); cursor: pointer; transition: left 1s cubic-bezier(.2, .8, .2, 1), transform .2s; }
+.fwDot[data-up] { background: var(--t-wait); }
+.fwDot[data-on] { background: #fff; box-shadow: 0 0 14px #fff; }
+.fwDot:hover { transform: scale(1.3); }
+.fwDot:focus-visible, .fwFact:focus-visible, .fwSpans button:focus-visible { outline: 2px solid var(--t-ink); outline-offset: 2px; }
+.fwDot span { position: absolute; left: 50%; top: -18px; transform: translateX(-50%); color: var(--t-ink-3); font-family: var(--t-mono); font-size: 10px; white-space: nowrap; pointer-events: none; }
+.fwDot[data-on] span { color: #fff; }
+.fwPick { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; padding-top: 12px; border-top: 1px solid var(--t-line); }
+.fwPick b { font-family: var(--t-mono); font-size: 24px; font-weight: 500; letter-spacing: .04em; }
+.fwPick > span { color: var(--t-ink-3); font-family: var(--t-mono); font-size: 12px; }
+.fwPick strong { margin-left: auto; font-family: var(--t-mono); font-size: 20px; font-weight: 400; }
+.fwPick p { flex-basis: 100%; margin: 4px 0 0; color: var(--t-ink-2); font-size: 13px; line-height: 1.6; }
+.fwFacts { display: flex; flex-direction: column; }
+.fwFact { display: flex; flex-direction: column; gap: 4px; padding: 12px 4px; border: 0; border-top: 1px solid var(--t-line); background: transparent; color: var(--t-ink); text-align: left; cursor: pointer; }
+.fwFact:hover { background: var(--t-raise); }
+.fwFactTop { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 14px; }
+.fwFactTop b { font-weight: 500; }
+.fwFactTop em { padding: 2px 8px; border: 1px solid currentColor; font-family: var(--t-mono); font-size: 10px; font-style: normal; letter-spacing: .06em; white-space: nowrap; }
+.fwFact small { color: var(--t-ink-3); font-family: var(--t-mono); font-size: 11px; }
+.fwFactNote { color: var(--t-ink-2); font-size: 13px; line-height: 1.6; }
+@keyframes fwScan { from { left: 0; } to { left: calc(100% - 70px); } }
+@media (max-width: 1100px) { .fwGrid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 600px) { .fwFlow { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (prefers-reduced-motion: reduce) { .fwFill, .fwNow, .fwDot { transition: none; } .fwScan, .fwNow::after { animation: none; display: none; } }
+
+/* Market: day numbers, scrubbable breadth chart, fund heatmap. */
+.mkKpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.mkKpis .ovPanel { gap: 6px; }
+.mkKpis small { color: var(--t-ink-3); font-family: var(--t-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+.mkKpis b { color: var(--t-ink); font-family: var(--t-mono); font-size: 30px; font-weight: 300; }
+.mkKpis b em { font-style: normal; } .mkKpis b i { color: var(--t-ink-4); font-style: normal; }
+.mkKpis b em[data-tone="go"] { font-size: 13px; vertical-align: middle; }
+.mkKpis span[data-tone] { font-family: var(--t-mono); font-size: 13px; }
+.mkSplit { display: flex; height: 6px; background: var(--t-line); }
+.mkSplit span { transition: width .9s cubic-bezier(.2, .8, .2, 1); }
+.mkSplit span:first-child { background: var(--t-go); } .mkSplit span:last-child { background: var(--t-loss); }
+.mkBands { position: relative; display: flex; gap: 2px; height: 6px; }
+.mkBands span { position: absolute; top: -5px; width: 2px; height: 16px; background: #fff; transition: left .9s cubic-bezier(.2, .8, .2, 1); }
+.mkGrid { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); }
+.mkRead { display: flex; flex-wrap: wrap; gap: 6px 16px; min-height: 18px; margin: 0; color: var(--t-ink-3); font-family: var(--t-mono); font-size: 12px; }
+.mkRead b { color: #fff; font-weight: 400; } .mkRead em { color: var(--t-ink); font-style: normal; }
+.mkChart { position: relative; height: 260px; }
+.mkChart svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.mkLine { transition: stroke-opacity .3s; }
+.mkLines { animation: mkDraw 1.6s cubic-bezier(.2, .8, .2, 1) both; }
+.mkHalf { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--t-line-2); }
+.mkHalf em { position: absolute; right: 0; top: -16px; color: var(--t-ink-4); font-family: var(--t-mono); font-size: 10px; font-style: normal; }
+.mkCross { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--t-line-2); pointer-events: none; }
+.mkCols { position: absolute; inset: 0; display: flex; }
+.mkCols button { flex: 1; padding: 0; border: 0; background: transparent; cursor: crosshair; }
+.mkCols button:focus-visible { outline: 1px solid var(--t-ink); outline-offset: -1px; }
+.mkFoot { display: flex; justify-content: space-between; margin: 0; color: var(--t-ink-4); font-family: var(--t-mono); font-size: 10px; }
+.mkHeat { display: flex; flex-direction: column; gap: 10px; }
+.mkHeat > div > small { display: block; margin-bottom: 5px; color: var(--t-ink-3); font-family: var(--t-mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
+.mkHeat > div > div { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 3px; }
+.mkTile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 56px; padding: 6px 4px; border: 0; color: #fff; cursor: pointer; transition: background-color .6s ease, transform .15s; }
+.mkTile b { font-family: var(--t-mono); font-size: 15px; font-weight: 500; } .mkTile span { font-family: var(--t-mono); font-size: 12px; }
+.mkTile:hover { position: relative; z-index: 1; transform: scale(1.04); }
+.mkTile[aria-pressed="true"] { outline: 2px solid #fff; outline-offset: -2px; }
+.mkTile:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+.mkHeatFoot { display: flex; justify-content: space-between; align-items: center; gap: 10px; color: var(--t-ink-2); font-size: 13px; }
+.mkHeatFoot b { color: #fff; font-family: var(--t-mono); font-weight: 500; margin-right: 6px; }
+.mkHeatFoot button { padding: 4px 10px; border: 1px solid var(--t-line); background: transparent; color: var(--t-ink-2); font-family: var(--t-mono); font-size: 11px; white-space: nowrap; cursor: pointer; }
+.mkGate { border-color: var(--t-wait); }
+.mkGate p { margin: 0; color: var(--t-ink); font-size: 15px; line-height: 1.7; }
+@keyframes mkDraw { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@media (max-width: 1100px) { .mkKpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .mkGrid { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .mkLines { animation: none; } .mkSplit span, .mkBands span, .mkTile { transition: none; } }

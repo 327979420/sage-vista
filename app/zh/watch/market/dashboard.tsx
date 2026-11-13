@@ -3,11 +3,13 @@ import {Localized} from '../../../i18n/locale';
 import {useEffect,useRef,useState,type ReactNode} from 'react';
 import {TrackerShell} from '../resonance/tracker-ui';
 import {useDailyData} from './daily-data';
+import MarketTerminal,{type Internals,type External,type Watch,type Today as TerminalToday} from './terminal';
+import MoreDetails from '../../../app/more-details';
 
 import {complete,participation,breakouts,leadership,sectorReading,positionReading,marginReading,unavailable,type Reading,type Panel,type CockpitReport,type SampleReport} from './interpretation';
 export type {CockpitReport} from './interpretation';
 type Line={label:string;color:string;values:(number|null)[]};
-const PATHS=['/update-status.json','/market-cockpit.json','/market-internals.json'] as const;
+const PATHS=['/update-status.json','/market-cockpit.json','/market-internals.json','/market-external.json','/market-etf-watch.json','/app/today.json'] as const;
 const BLUE='#4979d1',TEAL='#148979',PURPLE='#8b68b4',RED='#bd6264';
 const finite=(v:unknown):v is number=>typeof v==='number'&&Number.isFinite(v);
 const num=(v:number|null|undefined,d=1)=>finite(v)?v.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}):'—';
@@ -137,5 +139,5 @@ export function MarketView({cockpit,sample,targetDate}:{cockpit:CockpitReport|nu
 export default function MarketDashboard(){
  const {reports,loading,refresh}=useDailyData(PATHS);
  const targetDate=(reports[PATHS[0]] as {source_latest_complete_date?:string}|null)?.source_latest_complete_date??'';
- return <Localized><TrackerShell active="大盘" title="大盘" subtitle="先看每日参与，再看周度仓位与月度融资。" overview><div className="mvpPageTitle"><div><h1>大盘</h1><strong className="svHeroLead">看清整个市场，再决定去哪里找机会。</strong><p>了解有多少股票在上涨、资金流入还是流出，以及机构仓位的变化。</p></div><button className="mvpRefresh" onClick={refresh}>↻ 刷新</button></div>{loading?<p className="marketLoading" role="status">正在读取今日快照…</p>:!targetDate?<div className="marketError" role="alert">暂时无法核对收盘日，请刷新重试。</div>:<MarketView cockpit={reports[PATHS[1]] as CockpitReport|null} sample={reports[PATHS[2]] as SampleReport|null} targetDate={targetDate}/>}</TrackerShell></Localized>
+ return <Localized><TrackerShell active="大盘" title="大盘" subtitle="先看每日参与，再看周度仓位与月度融资。" overview>{loading?<p className="marketLoading" role="status">正在读取今日快照…</p>:<><MarketTerminal internals={reports[PATHS[2]] as Internals|null} external={reports[PATHS[3]] as External|null} watch={reports[PATHS[4]] as Watch|null} today={reports[PATHS[5]] as TerminalToday|null}/><MoreDetails zh="详细数据（原来的大盘页：参与度、机构仓位、融资）" en="Detailed data (the original Market page: participation, positioning, margin)"><div className="mvpPageTitle"><div><h1>大盘</h1><strong className="svHeroLead">看清整个市场，再决定去哪里找机会。</strong><p>了解有多少股票在上涨、资金流入还是流出，以及机构仓位的变化。</p></div><button className="mvpRefresh" onClick={refresh}>↻ 刷新</button></div>{!targetDate?<div className="marketError" role="alert">暂时无法核对收盘日，请刷新重试。</div>:<MarketView cockpit={reports[PATHS[1]] as CockpitReport|null} sample={reports[PATHS[2]] as SampleReport|null} targetDate={targetDate}/>}</MoreDetails></>}</TrackerShell></Localized>
 }
