@@ -180,4 +180,19 @@ class DailyBackgroundOrderTests(unittest.TestCase):
         publish_market_cache(AS_OF)
         self.assertEqual(json.loads((target/'SPY.json').read_text())[-1]['date'],AS_OF)
 
+    def test_industry_radar_benchmark_includes_target_session_before_cache_publish(self):
+        from services.scanner import daily_tracker_update as daily
+        target=Path('work/eodhd-cache');target.mkdir(parents=True)
+        (target/'SPY.json').write_text(json.dumps(raw_rows()[:-1]))
+        seen={}
+        def radar(out,as_of,**kwargs):
+            seen['spy']=kwargs['benchmark_loader']('SPY')
+            raise RuntimeError('stop_at_radar')
+        with patch.object(daily,'read_json',return_value={}), patch.object(daily,'prepare_background',return_value=({'as_of':AS_OF},{'as_of':AS_OF})), \
+                patch.object(daily,'expand_universe'), patch.object(daily,'run_tracker'), patch.object(daily,'run_factor_snapshot'), patch.object(daily,'run_radar'), \
+                patch.object(daily,'run_industry_radar',side_effect=radar), patch('services.scanner.market_etf_watch.prices',return_value=raw_rows()):
+            with self.assertRaisesRegex(RuntimeError,'stop_at_radar'):daily.run(as_of=AS_OF)
+        self.assertEqual(seen['spy'][-1]['date'],AS_OF)
+        self.assertNotEqual(json.loads((target/'SPY.json').read_text())[-1]['date'],AS_OF)
+
 if __name__ == '__main__': unittest.main()

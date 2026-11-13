@@ -107,6 +107,9 @@ def check_tracker_and_status(public, as_of, warnings):
             or {status['source_latest_complete_date'], status['tracker_as_of'], status['radar_as_of']} != {as_of}):
         raise ValueError('update-status does not prove a same-day release')
     industry = read(public, 'industry-radar.json')
+    if industry['themes'] and all(t['state'] == 'Unavailable' for t in industry['themes']):
+        benchmark = industry.get('price_data_audit', {}).get('benchmark_latest_bar')
+        warnings.append(f"industry-radar: every theme is Unavailable (SPY last bar {benchmark})")
     semi = next(t for t in industry['themes'] if t['theme_id'] == 'semiconductors')
     if semi['valid_member_count'] < 5 and semi['state'] != 'Unavailable':
         raise ValueError('industry-radar: semiconductors scored with fewer than 5 valid members')
