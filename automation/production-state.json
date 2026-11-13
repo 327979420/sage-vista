@@ -1,9 +1,9 @@
 {
-  "as_of": "2026-11-11",
+  "as_of": "2026-11-12",
   "site_url": "https://sage.freddyliang.com",
   "live_verified": true,
   "discord_result": "duplicate_skipped",
   "trigger_source": "manual",
   "website_version": "unified-v2-macd-trigger-1.4.0",
-  "deployment_commit": "a7f344d74acac6ac32a44a2231c78f9f283cb0e5"
+  "deployment_commit": "fc37d7e8bdf80d1d9a8b99ac9f3c4342f0e42b2e"
 }
