@@ -4,16 +4,16 @@ import {useEffect} from 'react';
 
 /* PostHog visitor analytics (US cloud), shared with freddyliang.com: the cookie on
  * .freddyliang.com keeps one anonymous visitor across both sites, and opting out on
- * either site applies to both. No session replay. Deployed hosts only; local dev stays silent.
+ * either site applies to both. No session replay. The live site only: local dev and preview hosts stay silent.
  * The project key is public by design. */
 const POSTHOG_KEY = 'phc_tT898VwuWXwX7s5zaAaJjuzz9qKa2j3tNqrKsxn5W6d8';
 const POSTHOG_HOST = 'https://us.i.posthog.com';
-const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]']);
+const LIVE_HOST = 'freddyliang.com';
 
 let searchTimer: ReturnType<typeof setTimeout> | undefined;
 
 function start() {
- if (posthog.__loaded || process.env.NODE_ENV !== 'production' || LOCAL_HOSTS.has(location.hostname)) return;
+ if (posthog.__loaded || process.env.NODE_ENV !== 'production' || !location.hostname.endsWith(LIVE_HOST)) return;
  posthog.init(POSTHOG_KEY, {
   api_host: POSTHOG_HOST,
   defaults: '2026-08-30',
