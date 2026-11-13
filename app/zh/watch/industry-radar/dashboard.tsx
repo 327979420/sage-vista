@@ -3,6 +3,7 @@ import {translate} from '../../../i18n/messages';
 import {Localized} from '../../../i18n/locale';
 import {useState} from 'react';
 import {TrackerShell} from '../resonance/tracker-ui';
+import SectorTerminal,{type Industry} from './terminal';
 import {useDailyData} from '../market/daily-data';
 import {names,type Context,type Theme} from './context';
 const PATHS=['/update-status.json','/industry-radar.json','/cr056-ranking.json'] as const;
@@ -48,6 +49,7 @@ export default function IndustryRadar(){
  const industry=reports[PATHS[1]] as {as_of:string;future_data_used:boolean;display_context:Context}|null;
  const rank=reports[PATHS[2]] as {as_of:string;ranked_symbols:string[]}|null;
  return <Localized><TrackerShell active="行业" title="行业" subtitle="行业方向与相关机会。" overview>
+  {!loading&&industry&&industry.as_of===targetDate&&<SectorTerminal data={industry as Industry}/>}
   <div className="mvpPageTitle"><div><h1>行业</h1></div><button className="mvpRefresh" onClick={refresh}>↻ 刷新</button></div>
   {loading?<p className="marketLoading" role="status">正在读取行业快照…</p>:<IndustryView context={industry&&!industry.future_data_used&&industry.as_of===targetDate?industry.display_context:null} targetDate={targetDate} candidates={rank?.ranked_symbols??[]} candidateDate={rank?.as_of}/>}
  </TrackerShell></Localized>
