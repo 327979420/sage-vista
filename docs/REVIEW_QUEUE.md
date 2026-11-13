@@ -20,6 +20,7 @@
 
 | 日期 | 事项 | 分支 / PR | 验证证据与核查重点 | 交付状态 | 独立核查 |
 |---|---|---|---|---|---|
+| 2026-11-13 | 网站改版第 1 步：深色终端框架 | `claude/terminal-frame` | 顶栏 + 事件条 + 五板块侧栏包住全部 12 页，内容不变；`scripts/build_dark_theme.py --check` 保证深色样式与浅色样式同步（test_product_consolidation）。`npm run lint`、typecheck、build、`node --test tests/*.test.mjs` 115 项通过；Python 29 项通过；本地预览 1440 / 375 宽度逐页查看 | 已实现，待 owner 预览与合并；无线上预览网址 | 待核查 |
 | 2026-11-07 | 行业主题雷达：给雷达当天的 SPY | `claude/radar-fresh-prices` | 公开 industry-radar.json 自 09-04 起 20/20 Unavailable、703/703 历史不足；08-28 同日重跑恢复 12 个主题。新测试在旧代码上失败、修复后通过：雷达用 benchmark_loader 的 SPY；日更传入的 SPY 含当天且共享缓存仍在股票扫描后才更新；全部 Unavailable 时发布检查警告。全量 Python 测试见 PR | 已实现，待 CI 与合并；合并后看下一次 EOD 的主题数 | 待核查 |
 | 2026-11-03 | 网站日更：候选榜大小上限 750 kB→1.5 MB | `claude/eod-cache-index` | 失败运行 41575853396 审计产物：cr056 结果 retained_previous / public_projection_size_budget_exceeded；11-02 投影 908,864 字节、gzip 86,869；观察历史子集检查通过。`python3 -m unittest tests.test_cr056_daily tests.test_cr056_public tests.test_release_contract` 22 项通过；guardrails ok | 已实现，待 CI 与合并；合并后看下一次 EOD 运行 | 待核查 |
 | 2026-10-26 | Task047 周报数据源与前向日期修复 | `codex/weekly-report-fix` | Claude 2026-10-26 确认：history.jsonl 的 values.spy 为「SPY 买入持有账户净值（含少量现金）」、与账户同期归一；as_of / price_as_of 对估值日防未来，generated_at 仅展示；forward UTC日期允许报告日+1。37项通过（周报12 + app_data25），命令见下；diff检查通过。覆盖未来portfolio、+1/+2及UTC偏移、缺基准、NAV归一及显式冻结回退 | 本地完成；样例 work/task047/2026-10-24.html：XLB/XLP候选变化、无过期、未到期；10-25前向0记录接受；基准不可用。无真实cockpit，仅合成夹具适配估值日且保留旧价，账户估值不可用；未联网/暂存/提交，未验证真实冻结dataset或浏览器视觉 | 待核查 |

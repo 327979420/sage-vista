@@ -3,9 +3,12 @@ import {validForward,type Forward} from '../evidence/data';
 import {useEvidence} from '../evidence/shared';
 import {usePageCount} from '../navigation-count';
 import {Localized} from '../i18n/locale';
+import MoreDetails from './more-details';
 import type {Today} from './data';
-import {Header,Missing,Source,DataDate,percent,useReport} from './shared';
+import {Missing,Source,DataDate,percent,useReport} from './shared';
 import {strings as s} from './strings';
+import Overview from './overview';
+import {useSignalRows} from './signal-rows';
 export function TodayView({data}:{data:Today}) {
   const m=data.market;
   return <Localized><DataDate date={data.as_of}/>{Object.keys(data.stale).length>0&&<aside className="svAppWarning"><strong>{s.stale}</strong><p>{s.staleDetail}</p><details><summary>{Object.keys(data.stale).length} · {s.stale}</summary><ul>{Object.entries(data.stale).map(([key,date])=><li key={key}>{s.inputName(key).split(" · ").flatMap((part,index)=>index?[" · ",part]:[part])}：{date??s.unknownDate}</li>)}</ul></details></aside>}
@@ -23,4 +26,4 @@ export function TodaySummary({data}:{data:Today}) {
 export function ForwardSummary({data}:{data:Forward}) {
  return <Localized><a className="researchReplay svForwardSummary" href="/forward"><span>前向记录：已记录</span> <strong>{data.summary.signals}</strong> <span>个信号，最近一次检查</span> <time>{data.outcomes_as_of.slice(0,10)}</time><span aria-hidden="true"> →</span></a></Localized>;
 }
-export default function TodayPage() {const state=useReport('today'),forward=useEvidence('/app/forward.json',validForward);usePageCount('/',state.data?.new_signals_this_week??null);return <Localized><main className="rtPage rtFeaturedPage cockpit marketSummaryPage svApp"><Header current="today">{state.data?<TodaySummary data={state.data}/>:<Missing loading={state.loading}/>}</Header>{forward.data&&<ForwardSummary data={forward.data}/>} {state.data?<TodayView data={state.data}/>:<Missing loading={state.loading}/>}</main></Localized>}
+export default function TodayPage() {const state=useReport('today'),forward=useEvidence('/app/forward.json',validForward),signals=useSignalRows();usePageCount('/',state.data?.new_signals_this_week??null);return <Localized><main className="rtPage rtFeaturedPage cockpit marketSummaryPage svApp svTerminalPage">{state.data?<Overview today={state.data} rows={signals.rows}/>:<Missing loading={state.loading}/>}{state.data&&<MoreDetails zh="详细数据（原来的今日页）" en="Detailed data (the original Today page)">{forward.data&&<ForwardSummary data={forward.data}/>}<TodayView data={state.data}/></MoreDetails>}</main></Localized>}

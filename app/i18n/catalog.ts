@@ -1,6 +1,7 @@
 // Reviewed display translations. Business identifiers and saved artifacts stay unchanged.
 export const catalog: Record<string, string> = {
   "暂无": "Unavailable",
+  "详细数据（原来的大盘页：参与度、机构仓位、融资）": "Detailed data (the original Market page: participation, positioning, margin)",
   "实际能做到（信号认出后才挂单）": "Executable (orders placed after signal recognition)",
   "主指标：每笔净R减去同日随机孪生的平均净R。": "Primary metric: each trade’s net R minus the mean net R of its same-day random twins.",
   "前向判卷": "Forward judging",
