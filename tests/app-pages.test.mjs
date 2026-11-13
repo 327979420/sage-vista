@@ -102,12 +102,12 @@ test('new routes render and legacy app routes redirect',async()=>{
   for(const route of ['/','/portfolio']) {
     const response=await request(route);assert.equal(response.status,200);
     const html=await response.text();assert.ok(html.includes('正在读取数据'));
-    // Today is the terminal overview (no hero); My portfolio keeps its hero.
-    assert.ok(html.includes(route==='/'?'svTerminalPage':'rtSubHero'));
+    // Both lead with the terminal view; their original cards sit under "Detailed data".
+    assert.ok(html.includes('svTerminalPage'));
     assert.equal((html.match(/aria-label="主要功能"/g)||[]).length,1);
     const nav=html.match(/<nav class="svSideNav"[\s\S]*?<\/nav>/)?.[0];
     assert.ok(nav);assert.equal((nav.match(/<a /g)||[]).length,12);assert.ok(nav.includes(`href="${route}" class="active" aria-current="page"`));
-    assert.ok(html.includes('rtFeaturedPage'));if(route==='/portfolio')assert.ok(html.includes('<aside>'));
+    assert.ok(html.includes('rtFeaturedPage'));
     for(const href of ['/signals','/portfolio','/forward','/learn','/archive'])assert.ok(html.includes(`href="${href}"`));
   }
   for(const [route,target] of [['/app','/'],['/app/portfolio','/portfolio']]) {
