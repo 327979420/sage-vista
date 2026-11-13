@@ -19,12 +19,20 @@ class ProductConsolidationTests(unittest.TestCase):
   self.assertNotIn("/zh/watch/resonance/macd",(ROOT/"app/layout.tsx").read_text())
   layout=(ROOT/"app/layout.tsx").read_text()
   self.assertIn("import SiteNavigation from './site-navigation'",layout)
-  self.assertIn("<SiteNavigation/>",layout)
+  self.assertIn("<SiteNavigation uiVersion=",layout)
   current=(ROOT/"app/site-navigation.tsx").read_text()
-  for label,path in (("今日","/"),("3W 信号","/signals"),("前向记录","/forward"),
-                     ("形态速览","/patterns"),("我的组合","/portfolio"),("成绩单","/scorecard")):
-   self.assertIn(f"['{label}', '{path}']",current)
-  self.assertIn("/zh/watch/resonance/favorite-pattern",current)
+  for label,path in (("今日","/"),("信号","/signals"),("前向记录","/forward"),("我的组合","/portfolio"),
+                     ("大盘","/zh/watch/market"),("行业","/zh/watch/industry-radar"),
+                     ("多因子","/zh/watch/resonance/rare-opportunities"),("形态","/patterns"),
+                     ("回测","/zh/backtest"),("研究档案","/archive"),("学习","/learn"),("关于 SV","/zh/watch/resonance/about")):
+   self.assertRegex(current,rf"\['{re.escape(label)}', '[^']+', '{re.escape(path)}'\]")
+  # Old addresses keep their menu entry lit.
+  for alias in ("/opportunities","/scorecard","/zh/watch/resonance/favorite-pattern"):self.assertIn(f"'{alias}':",current)
+
+ def test_dark_theme_matches_light_stylesheets(self):
+  import subprocess,sys
+  result=subprocess.run([sys.executable,"scripts/build_dark_theme.py","--check"],cwd=ROOT,capture_output=True,text=True)
+  self.assertEqual(result.returncode,0,result.stderr)
 
  def test_fast_production_json_fetches_are_no_store(self):
   consumers={

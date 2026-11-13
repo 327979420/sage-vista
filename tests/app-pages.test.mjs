@@ -103,8 +103,8 @@ test('new routes render and legacy app routes redirect',async()=>{
     const response=await request(route);assert.equal(response.status,200);
     const html=await response.text();assert.ok(html.includes('正在读取数据'));assert.ok(html.includes('rtSubHero'));
     assert.equal((html.match(/aria-label="主要功能"/g)||[]).length,1);
-    const nav=html.match(/<nav class="rtModuleNav"[\s\S]*?<\/nav>/)?.[0];
-    assert.ok(nav);assert.equal((nav.match(/<svg /g)||[]).length,7);assert.ok(nav.includes('class="isStar active"'));
+    const nav=html.match(/<nav class="svSideNav"[\s\S]*?<\/nav>/)?.[0];
+    assert.ok(nav);assert.equal((nav.match(/<a /g)||[]).length,12);assert.ok(nav.includes(`href="${route}" class="active" aria-current="page"`));
     assert.ok(html.includes('rtFeaturedPage'));assert.ok(html.includes('<aside>'));
     for(const href of ['/signals','/portfolio','/forward','/learn','/archive'])assert.ok(html.includes(`href="${href}"`));
   }
