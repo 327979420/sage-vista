@@ -4,6 +4,7 @@ import {Missing} from '../app/shared';
 import {validTicket} from '../evidence/data';
 import {useEvidence} from '../evidence/shared';
 import {TicketView} from '../evidence/ticket';
+import LearnStepper from './terminal';
 
 // Facts on this page were checked on 2026-10-24 against the sources listed at the bottom; frozen-rule numbers come from
 // research/lab/forward/triangle/config.json (3w-1.9). Update the sources and the check date together.
@@ -85,5 +86,5 @@ function LearnExample() {
 }
 
 export default function LearnPage() {
- return <Localized><main className="rtPage rtFeaturedPage cockpit marketSummaryPage svApp svEvidence"><header className="rtSubHero"><div><p>SAGE VISTA</p><h1>学习</h1><p>用 5 分钟看懂 3W：形态、买点、止损止盈，以及在澳洲用 moomoo 交易的成本和税。</p></div></header><LearnView/></main></Localized>;
+ return <Localized><main className="rtPage rtFeaturedPage cockpit marketSummaryPage svApp svEvidence svTerminalPage"><LearnStepper/><LearnView/></main></Localized>;
 }

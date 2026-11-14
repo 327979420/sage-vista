@@ -3,6 +3,7 @@
 import {Localized, useLocale} from '../../../../i18n/locale';
 import {useEffect, useMemo, useState} from "react";
 import {TrackerShell} from "../tracker-ui";
+import SetupWall from "./terminal";
 
 type Bar = {date:string; open:number; high:number; low:number; close:number; volume:number};
 type Anchor = {date:string; confirmed_at:string; price:number};
@@ -71,10 +72,13 @@ export function DailyPatternView({data,error="",onRetry}: {data:Picker|null;erro
   const [symbol,setSymbol]=useState("");
   const rows=useMemo(()=>data?.rows.filter(row=>(group==="waiting"?row.state==="waiting":row.state!=="waiting")&&row.symbol.toLowerCase().includes(query.trim().toLowerCase()))??[],[data,group,query]);
   const selected=rows.find(r=>r.symbol===symbol)??rows[0];
+  // A chart in the wall opens that stock in the viewer: switch to its stage tab, select it, scroll there.
+  const pick=(next:string,state:string)=>{setQuery("");setGroup(state==="waiting"?"waiting":"tracking");setSymbol(next);document.getElementById("shape-viewer")?.scrollIntoView({behavior:"smooth",block:"start"})};
   const waiting=data?.state_counts.waiting??0;
   const tracking=(data?.rows.length??0)-waiting;
-  return <Localized><TrackerShell active="我最喜欢形态" title="我最喜欢形态" subtitle="从热门股票里，快速寻找短线机会。" description="聚焦日线回调形态，优先找底部已确认、尚未突破的股票，方便你进一步看图判断。">
-    <div className="shapePicker">
+  return <Localized><TrackerShell active="我最喜欢形态" title="我最喜欢形态" subtitle="从热门股票里，快速寻找短线机会。" description="聚焦日线回调形态，优先找底部已确认、尚未突破的股票，方便你进一步看图判断。" overview>
+    {data&&!error&&<SetupWall asOf={data.as_of} rows={data.rows} counts={data.state_counts} covered={data.universe.eligible_covered_count} onPick={pick}/>}
+    <div className="shapePicker" id="shape-viewer">
       <p className="shapeIntro">从成交活跃的股票里，找三推回调、多底支撑。点一只股票，就能核对形态和底部确认日期。</p>
       {error?<div className="shapeMessage" role="alert"><p>{error}</p><button type="button" onClick={onRetry}>重新加载</button></div>:!data?<div className="shapeMessage" role="status">正在读取日线形态…</div>:<>
         <div className="shapeSummary"><div><small>行情日期</small><strong>{data.as_of}</strong></div><div><small>等待突破</small><strong>{waiting} <span>只</span></strong></div><div><small>后续跟踪</small><strong>{tracking} <span>只</span></strong></div><div><small>检查范围</small><strong>成交额前 {data.universe.selected_activity_count}</strong></div></div>

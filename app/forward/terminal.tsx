@@ -7,7 +7,7 @@ import type {Forward} from '../evidence/data';
 // evidence so far. Reads forward.json and record.json, both already public.
 type Fact = {id:string;label:string;period:string|null;trades:number|null;p:number|null;verdict:string|null;note:string;average_R?:number|null;win_rate?:number|null};
 type RecordFile = {facts:Fact[]};
-const FACTS_EN:Record<string,[string,string]> = {
+export const FACTS_EN:Record<string,[string,string]> = {
  'locked-exam-3w':['Locked-data exam','Hints in the backtest, not independently proven.'],
  'backtest-2005-2025':['Development backtest (conservative)','The data 3W was built on; reference only.'],
  'factor-attribution':['Excess return after common factors','A hint, not significant (t under 2).'],

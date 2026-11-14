@@ -104,8 +104,7 @@ test("server-renders the independent favorite-pattern tracker", async () => {
   assert.equal(response.status, 200);
   const html = await response.text();
   assert.match(html, /我最喜欢形态/);
-  assert.match(html, /从热门股票里，快速寻找短线机会/);
-  assert.match(html, /底部已确认、尚未突破/);
+  // The page leads with the setup wall (no hero) once data loads.
   assert.match(html, /正在读取日线形态/);
   assert.doesNotMatch(html, /4\/4|生产权重 0/);
 });
@@ -203,5 +202,4 @@ test('side menu groups all twelve pages into five sections',async()=>{
  const positions=labels.map(label=>nav.indexOf(label));
  assert.ok(positions.every((p,i)=>p>=0&&(!i||p>positions[i-1])));
  assert.match(nav,/href="\/patterns" class="active" aria-current="page"/);
- assert.match(html,/从热门股票里，快速寻找短线机会/);
 });
