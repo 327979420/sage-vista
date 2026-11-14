@@ -48,7 +48,7 @@ export default function FlowsPanel({panel}:{panel:FlowPanel|null}) {
      <span className="flNum" data-tone={s.days?(s.total>=0?'go':'loss'):undefined}>{s.days?money(s.total):(en?'building':'积累中')}{s.days>0&&s.days<win.length&&<small> {s.days}/{win.length}{en?'d':'天'}</small>}</span>
     </button>)}</div>)}</div>
    <div className="flDaily">
-    <p className="mkRead"><b>{focus?`${focus.ticker} · ${name(focus)}`:(en?'All 16 funds, daily total':'16 只合计，每日')}</b>
+    <p className="mkRead"><b>{focus?`${focus.ticker} · ${name(focus)}`:(en?'Daily total of funds with data':'有数据的基金每日合计')}</b>
      <span>{endRow.date} <em data-tone={endVal===null?undefined:endVal>=0?'go':'loss'}>{endVal===null?'—':money(endVal)}</em></span>
      {!fund&&<span>{en?`${endRow.funds} of 16 reported`:`${endRow.funds}/16 只有数据`}</span>}</p>
     <div className="flChart" onMouseLeave={()=>setDay(null)}>

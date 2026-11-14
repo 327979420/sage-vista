@@ -1,6 +1,6 @@
 # Sage Vista — 接力棒（开始先读，结束前更新）
 
-更新：2026-11-07，Claude（行业雷达修复）；此前 2026-10-22 Codex（Task045）。用户在 Claude 与 Codex 之间切换时，以本文件和[核查队列](REVIEW_QUEUE.md)交接。
+更新：2026-11-14，Claude（资金流 / 改版）；此前 2026-10-22 Codex（Task045）。用户在 Claude 与 Codex 之间切换时，以本文件和[核查队列](REVIEW_QUEUE.md)交接。
 在线工作台：<https://claude.ai/artifact/BdbVybVXiShDN5MtaqtVUQ>；本轮没有直接修改或读取其在线内容。
 机器日期、版本和运行断点仍以 [CURRENT_STATUS_ZH.md](CURRENT_STATUS_ZH.md) 及其机器来源为准；本文件只记工作状态。
 
@@ -13,6 +13,7 @@
 
 ## 进行中 / 下一步
 
+- **2026-11-14 现状（Claude）**：改版第 1 步 #165 已上线（UI v7.0：总览、信号、前向、大盘）；剩余 8 页 #166 定于 04:31 UTC 后合并；前端修复 #167（每页 h1、JSON 去重、点击区域、雷达不请求非美股代码）为草稿，等 #166 合并后改基到 main。行业雷达修复已生效：11-13 日更 20/20 主题有分，`benchmark_latest_bar`=当天。资金流改为 16 只 ETF 每日申赎（`claude/etf-flows`，见核查队列），ICI 403 无法再用；VTI、GLD 读不到。
 - **网站改版第 1 步：深色终端框架（2026-11-13，Claude，`claude/terminal-frame`）**：owner 看过五屏草图后批准开始。全站换成深色框架：顶栏（日更状态、闸门灯、纽约时间、语言切换）、真实事件滚动条、按五个板块分组的侧栏（总览 / 3W / 市场 / 候选 / 研究，12 个页面，旧网址照常）。页面内容不改；旧的浅色样式由 `scripts/build_dark_theme.py` 自动生成深色版本 `app/dark-theme.css`（保留色相），测试检查它与浅色样式同步。UI v7.0。npm 115 项、相关 Python 29 项通过；电脑与手机宽度都看过 12 页。本机没有 Cloudflare 登录，暂无线上预览网址；预览网址 https://sage-vista-preview.gizmo-allied-0s.workers.dev（独立 worker，只在 workers.dev，统计关闭）。owner 要求先把草图做进页面再上线：总览加了标题、信号漏斗、闸门点阵（297 只亮起）、最近一次扫描回放、下次扫描倒计时和每日流程；信号页换成价格阶梯卡片 + 一步步亮起的检查过程 + 名词提示，下方保留完整凭证图。模拟账户曲线不放公开页（判卷页已注明需模拟账户、不公开）。PR 改为草稿，owner 看过预览后再上线。
 - **行业主题雷达修复：SPY 晚一天（2026-11-07，Claude，`claude/radar-fresh-prices`）**：行业页的主题雷达至少从 09-04 起 20 个主题全部 Unavailable（703 只有价成分股 0 只合格）。原因：雷达要求每只成分股和 SPY 的最后一根 K 线都是当天；股票缓存由扫描当天追加，但 SPY 的当天行情要到股票扫描之后才由 `publish_market_cache` 写入共享缓存，所以首次运行时 SPY 总是晚一天。08-28 同日重跑时 12 个主题可用，印证此因。修复：日更给雷达单独传入当天的 SPY（`refreshed_rows(..., persist=False)`，多一次请求），共享缓存时序不变；`price_data_audit.benchmark_latest_bar` 记录 SPY 日期；全部主题 Unavailable 时发布前检查给警告。待合并后看下一次日更的主题数。
 - **网站日更修复：候选榜大小上限（2026-11-03，Claude，`claude/eod-cache-index`）**：10-31 起每次日更失败，表面报错 `cache_index_date_mismatch` 来自形态选股，真因是前一步候选榜 `public_projection_size_budget_exceeded`：10-30 月线收完，上榜股 53→145，公开文件 909 kB 超 750 kB 上限（gzip 后约 87 kB）。上限统一为 `cr056_public.PUBLIC_SIZE_BUDGET = 1_500_000`（日更、手动投影、发布前警告共用）；用失败运行的审计产物核对 11-02 报告：大小、观察历史不丢失均通过。22 项测试通过。前向记录与模拟账户不受影响。#163 已合并，此后日更连续成功（11-02 起数据正常）。
