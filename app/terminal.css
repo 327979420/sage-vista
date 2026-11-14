@@ -518,3 +518,35 @@ html.svDark .svTerminalPage { padding-top: 26px; }
 html.svDark .mvpPageTitle h2 { margin: 0; color: var(--t-ink); font-size: 22px; font-weight: 400; }
 /* Chart dots are small to read but need a finger-sized hit area on touch screens. */
 .fwDot::before, .scDot::before, .mfDot::before { content: ""; position: absolute; inset: -9px; border-radius: 50%; }
+
+/* Market · fund flows (issuer share counts) */
+.flPanel { margin-top: 12px; }
+.flLead { margin: 6px 0 14px; color: var(--t-ink-2); font-size: 14px; }
+.flLead b { color: var(--t-ink); font-family: var(--t-mono); }
+.flBody { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 22px; }
+.flBars { display: flex; flex-direction: column; gap: 10px; }
+.flBars > div > small { display: block; margin-bottom: 3px; color: var(--t-ink-4); font-family: var(--t-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+.flBar { display: grid; grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1.3fr) 92px; align-items: center; gap: 8px; width: 100%; min-height: 26px; padding: 1px 4px; border: 0; background: transparent; color: var(--t-ink-2); font: inherit; font-size: 12px; text-align: left; cursor: pointer; }
+.flBar:hover, .flBar[aria-pressed="true"] { background: var(--t-raise); }
+.flBar:focus-visible, .flChart button:focus-visible { outline: 2px solid var(--t-ink); outline-offset: 1px; }
+.flBar > b { color: var(--t-ink); font-family: var(--t-mono); font-size: 12px; }
+.flName { overflow: hidden; color: var(--t-ink-3); white-space: nowrap; text-overflow: ellipsis; }
+.flTrack { position: relative; height: 10px; }
+.flTrack > i { position: absolute; top: -3px; bottom: -3px; left: 50%; width: 1px; background: var(--t-line-2); }
+.flTrack > em { position: absolute; top: 0; bottom: 0; transition: width .7s cubic-bezier(.2,.7,.2,1); }
+.flTrack > em[data-tone="go"] { background: var(--t-go); }
+.flTrack > em[data-tone="loss"] { background: var(--t-loss); }
+.flNum { font-family: var(--t-mono); font-size: 12px; text-align: right; color: var(--t-ink-4); }
+.flNum small { color: var(--t-ink-4); font-size: 10px; }
+.flDaily { display: flex; flex-direction: column; min-width: 0; }
+.flChart { position: relative; display: flex; align-items: stretch; gap: 2px; height: 220px; margin-top: 6px; }
+.flZero { position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--t-line-2); }
+.flChart button { position: relative; flex: 1 1 0; min-width: 0; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.flChart button:hover, .flChart button[aria-pressed="true"] { background: rgba(230, 233, 236, .06); }
+.flChart button > em { position: absolute; left: 15%; right: 15%; transition: height .6s cubic-bezier(.2,.7,.2,1); }
+.flChart em[data-tone="go"] { background: var(--t-go); }
+.flChart em[data-tone="loss"] { background: var(--t-loss); }
+.flNote { margin: 14px 0 0; color: var(--t-ink-4); font-size: 12px; line-height: 1.6; }
+@media (max-width: 1000px) { .flBody { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 600px) { .flBar { grid-template-columns: 40px minmax(0, 1fr) 84px; } .flName { display: none; } .flChart { height: 160px; } }
+@media (prefers-reduced-motion: reduce) { .flTrack > em, .flChart button > em { transition: none; } }

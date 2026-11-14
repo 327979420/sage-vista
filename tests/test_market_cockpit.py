@@ -36,11 +36,59 @@ class CockpitTests(unittest.TestCase):
         with self.assertRaises(ValueError):m.parse_margin(html.replace(b'millions',b'thousands'),DAY)
         gap=m.parse_margin(html.replace(b'Jul-26',b'Jun-26'),DAY);self.assertIsNone(gap['change_pct'])
 
-    def test_flows_only_domestic_and_contiguous_weeks(self):
-        html=b'Combined Estimated Millions of dollars<table><tr><th></th><th>9/9/2026</th><th>9/2/2026</th><th>8/26/2026</th><th>8/19/2026</th></tr><tr><td>Equity</td><td>999</td><td>999</td><td>999</td><td>999</td></tr><tr><td>Domestic</td><td>-1000</td><td>2000</td><td>-3000</td><td>4000</td></tr></table>'
-        p=m.parse_flows(html,DAY);self.assertEqual(p['value'],-1);self.assertEqual(p['sum_4w'],2)
-        self.assertIsNone(m.parse_flows(html.replace(b'8/19/2026',b'8/12/2026'),DAY)['sum_4w'])
-        with self.assertRaises(ValueError):m.parse_flows(html.replace(b'Domestic',b'World'),DAY)
+    def test_etf_flows_difference_consecutive_sessions_only(self):
+        f=m.etf_flows
+        spy=[('2026-11-09',100e6,500.),('2026-11-10',102e6,510.),('2026-11-12',101e6,520.)]  # 11-11 missing from SPY's own file
+        qqq=[('2026-11-09',50e6,400.),('2026-11-10',50e6,401.),('2026-11-11',49e6,402.),('2026-11-12',50e6,403.)]
+        first=f.build({'SPY':spy,'QQQ':qqq,'IWM':[('2026-11-12',10e6,200.)]},'2026-11-13')
+        rows={r['date']:r for r in first['history']}
+        self.assertEqual(rows['2026-11-10']['SPY'],1.02)      # +2M shares x $510
+        self.assertNotIn('SPY',rows['2026-11-12'])             # 11-10 -> 11-12 spans two sessions: not one day's flow
+        self.assertNotIn('IWM',rows['2026-11-12'])             # first iShares snapshot has nothing to difference
+        self.assertEqual((first['observation_date'],first['value'],rows['2026-11-12']['funds']),('2026-11-12',0.403,1))
+        f.check(first,'2026-11-13')
+        # Next session: the iShares snapshot is differenced against the stored one; earlier rows are kept.
+        second=f.build({'SPY':spy+[('2026-11-13',103e6,530.)],'QQQ':qqq+[('2026-11-13',50e6,404.)],'IWM':[('2026-11-13',10.5e6,210.)]},'2026-11-13',first)
+        last=second['history'][-1]
+        self.assertEqual((last['date'],last['IWM'],last['SPY'],last['funds']),('2026-11-13',0.105,1.06,3))
+        self.assertAlmostEqual(last['value'],0.105+1.06)
+        self.assertEqual([r['date'] for r in second['shares']['IWM']],['2026-11-12','2026-11-13'])
+        # A fund far behind the others is reported missing instead of holding the date back.
+        stale=f.build({'SPY':spy,'QQQ':qqq,'MDY':[('2026-11-02',1e6,1.),('2026-11-03',2e6,1.)]},'2026-11-13')
+        self.assertEqual((stale['observation_date'],stale['missing'][:2]),('2026-11-12',['DIA','HYG']))
+        self.assertIn('MDY',stale['missing'])
+        broken=copy.deepcopy(second);broken['history'][-1]['value']+=1
+        with self.assertRaisesRegex(ValueError,'cockpit_flow_total'):f.check(broken,'2026-11-13')
+
+    def test_etf_flow_issuer_parsers(self):
+        f=m.etf_flows
+        page=('"name":"NAV as of","value":"278.30","unitText":"USD","valueReference":{"@type":"PropertyValue","name":"As of Dates","value":"Nov 12, 2026"}'
+              ' (IWM) "label":"Shares Outstanding","formattedValue":"275,150,000","sortOrder":46,"formattedAsOfDate":"Nov 12, 2026"').encode()
+        self.assertEqual(f.parse_ishares(page,'IWM','2026-11-13'),[('2026-11-12',275150000.0,278.3)])
+        with self.assertRaisesRegex(ValueError,'dates_disagree'):f.parse_ishares(page.replace(b'"formattedAsOfDate":"Nov 12',b'"formattedAsOfDate":"Nov 11'),'IWM','2026-11-13')
+        with self.assertRaisesRegex(ValueError,'ticker'):f.parse_ishares(page,'IWD','2026-11-13')
+        navs=json.dumps([{'effectiveDate':'2026-11-11','currencyCode':'USD','netAssetValue':2.,'totalNetAssets':200.},
+                         {'effectiveDate':'2026-11-12','currencyCode':'USD','netAssetValue':None,'totalNetAssets':None},
+                         {'effectiveDate':'2026-11-13','currencyCode':'USD','netAssetValue':4.,'totalNetAssets':440.}]).encode()
+        self.assertEqual(f.parse_invesco(navs,'QQQ','2026-11-12'),[('2026-11-11',100,2.)])
+        import io,zipfile
+        strings=['Ticker Symbol:','SPY','Date','NAV','Shares Outstanding','Total Net Assets','12-Nov-2026','11-Nov-2026','-']
+        cell=lambda r,c,v,t='n':f'<c r="{c}{r}" t="{t}"><v>{v}</v></c>'
+        rows=[f'<row r="2">{cell(2,"A",0,"s")}{cell(2,"B",1,"s")}</row>',f'<row r="4">'+''.join(cell(4,c,i,'s') for c,i in zip('ABCD',(2,3,4,5)))+'</row>',
+              f'<row r="5">{cell(5,"A",6,"s")}{cell(5,"B",757.5)}{cell(5,"C","1.066E9")}{cell(5,"D",1)}</row>',
+              f'<row r="6">{cell(6,"A",7,"s")}{cell(6,"B",8,"s")}{cell(6,"C",8,"s")}{cell(6,"D",8,"s")}</row>']
+        buffer=io.BytesIO()
+        with zipfile.ZipFile(buffer,'w') as z:
+            z.writestr('xl/sharedStrings.xml','<sst>'+''.join(f'<si><t>{v}</t></si>' for v in strings)+'</sst>')
+            z.writestr('xl/worksheets/sheet1.xml','<worksheet><sheetData>'+''.join(rows)+'</sheetData></worksheet>')
+        self.assertEqual(f.parse_ssga(buffer.getvalue(),'SPY','2026-11-13'),[('2026-11-12',1.066e9,757.5)])
+        with self.assertRaisesRegex(ValueError,'ssga_ticker'):f.parse_ssga(buffer.getvalue(),'DIA','2026-11-13')
+
+    def test_retired_weekly_flow_panel_is_only_accepted_when_unavailable(self):
+        payload=frozen_payload();self.assertEqual(payload['panels']['flows']['frequency'],'weekly');m.validate(payload,DAY)
+        broken=copy.deepcopy(payload);broken['panels']['flows'].update(status='available')
+        broken['content_fingerprint']=m.canonical_fingerprint({k:v for k,v in broken.items() if k!='content_fingerprint'})
+        with self.assertRaises(ValueError):m.validate(broken,DAY)
 
     def test_cftc_net_over_oi_and_previous_only_percentile(self):
         raw=[]
