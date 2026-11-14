@@ -4,6 +4,7 @@ import {Localized} from '../../../i18n/locale';
 import {useState} from 'react';
 import {TrackerShell} from '../resonance/tracker-ui';
 import SectorTerminal,{type Industry} from './terminal';
+import MoreDetails from '../../../app/more-details';
 import {useDailyData} from '../market/daily-data';
 import {names,type Context,type Theme} from './context';
 const PATHS=['/update-status.json','/industry-radar.json','/cr056-ranking.json'] as const;
@@ -49,8 +50,10 @@ export default function IndustryRadar(){
  const industry=reports[PATHS[1]] as {as_of:string;future_data_used:boolean;display_context:Context}|null;
  const rank=reports[PATHS[2]] as {as_of:string;ranked_symbols:string[]}|null;
  return <Localized><TrackerShell active="行业" title="行业" subtitle="行业方向与相关机会。" overview>
-  {!loading&&industry&&industry.as_of===targetDate&&<SectorTerminal data={industry as Industry}/>}
+  {!loading&&industry&&industry.as_of===targetDate&&<SectorTerminal data={industry as Industry} candidates={rank?.ranked_symbols??[]}/>}
+  <MoreDetails zh="详细数据（原来的行业页：每个主题的卡片、成分股、候选和来源）" en="Detailed data (the original Sectors page: a card per theme, holdings, candidates and sources)">
   <div className="mvpPageTitle"><div><h2>行业</h2></div><button className="mvpRefresh" onClick={refresh}>↻ 刷新</button></div>
   {loading?<p className="marketLoading" role="status">正在读取行业快照…</p>:<IndustryView context={industry&&!industry.future_data_used&&industry.as_of===targetDate?industry.display_context:null} targetDate={targetDate} candidates={rank?.ranked_symbols??[]} candidateDate={rank?.as_of}/>}
+  </MoreDetails>
  </TrackerShell></Localized>
 }

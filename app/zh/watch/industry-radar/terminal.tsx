@@ -1,12 +1,13 @@
 'use client';
 import {useEffect,useState} from 'react';
 import {useLocale} from '../../../i18n/locale';
+import SectorRotation,{type ScoredTheme} from './rotation';
 
 // Sectors, terminal view: every theme ETF on a pullback ladder (how far below its 60-day high,
 // with the rule's 5–25% zone marked), grouped by state; theme strength appears when scored.
 type Fund = {state?:string; close?:number; pullback_from_60d_high?:number|null; long_trend_qualified?:boolean; macd_bullish?:boolean; favorable_setup?:boolean; available?:boolean};
-type DisplayTheme = {theme_id:string; name:string; reference_etf:string|null};
-type Theme = {theme_id:string; name:string; state:string; strength_percentile:number|null; relative_20d:number|null; breadth_above_sma50:number|null};
+type DisplayTheme = {theme_id:string; name:string; reference_etf:string|null; members?:string[]};
+type Theme = ScoredTheme;
 export type Industry = {as_of:string; themes?:Theme[]; display_context?:{funds:Record<string,Fund>; themes:DisplayTheme[]}};
 
 const ZH:Record<string,string> = {semiconductors:'半导体','software-applications':'软件应用',cybersecurity:'网络安全','cloud-computing':'云计算','robotics-automation':'机器人与自动化',uranium:'铀','copper-miners':'铜矿','clean-energy':'清洁能源',solar:'太阳能','oil-gas':'油气能源','critical-minerals':'关键矿产','battery-materials':'电池材料','defense-aerospace':'国防航空',infrastructure:'基建','grid-modernization':'电网升级',fintech:'金融科技','digital-assets':'数字资产',biotechnology:'生物科技','medical-devices':'医疗器械','ev-battery':'电动车电池','water-infrastructure':'水务基建'};
@@ -14,7 +15,7 @@ const STATES:[string,string,string,string][] = [['Rising Pullback At Support','�
 const THEME_STATES:Record<string,[string,string]> = {Leadership:['领涨','Leading'],'Pullback Watch':['回调观察','Pullback watch'],Recovery:['恢复中','Recovering'],Neutral:['中性','Neutral']};
 const MAX=0.75;
 
-export default function SectorTerminal({data}:{data:Industry}) {
+export default function SectorTerminal({data,candidates=[]}:{data:Industry;candidates?:string[]}) {
  const {locale}=useLocale(), en=locale==='en';
  const [sel,setSel]=useState<string|null>(null);
  const [ready,setReady]=useState(false);
@@ -54,10 +55,9 @@ export default function SectorTerminal({data}:{data:Industry}) {
     {x.score&&<p className="sbVerdict">{en?`Theme score: ${THEME_STATES[x.score.state]?.[1]??x.score.state}, stronger than ${Math.round(x.score.strength_percentile??0)}% of themes.`:`主题评分：${THEME_STATES[x.score.state]?.[0]??x.score.state}，强于 ${Math.round(x.score.strength_percentile??0)}% 的主题。`}</p>}
    </section>
   </div>
-  {strength.length>0&&<section className="ovPanel" aria-label={en?'Theme strength':'主题强弱'}>
-   <header><small>{en?'Theme strength · relative to SPY over 20 and 60 days':'主题强弱 · 相对 SPY 的 20 日和 60 日表现'}</small></header>
-   <div className="scStrength">{strength.map(t=><button key={t.theme_id} type="button" onMouseEnter={()=>{const r=rows.find(y=>y.theme_id===t.theme_id);if(r)setSel(r.etf)}}><span>{en?t.name:ZH[t.theme_id]??t.name}</span><i><em style={{width:`${ready?t.strength_percentile:0}%`}}/></i><b>{THEME_STATES[t.state]?.[en?1:0]??t.state}</b></button>)}</div>
-  </section>}
-  <p className="mfListLabel">{en?'Every theme · holdings, candidates and sources':'全部主题 · 成分股、候选和来源'}</p>
+  {strength.length>0&&<SectorRotation themes={strength} names={ZH} candidates={candidates} selected={x.theme_id}
+   onSelect={id=>{const r=rows.find(y=>y.theme_id===id);if(r)setSel(r.etf)}}
+   members={Object.fromEntries((data.display_context?.themes??[]).map(t=>[t.theme_id,t.members??[]]))}
+   etfs={Object.fromEntries((data.display_context?.themes??[]).filter(t=>t.reference_etf).map(t=>[t.theme_id,t.reference_etf!]))}/>}
  </div>;
 }
