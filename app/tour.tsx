@@ -3,6 +3,7 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import {LanguageSwitch, useLocale} from './i18n/locale';
 import {trackEvent} from './analytics';
 import {TOUR_COPY, TOUR_SEEN_KEY, TOUR_STEPS, tourSeen} from './tour-steps';
+import {CrowArt} from './crow';
 
 type Stage = 'closed' | 'welcome' | number | 'done';
 
@@ -62,7 +63,7 @@ export default function Tour() {
    {/* The site's own switch: choosing here changes the card and every page behind it. */}
    <div className="svTourTop"><LanguageSwitch/></div>
    {stage === 'welcome' && <div className="svTourWelcome">
-    <h2 id="svTourTitle">{t('welcome')}</h2><p>{t('question')}</p>
+    <CrowArt className="svTourCrow"/><h2 id="svTourTitle">{t('welcome')}</h2><p>{t('question')}</p>
     {/* Two equal choice tiles, so new and returning visitors decide at a glance. */}
     <div className="svTourChoices">
      <button type="button" className="svTourChoice isNew" onClick={() => setStage(0)}><span aria-hidden="true">👋</span><b>{t('no')}</b><small>{t('noSub')}</small></button>

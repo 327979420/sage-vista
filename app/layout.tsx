@@ -5,6 +5,7 @@ import {NavigationCountProvider} from './navigation-count';
 import SiteNavigation from './site-navigation';
 import SiteFooter from "./site-footer";
 import Tour from "./tour";
+import CrowGuide from "./crow";
 import Analytics from "./analytics";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -84,6 +85,7 @@ export default async function RootLayout({
         <div className="svMain">{children}<SiteFooter/></div>
         </div></NavigationCountProvider>
         <Tour/>
+        <CrowGuide/>
         <Analytics/>
         </LocaleProvider>
       </body>
