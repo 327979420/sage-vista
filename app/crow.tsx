@@ -7,33 +7,41 @@ import {sharedJson} from './json-cache';
 // SV's guide: a crow perched in the corner of every page. It blinks and tilts its head; click it
 // for a tip about the page you are on, one live fact from today's published data, and where to go
 // next. It greets each page once per browser (after the welcome tour) and can be tucked away.
+// A low-poly wireframe crow drawn only with light: a glowing outline with a pulse running
+// along it, faint inner facets, flickering vertices, a lit eye and a hologram scan line.
+const P = {B:[3,50],A:[28,40],C:[29,56],H1:[37,31],H2:[52,30],H3:[61,38],K1:[75,50],K2:[93,62],T1:[118,87],T2:[114,96],T3:[97,91],
+ U1:[82,87],U2:[63,91],U3:[46,83],N1:[35,69],N2:[31,60],W:[61,63],W2:[87,75]} as const;
+type V = keyof typeof P;
+const OUTLINE:V[] = ['B','A','H1','H2','H3','K1','K2','T1','T2','T3','U1','U2','U3','N1','N2','C','B'];
+const FACETS:[V,V][] = [['A','N2'],['H1','N2'],['H2','N2'],['H3','N2'],['H3','N1'],['H3','W'],['W','K1'],['W','N1'],['W','U3'],['W','W2'],['W2','K1'],['W2','K2'],['W2','T3'],['W2','U1'],['W2','U2'],['W','U2'],['K2','T3'],['A','C'],['W2','T1']];
+const pts = (vs:V[]) => vs.map(v=>P[v].join(',')).join(' ');
 export function CrowArt({className}:{className?:string}) {
  return <svg className={className} viewBox="0 0 120 110" aria-hidden="true">
   <defs>
-   <linearGradient id="crowBody" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#1f2c38"/><stop offset=".55" stopColor="#10161c"/><stop offset="1" stopColor="#07090b"/></linearGradient>
-   <radialGradient id="crowGlow"><stop offset="0" stopColor="#5fd38a" stopOpacity=".16"/><stop offset="1" stopColor="#5fd38a" stopOpacity="0"/></radialGradient>
-   <linearGradient id="crowSheen" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#2e5a66" stopOpacity=".0"/><stop offset=".5" stopColor="#3f7c86" stopOpacity=".55"/><stop offset="1" stopColor="#3b4f8a" stopOpacity=".0"/></linearGradient>
+   <filter id="crowGlow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+   <linearGradient id="crowScan" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#5fe1ff" stopOpacity="0"/><stop offset=".5" stopColor="#5fe1ff" stopOpacity=".55"/><stop offset="1" stopColor="#5fe1ff" stopOpacity="0"/></linearGradient>
+   <clipPath id="crowShape"><polygon points={pts(OUTLINE)}/></clipPath>
   </defs>
-  <ellipse cx="58" cy="62" rx="58" ry="46" fill="url(#crowGlow)"/>
-  <path className="crowTwig" d="M6 98 Q50 91 116 99" fill="none" stroke="#4a4036" strokeWidth="4" strokeLinecap="round"/>
-  <path d="M92 95 q8 -10 18 -8 q-6 9 -18 8z" fill="#5fd38a" opacity=".9"/>
-  <path d="M80 70 L112 90 L108 96 L104 93 L102 98 L74 80 Z" fill="#0b0f13" stroke="#4d6b78" strokeOpacity=".45" strokeWidth="1"/>
-  <g className="crowBody">
-   <ellipse cx="64" cy="67" rx="28" ry="20" transform="rotate(-14 64 67)" fill="url(#crowBody)" stroke="#4d6b78" strokeOpacity=".55" strokeWidth="1.2"/>
-   <path d="M46 60 Q70 48 94 74 Q74 84 50 76 Z" fill="#141c24"/>
-   <path d="M52 62 Q72 54 88 70" fill="none" stroke="url(#crowSheen)" strokeWidth="5" strokeLinecap="round"/>
-   <path d="M56 86 L54 96 M68 86 L68 96" stroke="#3a4048" strokeWidth="2.6" strokeLinecap="round"/>
-   <path d="M49 96 L59 96 M63 96 L73 96" stroke="#3a4048" strokeWidth="2.2" strokeLinecap="round"/>
+  <g className="crowPerch" filter="url(#crowGlow)">
+   <path d="M4 100 H44 L50 96 H116" fill="none" stroke="#5fd38a" strokeWidth=".9" strokeOpacity=".7"/>
+   <path className="crowPerchPulse" d="M4 100 H44 L50 96 H116" fill="none" stroke="#c8ffe0" strokeWidth="1.4" pathLength={1}/>
+   <circle cx="44" cy="100" r="1.4" fill="#5fd38a"/><circle cx="116" cy="96" r="1.4" fill="#5fd38a"/>
   </g>
-  <g className="crowHead">
-   <circle cx="42" cy="45" r="16" fill="url(#crowBody)" stroke="#4d6b78" strokeOpacity=".55" strokeWidth="1.2"/>
-   <path d="M30 38 Q40 30 52 34" fill="none" stroke="url(#crowSheen)" strokeWidth="3" strokeLinecap="round"/>
-   <path d="M28 42 L8 48 L28 52 Z" fill="#3a4048"/>
-   <path d="M10 48 L27 48" stroke="#1a1f24" strokeWidth="1"/>
-   <circle cx="37" cy="42" r="4.4" fill="#f0b23a"/>
-   <circle cx="36.2" cy="42" r="2.4" fill="#07090b"/>
-   <circle cx="35.4" cy="41" r=".9" fill="#fff"/>
-   <rect className="crowLid" x="32" y="37" width="10" height="10" rx="5" fill="#141c24"/>
+  <g className="crowBody">
+   <polygon points={pts(OUTLINE)} fill="#5fe1ff" fillOpacity=".05"/>
+   <g clipPath="url(#crowShape)"><rect className="crowScanLine" x="0" y="20" width="120" height="10" fill="url(#crowScan)"/></g>
+   <g stroke="#5fe1ff" strokeWidth=".6" strokeOpacity=".32">{FACETS.map(([a,b])=><line key={a+b} x1={P[a][0]} y1={P[a][1]} x2={P[b][0]} y2={P[b][1]}/>)}</g>
+   <g filter="url(#crowGlow)">
+    <polygon className="crowOutline" points={pts(OUTLINE)} fill="none" stroke="#5fe1ff" strokeWidth="1.3" strokeLinejoin="round" pathLength={1}/>
+    <polygon className="crowTrace" points={pts(OUTLINE)} fill="none" stroke="#e8fbff" strokeWidth="1.9" strokeLinejoin="round" pathLength={1}/>
+    <path d="M5 50 L29 48" stroke="#5fe1ff" strokeWidth=".8" fill="none"/>
+    <path d="M58 90 L56 99 M69 89 L69 99 M52 99 H61 M65 99 H74" stroke="#5fe1ff" strokeWidth="1" fill="none"/>
+   </g>
+   {(Object.keys(P) as V[]).map((v,i)=><circle key={v} className="crowNode" cx={P[v][0]} cy={P[v][1]} r="1.15" fill="#bff3ff" style={{animationDelay:`${(i*0.37)%3}s`}}/>)}
+  </g>
+  <g className="crowEye" filter="url(#crowGlow)">
+   <circle cx="41" cy="40" r="3.4" fill="none" stroke="#f0b23a" strokeWidth=".9"/>
+   <circle cx="41" cy="40" r="1.5" fill="#ffd27a"/>
   </g>
  </svg>;
 }
