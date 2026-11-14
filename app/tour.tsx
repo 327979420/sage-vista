@@ -3,7 +3,7 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import {LanguageSwitch, useLocale} from './i18n/locale';
 import {trackEvent} from './analytics';
 import {TOUR_COPY, TOUR_SEEN_KEY, TOUR_STEPS, tourSeen} from './tour-steps';
-import {CrowArt} from './crow';
+import {CrowArt} from './crow-art';
 
 type Stage = 'closed' | 'welcome' | number | 'done';
 

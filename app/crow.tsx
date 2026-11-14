@@ -3,48 +3,12 @@ import {useEffect,useState} from 'react';
 import {usePathname} from 'next/navigation';
 import {useLocale} from './i18n/locale';
 import {sharedJson} from './json-cache';
+import {CrowArt} from './crow-art';
 
 // SV's guide: a crow perched in the corner of every page. It blinks and tilts its head; click it
 // for a tip about the page you are on, one live fact from today's published data, and where to go
 // next. It greets each page once per browser (after the welcome tour) and can be tucked away.
-// A low-poly wireframe crow drawn only with light: a glowing outline with a pulse running
-// along it, faint inner facets, flickering vertices, a lit eye and a hologram scan line.
-const P = {B:[3,50],A:[28,40],C:[29,56],H1:[37,31],H2:[52,30],H3:[61,38],K1:[75,50],K2:[93,62],T1:[118,87],T2:[114,96],T3:[97,91],
- U1:[82,87],U2:[63,91],U3:[46,83],N1:[35,69],N2:[31,60],W:[61,63],W2:[87,75]} as const;
-type V = keyof typeof P;
-const OUTLINE:V[] = ['B','A','H1','H2','H3','K1','K2','T1','T2','T3','U1','U2','U3','N1','N2','C','B'];
-const FACETS:[V,V][] = [['A','N2'],['H1','N2'],['H2','N2'],['H3','N2'],['H3','N1'],['H3','W'],['W','K1'],['W','N1'],['W','U3'],['W','W2'],['W2','K1'],['W2','K2'],['W2','T3'],['W2','U1'],['W2','U2'],['W','U2'],['K2','T3'],['A','C'],['W2','T1']];
-const pts = (vs:V[]) => vs.map(v=>P[v].join(',')).join(' ');
-export function CrowArt({className}:{className?:string}) {
- return <svg className={className} viewBox="0 0 120 110" aria-hidden="true">
-  <defs>
-   <filter id="crowGlow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-   <linearGradient id="crowScan" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#5fe1ff" stopOpacity="0"/><stop offset=".5" stopColor="#5fe1ff" stopOpacity=".55"/><stop offset="1" stopColor="#5fe1ff" stopOpacity="0"/></linearGradient>
-   <clipPath id="crowShape"><polygon points={pts(OUTLINE)}/></clipPath>
-  </defs>
-  <g className="crowPerch" filter="url(#crowGlow)">
-   <path d="M4 100 H44 L50 96 H116" fill="none" stroke="#5fd38a" strokeWidth=".9" strokeOpacity=".7"/>
-   <path className="crowPerchPulse" d="M4 100 H44 L50 96 H116" fill="none" stroke="#c8ffe0" strokeWidth="1.4" pathLength={1}/>
-   <circle cx="44" cy="100" r="1.4" fill="#5fd38a"/><circle cx="116" cy="96" r="1.4" fill="#5fd38a"/>
-  </g>
-  <g className="crowBody">
-   <polygon points={pts(OUTLINE)} fill="#5fe1ff" fillOpacity=".05"/>
-   <g clipPath="url(#crowShape)"><rect className="crowScanLine" x="0" y="20" width="120" height="10" fill="url(#crowScan)"/></g>
-   <g stroke="#5fe1ff" strokeWidth=".6" strokeOpacity=".32">{FACETS.map(([a,b])=><line key={a+b} x1={P[a][0]} y1={P[a][1]} x2={P[b][0]} y2={P[b][1]}/>)}</g>
-   <g filter="url(#crowGlow)">
-    <polygon className="crowOutline" points={pts(OUTLINE)} fill="none" stroke="#5fe1ff" strokeWidth="1.3" strokeLinejoin="round" pathLength={1}/>
-    <polygon className="crowTrace" points={pts(OUTLINE)} fill="none" stroke="#e8fbff" strokeWidth="1.9" strokeLinejoin="round" pathLength={1}/>
-    <path d="M5 50 L29 48" stroke="#5fe1ff" strokeWidth=".8" fill="none"/>
-    <path d="M58 90 L56 99 M69 89 L69 99 M52 99 H61 M65 99 H74" stroke="#5fe1ff" strokeWidth="1" fill="none"/>
-   </g>
-   {(Object.keys(P) as V[]).map((v,i)=><circle key={v} className="crowNode" cx={P[v][0]} cy={P[v][1]} r="1.15" fill="#bff3ff" style={{animationDelay:`${(i*0.37)%3}s`}}/>)}
-  </g>
-  <g className="crowEye" filter="url(#crowGlow)">
-   <circle cx="41" cy="40" r="3.4" fill="none" stroke="#f0b23a" strokeWidth=".9"/>
-   <circle cx="41" cy="40" r="1.5" fill="#ffd27a"/>
-  </g>
- </svg>;
-}
+export {CrowArt};
 
 type Tip = {zh:string; en:string; next?:string};
 const TIPS:Record<string,Tip> = {
@@ -82,7 +46,6 @@ export default function CrowGuide() {
  const {locale}=useLocale(), en=locale==='en';
  const [open,setOpen]=useState(false);
  const [hidden,setHidden]=useState(true);
- const [hop,setHop]=useState(0);
  const [today,setToday]=useState<Today|null>(null);
  const tip=TIPS[path];
  useEffect(()=>{let active=true;void sharedJson<Today>('/app/today.json').then(d=>{if(active)setToday(d)});return()=>{active=false}},[]);
@@ -109,6 +72,6 @@ export default function CrowGuide() {
     <button type="button" onClick={()=>{setOpen(false);setHidden(true);write(HIDDEN,'1')}}>{en?'Tuck away':'收起'}</button>
    </div>
   </div>}
-  <button type="button" className="crowButton" data-hop={hop>0||undefined} key={hop} aria-expanded={open} aria-label={en?'Crow guide: a tip for this page':'乌鸦向导：这一页的提示'} onClick={()=>{setOpen(!open);setHop(hop+1)}}><CrowArt/></button>
+  <button type="button" className="crowButton" aria-expanded={open} aria-label={en?'Crow guide: a tip for this page':'乌鸦向导：这一页的提示'} onClick={()=>setOpen(!open)}><CrowArt talking={open}/></button>
  </div>;
 }
