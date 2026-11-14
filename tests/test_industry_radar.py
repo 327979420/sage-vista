@@ -167,6 +167,16 @@ class IndustryRadarTests(unittest.TestCase):
   self.assertEqual(fresh["themes"][0]["valid_member_count"],5)
   self.assertEqual(fresh["price_data_audit"]["benchmark_latest_bar"],"2026-03-31")
 
+ def test_foreign_listings_are_never_requested(self):
+  with tempfile.TemporaryDirectory() as folder:
+   snapshot={"version":"v1","effective_from":"2026-01-01","themes":[theme(members=["A","B","C","D","E","000155","005930 KS","1211.HK"])]};Path(folder,"v1.json").write_text(json.dumps(snapshot))
+   asked=[]
+   def loader(symbol):asked.append(symbol);return series()
+   report=run(Path(folder,"radar.json"),"2026-03-31",folder,loader=loader)
+  self.assertFalse({"000155","005930 KS","1211.HK"}&set(asked))
+  self.assertEqual(report["price_data_audit"]["skipped_non_us_tickers"],["000155","005930 KS","1211.HK"])
+  self.assertEqual(report["themes"][0]["valid_member_count"],5)
+
  def test_member_metric_is_point_in_time(self):
   rows=series();future={"date":"2027-01-01","close":1_000_000};rows.append(future)
   result=member_metrics(rows,series(0),"2026-03-31")

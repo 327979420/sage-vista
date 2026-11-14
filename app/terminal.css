@@ -98,7 +98,7 @@ html.svDark .rtSubHero p.rtHeroDescription { color: var(--t-ink-2); font-family:
 .ovRoot { display: grid; gap: 14px; margin-top: 14px; }
 .ovRoot small, .ovPanel header small { color: var(--t-ink-3); font-family: var(--t-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
 .ovHead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px; padding: 4px 0; }
-.ovHead h2 { margin: 8px 0 6px; color: var(--t-ink); font-size: clamp(26px, 3vw, 40px); font-weight: 300; letter-spacing: -.01em; line-height: 1.15; }
+.ovHead h1, .ovHead h2 { margin: 8px 0 6px; color: var(--t-ink); font-size: clamp(26px, 3vw, 40px); font-weight: 300; letter-spacing: -.01em; line-height: 1.15; }
 .ovHead p { margin: 0; color: var(--t-ink-2); font-size: 15px; }
 .ovNext { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
 .ovCount { color: var(--t-ink); font-family: var(--t-mono); font-size: 30px; font-weight: 400; font-variant-numeric: tabular-nums; }
@@ -515,3 +515,6 @@ html.svDark .svTerminalPage { padding-top: 26px; }
 .scStrength b { color: var(--t-ink); font-family: var(--t-mono); font-size: 11px; font-weight: 400; }
 @media (max-width: 1000px) { .scGrid { grid-template-columns: minmax(0, 1fr); } .scStates { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (prefers-reduced-motion: reduce) { .scDot, .scStrength em { transition: none; } }
+html.svDark .mvpPageTitle h2 { margin: 0; color: var(--t-ink); font-size: 22px; font-weight: 400; }
+/* Chart dots are small to read but need a finger-sized hit area on touch screens. */
+.fwDot::before, .scDot::before, .mfDot::before { content: ""; position: absolute; inset: -9px; border-radius: 50%; }

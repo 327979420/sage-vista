@@ -4,7 +4,7 @@ Inputs are dated membership snapshots and price histories cut at ``as_of``.
 Output feeds the Industry & Market page and remains separate from technical
 factor evidence. Missing or future membership is never backfilled by guesswork.
 """
-import argparse,json,pathlib
+import argparse,json,pathlib,re
 from datetime import date,datetime,timezone
 
 from .eodhd import latest_reference_day
@@ -22,6 +22,9 @@ CONFIG={
  "meaningful_breadth_decline":-0.10,
  "recovery_breadth_improvement":0.05,
 }
+# ETF holdings include foreign listings (005930 KS, 000155, 1211 HK) that have no US price history;
+# requesting them failed every day (386 calls on 2026-11-12). Only US-style tickers are requested.
+US_TICKER=re.compile(r"^[A-Z]{1,5}([.-][A-Z]{1,2})?$")
 STATE_ORDER={"Pullback Watch":0,"Leadership":1,"Recovery":2,"Neutral":3,"Unavailable":4}
 
 def iso_day(value):
@@ -127,7 +130,9 @@ def run(out="public/industry-radar.json",as_of=None,snapshot_dir=DEFAULT_SNAPSHO
   report={"as_of":as_of,"generated_at":datetime.now(timezone.utc).isoformat(),"membership_version":None,"future_data_used":False,"historical_membership_safe":False,"status":"unavailable_no_membership_snapshot","themes":[],"ticker_context":{}}
  else:
   funds=reference_funds(snapshot,registry);symbols=sorted({s for x in snapshot["themes"] for s in x["members"]}|{s for values in funds.values() for s in values});data={};fetched=[];unavailable=[]
-  for symbol in symbols:
+  skipped=[s for s in symbols if not US_TICKER.match(s)]
+  for symbol in skipped:data[symbol]=[]
+  for symbol in (s for s in symbols if US_TICKER.match(s)):
    try:
     data[symbol]=loader(symbol)
     (fetched if data[symbol] else unavailable).append(symbol)
@@ -140,7 +145,7 @@ def run(out="public/industry-radar.json",as_of=None,snapshot_dir=DEFAULT_SNAPSHO
   taxonomy=select_finance_database_snapshot(as_of);classifications=classification_by_ticker(taxonomy)
   sufficient={symbol for symbol in symbols if member_metrics(data[symbol],spy,as_of)} if spy else set()
   report={"schema_version":"2.1.0","as_of":as_of,"generated_at":datetime.now(timezone.utc).isoformat(),"membership_version":snapshot["version"],"membership_effective_from":snapshot["effective_from"],"future_data_used":False,"historical_membership_safe":True,"mode":"decision_context_not_technical_score","status":"research_prototype_not_validated_alpha" if spy else "market_data_unavailable_safe","config":CONFIG,
-   "price_data_audit":{"provider":"EODHD","requested_tickers":symbols,"fetched_tickers":fetched,"unavailable_tickers":unavailable,"insufficient_history_tickers":sorted(set(fetched)-sufficient),"benchmark_latest_bar":spy_latest,"errors_redacted":True},
+   "price_data_audit":{"provider":"EODHD","requested_tickers":symbols,"fetched_tickers":fetched,"unavailable_tickers":unavailable,"insufficient_history_tickers":sorted(set(fetched)-sufficient),"skipped_non_us_tickers":skipped,"benchmark_latest_bar":spy_latest,"errors_redacted":True},
    "themes":themes,"ticker_context":ticker_context,"classification_by_ticker":classifications,"classification_snapshot":{"source":"FinanceDatabase" if taxonomy else None,"effective_from":taxonomy.get("effective_from") if taxonomy else None,"matched_symbols":taxonomy.get("matched_symbols") if taxonomy else 0,"historical_backfill_allowed":False},"membership_overlap":snapshot.get("overlap_analysis",[]),"audit":{"exact_as_of_required":True,"minimum_valid_member_ratio":CONFIG["min_valid_member_ratio"],"future_rows_used":False,"state_model":"industry-state-v2","etf_position_model":"theme-etf-position-v1","industry_candidate_weight_cap":1,"production_score_changed":False}}
  pathlib.Path(out).parent.mkdir(parents=True,exist_ok=True);pathlib.Path(out).write_text(json.dumps(report,indent=2)+"\n")
  return report

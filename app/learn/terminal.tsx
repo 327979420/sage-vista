@@ -21,7 +21,7 @@ export default function LearnStepper() {
  return <div className="ovRoot">
   <section className="ovHead"><div>
    <small>{en?'Research · Learn':'研究 · 学习'}</small>
-   <h2>{en?'3W in four steps, on one chart.':'一张图，四步看懂 3W。'}</h2>
+   <h1>{en?'3W in four steps, on one chart.':'一张图，四步看懂 3W。'}</h1>
    <p>{en?'Click a step, or let it play. The chart is a diagram of the rule, not real prices.':'点任意一步，或让它自己播放。图是规则的示意图，不是真实价格。'}</p>
   </div></section>
   <div className="lnSteps" role="tablist" aria-label={en?'Steps':'步骤'}>{steps.map(([title],i)=><button key={title} type="button" role="tab" aria-selected={i===step} onClick={()=>pick(i)}><small>0{i+1}</small>{short(title,locale)}{i===step&&auto&&<i className="lnTimer" key={`t${step}`}/>}</button>)}</div>

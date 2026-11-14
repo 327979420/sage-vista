@@ -30,7 +30,7 @@ export default function PortfolioTerminal({data,signals}:{data:Portfolio;signals
  return <div className="ovRoot">
   <section className="ovHead"><div>
    <small>{en?'3W · My portfolio · paper account':'3W · 我的组合 · 模拟账户'}</small>
-   <h2>{en?`${inMarket} sectors in the market, ${safe} parked in SHY.`:`${inMarket} 个行业在场，${safe} 个放在 SHY 避险。`}</h2>
+   <h1>{en?`${inMarket} sectors in the market, ${safe} parked in SHY.`:`${inMarket} 个行业在场，${safe} 个放在 SHY 避险。`}</h1>
    <p>{en?'Half the account follows the sector trend basket and is only rebalanced at month-end; the other half waits for 3W signals.':'一半资金跟行业趋势篮子，只在月底调仓；另一半等 3W 信号下单。'}</p>
   </div><div className="ovNext"><small>{en?`Next rebalance · close of ${end.slice(5)}`:`下次调仓 · ${end.slice(5)} 收盘`}</small><b className="ovCount">{Math.max(0,Math.round((Date.parse(end)-Date.parse(data.as_of))/86400000))}<small>{en?' days':' 天'}</small></b></div></section>
   <div className="ovGrid pfGrid">

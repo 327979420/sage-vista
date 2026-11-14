@@ -114,7 +114,7 @@ export default function Overview({today,rows}:Props) {
   <section className="ovHead">
    <div>
     <small>{en?'3W · Today':'3W · 今日'}</small>
-    <h2>{green?(en?'The gate is green. Waiting for the next scan.':'闸门是绿的，等下一次扫描。'):(en?'The gate is amber. New signals will not be ordered.':'闸门是黄的，新信号不会下单。')}</h2>
+    <h1>{green?(en?'The gate is green. Waiting for the next scan.':'闸门是绿的，等下一次扫描。'):(en?'The gate is amber. New signals will not be ordered.':'闸门是黄的，新信号不会下单。')}</h1>
     <p>{en?`${today.new_signals_this_week} new signals this week, ${today.orders_to_place} orders to place.`:`本周新信号 ${today.new_signals_this_week} 个，待下单 ${today.orders_to_place} 个。`}</p>
    </div>
    <div className="ovNext"><small>{en?`Next scan · week of ${today.signal_week.slice(5)} · after the ${next.slice(5)} close`:`下一次扫描 · ${today.signal_week.slice(5)} 周 · ${next.slice(5)} 收盘后`}</small><Countdown target={closeAt(next)} en={en}/></div>

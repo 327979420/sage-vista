@@ -2,15 +2,16 @@
 import {useEffect,useState} from 'react';
 import {useLocale} from '../i18n/locale';
 import {FACTS_EN} from '../forward/terminal';
+import {sharedJson} from '../json-cache';
 
 // Terminal openings for the reading pages: Archive (a grid of the original tools), About (what SV
 // did today, from the published files) and Backtests (the verdict on each historical test).
 function useJson<T>(url:string) {
  const [data,setData]=useState<T|null>(null);
- useEffect(()=>{let active=true;fetch(url,{cache:'no-store'}).then(r=>r.ok?r.json():null).then(d=>{if(active)setData(d)}).catch(()=>{});return()=>{active=false}},[url]);
+ useEffect(()=>{let active=true;void sharedJson<T>(url).then(d=>{if(active)setData(d)});return()=>{active=false}},[url]);
  return data;
 }
-const Head = ({label,title,text}:{label:string;title:string;text:string}) => <section className="ovHead"><div><small>{label}</small><h2>{title}</h2><p>{text}</p></div></section>;
+const Head = ({label,title,text}:{label:string;title:string;text:string}) => <section className="ovHead"><div><small>{label}</small><h1>{title}</h1><p>{text}</p></div></section>;
 
 const ARCHIVE:[string,string,string,string,string][] = [
  ['/zh/watch/market','大盘','Market','原来的大盘页：参与度、机构仓位、融资余额，按日、周、月。','The original market page: participation, institutional positioning and margin, by day, week and month.'],
