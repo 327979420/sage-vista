@@ -670,3 +670,4 @@ html.svDark .crowActions a, .crowActions a { color: var(--t-go); font-size: 12px
 @media print { .crowGuide, .crowTab { display: none; } }
 @media (prefers-reduced-motion: reduce) { .crowHead, .crowLid, .crowBody, .crowButton[data-hop], .crowBubble { animation: none; } .crowLid { transform: scaleY(0); } }
 .svTourCrow { display: block; width: 92px; height: 84px; margin: 0 auto 4px; overflow: visible; }
+.svTourBackdrop ~ .crowGuide, .svTourBackdrop ~ .crowTab { display: none; }
