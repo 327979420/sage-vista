@@ -20,6 +20,7 @@
 
 | 日期 | 事项 | 分支 / PR | 验证证据与核查重点 | 交付状态 | 独立核查 |
 |---|---|---|---|---|---|
+| 2026-11-14 | 大盘「资金流」：16 只 ETF 每日申赎取代 ICI | `claude/etf-flows` | ICI 对自动请求一律 403，旧周度面板一直不可用。新 `services/scanner/etf_flows.py` 读 iShares 产品页（当天份额+净值）、SPDR navhist xlsx、Invesco navs JSON（全历史）；流量=相邻交易日份额差×当日净值，跨日缺口不算；落后超 4 天的基金标缺失；原始文件只存用到的行（`raw/<sha>.extract.json.gz`）。cockpit 频率 `daily_lag`（4 天）；旧快照里不可用的 weekly 面板仍通过校验。11-13 真实读取 16/16 只成功，SPY 11-12 +4.24B 手算一致。npm（lint/typecheck/build/115 项）通过，cockpit 15 项通过；预览 1440/375 看过。 | 待合并；iShares 10 只从上线第二天起有数 | 待复核 |
 | 2026-11-13 | 网站改版第 1 步：深色终端框架 | `claude/terminal-frame` | 顶栏 + 事件条 + 五板块侧栏包住全部 12 页，内容不变；`scripts/build_dark_theme.py --check` 保证深色样式与浅色样式同步（test_product_consolidation）。`npm run lint`、typecheck、build、`node --test tests/*.test.mjs` 115 项通过；Python 29 项通过；本地预览 1440 / 375 宽度逐页查看 | 已实现，待 owner 预览与合并；无线上预览网址 | 待核查 |
 | 2026-11-07 | 行业主题雷达：给雷达当天的 SPY | `claude/radar-fresh-prices` | 公开 industry-radar.json 自 09-04 起 20/20 Unavailable、703/703 历史不足；08-28 同日重跑恢复 12 个主题。新测试在旧代码上失败、修复后通过：雷达用 benchmark_loader 的 SPY；日更传入的 SPY 含当天且共享缓存仍在股票扫描后才更新；全部 Unavailable 时发布检查警告。全量 Python 测试见 PR | 已实现，待 CI 与合并；合并后看下一次 EOD 的主题数 | 待核查 |
 | 2026-11-03 | 网站日更：候选榜大小上限 750 kB→1.5 MB | `claude/eod-cache-index` | 失败运行 41575853396 审计产物：cr056 结果 retained_previous / public_projection_size_budget_exceeded；11-02 投影 908,864 字节、gzip 86,869；观察历史子集检查通过。`python3 -m unittest tests.test_cr056_daily tests.test_cr056_public tests.test_release_contract` 22 项通过；guardrails ok | 已实现，待 CI 与合并；合并后看下一次 EOD 运行 | 待核查 |

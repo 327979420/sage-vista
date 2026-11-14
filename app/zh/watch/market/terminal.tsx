@@ -1,6 +1,7 @@
 'use client';
 import {useEffect,useState} from 'react';
 import {useLocale} from '../../../i18n/locale';
+import FlowsPanel,{type FlowPanel} from './flows';
 
 // Market, terminal view: four numbers for the day, 30 sessions of breadth you can scrub through,
 // and a heatmap of 17 reference funds. Everything comes from the published daily files.
@@ -10,7 +11,7 @@ export type External = {indicators:{vix?:{value:number;change_previous:number|nu
 type Fund = {ticker:string; name:string; return_1d:number; return_5d:number; return_20d:number};
 export type Watch = {as_of:string; funds:Fund[]};
 export type Today = {market:{breadth:number|null;breadth_sample:number|null;light:string|null}; signal_week:string};
-type Props = {internals:Internals|null; external:External|null; watch:Watch|null; today:Today|null};
+type Props = {internals:Internals|null; external:External|null; watch:Watch|null; today:Today|null; flows?:FlowPanel|null};
 
 const FUND_EN:Record<string,string> = {SPY:'S&P 500',QQQ:'Nasdaq 100',DIA:'Dow Jones',IWM:'Russell 2000',RSP:'S&P 500 equal weight',MDY:'S&P MidCap 400',VTI:'Total US market',IWD:'Russell 1000 Value',IWF:'Russell 1000 Growth',MTUM:'US momentum',QUAL:'US quality',USMV:'US min volatility',HYG:'High-yield bonds',LQD:'Investment-grade bonds',TLT:'Long Treasuries',GLD:'Gold',UUP:'US dollar'};
 const GROUPS:[string,string,string[]][] = [['大盘','Broad market',['SPY','VTI','DIA','QQQ','RSP']],['规模','Size',['IWM','MDY']],['风格','Style',['IWD','IWF','MTUM','QUAL','USMV']],['债券','Bonds',['HYG','LQD','TLT']],['避险','Safe havens',['GLD','UUP']]];
@@ -18,7 +19,7 @@ const BANDS:[string,number,string][] = [['CALM',30,'var(--t-go)'],['NORMAL',50,'
 const signed = (v:number,d=2) => `${v>0?'+':v<0?'−':''}${Math.abs(v).toFixed(d)}`;
 const LINES:[string,string,string,string][] = [['above200','200 日','200-day','#e6e9ec'],['above50','50 日','50-day','var(--t-go)'],['above20','20 日','20-day','#7cc4ff']];
 
-export default function MarketTerminal({internals,external,watch,today}:Props) {
+export default function MarketTerminal({internals,external,watch,today,flows=null}:Props) {
  const {locale}=useLocale(), en=locale==='en';
  const [sel,setSel]=useState<number|null>(null);
  const [show,setShow]=useState<Record<string,boolean>>({above200:true,above50:true,above20:false});
@@ -81,6 +82,7 @@ export default function MarketTerminal({internals,external,watch,today}:Props) {
      <button type="button" onClick={()=>setRedUp(!redUp)}>{redUp?(en?'Red up · green down ⇄':'红涨绿跌 ⇄'):(en?'Green up · red down ⇄':'绿涨红跌 ⇄')}</button></div>
    </section>}
   </div>
+  <FlowsPanel panel={flows}/>
   {gate&&gate.breadth!==null&&<section className="ovPanel mkGate" aria-label={en?'What it means for 3W':'对 3W 意味着什么'}>
    <header><small>{en?'What it means for 3W':'对 3W 意味着什么'}</small><span data-tone={gate.light==='green'?'go':'wait'}>{gate.light==='green'?(en?'Gate green':'闸门绿灯'):(en?'Gate amber':'闸门黄灯')}</span></header>
    <p>{en?`The 3W gate uses its own pool of ${gate.breadth_sample} stocks: ${(gate.breadth*100).toFixed(1)}% are above their 200-day line now. Orders are judged on the signal week, so a single bad day only matters for that week's signals.`:`3W 闸门看的是它自己的 ${gate.breadth_sample} 只股票池：现在 ${(gate.breadth*100).toFixed(1)}% 站上 200 日线。下单看的是信号那一周，所以某一天大跌只影响那一周的信号。`}</p>

@@ -20,18 +20,23 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo
 from services.contracts.market_data import canonical_fingerprint, require_date
+from services.scanner import etf_flows
 from services.scanner.market_internals_daily import atomic, immutable
 
 ROOT = Path(__file__).resolve().parents[2]
 SCHEMA = 'market-cockpit-v1'
 FINRA = 'https://www.finra.org/rules-guidance/key-topics/margin-accounts/margin-statistics'
-ICI = 'https://www.ici.org/research/stats/combined_flows'
 CFTC = 'https://publicreporting.cftc.gov/resource/gpe5-46if.json'
 OCC = 'https://marketdata.theocc.com/onn-volume-download'
 CODES = {'13874A': '标普500 E-mini', '209742': '纳斯达克 Mini'}
 SECTORS = {'XLK':'科技', 'XLF':'金融', 'XLV':'医疗', 'XLY':'可选消费', 'XLP':'必需消费', 'XLC':'通信', 'XLI':'工业', 'XLE':'能源', 'XLB':'原材料', 'XLRE':'房地产', 'XLU':'公用事业'}
 SYMBOLS = ['SPY', 'RSP', 'IWM', *SECTORS]
-FREQUENCIES = {'flows':'weekly', 'positions':'weekly', 'margin':'monthly', 'options':'daily', 'quotes':'daily'}
+# flows: daily ETF creations/redemptions from issuer files (services/scanner/etf_flows.py), which
+# publish a session late, so 'daily_lag' allows a few calendar days. It replaced ICI's weekly
+# estimate in 2026-11 after ici.org started refusing automated requests.
+FREQUENCIES = {'flows':'daily_lag', 'positions':'weekly', 'margin':'monthly', 'options':'daily', 'quotes':'daily'}
+LIMITS = {'daily':0, 'daily_lag':4, 'weekly':14, 'monthly':70}
+RETIRED = {('flows','weekly')}  # old snapshots may still carry the retired ICI panel, always unavailable
 
 
 def finite(value, *, nonnegative=False):
@@ -87,19 +92,6 @@ def parse_margin(content, as_of):
     return {'history':rows,'value':last['value'],'observation_date':last['date'],'unit':'USD billion',
             'change_pct':(last['value']/previous['value']-1)*100 if contiguous and previous['value'] else None,
             'change_yoy_pct':(last['value']/year_ago['value']-1)*100 if year_ago and year_ago['value'] else None}
-
-
-def parse_flows(content, as_of):
-    text=content.decode('utf-8-sig')
-    if 'Combined Estimated' not in text or 'Millions of dollars' not in text: raise ValueError('ici_scope_or_units')
-    candidates=[t for t in tables(content) if any(r and r[0]=='Domestic' for r in t)]
-    if len(candidates)!=1: raise ValueError('ici_table_schema')
-    table=candidates[0]; dates=next((r[1:] for r in table if len(r)>1 and all(re.fullmatch(r'\d{1,2}/\d{1,2}/\d{4}',c) for c in r[1:])),None)
-    values=next(r[1:] for r in table if r and r[0]=='Domestic')
-    if not dates or len(dates)!=len(values): raise ValueError('ici_dates')
-    rows=ordered([{'date':datetime.strptime(d,'%m/%d/%Y').date().isoformat(),'value':finite(v)/1000} for d,v in zip(dates,values)],as_of)
-    four=rows[-4:]; contiguous=len(four)==4 and all((date.fromisoformat(b['date'])-date.fromisoformat(a['date'])).days==7 for a,b in zip(four,four[1:]))
-    return {'history':rows,'value':rows[-1]['value'],'observation_date':rows[-1]['date'],'unit':'USD billion', 'sum_4w':sum(r['value'] for r in four) if contiguous else None}
 
 
 def parse_positions(content, as_of):
@@ -214,15 +206,17 @@ def collect(key, as_of, now, state, getter=fetch):
             return symbol,rows,source_record(provider,url,content,now,state)
         with ThreadPoolExecutor(max_workers=4) as pool: results=list(pool.map(get_symbol,SYMBOLS))
         sources=[r[2] for r in results]; data=quote_metrics({r[0]:r[1] for r in results},as_of)
+    elif key=='flows':
+        data=etf_flows.collect(as_of,now,state,getter); sources=data.pop('sources')
     else:
         specs={
-            'margin':('FINRA',FINRA,parse_margin), 'flows':('ICI',ICI,parse_flows),
+            'margin':('FINRA',FINRA,parse_margin),
             'positions':('CFTC',CFTC+'?'+urlencode({'$where':"cftc_contract_market_code in('13874A','209742')",'$order':'report_date_as_yyyy_mm_dd DESC','$limit':340}),parse_positions),
             'options':('OCC',OCC+'?'+urlencode({'productKind':'options','reportType':'D','reportDate':as_of.replace('-',''),'reportFormat':'volume','issues':'all','reportView':'totals'}),parse_options)}
         provider,url,parser=specs[key]; content=getter(url)
         sources=[source_record(provider,url,content,now,state)]; data=parser(content,as_of)
     age=(date.fromisoformat(as_of)-date.fromisoformat(data['observation_date'])).days
-    limit={'daily':0,'weekly':14,'monthly':70}[FREQUENCIES[key]]
+    limit=LIMITS[FREQUENCIES[key]]
     return {'id':key,'frequency':FREQUENCIES[key],'status':'available' if age<=limit else 'stale','sources':sources,**data}
 
 
@@ -233,14 +227,15 @@ def validate(payload, expected=None):
     if payload.get('point_in_time_backtest_eligible') is not False: raise ValueError('cockpit_not_strategy_history')
     if set(payload['panels'])!=set(FREQUENCIES): raise ValueError('cockpit_panels')
     for key,p in payload['panels'].items():
-        if p['id']!=key or p['frequency']!=FREQUENCIES[key]: raise ValueError('cockpit_identity')
+        retired=(key,p['frequency']) in RETIRED and p['status']=='unavailable'
+        if p['id']!=key or (p['frequency']!=FREQUENCIES[key] and not retired): raise ValueError('cockpit_identity')
         if p['status']=='unavailable':
             if p.get('observation_date') is not None or set(p)-{'id','frequency','status','sources','observation_date','error_type'}: raise ValueError('unavailable_with_data')
             continue
         require_date(p['observation_date'],'observation_date')
         if p['observation_date']>as_of: raise ValueError('cockpit_future')
         age=(date.fromisoformat(as_of)-date.fromisoformat(p['observation_date'])).days
-        limit={'daily':0,'weekly':14,'monthly':70}[p['frequency']]
+        limit=LIMITS[p['frequency']]
         if p['status']!=('available' if age<=limit else 'stale'): raise ValueError('cockpit_freshness')
         if not p['sources']: raise ValueError('cockpit_no_provenance')
         for s in p['sources']:
@@ -267,9 +262,7 @@ def validate(payload, expected=None):
                     if c['percentiles'][field]!=expected_pct: raise ValueError('cockpit_percentile')
                     for r in c['history']:
                         if r['open_interest']<=0 or abs(r[field]-r[field+'_net']/r['open_interest']*100)>1e-8: raise ValueError('cockpit_net_position')
-        if key=='flows':
-            four=p['history'][-4:]; continuous=len(four)==4 and all((date.fromisoformat(b['date'])-date.fromisoformat(a['date'])).days==7 for a,b in zip(four,four[1:]))
-            if p['sum_4w']!=(sum(r['value'] for r in four) if continuous else None): raise ValueError('cockpit_flow_window')
+        if key=='flows': etf_flows.check(p,as_of)
         if key=='margin' and any(r['value']<0 for r in p['history']): raise ValueError('cockpit_negative_balance')
         if key=='quotes':
             if len({s['provider'] for s in p['sources']})!=1: raise ValueError('cockpit_mixed_quotes')
@@ -286,7 +279,7 @@ def run(as_of, *, out=ROOT/'public/market-cockpit.json', state=ROOT/'data/market
     if previous:
         for key in ('options','flows'):
             saved=Path(state)/'last-success'/f'{key}.json'; old=previous['panels'][key]
-            if old['status']!='unavailable' and not saved.exists(): atomic(saved,{'panel':old,'fingerprint':canonical_fingerprint(old)})
+            if old['status']!='unavailable' and old['frequency']==FREQUENCIES[key] and not saved.exists(): atomic(saved,{'panel':old,'fingerprint':canonical_fingerprint(old)})
     same_check=bool(previous and previous['as_of']==as_of and previous['checked_at'][:10]==now[:10] and not refresh)
     if same_check and all(p['status']=='available' for p in previous['panels'].values()):
         return {'result':'already_checked','as_of':as_of,'changed':False,'source_status':{k:v['status'] for k,v in previous['panels'].items()}}
@@ -296,9 +289,10 @@ def run(as_of, *, out=ROOT/'public/market-cockpit.json', state=ROOT/'data/market
         except (OSError,ValueError,KeyError,TypeError,IndexError,RuntimeError,csv.Error) as error:
             return key,{'id':key,'frequency':FREQUENCIES[key],'status':'unavailable','observation_date':None,'sources':[],'error_type':type(error).__name__}
     with ThreadPoolExecutor(max_workers=3) as pool: panels=dict(pool.map(attempt,FREQUENCIES))
-    # Only accumulate observed options/flow records. Revisions replace same dates;
-    # the old immutable snapshot and source hash remain available for audit.
-    for key in ('options','flows'):
+    # Only accumulate observed options records. Revisions replace same dates; the old immutable
+    # snapshot and source hash remain available for audit. Flows rebuild their own window from the
+    # issuers' histories plus the last successful panel (etf_flows.build).
+    for key in ('options',):
         current=panels[key]; old=previous['panels'][key] if previous else None
         saved=Path(state)/'last-success'/f'{key}.json'
         if saved.exists():
@@ -309,9 +303,6 @@ def run(as_of, *, out=ROOT/'public/market-cockpit.json', state=ROOT/'data/market
             merged={r['date']:r for r in old['history'] if r['date']<=as_of}
             merged.update({r['date']:r for r in current['history']}); current['history']=sorted(merged.values(),key=lambda r:r['date'])[-126:]
             sources={s['sha256']:s for s in [*old['sources'],*current['sources']]}; current['sources']=list(sources.values())
-            if key=='flows':
-                four=current['history'][-4:]
-                current['sum_4w']=sum(r['value'] for r in four) if len(four)==4 and all((date.fromisoformat(b['date'])-date.fromisoformat(a['date'])).days==7 for a,b in zip(four,four[1:])) else None
     if same_check and panels==previous['panels']:
         return {'result':'already_checked','as_of':as_of,'changed':False,'source_status':{k:v['status'] for k,v in panels.items()}}
     payload={'schema_version':SCHEMA,'as_of':as_of,'checked_at':now,'point_in_time_backtest_eligible':False,'panels':panels}
