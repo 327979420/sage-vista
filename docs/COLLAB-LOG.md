@@ -116,3 +116,11 @@ Claude directs and accepts; Codex implements (Codex plugin). Each round: task ca
 - 周报：https://claude.ai/artifact/GJMaRc7PkbyMosVf25fu9X 。`research/lab/weekly_report.py` 能运行（账户总值一致），但只用离线行情（把全部篮子标为过期），且拒绝 computed_at 晚于报告日的前向记录；本周报告改为手写，问题已交 owner 决定是否修。
 - 核查队列：#135、#136、#147/#148、#137、旧断言修正 → 通过（main 上 39 项 Discord/整合单测通过；日更 10-23 连续成功）。Task046 预检行 → 已被 #153 取代。
 - 其余 Codex 本地研究/界面行（Task033 后续、035、036、038—045）保持待核查：都需要在对应工作树里复现，超出周例行的用量，留待专门核查轮次，不在此改判。
+
+## 2026-11-21 — Claude 每周例行（核查队列）
+
+- #168 资金流：**退回**，11-16 只有 13/16 只基金有数，缺 Invesco 的 QQQ、RSP、UUP。
+- #165 深色终端框架、#164 行业雷达、#163 EOD 体积上限、#156 周报修复：**通过**（证据见核查队列）。
+- 10-19 至 10-24 的 Codex 本地工作行（未合并、只在本地 work/）本次未复现，仍为待核查；2026-10-31 起不再交给 Codex，建议 owner 决定是否整体关闭。
+- 发现：「Sage Vista EOD Update」11-18 起连续失败（最近 40 次里 30 次失败），报错 `Production code/data changed; rerun and audit current main`，网站主数据停在 11-17。按例行规则只报告、不修。
+- 模拟账户：补做 11-02 月底调仓（XLB、XLP、XLY 换回 ETF），价格更新到 11-19；周报 https://claude.ai/artifact/FzdmDbCiNztVBjU2JdJTKR 。
