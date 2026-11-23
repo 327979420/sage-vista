@@ -1,13 +1,13 @@
 'use client';
-import {useEffect,useMemo,useState} from 'react';
+import {useEffect,useMemo,useState,type ReactNode} from 'react';
 import {useLocale} from '../i18n/locale';
 import type {Today} from './data';
 import {closeAt,scanDay,type SignalRow} from './signal-rows';
 import CrawlWeb from './crawl-web';
 import Term from '../term';
 
-// Terminal overview on top of Today: one headline, the signal funnel, the market gate as a
-// field of stocks, a replay of the latest scan and the daily pipeline. Public data only.
+// Terminal overview on top of Today: one headline, today's run as one track, the market light as a
+// field of stocks, a replay of the latest scan, the road to proof and two folds. Public data only.
 type Props = {today:Today|null; rows:SignalRow[]|null};
 
 function useNow(ms=1000) {
@@ -27,23 +27,55 @@ export function Countdown({target,en}:{target:number;en:boolean}) {
  return <b className="ovCount">{d>0&&<>{d}<small>{en?'d':'天'}</small> </>}{pad(Math.floor(left/3600000)%24)}:{pad(Math.floor(left/60000)%60)}:{pad(Math.floor(left/1000)%60)}</b>;
 }
 
-function Funnel({rows,en}:{rows:SignalRow[];en:boolean}) {
- const ready=useReady();
- const rule=rows.filter(r=>r.ruleOk), gate=rule.filter(r=>r.gateOk), filled=rows.filter(r=>r.filled), closed=rows.filter(r=>r.status==='closed');
- const rrFail=rows.filter(r=>r.rrOk===false).length, vetoed=rows.filter(r=>r.veto).length;
- const cells:[string,number,string,string][]=[
-  [en?'3W signals':'3W 信号', rows.length, en?`${new Set(rows.map(r=>r.week)).size} weeks`:`${new Set(rows.map(r=>r.week)).size} 周`, 'ink'],
-  [en?'Passed the rule':'过了规则', rule.length, en?`${rrFail} reward/risk too low · ${vetoed} monthly veto`:`${rrFail} 个盈亏比不够 · ${vetoed} 个月线否决`, 'ink'],
-  [en?'Market let through':'大盘放行', gate.length, en?'over half the pool above its 200-day that week':'那周股票池过半站上 200 日线', gate.length?'go':'wait'],
-  [en?'Filled':'成交', filled.length, en?'limit buy 2% under the close':'收盘价下方 2% 挂买单', 'dim'],
-  [en?'Closed':'已平仓', closed.length, en?'first check at 30':'第一次检查在 30 笔', 'dim'],
-  [en?'Needed for proof':'证明需要', 100, en?'closed trades, not luck':'笔平仓，且不像运气', 'dim'],
+// Today's run as one track (GitLab-style stage graph): each stage shows one real number;
+// stages before the stop are green, the stop is amber, later ones grey. A dot runs to the stop.
+function RunTrack({today,rows,en}:{today:Today;rows:SignalRow[];en:boolean}) {
+ const ready=useReady(250);
+ const week=rows.map(r=>r.week).sort().at(-1)??'';
+ const latest=rows.filter(r=>r.week===week);
+ const passed=latest.filter(r=>r.ruleOk), placed=passed.filter(r=>r.gateOk);
+ const open=rows.filter(r=>r.status==='open').length, closed=rows.filter(r=>r.status==='closed').length;
+ const rrFail=latest.filter(r=>r.rrOk===false).length, vetoed=latest.filter(r=>r.veto).length;
+ const green=today.market.light==='green', breadth=today.market.breadth;
+ const nodes:[string,string,string][]=[
+  [en?'Prices':'行情', today.as_of.slice(5), en?'closes in':'收盘数据'],
+  [en?'Shapes':'形态', String(latest.length), en?'triangles found':'个三角形'],
+  [en?'Rule':'规则', String(passed.length), en?'passed':'个通过'],
+  [en?'Market light':'市场灯', green?(en?'Green':'绿'):(en?'Amber':'黄'), breadth===null?'':(en?`${(breadth*100).toFixed(1)}%, needs 50%`:`${(breadth*100).toFixed(1)}%，要过 50%`)],
+  [en?'Orders':'下单', String(placed.length), en?'placed':'笔'],
+  [en?'Open':'持仓', String(open), en?'positions':'笔'],
+  [en?'Record':'记录', String(closed), en?'of 100 closed':'/ 100 笔平仓'],
  ];
- return <div className="ovFunnel" role="list" aria-label={en?'Signal funnel':'信号漏斗'}>
-  {cells.map(([label,value,sub,tone],i)=><div key={label} role="listitem" data-tone={tone} style={{transitionDelay:`${i*90}ms`}} data-ready={ready||undefined}>
-   <small>{label}</small><b>{value}</b><span>{sub}</span>{i<cells.length-1&&<i aria-hidden="true">›</i>}
-  </div>)}
- </div>;
+ const stop=!latest.length?1:!passed.length?2:!placed.length?3:!open?5:6;
+ const reasons:string[]=[];
+ if(stop===2){
+  if(rrFail)reasons.push(rrFail===latest.length?(en?`all ${rrFail} had reward/risk under 1.5`:`${rrFail} 个盈亏比都不到 1.5`):(en?`${rrFail} had reward/risk under 1.5`:`${rrFail} 个盈亏比不到 1.5`));
+  if(vetoed)reasons.push(en?`${vetoed} monthly veto`:`${vetoed} 个月线否决`);
+ }
+ const why=stop===1?(en?'No triangle that week.':'那周没有三角形。')
+  :stop===2?(en?`Stopped at Rule: ${reasons.join(', ')}.`:`停在规则：${reasons.join('，')}。`)
+  :stop===3?(en?'Stopped at Market light: under half the pool was above its 200-day line that week.':'停在市场灯：那周股票池站上 200 日线的不到一半。')
+  :stop===5?(en?`${placed.length} orders placed, waiting to fill.`:`已挂 ${placed.length} 单，等成交。`)
+  :(en?`${open} open; closed trades count toward the record.`:`${open} 笔持仓，平仓后计入记录。`);
+ const state=(i:number)=>i<stop?'go':i===stop?'wait':'off';
+ return <section className="ovPanel ovRun" aria-label={en?'Today’s run':'今天的流程'}>
+  <header><small>{en?`Today’s run · week of ${week.slice(5)}`:`今天的流程 · ${week.slice(5)} 周`}</small></header>
+  <ol className="ovTrack" style={{['--stop' as string]:`${stop/nodes.length*100}%`}} data-ready={ready||undefined}>
+   <i className="ovRunner" aria-hidden="true"/>
+   {nodes.map(([name,value,unit],i)=><li key={name} data-s={state(i)} aria-current={i===stop?'step':undefined}><small>{name}</small><b>{value}</b><span>{unit}</span></li>)}
+  </ol>
+  <p className="ovStop">{why}</p>
+ </section>;
+}
+
+// Goal-gradient progress to the 100-trade verdict, with the 30 and 60 checks marked.
+function ProofRoad({rows,en}:{rows:SignalRow[];en:boolean}) {
+ const closed=rows.filter(r=>r.status==='closed').length, next=[30,60,100].find(c=>c>closed)??100;
+ return <section className="ovPanel ovProof" aria-label={en?'Road to proof':'证明进度'}>
+  <header><small>{en?'Road to proof':'证明进度'}</small><a href="/forward">{en?'Forward record →':'前向记录 →'}</a></header>
+  <div className="ovProofBar"><em style={{width:`${Math.min(100,closed)}%`}}/>{[30,60,100].map(c=><i key={c} style={{left:`${c}%`}} data-done={closed>=c||undefined}><span>{c===100?(en?'100 · proof':'100 · 证明'):(en?`${c} · check`:`${c} · 检查`)}</span></i>)}</div>
+  <p>{en?`${closed} closed so far. Next: ${next}.`:`已平仓 ${closed} 笔，下一站 ${next}。`}</p>
+ </section>;
 }
 
 function GateField({today,en}:{today:Today;en:boolean}) {
@@ -58,7 +90,7 @@ function GateField({today,en}:{today:Today;en:boolean}) {
  const on=useMemo(()=>new Set(order.slice(0,shown)),[order,shown]);
  const green=m.light==='green';
  return <section className="ovPanel ovGate" aria-label={en?'Market light':'市场灯'}>
-  <header><small>01 · <Term k="light">{en?'Market light':'市场灯'}</Term></small><span data-tone={green?'go':'wait'}>{green?(en?'Green':'绿灯'):(en?'Amber':'黄灯')}</span></header>
+  <header><small><Term k="light">{en?'Market light':'市场灯'}</Term></small><span data-tone={green?'go':'wait'}>{green?(en?'Green':'绿灯'):(en?'Amber':'黄灯')}</span></header>
   <div className="ovGateTop"><b>{m.breadth===null?'—':`${(m.breadth*100).toFixed(1)}%`}</b>
    <p>{en?`${lit} of ${sample} 3W stocks are above their 200-day line. Over half are needed.`:`3W 股票池 ${sample} 只里，有 ${lit} 只站上 200 日线。要过半才放行。`}</p></div>
   <div className="ovDots" aria-hidden="true">{order.map((_,i)=><i key={i} data-on={on.has(i)||undefined}/>)}</div>
@@ -76,14 +108,12 @@ function ScanReplay({rows,en}:{rows:SignalRow[];en:boolean}) {
   [en?'Reward/risk':'盈亏比',r.rrOk,r.rr===null?'—':r.rr.toFixed(2)],
   [en?'Market':'大盘',r.gateOk,r.breadth===null?'—':`${(r.breadth*100).toFixed(1)}%`],
  ];
- const placed=latest.filter(r=>r.ruleOk&&r.gateOk).length;
  return <section className="ovPanel ovReplay" aria-label={en?'Latest scan replay':'最近一次扫描回放'}>
-  <header><small>{en?`02 · Replay · week of ${week.slice(5)}, read after the ${scanDay(week).slice(5)} close`:`02 · 回放 · ${week.slice(5)} 周，${scanDay(week).slice(5)} 收盘后认出`}</small><button type="button" onClick={()=>setRun(v=>v+1)}>↻ {en?'Replay':'重放'}</button></header>
+  <header><small>{en?`Latest scan · week of ${week.slice(5)}`:`最近一次扫描 · ${week.slice(5)} 周`}</small><button type="button" onClick={()=>setRun(v=>v+1)}>↻ {en?'Replay':'重放'}</button></header>
   <ol key={run}>{latest.map((r,i)=><li key={r.id}>
    <b>{r.symbol}</b>
    {steps(r).map(([label,ok,value],j)=><span key={label} className="ovStep" data-ok={ok===null?undefined:String(ok)} style={{animationDelay:`${(i*4+j)*0.28}s`}}><em>{ok===null?'·':ok?'✓':'✕'}</em>{label} <i>{value}</i></span>)}
   </li>)}</ol>
-  <p className="ovNote">{en?`Done · ${latest.length} signals · ${latest.filter(r=>r.ruleOk).length} passed the rule · ${placed} orders`:`完成 · ${latest.length} 个信号 · ${latest.filter(r=>r.ruleOk).length} 个规则可做 · ${placed} 单`}</p>
  </section>;
 }
 
@@ -100,11 +130,17 @@ function Pipeline({today,rows,en}:{today:Today;rows:SignalRow[]|null;en:boolean}
   [en?'Paper account':'模拟账户', en?'Running':'运行中', 'go', en?'Core 50% follows the sector trend basket, rebalanced monthly; satellite 50% trades 3W signals.':'核心 50% 跟行业趋势篮子，每月底调仓；卫星 50% 按 3W 信号下单。'],
  ];
  return <section className="ovPanel ovPipe" aria-label={en?'Daily pipeline':'每日流程'}>
-  <header><small>{en?'04 · How a day runs · click a step':'04 · 每天怎么跑 · 点一步看说明'}</small></header>
+  <header><small>{en?'Click a step':'点一步看说明'}</small></header>
   <div className="ovStations">{S.map(([name,status,tone],i)=><button key={name} type="button" aria-pressed={i===sel} onClick={()=>setSel(i)}>
    <small>{pad(i+1)}</small><b>{name}</b><span data-tone={tone}>{status}</span></button>)}</div>
   <p className="ovExplain"><b>{S[sel][0]}</b> {S[sel][3]}</p>
  </section>;
+}
+
+// Secondary detail stays folded; its content mounts on open, so the scan map's sweep plays then.
+function Fold({title,children}:{title:string;children:ReactNode}) {
+ const [open,setOpen]=useState(false);
+ return <details className="ovFold" onToggle={e=>setOpen(e.currentTarget.open)}><summary>{title}</summary>{open&&children}</details>;
 }
 
 export default function Overview({today,rows}:Props) {
@@ -116,13 +152,14 @@ export default function Overview({today,rows}:Props) {
    <div>
     <small>{en?'3W · Today':'3W · 今日'}</small>
     <h1><Term k="light">{en?'Market light':'市场灯'}</Term>{green?(en?' is green. Waiting for the next scan.':'是绿的，等下一次扫描。'):(en?' is amber: new signals won’t be ordered.':'是黄的：新信号不下单。')}</h1>
-    <p>{en?`${today.new_signals_this_week} new signals this week, ${today.orders_to_place} orders to place.`:`本周新信号 ${today.new_signals_this_week} 个，待下单 ${today.orders_to_place} 个。`}</p>
+    <p>{today.orders_to_place?(en?`${today.orders_to_place} orders to place.`:`待下单 ${today.orders_to_place} 个。`):(en?'Nothing to do today.':'今天不用动。')}</p>
    </div>
-   <div className="ovNext"><small>{en?`Next scan · week of ${today.signal_week.slice(5)} · after the ${next.slice(5)} close`:`下一次扫描 · ${today.signal_week.slice(5)} 周 · ${next.slice(5)} 收盘后`}</small><Countdown target={closeAt(next)} en={en}/></div>
+   <div className="ovNext"><small>{en?`Next scan · after the ${next.slice(5)} close`:`下一次扫描 · ${next.slice(5)} 收盘后`}</small><Countdown target={closeAt(next)} en={en}/></div>
   </section>
-  {rows&&<Funnel rows={rows} en={en}/>}
+  {rows&&<RunTrack today={today} rows={rows} en={en}/>}
   <div className="ovGrid"><GateField today={today} en={en}/>{rows&&<ScanReplay rows={rows} en={en}/>}</div>
-  <CrawlWeb en={en}/>
-  <Pipeline today={today} rows={rows} en={en}/>
+  {rows&&<ProofRoad rows={rows} en={en}/>}
+  <Fold title={en?'How a day runs':'每天怎么跑'}><Pipeline today={today} rows={rows} en={en}/></Fold>
+  <Fold title={en?'Multi-factor scan map':'多因子扫描图'}><CrawlWeb en={en}/></Fold>
  </div>;
 }

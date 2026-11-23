@@ -162,9 +162,49 @@ html.svDark .rtSubHero p.rtHeroDescription { color: var(--t-ink-2); font-family:
 .ovStations b { font-size: 14px; font-weight: 500; }
 .ovExplain { margin: 0; color: var(--t-ink-2); font-size: 14px; line-height: 1.6; }
 .ovExplain b { color: var(--t-ink); margin-right: 6px; }
+/* Today's run: one stage track (green done, amber where it stopped, grey not reached). */
+.ovTrack { position: relative; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); margin: 6px 0 0; padding: 0; list-style: none; }
+.ovTrack li { position: relative; display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 14px 10px 4px 0; border-top: 2px solid var(--t-line-2); }
+.ovTrack li::before { content: ""; position: absolute; top: -7px; left: 0; width: 12px; height: 12px; border-radius: 50%; background: var(--t-line-2); }
+.ovTrack li[data-s="go"] { border-top-color: var(--t-go); }
+.ovTrack li[data-s="go"]::before { background: var(--t-go); }
+.ovTrack li[data-s="wait"]::before { background: var(--t-wait); box-shadow: 0 0 10px var(--t-wait); animation: ovPulse 1.8s ease-in-out infinite; }
+.ovTrack b { color: var(--t-ink); font-family: var(--t-mono); font-size: 24px; font-weight: 300; font-variant-numeric: tabular-nums; }
+.ovTrack li[data-s="wait"] b { color: var(--t-wait); }
+.ovTrack span { color: var(--t-ink-2); font-size: 13px; line-height: 1.35; }
+.ovTrack li[data-s="off"] b, .ovTrack li[data-s="off"] span { color: var(--t-ink-4); }
+.ovRunner { position: absolute; z-index: 1; top: -9px; left: 0; width: 16px; height: 16px; margin-left: -2px; border-radius: 50%; background: var(--t-ink); box-shadow: 0 0 14px rgba(255, 255, 255, .6); opacity: 0; transition: left 1.4s cubic-bezier(.3, .1, .2, 1), opacity .3s; }
+.ovTrack[data-ready] .ovRunner { left: var(--stop); opacity: 0; transition-delay: 0s, 1.4s; }
+.ovTrack:not([data-ready]) .ovRunner { opacity: 1; }
+.ovStop { margin: 0; padding: 10px 12px; border-left: 2px solid var(--t-wait); background: var(--t-raise); color: var(--t-ink); font-size: 14px; line-height: 1.5; }
+/* Road to proof: closed trades out of 100, with the 30 and 60 checks marked. */
+.ovProofBar { position: relative; height: 6px; margin: 4px 0 26px; background: var(--t-line); }
+.ovProofBar em { position: absolute; inset: 0 auto 0 0; background: var(--t-go); }
+.ovProofBar i { position: absolute; top: -6px; font-style: normal; width: 1px; height: 18px; background: var(--t-ink-4); }
+.ovProofBar i[data-done] { background: var(--t-go); }
+.ovProofBar span { position: absolute; top: 22px; color: var(--t-ink-3); font-family: var(--t-mono); font-size: 11px; white-space: nowrap; transform: translateX(-50%); }
+.ovProofBar i:last-of-type span { transform: translateX(-100%); }
+.ovProof p { margin: 0; color: var(--t-ink-2); font-size: 14px; }
+.ovProof header a { color: var(--t-ink-2); font-size: 13px; text-decoration: none; }
+.ovProof header a:hover { color: var(--t-ink); text-decoration: underline; }
+.ovFold { border: 1px solid var(--t-line); border-radius: 3px; background: var(--t-panel); }
+.ovFold > summary { padding: 12px 18px; color: var(--t-ink-2); font-family: var(--t-mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; }
+.ovFold > summary:hover { color: var(--t-ink); }
+.ovFold > summary:focus-visible { outline: 2px solid var(--t-ink); outline-offset: -2px; }
+.ovFold[open] > summary { border-bottom: 1px solid var(--t-line); }
+.ovFold > .ovPanel { border: 0; background: transparent; }
+@keyframes ovPulse { 50% { opacity: .45; } }
+@media (max-width: 820px) {
+ .ovTrack { grid-template-columns: minmax(0, 1fr); }
+ .ovTrack li { display: grid; grid-template-columns: 110px auto minmax(0, 1fr); align-items: baseline; gap: 10px; padding: 8px 0 8px 22px; border-top: 0; border-left: 2px solid var(--t-line-2); }
+ .ovTrack li[data-s="go"] { border-left-color: var(--t-go); }
+ .ovTrack li::before { top: 50%; left: -7px; margin-top: -6px; }
+ .ovTrack b { font-size: 20px; }
+ .ovRunner { display: none; }
+}
 @media (max-width: 1100px) { .ovFunnel { grid-template-columns: repeat(3, minmax(0, 1fr)); } .ovFunnel i { display: none; } .ovStations { grid-template-columns: repeat(4, minmax(0, 1fr)); } .ovGrid { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 600px) { .ovFunnel { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ovStations { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ovNext { align-items: flex-start; } .ovReplay li { grid-template-columns: 1fr 1fr; } .ovReplay li > b { grid-column: 1 / -1; } }
-@media (prefers-reduced-motion: reduce) { .ovFunnel > div { opacity: 1; transform: none; transition: none; } .ovStep { animation: none; opacity: 1; } .ovDots i { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .ovFunnel > div { opacity: 1; transform: none; transition: none; } .ovTrack li::before { animation: none; } .ovRunner { display: none; } .ovStep { animation: none; opacity: 1; } .ovDots i { transition: none; } }
 
 /* Signal board: filter chips, price-ladder cards and a check-trace detail panel. */
 .sbBoard { display: grid; gap: 14px; margin-top: 14px; }

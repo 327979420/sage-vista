@@ -48,7 +48,7 @@ export default function CrawlWeb({en}:{en:boolean}) {
  const legend:[string,string,number][]=[[en?'Picked (top 5)':'入选前 5','#ffffff',web.counts[0]],[en?'Ranked':'进入排名','var(--t-go)',web.counts[0]+web.counts[1]],[en?'Not nominated':'没被提名','#7cc4ff',web.counts[2]],[en?'Excluded':'排除','#5c6670',web.counts[3]],[en?'Data unavailable':'数据不可用','var(--t-loss)',web.counts[4]]];
  const total=data.reviews.length;
  return <section className="ovPanel ovWeb" aria-label={en?'Daily candidate scan':'每日候选扫描'}>
-  <header><small>{en?`03 · Daily scan web · ${data.as_of} · ${total} stocks`:`03 · 每日扫描网 · ${data.as_of} · ${total} 只股票`}</small><button type="button" onClick={()=>setRun(v=>v+1)}>↻ {en?'Sweep again':'再扫一遍'}</button></header>
+  <header><small>{en?`${data.as_of} · ${total} stocks`:`${data.as_of} · ${total} 只股票`}</small><button type="button" onClick={()=>setRun(v=>v+1)}>↻ {en?'Sweep again':'再扫一遍'}</button></header>
   <div className="ovWebBody">
    <div className="ovWebStage" onMouseMove={onMove} onMouseLeave={()=>setHover(-1)}>
     <svg viewBox="0 0 200 200" aria-hidden="true"><path d={web.web} fill="none" stroke="#1a2128" strokeWidth=".35"/>
