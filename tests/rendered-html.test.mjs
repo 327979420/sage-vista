@@ -70,8 +70,9 @@ test("share crawlers receive public image URLs and browser-compatible SV icons",
 test("server-renders the four-product navigation", async () => {
   const html = await (await render("/")).text();
   assert.doesNotMatch(html, /个股研究/);
-  assert.match(html, /多因子机会/);
-  assert.match(html, /我最喜欢形态/);
+  // Side menu names (the footer no longer repeats the candidate pages).
+  assert.match(html, /<span>多因子<\/span>/);
+  assert.match(html, /<span>形态<\/span>/);
   assert.match(html, /行业/);
   assert.doesNotMatch(html, /历史与实验/);
   assert.match(html, /href="\/zh\/watch\/resonance\/rare-opportunities"/);
@@ -103,7 +104,6 @@ test("server-renders the independent favorite-pattern tracker", async () => {
   const response = await render("/zh/watch/resonance/favorite-pattern");
   assert.equal(response.status, 200);
   const html = await response.text();
-  assert.match(html, /我最喜欢形态/);
   // The page leads with the setup wall (no hero) once data loads.
   assert.match(html, /正在读取日线形态/);
   assert.doesNotMatch(html, /4\/4|生产权重 0/);
@@ -167,7 +167,7 @@ test("industry owns its title and excludes the market hero", async()=>{
 
 
 test("language cookie controls first render and never leaks between requests", async()=>{
- const pages=[['/','Today'],['/portfolio','My Portfolio'],['/opportunities','Signal evidence'],['/scorecard','Forward record'],['/patterns','Daily Setups'],['/learn','Learn'],['/archive','Research Archive'],['/zh/watch/market','Market'],['/zh/watch/industry-radar','Sectors'],['/zh/watch/resonance/rare-opportunities','Multi-Factor Opportunities'],['/zh/watch/resonance/favorite-pattern','Daily Setups'],['/zh/backtest','Backtests'],['/zh/watch/resonance/about','About SV']];
+ const pages=[['/','Today'],['/portfolio','My Portfolio'],['/opportunities','Signal evidence'],['/scorecard','Forward record'],['/patterns','Daily setups'],['/learn','Learn'],['/archive','Research Archive'],['/zh/watch/market','Market'],['/zh/watch/industry-radar','Sectors'],['/zh/watch/resonance/rare-opportunities','Multi-Factor Opportunities'],['/zh/watch/resonance/favorite-pattern','Daily setups'],['/zh/backtest','Backtests'],['/zh/watch/resonance/about','About SV']];
  for(const[path,title]of pages){
   // A year-long cookie from before English became the per-visit default must not force Chinese.
   for(const cookie of ['', 'sv-language-session=en', 'sv-language-session=invalid', 'sv-language=zh']){
@@ -189,10 +189,11 @@ test("About SV explains the system in each language and cites Triple Screen", as
  for(const phrase of ['三重滤网交易系统','如何使用 SV','多周期共振评分','不构成投资建议'])assert.ok(zh.includes(phrase),phrase);
 });
 
-test("the first-visit tour is client-only and the footer offers a replay", async()=>{
+test("start-here panel is client-only, never a full-screen dialog, and the footer reopens it", async()=>{
  const html=await (await render('/','')).text();
- assert.doesNotMatch(html,/svTourBackdrop|role="dialog"/);
- assert.match(html,/href="\/\?tour=1">Take the tour</);
+ assert.doesNotMatch(html,/svTourBackdrop|crowGuide|role="dialog"/);
+ assert.match(html,/class="svStartButton"/);
+ assert.match(html,/href="\/\?tour=1">Start here</);
 });
 
 test('side menu groups all twelve pages into five sections',async()=>{

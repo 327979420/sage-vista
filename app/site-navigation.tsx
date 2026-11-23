@@ -4,6 +4,7 @@ import {useNavigationCount} from './navigation-count';
 import {usePathname} from 'next/navigation';
 import {LanguageSwitch,useLocale} from './i18n/locale';
 import {sharedJson} from './json-cache';
+import StartHere from './start-here';
 
 // Terminal shell: top status bar, a strip of real events and five sections in a side menu.
 // [zh label, en label, path]; each section lists the pages it absorbed.
@@ -84,6 +85,7 @@ export default function SiteNavigation({uiVersion, build}: {uiVersion: string; b
     <span className="svPill">{en ? 'Rule 3w-1.9 · frozen' : '规则 3w-1.9 · 已冻结'}</span>
    </div>
    <div className="svClock"><small>{en ? 'New York' : '纽约'}</small><b>{ny}</b><span>ET</span></div>
+   <StartHere/>
    <LanguageSwitch/>
   </header>
   <div className="svTicker" aria-label={en ? 'Latest events' : '最新动态'}>

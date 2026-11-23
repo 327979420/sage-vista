@@ -4,8 +4,6 @@ import {LocaleProvider} from "./i18n/locale";
 import {NavigationCountProvider} from './navigation-count';
 import SiteNavigation from './site-navigation';
 import SiteFooter from "./site-footer";
-import Tour from "./tour";
-import CrowGuide from "./crow";
 import Analytics from "./analytics";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -84,8 +82,6 @@ export default async function RootLayout({
         <SiteNavigation uiVersion={UI_VERSION} build={(process.env.GITHUB_SHA ?? "local").slice(0, 7)}/>
         <div className="svMain">{children}<SiteFooter/></div>
         </div></NavigationCountProvider>
-        <Tour/>
-        <CrowGuide/>
         <Analytics/>
         </LocaleProvider>
       </body>
