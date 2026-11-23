@@ -4,6 +4,7 @@ import {useLocale} from '../i18n/locale';
 import {trackEvent} from '../analytics';
 import {markSeen,RULE_LOCKED} from '../first-visit';
 import type {SignalRow} from './signal-rows';
+import Term from '../term';
 
 // First-visit hero on Today. A first-timer gets, on one screen: a concrete question, what SV is in
 // one sentence, three live numbers and one next step (NN/g homepage principles), plus a replay of
@@ -74,12 +75,12 @@ export default function FirstVisit({rows,onClose}:{rows:SignalRow[]|null;onClose
  return <section className="fvHero" aria-labelledby="fvTitle">
   <button type="button" className="fvClose" aria-label={en?'Hide the intro':'收起介绍'} onClick={()=>{trackEvent('intro_closed');onClose()}}>×</button>
   <div className="fvCopy">
-   <span className="fvEyebrow">{en?'A live, public experiment':'公开进行中的实验'}</span>
-   <h1 id="fvTitle">{en?'Can one chart pattern beat random stock picks?':'一个图形，能赢过随机选股吗？'}</h1>
-   <p>{en?'Every week Sage Vista scans US stocks for one triangle pattern, trades it on paper by a rule that can’t be changed, and scores each trade against random picks. Every result is shown, wins and misses.'
-    :'Sage Vista 每周在美股里找同一种三角形，按改不了的规则模拟交易，每一笔都和随机选股比。赢的输的都公开。'}</p>
+   <span className="fvEyebrow">{en?'Rules, not predictions · tested in public':'不靠预测，靠规则 · 公开检验'}</span>
+   <h1 id="fvTitle">{en?'Simple rules, followed exactly.':'规则简单，照做到底。'}</h1>
+   <p>{en?<>Like the <Term k="turtle">Turtle traders</Term> of 1983, Sage Vista trades by a few written rules, not by predictions: one weekly chart pattern on US stocks, a rule locked since {Number(RULE_LOCKED.slice(8))} Oct, and every trade scored against random picks.</>
+    :<>和 1983 年的<Term k="turtle">海龟交易</Term>一样，不靠预测，只按几条写死的规则做：一种美股周线形态，规则 {RULE_LOCKED.slice(5).replace('-','/')} 起锁定，每一笔都和随机选股比。</>}</p>
    <div className="fvProof">
-    <div><b>{since??'—'}</b><span>{en?`signals since the rule was locked on ${Number(RULE_LOCKED.slice(8))} Oct`:`规则锁定（${RULE_LOCKED.slice(5).replace('-','/')}）后的信号`}</span></div>
+    <div><b>{since??'—'}</b><span>{en?'signals since the lock':'锁定后的信号'}</span></div>
     <div><b>{closed??'—'}<small> / 100</small></b><span>{en?'closed trades needed for a verdict':'下结论要平仓 100 笔'}</span></div>
     <div className="fvVerdict"><b>{closedCount!==null&&closedCount>=100?(en?'Verdict due':'该下结论了'):(en?'Not proven yet':'还没证明')}</b><span>{en?'checked every Friday close':'每周五收盘后检查'}</span></div>
    </div>

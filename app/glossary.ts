@@ -19,6 +19,9 @@ export const GLOSSARY = {
  locked: {
   en: 'Rule v1.9 has not changed since 2026-10-16, so the forward record is a fair test.',
   zh: '规则 v1.9 自 2026-10-16 起没改过，所以前向记录是公平的检验。'},
+ turtle: {
+  en: 'In 1983 trader Richard Dennis taught a group of beginners a few written rules to test whether trading can be taught. They became known as the Turtles.',
+  zh: '1983 年交易员 Richard Dennis 招了一批新手，只教几条写好的规则，想证明交易能教会。这批人被叫作「海龟」。'},
  proof: {
   en: '100 closed trades after the lock, with a result unlikely to be luck (t ≥ 2).',
   zh: '锁定后平仓满 100 笔，且结果不像运气（t ≥ 2）。'},
