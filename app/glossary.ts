@@ -19,9 +19,6 @@ export const GLOSSARY = {
  locked: {
   en: 'Rule v1.9 has not changed since 2026-10-16, so the forward record is a fair test.',
   zh: '规则 v1.9 自 2026-10-16 起没改过，所以前向记录是公平的检验。'},
- turtle: {
-  en: 'In 1983 Richard Dennis taught beginners a few written rules to prove trading can be taught. All got the same rules; results differed with how strictly each followed them.',
-  zh: '1983 年 Richard Dennis 只教新手几条写好的规则，想证明交易能教会。规则人人相同，成绩差在谁能照做。'},
  proof: {
   en: '100 closed trades after the lock that beat random picks by more than luck would (t ≥ 2), with the account ahead of SPY.',
   zh: '锁定后平仓满 100 笔，明显好于随机选股（t ≥ 2），且账户跑赢 SPY。'},

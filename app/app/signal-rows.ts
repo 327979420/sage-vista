@@ -10,6 +10,8 @@ export type SignalRow = {
  breadth:number|null; spyOk:boolean|null;
  shapePassed:number; shapeTotal:number; rr:number|null; rrOk:boolean|null; veto:boolean|null; gateOk:boolean|null;
  ruleOk:boolean; filled:boolean;
+ // The signal's own weekly chart from its ticket (60 bars up to the signal week), for drawing.
+ chart?:{bars:[string,number,number,number,number][]; pushes:[string,number][]; bottoms:[string,number][]; trend:[string,number][]};
 };
 type SignalsFile = {signals:{id:string;symbol:string;week:string;dataset:string;status:string;
  market:{breadth:number|null;ok:boolean|null;spy_over_200d:boolean|null}|null;
@@ -34,7 +36,8 @@ export function toRow(s:SignalsFile['signals'][number], t:Ticket|null):SignalRow
   limit:s.order!.limit, stop:s.order!.stop, target:s.order!.target, close:s.quote?.close??null, priceAsOf:s.quote?.price_as_of??null,
   breadth:s.market?.breadth??null, spyOk:spy?spy.pass:(s.market?.spy_over_200d??null),
   shapePassed:shape.filter(c=>c.pass).length, shapeTotal:shape.length, rr:finite(rrValue)?rrValue:null, rrOk, veto:vetoed, gateOk,
-  ruleOk:rrOk!==false&&vetoed!==true&&shape.every(c=>c.pass), filled:!!t?.outcome.fill_date};
+  ruleOk:rrOk!==false&&vetoed!==true&&shape.every(c=>c.pass), filled:!!t?.outcome.fill_date,
+  chart:t?{bars:t.weekly.map(b=>[b.date,b.open,b.high,b.low,b.close]), pushes:t.pushes.map(p=>[p.date,p.price]), bottoms:t.bottoms.map(p=>[p.date,p.price]), trend:t.trend_line.map(p=>[p.date,p.price])}:undefined};
 }
 
 export function useSignalRows() {

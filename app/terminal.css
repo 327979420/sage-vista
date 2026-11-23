@@ -144,7 +144,7 @@ html.svDark .rtSubHero p.rtHeroDescription { color: var(--t-ink-2); font-family:
 .ovExplain { margin: 0; color: var(--t-ink-2); font-size: 14px; line-height: 1.6; }
 .ovExplain b { color: var(--t-ink); margin-right: 6px; }
 /* First visit: a question, what SV is, three live numbers, one next step, and a replay of this week's scan. */
-.fvHero { position: relative; display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr); gap: 32px; align-items: center; margin-top: 14px; padding: 36px 34px; border: 1px solid var(--t-line); border-radius: 3px; background: radial-gradient(110% 90% at 90% 0%, rgba(95, 211, 138, .09) 0%, transparent 55%), var(--t-panel); }
+.fvHero { position: relative; display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 32px; align-items: center; margin-top: 14px; padding: 36px 34px; border: 1px solid var(--t-line); border-radius: 3px; background: radial-gradient(110% 90% at 90% 0%, rgba(95, 211, 138, .09) 0%, transparent 55%), var(--t-panel); }
 .fvCopy { display: grid; gap: 18px; min-width: 0; }
 .fvHero h1 { margin: 0; color: var(--t-ink); font-size: clamp(30px, 3.6vw, 50px); font-weight: 300; letter-spacing: -.025em; line-height: 1.08; text-wrap: balance; }
 .fvCopy > p { margin: 0; max-width: 58ch; color: var(--t-ink-2); font-size: 17px; line-height: 1.55; }
@@ -162,42 +162,63 @@ html.svDark .rtSubHero p.rtHeroDescription { color: var(--t-ink-2); font-family:
 .fvActions a.fvMain { border-color: var(--t-ink); background: var(--t-ink); color: var(--t-bg); font-weight: 500; }
 .fvActions a.fvMain:hover { background: #fff; }
 .fvActions a.fvPlain { padding-inline: 4px; border-color: transparent; color: var(--t-ink-2); font-size: 14px; }
-.fvActions a:focus-visible, .fvClose:focus-visible, .fvReplay button:focus-visible { outline: 2px solid var(--t-ink); outline-offset: 2px; }
+.fvActions a:focus-visible, .fvClose:focus-visible, .fvSlide header button:focus-visible { outline: 2px solid var(--t-ink); outline-offset: 2px; }
 html.svDark .fvClose { position: absolute; top: 10px; right: 12px; width: 32px; height: 32px; border: 0; background: transparent; color: var(--t-ink-3); font-size: 22px; line-height: 1; cursor: pointer; }
 html.svDark .fvClose:hover { color: var(--t-ink); }
-.fvReplay { display: grid; gap: 10px; min-width: 0; padding: 16px 18px; border: 1px solid var(--t-line); background: var(--t-bg); }
-.fvReplay header { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-.fvReplay header small { color: var(--t-ink-3); font-family: var(--t-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
-html.svDark .fvReplay header button { padding: 4px 10px; border: 1px solid var(--t-line); background: transparent; color: var(--t-ink-2); font-family: var(--t-mono); font-size: 12px; cursor: pointer; }
-.fvPattern { width: 100%; height: auto; overflow: visible; }
-.fvLine { fill: none; stroke: var(--t-ink); stroke-width: 2; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: fvDraw 1.4s ease-out forwards; }
-.fvGuide { stroke: #a78bfa; stroke-width: 1.2; stroke-dasharray: 5 5; opacity: 0; animation: fvFade .4s 1.1s forwards; }
-.fvGuide.fvFlat { stroke: var(--t-go); stroke-dasharray: 2 4; }
-.fvSignal { fill: var(--t-go); opacity: 0; animation: fvFade .3s 1.3s forwards, fvPing 1.6s 1.6s ease-out 2; transform-box: fill-box; transform-origin: center; }
-.fvLabel { fill: var(--t-ink-3); font-family: var(--t-mono); font-size: 11px; opacity: 0; animation: fvFade .4s 1.3s forwards; }
-.fvLabelGo { fill: var(--t-go); }
-.fvFound { margin: 0; color: var(--t-ink); font-size: 14px; opacity: 0; animation: fvFade .4s 1.6s forwards; }
-.fvChips { display: grid; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); gap: 6px; }
-html.svDark .fvChips button { display: grid; gap: 4px; padding: 8px 10px; border: 1px solid var(--t-line); background: var(--t-panel); color: var(--t-ink); text-align: left; cursor: pointer; opacity: 0; transform: translateY(6px); animation: fvIn .35s calc(1.8s + var(--i) * .15s) forwards; }
-html.svDark .fvChips button:hover, html.svDark .fvChips button[aria-pressed="true"] { border-color: var(--t-wait); }
-.fvChips b { font-family: var(--t-mono); font-size: 14px; letter-spacing: .04em; }
-.fvChips span { display: flex; gap: 6px; }
-.fvChips i { color: var(--t-ink-4); font-family: var(--t-mono); font-size: 12px; font-style: normal; opacity: .15; animation: fvFade .25s calc(2.3s + var(--i) * .15s + var(--j) * .28s) forwards; }
-.fvChips i[data-ok="true"] { color: var(--t-go); }
-.fvChips i[data-ok="false"] { color: #ff8a5c; }
-.fvResult { min-height: 2.9em; margin: 0; padding: 8px 10px; border-left: 2px solid var(--t-wait); background: var(--t-raise); color: var(--t-ink); font-size: 14px; line-height: 1.45; opacity: 0; animation: fvFade .4s calc(3.2s + var(--n) * .15s) forwards; }
-.fvResult b { font-family: var(--t-mono); }
+.fvFilm { display: grid; gap: 10px; min-width: 0; padding: 14px 16px 16px; border: 1px solid var(--t-line); background: var(--t-bg); }
+.fvStory { display: flex; gap: 4px; }
+.fvStory i { position: relative; flex: 1; height: 2px; overflow: hidden; background: var(--t-line-2); }
+.fvStory i[data-state="done"] { background: var(--t-ink-3); }
+.fvStory b { position: absolute; inset: 0; background: var(--t-ink); transform-origin: left; animation: fvGrow var(--slide) linear forwards; }
+.fvFilm[data-stopped] .fvStory b { animation-play-state: paused; }
+.fvSlide { display: grid; gap: 8px; }
+.fvSlide header { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.fvSym { font-family: var(--t-mono); font-size: 22px; font-weight: 500; letter-spacing: .04em; }
+.fvSym small { margin-left: 8px; color: var(--t-ink-3); font-size: 12px; letter-spacing: 0; }
+html.svDark .fvSlide header button { width: 30px; height: 26px; padding: 0; border: 1px solid var(--t-line); background: transparent; color: var(--t-ink-3); font-size: 10px; cursor: pointer; }
+html.svDark .fvSlide header button:hover { color: var(--t-ink); border-color: var(--t-line-2); }
+.fvChart { display: block; width: 100%; height: auto; overflow: visible; }
+.fvCandle { opacity: 0; animation: fvFade .25s forwards; }
+.fvCandle line { stroke: #ff8a5c; stroke-width: 1; }
+.fvCandle rect { fill: #ff8a5c; fill-opacity: .85; }
+.fvCandle[data-up] line { stroke: var(--t-go); }
+.fvCandle[data-up] rect { fill: var(--t-go); fill-opacity: .3; }
+.fvTrend { stroke: #a78bfa; stroke-width: 1.5; stroke-dasharray: 6 5; opacity: 0; animation: fvFade .4s 1.25s forwards; }
+.fvFlat { stroke: var(--t-go); stroke-width: 1.2; stroke-dasharray: 2 4; opacity: 0; animation: fvFade .4s 1.45s forwards; }
+.fvDot { opacity: 0; animation: fvPop .35s forwards; transform-box: fill-box; transform-origin: center; }
+.fvDot[data-kind="push"] { fill: #a78bfa; }
+.fvDot[data-kind="bottom"] { fill: var(--t-go); }
+.fvRing { fill: none; stroke: #fff; stroke-width: 1.5; opacity: 0; animation: fvFade .3s 1.8s forwards, fvPing 1.6s 2s ease-out 2; transform-box: fill-box; transform-origin: center; }
+.fvLevel { opacity: 0; animation: fvSlideIn .45s forwards; }
+.fvLevel line { stroke-width: 1.3; }
+.fvLevel text { font-family: var(--t-mono); font-size: 13px; }
+.fvLevel[data-kind="limit"] line { stroke: var(--t-wait); stroke-dasharray: 4 3; } .fvLevel[data-kind="limit"] text { fill: var(--t-wait); }
+.fvLevel[data-kind="stop"] line { stroke: #ff8a5c; } .fvLevel[data-kind="stop"] text { fill: #ff8a5c; }
+.fvLevel[data-kind="target"] line { stroke: var(--t-go); } .fvLevel[data-kind="target"] text { fill: var(--t-go); }
+.fvAxis { fill: var(--t-ink-4); font-family: var(--t-mono); font-size: 12px; }
+.fvChecks { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.fvChecks span { display: inline-flex; align-items: baseline; gap: 6px; color: var(--t-ink-2); font-size: 13px; opacity: 0; animation: fvFade .3s forwards; }
+.fvChecks i { font-family: var(--t-mono); font-style: normal; }
+.fvChecks em { color: var(--t-ink); font-family: var(--t-mono); font-size: 12px; font-style: normal; }
+.fvChecks span[data-ok="true"] i { color: var(--t-go); }
+.fvChecks span[data-ok="false"] i, .fvChecks span[data-ok="false"] em { color: #ff8a5c; }
+.fvVerdictLine { margin: 0; padding: 8px 10px; border-left: 2px solid var(--t-wait); background: var(--t-raise); color: var(--t-ink); font-size: 15px; font-weight: 500; opacity: 0; animation: fvFade .4s 3.6s forwards; }
+.fvFound { margin: 0; color: var(--t-ink-2); font-size: 14px; }
 .fvBanner { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; margin-top: 14px; padding: 12px 16px; border: 1px solid var(--t-line); border-left: 2px solid var(--t-go); background: var(--t-raise); }
 .fvBanner p { margin: 0; max-width: 80ch; color: var(--t-ink-2); font-size: 15px; }
 .fvBanner b { color: var(--t-ink); font-weight: 500; }
 .fvBanner a { color: var(--t-go); font-size: 14px; text-decoration: none; white-space: nowrap; }
 .fvBanner a:hover { text-decoration: underline; }
-@keyframes fvDraw { to { stroke-dashoffset: 0; } }
 @keyframes fvFade { to { opacity: 1; } }
-@keyframes fvIn { to { opacity: 1; transform: none; } }
-@keyframes fvPing { 0% { transform: scale(1); } 40% { transform: scale(2.2); } 100% { transform: scale(1); } }
+@keyframes fvPing { 0% { transform: scale(1); } 40% { transform: scale(1.9); } 100% { transform: scale(1); } }
+@keyframes fvPop { 0% { opacity: 0; transform: scale(.2); } 70% { opacity: 1; transform: scale(1.4); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes fvSlideIn { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: none; } }
+@keyframes fvGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @media (max-width: 960px) {
- .fvHero { grid-template-columns: minmax(0, 1fr); gap: 22px; padding: 26px 18px 20px; }
+ .fvHero { grid-template-columns: minmax(0, 1fr); gap: 18px; padding: 26px 18px 20px; }
+ /* Phones: headline, one line, then the moving chart, then numbers and buttons. */
+ .fvCopy { display: contents; }
+ .fvHero h1 { order: 1; } .fvCopy > p { order: 2; } .fvFilm { order: 3; } .fvProof { order: 4; } .fvActions { order: 5; }
  .fvHero h1 { font-size: 31px; padding-right: 26px; }
  .fvCopy > p { font-size: 15px; }
  .fvProof { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -206,8 +227,8 @@ html.svDark .fvChips button:hover, html.svDark .fvChips button[aria-pressed="tru
  .fvActions a:not(.fvPlain) { flex: 1 1 100%; text-align: center; }
 }
 @media (prefers-reduced-motion: reduce) {
- .fvLine { animation: none; stroke-dashoffset: 0; }
- .fvGuide, .fvSignal, .fvLabel, .fvFound, .fvChips i, .fvResult, html.svDark .fvChips button { animation: none; opacity: 1; transform: none; }
+ .fvCandle, .fvTrend, .fvFlat, .fvDot, .fvRing, .fvLevel, .fvChecks span, .fvVerdictLine { animation: none; opacity: 1; transform: none; }
+ .fvStory b { animation: none; transform: none; }
 }
 /* Today's run: one stage track (green done, amber where it stopped, grey not reached). */
 .ovTrack { position: relative; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); margin: 6px 0 0; padding: 0; list-style: none; }
