@@ -1,6 +1,7 @@
 """One-time, auditable recovery of real Rare Radar signals preserved in Git history."""
 import argparse,copy,json,pathlib,subprocess
 from datetime import datetime,timezone
+from . import public_store
 
 from .signal_history import HORIZONS,PRODUCT_VERSION,SCHEMA_VERSION,_immutable_fingerprint,_update_forward,validate
 
@@ -60,8 +61,8 @@ def git_versions():
  return out
 
 def run(history_path="public/signal-history.json",out=None):
- path=pathlib.Path(history_path);previous=json.loads(path.read_text());payload=recover(previous,git_versions(),previous["as_of"])
- target=pathlib.Path(out) if out else path;target.write_text(json.dumps(payload,ensure_ascii=False,indent=2));return payload
+ path=pathlib.Path(history_path);previous=public_store.read_json(path);payload=recover(previous,git_versions(),previous["as_of"])
+ target=pathlib.Path(out) if out else path;public_store.write_text(target,json.dumps(payload,ensure_ascii=False,indent=2));return payload
 
 if __name__=="__main__":
  parser=argparse.ArgumentParser();parser.add_argument("--history",default="public/signal-history.json");parser.add_argument("--out")

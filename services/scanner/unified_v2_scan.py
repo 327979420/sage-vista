@@ -14,6 +14,7 @@ from .factor_registry import FACTORS_BY_ID,REGISTRY_VERSION
 from .industry_radar import run as industry_run
 from .macd_factor_backtest import adjusted_rows
 from .market_etf_watch import FUNDS,build as market_build
+from . import public_store
 
 OUT="public/unified-v2-rankings.json"
 LATEST_OUT="public/unified-v2-latest.json"
@@ -281,8 +282,9 @@ def _trim_archived_day(day):
 
 def _write_report(results,out,merge_existing):
  results=[_compact_day(day) for day in results]
- if merge_existing and pathlib.Path(out).exists():
-  existing=json.loads(pathlib.Path(out).read_text())
+ # The rankings archive is stored as <name>.gz in Git; public_store reads either form.
+ if merge_existing and public_store.exists(out):
+  existing=public_store.read_json(out)
   existing_registry=existing.get("model",{}).get("factor_registry_version","legacy_unrecorded")
   previous=[]
   for day in existing.get("days",[]):previous.append({"model_version":existing.get("version","legacy_unrecorded"),"factor_registry_version":existing_registry,"ruleset_id":f"{existing.get('version','legacy_unrecorded')}+factors-{existing_registry}",**day})
@@ -301,7 +303,7 @@ def _write_report(results,out,merge_existing):
  results=[day if day["date"] in recent_dates else _trim_archived_day(day) for day in results]
  versions=sorted({x.get("model_version","legacy_unrecorded") for x in results});registries=sorted({x.get("factor_registry_version","legacy_unrecorded") for x in results})
  report={"version":MODEL_VERSION,"generated_at":datetime.now(timezone.utc).isoformat(),"coverage":{"start":results[0]["date"],"end":results[-1]["date"],"sessions":len(results)},"production_status":"count_based_manual_review_challenger","future_data_used":False,"version_policy":"每个历史日冻结其首次回放时的模型与因子库版本；新规则只用于后续批次，除非另开重算实验","model_versions":versions,"factor_registry_versions":registries,"model":{"ruleset_id":RULESET_ID,"factor_registry_version":REGISTRY_VERSION,"trigger":"当日完整收盘日线MACD刚发生金叉；MACD是事件门票，长期趋势是共同资格","technical":f"共同门票不参加候选分差；其余{REMAINING_FACTOR_COUNT}项中每个非风险真实命中计1颗，再加家族覆盖、父子确认和跨周期共振。研究状态继续显示，颗数不代表已验证收益","timeframe_profile":"日/周/月全部计数证据及同家族共振；直接参与人工复核排序，不承诺持仓时间","industry":"有当日有效成员快照时保存Leadership/Recovery/Pullback Watch上下文；只处理技术完全同分","market":"市场温度继续独立保存；只处理技术完全同分","entry_gate":"必须当日MACD金叉触发且长期趋势有效；其余因子按点时定义检测","execution":"新批次按下一交易日复权开盘入场；止损为信号日支撑下5%，最大计划亏损10%；2R止盈、40日到期、同日触发先算止损"},"limitations":["技术共振分是用户指定的人工复核优先级，不是已验证胜率或Alpha","相关因子会提高原始颗数，因此同时公开家族覆盖和重复确认","当前股票池来自现存缓存，正式收益研究仍需处理幸存者偏差","没有当日有效行业成员快照的日期不做行业上下文，绝不使用未来分类回填"],"days":results}
- pathlib.Path(out).write_text(json.dumps(report,ensure_ascii=False,separators=(",",":"))+"\n");return report
+ public_store.write_text(out,json.dumps(report,ensure_ascii=False,separators=(",",":"))+"\n");return report
 
 def write_latest(report,out=LATEST_OUT,day=None):
  """Publish only the latest ranking day for fast daily pages."""
@@ -324,7 +326,7 @@ def run(start="2026-07-01",end=None,out=OUT,cache_dir="work/eodhd-cache",merge_e
  data=_load_cache(cache_dir);dates=_dates(data,start,end or "9999-12-31")
  if not dates:
   report={"version":MODEL_VERSION,"generated_at":datetime.now(timezone.utc).isoformat(),"coverage":{"start":None,"end":None,"sessions":0},"production_status":"shadow_not_yet_validated","future_data_used":False,"model":{"ruleset_id":RULESET_ID,"factor_registry_version":REGISTRY_VERSION},"limitations":["Requested calendar partition contains no SPY trading session; preserved as a valid empty weekly checkpoint."],"days":[]}
-  pathlib.Path(out).write_text(json.dumps(report,ensure_ascii=False,separators=(",",":"))+"\n")
+  public_store.write_text(out,json.dumps(report,ensure_ascii=False,separators=(",",":"))+"\n")
   return report
  results=[]
  for day in dates:

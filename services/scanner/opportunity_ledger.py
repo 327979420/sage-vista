@@ -13,6 +13,7 @@ import statistics
 from datetime import datetime, timezone
 
 from .macd_factor_backtest import adjusted_rows
+from . import public_store
 from .support_risk import simulate_execution
 
 
@@ -307,8 +308,8 @@ def write_latest(payload, out=DEFAULT_LATEST_OUT, event_limit=200):
 
 
 def run(unified_path=DEFAULT_UNIFIED, forward_path=DEFAULT_FORWARD, out=DEFAULT_OUT, cache_dir=DEFAULT_CACHE):
-    unified = json.loads(pathlib.Path(unified_path).read_text())
-    forward = json.loads(pathlib.Path(forward_path).read_text())
+    unified = public_store.read_json(unified_path)
+    forward = public_store.read_json(forward_path)
     previous = json.loads(pathlib.Path(out).read_text()) if pathlib.Path(out).exists() else None
     payload = build(unified, forward, _cached_loader(cache_dir))
     if previous:

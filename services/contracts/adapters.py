@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Callable, Mapping
 
 from .validation import ContractError
+from services.scanner import public_store
 
 
 ADAPTER_VERSION = "legacy-adapter-1.0.0"
@@ -284,4 +285,4 @@ def adapt_legacy_bytes(name: str, raw: bytes) -> AdaptedArtifact:
 def adapt_legacy_file(path: Path) -> AdaptedArtifact:
     """Read one registered legacy file once without modifying it."""
 
-    return adapt_legacy_bytes(path.name, path.read_bytes())
+    return adapt_legacy_bytes(path.name, public_store.read_bytes(path))
