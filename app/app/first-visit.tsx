@@ -76,9 +76,9 @@ export default function FirstVisit({rows,onClose}:{rows:SignalRow[]|null;onClose
  return <section className="fvHero" aria-labelledby="fvTitle">
   <button type="button" className="fvClose" aria-label={en?'Hide the intro':'收起介绍'} onClick={()=>{trackEvent('intro_closed');onClose()}}>×</button>
   <div className="fvCopy">
-   <h1 id="fvTitle">{en?'Simple rules, followed exactly.':'规则简单，照做到底。'}</h1>
-   <p>{en?<>Like the <Term k="turtle">Turtle traders</Term>: one weekly pattern on US stocks, rules locked since {Number(RULE_LOCKED.slice(8))} Oct, every trade compared with random picks.</>
-    :<>像<Term k="turtle">海龟交易</Term>：一种美股周线形态，规则 {RULE_LOCKED.slice(5).replace('-','/')} 起锁定，每笔都和随机选股比。</>}</p>
+   <h1 id="fvTitle">{en?'We don’t predict. We execute.':'不预测，只执行。'}</h1>
+   <p>{en?<>Like the <Term k="turtle">Turtle traders</Term>: public rules, followed every time, and every trade scored against random picks.</>
+    :<>像<Term k="turtle">海龟交易</Term>：规则公开，每次照做，每笔都和随机选股比。</>}</p>
    <div className="fvProof">
     <div><b>{since??'—'}</b><span>{en?'signals so far':'个信号'}</span></div>
     <div><b>{closed??'—'}<small> / 100</small></b><span>{en?'trades closed':'笔已平仓'}</span></div>
