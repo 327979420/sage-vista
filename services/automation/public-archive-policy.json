@@ -1,5 +1,6 @@
 {
   "maxAssetBytes": 26214400,
   "assetPrefix": "/__sv_archives/",
-  "archives": ["unified-v2-rankings.json", "signal-history.json", "opportunity-ledger.json"]
+  "archives": ["unified-v2-rankings.json", "signal-history.json", "opportunity-ledger.json"],
+  "storedCompressed": ["unified-v2-rankings.json", "signal-history.json"]
 }

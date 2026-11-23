@@ -8,6 +8,7 @@ the notification job. All expensive work happens in a temporary directory;
 import argparse,copy,json,os,pathlib,tempfile
 from datetime import datetime,timezone
 from .eodhd import latest_reference_day
+from . import public_store
 from .expand_tracker_universe import run as expand_universe
 from .factor_snapshot import SNAPSHOT_MODE_VERSION,TRIGGER_FACTOR_ID,run as run_factor_snapshot
 from .factor_registry import REGISTRY_VERSION
@@ -24,14 +25,15 @@ PUBLIC=pathlib.Path("public")
 TRIGGER_SOURCES={"manual","cloudflare_cron","freshness_recovery","github_schedule"}
 
 def read_json(path):
- path=pathlib.Path(path)
- return json.loads(path.read_text()) if path.exists() else {}
+ # Archives such as signal-history.json are stored as <name>.gz; same content.
+ return public_store.read_json(path) if public_store.exists(path) else {}
 
 def write_history_asset(path,history):
  """Lossless compact JSON; fail before replacing the public bundle if too large."""
  encoded=json.dumps(history,ensure_ascii=False,separators=(",",":" )).encode("utf-8")
  validate_asset("signal-history.json",encoded)
- pathlib.Path(path).write_bytes(encoded)
+ # Git rejects files over 100 MiB, so the archive is stored gzip-compressed.
+ public_store.write_bytes(path,encoded)
 
 
 def compact_favorite_pattern(tracker):
@@ -159,7 +161,7 @@ def run(target=1000,as_of=None,trigger_source="manual"):
   validate(authoritative,tracker,radar,snapshot,industry,market,history);now=datetime.now(timezone.utc).isoformat()
   status={"status":"up_to_date","market":"US","provider":"EODHD","source_latest_complete_date":authoritative,"tracker_as_of":tracker["as_of"],"factor_snapshot_as_of":snapshot["as_of"],"radar_as_of":radar["as_of"],"industry_radar_as_of":industry["as_of"],"market_context_as_of":market["as_of"],"signal_history_as_of":history["as_of"],"data_dates_match":True,"future_data_used":False,"last_successful_update_at":now,"trigger_source":trigger_source,"checks":{"provider_date_exact":True,"all_production_json_same_date":True,"completed_bars_only":True,"production_outputs_published_atomically":True,"signal_history_append_only":True,"macd_trigger_first":True,"favorite_pattern_tracker":True,"favorite_pattern_forward_deferred_on_same_date":favorite_forward_deferred}}
   (folder/"update-status.json").write_text(json.dumps(status,ensure_ascii=False,indent=2))
-  for name in ("resonance-tracker.json","favorite-pattern.json","daily-factor-snapshot.json","rare-opportunity-radar.json","industry-radar.json","market-etf-watch.json","signal-history.json","signal-history-summary.json","update-status.json"):os.replace(folder/name,PUBLIC/name)
+  for name in ("resonance-tracker.json","favorite-pattern.json","daily-factor-snapshot.json","rare-opportunity-radar.json","industry-radar.json","market-etf-watch.json","signal-history.json","signal-history-summary.json","update-status.json"):public_store.replace(folder/name,PUBLIC/name)
  return {"result":"updated","as_of":authoritative,"eligible":tracker["universe"]["eligible"],"radar_signals":len(radar["signals"]),"trigger_source":trigger_source}
 
 if __name__=="__main__":
