@@ -104,8 +104,8 @@ export default function SiteNavigation({uiVersion, build}: {uiVersion: string; b
    </a>
    <div className="svPills">
     <span className="svPill"><em data-state={dataState}/>{dataLabel}</span>
-    {light && <span className="svPill"><em data-state={light === 'green' ? 'go' : 'wait'}/><Term k="light">{en ? 'Market light' : '市场灯'}</Term>{en ? `: ${light === 'green' ? 'green' : 'amber'}` : `：${light === 'green' ? '绿' : '黄'}`}</span>}
-    <span className="svPill">{en ? 'Rule v1.9 · ' : '规则 v1.9 · '}<Term k="locked">{en ? 'locked' : '已锁定'}</Term></span>
+    {light && <span className="svPill"><em data-state={light === 'green' ? 'go' : 'wait'}/><span><Term k="light">{en ? 'Market light' : '市场灯'}</Term>{en ? `: ${light === 'green' ? 'green' : 'amber'}` : `：${light === 'green' ? '绿' : '黄'}`}</span></span>}
+    <span className="svPill"><span>{en ? 'Rule v1.9 · ' : '规则 v1.9 · '}<Term k="locked">{en ? 'locked' : '已锁定'}</Term></span></span>
    </div>
    <div className="svClock"><small>{en ? 'New York' : '纽约'}</small><b>{ny}</b><span>ET</span></div>
    <StartHere/>

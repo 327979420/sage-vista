@@ -18,7 +18,8 @@ function verdictOf(r:SignalRow, en:boolean) {
  if(r.rrOk===false)fails.push(en?`reward/risk is only ${r.rr?.toFixed(2)}, under 1.5`:`盈亏比只有 ${r.rr?.toFixed(2)}，不到 1.5`);
  if(r.ruleOk&&!r.gateOk)return en?'Passed the rule, but the market light was amber: under half the pool was above its 200-day line that week.':'规则都过了，但市场灯是黄的：那周股票池站上 200 日线的不到一半。';
  if(r.gateOk===false)fails.push(en?`the market light was amber (${r.breadth===null?'—':pctOf(r.breadth)})`:`市场灯是黄的（${r.breadth===null?'—':pctOf(r.breadth)}）`);
- return (r.gateOk?(en?'The market light was green, but ':'市场灯是绿的，但'):'')+fails.join(en?'; ':'，')+(en?', so no order.':'，所以不做。');
+ const text=(r.gateOk?(en?'The market light was green, but ':'市场灯是绿的，但'):'')+fails.join(en?'; ':'，')+(en?', so no order.':'，所以不做。');
+ return text.charAt(0).toUpperCase()+text.slice(1);
 }
 function chipOf(r:SignalRow, en:boolean):[string,string] {
  if(r.status==='open')return [en?'Open':'持仓','go'];
@@ -97,6 +98,6 @@ export function SignalsHead({rows}:{rows:SignalRow[]|null}) {
  return <section className="ovHead sbHead"><div>
   <small>{en?'3W · Signals · rule v1.9':'3W · 信号 · 规则 v1.9'}</small>
   <h1>{rows?(en?`${rows.length} signals, ${orders} orders.`:`${rows.length} 个信号，${orders} 个下单。`):(en?'Signal evidence':'信号凭证')}</h1>
-  <p>{en?'Each card is one signal’s plan: where to buy, where to stop, where to take profit, and its latest price. Pick a card to see which checks it passed and where it stopped.':'每张卡是一个信号的计划：在哪挂单、在哪止损、目标在哪，以及它现在的价格。点一张卡，右边会一步步亮出它过了哪些关、卡在哪一关。'}</p>
+  <p>{en?'Each card shows a signal’s buy, stop and target, and today’s price. Pick one to see its checks.':'每张卡是一个信号的挂单、止损、目标和现价。点一张看它过了哪些关。'}</p>
  </div></section>;
 }
