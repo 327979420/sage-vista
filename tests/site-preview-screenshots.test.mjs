@@ -11,7 +11,7 @@ test('preview captures six pages at the two review sizes', () => {
     {name: 'signals', path: '/signals'},
     {name: 'forward', path: '/forward'},
     {name: 'patterns', path: '/patterns'},
-    {name: 'reference', path: '/zh/watch/resonance/rare-opportunities'},
+    {name: 'reference', path: '/multi-factor'},
   ]);
   assert.deepEqual(VIEWPORTS, [{width: 1440, height: 900}, {width: 390, height: 844}]);
   assert.equal(new Set(PAGES.flatMap(p => VIEWPORTS.map(v => `${p.name}-${v.width}x${v.height}.png`))).size, 12);

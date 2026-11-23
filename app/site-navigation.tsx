@@ -12,12 +12,12 @@ import Term from './term';
 export const siteSections = [
  ['总览', 'Overview', [['今日', 'Today', '/']]],
  ['3W', '3W', [['信号', 'Signals', '/signals'], ['前向记录', 'Forward record', '/forward'], ['我的组合', 'My portfolio', '/portfolio']]],
- ['市场', 'Market', [['大盘', 'Market', '/zh/watch/market'], ['行业', 'Sectors', '/zh/watch/industry-radar']]],
- ['候选', 'Candidates', [['多因子', 'Multi-factor', '/zh/watch/resonance/rare-opportunities'], ['形态', 'Daily setups', '/patterns']]],
- ['研究', 'Research', [['回测', 'Backtests', '/zh/backtest'], ['研究档案', 'Archive', '/archive'], ['学习', 'Learn', '/learn'], ['关于 SV', 'About SV', '/zh/watch/resonance/about']]],
+ ['市场', 'Market', [['大盘', 'Market', '/market'], ['行业', 'Sectors', '/sectors']]],
+ ['候选', 'Candidates', [['多因子', 'Multi-factor', '/multi-factor'], ['形态', 'Daily setups', '/patterns']]],
+ ['研究', 'Research', [['回测', 'Backtests', '/backtests'], ['研究档案', 'Archive', '/archive'], ['学习', 'Learn', '/learn'], ['关于 SV', 'About SV', '/about']]],
 ] as const;
 // Old addresses that render a page above, so its menu entry stays lit.
-const ALIASES: Record<string, string> = {'/opportunities': '/signals', '/scorecard': '/forward', '/zh/watch/resonance/favorite-pattern': '/patterns'};
+const ALIASES: Record<string, string> = {'/opportunities': '/signals', '/scorecard': '/forward'};
 
 type Status = {as_of?: string; status?: string; source_latest_complete_date?: string};
 type Today = {signal_week?: string; new_signals_this_week?: number; orders_to_place?: number;

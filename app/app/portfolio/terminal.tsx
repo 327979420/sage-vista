@@ -29,9 +29,8 @@ export default function PortfolioTerminal({data,signals}:{data:Portfolio;signals
  const verdict=(d:number|null,hold:string|null)=>d===null?(en?'No price':'没有价格'):d>=0?(en?`Above its 200-day line: if the month ended today it would hold ${hold==='SHY'?'the fund (switch in)':'the fund'}.`:`在 200 日线上方：如果今天就是月底，会持有这只基金${hold==='SHY'?'（从 SHY 换回来）':''}。`):(en?`Below its 200-day line: if the month ended today it would sit in SHY${hold!=='SHY'?' (switch out)':''}.`:`在 200 日线下方：如果今天就是月底，会放在 SHY 避险${hold!=='SHY'?'（要换出去）':''}。`);
  return <div className="ovRoot">
   <section className="ovHead"><div>
-   <small>{en?'3W · My portfolio · paper account':'3W · 我的组合 · 模拟账户'}</small>
    <h1>{en?`${inMarket} sectors in the market, ${safe} parked in SHY.`:`${inMarket} 个行业在场，${safe} 个放在 SHY 避险。`}</h1>
-   <p>{en?'Half the account follows the sector trend basket and is only rebalanced at month-end; the other half waits for 3W signals.':'一半资金跟行业趋势篮子，只在月底调仓；另一半等 3W 信号下单。'}</p>
+   <p>{en?'Half follows the sector trend basket, rebalanced at month-end; half waits for 3W signals.':'一半资金跟行业趋势篮子，月底调仓；另一半等 3W 信号。'}</p>
   </div><div className="ovNext"><small>{en?`Next rebalance · close of ${end.slice(5)}`:`下次调仓 · ${end.slice(5)} 收盘`}</small><b className="ovCount">{Math.max(0,Math.round((Date.parse(end)-Date.parse(data.as_of))/86400000))}<small>{en?' days':' 天'}</small></b></div></section>
   <div className="ovGrid pfGrid">
    <section className="ovPanel" aria-label={en?'Account split':'资金分配'}>

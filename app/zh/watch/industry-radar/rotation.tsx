@@ -83,7 +83,7 @@ export default function SectorRotation({themes,members,etfs,candidates,names,sel
       <div><dt>{en?'Breadth change 10d':'广度 10 日变化'}</dt><dd data-tone={(t.breadth_change_10d??0)>=0?'go':'loss'}>{t.breadth_change_10d===null?'—':`${t.breadth_change_10d>=0?'+':'−'}${Math.abs(Math.round(t.breadth_change_10d*100))} pt`}</dd></div>
      </dl>
      <p className="roHint">{en?`${ms.length} member stocks${hits.length?`; on today’s multi-factor list: ${hits.join(', ')}`:''}.`:`${ms.length} 只成分股${hits.length?`；今天在多因子榜上的：${hits.join('、')}`:''}。`}</p>
-     <div className="roChips">{ms.map(m=>cand.has(m)?<a key={m} href={`/zh/watch/resonance/rare-opportunities?symbol=${m}`} data-hit="true">{m}</a>:<span key={m}>{m}</span>)}</div>
+     <div className="roChips">{ms.map(m=>cand.has(m)?<a key={m} href={`/multi-factor?symbol=${m}`} data-hit="true">{m}</a>:<span key={m}>{m}</span>)}</div>
     </div>}
    </li>})}</ul>
   </section>

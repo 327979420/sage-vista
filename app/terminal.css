@@ -795,9 +795,9 @@ html.svDark .roChips > a[data-hit], .roChips > a[data-hit] { border-color: var(-
 
 /* Site-wide motion (motion.tsx). Panels rise in the first time they scroll into view; until then the
    CSS animations inside them (chart draws, bar growth) are held, so they play where they can be seen. */
-html[data-motion] :is(.ovPanel, .ovFold, .fvBanner, .sbNear, .sbCard, .mfCard, .fwFact, .siteFooter):not([data-in]) { opacity: 0; transform: translateY(16px); }
-html[data-motion] :is(.ovPanel, .ovFold, .fvBanner, .sbNear, .sbCard, .mfCard, .fwFact, .siteFooter)[data-in] { transition: opacity .55s cubic-bezier(.2, .8, .2, 1) var(--svIn, 0ms), transform .55s cubic-bezier(.2, .8, .2, 1) var(--svIn, 0ms); }
-html[data-motion] :is(.ovPanel, .ovFold, .fvBanner, .sbNear, .sbCard, .mfCard, .fwFact):not([data-in]) * { animation-play-state: paused !important; }
+html[data-motion] :is(.ovPanel, .ovFold, .fvBanner, .sbNear, .sbCard, .mfCard, .dsCard, .fwFact, .shapePicker, .siteFooter):not([data-in]) { opacity: 0; transform: translateY(16px); }
+html[data-motion] :is(.ovPanel, .ovFold, .fvBanner, .sbNear, .sbCard, .mfCard, .dsCard, .fwFact, .shapePicker, .siteFooter)[data-in] { transition: opacity .55s cubic-bezier(.2, .8, .2, 1) var(--svIn, 0ms), transform .55s cubic-bezier(.2, .8, .2, 1) var(--svIn, 0ms); }
+html[data-motion] :is(.ovPanel, .ovFold, .fvBanner, .sbNear, .sbCard, .mfCard, .dsCard, .fwFact, .shapePicker):not([data-in]) * { animation-play-state: paused !important; }
 html[data-motion] :is(.mfFrames em, .mfReasons em) { transform-origin: left; animation: svGrow .9s cubic-bezier(.2, .8, .2, 1) .2s both; }
 html[data-motion] .mkLines { animation: svWipe 1.5s cubic-bezier(.3, .1, .2, 1) .2s both; }
 html[data-motion] .mkHeat > div { animation: svRise .5s cubic-bezier(.2, .8, .2, 1) both; }
@@ -820,3 +820,21 @@ html[data-motion] .sbBulletDot { animation: svSlide .7s cubic-bezier(.2, .8, .2,
 .fvNow text { fill: var(--t-ink); font-family: var(--t-mono); font-size: 11px; }
 .sbDetailChart { padding: 8px 0 2px; border-top: 1px solid var(--t-line); }
 @media (prefers-reduced-motion: reduce) { .fvNow { animation: none; opacity: 1; } }
+/* Learn: the four steps light parts of one real trade; detail folds below. */
+.lnReal { display: grid; gap: 8px; }
+.lnReal[data-step="0"] :is(.fvRing, .fvLevel) { display: none; }
+.lnReal[data-step="1"] .fvLevel:not([data-kind="limit"]) { display: none; }
+.lnReal:is([data-step="1"], [data-step="2"]) :is(.fvRing, .fvLevel) { animation-delay: .15s !important; }
+.lnCaption { margin: 0; color: var(--t-ink-3); font-size: 13px; }
+.svLearn.ovFold > :not(summary) { margin: 14px 18px; }
+.svLearn.ovFold > summary { text-transform: none; letter-spacing: .02em; font-size: 13px; }
+/* Daily setups: each mini chart draws left to right; Backtests: each test's bar grows across its years;
+   Sectors: theme dots fade into their lanes; Portfolio: distance bars grow out from the 200-day line. */
+html[data-motion] .dsCard svg { animation: svWipe 1.1s cubic-bezier(.3, .1, .2, 1) .15s both; }
+html[data-motion] .btTrack .btBar { transform-origin: left; animation: svGrow .9s cubic-bezier(.2, .8, .2, 1) both; }
+html[data-motion] .btTrack .btBar:nth-child(2) { animation-delay: .08s; } html[data-motion] .btTrack .btBar:nth-child(3) { animation-delay: .16s; }
+html[data-motion] .btTrack .btBar:nth-child(4) { animation-delay: .24s; } html[data-motion] .btTrack .btBar:nth-child(n+5) { animation-delay: .32s; }
+html[data-motion] .scDot { animation: svFadeIn .6s .2s both; }
+html[data-motion] .pfBar { animation: svFadeIn .8s .2s both; }
+html[data-motion] .pfDot { animation: svPop .5s .5s both; }
+@keyframes svPop { from { opacity: 0; transform: scale(.3); } }

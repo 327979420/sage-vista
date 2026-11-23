@@ -31,9 +31,8 @@ export default function SectorTerminal({data,candidates=[]}:{data:Industry;candi
  const strength=[...scored.values()].filter(t=>t.strength_percentile!==null).sort((a,b)=>b.strength_percentile!-a.strength_percentile!);
  return <div className="ovRoot">
   <section className="ovHead"><div>
-   <small>{en?`Market · Sectors · ${data.as_of}`:`市场 · 行业 · ${data.as_of}`}</small>
    <h1>{en?`${count(STATES[0][0])} themes have pulled back to support, ${count('Uptrend')} are in an uptrend.`:`${count(STATES[0][0])} 个主题回调到支撑，${count('Uptrend')} 个在上升趋势。`}</h1>
-   <p>{en?'Each dot is a theme’s reference ETF, placed by how far it sits below its 60-day high. The rule looks for a long uptrend with a 5–25% pullback near a moving average.':'每个点是一个主题的参考 ETF，按离 60 日高点跌了多少排开。规则要找的是：长期上升趋势里，回调 5%–25%、靠近均线。'}</p>
+   <p>{en?'Each dot is a theme ETF, placed by how far it sits below its 60-day high. The rule wants a 5–25% pullback in a long uptrend.':'每个点是一个主题 ETF，按离 60 日高点多远排开。规则要的是长期上升中回调 5–25%。'}</p>
   </div></section>
   <div className="scStates">{STATES.map(([k,zh,enL,c])=><div key={k} style={{borderTopColor:c}}><b style={{color:c}}>{count(k)}</b><span>{en?enL:zh}</span></div>)}</div>
   <div className="ovGrid scGrid">

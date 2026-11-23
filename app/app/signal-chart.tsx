@@ -1,11 +1,18 @@
 'use client';
 import type {SignalRow} from './signal-rows';
 
+// What the chart needs; a SignalRow fits, and so does a ticket mapped by chartInput().
+export type ChartInput = Pick<SignalRow,'symbol'|'week'|'limit'|'stop'|'target'|'close'|'chart'>;
+type TicketLike = {symbol:string; signal_week:string; order:{limit:number;stop:number;target:number};
+ weekly:{date:string;open:number;high:number;low:number;close:number}[]; pushes:{date:string;price:number}[]; bottoms:{date:string;price:number}[]; trend_line:{date:string;price:number}[]};
+export const chartInput = (t:TicketLike):ChartInput => ({symbol:t.symbol, week:t.signal_week, limit:t.order.limit, stop:t.order.stop, target:t.order.target, close:null,
+ chart:{bars:t.weekly.map(b=>[b.date,b.open,b.high,b.low,b.close]), pushes:t.pushes.map(p=>[p.date,p.price]), bottoms:t.bottoms.map(p=>[p.date,p.price]), trend:t.trend_line.map(p=>[p.date,p.price])}});
+
 // One real signal drawn from its ticket: weekly candles, the falling highs, the flat bottoms, the
 // signal week, then the limit, stop and 3R target. Pure CSS timing (see .fvCandle etc. in
 // terminal.css), so it replays whenever the parent changes its key. `compact` is the card version:
 // the last 40 weeks, no axis, and today's price as a white dot so the card still shows where it is.
-export default function SignalChart({r,en,compact=false}:{r:SignalRow;en:boolean;compact?:boolean}) {
+export default function SignalChart({r,en,compact=false}:{r:ChartInput;en:boolean;compact?:boolean}) {
  const c=r.chart;
  if(!c||c.bars.length<2)return null;
  const bars=compact?c.bars.slice(-40):c.bars, n=bars.length;

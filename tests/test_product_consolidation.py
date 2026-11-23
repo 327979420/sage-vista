@@ -23,12 +23,13 @@ class ProductConsolidationTests(unittest.TestCase):
   self.assertIn("<SiteNavigation uiVersion=",layout)
   current=(ROOT/"app/site-navigation.tsx").read_text()
   for label,path in (("今日","/"),("信号","/signals"),("前向记录","/forward"),("我的组合","/portfolio"),
-                     ("大盘","/zh/watch/market"),("行业","/zh/watch/industry-radar"),
-                     ("多因子","/zh/watch/resonance/rare-opportunities"),("形态","/patterns"),
-                     ("回测","/zh/backtest"),("研究档案","/archive"),("学习","/learn"),("关于 SV","/zh/watch/resonance/about")):
+                     ("大盘","/market"),("行业","/sectors"),
+                     ("多因子","/multi-factor"),("形态","/patterns"),
+                     ("回测","/backtests"),("研究档案","/archive"),("学习","/learn"),("关于 SV","/about")):
    self.assertRegex(current,rf"\['{re.escape(label)}', '[^']+', '{re.escape(path)}'\]")
   # Old addresses keep their menu entry lit.
-  for alias in ("/opportunities","/scorecard","/zh/watch/resonance/favorite-pattern"):self.assertIn(f"'{alias}':",current)
+  # /patterns is now the canonical address of Daily setups, so only the two older pages remain aliases.
+  for alias in ("/opportunities","/scorecard"):self.assertIn(f"'{alias}':",current)
 
  def test_dark_theme_matches_light_stylesheets(self):
   import subprocess,sys
@@ -38,7 +39,7 @@ class ProductConsolidationTests(unittest.TestCase):
  def test_fast_production_json_fetches_are_no_store(self):
   consumers={
    "cr056-ranking.json":"app/zh/watch/resonance/rare-opportunities/cr056-ranking.tsx",
-   "daily-shape-picker.json":"app/zh/watch/resonance/favorite-pattern/page.tsx",
+   "daily-shape-picker.json":"app/zh/watch/resonance/favorite-pattern/view.tsx",
    "update-status.json":"app/zh/watch/resonance/tracker-ui.tsx",
   }
   for asset,path in consumers.items():

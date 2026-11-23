@@ -24,7 +24,7 @@ function Mini({row}:{row:SetupRow}) {
  </svg>;
 }
 
-export default function SetupWall({asOf,rows,counts,covered,onPick}:Props) {
+export default function SetupWall({rows,counts,covered,onPick}:Props) {
  const {locale}=useLocale(), en=locale==='en';
  const [ready,setReady]=useState(false);
  useEffect(()=>{const t=setTimeout(()=>setReady(true),120);return()=>clearTimeout(t)},[]);
@@ -33,9 +33,8 @@ export default function SetupWall({asOf,rows,counts,covered,onPick}:Props) {
  const sorted=[...rows].sort((a,b)=>(a.state==='waiting'?0:1)-(b.state==='waiting'?0:1)||b.liquidity.dollar_volume-a.liquidity.dollar_volume);
  return <div className="ovRoot">
   <section className="ovHead"><div>
-   <small>{en?`Candidates · Daily setups · ${asOf}`:`候选 · 形态 · ${asOf}`}</small>
    <h1>{en?`${counts.waiting??0} setups waiting to break out, ${counts.broken_out??0} already through.`:`${counts.waiting??0} 只等待突破，${counts.broken_out??0} 只已经突破。`}</h1>
-   <p>{en?`From the 100 most-traded of ${covered.toLocaleString()} covered stocks: three-push pullbacks onto confirmed multi-bottom support. Click a chart to open it.`:`在 ${covered.toLocaleString()} 只已覆盖股票里成交最活跃的 100 只中，找三推回调、多底支撑。点任意一张图打开看。`}</p>
+   <p>{en?`The 100 most-traded of ${covered.toLocaleString()} stocks: three-push pullbacks onto multi-bottom support.`:`${covered.toLocaleString()} 只股票里成交最活跃的 100 只：找三推回调、多底支撑。`}</p>
   </div></section>
   <div className="dsStages" aria-label={en?'Stages':'阶段'}>{stages.map(([k,zh,enL,c])=><div key={k} style={{flex:`${ready?(counts[k]??0)/total*100:33} 1 0`,borderTopColor:c}}><b style={{color:c}}>{counts[k]??0}</b><span>{en?enL:zh}</span></div>)}</div>
   <div className="dsWall">{sorted.map((r,i)=><button key={r.symbol} type="button" className="dsCard" data-state={r.state} onClick={()=>onPick(r.symbol,r.state)} style={{animationDelay:`${i*40}ms`}}>

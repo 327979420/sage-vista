@@ -38,7 +38,7 @@ test('all ranked and selected display rows preserve backend identity and exclude
   const r=data.reviews.find(r=>r.symbol===s);
   assert.equal(r.rank,i+1);assert.ok(r.total!==null);assert.ok(r.coverage>=0.8);
  });
- const page=fs.readFileSync(new URL('../app/zh/watch/resonance/rare-opportunities/page.tsx',import.meta.url),'utf8');
+ const page=fs.readFileSync(new URL('../app/zh/watch/resonance/rare-opportunities/view.tsx',import.meta.url),'utf8');
  assert.doesNotMatch(page,/showLegacy|unified-v2-rankings|opportunity-ledger|TimeframeProfilePanel/);
  assert.match(page,/<CandidateRanking\/>/);
 });
@@ -69,7 +69,7 @@ test('industry overview separates cards, pending evidence and dated holdings',()
  assert.match(html,/industryContextSummary/);assert.match(html,/industryContextGrid/);assert.match(html,/industryContextPending/);
  assert.match(html,/持仓代码/);assert.match(html,/含未核资产类型/);assert.doesNotMatch(html,/已解析股票/);
  const linked=context.themes.flatMap(t=>t.members).find(s=>data.ranked_symbols.includes(s));
- if(linked)assert.ok(html.includes(`/zh/watch/resonance/rare-opportunities?symbol=${encodeURIComponent(linked)}`));
+ if(linked)assert.ok(html.includes(`/multi-factor?symbol=${encodeURIComponent(linked)}`));
  assert.match(html,/官方ETF来源/);assert.match(html,/持仓来源/);
  const css=fs.readFileSync(new URL('../app/product-v2.css',import.meta.url),'utf8');
  assert.match(css,/industryContextCompact \.industryContextGrid\{grid-template-columns:1fr/);

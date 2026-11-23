@@ -15,7 +15,7 @@ export function useReport<K extends keyof Reports>(kind:K) {
   return state;
 }
 export function Header({current,children}:{current:'today'|'portfolio';children?:ReactNode}) {
- return <Localized><header className="rtSubHero"><div><a href="/zh/watch/resonance/about">Sage Vista · 功能介绍</a><p>DAILY TRADING RESEARCH</p><h1>{s[current]}</h1><strong>{current==='today'?s.todayIntro:s.portfolioIntro}</strong></div><aside>{children??<Missing loading/>}</aside></header></Localized>;
+ return <Localized><header className="rtSubHero"><div><a href="/about">Sage Vista · 功能介绍</a><p>DAILY TRADING RESEARCH</p><h1>{s[current]}</h1><strong>{current==='today'?s.todayIntro:s.portfolioIntro}</strong></div><aside>{children??<Missing loading/>}</aside></header></Localized>;
 }
 export function Missing({loading=false}:{loading?:boolean}) {return <Localized><div className="cockpitEmpty" role="status"><strong>{loading?s.loading:s.missing}</strong>{!loading&&<p>{s.missingDetail}</p>}</div></Localized>}
 export function Source({rule}:{rule:string}) {return <Localized><small className="svAppSource">{s.source}：{rule.split(" · ").flatMap((part,index)=>index?[" · ",part]:[part])}</small></Localized>}

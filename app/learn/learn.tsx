@@ -9,10 +9,10 @@ import LearnStepper from './terminal';
 // Facts on this page were checked on 2026-10-24 against the sources listed at the bottom; frozen-rule numbers come from
 // research/lab/forward/triangle/config.json (3w-1.9). Update the sources and the check date together.
 export const steps: [string, string][] = [
- ['第 1 步 · 形态长什么样', '周线上，价格先跌出一条向下的趋势线，线上有三次反弹高点（三推）；下面至少两次跌到差不多的位置（平底）；然后 MACD 在 0 轴下方金叉。三样都满足，才算一个 3W 信号。'],
- ['第 2 步 · 什么时候买', '信号那周收盘后，在收盘价下方 2% 挂限价买单，最多等 8 周（40 个交易日）。成交前先碰到止损或止盈位，就撤单。还要过两道关：大盘（SPY 在 200 日均线上方，并且一半以上的股票在自己的 200 日均线上方）和月线 MACD 不否决；离最近前高不到 1.5R 的也不做。'],
- ['第 3 步 · 止损止盈放哪', '止损放在最后一个底部下方 1%，而且离买价至少 0.5 个周 ATR。买价减止损就是 1R，也就是每股冒的风险。止盈定在 3R；最多拿 26 周，到期按收盘价卖出。'],
- ['第 4 步 · 亏的多，为什么还做', '历史回测里 3W 的胜率约 40%：亏的单子大约亏 1R，赚的单子目标是 3R。所以重点不是每笔都赢，而是每笔风险固定、严格止损。仓位按账户的 2% 风险计算，单只不超过 20%，所有持仓加起来的风险不超过 10%。'],
+ ['第 1 步 · 形态长什么样', '周线上，三个越来越低的高点连成下降线（三推），下面至少两次跌到同一位置（平底），MACD 在 0 轴下方金叉。'],
+ ['第 2 步 · 什么时候买', '信号周收盘后，在收盘价下方 2% 挂限价单，最多等 8 周。还要过三关：大盘（SPY 和过半股票站上 200 日线）、月线不否决、到前高的盈亏比至少 1.5。'],
+ ['第 3 步 · 止损止盈放哪', '止损在最后一个底下方 1%，买价减止损就是 1R。目标 3R，最多拿 26 周。'],
+ ['第 4 步 · 亏的多，为什么还做', '赢 3R、亏 1R，所以大约 4 笔对 1 笔就打平。回测胜率约 40%；每笔风险一样，不靠每笔都赢。'],
 ];
 
 export const glossary: [string, string][] = [
@@ -54,19 +54,18 @@ export const sources: [string, string][] = [
  ['QuantRoutine：moomoo 澳洲费用（引用 FSG）', 'https://quantroutine.com/brokers/moomoo/'],
 ];
 
+// Supporting detail stays folded under the four steps: the full ticket of the example trade, the
+// glossary, and the costs and tax of trading from Australia. Folded content is still in the page.
 export function LearnView() {
  return <Localized><>
-  <section className="researchReplay svLearn" aria-labelledby="learn-steps"><h2 id="learn-steps">四步看懂 3W</h2>
-   <ol className="svLearnSteps">{steps.map(([title, body]) => <li key={title} className="cockpitCard"><h3>{title}</h3><p>{body}</p></li>)}</ol>
-  </section>
-  <section className="researchReplay svLearn" aria-labelledby="learn-example"><h2 id="learn-example">一个真实的历史例子</h2>
+  <details className="ovFold svLearn"><summary>这笔单子的完整凭证</summary>
    <p>Agilent（A）在 2012-09-14 那周出了信号：限价 $24.68，止损 $22.94（1R = $1.74），止盈 $29.91（3R）。2012-09-20 成交，2012-10-19 跌到止损，亏了 1R。这是一笔亏损的单子，3W 本来就会有很多这样的单子。</p>
    <LearnExample/>
-  </section>
-  <section className="researchReplay svLearn" aria-labelledby="learn-glossary"><h2 id="learn-glossary">术语表</h2>
+  </details>
+  <details className="ovFold svLearn"><summary>术语表</summary>
    <dl className="svLearnGlossary">{glossary.map(([term, meaning]) => <div key={term}><dt>{term}</dt><dd>{meaning}</dd></div>)}</dl>
-  </section>
-  <section className="researchReplay svLearn" aria-labelledby="learn-costs"><h2 id="learn-costs">在澳洲用 moomoo：成本与税</h2>
+  </details>
+  <details className="ovFold svLearn"><summary>在澳洲用 moomoo：成本与税</summary>
    <p className="svAppWarning">仅供研究和学习，不是投资或税务建议。费用和税务规定会变，下单和报税前请以官方最新说明为准。</p>
    {/* eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- Keyboard users must be able to scroll the wide table region. */}
    <div className="svLearnTable" role="region" aria-label="成本" tabIndex={0}><table><thead><tr><th scope="col">项目</th><th scope="col">金额</th><th scope="col">说明</th></tr></thead>
@@ -76,7 +75,7 @@ export function LearnView() {
    <h3>来源</h3>
    <ul className="svLearnSources">{sources.map(([label, href]) => <li key={href}><a href={href} target="_blank" rel="noopener noreferrer">{label}</a></li>)}</ul>
    <p className="svAppSource">资料核对日期：2026-10-24</p>
-  </section>
+  </details>
  </></Localized>;
 }
 

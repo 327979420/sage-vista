@@ -5,8 +5,8 @@ import {useEffect} from 'react';
 // ease-out entrances, a small stagger). Panels rise into place when they scroll into view, the
 // CSS animations inside them (chart draws, bar growth) wait until then, and headline numbers count
 // up from zero to their real value. Movement only ever replays the real numbers on the page.
-const REVEAL = '.ovPanel, .ovFold, .fvBanner, .sbNear, .sbCard, .mfCard, .fwFact, .siteFooter';
-const COUNT = '.ovPanel > b, .ovGateTop > b, .ovTrack li > b, .sbFacts dd, .mkKpis .ovPanel > b, .mfScore, .mfNarrow b, .fwGates b, .pfNums b';
+const REVEAL = '.ovPanel, .ovFold, .fvBanner, .sbNear, .sbCard, .mfCard, .dsCard, .fwFact, .shapePicker, .siteFooter';
+const COUNT = '.ovPanel > b, .ovGateTop > b, .ovTrack li > b, .sbFacts dd, .mkKpis .ovPanel > b, .mfScore, .mfNarrow b, .fwGates b, .pfNums b, .dsStages b, .scStates b, .abFlow b';
 const NUMBER = /^([+−-]?)(\d{1,3}(?:,\d{3})+|\d+)(\.\d+)?(%?)$/;
 
 function countUp(el: Element) {

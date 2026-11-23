@@ -26,7 +26,7 @@ class UiV2ContractTests(unittest.TestCase):
 
  def test_multifactor_keeps_only_the_current_decision_surface(self):
   self.assertFalse((ROOT/"app/zh/watch/resonance/macd/page.tsx").exists())
-  text=(ROOT/"app/zh/watch/resonance/rare-opportunities/page.tsx").read_text()
+  text=(ROOT/"app/zh/watch/resonance/rare-opportunities/view.tsx").read_text()
   self.assertIn('<CandidateRanking/>',text)
   for retired in ('showLegacy','TimeframeProfilePanel','factorFamilyLegend','/opportunity-ledger.json','/unified-v2-rankings.json'):
    self.assertNotIn(retired,text)

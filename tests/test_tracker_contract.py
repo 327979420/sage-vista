@@ -22,7 +22,7 @@ class TrackerOutputContractTests(unittest.TestCase):
     def test_favorite_pattern_is_independent_and_zero_weight(self):
         source = (ROOT / "services/scanner/favorite_pattern_tracker.py").read_text()
         rules = (ROOT / "docs/rules/03_FACTOR_MODEL.md").read_text()
-        page = (ROOT / "app/zh/watch/resonance/favorite-pattern/page.tsx").read_text()
+        page = (ROOT / "app/zh/watch/resonance/favorite-pattern/view.tsx").read_text()
         self.assertIn("favorite-pattern-v3.0.0", source)
         self.assertIn("PERSONAL_TRADING_SYSTEM_ZH", rules)
         self.assertIn("不登记为第40个因子", rules)

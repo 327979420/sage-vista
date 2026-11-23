@@ -11,38 +11,30 @@ function useJson<T>(url:string) {
  useEffect(()=>{let active=true;void sharedJson<T>(url).then(d=>{if(active)setData(d)});return()=>{active=false}},[url]);
  return data;
 }
-const Head = ({label,title,text}:{label:string;title:string;text:string}) => <section className="ovHead"><div><small>{label}</small><h1>{title}</h1><p>{text}</p></div></section>;
+// Title and one line; the side menu already says which section this is.
+const Head = ({title,text}:{label?:string;title:string;text:string}) => <section className="ovHead"><div><h1>{title}</h1><p>{text}</p></div></section>;
 
 const ARCHIVE:[string,string,string,string,string][] = [
- ['/zh/watch/market','大盘','Market','原来的大盘页：参与度、机构仓位、融资余额，按日、周、月。','The original market page: participation, institutional positioning and margin, by day, week and month.'],
- ['/zh/watch/industry-radar','行业','Sectors','20 个主题和它们的 ETF：谁在领涨、谁在回调。','20 themes and their ETFs: which lead and which pull back.'],
- ['/zh/watch/resonance/rare-opportunities','多因子机会','Multi-factor opportunities','每天复评约 1,500 只股票，按月、周、日线打分排序。','About 1,500 stocks re-scored daily on monthly, weekly and daily charts.'],
- ['/zh/watch/resonance/favorite-pattern','我最喜欢形态','Daily setups','最活跃的 100 只股票里的三推回调和多底支撑。','Three-push pullbacks on multi-bottom support among the 100 most-traded stocks.'],
- ['/zh/backtest','回测','Backtests','历史研究的收益、亏损和还没被证明的结论。','Gains, losses and unproven conclusions from past research.'],
- ['/zh/watch/resonance/about','功能介绍与方法','About and method','SV 是什么、怎么运作、怎么用。','What SV is, how it works and how to use it.'],
+ ['/market','大盘','Market','原来的大盘页：参与度、机构仓位、融资余额，按日、周、月。','The original market page: participation, institutional positioning and margin, by day, week and month.'],
+ ['/sectors','行业','Sectors','20 个主题和它们的 ETF：谁在领涨、谁在回调。','20 themes and their ETFs: which lead and which pull back.'],
+ ['/multi-factor','多因子机会','Multi-factor opportunities','每天复评约 1,500 只股票，按月、周、日线打分排序。','About 1,500 stocks re-scored daily on monthly, weekly and daily charts.'],
+ ['/patterns','我最喜欢形态','Daily setups','最活跃的 100 只股票里的三推回调和多底支撑。','Three-push pullbacks on multi-bottom support among the 100 most-traded stocks.'],
+ ['/backtests','回测','Backtests','历史研究的收益、亏损和还没被证明的结论。','Gains, losses and unproven conclusions from past research.'],
+ ['/about','功能介绍与方法','About and method','SV 是什么、怎么运作、怎么用。','What SV is, how it works and how to use it.'],
 ];
 export function ArchiveGrid() {
  const {locale}=useLocale(), en=locale==='en';
  return <div className="ovRoot">
-  <Head label={en?'Research · Archive':'研究 · 研究档案'} title={en?'The original tools, one click away.':'原来的工具，一点就到。'} text={en?'Each keeps its original definitions. The live versions sit in the side menu.':'每个页面都保留原来的定义。新版在左边菜单里。'}/>
-  <div className="rhGrid">{ARCHIVE.map(([href,zh,enL,dz,de],i)=><a key={href} href={href} className="rhCard" style={{animationDelay:`${i*70}ms`}}><small>{String(i+1).padStart(2,'0')}</small><b>{en?enL:zh}</b><span>{en?de:dz}</span><em>{href}</em></a>)}</div>
+  <Head title={en?'The original tools, one click away.':'原来的工具，一点就到。'} text={en?'Each keeps its original definitions. The live versions sit in the side menu.':'每个页面都保留原来的定义。新版在左边菜单里。'}/>
+  <div className="rhGrid">{ARCHIVE.map(([href,zh,enL,dz,de],i)=><a key={href} href={href} className="rhCard" style={{animationDelay:`${i*70}ms`}}><small>{String(i+1).padStart(2,'0')}</small><b>{en?enL:zh}</b><span>{en?de:dz}</span></a>)}</div>
  </div>;
 }
 
-type Status = {source_latest_complete_date?:string; last_successful_update_at?:string};
-type Today = {market?:{light?:string|null;breadth?:number|null}};
+// About: what SV is, in one title and one line (the flow below shows it working on today's numbers).
 export function AboutHead() {
  const {locale}=useLocale(), en=locale==='en';
- const status=useJson<Status>('/update-status.json'), today=useJson<Today>('/app/today.json');
- const updated=status?.last_successful_update_at?new Date(status.last_successful_update_at).toLocaleString(en?'en-AU':'zh-CN',{timeZone:'Australia/Melbourne',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}):null;
  return <div className="ovRoot">
-  <Head label={en?'Research · About SV':'研究 · 关于 SV'} title={en?'A trend-pullback system that checks itself every day.':'一个每天自己检查一遍的顺势回调系统。'} text={en?'After each US close SV reviews about 1,500 stocks, scores them on three timeframes, and publishes only data whose dates check out.':'每个美股收盘后，SV 复评约 1,500 只股票，按三个周期打分，日期核对无误才发布。'}/>
-  <div className="rhStats">
-   <div className="ovPanel"><small>{en?'Latest close':'最新收盘'}</small><b>{status?.source_latest_complete_date??'—'}</b></div>
-   <div className="ovPanel"><small>{en?'Published (Melbourne)':'发布时间（墨尔本）'}</small><b>{updated??'—'}</b></div>
-   <div className="ovPanel"><small>{en?'Market gate':'市场闸门'}</small><b data-tone={today?.market?.light==='green'?'go':'wait'}>{today?.market?.light?(today.market.light==='green'?(en?'Green':'绿灯'):(en?'Amber':'黄灯')):'—'}</b></div>
-   <div className="ovPanel"><small>{en?'3W pool above 200-day':'3W 股票池站上 200 日线'}</small><b>{today?.market?.breadth!=null?`${(today.market.breadth*100).toFixed(1)}%`:'—'}</b></div>
-  </div>
+  <Head title={en?'What SV is: one bottom-buying rule and one daily shortlist.':'SV 是什么：一套抄底规则，一张每日候选榜。'} text={en?'3W looks for bottoms that hold each week and trades them on paper by a locked rule; the multi-factor scan scores about 1,500 US stocks a day to rank what to research first.':'3W 每周找守住的底，按锁定的规则模拟交易；多因子每天给约 1,500 只美股打分，排出先研究哪几只。'}/>
  </div>;
 }
 
@@ -50,7 +42,7 @@ type Fact = {id:string;label:string;period:string|null;trades?:number|null;p?:nu
 export function BacktestHead() {
  const {locale}=useLocale(), en=locale==='en';
  return <div className="ovRoot">
-  <Head label={en?'Research · Backtests':'研究 · 回测'} title={en?'Hints in history, not yet proven.':'历史上有迹象，还没被证明。'} text={en?'Each bar is one test of the rule. Only the forward record, on signals after the freeze, can prove it.':'每一条是一次对规则的检验。真正能证明的，只有规则冻结之后的前向记录。'}/>
+  <Head title={en?'Hints in history, not yet proven.':'历史上有迹象，还没被证明。'} text={en?'Each bar is one test of the rule. Only the forward record, on signals after the freeze, can prove it.':'每一条是一次对规则的检验。真正能证明的，只有规则冻结之后的前向记录。'}/>
  </div>;
 }
 

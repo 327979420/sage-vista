@@ -1,3 +1,3 @@
 import {redirect} from "next/navigation";
 
-export default function Page(){redirect("/zh/backtest")}
+export default function Page(){redirect("/backtests")}
