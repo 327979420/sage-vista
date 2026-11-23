@@ -11,6 +11,7 @@ from datetime import date, datetime, timedelta, timezone
 
 from .factor_registry import REGISTRY_VERSION
 from .unified_v2_scan import MODEL_VERSION, RULESET_ID
+from . import public_store
 
 
 SCHEMA_VERSION = "nightly-backtest-progress-v1.0.0"
@@ -21,8 +22,7 @@ TARGET_START = "2000-01-01"
 
 
 def read_json(path, fallback=None):
- path = pathlib.Path(path)
- return json.loads(path.read_text()) if path.exists() else (fallback or {})
+ return public_store.read_json(path) if public_store.exists(path) else (fallback or {})
 
 
 def previous_week(earliest, target_start=TARGET_START):

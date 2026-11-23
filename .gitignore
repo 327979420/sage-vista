@@ -57,3 +57,8 @@ yarn-error.log*
 /.wrangler/
 /outputs/
 /work/
+
+# Stored gzip-compressed as <name>.gz (GitHub rejects files over 100 MiB);
+# see storedCompressed in services/automation/public-archive-policy.json.
+/public/signal-history.json
+/public/unified-v2-rankings.json

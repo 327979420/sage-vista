@@ -2,10 +2,11 @@
 import argparse,json,pathlib
 from datetime import datetime,timezone
 from .unified_v2_scan import _compact_day
+from . import public_store
 
 
 def merge(paths,out):
- reports=[json.loads(pathlib.Path(path).read_text()) for path in paths]
+ reports=[public_store.read_json(path) for path in paths]
  if not reports:raise RuntimeError("No V2 reports supplied")
  if any(x.get("future_data_used") is not False for x in reports):raise RuntimeError("Future-data audit failed")
  by_date={}
@@ -24,7 +25,7 @@ def merge(paths,out):
    row["factor_ledger"]=[item for item in row.get("factor_ledger",[]) if item.get("hit") or item.get("points")]
  base=reports[-1]
  result={**base,"generated_at":datetime.now(timezone.utc).isoformat(),"coverage":{"start":days[0]["date"],"end":days[-1]["date"],"sessions":len(days)},"version_policy":"每个历史日冻结其首次回放时的模型与因子库版本；新规则只用于后续批次，除非另开重算实验","model_versions":sorted({x.get("model_version","legacy_unrecorded") for x in days}),"factor_registry_versions":sorted({x.get("factor_registry_version","legacy_unrecorded") for x in days}),"days":days}
- pathlib.Path(out).write_text(json.dumps(result,ensure_ascii=False,separators=(",",":"))+"\n")
+ public_store.write_text(out,json.dumps(result,ensure_ascii=False,separators=(",",":"))+"\n")
  return result
 
 
