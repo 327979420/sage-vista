@@ -1696,6 +1696,15 @@
 - 最终恢复验收（2026-10-20 13:26 UTC）：[#147](https://github.com/327979420/sage-vista/pull/147)与[#148](https://github.com/327979420/sage-vista/pull/148)均通过CI并合入；[补更39426266704](https://github.com/327979420/sage-vista/actions/runs/39426266704)成功，notify=false、Discord步骤跳过。1341项Python检查通过（22项按原条件跳过），111项网站测试通过；发布合同、体积门禁、完整Cloudflare日期与审计核验全部通过。
 - 独立线上读取：大盘、行业、CR056候选、日线形态及update-status均为最新已收盘2026-10-19；data_dates_match=true、status=up_to_date。首页Build4f55f4a与生产收据4f55f4a1f16690f6ef72de5cbc4192b053b289e7一致。三归档实际gzip为2.32/3.43/1.70MiB，无需重复打包或删除历史。未新增策略、重扫历史或发送外部通知。恢复原周二至周六09:10—14:10每小时巡检；独立同行核查仍待Claude。
 
+### CR-2026-11-23｜信号历史超过 GitHub 100 MB 上限，日更推送被拒
+
+- 运维修复，不改评分、排名、交易规则或数据内容。
+- 故障：11-18 起每次日更（含 11-19/11-20/11-21 的全部重试）都算完了数据、过了全部测试和构建，但在推送 main 时被 GitHub 拒绝：`public/signal-history.json` 100.11→100.20 MiB，超过 GitHub 单文件 100 MiB 硬上限（GH001）。网站因此停在 11-17。11-20 13:29 一次失败是并发研究提交触发的既有保护（`Production code/data changed`），属安全失败。
+- 原因：信号历史每个交易日给全部约 580 个信号各加一条当日状态（约 5.8 KB/条，约 +3.5 MB/天）。部署前的体积检查只管 Cloudflare 的 25 MiB（压缩后），没管 Git 的 100 MiB（原文件）。`public/unified-v2-rankings.json` 也已 97.5 MiB，夜间回测每晚 +约 1 MB，两三天内同样会撞线。
+- 修复：这两个文件在 Git 里改存为 `<名>.json.gz`（gzip -9、mtime 0，同内容同字节；现为 7.3 / 4.2 MiB），原 `.json` 不再入库并加入 `.gitignore`。新模块 `services/scanner/public_store.py` 统一读写：调用方仍传原路径，读到的 JSON 字节与之前完全相同；两种形式同时存在时报错，不猜。改为经它读写的地方：日更（`daily_tracker_update`）、V2 排名（`unified_v2_scan`、`merge_unified_v2_reports`、`backtest_progress`、`cr056_runner`）、永久追踪池（`opportunity_ledger`）、Discord 摘要、发布合同/清单（`services/contracts`）、研究回放 `account_runner`、`legacy_signal_recovery`。网站打包与体积检查读 `.gz`，部署出去的 `/__sv_archives/*.gz` 不变；日更、夜间回测、两个回填和 reused-factor 工作流的 `git add`/复制路径改为 `.gz`。体积检查新增 GitHub 100 MiB 门禁，以后在推送前就给出明确报错。`opportunity-ledger.json`（33 MiB）暂不改。
+- 迁移核对：两份文件压缩后逐字节解压与 main 原文件一致（sha256 前缀 20f7eab9… / bf5050c3…）。
+- 未处理：11-18、11-19 两天的信号快照无法补出（日更只按“最新已收盘日”计算，没有补算模式；以往缺口如 10-27、10-30、10-31 也一样）。行情本身不缺，后续前向收益照常计算。顶栏“日更 正常”只看 `status`，不看数据日期，失败时仍显示绿色——建议改为显示数据日期并在落后时变黄，待 owner 决定。
+
 ### CR-2026-11-23-site｜网站改进：游戏化一点、文字清楚简短，首次访客优先
 - 状态：implementing。owner 2026-11-23 批准整套路线（在现有深色终端站上改进，不重做；每步先学最好的参考）。第 0 步 PR #175（去乌鸦向导、「新手？」四页面板），第 1 步 PR #177（文字、带日期的数据标签、术语点开解释），第 2 步 PR #178（今日页一条 7 站轨道、证明进度、两个折叠），都等 owner 试预览后合并。
 - 2026-11-23 用户视角复盘（PostHog 10/05–11/23，去掉 owner 本人）：英文首次访客约 22 人落在今日页，只有 3 人点开第二页；33 位中文浏览器访客在 11/15–16 从同一个多因子链接进来，因全站默认英文看到英文页，29 人只看一页就走。owner 结论：「首次访客的第一眼更重要」，要让人知道这是什么、想了解更多。

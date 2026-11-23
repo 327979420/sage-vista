@@ -6,7 +6,8 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { randomBytes } from 'node:crypto';
-import { checkPublicSizes, formatReport, RAW_LIMIT_BYTES } from '../services/automation/check_public_sizes.mjs';
+import { gzipSync } from 'node:zlib';
+import { checkPublicSizes, formatReport, RAW_LIMIT_BYTES, GIT_FILE_LIMIT_BYTES } from '../services/automation/check_public_sizes.mjs';
 
 const archives = ['big-archive.json'];
 
@@ -46,6 +47,22 @@ test('listed archive above the raw limit passes and reports compressed headroom'
   assert.match(formatReport(result), /\[OK\] big-archive\.json: .* raw -> .* gzip = .*% of .* \(headroom .*\)/);
 });
 
+test('any file above the GitHub per-file limit fails before the data commit is pushed', t => {
+  assert.equal(GIT_FILE_LIMIT_BYTES, 100 * 1024 * 1024);
+  const dir = publicDir(t, { 'big-archive.json': JSON.stringify({ rows: 'x'.repeat(5000) }) });
+  const result = checkPublicSizes(dir, { archives, maxAssetBytes: 1000, rawLimit: 100, gitLimit: 1000 });
+  assert.equal(result.ok, false);
+  assert.match(result.errors[0], /^public\/big-archive\.json is .* above GitHub's .* per-file limit.*storedCompressed/);
+});
+
+test('an archive stored as <name>.gz is measured by its JSON content', t => {
+  const content = JSON.stringify({ rows: 'x'.repeat(5000) });
+  const dir = publicDir(t, { 'signal-history.json.gz': gzipSync(content) });
+  const result = checkPublicSizes(dir, { archives: ['signal-history.json'], maxAssetBytes: 1000, rawLimit: 100 });
+  assert.equal(result.ok, true, result.errors.join('\n'));
+  assert.equal(result.archives[0].rawBytes, content.length);
+});
+
 test('archive near or over the limit after compression is flagged', t => {
   const incompressible = randomBytes(900);
   const dir = publicDir(t, { 'big-archive.json': incompressible });
@@ -59,7 +76,7 @@ test('archive near or over the limit after compression is flagged', t => {
 });
 
 test('CLI exits non-zero and prints the error for an oversize unlisted file', t => {
-  const dir = publicDir(t, { 'unified-v2-rankings.json': '{}', 'signal-history.json': '{}', 'opportunity-ledger.json': '{}' });
+  const dir = publicDir(t, { 'unified-v2-rankings.json.gz': gzipSync('{}'), 'signal-history.json.gz': gzipSync('{}'), 'opportunity-ledger.json': '{}' });
   const script = fileURLToPath(new URL('../services/automation/check_public_sizes.mjs', import.meta.url));
   const pass = spawnSync(process.execPath, [script, dir], { encoding: 'utf8', env: { ...process.env, GITHUB_STEP_SUMMARY: '' } });
   assert.equal(pass.status, 0, pass.stderr);

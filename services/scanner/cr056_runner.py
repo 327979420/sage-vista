@@ -21,6 +21,7 @@ from services.ranking.cr056 import score_candidate
 from services.ledger.cr056 import review_watch, track_entry_structures
 from services.scanner.factor_detectors import evaluate_period_factors
 from services.scanner.cr056_inputs import normalized_comparison_rows
+from services.scanner import public_store
 
 
 def rank_reviews(reviews):
@@ -275,7 +276,7 @@ def main():
     args = p.parse_args()
     private = Path(args.private_dir)
     report = run_snapshot(private/'eodhd-cache', as_of=args.as_of,
-        history=json.loads(Path(args.history).read_text()),
+        history=public_store.read_json(args.history),
         code_commit=subprocess.check_output(['git','rev-parse','HEAD'], text=True).strip(),
         input_report=json.loads((private/'input-repair-report.json').read_text()),
         previous=json.loads(Path(args.previous).read_text()) if args.previous else None)

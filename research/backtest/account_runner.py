@@ -11,6 +11,7 @@ from pathlib import Path
 from research.backtest.run_store import ROOT, POLICY, CANDIDATE_POLICY, trade_csv, encode, seal, sha256, validate_request
 
 from services.contracts.cr056_policy import POLICY_VERSION, POLICY_FINGERPRINT
+from services.scanner import public_store
 
 CONFIG = ROOT / 'research/backtest/account-scenario.json'
 RANKINGS = ROOT / 'public/unified-v2-rankings.json'
@@ -235,7 +236,7 @@ def execute(request, config, cache_dir, ledger_path, *, out, run_id, attempt, co
     reference = normalized_comparison_rows([r for r in calendar if request['start'] <= r['date'] <= request['end']],as_of=request['end'])
     sessions = [r['date'] for r in reference]
     window_events = [e for e in ledger['events'] if request['start'] <= e['signal_date'] <= request['end']]
-    scan_bytes = Path(rankings_path).read_bytes()
+    scan_bytes = public_store.read_bytes(rankings_path)
     scan_doc=json.loads(scan_bytes)
     scan_days = validate_scan_coverage(scan_doc, window_events, sessions)
     new_model=POLICY_VERSION

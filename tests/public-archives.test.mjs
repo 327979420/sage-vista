@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { gzipSync, gunzipSync } from 'node:zlib';
 import { randomBytes } from 'node:crypto';
-import { packageArchives, policy } from '../services/automation/package_public_archives.mjs';
+import { packageArchives, policy, readArchive } from '../services/automation/package_public_archives.mjs';
 import { loadTs } from './helpers/load-ts.mjs';
 
 const { servePublicArchive } = loadTs(new URL('../worker/public-archives.ts', import.meta.url));
@@ -33,6 +33,31 @@ test('large raw histories retain every byte while deployment fits the limit', t 
     assert.deepEqual(gunzipSync(readFileSync(path.join(destination, policy.assetPrefix, `${name}.gz`))), original);
     assert.equal(existsSync(path.join(destination, name)), false);
   }
+});
+
+test('archives stored as <name>.gz in Git deploy the same JSON bytes', t => {
+  const dir = mkdtempSync(path.join(tmpdir(), 'sv-stored-'));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const source = path.join(dir, 'public'), destination = path.join(dir, 'dist');
+  mkdirSync(source); mkdirSync(destination);
+  const original = Buffer.from(JSON.stringify({ cases: ['历史'.repeat(1000)] }));
+  const stored = new Set(policy.storedCompressed);
+  assert.ok(stored.has('signal-history.json') && stored.has('unified-v2-rankings.json'));
+  for (const name of policy.archives) {
+    // The build copies public/ as is, so a stored archive arrives as <name>.gz.
+    const file = stored.has(name) ? `${name}.gz` : name, bytes = stored.has(name) ? gzipSync(original) : original;
+    writeFileSync(path.join(source, file), bytes);
+    writeFileSync(path.join(destination, file), bytes);
+  }
+  for (const name of policy.archives) assert.deepEqual(readArchive(source, name), original);
+  packageArchives(source, destination);
+  for (const name of policy.archives) {
+    assert.deepEqual(gunzipSync(readFileSync(path.join(destination, policy.assetPrefix, `${name}.gz`))), original);
+    assert.equal(existsSync(path.join(destination, name)), false);
+    assert.equal(existsSync(path.join(destination, `${name}.gz`)), false);
+  }
+  writeFileSync(path.join(source, 'signal-history.json'), original);
+  assert.throws(() => readArchive(source, 'signal-history.json'), /Both .* exist/);
 });
 
 test('oversize compressed payload and stale builds fail before removing originals', t => {
@@ -97,7 +122,8 @@ test('production build packages the actual public archives byte for byte', () =>
   for (const name of policy.archives) {
     const compressed = readFileSync(path.join('dist/client', policy.assetPrefix, `${name}.gz`));
     assert.ok(compressed.length <= policy.maxAssetBytes);
-    assert.deepEqual(gunzipSync(compressed), readFileSync(path.join('public', name)));
+    assert.deepEqual(gunzipSync(compressed), readArchive('public', name));
     assert.equal(existsSync(path.join('dist/client', name)), false);
+    assert.equal(existsSync(path.join('dist/client', `${name}.gz`)), false);
   }
 });

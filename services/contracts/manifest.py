@@ -12,6 +12,7 @@ from typing import AbstractSet, Iterable, Mapping
 
 from .adapters import AdaptedArtifact, adapt_legacy_bytes
 from .validation import ContractError, FROZEN_RELEASE_NAMES, validate_contract
+from services.scanner import public_store
 
 
 ROLE_BY_NAME: dict[str, tuple[str, ...]] = {
@@ -140,7 +141,7 @@ def build_shadow_manifest(
     adapted_items = [
         (path, raw, adapt_legacy_bytes(path.name, raw))
         for path in path_list
-        for raw in (path.read_bytes(),)
+        for raw in (public_store.read_bytes(path),)
     ]
     daily_dates = {
         item.as_of for _, _, item in adapted_items if item.temporal_class == "daily_snapshot"
@@ -252,9 +253,10 @@ def verify_shadow_manifest(
         path = (resolved_source / str(entry["path"])).resolve()
         if resolved_source not in path.parents:
             raise ContractError(f"manifest file escapes source directory: {entry['path']}")
-        if not path.is_file():
+        if not public_store.exists(path):
             raise ContractError(f"manifest file is missing: {entry['path']}")
-        raw = path.read_bytes()
+        # Archives stored as <name>.gz are hashed by their exact JSON bytes.
+        raw = public_store.read_bytes(path)
         if len(raw) != entry["size_bytes"]:
             raise ContractError(f"manifest file size mismatch: {entry['path']}")
         if hashlib.sha256(raw).hexdigest() != entry["sha256"]:
