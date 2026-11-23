@@ -76,9 +76,9 @@ export default function FirstVisit({rows,onClose}:{rows:SignalRow[]|null;onClose
   <button type="button" className="fvClose" aria-label={en?'Hide the intro':'收起介绍'} onClick={()=>{trackEvent('intro_closed');onClose()}}>×</button>
   <div className="fvCopy">
    <span className="fvEyebrow">{en?'Rules, not predictions · tested in public':'不靠预测，靠规则 · 公开检验'}</span>
-   <h1 id="fvTitle">{en?'Simple rules, followed exactly.':'规则简单，照做到底。'}</h1>
-   <p>{en?<>Like the <Term k="turtle">Turtle traders</Term> of 1983, Sage Vista trades by a few written rules, not by predictions: one weekly chart pattern on US stocks, a rule locked since {Number(RULE_LOCKED.slice(8))} Oct, and every trade scored against random picks.</>
-    :<>和 1983 年的<Term k="turtle">海龟交易</Term>一样，不靠预测，只按几条写死的规则做：一种美股周线形态，规则 {RULE_LOCKED.slice(5).replace('-','/')} 起锁定，每一笔都和随机选股比。</>}</p>
+   <h1 id="fvTitle">{en?'We don’t predict. We execute.':'不预测，只执行。'}</h1>
+   <p>{en?<>Like the <Term k="turtle">Turtle traders</Term>: public rules, followed every time, and every trade scored against random picks.</>
+    :<>像<Term k="turtle">海龟交易</Term>：规则公开，每次照做，每笔都和随机选股比。</>}</p>
    <div className="fvProof">
     <div><b>{since??'—'}</b><span>{en?'signals since the lock':'锁定后的信号'}</span></div>
     <div><b>{closed??'—'}<small> / 100</small></b><span>{en?'closed trades needed for a verdict':'下结论要平仓 100 笔'}</span></div>
