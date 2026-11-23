@@ -8,7 +8,8 @@ class ProductConsolidationTests(unittest.TestCase):
   self.assertFalse((ROOT/"app/data.ts").exists())
   root=(ROOT/"app/page.tsx").read_text()
   self.assertNotIn("StockBoard",root);self.assertIn("./app/today",root)
-  self.assertIn("export default TodayPage;",root)
+  # The home page renders Today (with the first-visit intro decided on the server).
+  self.assertRegex(root,r"export default async function Page\(\)\{return <TodayPage ")
 
  def test_legacy_products_remain_available_with_current_navigation(self):
   nav=(ROOT/"app/zh/watch/resonance/tracker-ui.tsx").read_text()

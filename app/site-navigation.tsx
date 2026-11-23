@@ -4,7 +4,7 @@ import {useNavigationCount} from './navigation-count';
 import {usePathname} from 'next/navigation';
 import {LanguageSwitch,useLocale} from './i18n/locale';
 import {sharedJson} from './json-cache';
-import StartHere from './start-here';
+import {INTRO_HREF} from './first-visit';
 import Term from './term';
 
 // Terminal shell: top status bar, a strip of real events and five sections in a side menu.
@@ -100,7 +100,7 @@ export default function SiteNavigation({uiVersion, build}: {uiVersion: string; b
   <header className="svTopBar">
    <a className="svBrand" href={siteSections[0][2][0][2]} aria-label="Sage Vista">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 21 20H3Z"/><path d="M12 9 16.5 17h-9Z"/></svg>
-    <b>SAGE VISTA</b><i>{'//'}</i><span>{en ? '3W research desk' : '3W 研究台'}</span>
+    <b>SAGE VISTA</b><i>{'//'}</i><span>{en ? 'Freddy Liang’s US stock research' : 'Freddy Liang 的美股研究'}</span>
    </a>
    <div className="svPills">
     <span className="svPill"><em data-state={dataState}/>{dataLabel}</span>
@@ -108,7 +108,7 @@ export default function SiteNavigation({uiVersion, build}: {uiVersion: string; b
     <span className="svPill"><span>{en ? 'Rule v1.9 · ' : '规则 v1.9 · '}<Term k="locked">{en ? 'locked' : '已锁定'}</Term></span></span>
    </div>
    <div className="svClock"><small>{en ? 'New York' : '纽约'}</small><b>{ny}</b><span>ET</span></div>
-   <StartHere/>
+   <a className="svStartButton" href={INTRO_HREF}>{en ? 'What is SV?' : 'SV 是什么？'}</a>
    <LanguageSwitch/>
   </header>
   <div className="svTicker" aria-label={en ? 'Latest events' : '最新动态'}>

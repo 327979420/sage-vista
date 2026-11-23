@@ -8,7 +8,7 @@ import Term from '../term';
 
 // Terminal overview on top of Today: one headline, today's run as one track, the market light as a
 // field of stocks, a replay of the latest scan, the road to proof and two folds. Public data only.
-type Props = {today:Today|null; rows:SignalRow[]|null};
+type Props = {today:Today|null; rows:SignalRow[]|null; intro?:boolean};
 
 function useNow(ms=1000) {
  const [now,setNow]=useState<number|null>(null);
@@ -143,15 +143,15 @@ function Fold({title,children}:{title:string;children:ReactNode}) {
  return <details className="ovFold" onToggle={e=>setOpen(e.currentTarget.open)}><summary>{title}</summary>{open&&children}</details>;
 }
 
-export default function Overview({today,rows}:Props) {
+export default function Overview({today,rows,intro=false}:Props) {
  const {locale}=useLocale(), en=locale==='en';
  if(!today)return null;
- const green=today.market.light==='green', next=scanDay(today.signal_week);
+ const green=today.market.light==='green', next=scanDay(today.signal_week), Heading=intro?'h2':'h1';
  return <div className="ovRoot">
   <section className="ovHead">
    <div>
     <small>{en?'3W · Today':'3W · 今日'}</small>
-    <h1><Term k="light">{en?'Market light':'市场灯'}</Term>{green?(en?' is green. Waiting for the next scan.':'是绿的，等下一次扫描。'):(en?' is amber: new signals won’t be ordered.':'是黄的：新信号不下单。')}</h1>
+    <Heading><Term k="light">{en?'Market light':'市场灯'}</Term>{green?(en?' is green. Waiting for the next scan.':'是绿的，等下一次扫描。'):(en?' is amber: new signals won’t be ordered.':'是黄的：新信号不下单。')}</Heading>
     <p>{today.orders_to_place?(en?`${today.orders_to_place} orders to place.`:`待下单 ${today.orders_to_place} 个。`):(en?'Nothing to do today.':'今天不用动。')}</p>
    </div>
    <div className="ovNext"><small>{en?`Next scan · after the ${next.slice(5)} close`:`下一次扫描 · ${next.slice(5)} 收盘后`}</small><Countdown target={closeAt(next)} en={en}/></div>

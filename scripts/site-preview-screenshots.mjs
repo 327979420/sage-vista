@@ -3,7 +3,6 @@ import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 
 export const ARTIFACT_NAME = 'site-preview-screenshots';
-export const TOUR_SEEN_KEY = 'sv-onboarded';
 export const PAGES = [
   {name: 'today', path: '/'},
   {name: 'portfolio', path: '/portfolio'},
@@ -39,7 +38,7 @@ export async function captureScreenshots(baseUrl, output = ARTIFACT_NAME) {
       const context = await browser.newContext({viewport, deviceScaleFactor: 1, locale: 'zh-CN', reducedMotion: 'reduce'});
       try {
         await context.addCookies([{name: 'sv-language-session', value: 'zh', url: origin}]);
-        await context.addInitScript(key => localStorage.setItem(key, '1'), TOUR_SEEN_KEY);
+        // No seen cookie: every page is captured as a first-time visitor sees it.
         for (const target of PAGES) {
           const page = await context.newPage();
           const filename = `${target.name}-${viewport.width}x${viewport.height}.png`;
@@ -56,7 +55,6 @@ export async function captureScreenshots(baseUrl, output = ARTIFACT_NAME) {
               return main && !/正在读取数据|正在读取已核新模型快照|行情状态载入中/.test(main.innerText);
             }, null, {timeout: 30000});
             await page.evaluate(() => document.fonts.ready);
-            await page.locator('.svTourBackdrop').waitFor({state: 'hidden', timeout: 5000});
           } catch (error) {
             result.errors.push(error.message);
           }

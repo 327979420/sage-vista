@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {ARTIFACT_NAME, PAGES, VIEWPORTS, TOUR_SEEN_KEY, previewOrigin, previewUrlFromLog} from '../scripts/site-preview-screenshots.mjs';
+import {ARTIFACT_NAME, PAGES, VIEWPORTS, previewOrigin, previewUrlFromLog} from '../scripts/site-preview-screenshots.mjs';
 const read = path => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 
 test('preview captures six pages at the two review sizes', () => {
@@ -16,8 +16,8 @@ test('preview captures six pages at the two review sizes', () => {
   assert.deepEqual(VIEWPORTS, [{width: 1440, height: 900}, {width: 390, height: 844}]);
   assert.equal(new Set(PAGES.flatMap(p => VIEWPORTS.map(v => `${p.name}-${v.width}x${v.height}.png`))).size, 12);
 });
-test('tour bypass matches the current app flag and screenshot version is exactly locked', () => {
-  assert.ok(read('app/tour-steps.ts').includes(`TOUR_SEEN_KEY = '${TOUR_SEEN_KEY}'`));
+test('screenshots show the first-visit view and the screenshot version is exactly locked', () => {
+  assert.doesNotMatch(read('scripts/site-preview-screenshots.mjs'), /sv-seen|TOUR_SEEN_KEY/);
   const pkg = JSON.parse(read('package.json')), lock = JSON.parse(read('package-lock.json'));
   assert.equal(pkg.devDependencies.playwright, '1.63.0');
   assert.equal(lock.packages[''].devDependencies.playwright, pkg.devDependencies.playwright);

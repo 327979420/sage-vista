@@ -279,7 +279,7 @@ export const catalog: Record<string, string> = {
   "核心": "Core",
   "关于 SV": "About SV",
   "新手导览": "Take the tour",
-  "从这里开始": "Start here",
+  "一分钟了解 SV": "SV in a minute",
   "SV 是什么": "What is SV",
   "如何使用 SV": "How to use SV",
   "SV 如何定义机会": "How SV defines an opportunity",
