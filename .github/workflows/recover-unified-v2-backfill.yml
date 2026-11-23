@@ -68,7 +68,7 @@ jobs:
         run: |
           git config user.name "sage-vista-bot"
           git config user.email "sage-vista-bot@users.noreply.github.com"
-          git add public/unified-v2-rankings.json public/opportunity-ledger.json
+          git add public/unified-v2-rankings.json.gz public/opportunity-ledger.json
           git diff --cached --quiet && exit 0
           git commit -m "data: recover Unified V2 backfill ${{ inputs.start }} to ${{ inputs.end }}"
           git push origin HEAD:main

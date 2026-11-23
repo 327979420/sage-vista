@@ -4,6 +4,7 @@ This module never recalculates rankings. It reads the same published JSON as
 the website and persists notification state only after a successful send.
 """
 import argparse,json,os,pathlib,tempfile,urllib.request
+from services.scanner import public_store
 
 PUBLIC=pathlib.Path("public")
 STATE_PATH=pathlib.Path("automation/discord-state.json")
@@ -111,7 +112,7 @@ def save_state(path,state):
  os.replace(name,path)
 
 def run(preview=False,state_path=STATE_PATH):
- load_local_env();status=read_json(PUBLIC/"update-status.json");tracker=read_json(PUBLIC/"resonance-tracker.json");radar=read_json(PUBLIC/"rare-opportunity-radar.json");unified=read_json(PUBLIC/"unified-v2-rankings.json")
+ load_local_env();status=read_json(PUBLIC/"update-status.json");tracker=read_json(PUBLIC/"resonance-tracker.json");radar=read_json(PUBLIC/"rare-opportunity-radar.json");unified=public_store.read_json(PUBLIC/"unified-v2-rankings.json")
  as_of=validate_inputs(status,tracker,radar,unified);site=os.environ.get("SAGE_VISTA_SITE_URL",DEFAULT_SITE).rstrip("/")
  payload,alerts=build_payload(tracker,radar,site,unified=unified);keys=notification_keys(tracker,radar,alerts)
  state=read_json(state_path) if pathlib.Path(state_path).exists() else {"sent":[],"symbol_status":{}}
