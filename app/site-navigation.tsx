@@ -61,10 +61,8 @@ function useNewYorkTime() {
  return time;
 }
 
-function events(locale: string, today: Today | null, record: Record_ | null, status: Status | null): string[] {
+function events(locale: string, today: Today | null, record: Record_ | null): string[] {
  const en = locale === 'en', out: string[] = [];
- const date = status?.source_latest_complete_date ?? status?.as_of;
- if (date) out.push(en ? `Data from the ${date.slice(5)} close` : `数据来自 ${date.slice(5)} 收盘`);
  const m = today?.market;
  if (m?.breadth != null && m.distance_pct != null) out.push(en
   ? `Market light ${m.light === 'green' ? 'green' : 'amber'} · ${(m.breadth * 100).toFixed(1)}% of 3W stocks above their 200-day · SPY ${pct(m.distance_pct)} vs its 200-day`
@@ -95,7 +93,7 @@ export default function SiteNavigation({uiVersion, build}: {uiVersion: string; b
  const dataLabel = !status ? (en ? 'Loading' : '读取中') : !dataDate ? (en ? 'Update pending' : '日更待核对')
   : late >= 2 ? (en ? `Data ${dataDate.slice(5)} · ${late} sessions late` : `数据 ${dataDate.slice(5)} · 晚 ${late} 个交易日`)
   : (en ? `Data ${dataDate.slice(5)}` : `数据 ${dataDate.slice(5)}`);
- const items = events(locale, today, record, status);
+ const items = events(locale, today, record);
  return <>
   <header className="svTopBar">
    <a className="svBrand" href={siteSections[0][2][0][2]} aria-label="Sage Vista">

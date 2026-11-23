@@ -29,7 +29,7 @@ export function Countdown({target,en}:{target:number;en:boolean}) {
 
 // Today's run as one track (GitLab-style stage graph): each stage shows one real number;
 // stages before the stop are green, the stop is amber, later ones grey. A dot runs to the stop.
-function RunTrack({today,rows,en}:{today:Today;rows:SignalRow[];en:boolean}) {
+function RunTrack({today,rows,en,intro=false}:{today:Today;rows:SignalRow[];en:boolean;intro?:boolean}) {
  const ready=useReady(250);
  const week=rows.map(r=>r.week).sort().at(-1)??'';
  const latest=rows.filter(r=>r.week===week);
@@ -64,7 +64,7 @@ function RunTrack({today,rows,en}:{today:Today;rows:SignalRow[];en:boolean}) {
    <i className="ovRunner" aria-hidden="true"/>
    {nodes.map(([name,value,unit],i)=><li key={name} data-s={state(i)} aria-current={i===stop?'step':undefined}><small>{name}</small><b>{value}</b><span>{unit}</span></li>)}
   </ol>
-  <p className="ovStop">{why}</p>
+  {!intro&&<p className="ovStop">{why}</p>}
  </section>;
 }
 
@@ -92,7 +92,7 @@ function GateField({today,en}:{today:Today;en:boolean}) {
  return <section className="ovPanel ovGate" aria-label={en?'Market light':'市场灯'}>
   <header><small><Term k="light">{en?'Market light':'市场灯'}</Term></small><span data-tone={green?'go':'wait'}>{green?(en?'Green':'绿灯'):(en?'Amber':'黄灯')}</span></header>
   <div className="ovGateTop"><b>{m.breadth===null?'—':`${(m.breadth*100).toFixed(1)}%`}</b>
-   <p>{en?`${lit} of ${sample} 3W stocks are above their 200-day line. Over half are needed.`:`3W 股票池 ${sample} 只里，有 ${lit} 只站上 200 日线。要过半才放行。`}</p></div>
+   <p>{en?`${lit} of ${sample} 3W stocks above their 200-day line.`:`${sample} 只 3W 股票里 ${lit} 只站上 200 日线。`}</p></div>
   <div className="ovDots" aria-hidden="true">{order.map((_,i)=><i key={i} data-on={on.has(i)||undefined}/>)}</div>
   <p className="ovNote"><span data-tone={m.spy_over_200d?'go':'wait'}>{m.spy_over_200d?'✓':'✕'}</span> {en?`SPY ${m.distance_pct===null?'':`${m.distance_pct>0?'+':''}${m.distance_pct.toFixed(1)}%`} vs its 200-day line`:`SPY 距 200 日线 ${m.distance_pct===null?'—':`${m.distance_pct>0?'+':''}${m.distance_pct.toFixed(1)}%`}`}<span className="ovDate">{today.as_of}</span></p>
  </section>;
@@ -126,7 +126,7 @@ function Pipeline({today,rows,en}:{today:Today;rows:SignalRow[]|null;en:boolean}
   [en?'Market light':'市场灯', green?(en?'Green':'绿灯'):(en?'Amber':'黄灯'), green?'go':'wait', en?'Orders only when SPY is above its 200-day line and over half the pool is too, judged on the signal week.':'SPY 在 200 日线上方，且股票池过半站上 200 日线，才放行。看的是信号那一周。'],
   [en?'Order':'下单', en?'Waiting':'等信号', 'dim', en?'Limit order 2% under the signal close, valid 40 sessions; stop 1% under the last bottom; skip if reward/risk is under 1.5.':'在信号收盘价下方 2% 挂限价单，最多等 40 个交易日；止损在最后一个底下方 1%；盈亏比不到 1.5 不做。'],
   [en?'Exit':'平仓', open?(en?`${open} open`:`${open} 持仓`):(en?'None':'无持仓'), 'dim', en?'Exit at 3R or after 130 sessions; results in net R after 0.1% per side.':'到 3R 止盈或持有满 130 个交易日离场，按扣成本后的净 R 记。'],
-  [en?'Scoring':'判卷', `${closed} / 30`, 'dim', en?'Checked every 30 trades. Proven at 100 if the result is unlikely to be luck; alarm if clearly losing.':'每满 30 笔检查一次。满 100 笔且结果不像运气才算证明；明显亏损就报警。'],
+  [en?'Scoring':'判卷', `${closed} / 30`, 'dim', en?'Compared with random picks at 30, 60 and 100 closed trades.':'平仓 30、60、100 笔时和随机选股比。'],
   [en?'Paper account':'模拟账户', en?'Running':'运行中', 'go', en?'Core 50% follows the sector trend basket, rebalanced monthly; satellite 50% trades 3W signals.':'核心 50% 跟行业趋势篮子，每月底调仓；卫星 50% 按 3W 信号下单。'],
  ];
  return <section className="ovPanel ovPipe" aria-label={en?'Daily pipeline':'每日流程'}>
@@ -150,15 +150,15 @@ export default function Overview({today,rows,intro=false}:Props) {
  return <div className="ovRoot">
   <section className="ovHead">
    <div>
-    <small>{en?'3W · Today':'3W · 今日'}</small>
     <Heading><Term k="light">{en?'Market light':'市场灯'}</Term>{green?(en?' is green. Waiting for the next scan.':'是绿的，等下一次扫描。'):(en?' is amber: new signals won’t be ordered.':'是黄的：新信号不下单。')}</Heading>
     <p>{today.orders_to_place?(en?`${today.orders_to_place} orders to place.`:`待下单 ${today.orders_to_place} 个。`):(en?'Nothing to do today.':'今天不用动。')}</p>
    </div>
    <div className="ovNext"><small>{en?`Next scan · after the ${next.slice(5)} close`:`下一次扫描 · ${next.slice(5)} 收盘后`}</small><Countdown target={closeAt(next)} en={en}/></div>
   </section>
-  {rows&&<RunTrack today={today} rows={rows} en={en}/>}
-  <div className="ovGrid"><GateField today={today} en={en}/>{rows&&<ScanReplay rows={rows} en={en}/>}</div>
-  {rows&&<ProofRoad rows={rows} en={en}/>}
+  {rows&&<RunTrack today={today} rows={rows} en={en} intro={intro}/>}
+  {/* On a first visit the intro already shows the scan replay and 0 / 100, so they are not repeated. */}
+  {intro?<GateField today={today} en={en}/>:<div className="ovGrid"><GateField today={today} en={en}/>{rows&&<ScanReplay rows={rows} en={en}/>}</div>}
+  {rows&&!intro&&<ProofRoad rows={rows} en={en}/>}
   <Fold title={en?'How a day runs':'每天怎么跑'}><Pipeline today={today} rows={rows} en={en}/></Fold>
   <Fold title={en?'Multi-factor scan map':'多因子扫描图'}><CrawlWeb en={en}/></Fold>
  </div>;

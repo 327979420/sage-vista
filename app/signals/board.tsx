@@ -28,6 +28,38 @@ function chipOf(r:SignalRow, en:boolean):[string,string] {
  return r.ruleOk?[en?'Stopped by market':'大盘拦下','wait']:[en?'Failed the rule':'规则不过','dim'];
 }
 
+// Distance to pass for the two checks with a line (bullet-graph style, after Stephen Few: the value
+// as a dot, the pass mark as a thin line). Reward/risk is drawn on 0–3, breadth on 30–70%.
+const RR_LINE = 1.5, BREADTH_LINE = 0.5;
+type Gap = {label:string; value:string; ok:boolean|null; pos:number|null; note:string; miss:number|null};
+function gaps(r:SignalRow, en:boolean):Gap[] {
+ const rrShort=r.rr!==null&&r.rrOk===false?RR_LINE-r.rr:null;
+ const bShort=r.breadth!==null&&r.breadth<=BREADTH_LINE?(BREADTH_LINE-r.breadth)*100:null;
+ const spyFail=r.spyOk===false;
+ return [
+  {label:en?'Reward/risk':'盈亏比', value:r.rr===null?'—':r.rr.toFixed(2), ok:r.rrOk, pos:r.rr===null?null:Math.min(1,Math.max(0,r.rr/3)),
+   note:r.rrOk?(en?'passed':'通过'):rrShort===null?'—':(en?`short by ${rrShort.toFixed(2)}`:`差 ${rrShort.toFixed(2)}`), miss:rrShort===null?null:rrShort/RR_LINE},
+  {label:en?'Market':'大盘', value:r.breadth===null?'—':pctOf(r.breadth), ok:r.gateOk, pos:r.breadth===null?null:Math.min(1,Math.max(0,(r.breadth-.3)/.4)),
+   note:r.gateOk?(en?'passed':'通过'):spyFail?(en?'SPY under its 200-day':'SPY 在 200 日线下'):bShort===null?'—':(en?`short by ${bShort.toFixed(1)} pts`:`差 ${bShort.toFixed(1)} 个点`),
+   miss:spyFail?Infinity:bShort===null?null:bShort/(BREADTH_LINE*100)},
+ ];
+}
+// A closest call: skipped, with every failed check within 10% of its line (no veto, shape intact).
+// The score is the summed shortfall, so the smallest miss comes first.
+export function closeness(r:SignalRow):number|null {
+ if(r.status!=='skipped'||r.veto||r.shapePassed!==r.shapeTotal)return null;
+ const misses=gaps(r,true).filter(g=>g.ok===false).map(g=>g.miss);
+ if(!misses.length||misses.some(m=>m===null||m>=.1))return null;
+ return misses.reduce<number>((sum,m)=>sum+(m as number),0);
+}
+function Bullet({g}:{g:Gap}) {
+ return <span className="sbBullet" data-ok={g.ok===null?undefined:String(g.ok)}>
+  <span className="sbBulletName">{g.label}</span>
+  <span className="sbBulletBar" aria-hidden="true"><i className="sbBulletPass"/><i className="sbBulletLine"/>{g.pos!==null&&<i className="sbBulletDot" style={{left:`${g.pos*100}%`}}/>}</span>
+  <span className="sbBulletVal"><em>{g.value}</em> · {g.note}</span>
+ </span>;
+}
+
 function Ladder({r,ready,en}:{r:SignalRow;ready:boolean;en:boolean}) {
  const now=r.close??r.limit, lo=Math.min(r.stop,now)*0.96, hi=Math.max(r.target,now)*1.03, p=(v:number)=>(v-lo)/(hi-lo)*100;
  const at=ready?p(now):p(r.limit);
@@ -60,8 +92,11 @@ export default function SignalBoard({rows,selected,onSelect}:{rows:SignalRow[];s
  useEffect(()=>{const id=setTimeout(()=>setReady(true),150);return()=>clearTimeout(id)},[]);
  const weeks=[...new Set(rows.map(r=>r.week))].sort().reverse();
  const sorted=[...rows].sort((a,b)=>b.week.localeCompare(a.week)||a.symbol.localeCompare(b.symbol));
- const keep=(r:SignalRow)=>filter==='all'||(filter==='gate'&&r.status==='skipped'&&r.ruleOk)||(filter==='rule'&&!r.ruleOk)||r.week===filter;
+ const near=rows.map(r=>[r,closeness(r)] as const).filter((p):p is readonly [SignalRow,number]=>p[1]!==null).sort((a,b)=>a[1]-b[1]||a[0].symbol.localeCompare(b[0].symbol)).map(([r])=>r);
+ const nearIds=new Set(near.map(r=>r.id));
+ const keep=(r:SignalRow)=>filter==='all'||(filter==='near'&&nearIds.has(r.id))||(filter==='gate'&&r.status==='skipped'&&r.ruleOk)||(filter==='rule'&&!r.ruleOk)||r.week===filter;
  const chips:[Filter,string,number][]=[['all',en?'All':'全部',rows.length],...weeks.map(w=>[w,en?`Week of ${w.slice(5)}`:`${w.slice(5)} 周`,rows.filter(r=>r.week===w).length] as [Filter,string,number]),
+  ...(near.length?[['near',en?'Closest calls':'差一点',near.length] as [Filter,string,number]]:[]),
   ['gate',en?'Stopped by market':'大盘拦下',rows.filter(r=>r.status==='skipped'&&r.ruleOk).length],['rule',en?'Failed the rule':'规则不过',rows.filter(r=>!r.ruleOk).length]];
  const x=rows.find(r=>r.id===selected)??sorted[0];
  const pick=(id:string)=>{onSelect(id);setRun(v=>v+1)};
@@ -73,12 +108,20 @@ export default function SignalBoard({rows,selected,onSelect}:{rows:SignalRow[];s
   [en?'Breadth':'广度',x.breadth===null?'—':pctOf(x.breadth),en?'signal week, needs 50%':'信号那周，门槛 50%',x.gateOk?'go':'wait',en?'Share of the pool above its 200-day line. Over half means most stocks are in uptrends.':'股票池里站上 200 日线的股票占比，过半说明大多数股票在上涨趋势里。'],
  ];
  return <section className="sbBoard" aria-label={en?'Signal board':'信号看板'}>
+  {near.length>0&&<section className="sbNear" aria-label={en?'Closest calls':'差一点就过'}>
+   <header><small>{en?'Closest calls':'差一点就过'}</small><small>{en?`${near.length} missed by under 10%`:`${near.length} 个差不到 10%`}</small></header>
+   <div className="sbNearList">{near.slice(0,3).map(r=><button key={r.id} type="button" className="sbNearCard" aria-pressed={r.id===x.id} onClick={()=>pick(r.id)}>
+    <span className="sbNearTop"><b>{r.symbol}</b><small>{en?`week of ${r.week.slice(5)}`:`${r.week.slice(5)} 周`}</small></span>
+    {gaps(r,en).map(g=><Bullet key={g.label} g={g}/>)}
+   </button>)}</div>
+   <p className="sbLocked">{en?'Locked rule: near misses are not traded. ':'规则锁定，差一点也不做。'}<a href="/forward">{en?'What they did next →':'后来怎样 →'}</a></p>
+  </section>}
   <div className="sbChips" role="group" aria-label={en?'Filter':'筛选'}>{chips.map(([id,label,n])=><button key={id} type="button" aria-pressed={filter===id} onClick={()=>setFilter(id)}>{label} <i>{n}</i></button>)}</div>
   <div className="sbLayout">
    <div className="sbCards">{sorted.filter(keep).map(r=>{const [chip,tone]=chipOf(r,en);return <button key={r.id} type="button" className="sbCard" aria-pressed={r.id===x.id} onClick={()=>pick(r.id)}>
     <div className="sbCardTop"><div><b>{r.symbol}</b><small>{en?`week of ${r.week.slice(5)}`:`${r.week.slice(5)} 周`}</small></div><span data-tone={tone}>{chip}</span></div>
     <Ladder r={r} ready={ready} en={en}/>
-    <div className="sbCardFoot"><span>{en?'Reward/risk':'盈亏比'} <em data-tone={r.rrOk===false?'loss':undefined}>{r.rr===null?'—':r.rr.toFixed(2)}</em></span><span>{en?'Breadth':'广度'} <em data-tone={r.gateOk?'go':'wait'}>{r.breadth===null?'—':pctOf(r.breadth)}</em></span></div>
+    <span className="sbCardFoot">{gaps(r,en).map(g=><Bullet key={g.label} g={g}/>)}</span>
    </button>})}</div>
    <aside className="sbDetail" aria-label={en?'Signal detail':'信号详情'}>
     <small>{en?'Signal detail':'信号详情'}</small>
@@ -96,8 +139,7 @@ export function SignalsHead({rows}:{rows:SignalRow[]|null}) {
  const {locale}=useLocale(), en=locale==='en';
  const orders=rows?.filter(r=>r.status!=='skipped').length??0;
  return <section className="ovHead sbHead"><div>
-  <small>{en?'3W · Signals · rule v1.9':'3W · 信号 · 规则 v1.9'}</small>
   <h1>{rows?(en?`${rows.length} signals, ${orders} orders.`:`${rows.length} 个信号，${orders} 个下单。`):(en?'Signal evidence':'信号凭证')}</h1>
-  <p>{en?'Each card shows a signal’s buy, stop and target, and today’s price. Pick one to see its checks.':'每张卡是一个信号的挂单、止损、目标和现价。点一张看它过了哪些关。'}</p>
+  <p>{en?'Pick a card to see its checks.':'点一张卡看它的检查。'}</p>
  </div></section>;
 }

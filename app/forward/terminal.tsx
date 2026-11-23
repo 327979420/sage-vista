@@ -1,6 +1,5 @@
 'use client';
 import {useEffect,useState} from 'react';
-import Term from '../term';
 import {useLocale} from '../i18n/locale';
 import type {Forward} from '../evidence/data';
 import {sharedJson} from '../json-cache';
@@ -32,6 +31,8 @@ export default function ForwardTerminal({data}:{data:Forward}) {
  useEffect(()=>{let active=true;void sharedJson<unknown>('/app/record.json').then(d=>{if(active&&validRecord(d))setRecord(d)});const t=setTimeout(()=>setReady(true),150);return()=>{active=false;clearTimeout(t)}},[]);
  const j=data.judging, t=j.thresholds, closed=data.summary.closed, goal=t.proof_min_trades;
  const count=(st:string)=>data.signals.filter(s=>s.status===st).length;
+ const done=data.signals.filter(s=>s.status==='closed'&&s.R!==null).sort((a,b)=>(a.exit_date??'').localeCompare(b.exit_date??''));
+ const next=t.checkpoints.find(c=>c>closed)??goal;
  const flow:[string,number,string,string][]=[
   [en?'Signals':'信号',data.signals.length,en?`${new Set(data.signals.map(s=>s.signal_week)).size} weeks`:`${new Set(data.signals.map(s=>s.signal_week)).size} 周`,'ink'],
   [en?'Skipped':'跳过',count('skipped'),en?'rule or market said no':'规则或大盘没放行','wait'],
@@ -47,24 +48,26 @@ export default function ForwardTerminal({data}:{data:Forward}) {
  const x=moves.find(m=>m.id===sel)??moves[0];
  const verdict=j.verdict==='继续记录，未证明'?(en?'Still recording. Not proven.':'还在记录，没证明。'):j.verdict;
  return <div className="ovRoot">
-  <section className="ovHead"><div>
-   <small>{en?'3W · Forward record · since the rule was locked':'3W · 前向记录 · 规则锁定之后'}</small>
-   <h1>{verdict}</h1>
-   <p>{en?`Only signals after the rule was locked count. `:`只算规则锁定后的信号。`}<Term k="proof">{en?'Proof':'证明'}</Term>{en?`: ${goal} closed trades, with a result unlikely to be luck.`:`：平仓满 ${goal} 笔，且结果不像运气。`}</p>
-  </div></section>
-  <section className="ovPanel fwProof" aria-label={en?'Progress to proof':'证明进度'}>
-   <header><small>{en?'01 · Closed trades':'01 · 平仓笔数'}</small><span className="fwNext">{en?`Checked ${data.next_check}`:'每周五收盘后检查'}</span></header>
-   <b className="fwCount">{closed} <span>/ {goal}</span></b>
-   <div className="fwTrack"><div className="fwFill" style={{width:`${ready?Math.min(100,closed/goal*100):0}%`}}/><i className="fwScan" aria-hidden="true"/>
-    {t.checkpoints.map(c=><span key={c} className="fwCheck" style={{left:`${c/goal*100}%`}} data-final={c===goal||undefined}><em>{c} · {c===goal?(en?'proof':'证明门槛'):(en?'check':'检查')}</em></span>)}
-    <span className="fwNow" style={{left:`${ready?Math.min(100,closed/goal*100):0}%`}}><em>{en?'now':'现在'}</em></span></div>
-   <div className="ovFunnel fwFlow">{flow.map(([label,value,sub,tone],i)=><div key={label} data-tone={tone} data-ready={ready||undefined} style={{transitionDelay:`${i*90}ms`}}><small>{label}</small><b>{value}</b><span>{sub}</span></div>)}</div>
+  <section className="ovHead"><div><h1>{verdict}</h1></div></section>
+  <section className="ovPanel fwQuest" aria-label={en?'Proof quest':'证明进度'}>
+   <header><small>{en?`Proof quest · ${closed} of ${goal} closed`:`证明进度 · 已平仓 ${closed} / ${goal}`}</small><span className="fwNext">{en?`Checked ${data.next_check}`:'每周五收盘后检查'}</span></header>
+   <div className="fwQuestBody">
+    {/* One cell per closed trade, in exit order: green if it made money, red if not. */}
+    <ol className="fwCells" aria-label={en?`${closed} of ${goal} trades closed`:`已平仓 ${closed} / ${goal}`}>{Array.from({length:goal},(_,i)=>{const trade=done[i];const gate=t.checkpoints.includes(i+1);
+     return <li key={i} data-r={trade?(trade.R!>0?'win':'loss'):undefined} data-gate={gate||undefined} data-next={i+1===next||undefined} style={{animationDelay:`${ready?i*8:0}ms`}} title={trade?`${trade.symbol} ${trade.R!>0?'+':''}${trade.R!.toFixed(2)}R`:undefined}>{gate&&!trade?i+1:''}</li>})}</ol>
+    <ol className="fwGates">{t.checkpoints.map(c=><li key={c} data-next={c===next||undefined} data-done={closed>=c||undefined}>
+     <b>{c}</b><div><strong>{c===goal?(en?'Proof':'证明'):c===t.checkpoints[0]?(en?'First check':'第一次检查'):(en?'Second check':'第二次检查')}</strong>
+     <span>{c===goal?(en?'Proven only if clearly better than random picks, and the account beats SPY.':'明显好于随机选股、且账户跑赢 SPY，才算证明。')
+      :c===t.checkpoints[0]?(en?'Alarm if clearly worse than random picks.':'明显不如随机选股就报警。')
+      :(en?'Same check, twice the trades.':'同样检查，样本翻倍。')}</span></div></li>)}</ol>
+   </div>
+   <p className="fwPipe">{flow.map(([label,value],i)=><span key={label}>{i>0&&<em aria-hidden="true">→</em>}{value} {label.toLowerCase()}</span>)}</p>
   </section>
   <div className="ovGrid fwGrid">
    <section className="ovPanel" aria-label={en?'Skipped signals afterwards':'没下单的信号后来怎样'}>
-    <header><small>{en?'02 · What the signals did afterwards':'02 · 信号后来怎样'}</small>
+    <header><small>{en?'What the signals did afterwards':'信号后来怎样'}</small>
      <span className="fwSpans" role="group" aria-label={en?'Period':'区间'}>{spans.map(s=><button key={s} type="button" aria-pressed={s===span} onClick={()=>setSpan(s)} disabled={!data.signals.some(r=>r.moves[s])}>{s==='1w'?(en?'1 week':'1 周'):s==='4w'?(en?'4 weeks':'4 周'):(en?'13 weeks':'13 周')}</button>)}</span></header>
-    <p className="fwLead">{en?'Not traded, so not scored. They are still tracked, to check later whether the rule and market light stopped good or bad trades.':'没下单，不计成绩。照样跟踪，是为了以后检查规则和市场灯挡掉的是好是坏。'}</p>
+    <p className="fwLead">{en?'Not traded, still tracked: did the rule skip good or bad trades?':'没下单，照样跟踪：规则挡掉的是好是坏？'}</p>
     {moves.length?<><div className="fwPlot">
      <span className="fwZero"/>{[-range,-range/2,0,range/2,range].map(v=><em key={v} className="fwAxis" style={{left:`${P(v)}%`}}>{v>0?'+':''}{v}%</em>)}
      {order.map((d,i)=><button key={d.id} type="button" className="fwDot" data-on={d.id===x?.id||undefined} data-up={d.m>=0||undefined} aria-label={`${d.sym} ${d.m.toFixed(1)}%`} onMouseEnter={()=>setSel(d.id)} onFocus={()=>setSel(d.id)} onClick={()=>setSel(d.id)}
@@ -75,7 +78,7 @@ export default function ForwardTerminal({data}:{data:Forward}) {
     :<p className="fwLead">{en?'No moves recorded for this period yet.':'这个区间还没有记录。'}</p>}
    </section>
    <section className="ovPanel" aria-label={en?'Evidence so far':'到目前为止的证据'}>
-    <header><small>{en?'03 · Evidence so far':'03 · 到目前为止的证据'}</small></header>
+    <header><small>{en?'Evidence so far':'到目前为止的证据'}</small></header>
     <div className="fwFacts">{(record?.facts??[]).filter(f=>f.id!=='locked-exam-limits').map(f=>{
      const tone=f.verdict==='FAIL'?'loss':f.verdict==='useful'?'go':'dim', chip=f.verdict==='FAIL'?(en?'Not passed':'没通过'):f.verdict==='useful'?(en?'Useful':'有用'):(en?'Reference':'仅参考');
      const meta=[en&&f.period?f.period.replace(' 至 ','–'):f.period,f.trades!=null?(en?`${f.trades} trades`:`${f.trades} 笔`):null,f.p!=null?`p ${f.p}`:null,f.average_R!=null?(en?`avg ${f.average_R}R`:`平均 ${f.average_R}R`):null,f.win_rate!=null?(en?`win ${Math.round(f.win_rate*100)}%`:`胜率 ${Math.round(f.win_rate*100)}%`):null].filter(Boolean).join(' · ');
