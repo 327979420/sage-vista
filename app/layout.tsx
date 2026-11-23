@@ -5,6 +5,7 @@ import {NavigationCountProvider} from './navigation-count';
 import SiteNavigation from './site-navigation';
 import SiteFooter from "./site-footer";
 import Analytics from "./analytics";
+import Motion from "./motion";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "./product-v2.css";
@@ -83,6 +84,7 @@ export default async function RootLayout({
         <div className="svMain">{children}<SiteFooter/></div>
         </div></NavigationCountProvider>
         <Analytics/>
+        <Motion/>
         </LocaleProvider>
       </body>
     </html>

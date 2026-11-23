@@ -2,6 +2,7 @@
 import {useEffect,useState} from 'react';
 import {useLocale} from '../i18n/locale';
 import type {SignalRow} from '../app/signal-rows';
+import SignalChart from '../app/signal-chart';
 
 // Signal board: one card per signal with its price ladder (stop, limit, 3R target, latest price),
 // and a check trace that lights each gate in order with its real value.
@@ -119,13 +120,14 @@ export default function SignalBoard({rows,selected,onSelect}:{rows:SignalRow[];s
   <div className="sbChips" role="group" aria-label={en?'Filter':'筛选'}>{chips.map(([id,label,n])=><button key={id} type="button" aria-pressed={filter===id} onClick={()=>setFilter(id)}>{label} <i>{n}</i></button>)}</div>
   <div className="sbLayout">
    <div className="sbCards">{sorted.filter(keep).map(r=>{const [chip,tone]=chipOf(r,en);return <button key={r.id} type="button" className="sbCard" aria-pressed={r.id===x.id} onClick={()=>pick(r.id)}>
-    <div className="sbCardTop"><div><b>{r.symbol}</b><small>{en?`week of ${r.week.slice(5)}`:`${r.week.slice(5)} 周`}</small></div><span data-tone={tone}>{chip}</span></div>
-    <Ladder r={r} ready={ready} en={en}/>
+    <div className="sbCardTop"><div><b>{r.symbol}</b><small>{en?`week of ${r.week.slice(5)}`:`${r.week.slice(5)} 周`}{r.chart&&r.close!==null&&<> · <em className="sbNowTag">{en?'now':'现价'} {r.close.toFixed(2)}</em></>}</small></div><span data-tone={tone}>{chip}</span></div>
+    {r.chart?<SignalChart r={r} en={en} compact/>:<Ladder r={r} ready={ready} en={en}/>}
     <span className="sbCardFoot">{gaps(r,en).map(g=><Bullet key={g.label} g={g}/>)}</span>
    </button>})}</div>
    <aside className="sbDetail" aria-label={en?'Signal detail':'信号详情'}>
     <small>{en?'Signal detail':'信号详情'}</small>
     <div className="sbDetailHead"><b>{x.symbol}</b><span>{en?`week of ${x.week.slice(5)}`:`${x.week.slice(5)} 周`}</span></div>
+    {x.chart&&<div className="sbDetailChart" key={`${x.id}-${run}`}><SignalChart r={x} en={en}/></div>}
     <p className="sbVerdict">{verdictOf(x,en)}</p>
     <Trace r={x} en={en} run={run}/>
     <dl className="sbFacts">{facts.map(([k,v,sub,tone,tip])=><div key={k}><dt><button type="button" className="sbHint" aria-label={`${k}: ${tip}`} data-tip={tip}>{k}</button></dt><dd data-tone={tone}>{v}</dd><small>{sub}</small></div>)}</dl>

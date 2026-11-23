@@ -4,6 +4,7 @@ import {useLocale} from '../i18n/locale';
 import {trackEvent} from '../analytics';
 import {markSeen,RULE_LOCKED} from '../first-visit';
 import type {SignalRow} from './signal-rows';
+import SignalChart from './signal-chart';
 
 // First-visit hero on Today. A first-timer gets, on one screen: a concrete question, what SV is in
 // one sentence, three live numbers and one next step (NN/g homepage principles), plus a replay of
@@ -48,33 +49,6 @@ function verdictLine(r:SignalRow,en:boolean) {
 }
 const SLIDE_MS=7500;
 
-// One real signal, drawn from its ticket: candles, falling highs, flat bottoms, the signal week,
-// then the limit, stop and 3R target. Pure CSS timing, so it replays whenever the key changes.
-function Chart({r,en}:{r:SignalRow;en:boolean}) {
- const c=r.chart!, bars=c.bars, n=bars.length, W=600, H=320, P=10, RIGHT=118;
- const highs=bars.map(b=>b[2]), lows=bars.map(b=>b[3]), top=Math.max(...highs);
- // Price fills the frame; a target far above is pinned to the top edge with an arrow.
- const lo=Math.min(...lows,r.stop), hi=Math.max(top,Math.min(r.target,top*1.12));
- const y=(v:number)=>P+(hi-v)/(hi-lo)*(H-2*P-16), bw=(W-RIGHT)/n, x=(i:number)=>i*bw+bw/2;
- const at=(d:string)=>{const k=bars.findIndex(b=>b[0]>=d);return k<0?n-1:k};
- const last=n-1, t0=c.trend[0], t1=c.trend.at(-1);
- const level=(v:number)=>Math.max(P,Math.min(H-P-16,y(v)));
- const flat=c.bottoms.length?Math.min(...c.bottoms.map(b=>b[1])):null;
- return <svg className="fvChart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={en?`${r.symbol} weekly chart: the triangle, limit, stop and target`:`${r.symbol} 周线：三角形、挂单、止损和目标`}>
-  {bars.map((b,i)=>{const up=b[4]>=b[1];return <g key={b[0]} className="fvCandle" data-up={up||undefined} style={{animationDelay:`${i*16}ms`}}>
-   <line x1={x(i)} x2={x(i)} y1={y(b[2])} y2={y(b[3])}/><rect x={x(i)-bw*.32} width={bw*.64} y={y(Math.max(b[1],b[4]))} height={Math.max(1,Math.abs(y(b[1])-y(b[4])))}/></g>})}
-  {t0&&t1&&(()=>{const i0=at(t0[0]),i1=at(t1[0]),slope=(t1[1]-t0[1])/Math.max(1,i1-i0);return <line className="fvTrend" x1={x(i0)} y1={y(t0[1])} x2={x(last)} y2={y(t0[1]+slope*(last-i0))}/>})()}
-  {flat!==null&&<line className="fvFlat" x1={x(at(c.bottoms[0][0]))} x2={x(last)} y1={y(flat)} y2={y(flat)}/>}
-  {c.pushes.map((p,k)=><circle key={p[0]} className="fvDot" data-kind="push" cx={x(at(p[0]))} cy={y(p[1])} r="4.5" style={{animationDelay:`${1.05+k*.12}s`}}/>)}
-  {c.bottoms.map((p,k)=><circle key={p[0]} className="fvDot" data-kind="bottom" cx={x(at(p[0]))} cy={y(p[1])} r="4.5" style={{animationDelay:`${1.35+k*.12}s`}}/>)}
-  <circle className="fvRing" cx={x(last)} cy={y(bars[last][4])} r="9"/>
-  {([['target',r.target,en?'target 3R':'目标 3R',2.1],['limit',r.limit,en?'limit':'挂单',2.25],['stop',r.stop,en?'stop':'止损',2.4]] as const).map(([kind,v,label,delay])=>
-   <g key={kind} className="fvLevel" data-kind={kind} style={{animationDelay:`${delay}s`}}><line x1={x(last)} x2={W-4} y1={level(v)} y2={level(v)}/><text x={W-4} y={level(v)-5} textAnchor="end">{label} {v.toFixed(2)}{y(v)<P?' ↑':''}</text></g>)}
-  <text className="fvAxis" x="2" y={H-2}>{bars[0][0].slice(0,7)}</text>
-  <text className="fvAxis" x={x(last)} y={H-2} textAnchor="middle">{r.week.slice(5)}</text>
- </svg>;
-}
-
 // A self-playing reel of real signals (story-style progress bars): nothing to click, but it pauses on
 // hover or focus and has a pause button (WCAG 2.2.2); with reduced motion it stays on one chart.
 function Film({rows,en}:{rows:SignalRow[]|null;en:boolean}) {
@@ -93,7 +67,7 @@ function Film({rows,en}:{rows:SignalRow[]|null;en:boolean}) {
   {r?<div className="fvSlide" key={r.id}>
    <header><span className="fvSym">{r.symbol}<small>{en?`week of ${r.week.slice(5)}`:`${r.week.slice(5)} 周`}</small></span>
     <button type="button" onClick={()=>setPaused(v=>!v)} aria-label={paused?(en?'Play':'播放'):(en?'Pause':'暂停')}>{paused?'▶':'❚❚'}</button></header>
-   <Chart r={r} en={en}/>
+   <SignalChart r={r} en={en}/>
    <div className="fvChecks">{checks(r,en).map(([label,ok,value],j)=><span key={label} data-ok={ok===null?undefined:String(ok)} style={{animationDelay:`${2.7+j*.22}s`}}><i>{ok===null?'·':ok?'✓':'✕'}</i>{label} <em>{value}</em></span>)}</div>
    <p className="fvVerdictLine">{verdictLine(r,en)}</p>
   </div>:<p className="fvFound">{en?'Loading the latest signals…':'正在读取最新信号…'}</p>}

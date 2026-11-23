@@ -793,3 +793,30 @@ html.svDark .roChips > a[data-hit], .roChips > a[data-hit] { border-color: var(-
 @media (max-width: 600px) { .abSteps { grid-template-columns: repeat(2, minmax(0, 1fr)); } .btBar { font-size: 11px; } }
 @media (prefers-reduced-motion: reduce) { .btBar { animation: none; } }
 
+/* Site-wide motion (motion.tsx). Panels rise in the first time they scroll into view; until then the
+   CSS animations inside them (chart draws, bar growth) are held, so they play where they can be seen. */
+html[data-motion] :is(.ovPanel, .ovFold, .fvBanner, .sbNear, .sbCard, .mfCard, .fwFact, .siteFooter):not([data-in]) { opacity: 0; transform: translateY(16px); }
+html[data-motion] :is(.ovPanel, .ovFold, .fvBanner, .sbNear, .sbCard, .mfCard, .fwFact, .siteFooter)[data-in] { transition: opacity .55s cubic-bezier(.2, .8, .2, 1) var(--svIn, 0ms), transform .55s cubic-bezier(.2, .8, .2, 1) var(--svIn, 0ms); }
+html[data-motion] :is(.ovPanel, .ovFold, .fvBanner, .sbNear, .sbCard, .mfCard, .fwFact):not([data-in]) * { animation-play-state: paused !important; }
+html[data-motion] :is(.mfFrames em, .mfReasons em) { transform-origin: left; animation: svGrow .9s cubic-bezier(.2, .8, .2, 1) .2s both; }
+html[data-motion] .mkLines { animation: svWipe 1.5s cubic-bezier(.3, .1, .2, 1) .2s both; }
+html[data-motion] .mkHeat > div { animation: svRise .5s cubic-bezier(.2, .8, .2, 1) both; }
+html[data-motion] .mkHeat > div:nth-child(2) { animation-delay: .1s; } html[data-motion] .mkHeat > div:nth-child(3) { animation-delay: .2s; }
+html[data-motion] .mkHeat > div:nth-child(4) { animation-delay: .3s; } html[data-motion] .mkHeat > div:nth-child(5) { animation-delay: .4s; }
+html[data-motion] .mkHeat > div:nth-child(n+6) { animation-delay: .5s; }
+html[data-motion] .mfDot { animation: svFadeIn .6s .3s both; }
+html[data-motion] .sbBulletDot { animation: svSlide .7s cubic-bezier(.2, .8, .2, 1) .4s both; }
+@keyframes svGrow { from { transform: scaleX(0); } }
+@keyframes svWipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes svRise { from { opacity: 0; transform: translateY(8px); } }
+@keyframes svFadeIn { from { opacity: 0; } }
+@keyframes svSlide { from { left: 50%; opacity: 0; } }
+/* Signal charts on cards and in the detail panel (same drawing as the intro). */
+.sbCard .fvChart { margin: 12px 0 8px; }
+.fvChart[data-compact] .fvLevel text { font-size: 11px; }
+.fvNow { opacity: 0; animation: fvFade .4s forwards; }
+.fvNow circle { fill: #fff; }
+.sbNowTag { color: var(--t-ink); font-style: normal; }
+.fvNow text { fill: var(--t-ink); font-family: var(--t-mono); font-size: 11px; }
+.sbDetailChart { padding: 8px 0 2px; border-top: 1px solid var(--t-line); }
+@media (prefers-reduced-motion: reduce) { .fvNow { animation: none; opacity: 1; } }
