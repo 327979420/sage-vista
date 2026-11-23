@@ -168,15 +168,23 @@ test("industry owns its title and excludes the market hero", async()=>{
 
 test("language cookie controls first render and never leaks between requests", async()=>{
  const pages=[['/','Today'],['/portfolio','My Portfolio'],['/opportunities','Signal evidence'],['/scorecard','Forward record'],['/patterns','Daily setups'],['/learn','Learn'],['/archive','Research Archive'],['/zh/watch/market','Market'],['/zh/watch/industry-radar','Sectors'],['/zh/watch/resonance/rare-opportunities','Multi-Factor Opportunities'],['/zh/watch/resonance/favorite-pattern','Daily setups'],['/zh/backtest','Backtests'],['/zh/watch/resonance/about','About SV']];
+ const english=html=>{assert.match(html,/<html lang="en"[ >]/);assert.match(html,/lang="en" aria-pressed="true"/);assert.doesNotMatch(html.split('</head>')[1].split('<script')[0].replace(/>中文</g,'>Chinese<'),/[\u3400-\u9fff]/);};
  for(const[path,title]of pages){
-  // A year-long cookie from before English became the per-visit default must not force Chinese.
-  for(const cookie of ['', 'sv-language-session=en', 'sv-language-session=invalid', 'sv-language=zh']){
-   const response=await render(path,cookie,{'Accept-Language':'zh-CN,zh;q=0.9','Referer':'https://www.linkedin.com/'});assert.equal(response.status,200);
-   const html=await response.text();assert.match(html,/<html lang="en"[ >]/);assert.ok(html.includes(title));assert.match(html,/lang="en" aria-pressed="true"/);
-   assert.doesNotMatch(html.split('</head>')[1].split('<script')[0].replace(/>中文</g,'>Chinese<'),/[\u3400-\u9fff]/);
+  // English when the visitor chose it (even in a Chinese browser), when the browser prefers English,
+  // and when there is no language header at all (crawlers). An invalid or year-old cookie is no choice.
+  for(const [cookie,accept] of [['sv-language-session=en','zh-CN,zh;q=0.9'],['','en-AU,en;q=0.9,zh;q=0.8'],['',''],['sv-language-session=invalid','en-US'],['sv-language=zh','en-GB']]){
+   const response=await render(path,cookie,{...(accept?{'Accept-Language':accept}:{}),'Referer':'https://www.linkedin.com/'});assert.equal(response.status,200);
+   const html=await response.text();english(html);assert.ok(html.includes(title),`${path} ${cookie} ${accept}`);
+  }
+  // With no saved choice, a Chinese browser gets Chinese.
+  for(const cookie of ['', 'sv-language-session=invalid', 'sv-language=zh']){
+   const html=await (await render(path,cookie,{'Accept-Language':'zh-CN,zh;q=0.9,en;q=0.8'})).text();
+   assert.match(html,/<html lang="zh-CN"[ >]/,`${path} ${cookie}`);assert.match(html,/lang="zh-CN" aria-pressed="true"/);
   }
  }
  const zh=await (await render('/','sv-language-session=zh')).text();assert.match(zh,/<html lang="zh-CN"[ >]/);assert.match(zh,/正在读取数据/);assert.match(zh,/<footer class="siteFooter">/);assert.match(zh,/如何使用 SV/);
+ // A saved Chinese choice beats an English browser.
+ const chosen=await (await render('/','sv-language-session=zh',{'Accept-Language':'en-AU'})).text();assert.match(chosen,/<html lang="zh-CN"[ >]/);
  const fresh=await (await render('/?utm_source=linkedin&lang=zh','')).text();assert.match(fresh,/<html lang="en"[ >]/);assert.match(fresh,/<title>Sage Vista — Today<\/title>/);assert.match(fresh,/href="\/zh\/watch\/resonance\/about#how-to-use">How to use SV</);assert.doesNotMatch(fresh,/siteAboutButton/);
 });
 

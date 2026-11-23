@@ -4,9 +4,9 @@ import {translate, type Locale} from './messages';
 import {trackEvent} from '../analytics';
 
 import {DEFAULT_LOCALE, LEGACY_LOCALE_COOKIE, LOCALE_COOKIE} from './settings';
-export {LOCALE_COOKIE, normalizeLocale} from './settings';
+export {LOCALE_COOKIE, normalizeLocale, browserLocale} from './settings';
 export function saveLocalePreference(locale: Locale) {
- // No Max-Age: a session cookie, so the next visit starts in English again.
+ // No Max-Age: a session cookie, so the next visit follows the browser's language again.
  try {document.cookie = `${LOCALE_COOKIE}=${locale}; Path=/; SameSite=Lax${window.location.protocol === 'https:' ? '; Secure' : ''}`;} catch { /* Storage may be disabled; the current page still switches. */ }
 }
 export function clearLegacyLocalePreference() {

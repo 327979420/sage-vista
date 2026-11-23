@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {loadTs} from './helpers/load-ts.mjs';
-const {LocaleProvider,Localized,LanguageSwitch,localizeNodes,saveLocalePreference,normalizeLocale}=loadTs('app/i18n/locale.tsx');
+const {LocaleProvider,Localized,LanguageSwitch,localizeNodes,saveLocalePreference,normalizeLocale,browserLocale}=loadTs('app/i18n/locale.tsx');
 const {translate}=loadTs('app/i18n/messages.ts');
 import {fixture} from './helpers/public-fixture.mjs';
 // Daily assets come from the frozen fixture; vectorbt-comparison is static research output.
@@ -128,4 +128,12 @@ test('a falling market with lagging equal weight and small caps renders an Engli
  assertEnglish(html);
  const read=html.split('aria-label="Market Read"')[1].split('</section>')[0];
  assert.match(read,/Market Leadership: Equal weight and small caps lag/);
+});
+
+test('with no saved choice the browser language order decides, defaulting to English',()=>{
+ for(const [header,expected] of [
+  ['zh-CN,zh;q=0.9,en;q=0.8','zh'],['zh-TW','zh'],['zh','zh'],['en-AU,en;q=0.9,zh;q=0.8','en'],['en-US','en'],
+  ['fr-FR,zh;q=0.7,en;q=0.5','zh'],['fr-FR,en;q=0.7,zh;q=0.5','en'],['de-DE','en'],['',"en"],[null,'en'],[undefined,'en'],
+  ['en;q=0.8, zh;q=0.8','en'],['zh;q=0,en;q=0.1','en'],['ZH-cn','zh'],['zh;q=abc,en;q=0.2','en'],
+ ])assert.equal(browserLocale(header),expected,String(header));
 });
