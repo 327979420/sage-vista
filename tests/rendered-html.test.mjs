@@ -200,14 +200,14 @@ test("About SV explains the system in each language and cites Triple Screen", as
 test("a first visit opens with the intro; a returning visitor gets the normal page", async()=>{
  const first=await (await render('/','')).text();
  assert.doesNotMatch(first,/svTourBackdrop|crowGuide|role="dialog"/);
- assert.match(first,/<h1 id="fvTitle">We don’t predict. We execute.<\/h1>/);
+ assert.match(first,/<h1 id="fvTitle">Buy the bottoms that hold. Risk 1 to aim for 3.<\/h1>/);
  assert.match(first,/class="svStartButton" href="\/\?intro=1">What is SV\?</);
  assert.match(first,/href="\/\?intro=1">SV in a minute</);
  assert.match(first,/Freddy Liang’s US stock research/);
  const back=await (await render('/','sv-seen=1')).text();
  assert.doesNotMatch(back,/fvHero/);
  const zh=await (await render('/','sv-language-session=zh')).text();
- assert.match(zh,/不预测，只执行。/);
+ assert.match(zh,/抄守住的底，亏 1 博 3。/);
  const list=await (await render('/zh/watch/resonance/rare-opportunities','')).text();
  assert.match(list,/class="fvBanner"/);
  assert.doesNotMatch(await (await render('/zh/watch/resonance/rare-opportunities','sv-seen=1')).text(),/fvBanner/);

@@ -4,7 +4,6 @@ import {useLocale} from '../i18n/locale';
 import {trackEvent} from '../analytics';
 import {markSeen,RULE_LOCKED} from '../first-visit';
 import type {SignalRow} from './signal-rows';
-import Term from '../term';
 
 // First-visit hero on Today. A first-timer gets, on one screen: a concrete question, what SV is in
 // one sentence, three live numbers and one next step (NN/g homepage principles), plus a replay of
@@ -76,9 +75,9 @@ export default function FirstVisit({rows,onClose}:{rows:SignalRow[]|null;onClose
   <button type="button" className="fvClose" aria-label={en?'Hide the intro':'收起介绍'} onClick={()=>{trackEvent('intro_closed');onClose()}}>×</button>
   <div className="fvCopy">
    <span className="fvEyebrow">{en?'Rules, not predictions · tested in public':'不靠预测，靠规则 · 公开检验'}</span>
-   <h1 id="fvTitle">{en?'We don’t predict. We execute.':'不预测，只执行。'}</h1>
-   <p>{en?<>Like the <Term k="turtle">Turtle traders</Term>: public rules, followed every time, and every trade scored against random picks.</>
-    :<>像<Term k="turtle">海龟交易</Term>：规则公开，每次照做，每笔都和随机选股比。</>}</p>
+   <h1 id="fvTitle">{en?'Buy the bottoms that hold. Risk 1 to aim for 3.':'抄守住的底，亏 1 博 3。'}</h1>
+   {/* The 3R exit means about one win in four breaks even (before costs and time exits). */}
+   <p>{en?'Stop just below, target 3× the risk: right about 1 time in 4 breaks even.':'止损就在底下，目标 3 倍风险：大约 4 次对 1 次就打平。'}</p>
    <div className="fvProof">
     <div><b>{since??'—'}</b><span>{en?'signals since the lock':'锁定后的信号'}</span></div>
     <div><b>{closed??'—'}<small> / 100</small></b><span>{en?'closed trades needed for a verdict':'下结论要平仓 100 笔'}</span></div>
