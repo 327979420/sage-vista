@@ -275,7 +275,7 @@ class UniverseSnapshotTests(unittest.TestCase):
     def test_shadow_operations_leave_legacy_and_production_files_unchanged(self):
         protected = (
             ROOT / "public" / "daily-factor-snapshot.json",
-            ROOT / "public" / "unified-v2-rankings.json",
+            ROOT / "public" / "unified-v2-rankings.json.gz",
             ROOT / "automation" / "production-state.json",
         )
         before = {path: path.read_bytes() for path in protected}
