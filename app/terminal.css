@@ -2,7 +2,7 @@
    Loaded after dark-theme.css, so these hand-tuned rules win over the generated ones. */
 html.svDark {
   --t-bg: #07090b; --t-panel: #0c0f13; --t-raise: #10151a; --t-line: #1d242b; --t-line-2: #2a333c;
-  --t-ink: #e6e9ec; --t-ink-2: #aab3bc; --t-ink-3: #8b95a0; --t-ink-4: #5c6670;
+  --t-ink: #e6e9ec; --t-ink-2: #aab3bc; --t-ink-3: #8b95a0; --t-ink-4: #7d8892;
   --t-go: #5fd38a; --t-wait: #f0b23a; --t-loss: #ff8a5c;
   --t-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
   color-scheme: dark;
@@ -31,6 +31,10 @@ html.svDark body { background: var(--t-bg); color: var(--t-ink); }
 html.svDark .svTopBar .languageSwitch { display: flex; border: 1px solid var(--t-line); }
 html.svDark .svTopBar .languageSwitch button { padding: 4px 10px; background: transparent; color: var(--t-ink-3); font-size: 12px; border: 0; border-radius: 0; }
 html.svDark .svTopBar .languageSwitch button[aria-pressed="true"] { background: var(--t-raise); color: var(--t-ink); }
+/* Tap-to-explain term: dotted underline, one-sentence definition. */
+.svTerm { position: relative; display: inline; }
+html.svDark .svTerm > button { display: inline; padding: 0; border: 0; border-radius: 0; background: none; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit; cursor: help; text-decoration: underline dotted; text-decoration-color: var(--t-ink-3); text-underline-offset: 3px; }
+.svTermTip { position: absolute; left: 0; top: calc(100% + 6px); z-index: 45; width: max-content; max-width: min(300px, 80vw); padding: 8px 10px; border: 1px solid var(--t-line-2); background: var(--t-raise); color: var(--t-ink); font-family: var(--font-geist-sans), system-ui, sans-serif; font-size: 13px; font-weight: 400; letter-spacing: 0; line-height: 1.45; text-transform: none; white-space: normal; box-shadow: 0 12px 30px rgba(0,0,0,.5); }
 /* "New here?" button and its four-page panel; never covers the page. */
 .svStart { position: relative; }
 html.svDark .svStartButton { position: relative; padding: 4px 10px; border: 1px solid var(--t-line); border-radius: 0; background: transparent; color: var(--t-ink-2); font-size: 12px; cursor: pointer; }

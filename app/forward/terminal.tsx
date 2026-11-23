@@ -1,5 +1,6 @@
 'use client';
 import {useEffect,useState} from 'react';
+import Term from '../term';
 import {useLocale} from '../i18n/locale';
 import type {Forward} from '../evidence/data';
 import {sharedJson} from '../json-cache';
@@ -33,7 +34,7 @@ export default function ForwardTerminal({data}:{data:Forward}) {
  const count=(st:string)=>data.signals.filter(s=>s.status===st).length;
  const flow:[string,number,string,string][]=[
   [en?'Signals':'信号',data.signals.length,en?`${new Set(data.signals.map(s=>s.signal_week)).size} weeks`:`${new Set(data.signals.map(s=>s.signal_week)).size} 周`,'ink'],
-  [en?'Skipped':'跳过',count('skipped'),en?'rules or gate said no':'规则或闸门没放行','wait'],
+  [en?'Skipped':'跳过',count('skipped'),en?'rule or market said no':'规则或大盘没放行','wait'],
   [en?'Waiting to fill':'等成交',count('waiting'),en?'limit valid 40 sessions':'挂单 40 个交易日有效','dim'],
   [en?'Open':'持仓',count('open'),en?'3R target or 130 sessions':'目标 3R 或 130 天','dim'],
   [en?'Closed':'已平仓',closed,en?'counts toward proof':'计入成绩','dim'],
@@ -47,9 +48,9 @@ export default function ForwardTerminal({data}:{data:Forward}) {
  const verdict=j.verdict==='继续记录，未证明'?(en?'Still recording. Not proven.':'还在记录，没证明。'):j.verdict;
  return <div className="ovRoot">
   <section className="ovHead"><div>
-   <small>{en?'3W · Forward record · after the rule froze':'3W · 前向记录 · 规则冻结之后'}</small>
+   <small>{en?'3W · Forward record · since the rule was locked':'3W · 前向记录 · 规则锁定之后'}</small>
    <h1>{verdict}</h1>
-   <p>{en?`Only new signals after the freeze count. ${goal} closed trades with t ≥ ${t.proof_t_gte} prove it; a negative average with t ≤ ${t.alarm1_t_lte} raises an alarm.`:`只算规则冻结之后的新信号。平仓满 ${goal} 笔、t 值到 ${t.proof_t_gte} 才算证明有效；平均为负且 t 到 ${t.alarm1_t_lte} 就拉警报。`}</p>
+   <p>{en?`Only signals after the rule was locked count. `:`只算规则锁定后的信号。`}<Term k="proof">{en?'Proof':'证明'}</Term>{en?`: ${goal} closed trades, with a result unlikely to be luck.`:`：平仓满 ${goal} 笔，且结果不像运气。`}</p>
   </div></section>
   <section className="ovPanel fwProof" aria-label={en?'Progress to proof':'证明进度'}>
    <header><small>{en?'01 · Closed trades':'01 · 平仓笔数'}</small><span className="fwNext">{en?`Checked ${data.next_check}`:'每周五收盘后检查'}</span></header>
@@ -63,7 +64,7 @@ export default function ForwardTerminal({data}:{data:Forward}) {
    <section className="ovPanel" aria-label={en?'Skipped signals afterwards':'没下单的信号后来怎样'}>
     <header><small>{en?'02 · What the signals did afterwards':'02 · 信号后来怎样'}</small>
      <span className="fwSpans" role="group" aria-label={en?'Period':'区间'}>{spans.map(s=><button key={s} type="button" aria-pressed={s===span} onClick={()=>setSpan(s)} disabled={!data.signals.some(r=>r.moves[s])}>{s==='1w'?(en?'1 week':'1 周'):s==='4w'?(en?'4 weeks':'4 周'):(en?'13 weeks':'13 周')}</button>)}</span></header>
-    <p className="fwLead">{en?'Not traded, so not scored. They are still tracked, to check later whether the gate and rules stopped good or bad trades.':'没下单，不计成绩。照样跟踪，是为了以后检查闸门和规则挡掉的是好是坏。'}</p>
+    <p className="fwLead">{en?'Not traded, so not scored. They are still tracked, to check later whether the rule and market light stopped good or bad trades.':'没下单，不计成绩。照样跟踪，是为了以后检查规则和市场灯挡掉的是好是坏。'}</p>
     {moves.length?<><div className="fwPlot">
      <span className="fwZero"/>{[-range,-range/2,0,range/2,range].map(v=><em key={v} className="fwAxis" style={{left:`${P(v)}%`}}>{v>0?'+':''}{v}%</em>)}
      {order.map((d,i)=><button key={d.id} type="button" className="fwDot" data-on={d.id===x?.id||undefined} data-up={d.m>=0||undefined} aria-label={`${d.sym} ${d.m.toFixed(1)}%`} onMouseEnter={()=>setSel(d.id)} onFocus={()=>setSel(d.id)} onClick={()=>setSel(d.id)}

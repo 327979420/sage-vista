@@ -5,6 +5,7 @@ import {usePathname} from 'next/navigation';
 import {LanguageSwitch,useLocale} from './i18n/locale';
 import {sharedJson} from './json-cache';
 import StartHere from './start-here';
+import Term from './term';
 
 // Terminal shell: top status bar, a strip of real events and five sections in a side menu.
 // [zh label, en label, path]; each section lists the pages it absorbed.
@@ -18,7 +19,7 @@ export const siteSections = [
 // Old addresses that render a page above, so its menu entry stays lit.
 const ALIASES: Record<string, string> = {'/opportunities': '/signals', '/scorecard': '/forward', '/zh/watch/resonance/favorite-pattern': '/patterns'};
 
-type Status = {as_of?: string; status?: string};
+type Status = {as_of?: string; status?: string; source_latest_complete_date?: string};
 type Today = {signal_week?: string; new_signals_this_week?: number; orders_to_place?: number;
  market?: {light?: string; breadth?: number; distance_pct?: number}; month_end?: {rebalance_due?: boolean}};
 type Record_ = {forward?: {signals?: number; counts?: {closed?: number; open?: number; waiting?: number}}};
@@ -26,6 +27,20 @@ type Record_ = {forward?: {signals?: number; counts?: {closed?: number; open?: n
 const getJson = <T,>(url: string) => sharedJson<T>(url);
 const shift = (iso: string, days: number) => { const d = new Date(iso + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + days); return d.toISOString().slice(5, 10); };
 const pct = (v: number) => (v > 0 ? '+' : '') + v.toFixed(1) + '%';
+// Weekday sessions between the data date and the latest US close that should be in (after 18:30 ET).
+// Holidays are not known here, so one session of lag is treated as normal; two or more is late.
+export function sessionsLate(dataDate: string, now: Date) {
+ const ny = new Date(now.toLocaleString('en-US', {timeZone: 'America/New_York'}));
+ const expected = new Date(Date.UTC(ny.getFullYear(), ny.getMonth(), ny.getDate()));
+ if (ny.getHours() * 60 + ny.getMinutes() < 18 * 60 + 30) expected.setUTCDate(expected.getUTCDate() - 1);
+ let late = 0;
+ for (const d = new Date(dataDate + 'T00:00:00Z'); ; ) {
+  d.setUTCDate(d.getUTCDate() + 1);
+  if (d > expected) break;
+  if (d.getUTCDay() % 6 !== 0) late++;
+ }
+ return late;
+}
 
 function useShellData() {
  const [data, setData] = useState<{status: Status | null; today: Today | null; record: Record_ | null}>({status: null, today: null, record: null});
@@ -48,11 +63,12 @@ function useNewYorkTime() {
 
 function events(locale: string, today: Today | null, record: Record_ | null, status: Status | null): string[] {
  const en = locale === 'en', out: string[] = [];
- if (status?.as_of) out.push(en ? `Data ${status.as_of.slice(5)} close · checked and published` : `数据 ${status.as_of.slice(5)} 收盘 · 已核对发布`);
+ const date = status?.source_latest_complete_date ?? status?.as_of;
+ if (date) out.push(en ? `Data from the ${date.slice(5)} close` : `数据来自 ${date.slice(5)} 收盘`);
  const m = today?.market;
  if (m?.breadth != null && m.distance_pct != null) out.push(en
-  ? `Gate ${m.light === 'green' ? 'green' : 'amber'} · breadth ${(m.breadth * 100).toFixed(1)}% · SPY ${pct(m.distance_pct)} vs 200-day`
-  : `闸门${m.light === 'green' ? '绿灯' : '黄灯'} · 广度 ${(m.breadth * 100).toFixed(1)}% · SPY 距 200 日线 ${pct(m.distance_pct)}`);
+  ? `Market light ${m.light === 'green' ? 'green' : 'amber'} · ${(m.breadth * 100).toFixed(1)}% of 3W stocks above their 200-day · SPY ${pct(m.distance_pct)} vs its 200-day`
+  : `市场灯${m.light === 'green' ? '绿' : '黄'} · 3W 股票 ${(m.breadth * 100).toFixed(1)}% 站上 200 日线 · SPY 距 200 日线 ${pct(m.distance_pct)}`);
  if (today?.new_signals_this_week != null) out.push(en
   ? `This week: ${today.new_signals_this_week} new 3W signals · ${today.orders_to_place ?? 0} orders to place`
   : `本周 3W 新信号 ${today.new_signals_this_week} 个 · 待下单 ${today.orders_to_place ?? 0} 个`);
@@ -72,6 +88,13 @@ export default function SiteNavigation({uiVersion, build}: {uiVersion: string; b
  const {status, today, record} = useShellData(), ny = useNewYorkTime();
  const current = ALIASES[path] ?? path;
  const live = status?.status === 'up_to_date', light = today?.market?.light;
+ // Show the data date, not just "OK": late data turns amber even if the last run reported success.
+ const dataDate = status?.source_latest_complete_date ?? status?.as_of;
+ const late = dataDate ? sessionsLate(dataDate, new Date()) : 0;
+ const dataState = !status ? 'idle' : live && late <= 1 ? 'go' : 'wait';
+ const dataLabel = !status ? (en ? 'Loading' : '读取中') : !dataDate ? (en ? 'Update pending' : '日更待核对')
+  : late >= 2 ? (en ? `Data ${dataDate.slice(5)} · ${late} sessions late` : `数据 ${dataDate.slice(5)} · 晚 ${late} 个交易日`)
+  : (en ? `Data ${dataDate.slice(5)}` : `数据 ${dataDate.slice(5)}`);
  const items = events(locale, today, record, status);
  return <>
   <header className="svTopBar">
@@ -80,9 +103,9 @@ export default function SiteNavigation({uiVersion, build}: {uiVersion: string; b
     <b>SAGE VISTA</b><i>{'//'}</i><span>{en ? '3W research desk' : '3W 研究台'}</span>
    </a>
    <div className="svPills">
-    <span className="svPill"><em data-state={status ? (live ? 'go' : 'wait') : 'idle'}/>{status ? (en ? (live ? 'Daily update OK' : 'Update pending') : (live ? '日更 正常' : '日更 待核对')) : (en ? 'Loading' : '读取中')}</span>
-    {light && <span className="svPill"><em data-state={light === 'green' ? 'go' : 'wait'}/>{en ? `Gate ${light === 'green' ? 'green' : 'amber'}` : `闸门 ${light === 'green' ? '绿灯' : '黄灯'}`}</span>}
-    <span className="svPill">{en ? 'Rule 3w-1.9 · frozen' : '规则 3w-1.9 · 已冻结'}</span>
+    <span className="svPill"><em data-state={dataState}/>{dataLabel}</span>
+    {light && <span className="svPill"><em data-state={light === 'green' ? 'go' : 'wait'}/><Term k="light">{en ? 'Market light' : '市场灯'}</Term>{en ? `: ${light === 'green' ? 'green' : 'amber'}` : `：${light === 'green' ? '绿' : '黄'}`}</span>}
+    <span className="svPill">{en ? 'Rule v1.9 · ' : '规则 v1.9 · '}<Term k="locked">{en ? 'locked' : '已锁定'}</Term></span>
    </div>
    <div className="svClock"><small>{en ? 'New York' : '纽约'}</small><b>{ny}</b><span>ET</span></div>
    <StartHere/>

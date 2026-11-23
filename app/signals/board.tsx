@@ -15,16 +15,16 @@ function verdictOf(r:SignalRow, en:boolean) {
  if(r.status==='waiting')return en?'Limit order placed; waiting for the price to come back.':'限价单已挂，等价格回落成交。';
  const fails:string[]=[];
  if(r.veto)fails.push(en?'the monthly MACD vetoed it':'月线 MACD 否决');
- if(r.rrOk===false)fails.push(en?`R:R is only ${r.rr?.toFixed(2)}, under 1.5`:`盈亏比只有 ${r.rr?.toFixed(2)}，不到 1.5`);
- if(r.ruleOk&&!r.gateOk)return en?'Passed the shape and the rules, stopped at the last gate: under half the pool was above its 200-day line that week.':'形态和规则都过了，只卡在最后一关：那周股票池里站上 200 日线的股票不到一半。';
- if(r.gateOk===false)fails.push(en?`the gate was closed (${r.breadth===null?'—':pctOf(r.breadth)})`:`闸门没开（${r.breadth===null?'—':pctOf(r.breadth)}）`);
- return (r.gateOk?(en?'The gate was open, but ':'闸门是开的，但'):'')+fails.join(en?'; ':'，')+(en?', so no order.':'，所以不做。');
+ if(r.rrOk===false)fails.push(en?`reward/risk is only ${r.rr?.toFixed(2)}, under 1.5`:`盈亏比只有 ${r.rr?.toFixed(2)}，不到 1.5`);
+ if(r.ruleOk&&!r.gateOk)return en?'Passed the rule, but the market light was amber: under half the pool was above its 200-day line that week.':'规则都过了，但市场灯是黄的：那周股票池站上 200 日线的不到一半。';
+ if(r.gateOk===false)fails.push(en?`the market light was amber (${r.breadth===null?'—':pctOf(r.breadth)})`:`市场灯是黄的（${r.breadth===null?'—':pctOf(r.breadth)}）`);
+ return (r.gateOk?(en?'The market light was green, but ':'市场灯是绿的，但'):'')+fails.join(en?'; ':'，')+(en?', so no order.':'，所以不做。');
 }
 function chipOf(r:SignalRow, en:boolean):[string,string] {
  if(r.status==='open')return [en?'Open':'持仓','go'];
  if(r.status==='closed')return [en?'Closed':'已平仓','go'];
  if(r.status==='waiting')return [en?'Order waiting':'等成交','wait'];
- return r.ruleOk?[en?'Gate blocked':'闸门挡住','wait']:[en?'Rule says no':'规则不做','dim'];
+ return r.ruleOk?[en?'Stopped by market':'大盘拦下','wait']:[en?'Failed the rule':'规则不过','dim'];
 }
 
 function Ladder({r,ready,en}:{r:SignalRow;ready:boolean;en:boolean}) {
@@ -41,10 +41,10 @@ function Ladder({r,ready,en}:{r:SignalRow;ready:boolean;en:boolean}) {
 
 function Trace({r,en,run}:{r:SignalRow;en:boolean;run:number}) {
  const steps:[string,boolean|null,string,string][]=[
-  [en?'Shape and basics':'形态和基本条件',r.shapeTotal?r.shapePassed===r.shapeTotal:null,en?`${r.shapePassed}/${r.shapeTotal} passed`:`${r.shapePassed}/${r.shapeTotal} 项通过`,en?'Weekly triangle shape, bottoms, pullback, MACD cross and liquidity match the frozen rule.':'周线三角的形状、底部、回调、金叉和成交量都符合冻结规则。'],
+  [en?'Shape and basics':'形态和基本条件',r.shapeTotal?r.shapePassed===r.shapeTotal:null,en?`${r.shapePassed}/${r.shapeTotal} passed`:`${r.shapePassed}/${r.shapeTotal} 项通过`,en?'Weekly triangle shape, bottoms, pullback, MACD cross and liquidity match the locked rule.':'周线三角的形状、底部、回调、金叉和成交量都符合锁定的规则。'],
   [en?'Monthly MACD, no veto':'月线 MACD 不否决',r.veto===null?null:!r.veto,r.veto?(en?'veto':'否决'):(en?'no veto':'没否决'),en?'Skip names whose monthly trend is turning down.':'月线趋势正在转坏的，不做。'],
-  ['R:R ≥ 1.5',r.rrOk,r.rr===null?'—':r.rr.toFixed(2),en?'What it can make must be at least 1.5× what it can lose.':'能赚的至少要是可能亏的 1.5 倍。'],
-  [en?'Market gate':'市场闸门',r.gateOk,r.breadth===null?'—':pctOf(r.breadth),en?'SPY above its 200-day line, and over half the pool above theirs in the signal week.':'SPY 在 200 日线上方，且信号那周股票池过半站上 200 日线。'],
+  [en?'Reward/risk ≥ 1.5':'盈亏比 ≥ 1.5',r.rrOk,r.rr===null?'—':r.rr.toFixed(2),en?'What it can make must be at least 1.5× what it can lose.':'能赚的至少要是可能亏的 1.5 倍。'],
+  [en?'Market light':'市场灯',r.gateOk,r.breadth===null?'—':pctOf(r.breadth),en?'SPY above its 200-day line, and over half the pool above theirs in the signal week.':'SPY 在 200 日线上方，且信号那周股票池过半站上 200 日线。'],
  ];
  return <ol className="sbTrace" key={run} aria-label={en?'Checks':'检查过程'}>{steps.map(([label,ok,value,plain],i)=><li key={label} style={{animationDelay:`${i*0.35}s`}} data-ok={ok===null?undefined:String(ok)}>
   <span>{ok===null?'·':ok?'✓':'✕'}</span><div><p><b>{label}</b><em>{value}</em></p><small>{plain}</small></div>
@@ -61,7 +61,7 @@ export default function SignalBoard({rows,selected,onSelect}:{rows:SignalRow[];s
  const sorted=[...rows].sort((a,b)=>b.week.localeCompare(a.week)||a.symbol.localeCompare(b.symbol));
  const keep=(r:SignalRow)=>filter==='all'||(filter==='gate'&&r.status==='skipped'&&r.ruleOk)||(filter==='rule'&&!r.ruleOk)||r.week===filter;
  const chips:[Filter,string,number][]=[['all',en?'All':'全部',rows.length],...weeks.map(w=>[w,en?`Week of ${w.slice(5)}`:`${w.slice(5)} 周`,rows.filter(r=>r.week===w).length] as [Filter,string,number]),
-  ['gate',en?'Gate blocked':'闸门挡住',rows.filter(r=>r.status==='skipped'&&r.ruleOk).length],['rule',en?'Rule says no':'规则不做',rows.filter(r=>!r.ruleOk).length]];
+  ['gate',en?'Stopped by market':'大盘拦下',rows.filter(r=>r.status==='skipped'&&r.ruleOk).length],['rule',en?'Failed the rule':'规则不过',rows.filter(r=>!r.ruleOk).length]];
  const x=rows.find(r=>r.id===selected)??sorted[0];
  const pick=(id:string)=>{onSelect(id);setRun(v=>v+1)};
  const gap=x.close===null?null:(x.close/x.limit-1)*100;
@@ -75,9 +75,9 @@ export default function SignalBoard({rows,selected,onSelect}:{rows:SignalRow[];s
   <div className="sbChips" role="group" aria-label={en?'Filter':'筛选'}>{chips.map(([id,label,n])=><button key={id} type="button" aria-pressed={filter===id} onClick={()=>setFilter(id)}>{label} <i>{n}</i></button>)}</div>
   <div className="sbLayout">
    <div className="sbCards">{sorted.filter(keep).map(r=>{const [chip,tone]=chipOf(r,en);return <button key={r.id} type="button" className="sbCard" aria-pressed={r.id===x.id} onClick={()=>pick(r.id)}>
-    <div className="sbCardTop"><div><b>{r.symbol}</b><small>{en?`week of ${r.week.slice(5)}`:`${r.week.slice(5)} 周`} · {r.pool==='main'?(en?'main pool':'主股票池'):r.pool}</small></div><span data-tone={tone}>{chip}</span></div>
+    <div className="sbCardTop"><div><b>{r.symbol}</b><small>{en?`week of ${r.week.slice(5)}`:`${r.week.slice(5)} 周`}</small></div><span data-tone={tone}>{chip}</span></div>
     <Ladder r={r} ready={ready} en={en}/>
-    <div className="sbCardFoot"><span>R:R <em data-tone={r.rrOk===false?'loss':undefined}>{r.rr===null?'—':r.rr.toFixed(2)}</em></span><span>{en?'Breadth':'广度'} <em data-tone={r.gateOk?'go':'wait'}>{r.breadth===null?'—':pctOf(r.breadth)}</em></span></div>
+    <div className="sbCardFoot"><span>{en?'Reward/risk':'盈亏比'} <em data-tone={r.rrOk===false?'loss':undefined}>{r.rr===null?'—':r.rr.toFixed(2)}</em></span><span>{en?'Breadth':'广度'} <em data-tone={r.gateOk?'go':'wait'}>{r.breadth===null?'—':pctOf(r.breadth)}</em></span></div>
    </button>})}</div>
    <aside className="sbDetail" aria-label={en?'Signal detail':'信号详情'}>
     <small>{en?'Signal detail':'信号详情'}</small>
@@ -95,7 +95,7 @@ export function SignalsHead({rows}:{rows:SignalRow[]|null}) {
  const {locale}=useLocale(), en=locale==='en';
  const orders=rows?.filter(r=>r.status!=='skipped').length??0;
  return <section className="ovHead sbHead"><div>
-  <small>{en?'3W · Signals · frozen rule 3w-1.9':'3W · 信号 · 冻结规则 3w-1.9'}</small>
+  <small>{en?'3W · Signals · rule v1.9':'3W · 信号 · 规则 v1.9'}</small>
   <h1>{rows?(en?`${rows.length} signals, ${orders} orders.`:`${rows.length} 个信号，${orders} 个下单。`):(en?'Signal evidence':'信号凭证')}</h1>
   <p>{en?'Each card is one signal’s plan: where to buy, where to stop, where to take profit, and its latest price. Pick a card to see which checks it passed and where it stopped.':'每张卡是一个信号的计划：在哪挂单、在哪止损、目标在哪，以及它现在的价格。点一张卡，右边会一步步亮出它过了哪些关、卡在哪一关。'}</p>
  </div></section>;
