@@ -11,7 +11,7 @@ import {sessionsLate} from './data-freshness';
 // Terminal shell: top status bar, a strip of real events and five sections in a side menu.
 // [zh label, en label, path]; each section lists the pages it absorbed.
 export const siteSections = [
- ['总览', 'Overview', [['今日', 'Today', '/']]],
+ ['总览', 'Overview', [['今日', 'Today', '/'], ['查股票', 'Stock lookup', '/stock']]],
  ['3W', '3W', [['信号', 'Signals', '/signals'], ['前向记录', 'Forward record', '/forward'], ['我的组合', 'My portfolio', '/portfolio']]],
  ['市场', 'Market', [['大盘', 'Market', '/market'], ['行业', 'Sectors', '/sectors']]],
  ['候选', 'Candidates', [['多因子', 'Multi-factor', '/multi-factor'], ['形态', 'Daily setups', '/patterns']]],
@@ -70,7 +70,7 @@ function events(locale: string, today: Today | null, record: Record_ | null): st
 export default function SiteNavigation({uiVersion, build}: {uiVersion: string; build: string}) {
  const path = usePathname(), count = useNavigationCount(), {locale} = useLocale(), en = locale === 'en';
  const {status, today, record} = useShellData(), ny = useNewYorkTime();
- const current = ALIASES[path] ?? path;
+ const current = ALIASES[path] ?? (path.startsWith('/stock/') ? '/stock' : path);
  const live = status?.status === 'up_to_date', light = today?.market?.light;
  // Show the data date, not just "OK": late data turns amber even if the last run reported success.
  const dataDate = status?.source_latest_complete_date ?? status?.as_of;
@@ -91,6 +91,8 @@ export default function SiteNavigation({uiVersion, build}: {uiVersion: string; b
     {light && <span className="svPill"><em data-state={light === 'green' ? 'go' : 'wait'}/><span><Term k="light">{en ? 'Market light' : '市场灯'}</Term>{en ? `: ${light === 'green' ? 'green' : 'amber'}` : `：${light === 'green' ? '绿' : '黄'}`}</span></span>}
     <span className="svPill"><span>{en ? 'Rule v1.9 · ' : '规则 v1.9 · '}<Term k="locked">{en ? 'locked' : '已锁定'}</Term></span></span>
    </div>
+   <a className="slTopLink" href={siteSections[0][2][1][2]} aria-label={en ? 'Look up a stock' : '查股票'} title={en ? 'Look up a stock' : '查股票'}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></a>
    <div className="svClock"><small>{en ? 'New York' : '纽约'}</small><b>{ny}</b><span>ET</span></div>
    <a className="svStartButton" href={INTRO_HREF}>{en ? 'What is SV?' : 'SV 是什么？'}</a>
    <LanguageSwitch/>

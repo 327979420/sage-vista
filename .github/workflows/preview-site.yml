@@ -20,6 +20,23 @@ jobs:
           node-version: '22.13.0'
           cache: npm
       - run: npm ci
+      # The stock lookup index is built by the daily update from its price cache. A preview restores
+      # the latest cache read-only and builds the index for the branch's own data date; if that fails
+      # the preview still deploys and /stock shows that lookup data is not ready.
+      - uses: actions/setup-python@v7
+        with: { python-version: "3.13" }
+      - name: Restore historical EOD cache (read only)
+        continue-on-error: true
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            work/eodhd-cache
+            work/eodhd-active-common.json
+          key: eodhd-history-v1-preview-${{ github.run_id }}
+          restore-keys: eodhd-history-v1-
+      - name: Build stock lookup index for the preview
+        continue-on-error: true
+        run: python3 -m services.scanner.stock_lookup --as-of "$(python3 -c 'import json;print(json.load(open("public/update-status.json"))["source_latest_complete_date"])')"
       - run: npm test
         env:
           SAGE_DEPLOYMENT_COMMIT: ${{ github.sha }}

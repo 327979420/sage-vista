@@ -10,7 +10,7 @@ export type SetupRow = {symbol:string; state:string; price:number; invalidation_
  bottom:{anchors:Anchor[]; zone_lower:number; zone_upper:number}; three_push:{anchors:Anchor[]}|null; liquidity:{dollar_volume:number}};
 type Props = {asOf:string; rows:SetupRow[]; counts:Record<string,number>; covered:number; onPick:(symbol:string,state:string)=>void};
 
-function Mini({row}:{row:SetupRow}) {
+export function Mini({row}:{row:SetupRow}) {
  const bars=row.chart.slice(-70), lows=[...bars.map(b=>b.close),row.bottom.zone_lower,row.invalidation_price], highs=[...bars.map(b=>b.close),...(row.three_push?.anchors.map(a=>a.price)??[])];
  const lo=Math.min(...lows)*0.99, hi=Math.max(...highs)*1.01, n=bars.length;
  const X=(i:number)=>i/(n-1)*100, Y=(v:number)=>100-(v-lo)/(hi-lo)*100, idx=(d:string)=>bars.findIndex(b=>b.date===d);

@@ -17,6 +17,7 @@
 | 回测页面、账户与永久报告 | `app/zh/backtest/page.tsx`、`research/backtest/run_research.py`、`account_runner.py`、`run_store.py` | `research/backtest/output/reusable-runs/`；当前运行输入仍为旧机会账本 |
 | 外部候选因子、赢家配对和走步实验 | `research/factor-candidates-v2.json`、`research/factor_lab/features.py`、`research/backtest/factor_strategy_lab_v2.py` | `research/backtest/output/factor-strategy-lab-v2.json` |
 | 旧版 V2 历史回放与排名 | `services/scanner/unified_v2_scan.py` | `public/unified-v2-rankings.json`（Git 里存为 `.json.gz`，见 `services/scanner/public_store.py`） |
+| 查股票索引（每只股票三项状态和价格事实，网站 /stock） | `services/scanner/stock_lookup.py`，页面 `app/stock/` | `public/stock-index.json` |
 | 旧版永久追踪池 | `services/scanner/opportunity_ledger.py`、`signal_history.py` | `public/opportunity-ledger.json`、`public/signal-history.json`（Git 里存为 `.json.gz`） |
 | 行业分类与 ETF 上下文 | `services/scanner/industry_membership.py`、`industry_radar.py`、`theme_etf_context.py` | `data/industry/`、`data/themes/` |
 | 市场环境 | `services/scanner/market_etf_watch.py` | `public/market-etf-watch.json` |

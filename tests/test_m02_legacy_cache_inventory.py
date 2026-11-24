@@ -28,6 +28,10 @@ EXPECTED_PYTHON_REFERENCES = frozenset({
     "services/scanner/cr056_inputs.py::main",
     # Approved daily picker: current common-stock membership, checked CR056 cache; no new provider calls.
     "services/scanner/daily_shape_picker.py::main",
+    # Stock lookup index (CR-2026-11-24-stock): read-only daily cache, same eligibility gate as the
+    # factor snapshot; publishes only per-stock states and three price facts, never price history.
+    "services/scanner/stock_lookup.py::<module>",
+    "services/scanner/stock_lookup.py::run",
     # Independent fixed Market panel: read-only verified histories, never writes shared caches.
     "services/scanner/market_internals_daily.py::main",
     "services/scanner/cr056_daily.py::main",
@@ -81,6 +85,8 @@ EXPECTED_WORKFLOW_REFERENCES = frozenset({
     ".github/workflows/industry-radar-validation.yml",
     ".github/workflows/nightly-backtest.yml",
     ".github/workflows/opportunity-ledger-refresh.yml",
+    # Branch previews restore the daily cache read-only to build the stock lookup index.
+    ".github/workflows/preview-site.yml",
     ".github/workflows/pullback-context-backtest.yml",
     ".github/workflows/recover-unified-v2-backfill.yml",
     ".github/workflows/research-lab.yml",

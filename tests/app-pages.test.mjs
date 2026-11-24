@@ -106,9 +106,15 @@ test('new routes render and legacy app routes redirect',async()=>{
     assert.ok(html.includes('svTerminalPage'));
     assert.equal((html.match(/aria-label="主要功能"/g)||[]).length,1);
     const nav=html.match(/<nav class="svSideNav"[\s\S]*?<\/nav>/)?.[0];
-    assert.ok(nav);assert.equal((nav.match(/<a /g)||[]).length,12);assert.ok(nav.includes(`href="${route}" class="active" aria-current="page"`));
+    assert.ok(nav);assert.equal((nav.match(/<a /g)||[]).length,13);assert.ok(nav.includes(`href="${route}" class="active" aria-current="page"`));
     assert.ok(html.includes('rtFeaturedPage'));
     for(const href of ['/signals','/portfolio','/forward','/learn','/archive'])assert.ok(html.includes(`href="${href}"`));
+  }
+  // Stock lookup: one page for today's findings and one address per ticker, with the ticker in the title.
+  for(const [route,title] of [['/stock','Sage Vista — 查股票'],['/stock/NVDA','NVDA · Sage Vista 查股票'],['/stock/brk.b','BRK.B · Sage Vista 查股票']]){
+    const response=await request(route);assert.equal(response.status,200,route);
+    const html=await response.text();assert.ok(html.includes(`<title>${title}</title>`),route);
+    assert.ok(html.includes('href="/stock" class="active" aria-current="page"'),route);
   }
   for(const [route,target] of [['/app','/'],['/app/portfolio','/portfolio']]) {
     const response=await request(route);assert.equal(response.status,307);assert.equal(response.headers.get('location'),target);
