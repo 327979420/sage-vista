@@ -16,6 +16,7 @@ from datetime import datetime, timezone
 from .macd_factor_backtest import adjusted_rows
 
 OUT = 'stock-index.json'
+ACTIVE = 'work/eodhd-active-common.json'
 SCHEMA_VERSION = 1
 # The tracked universe is the multi-factor snapshot's eligibility gate (factor_snapshot.build_snapshot);
 # the build fails if the count ever differs from the snapshot's own eligible_count.
@@ -25,9 +26,14 @@ BIG_NAMES = 10
 SHAPE_STATES = ('waiting', 'broken_out', 'retest')
 
 
-def load_cache(cache_dir):
+def load_cache(cache_dir, active_path=ACTIVE):
+    """Cached rows for active common stocks only (ETFs and benchmarks share the cache), as the snapshot loads them."""
+    active_file = pathlib.Path(active_path)
+    active = {row['Code'] for row in json.loads(active_file.read_text())} if active_file.exists() else None
     data = {}
     for path in sorted(pathlib.Path(cache_dir).glob('*.json')):
+        if active is not None and path.stem not in active:
+            continue
         try:
             rows = adjusted_rows(json.loads(path.read_text()))
         except (ValueError, TypeError, KeyError, ZeroDivisionError):
@@ -137,10 +143,10 @@ def write(index, path):
     os.replace(temporary, path)
 
 
-def run(as_of, cache_dir='work/eodhd-cache', public='public'):
+def run(as_of, cache_dir='work/eodhd-cache', public='public', active_path=ACTIVE):
     path = pathlib.Path(public) / OUT
     previous = json.loads(path.read_text()) if path.exists() else None
-    index = build(load_cache(cache_dir), as_of, public, previous)
+    index = build(load_cache(cache_dir, active_path), as_of, public, previous)
     changed = previous is None or {k: v for k, v in previous.items() if k != 'generated_at'} != {k: v for k, v in index.items() if k != 'generated_at'}
     if changed:
         write(index, path)
@@ -152,5 +158,6 @@ if __name__ == '__main__':
     parser.add_argument('--as-of', required=True)
     parser.add_argument('--cache-dir', default='work/eodhd-cache')
     parser.add_argument('--public', default='public')
+    parser.add_argument('--active', default=ACTIVE)
     args = parser.parse_args()
-    print(json.dumps(run(args.as_of, args.cache_dir, args.public)))
+    print(json.dumps(run(args.as_of, args.cache_dir, args.public, args.active)))

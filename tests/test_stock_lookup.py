@@ -114,8 +114,12 @@ class StockLookupTests(unittest.TestCase):
         cache.mkdir()
         for symbol, closes in (('AAA', [10 + i * .01 for i in range(500)]), ('BBB', [50.0] * 500), ('CCC', [20 - i * .01 for i in range(500)])):
             (cache / f'{symbol}.json').write_text(json.dumps(raw(closes, volume=3_000_000 if symbol == 'BBB' else 1_000_000)))
-        first = lookup.run(AS_OF, cache, self.f.root)
-        second = lookup.run(AS_OF, cache, self.f.root)
+        # ETFs and benchmarks share the cache; only the active common-stock list counts.
+        (cache / 'SPY.json').write_text(json.dumps(raw([600.0] * 500, volume=50_000_000)))
+        active = pathlib.Path(self.tmp.name) / 'active.json'
+        active.write_text(json.dumps([{'Code': s} for s in ('AAA', 'BBB', 'CCC', 'GONE')]))
+        first = lookup.run(AS_OF, cache, self.f.root, active)
+        second = lookup.run(AS_OF, cache, self.f.root, active)
         self.assertEqual((first['result'], second['result']), ('updated', 'already_current'))
         self.assertEqual(json.loads((self.f.root / 'stock-index.json').read_text())['count'], 3)
 
