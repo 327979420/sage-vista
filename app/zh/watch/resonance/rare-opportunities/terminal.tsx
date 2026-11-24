@@ -31,9 +31,8 @@ export default function MultiFactorTerminal() {
  const name=(p:string)=>PATHS[p]?.[en?1:0]??p;
  return <div className="ovRoot">
   <section className="ovHead"><div>
-   <small>{en?`Candidates · Multi-factor · ${data.as_of}`:`候选 · 多因子 · ${data.as_of}`}</small>
    <h1>{en?`${ranked.length} stocks made the list. Start with these five.`:`${ranked.length} 只进入排名，先看这 5 只。`}</h1>
-   <p>{en?'Each stock is scored on monthly, weekly and daily charts (bigger charts count more). The score ranks what to research first; it is not a win rate.':'每只股票按月线、周线、日线打分（周期越大权重越高）。分数决定先研究哪只，不是胜率。'}</p>
+   <p>{en?'Scored on monthly, weekly and daily charts to rank what to research first; not a win rate.':'按月、周、日线打分，排出先研究哪几只；不是胜率。'}</p>
   </div></section>
   <div className="mfTop">{top.map((r,i)=><button key={r.symbol} type="button" className="mfCard" aria-pressed={r.symbol===x.symbol} onClick={()=>setSel(r.symbol)} onMouseEnter={()=>setSel(r.symbol)} style={{transitionDelay:`${i*80}ms`}} data-ready={ready||undefined}>
    <span className="mfRank">#{r.rank}</span><b>{r.symbol}</b><span className="mfScore">{r.total!.toFixed(1)}</span>

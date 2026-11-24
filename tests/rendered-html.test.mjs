@@ -70,12 +70,13 @@ test("share crawlers receive public image URLs and browser-compatible SV icons",
 test("server-renders the four-product navigation", async () => {
   const html = await (await render("/")).text();
   assert.doesNotMatch(html, /个股研究/);
-  assert.match(html, /多因子机会/);
-  assert.match(html, /我最喜欢形态/);
+  // Side menu names (the footer no longer repeats the candidate pages).
+  assert.match(html, /<span>多因子<\/span>/);
+  assert.match(html, /<span>形态<\/span>/);
   assert.match(html, /行业/);
   assert.doesNotMatch(html, /历史与实验/);
-  assert.match(html, /href="\/zh\/watch\/resonance\/rare-opportunities"/);
-  assert.match(html, /href="\/zh\/watch\/industry-radar"/);
+  assert.match(html, /href="\/multi-factor"/);
+  assert.match(html, /href="\/sectors"/);
 });
 
 test("the retired MACD Tracker product page is gone", async () => {
@@ -85,11 +86,11 @@ test("the retired MACD Tracker product page is gone", async () => {
 
 test("retired product routes redirect to maintained modules", async () => {
   const routes = [
-    ["/technical", "/zh/watch/resonance/rare-opportunities"],
+    ["/technical", "/multi-factor"],
     ["/data-quality", "/"],
     ["/zh", "/"],
-    ["/zh/watch/resonance", "/zh/watch/market"],
-    ["/zh/watch/resonance/rsi", "/zh/watch/resonance/rare-opportunities"],
+    ["/zh/watch/resonance", "/market"],
+    ["/zh/watch/resonance/rsi", "/multi-factor"],
   ];
 
   for (const [path, expected] of routes) {
@@ -100,10 +101,9 @@ test("retired product routes redirect to maintained modules", async () => {
 });
 
 test("server-renders the independent favorite-pattern tracker", async () => {
-  const response = await render("/zh/watch/resonance/favorite-pattern");
+  const response = await render("/patterns");
   assert.equal(response.status, 200);
   const html = await response.text();
-  assert.match(html, /我最喜欢形态/);
   // The page leads with the setup wall (no hero) once data loads.
   assert.match(html, /正在读取日线形态/);
   assert.doesNotMatch(html, /4\/4|生产权重 0/);
@@ -126,7 +126,7 @@ test("experiment pages are retired from the website", async () => {
 });
 
 test("multi-factor route renders the candidate snapshot boundary without duplicate legacy controls", async () => {
-  const response = await render("/zh/watch/resonance/rare-opportunities");
+  const response = await render("/multi-factor");
   assert.equal(response.status, 200);
   const html = await response.text();
   assert.match(html, /正在读取已核新模型快照/);
@@ -136,30 +136,30 @@ test("multi-factor route renders the candidate snapshot boundary without duplica
 
 
 test("renders research history with pending account entry and retained comparison", async()=>{
-  const response=await render("/zh/backtest");
+  const response=await render("/backtests");
   assert.equal(response.status,200);
   const html=await response.text();
-  assert.match(html,/<nav class="svSideNav"/);assert.match(html,/href="\/archive"/);assert.match(html,/href="\/zh\/backtest" class="active" aria-current="page"/);assert.match(html,/正在读取研究配置/);assert.match(html,/早期20笔成交工程对账/);
+  assert.match(html,/<nav class="svSideNav"/);assert.match(html,/href="\/archive"/);assert.match(html,/href="\/backtests" class="active" aria-current="page"/);assert.match(html,/正在读取研究配置/);assert.match(html,/早期20笔成交工程对账/);
 });
 
 test("old research bookmark redirects to independent backtest page", async()=>{
  const response=await render("/zh/watch/resonance/strategy-backtest-v2");
- assert.equal(response.status,307); assert.equal(response.headers.get("location"),"/zh/backtest");
+ assert.equal(response.status,307); assert.equal(response.headers.get("location"),"/backtests");
 });
 
 
 test("Market is a real product page and the retired overview is absent", async () => {
- const response=await render("/zh/watch/market");
+ const response=await render("/market");
  assert.equal(response.status,200);
  const html=await response.text();
  // The page leads with the terminal view once data loads; the original heading sits in its fold.
  assert.match(html,/正在读取今日快照/);
- assert.match(html,/href="\/zh\/watch\/market"/);
+ assert.match(html,/href="\/market"/);
  assert.doesNotMatch(html,/今日研究总览|精选机会，不追高/);
 });
 
 test("industry owns its title and excludes the market hero", async()=>{
- const html=await (await render('/zh/watch/industry-radar')).text();
+ const html=await (await render('/sectors')).text();
  assert.match(html,/<title>Sage Vista — 行业<\/title>/);
  assert.match(html,/行业/);
  assert.doesNotMatch(html,/大盘环境 ·|行业与大盘/);
@@ -167,32 +167,50 @@ test("industry owns its title and excludes the market hero", async()=>{
 
 
 test("language cookie controls first render and never leaks between requests", async()=>{
- const pages=[['/','Today'],['/portfolio','My Portfolio'],['/opportunities','Signal evidence'],['/scorecard','Forward record'],['/patterns','Daily Setups'],['/learn','Learn'],['/archive','Research Archive'],['/zh/watch/market','Market'],['/zh/watch/industry-radar','Sectors'],['/zh/watch/resonance/rare-opportunities','Multi-Factor Opportunities'],['/zh/watch/resonance/favorite-pattern','Daily Setups'],['/zh/backtest','Backtests'],['/zh/watch/resonance/about','About SV']];
+ const pages=[['/','Today'],['/portfolio','My Portfolio'],['/opportunities','Signal evidence'],['/scorecard','Forward record'],['/patterns','Daily setups'],['/learn','Learn'],['/archive','Research Archive'],['/market','Market'],['/sectors','Sectors'],['/multi-factor','Multi-Factor Opportunities'],['/patterns','Daily setups'],['/backtests','Backtests'],['/about','About SV']];
+ const english=html=>{assert.match(html,/<html lang="en"[ >]/);assert.match(html,/lang="en" aria-pressed="true"/);assert.doesNotMatch(html.split('</head>')[1].split('<script')[0].replace(/>中文</g,'>Chinese<'),/[\u3400-\u9fff]/);};
  for(const[path,title]of pages){
-  // A year-long cookie from before English became the per-visit default must not force Chinese.
-  for(const cookie of ['', 'sv-language-session=en', 'sv-language-session=invalid', 'sv-language=zh']){
-   const response=await render(path,cookie,{'Accept-Language':'zh-CN,zh;q=0.9','Referer':'https://www.linkedin.com/'});assert.equal(response.status,200);
-   const html=await response.text();assert.match(html,/<html lang="en"[ >]/);assert.ok(html.includes(title));assert.match(html,/lang="en" aria-pressed="true"/);
-   assert.doesNotMatch(html.split('</head>')[1].split('<script')[0].replace(/>中文</g,'>Chinese<'),/[\u3400-\u9fff]/);
+  // English when the visitor chose it (even in a Chinese browser), when the browser prefers English,
+  // and when there is no language header at all (crawlers). An invalid or year-old cookie is no choice.
+  for(const [cookie,accept] of [['sv-language-session=en','zh-CN,zh;q=0.9'],['','en-AU,en;q=0.9,zh;q=0.8'],['',''],['sv-language-session=invalid','en-US'],['sv-language=zh','en-GB']]){
+   const response=await render(path,cookie,{...(accept?{'Accept-Language':accept}:{}),'Referer':'https://www.linkedin.com/'});assert.equal(response.status,200);
+   const html=await response.text();english(html);assert.ok(html.includes(title),`${path} ${cookie} ${accept}`);
+  }
+  // With no saved choice, a Chinese browser gets Chinese.
+  for(const cookie of ['', 'sv-language-session=invalid', 'sv-language=zh']){
+   const html=await (await render(path,cookie,{'Accept-Language':'zh-CN,zh;q=0.9,en;q=0.8'})).text();
+   assert.match(html,/<html lang="zh-CN"[ >]/,`${path} ${cookie}`);assert.match(html,/lang="zh-CN" aria-pressed="true"/);
   }
  }
  const zh=await (await render('/','sv-language-session=zh')).text();assert.match(zh,/<html lang="zh-CN"[ >]/);assert.match(zh,/正在读取数据/);assert.match(zh,/<footer class="siteFooter">/);assert.match(zh,/如何使用 SV/);
- const fresh=await (await render('/?utm_source=linkedin&lang=zh','')).text();assert.match(fresh,/<html lang="en"[ >]/);assert.match(fresh,/<title>Sage Vista — Today<\/title>/);assert.match(fresh,/href="\/zh\/watch\/resonance\/about#how-to-use">How to use SV</);assert.doesNotMatch(fresh,/siteAboutButton/);
+ // A saved Chinese choice beats an English browser.
+ const chosen=await (await render('/','sv-language-session=zh',{'Accept-Language':'en-AU'})).text();assert.match(chosen,/<html lang="zh-CN"[ >]/);
+ const fresh=await (await render('/?utm_source=linkedin&lang=zh','')).text();assert.match(fresh,/<html lang="en"[ >]/);assert.match(fresh,/<title>Sage Vista — Today<\/title>/);assert.match(fresh,/href="\/about#how-to-use">How to use SV</);assert.doesNotMatch(fresh,/siteAboutButton/);
 });
 
 test("About SV explains the system in each language and cites Triple Screen", async()=>{
- const en=await (await render('/zh/watch/resonance/about','')).text();
+ const en=await (await render('/about','')).text();
  assert.match(en,/<title>Sage Vista — About SV<\/title>/);
  for(const phrase of ['Triple Screen trading system','How to use SV','Is the market strong?','Multi-timeframe confluence score','Point-in-time and out-of-sample testing','not investment advice'])assert.ok(en.includes(phrase),phrase);
  assert.doesNotMatch(en.split('</head>')[1].split('<script')[0].replace(/>中文</g,'>Chinese<'),/[\u3400-\u9fff]/);
- const zh=await (await render('/zh/watch/resonance/about','sv-language-session=zh')).text();
+ const zh=await (await render('/about','sv-language-session=zh')).text();
  for(const phrase of ['三重滤网交易系统','如何使用 SV','多周期共振评分','不构成投资建议'])assert.ok(zh.includes(phrase),phrase);
 });
 
-test("the first-visit tour is client-only and the footer offers a replay", async()=>{
- const html=await (await render('/','')).text();
- assert.doesNotMatch(html,/svTourBackdrop|role="dialog"/);
- assert.match(html,/href="\/\?tour=1">Take the tour</);
+test("a first visit opens with the intro; a returning visitor gets the normal page", async()=>{
+ const first=await (await render('/','')).text();
+ assert.doesNotMatch(first,/svTourBackdrop|crowGuide|role="dialog"/);
+ assert.match(first,/<h1 id="fvTitle">Buy the bottoms that hold. Risk 1 to aim for 3.<\/h1>/);
+ assert.match(first,/class="svStartButton" href="\/\?intro=1">What is SV\?</);
+ assert.match(first,/href="\/\?intro=1">SV in a minute</);
+ assert.match(first,/Freddy Liang’s US stock research/);
+ const back=await (await render('/','sv-seen=1')).text();
+ assert.doesNotMatch(back,/fvHero/);
+ const zh=await (await render('/','sv-language-session=zh')).text();
+ assert.match(zh,/抄守住的底，亏 1 博 3。/);
+ const list=await (await render('/multi-factor','')).text();
+ assert.match(list,/class="fvBanner"/);
+ assert.doesNotMatch(await (await render('/multi-factor','sv-seen=1')).text(),/fvBanner/);
 });
 
 test('side menu groups all twelve pages into five sections',async()=>{
@@ -202,4 +220,13 @@ test('side menu groups all twelve pages into five sections',async()=>{
  const positions=labels.map(label=>nav.indexOf(label));
  assert.ok(positions.every((p,i)=>p>=0&&(!i||p>positions[i-1])));
  assert.match(nav,/href="\/patterns" class="active" aria-current="page"/);
+});
+
+test("old /zh addresses redirect permanently to the clean ones, so shared links keep working", async()=>{
+ for(const [old,now] of [["/zh/watch/market","/market"],["/zh/watch/industry-radar","/sectors"],["/zh/watch/resonance/rare-opportunities","/multi-factor"],["/zh/watch/resonance/favorite-pattern","/patterns"],["/zh/backtest","/backtests"],["/zh/watch/resonance/about","/about"]]){
+  const response=await render(old);
+  assert.equal(response.status,308,old);
+  assert.equal(new URL(response.headers.get("location"),"http://localhost").pathname,now);
+  assert.equal((await render(now)).status,200,now);
+ }
 });

@@ -1,4 +1,6 @@
 'use client';
+import {useEffect,useState} from 'react';
+import FirstVisit from './first-visit';
 import {validForward,type Forward} from '../evidence/data';
 import {useEvidence} from '../evidence/shared';
 import {usePageCount} from '../navigation-count';
@@ -26,4 +28,10 @@ export function TodaySummary({data}:{data:Today}) {
 export function ForwardSummary({data}:{data:Forward}) {
  return <Localized><a className="researchReplay svForwardSummary" href="/forward"><span>前向记录：已记录</span> <strong>{data.summary.signals}</strong> <span>个信号，最近一次检查</span> <time>{data.outcomes_as_of.slice(0,10)}</time><span aria-hidden="true"> →</span></a></Localized>;
 }
-export default function TodayPage() {const state=useReport('today'),forward=useEvidence('/app/forward.json',validForward),signals=useSignalRows();usePageCount('/',state.data?.new_signals_this_week??null);return <Localized><main className="rtPage rtFeaturedPage cockpit marketSummaryPage svApp svTerminalPage">{state.data?<Overview today={state.data} rows={signals.rows}/>:<Missing loading={state.loading}/>}{state.data&&<MoreDetails zh="详细数据（原来的今日页）" en="Detailed data (the original Today page)">{forward.data&&<ForwardSummary data={forward.data}/>}<TodayView data={state.data}/></MoreDetails>}</main></Localized>}
+export default function TodayPage({intro=false}:{intro?:boolean}) {
+ const state=useReport('today'),forward=useEvidence('/app/forward.json',validForward),signals=useSignalRows();usePageCount('/',state.data?.new_signals_this_week??null);
+ const [show,setShow]=useState(intro);
+ // "What is SV?" links to /?intro=1, which reopens the intro for returning visitors.
+ useEffect(()=>{if(new URLSearchParams(location.search).get('intro')==='1'){const id=requestAnimationFrame(()=>setShow(true));return()=>cancelAnimationFrame(id)}},[]);
+ const hide=()=>{setShow(false);if(new URLSearchParams(location.search).has('intro'))history.replaceState(null,'',location.pathname+location.hash)};
+ return <Localized><main className="rtPage rtFeaturedPage cockpit marketSummaryPage svApp svTerminalPage">{show&&<FirstVisit rows={signals.rows} onClose={hide}/>}{state.data?<Overview today={state.data} rows={signals.rows} intro={show}/>:<Missing loading={state.loading}/>}{state.data&&<MoreDetails zh="详细数据（原来的今日页）" en="Detailed data (the original Today page)">{forward.data&&<ForwardSummary data={forward.data}/>}<TodayView data={state.data}/></MoreDetails>}</main></Localized>}

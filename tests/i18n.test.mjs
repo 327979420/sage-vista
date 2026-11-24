@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {loadTs} from './helpers/load-ts.mjs';
-const {LocaleProvider,Localized,LanguageSwitch,localizeNodes,saveLocalePreference,normalizeLocale}=loadTs('app/i18n/locale.tsx');
+const {LocaleProvider,Localized,LanguageSwitch,localizeNodes,saveLocalePreference,normalizeLocale,browserLocale}=loadTs('app/i18n/locale.tsx');
 const {translate}=loadTs('app/i18n/messages.ts');
 import {fixture} from './helpers/public-fixture.mjs';
 // Daily assets come from the frozen fixture; vectorbt-comparison is static research output.
@@ -12,7 +12,7 @@ const data=name=>name==='vectorbt-comparison'?JSON.parse(fs.readFileSync('public
 const market=loadTs('app/zh/watch/market/dashboard.tsx');
 const industry=loadTs('app/zh/watch/industry-radar/dashboard.tsx');
 const candidate=loadTs('app/zh/watch/resonance/rare-opportunities/cr056-ranking.tsx');
-const picker=loadTs('app/zh/watch/resonance/favorite-pattern/page.tsx');
+const picker=loadTs('app/zh/watch/resonance/favorite-pattern/view.tsx');
 const comparison=loadTs('app/zh/backtest/comparison.tsx');
 const research=loadTs('app/zh/backtest/research-runs.tsx');
 const sample=data('market-internals'),candidates=data('cr056-ranking'),patterns=data('daily-shape-picker');
@@ -101,7 +101,7 @@ test('numeric templates and dynamic backend labels preserve financial meaning',(
 test('active UI copy has reviewed English entries, including rare states and detail text',async()=>{
  const ts=(await import('typescript')).default;
  const {catalog}=loadTs('app/i18n/catalog.ts');
- const files=['watch/resonance/tracker-ui.tsx','watch/market/dashboard.tsx','watch/market/interpretation.ts','watch/industry-radar/dashboard.tsx','watch/industry-radar/context.tsx','watch/resonance/rare-opportunities/cr056-ranking.tsx','watch/resonance/rare-opportunities/page.tsx','watch/resonance/favorite-pattern/page.tsx','watch/resonance/about/page.tsx','backtest/page.tsx','backtest/research-runs.tsx','backtest/comparison.tsx'];
+ const files=['watch/resonance/tracker-ui.tsx','watch/market/dashboard.tsx','watch/market/interpretation.ts','watch/industry-radar/dashboard.tsx','watch/industry-radar/context.tsx','watch/resonance/rare-opportunities/cr056-ranking.tsx','watch/resonance/rare-opportunities/view.tsx','watch/resonance/favorite-pattern/view.tsx','watch/resonance/about/view.tsx','backtest/view.tsx','backtest/research-runs.tsx','backtest/comparison.tsx'];
  for(const file of files){
   const source=ts.createSourceFile(file,fs.readFileSync(`app/zh/${file}`,'utf8'),ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
   const visit=node=>{let text;if(ts.isStringLiteral(node)||ts.isNoSubstitutionTemplateLiteral(node)||ts.isJsxText(node))text=node.text;
@@ -128,4 +128,12 @@ test('a falling market with lagging equal weight and small caps renders an Engli
  assertEnglish(html);
  const read=html.split('aria-label="Market Read"')[1].split('</section>')[0];
  assert.match(read,/Market Leadership: Equal weight and small caps lag/);
+});
+
+test('with no saved choice the browser language order decides, defaulting to English',()=>{
+ for(const [header,expected] of [
+  ['zh-CN,zh;q=0.9,en;q=0.8','zh'],['zh-TW','zh'],['zh','zh'],['en-AU,en;q=0.9,zh;q=0.8','en'],['en-US','en'],
+  ['fr-FR,zh;q=0.7,en;q=0.5','zh'],['fr-FR,en;q=0.7,zh;q=0.5','en'],['de-DE','en'],['',"en"],[null,'en'],[undefined,'en'],
+  ['en;q=0.8, zh;q=0.8','en'],['zh;q=0,en;q=0.1','en'],['ZH-cn','zh'],['zh;q=abc,en;q=0.2','en'],
+ ])assert.equal(browserLocale(header),expected,String(header));
 });

@@ -11,11 +11,11 @@ type UpdateStatus={
 };
 
 export const modules=[
- ["大盘","/zh/watch/market"],
- ["行业","/zh/watch/industry-radar"],
- ["多因子机会","/zh/watch/resonance/rare-opportunities"],
- ["我最喜欢形态","/zh/watch/resonance/favorite-pattern"],
- ["回测","/zh/backtest"],
+ ["大盘","/market"],
+ ["行业","/sectors"],
+ ["多因子机会","/multi-factor"],
+ ["我最喜欢形态","/patterns"],
+ ["回测","/backtests"],
 ] as const;
 
 // Multi-factor opportunities is SV's core product and is styled as the star tab.
@@ -32,7 +32,7 @@ export function TrackerShell({active,title,subtitle,description,children,overvie
  const synced=status?.status==="up_to_date"&&status.data_dates_match;
  return <Localized><main className={["rtPage",overview&&"rtOverviewPage",active===featuredModule&&"rtFeaturedPage"].filter(Boolean).join(" ")}>
 
-  {!overview&&<header className="rtSubHero"><div><a href="/zh/watch/resonance/about">Sage Vista · 功能介绍</a><p>DAILY TRADING RESEARCH</p><h1>{title}</h1><strong>{subtitle}</strong>{description&&<p className="rtHeroDescription">{description}</p>}</div>{status&&<aside className={synced?"isCurrent":"needsCheck"}><small>最新完整美股收盘</small><b>{status.source_latest_complete_date}</b><span className="rtSyncState">{synced?"✓ 核心数据已同步":"! 更新状态待核验"}</span><span>多因子、形态、行业使用同一收盘日；大盘覆盖单独核验</span>{status.last_successful_update_at&&<time dateTime={status.last_successful_update_at}>成功更新 {new Date(status.last_successful_update_at).toLocaleString("zh-CN",{timeZone:"Australia/Melbourne",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false})}（墨尔本）</time>}</aside>}</header>}
+  {!overview&&<header className="rtSubHero"><div><a href="/about">Sage Vista · 功能介绍</a><p>DAILY TRADING RESEARCH</p><h1>{title}</h1><strong>{subtitle}</strong>{description&&<p className="rtHeroDescription">{description}</p>}</div>{status&&<aside className={synced?"isCurrent":"needsCheck"}><small>最新完整美股收盘</small><b>{status.source_latest_complete_date}</b><span className="rtSyncState">{synced?"✓ 核心数据已同步":"! 更新状态待核验"}</span><span>多因子、形态、行业使用同一收盘日；大盘覆盖单独核验</span>{status.last_successful_update_at&&<time dateTime={status.last_successful_update_at}>成功更新 {new Date(status.last_successful_update_at).toLocaleString("zh-CN",{timeZone:"Australia/Melbourne",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false})}（墨尔本）</time>}</aside>}</header>}
   {!status&&active!=="功能介绍"&&<div className="rtLoading">行情状态载入中，页面功能可以正常使用。</div>}
   {children}
  </main></Localized>;

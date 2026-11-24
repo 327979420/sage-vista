@@ -28,7 +28,7 @@ export function reportPublic(publicDir = 'public') {
   Market: () => render(loadTs('app/zh/watch/market/dashboard.tsx').MarketView, {cockpit: read('market-cockpit'), sample, targetDate: sample.as_of}),
   Sectors: () => render(loadTs('app/zh/watch/industry-radar/dashboard.tsx').IndustryView, {context: read('industry-radar').display_context, targetDate: sample.as_of, candidates: candidates.ranked_symbols, candidateDate: candidates.as_of}),
   'Multi-factor opportunities': () => render(loadTs('app/zh/watch/resonance/rare-opportunities/cr056-ranking.tsx').CandidateView, {data: candidates, latestDate: candidates.as_of}),
-  'Daily setups': () => render(loadTs('app/zh/watch/resonance/favorite-pattern/page.tsx').DailyPatternView, {data: read('daily-shape-picker'), onRetry: () => {}}),
+  'Daily setups': () => render(loadTs('app/zh/watch/resonance/favorite-pattern/view.tsx').DailyPatternView, {data: read('daily-shape-picker'), onRetry: () => {}}),
  };
  return Object.entries(views).map(([page, view]) => {
   try { return {page, fragments: untranslated(view())}; }

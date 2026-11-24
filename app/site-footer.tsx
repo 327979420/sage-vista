@@ -2,11 +2,11 @@ import {Localized} from './i18n/locale';
 import PrivacyNote from './privacy-note';
 
 // Quiet site footer: About SV lives here as reading links, not a header button.
-const ABOUT = '/zh/watch/resonance/about';
+const ABOUT = '/about';
 const columns: [string, [string, string][]][] = [
- ['关于 SV', [['SV 是什么', `${ABOUT}#what-is-sv`], ['如何使用 SV', `${ABOUT}#how-to-use`], ['免责声明', `${ABOUT}#disclaimer`], ['新手导览', '/?tour=1']]],
- ['探索', [['多因子机会', '/zh/watch/resonance/rare-opportunities'], ['大盘', '/zh/watch/market'], ['行业', '/zh/watch/industry-radar'], ['我最喜欢形态', '/zh/watch/resonance/favorite-pattern'], ['回测', '/zh/backtest']]],
- ['方法', [['三重滤网交易系统', `${ABOUT}#opportunity`], ['顺势回调形态', `${ABOUT}#setup`], ['多周期共振评分', `${ABOUT}#confluence`], ['板块轮动与每日复评', `${ABOUT}#re-scoring`], ['时点数据与样本外验证', `${ABOUT}#checked`]]],
+ ['关于 SV', [['SV 是什么', `${ABOUT}#what-is-sv`], ['如何使用 SV', `${ABOUT}#how-to-use`], ['免责声明', `${ABOUT}#disclaimer`], ['一分钟了解 SV', '/?intro=1']]],
+ ['探索', [['今日', '/'], ['信号', '/signals'], ['前向记录', '/forward'], ['大盘', '/market'], ['行业', '/sectors']]],
+ ['方法', [['四步看懂 3W', '/learn'], ['回测', '/backtests'], ['研究档案', '/archive']]],
 ];
 
 export default function SiteFooter() {

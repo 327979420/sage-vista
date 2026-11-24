@@ -30,7 +30,7 @@ export function IndustryView({context,targetDate,candidates=[],candidateDate}:{c
    <header><div><span className="mvpQuiet">{t.reference_etf??'主题观察'}</span><h3>{name}</h3></div><span className="mvpState" data-state={valid?f?.state:'unavailable'}>{valid?states[f!.state]??'待确认':t.manual?'暂无对应ETF':'等待更新'}</span></header>
    <div className="mvpIndustryMetric"><span>回到60日高点需涨</span><strong>{distance===null?'—':`${distance.toFixed(1)}%`}</strong></div>
    <div className="mvpDistance" aria-hidden="true"><i style={{width:`${distance===null?0:Math.min(100,Math.max(0,distance))}%`}}/></div>
-   <details className="mvpIndustryDetail"><summary>相关候选 <span>{links.length} 只</span></summary>{links.length?<div className="mvpCandidateLinks">{links.map(code=><a key={code} href={`/zh/watch/resonance/rare-opportunities?symbol=${encodeURIComponent(code)}`}>{code} ↗</a>)}</div>:<p>{candidateDate!==targetDate?'候选榜等待同日更新':'当前没有匹配的合格候选'}</p>}<p>高点按过去60个交易日的最高收盘价比较。</p><p>关联依据持仓快照 {t.membership_as_of&&t.membership_as_of<=targetDate?t.membership_as_of:'待补'}，不代表实时持仓。</p></details>
+   <details className="mvpIndustryDetail"><summary>相关候选 <span>{links.length} 只</span></summary>{links.length?<div className="mvpCandidateLinks">{links.map(code=><a key={code} href={`/multi-factor?symbol=${encodeURIComponent(code)}`}>{code} ↗</a>)}</div>:<p>{candidateDate!==targetDate?'候选榜等待同日更新':'当前没有匹配的合格候选'}</p>}<p>高点按过去60个交易日的最高收盘价比较。</p><p>关联依据持仓快照 {t.membership_as_of&&t.membership_as_of<=targetDate?t.membership_as_of:'待补'}，不代表实时持仓。</p></details>
   </article>
  };
  return <Localized><div className="marketDashboard mvpDashboard">

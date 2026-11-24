@@ -117,7 +117,7 @@ test('new routes render and legacy app routes redirect',async()=>{
     const response=await request(route);assert.equal(response.status,200);const learn=await response.text();assert.ok(learn.includes('四步看懂 3W'));assert.ok(learn.includes('在澳洲用 moomoo：成本与税'));
   }
   const archive=await (await request('/archive')).text();
-  for(const route of ['/zh/watch/market','/zh/watch/industry-radar','/zh/watch/resonance/rare-opportunities','/zh/watch/resonance/favorite-pattern','/zh/backtest','/zh/watch/resonance/about'])assert.ok(archive.includes(`href="${route}"`));
+  for(const route of ['/market','/sectors','/multi-factor','/patterns','/backtests','/about'])assert.ok(archive.includes(`href="${route}"`));
 });
 
 test('all new data states and summaries follow the shared language toggle',()=>{

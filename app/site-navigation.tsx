@@ -4,20 +4,23 @@ import {useNavigationCount} from './navigation-count';
 import {usePathname} from 'next/navigation';
 import {LanguageSwitch,useLocale} from './i18n/locale';
 import {sharedJson} from './json-cache';
+import {INTRO_HREF} from './first-visit';
+import Term from './term';
+import {sessionsLate} from './data-freshness';
 
 // Terminal shell: top status bar, a strip of real events and five sections in a side menu.
 // [zh label, en label, path]; each section lists the pages it absorbed.
 export const siteSections = [
  ['总览', 'Overview', [['今日', 'Today', '/']]],
  ['3W', '3W', [['信号', 'Signals', '/signals'], ['前向记录', 'Forward record', '/forward'], ['我的组合', 'My portfolio', '/portfolio']]],
- ['市场', 'Market', [['大盘', 'Market', '/zh/watch/market'], ['行业', 'Sectors', '/zh/watch/industry-radar']]],
- ['候选', 'Candidates', [['多因子', 'Multi-factor', '/zh/watch/resonance/rare-opportunities'], ['形态', 'Daily setups', '/patterns']]],
- ['研究', 'Research', [['回测', 'Backtests', '/zh/backtest'], ['研究档案', 'Archive', '/archive'], ['学习', 'Learn', '/learn'], ['关于 SV', 'About SV', '/zh/watch/resonance/about']]],
+ ['市场', 'Market', [['大盘', 'Market', '/market'], ['行业', 'Sectors', '/sectors']]],
+ ['候选', 'Candidates', [['多因子', 'Multi-factor', '/multi-factor'], ['形态', 'Daily setups', '/patterns']]],
+ ['研究', 'Research', [['回测', 'Backtests', '/backtests'], ['研究档案', 'Archive', '/archive'], ['学习', 'Learn', '/learn'], ['关于 SV', 'About SV', '/about']]],
 ] as const;
 // Old addresses that render a page above, so its menu entry stays lit.
-const ALIASES: Record<string, string> = {'/opportunities': '/signals', '/scorecard': '/forward', '/zh/watch/resonance/favorite-pattern': '/patterns'};
+const ALIASES: Record<string, string> = {'/opportunities': '/signals', '/scorecard': '/forward'};
 
-type Status = {as_of?: string; status?: string};
+type Status = {as_of?: string; status?: string; source_latest_complete_date?: string};
 type Today = {signal_week?: string; new_signals_this_week?: number; orders_to_place?: number;
  market?: {light?: string; breadth?: number; distance_pct?: number}; month_end?: {rebalance_due?: boolean}};
 type Record_ = {forward?: {signals?: number; counts?: {closed?: number; open?: number; waiting?: number}}};
@@ -25,7 +28,6 @@ type Record_ = {forward?: {signals?: number; counts?: {closed?: number; open?: n
 const getJson = <T,>(url: string) => sharedJson<T>(url);
 const shift = (iso: string, days: number) => { const d = new Date(iso + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + days); return d.toISOString().slice(5, 10); };
 const pct = (v: number) => (v > 0 ? '+' : '') + v.toFixed(1) + '%';
-
 function useShellData() {
  const [data, setData] = useState<{status: Status | null; today: Today | null; record: Record_ | null}>({status: null, today: null, record: null});
  useEffect(() => {
@@ -45,13 +47,12 @@ function useNewYorkTime() {
  return time;
 }
 
-function events(locale: string, today: Today | null, record: Record_ | null, status: Status | null): string[] {
+function events(locale: string, today: Today | null, record: Record_ | null): string[] {
  const en = locale === 'en', out: string[] = [];
- if (status?.as_of) out.push(en ? `Data ${status.as_of.slice(5)} close · checked and published` : `数据 ${status.as_of.slice(5)} 收盘 · 已核对发布`);
  const m = today?.market;
  if (m?.breadth != null && m.distance_pct != null) out.push(en
-  ? `Gate ${m.light === 'green' ? 'green' : 'amber'} · breadth ${(m.breadth * 100).toFixed(1)}% · SPY ${pct(m.distance_pct)} vs 200-day`
-  : `闸门${m.light === 'green' ? '绿灯' : '黄灯'} · 广度 ${(m.breadth * 100).toFixed(1)}% · SPY 距 200 日线 ${pct(m.distance_pct)}`);
+  ? `Market light ${m.light === 'green' ? 'green' : 'amber'} · ${(m.breadth * 100).toFixed(1)}% of 3W stocks above their 200-day · SPY ${pct(m.distance_pct)} vs its 200-day`
+  : `市场灯${m.light === 'green' ? '绿' : '黄'} · 3W 股票 ${(m.breadth * 100).toFixed(1)}% 站上 200 日线 · SPY 距 200 日线 ${pct(m.distance_pct)}`);
  if (today?.new_signals_this_week != null) out.push(en
   ? `This week: ${today.new_signals_this_week} new 3W signals · ${today.orders_to_place ?? 0} orders to place`
   : `本周 3W 新信号 ${today.new_signals_this_week} 个 · 待下单 ${today.orders_to_place ?? 0} 个`);
@@ -71,19 +72,27 @@ export default function SiteNavigation({uiVersion, build}: {uiVersion: string; b
  const {status, today, record} = useShellData(), ny = useNewYorkTime();
  const current = ALIASES[path] ?? path;
  const live = status?.status === 'up_to_date', light = today?.market?.light;
- const items = events(locale, today, record, status);
+ // Show the data date, not just "OK": late data turns amber even if the last run reported success.
+ const dataDate = status?.source_latest_complete_date ?? status?.as_of;
+ const late = dataDate ? sessionsLate(dataDate, new Date()) : 0;
+ const dataState = !status ? 'idle' : live && late === 0 ? 'go' : 'wait';
+ const dataLabel = !status ? (en ? 'Loading' : '读取中') : !dataDate ? (en ? 'Update pending' : '日更待核对')
+  : late > 0 ? (en ? `Data ${dataDate.slice(5)} · ${late} session${late > 1 ? 's' : ''} late` : `数据 ${dataDate.slice(5)} · 晚 ${late} 个交易日`)
+  : (en ? `Data ${dataDate.slice(5)}` : `数据 ${dataDate.slice(5)}`);
+ const items = events(locale, today, record);
  return <>
   <header className="svTopBar">
    <a className="svBrand" href={siteSections[0][2][0][2]} aria-label="Sage Vista">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 21 20H3Z"/><path d="M12 9 16.5 17h-9Z"/></svg>
-    <b>SAGE VISTA</b><i>{'//'}</i><span>{en ? '3W research desk' : '3W 研究台'}</span>
+    <b>SAGE VISTA</b><i>{'//'}</i><span>{en ? 'Freddy Liang’s US stock research' : 'Freddy Liang 的美股研究'}</span>
    </a>
    <div className="svPills">
-    <span className="svPill"><em data-state={status ? (live ? 'go' : 'wait') : 'idle'}/>{status ? (en ? (live ? 'Daily update OK' : 'Update pending') : (live ? '日更 正常' : '日更 待核对')) : (en ? 'Loading' : '读取中')}</span>
-    {light && <span className="svPill"><em data-state={light === 'green' ? 'go' : 'wait'}/>{en ? `Gate ${light === 'green' ? 'green' : 'amber'}` : `闸门 ${light === 'green' ? '绿灯' : '黄灯'}`}</span>}
-    <span className="svPill">{en ? 'Rule 3w-1.9 · frozen' : '规则 3w-1.9 · 已冻结'}</span>
+    <span className="svPill"><em data-state={dataState}/>{dataLabel}</span>
+    {light && <span className="svPill"><em data-state={light === 'green' ? 'go' : 'wait'}/><span><Term k="light">{en ? 'Market light' : '市场灯'}</Term>{en ? `: ${light === 'green' ? 'green' : 'amber'}` : `：${light === 'green' ? '绿' : '黄'}`}</span></span>}
+    <span className="svPill"><span>{en ? 'Rule v1.9 · ' : '规则 v1.9 · '}<Term k="locked">{en ? 'locked' : '已锁定'}</Term></span></span>
    </div>
    <div className="svClock"><small>{en ? 'New York' : '纽约'}</small><b>{ny}</b><span>ET</span></div>
+   <a className="svStartButton" href={INTRO_HREF}>{en ? 'What is SV?' : 'SV 是什么？'}</a>
    <LanguageSwitch/>
   </header>
   <div className="svTicker" aria-label={en ? 'Latest events' : '最新动态'}>

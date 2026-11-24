@@ -49,9 +49,8 @@ export default function MarketTerminal({internals,external,watch,today,flows=nul
  const hf=byT[fund], gate=today?.market;
  return <div className="ovRoot">
   <section className="ovHead"><div>
-   <small>{en?`Market · ${last.date}`:`市场 · 大盘 · ${last.date}`}</small>
    <h1>{en?`${last.date.slice(5)}: ${mood}.`:`${last.date.slice(5)}：${mood}。`}</h1>
-   <p>{en?'One question on this page: is the market with us or against us? All numbers are from the daily close.':'这一页只回答一个问题：市场现在顺不顺。数字都来自每天收盘后的真实数据。'}</p>
+   <p>{en?'Is the market with us or against us?':'市场现在顺不顺？'}</p>
   </div></section>
   <div className="mkKpis">
    <div className="ovPanel"><small>{en?'SPY close':'SPY 收盘'}</small><b>{last.spy.toFixed(2)}</b><span data-tone={spyChg>=0?'go':'loss'}>{signed(spyChg)}% {en?'on the day':'单日'}</span></div>
@@ -84,7 +83,7 @@ export default function MarketTerminal({internals,external,watch,today,flows=nul
   </div>
   <FlowsPanel panel={flows}/>
   {gate&&gate.breadth!==null&&<section className="ovPanel mkGate" aria-label={en?'What it means for 3W':'对 3W 意味着什么'}>
-   <header><small>{en?'What it means for 3W':'对 3W 意味着什么'}</small><span data-tone={gate.light==='green'?'go':'wait'}>{gate.light==='green'?(en?'Gate green':'闸门绿灯'):(en?'Gate amber':'闸门黄灯')}</span></header>
+   <header><small>{en?'What it means for 3W':'对 3W 意味着什么'}</small><span data-tone={gate.light==='green'?'go':'wait'}>{gate.light==='green'?(en?'Market light green':'市场灯绿'):(en?'Market light amber':'市场灯黄')}</span></header>
    <p>{en?`The 3W gate uses its own pool of ${gate.breadth_sample} stocks: ${(gate.breadth*100).toFixed(1)}% are above their 200-day line now. Orders are judged on the signal week, so a single bad day only matters for that week's signals.`:`3W 闸门看的是它自己的 ${gate.breadth_sample} 只股票池：现在 ${(gate.breadth*100).toFixed(1)}% 站上 200 日线。下单看的是信号那一周，所以某一天大跌只影响那一周的信号。`}</p>
   </section>}
  </div>;

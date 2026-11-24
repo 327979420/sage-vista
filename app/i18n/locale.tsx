@@ -4,9 +4,9 @@ import {translate, type Locale} from './messages';
 import {trackEvent} from '../analytics';
 
 import {DEFAULT_LOCALE, LEGACY_LOCALE_COOKIE, LOCALE_COOKIE} from './settings';
-export {LOCALE_COOKIE, normalizeLocale} from './settings';
+export {LOCALE_COOKIE, normalizeLocale, browserLocale} from './settings';
 export function saveLocalePreference(locale: Locale) {
- // No Max-Age: a session cookie, so the next visit starts in English again.
+ // No Max-Age: a session cookie, so the next visit follows the browser's language again.
  try {document.cookie = `${LOCALE_COOKIE}=${locale}; Path=/; SameSite=Lax${window.location.protocol === 'https:' ? '; Secure' : ''}`;} catch { /* Storage may be disabled; the current page still switches. */ }
 }
 export function clearLegacyLocalePreference() {
@@ -23,12 +23,11 @@ export function LocaleProvider({initialLocale = DEFAULT_LOCALE, children}: {init
   const titles: Record<string, [string, string]> = {
    '/patterns':['形态速览','Daily Setups'], '/signals':['信号凭证','Signal Evidence'], '/forward':['前向记录','Forward Record'],
    '/portfolio':['我的组合','My Portfolio'], '/opportunities':['3W 机会','3W Opportunities'], '/scorecard':['成绩单','Scorecard'], '/learn':['学习','Learn'], '/archive':['研究档案','Research Archive'],
-   '/': ['今日', 'Today'], '/zh/watch/market': ['大盘', 'Market'],
-   '/zh/watch/industry-radar': ['行业', 'Sectors'],
-   '/zh/watch/resonance/rare-opportunities': ['多因子机会', 'Multi-Factor Opportunities'],
-   '/zh/watch/resonance/favorite-pattern': ['我最喜欢形态', 'Daily Setups'],
-   '/zh/backtest': ['回测', 'Backtests'],
-   '/zh/watch/resonance/about': ['关于 SV', 'About SV'],
+   '/': ['今日', 'Today'], '/market': ['大盘', 'Market'],
+   '/sectors': ['行业', 'Sectors'],
+   '/multi-factor': ['多因子机会', 'Multi-Factor Opportunities'],
+   '/backtests': ['回测', 'Backtests'],
+   '/about': ['关于 SV', 'About SV'],
   };
   const title = titles[window.location.pathname.replace(/\/$/, '') || '/'];
   if (title) document.title = `Sage Vista — ${title[locale === 'en' ? 1 : 0]}`;

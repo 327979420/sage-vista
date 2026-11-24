@@ -409,20 +409,6 @@ html.svDark .svVisWeights span{background:#161b21;color:#ffffff}
 html.svDark .svVisWeights span:nth-child(2){background:#3d5a85}
 html.svDark .svVisWeights span:nth-child(3){background:#7d93b5}
 html.svDark .svVisTimeline li:last-child{background:#0e1815}
-html.svDark .svTourBackdrop{background:rgba(19,22,26,0.6)}
-html.svDark .svTour{background:#0b0b0b;box-shadow:none}
-html.svDark .svTour button{border:1px solid #282b30;background:#0b0b0b}
-html.svDark .svTour button.isPrimary{border-color:#17263c;background:#161b21;color:#ffffff}
-html.svDark .svTour button:focus-visible{outline:3px solid #6d9bf0}
-html.svDark .svTour .svTourChoice{border:2px solid #282b30;background:#0b0b0b}
-html.svDark .svTour .svTourChoice:hover{border-color:#17263c;background:#0a0c11}
-html.svDark .svTour .svTourChoice.isNew{border-color:#17263c;background:#0a0c12}
-html.svDark .svTourStep img{border:1px solid #282b30;background:#0a0c12}
-html.svDark .svTourDots i{background:#14181c}
-html.svDark .svTourDots i.isOn{background:#161b21}
-html.svDark .svTour .languageSwitch{border-color:#282b30;background:#0a0c12}
-html.svDark .svTour .languageSwitch button:hover{background:#0c1016}
-html.svDark .svTour .languageSwitch button[aria-pressed="true"]{background:#161b21;color:#ffffff}
 /* app/app/style.css */
 html.svDark .svAppWarning{border-left:3px solid #875c16;background:#0c0e12}
 html.svDark .svApp.rtFeaturedPage .rtSubHero{background:linear-gradient(125deg,#15181d,#191c22 68%,#1c1f25);box-shadow:none}

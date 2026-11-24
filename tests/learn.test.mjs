@@ -11,7 +11,8 @@ const visible=html=>html.replace(/<[^>]*>/g,'');
 test('learn page: four steps, glossary, costs and tax, every source linked',()=>{
  const zh=render('zh');
  assert.equal(learn.steps.length,4);
- for(const [title] of learn.steps)assert.ok(zh.includes(title));
+ // The four steps are drawn by the stepper (terminal.tsx); the view keeps the folded detail.
+ assert.ok(learn.steps.every(([title,body])=>title&&body&&body.length<=90),'each step is short');
  for(const [term] of learn.glossary)assert.ok(zh.includes(term));
  for(const [,href] of learn.sources)assert.ok(zh.includes(`href="${href}"`));
  assert.ok(zh.includes('不是投资或税务建议'));
