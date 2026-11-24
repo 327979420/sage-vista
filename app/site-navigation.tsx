@@ -6,6 +6,7 @@ import {LanguageSwitch,useLocale} from './i18n/locale';
 import {sharedJson} from './json-cache';
 import {INTRO_HREF} from './first-visit';
 import Term from './term';
+import {sessionsLate} from './data-freshness';
 
 // Terminal shell: top status bar, a strip of real events and five sections in a side menu.
 // [zh label, en label, path]; each section lists the pages it absorbed.
@@ -27,21 +28,6 @@ type Record_ = {forward?: {signals?: number; counts?: {closed?: number; open?: n
 const getJson = <T,>(url: string) => sharedJson<T>(url);
 const shift = (iso: string, days: number) => { const d = new Date(iso + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + days); return d.toISOString().slice(5, 10); };
 const pct = (v: number) => (v > 0 ? '+' : '') + v.toFixed(1) + '%';
-// Weekday sessions between the data date and the latest US close that should be in (after 18:30 ET).
-// Holidays are not known here, so one session of lag is treated as normal; two or more is late.
-export function sessionsLate(dataDate: string, now: Date) {
- const ny = new Date(now.toLocaleString('en-US', {timeZone: 'America/New_York'}));
- const expected = new Date(Date.UTC(ny.getFullYear(), ny.getMonth(), ny.getDate()));
- if (ny.getHours() * 60 + ny.getMinutes() < 18 * 60 + 30) expected.setUTCDate(expected.getUTCDate() - 1);
- let late = 0;
- for (const d = new Date(dataDate + 'T00:00:00Z'); ; ) {
-  d.setUTCDate(d.getUTCDate() + 1);
-  if (d > expected) break;
-  if (d.getUTCDay() % 6 !== 0) late++;
- }
- return late;
-}
-
 function useShellData() {
  const [data, setData] = useState<{status: Status | null; today: Today | null; record: Record_ | null}>({status: null, today: null, record: null});
  useEffect(() => {
@@ -89,9 +75,9 @@ export default function SiteNavigation({uiVersion, build}: {uiVersion: string; b
  // Show the data date, not just "OK": late data turns amber even if the last run reported success.
  const dataDate = status?.source_latest_complete_date ?? status?.as_of;
  const late = dataDate ? sessionsLate(dataDate, new Date()) : 0;
- const dataState = !status ? 'idle' : live && late <= 1 ? 'go' : 'wait';
+ const dataState = !status ? 'idle' : live && late === 0 ? 'go' : 'wait';
  const dataLabel = !status ? (en ? 'Loading' : '读取中') : !dataDate ? (en ? 'Update pending' : '日更待核对')
-  : late >= 2 ? (en ? `Data ${dataDate.slice(5)} · ${late} sessions late` : `数据 ${dataDate.slice(5)} · 晚 ${late} 个交易日`)
+  : late > 0 ? (en ? `Data ${dataDate.slice(5)} · ${late} session${late > 1 ? 's' : ''} late` : `数据 ${dataDate.slice(5)} · 晚 ${late} 个交易日`)
   : (en ? `Data ${dataDate.slice(5)}` : `数据 ${dataDate.slice(5)}`);
  const items = events(locale, today, record);
  return <>
