@@ -18,6 +18,7 @@ import "./evidence/style.css";
 // Dark terminal look: generated recolouring of the styles above, then the shell itself.
 import "./dark-theme.css";
 import "./terminal.css";
+import "./stock/stock.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

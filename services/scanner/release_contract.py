@@ -121,6 +121,19 @@ def check_tracker_and_status(public, as_of, warnings):
         warnings.append(f"industry-radar: ETF context unavailable for {', '.join(missing)}")
 
 
+def check_stock_index(public, as_of, warnings):
+    """The /stock lookup is a convenience view: a stale or missing index warns and never blocks."""
+    path = public / 'stock-index.json'
+    if not path.exists():
+        warnings.append('stock-index: missing; /stock pages show no lookup data')
+        return
+    index = read(public, 'stock-index.json')
+    if index.get('as_of') != as_of:
+        warnings.append(f"stock-index: still {index.get('as_of')}; the lookup step did not finish for {as_of}")
+    elif has_raw_bars(index):
+        raise ValueError('stock-index: contains raw OHLCV bars')
+
+
 def check_release(as_of, root=ROOT, public=None):
     """Return (errors, warnings); errors must block the release."""
     public = public or root / 'public'
@@ -130,6 +143,7 @@ def check_release(as_of, root=ROOT, public=None):
         ('candidate checkpoint', lambda: check_candidate_checkpoint(root, public, as_of, warnings)),
         ('release manifest', lambda: check_release_manifest(root, public, as_of)),
         ('tracker and status', lambda: check_tracker_and_status(public, as_of, warnings)),
+        ('stock index', lambda: check_stock_index(public, as_of, warnings)),
     )
     for label, check in checks:
         try:

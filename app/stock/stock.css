@@ -1,0 +1,88 @@
+/* Stock lookup (/stock, /stock/SYMBOL) and the top-bar search. Terminal tokens from terminal.css. */
+.slRoot { display: grid; gap: 18px; max-width: 1120px; padding-block: 6px 40px; min-width: 0; }
+.slTop { display: grid; gap: 14px; }
+.slTop h1 { margin: 0; font-weight: 300; font-size: clamp(24px, 3vw, 32px); letter-spacing: -.01em; color: var(--t-ink); }
+.slTop h1 span { margin-left: 12px; font: 13px var(--t-mono, ui-monospace, SFMono-Regular, Menlo, monospace); color: var(--t-ink-3); letter-spacing: 0; white-space: nowrap; }
+.slBack { color: var(--t-ink-3); font-size: 13px; text-decoration: none; justify-self: start; }
+.slBack:hover { color: var(--t-ink); }
+.slSearch { position: relative; max-width: 460px; min-width: 0; }
+.slSearch svg { position: absolute; left: 11px; top: 50%; translate: 0 -50%; width: 15px; height: 15px; fill: none; stroke: var(--t-ink-3); stroke-width: 2; pointer-events: none; }
+.slSearch input { width: 100%; box-sizing: border-box; padding: 10px 12px 10px 34px; background: var(--t-panel); border: 1px solid var(--t-line-2); color: var(--t-ink); font: 15px var(--t-mono, ui-monospace, SFMono-Regular, Menlo, monospace); border-radius: 0; -webkit-appearance: none; appearance: none; }
+.slSearch input::placeholder { color: var(--t-ink-4); font-family: inherit; }
+.slSearch input:focus { outline: none; border-color: var(--t-go); box-shadow: 0 0 0 2px color-mix(in srgb, var(--t-go) 30%, transparent); }
+.slTopLink { display: inline-grid; place-items: center; width: 30px; height: 30px; border: 1px solid var(--t-line); color: var(--t-ink-2); }
+.slTopLink svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; }
+.slTopLink:hover { color: var(--t-ink); border-color: var(--t-line-2); }
+.slTopLink:focus-visible { outline: 2px solid var(--t-go); outline-offset: 2px; }
+.slSugg { position: absolute; z-index: 30; left: 0; right: 0; top: 100%; margin: 0; padding: 0; list-style: none; background: var(--t-raise); border: 1px solid var(--t-line-2); border-top: 0; }
+.slSugg li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 12px; cursor: pointer; font: 13px var(--t-mono, ui-monospace, SFMono-Regular, Menlo, monospace); color: var(--t-ink); }
+.slSugg li span { color: var(--t-ink-3); font: 12px system-ui, sans-serif; text-align: right; }
+.slSugg li[aria-selected="true"], .slSugg li:hover { background: color-mix(in srgb, var(--t-ink) 8%, var(--t-raise)); }
+/* today's findings */
+.slFind { display: grid; gap: 14px; }
+.slSum { margin: 0; color: var(--t-ink-2); font-size: 16px; line-height: 1.65; max-width: 72ch; }
+.slSum b { color: var(--t-ink); font-weight: 500; }
+.slRows { display: grid; border: 1px solid var(--t-line); background: var(--t-panel); }
+.slRow { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 6px 16px; padding: 12px 16px; border-top: 1px solid var(--t-line); align-items: baseline; }
+.slRow:first-child { border-top: 0; }
+.slLab { display: grid; gap: 2px; }
+.slLab b, .slLight b { display: flex; align-items: center; gap: 8px; font-weight: 500; color: var(--t-ink); }
+.slLab b::before, .slLight b::before { content: ""; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--t-line-2); }
+[data-tone="go"] > .slLab b::before, .slLight[data-tone="go"] b::before { background: var(--t-go); }
+[data-tone="wait"] > .slLab b::before, .slLight[data-tone="wait"] b::before { background: var(--t-wait); }
+[data-tone="stop"] > .slLab b::before, .slLight[data-tone="stop"] b::before { background: var(--t-loss); }
+.slLab small { color: var(--t-ink-3); font-size: 12px; padding-left: 16px; }
+.slChips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.slChips a { padding: 3px 9px; border: 1px solid var(--t-line-2); color: var(--t-ink); font: 12px var(--t-mono, ui-monospace, SFMono-Regular, Menlo, monospace); text-decoration: none; }
+.slChips a:hover { border-color: var(--t-ink-3); }
+.slChips a.slMore { border: 0; padding-inline: 4px; color: var(--t-ink-3); font-family: system-ui, sans-serif; }
+.slChips em { color: var(--t-ink-4); font-style: normal; font-size: 12px; }
+.slHint, .slQuiet { margin: 0; color: var(--t-ink-3); font-size: 13px; }
+.slLead { margin: 0; color: var(--t-ink-2); font-size: 15px; max-width: 70ch; }
+/* one stock */
+.slCard { display: grid; gap: 16px; min-width: 0; }
+.slHead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
+.slHead h1 { margin: 0; font: 300 clamp(32px, 4vw, 44px)/1 var(--t-mono, ui-monospace, SFMono-Regular, Menlo, monospace); color: var(--t-ink); letter-spacing: .02em; }
+.slPx { color: var(--t-ink-2); font: 14px var(--t-mono, ui-monospace, SFMono-Regular, Menlo, monospace); }
+.slChip { padding: 2px 8px; border: 1px solid currentColor; color: var(--t-ink-3); font-size: 12px; }
+.slChip[data-on] { color: var(--t-go); }
+.slShare { flex-basis: 100%; display: flex; gap: 10px; align-items: center; min-width: 0; color: var(--t-ink-3); font: 12px var(--t-mono, ui-monospace, SFMono-Regular, Menlo, monospace); }
+.slShare code { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.slShare button, .slWant { flex: none; background: none; border: 1px solid var(--t-line-2); color: var(--t-ink-2); font: 12px system-ui, sans-serif; padding: 3px 9px; cursor: pointer; }
+.slWant { padding: 9px 14px; font-size: 14px; background: var(--t-ink); color: var(--t-bg); border-color: var(--t-ink); }
+.slWant:disabled { background: none; color: var(--t-go); border-color: var(--t-go); cursor: default; }
+.slLights { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--t-line); background: var(--t-panel); }
+.slLight { display: grid; gap: 4px; align-content: start; padding: 12px 14px; border-left: 1px solid var(--t-line); min-width: 0; }
+.slLight:first-child { border-left: 0; }
+.slLight small { color: var(--t-ink-3); font: 11px var(--t-mono, ui-monospace, SFMono-Regular, Menlo, monospace); letter-spacing: .1em; text-transform: uppercase; }
+.slLight[data-tone="go"] b { color: var(--t-go); }
+.slLight[data-tone="wait"] b { color: var(--t-wait); }
+.slLight span { color: var(--t-ink-3); font-size: 13px; }
+.slBody { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 14px 18px; align-items: start; }
+.slChart { grid-column: 1; grid-row: span 3; border: 1px solid var(--t-line); background: var(--t-panel); min-width: 0; }
+.slChart header { padding: 8px 12px; border-bottom: 1px solid var(--t-line); color: var(--t-ink-3); font-size: 12px; }
+.slChart .slQuiet { padding: 24px 12px; }
+.slChart svg { display: block; width: 100%; height: auto; }
+.slMini { height: 240px; padding: 10px; }
+.slMini svg { height: 100%; }
+.slFact { display: grid; gap: 5px; padding-top: 8px; border-top: 1px solid var(--t-line-2); min-width: 0; }
+.slFact h3 { margin: 0; color: var(--t-ink-3); font: 11px var(--t-mono, ui-monospace, SFMono-Regular, Menlo, monospace); letter-spacing: .12em; font-weight: 400; }
+.slFact p { margin: 0; color: var(--t-ink-2); font-size: 14px; }
+.slFact p b { color: var(--t-ink); font-weight: 500; }
+.slFact a { color: var(--t-go); font-size: 13px; text-decoration: none; }
+.slPlan { display: flex; flex-wrap: wrap; gap: 4px 14px; color: var(--t-ink-2); font: 13px var(--t-mono, ui-monospace, SFMono-Regular, Menlo, monospace); }
+.slPlan i { color: var(--t-ink-4); font-style: normal; }
+.slTry { display: grid; gap: 6px; }
+.slTry small { color: var(--t-ink-3); font: 11px var(--t-mono, ui-monospace, SFMono-Regular, Menlo, monospace); letter-spacing: .1em; text-transform: uppercase; }
+.slFoot { margin: 6px 0 0; padding-top: 12px; border-top: 1px solid var(--t-line); color: var(--t-ink-3); font-size: 12px; max-width: 80ch; }
+.slSearch input:focus-visible, .slChips a:focus-visible, .slShare button:focus-visible, .slWant:focus-visible, .slBack:focus-visible { outline: 2px solid var(--t-go); outline-offset: 2px; }
+@media (max-width: 760px) {
+ .slRow { grid-template-columns: minmax(0, 1fr); }
+ .slLights { grid-template-columns: minmax(0, 1fr); }
+ .slLight { border-left: 0; border-top: 1px solid var(--t-line); grid-template-columns: 104px minmax(0, 1fr); column-gap: 10px; align-items: baseline; }
+ .slLight:first-child { border-top: 0; }
+ .slLight span { grid-column: 2; }
+ .slBody { grid-template-columns: minmax(0, 1fr); }
+ .slChart { grid-column: auto; grid-row: auto; }
+ .slTop h1 span { display: block; margin: 6px 0 0; }
+}
