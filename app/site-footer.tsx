@@ -5,7 +5,7 @@ import PrivacyNote from './privacy-note';
 const ABOUT = '/about';
 const columns: [string, [string, string][]][] = [
  ['关于 SV', [['SV 是什么', `${ABOUT}#what-is-sv`], ['如何使用 SV', `${ABOUT}#how-to-use`], ['免责声明', `${ABOUT}#disclaimer`], ['一分钟了解 SV', '/?intro=1']]],
- ['探索', [['今日', '/'], ['信号', '/signals'], ['前向记录', '/forward'], ['大盘', '/market'], ['行业', '/sectors']]],
+ ['探索', [['今日', '/'], ['信号', '/signals'], ['成绩单', '/forward'], ['大盘', '/market'], ['行业', '/sectors']]],
  ['方法', [['四步看懂 3W', '/learn'], ['回测', '/backtests'], ['研究档案', '/archive']]],
 ];
 
