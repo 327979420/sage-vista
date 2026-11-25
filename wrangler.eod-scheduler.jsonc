@@ -15,7 +15,8 @@
     "GITHUB_REPO": "sage-vista",
     "GITHUB_REF": "main",
     "EOD_WORKFLOW": "daily-eod.yml",
-    "FRESHNESS_WORKFLOW": "eod-freshness-monitor.yml"
+    "FRESHNESS_WORKFLOW": "eod-freshness-monitor.yml",
+    "RESEARCH_WORKFLOW": "research-lab.yml"
   },
   "secrets": {
     "required": ["GITHUB_ACTIONS_TOKEN"]

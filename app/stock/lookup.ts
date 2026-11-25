@@ -12,6 +12,36 @@ export type StockIndex = {schema_version: number; as_of: string; count: number; 
  closed: number; big: string[]; new: {mf: string[]; sh: string[]; w3: string[]}; new_since: string | null; stocks: Record<string, Entry>};
 
 export const INDEX_URL = '/stock-index.json';
+
+// 3W comes from the research lab, which publishes public/app/*.json hours after the daily index is
+// written. Re-reading those files keeps the stock pages in step with the 3W page. The rules mirror
+// build() in services/scanner/stock_lookup.py; files older than the index's own 3W never replace it.
+export const W3_URLS = {signals: '/app/signals.json', today: '/app/today.json', record: '/app/record.json'} as const;
+type Signal = {id: string; symbol: string; week: string; status: string; quote?: {close?: number | null} | null};
+export type W3Files = {signals: unknown; today: unknown; record: unknown};
+
+export function withLive3W(index: StockIndex, files: W3Files): StockIndex {
+ const signals = (files.signals as {signals?: Signal[]} | null)?.signals;
+ const today = files.today as {as_of?: string; signal_week?: string | null; new_signals_this_week?: number | null; market?: {light?: string | null} | null} | null;
+ if (!Array.isArray(signals) || !today || typeof today.as_of !== 'string' || today.as_of <= (index.w3.as_of ?? '')) return index;
+ if (!signals.every(s => s && typeof s.id === 'string' && typeof s.symbol === 'string' && typeof s.week === 'string')) return index;
+ const stocks: Record<string, Entry> = {};
+ for (const [symbol, entry] of Object.entries(index.stocks)) { const rest = {...entry}; delete rest.w3; stocks[symbol] = rest; }
+ for (const s of [...signals].sort((a, b) => (a.week < b.week ? -1 : a.week > b.week ? 1 : 0))) {
+  const close = s.quote?.close;
+  stocks[s.symbol] ??= {c: typeof close === 'number' ? Math.round(close * 100) / 100 : null, x: true};
+  stocks[s.symbol].w3 = {id: s.id, week: s.week, status: s.status};
+ }
+ for (const [symbol, e] of Object.entries(stocks)) if (e.x && !e.w3 && e.mf === undefined && !e.sh) delete stocks[symbol];
+ const latestWeek = signals.reduce<string | null>((max, s) => (max === null || s.week > max ? s.week : max), null);
+ const appeared = Object.keys(stocks).filter(s => stocks[s].w3 && stocks[s].w3!.id !== index.stocks[s]?.w3?.id);
+ const closed = (files.record as {forward?: {counts?: {closed?: unknown}}} | null)?.forward?.counts?.closed;
+ return {...index, stocks,
+  w3: {as_of: today.as_of, week: today.signal_week ?? null, new: today.new_signals_this_week ?? null, light: today.market?.light ?? null,
+   latest_week: latestWeek, latest: signals.filter(s => s.week === latestWeek).map(s => s.symbol).sort(), since_lock: signals.length},
+  closed: Number.isInteger(closed) ? closed as number : index.closed,
+  new: {...index.new, w3: [...new Set([...index.new.w3, ...appeared])].sort()}};
+}
 export const stockHref = (symbol: string) => `/stock/${encodeURIComponent(symbol)}`;
 
 export function validIndex(v: unknown): v is StockIndex {

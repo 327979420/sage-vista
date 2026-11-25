@@ -72,7 +72,7 @@ Sage Vista（SV）是用户（Freddy）的美股研究系统，分两部分：
 2. **实验先登记再跑**：规格写在 `research/lab/queue/*.json`，登记写进 `research/experiments.jsonl`、`research/experiment-events.jsonl`、`research/experiment-summaries.zh.json`；成功标准事先写好、跑完不改；失败结果也保留。
 3. **生产不能自己改**：评分、排名、交易规则、数据生产、`public/` 数据、网站，没有用户明确批准不动。
 4. **每次改动的收尾**：改 08 规则版本和变更记录 → 写需求账本条目（CR）→ 运行 `python3 -m services.scanner.experiment_catalog` 和 `python3 -m services.scanner.project_status` → 跑全部测试 `python3 -m unittest discover -s tests -p 'test_*.py'` → 开 PR → 检查通过后合并。
-5. **实验在后台跑**：GitHub Actions `research-lab.yml`（UTC 04:45、08:15 定时，或手动触发）；本地只做工程检查，不看比较结果。
+5. **实验在后台跑**：GitHub Actions `research-lab.yml`（Cloudflare 定时器 UTC 04:37 周二至周六叫醒；GitHub 自带的 04:45、08:15 定时作备份；也可手动触发）；本地只做工程检查，不看比较结果。
 6. **每次实验跑完**：写中文报告，更新进度页 <https://claude.ai/artifact/DAvLFAzoaQt7vfLsUaWC7V>（先读再改）。
 7. **设计实验前先列出用户已定的规则**，说明这次是遵守还是有意挑战哪一条。
 8. **和用户沟通**：简体中文，结论在前，短句，小表格，术语要解释。用户常用语音输入，字可能错，按意思理解。

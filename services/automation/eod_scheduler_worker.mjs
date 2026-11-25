@@ -1,5 +1,8 @@
 export const EOD_WINDOW_CRON = "17,47 0-3,23 * * 1-6";
-export const FRESHNESS_CRON = "37 4 * * 2-6";
+// After the 23:30-04:30 UTC EOD window, Tuesday-Saturday: the freshness audit and the research lab
+// (3W data and Discord). GitHub's own research-lab schedule ran 10+ hours late, so it stays only as a
+// backup. Cloudflare's free plan allows two cron triggers, so both share this one.
+export const MORNING_CRON = "37 4 * * 2-6";
 
 const NEXT_DAY_EOD_TIMES = new Set([
   "00:17",
@@ -27,16 +30,19 @@ export function isEodDispatchTime(scheduledTime) {
   return weekday >= 2 && weekday <= 6 && NEXT_DAY_EOD_TIMES.has(time);
 }
 
-export function planForCron(cron, env, scheduledTime) {
+export function plansForCron(cron, env, scheduledTime) {
   if (cron === EOD_WINDOW_CRON) {
-    if (!isEodDispatchTime(scheduledTime)) return null;
-    return {
+    if (!isEodDispatchTime(scheduledTime)) return [];
+    return [{
       workflow: required(env, "EOD_WORKFLOW"),
       inputs: { mode: "update", trigger_source: "cloudflare_cron" },
-    };
+    }];
   }
-  if (cron === FRESHNESS_CRON) {
-    return { workflow: required(env, "FRESHNESS_WORKFLOW"), inputs: {} };
+  if (cron === MORNING_CRON) {
+    return [
+      { workflow: required(env, "FRESHNESS_WORKFLOW"), inputs: {} },
+      { workflow: required(env, "RESEARCH_WORKFLOW"), inputs: { wait_for_window: "0" } },
+    ];
   }
   throw new Error(`Unregistered scheduler cron: ${cron}`);
 }
@@ -73,12 +79,23 @@ export async function dispatchWorkflow(plan, env, fetchImpl = fetch) {
   };
 }
 
+// Each plan is dispatched on its own: one failing dispatch never stops the other, and any failure
+// still fails the scheduled event so it shows in the Worker's logs.
+export async function dispatchAll(plans, env, context = {}, fetchImpl = fetch) {
+  const settled = await Promise.allSettled(plans.map(plan => dispatchWorkflow(plan, env, fetchImpl)));
+  const failures = [];
+  settled.forEach((outcome, i) => {
+    if (outcome.status === "fulfilled") console.log(JSON.stringify({ event: "scheduled_dispatch", ...context, ...outcome.value }));
+    else failures.push(`${plans[i].workflow}: ${outcome.reason?.message ?? outcome.reason}`);
+  });
+  if (failures.length) throw new Error(`Scheduled dispatch failed for ${failures.join("; ")}`);
+  return settled.map(outcome => outcome.value);
+}
+
 export default {
   async scheduled(controller, env, ctx) {
-    const plan = planForCron(controller.cron, env, controller.scheduledTime);
-    if (!plan) return;
-    ctx.waitUntil(dispatchWorkflow(plan, env).then(result => {
-      console.log(JSON.stringify({event: "scheduled_dispatch", scheduledTime: controller.scheduledTime, cron: controller.cron, ...result}));
-    }));
+    const plans = plansForCron(controller.cron, env, controller.scheduledTime);
+    if (!plans.length) return;
+    ctx.waitUntil(dispatchAll(plans, env, { scheduledTime: controller.scheduledTime, cron: controller.cron }));
   },
 };

@@ -20,12 +20,12 @@ eod-freshness-monitor.yml
 自动 dispatch 一次 freshness_recovery
 ```
 
-Cloudflare只负责准时发起，不读取行情、不计算分数、不部署网站。所有数据和发布仍由唯一的 `daily-eod.yml` 完成。
+Cloudflare只负责准时发起，不读取行情、不计算分数、不部署网站。所有日终数据和发布仍由唯一的 `daily-eod.yml` 完成；3W 数据仍由 `research-lab.yml` 完成。
 
 ## 时间
 
 - Cloudflare只占用2条 Cron Trigger。日终宽窗口表达式为 `17,47 0-3,23 * * 1-6`；Worker内部只允许 UTC `23:47`（周一至周五），以及次日 `00:17 / 00:47 / 01:17 / 01:47 / 02:17 / 03:17`（周二至周六）真正 dispatch。其他宽窗口唤醒立即空退出，不调用GitHub。
-- 第二条独立新鲜度检查为 UTC `04:37`，周二至周六。
+- 第二条为 UTC `04:37`，周二至周六：同时叫醒独立新鲜度检查和研究实验室 `research-lab.yml`（3W 数据与 Discord；2026-11-25 起，因为 GitHub 自带定时晚 10 小时以上）。研究实验室自己的 GitHub 定时 04:45、08:15 只作备份。
 - 重复运行是安全的：全套数据和因子版本已经一致时返回 `already_current`，不重新部署或通知。
 
 ## 一次性安全配置
