@@ -260,6 +260,7 @@ export const catalog: Record<string, string> = {
   "今日": "Today",
   "3W 机会": "3W Opportunities",
   "我的组合": "My Portfolio",
+  "模拟账户": "Paper account",
   "成绩单": "Scorecard",
   "学习": "Learn",
   "研究档案": "Research Archive",
