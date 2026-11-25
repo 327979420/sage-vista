@@ -168,6 +168,55 @@ def judge_checkpoint(done, paper):
             "mean_d": avg, "t": t, "alarm1": alarm1, "verdict": verdict}
 
 
+SHADOW_CHECKPOINTS = (30, 60, 100)
+SHADOW_KEEP, SHADOW_PROPOSE = "保留大盘过滤", "提出3w-2.0候选，待owner决定"
+SHADOW_VERDICTS = ("记录中", SHADOW_KEEP, SHADOW_PROPOSE, "继续记录到60笔", "仍看不出差别")
+
+
+def _shadow_checkpoint(done):
+    """Case ledger 17 (2026-11-25): judge a prefix of closed market-blocked trades."""
+    k = len(done)
+    scored = [r for r in done if r["trade"]["net_R"] is not None and r["net_twin_mean"] is not None
+              and r["check"] != "对照不一致"]
+    rs = [r["trade"]["net_R"] for r in scored]
+    ds = [r["trade"]["net_R"] - r["net_twin_mean"] for r in scored]
+    avg, avg_d = mean(rs), mean(ds)
+    sd = stats.stdev(rs) if len(rs) > 1 else None
+    t = avg / (sd / math.sqrt(len(rs))) if sd else None
+    if avg is None:
+        verdict = "继续记录到60笔" if k < 60 else "仍看不出差别"
+    elif avg <= 0:
+        verdict = SHADOW_KEEP
+    elif t is not None and t >= 2 and avg_d is not None and avg_d > 0:
+        verdict = SHADOW_PROPOSE
+    else:
+        verdict = "继续记录到60笔" if k < 60 else "仍看不出差别"
+    return {"k": k, "scored": len(scored), "unscorable": k - len(scored), "mean_net_R": avg, "t": t,
+            "mean_d": avg_d, "verdict": verdict}
+
+
+def shadow(rows):
+    """Shadow record: plan-go signals the market filter blocked, replayed with the same frozen rule 1.9 and twins.
+    Recorded and shown only; never part of the alarms, the proof or the cumulative R."""
+    done = sorted((r for r in rows if r["trade"] is not None and not r["eligible"] and r["completed"]),
+                  key=lambda r: (r["exit_date"] or "", r["id"]))
+    if any(not r.get("exit_date") for r in done):
+        raise ValueError("影子单缺重算退出日期，无法确定检查点顺序")
+    n = len(done)
+    checkpoints = [_shadow_checkpoint(done[:k]) for k in SHADOW_CHECKPOINTS if k <= n]
+    decisive = next((c["verdict"] for c in checkpoints if c["verdict"] in (SHADOW_KEEP, SHADOW_PROPOSE)), None)
+    nxt = next((k for k in SHADOW_CHECKPOINTS if k > n), None)
+    overall = _shadow_checkpoint(done)
+    rs = [r["trade"]["net_R"] for r in done if r["trade"]["net_R"] is not None]
+    return {"signals": sum(1 for r in rows if r["trade"] is not None and not r["eligible"]),
+            "completed": n, "scored": overall["scored"], "unscorable": overall["unscorable"],
+            "next_checkpoint": nxt, "to_go": nxt - n if nxt else None,
+            "mean_net_R": overall["mean_net_R"], "t": overall["t"], "mean_d": overall["mean_d"],
+            "win_rate": sum(x > 0 for x in rs) / len(rs) if rs else None,
+            "checkpoints": checkpoints,
+            "verdict": decisive or (checkpoints[-1]["verdict"] if checkpoints else "记录中")}
+
+
 def score(rows, paper=None, *, checkpoint_judge=None):
     """Shared exit-ordered checkpoint traversal; optional task-specific verdict.
 
@@ -204,7 +253,7 @@ def score(rows, paper=None, *, checkpoint_judge=None):
             "profit_factor": sum(wins)/-sum(losses) if losses else None,
             "mean_net_R": mean(rs), "random_net_R": mean([r["net_twin_mean"] for r in scored]),
             "gross_check": mean([r["gross_difference"] for r in scored]),
-            "paper": paper, "rows": rows}
+            "shadow": shadow(rows), "paper": paper, "rows": rows}
 
 
 def markdown(report):
@@ -238,6 +287,11 @@ def markdown(report):
         lines.append(f"- {label}：收益 {show(p.get('return'))}；最大回撤 {show(p.get('drawdown'))}；Sharpe {show(p.get('sharpe'))}")
     if "convention" in report["paper"]:
         lines.append(report["paper"]["convention"] + "；以上四项使用同一输入日期区间。")
+    sh = report.get("shadow")
+    if sh:
+        lines += ["", f"影子记录（被大盘挡掉的单，不进警报和证明）：{sh['verdict']}；共 {sh['signals']} 个，"
+                  f"已结束 {sh['completed']} 笔，下一检查点 {show(sh['next_checkpoint'])}；平均净R {show(sh['mean_net_R'])}，"
+                  f"t {show(sh['t'])}，比随机孪生 {show(sh['mean_d'])}，胜率 {show(sh['win_rate'])}。"]
     lines += ["", "限制：重复检查会累积误报；交易可能相关。账户输入必须覆盖同期且不含外部现金流，未提供时不判断有效。"]
     lines.append("限制：若本地缺少某个bulk缓存交易日，缺冻结孪生值（无冻结核对）的交易无法被复现闸门检出；正式计分必须在前向任务中运行。")
     return "\n".join(lines) + "\n"

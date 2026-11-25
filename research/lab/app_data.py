@@ -574,7 +574,8 @@ def public_judging(scorecard, outcomes):
     base = dict(status='missing', completed=None, scored=None, unscorable=None,
                 next_checkpoint=None, to_go=None, checkpoints=[], alarm1=None,
                 verdict='本次运行未生成计分', alarm2=PUBLIC_PAPER, proof=PUBLIC_PAPER,
-                thresholds=thresholds)
+                thresholds=thresholds,
+                shadow=None)
     # A leftover scorecard must not masquerade as this run's scorecard.
     if scorecard is None or scorecard.get('computed_at') != outcomes['computed_at']:
         return base
@@ -588,7 +589,38 @@ def public_judging(scorecard, outcomes):
                     'verdict': verdict(c['verdict'])} for c in scorecard['checkpoints']]
     return {**base, **{k: scorecard[k] for k in
             ('completed', 'scored', 'unscorable', 'next_checkpoint', 'to_go', 'alarm1')},
-            'status': 'available', 'checkpoints': checkpoints, 'verdict': verdict(scorecard['verdict'])}
+            'status': 'available', 'checkpoints': checkpoints, 'verdict': verdict(scorecard['verdict']),
+            'shadow': public_shadow(scorecard.get('shadow'))}
+
+
+SHADOW_FIELDS = ('signals', 'completed', 'scored', 'unscorable', 'next_checkpoint', 'to_go',
+                 'mean_net_R', 't', 'mean_d', 'win_rate', 'verdict')
+
+
+def public_shadow(block):
+    """Allowlist of the shadow record (case ledger 17, 2026-11-25); None for a scorecard written before it existed."""
+    if block is None:
+        return None
+    if block['verdict'] not in forward_judge.SHADOW_VERDICTS:
+        raise ValueError('unknown shadow verdict')
+    return {**{k: block[k] for k in SHADOW_FIELDS},
+            'checkpoints': [{k: c[k] for k in ('k', 'scored', 'unscorable', 'mean_net_R', 't', 'mean_d', 'verdict')}
+                            for c in block['checkpoints']]}
+
+
+def shadow_outcome(rec, series):
+    """What a market-blocked plan-go signal would have done under the same frozen rule 1.9 (counterfactual; display only)."""
+    if not (rec['plan']['go'] and not rec['market']['ok']):
+        return None
+    p = rec['plan']
+    got = triangle15.trade(series, series['date'].index(rec['signal_day']), p['level'], p['stop'],
+                           p['level'] + 3 * (p['level'] - p['stop']), hold=130)
+    raw = got['status']
+    closed = raw in forward_judge.DONE
+    status = 'closed' if closed else {'open': 'filled'}.get(raw, raw)
+    return dict(status=status, outcome=exit_kind(raw) if closed else None,
+                R=forward_judge.net_r(got['entry'], got['exit'], p['stop']) if closed else None,
+                exit_date=series['date'][got['exit_day']] if closed else None)
 
 
 def load_scorecard(root, outcomes):
@@ -652,7 +684,7 @@ def forward_data(records, outcomes, price_sets, judgements, facts, as_of, genera
                          R=net, gross_R=outcome['R'] if closed else None, exit_date=outcome.get('exit_date'),
                          alert_id=ids[rec['id']], lifecycle=dict(status=lifecycle, date=event_date),
                          verification=outcome['source'], outcome_mismatch=outcome.get('mismatch'),
-                         random=twins))
+                         random=twins, shadow=shadow_outcome(rec, s)))
     done = sorted((r for r in rows if r['status'] == 'closed' and r['R'] is not None),
                   key=lambda r: (r['exit_date'], r['id']))
     total = 0.0
