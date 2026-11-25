@@ -188,4 +188,35 @@ class ForwardTests(unittest.TestCase):
         self.assertLess(len(app.json_bytes(t)),60_000)
         self.assertEqual(Path('public/app/tickets/index.json').read_bytes(), before)
 
+    def test_shadow_row_is_counterfactual_and_never_counted(self):
+        blocked=dict(self.rec,market=dict(self.rec['market'],ok=False))
+        result=self.project([blocked])
+        row=result['signals'][0]
+        self.assertEqual(row['status'],'skipped')
+        self.assertIsNone(row['R'])
+        self.assertEqual(result['cumulative_R'],[])
+        self.assertEqual(result['summary']['closed'],0)
+        p=self.rec['plan']
+        got=app.triangle15.trade(self.s,self.s['date'].index(self.rec['signal_day']),p['level'],p['stop'],
+            p['level']+3*(p['level']-p['stop']),hold=130)
+        self.assertEqual(row['shadow'],dict(status='closed',outcome='stop',
+            R=app.forward_judge.net_r(got['entry'],got['exit'],p['stop']),exit_date=self.s['date'][got['exit_day']]))
+        self.assertIsNone(self.project()['signals'][0]['shadow'])
+        self.assertIsNone(self.project([dict(blocked,plan=dict(p,go=False,why='R:R under 1.5'))])['signals'][0]['shadow'])
+
+    def test_shadow_judging_allowlist(self):
+        card=app.forward_judge.score([])
+        card['computed_at']=self.out['computed_at']
+        self.assertEqual(app.public_judging(card,self.out)['shadow']['verdict'],'记录中')
+        self.assertIsNone(app.public_judging(None,self.out)['shadow'])
+        old=dict(card); old.pop('shadow')
+        self.assertIsNone(app.public_judging(old,self.out)['shadow'])
+        card['shadow']=dict(card['shadow'],secret='NEVER_PUBLIC',checkpoints=[dict(k=30,scored=30,unscorable=0,mean_net_R=-.2,t=-1.,
+            mean_d=-.1,verdict=app.forward_judge.SHADOW_KEEP,secret='NEVER_PUBLIC')],verdict=app.forward_judge.SHADOW_KEEP)
+        shadow=app.public_judging(card,self.out)['shadow']
+        self.assertEqual(shadow['checkpoints'][0]['verdict'],'保留大盘过滤')
+        self.assertNotIn('NEVER_PUBLIC',app.json_bytes(shadow).decode())
+        card['shadow']['verdict']='放松过滤'
+        with self.assertRaises(ValueError): app.public_judging(card,self.out)
+
 if __name__=='__main__': unittest.main()

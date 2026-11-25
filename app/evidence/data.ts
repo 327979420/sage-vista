@@ -9,10 +9,15 @@ export type Ticket = {schema_version:1; id:string; symbol:string; signal_week:st
 export type Moves = Record<'1w'|'4w'|'13w',{date:string;move_pct:number}|null>;
 export type ForwardRow = {id:string;symbol:string;signal_week:string;status:string;moves:Moves;outcome:string|null;R:number|null;exit_date:string|null;
  random:{twins:string;sampled:number;closed:number;median_R:number|null;beat_share:number|null;mean_R:number|null;moves?:Record<'1w'|'4w'|'13w',{median_pct:number;sample:number}|null>;exits?:Record<string,number>|null};
- gross_R:number|null;alert_id:string;lifecycle:{status:string;date:string|null}};
+ gross_R:number|null;alert_id:string;lifecycle:{status:string;date:string|null};shadow?:ShadowRow|null};
+// Shadow record (case ledger 17, 2026-11-25): what a market-blocked plan-go signal would have done. Display only.
+export type ShadowRow = {status:'waiting'|'cancelled'|'filled'|'closed';outcome:'target'|'stop'|'time'|null;R:number|null;exit_date:string|null};
+export type Shadow = {signals:number;completed:number;scored:number;unscorable:number;next_checkpoint:number|null;to_go:number|null;
+ mean_net_R:number|null;t:number|null;mean_d:number|null;win_rate:number|null;verdict:string;
+ checkpoints:{k:number;scored:number;unscorable:number;mean_net_R:number|null;t:number|null;mean_d:number|null;verdict:string}[]};
 export type Judging = {status:'available'|'missing';completed:number|null;scored:number|null;unscorable:number|null;next_checkpoint:number|null;to_go:number|null;alarm1:boolean|null;verdict:string;alarm2:string;proof:string;
  checkpoints:{k:number;scored:number;unscorable:number;mean_d:number|null;t:number|null;alarm1:boolean;verdict:string}[];
- thresholds:{checkpoints:number[];checkpoint_step:number;alarm1_mean_lt:number;alarm1_t_lte:number;proof_min_trades:number;proof_t_gte:number;satellite_drawdown_gt:number;unscorable_fraction_gt:number}};
+ thresholds:{checkpoints:number[];checkpoint_step:number;alarm1_mean_lt:number;alarm1_t_lte:number;proof_min_trades:number;proof_t_gte:number;satellite_drawdown_gt:number;unscorable_fraction_gt:number};shadow?:Shadow|null};
 export type Forward = {schema_version:1;judging:Judging;as_of:string;outcomes_as_of:string;next_check:string;
  executable?:{computed_at:string;trades:number;wins:number;mean_R:number|null;sum_R:number;skipped_stop:number;skipped_target:number;waiting:number;open:number}|null;
  summary:{signals:number;closed:number;average_R:number|null;win_rate:number|null;beat_random_share:number|null;beat_random_signals:number};
@@ -37,12 +42,26 @@ export function validTicket(v:unknown):v is Ticket {
  &&obj(o)&&typeof o.status==='string'&&typeof o.source==='string'&&optionalDate(o.fill_date)&&optionalDate(o.exit_date)&&optionalNumber(o.exit)&&optionalNumber(o.R);
 }
 const count=(v:unknown):v is number=>finite(v)&&Number.isInteger(v)&&v>=0;
+export const shadowVerdicts=['记录中','保留大盘过滤','提出3w-2.0候选，待owner决定','继续记录到60笔','仍看不出差别'];
+function validShadow(v:unknown):boolean {
+ if(v===undefined||v===null)return true;
+ if(!obj(v)||!['signals','completed','scored','unscorable'].every(k=>count(v[k]))||!shadowVerdicts.includes(String(v.verdict))||!Array.isArray(v.checkpoints))return false;
+ const n=v.completed as number, next=[30,60,100].find(k=>k>n)??null;
+ if((v.scored as number)+(v.unscorable as number)!==n||(v.signals as number)<n||v.next_checkpoint!==next||v.to_go!==(next===null?null:next-n))return false;
+ if(!['mean_net_R','t','mean_d','win_rate'].every(k=>optionalNumber(v[k])))return false;
+ const reached=[30,60,100].filter(k=>k<=n);
+ return v.checkpoints.length===reached.length&&v.checkpoints.every((c,i)=>obj(c)&&c.k===reached[i]&&count(c.scored)&&count(c.unscorable)&&c.scored+c.unscorable===c.k
+  &&['mean_net_R','t','mean_d'].every(k=>optionalNumber(c[k]))&&shadowVerdicts.includes(String(c.verdict)));
+}
+const validShadowRow=(v:unknown)=>v===undefined||v===null||(obj(v)&&['waiting','cancelled','filled','closed'].includes(String(v.status))
+ &&(v.outcome===null||['target','stop','time'].includes(String(v.outcome)))&&optionalNumber(v.R)&&optionalDate(v.exit_date)&&((v.status==='closed')===(v.R!==null)));
 const publicVerdicts=['继续记录，未证明','失效警报1','暂停判断（对照不足）','需模拟账户，不在公开页'];
 function validJudging(v:unknown):v is Judging {
  if(!obj(v)||!['available','missing'].includes(String(v.status))||v.alarm2!=='需模拟账户，不在公开页'||v.proof!=='需模拟账户，不在公开页'||!obj(v.thresholds)||!Array.isArray(v.checkpoints))return false;
  const t=v.thresholds;
  if(JSON.stringify(t.checkpoints)!=='[30,60,100]'||t.checkpoint_step!==100||t.alarm1_mean_lt!==0||t.alarm1_t_lte!==-2||t.proof_min_trades!==100||t.proof_t_gte!==2||t.satellite_drawdown_gt!==.25||t.unscorable_fraction_gt!==.1)return false;
- if(v.status==='missing')return ['completed','scored','unscorable','next_checkpoint','to_go','alarm1'].every(k=>v[k]===null)&&v.checkpoints.length===0&&v.verdict==='本次运行未生成计分';
+ if(v.status==='missing')return ['completed','scored','unscorable','next_checkpoint','to_go','alarm1'].every(k=>v[k]===null)&&v.checkpoints.length===0&&v.verdict==='本次运行未生成计分'&&(v.shadow===undefined||v.shadow===null);
+ if(!validShadow(v.shadow))return false;
  if(!['completed','scored','unscorable','next_checkpoint','to_go'].every(k=>count(v[k]))||typeof v.alarm1!=='boolean'||!publicVerdicts.includes(String(v.verdict)))return false;
  const n=v.completed as number, next=n<30?30:n<60?60:n<100?100:(Math.floor(n/100)+1)*100;
  if((v.scored as number)+(v.unscorable as number)!==n||v.next_checkpoint!==next||v.to_go!==next-n)return false;
@@ -61,7 +80,7 @@ export function validForward(v:unknown):v is Forward {
  &&['1w','4w','13w'].every(k=>{const m=(r.moves as Record<string,unknown>)[k];return m===null||(obj(m)&&date(m.date)&&finite(m.move_pct))})
  &&obj(r.random)&&typeof r.random.twins==='string'&&finite(r.random.closed)&&finite(r.random.sampled)&&['median_R','mean_R','beat_share'].every(k=>optionalNumber((r.random as Record<string,unknown>)[k]))
  &&!('blind' in r)&&optionalNumber(r.gross_R)&&typeof r.alert_id==='string'&&/^A-[A-Za-z0-9_-]{6,8}$/.test(r.alert_id)
- &&obj(r.lifecycle)&&['waiting','filled','target','stopped','time','cancelled','expired','skipped','unverified'].includes(String(r.lifecycle.status))&&optionalDate(r.lifecycle.date));
+ &&obj(r.lifecycle)&&['waiting','filled','target','stopped','time','cancelled','expired','skipped','unverified'].includes(String(r.lifecycle.status))&&optionalDate(r.lifecycle.date)&&validShadowRow(r.shadow));
 }
 export async function fetchEvidence<T>(url:string, valid:(v:unknown)=>v is T, signal:AbortSignal,fetcher:typeof fetch=fetch):Promise<T|null> {
  try {const r=await fetcher(url,{cache:'no-store',signal});if(!r.ok)return null;const value:unknown=await r.json();return valid(value)?value:null}catch{return null}

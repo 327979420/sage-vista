@@ -160,3 +160,25 @@ test('executable forward summary is separate and absent values show unavailable'
  assert.doesNotMatch(render(ForwardView,{data:active},'en'),/[\u3400-\u9fff]/);
  assert.equal(data.validForward({...active,executable:{...executable,mean_R:'bad'}}),false);
 });
+
+test('shadow record: market-blocked trades validate, render in both languages and stay out of the real record',()=>{
+ const ForwardTerminal=load('app/forward/terminal.tsx').default;
+ const signals=forward.signals.map((r,i)=>i===0?{...r,shadow:{status:'closed',outcome:'stop',R:-1.002,exit_date:'2026-11-20'}}:i===1?{...r,shadow:{status:'filled',outcome:null,R:null,exit_date:null}}:{...r,shadow:null});
+ const shadow={signals:6,completed:1,scored:1,unscorable:0,next_checkpoint:30,to_go:29,mean_net_R:-1.002,t:null,mean_d:-.8,win_rate:0,verdict:'记录中',checkpoints:[]};
+ const value={...forward,judging:{...forward.judging,shadow},signals};
+ assert.ok(data.validForward(value));
+ assert.ok(data.validForward(forward),'files written before the shadow record still validate');
+ const zh=render(ForwardView,{data:value});
+ assert.ok(zh.includes('影子记录（被大盘挡掉的单）'));assert.ok(zh.includes('影子：止损'));assert.ok(zh.includes('影子：持仓中'));assert.ok(zh.includes('记录中'));
+ assert.doesNotMatch(render(ForwardView,{data:value},'en'),/[㐀-鿿]/);
+ const term=render(ForwardTerminal,{data:value});assert.ok(term.includes('影子记录 · 被大盘挡掉的单'));assert.ok(term.includes('-1.00R'));
+ assert.doesNotMatch(render(ForwardTerminal,{data:value},'en'),/[㐀-鿿]/);
+ assert.ok(!render(ForwardView,{data:forward}).includes('影子记录（被大盘挡掉的单）'),'no panel without shadow data');
+ const reached={...shadow,signals:40,completed:31,scored:31,next_checkpoint:60,to_go:29,verdict:'保留大盘过滤',checkpoints:[{k:30,scored:30,unscorable:0,mean_net_R:-.3,t:-1.1,mean_d:-.2,verdict:'保留大盘过滤'}]};
+ assert.ok(data.validForward({...value,judging:{...value.judging,shadow:reached}}));
+ for(const bad of [{...shadow,verdict:'放松过滤'},{...shadow,to_go:28},{...shadow,scored:2},{...reached,checkpoints:[]},{...shadow,signals:0}])
+  assert.equal(data.validForward({...value,judging:{...value.judging,shadow:bad}}),false);
+ for(const bad of [{status:'closed',outcome:'stop',R:null,exit_date:'2026-11-20'},{status:'skipped',outcome:null,R:null,exit_date:null},{status:'filled',outcome:'win',R:null,exit_date:null}])
+  assert.equal(data.validForward({...value,signals:[{...signals[0],shadow:bad}]}),false);
+ assert.equal(data.validForward({...value,judging:{...value.judging,status:'missing',completed:null,scored:null,unscorable:null,next_checkpoint:null,to_go:null,alarm1:null,verdict:'本次运行未生成计分',checkpoints:[]}}),false,'a missing scorecard has no shadow block');
+});

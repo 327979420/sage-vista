@@ -20,6 +20,8 @@ export const FACTS_EN:Record<string,[string,string]> = {
 };
 const validRecord = (v:unknown):v is RecordFile => !!v&&typeof v==='object'&&Array.isArray((v as RecordFile).facts)&&(v as RecordFile).facts.every(f=>f&&typeof f.id==='string'&&typeof f.label==='string');
 type Span = '1w'|'4w'|'13w';
+const SHADOW_ZH:Record<string,string>={waiting:'等待成交',cancelled:'已撤单',filled:'持仓中',target:'止盈',stop:'止损',time:'时间退出'};
+const SHADOW_EN:Record<string,string>={waiting:'Waiting to fill',cancelled:'Cancelled',filled:'Open',target:'Target hit',stop:'Stopped',time:'Time exit'};
 
 export default function ForwardTerminal({data}:{data:Forward}) {
  const {locale}=useLocale(), en=locale==='en';
@@ -30,6 +32,7 @@ export default function ForwardTerminal({data}:{data:Forward}) {
  const [ready,setReady]=useState(false);
  useEffect(()=>{let active=true;void sharedJson<unknown>('/app/record.json').then(d=>{if(active&&validRecord(d))setRecord(d)});const t=setTimeout(()=>setReady(true),150);return()=>{active=false;clearTimeout(t)}},[]);
  const j=data.judging, t=j.thresholds, closed=data.summary.closed, goal=t.proof_min_trades;
+ const blocked=data.signals.filter(r=>r.shadow);
  const count=(st:string)=>data.signals.filter(s=>s.status===st).length;
  const done=data.signals.filter(s=>s.status==='closed'&&s.R!==null).sort((a,b)=>(a.exit_date??'').localeCompare(b.exit_date??''));
  const next=t.checkpoints.find(c=>c>closed)??goal;
@@ -63,6 +66,15 @@ export default function ForwardTerminal({data}:{data:Forward}) {
    </div>
    <p className="fwPipe">{flow.map(([label,value],i)=><span key={label}>{i>0&&<em aria-hidden="true">→</em>}{value} {label.toLowerCase()}</span>)}</p>
   </section>
+  {(j.shadow||blocked.length>0)&&<section className="ovPanel fwShadow" aria-label={en?'Shadow record':'影子记录'}>
+   <header><small>{en?'Shadow record · trades the market filter blocked':'影子记录 · 被大盘挡掉的单'}</small>
+    {j.shadow&&<span className="fwNext">{en?`${j.shadow.completed} of ${j.shadow.next_checkpoint??j.shadow.completed} closed`:`已结束 ${j.shadow.completed} / ${j.shadow.next_checkpoint??j.shadow.completed}`}</span>}</header>
+   <p className="fwLead">{en?'The pattern and plan passed; only the market filter said no. Each is still played out under the same rules. At 30 closed we check whether the filter avoided losers or blocked winners.'
+    :'形态和计划都合格，只是大盘过滤没放行。照样按同一规则记下结果：满 30 笔时看大盘过滤是在躲坑，还是挡了好机会。'}</p>
+   <ol className="fwShadowList">{blocked.map(r=>{const x=r.shadow!,tone=x.R===null?'dim':x.R>0?'go':'loss';
+    return <li key={r.id}><b>{r.symbol}</b><span>{r.signal_week.slice(5)}</span><em data-tone={tone}>{en?SHADOW_EN[x.status==='closed'?x.outcome??'time':x.status]:SHADOW_ZH[x.status==='closed'?x.outcome??'time':x.status]}</em><strong data-tone={tone}>{x.R===null?'—':`${x.R>0?'+':''}${x.R.toFixed(2)}R`}</strong></li>})}</ol>
+   {j.shadow&&j.shadow.completed>0&&<p className="fwPipe"><span>{en?`avg ${j.shadow.mean_net_R===null?'—':j.shadow.mean_net_R.toFixed(2)+'R'}`:`平均 ${j.shadow.mean_net_R===null?'—':j.shadow.mean_net_R.toFixed(2)+'R'}`}</span><span>{en?`win ${j.shadow.win_rate===null?'—':Math.round(j.shadow.win_rate*100)+'%'}`:`胜率 ${j.shadow.win_rate===null?'—':Math.round(j.shadow.win_rate*100)+'%'}`}</span></p>}
+  </section>}
   <div className="ovGrid fwGrid">
    <section className="ovPanel" aria-label={en?'Skipped signals afterwards':'没下单的信号后来怎样'}>
     <header><small>{en?'What the signals did afterwards':'信号后来怎样'}</small>
