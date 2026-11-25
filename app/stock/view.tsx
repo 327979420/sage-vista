@@ -7,7 +7,7 @@ import SignalChart from '../app/signal-chart';
 import {toRow, type SignalRow} from '../app/signal-rows';
 import {fetchEvidence, validTicket} from '../evidence/data';
 import {Mini, type SetupRow} from '../zh/watch/resonance/favorite-pattern/terminal';
-import {classify, family, findings, lights, priceFacts, stockHref, type Entry, type Lookup, type Part, type StockIndex} from './lookup';
+import {W3_URLS, classify, family, findings, lights, priceFacts, stockHref, type Entry, type Lookup, type Part, type StockIndex} from './lookup';
 import {StockSearch, useIndex} from './search';
 
 const md = (d: string | null | undefined) => (d ?? '').slice(5);
@@ -35,7 +35,7 @@ function W3Detail({entry, en}: {entry: Entry; en: boolean}) {
  useEffect(() => {
   const control = new AbortController(), w3 = entry.w3!;
   void (async () => {
-   const signals = await sharedJson<{signals: {id: string}[]}>('/app/signals.json');
+   const signals = await sharedJson<{signals: {id: string}[]}>(W3_URLS.signals);
    const signal = signals?.signals.find(s => s.id === w3.id);
    const ticket = signal ? await fetchEvidence(`/app/tickets/${encodeURIComponent(w3.id)}.json`, validTicket, control.signal) : null;
    setRow(signal ? toRow(signal as Parameters<typeof toRow>[0], ticket && !ticket.example ? ticket : null) : null);

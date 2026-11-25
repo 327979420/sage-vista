@@ -94,6 +94,7 @@ class DailyEodWorkflowTests(unittest.TestCase):
   deploy=(WORKFLOW.parent/"deploy-eod-scheduler.yml").read_text()
   self.assertIn('"name": "sage-vista-eod-scheduler"',config)
   self.assertIn('"37 4 * * 2-6"',config)
+  self.assertIn('"RESEARCH_WORKFLOW": "research-lab.yml"',config)
   self.assertIn("GITHUB_ACTIONS_TOKEN",worker)
   self.assertNotIn("test-token-must-not-leak",worker)
   self.assertIn("actions: write",monitor)

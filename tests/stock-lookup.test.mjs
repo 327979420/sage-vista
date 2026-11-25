@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {loadTs} from './helpers/load-ts.mjs';
-const {classify, suggest, lights, findings, priceFacts, validIndex, stockHref} = loadTs('app/stock/lookup.ts');
+const {classify, suggest, lights, findings, priceFacts, validIndex, stockHref, tags, withLive3W} = loadTs('app/stock/lookup.ts');
 
 const index = {
  schema_version: 1, as_of: '2026-11-23', count: 1660, mf_triggered: 62, mf_ranked: 30, shape_watch: 100, shape_counts: {},
@@ -68,4 +68,42 @@ test("today's findings name what is new, what has a signal and which big names a
  const en = findings({...index, new: {mf: [], sh: [], w3: []}, w3: {...index.w3, light: 'green', new: 2}}, true);
  assert.equal(en.rows[0].key, 'mf');
  assert.match(en.summary.map(p => typeof p === 'string' ? p : p.b).join(''), /3W: 2 new signals in the week of 11-20\. /);
+});
+
+// The research lab republishes public/app/*.json hours after the index is written.
+const signal = (id, symbol, week, status, close = 10) => ({id, symbol, week, status, quote: {close}});
+const built = {
+ signals: {signals: [signal('n1', 'NVR', '2026-11-06', 'skipped', 7100), signal('s1', 'SHLS', '2026-11-06', 'skipped', 10.08)]},
+ today: {as_of: '2026-11-20', signal_week: '2026-11-20', new_signals_this_week: 0, market: {light: 'red'}},
+ record: {forward: {counts: {closed: 0}}},
+};
+
+test('3W files the index was built from change nothing', () => {
+ assert.equal(withLive3W(index, built), index);
+ assert.equal(withLive3W(index, {...built, today: {...built.today, as_of: '2026-11-19'}}), index, 'older files never step back');
+ assert.equal(withLive3W(index, {signals: null, today: null, record: null}), index, 'missing files keep the daily index');
+ assert.equal(withLive3W(index, {...built, signals: {signals: [{id: 1}]}}), index, 'malformed signals are ignored');
+});
+
+test('newer 3W files refresh the stocks, the summary and what is new, as the daily build would', () => {
+ const live = {
+  signals: {signals: [...built.signals.signals, signal('z9', 'ZS', '2026-11-20', 'pending', 229.24), signal('q1', 'QQQX', '2026-11-20', 'pending', 12.345)]},
+  today: {as_of: '2026-11-24', signal_week: '2026-11-20', new_signals_this_week: 2, market: {light: 'yellow'}},
+  record: {forward: {counts: {closed: 3}}},
+ };
+ const next = withLive3W(index, live);
+ assert.deepEqual(next.stocks.ZS, {...index.stocks.ZS, w3: {id: 'z9', week: '2026-11-20', status: 'pending'}}, 'a tracked stock keeps its other views');
+ assert.deepEqual(next.stocks.QQQX, {c: 12.35, x: true, w3: {id: 'q1', week: '2026-11-20', status: 'pending'}}, 'an untracked 3W stock is added outside the gate');
+ assert.deepEqual(next.stocks.NVR, index.stocks.NVR);
+ assert.deepEqual(next.w3, {as_of: '2026-11-24', week: '2026-11-20', new: 2, light: 'yellow', latest_week: '2026-11-20', latest: ['QQQX', 'ZS'], since_lock: 4});
+ assert.equal(next.closed, 3);
+ assert.deepEqual(next.new, {...index.new, w3: ['QQQX', 'ZS']});
+ assert.equal(next.as_of, index.as_of, 'the daily date is unchanged');
+ assert.deepEqual(index.stocks.ZS.w3, undefined, 'the loaded index is not mutated');
+ assert.equal(classify('zs', next).entry.w3.id, 'z9');
+ assert.ok(tags(next.stocks.ZS, false).includes('3W 信号'));
+
+ const dropped = withLive3W(index, {...live, signals: {signals: [signal('n1', 'NVR', '2026-11-06', 'filled', 7100)]}});
+ assert.equal(dropped.stocks.SHLS, undefined, 'an outside-the-gate stock with nothing left is removed');
+ assert.equal(dropped.stocks.NVR.w3.status, 'filled');
 });

@@ -2,9 +2,11 @@
 import {useEffect, useState, type KeyboardEvent} from 'react';
 import {useLocale} from '../i18n/locale';
 import {sharedJson} from '../json-cache';
-import {INDEX_URL, stockHref, suggest, tags, validIndex, type StockIndex} from './lookup';
+import {INDEX_URL, W3_URLS, stockHref, suggest, tags, validIndex, withLive3W, type StockIndex} from './lookup';
 
-export const loadIndex = () => sharedJson<unknown>(INDEX_URL).then(v => (validIndex(v) ? v : null));
+// The daily index, with its 3W part refreshed from the files the 3W page reads (see withLive3W).
+export const loadIndex = () => Promise.all([sharedJson<unknown>(INDEX_URL), sharedJson<unknown>(W3_URLS.signals), sharedJson<unknown>(W3_URLS.today), sharedJson<unknown>(W3_URLS.record)])
+ .then(([index, signals, today, record]) => (validIndex(index) ? withLive3W(index, {signals, today, record}) : null));
 export function useIndex(enabled = true) {
  const [state, setState] = useState<{index: StockIndex | null; ready: boolean}>({index: null, ready: false});
  useEffect(() => {
