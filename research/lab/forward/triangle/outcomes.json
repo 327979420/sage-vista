@@ -1,7 +1,7 @@
 {
  "id": "triangle-forward-v1",
  "version": "3w-1.9",
- "computed_at": "2026-11-25T04:41:21+00:00",
+ "computed_at": "2026-11-26T04:41:27+00:00",
  "summary": {
   "signals": 17,
   "judged": 0,
@@ -10,7 +10,7 @@
    "wins": 1,
    "mean_R": -0.0355,
    "sum_R": -0.107,
-   "random_mean_R": -0.782
+   "random_mean_R": -0.7037
   },
   "user_do": {
    "trades": 0
@@ -64,23 +64,23 @@
    "R": 1.8934,
    "r19": {
     "status": "open",
-    "R": 1.8103
+    "R": 1.9947
    },
    "fill": "2026-10-26",
    "exit": "2026-11-20",
-   "random_R": -0.3626
+   "random_R": -0.4116
   },
   {
    "id": "52a8813ff8",
    "status": "open",
-   "R": 1.4491,
+   "R": 1.6789,
    "r19": {
     "status": "open",
-    "R": 1.4491
+    "R": 1.6789
    },
    "fill": "2026-10-29",
-   "exit": "2026-11-24",
-   "random_R": 0.4373
+   "exit": "2026-11-25",
+   "random_R": 0.4349
   },
   {
    "id": "61931583f7",
@@ -112,11 +112,11 @@
    "r19": {
     "status": "loss",
     "R": -1.0,
-    "random_R": -0.1173
+    "random_R": -0.1724
    },
    "fill": "2026-10-26",
    "exit": "2026-11-16",
-   "random_R": -0.8638
+   "random_R": -0.58
   },
   {
    "id": "998494ee77",
