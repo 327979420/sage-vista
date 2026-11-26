@@ -258,5 +258,60 @@ class ForwardJudgeTests(unittest.TestCase):
         self.assertFalse(J.score(rs)["alarm1"])
 
 
+def shadow_rows(n, nets, twin=0.0):
+    """Market-blocked plan-go rows (case ledger 17, 2026-11-25): eligible False, replayed with the frozen rule."""
+    return [{"id": f"s{i:03}", "exit_date": (dt.date(2020, 1, 1) + dt.timedelta(days=i)).isoformat(), "eligible": False,
+             "completed": True, "scored": False, "d": None, "trade": {"net_R": nets[i % len(nets)]},
+             "net_twin_mean": twin, "gross_difference": None, "check": "一致", "frozen": {"random_R": twin}}
+            for i in range(n)]
+
+
+class ShadowRecordTests(unittest.TestCase):
+    def test_before_thirty_only_records(self):
+        out = J.score(shadow_rows(29, [3.0, -1.0]))
+        sh = out["shadow"]
+        self.assertEqual((sh["completed"], sh["next_checkpoint"], sh["to_go"], sh["verdict"]), (29, 30, 1, "记录中"))
+        self.assertEqual(sh["checkpoints"], [])
+        # Shadow trades never enter the real record, its alarms or its proof.
+        self.assertEqual((out["completed"], out["scored"], out["alarm1"]), (0, 0, False))
+
+    def test_keep_filter_when_blocked_trades_lose(self):
+        sh = J.score(shadow_rows(30, [-1.0, -1.0, 0.5]))["shadow"]
+        self.assertLess(sh["mean_net_R"], 0)
+        self.assertEqual(sh["verdict"], J.SHADOW_KEEP)
+        self.assertEqual((sh["next_checkpoint"], sh["to_go"]), (60, 30))
+
+    def test_propose_only_with_t_two_and_beating_twins(self):
+        rows_ = shadow_rows(30, [3.0, 3.0, -1.0], twin=0.2)
+        sh = J.score(rows_)["shadow"]
+        self.assertGreaterEqual(sh["t"], 2)
+        self.assertGreater(sh["mean_d"], 0)
+        self.assertEqual(sh["verdict"], J.SHADOW_PROPOSE)
+        # Same trades, but the random twins did better: not a reason to relax the filter.
+        self.assertEqual(J.score(shadow_rows(30, [3.0, 3.0, -1.0], twin=2.0))["shadow"]["verdict"], "继续记录到60笔")
+
+    def test_inconclusive_goes_to_sixty_then_stays_open(self):
+        weak = [3.0, -1.0, -1.0, -0.9]
+        self.assertEqual(J.score(shadow_rows(30, weak))["shadow"]["verdict"], "继续记录到60笔")
+        sh = J.score(shadow_rows(60, weak))["shadow"]
+        self.assertEqual([c["verdict"] for c in sh["checkpoints"]], ["继续记录到60笔", "仍看不出差别"])
+        self.assertEqual(sh["verdict"], "仍看不出差别")
+
+    def test_first_decision_stands_and_only_blocked_go_rows_count(self):
+        rows_ = shadow_rows(30, [-1.0]) + shadow_rows(30, [3.0, 3.0, 2.0])
+        for i, r in enumerate(rows_):
+            r["id"] = f"m{i:03}"
+            r["exit_date"] = (dt.date(2020, 1, 1) + dt.timedelta(days=i)).isoformat()
+        no_go = dict(shadow_rows(1, [9.0])[0], id="nogo", trade=None)
+        real = rows(5, True)
+        sh = J.score(rows_ + [no_go] + real)["shadow"]
+        self.assertEqual((sh["signals"], sh["completed"]), (60, 60))
+        self.assertEqual(sh["checkpoints"][0]["verdict"], J.SHADOW_KEEP)
+        self.assertEqual(sh["verdict"], J.SHADOW_KEEP)
+
+    def test_markdown_mentions_shadow(self):
+        self.assertIn("影子记录", J.markdown(J.score(shadow_rows(3, [1.0]))))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -71,8 +71,8 @@ test("server-renders the four-product navigation", async () => {
   const html = await (await render("/")).text();
   assert.doesNotMatch(html, /个股研究/);
   // Side menu names (the footer no longer repeats the candidate pages).
-  assert.match(html, /<span>多因子<\/span>/);
-  assert.match(html, /<span>形态<\/span>/);
+  assert.match(html, /<span>多因子排行<\/span>/);
+  assert.match(html, /<span>日线形态<\/span>/);
   assert.match(html, /行业/);
   assert.doesNotMatch(html, /历史与实验/);
   assert.match(html, /href="\/multi-factor"/);
@@ -167,7 +167,7 @@ test("industry owns its title and excludes the market hero", async()=>{
 
 
 test("language cookie controls first render and never leaks between requests", async()=>{
- const pages=[['/','Today'],['/portfolio','My Portfolio'],['/opportunities','Signal evidence'],['/scorecard','Forward record'],['/patterns','Daily setups'],['/learn','Learn'],['/archive','Research Archive'],['/market','Market'],['/sectors','Sectors'],['/multi-factor','Multi-Factor Opportunities'],['/patterns','Daily setups'],['/backtests','Backtests'],['/about','About SV']];
+ const pages=[['/','Today'],['/portfolio','Paper account'],['/opportunities','Signal evidence'],['/scorecard','Scorecard'],['/patterns','Daily setups'],['/learn','Learn'],['/archive','Research Archive'],['/market','Market'],['/sectors','Sectors'],['/multi-factor','Multi-Factor Opportunities'],['/patterns','Daily setups'],['/backtests','Backtests'],['/about','About SV']];
  const english=html=>{assert.match(html,/<html lang="en"[ >]/);assert.match(html,/lang="en" aria-pressed="true"/);assert.doesNotMatch(html.split('</head>')[1].split('<script')[0].replace(/>中文</g,'>Chinese<'),/[\u3400-\u9fff]/);};
  for(const[path,title]of pages){
   // English when the visitor chose it (even in a Chinese browser), when the browser prefers English,
@@ -213,12 +213,13 @@ test("a first visit opens with the intro; a returning visitor gets the normal pa
  assert.doesNotMatch(await (await render('/multi-factor','sv-seen=1')).text(),/fvBanner/);
 });
 
-test('side menu groups all twelve pages into five sections',async()=>{
+test('side menu groups all thirteen pages into five named sections, with trust tags and one line per page',async()=>{
  const html=await (await render('/patterns')).text();
  const nav=html.split('<nav class="svSideNav"')[1].split('</nav>')[0];
- const labels=['总览','今日','3W','信号','前向记录','我的组合','市场','大盘','行业','候选','多因子','形态','研究','回测','研究档案','学习','关于 SV'];
- const positions=labels.map(label=>nav.indexOf(label));
- assert.ok(positions.every((p,i)=>p>=0&&(!i||p>positions[i-1])));
+ const labels=['总览','今日','今天要不要下单','模拟账户','查股票','3W 周线三角形','正式 · 规则已锁定','信号','成绩单','日线观察名单','观察 · 未证明','多因子排行','日线形态','大盘和行业','大盘','行业','说明和研究','学习','关于 SV','回测','研究档案'];
+ // In order: each label is found after the previous one (labels such as 行业 also appear inside earlier lines).
+ let at=-1;
+ for(const label of labels){const next=nav.indexOf(label,at+1);assert.ok(next>at,label);at=next;}
  assert.match(nav,/href="\/patterns" class="active" aria-current="page"/);
 });
 

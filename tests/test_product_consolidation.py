@@ -22,11 +22,12 @@ class ProductConsolidationTests(unittest.TestCase):
   self.assertIn("import SiteNavigation from './site-navigation'",layout)
   self.assertIn("<SiteNavigation uiVersion=",layout)
   current=(ROOT/"app/site-navigation.tsx").read_text()
-  for label,path in (("今日","/"),("信号","/signals"),("前向记录","/forward"),("我的组合","/portfolio"),
+  for label,path in (("今日","/"),("模拟账户","/portfolio"),("查股票","/stock"),("信号","/signals"),("成绩单","/forward"),
                      ("大盘","/market"),("行业","/sectors"),
-                     ("多因子","/multi-factor"),("形态","/patterns"),
+                     ("多因子排行","/multi-factor"),("日线形态","/patterns"),
                      ("回测","/backtests"),("研究档案","/archive"),("学习","/learn"),("关于 SV","/about")):
-   self.assertRegex(current,rf"\['{re.escape(label)}', '[^']+', '{re.escape(path)}'\]")
+   # [zh, en, path, zh line, en line]: every link says what its page answers.
+   self.assertRegex(current,rf"\['{re.escape(label)}', '[^']+', '{re.escape(path)}', '[^']+', '[^']+'\]")
   # Old addresses keep their menu entry lit.
   # /patterns is now the canonical address of Daily setups, so only the two older pages remain aliases.
   for alias in ("/opportunities","/scorecard"):self.assertIn(f"'{alias}':",current)

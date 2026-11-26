@@ -93,7 +93,7 @@ test('only owned JSON endpoints requested and valid schema accepted',async()=>{
 });
 test('shared page header reuses the site hero without a duplicate navigation',()=>{
   const html=render(Header,{current:'portfolio'});
-  assert.ok(html.includes('rtSubHero'));assert.ok(html.includes('我的组合'));
+  assert.ok(html.includes('rtSubHero'));assert.ok(html.includes('模拟账户'));
   assert.ok(!html.includes('<nav'));
 });
 test('new routes render and legacy app routes redirect',async()=>{
