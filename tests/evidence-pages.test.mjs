@@ -28,6 +28,9 @@ const {ForwardView,CumulativeChart}=load('app/forward/forward.tsx');
 const {EvidenceHeader}=load('app/evidence/shared.tsx');
 const ticket=JSON.parse(fs.readFileSync('public/app/ticket-example.json'));
 const forward=JSON.parse(fs.readFileSync('public/app/forward.json'));
+// The real file as it was before the shadow record existed (no judging.shadow, no row.shadow); the live file now has both.
+const judgingBefore={...forward.judging};delete judgingBefore.shadow;
+const before={...forward,judging:judgingBefore,signals:forward.signals.map(r=>{const x={...r};delete x.shadow;return x;})};
 const render=(C,props,locale='zh')=>renderToStaticMarkup(React.createElement(LocaleProvider,{initialLocale:locale},React.createElement(C,props)));
 test('owned artifacts validate; malformed and failed requests resolve to missing',async()=>{
  assert.ok(data.validTicket(ticket));assert.ok(data.validForward(forward));assert.ok(data.validIndex([]));
@@ -139,7 +142,7 @@ test('ticket uses six order fields and one four-stage outcome without body credi
  });
 
 test('judging schema, missing scorecard and all reached checkpoints are bilingual',()=>{
- const missing={...forward,judging:{...forward.judging,status:'missing',completed:null,scored:null,unscorable:null,next_checkpoint:null,to_go:null,alarm1:null,verdict:'本次运行未生成计分'}};
+ const missing={...forward,judging:{...judgingBefore,status:'missing',completed:null,scored:null,unscorable:null,next_checkpoint:null,to_go:null,alarm1:null,verdict:'本次运行未生成计分'}};
  assert.ok(data.validForward(missing));assert.ok(render(ForwardView,{data:missing}).includes('本次运行未生成计分'));
  assert.doesNotMatch(render(ForwardView,{data:missing},'en'),/[\u3400-\u9fff]/);
  const checkpoints=[30,60,100].map(k=>({k,scored:k,unscorable:0,mean_d:-.5,t:-2.1,alarm1:true,verdict:'失效警报1'}));
@@ -167,13 +170,14 @@ test('shadow record: market-blocked trades validate, render in both languages an
  const shadow={signals:6,completed:1,scored:1,unscorable:0,next_checkpoint:30,to_go:29,mean_net_R:-1.002,t:null,mean_d:-.8,win_rate:0,verdict:'记录中',checkpoints:[]};
  const value={...forward,judging:{...forward.judging,shadow},signals};
  assert.ok(data.validForward(value));
- assert.ok(data.validForward(forward),'files written before the shadow record still validate');
+ assert.ok(data.validForward(forward),'the current file validates');
+ assert.ok(data.validForward(before),'files written before the shadow record still validate');
  const zh=render(ForwardView,{data:value});
  assert.ok(zh.includes('影子记录（被大盘挡掉的单）'));assert.ok(zh.includes('影子：止损'));assert.ok(zh.includes('影子：持仓中'));assert.ok(zh.includes('记录中'));
  assert.doesNotMatch(render(ForwardView,{data:value},'en'),/[㐀-鿿]/);
  const term=render(ForwardTerminal,{data:value});assert.ok(term.includes('影子记录 · 被大盘挡掉的单'));assert.ok(term.includes('-1.00R'));
  assert.doesNotMatch(render(ForwardTerminal,{data:value},'en'),/[㐀-鿿]/);
- assert.ok(!render(ForwardView,{data:forward}).includes('影子记录（被大盘挡掉的单）'),'no panel without shadow data');
+ assert.ok(!render(ForwardView,{data:before}).includes('影子记录（被大盘挡掉的单）'),'no panel without shadow data');
  const reached={...shadow,signals:40,completed:31,scored:31,next_checkpoint:60,to_go:29,verdict:'保留大盘过滤',checkpoints:[{k:30,scored:30,unscorable:0,mean_net_R:-.3,t:-1.1,mean_d:-.2,verdict:'保留大盘过滤'}]};
  assert.ok(data.validForward({...value,judging:{...value.judging,shadow:reached}}));
  for(const bad of [{...shadow,verdict:'放松过滤'},{...shadow,to_go:28},{...shadow,scored:2},{...reached,checkpoints:[]},{...shadow,signals:0}])
